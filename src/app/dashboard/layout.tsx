@@ -1,3 +1,4 @@
+import { GreetingDialog } from '@/components/greeting-dialog';
 import KBar from '@/components/kbar';
 import AppSidebar from '@/components/layout/app-sidebar';
 import Header from '@/components/layout/header';
@@ -32,6 +33,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             {children}
             <InfoSidebar side='right' />
             <ChatwootWidget />
+            <GreetingDialog />
           </InfobarProvider>
         </SidebarInset>
       </SidebarProvider>
