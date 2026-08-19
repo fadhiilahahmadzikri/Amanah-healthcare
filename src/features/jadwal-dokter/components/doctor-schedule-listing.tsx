@@ -23,9 +23,9 @@ function DoctorScheduleCardsSkeleton() {
 }
 
 export default async function DoctorScheduleListingPage() {
-  const page = searchParamsCache.get('page');
+  const page = searchParamsCache.get('page') || 1;
   const search = searchParamsCache.get('search') || searchParamsCache.get('name');
-  const pageLimit = searchParamsCache.get('perPage');
+  const pageLimit = searchParamsCache.get('perPage') || 6;
 
   const filters = {
     page,

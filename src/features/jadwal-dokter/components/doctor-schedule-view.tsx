@@ -18,6 +18,7 @@ import { DoctorScheduleCard } from './doctor-schedule-card';
 import { DoctorScheduleDetailSheet } from './doctor-schedule-detail-sheet';
 import { DoctorScheduleEditModal } from './doctor-schedule-edit-modal';
 import { DoctorExportButton } from './doctor-export-button';
+import { DoctorSchedulePagination } from './doctor-schedule-pagination';
 import { POLI_OPTIONS } from '../constants/options';
 import type { DoctorSchedule } from '../api/types';
 
@@ -28,7 +29,7 @@ export function DoctorScheduleView() {
 
   const [params, setParams] = useQueryStates({
     page: parseAsInteger.withDefault(1),
-    perPage: parseAsInteger.withDefault(20),
+    perPage: parseAsInteger.withDefault(6),
     search: parseAsString.withDefault(''),
     poli: parseAsString.withDefault('all'),
     status: parseAsString.withDefault('all')
@@ -148,26 +149,40 @@ export function DoctorScheduleView() {
         </div>
 
         {/* Doctor Schedules Card Grid */}
-        {data.doctors.length === 0 ? (
-          <div className='p-12 text-center border border-dashed border-border/80 rounded-2xl bg-card/40 my-4'>
-            <Icons.clock className='size-10 text-muted-foreground/40 mx-auto mb-2' />
-            <h3 className='text-sm font-bold text-foreground'>Tidak ada jadwal dokter ditemukan</h3>
-            <p className='text-xs text-muted-foreground mt-1'>
-              Coba sesuaikan kata kunci pencarian atau bersihkan filter yang aktif.
-            </p>
-          </div>
-        ) : (
-          <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5 pb-6'>
-            {data.doctors.map((doctor) => (
-              <DoctorScheduleCard
-                key={doctor.id}
-                doctor={doctor}
-                onOpenDetail={handleOpenDetail}
-                onOpenEdit={handleOpenEdit}
-              />
-            ))}
-          </div>
-        )}
+        <div className='flex-1 pb-4'>
+          {data.doctors.length === 0 ? (
+            <div className='p-12 text-center border border-dashed border-border/80 rounded-2xl bg-card/40 my-4'>
+              <Icons.clock className='size-10 text-muted-foreground/40 mx-auto mb-2' />
+              <h3 className='text-sm font-bold text-foreground'>
+                Tidak ada jadwal dokter ditemukan
+              </h3>
+              <p className='text-xs text-muted-foreground mt-1'>
+                Coba sesuaikan kata kunci pencarian atau bersihkan filter yang aktif.
+              </p>
+            </div>
+          ) : (
+            <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5'>
+              {data.doctors.map((doctor) => (
+                <DoctorScheduleCard
+                  key={doctor.id}
+                  doctor={doctor}
+                  onOpenDetail={handleOpenDetail}
+                  onOpenEdit={handleOpenEdit}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Docked Bottom Sticky Pagination Bar */}
+        <DoctorSchedulePagination
+          currentPage={params.page}
+          pageSize={params.perPage}
+          totalItems={data.total_doctors}
+          onPageChange={(page) => setParams({ page })}
+          onPageSizeChange={(perPage) => setParams({ perPage, page: 1 })}
+          pageSizeOptions={[6, 12, 18, 24, 30]}
+        />
       </div>
     </>
   );
