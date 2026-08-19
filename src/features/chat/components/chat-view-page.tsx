@@ -1,11 +1,19 @@
 'use client';
 
-import { Messenger } from './messenger';
+import React from 'react';
+import PageContainer from '@/components/layout/page-container';
+import { UnifiedChatWorkspace } from './chat-workspace';
 
 export default function ChatViewPage() {
   return (
-    <div className='flex min-h-0 flex-1 px-4 py-2 md:px-6'>
-      <Messenger />
-    </div>
+    <PageContainer
+      scrollable={false}
+      pageTitle='Chat Pasien'
+      pageDescription='Ruang percakapan dan konsultasi terpadu pasien bersama tim medis & administrasi.'
+    >
+      <div className='flex-1 h-full min-h-0 flex flex-col pb-4'>
+        <UnifiedChatWorkspace />
+      </div>
+    </PageContainer>
   );
 }

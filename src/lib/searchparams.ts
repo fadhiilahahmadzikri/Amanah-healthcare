@@ -14,6 +14,7 @@ export const searchParams = {
   categoryId: parseAsString,
   role: parseAsString,
   status: parseAsString,
+  poli: parseAsString,
   search: parseAsString,
   sort: parseAsString
 };

@@ -165,6 +165,34 @@ export const getStatusConfig = (status: string): StatusConfig => {
         ...clinicalTokens.colors.status.confirmed,
         label: 'Aktif'
       };
+    case 'SEBAGIAN':
+      return {
+        ...clinicalTokens.colors.status.pending,
+        label: 'Sebagian'
+      };
+    case 'CUTI':
+    case 'CUTI_/_TUTUP':
+    case 'CUTI / TUTUP':
+      return {
+        ...clinicalTokens.colors.status.completed,
+        label: 'Cuti / Tutup'
+      };
+    case 'TUTUP':
+    case 'CLOSED':
+      return {
+        ...clinicalTokens.colors.status.cancelled,
+        label: 'Tutup'
+      };
+    case 'LIBUR':
+      return {
+        pillBg: 'bg-slate-100 dark:bg-slate-800/60',
+        pillBorder: 'border-slate-300 dark:border-slate-700',
+        pillShadow: 'shadow-none',
+        textGradient: 'text-slate-700 dark:text-slate-200',
+        dotGradient: 'bg-slate-400 dark:bg-slate-500',
+        hex: '#64748B',
+        label: 'Libur'
+      };
     case 'NONAKTIF':
     case 'INACTIVE':
       return {

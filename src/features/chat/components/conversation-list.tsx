@@ -3,16 +3,11 @@
 import { useMemo, useState } from 'react';
 import { Icons } from '@/components/icons';
 import { motion } from 'motion/react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import type { Conversation } from '../utils/types';
-
-const statusDotColor = {
-  online: 'bg-green-500',
-  offline: 'bg-red-500'
-} as const;
 
 interface ConversationListProps {
   conversations: Conversation[];
@@ -27,7 +22,7 @@ export function ConversationList({ conversations, selectedId, onSelect }: Conver
     if (!search.trim()) return conversations;
     const q = search.toLowerCase();
     return conversations.filter(
-      (c) => c.name.toLowerCase().includes(q) || c.title.toLowerCase().includes(q)
+      (c) => c.name.toLowerCase().includes(q) || c.id_pasien.toLowerCase().includes(q)
     );
   }, [conversations, search]);
 
@@ -78,6 +73,13 @@ export function ConversationList({ conversations, selectedId, onSelect }: Conver
         {filtered.map((conversation) => {
           const isActive = conversation.id === selectedId;
           const lastMessage = conversation.messages[conversation.messages.length - 1];
+          const initials = conversation.name
+            .split(' ')
+            .map((n) => n[0])
+            .slice(0, 2)
+            .join('')
+            .toUpperCase();
+
           return (
             <motion.button
               key={conversation.id}
@@ -94,23 +96,21 @@ export function ConversationList({ conversations, selectedId, onSelect }: Conver
             >
               <div className='relative shrink-0'>
                 <Avatar className='border-border/40 bg-background/80 text-foreground h-10 w-10 rounded-2xl border'>
+                  <AvatarImage src={conversation.avatar} alt={conversation.name} />
                   <AvatarFallback className='bg-primary/15 text-primary rounded-2xl text-sm font-medium'>
-                    {conversation.initials}
+                    {initials}
                   </AvatarFallback>
                 </Avatar>
                 <span
-                  className={cn(
-                    'border-background absolute right-0 bottom-0 inline-flex h-3 w-3 rounded-full border-2',
-                    statusDotColor[conversation.status]
-                  )}
-                  aria-label={conversation.status === 'online' ? 'Online' : 'Offline'}
+                  className='border-background absolute right-0 bottom-0 inline-flex h-3 w-3 rounded-full border-2 bg-emerald-500'
+                  aria-label='Online'
                 />
               </div>
               <div className='min-w-0 flex-1 space-y-1'>
                 <div className='flex items-start justify-between gap-2'>
                   <div className='min-w-0 flex-1'>
                     <p className='text-foreground text-sm font-semibold'>{conversation.name}</p>
-                    <p className='text-muted-foreground text-xs'>{conversation.title}</p>
+                    <p className='text-muted-foreground text-xs'>{conversation.id_pasien}</p>
                   </div>
                   {lastMessage && (
                     <span className='text-muted-foreground shrink-0 text-[0.65rem]'>

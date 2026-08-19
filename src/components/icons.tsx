@@ -129,12 +129,25 @@ import {
   IconPill,
   IconTicket,
   IconLayoutList,
-  IconTable
+  IconTable,
+  IconInbox,
+  IconCopy,
+  IconMail,
+  IconPlayerPause,
+  IconPlayerPlay
 } from '@tabler/icons-react';
 
 export type Icon = React.ComponentType<IconProps>;
 
 export const Icons = {
+  inbox: IconInbox,
+  copy: IconCopy,
+  mail: IconMail,
+  pause: IconPlayerPause,
+  play: IconPlayerPlay,
+  image: IconPhoto,
+  view: IconEye,
+  horizontalSliders: IconAdjustmentsHorizontal,
   gift: IconGift,
   flask: IconFlask,
   pill: IconPill,
@@ -181,6 +194,7 @@ export const Icons = {
   account: IconUserCircle,
   profile: IconUser,
   employee: IconUserX,
+  userX: IconUserX,
   userPen: IconUserEdit,
   teams: IconUsers,
 

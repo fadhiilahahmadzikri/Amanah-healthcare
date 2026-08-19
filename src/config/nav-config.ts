@@ -43,13 +43,15 @@ export const navGroups: NavGroup[] = [
           },
           {
             title: 'Jadwal Dokter',
-            url: '#',
-            icon: 'clock'
+            url: '/dashboard/jadwal-dokter',
+            icon: 'clock',
+            shortcut: ['j', 'd']
           },
           {
             title: 'Chat Pasien',
-            url: '#',
-            icon: 'chat'
+            url: '/dashboard/chat',
+            icon: 'chat',
+            shortcut: ['c', 'p']
           },
           {
             title: 'Kehadiran Pegawai',
