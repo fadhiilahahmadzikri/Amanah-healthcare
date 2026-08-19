@@ -88,7 +88,7 @@ export function AppointmentCard({
   return (
     <div
       className={cn(
-        'w-full bg-card text-card-foreground border border-border/50 rounded-[20px] shadow-none overflow-hidden font-sans flex flex-col justify-between h-full p-4 sm:p-5 gap-3.5 select-none transition-all',
+        'group relative w-full bg-gradient-to-t from-primary/5 to-card dark:bg-card text-card-foreground border border-border rounded-[20px] shadow-none hover:border-primary-bright/40 overflow-hidden font-sans flex flex-col justify-between h-full p-4 sm:p-5 gap-3.5 select-none transition-all duration-200',
         className
       )}
     >
@@ -192,28 +192,28 @@ export function AppointmentCard({
         </div>
       </div>
 
-      {/* 4. Actions (Reschedule + Detail Pill) */}
+      {/* 4. Actions (Reschedule + Detail) */}
       <div className='flex items-center justify-end gap-2 pt-2 border-t border-border/40'>
         <Button
           type='button'
           variant='outline'
           shape='pill'
-          size='sm'
+          size='card-action'
           onClick={() => onReschedule(appointment)}
-          className='font-medium'
+          leadingIcon={<RescheduleIcon className='size-3.5' stroke='currentColor' />}
+          className='font-semibold'
         >
-          <RescheduleIcon className='size-3.5' stroke='currentColor' />
-          <span>Reschedule</span>
+          Reschedule
         </Button>
 
         <Button
           type='button'
           variant='default'
           shape='pill'
-          size='sm'
+          size='card-action'
           withTrailingCircleIcon
           onClick={() => onViewDetails(appointment)}
-          className='font-semibold'
+          className='font-bold'
         >
           Detail
         </Button>

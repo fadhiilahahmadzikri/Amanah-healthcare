@@ -8,54 +8,78 @@ import { cn } from '@/lib/utils';
 import type { StepperIconType, StepperTimelineItem } from '@/features/chat/utils/types';
 
 export function StepperNodeIcon({ iconType }: { iconType: StepperIconType }) {
+  const baseClasses =
+    'size-[26px] rounded-[8px] flex items-center justify-center shrink-0 z-10 border border-black/10 dark:border-white/20 shadow-[inset_0_1px_0.5px_0_rgba(255,255,255,0.45),0_2px_4px_-1px_rgba(0,0,0,0.18),0_1px_2px_0_rgba(0,0,0,0.1)]';
+
   switch (iconType) {
     case 'lead':
       return (
-        <div className='size-[22px] rounded-[6px] bg-purple-500 text-white flex items-center justify-center shrink-0 shadow-xs z-10'>
-          <Icons.user className='size-3 text-white' />
+        <div
+          className={cn(
+            baseClasses,
+            'bg-gradient-to-b from-purple-300 via-purple-500 to-purple-700'
+          )}
+        >
+          <Icons.user className='size-3.5 text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)] stroke-[2.2]' />
         </div>
       );
     case 'contact':
       return (
-        <div className='size-[22px] rounded-[6px] bg-blue-500 text-white flex items-center justify-center shrink-0 shadow-xs z-10'>
-          <Icons.chat className='size-3 text-white' />
+        <div className={cn(baseClasses, 'bg-gradient-to-b from-sky-300 via-blue-500 to-blue-600')}>
+          <Icons.chat className='size-3.5 text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)] stroke-[2.2]' />
         </div>
       );
     case 'qualified':
       return (
-        <div className='size-[22px] rounded-[6px] bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs z-10'>
-          <Icons.badgeCheck className='size-3 text-white' />
+        <div
+          className={cn(baseClasses, 'bg-gradient-to-b from-amber-300 via-amber-500 to-amber-600')}
+        >
+          <Icons.badgeCheck className='size-3.5 text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)] stroke-[2.2]' />
         </div>
       );
     case 'booked':
       return (
-        <div className='size-[22px] rounded-[6px] bg-zinc-700 dark:bg-zinc-600 text-white flex items-center justify-center shrink-0 shadow-xs z-10'>
-          <Icons.calendar className='size-3 text-white' />
+        <div
+          className={cn(baseClasses, 'bg-gradient-to-b from-slate-400 via-slate-600 to-slate-700')}
+        >
+          <Icons.calendar className='size-3.5 text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)] stroke-[2.2]' />
         </div>
       );
     case 'completed':
       return (
-        <div className='size-[22px] rounded-[6px] bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs z-10'>
-          <Icons.check className='size-3 text-white' />
+        <div
+          className={cn(baseClasses, 'bg-gradient-to-b from-blue-400 via-blue-600 to-indigo-700')}
+        >
+          <Icons.check className='size-3.5 text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)] stroke-[2.2]' />
         </div>
       );
     case 'payment':
       return (
-        <div className='size-[22px] rounded-[6px] bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-xs z-10'>
-          <Icons.billing className='size-3 text-white' />
+        <div
+          className={cn(
+            baseClasses,
+            'bg-gradient-to-b from-emerald-300 via-emerald-500 to-emerald-600'
+          )}
+        >
+          <Icons.billing className='size-3.5 text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)] stroke-[2.2]' />
         </div>
       );
     case 'prescription':
       return (
-        <div className='size-[22px] rounded-[6px] bg-indigo-500 text-white flex items-center justify-center shrink-0 shadow-xs z-10'>
-          <Icons.post className='size-3 text-white' />
+        <div
+          className={cn(
+            baseClasses,
+            'bg-gradient-to-b from-indigo-300 via-indigo-500 to-purple-700'
+          )}
+        >
+          <Icons.post className='size-3.5 text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)] stroke-[2.2]' />
         </div>
       );
     case 'doctor':
     default:
       return (
-        <div className='size-[22px] rounded-[6px] bg-blue-500 text-white flex items-center justify-center shrink-0 shadow-xs z-10'>
-          <Icons.stethoscope className='size-3 text-white' />
+        <div className={cn(baseClasses, 'bg-gradient-to-b from-sky-300 via-blue-500 to-blue-600')}>
+          <Icons.stethoscope className='size-3.5 text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)] stroke-[2.2]' />
         </div>
       );
   }
@@ -77,10 +101,10 @@ export function StepperTimeline({ items, onActionClick, className }: StepperTime
         return (
           <div key={item.id} className='relative flex items-stretch gap-3'>
             {/* Stepper Node Icon & Vertical Connector Line */}
-            <div className='relative flex flex-col items-center shrink-0 w-[22px]'>
+            <div className='relative flex flex-col items-center shrink-0 w-[26px]'>
               <StepperNodeIcon iconType={item.iconType} />
               {!isLast && (
-                <div className='absolute top-[22px] bottom-0 w-[1px] bg-border left-1/2 -translate-x-1/2 z-0' />
+                <div className='absolute top-[26px] bottom-0 w-[1.5px] bg-border/80 left-1/2 -translate-x-1/2 z-0' />
               )}
             </div>
 

@@ -83,7 +83,7 @@ export default function OperationalReportView() {
       }
     >
       <div className='space-y-4 font-sans pb-8'>
-        {/* 1. Top 4 Metric KPI Cards with Wave Sparklines (Identical #2563eb Blue Wave Styling) */}
+        {/* 1. Top 4 Metric KPI Cards with Wave Sparklines */}
         <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
           {/* Total Pasien */}
           <MetricChartCard
@@ -94,8 +94,8 @@ export default function OperationalReportView() {
             trendLabel={`↑ ${data.metrics.totalPatients.changePercentage}%`}
             trendDirection='up'
             tone='primary'
-            strokeColor='#2563eb'
-            icon={<Icons.teams className='size-5 text-blue-600' />}
+            strokeColor='var(--primary-bright, #2563eb)'
+            icon={<Icons.teams className='size-5 text-primary' />}
           />
 
           {/* Pasien Baru */}
@@ -107,8 +107,8 @@ export default function OperationalReportView() {
             trendLabel={`↑ ${data.metrics.newPatients.changePercentage}%`}
             trendDirection='up'
             tone='primary'
-            strokeColor='#2563eb'
-            icon={<Icons.user className='size-5 text-blue-600' />}
+            strokeColor='var(--primary-bright, #2563eb)'
+            icon={<Icons.user className='size-5 text-primary' />}
           />
 
           {/* Total Kunjungan */}
@@ -120,8 +120,8 @@ export default function OperationalReportView() {
             trendLabel={`↑ ${data.metrics.totalVisits.changePercentage}%`}
             trendDirection='up'
             tone='primary'
-            strokeColor='#2563eb'
-            icon={<Icons.calendar className='size-5 text-blue-600' />}
+            strokeColor='var(--primary-bright, #2563eb)'
+            icon={<Icons.calendar className='size-5 text-primary' />}
           />
 
           {/* No Show Rate */}
@@ -133,8 +133,8 @@ export default function OperationalReportView() {
             trendLabel={`↓ ${Math.abs(data.metrics.noShowRate.changePercentage)}%`}
             trendDirection='down'
             tone='primary'
-            strokeColor='#2563eb'
-            icon={<Icons.clock className='size-5 text-blue-600' />}
+            strokeColor='var(--primary-bright, #2563eb)'
+            icon={<Icons.clock className='size-5 text-primary' />}
           />
         </div>
 

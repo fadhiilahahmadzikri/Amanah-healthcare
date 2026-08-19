@@ -68,16 +68,16 @@ export function DoctorExportButton({
 
   return (
     <Button
-      variant='default'
+      variant='outline'
       size='sm'
       onClick={handleExport}
       disabled={isExporting || data.length === 0}
-      className='h-9 font-medium shadow-xs'
+      className='h-8 text-xs font-medium text-muted-foreground hover:text-foreground border-border/80 gap-1.5'
     >
       {isExporting ? (
-        <Icons.spinner className='mr-2 size-4 animate-spin' />
+        <Icons.spinner className='size-3.5 animate-spin' />
       ) : (
-        <Icons.upload className='mr-2 size-4' />
+        <Icons.upload className='size-3.5' />
       )}
       Ekspor jadwal
     </Button>

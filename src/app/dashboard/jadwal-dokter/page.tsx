@@ -23,12 +23,8 @@ export default async function Page(props: PageProps) {
       pageTitle='Jadwal Dokter'
       pageDescription='Kelola jadwal praktik dokter, atur ketersediaan dan slot pasien.'
       pageHeaderAction={
-        <Button
-          type='button'
-          variant='default'
-          className='bg-[#0B0F3B] hover:bg-[#151A66] text-white font-semibold text-xs sm:text-sm h-10 px-4 rounded-xl shadow-2xs gap-1.5 cursor-pointer'
-        >
-          <Icons.add className='size-4' />
+        <Button type='button' variant='default' className='shrink-0 text-xs md:text-sm'>
+          <Icons.add className='mr-2 h-4 w-4' />
           <span>Tambah Dokter</span>
         </Button>
       }

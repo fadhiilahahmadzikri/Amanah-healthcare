@@ -93,7 +93,17 @@ const generateStandardSchedule = (
 
 import doctorSchedulesData from '@/constants/mock-data/doctor-schedules.json';
 
-export const initialDoctorSchedules: DoctorSchedule[] = doctorSchedulesData as DoctorSchedule[];
+export const initialDoctorSchedules: DoctorSchedule[] = (
+  doctorSchedulesData as unknown as DoctorSchedule[]
+).map((doc, idx) => ({
+  ...doc,
+  monthly_schedule:
+    doc.monthly_schedule && doc.monthly_schedule.length > 0
+      ? doc.monthly_schedule
+      : doc.id === 'doc-001'
+        ? generateSarahSchedule()
+        : generateStandardSchedule([3 + (idx % 4), 10 + (idx % 4), 17 + (idx % 4), 24 + (idx % 4)])
+}));
 
 class MockDoctorScheduleService {
   private items: DoctorSchedule[] = [...initialDoctorSchedules];
@@ -102,6 +112,8 @@ class MockDoctorScheduleService {
     search?: string;
     poli?: string[];
     status?: string[];
+    month?: string;
+    date?: string;
     page?: number;
     limit?: number;
   }) {
@@ -116,6 +128,19 @@ class MockDoctorScheduleService {
           doc.ruang_praktik.toLowerCase().includes(q) ||
           doc.email.toLowerCase().includes(q) ||
           doc.nomor_telepon.includes(q)
+      );
+    }
+
+    if (params.month && params.month !== 'ALL') {
+      const m = params.month.toLowerCase();
+      result = result.filter((doc) => doc.bulan_jadwal?.toLowerCase().includes(m));
+    }
+
+    if (params.date) {
+      result = result.filter(
+        (doc) =>
+          doc.tanggal_praktik?.toLowerCase().includes(params.date!.toLowerCase()) ||
+          doc.monthly_schedule?.some((d) => d.date === params.date && d.status === 'Aktif')
       );
     }
 
@@ -184,7 +209,8 @@ class MockDoctorScheduleService {
     const doc = await this.getById(doctorId);
     if (!doc) throw new Error('Doctor not found');
 
-    const updatedMonthly = doc.monthly_schedule.map((d) => (d.day === day ? { ...d, status } : d));
+    const currentMonthly = doc.monthly_schedule || generateStandardSchedule();
+    const updatedMonthly = currentMonthly.map((d) => (d.day === day ? { ...d, status } : d));
 
     return this.updateSchedule(doctorId, { monthly_schedule: updatedMonthly });
   }

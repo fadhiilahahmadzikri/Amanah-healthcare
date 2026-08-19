@@ -11,15 +11,18 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90',
-        primary: 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90',
+        default:
+          'bg-primary text-primary-foreground shadow-[inset_0_1px_0.5px_0_rgba(255,255,255,0.18),0_1px_2px_0_rgba(0,0,0,0.12),0_3px_6px_-2px_rgba(0,0,0,0.2)] border border-primary/40 dark:border-white/10 hover:bg-primary/90 active:translate-y-[0.5px] active:shadow-[inset_0_1px_0.5px_0_rgba(255,255,255,0.08),0_1px_2px_0_rgba(0,0,0,0.15)] [&_span]:drop-shadow-[0_1px_1.5px_rgba(0,0,0,0.25)]',
+        primary:
+          'bg-primary text-primary-foreground shadow-[inset_0_1px_0.5px_0_rgba(255,255,255,0.18),0_1px_2px_0_rgba(0,0,0,0.12),0_3px_6px_-2px_rgba(0,0,0,0.2)] border border-primary/40 dark:border-white/10 hover:bg-primary/90 active:translate-y-[0.5px] active:shadow-[inset_0_1px_0.5px_0_rgba(255,255,255,0.08),0_1px_2px_0_rgba(0,0,0,0.15)] [&_span]:drop-shadow-[0_1px_1.5px_rgba(0,0,0,0.25)]',
         destructive:
-          'bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60',
+          'bg-destructive text-white shadow-[inset_0_1px_0.5px_0_rgba(255,255,255,0.18),0_1px_2px_0_rgba(0,0,0,0.12),0_3px_6px_-2px_rgba(0,0,0,0.2)] border border-destructive/40 hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/80 active:translate-y-[0.5px]',
         outline:
-          'border border-input bg-background shadow-xs hover:bg-accent hover:text-accent-foreground',
+          'border border-input bg-background shadow-xs hover:bg-accent hover:text-accent-foreground active:translate-y-[0.5px]',
         secondary:
-          'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 border border-border/80',
-        ghost: 'hover:bg-accent hover:text-accent-foreground text-foreground/80',
+          'bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 border border-border/80 active:translate-y-[0.5px]',
+        ghost:
+          'hover:bg-accent hover:text-accent-foreground text-foreground/80 active:translate-y-[0.5px]',
         link: 'text-primary underline-offset-4 hover:underline'
       },
       size: {
@@ -28,20 +31,32 @@ const buttonVariants = cva(
         md: 'h-[38px] px-4 py-2 text-xs sm:text-[13px]',
         lg: 'h-10 px-6 py-2.5 text-sm sm:text-base',
         compact: 'h-[32px] px-[11px] py-[6px] text-[12.5px]',
-        icon: 'size-9 justify-center'
+        'card-action': 'h-10 px-4 py-2 text-[13px] font-semibold',
+        card: 'h-10 px-4 py-2 text-[13px] font-semibold',
+        icon: 'size-9 justify-center',
+        'icon-sm': 'size-8 justify-center',
+        'icon-lg': 'size-10 justify-center'
       },
       shape: {
         rounded: 'rounded-xl',
+        card: 'rounded-xl',
         pill: 'rounded-full',
         compact: 'rounded-[5.4px]',
         default: 'rounded-md',
         square: 'rounded-none'
+      },
+      align: {
+        center: 'justify-center text-center',
+        left: 'justify-start text-left',
+        right: 'justify-end text-right',
+        between: 'justify-between'
       }
     },
     defaultVariants: {
       variant: 'default',
       size: 'default',
-      shape: 'default'
+      shape: 'default',
+      align: 'center'
     }
   }
 );
@@ -56,6 +71,7 @@ export interface ButtonProps
   icon?: React.ReactNode;
   iconRight?: React.ReactNode;
   fullWidth?: boolean;
+  hug?: boolean;
 }
 
 function Button({
@@ -63,6 +79,7 @@ function Button({
   variant = 'default',
   size = 'default',
   shape = 'default',
+  align = 'center',
   asChild = false,
   isLoading,
   withTrailingCircleIcon = false,
@@ -71,6 +88,7 @@ function Button({
   icon,
   iconRight,
   fullWidth = false,
+  hug = false,
   children,
   disabled,
   ...props
@@ -95,7 +113,10 @@ function Button({
     return (
       <Slot
         data-slot='button'
-        className={cn(buttonVariants({ variant, size, shape, className }), fullWidth && 'w-full')}
+        className={cn(
+          buttonVariants({ variant, size, shape, align, className }),
+          fullWidth && 'w-full'
+        )}
         {...props}
       >
         {children}
@@ -105,32 +126,62 @@ function Button({
 
   if (withTrailingCircleIcon || actualLeadingIcon || actualTrailingIcon) {
     const isPill = shape === 'pill';
+    const circleSizeClass =
+      size === 'lg'
+        ? 'size-[36px]'
+        : size === 'card-action' || size === 'card'
+          ? isPill
+            ? 'size-[34px]'
+            : 'size-[28px]'
+          : size === 'compact' || size === 'sm'
+            ? 'size-[26px]'
+            : 'size-[30px]';
+
+    const circleIconSizeClass =
+      size === 'lg'
+        ? 'size-4.5 stroke-[2.5]'
+        : size === 'card-action' || size === 'card'
+          ? 'size-4 stroke-[2.5]'
+          : 'size-3.5 stroke-[2.5]';
+
+    // Snug padding matching the Apple-style pill (minimal margin around circle)
     const paddingWithCircle = withTrailingCircleIcon
       ? isPill
-        ? size === 'lg'
-          ? 'pl-5 pr-[3px] py-[3px]'
-          : size === 'compact' || size === 'sm'
-            ? 'pl-3.5 pr-[2px] py-[2px]'
-            : 'pl-4 pr-[2px] py-[2px]'
+        ? align === 'center'
+          ? 'pl-8 pr-[3px] py-[3px]'
+          : align === 'left'
+            ? 'pl-5 pr-[3px] py-[3px]'
+            : align === 'right'
+              ? 'pl-3 pr-[3px] py-[3px]'
+              : 'pl-5 pr-[3px] py-[3px]'
         : size === 'lg'
           ? 'pl-5 pr-1.5'
-          : 'pl-3.5 pr-1'
+          : size === 'card-action' || size === 'card'
+            ? 'pl-4 pr-1.5'
+            : 'pl-3.5 pr-1'
       : undefined;
 
     return (
       <button
         data-slot='button'
         className={cn(
-          buttonVariants({ variant, size, shape }),
+          buttonVariants({ variant, size, shape, align }),
           withTrailingCircleIcon && 'justify-between',
           paddingWithCircle,
-          fullWidth && 'w-full',
+          hug ? 'w-fit' : fullWidth ? 'w-full' : '',
           className
         )}
         disabled={disabled || isLoading}
         {...props}
       >
-        <span className='inline-flex items-center gap-2'>
+        <span
+          className={cn(
+            'inline-flex items-center gap-2',
+            withTrailingCircleIcon && align === 'center' && 'flex-1 justify-center',
+            withTrailingCircleIcon && align === 'left' && 'flex-1 justify-start',
+            withTrailingCircleIcon && align === 'right' && 'flex-1 justify-end'
+          )}
+        >
           {actualLeadingIcon && <span className='shrink-0'>{actualLeadingIcon}</span>}
           {isLoading ? (
             <span className='inline-flex items-center gap-2'>
@@ -145,26 +196,13 @@ function Button({
         {withTrailingCircleIcon ? (
           <span
             className={cn(
-              'flex shrink-0 items-center justify-center rounded-full ml-3',
-              size === 'lg'
-                ? 'size-[34px]'
-                : size === 'compact' || size === 'sm'
-                  ? 'size-[26px]'
-                  : 'size-[30px]',
+              'flex shrink-0 items-center justify-center rounded-full shadow-2xs transition-transform',
+              circleSizeClass,
               circleColorClass
             )}
           >
             {actualTrailingIcon || (
-              <Icons.arrowUpRight
-                className={cn(
-                  'stroke-[2.5]',
-                  size === 'lg'
-                    ? 'size-4'
-                    : size === 'compact' || size === 'sm'
-                      ? 'size-3.5'
-                      : 'size-3.5'
-                )}
-              />
+              <Icons.arrowUpRight className={cn('shrink-0', circleIconSizeClass)} />
             )}
           </span>
         ) : (
@@ -178,7 +216,10 @@ function Button({
     return (
       <button
         data-slot='button'
-        className={cn(buttonVariants({ variant, size, shape, className }), fullWidth && 'w-full')}
+        className={cn(
+          buttonVariants({ variant, size, shape, align, className }),
+          hug ? 'w-fit' : fullWidth && 'w-full'
+        )}
         disabled={disabled}
         {...props}
       >
@@ -191,9 +232,9 @@ function Button({
     <button
       data-slot='button'
       className={cn(
-        buttonVariants({ variant, size, shape }),
+        buttonVariants({ variant, size, shape, align }),
         'grid place-items-center justify-center [&>*]:col-start-1 [&>*]:row-start-1',
-        fullWidth && 'w-full',
+        hug ? 'w-fit' : fullWidth && 'w-full',
         className
       )}
       disabled={disabled || isLoading}

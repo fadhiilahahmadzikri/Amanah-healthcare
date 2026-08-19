@@ -112,7 +112,10 @@ export const clinicalTokens = {
     cardRadius: '20px',
     ratingRadius: '6px',
     pillRadius: '9999px',
-    tagRadius: '10px'
+    tagRadius: '10px',
+    buttonActionHeight: '40px',
+    buttonActionRadius: '12px',
+    buttonActionFontSize: '13px'
   }
 } as const;
 

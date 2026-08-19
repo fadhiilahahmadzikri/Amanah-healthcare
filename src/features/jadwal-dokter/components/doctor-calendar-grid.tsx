@@ -12,13 +12,13 @@ import { cn } from '@/lib/utils';
 import type { MonthlyScheduleDay, ScheduleDayStatus } from '../api/types';
 
 interface DoctorCalendarGridProps {
-  days: MonthlyScheduleDay[];
+  days?: MonthlyScheduleDay[];
   onSelectDayStatus?: (day: number, status: ScheduleDayStatus) => void;
   readOnly?: boolean;
 }
 
 export function DoctorCalendarGrid({
-  days,
+  days = [],
   onSelectDayStatus,
   readOnly = false
 }: DoctorCalendarGridProps) {
@@ -26,6 +26,15 @@ export function DoctorCalendarGrid({
   // 1 Mei 2026 was Friday: offset 4 empty spaces for Sen, Sel, Rab, Kam
   const dayNames = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
   const startOffset = 4;
+
+  const safeDays =
+    days && days.length > 0
+      ? days
+      : Array.from({ length: 31 }, (_, i) => ({
+          day: i + 1,
+          date: `2026-05-${String(i + 1).padStart(2, '0')}`,
+          status: 'Aktif' as ScheduleDayStatus
+        }));
 
   const getStatusPillClasses = (status: ScheduleDayStatus) => {
     switch (status) {
@@ -79,7 +88,7 @@ export function DoctorCalendarGrid({
         ))}
 
         {/* 31 Calendar Days */}
-        {days.map((item) => {
+        {safeDays.map((item) => {
           const dotColor = getStatusDot(item.status);
           const cellClasses = cn(
             'h-10 rounded-lg border p-1 flex flex-col justify-between items-center transition-all text-xs',

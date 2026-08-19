@@ -12,6 +12,8 @@ export interface DoctorScheduleFilters {
   search?: string;
   poli?: string[];
   status?: string[];
+  month?: string;
+  date?: string;
   sort?: string;
 }
 

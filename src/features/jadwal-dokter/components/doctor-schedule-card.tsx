@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule } from '../api/types';
@@ -46,7 +47,7 @@ export function DoctorSpecialtyBadge({ specialty, className }: DoctorSpecialtyBa
     <Badge
       variant='secondary'
       className={cn(
-        'px-2.5 py-1 rounded-lg text-[11.5px] font-semibold bg-[#F3E8FF] text-[#7E22CE] dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200/50 dark:border-purple-800/40 w-fit select-none shadow-none',
+        'px-2.5 py-1 rounded-lg text-[11.5px] font-semibold bg-[color-mix(in_oklab,var(--primary-bright,var(--primary))_12%,transparent)] text-[var(--primary-bright,var(--primary))] dark:text-sky-300 border border-[color-mix(in_oklab,var(--primary-bright,var(--primary))_24%,transparent)] w-fit select-none shadow-none transition-colors',
         className
       )}
     >
@@ -70,18 +71,17 @@ export function DoctorQuickCallButton({
   className
 }: DoctorQuickCallButtonProps) {
   return (
-    <button
-      type='button'
+    <Button
+      variant='outline'
+      size='icon'
+      shape='pill'
       onClick={onClick}
       title={phoneNumber ? `Hubungi: ${phoneNumber}` : 'Hubungi dokter'}
       aria-label='Hubungi dokter'
-      className={cn(
-        'size-9 rounded-full bg-white dark:bg-card border border-slate-200/80 dark:border-border flex items-center justify-center text-slate-700 dark:text-foreground shadow-2xs hover:bg-slate-50 dark:hover:bg-accent transition-all cursor-pointer z-20 shrink-0',
-        className
-      )}
+      className={cn('size-9 shadow-2xs z-20 shrink-0', className)}
     >
-      <Icons.phone className='size-4 text-slate-700 dark:text-slate-200' />
-    </button>
+      <Icons.phone className='size-4 text-foreground' />
+    </Button>
   );
 }
 
@@ -134,11 +134,11 @@ export function DoctorInfoRow({ icon, text, className }: DoctorInfoRowProps) {
   return (
     <div
       className={cn(
-        'flex items-center gap-2 text-[12.5px] font-medium text-slate-600 dark:text-slate-300',
+        'flex items-center gap-2 text-[12.5px] font-medium text-muted-foreground',
         className
       )}
     >
-      <span className='shrink-0 text-slate-500 dark:text-slate-400'>{icon}</span>
+      <span className='shrink-0 text-muted-foreground/80'>{icon}</span>
       <span className='truncate'>{text}</span>
     </div>
   );
@@ -163,29 +163,29 @@ export function DoctorScheduleStats({
   return (
     <div
       className={cn(
-        'grid grid-cols-2 gap-4 pt-3.5 mt-3.5 border-t border-slate-100 dark:border-border/50 relative z-20',
+        'grid grid-cols-2 gap-4 pt-3.5 mt-3.5 border-t border-border/50 relative z-20',
         className
       )}
     >
       {/* Schedule Time Column */}
       <div className='flex flex-col'>
-        <div className='flex items-center gap-1.5 text-[11.5px] font-medium text-slate-500 dark:text-slate-400'>
-          <Icons.clock className='size-3.5 shrink-0 text-slate-400 dark:text-slate-500' />
+        <div className='flex items-center gap-1.5 text-[11.5px] font-medium text-muted-foreground'>
+          <Icons.clock className='size-3.5 shrink-0 text-muted-foreground/80' />
           <span>Jadwal Hari Ini</span>
         </div>
-        <span className='text-[15.5px] font-bold text-[#0B0F3B] dark:text-white font-mono mt-1 tracking-tight'>
+        <span className='text-[15.5px] font-bold text-foreground font-mono mt-1 tracking-tight'>
           {scheduleTime}
         </span>
       </div>
 
       {/* Available Slots Column */}
       <div className='flex flex-col'>
-        <div className='flex items-center gap-1.5 text-[11.5px] font-medium text-slate-500 dark:text-slate-400'>
-          <Icons.teams className='size-3.5 shrink-0 text-slate-400 dark:text-slate-500' />
+        <div className='flex items-center gap-1.5 text-[11.5px] font-medium text-muted-foreground'>
+          <Icons.teams className='size-3.5 shrink-0 text-muted-foreground/80' />
           <span>Slot Tersedia</span>
         </div>
-        <div className='flex items-center gap-1.5 text-[15.5px] font-bold text-[#0B0F3B] dark:text-white font-mono mt-1 tracking-tight'>
-          <Icons.user className='size-3.5 text-[#0B0F3B] dark:text-white shrink-0' />
+        <div className='flex items-center gap-1.5 text-[15.5px] font-bold text-foreground font-mono mt-1 tracking-tight'>
+          <Icons.user className='size-3.5 text-foreground shrink-0' />
           <span>
             {availableSlots}/{totalCapacity}
           </span>
@@ -211,16 +211,12 @@ export function DoctorCutiNotice({
 }: DoctorCutiNoticeProps) {
   return (
     <div className={cn('flex items-center gap-3.5 pt-3.5 mt-3.5 relative z-20', className)}>
-      <div className='size-12 rounded-2xl bg-red-50 dark:bg-red-950/50 text-red-500 dark:text-red-400 border border-red-100 dark:border-red-900/40 flex items-center justify-center shrink-0 shadow-2xs'>
-        <Icons.calendar className='size-5 text-red-500 dark:text-red-400' />
+      <div className='size-12 rounded-2xl bg-gradient-to-b from-sky-300 via-blue-500 to-blue-600 border border-blue-600/40 dark:border-white/20 flex items-center justify-center shrink-0 shadow-[inset_0_1px_0.5px_0_rgba(255,255,255,0.45),0_3px_6px_-1px_rgba(0,0,0,0.18),0_1px_2px_0_rgba(0,0,0,0.1)]'>
+        <Icons.calendar className='size-6 text-white drop-shadow-[0_1px_1.5px_rgba(0,0,0,0.3)] stroke-[2.2]' />
       </div>
       <div className='flex flex-col'>
-        <span className='text-[14px] font-bold text-[#0B0F3B] dark:text-white leading-tight'>
-          {title}
-        </span>
-        <span className='text-[12px] font-medium text-slate-500 dark:text-slate-400 mt-0.5'>
-          {subtitle}
-        </span>
+        <span className='text-[14px] font-bold text-foreground leading-tight'>{title}</span>
+        <span className='text-[12px] font-medium text-muted-foreground mt-0.5'>{subtitle}</span>
       </div>
     </div>
   );
@@ -245,24 +241,35 @@ export function DoctorCardActions({
   className
 }: DoctorCardActionsProps) {
   return (
-    <div className={cn('flex items-center gap-2.5 pt-4 mt-auto relative z-20', className)}>
-      <button
+    <div
+      className={cn(
+        'flex items-center justify-end gap-2 pt-3 mt-auto border-t border-border/40 relative z-20',
+        className
+      )}
+    >
+      <Button
         type='button'
+        variant='outline'
+        size='card-action'
+        shape='pill'
         onClick={onReschedule}
-        className='flex-1 h-10 rounded-xl bg-white dark:bg-card border border-slate-200 dark:border-border text-[#1E293B] dark:text-foreground font-semibold text-[13px] hover:bg-slate-50 dark:hover:bg-accent transition-all flex items-center justify-center gap-2 shadow-2xs cursor-pointer select-none'
+        className='font-semibold'
+        leadingIcon={<Icons.calendar className='size-3.5 text-muted-foreground' />}
       >
-        <Icons.calendar className='size-3.5 text-slate-600 dark:text-slate-300 shrink-0' />
-        <span>{rescheduleLabel}</span>
-      </button>
+        {rescheduleLabel}
+      </Button>
 
-      <button
+      <Button
         type='button'
+        variant='default'
+        size='card-action'
+        shape='pill'
+        withTrailingCircleIcon
         onClick={onDetail}
-        className='flex-1 h-10 rounded-xl bg-[#0B0F3B] dark:bg-primary text-white font-semibold text-[13px] hover:bg-[#151A66] dark:hover:bg-primary/90 transition-all flex items-center justify-center gap-2 shadow-2xs cursor-pointer select-none'
+        className='font-bold'
       >
-        <span>{detailLabel}</span>
-        <Icons.arrowRight className='size-3.5 text-white shrink-0' />
-      </button>
+        {detailLabel}
+      </Button>
     </div>
   );
 }
@@ -322,8 +329,8 @@ export function DoctorScheduleCard({
   return (
     <div
       className={cn(
-        'group relative overflow-hidden rounded-[24px] border border-[#E2E8F0] dark:border-border/60 font-sans flex flex-col justify-between select-none transition-all duration-200 hover:shadow-md hover:border-primary/30',
-        'bg-[radial-gradient(ellipse_75%_55%_at_100%_0%,#E9E3FF_0%,#F5F2FF_40%,#FFFFFF_80%)] dark:bg-[radial-gradient(ellipse_75%_55%_at_100%_0%,rgba(88,28,135,0.25)_0%,rgba(46,16,101,0.1)_40%,var(--card)_80%)] bg-white dark:bg-card p-5 sm:p-6 min-h-[340px]',
+        'group relative overflow-hidden rounded-[24px] border border-border font-sans flex flex-col justify-between select-none transition-all duration-200 hover:border-primary-bright/40',
+        'bg-[radial-gradient(ellipse_80%_60%_at_100%_0%,color-mix(in_oklab,var(--primary-bright,var(--primary))_22%,transparent)_0%,color-mix(in_oklab,var(--primary-bright,var(--primary))_6%,transparent)_45%,transparent_80%)] bg-card p-5 sm:p-6 min-h-[340px]',
         variant === 'elevated' && 'shadow-sm',
         variant === 'flat' && 'border-transparent shadow-none',
         className
@@ -347,21 +354,21 @@ export function DoctorScheduleCard({
         <h3
           onClick={handleDetail}
           title={doctor.nama_dokter}
-          className='text-[18px] sm:text-[19px] font-bold text-[#0B0F3B] dark:text-white tracking-tight leading-snug cursor-pointer hover:text-primary transition-colors pr-24 sm:pr-28 mt-2 mb-2.5 line-clamp-1'
+          className='text-[18px] sm:text-[19px] font-bold text-card-foreground tracking-tight leading-snug cursor-pointer hover:text-primary transition-colors pr-24 sm:pr-28 mt-2 mb-2.5 line-clamp-1'
         >
           {doctor.nama_dokter}
         </h3>
 
         {/* Location Row */}
         <DoctorInfoRow
-          icon={<Icons.stethoscope className='size-4 text-slate-500 dark:text-slate-400' />}
+          icon={<Icons.stethoscope className='size-4 text-muted-foreground' />}
           text={doctor.ruang_praktik}
         />
 
         {/* Date Row (rendered when not cuti or date is provided) */}
         {!isCuti && doctor.tanggal_praktik && (
           <DoctorInfoRow
-            icon={<Icons.calendar className='size-4 text-slate-500 dark:text-slate-400' />}
+            icon={<Icons.calendar className='size-4 text-muted-foreground' />}
             text={doctor.tanggal_praktik}
             className='mt-1.5'
           />

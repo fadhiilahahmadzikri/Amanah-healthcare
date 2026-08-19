@@ -46,15 +46,14 @@ export function DoctorSchedulePagination({
     >
       {/* Total Items Info */}
       <div className='text-muted-foreground text-xs sm:text-sm whitespace-nowrap'>
-        <span className='font-bold text-[#0B0F3B] dark:text-white'>{totalItems}</span> dokter
-        terdaftar
+        <span className='font-bold text-foreground'>{totalItems}</span> dokter terdaftar
       </div>
 
       {/* Pagination Controls */}
       <div className='flex items-center gap-3 sm:gap-6 lg:gap-8'>
         {/* Page Size Selector */}
         <div className='hidden items-center space-x-2 sm:flex'>
-          <p className='text-xs sm:text-sm font-medium whitespace-nowrap text-slate-600 dark:text-slate-300'>
+          <p className='text-xs sm:text-sm font-medium whitespace-nowrap text-foreground'>
             Kartu per halaman
           </p>
           <Select
@@ -78,9 +77,8 @@ export function DoctorSchedulePagination({
         </div>
 
         {/* Current Page of Total */}
-        <div className='flex items-center justify-center text-xs sm:text-sm font-medium whitespace-nowrap text-slate-600 dark:text-slate-300'>
-          Halaman{' '}
-          <span className='font-bold text-[#0B0F3B] dark:text-white mx-1'>{currentPage}</span> dari{' '}
+        <div className='flex items-center justify-center text-xs sm:text-sm font-medium whitespace-nowrap text-foreground'>
+          Halaman <span className='font-bold text-foreground mx-1'>{currentPage}</span> dari{' '}
           {pageCount}
         </div>
 

@@ -1,25 +1,17 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
 import { Icons } from '@/components/icons';
 import { doctorScheduleQueryOptions } from '../api/queries';
+import { DoctorScheduleFilters } from './doctor-schedule-filters';
 import { DoctorScheduleCard } from './doctor-schedule-card';
 import { DoctorScheduleDetailSheet } from './doctor-schedule-detail-sheet';
 import { DoctorScheduleEditModal } from './doctor-schedule-edit-modal';
 import { DoctorExportButton } from './doctor-export-button';
 import { DoctorSchedulePagination } from './doctor-schedule-pagination';
-import { POLI_OPTIONS } from '../constants/options';
+import { cn } from '@/lib/utils';
 import type { DoctorSchedule } from '../api/types';
 
 export function DoctorScheduleView() {
@@ -27,26 +19,59 @@ export function DoctorScheduleView() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
 
-  const [params, setParams] = useQueryStates({
-    page: parseAsInteger.withDefault(1),
-    perPage: parseAsInteger.withDefault(6),
-    search: parseAsString.withDefault(''),
-    poli: parseAsString.withDefault('all'),
-    status: parseAsString.withDefault('all')
-  });
+  const [params, setParams] = useQueryStates(
+    {
+      page: parseAsInteger.withDefault(1),
+      perPage: parseAsInteger.withDefault(6),
+      search: parseAsString.withDefault(''),
+      month: parseAsString.withDefault('ALL'),
+      date: parseAsString.withDefault(''),
+      poli: parseAsString.withDefault(''),
+      status: parseAsString.withDefault('')
+    },
+    { shallow: true }
+  );
+
+  const selectedPoli = useMemo(
+    () => (params.poli ? params.poli.split(',').filter(Boolean) : []),
+    [params.poli]
+  );
+
+  const selectedStatuses = useMemo(
+    () => (params.status ? params.status.split(',').filter(Boolean) : []),
+    [params.status]
+  );
+
+  const dateFilter = useMemo(() => {
+    if (!params.date) return undefined;
+    const parsed = new Date(params.date);
+    return isNaN(parsed.getTime()) ? undefined : parsed;
+  }, [params.date]);
 
   const filters = useMemo(
     () => ({
       page: params.page,
       limit: params.perPage,
       ...(params.search ? { search: params.search } : {}),
-      ...(params.poli && params.poli !== 'all' ? { poli: [params.poli] } : {}),
-      ...(params.status && params.status !== 'all' ? { status: [params.status] } : {})
+      ...(params.month && params.month !== 'ALL' ? { month: params.month } : {}),
+      ...(params.date ? { date: params.date } : {}),
+      ...(selectedPoli.length > 0 ? { poli: selectedPoli } : {}),
+      ...(selectedStatuses.length > 0 ? { status: selectedStatuses } : {})
     }),
-    [params]
+    [
+      params.page,
+      params.perPage,
+      params.search,
+      params.month,
+      params.date,
+      selectedPoli,
+      selectedStatuses
+    ]
   );
 
-  const { data } = useSuspenseQuery(doctorScheduleQueryOptions(filters));
+  const { data, isFetching, isLoading } = useQuery(doctorScheduleQueryOptions(filters));
+  const doctors = data?.doctors ?? [];
+  const totalDoctors = data?.total_doctors ?? 0;
 
   const handleOpenDetail = (doctor: DoctorSchedule) => {
     setSelectedDoctor(doctor);
@@ -56,6 +81,53 @@ export function DoctorScheduleView() {
   const handleOpenEdit = (doctor: DoctorSchedule) => {
     setSelectedDoctor(doctor);
     setEditOpen(true);
+  };
+
+  const handleSearchChange = (val: string) => {
+    setParams({ search: val || null, page: 1 }, { shallow: true });
+  };
+
+  const handleMonthFilterChange = (month: string) => {
+    setParams({ month: month === 'ALL' ? null : month, page: 1 }, { shallow: true });
+  };
+
+  const handleDateFilterChange = (d: Date | undefined) => {
+    if (!d) {
+      setParams({ date: null, page: 1 }, { shallow: true });
+    } else {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      setParams({ date: `${year}-${month}-${day}`, page: 1 }, { shallow: true });
+    }
+  };
+
+  const handleSelectedPoliChange = (poliList: string[]) => {
+    setParams(
+      { poli: poliList.length > 0 ? poliList.join(',') : null, page: 1 },
+      { shallow: true }
+    );
+  };
+
+  const handleSelectedStatusesChange = (statusList: string[]) => {
+    setParams(
+      { status: statusList.length > 0 ? statusList.join(',') : null, page: 1 },
+      { shallow: true }
+    );
+  };
+
+  const handleResetAll = () => {
+    setParams(
+      {
+        search: null,
+        month: null,
+        date: null,
+        poli: null,
+        status: null,
+        page: 1
+      },
+      { shallow: true }
+    );
   };
 
   return (
@@ -82,75 +154,44 @@ export function DoctorScheduleView() {
       {/* 3. Main Workspace Container */}
       <div className='flex h-full flex-1 flex-col gap-4 select-none'>
         {/* Toolbar Header (Search, Filters, Export) */}
-        <div className='flex flex-wrap items-center justify-between gap-3 p-1'>
-          <div className='flex flex-wrap items-center gap-2.5 flex-1 min-w-[280px]'>
-            {/* Search Input */}
-            <div className='relative w-full sm:w-[260px]'>
-              <Icons.search className='absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none' />
-              <Input
-                value={params.search}
-                onChange={(e) => setParams({ search: e.target.value || null, page: 1 })}
-                placeholder='Cari dokter, spesialisasi, atau ruang...'
-                className='pl-8 h-9 text-xs bg-background shadow-2xs border-border/70'
-              />
-            </div>
-
-            {/* Poli Filter */}
-            <Select
-              value={params.poli}
-              onValueChange={(val) => setParams({ poli: val === 'all' ? null : val, page: 1 })}
-            >
-              <SelectTrigger className='w-[160px] h-9 text-xs bg-background shadow-2xs border-border/70'>
-                <SelectValue placeholder='Semua poli' />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='all'>Semua poli</SelectItem>
-                {POLI_OPTIONS.map((p) => (
-                  <SelectItem key={p.value} value={p.value}>
-                    {p.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Status Filter */}
-            <Select
-              value={params.status}
-              onValueChange={(val) => setParams({ status: val === 'all' ? null : val, page: 1 })}
-            >
-              <SelectTrigger className='w-[140px] h-9 text-xs bg-background shadow-2xs border-border/70'>
-                <SelectValue placeholder='Semua status' />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='all'>Semua status</SelectItem>
-                <SelectItem value='Aktif'>Aktif</SelectItem>
-                <SelectItem value='Cuti'>Cuti</SelectItem>
-                <SelectItem value='Sebagian'>Sebagian</SelectItem>
-                <SelectItem value='Tutup'>Tutup</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {(params.search || params.poli !== 'all' || params.status !== 'all') && (
-              <Button
-                variant='ghost'
-                size='sm'
-                onClick={() => setParams({ search: null, poli: null, status: null, page: 1 })}
-                className='h-9 px-2 text-xs text-muted-foreground hover:text-foreground'
-              >
-                <Icons.refresh className='mr-1 size-3' />
-                Reset
-              </Button>
-            )}
-          </div>
+        <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3'>
+          <DoctorScheduleFilters
+            searchQuery={params.search}
+            onSearchChange={handleSearchChange}
+            monthFilter={params.month || 'ALL'}
+            onMonthFilterChange={handleMonthFilterChange}
+            dateFilter={dateFilter}
+            onDateFilterChange={handleDateFilterChange}
+            selectedPoli={selectedPoli}
+            onSelectedPoliChange={handleSelectedPoliChange}
+            selectedStatuses={selectedStatuses}
+            onSelectedStatusesChange={handleSelectedStatusesChange}
+            onResetAll={handleResetAll}
+            className='flex-1'
+          />
 
           <div className='flex items-center gap-2 shrink-0'>
-            <DoctorExportButton data={data.doctors} />
+            <DoctorExportButton data={doctors} />
           </div>
         </div>
 
         {/* Doctor Schedules Card Grid */}
-        <div className='flex-1 pb-4'>
-          {data.doctors.length === 0 ? (
+        <div
+          className={cn(
+            'flex-1 pb-4 min-h-[380px] transition-opacity duration-150',
+            isFetching && 'opacity-75'
+          )}
+        >
+          {isLoading && !data ? (
+            <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5'>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className='h-[340px] rounded-[24px] bg-muted/20 animate-pulse border border-border/40'
+                />
+              ))}
+            </div>
+          ) : doctors.length === 0 ? (
             <div className='p-12 text-center border border-dashed border-border/80 rounded-2xl bg-card/40 my-4'>
               <Icons.clock className='size-10 text-muted-foreground/40 mx-auto mb-2' />
               <h3 className='text-sm font-bold text-foreground'>
@@ -162,7 +203,7 @@ export function DoctorScheduleView() {
             </div>
           ) : (
             <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5'>
-              {data.doctors.map((doctor) => (
+              {doctors.map((doctor) => (
                 <DoctorScheduleCard
                   key={doctor.id}
                   doctor={doctor}
@@ -178,9 +219,9 @@ export function DoctorScheduleView() {
         <DoctorSchedulePagination
           currentPage={params.page}
           pageSize={params.perPage}
-          totalItems={data.total_doctors}
-          onPageChange={(page) => setParams({ page })}
-          onPageSizeChange={(perPage) => setParams({ perPage, page: 1 })}
+          totalItems={totalDoctors}
+          onPageChange={(page) => setParams({ page }, { shallow: true })}
+          onPageSizeChange={(perPage) => setParams({ perPage, page: 1 }, { shallow: true })}
           pageSizeOptions={[6, 12, 18, 24, 30]}
         />
       </div>

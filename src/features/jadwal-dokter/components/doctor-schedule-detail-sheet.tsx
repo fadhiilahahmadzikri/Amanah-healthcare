@@ -239,7 +239,7 @@ export function DoctorScheduleDetailSheet({
             </span>
             <div className='p-3.5 rounded-xl border border-border/40 bg-muted/15'>
               <DoctorCalendarGrid
-                days={doctor.monthly_schedule}
+                days={doctor.monthly_schedule || []}
                 onSelectDayStatus={handleDayStatusChange}
                 readOnly={false}
               />

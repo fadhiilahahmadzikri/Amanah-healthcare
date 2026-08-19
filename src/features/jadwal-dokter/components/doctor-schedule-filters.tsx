@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { Icons } from '@/components/icons';
-import { AppointmentStatus } from '../api/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -20,29 +19,30 @@ import {
 } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 
-export interface AppointmentFiltersProps {
+export interface DoctorScheduleFiltersProps {
   searchQuery: string;
   onSearchChange: (val: string) => void;
   monthFilter: string;
   onMonthFilterChange: (month: string) => void;
   dateFilter: Date | undefined;
   onDateFilterChange: (date: Date | undefined) => void;
-  selectedServices: string[];
-  onSelectedServicesChange: (services: string[]) => void;
-  selectedStatuses: AppointmentStatus[];
-  onSelectedStatusesChange: (statuses: AppointmentStatus[]) => void;
+  selectedPoli: string[];
+  onSelectedPoliChange: (poli: string[]) => void;
+  selectedStatuses: string[];
+  onSelectedStatusesChange: (statuses: string[]) => void;
   onResetAll: () => void;
   className?: string;
 }
 
 const MONTH_OPTIONS = [
   { value: 'ALL', label: 'Semua Bulan' },
-  { value: 'Ags 2026', label: 'Agustus 2026' },
-  { value: 'Sep 2026', label: 'September 2026' },
-  { value: 'Okt 2026', label: 'Oktober 2026' }
+  { value: 'Mei 2026', label: 'Mei 2026' },
+  { value: 'Jun 2026', label: 'Juni 2026' },
+  { value: 'Jul 2026', label: 'Juli 2026' },
+  { value: 'Ags 2026', label: 'Agustus 2026' }
 ];
 
-const SERVICE_OPTIONS = [
+const POLI_OPTIONS = [
   'Penyakit Dalam',
   'Spesialis Anak',
   'Kebidanan & Kandungan',
@@ -54,19 +54,20 @@ const SERVICE_OPTIONS = [
   'Spesialis THT',
   'Kesehatan Jiwa & Psikiatri',
   'Neurologi / Saraf',
-  'Gizi Klinik'
+  'Dokter Umum'
 ];
 
 const STATUS_OPTIONS: {
-  value: AppointmentStatus;
+  value: string;
   label: string;
   dotColor: string;
 }[] = [
-  { value: 'CONFIRMED', label: 'Confirmed', dotColor: 'bg-emerald-500' },
-  { value: 'PENDING', label: 'Pending', dotColor: 'bg-amber-500' },
-  { value: 'CHECKED_IN', label: 'Checked In', dotColor: 'bg-indigo-500' },
-  { value: 'COMPLETED', label: 'Completed', dotColor: 'bg-purple-500' },
-  { value: 'CANCELLED', label: 'Cancelled', dotColor: 'bg-rose-500' }
+  { value: 'Aktif', label: 'Aktif', dotColor: 'bg-emerald-500' },
+  { value: 'Sebagian', label: 'Sebagian', dotColor: 'bg-amber-500' },
+  { value: 'Cuti', label: 'Cuti', dotColor: 'bg-purple-500' },
+  { value: 'Tutup', label: 'Tutup', dotColor: 'bg-rose-500' },
+  { value: 'Terkoneksi', label: 'Terkoneksi', dotColor: 'bg-blue-500' },
+  { value: 'Pending', label: 'Pending', dotColor: 'bg-amber-500' }
 ];
 
 function formatDateDisplay(d: Date): string {
@@ -88,41 +89,58 @@ function formatDateDisplay(d: Date): string {
   return `${day} ${months[d.getMonth()]}`;
 }
 
-export function AppointmentFilters({
+export function DoctorScheduleFilters({
   searchQuery,
   onSearchChange,
   monthFilter,
   onMonthFilterChange,
   dateFilter,
   onDateFilterChange,
-  selectedServices,
-  onSelectedServicesChange,
+  selectedPoli,
+  onSelectedPoliChange,
   selectedStatuses,
   onSelectedStatusesChange,
   onResetAll,
   className
-}: AppointmentFiltersProps) {
+}: DoctorScheduleFiltersProps) {
+  const [localSearch, setLocalSearch] = useState(searchQuery || '');
   const [isMonthOpen, setIsMonthOpen] = useState(false);
   const [isDateOpen, setIsDateOpen] = useState(false);
-  const [isServiceOpen, setIsServiceOpen] = useState(false);
+  const [isPoliOpen, setIsPoliOpen] = useState(false);
   const [isStatusOpen, setIsStatusOpen] = useState(false);
+
+  // Sync local search when external reset occurs
+  React.useEffect(() => {
+    setLocalSearch(searchQuery || '');
+  }, [searchQuery]);
+
+  // Debounced query dispatch (250ms) to ensure smooth 60fps typing without layout reflow
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearch !== searchQuery) {
+        onSearchChange(localSearch);
+      }
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [localSearch, onSearchChange, searchQuery]);
 
   const isFiltered =
     Boolean(searchQuery.trim()) ||
+    Boolean(localSearch.trim()) ||
     (monthFilter !== 'ALL' && monthFilter !== '') ||
     Boolean(dateFilter) ||
-    selectedServices.length > 0 ||
+    selectedPoli.length > 0 ||
     selectedStatuses.length > 0;
 
-  const handleToggleService = (service: string) => {
-    if (selectedServices.includes(service)) {
-      onSelectedServicesChange(selectedServices.filter((s) => s !== service));
+  const handleTogglePoli = (poli: string) => {
+    if (selectedPoli.includes(poli)) {
+      onSelectedPoliChange(selectedPoli.filter((p) => p !== poli));
     } else {
-      onSelectedServicesChange([...selectedServices, service]);
+      onSelectedPoliChange([...selectedPoli, poli]);
     }
   };
 
-  const handleToggleStatus = (status: AppointmentStatus) => {
+  const handleToggleStatus = (status: string) => {
     if (selectedStatuses.includes(status)) {
       onSelectedStatusesChange(selectedStatuses.filter((s) => s !== status));
     } else {
@@ -137,10 +155,10 @@ export function AppointmentFilters({
         <Icons.search className='size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground' />
         <Input
           type='text'
-          aria-label='Pencarian Global'
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          placeholder='Pencarian Global...'
+          aria-label='Pencarian Dokter'
+          value={localSearch}
+          onChange={(e) => setLocalSearch(e.target.value)}
+          placeholder='Pencarian Dokter...'
           className='h-8 pl-8 pr-3 text-xs bg-card border border-border rounded-md text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-primary shadow-2xs'
         />
       </div>
@@ -258,32 +276,32 @@ export function AppointmentFilters({
         </PopoverContent>
       </Popover>
 
-      {/* 4. Layanan / Poli Filter */}
-      <Popover open={isServiceOpen} onOpenChange={setIsServiceOpen}>
+      {/* 4. Poli Filter */}
+      <Popover open={isPoliOpen} onOpenChange={setIsPoliOpen}>
         <PopoverTrigger asChild>
           <Button variant='outline' size='sm' className='h-8 border-dashed gap-1.5 text-xs'>
             <Icons.plusCircle className='size-3.5 text-muted-foreground' />
-            <span>Layanan</span>
-            {selectedServices.length > 0 && (
+            <span>Poli</span>
+            {selectedPoli.length > 0 && (
               <>
                 <Separator orientation='vertical' className='mx-0.5 h-3.5' />
                 <Badge variant='secondary' className='rounded-sm px-1 font-normal text-[11px]'>
-                  {selectedServices.length}
+                  {selectedPoli.length}
                 </Badge>
                 <div className='hidden items-center gap-1 xl:flex'>
-                  {selectedServices.length <= 2 ? (
-                    selectedServices.map((srv) => (
+                  {selectedPoli.length <= 2 ? (
+                    selectedPoli.map((poli) => (
                       <Badge
-                        key={srv}
+                        key={poli}
                         variant='secondary'
                         className='rounded-sm px-1 font-normal text-[11px]'
                       >
-                        {srv}
+                        {poli}
                       </Badge>
                     ))
                   ) : (
                     <Badge variant='secondary' className='rounded-sm px-1 font-normal text-[11px]'>
-                      {selectedServices.length} dipilih
+                      {selectedPoli.length} dipilih
                     </Badge>
                   )}
                 </div>
@@ -293,16 +311,16 @@ export function AppointmentFilters({
         </PopoverTrigger>
         <PopoverContent className='w-56 p-0' align='start'>
           <Command>
-            <CommandInput placeholder='Cari layanan...' />
+            <CommandInput placeholder='Cari spesialisasi / poli...' />
             <CommandList>
-              <CommandEmpty>Layanan tidak ditemukan.</CommandEmpty>
+              <CommandEmpty>Poli tidak ditemukan.</CommandEmpty>
               <CommandGroup className='max-h-64 overflow-y-auto'>
-                {SERVICE_OPTIONS.map((srv) => {
-                  const isSelected = selectedServices.includes(srv);
+                {POLI_OPTIONS.map((poli) => {
+                  const isSelected = selectedPoli.includes(poli);
                   return (
                     <CommandItem
-                      key={srv}
-                      onSelect={() => handleToggleService(srv)}
+                      key={poli}
+                      onSelect={() => handleTogglePoli(poli)}
                       className='text-xs cursor-pointer'
                     >
                       <div
@@ -315,20 +333,20 @@ export function AppointmentFilters({
                       >
                         <Icons.check className='size-3 text-white stroke-[3]' />
                       </div>
-                      <span className='truncate'>{srv}</span>
+                      <span className='truncate'>{poli}</span>
                     </CommandItem>
                   );
                 })}
               </CommandGroup>
-              {selectedServices.length > 0 && (
+              {selectedPoli.length > 0 && (
                 <>
                   <CommandSeparator />
                   <CommandGroup>
                     <CommandItem
-                      onSelect={() => onSelectedServicesChange([])}
+                      onSelect={() => onSelectedPoliChange([])}
                       className='justify-center text-center text-xs cursor-pointer'
                     >
-                      Reset Layanan
+                      Reset Poli
                     </CommandItem>
                   </CommandGroup>
                 </>
