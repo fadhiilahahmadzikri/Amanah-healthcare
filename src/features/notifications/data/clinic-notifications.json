@@ -1,0 +1,146 @@
+[
+  {
+    "id": "notif-1",
+    "sender": "Dr. Sarah Amelia",
+    "roleSubtitle": "Poli Gigi & Mulut",
+    "avatar": "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=150&q=80",
+    "badgeIcon": "stethoscope",
+    "timeAgo": "5 mnt lalu",
+    "dateFull": "Senin, 17 Agt 2026 • 14:00 - 14:45 WIB",
+    "body": "Halo Kak Budi Santoso! 👋 Cuma mau ngingetin nih, besok jadwal periksa & cleaning gigi kamu jam 14.00 WIB. Pastiin kondisi fisik fit dan dateng 15 menit lebih awal yaa! ✨",
+    "category": "Janji Temu",
+    "status": "unread",
+    "metaIcon": "calendar",
+    "createdAt": "2026-08-17T14:00:00.000Z",
+    "actions": [
+      {
+        "id": "act-1-reschedule",
+        "label": "Ubah Jadwal",
+        "type": "secondary",
+        "actionKey": "reschedule"
+      },
+      {
+        "id": "act-1-confirm",
+        "label": "Konfirmasi Hadir",
+        "type": "primary",
+        "icon": "check",
+        "actionKey": "confirm"
+      }
+    ]
+  },
+  {
+    "id": "notif-2",
+    "sender": "Admin Klinik Amanah",
+    "roleSubtitle": "Tim Promo & Layanan Pasien",
+    "avatar": "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=150&q=80",
+    "badgeIcon": "gift",
+    "timeAgo": "1 jam lalu",
+    "dateFull": "Berlaku s/d 31 Agt 2026",
+    "body": "Kabar gembira buat Kak Budi! 🎉 Khusus minggu ini ada diskon 30% Paket Scaling & Tooth Whitening di Klinik Amanah. Kuota terbatas cuma buat 20 pasien pertama nih!",
+    "category": "Promo",
+    "status": "unread",
+    "metaIcon": "sparkles",
+    "createdAt": "2026-08-17T13:00:00.000Z",
+    "actions": [
+      {
+        "id": "act-2-claim",
+        "label": "Klaim Voucher Promo",
+        "type": "warning",
+        "icon": "ticket",
+        "actionKey": "claim_promo"
+      }
+    ]
+  },
+  {
+    "id": "notif-3",
+    "sender": "Tim Laboratorium Klinik",
+    "roleSubtitle": "Hasil Tes Medis & Diagnostik",
+    "avatar": "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=150&q=80",
+    "badgeIcon": "flask",
+    "timeAgo": "3 jam lalu",
+    "dateFull": "Diperiksa: 16 Agt 2026 • 09:15 WIB",
+    "body": "Halo Kak Budi, hasil lab tes darah rutin kamu kemarin udah selesai dianalisis dan dinyatakan Sehat & Normal. Tetap jaga pola makan sehat ya! 👍",
+    "category": "Hasil Lab",
+    "status": "unread",
+    "metaIcon": "fileTypePdf",
+    "createdAt": "2026-08-17T11:00:00.000Z",
+    "actions": [
+      {
+        "id": "act-3-download",
+        "label": "Unduh PDF Hasil Lab",
+        "type": "info",
+        "icon": "download",
+        "actionKey": "download_lab"
+      }
+    ]
+  },
+  {
+    "id": "notif-4",
+    "sender": "Suster Nita",
+    "roleSubtitle": "Petugas Antrean Poli Umum",
+    "avatar": "https://images.unsplash.com/photo-1582750433449-648ed127bb54?auto=format&fit=crop&w=150&q=80",
+    "badgeIcon": "activity",
+    "timeAgo": "Kemarin",
+    "dateFull": "Nomor Antrean Kamu: #A-12",
+    "body": "Antrean Kak Budi (#A-12) sebentar lagi bakal dipanggil nih! Silakan siap-siap dan menuju ke depan Ruang Pemeriksaan Poli Umum (Room 10) yaa! 🩺",
+    "category": "Antrean",
+    "status": "read",
+    "metaIcon": "user",
+    "createdAt": "2026-08-16T15:30:00.000Z",
+    "actions": [
+      {
+        "id": "act-4-view",
+        "label": "Lihat Status Antrean",
+        "type": "secondary",
+        "icon": "externalLink",
+        "actionKey": "view_queue"
+      }
+    ]
+  },
+  {
+    "id": "notif-5",
+    "sender": "Apotek Farmasi Amanah",
+    "roleSubtitle": "Penyiapan Resep & Obat",
+    "avatar": "https://images.unsplash.com/photo-1607613009820-a29f7bb81c04?auto=format&fit=crop&w=150&q=80",
+    "badgeIcon": "pill",
+    "timeAgo": "2 hari lalu",
+    "dateFull": "Resep Digital #RX-88219",
+    "body": "Racikan obat Kak Budi dari Dr. Rehan udah selesai dikemas dan siap diambil di Loket 3 Apotek Klinik Amanah, atau bisa dikirim via Courier Express langsung ke rumah kamu!",
+    "category": "Farmasi",
+    "status": "read",
+    "metaIcon": "package",
+    "createdAt": "2026-08-15T10:00:00.000Z",
+    "actions": [
+      {
+        "id": "act-5-track",
+        "label": "Pilih Opsi Pengambilan",
+        "type": "secondary",
+        "icon": "truck",
+        "actionKey": "track_medication"
+      }
+    ]
+  },
+  {
+    "id": "notif-6",
+    "sender": "Dr. Aris Purnama",
+    "roleSubtitle": "Konsultasi Telemedisin Online",
+    "avatar": "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=150&q=80",
+    "badgeIcon": "video",
+    "timeAgo": "3 hari lalu",
+    "dateFull": "Sesi Selesai • 10 Agt 2026",
+    "body": "Terima kasih sudah melakukan sesi konsultasi virtual bersama Dr. Aris! Catatan resep dan saran medis telah dikirim ke email kamu. Jangan lupa untuk follow-up minggu depan ya! 💻",
+    "category": "Telemedisin",
+    "status": "read",
+    "metaIcon": "video",
+    "createdAt": "2026-08-14T09:00:00.000Z",
+    "actions": [
+      {
+        "id": "act-6-summary",
+        "label": "Lihat Ringkasan Konsultasi",
+        "type": "secondary",
+        "icon": "fileTypeDoc",
+        "actionKey": "view_telemedicine"
+      }
+    ]
+  }
+]
