@@ -132,8 +132,13 @@ export const getStatusConfig = (status: string): StatusConfig => {
     case 'COMPLETED':
     case 'SELESAI':
       return {
-        ...clinicalTokens.colors.status.completed,
+        ...clinicalTokens.colors.status.upcoming,
         label: 'Selesai'
+      };
+    case 'TERKONEKSI':
+      return {
+        ...clinicalTokens.colors.status.checkedIn,
+        label: 'Terkoneksi'
       };
     case 'SUDAH_DATANG':
     case 'SUDAH DATANG':
@@ -171,10 +176,14 @@ export const getStatusConfig = (status: string): StatusConfig => {
         label: 'Sebagian'
       };
     case 'CUTI':
+      return {
+        ...clinicalTokens.colors.status.cancelled,
+        label: 'Cuti'
+      };
     case 'CUTI_/_TUTUP':
     case 'CUTI / TUTUP':
       return {
-        ...clinicalTokens.colors.status.completed,
+        ...clinicalTokens.colors.status.cancelled,
         label: 'Cuti / Tutup'
       };
     case 'TUTUP':

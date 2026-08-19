@@ -2,130 +2,39 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import { StatusBadge } from '@/components/ui/status-badge';
+import { Badge } from '@/components/ui/badge';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule } from '../api/types';
 
 // ============================================================================
-// 1. CONFIGURATION & TOKEN SYSTEM (Config-based paradigm)
-// ============================================================================
-
-export type DoctorStatusVariant =
-  | 'Aktif'
-  | 'Pending'
-  | 'Selesai'
-  | 'Terkoneksi'
-  | 'Cuti'
-  | 'Libur'
-  | string;
-
-export interface StatusStyleConfig {
-  pillBg: string;
-  pillBorder: string;
-  dotColor: string;
-  textColor: string;
-  label: string;
-}
-
-export const DOCTOR_STATUS_STYLES: Record<string, StatusStyleConfig> = {
-  aktif: {
-    pillBg: 'bg-[#ECFDF5] dark:bg-emerald-950/40',
-    pillBorder: 'border-[#A7F3D0] dark:border-emerald-800/50',
-    dotColor: 'bg-[#10B981]',
-    textColor: 'text-[#059669] dark:text-emerald-300',
-    label: 'Aktif'
-  },
-  pending: {
-    pillBg: 'bg-[#FFFBEB] dark:bg-amber-950/40',
-    pillBorder: 'border-[#FDE68A] dark:border-amber-800/50',
-    dotColor: 'bg-[#F59E0B]',
-    textColor: 'text-[#D97706] dark:text-amber-300',
-    label: 'Pending'
-  },
-  selesai: {
-    pillBg: 'bg-[#EFF6FF] dark:bg-blue-950/40',
-    pillBorder: 'border-[#BFDBFE] dark:border-blue-800/50',
-    dotColor: 'bg-[#3B82F6]',
-    textColor: 'text-[#2563EB] dark:text-blue-300',
-    label: 'Selesai'
-  },
-  terkoneksi: {
-    pillBg: 'bg-[#FAF5FF] dark:bg-purple-950/40',
-    pillBorder: 'border-[#E9D5FF] dark:border-purple-800/50',
-    dotColor: 'bg-[#8B5CF6]',
-    textColor: 'text-[#7C3AED] dark:text-purple-300',
-    label: 'Terkoneksi'
-  },
-  cuti: {
-    pillBg: 'bg-[#FEF2F2] dark:bg-rose-950/40',
-    pillBorder: 'border-[#FECACA] dark:border-rose-800/50',
-    dotColor: 'bg-[#EF4444]',
-    textColor: 'text-[#DC2626] dark:text-rose-300',
-    label: 'Cuti'
-  },
-  libur: {
-    pillBg: 'bg-slate-100 dark:bg-slate-800/60',
-    pillBorder: 'border-slate-300 dark:border-slate-700',
-    dotColor: 'bg-slate-400 dark:bg-slate-500',
-    textColor: 'text-slate-700 dark:text-slate-200',
-    label: 'Libur'
-  }
-};
-
-export function getDoctorStatusStyle(status: string): StatusStyleConfig {
-  const key = (status || '').toLowerCase().trim();
-  if (DOCTOR_STATUS_STYLES[key]) {
-    return DOCTOR_STATUS_STYLES[key];
-  }
-  return {
-    pillBg: 'bg-slate-50 dark:bg-slate-800/50',
-    pillBorder: 'border-slate-200 dark:border-slate-700',
-    dotColor: 'bg-slate-400',
-    textColor: 'text-slate-700 dark:text-slate-300',
-    label: status || 'Aktif'
-  };
-}
-
-// ============================================================================
-// 2. ATOMIC COMPONENTS (Atoms & Molecules)
+// 1. ATOMIC COMPONENTS (Atoms & Molecules)
 // ============================================================================
 
 /**
- * Atom: Status Badge Pill with indicator dot
+ * Atom: Status Badge Pill with indicator dot (reusing design-system StatusBadge)
  */
 export interface DoctorStatusBadgeProps {
   status: string;
   className?: string;
-  dotClassName?: string;
   customLabel?: string;
 }
 
-export function DoctorStatusBadge({
-  status,
-  className,
-  dotClassName,
-  customLabel
-}: DoctorStatusBadgeProps) {
-  const config = getDoctorStatusStyle(status);
-
+export function DoctorStatusBadge({ status, className, customLabel }: DoctorStatusBadgeProps) {
   return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11.5px] font-semibold border backdrop-blur-xs select-none transition-colors shadow-none',
-        config.pillBg,
-        config.pillBorder,
-        config.textColor,
-        className
-      )}
-    >
-      <span className={cn('size-1.5 rounded-full shrink-0', config.dotColor, dotClassName)} />
-      <span>{customLabel || config.label}</span>
-    </span>
+    <StatusBadge
+      status={status}
+      variant='pill'
+      size='md'
+      label={customLabel}
+      className={className}
+    />
   );
 }
 
 /**
- * Atom: Specialty Badge
+ * Atom: Specialty Badge (reusing design-system Badge)
  */
 export interface DoctorSpecialtyBadgeProps {
   specialty: string;
@@ -134,14 +43,15 @@ export interface DoctorSpecialtyBadgeProps {
 
 export function DoctorSpecialtyBadge({ specialty, className }: DoctorSpecialtyBadgeProps) {
   return (
-    <span
+    <Badge
+      variant='secondary'
       className={cn(
-        'inline-flex items-center px-2.5 py-1 rounded-lg text-[11.5px] font-semibold bg-[#F3E8FF] text-[#7E22CE] dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200/50 dark:border-purple-800/40 w-fit select-none',
+        'px-2.5 py-1 rounded-lg text-[11.5px] font-semibold bg-[#F3E8FF] text-[#7E22CE] dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200/50 dark:border-purple-800/40 w-fit select-none shadow-none',
         className
       )}
     >
       {specialty}
-    </span>
+    </Badge>
   );
 }
 
