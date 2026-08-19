@@ -18,10 +18,48 @@ export const navGroups: NavGroup[] = [
     label: 'Manage',
     items: [
       {
+        title: 'Amanah Admin',
+        url: '#',
+        icon: 'stethoscope',
+        isActive: true,
+        items: [
+          {
+            title: 'Dashboard',
+            url: '#',
+            icon: 'dashboard'
+          },
+          {
+            title: 'Appointment Pasien',
+            url: '#',
+            icon: 'calendar'
+          },
+          {
+            title: 'Data Pasien',
+            url: '#',
+            icon: 'teams'
+          },
+          {
+            title: 'Jadwal Dokter',
+            url: '#',
+            icon: 'clock'
+          },
+          {
+            title: 'Chat Pasien',
+            url: '#',
+            icon: 'chat'
+          },
+          {
+            title: 'Kehadiran Pegawai',
+            url: '#',
+            icon: 'badgeCheck'
+          }
+        ]
+      },
+      {
         title: 'Klinik',
         url: '#',
         icon: 'calendar',
-        isActive: true,
+        isActive: false,
         items: [
           {
             title: 'Janji Temu',
