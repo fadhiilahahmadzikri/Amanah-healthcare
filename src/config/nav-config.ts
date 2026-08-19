@@ -25,18 +25,21 @@ export const navGroups: NavGroup[] = [
         items: [
           {
             title: 'Dashboard',
-            url: '#',
-            icon: 'dashboard'
+            url: '/dashboard/admin',
+            icon: 'dashboard',
+            shortcut: ['a', 'd']
           },
           {
             title: 'Appointment Pasien',
-            url: '#',
-            icon: 'calendar'
+            url: '/dashboard/appointment-pasien',
+            icon: 'calendar',
+            shortcut: ['a', 'p']
           },
           {
             title: 'Data Pasien',
-            url: '#',
-            icon: 'teams'
+            url: '/dashboard/data-pasien',
+            icon: 'teams',
+            shortcut: ['d', 'p']
           },
           {
             title: 'Jadwal Dokter',

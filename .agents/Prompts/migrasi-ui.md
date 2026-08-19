@@ -18,7 +18,7 @@ The contextual information provided below represents the **data, information arc
 
 It is **not a final UI specification**.
 
-For example, if the target page is a **[MASUKKAN HALAMAN APA YANG MAU DIBUAT]** page, the provided context should be interpreted as the source of truth for:
+For example, if the target page is a **[Data Pasien cakupannya Admin Dashboard]** page, the provided context should be interpreted as the source of truth for:
 
 * what patient information exists,
 * what fields need to be represented,
@@ -466,7 +466,7 @@ Supporting skills should improve implementation quality only when their recommen
 
 **Harmonization is the key requirement.**
 
-Suppose the provided context describes a [MASUKKAN HALAMAN APA YANG MAU DIBUAT] page.
+Suppose the provided context describes a [Data Pasien cakupannya Admin Dashboard] page.
 
 Do not ask:
 
@@ -474,7 +474,7 @@ Do not ask:
 
 Instead ask:
 
-> "How would THIS application represent [MASUKKAN HALAMAN APA YANG MAU DIBUAT] using the patterns, components, spacing, typography, interaction conventions, and architecture it already uses?"
+> "How would THIS application represent [Data Pasien cakupannya Admin Dashboard] using the patterns, components, spacing, typography, interaction conventions, and architecture it already uses?"
 
 That distinction is fundamental.
 
@@ -494,7 +494,7 @@ Page Shell
 └── Pagination
 ```
 
-and the target [MASUKKAN HALAMAN APA YANG MAU DIBUAT] page requires the same structural pattern, do not independently recreate that hierarchy.
+and the target [Data Pasien cakupannya Admin Dashboard] page requires the same structural pattern, do not independently recreate that hierarchy.
 
 Reuse or compose the existing implementation and replace only the domain-specific content where appropriate.
 
@@ -662,4 +662,917 @@ Do not hallucinate.
 
 The context supplied below defines the **substantive data and information that must be represented on the target page**. Treat it as a mapping/resource of truth for page content, not as a final UI design.
 
-**[INSERT TARGET PAGE CONTEXT HERE / jadi nas di sini kau paste aja apa yang ada di chatgpt mu tadi itu sebagai context data apa yang kan di taruh]**
+**[Ini adalah halaman data pasien pada cakupan admin dashboard, tolong dibuatkan halamannya
+
+## Continued Structural UI Analysis — “Data Pasien”
+
+The screenshot shows a **patient-record management page** within a clinic administration application. It contains global navigation, patient summary metrics, search/filter controls, a patient data table, and row-level actions.
+
+The visible hierarchy is:
+
+```text id="wq4k3p"
+Data Pasien
+│
+├── Global Application Header
+│   ├── Navigation / Breadcrumb
+│   ├── Repository / Git Icon
+│   ├── Global Search
+│   ├── Utility Controls
+│   ├── User Account
+│   └── Notifications
+│
+├── Page Header
+│   ├── Page Title
+│   ├── Description
+│   └── Export Data Action
+│
+├── Patient Summary Metrics
+│   ├── Total Pasien
+│   ├── Pasien Aktif
+│   └── Pasien Nonaktif
+│
+├── Patient Search / Filtering Toolbar
+│   ├── Search Field
+│   ├── Gender Filter
+│   ├── Status Akun Filter
+│   └── View Control
+│
+└── Patient Data Table
+    ├── Table Header
+    └── Patient Rows
+        ├── Patient Record 1
+        ├── Patient Record 2
+        ├── Patient Record 3
+        ├── Patient Record 4
+        └── Patient Record 5
+```
+
+---
+
+# 1. Global Application Header
+
+The top horizontal region provides application-level navigation and utilities.
+
+## 1.1 Left Navigation / Breadcrumb
+
+At the upper-left is a navigation trail consisting of:
+
+* A small navigation/sidebar-style icon
+* `Dashboard`
+* `/` separator
+* `Data-pasien`
+
+The current location is therefore explicitly represented as `Data-pasien`.
+
+Logical structure:
+
+```text id="1b8k2j"
+Breadcrumb
+├── Navigation Icon
+├── Dashboard
+├── Separator "/"
+└── Current Page
+    └── Data-pasien
+```
+
+---
+
+## 1.2 Repository / Git Icon
+
+Near the center-right of the header is a standalone GitHub-style icon.
+
+No textual label accompanies it, so its exact function cannot be established solely from the screenshot.
+
+It should therefore be represented structurally as an unlabeled global utility/icon rather than assigning a specific action to it.
+
+---
+
+## 1.3 Global Search
+
+Next to the repository icon is a global search control.
+
+It contains:
+
+* Search icon
+* Placeholder: `Search...`
+* Keyboard shortcut indicator: `⌘ K`
+
+The visible structure is:
+
+```text id="6ym4j8"
+Global Search
+├── Search Icon
+├── Input
+│   └── Placeholder: "Search..."
+└── Shortcut Indicator
+    └── "⌘ K"
+```
+
+The screenshot does not specify which application entities are searchable through this global search.
+
+---
+
+## 1.4 Additional Utility Controls
+
+Two compact controls appear after the search field.
+
+### First utility
+
+A standalone circular/icon-based control is visible.
+
+No textual label is provided, so its exact function cannot be reliably determined.
+
+### Second utility
+
+Another control contains:
+
+* An icon resembling a palette/theme control
+* `Admin Custom`
+* `TT`
+* A downward chevron
+
+The visible structure is:
+
+```text id="h3b5c1"
+Customization / Account Control
+├── Icon
+├── "Admin Custom"
+├── "TT"
+└── Dropdown Chevron
+```
+
+The screenshot does not establish the exact meaning of `TT`, so it should remain an independent displayed value rather than being interpreted.
+
+---
+
+## 1.5 Notification Control
+
+At the far right is a bell icon.
+
+A numeric badge attached to it displays:
+
+`3`
+
+This represents a visible notification count.
+
+```text id="d5k3f9"
+Notifications
+├── Bell Icon
+└── Count: 3
+```
+
+---
+
+# 2. Page Header
+
+The primary page content starts with the title area.
+
+## 2.1 Page Title
+
+`Data Pasien`
+
+This is the main page heading.
+
+## 2.2 Description
+
+`Daftar rekam medis dan profil pasien klinik. Klik baris pasien untuk membuka panel inspeksi detail mendalam.`
+
+The description explicitly states that this page contains:
+
+* Patient medical records
+* Patient clinic profiles
+
+It also states that clicking a patient row opens a detailed inspection panel.
+
+This is an explicitly visible interaction description rather than an inferred behavior.
+
+---
+
+## 2.3 Export Action
+
+At the upper-right of the page heading is a button:
+
+`Ekspor Data`
+
+It includes an upload/export-style icon.
+
+Logical structure:
+
+```text id="5qf7az"
+Export Action
+├── Export Icon
+└── Label
+    └── "Ekspor Data"
+```
+
+The screenshot establishes that the interface exposes an export action, but does not establish the export format.
+
+---
+
+# 3. Patient Summary Metrics
+
+Three KPI cards appear horizontally below the page heading.
+
+Each contains a metric label, a large numeric value, and a small icon.
+
+---
+
+## 3.1 Total Patients
+
+### Label
+
+`Total Pasien`
+
+### Value
+
+`35`
+
+### Icon
+
+A person/group icon appears within the card.
+
+Logical mapping:
+
+```text id="9v2f1m"
+Patient Metric
+├── Metric: Total Pasien
+├── Value: 35
+└── Icon
+```
+
+---
+
+## 3.2 Active Patients
+
+### Label
+
+`Pasien Aktif`
+
+### Value
+
+`29`
+
+### Icon
+
+A person icon appears on the card.
+
+Logical mapping:
+
+```text id="x8j5q2"
+Patient Metric
+├── Metric: Pasien Aktif
+├── Value: 29
+└── Icon
+```
+
+---
+
+## 3.3 Inactive Patients
+
+### Label
+
+`Pasien Nonaktif`
+
+### Value
+
+`6`
+
+### Icon
+
+A person icon appears on the card.
+
+Logical mapping:
+
+```text id="5xq2w9"
+Patient Metric
+├── Metric: Pasien Nonaktif
+├── Value: 6
+└── Icon
+```
+
+The three visible values have the direct numerical relationship:
+
+```text
+Total Pasien = 35
+Pasien Aktif = 29
+Pasien Nonaktif = 6
+```
+
+The screenshot does not require an additional category beyond these three displayed metrics.
+
+---
+
+# 4. Patient Search and Filter Toolbar
+
+Below the summary cards is the filtering toolbar.
+
+It consists of:
+
+1. Patient search field
+2. Gender filter
+3. Account-status filter
+4. View control
+
+---
+
+## 4.1 Patient Search
+
+The leftmost field contains the placeholder:
+
+`Cari nama, NIK, no. RM, telepon,`
+
+The visible search concepts are therefore:
+
+* Patient name
+* NIK
+* Medical-record number
+* Telephone number
+
+The displayed placeholder ends with a comma, and no additional text should be invented.
+
+Logical structure:
+
+```text id="4j0p3q"
+Patient Search
+├── Input
+└── Placeholder
+    ├── nama
+    ├── NIK
+    ├── no. RM
+    └── telepon
+```
+
+---
+
+## 4.2 Gender Filter
+
+The next control is:
+
+`Gender`
+
+It has a plus-in-circle icon.
+
+This is a filter control for the gender field.
+
+```text id="w7q1kx"
+Gender Filter
+├── Filter Icon
+└── "Gender"
+```
+
+No selected gender value is visible.
+
+---
+
+## 4.3 Account Status Filter
+
+The next control is:
+
+`Status Akun`
+
+It also contains a plus-in-circle icon.
+
+This represents filtering by account status.
+
+```text id="q5j8mb"
+Account Status Filter
+├── Filter Icon
+└── "Status Akun"
+```
+
+No specific filter value is visibly selected.
+
+---
+
+## 4.4 View Control
+
+On the right side of the toolbar is a control labeled:
+
+`View`
+
+It contains:
+
+* A settings/sliders-style icon
+* `View`
+* Up/down chevrons
+
+Logical structure:
+
+```text id="9w3gq2"
+View Control
+├── View/Settings Icon
+├── "View"
+└── Up/Down Indicator
+```
+
+The screenshot does not establish what view modes are available.
+
+---
+
+# 5. Patient Data Table
+
+The primary data component is a horizontally structured patient table.
+
+The visible table has **seven columns**:
+
+1. ID PASIEN
+2. PASIEN
+3. GENDER
+4. UMUR
+5. DIBUAT PADA
+6. STATUS AKUN
+7. AKSI
+
+Each column header also includes a sort indicator.
+
+---
+
+# 6. Table Column 1 — ID PASIEN
+
+The first column is:
+
+`ID PASIEN`
+
+A sorting indicator appears next to the header.
+
+The field contains patient medical-record identifiers such as:
+
+* `RM-2024-0047`
+* `RM-2025-0012`
+* `RM-2024-0089`
+* `RM-2024-0000`
+* `RM-2026-0031`
+
+This is an independently identifiable patient identifier field.
+
+---
+
+# 7. Table Column 2 — PASIEN
+
+The second column is:
+
+`PASIEN`
+
+Each visible row contains two logically separate pieces of information:
+
+* Patient avatar
+* Patient name
+
+These should **not** be treated as a single undifferentiated patient field.
+
+Visible records include:
+
+### Row 1
+
+* Avatar
+* `Ahmad Fauzi`
+
+### Row 2
+
+* Avatar
+* `Budi Kurniawan`
+
+### Row 3
+
+* Avatar
+* `Dewi Rahayu`
+
+### Row 4
+
+* Avatar
+* `Madonna Sari`
+
+### Row 5
+
+* Avatar
+* `Rizky Pratama`
+
+Logical representation:
+
+```text id="0j8s2x"
+Patient Column
+├── patient_avatar
+└── patient_name
+```
+
+The avatar is therefore an independent field in the logical patient record.
+
+---
+
+# 8. Table Column 3 — GENDER
+
+The third column is:
+
+`GENDER`
+
+Visible values are:
+
+* `Laki-laki`
+* `Laki-laki`
+* `Perempuan`
+* `Perempuan`
+* `Laki-laki`
+
+This is an independently represented gender field.
+
+Visible mapping:
+
+```text id="b3g7m1"
+Row 1 → Laki-laki
+Row 2 → Laki-laki
+Row 3 → Perempuan
+Row 4 → Perempuan
+Row 5 → Laki-laki
+```
+
+---
+
+# 9. Table Column 4 — UMUR
+
+The fourth column is:
+
+`UMUR`
+
+Visible values:
+
+* `41 th`
+* `51 th`
+* `27 th`
+* `36 th`
+* `34 th`
+
+The data field is therefore an age value, displayed with the `th` unit.
+
+Logical structure:
+
+```text id="j2c9k5"
+age
+├── numeric_value
+└── unit: "th"
+```
+
+Visible patient ages:
+
+```text
+Ahmad Fauzi → 41 th
+Budi Kurniawan → 51 th
+Dewi Rahayu → 27 th
+Madonna Sari → 36 th
+Rizky Pratama → 34 th
+```
+
+---
+
+# 10. Table Column 5 — DIBUAT PADA
+
+The fifth column is:
+
+`DIBUAT PADA`
+
+This represents the record/account creation date.
+
+Visible values:
+
+* `05/03/2024`
+* `22/01/2025`
+* `18/05/2024`
+* `10/01/2024`
+* `12/02/2026`
+
+Logical mapping:
+
+```text id="3n7qv2"
+created_at
+└── displayed_date
+```
+
+The screenshot does not explicitly identify whether this date refers to the patient record, account, or another specific database entity beyond the column label `DIBUAT PADA`.
+
+---
+
+# 11. Table Column 6 — STATUS AKUN
+
+The sixth column is:
+
+`STATUS AKUN`
+
+Each row contains a status badge composed of:
+
+* Small circular status indicator
+* Status text
+
+Visible statuses are:
+
+### Row 1
+
+`AKTIF`
+
+### Row 2
+
+`NONAKTIF`
+
+### Row 3
+
+`AKTIF`
+
+### Row 4
+
+`AKTIF`
+
+### Row 5
+
+`AKTIF`
+
+Logical field:
+
+```text id="z8m4v1"
+account_status
+├── status_indicator
+└── status_label
+```
+
+The status values visible in the table are:
+
+```text
+AKTIF
+NONAKTIF
+```
+
+---
+
+# 12. Table Column 7 — AKSI
+
+The final column is:
+
+`AKSI`
+
+Each visible row contains two independent actions:
+
+1. `Lihat Detail`
+2. `Edit`
+
+---
+
+## 12.1 Lihat Detail
+
+Each row has a button labeled:
+
+`Lihat Detail`
+
+It includes an eye icon.
+
+The page description explicitly states that clicking a patient row opens a detailed inspection panel. The button itself visibly provides a separate `Lihat Detail` action.
+
+The screenshot does not establish whether these two mechanisms open exactly the same panel.
+
+---
+
+## 12.2 Edit
+
+Each row also has:
+
+`Edit`
+
+with an edit/pencil-style icon.
+
+This is an independent row-level action.
+
+Logical structure:
+
+```text id="f7p1c8"
+Row Actions
+├── Lihat Detail
+└── Edit
+```
+
+---
+
+# 13. Visible Patient Records
+
+The five fully visible table rows can be decomposed into independent logical records.
+
+| ID Pasien    | Patient Avatar | Patient Name   | Gender    | Age   | Created Date | Account Status |
+| ------------ | -------------- | -------------- | --------- | ----- | ------------ | -------------- |
+| RM-2024-0047 | Present        | Ahmad Fauzi    | Laki-laki | 41 th | 05/03/2024   | AKTIF          |
+| RM-2025-0012 | Present        | Budi Kurniawan | Laki-laki | 51 th | 22/01/2025   | NONAKTIF       |
+| RM-2024-0089 | Present        | Dewi Rahayu    | Perempuan | 27 th | 18/05/2024   | AKTIF          |
+| RM-2024-0000 | Present        | Madonna Sari   | Perempuan | 36 th | 10/01/2024   | AKTIF          |
+| RM-2026-0031 | Present        | Rizky Pratama  | Laki-laki | 34 th | 12/02/2026   | AKTIF          |
+
+Every visible row additionally has the two actions:
+
+```text
+Lihat Detail
+Edit
+```
+
+The bottom of the screenshot partially reveals another row, but its complete contents are not visible. Therefore, no additional patient data should be fabricated from the partially visible row.
+
+---
+
+# 14. Logical Patient Record Model
+
+The table supports the following independent record structure:
+
+```text id="5nq0bd"
+PatientRecord
+├── patient_id
+├── patient_avatar
+├── patient_name
+├── gender
+├── age
+├── created_at
+├── account_status
+└── actions
+    ├── view_detail
+    └── edit
+```
+
+This decomposition is important because the visually grouped `PASIEN` column actually contains at least two distinct fields:
+
+```text
+PASIEN
+├── avatar
+└── name
+```
+
+Similarly, the `STATUS AKUN` cell contains both:
+
+```text
+STATUS AKUN
+├── status indicator
+└── status value
+```
+
+---
+
+# 15. Factory/Faker-Oriented Patient Data
+
+For a repeatable implementation, the visible patient records can be generated using a patient factory with separate fields:
+
+```text id="7m2xqk"
+PatientFactory
+├── patient_id
+├── avatar
+├── name
+├── gender
+├── age
+├── created_at
+├── account_status
+└── actions
+```
+
+Synthetic examples following the same structure could be:
+
+```text id="a4n8v2"
+Patient
+├── patient_id: RM-2026-0148
+├── avatar: avatar-001
+├── name: Sinta Maharani
+├── gender: Perempuan
+├── age: 32
+├── created_at: 14/04/2026
+└── account_status: AKTIF
+```
+
+```text id="m8c3x1"
+Patient
+├── patient_id: RM-2025-0194
+├── avatar: avatar-002
+├── name: Arif Nugraha
+├── gender: Laki-laki
+├── age: 45
+├── created_at: 08/09/2025
+└── account_status: NONAKTIF
+```
+
+These are synthetic examples and should not be interpreted as additional records from the screenshot.
+
+---
+
+# 16. Relationship Between Summary Metrics and Table
+
+The page exposes aggregate patient metrics above the table:
+
+```text
+Total Pasien = 35
+Pasien Aktif = 29
+Pasien Nonaktif = 6
+```
+
+The visible table is only a **subset of the patient dataset**, because five complete records are visible while the total count is 35.
+
+Therefore, the screenshot does not represent all 35 patients in the table viewport.
+
+The aggregate figures can be represented as:
+
+```text id="3b8q4w"
+Patient Summary
+├── total_patients: 35
+├── active_patients: 29
+└── inactive_patients: 6
+```
+
+---
+
+# 17. Complete Hierarchical Reconstruction
+
+```text id="6x9q2v"
+Data Pasien
+│
+├── Global Header
+│   ├── Navigation Icon
+│   ├── Dashboard
+│   ├── Separator "/"
+│   ├── Data-pasien
+│   ├── Git/Repository Icon
+│   ├── Global Search
+│   │   ├── Search Icon
+│   │   ├── "Search..."
+│   │   └── "⌘ K"
+│   ├── Utility Control
+│   ├── Admin Custom Control
+│   │   ├── Icon
+│   │   ├── "Admin Custom"
+│   │   ├── "TT"
+│   │   └── Dropdown Chevron
+│   └── Notifications
+│       ├── Bell
+│       └── Count: 3
+│
+├── Page Header
+│   ├── "Data Pasien"
+│   ├── Description
+│   │   └── "Daftar rekam medis dan profil pasien klinik.
+│   │       Klik baris pasien untuk membuka panel inspeksi
+│   │       detail mendalam."
+│   └── "Ekspor Data"
+│
+├── Patient Summary
+│   ├── Total Pasien
+│   │   └── 35
+│   ├── Pasien Aktif
+│   │   └── 29
+│   └── Pasien Nonaktif
+│       └── 6
+│
+├── Search / Filters
+│   ├── Patient Search
+│   │   └── "Cari nama, NIK, no. RM, telepon,"
+│   ├── Gender
+│   ├── Status Akun
+│   └── View
+│
+└── Patient Table
+    │
+    ├── ID PASIEN
+    ├── PASIEN
+    │   ├── Avatar
+    │   └── Name
+    ├── GENDER
+    ├── UMUR
+    ├── DIBUAT PADA
+    ├── STATUS AKUN
+    │   ├── Indicator
+    │   └── Status
+    └── AKSI
+        ├── Lihat Detail
+        └── Edit
+```
+
+---
+
+# 18. Observable vs. Undetermined
+
+### Directly observable
+
+* The page is titled `Data Pasien`.
+* It contains patient medical-record/profile data.
+* The page explicitly states that patient rows can open a detailed inspection panel.
+* There are three patient aggregate metrics.
+* There is a patient search field.
+* Gender and account-status filters are available.
+* A view control is present.
+* There is an export-data action.
+* The table has seven visible columns.
+* The `PASIEN` column contains both an avatar and patient name.
+* The table displays patient IDs, gender, age, creation dates, account statuses, and row actions.
+* Each visible row has `Lihat Detail` and `Edit`.
+* Five patient records are fully visible.
+* A sixth row is only partially visible at the bottom.
+
+### Not established by the screenshot
+
+* The exact data format produced by `Ekspor Data`.
+* The destination or function of the Git/repository icon.
+* The exact function of the unlabeled utility controls in the global header.
+* The meaning of `TT`.
+* The available options inside `View`.
+* The filtering interaction model for `Gender` and `Status Akun`.
+* Whether sorting is ascending/descending by default; only sortable-column indicators are visible.
+* The contents of the detailed inspection panel.
+* The fields available when selecting `Edit`.
+* The total number of table pages or pagination behavior.
+* Any patient fields not visible in the table.
+]**
+

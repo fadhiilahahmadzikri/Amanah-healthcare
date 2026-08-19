@@ -64,7 +64,7 @@ export function DataTable<TData>({
                         key={header.id}
                         colSpan={header.colSpan}
                         style={{
-                          ...getCommonPinningStyles({ column: header.column }),
+                          ...getCommonPinningStyles({ column: header.column, isHeader: true }),
                           width:
                             header.column.getSize() !== 150 ? header.column.getSize() : undefined
                         }}
@@ -90,7 +90,7 @@ export function DataTable<TData>({
                         <TableCell
                           key={cell.id}
                           style={{
-                            ...getCommonPinningStyles({ column: cell.column }),
+                            ...getCommonPinningStyles({ column: cell.column, isHeader: false }),
                             width: cell.column.getSize() !== 150 ? cell.column.getSize() : undefined
                           }}
                         >

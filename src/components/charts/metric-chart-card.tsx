@@ -29,10 +29,11 @@ type MetricChartCardProps = {
   trendLabel?: string;
   trendDirection?: 'up' | 'down' | 'neutral';
   tone?: MetricTone;
+  strokeColor?: string;
 };
 
 const toneColors: Record<MetricTone, string> = {
-  primary: 'var(--chart-1)',
+  primary: '#2563eb',
   success: 'var(--chart-2)',
   info: 'var(--chart-3)',
   warning: 'var(--chart-4)',
@@ -47,25 +48,28 @@ export function MetricChartCard({
   icon,
   trendLabel,
   trendDirection = 'neutral',
-  tone = 'primary'
+  tone = 'primary',
+  strokeColor
 }: MetricChartCardProps) {
   const gradientId = `metric-gradient-${useId().replace(/:/g, '')}`;
+  const activeColor = strokeColor || toneColors[tone];
+
   const chartConfig = {
     value: {
       label: title,
-      color: toneColors[tone]
+      color: activeColor
     }
   } satisfies ChartConfig;
 
   return (
-    <Card className='overflow-hidden'>
+    <Card className='overflow-hidden shadow-xs border-border/60'>
       <CardHeader className='flex flex-row items-start justify-between gap-3 pb-2'>
         <div className='min-w-0'>
           <CardTitle className='text-sm font-medium text-muted-foreground'>{title}</CardTitle>
-          <div className='mt-1 truncate text-2xl font-bold'>{value}</div>
+          <div className='mt-1 truncate text-2xl font-bold text-foreground'>{value}</div>
         </div>
         {icon && (
-          <div className='flex size-10 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground'>
+          <div className='flex size-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400'>
             {icon}
           </div>
         )}
@@ -73,7 +77,13 @@ export function MetricChartCard({
       <CardContent className='flex flex-col gap-3 pt-0'>
         <div className='flex min-h-5 items-center gap-2'>
           {trendLabel && (
-            <Badge variant='outline' className={cn('border', getTrendClassName(trendDirection))}>
+            <Badge
+              variant='outline'
+              className={cn(
+                'border font-semibold text-[11px] px-2 py-0.5',
+                getTrendClassName(trendDirection)
+              )}
+            >
               {trendLabel}
             </Badge>
           )}
@@ -87,8 +97,8 @@ export function MetricChartCard({
           >
             <defs>
               <linearGradient id={gradientId} x1='0' y1='0' x2='0' y2='1'>
-                <stop offset='5%' stopColor='var(--color-value)' stopOpacity={0.38} />
-                <stop offset='95%' stopColor='var(--color-value)' stopOpacity={0.02} />
+                <stop offset='5%' stopColor={activeColor} stopOpacity={0.25} />
+                <stop offset='95%' stopColor={activeColor} stopOpacity={0.01} />
               </linearGradient>
             </defs>
             <ChartTooltip
@@ -98,11 +108,11 @@ export function MetricChartCard({
             <Area
               dataKey='value'
               type='monotone'
-              stroke='var(--color-value)'
+              stroke={activeColor}
               fill={`url(#${gradientId})`}
               strokeWidth={2}
               dot={false}
-              activeDot={{ r: 3 }}
+              activeDot={{ r: 3, fill: activeColor }}
             />
           </AreaChart>
         </ChartContainer>
@@ -114,9 +124,9 @@ export function MetricChartCard({
 function getTrendClassName(direction: 'up' | 'down' | 'neutral') {
   switch (direction) {
     case 'up':
-      return 'bg-green-500/10 text-green-500 border-green-500/20';
+      return 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20';
     case 'down':
-      return 'bg-red-500/10 text-red-500 border-red-500/20';
+      return 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20';
     case 'neutral':
       return 'bg-muted text-muted-foreground';
   }

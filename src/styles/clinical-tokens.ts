@@ -133,7 +133,43 @@ export const getStatusConfig = (status: string): StatusConfig => {
     case 'SELESAI':
       return {
         ...clinicalTokens.colors.status.completed,
-        label: 'Completed'
+        label: 'Selesai'
+      };
+    case 'SUDAH_DATANG':
+    case 'SUDAH DATANG':
+      return {
+        ...clinicalTokens.colors.status.confirmed,
+        label: 'Sudah Datang'
+      };
+    case 'SUDAH_BUAT_JANJI':
+    case 'SUDAH BUAT JANJI':
+      return {
+        ...clinicalTokens.colors.status.upcoming,
+        label: 'Sudah Buat Janji'
+      };
+    case 'SEDANG_PERIKSA':
+    case 'SEDANG PERIKSA':
+      return {
+        ...clinicalTokens.colors.status.checkedIn,
+        label: 'Sedang Periksa'
+      };
+    case 'TIDAK_ADA_DOKTER':
+    case 'TIDAK ADA DOKTER':
+      return {
+        ...clinicalTokens.colors.status.cancelled,
+        label: 'Tidak Ada Dokter'
+      };
+    case 'AKTIF':
+    case 'ACTIVE':
+      return {
+        ...clinicalTokens.colors.status.confirmed,
+        label: 'Aktif'
+      };
+    case 'NONAKTIF':
+    case 'INACTIVE':
+      return {
+        ...clinicalTokens.colors.status.cancelled,
+        label: 'Nonaktif'
       };
     case 'CONFIRMED':
       return {
@@ -156,7 +192,7 @@ export const getStatusConfig = (status: string): StatusConfig => {
     case 'MENUNGGU':
       return {
         ...clinicalTokens.colors.status.pending,
-        label: 'Pending'
+        label: 'Menunggu'
       };
     case 'CANCELLED':
     case 'BATAL':

@@ -13,6 +13,8 @@ export const searchParams = {
   category: parseAsString,
   categoryId: parseAsString,
   role: parseAsString,
+  status: parseAsString,
+  search: parseAsString,
   sort: parseAsString
 };
 

@@ -4,9 +4,11 @@ import type { Column } from '@tanstack/react-table';
 import { dataTableConfig } from '@/config/data-table';
 
 export function getCommonPinningStyles<TData>({
-  column
+  column,
+  isHeader = false
 }: {
   column: Column<TData>;
+  isHeader?: boolean;
 }): React.CSSProperties {
   const isPinned = column.getIsPinned();
   const isLastLeftPinnedColumn = isPinned === 'left' && column.getIsLastColumn('left');
@@ -21,9 +23,9 @@ export function getCommonPinningStyles<TData>({
     left: isPinned === 'left' ? `${column.getStart('left')}px` : undefined,
     right: isPinned === 'right' ? `${column.getAfter('right')}px` : undefined,
     position: isPinned ? 'sticky' : 'relative',
-    background: isPinned ? 'var(--background)' : undefined,
+    background: isPinned ? (isHeader ? 'var(--muted)' : 'var(--background)') : undefined,
     width: column.getSize(),
-    zIndex: isPinned ? 1 : 0
+    zIndex: isPinned ? (isHeader ? 20 : 1) : 0
   };
 }
 
