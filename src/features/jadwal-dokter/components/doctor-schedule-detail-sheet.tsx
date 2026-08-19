@@ -6,15 +6,13 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
-  SheetFooter
+  SheetDescription
 } from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Icons } from '@/components/icons';
 import { getStatusConfig } from '@/styles/clinical-tokens';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DoctorCalendarGrid } from './doctor-calendar-grid';
+import { DoctorTimelineCalendar } from './doctor-timeline-calendar';
 import {
   useUpdateDoctorDayStatusMutation,
   useUpdateDoctorScheduleMutation
@@ -52,28 +50,6 @@ export function DoctorScheduleDetailSheet({
     .join('')
     .toUpperCase();
 
-  const handleToggleCuti = () => {
-    updateScheduleMutation.mutate({
-      id: doctor.id,
-      payload: {
-        is_cuti: !doctor.is_cuti,
-        status_dokter: doctor.is_cuti ? 'Aktif' : 'Cuti',
-        status_jadwal: doctor.is_cuti ? 'Aktif' : 'Cuti / Tutup'
-      }
-    });
-  };
-
-  const handleCloseToday = () => {
-    updateScheduleMutation.mutate({
-      id: doctor.id,
-      payload: {
-        status_jadwal: 'Tutup',
-        slot_tersedia: 0
-      }
-    });
-    toast.success(`Praktik hari ini untuk ${doctor.nama_dokter} telah ditutup.`);
-  };
-
   const handleDayStatusChange = (day: number, status: ScheduleDayStatus) => {
     updateDayMutation.mutate({
       doctorId: doctor.id,
@@ -94,7 +70,7 @@ export function DoctorScheduleDetailSheet({
       <SheetContent
         side='right'
         showCloseButton={false}
-        className='w-full sm:max-w-[580px] p-0 flex flex-col gap-0 border-l border-border/50 bg-card text-card-foreground shadow-2xl font-sans'
+        className='w-full sm:max-w-[680px] lg:max-w-[760px] p-0 flex flex-col gap-0 border-l border-border/50 bg-card text-card-foreground shadow-2xl font-sans'
       >
         {/* 1. Header with Cover Banner & Profile Style */}
         <div className='relative w-full shrink-0 border-b border-border/40 bg-card'>
@@ -140,14 +116,19 @@ export function DoctorScheduleDetailSheet({
                 />
               </div>
 
-              {/* Notification Bell Action (Theme-Aware) */}
+              {/* Action: Atur Jadwal (Icon-Based Button replacing bell) */}
               <div className='pb-1'>
                 <button
                   type='button'
-                  aria-label='Notifikasi Dokter'
-                  className='size-9 rounded-full bg-[color-mix(in_oklab,var(--primary-bright,var(--primary))_12%,transparent)] text-[var(--primary-bright,var(--primary))] hover:bg-[color-mix(in_oklab,var(--primary-bright,var(--primary))_22%,transparent)] flex items-center justify-center transition-colors shadow-2xs cursor-pointer'
+                  onClick={() => {
+                    onClose();
+                    onOpenEdit(doctor);
+                  }}
+                  aria-label='Atur Jadwal Dokter'
+                  title='Atur Jadwal Dokter'
+                  className='size-9 rounded-full bg-[color-mix(in_oklab,var(--primary-bright,var(--primary))_12%,transparent)] text-[var(--primary-bright,var(--primary))] hover:bg-[var(--primary)] hover:text-primary-foreground flex items-center justify-center transition-all shadow-2xs cursor-pointer active:scale-95'
                 >
-                  <Icons.notification className='size-4' />
+                  <Icons.edit className='size-4' />
                 </button>
               </div>
             </div>
@@ -241,20 +222,17 @@ export function DoctorScheduleDetailSheet({
           </div>
 
           <div className='flex-1 overflow-y-auto p-6 space-y-4 select-none'>
-            {/* Tab 1: Kalender Bulanan */}
-            <TabsContent value='kalender' className='m-0 space-y-4 outline-none'>
-              <div>
-                <span className='text-xs font-normal text-muted-foreground/80 block mb-2'>
-                  Jadwal praktik bulanan ({doctor.bulan_jadwal})
-                </span>
-                <div className='p-3.5 rounded-xl border border-border/40 bg-muted/15'>
-                  <DoctorCalendarGrid
-                    days={doctor.monthly_schedule || []}
-                    onSelectDayStatus={handleDayStatusChange}
-                    readOnly={false}
-                  />
-                </div>
-              </div>
+            {/* Tab 1: Standard Calendar System */}
+            <TabsContent value='kalender' className='m-0 space-y-3 outline-none'>
+              <DoctorTimelineCalendar
+                doctor={doctor}
+                onSelectDayStatus={(day, st) =>
+                  handleDayStatusChange(
+                    day,
+                    st === 'buka' ? 'Aktif' : st === 'cuti' ? 'Cuti / Tutup' : 'Tutup'
+                  )
+                }
+              />
             </TabsContent>
 
             {/* Tab 2: Ringkasan Jadwal & Kuota Hari Ini */}
@@ -368,48 +346,6 @@ export function DoctorScheduleDetailSheet({
             </TabsContent>
           </div>
         </Tabs>
-
-        {/* 3. Sheet Footer: Actions */}
-        <SheetFooter className='p-5 border-t border-border/40 bg-muted/10 flex flex-row items-center justify-between gap-3 shrink-0'>
-          <div className='flex items-center gap-2'>
-            <Button
-              type='button'
-              variant={doctor.is_cuti ? 'outline' : 'destructive'}
-              shape='pill'
-              size='sm'
-              onClick={handleToggleCuti}
-              className='font-medium text-xs'
-            >
-              {doctor.is_cuti ? 'Aktifkan dokter' : 'Set dokter cuti'}
-            </Button>
-
-            <Button
-              type='button'
-              variant='outline'
-              shape='pill'
-              size='sm'
-              onClick={handleCloseToday}
-              disabled={doctor.status_jadwal === 'Tutup' || doctor.is_cuti}
-              className='font-medium text-xs'
-            >
-              Tutup hari ini
-            </Button>
-          </div>
-
-          <Button
-            type='button'
-            variant='default'
-            shape='pill'
-            size='sm'
-            onClick={() => {
-              onClose();
-              onOpenEdit(doctor);
-            }}
-            className='font-semibold text-xs'
-          >
-            Atur jadwal
-          </Button>
-        </SheetFooter>
       </SheetContent>
     </Sheet>
   );

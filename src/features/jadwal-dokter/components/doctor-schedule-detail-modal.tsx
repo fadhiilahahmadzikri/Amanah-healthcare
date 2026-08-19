@@ -267,26 +267,15 @@ export function DoctorScheduleDetailModal({
           <div className='flex items-center gap-2'>
             <Button
               type='button'
-              variant='outline'
-              shape='pill'
-              size='sm'
-              onClick={onClose}
-              className='font-medium text-xs'
-            >
-              Tutup
-            </Button>
-
-            <Button
-              type='button'
               variant='default'
+              size='card-action'
               shape='pill'
-              size='sm'
               withTrailingCircleIcon
               onClick={() => {
                 onClose();
                 onOpenEdit(doctor);
               }}
-              className='font-semibold text-xs'
+              className='font-bold'
             >
               Atur jadwal
             </Button>
