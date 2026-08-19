@@ -11,7 +11,6 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { ChevronDownIcon, ChevronUpIcon, CaretSortIcon, Cross2Icon } from '@radix-ui/react-icons';
 
 interface DataTableColumnHeaderProps<TData, TValue> extends React.ComponentProps<
   typeof DropdownMenuTrigger
@@ -27,26 +26,28 @@ export function DataTableColumnHeader<TData, TValue>({
   ...props
 }: DataTableColumnHeaderProps<TData, TValue>) {
   if (!column.getCanSort() && !column.getCanHide()) {
-    return <div className={cn('text-foreground font-medium text-sm', className)}>{title}</div>;
+    return (
+      <div className={cn('text-foreground font-semibold text-[13px]', className)}>{title}</div>
+    );
   }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         className={cn(
-          'text-foreground font-medium text-sm hover:bg-accent focus:ring-ring data-[state=open]:bg-accent [&_svg]:text-muted-foreground -ml-1.5 flex h-8 items-center gap-1.5 rounded-md px-2 py-1.5 focus:ring-1 focus:outline-none [&_svg]:size-4 [&_svg]:shrink-0 cursor-pointer',
+          'text-foreground font-semibold text-[13px] hover:text-primary focus:ring-0 data-[state=open]:text-primary -ml-1.5 flex h-8 items-center gap-1.5 rounded-md px-1.5 py-1 focus:outline-none cursor-pointer select-none transition-colors group',
           className
         )}
         {...props}
       >
-        {title}
+        <span>{title}</span>
         {column.getCanSort() &&
           (column.getIsSorted() === 'desc' ? (
-            <ChevronDownIcon />
+            <Icons.chevronDown className='size-3.5 text-primary shrink-0' />
           ) : column.getIsSorted() === 'asc' ? (
-            <ChevronUpIcon />
+            <Icons.chevronUp className='size-3.5 text-primary shrink-0' />
           ) : (
-            <CaretSortIcon />
+            <Icons.arrowsSort className='size-3.5 text-muted-foreground/70 group-hover:text-foreground shrink-0 transition-colors' />
           ))}
       </DropdownMenuTrigger>
       <DropdownMenuContent align='start' className='w-28'>
@@ -57,7 +58,7 @@ export function DataTableColumnHeader<TData, TValue>({
               checked={column.getIsSorted() === 'asc'}
               onClick={() => column.toggleSorting(false)}
             >
-              <ChevronUpIcon />
+              <Icons.chevronUp className='size-3.5' />
               Asc
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
@@ -65,7 +66,7 @@ export function DataTableColumnHeader<TData, TValue>({
               checked={column.getIsSorted() === 'desc'}
               onClick={() => column.toggleSorting(true)}
             >
-              <ChevronDownIcon />
+              <Icons.chevronDown className='size-3.5' />
               Desc
             </DropdownMenuCheckboxItem>
             {column.getIsSorted() && (
@@ -73,7 +74,7 @@ export function DataTableColumnHeader<TData, TValue>({
                 className='[&_svg]:text-muted-foreground pl-2'
                 onClick={() => column.clearSorting()}
               >
-                <Cross2Icon />
+                <Icons.close className='size-3.5' />
                 Reset
               </DropdownMenuItem>
             )}
@@ -85,7 +86,7 @@ export function DataTableColumnHeader<TData, TValue>({
             checked={!column.getIsVisible()}
             onClick={() => column.toggleVisibility(false)}
           >
-            <Icons.eyeOff />
+            <Icons.eyeOff className='size-3.5' />
             Hide
           </DropdownMenuCheckboxItem>
         )}

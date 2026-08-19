@@ -154,7 +154,10 @@ export const getColumns = ({
   },
   {
     id: 'actions',
-    header: () => <div className='text-right'>Aksi</div>,
+    header: () => (
+      <div className='text-right text-[13px] font-semibold text-foreground px-1'>Aksi</div>
+    ),
+    size: 90,
     cell: ({ row }) => (
       <CellAction data={row.original} onOpenDetail={onOpenDetail} onOpenEdit={onOpenEdit} />
     )

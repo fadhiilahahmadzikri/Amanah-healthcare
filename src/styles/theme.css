@@ -16,6 +16,20 @@ body {
 
 :root {
   --header-height: calc(var(--spacing, 0.25rem) * 12 + 1px);
+  --cover-gradient: linear-gradient(
+    to bottom,
+    color-mix(in oklch, var(--primary) 22%, transparent),
+    color-mix(in oklch, var(--primary) 8%, transparent),
+    transparent
+  );
+  --pill-3d-gradient: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--primary-bright, var(--primary)) 45%, white) 0%,
+    color-mix(in oklab, var(--primary-bright, var(--primary)) 80%, white) 45%,
+    var(--primary-bright, var(--primary)) 100%
+  );
+  --pill-3d-border: color-mix(in oklab, var(--primary-bright, var(--primary)) 40%, white 60%);
+  --pill-3d-shadow: color-mix(in oklab, var(--primary-bright, var(--primary)) 40%, transparent);
 }
 
 [data-theme] body,

@@ -48,11 +48,11 @@ export function DataTableSkeleton({
         {withViewOptions ? <Skeleton className='ml-auto hidden h-7 w-[4.5rem] lg:flex' /> : null}
       </div>
 
-      <div className='flex-1 rounded-md border'>
+      <div className='flex-1 overflow-hidden'>
         <Table>
-          <TableHeader>
+          <TableHeader className='bg-background'>
             {Array.from({ length: 1 }).map((_, i) => (
-              <TableRow key={i} className='hover:bg-transparent'>
+              <TableRow key={i} className='hover:bg-transparent border-b border-border/60'>
                 {Array.from({ length: columnCount }).map((_, j) => (
                   <TableHead
                     key={j}
@@ -61,7 +61,7 @@ export function DataTableSkeleton({
                       minWidth: shrinkZero ? cozyCellWidths[j] : 'auto'
                     }}
                   >
-                    <Skeleton className='h-6 w-full' />
+                    <Skeleton className='h-4 w-3/4 rounded-md' />
                   </TableHead>
                 ))}
               </TableRow>
@@ -69,7 +69,7 @@ export function DataTableSkeleton({
           </TableHeader>
           <TableBody>
             {Array.from({ length: rowCount }).map((_, i) => (
-              <TableRow key={i} className='hover:bg-transparent'>
+              <TableRow key={i} className='hover:bg-transparent border-b border-border/40'>
                 {Array.from({ length: columnCount }).map((_, j) => (
                   <TableCell
                     key={j}
@@ -78,7 +78,7 @@ export function DataTableSkeleton({
                       minWidth: shrinkZero ? cozyCellWidths[j] : 'auto'
                     }}
                   >
-                    <Skeleton className='h-6 w-full' />
+                    <Skeleton className='h-4 w-4/5 rounded-full bg-muted/40' />
                   </TableCell>
                 ))}
               </TableRow>

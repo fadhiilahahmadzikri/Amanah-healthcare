@@ -1,5 +1,5 @@
 [data-theme='amanah'] {
-  --background: oklch(100% 0.00011 271.152 / 0.793);
+  --background: oklch(1 0 0);
   --foreground: oklch(0.24 0.12 278);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.24 0.12 278);
@@ -53,9 +53,27 @@
   --shadow-2xl: 0px 15px 25px -5px hsl(240 60% 10% / 0.1);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
+  --cover-gradient: linear-gradient(
+    to bottom,
+    rgba(56, 189, 248, 0.35),
+    rgba(186, 230, 253, 0.18),
+    transparent
+  );
+  --pill-3d-gradient: linear-gradient(to bottom, #38bdf8 0%, #3b82f6 50%, #2563eb 100%);
+  --pill-3d-border: rgba(125, 211, 252, 0.6);
+  --pill-3d-shadow: rgba(37, 99, 235, 0.4);
 }
 
 [data-theme='amanah'].dark {
+  --cover-gradient: linear-gradient(
+    to bottom,
+    rgba(3, 105, 161, 0.45),
+    rgba(12, 74, 110, 0.2),
+    transparent
+  );
+  --pill-3d-gradient: linear-gradient(to bottom, #38bdf8 0%, #2563eb 50%, #1d4ed8 100%);
+  --pill-3d-border: rgba(56, 189, 248, 0.5);
+  --pill-3d-shadow: rgba(29, 78, 216, 0.45);
   --background: oklch(0.12 0.025 265);
   --foreground: oklch(0.96 0.005 265);
   --card: oklch(0.16 0.03 265);
@@ -113,6 +131,9 @@
 [data-theme='amanah'],
 [data-theme='amanah'] body,
 [data-theme='amanah'] * {
+  --pill-3d-gradient: linear-gradient(to bottom, #38bdf8 0%, #3b82f6 50%, #2563eb 100%);
+  --pill-3d-border: rgba(125, 211, 252, 0.6);
+  --pill-3d-shadow: rgba(37, 99, 235, 0.4);
   font-family:
     'Plus Jakarta Sans',
     -apple-system,

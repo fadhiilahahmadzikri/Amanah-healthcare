@@ -211,7 +211,13 @@ export function DoctorCutiNotice({
 }: DoctorCutiNoticeProps) {
   return (
     <div className={cn('flex items-center gap-3.5 pt-3.5 mt-3.5 relative z-20', className)}>
-      <div className='size-12 rounded-2xl bg-gradient-to-b from-sky-300 via-blue-500 to-blue-600 border border-blue-600/40 dark:border-white/20 flex items-center justify-center shrink-0 shadow-[inset_0_1px_0.5px_0_rgba(255,255,255,0.45),0_3px_6px_-1px_rgba(0,0,0,0.18),0_1px_2px_0_rgba(0,0,0,0.1)]'>
+      <div
+        className='size-12 rounded-2xl flex items-center justify-center shrink-0 border border-white/40 dark:border-white/20 shadow-[inset_0_1.5px_1px_0_rgba(255,255,255,0.7),0_3px_8px_-1px_var(--pill-3d-shadow),0_1px_2px_0_rgba(0,0,0,0.1)]'
+        style={{
+          background: 'var(--pill-3d-gradient)',
+          borderColor: 'var(--pill-3d-border)'
+        }}
+      >
         <Icons.calendar className='size-6 text-white drop-shadow-[0_1px_1.5px_rgba(0,0,0,0.3)] stroke-[2.2]' />
       </div>
       <div className='flex flex-col'>

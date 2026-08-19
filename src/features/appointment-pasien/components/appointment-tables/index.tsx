@@ -58,7 +58,7 @@ export function AppointmentTable() {
     shallow: true,
     debounceMs: 300,
     initialState: {
-      columnPinning: { right: ['actions'] }
+      columnPinning: { left: ['select'], right: ['actions'] }
     }
   });
 
@@ -102,9 +102,46 @@ export function AppointmentTable() {
 
 export function AppointmentTableSkeleton() {
   return (
-    <div className='space-y-4 p-4'>
-      <Skeleton className='h-10 w-full' />
-      <Skeleton className='h-96 w-full' />
+    <div className='flex flex-1 flex-col space-y-4'>
+      {/* Toolbar Skeleton */}
+      <div className='flex w-full items-center justify-between gap-2 overflow-auto p-1'>
+        <div className='flex flex-1 items-center gap-2'>
+          <Skeleton className='h-8 w-56 rounded-md' />
+          <Skeleton className='h-8 w-24 border-dashed rounded-md' />
+          <Skeleton className='h-8 w-24 border-dashed rounded-md' />
+        </div>
+        <Skeleton className='h-8 w-20 rounded-md' />
+      </div>
+
+      {/* Clean Borderless Table Skeleton matching reference image */}
+      <div className='flex-1 overflow-hidden'>
+        <div className='border-b border-border/60 px-4 py-3 flex items-center justify-between gap-6'>
+          <Skeleton className='size-4 rounded-[4px]' />
+          <Skeleton className='h-4 w-24 rounded-md' />
+          <Skeleton className='h-4 w-20 rounded-md' />
+          <Skeleton className='h-4 w-28 rounded-md' />
+          <Skeleton className='h-4 w-20 rounded-md' />
+          <Skeleton className='h-4 w-16 rounded-md' />
+          <Skeleton className='h-4 w-24 rounded-md' />
+          <Skeleton className='h-4 w-20 rounded-md' />
+          <Skeleton className='h-4 w-16 rounded-md' />
+        </div>
+        <div className='divide-y divide-border/40'>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className='px-4 py-3.5 flex items-center justify-between gap-6'>
+              <Skeleton className='size-4 rounded-[4px]' />
+              <Skeleton className='h-4 w-20 rounded-full bg-muted/40' />
+              <Skeleton className='h-4 w-16 rounded-full bg-muted/40' />
+              <Skeleton className='h-4 w-32 rounded-full bg-muted/40' />
+              <Skeleton className='h-4 w-20 rounded-full bg-muted/40' />
+              <Skeleton className='h-4 w-14 rounded-full bg-muted/40' />
+              <Skeleton className='h-4 w-24 rounded-full bg-muted/40' />
+              <Skeleton className='h-4 w-20 rounded-full bg-muted/40' />
+              <Skeleton className='h-4 w-16 rounded-full bg-muted/40' />
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

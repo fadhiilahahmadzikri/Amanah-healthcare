@@ -15,17 +15,12 @@ export function getCommonPinningStyles<TData>({
   const isFirstRightPinnedColumn = isPinned === 'right' && column.getIsFirstColumn('right');
 
   return {
-    boxShadow: isLastLeftPinnedColumn
-      ? '-5px 0 5px -5px var(--border) inset'
-      : isFirstRightPinnedColumn
-        ? '5px 0 5px -5px var(--border) inset'
-        : undefined,
     left: isPinned === 'left' ? `${column.getStart('left')}px` : undefined,
     right: isPinned === 'right' ? `${column.getAfter('right')}px` : undefined,
     position: isPinned ? 'sticky' : 'relative',
-    background: isPinned ? (isHeader ? 'var(--muted)' : 'var(--background)') : undefined,
+    background: isPinned ? 'var(--background)' : undefined,
     width: column.getSize(),
-    zIndex: isPinned ? (isHeader ? 20 : 1) : 0
+    zIndex: isPinned ? (isHeader ? 30 : 10) : 0
   };
 }
 

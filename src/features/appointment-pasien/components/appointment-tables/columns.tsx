@@ -20,12 +20,33 @@ const getInitials = (name: string) => {
     .toUpperCase();
 };
 
+const getAntreanPillClasses = (noAntrian: string) => {
+  if (!noAntrian || noAntrian === '-') {
+    return 'bg-gradient-to-b from-slate-400 via-slate-500 to-slate-600 text-white';
+  }
+  const prefix = noAntrian.trim().toUpperCase()[0];
+  switch (prefix) {
+    case 'A':
+      return 'bg-gradient-to-b from-sky-400 via-blue-500 to-blue-600 text-white';
+    case 'B':
+      return 'bg-gradient-to-b from-emerald-400 via-emerald-500 to-teal-600 text-white';
+    case 'C':
+      return 'bg-gradient-to-b from-purple-400 via-purple-500 to-indigo-600 text-white';
+    case 'D':
+      return 'bg-gradient-to-b from-amber-400 via-amber-500 to-orange-500 text-white';
+    case 'E':
+      return 'bg-gradient-to-b from-rose-400 via-rose-500 to-pink-600 text-white';
+    default:
+      return 'bg-gradient-to-b from-indigo-400 via-indigo-500 to-purple-600 text-white';
+  }
+};
+
 export const columns: ColumnDef<AdminAppointment>[] = [
   // 0. Select checkbox
   {
     id: 'select',
     header: ({ table }) => (
-      <div className='px-1'>
+      <div className='flex items-center pl-1.5'>
         <Checkbox
           aria-label='Pilih semua appointment'
           checked={
@@ -37,7 +58,7 @@ export const columns: ColumnDef<AdminAppointment>[] = [
       </div>
     ),
     cell: ({ row }) => (
-      <div className='px-1'>
+      <div className='flex items-center pl-1.5'>
         <Checkbox
           aria-label={`Pilih ${row.original.pasien}`}
           checked={row.getIsSelected()}
@@ -47,10 +68,77 @@ export const columns: ColumnDef<AdminAppointment>[] = [
     ),
     enableSorting: false,
     enableHiding: false,
-    size: 40
+    size: 48
   },
 
-  // 1. Live Status (Status Antrean) - dipindahkan ke paling depan agar mudah terlihat
+  // 1. Pasien
+  {
+    id: 'pasien',
+    accessorKey: 'pasien',
+    header: ({ column }: { column: Column<AdminAppointment, unknown> }) => (
+      <DataTableColumnHeader column={column} title='Pasien' />
+    ),
+    cell: ({ row }) => {
+      const appt = row.original;
+      return (
+        <div className='flex items-center gap-3'>
+          <Avatar className='h-8 w-8 rounded-md'>
+            {appt.avatar && <AvatarImage src={appt.avatar} alt={appt.pasien} />}
+            <AvatarFallback className='rounded-md text-xs bg-primary/10 text-primary font-semibold'>
+              {getInitials(appt.pasien)}
+            </AvatarFallback>
+          </Avatar>
+          <div className='flex flex-col'>
+            <span className='font-medium leading-none text-sm text-foreground'>{appt.pasien}</span>
+            <span className='mt-1 text-xs text-muted-foreground'>{appt.id_pasien}</span>
+          </div>
+        </div>
+      );
+    },
+    meta: {
+      label: 'Pencarian Pasien',
+      placeholder: 'Cari pasien, dokter, poli, antrean...',
+      variant: 'text' as const,
+      icon: Icons.search
+    },
+    enableColumnFilter: true,
+    enableSorting: true,
+    enableHiding: true
+  },
+
+  // 2. Tanggal Booking
+  {
+    id: 'tanggal_booking',
+    accessorKey: 'tanggal_booking',
+    header: ({ column }: { column: Column<AdminAppointment, unknown> }) => (
+      <DataTableColumnHeader column={column} title='Tanggal Booking' />
+    ),
+    cell: ({ row }) => (
+      <span className='text-sm text-muted-foreground whitespace-nowrap font-medium'>
+        {row.original.tanggal_booking}
+      </span>
+    ),
+    enableSorting: true,
+    enableHiding: true
+  },
+
+  // 3. Jam Booking
+  {
+    id: 'jam_booking',
+    accessorKey: 'jam_booking',
+    header: ({ column }: { column: Column<AdminAppointment, unknown> }) => (
+      <DataTableColumnHeader column={column} title='Jam Booking' />
+    ),
+    cell: ({ row }) => (
+      <span className='text-sm text-muted-foreground font-mono tabular-nums whitespace-nowrap'>
+        {row.original.jam_booking}
+      </span>
+    ),
+    enableSorting: true,
+    enableHiding: true
+  },
+
+  // 4. Status Antrean
   {
     id: 'live_status',
     accessorKey: 'live_status',
@@ -94,7 +182,7 @@ export const columns: ColumnDef<AdminAppointment>[] = [
     enableHiding: true
   },
 
-  // 2. No. Antrean
+  // 5. No. Antrean
   {
     id: 'no_antrian',
     accessorKey: 'no_antrian',
@@ -102,15 +190,18 @@ export const columns: ColumnDef<AdminAppointment>[] = [
       <DataTableColumnHeader column={column} title='No. Antrean' />
     ),
     cell: ({ row }) => {
-      const isNull = row.original.no_antrian === '-';
+      const isNull = !row.original.no_antrian || row.original.no_antrian === '-';
+      const gradientClass = getAntreanPillClasses(row.original.no_antrian);
       return (
         <span
           className={cn(
-            'font-mono text-xs font-semibold px-2 py-0.5 rounded-md inline-block',
-            isNull ? 'text-muted-foreground bg-muted/40' : 'text-primary bg-primary/10'
+            'inline-flex items-center justify-center font-mono text-[11.5px] font-bold px-2.5 py-0.5 rounded-[6px] border border-black/10 dark:border-white/20 shadow-[inset_0_1px_0.5px_0_rgba(255,255,255,0.45),0_2px_4px_-1px_rgba(0,0,0,0.18),0_1px_2px_0_rgba(0,0,0,0.1)] select-none',
+            gradientClass
           )}
         >
-          {row.original.no_antrian}
+          <span className='drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]'>
+            {isNull ? '-' : row.original.no_antrian}
+          </span>
         </span>
       );
     },
@@ -120,73 +211,6 @@ export const columns: ColumnDef<AdminAppointment>[] = [
       variant: 'text' as const,
       icon: Icons.text
     },
-    enableSorting: true,
-    enableHiding: true
-  },
-
-  // 3. Pasien
-  {
-    id: 'pasien',
-    accessorKey: 'pasien',
-    header: ({ column }: { column: Column<AdminAppointment, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Pasien' />
-    ),
-    cell: ({ row }) => {
-      const appt = row.original;
-      return (
-        <div className='flex items-center gap-3'>
-          <Avatar className='h-8 w-8 rounded-md'>
-            {appt.avatar && <AvatarImage src={appt.avatar} alt={appt.pasien} />}
-            <AvatarFallback className='rounded-md text-xs bg-primary/10 text-primary font-semibold'>
-              {getInitials(appt.pasien)}
-            </AvatarFallback>
-          </Avatar>
-          <div className='flex flex-col'>
-            <span className='font-medium leading-none text-sm text-foreground'>{appt.pasien}</span>
-            <span className='mt-1 text-xs text-muted-foreground'>{appt.id_pasien}</span>
-          </div>
-        </div>
-      );
-    },
-    meta: {
-      label: 'Pencarian Pasien',
-      placeholder: 'Cari pasien, dokter, poli, antrean...',
-      variant: 'text' as const,
-      icon: Icons.search
-    },
-    enableColumnFilter: true,
-    enableSorting: true,
-    enableHiding: true
-  },
-
-  // 4. Tanggal Booking
-  {
-    id: 'tanggal_booking',
-    accessorKey: 'tanggal_booking',
-    header: ({ column }: { column: Column<AdminAppointment, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Tanggal Booking' />
-    ),
-    cell: ({ row }) => (
-      <span className='text-sm text-muted-foreground whitespace-nowrap font-medium'>
-        {row.original.tanggal_booking}
-      </span>
-    ),
-    enableSorting: true,
-    enableHiding: true
-  },
-
-  // 5. Jam Booking
-  {
-    id: 'jam_booking',
-    accessorKey: 'jam_booking',
-    header: ({ column }: { column: Column<AdminAppointment, unknown> }) => (
-      <DataTableColumnHeader column={column} title='Jam Booking' />
-    ),
-    cell: ({ row }) => (
-      <span className='text-sm text-muted-foreground font-mono tabular-nums whitespace-nowrap'>
-        {row.original.jam_booking}
-      </span>
-    ),
     enableSorting: true,
     enableHiding: true
   },
@@ -232,8 +256,8 @@ export const columns: ColumnDef<AdminAppointment>[] = [
   // 8. Aksi
   {
     id: 'actions',
-    header: () => <span className='text-sm font-medium text-foreground px-2'>Aksi</span>,
-    size: 220,
+    header: () => <span className='text-[13px] font-semibold text-foreground px-1'>Aksi</span>,
+    size: 90,
     cell: ({ row }) => <CellAction data={row.original} />,
     enableSorting: false,
     enableHiding: false

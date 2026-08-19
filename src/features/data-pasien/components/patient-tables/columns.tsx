@@ -25,7 +25,7 @@ export const columns: ColumnDef<Patient>[] = [
   {
     id: 'select',
     header: ({ table }) => (
-      <div className='px-1'>
+      <div className='flex items-center pl-1.5'>
         <Checkbox
           aria-label='Pilih semua pasien'
           checked={
@@ -37,7 +37,7 @@ export const columns: ColumnDef<Patient>[] = [
       </div>
     ),
     cell: ({ row }) => (
-      <div className='px-1'>
+      <div className='flex items-center pl-1.5'>
         <Checkbox
           aria-label={`Pilih ${row.original.name}`}
           checked={row.getIsSelected()}
@@ -47,7 +47,7 @@ export const columns: ColumnDef<Patient>[] = [
     ),
     enableSorting: false,
     enableHiding: false,
-    size: 40
+    size: 48
   },
 
   // 1. ID Pasien
@@ -208,8 +208,8 @@ export const columns: ColumnDef<Patient>[] = [
   // 7. Aksi
   {
     id: 'actions',
-    header: () => <span className='text-sm font-medium text-foreground px-2'>Aksi</span>,
-    size: 200,
+    header: () => <span className='text-[13px] font-semibold text-foreground px-1'>Aksi</span>,
+    size: 90,
     cell: ({ row }) => <CellAction data={row.original} />,
     enableSorting: false,
     enableHiding: false

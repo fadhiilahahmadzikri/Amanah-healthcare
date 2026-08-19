@@ -47,19 +47,24 @@ export function CellAction({ data, onOpenDetail, onOpenEdit }: CellActionProps) 
     <div className='flex items-center justify-end gap-1'>
       <Button
         variant='ghost'
-        size='sm'
+        size='icon'
         onClick={() => onOpenDetail(data)}
-        className='h-8 px-2 text-xs font-semibold text-primary hover:text-primary hover:bg-primary/10'
+        className='size-8 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-md transition-colors'
+        title='Lihat Detail'
       >
-        <Icons.view className='mr-1 size-3.5' />
-        Detail
+        <Icons.eye className='size-4' />
+        <span className='sr-only'>Lihat Detail</span>
       </Button>
 
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
-          <Button variant='ghost' className='h-8 w-8 p-0'>
+          <Button
+            variant='ghost'
+            size='icon'
+            className='size-8 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-md transition-colors'
+          >
             <span className='sr-only'>Open menu</span>
-            <Icons.ellipsis className='h-4 w-4' />
+            <Icons.ellipsis className='size-4' />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end' className='w-48'>
