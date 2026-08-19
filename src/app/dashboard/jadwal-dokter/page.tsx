@@ -1,5 +1,7 @@
 import PageContainer from '@/components/layout/page-container';
 import DoctorScheduleListingPage from '@/features/jadwal-dokter/components/doctor-schedule-listing';
+import { Button } from '@/components/ui/button';
+import { Icons } from '@/components/icons';
 import { searchParamsCache } from '@/lib/searchparams';
 import { SearchParams } from 'nuqs/server';
 
@@ -19,7 +21,17 @@ export default async function Page(props: PageProps) {
     <PageContainer
       scrollable={false}
       pageTitle='Jadwal Dokter'
-      pageDescription='Manajemen jadwal praktik dokter, kalender ketersediaan kuota slot, pengaturan cuti, dan penutupan operasional poli klinik.'
+      pageDescription='Kelola jadwal praktik dokter, atur ketersediaan dan slot pasien.'
+      pageHeaderAction={
+        <Button
+          type='button'
+          variant='default'
+          className='bg-[#0B0F3B] hover:bg-[#151A66] text-white font-semibold text-xs sm:text-sm h-10 px-4 rounded-xl shadow-2xs gap-1.5 cursor-pointer'
+        >
+          <Icons.add className='size-4' />
+          <span>Tambah Dokter</span>
+        </Button>
+      }
     >
       <DoctorScheduleListingPage />
     </PageContainer>

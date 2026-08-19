@@ -30,9 +30,7 @@ export function DoctorScheduleEditModal({ doctor, isOpen, onClose }: DoctorSched
   const [slotTersedia, setSlotTersedia] = useState(0);
   const [kapasitasPerHari, setKapasitasPerHari] = useState(30);
   const [ruangPraktik, setRuangPraktik] = useState('');
-  const [statusJadwal, setStatusJadwal] = useState<'Aktif' | 'Sebagian' | 'Cuti / Tutup' | 'Tutup'>(
-    'Aktif'
-  );
+  const [statusJadwal, setStatusJadwal] = useState<string>('Aktif');
 
   useEffect(() => {
     if (doctor) {
@@ -42,7 +40,7 @@ export function DoctorScheduleEditModal({ doctor, isOpen, onClose }: DoctorSched
       setSlotTersedia(doctor.slot_tersedia);
       setKapasitasPerHari(doctor.kapasitas_per_hari);
       setRuangPraktik(doctor.ruang_praktik);
-      setStatusJadwal(doctor.status_jadwal);
+      setStatusJadwal(doctor.status_jadwal || 'Aktif');
     }
   }, [doctor]);
 

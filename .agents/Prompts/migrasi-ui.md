@@ -18,7 +18,7 @@ The contextual information provided below represents the **data, information arc
 
 It is **not a final UI specification**.
 
-For example, if the target page is a **[Data Pasien cakupannya Admin Dashboard]** page, the provided context should be interpreted as the source of truth for:
+For example, if the target page is a **[componentn card master componentn in jadwal dokter in scope dashboard admin]** page, the provided context should be interpreted as the source of truth for:
 
 * what patient information exists,
 * what fields need to be represented,
@@ -466,7 +466,7 @@ Supporting skills should improve implementation quality only when their recommen
 
 **Harmonization is the key requirement.**
 
-Suppose the provided context describes a [Data Pasien cakupannya Admin Dashboard] page.
+Suppose the provided context describes a [componentn card master componentn in jadwal dokter in scope dashboard admin] page.
 
 Do not ask:
 
@@ -474,7 +474,7 @@ Do not ask:
 
 Instead ask:
 
-> "How would THIS application represent [Data Pasien cakupannya Admin Dashboard] using the patterns, components, spacing, typography, interaction conventions, and architecture it already uses?"
+> "How would THIS application represent [componentn card master componentn in jadwal dokter in scope dashboard admin] using the patterns, components, spacing, typography, interaction conventions, and architecture it already uses?"
 
 That distinction is fundamental.
 
@@ -494,7 +494,7 @@ Page Shell
 └── Pagination
 ```
 
-and the target [Data Pasien cakupannya Admin Dashboard] page requires the same structural pattern, do not independently recreate that hierarchy.
+and the target [componentn card master componentn in jadwal dokter in scope dashboard admin] page requires the same structural pattern, do not independently recreate that hierarchy.
 
 Reuse or compose the existing implementation and replace only the domain-specific content where appropriate.
 

@@ -11,15 +11,16 @@ export interface DoctorSchedule {
   id: string;
   nama_dokter: string;
   spesialisasi: string;
-  status_dokter: 'Aktif' | 'Cuti' | 'Libur';
+  status_dokter: 'Aktif' | 'Pending' | 'Selesai' | 'Terkoneksi' | 'Cuti' | 'Libur' | string;
   email: string;
   nomor_telepon: string;
   ruang_praktik: string;
+  tanggal_praktik?: string;
   avatar: string;
   slot_tersedia: number;
   kapasitas_per_hari: number;
   jadwal_hari_ini: string;
-  status_jadwal: 'Aktif' | 'Sebagian' | 'Cuti / Tutup' | 'Tutup';
+  status_jadwal: 'Aktif' | 'Sebagian' | 'Cuti / Tutup' | 'Tutup' | string;
   bulan_jadwal: string; // e.g. "Mei 2026"
   monthly_schedule: MonthlyScheduleDay[];
   is_cuti: boolean;
@@ -99,11 +100,11 @@ export const initialDoctorSchedules: DoctorSchedule[] = [
     email: 'sarah.putri@amikomclinic.id',
     nomor_telepon: '0812 3456 7890',
     ruang_praktik: 'Poli Penyakit Dalam, Room 201',
-    avatar:
-      'https://images.unsplash.com/photo-1594824813620-4a81e3a98701?w=150&auto=format&fit=crop&q=80',
+    tanggal_praktik: 'Selasa, 20 Mei 2026',
+    avatar: '/assets/avatar/docter/woman-docter-1.png',
     slot_tersedia: 18,
     kapasitas_per_hari: 30,
-    jadwal_hari_ini: '09.00 - 16.00',
+    jadwal_hari_ini: '09.00 – 09.30',
     status_jadwal: 'Aktif',
     bulan_jadwal: 'Mei 2026',
     monthly_schedule: generateSarahSchedule(),
@@ -111,35 +112,35 @@ export const initialDoctorSchedules: DoctorSchedule[] = [
   },
   {
     id: 'doc-002',
-    nama_dokter: 'dr. Andi Wijaya, Sp.PD',
-    spesialisasi: 'Spesialis Penyakit Dalam',
-    status_dokter: 'Aktif',
-    email: 'andi.wijaya@amikomclinic.id',
+    nama_dokter: 'dr. Andika Perkasa, Sp.A',
+    spesialisasi: 'Spesialis Anak',
+    status_dokter: 'Pending',
+    email: 'andika.perkasa@amikomclinic.id',
     nomor_telepon: '0812 9876 5432',
-    ruang_praktik: 'Poli Penyakit Dalam, Room 202',
-    avatar:
-      'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=150&auto=format&fit=crop&q=80',
+    ruang_praktik: 'Poli Anak, Room 102',
+    tanggal_praktik: 'Rabu, 21 Mei 2026',
+    avatar: '/assets/avatar/docter/man-docter-1.png',
     slot_tersedia: 12,
-    kapasitas_per_hari: 28,
-    jadwal_hari_ini: '08.00 - 15.00',
-    status_jadwal: 'Aktif',
+    kapasitas_per_hari: 30,
+    jadwal_hari_ini: '10.30 – 11.00',
+    status_jadwal: 'Sebagian',
     bulan_jadwal: 'Mei 2026',
     monthly_schedule: generateStandardSchedule([4, 11, 18, 25]),
     is_cuti: false
   },
   {
     id: 'doc-003',
-    nama_dokter: 'dr. Budi Santoso, Sp.A',
-    spesialisasi: 'Spesialis Anak',
-    status_dokter: 'Aktif',
+    nama_dokter: 'drg. Budi Santoso',
+    spesialisasi: 'Dokter Gigi',
+    status_dokter: 'Selesai',
     email: 'budi.santoso@amikomclinic.id',
     nomor_telepon: '0813 1122 3344',
-    ruang_praktik: 'Poli Anak & Tumbuh Kembang, Room 105',
-    avatar:
-      'https://images.unsplash.com/photo-1537368910025-700350fe46c7?w=150&auto=format&fit=crop&q=80',
-    slot_tersedia: 8,
-    kapasitas_per_hari: 25,
-    jadwal_hari_ini: '10.00 - 17.00',
+    ruang_praktik: 'Poli Gigi, Room 105',
+    tanggal_praktik: 'Kamis, 22 Mei 2026',
+    avatar: '/assets/avatar/docter/man-docter-2.png',
+    slot_tersedia: 20,
+    kapasitas_per_hari: 30,
+    jadwal_hari_ini: '13.00 – 13.30',
     status_jadwal: 'Aktif',
     bulan_jadwal: 'Mei 2026',
     monthly_schedule: generateStandardSchedule([5, 12, 19, 26]),
@@ -147,58 +148,58 @@ export const initialDoctorSchedules: DoctorSchedule[] = [
   },
   {
     id: 'doc-004',
-    nama_dokter: 'dr. Dina Kartika, Sp.OG',
-    spesialisasi: 'Spesialis Kandungan',
-    status_dokter: 'Aktif',
-    email: 'dina.kartika@amikomclinic.id',
+    nama_dokter: 'dr. Pratama Agung, Sp.OT',
+    spesialisasi: 'Ortopedi & Traumatologi',
+    status_dokter: 'Terkoneksi',
+    email: 'pratama.agung@amikomclinic.id',
     nomor_telepon: '0815 4433 2211',
-    ruang_praktik: 'Poli Kebidanan & Kandungan, Room 301',
-    avatar:
-      'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&auto=format&fit=crop&q=80',
-    slot_tersedia: 5,
-    kapasitas_per_hari: 20,
-    jadwal_hari_ini: '13.00 - 19.00',
-    status_jadwal: 'Sebagian',
+    ruang_praktik: 'Poli Bedah, Room 408',
+    tanggal_praktik: 'Kamis, 22 Mei 2026',
+    avatar: '/assets/avatar/docter/man-docter-1.png',
+    slot_tersedia: 16,
+    kapasitas_per_hari: 30,
+    jadwal_hari_ini: '15.00 – 15.30',
+    status_jadwal: 'Aktif',
     bulan_jadwal: 'Mei 2026',
     monthly_schedule: generateStandardSchedule([6, 13, 20, 27]),
     is_cuti: false
   },
   {
     id: 'doc-005',
-    nama_dokter: 'dr. Rudi Hermawan, Sp.KK',
-    spesialisasi: 'Spesialis Kulit',
+    nama_dokter: 'dr. Ratna Sari, Sp.DVE',
+    spesialisasi: 'Dermatologi',
     status_dokter: 'Cuti',
-    email: 'rudi.hermawan@amikomclinic.id',
+    email: 'ratna.sari@amikomclinic.id',
     nomor_telepon: '0817 9988 7766',
-    ruang_praktik: 'Poli Kulit & Estetika, Room 108',
-    avatar:
-      'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=150&auto=format&fit=crop&q=80',
+    ruang_praktik: 'Poli Kulit, Room 108',
+    tanggal_praktik: 'Jumat, 23 Mei 2026',
+    avatar: '/assets/avatar/docter/woman-docter-2.png',
     slot_tersedia: 0,
-    kapasitas_per_hari: 20,
-    jadwal_hari_ini: 'Tutup (Cuti Tahunan)',
+    kapasitas_per_hari: 30,
+    jadwal_hari_ini: 'Tutup (Cuti)',
     status_jadwal: 'Cuti / Tutup',
     bulan_jadwal: 'Mei 2026',
     monthly_schedule: generateStandardSchedule().map((d) =>
       d.day >= 10 && d.day <= 20 ? { ...d, status: 'Cuti / Tutup' as const } : d
     ),
     is_cuti: true,
-    cuti_reason: 'Cuti Tahunan & Workshop Internasional',
+    cuti_reason: 'Cuti Tahunan',
     cuti_start: '10 Mei 2026',
     cuti_end: '20 Mei 2026'
   },
   {
     id: 'doc-006',
-    nama_dokter: 'dr. Chelsea Lailasari, Sp.A',
-    spesialisasi: 'Dokter Umum',
+    nama_dokter: 'dr. Maya Indah, Sp.OG',
+    spesialisasi: 'Kebidanan & Kandungan',
     status_dokter: 'Aktif',
-    email: 'chelsea.lailasari@amikomclinic.id',
+    email: 'maya.indah@amikomclinic.id',
     nomor_telepon: '0818 5544 3322',
-    ruang_praktik: 'Poli Umum, Room 102',
-    avatar:
-      'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
-    slot_tersedia: 15,
-    kapasitas_per_hari: 35,
-    jadwal_hari_ini: '08.00 - 14.00',
+    ruang_praktik: 'Poli Obgyn, Room 301',
+    tanggal_praktik: 'Sabtu, 24 Mei 2026',
+    avatar: '/assets/avatar/docter/woman-docter-3.png',
+    slot_tersedia: 22,
+    kapasitas_per_hari: 30,
+    jadwal_hari_ini: '08.30 – 09.00',
     status_jadwal: 'Aktif',
     bulan_jadwal: 'Mei 2026',
     monthly_schedule: generateStandardSchedule([7, 14, 21, 28]),

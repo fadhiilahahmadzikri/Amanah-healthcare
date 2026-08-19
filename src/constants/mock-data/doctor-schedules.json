@@ -1,0 +1,4289 @@
+[
+  {
+    "id": "doc-001",
+    "nama_dokter": "dr. Sarah Putri, Sp.PD",
+    "spesialisasi": "Penyakit Dalam",
+    "status_dokter": "Aktif",
+    "email": "sarah.putri@amikomclinic.id",
+    "nomor_telepon": "0812 3456 7890",
+    "ruang_praktik": "Poli Penyakit Dalam, Room 201",
+    "tanggal_praktik": "Selasa, 20 Mei 2026",
+    "avatar": "/assets/avatar/docter/woman-docter-1.png",
+    "slot_tersedia": 18,
+    "kapasitas_per_hari": 30,
+    "jadwal_hari_ini": "09.00 – 09.30",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "is_cuti": false
+  },
+  {
+    "id": "doc-002",
+    "nama_dokter": "dr. Andika Perkasa, Sp.A",
+    "spesialisasi": "Spesialis Anak",
+    "status_dokter": "Pending",
+    "email": "andika.perkasa@amikomclinic.id",
+    "nomor_telepon": "0812 9876 5432",
+    "ruang_praktik": "Poli Anak, Room 102",
+    "tanggal_praktik": "Rabu, 21 Mei 2026",
+    "avatar": "/assets/avatar/docter/man-docter-1.png",
+    "slot_tersedia": 12,
+    "kapasitas_per_hari": 30,
+    "jadwal_hari_ini": "10.30 – 11.00",
+    "status_jadwal": "Sebagian",
+    "bulan_jadwal": "Mei 2026",
+    "is_cuti": false
+  },
+  {
+    "id": "doc-003",
+    "nama_dokter": "drg. Budi Santoso",
+    "spesialisasi": "Dokter Gigi",
+    "status_dokter": "Selesai",
+    "email": "budi.santoso@amikomclinic.id",
+    "nomor_telepon": "0813 1122 3344",
+    "ruang_praktik": "Poli Gigi, Room 105",
+    "tanggal_praktik": "Kamis, 22 Mei 2026",
+    "avatar": "/assets/avatar/docter/man-docter-2.png",
+    "slot_tersedia": 20,
+    "kapasitas_per_hari": 30,
+    "jadwal_hari_ini": "13.00 – 13.30",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "is_cuti": false
+  },
+  {
+    "id": "doc-004",
+    "nama_dokter": "dr. Pratama Agung, Sp.OT",
+    "spesialisasi": "Ortopedi & Traumatologi",
+    "status_dokter": "Terkoneksi",
+    "email": "pratama.agung@amikomclinic.id",
+    "nomor_telepon": "0815 4433 2211",
+    "ruang_praktik": "Poli Bedah, Room 408",
+    "tanggal_praktik": "Kamis, 22 Mei 2026",
+    "avatar": "/assets/avatar/docter/man-docter-1.png",
+    "slot_tersedia": 16,
+    "kapasitas_per_hari": 30,
+    "jadwal_hari_ini": "15.00 – 15.30",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "is_cuti": false
+  },
+  {
+    "id": "doc-005",
+    "nama_dokter": "dr. Ratna Sari, Sp.DVE",
+    "spesialisasi": "Dermatologi",
+    "status_dokter": "Cuti",
+    "email": "ratna.sari@amikomclinic.id",
+    "nomor_telepon": "0817 9988 7766",
+    "ruang_praktik": "Poli Kulit, Room 108",
+    "tanggal_praktik": "Jumat, 23 Mei 2026",
+    "avatar": "/assets/avatar/docter/woman-docter-2.png",
+    "slot_tersedia": 0,
+    "kapasitas_per_hari": 30,
+    "jadwal_hari_ini": "Tutup (Cuti)",
+    "status_jadwal": "Cuti / Tutup",
+    "bulan_jadwal": "Mei 2026",
+    "is_cuti": true,
+    "cuti_reason": "Cuti Tahunan",
+    "cuti_start": "10 Mei 2026",
+    "cuti_end": "20 Mei 2026"
+  },
+  {
+    "id": "doc-006",
+    "nama_dokter": "dr. Maya Indah, Sp.OG",
+    "spesialisasi": "Kebidanan & Kandungan",
+    "status_dokter": "Aktif",
+    "email": "maya.indah@amikomclinic.id",
+    "nomor_telepon": "0818 5544 3322",
+    "ruang_praktik": "Poli Obgyn, Room 301",
+    "tanggal_praktik": "Sabtu, 24 Mei 2026",
+    "avatar": "/assets/avatar/docter/woman-docter-3.png",
+    "slot_tersedia": 22,
+    "kapasitas_per_hari": 30,
+    "jadwal_hari_ini": "08.30 – 09.00",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "is_cuti": false
+  },
+  {
+    "id": "doc-007",
+    "nama_dokter": "dr. Hendra Wijaya, Sp.JP",
+    "spesialisasi": "Kardiologi",
+    "status_dokter": "Aktif",
+    "email": "hendra.wijaya@amikomclinic.id",
+    "nomor_telepon": "0817 1259 5203",
+    "ruang_praktik": "Poli Jantung, Room 204",
+    "tanggal_praktik": "Senin, 25 Mei 2026",
+    "avatar": "/assets/avatar/docter/man-docter-1.png",
+    "slot_tersedia": 14,
+    "kapasitas_per_hari": 25,
+    "jadwal_hari_ini": "08.00 – 08.30",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Sebagian"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Aktif"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Aktif"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Aktif"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Off"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Sebagian"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Aktif"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Aktif"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Aktif"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Aktif"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Sebagian"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": false
+  },
+  {
+    "id": "doc-008",
+    "nama_dokter": "dr. Siti Nurhaliza, Sp.M",
+    "spesialisasi": "Mata",
+    "status_dokter": "Aktif",
+    "email": "siti.nurhaliza@amikomclinic.id",
+    "nomor_telepon": "0818 1296 5232",
+    "ruang_praktik": "Poli Mata, Room 109",
+    "tanggal_praktik": "Senin, 25 Mei 2026",
+    "avatar": "/assets/avatar/docter/woman-docter-4.png",
+    "slot_tersedia": 19,
+    "kapasitas_per_hari": 30,
+    "jadwal_hari_ini": "09.30 – 10.00",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Sebagian"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Aktif"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Aktif"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Aktif"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Off"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Sebagian"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Aktif"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Aktif"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Aktif"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Aktif"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Sebagian"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": false
+  },
+  {
+    "id": "doc-009",
+    "nama_dokter": "dr. Fajar Nugraha, Sp.THT-BKL",
+    "spesialisasi": "THT",
+    "status_dokter": "Pending",
+    "email": "fajar.nugraha@amikomclinic.id",
+    "nomor_telepon": "0819 1333 5261",
+    "ruang_praktik": "Poli THT, Room 206",
+    "tanggal_praktik": "Selasa, 26 Mei 2026",
+    "avatar": "/assets/avatar/docter/man-docter-2.png",
+    "slot_tersedia": 8,
+    "kapasitas_per_hari": 20,
+    "jadwal_hari_ini": "11.00 – 11.30",
+    "status_jadwal": "Sebagian",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Sebagian"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Aktif"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Aktif"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Aktif"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Off"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Sebagian"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Aktif"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Aktif"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Aktif"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Aktif"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Sebagian"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": false
+  },
+  {
+    "id": "doc-010",
+    "nama_dokter": "dr. Diana Lestari, Sp.KFR",
+    "spesialisasi": "Rehabilitasi Medik",
+    "status_dokter": "Aktif",
+    "email": "diana.lestari@amikomclinic.id",
+    "nomor_telepon": "0820 1370 5290",
+    "ruang_praktik": "Poli Fisioterapi, Room 101",
+    "tanggal_praktik": "Selasa, 26 Mei 2026",
+    "avatar": "/assets/avatar/docter/woman-docter-1.png",
+    "slot_tersedia": 24,
+    "kapasitas_per_hari": 30,
+    "jadwal_hari_ini": "13.30 – 14.00",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Sebagian"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Aktif"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Aktif"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Aktif"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Off"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Sebagian"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Aktif"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Aktif"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Aktif"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Aktif"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Sebagian"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": false
+  },
+  {
+    "id": "doc-011",
+    "nama_dokter": "dr. Rian Firmansyah, Sp.B",
+    "spesialisasi": "Bedah Umum",
+    "status_dokter": "Selesai",
+    "email": "rian.firmansyah@amikomclinic.id",
+    "nomor_telepon": "0821 1407 5319",
+    "ruang_praktik": "Poli Bedah, Room 402",
+    "tanggal_praktik": "Rabu, 27 Mei 2026",
+    "avatar": "/assets/avatar/docter/man-docter-1.png",
+    "slot_tersedia": 15,
+    "kapasitas_per_hari": 25,
+    "jadwal_hari_ini": "14.00 – 14.30",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Sebagian"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Aktif"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Aktif"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Aktif"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Off"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Sebagian"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Aktif"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Aktif"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Aktif"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Aktif"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Sebagian"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": false
+  },
+  {
+    "id": "doc-012",
+    "nama_dokter": "dr. Anisa Rahma, Sp.A",
+    "spesialisasi": "Spesialis Anak",
+    "status_dokter": "Aktif",
+    "email": "anisa.rahma@amikomclinic.id",
+    "nomor_telepon": "0822 1444 5348",
+    "ruang_praktik": "Poli Anak, Room 103",
+    "tanggal_praktik": "Rabu, 27 Mei 2026",
+    "avatar": "/assets/avatar/docter/woman-docter-2.png",
+    "slot_tersedia": 21,
+    "kapasitas_per_hari": 30,
+    "jadwal_hari_ini": "09.00 – 09.30",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Sebagian"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Aktif"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Aktif"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Aktif"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Off"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Sebagian"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Aktif"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Aktif"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Aktif"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Aktif"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Sebagian"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": false
+  },
+  {
+    "id": "doc-013",
+    "nama_dokter": "dr. Rizky Ramadhan, Sp.N",
+    "spesialisasi": "Neurologi",
+    "status_dokter": "Terkoneksi",
+    "email": "rizky.ramadhan@amikomclinic.id",
+    "nomor_telepon": "0823 1481 5377",
+    "ruang_praktik": "Poli Saraf, Room 305",
+    "tanggal_praktik": "Kamis, 28 Mei 2026",
+    "avatar": "/assets/avatar/docter/man-docter-2.png",
+    "slot_tersedia": 17,
+    "kapasitas_per_hari": 30,
+    "jadwal_hari_ini": "10.00 – 10.30",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Sebagian"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Aktif"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Aktif"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Aktif"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Off"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Sebagian"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Aktif"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Aktif"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Aktif"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Aktif"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Sebagian"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": false
+  },
+  {
+    "id": "doc-014",
+    "nama_dokter": "dr. Nurul Hidayah, Sp.KJ",
+    "spesialisasi": "Kesehatan Jiwa",
+    "status_dokter": "Aktif",
+    "email": "nurul.hidayah@amikomclinic.id",
+    "nomor_telepon": "0824 1518 5406",
+    "ruang_praktik": "Poli Jiwa, Room 208",
+    "tanggal_praktik": "Kamis, 28 Mei 2026",
+    "avatar": "/assets/avatar/docter/woman-docter-3.png",
+    "slot_tersedia": 10,
+    "kapasitas_per_hari": 20,
+    "jadwal_hari_ini": "11.30 – 12.00",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Sebagian"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Aktif"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Aktif"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Aktif"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Off"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Sebagian"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Aktif"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Aktif"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Aktif"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Aktif"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Sebagian"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": false
+  },
+  {
+    "id": "doc-015",
+    "nama_dokter": "drg. Faisal Akbar, Sp.Ort",
+    "spesialisasi": "Dokter Gigi",
+    "status_dokter": "Aktif",
+    "email": "faisal.akbar@amikomclinic.id",
+    "nomor_telepon": "0825 1555 5435",
+    "ruang_praktik": "Poli Gigi, Room 106",
+    "tanggal_praktik": "Jumat, 29 Mei 2026",
+    "avatar": "/assets/avatar/docter/man-docter-1.png",
+    "slot_tersedia": 18,
+    "kapasitas_per_hari": 25,
+    "jadwal_hari_ini": "13.00 – 13.30",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Sebagian"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Aktif"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Aktif"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Aktif"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Off"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Sebagian"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Aktif"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Aktif"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Aktif"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Aktif"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Sebagian"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": false
+  },
+  {
+    "id": "doc-016",
+    "nama_dokter": "dr. Tari Wulandari, Sp.P",
+    "spesialisasi": "Paru & Pernapasan",
+    "status_dokter": "Cuti",
+    "email": "tari.wulandari@amikomclinic.id",
+    "nomor_telepon": "0826 1592 5464",
+    "ruang_praktik": "Poli Paru, Room 210",
+    "tanggal_praktik": "Jumat, 29 Mei 2026",
+    "avatar": "/assets/avatar/docter/woman-docter-4.png",
+    "slot_tersedia": 0,
+    "kapasitas_per_hari": 25,
+    "jadwal_hari_ini": "Tutup (Cuti)",
+    "status_jadwal": "Cuti / Tutup",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Cuti / Tutup"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Cuti / Tutup"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Cuti / Tutup"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Cuti / Tutup"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Cuti / Tutup"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Cuti / Tutup"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Cuti / Tutup"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Cuti / Tutup"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Cuti / Tutup"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Cuti / Tutup"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Cuti / Tutup"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": true,
+    "cuti_reason": "Cuti Bersalin",
+    "cuti_start": "10 Mei 2026",
+    "cuti_end": "20 Mei 2026"
+  },
+  {
+    "id": "doc-017",
+    "nama_dokter": "dr. Dimas Setiawan, Sp.U",
+    "spesialisasi": "Urologi",
+    "status_dokter": "Aktif",
+    "email": "dimas.setiawan@amikomclinic.id",
+    "nomor_telepon": "0827 1629 5493",
+    "ruang_praktik": "Poli Bedah, Room 405",
+    "tanggal_praktik": "Sabtu, 30 Mei 2026",
+    "avatar": "/assets/avatar/docter/man-docter-2.png",
+    "slot_tersedia": 11,
+    "kapasitas_per_hari": 20,
+    "jadwal_hari_ini": "08.30 – 09.00",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Sebagian"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Aktif"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Aktif"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Aktif"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Off"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Sebagian"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Aktif"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Aktif"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Aktif"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Aktif"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Sebagian"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": false
+  },
+  {
+    "id": "doc-018",
+    "nama_dokter": "dr. Karina Maharani, Sp.Rad",
+    "spesialisasi": "Radiologi",
+    "status_dokter": "Aktif",
+    "email": "karina.maharani@amikomclinic.id",
+    "nomor_telepon": "0828 1666 5522",
+    "ruang_praktik": "Unit Radiologi, Room 112",
+    "tanggal_praktik": "Sabtu, 30 Mei 2026",
+    "avatar": "/assets/avatar/docter/woman-docter-1.png",
+    "slot_tersedia": 25,
+    "kapasitas_per_hari": 30,
+    "jadwal_hari_ini": "10.00 – 10.30",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Sebagian"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Aktif"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Aktif"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Aktif"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Off"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Sebagian"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Aktif"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Aktif"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Aktif"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Aktif"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Sebagian"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": false
+  },
+  {
+    "id": "doc-019",
+    "nama_dokter": "dr. Aditya Pratama, Sp.An-TI",
+    "spesialisasi": "Anestesiologi",
+    "status_dokter": "Terkoneksi",
+    "email": "aditya.pratama@amikomclinic.id",
+    "nomor_telepon": "0829 1703 5551",
+    "ruang_praktik": "IBS Room 501",
+    "tanggal_praktik": "Senin, 1 Juni 2026",
+    "avatar": "/assets/avatar/docter/man-docter-1.png",
+    "slot_tersedia": 15,
+    "kapasitas_per_hari": 20,
+    "jadwal_hari_ini": "07.30 – 08.00",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Sebagian"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Aktif"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Aktif"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Aktif"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Off"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Sebagian"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Aktif"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Aktif"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Aktif"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Aktif"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Sebagian"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": false
+  },
+  {
+    "id": "doc-020",
+    "nama_dokter": "dr. Cindy Claudia, Sp.GK",
+    "spesialisasi": "Gizi Klinis",
+    "status_dokter": "Aktif",
+    "email": "cindy.claudia@amikomclinic.id",
+    "nomor_telepon": "0830 1740 5580",
+    "ruang_praktik": "Poli Konsultasi Gizi, Room 202",
+    "tanggal_praktik": "Senin, 1 Juni 2026",
+    "avatar": "/assets/avatar/docter/woman-docter-2.png",
+    "slot_tersedia": 22,
+    "kapasitas_per_hari": 30,
+    "jadwal_hari_ini": "09.00 – 09.30",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Sebagian"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Aktif"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Aktif"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Aktif"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Off"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Sebagian"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Aktif"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Aktif"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Aktif"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Aktif"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Sebagian"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": false
+  },
+  {
+    "id": "doc-021",
+    "nama_dokter": "dr. Bayu Wicaksono, Sp.PD",
+    "spesialisasi": "Penyakit Dalam",
+    "status_dokter": "Pending",
+    "email": "bayu.wicaksono@amikomclinic.id",
+    "nomor_telepon": "0831 1777 5609",
+    "ruang_praktik": "Poli Penyakit Dalam, Room 203",
+    "tanggal_praktik": "Selasa, 2 Juni 2026",
+    "avatar": "/assets/avatar/docter/man-docter-2.png",
+    "slot_tersedia": 9,
+    "kapasitas_per_hari": 25,
+    "jadwal_hari_ini": "10.30 – 11.00",
+    "status_jadwal": "Sebagian",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Sebagian"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Aktif"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Aktif"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Aktif"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Off"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Sebagian"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Aktif"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Aktif"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Aktif"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Aktif"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Sebagian"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": false
+  },
+  {
+    "id": "doc-022",
+    "nama_dokter": "dr. Evelyn Gunawan, Sp.M",
+    "spesialisasi": "Mata",
+    "status_dokter": "Aktif",
+    "email": "evelyn.gunawan@amikomclinic.id",
+    "nomor_telepon": "0832 1814 5638",
+    "ruang_praktik": "Poli Mata, Room 110",
+    "tanggal_praktik": "Selasa, 2 Juni 2026",
+    "avatar": "/assets/avatar/docter/woman-docter-3.png",
+    "slot_tersedia": 16,
+    "kapasitas_per_hari": 25,
+    "jadwal_hari_ini": "13.00 – 13.30",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Sebagian"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Aktif"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Aktif"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Aktif"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Off"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Sebagian"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Aktif"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Aktif"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Aktif"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Aktif"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Sebagian"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": false
+  },
+  {
+    "id": "doc-023",
+    "nama_dokter": "dr. Gilang Pradana, Sp.OT",
+    "spesialisasi": "Ortopedi & Traumatologi",
+    "status_dokter": "Aktif",
+    "email": "gilang.pradana@amikomclinic.id",
+    "nomor_telepon": "0833 1851 5667",
+    "ruang_praktik": "Poli Bedah, Room 409",
+    "tanggal_praktik": "Rabu, 3 Juni 2026",
+    "avatar": "/assets/avatar/docter/man-docter-1.png",
+    "slot_tersedia": 19,
+    "kapasitas_per_hari": 30,
+    "jadwal_hari_ini": "14.30 – 15.00",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Sebagian"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Aktif"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Aktif"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Aktif"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Off"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Sebagian"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Aktif"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Aktif"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Aktif"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Aktif"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Sebagian"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": false
+  },
+  {
+    "id": "doc-024",
+    "nama_dokter": "dr. Nadia Safitri, Sp.DVE",
+    "spesialisasi": "Dermatologi",
+    "status_dokter": "Selesai",
+    "email": "nadia.safitri@amikomclinic.id",
+    "nomor_telepon": "0834 1888 5696",
+    "ruang_praktik": "Poli Kulit, Room 107",
+    "tanggal_praktik": "Rabu, 3 Juni 2026",
+    "avatar": "/assets/avatar/docter/woman-docter-4.png",
+    "slot_tersedia": 20,
+    "kapasitas_per_hari": 30,
+    "jadwal_hari_ini": "15.30 – 16.00",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Sebagian"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Aktif"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Aktif"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Aktif"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Off"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Sebagian"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Aktif"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Aktif"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Aktif"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Aktif"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Sebagian"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": false
+  },
+  {
+    "id": "doc-025",
+    "nama_dokter": "dr. Tommy Kurniawan, Sp.JP",
+    "spesialisasi": "Kardiologi",
+    "status_dokter": "Aktif",
+    "email": "tommy.kurniawan@amikomclinic.id",
+    "nomor_telepon": "0835 1925 5725",
+    "ruang_praktik": "Poli Jantung, Room 205",
+    "tanggal_praktik": "Kamis, 4 Juni 2026",
+    "avatar": "/assets/avatar/docter/man-docter-2.png",
+    "slot_tersedia": 13,
+    "kapasitas_per_hari": 25,
+    "jadwal_hari_ini": "08.30 – 09.00",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Sebagian"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Aktif"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Aktif"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Aktif"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Off"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Sebagian"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Aktif"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Aktif"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Aktif"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Aktif"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Sebagian"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": false
+  },
+  {
+    "id": "doc-026",
+    "nama_dokter": "dr. Clarissa Aurelia, Sp.OG",
+    "spesialisasi": "Kebidanan & Kandungan",
+    "status_dokter": "Aktif",
+    "email": "clarissa.aurelia@amikomclinic.id",
+    "nomor_telepon": "0836 1962 5754",
+    "ruang_praktik": "Poli Obgyn, Room 302",
+    "tanggal_praktik": "Kamis, 4 Juni 2026",
+    "avatar": "/assets/avatar/docter/woman-docter-1.png",
+    "slot_tersedia": 18,
+    "kapasitas_per_hari": 30,
+    "jadwal_hari_ini": "10.00 – 10.30",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Sebagian"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Aktif"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Aktif"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Aktif"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Off"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Sebagian"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Aktif"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Aktif"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Aktif"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Aktif"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Sebagian"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": false
+  },
+  {
+    "id": "doc-027",
+    "nama_dokter": "dr. Yoga Prasetya, Sp.B",
+    "spesialisasi": "Bedah Umum",
+    "status_dokter": "Cuti",
+    "email": "yoga.prasetya@amikomclinic.id",
+    "nomor_telepon": "0837 1999 5783",
+    "ruang_praktik": "Poli Bedah, Room 401",
+    "tanggal_praktik": "Jumat, 5 Juni 2026",
+    "avatar": "/assets/avatar/docter/man-docter-1.png",
+    "slot_tersedia": 0,
+    "kapasitas_per_hari": 20,
+    "jadwal_hari_ini": "Tutup (Cuti)",
+    "status_jadwal": "Cuti / Tutup",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Cuti / Tutup"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Cuti / Tutup"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Cuti / Tutup"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Cuti / Tutup"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Cuti / Tutup"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Cuti / Tutup"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Cuti / Tutup"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Cuti / Tutup"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Cuti / Tutup"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Cuti / Tutup"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Cuti / Tutup"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": true,
+    "cuti_reason": "Cuti Tahunan",
+    "cuti_start": "10 Mei 2026",
+    "cuti_end": "20 Mei 2026"
+  },
+  {
+    "id": "doc-028",
+    "nama_dokter": "drg. Melissa Anggraeni",
+    "spesialisasi": "Dokter Gigi",
+    "status_dokter": "Aktif",
+    "email": "melissa.anggraeni@amikomclinic.id",
+    "nomor_telepon": "0838 2036 5812",
+    "ruang_praktik": "Poli Gigi, Room 104",
+    "tanggal_praktik": "Jumat, 5 Juni 2026",
+    "avatar": "/assets/avatar/docter/woman-docter-2.png",
+    "slot_tersedia": 23,
+    "kapasitas_per_hari": 30,
+    "jadwal_hari_ini": "13.30 – 14.00",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Sebagian"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Aktif"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Aktif"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Aktif"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Off"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Sebagian"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Aktif"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Aktif"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Aktif"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Aktif"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Sebagian"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": false
+  },
+  {
+    "id": "doc-029",
+    "nama_dokter": "dr. Kevin Sanjaya, Sp.N",
+    "spesialisasi": "Neurologi",
+    "status_dokter": "Aktif",
+    "email": "kevin.sanjaya@amikomclinic.id",
+    "nomor_telepon": "0839 2073 5841",
+    "ruang_praktik": "Poli Saraf, Room 306",
+    "tanggal_praktik": "Sabtu, 6 Juni 2026",
+    "avatar": "/assets/avatar/docter/man-docter-2.png",
+    "slot_tersedia": 15,
+    "kapasitas_per_hari": 25,
+    "jadwal_hari_ini": "09.00 – 09.30",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Sebagian"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Aktif"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Aktif"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Aktif"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Off"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Sebagian"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Aktif"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Aktif"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Aktif"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Aktif"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Sebagian"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": false
+  },
+  {
+    "id": "doc-030",
+    "nama_dokter": "dr. Stephanie Olivia, Sp.A",
+    "spesialisasi": "Spesialis Anak",
+    "status_dokter": "Aktif",
+    "email": "stephanie.olivia@amikomclinic.id",
+    "nomor_telepon": "0840 2110 5870",
+    "ruang_praktik": "Poli Anak, Room 104",
+    "tanggal_praktik": "Sabtu, 6 Juni 2026",
+    "avatar": "/assets/avatar/docter/woman-docter-3.png",
+    "slot_tersedia": 24,
+    "kapasitas_per_hari": 30,
+    "jadwal_hari_ini": "10.30 – 11.00",
+    "status_jadwal": "Aktif",
+    "bulan_jadwal": "Mei 2026",
+    "monthly_schedule": [
+      {
+        "day": 1,
+        "date": "2026-05-01",
+        "status": "Aktif"
+      },
+      {
+        "day": 2,
+        "date": "2026-05-02",
+        "status": "Aktif"
+      },
+      {
+        "day": 3,
+        "date": "2026-05-03",
+        "status": "Aktif"
+      },
+      {
+        "day": 4,
+        "date": "2026-05-04",
+        "status": "Aktif"
+      },
+      {
+        "day": 5,
+        "date": "2026-05-05",
+        "status": "Sebagian"
+      },
+      {
+        "day": 6,
+        "date": "2026-05-06",
+        "status": "Aktif"
+      },
+      {
+        "day": 7,
+        "date": "2026-05-07",
+        "status": "Off"
+      },
+      {
+        "day": 8,
+        "date": "2026-05-08",
+        "status": "Aktif"
+      },
+      {
+        "day": 9,
+        "date": "2026-05-09",
+        "status": "Aktif"
+      },
+      {
+        "day": 10,
+        "date": "2026-05-10",
+        "status": "Sebagian"
+      },
+      {
+        "day": 11,
+        "date": "2026-05-11",
+        "status": "Aktif"
+      },
+      {
+        "day": 12,
+        "date": "2026-05-12",
+        "status": "Aktif"
+      },
+      {
+        "day": 13,
+        "date": "2026-05-13",
+        "status": "Aktif"
+      },
+      {
+        "day": 14,
+        "date": "2026-05-14",
+        "status": "Off"
+      },
+      {
+        "day": 15,
+        "date": "2026-05-15",
+        "status": "Sebagian"
+      },
+      {
+        "day": 16,
+        "date": "2026-05-16",
+        "status": "Aktif"
+      },
+      {
+        "day": 17,
+        "date": "2026-05-17",
+        "status": "Aktif"
+      },
+      {
+        "day": 18,
+        "date": "2026-05-18",
+        "status": "Aktif"
+      },
+      {
+        "day": 19,
+        "date": "2026-05-19",
+        "status": "Aktif"
+      },
+      {
+        "day": 20,
+        "date": "2026-05-20",
+        "status": "Sebagian"
+      },
+      {
+        "day": 21,
+        "date": "2026-05-21",
+        "status": "Off"
+      },
+      {
+        "day": 22,
+        "date": "2026-05-22",
+        "status": "Aktif"
+      },
+      {
+        "day": 23,
+        "date": "2026-05-23",
+        "status": "Aktif"
+      },
+      {
+        "day": 24,
+        "date": "2026-05-24",
+        "status": "Aktif"
+      },
+      {
+        "day": 25,
+        "date": "2026-05-25",
+        "status": "Sebagian"
+      },
+      {
+        "day": 26,
+        "date": "2026-05-26",
+        "status": "Aktif"
+      },
+      {
+        "day": 27,
+        "date": "2026-05-27",
+        "status": "Aktif"
+      },
+      {
+        "day": 28,
+        "date": "2026-05-28",
+        "status": "Off"
+      },
+      {
+        "day": 29,
+        "date": "2026-05-29",
+        "status": "Aktif"
+      },
+      {
+        "day": 30,
+        "date": "2026-05-30",
+        "status": "Sebagian"
+      },
+      {
+        "day": 31,
+        "date": "2026-05-31",
+        "status": "Aktif"
+      }
+    ],
+    "is_cuti": false
+  }
+]
