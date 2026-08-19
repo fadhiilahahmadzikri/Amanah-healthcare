@@ -1,10 +1,18 @@
 import type {
   DoctorSchedule,
   MonthlyScheduleDay,
-  ScheduleDayStatus
+  ScheduleDayStatus,
+  DoctorDailySession,
+  SessionStatus
 } from '@/constants/mock-api-doctor-schedules';
 
-export type { DoctorSchedule, MonthlyScheduleDay, ScheduleDayStatus };
+export type {
+  DoctorSchedule,
+  MonthlyScheduleDay,
+  ScheduleDayStatus,
+  DoctorDailySession,
+  SessionStatus
+};
 
 export interface DoctorScheduleFilters {
   page?: number;

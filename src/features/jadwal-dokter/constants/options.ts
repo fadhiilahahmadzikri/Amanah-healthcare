@@ -1,14 +1,13 @@
 export const DOCTOR_STATUS_OPTIONS = [
-  { label: 'Aktif', value: 'Aktif' },
-  { label: 'Cuti', value: 'Cuti' },
-  { label: 'Libur', value: 'Libur' }
+  { label: 'Buka', value: 'Buka' },
+  { label: 'Penuh', value: 'Penuh' },
+  { label: 'Cuti', value: 'Cuti' }
 ];
 
 export const SCHEDULE_STATUS_OPTIONS = [
-  { label: 'Aktif', value: 'Aktif' },
-  { label: 'Sebagian', value: 'Sebagian' },
-  { label: 'Cuti / Tutup', value: 'Cuti / Tutup' },
-  { label: 'Tutup', value: 'Tutup' }
+  { label: 'Buka', value: 'Buka' },
+  { label: 'Penuh', value: 'Penuh' },
+  { label: 'Cuti', value: 'Cuti' }
 ];
 
 export const POLI_OPTIONS = [

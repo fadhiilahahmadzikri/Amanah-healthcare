@@ -48,10 +48,17 @@ function SelectContent({
   className,
   children,
   position = 'popper',
+  portalContainer,
+  portalContainerRef,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Content>) {
+}: React.ComponentProps<typeof SelectPrimitive.Content> & {
+  portalContainer?: HTMLElement | null;
+  portalContainerRef?: React.RefObject<HTMLElement | null>;
+}) {
+  const container = portalContainer ?? portalContainerRef?.current ?? undefined;
+
   return (
-    <SelectPrimitive.Portal>
+    <SelectPrimitive.Portal container={container}>
       <SelectPrimitive.Content
         data-slot='select-content'
         className={cn(

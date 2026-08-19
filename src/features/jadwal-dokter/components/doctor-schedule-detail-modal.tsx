@@ -179,47 +179,55 @@ export function DoctorScheduleDetailModal({
           </div>
         </div>
 
-        {/* 3. Ringkasan Jadwal & Kuota Hari Ini */}
-        <div className='pb-3 border-b border-border/40'>
-          <span className='text-xs font-normal text-muted-foreground/80 block mb-2'>
-            Ringkasan jadwal & kuota hari ini
-          </span>
-          <div className='grid grid-cols-2 gap-y-3 gap-x-5'>
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                Jam praktik hari ini
-              </span>
-              <span className='text-sm font-bold text-foreground block truncate font-mono select-text'>
-                {doctor.jadwal_hari_ini}
-              </span>
-            </div>
+        {/* 3. Ringkasan Jadwal & Kuota Sesi 24 Jam */}
+        <div className='pb-3 border-b border-border/40 space-y-2.5'>
+          <div className='flex items-center justify-between'>
+            <span className='text-xs font-semibold text-muted-foreground/90 block'>
+              Sesi Praktik 24 Jam Hari Ini
+            </span>
+            <span className='text-xs font-mono font-bold text-primary'>
+              {doctor.slot_tersedia} / {doctor.kapasitas_per_hari} Slot Tersedia
+            </span>
+          </div>
 
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                Status jadwal
-              </span>
-              <span className='text-sm font-medium text-muted-foreground block truncate select-text'>
-                {scheduleStatusConfig.label}
-              </span>
-            </div>
+          <div className='grid grid-cols-1 sm:grid-cols-3 gap-2.5'>
+            {(doctor.sesi_harian || []).map((sesi) => {
+              const isBuka = sesi.status_sesi === 'Buka';
+              const isPenuh = sesi.status_sesi === 'Penuh';
 
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                Kapasitas pasien
-              </span>
-              <span className='text-sm font-medium text-muted-foreground block truncate select-text'>
-                {doctor.kapasitas_per_hari} pasien / hari
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                Sisa slot kuota
-              </span>
-              <span className='text-sm font-bold text-primary block truncate font-mono select-text'>
-                {doctor.slot_tersedia} dari {doctor.kapasitas_per_hari} slot
-              </span>
-            </div>
+              return (
+                <div
+                  key={sesi.id}
+                  className='p-2.5 rounded-xl border border-border/50 bg-muted/15 space-y-1.5'
+                >
+                  <div className='flex items-center justify-between gap-1'>
+                    <span className='text-xs font-bold text-foreground'>{sesi.nama_sesi}</span>
+                    <span
+                      className={cn(
+                        'text-[9.5px] font-bold px-1.5 py-0.5 rounded-full border',
+                        isBuka &&
+                          'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
+                        isPenuh &&
+                          'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30',
+                        !isBuka &&
+                          !isPenuh &&
+                          'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30'
+                      )}
+                    >
+                      {sesi.status_sesi}
+                    </span>
+                  </div>
+                  <div className='text-[11px] font-mono text-muted-foreground font-semibold'>
+                    {sesi.waktu}
+                  </div>
+                  <div className='text-[10.5px] text-muted-foreground'>
+                    Slot:{' '}
+                    <strong className='text-foreground font-mono'>{sesi.slot_tersedia}</strong> /{' '}
+                    {sesi.kuota_pasien}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 

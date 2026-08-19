@@ -13,11 +13,8 @@ import { Icons } from '@/components/icons';
 import { getStatusConfig } from '@/styles/clinical-tokens';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DoctorTimelineCalendar } from './doctor-timeline-calendar';
-import {
-  useUpdateDoctorDayStatusMutation,
-  useUpdateDoctorScheduleMutation
-} from '../api/mutations';
-import { toast } from 'sonner';
+import { DoctorDailyHourlyGrid } from './doctor-daily-hourly-grid';
+import { useUpdateDoctorDayStatusMutation } from '../api/mutations';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule, ScheduleDayStatus } from '../api/types';
 
@@ -34,13 +31,19 @@ export function DoctorScheduleDetailSheet({
   onClose,
   onOpenEdit
 }: DoctorScheduleDetailSheetProps) {
-  const updateScheduleMutation = useUpdateDoctorScheduleMutation();
   const updateDayMutation = useUpdateDoctorDayStatusMutation();
+  const modalContainerRef = React.useRef<HTMLDivElement>(null);
 
   if (!doctor) return null;
 
-  const doctorStatusConfig = getStatusConfig(doctor.status_dokter);
-  const scheduleStatusConfig = getStatusConfig(doctor.status_jadwal);
+  const doctorStatus =
+    doctor.is_cuti || doctor.status_dokter === 'Cuti' || doctor.status_jadwal === 'Cuti'
+      ? 'Cuti'
+      : doctor.slot_tersedia <= 0 || doctor.status_jadwal === 'Penuh'
+        ? 'Penuh'
+        : 'Buka';
+
+  const doctorStatusConfig = getStatusConfig(doctorStatus);
 
   const initials = doctor.nama_dokter
     .replace('dr. ', '')
@@ -107,11 +110,11 @@ export function DoctorScheduleDetailSheet({
                 <span
                   className={cn(
                     'absolute bottom-1 right-1 size-4 rounded-full ring-2 ring-card shadow-xs',
-                    doctor.is_cuti
-                      ? 'bg-destructive'
-                      : doctor.status_dokter === 'Aktif'
-                        ? 'bg-[var(--primary-bright,var(--primary))]'
-                        : 'bg-muted-foreground'
+                    doctorStatus === 'Cuti'
+                      ? 'bg-sky-500'
+                      : doctorStatus === 'Penuh'
+                        ? 'bg-amber-500'
+                        : 'bg-emerald-500'
                   )}
                 />
               </div>
@@ -229,56 +232,15 @@ export function DoctorScheduleDetailSheet({
                 onSelectDayStatus={(day, st) =>
                   handleDayStatusChange(
                     day,
-                    st === 'buka' ? 'Aktif' : st === 'cuti' ? 'Cuti / Tutup' : 'Tutup'
+                    st === 'buka' ? 'Buka' : st === 'cuti' ? 'Cuti' : 'Penuh'
                   )
                 }
               />
             </TabsContent>
 
-            {/* Tab 2: Ringkasan Jadwal & Kuota Hari Ini */}
-            <TabsContent value='kuota' className='m-0 space-y-4 outline-none'>
-              <div>
-                <span className='text-xs font-normal text-muted-foreground/80 block mb-2'>
-                  Ringkasan jadwal & kuota hari ini
-                </span>
-                <div className='grid grid-cols-2 gap-y-3 gap-x-5'>
-                  <div className='border-b border-border/40 pb-2'>
-                    <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                      Jam praktik hari ini
-                    </span>
-                    <span className='text-sm font-bold text-foreground block truncate font-mono select-text'>
-                      {doctor.jadwal_hari_ini}
-                    </span>
-                  </div>
-
-                  <div className='border-b border-border/40 pb-2'>
-                    <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                      Status jadwal
-                    </span>
-                    <span className='text-sm font-medium text-muted-foreground block truncate select-text'>
-                      {scheduleStatusConfig.label}
-                    </span>
-                  </div>
-
-                  <div className='border-b border-border/40 pb-2'>
-                    <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                      Kapasitas pasien
-                    </span>
-                    <span className='text-sm font-medium text-muted-foreground block truncate select-text'>
-                      {doctor.kapasitas_per_hari} pasien / hari
-                    </span>
-                  </div>
-
-                  <div className='border-b border-border/40 pb-2'>
-                    <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                      Sisa slot kuota
-                    </span>
-                    <span className='text-sm font-bold text-primary block truncate font-mono select-text'>
-                      {doctor.slot_tersedia} dari {doctor.kapasitas_per_hari} slot
-                    </span>
-                  </div>
-                </div>
-              </div>
+            {/* Tab 2: Grid Jadwal & Kuota Harian (POV 24 Jam dengan X & Y Axis) */}
+            <TabsContent value='kuota' className='m-0 space-y-3 outline-none'>
+              <DoctorDailyHourlyGrid doctor={doctor} modalContainerRef={modalContainerRef} />
             </TabsContent>
 
             {/* Tab 3: Informasi Kontak & Ruang Praktik */}
@@ -346,6 +308,8 @@ export function DoctorScheduleDetailSheet({
             </TabsContent>
           </div>
         </Tabs>
+
+        <div ref={modalContainerRef} className='contents' />
       </SheetContent>
     </Sheet>
   );

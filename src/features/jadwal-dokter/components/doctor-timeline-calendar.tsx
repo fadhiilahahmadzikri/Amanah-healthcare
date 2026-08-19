@@ -12,10 +12,10 @@ import { cn } from '@/lib/utils';
 import type { DoctorSchedule } from '../api/types';
 
 // ============================================================================
-// 1. DATA CONTRACTS (3 STATUS: Buka, Tutup, Cuti)
+// 1. DATA CONTRACTS (3 STATUS: Buka, Cuti, Penuh)
 // ============================================================================
 
-export type SimpleScheduleStatus = 'buka' | 'tutup' | 'cuti';
+export type SimpleScheduleStatus = 'buka' | 'cuti' | 'penuh';
 
 export interface DoctorTimelineCalendarProps {
   doctor?: DoctorSchedule;
@@ -25,7 +25,7 @@ export interface DoctorTimelineCalendarProps {
 }
 
 // ============================================================================
-// 2. CONFIG 3 STATUS: HIJAU = BUKA, MERAH = TUTUP, BIRU = CUTI
+// 2. CONFIG 3 STATUS: HIJAU = BUKA, KUNING = PENUH, BIRU = CUTI
 // ============================================================================
 
 const MONTH_NAMES = [
@@ -64,13 +64,13 @@ const STATUS_CONFIG: Record<
     text: 'text-emerald-600 dark:text-emerald-400',
     dotBg: 'bg-emerald-500'
   },
-  // Merah = Tutup
-  tutup: {
-    label: 'Tutup',
-    cellBg: 'bg-rose-500/5 dark:bg-rose-950/20 hover:bg-rose-500/10',
-    border: 'border-rose-500/25 dark:border-rose-700/30',
-    text: 'text-rose-600 dark:text-rose-400',
-    dotBg: 'bg-rose-500'
+  // Kuning = Penuh
+  penuh: {
+    label: 'Penuh',
+    cellBg: 'bg-amber-500/5 dark:bg-amber-950/20 hover:bg-amber-500/10',
+    border: 'border-amber-500/25 dark:border-amber-700/30',
+    text: 'text-amber-600 dark:text-amber-400',
+    dotBg: 'bg-amber-500'
   },
   // Biru = Cuti
   cuti: {
@@ -82,18 +82,16 @@ const STATUS_CONFIG: Record<
   }
 };
 
-// Helper: Tentukan status 3 nilai (buka / tutup / cuti) untuk hari tertentu
+// Helper: Tentukan status 3 nilai (buka / cuti / penuh) untuk hari tertentu
 function resolveDayStatus(dayNumber: number, doctor?: DoctorSchedule): SimpleScheduleStatus {
   if (doctor?.is_cuti && (dayNumber === 25 || dayNumber === 13)) return 'cuti';
 
   const monthlyItem = doctor?.monthly_schedule?.find((d) => d.day === dayNumber);
   const status = monthlyItem?.status;
 
-  if (status === 'Cuti / Tutup') return 'cuti';
-  if (status === 'Tutup' || status === 'Off') return 'tutup';
-  if (status === 'Aktif' || status === 'Sebagian') return 'buka';
-
-  if (doctor?.status_jadwal === 'Tutup' && dayNumber === new Date().getDate()) return 'tutup';
+  if (status === 'Cuti') return 'cuti';
+  if (status === 'Penuh' || (doctor?.slot_tersedia === 0 && dayNumber === new Date().getDate()))
+    return 'penuh';
 
   return 'buka';
 }
@@ -376,7 +374,7 @@ export function DoctorTimelineCalendar({
                   <div className='px-2 py-1 text-[10px] font-semibold text-muted-foreground'>
                     Ubah tanggal {day} {MONTH_NAMES[currentMonth]}:
                   </div>
-                  {(['buka', 'tutup', 'cuti'] as SimpleScheduleStatus[]).map((st) => {
+                  {(['buka', 'penuh', 'cuti'] as SimpleScheduleStatus[]).map((st) => {
                     const itemCfg = STATUS_CONFIG[st];
                     return (
                       <DropdownMenuItem
@@ -399,15 +397,15 @@ export function DoctorTimelineCalendar({
         </div>
       </div>
 
-      {/* 3. FOOTER LEGEND (3 STATUS) */}
+      {/* 3. FOOTER LEGEND (3 STATUS: BUKA, PENUH, CUTI) */}
       <div className='px-4 py-3 border-t border-border/30 bg-muted/5 flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs font-bold'>
         <div className='flex items-center gap-2'>
           <span className='size-2.5 rounded-full bg-emerald-500' />
           <span className='text-emerald-700 dark:text-emerald-400'>Buka</span>
         </div>
         <div className='flex items-center gap-2'>
-          <span className='size-2.5 rounded-full bg-rose-500' />
-          <span className='text-rose-700 dark:text-rose-400'>Tutup</span>
+          <span className='size-2.5 rounded-full bg-amber-500' />
+          <span className='text-amber-700 dark:text-amber-400'>Penuh</span>
         </div>
         <div className='flex items-center gap-2'>
           <span className='size-2.5 rounded-full bg-sky-500' />

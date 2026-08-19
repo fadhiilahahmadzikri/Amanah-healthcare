@@ -132,6 +132,31 @@ export type StatusConfig = {
 export const getStatusConfig = (status: string): StatusConfig => {
   const normalized = status.toUpperCase().replace(/\s+/g, '_');
   switch (normalized) {
+    case 'BUKA':
+    case 'OPEN':
+    case 'AKTIF':
+    case 'ACTIVE':
+    case 'CONFIRMED':
+      return {
+        ...clinicalTokens.colors.status.confirmed,
+        label: 'Buka'
+      };
+    case 'CUTI':
+    case 'LEAVE':
+    case 'CUTI_/_TUTUP':
+    case 'CUTI / TUTUP':
+      return {
+        ...clinicalTokens.colors.status.upcoming,
+        label: 'Cuti'
+      };
+    case 'PENUH':
+    case 'FULL':
+    case 'SEBAGIAN':
+    case 'PENDING':
+      return {
+        ...clinicalTokens.colors.status.pending,
+        label: 'Penuh'
+      };
     case 'COMPLETED':
     case 'SELESAI':
       return {
@@ -163,37 +188,11 @@ export const getStatusConfig = (status: string): StatusConfig => {
       };
     case 'TIDAK_ADA_DOKTER':
     case 'TIDAK ADA DOKTER':
-      return {
-        ...clinicalTokens.colors.status.cancelled,
-        label: 'Tidak Ada Dokter'
-      };
-    case 'AKTIF':
-    case 'ACTIVE':
-      return {
-        ...clinicalTokens.colors.status.confirmed,
-        label: 'Aktif'
-      };
-    case 'SEBAGIAN':
-      return {
-        ...clinicalTokens.colors.status.pending,
-        label: 'Sebagian'
-      };
-    case 'CUTI':
-      return {
-        ...clinicalTokens.colors.status.cancelled,
-        label: 'Cuti'
-      };
-    case 'CUTI_/_TUTUP':
-    case 'CUTI / TUTUP':
-      return {
-        ...clinicalTokens.colors.status.cancelled,
-        label: 'Cuti / Tutup'
-      };
     case 'TUTUP':
     case 'CLOSED':
       return {
         ...clinicalTokens.colors.status.cancelled,
-        label: 'Tutup'
+        label: 'Cuti'
       };
     case 'LIBUR':
       return {

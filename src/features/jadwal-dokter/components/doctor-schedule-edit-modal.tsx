@@ -176,10 +176,9 @@ export function DoctorScheduleEditModal({ doctor, isOpen, onClose }: DoctorSched
                   <SelectValue placeholder='Pilih status' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value='Aktif'>Aktif (buka penuh)</SelectItem>
-                  <SelectItem value='Sebagian'>Sebagian (slot terbatas)</SelectItem>
-                  <SelectItem value='Cuti / Tutup'>Cuti / tutup</SelectItem>
-                  <SelectItem value='Tutup'>Tutup</SelectItem>
+                  <SelectItem value='Buka'>🟢 Buka (Aktif)</SelectItem>
+                  <SelectItem value='Penuh'>🟡 Penuh (Slot Terisi)</SelectItem>
+                  <SelectItem value='Cuti'>🔵 Cuti (Sedang Libur/Cuti)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

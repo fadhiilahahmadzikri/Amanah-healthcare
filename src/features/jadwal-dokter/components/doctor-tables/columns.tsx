@@ -61,17 +61,60 @@ export const getColumns = ({
   },
   {
     accessorKey: 'jadwal_hari_ini',
-    header: 'Jadwal Hari Ini',
-    cell: ({ row }) => (
-      <div className='space-y-0.5'>
-        <span className='text-xs font-semibold text-foreground block font-mono'>
-          {row.original.jadwal_hari_ini}
-        </span>
-        <span className='text-[10px] text-muted-foreground block'>
-          Kapasitas: {row.original.kapasitas_per_hari} pasien
-        </span>
-      </div>
-    )
+    header: 'Sesi Praktik 24 Jam',
+    cell: ({ row }) => {
+      const { sesi_harian, jadwal_hari_ini, kapasitas_per_hari } = row.original;
+      if (sesi_harian && sesi_harian.length > 0) {
+        return (
+          <div className='space-y-1 py-0.5'>
+            <div className='flex items-center gap-1.5 flex-wrap'>
+              {sesi_harian.map((sesi) => (
+                <span
+                  key={sesi.id}
+                  className={cn(
+                    'px-1.5 py-0.5 rounded text-[10.5px] font-semibold border flex items-center gap-1 font-mono',
+                    sesi.status_sesi === 'Buka'
+                      ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                      : sesi.status_sesi === 'Penuh'
+                        ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                        : 'bg-muted/50 text-muted-foreground border-border/40'
+                  )}
+                  title={`${sesi.nama_sesi}: ${sesi.waktu}`}
+                >
+                  <span
+                    className={cn(
+                      'size-1 rounded-full',
+                      sesi.status_sesi === 'Buka'
+                        ? 'bg-emerald-500'
+                        : sesi.status_sesi === 'Penuh'
+                          ? 'bg-amber-500'
+                          : 'bg-muted-foreground'
+                    )}
+                  />
+                  <span>
+                    {sesi.nama_sesi.replace('Sesi ', '')} {sesi.jam_mulai}
+                  </span>
+                </span>
+              ))}
+            </div>
+            <span className='text-[10px] text-muted-foreground block'>
+              Total Kapasitas: {kapasitas_per_hari} pasien / hari
+            </span>
+          </div>
+        );
+      }
+
+      return (
+        <div className='space-y-0.5'>
+          <span className='text-xs font-semibold text-foreground block font-mono'>
+            {jadwal_hari_ini}
+          </span>
+          <span className='text-[10px] text-muted-foreground block'>
+            Kapasitas: {kapasitas_per_hari} pasien
+          </span>
+        </div>
+      );
+    }
   },
   {
     accessorKey: 'slot_tersedia',

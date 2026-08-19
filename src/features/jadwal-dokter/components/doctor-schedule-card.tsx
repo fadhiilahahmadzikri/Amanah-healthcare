@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
-import type { DoctorSchedule } from '../api/types';
+import type { DoctorSchedule, DoctorDailySession } from '../api/types';
 
 // ============================================================================
 // 1. ATOMIC COMPONENTS (Atoms & Molecules)
@@ -145,12 +145,82 @@ export function DoctorInfoRow({ icon, text, className }: DoctorInfoRowProps) {
 }
 
 /**
- * Molecule: Schedule Time & Slot Availability Block
+ * Helper to determine the upcoming/active session time based on real-time hour
+ */
+export function getUpcomingScheduleTime(
+  scheduleTime: string,
+  sessions?: DoctorDailySession[]
+): { labelTime: string; sessionName?: string } {
+  if (!sessions || sessions.length === 0) {
+    return { labelTime: scheduleTime };
+  }
+
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  const parseTimeToMinutes = (timeStr: string): number => {
+    const clean = timeStr.replace('.', ':');
+    const [h, m] = clean.split(':').map((v) => parseInt(v, 10) || 0);
+    return h * 60 + m;
+  };
+
+  const availableSessions = sessions.filter((s) => s.status_sesi !== 'Cuti');
+
+  if (availableSessions.length === 0) {
+    const firstSession = sessions[0];
+    return {
+      labelTime: firstSession?.waktu || scheduleTime,
+      sessionName: firstSession?.nama_sesi
+    };
+  }
+
+  // 1. Cek apakah saat ini sedang dalam sesi aktif yang sedang berlangsung
+  const ongoingSession = availableSessions.find((s) => {
+    const start = parseTimeToMinutes(s.jam_mulai);
+    const end = parseTimeToMinutes(s.jam_selesai);
+    if (end > start) {
+      return currentMinutes >= start && currentMinutes <= end;
+    }
+    // Shift lintas malam / dini hari (misal 23:00 - 06:00)
+    return currentMinutes >= start || currentMinutes <= end;
+  });
+
+  if (ongoingSession) {
+    return {
+      labelTime: ongoingSession.waktu,
+      sessionName: ongoingSession.nama_sesi
+    };
+  }
+
+  // 2. Cari sesi paling awal yang akan datang hari ini (jam mulai > jam sekarang)
+  const upcomingToday = availableSessions.find((s) => {
+    const start = parseTimeToMinutes(s.jam_mulai);
+    return start > currentMinutes;
+  });
+
+  if (upcomingToday) {
+    return {
+      labelTime: upcomingToday.waktu,
+      sessionName: upcomingToday.nama_sesi
+    };
+  }
+
+  // 3. Jika semua sesi hari ini sudah lewat, ambil sesi awal untuk siklus jadwal berikutnya
+  const nextCycleSession = availableSessions[0] || sessions[0];
+  return {
+    labelTime: nextCycleSession?.waktu || scheduleTime,
+    sessionName: nextCycleSession?.nama_sesi
+  };
+}
+
+/**
+ * Molecule: Schedule Time & Slot Availability Block (Clean 2-Column)
  */
 export interface DoctorScheduleStatsProps {
   scheduleTime: string;
   availableSlots: number;
   totalCapacity: number;
+  sessions?: DoctorDailySession[];
   className?: string;
 }
 
@@ -158,8 +228,11 @@ export function DoctorScheduleStats({
   scheduleTime,
   availableSlots,
   totalCapacity,
+  sessions,
   className
 }: DoctorScheduleStatsProps) {
+  const { labelTime } = getUpcomingScheduleTime(scheduleTime, sessions);
+
   return (
     <div
       className={cn(
@@ -167,14 +240,14 @@ export function DoctorScheduleStats({
         className
       )}
     >
-      {/* Schedule Time Column */}
+      {/* Schedule Time Column (Upcoming Schedule) */}
       <div className='flex flex-col'>
         <div className='flex items-center gap-1.5 text-[11.5px] font-medium text-muted-foreground'>
           <Icons.clock className='size-3.5 shrink-0 text-muted-foreground/80' />
-          <span>Jadwal Hari Ini</span>
+          <span>Jadwal Mendatang</span>
         </div>
         <span className='text-[15.5px] font-bold text-foreground font-mono mt-1 tracking-tight'>
-          {scheduleTime}
+          {labelTime}
         </span>
       </div>
 
@@ -296,6 +369,13 @@ export interface DoctorScheduleCardProps {
   className?: string;
 }
 
+export function getDoctorCardStatus(doctor: DoctorSchedule): 'Buka' | 'Cuti' | 'Penuh' {
+  if (doctor.is_cuti || doctor.status_dokter === 'Cuti' || doctor.status_jadwal === 'Cuti')
+    return 'Cuti';
+  if (doctor.slot_tersedia <= 0 || doctor.status_jadwal === 'Penuh') return 'Penuh';
+  return 'Buka';
+}
+
 export function DoctorScheduleCard({
   doctor,
   onOpenDetail,
@@ -307,8 +387,8 @@ export function DoctorScheduleCard({
   showStats = true,
   className
 }: DoctorScheduleCardProps) {
-  const isCuti = doctor.is_cuti || doctor.status_dokter === 'Cuti';
-  const statusLabel = doctor.status_dokter || (isCuti ? 'Cuti' : 'Aktif');
+  const statusLabel = getDoctorCardStatus(doctor);
+  const isCuti = statusLabel === 'Cuti';
 
   // Handle Call action
   const handleCall = (e: React.MouseEvent) => {
@@ -393,6 +473,7 @@ export function DoctorScheduleCard({
             scheduleTime={doctor.jadwal_hari_ini}
             availableSlots={doctor.slot_tersedia}
             totalCapacity={doctor.kapasitas_per_hari}
+            sessions={doctor.sesi_harian}
           />
         ))}
 

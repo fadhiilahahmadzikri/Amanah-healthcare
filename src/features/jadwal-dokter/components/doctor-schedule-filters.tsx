@@ -62,12 +62,9 @@ const STATUS_OPTIONS: {
   label: string;
   dotColor: string;
 }[] = [
-  { value: 'Aktif', label: 'Aktif', dotColor: 'bg-emerald-500' },
-  { value: 'Sebagian', label: 'Sebagian', dotColor: 'bg-amber-500' },
-  { value: 'Cuti', label: 'Cuti', dotColor: 'bg-purple-500' },
-  { value: 'Tutup', label: 'Tutup', dotColor: 'bg-rose-500' },
-  { value: 'Terkoneksi', label: 'Terkoneksi', dotColor: 'bg-blue-500' },
-  { value: 'Pending', label: 'Pending', dotColor: 'bg-amber-500' }
+  { value: 'Buka', label: 'Buka', dotColor: 'bg-emerald-500' },
+  { value: 'Penuh', label: 'Penuh', dotColor: 'bg-amber-500' },
+  { value: 'Cuti', label: 'Cuti', dotColor: 'bg-sky-500' }
 ];
 
 function formatDateDisplay(d: Date): string {
