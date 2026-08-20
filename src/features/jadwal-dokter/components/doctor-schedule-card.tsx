@@ -478,8 +478,38 @@ export function DoctorScheduleCard({
         ))}
 
       {/* 5. Action Footer Buttons (Reschedule & Detail) */}
-      {showActions && !isCuti && (
-        <DoctorCardActions onReschedule={handleReschedule} onDetail={handleDetail} />
+      {showActions && (
+        <div
+          className={cn(
+            'flex items-center justify-end gap-2 pt-3 mt-auto border-t border-border/40 relative z-20'
+          )}
+        >
+          {!isCuti && (
+            <Button
+              type='button'
+              variant='outline'
+              size='card-action'
+              shape='pill'
+              onClick={handleReschedule}
+              className='font-semibold'
+              leadingIcon={<Icons.calendar className='size-3.5 text-muted-foreground' />}
+            >
+              Reschedule
+            </Button>
+          )}
+
+          <Button
+            type='button'
+            variant='default'
+            size='card-action'
+            shape='pill'
+            withTrailingCircleIcon
+            onClick={handleDetail}
+            className='font-bold'
+          >
+            Detail
+          </Button>
+        </div>
       )}
     </div>
   );

@@ -262,6 +262,19 @@ const generateStandardSchedule = (
   });
 };
 
+const generateCutiSchedule = (startDay = 10, endDay = 20): MonthlyScheduleDay[] => {
+  return Array.from({ length: 31 }, (_, i) => {
+    const day = i + 1;
+    const dateStr = `2026-05-${String(day).padStart(2, '0')}`;
+    const isCuti = day >= startDay && day <= endDay;
+    return {
+      day,
+      date: dateStr,
+      status: isCuti ? 'Cuti' : day % 7 === 0 ? 'Penuh' : 'Buka'
+    };
+  });
+};
+
 import doctorSchedulesData from '@/constants/mock-data/doctor-schedules.json';
 
 export const initialDoctorSchedules: DoctorSchedule[] = (
@@ -273,7 +286,14 @@ export const initialDoctorSchedules: DoctorSchedule[] = (
       ? doc.monthly_schedule
       : doc.id === 'doc-001'
         ? generateSarahSchedule()
-        : generateStandardSchedule([3 + (idx % 4), 10 + (idx % 4), 17 + (idx % 4), 24 + (idx % 4)]),
+        : doc.is_cuti
+          ? generateCutiSchedule(10, 20)
+          : generateStandardSchedule([
+              3 + (idx % 4),
+              10 + (idx % 4),
+              17 + (idx % 4),
+              24 + (idx % 4)
+            ]),
   sesi_harian: generate24hSessions(doc.id, doc.is_cuti, doc.ruang_praktik)
 }));
 
