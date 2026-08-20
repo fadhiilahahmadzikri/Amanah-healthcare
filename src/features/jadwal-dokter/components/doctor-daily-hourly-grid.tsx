@@ -11,6 +11,7 @@ import {
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DoctorAddSessionModal } from './doctor-add-session-modal';
+import { isDoctorOnLeaveOnDay } from '@/constants/mock-api-doctor-schedules';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule, DoctorDailySession } from '../api/types';
@@ -23,12 +24,35 @@ export type HourlySlotStatus = 'buka' | 'penuh' | 'tutup' | 'cuti';
 
 export interface DoctorDailyHourlyGridProps {
   doctor?: DoctorSchedule;
+  selectedDay?: number;
+  onSelectDay?: (day: number) => void;
+  currentMonth?: number;
+  onMonthChange?: (month: number) => void;
+  currentYear?: number;
+  onYearChange?: (year: number) => void;
   onSelectHourStatus?: (hour: number, status: HourlySlotStatus) => void;
   onAddSchedule?: () => void;
   modalContainerRef?: React.RefObject<HTMLElement | null>;
   readOnly?: boolean;
   className?: string;
 }
+
+const MONTH_NAMES = [
+  'Januari',
+  'Februari',
+  'Maret',
+  'April',
+  'Mei',
+  'Juni',
+  'Juli',
+  'Agustus',
+  'September',
+  'Oktober',
+  'November',
+  'Desember'
+];
+
+const DAY_NAMES_FULL = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
 const STATUS_CONFIG: Record<
   HourlySlotStatus,
@@ -98,21 +122,21 @@ const SHIFTS = [
   }
 ];
 
-// Helper: Tentukan status jam awal berdasarkan sesi dokter
+// Helper: Tentukan status jam awal berdasarkan sesi dokter & hari aktif
 function getInitialHourStatus(
   hour: number,
   doctor?: DoctorSchedule,
+  dayNumber?: number,
   extraSessions: DoctorDailySession[] = []
 ): HourlySlotStatus {
-  const isDoctorCuti = Boolean(
-    doctor?.is_cuti ||
-    doctor?.status_dokter === 'Cuti' ||
-    doctor?.status_jadwal === 'Cuti' ||
-    doctor?.status_jadwal === 'Cuti / Tutup'
-  );
+  const leaveInfo = isDoctorOnLeaveOnDay(doctor, dayNumber);
+  if (leaveInfo.isLeave) return 'cuti';
 
-  // Jika dokter berstatus cuti, maka 1 hari penuh adalah Cuti
-  if (isDoctorCuti) return 'cuti';
+  // Check if monthly_schedule specifies status for this day
+  const monthlyItem = doctor?.monthly_schedule?.find((d) => d.day === dayNumber);
+  if (monthlyItem?.status === 'Penuh') {
+    return 'penuh';
+  }
 
   const allSessions = [...(doctor?.sesi_harian || []), ...extraSessions];
 
@@ -149,24 +173,66 @@ function getInitialHourStatus(
 
 export function DoctorDailyHourlyGrid({
   doctor,
+  selectedDay: selectedDayProp,
+  onSelectDay,
+  currentMonth: currentMonthProp,
+  onMonthChange,
+  currentYear: currentYearProp,
+  onYearChange,
   onSelectHourStatus,
   onAddSchedule,
   modalContainerRef,
   readOnly = false,
   className
 }: DoctorDailyHourlyGridProps) {
+  const today = new Date();
+  const realCurrentYear = today.getFullYear();
+  const realCurrentMonth = today.getMonth();
+  const realCurrentDay = today.getDate();
+
+  const [internalDay, setInternalDay] = useState<number>(realCurrentDay);
+  const [internalMonth, setInternalMonth] = useState<number>(realCurrentMonth);
+  const [internalYear, setInternalYear] = useState<number>(realCurrentYear);
+
+  const activeDay = selectedDayProp !== undefined ? selectedDayProp : internalDay;
+  const activeMonth = currentMonthProp !== undefined ? currentMonthProp : internalMonth;
+  const activeYear = currentYearProp !== undefined ? currentYearProp : internalYear;
+
+  const setActiveDay = (d: number) => {
+    setInternalDay(d);
+    onSelectDay?.(d);
+  };
+  const setActiveMonth = (m: number | ((prev: number) => number)) => {
+    const nextVal = typeof m === 'function' ? m(activeMonth) : m;
+    setInternalMonth(nextVal);
+    onMonthChange?.(nextVal);
+  };
+  const setActiveYear = (y: number | ((prev: number) => number)) => {
+    const nextVal = typeof y === 'function' ? y(activeYear) : y;
+    setInternalYear(nextVal);
+    onYearChange?.(nextVal);
+  };
+
+  const totalDaysInMonth = new Date(activeYear, activeMonth + 1, 0).getDate();
+  const dateObj = new Date(activeYear, activeMonth, activeDay);
+  const dayName = DAY_NAMES_FULL[dateObj.getDay()] || 'Hari';
+  const formattedSelectedDate = `${dayName}, ${activeDay} ${MONTH_NAMES[activeMonth]} ${activeYear}`;
+
+  const isCurrentDayToday =
+    activeDay === realCurrentDay &&
+    activeMonth === realCurrentMonth &&
+    activeYear === realCurrentYear;
+
   const [selectedHour, setSelectedHour] = useState<number | null>(new Date().getHours());
-  const [hourlyOverrides, setHourlyOverrides] = useState<Record<number, HourlySlotStatus>>({});
+  const [hourlyOverrides, setHourlyOverrides] = useState<Record<string, HourlySlotStatus>>({});
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [extraSessions, setExtraSessions] = useState<DoctorDailySession[]>([]);
   const [isReasonOpen, setIsReasonOpen] = useState(false);
 
-  const isDoctorCuti = Boolean(
-    doctor?.is_cuti ||
-    doctor?.status_dokter === 'Cuti' ||
-    doctor?.status_jadwal === 'Cuti' ||
-    doctor?.status_jadwal === 'Cuti / Tutup'
-  );
+  // Dynamic leave check for activeDay
+  const leaveInfo = isDoctorOnLeaveOnDay(doctor, activeDay);
+  const isDayCuti = leaveInfo.isLeave;
+  const dayLeaveReason = leaveInfo.reason || doctor?.cuti_reason || 'Cuti Operasional';
 
   const initials = doctor?.nama_dokter
     ? doctor.nama_dokter
@@ -179,8 +245,9 @@ export function DoctorDailyHourlyGrid({
     : 'DR';
 
   const handleHourStatusChange = (hour: number, status: HourlySlotStatus) => {
-    if (isDoctorCuti) return;
-    setHourlyOverrides((prev) => ({ ...prev, [hour]: status }));
+    if (isDayCuti) return;
+    const overrideKey = `${activeYear}-${activeMonth}-${activeDay}-${hour}`;
+    setHourlyOverrides((prev) => ({ ...prev, [overrideKey]: status }));
     onSelectHourStatus?.(hour, status);
   };
 
@@ -188,9 +255,10 @@ export function DoctorDailyHourlyGrid({
     setExtraSessions((prev) => [...prev, newSession]);
     const startHour = parseInt(newSession.jam_mulai.split(':')[0], 10);
     const endHour = parseInt(newSession.jam_selesai.split(':')[0], 10);
-    const newOverrides: Record<number, HourlySlotStatus> = {};
+    const newOverrides: Record<string, HourlySlotStatus> = {};
     for (let h = startHour; h <= endHour; h++) {
-      newOverrides[h] =
+      const overrideKey = `${activeYear}-${activeMonth}-${activeDay}-${h}`;
+      newOverrides[overrideKey] =
         newSession.status_sesi === 'Buka'
           ? 'buka'
           : newSession.status_sesi === 'Penuh'
@@ -201,15 +269,16 @@ export function DoctorDailyHourlyGrid({
   };
 
   const openAddSessionModal = () => {
-    if (isDoctorCuti) return;
+    if (isDayCuti) return;
     onAddSchedule?.();
     setIsAddModalOpen(true);
   };
 
   const resolveHourStatus = (hour: number): HourlySlotStatus => {
-    if (isDoctorCuti) return 'cuti';
-    if (hourlyOverrides[hour]) return hourlyOverrides[hour];
-    return getInitialHourStatus(hour, doctor, extraSessions);
+    if (isDayCuti) return 'cuti';
+    const overrideKey = `${activeYear}-${activeMonth}-${activeDay}-${hour}`;
+    if (hourlyOverrides[overrideKey]) return hourlyOverrides[overrideKey];
+    return getInitialHourStatus(hour, doctor, activeDay, extraSessions);
   };
 
   const currentHour = new Date().getHours();
@@ -217,7 +286,32 @@ export function DoctorDailyHourlyGrid({
   const extraCapacity = extraSessions.reduce((acc, s) => acc + s.kuota_pasien, 0);
   const extraSlots = extraSessions.reduce((acc, s) => acc + s.slot_tersedia, 0);
   const totalCapacity = (doctor?.kapasitas_per_hari || 0) + extraCapacity;
-  const totalSlots = isDoctorCuti ? 0 : (doctor?.slot_tersedia || 0) + extraSlots;
+  const totalSlots = isDayCuti ? 0 : (doctor?.slot_tersedia || 0) + extraSlots;
+
+  const handlePrevDay = () => {
+    if (activeDay > 1) {
+      setActiveDay(activeDay - 1);
+    } else if (activeMonth > 0) {
+      const prevMonthDays = new Date(activeYear, activeMonth, 0).getDate();
+      setActiveMonth(activeMonth - 1);
+      setActiveDay(prevMonthDays);
+    }
+  };
+
+  const handleNextDay = () => {
+    if (activeDay < totalDaysInMonth) {
+      setActiveDay(activeDay + 1);
+    } else if (activeMonth < 11) {
+      setActiveMonth(activeMonth + 1);
+      setActiveDay(1);
+    }
+  };
+
+  const handleToday = () => {
+    setActiveDay(realCurrentDay);
+    setActiveMonth(realCurrentMonth);
+    setActiveYear(realCurrentYear);
+  };
 
   return (
     <>
@@ -227,37 +321,78 @@ export function DoctorDailyHourlyGrid({
           className
         )}
       >
-        {/* 1. Header Grid: Judul "Jadwal hari ini" & Teks Slot Tersedia Horisontal / Sejajar */}
+        {/* 1. Header Grid: Judul Tanggal & Day Navigation Toolbox */}
         <div className='p-3.5 sm:p-4 border-b border-border/40 flex items-center justify-between gap-3 bg-muted/10'>
-          <div className='flex items-center gap-2.5 sm:gap-3 flex-wrap'>
-            <h2 className='text-sm sm:text-base font-bold text-foreground tracking-tight'>
-              Jadwal hari ini
+          {/* Left: Clear Typographic Hierarchy (Date + Slot / Status) */}
+          <div className='min-w-0'>
+            <h2 className='text-sm sm:text-base font-bold text-foreground tracking-tight truncate'>
+              {formattedSelectedDate}
             </h2>
-            {!isDoctorCuti && (
-              <>
-                <Separator orientation='vertical' className='h-4 bg-border/70 hidden sm:block' />
-                <span className='text-xs font-mono font-medium text-muted-foreground'>
-                  <strong className='text-primary font-bold'>{totalSlots}</strong> / {totalCapacity}{' '}
-                  slot tersedia
+            <div className='text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5 font-normal'>
+              {isDayCuti ? (
+                <span className='text-sky-600 dark:text-sky-400 font-semibold'>
+                  Praktik Ditutup (Cuti)
                 </span>
-              </>
-            )}
+              ) : (
+                <span className='font-mono'>
+                  <strong className='text-primary font-semibold'>{totalSlots}</strong> /{' '}
+                  {totalCapacity} slot tersedia
+                </span>
+              )}
+            </div>
           </div>
 
-          {!readOnly && !isDoctorCuti && (
+          {/* Right: Grouped Navigation & Action Controls */}
+          <div className='flex items-center gap-2 shrink-0 flex-wrap justify-end'>
             <button
               type='button'
-              onClick={openAddSessionModal}
-              className='inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border border-dashed border-border/80 hover:border-primary/70 bg-background hover:bg-primary/5 text-foreground/80 hover:text-primary transition-all shadow-2xs cursor-pointer select-none shrink-0'
+              onClick={handleToday}
+              className={cn(
+                'px-2.5 py-1 text-xs font-semibold rounded-lg border border-border/60 bg-background hover:bg-muted text-foreground/85 hover:text-foreground transition-colors shadow-2xs cursor-pointer',
+                isCurrentDayToday && 'border-primary/50 bg-primary/10 text-primary font-bold'
+              )}
             >
-              <Icons.add className='size-3.5' />
-              <span>Tambah jadwal</span>
+              Hari Ini
             </button>
-          )}
+
+            <div className='flex items-center border border-border/50 rounded-lg bg-background p-0.5 shadow-2xs'>
+              <button
+                type='button'
+                onClick={handlePrevDay}
+                disabled={activeDay <= 1 && activeMonth <= 0}
+                className='size-7 flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer'
+                aria-label='Hari Sebelumnya'
+                title='Hari Sebelumnya'
+              >
+                <Icons.chevronLeft className='size-4' />
+              </button>
+              <button
+                type='button'
+                onClick={handleNextDay}
+                disabled={activeDay >= totalDaysInMonth && activeMonth >= 11}
+                className='size-7 flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer'
+                aria-label='Hari Berikutnya'
+                title='Hari Berikutnya'
+              >
+                <Icons.chevronRight className='size-4' />
+              </button>
+            </div>
+
+            {!readOnly && !isDayCuti && (
+              <button
+                type='button'
+                onClick={openAddSessionModal}
+                className='inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border border-dashed border-border/80 hover:border-primary/70 bg-background hover:bg-primary/5 text-foreground/80 hover:text-primary transition-all shadow-2xs cursor-pointer select-none shrink-0'
+              >
+                <Icons.add className='size-3.5' />
+                <span>Tambah jadwal</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* 2. ACCORDION / COLLAPSIBLE SEGMENTED: "Lihat kenapa dokter ini cuti [chevron]" */}
-        {isDoctorCuti && (
+        {isDayCuti && (
           <Collapsible
             open={isReasonOpen}
             onOpenChange={setIsReasonOpen}
@@ -323,10 +458,8 @@ export function DoctorDailyHourlyGrid({
                     {/* Leave Message Text */}
                     <div className='mt-2 text-xs text-foreground/90 leading-relaxed font-normal'>
                       Dokter sedang dalam masa{' '}
-                      <strong className='font-semibold text-foreground'>
-                        {doctor?.cuti_reason || 'Cuti Operasional'}
-                      </strong>
-                      . Seluruh aktivitas praktik dan konsultasi ditutup sementara pada periode
+                      <strong className='font-semibold text-foreground'>{dayLeaveReason}</strong>.
+                      Seluruh aktivitas praktik dan konsultasi ditutup sementara pada periode
                       terkait.
                     </div>
 
@@ -375,7 +508,7 @@ export function DoctorDailyHourlyGrid({
                         'w-full min-h-[52px] sm:min-h-[56px] rounded-xl border p-2 flex flex-col justify-between transition-all text-left relative',
                         cfg.cellBg,
                         cfg.border,
-                        isDoctorCuti ? 'cursor-default opacity-90' : 'cursor-pointer',
+                        isDayCuti ? 'cursor-default opacity-90' : 'cursor-pointer',
                         isSelected && 'ring-2 ring-primary/40 shadow-xs',
                         isNow && 'ring-1 ring-primary font-bold'
                       )}
@@ -407,7 +540,7 @@ export function DoctorDailyHourlyGrid({
                     </div>
                   );
 
-                  if (readOnly || isDoctorCuti) {
+                  if (readOnly || isDayCuti) {
                     return (
                       <button
                         key={h}
@@ -456,7 +589,7 @@ export function DoctorDailyHourlyGrid({
           ))}
 
           {/* 3. Placeholder Tambah Jadwal di Akhir Grid */}
-          {!readOnly && !isDoctorCuti && (
+          {!readOnly && !isDayCuti && (
             <div className='pt-1'>
               <button
                 type='button'

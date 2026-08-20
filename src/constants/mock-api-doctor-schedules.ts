@@ -262,10 +262,10 @@ const generateStandardSchedule = (
   });
 };
 
-const generateCutiSchedule = (startDay = 10, endDay = 20): MonthlyScheduleDay[] => {
+export const generateCutiSchedule = (startDay = 10, endDay = 25): MonthlyScheduleDay[] => {
   return Array.from({ length: 31 }, (_, i) => {
     const day = i + 1;
-    const dateStr = `2026-05-${String(day).padStart(2, '0')}`;
+    const dateStr = `2026-08-${String(day).padStart(2, '0')}`;
     const isCuti = day >= startDay && day <= endDay;
     return {
       day,
@@ -275,27 +275,80 @@ const generateCutiSchedule = (startDay = 10, endDay = 20): MonthlyScheduleDay[] 
   });
 };
 
+/**
+ * Helper to determine if a doctor is on leave on a specific day number
+ */
+export function isDoctorOnLeaveOnDay(
+  doctor?: DoctorSchedule,
+  dayNumber?: number
+): { isLeave: boolean; reason?: string } {
+  if (!doctor || dayNumber === undefined) return { isLeave: false };
+
+  // 1. Cek konfigurasi eksplisit pada monthly_schedule
+  const monthlyItem = doctor.monthly_schedule?.find((d) => d.day === dayNumber);
+  if (monthlyItem?.status === 'Cuti') {
+    return { isLeave: true, reason: monthlyItem.notes || doctor.cuti_reason || 'Cuti Tahunan' };
+  }
+
+  // 2. Cek apakah dokter berstatus cuti dan tanggal berada dalam rentang [cuti_start, cuti_end]
+  const isDoctorCuti = Boolean(
+    doctor.is_cuti ||
+    doctor.status_dokter === 'Cuti' ||
+    doctor.status_jadwal === 'Cuti' ||
+    doctor.status_jadwal === 'Cuti / Tutup'
+  );
+
+  if (isDoctorCuti) {
+    if (doctor.cuti_start && doctor.cuti_end) {
+      const startDay = parseInt(doctor.cuti_start.split(' ')[0], 10);
+      const endDay = parseInt(doctor.cuti_end.split(' ')[0], 10);
+      if (!isNaN(startDay) && !isNaN(endDay)) {
+        if (dayNumber >= startDay && dayNumber <= endDay) {
+          return { isLeave: true, reason: doctor.cuti_reason || 'Cuti Tahunan' };
+        }
+        return { isLeave: false };
+      }
+    }
+    return { isLeave: true, reason: doctor.cuti_reason || 'Cuti Tahunan' };
+  }
+
+  return { isLeave: false };
+}
+
 import doctorSchedulesData from '@/constants/mock-data/doctor-schedules.json';
 
 export const initialDoctorSchedules: DoctorSchedule[] = (
   doctorSchedulesData as unknown as DoctorSchedule[]
-).map((doc, idx) => ({
-  ...doc,
-  monthly_schedule:
-    doc.monthly_schedule && doc.monthly_schedule.length > 0
-      ? doc.monthly_schedule
-      : doc.id === 'doc-001'
-        ? generateSarahSchedule()
-        : doc.is_cuti
-          ? generateCutiSchedule(10, 20)
-          : generateStandardSchedule([
-              3 + (idx % 4),
-              10 + (idx % 4),
-              17 + (idx % 4),
-              24 + (idx % 4)
-            ]),
-  sesi_harian: generate24hSessions(doc.id, doc.is_cuti, doc.ruang_praktik)
-}));
+).map((doc, idx) => {
+  let cutiStartDay = 10;
+  let cutiEndDay = 25;
+  if (doc.cuti_start && doc.cuti_end) {
+    const s = parseInt(doc.cuti_start.split(' ')[0], 10);
+    const e = parseInt(doc.cuti_end.split(' ')[0], 10);
+    if (!isNaN(s) && !isNaN(e)) {
+      cutiStartDay = s;
+      cutiEndDay = e;
+    }
+  }
+
+  return {
+    ...doc,
+    monthly_schedule:
+      doc.monthly_schedule && doc.monthly_schedule.length > 0
+        ? doc.monthly_schedule
+        : doc.id === 'doc-001'
+          ? generateSarahSchedule()
+          : doc.is_cuti
+            ? generateCutiSchedule(cutiStartDay, cutiEndDay)
+            : generateStandardSchedule([
+                3 + (idx % 4),
+                10 + (idx % 4),
+                17 + (idx % 4),
+                24 + (idx % 4)
+              ]),
+    sesi_harian: generate24hSessions(doc.id, doc.is_cuti, doc.ruang_praktik)
+  };
+});
 
 class MockDoctorScheduleService {
   private items: DoctorSchedule[] = [...initialDoctorSchedules];

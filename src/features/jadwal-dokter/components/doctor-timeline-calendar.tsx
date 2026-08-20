@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { isDoctorOnLeaveOnDay } from '@/constants/mock-api-doctor-schedules';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule } from '../api/types';
 
@@ -21,7 +22,14 @@ export type SimpleScheduleStatus = 'buka' | 'cuti' | 'penuh';
 
 export interface DoctorTimelineCalendarProps {
   doctor?: DoctorSchedule;
+  selectedDay?: number;
+  onSelectDay?: (day: number) => void;
+  currentMonth?: number;
+  onMonthChange?: (month: number) => void;
+  currentYear?: number;
+  onYearChange?: (year: number) => void;
   onSelectDayStatus?: (day: number, status: SimpleScheduleStatus) => void;
+  onNavigateToDailyGrid?: (day: number) => void;
   readOnly?: boolean;
   className?: string;
 }
@@ -86,34 +94,16 @@ const STATUS_CONFIG: Record<
 
 // Helper: Tentukan status 3 nilai (buka / cuti / penuh) untuk hari tertentu
 function resolveDayStatus(dayNumber: number, doctor?: DoctorSchedule): SimpleScheduleStatus {
-  // 1. Cek konfigurasi eksplisit pada monthly_schedule
+  // 1. Cek leave status via upstream helper
+  const leaveInfo = isDoctorOnLeaveOnDay(doctor, dayNumber);
+  if (leaveInfo.isLeave) return 'cuti';
+
+  // 2. Cek konfigurasi eksplisit pada monthly_schedule
   const monthlyItem = doctor?.monthly_schedule?.find((d) => d.day === dayNumber);
   if (monthlyItem) {
     if (monthlyItem.status === 'Cuti') return 'cuti';
     if (monthlyItem.status === 'Penuh') return 'penuh';
     if (monthlyItem.status === 'Buka') return 'buka';
-  }
-
-  // 2. Cek apakah dokter sedang cuti dan tanggal berada dalam rentang cuti
-  const isDoctorCuti = Boolean(
-    doctor?.is_cuti ||
-    doctor?.status_dokter === 'Cuti' ||
-    doctor?.status_jadwal === 'Cuti' ||
-    doctor?.status_jadwal === 'Cuti / Tutup'
-  );
-
-  if (isDoctorCuti) {
-    if (doctor?.cuti_start && doctor?.cuti_end) {
-      const startDay = parseInt(doctor.cuti_start.split(' ')[0], 10);
-      const endDay = parseInt(doctor.cuti_end.split(' ')[0], 10);
-      if (!isNaN(startDay) && !isNaN(endDay) && dayNumber >= startDay && dayNumber <= endDay) {
-        return 'cuti';
-      }
-    }
-    // Jika dokter cuti penuh
-    if (dayNumber === new Date().getDate()) {
-      return 'cuti';
-    }
   }
 
   if (doctor?.slot_tersedia === 0 && dayNumber === new Date().getDate()) {
@@ -129,7 +119,14 @@ function resolveDayStatus(dayNumber: number, doctor?: DoctorSchedule): SimpleSch
 
 export function DoctorTimelineCalendar({
   doctor,
+  selectedDay: selectedDayProp,
+  onSelectDay,
+  currentMonth: currentMonthProp,
+  onMonthChange,
+  currentYear: currentYearProp,
+  onYearChange,
   onSelectDayStatus,
+  onNavigateToDailyGrid,
   readOnly = false,
   className
 }: DoctorTimelineCalendarProps) {
@@ -139,10 +136,29 @@ export function DoctorTimelineCalendar({
   const realCurrentMonth = today.getMonth();
   const realCurrentDay = today.getDate();
 
-  const [currentMonth, setCurrentMonth] = useState<number>(realCurrentMonth);
-  const [currentYear, setCurrentYear] = useState<number>(realCurrentYear);
-  const [selectedDay, setSelectedDay] = useState<number>(realCurrentDay);
+  const [internalMonth, setInternalMonth] = useState<number>(realCurrentMonth);
+  const [internalYear, setInternalYear] = useState<number>(realCurrentYear);
+  const [internalDay, setInternalDay] = useState<number>(realCurrentDay);
   const [isReasonOpen, setIsReasonOpen] = useState(false);
+
+  const currentMonth = currentMonthProp !== undefined ? currentMonthProp : internalMonth;
+  const currentYear = currentYearProp !== undefined ? currentYearProp : internalYear;
+  const selectedDay = selectedDayProp !== undefined ? selectedDayProp : internalDay;
+
+  const setCurrentMonth = (m: number | ((prev: number) => number)) => {
+    const nextVal = typeof m === 'function' ? m(currentMonth) : m;
+    setInternalMonth(nextVal);
+    onMonthChange?.(nextVal);
+  };
+  const setCurrentYear = (y: number | ((prev: number) => number)) => {
+    const nextVal = typeof y === 'function' ? y(currentYear) : y;
+    setInternalYear(nextVal);
+    onYearChange?.(nextVal);
+  };
+  const setSelectedDay = (d: number) => {
+    setInternalDay(d);
+    onSelectDay?.(d);
+  };
 
   const isDoctorCuti = Boolean(
     doctor?.is_cuti ||
@@ -464,7 +480,7 @@ export function DoctorTimelineCalendar({
             const cellContent = (
               <div
                 className={cn(
-                  'w-full min-h-[58px] sm:min-h-[64px] rounded-xl border p-2 flex flex-col justify-between transition-all text-left relative cursor-pointer',
+                  'w-full min-h-[58px] sm:min-h-[64px] rounded-xl border p-2 flex flex-col justify-between transition-all text-left relative cursor-pointer group/cell',
                   cfg.cellBg,
                   cfg.border,
                   isSelected && 'ring-2 ring-primary/40 shadow-xs'
@@ -478,7 +494,7 @@ export function DoctorTimelineCalendar({
                   <span className={cn('size-2 rounded-full shrink-0', cfg.dotBg)} />
                 </div>
 
-                {/* Baris Bawah: Status Text Langsung Berwarna */}
+                {/* Baris Bawah: Status Text Berwarna + Tombol Icon Diagonal Arrow ↗ */}
                 <div className='mt-1 flex items-center justify-between gap-1'>
                   <span
                     className={cn(
@@ -488,15 +504,43 @@ export function DoctorTimelineCalendar({
                   >
                     {cfg.label}
                   </span>
+
+                  {onNavigateToDailyGrid && (
+                    <span
+                      role='button'
+                      tabIndex={0}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedDay(day);
+                        onNavigateToDailyGrid(day);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.stopPropagation();
+                          setSelectedDay(day);
+                          onNavigateToDailyGrid(day);
+                        }
+                      }}
+                      title={`Buka Jadwal & Kuota tanggal ${day}`}
+                      className='size-4 rounded-md flex items-center justify-center text-muted-foreground/60 hover:text-primary hover:bg-background/90 transition-all opacity-60 group-hover/cell:opacity-100 cursor-pointer shrink-0'
+                    >
+                      <Icons.arrowUpRight className='size-3 stroke-[2.5]' />
+                    </span>
+                  )}
                 </div>
               </div>
             );
 
             if (readOnly) {
               return (
-                <div key={day} onClick={() => setSelectedDay(day)}>
+                <button
+                  key={day}
+                  type='button'
+                  onClick={() => setSelectedDay(day)}
+                  className='w-full text-left outline-none'
+                >
                   {cellContent}
-                </div>
+                </button>
               );
             }
 
@@ -507,9 +551,24 @@ export function DoctorTimelineCalendar({
                     {cellContent}
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align='center' className='w-40'>
+                <DropdownMenuContent align='center' className='w-44'>
+                  {onNavigateToDailyGrid && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setSelectedDay(day);
+                          onNavigateToDailyGrid(day);
+                        }}
+                        className='text-xs font-bold text-primary flex items-center justify-between cursor-pointer'
+                      >
+                        <span>Lihat Jadwal Harian</span>
+                        <Icons.arrowUpRight className='size-3.5 stroke-[2.2]' />
+                      </DropdownMenuItem>
+                      <div className='h-px bg-border/40 my-1' />
+                    </>
+                  )}
                   <div className='px-2 py-1 text-[10px] font-semibold text-muted-foreground'>
-                    Ubah tanggal {day} {MONTH_NAMES[currentMonth]}:
+                    Ubah status tanggal {day} {MONTH_NAMES[currentMonth]}:
                   </div>
                   {(['buka', 'penuh', 'cuti'] as SimpleScheduleStatus[]).map((st) => {
                     const itemCfg = STATUS_CONFIG[st];

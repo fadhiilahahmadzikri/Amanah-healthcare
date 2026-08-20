@@ -34,6 +34,11 @@ export function DoctorScheduleDetailSheet({
   const updateDayMutation = useUpdateDoctorDayStatusMutation();
   const modalContainerRef = React.useRef<HTMLDivElement>(null);
 
+  const [activeTab, setActiveTab] = React.useState<'kalender' | 'kuota' | 'informasi'>('kalender');
+  const [selectedDay, setSelectedDay] = React.useState<number>(new Date().getDate());
+  const [currentMonth, setCurrentMonth] = React.useState<number>(new Date().getMonth());
+  const [currentYear, setCurrentYear] = React.useState<number>(new Date().getFullYear());
+
   if (!doctor) return null;
 
   const doctorStatus =
@@ -190,26 +195,31 @@ export function DoctorScheduleDetailSheet({
                 </span>
               </div>
 
-              {/* Username Handle */}
-              <div className='text-xs text-muted-foreground font-mono'>@{doctorHandle}</div>
-            </div>
+              {/* Meta Row: Username Handle (Left) & Lokasi Praktik (Right) */}
+              <div className='pt-1.5 flex items-center justify-between gap-3 text-xs'>
+                <div className='text-xs text-muted-foreground font-mono truncate'>
+                  @{doctorHandle}
+                </div>
 
-            {/* Location / Room Info Element */}
-            <div className='pt-2 pb-0.5 flex flex-col text-left'>
-              <span className='text-[11px] font-medium text-muted-foreground leading-none'>
-                Lokasi Praktik
-              </span>
-              <SheetDescription className='text-xs sm:text-[13px] font-bold text-foreground leading-tight tracking-tight mt-1'>
-                {doctor.ruang_praktik.startsWith('Poli')
-                  ? doctor.ruang_praktik
-                  : `Poli ${doctor.spesialisasi}, ${doctor.ruang_praktik}`}
-              </SheetDescription>
+                <div className='flex items-center gap-1.5 text-xs text-muted-foreground shrink-0'>
+                  <Icons.location className='size-3.5 text-primary/70 shrink-0' />
+                  <SheetDescription className='text-xs font-semibold text-foreground/90 truncate m-0 p-0 inline'>
+                    {doctor.ruang_praktik.startsWith('Poli')
+                      ? doctor.ruang_praktik
+                      : `Poli ${doctor.spesialisasi}, ${doctor.ruang_praktik}`}
+                  </SheetDescription>
+                </div>
+              </div>
             </div>
           </SheetHeader>
         </div>
 
         {/* 2. Tabs & Scrollable Body Content */}
-        <Tabs defaultValue='kalender' className='flex-1 flex flex-col min-h-0 gap-0'>
+        <Tabs
+          value={activeTab}
+          onValueChange={(val) => setActiveTab(val as 'kalender' | 'kuota' | 'informasi')}
+          className='flex-1 flex flex-col min-h-0 gap-0'
+        >
           <div className='px-6 pt-3 pb-2 border-b border-border/40 shrink-0 bg-muted/20'>
             <TabsList className='grid w-full grid-cols-3 h-9'>
               <TabsTrigger value='kalender' className='text-xs font-semibold'>
@@ -229,6 +239,16 @@ export function DoctorScheduleDetailSheet({
             <TabsContent value='kalender' className='m-0 space-y-3 outline-none'>
               <DoctorTimelineCalendar
                 doctor={doctor}
+                selectedDay={selectedDay}
+                onSelectDay={setSelectedDay}
+                currentMonth={currentMonth}
+                onMonthChange={setCurrentMonth}
+                currentYear={currentYear}
+                onYearChange={setCurrentYear}
+                onNavigateToDailyGrid={(day) => {
+                  setSelectedDay(day);
+                  setActiveTab('kuota');
+                }}
                 onSelectDayStatus={(day, st) =>
                   handleDayStatusChange(
                     day,
@@ -240,7 +260,16 @@ export function DoctorScheduleDetailSheet({
 
             {/* Tab 2: Grid Jadwal & Kuota Harian (POV 24 Jam dengan X & Y Axis) */}
             <TabsContent value='kuota' className='m-0 space-y-3 outline-none'>
-              <DoctorDailyHourlyGrid doctor={doctor} modalContainerRef={modalContainerRef} />
+              <DoctorDailyHourlyGrid
+                doctor={doctor}
+                selectedDay={selectedDay}
+                onSelectDay={setSelectedDay}
+                currentMonth={currentMonth}
+                onMonthChange={setCurrentMonth}
+                currentYear={currentYear}
+                onYearChange={setCurrentYear}
+                modalContainerRef={modalContainerRef}
+              />
             </TabsContent>
 
             {/* Tab 3: Informasi Kontak & Ruang Praktik */}
