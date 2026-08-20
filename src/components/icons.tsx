@@ -134,12 +134,17 @@ import {
   IconCopy,
   IconMail,
   IconPlayerPause,
-  IconPlayerPlay
+  IconPlayerPlay,
+  IconQrcode,
+  IconFileSpreadsheet
 } from '@tabler/icons-react';
 
 export type Icon = React.ComponentType<IconProps>;
 
 export const Icons = {
+  qrCode: IconQrcode,
+  qrcode: IconQrcode,
+  fileSpreadsheet: IconFileSpreadsheet,
   inbox: IconInbox,
   copy: IconCopy,
   mail: IconMail,
