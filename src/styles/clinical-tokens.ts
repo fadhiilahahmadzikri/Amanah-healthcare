@@ -137,9 +137,10 @@ export const getStatusConfig = (status: string): StatusConfig => {
     case 'AKTIF':
     case 'ACTIVE':
     case 'CONFIRMED':
+    case 'HADIR':
       return {
         ...clinicalTokens.colors.status.confirmed,
-        label: 'Buka'
+        label: normalized === 'HADIR' ? 'Hadir' : 'Buka'
       };
     case 'CUTI':
     case 'LEAVE':
@@ -188,11 +189,13 @@ export const getStatusConfig = (status: string): StatusConfig => {
       };
     case 'TIDAK_ADA_DOKTER':
     case 'TIDAK ADA DOKTER':
+    case 'TIDAK_HADIR':
+    case 'TIDAK HADIR':
     case 'TUTUP':
     case 'CLOSED':
       return {
         ...clinicalTokens.colors.status.cancelled,
-        label: 'Cuti'
+        label: normalized === 'TIDAK_HADIR' || normalized === 'TIDAK HADIR' ? 'Tidak Hadir' : 'Cuti'
       };
     case 'LIBUR':
       return {

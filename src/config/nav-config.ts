@@ -55,8 +55,9 @@ export const navGroups: NavGroup[] = [
           },
           {
             title: 'Kehadiran Pegawai',
-            url: '#',
-            icon: 'badgeCheck'
+            url: '/dashboard/kehadiran-pegawai',
+            icon: 'badgeCheck',
+            shortcut: ['k', 'p']
           }
         ]
       },
