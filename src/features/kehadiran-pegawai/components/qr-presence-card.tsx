@@ -192,10 +192,10 @@ export function QRPresenceCard({
         </div>
       </div>
 
-      {/* 2. Direct Clean Styled Modern QR Code */}
-      <div className='flex flex-col items-center justify-start w-full pt-1.5'>
-        <div className='w-full aspect-square flex items-center justify-center bg-white p-1.5 overflow-hidden'>
-          <ModernStyledQRCode data={qrPayload} size={360} className='w-full h-full' />
+      {/* 2. Direct Clean Styled Modern QR Code (Skala Maksimal & Jelas) */}
+      <div className='flex flex-col items-center justify-start w-full pt-1'>
+        <div className='w-full aspect-square flex items-center justify-center bg-white p-0 overflow-hidden'>
+          <ModernStyledQRCode data={qrPayload} size={500} className='w-full h-full' />
         </div>
 
         {/* 3. Section Code Manual (Gap yang lebih proporsional & bernafas di bawah QR Code) */}

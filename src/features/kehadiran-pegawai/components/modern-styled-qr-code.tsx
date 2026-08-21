@@ -47,6 +47,7 @@ export function ModernStyledQRCode({
         height: size,
         type: 'svg',
         data: data,
+        margin: 0,
         image: showCenterLogo ? '/icon.svg' : undefined,
         dotsOptions: {
           color: fgColor,
@@ -57,8 +58,8 @@ export function ModernStyledQRCode({
         },
         imageOptions: {
           crossOrigin: 'anonymous',
-          margin: 4,
-          imageSize: 0.28,
+          margin: 2,
+          imageSize: 0.26,
           hideBackgroundDots: true
         },
         cornersSquareOptions: {
@@ -81,6 +82,7 @@ export function ModernStyledQRCode({
         width: size,
         height: size,
         data: data,
+        margin: 0,
         image: showCenterLogo ? '/icon.svg' : undefined,
         dotsOptions: {
           color: fgColor,
@@ -102,6 +104,17 @@ export function ModernStyledQRCode({
         }
       });
     }
+
+    // Ensure generated SVG is responsive and stretches 100%
+    const svg = containerRef.current.querySelector('svg');
+    if (svg) {
+      svg.setAttribute('viewBox', `0 0 ${size} ${size}`);
+      svg.setAttribute('width', '100%');
+      svg.setAttribute('height', '100%');
+      svg.style.width = '100%';
+      svg.style.height = '100%';
+      svg.style.display = 'block';
+    }
   }, [
     data,
     size,
@@ -119,7 +132,7 @@ export function ModernStyledQRCode({
       ref={containerRef}
       className={cn(
         'w-full aspect-square flex items-center justify-center overflow-hidden select-none',
-        '[&>svg]:w-full [&>svg]:h-full [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:aspect-square',
+        '[&>svg]:w-full [&>svg]:h-full [&>svg]:max-w-full [&>svg]:max-h-full [&>svg]:aspect-square [&>svg]:block',
         '[&>canvas]:w-full [&>canvas]:h-full [&>canvas]:max-w-full [&>canvas]:max-h-full [&>canvas]:aspect-square',
         className
       )}
