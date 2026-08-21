@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import gsap from 'gsap';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
+import { GeminiSparkle3DIcon } from './gemini-sparkle-3d-icon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -308,14 +309,12 @@ export function ChatwootWidget() {
           {/* Subtle Dynamic Gradient Mesh on Hover */}
           <div className='absolute inset-0 rounded-2xl bg-gradient-to-tr from-primary/10 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
 
-          {/* Left Spark / Close Icon Morph */}
-          <div className='relative size-6 flex items-center justify-center shrink-0'>
+          {/* Left Spark / Close Icon Morph with 3D Gemini Gradient */}
+          <div className='relative size-8 flex items-center justify-center shrink-0'>
             {isOpen ? (
               <Icons.close className='size-5 text-background transition-transform duration-200 rotate-0' />
             ) : (
-              <span className='text-lg font-black text-primary transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110'>
-                ✦
-              </span>
+              <GeminiSparkle3DIcon size={32} isHovered={isHovered} interactive={false} />
             )}
           </div>
 
@@ -361,8 +360,8 @@ export function ChatwootWidget() {
         >
           {/* Identity & Status */}
           <div className='flex items-center gap-3 min-w-0'>
-            <div className='size-9 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold text-base shadow-2xs shrink-0'>
-              ✦
+            <div className='size-9 rounded-xl bg-card border border-border/60 flex items-center justify-center shadow-2xs shrink-0 overflow-hidden'>
+              <GeminiSparkle3DIcon size={22} interactive={true} />
             </div>
             <div className='min-w-0'>
               <div className='flex items-center gap-2'>
@@ -438,8 +437,8 @@ export function ChatwootWidget() {
           {/* Empty State with Staggered Prompt Cards */}
           {messages.length === 0 && !isStreaming && (
             <div className='h-full flex flex-col items-center justify-center text-center max-w-xl mx-auto py-8 space-y-6 select-none'>
-              <div className='size-14 rounded-2xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center text-2xl font-black shadow-sm'>
-                ✦
+              <div className='size-18 rounded-3xl bg-card border border-border/60 flex items-center justify-center shadow-md'>
+                <GeminiSparkle3DIcon size={56} interactive={true} />
               </div>
 
               <div className='space-y-1.5'>
@@ -488,7 +487,12 @@ export function ChatwootWidget() {
                 className={cn('flex flex-col space-y-1.5', isUser ? 'items-end' : 'items-start')}
               >
                 <div className='flex items-center gap-2 px-1 text-[11px] text-muted-foreground font-medium'>
-                  {!isUser && <span className='text-primary font-bold'>✦ AI Assistant</span>}
+                  {!isUser && (
+                    <span className='inline-flex items-center gap-1.5 font-bold text-foreground'>
+                      <GeminiSparkle3DIcon size={15} interactive={false} />
+                      <span>AI Assistant</span>
+                    </span>
+                  )}
                   {isUser && <span>Anda</span>}
                   <span>•</span>
                   <span>{msg.timestamp}</span>
@@ -550,8 +554,9 @@ export function ChatwootWidget() {
           {/* Live Streaming Response Indicator */}
           {isStreaming && (
             <div className='flex flex-col items-start space-y-1.5'>
-              <div className='flex items-center gap-2 px-1 text-[11px] text-primary font-bold'>
-                <span>✦ AI sedang berpikir & merespons...</span>
+              <div className='flex items-center gap-1.5 px-1 text-[11px] text-foreground font-bold'>
+                <GeminiSparkle3DIcon size={15} interactive={false} />
+                <span>AI sedang menganalisis & merespons...</span>
               </div>
 
               <div className='p-4 rounded-2xl bg-muted/40 text-foreground border border-border/60 rounded-tl-xs text-xs sm:text-sm leading-relaxed max-w-[88%] shadow-2xs whitespace-pre-wrap'>
