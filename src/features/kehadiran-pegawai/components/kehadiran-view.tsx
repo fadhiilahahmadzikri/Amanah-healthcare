@@ -120,18 +120,13 @@ export default function KehadiranPegawaiView() {
     <PageContainer scrollable={true}>
       <div className='space-y-3 font-sans pb-8 select-none'>
         <Tabs value={activeTab} onValueChange={setActiveTab} className='flex flex-col gap-0'>
-          {/* 1. Dynamic Collapsible Header & Accordion Banner */}
+          {/* 1. Dynamic Collapsible Header & Accordion Banner (Lapang & Tanpa Wrapper Border/Radius/Card) */}
           <motion.div
             layout
             transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
             onMouseEnter={handleHeaderMouseEnter}
             onMouseLeave={handleHeaderMouseLeave}
-            className={cn(
-              'transition-all duration-200 select-none',
-              isQRVisible
-                ? 'p-2.5 sm:p-3 rounded-2xl bg-card border border-border/70 shadow-xs mb-3'
-                : 'mb-4 pt-1'
-            )}
+            className='transition-all duration-200 select-none mb-3 pt-1'
           >
             <AnimatePresence mode='wait' initial={false}>
               {isHeaderCollapsed ? (
@@ -142,7 +137,7 @@ export default function KehadiranPegawaiView() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
                   transition={{ duration: 0.18, ease: 'easeOut' }}
-                  className='flex items-center justify-between gap-3 py-1 px-1.5'
+                  className='flex items-center justify-between gap-3 py-1'
                 >
                   {/* Left: Compact Title & Live State Badges */}
                   <div className='flex items-center gap-2.5 flex-wrap min-w-0'>
