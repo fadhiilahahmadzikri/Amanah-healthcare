@@ -93,6 +93,7 @@ import {
   IconUnderline,
   IconUpload,
   IconUser,
+  IconUserCheck,
   IconUserCircle,
   IconUserEdit,
   IconUserX,
@@ -195,6 +196,7 @@ export const Icons = {
   panelLeft: IconLayoutSidebar,
 
   user: IconUser,
+  userCheck: IconUserCheck,
   user2: IconUserCircle,
   account: IconUserCircle,
   profile: IconUser,

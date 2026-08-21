@@ -34,6 +34,7 @@ interface AttendanceTableCardProps {
   params: AttendanceFilterParams;
   onFilterChange: (newParams: Partial<AttendanceFilterParams>) => void;
   onResetFilter: () => void;
+  headerExtra?: React.ReactNode;
   className?: string;
 }
 
@@ -46,6 +47,7 @@ export function AttendanceTableCard({
   params,
   onFilterChange,
   onResetFilter,
+  headerExtra,
   className
 }: AttendanceTableCardProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -182,6 +184,9 @@ export function AttendanceTableCard({
               </Button>
             )}
           </div>
+
+          {/* Right Toolbar Extra Actions (e.g., Live Clock, Sync, Fullscreen) */}
+          {headerExtra && <div className='flex items-center gap-1.5 shrink-0'>{headerExtra}</div>}
         </div>
 
         {/* 2. Harmonized Data Table (Gaya Halaman Data Pasien) */}
