@@ -1,397 +1,562 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import gsap from 'gsap';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
-export interface ChatwootMessage {
+export interface AIMessage {
   id: string;
-  sender: 'user' | 'agent' | 'bot';
-  senderName: string;
-  avatar?: string;
-  text: string;
-  time: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: string;
+  status?: 'streaming' | 'complete' | 'error';
 }
 
-const INITIAL_MESSAGES: ChatwootMessage[] = [
+const INITIAL_SUGGESTIONS = [
   {
-    id: 'msg-1',
-    sender: 'agent',
-    senderName: 'Siti (Customer Care)',
-    avatar:
-      'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&q=80',
-    text: 'Halo! Selamat datang di Klinik Amanah 👋 Ada yang bisa kami bantu seputar reservasi dokter atau informasi layanan hari ini?',
-    time: 'Baru saja'
+    icon: 'calendar',
+    title: 'Jadwal Dokter Spesialis',
+    desc: 'Cek jadwal praktek dokter & kuota poli hari ini',
+    prompt: 'Tampilkan jadwal dokter spesialis yang berpraktek hari ini di Klinik Amanah.'
+  },
+  {
+    icon: 'users',
+    title: 'Estimasi Antrean Poli',
+    desc: 'Pantau kepadatan & rata-rata waktu tunggu',
+    prompt: 'Bagaimana status antrean poli umum dan poli gigi saat ini?'
+  },
+  {
+    icon: 'package',
+    title: 'Ketersediaan Stok Farmasi',
+    desc: 'Cek stok obat generik & resep darurat',
+    prompt: 'Apakah stok antibiotik Amoxicillin dan Paracetamol sirup mencukupi?'
+  },
+  {
+    icon: 'shield',
+    title: 'Panduan Rujukan BPJS',
+    desc: 'Alur administrasi SEP & validasi rujukan faskes',
+    prompt: 'Bagaimana alur penerbitan SEP BPJS untuk pasien rujukan baru?'
   }
 ];
 
-const QUICK_PROMPTS = [
-  'Jadwal Dokter Hari Ini',
-  'Cek Hasil Tes Lab',
-  'Pendaftaran Pasien BPJS',
-  'Konsultasi Telemedisin'
-];
-
-/**
- * 3D Gradient Crisp-Style Chat Bubble Icon
- * Fully Tokenized & Synchronized with Active Theme CSS Variables
- */
-function Crisp3DThemeChatIcon({ className = 'size-8' }: { className?: string }) {
-  return (
-    <svg
-      viewBox='0 0 48 48'
-      fill='none'
-      xmlns='http://www.w3.org/2000/svg'
-      className={cn(
-        'transition-transform duration-300 drop-shadow-[0_4px_10px_rgba(0,0,0,0.25)]',
-        className
-      )}
-    >
-      <defs>
-        {/* Theme-Adaptive 3D Multi-Stop Gradient using CSS Variables */}
-        <linearGradient id='crispThemeGrad' x1='0%' y1='0%' x2='100%' y2='100%'>
-          <stop offset='0%' stopColor='var(--primary-foreground)' stopOpacity='0.96' />
-          <stop
-            offset='50%'
-            stopColor='color-mix(in oklch, var(--primary-foreground) 85%, var(--accent) 15%)'
-            stopOpacity='0.9'
-          />
-          <stop
-            offset='100%'
-            stopColor='color-mix(in oklch, var(--primary-foreground) 75%, var(--primary) 25%)'
-            stopOpacity='0.85'
-          />
-        </linearGradient>
-
-        {/* 3D Top Specular Light Highlight */}
-        <linearGradient id='crispThemeTopLight' x1='50%' y1='0%' x2='50%' y2='100%'>
-          <stop offset='0%' stopColor='#ffffff' stopOpacity='0.85' />
-          <stop offset='70%' stopColor='#ffffff' stopOpacity='0' />
-        </linearGradient>
-
-        {/* 3D Depth Shadow Overlay */}
-        <radialGradient id='crispThemeDepth' cx='35%' cy='30%' r='75%'>
-          <stop offset='0%' stopColor='#ffffff' stopOpacity='0.45' />
-          <stop offset='55%' stopColor='transparent' />
-          <stop offset='100%' stopColor='rgba(0,0,0,0.28)' />
-        </radialGradient>
-      </defs>
-
-      {/* Main 3D Bubble Shell with Tail */}
-      <path
-        d='M24 6C13.506 6 5 13.611 5 23c0 4.148 1.66 7.94 4.453 10.887L7.22 40.58a1.2 1.2 0 0 0 1.6 1.48l7.65-3.35C18.73 39.52 21.3 40 24 40c10.494 0 19-7.611 19-17S34.494 6 24 6Z'
-        fill='url(#crispThemeGrad)'
-      />
-
-      {/* 3D Depth Layer */}
-      <path
-        d='M24 6C13.506 6 5 13.611 5 23c0 4.148 1.66 7.94 4.453 10.887L7.22 40.58a1.2 1.2 0 0 0 1.6 1.48l7.65-3.35C18.73 39.52 21.3 40 24 40c10.494 0 19-7.611 19-17S34.494 6 24 6Z'
-        fill='url(#crispThemeDepth)'
-      />
-
-      {/* Top Gloss Glare */}
-      <ellipse cx='24' cy='13' rx='13' ry='4.5' fill='url(#crispThemeTopLight)' />
-
-      {/* Crisp-Style Friendly Face Features using Theme Primary Token */}
-      <g>
-        {/* Left Eye */}
-        <circle cx='17.5' cy='21' r='2.5' fill='var(--primary)' />
-        <circle cx='18.2' cy='20.4' r='0.8' fill='var(--primary-foreground)' />
-
-        {/* Right Eye */}
-        <circle cx='30.5' cy='21' r='2.5' fill='var(--primary)' />
-        <circle cx='31.2' cy='20.4' r='0.8' fill='var(--primary-foreground)' />
-
-        {/* Smile Arc */}
-        <path
-          d='M18.5 26C20.2 29.5 27.8 29.5 29.5 26'
-          stroke='var(--primary)'
-          strokeWidth='2.8'
-          strokeLinecap='round'
-        />
-      </g>
-    </svg>
-  );
-}
+const MOCK_AI_RESPONSES: Record<string, string> = {
+  jadwal:
+    'Berdasarkan data SIMRS Klinik Amanah hari ini, terdapat **6 dokter spesialis** aktif berpraktek:\n\n1. **dr. Sarah Sp.A (Anak)** — Poli Anak (08:00 - 12:00 WIB)\n2. **dr. Budi Sp.PD (Penyakit Dalam)** — Poli Penyakit Dalam (09:00 - 14:00 WIB)\n3. **dr. Hendra Sp.OG (Kebidanan)** — Poli Kebidanan (13:00 - 17:00 WIB)\n4. **dr. Maya Sp.JP (Jantung)** — Poli Jantung (10:00 - 15:00 WIB)\n\nSemua kuota pendaftaran poli spesialis masih terbuka untuk pendaftaran online maupun walk-in kiosk.',
+  antrean:
+    'Status antrean real-time per saat ini:\n\n- **Poli Umum**: 14 pasien menunggu (Estimasi waktu tunggu: ~18 menit).\n- **Poli Gigi**: 6 pasien menunggu (Estimasi waktu tunggu: ~25 menit).\n- **Poli Anak**: 8 pasien menunggu (Estimasi waktu tunggu: ~15 menit).\n\nLayanan farmasi saat ini memiliki kecepatan peracikan rata-rata 7.2 menit per lembar resep.',
+  farmasi:
+    'Status inventori farmasi utama:\n\n- **Amoxicillin 500mg**: Tersedia (Stok: 480 tablet — Aman).\n- **Paracetamol 120mg/5ml Sirup**: Tersedia (Stok: 65 botol — Aman).\n- **Cefixime 100mg**: Tersedia (Stok: 210 kapsul — Aman).\n\nTidak ada obat kategori darurat (emergency stock) yang berada di bawah batas minimum threshold.',
+  bpjs: 'Alur penerbitan Surat Eligibilitas Peserta (SEP) BPJS Kesehatan di Klinik Amanah:\n\n1. **Verifikasi Rujukan Faskes 1**: Pastikan surat rujukan FKTP masih aktif (maksimal 90 hari).\n2. **Perekaman Biometrik/KTP**: Pasien melakukan scan sidik jari atau input NIK pada kiosk admisi.\n3. **Penerbitan SEP**: Sistem otomatis memvalidasi eligibilitas kepesertaan aktif.\n4. **Menuju Poli Tujuan**: Pasien langsung diarahkan ke ruang tunggu poli dokter spesialis.'
+};
 
 export function ChatwootWidget() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatwootMessage[]>(INITIAL_MESSAGES);
-  const [inputText, setInputText] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const [hasUnread, setHasUnread] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+  const [messages, setMessages] = useState<AIMessage[]>([]);
+  const [inputPrompt, setInputPrompt] = useState('');
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingText, setStreamingText] = useState('');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const windowRef = useRef<HTMLDivElement>(null);
-  const fabRef = useRef<HTMLButtonElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const launcherRef = useRef<HTMLButtonElement | null>(null);
+  const workspaceRef = useRef<HTMLDivElement | null>(null);
+  const headerRef = useRef<HTMLDivElement | null>(null);
+  const conversationAreaRef = useRef<HTMLDivElement | null>(null);
+  const composerRef = useRef<HTMLDivElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const streamIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isExpandingRef = useRef(false);
 
-  // Optional: Check if real Chatwoot SDK token is provided in env
+  // Auto-scroll on new messages or streaming tokens
   useEffect(() => {
-    const websiteToken = process.env.NEXT_PUBLIC_CHATWOOT_WEBSITE_TOKEN;
-    const baseUrl = process.env.NEXT_PUBLIC_CHATWOOT_BASE_URL;
-
-    if (websiteToken && baseUrl && typeof window !== 'undefined') {
-      const script = document.createElement('script');
-      script.src = `${baseUrl}/packs/js/sdk.js`;
-      script.async = true;
-      script.onload = () => {
-        // @ts-expect-error - Chatwoot SDK attaches to window
-        if (window.chatwootSDK) {
-          // @ts-expect-error - Run Chatwoot SDK init
-          window.chatwootSDK.run({
-            websiteToken,
-            baseUrl
-          });
-        }
-      };
-      document.body.appendChild(script);
+    if (isOpen && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, []);
+  }, [messages, streamingText, isOpen]);
 
-  // GSAP Entrance & Exit Animations for the chat window
+  // Focus textarea when workspace opens
   useEffect(() => {
-    if (!windowRef.current) return;
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
+
+  // Global Keyboard Shortcuts (Cmd/Ctrl + K or Escape)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsOpen((prev) => !prev);
+      } else if (e.key === 'Escape' && isOpen) {
+        e.preventDefault();
+        handleCloseWorkspace();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
+
+  // GSAP Spatial Corner-to-Canvas Expansion
+  useEffect(() => {
+    if (!workspaceRef.current || !launcherRef.current) return;
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     if (isOpen) {
-      setHasUnread(false);
-      gsap.fromTo(
-        windowRef.current,
-        { opacity: 0, y: 30, scale: 0.94, display: 'none' },
+      isExpandingRef.current = true;
+      workspaceRef.current.style.display = 'flex';
+
+      if (prefersReducedMotion) {
+        gsap.to(workspaceRef.current, { opacity: 1, duration: 0.2 });
+        return;
+      }
+
+      const tl = gsap.timeline({
+        onComplete: () => {
+          isExpandingRef.current = false;
+        }
+      });
+
+      // Spatial Morph from Bottom-Right Corner
+      tl.fromTo(
+        workspaceRef.current,
+        {
+          opacity: 0,
+          scale: 0.15,
+          transformOrigin: 'bottom right',
+          borderRadius: '32px',
+          y: 20,
+          x: 20
+        },
         {
           opacity: 1,
-          y: 0,
           scale: 1,
-          duration: 0.32,
-          ease: 'power3.out',
-          display: 'flex'
+          borderRadius: '24px',
+          y: 0,
+          x: 0,
+          duration: 0.45,
+          ease: 'power3.out'
         }
       );
+
+      // Staggered internal content entrance
+      if (headerRef.current && conversationAreaRef.current && composerRef.current) {
+        tl.fromTo(
+          [headerRef.current, conversationAreaRef.current, composerRef.current],
+          { opacity: 0, y: 14 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.35,
+            stagger: 0.08,
+            ease: 'power2.out'
+          },
+          '-=0.25'
+        );
+      }
     } else {
-      gsap.to(windowRef.current, {
+      if (prefersReducedMotion) {
+        workspaceRef.current.style.display = 'none';
+        return;
+      }
+
+      // Smooth spatial collapse back to bottom-right corner
+      gsap.to(workspaceRef.current, {
         opacity: 0,
+        scale: 0.2,
+        transformOrigin: 'bottom right',
         y: 24,
-        scale: 0.95,
-        duration: 0.22,
+        x: 24,
+        duration: 0.3,
         ease: 'power2.in',
         onComplete: () => {
-          if (windowRef.current) {
-            windowRef.current.style.display = 'none';
+          if (workspaceRef.current) {
+            workspaceRef.current.style.display = 'none';
           }
         }
       });
     }
   }, [isOpen]);
 
-  // Auto scroll to latest message
-  useEffect(() => {
-    if (isOpen && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+  const handleCloseWorkspace = () => {
+    if (streamIntervalRef.current) {
+      clearInterval(streamIntervalRef.current);
     }
-  }, [messages, isOpen, isTyping]);
+    setIsStreaming(false);
+    setIsOpen(false);
+  };
 
-  const handleSendMessage = (textToSend?: string) => {
-    const text = textToSend || inputText;
-    if (!text.trim()) return;
+  // Streaming response simulation
+  const handleSend = (textToSend?: string) => {
+    const text = (textToSend || inputPrompt).trim();
+    if (!text || isStreaming) return;
 
-    const userMsg: ChatwootMessage = {
+    const userMessage: AIMessage = {
       id: `usr-${Date.now()}`,
-      sender: 'user',
-      senderName: 'Anda',
-      text: text.trim(),
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      role: 'user',
+      content: text,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    setMessages((prev) => [...prev, userMsg]);
-    setInputText('');
-    setIsTyping(true);
+    setMessages((prev) => [...prev, userMessage]);
+    setInputPrompt('');
+    setIsStreaming(true);
+    setStreamingText('');
 
-    // Simulated Agent Reply
-    setTimeout(() => {
-      setIsTyping(false);
-      const agentReply: ChatwootMessage = {
-        id: `agt-${Date.now()}`,
-        sender: 'agent',
-        senderName: 'Siti (Customer Care)',
-        avatar:
-          'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&q=80',
-        text: `Terima kasih atas pertanyaannya mengenai "${text.trim()}". Tim customer care Klinik Amanah sedang menyiapkan informasi lengkap untuk Anda. Mohon tunggu sebentar ya! 🙏`,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setMessages((prev) => [...prev, agentReply]);
-    }, 1200);
+    // Determine mock reply
+    const lower = text.toLowerCase();
+    let replyTemplate =
+      'Terima kasih atas pertanyaannya. Sebagai Asisten AI Cerdas Klinik Amanah, saya siap membantu memvalidasi data klinis, jadwal dokter, atau status rekam medis Anda. Apakah ada informasi spesifik lain yang ingin Anda ketahui?';
+
+    if (lower.includes('jadwal') || lower.includes('dokter')) {
+      replyTemplate = MOCK_AI_RESPONSES.jadwal;
+    } else if (lower.includes('antre') || lower.includes('tunggu')) {
+      replyTemplate = MOCK_AI_RESPONSES.antrean;
+    } else if (lower.includes('obat') || lower.includes('stok') || lower.includes('farmasi')) {
+      replyTemplate = MOCK_AI_RESPONSES.farmasi;
+    } else if (lower.includes('bpjs') || lower.includes('sep') || lower.includes('rujukan')) {
+      replyTemplate = MOCK_AI_RESPONSES.bpjs;
+    }
+
+    let currentIndex = 0;
+    const words = replyTemplate.split(' ');
+
+    streamIntervalRef.current = setInterval(() => {
+      if (currentIndex < words.length) {
+        setStreamingText((prev) => (prev ? `${prev} ${words[currentIndex]}` : words[currentIndex]));
+        currentIndex++;
+      } else {
+        if (streamIntervalRef.current) clearInterval(streamIntervalRef.current);
+        setIsStreaming(false);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `ai-${Date.now()}`,
+            role: 'assistant',
+            content: replyTemplate,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            status: 'complete'
+          }
+        ]);
+        setStreamingText('');
+      }
+    }, 45);
+  };
+
+  const handleStopStreaming = () => {
+    if (streamIntervalRef.current) {
+      clearInterval(streamIntervalRef.current);
+    }
+    if (streamingText) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `ai-${Date.now()}`,
+          role: 'assistant',
+          content: streamingText,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          status: 'complete'
+        }
+      ]);
+    }
+    setIsStreaming(false);
+    setStreamingText('');
+  };
+
+  const handleCopy = (id: string, text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    toast.success('Jawaban AI disalin ke clipboard.');
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleRegenerate = (lastUserMsg: string) => {
+    handleSend(lastUserMsg);
   };
 
   return (
     <>
-      {/* 1. Theme-Synchronized 3D Gradient Crisp-Style Floating Action Button (FAB) */}
-      <div className='fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 flex items-center justify-end select-none font-sans'>
+      {/* 1. Motion-First Corner AI Launcher (Spatial & Tactile) */}
+      <div className='fixed bottom-6 right-6 z-50 flex items-center justify-end select-none font-sans pointer-events-none'>
         <button
-          ref={fabRef}
+          ref={launcherRef}
           type='button'
-          onClick={() => setIsOpen(!isOpen)}
-          aria-label={isOpen ? 'Tutup bantuan live chat' : 'Buka bantuan live chat Chatwoot'}
+          onClick={() => setIsOpen((prev) => !prev)}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          aria-expanded={isOpen}
+          aria-label='Buka Asisten AI Amanah Healthcare'
           className={cn(
-            'group relative size-14 sm:size-15 rounded-full p-2.5 flex items-center justify-center transition-all duration-300 hover:scale-108 active:scale-95 cursor-pointer shadow-2xl ring-4 ring-primary/25',
-            'bg-gradient-to-tr from-primary via-[color-mix(in_oklch,var(--primary)_85%,var(--accent))] to-[color-mix(in_oklch,var(--primary)_70%,var(--primary-foreground))]',
-            isOpen &&
-              'bg-gradient-to-tr from-foreground via-foreground/90 to-foreground/80 ring-foreground/20'
+            'pointer-events-auto group relative flex items-center justify-center cursor-pointer transition-all duration-300 shadow-xl border border-primary/20 backdrop-blur-md',
+            'bg-card/95 hover:bg-card text-card-foreground',
+            isOpen
+              ? 'size-14 rounded-2xl bg-foreground text-background shadow-2xl ring-2 ring-primary/20'
+              : isHovered
+                ? 'h-14 px-4.5 rounded-2xl ring-4 ring-primary/15 shadow-2xl scale-[1.03] -translate-y-1 gap-2.5'
+                : 'size-14 rounded-2xl ring-2 ring-primary/10'
           )}
         >
-          {/* Animated Toggle Icon: 3D Crisp Icon when closed, Close Icon when open */}
-          <div className='relative size-8 flex items-center justify-center'>
-            <Icons.close
-              className={cn(
-                'size-6 text-primary-foreground absolute transition-all duration-200',
-                isOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-90 scale-50'
-              )}
-            />
-            <div
-              className={cn(
-                'absolute inset-0 flex items-center justify-center transition-all duration-200',
-                !isOpen ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 rotate-90 scale-50'
-              )}
-            >
-              <Crisp3DThemeChatIcon className='size-8' />
-            </div>
+          {/* Subtle Dynamic Gradient Mesh on Hover */}
+          <div className='absolute inset-0 rounded-2xl bg-gradient-to-tr from-primary/10 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300' />
+
+          {/* Left Spark / Close Icon Morph */}
+          <div className='relative size-6 flex items-center justify-center shrink-0'>
+            {isOpen ? (
+              <Icons.close className='size-5 text-background transition-transform duration-200 rotate-0' />
+            ) : (
+              <span className='text-lg font-black text-primary transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110'>
+                ✦
+              </span>
+            )}
           </div>
 
-          {/* Pulsing Live Online Indicator */}
+          {/* Expressive Hover Label Reveal */}
           {!isOpen && (
-            <span className='absolute top-0 right-0 flex size-3.5'>
-              <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75' />
-              <span className='relative inline-flex rounded-full size-3.5 bg-emerald-500 ring-2 ring-card' />
-            </span>
+            <div
+              className={cn(
+                'overflow-hidden whitespace-nowrap transition-all duration-300 font-semibold text-xs tracking-tight flex items-center gap-1.5',
+                isHovered ? 'max-w-40 opacity-100' : 'max-w-0 opacity-0'
+              )}
+            >
+              <span className='text-foreground'>Tanya Amanah AI</span>
+              <kbd className='px-1.5 py-0.5 text-[9.5px] font-mono rounded bg-muted text-muted-foreground border border-border/60'>
+                ⌘K
+              </kbd>
+            </div>
           )}
 
-          {/* Unread Message Tooltip / Badge */}
-          {hasUnread && !isOpen && (
-            <span className='absolute -top-1.5 -left-1.5 px-2 py-0.5 bg-amber-500 text-amber-950 font-bold text-[10px] rounded-full shadow-md animate-bounce'>
-              1
+          {/* Calm Beacon Status Dot */}
+          {!isOpen && !isHovered && (
+            <span className='absolute -top-1 -right-1 flex size-3'>
+              <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60' />
+              <span className='relative inline-flex rounded-full size-3 bg-emerald-500 ring-2 ring-card' />
             </span>
           )}
         </button>
       </div>
 
-      {/* 2. Chatwoot Chat Window Popup */}
+      {/* 2. Motion-First AI Workspace (Corner-to-Canvas Spatial Interface) */}
       <div
-        ref={windowRef}
+        ref={workspaceRef}
         style={{ display: 'none' }}
-        className='fixed bottom-20 right-4 sm:bottom-24 sm:right-6 w-[calc(100vw-2rem)] sm:w-[390px] h-[520px] max-h-[calc(100vh-7rem)] bg-card border border-border/70 rounded-2xl shadow-2xl z-50 flex-col overflow-hidden font-sans backdrop-blur-md'
+        className={cn(
+          'fixed bottom-6 right-6 z-50 flex flex-col font-sans overflow-hidden border border-border/70 bg-card/98 text-card-foreground shadow-2xl backdrop-blur-2xl',
+          'w-[calc(100vw-2rem)] sm:w-[540px] md:w-[680px] lg:w-[820px] max-w-[calc(100vw-3rem)]',
+          'h-[640px] max-h-[calc(100vh-5rem)] rounded-3xl'
+        )}
       >
-        {/* Window Header */}
-        <div className='p-4 bg-primary text-primary-foreground flex items-center justify-between shrink-0 shadow-xs'>
+        {/* Workspace Header */}
+        <div
+          ref={headerRef}
+          className='px-5 py-3.5 border-b border-border/50 bg-muted/20 flex items-center justify-between shrink-0'
+        >
+          {/* Identity & Status */}
           <div className='flex items-center gap-3 min-w-0'>
-            <div className='relative size-10 rounded-full overflow-hidden shrink-0 ring-2 ring-primary-foreground/30 bg-primary-foreground/10'>
-              <Image
-                src='https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&q=80'
-                alt='Customer Service Avatar'
-                width={80}
-                height={80}
-                unoptimized
-                className='size-full object-cover'
-              />
-              <span className='absolute bottom-0 right-0 size-2.5 rounded-full bg-emerald-400 ring-2 ring-primary' />
+            <div className='size-9 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold text-base shadow-2xs shrink-0'>
+              ✦
             </div>
-
             <div className='min-w-0'>
-              <h4 className='text-sm font-bold text-primary-foreground truncate leading-tight flex items-center gap-1.5'>
-                <span>Klinik Amanah Support</span>
-              </h4>
-              <p className='text-[11px] text-primary-foreground/80 font-normal flex items-center gap-1 mt-0.5'>
-                <span className='size-1.5 rounded-full bg-emerald-400' />
-                <span>Online</span>
+              <div className='flex items-center gap-2'>
+                <h3 className='text-sm font-bold text-foreground tracking-tight'>
+                  Amanah AI Assistant
+                </h3>
+                <span className='px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'>
+                  Online
+                </span>
+              </div>
+              <p className='text-[11px] text-muted-foreground truncate mt-0.5'>
+                Spatial Intelligence • SIMRS & Rekam Medis Terintegrasi
               </p>
             </div>
           </div>
 
-          <div className='flex items-center gap-1'>
-            <button
-              type='button'
-              onClick={() => setIsOpen(false)}
-              aria-label='Tutup jendela chat'
-              className='p-1.5 rounded-lg text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10 transition cursor-pointer'
-            >
-              <Icons.close className='size-4' />
-            </button>
+          {/* Model Selector & Control Actions */}
+          <div className='flex items-center gap-1.5'>
+            <span className='hidden sm:inline-flex px-2.5 py-1 rounded-lg text-[11px] font-medium bg-background border border-border/60 text-muted-foreground shadow-2xs'>
+              Amanah-MedLLM v2
+            </span>
+
+            {/* Clear Conversation */}
+            {messages.length > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='icon'
+                    onClick={() => {
+                      setMessages([]);
+                      toast.info('Riwayat percakapan dibersihkan.');
+                    }}
+                    className='size-8 rounded-lg text-muted-foreground hover:text-foreground'
+                  >
+                    <Icons.trash className='size-3.5' />
+                    <span className='sr-only'>Bersihkan Chat</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side='bottom' className='text-xs'>
+                  Bersihkan Chat
+                </TooltipContent>
+              </Tooltip>
+            )}
+
+            {/* Minimize / Close */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='icon'
+                  onClick={handleCloseWorkspace}
+                  className='size-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80'
+                >
+                  <Icons.close className='size-4' />
+                  <span className='sr-only'>Tutup Workspace (Esc)</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side='bottom' className='text-xs'>
+                Tutup (Esc)
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
 
-        {/* Message Stream Area */}
-        <div className='flex-1 p-4 overflow-y-auto space-y-3.5 bg-muted/20 text-xs'>
-          {/* Welcome Info Box */}
-          <div className='p-3 rounded-xl bg-card border border-border/60 text-center space-y-1 shadow-2xs'>
-            <p className='font-bold text-foreground text-xs'>Layanan Live Chat Pasien</p>
-            <p className='text-[11px] text-muted-foreground leading-relaxed'>
-              Konsultasikan kendala reservasi, informasi dokter, atau rujukan poli secara langsung.
-            </p>
-          </div>
+        {/* Conversation Stream Area (Editorial Document Paradigm) */}
+        <div
+          ref={conversationAreaRef}
+          className='flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 bg-gradient-to-b from-transparent via-background/40 to-background text-sm'
+        >
+          {/* Empty State with Staggered Prompt Cards */}
+          {messages.length === 0 && !isStreaming && (
+            <div className='h-full flex flex-col items-center justify-center text-center max-w-xl mx-auto py-8 space-y-6 select-none'>
+              <div className='size-14 rounded-2xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center text-2xl font-black shadow-sm'>
+                ✦
+              </div>
 
-          {/* Messages */}
+              <div className='space-y-1.5'>
+                <h4 className='text-lg sm:text-xl font-bold text-foreground tracking-tight'>
+                  Bagaimana Amanah AI dapat membantu Anda?
+                </h4>
+                <p className='text-xs text-muted-foreground leading-relaxed max-w-md'>
+                  Eksplorasi data operasional klinik, jadwal dokter, estimasi antrean, atau
+                  konsultasi administrasi BPJS secara instan.
+                </p>
+              </div>
+
+              {/* Staggered Prompt Suggestion Cards */}
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 w-full text-left pt-2'>
+                {INITIAL_SUGGESTIONS.map((item) => (
+                  <button
+                    key={item.title}
+                    type='button'
+                    onClick={() => handleSend(item.prompt)}
+                    className={cn(
+                      'p-3.5 rounded-2xl border border-border/60 bg-card hover:bg-muted/40 hover:border-primary/40',
+                      'transition-all duration-200 cursor-pointer text-left shadow-2xs hover:shadow-xs group'
+                    )}
+                  >
+                    <div className='flex items-center justify-between'>
+                      <span className='text-xs font-bold text-foreground group-hover:text-primary transition-colors'>
+                        {item.title}
+                      </span>
+                      <Icons.chevronRight className='size-3.5 text-muted-foreground group-hover:translate-x-0.5 transition-transform' />
+                    </div>
+                    <p className='text-[11px] text-muted-foreground mt-1 leading-snug'>
+                      {item.desc}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Active Conversation Messages */}
           {messages.map((msg) => {
-            const isUser = msg.sender === 'user';
+            const isUser = msg.role === 'user';
             return (
               <div
                 key={msg.id}
-                className={cn('flex items-end gap-2', isUser ? 'justify-end' : 'justify-start')}
+                className={cn('flex flex-col space-y-1.5', isUser ? 'items-end' : 'items-start')}
               >
+                <div className='flex items-center gap-2 px-1 text-[11px] text-muted-foreground font-medium'>
+                  {!isUser && <span className='text-primary font-bold'>✦ AI Assistant</span>}
+                  {isUser && <span>Anda</span>}
+                  <span>•</span>
+                  <span>{msg.timestamp}</span>
+                </div>
+
+                <div
+                  className={cn(
+                    'p-4 rounded-2xl text-xs sm:text-sm leading-relaxed max-w-[88%] shadow-2xs break-words',
+                    isUser
+                      ? 'bg-primary text-primary-foreground rounded-tr-xs font-normal'
+                      : 'bg-muted/40 text-foreground border border-border/60 rounded-tl-xs whitespace-pre-wrap'
+                  )}
+                >
+                  {msg.content}
+                </div>
+
+                {/* AI Action Row */}
                 {!isUser && (
-                  <div className='size-7 rounded-full overflow-hidden shrink-0 ring-1 ring-border bg-muted'>
-                    <img
-                      src={
-                        msg.avatar ||
-                        'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&q=80'
-                      }
-                      alt={msg.senderName}
-                      className='size-full object-cover'
-                    />
+                  <div className='flex items-center gap-1 pt-1 px-1'>
+                    <Button
+                      type='button'
+                      variant='ghost'
+                      size='sm'
+                      onClick={() => handleCopy(msg.id, msg.content)}
+                      className='h-7 px-2 text-[11px] text-muted-foreground hover:text-foreground gap-1'
+                    >
+                      {copiedId === msg.id ? (
+                        <>
+                          <Icons.check className='size-3 text-emerald-500' />
+                          <span className='text-emerald-600 dark:text-emerald-400'>Tersalin</span>
+                        </>
+                      ) : (
+                        <>
+                          <Icons.copy className='size-3' />
+                          <span>Salin</span>
+                        </>
+                      )}
+                    </Button>
+
+                    <Button
+                      type='button'
+                      variant='ghost'
+                      size='sm'
+                      onClick={() => {
+                        const lastUser = [...messages].reverse().find((m) => m.role === 'user');
+                        if (lastUser) handleRegenerate(lastUser.content);
+                      }}
+                      className='h-7 px-2 text-[11px] text-muted-foreground hover:text-foreground gap-1'
+                    >
+                      <Icons.refresh className='size-3' />
+                      <span>Buat Ulang</span>
+                    </Button>
                   </div>
                 )}
-
-                <div className={cn('max-w-[78%] space-y-1', isUser ? 'items-end' : 'items-start')}>
-                  <div
-                    className={cn(
-                      'p-3 rounded-2xl text-xs leading-relaxed font-normal shadow-2xs break-words',
-                      isUser
-                        ? 'bg-primary text-primary-foreground rounded-br-xs'
-                        : 'bg-card text-foreground border border-border/60 rounded-bl-xs'
-                    )}
-                  >
-                    {msg.text}
-                  </div>
-                  <span
-                    className={cn(
-                      'text-[10px] text-muted-foreground block px-1',
-                      isUser ? 'text-right' : 'text-left'
-                    )}
-                  >
-                    {msg.time}
-                  </span>
-                </div>
               </div>
             );
           })}
 
-          {/* Typing Indicator */}
-          {isTyping && (
-            <div className='flex items-center gap-2'>
-              <div className='size-7 rounded-full bg-muted flex items-center justify-center ring-1 ring-border'>
-                <span className='size-1.5 rounded-full bg-muted-foreground animate-ping' />
+          {/* Live Streaming Response Indicator */}
+          {isStreaming && (
+            <div className='flex flex-col items-start space-y-1.5'>
+              <div className='flex items-center gap-2 px-1 text-[11px] text-primary font-bold'>
+                <span>✦ AI sedang berpikir & merespons...</span>
               </div>
-              <div className='px-3 py-2 rounded-2xl bg-card border border-border/60 text-muted-foreground text-[11px] flex items-center gap-1.5'>
-                <span className='size-1 rounded-full bg-muted-foreground/60 animate-bounce' />
-                <span
-                  className='size-1 rounded-full bg-muted-foreground/60 animate-bounce'
-                  style={{ animationDelay: '0.15s' }}
-                />
-                <span
-                  className='size-1 rounded-full bg-muted-foreground/60 animate-bounce'
-                  style={{ animationDelay: '0.3s' }}
-                />
-                <span className='ml-1 text-[10.5px]'>Customer care sedang mengetik...</span>
+
+              <div className='p-4 rounded-2xl bg-muted/40 text-foreground border border-border/60 rounded-tl-xs text-xs sm:text-sm leading-relaxed max-w-[88%] shadow-2xs whitespace-pre-wrap'>
+                {streamingText}
+                <span className='inline-block w-2 h-4 ml-1 bg-primary animate-pulse align-middle' />
               </div>
             </div>
           )}
@@ -399,51 +564,90 @@ export function ChatwootWidget() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Quick Prompts Bar */}
-        <div className='px-3 py-2 bg-card border-t border-border/50 overflow-x-auto flex items-center gap-1.5 shrink-0 no-scrollbar'>
-          {QUICK_PROMPTS.map((prompt) => (
-            <button
-              key={prompt}
-              type='button'
-              onClick={() => handleSendMessage(prompt)}
-              className='px-2.5 py-1 rounded-full border border-border/60 bg-muted/30 hover:bg-muted text-[10.5px] font-medium text-foreground whitespace-nowrap transition cursor-pointer'
-            >
-              {prompt}
-            </button>
-          ))}
-        </div>
+        {/* Workspace Dynamic Composer Footer */}
+        <div
+          ref={composerRef}
+          className='p-4 border-t border-border/60 bg-card/90 backdrop-blur-md shrink-0 space-y-2.5'
+        >
+          {/* Quick Action Pills when chatting */}
+          {messages.length > 0 && !isStreaming && (
+            <div className='flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 text-[11px]'>
+              {INITIAL_SUGGESTIONS.slice(0, 3).map((s) => (
+                <button
+                  key={s.title}
+                  type='button'
+                  onClick={() => handleSend(s.prompt)}
+                  className='px-2.5 py-1 rounded-full border border-border/60 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground whitespace-nowrap transition cursor-pointer'
+                >
+                  {s.title}
+                </button>
+              ))}
+            </div>
+          )}
 
-        {/* Input Composer Footer */}
-        <div className='p-3 bg-card border-t border-border/60 shrink-0 space-y-1.5'>
+          {/* Composer Textarea Box */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              handleSendMessage();
+              handleSend();
             }}
-            className='flex items-center gap-2'
+            className='relative flex items-end gap-2 p-2 rounded-2xl border border-border/70 bg-background shadow-xs focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all'
           >
-            <Input
-              type='text'
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder='Tulis pesan kamu di sini...'
-              className='h-9 text-xs rounded-xl bg-muted/20 border-border/60 flex-1'
+            <textarea
+              ref={textareaRef}
+              rows={1}
+              value={inputPrompt}
+              onChange={(e) => setInputPrompt(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              placeholder='Tanyakan apa saja seputar operasional & layanan klinik... (Enter untuk kirim)'
+              className='w-full resize-none bg-transparent px-2.5 py-1.5 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none max-h-32 min-h-[38px] leading-relaxed'
             />
 
-            <Button
-              type='submit'
-              size='sm'
-              disabled={!inputText.trim()}
-              className='h-9 px-3.5 rounded-xl text-xs font-semibold shadow-xs shrink-0'
-            >
-              <Icons.send className='size-3.5' />
-            </Button>
+            {/* Send / Stop Streaming Button */}
+            {isStreaming ? (
+              <Button
+                type='button'
+                variant='destructive'
+                size='sm'
+                onClick={handleStopStreaming}
+                className='h-8 px-3 rounded-xl text-xs font-semibold shrink-0 gap-1'
+              >
+                <Icons.close className='size-3.5' />
+                <span>Hentikan</span>
+              </Button>
+            ) : (
+              <Button
+                type='submit'
+                size='sm'
+                disabled={!inputPrompt.trim()}
+                className='h-8 w-8 p-0 rounded-xl text-xs font-semibold shrink-0 shadow-2xs disabled:opacity-40'
+              >
+                <Icons.send className='size-3.5' />
+                <span className='sr-only'>Kirim Pertanyaan</span>
+              </Button>
+            )}
           </form>
 
-          {/* Powered by Chatwoot Tag */}
-          <div className='flex items-center justify-center gap-1 text-[10px] text-muted-foreground/70'>
-            <span>Ditenagai oleh</span>
-            <span className='font-bold text-foreground/80 tracking-tight'>Chatwoot</span>
+          {/* Footer Metadata & Shortcuts */}
+          <div className='flex items-center justify-between text-[10.5px] text-muted-foreground px-1'>
+            <div className='flex items-center gap-1.5'>
+              <span className='size-1.5 rounded-full bg-emerald-500' />
+              <span>Amanah Spatial LLM Workspace</span>
+            </div>
+            <div className='hidden sm:flex items-center gap-2'>
+              <span>
+                Kirim: <kbd className='font-mono'>Enter</kbd>
+              </span>
+              <span>•</span>
+              <span>
+                Baris baru: <kbd className='font-mono'>Shift+Enter</kbd>
+              </span>
+            </div>
           </div>
         </div>
       </div>
