@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { GeminiSparkle3DIcon } from './gemini-sparkle-3d-icon';
+import { Plasma3DLogo } from './plasma-3d-logo';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -341,54 +341,65 @@ export function ChatwootWidget() {
         onMouseEnter={() => !isOpen && setIsHovered(true)}
         onMouseLeave={() => !isOpen && setIsHovered(false)}
         onClick={() => !isOpen && handleOpenWorkspace()}
+        style={
+          !isOpen
+            ? {
+                background: 'var(--pill-3d-gradient)',
+                borderColor: 'var(--pill-3d-border)',
+                boxShadow: isHovered
+                  ? 'inset 0 1.5px 1.5px 0 rgba(255,255,255,0.8), 0 12px 28px -4px var(--pill-3d-shadow), 0 3px 6px 0 rgba(0,0,0,0.15)'
+                  : 'inset 0 1.5px 1.5px 0 rgba(255,255,255,0.7), 0 8px 24px -4px var(--pill-3d-shadow), 0 2px 4px 0 rgba(0,0,0,0.1)'
+              }
+            : undefined
+        }
         className={cn(
-          'fixed bottom-6 right-6 z-50 flex flex-col font-sans overflow-hidden border border-border/70 bg-card/98 text-card-foreground shadow-2xl backdrop-blur-2xl transition-[width,height,max-width,max-height,border-radius,padding,transform,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] select-none',
+          'fixed bottom-6 right-6 z-50 flex flex-col font-sans overflow-hidden border transition-[width,height,max-width,max-height,border-radius,padding,transform,box-shadow,background-color] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] select-none',
           !isOpen
             ? isHovered
-              ? 'w-[216px] h-14 rounded-2xl px-3 py-2 cursor-pointer shadow-2xl scale-[1.02] -translate-y-0.5 ring-4 ring-primary/15 bg-card/95'
-              : 'w-14 h-14 rounded-2xl p-2 cursor-pointer shadow-xl ring-2 ring-primary/10 bg-card/95'
+              ? 'w-[246px] h-14 rounded-2xl px-3 py-1.5 cursor-pointer scale-[1.02] -translate-y-0.5 ring-4 ring-sky-400/25 text-white'
+              : 'w-14 h-14 rounded-2xl p-0 cursor-pointer ring-2 ring-sky-400/20 text-white'
             : isExpanded
-              ? 'w-[calc(100vw-2rem)] sm:w-[min(1080px,calc(100vw-3rem))] h-[min(820px,calc(100vh-4rem))] rounded-[28px] p-0'
-              : 'w-[calc(100vw-2rem)] sm:w-[500px] md:w-[580px] h-[640px] max-h-[calc(100vh-5rem)] rounded-3xl p-0'
+              ? 'w-[calc(100vw-2rem)] sm:w-[min(1080px,calc(100vw-3rem))] h-[min(820px,calc(100vh-4rem))] rounded-[28px] p-0 border-border/70 bg-card/98 text-card-foreground shadow-2xl backdrop-blur-2xl'
+              : 'w-[calc(100vw-2rem)] sm:w-[500px] md:w-[580px] h-[640px] max-h-[calc(100vh-5rem)] rounded-3xl p-0 border-border/70 bg-card/98 text-card-foreground shadow-2xl backdrop-blur-2xl'
         )}
       >
         {/* State A: 3-Phase Launcher (Fase 1: Icon Base <-> Fase 2: Hovered Pill Label) */}
         {!isOpen && (
           <div
             ref={launcherContentRef}
-            className='size-full flex items-center justify-between overflow-hidden relative'
+            className='size-full flex items-center justify-between relative overflow-visible'
           >
-            {/* Left: 3D Gemini Gradient Star */}
-            <div className='relative size-10 flex items-center justify-center shrink-0 mx-auto sm:mx-0'>
-              <GeminiSparkle3DIcon size={30} isHovered={isHovered} interactive={false} />
+            {/* Left: 3D Plasma Hologram Logo (Full-bleed, unboxed, fluid rotation) */}
+            <div className='relative size-14 flex items-center justify-center shrink-0 overflow-visible'>
+              <Plasma3DLogo size={isHovered ? 52 : 60} />
             </div>
 
             {/* Revealed on Hover (Fase 2): Text + Kbd + Active Indicator */}
             <div
               className={cn(
-                'flex items-center justify-between flex-1 min-w-0 pl-1.5 pr-1 gap-2 transition-all duration-300',
+                'flex items-center justify-between flex-1 min-w-0 pl-1 pr-1.5 gap-2 transition-all duration-300',
                 isHovered
-                  ? 'opacity-100 translate-x-0 max-w-44'
+                  ? 'opacity-100 translate-x-0 max-w-52'
                   : 'opacity-0 translate-x-2 max-w-0 pointer-events-none'
               )}
             >
-              <span className='font-bold text-xs text-foreground tracking-tight truncate'>
+              <span className='font-bold text-xs text-white tracking-tight truncate drop-shadow-[0_1px_1.5px_rgba(0,0,0,0.3)]'>
                 Tanya Amanah AI
               </span>
 
               <div className='flex items-center gap-1.5 shrink-0'>
-                <kbd className='px-1.5 py-0.5 text-[9.5px] font-mono rounded bg-muted text-muted-foreground border border-border/60'>
+                <kbd className='px-1.5 py-0.5 text-[9.5px] font-mono rounded bg-white/20 text-white border border-white/35 backdrop-blur-xs'>
                   ⌘K
                 </kbd>
-                <span className='flex size-2 rounded-full bg-emerald-500 ring-2 ring-card shrink-0' />
+                <span className='flex size-2 rounded-full bg-emerald-400 ring-2 ring-white/70 shrink-0' />
               </div>
             </div>
 
             {/* Resting Beacon Dot when NOT hovered (Fase 1) */}
             {!isHovered && (
-              <span className='absolute -top-0.5 -right-0.5 flex size-2.5 pointer-events-none'>
-                <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60' />
-                <span className='relative inline-flex rounded-full size-2.5 bg-emerald-500 ring-2 ring-card' />
+              <span className='absolute top-1 right-1 flex size-2.5 pointer-events-none z-10'>
+                <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-80' />
+                <span className='relative inline-flex rounded-full size-2.5 bg-emerald-400 ring-2 ring-white/80' />
               </span>
             )}
           </div>
@@ -403,23 +414,18 @@ export function ChatwootWidget() {
             {/* Workspace Header */}
             <div className='px-5 py-3.5 border-b border-border/50 bg-muted/20 flex items-center justify-between shrink-0'>
               {/* Identity & Status */}
-              <div className='flex items-center gap-3 min-w-0'>
-                <div className='size-9 rounded-xl bg-card border border-border/60 flex items-center justify-center shadow-2xs shrink-0 overflow-hidden'>
-                  <GeminiSparkle3DIcon size={22} interactive={true} />
+              <div className='min-w-0'>
+                <div className='flex items-center gap-2'>
+                  <h3 className='text-sm font-bold text-foreground tracking-tight'>
+                    Amanah AI Assistant
+                  </h3>
+                  <span className='px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'>
+                    Online
+                  </span>
                 </div>
-                <div className='min-w-0'>
-                  <div className='flex items-center gap-2'>
-                    <h3 className='text-sm font-bold text-foreground tracking-tight'>
-                      Amanah AI Assistant
-                    </h3>
-                    <span className='px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'>
-                      Online
-                    </span>
-                  </div>
-                  <p className='text-[11px] text-muted-foreground truncate mt-0.5'>
-                    Siap membantu anda..
-                  </p>
-                </div>
+                <p className='text-[11px] text-muted-foreground truncate mt-0.5'>
+                  Siap membantu anda..
+                </p>
               </div>
 
               {/* Control Actions */}
@@ -511,8 +517,14 @@ export function ChatwootWidget() {
                     isExpanded ? 'max-w-4xl' : 'max-w-xl'
                   )}
                 >
-                  <div className='size-18 rounded-3xl bg-card border border-border/60 flex items-center justify-center shadow-md'>
-                    <GeminiSparkle3DIcon size={56} interactive={true} />
+                  {/* Wide Fluid 3D Plasma Hero Banner */}
+                  <div
+                    className={cn(
+                      'w-full flex items-center justify-center shrink-0 overflow-visible mx-auto transition-all duration-300',
+                      isExpanded ? 'max-w-xl h-56 sm:h-64' : 'max-w-sm sm:max-w-md h-44 sm:h-52'
+                    )}
+                  >
+                    <Plasma3DLogo className='w-full h-full' />
                   </div>
 
                   <div className='space-y-1.5'>
@@ -576,7 +588,7 @@ export function ChatwootWidget() {
                     <div className='flex items-center gap-2 px-1 text-[11px] text-muted-foreground font-medium'>
                       {!isUser && (
                         <span className='inline-flex items-center gap-1.5 font-bold text-foreground'>
-                          <GeminiSparkle3DIcon size={15} interactive={false} />
+                          <Plasma3DLogo size={18} />
                           <span>AI Assistant</span>
                         </span>
                       )}
@@ -649,7 +661,7 @@ export function ChatwootWidget() {
               {isStreaming && (
                 <div className='flex flex-col items-start space-y-1.5'>
                   <div className='flex items-center gap-1.5 px-1 text-[11px] text-foreground font-bold'>
-                    <GeminiSparkle3DIcon size={15} interactive={false} />
+                    <Plasma3DLogo size={18} />
                     <span>AI sedang menganalisis & merespons...</span>
                   </div>
 
