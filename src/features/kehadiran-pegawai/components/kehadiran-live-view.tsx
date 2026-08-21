@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
-import { attendanceQueries } from '../api/queries';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { attendanceQueries, attendanceKeys } from '../api/queries';
 import { QRPresenceCard } from './qr-presence-card';
 import { AttendanceTableCard } from './attendance-table-card';
 import { ManualAttendanceModal } from './manual-attendance-modal';
@@ -22,6 +22,7 @@ import type { AttendanceFilterParams } from '../api/types';
 
 export function KehadiranLiveView() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [params, setParams] = useState<AttendanceFilterParams>({
     date: '23/08/2026',
     shift: 'all',
@@ -126,8 +127,9 @@ export function KehadiranLiveView() {
                       variant='outline'
                       size='icon'
                       onClick={() => {
+                        queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
                         refetch();
-                        toast.success('Data presensi diperbarui.');
+                        toast.success('Sinkronisasi data presensi real-time berhasil.');
                       }}
                       className='size-8 rounded-md bg-background border-border/70 text-muted-foreground hover:text-foreground shadow-2xs'
                     >

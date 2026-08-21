@@ -20,7 +20,16 @@ import {
   TableCell
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 import { AttendanceDigitalClock } from './attendance-digital-clock';
+import { AttendanceEditModal } from './attendance-edit-modal';
+import { AttendanceDeleteModal } from './attendance-delete-modal';
 import { Icons } from '@/components/icons';
 import { SHIFT_OPTIONS, STATUS_OPTIONS, CATEGORY_OPTIONS } from '../constants/options';
 import { cn } from '@/lib/utils';
@@ -52,6 +61,10 @@ export function AttendanceTableCard({
   className
 }: AttendanceTableCardProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectedEditRecord, setSelectedEditRecord] = useState<StaffAttendance | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedDeleteRecord, setSelectedDeleteRecord] = useState<StaffAttendance | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const isFiltered = Boolean(
     params.search ||
@@ -223,12 +236,15 @@ export function AttendanceTableCard({
                 <TableHead className='h-10 px-4 text-xs font-semibold text-muted-foreground min-w-[90px]'>
                   Shift
                 </TableHead>
+                <TableHead className='h-10 w-12 px-3 text-right'>
+                  <span className='sr-only'>Aksi</span>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {records.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className='h-32 text-center text-muted-foreground text-xs'>
+                  <TableCell colSpan={8} className='h-32 text-center text-muted-foreground text-xs'>
                     Tidak ada data presensi yang sesuai dengan filter.
                   </TableCell>
                 </TableRow>
@@ -333,6 +349,47 @@ export function AttendanceTableCard({
                       <TableCell className='px-4 py-3 font-semibold text-blue-600 dark:text-blue-400 text-xs'>
                         {row.shift}
                       </TableCell>
+
+                      {/* Aksi MoreVert Menu */}
+                      <TableCell className='px-3 text-right' onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              type='button'
+                              variant='ghost'
+                              size='icon'
+                              className='size-7 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-md cursor-pointer'
+                            >
+                              <Icons.ellipsis className='size-3.5' />
+                              <span className='sr-only'>Aksi Data Presensi</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align='end' className='w-44 text-xs font-sans'>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedEditRecord(row);
+                                setIsEditModalOpen(true);
+                              }}
+                              className='gap-2 py-1.5 cursor-pointer font-medium'
+                            >
+                              <Icons.edit className='size-3.5 text-primary' />
+                              <span>Ubah Presensi</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedDeleteRecord(row);
+                                setIsDeleteModalOpen(true);
+                              }}
+                              variant='destructive'
+                              className='gap-2 py-1.5 cursor-pointer font-medium'
+                            >
+                              <Icons.trash className='size-3.5' />
+                              <span>Hapus Presensi</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
                     </TableRow>
                   );
                 })
@@ -434,6 +491,26 @@ export function AttendanceTableCard({
           </div>
         </div>
       </div>
+
+      {/* Edit & Detail Presensi Modal */}
+      <AttendanceEditModal
+        isOpen={isEditModalOpen}
+        attendance={selectedEditRecord}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedEditRecord(null);
+        }}
+      />
+
+      {/* Hapus Presensi Confirmation Modal */}
+      <AttendanceDeleteModal
+        isOpen={isDeleteModalOpen}
+        attendance={selectedDeleteRecord}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setSelectedDeleteRecord(null);
+        }}
+      />
     </div>
   );
 }

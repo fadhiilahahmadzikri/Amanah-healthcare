@@ -1,57 +1,77 @@
+'use client';
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { attendanceService } from './service';
 import { attendanceKeys } from './queries';
 import { toast } from 'sonner';
-import type { AttendanceStatus, QRPresenceConfig } from './types';
+import type { StaffAttendance, AttendanceStatus } from './types';
+
+export function useUpdateAttendanceMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, payload }: { id: string; payload: Partial<StaffAttendance> }) => {
+      return attendanceService.updateStaffAttendance(id, payload);
+    },
+    onSuccess: (updatedRecord) => {
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
+      toast.success(`Data presensi "${updatedRecord.nama_staf}" berhasil diperbarui.`);
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Gagal memperbarui data presensi.');
+    }
+  });
+}
+
+export function useDeleteAttendanceMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      return attendanceService.deleteStaffAttendance(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
+      toast.success('Data presensi berhasil dihapus.');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Gagal menghapus data presensi.');
+    }
+  });
+}
+
+export function useCreateAttendanceMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: Omit<StaffAttendance, 'id'> & { id?: string }) => {
+      return attendanceService.createStaffAttendance(payload);
+    },
+    onSuccess: (newRecord) => {
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
+      toast.success(`Presensi staf "${newRecord.nama_staf}" berhasil ditambahkan.`);
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Gagal menambahkan presensi.');
+    }
+  });
+}
 
 export function useRecordManualAttendanceMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ staffIdOrCode, waktu }: { staffIdOrCode: string; waktu?: string }) =>
-      attendanceService.recordManualAttendance(staffIdOrCode, waktu),
-    onSuccess: (updated) => {
+    mutationFn: async ({ staffIdOrCode, waktu }: { staffIdOrCode: string; waktu?: string }) => {
+      return attendanceService.recordManualAttendance(staffIdOrCode, waktu);
+    },
+    onSuccess: (record) => {
       queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
       toast.success(
-        `Presensi ${updated.nama_staf} (${updated.id_staf}) berhasil dicatat (Hadir - ${updated.waktu}).`
+        `Presensi manual berhasil dicatat untuk ${record.nama_staf} (${record.waktu}).`
       );
     },
-    onError: (err: any) => {
-      toast.error(err?.message || 'Gagal memproses presensi manual.');
-    }
-  });
-}
-
-export function useUpdateAttendanceStatusMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, status, waktu }: { id: string; status: AttendanceStatus; waktu?: string }) =>
-      attendanceService.updateAttendanceStatus(id, status, waktu),
-    onSuccess: (updated) => {
-      queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
-      toast.success(
-        `Status presensi ${updated.nama_staf} berhasil diubah menjadi ${updated.status}.`
-      );
-    },
-    onError: (err) => {
-      toast.error('Gagal memperbarui status presensi.');
-      console.error(err);
-    }
-  });
-}
-
-export function useGenerateQRTokenMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (context?: string) => attendanceService.generateNewQRToken(context),
-    onSuccess: (newConfig) => {
-      queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
-      toast.success(`Kode QR presensi diperbarui: ${newConfig.qr_code_identifier}`);
-    },
-    onError: () => {
-      toast.error('Gagal memperbarui kode QR presensi.');
+    onError: (err: Error) => {
+      toast.error(err.message || 'Gagal mencatat presensi manual.');
     }
   });
 }
@@ -60,13 +80,14 @@ export function useUpdateQRConfigMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: Partial<QRPresenceConfig>) => attendanceService.updateQRConfig(payload),
+    mutationFn: async (payload: Partial<import('./types').QRPresenceConfig>) => {
+      return attendanceService.updateQRConfig(payload);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
-      toast.success('Konfigurasi QR shift presensi berhasil disimpan.');
     },
-    onError: () => {
-      toast.error('Gagal menyimpan konfigurasi QR shift.');
+    onError: (err: Error) => {
+      toast.error(err.message || 'Gagal memperbarui konfigurasi QR.');
     }
   });
 }

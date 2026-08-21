@@ -127,6 +127,48 @@ class AttendanceService {
     return this.records[index];
   }
 
+  async updateStaffAttendance(
+    id: string,
+    payload: Partial<StaffAttendance>
+  ): Promise<StaffAttendance> {
+    const index = this.records.findIndex((r) => r.id === id);
+    if (index === -1) {
+      throw new Error(`Record with id ${id} not found`);
+    }
+
+    this.records[index] = {
+      ...this.records[index],
+      ...payload
+    };
+
+    this.calculateMetrics();
+    return this.records[index];
+  }
+
+  async deleteStaffAttendance(id: string): Promise<boolean> {
+    const index = this.records.findIndex((r) => r.id === id);
+    if (index === -1) {
+      throw new Error(`Record with id ${id} not found`);
+    }
+
+    this.records.splice(index, 1);
+    this.calculateMetrics();
+    return true;
+  }
+
+  async createStaffAttendance(
+    payload: Omit<StaffAttendance, 'id'> & { id?: string }
+  ): Promise<StaffAttendance> {
+    const newRecord: StaffAttendance = {
+      id: payload.id || `att-${Date.now()}`,
+      ...payload
+    };
+
+    this.records.unshift(newRecord);
+    this.calculateMetrics();
+    return newRecord;
+  }
+
   async generateNewQRToken(context?: string): Promise<QRPresenceConfig> {
     const randomChars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let code = '';
