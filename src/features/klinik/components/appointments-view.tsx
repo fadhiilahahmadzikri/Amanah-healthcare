@@ -191,11 +191,8 @@ export function AppointmentsView() {
   };
 
   const handleAddAppointment = (formData: AppointmentFormData) => {
-    const newRecord = createAppointmentRecord(formData, appointments);
-    setAppointments((prev) => [newRecord, ...prev]);
-    toast.success('Horeee! Janji temu berhasil ditambahkan!', {
-      description: `Kode Booking: ${newRecord.booking_code}`
-    });
+    const updated = loadStoredAppointments();
+    setAppointments(updated);
   };
 
   const handleUpdateAppointment = (id: string, formData: AppointmentFormData) => {

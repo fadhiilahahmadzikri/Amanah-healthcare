@@ -10,12 +10,35 @@ const faker = fakerID_ID || defaultFaker;
 const LOCAL_STORAGE_KEY_APPOINTMENTS = 'amanah_appointments_v3';
 const LOCAL_STORAGE_KEY_QUEUES = 'amanah_queues_v7';
 
+import { AMANAH_SERVICES, getAmanahServiceByName } from '../constants/services';
+
 export const getDoctors = (): Doctor[] => {
   return doctorsData as Doctor[];
 };
 
 export const getDoctorByName = (name: string): Doctor | undefined => {
   return (doctorsData as Doctor[]).find((doc) => doc.name === name);
+};
+
+export const getDoctorsByService = (serviceName?: string): Doctor[] => {
+  const all = getDoctors();
+  if (!serviceName) return all;
+
+  const srvInfo = getAmanahServiceByName(serviceName);
+  const targetSpec = srvInfo ? srvInfo.shortName.toLowerCase() : serviceName.toLowerCase();
+
+  const filtered = all.filter((doc) => {
+    const docSpec = doc.spec.toLowerCase();
+    const docLoc = doc.location.toLowerCase();
+    return (
+      docSpec.includes(targetSpec) ||
+      targetSpec.includes(docSpec) ||
+      docLoc.includes(targetSpec) ||
+      (doc.tags && doc.tags.some((t) => t.toLowerCase().includes(targetSpec)))
+    );
+  });
+
+  return filtered.length > 0 ? filtered : all;
 };
 
 export const getTimeSlots = (): string[] => {
@@ -159,4 +182,42 @@ export const createAppointmentRecord = (
     created_at: 'Hari ini, Baru saja',
     updated_at: 'Hari ini, Baru saja'
   };
+};
+
+export const createAppointmentRecordWithQueue = (
+  formData: AppointmentFormData,
+  existingList: Appointment[]
+): { appointment: Appointment; queueItem: QueueItem } => {
+  const appointment = createAppointmentRecord(formData, existingList);
+  const srv = getAmanahServiceByName(formData.service);
+  const codePrefix = srv?.codePrefix || 'A';
+
+  // Count existing waiting patients in this poli
+  const existingQueues = loadStoredQueues();
+  const currentPoliQueues = existingQueues.filter(
+    (q) => q.poli.toLowerCase() === (srv?.name.toLowerCase() || formData.service.toLowerCase())
+  );
+  const nextQueueIndex = currentPoliQueues.length + 1;
+  const queueNumber = `${codePrefix}-${String(nextQueueIndex).padStart(3, '0')}`;
+
+  const doc = getDoctorByName(formData.doctor);
+
+  const queueItem: QueueItem = {
+    queue_number: queueNumber,
+    patient_name: appointment.patient_name,
+    patient_avatar: appointment.patient_avatar,
+    doctor_name: formData.doctor,
+    poli: srv?.name || formData.service,
+    room: doc?.location || 'Room 201',
+    estimated_time: formData.timeSlot.split('-')[0]?.trim() || '09:00 WIB',
+    status: 'MENUNGGU',
+    is_user: true,
+    waiting_count: Math.max(1, currentPoliQueues.filter((q) => q.status === 'MENUNGGU').length)
+  };
+
+  // Sync to queues storage
+  const updatedQueues = [queueItem, ...existingQueues];
+  saveQueuesToStorage(updatedQueues);
+
+  return { appointment, queueItem };
 };
