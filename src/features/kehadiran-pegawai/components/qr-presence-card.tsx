@@ -159,12 +159,12 @@ export function QRPresenceCard({
   return (
     <Card
       className={cn(
-        'p-3.5 sm:p-4 bg-card text-card-foreground border border-border/60 shadow-xs flex flex-col font-sans select-none rounded-[20px] h-full justify-start relative',
+        'p-2.5 sm:p-3 gap-0 bg-card text-card-foreground border border-border/60 shadow-xs flex flex-col font-sans select-none rounded-[20px] h-full justify-start relative',
         className
       )}
     >
       {/* 1. Header Minimalis: Status Aktif, Pill Shift, dan Tombol Presensi Manual/Refresh/Popout/Close */}
-      <div className='flex items-center justify-between gap-1.5 pb-2.5 border-b border-border/40 shrink-0 w-full min-w-0'>
+      <div className='flex items-center justify-between gap-1.5 pb-2 border-b border-border/40 shrink-0 w-full min-w-0'>
         {/* Status Aktif */}
         <div className='flex items-center gap-1.5 min-w-0 shrink'>
           <span
@@ -268,16 +268,16 @@ export function QRPresenceCard({
       </div>
 
       {/* 2. Direct Large Edge-to-Edge QR Code (Dinaikkan ke atas tepat di bawah header) */}
-      <div className='flex-1 flex flex-col items-center justify-start w-full pt-1.5 sm:pt-2 pb-2'>
+      <div className='flex-1 flex flex-col items-center justify-start w-full pt-1 pb-1'>
         <div
           ref={qrVisualRef}
           className='w-full max-w-full aspect-square flex items-center justify-center will-change-transform'
         >
-          <ModernStyledQRCode data={qrPayload} size={480} className='w-full h-full' />
+          <ModernStyledQRCode data={qrPayload} size={520} className='w-full h-full' />
         </div>
 
         {/* 3. Section Code Manual & Countdown Rotasi */}
-        <div className='w-full text-center mt-2.5 sm:mt-3 space-y-1'>
+        <div className='w-full text-center mt-2 space-y-1'>
           <div className='flex items-center justify-center gap-1.5 text-xs font-medium text-muted-foreground'>
             <Icons.clock className='size-3.5 text-primary' />
             <span>Rotasi otomatis:</span>

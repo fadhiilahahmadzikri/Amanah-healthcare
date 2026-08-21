@@ -34,6 +34,8 @@ type SidebarContextProps = {
   setOpenMobile: (open: boolean) => void;
   isMobile: boolean;
   toggleSidebar: () => void;
+  isHovered: boolean;
+  setIsHovered: (hovered: boolean) => void;
 };
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null);
@@ -62,6 +64,7 @@ function SidebarProvider({
 }) {
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
+  const [isHovered, setIsHovered] = React.useState(false);
 
   const [_open, _setOpen] = React.useState(defaultOpen);
   const open = openProp ?? _open;
@@ -95,7 +98,8 @@ function SidebarProvider({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [toggleSidebar]);
 
-  const state = open ? 'expanded' : 'collapsed';
+  // When sidebar is closed on desktop but hovered by user, auto-expand ('hovering open')
+  const state = open || (!isMobile && isHovered) ? 'expanded' : 'collapsed';
 
   const contextValue = React.useMemo<SidebarContextProps>(
     () => ({
@@ -105,9 +109,21 @@ function SidebarProvider({
       isMobile,
       openMobile,
       setOpenMobile,
-      toggleSidebar
+      toggleSidebar,
+      isHovered,
+      setIsHovered
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+    [
+      state,
+      open,
+      setOpen,
+      isMobile,
+      openMobile,
+      setOpenMobile,
+      toggleSidebar,
+      isHovered,
+      setIsHovered
+    ]
   );
 
   return (
@@ -147,7 +163,43 @@ function Sidebar({
   variant?: 'sidebar' | 'floating' | 'inset';
   collapsible?: 'offcanvas' | 'icon' | 'none';
 }) {
-  const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+  const { isMobile, state, open, openMobile, setOpenMobile, isHovered, setIsHovered } =
+    useSidebar();
+  const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    if (!open) {
+      setIsHovered(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    hoverTimeoutRef.current = setTimeout(() => {
+      // Don't close if a dropdown/popover menu is currently open
+      const hasOpenPopper = Boolean(
+        document.querySelector('[data-radix-popper-content-wrapper]') ||
+        document.querySelector('[data-state="open"][role="menu"]')
+      );
+      if (!hasOpenPopper) {
+        setIsHovered(false);
+      }
+    }, 120);
+  };
+
+  React.useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
 
   if (collapsible === 'none') {
     return (
@@ -197,8 +249,9 @@ function Sidebar({
       data-variant={variant}
       data-side={side}
       data-slot='sidebar'
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
-      {}
       <div
         data-slot='sidebar-gap'
         className={cn(
