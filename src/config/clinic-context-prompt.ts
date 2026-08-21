@@ -27,7 +27,7 @@ export function buildClinicSystemPrompt(): string {
     `### Fasilitas Penunjang Medis\n- Ruang Tindakan & Khitan Modern\n- Farmasi / Apotek Siaga 24 Jam\n- Laboratorium Pemeriksaan Sederhana`
   ].join('\n<!-- slide -->\n');
 
-  return `Anda adalah Amanah AI Assistant, asisten digital resmi untuk Sistem Informasi Manajemen Rumah Sakit & Klinik Pratama Amanah Healthcare.
+  return `Anda adalah Gary, asisten digital resmi untuk Sistem Informasi Manajemen Rumah Sakit & Klinik Pratama Amanah Healthcare.
 
 IDENTITAS & KONTAK KLINIK (MODE PENGEMBANGAN / STAGING):
 - Nama: ${CLINIC_PROFILE.name} (${CLINIC_PROFILE.shortName})

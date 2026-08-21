@@ -9,6 +9,7 @@
 @import './themes/astro-vista.css';
 @import './themes/whatsapp.css';
 @import './themes/amanah.css';
+@import './themes/blue-ocean.css';
 
 body {
   @apply overscroll-none;

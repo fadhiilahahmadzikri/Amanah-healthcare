@@ -5,6 +5,7 @@ import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Appointment, Doctor } from '../api/types';
 import { DoctorAvatar } from './doctor-avatar';
+import { PixelTexture } from './pixel-texture';
 import { getStatusConfig } from '@/styles/clinical-tokens';
 import { cn } from '@/lib/utils';
 
@@ -88,14 +89,28 @@ export function AppointmentCard({
   return (
     <div
       className={cn(
-        'group relative w-full bg-gradient-to-t from-primary/5 to-card dark:bg-card text-card-foreground border border-border rounded-[20px] shadow-none hover:border-primary-bright/40 overflow-hidden font-sans flex flex-col justify-between h-full p-4 sm:p-5 gap-3.5 select-none transition-all duration-200',
+        'group relative w-full bg-gradient-to-t from-primary/6 via-primary/[0.015] to-card dark:from-primary/12 dark:via-card dark:to-card text-card-foreground border border-border rounded-[20px] shadow-none hover:border-primary/60 hover:shadow-md overflow-hidden font-sans flex flex-col justify-between h-full p-4 sm:p-5 gap-3.5 select-none transition-all duration-200',
         className
       )}
     >
+      {/* Dynamic Master Pixel Texture at Bottom with Inverted Curved Arch Mask */}
+      <div className='absolute bottom-0 left-0 right-0 h-[145px] pointer-events-none z-0 overflow-hidden'>
+        <PixelTexture
+          colorMode='theme'
+          maskVariant='curved-convex'
+          invertMask={true}
+          opacity={0.24}
+          density='medium'
+          pixelSize={4.5}
+          gap={1.5}
+          height='100%'
+        />
+      </div>
+
       {/* 1. Doctor & Wrapped Status Section */}
-      <div className='flex items-start justify-between gap-3'>
+      <div className='relative z-2 flex items-start justify-between gap-3'>
         <div className='flex items-center gap-3.5 min-w-0 flex-1'>
-          <div className='w-[64px] h-[64px] min-w-[64px] min-h-[64px] max-w-[64px] max-h-[64px] rounded-full overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square'>
+          <div className='w-[64px] h-[64px] min-w-[64px] min-h-[64px] max-w-[64px] max-h-[64px] rounded-full overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square shadow-xs'>
             <DoctorAvatar name={appointment.doctor_name} avatarUrl={docInfo.avatar} size={64} />
           </div>
 
@@ -147,7 +162,7 @@ export function AppointmentCard({
       </div>
 
       {/* 2. Metadata Section (Date & Location: format 'Poli X, Room Y') */}
-      <div className='flex items-center justify-between text-[12px] px-0.5 py-0.5 border-t border-border/40'>
+      <div className='relative z-2 flex items-center justify-between text-[12px] px-0.5 py-0.5 border-t border-border/40'>
         <div className='flex items-center gap-1.5 min-w-0 py-1.5 text-foreground font-semibold'>
           <Icons.calendar className='size-3.5 text-primary shrink-0' strokeWidth={1.8} />
           <span className='truncate'>{appointment.date}</span>
@@ -162,7 +177,7 @@ export function AppointmentCard({
       </div>
 
       {/* 3. Timeline Container (Trajectory Dash Line Clear & Visible) */}
-      <div className='py-1 px-1 flex items-center justify-between'>
+      <div className='relative z-2 py-1 px-1 flex items-center justify-between'>
         <div className='flex flex-col items-start min-w-[55px]'>
           <span className='text-[17px] sm:text-[18px] font-bold text-foreground leading-tight tracking-tight'>
             {startTime}
@@ -193,7 +208,7 @@ export function AppointmentCard({
       </div>
 
       {/* 4. Actions (Reschedule + Detail) */}
-      <div className='flex items-center justify-end gap-2 pt-2 border-t border-border/40'>
+      <div className='relative z-2 flex items-center justify-end gap-2 pt-2 border-t border-border/40'>
         <Button
           type='button'
           variant='outline'
@@ -201,7 +216,7 @@ export function AppointmentCard({
           size='card-action'
           onClick={() => onReschedule(appointment)}
           leadingIcon={<RescheduleIcon className='size-3.5' stroke='currentColor' />}
-          className='font-semibold'
+          className='font-semibold shadow-2xs'
         >
           Reschedule
         </Button>
@@ -213,7 +228,7 @@ export function AppointmentCard({
           size='card-action'
           withTrailingCircleIcon
           onClick={() => onViewDetails(appointment)}
-          className='font-bold'
+          className='font-bold shadow-2xs'
         >
           Detail
         </Button>

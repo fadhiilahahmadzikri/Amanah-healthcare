@@ -233,6 +233,7 @@ export const Icons = {
   heart: IconHeart,
 
   add: IconPlus,
+  plus: IconPlus,
   edit: IconEdit,
   upload: IconUpload,
   arrowDown: IconDownload,

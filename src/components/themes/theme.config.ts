@@ -44,5 +44,9 @@ export const THEMES = [
   {
     name: 'Amanah',
     value: 'amanah'
+  },
+  {
+    name: 'Blue Ocean',
+    value: 'blue-ocean'
   }
 ];

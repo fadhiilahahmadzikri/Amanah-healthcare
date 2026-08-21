@@ -267,8 +267,8 @@ export function QRPresenceCard({
         </div>
       </div>
 
-      {/* 2. Direct Large Edge-to-Edge QR Code (Dinaikkan ke atas tepat di bawah header) */}
-      <div className='flex-1 flex flex-col items-center justify-start w-full pt-1 pb-1'>
+      {/* 2. Direct Large Edge-to-Edge QR Code */}
+      <div className='flex-1 flex flex-col items-center justify-start w-full pt-2 pb-2'>
         <div
           ref={qrVisualRef}
           className='w-full max-w-full aspect-square flex items-center justify-center will-change-transform'
@@ -276,19 +276,19 @@ export function QRPresenceCard({
           <ModernStyledQRCode data={qrPayload} size={520} className='w-full h-full' />
         </div>
 
-        {/* 3. Section Code Manual & Countdown Rotasi */}
-        <div className='w-full text-center mt-2 space-y-1'>
+        {/* 3. Section Code Manual & Countdown Rotasi (Increased spacious gap from QR) */}
+        <div className='w-full text-center mt-5 sm:mt-6 space-y-1.5 px-2'>
           <div className='flex items-center justify-center gap-1.5 text-xs font-medium text-muted-foreground'>
             <Icons.clock className='size-3.5 text-primary' />
             <span>Rotasi otomatis:</span>
             <span className='font-mono font-bold text-foreground tabular-nums'>{timeLeft}s</span>
           </div>
 
-          <div ref={tokenRef} className='pt-0.5 will-change-transform'>
+          <div ref={tokenRef} className='pt-1 will-change-transform'>
             <div className='text-3xl sm:text-4xl font-black tracking-widest text-foreground font-mono leading-none'>
               {token}
             </div>
-            <p className='text-[10.5px] text-muted-foreground mt-1'>
+            <p className='text-[10.5px] text-muted-foreground mt-1.5'>
               {config.qr_validity || 'QR Code akan berubah setiap pergantian shift'}
             </p>
           </div>

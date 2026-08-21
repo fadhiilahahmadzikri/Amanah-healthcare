@@ -1,0 +1,344 @@
+<svg viewBox="0 0 800 450" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <style>
+            text {
+                font-family: 'Plus Jakarta Sans', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+                user-select: none;
+            }
+        </style>
+        
+        <!-- Global Lighting & Soft Vignette -->
+        <radialGradient id="vignette" cx="30%" cy="30%" r="75%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6"/>
+            <stop offset="70%" stop-color="#ffffff" stop-opacity="0.05"/>
+            <stop offset="100%" stop-color="#a0c8ee" stop-opacity="0.2"/>
+        </radialGradient>
+
+        <!-- Room Gradients with Clear Contrast -->
+        <linearGradient id="floor-grad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#d2e8fa"/>
+            <stop offset="100%" stop-color="#eaf4fd"/>
+        </linearGradient>
+        <linearGradient id="left-wall-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#eef6fd"/>
+            <stop offset="100%" stop-color="#d8ecfc"/>
+        </linearGradient>
+        <linearGradient id="right-wall-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#f8fcff"/>
+            <stop offset="100%" stop-color="#e6f2fd"/>
+        </linearGradient>
+
+        <!-- Cushion Gradients (Crisp Pure White with Soft Shading) -->
+        <linearGradient id="cushion-top" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="100%" stop-color="#edf6fd"/>
+        </linearGradient>
+        <linearGradient id="cushion-left" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#edf5fc"/>
+            <stop offset="100%" stop-color="#cde5f8"/>
+        </linearGradient>
+        <linearGradient id="cushion-right" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#b6daf5"/>
+            <stop offset="100%" stop-color="#9fcbf0"/>
+        </linearGradient>
+
+        <!-- Tubular Frame Gradients (Defined Metallic Sky Blue) -->
+        <linearGradient id="frame-top" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#9dd3fb"/>
+            <stop offset="100%" stop-color="#72bbf6"/>
+        </linearGradient>
+        <linearGradient id="frame-side" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#60acee"/>
+            <stop offset="100%" stop-color="#3d94e2"/>
+        </linearGradient>
+        <linearGradient id="frame-front" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#81c4f8"/>
+            <stop offset="100%" stop-color="#4f9fe6"/>
+        </linearGradient>
+
+        <!-- Screen Gradients -->
+        <linearGradient id="screen-bezel-top" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="100%" stop-color="#e0f0fc"/>
+        </linearGradient>
+        <linearGradient id="screen-bezel-side" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#9acdf4"/>
+            <stop offset="100%" stop-color="#79bbf0"/>
+        </linearGradient>
+        <linearGradient id="screen-display" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="100%" stop-color="#f4faff"/>
+        </linearGradient>
+
+        <!-- Plant Gradients (Rich Vibrant Cerulean Blue) -->
+        <linearGradient id="pot-grad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#b0d6f4"/>
+            <stop offset="35%" stop-color="#ffffff"/>
+            <stop offset="100%" stop-color="#94c4ec"/>
+        </linearGradient>
+        <linearGradient id="leaf-bright" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#68bdfa"/>
+            <stop offset="100%" stop-color="#2889e4"/>
+        </linearGradient>
+        <linearGradient id="leaf-dark" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#3b96eb"/>
+            <stop offset="100%" stop-color="#186fc9"/>
+        </linearGradient>
+
+        <!-- Smooth Soft Natural Shadows -->
+        <filter id="shadow-blur-soft" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="9"/>
+        </filter>
+        <filter id="shadow-blur-contact" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="4"/>
+        </filter>
+
+        <!-- Floor Grid Pattern -->
+        <pattern id="grid" width="70" height="70" patternUnits="userSpaceOnUse">
+            <path d="M 70 0 L 0 0 0 70" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-opacity="0.85"/>
+        </pattern>
+    </defs>
+
+    <!-- Background Base -->
+    <rect width="100%" height="100%" fill="#c8e4fa"/>
+
+    <!-- Center origin: cx=400, cy=180 -->
+    
+    <!-- Right Wall (XZ Plane) -->
+    <g transform="matrix(1, 0.5, 0, 1, 400, 180)">
+        <rect x="0" y="-400" width="600" height="400" fill="url(#right-wall-grad)" />
+        <!-- Skirting baseboard -->
+        <rect x="0" y="-8" width="600" height="8" fill="#b0d7f5" />
+    </g>
+
+    <!-- Left Wall (YZ Plane) -->
+    <g transform="matrix(-1, 0.5, 0, 1, 400, 180)">
+        <rect x="0" y="-400" width="600" height="400" fill="url(#left-wall-grad)" />
+        <!-- Skirting baseboard -->
+        <rect x="0" y="-8" width="600" height="8" fill="#a4d0f2" />
+    </g>
+
+    <!-- Floor (XY Plane) -->
+    <g transform="matrix(1, 0.5, -1, 0.5, 400, 180)">
+        <rect x="0" y="0" width="600" height="600" fill="url(#floor-grad)" />
+        <rect x="0" y="0" width="600" height="600" fill="url(#grid)" />
+        
+        <!-- Diffuse Soft Shadow under Sofa Base -->
+        <rect x="6" y="50" width="78" height="298" rx="14" fill="#589ed6" opacity="0.32" filter="url(#shadow-blur-soft)" />
+        <!-- Deep Contact Ambient Shadow under Rail/Legs -->
+        <rect x="12" y="56" width="54" height="286" rx="6" fill="#307cb8" opacity="0.38" filter="url(#shadow-blur-contact)" />
+    </g>
+
+    <!-- Corner Seam Line -->
+    <path d="M 400 180 L 400 -220" stroke="#c0e0f8" stroke-width="2" />
+    <!-- Floor Border Lines -->
+    <path d="M 400 180 L 800 380" stroke="#ffffff" stroke-width="3" opacity="0.9" />
+    <path d="M 400 180 L 0 380" stroke="#ffffff" stroke-width="3" opacity="0.9" />
+
+    <!-- Screen Origin: Mounted on Right Wall -->
+    <g transform="translate(460, 65)">
+        <!-- Top Face (Depth Border) -->
+        <g transform="translate(0, -140) matrix(1, 0.5, -1, 0.5, 0, 0)">
+            <rect width="260" height="10" rx="4" fill="url(#screen-bezel-top)" />
+        </g>
+        <!-- Left Face (Depth Border) -->
+        <g transform="translate(260, -10) matrix(-1, 0.5, 0, 1, 0, 0)">
+            <rect width="10" height="140" rx="4" fill="url(#screen-bezel-side)" />
+        </g>
+
+        <!-- Right Face (Front Screen Area) -->
+        <g transform="translate(-10, -135) matrix(1, 0.5, 0, 1, 0, 0)">
+            <!-- Soft Drop Shadow on Wall -->
+            <rect x="-6" y="-6" width="272" height="152" rx="12" fill="#5a9fd2" opacity="0.35" filter="url(#shadow-blur-soft)" />
+            
+            <!-- Outer Frame Bezel -->
+            <rect width="260" height="140" rx="10" fill="#ffffff" stroke="#c2e2fa" stroke-width="1.5" />
+            
+            <!-- Inner Screen Display -->
+            <rect x="8" y="8" width="244" height="124" rx="6" fill="url(#screen-display)" stroke="#dcf0fd" stroke-width="1" />
+        </g>
+    </g>
+
+    <!-- Plant in Corner (X=30, Y=25, Z=0) -->
+    <g id="potted-plant">
+        <!-- Pot Ground Shadow -->
+        <ellipse cx="405" cy="207.5" rx="20" ry="10" fill="#428ec9" opacity="0.45" filter="url(#shadow-blur-soft)"/>
+        <ellipse cx="405" cy="207.5" rx="12" ry="6" fill="#296ea4" opacity="0.4" filter="url(#shadow-blur-contact)"/>
+        
+        <!-- Leaves (Back - Darker Rich Blue) -->
+        <path d="M 405,172 Q 418,135 442,142 Q 430,162 405,172" fill="url(#leaf-dark)"/>
+        <path d="M 405,172 Q 380,128 368,140 Q 385,164 405,172" fill="url(#leaf-dark)"/>
+        <path d="M 405,172 Q 405,122 424,118 Q 418,148 405,172" fill="url(#leaf-dark)"/>
+
+        <!-- Pot Body -->
+        <path d="M 388,172 L 392,206 A 13 6.5 0 0 0 418,206 L 422,172 Z" fill="url(#pot-grad)" stroke="#9bc7ed" stroke-width="1"/>
+        <!-- Pot Inner Soil -->
+        <ellipse cx="405" cy="172" rx="17" ry="8.5" fill="#ffffff" stroke="#aed5f6" stroke-width="1"/>
+        <ellipse cx="405" cy="172" rx="14" ry="7" fill="#6bafe6"/>
+
+        <!-- Leaves (Front - Vibrant Luminous Cerulean Blue) -->
+        <path d="M 405,172 Q 375,155 362,168 Q 380,186 405,172" fill="url(#leaf-bright)" stroke="#398de3" stroke-width="0.75"/>
+        <path d="M 405,172 Q 436,160 448,174 Q 430,188 405,172" fill="url(#leaf-bright)" stroke="#398de3" stroke-width="0.75"/>
+        <path d="M 405,172 Q 396,138 388,132 Q 396,158 405,172" fill="url(#leaf-bright)" stroke="#398de3" stroke-width="0.75"/>
+        <path d="M 405,172 Q 412,142 426,146 Q 416,166 405,172" fill="url(#leaf-bright)"/>
+    </g>
+
+    <!-- ===== SOFA WITH DISTINCT PUFFY CUSHIONS & METALLIC TUBULAR FRAME ===== -->
+    
+    <!-- Under-Seat Base Rails (Sky Blue Metal) -->
+    <g transform="translate(362, 212)">
+        <g transform="translate(68, 14) matrix(-1, 0.5, 0, 1, 0, 0)">
+            <rect width="288" height="6" rx="2" fill="url(#frame-side)"/>
+        </g>
+        <g transform="translate(-288, 158) matrix(1, 0.5, 0, 1, 0, 0)">
+            <rect width="68" height="6" rx="2" fill="url(#frame-front)"/>
+        </g>
+    </g>
+
+    <!-- Left Armrest (Open Tubular Metallic Frame) -->
+    <g transform="translate(352, 204)">
+        <!-- Vertical Back Leg -->
+        <g transform="translate(6, -42) matrix(1, 0.5, 0, 1, 0, 0)">
+            <rect width="6" height="48" rx="2.5" fill="url(#frame-front)" stroke="#4a9de6" stroke-width="0.5"/>
+        </g>
+        <!-- Vertical Front Leg -->
+        <g transform="translate(74, -8) matrix(1, 0.5, 0, 1, 0, 0)">
+            <rect width="6" height="48" rx="2.5" fill="url(#frame-front)" stroke="#4a9de6" stroke-width="0.5"/>
+        </g>
+        <!-- Top Handle Rail -->
+        <g transform="translate(0, -48) matrix(1, 0.5, -1, 0.5, 0, 0)">
+            <rect width="80" height="7" rx="3.5" fill="url(#frame-top)" stroke="#6bb0ee" stroke-width="0.5"/>
+        </g>
+        <!-- Middle Crossbar -->
+        <g transform="translate(0, -22) matrix(1, 0.5, -1, 0.5, 0, 0)">
+            <rect width="80" height="5" rx="2.5" fill="url(#frame-top)"/>
+        </g>
+    </g>
+
+    <!-- CUSHION 1 (Back to Front) -->
+    <g transform="translate(344, 182)">
+        <!-- Backrest 1 -->
+        <g transform="translate(14, -36) matrix(-1, 0.5, 0, 1, 0, 0)">
+            <rect width="68" height="44" rx="5" fill="url(#cushion-left)" stroke="#b8dcfa" stroke-width="0.75"/>
+        </g>
+        <g transform="translate(-68, -8) matrix(1, 0.5, 0, 1, 0, 0)">
+            <rect width="14" height="44" rx="5" fill="url(#cushion-right)" stroke="#a8d4f8" stroke-width="0.75"/>
+        </g>
+        <g transform="translate(0, -44) matrix(1, 0.5, -1, 0.5, 0, 0)">
+            <rect width="14" height="68" rx="5" fill="url(#cushion-top)" stroke="#cce6fc" stroke-width="0.75"/>
+        </g>
+    </g>
+    <g transform="translate(360, 202)">
+        <!-- Seat Cushion 1 -->
+        <g transform="translate(62, 18) matrix(-1, 0.5, 0, 1, 0, 0)">
+            <rect width="68" height="14" rx="4" fill="url(#cushion-left)" stroke="#b8dcfa" stroke-width="0.75"/>
+        </g>
+        <g transform="translate(-68, 21) matrix(1, 0.5, 0, 1, 0, 0)">
+            <rect width="62" height="14" rx="4" fill="url(#cushion-right)" stroke="#a8d4f8" stroke-width="0.75"/>
+        </g>
+        <g transform="translate(0, -14) matrix(1, 0.5, -1, 0.5, 0, 0)">
+            <rect width="62" height="68" rx="4" fill="url(#cushion-top)" stroke="#cce6fc" stroke-width="0.75"/>
+        </g>
+    </g>
+
+    <!-- CUSHION 2 -->
+    <g transform="translate(272, 218)">
+        <!-- Backrest 2 -->
+        <g transform="translate(14, -36) matrix(-1, 0.5, 0, 1, 0, 0)">
+            <rect width="68" height="44" rx="5" fill="url(#cushion-left)" stroke="#b8dcfa" stroke-width="0.75"/>
+        </g>
+        <g transform="translate(-68, -8) matrix(1, 0.5, 0, 1, 0, 0)">
+            <rect width="14" height="44" rx="5" fill="url(#cushion-right)" stroke="#a8d4f8" stroke-width="0.75"/>
+        </g>
+        <g transform="translate(0, -44) matrix(1, 0.5, -1, 0.5, 0, 0)">
+            <rect width="14" height="68" rx="5" fill="url(#cushion-top)" stroke="#cce6fc" stroke-width="0.75"/>
+        </g>
+    </g>
+    <g transform="translate(288, 238)">
+        <!-- Seat Cushion 2 -->
+        <g transform="translate(62, 18) matrix(-1, 0.5, 0, 1, 0, 0)">
+            <rect width="68" height="14" rx="4" fill="url(#cushion-left)" stroke="#b8dcfa" stroke-width="0.75"/>
+        </g>
+        <g transform="translate(-68, 21) matrix(1, 0.5, 0, 1, 0, 0)">
+            <rect width="62" height="14" rx="4" fill="url(#cushion-right)" stroke="#a8d4f8" stroke-width="0.75"/>
+        </g>
+        <g transform="translate(0, -14) matrix(1, 0.5, -1, 0.5, 0, 0)">
+            <rect width="62" height="68" rx="4" fill="url(#cushion-top)" stroke="#cce6fc" stroke-width="0.75"/>
+        </g>
+    </g>
+
+    <!-- CUSHION 3 -->
+    <g transform="translate(200, 254)">
+        <!-- Backrest 3 -->
+        <g transform="translate(14, -36) matrix(-1, 0.5, 0, 1, 0, 0)">
+            <rect width="68" height="44" rx="5" fill="url(#cushion-left)" stroke="#b8dcfa" stroke-width="0.75"/>
+        </g>
+        <g transform="translate(-68, -8) matrix(1, 0.5, 0, 1, 0, 0)">
+            <rect width="14" height="44" rx="5" fill="url(#cushion-right)" stroke="#a8d4f8" stroke-width="0.75"/>
+        </g>
+        <g transform="translate(0, -44) matrix(1, 0.5, -1, 0.5, 0, 0)">
+            <rect width="14" height="68" rx="5" fill="url(#cushion-top)" stroke="#cce6fc" stroke-width="0.75"/>
+        </g>
+    </g>
+    <g transform="translate(216, 274)">
+        <!-- Seat Cushion 3 -->
+        <g transform="translate(62, 18) matrix(-1, 0.5, 0, 1, 0, 0)">
+            <rect width="68" height="14" rx="4" fill="url(#cushion-left)" stroke="#b8dcfa" stroke-width="0.75"/>
+        </g>
+        <g transform="translate(-68, 21) matrix(1, 0.5, 0, 1, 0, 0)">
+            <rect width="62" height="14" rx="4" fill="url(#cushion-right)" stroke="#a8d4f8" stroke-width="0.75"/>
+        </g>
+        <g transform="translate(0, -14) matrix(1, 0.5, -1, 0.5, 0, 0)">
+            <rect width="62" height="68" rx="4" fill="url(#cushion-top)" stroke="#cce6fc" stroke-width="0.75"/>
+        </g>
+    </g>
+
+    <!-- CUSHION 4 -->
+    <g transform="translate(128, 290)">
+        <!-- Backrest 4 -->
+        <g transform="translate(14, -36) matrix(-1, 0.5, 0, 1, 0, 0)">
+            <rect width="68" height="44" rx="5" fill="url(#cushion-left)" stroke="#b8dcfa" stroke-width="0.75"/>
+        </g>
+        <g transform="translate(-68, -8) matrix(1, 0.5, 0, 1, 0, 0)">
+            <rect width="14" height="44" rx="5" fill="url(#cushion-right)" stroke="#a8d4f8" stroke-width="0.75"/>
+        </g>
+        <g transform="translate(0, -44) matrix(1, 0.5, -1, 0.5, 0, 0)">
+            <rect width="14" height="68" rx="5" fill="url(#cushion-top)" stroke="#cce6fc" stroke-width="0.75"/>
+        </g>
+    </g>
+    <g transform="translate(144, 310)">
+        <!-- Seat Cushion 4 -->
+        <g transform="translate(62, 18) matrix(-1, 0.5, 0, 1, 0, 0)">
+            <rect width="68" height="14" rx="4" fill="url(#cushion-left)" stroke="#b8dcfa" stroke-width="0.75"/>
+        </g>
+        <g transform="translate(-68, 21) matrix(1, 0.5, 0, 1, 0, 0)">
+            <rect width="62" height="14" rx="4" fill="url(#cushion-right)" stroke="#a8d4f8" stroke-width="0.75"/>
+        </g>
+        <g transform="translate(0, -14) matrix(1, 0.5, -1, 0.5, 0, 0)">
+            <rect width="62" height="68" rx="4" fill="url(#cushion-top)" stroke="#cce6fc" stroke-width="0.75"/>
+        </g>
+    </g>
+
+    <!-- Right Armrest (Open Tubular Metallic Frame) -->
+    <g transform="translate(52, 354)">
+        <!-- Vertical Back Leg -->
+        <g transform="translate(6, -42) matrix(1, 0.5, 0, 1, 0, 0)">
+            <rect width="6" height="48" rx="2.5" fill="url(#frame-front)" stroke="#4a9de6" stroke-width="0.5"/>
+        </g>
+        <!-- Vertical Front Leg -->
+        <g transform="translate(74, -8) matrix(1, 0.5, 0, 1, 0, 0)">
+            <rect width="6" height="48" rx="2.5" fill="url(#frame-front)" stroke="#4a9de6" stroke-width="0.5"/>
+        </g>
+        <!-- Top Handle Rail -->
+        <g transform="translate(0, -48) matrix(1, 0.5, -1, 0.5, 0, 0)">
+            <rect width="80" height="7" rx="3.5" fill="url(#frame-top)" stroke="#6bb0ee" stroke-width="0.5"/>
+        </g>
+        <!-- Middle Crossbar -->
+        <g transform="translate(0, -22) matrix(1, 0.5, -1, 0.5, 0, 0)">
+            <rect width="80" height="5" rx="2.5" fill="url(#frame-top)"/>
+        </g>
+    </g>
+
+    <!-- Global Subtle Lighting Overlay -->
+    <rect width="100%" height="100%" fill="url(#vignette)" style="pointer-events: none;" />
+</svg>

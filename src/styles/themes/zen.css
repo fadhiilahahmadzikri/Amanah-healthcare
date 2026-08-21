@@ -1,9 +1,9 @@
 [data-theme='zen'] {
-  --background: oklch(0.9195 0.0169 88.003);
+  --background: oklch(1 0 0);
   --foreground: oklch(0.235 0 0);
-  --card: oklch(0.953 0.0156 86.4257);
+  --card: oklch(1 0 0);
   --card-foreground: oklch(0.235 0 0);
-  --popover: oklch(0.953 0.0156 86.4257);
+  --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.235 0 0);
   --primary: oklch(0.3012 0 0);
   --primary-foreground: oklch(0.9169 0.0175 99.616);
@@ -23,7 +23,7 @@
   --chart-3: oklch(0.4688 0.0136 84.5932);
   --chart-4: oklch(0.7057 0.025 82.0932);
   --chart-5: oklch(0.834 0.0232 87.163);
-  --sidebar: oklch(0.8985 0.0199 87.5195);
+  --sidebar: oklch(1 0 0);
   --sidebar-foreground: oklch(0.235 0 0);
   --sidebar-primary: oklch(0.3012 0 0);
   --sidebar-primary-foreground: oklch(0.9169 0.0175 99.616);

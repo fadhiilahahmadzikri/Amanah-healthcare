@@ -46,8 +46,13 @@ export function DoctorSpecialtyBadge({ specialty, className }: DoctorSpecialtyBa
   return (
     <Badge
       variant='secondary'
+      style={{
+        backgroundColor: 'color-mix(in oklab, var(--primary) 12%, transparent)',
+        color: 'var(--primary)',
+        borderColor: 'color-mix(in oklab, var(--primary) 24%, transparent)'
+      }}
       className={cn(
-        'px-2.5 py-1 rounded-lg text-[11.5px] font-semibold bg-[color-mix(in_oklab,var(--primary-bright,var(--primary))_12%,transparent)] text-[var(--primary-bright,var(--primary))] dark:text-sky-300 border border-[color-mix(in_oklab,var(--primary-bright,var(--primary))_24%,transparent)] w-fit select-none shadow-none transition-colors',
+        'px-2.5 py-1 rounded-lg text-[11.5px] font-semibold w-fit select-none shadow-none transition-colors border',
         className
       )}
     >
@@ -421,9 +426,12 @@ export function DoctorScheduleCard({
 
   return (
     <div
+      style={{
+        background:
+          'radial-gradient(ellipse 80% 60% at 100% 0%, color-mix(in oklab, var(--primary) 18%, transparent) 0%, color-mix(in oklab, var(--primary) 5%, transparent) 45%, transparent 80%), var(--card)'
+      }}
       className={cn(
-        'group relative overflow-hidden rounded-[24px] border border-border font-sans flex flex-col justify-between select-none transition-all duration-200 hover:border-primary-bright/40',
-        'bg-[radial-gradient(ellipse_80%_60%_at_100%_0%,color-mix(in_oklab,var(--primary-bright,var(--primary))_22%,transparent)_0%,color-mix(in_oklab,var(--primary-bright,var(--primary))_6%,transparent)_45%,transparent_80%)] bg-card p-5 sm:p-6 min-h-[340px]',
+        'group relative overflow-hidden rounded-[24px] border border-border font-sans flex flex-col justify-between select-none transition-all duration-200 hover:border-primary/60 hover:shadow-md p-5 sm:p-6 min-h-[340px] text-card-foreground',
         variant === 'elevated' && 'shadow-sm',
         variant === 'flat' && 'border-transparent shadow-none',
         className

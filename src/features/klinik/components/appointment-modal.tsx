@@ -62,8 +62,8 @@ export function AppointmentModal({
     complaint: '',
     visitType: 'Pemeriksaan Baru',
     doctor: '',
-    dateStr: 'Kamis, 20 Ags 2026',
-    timeSlot: '09:00 - 09:30 WIB'
+    dateStr: '',
+    timeSlot: ''
   });
 
   const allDoctors = useMemo(() => getDoctors(), []);
@@ -120,8 +120,8 @@ export function AppointmentModal({
           complaint: '',
           visitType: 'Pemeriksaan Baru',
           doctor: defaultDocs[0]?.name || allDoctors[0]?.name || '',
-          dateStr: 'Kamis, 20 Ags 2026',
-          timeSlot: '09:00 - 09:30 WIB'
+          dateStr: '',
+          timeSlot: ''
         });
         setCurrentStep(1);
       }

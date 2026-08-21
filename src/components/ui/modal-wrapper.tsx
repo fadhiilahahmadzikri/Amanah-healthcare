@@ -100,7 +100,7 @@ export function ModalWrapper({
       <div
         ref={backdropRef}
         data-slot='modal-wrapper'
-        className='pointer-events-auto fixed inset-0 z-50 flex h-screen w-screen items-center justify-center overflow-y-auto bg-slate-950/65 p-4 backdrop-blur-xs'
+        className='pointer-events-auto fixed inset-0 z-50 flex h-screen w-screen items-center justify-center overflow-y-auto bg-gradient-to-b from-black/0 via-black/45 to-black/85 p-4 backdrop-blur-xs'
       >
         <button
           type='button'

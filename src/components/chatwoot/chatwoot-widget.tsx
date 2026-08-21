@@ -195,133 +195,48 @@ export function ChatwootWidget() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
-  // GSAP Single-Surface Physical Morphing (Pill Button <-> Full Large Window)
+  // Clean Morphing Open (Direct smooth expansion)
   const handleOpenWorkspace = () => {
+    setIsHovered(false);
     setIsOpen(true);
-
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!morphContainerRef.current || prefersReducedMotion) return;
-
-    // Fluid diagonal scaling & physical shape morphing from pill button into full workspace
-    const tl = gsap.timeline();
-
-    // 1. Initial spring anticipation
-    tl.fromTo(
-      morphContainerRef.current,
-      {
-        scale: 0.96,
-        transformOrigin: 'bottom right'
-      },
-      {
-        scale: 1,
-        duration: 0.52,
-        ease: 'expo.out'
-      }
-    );
-
-    if (workspaceContentRef.current) {
-      tl.fromTo(
-        workspaceContentRef.current,
-        { opacity: 0, y: 14 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.38,
-          ease: 'power3.out'
-        },
-        '-=0.25'
-      );
-    }
   };
 
-  // GSAP Morphing Close (Folds smoothly back down diagonally to the launcher origin)
+  // Clean Direct Close (Instantly collapses back without swelling or bounce)
   const handleCloseWorkspace = () => {
     if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
     if (abortControllerRef.current) abortControllerRef.current.abort();
 
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!morphContainerRef.current || prefersReducedMotion) {
-      setIsOpen(false);
-      setIsExpanded(false);
-      return;
+    setIsHovered(false);
+    setIsExpanded(false);
+    setIsOpen(false);
+
+    if (morphContainerRef.current) {
+      gsap.killTweensOf(morphContainerRef.current);
+      gsap.set(morphContainerRef.current, { clearProps: 'transform' });
     }
-
-    const tl = gsap.timeline({
-      onComplete: () => {
-        setIsOpen(false);
-        setIsExpanded(false);
-      }
-    });
-
-    if (workspaceContentRef.current) {
-      tl.to(workspaceContentRef.current, {
-        opacity: 0,
-        y: 10,
-        duration: 0.22,
-        ease: 'power2.in'
-      });
-    }
-
-    tl.to(
-      morphContainerRef.current,
-      {
-        scale: 0.95,
-        transformOrigin: 'bottom right',
-        duration: 0.32,
-        ease: 'power3.inOut',
-        clearProps: 'transform'
-      },
-      '-=0.08'
-    );
   };
 
-  // GSAP Morphing on Expand/Compact Toggle (Diagonal Sliding & Scaling Transition)
+  // Start New Chat (Quick Access Reset / New Conversation)
+  const handleNewChat = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isStreaming) {
+      if (abortControllerRef.current) abortControllerRef.current.abort();
+      setIsStreaming(false);
+      setStreamingText('');
+    }
+    setMessages([]);
+    setShowHistory(false);
+    setInputPrompt('');
+    toast.success('Sesi chat baru dimulai.');
+    setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 100);
+  };
+
+  // Clean Expand / Compact Toggle (Smooth dimension resize without scale distortion)
   const handleToggleExpand = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!morphContainerRef.current) return;
-    const nextState = !isExpanded;
-    setIsExpanded(nextState);
-
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) return;
-
-    if (nextState) {
-      // Diagonal Expansion Morph (Scaling outward diagonally from bottom-right corner)
-      gsap.fromTo(
-        morphContainerRef.current,
-        {
-          scale: 0.94,
-          x: 20,
-          y: 20,
-          transformOrigin: 'bottom right'
-        },
-        {
-          scale: 1,
-          x: 0,
-          y: 0,
-          duration: 0.48,
-          ease: 'expo.out',
-          clearProps: 'transform'
-        }
-      );
-    } else {
-      // Compact Retraction Morph
-      gsap.fromTo(
-        morphContainerRef.current,
-        {
-          scale: 1.04,
-          transformOrigin: 'bottom right'
-        },
-        {
-          scale: 1,
-          x: 0,
-          y: 0,
-          duration: 0.4,
-          ease: 'power3.out',
-          clearProps: 'transform'
-        }
-      );
-    }
+    setIsExpanded((prev) => !prev);
   };
 
   // Ultra-Smooth Adaptive Streaming Dispatcher (Pro 60-120fps RAF Typist Engine)
@@ -534,11 +449,11 @@ export function ChatwootWidget() {
             : undefined
         }
         className={cn(
-          'fixed bottom-6 right-6 z-50 flex flex-col font-sans overflow-hidden border transition-[width,height,max-width,max-height,border-radius,padding,transform,box-shadow,background-color] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] select-none',
+          'fixed bottom-6 right-6 z-50 flex flex-col font-sans overflow-hidden border transition-[width,height,max-width,max-height,border-radius,padding,box-shadow,background-color] duration-300 ease-out select-none',
           !isOpen
             ? isHovered
-              ? 'w-[246px] h-14 rounded-2xl px-3 py-1.5 cursor-pointer scale-[1.02] -translate-y-0.5 ring-4 ring-sky-400/25 text-white'
-              : 'w-14 h-14 rounded-2xl p-0 cursor-pointer ring-2 ring-sky-400/20 text-white'
+              ? 'w-[246px] h-14 rounded-2xl px-3 py-1.5 cursor-pointer ring-4 ring-primary/25 text-white'
+              : 'w-14 h-14 rounded-2xl p-0 cursor-pointer ring-2 ring-primary/20 text-white'
             : isExpanded
               ? 'w-[calc(100vw-2rem)] sm:w-[min(1080px,calc(100vw-3rem))] h-[min(820px,calc(100vh-4rem))] rounded-[28px] p-0 border-border/70 bg-card/98 text-card-foreground shadow-2xl backdrop-blur-2xl'
               : 'w-[calc(100vw-2rem)] sm:w-[500px] md:w-[580px] h-[640px] max-h-[calc(100vh-5rem)] rounded-3xl p-0 border-border/70 bg-card/98 text-card-foreground shadow-2xl backdrop-blur-2xl'
@@ -567,7 +482,7 @@ export function ChatwootWidget() {
             )}
           >
             <span className='font-bold text-xs text-white tracking-tight truncate drop-shadow-[0_1px_1.5px_rgba(0,0,0,0.3)]'>
-              Tanya Amanah AI
+              Chat dengan Gary
             </span>
 
             <div className='flex items-center gap-1.5 shrink-0'>
@@ -591,26 +506,74 @@ export function ChatwootWidget() {
         {isOpen && (
           <div
             ref={workspaceContentRef}
-            className='size-full flex flex-col overflow-hidden animate-in fade-in duration-300'
+            className='size-full flex flex-col overflow-hidden animate-in fade-in duration-300 relative'
           >
             {/* Workspace Header */}
-            <div className='px-5 py-3.5 border-b border-border/50 bg-card/95 backdrop-blur-md flex items-center justify-between shrink-0 relative z-20'>
-              {/* Identity & Status */}
-              <div className='min-w-0'>
-                <div className='flex items-center gap-2'>
-                  <h3 className='text-sm font-bold text-foreground tracking-tight'>
-                    Amanah AI Assistant
-                  </h3>
-                  <StatusBadge status='AKTIF' label='Online' size='sm' />
+            <div className='px-4 sm:px-5 py-3.5 border-b border-border/50 bg-card/95 backdrop-blur-md flex items-center justify-between shrink-0 relative z-20'>
+              {/* Left: Sidebar Opener Trigger + Identity & Status */}
+              <div className='flex items-center gap-2.5 min-w-0'>
+                {/* Sidebar Opener Trigger Button */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type='button'
+                      variant={showHistory ? 'secondary' : 'ghost'}
+                      size='icon'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowHistory((prev) => !prev);
+                      }}
+                      className={cn(
+                        'size-8 rounded-lg transition-colors shrink-0',
+                        showHistory
+                          ? 'bg-primary/15 text-primary hover:bg-primary/20'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
+                      )}
+                    >
+                      <Icons.panelLeft className='size-4' />
+                      <span className='sr-only'>
+                        {showHistory ? 'Tutup History' : 'Buka History Chat'}
+                      </span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side='bottom' className='text-xs'>
+                    {showHistory ? 'Tutup History' : 'History Chat'}
+                  </TooltipContent>
+                </Tooltip>
+
+                <div className='min-w-0'>
+                  <div className='flex items-center gap-2'>
+                    <h3 className='text-sm font-bold text-foreground tracking-tight'>Gary</h3>
+                    <StatusBadge status='AKTIF' label='Online' size='sm' />
+                  </div>
+                  <p className='text-[11px] text-muted-foreground truncate mt-0.5'>
+                    Asisten AI Resmi Klinik Amanah
+                  </p>
                 </div>
-                <p className='text-[11px] text-muted-foreground truncate mt-0.5'>
-                  Siap membantu anda..
-                </p>
               </div>
 
               {/* Control Actions */}
               <div className='flex items-center gap-1.5'>
-                {/* Clear Conversation */}
+                {/* 1. Tambah Chat Baru (Quick Access New Chat Button) */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type='button'
+                      variant='ghost'
+                      size='icon'
+                      onClick={handleNewChat}
+                      className='size-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80'
+                    >
+                      <Icons.plus className='size-4' />
+                      <span className='sr-only'>Tambah Chat Baru</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side='bottom' className='text-xs'>
+                    Tambah Chat Baru
+                  </TooltipContent>
+                </Tooltip>
+
+                {/* 2. Clear Conversation */}
                 {messages.length > 0 && (
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -634,33 +597,6 @@ export function ChatwootWidget() {
                     </TooltipContent>
                   </Tooltip>
                 )}
-
-                {/* History Chat Toggle (Icon Base + Tooltip, harmonized) */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type='button'
-                      variant={showHistory ? 'secondary' : 'ghost'}
-                      size='icon'
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowHistory((prev) => !prev);
-                      }}
-                      className={cn(
-                        'size-8 rounded-lg transition-colors',
-                        showHistory
-                          ? 'bg-primary/10 text-primary hover:bg-primary/20'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
-                      )}
-                    >
-                      <Icons.history className='size-3.5' />
-                      <span className='sr-only'>History Chat</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side='bottom' className='text-xs'>
-                    History Chat
-                  </TooltipContent>
-                </Tooltip>
 
                 {/* Expand / Maximize Canvas Toggle with Morphing Icon */}
                 <Tooltip>
@@ -711,29 +647,55 @@ export function ChatwootWidget() {
               </div>
             </div>
 
+            {/* Backdrop for click outside history sidebar */}
+            {showHistory && (
+              <div
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowHistory(false);
+                }}
+                className='absolute inset-0 z-25 bg-background/30 backdrop-blur-[1.5px] animate-in fade-in duration-200 cursor-pointer'
+                aria-label='Tutup riwayat percakapan'
+              />
+            )}
+
             {/* History Chat Drawer Panel */}
             {showHistory && (
-              <div className='absolute inset-y-[57px] left-0 w-full sm:w-72 bg-card/98 backdrop-blur-md border-r border-border/60 z-30 flex flex-col animate-in slide-in-from-left duration-200 shadow-xl'>
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className='absolute inset-y-[57px] left-0 w-full sm:w-72 bg-card/98 backdrop-blur-md border-r border-border/60 z-30 flex flex-col animate-in slide-in-from-left duration-200 shadow-xl'
+              >
                 <div className='p-3 border-b border-border/50 flex items-center justify-between'>
-                  <div className='flex items-center gap-1.5'>
-                    <Icons.history className='size-3.5 text-primary' />
-                    <h4 className='text-xs font-bold text-foreground'>History Chat</h4>
+                  <h4 className='text-xs font-bold text-foreground'>History Chat</h4>
+                  <div className='flex items-center gap-1'>
+                    <Button
+                      type='button'
+                      variant='ghost'
+                      size='sm'
+                      onClick={() => {
+                        setMessages([]);
+                        setShowHistory(false);
+                        setTimeout(() => textareaRef.current?.focus(), 100);
+                        toast.success('Percakapan baru dimulai.');
+                      }}
+                      className='h-6 px-2 text-[10.5px] font-semibold text-primary hover:bg-primary/10 rounded-md'
+                    >
+                      Chat Baru
+                    </Button>
+                    <Button
+                      type='button'
+                      variant='ghost'
+                      size='icon'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowHistory(false);
+                      }}
+                      className='size-6 rounded-md text-muted-foreground hover:text-foreground'
+                    >
+                      <Icons.close className='size-3.5' />
+                      <span className='sr-only'>Tutup History</span>
+                    </Button>
                   </div>
-                  <Button
-                    type='button'
-                    variant='ghost'
-                    size='sm'
-                    onClick={() => {
-                      setMessages([]);
-                      setShowHistory(false);
-                      setTimeout(() => textareaRef.current?.focus(), 100);
-                      toast.success('Percakapan baru dimulai.');
-                    }}
-                    className='h-6 px-2 text-[10.5px] font-semibold text-primary hover:bg-primary/10 rounded-md gap-1'
-                  >
-                    <Icons.add className='size-3' />
-                    <span>Chat Baru</span>
-                  </Button>
                 </div>
                 <div className='flex-1 overflow-y-auto p-2.5 space-y-1.5'>
                   {MOCK_CHAT_HISTORY.map((hist) => (
@@ -788,7 +750,7 @@ export function ChatwootWidget() {
 
                   <div className='space-y-1.5'>
                     <h4 className='text-lg sm:text-xl font-bold text-foreground tracking-tight'>
-                      Bagaimana Amanah AI dapat membantu Anda?
+                      Bagaimana Gary dapat membantu Anda?
                     </h4>
                     <p className='text-xs text-muted-foreground leading-relaxed max-w-md'>
                       Eksplorasi data operasional klinik, jadwal dokter, estimasi antrean, atau
@@ -848,7 +810,7 @@ export function ChatwootWidget() {
                       {!isUser && (
                         <span className='inline-flex items-center gap-1.5 font-bold text-foreground'>
                           <Plasma3DLogo size={18} />
-                          <span>AI Assistant</span>
+                          <span>Gary</span>
                         </span>
                       )}
                       {isUser && <span>Anda</span>}
@@ -925,7 +887,7 @@ export function ChatwootWidget() {
                 <div className='flex flex-col items-start space-y-1.5'>
                   <div className='flex items-center gap-1.5 px-1 text-[11px] text-foreground font-bold'>
                     <Plasma3DLogo size={18} />
-                    <span>AI sedang menganalisis & merespons...</span>
+                    <span>Gary sedang menganalisis & merespons...</span>
                   </div>
 
                   <div className='p-4 rounded-2xl bg-muted/40 text-foreground border border-border/60 rounded-tl-xs text-xs sm:text-sm leading-relaxed max-w-[88%] shadow-2xs'>
@@ -1022,7 +984,7 @@ export function ChatwootWidget() {
               <div className='flex items-center justify-between text-[10.5px] text-muted-foreground px-1'>
                 <div className='flex items-center gap-1.5'>
                   <span className='size-1.5 rounded-full bg-emerald-500' />
-                  <span>Amanah Spatial LLM Workspace</span>
+                  <span>Gary Spatial Workspace</span>
                 </div>
                 <div className='hidden sm:flex items-center gap-2'>
                   <span>

@@ -59,7 +59,9 @@ export default function PageContainer({
     <div
       className={cn(
         'flex flex-1 flex-col px-4 pt-2 pb-4 md:px-6 md:pt-4 min-h-0',
-        scrollable && 'overflow-y-auto'
+        scrollable
+          ? 'overflow-y-auto'
+          : 'h-full max-h-[calc(100svh-4.25rem)] md:max-h-[calc(100svh-3.75rem)] overflow-hidden'
       )}
     >
       {hasHeader && (

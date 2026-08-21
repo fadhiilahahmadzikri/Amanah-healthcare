@@ -10,6 +10,14 @@ interface ServiceDistributionChartProps {
   totalPatients: number;
 }
 
+const CHART_TOKENS = [
+  'var(--chart-1)',
+  'var(--chart-2)',
+  'var(--chart-3)',
+  'var(--chart-4)',
+  'var(--chart-5)'
+];
+
 export function ServiceDistributionChart({ data, totalPatients }: ServiceDistributionChartProps) {
   return (
     <Card className='col-span-12 lg:col-span-5 flex flex-col justify-between shadow-xs border-border/60'>
@@ -33,12 +41,21 @@ export function ServiceDistributionChart({ data, totalPatients }: ServiceDistrib
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         const item = payload[0].payload;
+                        const sliceColor =
+                          CHART_TOKENS[(payload[0]?.payload?.index ?? 0) % CHART_TOKENS.length] ||
+                          'var(--primary)';
                         return (
                           <div className='rounded-lg border bg-background px-3 py-1.5 shadow-md text-xs'>
-                            <span className='font-semibold text-foreground'>
-                              {item.serviceName}
-                            </span>
-                            <div className='mt-0.5 text-muted-foreground font-medium'>
+                            <div className='flex items-center gap-1.5'>
+                              <span
+                                className='size-2 rounded-full shrink-0'
+                                style={{ backgroundColor: sliceColor }}
+                              />
+                              <span className='font-semibold text-foreground'>
+                                {item.serviceName}
+                              </span>
+                            </div>
+                            <div className='mt-0.5 text-muted-foreground font-medium pl-3.5'>
                               {item.patientsCount} pasien ({item.percentage}%)
                             </div>
                           </div>
@@ -54,11 +71,14 @@ export function ServiceDistributionChart({ data, totalPatients }: ServiceDistrib
                     innerRadius={54}
                     outerRadius={82}
                     paddingAngle={2}
-                    strokeWidth={1}
-                    stroke='var(--background)'
+                    strokeWidth={1.5}
+                    stroke='var(--card)'
                   >
                     {data.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={CHART_TOKENS[index % CHART_TOKENS.length]}
+                      />
                     ))}
                   </Pie>
                 </PieChart>
@@ -67,27 +87,27 @@ export function ServiceDistributionChart({ data, totalPatients }: ServiceDistrib
 
             {/* Centered Total Text inside Donut */}
             <div className='absolute inset-0 flex flex-col items-center justify-center pointer-events-none'>
-              <span className='text-xl font-bold text-foreground tracking-tight'>
+              <span className='text-xl font-bold text-foreground tracking-tight font-mono'>
                 {totalPatients.toLocaleString('id-ID')}
               </span>
               <span className='text-[11px] font-medium text-muted-foreground'>Total</span>
             </div>
           </div>
 
-          {/* Right Legend Items */}
+          {/* Right Legend Items with Theme Chart Tokens */}
           <div className='sm:col-span-7 flex flex-col justify-center space-y-2.5 pl-2'>
-            {data.map((item) => (
+            {data.map((item, idx) => (
               <div key={item.serviceName} className='flex items-center justify-between text-xs'>
                 <div className='flex items-center gap-2 min-w-0 pr-2'>
                   <span
                     className='size-2 rounded-full shrink-0'
-                    style={{ backgroundColor: item.color }}
+                    style={{ backgroundColor: CHART_TOKENS[idx % CHART_TOKENS.length] }}
                   />
                   <span className='text-muted-foreground truncate font-medium'>
                     {item.serviceName}
                   </span>
                 </div>
-                <span className='font-semibold text-foreground whitespace-nowrap tabular-nums'>
+                <span className='font-semibold text-foreground whitespace-nowrap tabular-nums font-mono'>
                   {item.percentage}% ({item.patientsCount})
                 </span>
               </div>

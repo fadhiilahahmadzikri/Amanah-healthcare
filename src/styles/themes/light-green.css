@@ -1,5 +1,5 @@
 [data-theme='light-green'] {
-  --background: oklch(0.9892 0.0054 117.9205);
+  --background: oklch(1 0 0);
   --foreground: oklch(0.2077 0.0398 265.7549);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.2077 0.0398 265.7549);

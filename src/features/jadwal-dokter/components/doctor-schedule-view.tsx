@@ -11,6 +11,7 @@ import { DoctorScheduleDetailSheet } from './doctor-schedule-detail-sheet';
 import { DoctorScheduleEditModal } from './doctor-schedule-edit-modal';
 import { DoctorExportButton } from './doctor-export-button';
 import { DoctorSchedulePagination } from './doctor-schedule-pagination';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule } from '../api/types';
 
@@ -175,55 +176,65 @@ export function DoctorScheduleView() {
           </div>
         </div>
 
-        {/* Doctor Schedules Card Grid */}
-        <div
-          className={cn(
-            'flex-1 pb-4 min-h-[380px] transition-opacity duration-150',
-            isFetching && 'opacity-75'
-          )}
-        >
-          {isLoading && !data ? (
-            <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5'>
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div
-                  key={i}
-                  className='h-[340px] rounded-[24px] bg-muted/20 animate-pulse border border-border/40'
-                />
-              ))}
-            </div>
-          ) : doctors.length === 0 ? (
-            <div className='p-12 text-center border border-dashed border-border/80 rounded-2xl bg-card/40 my-4'>
-              <Icons.clock className='size-10 text-muted-foreground/40 mx-auto mb-2' />
-              <h3 className='text-sm font-bold text-foreground'>
-                Tidak ada jadwal dokter ditemukan
-              </h3>
-              <p className='text-xs text-muted-foreground mt-1'>
-                Coba sesuaikan kata kunci pencarian atau bersihkan filter yang aktif.
-              </p>
-            </div>
-          ) : (
-            <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5'>
-              {doctors.map((doctor) => (
-                <DoctorScheduleCard
-                  key={doctor.id}
-                  doctor={doctor}
-                  onOpenDetail={handleOpenDetail}
-                  onOpenEdit={handleOpenEdit}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Doctor Schedules Card Grid with ScrollArea */}
+        <div className='relative flex flex-1 min-h-0 flex-col overflow-hidden'>
+          <div className='absolute inset-0 flex overflow-hidden'>
+            <ScrollArea className='h-full w-full pr-3'>
+              <div
+                className={cn(
+                  'transition-opacity duration-150 pb-20 pt-1',
+                  isFetching && 'opacity-75'
+                )}
+              >
+                {isLoading && !data ? (
+                  <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5'>
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className='h-[340px] rounded-[24px] bg-muted/20 animate-pulse border border-border/40'
+                      />
+                    ))}
+                  </div>
+                ) : doctors.length === 0 ? (
+                  <div className='p-12 text-center border border-dashed border-border/80 rounded-2xl bg-card/40 my-4'>
+                    <Icons.clock className='size-10 text-muted-foreground/40 mx-auto mb-2' />
+                    <h3 className='text-sm font-bold text-foreground'>
+                      Tidak ada jadwal dokter ditemukan
+                    </h3>
+                    <p className='text-xs text-muted-foreground mt-1'>
+                      Coba sesuaikan kata kunci pencarian atau bersihkan filter yang aktif.
+                    </p>
+                  </div>
+                ) : (
+                  <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5'>
+                    {doctors.map((doctor) => (
+                      <DoctorScheduleCard
+                        key={doctor.id}
+                        doctor={doctor}
+                        onOpenDetail={handleOpenDetail}
+                        onOpenEdit={handleOpenEdit}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
 
-        {/* Docked Bottom Sticky Pagination Bar */}
-        <DoctorSchedulePagination
-          currentPage={params.page}
-          pageSize={params.perPage}
-          totalItems={totalDoctors}
-          onPageChange={(page) => setParams({ page }, { shallow: true })}
-          onPageSizeChange={(perPage) => setParams({ perPage, page: 1 }, { shallow: true })}
-          pageSizeOptions={[6, 12, 18, 24, 30]}
-        />
+          {/* Floating Detached Glass Pagination Bar (Backdrop Blur Over Content) */}
+          <div className='absolute bottom-0 inset-x-0 z-20 pointer-events-none flex justify-center'>
+            <div className='pointer-events-auto w-full'>
+              <DoctorSchedulePagination
+                currentPage={params.page}
+                pageSize={params.perPage}
+                totalItems={totalDoctors}
+                onPageChange={(page) => setParams({ page }, { shallow: true })}
+                onPageSizeChange={(perPage) => setParams({ perPage, page: 1 }, { shallow: true })}
+                pageSizeOptions={[6, 12, 18, 24, 30]}
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </>
   );

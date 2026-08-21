@@ -39,21 +39,21 @@ export function DoctorSchedulePagination({
   return (
     <div
       className={cn(
-        'sticky bottom-0 z-20 flex w-[calc(100%+2rem)] md:w-[calc(100%+3rem)] -mx-4 md:-mx-6 -mb-4 flex-wrap items-center justify-between gap-2 overflow-auto bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 py-3 px-4 md:px-6 border-t border-border shadow-[0_-4px_16px_rgba(0,0,0,0.06)] dark:shadow-[0_-4px_16px_rgba(0,0,0,0.3)] select-none sm:gap-8 mt-auto',
+        'flex w-full flex-wrap items-center justify-between gap-2 border-t border-border/50 bg-background/80 dark:bg-card/80 px-4 py-3 shadow-md backdrop-blur-xl supports-[backdrop-filter]:bg-background/70 dark:supports-[backdrop-filter]:bg-card/70 select-none sm:gap-6 transition-all',
         className
       )}
       {...props}
     >
       {/* Total Items Info */}
-      <div className='text-muted-foreground text-xs sm:text-sm whitespace-nowrap'>
-        <span className='font-bold text-foreground'>{totalItems}</span> dokter terdaftar
+      <div className='text-xs sm:text-sm whitespace-nowrap text-muted-foreground pl-1'>
+        <span className='font-semibold text-foreground'>{totalItems}</span> dokter terdaftar
       </div>
 
       {/* Pagination Controls */}
-      <div className='flex items-center gap-3 sm:gap-6 lg:gap-8'>
+      <div className='flex items-center gap-2 sm:gap-6 lg:gap-8'>
         {/* Page Size Selector */}
         <div className='hidden items-center space-x-2 sm:flex'>
-          <p className='text-xs sm:text-sm font-medium whitespace-nowrap text-foreground'>
+          <p className='text-xs font-medium whitespace-nowrap text-muted-foreground'>
             Kartu per halaman
           </p>
           <Select
@@ -63,7 +63,7 @@ export function DoctorSchedulePagination({
               onPageChange(1);
             }}
           >
-            <SelectTrigger className='h-8 w-[4.5rem] text-xs bg-background shadow-2xs border-border/70 [&[data-size]]:h-8'>
+            <SelectTrigger className='h-8 w-16 text-xs bg-background/80 shadow-2xs border-border/70 text-foreground [&[data-size]]:h-8'>
               <SelectValue placeholder={`${pageSize}`} />
             </SelectTrigger>
             <SelectContent side='top'>
@@ -77,19 +77,20 @@ export function DoctorSchedulePagination({
         </div>
 
         {/* Current Page of Total */}
-        <div className='flex items-center justify-center text-xs sm:text-sm font-medium whitespace-nowrap text-foreground'>
-          Halaman <span className='font-bold text-foreground mx-1'>{currentPage}</span> dari{' '}
+        <div className='flex items-center justify-center text-xs font-medium whitespace-nowrap text-foreground'>
+          Halaman <span className='font-semibold text-foreground mx-1'>{currentPage}</span> dari{' '}
           {pageCount}
         </div>
 
         {/* Page Navigation Buttons */}
-        <div className='flex items-center space-x-1.5'>
+        <div className='flex items-center space-x-1'>
           {/* First Page */}
           <Button
+            type='button'
             aria-label='Ke halaman pertama'
             variant='outline'
             size='icon'
-            className='hidden size-8 lg:flex shadow-2xs border-border/70'
+            className='hidden size-8 lg:flex shadow-2xs border-border/70 text-foreground bg-background/60 hover:bg-background'
             onClick={() => onPageChange(1)}
             disabled={!canPrevious}
           >
@@ -98,34 +99,37 @@ export function DoctorSchedulePagination({
 
           {/* Previous Page */}
           <Button
+            type='button'
             aria-label='Ke halaman sebelumnya'
             variant='outline'
             size='icon'
-            className='size-8 shadow-2xs border-border/70'
+            className='size-8 shadow-2xs border-border/70 text-foreground bg-background/60 hover:bg-background'
             onClick={() => onPageChange(currentPage - 1)}
             disabled={!canPrevious}
           >
-            <ChevronLeftIcon className='size-3.5' />
+            <Icons.chevronLeft className='size-3.5' />
           </Button>
 
           {/* Next Page */}
           <Button
+            type='button'
             aria-label='Ke halaman berikutnya'
             variant='outline'
             size='icon'
-            className='size-8 shadow-2xs border-border/70'
+            className='size-8 shadow-2xs border-border/70 text-foreground bg-background/60 hover:bg-background'
             onClick={() => onPageChange(currentPage + 1)}
             disabled={!canNext}
           >
-            <ChevronRightIcon className='size-3.5' />
+            <Icons.chevronRight className='size-3.5' />
           </Button>
 
           {/* Last Page */}
           <Button
+            type='button'
             aria-label='Ke halaman terakhir'
             variant='outline'
             size='icon'
-            className='hidden size-8 lg:flex shadow-2xs border-border/70'
+            className='hidden size-8 lg:flex shadow-2xs border-border/70 text-foreground bg-background/60 hover:bg-background'
             onClick={() => onPageChange(pageCount)}
             disabled={!canNext}
           >

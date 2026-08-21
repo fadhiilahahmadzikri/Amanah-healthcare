@@ -56,6 +56,55 @@ const THEME_PALETTES: Record<string, ThemePalette> = {
     manualMaterialColor: '#a855f7',
     glowGradient: 'from-purple-400/30 via-pink-500/20 to-indigo-500/20'
   },
+  'blue-ocean': {
+    fillLightColor: '#38bdf8',
+    rimColor: '#2563eb',
+    modelColor: '#f0f9ff',
+    manualMaterialColor: '#38bdf8',
+    glowGradient: 'from-sky-400/35 via-blue-500/25 to-cyan-500/20'
+  },
+  vercel: {
+    fillLightColor: '#71717a',
+    rimColor: '#a1a1aa',
+    modelColor: '#f4f4f5',
+    manualMaterialColor: '#52525b',
+    glowGradient: 'from-zinc-400/30 via-slate-500/20 to-neutral-600/20'
+  },
+  mono: {
+    fillLightColor: '#64748b',
+    rimColor: '#94a3b8',
+    modelColor: '#f8fafc',
+    manualMaterialColor: '#475569',
+    glowGradient: 'from-slate-400/25 via-zinc-400/20 to-neutral-500/20'
+  },
+  neobrutualism: {
+    fillLightColor: '#f59e0b',
+    rimColor: '#f97316',
+    modelColor: '#fffbeb',
+    manualMaterialColor: '#ea580c',
+    glowGradient: 'from-amber-400/35 via-yellow-400/25 to-orange-500/25'
+  },
+  notebook: {
+    fillLightColor: '#0d9488',
+    rimColor: '#059669',
+    modelColor: '#f0fdfa',
+    manualMaterialColor: '#0f766e',
+    glowGradient: 'from-teal-400/30 via-emerald-400/20 to-cyan-500/20'
+  },
+  'light-green': {
+    fillLightColor: '#22c55e',
+    rimColor: '#84cc16',
+    modelColor: '#f0fdf4',
+    manualMaterialColor: '#16a34a',
+    glowGradient: 'from-emerald-400/30 via-green-400/20 to-lime-400/20'
+  },
+  zen: {
+    fillLightColor: '#16a34a',
+    rimColor: '#15803d',
+    modelColor: '#f0fdf4',
+    manualMaterialColor: '#14532d',
+    glowGradient: 'from-emerald-500/30 via-green-600/20 to-teal-600/20'
+  },
   default: {
     fillLightColor: '#38bdf8',
     rimColor: '#60a5fa',

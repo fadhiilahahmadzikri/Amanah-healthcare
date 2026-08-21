@@ -1,5 +1,5 @@
 [data-theme='whatsapp'] {
-  --background: oklch(0.9605 0.0046 258.3248);
+  --background: oklch(1 0 0);
   --foreground: oklch(0.2153 0.0187 235.1251);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.2153 0.0187 235.1251);

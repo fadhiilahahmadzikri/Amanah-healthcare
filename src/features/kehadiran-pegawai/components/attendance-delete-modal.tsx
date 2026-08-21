@@ -9,17 +9,32 @@ import { useDeleteAttendanceMutation } from '../api/mutations';
 import type { StaffAttendance } from '../api/types';
 
 export interface AttendanceDeleteModalProps {
-  attendance: StaffAttendance | null;
+  attendance?: StaffAttendance | null;
+  attendances?: StaffAttendance[];
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export function AttendanceDeleteModal({ attendance, isOpen, onClose }: AttendanceDeleteModalProps) {
+export function AttendanceDeleteModal({
+  attendance,
+  attendances,
+  isOpen,
+  onClose,
+  onSuccess
+}: AttendanceDeleteModalProps) {
   const deleteMutation = useDeleteAttendanceMutation();
 
-  if (!attendance) return null;
+  const targetList =
+    attendances && attendances.length > 0 ? attendances : attendance ? [attendance] : [];
 
-  const initials = attendance.nama_staf
+  if (targetList.length === 0) return null;
+
+  const isBulk = targetList.length > 1;
+  const single = targetList[0];
+
+  const initials = single.nama_staf
+    .replace('dr. ', '')
     .split(' ')
     .map((n) => n[0])
     .slice(0, 2)
@@ -27,11 +42,21 @@ export function AttendanceDeleteModal({ attendance, isOpen, onClose }: Attendanc
     .toUpperCase();
 
   const handleConfirmDelete = () => {
-    deleteMutation.mutate(attendance.id, {
-      onSuccess: () => {
-        onClose();
-      }
-    });
+    if (isBulk) {
+      // Execute deletion for all targets
+      targetList.forEach((item) => {
+        deleteMutation.mutate(item.id);
+      });
+      onClose();
+      onSuccess?.();
+    } else {
+      deleteMutation.mutate(single.id, {
+        onSuccess: () => {
+          onClose();
+          onSuccess?.();
+        }
+      });
+    }
   };
 
   return (
@@ -49,10 +74,14 @@ export function AttendanceDeleteModal({ attendance, isOpen, onClose }: Attendanc
           </div>
           <div className='space-y-1 min-w-0 flex-1'>
             <h3 className='text-base font-bold text-foreground tracking-tight'>
-              Hapus Data Presensi Pegawai
+              {isBulk
+                ? `Hapus ${targetList.length} Data Presensi Pegawai`
+                : 'Hapus Data Presensi Pegawai'}
             </h3>
             <p className='text-xs text-muted-foreground'>
-              Tindakan ini akan menghapus riwayat kehadiran staf terpilih secara permanen.
+              {isBulk
+                ? `Tindakan ini akan menghapus ${targetList.length} riwayat kehadiran staf terpilih secara permanen.`
+                : 'Tindakan ini akan menghapus riwayat kehadiran staf terpilih secara permanen.'}
             </p>
           </div>
           <button
@@ -66,30 +95,49 @@ export function AttendanceDeleteModal({ attendance, isOpen, onClose }: Attendanc
         </div>
 
         {/* Staff Target Information Box */}
-        <div className='p-3.5 rounded-xl border border-border/60 bg-muted/20 flex items-center gap-3 select-none'>
-          <Avatar className='size-11 rounded-full border border-border/40 shrink-0'>
-            {attendance.avatar && (
-              <AvatarImage src={attendance.avatar} alt={attendance.nama_staf} />
-            )}
-            <AvatarFallback className='bg-primary/10 text-primary font-bold text-xs'>
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-
-          <div className='flex flex-col min-w-0 flex-1 space-y-0.5'>
-            <div className='flex items-center gap-2'>
-              <span className='text-sm font-bold text-foreground truncate'>
-                {attendance.nama_staf}
-              </span>
-              <span className='inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-muted text-muted-foreground border border-border/50 shrink-0'>
-                {attendance.kategori}
-              </span>
+        {isBulk ? (
+          <div className='p-3 rounded-xl border border-border/60 bg-muted/20 space-y-2 max-h-48 overflow-y-auto select-none'>
+            <p className='text-xs font-semibold text-foreground'>Daftar staf yang akan dihapus:</p>
+            <div className='space-y-1.5'>
+              {targetList.map((item) => (
+                <div
+                  key={item.id}
+                  className='flex items-center justify-between text-xs py-1 border-b border-border/30 last:border-0'
+                >
+                  <span className='font-medium text-foreground truncate max-w-[240px]'>
+                    {item.nama_staf}
+                  </span>
+                  <span className='text-muted-foreground font-mono text-[11px]'>
+                    {item.id_staf} • {item.shift}
+                  </span>
+                </div>
+              ))}
             </div>
-            <p className='text-xs text-muted-foreground font-mono'>
-              ID: {attendance.id_staf} • Shift: {attendance.shift} ({attendance.waktu})
-            </p>
           </div>
-        </div>
+        ) : (
+          <div className='p-3.5 rounded-xl border border-border/60 bg-muted/20 flex items-center gap-3 select-none'>
+            <Avatar className='size-11 rounded-full border border-border/40 shrink-0'>
+              {single.avatar && <AvatarImage src={single.avatar} alt={single.nama_staf} />}
+              <AvatarFallback className='bg-primary/10 text-primary font-bold text-xs'>
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+
+            <div className='flex flex-col min-w-0 flex-1 space-y-0.5'>
+              <div className='flex items-center gap-2'>
+                <span className='text-sm font-bold text-foreground truncate'>
+                  {single.nama_staf}
+                </span>
+                <span className='inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-muted text-muted-foreground border border-border/50 shrink-0'>
+                  {single.kategori}
+                </span>
+              </div>
+              <p className='text-xs text-muted-foreground font-mono'>
+                ID: {single.id_staf} • Shift: {single.shift} ({single.waktu})
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className='pt-2 flex items-center justify-end gap-2.5'>
@@ -119,7 +167,7 @@ export function AttendanceDeleteModal({ attendance, isOpen, onClose }: Attendanc
             ) : (
               <Icons.trash className='size-3.5' />
             )}
-            <span>Hapus Presensi</span>
+            <span>{isBulk ? `Hapus ${targetList.length} Presensi` : 'Hapus Presensi'}</span>
           </Button>
         </div>
       </div>
