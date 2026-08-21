@@ -342,35 +342,55 @@ export function ChatwootWidget() {
         onMouseLeave={() => !isOpen && setIsHovered(false)}
         onClick={() => !isOpen && handleOpenWorkspace()}
         className={cn(
-          'fixed bottom-6 right-6 z-50 flex flex-col font-sans overflow-hidden border border-border/70 bg-card/98 text-card-foreground shadow-2xl backdrop-blur-2xl transition-[width,height,max-width,max-height,border-radius,padding] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] select-none',
+          'fixed bottom-6 right-6 z-50 flex flex-col font-sans overflow-hidden border border-border/70 bg-card/98 text-card-foreground shadow-2xl backdrop-blur-2xl transition-[width,height,max-width,max-height,border-radius,padding,transform,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] select-none',
           !isOpen
-            ? 'w-[206px] h-14 rounded-2xl p-2.5 cursor-pointer hover:shadow-2xl hover:scale-[1.02] hover:-translate-y-1 ring-2 ring-primary/10 hover:ring-primary/20 bg-card/95'
+            ? isHovered
+              ? 'w-[216px] h-14 rounded-2xl px-3 py-2 cursor-pointer shadow-2xl scale-[1.02] -translate-y-0.5 ring-4 ring-primary/15 bg-card/95'
+              : 'w-14 h-14 rounded-2xl p-2 cursor-pointer shadow-xl ring-2 ring-primary/10 bg-card/95'
             : isExpanded
               ? 'w-[calc(100vw-2rem)] sm:w-[min(1080px,calc(100vw-3rem))] h-[min(820px,calc(100vh-4rem))] rounded-[28px] p-0'
               : 'w-[calc(100vw-2rem)] sm:w-[500px] md:w-[580px] h-[640px] max-h-[calc(100vh-5rem)] rounded-3xl p-0'
         )}
       >
-        {/* State A: Pill Launcher Content (Visible when closed) */}
+        {/* State A: 3-Phase Launcher (Fase 1: Icon Base <-> Fase 2: Hovered Pill Label) */}
         {!isOpen && (
           <div
             ref={launcherContentRef}
-            className='size-full flex items-center justify-between px-2 gap-2 transition-opacity duration-200'
+            className='size-full flex items-center justify-between overflow-hidden relative'
           >
-            <div className='flex items-center gap-2.5 min-w-0'>
-              <div className='relative size-7 flex items-center justify-center shrink-0'>
-                <GeminiSparkle3DIcon size={28} isHovered={isHovered} interactive={false} />
-              </div>
+            {/* Left: 3D Gemini Gradient Star */}
+            <div className='relative size-10 flex items-center justify-center shrink-0 mx-auto sm:mx-0'>
+              <GeminiSparkle3DIcon size={30} isHovered={isHovered} interactive={false} />
+            </div>
+
+            {/* Revealed on Hover (Fase 2): Text + Kbd + Active Indicator */}
+            <div
+              className={cn(
+                'flex items-center justify-between flex-1 min-w-0 pl-1.5 pr-1 gap-2 transition-all duration-300',
+                isHovered
+                  ? 'opacity-100 translate-x-0 max-w-44'
+                  : 'opacity-0 translate-x-2 max-w-0 pointer-events-none'
+              )}
+            >
               <span className='font-bold text-xs text-foreground tracking-tight truncate'>
                 Tanya Amanah AI
               </span>
+
+              <div className='flex items-center gap-1.5 shrink-0'>
+                <kbd className='px-1.5 py-0.5 text-[9.5px] font-mono rounded bg-muted text-muted-foreground border border-border/60'>
+                  ⌘K
+                </kbd>
+                <span className='flex size-2 rounded-full bg-emerald-500 ring-2 ring-card shrink-0' />
+              </div>
             </div>
 
-            <div className='flex items-center gap-1.5 shrink-0'>
-              <kbd className='px-1.5 py-0.5 text-[9.5px] font-mono rounded bg-muted text-muted-foreground border border-border/60'>
-                ⌘K
-              </kbd>
-              <span className='flex size-2 rounded-full bg-emerald-500 ring-2 ring-card shrink-0' />
-            </div>
+            {/* Resting Beacon Dot when NOT hovered (Fase 1) */}
+            {!isHovered && (
+              <span className='absolute -top-0.5 -right-0.5 flex size-2.5 pointer-events-none'>
+                <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60' />
+                <span className='relative inline-flex rounded-full size-2.5 bg-emerald-500 ring-2 ring-card' />
+              </span>
+            )}
           </div>
         )}
 
