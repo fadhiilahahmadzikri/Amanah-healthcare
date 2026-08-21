@@ -5,6 +5,7 @@ import gsap from 'gsap';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Plasma3DLogo } from './plasma-3d-logo';
+import { MarkdownRenderer } from './markdown-renderer';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -20,27 +21,29 @@ export interface AIMessage {
 const INITIAL_SUGGESTIONS = [
   {
     icon: 'calendar',
-    title: 'Jadwal Dokter Spesialis',
-    desc: 'Cek jadwal praktek dokter & kuota poli hari ini',
-    prompt: 'Tampilkan jadwal dokter spesialis yang berpraktek hari ini di Klinik Amanah.'
+    title: 'Jadwal Praktik Dokter & USG',
+    desc: 'Cek jadwal dr. Ika Fenti & dr. Bella serta ketersediaan USG',
+    prompt:
+      'Tampilkan jadwal praktik dr. Ika Fenti dan dr. Bella beserta layanan USG di Klinik Amanah.'
   },
   {
-    icon: 'users',
-    title: 'Estimasi Antrean Poli',
-    desc: 'Pantau kepadatan & rata-rata waktu tunggu',
-    prompt: 'Bagaimana status antrean poli umum dan poli gigi saat ini?'
-  },
-  {
-    icon: 'package',
-    title: 'Ketersediaan Stok Farmasi',
-    desc: 'Cek stok obat generik & resep darurat',
-    prompt: 'Apakah stok antibiotik Amoxicillin dan Paracetamol sirup mencukupi?'
+    icon: 'heart-pulse',
+    title: 'Persalinan 24 Jam & BPJS',
+    desc: 'Informasi Paket Persalinan Full Bonus dan fasilitas BPJS',
+    prompt: 'Bagaimana prosedur Persalinan 24 Jam, Paket Full Bonus, dan syarat USG dengan BPJS?'
   },
   {
     icon: 'shield',
-    title: 'Panduan Rujukan BPJS',
-    desc: 'Alur administrasi SEP & validasi rujukan faskes',
-    prompt: 'Bagaimana alur penerbitan SEP BPJS untuk pasien rujukan baru?'
+    title: 'Khitan Modern & Imunisasi',
+    desc: 'Layanan khitan nyaman minim nyeri & jadwal imunisasi anak',
+    prompt:
+      'Jelaskan layanan Khitan Modern, Imunisasi anak, dan Cek Lab Sederhana di Klinik Amanah.'
+  },
+  {
+    icon: 'map-pin',
+    title: 'Alamat & Kontak Darurat',
+    desc: 'Wilayah Condongcatur, Sleman & WhatsApp 12345678910',
+    prompt: 'Dimana alamat Klinik Pratama Amanah Healthcare dan nomor kontak WhatsApp resminya?'
   }
 ];
 
@@ -70,14 +73,26 @@ export function ChatwootWidget() {
   const conversationAreaRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  const streamIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const rawBufferRef = useRef('');
+  const displayedTextRef = useRef('');
+  const rafIdRef = useRef<number | null>(null);
+  const isStreamFinishedRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Auto-scroll on new messages or streaming tokens
+  // Auto-scroll on new completed messages or when workspace opens
   useEffect(() => {
     if (isOpen && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, streamingText, isOpen]);
+  }, [messages, isOpen]);
+
+  // Clean up RAF and abort controllers on unmount
+  useEffect(() => {
+    return () => {
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+      if (abortControllerRef.current) abortControllerRef.current.abort();
+    };
+  }, []);
 
   // Focus textarea when workspace opens
   useEffect(() => {
@@ -141,30 +156,29 @@ export function ChatwootWidget() {
           opacity: 1,
           y: 0,
           duration: 0.38,
-          ease: 'power2.out',
-          clearProps: 'transform,opacity'
+          ease: 'power3.out'
         },
-        '-=0.3'
+        '-=0.25'
       );
     }
   };
 
+  // GSAP Morphing Close (Folds smoothly back down diagonally to the launcher origin)
   const handleCloseWorkspace = () => {
-    if (streamIntervalRef.current) {
-      clearInterval(streamIntervalRef.current);
-    }
-    setIsStreaming(false);
+    if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+    if (abortControllerRef.current) abortControllerRef.current.abort();
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (!morphContainerRef.current || prefersReducedMotion) {
       setIsOpen(false);
+      setIsExpanded(false);
       return;
     }
 
-    // Physical reverse morph: Window collapses smoothly back into its parent pill button
     const tl = gsap.timeline({
       onComplete: () => {
         setIsOpen(false);
+        setIsExpanded(false);
       }
     });
 
@@ -172,7 +186,7 @@ export function ChatwootWidget() {
       tl.to(workspaceContentRef.current, {
         opacity: 0,
         y: 10,
-        duration: 0.18,
+        duration: 0.22,
         ease: 'power2.in'
       });
     }
@@ -220,13 +234,11 @@ export function ChatwootWidget() {
         }
       );
     } else {
-      // Diagonal Contraction Morph (Elastic settle back to compact floating mode)
+      // Compact Retraction Morph
       gsap.fromTo(
         morphContainerRef.current,
         {
           scale: 1.04,
-          x: -14,
-          y: -14,
           transformOrigin: 'bottom right'
         },
         {
@@ -241,8 +253,60 @@ export function ChatwootWidget() {
     }
   };
 
-  // Streaming response simulation
-  const handleSend = (textToSend?: string) => {
+  // Ultra-Smooth Adaptive Streaming Dispatcher (Pro 60-120fps RAF Typist Engine)
+  const startRafTypist = () => {
+    if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+
+    const tick = () => {
+      const raw = rawBufferRef.current;
+      const curr = displayedTextRef.current;
+
+      if (curr.length < raw.length) {
+        const diff = raw.length - curr.length;
+        // Adaptive step: smooth, natural reading pace when close, accelerates smoothly during fast bursts
+        const step = diff > 120 ? Math.ceil(diff / 6) : diff > 50 ? 4 : diff > 20 ? 2 : 1;
+
+        const next = raw.slice(0, curr.length + step);
+        displayedTextRef.current = next;
+        setStreamingText(next);
+
+        // Hardware-accelerated smooth scroll without layout thrashing
+        if (conversationAreaRef.current) {
+          conversationAreaRef.current.scrollTop = conversationAreaRef.current.scrollHeight;
+        }
+      } else if (isStreamFinishedRef.current) {
+        // Queue completely drained and network stream finished!
+        const finalAnswer = displayedTextRef.current || rawBufferRef.current;
+        if (finalAnswer) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `ai-${Date.now()}`,
+              role: 'assistant',
+              content: finalAnswer,
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              status: 'complete'
+            }
+          ]);
+        }
+        setIsStreaming(false);
+        setStreamingText('');
+        rawBufferRef.current = '';
+        displayedTextRef.current = '';
+        isStreamFinishedRef.current = false;
+        if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+        return;
+      }
+
+      rafIdRef.current = requestAnimationFrame(tick);
+    };
+
+    rafIdRef.current = requestAnimationFrame(tick);
+  };
+
+  // Real-Time Streaming AI Response (Powered by Gemma 4 + Pro Smooth Engine)
+  const handleSend = async (textToSend?: string) => {
     const text = (textToSend || inputPrompt).trim();
     if (!text || isStreaming) return;
 
@@ -253,63 +317,106 @@ export function ChatwootWidget() {
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    const newHistory = [...messages, userMessage];
+    setMessages(newHistory);
     setInputPrompt('');
     setIsStreaming(true);
     setStreamingText('');
 
-    // Determine mock reply
-    const lower = text.toLowerCase();
-    let replyTemplate =
-      'Terima kasih atas pertanyaannya. Sebagai Asisten AI Cerdas Klinik Amanah, saya siap membantu memvalidasi data klinis, jadwal dokter, atau status rekam medis Anda. Apakah ada informasi spesifik lain yang ingin Anda ketahui?';
+    rawBufferRef.current = '';
+    displayedTextRef.current = '';
+    isStreamFinishedRef.current = false;
+    abortControllerRef.current = new AbortController();
 
-    if (lower.includes('jadwal') || lower.includes('dokter')) {
-      replyTemplate = MOCK_AI_RESPONSES.jadwal;
-    } else if (lower.includes('antre') || lower.includes('tunggu')) {
-      replyTemplate = MOCK_AI_RESPONSES.antrean;
-    } else if (lower.includes('obat') || lower.includes('stok') || lower.includes('farmasi')) {
-      replyTemplate = MOCK_AI_RESPONSES.farmasi;
-    } else if (lower.includes('bpjs') || lower.includes('sep') || lower.includes('rujukan')) {
-      replyTemplate = MOCK_AI_RESPONSES.bpjs;
-    }
+    // Start 60fps adaptive smooth typing loop
+    startRafTypist();
 
-    let currentIndex = 0;
-    const words = replyTemplate.split(' ');
+    try {
+      const apiMessages = newHistory.map((m) => ({
+        role: m.role,
+        content: m.content
+      }));
 
-    streamIntervalRef.current = setInterval(() => {
-      if (currentIndex < words.length) {
-        setStreamingText((prev) => (prev ? `${prev} ${words[currentIndex]}` : words[currentIndex]));
-        currentIndex++;
-      } else {
-        if (streamIntervalRef.current) clearInterval(streamIntervalRef.current);
-        setIsStreaming(false);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `ai-${Date.now()}`,
-            role: 'assistant',
-            content: replyTemplate,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            status: 'complete'
-          }
-        ]);
-        setStreamingText('');
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: apiMessages }),
+        signal: abortControllerRef.current.signal
+      });
+
+      if (!res.ok) {
+        throw new Error(`Server status ${res.status}`);
       }
-    }, 45);
+
+      if (!res.body) {
+        throw new Error('Readable stream unavailable');
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed === 'data: [DONE]') continue;
+
+          if (trimmed.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(trimmed.slice(6));
+              if (data.text) {
+                // Instantly enqueue into buffer without blocking the UI thread
+                rawBufferRef.current += data.text;
+              }
+            } catch {
+              // ignore parse errors
+            }
+          }
+        }
+      }
+
+      // Mark network stream as finished (RAF loop will smoothly drain any remaining buffer)
+      isStreamFinishedRef.current = true;
+    } catch (err: unknown) {
+      if ((err as Error)?.name === 'AbortError') {
+        // Generation cancelled by user
+      } else {
+        console.error('Chat AI stream error:', err);
+        toast.error('Gagal terhubung ke AI server. Silakan coba lagi.');
+        setIsStreaming(false);
+        setStreamingText('');
+        if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+      }
+    } finally {
+      abortControllerRef.current = null;
+    }
   };
 
   const handleStopStreaming = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (streamIntervalRef.current) {
-      clearInterval(streamIntervalRef.current);
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
     }
-    if (streamingText) {
+    if (rafIdRef.current) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
+
+    const stoppedContent = displayedTextRef.current || rawBufferRef.current;
+    if (stoppedContent) {
       setMessages((prev) => [
         ...prev,
         {
           id: `ai-${Date.now()}`,
           role: 'assistant',
-          content: streamingText,
+          content: stoppedContent,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           status: 'complete'
         }
@@ -317,6 +424,9 @@ export function ChatwootWidget() {
     }
     setIsStreaming(false);
     setStreamingText('');
+    rawBufferRef.current = '';
+    displayedTextRef.current = '';
+    isStreamFinishedRef.current = false;
   };
 
   const handleCopy = (id: string, text: string) => {
@@ -364,46 +474,47 @@ export function ChatwootWidget() {
         )}
       >
         {/* State A: 3-Phase Launcher (Fase 1: Icon Base <-> Fase 2: Hovered Pill Label) */}
-        {!isOpen && (
-          <div
-            ref={launcherContentRef}
-            className='size-full flex items-center justify-between relative overflow-visible'
-          >
-            {/* Left: 3D Plasma Hologram Logo (Full-bleed, unboxed, fluid rotation) */}
-            <div className='relative size-14 flex items-center justify-center shrink-0 overflow-visible'>
-              <Plasma3DLogo size={isHovered ? 52 : 60} />
-            </div>
-
-            {/* Revealed on Hover (Fase 2): Text + Kbd + Active Indicator */}
-            <div
-              className={cn(
-                'flex items-center justify-between flex-1 min-w-0 pl-1 pr-1.5 gap-2 transition-all duration-300',
-                isHovered
-                  ? 'opacity-100 translate-x-0 max-w-52'
-                  : 'opacity-0 translate-x-2 max-w-0 pointer-events-none'
-              )}
-            >
-              <span className='font-bold text-xs text-white tracking-tight truncate drop-shadow-[0_1px_1.5px_rgba(0,0,0,0.3)]'>
-                Tanya Amanah AI
-              </span>
-
-              <div className='flex items-center gap-1.5 shrink-0'>
-                <kbd className='px-1.5 py-0.5 text-[9.5px] font-mono rounded bg-white/20 text-white border border-white/35 backdrop-blur-xs'>
-                  ⌘K
-                </kbd>
-                <span className='flex size-2 rounded-full bg-emerald-400 ring-2 ring-white/70 shrink-0' />
-              </div>
-            </div>
-
-            {/* Resting Beacon Dot when NOT hovered (Fase 1) */}
-            {!isHovered && (
-              <span className='absolute top-1 right-1 flex size-2.5 pointer-events-none z-10'>
-                <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-80' />
-                <span className='relative inline-flex rounded-full size-2.5 bg-emerald-400 ring-2 ring-white/80' />
-              </span>
-            )}
+        <div
+          ref={launcherContentRef}
+          className={cn(
+            'size-full items-center justify-between relative overflow-visible',
+            isOpen ? 'hidden' : 'flex'
+          )}
+        >
+          {/* Left: 3D Plasma Hologram Logo (Full-bleed, unboxed, fluid rotation) */}
+          <div className='relative size-14 flex items-center justify-center shrink-0 overflow-visible'>
+            <Plasma3DLogo size={isHovered ? 52 : 60} />
           </div>
-        )}
+
+          {/* Revealed on Hover (Fase 2): Text + Kbd + Active Indicator */}
+          <div
+            className={cn(
+              'flex items-center justify-between flex-1 min-w-0 pl-1 pr-1.5 gap-2 transition-all duration-300',
+              isHovered
+                ? 'opacity-100 translate-x-0 max-w-52'
+                : 'opacity-0 translate-x-2 max-w-0 pointer-events-none'
+            )}
+          >
+            <span className='font-bold text-xs text-white tracking-tight truncate drop-shadow-[0_1px_1.5px_rgba(0,0,0,0.3)]'>
+              Tanya Amanah AI
+            </span>
+
+            <div className='flex items-center gap-1.5 shrink-0'>
+              <kbd className='px-1.5 py-0.5 text-[9.5px] font-mono rounded bg-white/20 text-white border border-white/35 backdrop-blur-xs'>
+                ⌘K
+              </kbd>
+              <span className='flex size-2 rounded-full bg-emerald-400 ring-2 ring-white/70 shrink-0' />
+            </div>
+          </div>
+
+          {/* Resting Beacon Dot when NOT hovered (Fase 1) */}
+          {!isHovered && (
+            <span className='absolute top-1 right-1 flex size-2.5 pointer-events-none z-10'>
+              <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-80' />
+              <span className='relative inline-flex rounded-full size-2.5 bg-emerald-400 ring-2 ring-white/80' />
+            </span>
+          )}
+        </div>
 
         {/* State B: Expanded Full Conversational Workspace (Visible when open) */}
         {isOpen && (
@@ -412,7 +523,7 @@ export function ChatwootWidget() {
             className='size-full flex flex-col overflow-hidden animate-in fade-in duration-300'
           >
             {/* Workspace Header */}
-            <div className='px-5 py-3.5 border-b border-border/50 bg-muted/20 flex items-center justify-between shrink-0'>
+            <div className='px-5 py-3.5 border-b border-border/50 bg-card/95 backdrop-blur-md flex items-center justify-between shrink-0 relative z-20'>
               {/* Identity & Status */}
               <div className='min-w-0'>
                 <div className='flex items-center gap-2'>
@@ -507,13 +618,13 @@ export function ChatwootWidget() {
             {/* Conversation Stream Area (Editorial Document Paradigm) */}
             <div
               ref={conversationAreaRef}
-              className='flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 bg-gradient-to-b from-transparent via-background/40 to-background text-sm'
+              className='flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-gradient-to-b from-transparent via-background/40 to-background text-sm relative z-10 scroll-smooth overscroll-y-contain'
             >
               {/* Empty State with Staggered Prompt Cards */}
               {messages.length === 0 && !isStreaming && (
                 <div
                   className={cn(
-                    'h-full flex flex-col items-center justify-center text-center mx-auto py-8 space-y-6 select-none transition-all duration-300',
+                    'min-h-full flex flex-col items-center justify-start text-center mx-auto pt-1 pb-4 space-y-3.5 select-none transition-all duration-300',
                     isExpanded ? 'max-w-4xl' : 'max-w-xl'
                   )}
                 >
@@ -521,7 +632,7 @@ export function ChatwootWidget() {
                   <div
                     className={cn(
                       'w-full flex items-center justify-center shrink-0 overflow-visible mx-auto transition-all duration-300',
-                      isExpanded ? 'max-w-xl h-56 sm:h-64' : 'max-w-sm sm:max-w-md h-44 sm:h-52'
+                      isExpanded ? 'max-w-xl h-44 sm:h-52' : 'max-w-xs sm:max-w-sm h-32 sm:h-36'
                     )}
                   >
                     <Plasma3DLogo className='w-full h-full' />
@@ -603,10 +714,14 @@ export function ChatwootWidget() {
                         isExpanded ? 'max-w-[76%]' : 'max-w-[88%]',
                         isUser
                           ? 'bg-primary text-primary-foreground rounded-tr-xs font-normal'
-                          : 'bg-muted/40 text-foreground border border-border/60 rounded-tl-xs whitespace-pre-wrap'
+                          : 'bg-muted/40 text-foreground border border-border/60 rounded-tl-xs'
                       )}
                     >
-                      {msg.content}
+                      {isUser ? (
+                        <span className='whitespace-pre-wrap'>{msg.content}</span>
+                      ) : (
+                        <MarkdownRenderer content={msg.content} />
+                      )}
                     </div>
 
                     {/* AI Action Row */}
@@ -665,9 +780,19 @@ export function ChatwootWidget() {
                     <span>AI sedang menganalisis & merespons...</span>
                   </div>
 
-                  <div className='p-4 rounded-2xl bg-muted/40 text-foreground border border-border/60 rounded-tl-xs text-xs sm:text-sm leading-relaxed max-w-[88%] shadow-2xs whitespace-pre-wrap'>
-                    {streamingText}
-                    <span className='inline-block w-2 h-4 ml-1 bg-primary animate-pulse align-middle' />
+                  <div className='p-4 rounded-2xl bg-muted/40 text-foreground border border-border/60 rounded-tl-xs text-xs sm:text-sm leading-relaxed max-w-[88%] shadow-2xs'>
+                    {streamingText ? (
+                      <div className='relative'>
+                        <MarkdownRenderer content={streamingText} />
+                        <span className='inline-block w-2 h-3.5 ml-1 bg-primary animate-pulse align-middle' />
+                      </div>
+                    ) : (
+                      <div className='flex items-center gap-1.5 py-1 text-muted-foreground'>
+                        <span className='size-2 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]' />
+                        <span className='size-2 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]' />
+                        <span className='size-2 rounded-full bg-primary animate-bounce' />
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

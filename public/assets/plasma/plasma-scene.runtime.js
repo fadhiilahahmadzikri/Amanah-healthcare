@@ -23621,27 +23621,14 @@ var hd = Pe,
   ]),
   Md = (e, t) => {
     let n = t.materialPreset ?? 'Default',
-      r = new X(e);
+      r = new X(t.manualMaterialColor || t.modelColor || e);
     if (n === 'Custom Texture') return (r.set(16777215), r);
-    if (jd.has(n))
-      if (t.adaptiveMaterial && t.bgType !== 'Transparent')
-        if (t.bgType === 'Linear' && t.bgGradientColors?.length > 0) {
-          let e = -1,
-            n = t.bgColor;
-          (t.bgGradientColors.forEach((t) => {
-            let r = new X(t),
-              i = 0.299 * r.r + 0.587 * r.g + 0.114 * r.b;
-            i > e && ((e = i), (n = t));
-          }),
-            r.set(n));
-        } else r.set(t.bgColor);
-      else
-        t.adaptiveMaterial
-          ? t.colorSource !== 'Original' && r.set('#ffffff')
-          : r.set(t.manualMaterialColor);
-    if (n === 'Holographic Metal') {
-      let e = {};
-      (r.getHSL(e), r.setHSL(e.h, e.s, Math.max(0.1, Math.min(e.l, 0.4))));
+    if (t.manualMaterialColor) {
+      r.set(t.manualMaterialColor);
+    } else if (t.modelColor) {
+      r.set(t.modelColor);
+    } else {
+      r.set('#38bdf8');
     }
     return r;
   },
@@ -23753,9 +23740,9 @@ var hd = Pe,
         transmission: +!!s,
         thickness: s ? 2 : 0,
         ior: 1.5,
-        iridescence: s || l ? 1 : 0,
-        iridescenceIOR: l ? 1.5 : 1.3,
-        iridescenceThicknessRange: s || l ? [100, e] : [100, 400]
+        iridescence: s ? 1 : 0,
+        iridescenceIOR: 1.3,
+        iridescenceThicknessRange: [100, 400]
       });
     }
     return ((u.userData = { originalColor: new X(t || e) }), u);
@@ -24178,6 +24165,7 @@ var hd = Pe,
       (D.minDistance = 50),
       (D.maxDistance = 1e3),
       (D.enablePan = !1),
+      (D.enableZoom = !1),
       n.camera?.target && (D.target.fromArray(n.camera.target), D.update()));
     let O = !1;
     (D.addEventListener('start', () => {
@@ -24302,53 +24290,58 @@ var hd = Pe,
           t.replaceChildren());
       }
     );
-  },
-  tf = class extends HTMLElement {
-    static get observedAttributes() {
-      return ['src', 'config', 'motion', 'background'];
-    }
-    constructor() {
-      (super(),
-        this.attachShadow({ mode: 'open' }),
-        (this.shadowRoot.innerHTML = `<style>${Yd}</style><div class="stage"></div>`),
-        (this.stage = this.shadowRoot.querySelector('.stage')),
-        (this.cleanup = null),
-        (this.loadToken = 0));
-    }
-    connectedCallback() {
-      this.load();
-    }
-    disconnectedCallback() {
-      this.destroy();
-    }
-    attributeChangedCallback() {
-      this.isConnected && this.load();
-    }
-    destroy() {
-      ((this.cleanup &&= (this.cleanup(), null)), this.stage.replaceChildren());
-    }
-    async load() {
-      let e = ++this.loadToken;
-      (this.destroy(), (this.stage.innerHTML = '<div class="status">Loading Plasma scene…</div>'));
-      try {
-        let t = Zd(this.getAttribute('config')),
-          n = this.getAttribute('src');
-        if (!t && !n) throw Error('Add a src or config attribute.');
-        let r =
-          t ??
-          (await fetch(n).then((e) => {
-            if (!e.ok) throw Error(`Failed to load scene: ${e.status}`);
-            return e.json();
-          }));
-        if (e !== this.loadToken) return;
-        let i = Qd(r, this.getAttribute('motion'));
-        this.cleanup = ef(this, this.stage, i, { background: this.getAttribute('background') });
-      } catch (t) {
-        if (e !== this.loadToken) return;
-        this.stage.innerHTML = `<div class="status">${t.message}</div>`;
-      }
-    }
   };
-customElements.get('Plasma-scene') || customElements.define('plasma-scene', tf);
+const __PLASMA_CACHE = new Map();
+const tf = class extends HTMLElement {
+  static get observedAttributes() {
+    return ['src', 'config', 'motion', 'background'];
+  }
+  constructor() {
+    (super(),
+      this.attachShadow({ mode: 'open' }),
+      (this.shadowRoot.innerHTML = `<style>${Yd}</style><div class="stage"></div>`),
+      (this.stage = this.shadowRoot.querySelector('.stage')),
+      (this.cleanup = null),
+      (this.loadToken = 0));
+  }
+  connectedCallback() {
+    this.load();
+  }
+  disconnectedCallback() {
+    this.destroy();
+  }
+  attributeChangedCallback() {
+    this.isConnected && this.load();
+  }
+  destroy() {
+    ((this.cleanup &&= (this.cleanup(), null)), this.stage.replaceChildren());
+  }
+  async load() {
+    let e = ++this.loadToken;
+    this.destroy();
+    try {
+      let t = Zd(this.getAttribute('config')),
+        n = this.getAttribute('src');
+      if (!t && !n) throw Error('Add a src or config attribute.');
+      let r =
+        t ??
+        (__PLASMA_CACHE.has(n)
+          ? __PLASMA_CACHE.get(n)
+          : await fetch(n).then((e) => {
+              if (!e.ok) throw Error(`Failed to load scene: ${e.status}`);
+              return e.json();
+            }));
+      if (n && r) __PLASMA_CACHE.set(n, r);
+      if (e !== this.loadToken) return;
+      let i = Qd(r, this.getAttribute('motion'));
+      this.cleanup = ef(this, this.stage, i, { background: this.getAttribute('background') });
+      this.dataset.ready = 'true';
+      this.dispatchEvent(new CustomEvent('plasma-ready', { bubbles: true, composed: true }));
+    } catch (t) {
+      if (e !== this.loadToken) return;
+    }
+  }
+};
+customElements.get('plasma-scene') || customElements.define('plasma-scene', tf);
 //#endregion
 export { tf as PlasmaSceneElement };

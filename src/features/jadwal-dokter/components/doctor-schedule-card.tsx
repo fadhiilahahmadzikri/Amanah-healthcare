@@ -232,27 +232,34 @@ export function DoctorScheduleStats({
   className
 }: DoctorScheduleStatsProps) {
   const { labelTime } = getUpcomingScheduleTime(scheduleTime, sessions);
+  const isLongTime = (labelTime || '').length > 14;
 
   return (
     <div
       className={cn(
-        'grid grid-cols-2 gap-4 pt-3.5 mt-3.5 border-t border-border/50 relative z-20',
+        'grid gap-3 pt-3.5 mt-3.5 border-t border-border/50 relative z-20',
+        isLongTime ? 'grid-cols-1' : 'grid-cols-2',
         className
       )}
     >
       {/* Schedule Time Column (Upcoming Schedule) */}
-      <div className='flex flex-col'>
+      <div className='flex flex-col min-w-0'>
         <div className='flex items-center gap-1.5 text-[11.5px] font-medium text-muted-foreground'>
           <Icons.clock className='size-3.5 shrink-0 text-muted-foreground/80' />
-          <span>Jadwal Mendatang</span>
+          <span>Jadwal Praktik</span>
         </div>
-        <span className='text-[15.5px] font-bold text-foreground font-mono mt-1 tracking-tight'>
+        <span
+          className={cn(
+            'font-bold text-foreground font-mono mt-1 tracking-tight break-words leading-tight',
+            isLongTime ? 'text-[13px]' : 'text-[15.5px]'
+          )}
+        >
           {labelTime}
         </span>
       </div>
 
       {/* Available Slots Column */}
-      <div className='flex flex-col'>
+      <div className='flex flex-col min-w-0'>
         <div className='flex items-center gap-1.5 text-[11.5px] font-medium text-muted-foreground'>
           <Icons.teams className='size-3.5 shrink-0 text-muted-foreground/80' />
           <span>Slot Tersedia</span>
