@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import gsap from 'gsap';
 import { ModernStyledQRCode } from './modern-styled-qr-code';
 import { useQRStyleStore } from '../store/qr-style-store';
 import { Card } from '@/components/ui/card';
@@ -29,35 +30,95 @@ export function QRPresenceCard({
   className
 }: QRPresenceCardProps) {
   const qrStyleStore = useQRStyleStore();
-  const ROTATION_INTERVAL = qrStyleStore.rotationSeconds || config.rotation_seconds || 30;
-  const [timeLeft, setTimeLeft] = useState(ROTATION_INTERVAL);
+  const rotationInterval = qrStyleStore.rotationSeconds || config.rotation_seconds || 30;
+  const [timeLeft, setTimeLeft] = useState(rotationInterval);
   const [token, setToken] = useState(config.qr_code_identifier || 'K54TYU');
 
-  // Dynamic code generator for 30s interval rotation
-  const generateNewCode = () => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let result = '';
-    for (let i = 0; i < 6; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    setToken(result);
-    setTimeLeft(ROTATION_INTERVAL);
-    onGenerateNewToken?.();
-  };
+  const qrVisualRef = useRef<HTMLDivElement | null>(null);
+  const tokenRef = useRef<HTMLDivElement | null>(null);
+  const indicatorDotRef = useRef<HTMLSpanElement | null>(null);
+  const isAnimatingRef = useRef(false);
 
+  // GSAP-powered smooth blur-pulse rotation transition
+  const rotateQRCodeWithGSAP = useCallback(() => {
+    if (isAnimatingRef.current) return;
+    isAnimatingRef.current = true;
+
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let newCode = '';
+    for (let i = 0; i < 6; i++) {
+      newCode += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    if (qrVisualRef.current && tokenRef.current) {
+      const tl = gsap.timeline({
+        onComplete: () => {
+          isAnimatingRef.current = false;
+        }
+      });
+
+      // 1. Phase 1: Smooth blur, shrink, and fade out
+      tl.to([qrVisualRef.current, tokenRef.current], {
+        scale: 0.93,
+        filter: 'blur(10px)',
+        opacity: 0.35,
+        duration: 0.28,
+        ease: 'power2.inOut',
+        onComplete: () => {
+          // Swap token and reset time at peak blur moment
+          setToken(newCode);
+          setTimeLeft(rotationInterval);
+          onGenerateNewToken?.();
+        }
+      })
+        // 2. Phase 2: Unblur, spring scale up with clean bounce
+        .to([qrVisualRef.current, tokenRef.current], {
+          scale: 1,
+          filter: 'blur(0px)',
+          opacity: 1,
+          duration: 0.42,
+          ease: 'back.out(1.4)',
+          clearProps: 'filter,transform'
+        });
+
+      // 3. Pulse indicator ring animation
+      if (indicatorDotRef.current) {
+        tl.fromTo(
+          indicatorDotRef.current,
+          { scale: 1, boxShadow: '0 0 0 0 rgba(16, 185, 129, 0.8)' },
+          {
+            scale: 1.3,
+            boxShadow: '0 0 0 10px rgba(16, 185, 129, 0)',
+            duration: 0.6,
+            ease: 'power2.out',
+            clearProps: 'scale,boxShadow'
+          },
+          '<0.1'
+        );
+      }
+    } else {
+      setToken(newCode);
+      setTimeLeft(rotationInterval);
+      onGenerateNewToken?.();
+      isAnimatingRef.current = false;
+    }
+  }, [rotationInterval, onGenerateNewToken]);
+
+  // Robust countdown timer interval
   useEffect(() => {
+    setTimeLeft(rotationInterval);
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          generateNewCode();
-          return ROTATION_INTERVAL;
+          rotateQRCodeWithGSAP();
+          return rotationInterval;
         }
         return prev - 1;
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [rotationInterval, rotateQRCodeWithGSAP]);
 
   const handlePopout = () => {
     if (onPopoutWindow) {
@@ -95,7 +156,10 @@ export function QRPresenceCard({
       <div className='flex items-center justify-between gap-1.5 pb-2.5 border-b border-border/40 shrink-0 w-full min-w-0'>
         {/* Status Aktif */}
         <div className='flex items-center gap-1.5 min-w-0 shrink'>
-          <span className='size-2 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20 animate-pulse shrink-0' />
+          <span
+            ref={indicatorDotRef}
+            className='size-2 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20 shrink-0'
+          />
           <span className='text-xs font-semibold text-foreground truncate'>
             {config.status_presensi || 'Aktif hingga 16:00 WIB'}
           </span>
@@ -155,7 +219,7 @@ export function QRPresenceCard({
                 variant='ghost'
                 size='sm'
                 onClick={() => {
-                  generateNewCode();
+                  rotateQRCodeWithGSAP();
                   toast.info('QR Code diperbarui.');
                 }}
                 className='size-7 p-0 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors shrink-0'
@@ -194,7 +258,10 @@ export function QRPresenceCard({
 
       {/* 2. Direct Clean Styled Modern QR Code (Skala Maksimal & Jelas) */}
       <div className='flex flex-col items-center justify-start w-full pt-1'>
-        <div className='w-full aspect-square flex items-center justify-center bg-white p-0 overflow-hidden'>
+        <div
+          ref={qrVisualRef}
+          className='w-full aspect-square flex items-center justify-center bg-white p-0 overflow-hidden rounded-xl will-change-transform'
+        >
           <ModernStyledQRCode data={qrPayload} size={500} className='w-full h-full' />
         </div>
 
@@ -206,7 +273,7 @@ export function QRPresenceCard({
             <span className='font-mono font-bold text-foreground tabular-nums'>{timeLeft}s</span>
           </div>
 
-          <div className='pt-0.5'>
+          <div ref={tokenRef} className='pt-0.5 will-change-transform'>
             <div className='text-3xl sm:text-4xl font-black tracking-widest text-foreground font-mono leading-none'>
               {token}
             </div>
