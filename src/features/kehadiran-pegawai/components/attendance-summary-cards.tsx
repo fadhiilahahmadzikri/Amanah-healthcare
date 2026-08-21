@@ -11,7 +11,7 @@ interface AttendanceSummaryCardsProps {
 
 export function AttendanceSummaryCards({ summary }: AttendanceSummaryCardsProps) {
   return (
-    <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+    <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4'>
       {/* 1. Total Staf */}
       <MetricChartCard
         title='Total Staf'
@@ -21,8 +21,7 @@ export function AttendanceSummaryCards({ summary }: AttendanceSummaryCardsProps)
         trendLabel={`↑ ${summary.perubahan_total_staf}%`}
         trendDirection='up'
         tone='primary'
-        strokeColor='var(--primary-bright, #2563eb)'
-        icon={<Icons.teams className='size-5 text-primary' />}
+        icon={<Icons.teams className='size-5 text-chart-1' />}
       />
 
       {/* 2. Staf Hadir */}
@@ -33,9 +32,8 @@ export function AttendanceSummaryCards({ summary }: AttendanceSummaryCardsProps)
         data={summary.sparkline_staf_hadir}
         trendLabel={`↑ ${summary.perubahan_staf_hadir}%`}
         trendDirection='up'
-        tone='primary'
-        strokeColor='var(--primary-bright, #2563eb)'
-        icon={<Icons.teams className='size-5 text-primary' />}
+        tone='success'
+        icon={<Icons.userCheck className='size-5 text-chart-2' />}
       />
 
       {/* 3. Staf Tidak Hadir */}
@@ -46,9 +44,8 @@ export function AttendanceSummaryCards({ summary }: AttendanceSummaryCardsProps)
         data={summary.sparkline_staf_tidak_hadir}
         trendLabel={`↓ ${Math.abs(summary.perubahan_staf_tidak_hadir)}%`}
         trendDirection='down'
-        tone='primary'
-        strokeColor='var(--primary-bright, #2563eb)'
-        icon={<Icons.fileTypeDoc className='size-5 text-primary' />}
+        tone='danger'
+        icon={<Icons.userX className='size-5 text-chart-5' />}
       />
 
       {/* 4. Tingkat Kehadiran */}
@@ -59,9 +56,8 @@ export function AttendanceSummaryCards({ summary }: AttendanceSummaryCardsProps)
         data={summary.sparkline_tingkat_kehadiran}
         trendLabel={`↑ ${summary.perubahan_tingkat_kehadiran}%`}
         trendDirection='up'
-        tone='primary'
-        strokeColor='var(--primary-bright, #2563eb)'
-        icon={<Icons.trendingUp className='size-5 text-primary' />}
+        tone='warning'
+        icon={<Icons.trendingUp className='size-5 text-chart-4' />}
       />
     </div>
   );

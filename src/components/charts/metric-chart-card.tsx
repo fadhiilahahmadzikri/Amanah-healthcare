@@ -3,8 +3,7 @@
 import { useId, type ReactNode } from 'react';
 import { Area, AreaChart } from 'recharts';
 
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Icons } from '@/components/icons';
 import {
   ChartConfig,
   ChartContainer,
@@ -18,27 +17,43 @@ export type MetricChartPoint = {
   value: number;
 };
 
-type MetricTone = 'primary' | 'success' | 'info' | 'warning' | 'danger';
+export type MetricTone = 'primary' | 'success' | 'info' | 'warning' | 'danger';
 
-type MetricChartCardProps = {
+export type MetricChartCardProps = {
   title: string;
   value: string;
-  description: string;
+  description?: string;
   data: MetricChartPoint[];
   icon?: ReactNode;
   trendLabel?: string;
   trendDirection?: 'up' | 'down' | 'neutral';
   tone?: MetricTone;
   strokeColor?: string;
+  className?: string;
 };
 
 const toneColors: Record<MetricTone, string> = {
-  primary: '#2563eb',
-  success: 'var(--chart-2)',
-  info: 'var(--chart-3)',
-  warning: 'var(--chart-4)',
-  danger: 'var(--destructive)'
+  primary: 'var(--chart-1, #2563eb)',
+  success: 'var(--chart-2, #10b981)',
+  info: 'var(--chart-3, #06b6d4)',
+  warning: 'var(--chart-4, #f59e0b)',
+  danger: 'var(--chart-5, #ef4444)'
 };
+
+function getIconBgClass(tone: MetricTone = 'primary') {
+  switch (tone) {
+    case 'primary':
+      return 'bg-chart-1/10 text-chart-1';
+    case 'success':
+      return 'bg-chart-2/10 text-chart-2';
+    case 'info':
+      return 'bg-chart-3/10 text-chart-3';
+    case 'warning':
+      return 'bg-chart-4/10 text-chart-4';
+    case 'danger':
+      return 'bg-chart-5/10 text-chart-5';
+  }
+}
 
 export function MetricChartCard({
   title,
@@ -49,7 +64,8 @@ export function MetricChartCard({
   trendLabel,
   trendDirection = 'neutral',
   tone = 'primary',
-  strokeColor
+  strokeColor,
+  className
 }: MetricChartCardProps) {
   const gradientId = `metric-gradient-${useId().replace(/:/g, '')}`;
   const activeColor = strokeColor || toneColors[tone];
@@ -62,43 +78,70 @@ export function MetricChartCard({
   } satisfies ChartConfig;
 
   return (
-    <Card className='overflow-hidden shadow-xs border-border/60'>
-      <CardHeader className='flex flex-row items-start justify-between gap-3 pb-2'>
-        <div className='min-w-0'>
-          <CardTitle className='text-sm font-medium text-muted-foreground'>{title}</CardTitle>
-          <div className='mt-1 truncate text-2xl font-bold text-foreground'>{value}</div>
-        </div>
-        {icon && (
-          <div className='flex size-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400'>
-            {icon}
+    <div
+      data-slot='card'
+      className={cn(
+        'group relative overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm transition-all duration-300 hover:border-primary/20 hover:shadow-md',
+        className
+      )}
+    >
+      {/* 1. Header Metrics Content */}
+      <div className='p-5 pb-0'>
+        <div className='flex items-start justify-between'>
+          <div className='space-y-2'>
+            <p className='text-xs font-medium text-muted-foreground'>{title}</p>
+            <p className='text-2xl font-bold tracking-tight text-foreground'>{value}</p>
+            <div className='flex items-center gap-1.5'>
+              {trendDirection === 'up' && (
+                <Icons.trendingUp className='size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0' />
+              )}
+              {trendDirection === 'down' && (
+                <Icons.trendingDown className='size-3.5 text-rose-600 dark:text-rose-400 shrink-0' />
+              )}
+              {trendLabel && (
+                <span
+                  className={cn(
+                    'text-xs font-semibold',
+                    trendDirection === 'up'
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : trendDirection === 'down'
+                        ? 'text-rose-600 dark:text-rose-400'
+                        : 'text-muted-foreground'
+                  )}
+                >
+                  {trendLabel}
+                </span>
+              )}
+              {description && (
+                <span className='text-xs text-muted-foreground truncate'>{description}</span>
+              )}
+            </div>
           </div>
-        )}
-      </CardHeader>
-      <CardContent className='flex flex-col gap-3 pt-0'>
-        <div className='flex min-h-5 items-center gap-2'>
-          {trendLabel && (
-            <Badge
-              variant='outline'
+          {icon && (
+            <div
               className={cn(
-                'border font-semibold text-[11px] px-2 py-0.5',
-                getTrendClassName(trendDirection)
+                'flex size-10 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110',
+                getIconBgClass(tone)
               )}
             >
-              {trendLabel}
-            </Badge>
+              {icon}
+            </div>
           )}
-          <span className='truncate text-xs text-muted-foreground'>{description}</span>
         </div>
-        <ChartContainer config={chartConfig} className='h-16 w-full aspect-auto'>
+      </div>
+
+      {/* 2. Unwrapped Edge-to-Edge Sparkline Chart */}
+      <div className='w-full'>
+        <ChartContainer config={chartConfig} className='h-14 w-full aspect-auto'>
           <AreaChart
             accessibilityLayer
             data={data}
-            margin={{ left: 0, right: 0, top: 6, bottom: 0 }}
+            margin={{ left: 0, right: 0, top: 4, bottom: 0 }}
           >
             <defs>
               <linearGradient id={gradientId} x1='0' y1='0' x2='0' y2='1'>
-                <stop offset='5%' stopColor={activeColor} stopOpacity={0.25} />
-                <stop offset='95%' stopColor={activeColor} stopOpacity={0.01} />
+                <stop offset='0%' stopColor={activeColor} stopOpacity={0.35} />
+                <stop offset='100%' stopColor={activeColor} stopOpacity={0.0} />
               </linearGradient>
             </defs>
             <ChartTooltip
@@ -116,18 +159,7 @@ export function MetricChartCard({
             />
           </AreaChart>
         </ChartContainer>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
-}
-
-function getTrendClassName(direction: 'up' | 'down' | 'neutral') {
-  switch (direction) {
-    case 'up':
-      return 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20';
-    case 'down':
-      return 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20';
-    case 'neutral':
-      return 'bg-muted text-muted-foreground';
-  }
 }

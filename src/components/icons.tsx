@@ -139,7 +139,8 @@ import {
   IconQrcode,
   IconFileSpreadsheet,
   IconArrowsMaximize,
-  IconArrowsMinimize
+  IconArrowsMinimize,
+  IconHistory
 } from '@tabler/icons-react';
 
 export type Icon = React.ComponentType<IconProps>;
@@ -214,6 +215,7 @@ export const Icons = {
   logo: IconCommand,
 
   chat: IconMessage,
+  history: IconHistory,
   notification: IconBell,
   phone: IconPhone,
   video: IconVideo,

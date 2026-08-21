@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Plasma3DLogo } from './plasma-3d-logo';
 import { MarkdownRenderer } from './markdown-renderer';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -57,10 +58,80 @@ const MOCK_AI_RESPONSES: Record<string, string> = {
   bpjs: 'Alur penerbitan Surat Eligibilitas Peserta (SEP) BPJS Kesehatan di Klinik Amanah:\n\n1. **Verifikasi Rujukan Faskes 1**: Pastikan surat rujukan FKTP masih aktif (maksimal 90 hari).\n2. **Perekaman Biometrik/KTP**: Pasien melakukan scan sidik jari atau input NIK pada kiosk admisi.\n3. **Penerbitan SEP**: Sistem otomatis memvalidasi eligibilitas kepesertaan aktif.\n4. **Menuju Poli Tujuan**: Pasien langsung diarahkan ke ruang tunggu poli dokter spesialis.'
 };
 
+const MOCK_CHAT_HISTORY = [
+  {
+    id: 'hist-1',
+    title: 'Jadwal Praktik dr. Ika Fenti & dr. Bella',
+    snippet: 'Terdapat 6 dokter spesialis aktif berpraktek hari ini...',
+    time: 'Hari ini, 09:30',
+    messages: [
+      {
+        id: 'h1-1',
+        role: 'user' as const,
+        content:
+          'Tampilkan jadwal praktik dr. Ika Fenti dan dr. Bella beserta layanan USG di Klinik Amanah.',
+        timestamp: '09:30'
+      },
+      {
+        id: 'h1-2',
+        role: 'assistant' as const,
+        content: MOCK_AI_RESPONSES.jadwal,
+        timestamp: '09:30',
+        status: 'complete' as const
+      }
+    ]
+  },
+  {
+    id: 'hist-2',
+    title: 'Informasi Alur & Syarat Rujukan BPJS',
+    snippet: 'Alur penerbitan Surat Eligibilitas Peserta (SEP) BPJS Kesehatan...',
+    time: 'Kemarin, 14:15',
+    messages: [
+      {
+        id: 'h2-1',
+        role: 'user' as const,
+        content:
+          'Bagaimana prosedur Persalinan 24 Jam, Paket Full Bonus, dan syarat USG dengan BPJS?',
+        timestamp: '14:15'
+      },
+      {
+        id: 'h2-2',
+        role: 'assistant' as const,
+        content: MOCK_AI_RESPONSES.bpjs,
+        timestamp: '14:15',
+        status: 'complete' as const
+      }
+    ]
+  },
+  {
+    id: 'hist-3',
+    title: 'Ketersediaan Stok Obat & Sirup Anak',
+    snippet: 'Status inventori farmasi utama: Amoxicillin 500mg, Paracetamol...',
+    time: '19 Agu, 11:20',
+    messages: [
+      {
+        id: 'h3-1',
+        role: 'user' as const,
+        content:
+          'Jelaskan layanan Khitan Modern, Imunisasi anak, dan Cek Lab Sederhana di Klinik Amanah.',
+        timestamp: '11:20'
+      },
+      {
+        id: 'h3-2',
+        role: 'assistant' as const,
+        content: MOCK_AI_RESPONSES.farmasi,
+        timestamp: '11:20',
+        status: 'complete' as const
+      }
+    ]
+  }
+];
+
 export function ChatwootWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [messages, setMessages] = useState<AIMessage[]>([]);
   const [inputPrompt, setInputPrompt] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
@@ -530,9 +601,7 @@ export function ChatwootWidget() {
                   <h3 className='text-sm font-bold text-foreground tracking-tight'>
                     Amanah AI Assistant
                   </h3>
-                  <span className='px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'>
-                    Online
-                  </span>
+                  <StatusBadge status='AKTIF' label='Online' size='sm' />
                 </div>
                 <p className='text-[11px] text-muted-foreground truncate mt-0.5'>
                   Siap membantu anda..
@@ -565,6 +634,33 @@ export function ChatwootWidget() {
                     </TooltipContent>
                   </Tooltip>
                 )}
+
+                {/* History Chat Toggle (Icon Base + Tooltip, harmonized) */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type='button'
+                      variant={showHistory ? 'secondary' : 'ghost'}
+                      size='icon'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowHistory((prev) => !prev);
+                      }}
+                      className={cn(
+                        'size-8 rounded-lg transition-colors',
+                        showHistory
+                          ? 'bg-primary/10 text-primary hover:bg-primary/20'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
+                      )}
+                    >
+                      <Icons.history className='size-3.5' />
+                      <span className='sr-only'>History Chat</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side='bottom' className='text-xs'>
+                    History Chat
+                  </TooltipContent>
+                </Tooltip>
 
                 {/* Expand / Maximize Canvas Toggle with Morphing Icon */}
                 <Tooltip>
@@ -614,6 +710,58 @@ export function ChatwootWidget() {
                 </Tooltip>
               </div>
             </div>
+
+            {/* History Chat Drawer Panel */}
+            {showHistory && (
+              <div className='absolute inset-y-[57px] left-0 w-full sm:w-72 bg-card/98 backdrop-blur-md border-r border-border/60 z-30 flex flex-col animate-in slide-in-from-left duration-200 shadow-xl'>
+                <div className='p-3 border-b border-border/50 flex items-center justify-between'>
+                  <div className='flex items-center gap-1.5'>
+                    <Icons.history className='size-3.5 text-primary' />
+                    <h4 className='text-xs font-bold text-foreground'>History Chat</h4>
+                  </div>
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='sm'
+                    onClick={() => {
+                      setMessages([]);
+                      setShowHistory(false);
+                      setTimeout(() => textareaRef.current?.focus(), 100);
+                      toast.success('Percakapan baru dimulai.');
+                    }}
+                    className='h-6 px-2 text-[10.5px] font-semibold text-primary hover:bg-primary/10 rounded-md gap-1'
+                  >
+                    <Icons.add className='size-3' />
+                    <span>Chat Baru</span>
+                  </Button>
+                </div>
+                <div className='flex-1 overflow-y-auto p-2.5 space-y-1.5'>
+                  {MOCK_CHAT_HISTORY.map((hist) => (
+                    <button
+                      key={hist.id}
+                      type='button'
+                      onClick={() => {
+                        setMessages(hist.messages);
+                        setShowHistory(false);
+                      }}
+                      className='w-full p-2.5 rounded-xl border border-border/40 bg-background/60 hover:bg-muted/60 hover:border-primary/30 transition-all text-left group cursor-pointer'
+                    >
+                      <div className='flex items-center justify-between'>
+                        <span className='text-xs font-semibold text-foreground truncate group-hover:text-primary transition-colors'>
+                          {hist.title}
+                        </span>
+                        <span className='text-[10px] text-muted-foreground shrink-0 ml-1'>
+                          {hist.time}
+                        </span>
+                      </div>
+                      <p className='text-[11px] text-muted-foreground line-clamp-2 mt-1 leading-snug'>
+                        {hist.snippet}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Conversation Stream Area (Editorial Document Paradigm) */}
             <div
@@ -841,7 +989,7 @@ export function ChatwootWidget() {
                       handleSend();
                     }
                   }}
-                  placeholder='Tanyakan apa saja seputar operasional & layanan klinik... (Enter untuk kirim)'
+                  placeholder='Tulis pesan...'
                   className='w-full resize-none bg-transparent px-2.5 py-1.5 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:outline-none max-h-32 min-h-[38px] leading-relaxed'
                 />
 
