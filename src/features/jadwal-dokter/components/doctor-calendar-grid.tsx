@@ -39,24 +39,24 @@ export function DoctorCalendarGrid({
   const getStatusPillClasses = (status: ScheduleDayStatus) => {
     switch (status) {
       case 'Buka':
-        return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30';
+        return 'bg-success-subtle text-success border-success-border';
       case 'Penuh':
-        return 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30';
+        return 'bg-warning-subtle text-warning border-warning-border';
       case 'Cuti':
       default:
-        return 'bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/30';
+        return 'bg-info-subtle text-info border-info-border';
     }
   };
 
   const getStatusDot = (status: ScheduleDayStatus) => {
     switch (status) {
       case 'Buka':
-        return 'bg-emerald-500';
+        return 'bg-success';
       case 'Penuh':
-        return 'bg-amber-500';
+        return 'bg-warning';
       case 'Cuti':
       default:
-        return 'bg-sky-500';
+        return 'bg-info';
     }
   };
 
@@ -131,19 +131,19 @@ export function DoctorCalendarGrid({
         })}
       </div>
 
-      {/* 3. Legend Footer (3 Status: Buka, Penuh, Cuti) */}
-      <div className='flex flex-wrap items-center justify-center gap-6 pt-2 border-t border-border/40 text-[11px] font-bold'>
+      {/* 3. Calendar Legend */}
+      <div className='flex flex-wrap items-center justify-end gap-3.5 pt-1 text-[11px] font-medium text-muted-foreground'>
         <div className='flex items-center gap-1.5'>
-          <span className='size-2 rounded-full bg-emerald-500' />
-          <span className='text-emerald-700 dark:text-emerald-400'>Buka</span>
+          <span className='size-2 rounded-full bg-success' />
+          <span className='text-success font-medium'>Buka / Tersedia</span>
         </div>
         <div className='flex items-center gap-1.5'>
-          <span className='size-2 rounded-full bg-amber-500' />
-          <span className='text-amber-700 dark:text-amber-400'>Penuh</span>
+          <span className='size-2 rounded-full bg-warning' />
+          <span className='text-warning font-medium'>Penuh</span>
         </div>
         <div className='flex items-center gap-1.5'>
-          <span className='size-2 rounded-full bg-sky-500' />
-          <span className='text-sky-700 dark:text-sky-400'>Cuti</span>
+          <span className='size-2 rounded-full bg-info' />
+          <span className='text-info font-medium'>Cuti</span>
         </div>
       </div>
     </div>

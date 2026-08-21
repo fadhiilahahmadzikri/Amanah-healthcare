@@ -56,6 +56,33 @@
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
+  --primary-bright: oklch(0.65 0.16 42);
+  --primary-subtle: oklch(0.96 0.02 50);
+  --primary-deep: oklch(0.34 0.04 40);
+  --primary-deep-foreground: oklch(1 0 0);
+  --success: oklch(0.62 0.15 145);
+  --success-foreground: oklch(1 0 0);
+  --success-subtle: oklch(0.95 0.025 145);
+  --success-border: oklch(0.86 0.06 145);
+  --warning: oklch(0.72 0.15 65);
+  --warning-foreground: oklch(0.2 0.04 65);
+  --warning-subtle: oklch(0.95 0.03 65);
+  --warning-border: oklch(0.86 0.07 65);
+  --info: oklch(0.64 0.14 240);
+  --info-foreground: oklch(1 0 0);
+  --info-subtle: oklch(0.95 0.025 240);
+  --info-border: oklch(0.86 0.06 240);
+  --destructive-subtle: oklch(0.95 0.025 25);
+  --destructive-border: oklch(0.86 0.06 25);
+  --status-completed: oklch(0.58 0.16 310);
+  --status-completed-foreground: oklch(1 0 0);
+  --status-completed-subtle: oklch(0.95 0.025 310);
+  --status-completed-border: oklch(0.86 0.06 310);
+  --rating-gold: oklch(0.78 0.16 75);
+  --rating-gold-subtle: oklch(0.95 0.03 75);
+  --border-subtle: oklch(0.93 0.005 95);
+  --border-accent: oklch(0.85 0.03 45);
+  --surface-subtle: oklch(0.97 0.008 95);
 }
 
 [data-theme='claude'].dark {
@@ -114,6 +141,33 @@
   --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1);
   --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+  --primary-bright: oklch(0.72 0.16 42);
+  --primary-subtle: oklch(0.24 0.04 42);
+  --primary-deep: oklch(0.72 0.14 42);
+  --primary-deep-foreground: oklch(1 0 0);
+  --success: oklch(0.7 0.14 145);
+  --success-foreground: oklch(0.1 0.04 145);
+  --success-subtle: oklch(0.22 0.03 145);
+  --success-border: oklch(0.34 0.06 145);
+  --warning: oklch(0.78 0.14 65);
+  --warning-foreground: oklch(0.15 0.04 65);
+  --warning-subtle: oklch(0.24 0.03 65);
+  --warning-border: oklch(0.36 0.06 65);
+  --info: oklch(0.7 0.13 240);
+  --info-foreground: oklch(0.1 0.04 240);
+  --info-subtle: oklch(0.22 0.03 240);
+  --info-border: oklch(0.34 0.06 240);
+  --destructive-subtle: oklch(0.22 0.04 25);
+  --destructive-border: oklch(0.34 0.06 25);
+  --status-completed: oklch(0.68 0.16 310);
+  --status-completed-foreground: oklch(1 0 0);
+  --status-completed-subtle: oklch(0.24 0.04 310);
+  --status-completed-border: oklch(0.36 0.06 310);
+  --rating-gold: oklch(0.82 0.14 75);
+  --rating-gold-subtle: oklch(0.24 0.03 75);
+  --border-subtle: oklch(0.22 0.01 95);
+  --border-accent: oklch(0.34 0.03 45);
+  --surface-subtle: oklch(0.16 0.02 95);
 }
 
 [data-theme='claude'] {
@@ -168,5 +222,32 @@
     --shadow-lg: var(--shadow-lg);
     --shadow-xl: var(--shadow-xl);
     --shadow-2xl: var(--shadow-2xl);
+    --color-primary-bright: var(--primary-bright);
+    --color-primary-subtle: var(--primary-subtle);
+    --color-primary-deep: var(--primary-deep);
+    --color-primary-deep-foreground: var(--primary-deep-foreground);
+    --color-success: var(--success);
+    --color-success-foreground: var(--success-foreground);
+    --color-success-subtle: var(--success-subtle);
+    --color-success-border: var(--success-border);
+    --color-warning: var(--warning);
+    --color-warning-foreground: var(--warning-foreground);
+    --color-warning-subtle: var(--warning-subtle);
+    --color-warning-border: var(--warning-border);
+    --color-info: var(--info);
+    --color-info-foreground: var(--info-foreground);
+    --color-info-subtle: var(--info-subtle);
+    --color-info-border: var(--info-border);
+    --color-destructive-subtle: var(--destructive-subtle);
+    --color-destructive-border: var(--destructive-border);
+    --color-status-completed: var(--status-completed);
+    --color-status-completed-foreground: var(--status-completed-foreground);
+    --color-status-completed-subtle: var(--status-completed-subtle);
+    --color-status-completed-border: var(--status-completed-border);
+    --color-rating-gold: var(--rating-gold);
+    --color-rating-gold-subtle: var(--rating-gold-subtle);
+    --color-border-subtle: var(--border-subtle);
+    --color-border-accent: var(--border-accent);
+    --color-surface-subtle: var(--surface-subtle);
   }
 }

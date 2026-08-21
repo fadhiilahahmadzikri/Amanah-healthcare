@@ -54,7 +54,7 @@ export function TopServicesTable({ data }: TopServicesTableProps) {
                       <div className='flex items-center justify-end gap-3'>
                         <MiniSparkline
                           data={item.sparkline}
-                          color={isPositive ? '#2563eb' : '#ef4444'}
+                          color={isPositive ? 'var(--primary-bright)' : 'var(--destructive)'}
                           width={110}
                           height={20}
                         />

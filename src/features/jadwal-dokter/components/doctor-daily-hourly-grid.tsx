@@ -66,31 +66,31 @@ const STATUS_CONFIG: Record<
 > = {
   buka: {
     label: 'Buka',
-    cellBg: 'bg-emerald-500/5 dark:bg-emerald-950/20 hover:bg-emerald-500/10',
-    border: 'border-emerald-500/25 dark:border-emerald-700/30',
-    text: 'text-emerald-600 dark:text-emerald-400',
-    dotBg: 'bg-emerald-500'
+    cellBg: 'bg-success-subtle hover:bg-success-subtle/80',
+    border: 'border-success-border',
+    text: 'text-success',
+    dotBg: 'bg-success'
   },
   penuh: {
     label: 'Penuh',
-    cellBg: 'bg-amber-500/5 dark:bg-amber-950/20 hover:bg-amber-500/10',
-    border: 'border-amber-500/25 dark:border-amber-700/30',
-    text: 'text-amber-600 dark:text-amber-400',
-    dotBg: 'bg-amber-500'
+    cellBg: 'bg-warning-subtle hover:bg-warning-subtle/80',
+    border: 'border-warning-border',
+    text: 'text-warning',
+    dotBg: 'bg-warning'
   },
   tutup: {
     label: 'Tutup',
-    cellBg: 'bg-muted/10 dark:bg-muted/5 hover:bg-muted/20',
-    border: 'border-border/40 dark:border-border/30',
-    text: 'text-muted-foreground/75',
+    cellBg: 'bg-muted/30 hover:bg-muted/50',
+    border: 'border-border/60',
+    text: 'text-muted-foreground',
     dotBg: 'bg-muted-foreground/40'
   },
   cuti: {
     label: 'Cuti',
-    cellBg: 'bg-sky-500/5 dark:bg-sky-950/20 hover:bg-sky-500/10',
-    border: 'border-sky-500/25 dark:border-sky-700/30',
-    text: 'text-sky-600 dark:text-sky-400',
-    dotBg: 'bg-sky-500'
+    cellBg: 'bg-info-subtle hover:bg-info-subtle/80',
+    border: 'border-info-border',
+    text: 'text-info',
+    dotBg: 'bg-info'
   }
 };
 

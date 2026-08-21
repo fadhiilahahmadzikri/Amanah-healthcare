@@ -30,81 +30,69 @@ export const clinicalTokens = {
     }
   },
   colors: {
-    primaryNavy: '#151A66',
-    primaryHover: '#10144F',
-    surface: '#FFFFFF',
-    surfaceSubtle: '#F8F9FC',
-    textPrimary: '#151A66',
-    textSecondary: '#6F7895',
-    textMuted: '#98A1B8',
-    border: '#E3E7F0',
-    borderSubtle: '#EDF0F5',
-    borderIndigo: '#C7D2FE',
-    ratingGold: '#FFB61A',
-    ratingBg: '#FFF0C7',
-    ratingText: '#252525',
-    timelineTrack: '#D5DAE8',
-    timelineDot: '#D0D6E4',
+    primaryNavy: 'var(--primary-deep, var(--primary))',
+    primaryHover: 'color-mix(in oklab, var(--primary-deep, var(--primary)) 85%, black)',
+    surface: 'var(--card)',
+    surfaceSubtle: 'var(--surface-subtle, var(--muted))',
+    textPrimary: 'var(--foreground)',
+    textSecondary: 'var(--muted-foreground)',
+    textMuted: 'var(--muted-foreground)',
+    border: 'var(--border)',
+    borderSubtle: 'var(--border-subtle, var(--border))',
+    borderIndigo: 'var(--border-accent, var(--primary-subtle, var(--border)))',
+    ratingGold: 'var(--rating-gold, #FFB61A)',
+    ratingBg: 'var(--rating-gold-subtle, #FFF0C7)',
+    ratingText: 'var(--foreground)',
+    timelineTrack: 'var(--border-subtle, var(--border))',
+    timelineDot: 'var(--border)',
     status: {
       completed: {
-        pillBg:
-          'bg-gradient-to-r from-purple-500/10 via-fuchsia-500/10 to-purple-500/10 dark:from-purple-950/40 dark:via-fuchsia-950/30 dark:to-purple-950/40',
-        pillBorder: 'border-purple-300/80 dark:border-purple-600/50',
+        pillBg: 'bg-status-completed-subtle',
+        pillBorder: 'border-status-completed-border',
         pillShadow: 'shadow-none',
-        textGradient:
-          'bg-gradient-to-r from-[#6d2aad] via-[#a855f7] to-[#d946ef] dark:from-[#d8b4fe] dark:via-[#f0abfc] dark:to-[#ff79fd]',
-        dotGradient: 'bg-gradient-to-tr from-[#6d2aad] via-[#a855f7] to-[#ff79fd]',
-        hex: '#a855f7'
+        textGradient: 'text-status-completed font-bold',
+        dotGradient: 'bg-status-completed',
+        hex: 'var(--status-completed)'
       },
       confirmed: {
-        pillBg:
-          'bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/10 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-emerald-950/40',
-        pillBorder: 'border-emerald-300/80 dark:border-emerald-600/50',
+        pillBg: 'bg-success-subtle',
+        pillBorder: 'border-success-border',
         pillShadow: 'shadow-none',
-        textGradient:
-          'bg-gradient-to-r from-[#047857] via-[#059669] to-[#10b981] dark:from-[#6ee7b7] dark:via-[#34d399] dark:to-[#a7f3d0]',
-        dotGradient: 'bg-gradient-to-tr from-[#047857] via-[#10b981] to-[#34d399]',
-        hex: '#10b981'
+        textGradient: 'text-success font-bold',
+        dotGradient: 'bg-success',
+        hex: 'var(--success)'
       },
       upcoming: {
-        pillBg:
-          'bg-gradient-to-r from-blue-500/10 via-cyan-500/10 to-blue-500/10 dark:from-blue-950/40 dark:via-cyan-950/30 dark:to-blue-950/40',
-        pillBorder: 'border-blue-300/80 dark:border-blue-600/50',
+        pillBg: 'bg-info-subtle',
+        pillBorder: 'border-info-border',
         pillShadow: 'shadow-none',
-        textGradient:
-          'bg-gradient-to-r from-[#1d4ed8] via-[#2563eb] to-[#0284c7] dark:from-[#93c5fd] dark:via-[#60a5fa] dark:to-[#38bdf8]',
-        dotGradient: 'bg-gradient-to-tr from-[#1d4ed8] via-[#3b82f6] to-[#06b6d4]',
-        hex: '#3b82f6'
+        textGradient: 'text-info font-bold',
+        dotGradient: 'bg-info',
+        hex: 'var(--info)'
       },
       checkedIn: {
-        pillBg:
-          'bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-blue-500/10 dark:from-blue-950/40 dark:via-indigo-950/30 dark:to-blue-950/40',
-        pillBorder: 'border-blue-300/80 dark:border-blue-600/50',
+        pillBg: 'bg-primary-subtle',
+        pillBorder: 'border-border-accent',
         pillShadow: 'shadow-none',
-        textGradient:
-          'bg-gradient-to-r from-[#1d4ed8] via-[#4338ca] to-[#2563eb] dark:from-[#93c5fd] dark:via-[#a5b4fc] dark:to-[#818cf8]',
-        dotGradient: 'bg-gradient-to-tr from-[#1d4ed8] via-[#4f46e5] to-[#60a5fa]',
-        hex: '#4f46e5'
+        textGradient: 'text-primary-bright font-bold',
+        dotGradient: 'bg-primary-bright',
+        hex: 'var(--primary-bright, var(--primary))'
       },
       pending: {
-        pillBg:
-          'bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 dark:from-amber-950/40 dark:via-orange-950/30 dark:to-amber-950/40',
-        pillBorder: 'border-amber-300/80 dark:border-amber-600/50',
+        pillBg: 'bg-warning-subtle',
+        pillBorder: 'border-warning-border',
         pillShadow: 'shadow-none',
-        textGradient:
-          'bg-gradient-to-r from-[#b45309] via-[#d97706] to-[#f59e0b] dark:from-[#fde68a] dark:via-[#fcd34d] dark:to-[#fbbf24]',
-        dotGradient: 'bg-gradient-to-tr from-[#b45309] via-[#f59e0b] to-[#fbbf24]',
-        hex: '#f59e0b'
+        textGradient: 'text-warning font-bold',
+        dotGradient: 'bg-warning',
+        hex: 'var(--warning)'
       },
       cancelled: {
-        pillBg:
-          'bg-gradient-to-r from-rose-500/10 via-red-500/10 to-rose-500/10 dark:from-rose-950/40 dark:via-red-950/30 dark:to-rose-950/40',
-        pillBorder: 'border-rose-300/80 dark:border-rose-600/50',
+        pillBg: 'bg-destructive-subtle',
+        pillBorder: 'border-destructive-border',
         pillShadow: 'shadow-none',
-        textGradient:
-          'bg-gradient-to-r from-[#be123c] via-[#e11d48] to-[#f43f5e] dark:from-[#fecdd3] dark:via-[#fda4af] dark:to-[#fb7185]',
-        dotGradient: 'bg-gradient-to-tr from-[#be123c] via-[#f43f5e] to-[#fb7185]',
-        hex: '#f43f5e'
+        textGradient: 'text-destructive font-bold',
+        dotGradient: 'bg-destructive',
+        hex: 'var(--destructive)'
       }
     }
   },

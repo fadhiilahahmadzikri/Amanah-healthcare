@@ -94,8 +94,7 @@ export default function OperationalReportView() {
             trendLabel={`↑ ${data.metrics.totalPatients.changePercentage}%`}
             trendDirection='up'
             tone='primary'
-            strokeColor='var(--primary-bright, #2563eb)'
-            icon={<Icons.teams className='size-5 text-primary' />}
+            icon={<Icons.teams className='size-5 text-chart-1' />}
           />
 
           {/* Pasien Baru */}
@@ -106,9 +105,8 @@ export default function OperationalReportView() {
             data={data.metrics.newPatients.sparkline}
             trendLabel={`↑ ${data.metrics.newPatients.changePercentage}%`}
             trendDirection='up'
-            tone='primary'
-            strokeColor='var(--primary-bright, #2563eb)'
-            icon={<Icons.user className='size-5 text-primary' />}
+            tone='success'
+            icon={<Icons.user className='size-5 text-chart-2' />}
           />
 
           {/* Total Kunjungan */}
@@ -119,9 +117,8 @@ export default function OperationalReportView() {
             data={data.metrics.totalVisits.sparkline}
             trendLabel={`↑ ${data.metrics.totalVisits.changePercentage}%`}
             trendDirection='up'
-            tone='primary'
-            strokeColor='var(--primary-bright, #2563eb)'
-            icon={<Icons.calendar className='size-5 text-primary' />}
+            tone='info'
+            icon={<Icons.calendar className='size-5 text-chart-3' />}
           />
 
           {/* No Show Rate */}
@@ -132,9 +129,8 @@ export default function OperationalReportView() {
             data={data.metrics.noShowRate.sparkline}
             trendLabel={`↓ ${Math.abs(data.metrics.noShowRate.changePercentage)}%`}
             trendDirection='down'
-            tone='primary'
-            strokeColor='var(--primary-bright, #2563eb)'
-            icon={<Icons.clock className='size-5 text-primary' />}
+            tone='warning'
+            icon={<Icons.clock className='size-5 text-chart-4' />}
           />
         </div>
 

@@ -331,14 +331,14 @@ export function AttendanceTableCard({
                           className={cn(
                             'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border',
                             isHadir
-                              ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
-                              : 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30'
+                              ? 'bg-success-subtle text-success border-success-border'
+                              : 'bg-destructive-subtle text-destructive border-destructive-border'
                           )}
                         >
                           <span
                             className={cn(
                               'size-1.5 rounded-full shrink-0',
-                              isHadir ? 'bg-emerald-500' : 'bg-rose-500'
+                              isHadir ? 'bg-success' : 'bg-destructive'
                             )}
                           />
                           <span>{row.status}</span>
@@ -346,7 +346,7 @@ export function AttendanceTableCard({
                       </TableCell>
 
                       {/* Shift */}
-                      <TableCell className='px-4 py-3 font-semibold text-blue-600 dark:text-blue-400 text-xs'>
+                      <TableCell className='px-4 py-3 font-semibold text-primary-bright text-xs'>
                         {row.shift}
                       </TableCell>
 

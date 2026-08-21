@@ -97,12 +97,8 @@ export function DailyTrendChart({ monthKey = '2026-05' }: DailyTrendChartProps) 
             <AreaChart data={chartData} margin={{ top: 12, right: 12, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id='patientTrendGradient' x1='0' y1='0' x2='0' y2='1'>
-                  <stop offset='5%' stopColor='var(--primary-bright, #2563eb)' stopOpacity={0.25} />
-                  <stop
-                    offset='95%'
-                    stopColor='var(--primary-bright, #2563eb)'
-                    stopOpacity={0.01}
-                  />
+                  <stop offset='5%' stopColor='var(--primary-bright)' stopOpacity={0.25} />
+                  <stop offset='95%' stopColor='var(--primary-bright)' stopOpacity={0.01} />
                 </linearGradient>
               </defs>
               <CartesianGrid
@@ -149,14 +145,14 @@ export function DailyTrendChart({ monthKey = '2026-05' }: DailyTrendChartProps) 
               <Area
                 type='monotone'
                 dataKey='patients'
-                stroke='var(--primary-bright, #2563eb)'
+                stroke='var(--primary-bright)'
                 strokeWidth={2.5}
                 fill='url(#patientTrendGradient)'
                 activeDot={{
                   r: 5,
-                  fill: 'var(--primary-bright, #2563eb)',
+                  fill: 'var(--primary-bright)',
                   strokeWidth: 2,
-                  stroke: 'var(--card, #ffffff)'
+                  stroke: 'var(--card)'
                 }}
               />
             </AreaChart>

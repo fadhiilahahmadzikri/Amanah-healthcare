@@ -34,21 +34,41 @@ export function StatusBadge({
     const bandOffset = 14;
 
     const ribbonColors: Record<string, { c1: string; c2: string; c3: string }> = {
-      CONFIRMED: { c1: '#86efac', c2: '#34d399', c3: '#10b981' },
-      PENDING: { c1: '#fde68a', c2: '#fbbf24', c3: '#f59e0b' },
-      MENUNGGU: { c1: '#fde68a', c2: '#fbbf24', c3: '#f59e0b' },
-      CHECKED_IN: { c1: '#a5b4fc', c2: '#818cf8', c3: '#4f46e5' },
-      DIPANGGIL: { c1: '#a5b4fc', c2: '#818cf8', c3: '#4f46e5' },
-      COMPLETED: { c1: '#e9d5ff', c2: '#c084fc', c3: '#9333ea' },
-      SELESAI: { c1: '#e9d5ff', c2: '#c084fc', c3: '#9333ea' },
-      CANCELLED: { c1: '#fecdd3', c2: '#fb7185', c3: '#e11d48' },
-      BATAL: { c1: '#fecdd3', c2: '#fb7185', c3: '#e11d48' }
+      CONFIRMED: { c1: 'var(--success-border)', c2: 'var(--success)', c3: 'var(--success)' },
+      PENDING: { c1: 'var(--warning-border)', c2: 'var(--warning)', c3: 'var(--warning)' },
+      MENUNGGU: { c1: 'var(--warning-border)', c2: 'var(--warning)', c3: 'var(--warning)' },
+      CHECKED_IN: {
+        c1: 'var(--border-accent)',
+        c2: 'var(--primary-bright)',
+        c3: 'var(--primary-bright)'
+      },
+      DIPANGGIL: {
+        c1: 'var(--border-accent)',
+        c2: 'var(--primary-bright)',
+        c3: 'var(--primary-bright)'
+      },
+      COMPLETED: {
+        c1: 'var(--status-completed-border)',
+        c2: 'var(--status-completed)',
+        c3: 'var(--status-completed)'
+      },
+      SELESAI: {
+        c1: 'var(--status-completed-border)',
+        c2: 'var(--status-completed)',
+        c3: 'var(--status-completed)'
+      },
+      CANCELLED: {
+        c1: 'var(--destructive-border)',
+        c2: 'var(--destructive)',
+        c3: 'var(--destructive)'
+      },
+      BATAL: { c1: 'var(--destructive-border)', c2: 'var(--destructive)', c3: 'var(--destructive)' }
     };
 
     const colorSet = ribbonColors[normalizedStatus] || {
-      c1: '#cbd5e1',
-      c2: '#94a3b8',
-      c3: '#64748b'
+      c1: 'var(--border-subtle)',
+      c2: 'var(--muted-foreground)',
+      c3: 'var(--foreground)'
     };
 
     return (
@@ -108,21 +128,41 @@ export function StatusBadge({
     const textCenterX = solidStartX + (w - solidStartX) / 2;
 
     const ribbonColors: Record<string, { c1: string; c2: string; c3: string }> = {
-      CONFIRMED: { c1: '#86efac', c2: '#34d399', c3: '#10b981' },
-      PENDING: { c1: '#fde68a', c2: '#fbbf24', c3: '#f59e0b' },
-      MENUNGGU: { c1: '#fde68a', c2: '#fbbf24', c3: '#f59e0b' },
-      CHECKED_IN: { c1: '#a5b4fc', c2: '#818cf8', c3: '#4f46e5' },
-      DIPANGGIL: { c1: '#a5b4fc', c2: '#818cf8', c3: '#4f46e5' },
-      COMPLETED: { c1: '#e9d5ff', c2: '#c084fc', c3: '#9333ea' },
-      SELESAI: { c1: '#e9d5ff', c2: '#c084fc', c3: '#9333ea' },
-      CANCELLED: { c1: '#fecdd3', c2: '#fb7185', c3: '#e11d48' },
-      BATAL: { c1: '#fecdd3', c2: '#fb7185', c3: '#e11d48' }
+      CONFIRMED: { c1: 'var(--success-border)', c2: 'var(--success)', c3: 'var(--success)' },
+      PENDING: { c1: 'var(--warning-border)', c2: 'var(--warning)', c3: 'var(--warning)' },
+      MENUNGGU: { c1: 'var(--warning-border)', c2: 'var(--warning)', c3: 'var(--warning)' },
+      CHECKED_IN: {
+        c1: 'var(--border-accent)',
+        c2: 'var(--primary-bright)',
+        c3: 'var(--primary-bright)'
+      },
+      DIPANGGIL: {
+        c1: 'var(--border-accent)',
+        c2: 'var(--primary-bright)',
+        c3: 'var(--primary-bright)'
+      },
+      COMPLETED: {
+        c1: 'var(--status-completed-border)',
+        c2: 'var(--status-completed)',
+        c3: 'var(--status-completed)'
+      },
+      SELESAI: {
+        c1: 'var(--status-completed-border)',
+        c2: 'var(--status-completed)',
+        c3: 'var(--status-completed)'
+      },
+      CANCELLED: {
+        c1: 'var(--destructive-border)',
+        c2: 'var(--destructive)',
+        c3: 'var(--destructive)'
+      },
+      BATAL: { c1: 'var(--destructive-border)', c2: 'var(--destructive)', c3: 'var(--destructive)' }
     };
 
     const colorSet = ribbonColors[normalizedStatus] || {
-      c1: '#cbd5e1',
-      c2: '#94a3b8',
-      c3: '#64748b'
+      c1: 'var(--border-subtle)',
+      c2: 'var(--muted-foreground)',
+      c3: 'var(--foreground)'
     };
 
     return (
