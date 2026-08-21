@@ -6,18 +6,13 @@ import {
   initialDoctorSchedules,
   isDoctorOnLeaveOnDay
 } from '@/constants/mock-api-doctor-schedules';
-import type {
-  DoctorSchedule,
-  ScheduleDayStatus,
-  DoctorDailySession
-} from '@/features/jadwal-dokter/api/types';
+import type { DoctorSchedule, ScheduleDayStatus } from '@/features/jadwal-dokter/api/types';
 import { cn } from '@/lib/utils';
 
-export interface AppointmentSchedulePickerProps {
+export interface AppointmentCalendarDayPickerProps {
   doctorName: string;
   selectedDateStr: string;
-  selectedTimeSlot: string;
-  onSelectSchedule: (dateStr: string, timeSlot: string, sessionInfo?: string) => void;
+  onSelectDate: (dateStr: string) => void;
   className?: string;
 }
 
@@ -54,14 +49,12 @@ const MONTH_NAMES_SHORT = [
 const DAY_NAMES = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 const DAY_NAMES_FULL = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
-export function AppointmentSchedulePicker({
+export function AppointmentCalendarDayPicker({
   doctorName,
   selectedDateStr,
-  selectedTimeSlot,
-  onSelectSchedule,
+  onSelectDate,
   className
-}: AppointmentSchedulePickerProps) {
-  // Find doctor schedule details
+}: AppointmentCalendarDayPickerProps) {
   const doctorSchedule: DoctorSchedule | undefined = useMemo(() => {
     return (
       initialDoctorSchedules.find(
@@ -74,7 +67,6 @@ export function AppointmentSchedulePicker({
   const [currentMonth, setCurrentMonth] = useState<number>(today.getMonth());
   const [currentYear, setCurrentYear] = useState<number>(today.getFullYear());
 
-  // Parse initial selected day if matching current month/year
   const [selectedDay, setSelectedDay] = useState<number>(() => {
     if (!selectedDateStr) return today.getDate();
     const parts = selectedDateStr.split(' ');
@@ -85,18 +77,15 @@ export function AppointmentSchedulePicker({
     return today.getDate();
   });
 
-  // Calculate days in month & padding for grid
   const daysInMonth = useMemo(() => {
     return new Date(currentYear, currentMonth + 1, 0).getDate();
   }, [currentYear, currentMonth]);
 
   const startDayIndex = useMemo(() => {
     const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-    // Convert Sunday (0) to 6, Monday (1) to 0
-    return (firstDay + 6) % 7;
+    return (firstDay + 6) % 7; // Monday = 0
   }, [currentYear, currentMonth]);
 
-  // Resolve status for each day of the month for this doctor
   const getDayStatus = (day: number): ScheduleDayStatus => {
     if (!doctorSchedule) return 'Buka';
 
@@ -111,72 +100,23 @@ export function AppointmentSchedulePicker({
     return 'Buka';
   };
 
-  // Build sessions for the selected day
-  const sessions: DoctorDailySession[] = useMemo(() => {
-    if (!doctorSchedule) return [];
-    return doctorSchedule.sesi_harian || [];
-  }, [doctorSchedule]);
-
-  // Generate sub-slots per session
-  const generateSubSlots = (session: DoctorDailySession) => {
-    const startH = parseInt(session.jam_mulai.split(':')[0], 10) || 8;
-    const startM = parseInt(session.jam_mulai.split(':')[1], 10) || 0;
-    const endH = parseInt(session.jam_selesai.split(':')[0], 10) || 12;
-
-    const slots: string[] = [];
-    let curMins = startH * 60 + startM;
-    const endMins = endH * 60;
-
-    while (curMins < endMins) {
-      const h1 = Math.floor(curMins / 60);
-      const m1 = curMins % 60;
-      const nextMins = curMins + 30;
-      const h2 = Math.floor(nextMins / 60);
-      const m2 = nextMins % 60;
-
-      const fmt1 = `${String(h1).padStart(2, '0')}:${String(m1).padStart(2, '0')}`;
-      const fmt2 = `${String(h2).padStart(2, '0')}:${String(m2).padStart(2, '0')}`;
-      slots.push(`${fmt1} - ${fmt2} WIB`);
-
-      curMins += 30;
-    }
-    return slots;
-  };
-
   const handleSelectDay = (day: number) => {
     const status = getDayStatus(day);
-    if (status === 'Cuti') return; // Cannot book on leave
+    if (status === 'Cuti') return;
 
     setSelectedDay(day);
 
-    // Format formatted date string: "Kamis, 20 Ags 2026"
     const dateObj = new Date(currentYear, currentMonth, day);
     const dayName = DAY_NAMES_FULL[dateObj.getDay()];
     const monthShort = MONTH_NAMES_SHORT[currentMonth];
     const newDateStr = `${dayName}, ${day} ${monthShort} ${currentYear}`;
 
-    // If there's an existing time slot, keep it, else pick the first available
-    const firstSession = sessions.find((s) => s.status_sesi !== 'Cuti') || sessions[0];
-    const defaultSlots = firstSession ? generateSubSlots(firstSession) : ['09:00 - 09:30 WIB'];
-    const timeToUse = selectedTimeSlot || defaultSlots[0] || '09:00 - 09:30 WIB';
-
-    onSelectSchedule(newDateStr, timeToUse, firstSession?.nama_sesi);
+    onSelectDate(newDateStr);
   };
-
-  const handleSelectTime = (slot: string, sessionName: string) => {
-    const dateObj = new Date(currentYear, currentMonth, selectedDay);
-    const dayName = DAY_NAMES_FULL[dateObj.getDay()];
-    const monthShort = MONTH_NAMES_SHORT[currentMonth];
-    const dateStr = `${dayName}, ${selectedDay} ${monthShort} ${currentYear}`;
-
-    onSelectSchedule(dateStr, slot, sessionName);
-  };
-
-  const selectedDayStatus = getDayStatus(selectedDay);
 
   return (
-    <div className={cn('space-y-4 font-sans select-none', className)}>
-      {/* 1. Month Calendar Header & Navigation */}
+    <div className={cn('space-y-3 font-sans select-none', className)}>
+      {/* Month Calendar Navigation */}
       <div className='p-3.5 rounded-xl border border-border/70 bg-card text-card-foreground shadow-xs'>
         <div className='flex items-center justify-between pb-3 border-b border-border/50'>
           <div className='flex items-center gap-2'>
@@ -186,7 +126,6 @@ export function AppointmentSchedulePicker({
             </h4>
           </div>
 
-          {/* Month Stepper Buttons */}
           <div className='flex items-center gap-1'>
             <button
               type='button'
@@ -221,7 +160,7 @@ export function AppointmentSchedulePicker({
           </div>
         </div>
 
-        {/* 2. Days of Week Header */}
+        {/* Days of Week Header */}
         <div className='grid grid-cols-7 gap-1 pt-2 pb-1 text-center text-[10px] font-bold text-muted-foreground'>
           {DAY_NAMES.map((name) => (
             <div key={name} className='py-1'>
@@ -230,7 +169,7 @@ export function AppointmentSchedulePicker({
           ))}
         </div>
 
-        {/* 3. Calendar Day Cells */}
+        {/* Calendar Day Grid */}
         <div className='grid grid-cols-7 gap-1'>
           {Array.from({ length: startDayIndex }).map((_, i) => (
             <div key={`empty-${i}`} className='h-10 sm:h-11 rounded-lg opacity-20' />
@@ -252,7 +191,7 @@ export function AppointmentSchedulePicker({
                 onClick={() => handleSelectDay(dayNum)}
                 disabled={status === 'Cuti'}
                 className={cn(
-                  'h-10 sm:h-11 rounded-lg p-1 flex flex-col items-center justify-between border transition-all cursor-pointer select-none relative',
+                  'h-10 sm:h-11 rounded-lg p-1 flex flex-col items-center justify-between border transition-all select-none relative cursor-pointer',
                   isSelected &&
                     'ring-2 ring-primary dark:ring-indigo-400 border-primary-bright font-bold scale-[1.03] z-10 shadow-xs',
                   !isSelected &&
@@ -263,7 +202,7 @@ export function AppointmentSchedulePicker({
                     'bg-warning-subtle hover:bg-warning-subtle/80 border-warning-border text-foreground',
                   !isSelected &&
                     status === 'Cuti' &&
-                    'bg-info-subtle border-info-border text-muted-foreground/60 opacity-60 cursor-not-allowed'
+                    'bg-info-subtle/40 border-info-border/50 text-muted-foreground/50 opacity-50 cursor-not-allowed'
                 )}
               >
                 <div className='w-full flex items-center justify-between text-[11px] leading-none'>
@@ -289,7 +228,7 @@ export function AppointmentSchedulePicker({
                       'text-[9px] font-bold px-1 py-0.2 rounded-full leading-none truncate max-w-full',
                       status === 'Buka' && 'text-success',
                       status === 'Penuh' && 'text-warning',
-                      status === 'Cuti' && 'text-info'
+                      status === 'Cuti' && 'text-muted-foreground'
                     )}
                   >
                     {status}
@@ -300,104 +239,21 @@ export function AppointmentSchedulePicker({
           })}
         </div>
 
-        {/* 4. Calendar Legend Footer */}
+        {/* Legend Footer */}
         <div className='flex items-center justify-between pt-2.5 mt-2 border-t border-border/40 text-[10.5px] font-medium text-muted-foreground'>
-          <div className='flex items-center gap-1'>
+          <div className='flex items-center gap-1.5'>
             <span className='size-2 rounded-full bg-success' />
-            <span className='text-success font-semibold'>Buka</span>
+            <span className='text-success font-semibold'>Buka / Tersedia</span>
           </div>
-          <div className='flex items-center gap-1'>
+          <div className='flex items-center gap-1.5'>
             <span className='size-2 rounded-full bg-warning' />
             <span className='text-warning font-semibold'>Penuh</span>
           </div>
-          <div className='flex items-center gap-1'>
+          <div className='flex items-center gap-1.5'>
             <span className='size-2 rounded-full bg-info' />
             <span className='text-info font-semibold'>Cuti</span>
           </div>
         </div>
-      </div>
-
-      {/* 5. Shift & Jam Konsultasi Dokter (POV Kuota & Jam) */}
-      <div className='space-y-2.5 pt-0.5'>
-        <div className='flex items-center justify-between'>
-          <span className='text-xs font-bold text-foreground'>Jadwal Sesi & Jam Praktik</span>
-          <span className='text-[11px] font-medium text-primary dark:text-indigo-300'>
-            {selectedDay} {MONTH_NAMES[currentMonth]} {currentYear} ({selectedDayStatus})
-          </span>
-        </div>
-
-        {selectedDayStatus === 'Cuti' ? (
-          <div className='p-4 rounded-xl border border-info-border bg-info-subtle text-info text-xs text-center'>
-            <Icons.info className='size-4 mx-auto mb-1 opacity-80' />
-            Dokter sedang cuti pada tanggal ini. Silakan pilih tanggal lain yang berstatus{' '}
-            <strong>Buka</strong>.
-          </div>
-        ) : (
-          <div className='space-y-2.5 max-h-[220px] overflow-y-auto pr-1'>
-            {sessions.map((sesi) => {
-              const subSlots = generateSubSlots(sesi);
-              const isSessionFull = sesi.status_sesi === 'Penuh' || sesi.slot_tersedia <= 0;
-
-              return (
-                <div
-                  key={sesi.id}
-                  className={cn(
-                    'p-3 rounded-xl border transition-all space-y-2',
-                    isSessionFull
-                      ? 'border-border/60 bg-muted/20 opacity-70'
-                      : 'border-border bg-card hover:border-primary/40'
-                  )}
-                >
-                  {/* Session Header */}
-                  <div className='flex items-center justify-between'>
-                    <div className='flex items-center gap-2'>
-                      <span className='text-xs font-bold text-foreground'>{sesi.nama_sesi}</span>
-                      <span className='text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border/50'>
-                        {sesi.waktu}
-                      </span>
-                    </div>
-
-                    <div className='flex items-center gap-2'>
-                      <span
-                        className={cn(
-                          'text-[10px] font-semibold px-2 py-0.5 rounded-full',
-                          isSessionFull
-                            ? 'bg-warning-subtle text-warning border border-warning-border'
-                            : 'bg-success-subtle text-success border border-success-border'
-                        )}
-                      >
-                        {isSessionFull ? 'Kuota Penuh' : `Sisa ${sesi.slot_tersedia} slot`}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Sub-slots buttons */}
-                  <div className='grid grid-cols-2 sm:grid-cols-3 gap-1.5 pt-0.5'>
-                    {subSlots.map((slot) => {
-                      const isSelected = selectedTimeSlot === slot;
-                      return (
-                        <button
-                          key={slot}
-                          type='button'
-                          onClick={() => handleSelectTime(slot, sesi.nama_sesi)}
-                          disabled={isSessionFull}
-                          className={cn(
-                            'py-1.5 px-2 rounded-lg text-center text-[11px] font-medium transition-all cursor-pointer select-none whitespace-nowrap',
-                            isSelected
-                              ? 'bg-primary dark:bg-indigo-600 text-primary-foreground font-bold shadow-2xs ring-1 ring-primary'
-                              : 'border border-border bg-background text-foreground hover:border-primary/50'
-                          )}
-                        >
-                          {slot}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
       </div>
     </div>
   );

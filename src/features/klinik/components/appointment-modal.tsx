@@ -8,7 +8,8 @@ import { Appointment, Doctor, QueueItem, AppointmentFormData } from '../api/type
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
 import { StepperProgress } from './stepper-progress';
-import { AppointmentSchedulePicker } from './appointment-schedule-picker';
+import { AppointmentCalendarDayPicker } from './appointment-calendar-day-picker';
+import { AppointmentTimeSlotPicker } from './appointment-time-slot-picker';
 import { QueueSuccessModal } from './queue-success-modal';
 import {
   getDoctors,
@@ -16,12 +17,7 @@ import {
   createAppointmentRecordWithQueue,
   loadStoredAppointments
 } from '../api/service';
-import {
-  AMANAH_SERVICES,
-  QUICK_COMPLAINT_SUGGESTIONS,
-  detectServiceFromComplaint,
-  getAmanahServiceByName
-} from '../constants/services';
+import { AMANAH_SERVICES } from '../constants/services';
 import { cn } from '@/lib/utils';
 
 export interface AppointmentModalProps {
@@ -40,10 +36,10 @@ export function AppointmentModal({
   onSubmit
 }: AppointmentModalProps) {
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 4;
+  const totalSteps = 5;
   const stepContainerRef = useRef<HTMLDivElement>(null);
 
-  // Step 1 Dropdowns & Suggestions
+  // Step 1 Dropdowns
   const [isServiceOpen, setIsServiceOpen] = useState(false);
   const [isVisitTypeOpen, setIsVisitTypeOpen] = useState(false);
   const serviceDropdownRef = useRef<HTMLDivElement>(null);
@@ -302,36 +298,13 @@ export function AppointmentModal({
       case 2:
         return !!formData.doctor;
       case 3:
-        return !!formData.dateStr && !!formData.timeSlot;
+        return !!formData.dateStr;
       case 4:
+        return !!formData.timeSlot;
+      case 5:
         return true;
       default:
         return true;
-    }
-  };
-
-  const handleQuickComplaintSelect = (label: string, serviceName: string, desc: string) => {
-    const srv = getAmanahServiceByName(serviceName);
-    setFormData((prev) => ({
-      ...prev,
-      service: srv?.name || serviceName,
-      complaint: desc
-    }));
-  };
-
-  const handleComplaintChange = (val: string) => {
-    const detected = detectServiceFromComplaint(val);
-    if (detected && detected.name !== formData.service) {
-      setFormData((prev) => ({
-        ...prev,
-        complaint: val,
-        service: detected.name
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        complaint: val
-      }));
     }
   };
 
@@ -347,7 +320,7 @@ export function AppointmentModal({
       <ModalWrapper
         isOpen={isOpen && !isQueueSuccessOpen}
         onClose={onClose}
-        maxWidth='max-w-[620px]'
+        maxWidth='max-w-[560px]'
         showCloseButton={false}
       >
         <div className='space-y-5 font-sans'>
@@ -367,58 +340,24 @@ export function AppointmentModal({
           {/* Dynamic Stepper Form Content */}
           <div ref={stepContainerRef}>
             {/* =============================================================== */}
-            {/* STEP 1: LAYANAN RS AMANAH & KELUHAN PASIEN */}
+            {/* STEP 1: INFORMASI LAYANAN & KELUHAN PASIEN */}
             {/* =============================================================== */}
             {currentStep === 1 && (
               <div className='space-y-4'>
                 <div>
                   <h3 className='text-base font-bold tracking-tight text-foreground'>
-                    Pilih Layanan & Deskripsi Keluhan
+                    Informasi Layanan & Keluhan
                   </h3>
                   <p className='text-xs text-muted-foreground font-normal mt-0.5 leading-relaxed'>
-                    Pilih poliklinik atau pilih keluhan cepat untuk diarahkan otomatis ke dokter
-                    spesialis terkait.
+                    Pilih poliklinik tujuan serta deskripsikan keluhan medis yang Anda rasakan.
                   </p>
                 </div>
 
-                {/* Quick Complaint Recommendation Chips */}
-                <div className='space-y-1.5'>
-                  <span className='text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5'>
-                    <Icons.sparkles className='size-3 text-primary-bright' />
-                    <span>Pilihan Keluhan Cepat:</span>
-                  </span>
-                  <div className='flex flex-wrap gap-1.5'>
-                    {QUICK_COMPLAINT_SUGGESTIONS.map((sug) => {
-                      const isActive =
-                        formData.service.toLowerCase().includes(sug.serviceName.toLowerCase()) ||
-                        formData.complaint === sug.description;
-
-                      return (
-                        <button
-                          key={sug.label}
-                          type='button'
-                          onClick={() =>
-                            handleQuickComplaintSelect(sug.label, sug.serviceName, sug.description)
-                          }
-                          className={cn(
-                            'px-2.5 py-1 rounded-full text-xs font-medium border transition-all cursor-pointer select-none',
-                            isActive
-                              ? 'bg-primary dark:bg-indigo-600 text-primary-foreground border-primary font-bold shadow-2xs'
-                              : 'bg-card text-foreground border-border hover:border-primary/50 hover:bg-accent'
-                          )}
-                        >
-                          {sug.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className='space-y-3.5 pt-1'>
-                  {/* 1. Layanan Poliklinik Amanah Dropdown */}
+                <div className='space-y-3.5'>
+                  {/* 1. Layanan Poliklinik Dropdown */}
                   <div className='space-y-1 relative'>
-                    <span className='block text-xs font-semibold text-foreground'>
-                      Layanan & Poliklinik RS Amanah*
+                    <span className='block text-xs font-normal text-muted-foreground'>
+                      Layanan Poliklinik*
                     </span>
                     <button
                       type='button'
@@ -429,13 +368,10 @@ export function AppointmentModal({
                       }}
                       className='w-full flex items-center justify-between p-3 border border-border bg-background dark:bg-slate-800/60 text-xs font-semibold text-foreground hover:border-primary/40 transition-colors cursor-pointer rounded-lg'
                     >
-                      <div className='flex items-center gap-2 text-left truncate'>
-                        <span className='size-2 rounded-full bg-primary-bright shrink-0' />
-                        <span className='truncate'>{formData.service}</span>
-                      </div>
+                      <span>{formData.service}</span>
                       <Icons.chevronDown
                         className={cn(
-                          'size-4 text-muted-foreground transition-transform duration-200 shrink-0',
+                          'size-4 text-muted-foreground transition-transform duration-200',
                           isServiceOpen && 'rotate-180 text-primary'
                         )}
                       />
@@ -485,7 +421,7 @@ export function AppointmentModal({
 
                   {/* 2. Jenis Kunjungan Dropdown */}
                   <div className='space-y-1 relative'>
-                    <span className='block text-xs font-semibold text-foreground'>
+                    <span className='block text-xs font-normal text-muted-foreground'>
                       Jenis Kunjungan*
                     </span>
                     <button
@@ -537,24 +473,21 @@ export function AppointmentModal({
 
                   {/* 3. Keluhan Medis Input */}
                   <div className='space-y-1'>
-                    <div className='flex items-center justify-between'>
-                      <label
-                        htmlFor='complaint-input'
-                        className='block text-xs font-semibold text-foreground'
-                      >
-                        Keluhan atau Catatan Medis Pasien*
-                      </label>
-                      <span className='text-[11px] text-primary dark:text-indigo-300 font-medium'>
-                        Auto-filter spesialis aktif
-                      </span>
-                    </div>
+                    <label
+                      htmlFor='complaint-input'
+                      className='block text-xs font-normal text-muted-foreground'
+                    >
+                      Keluhan atau Catatan Medis*
+                    </label>
                     <textarea
                       id='complaint-input'
                       aria-label='Keluhan atau catatan medis'
                       value={formData.complaint}
-                      onChange={(e) => handleComplaintChange(e.target.value)}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, complaint: e.target.value }))
+                      }
                       rows={3}
-                      placeholder='Contoh: Sakit pinggang dan boyok kaku sejak kemarin sore...'
+                      placeholder='Contoh: Ruam kemerahan pada lengan kanan sejak 2 hari yang lalu...'
                       className='w-full p-3 border border-border bg-background dark:bg-slate-800/60 text-xs font-medium text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary dark:focus:border-indigo-400 transition-colors resize-none rounded-lg'
                     />
                   </div>
@@ -563,7 +496,7 @@ export function AppointmentModal({
             )}
 
             {/* =============================================================== */}
-            {/* STEP 2: PILIH DOKTER TERKAIT LAYANAN */}
+            {/* STEP 2: PILIH DOKTER SPESIALIS */}
             {/* =============================================================== */}
             {currentStep === 2 && (
               <div className='space-y-3.5'>
@@ -572,11 +505,7 @@ export function AppointmentModal({
                     Pilih Dokter Spesialis
                   </h3>
                   <p className='text-xs text-muted-foreground font-normal mt-0.5 leading-relaxed'>
-                    Menampilkan dokter yang tersedia untuk{' '}
-                    <strong className='text-primary dark:text-indigo-300 font-semibold'>
-                      {formData.service}
-                    </strong>
-                    .
+                    Pilih tenaga medis profesional yang bertugas pada layanan ini.
                   </p>
                 </div>
 
@@ -586,13 +515,13 @@ export function AppointmentModal({
                     <Icons.search className='absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground' />
                     <input
                       type='text'
-                      aria-label='Cari nama dokter'
+                      aria-label='Cari nama dokter atau spesialis'
                       value={doctorSearch}
                       onChange={(e) => {
                         setDoctorSearch(e.target.value);
                         setDoctorPage(1);
                       }}
-                      placeholder='Cari nama dokter atau ruang praktik...'
+                      placeholder='Cari nama dokter atau spesialis...'
                       className='w-full pl-9 pr-8 py-1.5 text-xs rounded-lg border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-indigo-400 transition-colors'
                     />
                     {doctorSearch && (
@@ -611,7 +540,7 @@ export function AppointmentModal({
                   </div>
 
                   <span className='text-[11px] font-medium text-muted-foreground shrink-0 select-none'>
-                    {filteredDoctors.length} dokter tersedia
+                    {filteredDoctors.length} dokter
                   </span>
                 </div>
 
@@ -619,7 +548,7 @@ export function AppointmentModal({
                 <div ref={doctorListRef} className='space-y-2 max-h-[300px] overflow-y-auto pr-1'>
                   {paginatedDoctors.length === 0 ? (
                     <div className='py-8 text-center text-xs text-muted-foreground'>
-                      Tidak ada dokter yang sesuai pada layanan ini.
+                      Tidak ada dokter yang sesuai dengan pencarian &quot;{doctorSearch}&quot;.
                     </div>
                   ) : (
                     paginatedDoctors.map((doc: Doctor) => {
@@ -631,7 +560,7 @@ export function AppointmentModal({
                           aria-label={`Pilih dokter ${doc.name}`}
                           onClick={(e) => selectDoctorWithAnimation(doc, e.currentTarget)}
                           className={cn(
-                            'w-full text-left p-3 rounded-xl border transition-all flex items-center justify-between gap-3 cursor-pointer select-none',
+                            'w-full text-left p-2.5 rounded-xl border transition-all flex items-center justify-between gap-3 cursor-pointer select-none',
                             isSelected
                               ? 'border-2 border-primary dark:border-indigo-400 bg-primary/5 dark:bg-indigo-950/40 shadow-xs'
                               : 'border-border bg-card hover:border-primary/40'
@@ -729,31 +658,61 @@ export function AppointmentModal({
             )}
 
             {/* =============================================================== */}
-            {/* STEP 3: PILIH HARI & JADWAL PRAKTIK DOKTER */}
+            {/* STEP 3: PILIH TANGGAL KUNJUNGAN (POV HARI SAJA) */}
             {/* =============================================================== */}
             {currentStep === 3 && (
               <div className='space-y-3.5'>
                 <div>
                   <h3 className='text-base font-bold tracking-tight text-foreground'>
-                    Pilih Hari & Jam Praktik Dokter
+                    Pilih Tanggal Kunjungan
                   </h3>
                   <p className='text-xs text-muted-foreground font-normal mt-0.5 leading-relaxed'>
-                    Jadwal praktik resmi{' '}
+                    Pilih hari praktik dokter{' '}
                     <strong className='text-primary dark:text-indigo-300 font-semibold'>
                       {formData.doctor}
-                    </strong>
-                    . Pilih hari yang berstatus Buka, lalu pilih sesi dan jam konsultasi.
+                    </strong>{' '}
+                    yang berstatus Buka (Tersedia).
                   </p>
                 </div>
 
-                <AppointmentSchedulePicker
+                <AppointmentCalendarDayPicker
+                  doctorName={formData.doctor}
+                  selectedDateStr={formData.dateStr}
+                  onSelectDate={(dateStr) => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      dateStr
+                    }));
+                  }}
+                />
+              </div>
+            )}
+
+            {/* =============================================================== */}
+            {/* STEP 4: PILIH JAM KONSULTASI (POV SIANG/MALAM HOUR) */}
+            {/* =============================================================== */}
+            {currentStep === 4 && (
+              <div className='space-y-3.5'>
+                <div>
+                  <h3 className='text-base font-bold tracking-tight text-foreground'>
+                    Pilih Jam Konsultasi
+                  </h3>
+                  <p className='text-xs text-muted-foreground font-normal mt-0.5 leading-relaxed'>
+                    Slot waktu praktik dokter yang tersedia untuk{' '}
+                    <strong className='text-primary dark:text-indigo-300 font-semibold'>
+                      {formData.dateStr}
+                    </strong>
+                    .
+                  </p>
+                </div>
+
+                <AppointmentTimeSlotPicker
                   doctorName={formData.doctor}
                   selectedDateStr={formData.dateStr}
                   selectedTimeSlot={formData.timeSlot}
-                  onSelectSchedule={(dateStr, timeSlot) => {
+                  onSelectTimeSlot={(timeSlot) => {
                     setFormData((prev) => ({
                       ...prev,
-                      dateStr,
                       timeSlot
                     }));
                   }}
@@ -762,58 +721,53 @@ export function AppointmentModal({
             )}
 
             {/* =============================================================== */}
-            {/* STEP 4: KONFIRMASI RESERVASI JANJI TEMU */}
+            {/* STEP 5: KONFIRMASI JANJI TEMU (CLEAN UNDERLINE STYLE) */}
             {/* =============================================================== */}
-            {currentStep === 4 && (
+            {currentStep === 5 && (
               <div className='space-y-4'>
                 <div>
                   <h3 className='text-base font-bold tracking-tight text-foreground'>
-                    Konfirmasi Janji Temu Pasien
+                    Konfirmasi Janji Temu
                   </h3>
                   <p className='text-xs text-muted-foreground font-normal mt-0.5 leading-relaxed'>
-                    Periksa kembali ringkasan reservasi Anda sebelum diproses ke sistem antrean RS
-                    Amanah.
+                    Periksa kembali ringkasan reservasi Anda sebelum disimpan.
                   </p>
                 </div>
 
-                {/* Summary Card */}
-                <div className='rounded-xl border border-border bg-card p-4 space-y-2.5 shadow-xs text-xs'>
-                  <div className='flex items-center justify-between py-1.5 border-b border-border/60'>
+                {/* Minimalist Line Summary List (Underline Style Matching Original) */}
+                <div className='space-y-1 text-xs pt-1'>
+                  <div className='flex items-center justify-between py-2 border-b border-border'>
                     <span className='text-muted-foreground font-normal'>Dokter Tujuan</span>
-                    <span className='font-bold text-foreground'>{formData.doctor}</span>
+                    <span className='font-semibold text-foreground'>{formData.doctor}</span>
                   </div>
 
-                  <div className='flex items-center justify-between py-1.5 border-b border-border/60'>
+                  <div className='flex items-center justify-between py-2 border-b border-border'>
                     <span className='text-muted-foreground font-normal'>Poliklinik & Layanan</span>
-                    <span className='font-semibold text-primary dark:text-indigo-300'>
-                      {formData.service}
+                    <span className='font-semibold text-foreground'>{formData.service}</span>
+                  </div>
+
+                  <div className='flex items-center justify-between py-2 border-b border-border'>
+                    <span className='text-muted-foreground font-normal'>Tanggal Reservasi</span>
+                    <span className='font-semibold text-primary dark:text-indigo-400'>
+                      {formData.dateStr}
                     </span>
                   </div>
 
-                  <div className='flex items-center justify-between py-1.5 border-b border-border/60'>
-                    <span className='text-muted-foreground font-normal'>Tanggal Reservasi</span>
-                    <span className='font-semibold text-foreground'>{formData.dateStr}</span>
-                  </div>
-
-                  <div className='flex items-center justify-between py-1.5 border-b border-border/60'>
-                    <span className='text-muted-foreground font-normal'>Jam / Slot Konsultasi</span>
-                    <span className='font-mono font-bold text-primary-bright'>
+                  <div className='flex items-center justify-between py-2 border-b border-border'>
+                    <span className='text-muted-foreground font-normal'>Jam / Slot</span>
+                    <span className='font-mono font-bold text-primary dark:text-indigo-300'>
                       {formData.timeSlot}
                     </span>
                   </div>
 
-                  <div className='flex items-center justify-between py-1.5 border-b border-border/60'>
-                    <span className='text-muted-foreground font-normal'>Jenis Kunjungan</span>
+                  <div className='flex items-center justify-between py-2 border-b border-border'>
+                    <span className='text-muted-foreground font-normal'>Tipe Kunjungan</span>
                     <span className='font-medium text-foreground'>{formData.visitType}</span>
                   </div>
 
-                  <div className='pt-1 space-y-1'>
-                    <span className='text-muted-foreground font-normal block'>
-                      Keluhan Medis Pasien:
-                    </span>
-                    <p className='text-foreground font-normal bg-muted/40 p-2.5 rounded-lg border border-border/50'>
-                      {formData.complaint || '-'}
-                    </p>
+                  <div className='py-2 space-y-1'>
+                    <span className='text-muted-foreground font-normal block'>Keluhan Medis</span>
+                    <p className='text-foreground font-normal'>{formData.complaint || '-'}</p>
                   </div>
                 </div>
               </div>
@@ -843,10 +797,10 @@ export function AppointmentModal({
                 disabled={!isStepValid()}
                 onClick={handleNext}
                 withTrailingCircleIcon={true}
-                className='min-w-[160px]'
+                className='min-w-[150px]'
                 trailingIcon={<Icons.arrowUpRight className='size-3 stroke-[2.5]' />}
               >
-                {currentStep === totalSteps ? 'Konfirmasi Janji Temu' : 'Lanjutkan'}
+                {currentStep === totalSteps ? 'Simpan Janji Temu' : 'Lanjutkan'}
               </Button>
             </div>
           </div>
