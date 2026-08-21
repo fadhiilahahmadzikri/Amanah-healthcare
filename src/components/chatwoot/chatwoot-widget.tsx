@@ -157,7 +157,7 @@ export function ChatwootWidget() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
-  // GSAP Spatial Corner-to-Canvas Expansion
+  // GSAP Spatial Corner-to-Canvas Expansion (Diagonal Scaling Appearing Morph)
   useEffect(() => {
     if (!workspaceRef.current || !launcherRef.current) return;
 
@@ -178,25 +178,28 @@ export function ChatwootWidget() {
         }
       });
 
-      // Spatial Morph from Bottom-Right Corner
+      // Spatial Diagonal Scaling Morph directly from Bottom-Right Corner Launcher
       tl.fromTo(
         workspaceRef.current,
         {
           opacity: 0,
-          scale: 0.15,
+          scale: 0.06,
+          x: 12,
+          y: 12,
+          filter: 'blur(8px)',
           transformOrigin: 'bottom right',
-          borderRadius: '32px',
-          y: 20,
-          x: 20
+          borderRadius: '36px'
         },
         {
           opacity: 1,
           scale: 1,
-          borderRadius: '24px',
-          y: 0,
           x: 0,
-          duration: 0.45,
-          ease: 'power3.out'
+          y: 0,
+          filter: 'blur(0px)',
+          borderRadius: isExpanded ? '28px' : '24px',
+          duration: 0.52,
+          ease: 'expo.out',
+          clearProps: 'filter'
         }
       );
 
@@ -204,15 +207,16 @@ export function ChatwootWidget() {
       if (headerRef.current && conversationAreaRef.current && composerRef.current) {
         tl.fromTo(
           [headerRef.current, conversationAreaRef.current, composerRef.current],
-          { opacity: 0, y: 14 },
+          { opacity: 0, y: 16 },
           {
             opacity: 1,
             y: 0,
-            duration: 0.35,
-            stagger: 0.08,
-            ease: 'power2.out'
+            duration: 0.38,
+            stagger: 0.07,
+            ease: 'power2.out',
+            clearProps: 'transform,opacity'
           },
-          '-=0.25'
+          '-=0.3'
         );
       }
     } else {
@@ -221,23 +225,39 @@ export function ChatwootWidget() {
         return;
       }
 
-      // Smooth spatial collapse back to bottom-right corner
-      gsap.to(workspaceRef.current, {
-        opacity: 0,
-        scale: 0.2,
-        transformOrigin: 'bottom right',
-        y: 24,
-        x: 24,
-        duration: 0.3,
-        ease: 'power2.in',
+      // Smooth diagonal spatial collapse back into the corner launcher
+      const tl = gsap.timeline({
         onComplete: () => {
           if (workspaceRef.current) {
             workspaceRef.current.style.display = 'none';
           }
         }
       });
+
+      if (headerRef.current && conversationAreaRef.current && composerRef.current) {
+        tl.to([conversationAreaRef.current, composerRef.current, headerRef.current], {
+          opacity: 0,
+          duration: 0.12,
+          ease: 'power2.in'
+        });
+      }
+
+      tl.to(
+        workspaceRef.current,
+        {
+          opacity: 0,
+          scale: 0.06,
+          x: 14,
+          y: 14,
+          filter: 'blur(6px)',
+          transformOrigin: 'bottom right',
+          duration: 0.32,
+          ease: 'power3.inOut'
+        },
+        '-=0.06'
+      );
     }
-  }, [isOpen]);
+  }, [isOpen, isExpanded]);
 
   const handleCloseWorkspace = () => {
     if (streamIntervalRef.current) {
@@ -425,17 +445,13 @@ export function ChatwootWidget() {
                 </span>
               </div>
               <p className='text-[11px] text-muted-foreground truncate mt-0.5'>
-                Spatial Intelligence • SIMRS & Rekam Medis Terintegrasi
+                Siap membantu anda..
               </p>
             </div>
           </div>
 
-          {/* Model Selector & Control Actions */}
+          {/* Control Actions */}
           <div className='flex items-center gap-1.5'>
-            <span className='hidden sm:inline-flex px-2.5 py-1 rounded-lg text-[11px] font-medium bg-background border border-border/60 text-muted-foreground shadow-2xs'>
-              Amanah-MedLLM v2
-            </span>
-
             {/* Clear Conversation */}
             {messages.length > 0 && (
               <Tooltip>
