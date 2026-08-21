@@ -20,6 +20,7 @@ import {
   TableCell
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { AttendanceDigitalClock } from './attendance-digital-clock';
 import { Icons } from '@/components/icons';
 import { SHIFT_OPTIONS, STATUS_OPTIONS, CATEGORY_OPTIONS } from '../constants/options';
 import { cn } from '@/lib/utils';
@@ -185,8 +186,11 @@ export function AttendanceTableCard({
             )}
           </div>
 
-          {/* Right Toolbar Extra Actions (e.g., Live Clock, Sync, Fullscreen) */}
-          {headerExtra && <div className='flex items-center gap-1.5 shrink-0'>{headerExtra}</div>}
+          {/* Right Toolbar Extra Actions & Master Digital Clock */}
+          <div className='flex items-center gap-1.5 shrink-0'>
+            <AttendanceDigitalClock />
+            {headerExtra}
+          </div>
         </div>
 
         {/* 2. Harmonized Data Table (Gaya Halaman Data Pasien) */}

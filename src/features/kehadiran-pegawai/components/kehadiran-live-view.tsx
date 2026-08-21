@@ -32,25 +32,8 @@ export function KehadiranLiveView() {
     limit: 10
   });
 
-  const [currentTime, setCurrentTime] = useState<string>('');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isManualAttendanceModalOpen, setIsManualAttendanceModalOpen] = useState(false);
-
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      setCurrentTime(
-        now.toLocaleTimeString('id-ID', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit'
-        }) + ' WIB'
-      );
-    };
-    updateTime();
-    const timer = setInterval(updateTime, 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   const { data, refetch } = useQuery(attendanceQueries.list(params));
 
@@ -135,13 +118,7 @@ export function KehadiranLiveView() {
             onResetFilter={handleResetFilter}
             headerExtra={
               <div className='flex items-center gap-1.5'>
-                {/* 1. Jam Digital Live */}
-                <div className='flex items-center gap-1.5 px-2.5 h-8 rounded-md bg-muted/40 border border-border/70 text-xs font-mono font-bold text-foreground shadow-2xs'>
-                  <Icons.clock className='size-3.5 text-primary shrink-0' />
-                  <span>{currentTime || '08:00:00 WIB'}</span>
-                </div>
-
-                {/* 2. Icon-base Sync Button with Tooltip */}
+                {/* 1. Icon-base Sync Button with Tooltip */}
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -163,7 +140,7 @@ export function KehadiranLiveView() {
                   </TooltipContent>
                 </Tooltip>
 
-                {/* 3. MoreVert Dropdown Menu with Tooltip */}
+                {/* 2. MoreVert Dropdown Menu with Tooltip */}
                 <DropdownMenu>
                   <Tooltip>
                     <TooltipTrigger asChild>
