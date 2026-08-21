@@ -17,7 +17,7 @@ export interface ModernStyledQRCodeProps {
   className?: string;
 }
 
-export function ModernStyledQRCode({
+export const ModernStyledQRCode = React.memo(function ModernStyledQRCode({
   data,
   size = 280,
   customStyle,
@@ -138,4 +138,4 @@ export function ModernStyledQRCode({
       )}
     />
   );
-}
+});

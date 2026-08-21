@@ -29,8 +29,8 @@ export function QRPresenceCard({
   onOpenManualAttendance,
   className
 }: QRPresenceCardProps) {
-  const qrStyleStore = useQRStyleStore();
-  const rotationInterval = qrStyleStore.rotationSeconds || config.rotation_seconds || 30;
+  // Global store subscriber for rotation interval (default 30s)
+  const rotationInterval = useQRStyleStore((s) => s.rotationSeconds) || 30;
   const [timeLeft, setTimeLeft] = useState(rotationInterval);
   const [token, setToken] = useState(config.qr_code_identifier || 'K54TYU');
 
@@ -38,6 +38,11 @@ export function QRPresenceCard({
   const tokenRef = useRef<HTMLDivElement | null>(null);
   const indicatorDotRef = useRef<HTMLSpanElement | null>(null);
   const isAnimatingRef = useRef(false);
+
+  // Sync timeLeft when rotationInterval is updated in settings
+  useEffect(() => {
+    setTimeLeft(rotationInterval);
+  }, [rotationInterval]);
 
   // GSAP-powered smooth blur-pulse rotation transition
   const rotateQRCodeWithGSAP = useCallback(() => {
@@ -104,21 +109,26 @@ export function QRPresenceCard({
     }
   }, [rotationInterval, onGenerateNewToken]);
 
-  // Robust countdown timer interval
+  // Robust, pure 1-second countdown interval (no side-effects inside state updater)
   useEffect(() => {
-    setTimeLeft(rotationInterval);
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
-          rotateQRCodeWithGSAP();
-          return rotationInterval;
+          return 0;
         }
         return prev - 1;
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [rotationInterval, rotateQRCodeWithGSAP]);
+  }, []);
+
+  // When countdown hits 0, trigger GSAP rotation smoothly
+  useEffect(() => {
+    if (timeLeft === 0) {
+      rotateQRCodeWithGSAP();
+    }
+  }, [timeLeft, rotateQRCodeWithGSAP]);
 
   const handlePopout = () => {
     if (onPopoutWindow) {
@@ -137,13 +147,14 @@ export function QRPresenceCard({
     toast.success('Panel presensi dibuka di window independen.');
   };
 
-  // Construct secure payload with timestamp and shift
-  const qrPayload = JSON.stringify({
-    clinic: 'Amanah Healthcare',
-    shift: config.qr_context || 'Shift Pagi',
-    token: token,
-    validUntil: Date.now() + timeLeft * 1000
-  });
+  // Pure stable payload that only changes when token/shift changes (ZERO 1s flickering!)
+  const qrPayload = React.useMemo(() => {
+    return JSON.stringify({
+      clinic: 'Amanah Healthcare',
+      shift: config.qr_context || 'Shift Pagi',
+      token: token
+    });
+  }, [config.qr_context, token]);
 
   return (
     <Card
