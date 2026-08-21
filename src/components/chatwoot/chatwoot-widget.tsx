@@ -56,6 +56,7 @@ const MOCK_AI_RESPONSES: Record<string, string> = {
 
 export function ChatwootWidget() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [messages, setMessages] = useState<AIMessage[]>([]);
   const [inputPrompt, setInputPrompt] = useState('');
@@ -72,6 +73,56 @@ export function ChatwootWidget() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const streamIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isExpandingRef = useRef(false);
+
+  // GSAP Morphing on Expand/Compact Toggle (Diagonal Sliding & Scaling Transition)
+  const handleToggleExpand = () => {
+    if (!workspaceRef.current) return;
+    const nextState = !isExpanded;
+    setIsExpanded(nextState);
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) return;
+
+    if (nextState) {
+      // Diagonal Expansion Morph (Scaling outward diagonally from bottom-right corner)
+      gsap.fromTo(
+        workspaceRef.current,
+        {
+          scale: 0.94,
+          x: 20,
+          y: 20,
+          transformOrigin: 'bottom right'
+        },
+        {
+          scale: 1,
+          x: 0,
+          y: 0,
+          duration: 0.48,
+          ease: 'expo.out',
+          clearProps: 'transform'
+        }
+      );
+    } else {
+      // Diagonal Contraction Morph (Elastic settle back to compact floating mode)
+      gsap.fromTo(
+        workspaceRef.current,
+        {
+          scale: 1.05,
+          x: -16,
+          y: -16,
+          transformOrigin: 'bottom right'
+        },
+        {
+          scale: 1,
+          x: 0,
+          y: 0,
+          duration: 0.4,
+          ease: 'power3.out',
+          clearProps: 'transform'
+        }
+      );
+    }
+  };
 
   // Auto-scroll on new messages or streaming tokens
   useEffect(() => {
@@ -348,9 +399,10 @@ export function ChatwootWidget() {
         ref={workspaceRef}
         style={{ display: 'none' }}
         className={cn(
-          'fixed bottom-6 right-6 z-50 flex flex-col font-sans overflow-hidden border border-border/70 bg-card/98 text-card-foreground shadow-2xl backdrop-blur-2xl',
-          'w-[calc(100vw-2rem)] sm:w-[540px] md:w-[680px] lg:w-[820px] max-w-[calc(100vw-3rem)]',
-          'h-[640px] max-h-[calc(100vh-5rem)] rounded-3xl'
+          'fixed bottom-6 right-6 z-50 flex flex-col font-sans overflow-hidden border border-border/70 bg-card/98 text-card-foreground shadow-2xl backdrop-blur-2xl transition-[width,height,max-width,max-height,border-radius] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]',
+          isExpanded
+            ? 'w-[calc(100vw-2rem)] sm:w-[min(1080px,calc(100vw-3rem))] h-[min(820px,calc(100vh-4rem))] rounded-[28px]'
+            : 'w-[calc(100vw-2rem)] sm:w-[500px] md:w-[580px] h-[640px] max-h-[calc(100vh-5rem)] rounded-3xl'
         )}
       >
         {/* Workspace Header */}
@@ -408,6 +460,31 @@ export function ChatwootWidget() {
               </Tooltip>
             )}
 
+            {/* Expand / Maximize Canvas Toggle with Morphing Icon */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='icon'
+                  onClick={handleToggleExpand}
+                  className='size-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80'
+                >
+                  {isExpanded ? (
+                    <Icons.minimize className='size-3.5' />
+                  ) : (
+                    <Icons.maximize className='size-3.5' />
+                  )}
+                  <span className='sr-only'>
+                    {isExpanded ? 'Kecilkan Window Floating' : 'Perluas Ukuran Layar Canvas'}
+                  </span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side='bottom' className='text-xs'>
+                {isExpanded ? 'Kecilkan Window' : 'Perluas Canvas'}
+              </TooltipContent>
+            </Tooltip>
+
             {/* Minimize / Close */}
             <Tooltip>
               <TooltipTrigger asChild>
@@ -436,7 +513,12 @@ export function ChatwootWidget() {
         >
           {/* Empty State with Staggered Prompt Cards */}
           {messages.length === 0 && !isStreaming && (
-            <div className='h-full flex flex-col items-center justify-center text-center max-w-xl mx-auto py-8 space-y-6 select-none'>
+            <div
+              className={cn(
+                'h-full flex flex-col items-center justify-center text-center mx-auto py-8 space-y-6 select-none transition-all duration-300',
+                isExpanded ? 'max-w-4xl' : 'max-w-xl'
+              )}
+            >
               <div className='size-18 rounded-3xl bg-card border border-border/60 flex items-center justify-center shadow-md'>
                 <GeminiSparkle3DIcon size={56} interactive={true} />
               </div>
@@ -451,8 +533,15 @@ export function ChatwootWidget() {
                 </p>
               </div>
 
-              {/* Staggered Prompt Suggestion Cards */}
-              <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 w-full text-left pt-2'>
+              {/* Staggered Prompt Suggestion Cards (Responsive 4-column on expanded canvas) */}
+              <div
+                className={cn(
+                  'grid gap-3 w-full text-left pt-2 transition-all duration-300',
+                  isExpanded
+                    ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 max-w-4xl'
+                    : 'grid-cols-1 sm:grid-cols-2 max-w-xl'
+                )}
+              >
                 {INITIAL_SUGGESTIONS.map((item) => (
                   <button
                     key={item.title}
@@ -500,7 +589,8 @@ export function ChatwootWidget() {
 
                 <div
                   className={cn(
-                    'p-4 rounded-2xl text-xs sm:text-sm leading-relaxed max-w-[88%] shadow-2xs break-words',
+                    'p-4 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-2xs break-words transition-all duration-300',
+                    isExpanded ? 'max-w-[76%]' : 'max-w-[88%]',
                     isUser
                       ? 'bg-primary text-primary-foreground rounded-tr-xs font-normal'
                       : 'bg-muted/40 text-foreground border border-border/60 rounded-tl-xs whitespace-pre-wrap'

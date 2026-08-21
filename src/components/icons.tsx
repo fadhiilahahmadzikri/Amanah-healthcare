@@ -137,7 +137,9 @@ import {
   IconPlayerPause,
   IconPlayerPlay,
   IconQrcode,
-  IconFileSpreadsheet
+  IconFileSpreadsheet,
+  IconArrowsMaximize,
+  IconArrowsMinimize
 } from '@tabler/icons-react';
 
 export type Icon = React.ComponentType<IconProps>;
@@ -151,6 +153,8 @@ export const Icons = {
   mail: IconMail,
   pause: IconPlayerPause,
   play: IconPlayerPlay,
+  maximize: IconArrowsMaximize,
+  minimize: IconArrowsMinimize,
   image: IconPhoto,
   view: IconEye,
   horizontalSliders: IconAdjustmentsHorizontal,
