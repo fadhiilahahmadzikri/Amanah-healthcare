@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import QRCode from 'react-qr-code';
+import { ModernStyledQRCode } from './modern-styled-qr-code';
+import { useQRStyleStore } from '../store/qr-style-store';
 import { Card } from '@/components/ui/card';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -27,7 +28,8 @@ export function QRPresenceCard({
   onOpenManualAttendance,
   className
 }: QRPresenceCardProps) {
-  const ROTATION_INTERVAL = 30; // 30 seconds dynamic rotation
+  const qrStyleStore = useQRStyleStore();
+  const ROTATION_INTERVAL = qrStyleStore.rotationSeconds || config.rotation_seconds || 30;
   const [timeLeft, setTimeLeft] = useState(ROTATION_INTERVAL);
   const [token, setToken] = useState(config.qr_code_identifier || 'K54TYU');
 
@@ -190,18 +192,10 @@ export function QRPresenceCard({
         </div>
       </div>
 
-      {/* 2. Direct Clean QR Code (Tanpa wrapper tiruan, tanpa radius/border, alignment tengah-atas) */}
+      {/* 2. Direct Clean Styled Modern QR Code */}
       <div className='flex flex-col items-center justify-start w-full pt-1.5'>
-        <div className='w-full aspect-square flex items-center justify-center bg-white p-1.5'>
-          <QRCode
-            value={qrPayload}
-            size={500}
-            style={{ height: '100%', maxWidth: '100%', width: '100%' }}
-            viewBox='0 0 256 256'
-            level='M'
-            fgColor='#0f172a'
-            bgColor='#ffffff'
-          />
+        <div className='w-full aspect-square flex items-center justify-center bg-white p-1.5 overflow-hidden'>
+          <ModernStyledQRCode data={qrPayload} size={360} className='w-full h-full' />
         </div>
 
         {/* 3. Section Code Manual (Gap yang lebih proporsional & bernafas di bawah QR Code) */}
