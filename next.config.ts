@@ -42,7 +42,7 @@ const baseConfig: NextConfig = {
       }
     ]
   },
-  transpilePackages: ['geist'],
+  transpilePackages: ['geist', 'react-markdown', 'remark-gfm', 'qr-code-styling'],
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production'
   }

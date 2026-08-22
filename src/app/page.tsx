@@ -1,12 +1,12 @@
-import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
+import type { Metadata } from 'next';
+import { LandingView } from '@/features/landing/components/landing-view';
 
-export default async function Page() {
-  const { userId } = await auth();
+export const metadata: Metadata = {
+  title: 'Klinik Pratama Amanah HealthCare — Pelayanan Medis Profesional & Terpercaya',
+  description:
+    'Layanan kesehatan terpercaya untuk Anda dan keluarga di Yogyakarta. Menyediakan Poli Umum, USG Kandungan, Poli Gigi, Persalinan 24 Jam, Khitan Modern, dan Farmasi.'
+};
 
-  if (!userId) {
-    return redirect('/auth/sign-in');
-  } else {
-    redirect('/dashboard/overview');
-  }
+export default function Page() {
+  return <LandingView />;
 }

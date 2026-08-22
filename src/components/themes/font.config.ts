@@ -1,5 +1,5 @@
 import {
-  Architects_Daughter,
+  Caveat,
   DM_Sans,
   Fira_Code,
   Geist,
@@ -7,6 +7,7 @@ import {
   Instrument_Sans,
   Inter,
   JetBrains_Mono,
+  Lora,
   Merriweather,
   Mulish,
   Playfair_Display,
@@ -54,12 +55,6 @@ const fontInter = Inter({
   variable: '--font-inter'
 });
 
-const fontArchitectsDaughter = Architects_Daughter({
-  subsets: ['latin'],
-  weight: '400',
-  variable: '--font-architects-daughter'
-});
-
 const fontDMSans = DM_Sans({
   subsets: ['latin'],
   variable: '--font-dm-sans'
@@ -97,6 +92,19 @@ const fontPlayfairDisplay = Playfair_Display({
   variable: '--font-playfair-display'
 });
 
+const fontCaveat = Caveat({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-caveat'
+});
+
+const fontLora = Lora({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-lora'
+});
+
 export const fontVariables = cn(
   fontSans.variable,
   fontMono.variable,
@@ -104,7 +112,6 @@ export const fontVariables = cn(
   fontNotoMono.variable,
   fontMullish.variable,
   fontInter.variable,
-  fontArchitectsDaughter.variable,
   fontDMSans.variable,
   fontFiraCode.variable,
   fontOutfit.variable,
@@ -112,5 +119,7 @@ export const fontVariables = cn(
   fontJetBrainsMono.variable,
   fontMerriweather.variable,
   fontPlayfairDisplay.variable,
-  fontPlusJakartaSans.variable
+  fontPlusJakartaSans.variable,
+  fontCaveat.variable,
+  fontLora.variable
 );

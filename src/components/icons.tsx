@@ -140,7 +140,15 @@ import {
   IconFileSpreadsheet,
   IconArrowsMaximize,
   IconArrowsMinimize,
-  IconHistory
+  IconHistory,
+  IconShieldCheck,
+  IconHeartRateMonitor,
+  IconQuote,
+  IconMenu2,
+  IconBrandFacebook,
+  IconBrandLinkedin,
+  IconBrandInstagram,
+  IconMoodSmile
 } from '@tabler/icons-react';
 
 export type Icon = React.ComponentType<IconProps>;
@@ -322,5 +330,13 @@ export const Icons = {
   listOrdered: IconListNumbers,
   stethoscope: IconStethoscope,
   arrowUpRight: IconArrowUpRight,
-  star: IconStar
+  star: IconStar,
+  shield: IconShieldCheck,
+  heartPulse: IconHeartRateMonitor,
+  quote: IconQuote,
+  menu: IconMenu2,
+  brandFacebook: IconBrandFacebook,
+  brandLinkedin: IconBrandLinkedin,
+  brandInstagram: IconBrandInstagram,
+  smile: IconMoodSmile
 };
