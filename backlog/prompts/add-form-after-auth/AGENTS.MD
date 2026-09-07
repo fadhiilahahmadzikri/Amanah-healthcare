@@ -1,0 +1,37 @@
+You are a product-oriented thinker with a strong foundation in software engineering, approaching this project with the mindset of someone who has spent years building systems that must translate abstract ideas into real, working solutions. I value clarity, alignment between concept and implementation, and solutions that are grounded in reality rather than assumptions.
+
+The next task is to continue extending the existing application with the patient registration flow and its supporting infrastructure.
+
+At the moment, when a user logs in through Clerk, the clinic still does not have the necessary patient metadata. This means that when a patient registers for the first time, they need to provide additional information through a patient data form before they can proceed to the application dashboard.
+
+I have already created a Proof of Concept for the intended patient registration experience. The current POC can be found at:
+
+`D:\manage-stock\backlog\feature\form_data_pasien_minimalist.html`
+
+However, this HTML file is strictly a visual and interaction reference. It does not follow the architecture, coding paradigm, component philosophy, or implementation conventions of the existing Next.js codebase. Therefore, do not treat the POC as something to copy directly into the application. Instead, use it as the reference for the intended structure, information, and user experience, then properly migrate that concept into the existing system architecture.
+
+The first principle is componentization. If an appropriate component does not already exist, create one. The implementation should not remain manifested as a single monolithic file. It needs to follow the existing atomic component philosophy: starting from atomic components, composing them into molecules, then organisms, and eventually into reusable components that can be mounted as instances within pages presented to the user.
+
+Every layer in this chain should remain an instance of something reusable. The terminology is primarily conceptual: an atomic element may represent a master component, while molecules are composed of multiple component instances, and those compositions continue upward until they form the final page-level experience. The important principle is that the resulting UI should be constructed through reusable, composable instances rather than a single page containing everything.
+
+The migration must also respect the existing React and Next.js architecture. Do not introduce poor implementation practices merely because they are convenient for the POC. Before adding new dependencies or architectural patterns, inspect the existing codebase and determine what is already being used for state management, component composition, styling, utilities, and related infrastructure. Do not reinvent existing solutions.
+
+In particular, avoid unnecessary re-renders, prop drilling, tightly coupled components, and other patterns that would conflict with the architecture already established in the codebase. The implementation should be designed around the existing state-management strategy. If the current architecture already provides an appropriate solution, use it. If a required capability does not exist, you may introduce an appropriate dependency such as Zustand or another suitable solution, but only after inspecting the existing package configuration and determining that it is actually necessary.
+
+Any state-related behavior should be properly encapsulated. Where appropriate, state logic should be implemented through custom Hooks rather than being embedded directly into presentation components. The fundamental behavior and state layer should be prepared first, followed by the presentation layer. The resulting architecture should remain decoupled, maintainable, and consistent with the existing project.
+
+The visual theme must also follow the existing application. The HTML POC contains the intended structure and UX direction, but its visual implementation does not respect the application's current design system or theme. Therefore, preserve the conceptual structure and user flow of the POC while rebuilding its visual presentation using the actual theme, styling conventions, and design language already established in the current codebase.
+
+The resulting flow should work conceptually as follows: if the user has authenticated through Clerk but has not yet completed the required patient registration data, they should be directed into the patient information form. Once the required information has been completed, the user can proceed to the dashboard. If the user has already completed their patient registration, they should bypass the registration flow and enter the dashboard directly.
+
+Although this is currently a UI/UX Proof of Concept, it must not be implemented as a disposable mockup or toy interface. The implementation should be structured with the expectation that the POC will later be connected to a real database and production data layer. Therefore, the dummy data and data flow should be structured in a way that can eventually be replaced or synchronized with real persisted data without requiring the entire UI architecture to be rewritten.
+
+Where appropriate, use structured mock data such as JSON or an equivalent data abstraction rather than hardcoding patient information directly into presentation components. The purpose is not to build the actual database integration yet, but to establish a clean boundary between the data layer, state, business behavior, and presentation layer so that the future transition to real database-backed data is straightforward.
+
+This infrastructure needs to be treated as a mature foundation because it will eventually support a real client-facing system. Do not take shortcuts simply because the current stage is a POC. You are free to install additional dependencies when they are genuinely required, but first inspect the project's existing package configuration and architecture. If an appropriate solution is already available, use the existing implementation instead of introducing another library unnecessarily.
+
+Before making changes, begin with planning. The first step should be to inspect the existing codebase, understand its architecture, identify the current state-management approach, understand the component structure, inspect the package configuration, and determine how the existing theme and design system are implemented. From there, create a structured implementation plan so the work proceeds deliberately rather than through ad-hoc modifications.
+
+The implementation should remain strictly decoupled. A page should represent the page-level UI composition, while logic should live in its appropriate separate files. Do not mix business logic, state logic, data handling, and presentation unnecessarily. The intended principle is essentially one page, one UI composition, with its underlying logic and supporting concerns separated into their respective layers.
+
+Keep the implementation minimal and architectural. Do not introduce unnecessary comments, emojis, duplicated logic, tightly coupled structures, or other patterns that compromise the quality of the codebase. The goal is not simply to make the POC visually functional, but to migrate the POC into the existing application as a properly engineered, reusable, maintainable foundation that can evolve naturally into the real production implementation.

@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-[#f6f6f2]">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Data Pasien - Stepper Minimalist</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Zod CDN for Schema Validation -->
+    <script src="https://cdn.jsdelivr.net/npm/zod@3.22.4/lib/index.umd.js"></script>
+    <!-- GSAP CDN for Smooth Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: '#13195C',
+                        bgWarm: '#f6f6f2',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f6f6f2;
+            color: #2b2b2b;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Minimalist Line Input Style */
+        .line-input-group {
+            position: relative;
+            padding-bottom: 4px;
+            border-bottom: 1.5px solid #dcdcd5;
+            transition: border-color 0.25s ease, background-color 0.25s ease;
+        }
+
+        .line-input-group:focus-within {
+            border-bottom-color: #13195C;
+        }
+
+        .line-input-group.field-error {
+            border-bottom-color: #ef4444 !important;
+        }
+
+        .line-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            color: #13195C;
+            font-weight: 500;
+            padding-top: 6px;
+            padding-bottom: 6px;
+        }
+
+        .line-input::placeholder {
+            color: #a3a39e;
+            font-weight: 400;
+        }
+
+        /* Custom Card Selection States */
+        .gender-card, .blood-card {
+            border: 1.5px solid #e5e5de;
+            background: #ffffff;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .gender-card:hover, .blood-card:hover {
+            border-color: #13195C;
+            background: #f8f8f5;
+        }
+
+        .gender-card.active, .blood-card.active {
+            border-color: #13195C;
+            background: #13195C;
+            color: #ffffff;
+        }
+
+        /* Smooth Button States */
+        .btn-transition {
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Slide step animation */
+        .step-content {
+            animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom Scrollbar for Dropdowns */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="h-full flex items-center justify-center p-4 sm:p-6 bg-[#f6f6f2]">
+
+    <div class="w-full max-w-[500px] bg-[#fbfbf9] rounded-2xl p-6 sm:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#ecece6] my-auto relative overflow-visible">
+        
+        <!-- HEADER & PROGRESS BAR -->
+        <div class="flex items-center justify-between mb-8">
+            <button type="button" id="btn-back" onclick="handleBackStep()" class="text-xs font-normal text-slate-500 hover:text-[#13195C] transition-colors flex items-center gap-1.5 cursor-pointer opacity-40 cursor-not-allowed" disabled>
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                <span>kembali</span>
+            </button>
+            
+            <!-- Dynamic 8-Step Bar Indicator -->
+            <div class="flex items-center gap-1.5" id="stepper-dots-container" title="Langkah Pendaftaran">
+                <div class="step-dot w-4 h-[2.5px] bg-[#13195C] rounded-full transition-all duration-300"></div>
+                <div class="step-dot w-4 h-[2.5px] bg-slate-200 rounded-full transition-all duration-300"></div>
+                <div class="step-dot w-4 h-[2.5px] bg-slate-200 rounded-full transition-all duration-300"></div>
+                <div class="step-dot w-4 h-[2.5px] bg-slate-200 rounded-full transition-all duration-300"></div>
+                <div class="step-dot w-4 h-[2.5px] bg-slate-200 rounded-full transition-all duration-300"></div>
+                <div class="step-dot w-4 h-[2.5px] bg-slate-200 rounded-full transition-all duration-300"></div>
+                <div class="step-dot w-4 h-[2.5px] bg-slate-200 rounded-full transition-all duration-300"></div>
+                <div class="step-dot w-4 h-[2.5px] bg-slate-200 rounded-full transition-all duration-300"></div>
+            </div>
+        </div>
+
+        <!-- FORM CONTAINER FOR STEPPER -->
+        <form id="patient-wizard-form" onsubmit="handleNextStep(event)" novalidate>
+
+            <!-- STEP 1: NAMA LENGKAP -->
+            <div id="step-1" class="step-content space-y-6">
+                <div>
+                    <h1 class="text-lg sm:text-xl font-semibold tracking-tight text-[#13195C]">
+                        halo kak! kenalan dulu yuk 😊
+                    </h1>
+                    <p class="text-xs text-slate-500 font-normal mt-1 leading-relaxed">
+                        siapa nama lengkap kamu sesuai KTP / KK?
+                    </p>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label for="nama" class="block text-xs font-normal text-slate-600">nama lengkap*</label>
+                    <div id="field-group-nama" class="line-input-group">
+                        <input 
+                            type="text" 
+                            id="nama" 
+                            name="nama" 
+                            placeholder="contoh: budi santoso" 
+                            class="line-input" 
+                            oninput="validateCurrentStep()" 
+                            autocomplete="off"
+                            autofocus
+                        >
+                    </div>
+                    <p id="error-nama" class="hidden text-[11px] text-red-500 pt-0.5 font-normal"></p>
+                </div>
+            </div>
+
+            <!-- STEP 2: NIK KTP -->
+            <div id="step-2" class="step-content hidden space-y-6">
+                <div>
+                    <h1 class="text-lg sm:text-xl font-semibold tracking-tight text-[#13195C]">
+                        sip! minta NIK kamu ya 🪪
+                    </h1>
+                    <p class="text-xs text-slate-500 font-normal mt-1 leading-relaxed">
+                        masukkan 16 digit NIK KTP kamu untuk identifikasi rekam medis.
+                    </p>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label for="nik" class="block text-xs font-normal text-slate-600">nik ktp (16 digit)*</label>
+                    <div id="field-group-nik" class="line-input-group">
+                        <input 
+                            type="text" 
+                            id="nik" 
+                            name="nik" 
+                            maxlength="16"
+                            placeholder="3271012345670001" 
+                            class="line-input font-mono tracking-wide" 
+                            oninput="validateCurrentStep()" 
+                            autocomplete="off"
+                        >
+                    </div>
+                    <p id="error-nik" class="hidden text-[11px] text-red-500 pt-0.5 font-normal"></p>
+                </div>
+            </div>
+
+            <!-- STEP 3: NAMA IBU KANDUNG -->
+            <div id="step-3" class="step-content hidden space-y-6">
+                <div>
+                    <h1 class="text-lg sm:text-xl font-semibold tracking-tight text-[#13195C]">
+                        siapa nama ibu kandung kamu? 👩‍👧
+                    </h1>
+                    <p class="text-xs text-slate-500 font-normal mt-1 leading-relaxed">
+                        data nama ibu kandung diperlukan untuk verifikasi identitas & rekam medis.
+                    </p>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label for="namaIbuKandung" class="block text-xs font-normal text-slate-600">nama ibu kandung*</label>
+                    <div id="field-group-namaIbuKandung" class="line-input-group">
+                        <input 
+                            type="text" 
+                            id="namaIbuKandung" 
+                            name="namaIbuKandung" 
+                            placeholder="contoh: siti aminah" 
+                            class="line-input" 
+                            oninput="validateCurrentStep()" 
+                            autocomplete="off"
+                        >
+                    </div>
+                    <p id="error-namaIbuKandung" class="hidden text-[11px] text-red-500 pt-0.5 font-normal"></p>
+                </div>
+            </div>
+
+            <!-- STEP 4: TEMPAT & TANGGAL LAHIR -->
+            <div id="step-4" class="step-content hidden space-y-6">
+                <div>
+                    <h1 class="text-lg sm:text-xl font-semibold tracking-tight text-[#13195C]">
+                        asik! di mana & kapan kamu lahir? 🎂
+                    </h1>
+                    <p class="text-xs text-slate-500 font-normal mt-1 leading-relaxed">
+                        data tanggal lahir membantu dokter menghitung usia & konsultasi.
+                    </p>
+                </div>
+
+                <div class="space-y-5">
+                    <div class="space-y-1.5 relative">
+                        <label for="tempatLahir" class="block text-xs font-normal text-slate-600">tempat lahir (sesuai KTP)*</label>
+                        <div id="field-group-tempatLahir" class="line-input-group">
+                            <input 
+                                type="text" 
+                                id="tempatLahir" 
+                                name="tempatLahir" 
+                                placeholder="contoh: jakarta" 
+                                class="line-input" 
+                                oninput="validateCurrentStep()" 
+                                autocomplete="off"
+                            >
+                        </div>
+                        <p id="error-tempatLahir" class="hidden text-[11px] text-red-500 pt-0.5 font-normal"></p>
+                    </div>
+
+                    <div class="space-y-1.5 relative">
+                        <label for="tanggalLahir" class="block text-xs font-normal text-slate-600">tanggal lahir*</label>
+                        <div id="field-group-tanggalLahir" onclick="toggleCustomCalendar()" class="line-input-group flex items-center justify-between cursor-pointer">
+                            <input 
+                                type="text" 
+                                id="tanggalLahirDisplay" 
+                                readonly 
+                                placeholder="pilih tanggal lahir..." 
+                                class="line-input cursor-pointer pointer-events-none" 
+                            >
+                            <i data-lucide="calendar" class="w-4 h-4 text-[#13195C] flex-shrink-0"></i>
+                        </div>
+                        <p id="error-tanggalLahir" class="hidden text-[11px] text-red-500 pt-0.5 font-normal"></p>
+
+                        <!-- EMBEDDED CUSTOM CALENDAR POPUP -->
+                        <div id="custom-calendar-popup" class="hidden mt-2 bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+                            <div class="flex items-center justify-between mb-3 text-xs">
+                                <button type="button" onclick="changeCalendarMonth(-1)" class="p-1 hover:bg-slate-100 rounded-md transition-colors text-slate-600">
+                                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                                </button>
+                                
+                                <div class="flex items-center gap-1">
+                                    <span id="cal-month-name" class="font-semibold text-[#13195C]"></span>
+                                    <select id="cal-year-select" onchange="onCalendarYearChange(this.value)" class="bg-transparent font-medium text-[#13195C] text-xs cursor-pointer border-none outline-none">
+                                    </select>
+                                </div>
+
+                                <button type="button" onclick="changeCalendarMonth(1)" class="p-1 hover:bg-slate-100 rounded-md transition-colors text-slate-600">
+                                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+
+                            <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-normal text-slate-400 mb-1">
+                                <div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div>
+                            </div>
+
+                            <div id="cal-days-grid" class="grid grid-cols-7 gap-1 text-center text-xs"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 5: JENIS KELAMIN -->
+            <div id="step-5" class="step-content hidden space-y-6">
+                <div>
+                    <h1 class="text-lg sm:text-xl font-semibold tracking-tight text-[#13195C]">
+                        pilih jenis kelamin kamu 🚻
+                    </h1>
+                    <p class="text-xs text-slate-500 font-normal mt-1 leading-relaxed">
+                        opsi ini digunakan untuk mencocokkan dokter & rekam medis.
+                    </p>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <button 
+                            type="button" 
+                            id="gender-btn-male" 
+                            onclick="selectGender('Laki-laki')" 
+                            class="gender-card p-4 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer text-center"
+                        >
+                            <i data-lucide="user" class="w-5 h-5"></i>
+                            <span class="text-xs font-medium">laki-laki</span>
+                        </button>
+
+                        <button 
+                            type="button" 
+                            id="gender-btn-female" 
+                            onclick="selectGender('Perempuan')" 
+                            class="gender-card p-4 rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer text-center"
+                        >
+                            <i data-lucide="user-check" class="w-5 h-5"></i>
+                            <span class="text-xs font-medium">perempuan</span>
+                        </button>
+                    </div>
+                    <p id="error-jenisKelamin" class="hidden text-[11px] text-red-500 pt-0.5 font-normal text-center"></p>
+                </div>
+            </div>
+
+            <!-- STEP 6: GOLONGAN DARAH -->
+            <div id="step-6" class="step-content hidden space-y-6">
+                <div>
+                    <h1 class="text-lg sm:text-xl font-semibold tracking-tight text-[#13195C]">
+                        apa golongan darah kamu? 🩸
+                    </h1>
+                    <p class="text-xs text-slate-500 font-normal mt-1 leading-relaxed">
+                        data ini penting untuk catatan medis & penanganan darurat.
+                    </p>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="grid grid-cols-4 gap-2.5">
+                        <button 
+                            type="button" 
+                            id="blood-btn-A" 
+                            onclick="selectBloodType('A')" 
+                            class="blood-card p-3.5 rounded-xl flex flex-col items-center justify-center gap-1 cursor-pointer text-center"
+                        >
+                            <span class="text-base font-bold">A</span>
+                        </button>
+
+                        <button 
+                            type="button" 
+                            id="blood-btn-B" 
+                            onclick="selectBloodType('B')" 
+                            class="blood-card p-3.5 rounded-xl flex flex-col items-center justify-center gap-1 cursor-pointer text-center"
+                        >
+                            <span class="text-base font-bold">B</span>
+                        </button>
+
+                        <button 
+                            type="button" 
+                            id="blood-btn-AB" 
+                            onclick="selectBloodType('AB')" 
+                            class="blood-card p-3.5 rounded-xl flex flex-col items-center justify-center gap-1 cursor-pointer text-center"
+                        >
+                            <span class="text-base font-bold">AB</span>
+                        </button>
+
+                        <button 
+                            type="button" 
+                            id="blood-btn-O" 
+                            onclick="selectBloodType('O')" 
+                            class="blood-card p-3.5 rounded-xl flex flex-col items-center justify-center gap-1 cursor-pointer text-center"
+                        >
+                            <span class="text-base font-bold">O</span>
+                        </button>
+                    </div>
+
+                    <button 
+                        type="button" 
+                        id="blood-btn-unknown" 
+                        onclick="selectBloodType('Belum Tahu')" 
+                        class="blood-card w-full py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer text-center"
+                    >
+                        <span class="text-xs font-medium">belum tahu / belum periksa</span>
+                    </button>
+                    <p id="error-golonganDarah" class="hidden text-[11px] text-red-500 pt-0.5 font-normal text-center"></p>
+                </div>
+            </div>
+
+            <!-- STEP 7: DOMISILI -->
+            <div id="step-7" class="step-content hidden space-y-5">
+                <div>
+                    <h1 class="text-lg sm:text-xl font-semibold tracking-tight text-[#13195C]">
+                        sekarang kamu tinggal dimana? 🏡
+                    </h1>
+                    <p class="text-xs text-slate-500 font-normal mt-1 leading-relaxed">
+                        data domisili dipakai untuk pengiriman resep & surat rujukan.
+                    </p>
+                </div>
+
+                <!-- Country Pill Badge -->
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg border border-slate-200 text-xs text-[#13195C] font-medium">
+                    <svg class="w-4 h-3 rounded-[2px] overflow-hidden shadow-xs border border-slate-300 flex-shrink-0" viewBox="0 0 3 2">
+                        <rect width="3" height="1" fill="#E70011"/>
+                        <rect y="1" width="3" height="1" fill="#FFFFFF"/>
+                    </svg>
+                    <span>negara: <strong>indonesia</strong></span>
+                    <span class="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded font-normal">terverifikasi</span>
+                </div>
+
+                <div class="space-y-4">
+
+                    <!-- PROVINSI DROPDOWN -->
+                    <div class="space-y-1 relative">
+                        <label class="block text-xs font-normal text-slate-600">provinsi*</label>
+                        <div id="field-group-provinsi" onclick="toggleRegionDropdown('provinsi')" class="line-input-group flex items-center justify-between cursor-pointer">
+                            <input 
+                                type="text" 
+                                id="provinsiDisplay" 
+                                readonly 
+                                placeholder="pilih provinsi..." 
+                                class="line-input cursor-pointer pointer-events-none" 
+                            >
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 flex-shrink-0"></i>
+                        </div>
+                        <p id="error-provinsi" class="hidden text-[11px] text-red-500 pt-0.5 font-normal"></p>
+
+                        <div id="dropdown-popup-provinsi" class="hidden mt-2 bg-white rounded-xl p-3 shadow-sm border border-slate-200 space-y-2">
+                            <input type="text" placeholder="cari provinsi..." oninput="filterRegionList('provinsi', this.value)" class="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#13195C]">
+                            <div id="list-provinsi" class="max-h-44 overflow-y-auto custom-scrollbar space-y-0.5 text-xs text-slate-700"></div>
+                        </div>
+                    </div>
+
+                    <!-- KOTA / KABUPATEN DROPDOWN -->
+                    <div class="space-y-1 relative">
+                        <label class="block text-xs font-normal text-slate-600">kota / kabupaten*</label>
+                        <div id="field-group-kabupaten" onclick="toggleRegionDropdown('kabupaten')" class="line-input-group flex items-center justify-between cursor-pointer opacity-60 pointer-events-none">
+                            <input 
+                                type="text" 
+                                id="kabupatenDisplay" 
+                                readonly 
+                                placeholder="pilih provinsi terlebih dahulu..." 
+                                class="line-input cursor-pointer pointer-events-none" 
+                            >
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 flex-shrink-0"></i>
+                        </div>
+                        <p id="error-kabupaten" class="hidden text-[11px] text-red-500 pt-0.5 font-normal"></p>
+
+                        <div id="dropdown-popup-kabupaten" class="hidden mt-2 bg-white rounded-xl p-3 shadow-sm border border-slate-200 space-y-2">
+                            <input type="text" placeholder="cari kabupaten/kota..." oninput="filterRegionList('kabupaten', this.value)" class="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#13195C]">
+                            <div id="list-kabupaten" class="max-h-44 overflow-y-auto custom-scrollbar space-y-0.5 text-xs text-slate-700"></div>
+                        </div>
+                    </div>
+
+                    <!-- KECAMATAN & KELURAHAN -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1 relative">
+                            <label class="block text-xs font-normal text-slate-600">kecamatan*</label>
+                            <div id="field-group-kecamatan" onclick="toggleRegionDropdown('kecamatan')" class="line-input-group flex items-center justify-between cursor-pointer opacity-60 pointer-events-none">
+                                <input 
+                                    type="text" 
+                                    id="kecamatanDisplay" 
+                                    readonly 
+                                    placeholder="pilih kota..." 
+                                    class="line-input cursor-pointer pointer-events-none" 
+                                >
+                                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 flex-shrink-0"></i>
+                            </div>
+                            <p id="error-kecamatan" class="hidden text-[11px] text-red-500 pt-0.5 font-normal"></p>
+
+                            <div id="dropdown-popup-kecamatan" class="hidden mt-2 bg-white rounded-xl p-3 shadow-sm border border-slate-200 space-y-2">
+                                <input type="text" placeholder="cari kecamatan..." oninput="filterRegionList('kecamatan', this.value)" class="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#13195C]">
+                                <div id="list-kecamatan" class="max-h-44 overflow-y-auto custom-scrollbar space-y-0.5 text-xs text-slate-700"></div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1 relative">
+                            <label class="block text-xs font-normal text-slate-600">kelurahan / desa*</label>
+                            <div id="field-group-kelurahan" onclick="toggleRegionDropdown('kelurahan')" class="line-input-group flex items-center justify-between cursor-pointer opacity-60 pointer-events-none">
+                                <input 
+                                    type="text" 
+                                    id="kelurahanDisplay" 
+                                    readonly 
+                                    placeholder="pilih kecamatan..." 
+                                    class="line-input cursor-pointer pointer-events-none" 
+                                >
+                                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 flex-shrink-0"></i>
+                            </div>
+                            <p id="error-kelurahan" class="hidden text-[11px] text-red-500 pt-0.5 font-normal"></p>
+
+                            <div id="dropdown-popup-kelurahan" class="hidden mt-2 bg-white rounded-xl p-3 shadow-sm border border-slate-200 space-y-2">
+                                <input type="text" placeholder="cari kelurahan..." oninput="filterRegionList('kelurahan', this.value)" class="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:border-[#13195C]">
+                                <div id="list-kelurahan" class="max-h-44 overflow-y-auto custom-scrollbar space-y-0.5 text-xs text-slate-700"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ALAMAT DETAIL -->
+                    <div class="space-y-1">
+                        <label for="alamatDetail" class="block text-xs font-normal text-slate-600">alamat detail (jalan, rt/rw, no. rumah)*</label>
+                        <div id="field-group-alamatDetail" class="line-input-group">
+                            <input 
+                                type="text" 
+                                id="alamatDetail" 
+                                name="alamatDetail" 
+                                placeholder="contoh: jl. mawar no. 12 rt 04/rw 02" 
+                                class="line-input" 
+                                oninput="validateCurrentStep()" 
+                                autocomplete="off"
+                            >
+                        </div>
+                        <p id="error-alamatDetail" class="hidden text-[11px] text-red-500 pt-0.5 font-normal"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 8: PEKERJAAN -->
+            <div id="step-8" class="step-content hidden space-y-6">
+                <div>
+                    <h1 class="text-lg sm:text-xl font-semibold tracking-tight text-[#13195C]">
+                        dikit lagi kelar nih! 💼
+                    </h1>
+                    <p class="text-xs text-slate-500 font-normal mt-1 leading-relaxed">
+                        apa pekerjaan atau kegiatan kamu sehari-hari?
+                    </p>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label for="pekerjaan" class="block text-xs font-normal text-slate-600">pekerjaan*</label>
+                    <div id="field-group-pekerjaan" class="line-input-group">
+                        <input 
+                            type="text" 
+                            id="pekerjaan" 
+                            name="pekerjaan" 
+                            placeholder="contoh: karyawan swasta / mahasiswa" 
+                            class="line-input" 
+                            oninput="validateCurrentStep()" 
+                            autocomplete="off"
+                        >
+                    </div>
+                    <p id="error-pekerjaan" class="hidden text-[11px] text-red-500 pt-0.5 font-normal"></p>
+                </div>
+            </div>
+
+            <!-- STEP 9: SUMMARY SCREEN -->
+            <div id="step-9" class="step-content hidden space-y-6">
+                <div>
+                    <h1 class="text-lg sm:text-xl font-semibold tracking-tight text-[#13195C]">
+                        hore! data kamu udah rapi 🎉
+                    </h1>
+                    <p class="text-xs text-slate-500 font-normal mt-1 leading-relaxed">
+                        yuk periksa sekali lagi sebelum pendaftaran disimpan.
+                    </p>
+                </div>
+
+                <!-- Minimalist Line Summary List (Unwrapped, No Card Box) -->
+                <div class="space-y-1 text-xs pt-1">
+                    <div class="flex items-center justify-between py-2.5 border-b border-[#e5e5de]">
+                        <span class="text-slate-400 font-normal">nama lengkap</span>
+                        <span id="sum-nama" class="font-medium text-[#13195C]"></span>
+                    </div>
+                    <div class="flex items-center justify-between py-2.5 border-b border-[#e5e5de]">
+                        <span class="text-slate-400 font-normal">nik ktp</span>
+                        <span id="sum-nik" class="font-mono font-medium text-[#13195C]"></span>
+                    </div>
+                    <div class="flex items-center justify-between py-2.5 border-b border-[#e5e5de]">
+                        <span class="text-slate-400 font-normal">nama ibu kandung</span>
+                        <span id="sum-nama-ibu" class="font-medium text-[#13195C]"></span>
+                    </div>
+                    <div class="flex items-center justify-between py-2.5 border-b border-[#e5e5de]">
+                        <span class="text-slate-400 font-normal">tempat, tgl lahir</span>
+                        <span id="sum-ttl" class="font-medium text-[#13195C]"></span>
+                    </div>
+                    <div class="flex items-center justify-between py-2.5 border-b border-[#e5e5de]">
+                        <span class="text-slate-400 font-normal">jenis kelamin</span>
+                        <span id="sum-jk" class="font-medium text-[#13195C]"></span>
+                    </div>
+                    <div class="flex items-center justify-between py-2.5 border-b border-[#e5e5de]">
+                        <span class="text-slate-400 font-normal">golongan darah</span>
+                        <span id="sum-golongan-darah" class="font-medium text-[#13195C]"></span>
+                    </div>
+                    <div class="flex flex-col gap-1 py-2.5 border-b border-[#e5e5de]">
+                        <span class="text-slate-400 font-normal">domisili</span>
+                        <span id="sum-domisili" class="font-medium text-[#13195C] leading-snug"></span>
+                    </div>
+                    <div class="flex items-center justify-between py-2.5 border-b border-[#e5e5de]">
+                        <span class="text-slate-400 font-normal">pekerjaan</span>
+                        <span id="sum-pekerjaan" class="font-medium text-[#13195C]"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUBMIT BUTTON -->
+            <div class="pt-6">
+                <button 
+                    type="submit" 
+                    id="btn-next" 
+                    disabled 
+                    class="btn-transition w-full py-3.5 px-5 bg-slate-200 text-slate-400 cursor-not-allowed text-xs font-medium rounded-xl text-center flex items-center justify-center gap-2 select-none"
+                >
+                    <span id="btn-next-label">lanjutkan</span>
+                    <i data-lucide="arrow-right" id="btn-next-icon" class="w-3.5 h-3.5"></i>
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+    <script>
+        const z = window.Zod?.z || window.zod?.z || window.z;
+
+        let currentStep = 1;
+        const totalSteps = 8;
+
+        // Global form state container
+        const formData = {
+            nama: '',
+            nik: '',
+            namaIbuKandung: '',
+            tempatLahir: '',
+            tanggalLahir: '',
+            jenisKelamin: '',
+            golonganDarah: '',
+            provinsi: '',
+            provinsiId: '',
+            kabupaten: '',
+            kabupatenId: '',
+            kecamatan: '',
+            kecamatanId: '',
+            kelurahan: '',
+            kelurahanId: '',
+            alamatDetail: '',
+            pekerjaan: ''
+        };
+
+        const REGION_API_BASE = 'https://www.emsifa.com/api-wilayah-indonesia/api';
+
+        const regionCache = {
+            provinsi: [],
+            kabupaten: {},
+            kecamatan: {},
+            kelurahan: {}
+        };
+
+        const fallbackRegions = {
+            provinces: [
+                { id: "31", name: "DKI JAKARTA" },
+                { id: "32", name: "JAWA BARAT" },
+                { id: "33", name: "JAWA TENGAH" },
+                { id: "34", name: "DI YOGYAKARTA" },
+                { id: "35", name: "JAWA TIMUR" },
+                { id: "36", name: "BANTEN" },
+                { id: "51", name: "BALI" }
+            ],
+            regencies: {
+                "31": [{ id: "3171", name: "KOTA ADM. JAKARTA SELATAN" }, { id: "3173", name: "KOTA ADM. JAKARTA BARAT" }, { id: "3174", name: "KOTA ADM. JAKARTA PUSAT" }],
+                "32": [{ id: "3273", name: "KOTA BANDUNG" }, { id: "3275", name: "KOTA BEKASI" }, { id: "3276", name: "KOTA DEPOK" }],
+                "34": [{ id: "3404", name: "KABUPATEN SLEMAN" }, { id: "3471", name: "KOTA YOGYAKARTA" }]
+            },
+            districts: {
+                "3171": [{ id: "317101", name: "KEBAYORAN BARU" }, { id: "317102", name: "CILANDAK" }],
+                "3273": [{ id: "327301", name: "COBLONG" }, { id: "327302", name: "CICENDO" }],
+                "3404": [{ id: "340401", name: "DEPOK" }, { id: "340402", name: "NGAGLIK" }]
+            },
+            villages: {
+                "317101": [{ id: "3171011001", name: "SENAYAN" }, { id: "3171011002", name: "GANDARIA SELATAN" }],
+                "327301": [{ id: "3273011001", name: "DAGO" }, { id: "3273011002", name: "LEBAKWANGI" }],
+                "340401": [{ id: "3404011001", name: "CATURTUNGGAL" }, { id: "3404011002", name: "CONDONGCATUR" }]
+            }
+        };
+
+        async function fetchProvinces() {
+            const listEl = document.getElementById('list-provinsi');
+            if (!listEl) return;
+            listEl.innerHTML = '<div class="p-2 text-slate-400 text-center text-xs">memuat provinsi...</div>';
+
+            try {
+                const res = await fetch(`${REGION_API_BASE}/provinces.json`);
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                regionCache.provinsi = data;
+                renderRegionOptions('provinsi', data);
+            } catch (err) {
+                regionCache.provinsi = fallbackRegions.provinces;
+                renderRegionOptions('provinsi', fallbackRegions.provinces);
+            }
+        }
+
+        async function fetchKabupaten(provId) {
+            const listEl = document.getElementById('list-kabupaten');
+            listEl.innerHTML = '<div class="p-2 text-slate-400 text-center text-xs">memuat kabupaten/kota...</div>';
+
+            try {
+                const res = await fetch(`${REGION_API_BASE}/regencies/${provId}.json`);
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                regionCache.kabupaten[provId] = data;
+                renderRegionOptions('kabupaten', data);
+            } catch (err) {
+                const data = fallbackRegions.regencies[provId] || [{ id: `${provId}01`, name: "KOTA/KABUPATEN UTAMA" }];
+                regionCache.kabupaten[provId] = data;
+                renderRegionOptions('kabupaten', data);
+            }
+        }
+
+        async function fetchKecamatan(kabId) {
+            const listEl = document.getElementById('list-kecamatan');
+            listEl.innerHTML = '<div class="p-2 text-slate-400 text-center text-xs">memuat kecamatan...</div>';
+
+            try {
+                const res = await fetch(`${REGION_API_BASE}/districts/${kabId}.json`);
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                regionCache.kecamatan[kabId] = data;
+                renderRegionOptions('kecamatan', data);
+            } catch (err) {
+                const data = fallbackRegions.districts[kabId] || [{ id: `${kabId}01`, name: "KECAMATAN PUSAT" }];
+                regionCache.kecamatan[kabId] = data;
+                renderRegionOptions('kecamatan', data);
+            }
+        }
+
+        async function fetchKelurahan(kecId) {
+            const listEl = document.getElementById('list-kelurahan');
+            listEl.innerHTML = '<div class="p-2 text-slate-400 text-center text-xs">memuat kelurahan...</div>';
+
+            try {
+                const res = await fetch(`${REGION_API_BASE}/villages/${kecId}.json`);
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+                regionCache.kelurahan[kecId] = data;
+                renderRegionOptions('kelurahan', data);
+            } catch (err) {
+                const data = fallbackRegions.villages[kecId] || [{ id: `${kecId}01`, name: "KELURAHAN UTAMA" }];
+                regionCache.kelurahan[kecId] = data;
+                renderRegionOptions('kelurahan', data);
+            }
+        }
+
+        function renderRegionOptions(type, items) {
+            const listEl = document.getElementById(`list-${type}`);
+            if (!listEl) return;
+            listEl.innerHTML = '';
+
+            if (!items || items.length === 0) {
+                listEl.innerHTML = '<div class="p-2 text-slate-400 text-center text-xs">data tidak ditemukan</div>';
+                return;
+            }
+
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'p-2 hover:bg-[#13195C]/10 rounded-lg cursor-pointer transition-colors text-xs text-slate-700 capitalize font-medium';
+                div.textContent = item.name.toLowerCase();
+
+                div.onclick = (e) => {
+                    e.stopPropagation();
+                    selectRegionItem(type, item);
+                };
+
+                listEl.appendChild(div);
+            });
+        }
+
+        function selectRegionItem(type, item) {
+            const displayEl = document.getElementById(`${type}Display`);
+            if (displayEl) displayEl.value = item.name.toLowerCase();
+            formData[type] = item.name.toLowerCase();
+            formData[`${type}Id`] = item.id;
+
+            const popup = document.getElementById(`dropdown-popup-${type}`);
+            if (popup) popup.classList.add('hidden');
+
+            if (type === 'provinsi') {
+                resetRegionField('kabupaten', 'pilih kota/kabupaten...');
+                resetRegionField('kecamatan', 'pilih kecamatan...');
+                resetRegionField('kelurahan', 'pilih kelurahan...');
+                enableRegionField('kabupaten');
+                fetchKabupaten(item.id);
+            } else if (type === 'kabupaten') {
+                resetRegionField('kecamatan', 'pilih kecamatan...');
+                resetRegionField('kelurahan', 'pilih kelurahan...');
+                enableRegionField('kecamatan');
+                fetchKecamatan(item.id);
+            } else if (type === 'kecamatan') {
+                resetRegionField('kelurahan', 'pilih kelurahan...');
+                enableRegionField('kelurahan');
+                fetchKelurahan(item.id);
+            }
+
+            validateCurrentStep();
+        }
+
+        function enableRegionField(type) {
+            const group = document.getElementById(`field-group-${type}`);
+            const display = document.getElementById(`${type}Display`);
+            if (group) group.classList.remove('opacity-60', 'pointer-events-none');
+            if (display) display.placeholder = `pilih ${type}...`;
+        }
+
+        function resetRegionField(type, placeholder) {
+            const group = document.getElementById(`field-group-${type}`);
+            const display = document.getElementById(`${type}Display`);
+            if (display) display.value = '';
+            formData[type] = '';
+            formData[`${type}Id`] = '';
+            if (group) group.classList.add('opacity-60', 'pointer-events-none');
+            if (display) display.placeholder = placeholder;
+        }
+
+        function toggleRegionDropdown(type) {
+            ['provinsi', 'kabupaten', 'kecamatan', 'kelurahan'].forEach(t => {
+                if (t !== type) {
+                    const otherPopup = document.getElementById(`dropdown-popup-${t}`);
+                    if (otherPopup && !otherPopup.classList.contains('hidden')) {
+                        otherPopup.classList.add('hidden');
+                    }
+                }
+            });
+
+            const popup = document.getElementById(`dropdown-popup-${type}`);
+            if (!popup) return;
+
+            const isHidden = popup.classList.contains('hidden');
+            if (isHidden) {
+                popup.classList.remove('hidden');
+                gsap.fromTo(popup, 
+                    { height: 0, opacity: 0 }, 
+                    { height: "auto", opacity: 1, duration: 0.25, ease: "power2.out" }
+                );
+            } else {
+                gsap.to(popup, {
+                    height: 0,
+                    opacity: 0,
+                    duration: 0.2,
+                    onComplete: () => popup.classList.add('hidden')
+                });
+            }
+        }
+
+        function filterRegionList(type, query) {
+            let sourceList = [];
+            if (type === 'provinsi') sourceList = regionCache.provinsi;
+            else if (type === 'kabupaten') sourceList = regionCache.kabupaten[formData.provinsiId] || [];
+            else if (type === 'kecamatan') sourceList = regionCache.kecamatan[formData.kabupatenId] || [];
+            else if (type === 'kelurahan') sourceList = regionCache.kelurahan[formData.kecamatanId] || [];
+
+            const filtered = sourceList.filter(item => item.name.toLowerCase().includes(query.toLowerCase()));
+            renderRegionOptions(type, filtered);
+        }
+
+        document.addEventListener('click', (e) => {
+            ['provinsi', 'kabupaten', 'kecamatan', 'kelurahan'].forEach(t => {
+                const popup = document.getElementById(`dropdown-popup-${t}`);
+                const trigger = document.getElementById(`field-group-${t}`);
+                if (popup && trigger && !popup.contains(e.target) && !trigger.contains(e.target)) {
+                    popup.classList.add('hidden');
+                }
+            });
+        });
+
+        let calCurrentDate = new Date(1998, 0, 1);
+        let selectedDate = null;
+        const monthNamesIndo = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+
+        function initCalendar() {
+            const yearSelect = document.getElementById('cal-year-select');
+            if (!yearSelect) return;
+            yearSelect.innerHTML = '';
+            const currentYear = new Date().getFullYear();
+            for (let y = currentYear; y >= 1930; y--) {
+                const opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = y;
+                if (y === calCurrentDate.getFullYear()) opt.selected = true;
+                yearSelect.appendChild(opt);
+            }
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const monthLabel = document.getElementById('cal-month-name');
+            const yearSelect = document.getElementById('cal-year-select');
+            const daysGrid = document.getElementById('cal-days-grid');
+            if (!monthLabel || !daysGrid) return;
+
+            const year = calCurrentDate.getFullYear();
+            const month = calCurrentDate.getMonth();
+
+            monthLabel.textContent = monthNamesIndo[month];
+            if (yearSelect) yearSelect.value = year;
+
+            daysGrid.innerHTML = '';
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                daysGrid.appendChild(emptyCell);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayBtn = document.createElement('button');
+                dayBtn.type = 'button';
+                dayBtn.className = 'p-1.5 rounded-lg text-slate-700 hover:bg-[#13195C]/10 transition-colors cursor-pointer text-center font-medium';
+                dayBtn.textContent = day;
+
+                const dateObj = new Date(year, month, day);
+
+                if (selectedDate && 
+                    selectedDate.getDate() === day && 
+                    selectedDate.getMonth() === month && 
+                    selectedDate.getFullYear() === year) {
+                    dayBtn.className = 'p-1.5 rounded-lg bg-[#13195C] text-white font-semibold cursor-pointer text-center';
+                }
+
+                dayBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    selectCalendarDate(dateObj);
+                };
+
+                daysGrid.appendChild(dayBtn);
+            }
+        }
+
+        function changeCalendarMonth(delta) {
+            calCurrentDate.setMonth(calCurrentDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        function onCalendarYearChange(val) {
+            calCurrentDate.setFullYear(parseInt(val, 10));
+            renderCalendar();
+        }
+
+        function selectCalendarDate(dateObj) {
+            selectedDate = dateObj;
+            const formattedDisplay = `${dateObj.getDate()} ${monthNamesIndo[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+            
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const d = String(dateObj.getDate()).padStart(2, '0');
+            formData.tanggalLahir = `${dateObj.getFullYear()}-${m}-${d}`;
+
+            document.getElementById('tanggalLahirDisplay').value = formattedDisplay.toLowerCase();
+            
+            const popup = document.getElementById('custom-calendar-popup');
+            if (popup) {
+                gsap.to(popup, {
+                    height: 0,
+                    opacity: 0,
+                    duration: 0.2,
+                    onComplete: () => popup.classList.add('hidden')
+                });
+            }
+
+            validateCurrentStep();
+        }
+
+        function toggleCustomCalendar() {
+            const popup = document.getElementById('custom-calendar-popup');
+            if (!popup) return;
+            const isHidden = popup.classList.contains('hidden');
+
+            if (isHidden) {
+                popup.classList.remove('hidden');
+                gsap.fromTo(popup, 
+                    { height: 0, opacity: 0 }, 
+                    { height: "auto", opacity: 1, duration: 0.3, ease: "power2.out" }
+                );
+            } else {
+                gsap.to(popup, {
+                    height: 0,
+                    opacity: 0,
+                    duration: 0.2,
+                    onComplete: () => popup.classList.add('hidden')
+                });
+            }
+        }
+
+        document.addEventListener('click', (e) => {
+            const popup = document.getElementById('custom-calendar-popup');
+            const trigger = document.getElementById('field-group-tanggalLahir');
+            if (popup && trigger && !popup.contains(e.target) && !trigger.contains(e.target)) {
+                popup.classList.add('hidden');
+            }
+        });
+
+        function selectGender(val) {
+            formData.jenisKelamin = val;
+            const btnMale = document.getElementById('gender-btn-male');
+            const btnFemale = document.getElementById('gender-btn-female');
+
+            if (val === 'Laki-laki') {
+                if (btnMale) btnMale.classList.add('active');
+                if (btnFemale) btnFemale.classList.remove('active');
+            } else {
+                if (btnFemale) btnFemale.classList.add('active');
+                if (btnMale) btnMale.classList.remove('active');
+            }
+
+            validateCurrentStep();
+        }
+
+        function selectBloodType(val) {
+            formData.golonganDarah = val;
+            const types = ['A', 'B', 'AB', 'O', 'unknown'];
+
+            types.forEach(t => {
+                const btn = document.getElementById(`blood-btn-${t}`);
+                if (btn) {
+                    const isSelected = (t === 'unknown' && val === 'Belum Tahu') || (t === val);
+                    if (isSelected) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                }
+            });
+
+            validateCurrentStep();
+        }
+
+        function getStepData(step) {
+            switch (step) {
+                case 1: return { nama: document.getElementById('nama')?.value || '' };
+                case 2: return { nik: document.getElementById('nik')?.value || '' };
+                case 3: return { namaIbuKandung: document.getElementById('namaIbuKandung')?.value || '' };
+                case 4: return { 
+                    tempatLahir: document.getElementById('tempatLahir')?.value || '', 
+                    tanggalLahir: formData.tanggalLahir || ''
+                };
+                case 5: return { jenisKelamin: formData.jenisKelamin || '' };
+                case 6: return { golonganDarah: formData.golonganDarah || '' };
+                case 7: return { 
+                    provinsi: formData.provinsi || '',
+                    kabupaten: formData.kabupaten || '',
+                    kecamatan: formData.kecamatan || '',
+                    kelurahan: formData.kelurahan || '',
+                    alamatDetail: document.getElementById('alamatDetail')?.value || ''
+                };
+                case 8: return { pekerjaan: document.getElementById('pekerjaan')?.value || '' };
+                default: return {};
+            }
+        }
+
+        function safeValidate(step, data) {
+            switch (step) {
+                case 1:
+                    return { 
+                        success: !!(data.nama && data.nama.trim().length >= 3),
+                        error: { errors: [{ path: ['nama'], message: 'nama lengkap minimal 3 karakter' }] }
+                    };
+                case 2:
+                    return { 
+                        success: !!(data.nik && /^\d{16}$/.test(data.nik.trim())),
+                        error: { errors: [{ path: ['nik'], message: 'nik harus 16 digit angka' }] }
+                    };
+                case 3:
+                    return { 
+                        success: !!(data.namaIbuKandung && data.namaIbuKandung.trim().length >= 3),
+                        error: { errors: [{ path: ['namaIbuKandung'], message: 'nama ibu kandung minimal 3 karakter' }] }
+                    };
+                case 4:
+                    return { 
+                        success: !!(data.tempatLahir && data.tempatLahir.trim().length >= 2 && data.tanggalLahir),
+                        error: { errors: [{ path: ['tempatLahir'], message: 'lengkapi tempat & tanggal lahir' }] }
+                    };
+                case 5:
+                    return { 
+                        success: !!(data.jenisKelamin),
+                        error: { errors: [{ path: ['jenisKelamin'], message: 'pilih jenis kelamin' }] }
+                    };
+                case 6:
+                    return { 
+                        success: !!(data.golonganDarah),
+                        error: { errors: [{ path: ['golonganDarah'], message: 'pilih golongan darah kamu' }] }
+                    };
+                case 7:
+                    return { 
+                        success: !!(data.provinsi && data.kabupaten && data.kecamatan && data.kelurahan && data.alamatDetail && data.alamatDetail.trim().length >= 5),
+                        error: { errors: [{ path: ['alamatDetail'], message: 'lengkapi domisili & alamat' }] }
+                    };
+                case 8:
+                    return { 
+                        success: !!(data.pekerjaan && data.pekerjaan.trim().length >= 2),
+                        error: { errors: [{ path: ['pekerjaan'], message: 'isi pekerjaan' }] }
+                    };
+                default:
+                    return { success: true, error: { errors: [] } };
+            }
+        }
+
+        function validateCurrentStep() {
+            if (currentStep > totalSteps) return true;
+
+            const stepData = getStepData(currentStep);
+            const result = safeValidate(currentStep, stepData);
+
+            const btnNext = document.getElementById('btn-next');
+            if (!btnNext) return false;
+
+            if (result.success) {
+                btnNext.disabled = false;
+                btnNext.className = "btn-transition w-full py-3.5 px-5 bg-[#13195C] text-white hover:bg-[#0c103d] active:scale-[0.99] cursor-pointer shadow-sm text-xs font-medium rounded-xl text-center flex items-center justify-center gap-2 select-none";
+                hideErrorsForStep(currentStep);
+                return true;
+            } else {
+                btnNext.disabled = true;
+                btnNext.className = "btn-transition w-full py-3.5 px-5 bg-slate-200 text-slate-400 cursor-not-allowed text-xs font-medium rounded-xl text-center flex items-center justify-center gap-2 select-none opacity-80";
+                return false;
+            }
+        }
+
+        function hideErrorsForStep(step) {
+            const keys = Object.keys(getStepData(step));
+            keys.forEach(key => {
+                const groupEl = document.getElementById(`field-group-${key}`);
+                const errorEl = document.getElementById(`error-${key}`);
+                if (groupEl) groupEl.classList.remove('field-error');
+                if (errorEl) errorEl.classList.add('hidden');
+            });
+        }
+
+        function showErrorsForStep(step, errors) {
+            errors.forEach(err => {
+                const fieldName = err.path ? err.path[0] : '';
+                const groupEl = document.getElementById(`field-group-${fieldName}`);
+                const errorEl = document.getElementById(`error-${fieldName}`);
+                if (groupEl) groupEl.classList.add('field-error');
+                if (errorEl) {
+                    errorEl.textContent = err.message;
+                    errorEl.classList.remove('hidden');
+                }
+            });
+        }
+
+        function triggerConfettiCelebration() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 120,
+                    spread: 80,
+                    origin: { y: 0.6 },
+                    colors: ['#13195C', '#10B981', '#F59E0B', '#6366F1', '#EC4899']
+                });
+
+                setTimeout(() => {
+                    confetti({
+                        particleCount: 60,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 }
+                    });
+                    confetti({
+                        particleCount: 60,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 }
+                    });
+                }, 250);
+            }
+        }
+
+        function handleNextStep(e) {
+            e.preventDefault();
+
+            if (currentStep <= totalSteps) {
+                const stepData = getStepData(currentStep);
+                const result = safeValidate(currentStep, stepData);
+
+                if (!result.success) {
+                    showErrorsForStep(currentStep, result.error.errors);
+                    return;
+                }
+
+                Object.assign(formData, stepData);
+
+                const currentStepEl = document.getElementById(`step-${currentStep}`);
+                gsap.to(currentStepEl, {
+                    y: -8,
+                    opacity: 0,
+                    duration: 0.2,
+                    onComplete: () => {
+                        currentStepEl.classList.add('hidden');
+                        currentStep++;
+                        
+                        if (currentStep <= totalSteps) {
+                            const nextStepEl = document.getElementById(`step-${currentStep}`);
+                            nextStepEl.classList.remove('hidden');
+                            gsap.fromTo(nextStepEl,
+                                { y: 12, opacity: 0 },
+                                { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" }
+                            );
+
+                            updateStepProgress();
+                            validateCurrentStep();
+                            
+                            const firstInput = nextStepEl.querySelector('input[type="text"]:not([readonly])');
+                            if (firstInput) firstInput.focus();
+                        } else {
+                            showSummaryScreen();
+                        }
+                    }
+                });
+            } else {
+                // Final submission step
+                triggerConfettiCelebration();
+                showToast("🎉 horeee! data pasien berhasil disimpan!");
+                console.log("Validated Full Patient Data:", formData);
+            }
+        }
+
+        function handleBackStep() {
+            if (currentStep > 1) {
+                const currentStepEl = document.getElementById(`step-${currentStep}`);
+                gsap.to(currentStepEl, {
+                    y: 8,
+                    opacity: 0,
+                    duration: 0.2,
+                    onComplete: () => {
+                        currentStepEl.classList.add('hidden');
+                        currentStep--;
+                        const prevStepEl = document.getElementById(`step-${currentStep}`);
+                        prevStepEl.classList.remove('hidden');
+                        gsap.fromTo(prevStepEl,
+                            { y: -12, opacity: 0 },
+                            { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" }
+                        );
+
+                        updateStepProgress();
+                        validateCurrentStep();
+
+                        if (currentStep <= totalSteps) {
+                            document.getElementById('btn-next-label').textContent = "lanjutkan";
+                            document.getElementById('btn-next-icon').setAttribute('data-lucide', 'arrow-right');
+                            lucide.createIcons();
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateStepProgress() {
+            const dots = document.querySelectorAll('.step-dot');
+            dots.forEach((dot, index) => {
+                if (index < currentStep) {
+                    dot.className = "step-dot w-4 h-[2.5px] bg-[#13195C] rounded-full transition-all duration-300";
+                } else {
+                    dot.className = "step-dot w-4 h-[2.5px] bg-slate-200 rounded-full transition-all duration-300";
+                }
+            });
+
+            const btnBack = document.getElementById('btn-back');
+            if (currentStep > 1) {
+                btnBack.disabled = false;
+                btnBack.className = "text-xs font-normal text-slate-500 hover:text-[#13195C] transition-colors flex items-center gap-1.5 cursor-pointer opacity-100";
+            } else {
+                btnBack.disabled = true;
+                btnBack.className = "text-xs font-normal text-slate-500 hover:text-[#13195C] transition-colors flex items-center gap-1.5 opacity-40 cursor-not-allowed";
+            }
+        }
+
+        function showSummaryScreen() {
+            document.getElementById('step-9').classList.remove('hidden');
+            
+            document.getElementById('sum-nama').textContent = formData.nama;
+            document.getElementById('sum-nik').textContent = formData.nik;
+            document.getElementById('sum-nama-ibu').textContent = formData.namaIbuKandung;
+            
+            const birthDisplay = document.getElementById('tanggalLahirDisplay')?.value || '';
+            document.getElementById('sum-ttl').textContent = `${formData.tempatLahir}, ${birthDisplay}`;
+            document.getElementById('sum-jk').textContent = formData.jenisKelamin;
+            document.getElementById('sum-golongan-darah').textContent = formData.golonganDarah;
+            
+            document.getElementById('sum-domisili').textContent = `${formData.alamatDetail}, Kel. ${formData.kelurahan}, Kec. ${formData.kecamatan}, ${formData.kabupaten}, Prov. ${formData.provinsi}`;
+            document.getElementById('sum-pekerjaan').textContent = formData.pekerjaan;
+
+            document.getElementById('btn-next-label').textContent = "simpan data pasien";
+            document.getElementById('btn-next-icon').setAttribute('data-lucide', 'check');
+            lucide.createIcons();
+
+            const btnNext = document.getElementById('btn-next');
+            btnNext.disabled = false;
+            btnNext.className = "btn-transition w-full py-3.5 px-5 bg-[#13195C] text-white hover:bg-[#0c103d] active:scale-[0.99] cursor-pointer shadow-sm text-xs font-medium rounded-xl text-center flex items-center justify-center gap-2 select-none";
+        }
+
+        function showToast(message) {
+            let toast = document.getElementById('custom-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'custom-toast';
+                toast.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#13195C] text-white text-xs font-normal px-5 py-3 rounded-full shadow-lg transition-all duration-300 opacity-0 transform translate-y-4 z-50 pointer-events-none text-center max-w-xs';
+                document.body.appendChild(toast);
+            }
+            
+            toast.textContent = message;
+            toast.classList.remove('opacity-0', 'translate-y-4');
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4');
+            }, 3500);
+        }
+
+        window.onload = function() {
+            if (window.lucide) lucide.createIcons();
+            initCalendar();
+            fetchProvinces();
+            validateCurrentStep();
+        };
+    </script>
+</body>
+</html>

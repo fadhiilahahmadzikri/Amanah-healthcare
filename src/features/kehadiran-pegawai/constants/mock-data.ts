@@ -41,19 +41,6 @@ export const INITIAL_STAFF_ATTENDANCE: StaffAttendance[] = [
     shift: 'Pagi'
   },
   {
-    id: 'att-04',
-    id_staf: 'DOC-002',
-    nama_staf: 'dr. Kontol, Sp.D',
-    avatar:
-      'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&q=80&w=150',
-    kategori: 'Dokter',
-    tanggal_presensi: '23 Agustus 2026',
-    waktu_presensi: 'Selasa, 23 Agustus 2026',
-    waktu: '-',
-    status: 'Tidak Hadir',
-    shift: 'Pagi'
-  },
-  {
     id: 'att-05',
     id_staf: 'STF-003',
     nama_staf: 'Rina Marlina',
