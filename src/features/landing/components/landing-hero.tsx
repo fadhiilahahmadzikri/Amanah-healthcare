@@ -24,14 +24,14 @@ export function LandingHero({ onOpenBooking }: LandingHeroProps) {
           {/* Background Full Photo (Doctor smiling with pregnant patient in clinic bed) */}
           <div className='absolute inset-0 z-0'>
             <Image
-              src='/assets/landing/hero-exact-bg.png'
+              src='/assets/landing/amanah-building.png'
               alt='Klinik Amanah Healthcare - Pelayanan Medis Profesional'
               fill
               priority
               className='object-cover object-[center_18%] sm:object-right-top'
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                target.src = '/assets/landing/hero-container.png';
+                target.src = '/assets/landing/amanah-building.png';
               }}
             />
             {/* Soft gradient on left for crystal clear text readability */}
