@@ -24,48 +24,50 @@ export type PatientRegistrationStep = {
   description: string;
 };
 
+export const PATIENT_REGISTRATION_INPUT_STEP_COUNT = 8;
+
 export const PATIENT_REGISTRATION_STEPS: PatientRegistrationStep[] = [
   {
-    title: 'Halo, kenalan dulu',
-    description: 'Siapa nama lengkap kamu sesuai KTP atau KK?'
+    title: 'halo kak! kenalan dulu yuk 😊',
+    description: 'siapa nama lengkap kamu sesuai KTP / KK?'
   },
   {
-    title: 'Masukkan NIK kamu',
-    description: 'NIK 16 digit digunakan untuk identifikasi rekam medis.'
+    title: 'sip! minta NIK kamu ya 🪪',
+    description: 'masukkan 16 digit NIK KTP kamu untuk identifikasi rekam medis.'
   },
   {
-    title: 'Nama ibu kandung',
-    description: 'Data ini membantu proses verifikasi identitas pasien.'
+    title: 'siapa nama ibu kandung kamu? 👩‍👧',
+    description: 'data nama ibu kandung diperlukan untuk verifikasi identitas & rekam medis.'
   },
   {
-    title: 'Tempat dan tanggal lahir',
-    description: 'Tanggal lahir membantu dokter menghitung usia pasien.'
+    title: 'asik! di mana & kapan kamu lahir? 🎂',
+    description: 'data tanggal lahir membantu dokter menghitung usia & konsultasi.'
   },
   {
-    title: 'Jenis kelamin',
-    description: 'Informasi ini digunakan dalam pencatatan klinis.'
+    title: 'pilih jenis kelamin kamu 🚻',
+    description: 'opsi ini digunakan untuk mencocokkan dokter & rekam medis.'
   },
   {
-    title: 'Golongan darah',
-    description: 'Pilih golongan darah untuk catatan medis dan keadaan darurat.'
+    title: 'apa golongan darah kamu? 🩸',
+    description: 'data ini penting untuk catatan medis & penanganan darurat.'
   },
   {
-    title: 'Domisili saat ini',
-    description: 'Lengkapi wilayah dan alamat detail tempat tinggal.'
+    title: 'sekarang kamu tinggal dimana? 🏡',
+    description: 'data domisili dipakai untuk pengiriman resep & surat rujukan.'
   },
   {
-    title: 'Pekerjaan',
-    description: 'Isi pekerjaan atau kegiatan utama sehari-hari.'
+    title: 'dikit lagi kelar nih! 💼',
+    description: 'apa pekerjaan atau kegiatan kamu sehari-hari?'
   },
   {
-    title: 'Periksa kembali data pasien',
-    description: 'Pastikan semua data sudah sesuai sebelum disimpan.'
+    title: 'hore! data kamu udah rapi 🎉',
+    description: 'yuk periksa sekali lagi sebelum pendaftaran disimpan.'
   }
 ];
 
 export const PATIENT_REGISTRATION_GENDER_OPTIONS: RegistrationOption[] = [
-  { label: 'Laki-laki', value: 'Laki-laki' },
-  { label: 'Perempuan', value: 'Perempuan' }
+  { label: 'laki-laki', value: 'Laki-laki' },
+  { label: 'perempuan', value: 'Perempuan' }
 ];
 
 export const PATIENT_REGISTRATION_BLOOD_TYPE_OPTIONS: RegistrationOption[] = [
@@ -73,7 +75,7 @@ export const PATIENT_REGISTRATION_BLOOD_TYPE_OPTIONS: RegistrationOption[] = [
   { label: 'B', value: 'B' },
   { label: 'AB', value: 'AB' },
   { label: 'O', value: 'O' },
-  { label: 'Belum tahu', value: 'Belum Tahu' }
+  { label: 'belum tahu', value: 'Belum Tahu' }
 ];
 
 export const PATIENT_REGISTRATION_DEFAULT_VALUES: PatientRegistrationFormValues = {
@@ -82,8 +84,8 @@ export const PATIENT_REGISTRATION_DEFAULT_VALUES: PatientRegistrationFormValues 
   nama_ibu_kandung: '',
   tempat_lahir: '',
   birth_date: '',
-  gender: 'Laki-laki',
-  blood_type: 'Belum Tahu',
+  gender: '' as PatientRegistrationFormValues['gender'],
+  blood_type: '' as PatientRegistrationFormValues['blood_type'],
   provinsi: '',
   provinsi_id: '',
   kabupaten: '',

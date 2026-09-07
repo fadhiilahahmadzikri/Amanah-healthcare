@@ -13,7 +13,9 @@ export interface ModalWrapperProps {
   children: React.ReactNode;
   maxWidth?: string;
   showCloseButton?: boolean;
+  dismissible?: boolean;
   className?: string;
+  backdropClassName?: string;
   portalContainer?: HTMLElement | null;
   portalContainerRef?: React.RefObject<HTMLElement | null>;
 }
@@ -24,7 +26,9 @@ export function ModalWrapper({
   children,
   maxWidth = 'max-w-[560px]',
   showCloseButton = false,
+  dismissible = true,
   className,
+  backdropClassName,
   portalContainer,
   portalContainerRef
 }: ModalWrapperProps) {
@@ -33,6 +37,10 @@ export function ModalWrapper({
   const [mounted, setMounted] = useState(false);
 
   const handleClose = React.useCallback(() => {
+    if (!dismissible) {
+      return;
+    }
+
     if (backdropRef.current && modalBoxRef.current) {
       gsap.to(modalBoxRef.current, {
         opacity: 0,
@@ -50,13 +58,17 @@ export function ModalWrapper({
     } else {
       onClose();
     }
-  }, [onClose]);
+  }, [dismissible, onClose]);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
+    if (!dismissible) {
+      return;
+    }
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
         handleClose();
@@ -65,7 +77,7 @@ export function ModalWrapper({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleClose, isOpen]);
+  }, [dismissible, handleClose, isOpen]);
 
   useEffect(() => {
     if (isOpen && backdropRef.current && modalBoxRef.current) {
@@ -100,14 +112,19 @@ export function ModalWrapper({
       <div
         ref={backdropRef}
         data-slot='modal-wrapper'
-        className='pointer-events-auto fixed inset-0 z-50 flex h-screen w-screen items-center justify-center overflow-y-auto bg-gradient-to-b from-black/0 via-black/45 to-black/85 p-4 backdrop-blur-xs'
+        className={cn(
+          'pointer-events-auto fixed inset-0 z-50 flex h-screen w-screen items-center justify-center overflow-y-auto bg-gradient-to-b from-black/0 via-black/45 to-black/85 p-4 backdrop-blur-xs',
+          backdropClassName
+        )}
       >
-        <button
-          type='button'
-          aria-label='Tutup modal'
-          onClick={handleClose}
-          className='absolute inset-0 cursor-default'
-        />
+        {dismissible && (
+          <button
+            type='button'
+            aria-label='Tutup modal'
+            onClick={handleClose}
+            className='absolute inset-0 cursor-default'
+          />
+        )}
         <div
           ref={modalBoxRef}
           role='dialog'
@@ -118,7 +135,7 @@ export function ModalWrapper({
             className
           )}
         >
-          {showCloseButton && (
+          {dismissible && showCloseButton && (
             <button
               type='button'
               onClick={handleClose}

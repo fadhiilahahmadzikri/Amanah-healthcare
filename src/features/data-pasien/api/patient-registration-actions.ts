@@ -1,7 +1,6 @@
 'use server';
 
 import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
 
 import { completePatientRegistration } from './patient-registration-service';
 import {
@@ -10,7 +9,7 @@ import {
 } from '../schemas/patient-registration-schema';
 
 export type PatientRegistrationActionResult = {
-  success: false;
+  success: boolean;
   message: string;
 };
 
@@ -47,5 +46,8 @@ export async function completePatientRegistrationAction(
     };
   }
 
-  redirect('/dashboard/overview');
+  return {
+    success: true,
+    message: 'Data pasien berhasil disimpan'
+  };
 }

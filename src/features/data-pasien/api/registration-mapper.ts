@@ -123,18 +123,15 @@ export function hasCompletedPatientRegistration({
 
 export function getPatientRegistrationRedirectPath({
   isAuthenticated,
-  isRegistrationComplete,
+  isRegistrationComplete: _isRegistrationComplete,
   pathname
 }: PatientRegistrationRedirectInput): string | null {
   if (!isAuthenticated) {
     return '/auth/sign-in';
   }
 
-  if (pathname.startsWith('/dashboard') && !isRegistrationComplete) {
-    return '/patient-registration';
-  }
-
-  if (pathname === '/patient-registration' && isRegistrationComplete) {
+  // Treat patient registration as a modal barrier on dashboard; clean up direct route hits
+  if (pathname.startsWith('/patient-registration')) {
     return '/dashboard/overview';
   }
 

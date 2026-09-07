@@ -484,53 +484,6 @@ html:not(.dark) .cl-logoImage {
   filter: invert(1);
 }
 
-/* Minimalist Line Input Style */
-.line-input-group {
-  position: relative;
-  padding-bottom: 4px;
-  border-bottom: 1.5px solid #dcdcd5;
-  transition:
-    border-color 0.25s ease,
-    background-color 0.25s ease;
-}
-
-.dark .line-input-group {
-  border-bottom-color: #334155;
-}
-
-.line-input-group:focus-within {
-  border-bottom-color: #13195c !important;
-}
-
-.dark .line-input-group:focus-within {
-  border-bottom-color: #818cf8 !important;
-}
-
-.line-input-group.field-error {
-  border-bottom-color: #ef4444 !important;
-}
-
-.line-input {
-  width: 100%;
-  background: transparent;
-  border: none;
-  outline: none;
-  font-size: 13.5px;
-  color: #13195c;
-  font-weight: 500;
-  padding-top: 6px;
-  padding-bottom: 6px;
-}
-
-.dark .line-input {
-  color: #f8fafc;
-}
-
-.line-input::placeholder {
-  color: #94a3b8;
-  font-weight: 400;
-}
-
 /* Aesthetic Diagonal Gradient Textures for Status Badges */
 .status-texture-confirmed {
   background: linear-gradient(

@@ -7,8 +7,9 @@ import { InfobarProvider } from '@/components/ui/infobar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { SimulatorRunner } from '@/features/simulator/components/simulator-runner';
 import { ChatwootWidget } from '@/components/chatwoot/chatwoot-widget';
-import { getCurrentPatientRegistrationStatus } from '@/features/data-pasien/api/patient-registration-service';
+import { getCurrentPatientRegistrationContext } from '@/features/data-pasien/api/patient-registration-service';
 import { getPatientRegistrationRedirectPath } from '@/features/data-pasien/api/registration-mapper';
+import { PatientRegistrationModal } from '@/features/data-pasien/components/registration/patient-registration-modal';
 import { auth } from '@clerk/nextjs/server';
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
@@ -25,10 +26,12 @@ export const metadata: Metadata = {
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { userId } = await auth();
-  const isRegistrationComplete = userId ? await getCurrentPatientRegistrationStatus(userId) : false;
+  const registrationContext = userId
+    ? await getCurrentPatientRegistrationContext(userId)
+    : { isComplete: false, initialName: '' };
   const redirectPath = getPatientRegistrationRedirectPath({
     isAuthenticated: Boolean(userId),
-    isRegistrationComplete,
+    isRegistrationComplete: registrationContext.isComplete,
     pathname: '/dashboard'
   });
 
@@ -50,6 +53,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <InfoSidebar side='right' />
             <ChatwootWidget />
             {/* <GreetingDialog /> */}
+            {!registrationContext.isComplete ? (
+              <PatientRegistrationModal
+                isOpen={true}
+                initialName={registrationContext.initialName}
+              />
+            ) : null}
           </InfobarProvider>
         </SidebarInset>
       </SidebarProvider>

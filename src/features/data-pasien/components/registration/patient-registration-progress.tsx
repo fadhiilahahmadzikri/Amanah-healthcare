@@ -1,42 +1,50 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Icons } from '@/components/icons';
+import { cn } from '@/lib/utils';
 
-type PatientRegistrationProgressProps = {
+type PatientRegistrationStepIndicatorProps = {
   currentStep: number;
   totalSteps: number;
   onBack: () => void;
 };
 
-export function PatientRegistrationProgress({
+export function PatientRegistrationStepIndicator({
   currentStep,
   totalSteps,
   onBack
-}: PatientRegistrationProgressProps) {
+}: PatientRegistrationStepIndicatorProps) {
   const isFirstStep = currentStep === 1;
-  const progressValue = Math.round((currentStep / totalSteps) * 100);
+  const activeStep = Math.min(currentStep, totalSteps);
 
   return (
-    <div className='flex flex-col gap-4'>
-      <div className='flex items-center justify-between gap-4'>
-        <Button
-          type='button'
-          variant='ghost'
-          size='sm'
-          onClick={onBack}
-          disabled={isFirstStep}
-          className='px-0 text-muted-foreground'
-        >
-          <Icons.chevronLeft data-icon='inline-start' />
-          Kembali
-        </Button>
-        <span className='text-xs font-medium text-muted-foreground'>
-          Langkah {currentStep} dari {totalSteps}
-        </span>
+    <div className='flex items-center justify-between gap-4'>
+      <Button
+        type='button'
+        variant='ghost'
+        size='sm'
+        onClick={onBack}
+        disabled={isFirstStep}
+        className='h-auto px-0 py-0 text-xs font-normal text-muted-foreground opacity-80 hover:bg-transparent hover:text-primary disabled:opacity-40'
+      >
+        <Icons.chevronLeft data-icon='inline-start' className='size-3.5' />
+        kembali
+      </Button>
+      <div
+        className='flex items-center gap-1.5'
+        aria-label={`Langkah ${activeStep} dari ${totalSteps}`}
+      >
+        {Array.from({ length: totalSteps }).map((_, index) => (
+          <span
+            key={index}
+            className={cn(
+              'h-[2.5px] w-4 rounded-full transition-colors duration-300',
+              index < activeStep ? 'bg-primary' : 'bg-muted'
+            )}
+          />
+        ))}
       </div>
-      <Progress value={progressValue} />
     </div>
   );
 }

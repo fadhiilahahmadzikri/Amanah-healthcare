@@ -1,6 +1,7 @@
 'use client';
 
 import type { FormValidateFn, GlobalFormValidationError } from '@tanstack/form-core';
+import { useCallback } from 'react';
 import { toast } from 'sonner';
 
 import { scrollToFirstError, useAppForm } from '@/components/ui/tanstack-form';
@@ -14,13 +15,17 @@ import { PATIENT_REGISTRATION_DEFAULT_VALUES } from '../../constants/registratio
 
 type UsePatientRegistrationFormInput = {
   initialName?: string;
+  onSuccess?: () => void;
 };
 
 type RegistrationFieldErrors = Partial<
   Record<keyof PatientRegistrationFormValues, { message: string }[]>
 >;
 
-export function usePatientRegistrationForm({ initialName }: UsePatientRegistrationFormInput) {
+export function usePatientRegistrationForm({
+  initialName,
+  onSuccess
+}: UsePatientRegistrationFormInput) {
   const stepper = useFormStepper(patientRegistrationStepSchemas);
   const currentStepValidator: FormValidateFn<PatientRegistrationFormValues> = ({ value }) => {
     const result = stepper.currentValidator.safeParse(value);
@@ -56,12 +61,20 @@ export function usePatientRegistrationForm({ initialName }: UsePatientRegistrati
 
       if (!result.success) {
         toast.error(result.message);
+        return;
       }
+
+      onSuccess?.();
     }
   });
+  const isCurrentStepValid = useCallback(
+    (values: PatientRegistrationFormValues) => stepper.currentValidator.safeParse(values).success,
+    [stepper.currentValidator]
+  );
 
   return {
     form,
+    isCurrentStepValid,
     ...stepper
   };
 }

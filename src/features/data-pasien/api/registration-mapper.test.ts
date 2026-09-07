@@ -1,5 +1,8 @@
 import { describe, expect, test } from 'bun:test';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
+import { PATIENT_REGISTRATION_STEPS } from '../constants/registration-options';
 import { patientRegistrationSchema } from '../schemas/patient-registration-schema';
 import {
   buildPatientMutationPayload,
@@ -45,6 +48,67 @@ describe('patient registration schema', () => {
     const result = patientRegistrationSchema.safeParse(validRegistrationValues);
 
     expect(result.success).toBe(true);
+  });
+});
+
+describe('patient registration POC alignment', () => {
+  test('keeps the step copy aligned with the minimalist POC', () => {
+    expect(PATIENT_REGISTRATION_STEPS).toEqual([
+      {
+        title: 'halo kak! kenalan dulu yuk 😊',
+        description: 'siapa nama lengkap kamu sesuai KTP / KK?'
+      },
+      {
+        title: 'sip! minta NIK kamu ya 🪪',
+        description: 'masukkan 16 digit NIK KTP kamu untuk identifikasi rekam medis.'
+      },
+      {
+        title: 'siapa nama ibu kandung kamu? 👩‍👧',
+        description: 'data nama ibu kandung diperlukan untuk verifikasi identitas & rekam medis.'
+      },
+      {
+        title: 'asik! di mana & kapan kamu lahir? 🎂',
+        description: 'data tanggal lahir membantu dokter menghitung usia & konsultasi.'
+      },
+      {
+        title: 'pilih jenis kelamin kamu 🚻',
+        description: 'opsi ini digunakan untuk mencocokkan dokter & rekam medis.'
+      },
+      {
+        title: 'apa golongan darah kamu? 🩸',
+        description: 'data ini penting untuk catatan medis & penanganan darurat.'
+      },
+      {
+        title: 'sekarang kamu tinggal dimana? 🏡',
+        description: 'data domisili dipakai untuk pengiriman resep & surat rujukan.'
+      },
+      {
+        title: 'dikit lagi kelar nih! 💼',
+        description: 'apa pekerjaan atau kegiatan kamu sehari-hari?'
+      },
+      {
+        title: 'hore! data kamu udah rapi 🎉',
+        description: 'yuk periksa sekali lagi sebelum pendaftaran disimpan.'
+      }
+    ]);
+  });
+
+  test('renders registration as a forced modal instead of a standalone card page', () => {
+    const modalSource = readFileSync(
+      join(
+        process.cwd(),
+        'src/features/data-pasien/components/registration/patient-registration-modal.tsx'
+      ),
+      'utf8'
+    );
+
+    expect(modalSource).toContain('ModalWrapper');
+    expect(modalSource).toContain('dismissible={false}');
+    expect(modalSource).toContain('showCloseButton={false}');
+    expect(modalSource).toContain('gsap');
+    expect(modalSource).toContain('triggerPatientRegistrationConfetti');
+    expect(modalSource).not.toContain('next/image');
+    expect(modalSource).not.toContain('<Card');
   });
 });
 
@@ -141,17 +205,25 @@ describe('patient registration completion status', () => {
 });
 
 describe('patient registration route policy', () => {
-  test('routes incomplete authenticated users into registration before dashboard', () => {
+  test('leaves incomplete authenticated users on dashboard to let modal barrier intercept', () => {
     expect(
       getPatientRegistrationRedirectPath({
         isAuthenticated: true,
         isRegistrationComplete: false,
         pathname: '/dashboard/overview'
       })
-    ).toBe('/patient-registration');
+    ).toBe(null);
   });
 
-  test('routes completed authenticated users away from registration', () => {
+  test('redirects direct hits to /patient-registration to /dashboard/overview', () => {
+    expect(
+      getPatientRegistrationRedirectPath({
+        isAuthenticated: true,
+        isRegistrationComplete: false,
+        pathname: '/patient-registration'
+      })
+    ).toBe('/dashboard/overview');
+
     expect(
       getPatientRegistrationRedirectPath({
         isAuthenticated: true,
@@ -169,5 +241,15 @@ describe('patient registration route policy', () => {
         pathname: '/dashboard/data-pasien'
       })
     ).toBe(null);
+  });
+
+  test('redirects unauthenticated users to sign-in', () => {
+    expect(
+      getPatientRegistrationRedirectPath({
+        isAuthenticated: false,
+        isRegistrationComplete: false,
+        pathname: '/dashboard/overview'
+      })
+    ).toBe('/auth/sign-in');
   });
 });
