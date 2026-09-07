@@ -20,7 +20,20 @@ export type Patient = {
   gender: 'Laki-laki' | 'Perempuan';
   age: number; // e.g. 41
   birth_date: string;
-  blood_type: 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';
+  blood_type:
+    | 'A+'
+    | 'A-'
+    | 'B+'
+    | 'B-'
+    | 'AB+'
+    | 'AB-'
+    | 'O+'
+    | 'O-'
+    | 'A'
+    | 'B'
+    | 'AB'
+    | 'O'
+    | 'Belum Tahu';
   address: string;
   emergency_contact: string;
   allergies: string[];

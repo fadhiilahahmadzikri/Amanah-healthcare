@@ -7,8 +7,12 @@ import { InfobarProvider } from '@/components/ui/infobar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { SimulatorRunner } from '@/features/simulator/components/simulator-runner';
 import { ChatwootWidget } from '@/components/chatwoot/chatwoot-widget';
+import { getCurrentPatientRegistrationStatus } from '@/features/data-pasien/api/patient-registration-service';
+import { getPatientRegistrationRedirectPath } from '@/features/data-pasien/api/registration-mapper';
+import { auth } from '@clerk/nextjs/server';
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: 'Next Shadcn Dashboard Starter',
@@ -20,6 +24,18 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { userId } = await auth();
+  const isRegistrationComplete = userId ? await getCurrentPatientRegistrationStatus(userId) : false;
+  const redirectPath = getPatientRegistrationRedirectPath({
+    isAuthenticated: Boolean(userId),
+    isRegistrationComplete,
+    pathname: '/dashboard'
+  });
+
+  if (redirectPath) {
+    redirect(redirectPath);
+  }
+
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get('sidebar_state')?.value === 'true';
   return (

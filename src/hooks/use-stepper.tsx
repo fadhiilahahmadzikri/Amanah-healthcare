@@ -15,7 +15,7 @@ type StepState = {
   isCompleted: boolean;
 };
 
-export function useFormStepper(schemas: ZodTypeAny[]) {
+export function useFormStepper(schemas: readonly ZodTypeAny[]) {
   const stepCount = schemas.length;
   const [currentStep, setCurrentStep] = useState(1);
 
