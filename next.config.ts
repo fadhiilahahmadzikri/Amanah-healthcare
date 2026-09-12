@@ -39,6 +39,21 @@ const baseConfig: NextConfig = {
         protocol: 'https',
         hostname: 'flagcdn.com',
         port: ''
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.pravatar.cc',
+        port: ''
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        port: ''
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.ytimg.com',
+        port: ''
       }
     ]
   },

@@ -1,0 +1,74 @@
+<svg viewBox="0 0 16 16" width="64" height="64" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- Daun Herbal Hijau (Kiri Bawah & Kanan Bawah) -->
+  <rect x="3" y="11" width="1" height="1" fill="#14532d"></rect>
+  <rect x="4" y="10" width="1" height="1" fill="#15803d"></rect>
+  <rect x="4" y="11" width="1" height="1" fill="#22c55e"></rect>
+  <rect x="5" y="10" width="1" height="1" fill="#4ade80"></rect>
+  <rect x="5" y="11" width="1" height="1" fill="#16a34a"></rect>
+  <rect x="6" y="9" width="1" height="1" fill="#15803d"></rect>
+  <rect x="12" y="11" width="1" height="1" fill="#14532d"></rect>
+  <rect x="11" y="10" width="1" height="1" fill="#15803d"></rect>
+  <rect x="11" y="11" width="1" height="1" fill="#22c55e"></rect>
+  <rect x="10" y="10" width="1" height="1" fill="#4ade80"></rect>
+  <rect x="10" y="11" width="1" height="1" fill="#16a34a"></rect>
+  <rect x="9" y="9" width="1" height="1" fill="#15803d"></rect>
+  <!-- Kelopak Bunga Atas -->
+  <rect x="7" y="2" width="2" height="1" fill="#fb7185"></rect>
+  <rect x="6" y="3" width="1" height="1" fill="#e11d48"></rect>
+  <rect x="7" y="3" width="1" height="1" fill="#fff1f2"></rect>
+  <rect x="8" y="3" width="1" height="1" fill="#fda4af"></rect>
+  <rect x="9" y="3" width="1" height="1" fill="#e11d48"></rect>
+  <rect x="6" y="4" width="1" height="1" fill="#e11d48"></rect>
+  <rect x="7" y="4" width="1" height="1" fill="#fb7185"></rect>
+  <rect x="8" y="4" width="1" height="1" fill="#f43f5e"></rect>
+  <rect x="9" y="4" width="1" height="1" fill="#e11d48"></rect>
+  <rect x="7" y="5" width="2" height="1" fill="#f43f5e"></rect>
+  <!-- Kelopak Diagonal Atas Kiri & Kanan -->
+  <rect x="4" y="4" width="1" height="1" fill="#e11d48"></rect>
+  <rect x="5" y="4" width="1" height="1" fill="#fda4af"></rect>
+  <rect x="4" y="5" width="1" height="1" fill="#fda4af"></rect>
+  <rect x="5" y="5" width="1" height="1" fill="#fb7185"></rect>
+  <rect x="6" y="6" width="1" height="1" fill="#f43f5e"></rect>
+  <rect x="11" y="4" width="1" height="1" fill="#e11d48"></rect>
+  <rect x="10" y="4" width="1" height="1" fill="#fda4af"></rect>
+  <rect x="11" y="5" width="1" height="1" fill="#f43f5e"></rect>
+  <rect x="10" y="5" width="1" height="1" fill="#fb7185"></rect>
+  <rect x="9" y="6" width="1" height="1" fill="#f43f5e"></rect>
+  <!-- Kelopak Kiri & Kanan -->
+  <rect x="2" y="7" width="1" height="2" fill="#fb7185"></rect>
+  <rect x="3" y="6" width="1" height="1" fill="#e11d48"></rect>
+  <rect x="3" y="7" width="1" height="1" fill="#fff1f2"></rect>
+  <rect x="3" y="8" width="1" height="1" fill="#fda4af"></rect>
+  <rect x="3" y="9" width="1" height="1" fill="#e11d48"></rect>
+  <rect x="4" y="6" width="1" height="1" fill="#e11d48"></rect>
+  <rect x="4" y="7" width="1" height="1" fill="#fb7185"></rect>
+  <rect x="4" y="8" width="1" height="1" fill="#f43f5e"></rect>
+  <rect x="4" y="9" width="1" height="1" fill="#e11d48"></rect>
+  <rect x="5" y="7" width="1" height="2" fill="#f43f5e"></rect>
+  <rect x="10" y="7" width="1" height="2" fill="#f43f5e"></rect>
+  <rect x="11" y="6" width="1" height="1" fill="#e11d48"></rect>
+  <rect x="11" y="7" width="1" height="1" fill="#fda4af"></rect>
+  <rect x="11" y="8" width="1" height="1" fill="#f43f5e"></rect>
+  <rect x="11" y="9" width="1" height="1" fill="#be123c"></rect>
+  <rect x="12" y="6" width="1" height="1" fill="#e11d48"></rect>
+  <rect x="12" y="7" width="1" height="1" fill="#f43f5e"></rect>
+  <rect x="12" y="8" width="1" height="1" fill="#e11d48"></rect>
+  <rect x="12" y="9" width="1" height="1" fill="#be123c"></rect>
+  <rect x="13" y="7" width="1" height="2" fill="#9f1239"></rect>
+  <!-- Kelopak Bawah -->
+  <rect x="7" y="10" width="2" height="1" fill="#f43f5e"></rect>
+  <rect x="6" y="11" width="1" height="1" fill="#be123c"></rect>
+  <rect x="7" y="11" width="1" height="1" fill="#f43f5e"></rect>
+  <rect x="8" y="11" width="1" height="1" fill="#e11d48"></rect>
+  <rect x="9" y="11" width="1" height="1" fill="#be123c"></rect>
+  <rect x="6" y="12" width="1" height="1" fill="#be123c"></rect>
+  <rect x="7" y="12" width="1" height="1" fill="#e11d48"></rect>
+  <rect x="8" y="12" width="1" height="1" fill="#be123c"></rect>
+  <rect x="9" y="12" width="1" height="1" fill="#be123c"></rect>
+  <rect x="7" y="13" width="2" height="1" fill="#9f1239"></rect>
+  <!-- Putik Inti Emas Tengah -->
+  <rect x="7" y="7" width="1" height="1" fill="#fef08a"></rect>
+  <rect x="8" y="7" width="1" height="1" fill="#facc15"></rect>
+  <rect x="7" y="8" width="1" height="1" fill="#f59e0b"></rect>
+  <rect x="8" y="8" width="1" height="1" fill="#d97706"></rect>
+</svg>

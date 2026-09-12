@@ -1,0 +1,26 @@
+<svg viewBox="0 0 16 16" width="64" height="64" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- Handle P3K -->
+  <rect x="6" y="2" width="4" height="1" fill="#7f1d1d"></rect>
+  <rect x="6" y="3" width="1" height="1" fill="#7f1d1d"></rect>
+  <rect x="9" y="3" width="1" height="1" fill="#7f1d1d"></rect>
+  <!-- Border / Rangka Luar Kotak -->
+  <rect x="3" y="4" width="1" height="1" fill="#7f1d1d"></rect>
+  <rect x="4" y="4" width="8" height="1" fill="#f87171"></rect>
+  <rect x="12" y="4" width="1" height="1" fill="#7f1d1d"></rect>
+  <rect x="2" y="5" width="1" height="7" fill="#7f1d1d"></rect>
+  <rect x="13" y="5" width="1" height="7" fill="#7f1d1d"></rect>
+  <rect x="3" y="13" width="10" height="1" fill="#7f1d1d"></rect>
+  <!-- Shading & Highlight Bodi Merah -->
+  <rect x="3" y="5" width="1" height="4" fill="#fca5a5"></rect>
+  <rect x="3" y="9" width="1" height="3" fill="#ef4444"></rect>
+  <rect x="12" y="5" width="1" height="7" fill="#991b1b"></rect>
+  <rect x="4" y="5" width="8" height="2" fill="#ef4444"></rect>
+  <rect x="4" y="7" width="8" height="1" fill="#b91c1c"></rect>
+  <rect x="4" y="8" width="8" height="4" fill="#ef4444"></rect>
+  <rect x="3" y="12" width="9" height="1" fill="#b91c1c"></rect>
+  <!-- Palang Putih Medis (Cross) -->
+  <rect x="7" y="6" width="2" height="6" fill="#ffffff"></rect>
+  <rect x="5" y="8" width="6" height="2" fill="#ffffff"></rect>
+  <rect x="7" y="11" width="2" height="1" fill="#f1f5f9"></rect>
+  <rect x="9" y="8" width="2" height="2" fill="#f1f5f9"></rect>
+</svg>

@@ -1,0 +1,1 @@
+export { AmanahHomePage } from './AmanahHomePage';

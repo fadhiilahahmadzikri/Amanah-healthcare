@@ -1,0 +1,1 @@
+export { AmanahContactPage } from './AmanahContactPage';

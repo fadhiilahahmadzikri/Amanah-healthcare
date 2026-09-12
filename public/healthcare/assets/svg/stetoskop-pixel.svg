@@ -1,0 +1,58 @@
+<svg viewBox="0 0 16 16" width="64" height="64" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- Eartips -->
+  <rect x="4" y="1" width="1" height="1" fill="#0f172a"></rect>
+  <rect x="11" y="1" width="1" height="1" fill="#0f172a"></rect>
+
+  <!-- Binaural Metal Arch -->
+  <rect x="4" y="2" width="1" height="2" fill="#94a3b8"></rect>
+  <rect x="3" y="2" width="1" height="2" fill="#cbd5e1"></rect>
+  <rect x="11" y="2" width="1" height="2" fill="#64748b"></rect>
+  <rect x="12" y="2" width="1" height="2" fill="#94a3b8"></rect>
+  <rect x="5" y="4" width="1" height="1" fill="#94a3b8"></rect>
+  <rect x="10" y="4" width="1" height="1" fill="#64748b"></rect>
+  <rect x="6" y="5" width="1" height="1" fill="#cbd5e1"></rect>
+  <rect x="9" y="5" width="1" height="1" fill="#64748b"></rect>
+  <rect x="7" y="5" width="2" height="1" fill="#e2e8f0"></rect>
+
+  <!-- Stem Connector -->
+  <rect x="7" y="6" width="2" height="1" fill="#475569"></rect>
+  <rect x="7" y="6" width="1" height="1" fill="#cbd5e1"></rect>
+
+  <!-- Tubing (Medical Cyan/Sky) -->
+  <!-- Vertical Drop -->
+  <rect x="7" y="7" width="2" height="2" fill="#0284c7"></rect>
+  <rect x="7" y="7" width="1" height="2" fill="#38bdf8"></rect>
+
+  <!-- Curve Left -->
+  <rect x="5" y="9" width="2" height="1" fill="#0284c7"></rect>
+  <rect x="5" y="9" width="1" height="3" fill="#38bdf8"></rect>
+  <rect x="4" y="10" width="2" height="2" fill="#0284c7"></rect>
+  <rect x="4" y="10" width="1" height="2" fill="#38bdf8"></rect>
+
+  <!-- Bottom Loop -->
+  <rect x="5" y="12" width="2" height="1" fill="#0284c7"></rect>
+  <rect x="5" y="12" width="1" height="1" fill="#38bdf8"></rect>
+  <rect x="7" y="13" width="3" height="1" fill="#0369a1"></rect>
+  <rect x="7" y="12" width="2" height="1" fill="#0284c7"></rect>
+  <rect x="9" y="12" width="2" height="1" fill="#0284c7"></rect>
+
+  <!-- Tube to Chestpiece Neck -->
+  <rect x="10" y="11" width="1" height="1" fill="#0284c7"></rect>
+  <rect x="11" y="11" width="1" height="1" fill="#64748b"></rect>
+
+  <!-- Chestpiece (Diaphragm & Bell) -->
+  <!-- Outer Rim (Silver/Chrome) -->
+  <rect x="11" y="7" width="3" height="1" fill="#64748b"></rect>
+  <rect x="12" y="7" width="1" height="1" fill="#e2e8f0"></rect>
+  <rect x="10" y="8" width="1" height="3" fill="#64748b"></rect>
+  <rect x="10" y="8" width="1" height="1" fill="#cbd5e1"></rect>
+  <rect x="14" y="8" width="1" height="3" fill="#334155"></rect>
+  <rect x="11" y="11" width="3" height="1" fill="#334155"></rect>
+
+  <!-- Inner Diaphragm Face -->
+  <rect x="11" y="8" width="3" height="3" fill="#0ea5e9"></rect>
+  <!-- Diaphragm Highlight Glint -->
+  <rect x="11" y="8" width="1" height="1" fill="#ffffff"></rect>
+  <rect x="12" y="9" width="1" height="1" fill="#38bdf8"></rect>
+  <rect x="13" y="10" width="1" height="1" fill="#0369a1"></rect>
+</svg>

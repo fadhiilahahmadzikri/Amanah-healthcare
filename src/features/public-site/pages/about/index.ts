@@ -1,0 +1,1 @@
+export { AmanahAboutPage } from './AmanahAboutPage';

@@ -1,0 +1,11 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 24-hour continuous circular track with active arrow -->
+  <path d="M12 2.5C17.2 2.5 21.5 6.8 21.5 12C21.5 17.2 17.2 21.5 12 21.5C6.8 21.5 2.5 17.2 2.5 12C2.5 9 3.8 6.4 6 4.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M3.5 4.5H6.5V1.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Digit '2' -->
+  <path d="M6 9C6 7.6 7.2 6.8 8.5 6.8C9.8 6.8 11 7.6 11 8.8C11 10.3 8.5 11.8 6.5 13.5H11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Digit '4' -->
+  <path d="M15.5 7L12.5 11.5H17M15.5 9.8V13.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Maternity Heartbeat / Vital Pulse Siaga -->
+  <path d="M5.5 17.5H8L9.5 15.5L11.5 19.5L13.5 16.5L15 17.5H18.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

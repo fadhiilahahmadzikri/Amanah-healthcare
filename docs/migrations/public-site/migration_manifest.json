@@ -1,0 +1,2633 @@
+{
+  "generated_at": "2026-09-12T15:30:28.185353+00:00",
+  "source_root": "D:/mcp-example",
+  "destination_root": "D:/manage-stock",
+  "runtime_dependencies_to_add": {
+    "@gsap/react": "^2.1.2",
+    "embla-carousel-autoplay": "^8.6.0",
+    "embla-carousel-react": "^8.6.0",
+    "lenis": "^1.3.26",
+    "lucide-react": "^1.18.0",
+    "react-icons": "^5.7.0"
+  },
+  "dependency_version_conflicts_to_report": {
+    "@clerk/nextjs": {
+      "landing": "^7.5.2",
+      "main": "^7.3.5"
+    },
+    "@radix-ui/react-accordion": {
+      "landing": "^1.2.14",
+      "main": "^1.2.12"
+    },
+    "@radix-ui/react-dialog": {
+      "landing": "^1.1.23",
+      "main": "^1.1.15"
+    },
+    "@radix-ui/react-dropdown-menu": {
+      "landing": "^2.1.18",
+      "main": "^2.1.16"
+    },
+    "@radix-ui/react-separator": {
+      "landing": "^1.1.10",
+      "main": "^1.1.8"
+    },
+    "@radix-ui/react-slot": {
+      "landing": "^1.3.0",
+      "main": "^1.2.4"
+    },
+    "@sentry/nextjs": {
+      "landing": "^10.58.0",
+      "main": "^10.45.0"
+    },
+    "@tanstack/react-table": {
+      "landing": "^8.20.6",
+      "main": "^8.21.3"
+    },
+    "next": {
+      "landing": "^16.2.9",
+      "main": "16.2.6"
+    },
+    "radix-ui": {
+      "landing": "^1.6.7",
+      "main": "^1.4.3"
+    },
+    "react": {
+      "landing": "^19.2.7",
+      "main": "19.2.4"
+    },
+    "react-dom": {
+      "landing": "^19.2.7",
+      "main": "19.2.4"
+    },
+    "tailwind-merge": {
+      "landing": "^3.6.0",
+      "main": "^3.5.0"
+    },
+    "zod": {
+      "landing": "^4.4.3",
+      "main": "^4.3.6"
+    },
+    "@tailwindcss/postcss": {
+      "landing": "^4.3.1",
+      "main": "^4.2.2"
+    },
+    "@types/node": {
+      "landing": "^25.9.3",
+      "main": "22.10.2"
+    },
+    "@types/react": {
+      "landing": "^19.2.17",
+      "main": "19.2.14"
+    },
+    "tailwindcss": {
+      "landing": "^4.3.1",
+      "main": "^4.2.2"
+    },
+    "typescript": {
+      "landing": "^6.0.3",
+      "main": "5.7.2"
+    }
+  },
+  "import_rewrite_rules": [
+    {
+      "from": "@/components/healthcare",
+      "to": "@landing/components/healthcare"
+    },
+    {
+      "from": "@/features/healthcare-",
+      "to": "@landing/features/healthcare-"
+    },
+    {
+      "from": "@/utils/",
+      "to": "@landing/utils/"
+    },
+    {
+      "from": "@/components/ui/carousel",
+      "to": "@landing/components/ui/carousel"
+    },
+    {
+      "from": "@/components/ui/card-fan-carousel",
+      "to": "@landing/components/ui/card-fan-carousel"
+    }
+  ],
+  "project_a_changes_after_checkpoint": [
+    "Add @landing/* path alias to tsconfig.json.",
+    "Replace src/app/page.tsx with the public landing route wrapper.",
+    "Add wrapper routes for /tentang-kami, /layanan, /fasilitas, /testimoni, /ulasan, and /kontak.",
+    "Merge required remote image hostnames into next.config.ts without copying Project B's Next plugins.",
+    "Patch copied landing utilities for single-locale use and patch asset paths to /landing-import/...",
+    "Create src/landing-import/README.md and MIGRATION_REPORT.md."
+  ],
+  "entries": [
+    {
+      "id": "PAGE-001",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/AmanahLandingPage.tsx",
+      "destination": "src/landing-import/features/healthcare-landing/AmanahLandingPage.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-002",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/components/AppointmentSection.tsx",
+      "destination": "src/landing-import/features/healthcare-landing/components/AppointmentSection.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-003",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/components/ArrowCtaButton.tsx",
+      "destination": "src/landing-import/features/healthcare-landing/components/ArrowCtaButton.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-004",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/components/atoms/MarqueeArrowIndicator.tsx",
+      "destination": "src/landing-import/features/healthcare-landing/components/atoms/MarqueeArrowIndicator.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-005",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/components/atoms/MarqueeTrack.tsx",
+      "destination": "src/landing-import/features/healthcare-landing/components/atoms/MarqueeTrack.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-006",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/components/atoms/ReviewQuoteMark.tsx",
+      "destination": "src/landing-import/features/healthcare-landing/components/atoms/ReviewQuoteMark.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-007",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/components/ContactSection.tsx",
+      "destination": "src/landing-import/features/healthcare-landing/components/ContactSection.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-008",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/components/FacilitiesSection.tsx",
+      "destination": "src/landing-import/features/healthcare-landing/components/FacilitiesSection.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-009",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/components/FacilityCard.tsx",
+      "destination": "src/landing-import/features/healthcare-landing/components/FacilityCard.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-010",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/components/FacilityIcons.tsx",
+      "destination": "src/landing-import/features/healthcare-landing/components/FacilityIcons.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-011",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/components/HeroSection.tsx",
+      "destination": "src/landing-import/features/healthcare-landing/components/HeroSection.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-012",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/components/KhitanShowcaseSection.tsx",
+      "destination": "src/landing-import/features/healthcare-landing/components/KhitanShowcaseSection.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-013",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/components/molecules/ReviewMarqueeCard.tsx",
+      "destination": "src/landing-import/features/healthcare-landing/components/molecules/ReviewMarqueeCard.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-014",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/components/molecules/ReviewMarqueeFloatingCta.tsx",
+      "destination": "src/landing-import/features/healthcare-landing/components/molecules/ReviewMarqueeFloatingCta.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-015",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/components/organisms/ReviewsMarqueeSection.tsx",
+      "destination": "src/landing-import/features/healthcare-landing/components/organisms/ReviewsMarqueeSection.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-016",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/components/PillLabel.tsx",
+      "destination": "src/landing-import/features/healthcare-landing/components/PillLabel.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-017",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/components/ProfessionalDoctorsSection.tsx",
+      "destination": "src/landing-import/features/healthcare-landing/components/ProfessionalDoctorsSection.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-018",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/components/ReviewsMarqueeSection.tsx",
+      "destination": "src/landing-import/features/healthcare-landing/components/ReviewsMarqueeSection.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-019",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/components/SectionContainer.tsx",
+      "destination": "src/landing-import/features/healthcare-landing/components/SectionContainer.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-020",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/components/ServicesCarousel.tsx",
+      "destination": "src/landing-import/features/healthcare-landing/components/ServicesCarousel.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-021",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/components/ServicesSection.tsx",
+      "destination": "src/landing-import/features/healthcare-landing/components/ServicesSection.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-022",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/components/TestimonialsSection.tsx",
+      "destination": "src/landing-import/features/healthcare-landing/components/TestimonialsSection.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-023",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/components/TrustHighlights.tsx",
+      "destination": "src/landing-import/features/healthcare-landing/components/TrustHighlights.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-024",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/data/reviewsMarqueeData.ts",
+      "destination": "src/landing-import/features/healthcare-landing/data/reviewsMarqueeData.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-025",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/data.ts",
+      "destination": "src/landing-import/features/healthcare-landing/data.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-026",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/index.ts",
+      "destination": "src/landing-import/features/healthcare-landing/index.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-027",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-landing/types.ts",
+      "destination": "src/landing-import/features/healthcare-landing/types.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-001",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/AmanahAboutPage.tsx",
+      "destination": "src/landing-import/features/healthcare-about/AmanahAboutPage.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-002",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/components/atoms/AbstractPuzzleBackground.tsx",
+      "destination": "src/landing-import/features/healthcare-about/components/atoms/AbstractPuzzleBackground.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-003",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/components/atoms/DecorativeMarker.tsx",
+      "destination": "src/landing-import/features/healthcare-about/components/atoms/DecorativeMarker.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-004",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/components/atoms/DirectionalArrowIndicator.tsx",
+      "destination": "src/landing-import/features/healthcare-about/components/atoms/DirectionalArrowIndicator.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-005",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/components/atoms/HeroConfetti.tsx",
+      "destination": "src/landing-import/features/healthcare-about/components/atoms/HeroConfetti.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-006",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/components/atoms/PixelIconBadge.tsx",
+      "destination": "src/landing-import/features/healthcare-about/components/atoms/PixelIconBadge.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-007",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/components/atoms/PixelMeshBackground.tsx",
+      "destination": "src/landing-import/features/healthcare-about/components/atoms/PixelMeshBackground.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-008",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/components/molecules/about-carousel/CarouselCard.tsx",
+      "destination": "src/landing-import/features/healthcare-about/components/molecules/about-carousel/CarouselCard.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-009",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/components/molecules/about-carousel/carouselGeometry.ts",
+      "destination": "src/landing-import/features/healthcare-about/components/molecules/about-carousel/carouselGeometry.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-010",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/components/molecules/about-carousel/CarouselToolbar.tsx",
+      "destination": "src/landing-import/features/healthcare-about/components/molecules/about-carousel/CarouselToolbar.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-011",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/components/molecules/about-carousel/index.ts",
+      "destination": "src/landing-import/features/healthcare-about/components/molecules/about-carousel/index.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-012",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/components/molecules/about-carousel/useDeckCarousel.ts",
+      "destination": "src/landing-import/features/healthcare-about/components/molecules/about-carousel/useDeckCarousel.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-013",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/components/molecules/AboutCarousel.tsx",
+      "destination": "src/landing-import/features/healthcare-about/components/molecules/AboutCarousel.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-014",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/components/molecules/EditorialInsetFrame.tsx",
+      "destination": "src/landing-import/features/healthcare-about/components/molecules/EditorialInsetFrame.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-015",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/components/molecules/EditorialStoryContent.tsx",
+      "destination": "src/landing-import/features/healthcare-about/components/molecules/EditorialStoryContent.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-016",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/components/molecules/VisionMissionBlock.tsx",
+      "destination": "src/landing-import/features/healthcare-about/components/molecules/VisionMissionBlock.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-017",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/components/organisms/AboutCarouselSection.tsx",
+      "destination": "src/landing-import/features/healthcare-about/components/organisms/AboutCarouselSection.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-018",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/components/organisms/AboutHeroSection.tsx",
+      "destination": "src/landing-import/features/healthcare-about/components/organisms/AboutHeroSection.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-019",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/components/organisms/AboutVisionMissionSection.tsx",
+      "destination": "src/landing-import/features/healthcare-about/components/organisms/AboutVisionMissionSection.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-020",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/components/organisms/AboutVisualBand.tsx",
+      "destination": "src/landing-import/features/healthcare-about/components/organisms/AboutVisualBand.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-021",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/components/organisms/EditorialStorySection.tsx",
+      "destination": "src/landing-import/features/healthcare-about/components/organisms/EditorialStorySection.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-022",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/components/organisms/StackedBlocksSection.tsx",
+      "destination": "src/landing-import/features/healthcare-about/components/organisms/StackedBlocksSection.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-023",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/data.ts",
+      "destination": "src/landing-import/features/healthcare-about/data.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-024",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/index.ts",
+      "destination": "src/landing-import/features/healthcare-about/index.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-025",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-about/types.ts",
+      "destination": "src/landing-import/features/healthcare-about/types.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-026",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-services/AmanahServicesPage.tsx",
+      "destination": "src/landing-import/features/healthcare-services/AmanahServicesPage.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-027",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-services/components/atoms/HeroCurvedVisual.tsx",
+      "destination": "src/landing-import/features/healthcare-services/components/atoms/HeroCurvedVisual.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-028",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-services/components/atoms/ServiceCardAffordance.tsx",
+      "destination": "src/landing-import/features/healthcare-services/components/atoms/ServiceCardAffordance.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-029",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-services/components/atoms/ServiceContextItem.tsx",
+      "destination": "src/landing-import/features/healthcare-services/components/atoms/ServiceContextItem.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-030",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-services/components/atoms/ServiceFeatureHighlight.tsx",
+      "destination": "src/landing-import/features/healthcare-services/components/atoms/ServiceFeatureHighlight.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-031",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-services/components/molecules/ServiceBentoCard.tsx",
+      "destination": "src/landing-import/features/healthcare-services/components/molecules/ServiceBentoCard.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-032",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-services/components/molecules/ServiceInfoPanel.tsx",
+      "destination": "src/landing-import/features/healthcare-services/components/molecules/ServiceInfoPanel.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-033",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-services/components/molecules/ServiceStickyIndicator.tsx",
+      "destination": "src/landing-import/features/healthcare-services/components/molecules/ServiceStickyIndicator.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-034",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-services/components/organisms/FacilitiesCarouselSection.tsx",
+      "destination": "src/landing-import/features/healthcare-services/components/organisms/FacilitiesCarouselSection.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-035",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-services/components/organisms/ServiceBentoGrid.tsx",
+      "destination": "src/landing-import/features/healthcare-services/components/organisms/ServiceBentoGrid.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-036",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-services/components/organisms/ServiceCategoryBlock.tsx",
+      "destination": "src/landing-import/features/healthcare-services/components/organisms/ServiceCategoryBlock.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-037",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-services/components/organisms/ServicesHeroSection.tsx",
+      "destination": "src/landing-import/features/healthcare-services/components/organisms/ServicesHeroSection.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-038",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-services/components/ServicesExperience.tsx",
+      "destination": "src/landing-import/features/healthcare-services/components/ServicesExperience.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-039",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-services/data.ts",
+      "destination": "src/landing-import/features/healthcare-services/data.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-040",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-services/index.ts",
+      "destination": "src/landing-import/features/healthcare-services/index.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-041",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-services/types.ts",
+      "destination": "src/landing-import/features/healthcare-services/types.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-042",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-testimonials/AmanahTestimonialsPage.tsx",
+      "destination": "src/landing-import/features/healthcare-testimonials/AmanahTestimonialsPage.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-043",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-testimonials/components/atoms/TestimonialVideoPlayer.tsx",
+      "destination": "src/landing-import/features/healthcare-testimonials/components/atoms/TestimonialVideoPlayer.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-044",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-testimonials/components/molecules/TestimonialHeaderIcons.tsx",
+      "destination": "src/landing-import/features/healthcare-testimonials/components/molecules/TestimonialHeaderIcons.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-045",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-testimonials/components/molecules/TestimonialStoryContent.tsx",
+      "destination": "src/landing-import/features/healthcare-testimonials/components/molecules/TestimonialStoryContent.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-046",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-testimonials/components/organisms/TestimonialsHeroSection.tsx",
+      "destination": "src/landing-import/features/healthcare-testimonials/components/organisms/TestimonialsHeroSection.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-047",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-testimonials/components/organisms/TestimonialShowcaseBlock.tsx",
+      "destination": "src/landing-import/features/healthcare-testimonials/components/organisms/TestimonialShowcaseBlock.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-048",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-testimonials/components/organisms/TestimonialsList.tsx",
+      "destination": "src/landing-import/features/healthcare-testimonials/components/organisms/TestimonialsList.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-049",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-testimonials/data.ts",
+      "destination": "src/landing-import/features/healthcare-testimonials/data.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-050",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-testimonials/index.ts",
+      "destination": "src/landing-import/features/healthcare-testimonials/index.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-051",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-testimonials/types.ts",
+      "destination": "src/landing-import/features/healthcare-testimonials/types.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-052",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-reviews/AmanahReviewsPage.tsx",
+      "destination": "src/landing-import/features/healthcare-reviews/AmanahReviewsPage.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-053",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-reviews/components/atoms/ReviewsJsonLd.tsx",
+      "destination": "src/landing-import/features/healthcare-reviews/components/atoms/ReviewsJsonLd.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-054",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-reviews/components/atoms/ReviewStars.tsx",
+      "destination": "src/landing-import/features/healthcare-reviews/components/atoms/ReviewStars.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-055",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-reviews/components/molecules/ReviewAuthor.tsx",
+      "destination": "src/landing-import/features/healthcare-reviews/components/molecules/ReviewAuthor.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-056",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-reviews/components/molecules/ReviewImageDialog.tsx",
+      "destination": "src/landing-import/features/healthcare-reviews/components/molecules/ReviewImageDialog.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-057",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-reviews/components/molecules/ReviewPhotoGrid.tsx",
+      "destination": "src/landing-import/features/healthcare-reviews/components/molecules/ReviewPhotoGrid.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-058",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-reviews/components/molecules/ReviewsToolbox.tsx",
+      "destination": "src/landing-import/features/healthcare-reviews/components/molecules/ReviewsToolbox.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-059",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-reviews/components/organisms/ReviewCard.tsx",
+      "destination": "src/landing-import/features/healthcare-reviews/components/organisms/ReviewCard.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-060",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-reviews/components/organisms/ReviewsGrid.tsx",
+      "destination": "src/landing-import/features/healthcare-reviews/components/organisms/ReviewsGrid.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-061",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-reviews/components/organisms/ReviewsHeroSection.tsx",
+      "destination": "src/landing-import/features/healthcare-reviews/components/organisms/ReviewsHeroSection.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-062",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-reviews/components/ReviewsExperience.tsx",
+      "destination": "src/landing-import/features/healthcare-reviews/components/ReviewsExperience.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-063",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-reviews/data/google-reviews.json",
+      "destination": "src/landing-import/features/healthcare-reviews/data/google-reviews.json",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-064",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-reviews/data.ts",
+      "destination": "src/landing-import/features/healthcare-reviews/data.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-065",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-reviews/hooks/useReviewGallery.ts",
+      "destination": "src/landing-import/features/healthcare-reviews/hooks/useReviewGallery.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-066",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-reviews/hooks/useReviewsRevealAnimation.ts",
+      "destination": "src/landing-import/features/healthcare-reviews/hooks/useReviewsRevealAnimation.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-067",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-reviews/hooks/useReviewsTable.ts",
+      "destination": "src/landing-import/features/healthcare-reviews/hooks/useReviewsTable.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-068",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-reviews/index.ts",
+      "destination": "src/landing-import/features/healthcare-reviews/index.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ORG-069",
+      "category": "ORGANISM",
+      "source": "src/features/healthcare-reviews/types.ts",
+      "destination": "src/landing-import/features/healthcare-reviews/types.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-028",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-contact/AmanahContactPage.tsx",
+      "destination": "src/landing-import/features/healthcare-contact/AmanahContactPage.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-029",
+      "category": "PAGE_VIEW",
+      "source": "src/features/healthcare-contact/index.ts",
+      "destination": "src/landing-import/features/healthcare-contact/index.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-001",
+      "category": "MOLECULE",
+      "source": "src/features/healthcare-doctors/components/TeamCard.tsx",
+      "destination": "src/landing-import/features/healthcare-doctors/components/TeamCard.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-002",
+      "category": "MOLECULE",
+      "source": "src/features/healthcare-doctors/index.ts",
+      "destination": "src/landing-import/features/healthcare-doctors/index.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-003",
+      "category": "MOLECULE",
+      "source": "src/features/healthcare-doctors/types.ts",
+      "destination": "src/landing-import/features/healthcare-doctors/types.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-004",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/AmanahLogo.tsx",
+      "destination": "src/landing-import/components/healthcare/AmanahLogo.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-005",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/AmanahScriptText.tsx",
+      "destination": "src/landing-import/components/healthcare/AmanahScriptText.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-006",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/ArrowCtaButton.tsx",
+      "destination": "src/landing-import/components/healthcare/ArrowCtaButton.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-007",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/BlueprintMark.tsx",
+      "destination": "src/landing-import/components/healthcare/BlueprintMark.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-008",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/data.ts",
+      "destination": "src/landing-import/components/healthcare/data.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-009",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/faq/components/atoms/FAQAnswerText.tsx",
+      "destination": "src/landing-import/components/healthcare/faq/components/atoms/FAQAnswerText.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-010",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/faq/components/atoms/FAQJsonLd.tsx",
+      "destination": "src/landing-import/components/healthcare/faq/components/atoms/FAQJsonLd.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-011",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/faq/components/atoms/FAQQuestionText.tsx",
+      "destination": "src/landing-import/components/healthcare/faq/components/atoms/FAQQuestionText.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-012",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/faq/components/molecules/FAQAccordionItem.tsx",
+      "destination": "src/landing-import/components/healthcare/faq/components/molecules/FAQAccordionItem.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-013",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/faq/components/organisms/FAQSection.tsx",
+      "destination": "src/landing-import/components/healthcare/faq/components/organisms/FAQSection.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-014",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/faq/data.ts",
+      "destination": "src/landing-import/components/healthcare/faq/data.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-015",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/faq/HealthcareFAQ.tsx",
+      "destination": "src/landing-import/components/healthcare/faq/HealthcareFAQ.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-016",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/faq/index.ts",
+      "destination": "src/landing-import/components/healthcare/faq/index.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-017",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/faq/types.ts",
+      "destination": "src/landing-import/components/healthcare/faq/types.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-018",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/HealthcareChatFab.tsx",
+      "destination": "src/landing-import/components/healthcare/HealthcareChatFab.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-019",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/HealthcareFooter.tsx",
+      "destination": "src/landing-import/components/healthcare/HealthcareFooter.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-020",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/HealthcareHeader.tsx",
+      "destination": "src/landing-import/components/healthcare/HealthcareHeader.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-021",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/healthcareNavigation.ts",
+      "destination": "src/landing-import/components/healthcare/healthcareNavigation.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-022",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/HealthcareShell.tsx",
+      "destination": "src/landing-import/components/healthcare/HealthcareShell.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-023",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/HealthcareTypography.tsx",
+      "destination": "src/landing-import/components/healthcare/HealthcareTypography.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-024",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/index.ts",
+      "destination": "src/landing-import/components/healthcare/index.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-025",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/MedicalClinicJsonLd.tsx",
+      "destination": "src/landing-import/components/healthcare/MedicalClinicJsonLd.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-026",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/pixel-icons/index.ts",
+      "destination": "src/landing-import/components/healthcare/pixel-icons/index.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-027",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/pixel-icons/PixelIcon.tsx",
+      "destination": "src/landing-import/components/healthcare/pixel-icons/PixelIcon.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-028",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/pixel-icons/pixelIconData.ts",
+      "destination": "src/landing-import/components/healthcare/pixel-icons/pixelIconData.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-029",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/SectionContainer.tsx",
+      "destination": "src/landing-import/components/healthcare/SectionContainer.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-030",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/SectionHeader.tsx",
+      "destination": "src/landing-import/components/healthcare/SectionHeader.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-031",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/SmoothScroll.tsx",
+      "destination": "src/landing-import/components/healthcare/SmoothScroll.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-032",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/TechnicalDivider.tsx",
+      "destination": "src/landing-import/components/healthcare/TechnicalDivider.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-033",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/ThemeToggle.tsx",
+      "destination": "src/landing-import/components/healthcare/ThemeToggle.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-034",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/types.ts",
+      "destination": "src/landing-import/components/healthcare/types.ts",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-035",
+      "category": "MOLECULE",
+      "source": "src/components/healthcare/ViewportLine.tsx",
+      "destination": "src/landing-import/components/healthcare/ViewportLine.tsx",
+      "action": "copy",
+      "reason": "Healthcare marketing runtime file copied into isolated landing namespace",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-036",
+      "category": "MOLECULE",
+      "source": "src/components/ui/carousel.tsx",
+      "destination": "src/landing-import/components/ui/carousel.tsx",
+      "action": "copy",
+      "reason": "Landing-specific UI helper not present in Project A",
+      "conflict_risk": "medium",
+      "requires_manual_review": false
+    },
+    {
+      "id": "MOL-037",
+      "category": "MOLECULE",
+      "source": "src/components/ui/card-fan-carousel.tsx",
+      "destination": "src/landing-import/components/ui/card-fan-carousel.tsx",
+      "action": "copy",
+      "reason": "Landing-specific UI helper not present in Project A",
+      "conflict_risk": "medium",
+      "requires_manual_review": false
+    },
+    {
+      "id": "UTIL-001",
+      "category": "HOOK_OR_UTIL",
+      "source": "src/utils/AppConfig.ts",
+      "destination": "src/landing-import/utils/AppConfig.ts",
+      "action": "copy",
+      "reason": "Landing runtime utility copied into isolated namespace, then simplified for single-locale Project A integration",
+      "conflict_risk": "medium",
+      "requires_manual_review": false
+    },
+    {
+      "id": "UTIL-002",
+      "category": "HOOK_OR_UTIL",
+      "source": "src/utils/Helpers.ts",
+      "destination": "src/landing-import/utils/Helpers.ts",
+      "action": "copy",
+      "reason": "Landing runtime utility copied into isolated namespace, then simplified for single-locale Project A integration",
+      "conflict_risk": "medium",
+      "requires_manual_review": false
+    },
+    {
+      "id": "UTIL-003",
+      "category": "HOOK_OR_UTIL",
+      "source": "src/utils/seo.ts",
+      "destination": "src/landing-import/utils/seo.ts",
+      "action": "copy",
+      "reason": "Landing runtime utility copied into isolated namespace, then simplified for single-locale Project A integration",
+      "conflict_risk": "medium",
+      "requires_manual_review": false
+    },
+    {
+      "id": "STYLE-001",
+      "category": "STYLE_ASSET",
+      "source": "src/styles/global.css",
+      "destination": "src/landing-import/styles/landing.isolated.css",
+      "action": "copy",
+      "reason": "Landing CSS source for isolated/scoped landing stylesheet",
+      "conflict_risk": "high",
+      "requires_manual_review": false,
+      "notes": "After copy, scope under .landing-scope and remove root/global Tailwind imports that would affect Project A globally."
+    },
+    {
+      "id": "ASSET-001",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/about-blocks/about-us-aman.webp",
+      "destination": "public/landing-import/assets/images/about-blocks/about-us-aman.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-002",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/about-blocks/about-us-cepat.webp",
+      "destination": "public/landing-import/assets/images/about-blocks/about-us-cepat.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-003",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/about-blocks/about-us-perduli.webp",
+      "destination": "public/landing-import/assets/images/about-blocks/about-us-perduli.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-004",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/about-blocks/about-us-professionl.webp",
+      "destination": "public/landing-import/assets/images/about-blocks/about-us-professionl.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-005",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/about-blocks/about-us-ramah.webp",
+      "destination": "public/landing-import/assets/images/about-blocks/about-us-ramah.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-006",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/about-blocks/about-us-terpercaya.webp",
+      "destination": "public/landing-import/assets/images/about-blocks/about-us-terpercaya.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-007",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/about-hero-doctor.webp",
+      "destination": "public/landing-import/assets/images/about-hero-doctor.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-008",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/amanah-building-front.webp",
+      "destination": "public/landing-import/assets/images/amanah-building-front.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-009",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/amanah-pratama-healthcare.png",
+      "destination": "public/landing-import/assets/images/amanah-pratama-healthcare.png",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-010",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/asset-index-1.webp",
+      "destination": "public/landing-import/assets/images/asset-index-1.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-011",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/asset-index-2.webp",
+      "destination": "public/landing-import/assets/images/asset-index-2.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-012",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/asset-index-3.webp",
+      "destination": "public/landing-import/assets/images/asset-index-3.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-013",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/asset-index-4.webp",
+      "destination": "public/landing-import/assets/images/asset-index-4.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-014",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/asset-index-5.webp",
+      "destination": "public/landing-import/assets/images/asset-index-5.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-015",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/asset-index-6.webp",
+      "destination": "public/landing-import/assets/images/asset-index-6.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-016",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/asset-index-7.webp",
+      "destination": "public/landing-import/assets/images/asset-index-7.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-017",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/asset-index-8.webp",
+      "destination": "public/landing-import/assets/images/asset-index-8.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-018",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/asset-index-9.webp",
+      "destination": "public/landing-import/assets/images/asset-index-9.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-019",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/asset-jadwalkan-kunjungan.webp",
+      "destination": "public/landing-import/assets/images/asset-jadwalkan-kunjungan.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-020",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/asset-perawatannifas.webp",
+      "destination": "public/landing-import/assets/images/asset-perawatannifas.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-021",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/asset_hero_sec_service.webp",
+      "destination": "public/landing-import/assets/images/asset_hero_sec_service.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-022",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/asset_imunisasi.webp",
+      "destination": "public/landing-import/assets/images/asset_imunisasi.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-023",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/asset_kb.webp",
+      "destination": "public/landing-import/assets/images/asset_kb.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-024",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/asset_konsul_kb.webp",
+      "destination": "public/landing-import/assets/images/asset_konsul_kb.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-025",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/asset_pemeriksaankehamilan.webp",
+      "destination": "public/landing-import/assets/images/asset_pemeriksaankehamilan.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-026",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/asset_persalinan.webp",
+      "destination": "public/landing-import/assets/images/asset_persalinan.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-027",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/asset_tumbuhkembanganak.webp",
+      "destination": "public/landing-import/assets/images/asset_tumbuhkembanganak.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-028",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/bidan-hida.webp",
+      "destination": "public/landing-import/assets/images/bidan-hida.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-029",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/ChatGPT_Image_Aug_14__2026__08_21_37_PM_1_eb18f970.webp",
+      "destination": "public/landing-import/assets/images/ChatGPT_Image_Aug_14__2026__08_21_37_PM_1_eb18f970.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-030",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/dokter-fenti.webp",
+      "destination": "public/landing-import/assets/images/dokter-fenti.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-031",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/dokumentasi/dokumentasi-1.webp",
+      "destination": "public/landing-import/assets/images/dokumentasi/dokumentasi-1.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-032",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/dokumentasi/dokumentasi-10.webp",
+      "destination": "public/landing-import/assets/images/dokumentasi/dokumentasi-10.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-033",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/dokumentasi/dokumentasi-11.webp",
+      "destination": "public/landing-import/assets/images/dokumentasi/dokumentasi-11.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-034",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/dokumentasi/dokumentasi-12.webp",
+      "destination": "public/landing-import/assets/images/dokumentasi/dokumentasi-12.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-035",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/dokumentasi/dokumentasi-13.webp",
+      "destination": "public/landing-import/assets/images/dokumentasi/dokumentasi-13.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-036",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/dokumentasi/dokumentasi-14.webp",
+      "destination": "public/landing-import/assets/images/dokumentasi/dokumentasi-14.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-037",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/dokumentasi/dokumentasi-15.webp",
+      "destination": "public/landing-import/assets/images/dokumentasi/dokumentasi-15.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-038",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/dokumentasi/dokumentasi-16.webp",
+      "destination": "public/landing-import/assets/images/dokumentasi/dokumentasi-16.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-039",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/dokumentasi/dokumentasi-17.webp",
+      "destination": "public/landing-import/assets/images/dokumentasi/dokumentasi-17.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-040",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/dokumentasi/dokumentasi-18.webp",
+      "destination": "public/landing-import/assets/images/dokumentasi/dokumentasi-18.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-041",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/dokumentasi/dokumentasi-19.webp",
+      "destination": "public/landing-import/assets/images/dokumentasi/dokumentasi-19.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-042",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/dokumentasi/dokumentasi-2.webp",
+      "destination": "public/landing-import/assets/images/dokumentasi/dokumentasi-2.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-043",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/dokumentasi/dokumentasi-3.webp",
+      "destination": "public/landing-import/assets/images/dokumentasi/dokumentasi-3.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-044",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/dokumentasi/dokumentasi-4.webp",
+      "destination": "public/landing-import/assets/images/dokumentasi/dokumentasi-4.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-045",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/dokumentasi/dokumentasi-5.webp",
+      "destination": "public/landing-import/assets/images/dokumentasi/dokumentasi-5.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-046",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/dokumentasi/dokumentasi-6.webp",
+      "destination": "public/landing-import/assets/images/dokumentasi/dokumentasi-6.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-047",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/dokumentasi/dokumentasi-7.webp",
+      "destination": "public/landing-import/assets/images/dokumentasi/dokumentasi-7.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-048",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/dokumentasi/dokumentasi-8.webp",
+      "destination": "public/landing-import/assets/images/dokumentasi/dokumentasi-8.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-049",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/dokumentasi/dokumentasi-9.webp",
+      "destination": "public/landing-import/assets/images/dokumentasi/dokumentasi-9.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-050",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/dokumentasi/nebulizer.webp",
+      "destination": "public/landing-import/assets/images/dokumentasi/nebulizer.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-051",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/fasilitas-apotek.webp",
+      "destination": "public/landing-import/assets/images/fasilitas-apotek.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-052",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/fasilitas-ruangtunggu.webp",
+      "destination": "public/landing-import/assets/images/fasilitas-ruangtunggu.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-053",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/kontak.webp",
+      "destination": "public/landing-import/assets/images/kontak.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-054",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/layanan-umum-kehamilan.webp",
+      "destination": "public/landing-import/assets/images/layanan-umum-kehamilan.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-055",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/layanan-umum-keluhan.webp",
+      "destination": "public/landing-import/assets/images/layanan-umum-keluhan.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-056",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/layanan-umum-keterangan.webp",
+      "destination": "public/landing-import/assets/images/layanan-umum-keterangan.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-057",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/layanan-umum-konsultasi.webp",
+      "destination": "public/landing-import/assets/images/layanan-umum-konsultasi.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-058",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/layanan-umum-laboratorium.webp",
+      "destination": "public/landing-import/assets/images/layanan-umum-laboratorium.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-059",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/layanan-umum-pemantauan.webp",
+      "destination": "public/landing-import/assets/images/layanan-umum-pemantauan.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-060",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/layanan-umum-pemeriksaan.webp",
+      "destination": "public/landing-import/assets/images/layanan-umum-pemeriksaan.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-061",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/layanan-umum-tekanan-darah.webp",
+      "destination": "public/landing-import/assets/images/layanan-umum-tekanan-darah.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-062",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/logo_healthcare_1_7a4161db.webp",
+      "destination": "public/landing-import/assets/images/logo_healthcare_1_7a4161db.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-063",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/lokasi.webp",
+      "destination": "public/landing-import/assets/images/lokasi.webp",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-064",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/svg/bunga-herbal-pixel.svg",
+      "destination": "public/landing-import/assets/svg/bunga-herbal-pixel.svg",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-065",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/svg/hati-sehat-pixel.svg",
+      "destination": "public/landing-import/assets/svg/hati-sehat-pixel.svg",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-066",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/svg/icon-khitan-laser.svg",
+      "destination": "public/landing-import/assets/svg/icon-khitan-laser.svg",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-067",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/svg/icon-persalinan-24jam.svg",
+      "destination": "public/landing-import/assets/svg/icon-persalinan-24jam.svg",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-068",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/svg/icon-spesialis-persalinan.svg",
+      "destination": "public/landing-import/assets/svg/icon-spesialis-persalinan.svg",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-069",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/svg/icon-terima-bpjs.svg",
+      "destination": "public/landing-import/assets/svg/icon-terima-bpjs.svg",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-070",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/svg/Image__arrow-02__2049_4916.svg",
+      "destination": "public/landing-import/assets/svg/Image__arrow-02__2049_4916.svg",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-071",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/svg/kotak-p3k-pixel.svg",
+      "destination": "public/landing-import/assets/svg/kotak-p3k-pixel.svg",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-072",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/svg/obat-pixel.svg",
+      "destination": "public/landing-import/assets/svg/obat-pixel.svg",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-073",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/svg/stetoskop-pixel.svg",
+      "destination": "public/landing-import/assets/svg/stetoskop-pixel.svg",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-074",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/svg/Vector.svg",
+      "destination": "public/landing-import/assets/svg/Vector.svg",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-075",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/svg/Vector_2049_4921.svg",
+      "destination": "public/landing-import/assets/svg/Vector_2049_4921.svg",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-076",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/svg/Vector_2049_4946.svg",
+      "destination": "public/landing-import/assets/svg/Vector_2049_4946.svg",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-077",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/videos/khitan-anak-gibran.mp4",
+      "destination": "public/landing-import/assets/videos/khitan-anak-gibran.mp4",
+      "action": "copy",
+      "reason": "Static media referenced by healthcare marketing pages",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-078",
+      "category": "STATIC_ASSET",
+      "source": "public/opengraph-image.png",
+      "destination": "public/landing-import/opengraph-image.png",
+      "action": "copy",
+      "reason": "Landing SEO image copied without overwriting Project A public metadata files",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "ASSET-079",
+      "category": "STATIC_ASSET",
+      "source": "public/twitter-image.png",
+      "destination": "public/landing-import/twitter-image.png",
+      "action": "copy",
+      "reason": "Landing SEO image copied without overwriting Project A public metadata files",
+      "conflict_risk": "low",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-030",
+      "category": "PAGE_VIEW",
+      "source": "src/app/[locale]/(marketing)/page.tsx",
+      "destination": "src/landing-import/app/[locale]/(marketing)/page.tsx",
+      "action": "skip",
+      "reason": "Project A will use single-locale wrapper routes instead of copying Project B's next-intl route files",
+      "conflict_risk": "medium",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-031",
+      "category": "PAGE_VIEW",
+      "source": "src/app/[locale]/(marketing)/tentang-kami/page.tsx",
+      "destination": "src/landing-import/app/[locale]/(marketing)/tentang-kami/page.tsx",
+      "action": "skip",
+      "reason": "Project A will use single-locale wrapper routes instead of copying Project B's next-intl route files",
+      "conflict_risk": "medium",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-032",
+      "category": "PAGE_VIEW",
+      "source": "src/app/[locale]/(marketing)/layanan/page.tsx",
+      "destination": "src/landing-import/app/[locale]/(marketing)/layanan/page.tsx",
+      "action": "skip",
+      "reason": "Project A will use single-locale wrapper routes instead of copying Project B's next-intl route files",
+      "conflict_risk": "medium",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-033",
+      "category": "PAGE_VIEW",
+      "source": "src/app/[locale]/(marketing)/fasilitas/page.tsx",
+      "destination": "src/landing-import/app/[locale]/(marketing)/fasilitas/page.tsx",
+      "action": "skip",
+      "reason": "Project A will use single-locale wrapper routes instead of copying Project B's next-intl route files",
+      "conflict_risk": "medium",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-034",
+      "category": "PAGE_VIEW",
+      "source": "src/app/[locale]/(marketing)/testimoni/page.tsx",
+      "destination": "src/landing-import/app/[locale]/(marketing)/testimoni/page.tsx",
+      "action": "skip",
+      "reason": "Project A will use single-locale wrapper routes instead of copying Project B's next-intl route files",
+      "conflict_risk": "medium",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-035",
+      "category": "PAGE_VIEW",
+      "source": "src/app/[locale]/(marketing)/ulasan/page.tsx",
+      "destination": "src/landing-import/app/[locale]/(marketing)/ulasan/page.tsx",
+      "action": "skip",
+      "reason": "Project A will use single-locale wrapper routes instead of copying Project B's next-intl route files",
+      "conflict_risk": "medium",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-036",
+      "category": "PAGE_VIEW",
+      "source": "src/app/[locale]/(marketing)/kontak/page.tsx",
+      "destination": "src/landing-import/app/[locale]/(marketing)/kontak/page.tsx",
+      "action": "skip",
+      "reason": "Project A will use single-locale wrapper routes instead of copying Project B's next-intl route files",
+      "conflict_risk": "medium",
+      "requires_manual_review": false
+    },
+    {
+      "id": "PAGE-037",
+      "category": "PAGE_VIEW",
+      "source": "src/app/[locale]/(marketing)/about/page.tsx",
+      "destination": "src/landing-import/app/[locale]/(marketing)/about/page.tsx",
+      "action": "skip",
+      "reason": "Project A will use single-locale wrapper routes instead of copying Project B's next-intl route files",
+      "conflict_risk": "medium",
+      "requires_manual_review": false
+    },
+    {
+      "id": "CFG-001",
+      "category": "UTILITY_CONFIG",
+      "source": "lefthook.yml",
+      "destination": "lefthook.yml",
+      "action": "skip",
+      "reason": "Project B config is tied to excluded boilerplate/tooling; Project A's existing tooling remains authoritative",
+      "conflict_risk": "medium",
+      "requires_manual_review": true
+    },
+    {
+      "id": "CFG-002",
+      "category": "UTILITY_CONFIG",
+      "source": "codecov.yml",
+      "destination": "codecov.yml",
+      "action": "skip",
+      "reason": "Project B config is tied to excluded boilerplate/tooling; Project A's existing tooling remains authoritative",
+      "conflict_risk": "medium",
+      "requires_manual_review": true
+    },
+    {
+      "id": "CFG-003",
+      "category": "UTILITY_CONFIG",
+      "source": "crowdin.yml",
+      "destination": "crowdin.yml",
+      "action": "skip",
+      "reason": "Project B config is tied to excluded boilerplate/tooling; Project A's existing tooling remains authoritative",
+      "conflict_risk": "medium",
+      "requires_manual_review": true
+    },
+    {
+      "id": "CFG-004",
+      "category": "UTILITY_CONFIG",
+      "source": "commitlint.config.ts",
+      "destination": "commitlint.config.ts",
+      "action": "skip",
+      "reason": "Project B config is tied to excluded boilerplate/tooling; Project A's existing tooling remains authoritative",
+      "conflict_risk": "medium",
+      "requires_manual_review": true
+    },
+    {
+      "id": "CFG-005",
+      "category": "UTILITY_CONFIG",
+      "source": "eslint.config.mjs",
+      "destination": "eslint.config.mjs",
+      "action": "skip",
+      "reason": "Project B config is tied to excluded boilerplate/tooling; Project A's existing tooling remains authoritative",
+      "conflict_risk": "medium",
+      "requires_manual_review": true
+    },
+    {
+      "id": "CFG-006",
+      "category": "UTILITY_CONFIG",
+      "source": "knip.config.ts",
+      "destination": "knip.config.ts",
+      "action": "skip",
+      "reason": "Project B config is tied to excluded boilerplate/tooling; Project A's existing tooling remains authoritative",
+      "conflict_risk": "medium",
+      "requires_manual_review": true
+    },
+    {
+      "id": "CFG-007",
+      "category": "UTILITY_CONFIG",
+      "source": "checkly.config.ts",
+      "destination": "checkly.config.ts",
+      "action": "skip",
+      "reason": "Project B config is tied to excluded boilerplate/tooling; Project A's existing tooling remains authoritative",
+      "conflict_risk": "medium",
+      "requires_manual_review": true
+    },
+    {
+      "id": "CFG-008",
+      "category": "UTILITY_CONFIG",
+      "source": "drizzle.config.ts",
+      "destination": "drizzle.config.ts",
+      "action": "skip",
+      "reason": "Project B config is tied to excluded boilerplate/tooling; Project A's existing tooling remains authoritative",
+      "conflict_risk": "medium",
+      "requires_manual_review": true
+    },
+    {
+      "id": "CFG-009",
+      "category": "UTILITY_CONFIG",
+      "source": "vitest.config.ts",
+      "destination": "vitest.config.ts",
+      "action": "skip",
+      "reason": "Project B config is tied to excluded boilerplate/tooling; Project A's existing tooling remains authoritative",
+      "conflict_risk": "medium",
+      "requires_manual_review": true
+    },
+    {
+      "id": "CFG-010",
+      "category": "UTILITY_CONFIG",
+      "source": "playwright.config.ts",
+      "destination": "playwright.config.ts",
+      "action": "skip",
+      "reason": "Project B config is tied to excluded boilerplate/tooling; Project A's existing tooling remains authoritative",
+      "conflict_risk": "medium",
+      "requires_manual_review": true
+    },
+    {
+      "id": "CFG-011",
+      "category": "UTILITY_CONFIG",
+      "source": ".github/dependabot.yml",
+      "destination": ".github/dependabot.yml",
+      "action": "skip",
+      "reason": "Project B config is tied to excluded boilerplate/tooling; Project A's existing tooling remains authoritative",
+      "conflict_risk": "medium",
+      "requires_manual_review": true
+    },
+    {
+      "id": "CFG-012",
+      "category": "UTILITY_CONFIG",
+      "source": ".github/workflows/CI.yml",
+      "destination": ".github/workflows/CI.yml",
+      "action": "skip",
+      "reason": "Project B config is tied to excluded boilerplate/tooling; Project A's existing tooling remains authoritative",
+      "conflict_risk": "medium",
+      "requires_manual_review": true
+    },
+    {
+      "id": "CFG-013",
+      "category": "UTILITY_CONFIG",
+      "source": ".github/workflows/checkly.yml",
+      "destination": ".github/workflows/checkly.yml",
+      "action": "skip",
+      "reason": "Project B config is tied to excluded boilerplate/tooling; Project A's existing tooling remains authoritative",
+      "conflict_risk": "medium",
+      "requires_manual_review": true
+    },
+    {
+      "id": "CFG-014",
+      "category": "UTILITY_CONFIG",
+      "source": ".github/workflows/crowdin.yml",
+      "destination": ".github/workflows/crowdin.yml",
+      "action": "skip",
+      "reason": "Project B config is tied to excluded boilerplate/tooling; Project A's existing tooling remains authoritative",
+      "conflict_risk": "medium",
+      "requires_manual_review": true
+    },
+    {
+      "id": "CFG-015",
+      "category": "UTILITY_CONFIG",
+      "source": ".github/workflows/release.yml",
+      "destination": ".github/workflows/release.yml",
+      "action": "skip",
+      "reason": "Project B config is tied to excluded boilerplate/tooling; Project A's existing tooling remains authoritative",
+      "conflict_risk": "medium",
+      "requires_manual_review": true
+    },
+    {
+      "id": "ASSET-080",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/Container_cbf59344.png",
+      "destination": "public/landing-import/assets/images/Container_cbf59344.png",
+      "action": "skip",
+      "reason": "Referenced by source data but not present in Project B public assets during inventory",
+      "conflict_risk": "high",
+      "requires_manual_review": true,
+      "notes": "Recover this asset before execution or replace references with available media during the post-copy fix pass."
+    },
+    {
+      "id": "ASSET-081",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/Container_b3d9c1ee.png",
+      "destination": "public/landing-import/assets/images/Container_b3d9c1ee.png",
+      "action": "skip",
+      "reason": "Referenced by source data but not present in Project B public assets during inventory",
+      "conflict_risk": "high",
+      "requires_manual_review": true,
+      "notes": "Recover this asset before execution or replace references with available media during the post-copy fix pass."
+    },
+    {
+      "id": "ASSET-082",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/Container_58d108e1.png",
+      "destination": "public/landing-import/assets/images/Container_58d108e1.png",
+      "action": "skip",
+      "reason": "Referenced by source data but not present in Project B public assets during inventory",
+      "conflict_risk": "high",
+      "requires_manual_review": true,
+      "notes": "Recover this asset before execution or replace references with available media during the post-copy fix pass."
+    },
+    {
+      "id": "ASSET-083",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/Container_65c14397.png",
+      "destination": "public/landing-import/assets/images/Container_65c14397.png",
+      "action": "skip",
+      "reason": "Referenced by source data but not present in Project B public assets during inventory",
+      "conflict_risk": "high",
+      "requires_manual_review": true,
+      "notes": "Recover this asset before execution or replace references with available media during the post-copy fix pass."
+    },
+    {
+      "id": "ASSET-084",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/Container_bc4ce079.png",
+      "destination": "public/landing-import/assets/images/Container_bc4ce079.png",
+      "action": "skip",
+      "reason": "Referenced by source data but not present in Project B public assets during inventory",
+      "conflict_risk": "high",
+      "requires_manual_review": true,
+      "notes": "Recover this asset before execution or replace references with available media during the post-copy fix pass."
+    },
+    {
+      "id": "ASSET-085",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/Container_6133502d.png",
+      "destination": "public/landing-import/assets/images/Container_6133502d.png",
+      "action": "skip",
+      "reason": "Referenced by source data but not present in Project B public assets during inventory",
+      "conflict_risk": "high",
+      "requires_manual_review": true,
+      "notes": "Recover this asset before execution or replace references with available media during the post-copy fix pass."
+    },
+    {
+      "id": "ASSET-086",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/Image__Whitening__53bfb490.png",
+      "destination": "public/landing-import/assets/images/Image__Whitening__53bfb490.png",
+      "action": "skip",
+      "reason": "Referenced by source data but not present in Project B public assets during inventory",
+      "conflict_risk": "high",
+      "requires_manual_review": true,
+      "notes": "Recover this asset before execution or replace references with available media during the post-copy fix pass."
+    },
+    {
+      "id": "ASSET-087",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/Image__service-small-3__b76673af.png",
+      "destination": "public/landing-import/assets/images/Image__service-small-3__b76673af.png",
+      "action": "skip",
+      "reason": "Referenced by source data but not present in Project B public assets during inventory",
+      "conflict_risk": "high",
+      "requires_manual_review": true,
+      "notes": "Recover this asset before execution or replace references with available media during the post-copy fix pass."
+    },
+    {
+      "id": "ASSET-088",
+      "category": "STATIC_ASSET",
+      "source": "public/assets/images/Image__tisti-3__be471b16.png",
+      "destination": "public/landing-import/assets/images/Image__tisti-3__be471b16.png",
+      "action": "skip",
+      "reason": "Referenced by source data but not present in Project B public assets during inventory",
+      "conflict_risk": "high",
+      "requires_manual_review": true,
+      "notes": "Recover this asset before execution or replace references with available media during the post-copy fix pass."
+    }
+  ]
+}

@@ -1,12 +1,14 @@
-import { auth } from '@clerk/nextjs/server';
-import { redirect } from 'next/navigation';
+import type { Metadata } from 'next';
+import { AmanahHomePage } from '@/features/public-site/pages/home';
+import { PublicSiteRouteShell } from '@/features/public-site/route-shell';
+import { homeMetadata } from '@/features/public-site/lib/route-metadata';
 
-export default async function Page() {
-  const { userId } = await auth();
+export const metadata: Metadata = homeMetadata;
 
-  if (!userId) {
-    return redirect('/auth/sign-in');
-  } else {
-    redirect('/dashboard/admin');
-  }
+export default function Page() {
+  return (
+    <PublicSiteRouteShell>
+      <AmanahHomePage locale='id' />
+    </PublicSiteRouteShell>
+  );
 }

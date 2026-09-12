@@ -1,0 +1,14 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cheerful child head -->
+  <circle cx="12" cy="7" r="3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Playful hair tuft -->
+  <path d="M11 3.5C11.5 2 13.5 2 13 3.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  <!-- Cheerful smile -->
+  <path d="M10.5 8C11.2 9 12.8 9 13.5 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  <!-- Happy waving arms -->
+  <path d="M8 12.5L5 9.5M16 12.5L19 9.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Child torso -->
+  <path d="M8 12.5C8 11.2 9.5 10.5 12 10.5C14.5 10.5 16 11.2 16 12.5V17H8V12.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Legs -->
+  <path d="M9.8 17V21.5M14.2 17V21.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+</svg>
