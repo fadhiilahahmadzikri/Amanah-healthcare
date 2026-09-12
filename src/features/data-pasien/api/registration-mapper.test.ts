@@ -210,7 +210,7 @@ describe('patient registration route policy', () => {
       getPatientRegistrationRedirectPath({
         isAuthenticated: true,
         isRegistrationComplete: false,
-        pathname: '/dashboard/overview'
+        pathname: '/dashboard/admin'
       })
     ).toBe(null);
   });
@@ -248,7 +248,7 @@ describe('patient registration route policy', () => {
       getPatientRegistrationRedirectPath({
         isAuthenticated: false,
         isRegistrationComplete: false,
-        pathname: '/dashboard/overview'
+        pathname: '/dashboard/admin'
       })
     ).toBe('/auth/sign-in');
   });
