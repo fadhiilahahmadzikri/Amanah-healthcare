@@ -2,19 +2,6 @@ import { NavGroup } from '@/types';
 
 export const navGroups: NavGroup[] = [
   {
-    label: 'Overview',
-    items: [
-      {
-        title: 'Dashboard',
-        url: '/dashboard/overview',
-        icon: 'dashboard',
-        isActive: false,
-        shortcut: ['d', 'd'],
-        items: []
-      }
-    ]
-  },
-  {
     label: 'Manage',
     items: [
       {
@@ -96,96 +83,6 @@ export const navGroups: NavGroup[] = [
             url: '/dashboard/klinik/panduan',
             icon: 'help',
             shortcut: ['p', 'd']
-          }
-        ]
-      },
-      {
-        title: 'Commerce',
-        url: '#',
-        icon: 'receipt',
-        isActive: false,
-        items: [
-          {
-            title: 'Orders',
-            url: '/dashboard/orders',
-            icon: 'billing'
-          },
-          {
-            title: 'Customers',
-            url: '/dashboard/customers',
-            icon: 'teams'
-          },
-          {
-            title: 'Invoices',
-            url: '/dashboard/invoices',
-            icon: 'fileTypeDoc'
-          },
-          {
-            title: 'Reports',
-            url: '/dashboard/reports',
-            icon: 'barChart'
-          }
-        ]
-      },
-      {
-        title: 'Inventory',
-        url: '#',
-        icon: 'warehouse',
-        isActive: false,
-        items: [
-          {
-            title: 'Products',
-            url: '/dashboard/products',
-            icon: 'product',
-            shortcut: ['p', 'p']
-          },
-          {
-            title: 'Catalog',
-            url: '/dashboard/catalog',
-            icon: 'catalog'
-          },
-          {
-            title: 'Categories',
-            url: '/dashboard/categories',
-            icon: 'forms'
-          }
-        ]
-      },
-      {
-        title: 'Shipping',
-        url: '#',
-        icon: 'truck',
-        isActive: false,
-        items: [
-          {
-            title: 'Onboarding',
-            url: '/dashboard/shipping/onboarding',
-            icon: 'package'
-          },
-          {
-            title: 'Tracker',
-            url: '/dashboard/shipping/tracker',
-            icon: 'mapPin'
-          }
-        ]
-      },
-      {
-        title: 'Engagement',
-        url: '#',
-        icon: 'notification',
-        isActive: false,
-        items: [
-          {
-            title: 'Notifications',
-            url: '/dashboard/notifications',
-            icon: 'notification',
-            shortcut: ['n', 'n']
-          },
-          {
-            title: 'Chat',
-            url: '/dashboard/chat',
-            icon: 'chat',
-            shortcut: ['c', 'c']
           }
         ]
       }

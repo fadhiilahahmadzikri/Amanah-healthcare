@@ -215,14 +215,14 @@ describe('patient registration route policy', () => {
     ).toBe(null);
   });
 
-  test('redirects direct hits to /patient-registration to /dashboard/overview', () => {
+  test('redirects direct hits to /patient-registration to /dashboard/admin', () => {
     expect(
       getPatientRegistrationRedirectPath({
         isAuthenticated: true,
         isRegistrationComplete: false,
         pathname: '/patient-registration'
       })
-    ).toBe('/dashboard/overview');
+    ).toBe('/dashboard/admin');
 
     expect(
       getPatientRegistrationRedirectPath({
@@ -230,7 +230,7 @@ describe('patient registration route policy', () => {
         isRegistrationComplete: true,
         pathname: '/patient-registration'
       })
-    ).toBe('/dashboard/overview');
+    ).toBe('/dashboard/admin');
   });
 
   test('leaves matching authenticated routes in place', () => {

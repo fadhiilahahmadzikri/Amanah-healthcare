@@ -5,7 +5,6 @@ import Header from '@/components/layout/header';
 import { InfoSidebar } from '@/components/layout/info-sidebar';
 import { InfobarProvider } from '@/components/ui/infobar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { SimulatorRunner } from '@/features/simulator/components/simulator-runner';
 import { ChatwootWidget } from '@/components/chatwoot/chatwoot-widget';
 import { getCurrentPatientRegistrationContext } from '@/features/data-pasien/api/patient-registration-service';
 import { getPatientRegistrationRedirectPath } from '@/features/data-pasien/api/registration-mapper';
@@ -48,7 +47,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <SidebarInset>
           <Header />
           <InfobarProvider defaultOpen={false}>
-            <SimulatorRunner />
             {children}
             <InfoSidebar side='right' />
             <ChatwootWidget />

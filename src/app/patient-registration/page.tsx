@@ -14,5 +14,5 @@ export default async function PatientRegistrationPage() {
     redirect('/auth/sign-in');
   }
 
-  redirect('/dashboard/overview');
+  redirect('/dashboard/admin');
 }
