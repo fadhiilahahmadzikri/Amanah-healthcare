@@ -9,6 +9,7 @@ export interface PatientStepHeaderProps {
   currentStep: number;
   totalSteps?: number;
   onBack: () => void;
+  progressLabel?: string;
   className?: string;
 }
 
@@ -16,6 +17,7 @@ export function PatientStepHeader({
   currentStep,
   totalSteps = 8,
   onBack,
+  progressLabel = 'Langkah Pendaftaran',
   className
 }: PatientStepHeaderProps) {
   const isBackDisabled = currentStep <= 1;
@@ -43,7 +45,7 @@ export function PatientStepHeader({
 
       <div
         className='flex items-center gap-1.5'
-        title='Langkah Pendaftaran'
+        title={progressLabel}
         aria-label={`Langkah ${Math.min(currentStep, totalSteps)} dari ${totalSteps}`}
       >
         {Array.from({ length: totalSteps }).map((_, index) => (

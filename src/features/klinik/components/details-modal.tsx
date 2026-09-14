@@ -3,10 +3,13 @@
 import React from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { Appointment, Doctor } from '../api/types';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Appointment, Doctor, MedicalIntakeRecord } from '../api/types';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { DoctorAvatar } from './doctor-avatar';
 import { getDoctorByName } from '../api/service';
+import { getMedicalFlowDefinition } from '../constants/medical-appointment-schemas';
+import { getMedicalFieldLabel } from '../utils/medical-appointment';
 import { getStatusConfig } from '@/styles/clinical-tokens';
 import { cn } from '@/lib/utils';
 
@@ -233,6 +236,10 @@ export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: Det
           <p className='text-sm font-medium text-foreground leading-relaxed'>{complaintText}</p>
         </div>
 
+        {appointment.medical_intake ? (
+          <MedicalIntakeSummary intake={appointment.medical_intake} />
+        ) : null}
+
         {/* 7. Modal Action Buttons */}
         <div className='pt-2 flex items-center justify-end gap-3'>
           {onReschedule && (
@@ -264,5 +271,62 @@ export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: Det
         </div>
       </div>
     </ModalWrapper>
+  );
+}
+
+const automaticLabels: Record<string, string> = {
+  estimatedDueDate: 'HPL otomatis',
+  gestationalAgeAtSubmit: 'Umur kehamilan saat submit',
+  childAgeAtSubmit: 'Umur anak saat submit'
+};
+
+function MedicalIntakeSummary({ intake }: { intake: MedicalIntakeRecord }) {
+  const definition = getMedicalFlowDefinition(intake.flow);
+  const automaticEntries = Object.entries(intake.automatic).filter(([, value]) => value);
+  const answerEntries = Object.entries(intake.answersByFieldId).filter(([, value]) => value.trim());
+
+  return (
+    <div className='border-b border-border/40 pb-3'>
+      <div className='mb-2 flex items-center justify-between gap-3'>
+        <div>
+          <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+            Intake Medis
+          </span>
+          <p className='text-sm font-semibold text-foreground'>{definition.formTitle}</p>
+        </div>
+        <span className='shrink-0 rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground'>
+          {intake.submittedAt}
+        </span>
+      </div>
+
+      {automaticEntries.length > 0 ? (
+        <div className='mb-2 grid gap-1.5 text-xs'>
+          {automaticEntries.map(([key, value]) => (
+            <IntakeRow key={key} label={automaticLabels[key] || key} value={value} />
+          ))}
+        </div>
+      ) : null}
+
+      <ScrollArea className='h-[160px] rounded-lg border border-border/60 p-3'>
+        <div className='grid gap-1.5 pr-3 text-xs'>
+          {answerEntries.map(([fieldId, value]) => (
+            <IntakeRow
+              key={fieldId}
+              label={getMedicalFieldLabel(intake.flow, fieldId)}
+              value={value}
+            />
+          ))}
+        </div>
+      </ScrollArea>
+    </div>
+  );
+}
+
+function IntakeRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className='grid grid-cols-[130px_1fr] gap-3 border-b border-border/50 pb-1.5 last:border-b-0'>
+      <span className='text-muted-foreground'>{label}</span>
+      <span className='font-medium text-foreground'>{value}</span>
+    </div>
   );
 }

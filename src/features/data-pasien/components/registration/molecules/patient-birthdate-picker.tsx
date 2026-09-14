@@ -3,11 +3,23 @@
 import * as React from 'react';
 import gsap from 'gsap';
 import { Icons } from '@/components/icons';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
 export interface PatientBirthdatePickerProps {
   value: string; // ISO date 'YYYY-MM-DD'
   onChange: (value: string) => void;
+  id?: string;
+  label?: string;
+  placeholder?: string;
+  ariaLabel?: string;
   error?: string;
   invalid?: boolean;
   className?: string;
@@ -31,6 +43,10 @@ const INDO_MONTHS = [
 export function PatientBirthdatePicker({
   value,
   onChange,
+  id = 'tanggalLahirTrigger',
+  label = 'tanggal lahir*',
+  placeholder = 'pilih tanggal lahir...',
+  ariaLabel = 'Tanggal lahir',
   error,
   invalid,
   className
@@ -148,8 +164,8 @@ export function PatientBirthdatePicker({
     setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
   };
 
-  const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newYear = parseInt(e.target.value, 10);
+  const handleYearChange = (nextYear: string) => {
+    const newYear = parseInt(nextYear, 10);
     setViewDate((prev) => new Date(newYear, prev.getMonth(), 1));
   };
 
@@ -172,11 +188,8 @@ export function PatientBirthdatePicker({
 
   return (
     <div ref={containerRef} className={cn('relative space-y-1.5', className)}>
-      <label
-        htmlFor='tanggalLahirTrigger'
-        className='block text-xs font-normal text-muted-foreground'
-      >
-        tanggal lahir*
+      <label htmlFor={id} className='block text-xs font-normal text-muted-foreground'>
+        {label}
       </label>
 
       {/* Underline trigger row matching POC */}
@@ -199,12 +212,12 @@ export function PatientBirthdatePicker({
         )}
       >
         <input
-          id='tanggalLahirTrigger'
+          id={id}
           type='text'
           readOnly
-          aria-label='Tanggal lahir'
+          aria-label={ariaLabel}
           value={displayLabel}
-          placeholder='pilih tanggal lahir...'
+          placeholder={placeholder}
           className='w-full cursor-pointer border-0 bg-transparent px-0 py-1.5 text-sm font-medium text-primary outline-none placeholder:font-normal placeholder:text-muted-foreground/60 pointer-events-none'
         />
         <Icons.calendar className='size-4 shrink-0 text-primary' />
@@ -231,18 +244,23 @@ export function PatientBirthdatePicker({
 
           <div className='flex items-center gap-1.5'>
             <span className='font-semibold text-primary'>{INDO_MONTHS[month]}</span>
-            <select
-              value={year}
-              onChange={handleYearChange}
-              aria-label='Pilih tahun lahir'
-              className='cursor-pointer border-none bg-transparent text-xs font-medium text-primary outline-none'
-            >
-              {yearOptions.map((y) => (
-                <option key={y} value={y} className='bg-card text-foreground'>
-                  {y}
-                </option>
-              ))}
-            </select>
+            <Select value={String(year)} onValueChange={handleYearChange}>
+              <SelectTrigger
+                aria-label='Pilih tahun'
+                className='h-7 w-[82px] border-0 bg-transparent px-2 text-xs font-medium text-primary shadow-none hover:bg-accent'
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {yearOptions.map((y) => (
+                    <SelectItem key={y} value={String(y)}>
+                      {y}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
 
           <button

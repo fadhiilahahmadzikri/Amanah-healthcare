@@ -23,6 +23,8 @@ export interface Appointment {
   status: AppointmentStatus;
   visit_type?: string;
   service?: string;
+  medical_flow?: MedicalAppointmentFlow;
+  medical_intake?: MedicalIntakeRecord;
   created_at: string;
   updated_at: string;
 }
@@ -50,6 +52,21 @@ export interface AppointmentFormData {
   dateStr: string;
   timeSlot: string;
   complaint: string;
+  patientName?: string;
+  patientEmail?: string;
+  patientAvatar?: string;
+  medicalFlow?: MedicalAppointmentFlow;
+  medicalIntake?: MedicalIntakeRecord;
+}
+
+export type MedicalAppointmentFlow = 'pregnancy' | 'immunization';
+
+export interface MedicalIntakeRecord {
+  flow: MedicalAppointmentFlow;
+  schemaTitle: string;
+  submittedAt: string;
+  answersByFieldId: Record<string, string>;
+  automatic: Record<string, string>;
 }
 
 export interface RegionItem {

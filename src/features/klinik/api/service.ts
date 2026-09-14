@@ -10,7 +10,7 @@ const faker = fakerID_ID || defaultFaker;
 const LOCAL_STORAGE_KEY_APPOINTMENTS = 'amanah_appointments_v3';
 const LOCAL_STORAGE_KEY_QUEUES = 'amanah_queues_v7';
 
-import { AMANAH_SERVICES, getAmanahServiceByName } from '../constants/services';
+import { getAmanahServiceByName } from '../constants/services';
 
 export const getDoctors = (): Doctor[] => {
   return doctorsData as Doctor[];
@@ -169,9 +169,9 @@ export const createAppointmentRecord = (
   return {
     id: newId,
     booking_code: `KLINIK-${randomCode}`,
-    patient_name: 'Rian Hidayat',
-    patient_email: 'rian.hidayat@outlook.com',
-    patient_avatar: 'https://i.pravatar.cc/150?img=1',
+    patient_name: formData.patientName || 'Rian Hidayat',
+    patient_email: formData.patientEmail || 'rian.hidayat@outlook.com',
+    patient_avatar: formData.patientAvatar || 'https://i.pravatar.cc/150?img=1',
     doctor_name: formData.doctor,
     date: formData.dateStr,
     time: formData.timeSlot,
@@ -179,6 +179,8 @@ export const createAppointmentRecord = (
     status: 'PENDING',
     visit_type: formData.visitType,
     service: formData.service,
+    medical_flow: formData.medicalFlow,
+    medical_intake: formData.medicalIntake,
     created_at: 'Hari ini, Baru saja',
     updated_at: 'Hari ini, Baru saja'
   };
@@ -218,6 +220,9 @@ export const createAppointmentRecordWithQueue = (
   // Sync to queues storage
   const updatedQueues = [queueItem, ...existingQueues];
   saveQueuesToStorage(updatedQueues);
+
+  const updatedAppointments = [appointment, ...existingList];
+  saveAppointmentsToStorage(updatedAppointments);
 
   return { appointment, queueItem };
 };
