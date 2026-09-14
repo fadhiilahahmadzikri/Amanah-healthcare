@@ -5,6 +5,9 @@ import { ServiceBentoCard } from '../molecules/ServiceBentoCard';
 type ServiceBentoGridProps = {
   items: ServiceCardItem[];
   className?: string;
+  cardClassName?: string | ((item: ServiceCardItem, index: number) => string);
+  getItemAriaLabel?: (item: ServiceCardItem) => string;
+  onItemSelect?: (item: ServiceCardItem) => void;
 };
 
 function getServiceCardGridClassName(index: number, totalItems: number) {
@@ -15,7 +18,15 @@ function getServiceCardGridClassName(index: number, totalItems: number) {
     : 'col-span-12 sm:col-span-6 md:col-span-6';
 }
 
-export function ServiceBentoGrid({ items, className }: ServiceBentoGridProps) {
+export function ServiceBentoGrid({
+  items,
+  className,
+  cardClassName,
+  getItemAriaLabel,
+  onItemSelect
+}: ServiceBentoGridProps) {
+  const isInteractive = Boolean(onItemSelect);
+
   return (
     <div
       className={cn(
@@ -26,13 +37,34 @@ export function ServiceBentoGrid({ items, className }: ServiceBentoGridProps) {
         className
       )}
     >
-      {items.map((item, index) => (
-        <ServiceBentoCard
-          key={item.id}
-          item={item}
-          className={getServiceCardGridClassName(index, items.length)}
-        />
-      ))}
+      {items.map((item, index) => {
+        const resolvedCardClassName =
+          typeof cardClassName === 'function' ? cardClassName(item, index) : cardClassName;
+
+        return (
+          <ServiceBentoCard
+            key={item.id}
+            item={item}
+            role={isInteractive ? 'button' : undefined}
+            tabIndex={isInteractive ? 0 : undefined}
+            aria-label={
+              isInteractive ? getItemAriaLabel?.(item) || `Pilih layanan ${item.title}` : undefined
+            }
+            onClick={isInteractive ? () => onItemSelect?.(item) : undefined}
+            onKeyDown={
+              isInteractive
+                ? (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      onItemSelect?.(item);
+                    }
+                  }
+                : undefined
+            }
+            className={cn(getServiceCardGridClassName(index, items.length), resolvedCardClassName)}
+          />
+        );
+      })}
     </div>
   );
 }

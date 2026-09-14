@@ -38,6 +38,7 @@ const DATE = 'DATE';
 const MULTIPLE_CHOICE = 'MULTIPLE_CHOICE';
 const LIST = 'LIST';
 
+const yesNoChoices = ['Tidak', 'Ya'];
 const yesNoUnsureChoices = ['Tidak', 'Ya', 'Belum tahu'];
 const educationChoices = ['Tidak sekolah', 'SD', 'SMP', 'SMA/SMK', 'D1-D3', 'S1', 'S2/S3'];
 const knownPersonEducationChoices = [...educationChoices, 'Belum tahu'];
@@ -74,6 +75,13 @@ function optionalField(
   options?: Partial<Pick<MedicalFormField, 'helpText' | 'choices' | 'goToSectionIdByChoice'>>
 ): MedicalFormField {
   return field(id, type, title, label, { ...options, required: false });
+}
+
+function yesNoField(id: string, title: string, label: string, helpText = ''): MedicalFormField {
+  return field(id, MULTIPLE_CHOICE, title, label, {
+    helpText,
+    choices: yesNoChoices
+  });
 }
 
 function yesNoUnsureField(
@@ -122,12 +130,7 @@ function diseaseStatusFields(config: {
   statusHelpText?: string;
 }): MedicalFormField[] {
   return [
-    yesNoUnsureField(
-      config.statusId,
-      config.statusTitle,
-      config.statusLabel,
-      config.statusHelpText
-    ),
+    yesNoField(config.statusId, config.statusTitle, config.statusLabel, config.statusHelpText),
     optionalField(config.notesId, TEXT, config.notesTitle, config.notesLabel, {
       helpText: 'Isi tahun atau cerita singkat jika ingat. Kosongkan jika tidak ada catatan.'
     })
@@ -237,11 +240,11 @@ function contraceptionFields(order: number): MedicalFormField[] {
   return [
     optionalField(
       `${prefix}StartDate`,
-      TEXT,
+      DATE,
       `${titlePrefix}kapan mulai dipakai?`,
       `${labelPrefix} - tanggal mulai`,
       {
-        helpText: `Boleh isi tanggal, bulan, atau tahun sesuai ingatan. ${emptyHelp}`
+        helpText: `Pilih tanggal mulai pakai KB jika ingat. ${emptyHelp}`
       }
     ),
     optionalField(
@@ -274,11 +277,11 @@ function contraceptionFields(order: number): MedicalFormField[] {
     ),
     optionalField(
       `${prefix}StopDate`,
-      TEXT,
+      DATE,
       `${titlePrefix}kapan berhenti atau dilepas?`,
       `${labelPrefix} - tanggal lepas`,
       {
-        helpText: `Boleh isi tanggal, bulan, atau tahun sesuai ingatan. ${emptyHelp}`
+        helpText: `Pilih tanggal berhenti atau dilepas jika ingat. ${emptyHelp}`
       }
     ),
     optionalField(
@@ -339,7 +342,7 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
         }),
         field('motherBirthDate', DATE, 'Tanggal lahir', 'Tanggal lahir'),
         field('motherAge', TEXT, 'Umur saat ini', 'Umur', {
-          helpText: 'Contoh: 28 tahun.'
+          helpText: 'Otomatis terhitung dari tanggal lahir.'
         }),
         field('marriageOrder', TEXT, 'Pernikahan ke berapa?', 'Pernikahan ke', {
           helpText: 'Isi angka urutan pernikahan. Contoh: 1.'
@@ -379,12 +382,11 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
         }),
         optionalField(
           'partnerBirthDate',
-          TEXT,
+          DATE,
           'Tanggal lahir suami/pasangan',
           'Tanggal lahir suami',
           {
-            helpText:
-              'Boleh isi tanggal, bulan, atau tahun sesuai ingatan. Kosongkan jika tidak ingat.'
+            helpText: 'Pilih tanggal lahir suami/pasangan jika diketahui.'
           }
         ),
         field('partnerAge', TEXT, 'Umur suami/pasangan saat ini', 'Umur suami', {
@@ -392,7 +394,7 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
         }),
         field('partnerJob', TEXT, 'Pekerjaan suami/pasangan', 'Pekerjaan suami'),
         field('partnerEducation', LIST, 'Pendidikan terakhir suami/pasangan', 'Pendidikan suami', {
-          choices: knownPersonEducationChoices
+          choices: educationChoices
         })
       ]
     },
@@ -418,9 +420,9 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
           helpText:
             'LILA adalah ukuran lingkar lengan atas, biasanya diukur dengan pita ukur. Jika belum pernah diukur, isi Belum tahu.'
         }),
-        field('initialBmi', TEXT, 'IMT awal jika pernah diberi tahu petugas', 'IMT awal', {
+        field('initialBmi', TEXT, 'IMT (Indeks Massa Tubuh)', 'IMT awal', {
           helpText:
-            'IMT adalah perbandingan berat dan tinggi badan. Jika belum pernah diberi tahu, tulis Belum tahu.'
+            'Otomatis terhitung dari Berat Badan (kg) / [Tinggi Badan (m) x Tinggi Badan (m)].'
         }),
         field('tetanusStatus', LIST, 'Status imunisasi tetanus yang diketahui', 'Status TT', {
           helpText:
@@ -452,52 +454,55 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
     {
       id: 'riskFactors',
       title: 'Kebiasaan dan lingkungan sebelum hamil',
-      description:
-        'Jawab satu per satu untuk kondisi sekitar 1 bulan sebelum hamil. Pilih Belum tahu jika tidak yakin.',
+      description: 'Jawab satu per satu untuk kondisi sekitar 1 bulan sebelum hamil.',
       fields: [
-        yesNoUnsureField(
+        field(
           'smokedBeforePregnancy',
+          MULTIPLE_CHOICE,
           'Dalam 1 bulan sebelum hamil, apakah Anda merokok?',
           'Merokok sebelum hamil',
-          'Termasuk rokok elektrik/vape jika digunakan.'
+          {
+            helpText: 'Termasuk rokok elektrik/vape jika digunakan.',
+            choices: ['Aktif', 'Pasif', 'Tidak']
+          }
         ),
-        yesNoUnsureField(
+        yesNoField(
           'alcoholBeforePregnancy',
           'Dalam 1 bulan sebelum hamil, apakah Anda minum alkohol?',
           'Alkohol sebelum hamil'
         ),
-        yesNoUnsureField(
+        yesNoField(
           'irregularDietBeforePregnancy',
           'Dalam 1 bulan sebelum hamil, apakah pola makan Anda sering tidak teratur atau sering tinggi gula/lemak?',
           'Pola makan sebelum hamil'
         ),
-        yesNoUnsureField(
+        yesNoField(
           'reducedPhysicalActivityBeforePregnancy',
           'Dalam 1 bulan sebelum hamil, apakah aktivitas fisik Anda jauh berkurang?',
           'Aktivitas fisik sebelum hamil'
         ),
-        yesNoUnsureField(
+        yesNoField(
           'unprescribedMedicationBeforePregnancy',
           'Dalam 1 bulan sebelum hamil, apakah Anda minum obat tertentu tanpa arahan dokter/bidan?',
           'Obat tanpa arahan petugas',
           'Jika minum vitamin hamil dari petugas, pilih Tidak.'
         ),
-        yesNoUnsureField(
+        yesNoField(
           'concerningCosmeticUseBeforePregnancy',
-          'Dalam 1 bulan sebelum hamil, apakah Anda memakai kosmetik atau produk perawatan yang membuat Anda khawatir?',
+          'Dalam 1 bulan sebelum hamil, apakah Anda menggunakan kosmetik atau produk perawatan tubuh yang Anda khawatirkan dapat memengaruhi kehamilan?',
           'Produk perawatan yang dikhawatirkan'
         ),
-        yesNoUnsureField(
+        yesNoField(
           'pesticideExposureBeforePregnancy',
           'Dalam 1 bulan sebelum hamil, apakah Anda sering terkena pestisida atau obat tanaman?',
           'Paparan pestisida'
         ),
-        yesNoUnsureField(
+        yesNoField(
           'chemicalExposureBeforePregnancy',
           'Dalam 1 bulan sebelum hamil, apakah Anda sering terkena bahan kimia kerja atau rumah tangga yang kuat?',
           'Paparan bahan kimia'
         ),
-        yesNoUnsureField(
+        yesNoField(
           'smokeExposureBeforePregnancy',
           'Dalam 1 bulan sebelum hamil, apakah Anda sering terpapar asap rokok atau asap pembakaran?',
           'Paparan asap'
@@ -643,6 +648,16 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
           statusLabel: 'Riwayat operasi',
           notesTitle: 'Catatan operasi',
           notesLabel: 'Operasi - tahun/catatan'
+        }),
+        ...diseaseStatusFields({
+          statusId: 'hasOtherDiseaseHistory',
+          notesId: 'otherDiseaseHistoryNotes',
+          statusTitle: 'Apakah Anda memiliki riwayat penyakit lain yang belum disebutkan di atas?',
+          statusLabel: 'Riwayat penyakit lain',
+          notesTitle: 'Nama penyakit atau catatan riwayat penyakit lain',
+          notesLabel: 'Penyakit lain - catatan',
+          statusHelpText:
+            'Pilih Ya jika Anda pernah atau sedang mengalami penyakit lain yang belum tercantum.'
         })
       ]
     },
@@ -768,307 +783,66 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
 
 export const immunizationFlowDefinition: MedicalFlowDefinition = {
   flow: 'immunization',
-  formTitle: 'Form Awal Imunisasi Anak - Amanah Health Care',
+  formTitle: 'Form Pendaftaran Imunisasi Anak - Amanah Health Care',
   formDescription:
-    'Form ini membantu petugas menyiapkan data imunisasi anak. Siapkan buku KIA atau kartu imunisasi jika ada.',
+    'Form pendaftaran ini diisi oleh orang tua/wali sebelum kunjungan imunisasi anak.',
   serviceName: 'Spesialis Anak',
   visitType: 'Imunisasi Anak',
   patientNameFieldId: 'childName',
   patientContactFieldId: 'parentPhone',
-  complaintFieldId: 'currentSymptoms',
+  complaintFieldId: 'previousVaccineHistory',
   sections: [
     {
-      id: 'opening',
-      title: 'Sebelum mulai',
-      description:
-        'Form ini diisi oleh orang tua/wali. Bila ada buku KIA atau kartu imunisasi, gunakan sebagai panduan. Bila tidak ada, pilih Belum tahu dan petugas akan membantu cek jadwal.',
-      fields: [
-        field(
-          'parentConsent',
-          MULTIPLE_CHOICE,
-          'Saya memahami form ini dipakai untuk membantu pelayanan imunisasi anak',
-          'Persetujuan pengisian',
-          { choices: ['Ya, saya mengerti'] }
-        )
-      ]
-    },
-    {
       id: 'childIdentity',
-      title: 'Data Anak',
-      description: 'Isi data anak sesuai identitas dan buku KIA jika tersedia.',
+      title: 'Data Identitas Anak',
+      description: 'Isi data identitas anak sesuai KK atau kartu identitas anak.',
       fields: [
         field('childName', TEXT, 'Nama lengkap anak', 'Nama anak'),
         field('childNik', TEXT, 'NIK anak', 'NIK anak', {
           helpText: 'Isi 16 digit angka sesuai KK atau kartu identitas anak.'
         }),
-        field('childBirthDate', DATE, 'Tanggal lahir anak', 'Tanggal lahir anak'),
+        field('childBirthDate', DATE, 'Tanggal lahir anak', 'Tanggal lahir anak', {
+          helpText: 'Pilih tanggal lahir anak pada kalender.'
+        }),
         field('childSex', LIST, 'Jenis kelamin anak', 'Jenis kelamin anak', {
           choices: ['Laki-laki', 'Perempuan']
         }),
-        field('parentPhone', TEXT, 'Nomor WhatsApp/telepon aktif orang tua', 'No HP')
+        field('parentPhone', TEXT, 'Nomor WhatsApp/HP orang tua', 'No HP', {
+          helpText: 'Nomor aktif yang dapat dihubungi untuk konfirmasi jadwal.'
+        })
       ]
     },
     {
       id: 'parentIdentity',
-      title: 'Data Orang Tua/Wali',
-      description: 'Isi sesuai data keluarga atau wali yang diketahui.',
+      title: 'Data Orang Tua & Alamat',
+      description: 'Isi data orang tua/wali dan alamat domisili tempat tinggal anak.',
       fields: [
-        field('fatherName', TEXT, 'Nama orang tua/wali utama', 'Orang tua/wali utama', {
-          helpText: 'Isi nama sesuai KK atau identitas keluarga.'
+        field('fatherName', TEXT, 'Nama Ayah', 'Nama ayah', {
+          helpText: 'Isi nama ayah kandung/wali sesuai KK.'
         }),
-        field('motherName', TEXT, 'Nama orang tua/wali kedua', 'Orang tua/wali kedua', {
-          helpText: 'Isi nama orang tua atau wali lain yang tercatat.'
+        field('motherName', TEXT, 'Nama Ibu', 'Nama ibu', {
+          helpText: 'Isi nama ibu kandung sesuai KK.'
         }),
-        field('childAddress', PARAGRAPH, 'Alamat tempat tinggal anak', 'Alamat')
+        field('childAddress', PARAGRAPH, 'Alamat tempat tinggal', 'Alamat', {
+          helpText: 'Tuliskan alamat domisili tempat tinggal anak saat ini.'
+        })
       ]
     },
     {
-      id: 'kiaBook',
-      title: 'Buku KIA atau kartu imunisasi',
-      description: 'Bagian ini membantu petugas mengecek catatan imunisasi anak.',
-      fields: [
-        field(
-          'hasKiaBook',
-          MULTIPLE_CHOICE,
-          'Apakah membawa buku KIA atau kartu imunisasi?',
-          'Membawa buku KIA/kartu imunisasi',
-          {
-            choices: ['Ya, dibawa', 'Ada tetapi tidak dibawa', 'Tidak ada', 'Belum tahu']
-          }
-        )
-      ]
-    },
-    {
-      id: 'immunizationHistory',
-      title: 'Riwayat imunisasi sebelumnya',
+      id: 'vaccineAndAllergyHistory',
+      title: 'Riwayat Vaksin & Alergi',
       description:
-        'Pilih Sudah jika tertulis di buku/kartu atau orang tua/wali yakin. Pilih Belum tahu jika tidak yakin.',
+        'Informasi riwayat vaksin sebelumnya dan riwayat alergi yang disampaikan orang tua.',
       fields: [
-        vaccineHistoryField(
-          'hasReceivedHb0',
-          'Apakah anak sudah pernah mendapat HB 0?',
-          'Riwayat HB 0',
-          'HB 0 adalah vaksin hepatitis B untuk bayi baru lahir.'
-        ),
-        vaccineHistoryField(
-          'hasReceivedBcg',
-          'Apakah anak sudah pernah mendapat BCG?',
-          'Riwayat BCG',
-          'BCG membantu perlindungan dari TBC.'
-        ),
-        vaccineHistoryField(
-          'hasReceivedPentaIpv1',
-          'Apakah anak sudah pernah mendapat PENTA/IPV 1?',
-          'Riwayat PENTA/IPV 1',
-          'PENTA/IPV adalah imunisasi kombinasi; petugas akan mencocokkan dengan usia anak.'
-        ),
-        vaccineHistoryField(
-          'hasReceivedPcv1',
-          'Apakah anak sudah pernah mendapat PCV 1?',
-          'Riwayat PCV 1',
-          'PCV membantu perlindungan dari penyakit pneumokokus.'
-        ),
-        vaccineHistoryField(
-          'hasReceivedRv1',
-          'Apakah anak sudah pernah mendapat RV 1?',
-          'Riwayat RV 1',
-          'RV adalah imunisasi rotavirus.'
-        ),
-        vaccineHistoryField(
-          'hasReceivedPentaIpv2',
-          'Apakah anak sudah pernah mendapat PENTA/IPV 2?',
-          'Riwayat PENTA/IPV 2',
-          'Pilih Belum tahu jika dosisnya belum yakin.'
-        ),
-        vaccineHistoryField(
-          'hasReceivedPcv2',
-          'Apakah anak sudah pernah mendapat PCV 2?',
-          'Riwayat PCV 2',
-          'Pilih sesuai catatan bila ada.'
-        ),
-        vaccineHistoryField(
-          'hasReceivedRv2',
-          'Apakah anak sudah pernah mendapat RV 2?',
-          'Riwayat RV 2',
-          'Pilih sesuai catatan bila ada.'
-        ),
-        vaccineHistoryField(
-          'hasReceivedPentaIpv3',
-          'Apakah anak sudah pernah mendapat PENTA/IPV 3?',
-          'Riwayat PENTA/IPV 3',
-          'Pilih Belum tahu jika dosisnya belum yakin.'
-        ),
-        vaccineHistoryField(
-          'hasReceivedRv3',
-          'Apakah anak sudah pernah mendapat RV 3?',
-          'Riwayat RV 3',
-          'Pilih sesuai catatan bila ada.'
-        ),
-        vaccineHistoryField(
-          'hasReceivedMr',
-          'Apakah anak sudah pernah mendapat MR?',
-          'Riwayat MR',
-          'MR membantu perlindungan dari campak dan rubella.'
-        ),
-        vaccineHistoryField(
-          'hasReceivedJe',
-          'Apakah anak sudah pernah mendapat JE?',
-          'Riwayat JE',
-          'JE adalah imunisasi Japanese Encephalitis sesuai jadwal atau arahan petugas.'
-        ),
-        vaccineHistoryField(
-          'hasReceivedPcvBooster',
-          'Apakah anak sudah pernah mendapat PCV booster?',
-          'Riwayat PCV booster',
-          'Booster adalah dosis lanjutan/penguatan.'
-        ),
-        vaccineHistoryField(
-          'hasReceivedPentaBooster',
-          'Apakah anak sudah pernah mendapat PENTA booster?',
-          'Riwayat PENTA booster',
-          'Booster adalah dosis lanjutan/penguatan.'
-        ),
-        vaccineHistoryField(
-          'hasReceivedMrBooster',
-          'Apakah anak sudah pernah mendapat MR booster?',
-          'Riwayat MR booster',
-          'Booster adalah dosis lanjutan/penguatan.'
-        ),
-        optionalField(
-          'immunizationHistoryNotes',
-          PARAGRAPH,
-          'Catatan imunisasi lain yang ingin disampaikan',
-          'Catatan imunisasi lain',
-          {
-            helpText: 'Isi hanya jika ada catatan tambahan dari buku KIA/kartu.'
-          }
-        )
-      ]
-    },
-    {
-      id: 'todayVaccineCheck',
-      title: 'Imunisasi yang ingin dicek hari ini',
-      description:
-        'Pilih Ya jika orang tua/wali ingin petugas mengecek jenis imunisasi itu hari ini. Vaksin yang diberikan tetap dipastikan oleh petugas.',
-      fields: [
-        vaccineCheckField(
-          'checkHb0Today',
-          'Hari ini, apakah HB 0 perlu dicek?',
-          'Cek hari ini - HB 0',
-          'Biasanya untuk bayi baru lahir; petugas akan memastikan sesuai usia anak.'
-        ),
-        vaccineCheckField(
-          'checkBcgToday',
-          'Hari ini, apakah BCG perlu dicek?',
-          'Cek hari ini - BCG',
-          'Untuk membantu perlindungan dari TBC.'
-        ),
-        vaccineCheckField(
-          'checkPentaIpvToday',
-          'Hari ini, apakah PENTA/IPV perlu dicek?',
-          'Cek hari ini - PENTA/IPV',
-          'Imunisasi kombinasi yang dijadwalkan bertahap.'
-        ),
-        vaccineCheckField(
-          'checkPcvToday',
-          'Hari ini, apakah PCV perlu dicek?',
-          'Cek hari ini - PCV',
-          'Untuk membantu perlindungan dari penyakit pneumokokus.'
-        ),
-        vaccineCheckField(
-          'checkRvToday',
-          'Hari ini, apakah RV perlu dicek?',
-          'Cek hari ini - RV',
-          'RV adalah imunisasi rotavirus.'
-        ),
-        vaccineCheckField(
-          'checkMrToday',
-          'Hari ini, apakah MR perlu dicek?',
-          'Cek hari ini - MR',
-          'MR untuk campak dan rubella.'
-        ),
-        vaccineCheckField(
-          'checkJeToday',
-          'Hari ini, apakah JE perlu dicek?',
-          'Cek hari ini - JE',
-          'JE diberikan sesuai jadwal atau arahan petugas.'
-        ),
-        vaccineCheckField(
-          'checkBoosterToday',
-          'Hari ini, apakah imunisasi booster perlu dicek?',
-          'Cek hari ini - booster',
-          'Booster adalah dosis lanjutan/penguatan.'
-        )
-      ]
-    },
-    {
-      id: 'currentCondition',
-      title: 'Kondisi anak hari ini',
-      description:
-        'Jawaban ini membantu petugas menilai kesiapan imunisasi. Jika punya termometer, boleh ukur suhu dulu; jika tidak ada, pilih sesuai kondisi yang terlihat.',
-      fields: [
-        field(
-          'hasFever',
-          MULTIPLE_CHOICE,
-          'Apakah anak sedang demam atau terasa lebih panas dari biasanya?',
-          'Demam',
-          {
-            helpText:
-              'Jika sempat diukur, gunakan hasil suhu yang orang tua/wali punya. Jika tidak yakin, pilih Belum tahu.',
-            choices: ['Tidak', 'Ya', 'Belum tahu']
-          }
-        ),
-        field('hasCough', MULTIPLE_CHOICE, 'Apakah anak sedang batuk?', 'Batuk', {
-          choices: ['Tidak', 'Ya', 'Belum tahu']
+        field('previousVaccineHistory', PARAGRAPH, 'Riwayat vaksin sebelumnya', 'Riwayat vaksin', {
+          helpText:
+            'Contoh: HB 0 sudah diberikan setelah lahir, BCG dan Polio 1 saat usia 1 bulan. Tuliskan catatan dari buku KIA atau ingatan orang tua.'
         }),
-        field('hasCold', MULTIPLE_CHOICE, 'Apakah anak sedang pilek?', 'Pilek', {
-          choices: ['Tidak', 'Ya', 'Belum tahu']
-        }),
-        field(
-          'currentSymptoms',
-          PARAGRAPH,
-          'Keluhan lain yang sedang dialami anak',
-          'Keluhan lain',
-          {
-            helpText: 'Contoh: rewel, muntah, diare, ruam kulit. Jika tidak ada, tulis Tidak ada.'
-          }
-        )
+        field('childAllergyHistory', PARAGRAPH, 'Riwayat alergi anak', 'Riwayat alergi', {
+          helpText:
+            'Tuliskan jika anak memiliki riwayat alergi obat, makanan, vaksin, atau hal lain. Jika tidak ada, tulis Tidak ada.'
+        })
       ]
-    },
-    {
-      id: 'allergyAndReaction',
-      title: 'Alergi dan reaksi setelah imunisasi',
-      description:
-        'Ceritakan dengan bahasa sehari-hari. Petugas akan memastikan kembali saat kunjungan.',
-      fields: [
-        field(
-          'allergyInfo',
-          PARAGRAPH,
-          'Apakah anak punya alergi obat, makanan, atau hal lain?',
-          'Riwayat alergi',
-          {
-            helpText:
-              'Contoh: alergi obat tertentu, telur, susu, seafood, atau debu. Jika tidak ada, tulis Tidak ada.'
-          }
-        ),
-        field(
-          'previousVaccineReaction',
-          PARAGRAPH,
-          'Apakah pernah ada reaksi setelah imunisasi sebelumnya?',
-          'Reaksi imunisasi sebelumnya',
-          {
-            helpText:
-              'Contoh: demam tinggi, bengkak, ruam, atau sesak. Jika tidak ada, tulis Tidak ada.'
-          }
-        )
-      ]
-    },
-    {
-      id: 'closing',
-      title: 'Selesai',
-      description:
-        'Terima kasih. Petugas akan memeriksa data dan melengkapi rekam medis imunisasi saat kunjungan.',
-      fields: []
     }
   ]
 };

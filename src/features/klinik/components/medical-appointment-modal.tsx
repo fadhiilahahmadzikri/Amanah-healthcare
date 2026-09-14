@@ -55,6 +55,8 @@ import {
   buildAutomaticRecord,
   buildDefaultMedicalValues,
   buildMedicalIntakeRecord,
+  calculateAgeInYears,
+  calculateBmi,
   getActiveMedicalSections,
   type MedicalAppointmentValues
 } from '../utils/medical-appointment';
@@ -73,6 +75,7 @@ interface MedicalAppointmentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreated: (formData: AppointmentFormData) => void;
+  onBackToService?: () => void;
 }
 
 type ScheduleValues = {
@@ -153,7 +156,8 @@ export function MedicalAppointmentModal({
   flow,
   isOpen,
   onClose,
-  onCreated
+  onCreated,
+  onBackToService
 }: MedicalAppointmentModalProps) {
   const definition = React.useMemo(() => getMedicalFlowDefinition(flow), [flow]);
   const defaultValues = React.useMemo(() => buildDefaultMedicalValues(definition), [definition]);
@@ -300,6 +304,8 @@ export function MedicalAppointmentModal({
     });
   }, [form, registrationPrefill]);
 
+  const stepContainerRef = React.useRef<HTMLDivElement>(null);
+
   React.useEffect(() => {
     const previousPregnancyGroup = historyGroups.previousPregnancy;
     const contraceptionGroup = historyGroups.contraception;
@@ -320,6 +326,43 @@ export function MedicalAppointmentModal({
       }));
     }
   }, [clearHistoryRecordRange, values.hasPreviousPregnancyHistory, values.hasContraceptionHistory]);
+
+  React.useEffect(() => {
+    const calculated = calculateBmi(values.prePregnancyWeightKg, values.heightCm);
+    if (calculated && values.initialBmi !== calculated) {
+      form.setFieldValue('initialBmi', calculated);
+    }
+  }, [values.prePregnancyWeightKg, values.heightCm, values.initialBmi, form]);
+
+  React.useEffect(() => {
+    if (values.motherBirthDate) {
+      const formatted = calculateAgeInYears(values.motherBirthDate);
+      if (formatted && values.motherAge !== formatted) {
+        form.setFieldValue('motherAge', formatted);
+      }
+    }
+  }, [values.motherBirthDate, values.motherAge, form]);
+
+  React.useEffect(() => {
+    if (values.partnerBirthDate) {
+      const formatted = calculateAgeInYears(values.partnerBirthDate);
+      if (formatted && values.partnerAge !== formatted) {
+        form.setFieldValue('partnerAge', formatted);
+      }
+    }
+  }, [values.partnerBirthDate, values.partnerAge, form]);
+
+  React.useEffect(() => {
+    if (stepContainerRef.current) {
+      const scrollableElements = stepContainerRef.current.querySelectorAll<HTMLElement>(
+        '[data-radix-scroll-area-viewport], .overflow-y-auto'
+      );
+      scrollableElements.forEach((el) => {
+        el.scrollTop = 0;
+      });
+      stepContainerRef.current.scrollTop = 0;
+    }
+  }, [currentStep]);
 
   function submitMedicalAppointment(formValues: MedicalAppointmentValues) {
     const submittedValues = pickMedicalValues(repeatableMedicalSections, formValues);
@@ -360,6 +403,10 @@ export function MedicalAppointmentModal({
 
   function handleBack() {
     if (currentStep <= 1) {
+      if (onBackToService) {
+        onBackToService();
+        return;
+      }
       onClose();
       return;
     }
@@ -379,6 +426,16 @@ export function MedicalAppointmentModal({
     }
 
     setCurrentStep((step) => Math.min(totalSteps, step + 1));
+
+    if (stepContainerRef.current) {
+      const scrollableElements = stepContainerRef.current.querySelectorAll<HTMLElement>(
+        '[data-radix-scroll-area-viewport], .overflow-y-auto'
+      );
+      scrollableElements.forEach((el) => {
+        el.scrollTop = 0;
+      });
+      stepContainerRef.current.scrollTop = 0;
+    }
   }
 
   function handleAddHistoryRecord(key: RepeatableHistoryKey) {
@@ -460,7 +517,7 @@ export function MedicalAppointmentModal({
                 totalSteps={totalSteps}
               />
 
-              <div className='min-h-[390px]'>
+              <div ref={stepContainerRef} className='min-h-[390px]'>
                 {currentDescriptor.type === 'medical' ? (
                   <MedicalSectionStep
                     section={visibleMedicalSections[currentDescriptor.sectionIndex]}
@@ -530,7 +587,7 @@ export function MedicalAppointmentModal({
 
               <div className='flex items-center justify-between border-t border-border pt-4'>
                 <Button type='button' variant='ghost' shape='pill' onClick={handleBack}>
-                  {currentStep === 1 ? 'Batal' : 'Kembali'}
+                  {currentStep === 1 && !onBackToService ? 'Batal' : 'Kembali'}
                 </Button>
                 <Button
                   type='button'
@@ -598,11 +655,35 @@ function MedicalSectionStep({
   historyActions?: HistoryRecordActions | null;
   renderField: (field: MedicalFormField) => React.ReactNode;
 }) {
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+
+  React.useLayoutEffect(() => {
+    const scrollToTop = () => {
+      if (scrollRef.current) {
+        const viewport = scrollRef.current.querySelector(
+          '[data-radix-scroll-area-viewport]'
+        ) as HTMLElement | null;
+        if (viewport) {
+          viewport.scrollTop = 0;
+        }
+        scrollRef.current.scrollTop = 0;
+      }
+    };
+
+    scrollToTop();
+    const rafId = requestAnimationFrame(scrollToTop);
+    return () => cancelAnimationFrame(rafId);
+  }, [section?.id]);
+
   return (
     <div className='flex flex-col gap-4'>
       <StepTitle title={section.title} description={section.description} />
       {historyActions ? <HistoryRecordActionBar actions={historyActions} /> : null}
-      <ScrollArea className='h-[320px] sm:h-[350px] [&_[data-slot=scroll-area-scrollbar]]:hidden'>
+      <ScrollArea
+        ref={scrollRef}
+        key={section.id}
+        className='h-[320px] sm:h-[350px] [&_[data-slot=scroll-area-scrollbar]]:hidden'
+      >
         <FieldGroup className='gap-5 px-1 pt-1 pb-8'>{section.fields.map(renderField)}</FieldGroup>
       </ScrollArea>
     </div>
@@ -655,6 +736,7 @@ function MedicalSchemaField({
 
   if (schemaField.type === 'MULTIPLE_CHOICE' || schemaField.choices.length === 2) {
     const choiceCount = schemaField.choices.length;
+    const isSmoked = schemaField.id === 'smokedBeforePregnancy';
 
     return (
       <FieldSet data-invalid={isInvalid}>
@@ -678,7 +760,13 @@ function MedicalSchemaField({
           }}
           className={cn(
             'grid gap-2',
-            choiceCount === 1 ? 'grid-cols-1' : choiceCount === 2 ? 'grid-cols-2' : 'sm:grid-cols-2'
+            isSmoked
+              ? 'grid-cols-3'
+              : choiceCount === 1
+                ? 'grid-cols-1'
+                : choiceCount === 2
+                  ? 'grid-cols-2'
+                  : 'sm:grid-cols-2'
           )}
         >
           {schemaField.choices.map((choice) => (
@@ -686,7 +774,10 @@ function MedicalSchemaField({
               key={choice}
               value={choice}
               aria-invalid={isInvalid}
-              className='h-auto min-h-10 justify-start whitespace-normal rounded-md border border-border px-3 py-2 text-left text-xs font-medium leading-snug first:rounded-md last:rounded-md data-[state=on]:border-primary data-[state=on]:bg-primary/5 data-[state=on]:text-foreground'
+              className={cn(
+                'h-auto min-h-10 justify-start whitespace-normal rounded-md border border-border px-3 py-2 text-left text-xs font-medium leading-snug first:rounded-md last:rounded-md data-[state=on]:border-primary data-[state=on]:bg-primary/5 data-[state=on]:text-foreground',
+                isSmoked && 'justify-center text-center font-medium'
+              )}
             >
               {choice}
             </ToggleGroupItem>
@@ -775,6 +866,52 @@ function MedicalSchemaField({
         {schemaField.helpText ? (
           <FieldDescription className='text-xs'>{schemaField.helpText}</FieldDescription>
         ) : null}
+      </Field>
+    );
+  }
+
+  if (
+    schemaField.id === 'initialBmi' ||
+    schemaField.id === 'motherAge' ||
+    schemaField.id === 'partnerAge'
+  ) {
+    const isBmi = schemaField.id === 'initialBmi';
+    const isMotherAge = schemaField.id === 'motherAge';
+    const placeholder = isBmi
+      ? 'Terisi otomatis saat tinggi dan berat badan diisi'
+      : isMotherAge
+        ? 'Terisi otomatis saat tanggal lahir dipilih'
+        : 'Terisi otomatis saat tanggal lahir dipilih (atau isi manual)';
+
+    return (
+      <Field data-invalid={isInvalid}>
+        <div className='flex items-center justify-between'>
+          <FieldLabel htmlFor={schemaField.id}>
+            {schemaField.title}
+            {schemaField.required ? ' *' : ''}
+          </FieldLabel>
+          {value ? (
+            <span className='rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary'>
+              Otomatis terhitung
+            </span>
+          ) : null}
+        </div>
+        <Input
+          id={schemaField.id}
+          type='text'
+          value={value}
+          placeholder={placeholder}
+          onBlur={fieldApi.handleBlur}
+          onChange={(event) =>
+            fieldApi.handleChange(normalizeMedicalFieldInput(schemaField, event.target.value))
+          }
+          aria-invalid={isInvalid}
+          className={cn(value && 'bg-muted/40 font-semibold text-primary')}
+        />
+        {schemaField.helpText ? (
+          <FieldDescription className='text-xs'>{schemaField.helpText}</FieldDescription>
+        ) : null}
+        <FieldError errors={isInvalid ? [error] : []} />
       </Field>
     );
   }
@@ -917,6 +1054,13 @@ function ReviewStep({
   const automatic = buildAutomaticRecord(flow, values);
   const answeredFields = collectAnsweredFieldsFromSections(activeSections, values);
 
+  const automaticLabels: Record<string, string> = {
+    imtAtSubmit: 'IMT (Indeks Massa Tubuh)',
+    estimatedDueDate: 'Taksiran Persalinan (HPL)',
+    gestationalAgeAtSubmit: 'Usia Kehamilan Saat Submit',
+    childAgeAtSubmit: 'Usia Anak Saat Submit'
+  };
+
   return (
     <div className='flex flex-col gap-4'>
       <StepTitle
@@ -932,7 +1076,7 @@ function ReviewStep({
         {Object.entries(automatic)
           .filter(([, value]) => value)
           .map(([key, value]) => (
-            <SummaryRow key={key} label={key} value={value} />
+            <SummaryRow key={key} label={automaticLabels[key] || key} value={value} />
           ))}
       </div>
 

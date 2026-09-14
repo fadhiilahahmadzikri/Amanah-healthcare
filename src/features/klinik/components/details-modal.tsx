@@ -277,7 +277,8 @@ export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: Det
 const automaticLabels: Record<string, string> = {
   estimatedDueDate: 'HPL otomatis',
   gestationalAgeAtSubmit: 'Umur kehamilan saat submit',
-  childAgeAtSubmit: 'Umur anak saat submit'
+  childAgeAtSubmit: 'Umur anak saat submit',
+  imtAtSubmit: 'IMT (Indeks Massa Tubuh)'
 };
 
 function MedicalIntakeSummary({ intake }: { intake: MedicalIntakeRecord }) {

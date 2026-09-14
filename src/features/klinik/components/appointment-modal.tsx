@@ -4,9 +4,18 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Image from 'next/image';
 import { Icons } from '@/components/icons';
 import gsap from 'gsap';
-import { Appointment, Doctor, QueueItem, AppointmentFormData } from '../api/types';
+import {
+  Appointment,
+  Doctor,
+  QueueItem,
+  AppointmentFormData,
+  type MedicalAppointmentFlow
+} from '../api/types';
+import type { ServiceCardItem } from '@/features/public-site/pages/services/types';
+import { ServiceBentoGrid } from '@/features/public-site/pages/services/components/organisms/ServiceBentoGrid';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StepperProgress } from './stepper-progress';
 import { AppointmentCalendarDayPicker } from './appointment-calendar-day-picker';
 import { AppointmentTimeSlotPicker } from './appointment-time-slot-picker';
@@ -18,7 +27,20 @@ import {
   loadStoredAppointments
 } from '../api/service';
 import { AMANAH_SERVICES } from '../constants/services';
+import {
+  APPOINTMENT_RESERVATION_SERVICES,
+  APPOINTMENT_SERVICE_CATEGORIES,
+  getReservationDoctorServiceName,
+  getReservationMedicalFlow,
+  getReservationServiceByTitle,
+  getReservationServicesByCategory,
+  type AppointmentReservationService,
+  type AppointmentServiceCategoryId
+} from '../constants/appointment-reservation-services';
+import { MedicalAppointmentModal } from './medical-appointment-modal';
 import { cn } from '@/lib/utils';
+
+type ReservationEntryStep = 'category' | 'service' | 'form';
 
 export interface AppointmentModalProps {
   isOpen: boolean;
@@ -35,8 +57,15 @@ export function AppointmentModal({
   onClose,
   onSubmit
 }: AppointmentModalProps) {
+  const [reservationEntryStep, setReservationEntryStep] = useState<ReservationEntryStep>('form');
+  const [selectedServiceCategory, setSelectedServiceCategory] =
+    useState<AppointmentServiceCategoryId | null>(null);
+  const [selectedReservationServiceId, setSelectedReservationServiceId] = useState<string | null>(
+    null
+  );
+  const [activeMedicalFlow, setActiveMedicalFlow] = useState<MedicalAppointmentFlow | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 5;
+  const formTotalSteps = 5;
   const stepContainerRef = useRef<HTMLDivElement>(null);
 
   // Step 1 Dropdowns
@@ -68,10 +97,26 @@ export function AppointmentModal({
 
   const allDoctors = useMemo(() => getDoctors(), []);
 
+  const selectedReservationService = useMemo(() => {
+    if (selectedReservationServiceId) {
+      return APPOINTMENT_RESERVATION_SERVICES.find(
+        (service) => service.id === selectedReservationServiceId
+      );
+    }
+
+    return getReservationServiceByTitle(formData.service);
+  }, [selectedReservationServiceId, formData.service]);
+
+  const totalSteps = mode === 'create' ? 7 : formTotalSteps;
+
   // Filter doctors based on selected service from Step 1
   const availableDoctorsForService = useMemo(() => {
-    return getDoctorsByService(formData.service);
-  }, [formData.service]);
+    const doctorServiceName = selectedReservationService
+      ? getReservationDoctorServiceName(selectedReservationService)
+      : formData.service;
+
+    return getDoctorsByService(doctorServiceName);
+  }, [formData.service, selectedReservationService]);
 
   // Filtered & Paginated Doctors for Step 2
   const filteredDoctors = useMemo(() => {
@@ -96,10 +141,29 @@ export function AppointmentModal({
 
   const visitTypeOptions = ['Pemeriksaan Baru', 'Kontrol Ulang'];
 
+  const serviceSelectionItems = useMemo<ServiceCardItem[]>(() => {
+    if (!selectedServiceCategory) {
+      return [];
+    }
+
+    return getReservationServicesByCategory(selectedServiceCategory).map((service) => ({
+      id: service.id,
+      title: service.title,
+      description: '',
+      image: service.image,
+      colSpanClass: 'col-span-12 sm:col-span-6 md:col-span-6',
+      heightClass: 'min-h-[118px] sm:min-h-[132px]'
+    }));
+  }, [selectedServiceCategory]);
+
   // Reset or initialize form data
   useEffect(() => {
     if (isOpen) {
       if (mode === 'edit' && initialAppointment) {
+        setReservationEntryStep('form');
+        setSelectedServiceCategory(null);
+        setSelectedReservationServiceId(null);
+        setActiveMedicalFlow(null);
         setFormData({
           service: initialAppointment.service || 'Poli Penyakit Dalam',
           complaint: initialAppointment.complaint || '',
@@ -113,13 +177,15 @@ export function AppointmentModal({
         });
         setCurrentStep(3);
       } else {
-        const defaultService = 'Poli Penyakit Dalam';
-        const defaultDocs = getDoctorsByService(defaultService);
+        setReservationEntryStep('category');
+        setSelectedServiceCategory(null);
+        setSelectedReservationServiceId(null);
+        setActiveMedicalFlow(null);
         setFormData({
-          service: defaultService,
+          service: '',
           complaint: '',
           visitType: 'Pemeriksaan Baru',
-          doctor: defaultDocs[0]?.name || allDoctors[0]?.name || '',
+          doctor: allDoctors[0]?.name || '',
           dateStr: '',
           timeSlot: ''
         });
@@ -221,7 +287,10 @@ export function AppointmentModal({
   }, [isVisitTypeOpen]);
 
   // GSAP Stepper Transition between steps
-  const animateStepTransition = (nextStep: number, direction: 'forward' | 'backward') => {
+  const animateContentTransition = (
+    direction: 'forward' | 'backward',
+    updateContent: () => void
+  ) => {
     if (stepContainerRef.current) {
       const yOut = direction === 'forward' ? -10 : 10;
       const yIn = direction === 'forward' ? 10 : -10;
@@ -232,7 +301,7 @@ export function AppointmentModal({
         duration: 0.18,
         ease: 'power2.in',
         onComplete: () => {
-          setCurrentStep(nextStep);
+          updateContent();
           if (stepContainerRef.current) {
             gsap.fromTo(
               stepContainerRef.current,
@@ -243,14 +312,68 @@ export function AppointmentModal({
         }
       });
     } else {
-      setCurrentStep(nextStep);
+      updateContent();
+    }
+  };
+
+  const animateStepTransition = (nextStep: number, direction: 'forward' | 'backward') => {
+    animateContentTransition(direction, () => setCurrentStep(nextStep));
+  };
+
+  const animateReservationEntryTransition = (
+    nextStep: ReservationEntryStep,
+    direction: 'forward' | 'backward'
+  ) => {
+    animateContentTransition(direction, () => setReservationEntryStep(nextStep));
+  };
+
+  const handleCategorySelect = (categoryId: AppointmentServiceCategoryId) => {
+    setSelectedServiceCategory(categoryId);
+    setSelectedReservationServiceId(null);
+    animateReservationEntryTransition('service', 'forward');
+  };
+
+  const handleServiceSelect = (service: AppointmentReservationService) => {
+    const medicalFlow = getReservationMedicalFlow(service);
+
+    if (medicalFlow) {
+      setSelectedReservationServiceId(service.id);
+      setActiveMedicalFlow(medicalFlow);
+      return;
+    }
+
+    const doctorsForService = getDoctorsByService(getReservationDoctorServiceName(service));
+
+    setSelectedReservationServiceId(service.id);
+    setFormData((prev) => ({
+      ...prev,
+      service: service.title,
+      doctor: doctorsForService[0]?.name || allDoctors[0]?.name || '',
+      dateStr: '',
+      timeSlot: ''
+    }));
+    setDoctorSearch('');
+    setDoctorPage(1);
+    setIsServiceOpen(false);
+    setIsVisitTypeOpen(false);
+    setCurrentStep(1);
+    animateReservationEntryTransition('form', 'forward');
+  };
+
+  const handleServiceItemSelect = (item: ServiceCardItem) => {
+    const service = getReservationServicesByCategory(selectedServiceCategory || 'general').find(
+      (currentService) => currentService.id === item.id
+    );
+
+    if (service) {
+      handleServiceSelect(service);
     }
   };
 
   const handleNext = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (currentStep < totalSteps) {
+    if (currentStep < formTotalSteps) {
       animateStepTransition(currentStep + 1, 'forward');
     } else {
       // Final Step: Submit with processing animation + queue ticket modal
@@ -259,6 +382,11 @@ export function AppointmentModal({
   };
 
   const handleBack = () => {
+    if (mode === 'create' && reservationEntryStep === 'form' && currentStep === 1) {
+      animateReservationEntryTransition('service', 'backward');
+      return;
+    }
+
     if (currentStep > 1) {
       animateStepTransition(currentStep - 1, 'backward');
     }
@@ -291,6 +419,11 @@ export function AppointmentModal({
     }, 1400);
   };
 
+  const handleMedicalFlowClose = () => {
+    setActiveMedicalFlow(null);
+    onClose();
+  };
+
   const isStepValid = () => {
     switch (currentStep) {
       case 1:
@@ -313,14 +446,31 @@ export function AppointmentModal({
     gsap.fromTo(cardEl, { scale: 0.98 }, { scale: 1, duration: 0.2, ease: 'back.out(2)' });
   };
 
+  const displayStep =
+    mode === 'create'
+      ? reservationEntryStep === 'category'
+        ? 1
+        : reservationEntryStep === 'service'
+          ? 2
+          : currentStep + 2
+      : currentStep;
+  const isServiceSelectionStep =
+    mode === 'create' &&
+    (reservationEntryStep === 'category' || reservationEntryStep === 'service');
+  const modalMaxWidth = isServiceSelectionStep ? 'max-w-[720px]' : 'max-w-[560px]';
+  const primaryActionLabel =
+    currentStep === formTotalSteps && reservationEntryStep === 'form'
+      ? 'Simpan Janji Temu'
+      : 'Lanjutkan';
+
   if (!isOpen) return null;
 
   return (
     <>
       <ModalWrapper
-        isOpen={isOpen && !isQueueSuccessOpen}
+        isOpen={isOpen && !isQueueSuccessOpen && !activeMedicalFlow}
         onClose={onClose}
-        maxWidth='max-w-[560px]'
+        maxWidth={modalMaxWidth}
         showCloseButton={false}
       >
         <div className='space-y-5 font-sans'>
@@ -333,16 +483,92 @@ export function AppointmentModal({
             </div>
 
             <div className='w-28 sm:w-36'>
-              <StepperProgress currentStep={currentStep} totalSteps={totalSteps} />
+              <StepperProgress currentStep={displayStep} totalSteps={totalSteps} />
             </div>
           </div>
 
           {/* Dynamic Stepper Form Content */}
           <div ref={stepContainerRef}>
+            {mode === 'create' && reservationEntryStep === 'category' && (
+              <div className='flex flex-col gap-4'>
+                <div>
+                  <h3 className='text-base font-bold tracking-tight text-foreground'>
+                    Pilih jenis layanan
+                  </h3>
+                  <p className='mt-0.5 text-xs leading-relaxed font-normal text-muted-foreground'>
+                    Pilih kategori layanan yang ingin Anda reservasi.
+                  </p>
+                </div>
+
+                <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+                  {APPOINTMENT_SERVICE_CATEGORIES.map((category) => (
+                    <Button
+                      key={category.id}
+                      type='button'
+                      variant='outline'
+                      size='lg'
+                      shape='card'
+                      align='left'
+                      fullWidth
+                      onClick={() => handleCategorySelect(category.id)}
+                      className='h-24 flex-col items-start justify-between p-4'
+                    >
+                      <span className='text-sm font-bold text-foreground'>{category.title}</span>
+                      <span className='inline-flex items-center gap-2 text-xs text-muted-foreground'>
+                        Pilih layanan
+                        <Icons.arrowRight className='size-3.5' />
+                      </span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {mode === 'create' && reservationEntryStep === 'service' && (
+              <div className='flex flex-col gap-4'>
+                <div className='flex items-start justify-between gap-3'>
+                  <div>
+                    <h3 className='text-base font-bold tracking-tight text-foreground'>
+                      Pilih layanan
+                    </h3>
+                    <p className='mt-0.5 text-xs leading-relaxed font-normal text-muted-foreground'>
+                      {APPOINTMENT_SERVICE_CATEGORIES.find(
+                        (category) => category.id === selectedServiceCategory
+                      )?.title || 'Layanan'}
+                    </p>
+                  </div>
+
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='sm'
+                    shape='pill'
+                    onClick={() => {
+                      setSelectedReservationServiceId(null);
+                      setActiveMedicalFlow(null);
+                      animateReservationEntryTransition('category', 'backward');
+                    }}
+                    leadingIcon={<Icons.chevronLeft className='size-3.5' />}
+                  >
+                    Kembali
+                  </Button>
+                </div>
+
+                <div className='max-h-[430px] overflow-y-auto pr-1'>
+                  <ServiceBentoGrid
+                    items={serviceSelectionItems}
+                    onItemSelect={handleServiceItemSelect}
+                    getItemAriaLabel={(item) => `Pilih ${item.title}`}
+                    className='gap-3 sm:gap-3'
+                  />
+                </div>
+              </div>
+            )}
+
             {/* =============================================================== */}
             {/* STEP 1: INFORMASI LAYANAN & KELUHAN PASIEN */}
             {/* =============================================================== */}
-            {currentStep === 1 && (
+            {reservationEntryStep === 'form' && currentStep === 1 && (
               <div className='space-y-4'>
                 <div>
                   <h3 className='text-base font-bold tracking-tight text-foreground'>
@@ -355,69 +581,111 @@ export function AppointmentModal({
 
                 <div className='space-y-3.5'>
                   {/* 1. Layanan Poliklinik Dropdown */}
-                  <div className='space-y-1 relative'>
-                    <span className='block text-xs font-normal text-muted-foreground'>
-                      Layanan Poliklinik*
-                    </span>
-                    <button
-                      type='button'
-                      aria-label='Pilih layanan poliklinik'
-                      onClick={() => {
-                        setIsServiceOpen(!isServiceOpen);
-                        setIsVisitTypeOpen(false);
-                      }}
-                      className='w-full flex items-center justify-between p-3 border border-border bg-background dark:bg-slate-800/60 text-xs font-semibold text-foreground hover:border-primary/40 transition-colors cursor-pointer rounded-lg'
-                    >
-                      <span>{formData.service}</span>
-                      <Icons.chevronDown
-                        className={cn(
-                          'size-4 text-muted-foreground transition-transform duration-200',
-                          isServiceOpen && 'rotate-180 text-primary'
-                        )}
-                      />
-                    </button>
+                  {mode === 'create' && selectedReservationService ? (
+                    <Card className='gap-3 py-4 shadow-xs'>
+                      <CardHeader className='px-4'>
+                        <CardTitle className='text-xs font-normal text-muted-foreground'>
+                          Layanan dipilih
+                        </CardTitle>
+                        <CardAction>
+                          <Button
+                            type='button'
+                            variant='ghost'
+                            size='sm'
+                            shape='pill'
+                            onClick={() => animateReservationEntryTransition('service', 'backward')}
+                          >
+                            Ubah
+                          </Button>
+                        </CardAction>
+                      </CardHeader>
+                      <CardContent className='px-4'>
+                        <div className='flex items-center gap-3'>
+                          <div className='relative size-14 shrink-0 overflow-hidden rounded-lg border border-border bg-muted'>
+                            <Image
+                              src={selectedReservationService.image.src}
+                              alt={selectedReservationService.image.alt}
+                              fill
+                              sizes='56px'
+                              className='object-cover object-center'
+                            />
+                          </div>
+                          <div className='min-w-0'>
+                            <p className='text-sm font-bold text-foreground'>
+                              {selectedReservationService.title}
+                            </p>
+                            <p className='text-xs text-muted-foreground'>
+                              Lanjutkan dengan jenis kunjungan dan keluhan.
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <div className='space-y-1 relative'>
+                      <span className='block text-xs font-normal text-muted-foreground'>
+                        Layanan Poliklinik*
+                      </span>
+                      <button
+                        type='button'
+                        aria-label='Pilih layanan poliklinik'
+                        onClick={() => {
+                          setIsServiceOpen(!isServiceOpen);
+                          setIsVisitTypeOpen(false);
+                        }}
+                        className='w-full flex items-center justify-between p-3 border border-border bg-background dark:bg-slate-800/60 text-xs font-semibold text-foreground hover:border-primary/40 transition-colors cursor-pointer rounded-lg'
+                      >
+                        <span>{formData.service}</span>
+                        <Icons.chevronDown
+                          className={cn(
+                            'size-4 text-muted-foreground transition-transform duration-200',
+                            isServiceOpen && 'rotate-180 text-primary'
+                          )}
+                        />
+                      </button>
 
-                    <div
-                      ref={serviceDropdownRef}
-                      className='overflow-hidden border border-border bg-popover rounded-lg shadow-md mt-1 z-30'
-                      style={{ height: 0, opacity: 0 }}
-                    >
-                      <div className='p-1 space-y-0.5 max-h-52 overflow-y-auto'>
-                        {AMANAH_SERVICES.map((srv) => {
-                          const isSelected = formData.service === srv.name;
-                          return (
-                            <button
-                              key={srv.id}
-                              type='button'
-                              onClick={() => {
-                                setFormData((prev) => ({ ...prev, service: srv.name }));
-                                setIsServiceOpen(false);
-                              }}
-                              className={cn(
-                                'dropdown-item w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center justify-between border-b last:border-b-0 border-border/60 rounded-md cursor-pointer',
-                                isSelected
-                                  ? 'bg-primary text-primary-foreground font-bold'
-                                  : 'text-foreground hover:bg-accent'
-                              )}
-                            >
-                              <div className='space-y-0.5 min-w-0 flex-1 pr-2'>
-                                <div className='flex items-center gap-2'>
-                                  <span className='font-bold'>{srv.name}</span>
-                                  <span className='text-[10px] opacity-75 px-1.5 py-0.2 rounded bg-background/30'>
-                                    {srv.category}
-                                  </span>
+                      <div
+                        ref={serviceDropdownRef}
+                        className='overflow-hidden border border-border bg-popover rounded-lg shadow-md mt-1 z-30'
+                        style={{ height: 0, opacity: 0 }}
+                      >
+                        <div className='p-1 space-y-0.5 max-h-52 overflow-y-auto'>
+                          {AMANAH_SERVICES.map((srv) => {
+                            const isSelected = formData.service === srv.name;
+                            return (
+                              <button
+                                key={srv.id}
+                                type='button'
+                                onClick={() => {
+                                  setFormData((prev) => ({ ...prev, service: srv.name }));
+                                  setIsServiceOpen(false);
+                                }}
+                                className={cn(
+                                  'dropdown-item w-full text-left px-3 py-2 text-xs font-medium transition-colors flex items-center justify-between border-b last:border-b-0 border-border/60 rounded-md cursor-pointer',
+                                  isSelected
+                                    ? 'bg-primary text-primary-foreground font-bold'
+                                    : 'text-foreground hover:bg-accent'
+                                )}
+                              >
+                                <div className='space-y-0.5 min-w-0 flex-1 pr-2'>
+                                  <div className='flex items-center gap-2'>
+                                    <span className='font-bold'>{srv.name}</span>
+                                    <span className='text-[10px] opacity-75 px-1.5 py-0.2 rounded bg-background/30'>
+                                      {srv.category}
+                                    </span>
+                                  </div>
+                                  <p className='text-[10.5px] opacity-85 truncate'>
+                                    {srv.description}
+                                  </p>
                                 </div>
-                                <p className='text-[10.5px] opacity-85 truncate'>
-                                  {srv.description}
-                                </p>
-                              </div>
-                              {isSelected && <Icons.check className='size-3.5 shrink-0' />}
-                            </button>
-                          );
-                        })}
+                                {isSelected && <Icons.check className='size-3.5 shrink-0' />}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* 2. Jenis Kunjungan Dropdown */}
                   <div className='space-y-1 relative'>
@@ -498,7 +766,7 @@ export function AppointmentModal({
             {/* =============================================================== */}
             {/* STEP 2: PILIH DOKTER SPESIALIS */}
             {/* =============================================================== */}
-            {currentStep === 2 && (
+            {reservationEntryStep === 'form' && currentStep === 2 && (
               <div className='space-y-3.5'>
                 <div>
                   <h3 className='text-base font-bold tracking-tight text-foreground'>
@@ -660,7 +928,7 @@ export function AppointmentModal({
             {/* =============================================================== */}
             {/* STEP 3: PILIH TANGGAL KUNJUNGAN (POV HARI SAJA) */}
             {/* =============================================================== */}
-            {currentStep === 3 && (
+            {reservationEntryStep === 'form' && currentStep === 3 && (
               <div className='space-y-3.5'>
                 <div>
                   <h3 className='text-base font-bold tracking-tight text-foreground'>
@@ -691,7 +959,7 @@ export function AppointmentModal({
             {/* =============================================================== */}
             {/* STEP 4: PILIH JAM KONSULTASI (POV SIANG/MALAM HOUR) */}
             {/* =============================================================== */}
-            {currentStep === 4 && (
+            {reservationEntryStep === 'form' && currentStep === 4 && (
               <div className='space-y-3.5'>
                 <div>
                   <h3 className='text-base font-bold tracking-tight text-foreground'>
@@ -723,7 +991,7 @@ export function AppointmentModal({
             {/* =============================================================== */}
             {/* STEP 5: KONFIRMASI JANJI TEMU (CLEAN UNDERLINE STYLE) */}
             {/* =============================================================== */}
-            {currentStep === 5 && (
+            {reservationEntryStep === 'form' && currentStep === 5 && (
               <div className='space-y-4'>
                 <div>
                   <h3 className='text-base font-bold tracking-tight text-foreground'>
@@ -775,35 +1043,43 @@ export function AppointmentModal({
           </div>
 
           {/* Modal Bottom Actions */}
-          <div className='flex items-center justify-between pt-3.5 border-t border-border'>
-            <div>
-              {currentStep > 1 ? (
-                <Button type='button' variant='ghost' size='md' shape='pill' onClick={handleBack}>
-                  Kembali
-                </Button>
-              ) : (
-                <Button type='button' variant='ghost' size='md' shape='pill' onClick={onClose}>
-                  Batal
-                </Button>
-              )}
-            </div>
-
-            <div>
-              <Button
-                type='button'
-                variant='primary'
-                size='md'
-                shape='pill'
-                disabled={!isStepValid()}
-                onClick={handleNext}
-                withTrailingCircleIcon={true}
-                className='min-w-[150px]'
-                trailingIcon={<Icons.arrowUpRight className='size-3 stroke-[2.5]' />}
-              >
-                {currentStep === totalSteps ? 'Simpan Janji Temu' : 'Lanjutkan'}
+          {isServiceSelectionStep ? (
+            <div className='flex items-center justify-between pt-3.5 border-t border-border'>
+              <Button type='button' variant='ghost' size='md' shape='pill' onClick={onClose}>
+                Batal
               </Button>
             </div>
-          </div>
+          ) : (
+            <div className='flex items-center justify-between pt-3.5 border-t border-border'>
+              <div>
+                {currentStep > 1 || (mode === 'create' && reservationEntryStep === 'form') ? (
+                  <Button type='button' variant='ghost' size='md' shape='pill' onClick={handleBack}>
+                    Kembali
+                  </Button>
+                ) : (
+                  <Button type='button' variant='ghost' size='md' shape='pill' onClick={onClose}>
+                    Batal
+                  </Button>
+                )}
+              </div>
+
+              <div>
+                <Button
+                  type='button'
+                  variant='primary'
+                  size='md'
+                  shape='pill'
+                  disabled={!isStepValid()}
+                  onClick={handleNext}
+                  withTrailingCircleIcon={true}
+                  className='min-w-[150px]'
+                  trailingIcon={<Icons.arrowUpRight className='size-3 stroke-[2.5]' />}
+                >
+                  {primaryActionLabel}
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </ModalWrapper>
 
@@ -818,6 +1094,16 @@ export function AppointmentModal({
           onClose();
         }}
       />
+
+      {activeMedicalFlow ? (
+        <MedicalAppointmentModal
+          flow={activeMedicalFlow}
+          isOpen={isOpen}
+          onBackToService={() => setActiveMedicalFlow(null)}
+          onClose={handleMedicalFlowClose}
+          onCreated={(medicalFormData) => onSubmit(medicalFormData)}
+        />
+      ) : null}
     </>
   );
 }

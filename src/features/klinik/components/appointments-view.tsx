@@ -9,11 +9,13 @@ import { AppointmentFilters } from './appointment-filters';
 import { AppointmentPagination } from './appointment-pagination';
 import { AppointmentModal } from './appointment-modal';
 import { DetailsModal } from './details-modal';
-import { MedicalAppointmentModal } from './medical-appointment-modal';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import type { MedicalAppointmentFlow } from '../api/types';
-import { getDoctorByName, loadStoredAppointments, saveAppointmentsToStorage } from '../api/service';
+import {
+  getDoctorByName,
+  loadStoredAppointments,
+  saveAppointmentsToStorage,
+  createAppointmentRecord
+} from '../api/service';
 
 export function AppointmentsView() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -47,7 +49,6 @@ export function AppointmentsView() {
   const [formModalMode, setFormModalMode] = useState<'create' | 'edit'>('create');
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [activeMedicalFlow, setActiveMedicalFlow] = useState<MedicalAppointmentFlow | null>(null);
 
   // Reset page to 1 whenever filters change
   const handleSearchChange = (val: string) => {
@@ -178,10 +179,6 @@ export function AppointmentsView() {
     setIsFormModalOpen(true);
   };
 
-  const handleOpenMedicalFlow = (flow: MedicalAppointmentFlow) => {
-    setActiveMedicalFlow(flow);
-  };
-
   const handleOpenRescheduleModal = (item: Appointment) => {
     setSelectedAppointment(item);
     setFormModalMode('edit');
@@ -193,7 +190,7 @@ export function AppointmentsView() {
     setIsDetailsModalOpen(true);
   };
 
-  const handleAddAppointment = () => {
+  const handleAddAppointment = (formData: AppointmentFormData) => {
     const updated = loadStoredAppointments();
     setAppointments(updated);
   };
@@ -223,12 +220,12 @@ export function AppointmentsView() {
     if (formModalMode === 'edit' && appointmentId) {
       handleUpdateAppointment(appointmentId, data);
     } else {
-      handleAddAppointment();
+      handleAddAppointment(data);
     }
   };
 
   return (
-    <div className='flex h-full min-h-0 flex-1 flex-col gap-4 font-sans'>
+    <div className='flex flex-1 flex-col space-y-4 font-sans'>
       {/* 1. Filter Toolbar Row with Actions */}
       <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3'>
         <AppointmentFilters
@@ -246,89 +243,54 @@ export function AppointmentsView() {
           className='flex-1'
         />
 
-        <div className='flex shrink-0 flex-wrap items-center gap-2'>
-          <Button
-            type='button'
-            variant='outline'
-            onClick={() => handleOpenMedicalFlow('pregnancy')}
-            leadingIcon={<Icons.heart />}
-            className='text-xs md:text-sm'
-          >
-            Pregnancy
-          </Button>
-          <Button
-            type='button'
-            variant='outline'
-            onClick={() => handleOpenMedicalFlow('immunization')}
-            leadingIcon={<Icons.pill />}
-            className='text-xs md:text-sm'
-          >
-            Immunization
-          </Button>
-          <Button
-            type='button'
-            onClick={handleOpenCreateModal}
-            leadingIcon={<Icons.add />}
-            className='text-xs md:text-sm'
-          >
-            Tambah Janji Temu
-          </Button>
-        </div>
+        <Button onClick={handleOpenCreateModal} className='shrink-0 text-xs md:text-sm'>
+          <Icons.add className='mr-2 h-4 w-4' />
+          <span>Tambah Janji Temu</span>
+        </Button>
       </div>
 
-      <div className='relative flex min-h-0 flex-1 flex-col overflow-hidden'>
-        <div className='absolute inset-0 flex overflow-hidden'>
-          <ScrollArea className='h-full w-full pr-3'>
-            <div className='pb-24 pt-1'>
-              {/* 2. Cards Grid Container */}
-              {paginatedAppointments.length > 0 ? (
-                <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4'>
-                  {paginatedAppointments.map((item) => {
-                    const doctor = getDoctorByName(item.doctor_name);
-                    return (
-                      <AppointmentCard
-                        key={item.id}
-                        appointment={item}
-                        doctor={doctor}
-                        onReschedule={handleOpenRescheduleModal}
-                        onViewDetails={handleOpenDetailsModal}
-                      />
-                    );
-                  })}
-                </div>
-              ) : (
-                /* Empty State */
-                <div className='flex flex-col items-center justify-center py-20 bg-card border border-border rounded-2xl text-center p-6 select-none my-auto'>
-                  <div className='size-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground mb-3'>
-                    <Icons.search className='size-6' />
-                  </div>
-                  <h3 className='text-sm font-semibold text-foreground'>
-                    Tidak ada janji temu ditemukan
-                  </h3>
-                  <p className='text-xs text-muted-foreground mt-1 max-w-sm'>
-                    Coba sesuaikan kata kunci pencarian atau filter status konsultasi Anda.
-                  </p>
-                </div>
-              )}
-            </div>
-          </ScrollArea>
-        </div>
-
-        {/* 3. Docked Bottom Pagination Bar */}
-        <div className='absolute bottom-0 inset-x-0 z-20 pointer-events-none flex justify-center'>
-          <div className='pointer-events-auto w-full'>
-            <AppointmentPagination
-              currentPage={currentPage}
-              pageSize={pageSize}
-              totalItems={filteredAppointments.length}
-              onPageChange={setCurrentPage}
-              onPageSizeChange={setPageSize}
-              pageSizeOptions={[10, 20, 30, 50]}
-              className='static bottom-auto z-auto mx-0 mt-0 mb-0 w-full border-t border-border/50 bg-background/80 px-4 py-3 shadow-md backdrop-blur-xl supports-[backdrop-filter]:bg-background/70 dark:bg-card/80 dark:supports-[backdrop-filter]:bg-card/70 md:mx-0 md:w-full'
-            />
+      {/* 2. Cards Grid Container */}
+      <div className='flex-1 pb-4'>
+        {paginatedAppointments.length > 0 ? (
+          <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4'>
+            {paginatedAppointments.map((item) => {
+              const doctor = getDoctorByName(item.doctor_name);
+              return (
+                <AppointmentCard
+                  key={item.id}
+                  appointment={item}
+                  doctor={doctor}
+                  onReschedule={handleOpenRescheduleModal}
+                  onViewDetails={handleOpenDetailsModal}
+                />
+              );
+            })}
           </div>
-        </div>
+        ) : (
+          /* Empty State */
+          <div className='flex flex-col items-center justify-center py-20 bg-card border border-border rounded-2xl text-center p-6 select-none my-auto'>
+            <div className='size-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground mb-3'>
+              <Icons.search className='size-6' />
+            </div>
+            <h3 className='text-sm font-semibold text-foreground'>
+              Tidak ada janji temu ditemukan
+            </h3>
+            <p className='text-xs text-muted-foreground mt-1 max-w-sm'>
+              Coba sesuaikan kata kunci pencarian atau filter status konsultasi Anda.
+            </p>
+          </div>
+        )}
       </div>
+
+      {/* 3. Docked Bottom Sticky Pagination Bar (Directly pinned at viewport bottom) */}
+      <AppointmentPagination
+        currentPage={currentPage}
+        pageSize={pageSize}
+        totalItems={filteredAppointments.length}
+        onPageChange={setCurrentPage}
+        onPageSizeChange={setPageSize}
+        pageSizeOptions={[10, 20, 30, 50]}
+      />
 
       {/* Stepper Appointment Modal (Add & Reschedule) */}
       <AppointmentModal
@@ -338,15 +300,6 @@ export function AppointmentsView() {
         onClose={() => setIsFormModalOpen(false)}
         onSubmit={handleFormSubmit}
       />
-
-      {activeMedicalFlow ? (
-        <MedicalAppointmentModal
-          flow={activeMedicalFlow}
-          isOpen={Boolean(activeMedicalFlow)}
-          onClose={() => setActiveMedicalFlow(null)}
-          onCreated={handleFormSubmit}
-        />
-      ) : null}
 
       {/* Summary Details Modal */}
       <DetailsModal

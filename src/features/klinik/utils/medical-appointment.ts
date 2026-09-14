@@ -153,14 +153,101 @@ export function findMedicalField(
   return undefined;
 }
 
+export function calculateBmi(weightStr?: string, heightStr?: string): string {
+  if (!weightStr || !heightStr) {
+    return '';
+  }
+
+  const cleanWeightMatch = weightStr.replace(',', '.').match(/(\d+(\.\d+)?)/);
+  const cleanHeightMatch = heightStr.replace(',', '.').match(/(\d+(\.\d+)?)/);
+
+  if (!cleanWeightMatch || !cleanHeightMatch) {
+    return '';
+  }
+
+  const weight = parseFloat(cleanWeightMatch[1]);
+  let height = parseFloat(cleanHeightMatch[1]);
+
+  if (isNaN(weight) || isNaN(height) || weight <= 0 || height <= 0) {
+    return '';
+  }
+
+  if (height > 3) {
+    height = height / 100;
+  }
+
+  if (height <= 0) {
+    return '';
+  }
+
+  const bmi = weight / (height * height);
+  if (!isFinite(bmi) || bmi <= 0 || bmi > 100) {
+    return '';
+  }
+
+  return (Math.round(bmi * 10) / 10).toFixed(1);
+}
+
+export function calculateAgeInYears(
+  birthDateStr?: string,
+  referenceDate: Date = new Date()
+): string {
+  if (!birthDateStr) {
+    return '';
+  }
+
+  try {
+    let birthDate: Date;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(birthDateStr)) {
+      birthDate = toDateOnly(birthDateStr);
+    } else {
+      const match = birthDateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (match) {
+        birthDate = new Date(Date.UTC(Number(match[3]), Number(match[2]) - 1, Number(match[1])));
+      } else {
+        const parsed = new Date(birthDateStr);
+        if (isNaN(parsed.getTime())) {
+          return '';
+        }
+        birthDate = toDateOnly(parsed);
+      }
+    }
+
+    const reference = toDateOnly(referenceDate);
+    if (reference.getTime() < birthDate.getTime()) {
+      return '';
+    }
+
+    let age = reference.getUTCFullYear() - birthDate.getUTCFullYear();
+    const m = reference.getUTCMonth() - birthDate.getUTCMonth();
+    if (m < 0 || (m === 0 && reference.getUTCDate() < birthDate.getUTCDate())) {
+      age -= 1;
+    }
+
+    if (age >= 0 && age < 130) {
+      return `${age} tahun`;
+    }
+
+    return '';
+  } catch {
+    return '';
+  }
+}
+
 function buildPregnancyAutomaticRecord(
   values: MedicalAppointmentValues,
   submittedAt: Date
 ): Record<string, string> {
+  const bmi = calculateBmi(values.prePregnancyWeightKg, values.heightCm) || values.initialBmi || '';
+  const result: Record<string, string> = {
+    imtAtSubmit: bmi ? `${bmi} kg/m²` : ''
+  };
+
   if (!values.hpht) {
     return {
       estimatedDueDate: '',
-      gestationalAgeAtSubmit: ''
+      gestationalAgeAtSubmit: '',
+      ...result
     };
   }
 
@@ -170,12 +257,14 @@ function buildPregnancyAutomaticRecord(
 
     return {
       estimatedDueDate: formatIndonesianDate(dueDate),
-      gestationalAgeAtSubmit: gestationalAge
+      gestationalAgeAtSubmit: gestationalAge,
+      ...result
     };
   } catch {
     return {
       estimatedDueDate: '',
-      gestationalAgeAtSubmit: ''
+      gestationalAgeAtSubmit: '',
+      ...result
     };
   }
 }

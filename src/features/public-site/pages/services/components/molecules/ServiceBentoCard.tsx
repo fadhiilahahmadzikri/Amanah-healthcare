@@ -1,13 +1,12 @@
-import type { ReactNode } from 'react';
+import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 import type { ServiceCardItem } from '../../types';
 import Image from 'next/image';
 import { HealthcareHeading, HealthcareText } from '@/features/public-site/components/shared';
 import { cn } from '@/features/public-site/lib/helpers';
 import { ServiceCardAffordance } from '../atoms/ServiceCardAffordance';
 
-type ServiceBentoCardProps = {
+type ServiceBentoCardProps = ComponentPropsWithoutRef<'article'> & {
   item: ServiceCardItem;
-  className?: string;
   imageSlot?: ReactNode;
   affordanceSlot?: ReactNode;
   contentSlot?: ReactNode;
@@ -18,10 +17,14 @@ export function ServiceBentoCard({
   className,
   imageSlot,
   affordanceSlot,
-  contentSlot
+  contentSlot,
+  ...articleProps
 }: ServiceBentoCardProps) {
+  const isInteractive = Boolean(articleProps.onClick) || articleProps.role === 'button';
+
   return (
     <article
+      {...articleProps}
       data-service-card
       className={cn(
         `
@@ -31,6 +34,7 @@ export function ServiceBentoCard({
           focus-visible:ring-2 focus-visible:ring-primary
           focus-visible:ring-offset-2 focus-visible:outline-none
         `,
+        isInteractive && 'cursor-pointer',
         item.colSpanClass ??
           `
           col-span-12
