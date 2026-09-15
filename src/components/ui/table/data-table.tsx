@@ -52,6 +52,26 @@ export function DataTable<TData>({
     onRowClick(row);
   };
 
+  const hasCoreData = (table.getCoreRowModel().rows?.length ?? 0) > 0;
+
+  if (!hasCoreData) {
+    return (
+      <div className='flex min-h-0 flex-1 h-full w-full flex-col'>
+        {emptyState ?? (
+          <EmptyState
+            title={entityName ? `Belum ada data ${entityName}` : 'Tidak ada data ditemukan'}
+            description={
+              entityName
+                ? `Data ${entityName} akan ditampilkan di sini setelah tersedia.`
+                : 'Data akan ditampilkan di sini setelah tersedia.'
+            }
+            className='h-full w-full flex-1'
+          />
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className='flex min-h-0 flex-1 flex-col gap-4'>
       {children}

@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
 import { cn } from '@/lib/utils';
 import type { MedicalAppointmentValues } from '../utils/medical-appointment';
 
@@ -40,10 +41,10 @@ export function MedicalHistoryCatalog({
   return (
     <div
       data-slot='medical-history-catalog'
-      className={cn('flex flex-col gap-4 w-full', className)}
+      className={cn('flex flex-col gap-4 w-full h-full flex-1 min-h-0', className)}
     >
       {/* Header Info */}
-      <div className='flex items-start justify-between gap-3 border-b border-border/70 pb-3.5'>
+      <div className='flex shrink-0 items-start justify-between gap-3 border-b border-border/70 pb-3.5'>
         <div>
           <h3 className='text-base font-semibold tracking-tight text-foreground'>{title}</h3>
           <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>{description}</p>
@@ -55,26 +56,28 @@ export function MedicalHistoryCatalog({
 
       {/* Grid of History Cards or Empty State */}
       {recordsCount === 0 ? (
-        <div className='flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/50 py-10 px-6 text-center my-2'>
-          <div className='flex size-11 items-center justify-center rounded-full bg-primary/10 text-primary mb-3'>
-            <Icons.forms className='size-5' />
-          </div>
-          <h4 className='text-sm font-semibold text-foreground'>Belum ada riwayat yang dicatat</h4>
-          <p className='mt-1 max-w-sm text-xs text-muted-foreground leading-relaxed'>
-            {isPregnancy
-              ? 'Seluruh riwayat kehamilan dan persalinan telah dihapus. Anda dapat menambahkan riwayat baru, atau langsung klik Lanjutkan di bawah untuk melanjutkan.'
-              : 'Seluruh riwayat penggunaan KB telah dihapus. Anda dapat menambahkan riwayat baru, atau langsung klik Lanjutkan di bawah untuk melanjutkan.'}
-          </p>
-          <Button
-            type='button'
-            variant='outline'
-            shape='pill'
-            onClick={onAddRecord}
-            className='mt-4 text-xs font-medium border-dashed hover:border-primary hover:bg-primary/5'
-          >
-            <Icons.add className='size-3.5 mr-1.5' />
-            {isPregnancy ? 'Tambah Riwayat Kehamilan' : 'Tambah Riwayat KB'}
-          </Button>
+        <div className='flex flex-1 flex-col h-full min-h-0 py-1'>
+          <EmptyState
+            title='Belum ada riwayat yang dicatat'
+            description={
+              isPregnancy
+                ? 'Seluruh riwayat kehamilan dan persalinan telah dihapus. Anda dapat menambahkan riwayat baru, atau langsung klik Lanjutkan di bawah untuk melanjutkan.'
+                : 'Seluruh riwayat penggunaan KB telah dihapus. Anda dapat menambahkan riwayat baru, atau langsung klik Lanjutkan di bawah untuk melanjutkan.'
+            }
+            action={
+              <Button
+                type='button'
+                variant='outline'
+                shape='pill'
+                onClick={onAddRecord}
+                className='text-xs font-medium border-dashed hover:border-primary hover:bg-primary/5'
+              >
+                <Icons.add className='size-3.5 mr-1.5' />
+                {isPregnancy ? 'Tambah Riwayat Kehamilan' : 'Tambah Riwayat KB'}
+              </Button>
+            }
+            className='h-full w-full flex-1 bg-card/50 border-border my-0'
+          />
         </div>
       ) : (
         <div className='grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1'>

@@ -145,9 +145,9 @@ export function MedicalAppointmentModal({
         )}
       >
         <form.AppForm>
-          <form.Form className='flex min-h-0 flex-1 flex-col gap-0 p-0 md:p-0'>
-            <div className='flex min-h-0 flex-1 flex-col justify-between gap-4'>
-              <div ref={stepContainerRef} className='flex min-h-0 flex-1 flex-col'>
+          <form.Form className='flex h-full min-h-0 flex-1 flex-col gap-0 p-0 md:p-0'>
+            <div className='flex h-full min-h-0 flex-1 flex-col justify-between gap-4'>
+              <div ref={stepContainerRef} className='flex h-full min-h-0 flex-1 flex-col'>
                 {currentDescriptor.type === 'medical' ? (
                   <MedicalSectionStep
                     section={visibleMedicalSections[currentDescriptor.sectionIndex]}
@@ -184,7 +184,7 @@ export function MedicalAppointmentModal({
                       actions.removeHistoryRecord(currentDescriptor.historyKey, recordNumber)
                     }
                     onAddRecord={() => actions.addHistoryFromCatalog(currentDescriptor.historyKey)}
-                    className='min-h-0 flex-1 overflow-y-auto pr-1 pb-2'
+                    className='h-full min-h-0 flex-1 overflow-y-auto pr-1 pb-2'
                   />
                 ) : null}
 

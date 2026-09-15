@@ -13,6 +13,7 @@ import { AttendanceHeaderActions } from './attendance-export-button';
 import { GenerateQRModal } from './generate-qr-modal';
 import { ManualAttendanceModal } from './manual-attendance-modal';
 import { Icons } from '@/components/icons';
+import { EmptyState } from '@/components/ui/empty-state';
 import { useAttendanceDashboard } from '../model/useAttendanceDashboard';
 
 export default function KehadiranPegawaiView() {
@@ -25,6 +26,71 @@ export default function KehadiranPegawaiView() {
         <div className='flex h-64 items-center justify-center'>
           <Icons.spinner className='size-8 animate-spin text-primary' />
         </div>
+      </PageContainer>
+    );
+  }
+
+  if (data.total === 0) {
+    return (
+      <PageContainer scrollable={false}>
+        <div className='flex flex-1 flex-col h-full min-h-0 font-sans select-none overflow-hidden'>
+          <div className='flex flex-wrap items-start justify-between gap-4 mb-4 shrink-0'>
+            <div>
+              <h1 className='text-xl sm:text-2xl font-bold tracking-tight text-foreground'>
+                Kehadiran Pegawai
+              </h1>
+              <p className='text-xs sm:text-sm text-muted-foreground mt-0.5'>
+                Kelola dan pantau presensi kehadiran dokter dan staf secara real-time.
+              </p>
+            </div>
+          </div>
+
+          <div className='flex flex-1 min-h-0 h-full w-full flex-col'>
+            <EmptyState
+              icon={Icons.calendar}
+              title='Belum Ada Data Kehadiran'
+              description='Belum ada catatan presensi kehadiran pegawai atau dokter yang tercatat hari ini.'
+              action={
+                <div className='flex items-center gap-2.5 flex-wrap justify-center'>
+                  <Button
+                    type='button'
+                    size='sm'
+                    onClick={attendanceDashboard.actions.openGenerateQR}
+                    className='text-xs font-semibold'
+                  >
+                    <Icons.qrCode className='mr-2 size-3.5' />
+                    <span>Generate QR Presensi</span>
+                  </Button>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='sm'
+                    onClick={attendanceDashboard.actions.openManualAttendance}
+                    className='text-xs font-medium'
+                  >
+                    <Icons.user className='mr-2 size-3.5' />
+                    <span>Presensi Manual</span>
+                  </Button>
+                </div>
+              }
+              className='h-full w-full flex-1'
+            />
+          </div>
+        </div>
+
+        {/* Generate QR Modal */}
+        <GenerateQRModal
+          isOpen={attendanceDashboard.isGenerateQRModalOpen}
+          onClose={attendanceDashboard.actions.closeGenerateQR}
+          config={data.qrConfig}
+          onActivated={attendanceDashboard.actions.activateQR}
+        />
+
+        {/* Manual Attendance Modal */}
+        <ManualAttendanceModal
+          isOpen={attendanceDashboard.isManualAttendanceModalOpen}
+          onClose={attendanceDashboard.actions.closeManualAttendance}
+        />
       </PageContainer>
     );
   }

@@ -27,67 +27,98 @@ export function AppointmentsView() {
 
   return (
     <div className='flex h-full min-h-0 flex-1 flex-col gap-4 select-none font-sans'>
-      {/* 1. Filter Toolbar Row with Actions */}
-      <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0'>
-        <AppointmentFilters
-          filters={appointmentsView.filters}
-          actions={appointmentsView.actions}
-          className='flex-1'
-        />
+      {/* 1. Filter Toolbar Row with Actions - Only rendered when data exists or filters are active */}
+      {(appointmentsView.totalAppointments > 0 || appointmentsView.hasActiveFilters) && (
+        <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0'>
+          <AppointmentFilters
+            filters={appointmentsView.filters}
+            actions={appointmentsView.actions}
+            className='flex-1'
+          />
 
-        <Button
-          onClick={appointmentsView.actions.openCreateModal}
-          className='shrink-0 text-xs md:text-sm'
-        >
-          <Icons.add className='mr-2 h-4 w-4' />
-          <span>Tambah Janji Temu</span>
-        </Button>
-      </div>
+          <Button
+            onClick={appointmentsView.actions.openCreateModal}
+            className='shrink-0 text-xs md:text-sm'
+          >
+            <Icons.add className='mr-2 h-4 w-4' />
+            <span>Tambah Janji Temu</span>
+          </Button>
+        </div>
+      )}
 
       {/* 2. Appointments Card Grid with ScrollArea */}
       <div className='relative flex flex-1 min-h-0 flex-col overflow-hidden'>
-        <div className='absolute inset-0 flex overflow-hidden'>
-          <ScrollArea className='h-full w-full pr-3'>
-            <div className='pb-20 pt-1'>
-              {appointmentsView.cards.length > 0 ? (
-                <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5'>
-                  {appointmentsView.cards.map(({ appointment, doctor }) => (
-                    <AppointmentCard
-                      key={appointment.id}
-                      appointment={appointment}
-                      doctor={doctor}
-                      onReschedule={appointmentsView.actions.openRescheduleModal}
-                      onViewDetails={appointmentsView.actions.openDetailsModal}
-                    />
-                  ))}
+        {appointmentsView.cards.length > 0 ? (
+          <>
+            <div className='absolute inset-0 flex overflow-hidden'>
+              <ScrollArea className='h-full w-full pr-3'>
+                <div className='pb-20 pt-1'>
+                  <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5'>
+                    {appointmentsView.cards.map(({ appointment, doctor }) => (
+                      <AppointmentCard
+                        key={appointment.id}
+                        appointment={appointment}
+                        doctor={doctor}
+                        onReschedule={appointmentsView.actions.openRescheduleModal}
+                        onViewDetails={appointmentsView.actions.openDetailsModal}
+                      />
+                    ))}
+                  </div>
                 </div>
-              ) : (
-                <EmptyState
-                  icon={Icons.search}
-                  title='Tidak ada janji temu ditemukan'
-                  description='Data janji temu akan ditampilkan di sini setelah tersedia.'
-                  className='min-h-[360px] my-auto'
-                />
-              )}
+              </ScrollArea>
             </div>
-          </ScrollArea>
-        </div>
 
-        {/* Floating Detached Glass Pagination Bar (Backdrop Blur Over Content) */}
-        {appointmentsView.filteredCount > 0 ? (
-          <div className='absolute bottom-0 inset-x-0 z-20 pointer-events-none flex justify-center'>
-            <div className='pointer-events-auto w-full'>
-              <AppointmentPagination
-                currentPage={appointmentsView.currentPage}
-                pageSize={appointmentsView.pageSize}
-                totalItems={appointmentsView.filteredCount}
-                onPageChange={appointmentsView.actions.changePage}
-                onPageSizeChange={appointmentsView.actions.changePageSize}
-                pageSizeOptions={[6, 12, 18, 24, 30]}
-              />
-            </div>
+            {/* Floating Detached Glass Pagination Bar (Backdrop Blur Over Content) */}
+            {appointmentsView.filteredCount > 0 ? (
+              <div className='absolute bottom-0 inset-x-0 z-20 pointer-events-none flex justify-center'>
+                <div className='pointer-events-auto w-full'>
+                  <AppointmentPagination
+                    currentPage={appointmentsView.currentPage}
+                    pageSize={appointmentsView.pageSize}
+                    totalItems={appointmentsView.filteredCount}
+                    onPageChange={appointmentsView.actions.changePage}
+                    onPageSizeChange={appointmentsView.actions.changePageSize}
+                    pageSizeOptions={[6, 12, 18, 24, 30]}
+                  />
+                </div>
+              </div>
+            ) : null}
+          </>
+        ) : (
+          <div className='flex flex-1 min-h-0 h-full w-full flex-col'>
+            <EmptyState
+              icon={Icons.search}
+              title='Tidak ada janji temu ditemukan'
+              description={
+                appointmentsView.hasActiveFilters
+                  ? 'Silakan sesuaikan kata kunci pencarian atau filter aktif Anda.'
+                  : 'Belum ada jadwal janji temu yang terdaftar saat ini.'
+              }
+              action={
+                appointmentsView.hasActiveFilters ? (
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    onClick={appointmentsView.actions.resetFilters}
+                    className='text-xs'
+                  >
+                    Reset Filter
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={appointmentsView.actions.openCreateModal}
+                    size='sm'
+                    className='text-xs md:text-sm'
+                  >
+                    <Icons.add className='mr-2 h-4 w-4' />
+                    <span>Tambah Janji Temu</span>
+                  </Button>
+                )
+              }
+              className='h-full w-full flex-1'
+            />
           </div>
-        ) : null}
+        )}
       </div>
 
       {/* Stepper Appointment Modal (Add & Reschedule) */}

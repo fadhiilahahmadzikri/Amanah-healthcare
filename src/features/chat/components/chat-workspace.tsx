@@ -6,6 +6,8 @@ import { ChatRailNav, type ChatRailTool } from './chat-rail-nav';
 import { ChatInboxSidebar } from './chat-inbox-sidebar';
 import { ChatMainArea } from './chat-main-area';
 import { PatientCrmSidebar } from './patient-crm-sidebar';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Icons } from '@/components/icons';
 
 export function UnifiedChatWorkspace() {
   const [activeTool, setActiveTool] = useState<ChatRailTool>('inbox');
@@ -20,6 +22,19 @@ export function UnifiedChatWorkspace() {
   } = useChatStore();
 
   const activeConversation = getActiveConversation();
+
+  if (conversations.length === 0) {
+    return (
+      <div className='flex flex-1 min-h-0 h-full w-full flex-col'>
+        <EmptyState
+          icon={Icons.chat}
+          title='Belum Ada Percakapan'
+          description='Belum ada riwayat pesan atau konsultasi pasien yang aktif saat ini.'
+          className='h-full w-full flex-1'
+        />
+      </div>
+    );
+  }
 
   return (
     <div className='w-full h-[calc(100vh-140px)] min-h-[620px] bg-card border border-border/80 rounded-[8px] overflow-hidden shadow-xs flex select-none'>

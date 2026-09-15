@@ -10,6 +10,7 @@ import {
   paginateAppointments,
   updateAppointmentList
 } from './appointmentViewModel';
+import { isAppointmentFilterActive } from './appointment-filters.rules';
 
 export interface AppointmentCardItem {
   appointment: Appointment;
@@ -19,6 +20,8 @@ export interface AppointmentCardItem {
 export interface UseAppointmentsViewResult {
   cards: AppointmentCardItem[];
   filteredCount: number;
+  totalAppointments: number;
+  hasActiveFilters: boolean;
   filters: AppointmentFilterState;
   currentPage: number;
   pageSize: number;
@@ -166,6 +169,8 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
   return {
     cards,
     filteredCount: filteredAppointments.length,
+    totalAppointments: appointments.length,
+    hasActiveFilters: isAppointmentFilterActive(filters),
     filters,
     currentPage,
     pageSize,

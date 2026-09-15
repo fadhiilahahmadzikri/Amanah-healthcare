@@ -39,46 +39,45 @@ export default function OperationalReportView() {
 
   return (
     <PageContainer
-      scrollable={true}
-      pageTitle='Laporan Operational Klinik'
+      scrollable={report.hasReportPeriods}
+      pageTitle='Laporan Operasional Klinik'
       pageDescription='Ringkasan performa operasional klinik dalam periode yang dipilih.'
       pageHeaderAction={
-        <div className='flex flex-wrap items-center gap-2.5'>
-          {/* 1. Date Range Filter Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant='outline'
-                size='default'
-                disabled={!report.hasReportPeriods}
-                className='h-9 text-xs font-medium gap-2 px-3.5 bg-card shadow-2xs border-border/70'
-              >
-                <Icons.calendar className='size-3.5 text-muted-foreground' />
-                <span>{periodLabel}</span>
-                <Icons.chevronDown className='size-3.5 text-muted-foreground' />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align='end' className='w-64 max-h-80 overflow-y-auto'>
-              <div className='px-2 py-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider'>
-                Pilih Periode Bulan
-              </div>
-              {report.reportPeriods.map((m) => (
-                <DropdownMenuItem
-                  key={m.monthKey}
-                  onClick={() => report.actions.changeMonth(m.monthKey)}
-                  className='text-xs font-medium flex items-center justify-between cursor-pointer'
+        report.hasReportPeriods ? (
+          <div className='flex flex-wrap items-center gap-2.5'>
+            {/* 1. Date Range Filter Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant='outline'
+                  size='default'
+                  className='h-9 text-xs font-medium gap-2 px-3.5 bg-card shadow-2xs border-border/70'
                 >
-                  <span>{m.monthName}</span>
-                  {report.selectedMonthKey === m.monthKey && (
-                    <Icons.check className='size-3.5 text-primary' />
-                  )}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  <Icons.calendar className='size-3.5 text-muted-foreground' />
+                  <span>{periodLabel}</span>
+                  <Icons.chevronDown className='size-3.5 text-muted-foreground' />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align='end' className='w-64 max-h-80 overflow-y-auto'>
+                <div className='px-2 py-1.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider'>
+                  Pilih Periode Bulan
+                </div>
+                {report.reportPeriods.map((m) => (
+                  <DropdownMenuItem
+                    key={m.monthKey}
+                    onClick={() => report.actions.changeMonth(m.monthKey)}
+                    className='text-xs font-medium flex items-center justify-between cursor-pointer'
+                  >
+                    <span>{m.monthName}</span>
+                    {report.selectedMonthKey === m.monthKey && (
+                      <Icons.check className='size-3.5 text-primary' />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-          {/* 2. Download PDF Button */}
-          {report.hasReportPeriods ? (
+            {/* 2. Download PDF Button */}
             <PDFDownloadButton
               document={<OperationalReportPDF data={data} />}
               fileName={`Laporan_Operasional_Klinik_${data.shortName}.pdf`}
@@ -87,17 +86,19 @@ export default function OperationalReportView() {
               size='default'
               className='h-9 text-xs font-semibold px-4 shadow-xs'
             />
-          ) : null}
-        </div>
+          </div>
+        ) : undefined
       }
     >
       {!report.hasReportPeriods ? (
-        <EmptyState
-          icon={Icons.barChart}
-          title='Belum Ada Laporan Operasional'
-          description='Data rekapitulasi operasional klinik untuk periode ini belum tersedia.'
-          className='min-h-[420px]'
-        />
+        <div className='flex flex-1 min-h-0 h-full w-full flex-col'>
+          <EmptyState
+            icon={Icons.barChart}
+            title='Belum Ada Laporan Operasional'
+            description='Data rekapitulasi operasional klinik untuk periode ini belum tersedia.'
+            className='h-full w-full flex-1'
+          />
+        </div>
       ) : (
         <div className='space-y-4 font-sans pb-8'>
           {/* 1. Top 4 Metric KPI Cards with Wave Sparklines */}

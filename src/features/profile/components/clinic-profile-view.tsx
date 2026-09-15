@@ -9,14 +9,16 @@ export function ClinicProfileView() {
     <PageContainer
       pageTitle='Profil Pasien'
       pageDescription='Informasi rekam medis, kartu BPJS, dan data akun klinik Anda'
-      scrollable
+      scrollable={false}
     >
-      <EmptyState
-        icon={Icons.user}
-        title='Profil pasien belum tersedia'
-        description='Data profil pasien akan ditampilkan di sini setelah sumber data tersambung.'
-        className='min-h-[calc(100vh-12rem)]'
-      />
+      <div className='flex flex-1 min-h-0 h-full w-full flex-col'>
+        <EmptyState
+          icon={Icons.user}
+          title='Profil pasien belum tersedia'
+          description='Data profil pasien akan ditampilkan di sini setelah sumber data tersambung.'
+          className='h-full w-full flex-1'
+        />
+      </div>
     </PageContainer>
   );
 }
