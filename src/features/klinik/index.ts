@@ -1,4 +1,9 @@
 export { AppointmentsView } from './components/appointments-view';
+export { AppointmentFilters } from './components/appointment-filters';
+export type {
+  AppointmentFiltersProps,
+  AppointmentFilterActions
+} from './components/appointment-filters';
 export { AppointmentPagination } from './components/appointment-pagination';
 export { GuideView } from './components/guide-view';
 export { QueueView } from './components/queue-view';

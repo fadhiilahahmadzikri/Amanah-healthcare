@@ -30,17 +30,8 @@ export function AppointmentsView() {
       {/* 1. Filter Toolbar Row with Actions */}
       <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0'>
         <AppointmentFilters
-          searchQuery={appointmentsView.filters.searchQuery}
-          onSearchChange={appointmentsView.actions.changeSearch}
-          monthFilter={appointmentsView.filters.monthFilter}
-          onMonthFilterChange={appointmentsView.actions.changeMonthFilter}
-          dateFilter={appointmentsView.filters.dateFilter}
-          onDateFilterChange={appointmentsView.actions.changeDateFilter}
-          selectedServices={appointmentsView.filters.selectedServices}
-          onSelectedServicesChange={appointmentsView.actions.changeSelectedServices}
-          selectedStatuses={appointmentsView.filters.selectedStatuses}
-          onSelectedStatusesChange={appointmentsView.actions.changeSelectedStatuses}
-          onResetAll={appointmentsView.actions.resetFilters}
+          filters={appointmentsView.filters}
+          actions={appointmentsView.actions}
           className='flex-1'
         />
 

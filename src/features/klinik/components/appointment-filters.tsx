@@ -1,430 +1,163 @@
 'use client';
 
-import React, { useState } from 'react';
+import * as React from 'react';
 import { Icons } from '@/components/icons';
-import { AppointmentStatus } from '../api/types';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator
-} from '@/components/ui/command';
+import { FacetedFilter } from '@/shared/ui/faceted-filter';
+import { DateFilter } from '@/shared/ui/date-filter';
+import { SearchInput } from '@/shared/ui/search-input';
+import { toggleItem } from '@/shared/lib/array/toggle-item';
+import { SERVICE_OPTIONS, STATUS_OPTIONS } from '../config/appointment-filter-options';
+import { buildMonthOptions, isAppointmentFilterActive } from '../model/appointment-filters.rules';
+import type { AppointmentStatus } from '../api/types';
+import type { AppointmentFilterState } from '../model/appointmentViewModel';
 import { cn } from '@/lib/utils';
 
+export interface AppointmentFilterActions {
+  changeSearch: (value: string) => void;
+  changeMonthFilter: (value: string) => void;
+  changeDateFilter: (value: Date | undefined) => void;
+  changeSelectedServices: (services: string[]) => void;
+  changeSelectedStatuses: (statuses: AppointmentStatus[]) => void;
+  resetFilters: () => void;
+}
+
 export interface AppointmentFiltersProps {
-  searchQuery: string;
-  onSearchChange: (val: string) => void;
-  monthFilter: string;
-  onMonthFilterChange: (month: string) => void;
-  dateFilter: Date | undefined;
-  onDateFilterChange: (date: Date | undefined) => void;
-  selectedServices: string[];
-  onSelectedServicesChange: (services: string[]) => void;
-  selectedStatuses: AppointmentStatus[];
-  onSelectedStatusesChange: (statuses: AppointmentStatus[]) => void;
-  onResetAll: () => void;
+  // Consolidated contract
+  filters?: AppointmentFilterState;
+  actions?: AppointmentFilterActions;
+
+  // Backwards-compatible discrete props
+  searchQuery?: string;
+  onSearchChange?: (val: string) => void;
+  monthFilter?: string;
+  onMonthFilterChange?: (month: string) => void;
+  dateFilter?: Date | undefined;
+  onDateFilterChange?: (date: Date | undefined) => void;
+  selectedServices?: string[];
+  onSelectedServicesChange?: (services: string[]) => void;
+  selectedStatuses?: AppointmentStatus[];
+  onSelectedStatusesChange?: (statuses: AppointmentStatus[]) => void;
+  onResetAll?: () => void;
   className?: string;
 }
 
-const MONTH_OPTIONS = [
-  { value: 'ALL', label: 'Semua Bulan' },
-  { value: 'Ags 2026', label: 'Agustus 2026' },
-  { value: 'Sep 2026', label: 'September 2026' },
-  { value: 'Okt 2026', label: 'Oktober 2026' }
-];
-
-const SERVICE_OPTIONS = [
-  'Penyakit Dalam',
-  'Spesialis Anak',
-  'Kebidanan & Kandungan',
-  'Dokter Gigi',
-  'Ortopedi & Traumatologi',
-  'Dermatologi',
-  'Jantung & Kardiovaskular',
-  'Spesialis Mata',
-  'Spesialis THT',
-  'Kesehatan Jiwa & Psikiatri',
-  'Neurologi / Saraf',
-  'Gizi Klinik'
-];
-
-const STATUS_OPTIONS: {
-  value: AppointmentStatus;
-  label: string;
-  dotColor: string;
-}[] = [
-  { value: 'CONFIRMED', label: 'Confirmed', dotColor: 'bg-emerald-500' },
-  { value: 'PENDING', label: 'Pending', dotColor: 'bg-amber-500' },
-  { value: 'CHECKED_IN', label: 'Checked In', dotColor: 'bg-indigo-500' },
-  { value: 'COMPLETED', label: 'Completed', dotColor: 'bg-purple-500' },
-  { value: 'CANCELLED', label: 'Cancelled', dotColor: 'bg-rose-500' }
-];
-
-function formatDateDisplay(d: Date): string {
-  const day = d.getDate();
-  const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'Mei',
-    'Jun',
-    'Jul',
-    'Ags',
-    'Sep',
-    'Okt',
-    'Nov',
-    'Des'
-  ];
-  return `${day} ${months[d.getMonth()]}`;
-}
-
 export function AppointmentFilters({
-  searchQuery,
-  onSearchChange,
-  monthFilter,
-  onMonthFilterChange,
-  dateFilter,
-  onDateFilterChange,
-  selectedServices,
-  onSelectedServicesChange,
-  selectedStatuses,
-  onSelectedStatusesChange,
-  onResetAll,
+  filters,
+  actions,
+  searchQuery: discreteQuery,
+  onSearchChange: discreteOnSearchChange,
+  monthFilter: discreteMonth,
+  onMonthFilterChange: discreteOnMonthChange,
+  dateFilter: discreteDate,
+  onDateFilterChange: discreteOnDateChange,
+  selectedServices: discreteServices,
+  onSelectedServicesChange: discreteOnServicesChange,
+  selectedStatuses: discreteStatuses,
+  onSelectedStatusesChange: discreteOnStatusesChange,
+  onResetAll: discreteOnResetAll,
   className
 }: AppointmentFiltersProps) {
-  const [isMonthOpen, setIsMonthOpen] = useState(false);
-  const [isDateOpen, setIsDateOpen] = useState(false);
-  const [isServiceOpen, setIsServiceOpen] = useState(false);
-  const [isStatusOpen, setIsStatusOpen] = useState(false);
+  // Resolve effective state & actions (supporting both consolidated and discrete props)
+  const currentFilters: AppointmentFilterState = React.useMemo(
+    () => ({
+      searchQuery: filters?.searchQuery ?? discreteQuery ?? '',
+      monthFilter: filters?.monthFilter ?? discreteMonth ?? 'ALL',
+      dateFilter: filters?.dateFilter ?? discreteDate,
+      selectedServices: filters?.selectedServices ?? discreteServices ?? [],
+      selectedStatuses: filters?.selectedStatuses ?? discreteStatuses ?? []
+    }),
+    [filters, discreteQuery, discreteMonth, discreteDate, discreteServices, discreteStatuses]
+  );
 
-  const isFiltered =
-    Boolean(searchQuery.trim()) ||
-    (monthFilter !== 'ALL' && monthFilter !== '') ||
-    Boolean(dateFilter) ||
-    selectedServices.length > 0 ||
-    selectedStatuses.length > 0;
+  const handleSearchChange = actions?.changeSearch ?? discreteOnSearchChange ?? (() => {});
+  const handleMonthChange = actions?.changeMonthFilter ?? discreteOnMonthChange ?? (() => {});
+  const handleDateChange = actions?.changeDateFilter ?? discreteOnDateChange ?? (() => {});
+  const handleServicesChange =
+    actions?.changeSelectedServices ?? discreteOnServicesChange ?? (() => {});
+  const handleStatusesChange =
+    actions?.changeSelectedStatuses ?? discreteOnStatusesChange ?? (() => {});
+  const handleReset = actions?.resetFilters ?? discreteOnResetAll ?? (() => {});
 
-  const handleToggleService = (service: string) => {
-    if (selectedServices.includes(service)) {
-      onSelectedServicesChange(selectedServices.filter((s) => s !== service));
-    } else {
-      onSelectedServicesChange([...selectedServices, service]);
-    }
-  };
+  const isFiltered = isAppointmentFilterActive(currentFilters);
+  const monthOptions = React.useMemo(() => buildMonthOptions(), []);
 
-  const handleToggleStatus = (status: AppointmentStatus) => {
-    if (selectedStatuses.includes(status)) {
-      onSelectedStatusesChange(selectedStatuses.filter((s) => s !== status));
-    } else {
-      onSelectedStatusesChange([...selectedStatuses, status]);
-    }
-  };
+  const serviceFacetOptions = React.useMemo(
+    () => SERVICE_OPTIONS.map((srv) => ({ value: srv, label: srv })),
+    []
+  );
 
   return (
     <div className={cn('flex flex-wrap items-center gap-2 font-sans select-none', className)}>
       {/* 1. Global Search Input */}
-      <div className='relative flex-1 min-w-[200px] max-w-[280px]'>
-        <Icons.search className='size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground' />
-        <Input
-          type='text'
-          aria-label='Pencarian Global'
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          placeholder='Pencarian Global...'
-          className='h-8 pl-8 pr-3 text-xs bg-card border border-border rounded-md text-foreground placeholder:text-muted-foreground focus-visible:ring-1 focus-visible:ring-primary shadow-2xs'
-        />
-      </div>
+      <SearchInput
+        value={currentFilters.searchQuery}
+        onChange={handleSearchChange}
+        placeholder='Pencarian Global...'
+        ariaLabel='Pencarian Global'
+      />
 
-      {/* 2. Month Filter (Bulan) */}
-      <Popover open={isMonthOpen} onOpenChange={setIsMonthOpen}>
-        <PopoverTrigger asChild>
-          <Button variant='outline' size='sm' className='h-8 border-dashed gap-1.5 text-xs'>
-            <Icons.calendar className='size-3.5 text-muted-foreground' />
-            <span>Bulan</span>
-            {monthFilter && monthFilter !== 'ALL' && (
-              <>
-                <Separator orientation='vertical' className='mx-0.5 h-3.5' />
-                <Badge variant='secondary' className='rounded-sm px-1 font-normal text-[11px]'>
-                  {monthFilter}
-                </Badge>
-              </>
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className='w-48 p-0' align='start'>
-          <Command>
-            <CommandInput placeholder='Pilih bulan...' />
-            <CommandList>
-              <CommandEmpty>Bulan tidak ditemukan.</CommandEmpty>
-              <CommandGroup>
-                {MONTH_OPTIONS.map((opt) => {
-                  const isSelected = monthFilter === opt.value;
-                  return (
-                    <CommandItem
-                      key={opt.value}
-                      onSelect={() => {
-                        onMonthFilterChange(opt.value);
-                        setIsMonthOpen(false);
-                      }}
-                      className='text-xs cursor-pointer'
-                    >
-                      <div
-                        className={cn(
-                          'mr-2 flex size-4 items-center justify-center rounded-[4px] border transition-colors',
-                          isSelected
-                            ? 'border-primary bg-primary text-white'
-                            : 'border-muted-foreground/40 opacity-60 [&_svg]:invisible'
-                        )}
-                      >
-                        <Icons.check className='size-3 text-white stroke-[3]' />
-                      </div>
-                      <span>{opt.label}</span>
-                    </CommandItem>
-                  );
-                })}
-              </CommandGroup>
-              {monthFilter !== 'ALL' && monthFilter !== '' && (
-                <>
-                  <CommandSeparator />
-                  <CommandGroup>
-                    <CommandItem
-                      onSelect={() => {
-                        onMonthFilterChange('ALL');
-                        setIsMonthOpen(false);
-                      }}
-                      className='justify-center text-center text-xs cursor-pointer'
-                    >
-                      Reset Bulan
-                    </CommandItem>
-                  </CommandGroup>
-                </>
-              )}
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+      {/* 2. Month Filter */}
+      <FacetedFilter<string>
+        title='Bulan'
+        icon={Icons.calendar}
+        mode='single'
+        options={monthOptions}
+        selectedValues={
+          currentFilters.monthFilter && currentFilters.monthFilter !== 'ALL'
+            ? [currentFilters.monthFilter]
+            : []
+        }
+        onSelect={(val) => handleMonthChange(val)}
+        onReset={() => handleMonthChange('ALL')}
+        resetLabel='Reset Bulan'
+        popoverWidth='w-48'
+      />
 
-      {/* 3. Date Filter (Tanggal Calendar Popover) */}
-      <Popover open={isDateOpen} onOpenChange={setIsDateOpen}>
-        <PopoverTrigger asChild>
-          <Button variant='outline' size='sm' className='h-8 border-dashed gap-1.5 text-xs'>
-            <Icons.calendar className='size-3.5 text-muted-foreground' />
-            <span>Tanggal</span>
-            {dateFilter && (
-              <>
-                <Separator orientation='vertical' className='mx-0.5 h-3.5' />
-                <Badge variant='secondary' className='rounded-sm px-1 font-normal text-[11px]'>
-                  {formatDateDisplay(dateFilter)}
-                </Badge>
-              </>
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className='w-auto p-0' align='start'>
-          <Calendar
-            mode='single'
-            selected={dateFilter}
-            onSelect={(d) => {
-              onDateFilterChange(d);
-              setIsDateOpen(false);
-            }}
-            initialFocus
-          />
-          {dateFilter && (
-            <div className='p-2 border-t border-border'>
-              <Button
-                variant='ghost'
-                size='sm'
-                onClick={() => {
-                  onDateFilterChange(undefined);
-                  setIsDateOpen(false);
-                }}
-                className='w-full text-xs h-7 justify-center'
-              >
-                Reset Tanggal
-              </Button>
-            </div>
-          )}
-        </PopoverContent>
-      </Popover>
+      {/* 3. Date Filter */}
+      <DateFilter
+        label='Tanggal'
+        selectedDate={currentFilters.dateFilter}
+        onSelectDate={handleDateChange}
+        resetLabel='Reset Tanggal'
+      />
 
       {/* 4. Layanan / Poli Filter */}
-      <Popover open={isServiceOpen} onOpenChange={setIsServiceOpen}>
-        <PopoverTrigger asChild>
-          <Button variant='outline' size='sm' className='h-8 border-dashed gap-1.5 text-xs'>
-            <Icons.plusCircle className='size-3.5 text-muted-foreground' />
-            <span>Layanan</span>
-            {selectedServices.length > 0 && (
-              <>
-                <Separator orientation='vertical' className='mx-0.5 h-3.5' />
-                <Badge variant='secondary' className='rounded-sm px-1 font-normal text-[11px]'>
-                  {selectedServices.length}
-                </Badge>
-                <div className='hidden items-center gap-1 xl:flex'>
-                  {selectedServices.length <= 2 ? (
-                    selectedServices.map((srv) => (
-                      <Badge
-                        key={srv}
-                        variant='secondary'
-                        className='rounded-sm px-1 font-normal text-[11px]'
-                      >
-                        {srv}
-                      </Badge>
-                    ))
-                  ) : (
-                    <Badge variant='secondary' className='rounded-sm px-1 font-normal text-[11px]'>
-                      {selectedServices.length} dipilih
-                    </Badge>
-                  )}
-                </div>
-              </>
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className='w-56 p-0' align='start'>
-          <Command>
-            <CommandInput placeholder='Cari layanan...' />
-            <CommandList>
-              <CommandEmpty>Layanan tidak ditemukan.</CommandEmpty>
-              <CommandGroup className='max-h-64 overflow-y-auto'>
-                {SERVICE_OPTIONS.map((srv) => {
-                  const isSelected = selectedServices.includes(srv);
-                  return (
-                    <CommandItem
-                      key={srv}
-                      onSelect={() => handleToggleService(srv)}
-                      className='text-xs cursor-pointer'
-                    >
-                      <div
-                        className={cn(
-                          'mr-2 flex size-4 items-center justify-center rounded-[4px] border transition-colors',
-                          isSelected
-                            ? 'border-primary bg-primary text-white'
-                            : 'border-muted-foreground/40 opacity-60 [&_svg]:invisible'
-                        )}
-                      >
-                        <Icons.check className='size-3 text-white stroke-[3]' />
-                      </div>
-                      <span className='truncate'>{srv}</span>
-                    </CommandItem>
-                  );
-                })}
-              </CommandGroup>
-              {selectedServices.length > 0 && (
-                <>
-                  <CommandSeparator />
-                  <CommandGroup>
-                    <CommandItem
-                      onSelect={() => onSelectedServicesChange([])}
-                      className='justify-center text-center text-xs cursor-pointer'
-                    >
-                      Reset Layanan
-                    </CommandItem>
-                  </CommandGroup>
-                </>
-              )}
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+      <FacetedFilter<string>
+        title='Layanan'
+        icon={Icons.plusCircle}
+        mode='multi'
+        options={serviceFacetOptions}
+        selectedValues={currentFilters.selectedServices}
+        onSelect={(service) =>
+          handleServicesChange(toggleItem(currentFilters.selectedServices, service))
+        }
+        onReset={() => handleServicesChange([])}
+        resetLabel='Reset Layanan'
+        popoverWidth='w-56'
+      />
 
       {/* 5. Status Filter */}
-      <Popover open={isStatusOpen} onOpenChange={setIsStatusOpen}>
-        <PopoverTrigger asChild>
-          <Button variant='outline' size='sm' className='h-8 border-dashed gap-1.5 text-xs'>
-            <Icons.plusCircle className='size-3.5 text-muted-foreground' />
-            <span>Status</span>
-            {selectedStatuses.length > 0 && (
-              <>
-                <Separator orientation='vertical' className='mx-0.5 h-3.5' />
-                <Badge variant='secondary' className='rounded-sm px-1 font-normal text-[11px]'>
-                  {selectedStatuses.length}
-                </Badge>
-                <div className='hidden items-center gap-1 xl:flex'>
-                  {selectedStatuses.length <= 2 ? (
-                    selectedStatuses.map((st) => (
-                      <Badge
-                        key={st}
-                        variant='secondary'
-                        className='rounded-sm px-1 font-normal text-[11px]'
-                      >
-                        {st}
-                      </Badge>
-                    ))
-                  ) : (
-                    <Badge variant='secondary' className='rounded-sm px-1 font-normal text-[11px]'>
-                      {selectedStatuses.length} dipilih
-                    </Badge>
-                  )}
-                </div>
-              </>
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className='w-48 p-0' align='start'>
-          <Command>
-            <CommandInput placeholder='Filter status...' />
-            <CommandList>
-              <CommandEmpty>Status tidak ditemukan.</CommandEmpty>
-              <CommandGroup>
-                {STATUS_OPTIONS.map((opt) => {
-                  const isSelected = selectedStatuses.includes(opt.value);
-                  return (
-                    <CommandItem
-                      key={opt.value}
-                      onSelect={() => handleToggleStatus(opt.value)}
-                      className='text-xs cursor-pointer'
-                    >
-                      <div
-                        className={cn(
-                          'mr-2 flex size-4 items-center justify-center rounded-[4px] border transition-colors',
-                          isSelected
-                            ? 'border-primary bg-primary text-white'
-                            : 'border-muted-foreground/40 opacity-60 [&_svg]:invisible'
-                        )}
-                      >
-                        <Icons.check className='size-3 text-white stroke-[3]' />
-                      </div>
-                      <span className={cn('size-2 rounded-full mr-1.5 shrink-0', opt.dotColor)} />
-                      <span>{opt.label}</span>
-                    </CommandItem>
-                  );
-                })}
-              </CommandGroup>
-              {selectedStatuses.length > 0 && (
-                <>
-                  <CommandSeparator />
-                  <CommandGroup>
-                    <CommandItem
-                      onSelect={() => onSelectedStatusesChange([])}
-                      className='justify-center text-center text-xs cursor-pointer'
-                    >
-                      Reset Status
-                    </CommandItem>
-                  </CommandGroup>
-                </>
-              )}
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+      <FacetedFilter<AppointmentStatus>
+        title='Status'
+        icon={Icons.plusCircle}
+        mode='multi'
+        options={STATUS_OPTIONS}
+        selectedValues={currentFilters.selectedStatuses}
+        onSelect={(status) =>
+          handleStatusesChange(toggleItem(currentFilters.selectedStatuses, status))
+        }
+        onReset={() => handleStatusesChange([])}
+        resetLabel='Reset Status'
+        popoverWidth='w-48'
+      />
 
       {/* 6. Reset Filters Button */}
       {isFiltered && (
         <Button
           variant='ghost'
           size='sm'
-          onClick={onResetAll}
+          onClick={handleReset}
           className='h-8 px-2.5 text-xs border border-dashed border-border'
         >
           <Icons.close className='size-3.5 mr-1' />
