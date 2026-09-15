@@ -130,7 +130,7 @@ export function ModalWrapper({
           role='dialog'
           aria-modal='true'
           className={cn(
-            'relative z-10 my-auto w-full rounded-2xl border border-border/50 bg-card p-6 font-sans text-card-foreground shadow-2xl transition-[height] duration-300 ease-out sm:p-7',
+            'relative z-10 my-auto w-full rounded-2xl border border-border/50 bg-card p-6 font-sans text-card-foreground shadow-2xl transition-[max-width,width,max-height,height] duration-300 ease-out sm:p-7',
             maxWidth,
             className
           )}

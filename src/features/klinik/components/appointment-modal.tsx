@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useRef, useEffect } from 'react';
-import Image from 'next/image';
 import { Icons } from '@/components/icons';
 import gsap from 'gsap';
 import { Appointment, AppointmentFormData } from '../api/types';
@@ -119,6 +118,17 @@ export function AppointmentModal({
     }
   }, [isVisitTypeOpen]);
 
+  useEffect(() => {
+    if (stepContainerRef.current) {
+      stepContainerRef.current.scrollTop = 0;
+      gsap.fromTo(
+        stepContainerRef.current,
+        { opacity: 0.6, y: 4 },
+        { opacity: 1, y: 0, duration: 0.2, ease: 'power2.out' }
+      );
+    }
+  }, [reservation.currentStep, reservation.reservationEntryStep]);
+
   if (!isOpen) return null;
 
   return (
@@ -126,11 +136,13 @@ export function AppointmentModal({
       <ModalWrapper
         isOpen={isOpen && !reservation.activeMedicalFlow}
         onClose={onClose}
-        className={cn(reservation.modalMaxWidth, 'w-full')}
+        maxWidth={reservation.modalMaxWidth}
+        backdropClassName='overflow-hidden'
+        className='flex flex-col max-h-[95vh] max-h-[95dvh] w-full p-5 sm:p-6 overflow-hidden'
       >
-        <div className='flex flex-col gap-4 font-sans select-none'>
+        <div className='flex flex-col flex-auto min-h-0 justify-between gap-3 font-sans select-none'>
           {/* Header & Stepper */}
-          <div className='flex flex-col gap-2 border-b border-border pb-3'>
+          <div className='flex flex-col shrink-0 gap-2 border-b border-border pb-3'>
             <div className='flex items-center justify-between'>
               <h2 className='text-lg sm:text-xl font-bold text-foreground'>
                 {mode === 'create' ? 'Buat Janji Temu Baru' : 'Ubah Jadwal Janji Temu'}
@@ -142,7 +154,7 @@ export function AppointmentModal({
             />
           </div>
 
-          <div ref={stepContainerRef} className='min-h-[300px]'>
+          <div ref={stepContainerRef} className='flex-auto min-h-0 overflow-y-auto pr-1'>
             {/* STEP: KATEGORI LAYANAN */}
             {mode === 'create' && reservation.reservationEntryStep === 'category' && (
               <div className='space-y-4'>
@@ -219,6 +231,7 @@ export function AppointmentModal({
                   <ServiceBentoGrid
                     items={reservation.serviceSelectionItems}
                     onItemSelect={reservation.actions.selectServiceItem}
+                    cardClassName='min-h-[120px] sm:min-h-[135px] md:min-h-[145px]'
                   />
                 </div>
               </div>
@@ -238,11 +251,15 @@ export function AppointmentModal({
 
                 {/* Poliklinik Picker */}
                 <div className='space-y-1.5'>
-                  <label className='text-xs font-semibold text-foreground'>
+                  <label
+                    htmlFor='service-picker-trigger'
+                    className='text-xs font-semibold text-foreground'
+                  >
                     Poliklinik Layanan
                   </label>
                   <div className='relative'>
                     <button
+                      id='service-picker-trigger'
                       type='button'
                       onClick={() => setIsServiceOpen(!isServiceOpen)}
                       className='w-full flex items-center justify-between p-3 rounded-xl border border-border bg-card text-xs font-medium text-foreground transition-all hover:border-primary/50 text-left'
@@ -302,9 +319,15 @@ export function AppointmentModal({
 
                 {/* Tipe Kunjungan */}
                 <div className='space-y-1.5'>
-                  <label className='text-xs font-semibold text-foreground'>Tipe Kunjungan</label>
+                  <label
+                    htmlFor='visit-type-trigger'
+                    className='text-xs font-semibold text-foreground'
+                  >
+                    Tipe Kunjungan
+                  </label>
                   <div className='relative'>
                     <button
+                      id='visit-type-trigger'
                       type='button'
                       onClick={() => setIsVisitTypeOpen(!isVisitTypeOpen)}
                       className='w-full flex items-center justify-between p-3 rounded-xl border border-border bg-card text-xs font-medium text-foreground transition-all hover:border-primary/50 text-left'
@@ -353,8 +376,15 @@ export function AppointmentModal({
 
                 {/* Keluhan */}
                 <div className='space-y-1.5'>
-                  <label className='text-xs font-semibold text-foreground'>Keluhan Medis</label>
+                  <label
+                    htmlFor='complaint-input'
+                    className='text-xs font-semibold text-foreground'
+                  >
+                    Keluhan Medis
+                  </label>
                   <textarea
+                    id='complaint-input'
+                    aria-label='Keluhan Medis'
                     rows={3}
                     value={reservation.formData.complaint}
                     onChange={(e) => reservation.actions.setField('complaint', e.target.value)}
@@ -529,13 +559,13 @@ export function AppointmentModal({
 
           {/* Modal Bottom Actions */}
           {reservation.isServiceSelectionStep ? (
-            <div className='flex items-center justify-between pt-3.5 border-t border-border'>
+            <div className='flex items-center justify-between shrink-0 pt-3.5 border-t border-border'>
               <Button type='button' variant='ghost' size='md' shape='pill' onClick={onClose}>
                 Batal
               </Button>
             </div>
           ) : (
-            <div className='flex items-center justify-between pt-3.5 border-t border-border'>
+            <div className='flex items-center justify-between shrink-0 pt-3.5 border-t border-border'>
               <div>
                 {reservation.currentStep > 1 ||
                 (mode === 'create' && reservation.reservationEntryStep === 'form') ? (
