@@ -1,25 +1,25 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Icons } from '@/components/icons';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import { Icons } from "@/components/icons";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import { cn } from '@/lib/utils';
-import { ChevronLeftIcon, ChevronRightIcon } from '@radix-ui/react-icons';
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
-export interface AppointmentPaginationProps extends React.ComponentProps<'div'> {
+export interface AppointmentPaginationProps extends React.ComponentProps<"div"> {
   currentPage: number;
   pageSize: number;
   totalItems: number;
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
   pageSizeOptions?: number[];
+  itemLabel?: string;
 }
 
 export function AppointmentPagination({
@@ -28,7 +28,8 @@ export function AppointmentPagination({
   totalItems,
   onPageChange,
   onPageSizeChange,
-  pageSizeOptions = [10, 20, 30, 50],
+  pageSizeOptions = [6, 12, 18, 24, 30],
+  itemLabel = "janji temu",
   className,
   ...props
 }: AppointmentPaginationProps) {
@@ -39,18 +40,23 @@ export function AppointmentPagination({
   return (
     <div
       className={cn(
-        'sticky bottom-0 z-20 flex w-[calc(100%+2rem)] md:w-[calc(100%+3rem)] -mx-4 md:-mx-6 -mb-4 flex-wrap items-center justify-between gap-2 overflow-auto bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 py-3 px-4 md:px-6 border-t border-border shadow-[0_-4px_16px_rgba(0,0,0,0.06)] dark:shadow-[0_-4px_16px_rgba(0,0,0,0.3)] select-none sm:gap-8 mt-auto',
-        className
+        "flex w-full flex-wrap items-center justify-between gap-2 border-t border-border/50 bg-background/80 dark:bg-card/80 px-4 py-3 shadow-md backdrop-blur-xl supports-[backdrop-filter]:bg-background/70 dark:supports-[backdrop-filter]:bg-card/70 select-none sm:gap-6 transition-all",
+        className,
       )}
       {...props}
     >
-      <div className='text-muted-foreground text-xs sm:text-sm whitespace-nowrap'>
-        {totalItems} row(s) total.
+      {/* Total Items Info */}
+      <div className="text-xs sm:text-sm whitespace-nowrap text-muted-foreground pl-1">
+        <span className="font-semibold text-foreground">{totalItems}</span>{" "}
+        {itemLabel} terdaftar
       </div>
-      <div className='flex items-center gap-2 sm:gap-6 lg:gap-8'>
-        <div className='hidden items-center space-x-2 sm:flex'>
-          <p className='text-xs sm:text-sm font-medium whitespace-nowrap text-foreground'>
-            Rows per page
+
+      {/* Pagination Controls */}
+      <div className="flex items-center gap-2 sm:gap-6 lg:gap-8">
+        {/* Page Size Selector */}
+        <div className="hidden items-center space-x-2 sm:flex">
+          <p className="text-xs font-medium whitespace-nowrap text-muted-foreground">
+            Kartu per halaman
           </p>
           <Select
             value={`${pageSize}`}
@@ -59,61 +65,80 @@ export function AppointmentPagination({
               onPageChange(1);
             }}
           >
-            <SelectTrigger className='h-8 w-[4.5rem] text-xs [&[data-size]]:h-8'>
+            <SelectTrigger className="h-8 w-16 text-xs bg-background/80 shadow-2xs border-border/70 text-foreground [&[data-size]]:h-8">
               <SelectValue placeholder={`${pageSize}`} />
             </SelectTrigger>
-            <SelectContent side='top'>
-              {pageSizeOptions.map((pageSizeOpt) => (
-                <SelectItem key={pageSizeOpt} value={`${pageSizeOpt}`} className='text-xs'>
-                  {pageSizeOpt}
+            <SelectContent side="top">
+              {pageSizeOptions.map((opt) => (
+                <SelectItem key={opt} value={`${opt}`} className="text-xs">
+                  {opt}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
-        <div className='flex items-center justify-center text-xs sm:text-sm font-medium whitespace-nowrap text-foreground'>
-          Page {currentPage} of {pageCount}
+
+        {/* Current Page of Total */}
+        <div className="flex items-center justify-center text-xs font-medium whitespace-nowrap text-foreground">
+          Halaman{" "}
+          <span className="font-semibold text-foreground mx-1">
+            {currentPage}
+          </span>{" "}
+          dari {pageCount}
         </div>
-        <div className='flex items-center space-x-1'>
+
+        {/* Page Navigation Buttons */}
+        <div className="flex items-center space-x-1">
+          {/* First Page */}
           <Button
-            aria-label='Go to first page'
-            variant='outline'
-            size='icon'
-            className='hidden size-8 lg:flex'
+            type="button"
+            aria-label="Ke halaman pertama"
+            variant="outline"
+            size="icon"
+            className="hidden size-8 lg:flex shadow-2xs border-border/70 text-foreground bg-background/60 hover:bg-background"
             onClick={() => onPageChange(1)}
             disabled={!canPrevious}
           >
-            <Icons.chevronsLeft className='size-3.5' />
+            <Icons.chevronsLeft className="size-3.5" />
           </Button>
+
+          {/* Previous Page */}
           <Button
-            aria-label='Go to previous page'
-            variant='outline'
-            size='icon'
-            className='size-8'
+            type="button"
+            aria-label="Ke halaman sebelumnya"
+            variant="outline"
+            size="icon"
+            className="size-8 shadow-2xs border-border/70 text-foreground bg-background/60 hover:bg-background"
             onClick={() => onPageChange(currentPage - 1)}
             disabled={!canPrevious}
           >
-            <ChevronLeftIcon className='size-3.5' />
+            <Icons.chevronLeft className="size-3.5" />
           </Button>
+
+          {/* Next Page */}
           <Button
-            aria-label='Go to next page'
-            variant='outline'
-            size='icon'
-            className='size-8'
+            type="button"
+            aria-label="Ke halaman berikutnya"
+            variant="outline"
+            size="icon"
+            className="size-8 shadow-2xs border-border/70 text-foreground bg-background/60 hover:bg-background"
             onClick={() => onPageChange(currentPage + 1)}
             disabled={!canNext}
           >
-            <ChevronRightIcon className='size-3.5' />
+            <Icons.chevronRight className="size-3.5" />
           </Button>
+
+          {/* Last Page */}
           <Button
-            aria-label='Go to last page'
-            variant='outline'
-            size='icon'
-            className='hidden size-8 lg:flex'
+            type="button"
+            aria-label="Ke halaman terakhir"
+            variant="outline"
+            size="icon"
+            className="hidden size-8 lg:flex shadow-2xs border-border/70 text-foreground bg-background/60 hover:bg-background"
             onClick={() => onPageChange(pageCount)}
             disabled={!canNext}
           >
-            <Icons.chevronsRight className='size-3.5' />
+            <Icons.chevronsRight className="size-3.5" />
           </Button>
         </div>
       </div>

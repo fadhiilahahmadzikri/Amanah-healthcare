@@ -204,6 +204,9 @@ export const createAppointmentRecordWithQueue = (
 
   const doc = getDoctorByName(formData.doctor);
 
+  const timeMatch = formData.timeSlot.match(/(\d{1,2}[:.]\d{2})/);
+  const estimatedTime = timeMatch ? `${timeMatch[1].replace('.', ':')} WIB` : '09:00 WIB';
+
   const queueItem: QueueItem = {
     queue_number: queueNumber,
     patient_name: appointment.patient_name,
@@ -211,7 +214,7 @@ export const createAppointmentRecordWithQueue = (
     doctor_name: formData.doctor,
     poli: srv?.name || formData.service,
     room: doc?.location || 'Room 201',
-    estimated_time: formData.timeSlot.split('-')[0]?.trim() || '09:00 WIB',
+    estimated_time: estimatedTime,
     status: 'MENUNGGU',
     is_user: true,
     waiting_count: Math.max(1, currentPoliQueues.filter((q) => q.status === 'MENUNGGU').length)

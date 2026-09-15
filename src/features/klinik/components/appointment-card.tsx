@@ -61,15 +61,17 @@ export function AppointmentCard({
   const displayLocation = docInfo.location || 'Poli Umum, Room 101';
 
   // Time & duration parsing
-  const timeClean = (appointment.time || '16:15 - 16:45 WIB').replace(/WIB/i, '').trim();
-  const timeSplits = timeClean.split('-');
-  const startTime = timeSplits[0] ? timeSplits[0].trim().replace(':', '.') : '16.15';
-  const endTime = timeSplits[1] ? timeSplits[1].trim().replace(':', '.') : '16.45';
+  const timeStr = appointment.time || '16:15 - 16:45 WIB';
+  const timeRangeMatch = timeStr.match(/(\d{1,2}[:.]\d{2})\s*-\s*(\d{1,2}[:.]\d{2})/);
+  const sessionMatch = timeStr.match(/Sesi\s+[A-Za-z]+/i);
 
-  let durationText = '30 minutes';
-  if (timeSplits[0] && timeSplits[1]) {
-    const startParts = timeSplits[0].trim().replace('.', ':').split(':').map(Number);
-    const endParts = timeSplits[1].trim().replace('.', ':').split(':').map(Number);
+  const startTime = timeRangeMatch ? timeRangeMatch[1].replace(':', '.') : '08.00';
+  const endTime = timeRangeMatch ? timeRangeMatch[2].replace(':', '.') : '12.00';
+
+  let durationText = sessionMatch ? sessionMatch[0] : '30 minutes';
+  if (!sessionMatch && timeRangeMatch) {
+    const startParts = timeRangeMatch[1].replace('.', ':').split(':').map(Number);
+    const endParts = timeRangeMatch[2].replace('.', ':').split(':').map(Number);
     if (
       !isNaN(startParts[0]) &&
       !isNaN(startParts[1]) &&

@@ -1,21 +1,26 @@
-'use client';
+"use client";
 
-import React, { useState, useMemo, useEffect } from 'react';
-import { Icons } from '@/components/icons';
-import { toast } from 'sonner';
-import { Appointment, AppointmentStatus, AppointmentFormData } from '../api/types';
-import { AppointmentCard } from './appointment-card';
-import { AppointmentFilters } from './appointment-filters';
-import { AppointmentPagination } from './appointment-pagination';
-import { AppointmentModal } from './appointment-modal';
-import { DetailsModal } from './details-modal';
-import { Button } from '@/components/ui/button';
+import React, { useState, useMemo, useEffect } from "react";
+import { Icons } from "@/components/icons";
+import { toast } from "sonner";
+import {
+  Appointment,
+  AppointmentStatus,
+  AppointmentFormData,
+} from "../api/types";
+import { AppointmentCard } from "./appointment-card";
+import { AppointmentFilters } from "./appointment-filters";
+import { AppointmentPagination } from "./appointment-pagination";
+import { AppointmentModal } from "./appointment-modal";
+import { DetailsModal } from "./details-modal";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   getDoctorByName,
   loadStoredAppointments,
   saveAppointmentsToStorage,
-  createAppointmentRecord
-} from '../api/service';
+  createAppointmentRecord,
+} from "../api/service";
 
 export function AppointmentsView() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -34,20 +39,25 @@ export function AppointmentsView() {
   }, [appointments, isInitialized]);
 
   // Filter States
-  const [searchQuery, setSearchQuery] = useState('');
-  const [monthFilter, setMonthFilter] = useState('ALL');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [monthFilter, setMonthFilter] = useState("ALL");
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
-  const [selectedStatuses, setSelectedStatuses] = useState<AppointmentStatus[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<AppointmentStatus[]>(
+    [],
+  );
 
   // Pagination States
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(6);
 
   // Modal States
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
-  const [formModalMode, setFormModalMode] = useState<'create' | 'edit'>('create');
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [formModalMode, setFormModalMode] = useState<"create" | "edit">(
+    "create",
+  );
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<Appointment | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   // Reset page to 1 whenever filters change
@@ -77,8 +87,8 @@ export function AppointmentsView() {
   };
 
   const handleResetAllFilters = () => {
-    setSearchQuery('');
-    setMonthFilter('ALL');
+    setSearchQuery("");
+    setMonthFilter("ALL");
     setDateFilter(undefined);
     setSelectedServices([]);
     setSelectedStatuses([]);
@@ -91,8 +101,8 @@ export function AppointmentsView() {
       // 1. Global Search (Comprehensive fields)
       if (searchQuery.trim()) {
         const query = searchQuery.trim().toLowerCase();
-        const timeDots = (item.time || '').toLowerCase().replace(/:/g, '.');
-        const timeColons = (item.time || '').toLowerCase().replace(/\./g, ':');
+        const timeDots = (item.time || "").toLowerCase().replace(/:/g, ".");
+        const timeColons = (item.time || "").toLowerCase().replace(/\./g, ":");
 
         const searchableFields = [
           item.patient_name,
@@ -107,10 +117,10 @@ export function AppointmentsView() {
           timeColons,
           item.status,
           item.complaint,
-          item.visit_type
+          item.visit_type,
         ]
           .filter(Boolean)
-          .join(' ')
+          .join(" ")
           .toLowerCase();
 
         if (!searchableFields.includes(query)) {
@@ -119,8 +129,8 @@ export function AppointmentsView() {
       }
 
       // 2. Month Filter
-      if (monthFilter && monthFilter !== 'ALL') {
-        const monthKey = monthFilter.split(' ')[0];
+      if (monthFilter && monthFilter !== "ALL") {
+        const monthKey = monthFilter.split(" ")[0];
         if (!item.date.includes(monthKey)) {
           return false;
         }
@@ -130,18 +140,18 @@ export function AppointmentsView() {
       if (dateFilter) {
         const day = dateFilter.getDate();
         const months = [
-          'Jan',
-          'Feb',
-          'Mar',
-          'Apr',
-          'Mei',
-          'Jun',
-          'Jul',
-          'Ags',
-          'Sep',
-          'Okt',
-          'Nov',
-          'Des'
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "Mei",
+          "Jun",
+          "Jul",
+          "Ags",
+          "Sep",
+          "Okt",
+          "Nov",
+          "Des",
         ];
         const datePattern = `${day} ${months[dateFilter.getMonth()]}`;
         if (!item.date.includes(datePattern)) {
@@ -165,7 +175,14 @@ export function AppointmentsView() {
 
       return true;
     });
-  }, [appointments, searchQuery, monthFilter, dateFilter, selectedServices, selectedStatuses]);
+  }, [
+    appointments,
+    searchQuery,
+    monthFilter,
+    dateFilter,
+    selectedServices,
+    selectedStatuses,
+  ]);
 
   // Paginated records (10 items per page)
   const paginatedAppointments = useMemo(() => {
@@ -175,13 +192,13 @@ export function AppointmentsView() {
 
   const handleOpenCreateModal = () => {
     setSelectedAppointment(null);
-    setFormModalMode('create');
+    setFormModalMode("create");
     setIsFormModalOpen(true);
   };
 
   const handleOpenRescheduleModal = (item: Appointment) => {
     setSelectedAppointment(item);
-    setFormModalMode('edit');
+    setFormModalMode("edit");
     setIsFormModalOpen(true);
   };
 
@@ -195,7 +212,10 @@ export function AppointmentsView() {
     setAppointments(updated);
   };
 
-  const handleUpdateAppointment = (id: string, formData: AppointmentFormData) => {
+  const handleUpdateAppointment = (
+    id: string,
+    formData: AppointmentFormData,
+  ) => {
     setAppointments((prev) =>
       prev.map((item) => {
         if (item.id === id) {
@@ -207,17 +227,20 @@ export function AppointmentsView() {
             complaint: formData.complaint,
             visit_type: formData.visitType,
             service: formData.service,
-            updated_at: 'Hari ini, Baru saja'
+            updated_at: "Hari ini, Baru saja",
           };
         }
         return item;
-      })
+      }),
     );
-    toast.success('Jadwal janji temu berhasil diperbarui!');
+    toast.success("Jadwal janji temu berhasil diperbarui!");
   };
 
-  const handleFormSubmit = (data: AppointmentFormData, appointmentId?: string) => {
-    if (formModalMode === 'edit' && appointmentId) {
+  const handleFormSubmit = (
+    data: AppointmentFormData,
+    appointmentId?: string,
+  ) => {
+    if (formModalMode === "edit" && appointmentId) {
       handleUpdateAppointment(appointmentId, data);
     } else {
       handleAddAppointment(data);
@@ -225,9 +248,9 @@ export function AppointmentsView() {
   };
 
   return (
-    <div className='flex flex-1 flex-col space-y-4 font-sans'>
+    <div className="flex h-full min-h-0 flex-1 flex-col gap-4 select-none font-sans">
       {/* 1. Filter Toolbar Row with Actions */}
-      <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3'>
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0">
         <AppointmentFilters
           searchQuery={searchQuery}
           onSearchChange={handleSearchChange}
@@ -240,57 +263,71 @@ export function AppointmentsView() {
           selectedStatuses={selectedStatuses}
           onSelectedStatusesChange={handleSelectedStatusesChange}
           onResetAll={handleResetAllFilters}
-          className='flex-1'
+          className="flex-1"
         />
 
-        <Button onClick={handleOpenCreateModal} className='shrink-0 text-xs md:text-sm'>
-          <Icons.add className='mr-2 h-4 w-4' />
+        <Button
+          onClick={handleOpenCreateModal}
+          className="shrink-0 text-xs md:text-sm"
+        >
+          <Icons.add className="mr-2 h-4 w-4" />
           <span>Tambah Janji Temu</span>
         </Button>
       </div>
 
-      {/* 2. Cards Grid Container */}
-      <div className='flex-1 pb-4'>
-        {paginatedAppointments.length > 0 ? (
-          <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4'>
-            {paginatedAppointments.map((item) => {
-              const doctor = getDoctorByName(item.doctor_name);
-              return (
-                <AppointmentCard
-                  key={item.id}
-                  appointment={item}
-                  doctor={doctor}
-                  onReschedule={handleOpenRescheduleModal}
-                  onViewDetails={handleOpenDetailsModal}
-                />
-              );
-            })}
-          </div>
-        ) : (
-          /* Empty State */
-          <div className='flex flex-col items-center justify-center py-20 bg-card border border-border rounded-2xl text-center p-6 select-none my-auto'>
-            <div className='size-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground mb-3'>
-              <Icons.search className='size-6' />
+      {/* 2. Appointments Card Grid with ScrollArea */}
+      <div className="relative flex flex-1 min-h-0 flex-col overflow-hidden">
+        <div className="absolute inset-0 flex overflow-hidden">
+          <ScrollArea className="h-full w-full pr-3">
+            <div className="pb-20 pt-1">
+              {paginatedAppointments.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5">
+                  {paginatedAppointments.map((item) => {
+                    const doctor = getDoctorByName(item.doctor_name);
+                    return (
+                      <AppointmentCard
+                        key={item.id}
+                        appointment={item}
+                        doctor={doctor}
+                        onReschedule={handleOpenRescheduleModal}
+                        onViewDetails={handleOpenDetailsModal}
+                      />
+                    );
+                  })}
+                </div>
+              ) : (
+                /* Empty State */
+                <div className="flex flex-col items-center justify-center py-20 bg-card border border-border rounded-2xl text-center p-6 select-none my-auto">
+                  <div className="size-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground mb-3">
+                    <Icons.search className="size-6" />
+                  </div>
+                  <h3 className="text-sm font-semibold text-foreground">
+                    Tidak ada janji temu ditemukan
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1 max-w-sm">
+                    Coba sesuaikan kata kunci pencarian atau filter status
+                    konsultasi Anda.
+                  </p>
+                </div>
+              )}
             </div>
-            <h3 className='text-sm font-semibold text-foreground'>
-              Tidak ada janji temu ditemukan
-            </h3>
-            <p className='text-xs text-muted-foreground mt-1 max-w-sm'>
-              Coba sesuaikan kata kunci pencarian atau filter status konsultasi Anda.
-            </p>
-          </div>
-        )}
-      </div>
+          </ScrollArea>
+        </div>
 
-      {/* 3. Docked Bottom Sticky Pagination Bar (Directly pinned at viewport bottom) */}
-      <AppointmentPagination
-        currentPage={currentPage}
-        pageSize={pageSize}
-        totalItems={filteredAppointments.length}
-        onPageChange={setCurrentPage}
-        onPageSizeChange={setPageSize}
-        pageSizeOptions={[10, 20, 30, 50]}
-      />
+        {/* Floating Detached Glass Pagination Bar (Backdrop Blur Over Content) */}
+        <div className="absolute bottom-0 inset-x-0 z-20 pointer-events-none flex justify-center">
+          <div className="pointer-events-auto w-full">
+            <AppointmentPagination
+              currentPage={currentPage}
+              pageSize={pageSize}
+              totalItems={filteredAppointments.length}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={setPageSize}
+              pageSizeOptions={[6, 12, 18, 24, 30]}
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Stepper Appointment Modal (Add & Reschedule) */}
       <AppointmentModal
