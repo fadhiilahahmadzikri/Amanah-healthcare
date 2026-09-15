@@ -3,9 +3,9 @@
 import React, { useState, useMemo } from 'react';
 import { Icons } from '@/components/icons';
 import {
-  initialDoctorSchedules,
+  getDoctorScheduleByName,
   isDoctorOnLeaveOnDay
-} from '@/constants/mock-api-doctor-schedules';
+} from '@/features/jadwal-dokter/api/service';
 import type { DoctorSchedule, ScheduleDayStatus } from '@/features/jadwal-dokter/api/types';
 import { cn } from '@/lib/utils';
 
@@ -56,11 +56,7 @@ export function AppointmentCalendarDayPicker({
   className
 }: AppointmentCalendarDayPickerProps) {
   const doctorSchedule: DoctorSchedule | undefined = useMemo(() => {
-    return (
-      initialDoctorSchedules.find(
-        (d) => d.nama_dokter.toLowerCase() === doctorName.toLowerCase()
-      ) || initialDoctorSchedules[0]
-    );
+    return getDoctorScheduleByName(doctorName);
   }, [doctorName]);
 
   const today = new Date();

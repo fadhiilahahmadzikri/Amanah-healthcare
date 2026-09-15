@@ -1,17 +1,15 @@
 'use client';
 
 import type { FacilityItem } from '../types';
-import { useGSAP } from '@gsap/react';
-import gsap from 'gsap';
 import Image from 'next/image';
-import { useEffect, useRef } from 'react';
 import {
   HealthcareHeading,
   HealthcareText,
+  PixelMeshBackground,
   PixelIcon
 } from '@/features/public-site/components/shared';
-import { PixelMeshBackground } from '@/features/public-site/pages/about/components/atoms/PixelMeshBackground';
 import { cn } from '@/features/public-site/lib/helpers';
+import { useFacilityCardMotion } from '../model/useFacilityCardMotion';
 
 type FacilityCardProps = {
   facility: FacilityItem;
@@ -36,130 +34,17 @@ export function FacilityCard({
   onCardHover,
   onCardClick
 }: FacilityCardProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const bgRef = useRef<HTMLDivElement>(null);
-  const iconRef = useRef<HTMLDivElement>(null);
-  const cornerMeshRef = useRef<HTMLDivElement>(null);
-  const progressBarRef = useRef<HTMLDivElement>(null);
-  const progressTweenRef = useRef<gsap.core.Tween | null>(null);
-  const isFirstRender = useRef<boolean>(true);
-
-  // Synchronize card reveal with active state using robust GSAP tweens
-  useGSAP(
-    () => {
-      if (isFirstRender.current) {
-        isFirstRender.current = false;
-        if (isActive) {
-          gsap.set(iconRef.current, { y: -14, opacity: 0, scale: 0.75 });
-          gsap.set(cornerMeshRef.current, { opacity: 0 });
-          gsap.set(bgRef.current, { opacity: 1, scale: 1.05 });
-        } else {
-          gsap.set(iconRef.current, { y: 0, opacity: 1, scale: 1 });
-          gsap.set(cornerMeshRef.current, { opacity: 1 });
-          gsap.set(bgRef.current, { opacity: 0, scale: 1 });
-        }
-        return;
-      }
-
-      if (isActive) {
-        // Active: background image reveals, icon & corner mesh fade out
-        gsap.to(iconRef.current, {
-          y: -14,
-          opacity: 0,
-          scale: 0.75,
-          duration: 0.25,
-          ease: 'power2.in',
-          overwrite: 'auto'
-        });
-        gsap.to(cornerMeshRef.current, {
-          opacity: 0,
-          duration: 0.25,
-          ease: 'power2.in',
-          overwrite: 'auto'
-        });
-        gsap.to(bgRef.current, {
-          opacity: 1,
-          scale: 1.05,
-          duration: 0.5,
-          ease: 'power2.out',
-          overwrite: 'auto'
-        });
-      } else {
-        // Inactive: background image conceals, icon & corner mesh fade back in
-        gsap.to(iconRef.current, {
-          y: 0,
-          opacity: 1,
-          scale: 1,
-          duration: 0.35,
-          ease: 'power2.out',
-          overwrite: 'auto'
-        });
-        gsap.to(cornerMeshRef.current, {
-          opacity: 1,
-          duration: 0.45,
-          ease: 'power2.out',
-          overwrite: 'auto'
-        });
-        gsap.to(bgRef.current, {
-          opacity: 0,
-          scale: 1,
-          duration: 0.35,
-          ease: 'power2.in',
-          overwrite: 'auto'
-        });
-      }
-    },
-    { dependencies: [isActive], scope: cardRef }
-  );
-
-  // Synchronize progressive interval bar
-  useEffect(() => {
-    const bar = progressBarRef.current;
-    if (!bar) {
-      return;
-    }
-
-    if (isActive) {
-      if (!progressTweenRef.current) {
-        gsap.set(bar, { scaleX: 0, transformOrigin: 'left' });
-        progressTweenRef.current = gsap.to(bar, {
-          scaleX: 1,
-          duration: progressDuration,
-          ease: 'none',
-          onComplete: () => {
-            progressTweenRef.current = null;
-            onProgressComplete(index);
-          }
-        });
-      }
-
-      if (isPaused) {
-        progressTweenRef.current?.pause();
-      } else {
-        progressTweenRef.current?.resume();
-      }
-    } else {
-      if (progressTweenRef.current) {
-        progressTweenRef.current.kill();
-        progressTweenRef.current = null;
-      }
-      gsap.to(bar, {
-        scaleX: 0,
-        duration: 0.2,
-        ease: 'power2.out'
-      });
-    }
-  }, [isActive, isPaused, index, progressDuration, onProgressComplete]);
-
-  useEffect(() => {
-    return () => {
-      progressTweenRef.current?.kill();
-    };
-  }, []);
+  const motion = useFacilityCardMotion({
+    index,
+    isActive,
+    isPaused,
+    onProgressComplete,
+    progressDuration
+  });
 
   return (
     <div
-      ref={cardRef}
+      ref={motion.cardRef}
       onMouseEnter={() => onCardHover(index)}
       onClick={() => onCardClick?.(index)}
       onFocus={() => onCardHover(index)}
@@ -196,7 +81,7 @@ export function FacilityCard({
         '
       >
         <div
-          ref={progressBarRef}
+          ref={motion.progressBarRef}
           className='
             size-full origin-left scale-x-0 bg-amanah-blue
             shadow-[0_1px_6px_rgba(49,113,222,0.4)] will-change-transform
@@ -207,7 +92,7 @@ export function FacilityCard({
 
       {/* Top-Right Corner Pixel Mesh Texture (Active when closed, behind photo layer) */}
       <div
-        ref={cornerMeshRef}
+        ref={motion.cornerMeshRef}
         aria-hidden='true'
         className='
           pointer-events-none absolute -top-1 -right-1 z-0 size-44
@@ -225,7 +110,7 @@ export function FacilityCard({
 
       {/* Slot 5: Background Layer (z-1 covers corner mesh cleanly) */}
       <div
-        ref={bgRef}
+        ref={motion.bgRef}
         aria-hidden='true'
         data-card-bg
         className='
@@ -271,7 +156,7 @@ export function FacilityCard({
       {/* Slot 2: Pixel Botanical Icon (No wrapper, pure pixel art) */}
       <div className='relative z-10'>
         <div
-          ref={iconRef}
+          ref={motion.iconRef}
           data-facility-icon
           className='inline-flex shrink-0 items-center justify-center will-change-[transform,opacity]'
         >

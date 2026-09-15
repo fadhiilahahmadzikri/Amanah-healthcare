@@ -33,20 +33,20 @@ export function PatientDetailsModal({
 
   const statusConfig = getStatusConfig(patient.account_status);
 
-  const nikDisplay = patient.nik_ktp || patient.nik || '3171022207850003';
-  const ibuKandungDisplay = patient.nama_ibu_kandung || 'Aminah';
-  const tempatLahirDisplay = patient.tempat_lahir || 'Jakarta';
-  const tanggalLahirDisplay = patient.tanggal_lahir || '22/07/1985';
-  const usiaDisplay = `${patient.age || 41} tahun`;
-  const pekerjaanDisplay = patient.pekerjaan || 'Wiraswasta';
-  const domisiliDisplay =
-    patient.domisili || patient.address || 'Jl. Sudirman No. 45, Blok C, Jakarta Pusat';
-  const teleponDisplay = patient.nomor_telepon_wa || patient.phone || '0821-5678-9012';
-  const emailDisplay = patient.email_pasien || patient.email || 'fauzi.ahmad@yahoo.com';
-  const registrasiDisplay = patient.tanggal_registrasi_akun || '05/03/2024';
-  const loginPertamaDisplay = patient.login_pertama_kali || '5 Maret 2024, 08:30 WIB';
-  const kunjunganTerakhirDisplay = patient.kunjungan_terakhir || '14 Agustus 2026';
-  const totalKunjunganDisplay = `${patient.total_kunjungan || 9} kali`;
+  const nikDisplay = patient.nik_ktp || patient.nik || '-';
+  const ibuKandungDisplay = patient.nama_ibu_kandung || '-';
+  const tempatLahirDisplay = patient.tempat_lahir || '-';
+  const tanggalLahirDisplay = patient.tanggal_lahir || patient.birth_date || '-';
+  const usiaDisplay = patient.age !== undefined ? `${patient.age} tahun` : '-';
+  const pekerjaanDisplay = patient.pekerjaan || '-';
+  const domisiliDisplay = patient.domisili || patient.address || '-';
+  const teleponDisplay = patient.nomor_telepon_wa || patient.phone || '-';
+  const emailDisplay = patient.email_pasien || patient.email || '-';
+  const registrasiDisplay = patient.tanggal_registrasi_akun || '-';
+  const loginPertamaDisplay = patient.login_pertama_kali || '-';
+  const kunjunganTerakhirDisplay = patient.kunjungan_terakhir || '-';
+  const totalKunjunganDisplay =
+    patient.total_kunjungan !== undefined ? `${patient.total_kunjungan} kali` : '-';
 
   return (
     <ModalWrapper
@@ -148,7 +148,7 @@ export function PatientDetailsModal({
                 Jenis Kelamin & Golongan Darah
               </span>
               <span className='text-sm font-medium text-muted-foreground block truncate select-text'>
-                {patient.gender} • Golongan {patient.blood_type || 'O+'}
+                {patient.gender} • Golongan {patient.blood_type || '-'}
               </span>
             </div>
 

@@ -1,4 +1,4 @@
-import { KehadiranLiveView } from '@/features/kehadiran-pegawai/components/kehadiran-live-view';
+import { KehadiranLiveView } from '@/features/kehadiran-pegawai';
 
 export const metadata = {
   title: 'Live Presensi Kiosk - Amanah Healthcare',

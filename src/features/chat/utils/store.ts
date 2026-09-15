@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 // import { persist } from 'zustand/middleware';
 import type { Attachment, Conversation, Message } from './types';
-import { initialConversations } from './data';
 
 type ReplyCursorState = Record<string, number>;
 
@@ -23,10 +22,10 @@ export const useChatStore = create<ChatState>()(
   // To enable persistence across refreshes, uncomment the persist wrapper below:
   // persist(
   (set, get) => ({
-    conversations: initialConversations,
-    selectedConversationId: initialConversations[0]?.id ?? '',
+    conversations: [],
+    selectedConversationId: '',
     draft: '',
-    replyCursor: Object.fromEntries(initialConversations.map((c) => [c.id, 0])),
+    replyCursor: {},
 
     selectConversation: (id) =>
       set((state) => ({

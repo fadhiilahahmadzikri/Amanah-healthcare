@@ -25,13 +25,13 @@ export function QueueSeatCard({ item, isNext = false, className, onClick }: Queu
   const initials =
     nameParts.length >= 2
       ? `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase()
-      : cleanName.slice(0, 2).toUpperCase() || 'PS';
+      : cleanName.slice(0, 2).toUpperCase() || '-';
 
   return (
     <div
       id={`seat-card-${item.queue_number}`}
       onClick={onClick}
-      title={`${item.queue_number} - ${item.patient_name} (${item.estimated_time || '10:30 WIB'})`}
+      title={`${item.queue_number || '-'} - ${item.patient_name || '-'} (${item.estimated_time || '-'})`}
       className={cn(
         'seat-grid-card relative group cursor-pointer select-none w-full max-w-[66px] sm:max-w-[74px] flex flex-col items-center mx-auto will-change-transform',
         className
@@ -81,7 +81,7 @@ export function QueueSeatCard({ item, isNext = false, className, onClick }: Queu
             ) : (
               <Image
                 src={item.patient_avatar}
-                alt={item.patient_name}
+                alt={item.patient_name || 'Pasien'}
                 width={80}
                 height={80}
                 unoptimized
@@ -96,7 +96,7 @@ export function QueueSeatCard({ item, isNext = false, className, onClick }: Queu
       {/* 3. Patient Name Caption */}
       <div className='w-full text-center mt-1 px-0.5'>
         <p className='text-[9.5px] sm:text-[10px] font-medium text-foreground truncate max-w-full leading-tight'>
-          {item.patient_name}
+          {item.patient_name || '-'}
         </p>
       </div>
     </div>

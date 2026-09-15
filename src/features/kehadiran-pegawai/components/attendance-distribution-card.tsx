@@ -12,14 +12,16 @@ import {
   YAxis
 } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Icons } from '@/components/icons';
 
-const UNIT_ATTENDANCE_DATA = [
-  { unit: 'Dokter', hadir: 12, total: 12 },
-  { unit: 'Perawat', hadir: 18, total: 20 },
-  { unit: 'Farmasi', hadir: 6, total: 6 },
-  { unit: 'Lab / Rad', hadir: 4, total: 5 },
-  { unit: 'Admin / Kasir', hadir: 6, total: 7 }
-];
+interface UnitAttendancePoint {
+  unit: string;
+  hadir: number;
+  total: number;
+}
+
+const UNIT_ATTENDANCE_DATA: UnitAttendancePoint[] = [];
 
 export function AttendanceDistributionCard() {
   return (
@@ -39,63 +41,72 @@ export function AttendanceDistributionCard() {
       <CardContent className='pb-4 pt-1'>
         {/* Bar Chart Visualisasi Kehadiran per Unit (Tinggi diselaraskan dengan chart tren 260px) */}
         <div className='h-[260px] w-full'>
-          <ResponsiveContainer width='100%' height='100%'>
-            <BarChart
-              data={UNIT_ATTENDANCE_DATA}
-              margin={{ top: 12, right: 12, left: -20, bottom: 0 }}
-              barGap={6}
-            >
-              <CartesianGrid
-                strokeDasharray='3 3'
-                vertical={false}
-                stroke='var(--border)'
-                opacity={0.5}
-              />
-              <XAxis
-                dataKey='unit'
-                tickLine={false}
-                axisLine={{ stroke: 'var(--border)' }}
-                tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={{ stroke: 'var(--border)' }}
-                tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
-                allowDecimals={false}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'var(--card)',
-                  borderColor: 'var(--border)',
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                  fontSize: '12px'
-                }}
-                cursor={{ fill: 'var(--muted)', opacity: 0.2 }}
-              />
-              <Legend
-                verticalAlign='top'
-                align='right'
-                iconType='circle'
-                wrapperStyle={{ fontSize: '11px', paddingBottom: '12px' }}
-              />
-              <Bar
-                dataKey='hadir'
-                name='Staf Hadir'
-                fill='var(--primary-bright, #2563eb)'
-                radius={[4, 4, 0, 0]}
-                maxBarSize={28}
-              />
-              <Bar
-                dataKey='total'
-                name='Total Jadwal'
-                fill='var(--muted-foreground)'
-                fillOpacity={0.25}
-                radius={[4, 4, 0, 0]}
-                maxBarSize={28}
-              />
-            </BarChart>
-          </ResponsiveContainer>
+          {UNIT_ATTENDANCE_DATA.length > 0 ? (
+            <ResponsiveContainer width='100%' height='100%'>
+              <BarChart
+                data={UNIT_ATTENDANCE_DATA}
+                margin={{ top: 12, right: 12, left: -20, bottom: 0 }}
+                barGap={6}
+              >
+                <CartesianGrid
+                  strokeDasharray='3 3'
+                  vertical={false}
+                  stroke='var(--border)'
+                  opacity={0.5}
+                />
+                <XAxis
+                  dataKey='unit'
+                  tickLine={false}
+                  axisLine={{ stroke: 'var(--border)' }}
+                  tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                />
+                <YAxis
+                  tickLine={false}
+                  axisLine={{ stroke: 'var(--border)' }}
+                  tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                  allowDecimals={false}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'var(--card)',
+                    borderColor: 'var(--border)',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                    fontSize: '12px'
+                  }}
+                  cursor={{ fill: 'var(--muted)', opacity: 0.2 }}
+                />
+                <Legend
+                  verticalAlign='top'
+                  align='right'
+                  iconType='circle'
+                  wrapperStyle={{ fontSize: '11px', paddingBottom: '12px' }}
+                />
+                <Bar
+                  dataKey='hadir'
+                  name='Staf Hadir'
+                  fill='var(--primary-bright, #2563eb)'
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={28}
+                />
+                <Bar
+                  dataKey='total'
+                  name='Total Jadwal'
+                  fill='var(--muted-foreground)'
+                  fillOpacity={0.25}
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={28}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyState
+              icon={Icons.barChart}
+              title='Belum ada distribusi kehadiran'
+              description='Distribusi kehadiran per unit akan ditampilkan setelah data tersedia.'
+              className='h-full min-h-[260px] border-0 bg-transparent'
+            />
+          )}
         </div>
       </CardContent>
     </Card>

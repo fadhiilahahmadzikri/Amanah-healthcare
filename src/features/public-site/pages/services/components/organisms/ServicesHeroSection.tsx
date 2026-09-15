@@ -8,9 +8,9 @@ import {
   AmanahScriptText,
   HealthcareHeading,
   HealthcareText,
+  PixelMeshBackground,
   SectionContainer
 } from '@/features/public-site/components/shared';
-import { PixelMeshBackground } from '@/features/public-site/pages/about/components/atoms/PixelMeshBackground';
 import { cn } from '@/features/public-site/lib/helpers';
 import { servicesHeroData } from '../../data';
 import { HeroCurvedVisual } from '../atoms/HeroCurvedVisual';

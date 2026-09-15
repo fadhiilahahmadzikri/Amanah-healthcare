@@ -1,8 +1,3 @@
-import {
-  INITIAL_STAFF_ATTENDANCE,
-  ATTENDANCE_METRICS_DATA,
-  INITIAL_QR_CONFIG
-} from '../constants/mock-data';
 import type {
   StaffAttendance,
   AttendanceFilterParams,
@@ -12,10 +7,40 @@ import type {
   AttendanceStatus
 } from './types';
 
+const emptyAttendanceMetrics: AttendanceMetrics = {
+  total_staf: 0,
+  staf_hadir: 0,
+  staf_tidak_hadir: 0,
+  tingkat_kehadiran: 0,
+  perubahan_total_staf: 0,
+  perubahan_staf_hadir: 0,
+  perubahan_staf_tidak_hadir: 0,
+  perubahan_tingkat_kehadiran: 0,
+  sparkline_total_staf: [],
+  sparkline_staf_hadir: [],
+  sparkline_staf_tidak_hadir: [],
+  sparkline_tingkat_kehadiran: []
+};
+
+const emptyQRPresenceConfig: QRPresenceConfig = {
+  status_presensi: 'Tidak aktif',
+  qr_code_identifier: '',
+  qr_context: '',
+  qr_validity: '',
+  rotation_seconds: 30
+};
+
+function getCurrentPresenceTime(): string {
+  return new Date().toLocaleTimeString('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
 class AttendanceService {
-  private records: StaffAttendance[] = [...INITIAL_STAFF_ATTENDANCE];
-  private metrics: AttendanceMetrics = { ...ATTENDANCE_METRICS_DATA };
-  private qrConfig: QRPresenceConfig = { ...INITIAL_QR_CONFIG };
+  private records: StaffAttendance[] = [];
+  private metrics: AttendanceMetrics = { ...emptyAttendanceMetrics };
+  private qrConfig: QRPresenceConfig = { ...emptyQRPresenceConfig };
 
   private calculateMetrics() {
     const total = this.records.length;
@@ -120,7 +145,7 @@ class AttendanceService {
     this.records[index] = {
       ...this.records[index],
       status,
-      waktu: status === 'Hadir' ? waktu || '08:00 WIB' : '-'
+      waktu: status === 'Hadir' ? waktu || `${getCurrentPresenceTime()} WIB` : '-'
     };
 
     this.calculateMetrics();

@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Icons } from '@/components/icons';
 import type { OperationalSummary } from '../types';
 
@@ -25,49 +26,61 @@ export function TopDoctorsCard({ doctors }: TopDoctorsCardProps) {
         </CardHeader>
 
         <CardContent className='pt-0 pb-2 space-y-2'>
-          {/* Table Header */}
-          <div className='flex items-center justify-between text-[11px] font-semibold text-muted-foreground/80 pb-1 border-b border-border/40'>
-            <span>Dokter</span>
-            <span>Total Pasien</span>
-          </div>
+          {doctors.length > 0 ? (
+            <>
+              {/* Table Header */}
+              <div className='flex items-center justify-between text-[11px] font-semibold text-muted-foreground/80 pb-1 border-b border-border/40'>
+                <span>Dokter</span>
+                <span>Total Pasien</span>
+              </div>
 
-          {/* List of Doctors */}
-          <div className='divide-y divide-border/30'>
-            {doctors.map((doc) => {
-              const initials = doc.name
-                .replace('dr. ', '')
-                .split(' ')
-                .map((n) => n[0])
-                .slice(0, 2)
-                .join('')
-                .toUpperCase();
+              {/* List of Doctors */}
+              <div className='divide-y divide-border/30'>
+                {doctors.map((doc) => {
+                  const initials =
+                    doc.name
+                      .replace('dr. ', '')
+                      .split(' ')
+                      .map((n) => n[0])
+                      .slice(0, 2)
+                      .join('')
+                      .toUpperCase() || '-';
 
-              return (
-                <div key={doc.id} className='py-2 flex items-center justify-between gap-3'>
-                  <div className='flex items-center gap-2.5 min-w-0'>
-                    <Avatar className='size-8 rounded-full ring-1 ring-border/40 shrink-0'>
-                      <AvatarImage src={doc.avatar} alt={doc.name} />
-                      <AvatarFallback className='text-[10px] bg-primary/10 text-primary font-bold'>
-                        {initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className='flex flex-col min-w-0'>
-                      <span className='text-xs font-semibold text-foreground truncate'>
-                        {doc.name}
-                      </span>
-                      <span className='text-[11px] text-muted-foreground truncate'>
-                        {doc.specialty}
+                  return (
+                    <div key={doc.id} className='py-2 flex items-center justify-between gap-3'>
+                      <div className='flex items-center gap-2.5 min-w-0'>
+                        <Avatar className='size-8 rounded-full ring-1 ring-border/40 shrink-0'>
+                          <AvatarImage src={doc.avatar} alt={doc.name} />
+                          <AvatarFallback className='text-[10px] bg-primary/10 text-primary font-bold'>
+                            {initials}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className='flex flex-col min-w-0'>
+                          <span className='text-xs font-semibold text-foreground truncate'>
+                            {doc.name}
+                          </span>
+                          <span className='text-[11px] text-muted-foreground truncate'>
+                            {doc.specialty}
+                          </span>
+                        </div>
+                      </div>
+
+                      <span className='text-xs font-bold text-foreground tabular-nums'>
+                        {doc.totalPatients}
                       </span>
                     </div>
-                  </div>
-
-                  <span className='text-xs font-bold text-foreground tabular-nums'>
-                    {doc.totalPatients}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <EmptyState
+              icon={Icons.user}
+              title='Belum ada data dokter'
+              description='Dokter dengan jumlah pasien terbanyak akan ditampilkan setelah data tersedia.'
+              className='min-h-[220px] border-0 bg-transparent'
+            />
+          )}
         </CardContent>
       </div>
 

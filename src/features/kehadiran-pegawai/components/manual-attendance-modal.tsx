@@ -4,11 +4,8 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Icons } from '@/components/icons';
 import { useRecordManualAttendanceMutation } from '../api/mutations';
-import { INITIAL_STAFF_ATTENDANCE } from '../constants/mock-data';
-import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 export interface ManualAttendanceModalProps {
@@ -19,13 +16,6 @@ export interface ManualAttendanceModalProps {
 export function ManualAttendanceModal({ isOpen, onClose }: ManualAttendanceModalProps) {
   const mutation = useRecordManualAttendanceMutation();
   const [staffId, setStaffId] = useState('');
-
-  // Lookup matched staff
-  const matchedStaff = INITIAL_STAFF_ATTENDANCE.find(
-    (s) =>
-      s.id_staf.toUpperCase() === staffId.trim().toUpperCase() ||
-      s.id.toUpperCase() === staffId.trim().toUpperCase()
-  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,16 +36,6 @@ export function ManualAttendanceModal({ isOpen, onClose }: ManualAttendanceModal
       }
     );
   };
-
-  const initials = matchedStaff
-    ? matchedStaff.nama_staf
-        .replace('dr. ', '')
-        .split(' ')
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase()
-    : 'ST';
 
   return (
     <ModalWrapper
@@ -87,41 +67,6 @@ export function ManualAttendanceModal({ isOpen, onClose }: ManualAttendanceModal
               autoFocus
             />
           </div>
-
-          {/* Matched Staff Preview Card */}
-          {matchedStaff && (
-            <div className='p-3 rounded-xl border border-border/40 bg-muted/20 flex items-center justify-between gap-3'>
-              <div className='flex items-center gap-2.5 min-w-0'>
-                <Avatar className='size-9 rounded-full ring-1 ring-border/40 shrink-0'>
-                  {matchedStaff.avatar && (
-                    <AvatarImage src={matchedStaff.avatar} alt={matchedStaff.nama_staf} />
-                  )}
-                  <AvatarFallback className='bg-primary/10 text-primary font-bold text-xs'>
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-                <div className='min-w-0'>
-                  <span className='text-xs font-bold text-foreground block truncate'>
-                    {matchedStaff.nama_staf}
-                  </span>
-                  <span className='text-[11px] text-muted-foreground block truncate'>
-                    {matchedStaff.id_staf} • {matchedStaff.kategori}
-                  </span>
-                </div>
-              </div>
-
-              <span
-                className={cn(
-                  'px-2 py-0.5 rounded-full text-[10.5px] font-semibold border shrink-0',
-                  matchedStaff.status === 'Hadir'
-                    ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
-                    : 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30'
-                )}
-              >
-                {matchedStaff.status}
-              </span>
-            </div>
-          )}
         </div>
 
         {/* 3. Footer Actions */}

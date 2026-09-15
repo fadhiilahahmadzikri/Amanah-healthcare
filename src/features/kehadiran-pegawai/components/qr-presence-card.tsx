@@ -32,7 +32,7 @@ export function QRPresenceCard({
   // Global store subscriber for rotation interval (default 30s)
   const rotationInterval = useQRStyleStore((s) => s.rotationSeconds) || 30;
   const [timeLeft, setTimeLeft] = useState(rotationInterval);
-  const [token, setToken] = useState(config.qr_code_identifier || 'K54TYU');
+  const [token, setToken] = useState(config.qr_code_identifier || '');
 
   const qrVisualRef = useRef<HTMLDivElement | null>(null);
   const tokenRef = useRef<HTMLDivElement | null>(null);
@@ -43,6 +43,10 @@ export function QRPresenceCard({
   useEffect(() => {
     setTimeLeft(rotationInterval);
   }, [rotationInterval]);
+
+  useEffect(() => {
+    setToken(config.qr_code_identifier || '');
+  }, [config.qr_code_identifier]);
 
   // GSAP-powered smooth blur-pulse rotation transition
   const rotateQRCodeWithGSAP = useCallback(() => {
@@ -151,7 +155,7 @@ export function QRPresenceCard({
   const qrPayload = React.useMemo(() => {
     return JSON.stringify({
       clinic: 'Amanah Healthcare',
-      shift: config.qr_context || 'Shift Pagi',
+      shift: config.qr_context || '',
       token: token
     });
   }, [config.qr_context, token]);
@@ -172,14 +176,14 @@ export function QRPresenceCard({
             className='size-2 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20 shrink-0'
           />
           <span className='text-xs font-semibold text-foreground truncate'>
-            {config.status_presensi || 'Aktif hingga 16:00 WIB'}
+            {config.status_presensi || 'Tidak aktif'}
           </span>
         </div>
 
         {/* Shift Pill & Aksi Toolbars */}
         <div className='flex items-center gap-1 shrink-0'>
           <span className='inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20 shrink-0'>
-            {config.qr_context || 'Shift Pagi'}
+            {config.qr_context || '-'}
           </span>
 
           {/* Tombol Presensi Manual dengan Tooltip */}
@@ -286,10 +290,10 @@ export function QRPresenceCard({
 
           <div ref={tokenRef} className='pt-1 will-change-transform'>
             <div className='text-3xl sm:text-4xl font-black tracking-widest text-foreground font-mono leading-none'>
-              {token}
+              {token || '-'}
             </div>
             <p className='text-[10.5px] text-muted-foreground mt-1.5'>
-              {config.qr_validity || 'QR Code akan berubah setiap pergantian shift'}
+              {config.qr_validity || '-'}
             </p>
           </div>
         </div>

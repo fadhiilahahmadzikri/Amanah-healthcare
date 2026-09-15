@@ -29,7 +29,7 @@ export function QueueSuccessModal({
 
   const handleDownload = () => {
     toast.success('Mencetak e-tiket antrean pasien...', {
-      description: `Nomor Antrean: ${queueItem?.queue_number || appointment?.booking_code || 'A-001'}`
+      description: `Nomor Antrean: ${queueItem?.queue_number || appointment?.booking_code || '-'}`
     });
     if (typeof window !== 'undefined') {
       window.print();
@@ -43,7 +43,7 @@ export function QueueSuccessModal({
 
   const handleToasterClick = () => {
     toast.info('Antrean Anda telah tercatat pada sistem RS Amanah.', {
-      description: `Poli: ${appointment?.service || queueItem?.poli || 'Poli Penyakit Dalam'}`
+      description: `Poli: ${appointment?.service || queueItem?.poli || '-'}`
     });
   };
 
@@ -89,16 +89,14 @@ export function QueueSuccessModal({
         /* STATE 2: REUSABLE QUEUE TICKET CARD DENGAN GSAP & CONFETTI */
         <div className='w-full flex justify-center py-1'>
           <QueueTicketCard
-            queueNumber={queueItem?.queue_number || 'A-001'}
-            serviceName={appointment?.service || queueItem?.poli || 'Poli Penyakit Dalam'}
-            doctorName={
-              appointment?.doctor_name || queueItem?.doctor_name || 'dr. Sarah Putri, Sp.PD'
-            }
-            dateStr={appointment?.date || 'Jumat, 21 Ags 2026'}
-            timeSlot={appointment?.time || '09:30 WIB'}
-            bookingCode={appointment?.booking_code || 'KLINIK-8R4NM'}
-            patientName={appointment?.patient_name || 'Rian Hidayat'}
-            roomName={queueItem?.room || 'Room 201'}
+            queueNumber={queueItem?.queue_number || '-'}
+            serviceName={appointment?.service || queueItem?.poli || '-'}
+            doctorName={appointment?.doctor_name || queueItem?.doctor_name || '-'}
+            dateStr={appointment?.date || '-'}
+            timeSlot={appointment?.time || ''}
+            bookingCode={appointment?.booking_code || ''}
+            patientName={appointment?.patient_name || '-'}
+            roomName={queueItem?.room || '-'}
             illustrationSrc='/assets/klinik/waiting-room.svg'
             onClose={onClose}
             onDownload={handleDownload}

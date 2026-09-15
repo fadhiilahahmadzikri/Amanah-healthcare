@@ -4,9 +4,9 @@ import type { ReactNode } from 'react';
 import {
   AmanahScriptText,
   HealthcareHeading,
-  HealthcareText
+  HealthcareText,
+  PixelMeshBackground
 } from '@/features/public-site/components/shared';
-import { PixelMeshBackground } from '@/features/public-site/pages/about/components/atoms/PixelMeshBackground';
 import { cn } from '@/features/public-site/lib/helpers';
 
 type ServiceInfoPanelProps = {

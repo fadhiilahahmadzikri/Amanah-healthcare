@@ -138,7 +138,6 @@ export function TestimonialVideoPlayer({ video }: TestimonialVideoPlayerProps) {
                 size-full scale-[1.2] border-0 object-cover transition-transform
                 duration-300 select-none
               '
-              sandbox='allow-scripts allow-presentation'
               allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
               allowFullScreen
             />

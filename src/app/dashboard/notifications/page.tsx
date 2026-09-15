@@ -1,4 +1,4 @@
-import NotificationsPage from '@/features/notifications/components/notifications-page';
+import { NotificationsPage } from '@/features/notifications';
 
 export const metadata = {
   title: 'Dashboard: Notifications'

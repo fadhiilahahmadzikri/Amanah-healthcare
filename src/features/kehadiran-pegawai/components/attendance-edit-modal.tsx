@@ -22,22 +22,29 @@ export interface AttendanceEditModalProps {
   onClose: () => void;
 }
 
+function getCurrentPresenceTime(): string {
+  return `${new Date().toLocaleTimeString('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit'
+  })} WIB`;
+}
+
 export function AttendanceEditModal({ attendance, isOpen, onClose }: AttendanceEditModalProps) {
   const updateMutation = useUpdateAttendanceMutation();
 
   const [status, setStatus] = useState<AttendanceStatus>('Hadir');
   const [shift, setShift] = useState<WorkShift>('Pagi');
   const [kategori, setKategori] = useState<StaffCategory>('Staf');
-  const [waktu, setWaktu] = useState<string>('08:00 WIB');
-  const [tanggal, setTanggal] = useState<string>('23/08/2026');
+  const [waktu, setWaktu] = useState<string>('');
+  const [tanggal, setTanggal] = useState<string>('');
 
   useEffect(() => {
     if (attendance) {
       setStatus(attendance.status);
       setShift(attendance.shift);
       setKategori(attendance.kategori);
-      setWaktu(attendance.waktu || '08:00 WIB');
-      setTanggal(attendance.tanggal_presensi || '23/08/2026');
+      setWaktu(attendance.waktu || '');
+      setTanggal(attendance.tanggal_presensi || '');
     }
   }, [attendance]);
 
@@ -136,7 +143,7 @@ export function AttendanceEditModal({ attendance, isOpen, onClose }: AttendanceE
                     if (val === 'Tidak Hadir') {
                       setWaktu('-');
                     } else if (waktu === '-') {
-                      setWaktu('08:00 WIB');
+                      setWaktu(getCurrentPresenceTime());
                     }
                   }}
                 >

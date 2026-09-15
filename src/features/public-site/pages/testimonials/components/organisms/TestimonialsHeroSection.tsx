@@ -1,12 +1,15 @@
 'use client';
 
 import type { TestimonialsHeroData } from '../../types';
-import type { PixelMeshBackgroundHandle } from '@/features/public-site/pages/about/components/atoms/PixelMeshBackground';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { useRef } from 'react';
-import { SectionContainer, SectionHeader } from '@/features/public-site/components/shared';
-import { PixelMeshBackground } from '@/features/public-site/pages/about/components/atoms/PixelMeshBackground';
+import {
+  PixelMeshBackground,
+  SectionContainer,
+  SectionHeader,
+  type PixelMeshBackgroundHandle
+} from '@/features/public-site/components/shared';
 import { cn } from '@/features/public-site/lib/helpers';
 
 type TestimonialsHeroSectionProps = {

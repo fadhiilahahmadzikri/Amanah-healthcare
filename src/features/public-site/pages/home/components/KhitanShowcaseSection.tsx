@@ -1,11 +1,7 @@
 'use client';
 
-import { useGSAP } from '@gsap/react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Play, Volume2, VolumeX } from 'lucide-react';
 import Link from 'next/link';
-import { useRef, useState } from 'react';
 import {
   AmanahScriptText,
   ArrowCtaButton,
@@ -15,8 +11,7 @@ import {
   type PixelIconName,
   SectionHeader
 } from '@/features/public-site/components/shared';
-
-gsap.registerPlugin(ScrollTrigger);
+import { useKhitanShowcase } from '../model/useKhitanShowcase';
 
 const khitanPixelIcons = [
   { name: 'roket', title: 'Roket Petualangan Anak' },
@@ -25,158 +20,11 @@ const khitanPixelIcons = [
 ] as const satisfies readonly { name: PixelIconName; title: string }[];
 
 export function KhitanShowcaseSection() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const videoWrapperRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [isMuted, setIsMuted] = useState(true);
-
-  const togglePlay = () => {
-    const video = videoRef.current;
-    if (!video) {
-      return;
-    }
-    if (isPlaying) {
-      video.pause();
-      setIsPlaying(false);
-    } else {
-      video
-        .play()
-        .then(() => setIsPlaying(true))
-        .catch(() => setIsPlaying(false));
-    }
-  };
-
-  const toggleMute = () => {
-    const video = videoRef.current;
-    if (!video) {
-      return;
-    }
-    video.muted = !isMuted;
-    setIsMuted(!isMuted);
-  };
-
-  useGSAP(
-    () => {
-      if (!sectionRef.current) {
-        return;
-      }
-
-      // Animate on scroll: Header pixel icons anime pop-in stagger & heading reveal
-      if (headerRef.current) {
-        const iconItems = headerRef.current.querySelectorAll('[data-header-icon]');
-        const heading = headerRef.current.querySelector('[data-mask-text]');
-
-        if (iconItems.length > 0) {
-          gsap.fromTo(
-            iconItems,
-            { scale: 0.35, y: 18, opacity: 0 },
-            {
-              scale: 1,
-              y: 0,
-              opacity: 1,
-              duration: 0.7,
-              stagger: 0.12,
-              ease: 'back.out(2)',
-              scrollTrigger: {
-                trigger: sectionRef.current,
-                start: 'top 85%',
-                toggleActions: 'play none none reverse'
-              }
-            }
-          );
-        }
-
-        if (heading) {
-          gsap.fromTo(
-            heading,
-            { yPercent: 120, opacity: 0 },
-            {
-              yPercent: 0,
-              opacity: 1,
-              duration: 1.1,
-              ease: 'expo.out',
-              scrollTrigger: {
-                trigger: sectionRef.current,
-                start: 'top 85%',
-                toggleActions: 'play none none reverse'
-              }
-            }
-          );
-        }
-      }
-
-      // Animate on scroll: Card container entrance
-      if (cardRef.current) {
-        gsap.fromTo(
-          cardRef.current,
-          { y: 40, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 1,
-            ease: 'expo.out',
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: 'top 80%',
-              toggleActions: 'play none none reverse'
-            }
-          }
-        );
-      }
-
-      // Animate on scroll: Left text staggered reveal
-      if (contentRef.current) {
-        const textElements = contentRef.current.querySelectorAll('[data-content-item]');
-        if (textElements.length > 0) {
-          gsap.fromTo(
-            textElements,
-            { y: 25, opacity: 0 },
-            {
-              y: 0,
-              opacity: 1,
-              duration: 0.9,
-              stagger: 0.1,
-              ease: 'expo.out',
-              scrollTrigger: {
-                trigger: cardRef.current ?? sectionRef.current,
-                start: 'top 78%',
-                toggleActions: 'play none none reverse'
-              }
-            }
-          );
-        }
-      }
-
-      // Animate on scroll: Right video container scale & fade
-      if (videoWrapperRef.current) {
-        gsap.fromTo(
-          videoWrapperRef.current,
-          { scale: 0.94, opacity: 0 },
-          {
-            scale: 1,
-            opacity: 1,
-            duration: 1.2,
-            ease: 'power2.out',
-            scrollTrigger: {
-              trigger: cardRef.current ?? sectionRef.current,
-              start: 'top 78%',
-              toggleActions: 'play none none reverse'
-            }
-          }
-        );
-      }
-    },
-    { scope: sectionRef }
-  );
+  const { refs, state, actions } = useKhitanShowcase();
 
   return (
     <section
-      ref={sectionRef}
+      ref={refs.sectionRef}
       id='khitan'
       className='
         relative w-full overflow-hidden bg-background py-14
@@ -185,7 +33,7 @@ export function KhitanShowcaseSection() {
       '
     >
       <SectionHeader
-        ref={headerRef}
+        ref={refs.headerRef}
         className='
           mb-10 w-full px-4
           sm:mb-12
@@ -222,7 +70,7 @@ export function KhitanShowcaseSection() {
       />
 
       {/* Wrapper mentok kanan-kiri tanpa padding/margin luar, bersatu dengan shell rails dan respect tema */}
-      <div ref={cardRef} className='w-full border-y border-line bg-card text-card-foreground'>
+      <div ref={refs.cardRef} className='w-full border-y border-line bg-card text-card-foreground'>
         <div
           className='
           flex w-full flex-col
@@ -231,7 +79,7 @@ export function KhitanShowcaseSection() {
         >
           {/* SISI KIRI (Desktop) / SISI BAWAH (Mobile): Cerita & kutipan Gibran */}
           <div
-            ref={contentRef}
+            ref={refs.contentRef}
             className='
               order-2 flex flex-1 flex-col justify-between p-6
               sm:p-8
@@ -336,7 +184,7 @@ export function KhitanShowcaseSection() {
 
           {/* SISI KANAN (Desktop) / SISI ATAS (Mobile): Video Vertikal 9:16 dari Gibran dengan autoplay */}
           <div
-            ref={videoWrapperRef}
+            ref={refs.videoWrapperRef}
             className='
               order-1 relative flex w-full shrink-0 items-center justify-center
               overflow-hidden border-b border-line bg-muted/30
@@ -351,16 +199,16 @@ export function KhitanShowcaseSection() {
             '
             >
               <video
-                ref={videoRef}
+                ref={refs.videoRef}
                 src='/healthcare/assets/videos/khitan-anak-gibran.mp4'
                 autoPlay
                 loop
-                muted={isMuted}
+                muted={state.isMuted}
                 playsInline
                 aria-label='Video dokumentasi khitan anak Gibran di Klinik Amanah'
                 className='size-full object-cover'
-                onPlay={() => setIsPlaying(true)}
-                onPause={() => setIsPlaying(false)}
+                onPlay={() => actions.setIsPlaying(true)}
+                onPause={() => actions.setIsPlaying(false)}
               >
                 <track
                   kind='captions'
@@ -373,15 +221,15 @@ export function KhitanShowcaseSection() {
               {/* Tombol Play/Pause Video */}
               <button
                 type='button'
-                onClick={togglePlay}
-                aria-label={isPlaying ? 'Jeda video' : 'Putar video'}
+                onClick={actions.togglePlay}
+                aria-label={state.isPlaying ? 'Jeda video' : 'Putar video'}
                 className='
                   group absolute inset-0 z-10 flex cursor-pointer items-center
                   justify-center bg-transparent transition-colors
                   hover:bg-black/20
                 '
               >
-                {!isPlaying && (
+                {!state.isPlaying && (
                   <span
                     className='
                     flex size-14 items-center justify-center rounded-full border
@@ -399,8 +247,8 @@ export function KhitanShowcaseSection() {
               <div className='absolute right-4 bottom-4 z-20'>
                 <button
                   type='button'
-                  onClick={toggleMute}
-                  aria-label={isMuted ? 'Nyalakan suara' : 'Bisukan suara'}
+                  onClick={actions.toggleMute}
+                  aria-label={state.isMuted ? 'Nyalakan suara' : 'Bisukan suara'}
                   className='
                     flex size-9 cursor-pointer items-center justify-center
                     rounded-full border border-white/20 bg-black/60 text-white
@@ -408,7 +256,7 @@ export function KhitanShowcaseSection() {
                     hover:bg-black/80
                   '
                 >
-                  {isMuted ? (
+                  {state.isMuted ? (
                     <VolumeX className='size-4' />
                   ) : (
                     <Volume2 className='size-4 text-amanah-blue' />

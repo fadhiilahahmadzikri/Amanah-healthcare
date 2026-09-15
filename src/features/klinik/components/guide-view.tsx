@@ -7,6 +7,7 @@ import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { EmptyState } from '@/components/ui/empty-state';
 import { cn } from '@/lib/utils';
 
 export interface GuideStepItem {
@@ -477,30 +478,24 @@ export function GuideView() {
             })}
           </div>
         ) : (
-          /* Empty Search Result */
-          <div className='bg-card rounded-2xl p-10 text-center border border-border/60 shadow-none space-y-3 flex flex-col items-center justify-center'>
-            <div className='size-12 rounded-full bg-muted text-muted-foreground flex items-center justify-center mx-auto ring-4 ring-muted/50'>
-              <Icons.search className='size-6 opacity-40' />
-            </div>
-            <div className='space-y-1'>
-              <h4 className='text-sm font-bold text-foreground'>Panduan Tidak Ditemukan</h4>
-              <p className='text-xs text-muted-foreground max-w-sm mx-auto'>
-                Tidak ada topik panduan yang cocok dengan kata kunci pencarian Anda. Coba gunakan
-                kata lain seperti janji temu, antrean, atau rekam medis.
-              </p>
-            </div>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={() => {
-                setSearchQuery('');
-                setActiveTab('Semua Panduan');
-              }}
-              className='text-xs rounded-xl'
-            >
-              Lihat Semua Panduan
-            </Button>
-          </div>
+          <EmptyState
+            icon={Icons.search}
+            title='Panduan Tidak Ditemukan'
+            description='Tidak ada topik panduan yang cocok dengan kata kunci pencarian Anda. Coba gunakan kata lain seperti janji temu, antrean, atau rekam medis.'
+            action={
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={() => {
+                  setSearchQuery('');
+                  setActiveTab('Semua Panduan');
+                }}
+                className='text-xs rounded-xl'
+              >
+                Lihat Semua Panduan
+              </Button>
+            }
+          />
         )}
       </div>
     </PageContainer>

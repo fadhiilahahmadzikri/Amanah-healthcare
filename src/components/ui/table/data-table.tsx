@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/table';
 import { getCommonPinningStyles } from '@/lib/data-table';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { EmptyState } from '@/components/ui/empty-state';
 
 import { DataTableBulkActions } from './data-table-bulk-actions';
 
@@ -21,6 +22,7 @@ interface DataTableProps<TData> extends React.ComponentProps<'div'> {
   onRowClick?: (row: TData) => void;
   entityName?: string;
   bulkActions?: React.ReactNode;
+  emptyState?: React.ReactNode;
 }
 
 const interactiveRowSelector = [
@@ -41,7 +43,8 @@ export function DataTable<TData>({
   children,
   onRowClick,
   entityName,
-  bulkActions
+  bulkActions,
+  emptyState
 }: DataTableProps<TData>) {
   const handleRowClick = (event: React.MouseEvent<HTMLTableRowElement>, row: TData) => {
     if (!onRowClick || event.defaultPrevented || isInteractiveElement(event.target)) return;
@@ -105,9 +108,15 @@ export function DataTable<TData>({
                     <TableRow>
                       <TableCell
                         colSpan={table.getAllColumns().length}
-                        className='h-24 text-center'
+                        className='h-[320px] p-6 text-center'
                       >
-                        No results.
+                        {emptyState ?? (
+                          <EmptyState
+                            title='Tidak ada data ditemukan'
+                            description='Data akan ditampilkan di sini setelah tersedia.'
+                            className='min-h-[260px] border-0 bg-transparent'
+                          />
+                        )}
                       </TableCell>
                     </TableRow>
                   )}
@@ -117,20 +126,22 @@ export function DataTable<TData>({
             <ScrollBar orientation='horizontal' />
           </ScrollArea>
         </div>
-        <div className='absolute bottom-0 inset-x-0 z-20 pointer-events-none flex justify-center'>
-          <div className='pointer-events-auto flex w-full flex-col gap-2.5'>
-            <DataTablePagination
-              table={table}
-              className='border-t border-border/50 bg-background/80 px-4 py-3 shadow-md backdrop-blur-xl supports-[backdrop-filter]:bg-background/70 dark:bg-card/80 dark:supports-[backdrop-filter]:bg-card/70 sm:gap-6'
-            />
-            {actionBar && table.getFilteredSelectedRowModel().rows.length > 0 && actionBar}
-            {bulkActions && (
-              <DataTableBulkActions table={table} entityName={entityName || 'row'}>
-                {bulkActions}
-              </DataTableBulkActions>
-            )}
+        {table.getFilteredRowModel().rows.length > 0 ? (
+          <div className='absolute bottom-0 inset-x-0 z-20 pointer-events-none flex justify-center'>
+            <div className='pointer-events-auto flex w-full flex-col gap-2.5'>
+              <DataTablePagination
+                table={table}
+                className='border-t border-border/50 bg-background/80 px-4 py-3 shadow-md backdrop-blur-xl supports-[backdrop-filter]:bg-background/70 dark:bg-card/80 dark:supports-[backdrop-filter]:bg-card/70 sm:gap-6'
+              />
+              {actionBar && table.getFilteredSelectedRowModel().rows.length > 0 && actionBar}
+              {bulkActions && (
+                <DataTableBulkActions table={table} entityName={entityName || 'row'}>
+                  {bulkActions}
+                </DataTableBulkActions>
+              )}
+            </div>
           </div>
-        </div>
+        ) : null}
       </div>
     </div>
   );

@@ -1,84 +1,33 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { attendanceQueries, attendanceKeys } from '../api/queries';
-import { QRPresenceCard } from './qr-presence-card';
-import { AttendanceTableCard } from './attendance-table-card';
-import { ManualAttendanceModal } from './manual-attendance-modal';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   DropdownMenu,
-  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
-import type { AttendanceFilterParams } from '../api/types';
+import { useAttendanceLiveView } from '../model/useAttendanceLiveView';
+import { AttendanceTableCard } from './attendance-table-card';
+import { ManualAttendanceModal } from './manual-attendance-modal';
+import { QRPresenceCard } from './qr-presence-card';
 
 export function KehadiranLiveView() {
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  const [params, setParams] = useState<AttendanceFilterParams>({
-    date: '23/08/2026',
-    shift: 'all',
-    status: 'all',
-    category: 'all',
-    search: '',
-    page: 1,
-    limit: 10
-  });
-
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isManualAttendanceModalOpen, setIsManualAttendanceModalOpen] = useState(false);
-
-  const { data, refetch } = useQuery(attendanceQueries.list(params));
-
-  const handleFilterChange = (newParams: Partial<AttendanceFilterParams>) => {
-    setParams((prev) => ({ ...prev, ...newParams }));
-  };
+  const attendanceLive = useAttendanceLiveView();
+  const { data } = attendanceLive;
 
   const handleResetFilter = () => {
-    setParams({
-      date: '23/08/2026',
-      shift: 'all',
-      status: 'all',
-      category: 'all',
-      search: '',
-      page: 1,
-      limit: 10
-    });
+    attendanceLive.actions.resetFilter();
     toast.info('Filter presensi telah direset.');
   };
 
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement
-        .requestFullscreen()
-        .then(() => setIsFullscreen(true))
-        .catch(() => {});
-    } else {
-      document
-        .exitFullscreen()
-        .then(() => setIsFullscreen(false))
-        .catch(() => {});
-    }
-  };
-
-  const handleClosePanel = () => {
-    try {
-      if (window.opener) {
-        window.close();
-      } else {
-        router.push('/dashboard/kehadiran-pegawai');
-      }
-    } catch {
-      router.push('/dashboard/kehadiran-pegawai');
-    }
+  const handleRefreshData = () => {
+    attendanceLive.actions.refreshData();
+    toast.success('Sinkronisasi data presensi real-time berhasil.');
   };
 
   if (!data) {
@@ -100,8 +49,8 @@ export function KehadiranLiveView() {
         <div className='lg:col-span-4 xl:col-span-4 h-full flex flex-col'>
           <QRPresenceCard
             config={data.qrConfig}
-            onGenerateNewToken={() => refetch()}
-            onOpenManualAttendance={() => setIsManualAttendanceModalOpen(true)}
+            onGenerateNewToken={attendanceLive.actions.generateNewToken}
+            onOpenManualAttendance={attendanceLive.actions.openManualAttendance}
             className='h-full'
           />
         </div>
@@ -114,8 +63,8 @@ export function KehadiranLiveView() {
             page={data.page}
             limit={data.limit}
             totalPages={data.totalPages}
-            params={params}
-            onFilterChange={handleFilterChange}
+            params={attendanceLive.params}
+            onFilterChange={attendanceLive.actions.changeFilter}
             onResetFilter={handleResetFilter}
             headerExtra={
               <div className='flex items-center gap-1.5'>
@@ -126,11 +75,7 @@ export function KehadiranLiveView() {
                       type='button'
                       variant='outline'
                       size='icon'
-                      onClick={() => {
-                        queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
-                        refetch();
-                        toast.success('Sinkronisasi data presensi real-time berhasil.');
-                      }}
+                      onClick={handleRefreshData}
                       className='size-8 rounded-md bg-background border-border/70 text-muted-foreground hover:text-foreground shadow-2xs'
                     >
                       <Icons.refresh className='size-3.5' />
@@ -166,12 +111,14 @@ export function KehadiranLiveView() {
                   <DropdownMenuContent align='end' className='w-56 font-sans text-xs'>
                     {/* Fullscreen Toggle */}
                     <DropdownMenuItem
-                      onClick={toggleFullscreen}
+                      onClick={attendanceLive.actions.toggleFullscreen}
                       className='gap-2 py-2 cursor-pointer font-medium'
                     >
                       <Icons.media className='size-3.5 text-primary' />
                       <span>
-                        {isFullscreen ? 'Keluar Mode Layar Penuh' : 'Mode Layar Penuh (Kiosk)'}
+                        {attendanceLive.isFullscreen
+                          ? 'Keluar Mode Layar Penuh'
+                          : 'Mode Layar Penuh (Kiosk)'}
                       </span>
                     </DropdownMenuItem>
 
@@ -179,7 +126,7 @@ export function KehadiranLiveView() {
 
                     {/* Tutup Panel Live */}
                     <DropdownMenuItem
-                      onClick={handleClosePanel}
+                      onClick={attendanceLive.actions.closePanel}
                       variant='destructive'
                       className='gap-2 py-2 cursor-pointer font-medium'
                     >
@@ -197,8 +144,8 @@ export function KehadiranLiveView() {
 
       {/* Manual Attendance Modal */}
       <ManualAttendanceModal
-        isOpen={isManualAttendanceModalOpen}
-        onClose={() => setIsManualAttendanceModalOpen(false)}
+        isOpen={attendanceLive.isManualAttendanceModalOpen}
+        onClose={attendanceLive.actions.closeManualAttendance}
       />
     </div>
   );

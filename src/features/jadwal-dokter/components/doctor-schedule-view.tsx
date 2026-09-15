@@ -1,155 +1,36 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { Icons } from '@/components/icons';
-import { doctorScheduleQueryOptions } from '../api/queries';
+import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
+import { useDoctorScheduleView } from '../model/useDoctorScheduleView';
 import { DoctorScheduleFilters } from './doctor-schedule-filters';
 import { DoctorScheduleCard } from './doctor-schedule-card';
 import { DoctorScheduleDetailSheet } from './doctor-schedule-detail-sheet';
 import { DoctorScheduleEditModal } from './doctor-schedule-edit-modal';
 import { DoctorExportButton } from './doctor-export-button';
 import { DoctorSchedulePagination } from './doctor-schedule-pagination';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
-import type { DoctorSchedule } from '../api/types';
 
 export function DoctorScheduleView() {
-  const [selectedDoctor, setSelectedDoctor] = useState<DoctorSchedule | null>(null);
-  const [detailOpen, setDetailOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-
-  const [params, setParams] = useQueryStates(
-    {
-      page: parseAsInteger.withDefault(1),
-      perPage: parseAsInteger.withDefault(6),
-      search: parseAsString.withDefault(''),
-      month: parseAsString.withDefault('ALL'),
-      date: parseAsString.withDefault(''),
-      poli: parseAsString.withDefault(''),
-      status: parseAsString.withDefault('')
-    },
-    { shallow: true }
-  );
-
-  const selectedPoli = useMemo(
-    () => (params.poli ? params.poli.split(',').filter(Boolean) : []),
-    [params.poli]
-  );
-
-  const selectedStatuses = useMemo(
-    () => (params.status ? params.status.split(',').filter(Boolean) : []),
-    [params.status]
-  );
-
-  const dateFilter = useMemo(() => {
-    if (!params.date) return undefined;
-    const parsed = new Date(params.date);
-    return isNaN(parsed.getTime()) ? undefined : parsed;
-  }, [params.date]);
-
-  const filters = useMemo(
-    () => ({
-      page: params.page,
-      limit: params.perPage,
-      ...(params.search ? { search: params.search } : {}),
-      ...(params.month && params.month !== 'ALL' ? { month: params.month } : {}),
-      ...(params.date ? { date: params.date } : {}),
-      ...(selectedPoli.length > 0 ? { poli: selectedPoli } : {}),
-      ...(selectedStatuses.length > 0 ? { status: selectedStatuses } : {})
-    }),
-    [
-      params.page,
-      params.perPage,
-      params.search,
-      params.month,
-      params.date,
-      selectedPoli,
-      selectedStatuses
-    ]
-  );
-
-  const { data, isFetching, isLoading } = useQuery(doctorScheduleQueryOptions(filters));
-  const doctors = data?.doctors ?? [];
-  const totalDoctors = data?.total_doctors ?? 0;
-
-  const handleOpenDetail = (doctor: DoctorSchedule) => {
-    setSelectedDoctor(doctor);
-    setDetailOpen(true);
-  };
-
-  const handleOpenEdit = (doctor: DoctorSchedule) => {
-    setSelectedDoctor(doctor);
-    setEditOpen(true);
-  };
-
-  const handleSearchChange = (val: string) => {
-    setParams({ search: val || null, page: 1 }, { shallow: true });
-  };
-
-  const handleMonthFilterChange = (month: string) => {
-    setParams({ month: month === 'ALL' ? null : month, page: 1 }, { shallow: true });
-  };
-
-  const handleDateFilterChange = (d: Date | undefined) => {
-    if (!d) {
-      setParams({ date: null, page: 1 }, { shallow: true });
-    } else {
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      setParams({ date: `${year}-${month}-${day}`, page: 1 }, { shallow: true });
-    }
-  };
-
-  const handleSelectedPoliChange = (poliList: string[]) => {
-    setParams(
-      { poli: poliList.length > 0 ? poliList.join(',') : null, page: 1 },
-      { shallow: true }
-    );
-  };
-
-  const handleSelectedStatusesChange = (statusList: string[]) => {
-    setParams(
-      { status: statusList.length > 0 ? statusList.join(',') : null, page: 1 },
-      { shallow: true }
-    );
-  };
-
-  const handleResetAll = () => {
-    setParams(
-      {
-        search: null,
-        month: null,
-        date: null,
-        poli: null,
-        status: null,
-        page: 1
-      },
-      { shallow: true }
-    );
-  };
+  const scheduleView = useDoctorScheduleView();
 
   return (
     <>
       {/* 1. Detail Sheet */}
       <DoctorScheduleDetailSheet
-        doctor={selectedDoctor}
-        isOpen={detailOpen}
-        onClose={() => setDetailOpen(false)}
-        onOpenEdit={(doc) => {
-          setSelectedDoctor(doc);
-          setDetailOpen(false);
-          setEditOpen(true);
-        }}
+        doctor={scheduleView.selectedDoctor}
+        isOpen={scheduleView.isDetailOpen}
+        onClose={scheduleView.actions.closeDetail}
+        onOpenEdit={scheduleView.actions.openEditFromDetail}
       />
 
       {/* 2. Edit Modal */}
       <DoctorScheduleEditModal
-        doctor={selectedDoctor}
-        isOpen={editOpen}
-        onClose={() => setEditOpen(false)}
+        doctor={scheduleView.selectedDoctor}
+        isOpen={scheduleView.isEditOpen}
+        onClose={scheduleView.actions.closeEdit}
       />
 
       {/* 3. Main Workspace Container */}
@@ -157,22 +38,22 @@ export function DoctorScheduleView() {
         {/* Toolbar Header (Search, Filters, Export) */}
         <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3'>
           <DoctorScheduleFilters
-            searchQuery={params.search}
-            onSearchChange={handleSearchChange}
-            monthFilter={params.month || 'ALL'}
-            onMonthFilterChange={handleMonthFilterChange}
-            dateFilter={dateFilter}
-            onDateFilterChange={handleDateFilterChange}
-            selectedPoli={selectedPoli}
-            onSelectedPoliChange={handleSelectedPoliChange}
-            selectedStatuses={selectedStatuses}
-            onSelectedStatusesChange={handleSelectedStatusesChange}
-            onResetAll={handleResetAll}
+            searchQuery={scheduleView.searchQuery}
+            onSearchChange={scheduleView.actions.changeSearch}
+            monthFilter={scheduleView.monthFilter}
+            onMonthFilterChange={scheduleView.actions.changeMonthFilter}
+            dateFilter={scheduleView.dateFilter}
+            onDateFilterChange={scheduleView.actions.changeDateFilter}
+            selectedPoli={scheduleView.selectedPoli}
+            onSelectedPoliChange={scheduleView.actions.changeSelectedPoli}
+            selectedStatuses={scheduleView.selectedStatuses}
+            onSelectedStatusesChange={scheduleView.actions.changeSelectedStatuses}
+            onResetAll={scheduleView.actions.resetFilters}
             className='flex-1'
           />
 
           <div className='flex items-center gap-2 shrink-0'>
-            <DoctorExportButton data={doctors} />
+            <DoctorExportButton data={scheduleView.doctors} />
           </div>
         </div>
 
@@ -183,10 +64,10 @@ export function DoctorScheduleView() {
               <div
                 className={cn(
                   'transition-opacity duration-150 pb-20 pt-1',
-                  isFetching && 'opacity-75'
+                  scheduleView.isFetching && 'opacity-75'
                 )}
               >
-                {isLoading && !data ? (
+                {scheduleView.isLoading && scheduleView.doctors.length === 0 ? (
                   <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5'>
                     {Array.from({ length: 6 }).map((_, i) => (
                       <div
@@ -195,24 +76,33 @@ export function DoctorScheduleView() {
                       />
                     ))}
                   </div>
-                ) : doctors.length === 0 ? (
-                  <div className='p-12 text-center border border-dashed border-border/80 rounded-2xl bg-card/40 my-4'>
-                    <Icons.clock className='size-10 text-muted-foreground/40 mx-auto mb-2' />
-                    <h3 className='text-sm font-bold text-foreground'>
-                      Tidak ada jadwal dokter ditemukan
-                    </h3>
-                    <p className='text-xs text-muted-foreground mt-1'>
-                      Coba sesuaikan kata kunci pencarian atau bersihkan filter yang aktif.
-                    </p>
-                  </div>
+                ) : scheduleView.doctors.length === 0 ? (
+                  <EmptyState
+                    icon={Icons.calendar}
+                    title='Tidak ada jadwal dokter ditemukan'
+                    description='Belum ada jadwal dokter yang tersedia atau silakan sesuaikan kata kunci pencarian dan filter aktif Anda.'
+                    action={
+                      scheduleView.hasActiveFilters ? (
+                        <Button
+                          variant='outline'
+                          size='sm'
+                          onClick={scheduleView.actions.resetFilters}
+                          className='text-xs'
+                        >
+                          Reset Filter
+                        </Button>
+                      ) : undefined
+                    }
+                    className='min-h-[360px]'
+                  />
                 ) : (
                   <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5'>
-                    {doctors.map((doctor) => (
+                    {scheduleView.doctors.map((doctor) => (
                       <DoctorScheduleCard
                         key={doctor.id}
                         doctor={doctor}
-                        onOpenDetail={handleOpenDetail}
-                        onOpenEdit={handleOpenEdit}
+                        onOpenDetail={scheduleView.actions.openDetail}
+                        onOpenEdit={scheduleView.actions.openEdit}
                       />
                     ))}
                   </div>
@@ -222,18 +112,20 @@ export function DoctorScheduleView() {
           </div>
 
           {/* Floating Detached Glass Pagination Bar (Backdrop Blur Over Content) */}
-          <div className='absolute bottom-0 inset-x-0 z-20 pointer-events-none flex justify-center'>
-            <div className='pointer-events-auto w-full'>
-              <DoctorSchedulePagination
-                currentPage={params.page}
-                pageSize={params.perPage}
-                totalItems={totalDoctors}
-                onPageChange={(page) => setParams({ page }, { shallow: true })}
-                onPageSizeChange={(perPage) => setParams({ perPage, page: 1 }, { shallow: true })}
-                pageSizeOptions={[6, 12, 18, 24, 30]}
-              />
+          {scheduleView.totalDoctors > 0 ? (
+            <div className='absolute bottom-0 inset-x-0 z-20 pointer-events-none flex justify-center'>
+              <div className='pointer-events-auto w-full'>
+                <DoctorSchedulePagination
+                  currentPage={scheduleView.page}
+                  pageSize={scheduleView.pageSize}
+                  totalItems={scheduleView.totalDoctors}
+                  onPageChange={scheduleView.actions.changePage}
+                  onPageSizeChange={scheduleView.actions.changePageSize}
+                  pageSizeOptions={[6, 12, 18, 24, 30]}
+                />
+              </div>
             </div>
-          </div>
+          ) : null}
         </div>
       </div>
     </>

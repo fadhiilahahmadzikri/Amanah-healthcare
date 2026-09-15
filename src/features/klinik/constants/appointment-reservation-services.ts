@@ -5,6 +5,8 @@ export type AppointmentServiceCategoryId = 'general' | 'midwifery';
 export interface AppointmentServiceCategory {
   id: AppointmentServiceCategoryId;
   title: string;
+  icon?: string;
+  description?: string;
 }
 
 export interface AppointmentReservationService {
@@ -22,11 +24,15 @@ export interface AppointmentReservationService {
 export const APPOINTMENT_SERVICE_CATEGORIES: AppointmentServiceCategory[] = [
   {
     id: 'general',
-    title: 'Layanan Umum'
+    title: 'Layanan Umum',
+    icon: '🩺',
+    description: 'Pemeriksaan kesehatan umum, cek laboratorium, dan konsultasi dokter.'
   },
   {
     id: 'midwifery',
-    title: 'Layanan Kebidanan'
+    title: 'Layanan Kebidanan',
+    icon: '👶',
+    description: 'Pemeriksaan kehamilan, persalinan, nifas, KB, dan imunisasi anak.'
   }
 ];
 

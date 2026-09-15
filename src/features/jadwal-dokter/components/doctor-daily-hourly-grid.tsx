@@ -11,7 +11,7 @@ import {
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DoctorAddSessionModal } from './doctor-add-session-modal';
-import { isDoctorOnLeaveOnDay } from '@/constants/mock-api-doctor-schedules';
+import { isDoctorOnLeaveOnDay } from '../api/service';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule, DoctorDailySession } from '../api/types';

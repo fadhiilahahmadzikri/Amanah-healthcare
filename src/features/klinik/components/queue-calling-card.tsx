@@ -3,6 +3,7 @@
 import React from 'react';
 import { Icons } from '@/components/icons';
 import { Badge } from '@/components/ui/badge';
+import { EmptyState } from '@/components/ui/empty-state';
 import { QueueItem } from '../api/types';
 import { DoctorAvatar } from './doctor-avatar';
 import { cn } from '@/lib/utils';
@@ -22,36 +23,37 @@ export function QueueCallingCard({
   nextItem,
   afterNextItem,
   clinicRoomName,
-  timeRemaining = '25 Menit',
+  timeRemaining = '-',
   bookingTime,
   className
 }: QueueCallingCardProps) {
-  const isFinished = !callingItem || callingItem.status === 'SELESAI';
-  const patientName = callingItem?.patient_name || 'Budi Santoso';
-  const queueNumber = callingItem?.queue_number || 'A-01';
-  const calledTime = callingItem?.called_time || callingItem?.estimated_time || '10:24 WIB';
-  const patientAvatar = callingItem?.patient_avatar || 'https://i.pravatar.cc/250?img=68';
-  const getVariedRoom = () => {
-    if (callingItem?.room) return callingItem.room;
-    if (clinicRoomName) return clinicRoomName;
-    const num = parseInt(queueNumber.replace(/\D/g, '')) || 1;
-    const rooms = [
-      'Room 10',
-      'Room 04',
-      'Room 07',
-      'Room 12',
-      'Room 02',
-      'Room 08',
-      'Room 05',
-      'Room 11',
-      'Room 03',
-      'Room 09'
-    ];
-    return rooms[(num - 1) % rooms.length];
-  };
-  const roomName = getVariedRoom();
-  const patientBookingTime =
-    bookingTime || callingItem?.estimated_time || calledTime || '10:30 WIB';
+  if (!callingItem) {
+    return (
+      <div
+        className={cn('relative h-full flex flex-col pb-3 min-h-0 [perspective:1400px]', className)}
+      >
+        <div
+          id='hero-front-card'
+          className='relative z-10 rounded-[22px] border border-border/50 bg-card text-card-foreground p-6 sm:p-7 shadow-none font-sans select-none flex flex-col justify-center flex-1 h-full min-h-0 overflow-hidden'
+        >
+          <EmptyState
+            icon={Icons.inbox}
+            title='Belum ada antrean dipanggil'
+            description='Pasien yang sedang dipanggil akan tampil di sini setelah antrean tersedia.'
+            className='h-full min-h-[360px] border-0 bg-transparent'
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const isFinished = callingItem.status === 'SELESAI';
+  const patientName = callingItem.patient_name || '-';
+  const queueNumber = callingItem.queue_number || '-';
+  const calledTime = callingItem.called_time || callingItem.estimated_time || '-';
+  const patientAvatar = callingItem.patient_avatar || '';
+  const roomName = callingItem.room || clinicRoomName || '-';
+  const patientBookingTime = bookingTime || callingItem.estimated_time || calledTime || '-';
 
   return (
     <div
@@ -158,7 +160,7 @@ export function QueueCallingCard({
 
               <div className='pt-1 flex items-center justify-center sm:justify-start gap-1.5 text-xs sm:text-sm font-medium text-foreground whitespace-nowrap'>
                 <Icons.user className='size-4 text-primary shrink-0' strokeWidth={2} />
-                <span>{callingItem?.doctor_name || 'Dokter Spesialis'}</span>
+                <span>{callingItem.doctor_name || '-'}</span>
               </div>
             </div>
           </div>

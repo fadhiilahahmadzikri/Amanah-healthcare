@@ -4,8 +4,11 @@ import type { CSSProperties } from 'react';
 import type { HealthcareTeamMember } from '../types';
 import Image from 'next/image';
 import Link from 'next/link';
-import { AmanahScriptText, HealthcareHeading } from '@/features/public-site/components/shared';
-import { PixelMeshBackground } from '@/features/public-site/pages/about/components/atoms/PixelMeshBackground';
+import {
+  AmanahScriptText,
+  HealthcareHeading,
+  PixelMeshBackground
+} from '@/features/public-site/components/shared';
 import { cn } from '@/features/public-site/lib/helpers';
 
 type TeamCardProps = {

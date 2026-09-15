@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
-import { AmanahTestimonialsPage } from '@/features/public-site/pages/testimonials';
-import { PublicSiteRouteShell } from '@/features/public-site/route-shell';
-import { testimonialsMetadata } from '@/features/public-site/lib/route-metadata';
+import {
+  AmanahTestimonialsPage,
+  PublicSiteRouteShell,
+  testimonialsMetadata
+} from '@/features/public-site';
 
 export const metadata: Metadata = testimonialsMetadata;
 

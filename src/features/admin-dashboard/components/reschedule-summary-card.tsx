@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Icons } from '@/components/icons';
 import type { OperationalSummary } from '../types';
 
@@ -11,6 +12,11 @@ interface RescheduleSummaryCardProps {
 }
 
 export function RescheduleSummaryCard({ data }: RescheduleSummaryCardProps) {
+  const hasRescheduleData =
+    data.totalReschedule > 0 ||
+    data.patientsCount > 0 ||
+    Boolean(data.topDoctor || data.topService || data.topReason);
+
   return (
     <Card className='col-span-12 md:col-span-4 flex flex-col justify-between shadow-xs border-border/60'>
       <div>
@@ -24,42 +30,55 @@ export function RescheduleSummaryCard({ data }: RescheduleSummaryCardProps) {
         </CardHeader>
 
         <CardContent className='pt-0 pb-2 space-y-2.5'>
-          <div className='divide-y divide-border/40'>
-            <div className='py-2.5 flex items-center justify-between text-xs'>
-              <span className='text-muted-foreground font-medium'>Total Reschedule</span>
-              <span className='font-bold text-foreground tabular-nums'>{data.totalReschedule}</span>
-            </div>
+          {hasRescheduleData ? (
+            <div className='divide-y divide-border/40'>
+              <div className='py-2.5 flex items-center justify-between text-xs'>
+                <span className='text-muted-foreground font-medium'>Total Reschedule</span>
+                <span className='font-bold text-foreground tabular-nums'>
+                  {data.totalReschedule}
+                </span>
+              </div>
 
-            <div className='py-2.5 flex items-center justify-between text-xs'>
-              <span className='text-muted-foreground font-medium'>Pasien Melakukan Reschedule</span>
-              <span className='font-bold text-foreground tabular-nums'>{data.patientsCount}</span>
-            </div>
+              <div className='py-2.5 flex items-center justify-between text-xs'>
+                <span className='text-muted-foreground font-medium'>
+                  Pasien Melakukan Reschedule
+                </span>
+                <span className='font-bold text-foreground tabular-nums'>{data.patientsCount}</span>
+              </div>
 
-            <div className='py-2.5 flex items-center justify-between text-xs'>
-              <span className='text-muted-foreground font-medium'>
-                Dokter Terbanyak di-reschedule
-              </span>
-              <span className='font-bold text-foreground truncate max-w-[170px] text-right'>
-                {data.topDoctor}
-              </span>
-            </div>
+              <div className='py-2.5 flex items-center justify-between text-xs'>
+                <span className='text-muted-foreground font-medium'>
+                  Dokter Terbanyak di-reschedule
+                </span>
+                <span className='font-bold text-foreground truncate max-w-[170px] text-right'>
+                  {data.topDoctor}
+                </span>
+              </div>
 
-            <div className='py-2.5 flex items-center justify-between text-xs'>
-              <span className='text-muted-foreground font-medium'>
-                Layanan Terbanyak di-reschedule
-              </span>
-              <span className='font-bold text-foreground truncate max-w-[170px] text-right'>
-                {data.topService}
-              </span>
-            </div>
+              <div className='py-2.5 flex items-center justify-between text-xs'>
+                <span className='text-muted-foreground font-medium'>
+                  Layanan Terbanyak di-reschedule
+                </span>
+                <span className='font-bold text-foreground truncate max-w-[170px] text-right'>
+                  {data.topService}
+                </span>
+              </div>
 
-            <div className='py-2.5 flex items-center justify-between text-xs'>
-              <span className='text-muted-foreground font-medium'>Alasan Terbanyak</span>
-              <span className='font-bold text-foreground'>
-                {data.topReason} ({data.topReasonPercentage}%)
-              </span>
+              <div className='py-2.5 flex items-center justify-between text-xs'>
+                <span className='text-muted-foreground font-medium'>Alasan Terbanyak</span>
+                <span className='font-bold text-foreground'>
+                  {data.topReason} ({data.topReasonPercentage}%)
+                </span>
+              </div>
             </div>
-          </div>
+          ) : (
+            <EmptyState
+              icon={Icons.calendar}
+              title='Belum ada data reschedule'
+              description='Ringkasan reschedule akan ditampilkan setelah data tersedia.'
+              className='min-h-[220px] border-0 bg-transparent'
+            />
+          )}
         </CardContent>
       </div>
 

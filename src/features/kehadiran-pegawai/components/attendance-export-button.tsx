@@ -17,6 +17,26 @@ interface AttendanceExportDropdownProps {
   buttonVariant?: 'default' | 'outline';
 }
 
+function getExportDateLabel(data: StaffAttendance[]): string {
+  return (
+    data[0]?.tanggal_presensi ||
+    new Date().toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    })
+  );
+}
+
+function getExportShiftLabel(data: StaffAttendance[]): string {
+  const shifts = Array.from(new Set(data.map((record) => record.shift).filter(Boolean)));
+  return shifts.length > 0 ? shifts.join(', ') : '-';
+}
+
+function createFilenameDateSlug(label: string): string {
+  return label.replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+}
+
 export function AttendanceExportDropdown({
   data,
   buttonVariant = 'default'
@@ -27,6 +47,7 @@ export function AttendanceExportDropdown({
   const handleExportExcel = () => {
     try {
       setIsExportingExcel(true);
+      const exportDateLabel = getExportDateLabel(data);
       const headers = [
         'ID Staf',
         'Nama Staf',
@@ -54,7 +75,10 @@ export function AttendanceExportDropdown({
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.setAttribute('href', url);
-      link.setAttribute('download', `Presensi_Pegawai_Amanah_23_Agustus_2026.csv`);
+      link.setAttribute(
+        'download',
+        `Presensi_Pegawai_Amanah_${createFilenameDateSlug(exportDateLabel)}.csv`
+      );
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -71,6 +95,8 @@ export function AttendanceExportDropdown({
   const handleExportPDF = () => {
     try {
       setIsExportingPDF(true);
+      const exportDateLabel = getExportDateLabel(data);
+      const exportShiftLabel = getExportShiftLabel(data);
       const printWindow = window.open('', '_blank');
       if (!printWindow) {
         toast.error('Izinkan pop-up untuk mengunduh PDF.');
@@ -108,7 +134,7 @@ export function AttendanceExportDropdown({
           </head>
           <body>
             <h1>Laporan Presensi Kehadiran Pegawai</h1>
-            <p>Amanah Healthcare • Tanggal: 23 Agustus 2026 (Shift Pagi)</p>
+            <p>Amanah Healthcare • Tanggal: ${exportDateLabel} (Shift: ${exportShiftLabel})</p>
             <table>
               <thead>
                 <tr>

@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { isDoctorOnLeaveOnDay } from '@/constants/mock-api-doctor-schedules';
+import { isDoctorOnLeaveOnDay } from '../api/service';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule } from '../api/types';
 

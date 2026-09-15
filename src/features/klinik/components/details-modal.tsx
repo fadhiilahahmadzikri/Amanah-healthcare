@@ -24,25 +24,25 @@ export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: Det
   if (!appointment) return null;
 
   const doctor: Doctor = getDoctorByName(appointment.doctor_name) || {
-    name: appointment.doctor_name || 'dr. Pratama Agung, Sp.OT',
-    spec: appointment.service || 'Ortopedi & Traumatologi',
-    avatar: 'https://i.pravatar.cc/150?img=60',
-    location: 'Poli Bedah, Room 408',
-    rating: '4.9',
-    tags: ['Spesialis Ortopedi & Traumatologi', 'Bedah Tulang & Sendi', 'Rehabilitasi Medis'],
-    schedule: 'Senin - Jumat (13:00 - 20:00)'
+    name: appointment.doctor_name || '',
+    spec: appointment.service || '',
+    avatar: '',
+    location: '',
+    rating: '',
+    tags: [],
+    schedule: ''
   };
 
-  const displayLocation = doctor.location || 'Poli Umum, Room 101';
+  const displayLocation = doctor.location || '-';
 
-  const timeStr = appointment.time || '16:15 - 16:45 WIB';
+  const timeStr = appointment.time || '';
   const timeRangeMatch = timeStr.match(/(\d{1,2}[:.]\d{2})\s*-\s*(\d{1,2}[:.]\d{2})/);
   const sessionMatch = timeStr.match(/Sesi\s+[A-Za-z]+/i);
 
-  const startTime = timeRangeMatch ? timeRangeMatch[1].replace(':', '.') : '08.00';
-  const endTime = timeRangeMatch ? timeRangeMatch[2].replace(':', '.') : '12.00';
+  const startTime = timeRangeMatch ? timeRangeMatch[1].replace(':', '.') : '-';
+  const endTime = timeRangeMatch ? timeRangeMatch[2].replace(':', '.') : '-';
 
-  let durationText = sessionMatch ? sessionMatch[0] : '30 minutes';
+  let durationText = sessionMatch ? sessionMatch[0] : '-';
   if (!sessionMatch && timeRangeMatch) {
     const startParts = timeRangeMatch[1].replace('.', ':').split(':').map(Number);
     const endParts = timeRangeMatch[2].replace('.', ':').split(':').map(Number);
@@ -59,19 +59,15 @@ export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: Det
     }
   }
 
-  const visitType = appointment.visit_type || 'Pemeriksaan Baru';
+  const visitType = appointment.visit_type || '-';
   const statusConfig = getStatusConfig(appointment.status);
 
-  const qualifications =
-    doctor.tags && doctor.tags.length > 0
-      ? doctor.tags
-      : ['Spesialis Ortopedi & Traumatologi', 'Bedah Tulang & Sendi', 'Rehabilitasi Medis'];
+  const qualifications = doctor.tags || [];
 
-  const patientName = appointment.patient_name || 'Rian Hidayat';
-  const patientEmail = appointment.patient_email || 'rian.hidayat@outlook.com';
-  const serviceName = appointment.service || doctor.spec || 'Ortopedi & Traumatologi';
-  const complaintText =
-    appointment.complaint || 'Pemeriksaan pemulihan pasca tindakan pembedahan pergelangan kaki.';
+  const patientName = appointment.patient_name || '-';
+  const patientEmail = appointment.patient_email || '-';
+  const serviceName = appointment.service || doctor.spec || '-';
+  const complaintText = appointment.complaint || '-';
 
   return (
     <ModalWrapper
@@ -89,17 +85,19 @@ export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: Det
             </div>
             <div className='flex flex-col items-start min-w-0 flex-1 space-y-0.5'>
               <h3 className='text-base sm:text-lg font-bold text-foreground truncate w-full tracking-tight'>
-                {doctor.name}
+                {doctor.name || '-'}
               </h3>
               <p className='text-sm font-medium text-muted-foreground truncate w-full'>
                 {serviceName}
               </p>
-              <div className='pt-0.5'>
-                <span className='inline-flex items-center gap-1 px-2.5 py-0.5 bg-amber-500/15 text-amber-700 dark:text-amber-300 rounded-md text-xs font-bold leading-none'>
-                  <Icons.star className='size-3 fill-amber-500 text-amber-500' />
-                  <span>{doctor.rating}</span>
-                </span>
-              </div>
+              {doctor.rating ? (
+                <div className='pt-0.5'>
+                  <span className='inline-flex items-center gap-1 px-2.5 py-0.5 bg-amber-500/15 text-amber-700 dark:text-amber-300 rounded-md text-xs font-bold leading-none'>
+                    <Icons.star className='size-3 fill-amber-500 text-amber-500' />
+                    <span>{doctor.rating}</span>
+                  </span>
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -136,14 +134,18 @@ export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: Det
             Kualifikasi Dokter
           </span>
           <div className='flex flex-wrap gap-1.5'>
-            {qualifications.map((qual, idx) => (
-              <span
-                key={idx}
-                className='px-2.5 py-0.5 bg-muted text-foreground text-xs font-medium rounded-md'
-              >
-                {qual}
-              </span>
-            ))}
+            {qualifications.length > 0 ? (
+              qualifications.map((qual, idx) => (
+                <span
+                  key={idx}
+                  className='px-2.5 py-0.5 bg-muted text-foreground text-xs font-medium rounded-md'
+                >
+                  {qual}
+                </span>
+              ))
+            ) : (
+              <span className='text-sm font-semibold text-foreground'>-</span>
+            )}
           </div>
         </div>
 
@@ -151,7 +153,7 @@ export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: Det
         <div className='py-2.5 border-b border-border/40 flex items-center justify-between gap-3 text-sm'>
           <div className='flex items-center gap-2 text-foreground font-semibold min-w-0'>
             <Icons.calendar className='size-4 text-primary shrink-0' strokeWidth={1.8} />
-            <span className='truncate'>{appointment.date}</span>
+            <span className='truncate'>{appointment.date || '-'}</span>
           </div>
           <div className='flex items-center gap-1.5 text-muted-foreground font-medium min-w-0'>
             <Icons.mapPin className='size-4 text-primary shrink-0' strokeWidth={1.8} />

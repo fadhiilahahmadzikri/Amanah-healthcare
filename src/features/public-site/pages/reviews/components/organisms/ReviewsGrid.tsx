@@ -1,14 +1,17 @@
 'use client';
 
 import type { HealthcareReview, ReviewImage } from '../../types';
-import type { PixelMeshBackgroundHandle } from '@/features/public-site/pages/about/components/atoms/PixelMeshBackground';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { RotateCcw, Search } from 'lucide-react';
 import { useEffect, useRef } from 'react';
-import { SectionContainer, SectionHeader } from '@/features/public-site/components/shared';
-import { PixelMeshBackground } from '@/features/public-site/pages/about/components/atoms/PixelMeshBackground';
+import {
+  PixelMeshBackground,
+  SectionContainer,
+  SectionHeader,
+  type PixelMeshBackgroundHandle
+} from '@/features/public-site/components/shared';
 import { MarqueeArrowIndicator } from '@/features/public-site/pages/home/components/atoms/MarqueeArrowIndicator';
 import { useReviewsTable } from '../../hooks/useReviewsTable';
 import { ReviewsToolbox } from '../molecules/ReviewsToolbox';

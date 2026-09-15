@@ -13,6 +13,7 @@ import {
   AmanahScriptText,
   HealthcareHeading,
   HealthcareText,
+  PixelMeshBackground,
   SectionContainer
 } from '@/features/public-site/components/shared';
 import { Button } from '@/features/public-site/components/ui/button';
@@ -22,7 +23,6 @@ import {
   CarouselContent,
   CarouselItem
 } from '@/features/public-site/components/ui/carousel';
-import { PixelMeshBackground } from '@/features/public-site/pages/about/components/atoms/PixelMeshBackground';
 import { cn } from '@/features/public-site/lib/helpers';
 import { facilitiesSectionData } from '../../data';
 

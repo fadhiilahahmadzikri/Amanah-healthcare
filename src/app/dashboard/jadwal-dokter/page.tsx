@@ -1,5 +1,5 @@
 import PageContainer from '@/components/layout/page-container';
-import DoctorScheduleListingPage from '@/features/jadwal-dokter/components/doctor-schedule-listing';
+import { DoctorScheduleListingPage } from '@/features/jadwal-dokter';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { searchParamsCache } from '@/lib/searchparams';

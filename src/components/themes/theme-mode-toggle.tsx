@@ -3,6 +3,7 @@
 import { Icons } from '@/components/icons';
 import { useTheme } from 'next-themes';
 import * as React from 'react';
+import { flushSync } from 'react-dom';
 
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -22,12 +23,26 @@ export function ThemeModeToggle() {
       }
 
       if (e) {
-        root.style.setProperty('--x', `${e.clientX}px`);
-        root.style.setProperty('--y', `${e.clientY}px`);
+        const x =
+          e.clientX !== 0 || e.clientY !== 0
+            ? e.clientX
+            : (e.currentTarget as HTMLElement).getBoundingClientRect().left +
+              (e.currentTarget as HTMLElement).getBoundingClientRect().width / 2;
+        const y =
+          e.clientX !== 0 || e.clientY !== 0
+            ? e.clientY
+            : (e.currentTarget as HTMLElement).getBoundingClientRect().top +
+              (e.currentTarget as HTMLElement).getBoundingClientRect().height / 2;
+
+        root.style.setProperty('--x', `${x}px`);
+        root.style.setProperty('--y', `${y}px`);
       }
 
       document.startViewTransition(() => {
-        setTheme(newMode);
+        flushSync(() => {
+          setTheme(newMode);
+        });
+        root.classList.toggle('dark', newMode === 'dark');
       });
     },
     [resolvedTheme, setTheme]

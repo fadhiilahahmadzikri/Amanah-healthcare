@@ -1,23 +1,16 @@
-import { fakerID_ID, faker as defaultFaker } from '@faker-js/faker';
-import initialAppointments from '../data/appointments.json';
-import doctorsData from '../data/doctors.json';
-import initialQueues from '../data/queues.json';
-import timeSlotsData from '../data/timeSlots.json';
-import { Appointment, Doctor, QueueItem, AppointmentStatus, AppointmentFormData } from './types';
+import { Appointment, Doctor, QueueItem, AppointmentFormData } from './types';
 
-const faker = fakerID_ID || defaultFaker;
-
-const LOCAL_STORAGE_KEY_APPOINTMENTS = 'amanah_appointments_v3';
-const LOCAL_STORAGE_KEY_QUEUES = 'amanah_queues_v7';
+const LOCAL_STORAGE_KEY_APPOINTMENTS = 'amanah_appointments_v4';
+const LOCAL_STORAGE_KEY_QUEUES = 'amanah_queues_v8';
 
 import { getAmanahServiceByName } from '../constants/services';
 
 export const getDoctors = (): Doctor[] => {
-  return doctorsData as Doctor[];
+  return [];
 };
 
 export const getDoctorByName = (name: string): Doctor | undefined => {
-  return (doctorsData as Doctor[]).find((doc) => doc.name === name);
+  return getDoctors().find((doc) => doc.name === name);
 };
 
 export const getDoctorsByService = (serviceName?: string): Doctor[] => {
@@ -38,29 +31,29 @@ export const getDoctorsByService = (serviceName?: string): Doctor[] => {
     );
   });
 
-  return filtered.length > 0 ? filtered : all;
+  return filtered;
 };
 
 export const getTimeSlots = (): string[] => {
-  return timeSlotsData;
+  return [];
 };
 
 export const loadStoredAppointments = (): Appointment[] => {
   if (typeof window === 'undefined') {
-    return initialAppointments as Appointment[];
+    return [];
   }
   try {
     const stored = localStorage.getItem(LOCAL_STORAGE_KEY_APPOINTMENTS);
     if (stored) {
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         return parsed as Appointment[];
       }
     }
   } catch (e) {
     console.warn('Could not read appointments from localStorage', e);
   }
-  return initialAppointments as Appointment[];
+  return [];
 };
 
 export const saveAppointmentsToStorage = (appointments: Appointment[]): void => {
@@ -74,20 +67,20 @@ export const saveAppointmentsToStorage = (appointments: Appointment[]): void => 
 
 export const loadStoredQueues = (): QueueItem[] => {
   if (typeof window === 'undefined') {
-    return initialQueues as QueueItem[];
+    return [];
   }
   try {
     const stored = localStorage.getItem(LOCAL_STORAGE_KEY_QUEUES);
     if (stored) {
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         return parsed as QueueItem[];
       }
     }
   } catch (e) {
     console.warn('Could not read queues from localStorage', e);
   }
-  return initialQueues as QueueItem[];
+  return [];
 };
 
 export const saveQueuesToStorage = (queues: QueueItem[]): void => {
@@ -99,65 +92,6 @@ export const saveQueuesToStorage = (queues: QueueItem[]): void => {
   }
 };
 
-export const generateFakerAppointment = (): Appointment => {
-  const doctors = getDoctors();
-  const doctor = faker.helpers.arrayElement(doctors);
-  const randomNum = faker.number.int({ min: 100, max: 999 });
-  const dateFormatted = faker.date.soon({ days: 14 });
-  const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-  const monthNames = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'Mei',
-    'Jun',
-    'Jul',
-    'Ags',
-    'Sep',
-    'Okt',
-    'Nov',
-    'Des'
-  ];
-
-  const dateStr = `${dayNames[dateFormatted.getDay()]}, ${dateFormatted.getDate()} ${
-    monthNames[dateFormatted.getMonth()]
-  } 2026`;
-  const timeSlot = faker.helpers.arrayElement(timeSlotsData);
-
-  const statuses: AppointmentStatus[] = [
-    'CONFIRMED',
-    'PENDING',
-    'CHECKED_IN',
-    'COMPLETED',
-    'CANCELLED'
-  ];
-  const status = faker.helpers.arrayElement(statuses);
-
-  return {
-    id: `apt-${String(randomNum).padStart(4, '0')}`,
-    booking_code: `KLINIK-${faker.string.alphanumeric(5).toUpperCase()}`,
-    patient_name: faker.person.fullName(),
-    patient_email: faker.internet.email().toLowerCase(),
-    patient_avatar: `https://i.pravatar.cc/150?img=${faker.number.int({ min: 1, max: 70 })}`,
-    doctor_name: doctor.name,
-    date: dateStr,
-    time: timeSlot,
-    complaint: faker.helpers.arrayElement([
-      'Pemeriksaan rutin tekanan darah dan keluhan pusing di pagi hari.',
-      'Konsultasi alergi makanan laut dan timbul ruam di lengan.',
-      'Pemeriksaan gigi ngilu saat minum air dingin & pembersihan karang gigi.',
-      'Demam tinggi 2 hari disertai lemas dan batuk kering.',
-      'Pemeriksaan USG rutin trimester kedua kehamilan.'
-    ]),
-    status,
-    visit_type: faker.helpers.arrayElement(['Pemeriksaan Baru', 'Kontrol Ulang']),
-    service: doctor.spec,
-    created_at: 'Hari ini, Baru saja',
-    updated_at: 'Hari ini, Baru saja'
-  };
-};
-
 export const createAppointmentRecord = (
   formData: AppointmentFormData,
   existingList: Appointment[]
@@ -165,13 +99,14 @@ export const createAppointmentRecord = (
   const nextNumber = existingList.length + 1;
   const newId = `apt-${String(nextNumber).padStart(4, '0')}`;
   const randomCode = Math.random().toString(36).substring(2, 7).toUpperCase();
+  const timestamp = new Date().toISOString();
 
   return {
     id: newId,
     booking_code: `KLINIK-${randomCode}`,
-    patient_name: formData.patientName || 'Rian Hidayat',
-    patient_email: formData.patientEmail || 'rian.hidayat@outlook.com',
-    patient_avatar: formData.patientAvatar || 'https://i.pravatar.cc/150?img=1',
+    patient_name: formData.patientName || '',
+    patient_email: formData.patientEmail || '',
+    patient_avatar: formData.patientAvatar || '',
     doctor_name: formData.doctor,
     date: formData.dateStr,
     time: formData.timeSlot,
@@ -181,8 +116,8 @@ export const createAppointmentRecord = (
     service: formData.service,
     medical_flow: formData.medicalFlow,
     medical_intake: formData.medicalIntake,
-    created_at: 'Hari ini, Baru saja',
-    updated_at: 'Hari ini, Baru saja'
+    created_at: timestamp,
+    updated_at: timestamp
   };
 };
 
@@ -205,7 +140,7 @@ export const createAppointmentRecordWithQueue = (
   const doc = getDoctorByName(formData.doctor);
 
   const timeMatch = formData.timeSlot.match(/(\d{1,2}[:.]\d{2})/);
-  const estimatedTime = timeMatch ? `${timeMatch[1].replace('.', ':')} WIB` : '09:00 WIB';
+  const estimatedTime = timeMatch ? `${timeMatch[1].replace('.', ':')} WIB` : '';
 
   const queueItem: QueueItem = {
     queue_number: queueNumber,
@@ -213,11 +148,11 @@ export const createAppointmentRecordWithQueue = (
     patient_avatar: appointment.patient_avatar,
     doctor_name: formData.doctor,
     poli: srv?.name || formData.service,
-    room: doc?.location || 'Room 201',
+    room: doc?.location || '',
     estimated_time: estimatedTime,
     status: 'MENUNGGU',
     is_user: true,
-    waiting_count: Math.max(1, currentPoliQueues.filter((q) => q.status === 'MENUNGGU').length)
+    waiting_count: currentPoliQueues.filter((q) => q.status === 'MENUNGGU').length + 1
   };
 
   // Sync to queues storage

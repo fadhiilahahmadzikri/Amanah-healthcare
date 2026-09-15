@@ -1,12 +1,9 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'motion/react';
 import PageContainer from '@/components/layout/page-container';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { attendanceQueries } from '../api/queries';
 import { AttendanceSummaryCards } from './attendance-summary-cards';
 import { AttendanceTrendChart } from './attendance-trend-chart';
 import { AttendanceDistributionCard } from './attendance-distribution-card';
@@ -16,62 +13,11 @@ import { AttendanceHeaderActions } from './attendance-export-button';
 import { GenerateQRModal } from './generate-qr-modal';
 import { ManualAttendanceModal } from './manual-attendance-modal';
 import { Icons } from '@/components/icons';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
-import type { AttendanceFilterParams } from '../api/types';
+import { useAttendanceDashboard } from '../model/useAttendanceDashboard';
 
 export default function KehadiranPegawaiView() {
-  const [activeTab, setActiveTab] = useState('summary');
-
-  const [params, setParams] = useState<AttendanceFilterParams>({
-    date: '23/08/2026',
-    shift: 'all',
-    status: 'all',
-    category: 'all',
-    search: '',
-    page: 1,
-    limit: 8
-  });
-
-  const [isQRVisible, setIsQRVisible] = useState(false);
-  const [isGenerateQRModalOpen, setIsGenerateQRModalOpen] = useState(false);
-  const [isManualAttendanceModalOpen, setIsManualAttendanceModalOpen] = useState(false);
-
-  // Collapsible Header states when QR code is active
-  const [isHeaderHovered, setIsHeaderHovered] = useState(false);
-  const [isHeaderPinned, setIsHeaderPinned] = useState(false);
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const isHeaderCollapsed = isQRVisible && !isHeaderHovered && !isHeaderPinned;
-
-  const handleHeaderMouseEnter = () => {
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current);
-      hoverTimeoutRef.current = null;
-    }
-    if (isQRVisible) {
-      setIsHeaderHovered(true);
-    }
-  };
-
-  const handleHeaderMouseLeave = () => {
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current);
-    }
-    hoverTimeoutRef.current = setTimeout(() => {
-      setIsHeaderHovered(false);
-    }, 220);
-  };
-
-  useEffect(() => {
-    return () => {
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  const { data, refetch } = useQuery(attendanceQueries.list(params));
+  const attendanceDashboard = useAttendanceDashboard();
+  const { data } = attendanceDashboard;
 
   if (!data) {
     return (
@@ -83,54 +29,21 @@ export default function KehadiranPegawaiView() {
     );
   }
 
-  const handleFilterChange = (newParams: Partial<AttendanceFilterParams>) => {
-    setParams((prev) => ({ ...prev, ...newParams }));
-  };
-
-  const handleResetFilter = () => {
-    setParams({
-      date: '23/08/2026',
-      shift: 'all',
-      status: 'all',
-      category: 'all',
-      search: '',
-      page: 1,
-      limit: 8
-    });
-    toast.info('Filter presensi telah direset.');
-  };
-
-  const handleRefreshData = () => {
-    refetch();
-    toast.success('Data presensi berhasil diperbarui.');
-  };
-
-  const handleOpenGenerateQR = () => {
-    setIsGenerateQRModalOpen(true);
-  };
-
-  const handleQRActivated = () => {
-    setIsQRVisible(true);
-    setIsHeaderPinned(false); // Default to collapsed for maximum spaciousness
-    setActiveTab('operational'); // Auto-switch to operational tab so admin immediately sees QR code
-    toast.success('Sesi presensi kehadiran dan QR Code berhasil diaktifkan.');
-  };
-
   return (
     <PageContainer scrollable={false}>
       <div className='flex flex-1 flex-col h-full min-h-0 font-sans select-none overflow-hidden'>
         <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
+          value={attendanceDashboard.activeTab}
+          onValueChange={attendanceDashboard.actions.changeTab}
           className='flex flex-1 flex-col h-full min-h-0 gap-0 overflow-hidden'
         >
           {/* 1. Dynamic Collapsible Header & Accordion Banner */}
           <div
-            onMouseEnter={handleHeaderMouseEnter}
-            onMouseLeave={handleHeaderMouseLeave}
+            onMouseEnter={attendanceDashboard.actions.handleHeaderMouseEnter}
+            onMouseLeave={attendanceDashboard.actions.handleHeaderMouseLeave}
             className='shrink-0 select-none mb-2.5 pt-0.5'
           >
-            {isHeaderCollapsed ? (
+            {attendanceDashboard.isHeaderCollapsed ? (
               /* Collapsed Minimalist Strip Banner */
               <div className='flex items-center justify-between gap-3 py-1 animate-in fade-in duration-150'>
                 {/* Left: Compact Title & Live State Badges */}
@@ -151,7 +64,11 @@ export default function KehadiranPegawaiView() {
 
                   <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-muted text-muted-foreground border border-border/50'>
                     <Icons.page className='size-3 text-primary' />
-                    <span>{activeTab === 'operational' ? 'Operasional' : 'Ringkasan'}</span>
+                    <span>
+                      {attendanceDashboard.activeTab === 'operational'
+                        ? 'Operasional'
+                        : 'Ringkasan'}
+                    </span>
                   </span>
                 </div>
 
@@ -161,7 +78,7 @@ export default function KehadiranPegawaiView() {
                     type='button'
                     variant='outline'
                     size='sm'
-                    onClick={() => setIsHeaderPinned(true)}
+                    onClick={attendanceDashboard.actions.expandHeader}
                     className='h-8 text-xs font-semibold px-3 rounded-lg border-border/70 bg-background hover:bg-muted text-foreground transition-all shadow-2xs gap-1.5 cursor-pointer'
                     title='Bentangkan Header (Extend)'
                   >
@@ -180,7 +97,7 @@ export default function KehadiranPegawaiView() {
                       <h1 className='text-xl sm:text-2xl font-bold tracking-tight text-foreground'>
                         Kehadiran Pegawai
                       </h1>
-                      {isQRVisible && (
+                      {attendanceDashboard.isQRVisible && (
                         <span className='inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20'>
                           <span className='size-1.5 rounded-full bg-emerald-500 animate-pulse' />
                           <span>Sesi QR Aktif</span>
@@ -194,23 +111,20 @@ export default function KehadiranPegawaiView() {
 
                   <div className='flex items-center gap-2 flex-wrap'>
                     <AttendanceHeaderActions
-                      activeTab={activeTab}
+                      activeTab={attendanceDashboard.activeTab}
                       data={data.records}
-                      onOpenGenerateQR={handleOpenGenerateQR}
-                      onOpenManualAttendance={() => setIsManualAttendanceModalOpen(true)}
-                      onRefresh={handleRefreshData}
-                      isQRVisible={isQRVisible}
+                      onOpenGenerateQR={attendanceDashboard.actions.openGenerateQR}
+                      onOpenManualAttendance={attendanceDashboard.actions.openManualAttendance}
+                      onRefresh={attendanceDashboard.actions.refreshData}
+                      isQRVisible={attendanceDashboard.isQRVisible}
                     />
 
-                    {isQRVisible && (
+                    {attendanceDashboard.isQRVisible && (
                       <Button
                         type='button'
                         variant='outline'
                         size='sm'
-                        onClick={() => {
-                          setIsHeaderPinned(false);
-                          setIsHeaderHovered(false);
-                        }}
+                        onClick={attendanceDashboard.actions.collapseHeader}
                         className='h-9 text-xs font-medium px-3 bg-background border-border/70 text-muted-foreground hover:text-foreground shadow-2xs gap-1.5 cursor-pointer'
                         title='Ciutkan Header (Collapse)'
                       >
@@ -267,7 +181,7 @@ export default function KehadiranPegawaiView() {
             <div className='grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch flex-1 min-h-0 h-full overflow-hidden'>
               {/* Left Column: QR Presensi Slider */}
               <AnimatePresence mode='popLayout'>
-                {isQRVisible && (
+                {attendanceDashboard.isQRVisible && (
                   <motion.div
                     key='qr-presence-sidebar'
                     initial={{ opacity: 0, x: -40, scale: 0.96 }}
@@ -278,14 +192,9 @@ export default function KehadiranPegawaiView() {
                   >
                     <QRPresenceCard
                       config={data.qrConfig}
-                      onGenerateNewToken={() => refetch()}
-                      onOpenManualAttendance={() => setIsManualAttendanceModalOpen(true)}
-                      onCloseCard={() => {
-                        setIsQRVisible(false);
-                        setIsHeaderPinned(false);
-                        setIsHeaderHovered(false);
-                        toast.info('Presensi QR code disembunyikan.');
-                      }}
+                      onGenerateNewToken={attendanceDashboard.actions.refreshData}
+                      onOpenManualAttendance={attendanceDashboard.actions.openManualAttendance}
+                      onCloseCard={attendanceDashboard.actions.hideQR}
                       className='h-full overflow-y-auto'
                     />
                   </motion.div>
@@ -295,7 +204,7 @@ export default function KehadiranPegawaiView() {
               {/* Right Column: Data Presensi Table with Bottom Viewport Pagination */}
               <div
                 className={
-                  isQRVisible
+                  attendanceDashboard.isQRVisible
                     ? 'lg:col-span-8 xl:col-span-8 w-full h-full flex flex-col min-h-0 overflow-hidden transition-all duration-300'
                     : 'lg:col-span-12 xl:col-span-12 w-full h-full flex flex-col min-h-0 overflow-hidden transition-all duration-300'
                 }
@@ -306,9 +215,9 @@ export default function KehadiranPegawaiView() {
                   page={data.page}
                   limit={data.limit}
                   totalPages={data.totalPages}
-                  params={params}
-                  onFilterChange={handleFilterChange}
-                  onResetFilter={handleResetFilter}
+                  params={attendanceDashboard.params}
+                  onFilterChange={attendanceDashboard.actions.changeFilter}
+                  onResetFilter={attendanceDashboard.actions.resetFilter}
                   className='h-full'
                 />
               </div>
@@ -319,16 +228,16 @@ export default function KehadiranPegawaiView() {
 
       {/* Generate QR Modal */}
       <GenerateQRModal
-        isOpen={isGenerateQRModalOpen}
-        onClose={() => setIsGenerateQRModalOpen(false)}
+        isOpen={attendanceDashboard.isGenerateQRModalOpen}
+        onClose={attendanceDashboard.actions.closeGenerateQR}
         config={data.qrConfig}
-        onActivated={handleQRActivated}
+        onActivated={attendanceDashboard.actions.activateQR}
       />
 
       {/* Manual Attendance Modal */}
       <ManualAttendanceModal
-        isOpen={isManualAttendanceModalOpen}
-        onClose={() => setIsManualAttendanceModalOpen(false)}
+        isOpen={attendanceDashboard.isManualAttendanceModalOpen}
+        onClose={attendanceDashboard.actions.closeManualAttendance}
       />
     </PageContainer>
   );

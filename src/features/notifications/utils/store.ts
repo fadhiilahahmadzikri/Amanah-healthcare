@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { ClinicNotification } from '../types';
-import initialData from '../data/clinic-notifications.json';
+
+const emptyNotifications: ClinicNotification[] = [];
 
 interface NotificationState {
   notifications: ClinicNotification[];
@@ -18,7 +19,7 @@ interface NotificationState {
 export const useNotificationStore = create<NotificationState>()(
   persist(
     (set, get) => ({
-      notifications: initialData as ClinicNotification[],
+      notifications: emptyNotifications,
       markAsRead: (id) =>
         set((state) => ({
           notifications: state.notifications.map((n) =>
@@ -52,12 +53,12 @@ export const useNotificationStore = create<NotificationState>()(
         })),
       resetToDefault: () =>
         set({
-          notifications: initialData as ClinicNotification[]
+          notifications: emptyNotifications
         }),
       unreadCount: () => get().notifications.filter((n) => n.status === 'unread').length
     }),
     {
-      name: 'amanah_notifications_v1',
+      name: 'amanah_notifications_v2',
       storage: createJSONStorage(() => localStorage)
     }
   )

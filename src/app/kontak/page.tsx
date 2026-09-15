@@ -1,7 +1,5 @@
 import type { Metadata } from 'next';
-import { AmanahContactPage } from '@/features/public-site/pages/contact';
-import { PublicSiteRouteShell } from '@/features/public-site/route-shell';
-import { contactMetadata } from '@/features/public-site/lib/route-metadata';
+import { AmanahContactPage, PublicSiteRouteShell, contactMetadata } from '@/features/public-site';
 
 export const metadata: Metadata = contactMetadata;
 

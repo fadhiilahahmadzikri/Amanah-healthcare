@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { Icons } from '@/components/icons';
 import { motion } from 'motion/react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import type { Conversation } from '../utils/types';
@@ -36,12 +36,6 @@ export function ConversationList({ conversations, selectedId, onSelect }: Conver
             {conversations.length === 1 ? '' : 's'}
           </p>
         </div>
-        <Badge
-          variant='outline'
-          className='bg-primary/15 text-primary hover:bg-primary/15 hover:text-primary border-border/50 rounded-full border px-3 py-1 text-[0.7rem] tracking-[0.24em] uppercase'
-        >
-          Live
-        </Badge>
       </div>
 
       <label htmlFor='messenger-search' className='sr-only'>
@@ -68,17 +62,23 @@ export function ConversationList({ conversations, selectedId, onSelect }: Conver
         role='list'
       >
         {filtered.length === 0 ? (
-          <p className='text-muted-foreground py-8 text-center text-xs'>No conversations found</p>
+          <EmptyState
+            icon={Icons.chat}
+            title='No conversations found'
+            description='Patient conversations will appear here when available.'
+            className='min-h-[260px] border-0 bg-transparent'
+          />
         ) : null}
         {filtered.map((conversation) => {
           const isActive = conversation.id === selectedId;
           const lastMessage = conversation.messages[conversation.messages.length - 1];
-          const initials = conversation.name
-            .split(' ')
-            .map((n) => n[0])
-            .slice(0, 2)
-            .join('')
-            .toUpperCase();
+          const initials =
+            conversation.name
+              .split(' ')
+              .map((n) => n[0])
+              .slice(0, 2)
+              .join('')
+              .toUpperCase() || '-';
 
           return (
             <motion.button
@@ -101,10 +101,6 @@ export function ConversationList({ conversations, selectedId, onSelect }: Conver
                     {initials}
                   </AvatarFallback>
                 </Avatar>
-                <span
-                  className='border-background absolute right-0 bottom-0 inline-flex h-3 w-3 rounded-full border-2 bg-emerald-500'
-                  aria-label='Online'
-                />
               </div>
               <div className='min-w-0 flex-1 space-y-1'>
                 <div className='flex items-start justify-between gap-2'>

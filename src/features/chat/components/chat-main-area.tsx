@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Icons } from '@/components/icons';
 import { VoiceMemoBubble } from './voice-memo-bubble';
 import { cn } from '@/lib/utils';
@@ -39,19 +40,29 @@ export function ChatMainArea({ conversation, onSendMessage, onToggleProfile }: C
 
   if (!conversation) {
     return (
-      <main className='flex-1 flex flex-col items-center justify-center bg-background/50 border-r border-border/60 text-muted-foreground p-6 text-xs'>
-        <Icons.chat className='size-10 text-muted-foreground/40 mb-2' />
-        <span>Pilih percakapan untuk memulai chat dengan pasien</span>
+      <main className='flex-1 flex flex-col bg-background/50 border-r border-border/60 p-6'>
+        <EmptyState
+          icon={Icons.chat}
+          title='Belum ada percakapan dipilih'
+          description='Pilih percakapan pasien untuk melihat riwayat pesan.'
+          className='h-full min-h-[360px] border-0 bg-transparent'
+        />
       </main>
     );
   }
 
-  const initials = conversation.name
-    .split(' ')
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
+  const initials =
+    conversation.name
+      .split(' ')
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() || '-';
+  const messageDateLabel = new Date().toLocaleDateString('id-ID', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  });
 
   return (
     <main className='flex-1 flex flex-col bg-background/50 min-w-0 border-r border-border/60 select-none'>
@@ -69,9 +80,11 @@ export function ChatMainArea({ conversation, onSendMessage, onToggleProfile }: C
           </div>
 
           <div className='flex flex-col min-w-0'>
-            <div className='text-xs font-bold text-foreground truncate'>{conversation.name}</div>
+            <div className='text-xs font-bold text-foreground truncate'>
+              {conversation.name || '-'}
+            </div>
             <div className='text-[10px] text-muted-foreground leading-tight'>
-              Online • {conversation.id_pasien}
+              {conversation.id_pasien || '-'}
             </div>
           </div>
         </div>
@@ -100,78 +113,89 @@ export function ChatMainArea({ conversation, onSendMessage, onToggleProfile }: C
 
       {/* 2. Messages Stream */}
       <div ref={scrollRef} className='flex-1 overflow-y-auto p-4 space-y-3.5'>
-        <div className='text-center my-1'>
-          <span className='text-[10px] text-muted-foreground bg-muted/60 px-2.5 py-0.5 rounded-full font-medium'>
-            Hari Ini • 14 Mei 2026
-          </span>
-        </div>
-
-        {conversation.messages.map((m) => {
-          if (m.type === 'status_update') {
-            return (
-              <div key={m.id} className='flex flex-col items-center justify-center my-3'>
-                <div className='size-5 rounded-[6px] bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-[10px] mb-1 ring-1 ring-purple-500/20 shadow-2xs'>
-                  <Icons.check className='size-3' />
-                </div>
-                <span className='text-[10.5px] font-semibold text-foreground'>{m.text}</span>
-                <span className='text-[9.5px] text-muted-foreground'>{m.timestamp}</span>
-              </div>
-            );
-          }
-
-          if (m.type === 'audio') {
-            const isOutbound = m.sender === 'user';
-            return (
-              <div
-                key={m.id}
-                className={cn(
-                  'flex flex-col max-w-[80%]',
-                  isOutbound ? 'items-end self-end' : 'items-start'
-                )}
-              >
-                <VoiceMemoBubble duration={m.audioDuration || '0:24'} isOutbound={isOutbound} />
-                <span
-                  className={cn(
-                    'text-[9.5px] text-muted-foreground mt-1',
-                    isOutbound ? 'pr-1' : 'pl-1'
-                  )}
-                >
-                  {m.timestamp}
-                </span>
-              </div>
-            );
-          }
-
-          const isOutbound = m.sender === 'user';
-          return (
-            <div
-              key={m.id}
-              className={cn(
-                'flex flex-col max-w-[78%]',
-                isOutbound ? 'items-end self-end' : 'items-start'
-              )}
-            >
-              <div
-                className={cn(
-                  'rounded-[8px] p-2.5 text-[11px] leading-[1.45] shadow-2xs break-words',
-                  isOutbound
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-card border border-border/70 text-foreground'
-                )}
-              >
-                {m.text}
-              </div>
-              <span
-                className={cn(
-                  'text-[9.5px] text-muted-foreground mt-1 tabular-nums',
-                  isOutbound ? 'pr-1' : 'pl-1'
-                )}
-              >
-                {m.timestamp}
+        {conversation.messages.length > 0 ? (
+          <>
+            <div className='text-center my-1'>
+              <span className='text-[10px] text-muted-foreground bg-muted/60 px-2.5 py-0.5 rounded-full font-medium'>
+                Hari Ini • {messageDateLabel}
               </span>
             </div>
-          );
-        })}
+
+            {conversation.messages.map((m) => {
+              if (m.type === 'status_update') {
+                return (
+                  <div key={m.id} className='flex flex-col items-center justify-center my-3'>
+                    <div className='size-5 rounded-[6px] bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-[10px] mb-1 ring-1 ring-purple-500/20 shadow-2xs'>
+                      <Icons.check className='size-3' />
+                    </div>
+                    <span className='text-[10.5px] font-semibold text-foreground'>{m.text}</span>
+                    <span className='text-[9.5px] text-muted-foreground'>{m.timestamp}</span>
+                  </div>
+                );
+              }
+
+              if (m.type === 'audio') {
+                const isOutbound = m.sender === 'user';
+                return (
+                  <div
+                    key={m.id}
+                    className={cn(
+                      'flex flex-col max-w-[80%]',
+                      isOutbound ? 'items-end self-end' : 'items-start'
+                    )}
+                  >
+                    <VoiceMemoBubble duration={m.audioDuration || '0:00'} isOutbound={isOutbound} />
+                    <span
+                      className={cn(
+                        'text-[9.5px] text-muted-foreground mt-1',
+                        isOutbound ? 'pr-1' : 'pl-1'
+                      )}
+                    >
+                      {m.timestamp}
+                    </span>
+                  </div>
+                );
+              }
+
+              const isOutbound = m.sender === 'user';
+              return (
+                <div
+                  key={m.id}
+                  className={cn(
+                    'flex flex-col max-w-[78%]',
+                    isOutbound ? 'items-end self-end' : 'items-start'
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'rounded-[8px] p-2.5 text-[11px] leading-[1.45] shadow-2xs break-words',
+                      isOutbound
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-card border border-border/70 text-foreground'
+                    )}
+                  >
+                    {m.text}
+                  </div>
+                  <span
+                    className={cn(
+                      'text-[9.5px] text-muted-foreground mt-1 tabular-nums',
+                      isOutbound ? 'pr-1' : 'pl-1'
+                    )}
+                  >
+                    {m.timestamp}
+                  </span>
+                </div>
+              );
+            })}
+          </>
+        ) : (
+          <EmptyState
+            icon={Icons.chat}
+            title='Belum ada pesan'
+            description='Pesan pasien akan ditampilkan di sini setelah tersedia.'
+            className='h-full min-h-[320px] border-0 bg-transparent'
+          />
+        )}
       </div>
 
       {/* 3. Composer & Quick Replies */}

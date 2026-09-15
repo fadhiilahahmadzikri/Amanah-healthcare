@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
@@ -22,13 +22,21 @@ export interface GenerateQRModalProps {
   onActivated?: () => void;
 }
 
+function getEditableStatusPresensi(config: QRPresenceConfig): string {
+  return config.status_presensi === 'Tidak aktif' ? '' : config.status_presensi || '';
+}
+
 export function GenerateQRModal({ isOpen, onClose, config, onActivated }: GenerateQRModalProps) {
   const updateConfigMutation = useUpdateQRConfigMutation();
 
-  const [shift, setShift] = useState(config.qr_context || 'Shift Pagi');
-  const [statusPresensi, setStatusPresensi] = useState(
-    config.status_presensi || 'Aktif hingga 16:00 WIB'
-  );
+  const [shift, setShift] = useState(config.qr_context || '');
+  const [statusPresensi, setStatusPresensi] = useState(getEditableStatusPresensi(config));
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setShift(config.qr_context || '');
+    setStatusPresensi(getEditableStatusPresensi(config));
+  }, [config.qr_context, config.status_presensi, isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,7 +52,8 @@ export function GenerateQRModal({ isOpen, onClose, config, onActivated }: Genera
       {
         qr_context: shift,
         status_presensi: statusPresensi,
-        qr_code_identifier: newIdentifier
+        qr_code_identifier: newIdentifier,
+        qr_validity: 'QR Code aktif untuk sesi presensi berjalan.'
       },
       {
         onSuccess: () => {
@@ -123,7 +132,7 @@ export function GenerateQRModal({ isOpen, onClose, config, onActivated }: Genera
             variant='default'
             shape='pill'
             size='default'
-            disabled={updateConfigMutation.isPending}
+            disabled={updateConfigMutation.isPending || !shift || !statusPresensi.trim()}
             className='px-7 font-semibold text-xs sm:text-sm'
           >
             {updateConfigMutation.isPending ? (

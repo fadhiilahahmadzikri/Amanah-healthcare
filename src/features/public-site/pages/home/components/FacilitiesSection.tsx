@@ -1,12 +1,8 @@
 'use client';
 
-import { useGSAP } from '@gsap/react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowUpRightIcon, BadgeCheckIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   HealthcareText,
   SectionContainer,
@@ -14,9 +10,8 @@ import {
   ViewportLine
 } from '@/features/public-site/components/shared';
 import { facilities, watermark } from '../data';
+import { useFacilitiesSection } from '../model/useFacilitiesSection';
 import { FacilityCard } from './FacilityCard';
-
-gsap.registerPlugin(ScrollTrigger);
 
 const facilityBorderClassNames = [
   'border-b border-line md:border-r xl:border-b-0',
@@ -26,154 +21,10 @@ const facilityBorderClassNames = [
 ];
 
 export function FacilitiesSection() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
-  const gridRef = useRef<HTMLDivElement>(null);
-  const watermarkRef = useRef<HTMLDivElement>(null);
-
-  const [activeCardIndex, setActiveCardIndex] = useState<number>(0);
-  const [isUserHovering, setIsUserHovering] = useState<boolean>(false);
-  const [isInView, setIsInView] = useState<boolean>(false);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
-
-  useEffect(() => {
-    const media = window.matchMedia('(max-width: 767px)');
-    const updateMobile = () => setIsMobile(media.matches);
-    updateMobile();
-    media.addEventListener('change', updateMobile);
-    return () => media.removeEventListener('change', updateMobile);
-  }, []);
-
-  const handleProgressComplete = useCallback((completedIndex: number) => {
-    setActiveCardIndex((current) => {
-      if (current === completedIndex) {
-        return (current + 1) % facilities.length;
-      }
-      return current;
-    });
-  }, []);
-
-  const handleCardHover = useCallback((index: number) => {
-    setIsUserHovering(true);
-    setActiveCardIndex(index);
-  }, []);
-
-  const handleCardClick = useCallback(
-    (index: number) => {
-      if (isMobile) {
-        setActiveCardIndex((current) => (current === index ? -1 : index));
-      } else {
-        handleCardHover(index);
-      }
-    },
-    [isMobile, handleCardHover]
-  );
-
-  const handleGridLeave = useCallback(() => {
-    setIsUserHovering(false);
-  }, []);
-
-  useGSAP(
-    () => {
-      ScrollTrigger.create({
-        trigger: sectionRef.current,
-        start: 'top 85%',
-        end: 'bottom 15%',
-        onEnter: () => setIsInView(true),
-        onLeave: () => setIsInView(false),
-        onEnterBack: () => setIsInView(true),
-        onLeaveBack: () => setIsInView(false)
-      });
-
-      if (watermarkRef.current) {
-        gsap.to(watermarkRef.current, {
-          yPercent: 25,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: 'top bottom',
-            end: 'bottom top',
-            scrub: 1
-          }
-        });
-      }
-
-      if (headerRef.current) {
-        const maskLines = headerRef.current.querySelectorAll('[data-mask-text]');
-        gsap.fromTo(
-          maskLines,
-          { yPercent: 120, opacity: 0 },
-          {
-            yPercent: 0,
-            opacity: 1,
-            duration: 1.2,
-            stagger: 0.12,
-            ease: 'expo.out',
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              start: 'top 85%',
-              toggleActions: 'play none none reverse'
-            }
-          }
-        );
-      }
-
-      if (gridRef.current) {
-        const cards = gridRef.current.querySelectorAll('article');
-        gsap.fromTo(
-          cards,
-          { y: 60, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 1,
-            stagger: 0.12,
-            ease: 'expo.out',
-            scrollTrigger: {
-              trigger: gridRef.current,
-              start: 'top 85%',
-              toggleActions: 'play none none reverse'
-            }
-          }
-        );
-      }
-
-      const mm = gsap.matchMedia();
-
-      // Mobile Strada-style scroll accordion
-      mm.add('(max-width: 767px)', () => {
-        if (!gridRef.current) {
-          return;
-        }
-
-        const cardElements = gridRef.current.querySelectorAll('article');
-        cardElements.forEach((card, index) => {
-          ScrollTrigger.create({
-            trigger: card,
-            start: 'top 65%',
-            end: 'bottom 35%',
-            onEnter: () => setActiveCardIndex(index),
-            onEnterBack: () => setActiveCardIndex(index),
-            onLeave: () => {
-              setActiveCardIndex((current) => (current === index ? -1 : current));
-            },
-            onLeaveBack: () => {
-              setActiveCardIndex((current) => (current === index ? -1 : current));
-            }
-          });
-        });
-      });
-
-      // Desktop: restore first card active if none was active
-      mm.add('(min-width: 768px)', () => {
-        setActiveCardIndex((current) => (current === -1 ? 0 : current));
-      });
-    },
-    { scope: sectionRef }
-  );
+  const facilitiesSection = useFacilitiesSection({ itemCount: facilities.length });
 
   return (
-    <section ref={sectionRef} id='fasilitas' className='bg-background'>
+    <section ref={facilitiesSection.refs.sectionRef} id='fasilitas' className='bg-background'>
       <SectionContainer
         className='
         relative px-0
@@ -187,7 +38,7 @@ export function FacilitiesSection() {
         '
         >
           <div
-            ref={watermarkRef}
+            ref={facilitiesSection.refs.watermarkRef}
             aria-hidden
             className='
               pointer-events-none absolute inset-0 hidden overflow-hidden
@@ -209,7 +60,7 @@ export function FacilitiesSection() {
           </div>
 
           <div
-            ref={headerRef}
+            ref={facilitiesSection.refs.headerRef}
             className='
               relative z-10 grid gap-10
               lg:grid-cols-[1fr_0.9fr] lg:items-center
@@ -245,8 +96,8 @@ export function FacilitiesSection() {
         </div>
 
         <div
-          ref={gridRef}
-          onMouseLeave={handleGridLeave}
+          ref={facilitiesSection.refs.gridRef}
+          onMouseLeave={facilitiesSection.actions.handleGridLeave}
           className='
             relative z-10 grid
             md:grid-cols-2
@@ -260,14 +111,12 @@ export function FacilitiesSection() {
                 facility={facility}
                 index={index}
                 className={facilityBorderClassNames[index]}
-                isActive={
-                  isMobile ? activeCardIndex === index : isInView && activeCardIndex === index
-                }
-                isPaused={isMobile ? true : isUserHovering || !isInView}
+                isActive={facilitiesSection.getIsCardActive(index)}
+                isPaused={facilitiesSection.getIsCardPaused()}
                 progressDuration={4.5}
-                onProgressComplete={handleProgressComplete}
-                onCardHover={handleCardHover}
-                onCardClick={handleCardClick}
+                onProgressComplete={facilitiesSection.actions.handleProgressComplete}
+                onCardHover={facilitiesSection.actions.handleCardHover}
+                onCardClick={facilitiesSection.actions.handleCardClick}
               />
             );
           })}

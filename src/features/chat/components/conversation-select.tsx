@@ -1,6 +1,7 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Icons } from '@/components/icons';
 import type { Conversation } from '../utils/types';
 
 interface ConversationSelectProps {
@@ -24,33 +25,36 @@ export function ConversationSelect({
             {conversations.length === 1 ? '' : 's'}
           </p>
         </div>
-        <Badge
-          variant='outline'
-          className='bg-primary/15 text-primary hover:bg-primary/15 hover:text-primary border-border/50 rounded-full border px-2 py-0.5 text-[0.65rem] tracking-[0.2em] uppercase sm:px-3 sm:py-1 sm:text-[0.7rem] sm:tracking-[0.24em]'
-        >
-          Live
-        </Badge>
       </div>
-      <div className='space-y-1.5 sm:space-y-2'>
-        <label
-          htmlFor='messenger-conversation'
-          className='text-muted-foreground text-[0.65rem] font-medium sm:text-xs'
-        >
-          Conversation
-        </label>
-        <select
-          id='messenger-conversation'
-          value={selectedId}
-          onChange={(e) => onSelect(e.target.value)}
-          className='border-border/40 bg-background/70 text-foreground focus:border-primary/40 focus:ring-primary/30 w-full rounded-xl border px-2.5 py-1.5 text-xs focus:ring-2 focus:outline-none sm:rounded-2xl sm:px-3 sm:py-2 sm:text-sm'
-        >
-          {conversations.map((conversation) => (
-            <option key={conversation.id} value={conversation.id}>
-              {conversation.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      {conversations.length === 0 ? (
+        <EmptyState
+          icon={Icons.chat}
+          title='No conversations found'
+          description='Patient conversations will appear here when available.'
+          className='min-h-[180px] border-0 bg-transparent'
+        />
+      ) : (
+        <div className='space-y-1.5 sm:space-y-2'>
+          <label
+            htmlFor='messenger-conversation'
+            className='text-muted-foreground text-[0.65rem] font-medium sm:text-xs'
+          >
+            Conversation
+          </label>
+          <select
+            id='messenger-conversation'
+            value={selectedId}
+            onChange={(e) => onSelect(e.target.value)}
+            className='border-border/40 bg-background/70 text-foreground focus:border-primary/40 focus:ring-primary/30 w-full rounded-xl border px-2.5 py-1.5 text-xs focus:ring-2 focus:outline-none sm:rounded-2xl sm:px-3 sm:py-2 sm:text-sm'
+          >
+            {conversations.map((conversation) => (
+              <option key={conversation.id} value={conversation.id}>
+                {conversation.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
     </div>
   );
 }

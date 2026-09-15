@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import {
@@ -128,7 +129,7 @@ export function AttendanceTableCard({
           {/* Tanggal Filter (Auto-width menyesuaikan konten) */}
           <div className='flex items-center h-8 px-3 bg-background border border-dashed border-border/70 rounded-md shadow-2xs gap-1.5 w-auto text-xs text-foreground shrink-0 cursor-default'>
             <Icons.calendar className='size-3.5 text-muted-foreground shrink-0' />
-            <span className='whitespace-nowrap'>{params.date || '23/08/2026'}</span>
+            <span className='whitespace-nowrap'>{params.date || '-'}</span>
           </div>
 
           {/* Shift Filter (Auto-width menyesuaikan isi) */}
@@ -246,11 +247,13 @@ export function AttendanceTableCard({
               <TableBody>
                 {records.length === 0 ? (
                   <TableRow>
-                    <TableCell
-                      colSpan={8}
-                      className='h-32 text-center text-muted-foreground text-xs'
-                    >
-                      Tidak ada data presensi yang sesuai dengan filter.
+                    <TableCell colSpan={8} className='h-[360px] p-6 text-center'>
+                      <EmptyState
+                        icon={Icons.inbox}
+                        title='Belum ada data presensi'
+                        description='Data presensi pegawai akan ditampilkan di sini setelah tersedia.'
+                        className='min-h-[320px] border-0 bg-transparent'
+                      />
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -410,97 +413,99 @@ export function AttendanceTableCard({
       </div>
 
       {/* 3. Harmonized DataTablePagination (Standar Data Pasien) */}
-      <div className='flex flex-wrap items-center justify-between gap-2.5 pt-2 text-xs text-muted-foreground'>
-        {/* Left: Row Selection / Total Count */}
-        <div className='text-xs text-muted-foreground whitespace-nowrap'>
-          {selectedIds.length > 0 ? (
-            <>
-              <span className='font-semibold text-foreground'>{selectedIds.length}</span> dari{' '}
-              {total} baris dipilih.
-            </>
-          ) : (
-            <>{total} baris total.</>
-          )}
+      {total > 0 ? (
+        <div className='flex flex-wrap items-center justify-between gap-2.5 pt-2 text-xs text-muted-foreground'>
+          {/* Left: Row Selection / Total Count */}
+          <div className='text-xs text-muted-foreground whitespace-nowrap'>
+            {selectedIds.length > 0 ? (
+              <>
+                <span className='font-semibold text-foreground'>{selectedIds.length}</span> dari{' '}
+                {total} baris dipilih.
+              </>
+            ) : (
+              <>{total} baris total.</>
+            )}
+          </div>
+
+          {/* Right: Rows per page, Page info, & Navigation Controls */}
+          <div className='flex items-center gap-2 sm:gap-6'>
+            {/* Rows per page */}
+            <div className='hidden items-center space-x-2 sm:flex'>
+              <p className='text-xs font-medium whitespace-nowrap text-muted-foreground'>
+                Baris per halaman
+              </p>
+              <Select
+                value={`${limit}`}
+                onValueChange={(val) => onFilterChange({ limit: Number(val), page: 1 })}
+              >
+                <SelectTrigger className='h-8 w-16 text-xs bg-background border-border/70 text-foreground'>
+                  <SelectValue placeholder={limit} />
+                </SelectTrigger>
+                <SelectContent side='top'>
+                  {[8, 16, 24, 32].map((pageSize) => (
+                    <SelectItem key={pageSize} value={`${pageSize}`} className='text-xs'>
+                      {pageSize}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Page info */}
+            <div className='flex items-center justify-center text-xs font-medium whitespace-nowrap text-foreground'>
+              Halaman {page} dari {totalPages || 1}
+            </div>
+
+            {/* Navigation Controls */}
+            <div className='flex items-center space-x-1'>
+              <Button
+                type='button'
+                aria-label='Halaman pertama'
+                variant='outline'
+                size='icon'
+                className='hidden size-8 lg:flex'
+                onClick={() => onFilterChange({ page: 1 })}
+                disabled={page <= 1}
+              >
+                <Icons.chevronsLeft className='size-3.5' />
+              </Button>
+              <Button
+                type='button'
+                aria-label='Halaman sebelumnya'
+                variant='outline'
+                size='icon'
+                className='size-8'
+                onClick={() => onFilterChange({ page: Math.max(1, page - 1) })}
+                disabled={page <= 1}
+              >
+                <Icons.chevronLeft className='size-3.5' />
+              </Button>
+              <Button
+                type='button'
+                aria-label='Halaman selanjutnya'
+                variant='outline'
+                size='icon'
+                className='size-8'
+                onClick={() => onFilterChange({ page: Math.min(totalPages, page + 1) })}
+                disabled={page >= totalPages}
+              >
+                <Icons.chevronRight className='size-3.5' />
+              </Button>
+              <Button
+                type='button'
+                aria-label='Halaman terakhir'
+                variant='outline'
+                size='icon'
+                className='hidden size-8 lg:flex'
+                onClick={() => onFilterChange({ page: totalPages })}
+                disabled={page >= totalPages}
+              >
+                <Icons.chevronsRight className='size-3.5' />
+              </Button>
+            </div>
+          </div>
         </div>
-
-        {/* Right: Rows per page, Page info, & Navigation Controls */}
-        <div className='flex items-center gap-2 sm:gap-6'>
-          {/* Rows per page */}
-          <div className='hidden items-center space-x-2 sm:flex'>
-            <p className='text-xs font-medium whitespace-nowrap text-muted-foreground'>
-              Baris per halaman
-            </p>
-            <Select
-              value={`${limit}`}
-              onValueChange={(val) => onFilterChange({ limit: Number(val), page: 1 })}
-            >
-              <SelectTrigger className='h-8 w-16 text-xs bg-background border-border/70 text-foreground'>
-                <SelectValue placeholder={limit} />
-              </SelectTrigger>
-              <SelectContent side='top'>
-                {[8, 16, 24, 32].map((pageSize) => (
-                  <SelectItem key={pageSize} value={`${pageSize}`} className='text-xs'>
-                    {pageSize}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Page info */}
-          <div className='flex items-center justify-center text-xs font-medium whitespace-nowrap text-foreground'>
-            Halaman {page} dari {totalPages || 1}
-          </div>
-
-          {/* Navigation Controls */}
-          <div className='flex items-center space-x-1'>
-            <Button
-              type='button'
-              aria-label='Halaman pertama'
-              variant='outline'
-              size='icon'
-              className='hidden size-8 lg:flex'
-              onClick={() => onFilterChange({ page: 1 })}
-              disabled={page <= 1}
-            >
-              <Icons.chevronsLeft className='size-3.5' />
-            </Button>
-            <Button
-              type='button'
-              aria-label='Halaman sebelumnya'
-              variant='outline'
-              size='icon'
-              className='size-8'
-              onClick={() => onFilterChange({ page: Math.max(1, page - 1) })}
-              disabled={page <= 1}
-            >
-              <Icons.chevronLeft className='size-3.5' />
-            </Button>
-            <Button
-              type='button'
-              aria-label='Halaman selanjutnya'
-              variant='outline'
-              size='icon'
-              className='size-8'
-              onClick={() => onFilterChange({ page: Math.min(totalPages, page + 1) })}
-              disabled={page >= totalPages}
-            >
-              <Icons.chevronRight className='size-3.5' />
-            </Button>
-            <Button
-              type='button'
-              aria-label='Halaman terakhir'
-              variant='outline'
-              size='icon'
-              className='hidden size-8 lg:flex'
-              onClick={() => onFilterChange({ page: totalPages })}
-              disabled={page >= totalPages}
-            >
-              <Icons.chevronsRight className='size-3.5' />
-            </Button>
-          </div>
-        </div>
-      </div>
+      ) : null}
 
       {/* 4. Floating Bulk Actions Toolbar via Unified Master Component */}
       <DataTableBulkActions

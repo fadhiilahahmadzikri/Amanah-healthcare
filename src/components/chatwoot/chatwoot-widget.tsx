@@ -4,10 +4,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Plasma3DLogo } from './plasma-3d-logo';
 import { MarkdownRenderer } from './markdown-renderer';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { StatusBadge } from '@/components/ui/status-badge';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -18,114 +18,6 @@ export interface AIMessage {
   timestamp: string;
   status?: 'streaming' | 'complete' | 'error';
 }
-
-const INITIAL_SUGGESTIONS = [
-  {
-    icon: 'calendar',
-    title: 'Jadwal Praktik Dokter & USG',
-    desc: 'Cek jadwal dr. Ika Fenti & dr. Bella serta ketersediaan USG',
-    prompt:
-      'Tampilkan jadwal praktik dr. Ika Fenti dan dr. Bella beserta layanan USG di Klinik Amanah.'
-  },
-  {
-    icon: 'heart-pulse',
-    title: 'Persalinan 24 Jam & BPJS',
-    desc: 'Informasi Paket Persalinan Full Bonus dan fasilitas BPJS',
-    prompt: 'Bagaimana prosedur Persalinan 24 Jam, Paket Full Bonus, dan syarat USG dengan BPJS?'
-  },
-  {
-    icon: 'shield',
-    title: 'Khitan Modern & Imunisasi',
-    desc: 'Layanan khitan nyaman minim nyeri & jadwal imunisasi anak',
-    prompt:
-      'Jelaskan layanan Khitan Modern, Imunisasi anak, dan Cek Lab Sederhana di Klinik Amanah.'
-  },
-  {
-    icon: 'map-pin',
-    title: 'Alamat & Kontak Darurat',
-    desc: 'Wilayah Condongcatur, Sleman & WhatsApp 12345678910',
-    prompt: 'Dimana alamat Klinik Pratama Amanah Healthcare dan nomor kontak WhatsApp resminya?'
-  }
-];
-
-const MOCK_AI_RESPONSES: Record<string, string> = {
-  jadwal:
-    'Berdasarkan data SIMRS Klinik Amanah hari ini, terdapat **6 dokter spesialis** aktif berpraktek:\n\n1. **dr. Sarah Sp.A (Anak)** — Poli Anak (08:00 - 12:00 WIB)\n2. **dr. Budi Sp.PD (Penyakit Dalam)** — Poli Penyakit Dalam (09:00 - 14:00 WIB)\n3. **dr. Hendra Sp.OG (Kebidanan)** — Poli Kebidanan (13:00 - 17:00 WIB)\n4. **dr. Maya Sp.JP (Jantung)** — Poli Jantung (10:00 - 15:00 WIB)\n\nSemua kuota pendaftaran poli spesialis masih terbuka untuk pendaftaran online maupun walk-in kiosk.',
-  antrean:
-    'Status antrean real-time per saat ini:\n\n- **Poli Umum**: 14 pasien menunggu (Estimasi waktu tunggu: ~18 menit).\n- **Poli Gigi**: 6 pasien menunggu (Estimasi waktu tunggu: ~25 menit).\n- **Poli Anak**: 8 pasien menunggu (Estimasi waktu tunggu: ~15 menit).\n\nLayanan farmasi saat ini memiliki kecepatan peracikan rata-rata 7.2 menit per lembar resep.',
-  farmasi:
-    'Status inventori farmasi utama:\n\n- **Amoxicillin 500mg**: Tersedia (Stok: 480 tablet — Aman).\n- **Paracetamol 120mg/5ml Sirup**: Tersedia (Stok: 65 botol — Aman).\n- **Cefixime 100mg**: Tersedia (Stok: 210 kapsul — Aman).\n\nTidak ada obat kategori darurat (emergency stock) yang berada di bawah batas minimum threshold.',
-  bpjs: 'Alur penerbitan Surat Eligibilitas Peserta (SEP) BPJS Kesehatan di Klinik Amanah:\n\n1. **Verifikasi Rujukan Faskes 1**: Pastikan surat rujukan FKTP masih aktif (maksimal 90 hari).\n2. **Perekaman Biometrik/KTP**: Pasien melakukan scan sidik jari atau input NIK pada kiosk admisi.\n3. **Penerbitan SEP**: Sistem otomatis memvalidasi eligibilitas kepesertaan aktif.\n4. **Menuju Poli Tujuan**: Pasien langsung diarahkan ke ruang tunggu poli dokter spesialis.'
-};
-
-const MOCK_CHAT_HISTORY = [
-  {
-    id: 'hist-1',
-    title: 'Jadwal Praktik dr. Ika Fenti & dr. Bella',
-    snippet: 'Terdapat 6 dokter spesialis aktif berpraktek hari ini...',
-    time: 'Hari ini, 09:30',
-    messages: [
-      {
-        id: 'h1-1',
-        role: 'user' as const,
-        content:
-          'Tampilkan jadwal praktik dr. Ika Fenti dan dr. Bella beserta layanan USG di Klinik Amanah.',
-        timestamp: '09:30'
-      },
-      {
-        id: 'h1-2',
-        role: 'assistant' as const,
-        content: MOCK_AI_RESPONSES.jadwal,
-        timestamp: '09:30',
-        status: 'complete' as const
-      }
-    ]
-  },
-  {
-    id: 'hist-2',
-    title: 'Informasi Alur & Syarat Rujukan BPJS',
-    snippet: 'Alur penerbitan Surat Eligibilitas Peserta (SEP) BPJS Kesehatan...',
-    time: 'Kemarin, 14:15',
-    messages: [
-      {
-        id: 'h2-1',
-        role: 'user' as const,
-        content:
-          'Bagaimana prosedur Persalinan 24 Jam, Paket Full Bonus, dan syarat USG dengan BPJS?',
-        timestamp: '14:15'
-      },
-      {
-        id: 'h2-2',
-        role: 'assistant' as const,
-        content: MOCK_AI_RESPONSES.bpjs,
-        timestamp: '14:15',
-        status: 'complete' as const
-      }
-    ]
-  },
-  {
-    id: 'hist-3',
-    title: 'Ketersediaan Stok Obat & Sirup Anak',
-    snippet: 'Status inventori farmasi utama: Amoxicillin 500mg, Paracetamol...',
-    time: '19 Agu, 11:20',
-    messages: [
-      {
-        id: 'h3-1',
-        role: 'user' as const,
-        content:
-          'Jelaskan layanan Khitan Modern, Imunisasi anak, dan Cek Lab Sederhana di Klinik Amanah.',
-        timestamp: '11:20'
-      },
-      {
-        id: 'h3-2',
-        role: 'assistant' as const,
-        content: MOCK_AI_RESPONSES.farmasi,
-        timestamp: '11:20',
-        status: 'complete' as const
-      }
-    ]
-  }
-];
 
 export function ChatwootWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -544,7 +436,6 @@ export function ChatwootWidget() {
                 <div className='min-w-0'>
                   <div className='flex items-center gap-2'>
                     <h3 className='text-sm font-bold text-foreground tracking-tight'>Gary</h3>
-                    <StatusBadge status='AKTIF' label='Online' size='sm' />
                   </div>
                   <p className='text-[11px] text-muted-foreground truncate mt-0.5'>
                     Asisten AI Resmi Klinik Amanah
@@ -698,29 +589,12 @@ export function ChatwootWidget() {
                   </div>
                 </div>
                 <div className='flex-1 overflow-y-auto p-2.5 space-y-1.5'>
-                  {MOCK_CHAT_HISTORY.map((hist) => (
-                    <button
-                      key={hist.id}
-                      type='button'
-                      onClick={() => {
-                        setMessages(hist.messages);
-                        setShowHistory(false);
-                      }}
-                      className='w-full p-2.5 rounded-xl border border-border/40 bg-background/60 hover:bg-muted/60 hover:border-primary/30 transition-all text-left group cursor-pointer'
-                    >
-                      <div className='flex items-center justify-between'>
-                        <span className='text-xs font-semibold text-foreground truncate group-hover:text-primary transition-colors'>
-                          {hist.title}
-                        </span>
-                        <span className='text-[10px] text-muted-foreground shrink-0 ml-1'>
-                          {hist.time}
-                        </span>
-                      </div>
-                      <p className='text-[11px] text-muted-foreground line-clamp-2 mt-1 leading-snug'>
-                        {hist.snippet}
-                      </p>
-                    </button>
-                  ))}
+                  <EmptyState
+                    icon={Icons.history}
+                    title='Belum ada riwayat chat'
+                    description='Riwayat percakapan akan ditampilkan di sini setelah tersedia.'
+                    className='min-h-full border-0 bg-transparent p-4'
+                  />
                 </div>
               </div>
             )}
@@ -730,69 +604,14 @@ export function ChatwootWidget() {
               ref={conversationAreaRef}
               className='flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-gradient-to-b from-transparent via-background/40 to-background text-sm relative z-10 scroll-smooth overscroll-y-contain'
             >
-              {/* Empty State with Staggered Prompt Cards */}
+              {/* Empty State */}
               {messages.length === 0 && !isStreaming && (
-                <div
-                  className={cn(
-                    'min-h-full flex flex-col items-center justify-start text-center mx-auto pt-1 pb-4 space-y-3.5 select-none transition-all duration-300',
-                    isExpanded ? 'max-w-4xl' : 'max-w-xl'
-                  )}
-                >
-                  {/* Wide Fluid 3D Plasma Hero Banner */}
-                  <div
-                    className={cn(
-                      'w-full flex items-center justify-center shrink-0 overflow-visible mx-auto transition-all duration-300',
-                      isExpanded ? 'max-w-xl h-44 sm:h-52' : 'max-w-xs sm:max-w-sm h-32 sm:h-36'
-                    )}
-                  >
-                    <Plasma3DLogo className='w-full h-full' />
-                  </div>
-
-                  <div className='space-y-1.5'>
-                    <h4 className='text-lg sm:text-xl font-bold text-foreground tracking-tight'>
-                      Bagaimana Gary dapat membantu Anda?
-                    </h4>
-                    <p className='text-xs text-muted-foreground leading-relaxed max-w-md'>
-                      Eksplorasi data operasional klinik, jadwal dokter, estimasi antrean, atau
-                      konsultasi administrasi BPJS secara instan.
-                    </p>
-                  </div>
-
-                  {/* Staggered Prompt Suggestion Cards (Responsive 4-column on expanded canvas) */}
-                  <div
-                    className={cn(
-                      'grid gap-3 w-full text-left pt-2 transition-all duration-300',
-                      isExpanded
-                        ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 max-w-4xl'
-                        : 'grid-cols-1 sm:grid-cols-2 max-w-xl'
-                    )}
-                  >
-                    {INITIAL_SUGGESTIONS.map((item) => (
-                      <button
-                        key={item.title}
-                        type='button'
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSend(item.prompt);
-                        }}
-                        className={cn(
-                          'p-3.5 rounded-2xl border border-border/60 bg-card hover:bg-muted/40 hover:border-primary/40',
-                          'transition-all duration-200 cursor-pointer text-left shadow-2xs hover:shadow-xs group'
-                        )}
-                      >
-                        <div className='flex items-center justify-between'>
-                          <span className='text-xs font-bold text-foreground group-hover:text-primary transition-colors'>
-                            {item.title}
-                          </span>
-                          <Icons.chevronRight className='size-3.5 text-muted-foreground group-hover:translate-x-0.5 transition-transform' />
-                        </div>
-                        <p className='text-[11px] text-muted-foreground mt-1 leading-snug'>
-                          {item.desc}
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <EmptyState
+                  icon={Icons.chat}
+                  title='Belum ada percakapan'
+                  description='Mulai percakapan dengan mengetik pesan di bawah.'
+                  className='min-h-full border-0 bg-transparent'
+                />
               )}
 
               {/* Active Conversation Messages */}
@@ -912,25 +731,6 @@ export function ChatwootWidget() {
 
             {/* Workspace Dynamic Composer Footer */}
             <div className='p-4 border-t border-border/60 bg-card/90 backdrop-blur-md shrink-0 space-y-2.5'>
-              {/* Quick Action Pills when chatting */}
-              {messages.length > 0 && !isStreaming && (
-                <div className='flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 text-[11px]'>
-                  {INITIAL_SUGGESTIONS.slice(0, 3).map((s) => (
-                    <button
-                      key={s.title}
-                      type='button'
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSend(s.prompt);
-                      }}
-                      className='px-2.5 py-1 rounded-full border border-border/60 bg-muted/30 hover:bg-muted text-muted-foreground hover:text-foreground whitespace-nowrap transition cursor-pointer'
-                    >
-                      {s.title}
-                    </button>
-                  ))}
-                </div>
-              )}
-
               {/* Composer Textarea Box */}
               <form
                 onSubmit={(e) => {

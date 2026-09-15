@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Icons } from '@/components/icons';
 import { getStatusConfig } from '@/styles/clinical-tokens';
 import { cn } from '@/lib/utils';
@@ -116,21 +117,25 @@ export function ChatInboxSidebar({ conversations, selectedId, onSelect }: ChatIn
       {/* 4. Conversation Threads List */}
       <div className='flex-1 overflow-y-auto divide-y divide-border/30'>
         {filteredConversations.length === 0 ? (
-          <div className='p-6 text-center text-xs text-muted-foreground'>
-            Tidak ada percakapan ditemukan.
-          </div>
+          <EmptyState
+            icon={Icons.chat}
+            title='Belum ada percakapan'
+            description='Percakapan pasien akan ditampilkan di sini setelah tersedia.'
+            className='min-h-[280px] border-0 bg-transparent px-4'
+          />
         ) : (
           filteredConversations.map((c) => {
             const isSelected = selectedId === c.id;
             const lastMessage = c.messages[c.messages.length - 1];
             const statusConfig = getStatusConfig(c.status);
 
-            const initials = c.name
-              .split(' ')
-              .map((n) => n[0])
-              .slice(0, 2)
-              .join('')
-              .toUpperCase();
+            const initials =
+              c.name
+                .split(' ')
+                .map((n) => n[0])
+                .slice(0, 2)
+                .join('')
+                .toUpperCase() || '-';
 
             return (
               <div

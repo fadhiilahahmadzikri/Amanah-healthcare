@@ -1,5 +1,5 @@
 import PageContainer from '@/components/layout/page-container';
-import { QueueView } from '@/features/klinik/components/queue-view';
+import { QueueView } from '@/features/klinik';
 
 export const metadata = {
   title: 'Dashboard: Cek Antrean'

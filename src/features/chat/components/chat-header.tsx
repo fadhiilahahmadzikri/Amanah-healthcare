@@ -10,12 +10,13 @@ interface ChatHeaderProps {
 }
 
 export function ChatHeader({ conversation }: ChatHeaderProps) {
-  const initials = conversation.name
-    .split(' ')
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
+  const initials =
+    conversation.name
+      .split(' ')
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() || '-';
 
   return (
     <header className='flex flex-wrap items-center justify-between gap-3 sm:gap-4'>
@@ -27,14 +28,14 @@ export function ChatHeader({ conversation }: ChatHeaderProps) {
               {initials}
             </AvatarFallback>
           </Avatar>
-          <span
-            className='border-background absolute right-0 bottom-0 inline-flex h-3 w-3 rounded-full border-2 sm:h-3.5 sm:w-3.5 bg-emerald-500'
-            aria-label='Online'
-          />
         </div>
         <div>
-          <p className='text-foreground text-sm font-semibold sm:text-base'>{conversation.name}</p>
-          <p className='text-muted-foreground text-xs sm:text-sm'>{conversation.id_pasien}</p>
+          <p className='text-foreground text-sm font-semibold sm:text-base'>
+            {conversation.name || '-'}
+          </p>
+          <p className='text-muted-foreground text-xs sm:text-sm'>
+            {conversation.id_pasien || '-'}
+          </p>
         </div>
       </div>
 

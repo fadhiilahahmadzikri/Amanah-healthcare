@@ -32,24 +32,18 @@ export interface QueueTicketCardProps {
   style?: React.CSSProperties;
 }
 
-const DEFAULT_AVATARS = [
-  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80'
-];
+const DEFAULT_AVATARS: string[] = [];
 
 // Safe useLayoutEffect for SSR / Client
 const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 export function QueueTicketCard({
-  queueNumber = 'A-001',
-  serviceName = 'Poli Penyakit Dalam',
-  doctorName = 'dr. Sarah Putri, Sp.PD',
-  dateStr = 'Jumat, 21 Ags 2026',
-  timeSlot = '09:30 WIB',
-  bookingCode = 'KLINIK-8R4NM',
-  patientName = 'Rian Hidayat',
-  roomName = 'Room 201',
+  queueNumber = '-',
+  serviceName = '-',
+  doctorName = '-',
+  dateStr = '-',
+  timeSlot = '',
+  bookingCode = '',
   userAvatars = DEFAULT_AVATARS,
   onClose,
   onDownload,
@@ -62,7 +56,7 @@ export function QueueTicketCard({
 }: QueueTicketCardProps) {
   // Extract start hour or session info cleanly
   const displayTime = useMemo(() => {
-    if (!timeSlot) return '09:30 WIB';
+    if (!timeSlot) return '-';
     const timeMatch = timeSlot.match(/(\d{1,2}[:.]\d{2})/);
     const sessionMatch = timeSlot.match(/Sesi\s+[A-Za-z]+/i);
     if (sessionMatch && timeMatch) {

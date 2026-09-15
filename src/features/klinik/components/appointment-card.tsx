@@ -49,26 +49,26 @@ export function AppointmentCard({
   className
 }: AppointmentCardProps) {
   const docInfo = doctor || {
-    name: appointment.doctor_name || 'dr. Pratama Agung, Sp.OT',
-    spec: appointment.service || 'Ortopedi & Traumatologi',
-    avatar: 'https://i.pravatar.cc/150?img=60',
-    location: 'Poli Bedah, Room 408',
-    rating: '4.9',
-    tags: ['Spesialis Ortopedi & Traumatologi', 'Bedah Tulang & Sendi', 'Rehabilitasi Medis'],
-    schedule: 'Senin - Jumat (13:00 - 20:00)'
+    name: appointment.doctor_name || '',
+    spec: appointment.service || '',
+    avatar: '',
+    location: '',
+    rating: '',
+    tags: [],
+    schedule: ''
   };
 
-  const displayLocation = docInfo.location || 'Poli Umum, Room 101';
+  const displayLocation = docInfo.location || '-';
 
   // Time & duration parsing
-  const timeStr = appointment.time || '16:15 - 16:45 WIB';
+  const timeStr = appointment.time || '';
   const timeRangeMatch = timeStr.match(/(\d{1,2}[:.]\d{2})\s*-\s*(\d{1,2}[:.]\d{2})/);
   const sessionMatch = timeStr.match(/Sesi\s+[A-Za-z]+/i);
 
-  const startTime = timeRangeMatch ? timeRangeMatch[1].replace(':', '.') : '08.00';
-  const endTime = timeRangeMatch ? timeRangeMatch[2].replace(':', '.') : '12.00';
+  const startTime = timeRangeMatch ? timeRangeMatch[1].replace(':', '.') : '-';
+  const endTime = timeRangeMatch ? timeRangeMatch[2].replace(':', '.') : '-';
 
-  let durationText = sessionMatch ? sessionMatch[0] : '30 minutes';
+  let durationText = sessionMatch ? sessionMatch[0] : '-';
   if (!sessionMatch && timeRangeMatch) {
     const startParts = timeRangeMatch[1].replace('.', ':').split(':').map(Number);
     const endParts = timeRangeMatch[2].replace('.', ':').split(':').map(Number);
@@ -85,7 +85,7 @@ export function AppointmentCard({
     }
   }
 
-  const visitType = appointment.visit_type || 'Pemeriksaan Baru';
+  const visitType = appointment.visit_type || '-';
   const statusConfig = getStatusConfig(appointment.status);
 
   return (
@@ -121,18 +121,20 @@ export function AppointmentCard({
               className='text-[15px] font-bold tracking-tight text-foreground truncate'
               title={appointment.doctor_name}
             >
-              {appointment.doctor_name}
+              {appointment.doctor_name || '-'}
             </h3>
             <p className='text-[12.5px] font-medium text-muted-foreground truncate'>
-              {appointment.service || docInfo.spec}
+              {appointment.service || docInfo.spec || '-'}
             </p>
 
-            <div className='pt-0.5'>
-              <span className='inline-flex items-center gap-1 px-2 py-0.5 bg-amber-500/15 text-amber-700 dark:text-amber-300 rounded-[6px] text-[11px] font-bold leading-none'>
-                <Icons.star className='size-2.5 fill-amber-500 text-amber-500' />
-                <span>{docInfo.rating}</span>
-              </span>
-            </div>
+            {docInfo.rating ? (
+              <div className='pt-0.5'>
+                <span className='inline-flex items-center gap-1 px-2 py-0.5 bg-amber-500/15 text-amber-700 dark:text-amber-300 rounded-[6px] text-[11px] font-bold leading-none'>
+                  <Icons.star className='size-2.5 fill-amber-500 text-amber-500' />
+                  <span>{docInfo.rating}</span>
+                </span>
+              </div>
+            ) : null}
           </div>
         </div>
 
@@ -167,7 +169,7 @@ export function AppointmentCard({
       <div className='relative z-2 flex items-center justify-between text-[12px] px-0.5 py-0.5 border-t border-border/40'>
         <div className='flex items-center gap-1.5 min-w-0 py-1.5 text-foreground font-semibold'>
           <Icons.calendar className='size-3.5 text-primary shrink-0' strokeWidth={1.8} />
-          <span className='truncate'>{appointment.date}</span>
+          <span className='truncate'>{appointment.date || '-'}</span>
         </div>
 
         <div className='w-[1px] h-3.5 bg-border/40 shrink-0 mx-1.5' />

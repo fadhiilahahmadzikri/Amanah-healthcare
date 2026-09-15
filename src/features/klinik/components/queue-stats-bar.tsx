@@ -12,9 +12,9 @@ export interface QueueStatsBarProps {
 }
 
 export function QueueStatsBar({
-  totalToday = '42 Pasien',
-  timeRemaining = '25 Menit',
-  operationalHours = '08.00 - 17.00 WIB',
+  totalToday = '0 Pasien',
+  timeRemaining = '0 Menit',
+  operationalHours = '-',
   className
 }: QueueStatsBarProps) {
   return (

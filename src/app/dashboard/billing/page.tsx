@@ -7,6 +7,7 @@ import { PricingTable } from '@clerk/nextjs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Icons } from '@/components/icons';
 import { billingInfoContent } from '@/config/infoconfig';
+import { EmptyState } from '@/components/ui/empty-state';
 
 export default function BillingPage() {
   const { organization, isLoaded } = useOrganization();
@@ -16,14 +17,12 @@ export default function BillingPage() {
       isLoading={!isLoaded}
       access={!!organization}
       accessFallback={
-        <div className='flex min-h-[400px] items-center justify-center'>
-          <div className='space-y-2 text-center'>
-            <h2 className='text-2xl font-semibold'>No Organization Selected</h2>
-            <p className='text-muted-foreground'>
-              Please select or create an organization to view billing information.
-            </p>
-          </div>
-        </div>
+        <EmptyState
+          icon={Icons.billing}
+          title='No Organization Selected'
+          description='Please select or create an organization to view billing information.'
+          className='min-h-[400px]'
+        />
       }
       infoContent={billingInfoContent}
       pageTitle='Billing & Plans'

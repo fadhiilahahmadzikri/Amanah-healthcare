@@ -14,13 +14,13 @@ import {
 } from '@/components/ui/select';
 import { Icons } from '@/components/icons';
 import {
+  ModernStyledQRCode,
   useQRStyleStore,
   type QRDotType,
   type QRCornerSquareType,
   type QRCornerDotType,
   type QRErrorCorrection
-} from '@/features/kehadiran-pegawai/store/qr-style-store';
-import { ModernStyledQRCode } from '@/features/kehadiran-pegawai/components/modern-styled-qr-code';
+} from '@/features/kehadiran-pegawai';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -57,6 +57,10 @@ const COLOR_PRESETS = [
   { name: 'Midnight Black', hex: '#000000' }
 ];
 
+function handleSave() {
+  toast.success('Konfigurasi gaya & rotasi QR Code berhasil disimpan.');
+}
+
 export function QRConfigSettings() {
   const {
     dotType,
@@ -76,22 +80,12 @@ export function QRConfigSettings() {
     resetDefaults
   } = useQRStyleStore();
 
-  const handleSave = () => {
-    toast.success('Konfigurasi gaya & rotasi QR Code berhasil disimpan.');
-  };
-
   const handleReset = () => {
     resetDefaults();
     toast.info('Konfigurasi QR Code telah dikembalikan ke default.');
   };
 
-  // Sample dynamic preview payload
-  const previewPayload = JSON.stringify({
-    clinic: 'Amanah Healthcare',
-    shift: 'Shift Pagi',
-    token: 'K54TYU',
-    preview: true
-  });
+  const previewPayload = JSON.stringify({ preview: true });
 
   return (
     <div className='grid grid-cols-1 xl:grid-cols-12 gap-6 font-sans items-start'>
@@ -395,7 +389,7 @@ export function QRConfigSettings() {
 
               <div className='pt-1'>
                 <div className='text-2xl sm:text-3xl font-black tracking-widest text-foreground font-mono leading-none'>
-                  K54TYU
+                  -
                 </div>
                 <p className='text-[10.5px] text-muted-foreground mt-1'>
                   QR Code otomatis terkonfigurasi ke seluruh panel presensi & kiosk live.

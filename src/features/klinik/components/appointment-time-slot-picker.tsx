@@ -3,8 +3,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import gsap from 'gsap';
 import { Icons } from '@/components/icons';
-import { initialDoctorSchedules } from '@/constants/mock-api-doctor-schedules';
-import type { DoctorSchedule, DoctorDailySession } from '@/features/jadwal-dokter/api/types';
 import { cn } from '@/lib/utils';
 
 export interface AppointmentTimeSlotPickerProps {
@@ -173,21 +171,12 @@ function AccordionSessionItem({
 }
 
 export function AppointmentTimeSlotPicker({
-  doctorName,
+  doctorName: _doctorName,
   selectedDateStr,
   selectedTimeSlot,
   onSelectTimeSlot,
   className
 }: AppointmentTimeSlotPickerProps) {
-  const doctorSchedule: DoctorSchedule | undefined = useMemo(() => {
-    return (
-      initialDoctorSchedules.find(
-        (d) => d.nama_dokter.toLowerCase() === doctorName.toLowerCase()
-      ) || initialDoctorSchedules[0]
-    );
-  }, [doctorName]);
-
-  // Generate standardized 30-min slots for Pagi (07:00-12:00), Siang (12:00-17:00), Malam (19:00-24:00)
   const shiftSlots = useMemo(() => {
     return STANDARD_SHIFTS.map((shift, shiftIdx) => {
       const startH = parseInt(shift.jam_mulai.split(':')[0], 10);

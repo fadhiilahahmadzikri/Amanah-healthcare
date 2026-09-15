@@ -1,7 +1,7 @@
 'use client';
 
 import type { RefObject } from 'react';
-import type { PixelMeshBackgroundHandle } from '@/features/public-site/pages/about/components/atoms/PixelMeshBackground';
+import type { PixelMeshBackgroundHandle } from '@/features/public-site/components/shared';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';

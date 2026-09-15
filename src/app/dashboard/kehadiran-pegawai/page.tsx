@@ -1,4 +1,4 @@
-import KehadiranPegawaiView from '@/features/kehadiran-pegawai/components/kehadiran-view';
+import { KehadiranPegawaiView } from '@/features/kehadiran-pegawai';
 
 export const metadata = {
   title: 'Dashboard: Kehadiran Pegawai'

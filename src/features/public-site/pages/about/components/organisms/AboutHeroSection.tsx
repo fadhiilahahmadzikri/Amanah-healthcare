@@ -2,18 +2,20 @@
 
 import type { AboutHeroData, AboutVisualBandData } from '../../types';
 import type { HeroConfettiRef } from '../atoms/HeroConfetti';
-import type { PixelMeshBackgroundHandle } from '../atoms/PixelMeshBackground';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Image from 'next/image';
 import { useRef } from 'react';
+import {
+  PixelMeshBackground,
+  type PixelMeshBackgroundHandle
+} from '@/features/public-site/components/shared';
 import { cn } from '@/features/public-site/lib/helpers';
 import { aboutHeroData, aboutPixelIcons, aboutVisualBandData } from '../../data';
 import { DirectionalArrowIndicator } from '../atoms/DirectionalArrowIndicator';
 import { HeroConfetti } from '../atoms/HeroConfetti';
 import { PixelIconBadge } from '../atoms/PixelIconBadge';
-import { PixelMeshBackground } from '../atoms/PixelMeshBackground';
 
 gsap.registerPlugin(ScrollTrigger);
 

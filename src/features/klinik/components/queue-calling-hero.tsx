@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Icons } from '@/components/icons';
+import { EmptyState } from '@/components/ui/empty-state';
 import { QueueItem } from '../api/types';
 import { DoctorAvatar } from './doctor-avatar';
 import { cn } from '@/lib/utils';
@@ -14,13 +15,31 @@ export interface QueueCallingHeroProps {
 
 export function QueueCallingHero({
   callingItem,
-  clinicRoomName = 'Ruang Poli Umum',
+  clinicRoomName,
   className
 }: QueueCallingHeroProps) {
-  const patientName = callingItem?.patient_name || 'Budi Santoso';
-  const queueNumber = callingItem?.queue_number || 'A-023';
-  const calledTime = callingItem?.called_time || callingItem?.estimated_time || '10:24 WIB';
-  const patientAvatar = callingItem?.patient_avatar || 'https://i.pravatar.cc/250?img=68';
+  if (!callingItem) {
+    return (
+      <div
+        className={cn(
+          'rounded-3xl border border-border/50 bg-card text-card-foreground p-6 sm:p-8 md:p-10 shadow-none font-sans select-none transition-all',
+          className
+        )}
+      >
+        <EmptyState
+          icon={Icons.inbox}
+          title='Belum ada antrean dipanggil'
+          description='Pasien yang sedang dipanggil akan tampil di sini setelah tersedia.'
+          className='min-h-[280px] border-0 bg-transparent'
+        />
+      </div>
+    );
+  }
+
+  const patientName = callingItem.patient_name || '-';
+  const queueNumber = callingItem.queue_number || '-';
+  const calledTime = callingItem.called_time || callingItem.estimated_time || '-';
+  const patientAvatar = callingItem.patient_avatar || '';
 
   return (
     <div
@@ -46,7 +65,7 @@ export function QueueCallingHero({
           </h3>
 
           <p className='text-sm sm:text-base text-muted-foreground font-normal'>
-            Harap menuju ke ruang dokter
+            Harap menuju ke {clinicRoomName || 'ruang dokter'}
           </p>
 
           <div className='pt-2'>

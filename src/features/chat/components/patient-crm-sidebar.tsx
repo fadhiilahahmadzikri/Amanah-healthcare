@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Icons } from '@/components/icons';
 import { StepperTimeline } from '@/components/ui/stepper-timeline';
 import {
@@ -25,7 +26,18 @@ export function PatientCrmSidebar({ conversation }: PatientCrmSidebarProps) {
     'timeline'
   );
 
-  if (!conversation) return null;
+  if (!conversation) {
+    return (
+      <aside className='w-[310px] bg-card flex flex-col overflow-y-auto p-3 shrink-0 select-none border-l border-border/60'>
+        <EmptyState
+          icon={Icons.user}
+          title='Belum ada profil pasien'
+          description='Profil pasien akan ditampilkan setelah percakapan dipilih.'
+          className='h-full min-h-[360px] border-0 bg-transparent px-3'
+        />
+      </aside>
+    );
+  }
 
   const statusConfig = getStatusConfig(conversation.status);
 
@@ -38,20 +50,29 @@ export function PatientCrmSidebar({ conversation }: PatientCrmSidebarProps) {
     toast.info(`Membuka: ${item.title}`);
   };
 
-  const initials = conversation.name
-    .split(' ')
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
+  const initials =
+    conversation.name
+      .split(' ')
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() || '-';
 
-  const docInitials = conversation.dpjp.name
-    .replace('dr. ', '')
-    .split(' ')
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
+  const docInitials =
+    conversation.dpjp.name
+      .replace('dr. ', '')
+      .split(' ')
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() || '-';
+  const patientMeta = [
+    conversation.id_pasien,
+    conversation.gender,
+    conversation.age ? `${conversation.age} th` : ''
+  ]
+    .filter(Boolean)
+    .join(' • ');
 
   return (
     <aside className='w-[310px] bg-card flex flex-col overflow-y-auto p-3 shrink-0 select-none border-l border-border/60'>
@@ -64,11 +85,9 @@ export function PatientCrmSidebar({ conversation }: PatientCrmSidebarProps) {
           </AvatarFallback>
         </Avatar>
         <h3 className='text-[13px] font-bold text-foreground mt-2 leading-tight'>
-          {conversation.name}
+          {conversation.name || '-'}
         </h3>
-        <p className='text-[10px] text-muted-foreground font-mono'>
-          {conversation.id_pasien} • {conversation.gender}, {conversation.age} th
-        </p>
+        <p className='text-[10px] text-muted-foreground font-mono'>{patientMeta || '-'}</p>
       </div>
 
       {/* 2. Clinical Status Dropdown Button */}
@@ -134,11 +153,12 @@ export function PatientCrmSidebar({ conversation }: PatientCrmSidebarProps) {
         <div className='h-[28px] border border-border/70 rounded-[6px] px-2 flex items-center justify-between text-[10px] text-foreground bg-background shadow-2xs'>
           <div className='flex items-center gap-1.5 truncate'>
             <Icons.phone className='size-3 text-muted-foreground shrink-0' />
-            <span className='truncate font-medium'>{conversation.phone}</span>
+            <span className='truncate font-medium'>{conversation.phone || '-'}</span>
           </div>
           <div className='flex items-center gap-1 text-muted-foreground shrink-0'>
             <button
               onClick={() => copyToClipboard(conversation.phone, 'Nomor Telepon')}
+              disabled={!conversation.phone}
               className='p-0.5 hover:text-foreground transition-colors'
               title='Salin No. HP'
             >
@@ -151,11 +171,12 @@ export function PatientCrmSidebar({ conversation }: PatientCrmSidebarProps) {
         <div className='h-[28px] border border-border/70 rounded-[6px] px-2 flex items-center justify-between text-[10px] text-foreground bg-background shadow-2xs'>
           <div className='flex items-center gap-1.5 truncate'>
             <Icons.mail className='size-3 text-muted-foreground shrink-0' />
-            <span className='truncate font-medium'>{conversation.email}</span>
+            <span className='truncate font-medium'>{conversation.email || '-'}</span>
           </div>
           <div className='flex items-center text-muted-foreground shrink-0'>
             <button
               onClick={() => copyToClipboard(conversation.email, 'Email Pasien')}
+              disabled={!conversation.email}
               className='p-0.5 hover:text-foreground transition-colors'
               title='Salin Email'
             >
@@ -172,14 +193,14 @@ export function PatientCrmSidebar({ conversation }: PatientCrmSidebarProps) {
             Dokter Penanggung Jawab (DPJP)
           </span>
           <span className='text-[11px] font-bold text-foreground leading-tight truncate mt-0.5'>
-            {conversation.dpjp.name}
+            {conversation.dpjp.name || '-'}
           </span>
           <span className='text-[9.5px] text-muted-foreground truncate'>
-            {conversation.dpjp.specialty}
+            {conversation.dpjp.specialty || '-'}
           </span>
         </div>
         <Avatar className='size-6 rounded-full shrink-0 ring-1 ring-border/40'>
-          <AvatarImage src={conversation.dpjp.avatar} alt={conversation.dpjp.name} />
+          <AvatarImage src={conversation.dpjp.avatar} alt={conversation.dpjp.name || 'Dokter'} />
           <AvatarFallback className='text-[8px] bg-primary/10 text-primary font-bold'>
             {docInitials}
           </AvatarFallback>
@@ -211,50 +232,43 @@ export function PatientCrmSidebar({ conversation }: PatientCrmSidebarProps) {
 
       {/* 6. Stepper Timeline Content */}
       <div className='mt-3'>
-        {activeTab === 'timeline' && (
-          <StepperTimeline items={conversation.timeline} onActionClick={handleTimelineAction} />
-        )}
+        {activeTab === 'timeline' &&
+          (conversation.timeline.length > 0 ? (
+            <StepperTimeline items={conversation.timeline} onActionClick={handleTimelineAction} />
+          ) : (
+            <EmptyState
+              icon={Icons.clock}
+              title='Belum ada timeline'
+              description='Aktivitas pasien akan ditampilkan di sini setelah tersedia.'
+              className='min-h-[260px] border-0 bg-transparent px-2'
+            />
+          ))}
 
         {activeTab === 'profile' && (
-          <div className='text-xs space-y-2 py-1 text-muted-foreground'>
-            <div>
-              <span className='font-semibold text-foreground block'>Alamat Tinggal:</span>
-              <span>Jl. Merdeka No. 45, Jakarta Selatan</span>
-            </div>
-            <div>
-              <span className='font-semibold text-foreground block'>Golongan Darah:</span>
-              <span>O Positive (O+)</span>
-            </div>
-            <div>
-              <span className='font-semibold text-foreground block'>Kontak Darurat:</span>
-              <span>Siti Aminah (Istri) • 0812-3344-5566</span>
-            </div>
-          </div>
+          <EmptyState
+            icon={Icons.user}
+            title='Belum ada profil'
+            description='Data profil pasien akan ditampilkan di sini setelah tersedia.'
+            className='min-h-[260px] border-0 bg-transparent px-2'
+          />
         )}
 
         {activeTab === 'medical' && (
-          <div className='text-xs space-y-2 py-1 text-muted-foreground'>
-            <div>
-              <span className='font-semibold text-foreground block'>Riwayat Penyakit:</span>
-              <span>Hipertensi Stage 1, Low Back Pain kronis</span>
-            </div>
-            <div>
-              <span className='font-semibold text-foreground block'>Alergi Obat:</span>
-              <span className='text-red-500 font-semibold'>Penisilin / Amoxicillin</span>
-            </div>
-          </div>
+          <EmptyState
+            icon={Icons.post}
+            title='Belum ada rekam medis'
+            description='Informasi medis pasien akan ditampilkan di sini setelah tersedia.'
+            className='min-h-[260px] border-0 bg-transparent px-2'
+          />
         )}
 
         {activeTab === 'appointments' && (
-          <div className='text-xs space-y-2 py-1 text-muted-foreground'>
-            <div className='p-2 rounded-md border border-border/60 bg-muted/30'>
-              <span className='font-bold text-foreground block'>Poli Penyakit Dalam</span>
-              <span className='text-[10px] text-muted-foreground'>
-                Besok • 15 Mei 2026, 09:00 WIB
-              </span>
-              <div className='mt-1 text-[10px] text-primary font-semibold'>No. Antrean A-002</div>
-            </div>
-          </div>
+          <EmptyState
+            icon={Icons.calendar}
+            title='Belum ada janji temu'
+            description='Janji temu pasien akan ditampilkan di sini setelah tersedia.'
+            className='min-h-[260px] border-0 bg-transparent px-2'
+          />
         )}
       </div>
     </aside>

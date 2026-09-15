@@ -8,34 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { DoctorScheduleCard } from '@/features/jadwal-dokter/components/doctor-schedule-card';
-import { initialDoctorSchedules, type DoctorSchedule } from '@/constants/mock-api-doctor-schedules';
+import type { DoctorSchedule } from '@/features/jadwal-dokter/api/types';
 
 interface CarouselCardsProps {
   slides: string[];
   className?: string;
-}
-
-// Doctor Avatar Map with high quality illustrations/portraits from the project assets
-const DOCTOR_AVATARS: Record<string, string> = {
-  'sarah putri': '/assets/avatar/docter/woman-docter-1.png',
-  'andika perkasa': '/assets/avatar/docter/man-docter-1.png',
-  'budi santoso': '/assets/avatar/docter/man-docter-2.png',
-  'pratama agung': '/assets/avatar/docter/man-docter-1.png',
-  'ratna sari': '/assets/avatar/docter/woman-docter-2.png',
-  'maya indah': '/assets/avatar/docter/woman-docter-3.png',
-  'ika fenti': '/assets/avatar/docter/woman-docter-1.png',
-  ika: '/assets/avatar/docter/woman-docter-1.png',
-  bella: '/assets/avatar/docter/woman-docter-3.png',
-  jaga: '/assets/avatar/docter/man-docter-2.png',
-  default: '/assets/avatar/docter/woman-docter-1.png'
-};
-
-function getDoctorAvatar(name: string): string {
-  const lower = name.toLowerCase();
-  for (const [key, url] of Object.entries(DOCTOR_AVATARS)) {
-    if (lower.includes(key)) return url;
-  }
-  return DOCTOR_AVATARS.default;
 }
 
 function parseSlideContent(slide: string, idx: number) {
@@ -55,77 +32,53 @@ function parseSlideContent(slide: string, idx: number) {
   if (isDoctor) {
     // Extract Doctor Name
     const nameMatch = slide.match(/###?\s*([^\n\r]+)/) || slide.match(/\*\*([^\*]+)\*\*/);
-    const rawName = nameMatch ? nameMatch[1].replace(/[\*#]/g, '').trim() : `Dokter #${idx + 1}`;
+    const rawName = nameMatch ? nameMatch[1].replace(/[\*#]/g, '').trim() : '';
 
     // Extract Specialty
     const specMatch =
       slide.match(/\*\*Spesialisasi:\*\*\s*([^\n\r]+)/i) ||
       slide.match(/Spesialisasi:\s*([^\n\r]+)/i);
-    const specialty = specMatch ? specMatch[1].trim() : 'Dokter Umum & USG';
+    const specialty = specMatch ? specMatch[1].trim() : 'Belum tersedia';
 
     // Extract Hari Praktik
     const daysMatch =
       slide.match(/\*\*(?:Hari Praktik|Hari):\*\*\s*([^\n\r]+)/i) ||
       slide.match(/(?:Hari Praktik|Hari):\s*([^\n\r]+)/i);
-    const days = daysMatch ? daysMatch[1].trim() : 'Senin – Jumat';
+    const days = daysMatch ? daysMatch[1].trim() : '';
 
     // Extract Jam Praktik
     const hoursMatch =
       slide.match(/\*\*(?:Jam Praktik|Jam|Waktu):\*\*\s*([^\n\r]+)/i) ||
       slide.match(/(?:Jam Praktik|Jam|Waktu):\s*([^\n\r]+)/i);
-    const hours = hoursMatch ? hoursMatch[1].trim() : '08.00–14.00 WIB';
+    const hours = hoursMatch ? hoursMatch[1].trim() : 'Belum tersedia';
 
-    // Search in database first for 100% identical data
-    const matchedDoc = initialDoctorSchedules.find((d) => {
-      const q = rawName.toLowerCase();
-      const dName = d.nama_dokter.toLowerCase();
-      return (
-        q.includes(dName) ||
-        dName.includes(q) ||
-        (q.includes('sarah') && dName.includes('sarah')) ||
-        (q.includes('andika') && dName.includes('andika')) ||
-        (q.includes('budi') && dName.includes('budi')) ||
-        (q.includes('ratna') && dName.includes('ratna')) ||
-        (q.includes('maya') && dName.includes('maya'))
-      );
-    });
+    const statusMatch =
+      slide.match(/\*\*Status:\*\*\s*([^\n\r]+)/i) || slide.match(/Status:\s*([^\n\r]+)/i);
+    const status = statusMatch ? statusMatch[1].trim() : 'Belum tersedia';
+    const roomMatch =
+      slide.match(/\*\*(?:Ruang|Poli):\*\*\s*([^\n\r]+)/i) ||
+      slide.match(/(?:Ruang|Poli):\s*([^\n\r]+)/i);
+    const room = roomMatch ? roomMatch[1].trim() : 'Belum tersedia';
 
-    const finalDoctor: DoctorSchedule = matchedDoc
-      ? {
-          ...matchedDoc,
-          tanggal_praktik: days || matchedDoc.tanggal_praktik,
-          jadwal_hari_ini: hours || matchedDoc.jadwal_hari_ini
-        }
-      : {
-          id: `doc-ai-${idx}`,
-          nama_dokter: rawName,
-          spesialisasi: specialty,
-          status_dokter: 'Buka',
-          email: 'kontak@amanahhealthcare.id',
-          nomor_telepon: '12345678910',
-          ruang_praktik: 'Poli Umum & USG',
-          tanggal_praktik: days,
-          avatar: getDoctorAvatar(rawName),
-          slot_tersedia: 14,
-          kapasitas_per_hari: 25,
-          jadwal_hari_ini: hours,
-          status_jadwal: 'Buka',
-          bulan_jadwal: 'Mei 2026',
-          monthly_schedule: [],
-          sesi_harian: [
-            {
-              id: `s-ai-${idx}-1`,
-              nama_sesi: 'Sesi Pagi',
-              jam_mulai: '08:00',
-              jam_selesai: '14:00',
-              waktu: hours,
-              kuota_pasien: 15,
-              slot_tersedia: 8,
-              status_sesi: 'Buka'
-            }
-          ],
-          is_cuti: false
-        };
+    const finalDoctor: DoctorSchedule = {
+      id: `doc-ai-${idx}`,
+      nama_dokter: rawName || 'Belum tersedia',
+      spesialisasi: specialty,
+      status_dokter: status,
+      email: '',
+      nomor_telepon: '',
+      ruang_praktik: room,
+      tanggal_praktik: days || undefined,
+      avatar: '',
+      slot_tersedia: 0,
+      kapasitas_per_hari: 0,
+      jadwal_hari_ini: hours,
+      status_jadwal: status,
+      bulan_jadwal: '',
+      monthly_schedule: [],
+      sesi_harian: [],
+      is_cuti: lower.includes('cuti') || status.toLowerCase().includes('cuti')
+    };
 
     return {
       type: 'doctor' as const,
@@ -135,10 +88,10 @@ function parseSlideContent(slide: string, idx: number) {
 
   // Extract General/Service/Facility Card
   const titleMatch = slide.match(/###?\s*([^\n\r]+)/) || slide.match(/\*\*([^\*]+)\*\*/);
-  const title = titleMatch ? titleMatch[1].replace(/[\*#]/g, '').trim() : `Layanan #${idx + 1}`;
+  const title = titleMatch ? titleMatch[1].replace(/[\*#]/g, '').trim() : 'Informasi';
 
   // Extract Category Pill label
-  let categoryPill = 'Layanan Medis';
+  let categoryPill = 'Informasi';
   if (lower.includes('laboratorium') || lower.includes('surat')) {
     categoryPill = 'Lab & Surat';
   } else if (lower.includes('ibu') || lower.includes('bayi') || lower.includes('anak')) {

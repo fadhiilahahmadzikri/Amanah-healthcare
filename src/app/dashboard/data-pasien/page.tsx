@@ -1,6 +1,5 @@
 import PageContainer from '@/components/layout/page-container';
-import PatientListingPage from '@/features/data-pasien/components/patient-listing';
-import { PatientExportButton } from '@/features/data-pasien/components/patient-export-button';
+import { PatientExportButton, PatientListingPage } from '@/features/data-pasien';
 import { searchParamsCache } from '@/lib/searchparams';
 import { SearchParams } from 'nuqs/server';
 

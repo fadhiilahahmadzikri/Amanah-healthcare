@@ -1,6 +1,5 @@
 import PageContainer from '@/components/layout/page-container';
-import AppointmentListingPage from '@/features/appointment-pasien/components/appointment-listing';
-import { AppointmentExportButton } from '@/features/appointment-pasien/components/appointment-export-button';
+import { AppointmentExportButton, AppointmentListingPage } from '@/features/appointment-pasien';
 import { searchParamsCache } from '@/lib/searchparams';
 import { SearchParams } from 'nuqs/server';
 

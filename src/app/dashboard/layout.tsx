@@ -6,9 +6,11 @@ import { InfoSidebar } from '@/components/layout/info-sidebar';
 import { InfobarProvider } from '@/components/ui/infobar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { ChatwootWidget } from '@/components/chatwoot/chatwoot-widget';
-import { getCurrentPatientRegistrationContext } from '@/features/data-pasien/api/patient-registration-service';
-import { getPatientRegistrationRedirectPath } from '@/features/data-pasien/api/registration-mapper';
-import { PatientRegistrationModal } from '@/features/data-pasien/components/registration/patient-registration-modal';
+import { PatientRegistrationModal } from '@/features/data-pasien';
+import {
+  getCurrentPatientRegistrationContext,
+  getPatientRegistrationRedirectPath
+} from '@/features/data-pasien/index.server';
 import { auth } from '@clerk/nextjs/server';
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';

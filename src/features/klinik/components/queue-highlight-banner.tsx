@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Icons } from '@/components/icons';
+import { EmptyState } from '@/components/ui/empty-state';
 import { QueueItem } from '../api/types';
 import { cn } from '@/lib/utils';
 
@@ -14,8 +15,23 @@ export function QueueHighlightBanner({ queues, className }: QueueHighlightBanner
   const currentCalling = queues.find((q) => q.status === 'DIPANGGIL') || queues[0];
   const userQueue = queues.find((q) => q.is_user);
   const totalCount = queues.length;
+  const calledCount = queues.filter((q) => q.status === 'DIPANGGIL').length;
   const waitingCount = queues.filter((q) => q.status === 'MENUNGGU').length;
   const completedCount = queues.filter((q) => q.status === 'SELESAI').length;
+  const userQueueIndex = userQueue
+    ? queues.findIndex((queue) => queue.queue_number === userQueue.queue_number) + 1
+    : 0;
+
+  if (queues.length === 0) {
+    return (
+      <EmptyState
+        icon={Icons.inbox}
+        title='Belum ada antrean'
+        description='Ringkasan antrean akan ditampilkan di sini setelah tersedia.'
+        className={className}
+      />
+    );
+  }
 
   return (
     <div className={cn('grid grid-cols-1 sm:grid-cols-3 gap-4 font-sans select-none', className)}>
@@ -29,7 +45,7 @@ export function QueueHighlightBanner({ queues, className }: QueueHighlightBanner
         </div>
 
         <div className='text-3xl font-extrabold tracking-tight my-2 text-primary-foreground'>
-          {currentCalling ? currentCalling.queue_number : 'A-002'}
+          {currentCalling ? currentCalling.queue_number : '-'}
         </div>
 
         <div className='space-y-0.5'>
@@ -38,14 +54,12 @@ export function QueueHighlightBanner({ queues, className }: QueueHighlightBanner
             <span>
               Pasien:{' '}
               <strong className='font-semibold text-primary-foreground'>
-                {currentCalling ? currentCalling.patient_name : 'Dinda Kartika'}
+                {currentCalling ? currentCalling.patient_name : '-'}
               </strong>
             </span>
           </div>
           <div className='text-[11px] text-primary-foreground/70 truncate'>
-            {currentCalling
-              ? `${currentCalling.poli} • ${currentCalling.doctor_name}`
-              : 'Poli Umum • dr. Sarah Putri, Sp.PD'}
+            {currentCalling ? `${currentCalling.poli} • ${currentCalling.doctor_name}` : '-'}
           </div>
         </div>
       </div>
@@ -59,10 +73,10 @@ export function QueueHighlightBanner({ queues, className }: QueueHighlightBanner
         <div>
           <div className='text-[11px] font-semibold text-muted-foreground'>Nomor Antrean Anda</div>
           <div className='text-3xl font-extrabold text-foreground tracking-tight my-2'>
-            {userQueue ? userQueue.queue_number : 'A-003'}
+            {userQueue ? userQueue.queue_number : '-'}
           </div>
           <div className='text-xs text-primary font-bold'>
-            {userQueue ? `${userQueue.patient_name} (Urutan ke-3)` : 'Hida cantik (Urutan ke-3)'}
+            {userQueue ? `${userQueue.patient_name} (Urutan ke-${userQueueIndex})` : '-'}
           </div>
         </div>
 
@@ -72,7 +86,7 @@ export function QueueHighlightBanner({ queues, className }: QueueHighlightBanner
             <span>Estimasi dipanggil:</span>
           </span>
           <strong className='text-emerald-600 dark:text-emerald-400 font-semibold'>
-            ~10 menit lagi
+            {userQueue?.estimated_time || '-'}
           </strong>
         </div>
       </div>
@@ -93,7 +107,7 @@ export function QueueHighlightBanner({ queues, className }: QueueHighlightBanner
 
         <div className='text-[11px] text-muted-foreground flex items-center gap-3 mt-2 pt-2 border-t border-border/40'>
           <span className='flex items-center gap-1'>
-            <span className='size-2 rounded-full bg-indigo-500' /> 1 Dipanggil
+            <span className='size-2 rounded-full bg-indigo-500' /> {calledCount} Dipanggil
           </span>
           <span className='flex items-center gap-1'>
             <span className='size-2 rounded-full bg-amber-500' /> {waitingCount} Menunggu

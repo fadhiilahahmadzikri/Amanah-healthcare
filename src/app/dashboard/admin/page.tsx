@@ -1,4 +1,4 @@
-import OperationalReportView from '@/features/admin-dashboard/components/operational-report-view';
+import { OperationalReportView } from '@/features/admin-dashboard';
 
 export const metadata = {
   title: 'Dashboard Admin: Laporan Operasional Klinik'

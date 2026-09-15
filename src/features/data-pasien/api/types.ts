@@ -1,6 +1,60 @@
-import type { Patient, PatientSummary } from '@/constants/mock-api-patients';
+export type PatientGender = 'Laki-laki' | 'Perempuan';
 
-export type { Patient, PatientSummary };
+export type PatientBloodType =
+  | 'A+'
+  | 'A-'
+  | 'B+'
+  | 'B-'
+  | 'AB+'
+  | 'AB-'
+  | 'O+'
+  | 'O-'
+  | 'A'
+  | 'B'
+  | 'AB'
+  | 'O'
+  | 'Belum Tahu';
+
+export type PatientAccountStatus = 'Aktif' | 'Nonaktif' | 'AKTIF' | 'NONAKTIF';
+
+export interface Patient {
+  id: number;
+  patient_id: string;
+  name: string;
+  avatar: string;
+  nik: string;
+  nik_ktp?: string;
+  nama_ibu_kandung?: string;
+  tempat_lahir?: string;
+  tanggal_lahir?: string;
+  pekerjaan?: string;
+  domisili?: string;
+  nomor_telepon_wa?: string;
+  email_pasien?: string;
+  phone: string;
+  email: string;
+  gender: PatientGender;
+  age: number;
+  birth_date: string;
+  blood_type: PatientBloodType;
+  address: string;
+  emergency_contact: string;
+  allergies: string[];
+  medical_history: string;
+  account_status: PatientAccountStatus;
+  tanggal_registrasi_akun?: string;
+  login_pertama_kali?: string;
+  kunjungan_terakhir?: string;
+  total_kunjungan?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PatientSummary {
+  total: number;
+  active: number;
+  inactive: number;
+}
 
 export type PatientFilters = {
   page?: number;

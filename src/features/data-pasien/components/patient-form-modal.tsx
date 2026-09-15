@@ -46,19 +46,17 @@ export function PatientFormModal({ patient, isOpen, onClose }: PatientFormModalP
   const form = useAppForm({
     defaultValues: {
       name: patient?.name ?? '',
-      patient_id:
-        patient?.patient_id ??
-        `RM-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9000) + 1000)}`,
+      patient_id: patient?.patient_id ?? '',
       nik: patient?.nik_ktp ?? patient?.nik ?? '',
-      nama_ibu_kandung: patient?.nama_ibu_kandung ?? 'Aminah',
-      tempat_lahir: patient?.tempat_lahir ?? 'Jakarta',
-      pekerjaan: patient?.pekerjaan ?? 'Wiraswasta',
+      nama_ibu_kandung: patient?.nama_ibu_kandung ?? '',
+      tempat_lahir: patient?.tempat_lahir ?? '',
+      pekerjaan: patient?.pekerjaan ?? '',
       phone: patient?.nomor_telepon_wa ?? patient?.phone ?? '',
       email: patient?.email_pasien ?? patient?.email ?? '',
-      gender: (patient?.gender as 'Laki-laki' | 'Perempuan') ?? 'Laki-laki',
-      age: patient?.age ?? 41,
-      birth_date: patient?.birth_date ?? '1985-07-22',
-      blood_type: (patient?.blood_type as Patient['blood_type']) ?? 'O+',
+      gender: patient?.gender ?? ('' as PatientFormValues['gender']),
+      age: patient?.age ?? 0,
+      birth_date: patient?.birth_date ?? '',
+      blood_type: (patient?.blood_type as Patient['blood_type']) ?? '',
       address: patient?.domisili ?? patient?.address ?? '',
       domisili: patient?.domisili ?? patient?.address ?? '',
       emergency_contact: patient?.emergency_contact ?? '',
@@ -81,9 +79,9 @@ export function PatientFormModal({ patient, isOpen, onClose }: PatientFormModalP
         patient_id: value.patient_id,
         nik: value.nik,
         nik_ktp: value.nik,
-        nama_ibu_kandung: value.nama_ibu_kandung || 'Aminah',
-        tempat_lahir: value.tempat_lahir || 'Jakarta',
-        pekerjaan: value.pekerjaan || 'Wiraswasta',
+        nama_ibu_kandung: value.nama_ibu_kandung || '',
+        tempat_lahir: value.tempat_lahir || '',
+        pekerjaan: value.pekerjaan || '',
         domisili: value.address,
         nomor_telepon_wa: value.phone,
         email_pasien: value.email || '',
@@ -95,9 +93,7 @@ export function PatientFormModal({ patient, isOpen, onClose }: PatientFormModalP
         tanggal_lahir: value.birth_date,
         blood_type: value.blood_type,
         address: value.address,
-        avatar:
-          patient?.avatar ??
-          'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        avatar: patient?.avatar ?? '',
         allergies: value.allergies
           ? value.allergies
               .split(',')
@@ -107,10 +103,11 @@ export function PatientFormModal({ patient, isOpen, onClose }: PatientFormModalP
         emergency_contact: value.emergency_contact || '',
         medical_history: value.medical_history || '',
         account_status: normalizedStatus,
-        tanggal_registrasi_akun: patient?.tanggal_registrasi_akun || '05/03/2024',
-        login_pertama_kali: patient?.login_pertama_kali || '5 Maret 2024, 08:30 WIB',
-        kunjungan_terakhir: patient?.kunjungan_terakhir || '14 Agustus 2026',
-        total_kunjungan: patient?.total_kunjungan || 9
+        tanggal_registrasi_akun:
+          patient?.tanggal_registrasi_akun || new Date().toLocaleDateString('id-ID'),
+        login_pertama_kali: patient?.login_pertama_kali || '',
+        kunjungan_terakhir: patient?.kunjungan_terakhir || '',
+        total_kunjungan: patient?.total_kunjungan ?? 0
       };
 
       if (isEdit && patient) {
