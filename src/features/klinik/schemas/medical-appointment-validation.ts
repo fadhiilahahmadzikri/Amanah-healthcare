@@ -87,9 +87,32 @@ export function isMedicalSectionValid(
     return false;
   }
 
-  return section.fields.every(
-    (field) => getMedicalFieldValidationSchema(field).safeParse(values[field.id] || '').success
-  );
+  return section.fields.every((field) => {
+    const isFieldValid = getMedicalFieldValidationSchema(field).safeParse(
+      values[field.id] || ''
+    ).success;
+    if (!isFieldValid) {
+      return false;
+    }
+
+    // When condition is 'Ya' on a question with yearFieldId, year is required
+    if (field.yearFieldId && (values[field.id] || '').trim() === 'Ya') {
+      const yearVal = (values[field.yearFieldId] || '').trim();
+      if (!yearVal) {
+        return false;
+      }
+    }
+
+    // When condition is 'Ya' on a question with notesFieldId, notes is required
+    if (field.notesFieldId && (values[field.id] || '').trim() === 'Ya') {
+      const notesVal = (values[field.notesFieldId] || '').trim();
+      if (!notesVal) {
+        return false;
+      }
+    }
+
+    return true;
+  });
 }
 
 export function normalizeMedicalFieldInput(field: MedicalFormField, value: string): string {

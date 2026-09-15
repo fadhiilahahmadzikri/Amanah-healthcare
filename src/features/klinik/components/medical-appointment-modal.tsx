@@ -6,6 +6,14 @@ import * as React from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
+import {
   Field,
   FieldDescription,
   FieldError,
@@ -35,26 +43,28 @@ import type {
   MedicalFormField,
   MedicalFormSection
 } from '../constants/medical-appointment-schemas';
-import { buildAutomaticRecord, type MedicalAppointmentValues } from '../utils/medical-appointment';
+import {
+  historyGroups,
+  useMedicalAppointmentForm,
+  type ScheduleValues
+} from '../model/useMedicalAppointmentForm';
 import {
   getMedicalFieldValidationSchema,
   normalizeMedicalFieldInput
 } from '../schemas/medical-appointment-validation';
-import {
-  useMedicalAppointmentForm,
-  type HistoryRecordActions,
-  type ScheduleValues
-} from '../model/useMedicalAppointmentForm';
+import { buildAutomaticRecord, type MedicalAppointmentValues } from '../utils/medical-appointment';
 import { AppointmentCalendarDayPicker } from './appointment-calendar-day-picker';
 import { AppointmentTimeSlotPicker } from './appointment-time-slot-picker';
 import { DoctorAvatar } from './doctor-avatar';
+import { MedicalHistoryCatalog } from './medical-history-catalog';
+import { MedicalQuestionnaire } from './questionnaire';
 import { QueueSuccessModal } from './queue-success-modal';
 
 interface MedicalAppointmentModalProps {
   flow: MedicalAppointmentFlow;
   isOpen: boolean;
   onClose: () => void;
-  onCreated: (formData: AppointmentFormData) => void;
+  onCreated: (appointment: AppointmentFormData) => void;
   onBackToService?: () => void;
 }
 
@@ -76,15 +86,17 @@ export function MedicalAppointmentModal({
   const stepContainerRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    if (stepContainerRef.current) {
-      const scrollableElements = stepContainerRef.current.querySelectorAll<HTMLElement>(
-        '[data-radix-scroll-area-viewport], .overflow-y-auto'
-      );
-      scrollableElements.forEach((el) => {
-        el.scrollTop = 0;
-      });
-      stepContainerRef.current.scrollTop = 0;
+    if (!stepContainerRef.current) {
+      return;
     }
+
+    const scrollableElements = stepContainerRef.current.querySelectorAll<HTMLElement>(
+      '[data-radix-scroll-area-viewport], .overflow-y-auto'
+    );
+    scrollableElements.forEach((element) => {
+      element.scrollTop = 0;
+    });
+    stepContainerRef.current.scrollTop = 0;
   }, [medical.currentStep]);
 
   if (!isOpen) {
@@ -105,30 +117,46 @@ export function MedicalAppointmentModal({
     isQueueSuccessOpen,
     createdAppointment,
     createdQueueItem,
+    historyCounts,
+    historyPrompt,
+    catalogAction,
     isCurrentStepValid,
     actions
   } = medical;
+
+  const currentSection =
+    currentDescriptor?.type === 'medical'
+      ? visibleMedicalSections[currentDescriptor.sectionIndex]
+      : undefined;
+  const isQuestionnaireStep = currentSection?.layout === 'questionnaire';
+  const isHistoryCatalogStep = currentDescriptor?.type === 'history-catalog';
 
   return (
     <>
       <ModalWrapper
         isOpen={isOpen && !isQueueSuccessOpen}
         onClose={onClose}
-        maxWidth='max-w-[680px]'
+        maxWidth={isQuestionnaireStep || isHistoryCatalogStep ? 'max-w-[820px]' : 'max-w-[680px]'}
         showCloseButton={false}
         backdropClassName='overflow-hidden'
-        className='flex flex-col h-[96dvh] max-h-[96dvh] sm:h-[660px] sm:max-h-[88vh] p-5 sm:p-6'
+        className={cn(
+          'flex h-[96dvh] max-h-[96dvh] flex-col p-5 transition-all duration-300 sm:h-[660px] sm:max-h-[88vh] sm:p-6',
+          (isQuestionnaireStep || isHistoryCatalogStep) && 'sm:max-w-[820px]'
+        )}
       >
         <form.AppForm>
-          <form.Form className='flex flex-col flex-1 min-h-0 gap-0 p-0 md:p-0'>
-            <div className='flex flex-col flex-1 min-h-0 justify-between gap-4'>
-              <div ref={stepContainerRef} className='flex flex-col flex-1 min-h-0'>
+          <form.Form className='flex min-h-0 flex-1 flex-col gap-0 p-0 md:p-0'>
+            <div className='flex min-h-0 flex-1 flex-col justify-between gap-4'>
+              <div ref={stepContainerRef} className='flex min-h-0 flex-1 flex-col'>
                 {currentDescriptor.type === 'medical' ? (
                   <MedicalSectionStep
                     section={visibleMedicalSections[currentDescriptor.sectionIndex]}
-                    historyActions={actions.getHistoryRecordActions(
-                      visibleMedicalSections[currentDescriptor.sectionIndex]?.id
-                    )}
+                    catalogActionType={catalogAction?.type ?? null}
+                    onReturnToCatalog={actions.cancelCatalogAction}
+                    values={values}
+                    onFieldChange={(fieldId, nextValue) => {
+                      form.setFieldValue(fieldId, nextValue);
+                    }}
                     renderField={(field) => (
                       <form.AppField
                         key={field.id}
@@ -140,6 +168,23 @@ export function MedicalAppointmentModal({
                         )}
                       </form.AppField>
                     )}
+                  />
+                ) : null}
+
+                {currentDescriptor.type === 'history-catalog' ? (
+                  <MedicalHistoryCatalog
+                    groupKey={currentDescriptor.historyKey}
+                    recordsCount={historyCounts[currentDescriptor.historyKey]}
+                    maxRecords={historyGroups[currentDescriptor.historyKey].maxRecords}
+                    values={values}
+                    onEditRecord={(recordNumber) =>
+                      actions.editHistoryFromCatalog(currentDescriptor.historyKey, recordNumber)
+                    }
+                    onRemoveRecord={(recordNumber) =>
+                      actions.removeHistoryRecord(currentDescriptor.historyKey, recordNumber)
+                    }
+                    onAddRecord={() => actions.addHistoryFromCatalog(currentDescriptor.historyKey)}
+                    className='min-h-0 flex-1 overflow-y-auto pr-1 pb-2'
                   />
                 ) : null}
 
@@ -194,28 +239,94 @@ export function MedicalAppointmentModal({
                 ) : null}
               </div>
 
-              <div className='flex items-center justify-between border-t border-border pt-4 shrink-0'>
+              <div className='flex shrink-0 items-center justify-between pt-2'>
                 <Button type='button' variant='ghost' shape='pill' onClick={actions.prevStep}>
                   {currentStep === 1 && !onBackToService ? 'Batal' : 'Kembali'}
                 </Button>
-                <Button
-                  type='button'
-                  variant='primary'
-                  shape='pill'
-                  disabled={!isCurrentStepValid}
-                  onClick={actions.nextStep}
-                  withTrailingCircleIcon
-                  trailingIcon={
-                    currentDescriptor.type === 'review' ? <Icons.check /> : <Icons.arrowUpRight />
-                  }
-                >
-                  {currentDescriptor.type === 'review' ? 'Simpan Janji Temu' : 'Lanjutkan'}
-                </Button>
+                <div className='flex items-center gap-2.5'>
+                  {currentDescriptor.type === 'history-catalog' &&
+                  historyCounts[currentDescriptor.historyKey] <
+                    historyGroups[currentDescriptor.historyKey].maxRecords ? (
+                    <Button
+                      type='button'
+                      variant='outline'
+                      shape='pill'
+                      onClick={() => actions.addHistoryFromCatalog(currentDescriptor.historyKey)}
+                      className='border-dashed text-xs font-medium hover:border-primary hover:bg-primary/5 sm:text-sm'
+                    >
+                      <Icons.add className='mr-1 size-3.5 shrink-0' />
+                      <span className='hidden sm:inline'>
+                        {currentDescriptor.historyKey === 'pregnancy'
+                          ? 'Tambah Riwayat Kehamilan Baru'
+                          : 'Tambah Riwayat KB Baru'}
+                      </span>
+                      <span className='sm:hidden'>
+                        {currentDescriptor.historyKey === 'pregnancy'
+                          ? 'Tambah Kehamilan'
+                          : 'Tambah KB'}
+                      </span>
+                    </Button>
+                  ) : null}
+                  <Button
+                    type='button'
+                    variant='primary'
+                    shape='pill'
+                    hug
+                    disabled={!isCurrentStepValid}
+                    onClick={actions.nextStep}
+                    withTrailingCircleIcon
+                    trailingIcon={
+                      currentDescriptor.type === 'review' ? <Icons.check /> : <Icons.arrowUpRight />
+                    }
+                  >
+                    {currentDescriptor.type === 'review' ? 'Simpan Janji Temu' : 'Lanjutkan'}
+                  </Button>
+                </div>
               </div>
             </div>
           </form.Form>
         </form.AppForm>
       </ModalWrapper>
+
+      <Dialog
+        open={Boolean(historyPrompt)}
+        onOpenChange={(open) => {
+          if (!open) {
+            actions.promptNo();
+          }
+        }}
+      >
+        <DialogContent className='sm:max-w-md'>
+          <DialogHeader>
+            <DialogTitle>Tambah Riwayat Lain?</DialogTitle>
+            <DialogDescription>
+              {historyPrompt?.groupKey === 'pregnancy'
+                ? 'Apakah ada lagi riwayat kehamilan atau persalinan sebelumnya yang ingin Anda tambahkan?'
+                : 'Apakah ada lagi riwayat penggunaan KB/kontrasepsi yang ingin Anda tambahkan?'}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className='flex flex-col-reverse gap-2 pt-3 sm:flex-row sm:justify-end'>
+            <Button
+              type='button'
+              variant='outline'
+              shape='pill'
+              onClick={actions.promptNo}
+              className='text-xs'
+            >
+              Tidak, Buka Katalog
+            </Button>
+            <Button
+              type='button'
+              variant='primary'
+              shape='pill'
+              onClick={actions.promptYes}
+              className='text-xs'
+            >
+              Ya, Tambah Riwayat
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <QueueSuccessModal
         isOpen={isQueueSuccessOpen}
@@ -230,14 +341,22 @@ export function MedicalAppointmentModal({
 
 function MedicalSectionStep({
   section,
-  historyActions,
-  renderField
+  catalogActionType,
+  onReturnToCatalog,
+  renderField,
+  values,
+  onFieldChange
 }: {
   section: MedicalFormSection;
-  historyActions?: HistoryRecordActions | null;
+  catalogActionType?: 'add' | 'edit' | null;
+  onReturnToCatalog?: () => void;
   renderField: (field: MedicalFormField) => React.ReactNode;
+  values?: MedicalAppointmentValues;
+  onFieldChange?: (fieldId: string, value: string) => void;
 }) {
   const scrollRef = React.useRef<HTMLDivElement>(null);
+  const isGrid = section?.layout === 'grid';
+  const isQuestionnaire = section?.layout === 'questionnaire';
 
   React.useLayoutEffect(() => {
     const scrollToTop = () => {
@@ -258,55 +377,61 @@ function MedicalSectionStep({
   }, [section?.id]);
 
   return (
-    <div className='flex flex-col flex-1 min-h-0 gap-4'>
+    <div className='flex min-h-0 flex-1 flex-col gap-4'>
+      {catalogActionType && onReturnToCatalog ? (
+        <div className='flex items-center justify-between rounded-lg bg-primary/10 px-3.5 py-2 text-xs font-medium text-primary'>
+          <div className='flex items-center gap-2'>
+            {catalogActionType === 'add' ? (
+              <Icons.add className='size-3.5' />
+            ) : (
+              <Icons.edit className='size-3.5' />
+            )}
+            <span>
+              {catalogActionType === 'add'
+                ? 'Sedang menambah data riwayat'
+                : 'Sedang mengubah data riwayat'}
+            </span>
+          </div>
+          <Button
+            type='button'
+            variant='ghost'
+            size='sm'
+            shape='pill'
+            onClick={onReturnToCatalog}
+            className='h-6 text-xs text-primary hover:bg-primary/20'
+          >
+            Kembali ke Katalog
+          </Button>
+        </div>
+      ) : null}
       <StepTitle title={section.title} description={section.description} />
-      {historyActions ? <HistoryRecordActionBar actions={historyActions} /> : null}
       <ScrollArea
         ref={scrollRef}
         key={section.id}
-        className='flex-1 min-h-0 [&_[data-slot=scroll-area-scrollbar]]:hidden'
+        className='min-h-0 flex-1 [&_[data-slot=scroll-area-scrollbar]]:hidden'
       >
-        <FieldGroup className='gap-5 px-1 pt-1 pb-8'>{section.fields.map(renderField)}</FieldGroup>
+        {isQuestionnaire && values && onFieldChange ? (
+          <div className='px-1 pt-0 pb-8'>
+            <MedicalQuestionnaire section={section} values={values} onFieldChange={onFieldChange} />
+          </div>
+        ) : (
+          <FieldGroup
+            className={cn(
+              isGrid
+                ? 'grid grid-cols-1 items-start gap-x-4 gap-y-4 sm:grid-cols-2 sm:gap-x-5 sm:gap-y-4.5'
+                : 'gap-5',
+              'px-1 pt-1 pb-8'
+            )}
+          >
+            {section.fields.map(renderField)}
+          </FieldGroup>
+        )}
       </ScrollArea>
     </div>
   );
 }
 
-function HistoryRecordActionBar({ actions }: { actions: HistoryRecordActions }) {
-  return (
-    <div className='flex items-center justify-between gap-3 border-b border-border pb-3'>
-      <span className='text-xs font-medium text-muted-foreground'>
-        Riwayat {actions.currentRecord} dari {actions.totalRecords}
-      </span>
-      <div className='flex items-center gap-2'>
-        <Button
-          type='button'
-          variant='ghost'
-          size='sm'
-          shape='pill'
-          onClick={actions.onRemove}
-          leadingIcon={<Icons.trash />}
-        >
-          Hapus
-        </Button>
-        <Button
-          type='button'
-          variant='outline'
-          size='sm'
-          shape='pill'
-          onClick={actions.onAdd}
-          disabled={actions.totalRecords >= actions.maxRecords}
-          leadingIcon={<Icons.add />}
-        >
-          Tambah
-        </Button>
-      </div>
-    </div>
-  );
-}
-
 const SPECIFIC_FIELD_PLACEHOLDERS: Record<string, string> = {
-  // Mother / Patient fields
   motherName: 'Masukkan nama lengkap...',
   motherNik: '16 digit NIK sesuai KTP / KK',
   motherBirthDate: 'Pilih tanggal lahir...',
@@ -322,16 +447,12 @@ const SPECIFIC_FIELD_PLACEHOLDERS: Record<string, string> = {
   dasawisma: 'Nama kelompok Dasawisma...',
   posyandu: 'Nama Posyandu...',
   puskesmas: 'Nama Puskesmas...',
-
-  // Partner fields
   partnerName: 'Masukkan nama lengkap suami/pasangan...',
   partnerNik: '16 digit NIK sesuai KTP / KK',
   partnerBirthDate: 'Pilih tanggal lahir suami/pasangan...',
   partnerAge: 'Contoh: 31 tahun',
   partnerJob: 'Contoh: Karyawan swasta, Wiraswasta',
   partnerEducation: 'Pilih pendidikan terakhir suami/pasangan...',
-
-  // Baseline measurements
   heightCm: 'Contoh: 156 cm',
   prePregnancyWeightKg: 'Contoh: 52 kg',
   upperArmCircumferenceCm: 'Contoh: 23.5 cm',
@@ -339,9 +460,9 @@ const SPECIFIC_FIELD_PLACEHOLDERS: Record<string, string> = {
   tetanusStatus: 'Pilih status imunisasi TT/Td...',
   motherBloodType: 'Pilih golongan darah...',
   partnerBloodType: 'Pilih golongan darah suami...',
-
-  // Pregnancy specific
   hpht: 'Pilih tanggal HPHT...',
+  estimatedDueDate: 'Otomatis terhitung setelah HPHT dipilih',
+  gestationalAge: 'Otomatis terhitung setelah HPHT dipilih',
   currentComplaints: 'Contoh: Mual, pusing, atau Tidak ada',
   contraception1Type: 'Pilih jenis KB...',
   contraception1StartDate: 'Pilih tanggal mulai...',
@@ -349,8 +470,6 @@ const SPECIFIC_FIELD_PLACEHOLDERS: Record<string, string> = {
   pregnancy1Outcome: 'Pilih hasil kehamilan...',
   pregnancy1BirthYear: 'Contoh: 2020',
   otherDiseaseHistoryNotes: 'Tuliskan riwayat penyakit lainnya...',
-
-  // Child / Immunization fields
   childName: 'Masukkan nama lengkap anak...',
   childNik: '16 digit NIK sesuai KK / KIA',
   childBirthDate: 'Pilih tanggal lahir anak...',
@@ -359,15 +478,25 @@ const SPECIFIC_FIELD_PLACEHOLDERS: Record<string, string> = {
   fatherName: 'Masukkan nama lengkap ayah...',
   childAddress: 'Tuliskan alamat domisili anak saat ini...',
   previousVaccineHistory: 'Contoh: HB 0, BCG, Polio 1 (sesuai buku KIA)',
-  childAllergyHistory: 'Tuliskan jika ada alergi, atau Tidak ada'
+  childAllergyHistory: 'Tuliskan jika ada alergi, atau Tidak ada',
+  gravidaCount: 'Contoh: 1',
+  parityCount: 'Contoh: 0',
+  abortionCount: 'Contoh: 0',
+  livingChildrenCount: 'Contoh: 1'
 };
 
 function getFieldPlaceholder(schemaField: MedicalFormField): string {
+  if (schemaField.placeholder) {
+    return schemaField.placeholder;
+  }
   if (SPECIFIC_FIELD_PLACEHOLDERS[schemaField.id]) {
     return SPECIFIC_FIELD_PLACEHOLDERS[schemaField.id];
   }
 
   const id = schemaField.id.toLowerCase();
+  if (id.includes('count') || id.includes('jumlah')) {
+    return 'Contoh: 1';
+  }
   if (id.includes('name') || id.includes('nama')) {
     return 'Masukkan nama lengkap...';
   }
@@ -402,7 +531,7 @@ function getFieldPlaceholder(schemaField: MedicalFormField): string {
     return 'Tuliskan keterangan jika ada...';
   }
 
-  return `Masukkan ${schemaField.title.toLowerCase()}...`;
+  return 'Contoh: 1';
 }
 
 function MedicalSchemaField({
@@ -417,24 +546,32 @@ function MedicalSchemaField({
   const displayError = isInvalid && rawError && rawError !== 'Wajib diisi' ? rawError : undefined;
   const value = String(fieldApi.state.value ?? '');
 
+  const isColSpanFull =
+    schemaField.colSpan === 'full' || schemaField.colSpan === 2 || schemaField.type === 'PARAGRAPH';
+  const colSpanClass = isColSpanFull ? 'col-span-1 sm:col-span-2' : 'col-span-1';
+
   const requiredAsterisk = schemaField.required ? (
-    <span className='ml-0.5 font-bold text-red-500 dark:text-red-400' aria-hidden='true'>
+    <span className='ml-1 font-bold text-red-500 dark:text-red-400' aria-hidden='true'>
       *
     </span>
   ) : null;
 
   if (schemaField.type === 'MULTIPLE_CHOICE' || schemaField.choices.length === 2) {
-    const choiceCount = schemaField.choices.length;
     const isSmoked = schemaField.id === 'smokedBeforePregnancy';
+    const isTwoChoices = schemaField.choices.length === 2;
 
     return (
-      <FieldSet data-invalid={isInvalid}>
-        <FieldLegend variant='label'>
-          {schemaField.title}
-          {requiredAsterisk}
+      <FieldSet data-invalid={isInvalid} className={cn('gap-3', colSpanClass)}>
+        <FieldLegend variant='label' className='mb-1.5 text-sm leading-snug font-medium'>
+          <span>
+            {schemaField.title}
+            {requiredAsterisk}
+          </span>
         </FieldLegend>
         {schemaField.helpText ? (
-          <FieldDescription className='text-xs'>{schemaField.helpText}</FieldDescription>
+          <FieldDescription className='text-xs text-muted-foreground'>
+            {schemaField.helpText}
+          </FieldDescription>
         ) : null}
         <ToggleGroup
           type='single'
@@ -447,16 +584,7 @@ function MedicalSchemaField({
             fieldApi.handleChange(nextValue);
             fieldApi.handleBlur();
           }}
-          className={cn(
-            'grid gap-2',
-            isSmoked
-              ? 'grid-cols-3'
-              : choiceCount === 1
-                ? 'grid-cols-1'
-                : choiceCount === 2
-                  ? 'grid-cols-2'
-                  : 'sm:grid-cols-2'
-          )}
+          className={cn('mt-1 w-fit gap-2.5', isTwoChoices ? 'grid grid-cols-2' : 'flex flex-wrap')}
         >
           {schemaField.choices.map((choice) => (
             <ToggleGroupItem
@@ -464,7 +592,8 @@ function MedicalSchemaField({
               value={choice}
               aria-invalid={isInvalid}
               className={cn(
-                'h-auto min-h-10 justify-start whitespace-normal rounded-md border border-border px-3 py-2 text-left text-xs font-medium leading-snug first:rounded-md last:rounded-md data-[state=on]:border-primary data-[state=on]:bg-primary/5 data-[state=on]:text-foreground',
+                'h-auto min-h-10 cursor-pointer justify-center whitespace-normal rounded-md border border-border px-4 py-2 text-center text-xs leading-snug font-medium transition-all first:rounded-md last:rounded-md data-[state=on]:border-primary data-[state=on]:bg-primary/10 data-[state=on]:font-semibold data-[state=on]:text-primary',
+                isTwoChoices ? 'w-full min-w-[130px] sm:min-w-[140px]' : 'w-fit',
                 isSmoked && 'justify-center text-center font-medium'
               )}
             >
@@ -481,13 +610,19 @@ function MedicalSchemaField({
     const placeholder = getFieldPlaceholder(schemaField);
 
     return (
-      <Field data-invalid={isInvalid}>
-        <FieldLabel htmlFor={schemaField.id}>
-          {schemaField.title}
-          {requiredAsterisk}
+      <Field data-invalid={isInvalid} className={cn('gap-2', colSpanClass)}>
+        <FieldLabel
+          htmlFor={schemaField.id}
+          className='min-h-[1.25rem] text-sm leading-snug font-medium'
+        >
+          <span>
+            {schemaField.title}
+            {requiredAsterisk}
+          </span>
         </FieldLabel>
         <Select
           value={value}
+          disabled={schemaField.disabled}
           onValueChange={(nextValue) => {
             fieldApi.handleChange(nextValue);
             fieldApi.handleBlur();
@@ -515,15 +650,21 @@ function MedicalSchemaField({
     const placeholder = getFieldPlaceholder(schemaField);
 
     return (
-      <Field data-invalid={isInvalid}>
-        <FieldLabel htmlFor={schemaField.id}>
-          {schemaField.title}
-          {requiredAsterisk}
+      <Field data-invalid={isInvalid} className={cn('gap-2', colSpanClass)}>
+        <FieldLabel
+          htmlFor={schemaField.id}
+          className='min-h-[1.25rem] text-sm leading-snug font-medium'
+        >
+          <span>
+            {schemaField.title}
+            {requiredAsterisk}
+          </span>
         </FieldLabel>
         <Textarea
           id={schemaField.id}
           value={value}
           placeholder={placeholder}
+          disabled={schemaField.disabled}
           onBlur={fieldApi.handleBlur}
           onChange={(event) => fieldApi.handleChange(event.target.value)}
           aria-invalid={isInvalid}
@@ -538,7 +679,16 @@ function MedicalSchemaField({
     const placeholder = getFieldPlaceholder(schemaField);
 
     return (
-      <Field data-invalid={isInvalid}>
+      <Field data-invalid={isInvalid} className={cn('gap-2', colSpanClass)}>
+        <FieldLabel
+          htmlFor={schemaField.id}
+          className='min-h-[1.25rem] text-sm leading-snug font-medium'
+        >
+          <span>
+            {schemaField.title}
+            {requiredAsterisk}
+          </span>
+        </FieldLabel>
         <PatientBirthdatePicker
           id={schemaField.id}
           value={value}
@@ -546,18 +696,14 @@ function MedicalSchemaField({
             fieldApi.handleChange(nextValue);
             fieldApi.handleBlur();
           }}
-          label={
-            <>
-              {schemaField.title}
-              {requiredAsterisk}
-            </>
-          }
+          label={null}
           placeholder={placeholder}
           ariaLabel={schemaField.title}
-          error={displayError}
+          error={undefined}
           invalid={isInvalid}
-          className='space-y-1'
+          className='w-full space-y-0'
         />
+        <FieldError errors={displayError ? [displayError] : []} />
       </Field>
     );
   }
@@ -565,26 +711,29 @@ function MedicalSchemaField({
   if (
     schemaField.id === 'initialBmi' ||
     schemaField.id === 'motherAge' ||
-    schemaField.id === 'partnerAge'
+    schemaField.id === 'partnerAge' ||
+    schemaField.id === 'estimatedDueDate' ||
+    schemaField.id === 'gestationalAge'
   ) {
     const placeholder = getFieldPlaceholder(schemaField);
 
     return (
-      <Field data-invalid={isInvalid}>
-        <div className='flex items-center justify-between'>
-          <FieldLabel htmlFor={schemaField.id}>
+      <Field data-invalid={isInvalid} className={cn('gap-2', colSpanClass)}>
+        <FieldLabel
+          htmlFor={schemaField.id}
+          className='min-h-[1.25rem] text-sm leading-snug font-medium'
+        >
+          <span>
             {schemaField.title}
             {requiredAsterisk}
-          </FieldLabel>
-          {value ? (
-            <span className='text-xs font-normal text-muted-foreground'>Otomatis terhitung</span>
-          ) : null}
-        </div>
+          </span>
+        </FieldLabel>
         <Input
           id={schemaField.id}
           type='text'
           value={value}
           placeholder={placeholder}
+          disabled={schemaField.disabled}
           onBlur={fieldApi.handleBlur}
           onChange={(event) =>
             fieldApi.handleChange(normalizeMedicalFieldInput(schemaField, event.target.value))
@@ -592,24 +741,35 @@ function MedicalSchemaField({
           aria-invalid={isInvalid}
           className={cn(value && 'bg-muted/20 font-normal text-foreground')}
         />
+        {value ? <p className='text-xs text-muted-foreground'>Otomatis terhitung</p> : null}
         <FieldError errors={displayError ? [displayError] : []} />
       </Field>
     );
   }
 
   const placeholder = getFieldPlaceholder(schemaField);
+  const isPairedGridCount = schemaField.id === 'gravidaCount' || schemaField.id === 'parityCount';
 
   return (
-    <Field data-invalid={isInvalid}>
-      <FieldLabel htmlFor={schemaField.id}>
-        {schemaField.title}
-        {requiredAsterisk}
+    <Field data-invalid={isInvalid} className={cn('gap-2', colSpanClass)}>
+      <FieldLabel
+        htmlFor={schemaField.id}
+        className={cn(
+          'text-sm leading-snug font-medium',
+          isPairedGridCount ? 'flex items-start sm:min-h-[2.5rem]' : 'min-h-[1.25rem]'
+        )}
+      >
+        <span>
+          {schemaField.title}
+          {requiredAsterisk}
+        </span>
       </FieldLabel>
       <Input
         id={schemaField.id}
         type='text'
         value={value}
         placeholder={placeholder}
+        disabled={schemaField.disabled}
         onBlur={fieldApi.handleBlur}
         onChange={(event) =>
           fieldApi.handleChange(normalizeMedicalFieldInput(schemaField, event.target.value))
@@ -633,12 +793,12 @@ function DoctorStep({
   onSelectDoctor: (doctor: string) => void;
 }) {
   return (
-    <div className='flex flex-col flex-1 min-h-0 gap-4'>
+    <div className='flex min-h-0 flex-1 flex-col gap-4'>
       <StepTitle
         title='Pilih tenaga medis'
         description={`Pilih dokter atau bidan untuk layanan ${serviceName}.`}
       />
-      <ScrollArea className='flex-1 min-h-0 [&_[data-slot=scroll-area-scrollbar]]:hidden'>
+      <ScrollArea className='min-h-0 flex-1 [&_[data-slot=scroll-area-scrollbar]]:hidden'>
         <div className='grid gap-3 pr-1 pb-4'>
           {doctors.map((doctor) => {
             const isSelected = selectedDoctor === doctor.name;
@@ -680,12 +840,12 @@ function DateStep({
   onSelectDate: (dateStr: string) => void;
 }) {
   return (
-    <div className='flex flex-col flex-1 min-h-0 gap-4'>
+    <div className='flex min-h-0 flex-1 flex-col gap-4'>
       <StepTitle
         title='Tanggal kunjungan'
         description={`Pilih tanggal praktik yang tersedia untuk ${doctorName}.`}
       />
-      <div className='flex-1 min-h-0 overflow-y-auto pr-1 pb-2'>
+      <div className='min-h-0 flex-1 overflow-y-auto pr-1 pb-2'>
         <AppointmentCalendarDayPicker
           doctorName={doctorName}
           selectedDateStr={selectedDateStr}
@@ -708,12 +868,12 @@ function TimeStep({
   onSelectTimeSlot: (timeSlot: string) => void;
 }) {
   return (
-    <div className='flex flex-col flex-1 min-h-0 gap-4'>
+    <div className='flex min-h-0 flex-1 flex-col gap-4'>
       <StepTitle
         title='Jam kunjungan'
         description={`Pilih slot jam yang tersedia untuk ${doctorName} pada ${selectedDateStr}.`}
       />
-      <div className='flex-1 min-h-0 overflow-y-auto pr-1 pb-2'>
+      <div className='min-h-0 flex-1 overflow-y-auto pr-1 pb-2'>
         <AppointmentTimeSlotPicker
           doctorName={doctorName}
           selectedDateStr={selectedDateStr}
@@ -750,12 +910,12 @@ function ReviewStep({
   };
 
   return (
-    <div className='flex flex-col flex-1 min-h-0 gap-4'>
+    <div className='flex min-h-0 flex-1 flex-col gap-4'>
       <StepTitle
         title='Konfirmasi data'
         description='Pastikan jadwal dan jawaban form sudah benar sebelum disimpan.'
       />
-      <div className='grid gap-2 text-xs shrink-0'>
+      <div className='grid shrink-0 gap-2 text-xs'>
         <SummaryRow label='Form' value={definitionTitle} />
         <SummaryRow label='Layanan' value={serviceName} />
         <SummaryRow label='Tenaga medis' value={schedule.doctor} />
@@ -768,7 +928,7 @@ function ReviewStep({
           ))}
       </div>
 
-      <ScrollArea className='flex-1 min-h-[160px] rounded-lg border border-border p-3'>
+      <ScrollArea className='min-h-[160px] flex-1 rounded-lg border border-border p-3'>
         <div className='grid gap-2 pr-3 text-xs'>
           {answeredFields.map((answer) => (
             <SummaryRow key={answer.id} label={answer.label} value={answer.value} />

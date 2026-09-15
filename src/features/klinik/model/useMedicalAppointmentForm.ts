@@ -19,7 +19,6 @@ import {
 } from '../api/service';
 import {
   getMedicalFlowDefinition,
-  type MedicalFlowDefinition,
   type MedicalFormSection
 } from '../constants/medical-appointment-schemas';
 import {
@@ -31,6 +30,11 @@ import {
   type MedicalAppointmentValues
 } from '../utils/medical-appointment';
 import { isMedicalSectionValid } from '../schemas/medical-appointment-validation';
+import {
+  calculateEddFromLmp,
+  calculateGestationalAge as calculateObstetricGestationalAge,
+  formatIndonesianDateText
+} from '../utils/obstetric-calculator';
 
 export type ScheduleValues = {
   doctor: string;
@@ -38,16 +42,21 @@ export type ScheduleValues = {
   timeSlot: string;
 };
 
+export type RepeatableHistoryKey = 'pregnancy' | 'contraception';
+
 export type StepDescriptor =
   | {
       type: 'medical';
       sectionIndex: number;
     }
   | {
+      type: 'history-catalog';
+      historyKey: RepeatableHistoryKey;
+    }
+  | {
       type: 'doctor' | 'date' | 'time' | 'review';
     };
 
-export type RepeatableHistoryKey = 'previousPregnancy' | 'contraception';
 export type RepeatableHistoryCounts = Record<RepeatableHistoryKey, number>;
 
 export interface RepeatableHistoryGroup {
@@ -55,6 +64,7 @@ export interface RepeatableHistoryGroup {
   sectionIds: string[];
   gatewayFieldId: string;
   disabledValue: string;
+  enabledValue: string;
   maxRecords: number;
 }
 
@@ -66,6 +76,17 @@ export interface HistoryRecordActions {
   onRemove: () => void;
 }
 
+export interface HistoryPromptState {
+  groupKey: RepeatableHistoryKey;
+  currentRecord: number;
+}
+
+export interface CatalogActionState {
+  type: 'add' | 'edit';
+  groupKey: RepeatableHistoryKey;
+  recordNumber: number;
+}
+
 export const scheduleStepDescriptors: StepDescriptor[] = [
   { type: 'doctor' },
   { type: 'date' },
@@ -74,8 +95,8 @@ export const scheduleStepDescriptors: StepDescriptor[] = [
 ];
 
 export const historyGroups: Record<RepeatableHistoryKey, RepeatableHistoryGroup> = {
-  previousPregnancy: {
-    key: 'previousPregnancy',
+  pregnancy: {
+    key: 'pregnancy',
     sectionIds: [
       'previousPregnancy1Details',
       'previousPregnancy2Details',
@@ -84,6 +105,7 @@ export const historyGroups: Record<RepeatableHistoryKey, RepeatableHistoryGroup>
     ],
     gatewayFieldId: 'hasPreviousPregnancyHistory',
     disabledValue: 'Belum/tidak ada',
+    enabledValue: 'Ya, ada',
     maxRecords: 4
   },
   contraception: {
@@ -96,12 +118,13 @@ export const historyGroups: Record<RepeatableHistoryKey, RepeatableHistoryGroup>
     ],
     gatewayFieldId: 'hasContraceptionHistory',
     disabledValue: 'Belum pernah',
+    enabledValue: 'Ya, pernah',
     maxRecords: 4
   }
 };
 
 export const defaultHistoryCounts: RepeatableHistoryCounts = {
-  previousPregnancy: 1,
+  pregnancy: 1,
   contraception: 1
 };
 
@@ -124,7 +147,7 @@ export function useMedicalAppointmentForm({
 }: UseMedicalAppointmentFormOptions) {
   const definition = React.useMemo(() => getMedicalFlowDefinition(flow), [flow]);
   const defaultValues = React.useMemo(() => buildDefaultMedicalValues(definition), [definition]);
-  const doctors = React.useMemo(
+  const doctors = React.useMemo<Doctor[]>(
     () => getDoctorsByService(definition.serviceName),
     [definition.serviceName]
   );
@@ -143,6 +166,13 @@ export function useMedicalAppointmentForm({
   const [registeredPatient, setRegisteredPatient] = React.useState<Patient | null>(null);
   const [historyCounts, setHistoryCounts] =
     React.useState<RepeatableHistoryCounts>(defaultHistoryCounts);
+  const [historyPrompt, setHistoryPrompt] = React.useState<HistoryPromptState | null>(null);
+  const [catalogAction, setCatalogAction] = React.useState<CatalogActionState | null>(null);
+  const [pendingNavigateSectionId, setPendingNavigateSectionId] = React.useState<string | null>(
+    null
+  );
+  const [pendingNavigateCatalogKey, setPendingNavigateCatalogKey] =
+    React.useState<RepeatableHistoryKey | null>(null);
 
   const form = useAppForm({
     defaultValues,
@@ -160,8 +190,10 @@ export function useMedicalAppointmentForm({
 
   const repeatableMedicalSections = React.useMemo(
     () =>
-      activeMedicalSections.filter((section) => isHistorySectionVisible(section.id, historyCounts)),
-    [activeMedicalSections, historyCounts]
+      activeMedicalSections.filter((section) =>
+        isHistorySectionVisible(section.id, historyCounts, catalogAction)
+      ),
+    [activeMedicalSections, historyCounts, catalogAction]
   );
 
   const registrationPrefill = React.useMemo(
@@ -188,16 +220,50 @@ export function useMedicalAppointmentForm({
     [repeatableMedicalSections, prefilledFieldIds]
   );
 
-  const activeSteps = React.useMemo<StepDescriptor[]>(
-    () => [
-      ...visibleMedicalSections.map((_, sectionIndex) => ({
-        type: 'medical' as const,
-        sectionIndex
-      })),
-      ...scheduleStepDescriptors
-    ],
-    [visibleMedicalSections]
-  );
+  const activeSteps = React.useMemo<StepDescriptor[]>(() => {
+    const steps: StepDescriptor[] = [];
+
+    visibleMedicalSections.forEach((section, sectionIndex) => {
+      steps.push({ type: 'medical', sectionIndex });
+
+      const targetPregnancyAnchorId =
+        catalogAction?.groupKey === 'pregnancy' && catalogAction.type === 'add'
+          ? `previousPregnancy${catalogAction.recordNumber}Details`
+          : historyCounts.pregnancy === 0
+            ? 'obstetricSummary'
+            : `previousPregnancy${historyCounts.pregnancy}Details`;
+
+      if (
+        values.hasPreviousPregnancyHistory === historyGroups.pregnancy.enabledValue &&
+        section.id === targetPregnancyAnchorId
+      ) {
+        steps.push({ type: 'history-catalog', historyKey: 'pregnancy' });
+      }
+
+      const targetContraceptionAnchorId =
+        catalogAction?.groupKey === 'contraception' && catalogAction.type === 'add'
+          ? `contraception${catalogAction.recordNumber}Details`
+          : historyCounts.contraception === 0
+            ? 'contraceptionGateway'
+            : `contraception${historyCounts.contraception}Details`;
+
+      if (
+        values.hasContraceptionHistory === historyGroups.contraception.enabledValue &&
+        section.id === targetContraceptionAnchorId
+      ) {
+        steps.push({ type: 'history-catalog', historyKey: 'contraception' });
+      }
+    });
+
+    steps.push(...scheduleStepDescriptors);
+    return steps;
+  }, [
+    visibleMedicalSections,
+    values.hasPreviousPregnancyHistory,
+    values.hasContraceptionHistory,
+    historyCounts,
+    catalogAction
+  ]);
 
   const totalSteps = activeSteps.length;
   const currentDescriptor = activeSteps[currentStep - 1] || activeSteps[0];
@@ -266,6 +332,10 @@ export function useMedicalAppointmentForm({
   React.useEffect(() => {
     if (isOpen) {
       setHistoryCounts(defaultHistoryCounts);
+      setHistoryPrompt(null);
+      setCatalogAction(null);
+      setPendingNavigateSectionId(null);
+      setPendingNavigateCatalogKey(null);
     }
   }, [flow, isOpen]);
 
@@ -278,16 +348,7 @@ export function useMedicalAppointmentForm({
   }, [form, registrationPrefill]);
 
   React.useEffect(() => {
-    const previousPregnancyGroup = historyGroups.previousPregnancy;
     const contraceptionGroup = historyGroups.contraception;
-
-    if (values.hasPreviousPregnancyHistory === previousPregnancyGroup.disabledValue) {
-      clearHistoryRecordRange(previousPregnancyGroup, 1, previousPregnancyGroup.maxRecords);
-      setHistoryCounts((previous) => ({
-        ...previous,
-        previousPregnancy: 1
-      }));
-    }
 
     if (values.hasContraceptionHistory === contraceptionGroup.disabledValue) {
       clearHistoryRecordRange(contraceptionGroup, 1, contraceptionGroup.maxRecords);
@@ -296,7 +357,19 @@ export function useMedicalAppointmentForm({
         contraception: 1
       }));
     }
-  }, [clearHistoryRecordRange, values.hasPreviousPregnancyHistory, values.hasContraceptionHistory]);
+  }, [clearHistoryRecordRange, values.hasContraceptionHistory]);
+
+  React.useEffect(() => {
+    const pregnancyGroup = historyGroups.pregnancy;
+
+    if (values.hasPreviousPregnancyHistory === pregnancyGroup.disabledValue) {
+      clearHistoryRecordRange(pregnancyGroup, 1, pregnancyGroup.maxRecords);
+      setHistoryCounts((previous) => ({
+        ...previous,
+        pregnancy: 1
+      }));
+    }
+  }, [clearHistoryRecordRange, values.hasPreviousPregnancyHistory]);
 
   React.useEffect(() => {
     const calculated = calculateBmi(values.prePregnancyWeightKg, values.heightCm);
@@ -322,6 +395,71 @@ export function useMedicalAppointmentForm({
       }
     }
   }, [values.partnerBirthDate, values.partnerAge, form]);
+
+  React.useEffect(() => {
+    if (values.hpht) {
+      try {
+        const edd = calculateEddFromLmp(values.hpht);
+        const estimatedDueDate = formatIndonesianDateText(edd);
+        const gestationalAge = calculateObstetricGestationalAge(edd, new Date()).formatted;
+
+        if (values.estimatedDueDate !== estimatedDueDate) {
+          form.setFieldValue('estimatedDueDate', estimatedDueDate);
+        }
+        if (values.gestationalAge !== gestationalAge) {
+          form.setFieldValue('gestationalAge', gestationalAge);
+        }
+      } catch {
+        // Invalid date input is handled by field validation.
+      }
+      return;
+    }
+
+    if (values.estimatedDueDate) {
+      form.setFieldValue('estimatedDueDate', '');
+    }
+    if (values.gestationalAge) {
+      form.setFieldValue('gestationalAge', '');
+    }
+  }, [values.hpht, values.estimatedDueDate, values.gestationalAge, form]);
+
+  React.useEffect(() => {
+    if (!pendingNavigateSectionId) {
+      return;
+    }
+
+    const sectionIndex = visibleMedicalSections.findIndex(
+      (section) => section.id === pendingNavigateSectionId
+    );
+
+    if (sectionIndex === -1) {
+      return;
+    }
+
+    const stepIndex = activeSteps.findIndex(
+      (step) => step.type === 'medical' && step.sectionIndex === sectionIndex
+    );
+
+    if (stepIndex !== -1) {
+      setCurrentStep(stepIndex + 1);
+      setPendingNavigateSectionId(null);
+    }
+  }, [pendingNavigateSectionId, visibleMedicalSections, activeSteps]);
+
+  React.useEffect(() => {
+    if (!pendingNavigateCatalogKey) {
+      return;
+    }
+
+    const stepIndex = activeSteps.findIndex(
+      (step) => step.type === 'history-catalog' && step.historyKey === pendingNavigateCatalogKey
+    );
+
+    if (stepIndex !== -1) {
+      setCurrentStep(stepIndex + 1);
+      setPendingNavigateCatalogKey(null);
+    }
+  }, [pendingNavigateCatalogKey, activeSteps]);
 
   function submitMedicalAppointment(formValues: MedicalAppointmentValues) {
     const submittedValues = pickMedicalValues(repeatableMedicalSections, formValues);
@@ -363,7 +501,28 @@ export function useMedicalAppointmentForm({
     }, 1200);
   }
 
+  const handleCancelCatalogAction = React.useCallback(() => {
+    if (!catalogAction) {
+      return;
+    }
+
+    const { type, groupKey, recordNumber } = catalogAction;
+
+    if (type === 'add') {
+      const group = historyGroups[groupKey];
+      clearHistoryRecordRange(group, recordNumber, recordNumber);
+    }
+
+    setCatalogAction(null);
+    setPendingNavigateCatalogKey(groupKey);
+  }, [catalogAction, clearHistoryRecordRange]);
+
   function handleBack() {
+    if (catalogAction) {
+      handleCancelCatalogAction();
+      return;
+    }
+
     if (currentStep <= 1) {
       if (onBackToService) {
         onBackToService();
@@ -387,22 +546,138 @@ export function useMedicalAppointmentForm({
       return;
     }
 
-    setCurrentStep((step) => Math.min(totalSteps, step + 1));
-  }
+    if (currentDescriptor.type === 'medical') {
+      const currentSection = visibleMedicalSections[currentDescriptor.sectionIndex];
+      const historyMeta = getHistorySectionMeta(currentSection?.id);
 
-  function handleAddHistoryRecord(key: RepeatableHistoryKey) {
-    const group = historyGroups[key];
-    const currentCount = historyCounts[key];
+      if (historyMeta) {
+        if (catalogAction) {
+          const { type, groupKey, recordNumber } = catalogAction;
 
-    if (currentCount >= group.maxRecords) {
+          if (type === 'add') {
+            if (isHistoryRecordEmpty(currentSection, values)) {
+              toast.error(
+                'Silakan isi data riwayat terlebih dahulu, atau klik Kembali jika batal.'
+              );
+              return;
+            }
+
+            const group = historyGroups[groupKey];
+            if (values[group.gatewayFieldId] !== group.enabledValue) {
+              form.setFieldValue(group.gatewayFieldId, group.enabledValue);
+            }
+
+            setHistoryCounts((previous) => ({
+              ...previous,
+              [groupKey]: Math.max(previous[groupKey], recordNumber)
+            }));
+          }
+
+          setCatalogAction(null);
+          setPendingNavigateCatalogKey(historyMeta.group.key);
+          return;
+        }
+
+        if (
+          historyMeta.recordNumber === historyCounts[historyMeta.group.key] &&
+          historyCounts[historyMeta.group.key] < historyMeta.group.maxRecords
+        ) {
+          setHistoryPrompt({
+            groupKey: historyMeta.group.key,
+            currentRecord: historyMeta.recordNumber
+          });
+          return;
+        }
+      }
+    }
+
+    if (currentDescriptor.type === 'history-catalog') {
+      const groupKey = currentDescriptor.historyKey;
+
+      if (historyCounts[groupKey] === 0) {
+        form.setFieldValue(
+          historyGroups[groupKey].gatewayFieldId,
+          historyGroups[groupKey].disabledValue
+        );
+      }
+
+      setCurrentStep((step) => Math.min(totalSteps, step + 1));
       return;
     }
 
-    setHistoryCounts((previous) => ({
-      ...previous,
-      [key]: currentCount + 1
-    }));
-    setCurrentStep((step) => step + 1);
+    setCurrentStep((step) => Math.min(totalSteps, step + 1));
+  }
+
+  function handlePromptYes() {
+    if (!historyPrompt) {
+      return;
+    }
+
+    const groupKey = historyPrompt.groupKey;
+    const currentCount = historyCounts[groupKey];
+    setHistoryPrompt(null);
+
+    if (currentCount >= historyGroups[groupKey].maxRecords) {
+      return;
+    }
+
+    const nextRecordNumber = currentCount + 1;
+    setCatalogAction({
+      type: 'add',
+      groupKey,
+      recordNumber: nextRecordNumber
+    });
+
+    const targetSectionId = historyGroups[groupKey].sectionIds[nextRecordNumber - 1];
+    setPendingNavigateSectionId(targetSectionId);
+  }
+
+  function handlePromptNo() {
+    if (!historyPrompt) {
+      return;
+    }
+
+    const groupKey = historyPrompt.groupKey;
+    setHistoryPrompt(null);
+
+    const catalogIndex = activeSteps.findIndex(
+      (step) => step.type === 'history-catalog' && step.historyKey === groupKey
+    );
+
+    if (catalogIndex !== -1) {
+      setCurrentStep(catalogIndex + 1);
+      return;
+    }
+
+    setCurrentStep((step) => Math.min(totalSteps, step + 1));
+  }
+
+  function handleAddHistoryFromCatalog(groupKey: RepeatableHistoryKey) {
+    const currentCount = historyCounts[groupKey];
+    if (currentCount >= historyGroups[groupKey].maxRecords) {
+      return;
+    }
+
+    const targetRecordNumber = currentCount + 1;
+    setCatalogAction({
+      type: 'add',
+      groupKey,
+      recordNumber: targetRecordNumber
+    });
+
+    const targetSectionId = historyGroups[groupKey].sectionIds[targetRecordNumber - 1];
+    setPendingNavigateSectionId(targetSectionId);
+  }
+
+  function handleEditHistoryFromCatalog(groupKey: RepeatableHistoryKey, recordNumber: number) {
+    const targetSectionId = historyGroups[groupKey].sectionIds[recordNumber - 1];
+
+    setCatalogAction({
+      type: 'edit',
+      groupKey,
+      recordNumber
+    });
+    setPendingNavigateSectionId(targetSectionId);
   }
 
   function handleRemoveHistoryRecord(key: RepeatableHistoryKey, recordNumber: number) {
@@ -411,24 +686,20 @@ export function useMedicalAppointmentForm({
 
     if (currentCount <= 1) {
       clearHistoryRecordRange(group, 1, group.maxRecords);
-      form.setFieldValue(group.gatewayFieldId, group.disabledValue);
       setHistoryCounts((previous) => ({
         ...previous,
-        [key]: 1
+        [key]: 0
       }));
-      setCurrentStep((step) => Math.max(1, step - 1));
+      setPendingNavigateCatalogKey(key);
       return;
     }
 
     shiftHistoryRecords(group, recordNumber);
     setHistoryCounts((previous) => ({
       ...previous,
-      [key]: Math.max(1, previous[key] - 1)
+      [key]: Math.max(0, previous[key] - 1)
     }));
-
-    if (recordNumber >= currentCount) {
-      setCurrentStep((step) => Math.max(1, step - 1));
-    }
+    setPendingNavigateCatalogKey(key);
   }
 
   function shiftHistoryRecords(group: RepeatableHistoryGroup, removedRecord: number) {
@@ -468,14 +739,20 @@ export function useMedicalAppointmentForm({
     createdQueueItem,
     registeredPatient,
     historyCounts,
+    historyPrompt,
+    catalogAction,
     isCurrentStepValid: isStepValid,
     actions: {
       setSchedule,
       nextStep: handleNext,
       prevStep: handleBack,
       goToStep: setCurrentStep,
-      addHistoryRecord: handleAddHistoryRecord,
+      promptYes: handlePromptYes,
+      promptNo: handlePromptNo,
+      addHistoryFromCatalog: handleAddHistoryFromCatalog,
+      editHistoryFromCatalog: handleEditHistoryFromCatalog,
       removeHistoryRecord: handleRemoveHistoryRecord,
+      cancelCatalogAction: handleCancelCatalogAction,
       closeQueueSuccess: () => {
         setIsQueueSuccessOpen(false);
         onClose();
@@ -484,7 +761,7 @@ export function useMedicalAppointmentForm({
         getHistoryRecordActions({
           sectionId,
           historyCounts,
-          onAdd: handleAddHistoryRecord,
+          onAdd: handleAddHistoryFromCatalog,
           onRemove: handleRemoveHistoryRecord
         }),
       collectAnsweredFields: (sections: MedicalFormSection[]) =>
@@ -499,6 +776,10 @@ function checkCurrentStepValid(
   values: MedicalAppointmentValues,
   schedule: ScheduleValues
 ): boolean {
+  if (descriptor.type === 'history-catalog') {
+    return true;
+  }
+
   if (descriptor.type === 'medical') {
     return isMedicalSectionValid(sections[descriptor.sectionIndex], values);
   }
@@ -526,14 +807,31 @@ function buildComplaintText(complaintFieldId: string, values: MedicalAppointment
   return 'Intake medis awal sudah diisi pasien.';
 }
 
+function isHistoryRecordEmpty(
+  section: MedicalFormSection,
+  values: MedicalAppointmentValues
+): boolean {
+  return section.fields.every((field) => !values[field.id]?.trim());
+}
+
 function isHistorySectionVisible(
   sectionId: string,
-  historyCounts: RepeatableHistoryCounts
+  historyCounts: RepeatableHistoryCounts,
+  catalogAction?: CatalogActionState | null
 ): boolean {
   const historySection = getHistorySectionMeta(sectionId);
   if (!historySection) {
     return true;
   }
+
+  if (
+    catalogAction &&
+    catalogAction.groupKey === historySection.group.key &&
+    catalogAction.recordNumber === historySection.recordNumber
+  ) {
+    return true;
+  }
+
   return historySection.recordNumber <= historyCounts[historySection.group.key];
 }
 
@@ -568,7 +866,11 @@ function getHistoryRecordActions({
   };
 }
 
-function getHistorySectionMeta(sectionId: string) {
+function getHistorySectionMeta(sectionId?: string) {
+  if (!sectionId) {
+    return null;
+  }
+
   for (const group of Object.values(historyGroups)) {
     const sectionIndex = group.sectionIds.indexOf(sectionId);
     if (sectionIndex >= 0) {

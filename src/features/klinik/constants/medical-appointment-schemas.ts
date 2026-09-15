@@ -8,9 +8,14 @@ export interface MedicalFormField {
   title: string;
   label: string;
   helpText: string;
+  placeholder?: string;
   required: boolean;
   choices: string[];
   goToSectionIdByChoice: Record<string, string> | null;
+  colSpan?: 1 | 2 | 'full';
+  yearFieldId?: string;
+  notesFieldId?: string;
+  disabled?: boolean;
 }
 
 export interface MedicalFormSection {
@@ -18,6 +23,7 @@ export interface MedicalFormSection {
   title: string;
   description: string;
   fields: MedicalFormField[];
+  layout?: 'grid' | 'stack' | 'questionnaire';
 }
 
 export interface MedicalFlowDefinition {
@@ -39,12 +45,8 @@ const MULTIPLE_CHOICE = 'MULTIPLE_CHOICE';
 const LIST = 'LIST';
 
 const yesNoChoices = ['Tidak', 'Ya'];
-const yesNoUnsureChoices = ['Tidak', 'Ya'];
 const educationChoices = ['Tidak sekolah', 'SD', 'SMP', 'SMA/SMK', 'D1-D3', 'S1', 'S2/S3'];
-const knownPersonEducationChoices = [...educationChoices];
 const bloodTypeChoices = ['A', 'B', 'AB', 'O'];
-const vaccineHistoryChoices = ['Sudah', 'Belum'];
-const vaccineCheckChoices = ['Tidak', 'Ya'];
 
 function field(
   id: string,
@@ -52,7 +54,18 @@ function field(
   title: string,
   label: string,
   options?: Partial<
-    Pick<MedicalFormField, 'helpText' | 'required' | 'choices' | 'goToSectionIdByChoice'>
+    Pick<
+      MedicalFormField,
+      | 'helpText'
+      | 'required'
+      | 'choices'
+      | 'goToSectionIdByChoice'
+      | 'colSpan'
+      | 'yearFieldId'
+      | 'notesFieldId'
+      | 'placeholder'
+      | 'disabled'
+    >
   >
 ): MedicalFormField {
   return {
@@ -61,9 +74,14 @@ function field(
     title,
     label,
     helpText: options?.helpText || '',
+    placeholder: options?.placeholder,
     required: options?.required !== false,
     choices: options?.choices || [],
-    goToSectionIdByChoice: options?.goToSectionIdByChoice || null
+    goToSectionIdByChoice: options?.goToSectionIdByChoice || null,
+    colSpan: options?.colSpan || (type === 'PARAGRAPH' ? 'full' : 1),
+    yearFieldId: options?.yearFieldId,
+    notesFieldId: options?.notesFieldId,
+    disabled: options?.disabled
   };
 }
 
@@ -72,51 +90,34 @@ function optionalField(
   type: MedicalFieldType,
   title: string,
   label: string,
-  options?: Partial<Pick<MedicalFormField, 'helpText' | 'choices' | 'goToSectionIdByChoice'>>
+  options?: Partial<
+    Pick<
+      MedicalFormField,
+      | 'helpText'
+      | 'choices'
+      | 'goToSectionIdByChoice'
+      | 'colSpan'
+      | 'yearFieldId'
+      | 'notesFieldId'
+      | 'placeholder'
+      | 'disabled'
+    >
+  >
 ): MedicalFormField {
   return field(id, type, title, label, { ...options, required: false });
 }
 
-function yesNoField(id: string, title: string, label: string, helpText = ''): MedicalFormField {
-  return field(id, MULTIPLE_CHOICE, title, label, {
-    helpText,
-    choices: yesNoChoices
-  });
-}
-
-function yesNoUnsureField(
+function yesNoField(
   id: string,
   title: string,
   label: string,
-  helpText = ''
+  helpText = '',
+  yearFieldId?: string
 ): MedicalFormField {
   return field(id, MULTIPLE_CHOICE, title, label, {
     helpText,
-    choices: yesNoUnsureChoices
-  });
-}
-
-function vaccineHistoryField(
-  id: string,
-  title: string,
-  label: string,
-  helpText = ''
-): MedicalFormField {
-  return field(id, MULTIPLE_CHOICE, title, label, {
-    helpText,
-    choices: vaccineHistoryChoices
-  });
-}
-
-function vaccineCheckField(
-  id: string,
-  title: string,
-  label: string,
-  helpText = ''
-): MedicalFormField {
-  return field(id, MULTIPLE_CHOICE, title, label, {
-    helpText,
-    choices: vaccineCheckChoices
+    choices: yesNoChoices,
+    yearFieldId
   });
 }
 
@@ -130,95 +131,87 @@ function diseaseStatusFields(config: {
   statusHelpText?: string;
 }): MedicalFormField[] {
   return [
-    yesNoField(config.statusId, config.statusTitle, config.statusLabel, config.statusHelpText),
-    optionalField(config.notesId, TEXT, config.notesTitle, config.notesLabel, {
-      helpText: 'Isi tahun atau cerita singkat jika ingat. Kosongkan jika tidak ada catatan.'
-    })
+    field(config.statusId, MULTIPLE_CHOICE, config.statusTitle, config.statusLabel, {
+      helpText: config.statusHelpText || '',
+      choices: yesNoChoices,
+      yearFieldId: config.notesId
+    }),
+    optionalField(
+      config.notesId,
+      TEXT,
+      `Tahun terdiagnosis ${config.statusLabel}`,
+      `${config.statusLabel} - tahun`,
+      {
+        helpText: 'Tahun terdiagnosis atau dialami. Contoh: 2021.'
+      }
+    )
   ];
 }
 
 function previousPregnancyFields(order: number): MedicalFormField[] {
   const prefix = `previousPregnancy${order}`;
   const labelPrefix = `Riwayat ${order}`;
-  const titlePrefix = `Riwayat ${order}: `;
-  const emptyHelp = 'Kosongkan jika tidak ada atau tidak ingat.';
 
   return [
-    optionalField(
+    field(
       `${prefix}BirthYear`,
       TEXT,
-      `${titlePrefix}tahun lahir atau tahun kehamilan berakhir`,
+      'Tahun lahir atau tahun berakhir',
       `${labelPrefix} - tahun lahir`,
-      { helpText: `Contoh: 2024. ${emptyHelp}` }
-    ),
-    optionalField(
-      `${prefix}BirthWeight`,
-      TEXT,
-      `${titlePrefix}berat lahir bayi`,
-      `${labelPrefix} - berat lahir`,
       {
-        helpText: `Contoh: 3100 gram. ${emptyHelp}`
+        helpText: 'Tuliskan tahun lahir atau tahun berakhir kehamilan. Contoh: 2024.',
+        placeholder: 'Contoh: 2024',
+        colSpan: 1
       }
     ),
-    optionalField(
-      `${prefix}BirthLength`,
-      TEXT,
-      `${titlePrefix}panjang lahir bayi`,
-      `${labelPrefix} - panjang lahir`,
-      {
-        helpText: `Contoh: 49 cm. ${emptyHelp}`
-      }
-    ),
-    optionalField(
-      `${prefix}ChildSex`,
-      LIST,
-      `${titlePrefix}jenis kelamin bayi`,
-      `${labelPrefix} - jenis kelamin`,
-      {
-        choices: ['Laki-laki', 'Perempuan']
-      }
-    ),
-    optionalField(
+    field(`${prefix}BirthWeight`, TEXT, 'Berat lahir bayi', `${labelPrefix} - berat lahir`, {
+      helpText: 'Berat lahir bayi saat lahir. Contoh: 3100 gram.',
+      placeholder: 'Contoh: 3100 gram',
+      colSpan: 1
+    }),
+    field(`${prefix}BirthLength`, TEXT, 'Panjang lahir bayi', `${labelPrefix} - panjang lahir`, {
+      helpText: 'Panjang badan bayi saat lahir. Contoh: 49 cm.',
+      placeholder: 'Contoh: 49 cm',
+      colSpan: 1
+    }),
+    field(`${prefix}ChildSex`, LIST, 'Jenis kelamin bayi', `${labelPrefix} - jenis kelamin`, {
+      choices: ['Laki-laki', 'Perempuan'],
+      colSpan: 1
+    }),
+    field(
       `${prefix}GestationalAgeAtBirth`,
       TEXT,
-      `${titlePrefix}usia kehamilan saat lahir atau berakhir`,
+      'Usia kehamilan saat lahir',
       `${labelPrefix} - usia kehamilan`,
-      { helpText: `Contoh: 39 minggu. ${emptyHelp}` }
-    ),
-    optionalField(
-      `${prefix}BirthAttendant`,
-      TEXT,
-      `${titlePrefix}ditolong oleh siapa?`,
-      `${labelPrefix} - penolong`,
       {
-        helpText: `Contoh: bidan, dokter, atau rumah sakit. ${emptyHelp}`
+        helpText: 'Usia kehamilan saat bayi lahir. Contoh: 39 minggu.',
+        placeholder: 'Contoh: 39 minggu',
+        colSpan: 1
       }
     ),
-    optionalField(
-      `${prefix}DeliveryMethod`,
-      LIST,
-      `${titlePrefix}cara persalinan atau akhir kehamilan`,
-      `${labelPrefix} - cara persalinan`,
-      {
-        choices: ['Normal/spontan', 'Operasi caesar', 'Vakum/forceps', 'Keguguran', 'Lainnya']
-      }
-    ),
-    optionalField(
-      `${prefix}DeliveryPlace`,
-      TEXT,
-      `${titlePrefix}tempat persalinan atau perawatan`,
-      `${labelPrefix} - tempat`,
-      {
-        helpText: `Contoh: PMB, puskesmas, klinik, atau rumah sakit. ${emptyHelp}`
-      }
-    ),
-    optionalField(
+    field(`${prefix}BirthAttendant`, TEXT, 'Ditolong oleh siapa?', `${labelPrefix} - penolong`, {
+      helpText: 'Contoh: bidan, dokter, atau rumah sakit.',
+      placeholder: 'Contoh: Bidan, Dokter',
+      colSpan: 1
+    }),
+    field(`${prefix}DeliveryMethod`, LIST, 'Cara persalinan', `${labelPrefix} - cara persalinan`, {
+      choices: ['Normal/spontan', 'Operasi caesar', 'Vakum/forceps', 'Keguguran', 'Lainnya'],
+      colSpan: 1
+    }),
+    field(`${prefix}DeliveryPlace`, TEXT, 'Tempat persalinan', `${labelPrefix} - tempat`, {
+      helpText: 'Contoh: PMB, puskesmas, klinik, atau rumah sakit.',
+      placeholder: 'Contoh: PMB, Puskesmas, RS',
+      colSpan: 1
+    }),
+    field(
       `${prefix}Complications`,
       PARAGRAPH,
-      `${titlePrefix}apakah ada komplikasi atau masalah?`,
+      'Apakah ada komplikasi atau masalah?',
       `${labelPrefix} - komplikasi`,
       {
-        helpText: `Contoh: perdarahan, bayi dirawat, atau tulis Tidak ada. ${emptyHelp}`
+        helpText: 'Tuliskan komplikasi jika ada, atau tulis Tidak ada.',
+        placeholder: 'Contoh: Tidak ada, atau tuliskan komplikasi',
+        colSpan: 'full'
       }
     )
   ];
@@ -227,71 +220,57 @@ function previousPregnancyFields(order: number): MedicalFormField[] {
 function contraceptionFields(order: number): MedicalFormField[] {
   const prefix = `contraception${order}`;
   const labelPrefix = `KB ${order}`;
-  const titlePrefix = `KB ${order}: `;
-  const emptyHelp = 'Kosongkan jika tidak ada atau tidak ingat.';
 
   return [
-    optionalField(
-      `${prefix}StartDate`,
-      DATE,
-      `${titlePrefix}kapan mulai dipakai?`,
-      `${labelPrefix} - tanggal mulai`,
-      {
-        helpText: `Pilih tanggal mulai pakai KB jika ingat. ${emptyHelp}`
-      }
-    ),
-    optionalField(
-      `${prefix}Type`,
-      LIST,
-      `${titlePrefix}jenis KB/kontrasepsi`,
-      `${labelPrefix} - jenis`,
-      {
-        choices: [
-          'Pil KB',
-          'Suntik 1 bulan',
-          'Suntik 3 bulan',
-          'Implan',
-          'IUD/spiral',
-          'Kondom',
-          'Steril',
-          'Lainnya'
-        ]
-      }
-    ),
-    optionalField(
-      `${prefix}Duration`,
-      TEXT,
-      `${titlePrefix}berapa lama dipakai?`,
-      `${labelPrefix} - masa pakai`,
-      {
-        helpText: `Contoh: 6 bulan atau 2 tahun. ${emptyHelp}`
-      }
-    ),
-    optionalField(
+    field(`${prefix}StartDate`, DATE, 'Kapan mulai dipakai?', `${labelPrefix} - tanggal mulai`, {
+      helpText: 'Pilih tanggal mulai menggunakan KB.',
+      colSpan: 1
+    }),
+    field(`${prefix}Type`, LIST, 'Jenis KB/kontrasepsi', `${labelPrefix} - jenis`, {
+      choices: [
+        'Pil KB',
+        'Suntik 1 bulan',
+        'Suntik 3 bulan',
+        'Implan',
+        'IUD/spiral',
+        'Kondom',
+        'Steril',
+        'Lainnya'
+      ],
+      colSpan: 1
+    }),
+    field(`${prefix}Duration`, TEXT, 'Berapa lama dipakai?', `${labelPrefix} - masa pakai`, {
+      helpText: 'Contoh: 6 bulan atau 2 tahun.',
+      colSpan: 1
+    }),
+    field(
       `${prefix}StopDate`,
       DATE,
-      `${titlePrefix}kapan berhenti atau dilepas?`,
+      'Kapan berhenti atau dilepas?',
       `${labelPrefix} - tanggal lepas`,
       {
-        helpText: `Pilih tanggal berhenti atau dilepas jika ingat. ${emptyHelp}`
+        helpText: 'Pilih tanggal berhenti atau dilepasnya KB.',
+        colSpan: 1
       }
     ),
-    optionalField(
+    field(
       `${prefix}Problems`,
       PARAGRAPH,
-      `${titlePrefix}apakah ada masalah saat memakai KB?`,
+      'Apakah ada masalah saat memakai KB?',
       `${labelPrefix} - masalah`,
       {
-        helpText: `Jika tidak ada, tulis Tidak ada. ${emptyHelp}`
+        helpText: 'Tuliskan masalah atau keluhan jika ada, atau tulis Tidak ada.',
+        colSpan: 'full'
       }
     ),
-    optionalField(
+    field(
       `${prefix}SideEffects`,
       PARAGRAPH,
-      `${titlePrefix}apakah ada efek samping?`,
+      'Apakah ada efek samping?',
       `${labelPrefix} - efek samping`,
       {
-        helpText: `Jika tidak ada, tulis Tidak ada. ${emptyHelp}`
+        helpText: 'Tuliskan efek samping jika ada, atau tulis Tidak ada.',
+        colSpan: 'full'
       }
     )
   ];
@@ -309,57 +288,56 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
   complaintFieldId: 'currentComplaints',
   sections: [
     {
-      id: 'opening',
-      title: 'Sebelum mulai',
-      description:
-        'Siapkan KTP, buku KIA, atau catatan pemeriksaan jika ada. Data yang belum tersedia akan dikonfirmasi petugas saat kunjungan.',
-      fields: [
-        field(
-          'patientConsent',
-          MULTIPLE_CHOICE,
-          'Saya memahami form ini dipakai untuk membantu pelayanan bidan',
-          'Persetujuan pengisian',
-          { choices: ['Ya, saya mengerti'] }
-        )
-      ]
-    },
-    {
       id: 'motherIdentity',
       title: 'Data Diri',
       description: 'Isi data sesuai identitas dan kondisi saat ini.',
+      layout: 'grid',
       fields: [
-        field('motherName', TEXT, 'Nama lengkap', 'Nama lengkap'),
+        field('motherName', TEXT, 'Nama lengkap', 'Nama lengkap', { colSpan: 1 }),
         field('motherNik', TEXT, 'NIK', 'NIK', {
-          helpText: 'Isi 16 digit angka sesuai KTP.'
+          helpText: 'Isi 16 digit angka sesuai KTP.',
+          colSpan: 1
         }),
-        field('motherBirthDate', DATE, 'Tanggal lahir', 'Tanggal lahir'),
+        field('motherBirthDate', DATE, 'Tanggal lahir', 'Tanggal lahir', { colSpan: 1 }),
         field('motherAge', TEXT, 'Umur saat ini', 'Umur', {
-          helpText: 'Otomatis terhitung dari tanggal lahir.'
+          helpText: 'Otomatis terhitung dari tanggal lahir.',
+          colSpan: 1
         }),
         field('marriageOrder', TEXT, 'Pernikahan ke berapa?', 'Pernikahan ke', {
-          helpText: 'Isi angka urutan pernikahan. Contoh: 1.'
+          helpText: 'Isi angka urutan pernikahan. Contoh: 1.',
+          colSpan: 1
         }),
         optionalField('marriageDate', DATE, 'Tanggal menikah', 'Tanggal menikah', {
-          helpText: 'Pilih tanggal menikah jika ingat. Kosongkan jika belum ingat.'
+          helpText: 'Pilih tanggal menikah jika ingat. Kosongkan jika belum ingat.',
+          colSpan: 1
         }),
-        field('motherJob', TEXT, 'Pekerjaan', 'Pekerjaan'),
+        field('motherJob', TEXT, 'Pekerjaan', 'Pekerjaan', { colSpan: 1 }),
         field('motherEducation', LIST, 'Pendidikan terakhir', 'Pendidikan', {
-          choices: educationChoices
+          choices: educationChoices,
+          colSpan: 1
         }),
         field('religion', LIST, 'Agama', 'Agama', {
-          choices: ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu', 'Lainnya']
+          choices: ['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu', 'Lainnya'],
+          colSpan: 1
         }),
-        field('phoneNumber', TEXT, 'Nomor WhatsApp/telepon aktif', 'No. telp'),
-        field('domicileAddress', PARAGRAPH, 'Alamat tempat tinggal sekarang', 'Domisili'),
-        field('identityCardAddress', PARAGRAPH, 'Alamat sesuai KTP', 'Alamat KTP'),
+        field('phoneNumber', TEXT, 'Nomor WhatsApp / telepon', 'No. telp', { colSpan: 1 }),
+        field('domicileAddress', PARAGRAPH, 'Alamat tempat tinggal sekarang', 'Domisili', {
+          colSpan: 'full'
+        }),
+        field('identityCardAddress', PARAGRAPH, 'Alamat sesuai KTP', 'Alamat KTP', {
+          colSpan: 'full'
+        }),
         field('dasawisma', TEXT, 'Nama Dasawisma', 'Dasawisma', {
-          helpText: 'Isi nama kelompok Dasawisma jika terdaftar.'
+          helpText: 'Isi nama kelompok Dasawisma jika terdaftar.',
+          colSpan: 1
         }),
         field('posyandu', TEXT, 'Nama Posyandu', 'Posyandu', {
-          helpText: 'Isi nama Posyandu wilayah domisili.'
+          helpText: 'Isi nama Posyandu wilayah domisili.',
+          colSpan: 1
         }),
         field('puskesmas', TEXT, 'Nama Puskesmas wilayah domisili', 'Puskesmas', {
-          helpText: 'Isi nama Puskesmas wilayah domisili.'
+          helpText: 'Isi nama Puskesmas wilayah domisili.',
+          colSpan: 'full'
         })
       ]
     },
@@ -367,10 +345,12 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
       id: 'partnerIdentity',
       title: 'Data Suami/Pasangan',
       description: 'Isi sesuai data pasangan yang diketahui.',
+      layout: 'grid',
       fields: [
-        field('partnerName', TEXT, 'Nama lengkap suami/pasangan', 'Nama suami'),
+        field('partnerName', TEXT, 'Nama lengkap suami/pasangan', 'Nama suami', { colSpan: 1 }),
         field('partnerNik', TEXT, 'NIK suami/pasangan', 'NIK suami', {
-          helpText: 'Isi 16 digit angka sesuai KTP atau KK pasangan.'
+          helpText: 'Isi 16 digit angka sesuai KTP atau KK pasangan.',
+          colSpan: 1
         }),
         optionalField(
           'partnerBirthDate',
@@ -378,15 +358,18 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
           'Tanggal lahir suami/pasangan',
           'Tanggal lahir suami',
           {
-            helpText: 'Pilih tanggal lahir suami/pasangan jika diketahui.'
+            helpText: 'Pilih tanggal lahir suami/pasangan jika diketahui.',
+            colSpan: 1
           }
         ),
         field('partnerAge', TEXT, 'Umur suami/pasangan saat ini', 'Umur suami', {
-          helpText: 'Contoh: 31 tahun. Boleh isi perkiraan jika usia pasti belum diketahui.'
+          helpText: 'Contoh: 31 tahun. Boleh isi perkiraan jika usia pasti belum diketahui.',
+          colSpan: 1
         }),
-        field('partnerJob', TEXT, 'Pekerjaan suami/pasangan', 'Pekerjaan suami'),
+        field('partnerJob', TEXT, 'Pekerjaan suami/pasangan', 'Pekerjaan suami', { colSpan: 1 }),
         field('partnerEducation', LIST, 'Pendidikan terakhir suami/pasangan', 'Pendidikan suami', {
-          choices: educationChoices
+          choices: educationChoices,
+          colSpan: 1
         })
       ]
     },
@@ -394,37 +377,38 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
       id: 'baselineMeasurements',
       title: 'Ukuran tubuh dan data dasar',
       description: 'Isi angka dari catatan buku KIA atau hasil pengukuran terkini.',
+      layout: 'grid',
       fields: [
         field('heightCm', TEXT, 'Tinggi badan', 'TB', {
-          helpText: 'Contoh: 156 cm.'
+          helpText: 'Contoh: 156 cm.',
+          colSpan: 1
         }),
-        field(
-          'prePregnancyWeightKg',
-          TEXT,
-          'Berat badan sebelum hamil atau awal hamil',
-          'BB awal',
-          {
-            helpText: 'Contoh: 52 kg.'
-          }
-        ),
-        field('upperArmCircumferenceCm', TEXT, 'Lingkar lengan atas jika pernah diukur', 'LILA', {
-          helpText:
-            'LILA adalah ukuran lingkar lengan atas, biasanya diukur dengan pita ukur. Contoh: 23.5 cm.'
+        field('prePregnancyWeightKg', TEXT, 'Berat badan sebelum hamil', 'BB awal', {
+          helpText: 'Berat badan sebelum atau awal hamil. Contoh: 52 kg.',
+          colSpan: 1
+        }),
+        field('upperArmCircumferenceCm', TEXT, 'Lingkar lengan atas (LILA)', 'LILA', {
+          helpText: 'Ukuran lingkar lengan atas jika pernah diukur. Contoh: 23.5 cm.',
+          colSpan: 1
         }),
         field('initialBmi', TEXT, 'IMT (Indeks Massa Tubuh)', 'IMT awal', {
           helpText:
-            'Otomatis terhitung dari Berat Badan (kg) / [Tinggi Badan (m) x Tinggi Badan (m)].'
+            'Otomatis terhitung dari Berat Badan (kg) / [Tinggi Badan (m) x Tinggi Badan (m)].',
+          colSpan: 1
         }),
         field('tetanusStatus', LIST, 'Status imunisasi tetanus yang diketahui', 'Status TT', {
           helpText:
             'TT/Td adalah imunisasi untuk membantu perlindungan dari tetanus. Pilih sesuai kartu atau catatan jika tahu.',
-          choices: ['T1', 'T2', 'T3', 'T4', 'T5', 'Belum pernah']
+          choices: ['T1', 'T2', 'T3', 'T4', 'T5', 'Belum pernah'],
+          colSpan: 'full'
         }),
         field('motherBloodType', LIST, 'Golongan darah', 'Gol. darah', {
-          choices: bloodTypeChoices
+          choices: bloodTypeChoices,
+          colSpan: 1
         }),
         field('partnerBloodType', LIST, 'Golongan darah suami/pasangan', 'Gol. darah suami', {
-          choices: bloodTypeChoices
+          choices: bloodTypeChoices,
+          colSpan: 1
         })
       ]
     },
@@ -432,13 +416,30 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
       id: 'currentPregnancy',
       title: 'Kehamilan saat ini',
       description: 'Bagian ini dipakai bidan untuk membaca kondisi kehamilan saat ini.',
+      layout: 'grid',
       fields: [
-        optionalField('hpht', DATE, 'Tanggal pertama haid terakhir yang diingat', 'HPHT', {
+        optionalField('hpht', DATE, 'Tanggal pertama haid terakhir yang diingat (HPHT)', 'HPHT', {
           helpText:
-            'Isi jika ingat tanggalnya. Kosongkan jika tidak ingat; bidan akan membantu memperkirakan saat pemeriksaan.'
+            'Pilih tanggal hari pertama haid terakhir jika ingat. Kosongkan jika belum ingat; bidan akan membantu memperkirakan.',
+          placeholder: 'Pilih tanggal HPHT...',
+          colSpan: 'full'
+        }),
+        optionalField('estimatedDueDate', TEXT, 'Taksiran Persalinan (HPL)', 'HPL', {
+          helpText: 'Otomatis terhitung dari HPHT + 280 hari (standar obstetri ACOG).',
+          placeholder: 'Otomatis terhitung setelah HPHT dipilih',
+          colSpan: 1,
+          disabled: true
+        }),
+        optionalField('gestationalAge', TEXT, 'Usia Kehamilan (UK saat ini)', 'Usia Kehamilan', {
+          helpText: 'Otomatis terhitung dari selisih HPL dan tanggal hari ini.',
+          placeholder: 'Otomatis terhitung setelah HPHT dipilih',
+          colSpan: 1,
+          disabled: true
         }),
         field('currentComplaints', PARAGRAPH, 'Keluhan yang dirasakan sekarang', 'Keluhan', {
-          helpText: 'Contoh: mual, pusing, cepat lelah, nyeri perut, atau tulis Tidak ada.'
+          helpText: 'Contoh: mual, pusing, cepat lelah, nyeri perut, atau tulis Tidak ada.',
+          placeholder: 'Tuliskan keluhan yang dirasakan, atau tulis Tidak ada...',
+          colSpan: 'full'
         })
       ]
     },
@@ -533,6 +534,7 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
       title: 'Riwayat kesehatan',
       description:
         'Pilih Ya hanya jika pernah diberi tahu petugas kesehatan atau Anda memang sedang mengalaminya.',
+      layout: 'questionnaire',
       fields: [
         ...diseaseStatusFields({
           statusId: 'hasHypertensionHistory',
@@ -604,8 +606,7 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
           statusTitle: 'Apakah Anda pernah diberi tahu mengalami HIV atau sifilis?',
           statusLabel: 'Riwayat HIV/Sifilis',
           notesTitle: 'Catatan HIV atau sifilis',
-          notesLabel: 'HIV/Sifilis - tahun/catatan',
-          statusHelpText: 'Jawaban ini membantu keamanan pelayanan kesehatan Anda dan bayi.'
+          notesLabel: 'HIV/Sifilis - tahun/catatan'
         }),
         ...diseaseStatusFields({
           statusId: 'hasMentalHealthHistory',
@@ -640,16 +641,39 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
           notesTitle: 'Catatan operasi',
           notesLabel: 'Operasi - tahun/catatan'
         }),
-        ...diseaseStatusFields({
-          statusId: 'hasOtherDiseaseHistory',
-          notesId: 'otherDiseaseHistoryNotes',
-          statusTitle: 'Apakah Anda memiliki riwayat penyakit lain yang belum disebutkan di atas?',
-          statusLabel: 'Riwayat penyakit lain',
-          notesTitle: 'Nama penyakit atau catatan riwayat penyakit lain',
-          notesLabel: 'Penyakit lain - catatan',
-          statusHelpText:
-            'Pilih Ya jika Anda pernah atau sedang mengalami penyakit lain yang belum tercantum.'
-        })
+        field(
+          'hasOtherDiseaseHistory',
+          MULTIPLE_CHOICE,
+          'Apakah Anda memiliki riwayat penyakit lain yang belum disebutkan di atas?',
+          'Riwayat penyakit lain',
+          {
+            helpText:
+              'Pilih Ya jika Anda pernah atau sedang mengalami penyakit lain yang belum tercantum.',
+            choices: yesNoChoices,
+            yearFieldId: 'otherDiseaseHistoryYear',
+            notesFieldId: 'otherDiseaseHistoryNotes'
+          }
+        ),
+        optionalField(
+          'otherDiseaseHistoryNotes',
+          TEXT,
+          'Nama penyakit atau keluhan lain yang pernah dialami',
+          'Penyakit lain - nama/keluhan',
+          {
+            placeholder: 'Contoh: Maag kronis, Asam urat',
+            helpText: 'Tuliskan penyakit atau keluhan yang belum tercantum di atas.'
+          }
+        ),
+        optionalField(
+          'otherDiseaseHistoryYear',
+          TEXT,
+          'Tahun terdiagnosis penyakit lain',
+          'Penyakit lain - tahun',
+          {
+            placeholder: 'Contoh: 2020',
+            helpText: 'Tahun terdiagnosis atau dialami. Contoh: 2020.'
+          }
+        )
       ]
     },
     {
@@ -657,12 +681,17 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
       title: 'Riwayat kehamilan dan persalinan',
       description:
         'Isi jumlahnya dulu. Detail riwayat sebelumnya akan ditanyakan satu per satu jika ada.',
+      layout: 'grid',
       fields: [
-        field('gravidaCount', TEXT, 'Total kehamilan termasuk yang sekarang', 'G', {
-          helpText: 'Contoh: sedang hamil anak kedua, isi 2.'
+        field('gravidaCount', TEXT, 'Berapa total kehamilan termasuk yang sekarang?', 'G', {
+          helpText: 'Contoh: sedang hamil anak kedua, isi 2.',
+          placeholder: 'Contoh: 1',
+          colSpan: 1
         }),
         field('parityCount', TEXT, 'Berapa kali pernah melahirkan?', 'P', {
-          helpText: 'Jika belum pernah, isi 0.'
+          helpText: 'Jika belum pernah, isi 0.',
+          placeholder: 'Contoh: 0',
+          colSpan: 1
         }),
         field(
           'abortionCount',
@@ -670,50 +699,61 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
           'Berapa kali pernah keguguran atau kehamilan tidak berlanjut?',
           'Ab',
           {
-            helpText: 'Jika tidak pernah, isi 0.'
+            helpText: 'Jika tidak pernah, isi 0.',
+            placeholder: 'Contoh: 0',
+            colSpan: 'full'
           }
         ),
         field('livingChildrenCount', TEXT, 'Berapa anak yang saat ini masih hidup?', 'Ah', {
-          helpText: 'Jika belum ada, isi 0.'
+          helpText: 'Jika belum ada, isi 0.',
+          placeholder: 'Contoh: 1',
+          colSpan: 'full'
         }),
         field(
           'hasPreviousPregnancyHistory',
           MULTIPLE_CHOICE,
-          'Apakah ada riwayat kehamilan atau persalinan sebelumnya yang perlu dicatat?',
+          'Apakah Anda memiliki riwayat kehamilan atau persalinan sebelumnya?',
           'Ada riwayat obstetri',
           {
             choices: ['Ya, ada', 'Belum/tidak ada'],
             goToSectionIdByChoice: {
               'Ya, ada': 'previousPregnancy1Details',
               'Belum/tidak ada': 'contraceptionGateway'
-            }
+            },
+            colSpan: 'full'
           }
         )
       ]
     },
     {
       id: 'previousPregnancy1Details',
-      title: 'Riwayat kehamilan/persalinan sebelumnya 1',
+      title: 'Riwayat kehamilan/persalinan sebelumnya',
       description: 'Isi riwayat yang diingat. Lewati bagian yang tidak ada atau tidak ingat.',
+      layout: 'grid',
       fields: previousPregnancyFields(1)
     },
     {
       id: 'previousPregnancy2Details',
-      title: 'Riwayat kehamilan/persalinan sebelumnya 2',
-      description: 'Isi jika ada riwayat berikutnya. Lewati jika tidak ada.',
+      title: 'Riwayat kehamilan/persalinan sebelumnya',
+      description:
+        'Isi riwayat berikutnya yang diingat. Lewati bagian yang tidak ada atau tidak ingat.',
+      layout: 'grid',
       fields: previousPregnancyFields(2)
     },
     {
       id: 'previousPregnancy3Details',
-      title: 'Riwayat kehamilan/persalinan sebelumnya 3',
-      description: 'Isi jika ada riwayat berikutnya. Lewati jika tidak ada.',
+      title: 'Riwayat kehamilan/persalinan sebelumnya',
+      description:
+        'Isi riwayat berikutnya yang diingat. Lewati bagian yang tidak ada atau tidak ingat.',
+      layout: 'grid',
       fields: previousPregnancyFields(3)
     },
     {
       id: 'previousPregnancy4Details',
-      title: 'Riwayat kehamilan/persalinan sebelumnya 4',
+      title: 'Riwayat kehamilan/persalinan sebelumnya',
       description:
-        'Isi jika ada riwayat berikutnya. Bila lebih dari 4, sampaikan sisanya ke bidan saat kunjungan.',
+        'Isi riwayat berikutnya yang diingat. Lewati bagian yang tidak ada atau tidak ingat.',
+      layout: 'grid',
       fields: previousPregnancyFields(4)
     },
     {
@@ -738,28 +778,32 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
     },
     {
       id: 'contraception1Details',
-      title: 'Riwayat KB 1',
+      title: 'Riwayat KB',
       description:
-        'Isi satu riwayat KB dalam bagian ini. Lewati bagian yang tidak ada atau tidak ingat.',
+        'Isi riwayat KB dalam bagian ini. Lewati bagian yang tidak ada atau tidak ingat.',
+      layout: 'grid',
       fields: contraceptionFields(1)
     },
     {
       id: 'contraception2Details',
-      title: 'Riwayat KB 2',
+      title: 'Riwayat KB',
       description: 'Isi jika ada riwayat KB berikutnya. Lewati jika tidak ada.',
+      layout: 'grid',
       fields: contraceptionFields(2)
     },
     {
       id: 'contraception3Details',
-      title: 'Riwayat KB 3',
+      title: 'Riwayat KB',
       description: 'Isi jika ada riwayat KB berikutnya. Lewati jika tidak ada.',
+      layout: 'grid',
       fields: contraceptionFields(3)
     },
     {
       id: 'contraception4Details',
-      title: 'Riwayat KB 4',
+      title: 'Riwayat KB',
       description:
         'Isi jika ada riwayat KB berikutnya. Bila lebih dari 4, sampaikan sisanya ke bidan saat kunjungan.',
+      layout: 'grid',
       fields: contraceptionFields(4)
     },
     {
@@ -787,19 +831,29 @@ export const immunizationFlowDefinition: MedicalFlowDefinition = {
       id: 'childIdentity',
       title: 'Data Identitas Anak',
       description: 'Isi data identitas anak sesuai KK atau kartu identitas anak.',
+      layout: 'grid',
       fields: [
-        field('childName', TEXT, 'Nama lengkap anak', 'Nama anak'),
+        field('childName', TEXT, 'Nama lengkap anak', 'Nama anak', {
+          placeholder: 'Masukkan nama anak',
+          colSpan: 1
+        }),
         field('childNik', TEXT, 'NIK anak', 'NIK anak', {
-          helpText: 'Isi 16 digit angka sesuai KK atau kartu identitas anak.'
+          helpText: 'Isi 16 digit angka sesuai KK atau kartu identitas anak.',
+          placeholder: '16 digit NIK anak',
+          colSpan: 1
         }),
         field('childBirthDate', DATE, 'Tanggal lahir anak', 'Tanggal lahir anak', {
-          helpText: 'Pilih tanggal lahir anak pada kalender.'
+          helpText: 'Pilih tanggal lahir anak pada kalender.',
+          colSpan: 1
         }),
         field('childSex', LIST, 'Jenis kelamin anak', 'Jenis kelamin anak', {
-          choices: ['Laki-laki', 'Perempuan']
+          choices: ['Laki-laki', 'Perempuan'],
+          colSpan: 1
         }),
         field('parentPhone', TEXT, 'Nomor WhatsApp/HP orang tua', 'No HP', {
-          helpText: 'Nomor aktif yang dapat dihubungi untuk konfirmasi jadwal.'
+          helpText: 'Nomor aktif yang dapat dihubungi untuk konfirmasi jadwal.',
+          placeholder: 'Contoh: 081234567890',
+          colSpan: 'full'
         })
       ]
     },
@@ -807,15 +861,22 @@ export const immunizationFlowDefinition: MedicalFlowDefinition = {
       id: 'parentIdentity',
       title: 'Data Orang Tua & Alamat',
       description: 'Isi data orang tua/wali dan alamat domisili tempat tinggal anak.',
+      layout: 'grid',
       fields: [
         field('fatherName', TEXT, 'Nama Ayah', 'Nama ayah', {
-          helpText: 'Isi nama ayah kandung/wali sesuai KK.'
+          helpText: 'Isi nama ayah kandung/wali sesuai KK.',
+          placeholder: 'Nama lengkap ayah/wali',
+          colSpan: 1
         }),
         field('motherName', TEXT, 'Nama Ibu', 'Nama ibu', {
-          helpText: 'Isi nama ibu kandung sesuai KK.'
+          helpText: 'Isi nama ibu kandung sesuai KK.',
+          placeholder: 'Nama lengkap ibu kandung',
+          colSpan: 1
         }),
         field('childAddress', PARAGRAPH, 'Alamat tempat tinggal', 'Alamat', {
-          helpText: 'Tuliskan alamat domisili tempat tinggal anak saat ini.'
+          helpText: 'Tuliskan alamat domisili tempat tinggal anak saat ini.',
+          placeholder: 'Tuliskan alamat domisili lengkap...',
+          colSpan: 'full'
         })
       ]
     },

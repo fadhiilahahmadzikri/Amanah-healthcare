@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { DismissableLayer } from 'radix-ui/internal';
 import { Icons } from '@/components/icons';
 import gsap from 'gsap';
 import { cn } from '@/lib/utils';
@@ -108,47 +107,45 @@ export function ModalWrapper({
   const container = portalContainer ?? portalContainerRef?.current ?? document.body;
 
   return createPortal(
-    <DismissableLayer.Branch asChild>
+    <div
+      ref={backdropRef}
+      data-slot='modal-wrapper'
+      className={cn(
+        'pointer-events-auto fixed inset-0 z-50 flex h-screen w-screen items-center justify-center overflow-y-auto bg-gradient-to-b from-black/0 via-black/45 to-black/85 p-4 backdrop-blur-xs',
+        backdropClassName
+      )}
+    >
+      {dismissible && (
+        <button
+          type='button'
+          aria-label='Tutup modal'
+          onClick={handleClose}
+          className='absolute inset-0 cursor-default'
+        />
+      )}
       <div
-        ref={backdropRef}
-        data-slot='modal-wrapper'
+        ref={modalBoxRef}
+        role='dialog'
+        aria-modal='true'
         className={cn(
-          'pointer-events-auto fixed inset-0 z-50 flex h-screen w-screen items-center justify-center overflow-y-auto bg-gradient-to-b from-black/0 via-black/45 to-black/85 p-4 backdrop-blur-xs',
-          backdropClassName
+          'relative z-10 my-auto w-full rounded-2xl border border-border/50 bg-card p-6 font-sans text-card-foreground shadow-2xl transition-[max-width,width,max-height,height] duration-300 ease-out sm:p-7',
+          maxWidth,
+          className
         )}
       >
-        {dismissible && (
+        {dismissible && showCloseButton && (
           <button
             type='button'
-            aria-label='Tutup modal'
             onClick={handleClose}
-            className='absolute inset-0 cursor-default'
-          />
+            aria-label='Tutup modal'
+            className='absolute top-4 right-4 z-20 cursor-pointer rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground'
+          >
+            <Icons.close className='size-4' />
+          </button>
         )}
-        <div
-          ref={modalBoxRef}
-          role='dialog'
-          aria-modal='true'
-          className={cn(
-            'relative z-10 my-auto w-full rounded-2xl border border-border/50 bg-card p-6 font-sans text-card-foreground shadow-2xl transition-[max-width,width,max-height,height] duration-300 ease-out sm:p-7',
-            maxWidth,
-            className
-          )}
-        >
-          {dismissible && showCloseButton && (
-            <button
-              type='button'
-              onClick={handleClose}
-              aria-label='Tutup modal'
-              className='absolute top-4 right-4 z-20 cursor-pointer rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground'
-            >
-              <Icons.close className='size-4' />
-            </button>
-          )}
-          {children}
-        </div>
+        {children}
       </div>
-    </DismissableLayer.Branch>,
+    </div>,
     container
   );
 }

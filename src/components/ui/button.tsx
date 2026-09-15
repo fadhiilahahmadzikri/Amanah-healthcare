@@ -147,13 +147,15 @@ function Button({
     // Snug padding matching the Apple-style pill (minimal margin around circle)
     const paddingWithCircle = withTrailingCircleIcon
       ? isPill
-        ? align === 'center'
-          ? 'pl-8 pr-[3px] py-[3px]'
-          : align === 'left'
-            ? 'pl-5 pr-[3px] py-[3px]'
-            : align === 'right'
-              ? 'pl-3 pr-[3px] py-[3px]'
-              : 'pl-5 pr-[3px] py-[3px]'
+        ? hug
+          ? 'pl-4.5 pr-[3px] py-[3px]'
+          : align === 'center'
+            ? 'pl-8 pr-[3px] py-[3px]'
+            : align === 'left'
+              ? 'pl-5 pr-[3px] py-[3px]'
+              : align === 'right'
+                ? 'pl-3 pr-[3px] py-[3px]'
+                : 'pl-5 pr-[3px] py-[3px]'
         : size === 'lg'
           ? 'pl-5 pr-1.5'
           : size === 'card-action' || size === 'card'
@@ -166,7 +168,7 @@ function Button({
         data-slot='button'
         className={cn(
           buttonVariants({ variant, size, shape, align }),
-          withTrailingCircleIcon && 'justify-between',
+          withTrailingCircleIcon && (hug ? 'gap-2.5' : 'justify-between'),
           paddingWithCircle,
           hug ? 'w-fit' : fullWidth ? 'w-full' : '',
           className
@@ -177,9 +179,9 @@ function Button({
         <span
           className={cn(
             'inline-flex items-center gap-2',
-            withTrailingCircleIcon && align === 'center' && 'flex-1 justify-center',
-            withTrailingCircleIcon && align === 'left' && 'flex-1 justify-start',
-            withTrailingCircleIcon && align === 'right' && 'flex-1 justify-end'
+            withTrailingCircleIcon && !hug && align === 'center' && 'flex-1 justify-center',
+            withTrailingCircleIcon && !hug && align === 'left' && 'flex-1 justify-start',
+            withTrailingCircleIcon && !hug && align === 'right' && 'flex-1 justify-end'
           )}
         >
           {actualLeadingIcon && <span className='shrink-0'>{actualLeadingIcon}</span>}

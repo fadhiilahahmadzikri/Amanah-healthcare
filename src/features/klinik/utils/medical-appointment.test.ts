@@ -17,6 +17,7 @@ import {
   getReservationServiceByTitle
 } from '../constants/appointment-reservation-services';
 import { isMedicalSectionValid } from '../schemas/medical-appointment-validation';
+import { extractQuestionnaireItems } from '../components/questionnaire/types';
 
 describe('Medical Appointment Flows', () => {
   it('loads pregnancy and immunization flow definitions correctly', () => {
@@ -214,6 +215,41 @@ describe('Medical Appointment Flows', () => {
       );
       expect(contraceptionTypeField!.choices).not.toContain('Belum tahu');
     });
+
+    it('10. starts directly with Data Diri (motherIdentity), removing intro/opening section', () => {
+      expect(pregnancyFlowDefinition.sections[0].id).toBe('motherIdentity');
+      expect(pregnancyFlowDefinition.sections[0].title).toBe('Data Diri');
+      expect(findMedicalField(pregnancyFlowDefinition, 'patientConsent')).toBeUndefined();
+    });
+
+    it('11. configures 2-column grid layout for Data Diri, Partner, and Baseline measurements', () => {
+      const motherSection = pregnancyFlowDefinition.sections.find((s) => s.id === 'motherIdentity');
+      expect(motherSection?.layout).toBe('grid');
+      const partnerSection = pregnancyFlowDefinition.sections.find(
+        (s) => s.id === 'partnerIdentity'
+      );
+      expect(partnerSection?.layout).toBe('grid');
+      const baselineSection = pregnancyFlowDefinition.sections.find(
+        (s) => s.id === 'baselineMeasurements'
+      );
+      expect(baselineSection?.layout).toBe('grid');
+
+      // Short fields have colSpan 1
+      expect(findMedicalField(pregnancyFlowDefinition, 'motherName')?.colSpan).toBe(1);
+      expect(findMedicalField(pregnancyFlowDefinition, 'motherNik')?.colSpan).toBe(1);
+      expect(findMedicalField(pregnancyFlowDefinition, 'partnerName')?.colSpan).toBe(1);
+      expect(findMedicalField(pregnancyFlowDefinition, 'partnerNik')?.colSpan).toBe(1);
+      expect(findMedicalField(pregnancyFlowDefinition, 'heightCm')?.colSpan).toBe(1);
+      expect(findMedicalField(pregnancyFlowDefinition, 'prePregnancyWeightKg')?.colSpan).toBe(1);
+
+      // Long fields have full colSpan
+      expect(findMedicalField(pregnancyFlowDefinition, 'domicileAddress')?.colSpan).toBe('full');
+      expect(findMedicalField(pregnancyFlowDefinition, 'identityCardAddress')?.colSpan).toBe(
+        'full'
+      );
+      expect(findMedicalField(pregnancyFlowDefinition, 'puskesmas')?.colSpan).toBe('full');
+      expect(findMedicalField(pregnancyFlowDefinition, 'tetanusStatus')?.colSpan).toBe('full');
+    });
   });
 
   describe('Immunization Form Registration Design', () => {
@@ -257,6 +293,258 @@ describe('Medical Appointment Flows', () => {
       expect(fieldIds).not.toContain('headCircumference');
       expect(fieldIds).not.toContain('feverSymptom');
       expect(fieldIds).not.toContain('coughSymptom');
+    });
+  });
+
+  describe('Questionnaire Model & Sequential Flow Architecture', () => {
+    const diseaseSection = pregnancyFlowDefinition.sections.find((s) => s.id === 'diseaseHistory');
+
+    it('1. configures layout as questionnaire on diseaseHistory section', () => {
+      expect(diseaseSection).toBeDefined();
+      expect(diseaseSection?.layout).toBe('questionnaire');
+    });
+
+    it('2. links each disease question with its corresponding year field', () => {
+      const hypertensionQuestion = diseaseSection?.fields.find(
+        (f) => f.id === 'hasHypertensionHistory'
+      );
+      expect(hypertensionQuestion).toBeDefined();
+      expect(hypertensionQuestion?.yearFieldId).toBe('hypertensionHistoryNotes');
+
+      const diabetesQuestion = diseaseSection?.fields.find((f) => f.id === 'hasDiabetesHistory');
+      expect(diabetesQuestion).toBeDefined();
+      expect(diabetesQuestion?.yearFieldId).toBe('diabetesHistoryNotes');
+    });
+
+    it('3. extracts questionnaire items with condition name and linked yearFieldId', () => {
+      const items = extractQuestionnaireItems(diseaseSection?.fields || []);
+      expect(items.length).toBe(14);
+
+      const hypertensionItem = items.find((i) => i.id === 'hasHypertensionHistory');
+      expect(hypertensionItem).toBeDefined();
+      expect(hypertensionItem?.yearFieldId).toBe('hypertensionHistoryNotes');
+      expect(hypertensionItem?.conditionName).toBe('darah tinggi');
+    });
+
+    it('4. validates that selecting Ya requires the diagnosis year, while Tidak does not', () => {
+      const baseValues = buildDefaultMedicalValues(pregnancyFlowDefinition);
+
+      // Initially empty -> invalid
+      expect(isMedicalSectionValid(diseaseSection, baseValues)).toBe(false);
+
+      // When all answered 'Tidak' -> valid without any year fields
+      const allNoValues = { ...baseValues };
+      diseaseSection?.fields.forEach((f) => {
+        if (f.choices.includes('Tidak')) {
+          allNoValues[f.id] = 'Tidak';
+        }
+      });
+      expect(isMedicalSectionValid(diseaseSection, allNoValues)).toBe(true);
+
+      // When hypertension is 'Ya' but year is empty -> invalid
+      const missingYearValues = {
+        ...allNoValues,
+        hasHypertensionHistory: 'Ya',
+        hypertensionHistoryNotes: ''
+      };
+      expect(isMedicalSectionValid(diseaseSection, missingYearValues)).toBe(false);
+
+      // When hypertension is 'Ya' and year is provided (e.g. 2021) -> valid!
+      const validYearValues = {
+        ...allNoValues,
+        hasHypertensionHistory: 'Ya',
+        hypertensionHistoryNotes: '2021'
+      };
+      expect(isMedicalSectionValid(diseaseSection, validYearValues)).toBe(true);
+    });
+
+    it('5. hasOtherDiseaseHistory links both notesFieldId and yearFieldId, and requires both when Ya', () => {
+      const otherDiseaseField = diseaseSection?.fields.find(
+        (f) => f.id === 'hasOtherDiseaseHistory'
+      );
+      expect(otherDiseaseField).toBeDefined();
+      expect(otherDiseaseField?.notesFieldId).toBe('otherDiseaseHistoryNotes');
+      expect(otherDiseaseField?.yearFieldId).toBe('otherDiseaseHistoryYear');
+
+      const baseValues = buildDefaultMedicalValues(pregnancyFlowDefinition);
+      const allNoValues = { ...baseValues };
+      diseaseSection?.fields.forEach((f) => {
+        if (f.choices.includes('Tidak')) {
+          allNoValues[f.id] = 'Tidak';
+        }
+      });
+
+      // When hasOtherDiseaseHistory is Ya, but notes and year are empty -> invalid
+      const missingNotesValues = {
+        ...allNoValues,
+        hasOtherDiseaseHistory: 'Ya',
+        otherDiseaseHistoryNotes: '',
+        otherDiseaseHistoryYear: ''
+      };
+      expect(isMedicalSectionValid(diseaseSection, missingNotesValues)).toBe(false);
+
+      // If only notes provided without year -> invalid
+      const missingYearValues = {
+        ...allNoValues,
+        hasOtherDiseaseHistory: 'Ya',
+        otherDiseaseHistoryNotes: 'Maag kronis',
+        otherDiseaseHistoryYear: ''
+      };
+      expect(isMedicalSectionValid(diseaseSection, missingYearValues)).toBe(false);
+
+      // When both disease name and year are provided -> valid
+      const completeValues = {
+        ...allNoValues,
+        hasOtherDiseaseHistory: 'Ya',
+        otherDiseaseHistoryNotes: 'Maag kronis',
+        otherDiseaseHistoryYear: '2020'
+      };
+      expect(isMedicalSectionValid(diseaseSection, completeValues)).toBe(true);
+    });
+  });
+
+  describe('History Catalog, Multi-Record & Obstetric Revisions', () => {
+    it('1. contains 4 repeatable sections for previous pregnancies and 4 for contraception', () => {
+      const sectionIds = pregnancyFlowDefinition.sections.map((s) => s.id);
+      expect(sectionIds).toContain('previousPregnancy1Details');
+      expect(sectionIds).toContain('previousPregnancy2Details');
+      expect(sectionIds).toContain('previousPregnancy3Details');
+      expect(sectionIds).toContain('previousPregnancy4Details');
+
+      expect(sectionIds).toContain('contraception1Details');
+      expect(sectionIds).toContain('contraception2Details');
+      expect(sectionIds).toContain('contraception3Details');
+      expect(sectionIds).toContain('contraception4Details');
+    });
+
+    it('2. removes "KB order: " prefix from contraception field questions', () => {
+      const startDateField = findMedicalField(pregnancyFlowDefinition, 'contraception1StartDate');
+      expect(startDateField?.title).toBe('Kapan mulai dipakai?');
+      expect(startDateField?.title).not.toContain('KB 1:');
+
+      const typeField = findMedicalField(pregnancyFlowDefinition, 'contraception1Type');
+      expect(typeField?.title).toBe('Jenis KB/kontrasepsi');
+      expect(typeField?.title).not.toContain('KB 1:');
+
+      const stopDateField = findMedicalField(pregnancyFlowDefinition, 'contraception1StopDate');
+      expect(stopDateField?.title).toBe('Kapan berhenti atau dilepas?');
+      expect(stopDateField?.title).not.toContain('KB 1:');
+    });
+
+    it('3. updates hasPreviousPregnancyHistory question title', () => {
+      const historyField = findMedicalField(pregnancyFlowDefinition, 'hasPreviousPregnancyHistory');
+      expect(historyField?.title).toBe(
+        'Apakah Anda memiliki riwayat kehamilan atau persalinan sebelumnya?'
+      );
+    });
+
+    it('4. configures clean example placeholders for obstetric summary fields', () => {
+      const gravidaField = findMedicalField(pregnancyFlowDefinition, 'gravidaCount');
+      expect(gravidaField?.placeholder).toBe('Contoh: 1');
+
+      const parityField = findMedicalField(pregnancyFlowDefinition, 'parityCount');
+      expect(parityField?.placeholder).toBe('Contoh: 0');
+
+      const abortionField = findMedicalField(pregnancyFlowDefinition, 'abortionCount');
+      expect(abortionField?.placeholder).toBe('Contoh: 0');
+
+      const livingField = findMedicalField(pregnancyFlowDefinition, 'livingChildrenCount');
+      expect(livingField?.placeholder).toBe('Contoh: 1');
+    });
+
+    it('5. enforces catalog add paradigm: empty records can be detected and repeatable sections are present up to maxRecords', () => {
+      const pregSection2 = pregnancyFlowDefinition.sections.find(
+        (s) => s.id === 'previousPregnancy2Details'
+      );
+      expect(pregSection2).toBeDefined();
+
+      const defaultVals = buildDefaultMedicalValues(pregnancyFlowDefinition);
+      const isAllEmpty = pregSection2?.fields.every((f) => !defaultVals[f.id]?.trim());
+      expect(isAllEmpty).toBe(true);
+
+      const filledVals = { ...defaultVals, previousPregnancy2BirthYear: '2023' };
+      const isStillEmpty = pregSection2?.fields.every((f) => !filledVals[f.id]?.trim());
+      expect(isStillEmpty).toBe(false);
+
+      const contraSection2 = pregnancyFlowDefinition.sections.find(
+        (s) => s.id === 'contraception2Details'
+      );
+      expect(contraSection2).toBeDefined();
+      const isContraEmpty = contraSection2?.fields.every((f) => !defaultVals[f.id]?.trim());
+      expect(isContraEmpty).toBe(true);
+    });
+
+    it('6. requires all fields in previous pregnancy and contraception records before proceeding', () => {
+      const pregSection1 = pregnancyFlowDefinition.sections.find(
+        (s) => s.id === 'previousPregnancy1Details'
+      );
+      expect(pregSection1).toBeDefined();
+
+      // All fields in previous pregnancy must have required = true
+      pregSection1?.fields.forEach((f) => {
+        expect(f.required).toBe(true);
+      });
+
+      // When empty or partially filled, section is invalid
+      const defaultVals = buildDefaultMedicalValues(pregnancyFlowDefinition);
+      expect(isMedicalSectionValid(pregSection1, defaultVals)).toBe(false);
+
+      const partialVals = {
+        ...defaultVals,
+        previousPregnancy1BirthYear: '2022',
+        previousPregnancy1DeliveryMethod: 'Normal/spontan'
+      };
+      expect(isMedicalSectionValid(pregSection1, partialVals)).toBe(false);
+
+      // When all fields are completed, section is valid
+      const completePregVals = {
+        ...defaultVals,
+        previousPregnancy1BirthYear: '2022',
+        previousPregnancy1BirthWeight: '3150 gram',
+        previousPregnancy1BirthLength: '49 cm',
+        previousPregnancy1ChildSex: 'Laki-laki',
+        previousPregnancy1GestationalAgeAtBirth: '39 minggu',
+        previousPregnancy1BirthAttendant: 'Bidan',
+        previousPregnancy1DeliveryMethod: 'Normal/spontan',
+        previousPregnancy1DeliveryPlace: 'PMB Bidan Amanah',
+        previousPregnancy1Complications: 'Tidak ada'
+      };
+      expect(isMedicalSectionValid(pregSection1, completePregVals)).toBe(true);
+
+      // Contraception fields must also all be required
+      const contraSection1 = pregnancyFlowDefinition.sections.find(
+        (s) => s.id === 'contraception1Details'
+      );
+      expect(contraSection1).toBeDefined();
+      contraSection1?.fields.forEach((f) => {
+        expect(f.required).toBe(true);
+      });
+
+      expect(isMedicalSectionValid(contraSection1, defaultVals)).toBe(false);
+
+      const completeContraVals = {
+        ...defaultVals,
+        contraception1StartDate: '2022-11-01',
+        contraception1Type: 'Suntik 3 bulan',
+        contraception1Duration: '2 tahun',
+        contraception1StopDate: '2024-11-01',
+        contraception1Problems: 'Tidak ada',
+        contraception1SideEffects: 'Tidak ada'
+      };
+      expect(isMedicalSectionValid(contraSection1, completeContraVals)).toBe(true);
+    });
+
+    it('7. integrates Lanjutkan instruction into catalog header and defines repeatable history structures', () => {
+      // Check repeatable sections are capped and correctly keyed
+      const pregSections = pregnancyFlowDefinition.sections.filter((s) =>
+        s.id.startsWith('previousPregnancy')
+      );
+      expect(pregSections.length).toBe(4);
+
+      const contraSections = pregnancyFlowDefinition.sections.filter(
+        (s) => s.id.startsWith('contraception') && s.id.endsWith('Details')
+      );
+      expect(contraSections.length).toBe(4);
     });
   });
 });

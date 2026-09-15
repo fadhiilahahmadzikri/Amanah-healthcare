@@ -5,8 +5,12 @@ import {
   type MedicalFormField,
   type MedicalFormSection
 } from '../constants/medical-appointment-schemas';
+import {
+  calculateEddFromLmp,
+  calculateGestationalAge as calculateObstetricGa,
+  formatIndonesianDateText
+} from './obstetric-calculator';
 
-const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const INDONESIAN_MONTHS = [
   'Januari',
   'Februari',
@@ -256,8 +260,11 @@ function buildPregnancyAutomaticRecord(
     const gestationalAge = calculateGestationalAge(values.hpht, submittedAt);
 
     return {
-      estimatedDueDate: formatIndonesianDate(dueDate),
+      estimatedDueDate: formatIndonesianDateText(dueDate),
       gestationalAgeAtSubmit: gestationalAge,
+      eddSource: 'LMP',
+      referenceDate: submittedAt.toISOString().slice(0, 10),
+      hplFinal: dueDate.toISOString().slice(0, 10),
       ...result
     };
   } catch {
@@ -291,26 +298,14 @@ function buildImmunizationAutomaticRecord(
 }
 
 function calculateEstimatedDueDate(value: string): Date {
-  const hpht = toDateOnly(value);
-
-  return new Date(
-    Date.UTC(hpht.getUTCFullYear() + 1, hpht.getUTCMonth() - 3, hpht.getUTCDate() + 7)
-  );
+  return calculateEddFromLmp(value);
 }
 
 function calculateGestationalAge(value: string, referenceDate: Date): string {
-  const hpht = toDateOnly(value);
-  const reference = toDateOnly(referenceDate);
-  const totalDays = Math.floor((reference.getTime() - hpht.getTime()) / DAY_IN_MS);
+  const edd = calculateEstimatedDueDate(value);
+  const ga = calculateObstetricGa(edd, referenceDate);
 
-  if (totalDays < 0) {
-    throw new Error('HPHT tidak boleh setelah tanggal submit.');
-  }
-
-  const weeks = Math.floor(totalDays / 7);
-  const days = totalDays % 7;
-
-  return `${weeks} minggu ${days} hari`;
+  return `${ga.formatted} (${ga.formattedMedical})`;
 }
 
 function calculateChildAge(value: string, referenceDate: Date): string {
