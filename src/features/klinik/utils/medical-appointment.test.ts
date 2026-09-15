@@ -187,6 +187,33 @@ describe('Medical Appointment Flows', () => {
       expect(motherAgeField).toBeDefined();
       expect(motherAgeField!.helpText).toContain('Otomatis terhitung');
     });
+
+    it('9. removes "Belum tahu" across blood type, tetanus, previous pregnancy, and contraception choices', () => {
+      const motherBloodTypeField = findMedicalField(pregnancyFlowDefinition, 'motherBloodType');
+      expect(motherBloodTypeField!.choices).toEqual(['A', 'B', 'AB', 'O']);
+
+      const partnerBloodTypeField = findMedicalField(pregnancyFlowDefinition, 'partnerBloodType');
+      expect(partnerBloodTypeField!.choices).toEqual(['A', 'B', 'AB', 'O']);
+
+      const tetanusField = findMedicalField(pregnancyFlowDefinition, 'tetanusStatus');
+      expect(tetanusField!.choices).not.toContain('Belum tahu');
+      expect(tetanusField!.choices).toEqual(['T1', 'T2', 'T3', 'T4', 'T5', 'Belum pernah']);
+
+      const childSexField = findMedicalField(pregnancyFlowDefinition, 'previousPregnancy1ChildSex');
+      expect(childSexField!.choices).toEqual(['Laki-laki', 'Perempuan']);
+
+      const deliveryMethodField = findMedicalField(
+        pregnancyFlowDefinition,
+        'previousPregnancy1DeliveryMethod'
+      );
+      expect(deliveryMethodField!.choices).not.toContain('Belum tahu');
+
+      const contraceptionTypeField = findMedicalField(
+        pregnancyFlowDefinition,
+        'contraception1Type'
+      );
+      expect(contraceptionTypeField!.choices).not.toContain('Belum tahu');
+    });
   });
 
   describe('Immunization Form Registration Design', () => {

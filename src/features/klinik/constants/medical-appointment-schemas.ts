@@ -39,12 +39,12 @@ const MULTIPLE_CHOICE = 'MULTIPLE_CHOICE';
 const LIST = 'LIST';
 
 const yesNoChoices = ['Tidak', 'Ya'];
-const yesNoUnsureChoices = ['Tidak', 'Ya', 'Belum tahu'];
+const yesNoUnsureChoices = ['Tidak', 'Ya'];
 const educationChoices = ['Tidak sekolah', 'SD', 'SMP', 'SMA/SMK', 'D1-D3', 'S1', 'S2/S3'];
-const knownPersonEducationChoices = [...educationChoices, 'Belum tahu'];
-const bloodTypeChoices = ['A', 'B', 'AB', 'O', 'Belum tahu'];
-const vaccineHistoryChoices = ['Sudah', 'Belum', 'Belum tahu'];
-const vaccineCheckChoices = ['Tidak', 'Ya', 'Belum tahu, minta petugas cek'];
+const knownPersonEducationChoices = [...educationChoices];
+const bloodTypeChoices = ['A', 'B', 'AB', 'O'];
+const vaccineHistoryChoices = ['Sudah', 'Belum'];
+const vaccineCheckChoices = ['Tidak', 'Ya'];
 
 function field(
   id: string,
@@ -175,7 +175,7 @@ function previousPregnancyFields(order: number): MedicalFormField[] {
       `${titlePrefix}jenis kelamin bayi`,
       `${labelPrefix} - jenis kelamin`,
       {
-        choices: ['Laki-laki', 'Perempuan', 'Belum tahu']
+        choices: ['Laki-laki', 'Perempuan']
       }
     ),
     optionalField(
@@ -200,14 +200,7 @@ function previousPregnancyFields(order: number): MedicalFormField[] {
       `${titlePrefix}cara persalinan atau akhir kehamilan`,
       `${labelPrefix} - cara persalinan`,
       {
-        choices: [
-          'Normal/spontan',
-          'Operasi caesar',
-          'Vakum/forceps',
-          'Keguguran',
-          'Lainnya',
-          'Belum tahu'
-        ]
+        choices: ['Normal/spontan', 'Operasi caesar', 'Vakum/forceps', 'Keguguran', 'Lainnya']
       }
     ),
     optionalField(
@@ -261,8 +254,7 @@ function contraceptionFields(order: number): MedicalFormField[] {
           'IUD/spiral',
           'Kondom',
           'Steril',
-          'Lainnya',
-          'Belum tahu'
+          'Lainnya'
         ]
       }
     ),
@@ -361,13 +353,13 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
         field('domicileAddress', PARAGRAPH, 'Alamat tempat tinggal sekarang', 'Domisili'),
         field('identityCardAddress', PARAGRAPH, 'Alamat sesuai KTP', 'Alamat KTP'),
         field('dasawisma', TEXT, 'Nama Dasawisma', 'Dasawisma', {
-          helpText: 'Isi nama kelompok Dasawisma jika terdaftar. Jika tidak tahu, isi Belum tahu.'
+          helpText: 'Isi nama kelompok Dasawisma jika terdaftar.'
         }),
         field('posyandu', TEXT, 'Nama Posyandu', 'Posyandu', {
-          helpText: 'Isi nama Posyandu wilayah domisili. Jika tidak tahu, isi Belum tahu.'
+          helpText: 'Isi nama Posyandu wilayah domisili.'
         }),
         field('puskesmas', TEXT, 'Nama Puskesmas wilayah domisili', 'Puskesmas', {
-          helpText: 'Isi nama Puskesmas wilayah domisili. Jika tidak tahu, isi Belum tahu.'
+          helpText: 'Isi nama Puskesmas wilayah domisili.'
         })
       ]
     },
@@ -401,11 +393,10 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
     {
       id: 'baselineMeasurements',
       title: 'Ukuran tubuh dan data dasar',
-      description:
-        'Isi angka dari catatan atau alat ukur jika ada. Untuk ukuran yang belum pernah diukur, isi Belum tahu.',
+      description: 'Isi angka dari catatan buku KIA atau hasil pengukuran terkini.',
       fields: [
         field('heightCm', TEXT, 'Tinggi badan', 'TB', {
-          helpText: 'Contoh: 156 cm. Jika tidak ada hasil ukur, isi Belum tahu.'
+          helpText: 'Contoh: 156 cm.'
         }),
         field(
           'prePregnancyWeightKg',
@@ -413,12 +404,12 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
           'Berat badan sebelum hamil atau awal hamil',
           'BB awal',
           {
-            helpText: 'Contoh: 52 kg. Jika tidak ada hasil ukur, isi Belum tahu.'
+            helpText: 'Contoh: 52 kg.'
           }
         ),
         field('upperArmCircumferenceCm', TEXT, 'Lingkar lengan atas jika pernah diukur', 'LILA', {
           helpText:
-            'LILA adalah ukuran lingkar lengan atas, biasanya diukur dengan pita ukur. Jika belum pernah diukur, isi Belum tahu.'
+            'LILA adalah ukuran lingkar lengan atas, biasanya diukur dengan pita ukur. Contoh: 23.5 cm.'
         }),
         field('initialBmi', TEXT, 'IMT (Indeks Massa Tubuh)', 'IMT awal', {
           helpText:
@@ -427,7 +418,7 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
         field('tetanusStatus', LIST, 'Status imunisasi tetanus yang diketahui', 'Status TT', {
           helpText:
             'TT/Td adalah imunisasi untuk membantu perlindungan dari tetanus. Pilih sesuai kartu atau catatan jika tahu.',
-          choices: ['T1', 'T2', 'T3', 'T4', 'T5', 'Belum pernah', 'Belum tahu']
+          choices: ['T1', 'T2', 'T3', 'T4', 'T5', 'Belum pernah']
         }),
         field('motherBloodType', LIST, 'Golongan darah', 'Gol. darah', {
           choices: bloodTypeChoices

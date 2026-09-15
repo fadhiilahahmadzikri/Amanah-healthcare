@@ -31,7 +31,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAppForm } from '@/components/ui/tanstack-form';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { PatientBirthdatePicker } from '@/features/data-pasien/components/registration/molecules/patient-birthdate-picker';
-import { PatientStepHeader } from '@/features/data-pasien/components/registration/molecules/patient-step-header';
 import type { Patient } from '@/features/data-pasien/api/types';
 import { cn } from '@/lib/utils';
 
@@ -366,7 +365,10 @@ export function MedicalAppointmentModal({
 
   function submitMedicalAppointment(formValues: MedicalAppointmentValues) {
     const submittedValues = pickMedicalValues(repeatableMedicalSections, formValues);
-    const intake = buildMedicalIntakeRecord({ definition, values: submittedValues });
+    const intake = buildMedicalIntakeRecord({
+      definition,
+      values: submittedValues
+    });
     const complaint = buildComplaintText(definition.complaintFieldId, submittedValues);
     const patientName = submittedValues[definition.patientNameFieldId] || undefined;
     const patientContact = submittedValues[definition.patientContactFieldId] || undefined;
@@ -505,19 +507,12 @@ export function MedicalAppointmentModal({
         maxWidth='max-w-[680px]'
         showCloseButton={false}
         backdropClassName='overflow-hidden'
-        className='p-5 sm:p-6'
+        className='flex flex-col h-[96dvh] max-h-[96dvh] sm:h-[660px] sm:max-h-[88vh] p-5 sm:p-6'
       >
         <form.AppForm>
-          <form.Form className='gap-0 p-0 md:p-0'>
-            <div className='flex flex-col gap-5'>
-              <MedicalModalHeader
-                currentStep={currentStep}
-                progressLabel={definition.visitType}
-                onBack={handleBack}
-                totalSteps={totalSteps}
-              />
-
-              <div ref={stepContainerRef} className='min-h-[390px]'>
+          <form.Form className='flex flex-col flex-1 min-h-0 gap-0 p-0 md:p-0'>
+            <div className='flex flex-col flex-1 min-h-0 justify-between gap-4'>
+              <div ref={stepContainerRef} className='flex flex-col flex-1 min-h-0'>
                 {currentDescriptor.type === 'medical' ? (
                   <MedicalSectionStep
                     section={visibleMedicalSections[currentDescriptor.sectionIndex]}
@@ -547,7 +542,10 @@ export function MedicalAppointmentModal({
                     selectedDoctor={schedule.doctor}
                     serviceName={definition.serviceName}
                     onSelectDoctor={(doctor) =>
-                      setSchedule((previous) => ({ ...previous, doctor: doctor }))
+                      setSchedule((previous) => ({
+                        ...previous,
+                        doctor: doctor
+                      }))
                     }
                   />
                 ) : null}
@@ -557,7 +555,11 @@ export function MedicalAppointmentModal({
                     doctorName={schedule.doctor}
                     selectedDateStr={schedule.dateStr}
                     onSelectDate={(dateStr) =>
-                      setSchedule((previous) => ({ ...previous, dateStr, timeSlot: '' }))
+                      setSchedule((previous) => ({
+                        ...previous,
+                        dateStr,
+                        timeSlot: ''
+                      }))
                     }
                   />
                 ) : null}
@@ -585,7 +587,7 @@ export function MedicalAppointmentModal({
                 ) : null}
               </div>
 
-              <div className='flex items-center justify-between border-t border-border pt-4'>
+              <div className='flex items-center justify-between border-t border-border pt-4 shrink-0'>
                 <Button type='button' variant='ghost' shape='pill' onClick={handleBack}>
                   {currentStep === 1 && !onBackToService ? 'Batal' : 'Kembali'}
                 </Button>
@@ -624,28 +626,6 @@ export function MedicalAppointmentModal({
   );
 }
 
-function MedicalModalHeader({
-  currentStep,
-  onBack,
-  progressLabel,
-  totalSteps
-}: {
-  currentStep: number;
-  onBack: () => void;
-  progressLabel: string;
-  totalSteps: number;
-}) {
-  return (
-    <PatientStepHeader
-      currentStep={currentStep}
-      totalSteps={totalSteps}
-      onBack={onBack}
-      progressLabel={progressLabel}
-      className='mb-0'
-    />
-  );
-}
-
 function MedicalSectionStep({
   section,
   historyActions,
@@ -676,13 +656,13 @@ function MedicalSectionStep({
   }, [section?.id]);
 
   return (
-    <div className='flex flex-col gap-4'>
+    <div className='flex flex-col flex-1 min-h-0 gap-4'>
       <StepTitle title={section.title} description={section.description} />
       {historyActions ? <HistoryRecordActionBar actions={historyActions} /> : null}
       <ScrollArea
         ref={scrollRef}
         key={section.id}
-        className='h-[320px] sm:h-[350px] [&_[data-slot=scroll-area-scrollbar]]:hidden'
+        className='flex-1 min-h-0 [&_[data-slot=scroll-area-scrollbar]]:hidden'
       >
         <FieldGroup className='gap-5 px-1 pt-1 pb-8'>{section.fields.map(renderField)}</FieldGroup>
       </ScrollArea>
@@ -723,6 +703,106 @@ function HistoryRecordActionBar({ actions }: { actions: HistoryRecordActions }) 
   );
 }
 
+const SPECIFIC_FIELD_PLACEHOLDERS: Record<string, string> = {
+  // Mother / Patient fields
+  motherName: 'Masukkan nama lengkap...',
+  motherNik: '16 digit NIK sesuai KTP / KK',
+  motherBirthDate: 'Pilih tanggal lahir...',
+  motherAge: 'Contoh: 31 tahun',
+  marriageOrder: 'Contoh: 1',
+  marriageDate: 'Pilih tanggal menikah...',
+  motherJob: 'Contoh: Karyawan swasta, Wiraswasta',
+  motherEducation: 'Pilih pendidikan terakhir...',
+  religion: 'Pilih agama...',
+  phoneNumber: 'Contoh: 081234567890',
+  domicileAddress: 'Tuliskan alamat domisili saat ini...',
+  identityCardAddress: 'Tuliskan alamat sesuai KTP...',
+  dasawisma: 'Nama kelompok Dasawisma...',
+  posyandu: 'Nama Posyandu...',
+  puskesmas: 'Nama Puskesmas...',
+
+  // Partner fields
+  partnerName: 'Masukkan nama lengkap suami/pasangan...',
+  partnerNik: '16 digit NIK sesuai KTP / KK',
+  partnerBirthDate: 'Pilih tanggal lahir suami/pasangan...',
+  partnerAge: 'Contoh: 31 tahun',
+  partnerJob: 'Contoh: Karyawan swasta, Wiraswasta',
+  partnerEducation: 'Pilih pendidikan terakhir suami/pasangan...',
+
+  // Baseline measurements
+  heightCm: 'Contoh: 156 cm',
+  prePregnancyWeightKg: 'Contoh: 52 kg',
+  upperArmCircumferenceCm: 'Contoh: 23.5 cm',
+  initialBmi: 'Contoh: 21.5',
+  tetanusStatus: 'Pilih status imunisasi TT/Td...',
+  motherBloodType: 'Pilih golongan darah...',
+  partnerBloodType: 'Pilih golongan darah suami...',
+
+  // Pregnancy specific
+  hpht: 'Pilih tanggal HPHT...',
+  currentComplaints: 'Contoh: Mual, pusing, atau Tidak ada',
+  contraception1Type: 'Pilih jenis KB...',
+  contraception1StartDate: 'Pilih tanggal mulai...',
+  contraception1StopDate: 'Pilih tanggal berhenti...',
+  pregnancy1Outcome: 'Pilih hasil kehamilan...',
+  pregnancy1BirthYear: 'Contoh: 2020',
+  otherDiseaseHistoryNotes: 'Tuliskan riwayat penyakit lainnya...',
+
+  // Child / Immunization fields
+  childName: 'Masukkan nama lengkap anak...',
+  childNik: '16 digit NIK sesuai KK / KIA',
+  childBirthDate: 'Pilih tanggal lahir anak...',
+  childSex: 'Pilih jenis kelamin anak...',
+  parentPhone: 'Contoh: 081234567890',
+  fatherName: 'Masukkan nama lengkap ayah...',
+  childAddress: 'Tuliskan alamat domisili anak saat ini...',
+  previousVaccineHistory: 'Contoh: HB 0, BCG, Polio 1 (sesuai buku KIA)',
+  childAllergyHistory: 'Tuliskan jika ada alergi, atau Tidak ada'
+};
+
+function getFieldPlaceholder(schemaField: MedicalFormField): string {
+  if (SPECIFIC_FIELD_PLACEHOLDERS[schemaField.id]) {
+    return SPECIFIC_FIELD_PLACEHOLDERS[schemaField.id];
+  }
+
+  const id = schemaField.id.toLowerCase();
+  if (id.includes('name') || id.includes('nama')) {
+    return 'Masukkan nama lengkap...';
+  }
+  if (id.includes('phone') || id.includes('telepon') || id.includes('hp') || id.includes('wa')) {
+    return 'Contoh: 081234567890';
+  }
+  if (id.includes('job') || id.includes('pekerjaan')) {
+    return 'Contoh: Karyawan swasta, Wiraswasta';
+  }
+  if (id.includes('address') || id.includes('alamat') || id.includes('domisili')) {
+    return 'Tuliskan alamat lengkap...';
+  }
+  if (id.includes('nik')) {
+    return '16 digit NIK sesuai KTP / KK';
+  }
+  if (id.includes('age') || id.includes('umur') || id.includes('usia')) {
+    return 'Contoh: 31 tahun';
+  }
+  if (id.includes('weight') || id.includes('berat')) {
+    return 'Contoh: 50 kg';
+  }
+  if (id.includes('height') || id.includes('tinggi')) {
+    return 'Contoh: 155 cm';
+  }
+  if (schemaField.type === 'DATE') {
+    return 'Pilih tanggal...';
+  }
+  if (schemaField.type === 'LIST') {
+    return 'Pilih opsi...';
+  }
+  if (schemaField.type === 'PARAGRAPH') {
+    return 'Tuliskan keterangan jika ada...';
+  }
+
+  return `Masukkan ${schemaField.title.toLowerCase()}...`;
+}
+
 function MedicalSchemaField({
   fieldApi,
   schemaField
@@ -730,9 +810,16 @@ function MedicalSchemaField({
   fieldApi: AnyFieldApi;
   schemaField: MedicalFormField;
 }) {
-  const error = getErrorMessage(fieldApi.state.meta.errors);
-  const isInvalid = fieldApi.state.meta.isTouched && Boolean(error);
+  const rawError = getErrorMessage(fieldApi.state.meta.errors);
+  const isInvalid = fieldApi.state.meta.isTouched && Boolean(rawError);
+  const displayError = isInvalid && rawError && rawError !== 'Wajib diisi' ? rawError : undefined;
   const value = String(fieldApi.state.value ?? '');
+
+  const requiredAsterisk = schemaField.required ? (
+    <span className='ml-0.5 font-bold text-red-500 dark:text-red-400' aria-hidden='true'>
+      *
+    </span>
+  ) : null;
 
   if (schemaField.type === 'MULTIPLE_CHOICE' || schemaField.choices.length === 2) {
     const choiceCount = schemaField.choices.length;
@@ -742,7 +829,7 @@ function MedicalSchemaField({
       <FieldSet data-invalid={isInvalid}>
         <FieldLegend variant='label'>
           {schemaField.title}
-          {schemaField.required ? ' *' : ''}
+          {requiredAsterisk}
         </FieldLegend>
         {schemaField.helpText ? (
           <FieldDescription className='text-xs'>{schemaField.helpText}</FieldDescription>
@@ -783,17 +870,19 @@ function MedicalSchemaField({
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
-        <FieldError errors={isInvalid ? [error] : []} />
+        <FieldError errors={displayError ? [displayError] : []} />
       </FieldSet>
     );
   }
 
   if (schemaField.type === 'LIST') {
+    const placeholder = getFieldPlaceholder(schemaField);
+
     return (
       <Field data-invalid={isInvalid}>
         <FieldLabel htmlFor={schemaField.id}>
           {schemaField.title}
-          {schemaField.required ? ' *' : ''}
+          {requiredAsterisk}
         </FieldLabel>
         <Select
           value={value}
@@ -803,7 +892,7 @@ function MedicalSchemaField({
           }}
         >
           <SelectTrigger id={schemaField.id} aria-invalid={isInvalid} className='w-full'>
-            <SelectValue placeholder='Pilih jawaban' />
+            <SelectValue placeholder={placeholder} />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
@@ -815,38 +904,37 @@ function MedicalSchemaField({
             </SelectGroup>
           </SelectContent>
         </Select>
-        {schemaField.helpText ? (
-          <FieldDescription className='text-xs'>{schemaField.helpText}</FieldDescription>
-        ) : null}
-        <FieldError errors={isInvalid ? [error] : []} />
+        <FieldError errors={displayError ? [displayError] : []} />
       </Field>
     );
   }
 
   if (schemaField.type === 'PARAGRAPH') {
+    const placeholder = getFieldPlaceholder(schemaField);
+
     return (
       <Field data-invalid={isInvalid}>
         <FieldLabel htmlFor={schemaField.id}>
           {schemaField.title}
-          {schemaField.required ? ' *' : ''}
+          {requiredAsterisk}
         </FieldLabel>
         <Textarea
           id={schemaField.id}
           value={value}
+          placeholder={placeholder}
           onBlur={fieldApi.handleBlur}
           onChange={(event) => fieldApi.handleChange(event.target.value)}
           aria-invalid={isInvalid}
           rows={3}
         />
-        {schemaField.helpText ? (
-          <FieldDescription className='text-xs'>{schemaField.helpText}</FieldDescription>
-        ) : null}
-        <FieldError errors={isInvalid ? [error] : []} />
+        <FieldError errors={displayError ? [displayError] : []} />
       </Field>
     );
   }
 
   if (schemaField.type === 'DATE') {
+    const placeholder = getFieldPlaceholder(schemaField);
+
     return (
       <Field data-invalid={isInvalid}>
         <PatientBirthdatePicker
@@ -856,16 +944,18 @@ function MedicalSchemaField({
             fieldApi.handleChange(nextValue);
             fieldApi.handleBlur();
           }}
-          label={`${schemaField.title}${schemaField.required ? ' *' : ''}`}
-          placeholder='Pilih tanggal'
+          label={
+            <>
+              {schemaField.title}
+              {requiredAsterisk}
+            </>
+          }
+          placeholder={placeholder}
           ariaLabel={schemaField.title}
-          error={isInvalid ? error : undefined}
+          error={displayError}
           invalid={isInvalid}
           className='space-y-1'
         />
-        {schemaField.helpText ? (
-          <FieldDescription className='text-xs'>{schemaField.helpText}</FieldDescription>
-        ) : null}
       </Field>
     );
   }
@@ -875,25 +965,17 @@ function MedicalSchemaField({
     schemaField.id === 'motherAge' ||
     schemaField.id === 'partnerAge'
   ) {
-    const isBmi = schemaField.id === 'initialBmi';
-    const isMotherAge = schemaField.id === 'motherAge';
-    const placeholder = isBmi
-      ? 'Terisi otomatis saat tinggi dan berat badan diisi'
-      : isMotherAge
-        ? 'Terisi otomatis saat tanggal lahir dipilih'
-        : 'Terisi otomatis saat tanggal lahir dipilih (atau isi manual)';
+    const placeholder = getFieldPlaceholder(schemaField);
 
     return (
       <Field data-invalid={isInvalid}>
         <div className='flex items-center justify-between'>
           <FieldLabel htmlFor={schemaField.id}>
             {schemaField.title}
-            {schemaField.required ? ' *' : ''}
+            {requiredAsterisk}
           </FieldLabel>
           {value ? (
-            <span className='rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary'>
-              Otomatis terhitung
-            </span>
+            <span className='text-xs font-normal text-muted-foreground'>Otomatis terhitung</span>
           ) : null}
         </div>
         <Input
@@ -906,36 +988,33 @@ function MedicalSchemaField({
             fieldApi.handleChange(normalizeMedicalFieldInput(schemaField, event.target.value))
           }
           aria-invalid={isInvalid}
-          className={cn(value && 'bg-muted/40 font-semibold text-primary')}
+          className={cn(value && 'bg-muted/20 font-normal text-foreground')}
         />
-        {schemaField.helpText ? (
-          <FieldDescription className='text-xs'>{schemaField.helpText}</FieldDescription>
-        ) : null}
-        <FieldError errors={isInvalid ? [error] : []} />
+        <FieldError errors={displayError ? [displayError] : []} />
       </Field>
     );
   }
+
+  const placeholder = getFieldPlaceholder(schemaField);
 
   return (
     <Field data-invalid={isInvalid}>
       <FieldLabel htmlFor={schemaField.id}>
         {schemaField.title}
-        {schemaField.required ? ' *' : ''}
+        {requiredAsterisk}
       </FieldLabel>
       <Input
         id={schemaField.id}
         type='text'
         value={value}
+        placeholder={placeholder}
         onBlur={fieldApi.handleBlur}
         onChange={(event) =>
           fieldApi.handleChange(normalizeMedicalFieldInput(schemaField, event.target.value))
         }
         aria-invalid={isInvalid}
       />
-      {schemaField.helpText ? (
-        <FieldDescription className='text-xs'>{schemaField.helpText}</FieldDescription>
-      ) : null}
-      <FieldError errors={isInvalid ? [error] : []} />
+      <FieldError errors={displayError ? [displayError] : []} />
     </Field>
   );
 }
@@ -952,35 +1031,39 @@ function DoctorStep({
   onSelectDoctor: (doctor: string) => void;
 }) {
   return (
-    <div className='flex flex-col gap-4'>
+    <div className='flex flex-col flex-1 min-h-0 gap-4'>
       <StepTitle
         title='Pilih tenaga medis'
         description={`Pilih dokter atau bidan untuk layanan ${serviceName}.`}
       />
-      <div className='grid gap-3'>
-        {doctors.map((doctor) => {
-          const isSelected = selectedDoctor === doctor.name;
+      <ScrollArea className='flex-1 min-h-0 [&_[data-slot=scroll-area-scrollbar]]:hidden'>
+        <div className='grid gap-3 pr-1 pb-4'>
+          {doctors.map((doctor) => {
+            const isSelected = selectedDoctor === doctor.name;
 
-          return (
-            <button
-              key={doctor.name}
-              type='button'
-              onClick={() => onSelectDoctor(doctor.name)}
-              className={cn(
-                'flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-colors',
-                isSelected ? 'border-primary bg-primary/5' : 'border-border bg-card hover:bg-accent'
-              )}
-            >
-              <DoctorAvatar name={doctor.name} avatarUrl={doctor.avatar} size={44} />
-              <div className='min-w-0 flex-1'>
-                <p className='truncate text-sm font-semibold text-foreground'>{doctor.name}</p>
-                <p className='truncate text-xs text-muted-foreground'>{doctor.location}</p>
-              </div>
-              {isSelected ? <Icons.check className='text-primary' /> : null}
-            </button>
-          );
-        })}
-      </div>
+            return (
+              <button
+                key={doctor.name}
+                type='button'
+                onClick={() => onSelectDoctor(doctor.name)}
+                className={cn(
+                  'flex w-full items-center gap-3 rounded-xl border p-3 text-left transition-colors',
+                  isSelected
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border bg-card hover:bg-accent'
+                )}
+              >
+                <DoctorAvatar name={doctor.name} avatarUrl={doctor.avatar} size={44} />
+                <div className='min-w-0 flex-1'>
+                  <p className='truncate text-sm font-semibold text-foreground'>{doctor.name}</p>
+                  <p className='truncate text-xs text-muted-foreground'>{doctor.location}</p>
+                </div>
+                {isSelected ? <Icons.check className='text-primary' /> : null}
+              </button>
+            );
+          })}
+        </div>
+      </ScrollArea>
     </div>
   );
 }
@@ -995,16 +1078,18 @@ function DateStep({
   onSelectDate: (dateStr: string) => void;
 }) {
   return (
-    <div className='flex flex-col gap-4'>
+    <div className='flex flex-col flex-1 min-h-0 gap-4'>
       <StepTitle
         title='Tanggal kunjungan'
         description={`Pilih tanggal praktik yang tersedia untuk ${doctorName}.`}
       />
-      <AppointmentCalendarDayPicker
-        doctorName={doctorName}
-        selectedDateStr={selectedDateStr}
-        onSelectDate={onSelectDate}
-      />
+      <div className='flex-1 min-h-0 overflow-y-auto pr-1 pb-2'>
+        <AppointmentCalendarDayPicker
+          doctorName={doctorName}
+          selectedDateStr={selectedDateStr}
+          onSelectDate={onSelectDate}
+        />
+      </div>
     </div>
   );
 }
@@ -1021,17 +1106,19 @@ function TimeStep({
   onSelectTimeSlot: (timeSlot: string) => void;
 }) {
   return (
-    <div className='flex flex-col gap-4'>
+    <div className='flex flex-col flex-1 min-h-0 gap-4'>
       <StepTitle
         title='Jam kunjungan'
         description={`Pilih slot jam yang tersedia untuk ${doctorName} pada ${selectedDateStr}.`}
       />
-      <AppointmentTimeSlotPicker
-        doctorName={doctorName}
-        selectedDateStr={selectedDateStr}
-        selectedTimeSlot={selectedTimeSlot}
-        onSelectTimeSlot={onSelectTimeSlot}
-      />
+      <div className='flex-1 min-h-0 overflow-y-auto pr-1 pb-2'>
+        <AppointmentTimeSlotPicker
+          doctorName={doctorName}
+          selectedDateStr={selectedDateStr}
+          selectedTimeSlot={selectedTimeSlot}
+          onSelectTimeSlot={onSelectTimeSlot}
+        />
+      </div>
     </div>
   );
 }
@@ -1062,12 +1149,12 @@ function ReviewStep({
   };
 
   return (
-    <div className='flex flex-col gap-4'>
+    <div className='flex flex-col flex-1 min-h-0 gap-4'>
       <StepTitle
         title='Konfirmasi data'
         description='Pastikan jadwal dan jawaban form sudah benar sebelum disimpan.'
       />
-      <div className='grid gap-2 text-xs'>
+      <div className='grid gap-2 text-xs shrink-0'>
         <SummaryRow label='Form' value={definitionTitle} />
         <SummaryRow label='Layanan' value={serviceName} />
         <SummaryRow label='Tenaga medis' value={schedule.doctor} />
@@ -1080,7 +1167,7 @@ function ReviewStep({
           ))}
       </div>
 
-      <ScrollArea className='h-[190px] rounded-lg border border-border p-3'>
+      <ScrollArea className='flex-1 min-h-[160px] rounded-lg border border-border p-3'>
         <div className='grid gap-2 pr-3 text-xs'>
           {answeredFields.map((answer) => (
             <SummaryRow key={answer.id} label={answer.label} value={answer.value} />
@@ -1329,11 +1416,7 @@ function normalizeBirthDate(value: string): string {
 }
 
 function normalizeBloodType(value: string): string {
-  const baseType = value.replace(/[+-]/g, '');
-
-  if (baseType === 'Belum Tahu') {
-    return 'Belum tahu';
-  }
+  const baseType = value.replace(/[+-]/g, '').trim();
 
   return ['A', 'B', 'AB', 'O'].includes(baseType) ? baseType : '';
 }

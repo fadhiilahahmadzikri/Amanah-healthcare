@@ -86,7 +86,7 @@ export function AppointmentTable() {
         onClose={() => setStatusOpen(false)}
       />
 
-      <div className='flex h-full flex-1 flex-col gap-4'>
+      <div className='flex h-full min-h-0 flex-1 flex-col gap-4'>
         <DataTable
           table={table}
           onRowClick={handleRowClick}

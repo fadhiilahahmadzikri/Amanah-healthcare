@@ -17,12 +17,14 @@ export interface PatientBirthdatePickerProps {
   value: string; // ISO date 'YYYY-MM-DD'
   onChange: (value: string) => void;
   id?: string;
-  label?: string;
+  label?: React.ReactNode;
+  labelClassName?: string;
   placeholder?: string;
   ariaLabel?: string;
   error?: string;
   invalid?: boolean;
   className?: string;
+  variant?: 'outline' | 'underline';
 }
 
 const INDO_MONTHS = [
@@ -45,15 +47,44 @@ export function PatientBirthdatePicker({
   onChange,
   id = 'tanggalLahirTrigger',
   label = 'tanggal lahir*',
+  labelClassName,
   placeholder = 'pilih tanggal lahir...',
   ariaLabel = 'Tanggal lahir',
   error,
   invalid,
-  className
+  className,
+  variant = 'outline'
 }: PatientBirthdatePickerProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const popupRef = React.useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = React.useState(false);
+
+  // Track select dropdown open state to prevent calendar closure on year/month selection
+  const isSelectOpenRef = React.useRef(false);
+  const [isMonthSelectOpen, setIsMonthSelectOpen] = React.useState(false);
+  const [isYearSelectOpen, setIsYearSelectOpen] = React.useState(false);
+
+  const handleMonthOpenChange = React.useCallback((open: boolean) => {
+    setIsMonthSelectOpen(open);
+    if (open) {
+      isSelectOpenRef.current = true;
+    } else {
+      setTimeout(() => {
+        isSelectOpenRef.current = false;
+      }, 150);
+    }
+  }, []);
+
+  const handleYearOpenChange = React.useCallback((open: boolean) => {
+    setIsYearSelectOpen(open);
+    if (open) {
+      isSelectOpenRef.current = true;
+    } else {
+      setTimeout(() => {
+        isSelectOpenRef.current = false;
+      }, 150);
+    }
+  }, []);
 
   // Parse initial date or default to 1998 (same as POC)
   const initialYear = React.useMemo(() => {
@@ -97,13 +128,15 @@ export function PatientBirthdatePicker({
   }, [selectedDateParts]);
 
   const currentYear = new Date().getFullYear();
+  const maxYear = Math.max(currentYear + 5, viewDate.getFullYear());
+  const minYear = Math.min(1930, viewDate.getFullYear());
   const yearOptions = React.useMemo(() => {
     const years: number[] = [];
-    for (let y = currentYear; y >= 1930; y--) {
+    for (let y = maxYear; y >= minYear; y--) {
       years.push(y);
     }
     return years;
-  }, [currentYear]);
+  }, [maxYear, minYear]);
 
   // Handle GSAP open / close animations
   const animateOpen = React.useCallback(() => {
@@ -145,7 +178,29 @@ export function PatientBirthdatePicker({
   // Close on outside click
   React.useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node) && isOpen) {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+
+      // If click is inside the calendar container, do not close
+      if (containerRef.current && containerRef.current.contains(target)) {
+        return;
+      }
+
+      // If click is inside a Radix Select portal (dropdown menu, viewport, item, scroll buttons), do not close calendar
+      if (
+        target.closest(
+          '[data-slot="select-content"], [data-slot="select-item"], [data-slot="select-group"], [data-slot="select-scroll-up-button"], [data-slot="select-scroll-down-button"], [data-radix-popper-content-wrapper], [data-radix-select-viewport], [role="listbox"], [role="option"]'
+        )
+      ) {
+        return;
+      }
+
+      // If either month or year select dropdown was open, this outside click only closes the dropdown (handled by Radix)
+      if (isSelectOpenRef.current) {
+        return;
+      }
+
+      if (isOpen) {
         animateClose(() => setIsOpen(false));
       }
     };
@@ -162,6 +217,11 @@ export function PatientBirthdatePicker({
   const handleNextMonth = (e: React.MouseEvent) => {
     e.stopPropagation();
     setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  };
+
+  const handleMonthChange = (nextMonth: string) => {
+    const newMonth = parseInt(nextMonth, 10);
+    setViewDate((prev) => new Date(prev.getFullYear(), newMonth, 1));
   };
 
   const handleYearChange = (nextYear: string) => {
@@ -188,13 +248,23 @@ export function PatientBirthdatePicker({
 
   return (
     <div ref={containerRef} className={cn('relative space-y-1.5', className)}>
-      <label htmlFor={id} className='block text-xs font-normal text-muted-foreground'>
-        {label}
-      </label>
+      {label ? (
+        <label
+          htmlFor={id}
+          className={cn(
+            variant === 'outline'
+              ? 'flex w-fit items-center gap-1 text-sm font-medium leading-snug text-foreground'
+              : 'block text-xs font-normal text-muted-foreground',
+            labelClassName
+          )}
+        >
+          {label}
+        </label>
+      ) : null}
 
-      {/* Underline trigger row matching POC */}
+      {/* Trigger row matching design system inputs with full border stroke */}
       <div
-        id='field-group-tanggalLahir'
+        id={`${id}-trigger`}
         role='button'
         tabIndex={0}
         aria-haspopup='dialog'
@@ -207,8 +277,11 @@ export function PatientBirthdatePicker({
           }
         }}
         className={cn(
-          'flex cursor-pointer items-center justify-between border-b-[1.5px] border-border pb-1 transition-colors duration-200 focus-within:border-primary select-none',
-          isInvalid && '!border-destructive'
+          variant === 'outline'
+            ? 'flex h-9 w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-1 shadow-xs transition-[color,box-shadow] outline-none select-none dark:bg-input/30 hover:bg-accent/40 dark:hover:bg-input/50 focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]'
+            : 'flex cursor-pointer items-center justify-between border-b-[1.5px] border-border pb-1 transition-colors duration-200 focus-within:border-primary select-none',
+          isOpen && variant === 'outline' && 'border-ring ring-ring/50 ring-[3px]',
+          isInvalid && '!border-destructive ring-destructive/20 dark:ring-destructive/40'
         )}
       >
         <input
@@ -218,9 +291,18 @@ export function PatientBirthdatePicker({
           aria-label={ariaLabel}
           value={displayLabel}
           placeholder={placeholder}
-          className='w-full cursor-pointer border-0 bg-transparent px-0 py-1.5 text-sm font-medium text-primary outline-none placeholder:font-normal placeholder:text-muted-foreground/60 pointer-events-none'
+          className={cn(
+            'w-full min-w-0 cursor-pointer border-0 bg-transparent p-0 text-sm font-normal outline-none placeholder:text-muted-foreground pointer-events-none',
+            displayLabel ? 'text-foreground' : 'text-muted-foreground',
+            variant === 'underline' && 'py-1.5 text-primary placeholder:text-muted-foreground/60'
+          )}
         />
-        <Icons.calendar className='size-4 shrink-0 text-primary' />
+        <Icons.calendar
+          className={cn(
+            'size-4 shrink-0',
+            variant === 'outline' ? 'text-muted-foreground' : 'text-primary'
+          )}
+        />
       </div>
 
       {error ? <p className='pt-0.5 text-[11px] font-normal text-destructive'>{error}</p> : null}
@@ -242,16 +324,43 @@ export function PatientBirthdatePicker({
             <Icons.chevronLeft className='size-4' />
           </button>
 
-          <div className='flex items-center gap-1.5'>
-            <span className='font-semibold text-primary'>{INDO_MONTHS[month]}</span>
-            <Select value={String(year)} onValueChange={handleYearChange}>
+          <div className='flex items-center gap-1'>
+            <Select
+              value={String(month)}
+              onValueChange={handleMonthChange}
+              open={isMonthSelectOpen}
+              onOpenChange={handleMonthOpenChange}
+            >
+              <SelectTrigger
+                aria-label='Pilih bulan'
+                className='h-7 w-[108px] border-0 bg-transparent px-2 text-xs font-semibold text-primary shadow-none hover:bg-accent'
+              >
+                <SelectValue placeholder={INDO_MONTHS[month]} />
+              </SelectTrigger>
+              <SelectContent className='max-h-56'>
+                <SelectGroup>
+                  {INDO_MONTHS.map((mName, mIndex) => (
+                    <SelectItem key={mName} value={String(mIndex)}>
+                      {mName}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={String(year)}
+              onValueChange={handleYearChange}
+              open={isYearSelectOpen}
+              onOpenChange={handleYearOpenChange}
+            >
               <SelectTrigger
                 aria-label='Pilih tahun'
-                className='h-7 w-[82px] border-0 bg-transparent px-2 text-xs font-medium text-primary shadow-none hover:bg-accent'
+                className='h-7 w-[78px] border-0 bg-transparent px-2 text-xs font-semibold text-primary shadow-none hover:bg-accent'
               >
-                <SelectValue />
+                <SelectValue placeholder={String(year)} />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className='max-h-56'>
                 <SelectGroup>
                   {yearOptions.map((y) => (
                     <SelectItem key={y} value={String(y)}>

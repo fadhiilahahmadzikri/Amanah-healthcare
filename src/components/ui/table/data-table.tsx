@@ -50,76 +50,87 @@ export function DataTable<TData>({
   };
 
   return (
-    <div className='flex flex-1 flex-col space-y-4'>
+    <div className='flex min-h-0 flex-1 flex-col gap-4'>
       {children}
-      <div className='relative flex flex-1'>
+      <div className='relative flex min-h-0 flex-1 flex-col overflow-hidden'>
         <div className='absolute inset-0 flex overflow-hidden'>
           <ScrollArea className='h-full w-full'>
-            <Table>
-              <TableHeader className='bg-background sticky top-0 z-20 border-b border-border/60'>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead
-                        key={header.id}
-                        colSpan={header.colSpan}
-                        style={{
-                          ...getCommonPinningStyles({ column: header.column, isHeader: true }),
-                          width:
-                            header.column.getSize() !== 150 ? header.column.getSize() : undefined
-                        }}
-                      >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(header.column.columnDef.header, header.getContext())}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && 'selected'}
-                      onClick={(event) => handleRowClick(event, row.original)}
-                      className={onRowClick ? 'cursor-pointer hover:bg-muted/50' : ''}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell
-                          key={cell.id}
+            <div className='pb-24'>
+              <Table>
+                <TableHeader className='bg-background sticky top-0 z-20 border-b border-border/60'>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead
+                          key={header.id}
+                          colSpan={header.colSpan}
                           style={{
-                            ...getCommonPinningStyles({ column: cell.column, isHeader: false }),
-                            width: cell.column.getSize() !== 150 ? cell.column.getSize() : undefined
+                            ...getCommonPinningStyles({ column: header.column, isHeader: true }),
+                            width:
+                              header.column.getSize() !== 150 ? header.column.getSize() : undefined
                           }}
                         >
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(header.column.columnDef.header, header.getContext())}
+                        </TableHead>
                       ))}
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={table.getAllColumns().length} className='h-24 text-center'>
-                      No results.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows?.length ? (
+                    table.getRowModel().rows.map((row) => (
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && 'selected'}
+                        onClick={(event) => handleRowClick(event, row.original)}
+                        className={onRowClick ? 'cursor-pointer hover:bg-muted/50' : ''}
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell
+                            key={cell.id}
+                            style={{
+                              ...getCommonPinningStyles({ column: cell.column, isHeader: false }),
+                              width:
+                                cell.column.getSize() !== 150 ? cell.column.getSize() : undefined
+                            }}
+                          >
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={table.getAllColumns().length}
+                        className='h-24 text-center'
+                      >
+                        No results.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
             <ScrollBar orientation='horizontal' />
           </ScrollArea>
         </div>
-      </div>
-      <div className='flex flex-col gap-2.5'>
-        <DataTablePagination table={table} />
-        {actionBar && table.getFilteredSelectedRowModel().rows.length > 0 && actionBar}
-        {bulkActions && (
-          <DataTableBulkActions table={table} entityName={entityName || 'row'}>
-            {bulkActions}
-          </DataTableBulkActions>
-        )}
+        <div className='absolute bottom-0 inset-x-0 z-20 pointer-events-none flex justify-center'>
+          <div className='pointer-events-auto flex w-full flex-col gap-2.5'>
+            <DataTablePagination
+              table={table}
+              className='border-t border-border/50 bg-background/80 px-4 py-3 shadow-md backdrop-blur-xl supports-[backdrop-filter]:bg-background/70 dark:bg-card/80 dark:supports-[backdrop-filter]:bg-card/70 sm:gap-6'
+            />
+            {actionBar && table.getFilteredSelectedRowModel().rows.length > 0 && actionBar}
+            {bulkActions && (
+              <DataTableBulkActions table={table} entityName={entityName || 'row'}>
+                {bulkActions}
+              </DataTableBulkActions>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
