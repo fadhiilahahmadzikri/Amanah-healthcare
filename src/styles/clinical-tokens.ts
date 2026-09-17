@@ -124,7 +124,6 @@ export const getStatusConfig = (status: string): StatusConfig => {
     case 'OPEN':
     case 'AKTIF':
     case 'ACTIVE':
-    case 'CONFIRMED':
     case 'HADIR':
       return {
         ...clinicalTokens.colors.status.confirmed,
@@ -141,7 +140,6 @@ export const getStatusConfig = (status: string): StatusConfig => {
     case 'PENUH':
     case 'FULL':
     case 'SEBAGIAN':
-    case 'PENDING':
       return {
         ...clinicalTokens.colors.status.pending,
         label: 'Penuh'

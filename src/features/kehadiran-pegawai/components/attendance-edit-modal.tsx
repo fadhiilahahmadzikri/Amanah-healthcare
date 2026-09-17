@@ -133,7 +133,10 @@ export function AttendanceEditModal({ attendance, isOpen, onClose }: AttendanceE
             <div className='grid grid-cols-2 gap-3.5'>
               {/* Status Kehadiran */}
               <div>
-                <label className='text-xs font-normal text-muted-foreground/80 block mb-1'>
+                <label
+                  htmlFor='attendance-status'
+                  className='text-xs font-normal text-muted-foreground/80 block mb-1'
+                >
                   Status Presensi
                 </label>
                 <Select
@@ -147,7 +150,7 @@ export function AttendanceEditModal({ attendance, isOpen, onClose }: AttendanceE
                     }
                   }}
                 >
-                  <SelectTrigger className='h-9 text-xs bg-background'>
+                  <SelectTrigger id='attendance-status' className='h-9 text-xs bg-background'>
                     <SelectValue placeholder='Pilih Status' />
                   </SelectTrigger>
                   <SelectContent>
@@ -169,11 +172,14 @@ export function AttendanceEditModal({ attendance, isOpen, onClose }: AttendanceE
 
               {/* Shift Kerja */}
               <div>
-                <label className='text-xs font-normal text-muted-foreground/80 block mb-1'>
+                <label
+                  htmlFor='attendance-shift'
+                  className='text-xs font-normal text-muted-foreground/80 block mb-1'
+                >
                   Shift Kerja
                 </label>
                 <Select value={shift} onValueChange={(val) => setShift(val as WorkShift)}>
-                  <SelectTrigger className='h-9 text-xs bg-background'>
+                  <SelectTrigger id='attendance-shift' className='h-9 text-xs bg-background'>
                     <SelectValue placeholder='Pilih Shift' />
                   </SelectTrigger>
                   <SelectContent>
@@ -192,10 +198,14 @@ export function AttendanceEditModal({ attendance, isOpen, onClose }: AttendanceE
 
               {/* Waktu Presensi */}
               <div>
-                <label className='text-xs font-normal text-muted-foreground/80 block mb-1'>
+                <label
+                  htmlFor='attendance-time'
+                  className='text-xs font-normal text-muted-foreground/80 block mb-1'
+                >
                   Waktu Jam Masuk
                 </label>
                 <Input
+                  id='attendance-time'
                   value={waktu}
                   onChange={(e) => setWaktu(e.target.value)}
                   disabled={status === 'Tidak Hadir'}
@@ -206,10 +216,14 @@ export function AttendanceEditModal({ attendance, isOpen, onClose }: AttendanceE
 
               {/* Tanggal Presensi */}
               <div>
-                <label className='text-xs font-normal text-muted-foreground/80 block mb-1'>
+                <label
+                  htmlFor='attendance-date'
+                  className='text-xs font-normal text-muted-foreground/80 block mb-1'
+                >
                   Tanggal Presensi
                 </label>
                 <Input
+                  id='attendance-date'
                   value={tanggal}
                   onChange={(e) => setTanggal(e.target.value)}
                   placeholder='DD/MM/YYYY'
@@ -219,11 +233,14 @@ export function AttendanceEditModal({ attendance, isOpen, onClose }: AttendanceE
 
               {/* Kategori Staf */}
               <div className='col-span-2'>
-                <label className='text-xs font-normal text-muted-foreground/80 block mb-1'>
+                <label
+                  htmlFor='attendance-category'
+                  className='text-xs font-normal text-muted-foreground/80 block mb-1'
+                >
                   Kategori Jabatan / Profesi
                 </label>
                 <Select value={kategori} onValueChange={(val) => setKategori(val as StaffCategory)}>
-                  <SelectTrigger className='h-9 text-xs bg-background'>
+                  <SelectTrigger id='attendance-category' className='h-9 text-xs bg-background'>
                     <SelectValue placeholder='Pilih Kategori' />
                   </SelectTrigger>
                   <SelectContent>

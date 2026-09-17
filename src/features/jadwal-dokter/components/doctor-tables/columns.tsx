@@ -30,9 +30,11 @@ export const getColumns = ({
         .toUpperCase();
 
       return (
-        <div
+        <button
+          type='button'
           onClick={() => onOpenDetail(doc)}
-          className='flex items-center gap-3 cursor-pointer group py-0.5'
+          aria-label={`Lihat detail ${doc.nama_dokter}`}
+          className='flex w-full items-center gap-3 py-0.5 text-left cursor-pointer group'
         >
           <Avatar className='size-9 rounded-lg ring-1 ring-border/50 group-hover:ring-primary/40 transition-all'>
             <AvatarImage src={doc.avatar} alt={doc.nama_dokter} />
@@ -46,7 +48,7 @@ export const getColumns = ({
             </div>
             <div className='text-[11px] text-muted-foreground truncate'>{doc.spesialisasi}</div>
           </div>
-        </div>
+        </button>
       );
     }
   },

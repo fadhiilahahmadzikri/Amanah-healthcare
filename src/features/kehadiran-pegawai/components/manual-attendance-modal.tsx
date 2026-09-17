@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
@@ -16,6 +16,13 @@ export interface ManualAttendanceModalProps {
 export function ManualAttendanceModal({ isOpen, onClose }: ManualAttendanceModalProps) {
   const mutation = useRecordManualAttendanceMutation();
   const [staffId, setStaffId] = useState('');
+  const staffIdInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      staffIdInputRef.current?.focus();
+    }
+  }, [isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,11 +67,11 @@ export function ManualAttendanceModal({ isOpen, onClose }: ManualAttendanceModal
           <div className='relative'>
             <Icons.user className='absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none' />
             <Input
+              ref={staffIdInputRef}
               value={staffId}
               onChange={(e) => setStaffId(e.target.value.toUpperCase())}
               placeholder='Masukkan ID staf...'
               className='pl-9 h-10 text-xs font-mono font-semibold'
-              autoFocus
             />
           </div>
         </div>
