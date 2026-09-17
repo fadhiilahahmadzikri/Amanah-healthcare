@@ -8,7 +8,7 @@ type AmanahContactPageProps = {
 export function AmanahContactPage({ locale }: AmanahContactPageProps) {
   return (
     <HealthcareShell activePath='/kontak' locale={locale}>
-      <ContactSection />
+      <ContactSection headingAs='h1' />
     </HealthcareShell>
   );
 }

@@ -15,7 +15,11 @@ import { contactImage, contactItems } from '../data';
 
 gsap.registerPlugin(ScrollTrigger);
 
-export function ContactSection() {
+type ContactSectionProps = {
+  headingAs?: 'h1' | 'h2';
+};
+
+export function ContactSection({ headingAs = 'h2' }: ContactSectionProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const leftRef = useRef<HTMLDivElement>(null);
   const rightRef = useRef<HTMLDivElement>(null);
@@ -113,7 +117,7 @@ export function ContactSection() {
             '
             >
               <HealthcareHeading
-                as='h2'
+                as={headingAs}
                 data-mask-text
                 size='display'
                 className='font-medium text-foreground will-change-transform'

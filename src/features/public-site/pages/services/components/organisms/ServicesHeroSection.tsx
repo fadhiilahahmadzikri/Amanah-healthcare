@@ -105,7 +105,7 @@ export function ServicesHeroSection({ className }: ServicesHeroSectionProps) {
             '
             >
               <HealthcareHeading
-                as='h2'
+                as='h1'
                 data-hero-heading
                 size='display'
                 className='font-medium text-foreground will-change-transform'

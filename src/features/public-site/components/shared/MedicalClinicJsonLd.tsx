@@ -1,7 +1,19 @@
 import { getBaseUrl } from '@/features/public-site/lib/helpers';
+import { healthcareContactItems, healthcareFooter } from './data';
+
+const availableServiceNames = [
+  'Persalinan 24 Jam',
+  'Khitan Modern',
+  'Pemeriksaan Dokter Umum',
+  'Pemeriksaan Kehamilan & Kebidanan',
+  'Imunisasi & Tumbuh Kembang Anak'
+];
+
+const medicalSpecialties = ['Obstetric', 'Pediatric', 'PrimaryCare'];
 
 export function MedicalClinicJsonLd() {
   const baseUrl = getBaseUrl();
+  const phone = healthcareContactItems.find((item) => item.href.startsWith('tel:'))?.value;
 
   const schema = {
     '@context': 'https://schema.org',
@@ -19,60 +31,14 @@ export function MedicalClinicJsonLd() {
         ],
         description:
           'Klinik Pratama Amanah Healthcare melayani dokter umum, kebidanan & persalinan 24 jam, imunisasi anak, dan khitan modern di Condongcatur, Sleman, Yogyakarta.',
-        telephone: '+62-274-885775',
-        priceRange: '$$',
-        address: {
-          '@type': 'PostalAddress',
-          streetAddress: 'Jl. Anyelir No. 1, Perumnas Condong Catur',
-          addressLocality: 'Sleman',
-          addressRegion: 'D.I. Yogyakarta',
-          postalCode: '55283',
-          addressCountry: 'ID'
-        },
-        geo: {
-          '@type': 'GeoCoordinates',
-          latitude: -7.7618,
-          longitude: 110.4082
-        },
-        openingHoursSpecification: [
-          {
-            '@type': 'OpeningHoursSpecification',
-            dayOfWeek: [
-              'Monday',
-              'Tuesday',
-              'Wednesday',
-              'Thursday',
-              'Friday',
-              'Saturday',
-              'Sunday'
-            ],
-            opens: '00:00',
-            closes: '23:59'
-          }
-        ],
-        medicalSpecialty: ['Obstetric', 'Pediatric', 'PrimaryCare'],
-        availableService: [
-          {
-            '@type': 'MedicalProcedure',
-            name: 'Persalinan 24 Jam'
-          },
-          {
-            '@type': 'MedicalProcedure',
-            name: 'Khitan Modern'
-          },
-          {
-            '@type': 'MedicalProcedure',
-            name: 'Pemeriksaan Dokter Umum'
-          },
-          {
-            '@type': 'MedicalProcedure',
-            name: 'Pemeriksaan Kehamilan & Kebidanan'
-          },
-          {
-            '@type': 'MedicalProcedure',
-            name: 'Imunisasi & Tumbuh Kembang Anak'
-          }
-        ]
+        ...(phone ? { telephone: phone } : {}),
+        address: healthcareFooter.address,
+        sameAs: healthcareFooter.socialLinks.map((link) => link.href),
+        medicalSpecialty: medicalSpecialties,
+        availableService: availableServiceNames.map((name) => ({
+          '@type': 'MedicalProcedure',
+          name
+        }))
       },
       {
         '@type': 'WebSite',
