@@ -4,7 +4,7 @@ if (!process.env.NEXT_PUBLIC_SENTRY_DISABLED) {
   Sentry.init({
     dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
-    sendDefaultPii: true,
+    sendDefaultPii: false,
 
     tracesSampleRate: 1,
 

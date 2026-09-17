@@ -274,16 +274,27 @@ export function HealthcareFooter({ locale = AppConfig.i18n.defaultLocale }: Heal
           md:px-6
         '
         >
-          <p>© 2026 Klinik Amanah Healthcare. All Rights Reserved.</p>
-          <a
-            href={getI18nPath('/', locale)}
-            className='
-              w-fit transition-colors
-              hover:text-foreground
-            '
-          >
-            amanah.healthcare
-          </a>
+          <p>&copy; 2026 Klinik Amanah Healthcare. All Rights Reserved.</p>
+          <nav aria-label='Tautan legal' className='flex flex-wrap items-center gap-x-4 gap-y-2'>
+            <a
+              href={getI18nPath('/privacy-policy', locale)}
+              className='
+                w-fit transition-colors
+                hover:text-foreground
+              '
+            >
+              Kebijakan Privasi
+            </a>
+            <a
+              href={getI18nPath('/', locale)}
+              className='
+                w-fit transition-colors
+                hover:text-foreground
+              '
+            >
+              amanah.healthcare
+            </a>
+          </nav>
           <ViewportLine position='bottom' />
         </div>
       </SectionContainer>

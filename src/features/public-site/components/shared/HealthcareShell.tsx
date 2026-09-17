@@ -11,9 +11,15 @@ type HealthcareShellProps = {
   activePath: string;
   children: ReactNode;
   locale?: string;
+  showFaq?: boolean;
 };
 
-export function HealthcareShell({ activePath, children, locale }: HealthcareShellProps) {
+export function HealthcareShell({
+  activePath,
+  children,
+  locale,
+  showFaq = true
+}: HealthcareShellProps) {
   return (
     <div className='min-h-screen overflow-x-clip bg-background text-foreground'>
       <MedicalClinicJsonLd />
@@ -25,11 +31,15 @@ export function HealthcareShell({ activePath, children, locale }: HealthcareShel
       '
       >
         {children}
-        <TechnicalDivider />
-        <HealthcareFAQ activePath={activePath} locale={locale} />
+        {showFaq ? (
+          <>
+            <TechnicalDivider />
+            <HealthcareFAQ activePath={activePath} locale={locale} />
+          </>
+        ) : null}
       </main>
       <div className='mx-auto max-w-[1300px] border-x-2 border-line'>
-        <TechnicalDivider />
+        {showFaq ? <TechnicalDivider /> : null}
       </div>
       <HealthcareChatFab />
       <HealthcareFooter locale={locale} />

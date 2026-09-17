@@ -5,7 +5,7 @@ const sentryOptions: Sentry.NodeOptions | Sentry.EdgeOptions = {
 
   spotlight: process.env.NODE_ENV === 'development',
 
-  sendDefaultPii: true,
+  sendDefaultPii: false,
 
   tracesSampleRate: 1,
 

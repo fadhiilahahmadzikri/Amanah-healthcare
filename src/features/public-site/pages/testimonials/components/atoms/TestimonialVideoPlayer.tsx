@@ -132,13 +132,14 @@ export function TestimonialVideoPlayer({ video }: TestimonialVideoPlayerProps) {
               ref={iframeRef}
               src={`https://www.youtube-nocookie.com/embed/${video.youtubeId}?autoplay=1&mute=1&loop=1&playlist=${video.youtubeId}&controls=0&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&iv_load_policy=3&disablekb=1&fs=0`}
               title={video.title}
-              loading='eager'
+              loading='lazy'
               onLoad={() => setIsIframeLoaded(true)}
               className='
                 size-full scale-[1.2] border-0 object-cover transition-transform
                 duration-300 select-none
               '
               allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
+              sandbox='allow-scripts allow-presentation allow-popups'
               allowFullScreen
             />
           )}

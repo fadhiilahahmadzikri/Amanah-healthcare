@@ -10,12 +10,6 @@ type AmanahTestimonialsPageProps = {
 export function AmanahTestimonialsPage({ locale }: AmanahTestimonialsPageProps) {
   return (
     <HealthcareShell activePath='/testimoni' locale={locale}>
-      {/* DNS Prefetch & Preconnect untuk akselerasi YouTube player CDN */}
-      <link rel='preconnect' href='https://www.youtube-nocookie.com' />
-      <link rel='preconnect' href='https://i.ytimg.com' />
-      <link rel='dns-prefetch' href='https://www.youtube-nocookie.com' />
-      <link rel='dns-prefetch' href='https://i.ytimg.com' />
-
       <TestimonialsHeroSection data={testimonialsHeroData} />
       <TechnicalDivider />
       <TestimonialsList items={testimonialShowcaseItems} />

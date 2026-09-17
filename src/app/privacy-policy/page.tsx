@@ -1,112 +1,161 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
+import {
+  HealthcareHeading,
+  HealthcareShell,
+  HealthcareText,
+  SectionContainer,
+  ViewportLine
+} from '@/features/public-site/components/shared';
+import { healthcareContactItems } from '@/features/public-site/components/shared/data';
+import { PublicSiteRouteShell } from '@/features/public-site/route-shell';
+
+const lastUpdated = '17 September 2026';
+const contactEmail = healthcareContactItems.find((item) => item.href.startsWith('mailto:'));
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy',
+  title: 'Kebijakan Privasi',
+  description:
+    'Ringkasan cara Klinik Pratama Amanah Healthcare menangani data pada website publik dan area aplikasi yang memerlukan autentikasi.',
   robots: {
-    index: false
+    index: false,
+    follow: true
+  },
+  alternates: {
+    canonical: '/privacy-policy'
   }
 };
 
+type PrivacySectionProps = {
+  children: ReactNode;
+  title: string;
+};
+
+function PrivacySection({ children, title }: PrivacySectionProps) {
+  return (
+    <section className='relative border-t border-line px-6 py-8 md:px-10 md:py-10'>
+      <HealthcareHeading as='h2' size='subsection' className='max-w-3xl text-foreground'>
+        {title}
+      </HealthcareHeading>
+      <div className='mt-4 max-w-3xl space-y-4'>{children}</div>
+      <ViewportLine position='bottom' />
+    </section>
+  );
+}
+
+function PrivacyList({ items }: { items: string[] }) {
+  return (
+    <ul className='list-disc space-y-2 pl-5 amanah-type-body text-muted-foreground'>
+      {items.map((item) => (
+        <li key={item}>{item}</li>
+      ))}
+    </ul>
+  );
+}
+
 export default function PrivacyPolicyPage() {
   return (
-    <div className='min-h-screen px-4 py-12 sm:px-6 lg:px-8'>
-      <div className='mx-auto max-w-3xl space-y-8'>
-        {}
-        <h1 className='text-foreground text-3xl font-bold'>Privacy Policy</h1>
+    <PublicSiteRouteShell>
+      <HealthcareShell activePath='/privacy-policy' showFaq={false}>
+        <SectionContainer className='px-0 sm:px-0'>
+          <section className='relative bg-background px-6 py-12 md:px-10 md:py-16'>
+            <HealthcareText size='caption' className='font-semibold text-muted-foreground'>
+              Terakhir diperbarui: {lastUpdated}
+            </HealthcareText>
+            <HealthcareHeading as='h1' size='display' className='mt-4 max-w-4xl text-foreground'>
+              Kebijakan Privasi
+            </HealthcareHeading>
+            <HealthcareText size='lead' className='mt-5 max-w-3xl text-muted-foreground'>
+              Halaman ini menjelaskan praktik privasi pada website publik dan area aplikasi Klinik
+              Pratama Amanah Healthcare berdasarkan implementasi frontend saat ini.
+            </HealthcareText>
+          </section>
 
-        {}
-        <section>
-          <h2 className='text-foreground mb-3 text-xl font-semibold'>Introduction</h2>
-          <p className='text-muted-foreground text-base leading-relaxed'>
-            This Privacy Policy explains how we handle your personal information when you use our
-            application. We are committed to protecting your privacy and ensuring transparency about
-            our data practices. Please read this policy carefully to understand how we collect, use,
-            and safeguard your information.
-          </p>
-        </section>
+          <PrivacySection title='Ringkasan'>
+            <HealthcareText className='text-muted-foreground'>
+              Website publik saat ini berisi informasi layanan, fasilitas, testimoni, ulasan,
+              kontak, dan tautan ke layanan eksternal seperti email, telepon, WhatsApp, Google Maps,
+              dan media sosial. Website publik tidak memasang Google Analytics, Google Tag Manager,
+              Meta Pixel, Hotjar, Microsoft Clarity, atau pelacak pemasaran sejenis.
+            </HealthcareText>
+            <HealthcareText className='text-muted-foreground'>
+              Beberapa bagian aplikasi membutuhkan autentikasi dan dapat memproses data akun atau
+              data pasien. Detail bisnis seperti masa simpan resmi, penanggung jawab data, dan
+              prosedur permintaan data perlu dikonfirmasi oleh pengelola klinik.
+            </HealthcareText>
+          </PrivacySection>
 
-        {}
-        <section>
-          <h2 className='text-foreground mb-3 text-xl font-semibold'>Data Collection</h2>
-          <p className='text-muted-foreground text-base leading-relaxed'>
-            Our application collects minimal data necessary for authentication purposes. When you
-            sign in using our authentication provider, we receive basic profile information such as
-            your email address and name. This data is used solely to identify you within the
-            application and provide personalized access to features.
-          </p>
-        </section>
+          <PrivacySection title='Data yang Diproses'>
+            <PrivacyList
+              items={[
+                'Kontak publik: ketika pengunjung memilih tautan email, telepon, WhatsApp, Google Maps, atau media sosial, interaksi berikutnya diproses oleh aplikasi atau layanan tujuan.',
+                'Autentikasi: area masuk menggunakan Clerk untuk proses sign-in, sign-up, sesi pengguna, dan data profil akun yang tersedia dari penyedia autentikasi.',
+                'Pendaftaran pasien: area aplikasi dapat meminta nama, NIK, nama ibu kandung, tempat dan tanggal lahir, jenis kelamin, golongan darah, domisili, dan pekerjaan.',
+                'Data pasien dan operasional: dashboard dapat menampilkan atau mengelola data pasien, janji temu, jadwal dokter, antrean, presensi, dan catatan administratif sesuai fitur yang digunakan.',
+                'Asisten AI dashboard: pesan yang dikirim ke asisten AI diproses melalui endpoint aplikasi dan dapat diteruskan ke layanan model AI yang dikonfigurasi.'
+              ]}
+            />
+          </PrivacySection>
 
-        {}
-        <section>
-          <h2 className='text-foreground mb-3 text-xl font-semibold'>Authentication by Clerk</h2>
-          <p className='text-muted-foreground text-base leading-relaxed'>
-            Our application uses{' '}
-            <a
-              href='https://clerk.com'
-              target='_blank'
-              rel='noopener noreferrer'
-              className='text-primary font-medium hover:underline'
-            >
-              Clerk
-            </a>{' '}
-            to handle user authentication securely. All authentication processes, including sign-up,
-            sign-in, and password management, are managed by Clerk. For detailed information about
-            how Clerk processes and protects your data, please review their{' '}
-            <a
-              href='https://clerk.com/legal/privacy'
-              target='_blank'
-              rel='noopener noreferrer'
-              className='text-primary font-medium hover:underline'
-            >
-              Privacy Policy
-            </a>
-            .
-          </p>
-        </section>
+          <PrivacySection title='Cookie dan Penyimpanan Browser'>
+            <HealthcareText className='text-muted-foreground'>
+              Website tidak membutuhkan banner cookie untuk analytics atau marketing karena audit
+              kode tidak menemukan teknologi pelacakan opsional tersebut. Penyimpanan yang ada
+              digunakan untuk fungsi aplikasi dan preferensi pengguna.
+            </HealthcareText>
+            <PrivacyList
+              items={[
+                'Cookie active_theme dan localStorage theme atau amanah-theme menyimpan pilihan tampilan terang atau gelap.',
+                'Cookie sidebar_state menyimpan preferensi tampilan sidebar di dashboard.',
+                'Cookie patient_registration_completed menandai bahwa pengguna terautentikasi sudah menyelesaikan pendaftaran pasien.',
+                'Clerk dapat menggunakan cookie atau storage yang diperlukan untuk autentikasi, keamanan sesi, dan manajemen akun.',
+                'LocalStorage pada fitur dashboard dapat menyimpan preferensi lokal seperti notifikasi, devtools, atau data mock operasional selama pengembangan.'
+              ]}
+            />
+          </PrivacySection>
 
-        {}
-        <section>
-          <h2 className='text-foreground mb-3 text-xl font-semibold'>No Data Misuse</h2>
-          <p className='text-muted-foreground text-base leading-relaxed'>
-            We take your privacy seriously. We want to assure you that your personal data is never
-            sold, rented, or shared with third parties for marketing or commercial purposes. Your
-            information is used exclusively for the intended functionality of this application and
-            is never misused or exploited in any way.
-          </p>
-        </section>
+          <PrivacySection title='Layanan Pihak Ketiga'>
+            <PrivacyList
+              items={[
+                'Clerk digunakan untuk autentikasi dan manajemen akun pada area masuk aplikasi.',
+                'Sentry dapat digunakan untuk pemantauan error jika dikonfigurasi melalui environment variable. Konfigurasi aplikasi tidak mengirim PII secara default.',
+                'YouTube no-cookie digunakan untuk beberapa video testimoni. Iframe video dimuat secara lazy agar permintaan pihak ketiga tidak terjadi lebih awal dari kebutuhan tampilan.',
+                'Google Maps, Instagram, TikTok, Facebook, dan WhatsApp hanya dibuka ketika pengguna memilih tautan terkait.',
+                'Tidak ada Google Analytics, Google Tag Manager, Meta Pixel, Hotjar, atau Microsoft Clarity yang diaktifkan dari kode frontend saat audit ini dibuat.'
+              ]}
+            />
+          </PrivacySection>
 
-        {}
-        <section>
-          <h2 className='text-foreground mb-3 text-xl font-semibold'>Demo Application</h2>
-          <p className='text-muted-foreground text-base leading-relaxed'>
-            Please note that this is a demo application created for demonstration and educational
-            purposes. It showcases various features and technologies but should not be considered a
-            production-ready service. Any data you provide may be temporary and could be removed at
-            any time as part of regular maintenance.
-          </p>
-        </section>
+          <PrivacySection title='Pengaturan Cookie'>
+            <HealthcareText className='text-muted-foreground'>
+              Karena tidak ada cookie analytics atau marketing opsional yang ditemukan, website
+              tidak menampilkan banner persetujuan cookie. Jika di masa depan analytics, iklan, atau
+              pelacak pemasaran ditambahkan, mekanisme persetujuan perlu ditinjau ulang sebelum
+              teknologi tersebut dijalankan.
+            </HealthcareText>
+          </PrivacySection>
 
-        {}
-        <section>
-          <h2 className='text-foreground mb-3 text-xl font-semibold'>Contact Us</h2>
-          <p className='text-muted-foreground text-base leading-relaxed'>
-            If you have any questions, concerns, or requests regarding this Privacy Policy or our
-            data practices, please feel free to contact us at{' '}
-            <a
-              href='mailto:contact@kiranism.dev'
-              className='text-primary font-medium hover:underline'
-            >
-              contact@kiranism.dev
-            </a>
-            .
-          </p>
-        </section>
-
-        {}
-        <div className='border-border border-t pt-4'>
-          <p className='text-muted-foreground text-sm'>Last updated: February 2026</p>
-        </div>
-      </div>
-    </div>
+          <PrivacySection title='Kontak'>
+            <HealthcareText className='text-muted-foreground'>
+              Untuk pertanyaan mengenai halaman ini, hubungi Klinik Pratama Amanah Healthcare
+              melalui kanal kontak resmi yang tersedia di website.
+              {contactEmail ? (
+                <>
+                  {' '}
+                  Email:{' '}
+                  <a
+                    href={contactEmail.href}
+                    className='font-semibold text-foreground underline-offset-4 hover:underline'
+                  >
+                    {contactEmail.value}
+                  </a>
+                  .
+                </>
+              ) : null}
+            </HealthcareText>
+          </PrivacySection>
+        </SectionContainer>
+      </HealthcareShell>
+    </PublicSiteRouteShell>
   );
 }
