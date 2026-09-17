@@ -4,6 +4,7 @@ import { searchParamsCache } from '@/lib/searchparams';
 import { SearchParams } from 'nuqs/server';
 
 import { getPatients } from '@/features/data-pasien/api/service';
+import { requireAdmin } from '@/lib/guard';
 
 export const metadata = {
   title: 'Dashboard: Data Pasien'
@@ -14,6 +15,7 @@ type PageProps = {
 };
 
 export default async function Page(props: PageProps) {
+  await requireAdmin();
   const searchParams = await props.searchParams;
   searchParamsCache.parse(searchParams);
   const initialData = await getPatients({ limit: 1 });

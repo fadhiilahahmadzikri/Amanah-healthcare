@@ -40,7 +40,7 @@ export function AmanahScriptText({
 }: AmanahScriptTextProps) {
   const Component = as;
   const scriptClassName = cn(
-    'font-amanah-script',
+    'font-amanah-script font-caveat',
     scriptSizeClassNames[size],
     mask !== undefined && 'will-change-transform',
     className,

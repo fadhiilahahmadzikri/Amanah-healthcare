@@ -222,7 +222,7 @@ function Sidebar({
           data-sidebar='sidebar'
           data-slot='sidebar'
           data-mobile='true'
-          className='bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden'
+          className='bg-sidebar text-sidebar-foreground w-[min(var(--sidebar-width),85vw)] max-w-[85vw] p-0 [&>button]:hidden border-r border-sidebar-border shadow-2xl'
           style={
             {
               '--sidebar-width': SIDEBAR_WIDTH_MOBILE

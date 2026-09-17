@@ -283,15 +283,15 @@ export function FacilitiesCarouselSection({ className }: FacilitiesCarouselSecti
                           size-full overflow-hidden rounded-none border
                           border-line bg-card shadow-xs transition-shadow
                           duration-300
-                          hover:shadow-lg
+                          md:hover:shadow-lg
                         '
                       >
-                        {/* Image: shrinks to top half on hover */}
+                        {/* Image: shrinks to top half on hover on desktop */}
                         <div
                           className='
                             relative size-full overflow-hidden transition-all
                             duration-500 ease-out
-                            group-hover:h-1/2
+                            md:group-hover:h-1/2
                             max-md:h-48
                           '
                         >
@@ -302,35 +302,36 @@ export function FacilitiesCarouselSection({ className }: FacilitiesCarouselSecti
                             sizes='(min-width: 1280px) 340px, (min-width: 768px) 50vw, 85vw'
                             className='
                               size-full object-cover object-center
-                              transition-transform duration-700 ease-out
-                              group-hover:scale-105
+                              max-md:scale-100 max-md:transition-none
+                              md:transition-transform md:duration-700 md:ease-out
+                              md:group-hover:scale-105
                             '
                           />
-                          {/* Smooth upward masking (like pelayanan umum) */}
+                          {/* Smooth upward masking */}
                           <div
                             className='
                               pointer-events-none absolute inset-x-0 bottom-0
                               z-10 h-[55%] bg-linear-to-t from-background/90
                               via-background/45 to-transparent
                               transition-opacity duration-500
-                              group-hover:opacity-0
+                              md:group-hover:opacity-0
                               dark:from-[#090d24]/95 dark:via-[#090d24]/50
                               dark:to-transparent
                             '
                           />
                         </div>
 
-                        {/* Text Section: single unified title, smooth reveal of summary and affordance, NO black border line */}
+                        {/* Text Section */}
                         <div
                           className='
                             absolute inset-x-0 bottom-0 z-20 flex flex-col
-                            justify-start bg-transparent p-5 transition-all
-                            duration-500 ease-out
-                            group-hover:h-1/2 group-hover:bg-card/95
-                            group-hover:pt-3.5 group-hover:backdrop-blur-md
+                            justify-start bg-transparent p-5
+                            md:transition-all md:duration-500 md:ease-out
+                            md:group-hover:h-1/2 md:group-hover:bg-card/95
+                            md:group-hover:pt-3.5 md:group-hover:backdrop-blur-md
                             max-md:relative max-md:h-auto max-md:bg-card
                             max-md:p-4
-                            dark:group-hover:bg-[#090d24]/95
+                            dark:md:group-hover:bg-[#090d24]/95
                           '
                         >
                           <HealthcareHeading as='h3' size='card' className='text-foreground'>
@@ -339,10 +340,11 @@ export function FacilitiesCarouselSection({ className }: FacilitiesCarouselSecti
                           <HealthcareText
                             size='small'
                             className='
-                              mt-1 line-clamp-2 max-h-0 pr-10
-                              text-muted-foreground opacity-0 transition-all
-                              duration-500 ease-out
-                              group-hover:max-h-20 group-hover:opacity-100
+                              mt-1 line-clamp-2 pr-10
+                              text-muted-foreground
+                              md:max-h-0 md:opacity-0 md:transition-all
+                              md:duration-500 md:ease-out
+                              md:group-hover:max-h-20 md:group-hover:opacity-100
                               max-md:max-h-20 max-md:opacity-100
                             '
                           >
@@ -352,12 +354,12 @@ export function FacilitiesCarouselSection({ className }: FacilitiesCarouselSecti
                             className='
                               absolute right-4 bottom-4 flex size-8 items-center
                               justify-center rounded-full border border-line
-                              bg-surface text-primary opacity-0 shadow-xs
-                              transition-all duration-500
-                              group-hover:-rotate-45 group-hover:border-primary
-                              group-hover:bg-primary
-                              group-hover:text-primary-foreground
-                              group-hover:opacity-100
+                              bg-surface text-primary shadow-xs
+                              md:opacity-0 md:transition-all md:duration-500
+                              md:group-hover:-rotate-45 md:group-hover:border-primary
+                              md:group-hover:bg-primary
+                              md:group-hover:text-primary-foreground
+                              md:group-hover:opacity-100
                               max-md:opacity-100
                               md:size-9
                             '

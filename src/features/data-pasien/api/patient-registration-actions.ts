@@ -1,7 +1,7 @@
 'use server';
 
-import { auth } from '@clerk/nextjs/server';
-
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
 import { completePatientRegistration } from './patient-registration-service';
 import {
   patientRegistrationSchema,
@@ -16,7 +16,8 @@ export type PatientRegistrationActionResult = {
 export async function completePatientRegistrationAction(
   values: PatientRegistrationFormValues
 ): Promise<PatientRegistrationActionResult> {
-  const { userId } = await auth();
+  const session = await auth.api.getSession({ headers: await headers() });
+  const userId = session?.user?.id;
 
   if (!userId) {
     return {

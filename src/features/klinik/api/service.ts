@@ -1,7 +1,7 @@
 import { Appointment, Doctor, QueueItem, AppointmentFormData } from './types';
 
 const LOCAL_STORAGE_KEY_APPOINTMENTS = 'amanah_appointments_v4';
-const LOCAL_STORAGE_KEY_QUEUES = 'amanah_queues_v8';
+const LOCAL_STORAGE_KEY_QUEUES = 'amanah_queues_v10';
 
 import { getAmanahServiceByName } from '../constants/services';
 
@@ -127,7 +127,7 @@ export const createAppointmentRecordWithQueue = (
 ): { appointment: Appointment; queueItem: QueueItem } => {
   const appointment = createAppointmentRecord(formData, existingList);
   const srv = getAmanahServiceByName(formData.service);
-  const codePrefix = srv?.codePrefix || 'A';
+  const codePrefix = srv?.codePrefix || 'KIA';
 
   // Count existing waiting patients in this poli
   const existingQueues = loadStoredQueues();
@@ -147,8 +147,8 @@ export const createAppointmentRecordWithQueue = (
     patient_name: appointment.patient_name,
     patient_avatar: appointment.patient_avatar,
     doctor_name: formData.doctor,
-    poli: srv?.name || formData.service,
-    room: doc?.location || '',
+    poli: srv?.name || formData.service || 'Poli KIA',
+    room: doc?.location || 'Ruang KIA',
     estimated_time: estimatedTime,
     status: 'MENUNGGU',
     is_user: true,

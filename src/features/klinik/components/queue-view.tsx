@@ -4,6 +4,7 @@ import { Icons } from '@/components/icons';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Heading } from '@/components/ui/heading';
 import {
   Select,
   SelectContent,
@@ -22,36 +23,31 @@ export function QueueView() {
 
   return (
     <div className='flex flex-col h-[calc(100vh-5rem)] max-h-[calc(100vh-5rem)] overflow-hidden font-sans select-none gap-3 pb-1'>
-      {/* 1. Top Page Bar: Poliklinik Switcher Navigation */}
-      <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shrink-0'>
-        <div>
-          <h2 className='text-lg sm:text-xl font-bold text-foreground tracking-tight'>
-            Antrean Poliklinik
-          </h2>
-          <p className='text-xs text-muted-foreground'>
-            Pantau status panggilan dan nomor antrean pasien secara real-time
-          </p>
-        </div>
-
-        {/* Poli Switcher Tabs */}
-        <div className='inline-flex items-center gap-1 p-1 bg-muted rounded-xl self-start sm:self-auto overflow-x-auto border border-border/40 shrink-0'>
-          {queueView.poliList.map((poli) => (
-            <button
-              key={poli}
-              type='button'
-              onClick={() => queueView.actions.changePoli(poli)}
-              className={cn(
-                'px-3.5 py-1 rounded-lg text-xs font-medium transition whitespace-nowrap cursor-pointer select-none',
-                queueView.activePoli === poli
-                  ? 'bg-card text-foreground font-semibold shadow-xs'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              {poli}
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* 1. Top Page Bar: Poliklinik Switcher Navigation with standard Heading */}
+      <Heading
+        title='Antrean Poliklinik'
+        description='Pantau status panggilan dan nomor antrean pasien secara real-time'
+        trailing={
+          <div className='inline-flex items-center gap-1 p-1 bg-muted rounded-xl self-start sm:self-auto overflow-x-auto border border-border/40 shrink-0'>
+            {queueView.poliList.map((poli) => (
+              <button
+                key={poli}
+                type='button'
+                onClick={() => queueView.actions.changePoli(poli)}
+                className={cn(
+                  'px-3.5 py-1 rounded-lg text-xs font-medium transition whitespace-nowrap cursor-pointer select-none',
+                  queueView.activePoli === poli
+                    ? 'bg-card text-foreground font-semibold shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                {poli}
+              </button>
+            ))}
+          </div>
+        }
+        className='shrink-0'
+      />
 
       {/* 2. Main Harmonized Section: Single full-height EmptyState if both panels empty, else 2-column layout */}
       {!queueView.currentCalling && queueView.totalItems === 0 && !queueView.searchQuery ? (

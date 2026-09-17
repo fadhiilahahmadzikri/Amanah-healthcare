@@ -215,15 +215,47 @@ html.lenis body {
 }
 
 @utility amanah-type-script-hero {
+  font-family: var(--font-caveat), 'Caveat', 'Brush Script MT', cursive, sans-serif !important;
   font-size: var(--amanah-type-script-hero);
   line-height: var(--amanah-leading-script);
   letter-spacing: 0;
 }
 
 @utility amanah-type-script-accent {
+  font-family: var(--font-caveat), 'Caveat', 'Brush Script MT', cursive, sans-serif !important;
   font-size: var(--amanah-type-script-accent);
   line-height: var(--amanah-leading-script);
   letter-spacing: 0;
+}
+
+@utility font-caveat {
+  font-family: var(--font-caveat), 'Caveat', 'Brush Script MT', cursive, sans-serif !important;
+}
+
+@utility font-amanah-script {
+  font-family: var(--font-caveat), 'Caveat', 'Brush Script MT', cursive, sans-serif !important;
+}
+
+@utility font-lora {
+  font-family: var(--font-lora), 'Lora', Georgia, serif !important;
+}
+
+@utility font-amanah-serif {
+  font-family: var(--font-lora), 'Lora', Georgia, serif !important;
+}
+
+.font-caveat,
+.font-amanah-script,
+.public-site-scope .font-caveat,
+.public-site-scope .font-amanah-script {
+  font-family: var(--font-caveat), 'Caveat', 'Brush Script MT', cursive, sans-serif !important;
+}
+
+.font-lora,
+.font-amanah-serif,
+.public-site-scope .font-lora,
+.public-site-scope .font-amanah-serif {
+  font-family: var(--font-lora), 'Lora', Georgia, serif !important;
 }
 
 @utility amanah-type-display {

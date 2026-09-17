@@ -1,6 +1,6 @@
 import type { QueueItem } from '../api/types';
 
-export const QUEUE_POLI_LIST = ['Poli Umum', 'Poli Anak', 'Poli Gigi', 'Poli Obgyn'] as const;
+export const QUEUE_POLI_LIST = ['Poli Umum', 'Poli KIA'] as const;
 
 export const QUEUE_MINUTES_PER_PATIENT = 6;
 export const QUEUE_AUTOPLAY_INTERVAL_MS = 3500;

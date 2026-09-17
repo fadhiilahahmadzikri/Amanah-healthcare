@@ -2,12 +2,15 @@ import React from 'react';
 import PageContainer from '@/components/layout/page-container';
 import { QRConfigSettings } from '@/features/settings/components/qr-config-settings';
 
+import { requireAdmin } from '@/lib/guard';
+
 export const metadata = {
   title: 'Pengaturan Sistem - Amanah Healthcare',
   description: 'Kelola preferensi gaya QR code presensi, interval rotasi, dan pengaturan sistem.'
 };
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  await requireAdmin();
   return (
     <PageContainer scrollable={true}>
       <div className='space-y-4 font-sans pb-10 select-none'>

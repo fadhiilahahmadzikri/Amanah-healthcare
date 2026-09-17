@@ -1,20 +1,22 @@
-import { currentUser } from '@clerk/nextjs/server';
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 import { getPatients } from '@/features/data-pasien/api/service';
 import type { Patient } from '@/features/data-pasien/api/types';
 
 export async function GET() {
-  const user = await currentUser();
+  const session = await auth.api.getSession({ headers: await headers() });
+  const user = session?.user;
 
   if (!user) {
     return NextResponse.json({ patient: null }, { status: 401 });
   }
 
-  const patientRecordId = getMetadataValue(user.publicMetadata.patientRecordId);
-  const email = user.primaryEmailAddress?.emailAddress ?? '';
-  const phone = user.primaryPhoneNumber?.phoneNumber ?? '';
-  const fullName = user.fullName ?? '';
+  const patientRecordId = '';
+  const email = user.email ?? '';
+  const phone = '';
+  const fullName = user.name ?? '';
   const searchKey = patientRecordId || email || phone || fullName;
 
   if (!searchKey) {
@@ -56,8 +58,4 @@ function findExactPatient(
 
 function matches(value: string | undefined, expected: string): boolean {
   return Boolean(value && expected && value.toLowerCase() === expected.toLowerCase());
-}
-
-function getMetadataValue(value: unknown): string {
-  return typeof value === 'string' ? value : '';
 }

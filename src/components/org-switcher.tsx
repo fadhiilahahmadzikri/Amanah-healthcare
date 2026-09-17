@@ -1,9 +1,11 @@
 'use client';
 
-import { useAuth, useOrganizationList } from '@clerk/nextjs';
-import { Icons } from '@/components/icons';
+import * as React from 'react';
 import Image from 'next/image';
+import { Icons } from '@/components/icons';
 import { useRouter } from 'next/navigation';
+import { useAuthContext } from '@/lib/rbac/auth-context';
+import { Skeleton } from '@/components/ui/skeleton';
 
 import {
   DropdownMenu,
@@ -11,7 +13,6 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import {
@@ -20,117 +21,25 @@ import {
   SidebarMenuItem,
   useSidebar
 } from '@/components/ui/sidebar';
-import { useEffect } from 'react';
 
 export function OrgSwitcher() {
-  const { isMobile, state } = useSidebar();
+  const { isMobile, state, setOpenMobile } = useSidebar();
   const router = useRouter();
-  const { isLoaded, setActive, userMemberships } = useOrganizationList({
-    userMemberships: {
-      infinite: true,
-      keepPreviousData: false
-    }
-  });
+  const { role, isReady } = useAuthContext();
 
-  const { orgId } = useAuth();
-
-  useEffect(() => {
-    if (userMemberships?.revalidate) {
-      void userMemberships.revalidate();
+  const handleCloseMobile = React.useCallback(() => {
+    if (isMobile) {
+      setOpenMobile(false);
     }
-  }, [orgId]);
+  }, [isMobile, setOpenMobile]);
 
-  const activeOrganization = userMemberships?.data?.find(
-    (membership) => membership.organization.id === orgId
-  )?.organization;
+  const isAdmin = role === 'admin';
 
-  const handleOrganizationSwitch = async (organizationId: string) => {
-    if (orgId === organizationId || !setActive) {
-      return;
-    }
-    try {
-      await setActive({ organization: organizationId });
-    } catch (error) {
-      console.error('Failed to switch organization:', error);
-    }
+  const organization = {
+    id: 'amanah-main',
+    name: 'Amanah Healthcare',
+    role: isAdmin ? 'Klinik Admin' : 'Portal Pasien'
   };
-
-  if (!isLoaded) {
-    return (
-      <SidebarMenu>
-        <SidebarMenuItem>
-          <SidebarMenuButton size='lg' disabled>
-            <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg'>
-              <div
-                className='bg-sidebar-primary-foreground size-5'
-                style={{
-                  WebkitMaskImage: 'url(/logo-symbol-only.svg)',
-                  WebkitMaskSize: 'contain',
-                  WebkitMaskRepeat: 'no-repeat',
-                  WebkitMaskPosition: 'center',
-                  maskImage: 'url(/logo-symbol-only.svg)',
-                  maskSize: 'contain',
-                  maskRepeat: 'no-repeat',
-                  maskPosition: 'center'
-                }}
-              />
-            </div>
-            <div
-              className={`grid flex-1 text-left text-sm leading-tight transition-all duration-200 ease-in-out ${
-                state === 'collapsed'
-                  ? 'invisible max-w-0 overflow-hidden opacity-0'
-                  : 'visible max-w-full opacity-100'
-              }`}
-            >
-              <span className='truncate font-medium'>Loading...</span>
-              <span className='text-muted-foreground truncate text-xs'>Organizations</span>
-            </div>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarMenu>
-    );
-  }
-
-  if (!userMemberships?.data || userMemberships.data.length === 0) {
-    return (
-      <SidebarMenu>
-        <SidebarMenuItem>
-          <SidebarMenuButton
-            size='lg'
-            onClick={() => router.push('/dashboard/workspaces')}
-            className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
-          >
-            <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg'>
-              <Icons.add className='size-4' />
-            </div>
-            <div
-              className={`grid flex-1 text-left text-sm leading-tight transition-all duration-200 ease-in-out ${
-                state === 'collapsed'
-                  ? 'invisible max-w-0 overflow-hidden opacity-0'
-                  : 'visible max-w-full opacity-100'
-              }`}
-            >
-              <span className='truncate font-medium'>Create organization</span>
-              <span className='text-muted-foreground truncate text-xs'>Get started</span>
-            </div>
-            <Icons.chevronsUpDown
-              className={`ml-auto transition-all duration-200 ease-in-out ${
-                state === 'collapsed'
-                  ? 'invisible max-w-0 opacity-0'
-                  : 'visible max-w-full opacity-100'
-              }`}
-            />
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarMenu>
-    );
-  }
-
-  const displayOrganization = activeOrganization || userMemberships.data[0]?.organization;
-
-  if (!displayOrganization) {
-    return null;
-  }
 
   return (
     <SidebarMenu>
@@ -141,30 +50,15 @@ export function OrgSwitcher() {
               size='lg'
               className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
             >
-              <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg'>
-                {displayOrganization.hasImage && displayOrganization.imageUrl ? (
-                  <Image
-                    src={displayOrganization.imageUrl}
-                    alt={displayOrganization.name}
-                    width={32}
-                    height={32}
-                    className='size-full object-cover'
-                  />
-                ) : (
-                  <div
-                    className='bg-sidebar-primary-foreground size-5'
-                    style={{
-                      WebkitMaskImage: 'url(/logo-symbol-only.svg)',
-                      WebkitMaskSize: 'contain',
-                      WebkitMaskRepeat: 'no-repeat',
-                      WebkitMaskPosition: 'center',
-                      maskImage: 'url(/logo-symbol-only.svg)',
-                      maskSize: 'contain',
-                      maskRepeat: 'no-repeat',
-                      maskPosition: 'center'
-                    }}
-                  />
-                )}
+              <div className='flex aspect-square size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg'>
+                <Image
+                  src='/healthcare/assets/images/logo_healthcare_1_7a4161db.webp'
+                  alt='Logo Amanah Healthcare'
+                  width={32}
+                  height={32}
+                  className='size-8 object-contain'
+                  priority
+                />
               </div>
               <div
                 className={`grid flex-1 text-left text-sm leading-tight transition-all duration-200 ease-in-out ${
@@ -173,10 +67,9 @@ export function OrgSwitcher() {
                     : 'visible max-w-full opacity-100'
                 }`}
               >
-                <span className='truncate font-medium'>{displayOrganization.name}</span>
+                <span className='truncate font-medium'>{organization.name}</span>
                 <span className='text-muted-foreground truncate text-xs'>
-                  {userMemberships.data.find((m) => m.organization.id === displayOrganization.id)
-                    ?.role || 'Organization'}
+                  {!isReady ? <Skeleton className='h-3 w-16 inline-block' /> : organization.role}
                 </span>
               </div>
               <Icons.chevronsUpDown
@@ -195,59 +88,38 @@ export function OrgSwitcher() {
             sideOffset={4}
           >
             <DropdownMenuLabel className='text-muted-foreground text-xs'>
-              Organizations
+              Unit Layanan Klinik
             </DropdownMenuLabel>
-            {userMemberships.data.map((membership, index) => {
-              const isActive = membership.organization.id === orgId;
-              return (
-                <DropdownMenuItem
-                  key={membership.id}
-                  onClick={() => handleOrganizationSwitch(membership.organization.id)}
-                  className='gap-2 p-2'
-                >
-                  <div className='flex size-6 items-center justify-center overflow-hidden rounded-md border'>
-                    {membership.organization.hasImage && membership.organization.imageUrl ? (
-                      <Image
-                        src={membership.organization.imageUrl}
-                        alt={membership.organization.name}
-                        width={24}
-                        height={24}
-                        className='size-full object-cover'
-                      />
-                    ) : (
-                      <div
-                        className='bg-foreground size-4'
-                        style={{
-                          WebkitMaskImage: 'url(/logo-symbol-only.svg)',
-                          WebkitMaskSize: 'contain',
-                          WebkitMaskRepeat: 'no-repeat',
-                          WebkitMaskPosition: 'center',
-                          maskImage: 'url(/logo-symbol-only.svg)',
-                          maskSize: 'contain',
-                          maskRepeat: 'no-repeat',
-                          maskPosition: 'center'
-                        }}
-                      />
-                    )}
-                  </div>
-                  {membership.organization.name}
-                  {isActive && <Icons.check className='ml-auto size-4' />}
-                  {!isActive && <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>}
-                </DropdownMenuItem>
-              );
-            })}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className='gap-2 p-2'
-              onClick={() => {
-                router.push('/dashboard/workspaces');
-              }}
-            >
-              <div className='flex size-6 items-center justify-center rounded-md border bg-transparent'>
-                <Icons.add className='size-4' />
+            <DropdownMenuItem className='gap-2 p-2' onClick={handleCloseMobile}>
+              <div className='flex size-6 items-center justify-center overflow-hidden rounded-md'>
+                <Image
+                  src='/healthcare/assets/images/logo_healthcare_1_7a4161db.webp'
+                  alt='Logo Amanah Healthcare'
+                  width={24}
+                  height={24}
+                  className='size-6 object-contain'
+                />
               </div>
-              <div className='text-muted-foreground font-medium'>Add organization</div>
+              {organization.name}
+              <Icons.check className='ml-auto size-4' />
             </DropdownMenuItem>
+            {isAdmin && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className='gap-2 p-2'
+                  onClick={() => {
+                    handleCloseMobile();
+                    router.push('/dashboard/workspaces');
+                  }}
+                >
+                  <div className='flex size-6 items-center justify-center rounded-md border bg-transparent'>
+                    <Icons.add className='size-4' />
+                  </div>
+                  <div className='text-muted-foreground font-medium'>Kelola Layanan</div>
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

@@ -9,42 +9,49 @@ export const navGroups: NavGroup[] = [
         url: '#',
         icon: 'stethoscope',
         isActive: true,
+        access: { role: 'admin' },
         items: [
           {
             title: 'Dashboard',
             url: '/dashboard/admin',
             icon: 'dashboard',
-            shortcut: ['a', 'd']
+            shortcut: ['a', 'd'],
+            access: { role: 'admin' }
           },
           {
             title: 'Appointment Pasien',
             url: '/dashboard/appointment-pasien',
             icon: 'calendar',
-            shortcut: ['a', 'p']
+            shortcut: ['a', 'p'],
+            access: { role: 'admin' }
           },
           {
             title: 'Data Pasien',
             url: '/dashboard/data-pasien',
             icon: 'teams',
-            shortcut: ['d', 'p']
+            shortcut: ['d', 'p'],
+            access: { role: 'admin' }
           },
           {
             title: 'Jadwal Dokter',
             url: '/dashboard/jadwal-dokter',
             icon: 'clock',
-            shortcut: ['j', 'd']
+            shortcut: ['j', 'd'],
+            access: { role: 'admin' }
           },
           {
             title: 'Chat Pasien',
             url: '/dashboard/chat',
             icon: 'chat',
-            shortcut: ['c', 'p']
+            shortcut: ['c', 'p'],
+            access: { role: 'admin' }
           },
           {
             title: 'Kehadiran Pegawai',
             url: '/dashboard/kehadiran-pegawai',
             icon: 'badgeCheck',
-            shortcut: ['k', 'p']
+            shortcut: ['k', 'p'],
+            access: { role: 'admin' }
           }
         ]
       },
@@ -52,37 +59,43 @@ export const navGroups: NavGroup[] = [
         title: 'Klinik',
         url: '#',
         icon: 'calendar',
-        isActive: false,
+        isActive: true,
+        access: { role: 'patient' },
         items: [
-          {
-            title: 'Janji Temu',
-            url: '/dashboard/klinik/janji-temu',
-            icon: 'calendar',
-            shortcut: ['j', 't']
-          },
           {
             title: 'Cek Antrean',
             url: '/dashboard/klinik/antrean',
             icon: 'listOrdered',
-            shortcut: ['c', 'a']
+            shortcut: ['c', 'a'],
+            access: { role: 'patient' }
+          },
+          {
+            title: 'Janji Temu',
+            url: '/dashboard/klinik/janji-temu',
+            icon: 'calendar',
+            shortcut: ['j', 't'],
+            access: { role: 'patient' }
           },
           {
             title: 'Notifikasi',
             url: '/dashboard/notifications',
             icon: 'notification',
-            shortcut: ['n', 'k']
+            shortcut: ['n', 'k'],
+            access: { role: 'patient' }
           },
           {
             title: 'Profil Pasien',
             url: '/dashboard/klinik/profile',
             icon: 'profile',
-            shortcut: ['p', 'k']
+            shortcut: ['p', 'k'],
+            access: { role: 'patient' }
           },
           {
             title: 'Panduan Penggunaan',
             url: '/dashboard/klinik/panduan',
             icon: 'help',
-            shortcut: ['p', 'd']
+            shortcut: ['p', 'd'],
+            access: { role: 'patient' }
           }
         ]
       }
@@ -100,7 +113,8 @@ export const navGroups: NavGroup[] = [
           {
             title: 'Workspaces',
             url: '/dashboard/workspaces',
-            icon: 'workspace'
+            icon: 'workspace',
+            access: { role: 'admin' }
           },
           {
             title: 'Profile',
@@ -112,14 +126,15 @@ export const navGroups: NavGroup[] = [
             title: 'Settings',
             url: '/dashboard/settings',
             icon: 'settings',
-            shortcut: ['s', 's']
+            shortcut: ['s', 's'],
+            access: { role: 'admin' }
           },
           {
             title: 'Billing',
             url: '/dashboard/billing',
             icon: 'billing',
             shortcut: ['b', 'b'],
-            access: { requireOrg: true }
+            access: { role: 'admin' }
           }
         ]
       }

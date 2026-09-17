@@ -189,10 +189,10 @@ export function TrustHighlights() {
               <Image
                 src={trustHighlights.patientCount.icon.src}
                 alt={trustHighlights.patientCount.icon.alt}
-                width={20}
-                height={20}
+                width={32}
+                height={32}
                 aria-hidden='true'
-                className='size-4 object-contain sm:size-5'
+                className='size-7 object-contain sm:size-8'
               />
               <div className='flex flex-col gap-1.5 pt-1 sm:gap-[15px] sm:pt-2'>
                 <HealthcareText size='small' className='text-xs text-muted-foreground sm:text-sm'>

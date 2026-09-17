@@ -1,5 +1,6 @@
-import { auth } from '@clerk/nextjs/server';
+import { auth } from '@/lib/auth';
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
@@ -8,11 +9,15 @@ export const metadata: Metadata = {
 };
 
 export default async function PatientRegistrationPage() {
-  const { userId } = await auth();
+  const session = await auth.api.getSession({ headers: await headers() });
 
-  if (!userId) {
+  if (!session?.user) {
     redirect('/auth/sign-in');
   }
 
-  redirect('/dashboard/admin');
+  if (session.user.role === 'admin') {
+    redirect('/dashboard/admin');
+  } else {
+    redirect('/dashboard/klinik/antrean');
+  }
 }

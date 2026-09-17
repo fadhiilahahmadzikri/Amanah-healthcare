@@ -1,12 +1,17 @@
-import { auth } from '@clerk/nextjs/server';
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 export default async function Dashboard() {
-  const { userId } = await auth();
+  const session = await auth.api.getSession({ headers: await headers() });
 
-  if (!userId) {
-    return redirect('/auth/sign-in');
-  } else {
+  if (!session?.user) {
+    redirect('/auth/sign-in');
+  }
+
+  if (session.user.role === 'admin') {
     redirect('/dashboard/admin');
+  } else {
+    redirect('/dashboard/klinik/antrean');
   }
 }

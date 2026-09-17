@@ -1,5 +1,6 @@
 import {
   Architects_Daughter,
+  Caveat,
   DM_Sans,
   Fira_Code,
   Geist,
@@ -7,6 +8,7 @@ import {
   Instrument_Sans,
   Inter,
   JetBrains_Mono,
+  Lora,
   Merriweather,
   Mulish,
   Playfair_Display,
@@ -97,6 +99,19 @@ const fontPlayfairDisplay = Playfair_Display({
   variable: '--font-playfair-display'
 });
 
+const fontCaveat = Caveat({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-caveat'
+});
+
+const fontLora = Lora({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-lora'
+});
+
 export const fontVariables = cn(
   fontSans.variable,
   fontMono.variable,
@@ -112,5 +127,7 @@ export const fontVariables = cn(
   fontJetBrainsMono.variable,
   fontMerriweather.variable,
   fontPlayfairDisplay.variable,
-  fontPlusJakartaSans.variable
+  fontPlusJakartaSans.variable,
+  fontCaveat.variable,
+  fontLora.variable
 );

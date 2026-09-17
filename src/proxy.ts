@@ -1,15 +1,61 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { getSessionCookie } from 'better-auth/cookies';
 
-const isProtectedRoute = createRouteMatcher(['/dashboard(.*)', '/patient-registration(.*)']);
+const PROTECTED_PREFIXES = ['/dashboard', '/patient-registration'];
+const AUTH_ONLY_PREFIXES = ['/auth/sign-in', '/auth/sign-up', '/auth'];
 
-export default clerkMiddleware(async (auth, req: NextRequest) => {
-  if (isProtectedRoute(req)) await auth.protect();
-});
+function safeCallbackUrl(pathname: string): string {
+  if (pathname.startsWith('/') && !pathname.startsWith('//')) return pathname;
+  return '/dashboard';
+}
+
+export default function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const sessionCookie = getSessionCookie(request);
+
+  const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
+  const isAuthOnly = AUTH_ONLY_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+
+  // 1. Unauthenticated users accessing protected paths -> redirect to sign-in
+  if (isProtected && !sessionCookie) {
+    const url = new URL('/auth/sign-in', request.url);
+    url.searchParams.set('redirect', safeCallbackUrl(pathname));
+    const response = NextResponse.redirect(url);
+    response.headers.set('Cache-Control', 'no-store, max-age=0');
+    return response;
+  }
+
+  // 2. Authenticated users accessing auth-only paths -> redirect to dashboard
+  if (isAuthOnly && sessionCookie) {
+    const response = NextResponse.redirect(new URL('/dashboard', request.url));
+    response.headers.set('Cache-Control', 'no-store, max-age=0');
+    return response;
+  }
+
+  // 3. Forward request with injected x-pathname header so Server Layouts/Components know the route
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-pathname', pathname);
+
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders
+    }
+  });
+
+  // 4. If protected route, enforce anti-caching headers on response
+  if (isProtected) {
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+  }
+
+  return response;
+}
+
+export { proxy };
+
 export const config = {
   matcher: [
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-
-    '/(api|trpc)(.*)'
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest)$).*)'
   ]
 };

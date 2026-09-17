@@ -6,6 +6,7 @@ import { HealthcareHeader } from './HealthcareHeader';
 import { MedicalClinicJsonLd } from './MedicalClinicJsonLd';
 import { SmoothScroll } from './SmoothScroll';
 import { TechnicalDivider } from './TechnicalDivider';
+import { ChatwootWidget } from '@/components/chatwoot/chatwoot-widget';
 
 type HealthcareShellProps = {
   activePath: string;
@@ -42,6 +43,7 @@ export function HealthcareShell({
         {showFaq ? <TechnicalDivider /> : null}
       </div>
       <HealthcareChatFab />
+      <ChatwootWidget />
       <HealthcareFooter locale={locale} />
     </div>
   );

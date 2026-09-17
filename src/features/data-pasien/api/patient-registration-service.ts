@@ -1,14 +1,12 @@
 import 'server-only';
 
-import { clerkClient, currentUser } from '@clerk/nextjs/server';
-import { cookies } from 'next/headers';
-
+import { cookies, headers } from 'next/headers';
+import { auth } from '@/lib/auth';
 import { createPatient, getPatients } from './service';
 import {
   buildPatientMutationPayload,
   hasCompletedPatientRegistration,
-  PATIENT_REGISTRATION_COMPLETED_COOKIE,
-  PATIENT_REGISTRATION_COMPLETED_METADATA_KEY
+  PATIENT_REGISTRATION_COMPLETED_COOKIE
 } from './registration-mapper';
 import type { PatientRegistrationFormValues } from '../schemas/patient-registration-schema';
 
@@ -45,8 +43,8 @@ export async function getCurrentPatientRegistrationStatus(userId: string): Promi
   const user = await getCurrentUserSafely(userId);
 
   return hasCompletedPatientRegistration({
-    unsafeMetadata: user?.unsafeMetadata ?? null,
-    publicMetadata: user?.publicMetadata ?? null,
+    unsafeMetadata: null,
+    publicMetadata: null,
     completionCookie
   });
 }
@@ -60,11 +58,11 @@ export async function getCurrentPatientRegistrationContext(
 
   return {
     isComplete: hasCompletedPatientRegistration({
-      unsafeMetadata: user?.unsafeMetadata ?? null,
-      publicMetadata: user?.publicMetadata ?? null,
+      unsafeMetadata: null,
+      publicMetadata: null,
       completionCookie
     }),
-    initialName: user?.fullName ?? ''
+    initialName: user?.name ?? ''
   };
 }
 
@@ -78,9 +76,9 @@ export async function completePatientRegistration({
   const payload = buildPatientMutationPayload({
     values,
     user: {
-      email: user?.primaryEmailAddress?.emailAddress ?? '',
-      imageUrl: user?.imageUrl ?? '',
-      phone: user?.primaryPhoneNumber?.phoneNumber ?? ''
+      email: user?.email ?? '',
+      imageUrl: user?.image ?? '',
+      phone: ''
     },
     now,
     nextRecordNumber
@@ -95,7 +93,7 @@ export async function completePatientRegistration({
     };
   }
 
-  await markPatientRegistrationComplete(userId, result.patient.patient_id, now);
+  await markPatientRegistrationComplete(userId, result.patient.patient_id);
 
   return {
     success: true,
@@ -105,8 +103,11 @@ export async function completePatientRegistration({
 
 async function getCurrentUserSafely(userId: string) {
   try {
-    const user = await currentUser();
-    return user?.id === userId ? user : null;
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (session?.user && session.user.id === userId) {
+      return session.user;
+    }
+    return null;
   } catch {
     return null;
   }
@@ -122,9 +123,8 @@ async function getNextPatientRecordNumber(): Promise<number> {
 }
 
 async function markPatientRegistrationComplete(
-  userId: string,
-  patientRecordId: string,
-  now: Date
+  _userId: string,
+  _patientRecordId: string
 ): Promise<void> {
   const cookieStore = await cookies();
 
@@ -135,15 +135,4 @@ async function markPatientRegistrationComplete(
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production'
   });
-
-  try {
-    const client = await clerkClient();
-    await client.users.updateUserMetadata(userId, {
-      publicMetadata: {
-        [PATIENT_REGISTRATION_COMPLETED_METADATA_KEY]: true,
-        patientRegistrationCompletedAt: now.toISOString(),
-        patientRecordId
-      }
-    });
-  } catch {}
 }

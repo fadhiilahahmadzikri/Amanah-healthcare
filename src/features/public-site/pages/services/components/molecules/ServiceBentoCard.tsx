@@ -57,20 +57,48 @@ export function ServiceBentoCard({
             fill
             sizes='(min-width: 1280px) 400px, (min-width: 768px) 50vw, 100vw'
             className='
-              object-cover object-center transition-all duration-500 ease-out
-              group-hover:scale-105 group-hover:blur-[6px]
+              object-cover object-center
+              max-md:scale-100 max-md:blur-none max-md:transition-none
+              md:transition-all md:duration-500 md:ease-out
+              md:group-hover:scale-105 md:group-hover:blur-[6px]
             '
           />
         )}
 
-        {/* Smooth upward masking: shorter height and softer density in default state */}
+        {/* Mobile ONLY: Liquid Glass progressive blur mask (matched from FacilityCard) */}
         <div
+          aria-hidden='true'
           className='
-            absolute inset-x-0 bottom-0 h-[65%] bg-linear-to-t
-            from-background/85 via-background/45 to-transparent transition-all
-            duration-500
+            pointer-events-none absolute inset-x-0 bottom-0 h-[52%]
+            backdrop-blur-md
+            [mask-image:linear-gradient(to_top,black_0%,black_65%,rgba(0,0,0,0.5)_85%,transparent_100%)]
+            [-webkit-mask-image:linear-gradient(to_top,black_0%,black_65%,rgba(0,0,0,0.5)_85%,transparent_100%)]
+            md:hidden
+          '
+        />
+
+        {/* Mobile ONLY: Liquid Glass soft translucent gradient tone (matched from FacilityCard) */}
+        <div
+          aria-hidden='true'
+          className='
+            pointer-events-none absolute inset-x-0 bottom-0 h-[52%]
+            bg-linear-to-t from-white/95 via-white/75 via-50% to-transparent
+            dark:from-[#090d24]/95 dark:via-[#090d24]/75 dark:via-50%
+            dark:to-transparent
+            md:hidden
+          '
+        />
+
+        {/* Desktop ONLY: Original smooth upward masking with hover expansion */}
+        <div
+          aria-hidden='true'
+          className='
+            pointer-events-none absolute inset-x-0 bottom-0 hidden h-[65%]
+            bg-linear-to-t from-background/85 via-background/45 to-transparent
+            transition-all duration-500
             group-hover:h-[82%] group-hover:from-background/95
             group-hover:via-background/75 group-hover:to-transparent
+            md:block
           '
         />
       </div>
@@ -78,15 +106,16 @@ export function ServiceBentoCard({
       {/* Trailing Interaction Indicator with Glassmorphism */}
       <div
         className='
-          pointer-events-none absolute top-3 right-3 z-20 transition-transform
-          duration-300
+          pointer-events-none absolute top-3 right-3 z-20
+          max-md:transform-none max-md:transition-none
+          md:transition-transform md:duration-300
           sm:top-3.5 sm:right-3.5
         '
       >
         {affordanceSlot ?? <ServiceCardAffordance ariaLabel={`Buka detail ${item.title}`} />}
       </div>
 
-      {/* Contextual Information Layer (Revealed on Hover / Focus) */}
+      {/* Contextual Information Layer */}
       <div
         className='
         relative z-10 p-3.5
@@ -100,21 +129,24 @@ export function ServiceBentoCard({
               as='h3'
               size='compact'
               className='
-                text-foreground transition-transform duration-300
-                group-hover:-translate-y-0.5
+                text-foreground
+                max-md:transform-none max-md:transition-none
+                md:transition-transform md:duration-300
+                md:group-hover:-translate-y-0.5
               '
             >
               {item.title}
             </HealthcareHeading>
 
-            {/* Description revealed on hover / focus, gently visible on mobile */}
+            {/* Description: statically visible without hover on mobile, revealed on hover/focus on desktop */}
             <div
               className='
-                max-h-0 overflow-hidden opacity-0 transition-all duration-300
-                ease-out
-                group-hover:max-h-24 group-hover:opacity-100
-                group-focus-visible:max-h-24 group-focus-visible:opacity-100
-                max-md:max-h-24 max-md:opacity-90
+                /* Mobile: statically visible without hover jumps */
+                max-md:max-h-28 max-md:opacity-100 max-md:overflow-hidden max-md:transition-none
+                /* Desktop: original collapsed state revealed on hover / focus */
+                md:max-h-0 md:overflow-hidden md:opacity-0 md:transition-all md:duration-300 md:ease-out
+                md:group-hover:max-h-24 md:group-hover:opacity-100
+                md:group-focus-visible:max-h-24 md:group-focus-visible:opacity-100
               '
             >
               <HealthcareText

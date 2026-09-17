@@ -3,6 +3,8 @@ import { DoctorScheduleListingPage } from '@/features/jadwal-dokter';
 import { searchParamsCache } from '@/lib/searchparams';
 import { SearchParams } from 'nuqs/server';
 
+import { requireAdmin } from '@/lib/guard';
+
 export const metadata = {
   title: 'Dashboard: Jadwal Dokter'
 };
@@ -12,6 +14,7 @@ type PageProps = {
 };
 
 export default async function Page(props: PageProps) {
+  await requireAdmin();
   const searchParams = await props.searchParams;
   searchParamsCache.parse(searchParams);
 

@@ -19458,7 +19458,7 @@ var ju = class {
               : Error('Error creating WebGL context.');
         }
       } catch (e) {
-        throw (G('WebGLRenderer: ' + e.message), e);
+        throw e;
       }
       let De, Oe, V, ke, H, U, Ae, je, Me, Ne, Fe, Ie, Le, Re, ze, Ve, He, Ue, Ge, Ke, Je, Ye, Ze;
       function Qe() {
@@ -19677,9 +19677,7 @@ var ju = class {
           (Ve.needsUpdate = r),
           (Ve.type = i));
       }
-      function nt(e) {
-        G('WebGLRenderer: A WebGL context could not be created. Reason: ', e.statusMessage);
-      }
+      function nt(e) {}
       function rt(e) {
         let t = e.target;
         (t.removeEventListener('dispose', rt), K(t));
@@ -24077,20 +24075,25 @@ var hd = Pe,
   ef = (e, t, n, { background: r } = {}) => {
     let i = $d(n),
       a = Ad(n),
+      o;
+    try {
       o = new ju({
         alpha: !0,
         antialias: !0,
         powerPreference: 'high-performance'
       });
-    (o.setPixelRatio(Math.min(window.devicePixelRatio, 2)),
-      o.setSize(t.clientWidth, t.clientHeight),
-      (o.shadowMap.enabled = !0),
-      (o.shadowMap.type = 2),
-      (o.outputColorSpace = Pe),
-      (o.toneMapping = 4),
-      (o.toneMappingExposure = 1.2),
-      o.setClearColor(0, 0),
-      t.replaceChildren(o.domElement));
+      (o.setPixelRatio(Math.min(window.devicePixelRatio, 2)),
+        o.setSize(t.clientWidth, t.clientHeight),
+        (o.shadowMap.enabled = !0),
+        (o.shadowMap.type = 2),
+        (o.outputColorSpace = Pe),
+        (o.toneMapping = 4),
+        (o.toneMappingExposure = 1.2),
+        o.setClearColor(0, 0),
+        t.replaceChildren(o.domElement));
+    } catch {
+      return null;
+    }
     let s = new jn();
     (r ??
       (n.render?.transparentBackground || n.environment?.bgType === 'Transparent'
@@ -24334,7 +24337,13 @@ const tf = class extends HTMLElement {
       if (n && r) __PLASMA_CACHE.set(n, r);
       if (e !== this.loadToken) return;
       let i = Qd(r, this.getAttribute('motion'));
-      this.cleanup = ef(this, this.stage, i, { background: this.getAttribute('background') });
+      let cleanup = ef(this, this.stage, i, { background: this.getAttribute('background') });
+      if (!cleanup) {
+        this.dataset.error = 'true';
+        this.dispatchEvent(new CustomEvent('plasma-error', { bubbles: true, composed: true }));
+        return;
+      }
+      this.cleanup = cleanup;
       this.dataset.ready = 'true';
       this.dispatchEvent(new CustomEvent('plasma-ready', { bubbles: true, composed: true }));
     } catch (t) {
