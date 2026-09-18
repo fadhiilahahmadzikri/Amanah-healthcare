@@ -1,17 +1,58 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { auth } from './auth';
-import { isRouteAuthorized, resolveRouteRule } from './rbac/route-manifest';
+import { isRouteAuthorized } from './rbac/route-manifest';
+import { loadCurrentUser } from '@/server/loaders/auth.loader';
 
 export type SessionType = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;
+
+/**
+ * Resolves active session from either Better Auth or Engine A (JWT via backend).
+ */
+export async function getUnifiedSession(): Promise<SessionType | null> {
+  const reqHeaders = await headers();
+  const session = await auth.api.getSession({ headers: reqHeaders });
+  if (session?.user) {
+    return session;
+  }
+
+  const currentUser = await loadCurrentUser();
+  if (currentUser) {
+    const role = currentUser.systemRole === 'ADMIN' ? 'admin' : 'patient';
+    const name = currentUser.staff?.fullName || currentUser.patient?.fullName || currentUser.email;
+
+    return {
+      user: {
+        id: currentUser.id,
+        email: currentUser.email,
+        name,
+        image: currentUser.staff?.photoUrl || null,
+        role,
+        banned: false,
+        emailVerified: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      session: {
+        id: `session_${currentUser.id}`,
+        userId: currentUser.id,
+        token: '',
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    } as unknown as SessionType;
+  }
+
+  return null;
+}
 
 /**
  * Server guard: Enforces authenticated session.
  * Throws redirect to `/auth/sign-in` if unauthenticated.
  */
 export async function requireSession(): Promise<SessionType> {
-  const reqHeaders = await headers();
-  const session = await auth.api.getSession({ headers: reqHeaders });
+  const session = await getUnifiedSession();
 
   if (!session?.user) {
     redirect('/auth/sign-in');
@@ -29,8 +70,7 @@ export async function requireSession(): Promise<SessionType> {
  * Enforces Fail-Closed Default Deny.
  */
 export async function requireRouteAccess(pathname: string): Promise<SessionType> {
-  const reqHeaders = await headers();
-  const session = await auth.api.getSession({ headers: reqHeaders });
+  const session = await getUnifiedSession();
 
   const role = session?.user?.role;
   const authResult = isRouteAuthorized(pathname, role);
@@ -89,14 +129,20 @@ export async function requirePermission(
 ): Promise<SessionType> {
   const session = await requireSession();
 
-  const { success } = await auth.api.userHasPermission({
-    body: { userId: session.user.id, permissions }
-  });
+  if (session.user.role === 'admin') {
+    return session;
+  }
 
-  if (!success) {
-    if (session.user.role === 'admin') {
-      redirect('/dashboard/admin');
-    } else {
+  try {
+    const { success } = await auth.api.userHasPermission({
+      body: { userId: session.user.id, permissions }
+    });
+
+    if (!success) {
+      redirect('/dashboard/klinik/antrean');
+    }
+  } catch {
+    if (session.user.role !== 'admin') {
       redirect('/dashboard/klinik/antrean');
     }
   }

@@ -29,14 +29,39 @@ export const metadata: Metadata = {
   }
 };
 
+import { loadCurrentUser } from '@/server/loaders/auth.loader';
+
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const reqHeaders = await headers();
+  let user: {
+    id: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    role?: string | null;
+  } | null = null;
+  let userRole: SupportedRole = 'patient';
+
   const session = await auth.api.getSession({ headers: reqHeaders });
-  if (!session?.user) {
-    redirect('/auth/sign-in');
+  if (session?.user) {
+    user = session.user;
+    userRole = session.user.role === 'admin' ? 'admin' : 'patient';
+  } else {
+    const currentUser = await loadCurrentUser();
+    if (currentUser) {
+      user = {
+        id: currentUser.id,
+        name: currentUser.staff?.fullName || currentUser.patient?.fullName || currentUser.email,
+        email: currentUser.email,
+        role: currentUser.systemRole === 'ADMIN' ? 'admin' : 'patient'
+      };
+      userRole = currentUser.systemRole === 'ADMIN' ? 'admin' : 'patient';
+    }
   }
 
-  const userRole: SupportedRole = session.user.role === 'admin' ? 'admin' : 'patient';
+  if (!user) {
+    redirect('/auth/sign-in');
+  }
 
   // Enforce Route Manifest RBAC at Layout Boundary
   const pathname = reqHeaders.get('x-pathname') || '/dashboard';
@@ -52,7 +77,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     }
   }
 
-  const userId = session.user.id;
+  const userId = user.id;
   const isPatient = userRole === 'patient';
 
   const registrationContext = isPatient
@@ -77,7 +102,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <AuthorizationProvider
-      initialUser={session.user}
+      initialUser={user}
       initialRole={userRole}
       initialNavGroups={authorizedNavGroups}
       allNavGroups={navGroups}

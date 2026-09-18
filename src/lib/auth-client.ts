@@ -1,15 +1,25 @@
 import { createAuthClient } from 'better-auth/react';
-import { organizationClient, adminClient, oauthPopupClient } from 'better-auth/client/plugins';
+import {
+  organizationClient,
+  adminClient,
+  oauthPopupClient,
+  emailOTPClient
+} from 'better-auth/client/plugins';
 import { ac, admin, patient, user } from './permissions';
 
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
+  baseURL:
+    process.env.NEXT_PUBLIC_API_URL ||
+    process.env.NEXT_PUBLIC_BETTER_AUTH_URL ||
+    'http://localhost:3001',
   plugins: [
     organizationClient(),
     adminClient({ ac, roles: { admin, patient, user } }),
-    oauthPopupClient()
+    oauthPopupClient(),
+    emailOTPClient()
   ],
   fetchOptions: {
+    credentials: 'include',
     onError: async (context) => {
       if (context.response?.status === 429) {
         const retryAfter = context.response.headers.get('X-Retry-After');

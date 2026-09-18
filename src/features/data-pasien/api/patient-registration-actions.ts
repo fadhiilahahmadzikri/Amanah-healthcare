@@ -1,6 +1,7 @@
 'use server';
 
 import { auth } from '@/lib/auth';
+import { loadCurrentUser } from '@/server/loaders/auth.loader';
 import { headers } from 'next/headers';
 import { completePatientRegistration } from './patient-registration-service';
 import {
@@ -17,7 +18,11 @@ export async function completePatientRegistrationAction(
   values: PatientRegistrationFormValues
 ): Promise<PatientRegistrationActionResult> {
   const session = await auth.api.getSession({ headers: await headers() });
-  const userId = session?.user?.id;
+  let userId = session?.user?.id;
+  if (!userId) {
+    const currentUser = await loadCurrentUser();
+    userId = currentUser?.id;
+  }
 
   if (!userId) {
     return {

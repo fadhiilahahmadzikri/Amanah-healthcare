@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { signOut } from '@/lib/auth-client';
+import { logoutAction } from '@/server/actions/auth.actions';
 import { useAuthContext } from '@/lib/rbac/auth-context';
 import { useRouter } from 'next/navigation';
 
@@ -24,7 +25,16 @@ export function UserNav() {
   const initials = (user.name || user.email || 'U').slice(0, 2).toUpperCase();
 
   async function handleSignOut() {
-    await signOut();
+    try {
+      await logoutAction();
+    } catch {
+      // ignore
+    }
+    try {
+      await signOut();
+    } catch {
+      // ignore
+    }
     window.location.href = '/auth/sign-in';
   }
 

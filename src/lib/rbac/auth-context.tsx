@@ -89,14 +89,14 @@ export function AuthorizationProvider({
       if (allNavGroups && allNavGroups.length > 0) {
         setNavGroups(filterNavGroupsByRole(allNavGroups, clientRole));
       }
-    } else if (clientSession === null) {
+    } else if (clientSession === null && !initialUser) {
       // Explicitly unauthenticated on client
       setUser(null);
       setRole(null);
       setStatus('deny');
       setNavGroups([]);
     }
-  }, [clientSession, isPending, allNavGroups]);
+  }, [clientSession, isPending, allNavGroups, initialUser]);
 
   const can = React.useCallback(
     (permission: string): boolean => {

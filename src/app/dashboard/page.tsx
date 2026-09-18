@@ -1,13 +1,8 @@
-import { auth } from '@/lib/auth';
-import { headers } from 'next/headers';
+import { requireSession } from '@/lib/guard';
 import { redirect } from 'next/navigation';
 
 export default async function Dashboard() {
-  const session = await auth.api.getSession({ headers: await headers() });
-
-  if (!session?.user) {
-    redirect('/auth/sign-in');
-  }
+  const session = await requireSession();
 
   if (session.user.role === 'admin') {
     redirect('/dashboard/admin');

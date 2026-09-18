@@ -2,6 +2,7 @@ import 'server-only';
 
 import { cookies, headers } from 'next/headers';
 import { auth } from '@/lib/auth';
+import { loadCurrentUser } from '@/server/loaders/auth.loader';
 import { createPatient, getPatients } from './service';
 import {
   buildPatientMutationPayload,
@@ -32,15 +33,13 @@ type CompletePatientRegistrationResult =
       message: string;
     };
 
-export async function getCurrentPatientRegistrationStatus(userId: string): Promise<boolean> {
+export async function getCurrentPatientRegistrationStatus(_userId: string): Promise<boolean> {
   const cookieStore = await cookies();
   const completionCookie = cookieStore.get(PATIENT_REGISTRATION_COMPLETED_COOKIE)?.value ?? null;
 
   if (completionCookie === 'true') {
     return true;
   }
-
-  const user = await getCurrentUserSafely(userId);
 
   return hasCompletedPatientRegistration({
     unsafeMetadata: null,
@@ -106,6 +105,15 @@ async function getCurrentUserSafely(userId: string) {
     const session = await auth.api.getSession({ headers: await headers() });
     if (session?.user && session.user.id === userId) {
       return session.user;
+    }
+    const currentUser = await loadCurrentUser();
+    if (currentUser && currentUser.id === userId) {
+      return {
+        id: currentUser.id,
+        name: currentUser.staff?.fullName || currentUser.patient?.fullName || currentUser.email,
+        email: currentUser.email,
+        image: currentUser.staff?.photoUrl || null
+      };
     }
     return null;
   } catch {

@@ -30,6 +30,7 @@ import { UserAvatarProfile } from '@/components/user-avatar-profile';
 import { SidebarSkeleton } from '@/components/layout/sidebar-skeleton';
 import { useAuthContext } from '@/lib/rbac/auth-context';
 import { signOut } from '@/lib/auth-client';
+import { logoutAction } from '@/server/actions/auth.actions';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
@@ -192,7 +193,16 @@ export default function AppSidebar() {
                 <DropdownMenuItem
                   onClick={async () => {
                     handleNavClick();
-                    await signOut();
+                    try {
+                      await logoutAction();
+                    } catch {
+                      // ignore
+                    }
+                    try {
+                      await signOut();
+                    } catch {
+                      // ignore
+                    }
                     window.location.href = '/auth/sign-in';
                   }}
                   className='cursor-pointer text-destructive focus:text-destructive'

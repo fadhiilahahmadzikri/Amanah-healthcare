@@ -2,7 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSessionCookie } from 'better-auth/cookies';
 
 const PROTECTED_PREFIXES = ['/dashboard', '/patient-registration'];
-const AUTH_ONLY_PREFIXES = ['/auth/sign-in', '/auth/sign-up', '/auth'];
+const AUTH_ONLY_PREFIXES = [
+  '/auth/sign-in',
+  '/auth/sign-up',
+  '/auth',
+  '/verify-otp',
+  '/login',
+  '/register'
+];
 
 function safeCallbackUrl(pathname: string): string {
   if (pathname.startsWith('/') && !pathname.startsWith('//')) return pathname;
@@ -11,7 +18,25 @@ function safeCallbackUrl(pathname: string): string {
 
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const sessionCookie = getSessionCookie(request);
+  const sessionCookie =
+    getSessionCookie(request) ||
+    request.cookies.get('amanah_access_token')?.value ||
+    request.cookies.get('amanah_session')?.value ||
+    request.cookies.get('better-auth.session_token')?.value;
+
+  // Friendly aliases
+  if (pathname === '/login') {
+    if (sessionCookie) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+    return NextResponse.redirect(new URL('/auth/sign-in', request.url));
+  }
+  if (pathname === '/register') {
+    if (sessionCookie) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+    return NextResponse.redirect(new URL('/auth/sign-up', request.url));
+  }
 
   const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
   const isAuthOnly = AUTH_ONLY_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
@@ -25,8 +50,9 @@ export default function proxy(request: NextRequest) {
     return response;
   }
 
-  // 2. Authenticated users accessing auth-only paths -> redirect to dashboard
-  if (isAuthOnly && sessionCookie) {
+  // 2. Authenticated users accessing auth-only paths -> redirect to dashboard (unless viewing an error)
+  const hasAuthError = request.nextUrl.searchParams.has('error');
+  if (isAuthOnly && sessionCookie && !hasAuthError) {
     const response = NextResponse.redirect(new URL('/dashboard', request.url));
     response.headers.set('Cache-Control', 'no-store, max-age=0');
     return response;

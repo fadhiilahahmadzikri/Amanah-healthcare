@@ -13,6 +13,11 @@ import { SignInForm } from './sign-in-form';
 import { SignUpForm } from './sign-up-form-custom';
 import { safeRedirect } from '@/lib/safe-redirect';
 import { authClient, useSession } from '@/lib/auth-client';
+import {
+  loginAction,
+  forgotPasswordAction,
+  resetPasswordAction
+} from '@/server/actions/auth.actions';
 import type {
   ForgotPasswordValues,
   OtpValues,
@@ -44,7 +49,7 @@ const SCREEN_PATHS: Record<AuthScreen, string> = {
   'sign-up': '/auth/sign-up',
   'forgot-password': '/auth/sign-in/forgot-password',
   'reset-password': '/auth/sign-in/reset-password',
-  'verify-email': '/auth/sign-up/verify-email'
+  'verify-email': '/verify-otp'
 };
 
 const SCREEN_COPY: Record<
@@ -102,8 +107,11 @@ function flowReducer(state: FlowState, action: FlowAction): FlowState {
 }
 
 function getScreenFromPath(pathname: string): AuthScreen {
+  if (pathname.includes('/verify-otp') || pathname.includes('/verify-email')) {
+    return 'verify-email';
+  }
   if (pathname.startsWith('/auth/sign-up')) {
-    return pathname.includes('/verify-email') ? 'verify-email' : 'sign-up';
+    return 'sign-up';
   }
 
   if (pathname.includes('/forgot-password')) return 'forgot-password';
@@ -122,10 +130,21 @@ export function AuthFlowView() {
   const redirectParam = searchParams.get('redirect_url') || searchParams.get('redirect');
   const redirectTo = safeRedirect(redirectParam, AUTH_REDIRECT_FALLBACK);
 
-  const [state, dispatch] = useReducer(flowReducer, initialFlowState);
+  const emailParam = searchParams.get('email');
+  const [state, dispatch] = useReducer(flowReducer, {
+    ...initialFlowState,
+    email: emailParam || ''
+  });
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
 
   const { data: session, isPending: isSessionLoading } = useSession();
+
+  useEffect(() => {
+    const qEmail = searchParams.get('email');
+    if (qEmail && qEmail !== state.email) {
+      dispatch({ type: 'setEmail', email: qEmail });
+    }
+  }, [searchParams, state.email]);
 
   // If already authenticated, redirect to destination
   useEffect(() => {
@@ -171,35 +190,16 @@ export function AuthFlowView() {
     dispatch({ type: 'clearMessages' });
 
     try {
-      // Better Auth official popup client
-      const res = await authClient.signIn.popup({
+      await authClient.signIn.social({
         provider: 'google',
-        callbackURL: redirectTo
+        callbackURL: redirectTo || '/dashboard'
       });
-
-      if (res?.error) {
-        if (res.error.code !== 'POPUP_CLOSED') {
-          dispatch({
-            type: 'setError',
-            error: res.error.message || 'Login Google belum bisa diproses.'
-          });
-        }
-        return;
-      }
-
-      toast.success('Berhasil masuk dengan akun Google!');
-      const targetUrl =
-        !searchParams?.get('redirect') || redirectTo === '/dashboard/admin'
-          ? '/dashboard'
-          : redirectTo;
-      window.location.href = targetUrl;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Login Google belum bisa diproses.';
       dispatch({
         type: 'setError',
         error: msg
       });
-    } finally {
       setPendingAction(null);
     }
   }
@@ -209,38 +209,57 @@ export function AuthFlowView() {
     dispatch({ type: 'clearMessages' });
 
     try {
-      const res = await authClient.signIn.email({
+      // 1. Primary Authentication: Backend NestJS Kanonikal API via BFF
+      const res = await loginAction(null, {
+        email: values.email,
+        password: values.password
+      });
+
+      if (res.success) {
+        toast.success('Berhasil masuk!');
+        const user = res.data;
+        const targetUrl =
+          !searchParams?.get('redirect') ||
+          redirectTo === '/dashboard' ||
+          redirectTo === '/dashboard/admin'
+            ? user?.systemRole === 'ADMIN'
+              ? '/dashboard/admin'
+              : '/dashboard/klinik/antrean'
+            : redirectTo;
+        window.location.href = targetUrl;
+        return;
+      }
+
+      // 2. Secondary/Fallback: Better Auth Engine (Local/OAuth Session)
+      const betterAuthRes = await authClient.signIn.email({
         email: values.email,
         password: values.password,
         callbackURL: redirectTo
       });
 
-      if (res.error) {
-        dispatch({
-          type: 'setError',
-          error:
-            res.error.message && res.error.message.length < 60
-              ? res.error.message
-              : 'Email atau password tidak sesuai.'
-        });
+      if (!betterAuthRes.error) {
+        toast.success('Berhasil masuk!');
+        const role = (betterAuthRes.data?.user as { role?: string } | undefined)?.role;
+        const targetUrl =
+          !searchParams?.get('redirect') ||
+          redirectTo === '/dashboard' ||
+          redirectTo === '/dashboard/admin'
+            ? role === 'admin'
+              ? '/dashboard/admin'
+              : '/dashboard/klinik/antrean'
+            : redirectTo;
+        window.location.href = targetUrl;
         return;
       }
 
-      toast.success('Berhasil masuk!');
-      const role = (res.data?.user as { role?: string } | undefined)?.role;
-      const targetUrl =
-        !searchParams?.get('redirect') ||
-        redirectTo === '/dashboard' ||
-        redirectTo === '/dashboard/admin'
-          ? role === 'admin'
-            ? '/dashboard/admin'
-            : '/dashboard/klinik/antrean'
-          : redirectTo;
-      window.location.href = targetUrl;
+      dispatch({
+        type: 'setError',
+        error: res.message || 'Email atau kata sandi yang Anda masukkan salah.'
+      });
     } catch {
       dispatch({
         type: 'setError',
-        error: 'Terjadi kesalahan saat masuk. Silakan coba lagi.'
+        error: 'Email atau kata sandi yang Anda masukkan salah.'
       });
     } finally {
       setPendingAction(null);
@@ -252,24 +271,24 @@ export function AuthFlowView() {
     dispatch({ type: 'clearMessages' });
 
     try {
-      const res = await authClient.signUp.email({
-        name: values.name,
+      // Pendaftaran manual via Better Auth dengan plugin emailOTP
+      const { error } = await authClient.signUp.email({
         email: values.email,
         password: values.password,
-        callbackURL: redirectTo
+        name: values.name
       });
 
-      if (res.error) {
+      if (error) {
         dispatch({
           type: 'setError',
-          error:
-            res.error.message || 'Pendaftaran belum bisa diproses. Periksa data lalu coba lagi.'
+          error: error.message || 'Pendaftaran belum bisa diproses. Periksa data lalu coba lagi.'
         });
         return;
       }
 
-      toast.success('Akun berhasil didaftarkan!');
-      window.location.href = '/dashboard/klinik/antrean';
+      toast.success('Pendaftaran berhasil! Kode verifikasi OTP telah dikirim ke email Anda.');
+      dispatch({ type: 'setEmail', email: values.email });
+      router.push(`/verify-otp?email=${encodeURIComponent(values.email)}`);
     } catch {
       dispatch({
         type: 'setError',
@@ -280,14 +299,26 @@ export function AuthFlowView() {
     }
   }
 
-  async function handleVerifyEmail(_values: OtpValues) {
+  async function handleVerifyEmail(values: OtpValues) {
     setPendingAction('form');
     dispatch({ type: 'clearMessages' });
 
     try {
-      // If token/code verification is provided
-      toast.success('Email berhasil diverifikasi.');
-      router.push(redirectTo);
+      const { error } = await authClient.emailOtp.verifyEmail({
+        email: state.email,
+        otp: values.code
+      });
+
+      if (error) {
+        dispatch({
+          type: 'setError',
+          error: 'Kode OTP salah atau telah kedaluwarsa.'
+        });
+        return;
+      }
+
+      toast.success('Email berhasil diverifikasi! Mengalihkan ke dashboard...');
+      window.location.href = '/dashboard';
     } catch {
       dispatch({
         type: 'setError',
@@ -303,20 +334,20 @@ export function AuthFlowView() {
 
     try {
       if (state.email) {
-        await authClient.sendVerificationEmail({
+        await authClient.emailOtp.sendVerificationOtp({
           email: state.email,
-          callbackURL: redirectTo
+          type: 'email-verification'
         });
       }
       dispatch({
         type: 'setInfo',
-        info: 'Tautan verifikasi baru telah dikirim ke email.'
+        info: 'Kode OTP baru telah dikirim ke email Anda.'
       });
-      toast.success('Tautan verifikasi telah dikirim.');
+      toast.success('Kode OTP baru telah dikirim ke email Anda.');
     } catch {
       dispatch({
         type: 'setError',
-        error: 'Tautan belum bisa dikirim ulang. Coba lagi beberapa saat.'
+        error: 'Kode OTP belum bisa dikirim ulang. Coba lagi beberapa saat.'
       });
     } finally {
       setPendingAction(null);
@@ -328,16 +359,24 @@ export function AuthFlowView() {
     dispatch({ type: 'clearMessages' });
 
     try {
-      await authClient.requestPasswordReset({
-        email: values.email,
-        redirectTo: '/auth/sign-in?screen=reset-password'
-      });
+      // 1. Primary: NestJS backend forgot password
+      const res = await forgotPasswordAction(null, { email: values.email });
       dispatch({ type: 'setEmail', email: values.email });
       dispatch({
         type: 'setInfo',
-        info: 'Jika email terdaftar, tautan pemulihan kata sandi telah dikirim ke email Anda.'
+        info:
+          res.message ||
+          'Jika email terdaftar, tautan pemulihan kata sandi telah dikirim ke email Anda.'
       });
     } catch {
+      try {
+        await authClient.requestPasswordReset({
+          email: values.email,
+          redirectTo: '/auth/sign-in?screen=reset-password'
+        });
+      } catch {
+        // silent fallback
+      }
       dispatch({ type: 'setEmail', email: values.email });
       dispatch({
         type: 'setInfo',
@@ -353,15 +392,31 @@ export function AuthFlowView() {
     dispatch({ type: 'clearMessages' });
 
     try {
-      const res = await authClient.resetPassword({
+      // 1. Primary: Kanonikal Backend Reset Password
+      const res = await resetPasswordAction(null, {
+        hash: values.code,
+        password: values.password
+      });
+
+      if (res.success) {
+        toast.success('Password berhasil diperbarui. Silakan masuk.');
+        navigate('sign-in');
+        return;
+      }
+
+      // 2. Secondary fallback to Better Auth
+      const betterAuthRes = await authClient.resetPassword({
         newPassword: values.password,
         token: values.code
       });
 
-      if (res.error) {
+      if (betterAuthRes.error) {
         dispatch({
           type: 'setError',
-          error: res.error.message || 'Tautan pemulihan tidak valid atau sudah kedaluwarsa.'
+          error:
+            res.message ||
+            betterAuthRes.error.message ||
+            'Tautan pemulihan tidak valid atau sudah kedaluwarsa.'
         });
         return;
       }

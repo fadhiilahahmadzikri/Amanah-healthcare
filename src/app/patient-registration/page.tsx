@@ -1,6 +1,5 @@
-import { auth } from '@/lib/auth';
+import { requireSession } from '@/lib/guard';
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
@@ -9,11 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default async function PatientRegistrationPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
-
-  if (!session?.user) {
-    redirect('/auth/sign-in');
-  }
+  const session = await requireSession();
 
   if (session.user.role === 'admin') {
     redirect('/dashboard/admin');

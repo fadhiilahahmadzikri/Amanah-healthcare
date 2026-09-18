@@ -1,4 +1,5 @@
 import { auth } from '@/lib/auth';
+import { loadCurrentUser } from '@/server/loaders/auth.loader';
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 
@@ -6,8 +7,21 @@ import { getPatients } from '@/features/data-pasien/api/service';
 import type { Patient } from '@/features/data-pasien/api/types';
 
 export async function GET() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  const user = session?.user;
+  const reqHeaders = await headers();
+  let user: { id: string; email?: string | null; name?: string | null } | null = null;
+  const session = await auth.api.getSession({ headers: reqHeaders });
+  if (session?.user) {
+    user = session.user;
+  } else {
+    const currentUser = await loadCurrentUser();
+    if (currentUser) {
+      user = {
+        id: currentUser.id,
+        email: currentUser.email,
+        name: currentUser.staff?.fullName || currentUser.patient?.fullName || currentUser.email
+      };
+    }
+  }
 
   if (!user) {
     return NextResponse.json({ patient: null }, { status: 401 });
