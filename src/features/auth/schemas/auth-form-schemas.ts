@@ -36,7 +36,7 @@ export const otpSchema = z.object({
 
 export const resetPasswordSchema = z
   .object({
-    code: z.string().length(6, 'Kode OTP harus 6 digit'),
+    code: z.string().min(1, 'Kode OTP atau token reset wajib diisi'),
     password: passwordSchema,
     confirmPassword: z.string()
   })

@@ -6,9 +6,9 @@ const AUTH_ONLY_PREFIXES = [
   '/auth/sign-in',
   '/auth/sign-up',
   '/auth',
-  '/verify-otp',
   '/login',
-  '/register'
+  '/register',
+  '/forgot-password'
 ];
 
 function safeCallbackUrl(pathname: string): string {
@@ -16,13 +16,42 @@ function safeCallbackUrl(pathname: string): string {
   return '/dashboard';
 }
 
-export default function proxy(request: NextRequest) {
+async function getBackendSession(req: NextRequest) {
+  try {
+    const cookie = req.headers.get('cookie') || '';
+    if (!cookie || (!cookie.includes('better-auth') && !cookie.includes('session'))) {
+      return null;
+    }
+
+    const backendUrl = (
+      process.env.BETTER_AUTH_URL ||
+      process.env.NEXT_PUBLIC_BETTER_AUTH_URL ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      'http://localhost:3001'
+    ).replace(/\/+$/, '');
+
+    const res = await fetch(`${backendUrl}/api/auth/get-session`, {
+      headers: { cookie },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(1500)
+    });
+
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.user ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const sessionCookie =
     getSessionCookie(request) ||
     request.cookies.get('amanah_access_token')?.value ||
     request.cookies.get('amanah_session')?.value ||
-    request.cookies.get('better-auth.session_token')?.value;
+    request.cookies.get('better-auth.session_token')?.value ||
+    request.cookies.get('__Secure-better-auth.session_token')?.value;
 
   // Friendly aliases
   if (pathname === '/login') {
@@ -37,9 +66,33 @@ export default function proxy(request: NextRequest) {
     }
     return NextResponse.redirect(new URL('/auth/sign-up', request.url));
   }
+  if (pathname === '/forgot-password' || pathname === '/auth/forgot-password') {
+    const url = request.nextUrl.clone();
+    url.pathname = '/auth/sign-in/forgot-password';
+    return NextResponse.redirect(url);
+  }
+  if (
+    pathname === '/password-change' ||
+    pathname === '/auth/password-change' ||
+    pathname === '/reset-password' ||
+    pathname === '/auth/reset-password'
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/auth/sign-in/reset-password';
+    return NextResponse.redirect(url);
+  }
+
+  const isResetPassword =
+    pathname.includes('/reset-password') ||
+    pathname.includes('/password-change') ||
+    request.nextUrl.searchParams.has('hash') ||
+    request.nextUrl.searchParams.has('token');
 
   const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
-  const isAuthOnly = AUTH_ONLY_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  const isAuthOnly =
+    !isResetPassword &&
+    AUTH_ONLY_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  const isOtpRoute = pathname.startsWith('/verify-otp') || pathname.startsWith('/verify-email');
 
   // 1. Unauthenticated users accessing protected paths -> redirect to sign-in
   if (isProtected && !sessionCookie) {
@@ -50,12 +103,35 @@ export default function proxy(request: NextRequest) {
     return response;
   }
 
-  // 2. Authenticated users accessing auth-only paths -> redirect to dashboard (unless viewing an error)
-  const hasAuthError = request.nextUrl.searchParams.has('error');
-  if (isAuthOnly && sessionCookie && !hasAuthError) {
-    const response = NextResponse.redirect(new URL('/dashboard', request.url));
-    response.headers.set('Cache-Control', 'no-store, max-age=0');
-    return response;
+  // 2. If session cookie exists, check backend session for email verification and auth routes
+  if (sessionCookie && (isProtected || isAuthOnly || isOtpRoute)) {
+    const user = await getBackendSession(request);
+    if (user) {
+      // If user is logged in but email is not verified
+      if (user.emailVerified === false && user.email) {
+        if (!isOtpRoute) {
+          const otpUrl = new URL('/verify-otp', request.url);
+          otpUrl.searchParams.set('email', user.email);
+          const response = NextResponse.redirect(otpUrl);
+          response.headers.set('Cache-Control', 'no-store, max-age=0');
+          return response;
+        }
+      } else {
+        // User is logged in and email is verified
+        if (isAuthOnly || isOtpRoute) {
+          const response = NextResponse.redirect(new URL('/dashboard', request.url));
+          response.headers.set('Cache-Control', 'no-store, max-age=0');
+          return response;
+        }
+      }
+    } else if (isProtected && !request.cookies.get('amanah_access_token')?.value) {
+      // Session cookie is invalid or expired
+      const url = new URL('/auth/sign-in', request.url);
+      url.searchParams.set('redirect', safeCallbackUrl(pathname));
+      const response = NextResponse.redirect(url);
+      response.headers.set('Cache-Control', 'no-store, max-age=0');
+      return response;
+    }
   }
 
   // 3. Forward request with injected x-pathname header so Server Layouts/Components know the route

@@ -44,6 +44,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const session = await auth.api.getSession({ headers: reqHeaders });
   if (session?.user) {
+    if (session.user.emailVerified === false && session.user.email) {
+      redirect(`/verify-otp?email=${encodeURIComponent(session.user.email)}`);
+    }
     user = session.user;
     userRole = session.user.role === 'admin' ? 'admin' : 'patient';
   } else {

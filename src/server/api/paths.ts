@@ -10,6 +10,7 @@ export const paths = {
     refresh: () => `${getBaseApiUrl()}/api/v1/auth/refresh`,
     forgotPassword: () => `${getBaseApiUrl()}/api/v1/auth/forgot/password`,
     resetPassword: () => `${getBaseApiUrl()}/api/v1/auth/reset/password`,
+    resendOtp: () => `${getBaseApiUrl()}/api/v1/auth/otp/resend`,
     logout: () => `${getBaseApiUrl()}/api/v1/auth/logout`,
 
     // Engine B: Better Auth (/api/auth/*)

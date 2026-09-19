@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { FieldGroup } from '@/components/ui/field';
-import { AuthOtpField } from './auth-otp-field';
 import { AuthPasswordField } from './auth-password-field';
 import { AuthStatusAlert } from './auth-status-alert';
 import { resetPasswordSchema } from '../schemas/auth-form-schemas';
@@ -26,14 +26,27 @@ export function ResetPasswordForm({
   onSubmit,
   onBack
 }: ResetPasswordFormProps) {
+  const searchParams = useSearchParams();
+  const urlHash = searchParams?.get('hash') || '';
+  const emailFromQuery = searchParams?.get('email') || '';
+  const effectiveEmail = email || emailFromQuery;
+
   const [values, setValues] = useState<ResetPasswordValues>({
-    code: '',
+    code: urlHash,
     password: '',
     confirmPassword: ''
   });
   const [fieldErrors, setFieldErrors] = useState<
     Partial<Record<keyof ResetPasswordValues, string>>
   >({});
+
+  useEffect(() => {
+    if (urlHash) {
+      setValues((current) => ({ ...current, code: urlHash }));
+    }
+  }, [urlHash]);
+
+  const hasTokenInUrl = Boolean(urlHash);
 
   function updateField<Key extends keyof ResetPasswordValues>(
     key: Key,
@@ -44,6 +57,10 @@ export function ResetPasswordForm({
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!hasTokenInUrl) {
+      return;
+    }
 
     const parsed = resetPasswordSchema.safeParse(values);
     if (!parsed.success) {
@@ -65,12 +82,15 @@ export function ResetPasswordForm({
       <FieldGroup className='gap-4'>
         <AuthStatusAlert message={info} tone='info' />
         <AuthStatusAlert message={error} />
-        <AuthOtpField
-          value={values.code}
-          onChange={(value) => updateField('code', value)}
-          error={fieldErrors.code}
-          disabled={isSubmitting}
-        />
+
+        {!hasTokenInUrl ? (
+          <AuthStatusAlert message='Token reset kata sandi tidak ditemukan di URL. Silakan kirim ulang tautan pemulihan dari halaman Lupa Password.' />
+        ) : (
+          <p className='text-xs text-muted-foreground bg-muted/40 p-2.5 rounded-md border border-border/60 leading-relaxed'>
+            Tautan reset terverifikasi dari email. Silakan tentukan kata sandi baru untuk akun Anda.
+          </p>
+        )}
+
         <AuthPasswordField
           label='Password baru'
           name='password'
@@ -84,6 +104,8 @@ export function ResetPasswordForm({
           label='Konfirmasi password baru'
           name='confirmPassword'
           autoComplete='new-password'
+          showStrengthMeter={false}
+          showRulesObserver={false}
           value={values.confirmPassword}
           onChange={(event) => updateField('confirmPassword', event.target.value)}
           error={fieldErrors.confirmPassword}
@@ -91,9 +113,10 @@ export function ResetPasswordForm({
         />
       </FieldGroup>
 
-      {email ? (
+      {effectiveEmail ? (
         <p className='text-muted-foreground text-center text-sm'>
-          Reset password untuk <span className='text-foreground font-medium'>{email}</span>.
+          Reset password untuk <span className='text-foreground font-medium'>{effectiveEmail}</span>
+          .
         </p>
       ) : null}
 

@@ -229,3 +229,68 @@ export async function logoutAction(): Promise<void> {
   invalidateTag('auth:me');
   redirect('/auth/sign-in');
 }
+
+export interface ResendOtpResult {
+  success: boolean;
+  message: string;
+  cooldownSeconds?: number;
+  retryAfter?: number;
+  code?: string;
+}
+
+export async function resendOtpAction(
+  email: string,
+  type: 'email-verification' | 'forgot-password'
+): Promise<ResendOtpResult> {
+  if (!email || !email.includes('@')) {
+    return {
+      success: false,
+      message: 'Format alamat email tidak valid.'
+    };
+  }
+
+  try {
+    const { paths } = await import('../api/paths');
+    const endpoint = paths.auth.resendOtp();
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json'
+      },
+      body: JSON.stringify({ email: email.toLowerCase().trim(), type }),
+      cache: 'no-store'
+    });
+
+    const data = await res.json().catch(() => null);
+
+    if (res.status === 429) {
+      const retryAfter = data?.retryAfter ?? 60;
+      return {
+        success: false,
+        message: data?.message || `Mohon tunggu ${retryAfter} detik sebelum meminta kode baru.`,
+        retryAfter,
+        code: data?.code || 'RESEND_COOLDOWN_ACTIVE'
+      };
+    }
+
+    if (!res.ok) {
+      return {
+        success: false,
+        message: data?.message || 'Gagal mengirim ulang kode verifikasi. Coba beberapa saat lagi.'
+      };
+    }
+
+    return {
+      success: true,
+      message: data?.message || 'Kode verifikasi baru berhasil dikirim ke email Anda.',
+      cooldownSeconds: data?.cooldownSeconds ?? 60
+    };
+  } catch {
+    return {
+      success: false,
+      message: 'Gagal terhubung ke server autentikasi.'
+    };
+  }
+}

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { FieldGroup } from '@/components/ui/field';
 import { AuthOtpField } from './auth-otp-field';
 import { AuthStatusAlert } from './auth-status-alert';
+import { ResendOtpButton } from './resend-otp-button';
 import { otpSchema } from '../schemas/auth-form-schemas';
 import type { OtpValues } from '../schemas/auth-form-schemas';
 
@@ -62,7 +63,9 @@ export function OtpVerificationForm({
       <Button type='submit' className='w-full' disabled={isSubmitting}>
         {isSubmitting ? 'Memverifikasi...' : submitLabel}
       </Button>
-      {onResend ? (
+      {email ? (
+        <ResendOtpButton email={email} type='email-verification' className='w-full' />
+      ) : onResend ? (
         <Button
           type='button'
           variant='ghost'

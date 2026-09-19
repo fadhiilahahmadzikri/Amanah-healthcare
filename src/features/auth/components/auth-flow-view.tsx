@@ -57,7 +57,7 @@ const SCREEN_COPY: Record<
   {
     title: string;
     description: string;
-    footer: React.ReactNode;
+    footer?: React.ReactNode;
   }
 > = {
   'sign-in': {
@@ -72,8 +72,7 @@ const SCREEN_COPY: Record<
   },
   'forgot-password': {
     title: 'Lupa password?',
-    description: 'Masukkan email akun Anda untuk menerima tautan pemulihan kata sandi.',
-    footer: 'Tautan pemulihan berlaku sementara demi keamanan akun.'
+    description: 'Masukkan email akun Anda untuk menerima tautan pemulihan kata sandi.'
   },
   'reset-password': {
     title: 'Atur ulang password',
@@ -106,17 +105,19 @@ function flowReducer(state: FlowState, action: FlowAction): FlowState {
   }
 }
 
-function getScreenFromPath(pathname: string): AuthScreen {
+function getScreenFromPath(pathname: string, searchParams?: URLSearchParams | null): AuthScreen {
   if (pathname.includes('/verify-otp') || pathname.includes('/verify-email')) {
     return 'verify-email';
   }
   if (pathname.startsWith('/auth/sign-up')) {
     return 'sign-up';
   }
-
-  if (pathname.includes('/forgot-password')) return 'forgot-password';
-  if (pathname.includes('/reset-password')) return 'reset-password';
-
+  if (pathname.includes('/reset-password') || searchParams?.has('hash')) {
+    return 'reset-password';
+  }
+  if (pathname.includes('/forgot-password')) {
+    return 'forgot-password';
+  }
   return 'sign-in';
 }
 
@@ -125,7 +126,7 @@ export function AuthFlowView() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [screen, setScreen] = useState<AuthScreen>(() => getScreenFromPath(pathname));
+  const [screen, setScreen] = useState<AuthScreen>(() => getScreenFromPath(pathname, searchParams));
 
   const redirectParam = searchParams.get('redirect_url') || searchParams.get('redirect');
   const redirectTo = safeRedirect(redirectParam, AUTH_REDIRECT_FALLBACK);
@@ -146,22 +147,32 @@ export function AuthFlowView() {
     }
   }, [searchParams, state.email]);
 
-  // If already authenticated, redirect to destination
+  // If already authenticated, redirect to destination (except during password reset or verification)
   useEffect(() => {
     if (!isSessionLoading && session?.user) {
-      router.replace(redirectTo);
+      if (screen === 'reset-password') {
+        return;
+      }
+      if (session.user.emailVerified === false) {
+        if (screen !== 'verify-email') {
+          router.replace(`/verify-otp?email=${encodeURIComponent(session.user.email)}`);
+        }
+      } else {
+        router.replace(redirectTo);
+      }
     }
-  }, [isSessionLoading, session, redirectTo, router]);
+  }, [isSessionLoading, session, redirectTo, router, screen]);
 
   // Synchronize screen state if browser navigation occurs
   useEffect(() => {
-    const matched = getScreenFromPath(pathname);
+    const matched = getScreenFromPath(pathname, searchParams);
     setScreen(matched);
-  }, [pathname]);
+  }, [pathname, searchParams]);
 
   useEffect(() => {
     function handlePopState() {
-      setScreen(getScreenFromPath(window.location.pathname));
+      const sp = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+      setScreen(getScreenFromPath(window.location.pathname, sp));
     }
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -190,9 +201,15 @@ export function AuthFlowView() {
     dispatch({ type: 'clearMessages' });
 
     try {
+      const origin =
+        typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+      const targetUrl = redirectTo.startsWith('http')
+        ? redirectTo
+        : `${origin}${redirectTo.startsWith('/') ? '' : '/'}${redirectTo}`;
+
       await authClient.signIn.social({
         provider: 'google',
-        callbackURL: redirectTo || '/dashboard'
+        callbackURL: targetUrl
       });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Login Google belum bisa diproses.';
@@ -252,6 +269,17 @@ export function AuthFlowView() {
         return;
       }
 
+      // If email is pending verification, redirect user to OTP verification page
+      const betterAuthErrorMsg = betterAuthRes.error.message || '';
+      if (
+        betterAuthErrorMsg.toLowerCase().includes('verif') ||
+        (betterAuthRes.error as { code?: string })?.code === 'EMAIL_NOT_VERIFIED'
+      ) {
+        toast.info('Email Anda belum diverifikasi. Silakan masukkan kode OTP.');
+        router.push(`/verify-otp?email=${encodeURIComponent(values.email)}`);
+        return;
+      }
+
       dispatch({
         type: 'setError',
         error: res.message || 'Email atau kata sandi yang Anda masukkan salah.'
@@ -284,6 +312,14 @@ export function AuthFlowView() {
           error: error.message || 'Pendaftaran belum bisa diproses. Periksa data lalu coba lagi.'
         });
         return;
+      }
+
+      if (typeof window !== 'undefined') {
+        const expiry = Date.now() + 60 * 1000;
+        sessionStorage.setItem(
+          `amanah_otp_cooldown_email-verification_${values.email.toLowerCase().trim()}`,
+          expiry.toString()
+        );
       }
 
       toast.success('Pendaftaran berhasil! Kode verifikasi OTP telah dikirim ke email Anda.');
@@ -334,10 +370,26 @@ export function AuthFlowView() {
 
     try {
       if (state.email) {
-        await authClient.emailOtp.sendVerificationOtp({
+        const { error } = await authClient.emailOtp.sendVerificationOtp({
           email: state.email,
           type: 'email-verification'
         });
+
+        if (error) {
+          dispatch({
+            type: 'setError',
+            error: error.message || 'Kode OTP belum bisa dikirim ulang. Coba lagi beberapa saat.'
+          });
+          return;
+        }
+
+        if (typeof window !== 'undefined') {
+          const expiry = Date.now() + 60 * 1000;
+          sessionStorage.setItem(
+            `amanah_otp_cooldown_email-verification_${state.email.toLowerCase().trim()}`,
+            expiry.toString()
+          );
+        }
       }
       dispatch({
         type: 'setInfo',
@@ -359,29 +411,43 @@ export function AuthFlowView() {
     dispatch({ type: 'clearMessages' });
 
     try {
-      // 1. Primary: NestJS backend forgot password
       const res = await forgotPasswordAction(null, { email: values.email });
       dispatch({ type: 'setEmail', email: values.email });
+      const msg =
+        res.message ||
+        'Jika email terdaftar, tautan pemulihan kata sandi telah dikirim ke email Anda.';
       dispatch({
         type: 'setInfo',
-        info:
-          res.message ||
-          'Jika email terdaftar, tautan pemulihan kata sandi telah dikirim ke email Anda.'
+        info: msg
       });
-    } catch {
-      try {
-        await authClient.requestPasswordReset({
-          email: values.email,
-          redirectTo: '/auth/sign-in?screen=reset-password'
-        });
-      } catch {
-        // silent fallback
+      if (typeof window !== 'undefined') {
+        const expiry = Date.now() + 60 * 1000;
+        sessionStorage.setItem(
+          `amanah_otp_cooldown_forgot-password_${values.email.toLowerCase().trim()}`,
+          expiry.toString()
+        );
       }
+      if (res.success) {
+        toast.success(msg);
+      } else {
+        toast.info(msg);
+      }
+    } catch {
+      const fallbackMsg =
+        'Jika email terdaftar, tautan pemulihan kata sandi telah dikirim ke email Anda.';
       dispatch({ type: 'setEmail', email: values.email });
       dispatch({
         type: 'setInfo',
-        info: 'Jika email terdaftar, tautan pemulihan kata sandi telah dikirim ke email Anda.'
+        info: fallbackMsg
       });
+      if (typeof window !== 'undefined') {
+        const expiry = Date.now() + 60 * 1000;
+        sessionStorage.setItem(
+          `amanah_otp_cooldown_forgot-password_${values.email.toLowerCase().trim()}`,
+          expiry.toString()
+        );
+      }
+      toast.info(fallbackMsg);
     } finally {
       setPendingAction(null);
     }
@@ -392,7 +458,7 @@ export function AuthFlowView() {
     dispatch({ type: 'clearMessages' });
 
     try {
-      // 1. Primary: Kanonikal Backend Reset Password
+      // Stream Utama: Eksekusi Reset Password via Kanonikal JWT API (POST /api/v1/auth/reset/password)
       const res = await resetPasswordAction(null, {
         hash: values.code,
         password: values.password
@@ -404,25 +470,10 @@ export function AuthFlowView() {
         return;
       }
 
-      // 2. Secondary fallback to Better Auth
-      const betterAuthRes = await authClient.resetPassword({
-        newPassword: values.password,
-        token: values.code
+      dispatch({
+        type: 'setError',
+        error: res.message || 'Tautan pemulihan tidak valid atau sudah kedaluwarsa.'
       });
-
-      if (betterAuthRes.error) {
-        dispatch({
-          type: 'setError',
-          error:
-            res.message ||
-            betterAuthRes.error.message ||
-            'Tautan pemulihan tidak valid atau sudah kedaluwarsa.'
-        });
-        return;
-      }
-
-      toast.success('Password berhasil diperbarui. Silakan masuk.');
-      navigate('sign-in');
     } catch {
       dispatch({
         type: 'setError',
@@ -468,6 +519,7 @@ export function AuthFlowView() {
         return (
           <ForgotPasswordForm
             error={state.error}
+            info={state.info}
             defaultEmail={state.email}
             isSubmitting={isSubmitting}
             onSubmit={handleForgotPassword}

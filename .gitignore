@@ -34,8 +34,9 @@ yarn-error.log*
 # local env files
 .env*
 .env*.local
-env.*
-env.*.txt
+/env.*
+/env.*.txt
+!src/**/env.*
 "env.example copy.txt"
 
 

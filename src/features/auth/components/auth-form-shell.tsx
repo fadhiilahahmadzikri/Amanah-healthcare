@@ -4,7 +4,7 @@ interface AuthFormShellProps {
   title: string;
   description: string;
   children: React.ReactNode;
-  footer: React.ReactNode;
+  footer?: React.ReactNode;
 }
 
 export function AuthFormShell({ title, description, children, footer }: AuthFormShellProps) {
@@ -18,7 +18,7 @@ export function AuthFormShell({ title, description, children, footer }: AuthForm
       </CardHeader>
       <CardContent className='flex flex-col gap-5'>
         {children}
-        <div className='text-muted-foreground text-center text-sm'>{footer}</div>
+        {footer ? <div className='text-muted-foreground text-center text-sm'>{footer}</div> : null}
       </CardContent>
     </Card>
   );

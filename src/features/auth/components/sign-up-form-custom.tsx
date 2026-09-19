@@ -111,6 +111,8 @@ export function SignUpForm({
           label='Konfirmasi password'
           name='confirmPassword'
           autoComplete='new-password'
+          showStrengthMeter={false}
+          showRulesObserver={false}
           placeholder='Ulangi password'
           value={values.confirmPassword}
           onChange={(event) => updateField('confirmPassword', event.target.value)}
