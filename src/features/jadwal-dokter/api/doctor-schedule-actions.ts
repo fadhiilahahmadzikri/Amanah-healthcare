@@ -13,7 +13,7 @@ import type {
   UpdateAdminDayStatusPayload,
   CreateAdminDoctorSessionPayload
 } from '@/server/contracts/schedules/doctor-schedules.dto';
-import type { DoctorScheduleFilters } from './types';
+import type { DoctorScheduleDetailParams, DoctorScheduleFilters } from './types';
 
 export async function getDoctorSchedulesAction(filters: DoctorScheduleFilters = {}) {
   return fetchAdminDoctorSchedules(filters);
@@ -21,7 +21,7 @@ export async function getDoctorSchedulesAction(filters: DoctorScheduleFilters = 
 
 export async function getDoctorScheduleDetailAction(
   id: string,
-  params?: { month?: number; year?: number }
+  params?: DoctorScheduleDetailParams
 ) {
   return fetchAdminDoctorScheduleDetail(id, params);
 }

@@ -1,14 +1,7 @@
 import { keepPreviousData, queryOptions } from '@tanstack/react-query';
 import { getDoctorScheduleById, getDoctorSchedules } from './service';
-import type { DoctorScheduleFilters } from './types';
-
-export const doctorScheduleKeys = {
-  all: ['doctor-schedules'] as const,
-  lists: () => [...doctorScheduleKeys.all, 'list'] as const,
-  list: (filters: DoctorScheduleFilters) => [...doctorScheduleKeys.lists(), filters] as const,
-  details: () => [...doctorScheduleKeys.all, 'detail'] as const,
-  detail: (id: string) => [...doctorScheduleKeys.details(), id] as const
-};
+import { doctorScheduleKeys } from './query-keys';
+import type { DoctorScheduleDetailParams, DoctorScheduleFilters } from './types';
 
 export const doctorScheduleQueryOptions = (filters: DoctorScheduleFilters = {}) =>
   queryOptions({
@@ -19,10 +12,15 @@ export const doctorScheduleQueryOptions = (filters: DoctorScheduleFilters = {}) 
     gcTime: 5 * 60 * 1000
   });
 
-export const doctorScheduleDetailQueryOptions = (id: string) =>
+export const doctorScheduleDetailQueryOptions = (
+  id: string,
+  params: DoctorScheduleDetailParams = {}
+) =>
   queryOptions({
-    queryKey: doctorScheduleKeys.detail(id),
-    queryFn: () => getDoctorScheduleById(id),
+    queryKey: doctorScheduleKeys.detail(id, params),
+    queryFn: () => getDoctorScheduleById(id, params),
     staleTime: 5 * 1000,
     enabled: !!id
   });
+
+export { doctorScheduleKeys };

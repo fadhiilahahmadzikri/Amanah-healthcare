@@ -25,8 +25,8 @@ This specification establishes the authoritative cross-platform capability audit
    The Admin Doctor Schedule interface is strictly an operational schedule management view. It **must not contain an "Add Doctor" ("Tambah Dokter") action**. Doctor onboarding, credentialing (STR/SIP), and profile creation belong to human resources and practitioner registry workflows (`staff_profiles`, `staff_credentials`, `practitioners`), completely separated from daily schedule operations.
 
 ### 1.2 Audit Findings & Technical Gap
-- **Backend Absence:** As verified in `docs/ENDPOINT-MAP.md`, `src/server/api/endpoints.ts`, and `src/server/api/paths.ts`, **zero doctor schedule endpoints currently exist** in the backend service.
-- **Frontend Mock Fragmentation:** The frontend currently relies on disconnected in-memory empty arrays (`src/features/jadwal-dokter/api/service.ts:102` has `const doctorScheduleRecords: DoctorSchedule[] = [];`), local storage fallbacks, and a legacy 4,289-line mock file (`src/constants/mock-data/doctor-schedules.json`) that embeds hardcoded dates (e.g., "Mei 2026", Friday offsets, static avatars).
+- **Backend Contract Implemented:** The backend now exposes the doctor schedule contract through `/api/v1/admin/doctor-schedules`, `/api/v1/admin/doctor-schedules/:id`, `/api/v1/clinical/practitioners`, and the mobile upstream schedule endpoints under `/api/v1/schedules`.
+- **Frontend Mock Fragmentation Removed for Admin Schedule:** The admin doctor schedule list and detail sheet now read backend contracts. Legacy static mock files have been removed from the active source tree.
 - **Database Schema Readiness:** The PostgreSQL foundation in `docs/database/schema.sql` already provides normalized tables (`practitioners`, `staff_profiles`, `practitioner_availability`, `practitioner_schedule_day_settings`, `staff_leave_requests`, `practitioner_leave_periods`, `practitioner_schedule_sessions`, `appointments`, `queue_tickets`). No disruptive database migrations are needed; the gap lies entirely in **missing backend service queries, aggregation read models, and REST controller endpoints**.
 
 ---
@@ -223,10 +223,10 @@ Inspection of `src/features/jadwal-dokter/api/service.ts`:
 - Mutations (`updateDoctorSchedule`, `updateDoctorDayStatus`) mutate this in-memory array and return mock responses.
 - In `src/features/klinik/api/service.ts`: `getDoctors = () => []` and `getTimeSlots = () => []`.
 
-### 9.3 Hardcoded Mock Data in Repository
-- `src/constants/mock-data/doctor-schedules.json`: 4,289 lines of static mock data.
-- `src/constants/mock-api-doctor-schedules.ts`: Contains hardcoded schedule generators (`generateSarahSchedule`, `generateStandardSchedule`, `generateCutiSchedule`) that hardcode May 2026 (`2026-05-XX`), static day offsets, and mock avatars (`/assets/avatar/docter/...`).
-- **Conclusion:** The frontend has a fully structured UI architecture that is currently detached from any real server endpoint.
+### 9.3 Legacy Hardcoded Mock Data Removed
+- `src/constants/mock-data/doctor-schedules.json`: Removed from the active source tree.
+- `src/constants/mock-api-doctor-schedules.ts`: Removed from the active source tree.
+- **Conclusion:** The admin doctor schedule UI is now expected to consume backend data only. Any remaining hardcoded schedule behavior should be treated as a regression.
 
 ---
 
@@ -515,8 +515,8 @@ The existing PostgreSQL schema in `docs/database/schema.sql` is **100% structura
 The following artificial or hardcoded artifacts were verified in the frontend and must be systematically eradicated:
 
 1. **Hardcoded Month ("Mei 2026"):**
-   - Located in: `src/features/jadwal-dokter/api/mutations.ts:42`, `src/features/jadwal-dokter/components/doctor-calendar-grid.tsx:35,114`, `src/constants/mock-api-doctor-schedules.ts:37,203`.
-   - Action: Replace with dynamic dates resolved from the requested calendar month/year parameters.
+   - Legacy source: removed `src/constants/mock-api-doctor-schedules.ts`.
+   - Action: Keep all calendar and sheet requests parameterized by the requested month/year/date.
 2. **Hardcoded Starting Day Offset (Friday = 4):**
    - Located in: `src/features/jadwal-dokter/components/doctor-calendar-grid.tsx:28`.
    - Action: Replace with standard dynamic day-of-week calculation: `new Date(year, month, 1).getDay()`.
@@ -640,7 +640,7 @@ Once the Backend Team exposes the contract, the Frontend Team must execute the f
    - Implement `getDoctors` using `httpClient.request(paths.clinical.practitioners())`.
    - Eliminate `localStorage` appointment/queue mocks.
 5. **Delete Legacy Mock Files:**
-   - Deprecate `src/constants/mock-api-doctor-schedules.ts` and `src/constants/mock-data/doctor-schedules.json`.
+   - Done: `src/constants/mock-api-doctor-schedules.ts` and `src/constants/mock-data/doctor-schedules.json` have been removed.
 
 ---
 

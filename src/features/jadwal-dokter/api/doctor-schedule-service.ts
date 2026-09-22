@@ -17,7 +17,7 @@ import {
   type ClinicalPractitionersResponse
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 import { z } from 'zod';
-import type { DoctorScheduleFilters } from './types';
+import type { DoctorScheduleDetailParams, DoctorScheduleFilters } from './types';
 
 export async function resolveActiveToken(): Promise<string | null> {
   let token = await getAccessTokenCookie();
@@ -68,7 +68,7 @@ export async function fetchAdminDoctorSchedules(
 
 export async function fetchAdminDoctorScheduleDetail(
   id: string,
-  params?: { month?: number; year?: number }
+  params?: DoctorScheduleDetailParams
 ): Promise<AdminDoctorScheduleDetailResponse['data']> {
   const token = await resolveActiveToken();
 
@@ -115,15 +115,11 @@ export async function updateAdminDayStatus(
 ): Promise<unknown> {
   const token = await resolveActiveToken();
 
-  const response = await httpClient.request(
-    paths.doctorSchedules.updateDayStatus(id),
-    z.any(),
-    {
-      method: 'PATCH',
-      body: payload,
-      tokenOverride: token
-    }
-  );
+  const response = await httpClient.request(paths.doctorSchedules.updateDayStatus(id), z.any(), {
+    method: 'PATCH',
+    body: payload,
+    tokenOverride: token
+  });
 
   return response;
 }
@@ -134,15 +130,11 @@ export async function createAdminDoctorSession(
 ): Promise<unknown> {
   const token = await resolveActiveToken();
 
-  const response = await httpClient.request(
-    paths.doctorSchedules.createSession(id),
-    z.any(),
-    {
-      method: 'POST',
-      body: payload,
-      tokenOverride: token
-    }
-  );
+  const response = await httpClient.request(paths.doctorSchedules.createSession(id), z.any(), {
+    method: 'POST',
+    body: payload,
+    tokenOverride: token
+  });
 
   return response;
 }

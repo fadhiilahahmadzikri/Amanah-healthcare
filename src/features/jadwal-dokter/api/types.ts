@@ -55,6 +55,12 @@ export interface DoctorScheduleFilters {
   sort?: string;
 }
 
+export interface DoctorScheduleDetailParams {
+  month?: string;
+  year?: number;
+  date?: string;
+}
+
 export interface DoctorScheduleListResponse {
   doctors: DoctorSchedule[];
   total_doctors: number;

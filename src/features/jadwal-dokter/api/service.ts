@@ -11,7 +11,8 @@ import type {
   DoctorScheduleListResponse,
   UpdateDoctorSchedulePayload,
   CreateDoctorSessionPayload,
-  ScheduleDayStatus
+  ScheduleDayStatus,
+  DoctorScheduleDetailParams
 } from './types';
 
 export async function getDoctorSchedules(
@@ -35,11 +36,10 @@ export async function getDoctorSchedules(
 
 export async function getDoctorScheduleById(
   id: string,
-  month?: number,
-  year?: number
+  params?: DoctorScheduleDetailParams
 ): Promise<DoctorSchedule | undefined> {
   try {
-    const data = await getDoctorScheduleDetailAction(id, { month, year });
+    const data = await getDoctorScheduleDetailAction(id, params);
     return data as DoctorSchedule;
   } catch (error) {
     console.error(`Failed to fetch doctor schedule detail for id ${id}:`, error);
@@ -50,9 +50,10 @@ export async function getDoctorScheduleById(
 export async function getDoctorScheduleByName(name: string): Promise<DoctorSchedule | undefined> {
   try {
     const res = await getDoctorSchedules({ search: name, limit: 1 });
-    return res.doctors.find(
-      (doc) => doc.nama_dokter.toLowerCase() === name.toLowerCase()
-    ) || res.doctors[0];
+    return (
+      res.doctors.find((doc) => doc.nama_dokter.toLowerCase() === name.toLowerCase()) ||
+      res.doctors[0]
+    );
   } catch (error) {
     console.error(`Failed to find doctor schedule for ${name}:`, error);
     return undefined;

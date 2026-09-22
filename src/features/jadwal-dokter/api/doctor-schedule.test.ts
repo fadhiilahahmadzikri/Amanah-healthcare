@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import { isDoctorOnLeaveOnDay } from '../utils/leave-calculator';
 import { getUpcomingScheduleTime } from '../components/doctor-schedule-card';
+import { doctorScheduleKeys } from './query-keys';
 import {
   adminDoctorScheduleListResponseSchema,
   adminDoctorScheduleDetailResponseSchema,
@@ -105,6 +106,22 @@ describe('Upcoming Schedule Time Evaluation', () => {
     ];
     const result = getUpcomingScheduleTime('07:30 - 17:30', sessions);
     expect(result.sessionName).toBe('Sesi Malam');
+  });
+});
+
+describe('Doctor Schedule Detail Query', () => {
+  it('keys detail queries by doctor id and requested calendar date', () => {
+    const queryKey = doctorScheduleKeys.detail('doctor-1', {
+      month: '2026-09',
+      date: '2026-09-22'
+    });
+
+    expect(queryKey).toEqual([
+      'doctor-schedules',
+      'detail',
+      'doctor-1',
+      { month: '2026-09', date: '2026-09-22' }
+    ]);
   });
 });
 

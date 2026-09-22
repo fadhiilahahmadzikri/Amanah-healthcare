@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   Sheet,
   SheetContent,
@@ -15,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DoctorTimelineCalendar } from './doctor-timeline-calendar';
 import { DoctorDailyHourlyGrid } from './doctor-daily-hourly-grid';
 import { useUpdateDoctorDayStatusMutation } from '../api/mutations';
+import { doctorScheduleDetailQueryOptions } from '../api/queries';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule, ScheduleDayStatus } from '../api/types';
 
@@ -26,7 +28,7 @@ export interface DoctorScheduleDetailSheetProps {
 }
 
 export function DoctorScheduleDetailSheet({
-  doctor,
+  doctor: selectedDoctor,
   isOpen,
   onClose,
   onOpenEdit
@@ -38,6 +40,21 @@ export function DoctorScheduleDetailSheet({
   const [selectedDay, setSelectedDay] = React.useState<number>(new Date().getDate());
   const [currentMonth, setCurrentMonth] = React.useState<number>(new Date().getMonth());
   const [currentYear, setCurrentYear] = React.useState<number>(new Date().getFullYear());
+
+  const detailParams = React.useMemo(() => {
+    const month = formatMonthParam(currentYear, currentMonth);
+    return {
+      month,
+      date: formatDateParam(currentYear, currentMonth, selectedDay)
+    };
+  }, [currentMonth, currentYear, selectedDay]);
+
+  const detailQuery = useQuery({
+    ...doctorScheduleDetailQueryOptions(selectedDoctor?.id ?? '', detailParams),
+    enabled: isOpen && Boolean(selectedDoctor?.id)
+  });
+
+  const doctor = detailQuery.data ?? selectedDoctor;
 
   if (!doctor) return null;
 
@@ -343,4 +360,15 @@ export function DoctorScheduleDetailSheet({
       </SheetContent>
     </Sheet>
   );
+}
+
+function formatMonthParam(year: number, zeroBasedMonth: number): string {
+  return `${year}-${String(zeroBasedMonth + 1).padStart(2, '0')}`;
+}
+
+function formatDateParam(year: number, zeroBasedMonth: number, day: number): string {
+  const daysInMonth = new Date(year, zeroBasedMonth + 1, 0).getDate();
+  const safeDay = Math.min(Math.max(day, 1), daysInMonth);
+
+  return `${formatMonthParam(year, zeroBasedMonth)}-${String(safeDay).padStart(2, '0')}`;
 }

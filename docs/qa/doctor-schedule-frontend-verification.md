@@ -41,7 +41,7 @@ Following the delivery of the backend contract (`BE-SCHED-001`), the frontend in
 | **D.3** | Security Audit | Grep for `dangerouslySetInnerHTML` | **PASS** | 0 occurrences in `src/features/jadwal-dokter/`. |
 | **E.1** | Sloppy-Gap Audit | Inspection of toast notifications | **PASS** | Removed hardcoded "Mei 2026" from `mutations.ts:47`. Now dynamically displays formatted date: `Jadwal tanggal ${variables.date} berhasil diubah menjadi ${variables.status}`. |
 | **E.2** | Sloppy-Gap Audit | Calendar grid calculation inspection | **PASS** | Dynamic start offset computed in `doctor-calendar-grid.tsx` via `(firstDate.getDay() + 6) % 7`. Fallback dates generated from current year/month. |
-| **E.3** | Sloppy-Gap Audit | Dead mock files audit | **PASS** | Marked `src/constants/mock-api-doctor-schedules.ts` with explicit `@deprecated` banner. Isolated from production build. |
+| **E.3** | Sloppy-Gap Audit | Dead mock files audit | **PASS** | Removed legacy `src/constants/mock-api-doctor-schedules.ts` and `src/constants/mock-data/doctor-schedules.json`. Schedule UI now reads backend contracts only. |
 | **E.4** | Sloppy-Gap Audit | Grep for leftover `console.log` | **PASS** | 0 debug `console.log` statements in feature code. |
 | **F.1** | Code Quality & Optimization | Executed `bun x oxlint src/features/jadwal-dokter src/features/klinik` | **PASS** | **0 errors**. Accessibility and non-interactive click issues resolved. |
 | **F.2** | Code Quality & Optimization | Executed `bun x tsc --noEmit` | **PASS** | TypeScript compiler exited with 0 errors across the entire repository. |
