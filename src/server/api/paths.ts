@@ -12,6 +12,7 @@ export const paths = {
     resetPassword: () => `${getBaseApiUrl()}/api/v1/auth/reset/password`,
     resendOtp: () => `${getBaseApiUrl()}/api/v1/auth/otp/resend`,
     logout: () => `${getBaseApiUrl()}/api/v1/auth/logout`,
+    deleteMe: () => `${getBaseApiUrl()}/api/v1/auth/me`,
 
     // Engine B: Better Auth (/api/auth/*)
     betterAuthSignIn: () => `${getBaseApiUrl()}/api/auth/sign-in/email`,
@@ -27,5 +28,19 @@ export const paths = {
   users: {
     byId: (id: string) => `${getBaseApiUrl()}/api/v1/users/${id}`,
     list: () => `${getBaseApiUrl()}/api/v1/users`
+  },
+  patients: {
+    registration: () => `${getBaseApiUrl()}/api/v1/patients/registration`,
+    me: () => `${getBaseApiUrl()}/api/v1/patients/me`
+  },
+  doctorSchedules: {
+    list: () => `${getBaseApiUrl()}/api/v1/admin/doctor-schedules`,
+    detail: (id: string) => `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}`,
+    update: (id: string) => `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}`,
+    updateDayStatus: (id: string) => `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/day-status`,
+    createSession: (id: string) => `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/sessions`
+  },
+  clinicalPractitioners: {
+    list: () => `${getBaseApiUrl()}/api/v1/clinical/practitioners`
   }
 } as const;

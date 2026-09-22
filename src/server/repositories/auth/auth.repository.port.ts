@@ -8,6 +8,7 @@ import type {
   AuthResetPasswordRequest
 } from '../../contracts/auth/auth.request';
 import type { User, AuthSession, AuthTokens } from '../../domain/auth/auth.model';
+import type { DeleteAccountResponseDto } from '../../contracts/auth/auth.dto';
 
 export interface IAuthRepository {
   loginWithEmail(payload: AuthEmailLoginRequest): Promise<Result<AuthSession, AppError>>;
@@ -17,4 +18,5 @@ export interface IAuthRepository {
   forgotPassword(payload: AuthForgotPasswordRequest): Promise<Result<void, AppError>>;
   resetPassword(payload: AuthResetPasswordRequest): Promise<Result<void, AppError>>;
   logout(accessToken: string): Promise<Result<void, AppError>>;
+  deleteAccount(accessToken: string): Promise<Result<DeleteAccountResponseDto, AppError>>;
 }

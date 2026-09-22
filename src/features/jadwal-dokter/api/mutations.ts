@@ -1,14 +1,22 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { updateDoctorDayStatus, updateDoctorSchedule } from './service';
+import {
+  updateDoctorDayStatus,
+  updateDoctorSchedule,
+  createDoctorSession
+} from './service';
 import { doctorScheduleKeys } from './queries';
 import { toast } from 'sonner';
-import type { DoctorSchedule, ScheduleDayStatus } from './types';
+import type {
+  ScheduleDayStatus,
+  UpdateDoctorSchedulePayload,
+  CreateDoctorSessionPayload
+} from './types';
 
 export function useUpdateDoctorScheduleMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: Partial<DoctorSchedule> }) =>
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateDoctorSchedulePayload }) =>
       updateDoctorSchedule(id, payload),
     onSuccess: (updated) => {
       queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all });
@@ -18,8 +26,9 @@ export function useUpdateDoctorScheduleMutation() {
           : `Jadwal ${updated.nama_dokter} berhasil diperbarui.`
       );
     },
-    onError: () => {
-      toast.error('Gagal memperbarui jadwal dokter');
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : 'Gagal memperbarui jadwal dokter';
+      toast.error(message);
     }
   });
 }
@@ -30,19 +39,44 @@ export function useUpdateDoctorDayStatusMutation() {
   return useMutation({
     mutationFn: ({
       doctorId,
-      day,
-      status
+      date,
+      status,
+      reason
     }: {
       doctorId: string;
-      day: number;
+      date: string;
       status: ScheduleDayStatus;
-    }) => updateDoctorDayStatus(doctorId, day, status),
+      reason?: string;
+    }) => updateDoctorDayStatus(doctorId, date, status, reason),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all });
-      toast.success(`Jadwal tanggal ${variables.day} Mei 2026 diubah menjadi ${variables.status}`);
+      toast.success(`Jadwal tanggal ${variables.date} berhasil diubah menjadi ${variables.status}`);
     },
-    onError: () => {
-      toast.error('Gagal memperbarui status tanggal');
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : 'Gagal memperbarui status tanggal';
+      toast.error(message);
+    }
+  });
+}
+
+export function useCreateDoctorSessionMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      doctorId,
+      payload
+    }: {
+      doctorId: string;
+      payload: CreateDoctorSessionPayload;
+    }) => createDoctorSession(doctorId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all });
+      toast.success('Sesi praktik baru berhasil ditambahkan');
+    },
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : 'Gagal menambahkan sesi praktik';
+      toast.error(message);
     }
   });
 }

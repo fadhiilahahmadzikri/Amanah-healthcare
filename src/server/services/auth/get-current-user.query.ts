@@ -1,6 +1,8 @@
 import 'server-only';
+import { headers } from 'next/headers';
 import { ok, err, type Result } from '@/core/result/result';
 import { AppError } from '@/core/errors/app-error';
+import { auth } from '@/lib/auth';
 import { authRepository, type IAuthRepository } from '../../repositories/auth/auth.repository';
 import {
   getAccessTokenCookie,
@@ -29,6 +31,19 @@ export async function getCurrentUserQuery(
   // Attempt silent refresh if refresh token is available
   const refreshToken = await getRefreshTokenCookie();
   if (!refreshToken) {
+    // Fallback: Check if user is authenticated via Better Auth (e.g. Google OAuth)
+    try {
+      const session = await auth.api.getSession({ headers: await headers() });
+      if (session?.session?.token) {
+        const betterAuthResult = await repo.getMe(session.session.token);
+        if (betterAuthResult.ok) {
+          return ok(betterAuthResult.value);
+        }
+      }
+    } catch {
+      // Better Auth session not present
+    }
+
     return ok(null);
   }
 

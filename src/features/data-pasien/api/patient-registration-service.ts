@@ -1,17 +1,18 @@
 import 'server-only';
 
-import { cookies, headers } from 'next/headers';
+import { headers } from 'next/headers';
+import { revalidatePath } from 'next/cache';
 import { auth } from '@/lib/auth';
 import { loadCurrentUser } from '@/server/loaders/auth.loader';
-import { createPatient, getPatients } from './service';
+import { httpClient } from '@/server/http/http-client';
+import { paths } from '@/server/api/paths';
+import { getAccessTokenCookie } from '@/server/auth/token-store';
+import { AppError } from '@/core/errors/app-error';
 import {
-  buildPatientMutationPayload,
-  hasCompletedPatientRegistration,
-  PATIENT_REGISTRATION_COMPLETED_COOKIE
-} from './registration-mapper';
+  patientRegistrationResponseDtoSchema,
+  type PatientRegistrationRequestDto
+} from '@/server/contracts/patients/patient-registration.dto';
 import type { PatientRegistrationFormValues } from '../schemas/patient-registration-schema';
-
-const COMPLETION_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 type CurrentRegistrationContext = {
   isComplete: boolean;
@@ -34,113 +35,143 @@ type CompletePatientRegistrationResult =
     };
 
 export async function getCurrentPatientRegistrationStatus(_userId: string): Promise<boolean> {
-  const cookieStore = await cookies();
-  const completionCookie = cookieStore.get(PATIENT_REGISTRATION_COMPLETED_COOKIE)?.value ?? null;
-
-  if (completionCookie === 'true') {
-    return true;
-  }
-
-  return hasCompletedPatientRegistration({
-    unsafeMetadata: null,
-    publicMetadata: null,
-    completionCookie
-  });
+  const currentUser = await loadCurrentUser();
+  return Boolean(currentUser?.patient);
 }
 
 export async function getCurrentPatientRegistrationContext(
   userId: string
 ): Promise<CurrentRegistrationContext> {
-  const cookieStore = await cookies();
-  const completionCookie = cookieStore.get(PATIENT_REGISTRATION_COMPLETED_COOKIE)?.value ?? null;
-  const user = await getCurrentUserSafely(userId);
+  const currentUser = await loadCurrentUser();
+
+  if (currentUser) {
+    const isComplete = Boolean(currentUser.patient);
+    const initialName =
+      currentUser.patient?.fullName || currentUser.staff?.fullName || currentUser.email || '';
+
+    return {
+      isComplete,
+      initialName
+    };
+  }
+
+  // Fallback for Better Auth session if canonical user not resolved
+  try {
+    const session = await auth.api.getSession({ headers: await headers() });
+    if (session?.user && session.user.id === userId) {
+      return {
+        isComplete: false,
+        initialName: session.user.name || session.user.email || ''
+      };
+    }
+  } catch {
+    // Ignore fallback error
+  }
 
   return {
-    isComplete: hasCompletedPatientRegistration({
-      unsafeMetadata: null,
-      publicMetadata: null,
-      completionCookie
-    }),
-    initialName: user?.name ?? ''
+    isComplete: false,
+    initialName: ''
   };
 }
 
 export async function completePatientRegistration({
-  userId,
+  userId: _userId,
   values
 }: CompletePatientRegistrationInput): Promise<CompletePatientRegistrationResult> {
-  const now = new Date();
-  const user = await getCurrentUserSafely(userId);
-  const nextRecordNumber = await getNextPatientRecordNumber();
-  const payload = buildPatientMutationPayload({
-    values,
-    user: {
-      email: user?.email ?? '',
-      imageUrl: user?.image ?? '',
-      phone: ''
-    },
-    now,
-    nextRecordNumber
-  });
+  let accessToken = await getAccessTokenCookie();
 
-  const result = await createPatient(payload);
+  if (!accessToken) {
+    try {
+      const session = await auth.api.getSession({ headers: await headers() });
+      if (session?.session?.token) {
+        accessToken = session.session.token;
+      }
+    } catch {
+      // Ignore
+    }
+  }
 
-  if (!result.success || !result.patient) {
+  if (!accessToken) {
     return {
       success: false,
-      message: result.message || 'Data pasien gagal disimpan'
+      message: 'Sesi masuk tidak valid atau telah kedaluwarsa. Silakan masuk kembali.'
     };
   }
 
-  await markPatientRegistrationComplete(userId, result.patient.patient_id);
-
-  return {
-    success: true,
-    patientRecordId: result.patient.patient_id
+  const payload: PatientRegistrationRequestDto = {
+    name: values.name,
+    nik: values.nik,
+    nama_ibu_kandung: values.nama_ibu_kandung,
+    tempat_lahir: values.tempat_lahir,
+    birth_date: values.birth_date,
+    gender: values.gender,
+    blood_type: values.blood_type,
+    provinsi: values.provinsi,
+    provinsi_id: values.provinsi_id,
+    kabupaten: values.kabupaten,
+    kabupaten_id: values.kabupaten_id,
+    kecamatan: values.kecamatan,
+    kecamatan_id: values.kecamatan_id,
+    kelurahan: values.kelurahan,
+    kelurahan_id: values.kelurahan_id,
+    alamat_detail: values.alamat_detail,
+    pekerjaan: values.pekerjaan
   };
-}
 
-async function getCurrentUserSafely(userId: string) {
   try {
-    const session = await auth.api.getSession({ headers: await headers() });
-    if (session?.user && session.user.id === userId) {
-      return session.user;
+    const response = await httpClient.request(
+      paths.patients.registration(),
+      patientRegistrationResponseDtoSchema,
+      {
+        method: 'POST',
+        body: payload,
+        tokenOverride: accessToken,
+        cache: 'no-store'
+      }
+    );
+
+    try {
+      revalidatePath('/dashboard', 'layout');
+    } catch {
+      // Ignore in environments where revalidation is no-op
     }
-    const currentUser = await loadCurrentUser();
-    if (currentUser && currentUser.id === userId) {
+
+    return {
+      success: true,
+      patientRecordId: response.id
+    };
+  } catch (error: unknown) {
+    if (error instanceof AppError) {
+      const code = error.problemDetails?.code;
+      let message = error.problemDetails?.message || error.problemDetails?.detail || error.message;
+
+      if (error.status === 401 || code === 'UNAUTHORIZED' || code === 'UNAUTHENTICATED') {
+        message = 'Sesi masuk Anda telah berakhir. Silakan masuk kembali.';
+      } else if (code === 'PATIENT_ALREADY_REGISTERED') {
+        message =
+          error.problemDetails?.message || 'Akun Anda sudah memiliki profil pasien terdaftar.';
+        try {
+          revalidatePath('/dashboard', 'layout');
+        } catch {
+          // Ignore
+        }
+      } else if (code === 'DUPLICATE_NIK') {
+        message =
+          error.problemDetails?.message ||
+          'NIK ini sudah terdaftar pada rekam medis pasien lain. Periksa kembali NIK KTP Anda.';
+      } else if (code === 'VALIDATION_FAILED' && error.invalidParams?.length) {
+        message = error.invalidParams.map((p) => p.reason).join(', ');
+      }
+
       return {
-        id: currentUser.id,
-        name: currentUser.staff?.fullName || currentUser.patient?.fullName || currentUser.email,
-        email: currentUser.email,
-        image: currentUser.staff?.photoUrl || null
+        success: false,
+        message: message || 'Gagal menyimpan data pendaftaran pasien'
       };
     }
-    return null;
-  } catch {
-    return null;
+
+    return {
+      success: false,
+      message: 'Terjadi kesalahan sistem saat menyimpan data pasien'
+    };
   }
-}
-
-async function getNextPatientRecordNumber(): Promise<number> {
-  try {
-    const response = await getPatients({ page: 1, limit: 1 });
-    return response.total_patients + 1;
-  } catch {
-    return 1;
-  }
-}
-
-async function markPatientRegistrationComplete(
-  _userId: string,
-  _patientRecordId: string
-): Promise<void> {
-  const cookieStore = await cookies();
-
-  cookieStore.set(PATIENT_REGISTRATION_COMPLETED_COOKIE, 'true', {
-    httpOnly: true,
-    maxAge: COMPLETION_COOKIE_MAX_AGE,
-    path: '/',
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production'
-  });
 }

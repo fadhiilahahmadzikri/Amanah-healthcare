@@ -3,6 +3,7 @@
 import { auth } from '@/lib/auth';
 import { loadCurrentUser } from '@/server/loaders/auth.loader';
 import { headers } from 'next/headers';
+import { revalidatePath } from 'next/cache';
 import { completePatientRegistration } from './patient-registration-service';
 import {
   patientRegistrationSchema,
@@ -50,6 +51,12 @@ export async function completePatientRegistrationAction(
       success: false,
       message: result.message
     };
+  }
+
+  try {
+    revalidatePath('/dashboard', 'layout');
+  } catch {
+    // Ignore in non-request contexts
   }
 
   return {

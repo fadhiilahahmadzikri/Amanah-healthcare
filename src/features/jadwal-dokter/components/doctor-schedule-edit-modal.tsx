@@ -36,7 +36,7 @@ export function DoctorScheduleEditModal({ doctor, isOpen, onClose }: DoctorSched
     if (doctor) {
       setIsCuti(doctor.is_cuti);
       setCutiReason(doctor.cuti_reason || '');
-      setJadwalHariIni(doctor.jadwal_hari_ini);
+      setJadwalHariIni(doctor.jadwal_hari_ini || '');
       setSlotTersedia(doctor.slot_tersedia);
       setKapasitasPerHari(doctor.kapasitas_per_hari);
       setRuangPraktik(doctor.ruang_praktik);

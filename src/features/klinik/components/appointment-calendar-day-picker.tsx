@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Icons } from '@/components/icons';
 import {
   getDoctorScheduleByName,
@@ -55,9 +56,12 @@ export function AppointmentCalendarDayPicker({
   onSelectDate,
   className
 }: AppointmentCalendarDayPickerProps) {
-  const doctorSchedule: DoctorSchedule | undefined = useMemo(() => {
-    return getDoctorScheduleByName(doctorName);
-  }, [doctorName]);
+  const { data: doctorSchedule } = useQuery<DoctorSchedule | undefined>({
+    queryKey: ['doctor-schedule-by-name', doctorName],
+    queryFn: () => getDoctorScheduleByName(doctorName),
+    enabled: Boolean(doctorName),
+    staleTime: 60 * 1000
+  });
 
   const today = new Date();
   const realCurrentYear = today.getFullYear();

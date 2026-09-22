@@ -7,7 +7,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { getStatusConfig } from '@/styles/clinical-tokens';
 import { cn } from '@/lib/utils';
 import type { MonthlyScheduleDay, ScheduleDayStatus } from '../api/types';
 
@@ -17,48 +16,69 @@ interface DoctorCalendarGridProps {
   readOnly?: boolean;
 }
 
+function getStatusPillClasses(status: ScheduleDayStatus): string {
+  switch (status) {
+    case 'Buka':
+      return 'bg-success-subtle text-success border-success-border';
+    case 'Penuh':
+      return 'bg-warning-subtle text-warning border-warning-border';
+    case 'Tutup':
+      return 'bg-muted/40 text-muted-foreground border-border/60';
+    case 'Cuti':
+    default:
+      return 'bg-info-subtle text-info border-info-border';
+  }
+}
+
+function getStatusDot(status: ScheduleDayStatus): string {
+  switch (status) {
+    case 'Buka':
+      return 'bg-success';
+    case 'Penuh':
+      return 'bg-warning';
+    case 'Tutup':
+      return 'bg-muted-foreground/40';
+    case 'Cuti':
+    default:
+      return 'bg-info';
+  }
+}
+
 export function DoctorCalendarGrid({
   days = [],
   onSelectDayStatus,
   readOnly = false
 }: DoctorCalendarGridProps) {
-  // Days of week in Indonesian starting from Friday (since 1 Mei 2026 was Friday)
-  // 1 Mei 2026 was Friday: offset 4 empty spaces for Sen, Sel, Rab, Kam
+  // Days of week in Indonesian starting from Monday: Sen, Sel, Rab, Kam, Jum, Sab, Min
   const dayNames = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
-  const startOffset = 4;
 
-  const safeDays =
-    days && days.length > 0
-      ? days
-      : Array.from({ length: 31 }, (_, i) => ({
-          day: i + 1,
-          date: `2026-05-${String(i + 1).padStart(2, '0')}`,
-          status: 'Buka' as ScheduleDayStatus
-        }));
-
-  const getStatusPillClasses = (status: ScheduleDayStatus) => {
-    switch (status) {
-      case 'Buka':
-        return 'bg-success-subtle text-success border-success-border';
-      case 'Penuh':
-        return 'bg-warning-subtle text-warning border-warning-border';
-      case 'Cuti':
-      default:
-        return 'bg-info-subtle text-info border-info-border';
+  const firstDateStr = days[0]?.date;
+  const startOffset = React.useMemo(() => {
+    if (firstDateStr) {
+      const d = new Date(firstDateStr);
+      if (!Number.isNaN(d.getTime())) {
+        // Monday = 0, Sunday = 6
+        return (d.getDay() + 6) % 7;
+      }
     }
-  };
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    return (firstDay.getDay() + 6) % 7;
+  }, [firstDateStr]);
 
-  const getStatusDot = (status: ScheduleDayStatus) => {
-    switch (status) {
-      case 'Buka':
-        return 'bg-success';
-      case 'Penuh':
-        return 'bg-warning';
-      case 'Cuti':
-      default:
-        return 'bg-info';
-    }
-  };
+  const safeDays = React.useMemo(() => {
+    if (days && days.length > 0) return days;
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const totalDays = new Date(year, month + 1, 0).getDate();
+    const monthStr = String(month + 1).padStart(2, '0');
+    return Array.from({ length: totalDays }, (_, i) => ({
+      day: i + 1,
+      date: `${year}-${monthStr}-${String(i + 1).padStart(2, '0')}`,
+      status: 'Buka' as ScheduleDayStatus
+    }));
+  }, [days]);
 
   return (
     <div className='w-full space-y-2.5 select-none'>
@@ -71,7 +91,7 @@ export function DoctorCalendarGrid({
 
       {/* 2. Month Calendar 7-Column Grid */}
       <div className='grid grid-cols-7 gap-1.5'>
-        {/* Leading empty slots for starting day of month (Friday) */}
+        {/* Leading empty slots for starting day of month */}
         {Array.from({ length: startOffset }).map((_, i) => (
           <div
             key={`empty-${i}`}
@@ -79,7 +99,7 @@ export function DoctorCalendarGrid({
           />
         ))}
 
-        {/* 31 Calendar Days */}
+        {/* Dynamic Calendar Days */}
         {safeDays.map((item) => {
           const dotColor = getStatusDot(item.status);
           const cellClasses = cn(
@@ -111,9 +131,9 @@ export function DoctorCalendarGrid({
               </DropdownMenuTrigger>
               <DropdownMenuContent align='center' className='w-36'>
                 <div className='px-2 py-1 text-[10px] font-semibold text-muted-foreground'>
-                  Set tanggal {item.day} Mei:
+                  Set status tanggal {item.day}:
                 </div>
-                {(['Buka', 'Penuh', 'Cuti'] as ScheduleDayStatus[]).map((st) => {
+                {(['Buka', 'Penuh', 'Cuti', 'Tutup'] as ScheduleDayStatus[]).map((st) => {
                   return (
                     <DropdownMenuItem
                       key={st}
@@ -144,6 +164,10 @@ export function DoctorCalendarGrid({
         <div className='flex items-center gap-1.5'>
           <span className='size-2 rounded-full bg-info' />
           <span className='text-info font-medium'>Cuti</span>
+        </div>
+        <div className='flex items-center gap-1.5'>
+          <span className='size-2 rounded-full bg-muted-foreground/40' />
+          <span className='text-muted-foreground font-medium'>Tutup</span>
         </div>
       </div>
     </div>

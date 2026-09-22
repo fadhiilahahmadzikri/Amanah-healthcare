@@ -7,7 +7,9 @@ import {
   loginResponseDtoSchema,
   authenticatedUserDtoSchema,
   refreshResponseDtoSchema,
-  noContentDtoSchema
+  noContentDtoSchema,
+  deleteAccountResponseDtoSchema,
+  type DeleteAccountResponseDto
 } from '../../contracts/auth/auth.dto';
 import type {
   AuthEmailLoginRequest,
@@ -132,6 +134,22 @@ export class AuthRepository implements IAuthRepository {
         return err(error);
       }
       return err(AppError.internal('Unexpected error executing logout request', error));
+    }
+  }
+
+  async deleteAccount(accessToken: string): Promise<Result<DeleteAccountResponseDto, AppError>> {
+    try {
+      const dto = await httpClient.request(paths.auth.me(), deleteAccountResponseDtoSchema, {
+        method: 'DELETE',
+        tokenOverride: accessToken,
+        cache: 'no-store'
+      });
+      return ok(dto);
+    } catch (error: unknown) {
+      if (error instanceof AppError) {
+        return err(error);
+      }
+      return err(AppError.internal('Gagal memproses penghapusan akun sistemik', error));
     }
   }
 }

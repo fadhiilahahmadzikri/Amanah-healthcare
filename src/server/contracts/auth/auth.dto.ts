@@ -77,8 +77,21 @@ export const refreshResponseDtoSchema = z.object({
 
 export const noContentDtoSchema = z.void().or(z.null()).or(z.undefined());
 
+export const deleteAccountResponseDtoSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  purgedAt: z.string(),
+  details: z
+    .object({
+      userId: z.string(),
+      email: z.string().optional()
+    })
+    .optional()
+});
+
 export type StaffProfileDto = z.infer<typeof staffProfileDtoSchema>;
 export type PatientProfileDto = z.infer<typeof patientProfileDtoSchema>;
 export type AuthenticatedUserDto = z.infer<typeof authenticatedUserDtoSchema>;
 export type LoginResponseDto = z.infer<typeof loginResponseDtoSchema>;
 export type RefreshResponseDto = z.infer<typeof refreshResponseDtoSchema>;
+export type DeleteAccountResponseDto = z.infer<typeof deleteAccountResponseDtoSchema>;

@@ -11,7 +11,6 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { ChevronLeftIcon, ChevronRightIcon } from '@radix-ui/react-icons';
 
 export interface DoctorSchedulePaginationProps extends React.ComponentProps<'div'> {
   currentPage: number;

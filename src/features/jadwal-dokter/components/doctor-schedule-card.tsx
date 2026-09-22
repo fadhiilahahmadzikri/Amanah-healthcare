@@ -149,6 +149,12 @@ export function DoctorInfoRow({ icon, text, className }: DoctorInfoRowProps) {
   );
 }
 
+function parseTimeToMinutes(timeStr: string): number {
+  const clean = timeStr.replace('.', ':');
+  const [h, m] = clean.split(':').map((v) => Number.parseInt(v, 10) || 0);
+  return h * 60 + m;
+}
+
 /**
  * Helper to determine the upcoming/active session time based on real-time hour
  */
@@ -162,12 +168,6 @@ export function getUpcomingScheduleTime(
 
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-  const parseTimeToMinutes = (timeStr: string): number => {
-    const clean = timeStr.replace('.', ':');
-    const [h, m] = clean.split(':').map((v) => parseInt(v, 10) || 0);
-    return h * 60 + m;
-  };
 
   const availableSessions = sessions.filter((s) => s.status_sesi !== 'Cuti');
 
@@ -192,7 +192,7 @@ export function getUpcomingScheduleTime(
 
   if (ongoingSession) {
     return {
-      labelTime: ongoingSession.waktu,
+      labelTime: ongoingSession.waktu || `${ongoingSession.jam_mulai} - ${ongoingSession.jam_selesai}`,
       sessionName: ongoingSession.nama_sesi
     };
   }
@@ -205,7 +205,7 @@ export function getUpcomingScheduleTime(
 
   if (upcomingToday) {
     return {
-      labelTime: upcomingToday.waktu,
+      labelTime: upcomingToday.waktu || `${upcomingToday.jam_mulai} - ${upcomingToday.jam_selesai}`,
       sessionName: upcomingToday.nama_sesi
     };
   }
@@ -444,7 +444,7 @@ export function DoctorScheduleCard({
       <div className='flex items-center justify-between gap-3 relative z-20'>
         <DoctorStatusBadge status={statusLabel} />
         {showCallButton && (
-          <DoctorQuickCallButton phoneNumber={doctor.nomor_telepon} onClick={handleCall} />
+          <DoctorQuickCallButton phoneNumber={doctor.nomor_telepon ?? undefined} onClick={handleCall} />
         )}
       </div>
 
@@ -453,11 +453,16 @@ export function DoctorScheduleCard({
         <DoctorSpecialtyBadge specialty={doctor.spesialisasi} />
 
         <h3
-          onClick={handleDetail}
           title={doctor.nama_dokter}
-          className='text-[18px] sm:text-[19px] font-bold text-card-foreground tracking-tight leading-snug cursor-pointer hover:text-primary transition-colors pr-24 sm:pr-28 mt-2 mb-2.5 line-clamp-1'
+          className='text-[18px] sm:text-[19px] font-bold text-card-foreground tracking-tight leading-snug pr-24 sm:pr-28 mt-2 mb-2.5 line-clamp-1'
         >
-          {doctor.nama_dokter}
+          <button
+            type='button'
+            onClick={handleDetail}
+            className='text-left hover:text-primary transition-colors cursor-pointer focus-visible:outline-none focus-visible:underline'
+          >
+            {doctor.nama_dokter}
+          </button>
         </h3>
 
         {/* Location Row */}
@@ -485,7 +490,7 @@ export function DoctorScheduleCard({
           />
         ) : (
           <DoctorScheduleStats
-            scheduleTime={doctor.jadwal_hari_ini}
+            scheduleTime={doctor.jadwal_hari_ini || '08:00 - 16:00'}
             availableSlots={doctor.slot_tersedia}
             totalCapacity={doctor.kapasitas_per_hari}
             sessions={doctor.sesi_harian}

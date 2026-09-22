@@ -37,6 +37,13 @@ export const endpoints = {
     cache: 'NO_STORE',
     tag: null
   },
+  AUTH_DELETE_ME: {
+    method: 'DELETE',
+    path: '/api/v1/auth/me',
+    auth: 'session',
+    cache: 'NO_STORE',
+    tag: null
+  },
 
   // Engine B: Better Auth (/api/auth/*)
   BETTER_AUTH_SIGN_IN: {
@@ -101,6 +108,27 @@ export const endpoints = {
     auth: 'role:admin',
     cache: 'NO_STORE',
     tag: null
+  },
+  PATIENTS_REGISTRATION: {
+    method: 'POST',
+    path: '/api/v1/patients/registration',
+    auth: 'session',
+    cache: 'NO_STORE',
+    tag: null
+  },
+  PATIENTS_ME: {
+    method: 'GET',
+    path: '/api/v1/patients/me',
+    auth: 'session',
+    cache: 'NO_STORE',
+    tag: 'patient:me'
+  },
+  PATIENTS_UPDATE_ME: {
+    method: 'PATCH',
+    path: '/api/v1/patients/me',
+    auth: 'session',
+    cache: 'NO_STORE',
+    tag: 'patient:me'
   }
 } as const;
 

@@ -12,9 +12,11 @@ import { registerCommand } from '../services/auth/register.command';
 import { forgotPasswordCommand } from '../services/auth/forgot-password.command';
 import { resetPasswordCommand } from '../services/auth/reset-password.command';
 import { logoutCommand } from '../services/auth/logout.command';
+import { deleteAccountCommand } from '../services/auth/delete-account.command';
 import { invalidateTag } from '../cache/revalidate';
 import { AUTH_ERROR_MESSAGES } from '@/constants/auth-errors';
 import type { User } from '../domain/auth/auth.model';
+import type { DeleteAccountResponseDto } from '../contracts/auth/auth.dto';
 
 export type ActionState<T = unknown> = {
   readonly success: boolean;
@@ -228,6 +230,48 @@ export async function logoutAction(): Promise<void> {
   await logoutCommand();
   invalidateTag('auth:me');
   redirect('/auth/sign-in');
+}
+
+export async function deleteAccountAction(): Promise<ActionState<DeleteAccountResponseDto>> {
+  const result = await deleteAccountCommand();
+
+  if (!result.ok) {
+    const error = result.error;
+    let message = error.message;
+
+    const code = error.code;
+    const problemCode = error.problemDetails?.code;
+
+    if (
+      error.status === 401 ||
+      code === 'UNAUTHENTICATED' ||
+      problemCode === 'UNAUTHORIZED' ||
+      problemCode === 'UNAUTHENTICATED'
+    ) {
+      message = 'Sesi autentikasi Anda tidak valid atau telah berakhir. Silakan masuk kembali.';
+    } else if (
+      error.status === 500 ||
+      code === 'INTERNAL_SERVER_ERROR' ||
+      problemCode === 'INTERNAL_SERVER_ERROR'
+    ) {
+      message =
+        'Gagal membersihkan data akun secara sistemik. Silakan hubungi layanan bantuan kami.';
+    }
+
+    return {
+      success: false,
+      message,
+      errorCode: error.code
+    };
+  }
+
+  return {
+    success: true,
+    data: result.value,
+    message:
+      result.value.message ||
+      'Akun Anda dan seluruh data terkait telah berhasil dihapus secara permanen.'
+  };
 }
 
 export interface ResendOtpResult {

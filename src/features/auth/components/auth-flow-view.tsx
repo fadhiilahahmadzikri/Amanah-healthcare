@@ -145,6 +145,12 @@ export function AuthFlowView() {
     if (qEmail && qEmail !== state.email) {
       dispatch({ type: 'setEmail', email: qEmail });
     }
+    if (searchParams.get('deleted') === 'true') {
+      dispatch({
+        type: 'setInfo',
+        info: 'Akun Anda dan seluruh data terkait telah berhasil dihapus secara permanen dari sistem. Anda dapat mendaftar kembali kapan saja.'
+      });
+    }
   }, [searchParams, state.email]);
 
   // If already authenticated, redirect to destination (except during password reset or verification)
@@ -543,6 +549,7 @@ export function AuthFlowView() {
         return (
           <SignInForm
             error={state.error}
+            info={state.info}
             defaultEmail={state.email}
             isSubmitting={isSubmitting}
             isOAuthSubmitting={isOAuthSubmitting}

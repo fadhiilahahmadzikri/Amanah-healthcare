@@ -33,7 +33,6 @@ export function DoctorScheduleDetailModal({
   if (!doctor) return null;
 
   const doctorStatusConfig = getStatusConfig(doctor.status_dokter);
-  const scheduleStatusConfig = getStatusConfig(doctor.status_jadwal);
 
   const initials = doctor.nama_dokter
     .replace('dr. ', '')
@@ -66,9 +65,11 @@ export function DoctorScheduleDetailModal({
   };
 
   const handleDayStatusChange = (day: number, status: ScheduleDayStatus) => {
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     updateDayMutation.mutate({
       doctorId: doctor.id,
-      day,
+      date: dateStr,
       status
     });
   };

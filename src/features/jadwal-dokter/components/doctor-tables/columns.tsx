@@ -180,7 +180,7 @@ export const getColumns = ({
     accessorKey: 'status_jadwal',
     header: 'Status Jadwal',
     cell: ({ row }) => {
-      const cfg = getStatusConfig(row.original.status_jadwal);
+      const cfg = getStatusConfig(row.original.status_jadwal || 'Buka');
       return (
         <span
           className={cn(

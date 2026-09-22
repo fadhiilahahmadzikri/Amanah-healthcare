@@ -30,7 +30,15 @@ export function QueueSeatCard({ item, isNext = false, className, onClick }: Queu
   return (
     <div
       id={`seat-card-${item.queue_number}`}
+      role='button'
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
       title={`${item.queue_number || '-'} - ${item.patient_name || '-'} (${item.estimated_time || '-'})`}
       className={cn(
         'seat-grid-card relative group cursor-pointer select-none w-full max-w-[66px] sm:max-w-[74px] flex flex-col items-center mx-auto will-change-transform',

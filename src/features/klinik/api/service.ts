@@ -4,6 +4,27 @@ const LOCAL_STORAGE_KEY_APPOINTMENTS = 'amanah_appointments_v4';
 const LOCAL_STORAGE_KEY_QUEUES = 'amanah_queues_v10';
 
 import { getAmanahServiceByName } from '../constants/services';
+import { getClinicalPractitionersAction } from '@/features/jadwal-dokter/api/doctor-schedule-actions';
+
+export async function fetchClinicalDoctors(serviceName?: string): Promise<Doctor[]> {
+  try {
+    const list = await getClinicalPractitionersAction({ service: serviceName });
+    return list.map((doc) => ({
+      id: doc.id,
+      name: doc.name,
+      spec: doc.spec,
+      avatar: doc.avatar || '',
+      location: doc.location,
+      rating: doc.rating || '5.0',
+      tags: doc.tags || [doc.spec],
+      schedule: doc.schedule,
+      is_available: doc.is_available
+    }));
+  } catch (err) {
+    console.error('Failed to fetch clinical practitioners from backend:', err);
+    return [];
+  }
+}
 
 export const getDoctors = (): Doctor[] => {
   return [];

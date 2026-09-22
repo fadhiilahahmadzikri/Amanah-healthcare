@@ -1,3 +1,8 @@
+/**
+ * @deprecated
+ * SUPERSEDED by live NestJS Backend API (BE-SCHED-001) & ScheduleDrizzleRepository.
+ * Do not import or use this mock in production.
+ */
 export type ScheduleDayStatus = 'Buka' | 'Penuh' | 'Cuti';
 export type SessionStatus = 'Buka' | 'Penuh' | 'Cuti';
 

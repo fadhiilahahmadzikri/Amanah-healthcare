@@ -1,12 +1,12 @@
-export type ScheduleDayStatus = 'Buka' | 'Penuh' | 'Cuti';
-export type SessionStatus = 'Buka' | 'Penuh' | 'Cuti';
+export type ScheduleDayStatus = 'Buka' | 'Penuh' | 'Cuti' | 'Tutup';
+export type SessionStatus = 'Buka' | 'Penuh' | 'Cuti' | 'Tutup' | string;
 
 export interface DoctorDailySession {
   id: string;
   nama_sesi: string;
   jam_mulai: string;
   jam_selesai: string;
-  waktu: string;
+  waktu?: string;
   kuota_pasien: number;
   slot_tersedia: number;
   status_sesi: SessionStatus;
@@ -17,30 +17,31 @@ export interface MonthlyScheduleDay {
   day: number;
   date: string;
   status: ScheduleDayStatus;
-  notes?: string;
+  notes?: string | null;
 }
 
 export interface DoctorSchedule {
   id: string;
+  practitioner_id?: string;
   nama_dokter: string;
   spesialisasi: string;
-  status_dokter: 'Buka' | 'Penuh' | 'Cuti' | string;
-  email: string;
-  nomor_telepon: string;
+  status_dokter: 'Buka' | 'Penuh' | 'Cuti' | 'Tutup' | string;
+  email?: string | null;
+  nomor_telepon?: string | null;
   ruang_praktik: string;
   tanggal_praktik?: string;
-  avatar: string;
+  avatar?: string;
   slot_tersedia: number;
   kapasitas_per_hari: number;
   jadwal_hari_ini: string;
-  status_jadwal: 'Buka' | 'Penuh' | 'Cuti' | string;
-  bulan_jadwal: string;
-  monthly_schedule: MonthlyScheduleDay[];
-  sesi_harian: DoctorDailySession[];
+  status_jadwal: 'Buka' | 'Penuh' | 'Cuti' | 'Tutup' | string;
+  bulan_jadwal?: string;
+  monthly_schedule?: MonthlyScheduleDay[];
+  sesi_harian?: DoctorDailySession[];
   is_cuti: boolean;
-  cuti_reason?: string;
-  cuti_start?: string;
-  cuti_end?: string;
+  cuti_reason?: string | null;
+  cuti_start?: string | null;
+  cuti_end?: string | null;
 }
 
 export interface DoctorScheduleFilters {
@@ -57,4 +58,37 @@ export interface DoctorScheduleFilters {
 export interface DoctorScheduleListResponse {
   doctors: DoctorSchedule[];
   total_doctors: number;
+  meta?: {
+    page: number;
+    limit: number;
+    total_doctors: number;
+    total_pages: number;
+  };
+}
+
+export interface UpdateDoctorSchedulePayload {
+  is_cuti?: boolean;
+  cuti_reason?: string | null;
+  cuti_start?: string | null;
+  cuti_end?: string | null;
+  status_dokter?: string;
+  status_jadwal?: string;
+  jadwal_hari_ini?: string;
+  slot_tersedia?: number;
+  kapasitas_per_hari?: number;
+  ruang_praktik?: string;
+  date?: string;
+  monthly_schedule?: MonthlyScheduleDay[];
+  sesi_harian?: DoctorDailySession[];
+}
+
+export interface CreateDoctorSessionPayload {
+  schedule_date: string;
+  nama_sesi: string;
+  jam_mulai: string;
+  jam_selesai: string;
+  kuota_pasien: number;
+  slot_tersedia: number;
+  status_sesi: string;
+  ruang?: string;
 }

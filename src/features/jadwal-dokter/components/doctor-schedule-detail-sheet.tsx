@@ -59,9 +59,10 @@ export function DoctorScheduleDetailSheet({
     .toUpperCase();
 
   const handleDayStatusChange = (day: number, status: ScheduleDayStatus) => {
+    const formattedDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     updateDayMutation.mutate({
       doctorId: doctor.id,
-      day,
+      date: formattedDate,
       status
     });
   };

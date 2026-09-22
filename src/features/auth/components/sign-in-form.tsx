@@ -13,6 +13,7 @@ import type { SignInValues } from '../schemas/auth-form-schemas';
 
 interface SignInFormProps {
   error?: string | null;
+  info?: string | null;
   isSubmitting: boolean;
   isOAuthSubmitting: boolean;
   defaultEmail?: string;
@@ -25,6 +26,7 @@ interface SignInFormProps {
 
 export function SignInForm({
   error,
+  info,
   isSubmitting,
   isOAuthSubmitting,
   defaultEmail = '',
@@ -69,6 +71,7 @@ export function SignInForm({
 
       <FieldGroup className='gap-4'>
         <AuthStatusAlert message={error} />
+        <AuthStatusAlert message={info} tone='info' />
         <AuthTextField
           label='Email'
           name='email'

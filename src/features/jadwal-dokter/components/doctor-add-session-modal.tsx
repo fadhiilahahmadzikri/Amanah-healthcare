@@ -12,7 +12,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { Icons } from '@/components/icons';
-import { useUpdateDoctorScheduleMutation } from '../api/mutations';
+import { useCreateDoctorSessionMutation } from '../api/mutations';
 import { toast } from 'sonner';
 import type { DoctorSchedule, DoctorDailySession, SessionStatus } from '../api/types';
 
@@ -58,7 +58,7 @@ export function DoctorAddSessionModal({
   onSessionAdded,
   portalContainerRef
 }: DoctorAddSessionModalProps) {
-  const updateMutation = useUpdateDoctorScheduleMutation();
+  const createSessionMutation = useCreateDoctorSessionMutation();
 
   const [sessionType, setSessionType] = useState<string>('Sesi Pagi');
   const [jamMulai, setJamMulai] = useState('07:30');
@@ -83,6 +83,8 @@ export function DoctorAddSessionModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const todayStr = new Date().toISOString().split('T')[0];
+
     const newSession: DoctorDailySession = {
       id: `${doctor.id}-s-${Date.now()}`,
       nama_sesi: sessionType,
@@ -95,19 +97,18 @@ export function DoctorAddSessionModal({
       ruang: doctor.ruang_praktik
     };
 
-    const currentSessions = doctor.sesi_harian || [];
-    const updatedSessions = [...currentSessions, newSession];
-
-    const updatedTotalCapacity = doctor.kapasitas_per_hari + Number(kuotaPasien);
-    const updatedTotalSlots = doctor.slot_tersedia + Number(slotTersedia);
-
-    updateMutation.mutate(
+    createSessionMutation.mutate(
       {
-        id: doctor.id,
+        doctorId: doctor.id,
         payload: {
-          sesi_harian: updatedSessions,
-          kapasitas_per_hari: updatedTotalCapacity,
-          slot_tersedia: updatedTotalSlots
+          schedule_date: todayStr,
+          nama_sesi: sessionType,
+          jam_mulai: jamMulai,
+          jam_selesai: jamSelesai,
+          kuota_pasien: Number(kuotaPasien),
+          slot_tersedia: Number(slotTersedia),
+          status_sesi: statusSesi,
+          ruang: doctor.ruang_praktik
         }
       },
       {
@@ -279,10 +280,10 @@ export function DoctorAddSessionModal({
             variant='default'
             shape='pill'
             size='sm'
-            disabled={updateMutation.isPending}
+            disabled={createSessionMutation.isPending}
             className='px-6 font-semibold text-xs'
           >
-            {updateMutation.isPending ? (
+            {createSessionMutation.isPending ? (
               <Icons.spinner className='mr-1.5 size-3.5 animate-spin' />
             ) : (
               <Icons.check className='mr-1.5 size-3.5' />
