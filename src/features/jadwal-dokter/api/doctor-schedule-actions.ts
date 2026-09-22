@@ -6,12 +6,16 @@ import {
   updateAdminDoctorSchedule,
   updateAdminDayStatus,
   createAdminDoctorSession,
-  fetchClinicalPractitioners
+  fetchClinicalPractitioners,
+  fetchAdminDoctorScheduleFilterOptions,
+  updateAdminDoctorSession,
+  deleteAdminDoctorSession
 } from './doctor-schedule-service';
 import type {
   UpdateAdminDoctorSchedulePayload,
   UpdateAdminDayStatusPayload,
-  CreateAdminDoctorSessionPayload
+  CreateAdminDoctorSessionPayload,
+  UpdateAdminDoctorSessionPayload
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 import type { DoctorScheduleDetailParams, DoctorScheduleFilters } from './types';
 
@@ -45,6 +49,22 @@ export async function createDoctorSessionAction(
   payload: CreateAdminDoctorSessionPayload
 ) {
   return createAdminDoctorSession(id, payload);
+}
+
+export async function updateDoctorSessionAction(
+  id: string,
+  sessionId: string,
+  payload: UpdateAdminDoctorSessionPayload
+) {
+  return updateAdminDoctorSession(id, sessionId, payload);
+}
+
+export async function deleteDoctorSessionAction(id: string, sessionId: string) {
+  return deleteAdminDoctorSession(id, sessionId);
+}
+
+export async function getDoctorScheduleFilterOptionsAction() {
+  return fetchAdminDoctorScheduleFilterOptions();
 }
 
 export async function getClinicalPractitionersAction(params?: {

@@ -1,5 +1,6 @@
 import 'server-only';
 import { serverEnv } from '@/core/config/env.server';
+import { logger } from '@/core/logging/logger';
 
 export interface BetterAuthUser {
   id: string;
@@ -63,7 +64,9 @@ export async function getServerSession(options?: {
 
     return data as BetterAuthSession;
   } catch (err) {
-    console.error('[BetterAuth] Failed to retrieve server session from backend:', err);
+    logger.info('better_auth_session_fetch_failed', {
+      message: err instanceof Error ? err.message : String(err)
+    });
     return null;
   }
 }

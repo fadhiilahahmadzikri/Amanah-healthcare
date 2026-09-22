@@ -15,6 +15,7 @@ import { getStatusConfig } from '@/styles/clinical-tokens';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DoctorTimelineCalendar } from './doctor-timeline-calendar';
 import { DoctorDailyHourlyGrid } from './doctor-daily-hourly-grid';
+import { hasConfiguredDoctorSchedule } from './doctor-schedule-card';
 import { useUpdateDoctorDayStatusMutation } from '../api/mutations';
 import { doctorScheduleDetailQueryOptions } from '../api/queries';
 import { cn } from '@/lib/utils';
@@ -58,14 +59,21 @@ export function DoctorScheduleDetailSheet({
 
   if (!doctor) return null;
 
+  const hasSchedule = hasConfiguredDoctorSchedule(doctor);
+
   const doctorStatus =
     doctor.is_cuti || doctor.status_dokter === 'Cuti' || doctor.status_jadwal === 'Cuti'
       ? 'Cuti'
-      : doctor.slot_tersedia <= 0 || doctor.status_jadwal === 'Penuh'
-        ? 'Penuh'
-        : 'Buka';
+      : doctor.status_dokter === 'Tutup' || doctor.status_jadwal === 'Tutup'
+        ? 'Tutup'
+        : !hasSchedule
+          ? 'Belum Diatur'
+          : doctor.slot_tersedia <= 0 || doctor.status_jadwal === 'Penuh'
+            ? 'Penuh'
+            : 'Buka';
 
   const doctorStatusConfig = getStatusConfig(doctorStatus);
+  const isUnconfigured = doctorStatus === 'Belum Diatur';
 
   const initials = doctor.nama_dokter
     .replace('dr. ', '')
@@ -137,26 +145,30 @@ export function DoctorScheduleDetailSheet({
                       ? 'bg-sky-500'
                       : doctorStatus === 'Penuh'
                         ? 'bg-amber-500'
-                        : 'bg-emerald-500'
+                        : doctorStatus === 'Belum Diatur' || doctorStatus === 'Tutup'
+                          ? 'bg-slate-400'
+                          : 'bg-emerald-500'
                   )}
                 />
               </div>
 
               {/* Action: Atur Jadwal (Icon-Based Button replacing bell) */}
-              <div className='pb-1'>
-                <button
-                  type='button'
-                  onClick={() => {
-                    onClose();
-                    onOpenEdit(doctor);
-                  }}
-                  aria-label='Atur Jadwal Dokter'
-                  title='Atur Jadwal Dokter'
-                  className='size-9 rounded-full bg-[color-mix(in_oklab,var(--primary-bright,var(--primary))_12%,transparent)] text-[var(--primary-bright,var(--primary))] hover:bg-[var(--primary)] hover:text-primary-foreground flex items-center justify-center transition-all shadow-2xs cursor-pointer active:scale-95'
-                >
-                  <Icons.edit className='size-4' />
-                </button>
-              </div>
+              {!isUnconfigured && (
+                <div className='pb-1'>
+                  <button
+                    type='button'
+                    onClick={() => {
+                      onClose();
+                      onOpenEdit(doctor);
+                    }}
+                    aria-label='Atur Jadwal Dokter'
+                    title='Atur Jadwal Dokter'
+                    className='size-9 rounded-full bg-[color-mix(in_oklab,var(--primary-bright,var(--primary))_12%,transparent)] text-[var(--primary-bright,var(--primary))] hover:bg-[var(--primary)] hover:text-primary-foreground flex items-center justify-center transition-all shadow-2xs cursor-pointer active:scale-95'
+                  >
+                    <Icons.edit className='size-4' />
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Name + Badges */}
@@ -232,129 +244,143 @@ export function DoctorScheduleDetailSheet({
           </SheetHeader>
         </div>
 
-        {/* 2. Tabs & Scrollable Body Content */}
-        <Tabs
-          value={activeTab}
-          onValueChange={(val) => setActiveTab(val as 'kalender' | 'kuota' | 'informasi')}
-          className='flex-1 flex flex-col min-h-0 gap-0'
-        >
-          <div className='px-6 pt-3 pb-2 border-b border-border/40 shrink-0 bg-muted/20'>
-            <TabsList className='grid w-full grid-cols-3 h-9'>
-              <TabsTrigger value='kalender' className='text-xs font-semibold'>
-                Kalender
-              </TabsTrigger>
-              <TabsTrigger value='kuota' className='text-xs font-semibold'>
-                Jadwal & Kuota
-              </TabsTrigger>
-              <TabsTrigger value='informasi' className='text-xs font-semibold'>
-                Info Dokter
-              </TabsTrigger>
-            </TabsList>
+        {/* 2. Empty-state or Tabs & Scrollable Body Content */}
+        {isUnconfigured ? (
+          <div className='flex-1 overflow-y-auto p-6 select-none'>
+            <div className='flex min-h-[260px] flex-col items-center justify-center rounded-lg border border-dashed border-border/70 bg-muted/20 px-6 py-10 text-center'>
+              <div className='mb-4 flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary'>
+                <Icons.calendar className='size-7' />
+              </div>
+              <h3 className='text-base font-bold text-foreground'>Belum ada jadwal praktik</h3>
+              <p className='mt-2 max-w-sm text-sm font-medium leading-6 text-muted-foreground'>
+                Dokter ini belum memiliki sesi praktik yang diatur untuk periode yang dipilih.
+              </p>
+            </div>
           </div>
+        ) : (
+          <Tabs
+            value={activeTab}
+            onValueChange={(val) => setActiveTab(val as 'kalender' | 'kuota' | 'informasi')}
+            className='flex-1 flex flex-col min-h-0 gap-0'
+          >
+            <div className='px-6 pt-3 pb-2 border-b border-border/40 shrink-0 bg-muted/20'>
+              <TabsList className='grid w-full grid-cols-3 h-9'>
+                <TabsTrigger value='kalender' className='text-xs font-semibold'>
+                  Kalender
+                </TabsTrigger>
+                <TabsTrigger value='kuota' className='text-xs font-semibold'>
+                  Jadwal & Kuota
+                </TabsTrigger>
+                <TabsTrigger value='informasi' className='text-xs font-semibold'>
+                  Info Dokter
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-          <div className='flex-1 overflow-y-auto p-6 space-y-4 select-none'>
-            {/* Tab 1: Standard Calendar System */}
-            <TabsContent value='kalender' className='m-0 space-y-3 outline-none'>
-              <DoctorTimelineCalendar
-                doctor={doctor}
-                selectedDay={selectedDay}
-                onSelectDay={setSelectedDay}
-                currentMonth={currentMonth}
-                onMonthChange={setCurrentMonth}
-                currentYear={currentYear}
-                onYearChange={setCurrentYear}
-                onNavigateToDailyGrid={(day) => {
-                  setSelectedDay(day);
-                  setActiveTab('kuota');
-                }}
-                onSelectDayStatus={(day, st) =>
-                  handleDayStatusChange(
-                    day,
-                    st === 'buka' ? 'Buka' : st === 'cuti' ? 'Cuti' : 'Penuh'
-                  )
-                }
-              />
-            </TabsContent>
+            <div className='flex-1 overflow-y-auto p-6 space-y-4 select-none'>
+              {/* Tab 1: Standard Calendar System */}
+              <TabsContent value='kalender' className='m-0 space-y-3 outline-none'>
+                <DoctorTimelineCalendar
+                  doctor={doctor}
+                  selectedDay={selectedDay}
+                  onSelectDay={setSelectedDay}
+                  currentMonth={currentMonth}
+                  onMonthChange={setCurrentMonth}
+                  currentYear={currentYear}
+                  onYearChange={setCurrentYear}
+                  onNavigateToDailyGrid={(day) => {
+                    setSelectedDay(day);
+                    setActiveTab('kuota');
+                  }}
+                  onSelectDayStatus={(day, st) =>
+                    handleDayStatusChange(
+                      day,
+                      st === 'buka' ? 'Buka' : st === 'cuti' ? 'Cuti' : 'Penuh'
+                    )
+                  }
+                />
+              </TabsContent>
 
-            {/* Tab 2: Grid Jadwal & Kuota Harian (POV 24 Jam dengan X & Y Axis) */}
-            <TabsContent value='kuota' className='m-0 space-y-3 outline-none'>
-              <DoctorDailyHourlyGrid
-                doctor={doctor}
-                selectedDay={selectedDay}
-                onSelectDay={setSelectedDay}
-                currentMonth={currentMonth}
-                onMonthChange={setCurrentMonth}
-                currentYear={currentYear}
-                onYearChange={setCurrentYear}
-                modalContainerRef={modalContainerRef}
-              />
-            </TabsContent>
+              {/* Tab 2: Grid Jadwal & Kuota Harian (POV 24 Jam dengan X & Y Axis) */}
+              <TabsContent value='kuota' className='m-0 space-y-3 outline-none'>
+                <DoctorDailyHourlyGrid
+                  doctor={doctor}
+                  selectedDay={selectedDay}
+                  onSelectDay={setSelectedDay}
+                  currentMonth={currentMonth}
+                  onMonthChange={setCurrentMonth}
+                  currentYear={currentYear}
+                  onYearChange={setCurrentYear}
+                  modalContainerRef={modalContainerRef}
+                />
+              </TabsContent>
 
-            {/* Tab 3: Informasi Kontak & Ruang Praktik */}
-            <TabsContent value='informasi' className='m-0 space-y-4 outline-none'>
-              <div>
-                <span className='text-xs font-normal text-muted-foreground/80 block mb-2'>
-                  Informasi kontak & ruang praktik
-                </span>
-                <div className='grid grid-cols-2 gap-y-3 gap-x-5'>
-                  <div className='border-b border-border/40 pb-2'>
-                    <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                      Unit fasilitas
-                    </span>
-                    <span className='text-sm font-medium text-foreground block truncate select-text'>
-                      RS Amanah Healthcare
-                    </span>
-                  </div>
+              {/* Tab 3: Informasi Kontak & Ruang Praktik */}
+              <TabsContent value='informasi' className='m-0 space-y-4 outline-none'>
+                <div>
+                  <span className='text-xs font-normal text-muted-foreground/80 block mb-2'>
+                    Informasi kontak & ruang praktik
+                  </span>
+                  <div className='grid grid-cols-2 gap-y-3 gap-x-5'>
+                    <div className='border-b border-border/40 pb-2'>
+                      <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
+                        Unit fasilitas
+                      </span>
+                      <span className='text-sm font-medium text-foreground block truncate select-text'>
+                        RS Amanah Healthcare
+                      </span>
+                    </div>
 
-                  <div className='border-b border-border/40 pb-2'>
-                    <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                      Spesialisasi
-                    </span>
-                    <span className='text-sm font-medium text-foreground block truncate select-text'>
-                      {doctor.spesialisasi}
-                    </span>
-                  </div>
+                    <div className='border-b border-border/40 pb-2'>
+                      <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
+                        Spesialisasi
+                      </span>
+                      <span className='text-sm font-medium text-foreground block truncate select-text'>
+                        {doctor.spesialisasi}
+                      </span>
+                    </div>
 
-                  <div className='border-b border-border/40 pb-2'>
-                    <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                      Email dokter
-                    </span>
-                    <span className='text-sm font-medium text-muted-foreground block truncate font-mono select-text'>
-                      {doctor.email}
-                    </span>
-                  </div>
+                    <div className='border-b border-border/40 pb-2'>
+                      <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
+                        Email dokter
+                      </span>
+                      <span className='text-sm font-medium text-muted-foreground block truncate font-mono select-text'>
+                        {doctor.email}
+                      </span>
+                    </div>
 
-                  <div className='border-b border-border/40 pb-2'>
-                    <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                      Nomor telepon
-                    </span>
-                    <span className='text-sm font-medium text-muted-foreground block truncate font-mono select-text'>
-                      {doctor.nomor_telepon}
-                    </span>
-                  </div>
+                    <div className='border-b border-border/40 pb-2'>
+                      <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
+                        Nomor telepon
+                      </span>
+                      <span className='text-sm font-medium text-muted-foreground block truncate font-mono select-text'>
+                        {doctor.nomor_telepon}
+                      </span>
+                    </div>
 
-                  <div className='border-b border-border/40 pb-2'>
-                    <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                      Ruang praktik
-                    </span>
-                    <span className='text-sm font-medium text-muted-foreground block truncate select-text'>
-                      {doctor.ruang_praktik}
-                    </span>
-                  </div>
+                    <div className='border-b border-border/40 pb-2'>
+                      <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
+                        Ruang praktik
+                      </span>
+                      <span className='text-sm font-medium text-muted-foreground block truncate select-text'>
+                        {doctor.ruang_praktik}
+                      </span>
+                    </div>
 
-                  <div className='border-b border-border/40 pb-2'>
-                    <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                      Status dokter
-                    </span>
-                    <span className='text-sm font-bold text-foreground block truncate select-text'>
-                      {doctor.status_dokter}
-                    </span>
+                    <div className='border-b border-border/40 pb-2'>
+                      <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
+                        Status dokter
+                      </span>
+                      <span className='text-sm font-bold text-foreground block truncate select-text'>
+                        {doctor.status_dokter}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </TabsContent>
-          </div>
-        </Tabs>
+              </TabsContent>
+            </div>
+          </Tabs>
+        )}
 
         <div ref={modalContainerRef} className='contents' />
       </SheetContent>

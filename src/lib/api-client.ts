@@ -109,6 +109,10 @@ export async function apiClient<T = unknown>(
       setAccessToken(null);
       setRefreshToken(null);
       isRefreshing = false;
+      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth/')) {
+        window.location.href = '/auth/sign-in';
+        return new Promise<never>(() => {});
+      }
       throw AppError.unauthenticated('Sesi telah berakhir. Silakan masuk kembali.');
     }
 
@@ -141,6 +145,10 @@ export async function apiClient<T = unknown>(
       processQueue(refreshErr, null);
       setAccessToken(null);
       setRefreshToken(null);
+      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth/')) {
+        window.location.href = '/auth/sign-in';
+        return new Promise<never>(() => {});
+      }
       throw AppError.unauthenticated('Sesi telah berakhir. Silakan masuk kembali.');
     } finally {
       isRefreshing = false;
@@ -171,6 +179,10 @@ export async function apiClient<T = unknown>(
       throw AppError.validation(fallbackMessage, problemDetails?.invalidParams, problemDetails);
     }
     if (response.status === 401) {
+      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth/')) {
+        window.location.href = '/auth/sign-in';
+        return new Promise<never>(() => {});
+      }
       throw AppError.unauthenticated(fallbackMessage, problemDetails);
     }
     if (response.status === 403) {

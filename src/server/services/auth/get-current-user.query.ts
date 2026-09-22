@@ -20,10 +20,12 @@ export async function getCurrentUserQuery(
   if (accessToken) {
     const result = await repo.getMe(accessToken);
     if (result.ok) {
-      return ok(result.value);
-    }
-    // If not unauthenticated (e.g. 500 network/db error), return the error
-    if (result.error.status !== 401) {
+      if (result.value !== null) {
+        return ok(result.value);
+      }
+      // result.value === null means token invalid / expired (401), proceed to refresh
+    } else {
+      // If error is not unauthenticated (e.g. 500 network/db error), return the error
       return err(result.error);
     }
   }
@@ -36,7 +38,7 @@ export async function getCurrentUserQuery(
       const session = await auth.api.getSession({ headers: await headers() });
       if (session?.session?.token) {
         const betterAuthResult = await repo.getMe(session.session.token);
-        if (betterAuthResult.ok) {
+        if (betterAuthResult.ok && betterAuthResult.value) {
           return ok(betterAuthResult.value);
         }
       }
@@ -48,9 +50,12 @@ export async function getCurrentUserQuery(
   }
 
   const refreshResult = await repo.refreshToken(refreshToken);
-  if (!refreshResult.ok) {
+  if (!refreshResult.ok || !refreshResult.value) {
     // Refresh token expired or revoked - clear invalid cookies
     await clearAuthCookies();
+    if (!refreshResult.ok && !refreshResult.error.expected) {
+      return err(refreshResult.error);
+    }
     return ok(null);
   }
 

@@ -2,14 +2,17 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   updateDoctorDayStatus,
   updateDoctorSchedule,
-  createDoctorSession
+  createDoctorSession,
+  updateDoctorSession,
+  deleteDoctorSession
 } from './service';
 import { doctorScheduleKeys } from './queries';
 import { toast } from 'sonner';
 import type {
   ScheduleDayStatus,
   UpdateDoctorSchedulePayload,
-  CreateDoctorSessionPayload
+  CreateDoctorSessionPayload,
+  UpdateDoctorSessionPayload
 } from './types';
 
 export function useUpdateDoctorScheduleMutation() {
@@ -76,6 +79,52 @@ export function useCreateDoctorSessionMutation() {
     },
     onError: (err: unknown) => {
       const message = err instanceof Error ? err.message : 'Gagal menambahkan sesi praktik';
+      toast.error(message);
+    }
+  });
+}
+
+export function useUpdateDoctorSessionMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      doctorId,
+      sessionId,
+      payload
+    }: {
+      doctorId: string;
+      sessionId: string;
+      payload: UpdateDoctorSessionPayload;
+    }) => updateDoctorSession(doctorId, sessionId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all });
+      toast.success('Sesi praktik berhasil diperbarui');
+    },
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : 'Gagal memperbarui sesi praktik';
+      toast.error(message);
+    }
+  });
+}
+
+export function useDeleteDoctorSessionMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      doctorId,
+      sessionId
+    }: {
+      doctorId: string;
+      sessionId: string;
+    }) => deleteDoctorSession(doctorId, sessionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all });
+      toast.success('Sesi praktik berhasil dihapus');
+    },
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : 'Gagal menghapus sesi praktik';
       toast.error(message);
     }
   });

@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   }
 };
 
-import { loadCurrentUser } from '@/server/loaders/auth.loader';
+import { authLoader } from '@/server/loaders/auth.loader';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const reqHeaders = await headers();
@@ -50,16 +50,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
     user = session.user;
     userRole = session.user.role === 'admin' ? 'admin' : 'patient';
   } else {
-    const currentUser = await loadCurrentUser();
-    if (currentUser) {
-      user = {
-        id: currentUser.id,
-        name: currentUser.staff?.fullName || currentUser.patient?.fullName || currentUser.email,
-        email: currentUser.email,
-        role: currentUser.systemRole === 'ADMIN' ? 'admin' : 'patient'
-      };
-      userRole = currentUser.systemRole === 'ADMIN' ? 'admin' : 'patient';
-    }
+    const currentUser = await authLoader();
+    user = {
+      id: currentUser.id,
+      name: currentUser.staff?.fullName || currentUser.patient?.fullName || currentUser.email,
+      email: currentUser.email,
+      role: currentUser.systemRole === 'ADMIN' ? 'admin' : 'patient'
+    };
+    userRole = currentUser.systemRole === 'ADMIN' ? 'admin' : 'patient';
   }
 
   if (!user) {

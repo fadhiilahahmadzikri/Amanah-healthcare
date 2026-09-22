@@ -16,6 +16,11 @@ export const authClient = createAuthClient({
   fetchOptions: {
     credentials: 'include',
     onError: async (context) => {
+      if (context.response?.status === 401) {
+        if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth/')) {
+          window.location.href = '/auth/sign-in';
+        }
+      }
       if (context.response?.status === 429) {
         const retryAfter = context.response.headers.get('X-Retry-After');
         console.warn(`Rate limited. Retry after ${retryAfter ?? 'a few'}s.`);

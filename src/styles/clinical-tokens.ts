@@ -177,11 +177,31 @@ export const getStatusConfig = (status: string): StatusConfig => {
     case 'TIDAK ADA DOKTER':
     case 'TIDAK_HADIR':
     case 'TIDAK HADIR':
+      return {
+        ...clinicalTokens.colors.status.cancelled,
+        label: 'Tidak Hadir'
+      };
     case 'TUTUP':
     case 'CLOSED':
       return {
-        ...clinicalTokens.colors.status.cancelled,
-        label: normalized === 'TIDAK_HADIR' || normalized === 'TIDAK HADIR' ? 'Tidak Hadir' : 'Cuti'
+        pillBg: 'bg-muted/50 dark:bg-muted/40',
+        pillBorder: 'border-border/60',
+        pillShadow: 'shadow-none',
+        textGradient: 'text-muted-foreground font-bold',
+        dotGradient: 'bg-muted-foreground/40',
+        hex: '#94A3B8',
+        label: 'Tutup'
+      };
+    case 'BELUM_DIATUR':
+    case 'BELUM DIATUR':
+      return {
+        pillBg: 'bg-muted/50 dark:bg-muted/40',
+        pillBorder: 'border-border/60',
+        pillShadow: 'shadow-none',
+        textGradient: 'text-muted-foreground font-bold',
+        dotGradient: 'bg-muted-foreground/40',
+        hex: '#94A3B8',
+        label: 'Belum Diatur'
       };
     case 'LIBUR':
       return {

@@ -14,9 +14,13 @@ export async function refreshTokenCommand(
   }
 
   const result = await repo.refreshToken(refreshToken);
-  if (!result.ok) {
+  if (!result.ok || !result.value) {
     await clearAuthCookies();
-    return err(result.error);
+    return err(
+      result.ok
+        ? AppError.unauthenticated('Sesi telah berakhir. Silakan masuk kembali.')
+        : result.error
+    );
   }
 
   const tokens = result.value;

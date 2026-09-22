@@ -18,7 +18,7 @@ import type { DoctorSchedule } from '../api/types';
 // 1. DATA CONTRACTS (3 STATUS: Buka, Cuti, Penuh)
 // ============================================================================
 
-export type SimpleScheduleStatus = 'buka' | 'cuti' | 'penuh';
+export type SimpleScheduleStatus = 'buka' | 'cuti' | 'penuh' | 'tutup';
 
 export interface DoctorTimelineCalendarProps {
   doctor?: DoctorSchedule;
@@ -35,7 +35,7 @@ export interface DoctorTimelineCalendarProps {
 }
 
 // ============================================================================
-// 2. CONFIG 3 STATUS: HIJAU = BUKA, KUNING = PENUH, BIRU = CUTI
+// 2. CONFIG 4 STATUS: HIJAU = BUKA, KUNING = PENUH, BIRU = CUTI, ABU = TUTUP
 // ============================================================================
 
 const MONTH_NAMES = [
@@ -89,10 +89,18 @@ const STATUS_CONFIG: Record<
     border: 'border-info-border',
     text: 'text-info',
     dotBg: 'bg-info'
+  },
+  // Abu = Tutup (Tidak Beroperasi / Belum Diatur)
+  tutup: {
+    label: 'Tutup',
+    cellBg: 'bg-muted/30 hover:bg-muted/40',
+    border: 'border-border/50',
+    text: 'text-muted-foreground',
+    dotBg: 'bg-muted-foreground/40'
   }
 };
 
-// Helper: Tentukan status 3 nilai (buka / cuti / penuh) untuk hari tertentu
+// Helper: Tentukan status nilai (buka / cuti / penuh / tutup) untuk hari tertentu
 function resolveDayStatus(dayNumber: number, doctor?: DoctorSchedule): SimpleScheduleStatus {
   // 1. Cek leave status via upstream helper
   const leaveInfo = isDoctorOnLeaveOnDay(doctor, dayNumber);
@@ -104,6 +112,20 @@ function resolveDayStatus(dayNumber: number, doctor?: DoctorSchedule): SimpleSch
     if (monthlyItem.status === 'Cuti') return 'cuti';
     if (monthlyItem.status === 'Penuh') return 'penuh';
     if (monthlyItem.status === 'Buka') return 'buka';
+    if (monthlyItem.status === 'Tutup') return 'tutup';
+  }
+
+  // 3. Jika dokter belum memiliki kuota/kapasitas atau sesi harian, status hari adalah Tutup (bukan sintetik Buka)
+  const hasConfiguredSchedule =
+    (doctor?.kapasitas_per_hari ?? 0) > 0 ||
+    Boolean(doctor?.sesi_harian && doctor.sesi_harian.length > 0);
+
+  if (!hasConfiguredSchedule) {
+    return 'tutup';
+  }
+
+  if (doctor?.status_jadwal === 'Tutup') {
+    return 'tutup';
   }
 
   if (doctor?.slot_tersedia === 0 && dayNumber === new Date().getDate()) {
@@ -570,7 +592,7 @@ export function DoctorTimelineCalendar({
                   <div className='px-2 py-1 text-[10px] font-semibold text-muted-foreground'>
                     Ubah status tanggal {day} {MONTH_NAMES[currentMonth]}:
                   </div>
-                  {(['buka', 'penuh', 'cuti'] as SimpleScheduleStatus[]).map((st) => {
+                  {(['buka', 'penuh', 'cuti', 'tutup'] as SimpleScheduleStatus[]).map((st) => {
                     const itemCfg = STATUS_CONFIG[st];
                     return (
                       <DropdownMenuItem
@@ -593,7 +615,7 @@ export function DoctorTimelineCalendar({
         </div>
       </div>
 
-      {/* 3. FOOTER LEGEND (3 STATUS: BUKA, PENUH, CUTI) */}
+      {/* 3. FOOTER LEGEND (4 STATUS: BUKA, PENUH, CUTI, TUTUP) */}
       <div className='px-4 py-3 border-t border-border/30 bg-muted/5 flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs font-bold'>
         <div className='flex items-center gap-2'>
           <span className='size-2.5 rounded-full bg-emerald-500' />
@@ -606,6 +628,10 @@ export function DoctorTimelineCalendar({
         <div className='flex items-center gap-2'>
           <span className='size-2.5 rounded-full bg-sky-500' />
           <span className='text-sky-700 dark:text-sky-400'>Cuti</span>
+        </div>
+        <div className='flex items-center gap-2'>
+          <span className='size-2.5 rounded-full bg-muted-foreground/50' />
+          <span className='text-muted-foreground'>Tutup</span>
         </div>
       </div>
     </div>

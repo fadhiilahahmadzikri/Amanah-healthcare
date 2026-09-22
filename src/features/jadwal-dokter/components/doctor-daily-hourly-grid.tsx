@@ -11,6 +11,8 @@ import {
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DoctorAddSessionModal } from './doctor-add-session-modal';
+import { DoctorEditSessionModal } from './doctor-edit-session-modal';
+import { useDeleteDoctorSessionMutation } from '../api/mutations';
 import { isDoctorOnLeaveOnDay } from '../api/service';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule, DoctorDailySession } from '../api/types';
@@ -136,6 +138,12 @@ function getInitialHourStatus(
   if (monthlyItem?.status === 'Penuh') {
     return 'penuh';
   }
+  if (monthlyItem?.status === 'Cuti') {
+    return 'cuti';
+  }
+  if (monthlyItem?.status === 'Tutup') {
+    return 'tutup';
+  }
 
   const allSessions = [...(doctor?.sesi_harian || []), ...extraSessions];
 
@@ -149,20 +157,12 @@ function getInitialHourStatus(
   if (matchingSession) {
     if (matchingSession.status_sesi === 'Penuh' || matchingSession.slot_tersedia <= 0)
       return 'penuh';
-    if (matchingSession.status_sesi === 'Cuti') return 'tutup';
+    if (matchingSession.status_sesi === 'Cuti') return 'cuti';
+    if (matchingSession.status_sesi === 'Tutup') return 'tutup';
     return 'buka';
   }
 
-  // Jika dokter memiliki sesi spesifik yang terdaftar, jam di luar sesi adalah Tutup
-  if (allSessions.length > 0) {
-    return 'tutup';
-  }
-
-  // Jam default aktif biasa jika dokter belum memiliki konfigurasi sesi eksplisit
-  if ((hour >= 8 && hour <= 11) || (hour >= 14 && hour <= 17) || (hour >= 19 && hour <= 21)) {
-    return 'buka';
-  }
-
+  // Tanpa sesi eksplisit pada jam ini, status selalu Tutup (bukan sintetik Buka)
   return 'tutup';
 }
 
@@ -222,11 +222,32 @@ export function DoctorDailyHourlyGrid({
     activeMonth === realCurrentMonth &&
     activeYear === realCurrentYear;
 
+  const deleteSessionMutation = useDeleteDoctorSessionMutation();
   const [selectedHour, setSelectedHour] = useState<number | null>(new Date().getHours());
   const [hourlyOverrides, setHourlyOverrides] = useState<Record<string, HourlySlotStatus>>({});
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingSession, setEditingSession] = useState<DoctorDailySession | null>(null);
   const [extraSessions, setExtraSessions] = useState<DoctorDailySession[]>([]);
   const [isReasonOpen, setIsReasonOpen] = useState(false);
+
+  const handleOpenEditSession = (session: DoctorDailySession) => {
+    setEditingSession(session);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDeleteSession = (session: DoctorDailySession) => {
+    if (!doctor) return;
+    const confirmDelete = window.confirm(
+      `Apakah Anda yakin ingin menghapus "${session.nama_sesi}" (${session.jam_mulai} - ${session.jam_selesai})?`
+    );
+    if (!confirmDelete) return;
+
+    deleteSessionMutation.mutate({
+      doctorId: doctor.id,
+      sessionId: session.id
+    });
+  };
 
   // Dynamic leave check for activeDay
   const leaveInfo = isDoctorOnLeaveOnDay(doctor, activeDay);
@@ -282,6 +303,11 @@ export function DoctorDailyHourlyGrid({
 
   const currentHour = new Date().getHours();
 
+  const activeSessions: DoctorDailySession[] = [
+    ...(doctor?.sesi_harian || []),
+    ...extraSessions
+  ];
+
   const extraCapacity = extraSessions.reduce((acc, s) => acc + s.kuota_pasien, 0);
   const extraSlots = extraSessions.reduce((acc, s) => acc + s.slot_tersedia, 0);
   const totalCapacity = (doctor?.kapasitas_per_hari || 0) + extraCapacity;
@@ -331,6 +357,10 @@ export function DoctorDailyHourlyGrid({
               {isDayCuti ? (
                 <span className='text-sky-600 dark:text-sky-400 font-semibold'>
                   Praktik Ditutup (Cuti)
+                </span>
+              ) : totalCapacity === 0 && (!doctor?.sesi_harian || doctor.sesi_harian.length === 0) && extraSessions.length === 0 ? (
+                <span className='text-muted-foreground font-medium'>
+                  Belum ada jadwal praktik diatur (0 Kuota)
                 </span>
               ) : (
                 <span className='font-mono'>
@@ -480,7 +510,28 @@ export function DoctorDailyHourlyGrid({
           </Collapsible>
         )}
 
-        {/* 3. Body Grid: X-Axis (Jam per Shift) & Y-Axis (4 Shift Periode) */}
+        {/* 3. Empty Schedule Notice when no sessions are configured */}
+        {totalCapacity === 0 && (!doctor?.sesi_harian || doctor.sesi_harian.length === 0) && extraSessions.length === 0 && !isDayCuti && (
+          <div className='px-4 py-3 bg-muted/20 border-b border-border/40 flex items-center justify-between gap-3 text-xs text-muted-foreground'>
+            <div className='flex items-center gap-2'>
+              <Icons.info className='size-4 shrink-0 text-muted-foreground' />
+              <span>
+                Dokter ini belum memiliki sesi praktik. Seluruh jam ditandai <strong>Tutup</strong>.
+              </span>
+            </div>
+            {!readOnly && (
+              <button
+                type='button'
+                onClick={openAddSessionModal}
+                className='font-bold text-primary hover:underline cursor-pointer shrink-0'
+              >
+                + Tambah jadwal
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* 4. Body Grid: X-Axis (Jam per Shift) & Y-Axis (4 Shift Periode) */}
         <div className='p-3.5 sm:p-4 space-y-4 overflow-x-auto'>
           {SHIFTS.map((shift) => (
             <div key={shift.id} className='space-y-1.5'>
@@ -602,7 +653,102 @@ export function DoctorDailyHourlyGrid({
           )}
         </div>
 
-        {/* 4. Footer Legend */}
+        {/* 4. Daftar Sesi Shift Praktik Terdaftar */}
+        <div className='p-3.5 sm:p-4 border-t border-border/30 bg-muted/5 space-y-2.5'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-2'>
+              <Icons.calendar className='size-3.5 text-primary' />
+              <span className='text-xs font-bold text-foreground tracking-tight'>
+                Daftar Sesi Shift Terdaftar ({activeSessions.length})
+              </span>
+            </div>
+            {!readOnly && !isDayCuti && (
+              <button
+                type='button'
+                onClick={openAddSessionModal}
+                className='text-[11.5px] font-semibold text-primary hover:underline flex items-center gap-1 cursor-pointer select-none'
+              >
+                <Icons.add className='size-3' />
+                <span>Tambah Sesi</span>
+              </button>
+            )}
+          </div>
+
+          {activeSessions.length === 0 ? (
+            <div className='py-4 px-3 text-center rounded-xl border border-dashed border-border/60 bg-background/50 text-xs text-muted-foreground'>
+              Belum ada sesi shift praktik pada tanggal ini.
+            </div>
+          ) : (
+            <div className='space-y-2'>
+              {activeSessions.map((s) => (
+                <div
+                  key={s.id}
+                  className='flex items-center justify-between gap-3 p-2.5 sm:p-3 rounded-xl border border-border/50 bg-card hover:border-primary/40 transition-colors shadow-2xs'
+                >
+                  <div className='min-w-0 flex-1 space-y-0.5'>
+                    <div className='flex items-center gap-2 flex-wrap'>
+                      <span className='text-xs font-bold text-foreground truncate'>
+                        {s.nama_sesi}
+                      </span>
+                      <span className='text-[11px] font-mono px-2 py-0.5 rounded-md bg-muted/60 text-muted-foreground'>
+                        {s.waktu || `${s.jam_mulai} - ${s.jam_selesai}`}
+                      </span>
+                      <span
+                        className={cn(
+                          'text-[10px] font-bold px-2 py-0.5 rounded-full border',
+                          s.status_sesi === 'Buka'
+                            ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
+                            : s.status_sesi === 'Penuh'
+                              ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
+                              : s.status_sesi === 'Cuti'
+                                ? 'bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/20'
+                                : 'bg-muted text-muted-foreground border-border/60'
+                        )}
+                      >
+                        {s.status_sesi}
+                      </span>
+                    </div>
+                    <div className='text-[11px] text-muted-foreground flex items-center gap-3 pt-0.5'>
+                      <span>
+                        Kuota: <strong className='text-foreground'>{s.kuota_pasien}</strong> (Sisa: {s.slot_tersedia})
+                      </span>
+                      {s.ruang && (
+                        <span className='truncate text-muted-foreground/80'>
+                          • {s.ruang}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {!readOnly && (
+                    <div className='flex items-center gap-1 shrink-0'>
+                      <button
+                        type='button'
+                        onClick={() => handleOpenEditSession(s)}
+                        title='Ubah Sesi'
+                        aria-label='Ubah Sesi'
+                        className='size-7 rounded-lg border border-border/60 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer'
+                      >
+                        <Icons.edit className='size-3.5' />
+                      </button>
+                      <button
+                        type='button'
+                        onClick={() => handleDeleteSession(s)}
+                        title='Hapus Sesi'
+                        aria-label='Hapus Sesi'
+                        className='size-7 rounded-lg border border-border/60 hover:bg-destructive/10 text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors cursor-pointer'
+                      >
+                        <Icons.trash className='size-3.5' />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 5. Footer Legend */}
         <div className='px-4 py-3 border-t border-border/30 bg-muted/5 flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs font-bold'>
           <div className='flex items-center gap-2'>
             <span className='size-2.5 rounded-full bg-emerald-500' />
@@ -630,6 +776,21 @@ export function DoctorDailyHourlyGrid({
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
           onSessionAdded={handleSessionAdded}
+          portalContainerRef={modalContainerRef}
+          targetDate={`${activeYear}-${String(activeMonth + 1).padStart(2, '0')}-${String(activeDay).padStart(2, '0')}`}
+        />
+      )}
+
+      {/* Modal Edit Sesi Jadwal Praktik */}
+      {doctor && editingSession && (
+        <DoctorEditSessionModal
+          doctor={doctor}
+          session={editingSession}
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setEditingSession(null);
+          }}
           portalContainerRef={modalContainerRef}
         />
       )}

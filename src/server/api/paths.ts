@@ -38,7 +38,12 @@ export const paths = {
     detail: (id: string) => `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}`,
     update: (id: string) => `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}`,
     updateDayStatus: (id: string) => `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/day-status`,
-    createSession: (id: string) => `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/sessions`
+    createSession: (id: string) => `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/sessions`,
+    updateSession: (id: string, sessionId: string) =>
+      `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/sessions/${sessionId}`,
+    deleteSession: (id: string, sessionId: string) =>
+      `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/sessions/${sessionId}`,
+    filterOptions: () => `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/filter-options`
   },
   clinicalPractitioners: {
     list: () => `${getBaseApiUrl()}/api/v1/clinical/practitioners`

@@ -9,11 +9,16 @@ import {
   adminDoctorScheduleListResponseSchema,
   adminDoctorScheduleDetailResponseSchema,
   clinicalPractitionersResponseSchema,
+  adminDoctorScheduleFilterOptionsSchema,
+  deleteAdminDoctorSessionResponseSchema,
   type AdminDoctorScheduleListResponse,
   type AdminDoctorScheduleDetailResponse,
   type UpdateAdminDoctorSchedulePayload,
   type UpdateAdminDayStatusPayload,
   type CreateAdminDoctorSessionPayload,
+  type UpdateAdminDoctorSessionPayload,
+  type DeleteAdminDoctorSessionResponse,
+  type AdminDoctorScheduleFilterOptionsResponse,
   type ClinicalPractitionersResponse
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 import { z } from 'zod';
@@ -157,4 +162,60 @@ export async function fetchClinicalPractitioners(params?: {
   );
 
   return response.data;
+}
+
+export async function fetchAdminDoctorScheduleFilterOptions(): Promise<
+  AdminDoctorScheduleFilterOptionsResponse['data']
+> {
+  const token = await resolveActiveToken();
+
+  const response = await httpClient.request(
+    paths.doctorSchedules.filterOptions(),
+    adminDoctorScheduleFilterOptionsSchema,
+    {
+      method: 'GET',
+      tokenOverride: token,
+      cache: 'no-store'
+    }
+  );
+
+  return response.data;
+}
+
+export async function updateAdminDoctorSession(
+  id: string,
+  sessionId: string,
+  payload: UpdateAdminDoctorSessionPayload
+): Promise<unknown> {
+  const token = await resolveActiveToken();
+
+  const response = await httpClient.request(
+    paths.doctorSchedules.updateSession(id, sessionId),
+    z.any(),
+    {
+      method: 'PATCH',
+      body: payload,
+      tokenOverride: token
+    }
+  );
+
+  return response;
+}
+
+export async function deleteAdminDoctorSession(
+  id: string,
+  sessionId: string
+): Promise<DeleteAdminDoctorSessionResponse> {
+  const token = await resolveActiveToken();
+
+  const response = await httpClient.request(
+    paths.doctorSchedules.deleteSession(id, sessionId),
+    deleteAdminDoctorSessionResponseSchema,
+    {
+      method: 'DELETE',
+      tokenOverride: token
+    }
+  );
+
+  return response;
 }

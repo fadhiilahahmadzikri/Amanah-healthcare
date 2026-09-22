@@ -1,5 +1,9 @@
 import { keepPreviousData, queryOptions } from '@tanstack/react-query';
-import { getDoctorScheduleById, getDoctorSchedules } from './service';
+import {
+  getDoctorScheduleById,
+  getDoctorSchedules,
+  getDoctorScheduleFilterOptions
+} from './service';
 import { doctorScheduleKeys } from './query-keys';
 import type { DoctorScheduleDetailParams, DoctorScheduleFilters } from './types';
 
@@ -21,6 +25,14 @@ export const doctorScheduleDetailQueryOptions = (
     queryFn: () => getDoctorScheduleById(id, params),
     staleTime: 5 * 1000,
     enabled: !!id
+  });
+
+export const doctorScheduleFilterOptionsQueryOptions = () =>
+  queryOptions({
+    queryKey: doctorScheduleKeys.filterOptions(),
+    queryFn: () => getDoctorScheduleFilterOptions(),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000
   });
 
 export { doctorScheduleKeys };

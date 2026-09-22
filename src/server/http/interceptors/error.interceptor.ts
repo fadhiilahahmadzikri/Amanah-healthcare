@@ -1,12 +1,17 @@
 import 'server-only';
-import { AppError } from '@/core/errors/app-error';
+import {
+  AppError,
+  AuthenticationError,
+  ForbiddenError,
+  TransientServerError,
+  UnexpectedAppError
+} from '@/core/errors/app-error';
 import { problemDetailsSchema, type ProblemDetails } from '@/core/errors/problem-details';
-import { HttpTransportError } from '../http-error';
 
 export async function handleHttpErrorResponse(
   response: Response,
-  method: string,
-  url: string
+  _method: string,
+  _url: string
 ): Promise<never> {
   const status = response.status;
   let rawBody: unknown;
@@ -35,16 +40,16 @@ export async function handleHttpErrorResponse(
       ? ((rawBody as Record<string, unknown>).message as string)
       : `HTTP request failed with status ${status}`);
 
-  if (status === 422) {
-    throw AppError.validation(message, problemDetails?.invalidParams, problemDetails);
-  }
-
   if (status === 401) {
-    throw AppError.unauthenticated(message, problemDetails);
+    throw new AuthenticationError(message, problemDetails);
   }
 
   if (status === 403) {
-    throw AppError.forbidden(message, problemDetails);
+    throw new ForbiddenError(message, problemDetails);
+  }
+
+  if (status === 422) {
+    throw AppError.validation(message, problemDetails?.invalidParams, problemDetails);
   }
 
   if (status === 404) {
@@ -59,11 +64,9 @@ export async function handleHttpErrorResponse(
     throw AppError.rateLimit(message, retryAfter, problemDetails);
   }
 
-  throw new HttpTransportError({
-    message,
-    status,
-    url,
-    method,
-    problemDetails
-  });
+  if (status >= 500) {
+    throw new TransientServerError(message, status, problemDetails);
+  }
+
+  throw new UnexpectedAppError(message, status, problemDetails);
 }

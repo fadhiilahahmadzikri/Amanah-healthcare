@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { FacetedFilter } from '@/shared/ui/faceted-filter';
@@ -8,6 +9,7 @@ import { DateFilter } from '@/shared/ui/date-filter';
 import { SearchInput } from '@/shared/ui/search-input';
 import { toggleItem } from '@/shared/lib/array/toggle-item';
 import { buildMonthOptions } from '@/features/klinik/model/appointment-filters.rules';
+import { doctorScheduleFilterOptionsQueryOptions } from '../api/queries';
 import {
   POLI_OPTIONS,
   DOCTOR_SCHEDULE_STATUS_OPTIONS
@@ -29,6 +31,13 @@ export interface DoctorScheduleFiltersProps {
   className?: string;
 }
 
+const STATUS_DOTS: Record<string, string> = {
+  buka: 'bg-emerald-500',
+  penuh: 'bg-amber-500',
+  cuti: 'bg-sky-500',
+  tutup: 'bg-muted-foreground/60'
+};
+
 export function DoctorScheduleFilters({
   searchQuery,
   onSearchChange,
@@ -44,6 +53,8 @@ export function DoctorScheduleFilters({
   className
 }: DoctorScheduleFiltersProps) {
   const [localSearch, setLocalSearch] = React.useState(searchQuery || '');
+
+  const { data: filterOptionsData } = useQuery(doctorScheduleFilterOptionsQueryOptions());
 
   React.useEffect(() => {
     setLocalSearch(searchQuery || '');
@@ -69,10 +80,23 @@ export function DoctorScheduleFilters({
 
   const monthOptions = React.useMemo(() => buildMonthOptions(), []);
 
-  const poliFacetOptions = React.useMemo(
-    () => POLI_OPTIONS.map((poli) => ({ value: poli, label: poli })),
-    []
-  );
+  const poliFacetOptions = React.useMemo(() => {
+    if (filterOptionsData?.poliklinik && filterOptionsData.poliklinik.length > 0) {
+      return filterOptionsData.poliklinik.map((p) => ({ value: p.name, label: p.name }));
+    }
+    return POLI_OPTIONS.map((poli) => ({ value: poli, label: poli }));
+  }, [filterOptionsData]);
+
+  const statusFacetOptions = React.useMemo(() => {
+    if (filterOptionsData?.statuses && filterOptionsData.statuses.length > 0) {
+      return filterOptionsData.statuses.map((s) => ({
+        value: s.label,
+        label: s.label,
+        dotColor: STATUS_DOTS[s.id.toLowerCase()] || 'bg-primary'
+      }));
+    }
+    return DOCTOR_SCHEDULE_STATUS_OPTIONS;
+  }, [filterOptionsData]);
 
   return (
     <div className={cn('flex flex-wrap items-center gap-2 font-sans select-none', className)}>
@@ -123,7 +147,7 @@ export function DoctorScheduleFilters({
         title='Status'
         icon={Icons.plusCircle}
         mode='multi'
-        options={DOCTOR_SCHEDULE_STATUS_OPTIONS}
+        options={statusFacetOptions}
         selectedValues={selectedStatuses}
         onSelect={(status) => onSelectedStatusesChange(toggleItem(selectedStatuses, status))}
         onReset={() => onSelectedStatusesChange([])}

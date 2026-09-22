@@ -155,6 +155,17 @@ function parseTimeToMinutes(timeStr: string): number {
   return h * 60 + m;
 }
 
+const UNCONFIGURED_SCHEDULE_VALUES = new Set(['', '-', 'belum diatur', 'belum dijadwalkan']);
+
+export function hasConfiguredDoctorSchedule(doctor: DoctorSchedule): boolean {
+  if (doctor.sesi_harian && doctor.sesi_harian.length > 0) {
+    return true;
+  }
+
+  const scheduleTime = doctor.jadwal_hari_ini?.trim().toLowerCase() ?? '';
+  return !UNCONFIGURED_SCHEDULE_VALUES.has(scheduleTime);
+}
+
 /**
  * Helper to determine the upcoming/active session time based on real-time hour
  */
@@ -192,7 +203,8 @@ export function getUpcomingScheduleTime(
 
   if (ongoingSession) {
     return {
-      labelTime: ongoingSession.waktu || `${ongoingSession.jam_mulai} - ${ongoingSession.jam_selesai}`,
+      labelTime:
+        ongoingSession.waktu || `${ongoingSession.jam_mulai} - ${ongoingSession.jam_selesai}`,
       sessionName: ongoingSession.nama_sesi
     };
   }
@@ -236,8 +248,10 @@ export function DoctorScheduleStats({
   sessions,
   className
 }: DoctorScheduleStatsProps) {
+  const hasCapacity = totalCapacity > 0 || (sessions && sessions.length > 0);
   const { labelTime } = getUpcomingScheduleTime(scheduleTime, sessions);
-  const isLongTime = (labelTime || '').length > 14;
+  const displayTime = labelTime && labelTime.trim() !== '' ? labelTime : 'Belum diatur';
+  const isLongTime = (displayTime || '').length > 14;
 
   return (
     <div
@@ -259,7 +273,7 @@ export function DoctorScheduleStats({
             isLongTime ? 'text-[13px]' : 'text-[15.5px]'
           )}
         >
-          {labelTime}
+          {displayTime}
         </span>
       </div>
 
@@ -271,9 +285,7 @@ export function DoctorScheduleStats({
         </div>
         <div className='flex items-center gap-1.5 text-[15.5px] font-bold text-foreground font-mono mt-1 tracking-tight'>
           <Icons.user className='size-3.5 text-foreground shrink-0' />
-          <span>
-            {availableSlots}/{totalCapacity}
-          </span>
+          <span>{hasCapacity ? `${availableSlots}/${totalCapacity}` : '0/0 (Kosong)'}</span>
         </div>
       </div>
     </div>
@@ -381,9 +393,18 @@ export interface DoctorScheduleCardProps {
   className?: string;
 }
 
-export function getDoctorCardStatus(doctor: DoctorSchedule): 'Buka' | 'Cuti' | 'Penuh' {
+export function getDoctorCardStatus(
+  doctor: DoctorSchedule
+): 'Buka' | 'Cuti' | 'Penuh' | 'Belum Diatur' | 'Tutup' {
   if (doctor.is_cuti || doctor.status_dokter === 'Cuti' || doctor.status_jadwal === 'Cuti')
     return 'Cuti';
+
+  if (!hasConfiguredDoctorSchedule(doctor)) {
+    return 'Belum Diatur';
+  }
+
+  if (doctor.status_dokter === 'Tutup' || doctor.status_jadwal === 'Tutup') return 'Tutup';
+
   if (doctor.slot_tersedia <= 0 || doctor.status_jadwal === 'Penuh') return 'Penuh';
   return 'Buka';
 }
@@ -401,6 +422,7 @@ export function DoctorScheduleCard({
 }: DoctorScheduleCardProps) {
   const statusLabel = getDoctorCardStatus(doctor);
   const isCuti = statusLabel === 'Cuti';
+  const isUnconfigured = statusLabel === 'Belum Diatur';
 
   // Handle Call action
   const handleCall = (e: React.MouseEvent) => {
@@ -443,8 +465,11 @@ export function DoctorScheduleCard({
       {/* 2. Top Header: Status Badge & Quick Phone Button */}
       <div className='flex items-center justify-between gap-3 relative z-20'>
         <DoctorStatusBadge status={statusLabel} />
-        {showCallButton && (
-          <DoctorQuickCallButton phoneNumber={doctor.nomor_telepon ?? undefined} onClick={handleCall} />
+        {showCallButton && !isUnconfigured && (
+          <DoctorQuickCallButton
+            phoneNumber={doctor.nomor_telepon ?? undefined}
+            onClick={handleCall}
+          />
         )}
       </div>
 
@@ -456,13 +481,17 @@ export function DoctorScheduleCard({
           title={doctor.nama_dokter}
           className='text-[18px] sm:text-[19px] font-bold text-card-foreground tracking-tight leading-snug pr-24 sm:pr-28 mt-2 mb-2.5 line-clamp-1'
         >
-          <button
-            type='button'
-            onClick={handleDetail}
-            className='text-left hover:text-primary transition-colors cursor-pointer focus-visible:outline-none focus-visible:underline'
-          >
-            {doctor.nama_dokter}
-          </button>
+          {isUnconfigured ? (
+            doctor.nama_dokter
+          ) : (
+            <button
+              type='button'
+              onClick={handleDetail}
+              className='text-left hover:text-primary transition-colors cursor-pointer focus-visible:outline-none focus-visible:underline'
+            >
+              {doctor.nama_dokter}
+            </button>
+          )}
         </h3>
 
         {/* Location Row */}
@@ -472,7 +501,7 @@ export function DoctorScheduleCard({
         />
 
         {/* Date Row (rendered when not cuti or date is provided) */}
-        {!isCuti && doctor.tanggal_praktik && (
+        {!isCuti && !isUnconfigured && doctor.tanggal_praktik && (
           <DoctorInfoRow
             icon={<Icons.calendar className='size-4 text-muted-foreground' />}
             text={doctor.tanggal_praktik}
@@ -488,9 +517,14 @@ export function DoctorScheduleCard({
             title='Dokter sedang cuti'
             subtitle={doctor.cuti_reason || 'Tidak ada jadwal praktik'}
           />
+        ) : isUnconfigured ? (
+          <DoctorCutiNotice
+            title='Belum ada jadwal praktik'
+            subtitle='Dokter ini belum memiliki sesi praktik yang diatur.'
+          />
         ) : (
           <DoctorScheduleStats
-            scheduleTime={doctor.jadwal_hari_ini || '08:00 - 16:00'}
+            scheduleTime={doctor.jadwal_hari_ini || 'Belum diatur'}
             availableSlots={doctor.slot_tersedia}
             totalCapacity={doctor.kapasitas_per_hari}
             sessions={doctor.sesi_harian}
@@ -498,7 +532,7 @@ export function DoctorScheduleCard({
         ))}
 
       {/* 5. Action Footer Buttons (Reschedule & Detail) */}
-      {showActions && (
+      {showActions && !isUnconfigured && (
         <div
           className={cn(
             'flex items-center justify-end gap-2 pt-3 mt-auto border-t border-border/40 relative z-20'

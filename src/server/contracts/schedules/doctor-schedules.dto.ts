@@ -131,3 +131,58 @@ export const clinicalPractitionersResponseSchema = z.object({
   data: z.array(clinicalPractitionerSchema)
 });
 export type ClinicalPractitionersResponse = z.infer<typeof clinicalPractitionersResponseSchema>;
+
+export const updateAdminDoctorSessionPayloadSchema = z.object({
+  nama_sesi: z.string().optional(),
+  jam_mulai: z.string().optional(),
+  jam_selesai: z.string().optional(),
+  kuota_pasien: z.number().optional(),
+  slot_tersedia: z.number().optional(),
+  status_sesi: z.string().optional(),
+  ruang: z.string().optional()
+});
+export type UpdateAdminDoctorSessionPayload = z.infer<
+  typeof updateAdminDoctorSessionPayloadSchema
+>;
+
+export const deleteAdminDoctorSessionResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string().optional(),
+  data: z
+    .object({
+      sessionId: z.string()
+    })
+    .optional()
+});
+export type DeleteAdminDoctorSessionResponse = z.infer<
+  typeof deleteAdminDoctorSessionResponseSchema
+>;
+
+export const adminDoctorScheduleFilterOptionsSchema = z.object({
+  success: z.boolean(),
+  data: z.object({
+    poliklinik: z.array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        code: z.string().optional().nullable()
+      })
+    ),
+    spesialisasi: z.array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        code: z.string().optional().nullable()
+      })
+    ),
+    statuses: z.array(
+      z.object({
+        id: z.string(),
+        label: z.string()
+      })
+    )
+  })
+});
+export type AdminDoctorScheduleFilterOptionsResponse = z.infer<
+  typeof adminDoctorScheduleFilterOptionsSchema
+>;

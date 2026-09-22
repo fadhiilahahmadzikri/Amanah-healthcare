@@ -1,6 +1,6 @@
 import 'server-only';
 import { ok, err, type Result } from '@/core/result/result';
-import { AppError } from '@/core/errors/app-error';
+import { AppError, AuthenticationError } from '@/core/errors/app-error';
 import { httpClient } from '../../http/http-client';
 import { paths } from '../../api/paths';
 import {
@@ -55,7 +55,7 @@ export class AuthRepository implements IAuthRepository {
     }
   }
 
-  async getMe(accessToken: string): Promise<Result<User, AppError>> {
+  async getMe(accessToken: string): Promise<Result<User | null, AppError>> {
     try {
       const dto = await httpClient.request(paths.auth.me(), authenticatedUserDtoSchema, {
         method: 'GET',
@@ -65,6 +65,12 @@ export class AuthRepository implements IAuthRepository {
       const user = toUserDomain(dto);
       return ok(user);
     } catch (error: unknown) {
+      if (
+        error instanceof AuthenticationError ||
+        (error instanceof AppError && error.status === 401)
+      ) {
+        return ok(null);
+      }
       if (error instanceof AppError) {
         return err(error);
       }
@@ -72,7 +78,7 @@ export class AuthRepository implements IAuthRepository {
     }
   }
 
-  async refreshToken(refreshToken: string): Promise<Result<AuthTokens, AppError>> {
+  async refreshToken(refreshToken: string): Promise<Result<AuthTokens | null, AppError>> {
     try {
       const dto = await httpClient.request(paths.auth.refresh(), refreshResponseDtoSchema, {
         method: 'POST',
@@ -82,6 +88,12 @@ export class AuthRepository implements IAuthRepository {
       const tokens = toRefreshTokensDomain(dto);
       return ok(tokens);
     } catch (error: unknown) {
+      if (
+        error instanceof AuthenticationError ||
+        (error instanceof AppError && error.status === 401)
+      ) {
+        return ok(null);
+      }
       if (error instanceof AppError) {
         return err(error);
       }

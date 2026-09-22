@@ -22,6 +22,7 @@ export interface DoctorAddSessionModalProps {
   onClose: () => void;
   onSessionAdded?: (session: DoctorDailySession) => void;
   portalContainerRef?: React.RefObject<HTMLElement | null>;
+  targetDate?: string;
 }
 
 const PRESET_SESSIONS = [
@@ -56,7 +57,8 @@ export function DoctorAddSessionModal({
   isOpen,
   onClose,
   onSessionAdded,
-  portalContainerRef
+  portalContainerRef,
+  targetDate
 }: DoctorAddSessionModalProps) {
   const createSessionMutation = useCreateDoctorSessionMutation();
 
@@ -83,7 +85,7 @@ export function DoctorAddSessionModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const todayStr = new Date().toISOString().split('T')[0];
+    const effectiveDate = targetDate || new Date().toISOString().split('T')[0];
 
     const newSession: DoctorDailySession = {
       id: `${doctor.id}-s-${Date.now()}`,
@@ -101,7 +103,7 @@ export function DoctorAddSessionModal({
       {
         doctorId: doctor.id,
         payload: {
-          schedule_date: todayStr,
+          schedule_date: effectiveDate,
           nama_sesi: sessionType,
           jam_mulai: jamMulai,
           jam_selesai: jamSelesai,

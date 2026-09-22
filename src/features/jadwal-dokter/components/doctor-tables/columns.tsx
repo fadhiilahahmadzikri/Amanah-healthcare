@@ -109,10 +109,10 @@ export const getColumns = ({
       return (
         <div className='space-y-0.5'>
           <span className='text-xs font-semibold text-foreground block font-mono'>
-            {jadwal_hari_ini}
+            {jadwal_hari_ini || (kapasitas_per_hari > 0 ? '08:00 - 16:00' : 'Belum diatur')}
           </span>
           <span className='text-[10px] text-muted-foreground block'>
-            Kapasitas: {kapasitas_per_hari} pasien
+            {kapasitas_per_hari > 0 ? `Kapasitas: ${kapasitas_per_hari} pasien` : 'Belum ada jadwal'}
           </span>
         </div>
       );
@@ -123,9 +123,11 @@ export const getColumns = ({
     header: 'Slot Tersedia',
     cell: ({ row }) => {
       const { slot_tersedia, kapasitas_per_hari, is_cuti } = row.original;
-      const percentage = is_cuti
-        ? 0
-        : Math.round((slot_tersedia / Math.max(kapasitas_per_hari, 1)) * 100);
+      const hasCapacity = kapasitas_per_hari > 0;
+      const percentage =
+        is_cuti || !hasCapacity
+          ? 0
+          : Math.round((slot_tersedia / Math.max(kapasitas_per_hari, 1)) * 100);
 
       return (
         <div className='space-y-1.5 min-w-[130px] max-w-[170px]'>
@@ -133,22 +135,30 @@ export const getColumns = ({
             <span
               className={cn(
                 'tabular-nums font-mono',
-                percentage <= 20 ? 'text-destructive' : 'text-primary'
+                !hasCapacity
+                  ? 'text-muted-foreground'
+                  : percentage <= 20
+                    ? 'text-destructive'
+                    : 'text-primary'
               )}
             >
-              {slot_tersedia} / {kapasitas_per_hari} Slot
+              {hasCapacity ? `${slot_tersedia} / ${kapasitas_per_hari} Slot` : '0 / 0 (Kosong)'}
             </span>
-            <span className='text-[10px] text-muted-foreground tabular-nums'>{percentage}%</span>
+            <span className='text-[10px] text-muted-foreground tabular-nums'>
+              {hasCapacity ? `${percentage}%` : '-'}
+            </span>
           </div>
           <Progress
             value={percentage}
             className={cn(
               'h-1.5',
-              percentage <= 20
-                ? '[&>div]:bg-destructive'
-                : percentage <= 50
-                  ? '[&>div]:bg-amber-500'
-                  : '[&>div]:bg-primary'
+              !hasCapacity
+                ? '[&>div]:bg-muted'
+                : percentage <= 20
+                  ? '[&>div]:bg-destructive'
+                  : percentage <= 50
+                    ? '[&>div]:bg-amber-500'
+                    : '[&>div]:bg-primary'
             )}
           />
         </div>

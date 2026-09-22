@@ -13,8 +13,8 @@ import type { DeleteAccountResponseDto } from '../../contracts/auth/auth.dto';
 export interface IAuthRepository {
   loginWithEmail(payload: AuthEmailLoginRequest): Promise<Result<AuthSession, AppError>>;
   register(payload: AuthRegisterRequest): Promise<Result<void, AppError>>;
-  getMe(accessToken: string): Promise<Result<User, AppError>>;
-  refreshToken(refreshToken: string): Promise<Result<AuthTokens, AppError>>;
+  getMe(accessToken: string): Promise<Result<User | null, AppError>>;
+  refreshToken(refreshToken: string): Promise<Result<AuthTokens | null, AppError>>;
   forgotPassword(payload: AuthForgotPasswordRequest): Promise<Result<void, AppError>>;
   resetPassword(payload: AuthResetPasswordRequest): Promise<Result<void, AppError>>;
   logout(accessToken: string): Promise<Result<void, AppError>>;

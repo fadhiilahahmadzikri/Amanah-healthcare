@@ -16,6 +16,8 @@
     "lint:strict": "oxlint --deny-warnings",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
+    "test": "bun test --preload ./tests/setup.ts",
+    "test:unit": "bun test --preload ./tests/setup.ts tests/unit",
     "prepare": "husky"
   },
   "dependencies": {

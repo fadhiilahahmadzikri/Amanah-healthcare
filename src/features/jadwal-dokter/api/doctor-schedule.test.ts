@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { isDoctorOnLeaveOnDay } from '../utils/leave-calculator';
-import { getUpcomingScheduleTime } from '../components/doctor-schedule-card';
+import { getUpcomingScheduleTime, getDoctorCardStatus } from '../components/doctor-schedule-card';
 import { doctorScheduleKeys } from './query-keys';
 import {
   adminDoctorScheduleListResponseSchema,
@@ -258,5 +258,94 @@ describe('Backend DTO Contract Alignment', () => {
 
     expect(updateAdminDayStatusPayloadSchema.safeParse(cutiPayload).success).toBe(true);
     expect(updateAdminDayStatusPayloadSchema.safeParse(tutupPayload).success).toBe(true);
+  });
+});
+
+describe('Doctor Card Status & Unconfigured Zero-Quota Handling', () => {
+  it('returns "Belum Diatur" for newly created doctors with 0 capacity and 0 sessions', () => {
+    const newDoctor: DoctorSchedule = {
+      id: 'doc-new-1',
+      nama_dokter: 'dr. Budi Baru, Sp.A',
+      spesialisasi: 'Anak',
+      status_dokter: 'Aktif',
+      ruang_praktik: 'Poli Anak',
+      slot_tersedia: 0,
+      kapasitas_per_hari: 0,
+      jadwal_hari_ini: '',
+      status_jadwal: 'Belum Diatur',
+      is_cuti: false,
+      sesi_harian: []
+    };
+
+    expect(getDoctorCardStatus(newDoctor)).toBe('Belum Diatur');
+  });
+
+  it('returns "Belum Diatur" when quota exists but no real session or schedule time exists', () => {
+    const quotaOnlyDoctor: DoctorSchedule = {
+      id: 'doc-quota-only-1',
+      nama_dokter: 'dr. Kuota Tanpa Jadwal',
+      spesialisasi: 'Umum',
+      status_dokter: 'Buka',
+      ruang_praktik: 'Poli Umum',
+      slot_tersedia: 8,
+      kapasitas_per_hari: 8,
+      jadwal_hari_ini: '-',
+      status_jadwal: 'Buka',
+      is_cuti: false,
+      sesi_harian: []
+    };
+
+    expect(getDoctorCardStatus(quotaOnlyDoctor)).toBe('Belum Diatur');
+  });
+
+  it('returns "Penuh" for scheduled doctors whose slots are completely filled', () => {
+    const fullDoctor: DoctorSchedule = {
+      id: 'doc-full-1',
+      nama_dokter: 'dr. Siti, Sp.OG',
+      spesialisasi: 'Kebidanan',
+      status_dokter: 'Aktif',
+      ruang_praktik: 'Poli Kandungan',
+      slot_tersedia: 0,
+      kapasitas_per_hari: 20,
+      jadwal_hari_ini: '08:00 - 12:00',
+      status_jadwal: 'Penuh',
+      is_cuti: false
+    };
+
+    expect(getDoctorCardStatus(fullDoctor)).toBe('Penuh');
+  });
+
+  it('returns "Buka" for scheduled doctors with available slots', () => {
+    const openDoctor: DoctorSchedule = {
+      id: 'doc-open-1',
+      nama_dokter: 'dr. Andi, Sp.B',
+      spesialisasi: 'Bedah',
+      status_dokter: 'Aktif',
+      ruang_praktik: 'Poli Bedah',
+      slot_tersedia: 10,
+      kapasitas_per_hari: 20,
+      jadwal_hari_ini: '08:00 - 12:00',
+      status_jadwal: 'Buka',
+      is_cuti: false
+    };
+
+    expect(getDoctorCardStatus(openDoctor)).toBe('Buka');
+  });
+
+  it('returns "Cuti" when is_cuti is true regardless of quota', () => {
+    const cutiDoctor: DoctorSchedule = {
+      id: 'doc-cuti-1',
+      nama_dokter: 'dr. Rina, Sp.M',
+      spesialisasi: 'Mata',
+      status_dokter: 'Cuti',
+      ruang_praktik: 'Poli Mata',
+      slot_tersedia: 0,
+      kapasitas_per_hari: 0,
+      jadwal_hari_ini: '',
+      status_jadwal: 'Cuti',
+      is_cuti: true
+    };
+
+    expect(getDoctorCardStatus(cutiDoctor)).toBe('Cuti');
   });
 });

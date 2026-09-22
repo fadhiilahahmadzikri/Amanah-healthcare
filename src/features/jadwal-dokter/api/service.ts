@@ -3,7 +3,10 @@ import {
   getDoctorScheduleDetailAction,
   updateDoctorScheduleAction,
   updateDoctorDayStatusAction,
-  createDoctorSessionAction
+  createDoctorSessionAction,
+  updateDoctorSessionAction,
+  deleteDoctorSessionAction,
+  getDoctorScheduleFilterOptionsAction
 } from './doctor-schedule-actions';
 import type {
   DoctorSchedule,
@@ -11,6 +14,9 @@ import type {
   DoctorScheduleListResponse,
   UpdateDoctorSchedulePayload,
   CreateDoctorSessionPayload,
+  UpdateDoctorSessionPayload,
+  DeleteDoctorSessionResponse,
+  DoctorScheduleFilterOptions,
   ScheduleDayStatus,
   DoctorScheduleDetailParams
 } from './types';
@@ -86,6 +92,40 @@ export async function createDoctorSession(
   payload: CreateDoctorSessionPayload
 ): Promise<unknown> {
   return createDoctorSessionAction(doctorId, payload);
+}
+
+export async function updateDoctorSession(
+  doctorId: string,
+  sessionId: string,
+  payload: UpdateDoctorSessionPayload
+): Promise<unknown> {
+  return updateDoctorSessionAction(doctorId, sessionId, payload);
+}
+
+export async function deleteDoctorSession(
+  doctorId: string,
+  sessionId: string
+): Promise<DeleteDoctorSessionResponse> {
+  return deleteDoctorSessionAction(doctorId, sessionId);
+}
+
+export async function getDoctorScheduleFilterOptions(): Promise<DoctorScheduleFilterOptions> {
+  try {
+    const data = await getDoctorScheduleFilterOptionsAction();
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch doctor schedule filter options:', error);
+    return {
+      poliklinik: [],
+      spesialisasi: [],
+      statuses: [
+        { id: 'buka', label: 'Buka' },
+        { id: 'penuh', label: 'Penuh' },
+        { id: 'cuti', label: 'Cuti' },
+        { id: 'tutup', label: 'Tutup' }
+      ]
+    };
+  }
 }
 
 export { isDoctorOnLeaveOnDay, extractDayNumber } from '../utils/leave-calculator';

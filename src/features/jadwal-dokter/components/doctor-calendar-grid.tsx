@@ -76,7 +76,7 @@ export function DoctorCalendarGrid({
     return Array.from({ length: totalDays }, (_, i) => ({
       day: i + 1,
       date: `${year}-${monthStr}-${String(i + 1).padStart(2, '0')}`,
-      status: 'Buka' as ScheduleDayStatus
+      status: 'Tutup' as ScheduleDayStatus
     }));
   }, [days]);
 

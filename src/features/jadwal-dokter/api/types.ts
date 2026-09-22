@@ -98,3 +98,44 @@ export interface CreateDoctorSessionPayload {
   status_sesi: string;
   ruang?: string;
 }
+
+export interface UpdateDoctorSessionPayload {
+  nama_sesi?: string;
+  jam_mulai?: string;
+  jam_selesai?: string;
+  kuota_pasien?: number;
+  slot_tersedia?: number;
+  status_sesi?: string;
+  ruang?: string;
+}
+
+export interface DeleteDoctorSessionResponse {
+  success: boolean;
+  message?: string;
+  data?: {
+    sessionId: string;
+  };
+}
+
+export interface ClinicUnitOption {
+  id: string;
+  name: string;
+  code?: string | null;
+}
+
+export interface MedicalSpecialtyOption {
+  id: string;
+  name: string;
+  code?: string | null;
+}
+
+export interface ScheduleStatusOption {
+  id: string;
+  label: string;
+}
+
+export interface DoctorScheduleFilterOptions {
+  poliklinik: ClinicUnitOption[];
+  spesialisasi: MedicalSpecialtyOption[];
+  statuses: ScheduleStatusOption[];
+}

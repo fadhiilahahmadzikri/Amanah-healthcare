@@ -44,14 +44,38 @@ async function getBackendSession(req: NextRequest) {
   }
 }
 
+function isJwtExpired(token: string): boolean {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return false;
+    const payload = JSON.parse(atob(parts[1]));
+    if (typeof payload.exp === 'number') {
+      return payload.exp * 1000 < Date.now();
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const sessionCookie =
+  const rawAccessToken = request.cookies.get('amanah_access_token')?.value;
+  const rawRefreshToken = request.cookies.get('amanah_refresh_token')?.value;
+  const betterAuthToken =
     getSessionCookie(request) ||
-    request.cookies.get('amanah_access_token')?.value ||
-    request.cookies.get('amanah_session')?.value ||
     request.cookies.get('better-auth.session_token')?.value ||
-    request.cookies.get('__Secure-better-auth.session_token')?.value;
+    request.cookies.get('__Secure-better-auth.session_token')?.value ||
+    request.cookies.get('amanah_session')?.value;
+
+  const hasValidAccessToken = Boolean(rawAccessToken && !isJwtExpired(rawAccessToken));
+  const hasRefreshToken = Boolean(rawRefreshToken);
+  const hasBetterAuth = Boolean(betterAuthToken);
+
+  const sessionCookie =
+    (hasValidAccessToken ? rawAccessToken : null) ||
+    (hasRefreshToken ? rawRefreshToken : null) ||
+    (hasBetterAuth ? betterAuthToken : null);
 
   // Friendly aliases
   if (pathname === '/login') {
