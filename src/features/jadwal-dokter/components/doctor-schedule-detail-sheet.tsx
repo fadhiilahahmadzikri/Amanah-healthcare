@@ -32,7 +32,7 @@ export function DoctorScheduleDetailSheet({
   doctor: selectedDoctor,
   isOpen,
   onClose,
-  onOpenEdit
+  onOpenEdit: _onOpenEdit
 }: DoctorScheduleDetailSheetProps) {
   const updateDayMutation = useUpdateDoctorDayStatusMutation();
   const modalContainerRef = React.useRef<HTMLDivElement>(null);
@@ -68,8 +68,11 @@ export function DoctorScheduleDetailSheet({
         ? 'Tutup'
         : !hasSchedule
           ? 'Belum Diatur'
-          : doctor.slot_tersedia <= 0 || doctor.status_jadwal === 'Penuh'
-            ? 'Penuh'
+          : doctor.status_dokter === 'Terisi' ||
+              doctor.status_jadwal === 'Terisi' ||
+              doctor.slot_tersedia <= 0 ||
+              doctor.status_jadwal === 'Penuh'
+            ? 'Terisi'
             : 'Buka';
 
   const doctorStatusConfig = getStatusConfig(doctorStatus);
@@ -83,21 +86,15 @@ export function DoctorScheduleDetailSheet({
     .join('')
     .toUpperCase();
 
-  const handleDayStatusChange = (day: number, status: ScheduleDayStatus) => {
+  const handleDayStatusChange = (day: number, status: ScheduleDayStatus, notes?: string) => {
     const formattedDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     updateDayMutation.mutate({
       doctorId: doctor.id,
       date: formattedDate,
-      status
+      status,
+      reason: notes
     });
   };
-
-  const doctorHandle = doctor.nama_dokter
-    .toLowerCase()
-    .replace(/^(dr\.\s*|drg\.\s*|prof\.\s*)/g, '')
-    .replace(/[^a-z0-9]/g, '_')
-    .replace(/_+/g, '_')
-    .replace(/_$/, '');
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -143,8 +140,8 @@ export function DoctorScheduleDetailSheet({
                     'absolute bottom-1 right-1 size-4 rounded-full ring-2 ring-card shadow-xs',
                     doctorStatus === 'Cuti'
                       ? 'bg-sky-500'
-                      : doctorStatus === 'Penuh'
-                        ? 'bg-amber-500'
+                      : doctorStatus === 'Terisi'
+                        ? 'bg-sky-500'
                         : doctorStatus === 'Belum Diatur' || doctorStatus === 'Tutup'
                           ? 'bg-slate-400'
                           : 'bg-emerald-500'
@@ -152,23 +149,6 @@ export function DoctorScheduleDetailSheet({
                 />
               </div>
 
-              {/* Action: Atur Jadwal (Icon-Based Button replacing bell) */}
-              {!isUnconfigured && (
-                <div className='pb-1'>
-                  <button
-                    type='button'
-                    onClick={() => {
-                      onClose();
-                      onOpenEdit(doctor);
-                    }}
-                    aria-label='Atur Jadwal Dokter'
-                    title='Atur Jadwal Dokter'
-                    className='size-9 rounded-full bg-[color-mix(in_oklab,var(--primary-bright,var(--primary))_12%,transparent)] text-[var(--primary-bright,var(--primary))] hover:bg-[var(--primary)] hover:text-primary-foreground flex items-center justify-center transition-all shadow-2xs cursor-pointer active:scale-95'
-                  >
-                    <Icons.edit className='size-4' />
-                  </button>
-                </div>
-              )}
             </div>
 
             {/* Name + Badges */}
@@ -225,21 +205,9 @@ export function DoctorScheduleDetailSheet({
                 </span>
               </div>
 
-              {/* Meta Row: Username Handle (Left) & Lokasi Praktik (Right) */}
-              <div className='pt-1.5 flex items-center justify-between gap-3 text-xs'>
-                <div className='text-xs text-muted-foreground font-mono truncate'>
-                  @{doctorHandle}
-                </div>
-
-                <div className='flex items-center gap-1.5 text-xs text-muted-foreground shrink-0'>
-                  <Icons.location className='size-3.5 text-primary/70 shrink-0' />
-                  <SheetDescription className='text-xs font-semibold text-foreground/90 truncate m-0 p-0 inline'>
-                    {doctor.ruang_praktik.startsWith('Poli')
-                      ? doctor.ruang_praktik
-                      : `Poli ${doctor.spesialisasi}, ${doctor.ruang_praktik}`}
-                  </SheetDescription>
-                </div>
-              </div>
+              <SheetDescription className='sr-only'>
+                Detail jadwal dan sesi praktik {doctor.nama_dokter}
+              </SheetDescription>
             </div>
           </SheetHeader>
         </div>
@@ -288,20 +256,22 @@ export function DoctorScheduleDetailSheet({
                   onMonthChange={setCurrentMonth}
                   currentYear={currentYear}
                   onYearChange={setCurrentYear}
+                  portalContainerRef={modalContainerRef}
                   onNavigateToDailyGrid={(day) => {
                     setSelectedDay(day);
                     setActiveTab('kuota');
                   }}
-                  onSelectDayStatus={(day, st) =>
+                  onSelectDayStatus={(day, st, notes) =>
                     handleDayStatusChange(
                       day,
-                      st === 'buka' ? 'Buka' : st === 'cuti' ? 'Cuti' : 'Penuh'
+                      st === 'buka' ? 'Buka' : 'Tutup',
+                      notes
                     )
                   }
                 />
               </TabsContent>
 
-              {/* Tab 2: Grid Jadwal & Kuota Harian (POV 24 Jam dengan X & Y Axis) */}
+              {/* Tab 2: Grid Jadwal & Kuota Harian (POV 24 Jam dengan 4 Shift) */}
               <TabsContent value='kuota' className='m-0 space-y-3 outline-none'>
                 <DoctorDailyHourlyGrid
                   doctor={doctor}

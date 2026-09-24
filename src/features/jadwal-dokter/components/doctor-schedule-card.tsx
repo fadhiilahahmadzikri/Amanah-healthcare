@@ -180,7 +180,9 @@ export function getUpcomingScheduleTime(
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-  const availableSessions = sessions.filter((s) => s.status_sesi !== 'Cuti');
+  const availableSessions = sessions.filter(
+    (s) => s.status_sesi !== 'Cuti' && s.status_sesi !== 'Tutup'
+  );
 
   if (availableSessions.length === 0) {
     const firstSession = sessions[0];
@@ -190,8 +192,13 @@ export function getUpcomingScheduleTime(
     };
   }
 
+  // Sort available sessions chronologically
+  const sortedSessions = [...availableSessions].sort(
+    (a, b) => parseTimeToMinutes(a.jam_mulai) - parseTimeToMinutes(b.jam_mulai)
+  );
+
   // 1. Cek apakah saat ini sedang dalam sesi aktif yang sedang berlangsung
-  const ongoingSession = availableSessions.find((s) => {
+  const ongoingSession = sortedSessions.find((s) => {
     const start = parseTimeToMinutes(s.jam_mulai);
     const end = parseTimeToMinutes(s.jam_selesai);
     if (end > start) {
@@ -210,7 +217,7 @@ export function getUpcomingScheduleTime(
   }
 
   // 2. Cari sesi paling awal yang akan datang hari ini (jam mulai > jam sekarang)
-  const upcomingToday = availableSessions.find((s) => {
+  const upcomingToday = sortedSessions.find((s) => {
     const start = parseTimeToMinutes(s.jam_mulai);
     return start > currentMinutes;
   });
@@ -223,7 +230,7 @@ export function getUpcomingScheduleTime(
   }
 
   // 3. Jika semua sesi hari ini sudah lewat, ambil sesi awal untuk siklus jadwal berikutnya
-  const nextCycleSession = availableSessions[0] || sessions[0];
+  const nextCycleSession = sortedSessions[0] || sessions[0];
   return {
     labelTime: nextCycleSession?.waktu || scheduleTime,
     sessionName: nextCycleSession?.nama_sesi
@@ -253,6 +260,18 @@ export function DoctorScheduleStats({
   const displayTime = labelTime && labelTime.trim() !== '' ? labelTime : 'Belum diatur';
   const isLongTime = (displayTime || '').length > 14;
 
+  // Calculate dynamic accumulated booked slots (X) and total capacity (Y)
+  let accumulatedCapacity = totalCapacity;
+  let accumulatedBooked = Math.max(0, totalCapacity - availableSlots);
+
+  if (sessions && sessions.length > 0) {
+    accumulatedCapacity = sessions.reduce((sum, s) => sum + (s.kuota_pasien || 0), 0);
+    accumulatedBooked = sessions.reduce(
+      (sum, s) => sum + Math.max(0, (s.kuota_pasien || 0) - (s.slot_tersedia || 0)),
+      0
+    );
+  }
+
   return (
     <div
       className={cn(
@@ -265,7 +284,7 @@ export function DoctorScheduleStats({
       <div className='flex flex-col min-w-0'>
         <div className='flex items-center gap-1.5 text-[11.5px] font-medium text-muted-foreground'>
           <Icons.clock className='size-3.5 shrink-0 text-muted-foreground/80' />
-          <span>Jadwal Praktik</span>
+          <span>Jadwal Praktik Mendatang</span>
         </div>
         <span
           className={cn(
@@ -281,11 +300,11 @@ export function DoctorScheduleStats({
       <div className='flex flex-col min-w-0'>
         <div className='flex items-center gap-1.5 text-[11.5px] font-medium text-muted-foreground'>
           <Icons.teams className='size-3.5 shrink-0 text-muted-foreground/80' />
-          <span>Slot Tersedia</span>
+          <span>Slot Terisi</span>
         </div>
         <div className='flex items-center gap-1.5 text-[15.5px] font-bold text-foreground font-mono mt-1 tracking-tight'>
           <Icons.user className='size-3.5 text-foreground shrink-0' />
-          <span>{hasCapacity ? `${availableSlots}/${totalCapacity}` : '0/0 (Kosong)'}</span>
+          <span>{hasCapacity ? `${accumulatedBooked}/${accumulatedCapacity}` : '0/0 (Kosong)'}</span>
         </div>
       </div>
     </div>
@@ -395,7 +414,7 @@ export interface DoctorScheduleCardProps {
 
 export function getDoctorCardStatus(
   doctor: DoctorSchedule
-): 'Buka' | 'Cuti' | 'Penuh' | 'Belum Diatur' | 'Tutup' {
+): 'Buka' | 'Cuti' | 'Terisi' | 'Belum Diatur' | 'Tutup' {
   if (doctor.is_cuti || doctor.status_dokter === 'Cuti' || doctor.status_jadwal === 'Cuti')
     return 'Cuti';
 
@@ -405,14 +424,16 @@ export function getDoctorCardStatus(
 
   if (doctor.status_dokter === 'Tutup' || doctor.status_jadwal === 'Tutup') return 'Tutup';
 
-  if (doctor.slot_tersedia <= 0 || doctor.status_jadwal === 'Penuh') return 'Penuh';
+  if (doctor.status_dokter === 'Terisi' || doctor.status_jadwal === 'Terisi') return 'Terisi';
+
+  if (doctor.slot_tersedia <= 0 || doctor.status_jadwal === 'Penuh') return 'Terisi';
   return 'Buka';
 }
 
 export function DoctorScheduleCard({
   doctor,
   onOpenDetail,
-  onOpenEdit,
+  onOpenEdit: _onOpenEdit,
   onCall,
   variant = 'default',
   showActions = true,
@@ -432,12 +453,6 @@ export function DoctorScheduleCard({
     } else if (doctor.nomor_telepon) {
       window.open(`tel:${doctor.nomor_telepon.replace(/\s+/g, '')}`, '_self');
     }
-  };
-
-  // Handle Reschedule action (opens edit modal)
-  const handleReschedule = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onOpenEdit?.(doctor);
   };
 
   // Handle Detail action (opens detail modal/sheet)
@@ -531,27 +546,13 @@ export function DoctorScheduleCard({
           />
         ))}
 
-      {/* 5. Action Footer Buttons (Reschedule & Detail) */}
+      {/* 5. Action Footer Button (Detail) */}
       {showActions && !isUnconfigured && (
         <div
           className={cn(
             'flex items-center justify-end gap-2 pt-3 mt-auto border-t border-border/40 relative z-20'
           )}
         >
-          {!isCuti && (
-            <Button
-              type='button'
-              variant='outline'
-              size='card-action'
-              shape='pill'
-              onClick={handleReschedule}
-              className='font-semibold'
-              leadingIcon={<Icons.calendar className='size-3.5 text-muted-foreground' />}
-            >
-              Reschedule
-            </Button>
-          )}
-
           <Button
             type='button'
             variant='default'
@@ -565,6 +566,7 @@ export function DoctorScheduleCard({
           </Button>
         </div>
       )}
+
     </div>
   );
 }

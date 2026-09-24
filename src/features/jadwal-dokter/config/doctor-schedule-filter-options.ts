@@ -21,6 +21,6 @@ export interface DoctorScheduleStatusOption {
 
 export const DOCTOR_SCHEDULE_STATUS_OPTIONS: readonly DoctorScheduleStatusOption[] = [
   { value: 'Buka', label: 'Buka', dotColor: 'bg-emerald-500' },
-  { value: 'Penuh', label: 'Penuh', dotColor: 'bg-amber-500' },
-  { value: 'Cuti', label: 'Cuti', dotColor: 'bg-sky-500' }
+  { value: 'Terisi', label: 'Terisi', dotColor: 'bg-sky-500' },
+  { value: 'Tutup', label: 'Tutup', dotColor: 'bg-slate-400' }
 ] as const;

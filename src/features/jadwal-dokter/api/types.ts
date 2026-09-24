@@ -1,5 +1,31 @@
-export type ScheduleDayStatus = 'Buka' | 'Penuh' | 'Cuti' | 'Tutup';
-export type SessionStatus = 'Buka' | 'Penuh' | 'Cuti' | 'Tutup' | string;
+export type { ClinicRoom } from '@/server/contracts/schedules/doctor-schedules.dto';
+
+export type ScheduleDayStatus = 'Buka' | 'Terisi' | 'Penuh' | 'Cuti' | 'Tutup' | string;
+export type SessionStatus =
+  | 'Buka'
+  | 'Terisi'
+  | 'Penuh'
+  | 'Cuti'
+  | 'Tutup'
+  | 'OPEN'
+  | 'OCCUPIED'
+  | 'CLOSED'
+  | string;
+
+export interface TimelineInterval {
+  intervalIndex: number;
+  startTime: string;
+  endTime: string;
+  status: 'OPEN' | 'OCCUPIED' | 'CLOSED' | string;
+  displayLabel: 'Buka' | 'Terisi' | 'Tutup' | string;
+  isOccupied: boolean;
+  appointmentRef?: {
+    appointmentId: string;
+    queueNumber: number | string;
+    status: string;
+  } | null;
+  closedReason?: string | null;
+}
 
 export interface DoctorDailySession {
   id: string;
@@ -11,6 +37,8 @@ export interface DoctorDailySession {
   slot_tersedia: number;
   status_sesi: SessionStatus;
   ruang?: string;
+  is_reschedule_eligible?: boolean;
+  reschedule_ineligibility_reason?: string | null;
 }
 
 export interface MonthlyScheduleDay {
@@ -25,7 +53,7 @@ export interface DoctorSchedule {
   practitioner_id?: string;
   nama_dokter: string;
   spesialisasi: string;
-  status_dokter: 'Buka' | 'Penuh' | 'Cuti' | 'Tutup' | string;
+  status_dokter: 'Buka' | 'Terisi' | 'Penuh' | 'Cuti' | 'Tutup' | string;
   email?: string | null;
   nomor_telepon?: string | null;
   ruang_praktik: string;
@@ -34,10 +62,11 @@ export interface DoctorSchedule {
   slot_tersedia: number;
   kapasitas_per_hari: number;
   jadwal_hari_ini: string;
-  status_jadwal: 'Buka' | 'Penuh' | 'Cuti' | 'Tutup' | string;
+  status_jadwal: 'Buka' | 'Terisi' | 'Penuh' | 'Cuti' | 'Tutup' | string;
   bulan_jadwal?: string;
   monthly_schedule?: MonthlyScheduleDay[];
   sesi_harian?: DoctorDailySession[];
+  timeline_intervals?: TimelineInterval[];
   is_cuti: boolean;
   cuti_reason?: string | null;
   cuti_start?: string | null;
@@ -109,12 +138,45 @@ export interface UpdateDoctorSessionPayload {
   ruang?: string;
 }
 
+/**
+ * @deprecated Sesi jadwal dokter dilarang dihapus oleh admin (403 ADMIN_SCHEDULE_DELETION_PROHIBITED).
+ */
 export interface DeleteDoctorSessionResponse {
   success: boolean;
   message?: string;
   data?: {
     sessionId: string;
   };
+}
+
+export interface RescheduleDoctorSessionPayload {
+  targetDate: string;
+  targetStartTime: string;
+  targetScheduleContextId?: string;
+  targetRoomId?: string;
+  notes?: string;
+  reason?: string;
+  rescheduleActiveAppointments?: boolean;
+}
+
+export interface RescheduleEligibilityData {
+  isEligible: boolean;
+  actionableGuidance?: string | null;
+  targetValidation?: {
+    isTargetEligible?: boolean;
+    conflictMessage?: string | null;
+    projectedEndTime?: string | null;
+  };
+}
+
+export interface UpdateDoctorDayByDatePayload {
+  status: 'Buka' | 'Tutup' | string;
+  notes?: string;
+}
+
+export interface UpdateDoctorDurationPayload {
+  consultationDurationMinutes: number;
+  startPrecisionMinutes?: number;
 }
 
 export interface ClinicUnitOption {

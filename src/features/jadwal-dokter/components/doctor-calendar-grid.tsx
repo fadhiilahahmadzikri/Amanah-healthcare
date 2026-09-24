@@ -133,7 +133,7 @@ export function DoctorCalendarGrid({
                 <div className='px-2 py-1 text-[10px] font-semibold text-muted-foreground'>
                   Set status tanggal {item.day}:
                 </div>
-                {(['Buka', 'Penuh', 'Cuti', 'Tutup'] as ScheduleDayStatus[]).map((st) => {
+                {(['Buka', 'Tutup'] as const).map((st) => {
                   return (
                     <DropdownMenuItem
                       key={st}

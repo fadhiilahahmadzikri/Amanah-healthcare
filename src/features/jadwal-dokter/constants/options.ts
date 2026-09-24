@@ -1,13 +1,13 @@
 export const DOCTOR_STATUS_OPTIONS = [
   { label: 'Buka', value: 'Buka' },
-  { label: 'Penuh', value: 'Penuh' },
-  { label: 'Cuti', value: 'Cuti' }
+  { label: 'Terisi', value: 'Terisi' },
+  { label: 'Tutup', value: 'Tutup' }
 ];
 
 export const SCHEDULE_STATUS_OPTIONS = [
   { label: 'Buka', value: 'Buka' },
-  { label: 'Penuh', value: 'Penuh' },
-  { label: 'Cuti', value: 'Cuti' }
+  { label: 'Terisi', value: 'Terisi' },
+  { label: 'Tutup', value: 'Tutup' }
 ];
 
 export const POLI_OPTIONS = [

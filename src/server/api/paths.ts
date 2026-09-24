@@ -43,7 +43,20 @@ export const paths = {
       `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/sessions/${sessionId}`,
     deleteSession: (id: string, sessionId: string) =>
       `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/sessions/${sessionId}`,
+    reschedule: (id: string, sessionId: string) =>
+      `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/sessions/${sessionId}/reschedule`,
+    rescheduleEligibility: (id: string, sessionId: string) =>
+      `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/sessions/${sessionId}/reschedule-eligibility`,
+    duration: (id: string) =>
+      `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/duration`,
+    dayByDate: (id: string, date: string) =>
+      `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/days/${date}`,
     filterOptions: () => `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/filter-options`
+  },
+  schedules: {
+    referenceRooms: () => `${getBaseApiUrl()}/api/v1/schedules/reference/rooms`,
+    referencePolikliniks: () => `${getBaseApiUrl()}/api/v1/schedules/reference/polikliniks`,
+    occupancyOverview: () => `${getBaseApiUrl()}/api/v1/schedules/occupancy-overview`
   },
   clinicalPractitioners: {
     list: () => `${getBaseApiUrl()}/api/v1/clinical/practitioners`

@@ -2,6 +2,10 @@
 
 import React, { useState } from 'react';
 import { Icons } from '@/components/icons';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,15 +14,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { isDoctorOnLeaveOnDay } from '../api/service';
 import { cn } from '@/lib/utils';
+import { resolveDayStatus, type SimpleScheduleStatus } from '../utils/leave-calculator';
 import type { DoctorSchedule } from '../api/types';
 
 // ============================================================================
-// 1. DATA CONTRACTS (3 STATUS: Buka, Cuti, Penuh)
+// 1. DATA CONTRACTS (Binary Admin: Buka vs Tutup; Cuti = Data Dokter)
 // ============================================================================
-
-export type SimpleScheduleStatus = 'buka' | 'cuti' | 'penuh' | 'tutup';
 
 export interface DoctorTimelineCalendarProps {
   doctor?: DoctorSchedule;
@@ -28,14 +30,15 @@ export interface DoctorTimelineCalendarProps {
   onMonthChange?: (month: number) => void;
   currentYear?: number;
   onYearChange?: (year: number) => void;
-  onSelectDayStatus?: (day: number, status: SimpleScheduleStatus) => void;
+  onSelectDayStatus?: (day: number, status: 'buka' | 'tutup', notes?: string) => void;
   onNavigateToDailyGrid?: (day: number) => void;
   readOnly?: boolean;
+  portalContainerRef?: React.RefObject<HTMLElement | null>;
   className?: string;
 }
 
 // ============================================================================
-// 2. CONFIG 4 STATUS: HIJAU = BUKA, KUNING = PENUH, BIRU = CUTI, ABU = TUTUP
+// 2. CONFIG 3 STATUS: HIJAU = BUKA, BIRU = CUTI, ABU = TUTUP (PENUH ELIMINATED)
 // ============================================================================
 
 const MONTH_NAMES = [
@@ -74,14 +77,6 @@ const STATUS_CONFIG: Record<
     text: 'text-success',
     dotBg: 'bg-success'
   },
-  // Kuning = Penuh
-  penuh: {
-    label: 'Penuh',
-    cellBg: 'bg-warning-subtle hover:bg-warning-subtle/80',
-    border: 'border-warning-border',
-    text: 'text-warning',
-    dotBg: 'bg-warning'
-  },
   // Biru/Info = Cuti
   cuti: {
     label: 'Cuti',
@@ -100,40 +95,9 @@ const STATUS_CONFIG: Record<
   }
 };
 
-// Helper: Tentukan status nilai (buka / cuti / penuh / tutup) untuk hari tertentu
-function resolveDayStatus(dayNumber: number, doctor?: DoctorSchedule): SimpleScheduleStatus {
-  // 1. Cek leave status via upstream helper
-  const leaveInfo = isDoctorOnLeaveOnDay(doctor, dayNumber);
-  if (leaveInfo.isLeave) return 'cuti';
+// Helper & Status Types: Tentukan status nilai (buka / cuti / tutup) untuk hari tertentu
+export { resolveDayStatus, type SimpleScheduleStatus };
 
-  // 2. Cek konfigurasi eksplisit pada monthly_schedule
-  const monthlyItem = doctor?.monthly_schedule?.find((d) => d.day === dayNumber);
-  if (monthlyItem) {
-    if (monthlyItem.status === 'Cuti') return 'cuti';
-    if (monthlyItem.status === 'Penuh') return 'penuh';
-    if (monthlyItem.status === 'Buka') return 'buka';
-    if (monthlyItem.status === 'Tutup') return 'tutup';
-  }
-
-  // 3. Jika dokter belum memiliki kuota/kapasitas atau sesi harian, status hari adalah Tutup (bukan sintetik Buka)
-  const hasConfiguredSchedule =
-    (doctor?.kapasitas_per_hari ?? 0) > 0 ||
-    Boolean(doctor?.sesi_harian && doctor.sesi_harian.length > 0);
-
-  if (!hasConfiguredSchedule) {
-    return 'tutup';
-  }
-
-  if (doctor?.status_jadwal === 'Tutup') {
-    return 'tutup';
-  }
-
-  if (doctor?.slot_tersedia === 0 && dayNumber === new Date().getDate()) {
-    return 'penuh';
-  }
-
-  return 'buka';
-}
 
 // ============================================================================
 // 3. MASTER COMPONENT: STANDARD MONTHLY CALENDAR
@@ -150,6 +114,7 @@ export function DoctorTimelineCalendar({
   onSelectDayStatus,
   onNavigateToDailyGrid,
   readOnly = false,
+  portalContainerRef,
   className
 }: DoctorTimelineCalendarProps) {
   // Real Date instance dari script asli
@@ -162,6 +127,10 @@ export function DoctorTimelineCalendar({
   const [internalYear, setInternalYear] = useState<number>(realCurrentYear);
   const [internalDay, setInternalDay] = useState<number>(realCurrentDay);
   const [isReasonOpen, setIsReasonOpen] = useState(false);
+
+  const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
+  const [closingDay, setClosingDay] = useState<number | null>(null);
+  const [closeNotes, setCloseNotes] = useState('');
 
   const currentMonth = currentMonthProp !== undefined ? currentMonthProp : internalMonth;
   const currentYear = currentYearProp !== undefined ? currentYearProp : internalYear;
@@ -199,20 +168,26 @@ export function DoctorTimelineCalendar({
         .toUpperCase()
     : 'DR';
 
-  // Optimistic local state for immediate reactive changes
-  const [overrideSchedule, setOverrideSchedule] = useState<Record<number, SimpleScheduleStatus>>(
-    {}
-  );
+  const handleStatusChange = (day: number, status: 'buka' | 'tutup') => {
+    if (status === 'tutup') {
+      setClosingDay(day);
+      setCloseNotes('');
+      setIsCloseModalOpen(true);
+    } else {
+      onSelectDayStatus?.(day, 'buka');
+    }
+  };
 
-  const handleStatusChange = (day: number, status: SimpleScheduleStatus) => {
-    setOverrideSchedule((prev) => ({ ...prev, [day]: status }));
-    onSelectDayStatus?.(day, status);
+  const handleConfirmClose = () => {
+    if (closingDay !== null) {
+      onSelectDayStatus?.(closingDay, 'tutup', closeNotes.trim() || undefined);
+    }
+    setIsCloseModalOpen(false);
+    setClosingDay(null);
+    setCloseNotes('');
   };
 
   const getStatusForDay = (day: number): SimpleScheduleStatus => {
-    if (overrideSchedule[day]) {
-      return overrideSchedule[day];
-    }
     return resolveDayStatus(day, doctor);
   };
 
@@ -592,7 +567,7 @@ export function DoctorTimelineCalendar({
                   <div className='px-2 py-1 text-[10px] font-semibold text-muted-foreground'>
                     Ubah status tanggal {day} {MONTH_NAMES[currentMonth]}:
                   </div>
-                  {(['buka', 'penuh', 'cuti', 'tutup'] as SimpleScheduleStatus[]).map((st) => {
+                  {(['buka', 'tutup'] as const).map((st) => {
                     const itemCfg = STATUS_CONFIG[st];
                     return (
                       <DropdownMenuItem
@@ -615,15 +590,11 @@ export function DoctorTimelineCalendar({
         </div>
       </div>
 
-      {/* 3. FOOTER LEGEND (4 STATUS: BUKA, PENUH, CUTI, TUTUP) */}
+      {/* 3. FOOTER LEGEND (3 STATUS: BUKA, CUTI, TUTUP) */}
       <div className='px-4 py-3 border-t border-border/30 bg-muted/5 flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs font-bold'>
         <div className='flex items-center gap-2'>
           <span className='size-2.5 rounded-full bg-emerald-500' />
           <span className='text-emerald-700 dark:text-emerald-400'>Buka</span>
-        </div>
-        <div className='flex items-center gap-2'>
-          <span className='size-2.5 rounded-full bg-amber-500' />
-          <span className='text-amber-700 dark:text-amber-400'>Penuh</span>
         </div>
         <div className='flex items-center gap-2'>
           <span className='size-2.5 rounded-full bg-sky-500' />
@@ -634,6 +605,99 @@ export function DoctorTimelineCalendar({
           <span className='text-muted-foreground'>Tutup</span>
         </div>
       </div>
+
+      {/* 4. MODAL KONFIRMASI PENUTUPAN HARI */}
+      <ModalWrapper
+        isOpen={isCloseModalOpen}
+        onClose={() => setIsCloseModalOpen(false)}
+        maxWidth='max-w-[480px]'
+        showCloseButton={false}
+        portalContainerRef={portalContainerRef}
+      >
+        <div className='relative font-sans space-y-4 text-left'>
+          {/* Header */}
+          <div className='flex items-start justify-between gap-3 pb-3 border-b border-border/40'>
+            <div className='space-y-1 min-w-0'>
+              <div className='flex items-center gap-2'>
+                <span className='inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border border-destructive/20 bg-destructive/10 text-destructive'>
+                  <Icons.warning className='size-3' />
+                  <span>Konfirmasi Tutup Hari</span>
+                </span>
+              </div>
+              <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
+                Tutup Jadwal Tanggal {closingDay} {MONTH_NAMES[currentMonth]} {currentYear}
+              </h3>
+              <p className='text-xs text-muted-foreground'>
+                {doctor?.nama_dokter || 'Dokter'}
+              </p>
+            </div>
+            <button
+              type='button'
+              onClick={() => setIsCloseModalOpen(false)}
+              aria-label='Tutup'
+              className='rounded-full p-1 text-muted-foreground hover:bg-muted transition-colors cursor-pointer shrink-0'
+            >
+              <Icons.close className='size-4' />
+            </button>
+          </div>
+
+          {/* Warning Banner */}
+          <div className='rounded-xl border border-destructive/30 bg-destructive/5 p-3.5 space-y-2 text-xs text-foreground/90'>
+            <div className='flex items-start gap-2.5'>
+              <Icons.alertCircle className='size-4 text-destructive shrink-0 mt-0.5' />
+              <div className='space-y-1 leading-relaxed'>
+                <p className='font-semibold text-destructive'>
+                  Perhatian: Tindakan ini berdampak pada sesi & antrean aktif.
+                </p>
+                <p className='text-muted-foreground text-[11.5px] leading-normal'>
+                  Menutup hari ini akan menonaktifkan seluruh sesi shift dokter dan secara otomatis
+                  membatalkan (soft-delete) antrean pasien yang telah terdaftar pada tanggal ini.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Notes Input */}
+          <div className='space-y-1.5'>
+            <Label htmlFor='close-day-notes' className='text-xs font-semibold text-foreground'>
+              Catatan Penutupan <span className='text-muted-foreground font-normal'>(Opsional)</span>
+            </Label>
+            <Input
+              id='close-day-notes'
+              value={closeNotes}
+              onChange={(e) => setCloseNotes(e.target.value)}
+              placeholder='Contoh: Dokter ada keperluan mendadak / Cuti operasional'
+              className='text-xs h-9'
+            />
+            <p className='text-[10.5px] text-muted-foreground'>
+              Catatan ini akan dicatat dalam riwayat audit dan alasan pembatalan sesi antrean.
+            </p>
+          </div>
+
+          {/* Footer Actions */}
+          <div className='flex items-center justify-end gap-2 pt-2 border-t border-border/40'>
+            <Button
+              type='button'
+              variant='outline'
+              size='sm'
+              onClick={() => setIsCloseModalOpen(false)}
+              className='text-xs font-semibold'
+            >
+              Batal
+            </Button>
+            <Button
+              type='button'
+              variant='destructive'
+              size='sm'
+              onClick={handleConfirmClose}
+              className='text-xs font-semibold gap-1.5'
+            >
+              <Icons.trash className='size-3.5' />
+              <span>Konfirmasi Tutup Jadwal</span>
+            </Button>
+          </div>
+        </div>
+      </ModalWrapper>
     </div>
   );
 }

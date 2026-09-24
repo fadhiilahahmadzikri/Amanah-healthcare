@@ -6,8 +6,18 @@ import {
   createDoctorSessionAction,
   updateDoctorSessionAction,
   deleteDoctorSessionAction,
-  getDoctorScheduleFilterOptionsAction
+  getDoctorScheduleFilterOptionsAction,
+  rescheduleDoctorSessionAction,
+  getRescheduleEligibilityAction,
+  updateDoctorDayByDateAction,
+  updateDoctorDurationAction,
+  getClinicRoomsAction,
+  getDoctorOccupancyOverviewAction
 } from './doctor-schedule-actions';
+import type {
+  ClinicRoom,
+  DoctorOccupancyOverviewResponse
+} from '@/server/contracts/schedules/doctor-schedules.dto';
 import type {
   DoctorSchedule,
   DoctorScheduleFilters,
@@ -18,7 +28,11 @@ import type {
   DeleteDoctorSessionResponse,
   DoctorScheduleFilterOptions,
   ScheduleDayStatus,
-  DoctorScheduleDetailParams
+  DoctorScheduleDetailParams,
+  RescheduleDoctorSessionPayload,
+  RescheduleEligibilityData,
+  UpdateDoctorDayByDatePayload,
+  UpdateDoctorDurationPayload
 } from './types';
 
 export async function getDoctorSchedules(
@@ -80,11 +94,26 @@ export async function updateDoctorDayStatus(
   status: ScheduleDayStatus,
   reason?: string
 ): Promise<unknown> {
-  return updateDoctorDayStatusAction(doctorId, {
-    date,
-    status,
-    reason
-  });
+  try {
+    return await updateDoctorDayByDateAction(doctorId, date, {
+      status,
+      notes: reason
+    });
+  } catch {
+    return updateDoctorDayStatusAction(doctorId, {
+      date,
+      status,
+      reason
+    });
+  }
+}
+
+export async function updateDoctorDayByDate(
+  id: string,
+  date: string,
+  payload: UpdateDoctorDayByDatePayload
+): Promise<unknown> {
+  return updateDoctorDayByDateAction(id, date, payload);
 }
 
 export async function createDoctorSession(
@@ -109,6 +138,33 @@ export async function deleteDoctorSession(
   return deleteDoctorSessionAction(doctorId, sessionId);
 }
 
+export async function rescheduleDoctorSession(
+  id: string,
+  sessionId: string,
+  payload: RescheduleDoctorSessionPayload
+) {
+  return rescheduleDoctorSessionAction(id, sessionId, payload);
+}
+
+export async function checkRescheduleEligibility(
+  id: string,
+  sessionId: string,
+  params?: {
+    targetDate?: string;
+    targetStartTime?: string;
+    targetRoomId?: string;
+  }
+): Promise<RescheduleEligibilityData> {
+  return getRescheduleEligibilityAction(id, sessionId, params);
+}
+
+export async function updateDoctorDuration(
+  id: string,
+  payload: UpdateDoctorDurationPayload
+) {
+  return updateDoctorDurationAction(id, payload);
+}
+
 export async function getDoctorScheduleFilterOptions(): Promise<DoctorScheduleFilterOptions> {
   try {
     const data = await getDoctorScheduleFilterOptionsAction();
@@ -120,12 +176,34 @@ export async function getDoctorScheduleFilterOptions(): Promise<DoctorScheduleFi
       spesialisasi: [],
       statuses: [
         { id: 'buka', label: 'Buka' },
-        { id: 'penuh', label: 'Penuh' },
-        { id: 'cuti', label: 'Cuti' },
+        { id: 'terisi', label: 'Terisi' },
         { id: 'tutup', label: 'Tutup' }
       ]
     };
   }
 }
 
+export async function getClinicRooms(params?: {
+  date?: string;
+  startTime?: string;
+  endTime?: string;
+}): Promise<ClinicRoom[]> {
+  try {
+    return await getClinicRoomsAction(params);
+  } catch (error) {
+    console.error('Failed to fetch clinic rooms:', error);
+    return [];
+  }
+}
+
+export async function getDoctorOccupancyOverview(params: {
+  date: string;
+  staffId: string;
+  roomId?: string;
+  existingSessions?: { jam_mulai: string; jam_selesai: string; nama_sesi?: string; id?: string; status_sesi?: string; slot_tersedia?: number }[];
+}): Promise<DoctorOccupancyOverviewResponse> {
+  return getDoctorOccupancyOverviewAction(params);
+}
+
 export { isDoctorOnLeaveOnDay, extractDayNumber } from '../utils/leave-calculator';
+

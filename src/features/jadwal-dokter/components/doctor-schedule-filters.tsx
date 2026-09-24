@@ -33,9 +33,10 @@ export interface DoctorScheduleFiltersProps {
 
 const STATUS_DOTS: Record<string, string> = {
   buka: 'bg-emerald-500',
-  penuh: 'bg-amber-500',
-  cuti: 'bg-sky-500',
-  tutup: 'bg-muted-foreground/60'
+  terisi: 'bg-sky-500',
+  penuh: 'bg-sky-500',
+  tutup: 'bg-slate-400',
+  cuti: 'bg-slate-400'
 };
 
 export function DoctorScheduleFilters({

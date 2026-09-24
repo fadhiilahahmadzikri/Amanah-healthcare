@@ -7,8 +7,12 @@ import {
   adminDoctorScheduleDetailResponseSchema,
   clinicalPractitionersResponseSchema,
   createAdminDoctorSessionPayloadSchema,
-  updateAdminDayStatusPayloadSchema
+  updateAdminDayStatusPayloadSchema,
+  timelineIntervalSchema,
+  rescheduleAdminDoctorSessionPayloadSchema,
+  updateAdminDoctorDurationPayloadSchema
 } from '@/server/contracts/schedules/doctor-schedules.dto';
+import { generateFallbackOccupancyOverview } from './doctor-schedule-service';
 import type { DoctorSchedule, DoctorDailySession } from './types';
 
 describe('Doctor Schedule Business Logic & Leave Resolution', () => {
@@ -259,6 +263,48 @@ describe('Backend DTO Contract Alignment', () => {
     expect(updateAdminDayStatusPayloadSchema.safeParse(cutiPayload).success).toBe(true);
     expect(updateAdminDayStatusPayloadSchema.safeParse(tutupPayload).success).toBe(true);
   });
+
+  it('validates Schedule V2 timeline interval schema with OCCUPIED status and queue info', () => {
+    const intervalData = {
+      intervalIndex: 1,
+      startTime: '08:45',
+      endTime: '09:15',
+      status: 'OCCUPIED',
+      displayLabel: '08:45 - 09:15',
+      isOccupied: true,
+      appointmentRef: {
+        appointmentId: 'apt-v2-101',
+        queueNumber: 1,
+        status: 'CONFIRMED'
+      },
+      closedReason: null
+    };
+
+    const parsed = timelineIntervalSchema.safeParse(intervalData);
+    expect(parsed.success).toBe(true);
+  });
+
+  it('validates reschedule doctor session payload schema', () => {
+    const reschedulePayload = {
+      targetDate: '2026-09-25',
+      targetStartTime: '09:00',
+      targetRoomId: 'room-102',
+      reason: 'Penyesuaian jadwal dokter',
+      rescheduleActiveAppointments: true
+    };
+
+    const parsed = rescheduleAdminDoctorSessionPayloadSchema.safeParse(reschedulePayload);
+    expect(parsed.success).toBe(true);
+  });
+
+  it('validates update doctor duration payload schema', () => {
+    const durationPayload = {
+      consultationDurationMinutes: 30
+    };
+
+    const parsed = updateAdminDoctorDurationPayloadSchema.safeParse(durationPayload);
+    expect(parsed.success).toBe(true);
+  });
 });
 
 describe('Doctor Card Status & Unconfigured Zero-Quota Handling', () => {
@@ -298,7 +344,7 @@ describe('Doctor Card Status & Unconfigured Zero-Quota Handling', () => {
     expect(getDoctorCardStatus(quotaOnlyDoctor)).toBe('Belum Diatur');
   });
 
-  it('returns "Penuh" for scheduled doctors whose slots are completely filled', () => {
+  it('returns "Terisi" for scheduled doctors whose slots are completely filled', () => {
     const fullDoctor: DoctorSchedule = {
       id: 'doc-full-1',
       nama_dokter: 'dr. Siti, Sp.OG',
@@ -312,7 +358,7 @@ describe('Doctor Card Status & Unconfigured Zero-Quota Handling', () => {
       is_cuti: false
     };
 
-    expect(getDoctorCardStatus(fullDoctor)).toBe('Penuh');
+    expect(getDoctorCardStatus(fullDoctor)).toBe('Terisi');
   });
 
   it('returns "Buka" for scheduled doctors with available slots', () => {
@@ -347,5 +393,67 @@ describe('Doctor Card Status & Unconfigured Zero-Quota Handling', () => {
     };
 
     expect(getDoctorCardStatus(cutiDoctor)).toBe('Cuti');
+  });
+});
+
+describe('Occupancy Overview Session Status Mapping', () => {
+  it('correctly maps Tutup sessions to CLOSED status and Tutup label', () => {
+    const overview = generateFallbackOccupancyOverview('2026-09-24', 'doc-1', [
+      {
+        id: 'sess-dini-hari',
+        nama_sesi: 'Dini Hari',
+        jam_mulai: '00:00',
+        jam_selesai: '00:30',
+        status_sesi: 'Tutup',
+        slot_tersedia: 0
+      }
+    ]);
+
+    const earlyMorningShift = overview.shifts.find((s) => s.contextId === 'early_morning');
+    expect(earlyMorningShift).toBeDefined();
+
+    const targetSlot = earlyMorningShift?.slots.find((s) => s.startTime === '00:00');
+    expect(targetSlot).toBeDefined();
+    expect(targetSlot?.status).toBe('CLOSED');
+    expect(targetSlot?.displayLabel).toBe('Tutup');
+    expect(targetSlot?.isAvailable).toBe(false);
+  });
+
+  it('correctly maps Cuti sessions to CLOSED_LEAVE status and Cuti label', () => {
+    const overview = generateFallbackOccupancyOverview('2026-09-24', 'doc-1', [
+      {
+        id: 'sess-pagi',
+        nama_sesi: 'Pagi',
+        jam_mulai: '08:00',
+        jam_selesai: '08:30',
+        status_sesi: 'Cuti',
+        slot_tersedia: 0
+      }
+    ]);
+
+    const morningShift = overview.shifts.find((s) => s.contextId === 'morning');
+    const targetSlot = morningShift?.slots.find((s) => s.startTime === '08:00');
+    expect(targetSlot?.status).toBe('CLOSED_LEAVE');
+    expect(targetSlot?.displayLabel).toBe('Cuti');
+    expect(targetSlot?.isAvailable).toBe(false);
+  });
+
+  it('correctly maps Buka sessions with available slots to AVAILABLE status', () => {
+    const overview = generateFallbackOccupancyOverview('2026-09-24', 'doc-1', [
+      {
+        id: 'sess-siang',
+        nama_sesi: 'Siang',
+        jam_mulai: '13:00',
+        jam_selesai: '13:30',
+        status_sesi: 'Buka',
+        slot_tersedia: 5
+      }
+    ]);
+
+    const afternoonShift = overview.shifts.find((s) => s.contextId === 'afternoon');
+    const targetSlot = afternoonShift?.slots.find((s) => s.startTime === '13:00');
+    expect(targetSlot?.status).toBe('AVAILABLE');
+    expect(targetSlot?.displayLabel).toBe('Buka');
+    expect(targetSlot?.isAvailable).toBe(true);
   });
 });

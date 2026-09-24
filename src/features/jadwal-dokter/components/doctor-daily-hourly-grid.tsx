@@ -1,27 +1,24 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Icons } from '@/components/icons';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DoctorAddSessionModal } from './doctor-add-session-modal';
 import { DoctorEditSessionModal } from './doctor-edit-session-modal';
-import { useDeleteDoctorSessionMutation } from '../api/mutations';
+import { DoctorRescheduleSessionModal } from './doctor-reschedule-session-modal';
+import { DoctorSessionDetailModal } from './doctor-session-detail-modal';
 import { isDoctorOnLeaveOnDay } from '../api/service';
+import { resolveDayStatus, type SimpleScheduleStatus } from './doctor-timeline-calendar';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule, DoctorDailySession } from '../api/types';
+import type { OccupancyShift, OccupancySlot } from '@/server/contracts/schedules/doctor-schedules.dto';
 
 // ============================================================================
 // 1. DATA CONTRACTS & STATUS CONFIG
 // ============================================================================
 
-export type HourlySlotStatus = 'buka' | 'penuh' | 'tutup' | 'cuti';
+export type HourlySlotStatus = 'buka' | 'terisi' | 'tutup' | 'cuti';
 
 export interface DoctorDailyHourlyGridProps {
   doctor?: DoctorSchedule;
@@ -56,7 +53,7 @@ const MONTH_NAMES = [
 const DAY_NAMES_FULL = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
 const STATUS_CONFIG: Record<
-  HourlySlotStatus,
+  string,
   {
     label: string;
     cellBg: string;
@@ -65,109 +62,193 @@ const STATUS_CONFIG: Record<
     dotBg: string;
   }
 > = {
-  buka: {
+  AVAILABLE: {
     label: 'Buka',
-    cellBg: 'bg-success-subtle hover:bg-success-subtle/80',
-    border: 'border-success-border',
-    text: 'text-success',
-    dotBg: 'bg-success'
+    cellBg: 'bg-emerald-500/10 hover:bg-emerald-500/20',
+    border: 'border-emerald-500/30',
+    text: 'text-emerald-700 dark:text-emerald-400',
+    dotBg: 'bg-emerald-500'
   },
-  penuh: {
-    label: 'Penuh',
-    cellBg: 'bg-warning-subtle hover:bg-warning-subtle/80',
-    border: 'border-warning-border',
-    text: 'text-warning',
-    dotBg: 'bg-warning'
+  OCCUPIED_BY_SELF: {
+    label: 'Terisi',
+    cellBg: 'bg-sky-500/10 hover:bg-sky-500/20',
+    border: 'border-sky-500/30',
+    text: 'text-sky-700 dark:text-sky-400',
+    dotBg: 'bg-sky-500'
   },
-  tutup: {
-    label: 'Tutup',
-    cellBg: 'bg-muted/30 hover:bg-muted/50',
-    border: 'border-border/60',
-    text: 'text-muted-foreground',
-    dotBg: 'bg-muted-foreground/40'
+  OCCUPIED_BY_OTHER: {
+    label: 'Terisi Lain',
+    cellBg: 'bg-sky-500/10 hover:bg-sky-500/20',
+    border: 'border-sky-500/30',
+    text: 'text-sky-700 dark:text-sky-400',
+    dotBg: 'bg-sky-500'
   },
-  cuti: {
+  CLOSED_LEAVE: {
     label: 'Cuti',
-    cellBg: 'bg-info-subtle hover:bg-info-subtle/80',
-    border: 'border-info-border',
-    text: 'text-info',
-    dotBg: 'bg-info'
+    cellBg: 'bg-sky-500/10 hover:bg-sky-500/20',
+    border: 'border-sky-500/30',
+    text: 'text-sky-700 dark:text-sky-400',
+    dotBg: 'bg-sky-500'
+  },
+  CLOSED: {
+    label: 'Tutup',
+    cellBg: 'bg-muted/20 hover:bg-muted/40',
+    border: 'border-border/50',
+    text: 'text-muted-foreground',
+    dotBg: 'bg-muted-foreground/30'
   }
 };
 
-// 4 Shift Periode 24 Jam (Y-Axis)
-const SHIFTS = [
-  {
-    id: 'pagi',
-    name: 'Pagi',
-    range: '06:00 - 12:00',
-    hours: [6, 7, 8, 9, 10, 11]
-  },
-  {
-    id: 'siang',
-    name: 'Siang / Sore',
-    range: '12:00 - 18:00',
-    hours: [12, 13, 14, 15, 16, 17]
-  },
-  {
-    id: 'malam',
-    name: 'Malam',
-    range: '18:00 - 24:00',
-    hours: [18, 19, 20, 21, 22, 23]
-  },
-  {
-    id: 'dini-hari',
-    name: 'Dini Hari',
-    range: '00:00 - 06:00',
-    hours: [0, 1, 2, 3, 4, 5]
-  }
-];
+// Helper to construct standard slots for client rendering aligned with SSOT day & session status
+function buildLocalFallbackShifts(
+  sessions: DoctorDailySession[] = [],
+  dayStatus: SimpleScheduleStatus = 'buka'
+): OccupancyShift[] {
+  const configs = [
+    { contextId: 'early_morning', contextLabel: 'Dini Hari', startH: 0, endH: 6, timeRange: '00:00 - 06:00 WIB' },
+    { contextId: 'morning', contextLabel: 'Pagi', startH: 6, endH: 12, timeRange: '06:00 - 12:00 WIB' },
+    { contextId: 'afternoon', contextLabel: 'Siang / Sore', startH: 12, endH: 18, timeRange: '12:00 - 18:00 WIB' },
+    { contextId: 'night', contextLabel: 'Malam', startH: 18, endH: 24, timeRange: '18:00 - 24:00 WIB' }
+  ];
 
-// Helper: Tentukan status jam awal berdasarkan sesi dokter & hari aktif
-function getInitialHourStatus(
-  hour: number,
-  doctor?: DoctorSchedule,
-  dayNumber?: number,
-  extraSessions: DoctorDailySession[] = []
-): HourlySlotStatus {
-  const leaveInfo = isDoctorOnLeaveOnDay(doctor, dayNumber);
-  if (leaveInfo.isLeave) return 'cuti';
+  const isDayClosed = dayStatus === 'tutup';
+  const isDayCuti = dayStatus === 'cuti';
 
-  // Check if monthly_schedule specifies status for this day
-  const monthlyItem = doctor?.monthly_schedule?.find((d) => d.day === dayNumber);
-  if (monthlyItem?.status === 'Penuh') {
-    return 'penuh';
-  }
-  if (monthlyItem?.status === 'Cuti') {
-    return 'cuti';
-  }
-  if (monthlyItem?.status === 'Tutup') {
-    return 'tutup';
-  }
+  return configs.map((cfg) => {
+    const slots: OccupancySlot[] = [];
+    const totalMinutes = (cfg.endH - cfg.startH) * 60;
+    const duration = 30;
+    const totalSlots = Math.floor(totalMinutes / duration);
+    let availableCount = 0;
+    let occupiedCount = 0;
 
-  const allSessions = [...(doctor?.sesi_harian || []), ...extraSessions];
+    let idx = 1;
+    for (let m = 0; m < totalMinutes; m += duration) {
+      const sMin = cfg.startH * 60 + m;
+      const eMin = sMin + duration;
+      const sH = Math.floor(sMin / 60);
+      const sM = sMin % 60;
+      const eH = Math.floor(eMin / 60);
+      const eM = eMin % 60;
 
-  // Cek apakah jam ini masuk ke salah satu sesi harian dokter
-  const matchingSession = allSessions.find((s) => {
-    const startHour = parseInt(s.jam_mulai.split(':')[0], 10);
-    const endHour = parseInt(s.jam_selesai.split(':')[0], 10);
-    return hour >= startHour && hour <= endHour;
+      const startTime = `${String(sH).padStart(2, '0')}:${String(sM).padStart(2, '0')}`;
+      const endTime = `${String(eH).padStart(2, '0')}:${String(eM).padStart(2, '0')}`;
+
+      // Check if slot falls in any active session
+      const matching = sessions.find(
+        (s) => startTime >= s.jam_mulai && startTime < s.jam_selesai
+      );
+
+      if (isDayCuti) {
+        slots.push({
+          slotIndex: idx++,
+          startTime,
+          endTime,
+          timeRange: `${startTime} - ${endTime} WIB`,
+          isAvailable: false,
+          status: 'CLOSED_LEAVE',
+          displayLabel: 'Cuti',
+          conflictInfo: matching ? { type: 'SELF', sessionId: matching.id } : null
+        });
+      } else if (isDayClosed) {
+        slots.push({
+          slotIndex: idx++,
+          startTime,
+          endTime,
+          timeRange: `${startTime} - ${endTime} WIB`,
+          isAvailable: false,
+          status: 'CLOSED',
+          displayLabel: 'Tutup',
+          conflictInfo: matching ? { type: 'SELF', sessionId: matching.id } : null
+        });
+        if (matching) {
+          occupiedCount++;
+        }
+      } else if (matching) {
+        const rawStatus = (matching.status_sesi || '').toUpperCase();
+        let slotStatus: OccupancySlot['status'] = 'OCCUPIED_BY_SELF';
+        let displayLabel = `Jadwal Dokter (${matching.nama_sesi})`;
+
+        if (rawStatus === 'TUTUP' || rawStatus === 'CLOSED') {
+          slotStatus = 'CLOSED';
+          displayLabel = 'Tutup';
+          occupiedCount++;
+        } else if (rawStatus === 'CUTI' || rawStatus === 'LEAVE') {
+          slotStatus = 'CLOSED_LEAVE';
+          displayLabel = 'Cuti';
+          occupiedCount++;
+        } else if (rawStatus === 'BUKA' || rawStatus === 'OPEN') {
+          if (matching.slot_tersedia > 0) {
+            slotStatus = 'AVAILABLE';
+            displayLabel = 'Buka';
+            availableCount += matching.slot_tersedia;
+          } else {
+            slotStatus = 'OCCUPIED_BY_SELF';
+            displayLabel = 'Terisi';
+            occupiedCount++;
+          }
+        } else {
+          slotStatus = 'OCCUPIED_BY_SELF';
+          displayLabel = 'Terisi';
+          occupiedCount++;
+        }
+
+        slots.push({
+          slotIndex: idx++,
+          startTime,
+          endTime,
+          timeRange: `${startTime} - ${endTime} WIB`,
+          isAvailable: slotStatus === 'AVAILABLE',
+          status: slotStatus,
+          displayLabel,
+          conflictInfo: { type: 'SELF', sessionId: matching.id }
+        });
+      } else {
+        // Slot di luar jadwal praktik dokter (Tutup / Di Luar Jam)
+        slots.push({
+          slotIndex: idx++,
+          startTime,
+          endTime,
+          timeRange: `${startTime} - ${endTime} WIB`,
+          isAvailable: false,
+          status: 'CLOSED',
+          displayLabel: 'Tutup',
+          conflictInfo: null
+        });
+      }
+    }
+
+    const shiftSessions = sessions.filter(
+      (s) =>
+        s.jam_mulai >= `${String(cfg.startH).padStart(2, '0')}:00` &&
+        s.jam_mulai < `${String(cfg.endH).padStart(2, '0')}:00`
+    );
+    const shiftTotalCapacity = shiftSessions.reduce((acc, s) => acc + (s.kuota_pasien || 1), 0);
+    const shiftAvailableSlots =
+      isDayClosed || isDayCuti
+        ? 0
+        : shiftSessions.reduce(
+            (acc, s) => acc + (s.status_sesi === 'Buka' ? s.slot_tersedia : 0),
+            0
+          );
+
+    return {
+      contextId: cfg.contextId,
+      contextLabel: cfg.contextLabel,
+      sessionShift: cfg.contextId,
+      timeRange: cfg.timeRange,
+      boundaryStartTime: `${String(cfg.startH).padStart(2, '0')}:00`,
+      boundaryEndTime: `${String(cfg.endH).padStart(2, '0')}:00`,
+      totalSlots,
+      availableSlotsCount: shiftAvailableSlots,
+      occupiedSlotsCount: shiftTotalCapacity - shiftAvailableSlots,
+      slots
+    };
   });
-
-  if (matchingSession) {
-    if (matchingSession.status_sesi === 'Penuh' || matchingSession.slot_tersedia <= 0)
-      return 'penuh';
-    if (matchingSession.status_sesi === 'Cuti') return 'cuti';
-    if (matchingSession.status_sesi === 'Tutup') return 'tutup';
-    return 'buka';
-  }
-
-  // Tanpa sesi eksplisit pada jam ini, status selalu Tutup (bukan sintetik Buka)
-  return 'tutup';
 }
 
 // ============================================================================
-// 2. MASTER COMPONENT: 24-HOUR DAILY HOURLY GRID
+// 2. MASTER COMPONENT: 24-HOUR DAILY HOURLY GRID (SSOT OCCUPANCY PARADIGM)
 // ============================================================================
 
 export function DoctorDailyHourlyGrid({
@@ -178,7 +259,7 @@ export function DoctorDailyHourlyGrid({
   onMonthChange,
   currentYear: currentYearProp,
   onYearChange,
-  onSelectHourStatus,
+  onSelectHourStatus: _onSelectHourStatus,
   onAddSchedule,
   modalContainerRef,
   readOnly = false,
@@ -222,37 +303,84 @@ export function DoctorDailyHourlyGrid({
     activeMonth === realCurrentMonth &&
     activeYear === realCurrentYear;
 
-  const deleteSessionMutation = useDeleteDoctorSessionMutation();
-  const [selectedHour, setSelectedHour] = useState<number | null>(new Date().getHours());
-  const [hourlyOverrides, setHourlyOverrides] = useState<Record<string, HourlySlotStatus>>({});
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const currentHour = new Date().getHours();
+  const currentMinute = new Date().getMinutes();
+  const currentTimeString = `${String(currentHour).padStart(2, '0')}:${String(currentMinute).padStart(2, '0')}`;
+
+  // Dynamic day status check for activeDay via SSOT
+  const leaveInfo = isDoctorOnLeaveOnDay(doctor, activeDay);
+  const dayStatus = resolveDayStatus(activeDay, doctor);
+  const isDayCuti = dayStatus === 'cuti';
+  const isDayClosed = dayStatus === 'tutup';
+  const dayLeaveReason = leaveInfo.reason || doctor?.cuti_reason || 'Cuti Operasional';
+
+  // Sessions directly from doctor schedule (Single Source of Truth from backend)
+  const activeSessions: DoctorDailySession[] = useMemo(
+    () => doctor?.sesi_harian || [],
+    [doctor?.sesi_harian]
+  );
+
+  // Directly construct discrete shifts from doctor's activeSessions & SSOT dayStatus
+  const displayedShifts: OccupancyShift[] = useMemo(() => {
+    return buildLocalFallbackShifts(activeSessions, dayStatus);
+  }, [activeSessions, dayStatus]);
+
+  // Modals state
+  const [selectedSessionDetail, setSelectedSessionDetail] = useState<DoctorDailySession | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
+  const [selectedSessionForReschedule, setSelectedSessionForReschedule] = useState<DoctorDailySession | null>(null);
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<DoctorDailySession | null>(null);
-  const [extraSessions, setExtraSessions] = useState<DoctorDailySession[]>([]);
+
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [addSessionInitialTime, setAddSessionInitialTime] = useState<string | undefined>(undefined);
+
   const [isReasonOpen, setIsReasonOpen] = useState(false);
 
+  const handleOpenSessionDetail = (session: DoctorDailySession) => {
+    setSelectedSessionDetail(session);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleOpenReschedule = (session: DoctorDailySession) => {
+    setIsDetailModalOpen(false);
+    setSelectedSessionForReschedule(session);
+    setIsRescheduleOpen(true);
+  };
+
   const handleOpenEditSession = (session: DoctorDailySession) => {
+    setIsDetailModalOpen(false);
     setEditingSession(session);
     setIsEditModalOpen(true);
   };
 
-  const handleDeleteSession = (session: DoctorDailySession) => {
-    if (!doctor) return;
-    const confirmDelete = window.confirm(
-      `Apakah Anda yakin ingin menghapus "${session.nama_sesi}" (${session.jam_mulai} - ${session.jam_selesai})?`
-    );
-    if (!confirmDelete) return;
-
-    deleteSessionMutation.mutate({
-      doctorId: doctor.id,
-      sessionId: session.id
-    });
+  const openAddSessionModal = (initialTime?: string) => {
+    if (isDayCuti) return;
+    onAddSchedule?.();
+    setAddSessionInitialTime(initialTime);
+    setIsAddModalOpen(true);
   };
 
-  // Dynamic leave check for activeDay
-  const leaveInfo = isDoctorOnLeaveOnDay(doctor, activeDay);
-  const isDayCuti = leaveInfo.isLeave;
-  const dayLeaveReason = leaveInfo.reason || doctor?.cuti_reason || 'Cuti Operasional';
+  const handleSlotClick = (slot: OccupancySlot) => {
+    if (isDayCuti) return;
+
+    // Find matching session from activeSessions if any exists on this slot
+    const matchingSession = activeSessions.find(
+      (s) =>
+        (slot.startTime >= s.jam_mulai && slot.startTime < s.jam_selesai) ||
+        slot.startTime === s.jam_mulai ||
+        (slot.conflictInfo?.sessionId && s.id === slot.conflictInfo.sessionId)
+    );
+
+    if (matchingSession) {
+      handleOpenSessionDetail(matchingSession);
+    } else if (!isDayClosed && !readOnly) {
+      openAddSessionModal(slot.startTime);
+    }
+  };
 
   const initials = doctor?.nama_dokter
     ? doctor.nama_dokter
@@ -263,55 +391,6 @@ export function DoctorDailyHourlyGrid({
         .join('')
         .toUpperCase()
     : 'DR';
-
-  const handleHourStatusChange = (hour: number, status: HourlySlotStatus) => {
-    if (isDayCuti) return;
-    const overrideKey = `${activeYear}-${activeMonth}-${activeDay}-${hour}`;
-    setHourlyOverrides((prev) => ({ ...prev, [overrideKey]: status }));
-    onSelectHourStatus?.(hour, status);
-  };
-
-  const handleSessionAdded = (newSession: DoctorDailySession) => {
-    setExtraSessions((prev) => [...prev, newSession]);
-    const startHour = parseInt(newSession.jam_mulai.split(':')[0], 10);
-    const endHour = parseInt(newSession.jam_selesai.split(':')[0], 10);
-    const newOverrides: Record<string, HourlySlotStatus> = {};
-    for (let h = startHour; h <= endHour; h++) {
-      const overrideKey = `${activeYear}-${activeMonth}-${activeDay}-${h}`;
-      newOverrides[overrideKey] =
-        newSession.status_sesi === 'Buka'
-          ? 'buka'
-          : newSession.status_sesi === 'Penuh'
-            ? 'penuh'
-            : 'tutup';
-    }
-    setHourlyOverrides((prev) => ({ ...prev, ...newOverrides }));
-  };
-
-  const openAddSessionModal = () => {
-    if (isDayCuti) return;
-    onAddSchedule?.();
-    setIsAddModalOpen(true);
-  };
-
-  const resolveHourStatus = (hour: number): HourlySlotStatus => {
-    if (isDayCuti) return 'cuti';
-    const overrideKey = `${activeYear}-${activeMonth}-${activeDay}-${hour}`;
-    if (hourlyOverrides[overrideKey]) return hourlyOverrides[overrideKey];
-    return getInitialHourStatus(hour, doctor, activeDay, extraSessions);
-  };
-
-  const currentHour = new Date().getHours();
-
-  const activeSessions: DoctorDailySession[] = [
-    ...(doctor?.sesi_harian || []),
-    ...extraSessions
-  ];
-
-  const extraCapacity = extraSessions.reduce((acc, s) => acc + s.kuota_pasien, 0);
-  const extraSlots = extraSessions.reduce((acc, s) => acc + s.slot_tersedia, 0);
-  const totalCapacity = (doctor?.kapasitas_per_hari || 0) + extraCapacity;
-  const totalSlots = isDayCuti ? 0 : (doctor?.slot_tersedia || 0) + extraSlots;
 
   const handlePrevDay = () => {
     if (activeDay > 1) {
@@ -346,9 +425,9 @@ export function DoctorDailyHourlyGrid({
           className
         )}
       >
-        {/* 1. Header Grid: Judul Tanggal & Day Navigation Toolbox */}
+        {/* 1. Header Grid: Judul Tanggal & Day Navigation Controls */}
         <div className='p-3.5 sm:p-4 border-b border-border/40 flex items-center justify-between gap-3 bg-muted/10'>
-          {/* Left: Clear Typographic Hierarchy (Date + Slot / Status) */}
+          {/* Left: Clear Typographic Hierarchy (Date + Operational Context) */}
           <div className='min-w-0'>
             <h2 className='text-sm sm:text-base font-bold text-foreground tracking-tight truncate'>
               {formattedSelectedDate}
@@ -358,14 +437,17 @@ export function DoctorDailyHourlyGrid({
                 <span className='text-sky-600 dark:text-sky-400 font-semibold'>
                   Praktik Ditutup (Cuti)
                 </span>
-              ) : totalCapacity === 0 && (!doctor?.sesi_harian || doctor.sesi_harian.length === 0) && extraSessions.length === 0 ? (
+              ) : isDayClosed ? (
+                <span className='text-destructive dark:text-destructive font-semibold'>
+                  Praktik Ditutup pada tanggal ini
+                </span>
+              ) : activeSessions.length === 0 ? (
                 <span className='text-muted-foreground font-medium'>
-                  Belum ada jadwal praktik diatur (0 Kuota)
+                  Belum ada jadwal praktik diatur pada tanggal ini
                 </span>
               ) : (
-                <span className='font-mono'>
-                  <strong className='text-primary font-semibold'>{totalSlots}</strong> /{' '}
-                  {totalCapacity} slot tersedia
+                <span className='text-muted-foreground font-medium'>
+                  {activeSessions.length} sesi shift aktif • Klik slot jadwal untuk kelola sesi
                 </span>
               )}
             </div>
@@ -407,10 +489,10 @@ export function DoctorDailyHourlyGrid({
               </button>
             </div>
 
-            {!readOnly && !isDayCuti && (
+            {!readOnly && !isDayCuti && !isDayClosed && (
               <button
                 type='button'
-                onClick={openAddSessionModal}
+                onClick={() => openAddSessionModal()}
                 className='inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border border-dashed border-border/80 hover:border-primary/70 bg-background hover:bg-primary/5 text-foreground/80 hover:text-primary transition-all shadow-2xs cursor-pointer select-none shrink-0'
               >
                 <Icons.add className='size-3.5' />
@@ -420,7 +502,7 @@ export function DoctorDailyHourlyGrid({
           </div>
         </div>
 
-        {/* 2. ACCORDION / COLLAPSIBLE SEGMENTED: "Lihat kenapa dokter ini cuti [chevron]" */}
+        {/* 2. ACCORDION / COLLAPSIBLE: "Lihat kenapa dokter ini cuti [chevron]" */}
         {isDayCuti && (
           <Collapsible
             open={isReasonOpen}
@@ -467,7 +549,6 @@ export function DoctorDailyHourlyGrid({
                         {initials}
                       </AvatarFallback>
                     </Avatar>
-                    {/* Corner Badge Icon */}
                     <div className='absolute -bottom-1 -right-1 size-4.5 rounded-full bg-sky-500 text-white flex items-center justify-center ring-2 ring-card shadow-2xs z-10'>
                       <Icons.calendar className='size-2.5 stroke-[2.5]' />
                     </div>
@@ -484,7 +565,6 @@ export function DoctorDailyHourlyGrid({
                       </p>
                     </div>
 
-                    {/* Leave Message Text */}
                     <div className='mt-2 text-xs text-foreground/90 leading-relaxed font-normal'>
                       Dokter sedang dalam masa{' '}
                       <strong className='font-semibold text-foreground'>{dayLeaveReason}</strong>.
@@ -492,7 +572,6 @@ export function DoctorDailyHourlyGrid({
                       terkait.
                     </div>
 
-                    {/* Context Date Pill */}
                     {doctor?.cuti_start && doctor?.cuti_end && (
                       <div className='mt-2.5'>
                         <div className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border/60 bg-muted/30 text-foreground text-[11px] font-medium'>
@@ -511,18 +590,18 @@ export function DoctorDailyHourlyGrid({
         )}
 
         {/* 3. Empty Schedule Notice when no sessions are configured */}
-        {totalCapacity === 0 && (!doctor?.sesi_harian || doctor.sesi_harian.length === 0) && extraSessions.length === 0 && !isDayCuti && (
+        {activeSessions.length === 0 && !isDayCuti && !isDayClosed && (
           <div className='px-4 py-3 bg-muted/20 border-b border-border/40 flex items-center justify-between gap-3 text-xs text-muted-foreground'>
             <div className='flex items-center gap-2'>
               <Icons.info className='size-4 shrink-0 text-muted-foreground' />
               <span>
-                Dokter ini belum memiliki sesi praktik. Seluruh jam ditandai <strong>Tutup</strong>.
+                Dokter ini belum memiliki sesi praktik pada tanggal ini. Klik slot jam untuk menambahkan sesi.
               </span>
             </div>
             {!readOnly && (
               <button
                 type='button'
-                onClick={openAddSessionModal}
+                onClick={() => openAddSessionModal()}
                 className='font-bold text-primary hover:underline cursor-pointer shrink-0'
               >
                 + Tambah jadwal
@@ -531,257 +610,170 @@ export function DoctorDailyHourlyGrid({
           </div>
         )}
 
-        {/* 4. Body Grid: X-Axis (Jam per Shift) & Y-Axis (4 Shift Periode) */}
-        <div className='p-3.5 sm:p-4 space-y-4 overflow-x-auto'>
-          {SHIFTS.map((shift) => (
-            <div key={shift.id} className='space-y-1.5'>
-              {/* Y-Axis Shift Header */}
-              <div className='flex items-center justify-between text-xs font-bold text-muted-foreground pb-1 border-b border-border/30'>
-                <span className='text-foreground font-bold'>{shift.name}</span>
-                <span className='font-mono font-medium text-[11px] text-muted-foreground/80'>
-                  {shift.range}
-                </span>
-              </div>
+        {/* 4. Body Grid: Discrete 30-min Consultation Slots per Shift (Backend SSOT) */}
+        <div className='p-3.5 sm:p-4 space-y-4.5 overflow-x-auto'>
+          {displayedShifts.map((shift) => {
+            return (
+              <div key={shift.contextId} className='space-y-2'>
+                {/* Y-Axis Shift Header: Shift Name, Time Range & Slot Metrics SSOT */}
+                <div className='flex items-center justify-between text-xs pb-1.5 border-b border-border/30'>
+                  <div className='flex items-center gap-2'>
+                    <span className='text-foreground font-bold text-xs sm:text-[13px]'>
+                      {shift.contextLabel}
+                    </span>
+                    <span className='font-mono font-medium text-[11px] text-muted-foreground/70'>
+                      {shift.timeRange}
+                    </span>
+                  </div>
 
-              {/* X-Axis: 6 Kolom Jam per Shift */}
-              <div className='grid grid-cols-6 gap-1.5'>
-                {shift.hours.map((h) => {
-                  const hourStr = `${String(h).padStart(2, '0')}:00`;
-                  const status = resolveHourStatus(h);
-                  const cfg = STATUS_CONFIG[status];
-                  const isNow = h === currentHour;
-                  const isSelected = selectedHour === h;
+                  {/* Indikator Kuota / Slot Khusus Sesi Shift Ini (Backend SSOT) */}
+                  <div className='flex items-center gap-2'>
+                    {isDayCuti ? (
+                      <span className='text-[11px] font-semibold text-sky-600 dark:text-sky-400'>
+                        Praktik Cuti
+                      </span>
+                    ) : isDayClosed ? (
+                      <span className='text-[11px] font-semibold text-muted-foreground'>
+                        Praktik Ditutup
+                      </span>
+                    ) : (
+                      <span className='font-mono text-xs text-muted-foreground'>
+                        {shift.availableSlotsCount} slot tersedia
+                      </span>
+                    )}
+                  </div>
+                </div>
 
-                  const cellContent = (
-                    <div
-                      className={cn(
-                        'w-full min-h-[52px] sm:min-h-[56px] rounded-xl border p-2 flex flex-col justify-between transition-all text-left relative',
-                        cfg.cellBg,
-                        cfg.border,
-                        isDayCuti ? 'cursor-default opacity-90' : 'cursor-pointer',
-                        isSelected && 'ring-2 ring-primary/40 shadow-xs',
-                        isNow && 'ring-1 ring-primary font-bold'
-                      )}
-                    >
-                      {/* Baris Atas: Jam & Indikator Titik */}
-                      <div className='flex items-center justify-between'>
-                        <span
-                          className={cn(
-                            'text-xs sm:text-[13px] font-mono font-bold leading-none',
-                            isNow ? 'text-primary font-black' : 'text-foreground'
-                          )}
-                        >
-                          {hourStr}
-                        </span>
-                        <span className={cn('size-2 rounded-full shrink-0', cfg.dotBg)} />
-                      </div>
+                {/* X-Axis: Discrete Consultation Slots Grid (Serial 30-menit) */}
+                <div className='grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-1.5'>
+                  {shift.slots.map((slot) => {
+                    let effectiveStatus = slot.status;
+                    if (isDayCuti) {
+                      effectiveStatus = 'CLOSED_LEAVE';
+                    }
 
-                      {/* Baris Bawah: Status Text Berwarna */}
-                      <div className='mt-1 flex items-center justify-between'>
-                        <span
-                          className={cn(
-                            'text-[10.5px] sm:text-[11px] font-bold leading-none select-none tracking-tight block',
-                            cfg.text
-                          )}
-                        >
-                          {cfg.label}
-                        </span>
-                      </div>
-                    </div>
-                  );
+                    const cfg = STATUS_CONFIG[effectiveStatus] || STATUS_CONFIG.AVAILABLE;
+                    const isNow =
+                      currentTimeString >= slot.startTime && currentTimeString < slot.endTime;
+                    const hasSession = Boolean(slot.conflictInfo?.sessionId);
+                    const isClickable = !isDayCuti && (hasSession || (!isDayClosed && !readOnly));
 
-                  if (readOnly || isDayCuti) {
                     return (
                       <button
-                        key={h}
+                        key={`${shift.contextId}-${slot.slotIndex}-${slot.startTime}`}
                         type='button'
-                        onClick={() => setSelectedHour(h)}
-                        className='w-full text-left outline-none'
+                        onClick={() => handleSlotClick(slot)}
+                        disabled={!isClickable}
+                        className={cn(
+                          'w-full min-h-[52px] sm:min-h-[56px] rounded-xl border p-2 flex flex-col justify-between transition-all text-left relative outline-none',
+                          cfg.cellBg,
+                          cfg.border,
+                          !isClickable
+                            ? 'cursor-default opacity-80'
+                            : 'cursor-pointer hover:shadow-xs hover:border-primary/50',
+                          isNow && 'ring-1.5 ring-primary font-bold'
+                        )}
                       >
-                        {cellContent}
+                        {/* Baris Atas: Jam Mulai & Indikator Titik */}
+                        <div className='flex items-center justify-between'>
+                          <span
+                            className={cn(
+                              'text-xs sm:text-[12.5px] font-mono font-bold leading-none',
+                              isNow ? 'text-primary font-black' : 'text-foreground'
+                            )}
+                          >
+                            {slot.startTime}
+                          </span>
+                          <span className={cn('size-2 rounded-full shrink-0', cfg.dotBg)} />
+                        </div>
+
+                        {/* Baris Bawah: Status Label Kanonikal */}
+                        <div className='mt-1 flex items-end justify-between gap-1'>
+                          <span
+                            className={cn(
+                              'text-[10px] sm:text-[10.5px] font-bold leading-none select-none tracking-tight block truncate',
+                              cfg.text
+                            )}
+                          >
+                            {cfg.label}
+                          </span>
+
+                          <span className='text-[9px] font-mono text-muted-foreground/70 font-semibold shrink-0'>
+                            {slot.endTime}
+                          </span>
+                        </div>
                       </button>
                     );
-                  }
-
-                  return (
-                    <DropdownMenu key={h}>
-                      <DropdownMenuTrigger asChild onClick={() => setSelectedHour(h)}>
-                        <button type='button' className='w-full text-left outline-none'>
-                          {cellContent}
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align='center' className='w-40'>
-                        <div className='px-2 py-1 text-[10px] font-semibold text-muted-foreground'>
-                          Status Jam {hourStr}:
-                        </div>
-                        {(['buka', 'penuh', 'tutup'] as HourlySlotStatus[]).map((st) => {
-                          const itemCfg = STATUS_CONFIG[st];
-                          return (
-                            <DropdownMenuItem
-                              key={st}
-                              onClick={() => handleHourStatusChange(h, st)}
-                              className='text-xs font-bold flex items-center justify-between cursor-pointer'
-                            >
-                              <div className='flex items-center gap-2'>
-                                <span className={cn('size-2 rounded-full', itemCfg.dotBg)} />
-                                <span className={itemCfg.text}>{itemCfg.label}</span>
-                              </div>
-                              {status === st && <span className='text-primary'>✓</span>}
-                            </DropdownMenuItem>
-                          );
-                        })}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  );
-                })}
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
-          {/* 3. Placeholder Tambah Jadwal di Akhir Grid */}
-          {!readOnly && !isDayCuti && (
+          {/* Tombol Tambah Jadwal di Bawah Grid */}
+          {!readOnly && !isDayCuti && !isDayClosed && (
             <div className='pt-1'>
               <button
                 type='button'
-                onClick={openAddSessionModal}
+                onClick={() => openAddSessionModal()}
                 className='w-full py-2.5 px-3 rounded-xl border border-dashed border-border/70 hover:border-primary/60 bg-muted/5 hover:bg-primary/5 text-muted-foreground hover:text-primary transition-all flex items-center justify-center gap-2 text-xs font-semibold cursor-pointer shadow-2xs group select-none'
               >
                 <Icons.add className='size-3.5 group-hover:scale-110 transition-transform' />
-                <span>Tambah jadwal</span>
+                <span>Tambah jadwal praktik baru</span>
               </button>
             </div>
           )}
         </div>
 
-        {/* 4. Daftar Sesi Shift Praktik Terdaftar */}
-        <div className='p-3.5 sm:p-4 border-t border-border/30 bg-muted/5 space-y-2.5'>
-          <div className='flex items-center justify-between'>
-            <div className='flex items-center gap-2'>
-              <Icons.calendar className='size-3.5 text-primary' />
-              <span className='text-xs font-bold text-foreground tracking-tight'>
-                Daftar Sesi Shift Terdaftar ({activeSessions.length})
-              </span>
-            </div>
-            {!readOnly && !isDayCuti && (
-              <button
-                type='button'
-                onClick={openAddSessionModal}
-                className='text-[11.5px] font-semibold text-primary hover:underline flex items-center gap-1 cursor-pointer select-none'
-              >
-                <Icons.add className='size-3' />
-                <span>Tambah Sesi</span>
-              </button>
-            )}
-          </div>
-
-          {activeSessions.length === 0 ? (
-            <div className='py-4 px-3 text-center rounded-xl border border-dashed border-border/60 bg-background/50 text-xs text-muted-foreground'>
-              Belum ada sesi shift praktik pada tanggal ini.
-            </div>
-          ) : (
-            <div className='space-y-2'>
-              {activeSessions.map((s) => (
-                <div
-                  key={s.id}
-                  className='flex items-center justify-between gap-3 p-2.5 sm:p-3 rounded-xl border border-border/50 bg-card hover:border-primary/40 transition-colors shadow-2xs'
-                >
-                  <div className='min-w-0 flex-1 space-y-0.5'>
-                    <div className='flex items-center gap-2 flex-wrap'>
-                      <span className='text-xs font-bold text-foreground truncate'>
-                        {s.nama_sesi}
-                      </span>
-                      <span className='text-[11px] font-mono px-2 py-0.5 rounded-md bg-muted/60 text-muted-foreground'>
-                        {s.waktu || `${s.jam_mulai} - ${s.jam_selesai}`}
-                      </span>
-                      <span
-                        className={cn(
-                          'text-[10px] font-bold px-2 py-0.5 rounded-full border',
-                          s.status_sesi === 'Buka'
-                            ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20'
-                            : s.status_sesi === 'Penuh'
-                              ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
-                              : s.status_sesi === 'Cuti'
-                                ? 'bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/20'
-                                : 'bg-muted text-muted-foreground border-border/60'
-                        )}
-                      >
-                        {s.status_sesi}
-                      </span>
-                    </div>
-                    <div className='text-[11px] text-muted-foreground flex items-center gap-3 pt-0.5'>
-                      <span>
-                        Kuota: <strong className='text-foreground'>{s.kuota_pasien}</strong> (Sisa: {s.slot_tersedia})
-                      </span>
-                      {s.ruang && (
-                        <span className='truncate text-muted-foreground/80'>
-                          • {s.ruang}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {!readOnly && (
-                    <div className='flex items-center gap-1 shrink-0'>
-                      <button
-                        type='button'
-                        onClick={() => handleOpenEditSession(s)}
-                        title='Ubah Sesi'
-                        aria-label='Ubah Sesi'
-                        className='size-7 rounded-lg border border-border/60 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer'
-                      >
-                        <Icons.edit className='size-3.5' />
-                      </button>
-                      <button
-                        type='button'
-                        onClick={() => handleDeleteSession(s)}
-                        title='Hapus Sesi'
-                        aria-label='Hapus Sesi'
-                        className='size-7 rounded-lg border border-border/60 hover:bg-destructive/10 text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors cursor-pointer'
-                      >
-                        <Icons.trash className='size-3.5' />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* 5. Footer Legend */}
+        {/* 5. Footer Legend Ringkas & Standar Desain Sistem */}
         <div className='px-4 py-3 border-t border-border/30 bg-muted/5 flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-xs font-bold'>
           <div className='flex items-center gap-2'>
             <span className='size-2.5 rounded-full bg-emerald-500' />
-            <span className='text-emerald-700 dark:text-emerald-400'>Buka</span>
-          </div>
-          <div className='flex items-center gap-2'>
-            <span className='size-2.5 rounded-full bg-amber-500' />
-            <span className='text-amber-700 dark:text-amber-400'>Penuh</span>
-          </div>
-          <div className='flex items-center gap-2'>
-            <span className='size-2.5 rounded-full bg-muted-foreground/60' />
-            <span className='text-muted-foreground'>Tutup</span>
+            <span className='text-emerald-700 dark:text-emerald-400'>Buka (Tersedia)</span>
           </div>
           <div className='flex items-center gap-2'>
             <span className='size-2.5 rounded-full bg-sky-500' />
-            <span className='text-sky-700 dark:text-sky-400'>Cuti (1 Hari)</span>
+            <span className='text-sky-700 dark:text-sky-400'>Terisi (Jadwal Dokter)</span>
+          </div>
+          <div className='flex items-center gap-2'>
+            <span className='size-2.5 rounded-full bg-muted-foreground/40' />
+            <span className='text-muted-foreground'>Tutup (Di luar jam / Cuti)</span>
           </div>
         </div>
       </div>
+
+      {/* Modal Detail & Aksi Sesi (Menggantikan Redundansi List di Bawah Grid) */}
+      {doctor && selectedSessionDetail && (
+        <DoctorSessionDetailModal
+          doctor={doctor}
+          session={selectedSessionDetail}
+          isOpen={isDetailModalOpen}
+          onClose={() => {
+            setIsDetailModalOpen(false);
+            setSelectedSessionDetail(null);
+          }}
+          onOpenReschedule={(sess) => handleOpenReschedule(sess)}
+          onOpenEdit={(sess) => handleOpenEditSession(sess)}
+          portalContainerRef={modalContainerRef}
+        />
+      )}
 
       {/* Modal Tambah Sesi Jadwal Praktik */}
       {doctor && (
         <DoctorAddSessionModal
           doctor={doctor}
           isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
-          onSessionAdded={handleSessionAdded}
+          onClose={() => {
+            setIsAddModalOpen(false);
+            setAddSessionInitialTime(undefined);
+          }}
           portalContainerRef={modalContainerRef}
           targetDate={`${activeYear}-${String(activeMonth + 1).padStart(2, '0')}-${String(activeDay).padStart(2, '0')}`}
+          initialStartTime={addSessionInitialTime}
         />
       )}
 
-      {/* Modal Edit Sesi Jadwal Praktik */}
+      {/* Modal Edit Sesi Jadwal Praktik (In-Place Edit) */}
       {doctor && editingSession && (
         <DoctorEditSessionModal
           doctor={doctor}
@@ -791,7 +783,26 @@ export function DoctorDailyHourlyGrid({
             setIsEditModalOpen(false);
             setEditingSession(null);
           }}
+          onOpenReschedule={(sess) => {
+            setIsEditModalOpen(false);
+            handleOpenReschedule(sess);
+          }}
           portalContainerRef={modalContainerRef}
+        />
+      )}
+
+      {/* Modal Reschedule Sesi (Atomic Move & Migration) */}
+      {doctor && selectedSessionForReschedule && (
+        <DoctorRescheduleSessionModal
+          doctor={doctor}
+          session={selectedSessionForReschedule}
+          isOpen={isRescheduleOpen}
+          onClose={() => {
+            setIsRescheduleOpen(false);
+            setSelectedSessionForReschedule(null);
+          }}
+          portalContainerRef={modalContainerRef}
+          initialDate={`${activeYear}-${String(activeMonth + 1).padStart(2, '0')}-${String(activeDay).padStart(2, '0')}`}
         />
       )}
     </>

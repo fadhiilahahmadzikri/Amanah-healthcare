@@ -137,12 +137,18 @@ export const getStatusConfig = (status: string): StatusConfig => {
         ...clinicalTokens.colors.status.upcoming,
         label: 'Cuti'
       };
+    case 'TERISI':
+    case 'OCCUPIED':
+      return {
+        ...clinicalTokens.colors.status.upcoming,
+        label: 'Terisi'
+      };
     case 'PENUH':
     case 'FULL':
     case 'SEBAGIAN':
       return {
         ...clinicalTokens.colors.status.pending,
-        label: 'Penuh'
+        label: 'Terisi'
       };
     case 'COMPLETED':
     case 'SELESAI':

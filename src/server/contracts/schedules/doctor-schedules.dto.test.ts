@@ -3,7 +3,11 @@ import {
   adminDoctorScheduleFilterOptionsSchema,
   updateAdminDoctorSessionPayloadSchema,
   deleteAdminDoctorSessionResponseSchema,
-  adminDoctorScheduleDetailResponseSchema
+  adminDoctorScheduleDetailResponseSchema,
+  rescheduleEligibilityResponseSchema,
+  updateAdminDayByDatePayloadSchema,
+  updateAdminDayByDateResponseSchema,
+  doctorDailySessionSchema
 } from './doctor-schedules.dto';
 
 describe('Admin Doctor Schedules Contract DTOs', () => {
@@ -102,5 +106,76 @@ describe('Admin Doctor Schedules Contract DTOs', () => {
     expect(parsed.data.slot_tersedia).toBe(0);
     expect(parsed.data.ruang_praktik).toBe('Belum Ditentukan');
     expect(parsed.data.sesi_harian).toHaveLength(0);
+  });
+
+  it('validates reschedule eligibility response schema with target validation', () => {
+    const rawResponse = {
+      success: true,
+      data: {
+        isEligible: false,
+        actionableGuidance: 'Sesi asal dalam status Tutup. Aktifkan sesi terlebih dahulu.',
+        targetValidation: {
+          isTargetEligible: false,
+          conflictMessage: 'Ruangan Poli KIA 1 sudah terisi oleh dokter lain pada jam 09:00 - 09:30 WIB.',
+          projectedEndTime: '09:30'
+        }
+      }
+    };
+
+    const parsed = rescheduleEligibilityResponseSchema.parse(rawResponse);
+    expect(parsed.success).toBe(true);
+    expect(parsed.data.isEligible).toBe(false);
+    expect(parsed.data.targetValidation?.isTargetEligible).toBe(false);
+    expect(parsed.data.targetValidation?.conflictMessage).toContain('Poli KIA 1');
+    expect(parsed.data.targetValidation?.projectedEndTime).toBe('09:30');
+  });
+
+  it('validates binary updateAdminDayByDate payload schema', () => {
+    const payloadTutup = { status: 'Tutup', notes: 'Renovasi gedung' };
+    const parsedTutup = updateAdminDayByDatePayloadSchema.parse(payloadTutup);
+    expect(parsedTutup.status).toBe('Tutup');
+    expect(parsedTutup.notes).toBe('Renovasi gedung');
+
+    const payloadBuka = { status: 'Buka' };
+    const parsedBuka = updateAdminDayByDatePayloadSchema.parse(payloadBuka);
+    expect(parsedBuka.status).toBe('Buka');
+  });
+
+  it('validates doctorDailySessionSchema with reschedule eligibility metadata', () => {
+    const session = {
+      id: 'session-123',
+      nama_sesi: 'Sesi Pagi',
+      jam_mulai: '08:00',
+      jam_selesai: '08:30',
+      kuota_pasien: 10,
+      slot_tersedia: 5,
+      status_sesi: 'Buka',
+      ruang: 'Ruang Poli Umum 1',
+      is_reschedule_eligible: true,
+      reschedule_ineligibility_reason: null
+    };
+
+    const parsed = doctorDailySessionSchema.parse(session);
+    expect(parsed.is_reschedule_eligible).toBe(true);
+    expect(parsed.reschedule_ineligibility_reason).toBeNull();
+  });
+
+  it('validates updateAdminDayByDateResponseSchema for day closure cascading', () => {
+    const rawResponse = {
+      success: true,
+      message: 'Jadwal tanggal 2026-09-25 berhasil ditutup (4 sesi dinonaktifkan, 2 antrean dibatalkan)',
+      data: {
+        date: '2026-09-25',
+        status: 'Tutup',
+        affectedSessionsCount: 4,
+        cancelledAppointmentsCount: 2
+      }
+    };
+
+    const parsed = updateAdminDayByDateResponseSchema.parse(rawResponse);
+    expect(parsed.success).toBe(true);
+    expect(parsed.data?.status).toBe('Tutup');
+    expect(parsed.data?.affectedSessionsCount).toBe(4);
+    expect(parsed.data?.cancelledAppointmentsCount).toBe(2);
   });
 });
