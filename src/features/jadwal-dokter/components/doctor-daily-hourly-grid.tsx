@@ -10,6 +10,7 @@ import { DoctorEditSessionModal } from './doctor-edit-session-modal';
 import { DoctorRescheduleSessionModal } from './doctor-reschedule-session-modal';
 import { DoctorSessionDetailModal } from './doctor-session-detail-modal';
 import { DoctorSessionPatientsModal } from './doctor-session-patients-modal';
+import { DoctorOccupancyRadialChart } from './doctor-occupancy-radial-chart';
 import { isDoctorOnLeaveOnDay } from '../api/service';
 import { resolveDayStatus } from './doctor-timeline-calendar';
 import { cn } from '@/lib/utils';
@@ -217,19 +218,19 @@ export function DoctorDailyHourlyGrid({
         occupied: occupiedSlots,
         capacity: activeBookableSlots,
         percentage: occupancyPercentage,
-        displayText: `Okupansi Pasien: ${occupiedSlots}/${activeBookableSlots} Slot (${occupancyPercentage}%)`
+        displayText: `Keterisian Kuota: ${occupiedSlots}/${activeBookableSlots} Pasien (${occupancyPercentage}%)`
       },
       patientOccupancy: {
         occupied: occupiedSlots,
         capacity: activeBookableSlots,
         percentage: occupancyPercentage,
-        displayText: `Okupansi Pasien: ${occupiedSlots}/${activeBookableSlots} Slot (${occupancyPercentage}%)`
+        displayText: `Keterisian Kuota: ${occupiedSlots}/${activeBookableSlots} Pasien (${occupancyPercentage}%)`
       },
       scheduleCoverage: {
         scheduled: scheduledSlots,
         total: totalSlots,
         percentage: coveragePercentage,
-        displayText: `Cakupan Jadwal: ${scheduledSlots}/${totalSlots} Slot (${coveragePercentage}%)`
+        displayText: `Alokasi Praktik: ${scheduledSlots}/${totalSlots} Slot (${coveragePercentage}%)`
       },
       unscheduledNotice:
         unscheduledSlots > 0 ? `${unscheduledSlots} slot belum dijadwalkan` : undefined
@@ -378,25 +379,25 @@ export function DoctorDailyHourlyGrid({
             <h2 className='text-sm sm:text-base font-bold text-foreground tracking-tight truncate'>
               {formattedSelectedDate}
             </h2>
-            <div className='text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5 font-normal'>
-              {isDayCuti ? (
-                <span className='text-sky-600 dark:text-sky-400 font-semibold'>
-                  Praktik Ditutup (Cuti)
-                </span>
-              ) : isDayClosed && activeSessions.length === 0 ? (
-                <span className='text-destructive dark:text-destructive font-semibold'>
-                  Praktik Ditutup pada tanggal ini
-                </span>
-              ) : activeSessions.length === 0 ? (
-                <span className='text-muted-foreground font-medium'>
-                  Belum ada jadwal praktik diatur pada tanggal ini
-                </span>
-              ) : (
-                <span className='text-muted-foreground font-medium'>
-                  {activeSessions.length} sesi shift aktif • Klik slot jadwal untuk kelola sesi
-                </span>
-              )}
-            </div>
+            {(isDayCuti ||
+              (isDayClosed && activeSessions.length === 0) ||
+              activeSessions.length === 0) && (
+              <div className='text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5 font-normal'>
+                {isDayCuti ? (
+                  <span className='text-sky-600 dark:text-sky-400 font-semibold'>
+                    Praktik Ditutup (Cuti)
+                  </span>
+                ) : isDayClosed && activeSessions.length === 0 ? (
+                  <span className='text-destructive dark:text-destructive font-semibold'>
+                    Praktik Ditutup pada tanggal ini
+                  </span>
+                ) : (
+                  <span className='text-muted-foreground font-medium'>
+                    Belum ada jadwal praktik diatur pada tanggal ini
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Right: Grouped Navigation & Action Controls */}
@@ -557,43 +558,27 @@ export function DoctorDailyHourlyGrid({
           </div>
         )}
 
-        {/* Dual Indicator Metrics Summary Bar (Backend SSOT) */}
+        {/* Dual Indicator Metrics Summary Bar (Backend SSOT Radial Chart) */}
         {!isDayCuti && !isDayClosed && (
-          <div className='px-3.5 sm:px-4 py-2 border-b border-border/30 bg-muted/10 flex items-center justify-between gap-3 flex-wrap text-xs'>
-            <div className='flex items-center gap-4 flex-wrap'>
-              <div className='inline-flex items-center gap-1.5'>
-                <span className='size-2 rounded-full bg-emerald-500 shrink-0' />
-                <span className='font-mono font-bold text-foreground text-xs'>
-                  {overallMetrics.scheduleCoverage?.displayText ||
-                    `Cakupan Jadwal: ${overallMetrics.scheduleCoverage?.scheduled ?? overallMetrics.scheduledSlots ?? 0}/${overallMetrics.scheduleCoverage?.total ?? overallMetrics.totalSlots ?? 48} Slot (${overallMetrics.scheduleCoverage?.percentage ?? 0}%)`}
-                </span>
-              </div>
-
-              <div className='h-3 w-px bg-border/60 hidden sm:block' />
-
-              <div className='inline-flex items-center gap-1.5'>
-                <span className='size-2 rounded-full bg-sky-500 shrink-0' />
-                <span className='font-mono font-bold text-foreground text-xs'>
-                  {overallMetrics.patientOccupancy?.displayText ||
-                    overallMetrics.occupancy?.displayText ||
-                    `Okupansi Pasien: ${overallMetrics.occupancy?.occupied ?? overallMetrics.occupiedSlots ?? 0}/${overallMetrics.occupancy?.capacity ?? overallMetrics.activeBookableSlots ?? 0} Slot (${overallMetrics.occupancy?.percentage ?? 0}%)`}
-                </span>
-              </div>
-            </div>
-
-            {overallMetrics.unscheduledNotice ? (
-              <div className='text-[11px] text-muted-foreground font-medium'>
-                {overallMetrics.unscheduledNotice}
-              </div>
-            ) : overallMetrics.unscheduledSlots > 0 ? (
-              <div className='text-[11px] text-muted-foreground font-medium'>
-                <span className='font-mono font-bold text-foreground'>
-                  {overallMetrics.unscheduledSlots}
-                </span>{' '}
-                slot belum dijadwalkan
-              </div>
-            ) : null}
-          </div>
+          <DoctorOccupancyRadialChart
+            scheduleCoverage={
+              overallMetrics.scheduleCoverage ?? {
+                scheduled: overallMetrics.scheduledSlots ?? 0,
+                total: overallMetrics.totalSlots ?? 48,
+                percentage: 0
+              }
+            }
+            patientOccupancy={
+              overallMetrics.patientOccupancy ??
+              overallMetrics.occupancy ?? {
+                occupied: overallMetrics.occupiedSlots ?? 0,
+                capacity: overallMetrics.activeBookableSlots ?? 0,
+                percentage: 0
+              }
+            }
+            unscheduledNotice={overallMetrics.unscheduledNotice}
+            unscheduledSlots={overallMetrics.unscheduledSlots}
+          />
         )}
 
         {/* 4. Body Grid: Discrete 30-min Consultation Slots per Shift (Backend SSOT) */}
