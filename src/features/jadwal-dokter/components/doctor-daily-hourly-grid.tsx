@@ -12,7 +12,7 @@ import { DoctorSessionDetailModal } from './doctor-session-detail-modal';
 import { DoctorSessionPatientsModal } from './doctor-session-patients-modal';
 import { DoctorOccupancyRadialChart } from './doctor-occupancy-radial-chart';
 import { isDoctorOnLeaveOnDay } from '../api/service';
-import { useUpdateDoctorSessionMutation, useUpdateDoctorDayStatusMutation } from '../api/mutations';
+import { useUpdateDoctorSessionMutation } from '../api/mutations';
 import { resolveDayStatus } from './doctor-timeline-calendar';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule, DoctorDailySession } from '../api/types';
@@ -261,7 +261,6 @@ export function DoctorDailyHourlyGrid({
   const [isReasonOpen, setIsReasonOpen] = useState(false);
 
   const updateSessionMutation = useUpdateDoctorSessionMutation();
-  const updateDayMutation = useUpdateDoctorDayStatusMutation();
 
   const handleToggleSessionStatus = (session: DoctorDailySession) => {
     if (!doctor?.id || !session?.id) return;
@@ -276,17 +275,6 @@ export function DoctorDailyHourlyGrid({
       payload: {
         status_sesi: nextStatus
       }
-    });
-  };
-
-  const handleToggleDayStatus = () => {
-    if (!doctor?.id) return;
-    const formattedDate = `${activeYear}-${String(activeMonth + 1).padStart(2, '0')}-${String(activeDay).padStart(2, '0')}`;
-    const nextStatus = isDayClosed ? 'OPEN' : 'CLOSED';
-    updateDayMutation.mutate({
-      doctorId: doctor.id,
-      date: formattedDate,
-      status: nextStatus
     });
   };
 
@@ -467,43 +455,15 @@ export function DoctorDailyHourlyGrid({
               </button>
             </div>
 
-            {!readOnly && !isDayCuti && (
-              <>
-                <button
-                  type='button'
-                  onClick={handleToggleDayStatus}
-                  disabled={updateDayMutation.isPending}
-                  className={cn(
-                    'inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border transition-all shadow-2xs cursor-pointer select-none shrink-0',
-                    isDayClosed
-                      ? 'border-emerald-500/40 hover:border-emerald-500/80 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                      : 'border-rose-500/40 hover:border-rose-500/80 bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-300'
-                  )}
-                >
-                  {isDayClosed ? (
-                    <>
-                      <Icons.check className='size-3.5' />
-                      <span>Buka jadwal hari ini</span>
-                    </>
-                  ) : (
-                    <>
-                      <Icons.lock className='size-3.5' />
-                      <span>Tutup jadwal hari ini</span>
-                    </>
-                  )}
-                </button>
-
-                {!isDayClosed && (
-                  <button
-                    type='button'
-                    onClick={() => openAddSessionModal()}
-                    className='inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border border-dashed border-border/80 hover:border-primary/70 bg-background hover:bg-primary/5 text-foreground/80 hover:text-primary transition-all shadow-2xs cursor-pointer select-none shrink-0'
-                  >
-                    <Icons.add className='size-3.5' />
-                    <span>Tambah jadwal</span>
-                  </button>
-                )}
-              </>
+            {!readOnly && !isDayCuti && !isDayClosed && (
+              <button
+                type='button'
+                onClick={() => openAddSessionModal()}
+                className='inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border border-dashed border-border/80 hover:border-primary/70 bg-background hover:bg-primary/5 text-foreground/80 hover:text-primary transition-all shadow-2xs cursor-pointer select-none shrink-0'
+              >
+                <Icons.add className='size-3.5' />
+                <span>Tambah jadwal</span>
+              </button>
             )}
           </div>
         </div>

@@ -6,33 +6,15 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { useDoctorScheduleView } from '../model/useDoctorScheduleView';
-import { useUpdateDoctorScheduleMutation } from '../api/mutations';
 import { DoctorScheduleFilters } from './doctor-schedule-filters';
 import { DoctorScheduleCard } from './doctor-schedule-card';
 import { DoctorScheduleDetailSheet } from './doctor-schedule-detail-sheet';
 import { DoctorRescheduleSessionModal } from './doctor-reschedule-session-modal';
 import { DoctorExportButton } from './doctor-export-button';
 import { DoctorSchedulePagination } from './doctor-schedule-pagination';
-import type { DoctorSchedule } from '../api/types';
 
 export function DoctorScheduleView() {
   const scheduleView = useDoctorScheduleView();
-  const updateScheduleMutation = useUpdateDoctorScheduleMutation();
-
-  const handleToggleDoctorStatus = (doctor: DoctorSchedule) => {
-    const isCurrentlyClosed =
-      doctor.status_jadwal === 'Tutup' ||
-      doctor.status_dokter === 'CLOSED' ||
-      doctor.status_jadwal === 'CLOSED';
-    updateScheduleMutation.mutate({
-      id: doctor.id,
-      payload: {
-        status_jadwal: isCurrentlyClosed ? 'Buka' : 'Tutup',
-        status_dokter: isCurrentlyClosed ? 'Buka' : 'Tutup',
-        is_cuti: false
-      }
-    });
-  };
 
   return (
     <>
@@ -137,7 +119,6 @@ export function DoctorScheduleView() {
                           onOpenDetail={scheduleView.actions.openDetail}
                           onOpenEdit={scheduleView.actions.openEdit}
                           onOpenReschedule={scheduleView.actions.openReschedule}
-                          onToggleStatus={handleToggleDoctorStatus}
                         />
                       ))}
                     </div>

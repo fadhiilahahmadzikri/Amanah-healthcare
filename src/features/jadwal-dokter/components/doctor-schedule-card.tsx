@@ -588,7 +588,6 @@ export interface DoctorScheduleCardProps {
   onOpenEdit?: (doctor: DoctorSchedule) => void;
   onOpenReschedule?: (doctor: DoctorSchedule) => void;
   onCall?: (doctor: DoctorSchedule) => void;
-  onToggleStatus?: (doctor: DoctorSchedule) => void;
   variant?: 'default' | 'compact' | 'flat' | 'elevated';
   showActions?: boolean;
   showCallButton?: boolean;
@@ -638,7 +637,6 @@ export function DoctorScheduleCard({
   onOpenEdit,
   onOpenReschedule,
   onCall,
-  onToggleStatus,
   variant = 'default',
   showActions = true,
   showCallButton = true,
@@ -649,11 +647,6 @@ export function DoctorScheduleCard({
   const isCuti = statusLabel === 'Cuti';
   const isUnconfigured = statusLabel === 'Belum Diatur';
   const isTutup = statusLabel === 'Tutup';
-
-  const handleToggleSchedule = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onToggleStatus?.(doctor);
-  };
 
   // Handle Call action
   const handleCall = (e: React.MouseEvent) => {
@@ -697,37 +690,9 @@ export function DoctorScheduleCard({
       {/* 1. Transparent Doctor Cutout Image */}
       <DoctorCardImage src={doctor.avatar} alt={doctor.nama_dokter} />
 
-      {/* 2. Top Header: Status Badge & Quick Actions */}
+      {/* 2. Top Header: Status Badge & Quick Phone Button */}
       <div className='flex items-center justify-between gap-3 relative z-20'>
-        <div className='flex items-center gap-2'>
-          <DoctorStatusBadge status={statusLabel} />
-          {!isCuti && !isUnconfigured && onToggleStatus && (
-            <button
-              type='button'
-              onClick={handleToggleSchedule}
-              title={isTutup ? 'Buka Jadwal' : 'Tutup Jadwal'}
-              className={cn(
-                'opacity-0 group-hover:opacity-100 transition-all duration-150 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border backdrop-blur-sm cursor-pointer shadow-2xs',
-                isTutup
-                  ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
-                  : 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-500/30'
-              )}
-            >
-              {isTutup ? (
-                <>
-                  <Icons.check className='size-3 shrink-0' />
-                  <span>Buka Jadwal</span>
-                </>
-              ) : (
-                <>
-                  <Icons.lock className='size-3 shrink-0' />
-                  <span>Tutup Jadwal</span>
-                </>
-              )}
-            </button>
-          )}
-        </div>
-
+        <DoctorStatusBadge status={statusLabel} />
         {showCallButton && !isUnconfigured && (
           <DoctorQuickCallButton
             phoneNumber={doctor.nomor_telepon ?? undefined}
