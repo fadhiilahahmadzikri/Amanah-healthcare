@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionCookie } from 'better-auth/cookies';
+import { defaultHttpObservability } from '@/core/observability';
 
 const PROTECTED_PREFIXES = ['/dashboard', '/patient-registration'];
 const AUTH_ONLY_PREFIXES = [
@@ -60,6 +61,11 @@ function isJwtExpired(token: string): boolean {
 
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const isApi = pathname.startsWith('/api');
+
+  // 0. Global HTTP Observability Boundary for incoming API requests only
+  const obsContext = isApi ? defaultHttpObservability.onIncomingRequest(request) : null;
+
   const rawAccessToken = request.cookies.get('amanah_access_token')?.value;
   const rawRefreshToken = request.cookies.get('amanah_refresh_token')?.value;
   const betterAuthToken =
@@ -79,21 +85,35 @@ export default async function proxy(request: NextRequest) {
 
   // Friendly aliases
   if (pathname === '/login') {
-    if (sessionCookie) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-    }
-    return NextResponse.redirect(new URL('/auth/sign-in', request.url));
+    const dest = sessionCookie ? '/dashboard' : '/auth/sign-in';
+    const redirectRes = NextResponse.redirect(new URL(dest, request.url));
+    if (obsContext)
+      defaultHttpObservability.onResponse(obsContext, {
+        status: redirectRes.status,
+        headers: redirectRes.headers
+      });
+    return redirectRes;
   }
   if (pathname === '/register') {
-    if (sessionCookie) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
-    }
-    return NextResponse.redirect(new URL('/auth/sign-up', request.url));
+    const dest = sessionCookie ? '/dashboard' : '/auth/sign-up';
+    const redirectRes = NextResponse.redirect(new URL(dest, request.url));
+    if (obsContext)
+      defaultHttpObservability.onResponse(obsContext, {
+        status: redirectRes.status,
+        headers: redirectRes.headers
+      });
+    return redirectRes;
   }
   if (pathname === '/forgot-password' || pathname === '/auth/forgot-password') {
     const url = request.nextUrl.clone();
     url.pathname = '/auth/sign-in/forgot-password';
-    return NextResponse.redirect(url);
+    const redirectRes = NextResponse.redirect(url);
+    if (obsContext)
+      defaultHttpObservability.onResponse(obsContext, {
+        status: redirectRes.status,
+        headers: redirectRes.headers
+      });
+    return redirectRes;
   }
   if (
     pathname === '/password-change' ||
@@ -103,7 +123,13 @@ export default async function proxy(request: NextRequest) {
   ) {
     const url = request.nextUrl.clone();
     url.pathname = '/auth/sign-in/reset-password';
-    return NextResponse.redirect(url);
+    const redirectRes = NextResponse.redirect(url);
+    if (obsContext)
+      defaultHttpObservability.onResponse(obsContext, {
+        status: redirectRes.status,
+        headers: redirectRes.headers
+      });
+    return redirectRes;
   }
 
   const isResetPassword =
@@ -124,6 +150,11 @@ export default async function proxy(request: NextRequest) {
     url.searchParams.set('redirect', safeCallbackUrl(pathname));
     const response = NextResponse.redirect(url);
     response.headers.set('Cache-Control', 'no-store, max-age=0');
+    if (obsContext)
+      defaultHttpObservability.onResponse(obsContext, {
+        status: response.status,
+        headers: response.headers
+      });
     return response;
   }
 
@@ -138,6 +169,11 @@ export default async function proxy(request: NextRequest) {
           otpUrl.searchParams.set('email', user.email);
           const response = NextResponse.redirect(otpUrl);
           response.headers.set('Cache-Control', 'no-store, max-age=0');
+          if (obsContext)
+            defaultHttpObservability.onResponse(obsContext, {
+              status: response.status,
+              headers: response.headers
+            });
           return response;
         }
       } else {
@@ -145,6 +181,11 @@ export default async function proxy(request: NextRequest) {
         if (isAuthOnly || isOtpRoute) {
           const response = NextResponse.redirect(new URL('/dashboard', request.url));
           response.headers.set('Cache-Control', 'no-store, max-age=0');
+          if (obsContext)
+            defaultHttpObservability.onResponse(obsContext, {
+              status: response.status,
+              headers: response.headers
+            });
           return response;
         }
       }
@@ -154,13 +195,24 @@ export default async function proxy(request: NextRequest) {
       url.searchParams.set('redirect', safeCallbackUrl(pathname));
       const response = NextResponse.redirect(url);
       response.headers.set('Cache-Control', 'no-store, max-age=0');
+      if (obsContext)
+        defaultHttpObservability.onResponse(obsContext, {
+          status: response.status,
+          headers: response.headers
+        });
       return response;
     }
   }
 
-  // 3. Forward request with injected x-pathname header so Server Layouts/Components know the route
+  // 3. Forward request with injected x-pathname and correlation/request ID headers
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-pathname', pathname);
+
+  if (obsContext) {
+    requestHeaders.set('x-request-id', obsContext.requestId);
+    requestHeaders.set('x-correlation-id', obsContext.correlationId);
+    requestHeaders.set('x-request-start-time', String(obsContext.startTime));
+  }
 
   const response = NextResponse.next({
     request: {
@@ -182,6 +234,6 @@ export { proxy };
 
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest)$).*)'
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest)$).*)'
   ]
 };

@@ -1,10 +1,11 @@
 import { NextRequest } from 'next/server';
 import { buildClinicSystemPrompt } from '@/config/clinic-context-prompt';
+import { withApiObservability } from '@/core/observability';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function POST(req: NextRequest) {
+export const POST = withApiObservability(async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { messages = [] } = body;
@@ -123,4 +124,4 @@ export async function POST(req: NextRequest) {
       headers: { 'Content-Type': 'application/json' }
     });
   }
-}
+});

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { refreshTokenCommand } from '@/server/services/auth/refresh-token.command';
+import { withApiObservability } from '@/core/observability';
 
-export async function POST() {
+export const POST = withApiObservability(async function POST() {
   const result = await refreshTokenCommand();
 
   if (!result.ok) {
@@ -21,4 +22,4 @@ export async function POST() {
     success: true,
     data: result.value
   });
-}
+});

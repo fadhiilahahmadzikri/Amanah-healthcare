@@ -1,6 +1,10 @@
-import { redactSensitiveData } from './redact';
+import {
+  ssotLogger,
+  type ILogger as IObservabilityLogger,
+  type LogLevel as ObsLogLevel
+} from '@/core/observability';
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+export type LogLevel = ObsLogLevel;
 
 export interface LogEntry {
   level: LogLevel;
@@ -18,48 +22,24 @@ export interface ILogger {
   error(event: string, error?: unknown, context?: Record<string, unknown>): void;
 }
 
-class StructuredLogger implements ILogger {
-  private log(
-    level: LogLevel,
-    event: string,
-    context?: Record<string, unknown>,
-    err?: unknown
-  ): void {
-    const entry: LogEntry = {
-      level,
-      event,
-      timestamp: new Date().toISOString(),
-      ...(context ? { context: redactSensitiveData(context) as Record<string, unknown> } : {}),
-      ...(err instanceof Error ? { message: err.message } : {})
-    };
-
-    const serialized = JSON.stringify(entry);
-    if (level === 'error') {
-      console.error(serialized);
-    } else if (level === 'warn') {
-      console.warn(serialized);
-    } else if (typeof process !== 'undefined' && process.stdout) {
-      process.stdout.write(serialized + '\n');
-    }
-  }
+class SsotLoggerBridge implements ILogger {
+  constructor(private readonly delegate: IObservabilityLogger = ssotLogger) {}
 
   debug(event: string, context?: Record<string, unknown>): void {
-    if (process.env.NODE_ENV === 'development') {
-      this.log('debug', event, context);
-    }
+    this.delegate.debug(event, context);
   }
 
   info(event: string, context?: Record<string, unknown>): void {
-    this.log('info', event, context);
+    this.delegate.info(event, context);
   }
 
   warn(event: string, context?: Record<string, unknown>): void {
-    this.log('warn', event, context);
+    this.delegate.warn(event, context);
   }
 
   error(event: string, error?: unknown, context?: Record<string, unknown>): void {
-    this.log('error', event, context, error);
+    this.delegate.error(event, error, context);
   }
 }
 
-export const logger: ILogger = new StructuredLogger();
+export const logger: ILogger = new SsotLoggerBridge();

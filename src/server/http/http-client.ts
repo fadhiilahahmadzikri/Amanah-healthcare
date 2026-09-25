@@ -67,7 +67,12 @@ export class HttpClient {
       const { signal, cleanup } = createTimeoutSignal(timeoutMs, options.signal);
 
       try {
-        logOutboundRequest(method, fullUrl, Boolean(bodyInit));
+        logOutboundRequest(
+          method,
+          fullUrl,
+          options.body !== undefined ? options.body : Boolean(bodyInit),
+          headers
+        );
 
         const response = await fetch(fullUrl, {
           method,
@@ -79,9 +84,16 @@ export class HttpClient {
         });
 
         const durationMs = Date.now() - startTime;
-        logOutboundResponse(method, fullUrl, response.status, durationMs);
 
         if (!response.ok) {
+          logOutboundResponse(
+            method,
+            fullUrl,
+            response.status,
+            durationMs,
+            undefined,
+            response.headers
+          );
           if (attempt < maxAttempts && isRetryableStatus(response.status)) {
             const delay = calculateBackoffWithJitter(attempt);
             await new Promise((resolve) => setTimeout(resolve, delay));
@@ -92,6 +104,7 @@ export class HttpClient {
 
         // Handle 204 No Content or empty responses
         if (response.status === 204 || response.headers.get('content-length') === '0') {
+          logOutboundResponse(method, fullUrl, response.status, durationMs, null, response.headers);
           const parsed = schema.safeParse(null);
           if (parsed.success) {
             return parsed.data;
@@ -101,6 +114,14 @@ export class HttpClient {
         }
 
         const rawData = await response.json();
+        logOutboundResponse(
+          method,
+          fullUrl,
+          response.status,
+          durationMs,
+          rawData,
+          response.headers
+        );
         const parseResult = schema.safeParse(rawData);
 
         if (!parseResult.success) {

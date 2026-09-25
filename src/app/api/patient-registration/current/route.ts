@@ -5,8 +5,9 @@ import { NextResponse } from 'next/server';
 
 import { getPatients } from '@/features/data-pasien/api/service';
 import type { Patient } from '@/features/data-pasien/api/types';
+import { withApiObservability } from '@/core/observability';
 
-export async function GET() {
+export const GET = withApiObservability(async function GET() {
   const reqHeaders = await headers();
   let user: { id: string; email?: string | null; name?: string | null } | null = null;
   const session = await auth.api.getSession({ headers: reqHeaders });
@@ -49,7 +50,7 @@ export async function GET() {
     null;
 
   return NextResponse.json({ patient });
-}
+});
 
 function findExactPatient(
   patients: Patient[],
