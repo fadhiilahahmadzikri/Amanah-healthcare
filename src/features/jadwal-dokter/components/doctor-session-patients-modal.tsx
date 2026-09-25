@@ -99,24 +99,19 @@ export function DoctorSessionPatientsModal({
                 {doctor.nama_dokter}
               </h3>
               <div className='text-xs text-muted-foreground flex items-center gap-2 flex-wrap pt-0.5'>
-                <span>
-                  Sesi:{' '}
-                  <strong className='text-foreground font-semibold'>{session.nama_sesi}</strong>
+                <span className='font-semibold text-foreground'>{session.nama_sesi}</span>
+                <span className='text-border/80'>•</span>
+                <span className='font-mono font-medium text-foreground'>
+                  {session.jam_mulai} - {session.jam_selesai} WIB
                 </span>
-                <span className='text-border/80'>|</span>
-                <span>
-                  Jam:{' '}
-                  <strong className='text-foreground font-mono font-semibold'>
-                    {session.jam_mulai} - {session.jam_selesai} WIB
-                  </strong>
-                </span>
-                <span className='text-border/80'>|</span>
-                <span>
-                  Ruangan:{' '}
-                  <strong className='text-foreground font-semibold'>
-                    {session.ruang || doctor.ruang_praktik || '-'}
-                  </strong>
-                </span>
+                {(session.ruang || doctor.ruang_praktik) && (
+                  <>
+                    <span className='text-border/80'>•</span>
+                    <span className='font-medium text-muted-foreground'>
+                      {session.ruang || doctor.ruang_praktik}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
 
@@ -233,8 +228,7 @@ export function DoctorSessionPatientsModal({
                 ) : patientsList.length === 0 ? (
                   <div className='py-8 px-4 flex items-center justify-center h-full min-h-[260px]'>
                     <EmptyState
-                      animated={false}
-                      icon={Icons.user}
+                      animated
                       title='Tidak Ada Pasien Ditemukan'
                       description={
                         searchQuery
