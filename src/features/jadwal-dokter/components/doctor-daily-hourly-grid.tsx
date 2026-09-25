@@ -5,6 +5,8 @@ import { Icons } from '@/components/icons';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { HoverCard, HoverCardTrigger, HoverCardContent } from '@/components/ui/hover-card';
+import { ModalWrapper } from '@/components/ui/modal-wrapper';
+import { Button } from '@/components/ui/button';
 import { DoctorAddSessionModal } from './doctor-add-session-modal';
 import { DoctorEditSessionModal } from './doctor-edit-session-modal';
 import { DoctorRescheduleSessionModal } from './doctor-reschedule-session-modal';
@@ -262,18 +264,49 @@ export function DoctorDailyHourlyGrid({
 
   const updateSessionMutation = useUpdateDoctorSessionMutation();
 
+  const [closingSession, setClosingSession] = useState<DoctorDailySession | null>(null);
+  const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
+
+  const handleRequestCloseSession = (session: DoctorDailySession) => {
+    setClosingSession(session);
+    setIsCloseModalOpen(true);
+  };
+
+  const handleConfirmCloseSession = () => {
+    if (!doctor?.id || !closingSession?.id) return;
+    updateSessionMutation.mutate(
+      {
+        doctorId: doctor.id,
+        sessionId: closingSession.id,
+        payload: {
+          status_sesi: 'CLOSED'
+        }
+      },
+      {
+        onSuccess: () => {
+          setIsCloseModalOpen(false);
+          setClosingSession(null);
+        }
+      }
+    );
+  };
+
   const handleToggleSessionStatus = (session: DoctorDailySession) => {
     if (!doctor?.id || !session?.id) return;
     const isSessionClosed =
       (session.status_sesi || '').toUpperCase() === 'CLOSED' ||
       (session.status_sesi || '').toUpperCase() === 'TUTUP';
-    const nextStatus = isSessionClosed ? 'OPEN' : 'CLOSED';
+
+    if (!isSessionClosed) {
+      handleRequestCloseSession(session);
+      return;
+    }
 
     updateSessionMutation.mutate({
       doctorId: doctor.id,
       sessionId: session.id,
       payload: {
-        status_sesi: nextStatus
+        status_sesi: 'OPEN'
       }
     });
   };
@@ -1040,6 +1073,87 @@ export function DoctorDailyHourlyGrid({
           portalContainerRef={modalContainerRef}
         />
       )}
+
+      {/* Modal Konfirmasi Tutup Jadwal Sesi */}
+      <ModalWrapper
+        isOpen={isCloseModalOpen}
+        onClose={() => {
+          setIsCloseModalOpen(false);
+          setClosingSession(null);
+        }}
+        maxWidth='max-w-[420px]'
+        portalContainerRef={modalContainerRef}
+        showCloseButton={false}
+      >
+        <div className='relative font-sans space-y-4 text-left p-1'>
+          <div className='flex items-start justify-between gap-3'>
+            <div className='space-y-1 min-w-0'>
+              <div className='flex items-center gap-1.5 text-rose-600 dark:text-rose-400'>
+                <Icons.lock className='size-4' />
+                <span className='text-xs font-bold tracking-tight'>Konfirmasi Tutup Jadwal</span>
+              </div>
+              <h3 className='text-sm sm:text-base font-bold text-foreground leading-snug'>
+                Apakah Anda yakin ingin menutup sesi ini?
+              </h3>
+            </div>
+            <button
+              type='button'
+              onClick={() => {
+                setIsCloseModalOpen(false);
+                setClosingSession(null);
+              }}
+              aria-label='Tutup dialog'
+              className='rounded-full p-1 text-muted-foreground hover:bg-muted transition-colors cursor-pointer shrink-0'
+            >
+              <Icons.close className='size-4' />
+            </button>
+          </div>
+
+          {closingSession && (
+            <div className='rounded-xl border border-border/60 bg-muted/20 p-3 space-y-1.5 text-xs'>
+              <div className='flex items-center justify-between font-semibold'>
+                <span className='text-foreground'>{closingSession.nama_sesi}</span>
+                <span className='font-mono text-muted-foreground'>
+                  {closingSession.jam_mulai} - {closingSession.jam_selesai}
+                </span>
+              </div>
+              <p className='text-[11.5px] text-muted-foreground leading-relaxed'>
+                Setelah ditutup, sesi ini tidak akan dapat dipesan oleh pasien baru.
+              </p>
+            </div>
+          )}
+
+          <div className='flex items-center justify-end gap-2 pt-2 border-t border-border/40'>
+            <Button
+              type='button'
+              variant='outline'
+              size='sm'
+              shape='pill'
+              onClick={() => {
+                setIsCloseModalOpen(false);
+                setClosingSession(null);
+              }}
+              className='text-xs px-4 font-semibold cursor-pointer'
+            >
+              Tidak
+            </Button>
+            <Button
+              type='button'
+              variant='destructive'
+              size='sm'
+              shape='pill'
+              disabled={updateSessionMutation.isPending}
+              onClick={handleConfirmCloseSession}
+              className='text-xs px-4 font-semibold gap-1.5 cursor-pointer'
+            >
+              {updateSessionMutation.isPending && (
+                <Icons.spinner className='size-3.5 animate-spin' />
+              )}
+              <span>Ya, Tutup Jadwal</span>
+            </Button>
+          </div>
+        </div>
+      </ModalWrapper>
     </>
   );
 }
