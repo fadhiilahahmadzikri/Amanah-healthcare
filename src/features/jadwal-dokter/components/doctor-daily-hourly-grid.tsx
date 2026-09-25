@@ -27,8 +27,10 @@ import {
   UI_VARIANT_CONFIG,
   buildShiftsFromTimelineIntervals,
   buildLocalFallbackShifts,
+  resolveCanonicalShift,
   type HourlySlotStatus
 } from '../utils/shift-slot-builder';
+import { SCHEDULE_STATUS, SCHEDULE_MUTATION_NOTES } from '../constants/schedule-shift.constants';
 
 export type { HourlySlotStatus };
 
@@ -279,7 +281,10 @@ export function DoctorDailyHourlyGrid({
         doctorId: doctor.id,
         sessionId: closingSession.id,
         payload: {
-          status_sesi: 'CLOSED'
+          session: resolveCanonicalShift(closingSession.nama_sesi),
+          status: SCHEDULE_STATUS.CLOSED,
+          status_sesi: SCHEDULE_STATUS.CLOSED,
+          notes: SCHEDULE_MUTATION_NOTES.CLOSE_SESSION
         }
       },
       {
@@ -293,9 +298,7 @@ export function DoctorDailyHourlyGrid({
 
   const handleToggleSessionStatus = (session: DoctorDailySession) => {
     if (!doctor?.id || !session?.id) return;
-    const isSessionClosed =
-      (session.status_sesi || '').toUpperCase() === 'CLOSED' ||
-      (session.status_sesi || '').toUpperCase() === 'TUTUP';
+    const isSessionClosed = session.status_sesi === SCHEDULE_STATUS.CLOSED;
 
     if (!isSessionClosed) {
       handleRequestCloseSession(session);
@@ -306,7 +309,10 @@ export function DoctorDailyHourlyGrid({
       doctorId: doctor.id,
       sessionId: session.id,
       payload: {
-        status_sesi: 'OPEN'
+        session: resolveCanonicalShift(session.nama_sesi),
+        status: SCHEDULE_STATUS.OPEN,
+        status_sesi: SCHEDULE_STATUS.OPEN,
+        notes: SCHEDULE_MUTATION_NOTES.OPEN_SESSION
       }
     });
   };
@@ -905,8 +911,7 @@ export function DoctorDailyHourlyGrid({
                               </button>
                               {(() => {
                                 const isSessionClosed =
-                                  (matchingSession.status_sesi || '').toUpperCase() === 'CLOSED' ||
-                                  (matchingSession.status_sesi || '').toUpperCase() === 'TUTUP';
+                                  matchingSession.status_sesi === SCHEDULE_STATUS.CLOSED;
                                 return (
                                   <button
                                     type='button'

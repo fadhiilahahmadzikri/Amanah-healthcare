@@ -443,7 +443,14 @@ export const createAdminDoctorSessionPayloadSchema = z.object({
   kuota_pasien: z.number(),
   slot_tersedia: z.number(),
   status_sesi: z.string(),
-  ruang: z.string().optional()
+  ruang: z.string().optional(),
+  session: z.enum(['DINI_HARI', 'PAGI', 'SIANG', 'MALAM']).or(z.string()).optional(),
+  status: z.enum(['OPEN', 'CLOSED', 'Buka', 'Tutup']).or(z.string()).optional(),
+  notes: z.string().optional(),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
+  capacity: z.number().optional(),
+  roomId: z.string().optional()
 });
 export type CreateAdminDoctorSessionPayload = z.infer<typeof createAdminDoctorSessionPayloadSchema>;
 
@@ -473,7 +480,14 @@ export const updateAdminDoctorSessionPayloadSchema = z.object({
   kuota_pasien: z.number().optional(),
   slot_tersedia: z.number().optional(),
   status_sesi: z.string().optional(),
-  ruang: z.string().optional()
+  ruang: z.string().optional(),
+  session: z.enum(['DINI_HARI', 'PAGI', 'SIANG', 'MALAM']).or(z.string()).optional(),
+  status: z.enum(['OPEN', 'CLOSED', 'Buka', 'Tutup']).or(z.string()).optional(),
+  notes: z.string().optional(),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
+  capacity: z.number().optional(),
+  roomId: z.string().optional()
 });
 export type UpdateAdminDoctorSessionPayload = z.infer<typeof updateAdminDoctorSessionPayloadSchema>;
 

@@ -24,7 +24,7 @@ export const SHIFT_CONFIGS = [
   },
   {
     contextId: 'afternoon',
-    contextLabel: 'Siang / Sore',
+    contextLabel: 'Siang',
     startH: 12,
     endH: 18,
     timeRange: '12:00 - 18:00 WIB'
@@ -37,6 +37,35 @@ export const SHIFT_CONFIGS = [
     timeRange: '18:00 - 24:00 WIB'
   }
 ] as const;
+
+import {
+  SCHEDULE_SHIFT,
+  ALL_SCHEDULE_SHIFTS,
+  SCHEDULE_SHIFT_LABELS,
+  SCHEDULE_STATUS,
+  normalizeScheduleShift,
+  type ScheduleShift,
+  type ScheduleStatus
+} from '../constants/schedule-shift.constants';
+
+export {
+  SCHEDULE_SHIFT,
+  ALL_SCHEDULE_SHIFTS,
+  SCHEDULE_SHIFT_LABELS,
+  SCHEDULE_STATUS,
+  type ScheduleShift,
+  type ScheduleStatus
+};
+
+export const CANONICAL_SHIFTS = ALL_SCHEDULE_SHIFTS;
+export type CanonicalShift = ScheduleShift;
+
+export const resolveCanonicalShift = normalizeScheduleShift;
+
+export function resolveCanonicalShiftLabel(shift?: CanonicalShift | string | null): string {
+  const canonical = resolveCanonicalShift(shift);
+  return SCHEDULE_SHIFT_LABELS[canonical] || SCHEDULE_SHIFT_LABELS[SCHEDULE_SHIFT.PAGI];
+}
 
 export const UI_VARIANT_CONFIG: Record<
   string,

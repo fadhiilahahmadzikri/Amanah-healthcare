@@ -96,7 +96,8 @@ describe('DoctorScheduleCard Logic & Status Contracts', () => {
         status_sesi: 'OPEN'
       }
     ];
-    const upcoming = getUpcomingScheduleTime('13:00 - 17:00', sessions);
+    const fixedMorning = new Date('2026-09-25T08:00:00');
+    const upcoming = getUpcomingScheduleTime('13:00 - 17:00', sessions, undefined, fixedMorning);
     expect(upcoming.labelTime).toBe('13.00 – 13.30');
     expect(upcoming.sessionName).toBe('Sesi Siang');
   });

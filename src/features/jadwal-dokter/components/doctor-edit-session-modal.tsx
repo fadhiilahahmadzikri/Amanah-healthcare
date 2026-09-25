@@ -21,6 +21,8 @@ import {
   scheduleContextsQueryOptions,
   scheduleProjectionQueryOptions
 } from '../api/queries';
+import { resolveCanonicalShift } from '../utils/shift-slot-builder';
+import { SCHEDULE_STATUS } from '../constants/schedule-shift.constants';
 import type { DoctorSchedule, DoctorDailySession, ClinicRoom } from '../api/types';
 
 export interface DoctorEditSessionModalProps {
@@ -207,11 +209,16 @@ export function DoctorEditSessionModal({
         sessionId: session.id,
         payload: {
           nama_sesi: sessionName,
+          session: resolveCanonicalShift(sessionName),
           jam_mulai: jamMulai,
           jam_selesai: jamSelesaiCalculated || session.jam_selesai,
+          startTime: jamMulai,
+          endTime: jamSelesaiCalculated || session.jam_selesai,
           kuota_pasien: kuotaPasien,
           slot_tersedia: computedAvailableSlots,
-          status_sesi: 'OPEN',
+          capacity: kuotaPasien,
+          status: SCHEDULE_STATUS.OPEN,
+          status_sesi: SCHEDULE_STATUS.OPEN,
           ruang: ruang || undefined
         }
       },

@@ -28,6 +28,27 @@ import type {
   UpdateAppointmentStatusPayload,
   ScheduleDaySettingsPayload
 } from '@/server/contracts/schedules/doctor-schedules.dto';
+import { SCHEDULE_QUERY_KEYS, SCHEDULE_STATUS } from '../constants/schedule-shift.constants';
+
+/**
+ * Canonical 4-Query Post-Mutation Synchronization Pattern (syncAll)
+ * Section 5 from API Contract: Invalidates schedule lists, daily grids, occupancy overviews,
+ * clinical practitioners, and appointments in parallel to maintain 100% UI consistency.
+ */
+export async function syncAllDoctorSchedules(
+  queryClient: ReturnType<typeof useQueryClient>
+): Promise<void> {
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all }),
+    queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES] }),
+    queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.PRACTITIONERS] }),
+    queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.APPOINTMENTS] })
+  ]);
+  await Promise.all([
+    queryClient.refetchQueries({ queryKey: doctorScheduleKeys.all, type: 'active' }),
+    queryClient.refetchQueries({ queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES], type: 'active' })
+  ]);
+}
 
 export function useUpdateDoctorScheduleMutation() {
   const queryClient = useQueryClient();
@@ -36,11 +57,7 @@ export function useUpdateDoctorScheduleMutation() {
     mutationFn: ({ id, payload }: { id: string; payload: UpdateDoctorSchedulePayload }) =>
       updateDoctorSchedule(id, payload),
     onSuccess: async (updated) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all }),
-        queryClient.invalidateQueries({ queryKey: ['schedules'] })
-      ]);
-      await queryClient.refetchQueries({ queryKey: doctorScheduleKeys.all, type: 'active' });
+      await syncAllDoctorSchedules(queryClient);
       toast.success(
         updated.is_cuti
           ? `Status ${updated.nama_dokter} diset ke CUTI. Slot otomatis ditutup.`
@@ -131,11 +148,7 @@ export function useCreateDoctorSessionMutation() {
       payload: CreateDoctorSessionPayload;
     }) => createDoctorSession(doctorId, payload),
     onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all }),
-        queryClient.invalidateQueries({ queryKey: ['schedules'] })
-      ]);
-      await queryClient.refetchQueries({ queryKey: doctorScheduleKeys.all, type: 'active' });
+      await syncAllDoctorSchedules(queryClient);
       toast.success('Sesi praktik baru berhasil ditambahkan');
     },
     onError: (err: unknown) => {
@@ -159,16 +172,11 @@ export function useUpdateDoctorSessionMutation() {
       payload: UpdateDoctorSessionPayload;
     }) => updateDoctorSession(doctorId, sessionId, payload),
     onSuccess: async (_data, variables) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all }),
-        queryClient.invalidateQueries({ queryKey: ['schedules'] })
-      ]);
-      await queryClient.refetchQueries({ queryKey: doctorScheduleKeys.all, type: 'active' });
+      await syncAllDoctorSchedules(queryClient);
 
-      const rawStatus = (variables.payload.status_sesi || '').toUpperCase();
-      if (rawStatus === 'CLOSED' || rawStatus === 'TUTUP') {
+      if (variables.payload.status === SCHEDULE_STATUS.CLOSED) {
         toast.success('Jadwal sesi berhasil ditutup');
-      } else if (rawStatus === 'OPEN' || rawStatus === 'BUKA') {
+      } else if (variables.payload.status === SCHEDULE_STATUS.OPEN) {
         toast.success('Jadwal sesi berhasil dibuka kembali');
       } else {
         toast.success('Sesi praktik berhasil diperbarui');
@@ -188,11 +196,7 @@ export function useDeleteDoctorSessionMutation() {
     mutationFn: ({ doctorId, sessionId }: { doctorId: string; sessionId: string }) =>
       deleteDoctorSession(doctorId, sessionId),
     onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all }),
-        queryClient.invalidateQueries({ queryKey: ['schedules'] })
-      ]);
-      await queryClient.refetchQueries({ queryKey: doctorScheduleKeys.all, type: 'active' });
+      await syncAllDoctorSchedules(queryClient);
       toast.success('Sesi praktik berhasil dihapus');
     },
     onError: (err: unknown) => {
@@ -216,11 +220,7 @@ export function useRescheduleDoctorSessionMutation() {
       payload: RescheduleDoctorSessionPayload;
     }) => rescheduleDoctorSession(doctorId, sessionId, payload),
     onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all }),
-        queryClient.invalidateQueries({ queryKey: ['schedules'] })
-      ]);
-      await queryClient.refetchQueries({ queryKey: doctorScheduleKeys.all, type: 'active' });
+      await syncAllDoctorSchedules(queryClient);
       toast.success('Sesi praktik berhasil di-reschedule');
     },
     onError: (err: unknown) => {

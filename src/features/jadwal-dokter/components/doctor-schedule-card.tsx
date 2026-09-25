@@ -180,9 +180,10 @@ export interface UpcomingScheduleResult {
 export function getUpcomingScheduleTime(
   scheduleTime: string,
   sessions?: DoctorDailySession[],
-  doctor?: DoctorSchedule
+  doctor?: DoctorSchedule,
+  referenceDate?: Date
 ): UpcomingScheduleResult {
-  const now = new Date();
+  const now = referenceDate ?? new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
   // 1. First priority: Check doctor's timeline_intervals or shifts for discrete 30-min slots
@@ -386,7 +387,7 @@ export function DoctorScheduleStats({
   availableSlots,
   totalCapacity,
   displaySlot: _displaySlot,
-  upcomingScheduleTime: _upcomingScheduleTime,
+  upcomingScheduleTime,
   sessions,
   doctor,
   className
@@ -396,7 +397,7 @@ export function DoctorScheduleStats({
     sessions,
     doctor
   );
-  const resolvedUpcoming = upcomingTime || labelTime || 'Belum diatur';
+  const resolvedUpcoming = upcomingScheduleTime || upcomingTime || labelTime || 'Belum diatur';
 
   // Capacity / Slot calculation: [pasien booking]/[total slot yang dijadwalkan]
   const effectiveTotal =
