@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -12,10 +12,16 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 import { Icons } from '@/components/icons';
+import { cn } from '@/lib/utils';
 import { useCreateDoctorSessionMutation } from '../api/mutations';
-import { clinicRoomsQueryOptions, scheduleContextsQueryOptions } from '../api/queries';
-import { getScheduleProjection } from '../api/service';
+import {
+  clinicRoomsQueryOptions,
+  scheduleContextsQueryOptions,
+  scheduleProjectionQueryOptions
+} from '../api/queries';
 import { toast } from 'sonner';
 import type { DoctorSchedule, DoctorDailySession, ClinicRoom } from '../api/types';
 
@@ -35,80 +41,6 @@ const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
   const m = i % 2 === 0 ? '00' : '30';
   return `${String(h).padStart(2, '0')}:${m}`;
 });
-
-interface DerivedShiftInfo {
-  contextId: string;
-  shift: string;
-  name: string;
-  icon: string;
-  boundaryEnd: string;
-}
-
-function deriveShiftFromTime(
-  timeStr: string,
-  contexts: Array<{
-    id?: string;
-    shift?: string;
-    name?: string;
-    startTime?: string;
-    endTime?: string;
-  }> = []
-): DerivedShiftInfo {
-  const [hStr, mStr] = (timeStr || '06:00').split(':');
-  const h = parseInt(hStr || '6', 10);
-  const m = parseInt(mStr || '0', 10);
-  const minutes = h * 60 + m;
-
-  let shift = 'morning';
-  let name = 'Sesi Pagi';
-  let icon = '🌅';
-  let boundaryEnd = '12:00';
-
-  if (minutes < 360) {
-    shift = 'early_morning';
-    name = 'Shift Dini Hari';
-    icon = '🌙';
-    boundaryEnd = '06:00';
-  } else if (minutes < 720) {
-    shift = 'morning';
-    name = 'Sesi Pagi';
-    icon = '🌅';
-    boundaryEnd = '12:00';
-  } else if (minutes < 1080) {
-    shift = 'afternoon';
-    name = 'Sesi Siang / Sore';
-    icon = '☀️';
-    boundaryEnd = '18:00';
-  } else {
-    shift = 'night';
-    name = 'Sesi Malam';
-    icon = '🌃';
-    boundaryEnd = '24:00';
-  }
-
-  const matchedContext = contexts.find(
-    (c) =>
-      c.shift?.toLowerCase() === shift ||
-      (c.startTime && c.endTime && timeStr >= c.startTime && timeStr < c.endTime)
-  );
-
-  return {
-    contextId: matchedContext?.id || shift,
-    shift,
-    name: matchedContext?.name || name,
-    icon,
-    boundaryEnd
-  };
-}
-
-function calculateDynamicCapacity(startTime: string, endTime: string, slotDuration = 30): number {
-  const [startH, startM] = startTime.split(':').map((v) => parseInt(v, 10));
-  const [endH, endM] = endTime.split(':').map((v) => parseInt(v, 10));
-  const startMin = (startH ?? 6) * 60 + (startM ?? 0);
-  const endMin = (endH === 24 ? 24 : (endH ?? 12)) * 60 + (endM ?? 0);
-  const diff = Math.max(0, endMin - startMin);
-  return Math.max(1, Math.floor(diff / slotDuration));
-}
 
 function normalizeRoomValue(rawRoom: string, roomList: ClinicRoom[]): string {
   if (!rawRoom) return '';
@@ -139,121 +71,101 @@ export function DoctorAddSessionModal({
 }: DoctorAddSessionModalProps) {
   const createSessionMutation = useCreateDoctorSessionMutation();
 
-  // Dynamic schedule contexts from backend SSOT
-  const { data: contexts = [] } = useQuery(scheduleContextsQueryOptions(targetDate));
-
+  const [selectedDate, setSelectedDate] = useState('');
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const [jamMulai, setJamMulai] = useState('06:00');
-  const [jamSelesai, setJamSelesai] = useState('12:00');
-  const [kuotaPasien, setKuotaPasien] = useState<number>(12);
   const [ruang, setRuang] = useState('');
 
-  // Sequence reference to prevent race conditions / out-of-order async collision
-  const projectionReqRef = React.useRef(0);
-
-  // Dynamic clinic rooms from master database (GET /api/v1/schedules/reference/rooms)
+  // 1. Dynamic clinic rooms from master database
   const { data: rooms = [], isLoading: isLoadingRooms } = useQuery(clinicRoomsQueryOptions());
 
-  const derivedShift = useMemo(() => {
-    return deriveShiftFromTime(jamMulai, contexts);
-  }, [jamMulai, contexts]);
+  // 2. Dynamic schedule contexts from backend SSOT
+  const { data: contexts = [] } = useQuery(scheduleContextsQueryOptions(selectedDate));
 
-  // Synchronize initial start time, room, and dynamic slot projection
-  React.useEffect(() => {
+  // 3. Resolve active context dynamically from backend contexts (zero hardcoding)
+  const activeContext = useMemo(() => {
+    return contexts.find((c) => {
+      const start = c.boundaryStartTime || c.startTime;
+      const end = c.boundaryEndTime || c.endTime;
+      return Boolean(start && end && jamMulai >= start && jamMulai < end);
+    });
+  }, [contexts, jamMulai]);
+
+  // 4. Live Schedule Projection from Backend SSOT (Projected End Time & Capacity calculated 100% by backend)
+  const { data: projectionData, isFetching: isProjecting } = useQuery({
+    ...scheduleProjectionQueryOptions({
+      scheduleContextId:
+        activeContext?.contextId || activeContext?.id || activeContext?.sessionShift || 'morning',
+      startTime: jamMulai,
+      date: selectedDate,
+      practitionerId: doctor?.id
+    }),
+    enabled: Boolean(isOpen && doctor?.id && selectedDate && jamMulai)
+  });
+
+  const jamSelesaiCalculated = useMemo(() => {
+    return projectionData?.projectedEndTime || '';
+  }, [projectionData?.projectedEndTime]);
+
+  // Synchronize initial state upon modal opening
+  useEffect(() => {
     if (isOpen) {
-      const initialStart = initialStartTime || '06:00';
-      setJamMulai(initialStart);
+      const initialDateValue =
+        targetDate || doctor?.tanggal_praktik || new Date().toISOString().split('T')[0];
+      setSelectedDate(initialDateValue);
 
-      const shiftInfo = deriveShiftFromTime(initialStart, contexts);
-      const defaultProjectedEnd = shiftInfo.boundaryEnd;
-      setJamSelesai(defaultProjectedEnd);
-
-      const initialCap = calculateDynamicCapacity(initialStart, defaultProjectedEnd);
-      setKuotaPasien(initialCap);
-
-      const currentReq = ++projectionReqRef.current;
-      getScheduleProjection({
-        scheduleContextId: shiftInfo.contextId,
-        startTime: initialStart,
-        date: targetDate,
-        practitionerId: doctor?.id
-      })
-        .then((res) => {
-          if (currentReq !== projectionReqRef.current) return;
-          if (res?.projectedEndTime) {
-            setJamSelesai(res.projectedEndTime);
-            const cap =
-              typeof res.capacity === 'number'
-                ? res.capacity
-                : calculateDynamicCapacity(initialStart, res.projectedEndTime);
-            setKuotaPasien(cap);
-          }
-        })
-        .catch((err) => {
-          if (currentReq !== projectionReqRef.current) return;
-          console.error('Initial projection error:', err);
-        });
+      if (initialStartTime) {
+        setJamMulai(initialStartTime);
+      } else {
+        setJamMulai('06:00');
+      }
 
       const rawRoom = doctor?.ruang_praktik || '';
       setRuang(normalizeRoomValue(rawRoom, rooms));
     }
-  }, [isOpen, initialStartTime, doctor?.id, doctor?.ruang_praktik, rooms, contexts, targetDate]);
+  }, [isOpen, initialStartTime, doctor?.ruang_praktik, doctor?.tanggal_praktik, rooms, targetDate]);
+
+  const selectedDateObj = useMemo(() => {
+    if (!selectedDate) return undefined;
+    const parts = selectedDate.split('-');
+    if (parts.length !== 3) return undefined;
+    const y = parseInt(parts[0] || '0', 10);
+    const m = parseInt(parts[1] || '0', 10);
+    const d = parseInt(parts[2] || '0', 10);
+    if (isNaN(y) || isNaN(m) || isNaN(d)) return undefined;
+    return new Date(y, m - 1, d);
+  }, [selectedDate]);
+
+  const formattedDisplayDate = useMemo(() => {
+    if (!selectedDateObj) return 'Pilih tanggal';
+    return selectedDateObj.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+  }, [selectedDateObj]);
 
   if (!doctor) return null;
 
-  const handleJamMulaiChange = (newMulai: string) => {
-    setJamMulai(newMulai);
-    const shiftInfo = deriveShiftFromTime(newMulai, contexts);
-    const defaultProjectedEnd = shiftInfo.boundaryEnd;
-    setJamSelesai(defaultProjectedEnd);
-
-    const initialCap = calculateDynamicCapacity(newMulai, defaultProjectedEnd);
-    setKuotaPasien(initialCap);
-
-    const currentReq = ++projectionReqRef.current;
-    getScheduleProjection({
-      scheduleContextId: shiftInfo.contextId,
-      startTime: newMulai,
-      date: targetDate,
-      practitionerId: doctor.id
-    })
-      .then((res) => {
-        if (currentReq !== projectionReqRef.current) return;
-        if (res?.projectedEndTime) {
-          setJamSelesai(res.projectedEndTime);
-          const cap =
-            typeof res.capacity === 'number'
-              ? res.capacity
-              : calculateDynamicCapacity(newMulai, res.projectedEndTime);
-          setKuotaPasien(cap);
-        }
-      })
-      .catch((err) => {
-        if (currentReq !== projectionReqRef.current) return;
-        console.error('Projection error:', err);
-      });
-  };
-
-  const formattedDate = targetDate
-    ? new Date(targetDate).toLocaleDateString('id-ID', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-      })
-    : 'Hari Ini';
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedDate || !jamMulai || !jamSelesaiCalculated) return;
 
-    const effectiveDate = targetDate || new Date().toISOString().split('T')[0];
+    const capacity = projectionData?.capacity || projectionData?.slotCount || 12;
+    const sessionName =
+      activeContext?.contextLabel ||
+      activeContext?.sessionShift ||
+      activeContext?.name ||
+      'Sesi Praktik';
+
     const newSession: DoctorDailySession = {
       id: `${doctor.id}-s-${Date.now()}`,
-      nama_sesi: derivedShift.name,
+      nama_sesi: sessionName,
       jam_mulai: jamMulai,
-      jam_selesai: jamSelesai,
-      waktu: `${jamMulai} - ${jamSelesai} WIB`,
-      kuota_pasien: kuotaPasien,
-      slot_tersedia: kuotaPasien,
+      jam_selesai: jamSelesaiCalculated,
+      waktu: `${jamMulai} - ${jamSelesaiCalculated} WIB`,
+      kuota_pasien: capacity,
+      slot_tersedia: capacity,
       status_sesi: 'OPEN',
       ruang: ruang || doctor.ruang_praktik
     };
@@ -262,12 +174,12 @@ export function DoctorAddSessionModal({
       {
         doctorId: doctor.id,
         payload: {
-          schedule_date: effectiveDate,
-          nama_sesi: derivedShift.name,
+          schedule_date: selectedDate,
+          nama_sesi: sessionName,
           jam_mulai: jamMulai,
-          jam_selesai: jamSelesai,
-          kuota_pasien: kuotaPasien,
-          slot_tersedia: kuotaPasien,
+          jam_selesai: jamSelesaiCalculated,
+          kuota_pasien: capacity,
+          slot_tersedia: capacity,
           status_sesi: 'OPEN',
           ruang: ruang || doctor.ruang_praktik || undefined
         }
@@ -276,7 +188,7 @@ export function DoctorAddSessionModal({
         onSuccess: () => {
           onSessionAdded?.(newSession);
           toast.success(
-            `${derivedShift.name} (${jamMulai} - ${jamSelesai} WIB) berhasil ditambahkan.`
+            `${sessionName} (${jamMulai} - ${jamSelesaiCalculated} WIB) berhasil ditambahkan.`
           );
           onClose();
         }
@@ -288,13 +200,13 @@ export function DoctorAddSessionModal({
     <ModalWrapper
       isOpen={isOpen}
       onClose={onClose}
-      maxWidth='max-w-[460px]'
+      maxWidth='max-w-[480px]'
       showCloseButton={false}
       portalContainerRef={portalContainerRef}
     >
-      <form onSubmit={handleSubmit} className='relative font-sans space-y-4'>
-        {/* 1. Header Identitas */}
-        <div className='flex items-start justify-between gap-3 pb-2.5 border-b border-border/40'>
+      <form onSubmit={handleSubmit} className='relative font-sans space-y-3.5'>
+        {/* Header Identitas */}
+        <div className='flex items-center justify-between gap-3 pb-2.5 border-b border-border/40'>
           <div className='space-y-0.5 min-w-0 flex-1'>
             <h3 className='text-base font-bold text-foreground tracking-tight'>
               Tambah Sesi Praktik Dokter
@@ -316,40 +228,55 @@ export function DoctorAddSessionModal({
           </button>
         </div>
 
-        {/* 2. Tanggal Praktik Badge */}
-        <div className='flex items-center gap-2 px-3 py-2 rounded-xl bg-muted/30 border border-border/50 text-xs text-foreground/80'>
-          <Icons.calendar className='size-3.5 text-primary shrink-0' />
-          <span className='font-medium text-muted-foreground'>Tanggal Praktik:</span>
-          <span className='font-semibold text-foreground truncate'>{formattedDate}</span>
-        </div>
-
-        {/* 3. Input Controls: Jam Mulai & Ruang Praktik */}
-        <div className='grid grid-cols-2 gap-3'>
+        {/* Record 1: Tanggal Praktik & Ruang Praktik (2 Kolom Side-by-Side) */}
+        <div className='grid grid-cols-2 gap-2.5'>
           <div>
-            <Label className='text-xs font-semibold text-foreground/85 block mb-1.5'>
-              Jam Mulai Praktik
+            <Label className='text-xs font-semibold text-foreground/80 block mb-1'>
+              Tanggal Praktik
             </Label>
-            <Select value={jamMulai} onValueChange={handleJamMulaiChange}>
-              <SelectTrigger className='w-full h-9 text-xs font-mono font-semibold'>
-                <SelectValue placeholder='Pilih jam mulai' />
-              </SelectTrigger>
-              <SelectContent className='max-h-56' portalContainerRef={portalContainerRef}>
-                {TIME_OPTIONS.map((time) => (
-                  <SelectItem key={time} value={time} className='font-mono text-xs'>
-                    {time} WIB
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  type='button'
+                  variant='outline'
+                  className='w-full h-8.5 px-2.5 justify-start text-left font-normal text-xs font-mono shadow-2xs hover:bg-muted/50 cursor-pointer'
+                >
+                  <Icons.calendar className='mr-1.5 size-3.5 text-muted-foreground shrink-0' />
+                  <span className={cn('truncate', !selectedDate && 'text-muted-foreground')}>
+                    {formattedDisplayDate}
+                  </span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                className='w-auto p-0 z-50'
+                align='start'
+                portalContainerRef={portalContainerRef}
+              >
+                <Calendar
+                  mode='single'
+                  selected={selectedDateObj}
+                  onSelect={(d) => {
+                    if (d) {
+                      const y = d.getFullYear();
+                      const m = String(d.getMonth() + 1).padStart(2, '0');
+                      const day = String(d.getDate()).padStart(2, '0');
+                      setSelectedDate(`${y}-${m}-${day}`);
+                      setCalendarOpen(false);
+                    }
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div>
-            <Label className='text-xs font-semibold text-foreground/85 block mb-1.5'>
+            <Label className='text-xs font-semibold text-foreground/80 block mb-1'>
               Ruang Praktik
             </Label>
             <Select value={ruang || undefined} onValueChange={setRuang}>
-              <SelectTrigger className='w-full h-9 text-xs truncate'>
-                <SelectValue placeholder='Pilih Ruangan' />
+              <SelectTrigger className='w-full h-8.5 text-xs truncate'>
+                <SelectValue placeholder='Pilih Ruang Praktik' />
               </SelectTrigger>
               <SelectContent portalContainerRef={portalContainerRef}>
                 {ruang && !rooms.some((r) => r.name === ruang) && (
@@ -373,46 +300,46 @@ export function DoctorAddSessionModal({
           </div>
         </div>
 
-        {/* 4. Otomasi Kalkulasi & Proyeksi Slot (Dynamic Slot Derivation SSOT) */}
-        <div className='p-3.5 rounded-xl border border-border/60 bg-muted/20 space-y-2.5'>
-          <div className='flex items-center justify-between gap-2 border-b border-border/40 pb-2'>
-            <span className='text-[11px] font-semibold text-muted-foreground uppercase tracking-wider'>
-              Proyeksi Otomatis Jadwal
-            </span>
-            <div className='inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25 text-[11px] font-bold'>
-              <span className='size-1.5 rounded-full bg-emerald-500 animate-pulse' />
-              Buka
-            </div>
+        {/* Record 2: Jam Mulai & Jam Selesai (2 Kolom Side-by-Side) */}
+        <div className='grid grid-cols-2 gap-2.5'>
+          <div>
+            <Label className='text-xs font-semibold text-foreground/80 block mb-1'>
+              Jam Mulai Praktik
+            </Label>
+            <Select value={jamMulai} onValueChange={setJamMulai}>
+              <SelectTrigger className='w-full h-8.5 text-xs font-mono font-semibold'>
+                <SelectValue placeholder='Pilih jam mulai' />
+              </SelectTrigger>
+              <SelectContent className='max-h-56' portalContainerRef={portalContainerRef}>
+                {TIME_OPTIONS.map((time) => (
+                  <SelectItem key={time} value={time} className='font-mono text-xs'>
+                    {time} WIB
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className='grid grid-cols-2 gap-2 text-xs'>
-            <div>
-              <span className='text-[11px] text-muted-foreground block'>Shift Otomatis</span>
-              <span className='font-semibold text-foreground flex items-center gap-1 mt-0.5'>
-                <span>{derivedShift.icon}</span>
-                <span>{derivedShift.name}</span>
+          <div>
+            <Label className='text-xs font-semibold text-foreground/80 block mb-1'>
+              Jam Selesai
+            </Label>
+            <div className='w-full h-8.5 px-3 rounded-md border border-border/50 bg-muted/30 text-xs font-mono font-semibold text-foreground flex items-center justify-between select-none'>
+              <span>
+                {jamSelesaiCalculated
+                  ? `${jamSelesaiCalculated} WIB`
+                  : isProjecting
+                    ? 'Menghitung...'
+                    : '-'}
+              </span>
+              <span className='text-[10px] font-sans font-medium text-muted-foreground'>
+                Otomatis
               </span>
             </div>
-
-            <div>
-              <span className='text-[11px] text-muted-foreground block'>Jam Selesai</span>
-              <span className='font-mono font-semibold text-foreground block mt-0.5'>
-                {jamSelesai} WIB
-              </span>
-            </div>
-          </div>
-
-          <div className='pt-1 flex items-center justify-between gap-2 text-xs border-t border-border/30'>
-            <span className='text-muted-foreground text-[11.5px]'>
-              Alokasi Kuota ({jamMulai} - {jamSelesai})
-            </span>
-            <span className='font-mono font-bold text-foreground bg-background px-2 py-0.5 rounded-md border border-border/60'>
-              {kuotaPasien} Pasien ({kuotaPasien * 30} mnt)
-            </span>
           </div>
         </div>
 
-        {/* 5. Footer Actions */}
+        {/* Footer Actions */}
         <div className='pt-2 flex items-center justify-end gap-2.5 border-t border-border/40'>
           <Button
             type='button'
@@ -429,10 +356,16 @@ export function DoctorAddSessionModal({
             variant='default'
             shape='pill'
             size='sm'
-            disabled={createSessionMutation.isPending}
+            disabled={
+              !selectedDate ||
+              !jamMulai ||
+              !jamSelesaiCalculated ||
+              isProjecting ||
+              createSessionMutation.isPending
+            }
             className='px-5 font-semibold text-xs'
           >
-            {createSessionMutation.isPending ? (
+            {createSessionMutation.isPending || isProjecting ? (
               <Icons.spinner className='mr-1.5 size-3.5 animate-spin' />
             ) : (
               <Icons.check className='mr-1.5 size-3.5' />
