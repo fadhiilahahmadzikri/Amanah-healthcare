@@ -50,7 +50,7 @@ export function DoctorRescheduleSessionModal({
   const rescheduleMutation = useRescheduleDoctorSessionMutation();
 
   const [targetDate, setTargetDate] = useState('');
-  const [targetStartTime, setTargetStartTime] = useState('08:00');
+  const [targetStartTime, setTargetStartTime] = useState('');
   const [targetRoomId, setTargetRoomId] = useState('');
   const [notes, setNotes] = useState('');
   const [rescheduleActiveAppointments, setRescheduleActiveAppointments] = useState(true);
@@ -60,25 +60,26 @@ export function DoctorRescheduleSessionModal({
   // Fetch dynamic clinic rooms from PostgreSQL SSOT
   const { data: rooms = [], isLoading: isLoadingRooms } = useQuery(clinicRoomsQueryOptions());
 
-  // Live Pre-Check Reschedule Eligibility via Backend SSOT
-  const { data: eligibilityData, isFetching: isCheckingEligibility } = useQuery(
-    rescheduleEligibilityQueryOptions(doctor?.id || '', session?.id || '', {
+  // Live Pre-Check Reschedule Eligibility via Backend SSOT (only runs when targetStartTime is selected)
+  const { data: eligibilityData, isFetching: isCheckingEligibility } = useQuery({
+    ...rescheduleEligibilityQueryOptions(doctor?.id || '', session?.id || '', {
       targetDate,
       targetStartTime,
       targetRoomId: targetRoomId || undefined
-    })
-  );
+    }),
+    enabled: Boolean(isOpen && doctor?.id && session?.id && targetDate && targetStartTime)
+  });
 
   useEffect(() => {
     setBannerDismissed(false);
   }, [targetDate, targetStartTime, targetRoomId]);
 
-  const hasConflict = Boolean(eligibilityData && !eligibilityData.isEligible);
+  const hasConflict = Boolean(targetStartTime && eligibilityData && !eligibilityData.isEligible);
   const showConflictBanner = hasConflict && !bannerDismissed;
 
   useEffect(() => {
     if (session) {
-      setTargetStartTime(session.jam_mulai || '08:00');
+      setTargetStartTime('');
       setNotes('');
       setRescheduleActiveAppointments(true);
       if (initialDate) {
@@ -135,6 +136,7 @@ export function DoctorRescheduleSessionModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!targetStartTime || !targetDate) return;
 
     const finalReason = notes.trim() ? notes.trim() : undefined;
     const derivedShift = eligibilityData?.targetSimulation?.targetShift;
@@ -319,16 +321,21 @@ export function DoctorRescheduleSessionModal({
             <Label className='text-xs font-semibold text-foreground/80 block mb-1'>
               Jam Mulai Baru
             </Label>
-            <Select value={targetStartTime} onValueChange={setTargetStartTime}>
+            <Select value={targetStartTime || undefined} onValueChange={setTargetStartTime}>
               <SelectTrigger className='w-full h-8.5 text-xs font-mono font-semibold'>
-                <SelectValue placeholder='Pilih jam mulai' />
+                <SelectValue placeholder='Pilih jam mulai baru' />
               </SelectTrigger>
               <SelectContent className='max-h-56' portalContainerRef={portalContainerRef}>
-                {TIME_OPTIONS.map((time) => (
-                  <SelectItem key={time} value={time} className='font-mono text-xs'>
-                    {time} WIB
-                  </SelectItem>
-                ))}
+                {TIME_OPTIONS.map((time) => {
+                  const isOriginalTime =
+                    time === session.jam_mulai &&
+                    targetDate === (initialDate || doctor?.tanggal_praktik);
+                  return (
+                    <SelectItem key={time} value={time} className='font-mono text-xs'>
+                      {time} WIB {isOriginalTime ? '(Jadwal Asal)' : ''}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>
@@ -414,6 +421,8 @@ export function DoctorRescheduleSessionModal({
             shape='pill'
             size='sm'
             disabled={
+              !targetStartTime ||
+              !targetDate ||
               rescheduleMutation.isPending ||
               isCheckingEligibility ||
               (eligibilityData !== undefined && !eligibilityData.isEligible)
