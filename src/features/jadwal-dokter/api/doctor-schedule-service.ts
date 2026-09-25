@@ -54,6 +54,7 @@ import {
   type ScheduleReferenceOptionsResponse
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 import { z } from 'zod';
+import { normalizeDateParam } from '../utils/shift-slot-builder';
 import type { DoctorScheduleDetailParams, DoctorScheduleFilters } from './types';
 
 export async function resolveActiveToken(): Promise<string | null> {
@@ -415,8 +416,10 @@ export async function fetchScheduleReferenceOptions(): Promise<ScheduleReference
 
 export async function fetchScheduleContexts(date?: string): Promise<ScheduleContextsResponse> {
   const token = await resolveActiveToken();
-  const query: Record<string, unknown> = {};
-  if (date) query.date = date;
+  const validDate = normalizeDateParam(date);
+  const query: Record<string, unknown> = {
+    date: validDate
+  };
 
   const response = await httpClient.request(
     paths.schedules.contexts(),

@@ -4,6 +4,7 @@ import {
   buildDiscreteSlots as generateFallbackSlots,
   buildOccupancyOverview as generateFallbackOccupancyOverview,
   buildShiftsFromTimelineIntervals,
+  normalizeDateParam,
   STATUS_CONFIG,
   UI_VARIANT_CONFIG
 } from '../utils/shift-slot-builder';
@@ -365,6 +366,33 @@ describe('Doctor Schedule & Occupancy SSOT Hierarchy', () => {
       expect(parsedShift.slots[0].uiVariant).toBe('neutral_disabled');
       expect(parsedShift.slots[0].isClickable).toBe(false);
       expect(parsedShift.slots[0].actionType).toBe('NONE');
+    });
+
+    describe('Date Normalization & Query Parameter Contracts (Anti-422 Regression)', () => {
+      it('normalizes valid YYYY-MM-DD date without alteration', () => {
+        expect(normalizeDateParam('2026-09-24')).toBe('2026-09-24');
+        expect(normalizeDateParam('  2026-10-15  ')).toBe('2026-10-15');
+      });
+
+      it('extracts date from ISO datetime string', () => {
+        expect(normalizeDateParam('2026-09-25T07:47:15.763Z')).toBe('2026-09-25');
+      });
+
+      it('parses Indonesian localized dates accurately', () => {
+        expect(normalizeDateParam('Jumat, 25 Sep 2026')).toBe('2026-09-25');
+        expect(normalizeDateParam('24 September 2026')).toBe('2026-09-24');
+        expect(normalizeDateParam('15 Oktober 2026')).toBe('2026-10-15');
+      });
+
+      it('falls back to today in YYYY-MM-DD when date is missing or empty (preventing 422 validation failure)', () => {
+        const today = new Date();
+        const expected = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        expect(normalizeDateParam('')).toBe(expected);
+        expect(normalizeDateParam(undefined)).toBe(expected);
+        expect(normalizeDateParam(null)).toBe(expected);
+        expect(normalizeDateParam('   ')).toBe(expected);
+        expect(normalizeDateParam('invalid-date')).toBe(expected);
+      });
     });
   });
 });

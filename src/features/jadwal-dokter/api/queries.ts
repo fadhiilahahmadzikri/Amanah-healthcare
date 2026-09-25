@@ -140,7 +140,8 @@ export const scheduleContextsQueryOptions = (date?: string) =>
     queryKey: ['schedules', 'contexts', date] as const,
     queryFn: () => getScheduleContexts(date),
     staleTime: 60 * 1000,
-    gcTime: 5 * 60 * 1000
+    gcTime: 5 * 60 * 1000,
+    enabled: Boolean(date && date.trim().length > 0)
   });
 
 export { doctorScheduleKeys };

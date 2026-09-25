@@ -1033,6 +1033,7 @@ export function DoctorDailyHourlyGrid({
           doctor={doctor}
           session={editingSession}
           isOpen={isEditModalOpen}
+          targetDate={`${activeYear}-${String(activeMonth + 1).padStart(2, '0')}-${String(activeDay).padStart(2, '0')}`}
           onClose={() => {
             setIsEditModalOpen(false);
             setEditingSession(null);

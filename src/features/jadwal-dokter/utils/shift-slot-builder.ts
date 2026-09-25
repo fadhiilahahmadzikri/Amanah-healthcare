@@ -674,3 +674,66 @@ export function buildOccupancyOverview(
     }
   };
 }
+
+/**
+ * Normalizes any date string (ISO, YYYY-MM-DD, Indonesian text, or falsy)
+ * to a canonical YYYY-MM-DD format required by Backend API contracts.
+ */
+export function normalizeDateParam(date?: string | null): string {
+  if (date) {
+    const trimmed = date.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      return trimmed;
+    }
+    if (trimmed.includes('T')) {
+      const isoPart = trimmed.split('T')[0];
+      if (isoPart && /^\d{4}-\d{2}-\d{2}$/.test(isoPart)) {
+        return isoPart;
+      }
+    }
+    const monthsMap: Record<string, string> = {
+      jan: '01',
+      januari: '01',
+      feb: '02',
+      februari: '02',
+      mar: '03',
+      maret: '03',
+      apr: '04',
+      april: '04',
+      mei: '05',
+      jun: '06',
+      juni: '06',
+      jul: '07',
+      juli: '07',
+      agu: '08',
+      agustus: '08',
+      aug: '08',
+      sep: '09',
+      september: '09',
+      okt: '10',
+      oktober: '10',
+      oct: '10',
+      nov: '11',
+      november: '11',
+      des: '12',
+      desember: '12',
+      dec: '12'
+    };
+    const match = trimmed.match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/);
+    if (match) {
+      const day = match[1]?.padStart(2, '0');
+      const monthStr = match[2]?.toLowerCase();
+      const month = monthStr ? monthsMap[monthStr] : undefined;
+      const year = match[3];
+      if (day && month && year) {
+        return `${year}-${month}-${day}`;
+      }
+    }
+  }
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}

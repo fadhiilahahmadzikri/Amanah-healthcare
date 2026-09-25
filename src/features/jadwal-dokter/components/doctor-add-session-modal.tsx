@@ -82,16 +82,30 @@ export function DoctorAddSessionModal({
 }: DoctorAddSessionModalProps) {
   const createSessionMutation = useCreateDoctorSessionMutation();
 
-  const [selectedDate, setSelectedDate] = useState('');
+  const defaultDate = useMemo(() => {
+    if (targetDate && /^\d{4}-\d{2}-\d{2}$/.test(targetDate.trim())) {
+      return targetDate.trim();
+    }
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  }, [targetDate]);
+
+  const [selectedDate, setSelectedDate] = useState(defaultDate);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [jamMulai, setJamMulai] = useState('');
   const [ruang, setRuang] = useState('');
 
   // 1. Dynamic clinic rooms from master database
-  const { data: rooms = [], isLoading: isLoadingRooms } = useQuery(clinicRoomsQueryOptions());
+  const { data: rooms = [], isLoading: isLoadingRooms } = useQuery({
+    ...clinicRoomsQueryOptions(),
+    enabled: isOpen
+  });
 
   // 2. Dynamic schedule contexts from backend SSOT
-  const { data: contexts = [] } = useQuery(scheduleContextsQueryOptions(selectedDate));
+  const { data: contexts = [] } = useQuery({
+    ...scheduleContextsQueryOptions(selectedDate),
+    enabled: Boolean(isOpen && selectedDate)
+  });
 
   // 3. Resolve active context dynamically from backend contexts
   const activeContext = useMemo(() => {
@@ -112,7 +126,7 @@ export function DoctorAddSessionModal({
       date: selectedDate,
       practitionerId: doctor?.id
     }),
-    enabled: Boolean(isOpen && doctor?.id && selectedDate && jamMulai)
+    enabled: Boolean(isOpen && doctor?.id && selectedDate && jamMulai && activeContext)
   });
 
   const duration = activeContext?.effectiveConsultationDurationMinutes || 30;
@@ -132,7 +146,9 @@ export function DoctorAddSessionModal({
   useEffect(() => {
     if (isOpen) {
       const initialDateValue =
-        targetDate || doctor?.tanggal_praktik || new Date().toISOString().split('T')[0];
+        targetDate && /^\d{4}-\d{2}-\d{2}$/.test(targetDate.trim())
+          ? targetDate.trim()
+          : defaultDate;
       setSelectedDate(initialDateValue);
 
       if (initialStartTime) {
@@ -144,7 +160,7 @@ export function DoctorAddSessionModal({
       const rawRoom = doctor?.ruang_praktik || '';
       setRuang(normalizeRoomValue(rawRoom, rooms));
     }
-  }, [isOpen, initialStartTime, doctor?.ruang_praktik, doctor?.tanggal_praktik, rooms, targetDate]);
+  }, [isOpen, initialStartTime, doctor?.ruang_praktik, rooms, targetDate, defaultDate]);
 
   const selectedDateObj = useMemo(() => {
     if (!selectedDate) return undefined;

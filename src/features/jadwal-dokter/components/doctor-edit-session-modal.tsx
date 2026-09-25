@@ -84,13 +84,28 @@ export function DoctorEditSessionModal({
   const [kuotaPasien, setKuotaPasien] = useState<number>(12);
   const [ruang, setRuang] = useState('');
 
-  const sessionDate = targetDate || session?.tanggal || doctor?.tanggal_praktik;
+  const sessionDate = useMemo(() => {
+    if (targetDate && /^\d{4}-\d{2}-\d{2}$/.test(targetDate.trim())) {
+      return targetDate.trim();
+    }
+    if (session?.tanggal && /^\d{4}-\d{2}-\d{2}$/.test(session.tanggal.trim())) {
+      return session.tanggal.trim();
+    }
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  }, [targetDate, session?.tanggal]);
 
   // 1. Dynamic clinic rooms from master database
-  const { data: rooms = [], isLoading: isLoadingRooms } = useQuery(clinicRoomsQueryOptions());
+  const { data: rooms = [], isLoading: isLoadingRooms } = useQuery({
+    ...clinicRoomsQueryOptions(),
+    enabled: isOpen
+  });
 
   // 2. Dynamic schedule contexts from backend SSOT
-  const { data: contexts = [] } = useQuery(scheduleContextsQueryOptions(sessionDate));
+  const { data: contexts = [] } = useQuery({
+    ...scheduleContextsQueryOptions(sessionDate),
+    enabled: Boolean(isOpen && sessionDate)
+  });
 
   // 3. Resolve active context dynamically from backend contexts
   const activeContext = useMemo(() => {
@@ -105,12 +120,12 @@ export function DoctorEditSessionModal({
   const { data: projectionData } = useQuery({
     ...scheduleProjectionQueryOptions({
       scheduleContextId:
-        activeContext?.contextId || activeContext?.id || activeContext?.sessionShift,
+        activeContext?.contextId || activeContext?.id || activeContext?.sessionShift || 'morning',
       startTime: jamMulai,
       date: sessionDate,
       practitionerId: doctor?.id
     }),
-    enabled: Boolean(isOpen && doctor?.id && sessionDate && jamMulai)
+    enabled: Boolean(isOpen && doctor?.id && sessionDate && jamMulai && activeContext)
   });
 
   const duration = activeContext?.effectiveConsultationDurationMinutes || 30;

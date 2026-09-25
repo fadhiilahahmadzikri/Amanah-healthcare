@@ -163,7 +163,8 @@ export function DoctorGanttTimeline({
 
   // Modals state
   const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
-  const [selectedSessionForReschedule, setSelectedSessionForReschedule] = useState<DoctorDailySession | null>(null);
+  const [selectedSessionForReschedule, setSelectedSessionForReschedule] =
+    useState<DoctorDailySession | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<DoctorDailySession | null>(null);
@@ -189,8 +190,11 @@ export function DoctorGanttTimeline({
   }, [doctor?.sesi_harian]);
 
   // Aggregate totals
-  const totalCapacity = doctor?.kapasitas_per_hari || activeSessions.reduce((acc, s) => acc + s.kuota_pasien, 0);
-  const totalSlots = isDayCuti ? 0 : (doctor?.slot_tersedia ?? activeSessions.reduce((acc, s) => acc + s.slot_tersedia, 0));
+  const totalCapacity =
+    doctor?.kapasitas_per_hari || activeSessions.reduce((acc, s) => acc + s.kuota_pasien, 0);
+  const totalSlots = isDayCuti
+    ? 0
+    : (doctor?.slot_tersedia ?? activeSessions.reduce((acc, s) => acc + s.slot_tersedia, 0));
 
   const handlePrevDay = () => {
     if (activeDay > 1) {
@@ -380,9 +384,12 @@ export function DoctorGanttTimeline({
           {activeSessions.length === 0 ? (
             <div className='py-12 px-4 text-center rounded-xl border border-dashed border-border/60 bg-background/50 space-y-2'>
               <Icons.calendar className='size-8 text-muted-foreground/60 mx-auto' />
-              <h3 className='text-sm font-bold text-foreground'>Belum ada sesi praktik terdaftar</h3>
+              <h3 className='text-sm font-bold text-foreground'>
+                Belum ada sesi praktik terdaftar
+              </h3>
               <p className='text-xs text-muted-foreground max-w-sm mx-auto'>
-                Dokter ini belum memiliki sesi shift praktik pada tanggal ini. Tekan tombol &quot;Tambah Sesi&quot; untuk menambahkan jadwal.
+                Dokter ini belum memiliki sesi shift praktik pada tanggal ini. Tekan tombol
+                &quot;Tambah Sesi&quot; untuk menambahkan jadwal.
               </p>
               {!readOnly && !isDayCuti && (
                 <Button
@@ -407,9 +414,12 @@ export function DoctorGanttTimeline({
                   doctor?.timeline_intervals && doctor.timeline_intervals.length > 0
                     ? (() => {
                         const filtered = doctor.timeline_intervals.filter(
-                          (i) => i.startTime >= session.jam_mulai && i.endTime <= session.jam_selesai
+                          (i) =>
+                            i.startTime >= session.jam_mulai && i.endTime <= session.jam_selesai
                         );
-                        return filtered.length > 0 ? filtered : deriveIntervalsForSession(session, 30);
+                        return filtered.length > 0
+                          ? filtered
+                          : deriveIntervalsForSession(session, 30);
                       })()
                     : deriveIntervalsForSession(session, 30);
 
@@ -445,7 +455,9 @@ export function DoctorGanttTimeline({
                             shape='pill'
                             onClick={() => handleOpenEditSession(session)}
                             className='h-7 px-3 text-xs font-semibold text-foreground/85 hover:text-foreground'
-                            leadingIcon={<Icons.settings className='size-3.5 text-muted-foreground' />}
+                            leadingIcon={
+                              <Icons.settings className='size-3.5 text-muted-foreground' />
+                            }
                           >
                             Atur Sesi
                           </Button>
@@ -623,6 +635,7 @@ export function DoctorGanttTimeline({
           doctor={doctor}
           session={editingSession}
           isOpen={isEditModalOpen}
+          targetDate={formattedDateParam}
           onClose={() => {
             setIsEditModalOpen(false);
             setEditingSession(null);
