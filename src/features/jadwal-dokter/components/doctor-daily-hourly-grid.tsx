@@ -12,6 +12,7 @@ import { DoctorSessionDetailModal } from './doctor-session-detail-modal';
 import { DoctorSessionPatientsModal } from './doctor-session-patients-modal';
 import { DoctorOccupancyRadialChart } from './doctor-occupancy-radial-chart';
 import { isDoctorOnLeaveOnDay } from '../api/service';
+import { useUpdateDoctorSessionMutation, useUpdateDoctorDayStatusMutation } from '../api/mutations';
 import { resolveDayStatus } from './doctor-timeline-calendar';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule, DoctorDailySession } from '../api/types';
@@ -259,6 +260,36 @@ export function DoctorDailyHourlyGrid({
 
   const [isReasonOpen, setIsReasonOpen] = useState(false);
 
+  const updateSessionMutation = useUpdateDoctorSessionMutation();
+  const updateDayMutation = useUpdateDoctorDayStatusMutation();
+
+  const handleToggleSessionStatus = (session: DoctorDailySession) => {
+    if (!doctor?.id || !session?.id) return;
+    const isSessionClosed =
+      (session.status_sesi || '').toUpperCase() === 'CLOSED' ||
+      (session.status_sesi || '').toUpperCase() === 'TUTUP';
+    const nextStatus = isSessionClosed ? 'OPEN' : 'CLOSED';
+
+    updateSessionMutation.mutate({
+      doctorId: doctor.id,
+      sessionId: session.id,
+      payload: {
+        status_sesi: nextStatus
+      }
+    });
+  };
+
+  const handleToggleDayStatus = () => {
+    if (!doctor?.id) return;
+    const formattedDate = `${activeYear}-${String(activeMonth + 1).padStart(2, '0')}-${String(activeDay).padStart(2, '0')}`;
+    const nextStatus = isDayClosed ? 'OPEN' : 'CLOSED';
+    updateDayMutation.mutate({
+      doctorId: doctor.id,
+      date: formattedDate,
+      status: nextStatus
+    });
+  };
+
   const handleOpenPatients = (session: DoctorDailySession) => {
     setIsDetailModalOpen(false);
     setSelectedSessionForPatients(session);
@@ -436,15 +467,43 @@ export function DoctorDailyHourlyGrid({
               </button>
             </div>
 
-            {!readOnly && !isDayCuti && !isDayClosed && (
-              <button
-                type='button'
-                onClick={() => openAddSessionModal()}
-                className='inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border border-dashed border-border/80 hover:border-primary/70 bg-background hover:bg-primary/5 text-foreground/80 hover:text-primary transition-all shadow-2xs cursor-pointer select-none shrink-0'
-              >
-                <Icons.add className='size-3.5' />
-                <span>Tambah jadwal</span>
-              </button>
+            {!readOnly && !isDayCuti && (
+              <>
+                <button
+                  type='button'
+                  onClick={handleToggleDayStatus}
+                  disabled={updateDayMutation.isPending}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border transition-all shadow-2xs cursor-pointer select-none shrink-0',
+                    isDayClosed
+                      ? 'border-emerald-500/40 hover:border-emerald-500/80 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+                      : 'border-rose-500/40 hover:border-rose-500/80 bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-300'
+                  )}
+                >
+                  {isDayClosed ? (
+                    <>
+                      <Icons.check className='size-3.5' />
+                      <span>Buka jadwal hari ini</span>
+                    </>
+                  ) : (
+                    <>
+                      <Icons.lock className='size-3.5' />
+                      <span>Tutup jadwal hari ini</span>
+                    </>
+                  )}
+                </button>
+
+                {!isDayClosed && (
+                  <button
+                    type='button'
+                    onClick={() => openAddSessionModal()}
+                    className='inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border border-dashed border-border/80 hover:border-primary/70 bg-background hover:bg-primary/5 text-foreground/80 hover:text-primary transition-all shadow-2xs cursor-pointer select-none shrink-0'
+                  >
+                    <Icons.add className='size-3.5' />
+                    <span>Tambah jadwal</span>
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -725,7 +784,7 @@ export function DoctorDailyHourlyGrid({
                     );
 
                     const hasHoverMenu = Boolean(
-                      matchingSession && !isFinished && !isDayCuti && !isDayClosed && !readOnly
+                      matchingSession && !isFinished && !isDayCuti && !readOnly
                     );
 
                     const slotButton = (
@@ -851,6 +910,39 @@ export function DoctorDailyHourlyGrid({
                                 <Icons.history className='size-3.5 text-amber-600 dark:text-amber-400 shrink-0' />
                                 <span>Reschedule</span>
                               </button>
+                              {(() => {
+                                const isSessionClosed =
+                                  (matchingSession.status_sesi || '').toUpperCase() === 'CLOSED' ||
+                                  (matchingSession.status_sesi || '').toUpperCase() === 'TUTUP';
+                                return (
+                                  <button
+                                    type='button'
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleToggleSessionStatus(matchingSession);
+                                    }}
+                                    disabled={updateSessionMutation.isPending}
+                                    className={cn(
+                                      'flex items-center gap-2 w-full px-2 py-1.5 rounded-lg text-xs font-semibold hover:bg-muted transition-colors cursor-pointer text-left',
+                                      isSessionClosed
+                                        ? 'text-emerald-600 dark:text-emerald-400'
+                                        : 'text-rose-600 dark:text-rose-400'
+                                    )}
+                                  >
+                                    {isSessionClosed ? (
+                                      <>
+                                        <Icons.check className='size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0' />
+                                        <span>Buka Jadwal</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Icons.lock className='size-3.5 text-rose-600 dark:text-rose-400 shrink-0' />
+                                        <span>Tutup Jadwal</span>
+                                      </>
+                                    )}
+                                  </button>
+                                );
+                              })()}
                             </div>
                           </HoverCardContent>
                         </HoverCard>

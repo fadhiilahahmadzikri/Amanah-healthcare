@@ -158,13 +158,21 @@ export function useUpdateDoctorSessionMutation() {
       sessionId: string;
       payload: UpdateDoctorSessionPayload;
     }) => updateDoctorSession(doctorId, sessionId, payload),
-    onSuccess: async () => {
+    onSuccess: async (_data, variables) => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all }),
         queryClient.invalidateQueries({ queryKey: ['schedules'] })
       ]);
       await queryClient.refetchQueries({ queryKey: doctorScheduleKeys.all, type: 'active' });
-      toast.success('Sesi praktik berhasil diperbarui');
+
+      const rawStatus = (variables.payload.status_sesi || '').toUpperCase();
+      if (rawStatus === 'CLOSED' || rawStatus === 'TUTUP') {
+        toast.success('Jadwal sesi berhasil ditutup');
+      } else if (rawStatus === 'OPEN' || rawStatus === 'BUKA') {
+        toast.success('Jadwal sesi berhasil dibuka kembali');
+      } else {
+        toast.success('Sesi praktik berhasil diperbarui');
+      }
     },
     onError: (err: unknown) => {
       const message = err instanceof Error ? err.message : 'Gagal memperbarui sesi praktik';
