@@ -60,6 +60,17 @@ function normalizeRoomValue(rawRoom: string, roomList: ClinicRoom[]): string {
   return trimmed;
 }
 
+function calculateProjectedEndTime(startTime: string, durationMinutes = 30): string {
+  if (!startTime) return '';
+  const [hStr, mStr] = startTime.split(':');
+  const h = parseInt(hStr || '0', 10);
+  const m = parseInt(mStr || '0', 10);
+  const totalMin = h * 60 + m + durationMinutes;
+  const endH = Math.floor(totalMin / 60) % 24;
+  const endM = totalMin % 60;
+  return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+}
+
 export function DoctorAddSessionModal({
   doctor,
   isOpen,
@@ -73,7 +84,7 @@ export function DoctorAddSessionModal({
 
   const [selectedDate, setSelectedDate] = useState('');
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [jamMulai, setJamMulai] = useState('06:00');
+  const [jamMulai, setJamMulai] = useState('');
   const [ruang, setRuang] = useState('');
 
   // 1. Dynamic clinic rooms from master database
@@ -82,8 +93,9 @@ export function DoctorAddSessionModal({
   // 2. Dynamic schedule contexts from backend SSOT
   const { data: contexts = [] } = useQuery(scheduleContextsQueryOptions(selectedDate));
 
-  // 3. Resolve active context dynamically from backend contexts (zero hardcoding)
+  // 3. Resolve active context dynamically from backend contexts
   const activeContext = useMemo(() => {
+    if (!jamMulai) return undefined;
     return contexts.find((c) => {
       const start = c.boundaryStartTime || c.startTime;
       const end = c.boundaryEndTime || c.endTime;
@@ -91,8 +103,8 @@ export function DoctorAddSessionModal({
     });
   }, [contexts, jamMulai]);
 
-  // 4. Live Schedule Projection from Backend SSOT (Projected End Time & Capacity calculated 100% by backend)
-  const { data: projectionData, isFetching: isProjecting } = useQuery({
+  // 4. Live Schedule Projection from Backend SSOT
+  const { data: projectionData } = useQuery({
     ...scheduleProjectionQueryOptions({
       scheduleContextId:
         activeContext?.contextId || activeContext?.id || activeContext?.sessionShift || 'morning',
@@ -103,9 +115,18 @@ export function DoctorAddSessionModal({
     enabled: Boolean(isOpen && doctor?.id && selectedDate && jamMulai)
   });
 
+  const duration = activeContext?.effectiveConsultationDurationMinutes || 30;
+
+  // Instant calculation matching backend ScheduleSlotFactory.calculateSessionTiming + live projection fallback
   const jamSelesaiCalculated = useMemo(() => {
-    return projectionData?.projectedEndTime || '';
-  }, [projectionData?.projectedEndTime]);
+    if (projectionData?.projectedEndTime) {
+      return projectionData.projectedEndTime;
+    }
+    if (jamMulai) {
+      return calculateProjectedEndTime(jamMulai, duration);
+    }
+    return '';
+  }, [projectionData?.projectedEndTime, jamMulai, duration]);
 
   // Synchronize initial state upon modal opening
   useEffect(() => {
@@ -117,7 +138,7 @@ export function DoctorAddSessionModal({
       if (initialStartTime) {
         setJamMulai(initialStartTime);
       } else {
-        setJamMulai('06:00');
+        setJamMulai('');
       }
 
       const rawRoom = doctor?.ruang_praktik || '';
@@ -151,7 +172,7 @@ export function DoctorAddSessionModal({
     e.preventDefault();
     if (!selectedDate || !jamMulai || !jamSelesaiCalculated) return;
 
-    const capacity = projectionData?.capacity || projectionData?.slotCount || 12;
+    const capacity = projectionData?.capacity || projectionData?.slotCount || 1;
     const sessionName =
       activeContext?.contextLabel ||
       activeContext?.sessionShift ||
@@ -306,7 +327,7 @@ export function DoctorAddSessionModal({
             <Label className='text-xs font-semibold text-foreground/80 block mb-1'>
               Jam Mulai Praktik
             </Label>
-            <Select value={jamMulai} onValueChange={setJamMulai}>
+            <Select value={jamMulai || undefined} onValueChange={setJamMulai}>
               <SelectTrigger className='w-full h-8.5 text-xs font-mono font-semibold'>
                 <SelectValue placeholder='Pilih jam mulai' />
               </SelectTrigger>
@@ -325,13 +346,7 @@ export function DoctorAddSessionModal({
               Jam Selesai
             </Label>
             <div className='w-full h-8.5 px-3 rounded-md border border-border/50 bg-muted/30 text-xs font-mono font-semibold text-foreground flex items-center justify-between select-none'>
-              <span>
-                {jamSelesaiCalculated
-                  ? `${jamSelesaiCalculated} WIB`
-                  : isProjecting
-                    ? 'Menghitung...'
-                    : '-'}
-              </span>
+              <span>{jamSelesaiCalculated ? `${jamSelesaiCalculated} WIB` : '-'}</span>
               <span className='text-[10px] font-sans font-medium text-muted-foreground'>
                 Otomatis
               </span>
@@ -357,15 +372,11 @@ export function DoctorAddSessionModal({
             shape='pill'
             size='sm'
             disabled={
-              !selectedDate ||
-              !jamMulai ||
-              !jamSelesaiCalculated ||
-              isProjecting ||
-              createSessionMutation.isPending
+              !selectedDate || !jamMulai || !jamSelesaiCalculated || createSessionMutation.isPending
             }
             className='px-5 font-semibold text-xs'
           >
-            {createSessionMutation.isPending || isProjecting ? (
+            {createSessionMutation.isPending ? (
               <Icons.spinner className='mr-1.5 size-3.5 animate-spin' />
             ) : (
               <Icons.check className='mr-1.5 size-3.5' />

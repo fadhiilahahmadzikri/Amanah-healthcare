@@ -58,6 +58,17 @@ function normalizeRoomValue(rawRoom: string, roomList: ClinicRoom[]): string {
   return trimmed;
 }
 
+function calculateProjectedEndTime(startTime: string, durationMinutes = 30): string {
+  if (!startTime) return '';
+  const [hStr, mStr] = startTime.split(':');
+  const h = parseInt(hStr || '0', 10);
+  const m = parseInt(mStr || '0', 10);
+  const totalMin = h * 60 + m + durationMinutes;
+  const endH = Math.floor(totalMin / 60) % 24;
+  const endM = totalMin % 60;
+  return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+}
+
 export function DoctorEditSessionModal({
   doctor,
   session,
@@ -81,7 +92,7 @@ export function DoctorEditSessionModal({
   // 2. Dynamic schedule contexts from backend SSOT
   const { data: contexts = [] } = useQuery(scheduleContextsQueryOptions(sessionDate));
 
-  // 3. Resolve active context dynamically from backend contexts (zero hardcoding)
+  // 3. Resolve active context dynamically from backend contexts
   const activeContext = useMemo(() => {
     return contexts.find((c) => {
       const start = c.boundaryStartTime || c.startTime;
@@ -90,8 +101,8 @@ export function DoctorEditSessionModal({
     });
   }, [contexts, jamMulai]);
 
-  // 4. Live Schedule Projection from Backend SSOT (Projected End Time calculated 100% by backend)
-  const { data: projectionData, isFetching: isProjecting } = useQuery({
+  // 4. Live Schedule Projection from Backend SSOT
+  const { data: projectionData } = useQuery({
     ...scheduleProjectionQueryOptions({
       scheduleContextId:
         activeContext?.contextId || activeContext?.id || activeContext?.sessionShift,
@@ -102,9 +113,26 @@ export function DoctorEditSessionModal({
     enabled: Boolean(isOpen && doctor?.id && sessionDate && jamMulai)
   });
 
+  const duration = activeContext?.effectiveConsultationDurationMinutes || 30;
+
   const jamSelesaiCalculated = useMemo(() => {
-    return projectionData?.projectedEndTime || session?.jam_selesai || '';
-  }, [projectionData?.projectedEndTime, session?.jam_selesai]);
+    if (projectionData?.projectedEndTime) {
+      return projectionData.projectedEndTime;
+    }
+    if (jamMulai === session?.jam_mulai && session?.jam_selesai) {
+      return session.jam_selesai;
+    }
+    if (jamMulai) {
+      return calculateProjectedEndTime(jamMulai, duration);
+    }
+    return '';
+  }, [
+    projectionData?.projectedEndTime,
+    jamMulai,
+    session?.jam_mulai,
+    session?.jam_selesai,
+    duration
+  ]);
 
   useEffect(() => {
     if (session) {
@@ -250,13 +278,7 @@ export function DoctorEditSessionModal({
               Jam Selesai
             </Label>
             <div className='w-full h-8.5 px-3 rounded-md border border-border/50 bg-muted/30 text-xs font-mono font-semibold text-foreground flex items-center justify-between select-none'>
-              <span>
-                {jamSelesaiCalculated
-                  ? `${jamSelesaiCalculated} WIB`
-                  : isProjecting
-                    ? 'Menghitung...'
-                    : '-'}
-              </span>
+              <span>{jamSelesaiCalculated ? `${jamSelesaiCalculated} WIB` : '-'}</span>
               <span className='text-[10px] font-sans font-medium text-muted-foreground'>
                 Otomatis
               </span>
@@ -352,15 +374,10 @@ export function DoctorEditSessionModal({
               variant='default'
               shape='pill'
               size='sm'
-              disabled={
-                !jamMulai ||
-                !jamSelesaiCalculated ||
-                isProjecting ||
-                updateSessionMutation.isPending
-              }
+              disabled={!jamMulai || !jamSelesaiCalculated || updateSessionMutation.isPending}
               className='px-5 font-semibold text-xs'
             >
-              {updateSessionMutation.isPending || isProjecting ? (
+              {updateSessionMutation.isPending ? (
                 <Icons.spinner className='mr-1.5 size-3.5 animate-spin' />
               ) : (
                 <Icons.check className='mr-1.5 size-3.5' />
