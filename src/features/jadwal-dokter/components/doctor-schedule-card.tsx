@@ -205,7 +205,7 @@ export function getUpcomingScheduleTime(
             slot.isAvailable ??
             (slot.effectiveStatus === 'AVAILABLE' || slot.status === 'AVAILABLE'),
           isOpen: slot.status !== 'CLOSED' && slot.status !== 'CLOSED_LEAVE',
-          sessionName: shift.shiftName || shift.label
+          sessionName: shift.contextLabel
         });
       }
     }

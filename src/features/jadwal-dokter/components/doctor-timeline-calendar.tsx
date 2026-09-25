@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 import { resolveDayStatus, type SimpleScheduleStatus } from '../utils/leave-calculator';
 import type { DoctorSchedule } from '../api/types';
@@ -35,6 +36,8 @@ export interface DoctorTimelineCalendarProps {
   readOnly?: boolean;
   portalContainerRef?: React.RefObject<HTMLElement | null>;
   className?: string;
+  pendingDay?: number | null;
+  isUpdatingDay?: boolean;
 }
 
 // ============================================================================
@@ -114,7 +117,9 @@ export function DoctorTimelineCalendar({
   onNavigateToDailyGrid,
   readOnly = false,
   portalContainerRef,
-  className
+  className,
+  pendingDay,
+  isUpdatingDay = false
 }: DoctorTimelineCalendarProps) {
   // Real Date instance dari script asli
   const today = new Date();
@@ -130,6 +135,16 @@ export function DoctorTimelineCalendar({
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
   const [closingDay, setClosingDay] = useState<number | null>(null);
   const [closeNotes, setCloseNotes] = useState('');
+  const [localUpdatingDay, setLocalUpdatingDay] = useState<number | null>(null);
+
+  React.useEffect(() => {
+    if (!isUpdatingDay) {
+      setLocalUpdatingDay(null);
+    }
+  }, [isUpdatingDay]);
+
+  const activePendingDay = pendingDay !== undefined ? pendingDay : localUpdatingDay;
+  const isCellPending = isUpdatingDay || localUpdatingDay !== null;
 
   const currentMonth = currentMonthProp !== undefined ? currentMonthProp : internalMonth;
   const currentYear = currentYearProp !== undefined ? currentYearProp : internalYear;
@@ -173,12 +188,14 @@ export function DoctorTimelineCalendar({
       setCloseNotes('');
       setIsCloseModalOpen(true);
     } else {
+      setLocalUpdatingDay(day);
       onSelectDayStatus?.(day, 'OPEN');
     }
   };
 
   const handleConfirmClose = () => {
     if (closingDay !== null) {
+      setLocalUpdatingDay(closingDay);
       onSelectDayStatus?.(closingDay, 'CLOSED', closeNotes.trim() || undefined);
     }
     setIsCloseModalOpen(false);
@@ -479,15 +496,33 @@ export function DoctorTimelineCalendar({
             }
 
             // 2. Tanggal Aktif / Mendatang (Semua seragam dengan status warnanya)
+            const isCellUpdating = activePendingDay === day && isCellPending;
+            const isCellDisabled = isCellUpdating || isCellPending;
+
             const cellContent = (
               <div
                 className={cn(
-                  'w-full min-h-[58px] sm:min-h-[64px] rounded-xl border p-2 flex flex-col justify-between transition-all text-left relative cursor-pointer group/cell',
+                  'w-full min-h-[58px] sm:min-h-[64px] rounded-xl border p-2 flex flex-col justify-between transition-all text-left relative cursor-pointer group/cell overflow-hidden',
                   cfg.cellBg,
                   cfg.border,
-                  isSelected && 'ring-2 ring-primary/40 shadow-xs'
+                  isSelected && 'ring-2 ring-primary/40 shadow-xs',
+                  isCellDisabled && 'cursor-wait'
                 )}
               >
+                {/* In-Cell Loading Overlay with Instagram-style Spinner */}
+                {isCellUpdating && (
+                  <div
+                    role='status'
+                    aria-label='Menyimpan perubahan jadwal'
+                    className='absolute inset-0 z-20 rounded-xl bg-background/85 backdrop-blur-[1px] flex flex-col items-center justify-center gap-1 animate-in fade-in duration-150'
+                  >
+                    <Spinner className='size-4 text-primary' />
+                    <span className='text-[9.5px] font-bold text-foreground/80 tracking-tight leading-none'>
+                      Menyimpan...
+                    </span>
+                  </div>
+                )}
+
                 {/* Baris Atas: Tanggal & Indikator Titik */}
                 <div className='flex items-center justify-between'>
                   <span className='text-xs sm:text-sm tabular-nums font-bold leading-none text-foreground'>
@@ -512,11 +547,13 @@ export function DoctorTimelineCalendar({
                       role='button'
                       tabIndex={0}
                       onClick={(e) => {
+                        if (isCellDisabled) return;
                         e.stopPropagation();
                         setSelectedDay(day);
                         onNavigateToDailyGrid(day);
                       }}
                       onKeyDown={(e) => {
+                        if (isCellDisabled) return;
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.stopPropagation();
                           setSelectedDay(day);
@@ -524,7 +561,10 @@ export function DoctorTimelineCalendar({
                         }
                       }}
                       title={`Buka Jadwal & Kuota tanggal ${day}`}
-                      className='size-4 rounded-md flex items-center justify-center text-muted-foreground/60 hover:text-primary hover:bg-background/90 transition-all opacity-60 group-hover/cell:opacity-100 cursor-pointer shrink-0'
+                      className={cn(
+                        'size-4 rounded-md flex items-center justify-center text-muted-foreground/60 hover:text-primary hover:bg-background/90 transition-all opacity-60 group-hover/cell:opacity-100 cursor-pointer shrink-0',
+                        isCellDisabled && 'pointer-events-none opacity-20'
+                      )}
                     >
                       <Icons.arrowUpRight className='size-3 stroke-[2.5]' />
                     </span>
@@ -548,8 +588,19 @@ export function DoctorTimelineCalendar({
 
             return (
               <DropdownMenu key={day}>
-                <DropdownMenuTrigger asChild onClick={() => setSelectedDay(day)}>
-                  <button type='button' className='w-full text-left outline-none'>
+                <DropdownMenuTrigger
+                  asChild
+                  disabled={isCellDisabled}
+                  onClick={() => setSelectedDay(day)}
+                >
+                  <button
+                    type='button'
+                    disabled={isCellDisabled}
+                    className={cn(
+                      'w-full text-left outline-none',
+                      isCellDisabled && 'cursor-wait pointer-events-none'
+                    )}
+                  >
                     {cellContent}
                   </button>
                 </DropdownMenuTrigger>
@@ -612,71 +663,72 @@ export function DoctorTimelineCalendar({
         </div>
       </div>
 
-      {/* 4. MODAL KONFIRMASI PENUTUPAN HARI */}
+      {/* 4. MODAL KONFIRMASI PENUTUPAN JADWAL (Harmonisasi dengan Jadwal & Kuota) */}
       <ModalWrapper
         isOpen={isCloseModalOpen}
-        onClose={() => setIsCloseModalOpen(false)}
-        maxWidth='max-w-[480px]'
+        onClose={() => {
+          setIsCloseModalOpen(false);
+          setClosingDay(null);
+          setCloseNotes('');
+        }}
+        maxWidth='w-full sm:w-fit sm:min-w-[440px] max-w-[calc(100vw-2rem)]'
         showCloseButton={false}
         portalContainerRef={portalContainerRef}
       >
-        <div className='relative font-sans space-y-4 text-left'>
-          {/* Header */}
-          <div className='flex items-start justify-between gap-3 pb-3 border-b border-border/40'>
-            <div className='space-y-1 min-w-0'>
-              <div className='flex items-center gap-2'>
-                <span className='inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border border-destructive/20 bg-destructive/10 text-destructive'>
-                  <Icons.warning className='size-3' />
-                  <span>Konfirmasi Tutup Hari</span>
+        <div className='relative font-sans space-y-4 text-left p-1'>
+          <div className='flex items-start justify-between gap-4'>
+            <div className='space-y-1 min-w-0 flex-1'>
+              <div className='flex items-center gap-1.5 text-rose-600 dark:text-rose-400'>
+                <Icons.lock className='size-4 shrink-0' />
+                <span className='text-xs font-bold tracking-tight whitespace-nowrap'>
+                  Konfirmasi Tutup Jadwal
                 </span>
               </div>
-              <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
-                Tutup Jadwal Tanggal {closingDay} {MONTH_NAMES[currentMonth]} {currentYear}
+              <h3 className='text-sm sm:text-base font-bold text-foreground leading-snug whitespace-nowrap'>
+                Apakah Anda yakin ingin menutup sesi ini?
               </h3>
-              <p className='text-xs text-muted-foreground'>{doctor?.nama_dokter || 'Dokter'}</p>
             </div>
             <button
               type='button'
-              onClick={() => setIsCloseModalOpen(false)}
-              aria-label='Tutup'
+              onClick={() => {
+                setIsCloseModalOpen(false);
+                setClosingDay(null);
+                setCloseNotes('');
+              }}
+              aria-label='Tutup dialog'
               className='rounded-full p-1 text-muted-foreground hover:bg-muted transition-colors cursor-pointer shrink-0'
             >
               <Icons.close className='size-4' />
             </button>
           </div>
 
-          {/* Warning Banner */}
-          <div className='rounded-xl border border-destructive/30 bg-destructive/5 p-3.5 space-y-2 text-xs text-foreground/90'>
-            <div className='flex items-start gap-2.5'>
-              <Icons.alertCircle className='size-4 text-destructive shrink-0 mt-0.5' />
-              <div className='space-y-1 leading-relaxed'>
-                <p className='font-semibold text-destructive'>
-                  Perhatian: Tindakan ini berdampak pada sesi & antrean aktif.
-                </p>
-                <p className='text-muted-foreground text-[11.5px] leading-normal'>
-                  Menutup hari ini akan menonaktifkan seluruh sesi shift dokter dan secara otomatis
-                  membatalkan (soft-delete) antrean pasien yang telah terdaftar pada tanggal ini.
-                </p>
+          {closingDay !== null && (
+            <div className='rounded-xl border border-border/60 bg-muted/20 p-3 space-y-1.5 text-xs'>
+              <div className='flex items-center justify-between font-semibold'>
+                <span className='text-foreground'>{doctor?.nama_dokter || 'Dokter'}</span>
+                <span className='font-mono text-muted-foreground'>
+                  {closingDay} {MONTH_NAMES[currentMonth]} {currentYear}
+                </span>
               </div>
+              <p className='text-[11.5px] text-muted-foreground leading-relaxed'>
+                Setelah ditutup, jadwal pada tanggal ini tidak beroperasi dan tidak dapat dipesan oleh pasien baru.
+              </p>
             </div>
-          </div>
+          )}
 
           {/* Notes Input */}
           <div className='space-y-1.5'>
-            <Label htmlFor='close-day-notes' className='text-xs font-semibold text-foreground'>
+            <Label htmlFor='close-calendar-notes' className='text-xs font-semibold text-foreground'>
               Catatan Penutupan{' '}
               <span className='text-muted-foreground font-normal'>(Opsional)</span>
             </Label>
             <Input
-              id='close-day-notes'
+              id='close-calendar-notes'
               value={closeNotes}
               onChange={(e) => setCloseNotes(e.target.value)}
               placeholder='Contoh: Dokter ada keperluan mendadak / Cuti operasional'
               className='text-xs h-9'
             />
-            <p className='text-[10.5px] text-muted-foreground'>
-              Catatan ini akan dicatat dalam riwayat audit dan alasan pembatalan sesi antrean.
-            </p>
           </div>
 
           {/* Footer Actions */}
@@ -685,20 +737,29 @@ export function DoctorTimelineCalendar({
               type='button'
               variant='outline'
               size='sm'
-              onClick={() => setIsCloseModalOpen(false)}
-              className='text-xs font-semibold'
+              shape='pill'
+              onClick={() => {
+                setIsCloseModalOpen(false);
+                setClosingDay(null);
+                setCloseNotes('');
+              }}
+              className='text-xs px-4 font-semibold cursor-pointer'
             >
-              Batal
+              Tidak
             </Button>
             <Button
               type='button'
               variant='destructive'
               size='sm'
+              shape='pill'
+              disabled={isCellPending}
               onClick={handleConfirmClose}
-              className='text-xs font-semibold gap-1.5'
+              className='text-xs px-4 font-semibold gap-1.5 cursor-pointer'
             >
-              <Icons.trash className='size-3.5' />
-              <span>Konfirmasi Tutup Jadwal</span>
+              {isCellPending && (
+                <Spinner className='size-3.5' />
+              )}
+              <span>Ya, Tutup Jadwal</span>
             </Button>
           </div>
         </div>

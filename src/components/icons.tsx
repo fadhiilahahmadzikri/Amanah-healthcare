@@ -56,7 +56,6 @@ import {
   IconLayoutDashboard,
   IconLayoutKanban,
   IconLayoutSidebar,
-  IconLoader2,
   IconLock,
   IconRefresh,
   IconLogin,
@@ -143,6 +142,7 @@ import {
   IconArrowsMinimize,
   IconHistory
 } from '@tabler/icons-react';
+import { Spinner } from '@/components/ui/spinner';
 
 export type Icon = React.ComponentType<IconProps>;
 
@@ -181,7 +181,7 @@ export const Icons = {
   externalLink: IconExternalLink,
   help: IconHelpCircle,
   info: IconInfoCircle,
-  spinner: IconLoader2,
+  spinner: Spinner as unknown as React.ComponentType<IconProps>,
   search: IconSearch,
   settings: IconSettings,
   trash: IconTrash,
@@ -286,7 +286,7 @@ export const Icons = {
   toastInfo: IconInfoCircle,
   toastWarning: IconAlertTriangle,
   toastError: IconCircleX,
-  toastLoading: IconLoader2,
+  toastLoading: Spinner as unknown as React.ComponentType<IconProps>,
 
   pizza: IconPizza,
   location: IconLocation,

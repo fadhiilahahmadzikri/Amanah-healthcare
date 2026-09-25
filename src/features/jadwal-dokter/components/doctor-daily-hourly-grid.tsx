@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { HoverCard, HoverCardTrigger, HoverCardContent } from '@/components/ui/hover-card';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { DoctorAddSessionModal } from './doctor-add-session-modal';
 import { DoctorEditSessionModal } from './doctor-edit-session-modal';
 import { DoctorRescheduleSessionModal } from './doctor-reschedule-session-modal';
@@ -268,6 +269,7 @@ export function DoctorDailyHourlyGrid({
 
   const [closingSession, setClosingSession] = useState<DoctorDailySession | null>(null);
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
+  const [pendingSessionId, setPendingSessionId] = useState<string | null>(null);
 
   const handleRequestCloseSession = (session: DoctorDailySession) => {
     setClosingSession(session);
@@ -276,6 +278,7 @@ export function DoctorDailyHourlyGrid({
 
   const handleConfirmCloseSession = () => {
     if (!doctor?.id || !closingSession?.id) return;
+    setPendingSessionId(closingSession.id);
     updateSessionMutation.mutate(
       {
         doctorId: doctor.id,
@@ -291,6 +294,9 @@ export function DoctorDailyHourlyGrid({
         onSuccess: () => {
           setIsCloseModalOpen(false);
           setClosingSession(null);
+        },
+        onSettled: () => {
+          setPendingSessionId(null);
         }
       }
     );
@@ -305,16 +311,24 @@ export function DoctorDailyHourlyGrid({
       return;
     }
 
-    updateSessionMutation.mutate({
-      doctorId: doctor.id,
-      sessionId: session.id,
-      payload: {
-        session: resolveCanonicalShift(session.nama_sesi),
-        status: SCHEDULE_STATUS.OPEN,
-        status_sesi: SCHEDULE_STATUS.OPEN,
-        notes: SCHEDULE_MUTATION_NOTES.OPEN_SESSION
+    setPendingSessionId(session.id);
+    updateSessionMutation.mutate(
+      {
+        doctorId: doctor.id,
+        sessionId: session.id,
+        payload: {
+          session: resolveCanonicalShift(session.nama_sesi),
+          status: SCHEDULE_STATUS.OPEN,
+          status_sesi: SCHEDULE_STATUS.OPEN,
+          notes: SCHEDULE_MUTATION_NOTES.OPEN_SESSION
+        }
+      },
+      {
+        onSettled: () => {
+          setPendingSessionId(null);
+        }
       }
-    });
+    );
   };
 
   const handleOpenPatients = (session: DoctorDailySession) => {
@@ -652,14 +666,14 @@ export function DoctorDailyHourlyGrid({
             );
             const primaryShiftSession = matchingShiftSessions[0];
             const sessionBookedCount = matchingShiftSessions.reduce((acc, s) => {
-              const rawStatus = (s.status_sesi || '').toUpperCase();
-              if (rawStatus === 'CLOSED' || rawStatus === 'CUTI') {
+              const rawStatus = s.status_sesi ? s.status_sesi.toUpperCase() : '';
+              if (rawStatus === SCHEDULE_STATUS.CLOSED || rawStatus === SCHEDULE_STATUS.CUTI) {
                 return acc;
               }
               if (s.pasien_terdaftar !== undefined) {
                 return acc + s.pasien_terdaftar;
               }
-              const capacity = s.kuota_pasien || 0;
+              const capacity = s.kuota_pasien;
               const available = s.slot_tersedia !== undefined ? s.slot_tersedia : capacity;
               return acc + Math.max(0, capacity - available);
             }, 0);
@@ -671,19 +685,21 @@ export function DoctorDailyHourlyGrid({
                   shift.boundaryEndTime &&
                   it.startTime >= shift.boundaryStartTime &&
                   it.startTime < shift.boundaryEndTime &&
-                  Boolean(it.appointmentRef || (it.isOccupied && it.status === 'OCCUPIED'))
-              ).length || 0;
+                  Boolean(
+                    it.appointmentRef || (it.isOccupied && it.status === SCHEDULE_STATUS.OCCUPIED)
+                  )
+              ).length ?? 0;
 
             const shiftBookedCount =
               isDayClosed || isDayCuti ? 0 : Math.max(sessionBookedCount, intervalBookedCount);
 
             return (
-              <div key={shift.contextId || shift.shiftId || shift.shift} className='space-y-2'>
+              <div key={shift.contextId} className='space-y-2'>
                 {/* Y-Axis Shift Header: Shift Name, Time Range & Slot Metrics SSOT */}
                 <div className='flex items-center justify-between text-xs pb-1.5 border-b border-border/30'>
                   <div className='flex items-center gap-2'>
                     <span className='text-foreground font-bold text-xs sm:text-[13px]'>
-                      {shift.shiftName || shift.contextLabel || shift.label}
+                      {shift.contextLabel}
                     </span>
                     <span className='font-mono font-medium text-[11px] text-muted-foreground/70'>
                       {shift.timeRange}
@@ -752,9 +768,7 @@ export function DoctorDailyHourlyGrid({
                       currentTimeString >= slot.startTime &&
                       currentTimeString < slot.endTime;
 
-                    const displayLabel = isFinished
-                      ? 'Selesai'
-                      : slot.uiLabel || slot.displayLabel || 'Tersedia';
+                    const displayLabel = isFinished ? 'Selesai' : slot.displayLabel;
 
                     const isClickable =
                       !isFinished &&
@@ -786,22 +800,40 @@ export function DoctorDailyHourlyGrid({
                       matchingSession && !isFinished && !isDayCuti && !readOnly
                     );
 
+                    const isSlotUpdating = Boolean(
+                      matchingSession &&
+                        updateSessionMutation.isPending &&
+                        pendingSessionId === matchingSession.id
+                    );
+
                     const slotButton = (
                       <button
-                        key={`${shift.contextId || shift.shiftId}-${slot.slotIndex}-${slot.startTime}`}
+                        key={`${shift.contextId}-${slot.slotIndex}-${slot.startTime}`}
                         type='button'
                         onClick={() => handleSlotClick(slot)}
-                        disabled={!isClickable}
+                        disabled={!isClickable || isSlotUpdating}
                         className={cn(
-                          'w-full min-h-[52px] sm:min-h-[56px] rounded-xl border p-2 flex flex-col justify-between transition-all text-left relative outline-none',
+                          'w-full min-h-[52px] sm:min-h-[56px] rounded-xl border p-2 flex flex-col justify-between transition-all text-left relative outline-none overflow-hidden',
                           variantCfg.cellBg,
                           variantCfg.border,
                           !isClickable
                             ? 'cursor-default opacity-80'
                             : 'cursor-pointer hover:shadow-xs hover:border-primary/50',
-                          isNow && 'ring-1.5 ring-primary font-bold'
+                          isNow && 'ring-1.5 ring-primary font-bold',
+                          isSlotUpdating && 'cursor-wait'
                         )}
                       >
+                        {/* In-Slot Loading Overlay */}
+                        {isSlotUpdating && (
+                          <div
+                            role='status'
+                            aria-label='Menyimpan status sesi'
+                            className='absolute inset-0 z-20 rounded-xl bg-background/85 backdrop-blur-[1px] flex items-center justify-center gap-1 animate-in fade-in duration-150'
+                          >
+                            <Spinner className='size-3.5 text-primary' />
+                          </div>
+                        )}
+
                         {/* Baris Atas: Jam Mulai & Indikator Titik / Reschedule / Closure */}
                         <div className='flex items-center justify-between'>
                           <span
@@ -858,7 +890,7 @@ export function DoctorDailyHourlyGrid({
                     if (hasHoverMenu && matchingSession) {
                       return (
                         <HoverCard
-                          key={`${shift.contextId || shift.shiftId}-${slot.slotIndex}-${slot.startTime}`}
+                          key={`${shift.contextId}-${slot.slotIndex}-${slot.startTime}`}
                           openDelay={200}
                           closeDelay={150}
                         >
@@ -912,6 +944,10 @@ export function DoctorDailyHourlyGrid({
                               {(() => {
                                 const isSessionClosed =
                                   matchingSession.status_sesi === SCHEDULE_STATUS.CLOSED;
+                                const isThisSessionPending =
+                                  updateSessionMutation.isPending &&
+                                  pendingSessionId === matchingSession.id;
+
                                 return (
                                   <button
                                     type='button'
@@ -922,12 +958,19 @@ export function DoctorDailyHourlyGrid({
                                     disabled={updateSessionMutation.isPending}
                                     className={cn(
                                       'flex items-center gap-2 w-full px-2 py-1.5 rounded-lg text-xs font-semibold hover:bg-muted transition-colors cursor-pointer text-left',
-                                      isSessionClosed
-                                        ? 'text-emerald-600 dark:text-emerald-400'
-                                        : 'text-rose-600 dark:text-rose-400'
+                                      isThisSessionPending
+                                        ? 'text-muted-foreground cursor-wait'
+                                        : isSessionClosed
+                                          ? 'text-emerald-600 dark:text-emerald-400'
+                                          : 'text-rose-600 dark:text-rose-400'
                                     )}
                                   >
-                                    {isSessionClosed ? (
+                                    {isThisSessionPending ? (
+                                      <>
+                                        <Spinner className='size-3.5 text-primary' />
+                                        <span>Menyimpan...</span>
+                                      </>
+                                    ) : isSessionClosed ? (
                                       <>
                                         <Icons.check className='size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0' />
                                         <span>Buka Jadwal</span>
@@ -1087,18 +1130,20 @@ export function DoctorDailyHourlyGrid({
           setIsCloseModalOpen(false);
           setClosingSession(null);
         }}
-        maxWidth='max-w-[420px]'
+        maxWidth='w-full sm:w-fit sm:min-w-[440px] max-w-[calc(100vw-2rem)]'
         portalContainerRef={modalContainerRef}
         showCloseButton={false}
       >
         <div className='relative font-sans space-y-4 text-left p-1'>
-          <div className='flex items-start justify-between gap-3'>
-            <div className='space-y-1 min-w-0'>
+          <div className='flex items-start justify-between gap-4'>
+            <div className='space-y-1 min-w-0 flex-1'>
               <div className='flex items-center gap-1.5 text-rose-600 dark:text-rose-400'>
-                <Icons.lock className='size-4' />
-                <span className='text-xs font-bold tracking-tight'>Konfirmasi Tutup Jadwal</span>
+                <Icons.lock className='size-4 shrink-0' />
+                <span className='text-xs font-bold tracking-tight whitespace-nowrap'>
+                  Konfirmasi Tutup Jadwal
+                </span>
               </div>
-              <h3 className='text-sm sm:text-base font-bold text-foreground leading-snug'>
+              <h3 className='text-sm sm:text-base font-bold text-foreground leading-snug whitespace-nowrap'>
                 Apakah Anda yakin ingin menutup sesi ini?
               </h3>
             </div>
@@ -1153,7 +1198,7 @@ export function DoctorDailyHourlyGrid({
               className='text-xs px-4 font-semibold gap-1.5 cursor-pointer'
             >
               {updateSessionMutation.isPending && (
-                <Icons.spinner className='size-3.5 animate-spin' />
+                <Spinner className='size-3.5' />
               )}
               <span>Ya, Tutup Jadwal</span>
             </Button>

@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Icons } from '@/components/icons';
+import { Spinner } from '@/components/ui/spinner';
 import { useUpdateDoctorScheduleMutation } from '../../api/mutations';
 import type { DoctorSchedule } from '../../api/types';
 
@@ -61,10 +62,15 @@ export function CellAction({ data, onOpenDetail, onOpenEdit }: CellActionProps) 
           <Button
             variant='ghost'
             size='icon'
+            disabled={updateScheduleMutation.isPending}
             className='size-8 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-md transition-colors'
           >
             <span className='sr-only'>Open menu</span>
-            <Icons.ellipsis className='size-4' />
+            {updateScheduleMutation.isPending ? (
+              <Spinner className='size-3.5 text-primary' />
+            ) : (
+              <Icons.ellipsis className='size-4' />
+            )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end' className='w-48'>

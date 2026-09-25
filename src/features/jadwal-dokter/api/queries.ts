@@ -9,7 +9,9 @@ import {
   getSessionPatients,
   getScheduleProjection,
   getScheduleReferenceOptions,
-  getScheduleContexts
+  getScheduleContexts,
+  getScheduleFormBootstrap,
+  getScheduleSlotAvailability
 } from './service';
 import { doctorScheduleKeys } from './query-keys';
 import type { DoctorScheduleDetailParams, DoctorScheduleFilters } from './types';
@@ -144,4 +146,54 @@ export const scheduleContextsQueryOptions = (date?: string) =>
     enabled: Boolean(date && date.trim().length > 0)
   });
 
+export const scheduleFormBootstrapQueryOptions = (params: {
+  date: string;
+  scheduleId?: string;
+  staffId?: string;
+}) =>
+  queryOptions({
+    queryKey: [
+      'schedules',
+      'form-bootstrap',
+      params.date,
+      params.scheduleId,
+      params.staffId
+    ] as const,
+    queryFn: () => getScheduleFormBootstrap(params),
+    staleTime: 10 * 1000,
+    gcTime: 5 * 60 * 1000,
+    enabled: Boolean(params.date && params.date.trim().length > 0)
+  });
+
+export const scheduleSlotAvailabilityQueryOptions = (params: {
+  date: string;
+  shift: string;
+  roomId: string;
+  scheduleId?: string;
+  staffId?: string;
+}) =>
+  queryOptions({
+    queryKey: [
+      'schedules',
+      'slot-availability',
+      params.date,
+      params.shift,
+      params.roomId,
+      params.scheduleId,
+      params.staffId
+    ] as const,
+    queryFn: () => getScheduleSlotAvailability(params),
+    staleTime: 5 * 1000,
+    gcTime: 2 * 60 * 1000,
+    enabled: Boolean(
+      params.date &&
+        params.shift &&
+        params.roomId &&
+        params.date.trim().length > 0 &&
+        params.shift.trim().length > 0 &&
+        params.roomId.trim().length > 0
+    )
+  });
+
 export { doctorScheduleKeys };
+

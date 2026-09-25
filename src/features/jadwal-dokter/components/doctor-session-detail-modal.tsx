@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
+import { SCHEDULE_STATUS } from '../constants/schedule-shift.constants';
 import type { DoctorSchedule, DoctorDailySession } from '../api/types';
 
 export interface DoctorSessionDetailModalProps {
@@ -32,19 +33,22 @@ export function DoctorSessionDetailModal({
 
   if (!doctor || !session) return null;
 
-  const rawStatus = (session.status_sesi || '').toUpperCase();
-  const isSessionClosed = rawStatus === 'CLOSED' || rawStatus === 'CUTI';
+  const rawStatus = session.status_sesi ? session.status_sesi.toUpperCase() : '';
+  const isSessionClosed =
+    rawStatus === SCHEDULE_STATUS.CLOSED || rawStatus === SCHEDULE_STATUS.CUTI;
   const isRescheduleEligible =
     session.is_reschedule_eligible !== undefined
       ? session.is_reschedule_eligible
       : !isSessionClosed;
   const ineligibilityReason =
-    session.reschedule_ineligibility_reason ||
-    (isSessionClosed
-      ? 'Sesi ini berstatus Tutup. Silakan aktifkan sesi terlebih dahulu melalui menu Ubah Sesi sebelum melakukan reschedule.'
-      : 'Sesi ini tidak dapat dipindahkan (reschedule).');
+    session.reschedule_ineligibility_reason !== undefined &&
+    session.reschedule_ineligibility_reason !== ''
+      ? session.reschedule_ineligibility_reason
+      : isSessionClosed
+        ? 'Sesi ini berstatus Tutup. Silakan aktifkan sesi terlebih dahulu melalui menu Ubah Sesi sebelum melakukan reschedule.'
+        : 'Sesi ini tidak dapat dipindahkan (reschedule).';
 
-  const capacity = session.kuota_pasien || 12;
+  const capacity = session.kuota_pasien;
   const sessionIntervals = doctor.timeline_intervals?.filter(
     (it) =>
       (it.startTime >= session.jam_mulai && it.startTime < session.jam_selesai) ||
@@ -60,8 +64,8 @@ export function DoctorSessionDetailModal({
         );
   const intervalBookedCount =
     sessionIntervals?.filter((it) =>
-      Boolean(it.appointmentRef || (it.isOccupied && it.status === 'OCCUPIED'))
-    ).length || 0;
+      Boolean(it.appointmentRef || (it.isOccupied && it.status === SCHEDULE_STATUS.OCCUPIED))
+    ).length ?? 0;
   const bookedCount = Math.max(sessionBookedCount, intervalBookedCount);
 
   const showBanner = !isRescheduleEligible && !bannerDismissed;
@@ -150,14 +154,18 @@ export function DoctorSessionDetailModal({
             <div>
               <span className='text-[11px] text-muted-foreground block mb-0.5'>Ruang Praktik</span>
               <span className='font-semibold text-foreground block truncate'>
-                {session.ruang || doctor.ruang_praktik || '-'}
+                {session.ruang !== ''
+                  ? session.ruang
+                  : doctor.ruang_praktik !== ''
+                    ? doctor.ruang_praktik
+                    : '-'}
               </span>
             </div>
 
             <div>
               <span className='text-[11px] text-muted-foreground block mb-0.5'>Status Sesi</span>
               <span className='font-semibold text-foreground capitalize block'>
-                {session.status_sesi || 'Buka'}
+                {session.status_sesi}
               </span>
             </div>
 

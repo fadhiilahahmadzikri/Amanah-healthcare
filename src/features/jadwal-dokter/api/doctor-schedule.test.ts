@@ -3,6 +3,11 @@ import { isDoctorOnLeaveOnDay } from '../utils/leave-calculator';
 import { getUpcomingScheduleTime, getDoctorCardStatus } from '../components/doctor-schedule-card';
 import { doctorScheduleKeys } from './query-keys';
 import {
+  normalizeScheduleShift,
+  resolveShiftFromTime,
+  SCHEDULE_SHIFT
+} from '../constants/schedule-shift.constants';
+import {
   adminDoctorScheduleListResponseSchema,
   adminDoctorScheduleDetailResponseSchema,
   clinicalPractitionersResponseSchema,
@@ -455,5 +460,42 @@ describe('Occupancy Overview Session Status Mapping', () => {
     expect(targetSlot?.status).toBe('AVAILABLE');
     expect(targetSlot?.displayLabel).toBe('Buka');
     expect(targetSlot?.isAvailable).toBe(true);
+  });
+});
+
+describe('Time-Based Shift Resolution (resolveShiftFromTime)', () => {
+  it('correctly maps 00:30 and midnight hours to DINI_HARI', () => {
+    expect(normalizeScheduleShift('00:30')).toBe(SCHEDULE_SHIFT.DINI_HARI);
+    expect(resolveShiftFromTime('00:30')).toBe(SCHEDULE_SHIFT.DINI_HARI);
+    expect(resolveShiftFromTime('02:00')).toBe(SCHEDULE_SHIFT.DINI_HARI);
+    expect(resolveShiftFromTime('05:59')).toBe(SCHEDULE_SHIFT.DINI_HARI);
+  });
+
+  it('correctly maps morning hours to PAGI', () => {
+    expect(resolveShiftFromTime('06:00')).toBe(SCHEDULE_SHIFT.PAGI);
+    expect(resolveShiftFromTime('08:30')).toBe(SCHEDULE_SHIFT.PAGI);
+    expect(resolveShiftFromTime('11:59')).toBe(SCHEDULE_SHIFT.PAGI);
+  });
+
+  it('correctly maps afternoon hours to SIANG', () => {
+    expect(resolveShiftFromTime('12:00')).toBe(SCHEDULE_SHIFT.SIANG);
+    expect(resolveShiftFromTime('14:30')).toBe(SCHEDULE_SHIFT.SIANG);
+    expect(resolveShiftFromTime('17:59')).toBe(SCHEDULE_SHIFT.SIANG);
+  });
+
+  it('correctly maps evening and night hours to MALAM', () => {
+    expect(resolveShiftFromTime('18:00')).toBe(SCHEDULE_SHIFT.MALAM);
+    expect(resolveShiftFromTime('20:00')).toBe(SCHEDULE_SHIFT.MALAM);
+    expect(resolveShiftFromTime('23:30')).toBe(SCHEDULE_SHIFT.MALAM);
+  });
+
+  it('preserves existing canonical shift name and aliases', () => {
+    expect(normalizeScheduleShift('DINI_HARI')).toBe(SCHEDULE_SHIFT.DINI_HARI);
+    expect(normalizeScheduleShift('EARLY_MORNING')).toBe(SCHEDULE_SHIFT.DINI_HARI);
+    expect(normalizeScheduleShift('Sesi Dini Hari')).toBe(SCHEDULE_SHIFT.DINI_HARI);
+    expect(normalizeScheduleShift('PAGI')).toBe(SCHEDULE_SHIFT.PAGI);
+    expect(normalizeScheduleShift('MORNING')).toBe(SCHEDULE_SHIFT.PAGI);
+    expect(normalizeScheduleShift('SIANG')).toBe(SCHEDULE_SHIFT.SIANG);
+    expect(normalizeScheduleShift('MALAM')).toBe(SCHEDULE_SHIFT.MALAM);
   });
 });

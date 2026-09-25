@@ -21,6 +21,12 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { useRescheduleDoctorSessionMutation } from '../api/mutations';
 import { clinicRoomsQueryOptions, rescheduleEligibilityQueryOptions } from '../api/queries';
+import {
+  SCHEDULE_TIME_LABELS,
+  SCHEDULE_BUTTON_LABELS,
+  SCHEDULE_OCCUPANT_LABELS,
+  SCHEDULE_RESCHEDULE_MESSAGES
+} from '../constants/schedule-shift.constants';
 import type { DoctorSchedule, DoctorDailySession } from '../api/types';
 
 export interface DoctorRescheduleSessionModalProps {
@@ -95,7 +101,7 @@ export function DoctorRescheduleSessionModal({
   // Set default targetRoomId to the session's current room if matched
   useEffect(() => {
     if (session && rooms.length > 0 && !targetRoomId) {
-      const currentRoomName = (session.ruang || doctor?.ruang_praktik || '').trim();
+      const currentRoomName = (session.ruang ?? doctor?.ruang_praktik ?? '').trim();
       const matched = rooms.find(
         (r) =>
           r.name.toLowerCase() === currentRoomName.toLowerCase() ||
@@ -120,7 +126,7 @@ export function DoctorRescheduleSessionModal({
   }, [targetDate]);
 
   const formattedDisplayDate = useMemo(() => {
-    if (!selectedDateObj) return 'Pilih tanggal';
+    if (!selectedDateObj) return SCHEDULE_TIME_LABELS.CHOOSE_DATE;
     return selectedDateObj.toLocaleDateString('id-ID', {
       day: 'numeric',
       month: 'short',
@@ -186,11 +192,13 @@ export function DoctorRescheduleSessionModal({
               <div className='flex items-center gap-2 min-w-0 flex-1'>
                 <Icons.warning className='size-4 shrink-0 text-destructive' />
                 <div className='text-xs leading-snug min-w-0'>
-                  <span className='font-bold mr-1'>Jadwal Tidak Memenuhi Syarat:</span>
+                  <span className='font-bold mr-1'>
+                    {SCHEDULE_RESCHEDULE_MESSAGES.INELIGIBLE_TITLE}
+                  </span>
                   <span className='text-[11.5px] opacity-90'>
-                    {eligibilityData?.targetValidation?.conflictMessage ||
-                      eligibilityData?.actionableGuidance ||
-                      'Terjadi bentrok jadwal atau ruangan sudah terpakai pada jam tersebut.'}
+                    {eligibilityData?.targetValidation?.conflictMessage ??
+                      eligibilityData?.actionableGuidance ??
+                      SCHEDULE_RESCHEDULE_MESSAGES.DEFAULT_CONFLICT}
                   </span>
                 </div>
               </div>
@@ -242,7 +250,7 @@ export function DoctorRescheduleSessionModal({
           </div>
           <div className='text-[11.5px] text-muted-foreground flex items-center gap-1.5'>
             <Icons.location className='size-3 text-muted-foreground/70 shrink-0' />
-            <span className='truncate'>{session.ruang || doctor.ruang_praktik}</span>
+            <span className='truncate'>{session.ruang}</span>
           </div>
         </div>
 
@@ -266,9 +274,9 @@ export function DoctorRescheduleSessionModal({
                 </Button>
               </PopoverTrigger>
               <PopoverContent
-                className='w-auto p-0 z-50'
+                className='w-auto p-0 z-[70] shadow-xl'
                 align='start'
-                portalContainerRef={portalContainerRef}
+                sideOffset={8}
               >
                 <Calendar
                   mode='single'
@@ -296,14 +304,16 @@ export function DoctorRescheduleSessionModal({
               <SelectTrigger className='w-full h-8.5 text-xs truncate'>
                 <SelectValue placeholder='Pilih Ruangan Tujuan' />
               </SelectTrigger>
-              <SelectContent portalContainerRef={portalContainerRef}>
+              <SelectContent className='z-[70]'>
                 {rooms.map((room) => {
                   const locationText = room.location ? ` (${room.location})` : '';
                   return (
                     <SelectItem key={room.id} value={room.id} disabled={room.isOccupied}>
                       {room.name}
                       {locationText}
-                      {room.isOccupied ? ` — Terisi (${room.occupiedBy || 'Dokter Lain'})` : ''}
+                      {room.isOccupied
+                        ? ` — Terisi (${room.occupiedBy ?? SCHEDULE_OCCUPANT_LABELS.OTHER_DOCTOR})`
+                        : ''}
                     </SelectItem>
                   );
                 })}
@@ -325,14 +335,14 @@ export function DoctorRescheduleSessionModal({
               <SelectTrigger className='w-full h-8.5 text-xs font-mono font-semibold'>
                 <SelectValue placeholder='Pilih jam mulai baru' />
               </SelectTrigger>
-              <SelectContent className='max-h-56' portalContainerRef={portalContainerRef}>
+              <SelectContent className='max-h-56 z-[70]'>
                 {TIME_OPTIONS.map((time) => {
                   const isOriginalTime =
                     time === session.jam_mulai &&
                     targetDate === (initialDate || doctor?.tanggal_praktik);
                   return (
                     <SelectItem key={time} value={time} className='font-mono text-xs'>
-                      {time} WIB {isOriginalTime ? '(Jadwal Asal)' : ''}
+                      {time} {SCHEDULE_TIME_LABELS.TIMEZONE} {isOriginalTime ? '(Jadwal Asal)' : ''}
                     </SelectItem>
                   );
                 })}
@@ -345,9 +355,13 @@ export function DoctorRescheduleSessionModal({
               Jam Selesai Baru
             </Label>
             <div className='w-full h-8.5 px-3 rounded-md border border-border/50 bg-muted/30 text-xs font-mono font-semibold text-foreground flex items-center justify-between select-none'>
-              <span>{targetEndTimeCalculated ? `${targetEndTimeCalculated} WIB` : '-'}</span>
+              <span>
+                {targetEndTimeCalculated
+                  ? `${targetEndTimeCalculated} ${SCHEDULE_TIME_LABELS.TIMEZONE}`
+                  : SCHEDULE_TIME_LABELS.DASH}
+              </span>
               <span className='text-[10px] font-sans font-medium text-muted-foreground'>
-                Otomatis
+                {SCHEDULE_TIME_LABELS.AUTOMATIC}
               </span>
             </div>
           </div>
@@ -413,7 +427,7 @@ export function DoctorRescheduleSessionModal({
             onClick={onClose}
             className='px-4 font-medium text-xs'
           >
-            Batal
+            {SCHEDULE_BUTTON_LABELS.CANCEL}
           </Button>
           <Button
             type='submit'

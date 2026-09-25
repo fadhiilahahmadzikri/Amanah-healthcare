@@ -12,7 +12,9 @@ import type {
   ClosureMetadata,
   RescheduleMetadata,
   SlotProjectionMetrics,
-  OccupancyShift
+  OccupancyShift,
+  CreateAdminDoctorSessionPayload,
+  UpdateAdminDoctorSessionPayload
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 
 export type ScheduleDayStatus = 'Buka' | 'Terisi' | 'Penuh' | 'Cuti' | 'Tutup' | string;
@@ -160,26 +162,10 @@ export interface UpdateDoctorSchedulePayload {
   sesi_harian?: DoctorDailySession[];
 }
 
-export interface CreateDoctorSessionPayload {
-  schedule_date: string;
-  nama_sesi: string;
-  jam_mulai: string;
-  jam_selesai: string;
-  kuota_pasien: number;
-  slot_tersedia: number;
-  status_sesi: string;
-  ruang?: string;
-}
+export type CreateDoctorSessionPayload = CreateAdminDoctorSessionPayload;
 
-export interface UpdateDoctorSessionPayload {
-  nama_sesi?: string;
-  jam_mulai?: string;
-  jam_selesai?: string;
-  kuota_pasien?: number;
-  slot_tersedia?: number;
-  status_sesi?: string;
-  ruang?: string;
-}
+export type UpdateDoctorSessionPayload = UpdateAdminDoctorSessionPayload;
+
 
 /**
  * @deprecated Sesi jadwal dokter dilarang dihapus oleh admin (403 ADMIN_SCHEDULE_DELETION_PROHIBITED).

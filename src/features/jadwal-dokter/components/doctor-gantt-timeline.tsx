@@ -10,6 +10,11 @@ import { DoctorRescheduleSessionModal } from './doctor-reschedule-session-modal'
 import { DoctorAddSessionModal } from './doctor-add-session-modal';
 import { DoctorEditSessionModal } from './doctor-edit-session-modal';
 import { isDoctorOnLeaveOnDay } from '../api/service';
+import {
+  SCHEDULE_STATUS,
+  SCHEDULE_STATUS_LABELS,
+  type ScheduleStatus
+} from '../constants/schedule-shift.constants';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule, DoctorDailySession, TimelineInterval } from '../api/types';
 
@@ -77,14 +82,21 @@ function deriveIntervalsForSession(
     const startTime = `${String(sH).padStart(2, '0')}:${String(sM).padStart(2, '0')}`;
     const endTime = `${String(eH).padStart(2, '0')}:${String(eM).padStart(2, '0')}`;
 
-    const isOccupied = session.status_sesi === 'Penuh' || idx < occupiedCount;
-    const isClosed = session.status_sesi === 'Tutup' || session.status_sesi === 'Cuti';
+    const isOccupied =
+      session.status_sesi === SCHEDULE_STATUS.OCCUPIED ||
+      session.status_sesi === SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.OCCUPIED] ||
+      idx < occupiedCount;
+    const isClosed =
+      session.status_sesi === SCHEDULE_STATUS.CLOSED ||
+      session.status_sesi === SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.CLOSED] ||
+      session.status_sesi === SCHEDULE_STATUS.CUTI ||
+      session.status_sesi === SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.CUTI];
 
-    const status: 'OPEN' | 'OCCUPIED' | 'CLOSED' = isClosed
-      ? 'CLOSED'
+    const status: ScheduleStatus = isClosed
+      ? SCHEDULE_STATUS.CLOSED
       : isOccupied
-        ? 'OCCUPIED'
-        : 'OPEN';
+        ? SCHEDULE_STATUS.OCCUPIED
+        : SCHEDULE_STATUS.OPEN;
 
     intervals.push({
       intervalIndex: idx + 1,
@@ -92,7 +104,7 @@ function deriveIntervalsForSession(
       endTime,
       status,
       displayLabel: `${startTime} - ${endTime}`,
-      isOccupied: status === 'OCCUPIED',
+      isOccupied: status === SCHEDULE_STATUS.OCCUPIED,
       appointmentRef:
         status === 'OCCUPIED'
           ? {
@@ -441,7 +453,7 @@ export function DoctorGanttTimeline({
                           {session.waktu || `${session.jam_mulai} - ${session.jam_selesai}`}
                         </span>
                         <span className='text-xs text-muted-foreground truncate'>
-                          • {session.ruang || doctor?.ruang_praktik}
+                          • {session.ruang}
                         </span>
                       </div>
 
@@ -503,9 +515,9 @@ export function DoctorGanttTimeline({
                               {/* Bottom Status & Queue Badge */}
                               <div className='mt-auto pt-1.5 border-t border-current/15 flex items-center justify-between'>
                                 <span className='text-[11px] font-bold leading-none'>
-                                  {isOpen && 'Buka'}
-                                  {isOccupied && 'Terisi'}
-                                  {isClosed && (interval.closedReason || 'Tutup')}
+                                  {isOpen && SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.OPEN]}
+                                  {isOccupied && SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.OCCUPIED]}
+                                  {isClosed && (interval.closedReason ?? SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.CLOSED])}
                                 </span>
 
                                 {isOccupied && interval.appointmentRef?.queueNumber && (
@@ -531,8 +543,8 @@ export function DoctorGanttTimeline({
                                 </PopoverTrigger>
                                 <PopoverContent
                                   align='center'
-                                  className='w-64 p-3.5 font-sans space-y-2 text-left'
-                                  portalContainer={modalContainerRef?.current ?? undefined}
+                                  className='w-64 p-3.5 font-sans space-y-2 text-left z-[70] shadow-xl'
+                                  sideOffset={8}
                                 >
                                   <div className='flex items-center justify-between border-b border-border/40 pb-2'>
                                     <div className='flex items-center gap-1.5'>
@@ -542,7 +554,7 @@ export function DoctorGanttTimeline({
                                       </span>
                                     </div>
                                     <span className='text-[10px] font-mono px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-700 dark:text-sky-300 font-bold'>
-                                      {interval.appointmentRef.status || 'CONFIRMED'}
+                                      {interval.appointmentRef.status}
                                     </span>
                                   </div>
 

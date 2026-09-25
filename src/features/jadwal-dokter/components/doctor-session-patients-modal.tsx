@@ -44,13 +44,14 @@ export function DoctorSessionPatientsModal({
   const [selectedPatientForDetail, setSelectedPatientForDetail] =
     useState<BookedPatientItem | null>(null);
 
-  const doctorId = doctor.id || doctor.practitioner_id || '';
+  const doctorId = doctor.id !== '' ? doctor.id : (doctor.practitioner_id ?? '');
   const sessionId = session.id;
 
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
   // TanStack React Query (SSOT Consumer - strictly no mock fallback)
+  const trimmedSearch = searchQuery.trim();
   const {
     data: sessionData,
     isLoading,
@@ -60,13 +61,13 @@ export function DoctorSessionPatientsModal({
   } = useQuery({
     ...sessionPatientsQueryOptions(doctorId, sessionId, {
       status: selectedStatus,
-      search: searchQuery.trim() || undefined
+      search: trimmedSearch !== '' ? trimmedSearch : undefined
     }),
     enabled: isOpen && Boolean(doctorId && sessionId)
   });
 
-  const patientsList: BookedPatientItem[] = sessionData?.patients || [];
-  const capacity = sessionData?.capacity ?? session.kuota_pasien ?? 12;
+  const patientsList: BookedPatientItem[] = sessionData?.patients ?? [];
+  const capacity = sessionData?.capacity ?? session.kuota_pasien;
   const bookedCount = sessionData?.bookedCount ?? patientsList.length;
   const availableSlots = sessionData?.availableSlots ?? Math.max(0, capacity - bookedCount);
 
@@ -104,11 +105,11 @@ export function DoctorSessionPatientsModal({
                 <span className='font-mono font-medium text-foreground'>
                   {session.jam_mulai} - {session.jam_selesai} WIB
                 </span>
-                {(session.ruang || doctor.ruang_praktik) && (
+                {(session.ruang !== '' ? session.ruang : doctor.ruang_praktik) && (
                   <>
                     <span className='text-border/80'>•</span>
                     <span className='font-medium text-muted-foreground'>
-                      {session.ruang || doctor.ruang_praktik}
+                      {session.ruang !== '' ? session.ruang : doctor.ruang_praktik}
                     </span>
                   </>
                 )}

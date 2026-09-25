@@ -38,14 +38,18 @@ export const DB_STAFF_SHIFT_MAP: Record<string, ScheduleShift> = {
 
 export const SCHEDULE_STATUS = {
   OPEN: 'OPEN',
-  CLOSED: 'CLOSED'
+  CLOSED: 'CLOSED',
+  CUTI: 'CUTI',
+  OCCUPIED: 'OCCUPIED'
 } as const;
 
 export type ScheduleStatus = (typeof SCHEDULE_STATUS)[keyof typeof SCHEDULE_STATUS];
 
 export const SCHEDULE_STATUS_LABELS: Record<ScheduleStatus, string> = {
   [SCHEDULE_STATUS.OPEN]: 'Buka',
-  [SCHEDULE_STATUS.CLOSED]: 'Tutup'
+  [SCHEDULE_STATUS.CLOSED]: 'Tutup',
+  [SCHEDULE_STATUS.CUTI]: 'Cuti',
+  [SCHEDULE_STATUS.OCCUPIED]: 'Penuh'
 } as const;
 
 export const SCHEDULE_MUTATION_NOTES = {
@@ -57,8 +61,63 @@ export const SCHEDULE_QUERY_KEYS = {
   ALL: 'doctor-schedules',
   SCHEDULES: 'schedules',
   PRACTITIONERS: 'clinical-practitioners',
-  APPOINTMENTS: 'appointments'
+  APPOINTMENTS: 'appointments',
+  BOOTSTRAP: 'schedule-form-bootstrap',
+  SLOT_AVAILABILITY: 'schedule-slot-availability',
+  OCCUPANCY_OVERVIEW: 'schedule-occupancy-overview'
 } as const;
+
+export const SCHEDULE_UNAVAILABLE_REASONS = {
+  PAST: 'Sudah Selesai',
+  TIME_EXHAUSTED: 'Waktu Habis',
+  FULL: 'Penuh',
+  FULL_OR_EXHAUSTED: 'Penuh / Waktu Habis'
+} as const;
+
+export type ScheduleUnavailableReason =
+  (typeof SCHEDULE_UNAVAILABLE_REASONS)[keyof typeof SCHEDULE_UNAVAILABLE_REASONS];
+
+export const CANONICAL_TO_API_SHIFT: Record<ScheduleShift, string> = {
+  [SCHEDULE_SHIFT.DINI_HARI]: 'dini_hari',
+  [SCHEDULE_SHIFT.PAGI]: 'pagi',
+  [SCHEDULE_SHIFT.SIANG]: 'siang',
+  [SCHEDULE_SHIFT.MALAM]: 'malam'
+} as const;
+
+export const SCHEDULE_TIME_LABELS = {
+  TIMEZONE: 'WIB',
+  AUTOMATIC: 'Otomatis',
+  SELECT_TIME: 'Pilih Jam Mulai',
+  LOADING_SLOTS: 'Memuat slot...',
+  SELECT_ROOM: 'Pilih Ruangan',
+  CHOOSE_DATE: 'Pilih tanggal',
+  DASH: '-'
+} as const;
+
+export const SCHEDULE_BUTTON_LABELS = {
+  ADD_MORE_SLOT: '+ Add More Slot',
+  CHANGE_DATE: 'Ubah Tanggal',
+  CANCEL: 'Batal',
+  SAVE_SCHEDULE: 'Simpan Jadwal'
+} as const;
+
+export const SCHEDULE_OCCUPANT_LABELS = {
+  OTHER_DOCTOR: 'Dokter Lain'
+} as const;
+
+export const SCHEDULE_TOAST_MESSAGES = {
+  SELECT_PREVIOUS_SLOT_FIRST: 'Tentukan jam mulai slot sebelumnya terlebih dahulu',
+  SHIFT_TIME_EXHAUSTED: 'Sesi sudah terisi hingga batas shift',
+  SESSIONS_ADDED_SUCCESS: (count: number, doctorName: string) =>
+    `${count} sesi praktik berhasil ditambahkan untuk ${doctorName}.`,
+  SESSIONS_ADDED_ERROR: 'Gagal menambahkan sesi praktik dokter'
+} as const;
+
+export const SCHEDULE_RESCHEDULE_MESSAGES = {
+  INELIGIBLE_TITLE: 'Jadwal Tidak Memenuhi Syarat:',
+  DEFAULT_CONFLICT: 'Terjadi bentrok jadwal atau ruangan sudah terpakai pada jam tersebut.'
+} as const;
+
 
 export const SCHEDULE_SHIFT_BOUNDARIES: Record<
   ScheduleShift,
@@ -117,6 +176,17 @@ export function normalizeScheduleStatus(raw?: string | null): ScheduleStatus {
 export function normalizeScheduleShift(raw?: string | null): ScheduleShift {
   if (!raw) return SCHEDULE_SHIFT.PAGI;
   const clean = raw.trim().toUpperCase();
+
+  // If time format HH:mm or HH.mm (e.g. "00:30", "00:30 WIB", "08:00", "14:15", "19:00")
+  const timeMatch = clean.match(/^(\d{1,2})[:.](\d{2})/);
+  if (timeMatch) {
+    const hour = parseInt(timeMatch[1], 10);
+    if (hour >= 0 && hour < 6) return SCHEDULE_SHIFT.DINI_HARI;
+    if (hour >= 6 && hour < 12) return SCHEDULE_SHIFT.PAGI;
+    if (hour >= 12 && hour < 18) return SCHEDULE_SHIFT.SIANG;
+    if (hour >= 18 && hour < 24) return SCHEDULE_SHIFT.MALAM;
+  }
+
   if (clean === SCHEDULE_SHIFT.DINI_HARI || clean === 'EARLY_MORNING' || clean.includes('DINI')) {
     return SCHEDULE_SHIFT.DINI_HARI;
   }
@@ -135,4 +205,8 @@ export function normalizeScheduleShift(raw?: string | null): ScheduleShift {
     return SCHEDULE_SHIFT.MALAM;
   }
   return SCHEDULE_SHIFT.PAGI;
+}
+
+export function resolveShiftFromTime(timeStr?: string | null): ScheduleShift {
+  return normalizeScheduleShift(timeStr);
 }

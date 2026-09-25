@@ -78,6 +78,8 @@ export const paths = {
       `${getBaseApiUrl()}/api/v1/admin/appointments/${appointmentId}/status`
   },
   schedules: {
+    formBootstrap: () => `${getBaseApiUrl()}/api/v1/schedules/form-bootstrap`,
+    slotAvailability: () => `${getBaseApiUrl()}/api/v1/schedules/slot-availability`,
     referenceOptions: () => `${getBaseApiUrl()}/api/v1/schedules/reference/options`,
     referenceRooms: () => `${getBaseApiUrl()}/api/v1/schedules/reference/rooms`,
     referencePolikliniks: () => `${getBaseApiUrl()}/api/v1/schedules/reference/polikliniks`,

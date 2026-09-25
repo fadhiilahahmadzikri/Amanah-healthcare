@@ -22,7 +22,13 @@ import {
   scheduleProjectionQueryOptions
 } from '../api/queries';
 import { resolveCanonicalShift } from '../utils/shift-slot-builder';
-import { SCHEDULE_STATUS } from '../constants/schedule-shift.constants';
+import {
+  SCHEDULE_STATUS,
+  SCHEDULE_OCCUPANT_LABELS,
+  SCHEDULE_BUTTON_LABELS,
+  SCHEDULE_TIME_LABELS
+} from '../constants/schedule-shift.constants';
+import { parseTimeToMinutes } from '../utils/schedule-availability-guard';
 import type { DoctorSchedule, DoctorDailySession, ClinicRoom } from '../api/types';
 
 export interface DoctorEditSessionModalProps {
@@ -42,7 +48,10 @@ const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
   return `${String(h).padStart(2, '0')}:${m}`;
 });
 
-function normalizeRoomValue(rawRoom: string, roomList: ClinicRoom[]): string {
+function normalizeRoomValue(
+  rawRoom: string | undefined | null,
+  roomList: ClinicRoom[]
+): string {
   if (!rawRoom) return '';
   const trimmed = rawRoom.trim();
   const exact = roomList.find((r) => r.name.toLowerCase() === trimmed.toLowerCase());
@@ -62,12 +71,11 @@ function normalizeRoomValue(rawRoom: string, roomList: ClinicRoom[]): string {
 
 function calculateProjectedEndTime(startTime: string, durationMinutes = 30): string {
   if (!startTime) return '';
-  const [hStr, mStr] = startTime.split(':');
-  const h = parseInt(hStr || '0', 10);
-  const m = parseInt(mStr || '0', 10);
-  const totalMin = h * 60 + m + durationMinutes;
-  const endH = Math.floor(totalMin / 60) % 24;
-  const endM = totalMin % 60;
+  const totalMin = parseTimeToMinutes(startTime);
+  if (totalMin === null) return '';
+  const endTotal = totalMin + durationMinutes;
+  const endH = Math.floor(endTotal / 60) % 24;
+  const endM = endTotal % 60;
   return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
 }
 
@@ -112,8 +120,8 @@ export function DoctorEditSessionModal({
   // 3. Resolve active context dynamically from backend contexts
   const activeContext = useMemo(() => {
     return contexts.find((c) => {
-      const start = c.boundaryStartTime || c.startTime;
-      const end = c.boundaryEndTime || c.endTime;
+      const start = c.startTime;
+      const end = c.endTime;
       return Boolean(start && end && jamMulai >= start && jamMulai < end);
     });
   }, [contexts, jamMulai]);
@@ -121,8 +129,7 @@ export function DoctorEditSessionModal({
   // 4. Live Schedule Projection from Backend SSOT
   const { data: projectionData } = useQuery({
     ...scheduleProjectionQueryOptions({
-      scheduleContextId:
-        activeContext?.contextId || activeContext?.id || activeContext?.sessionShift || 'morning',
+      scheduleContextId: activeContext?.id ?? 'morning',
       startTime: jamMulai,
       date: sessionDate,
       practitionerId: doctor?.id
@@ -130,7 +137,7 @@ export function DoctorEditSessionModal({
     enabled: Boolean(isOpen && doctor?.id && sessionDate && jamMulai && activeContext)
   });
 
-  const duration = activeContext?.effectiveConsultationDurationMinutes || 30;
+  const duration = activeContext?.slotIntervalMinutes ?? 30;
 
   const jamSelesaiCalculated = useMemo(() => {
     if (projectionData?.projectedEndTime) {
@@ -153,10 +160,10 @@ export function DoctorEditSessionModal({
 
   useEffect(() => {
     if (session) {
-      setJamMulai(session.jam_mulai || '08:00');
-      setKuotaPasien(session.kuota_pasien || 12);
-      const rawRoom = session.ruang || doctor?.ruang_praktik || '';
-      setRuang(normalizeRoomValue(rawRoom, rooms));
+      setJamMulai(session.jam_mulai);
+      setKuotaPasien(session.kuota_pasien);
+      const roomToNormalize = session.ruang ? session.ruang : doctor?.ruang_praktik;
+      setRuang(normalizeRoomValue(roomToNormalize, rooms));
     }
   }, [session, doctor?.ruang_praktik, rooms]);
 
@@ -165,8 +172,8 @@ export function DoctorEditSessionModal({
     if (typeof session.pasien_terdaftar === 'number') {
       return session.pasien_terdaftar;
     }
-    const raw = (session.status_sesi || '').toUpperCase();
-    if (raw === 'CLOSED' || raw === 'CUTI') {
+    const raw = session.status_sesi ? session.status_sesi.toUpperCase() : '';
+    if (raw === SCHEDULE_STATUS.CLOSED || raw === SCHEDULE_STATUS.CUTI) {
       return 0;
     }
     if (doctor?.timeline_intervals && doctor.timeline_intervals.length > 0) {
@@ -174,11 +181,11 @@ export function DoctorEditSessionModal({
         (it) =>
           ((it.startTime >= session.jam_mulai && it.startTime < session.jam_selesai) ||
             it.startTime === session.jam_mulai) &&
-          Boolean(it.appointmentRef || (it.isOccupied && it.status === 'OCCUPIED'))
+          Boolean(it.appointmentRef || (it.isOccupied && it.status === SCHEDULE_STATUS.OCCUPIED))
       ).length;
     }
-    if (raw === 'OCCUPIED') {
-      const cap = session.kuota_pasien || 12;
+    if (raw === SCHEDULE_STATUS.OCCUPIED) {
+      const cap = session.kuota_pasien;
       return Math.max(0, cap - (session.slot_tersedia ?? 0));
     }
     return 0;
@@ -188,12 +195,7 @@ export function DoctorEditSessionModal({
     if (session?.nama_sesi && session.nama_sesi !== 'Sesi Praktik') {
       return session.nama_sesi;
     }
-    return (
-      activeContext?.contextLabel ||
-      activeContext?.sessionShift ||
-      activeContext?.name ||
-      'Sesi Praktik'
-    );
+    return activeContext?.name ?? 'Sesi Praktik';
   }, [session?.nama_sesi, activeContext]);
 
   if (!doctor || !session) return null;
@@ -202,6 +204,8 @@ export function DoctorEditSessionModal({
     e.preventDefault();
 
     const computedAvailableSlots = Math.max(0, kuotaPasien - bookedCount);
+    const resolvedEndTime =
+      jamSelesaiCalculated !== '' ? jamSelesaiCalculated : session.jam_selesai;
 
     updateSessionMutation.mutate(
       {
@@ -211,15 +215,15 @@ export function DoctorEditSessionModal({
           nama_sesi: sessionName,
           session: resolveCanonicalShift(sessionName),
           jam_mulai: jamMulai,
-          jam_selesai: jamSelesaiCalculated || session.jam_selesai,
+          jam_selesai: resolvedEndTime,
           startTime: jamMulai,
-          endTime: jamSelesaiCalculated || session.jam_selesai,
+          endTime: resolvedEndTime,
           kuota_pasien: kuotaPasien,
           slot_tersedia: computedAvailableSlots,
           capacity: kuotaPasien,
           status: SCHEDULE_STATUS.OPEN,
           status_sesi: SCHEDULE_STATUS.OPEN,
-          ruang: ruang || undefined
+          ruang: ruang !== '' ? ruang : undefined
         }
       },
       {
@@ -273,7 +277,9 @@ export function DoctorEditSessionModal({
           </div>
           <div className='text-[11.5px] text-muted-foreground flex items-center gap-1.5'>
             <Icons.location className='size-3 text-muted-foreground/70 shrink-0' />
-            <span className='truncate'>{session.ruang || doctor.ruang_praktik}</span>
+            <span className='truncate'>
+              {session.ruang !== '' ? session.ruang : doctor.ruang_praktik}
+            </span>
           </div>
         </div>
 
@@ -285,10 +291,10 @@ export function DoctorEditSessionModal({
               <SelectTrigger className='w-full h-8.5 text-xs font-mono font-semibold'>
                 <SelectValue placeholder='Pilih jam mulai' />
               </SelectTrigger>
-              <SelectContent className='max-h-56' portalContainerRef={portalContainerRef}>
+              <SelectContent className='max-h-56 z-[70]'>
                 {TIME_OPTIONS.map((time) => (
                   <SelectItem key={time} value={time} className='font-mono text-xs'>
-                    {time} WIB
+                    {time} {SCHEDULE_TIME_LABELS.TIMEZONE}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -300,9 +306,13 @@ export function DoctorEditSessionModal({
               Jam Selesai
             </Label>
             <div className='w-full h-8.5 px-3 rounded-md border border-border/50 bg-muted/30 text-xs font-mono font-semibold text-foreground flex items-center justify-between select-none'>
-              <span>{jamSelesaiCalculated ? `${jamSelesaiCalculated} WIB` : '-'}</span>
+              <span>
+                {jamSelesaiCalculated
+                  ? `${jamSelesaiCalculated} ${SCHEDULE_TIME_LABELS.TIMEZONE}`
+                  : SCHEDULE_TIME_LABELS.DASH}
+              </span>
               <span className='text-[10px] font-sans font-medium text-muted-foreground'>
-                Otomatis
+                {SCHEDULE_TIME_LABELS.AUTOMATIC}
               </span>
             </div>
           </div>
@@ -314,11 +324,11 @@ export function DoctorEditSessionModal({
             <Label className='text-xs font-semibold text-foreground/80 block mb-1'>
               Ruang Praktik
             </Label>
-            <Select value={ruang || undefined} onValueChange={setRuang}>
+            <Select value={ruang !== '' ? ruang : undefined} onValueChange={setRuang}>
               <SelectTrigger className='w-full h-8.5 text-xs truncate'>
                 <SelectValue placeholder='Pilih Ruang Praktik' />
               </SelectTrigger>
-              <SelectContent portalContainerRef={portalContainerRef}>
+              <SelectContent className='z-[70]'>
                 {ruang && !rooms.some((r) => r.name === ruang) && (
                   <SelectItem value={ruang}>{ruang}</SelectItem>
                 )}
@@ -328,7 +338,9 @@ export function DoctorEditSessionModal({
                     <SelectItem key={room.id} value={room.name} disabled={room.isOccupied}>
                       {room.name}
                       {locationText}
-                      {room.isOccupied ? ` — Terisi (${room.occupiedBy || 'Dokter Lain'})` : ''}
+                      {room.isOccupied
+                        ? ` — Terisi (${room.occupiedBy ?? SCHEDULE_OCCUPANT_LABELS.OTHER_DOCTOR})`
+                        : ''}
                     </SelectItem>
                   );
                 })}
@@ -348,7 +360,10 @@ export function DoctorEditSessionModal({
               min={Math.max(1, bookedCount)}
               max={100}
               value={kuotaPasien}
-              onChange={(e) => setKuotaPasien(Math.max(1, parseInt(e.target.value, 10) || 1))}
+              onChange={(e) => {
+                const parsed = parseInt(e.target.value, 10);
+                setKuotaPasien(Math.max(1, Number.isNaN(parsed) ? 1 : parsed));
+              }}
               className='w-full h-8.5 text-xs font-mono font-semibold'
             />
             {bookedCount > 0 && (
@@ -389,7 +404,7 @@ export function DoctorEditSessionModal({
               onClick={onClose}
               className='px-4 font-medium text-xs'
             >
-              Batal
+              {SCHEDULE_BUTTON_LABELS.CANCEL}
             </Button>
             <Button
               type='submit'

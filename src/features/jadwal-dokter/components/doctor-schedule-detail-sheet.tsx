@@ -18,6 +18,10 @@ import { DoctorDailyHourlyGrid } from './doctor-daily-hourly-grid';
 import { getDoctorCardStatus } from './doctor-schedule-card';
 import { useUpdateDoctorDayStatusMutation } from '../api/mutations';
 import { doctorScheduleDetailQueryOptions } from '../api/queries';
+import {
+  DoctorScheduleSheetContentSkeleton,
+  DoctorScheduleSheetSkeleton
+} from './doctor-schedule-sheet-skeleton';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule, ScheduleDayStatus } from '../api/types';
 
@@ -35,12 +39,12 @@ export function DoctorScheduleDetailSheet({
   onOpenEdit: _onOpenEdit
 }: DoctorScheduleDetailSheetProps) {
   const updateDayMutation = useUpdateDoctorDayStatusMutation();
-  const modalContainerRef = React.useRef<HTMLDivElement>(null);
 
   const [activeTab, setActiveTab] = React.useState<'kalender' | 'kuota' | 'informasi'>('kalender');
   const [selectedDay, setSelectedDay] = React.useState<number>(new Date().getDate());
   const [currentMonth, setCurrentMonth] = React.useState<number>(new Date().getMonth());
   const [currentYear, setCurrentYear] = React.useState<number>(new Date().getFullYear());
+  const [pendingStatusDay, setPendingStatusDay] = React.useState<number | null>(null);
 
   const detailParams = React.useMemo(() => {
     const month = formatMonthParam(currentYear, currentMonth);
@@ -55,7 +59,22 @@ export function DoctorScheduleDetailSheet({
     enabled: isOpen && Boolean(selectedDoctor?.id)
   });
 
+  const isDetailLoading = detailQuery.isLoading && !detailQuery.data;
   const doctor = detailQuery.data ?? selectedDoctor;
+
+  if (!selectedDoctor && !doctor) {
+    return (
+      <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <SheetContent
+          side='right'
+          showCloseButton={false}
+          className='w-full sm:max-w-[680px] lg:max-w-[760px] p-0 flex flex-col gap-0 border-l border-border/50 bg-card text-card-foreground shadow-2xl font-sans'
+        >
+          <DoctorScheduleSheetSkeleton activeTab={activeTab} />
+        </SheetContent>
+      </Sheet>
+    );
+  }
 
   if (!doctor) return null;
 
@@ -72,13 +91,21 @@ export function DoctorScheduleDetailSheet({
     .toUpperCase();
 
   const handleDayStatusChange = (day: number, status: ScheduleDayStatus, notes?: string) => {
+    setPendingStatusDay(day);
     const formattedDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    updateDayMutation.mutate({
-      doctorId: doctor.id,
-      date: formattedDate,
-      status,
-      reason: notes
-    });
+    updateDayMutation.mutate(
+      {
+        doctorId: doctor.id,
+        date: formattedDate,
+        status,
+        reason: notes
+      },
+      {
+        onSettled: () => {
+          setPendingStatusDay(null);
+        }
+      }
+    );
   };
 
   return (
@@ -200,8 +227,10 @@ export function DoctorScheduleDetailSheet({
           </SheetHeader>
         </div>
 
-        {/* 2. Empty-state or Tabs & Scrollable Body Content */}
-        {isUnconfigured ? (
+        {/* 2. Loading Shimmer Skeleton, Empty-state, or Tabs */}
+        {isDetailLoading ? (
+          <DoctorScheduleSheetContentSkeleton activeTab={activeTab} />
+        ) : isUnconfigured ? (
           <div className='flex-1 overflow-y-auto p-6 select-none'>
             <div className='flex min-h-[260px] flex-col items-center justify-center rounded-lg border border-dashed border-border/70 bg-muted/20 px-6 py-10 text-center'>
               <div className='mb-4 flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary'>
@@ -244,7 +273,8 @@ export function DoctorScheduleDetailSheet({
                   onMonthChange={setCurrentMonth}
                   currentYear={currentYear}
                   onYearChange={setCurrentYear}
-                  portalContainerRef={modalContainerRef}
+                  pendingDay={pendingStatusDay}
+                  isUpdatingDay={updateDayMutation.isPending}
                   onNavigateToDailyGrid={(day) => {
                     setSelectedDay(day);
                     setActiveTab('kuota');
@@ -263,7 +293,6 @@ export function DoctorScheduleDetailSheet({
                   onMonthChange={setCurrentMonth}
                   currentYear={currentYear}
                   onYearChange={setCurrentYear}
-                  modalContainerRef={modalContainerRef}
                 />
               </TabsContent>
 
@@ -353,8 +382,6 @@ export function DoctorScheduleDetailSheet({
             </div>
           </Tabs>
         )}
-
-        <div ref={modalContainerRef} className='contents' />
       </SheetContent>
     </Sheet>
   );

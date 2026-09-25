@@ -20,7 +20,9 @@ import {
   getScheduleContextsAction,
   callPatientAppointmentAction,
   completePatientAppointmentAction,
-  updateScheduleDaySettingsAction
+  updateScheduleDaySettingsAction,
+  getScheduleFormBootstrapAction,
+  getScheduleSlotAvailabilityAction
 } from './doctor-schedule-actions';
 import type {
   ClinicRoom,
@@ -29,7 +31,9 @@ import type {
   CancelAppointmentPayload,
   CancelAppointmentResponse,
   UpdateAppointmentStatusPayload,
-  ScheduleDaySettingsPayload
+  ScheduleDaySettingsPayload,
+  ScheduleFormBootstrapResponse,
+  ScheduleSlotAvailabilityResponse
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 import type {
   DoctorSchedule,
@@ -276,6 +280,24 @@ export async function completePatientAppointment(appointmentId: string) {
 
 export async function updateScheduleDaySettings(payload: ScheduleDaySettingsPayload) {
   return updateScheduleDaySettingsAction(payload);
+}
+
+export async function getScheduleFormBootstrap(params: {
+  date: string;
+  scheduleId?: string;
+  staffId?: string;
+}): Promise<ScheduleFormBootstrapResponse> {
+  return getScheduleFormBootstrapAction(params);
+}
+
+export async function getScheduleSlotAvailability(params: {
+  date: string;
+  shift: string;
+  roomId: string;
+  scheduleId?: string;
+  staffId?: string;
+}): Promise<ScheduleSlotAvailabilityResponse> {
+  return getScheduleSlotAvailabilityAction(params);
 }
 
 export { isDoctorOnLeaveOnDay, extractDayNumber } from '../utils/leave-calculator';
