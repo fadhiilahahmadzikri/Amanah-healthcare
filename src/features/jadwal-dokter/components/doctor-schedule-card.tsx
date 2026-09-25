@@ -167,84 +167,217 @@ export function hasConfiguredDoctorSchedule(doctor: DoctorSchedule): boolean {
 }
 
 /**
- * Helper to determine the upcoming/active session time based on real-time hour
+ * Helper to determine the upcoming available green slot time based on real-time hour
  */
+export interface UpcomingScheduleResult {
+  labelTime: string;
+  sessionName?: string;
+  activeTime?: string;
+  upcomingTime?: string;
+  hasActive?: boolean;
+}
+
 export function getUpcomingScheduleTime(
   scheduleTime: string,
-  sessions?: DoctorDailySession[]
-): { labelTime: string; sessionName?: string } {
-  if (!sessions || sessions.length === 0) {
-    return { labelTime: scheduleTime };
-  }
-
+  sessions?: DoctorDailySession[],
+  doctor?: DoctorSchedule
+): UpcomingScheduleResult {
   const now = new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-  const availableSessions = sessions.filter(
-    (s) => s.status_sesi !== 'Cuti' && s.status_sesi !== 'Tutup'
-  );
+  // 1. First priority: Check doctor's timeline_intervals or shifts for discrete 30-min slots
+  const allSlots: Array<{
+    startTime: string;
+    endTime: string;
+    isAvailable: boolean;
+    isOpen?: boolean;
+    sessionName?: string;
+  }> = [];
 
-  if (availableSessions.length === 0) {
-    const firstSession = sessions[0];
-    return {
-      labelTime: firstSession?.waktu || scheduleTime,
-      sessionName: firstSession?.nama_sesi
-    };
-  }
-
-  // Sort available sessions chronologically
-  const sortedSessions = [...availableSessions].sort(
-    (a, b) => parseTimeToMinutes(a.jam_mulai) - parseTimeToMinutes(b.jam_mulai)
-  );
-
-  // 1. Cek apakah saat ini sedang dalam sesi aktif yang sedang berlangsung
-  const ongoingSession = sortedSessions.find((s) => {
-    const start = parseTimeToMinutes(s.jam_mulai);
-    const end = parseTimeToMinutes(s.jam_selesai);
-    if (end > start) {
-      return currentMinutes >= start && currentMinutes <= end;
+  if (doctor?.shifts && doctor.shifts.length > 0) {
+    for (const shift of doctor.shifts) {
+      for (const slot of shift.slots) {
+        allSlots.push({
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          isAvailable:
+            slot.isAvailable ??
+            (slot.effectiveStatus === 'AVAILABLE' || slot.status === 'AVAILABLE'),
+          isOpen: slot.status !== 'CLOSED' && slot.status !== 'CLOSED_LEAVE',
+          sessionName: shift.shiftName || shift.label
+        });
+      }
     }
-    // Shift lintas malam / dini hari (misal 23:00 - 06:00)
-    return currentMinutes >= start || currentMinutes <= end;
-  });
+  } else if (doctor?.timeline_intervals && doctor.timeline_intervals.length > 0) {
+    for (const it of doctor.timeline_intervals) {
+      allSlots.push({
+        startTime: it.startTime,
+        endTime: it.endTime,
+        isAvailable:
+          !it.isOccupied &&
+          (it.status === 'AVAILABLE' ||
+            it.status === 'OPEN' ||
+            it.availabilityState === 'AVAILABLE'),
+        isOpen: it.status !== 'CLOSED' && it.status !== 'CLOSED_LEAVE'
+      });
+    }
+  } else if (sessions && sessions.length > 0) {
+    const sorted = sessions.toSorted(
+      (a, b) => parseTimeToMinutes(a.jam_mulai) - parseTimeToMinutes(b.jam_mulai)
+    );
+    for (const s of sorted) {
+      const isSessionOpen =
+        s.status_sesi?.toUpperCase() === 'OPEN' || s.status_sesi?.toUpperCase() === 'BUKA';
+      const hasSlot = (s.slot_tersedia ?? 1) > 0;
+      const sMin = parseTimeToMinutes(s.jam_mulai);
+      const eMin = parseTimeToMinutes(s.jam_selesai);
+      for (let m = sMin; m < eMin; m += 30) {
+        const slotStart = `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+        const slotEndMin = m + 30;
+        const slotEnd = `${String(Math.floor(slotEndMin / 60)).padStart(2, '0')}:${String(slotEndMin % 60).padStart(2, '0')}`;
+        allSlots.push({
+          startTime: slotStart,
+          endTime: slotEnd,
+          isAvailable: isSessionOpen && hasSlot,
+          isOpen: isSessionOpen,
+          sessionName: s.nama_sesi
+        });
+      }
+    }
+  }
 
-  if (ongoingSession) {
+  // Check if there is an active slot or session right now
+  let activeTime: string | undefined;
+  let hasActive = false;
+
+  const activeSlot = allSlots.find(
+    (slot) =>
+      parseTimeToMinutes(slot.startTime) <= currentMinutes &&
+      parseTimeToMinutes(slot.endTime) > currentMinutes &&
+      slot.isOpen !== false
+  );
+
+  if (activeSlot) {
+    hasActive = true;
+    activeTime = `${activeSlot.startTime.replace(':', '.')} – ${activeSlot.endTime.replace(':', '.')}`;
+  } else if (sessions && sessions.length > 0) {
+    const activeSession = sessions.find(
+      (s) =>
+        parseTimeToMinutes(s.jam_mulai) <= currentMinutes &&
+        parseTimeToMinutes(s.jam_selesai) > currentMinutes &&
+        s.status_sesi?.toUpperCase() !== 'CLOSED' &&
+        s.status_sesi?.toUpperCase() !== 'TUTUP' &&
+        s.status_sesi?.toUpperCase() !== 'CUTI'
+    );
+    if (activeSession) {
+      hasActive = true;
+      const sStart = parseTimeToMinutes(activeSession.jam_mulai);
+      const offset = Math.floor((currentMinutes - sStart) / 30) * 30;
+      const winStart = sStart + offset;
+      const winEnd = winStart + 30;
+      const sTime = `${String(Math.floor(winStart / 60)).padStart(2, '0')}.${String(winStart % 60).padStart(2, '0')}`;
+      const eTime = `${String(Math.floor(winEnd / 60)).padStart(2, '0')}.${String(winEnd % 60).padStart(2, '0')}`;
+      activeTime = `${sTime} – ${eTime}`;
+    }
+  }
+
+  // Cari slot tersedia (hijau) di masa mendatang (lewat dari jam saat ini)
+  const futureAvailableSlot = allSlots.find(
+    (slot) => slot.isAvailable && parseTimeToMinutes(slot.startTime) > currentMinutes
+  );
+
+  if (futureAvailableSlot) {
+    const sTime = futureAvailableSlot.startTime.replace(':', '.');
+    const eTime = futureAvailableSlot.endTime.replace(':', '.');
+    const formattedUpcoming = `${sTime} – ${eTime}`;
     return {
-      labelTime:
-        ongoingSession.waktu || `${ongoingSession.jam_mulai} - ${ongoingSession.jam_selesai}`,
-      sessionName: ongoingSession.nama_sesi
+      labelTime: formattedUpcoming,
+      upcomingTime: formattedUpcoming,
+      sessionName: futureAvailableSlot.sessionName,
+      activeTime,
+      hasActive
     };
   }
 
-  // 2. Cari sesi paling awal yang akan datang hari ini (jam mulai > jam sekarang)
-  const upcomingToday = sortedSessions.find((s) => {
-    const start = parseTimeToMinutes(s.jam_mulai);
-    return start > currentMinutes;
-  });
-
-  if (upcomingToday) {
+  // Jika hari ini sudah tidak ada slot di masa depan, gunakan slot pertama yang tersedia pada siklus jadwal
+  const firstAvailableSlot = allSlots.find((slot) => slot.isAvailable);
+  if (firstAvailableSlot) {
+    const sTime = firstAvailableSlot.startTime.replace(':', '.');
+    const eTime = firstAvailableSlot.endTime.replace(':', '.');
+    const formattedUpcoming = `${sTime} – ${eTime}`;
     return {
-      labelTime: upcomingToday.waktu || `${upcomingToday.jam_mulai} - ${upcomingToday.jam_selesai}`,
-      sessionName: upcomingToday.nama_sesi
+      labelTime: formattedUpcoming,
+      upcomingTime: formattedUpcoming,
+      sessionName: firstAvailableSlot.sessionName,
+      activeTime,
+      hasActive
     };
   }
 
-  // 3. Jika semua sesi hari ini sudah lewat, ambil sesi awal untuk siklus jadwal berikutnya
-  const nextCycleSession = sortedSessions[0] || sessions[0];
+  // Fallback: Jika ada sesi, ambil 30 menit pertama dari sesi mendatang
+  if (sessions && sessions.length > 0) {
+    const upcomingSession =
+      sessions.find((s) => parseTimeToMinutes(s.jam_mulai) > currentMinutes) || sessions[0];
+    if (upcomingSession) {
+      const sMin = parseTimeToMinutes(upcomingSession.jam_mulai);
+      const eMin = sMin + 30;
+      const sTime = upcomingSession.jam_mulai.replace(':', '.');
+      const eTime = `${String(Math.floor(eMin / 60)).padStart(2, '0')}.${String(eMin % 60).padStart(2, '0')}`;
+      const formattedUpcoming = `${sTime} – ${eTime}`;
+      return {
+        labelTime: formattedUpcoming,
+        upcomingTime: formattedUpcoming,
+        sessionName: upcomingSession.nama_sesi,
+        activeTime,
+        hasActive
+      };
+    }
+  }
+
+  // Clean fallback (convert 08:00 - 12:00 to 08.00 - 08.30 if 30-min duration)
+  if (scheduleTime && scheduleTime.trim() !== '') {
+    const parts = scheduleTime.split('-').map((p) => p.trim());
+    if (parts.length === 2 && parts[0]) {
+      const sMin = parseTimeToMinutes(parts[0]);
+      const eMin = sMin + 30;
+      const sTime = parts[0].replace(':', '.');
+      const eTime = `${String(Math.floor(eMin / 60)).padStart(2, '0')}.${String(eMin % 60).padStart(2, '0')}`;
+      const formattedUpcoming = `${sTime} – ${eTime}`;
+      return {
+        labelTime: formattedUpcoming,
+        upcomingTime: formattedUpcoming,
+        activeTime,
+        hasActive
+      };
+    }
+    const cleanTime = scheduleTime.replace(/:/g, '.');
+    return {
+      labelTime: cleanTime,
+      upcomingTime: cleanTime,
+      activeTime,
+      hasActive
+    };
+  }
+
   return {
-    labelTime: nextCycleSession?.waktu || scheduleTime,
-    sessionName: nextCycleSession?.nama_sesi
+    labelTime: 'Belum diatur',
+    upcomingTime: 'Belum diatur',
+    activeTime,
+    hasActive
   };
 }
 
 /**
- * Molecule: Schedule Time & Slot Availability Block (Clean 2-Column)
+ * Molecule: Schedule Time & Slot Availability Block (Horizontal 2 or 3-Column)
  */
 export interface DoctorScheduleStatsProps {
   scheduleTime: string;
   availableSlots: number;
   totalCapacity: number;
+  displaySlot?: string;
+  upcomingScheduleTime?: string;
   sessions?: DoctorDailySession[];
+  doctor?: DoctorSchedule;
   className?: string;
 }
 
@@ -252,59 +385,108 @@ export function DoctorScheduleStats({
   scheduleTime,
   availableSlots,
   totalCapacity,
+  displaySlot: _displaySlot,
+  upcomingScheduleTime: _upcomingScheduleTime,
   sessions,
+  doctor,
   className
 }: DoctorScheduleStatsProps) {
-  const hasCapacity = totalCapacity > 0 || (sessions && sessions.length > 0);
-  const { labelTime } = getUpcomingScheduleTime(scheduleTime, sessions);
-  const displayTime = labelTime && labelTime.trim() !== '' ? labelTime : 'Belum diatur';
-  const isLongTime = (displayTime || '').length > 14;
+  const { labelTime, activeTime, upcomingTime, hasActive } = getUpcomingScheduleTime(
+    scheduleTime,
+    sessions,
+    doctor
+  );
+  const resolvedUpcoming = upcomingTime || labelTime || 'Belum diatur';
 
-  // Calculate dynamic accumulated booked slots (X) and total capacity (Y)
-  let accumulatedCapacity = totalCapacity;
-  let accumulatedBooked = Math.max(0, totalCapacity - availableSlots);
+  // Capacity / Slot calculation: [pasien booking]/[total slot yang dijadwalkan]
+  const effectiveTotal =
+    totalCapacity > 0
+      ? totalCapacity
+      : sessions && sessions.length > 0
+        ? sessions.reduce((acc, s) => acc + (s.kuota_pasien || 0), 0)
+        : 0;
 
-  if (sessions && sessions.length > 0) {
-    accumulatedCapacity = sessions.reduce((sum, s) => sum + (s.kuota_pasien || 0), 0);
-    accumulatedBooked = sessions.reduce(
-      (sum, s) => sum + Math.max(0, (s.kuota_pasien || 0) - (s.slot_tersedia || 0)),
-      0
+  const bookedCount =
+    typeof doctor?.slot_terisi_akumulasi === 'number'
+      ? doctor.slot_terisi_akumulasi
+      : typeof doctor?.metrics?.occupiedSlots === 'number'
+        ? doctor.metrics.occupiedSlots
+        : Math.max(0, effectiveTotal - availableSlots);
+
+  const slotDisplay = effectiveTotal > 0 ? `${bookedCount}/${effectiveTotal}` : '0/0';
+
+  if (hasActive && activeTime) {
+    return (
+      <div
+        className={cn(
+          'grid grid-cols-3 gap-2 sm:gap-2.5 pt-3 mt-3.5 border-t border-border/50 relative z-20',
+          className
+        )}
+      >
+        {/* Kolom 1: Sedang Aktif */}
+        <div className='flex flex-col min-w-0'>
+          <div className='flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400'>
+            <span className='size-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0' />
+            <span className='truncate'>Sedang Aktif</span>
+          </div>
+          <span className='font-bold text-foreground font-mono mt-1 text-[13px] sm:text-[13.5px] tracking-tight truncate'>
+            {activeTime}
+          </span>
+        </div>
+
+        {/* Kolom 2: Jadwal Mendatang */}
+        <div className='flex flex-col min-w-0'>
+          <div className='flex items-center gap-1 text-[11px] font-medium text-muted-foreground'>
+            <Icons.clock className='size-3 shrink-0 text-muted-foreground/80' />
+            <span className='truncate'>Jadwal Mendatang</span>
+          </div>
+          <span className='font-bold text-foreground font-mono mt-1 text-[13px] sm:text-[13.5px] tracking-tight truncate'>
+            {resolvedUpcoming}
+          </span>
+        </div>
+
+        {/* Kolom 3: Slot Tersedia [pasien booking]/[total slot] */}
+        <div className='flex flex-col min-w-0'>
+          <div className='flex items-center gap-1 text-[11px] font-medium text-muted-foreground'>
+            <Icons.teams className='size-3 shrink-0 text-muted-foreground/80' />
+            <span className='truncate'>Slot Tersedia</span>
+          </div>
+          <div className='flex items-center gap-1 text-[13px] sm:text-[13.5px] font-bold text-foreground font-mono mt-1 tracking-tight'>
+            <Icons.user className='size-3 text-foreground shrink-0' />
+            <span>{slotDisplay}</span>
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
     <div
       className={cn(
-        'grid gap-3 pt-3.5 mt-3.5 border-t border-border/50 relative z-20',
-        isLongTime ? 'grid-cols-1' : 'grid-cols-2',
+        'grid grid-cols-2 gap-3 pt-3.5 mt-3.5 border-t border-border/50 relative z-20',
         className
       )}
     >
-      {/* Schedule Time Column (Upcoming Schedule) */}
+      {/* Kolom 1: Jadwal Mendatang */}
       <div className='flex flex-col min-w-0'>
         <div className='flex items-center gap-1.5 text-[11.5px] font-medium text-muted-foreground'>
           <Icons.clock className='size-3.5 shrink-0 text-muted-foreground/80' />
-          <span>Jadwal Praktik Mendatang</span>
+          <span>Jadwal Mendatang</span>
         </div>
-        <span
-          className={cn(
-            'font-bold text-foreground font-mono mt-1 tracking-tight break-words leading-tight',
-            isLongTime ? 'text-[13px]' : 'text-[15.5px]'
-          )}
-        >
-          {displayTime}
+        <span className='font-bold text-foreground font-mono mt-1 text-[15px] sm:text-[15.5px] tracking-tight truncate'>
+          {resolvedUpcoming}
         </span>
       </div>
 
-      {/* Available Slots Column */}
+      {/* Kolom 2: Slot Tersedia [pasien booking]/[total slot] */}
       <div className='flex flex-col min-w-0'>
         <div className='flex items-center gap-1.5 text-[11.5px] font-medium text-muted-foreground'>
           <Icons.teams className='size-3.5 shrink-0 text-muted-foreground/80' />
-          <span>Slot Terisi</span>
+          <span>Slot Tersedia</span>
         </div>
-        <div className='flex items-center gap-1.5 text-[15.5px] font-bold text-foreground font-mono mt-1 tracking-tight'>
+        <div className='flex items-center gap-1.5 text-[15px] sm:text-[15.5px] font-bold text-foreground font-mono mt-1 tracking-tight'>
           <Icons.user className='size-3.5 text-foreground shrink-0' />
-          <span>{hasCapacity ? `${accumulatedBooked}/${accumulatedCapacity}` : '0/0 (Kosong)'}</span>
+          <span>{slotDisplay}</span>
         </div>
       </div>
     </div>
@@ -404,6 +586,7 @@ export interface DoctorScheduleCardProps {
   doctor: DoctorSchedule;
   onOpenDetail?: (doctor: DoctorSchedule) => void;
   onOpenEdit?: (doctor: DoctorSchedule) => void;
+  onOpenReschedule?: (doctor: DoctorSchedule) => void;
   onCall?: (doctor: DoctorSchedule) => void;
   variant?: 'default' | 'compact' | 'flat' | 'elevated';
   showActions?: boolean;
@@ -415,25 +598,44 @@ export interface DoctorScheduleCardProps {
 export function getDoctorCardStatus(
   doctor: DoctorSchedule
 ): 'Buka' | 'Cuti' | 'Terisi' | 'Belum Diatur' | 'Tutup' {
-  if (doctor.is_cuti || doctor.status_dokter === 'Cuti' || doctor.status_jadwal === 'Cuti')
+  const statusDokter = (doctor.status_dokter || '').trim().toUpperCase();
+  const statusJadwal = (doctor.status_jadwal || '').trim().toUpperCase();
+
+  if (doctor.is_cuti || statusDokter === 'CUTI' || statusJadwal === 'CUTI') {
     return 'Cuti';
+  }
+
+  if (
+    statusDokter === 'CLOSED' ||
+    statusDokter === 'TUTUP' ||
+    statusJadwal === 'CLOSED' ||
+    statusJadwal === 'TUTUP'
+  ) {
+    return 'Tutup';
+  }
 
   if (!hasConfiguredDoctorSchedule(doctor)) {
     return 'Belum Diatur';
   }
 
-  if (doctor.status_dokter === 'Tutup' || doctor.status_jadwal === 'Tutup') return 'Tutup';
+  if (
+    statusDokter === 'OCCUPIED' ||
+    statusDokter === 'TERISI' ||
+    statusJadwal === 'OCCUPIED' ||
+    statusJadwal === 'TERISI' ||
+    doctor.slot_tersedia <= 0
+  ) {
+    return 'Terisi';
+  }
 
-  if (doctor.status_dokter === 'Terisi' || doctor.status_jadwal === 'Terisi') return 'Terisi';
-
-  if (doctor.slot_tersedia <= 0 || doctor.status_jadwal === 'Penuh') return 'Terisi';
   return 'Buka';
 }
 
 export function DoctorScheduleCard({
   doctor,
   onOpenDetail,
-  onOpenEdit: _onOpenEdit,
+  onOpenEdit,
+  onOpenReschedule,
   onCall,
   variant = 'default',
   showActions = true,
@@ -444,6 +646,7 @@ export function DoctorScheduleCard({
   const statusLabel = getDoctorCardStatus(doctor);
   const isCuti = statusLabel === 'Cuti';
   const isUnconfigured = statusLabel === 'Belum Diatur';
+  const isTutup = statusLabel === 'Tutup';
 
   // Handle Call action
   const handleCall = (e: React.MouseEvent) => {
@@ -452,6 +655,16 @@ export function DoctorScheduleCard({
       onCall(doctor);
     } else if (doctor.nomor_telepon) {
       window.open(`tel:${doctor.nomor_telepon.replace(/\s+/g, '')}`, '_self');
+    }
+  };
+
+  // Handle Reschedule action (triggers reschedule modal)
+  const handleReschedule = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onOpenReschedule) {
+      onOpenReschedule(doctor);
+    } else {
+      onOpenEdit?.(doctor);
     }
   };
 
@@ -515,8 +728,8 @@ export function DoctorScheduleCard({
           text={doctor.ruang_praktik}
         />
 
-        {/* Date Row (rendered when not cuti or date is provided) */}
-        {!isCuti && !isUnconfigured && doctor.tanggal_praktik && (
+        {/* Date Row (rendered when not cuti/tutup or date is provided) */}
+        {!isCuti && !isUnconfigured && !isTutup && doctor.tanggal_praktik && (
           <DoctorInfoRow
             icon={<Icons.calendar className='size-4 text-muted-foreground' />}
             text={doctor.tanggal_praktik}
@@ -525,12 +738,17 @@ export function DoctorScheduleCard({
         )}
       </div>
 
-      {/* 4. Schedule Stats (Active) OR Cuti Notice (Leave) */}
+      {/* 4. Schedule Stats (Active) OR Cuti / Closed / Unconfigured Notice */}
       {showStats &&
         (isCuti ? (
           <DoctorCutiNotice
             title='Dokter sedang cuti'
             subtitle={doctor.cuti_reason || 'Tidak ada jadwal praktik'}
+          />
+        ) : isTutup ? (
+          <DoctorCutiNotice
+            title='Praktik Ditutup'
+            subtitle='Tidak ada jadwal praktik aktif pada tanggal ini.'
           />
         ) : isUnconfigured ? (
           <DoctorCutiNotice
@@ -542,17 +760,34 @@ export function DoctorScheduleCard({
             scheduleTime={doctor.jadwal_hari_ini || 'Belum diatur'}
             availableSlots={doctor.slot_tersedia}
             totalCapacity={doctor.kapasitas_per_hari}
+            displaySlot={doctor.display_akumulasi_slot}
+            upcomingScheduleTime={doctor.jadwal_praktik_mendatang}
             sessions={doctor.sesi_harian}
+            doctor={doctor}
           />
         ))}
 
-      {/* 5. Action Footer Button (Detail) */}
+      {/* 5. Action Footer Buttons (Reschedule & Detail) */}
       {showActions && !isUnconfigured && (
         <div
           className={cn(
             'flex items-center justify-end gap-2 pt-3 mt-auto border-t border-border/40 relative z-20'
           )}
         >
+          {!isCuti && !isTutup && (
+            <Button
+              type='button'
+              variant='outline'
+              size='card-action'
+              shape='pill'
+              onClick={handleReschedule}
+              className='font-semibold'
+              leadingIcon={<Icons.calendar className='size-3.5 text-muted-foreground' />}
+            >
+              Reschedule
+            </Button>
+          )}
+
           <Button
             type='button'
             variant='default'
@@ -566,7 +801,6 @@ export function DoctorScheduleCard({
           </Button>
         </div>
       )}
-
     </div>
   );
 }

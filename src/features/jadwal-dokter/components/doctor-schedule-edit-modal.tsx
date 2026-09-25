@@ -40,7 +40,10 @@ export function DoctorScheduleEditModal({ doctor, isOpen, onClose }: DoctorSched
       setSlotTersedia(doctor.slot_tersedia);
       setKapasitasPerHari(doctor.kapasitas_per_hari);
       setRuangPraktik(doctor.ruang_praktik);
-      setStatusJadwal(doctor.status_jadwal || 'Aktif');
+      const rawStatus = (doctor.status_jadwal || 'OPEN').toUpperCase();
+      setStatusJadwal(
+        rawStatus === 'CLOSED' ? 'CLOSED' : rawStatus === 'OCCUPIED' ? 'OCCUPIED' : 'OPEN'
+      );
     }
   }, [doctor]);
 
@@ -55,8 +58,8 @@ export function DoctorScheduleEditModal({ doctor, isOpen, onClose }: DoctorSched
         payload: {
           is_cuti: isCuti,
           cuti_reason: isCuti ? cutiReason : undefined,
-          status_dokter: isCuti ? 'Cuti' : 'Aktif',
-          status_jadwal: isCuti ? 'Cuti / Tutup' : statusJadwal,
+          status_dokter: isCuti ? 'CLOSED' : 'OPEN',
+          status_jadwal: isCuti ? 'CLOSED' : statusJadwal,
           jadwal_hari_ini: isCuti ? 'Tutup (Cuti)' : jadwalHariIni,
           slot_tersedia: isCuti ? 0 : Number(slotTersedia),
           kapasitas_per_hari: Number(kapasitasPerHari),
@@ -176,9 +179,9 @@ export function DoctorScheduleEditModal({ doctor, isOpen, onClose }: DoctorSched
                   <SelectValue placeholder='Pilih status' />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value='Buka'>🟢 Buka (Aktif)</SelectItem>
-                  <SelectItem value='Penuh'>🟡 Penuh (Slot Terisi)</SelectItem>
-                  <SelectItem value='Cuti'>🔵 Cuti (Sedang Libur/Cuti)</SelectItem>
+                  <SelectItem value='OPEN'>🟢 Buka (Aktif)</SelectItem>
+                  <SelectItem value='OCCUPIED'>🟡 Terisi (Slot Penuh)</SelectItem>
+                  <SelectItem value='CLOSED'>⚪ Tutup</SelectItem>
                 </SelectContent>
               </Select>
             </div>

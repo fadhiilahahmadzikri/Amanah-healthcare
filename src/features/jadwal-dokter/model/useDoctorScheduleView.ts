@@ -12,6 +12,7 @@ interface UseDoctorScheduleViewResult {
   selectedDoctor: DoctorSchedule | null;
   isDetailOpen: boolean;
   isEditOpen: boolean;
+  isRescheduleOpen: boolean;
   isFetching: boolean;
   isLoading: boolean;
   searchQuery: string;
@@ -28,6 +29,8 @@ interface UseDoctorScheduleViewResult {
     openEdit: (doctor: DoctorSchedule) => void;
     closeEdit: () => void;
     openEditFromDetail: (doctor: DoctorSchedule) => void;
+    openReschedule: (doctor: DoctorSchedule) => void;
+    closeReschedule: () => void;
     changeSearch: (value: string) => void;
     changeMonthFilter: (month: string) => void;
     changeDateFilter: (date?: Date) => void;
@@ -41,7 +44,7 @@ interface UseDoctorScheduleViewResult {
 
 export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
   const [selectedDoctor, setSelectedDoctor] = useState<DoctorSchedule | null>(null);
-  const [activeDialog, setActiveDialog] = useState<'detail' | 'edit' | null>(null);
+  const [activeDialog, setActiveDialog] = useState<'detail' | 'edit' | 'reschedule' | null>(null);
   const [params, setParams] = useQueryStates(
     {
       page: parseAsInteger.withDefault(1),
@@ -78,12 +81,18 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     setActiveDialog('edit');
   };
 
+  const openReschedule = (doctor: DoctorSchedule) => {
+    setSelectedDoctor(doctor);
+    setActiveDialog('reschedule');
+  };
+
   return {
     doctors: data?.doctors ?? [],
     totalDoctors: data?.total_doctors ?? 0,
     selectedDoctor,
     isDetailOpen: activeDialog === 'detail',
     isEditOpen: activeDialog === 'edit',
+    isRescheduleOpen: activeDialog === 'reschedule',
     isFetching,
     isLoading,
     searchQuery: params.search,
@@ -105,6 +114,8 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
       openEdit,
       closeEdit: () => setActiveDialog(null),
       openEditFromDetail: openEdit,
+      openReschedule,
+      closeReschedule: () => setActiveDialog(null),
       changeSearch: (value) => setParams({ search: value || null, page: 1 }, { shallow: true }),
       changeMonthFilter: (month) =>
         setParams({ month: month === 'ALL' ? null : month, page: 1 }, { shallow: true }),

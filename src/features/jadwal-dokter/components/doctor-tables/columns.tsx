@@ -70,34 +70,39 @@ export const getColumns = ({
         return (
           <div className='space-y-1 py-0.5'>
             <div className='flex items-center gap-1.5 flex-wrap'>
-              {sesi_harian.map((sesi) => (
-                <span
-                  key={sesi.id}
-                  className={cn(
-                    'px-1.5 py-0.5 rounded text-[10.5px] font-semibold border flex items-center gap-1 font-mono',
-                    sesi.status_sesi === 'Buka'
-                      ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
-                      : sesi.status_sesi === 'Penuh'
-                        ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30'
-                        : 'bg-muted/50 text-muted-foreground border-border/40'
-                  )}
-                  title={`${sesi.nama_sesi}: ${sesi.waktu}`}
-                >
+              {sesi_harian.map((sesi) => {
+                const upper = (sesi.status_sesi || '').toUpperCase();
+                const isClosed = upper === 'CLOSED';
+                const isOccupied = upper === 'OCCUPIED';
+                return (
                   <span
+                    key={sesi.id}
                     className={cn(
-                      'size-1 rounded-full',
-                      sesi.status_sesi === 'Buka'
-                        ? 'bg-emerald-500'
-                        : sesi.status_sesi === 'Penuh'
-                          ? 'bg-amber-500'
-                          : 'bg-muted-foreground'
+                      'px-1.5 py-0.5 rounded text-[10.5px] font-semibold border flex items-center gap-1 font-mono',
+                      !isClosed && !isOccupied
+                        ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                        : isOccupied
+                          ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30'
+                          : 'bg-muted/50 text-muted-foreground border-border/40'
                     )}
-                  />
-                  <span>
-                    {sesi.nama_sesi.replace('Sesi ', '')} {sesi.jam_mulai}
+                    title={`${sesi.nama_sesi}: ${sesi.waktu}`}
+                  >
+                    <span
+                      className={cn(
+                        'size-1 rounded-full',
+                        !isClosed && !isOccupied
+                          ? 'bg-emerald-500'
+                          : isOccupied
+                            ? 'bg-amber-500'
+                            : 'bg-muted-foreground'
+                      )}
+                    />
+                    <span>
+                      {sesi.nama_sesi.replace('Sesi ', '')} {sesi.jam_mulai}
+                    </span>
                   </span>
-                </span>
-              ))}
+                );
+              })}
             </div>
             <span className='text-[10px] text-muted-foreground block'>
               Total Kapasitas: {kapasitas_per_hari} pasien / hari
@@ -112,7 +117,9 @@ export const getColumns = ({
             {jadwal_hari_ini || (kapasitas_per_hari > 0 ? '08:00 - 16:00' : 'Belum diatur')}
           </span>
           <span className='text-[10px] text-muted-foreground block'>
-            {kapasitas_per_hari > 0 ? `Kapasitas: ${kapasitas_per_hari} pasien` : 'Belum ada jadwal'}
+            {kapasitas_per_hari > 0
+              ? `Kapasitas: ${kapasitas_per_hari} pasien`
+              : 'Belum ada jadwal'}
           </span>
         </div>
       );
@@ -190,7 +197,7 @@ export const getColumns = ({
     accessorKey: 'status_jadwal',
     header: 'Status Jadwal',
     cell: ({ row }) => {
-      const cfg = getStatusConfig(row.original.status_jadwal || 'Buka');
+      const cfg = getStatusConfig(row.original.status_jadwal || 'OPEN');
       return (
         <span
           className={cn(

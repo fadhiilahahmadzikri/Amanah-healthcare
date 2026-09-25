@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { resolveDayStatus } from '../utils/leave-calculator';
-import { generateFallbackSlots, generateFallbackOccupancyOverview } from './doctor-schedule-service';
-import type { DoctorSchedule } from './types';
+import {
+  buildDiscreteSlots as generateFallbackSlots,
+  buildOccupancyOverview as generateFallbackOccupancyOverview,
+  buildShiftsFromTimelineIntervals,
+  STATUS_CONFIG,
+  UI_VARIANT_CONFIG
+} from '../utils/shift-slot-builder';
+import { occupancyShiftSchema } from '@/server/contracts/schedules/doctor-schedules.dto';
+import type { DoctorSchedule, TimelineInterval } from './types';
 
 describe('Doctor Schedule & Occupancy SSOT Hierarchy', () => {
   const baseDoctor: DoctorSchedule = {
@@ -166,6 +173,198 @@ describe('Doctor Schedule & Occupancy SSOT Hierarchy', () => {
       const unassignedSlot = morningShift!.slots.find((s) => s.startTime === '07:00');
       expect(unassignedSlot?.status).toBe('CLOSED');
       expect(unassignedSlot?.isAvailable).toBe(false);
+    });
+  });
+
+  describe('Multi-Dimensional Schedule Projection & Minimalist Status Alignment', () => {
+    it('accurately maps all 4 multi-dimensional availability states from backend intervals', () => {
+      const mockIntervals: TimelineInterval[] = [
+        {
+          intervalIndex: 1,
+          slotIndex: 1,
+          startTime: '08:00',
+          endTime: '08:30',
+          timeRange: '08:00 - 08:30 WIB',
+          status: 'UNSCHEDULED',
+          displayLabel: 'Belum Terjadwal',
+          isOccupied: false,
+          temporalState: 'FUTURE',
+          availabilityState: 'UNSCHEDULED',
+          effectiveStatus: 'UNSCHEDULED',
+          isSelectable: true
+        },
+        {
+          intervalIndex: 2,
+          slotIndex: 2,
+          startTime: '08:30',
+          endTime: '09:00',
+          timeRange: '08:30 - 09:00 WIB',
+          status: 'AVAILABLE',
+          displayLabel: 'Tersedia',
+          isOccupied: false,
+          temporalState: 'FUTURE',
+          availabilityState: 'AVAILABLE',
+          effectiveStatus: 'AVAILABLE',
+          isSelectable: true
+        },
+        {
+          intervalIndex: 3,
+          slotIndex: 3,
+          startTime: '09:00',
+          endTime: '09:30',
+          timeRange: '09:00 - 09:30 WIB',
+          status: 'OCCUPIED',
+          displayLabel: 'Terisi',
+          isOccupied: true,
+          temporalState: 'FUTURE',
+          availabilityState: 'OCCUPIED',
+          effectiveStatus: 'OCCUPIED',
+          isSelectable: false,
+          appointmentRef: {
+            appointmentId: 'apt-1',
+            queueNumber: 1,
+            status: 'CONFIRMED',
+            patientName: 'Ny. Siti Rahma'
+          }
+        },
+        {
+          intervalIndex: 4,
+          slotIndex: 4,
+          startTime: '09:30',
+          endTime: '10:00',
+          timeRange: '09:30 - 10:00 WIB',
+          status: 'CLOSED',
+          displayLabel: 'Ditutup',
+          isOccupied: false,
+          temporalState: 'FUTURE',
+          availabilityState: 'CLOSED',
+          effectiveStatus: 'CLOSED',
+          isSelectable: false,
+          closure: {
+            category: 'OTHER',
+            reasonCode: 'MEETING',
+            reasonText: 'Rapat Komite Medis'
+          },
+          reschedule: {
+            isRescheduled: true,
+            sourceDate: '2026-09-24',
+            sourceStartTime: '08:00',
+            reasonText: 'Penyesuaian jadwal'
+          }
+        }
+      ];
+
+      const shifts = buildShiftsFromTimelineIntervals(mockIntervals, [], 'buka');
+      const morningShift = shifts.find((s) => s.contextId === 'morning');
+      expect(morningShift).toBeDefined();
+
+      const slots = morningShift!.slots;
+      expect(slots).toHaveLength(4);
+
+      // 1. UNSCHEDULED slot
+      expect(slots[0].status).toBe('UNSCHEDULED');
+      expect(slots[0].displayLabel).toBe('Belum Terjadwal');
+      expect(slots[0].isAvailable).toBe(false);
+
+      // 2. AVAILABLE slot
+      expect(slots[1].status).toBe('AVAILABLE');
+      expect(slots[1].displayLabel).toBe('Tersedia');
+      expect(slots[1].isAvailable).toBe(true);
+
+      // 3. OCCUPIED slot
+      expect(slots[2].status).toBe('OCCUPIED');
+      expect(slots[2].displayLabel).toContain('Ny. Siti Rahma');
+      expect(slots[2].appointmentRef?.patientName).toBe('Ny. Siti Rahma');
+
+      // 4. CLOSED slot with reschedule and closure metadata
+      expect(slots[3].status).toBe('CLOSED');
+      expect(slots[3].displayLabel).toBe('Rapat Komite Medis');
+      expect(slots[3].closure?.reasonCode).toBe('MEETING');
+      expect(slots[3].reschedule?.isRescheduled).toBe(true);
+
+      // Check metrics calculation
+      expect(morningShift!.metrics).toBeDefined();
+      expect(morningShift!.metrics!.totalSlots).toBe(4);
+      expect(morningShift!.metrics!.unscheduledSlots).toBe(1);
+      expect(morningShift!.metrics!.availableSlots).toBe(1);
+      expect(morningShift!.metrics!.occupiedSlots).toBe(1);
+      expect(morningShift!.metrics!.closedSlots).toBe(1);
+      expect(morningShift!.metrics!.scheduledSlots).toBe(3); // 1 available + 1 occupied + 1 closed
+
+      // Coverage: 3 / 4 = 75%
+      expect(morningShift!.metrics!.scheduleCoverage.percentage).toBe(75);
+      // Occupancy: 1 / 2 = 50%
+      expect(morningShift!.metrics!.occupancy.percentage).toBe(50);
+    });
+
+    it('STATUS_CONFIG contains all expected semantic tokens without hardcoded values', () => {
+      const keys = ['UNSCHEDULED', 'AVAILABLE', 'OCCUPIED', 'CLOSED', 'CLOSED_LEAVE', 'EXPIRED'];
+      for (const k of keys) {
+        expect(STATUS_CONFIG[k]).toBeDefined();
+        expect(STATUS_CONFIG[k].label).toBeTypeOf('string');
+        expect(STATUS_CONFIG[k].cellBg).toBeTypeOf('string');
+        expect(STATUS_CONFIG[k].border).toBeTypeOf('string');
+        expect(STATUS_CONFIG[k].text).toBeTypeOf('string');
+        expect(STATUS_CONFIG[k].dotBg).toBeTypeOf('string');
+      }
+    });
+
+    it('UI_VARIANT_CONFIG defines all 8 canonical UI-ready variants from backend changelog', () => {
+      const expectedVariants = [
+        'neutral_disabled',
+        'dashed_border',
+        'muted_gray',
+        'success_green',
+        'info_blue',
+        'warning_amber',
+        'sky_badge',
+        'danger_red'
+      ];
+      for (const variant of expectedVariants) {
+        expect(UI_VARIANT_CONFIG[variant]).toBeDefined();
+        expect(UI_VARIANT_CONFIG[variant].cellBg).toBeTypeOf('string');
+        expect(UI_VARIANT_CONFIG[variant].border).toBeTypeOf('string');
+        expect(UI_VARIANT_CONFIG[variant].text).toBeTypeOf('string');
+        expect(UI_VARIANT_CONFIG[variant].dotBg).toBeTypeOf('string');
+        expect(UI_VARIANT_CONFIG[variant].timeText).toBeTypeOf('string');
+      }
+    });
+
+    it('occupancyShiftSchema validates shifts with operationalStatus and UI-ready slots', () => {
+      const parsedShift = occupancyShiftSchema.parse({
+        shiftId: 'early_morning',
+        shiftName: 'Dini Hari',
+        timeRange: '00:00 - 06:00 WIB',
+        operationalStatus: 'NO_PRACTICE',
+        operationalLabel: 'Tidak Ada Praktik',
+        activeSessionsCount: 0,
+        registeredPatientsCount: 0,
+        totalShiftSlots: 12,
+        slots: [
+          {
+            slotIndex: 1,
+            startTime: '00:00',
+            endTime: '00:30',
+            timeRange: '00:00 - 00:30 WIB',
+            uiStatus: 'UNSCHEDULED_PAST',
+            uiLabel: 'Belum Terjadwal',
+            uiSubLabel: '00:30',
+            uiVariant: 'neutral_disabled',
+            isClickable: false,
+            actionType: 'NONE'
+          }
+        ]
+      });
+
+      expect(parsedShift.contextId).toBe('early_morning');
+      expect(parsedShift.contextLabel).toBe('Dini Hari');
+      expect(parsedShift.operationalStatus).toBe('NO_PRACTICE');
+      expect(parsedShift.operationalLabel).toBe('Tidak Ada Praktik');
+      expect(parsedShift.slots[0].uiStatus).toBe('UNSCHEDULED_PAST');
+      expect(parsedShift.slots[0].uiLabel).toBe('Belum Terjadwal');
+      expect(parsedShift.slots[0].uiVariant).toBe('neutral_disabled');
+      expect(parsedShift.slots[0].isClickable).toBe(false);
+      expect(parsedShift.slots[0].actionType).toBe('NONE');
     });
   });
 });

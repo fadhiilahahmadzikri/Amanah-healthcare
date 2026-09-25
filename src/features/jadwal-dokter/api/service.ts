@@ -2,7 +2,6 @@ import {
   getDoctorSchedulesAction,
   getDoctorScheduleDetailAction,
   updateDoctorScheduleAction,
-  updateDoctorDayStatusAction,
   createDoctorSessionAction,
   updateDoctorSessionAction,
   deleteDoctorSessionAction,
@@ -12,11 +11,25 @@ import {
   updateDoctorDayByDateAction,
   updateDoctorDurationAction,
   getClinicRoomsAction,
-  getDoctorOccupancyOverviewAction
+  getDoctorOccupancyOverviewAction,
+  getSessionPatientsAction,
+  cancelAppointmentAction,
+  updateAppointmentStatusAction,
+  getScheduleProjectionAction,
+  getScheduleReferenceOptionsAction,
+  getScheduleContextsAction,
+  callPatientAppointmentAction,
+  completePatientAppointmentAction,
+  updateScheduleDaySettingsAction
 } from './doctor-schedule-actions';
 import type {
   ClinicRoom,
-  DoctorOccupancyOverviewResponse
+  DoctorOccupancyOverviewResponse,
+  AdminSessionPatientsResponse,
+  CancelAppointmentPayload,
+  CancelAppointmentResponse,
+  UpdateAppointmentStatusPayload,
+  ScheduleDaySettingsPayload
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 import type {
   DoctorSchedule,
@@ -94,18 +107,13 @@ export async function updateDoctorDayStatus(
   status: ScheduleDayStatus,
   reason?: string
 ): Promise<unknown> {
-  try {
-    return await updateDoctorDayByDateAction(doctorId, date, {
-      status,
-      notes: reason
-    });
-  } catch {
-    return updateDoctorDayStatusAction(doctorId, {
-      date,
-      status,
-      reason
-    });
-  }
+  const raw = (status || '').trim().toUpperCase();
+  const canonicalStatus = raw === 'CLOSED' ? 'CLOSED' : 'OPEN';
+
+  return updateDoctorDayByDateAction(doctorId, date, {
+    status: canonicalStatus,
+    notes: reason
+  });
 }
 
 export async function updateDoctorDayByDate(
@@ -113,7 +121,13 @@ export async function updateDoctorDayByDate(
   date: string,
   payload: UpdateDoctorDayByDatePayload
 ): Promise<unknown> {
-  return updateDoctorDayByDateAction(id, date, payload);
+  const raw = (payload.status || '').trim().toUpperCase();
+  const canonicalStatus = raw === 'CLOSED' ? 'CLOSED' : 'OPEN';
+
+  return updateDoctorDayByDateAction(id, date, {
+    ...payload,
+    status: canonicalStatus
+  });
 }
 
 export async function createDoctorSession(
@@ -158,10 +172,7 @@ export async function checkRescheduleEligibility(
   return getRescheduleEligibilityAction(id, sessionId, params);
 }
 
-export async function updateDoctorDuration(
-  id: string,
-  payload: UpdateDoctorDurationPayload
-) {
+export async function updateDoctorDuration(id: string, payload: UpdateDoctorDurationPayload) {
   return updateDoctorDurationAction(id, payload);
 }
 
@@ -175,9 +186,9 @@ export async function getDoctorScheduleFilterOptions(): Promise<DoctorScheduleFi
       poliklinik: [],
       spesialisasi: [],
       statuses: [
-        { id: 'buka', label: 'Buka' },
-        { id: 'terisi', label: 'Terisi' },
-        { id: 'tutup', label: 'Tutup' }
+        { id: 'OPEN', label: 'Buka' },
+        { id: 'OCCUPIED', label: 'Terisi' },
+        { id: 'CLOSED', label: 'Tutup' }
       ]
     };
   }
@@ -200,10 +211,71 @@ export async function getDoctorOccupancyOverview(params: {
   date: string;
   staffId: string;
   roomId?: string;
-  existingSessions?: { jam_mulai: string; jam_selesai: string; nama_sesi?: string; id?: string; status_sesi?: string; slot_tersedia?: number }[];
+  existingSessions?: {
+    jam_mulai: string;
+    jam_selesai: string;
+    nama_sesi?: string;
+    id?: string;
+    status_sesi?: string;
+    slot_tersedia?: number;
+  }[];
 }): Promise<DoctorOccupancyOverviewResponse> {
   return getDoctorOccupancyOverviewAction(params);
 }
 
-export { isDoctorOnLeaveOnDay, extractDayNumber } from '../utils/leave-calculator';
+export async function getSessionPatients(
+  doctorId: string,
+  sessionId: string,
+  queryFilters?: { status?: string; search?: string }
+): Promise<AdminSessionPatientsResponse> {
+  return getSessionPatientsAction(doctorId, sessionId, queryFilters);
+}
 
+export async function cancelAppointment(
+  appointmentId: string,
+  payload: CancelAppointmentPayload
+): Promise<CancelAppointmentResponse> {
+  return cancelAppointmentAction(appointmentId, payload);
+}
+
+export async function updateAppointmentStatus(
+  appointmentId: string,
+  payload: UpdateAppointmentStatusPayload
+): Promise<unknown> {
+  return updateAppointmentStatusAction(appointmentId, payload);
+}
+
+export async function getScheduleProjection(params: {
+  scheduleContextId?: string;
+  startTime?: string;
+  endTime?: string;
+  practitionerId?: string;
+  shift?: string;
+  date?: string;
+  slotsCount?: number;
+  fillShift?: boolean;
+}) {
+  return getScheduleProjectionAction(params);
+}
+
+export async function getScheduleReferenceOptions() {
+  return getScheduleReferenceOptionsAction();
+}
+
+export async function getScheduleContexts(date?: string) {
+  return getScheduleContextsAction(date);
+}
+
+export async function callPatientAppointment(appointmentId: string) {
+  return callPatientAppointmentAction(appointmentId);
+}
+
+export async function completePatientAppointment(appointmentId: string) {
+  return completePatientAppointmentAction(appointmentId);
+}
+
+export async function updateScheduleDaySettings(payload: ScheduleDaySettingsPayload) {
+  return updateScheduleDaySettingsAction(payload);
+}
+
+export { isDoctorOnLeaveOnDay, extractDayNumber } from '../utils/leave-calculator';

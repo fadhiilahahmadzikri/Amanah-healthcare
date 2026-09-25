@@ -30,7 +30,7 @@ export interface DoctorTimelineCalendarProps {
   onMonthChange?: (month: number) => void;
   currentYear?: number;
   onYearChange?: (year: number) => void;
-  onSelectDayStatus?: (day: number, status: 'buka' | 'tutup', notes?: string) => void;
+  onSelectDayStatus?: (day: number, status: 'OPEN' | 'CLOSED', notes?: string) => void;
   onNavigateToDailyGrid?: (day: number) => void;
   readOnly?: boolean;
   portalContainerRef?: React.RefObject<HTMLElement | null>;
@@ -97,7 +97,6 @@ const STATUS_CONFIG: Record<
 
 // Helper & Status Types: Tentukan status nilai (buka / cuti / tutup) untuk hari tertentu
 export { resolveDayStatus, type SimpleScheduleStatus };
-
 
 // ============================================================================
 // 3. MASTER COMPONENT: STANDARD MONTHLY CALENDAR
@@ -168,19 +167,19 @@ export function DoctorTimelineCalendar({
         .toUpperCase()
     : 'DR';
 
-  const handleStatusChange = (day: number, status: 'buka' | 'tutup') => {
-    if (status === 'tutup') {
+  const handleStatusChange = (day: number, status: 'OPEN' | 'CLOSED') => {
+    if (status === 'CLOSED') {
       setClosingDay(day);
       setCloseNotes('');
       setIsCloseModalOpen(true);
     } else {
-      onSelectDayStatus?.(day, 'buka');
+      onSelectDayStatus?.(day, 'OPEN');
     }
   };
 
   const handleConfirmClose = () => {
     if (closingDay !== null) {
-      onSelectDayStatus?.(closingDay, 'tutup', closeNotes.trim() || undefined);
+      onSelectDayStatus?.(closingDay, 'CLOSED', closeNotes.trim() || undefined);
     }
     setIsCloseModalOpen(false);
     setClosingDay(null);
@@ -188,6 +187,12 @@ export function DoctorTimelineCalendar({
   };
 
   const getStatusForDay = (day: number): SimpleScheduleStatus => {
+    const item = doctor?.monthly_schedule?.find((m) => m.day === day);
+    if (item?.dayStatus) {
+      if (item.dayStatus === 'OPEN') return 'buka';
+      if (item.dayStatus === 'CUTI') return 'cuti';
+      if (item.dayStatus === 'CLOSED' || item.dayStatus === 'EMPTY') return 'tutup';
+    }
     return resolveDayStatus(day, doctor);
   };
 
@@ -567,8 +572,9 @@ export function DoctorTimelineCalendar({
                   <div className='px-2 py-1 text-[10px] font-semibold text-muted-foreground'>
                     Ubah status tanggal {day} {MONTH_NAMES[currentMonth]}:
                   </div>
-                  {(['buka', 'tutup'] as const).map((st) => {
-                    const itemCfg = STATUS_CONFIG[st];
+                  {(['OPEN', 'CLOSED'] as const).map((st) => {
+                    const itemCfg = st === 'OPEN' ? STATUS_CONFIG.buka : STATUS_CONFIG.tutup;
+                    const isCurrent = st === (status === 'buka' ? 'OPEN' : 'CLOSED');
                     return (
                       <DropdownMenuItem
                         key={st}
@@ -579,7 +585,7 @@ export function DoctorTimelineCalendar({
                           <span className={cn('size-2 rounded-full', itemCfg.dotBg)} />
                           <span className={itemCfg.text}>{itemCfg.label}</span>
                         </div>
-                        {status === st && <span className='text-primary'>✓</span>}
+                        {isCurrent && <span className='text-primary'>✓</span>}
                       </DropdownMenuItem>
                     );
                   })}
@@ -627,9 +633,7 @@ export function DoctorTimelineCalendar({
               <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
                 Tutup Jadwal Tanggal {closingDay} {MONTH_NAMES[currentMonth]} {currentYear}
               </h3>
-              <p className='text-xs text-muted-foreground'>
-                {doctor?.nama_dokter || 'Dokter'}
-              </p>
+              <p className='text-xs text-muted-foreground'>{doctor?.nama_dokter || 'Dokter'}</p>
             </div>
             <button
               type='button'
@@ -660,7 +664,8 @@ export function DoctorTimelineCalendar({
           {/* Notes Input */}
           <div className='space-y-1.5'>
             <Label htmlFor='close-day-notes' className='text-xs font-semibold text-foreground'>
-              Catatan Penutupan <span className='text-muted-foreground font-normal'>(Opsional)</span>
+              Catatan Penutupan{' '}
+              <span className='text-muted-foreground font-normal'>(Opsional)</span>
             </Label>
             <Input
               id='close-day-notes'

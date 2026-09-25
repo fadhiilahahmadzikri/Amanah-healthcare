@@ -32,24 +32,12 @@ export interface DoctorRescheduleSessionModalProps {
   initialDate?: string;
 }
 
-// 48 discrete 30-minute intervals covering 24 hours
+// 48 discrete intervals covering 24 hours
 const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
   const h = Math.floor(i / 2);
   const m = i % 2 === 0 ? '00' : '30';
   return `${String(h).padStart(2, '0')}:${m}`;
 });
-
-function calculateEndTime(startTime: string, durationMinutes: number = 30): string {
-  if (!startTime) return '';
-  const parts = startTime.split(':');
-  const h = parseInt(parts[0] || '0', 10);
-  const m = parseInt(parts[1] || '0', 10);
-  if (isNaN(h) || isNaN(m)) return '';
-  const totalMin = h * 60 + m + durationMinutes;
-  const endH = Math.floor(totalMin / 60) % 24;
-  const endM = totalMin % 60;
-  return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
-}
 
 export function DoctorRescheduleSessionModal({
   doctor,
@@ -67,6 +55,7 @@ export function DoctorRescheduleSessionModal({
   const [notes, setNotes] = useState('');
   const [rescheduleActiveAppointments, setRescheduleActiveAppointments] = useState(true);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
 
   // Fetch dynamic clinic rooms from PostgreSQL SSOT
   const { data: rooms = [], isLoading: isLoadingRooms } = useQuery(clinicRoomsQueryOptions());
@@ -79,6 +68,13 @@ export function DoctorRescheduleSessionModal({
       targetRoomId: targetRoomId || undefined
     })
   );
+
+  useEffect(() => {
+    setBannerDismissed(false);
+  }, [targetDate, targetStartTime, targetRoomId]);
+
+  const hasConflict = Boolean(eligibilityData && !eligibilityData.isEligible);
+  const showConflictBanner = hasConflict && !bannerDismissed;
 
   useEffect(() => {
     if (session) {
@@ -132,16 +128,16 @@ export function DoctorRescheduleSessionModal({
   }, [selectedDateObj]);
 
   const targetEndTimeCalculated = useMemo(() => {
-    if (eligibilityData?.targetValidation?.projectedEndTime) {
-      return eligibilityData.targetValidation.projectedEndTime;
-    }
-    return calculateEndTime(targetStartTime, 30);
-  }, [targetStartTime, eligibilityData?.targetValidation?.projectedEndTime]);
+    return eligibilityData?.targetValidation?.projectedEndTime || '';
+  }, [eligibilityData?.targetValidation?.projectedEndTime]);
 
   if (!doctor || !session) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const finalReason = notes.trim() ? notes.trim() : undefined;
+    const derivedShift = eligibilityData?.targetSimulation?.targetShift;
 
     rescheduleMutation.mutate(
       {
@@ -150,8 +146,10 @@ export function DoctorRescheduleSessionModal({
         payload: {
           targetDate,
           targetStartTime,
+          targetShift: derivedShift,
           targetRoomId: targetRoomId || undefined,
-          notes: notes.trim() ? notes.trim() : undefined,
+          notes: finalReason,
+          reason: finalReason,
           rescheduleActiveAppointments
         }
       },
@@ -172,6 +170,40 @@ export function DoctorRescheduleSessionModal({
       portalContainerRef={portalContainerRef}
     >
       <form onSubmit={handleSubmit} className='relative font-sans space-y-3.5'>
+        {/* Accordion Dropdown Ineligibility/Conflict Banner */}
+        <div
+          className={cn(
+            'grid transition-all duration-300 ease-in-out',
+            showConflictBanner
+              ? 'grid-rows-[1fr] opacity-100 mb-3'
+              : 'grid-rows-[0fr] opacity-0 mb-0 pointer-events-none'
+          )}
+        >
+          <div className='overflow-hidden'>
+            <div className='px-3.5 py-2.5 bg-destructive/10 dark:bg-destructive/20 border border-destructive/25 text-destructive flex items-center justify-between gap-3 select-none rounded-xl'>
+              <div className='flex items-center gap-2 min-w-0 flex-1'>
+                <Icons.warning className='size-4 shrink-0 text-destructive' />
+                <div className='text-xs leading-snug min-w-0'>
+                  <span className='font-bold mr-1'>Jadwal Tidak Memenuhi Syarat:</span>
+                  <span className='text-[11.5px] opacity-90'>
+                    {eligibilityData?.targetValidation?.conflictMessage ||
+                      eligibilityData?.actionableGuidance ||
+                      'Terjadi bentrok jadwal atau ruangan sudah terpakai pada jam tersebut.'}
+                  </span>
+                </div>
+              </div>
+              <button
+                type='button'
+                onClick={() => setBannerDismissed(true)}
+                aria-label='Tutup pemberitahuan'
+                className='p-1 rounded-full text-destructive/70 hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer shrink-0'
+              >
+                <Icons.close className='size-3.5' />
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Header Identitas */}
         <div className='flex items-center justify-between gap-3 pb-2.5 border-b border-border/40'>
           <div className='space-y-0.5 min-w-0 flex-1'>
@@ -179,7 +211,10 @@ export function DoctorRescheduleSessionModal({
               Reschedule Sesi Dokter
             </h3>
             <p className='text-xs text-muted-foreground truncate'>
-              {doctor.nama_dokter} • {doctor.spesialisasi.toLowerCase().startsWith('poli') ? doctor.spesialisasi : `Poli ${doctor.spesialisasi}`}
+              {doctor.nama_dokter} •{' '}
+              {doctor.spesialisasi.toLowerCase().startsWith('poli')
+                ? doctor.spesialisasi
+                : `Poli ${doctor.spesialisasi}`}
             </p>
           </div>
           <button
@@ -197,7 +232,9 @@ export function DoctorRescheduleSessionModal({
           <div className='flex items-center justify-between gap-2'>
             <div className='flex items-center gap-1.5 font-semibold text-foreground truncate'>
               <Icons.calendar className='size-3.5 text-primary shrink-0' />
-              <span>{session.nama_sesi} ({session.jam_mulai} - {session.jam_selesai} WIB)</span>
+              <span>
+                {session.nama_sesi} ({session.jam_mulai} - {session.jam_selesai} WIB)
+              </span>
             </div>
             <StatusBadge status={session.status_sesi} size='sm' className='shrink-0' />
           </div>
@@ -253,10 +290,7 @@ export function DoctorRescheduleSessionModal({
             <Label className='text-xs font-semibold text-foreground/80 block mb-1'>
               Ruangan Tujuan
             </Label>
-            <Select
-              value={targetRoomId || undefined}
-              onValueChange={setTargetRoomId}
-            >
+            <Select value={targetRoomId || undefined} onValueChange={setTargetRoomId}>
               <SelectTrigger className='w-full h-8.5 text-xs truncate'>
                 <SelectValue placeholder='Pilih Ruangan Tujuan' />
               </SelectTrigger>
@@ -265,7 +299,9 @@ export function DoctorRescheduleSessionModal({
                   const locationText = room.location ? ` (${room.location})` : '';
                   return (
                     <SelectItem key={room.id} value={room.id} disabled={room.isOccupied}>
-                      {room.name}{locationText}{room.isOccupied ? ` — Terisi (${room.occupiedBy || 'Dokter Lain'})` : ''}
+                      {room.name}
+                      {locationText}
+                      {room.isOccupied ? ` — Terisi (${room.occupiedBy || 'Dokter Lain'})` : ''}
                     </SelectItem>
                   );
                 })}
@@ -340,25 +376,11 @@ export function DoctorRescheduleSessionModal({
               Alihkan antrean pasien terdaftar secara otomatis
             </Label>
             <p className='text-[11px] text-muted-foreground leading-relaxed'>
-              Seluruh janji temu pasien yang sudah booking pada jam ini akan otomatis dialihkan ke jadwal baru.
+              Seluruh janji temu pasien yang sudah booking pada jam ini akan otomatis dialihkan ke
+              jadwal baru.
             </p>
           </div>
         </div>
-
-        {/* Real-time Conflict / Ineligibility Warning from Backend SSOT */}
-        {eligibilityData && !eligibilityData.isEligible && (
-          <div className='p-2.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs space-y-1'>
-            <div className='flex items-center gap-1.5 font-bold'>
-              <Icons.warning className='size-3.5 shrink-0' />
-              <span>Jadwal Tidak Memenuhi Syarat</span>
-            </div>
-            <p className='text-[11px] leading-relaxed'>
-              {eligibilityData.targetValidation?.conflictMessage ||
-                eligibilityData.actionableGuidance ||
-                'Terjadi bentrok jadwal atau ruangan sudah terpakai pada jam tersebut.'}
-            </p>
-          </div>
-        )}
 
         {/* Conflict Error Message Display */}
         {rescheduleMutation.isError && (

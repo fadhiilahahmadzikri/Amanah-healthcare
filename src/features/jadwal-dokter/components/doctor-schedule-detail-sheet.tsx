@@ -15,7 +15,7 @@ import { getStatusConfig } from '@/styles/clinical-tokens';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DoctorTimelineCalendar } from './doctor-timeline-calendar';
 import { DoctorDailyHourlyGrid } from './doctor-daily-hourly-grid';
-import { hasConfiguredDoctorSchedule } from './doctor-schedule-card';
+import { getDoctorCardStatus } from './doctor-schedule-card';
 import { useUpdateDoctorDayStatusMutation } from '../api/mutations';
 import { doctorScheduleDetailQueryOptions } from '../api/queries';
 import { cn } from '@/lib/utils';
@@ -59,22 +59,7 @@ export function DoctorScheduleDetailSheet({
 
   if (!doctor) return null;
 
-  const hasSchedule = hasConfiguredDoctorSchedule(doctor);
-
-  const doctorStatus =
-    doctor.is_cuti || doctor.status_dokter === 'Cuti' || doctor.status_jadwal === 'Cuti'
-      ? 'Cuti'
-      : doctor.status_dokter === 'Tutup' || doctor.status_jadwal === 'Tutup'
-        ? 'Tutup'
-        : !hasSchedule
-          ? 'Belum Diatur'
-          : doctor.status_dokter === 'Terisi' ||
-              doctor.status_jadwal === 'Terisi' ||
-              doctor.slot_tersedia <= 0 ||
-              doctor.status_jadwal === 'Penuh'
-            ? 'Terisi'
-            : 'Buka';
-
+  const doctorStatus = getDoctorCardStatus(doctor);
   const doctorStatusConfig = getStatusConfig(doctorStatus);
   const isUnconfigured = doctorStatus === 'Belum Diatur';
 
@@ -119,9 +104,9 @@ export function DoctorScheduleDetailSheet({
           </div>
 
           {/* Profile Identity Section overlapping banner */}
-          <SheetHeader className='px-6 pb-4 pt-0 space-y-0 text-left'>
-            {/* Avatar Row */}
-            <div className='flex items-end justify-between -mt-10 sm:-mt-11 mb-2.5'>
+          <SheetHeader className='px-6 pb-3.5 pt-0 space-y-0 text-left'>
+            <div className='flex items-end gap-3.5 sm:gap-4 -mt-10 sm:-mt-11'>
+              {/* Avatar on the Left */}
               <div className='relative shrink-0 size-20 sm:size-22'>
                 <Avatar className='size-20 sm:size-22 rounded-full ring-4 ring-card shadow-lg bg-card overflow-hidden shrink-0 aspect-square'>
                   {doctor.avatar && (
@@ -149,65 +134,68 @@ export function DoctorScheduleDetailSheet({
                 />
               </div>
 
-            </div>
+              {/* Doctor Details on the Right: Name on top, Poli and Status pills side-by-side below */}
+              <div className='flex-1 min-w-0 pb-1 space-y-1.5'>
+                {/* Doctor Name Row */}
+                <div className='flex items-center gap-2 flex-wrap'>
+                  <SheetTitle className='text-lg sm:text-xl font-bold text-foreground tracking-tight truncate'>
+                    {doctor.nama_dokter}
+                  </SheetTitle>
 
-            {/* Name + Badges */}
-            <div className='space-y-1'>
-              <div className='flex items-center gap-2 flex-wrap'>
-                <SheetTitle className='text-lg sm:text-xl font-bold text-foreground tracking-tight'>
-                  {doctor.nama_dokter}
-                </SheetTitle>
-
-                {/* Verified Badge (Theme-Aware) */}
-                <span
-                  className='inline-flex items-center justify-center size-5 rounded-full bg-[var(--primary-bright,var(--primary))] text-white shadow-2xs shrink-0'
-                  title='Dokter Terverifikasi'
-                >
-                  <Icons.check className='size-3 stroke-[3]' />
-                </span>
-
-                {/* 3D Gradient Pill: Spesialisasi Dokter */}
-                <span
-                  className='inline-flex items-center gap-1.5 font-sans text-[11.5px] font-bold px-3 py-0.5 rounded-full text-white border select-none shadow-[inset_0_1px_0.5px_0_rgba(255,255,255,0.7),0_2px_5px_-1px_var(--pill-3d-shadow),0_1px_2px_0_rgba(0,0,0,0.1)]'
-                  style={{
-                    background: 'var(--pill-3d-gradient)',
-                    borderColor: 'var(--pill-3d-border)'
-                  }}
-                >
-                  <Icons.pro className='size-3.5 stroke-[2.5] text-white' />
-                  <span className='tracking-wide drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]'>
-                    {doctor.spesialisasi}
+                  {/* Verified Badge (Theme-Aware) */}
+                  <span
+                    className='inline-flex items-center justify-center size-5 rounded-full bg-[var(--primary-bright,var(--primary))] text-white shadow-2xs shrink-0'
+                    title='Dokter Terverifikasi'
+                  >
+                    <Icons.check className='size-3 stroke-[3]' />
                   </span>
-                </span>
+                </div>
 
-                {/* Status Badge (Clinical / Theme Token) */}
-                <span
-                  className={cn(
-                    'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border backdrop-blur-sm select-none shadow-none',
-                    doctorStatusConfig.pillBg,
-                    doctorStatusConfig.pillBorder
-                  )}
-                >
+                {/* Sub-row: Poli & Status Pills */}
+                <div className='flex items-center gap-2 flex-wrap'>
+                  {/* 3D Gradient Pill: Spesialisasi Dokter */}
+                  <span
+                    className='inline-flex items-center gap-1.5 font-sans text-[11.5px] font-bold px-3 py-0.5 rounded-full text-white border select-none shadow-[inset_0_1px_0.5px_0_rgba(255,255,255,0.7),0_2px_5px_-1px_var(--pill-3d-shadow),0_1px_2px_0_rgba(0,0,0,0.1)]'
+                    style={{
+                      background: 'var(--pill-3d-gradient)',
+                      borderColor: 'var(--pill-3d-border)'
+                    }}
+                  >
+                    <Icons.pro className='size-3.5 stroke-[2.5] text-white' />
+                    <span className='tracking-wide drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]'>
+                      {doctor.spesialisasi}
+                    </span>
+                  </span>
+
+                  {/* Status Badge (Clinical / Theme Token) */}
                   <span
                     className={cn(
-                      'size-1.5 rounded-full shrink-0 ring-1 ring-white/60 dark:ring-white/20',
-                      doctorStatusConfig.dotGradient
-                    )}
-                  />
-                  <span
-                    className={cn(
-                      'bg-clip-text text-transparent font-bold tracking-tight',
-                      doctorStatusConfig.textGradient
+                      'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border backdrop-blur-sm select-none shadow-none',
+                      doctorStatusConfig.pillBg,
+                      doctorStatusConfig.pillBorder
                     )}
                   >
-                    {doctorStatusConfig.label}
+                    <span
+                      className={cn(
+                        'size-1.5 rounded-full shrink-0 ring-1 ring-white/60 dark:ring-white/20',
+                        doctorStatusConfig.dotGradient
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        'bg-clip-text text-transparent font-bold tracking-tight',
+                        doctorStatusConfig.textGradient
+                      )}
+                    >
+                      {doctorStatusConfig.label}
+                    </span>
                   </span>
-                </span>
-              </div>
+                </div>
 
-              <SheetDescription className='sr-only'>
-                Detail jadwal dan sesi praktik {doctor.nama_dokter}
-              </SheetDescription>
+                <SheetDescription className='sr-only'>
+                  Detail jadwal dan sesi praktik {doctor.nama_dokter}
+                </SheetDescription>
+              </div>
             </div>
           </SheetHeader>
         </div>
@@ -261,13 +249,7 @@ export function DoctorScheduleDetailSheet({
                     setSelectedDay(day);
                     setActiveTab('kuota');
                   }}
-                  onSelectDayStatus={(day, st, notes) =>
-                    handleDayStatusChange(
-                      day,
-                      st === 'buka' ? 'Buka' : 'Tutup',
-                      notes
-                    )
-                  }
+                  onSelectDayStatus={(day, st, notes) => handleDayStatusChange(day, st, notes)}
                 />
               </TabsContent>
 

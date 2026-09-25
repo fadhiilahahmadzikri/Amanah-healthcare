@@ -9,7 +9,7 @@ import { useDoctorScheduleView } from '../model/useDoctorScheduleView';
 import { DoctorScheduleFilters } from './doctor-schedule-filters';
 import { DoctorScheduleCard } from './doctor-schedule-card';
 import { DoctorScheduleDetailSheet } from './doctor-schedule-detail-sheet';
-import { DoctorScheduleEditModal } from './doctor-schedule-edit-modal';
+import { DoctorRescheduleSessionModal } from './doctor-reschedule-session-modal';
 import { DoctorExportButton } from './doctor-export-button';
 import { DoctorSchedulePagination } from './doctor-schedule-pagination';
 
@@ -26,11 +26,15 @@ export function DoctorScheduleView() {
         onOpenEdit={scheduleView.actions.openEditFromDetail}
       />
 
-      {/* 2. Edit Modal */}
-      <DoctorScheduleEditModal
+      {/* 2. Reschedule Modal (Real Reschedule Flow) */}
+      <DoctorRescheduleSessionModal
         doctor={scheduleView.selectedDoctor}
-        isOpen={scheduleView.isEditOpen}
-        onClose={scheduleView.actions.closeEdit}
+        session={scheduleView.selectedDoctor?.sesi_harian?.[0] || null}
+        isOpen={scheduleView.isRescheduleOpen || scheduleView.isEditOpen}
+        onClose={() => {
+          scheduleView.actions.closeReschedule();
+          scheduleView.actions.closeEdit();
+        }}
       />
 
       {/* 3. Main Workspace Container */}
@@ -114,6 +118,7 @@ export function DoctorScheduleView() {
                           doctor={doctor}
                           onOpenDetail={scheduleView.actions.openDetail}
                           onOpenEdit={scheduleView.actions.openEdit}
+                          onOpenReschedule={scheduleView.actions.openReschedule}
                         />
                       ))}
                     </div>

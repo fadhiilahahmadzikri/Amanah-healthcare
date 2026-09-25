@@ -4,7 +4,6 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Icons } from '@/components/icons';
-import { StatusBadge } from '@/components/ui/status-badge';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule, DoctorDailySession } from '../api/types';
 
@@ -13,8 +12,9 @@ export interface DoctorSessionDetailModalProps {
   session: DoctorDailySession | null;
   isOpen: boolean;
   onClose: () => void;
-  onOpenReschedule: (session: DoctorDailySession) => void;
-  onOpenEdit: (session: DoctorDailySession) => void;
+  onOpenReschedule?: (session: DoctorDailySession) => void;
+  onOpenEdit?: (session: DoctorDailySession) => void;
+  onOpenPatients?: (session: DoctorDailySession) => void;
   portalContainerRef?: React.RefObject<HTMLElement | null>;
 }
 
@@ -23,18 +23,17 @@ export function DoctorSessionDetailModal({
   session,
   isOpen,
   onClose,
-  onOpenReschedule,
-  onOpenEdit,
+  onOpenReschedule: _onOpenReschedule,
+  onOpenEdit: _onOpenEdit,
+  onOpenPatients,
   portalContainerRef
 }: DoctorSessionDetailModalProps) {
+  const [bannerDismissed, setBannerDismissed] = React.useState(false);
+
   if (!doctor || !session) return null;
 
   const rawStatus = (session.status_sesi || '').toUpperCase();
-  const isSessionClosed =
-    rawStatus === 'TUTUP' ||
-    rawStatus === 'CLOSED' ||
-    rawStatus === 'CUTI' ||
-    rawStatus === 'LEAVE';
+  const isSessionClosed = rawStatus === 'CLOSED' || rawStatus === 'CUTI';
   const isRescheduleEligible =
     session.is_reschedule_eligible !== undefined
       ? session.is_reschedule_eligible
@@ -45,30 +44,75 @@ export function DoctorSessionDetailModal({
       ? 'Sesi ini berstatus Tutup. Silakan aktifkan sesi terlebih dahulu melalui menu Ubah Sesi sebelum melakukan reschedule.'
       : 'Sesi ini tidak dapat dipindahkan (reschedule).');
 
+  const capacity = session.kuota_pasien || 12;
+  const sessionIntervals = doctor.timeline_intervals?.filter(
+    (it) =>
+      (it.startTime >= session.jam_mulai && it.startTime < session.jam_selesai) ||
+      it.startTime === session.jam_mulai
+  );
+  const sessionBookedCount = isSessionClosed
+    ? 0
+    : session.pasien_terdaftar !== undefined
+      ? session.pasien_terdaftar
+      : Math.max(
+          0,
+          capacity - (session.slot_tersedia !== undefined ? session.slot_tersedia : capacity)
+        );
+  const intervalBookedCount =
+    sessionIntervals?.filter((it) =>
+      Boolean(it.appointmentRef || (it.isOccupied && it.status === 'OCCUPIED'))
+    ).length || 0;
+  const bookedCount = Math.max(sessionBookedCount, intervalBookedCount);
+
+  const showBanner = !isRescheduleEligible && !bannerDismissed;
+
   return (
     <ModalWrapper
       isOpen={isOpen}
       onClose={onClose}
-      maxWidth='max-w-[540px]'
+      maxWidth='max-w-[520px]'
       showCloseButton={false}
       portalContainerRef={portalContainerRef}
     >
       <div className='relative font-sans space-y-4'>
-        {/* 1. Header Identitas Sesi */}
-        <div className='flex items-start justify-between gap-4 pb-3 border-b border-border/40'>
-          <div className='space-y-1 min-w-0 flex-1'>
-            <div className='flex items-center gap-2 flex-wrap'>
-              <span className='inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border border-primary/20 bg-primary/10 text-primary'>
-                <Icons.calendar className='size-3' />
-                <span>Sesi Terdaftar</span>
-              </span>
-              <StatusBadge status={session.status_sesi} size='sm' />
+        {/* Accordion Dropdown Notification Banner */}
+        <div
+          className={cn(
+            'grid transition-all duration-300 ease-in-out',
+            showBanner
+              ? 'grid-rows-[1fr] opacity-100 mb-3'
+              : 'grid-rows-[0fr] opacity-0 mb-0 pointer-events-none'
+          )}
+        >
+          <div className='overflow-hidden'>
+            <div className='px-3.5 py-2.5 bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/20 text-amber-700 dark:text-amber-400 flex items-center justify-between gap-3 select-none rounded-xl'>
+              <div className='flex items-center gap-2 min-w-0 flex-1'>
+                <Icons.info className='size-4 shrink-0 text-amber-600 dark:text-amber-400' />
+                <div className='text-xs leading-snug min-w-0'>
+                  <span className='font-bold mr-1'>Pemberitahuan:</span>
+                  <span className='text-[11.5px] opacity-90'>{ineligibilityReason}</span>
+                </div>
+              </div>
+              <button
+                type='button'
+                onClick={() => setBannerDismissed(true)}
+                aria-label='Tutup pemberitahuan'
+                className='p-1 rounded-full text-amber-600/70 hover:text-amber-700 hover:bg-amber-500/10 transition-colors cursor-pointer shrink-0'
+              >
+                <Icons.close className='size-3.5' />
+              </button>
             </div>
+          </div>
+        </div>
+
+        {/* 1. Header Identitas Sesi (Clean & Minimal) */}
+        <div className='flex items-start justify-between gap-4 pb-3 border-b border-border/40'>
+          <div className='space-y-0.5 min-w-0 flex-1'>
             <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
               {session.nama_sesi}
             </h3>
-            <p className='text-xs text-muted-foreground'>
-              {doctor.nama_dokter} • {session.nama_sesi} ({session.jam_mulai} - {session.jam_selesai} WIB)
+            <p className='text-xs text-muted-foreground font-mono font-medium'>
+              {session.jam_mulai} – {session.jam_selesai} WIB
             </p>
           </div>
           <button
@@ -81,126 +125,96 @@ export function DoctorSessionDetailModal({
           </button>
         </div>
 
-        {/* 2. Informasi Ringkas Waktu & Ruang */}
-        <div className='grid grid-cols-2 gap-3 p-3 rounded-xl bg-muted/20 border border-border/50 text-xs'>
-          <div>
-            <span className='text-[10.5px] font-medium text-muted-foreground block mb-0.5'>
-              Jam Praktik
-            </span>
-            <span className='font-mono font-bold text-foreground text-xs'>
-              {session.jam_mulai} - {session.jam_selesai} WIB
+        {/* 2. Detail Operasional Sesi (Single Source of Truth, Tanpa Redundansi) */}
+        <div className='rounded-xl border border-border/50 bg-card p-3.5 space-y-3 text-xs'>
+          <div className='text-xs font-bold text-foreground pb-2 border-b border-border/40 flex items-center justify-between'>
+            <span>Detail Operasional Praktik</span>
+            <span className='font-normal text-muted-foreground text-[11px]'>
+              Durasi: 30 Menit / Pasien
             </span>
           </div>
 
-          <div>
-            <span className='text-[10.5px] font-medium text-muted-foreground block mb-0.5'>
-              Ruang Praktik
-            </span>
-            <span className='font-medium text-foreground truncate block text-xs'>
-              {session.ruang || doctor.ruang_praktik}
-            </span>
-          </div>
-        </div>
-
-        {/* 3. Pilihan Aksi: Reschedule vs Edit (Jelas, Minimalis & Edukatif) */}
-        <div className='space-y-2.5 pt-1'>
-          <span className='text-xs font-semibold text-foreground/80 block'>
-            Pilih tindakan kelola sesi:
-          </span>
-
-          {/* Opsi 1: Reschedule */}
-          <div
-            className={cn(
-              'p-3 rounded-xl border transition-all space-y-2',
-              isRescheduleEligible
-                ? 'border-border/60 bg-card hover:border-primary/50'
-                : 'border-border/40 bg-muted/10 opacity-90'
-            )}
-          >
-            <div className='flex items-start justify-between gap-3'>
-              <div className='space-y-1 flex-1'>
-                <div className='flex items-center gap-1.5 font-bold text-xs text-foreground'>
-                  <Icons.calendar
-                    className={cn(
-                      'size-3.5',
-                      isRescheduleEligible ? 'text-primary' : 'text-muted-foreground'
-                    )}
-                  />
-                  <span>Reschedule (Pindahkan Jadwal Praktik)</span>
-                </div>
-                <p className='text-[11px] text-muted-foreground leading-relaxed'>
-                  Pindahkan sesi ke <strong>tanggal tujuan baru</strong> atau <strong>jam mulai baru</strong>. Seluruh antrean pasien yang sudah booking akan otomatis digeser secara atomik ke jadwal baru.
-                </p>
-                {!isRescheduleEligible && (
-                  <div className='mt-2 flex items-start gap-1.5 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 text-[11px] leading-relaxed'>
-                    <Icons.info className='size-3.5 shrink-0 mt-0.5' />
-                    <span>{ineligibilityReason}</span>
-                  </div>
-                )}
-              </div>
-              <Button
-                type='button'
-                variant='outline'
-                size='sm'
-                shape='pill'
-                disabled={!isRescheduleEligible}
-                onClick={() => {
-                  if (!isRescheduleEligible) return;
-                  onClose();
-                  onOpenReschedule(session);
-                }}
-                className={cn(
-                  'shrink-0 h-8 px-3 text-xs font-semibold',
-                  isRescheduleEligible
-                    ? 'border-primary/30 text-primary hover:bg-primary/10 cursor-pointer'
-                    : 'opacity-50 cursor-not-allowed text-muted-foreground'
-                )}
-                leadingIcon={<Icons.calendar className='size-3.5' />}
-              >
-                {isRescheduleEligible ? 'Reschedule' : 'Tidak Dapat Reschedule'}
-              </Button>
+          <div className='grid grid-cols-2 gap-3 text-xs'>
+            <div>
+              <span className='text-[11px] text-muted-foreground block mb-0.5'>
+                Dokter Pemeriksa
+              </span>
+              <span className='font-semibold text-foreground block truncate'>
+                {doctor.nama_dokter}
+              </span>
+              <span className='text-[10.5px] text-muted-foreground block mt-0.5'>
+                {doctor.spesialisasi}
+              </span>
             </div>
-          </div>
 
-          {/* Opsi 2: Edit Sesi */}
-          <div className='p-3 rounded-xl border border-border/60 bg-card hover:border-primary/50 transition-all space-y-2 group'>
-            <div className='flex items-start justify-between gap-3'>
-              <div className='space-y-1 flex-1'>
-                <div className='flex items-center gap-1.5 font-bold text-xs text-foreground'>
-                  <Icons.edit className='size-3.5 text-primary' />
-                  <span>Ubah Sesi (Edit Operasional In-Place)</span>
-                </div>
-                <p className='text-[11px] text-muted-foreground leading-relaxed'>
-                  Ubah ruang praktik atau ganti status (Buka / Tutup / Terisi) langsung di sesi ini tanpa memindahkan tanggal atau jam antrean.
-                </p>
-              </div>
-              <Button
-                type='button'
-                variant='outline'
-                size='sm'
-                shape='pill'
-                onClick={() => {
-                  onClose();
-                  onOpenEdit(session);
-                }}
-                className='shrink-0 h-8 px-3 text-xs font-semibold text-foreground/80 hover:text-foreground'
-                leadingIcon={<Icons.edit className='size-3.5 text-muted-foreground' />}
-              >
-                Ubah Sesi
-              </Button>
+            <div>
+              <span className='text-[11px] text-muted-foreground block mb-0.5'>Ruang Praktik</span>
+              <span className='font-semibold text-foreground block truncate'>
+                {session.ruang || doctor.ruang_praktik || '-'}
+              </span>
+            </div>
+
+            <div>
+              <span className='text-[11px] text-muted-foreground block mb-0.5'>Status Sesi</span>
+              <span className='font-semibold text-foreground capitalize block'>
+                {session.status_sesi || 'Buka'}
+              </span>
+            </div>
+
+            <div>
+              <span className='text-[11px] text-muted-foreground block mb-0.5'>Okupansi Kuota</span>
+              <span className='font-mono font-bold text-foreground block'>
+                {bookedCount} / {capacity} Pasien ({Math.max(0, capacity - bookedCount)} Slot
+                Tersedia)
+              </span>
             </div>
           </div>
         </div>
 
-        {/* 4. Footer Tutup */}
-        <div className='pt-2 flex items-center justify-end'>
+        {/* 4. Ringkasan Antrean Pasien */}
+        <div className='p-3 rounded-xl border border-border/50 bg-muted/10 flex items-center justify-between gap-3 text-xs'>
+          <div className='flex items-center gap-2.5 min-w-0'>
+            <div className='size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0'>
+              <Icons.teams className='size-4' />
+            </div>
+            <div className='min-w-0'>
+              <span className='font-bold text-foreground block truncate'>
+                {bookedCount} Pasien Terdaftar
+              </span>
+              <span className='text-[11px] text-muted-foreground block'>
+                {bookedCount > 0
+                  ? 'Pasien memiliki janji temu pada sesi ini.'
+                  : 'Belum ada pasien yang booking sesi ini.'}
+              </span>
+            </div>
+          </div>
+
+          {bookedCount > 0 && onOpenPatients && (
+            <Button
+              type='button'
+              variant='outline'
+              size='sm'
+              shape='pill'
+              onClick={() => {
+                onClose();
+                onOpenPatients(session);
+              }}
+              className='shrink-0 h-7.5 px-3 text-xs font-semibold'
+            >
+              Lihat Pasien
+            </Button>
+          )}
+        </div>
+
+        {/* 5. Footer Tutup */}
+        <div className='pt-1 flex items-center justify-end'>
           <Button
             type='button'
             variant='outline'
             shape='pill'
             size='sm'
             onClick={onClose}
-            className='px-5 font-medium text-xs'
+            className='px-5 font-semibold text-xs cursor-pointer'
           >
             Tutup
           </Button>

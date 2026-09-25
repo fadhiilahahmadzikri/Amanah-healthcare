@@ -10,10 +10,6 @@ import { SearchInput } from '@/shared/ui/search-input';
 import { toggleItem } from '@/shared/lib/array/toggle-item';
 import { buildMonthOptions } from '@/features/klinik/model/appointment-filters.rules';
 import { doctorScheduleFilterOptionsQueryOptions } from '../api/queries';
-import {
-  POLI_OPTIONS,
-  DOCTOR_SCHEDULE_STATUS_OPTIONS
-} from '../config/doctor-schedule-filter-options';
 import { cn } from '@/lib/utils';
 
 export interface DoctorScheduleFiltersProps {
@@ -32,11 +28,9 @@ export interface DoctorScheduleFiltersProps {
 }
 
 const STATUS_DOTS: Record<string, string> = {
-  buka: 'bg-emerald-500',
-  terisi: 'bg-sky-500',
-  penuh: 'bg-sky-500',
-  tutup: 'bg-slate-400',
-  cuti: 'bg-slate-400'
+  open: 'bg-emerald-500',
+  occupied: 'bg-sky-500',
+  closed: 'bg-slate-400'
 };
 
 export function DoctorScheduleFilters({
@@ -82,21 +76,15 @@ export function DoctorScheduleFilters({
   const monthOptions = React.useMemo(() => buildMonthOptions(), []);
 
   const poliFacetOptions = React.useMemo(() => {
-    if (filterOptionsData?.poliklinik && filterOptionsData.poliklinik.length > 0) {
-      return filterOptionsData.poliklinik.map((p) => ({ value: p.name, label: p.name }));
-    }
-    return POLI_OPTIONS.map((poli) => ({ value: poli, label: poli }));
+    return (filterOptionsData?.poliklinik ?? []).map((p) => ({ value: p.name, label: p.name }));
   }, [filterOptionsData]);
 
   const statusFacetOptions = React.useMemo(() => {
-    if (filterOptionsData?.statuses && filterOptionsData.statuses.length > 0) {
-      return filterOptionsData.statuses.map((s) => ({
-        value: s.label,
-        label: s.label,
-        dotColor: STATUS_DOTS[s.id.toLowerCase()] || 'bg-primary'
-      }));
-    }
-    return DOCTOR_SCHEDULE_STATUS_OPTIONS;
+    return (filterOptionsData?.statuses ?? []).map((s) => ({
+      value: s.id,
+      label: s.label,
+      dotColor: STATUS_DOTS[s.id.toLowerCase()] || 'bg-primary'
+    }));
   }, [filterOptionsData]);
 
   return (

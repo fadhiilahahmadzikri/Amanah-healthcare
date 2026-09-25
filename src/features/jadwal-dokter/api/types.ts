@@ -1,4 +1,19 @@
-export type { ClinicRoom } from '@/server/contracts/schedules/doctor-schedules.dto';
+export type {
+  ClinicRoom,
+  ClosureMetadata,
+  RescheduleMetadata,
+  SlotProjectionMetrics,
+  OccupancySlot,
+  OccupancyShift,
+  RescheduleEligibilityData
+} from '@/server/contracts/schedules/doctor-schedules.dto';
+
+import type {
+  ClosureMetadata,
+  RescheduleMetadata,
+  SlotProjectionMetrics,
+  OccupancyShift
+} from '@/server/contracts/schedules/doctor-schedules.dto';
 
 export type ScheduleDayStatus = 'Buka' | 'Terisi' | 'Penuh' | 'Cuti' | 'Tutup' | string;
 export type SessionStatus =
@@ -14,16 +29,26 @@ export type SessionStatus =
 
 export interface TimelineInterval {
   intervalIndex: number;
+  slotIndex?: number;
+  intervalId?: string;
   startTime: string;
   endTime: string;
-  status: 'OPEN' | 'OCCUPIED' | 'CLOSED' | string;
-  displayLabel: 'Buka' | 'Terisi' | 'Tutup' | string;
+  timeRange?: string;
+  status: 'OPEN' | 'OCCUPIED' | 'CLOSED' | 'UNSCHEDULED' | 'EXPIRED' | string;
+  displayLabel: 'Buka' | 'Terisi' | 'Tutup' | 'Belum Terjadwal' | 'Waktu Lewat' | string;
   isOccupied: boolean;
+  temporalState?: 'PAST' | 'CURRENT' | 'FUTURE' | string;
+  availabilityState?: 'UNSCHEDULED' | 'AVAILABLE' | 'OCCUPIED' | 'CLOSED' | string;
+  effectiveStatus?: 'AVAILABLE' | 'OCCUPIED' | 'CLOSED' | 'UNSCHEDULED' | 'EXPIRED' | string;
+  isSelectable?: boolean;
   appointmentRef?: {
     appointmentId: string;
     queueNumber: number | string;
     status: string;
+    patientName?: string;
   } | null;
+  closure?: ClosureMetadata | null;
+  reschedule?: RescheduleMetadata | null;
   closedReason?: string | null;
 }
 
@@ -35,8 +60,11 @@ export interface DoctorDailySession {
   waktu?: string;
   kuota_pasien: number;
   slot_tersedia: number;
+  pasien_terdaftar?: number;
+  display_slot?: string;
   status_sesi: SessionStatus;
   ruang?: string;
+  tanggal?: string;
   is_reschedule_eligible?: boolean;
   reschedule_ineligibility_reason?: string | null;
 }
@@ -46,6 +74,13 @@ export interface MonthlyScheduleDay {
   date: string;
   status: ScheduleDayStatus;
   notes?: string | null;
+  dayStatus?: 'OPEN' | 'CLOSED' | 'CUTI' | 'EMPTY' | string;
+  statusLabel?: string;
+  badgeVariant?: 'success' | 'danger' | 'warning' | 'neutral' | string;
+  activeSessions?: number;
+  totalCapacity?: number;
+  bookedPatients?: number;
+  isClickable?: boolean;
 }
 
 export interface DoctorSchedule {
@@ -67,10 +102,18 @@ export interface DoctorSchedule {
   monthly_schedule?: MonthlyScheduleDay[];
   sesi_harian?: DoctorDailySession[];
   timeline_intervals?: TimelineInterval[];
+  shifts?: OccupancyShift[];
+  context_projections?: OccupancyShift[];
+  metrics?: SlotProjectionMetrics;
+  summary?: SlotProjectionMetrics;
   is_cuti: boolean;
   cuti_reason?: string | null;
   cuti_start?: string | null;
   cuti_end?: string | null;
+  display_akumulasi_slot?: string;
+  jadwal_praktik_mendatang?: string;
+  slot_terisi_akumulasi?: number;
+  slot_kapasitas_akumulasi?: number;
 }
 
 export interface DoctorScheduleFilters {
@@ -153,24 +196,15 @@ export interface RescheduleDoctorSessionPayload {
   targetDate: string;
   targetStartTime: string;
   targetScheduleContextId?: string;
+  targetShift?: string;
   targetRoomId?: string;
   notes?: string;
   reason?: string;
   rescheduleActiveAppointments?: boolean;
 }
 
-export interface RescheduleEligibilityData {
-  isEligible: boolean;
-  actionableGuidance?: string | null;
-  targetValidation?: {
-    isTargetEligible?: boolean;
-    conflictMessage?: string | null;
-    projectedEndTime?: string | null;
-  };
-}
-
 export interface UpdateDoctorDayByDatePayload {
-  status: 'Buka' | 'Tutup' | string;
+  status: 'OPEN' | 'CLOSED' | 'Buka' | 'Tutup' | string;
   notes?: string;
 }
 

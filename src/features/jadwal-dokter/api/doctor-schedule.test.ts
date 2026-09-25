@@ -12,7 +12,7 @@ import {
   rescheduleAdminDoctorSessionPayloadSchema,
   updateAdminDoctorDurationPayloadSchema
 } from '@/server/contracts/schedules/doctor-schedules.dto';
-import { generateFallbackOccupancyOverview } from './doctor-schedule-service';
+import { buildOccupancyOverview as generateFallbackOccupancyOverview } from '../utils/shift-slot-builder';
 import type { DoctorSchedule, DoctorDailySession } from './types';
 
 describe('Doctor Schedule Business Logic & Leave Resolution', () => {
@@ -92,7 +92,7 @@ describe('Doctor Schedule Business Logic & Leave Resolution', () => {
 describe('Upcoming Schedule Time Evaluation', () => {
   it('returns default schedule time if sessions array is empty', () => {
     const result = getUpcomingScheduleTime('08:00 - 12:00', []);
-    expect(result.labelTime).toBe('08:00 - 12:00');
+    expect(result.labelTime).toBe('08.00 – 08.30');
   });
 
   it('extracts session label from available non-cuti sessions', () => {

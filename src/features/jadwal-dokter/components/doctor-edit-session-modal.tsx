@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import {
@@ -16,8 +17,13 @@ import { Icons } from '@/components/icons';
 import { getStatusConfig } from '@/styles/clinical-tokens';
 import { cn } from '@/lib/utils';
 import { useUpdateDoctorSessionMutation } from '../api/mutations';
-import { clinicRoomsQueryOptions } from '../api/queries';
-import type { DoctorSchedule, DoctorDailySession, SessionStatus, ClinicRoom } from '../api/types';
+import {
+  clinicRoomsQueryOptions,
+  scheduleReferenceOptionsQueryOptions,
+  scheduleContextsQueryOptions
+} from '../api/queries';
+import { getScheduleProjection } from '../api/service';
+import type { DoctorSchedule, DoctorDailySession, ClinicRoom } from '../api/types';
 
 export interface DoctorEditSessionModalProps {
   doctor: DoctorSchedule | null;
@@ -26,40 +32,20 @@ export interface DoctorEditSessionModalProps {
   onClose: () => void;
   onOpenReschedule?: (session: DoctorDailySession) => void;
   portalContainerRef?: React.RefObject<HTMLElement | null>;
+  targetDate?: string;
 }
 
-// 48 discrete 30-minute intervals covering 24 hours
-const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
-  const h = Math.floor(i / 2);
-  const m = i % 2 === 0 ? '00' : '30';
-  return `${String(h).padStart(2, '0')}:${m}`;
-});
+// 49 discrete intervals covering 24 hours including 24:00 boundary
+const TIME_OPTIONS = [
+  ...Array.from({ length: 48 }, (_, i) => {
+    const h = Math.floor(i / 2);
+    const m = i % 2 === 0 ? '00' : '30';
+    return `${String(h).padStart(2, '0')}:${m}`;
+  }),
+  '24:00'
+];
 
-function calculateEndTime(startTime: string, durationMinutes: number = 30): string {
-  if (!startTime) return '';
-  const parts = startTime.split(':');
-  const h = parseInt(parts[0] || '0', 10);
-  const m = parseInt(parts[1] || '0', 10);
-  if (isNaN(h) || isNaN(m)) return '';
-  const totalMin = h * 60 + m + durationMinutes;
-  const endH = Math.floor(totalMin / 60) % 24;
-  const endM = totalMin % 60;
-  return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
-}
-
-function getShiftGroupName(time: string): string {
-  if (!time) return 'Sesi Praktik';
-  const h = parseInt(time.split(':')[0] || '0', 10);
-  if (h >= 0 && h < 6) return 'Dini Hari';
-  if (h >= 6 && h < 12) return 'Sesi Pagi';
-  if (h >= 12 && h < 17) return 'Sesi Siang';
-  return 'Sesi Malam';
-}
-
-function normalizeRoomValue(
-  rawRoom: string,
-  roomList: ClinicRoom[]
-): string {
+function normalizeRoomValue(rawRoom: string, roomList: ClinicRoom[]): string {
   if (!rawRoom) return '';
   const trimmed = rawRoom.trim();
   // 1. Exact match by name
@@ -87,43 +73,134 @@ export function DoctorEditSessionModal({
   isOpen,
   onClose,
   onOpenReschedule,
-  portalContainerRef
+  portalContainerRef,
+  targetDate
 }: DoctorEditSessionModalProps) {
   const updateSessionMutation = useUpdateDoctorSessionMutation();
 
   const [jamMulai, setJamMulai] = useState('08:00');
-  const [statusSesi, setStatusSesi] = useState<SessionStatus>('Buka');
+  const [jamSelesai, setJamSelesai] = useState('08:30');
+  const [kuotaPasien, setKuotaPasien] = useState<number>(12);
+  const [statusSesi, setStatusSesi] = useState<'OPEN' | 'CLOSED'>('OPEN');
   const [ruang, setRuang] = useState('');
+
+  const sessionDate = targetDate || session?.tanggal || doctor?.tanggal_praktik;
+
+  // Sequence reference to prevent race conditions / collision
+  const projectionReqRef = React.useRef(0);
 
   // Dynamic clinic rooms from master database (GET /api/v1/schedules/reference/rooms)
   const { data: rooms = [], isLoading: isLoadingRooms } = useQuery(clinicRoomsQueryOptions());
+  // Dynamic reference options & schedule contexts from backend SSOT
+  const { data: refOptions } = useQuery(scheduleReferenceOptionsQueryOptions());
+  const { data: contexts = [] } = useQuery(scheduleContextsQueryOptions(sessionDate));
+
+  const resolveContextId = React.useCallback(
+    (shiftNameOrId: string, time: string) => {
+      const match = contexts.find(
+        (c) =>
+          c.id === shiftNameOrId ||
+          c.shift?.toLowerCase() === shiftNameOrId.toLowerCase() ||
+          c.name?.toLowerCase() === shiftNameOrId.toLowerCase() ||
+          (time >= c.startTime && time < c.endTime)
+      );
+      return match?.id;
+    },
+    [contexts]
+  );
 
   useEffect(() => {
     if (session) {
       setJamMulai(session.jam_mulai || '08:00');
-      const raw = (session.status_sesi || 'Buka').toUpperCase();
-      setStatusSesi(raw === 'TUTUP' || raw === 'CLOSED' ? 'Tutup' : 'Buka');
+      setJamSelesai(session.jam_selesai || '08:30');
+      setKuotaPasien(session.kuota_pasien || 12);
+      const raw = (session.status_sesi || 'OPEN').toUpperCase();
+      setStatusSesi(raw === 'CLOSED' ? 'CLOSED' : 'OPEN');
       const rawRoom = session.ruang || doctor?.ruang_praktik || '';
       setRuang(normalizeRoomValue(rawRoom, rooms));
     }
-  }, [session, doctor, rooms]);
+  }, [session, doctor?.ruang_praktik, rooms]);
 
-  // Auto-accumulated end time (matches mobile duration projection)
-  const jamSelesaiCalculated = useMemo(() => {
-    return calculateEndTime(jamMulai, 30);
+  const bookedCount = useMemo(() => {
+    if (!session) return 0;
+    // Single Source of Truth from backend canonical producer
+    if (typeof session.pasien_terdaftar === 'number') {
+      return session.pasien_terdaftar;
+    }
+    const raw = (session.status_sesi || '').toUpperCase();
+    if (raw === 'CLOSED' || raw === 'CUTI') {
+      return 0;
+    }
+    if (doctor?.timeline_intervals && doctor.timeline_intervals.length > 0) {
+      return doctor.timeline_intervals.filter(
+        (it) =>
+          ((it.startTime >= session.jam_mulai && it.startTime < session.jam_selesai) ||
+            it.startTime === session.jam_mulai) &&
+          Boolean(it.appointmentRef || (it.isOccupied && it.status === 'OCCUPIED'))
+      ).length;
+    }
+    if (raw === 'OCCUPIED') {
+      const cap = session.kuota_pasien || 12;
+      return Math.max(0, cap - (session.slot_tersedia ?? 0));
+    }
+    return 0;
+  }, [session, doctor?.timeline_intervals]);
+
+  const availableEndTimes = useMemo(() => {
+    return TIME_OPTIONS.filter((t) => t > jamMulai);
   }, [jamMulai]);
 
-  // Auto-projected shift group name based on start time
+  const handleJamMulaiChange = (newMulai: string) => {
+    setJamMulai(newMulai);
+    const contextId = resolveContextId(session?.nama_sesi || '', newMulai);
+    const currentReq = ++projectionReqRef.current;
+    getScheduleProjection({
+      scheduleContextId: contextId,
+      startTime: newMulai,
+      date: sessionDate,
+      practitionerId: doctor?.id
+    })
+      .then((res) => {
+        if (currentReq !== projectionReqRef.current) return;
+        if (res?.projectedEndTime) {
+          if (jamSelesai <= newMulai) {
+            setJamSelesai(res.projectedEndTime);
+          }
+        }
+      })
+      .catch((err) => {
+        if (currentReq !== projectionReqRef.current) return;
+        console.error('Projection error:', err);
+      });
+  };
+
+  // Auto-projected shift group name based on canonical 24-hour cycle from backend
   const autoShiftGroup = useMemo(() => {
-    return getShiftGroupName(jamMulai);
-  }, [jamMulai]);
+    if (session?.nama_sesi && session.nama_sesi !== 'Sesi Praktik') {
+      return session.nama_sesi;
+    }
+    if (refOptions?.shifts && refOptions.shifts.length > 0) {
+      const match = refOptions.shifts.find((s) => {
+        const start = s.startTime || '00:00';
+        const end = s.endTime || '24:00';
+        return jamMulai >= start && jamMulai < end;
+      });
+      if (match) return match.label || match.name || match.shift;
+    }
+    const h = parseInt(jamMulai.split(':')[0] || '0', 10);
+    if (h >= 0 && h < 6) return 'Shift Dini Hari';
+    if (h >= 6 && h < 12) return 'Sesi Pagi';
+    if (h >= 12 && h < 18) return 'Sesi Siang / Sore';
+    return 'Sesi Malam';
+  }, [session?.nama_sesi, jamMulai, refOptions?.shifts]);
 
   if (!doctor || !session) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const isAvailable = statusSesi === 'Buka';
+    const isAvailable = statusSesi === 'OPEN';
+    const computedAvailableSlots = isAvailable ? Math.max(0, kuotaPasien - bookedCount) : 0;
 
     updateSessionMutation.mutate(
       {
@@ -132,9 +209,9 @@ export function DoctorEditSessionModal({
         payload: {
           nama_sesi: autoShiftGroup,
           jam_mulai: jamMulai,
-          jam_selesai: jamSelesaiCalculated,
-          kuota_pasien: 1,
-          slot_tersedia: isAvailable ? 1 : 0,
+          jam_selesai: jamSelesai,
+          kuota_pasien: kuotaPasien,
+          slot_tersedia: computedAvailableSlots,
           status_sesi: statusSesi,
           ruang: ruang || undefined
         }
@@ -159,11 +236,10 @@ export function DoctorEditSessionModal({
         {/* 1. Header Identitas */}
         <div className='flex items-start justify-between gap-3 pb-2.5 border-b border-border/40'>
           <div className='space-y-0.5 min-w-0 flex-1'>
-            <h3 className='text-base font-bold text-foreground tracking-tight'>
-              Edit Sesi Dokter
-            </h3>
+            <h3 className='text-base font-bold text-foreground tracking-tight'>Edit Sesi Dokter</h3>
             <p className='text-xs text-muted-foreground truncate'>
-              {doctor.nama_dokter} • {session.nama_sesi} ({session.jam_mulai} - {session.jam_selesai} WIB)
+              {doctor.nama_dokter} • {session.nama_sesi} ({session.jam_mulai} -{' '}
+              {session.jam_selesai} WIB)
             </p>
           </div>
           <button
@@ -179,12 +255,10 @@ export function DoctorEditSessionModal({
         {/* Record 1: Waktu Praktik (Jam Mulai & Jam Selesai) */}
         <div className='grid grid-cols-2 gap-2.5'>
           <div>
-            <Label className='text-xs font-semibold text-foreground/80 block mb-1'>
-              Jam Mulai
-            </Label>
-            <Select value={jamMulai} onValueChange={setJamMulai}>
+            <Label className='text-xs font-semibold text-foreground/80 block mb-1'>Jam Mulai</Label>
+            <Select value={jamMulai} onValueChange={handleJamMulaiChange}>
               <SelectTrigger className='w-full h-8.5 text-xs font-mono font-semibold'>
-                <SelectValue placeholder='Pilih jam' />
+                <SelectValue placeholder='Pilih jam mulai' />
               </SelectTrigger>
               <SelectContent className='max-h-56' portalContainerRef={portalContainerRef}>
                 {TIME_OPTIONS.map((time) => (
@@ -200,10 +274,50 @@ export function DoctorEditSessionModal({
             <Label className='text-xs font-semibold text-foreground/80 block mb-1'>
               Jam Selesai
             </Label>
+            <Select value={jamSelesai} onValueChange={setJamSelesai}>
+              <SelectTrigger className='w-full h-8.5 text-xs font-mono font-semibold'>
+                <SelectValue placeholder='Pilih jam selesai' />
+              </SelectTrigger>
+              <SelectContent className='max-h-56' portalContainerRef={portalContainerRef}>
+                {availableEndTimes.map((time) => (
+                  <SelectItem key={time} value={time} className='font-mono text-xs'>
+                    {time} WIB
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Record 2: Kuota Pasien & Slot Tersedia */}
+        <div className='grid grid-cols-2 gap-2.5'>
+          <div>
+            <Label className='text-xs font-semibold text-foreground/80 block mb-1'>
+              Kuota Pasien
+            </Label>
+            <Input
+              type='number'
+              min={Math.max(1, bookedCount)}
+              max={100}
+              value={kuotaPasien}
+              onChange={(e) => setKuotaPasien(Math.max(1, parseInt(e.target.value, 10) || 1))}
+              className='w-full h-8.5 text-xs font-mono font-semibold'
+            />
+            {bookedCount > 0 && (
+              <p className='text-[10px] text-muted-foreground mt-0.5'>
+                Minimal {bookedCount} (jumlah pasien booking)
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Label className='text-xs font-semibold text-foreground/80 block mb-1'>
+              Slot Tersedia
+            </Label>
             <div className='w-full h-8.5 px-3 rounded-md border border-border/50 bg-muted/30 text-xs font-mono font-semibold text-foreground flex items-center justify-between select-none'>
-              <span>{jamSelesaiCalculated ? `${jamSelesaiCalculated} WIB` : '-'}</span>
+              <span>{statusSesi === 'CLOSED' ? '0' : Math.max(0, kuotaPasien - bookedCount)}</span>
               <span className='text-[10px] font-sans font-medium text-muted-foreground'>
-                Otomatis
+                {bookedCount} terisi
               </span>
             </div>
           </div>
@@ -215,10 +329,7 @@ export function DoctorEditSessionModal({
             <Label className='text-xs font-semibold text-foreground/80 block mb-1'>
               Ruang Praktik
             </Label>
-            <Select
-              value={ruang || undefined}
-              onValueChange={setRuang}
-            >
+            <Select value={ruang || undefined} onValueChange={setRuang}>
               <SelectTrigger className='w-full h-8.5 text-xs truncate'>
                 <SelectValue placeholder='Pilih Ruang Praktik' />
               </SelectTrigger>
@@ -230,7 +341,9 @@ export function DoctorEditSessionModal({
                   const locationText = room.location ? ` (${room.location})` : '';
                   return (
                     <SelectItem key={room.id} value={room.name} disabled={room.isOccupied}>
-                      {room.name}{locationText}{room.isOccupied ? ` — Terisi (${room.occupiedBy || 'Dokter Lain'})` : ''}
+                      {room.name}
+                      {locationText}
+                      {room.isOccupied ? ` — Terisi (${room.occupiedBy || 'Dokter Lain'})` : ''}
                     </SelectItem>
                   );
                 })}
@@ -247,7 +360,7 @@ export function DoctorEditSessionModal({
             </Label>
             <Select
               value={statusSesi}
-              onValueChange={(val) => setStatusSesi(val as SessionStatus)}
+              onValueChange={(val) => setStatusSesi(val as 'OPEN' | 'CLOSED')}
             >
               <SelectTrigger className='w-full h-8.5 text-xs font-semibold'>
                 <div className='flex items-center gap-2'>
@@ -263,7 +376,7 @@ export function DoctorEditSessionModal({
                 </div>
               </SelectTrigger>
               <SelectContent portalContainerRef={portalContainerRef}>
-                {(['Buka', 'Tutup'] as const).map((st) => {
+                {(['OPEN', 'CLOSED'] as const).map((st) => {
                   const cfg = getStatusConfig(st);
                   return (
                     <SelectItem key={st} value={st} className='text-xs'>
@@ -274,9 +387,7 @@ export function DoctorEditSessionModal({
                             cfg.dotGradient
                           )}
                         />
-                        <span className={cn('font-semibold', cfg.textGradient)}>
-                          {cfg.label}
-                        </span>
+                        <span className={cn('font-semibold', cfg.textGradient)}>{cfg.label}</span>
                       </div>
                     </SelectItem>
                   );

@@ -15,7 +15,16 @@ import {
   updateAdminDayByDate,
   updateAdminDoctorDuration,
   fetchClinicRooms,
-  fetchDoctorOccupancyOverview
+  fetchDoctorOccupancyOverview,
+  fetchAdminSessionPatients,
+  cancelAdminAppointment,
+  updateAdminAppointmentStatus,
+  fetchScheduleProjection,
+  fetchScheduleReferenceOptions,
+  fetchScheduleContexts,
+  callPatientAppointment,
+  completePatientAppointment,
+  updateScheduleDaySettings
 } from './doctor-schedule-service';
 import type {
   UpdateAdminDoctorSchedulePayload,
@@ -24,7 +33,10 @@ import type {
   CreateAdminDoctorSessionPayload,
   UpdateAdminDoctorSessionPayload,
   RescheduleAdminDoctorSessionPayload,
-  UpdateAdminDoctorDurationPayload
+  UpdateAdminDoctorDurationPayload,
+  CancelAppointmentPayload,
+  UpdateAppointmentStatusPayload,
+  ScheduleDaySettingsPayload
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 import type { DoctorScheduleDetailParams, DoctorScheduleFilters } from './types';
 
@@ -133,9 +145,69 @@ export async function getDoctorOccupancyOverviewAction(params: {
   date: string;
   staffId: string;
   roomId?: string;
-  existingSessions?: { jam_mulai: string; jam_selesai: string; nama_sesi?: string; id?: string; status_sesi?: string; slot_tersedia?: number }[];
+  existingSessions?: {
+    jam_mulai: string;
+    jam_selesai: string;
+    nama_sesi?: string;
+    id?: string;
+    status_sesi?: string;
+    slot_tersedia?: number;
+  }[];
 }) {
   return fetchDoctorOccupancyOverview(params);
 }
 
+export async function getSessionPatientsAction(
+  doctorId: string,
+  sessionId: string,
+  queryFilters?: { status?: string; search?: string }
+) {
+  return fetchAdminSessionPatients(doctorId, sessionId, queryFilters);
+}
 
+export async function cancelAppointmentAction(
+  appointmentId: string,
+  payload: CancelAppointmentPayload
+) {
+  return cancelAdminAppointment(appointmentId, payload);
+}
+
+export async function updateAppointmentStatusAction(
+  appointmentId: string,
+  payload: UpdateAppointmentStatusPayload
+) {
+  return updateAdminAppointmentStatus(appointmentId, payload);
+}
+
+export async function getScheduleProjectionAction(params: {
+  scheduleContextId?: string;
+  startTime?: string;
+  endTime?: string;
+  practitionerId?: string;
+  shift?: string;
+  date?: string;
+  slotsCount?: number;
+  fillShift?: boolean;
+}) {
+  return fetchScheduleProjection(params);
+}
+
+export async function getScheduleReferenceOptionsAction() {
+  return fetchScheduleReferenceOptions();
+}
+
+export async function getScheduleContextsAction(date?: string) {
+  return fetchScheduleContexts(date);
+}
+
+export async function callPatientAppointmentAction(appointmentId: string) {
+  return callPatientAppointment(appointmentId);
+}
+
+export async function completePatientAppointmentAction(appointmentId: string) {
+  return completePatientAppointment(appointmentId);
+}
+
+export async function updateScheduleDaySettingsAction(payload: ScheduleDaySettingsPayload) {
+  return updateScheduleDaySettings(payload);
+}

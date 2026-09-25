@@ -76,10 +76,7 @@ export function extractDayNumber(dateStr: string): number | null {
 
 export type SimpleScheduleStatus = 'buka' | 'cuti' | 'tutup';
 
-export function resolveDayStatus(
-  dayNumber: number,
-  doctor?: DoctorSchedule
-): SimpleScheduleStatus {
+export function resolveDayStatus(dayNumber: number, doctor?: DoctorSchedule): SimpleScheduleStatus {
   if (!doctor) return 'tutup';
 
   // 1. Cek leave status via upstream helper
@@ -89,14 +86,39 @@ export function resolveDayStatus(
   // 2. Cek konfigurasi eksplisit pada monthly_schedule dari backend SSOT
   const monthlyItem = doctor.monthly_schedule?.find((d) => d.day === dayNumber);
   if (monthlyItem) {
-    const raw = (monthlyItem.status || '').toLowerCase().trim();
-    if (raw === 'cuti') return 'cuti';
-    if (raw === 'tutup') return 'tutup';
-    if (raw === 'buka' || raw === 'terisi' || raw === 'penuh') return 'buka';
+    const raw = (monthlyItem.status || '').trim().toUpperCase();
+    if (raw === 'CUTI') return 'cuti';
+    if (raw === 'CLOSED' || raw === 'TUTUP') return 'tutup';
+    if (raw === 'OPEN' || raw === 'BUKA' || raw === 'OCCUPIED' || raw === 'TERISI') return 'buka';
     return 'tutup';
   }
 
-  // 3. Jika hari tidak memiliki jadwal pada data backend, status mutlak Tutup (tanpa fallback Buka)
+  // 3. Jika monthly_schedule belum ada / belum ter-load (misal dari card list sebelum detail query selesai):
+  // Cek apakah data dokter atau sesi harian menyatakan dokter buka / praktik
+  if (!doctor.monthly_schedule || doctor.monthly_schedule.length === 0) {
+    if (
+      doctor.sesi_harian &&
+      doctor.sesi_harian.some(
+        (s) =>
+          (s.status_sesi || '').toUpperCase() === 'OPEN' ||
+          (s.status_sesi || '').toUpperCase() === 'BUKA' ||
+          (s.status_sesi || '').toUpperCase() === 'OCCUPIED'
+      )
+    ) {
+      return 'buka';
+    }
+
+    const rawDocStatus = (doctor.status_dokter || '').trim().toUpperCase();
+    if (
+      rawDocStatus === 'OPEN' ||
+      rawDocStatus === 'BUKA' ||
+      rawDocStatus === 'TERISI' ||
+      rawDocStatus === 'OCCUPIED'
+    ) {
+      return 'buka';
+    }
+  }
+
+  // 4. Jika hari tidak memiliki jadwal pada data backend, status mutlak Tutup (tanpa fallback Buka)
   return 'tutup';
 }
-

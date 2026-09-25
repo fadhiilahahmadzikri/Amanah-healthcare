@@ -7,5 +7,10 @@ export const doctorScheduleKeys = {
   details: () => [...doctorScheduleKeys.all, 'detail'] as const,
   detail: (id: string, params: DoctorScheduleDetailParams = {}) =>
     [...doctorScheduleKeys.details(), id, params] as const,
-  filterOptions: () => [...doctorScheduleKeys.all, 'filter-options'] as const
+  filterOptions: () => [...doctorScheduleKeys.all, 'filter-options'] as const,
+  sessionPatients: (
+    doctorId: string,
+    sessionId: string,
+    filters: { status?: string; search?: string } = {}
+  ) => [...doctorScheduleKeys.all, 'session-patients', doctorId, sessionId, filters] as const
 };

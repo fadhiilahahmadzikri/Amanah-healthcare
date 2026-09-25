@@ -12,6 +12,7 @@ import {
 } from '../api/mutations';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { getDoctorCardStatus } from './doctor-schedule-card';
 import type { DoctorSchedule, ScheduleDayStatus } from '../api/types';
 
 export interface DoctorScheduleDetailModalProps {
@@ -32,7 +33,8 @@ export function DoctorScheduleDetailModal({
 
   if (!doctor) return null;
 
-  const doctorStatusConfig = getStatusConfig(doctor.status_dokter);
+  const doctorStatus = getDoctorCardStatus(doctor);
+  const doctorStatusConfig = getStatusConfig(doctorStatus);
 
   const initials = doctor.nama_dokter
     .replace('dr. ', '')
@@ -193,8 +195,10 @@ export function DoctorScheduleDetailModal({
 
           <div className='grid grid-cols-1 sm:grid-cols-3 gap-2.5'>
             {(doctor.sesi_harian || []).map((sesi) => {
-              const isBuka = sesi.status_sesi === 'Buka';
-              const isPenuh = sesi.status_sesi === 'Penuh';
+              const upperStatus = (sesi.status_sesi || '').toUpperCase();
+              const isClosed = upperStatus === 'CLOSED';
+              const isOccupied = upperStatus === 'OCCUPIED';
+              const statusLabel = isClosed ? 'Tutup' : isOccupied ? 'Terisi' : 'Buka';
 
               return (
                 <div
@@ -206,16 +210,15 @@ export function DoctorScheduleDetailModal({
                     <span
                       className={cn(
                         'text-[9.5px] font-bold px-1.5 py-0.5 rounded-full border',
-                        isBuka &&
+                        !isClosed &&
+                          !isOccupied &&
                           'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
-                        isPenuh &&
-                          'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30',
-                        !isBuka &&
-                          !isPenuh &&
-                          'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30'
+                        isOccupied &&
+                          'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30',
+                        isClosed && 'bg-muted/40 text-muted-foreground border-border/60'
                       )}
                     >
-                      {sesi.status_sesi}
+                      {statusLabel}
                     </span>
                   </div>
                   <div className='text-[11px] font-mono text-muted-foreground font-semibold'>

@@ -16,32 +16,45 @@ interface DoctorCalendarGridProps {
   readOnly?: boolean;
 }
 
-function getStatusPillClasses(status: ScheduleDayStatus): string {
-  switch (status) {
-    case 'Buka':
-      return 'bg-success-subtle text-success border-success-border';
-    case 'Penuh':
-      return 'bg-warning-subtle text-warning border-warning-border';
-    case 'Tutup':
-      return 'bg-muted/40 text-muted-foreground border-border/60';
-    case 'Cuti':
-    default:
-      return 'bg-info-subtle text-info border-info-border';
+function getStatusPillClasses(status: ScheduleDayStatus, badgeVariant?: string): string {
+  if (badgeVariant === 'success')
+    return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30';
+  if (badgeVariant === 'danger')
+    return 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/30';
+  if (badgeVariant === 'warning')
+    return 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30';
+  if (badgeVariant === 'neutral') return 'bg-muted/40 text-muted-foreground border-border/60';
+
+  const upper = (status || '').toUpperCase();
+  if (upper === 'OPEN' || upper === 'BUKA') {
+    return 'bg-success-subtle text-success border-success-border';
   }
+  if (upper === 'OCCUPIED' || upper === 'TERISI') {
+    return 'bg-warning-subtle text-warning border-warning-border';
+  }
+  if (upper === 'CUTI') {
+    return 'bg-info-subtle text-info border-info-border';
+  }
+  return 'bg-muted/40 text-muted-foreground border-border/60';
 }
 
-function getStatusDot(status: ScheduleDayStatus): string {
-  switch (status) {
-    case 'Buka':
-      return 'bg-success';
-    case 'Penuh':
-      return 'bg-warning';
-    case 'Tutup':
-      return 'bg-muted-foreground/40';
-    case 'Cuti':
-    default:
-      return 'bg-info';
+function getStatusDot(status: ScheduleDayStatus, badgeVariant?: string): string {
+  if (badgeVariant === 'success') return 'bg-emerald-500';
+  if (badgeVariant === 'danger') return 'bg-rose-500';
+  if (badgeVariant === 'warning') return 'bg-amber-500';
+  if (badgeVariant === 'neutral') return 'bg-muted-foreground/40';
+
+  const upper = (status || '').toUpperCase();
+  if (upper === 'OPEN' || upper === 'BUKA') {
+    return 'bg-success';
   }
+  if (upper === 'OCCUPIED' || upper === 'TERISI') {
+    return 'bg-warning';
+  }
+  if (upper === 'CUTI') {
+    return 'bg-info';
+  }
+  return 'bg-muted-foreground/40';
 }
 
 export function DoctorCalendarGrid({
@@ -76,7 +89,7 @@ export function DoctorCalendarGrid({
     return Array.from({ length: totalDays }, (_, i) => ({
       day: i + 1,
       date: `${year}-${monthStr}-${String(i + 1).padStart(2, '0')}`,
-      status: 'Tutup' as ScheduleDayStatus
+      status: 'CLOSED' as ScheduleDayStatus
     }));
   }, [days]);
 
@@ -101,10 +114,15 @@ export function DoctorCalendarGrid({
 
         {/* Dynamic Calendar Days */}
         {safeDays.map((item) => {
-          const dotColor = getStatusDot(item.status);
+          const badgeVariant =
+            'badgeVariant' in item &&
+            typeof (item as { badgeVariant?: unknown }).badgeVariant === 'string'
+              ? (item as { badgeVariant: string }).badgeVariant
+              : undefined;
+          const dotColor = getStatusDot(item.status, badgeVariant);
           const cellClasses = cn(
             'h-10 rounded-lg border p-1 flex flex-col justify-between items-center transition-all text-xs',
-            getStatusPillClasses(item.status),
+            getStatusPillClasses(item.status, badgeVariant),
             !readOnly && 'hover:border-primary/50 hover:shadow-xs cursor-pointer'
           );
 
@@ -133,15 +151,20 @@ export function DoctorCalendarGrid({
                 <div className='px-2 py-1 text-[10px] font-semibold text-muted-foreground'>
                   Set status tanggal {item.day}:
                 </div>
-                {(['Buka', 'Tutup'] as const).map((st) => {
+                {[
+                  { value: 'OPEN' as const, label: 'Buka' },
+                  { value: 'CLOSED' as const, label: 'Tutup' }
+                ].map((opt) => {
+                  const upperStatus = (item.status || '').toUpperCase();
+                  const isMatch = upperStatus === opt.value;
                   return (
                     <DropdownMenuItem
-                      key={st}
-                      onClick={() => onSelectDayStatus?.(item.day, st)}
+                      key={opt.value}
+                      onClick={() => onSelectDayStatus?.(item.day, opt.value as ScheduleDayStatus)}
                       className='text-xs font-medium cursor-pointer'
                     >
-                      <span className='mr-1.5'>{st}</span>
-                      {item.status === st && <span className='text-primary ml-auto'>✓</span>}
+                      <span className='mr-1.5'>{opt.label}</span>
+                      {isMatch && <span className='text-primary ml-auto'>✓</span>}
                     </DropdownMenuItem>
                   );
                 })}

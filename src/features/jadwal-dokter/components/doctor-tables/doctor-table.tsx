@@ -9,7 +9,7 @@ import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
 import { doctorScheduleQueryOptions } from '../../api/queries';
 import { getColumns } from './columns';
 import { DoctorScheduleDetailModal } from '../doctor-schedule-detail-modal';
-import { DoctorScheduleEditModal } from '../doctor-schedule-edit-modal';
+import { DoctorRescheduleSessionModal } from '../doctor-reschedule-session-modal';
 import { DoctorExportButton } from '../doctor-export-button';
 import type { DoctorSchedule } from '../../api/types';
 
@@ -82,8 +82,9 @@ export function DoctorScheduleTable() {
         }}
       />
 
-      <DoctorScheduleEditModal
+      <DoctorRescheduleSessionModal
         doctor={selectedDoctor}
+        session={selectedDoctor?.sesi_harian?.[0] || null}
         isOpen={editOpen}
         onClose={() => setEditOpen(false)}
       />

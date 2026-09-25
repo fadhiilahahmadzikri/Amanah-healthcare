@@ -5,7 +5,11 @@ import {
   getDoctorScheduleFilterOptions,
   getClinicRooms,
   getDoctorOccupancyOverview,
-  checkRescheduleEligibility
+  checkRescheduleEligibility,
+  getSessionPatients,
+  getScheduleProjection,
+  getScheduleReferenceOptions,
+  getScheduleContexts
 } from './service';
 import { doctorScheduleKeys } from './query-keys';
 import type { DoctorScheduleDetailParams, DoctorScheduleFilters } from './types';
@@ -54,10 +58,24 @@ export const doctorOccupancyOverviewQueryOptions = (params: {
   date: string;
   staffId: string;
   roomId?: string;
-  existingSessions?: { jam_mulai: string; jam_selesai: string; nama_sesi?: string; id?: string; status_sesi?: string; slot_tersedia?: number }[];
+  existingSessions?: {
+    jam_mulai: string;
+    jam_selesai: string;
+    nama_sesi?: string;
+    id?: string;
+    status_sesi?: string;
+    slot_tersedia?: number;
+  }[];
 }) =>
   queryOptions({
-    queryKey: ['schedules', 'occupancy-overview', params.date, params.staffId, params.roomId, params.existingSessions] as const,
+    queryKey: [
+      'schedules',
+      'occupancy-overview',
+      params.date,
+      params.staffId,
+      params.roomId,
+      params.existingSessions
+    ] as const,
     queryFn: () => getDoctorOccupancyOverview(params),
     staleTime: 10 * 1000,
     gcTime: 5 * 60 * 1000,
@@ -80,6 +98,49 @@ export const rescheduleEligibilityQueryOptions = (
     enabled: Boolean(id && sessionId && params?.targetDate && params?.targetStartTime)
   });
 
+export const sessionPatientsQueryOptions = (
+  doctorId: string,
+  sessionId: string,
+  filters: { status?: string; search?: string } = {}
+) =>
+  queryOptions({
+    queryKey: doctorScheduleKeys.sessionPatients(doctorId, sessionId, filters),
+    queryFn: () => getSessionPatients(doctorId, sessionId, filters),
+    staleTime: 5 * 1000,
+    enabled: Boolean(doctorId && sessionId)
+  });
+
+export const scheduleProjectionQueryOptions = (params: {
+  scheduleContextId?: string;
+  startTime?: string;
+  endTime?: string;
+  practitionerId?: string;
+  shift?: string;
+  date?: string;
+  slotsCount?: number;
+  fillShift?: boolean;
+}) =>
+  queryOptions({
+    queryKey: ['schedules', 'projection', params] as const,
+    queryFn: () => getScheduleProjection(params),
+    staleTime: 60 * 1000,
+    enabled: Boolean(params.startTime || params.shift || params.scheduleContextId)
+  });
+
+export const scheduleReferenceOptionsQueryOptions = () =>
+  queryOptions({
+    queryKey: ['schedules', 'reference-options'] as const,
+    queryFn: () => getScheduleReferenceOptions(),
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000
+  });
+
+export const scheduleContextsQueryOptions = (date?: string) =>
+  queryOptions({
+    queryKey: ['schedules', 'contexts', date] as const,
+    queryFn: () => getScheduleContexts(date),
+    staleTime: 60 * 1000,
+    gcTime: 5 * 60 * 1000
+  });
+
 export { doctorScheduleKeys };
-
-
