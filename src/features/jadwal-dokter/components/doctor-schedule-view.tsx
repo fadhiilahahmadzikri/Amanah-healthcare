@@ -116,6 +116,11 @@ export function DoctorScheduleView() {
                         <DoctorScheduleCard
                           key={doctor.id}
                           doctor={doctor}
+                          date={
+                            scheduleView.dateFilter
+                              ? scheduleView.dateFilter.toISOString().split('T')[0]
+                              : undefined
+                          }
                           onOpenDetail={scheduleView.actions.openDetail}
                           onOpenEdit={scheduleView.actions.openEdit}
                           onOpenReschedule={scheduleView.actions.openReschedule}

@@ -2,11 +2,13 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import { useQuery } from '@tanstack/react-query';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
+import { doctorScheduleDetailQueryOptions } from '../api/queries';
 import type { DoctorSchedule, DoctorDailySession } from '../api/types';
 
 // ============================================================================
@@ -175,6 +177,103 @@ export interface UpcomingScheduleResult {
   activeTime?: string;
   upcomingTime?: string;
   hasActive?: boolean;
+  isActiveClosed?: boolean;
+}
+
+export function isSlotClosed(slot: {
+  status?: string | null;
+  availabilityState?: string | null;
+  effectiveStatus?: string | null;
+  uiStatus?: string | null;
+  closure?: unknown;
+  closureInfo?: unknown;
+  closedReason?: string | null;
+}): boolean {
+  const status = (slot.status || '').toUpperCase();
+  const avail = (slot.availabilityState || '').toUpperCase();
+  const eff = (slot.effectiveStatus || '').toUpperCase();
+  const ui = (slot.uiStatus || '').toUpperCase();
+  return (
+    status === 'CLOSED' ||
+    status === 'CLOSED_LEAVE' ||
+    status === 'TUTUP' ||
+    avail === 'CLOSED' ||
+    eff === 'CLOSED' ||
+    ui.startsWith('CLOSED') ||
+    Boolean(slot.closure) ||
+    Boolean(slot.closureInfo) ||
+    Boolean(slot.closedReason)
+  );
+}
+
+export function isSlotAvailable(slot: {
+  isAvailable?: boolean;
+  status?: string | null;
+  availabilityState?: string | null;
+  effectiveStatus?: string | null;
+  isOccupied?: boolean;
+}): boolean {
+  if (slot.isOccupied) return false;
+  if (typeof slot.isAvailable === 'boolean') return slot.isAvailable;
+  const status = (slot.status || '').toUpperCase();
+  const avail = (slot.availabilityState || '').toUpperCase();
+  const eff = (slot.effectiveStatus || '').toUpperCase();
+  return (
+    status === 'AVAILABLE' ||
+    status === 'OPEN' ||
+    status === 'BUKA' ||
+    avail === 'AVAILABLE' ||
+    eff === 'AVAILABLE'
+  );
+}
+
+export function formatUpcomingFallback(text?: string): string | undefined {
+  if (!text || text.trim() === '' || text === 'Belum diatur' || text === 'Tidak Ada Jadwal') {
+    return undefined;
+  }
+  const match = text.match(/(\d{1,2})[:.](\d{2})\s*-\s*(\d{1,2})[:.](\d{2})/);
+  if (match) {
+    const startH = Number.parseInt(match[1], 10);
+    const startM = Number.parseInt(match[2], 10);
+    const totalStartMin = startH * 60 + startM;
+    const totalEndMin = totalStartMin + 30;
+    const sTime = `${String(Math.floor(totalStartMin / 60)).padStart(2, '0')}.${String(totalStartMin % 60).padStart(2, '0')}`;
+    const eTime = `${String(Math.floor(totalEndMin / 60)).padStart(2, '0')}.${String(totalEndMin % 60).padStart(2, '0')}`;
+    return `${sTime} – ${eTime}`;
+  }
+  return text.replace(/:/g, '.');
+}
+
+export function parseDateToIso(dateStr?: string): string | undefined {
+  if (!dateStr) return undefined;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+  const MONTHS: Record<string, string> = {
+    jan: '01',
+    feb: '02',
+    mar: '03',
+    apr: '04',
+    mei: '05',
+    may: '05',
+    jun: '06',
+    jul: '07',
+    agu: '08',
+    aug: '08',
+    sep: '09',
+    okt: '10',
+    oct: '10',
+    nov: '11',
+    des: '12',
+    dec: '12'
+  };
+  const match = dateStr.match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/);
+  if (match) {
+    const day = match[1].padStart(2, '0');
+    const monthKey = match[2].toLowerCase().slice(0, 3);
+    const month = MONTHS[monthKey] || '01';
+    const year = match[3];
+    return `${year}-${month}-${day}`;
+  }
+  return undefined;
 }
 
 export function getUpcomingScheduleTime(
@@ -191,35 +290,31 @@ export function getUpcomingScheduleTime(
     startTime: string;
     endTime: string;
     isAvailable: boolean;
-    isOpen?: boolean;
+    isOpen: boolean;
     sessionName?: string;
   }> = [];
 
   if (doctor?.shifts && doctor.shifts.length > 0) {
     for (const shift of doctor.shifts) {
       for (const slot of shift.slots) {
+        const closed = isSlotClosed(slot);
         allSlots.push({
           startTime: slot.startTime,
           endTime: slot.endTime,
-          isAvailable:
-            slot.isAvailable ??
-            (slot.effectiveStatus === 'AVAILABLE' || slot.status === 'AVAILABLE'),
-          isOpen: slot.status !== 'CLOSED' && slot.status !== 'CLOSED_LEAVE',
+          isAvailable: !closed && isSlotAvailable(slot),
+          isOpen: !closed,
           sessionName: shift.contextLabel
         });
       }
     }
   } else if (doctor?.timeline_intervals && doctor.timeline_intervals.length > 0) {
     for (const it of doctor.timeline_intervals) {
+      const closed = isSlotClosed(it);
       allSlots.push({
         startTime: it.startTime,
         endTime: it.endTime,
-        isAvailable:
-          !it.isOccupied &&
-          (it.status === 'AVAILABLE' ||
-            it.status === 'OPEN' ||
-            it.availabilityState === 'AVAILABLE'),
-        isOpen: it.status !== 'CLOSED' && it.status !== 'CLOSED_LEAVE'
+        isAvailable: !closed && isSlotAvailable(it),
+        isOpen: !closed
       });
     }
   } else if (sessions && sessions.length > 0) {
@@ -250,28 +345,30 @@ export function getUpcomingScheduleTime(
   // Check if there is an active slot or session right now
   let activeTime: string | undefined;
   let hasActive = false;
+  let isActiveClosed = false;
 
-  const activeSlot = allSlots.find(
+  const currentMatchingSlot = allSlots.find(
     (slot) =>
       parseTimeToMinutes(slot.startTime) <= currentMinutes &&
-      parseTimeToMinutes(slot.endTime) > currentMinutes &&
-      slot.isOpen !== false
+      parseTimeToMinutes(slot.endTime) > currentMinutes
   );
 
-  if (activeSlot) {
+  if (currentMatchingSlot) {
     hasActive = true;
-    activeTime = `${activeSlot.startTime.replace(':', '.')} – ${activeSlot.endTime.replace(':', '.')}`;
-  } else if (sessions && sessions.length > 0) {
+    activeTime = `${currentMatchingSlot.startTime.replace(':', '.')} – ${currentMatchingSlot.endTime.replace(':', '.')}`;
+    isActiveClosed = !currentMatchingSlot.isOpen || !currentMatchingSlot.isAvailable;
+  } else if (sessions && sessions.length > 0 && allSlots.length === 0) {
     const activeSession = sessions.find(
       (s) =>
         parseTimeToMinutes(s.jam_mulai) <= currentMinutes &&
-        parseTimeToMinutes(s.jam_selesai) > currentMinutes &&
-        s.status_sesi?.toUpperCase() !== 'CLOSED' &&
-        s.status_sesi?.toUpperCase() !== 'TUTUP' &&
-        s.status_sesi?.toUpperCase() !== 'CUTI'
+        parseTimeToMinutes(s.jam_selesai) > currentMinutes
     );
     if (activeSession) {
       hasActive = true;
+      isActiveClosed =
+        activeSession.status_sesi?.toUpperCase() === 'CLOSED' ||
+        activeSession.status_sesi?.toUpperCase() === 'TUTUP' ||
+        activeSession.status_sesi?.toUpperCase() === 'CUTI';
       const sStart = parseTimeToMinutes(activeSession.jam_mulai);
       const offset = Math.floor((currentMinutes - sStart) / 30) * 30;
       const winStart = sStart + offset;
@@ -283,8 +380,12 @@ export function getUpcomingScheduleTime(
   }
 
   // Cari slot tersedia (hijau) di masa mendatang (lewat dari jam saat ini)
+  // Skip semua slot yang tutup atau tidak tersedia hingga menemukan slot terdekat berikutnya
   const futureAvailableSlot = allSlots.find(
-    (slot) => slot.isAvailable && parseTimeToMinutes(slot.startTime) > currentMinutes
+    (slot) =>
+      slot.isAvailable &&
+      slot.isOpen === true &&
+      parseTimeToMinutes(slot.startTime) > currentMinutes
   );
 
   if (futureAvailableSlot) {
@@ -296,12 +397,13 @@ export function getUpcomingScheduleTime(
       upcomingTime: formattedUpcoming,
       sessionName: futureAvailableSlot.sessionName,
       activeTime,
-      hasActive
+      hasActive,
+      isActiveClosed
     };
   }
 
   // Jika hari ini sudah tidak ada slot di masa depan, gunakan slot pertama yang tersedia pada siklus jadwal
-  const firstAvailableSlot = allSlots.find((slot) => slot.isAvailable);
+  const firstAvailableSlot = allSlots.find((slot) => slot.isAvailable && slot.isOpen === true);
   if (firstAvailableSlot) {
     const sTime = firstAvailableSlot.startTime.replace(':', '.');
     const eTime = firstAvailableSlot.endTime.replace(':', '.');
@@ -311,14 +413,25 @@ export function getUpcomingScheduleTime(
       upcomingTime: formattedUpcoming,
       sessionName: firstAvailableSlot.sessionName,
       activeTime,
-      hasActive
+      hasActive,
+      isActiveClosed
     };
   }
 
-  // Fallback: Jika ada sesi, ambil 30 menit pertama dari sesi mendatang
+  // Fallback: Jika ada sesi, ambil 30 menit pertama dari sesi mendatang yang buka
   if (sessions && sessions.length > 0) {
     const upcomingSession =
-      sessions.find((s) => parseTimeToMinutes(s.jam_mulai) > currentMinutes) || sessions[0];
+      sessions.find(
+        (s) =>
+          parseTimeToMinutes(s.jam_mulai) > currentMinutes &&
+          s.status_sesi?.toUpperCase() !== 'CLOSED' &&
+          s.status_sesi?.toUpperCase() !== 'TUTUP'
+      ) ||
+      sessions.find(
+        (s) => s.status_sesi?.toUpperCase() !== 'CLOSED' && s.status_sesi?.toUpperCase() !== 'TUTUP'
+      ) ||
+      sessions[0];
+
     if (upcomingSession) {
       const sMin = parseTimeToMinutes(upcomingSession.jam_mulai);
       const eMin = sMin + 30;
@@ -330,7 +443,8 @@ export function getUpcomingScheduleTime(
         upcomingTime: formattedUpcoming,
         sessionName: upcomingSession.nama_sesi,
         activeTime,
-        hasActive
+        hasActive,
+        isActiveClosed
       };
     }
   }
@@ -348,7 +462,8 @@ export function getUpcomingScheduleTime(
         labelTime: formattedUpcoming,
         upcomingTime: formattedUpcoming,
         activeTime,
-        hasActive
+        hasActive,
+        isActiveClosed
       };
     }
     const cleanTime = scheduleTime.replace(/:/g, '.');
@@ -356,7 +471,8 @@ export function getUpcomingScheduleTime(
       labelTime: cleanTime,
       upcomingTime: cleanTime,
       activeTime,
-      hasActive
+      hasActive,
+      isActiveClosed
     };
   }
 
@@ -364,7 +480,8 @@ export function getUpcomingScheduleTime(
     labelTime: 'Belum diatur',
     upcomingTime: 'Belum diatur',
     activeTime,
-    hasActive
+    hasActive,
+    isActiveClosed
   };
 }
 
@@ -392,12 +509,10 @@ export function DoctorScheduleStats({
   doctor,
   className
 }: DoctorScheduleStatsProps) {
-  const { labelTime, activeTime, upcomingTime, hasActive } = getUpcomingScheduleTime(
-    scheduleTime,
-    sessions,
-    doctor
-  );
-  const resolvedUpcoming = upcomingScheduleTime || upcomingTime || labelTime || 'Belum diatur';
+  const { labelTime, activeTime, upcomingTime, hasActive, isActiveClosed } =
+    getUpcomingScheduleTime(scheduleTime, sessions, doctor);
+  const resolvedUpcoming =
+    upcomingTime || labelTime || formatUpcomingFallback(upcomingScheduleTime) || 'Belum diatur';
 
   // Capacity / Slot calculation: [pasien booking]/[total slot yang dijadwalkan]
   const effectiveTotal =
@@ -424,12 +539,19 @@ export function DoctorScheduleStats({
           className
         )}
       >
-        {/* Kolom 1: Sedang Aktif */}
+        {/* Kolom 1: Sedang Aktif / Tutup */}
         <div className='flex flex-col min-w-0'>
-          <div className='flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400'>
-            <span className='size-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0' />
-            <span className='truncate'>Sedang Aktif</span>
-          </div>
+          {isActiveClosed ? (
+            <div className='flex items-center gap-1.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400'>
+              <span className='size-1.5 rounded-full bg-rose-500 shrink-0' />
+              <span className='truncate'>Tutup</span>
+            </div>
+          ) : (
+            <div className='flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400'>
+              <span className='size-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0' />
+              <span className='truncate'>Sedang Aktif</span>
+            </div>
+          )}
           <span className='font-bold text-foreground font-mono mt-1 text-[13px] sm:text-[13.5px] tracking-tight truncate'>
             {activeTime}
           </span>
@@ -585,6 +707,7 @@ export function DoctorCardActions({
 
 export interface DoctorScheduleCardProps {
   doctor: DoctorSchedule;
+  date?: string;
   onOpenDetail?: (doctor: DoctorSchedule) => void;
   onOpenEdit?: (doctor: DoctorSchedule) => void;
   onOpenReschedule?: (doctor: DoctorSchedule) => void;
@@ -634,6 +757,7 @@ export function getDoctorCardStatus(
 
 export function DoctorScheduleCard({
   doctor,
+  date,
   onOpenDetail,
   onOpenEdit,
   onOpenReschedule,
@@ -644,7 +768,15 @@ export function DoctorScheduleCard({
   showStats = true,
   className
 }: DoctorScheduleCardProps) {
-  const statusLabel = getDoctorCardStatus(doctor);
+  const detailQuery = useQuery({
+    ...doctorScheduleDetailQueryOptions(doctor.id, {
+      date: date || parseDateToIso(doctor.tanggal_praktik)
+    }),
+    enabled: Boolean(!doctor.timeline_intervals && !doctor.shifts && doctor.id)
+  });
+  const effectiveDoctor = detailQuery.data ? { ...doctor, ...detailQuery.data } : doctor;
+
+  const statusLabel = getDoctorCardStatus(effectiveDoctor);
   const isCuti = statusLabel === 'Cuti';
   const isUnconfigured = statusLabel === 'Belum Diatur';
   const isTutup = statusLabel === 'Tutup';
@@ -758,13 +890,13 @@ export function DoctorScheduleCard({
           />
         ) : (
           <DoctorScheduleStats
-            scheduleTime={doctor.jadwal_hari_ini || 'Belum diatur'}
-            availableSlots={doctor.slot_tersedia}
-            totalCapacity={doctor.kapasitas_per_hari}
-            displaySlot={doctor.display_akumulasi_slot}
-            upcomingScheduleTime={doctor.jadwal_praktik_mendatang}
-            sessions={doctor.sesi_harian}
-            doctor={doctor}
+            scheduleTime={effectiveDoctor.jadwal_hari_ini || 'Belum diatur'}
+            availableSlots={effectiveDoctor.slot_tersedia}
+            totalCapacity={effectiveDoctor.kapasitas_per_hari}
+            displaySlot={effectiveDoctor.display_akumulasi_slot}
+            upcomingScheduleTime={effectiveDoctor.jadwal_praktik_mendatang}
+            sessions={effectiveDoctor.sesi_harian}
+            doctor={effectiveDoctor}
           />
         ))}
 

@@ -1,6 +1,13 @@
 param (
   [string]$BaseUrl = "http://localhost:3001/api/v1"
-)
+) Bash($adminLogin = Invoke-RestMethod -Uri
+"http://localhost:3001/api/v1/auth/email/login" -Method Post -Body (@{
+email = "admin@amanah.com"; password = "secret123" } | ConvertTo-Json) -
+ContentType "application/json"
+$adminToken = $adminLogin.token
+$res = Invoke-RestMethod -Uri "http://localhost:3001/api/v1/admin/doctor-
+schedules/c518facb-372e-4f07-9766-f3eacf54221f?month=2026-09&date=2026-09-
+26" -Headers @{ Authorization = "Bearer $adminToken" }
 
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "   AMANAH HEALTHCARE - SCHEDULES CONTRACT TEST SUITE     " -ForegroundColor Cyan

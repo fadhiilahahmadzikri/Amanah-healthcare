@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   getDoctorCardStatus,
   getUpcomingScheduleTime,
-  hasConfiguredDoctorSchedule
+  hasConfiguredDoctorSchedule,
+  isSlotClosed,
+  formatUpcomingFallback,
+  parseDateToIso
 } from './doctor-schedule-card';
 import type { DoctorSchedule } from '../api/types';
 
@@ -133,5 +136,120 @@ describe('DoctorScheduleCard Logic & Status Contracts', () => {
     expect(result.hasActive).toBe(true);
     expect(result.activeTime).toBeDefined();
     expect(result.upcomingTime).toBeDefined();
+  });
+
+  it('detects closed slots with backend contract fields', () => {
+    expect(isSlotClosed({ status: 'CLOSED' })).toBe(true);
+    expect(isSlotClosed({ availabilityState: 'CLOSED' })).toBe(true);
+    expect(isSlotClosed({ effectiveStatus: 'CLOSED' })).toBe(true);
+    expect(isSlotClosed({ uiStatus: 'CLOSED_CLINIC' })).toBe(true);
+    expect(isSlotClosed({ closureInfo: { category: 'OTHER' } })).toBe(true);
+    expect(isSlotClosed({ closedReason: 'SCHEDULE_CLOSED' })).toBe(true);
+    expect(isSlotClosed({ status: 'OPEN', availabilityState: 'AVAILABLE' })).toBe(false);
+  });
+
+  it('correctly marks current closed slot as isActiveClosed and skips it for upcoming slot', () => {
+    const doctorWithClosedCurrentSlot: DoctorSchedule = {
+      ...baseDoctor,
+      timeline_intervals: [
+        {
+          startTime: '10:30',
+          endTime: '11:00',
+          availabilityState: 'AVAILABLE',
+          status: 'OPEN',
+          effectiveStatus: 'AVAILABLE'
+        },
+        {
+          startTime: '11:00',
+          endTime: '11:30',
+          availabilityState: 'CLOSED',
+          status: 'CLOSED',
+          effectiveStatus: 'CLOSED',
+          uiStatus: 'CLOSED_CLINIC',
+          closureInfo: { reasonText: 'Rapat Koordinasi Komite Medik' }
+        },
+        {
+          startTime: '11:30',
+          endTime: '12:00',
+          availabilityState: 'AVAILABLE',
+          status: 'OPEN',
+          effectiveStatus: 'AVAILABLE'
+        }
+      ]
+    };
+
+    // Simulate current time: 11:10 (within 11:00 - 11:30)
+    const fixedAtElevenTen = new Date('2026-09-26T11:10:00');
+    const result = getUpcomingScheduleTime(
+      '10:30 - 12:00',
+      undefined,
+      doctorWithClosedCurrentSlot,
+      fixedAtElevenTen
+    );
+
+    expect(result.hasActive).toBe(true);
+    expect(result.isActiveClosed).toBe(true); // Closed slot is NOT marked active green
+    expect(result.activeTime).toBe('11.00 – 11.30');
+    expect(result.upcomingTime).toBe('11.30 – 12.00'); // Successfully skipped 11:00-11:30
+  });
+
+  it('skips multiple closed slots sequentially (the riddle) to find nearest available upcoming slot', () => {
+    const doctorWithMultipleClosedSlots: DoctorSchedule = {
+      ...baseDoctor,
+      timeline_intervals: [
+        {
+          startTime: '11:00',
+          endTime: '11:30',
+          availabilityState: 'CLOSED',
+          uiStatus: 'CLOSED_CLINIC'
+        },
+        {
+          startTime: '11:30',
+          endTime: '12:00',
+          availabilityState: 'CLOSED',
+          uiStatus: 'CLOSED_CLINIC'
+        },
+        {
+          startTime: '12:00',
+          endTime: '12:30',
+          availabilityState: 'CLOSED',
+          uiStatus: 'CLOSED_CLINIC'
+        },
+        {
+          startTime: '12:30',
+          endTime: '13:00',
+          availabilityState: 'AVAILABLE',
+          status: 'AVAILABLE'
+        }
+      ]
+    };
+
+    const fixedAtElevenTen = new Date('2026-09-26T11:10:00');
+    const result = getUpcomingScheduleTime(
+      '11:00 - 13:00',
+      undefined,
+      doctorWithMultipleClosedSlots,
+      fixedAtElevenTen
+    );
+
+    expect(result.hasActive).toBe(true);
+    expect(result.isActiveClosed).toBe(true);
+    expect(result.activeTime).toBe('11.00 – 11.30');
+    // It should skip 11:00-11:30, 11:30-12:00, and 12:00-12:30 to find 12:30-13:00
+    expect(result.upcomingTime).toBe('12.30 – 13.00');
+  });
+
+  it('formats upcoming fallback text from macro ranges to 30-min intervals', () => {
+    expect(formatUpcomingFallback('Pagi (06:00 - 12:00)')).toBe('06.00 – 06.30');
+    expect(formatUpcomingFallback('Siang (12:00 - 18:00) - Sedang Berlangsung')).toBe(
+      '12.00 – 12.30'
+    );
+    expect(formatUpcomingFallback('Belum diatur')).toBeUndefined();
+  });
+
+  it('parses Indonesian date strings to ISO format', () => {
+    expect(parseDateToIso('Sabtu, 26 Sep 2026')).toBe('2026-09-26');
+    expect(parseDateToIso('2026-09-26')).toBe('2026-09-26');
+    expect(parseDateToIso(undefined)).toBeUndefined();
   });
 });
