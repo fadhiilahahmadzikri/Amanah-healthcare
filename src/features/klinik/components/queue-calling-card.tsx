@@ -3,9 +3,9 @@
 import React from 'react';
 import { Icons } from '@/components/icons';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { QueueItem } from '../api/types';
-import { DoctorAvatar } from './doctor-avatar';
 import { cn } from '@/lib/utils';
 
 export interface QueueCallingCardProps {
@@ -16,6 +16,11 @@ export interface QueueCallingCardProps {
   timeRemaining?: string;
   bookingTime?: string;
   className?: string;
+  isActionLoading?: boolean;
+  onCall?: (item: QueueItem) => void;
+  onRespond?: (item: QueueItem) => void;
+  onNoShow?: (item: QueueItem) => void;
+  onComplete?: (item: QueueItem) => void;
 }
 
 export function QueueCallingCard({
@@ -25,7 +30,12 @@ export function QueueCallingCard({
   clinicRoomName,
   timeRemaining = '-',
   bookingTime,
-  className
+  className,
+  isActionLoading = false,
+  onCall,
+  onRespond,
+  onNoShow,
+  onComplete
 }: QueueCallingCardProps) {
   if (!callingItem) {
     return (
@@ -34,14 +44,46 @@ export function QueueCallingCard({
       >
         <div
           id='hero-front-card'
-          className='relative z-10 rounded-[22px] border border-border/50 bg-card text-card-foreground p-6 sm:p-7 shadow-none font-sans select-none flex flex-col justify-center flex-1 h-full min-h-0 overflow-hidden'
+          className='relative z-10 rounded-[22px] border border-border/50 bg-card text-card-foreground p-6 sm:p-7 shadow-none font-sans select-none flex flex-col justify-center items-center flex-1 h-full min-h-0 overflow-hidden'
         >
-          <EmptyState
-            icon={Icons.inbox}
-            title='Belum ada antrean dipanggil'
-            description='Pasien yang sedang dipanggil akan tampil di sini setelah antrean tersedia.'
-            className='h-full min-h-[360px] border-0 bg-transparent'
-          />
+          {nextItem ? (
+            <div className='flex flex-col items-center justify-center text-center p-6 space-y-4 max-w-sm'>
+              <div className='size-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center ring-4 ring-primary/5'>
+                <Icons.notification className='size-8 animate-pulse' />
+              </div>
+              <div className='space-y-1.5'>
+                <span className='text-[11px] font-bold uppercase tracking-wider text-primary'>
+                  Antrean Siap Dipanggil
+                </span>
+                <div className='text-4xl font-black text-foreground tracking-tight'>
+                  {nextItem.queue_number}
+                </div>
+                <h4 className='text-lg font-bold text-foreground truncate'>
+                  {nextItem.patient_name}
+                </h4>
+                <p className='text-xs text-muted-foreground'>
+                  {nextItem.poli} • {nextItem.doctor_name}
+                </p>
+              </div>
+              <Button
+                type='button'
+                variant='default'
+                disabled={isActionLoading}
+                onClick={() => onCall?.(nextItem)}
+                className='h-9 px-6 gap-2 rounded-xl text-xs font-bold shadow-xs cursor-pointer'
+              >
+                <Icons.refresh className={cn('size-3.5', isActionLoading && 'animate-spin')} />
+                <span>Panggil Antrean Ini</span>
+              </Button>
+            </div>
+          ) : (
+            <EmptyState
+              icon={Icons.inbox}
+              title='Belum ada antrean dipanggil'
+              description='Pasien yang sedang dipanggil akan tampil di sini setelah antrean tersedia.'
+              className='h-full min-h-[360px] border-0 bg-transparent'
+            />
+          )}
         </div>
       </div>
     );
@@ -51,7 +93,6 @@ export function QueueCallingCard({
   const patientName = callingItem.patient_name || '-';
   const queueNumber = callingItem.queue_number || '-';
   const calledTime = callingItem.called_time || callingItem.estimated_time || '-';
-  const patientAvatar = callingItem.patient_avatar || '';
   const roomName = callingItem.room || clinicRoomName || '-';
   const patientBookingTime = bookingTime || callingItem.estimated_time || calledTime || '-';
 
@@ -139,9 +180,14 @@ export function QueueCallingCard({
         {/* 2. Hero Calling Content (Avatar + Big Number + Name + Doctor) */}
         {!isFinished ? (
           <div className='relative z-10 flex flex-col sm:flex-row items-center sm:items-center gap-6 sm:gap-8 my-auto py-2'>
-            {/* Patient Avatar with Prominent Optical Scale & Refined Soft Ring */}
-            <div className='size-36 sm:size-44 lg:size-48 xl:size-52 min-w-[144px] sm:min-w-[176px] lg:min-w-[192px] xl:min-w-[208px] rounded-full overflow-hidden shrink-0 ring-4 sm:ring-8 ring-primary/10 bg-muted aspect-square'>
-              <DoctorAvatar name={patientName} avatarUrl={patientAvatar} size={208} />
+            {/* Patient Calling Identity Token (Zero Avatar) */}
+            <div className='size-36 sm:size-44 lg:size-48 xl:size-52 min-w-[144px] sm:min-w-[176px] lg:min-w-[192px] xl:min-w-[208px] rounded-3xl overflow-hidden shrink-0 ring-4 sm:ring-8 ring-primary/10 bg-primary/5 border border-primary/20 flex flex-col items-center justify-center aspect-square shadow-inner'>
+              <div className='size-14 sm:size-16 rounded-2xl bg-primary/15 text-primary flex items-center justify-center mb-2.5'>
+                <Icons.notification className='size-7 sm:size-8 animate-pulse' />
+              </div>
+              <span className='text-[11px] sm:text-xs font-bold uppercase tracking-wider text-primary/80'>
+                Panggilan Pasien
+              </span>
             </div>
 
             {/* Details */}
@@ -161,6 +207,68 @@ export function QueueCallingCard({
               <div className='pt-1 flex items-center justify-center sm:justify-start gap-1.5 text-xs sm:text-sm font-medium text-foreground whitespace-nowrap'>
                 <Icons.user className='size-4 text-primary shrink-0' strokeWidth={2} />
                 <span>{callingItem.doctor_name || '-'}</span>
+              </div>
+
+              {/* Action Buttons Bar for Clinic Staff */}
+              <div className='pt-3 flex flex-wrap items-center gap-2 justify-center sm:justify-start'>
+                <Button
+                  type='button'
+                  variant='outline'
+                  size='sm'
+                  disabled={
+                    isActionLoading ||
+                    (callingItem.call_count !== undefined && callingItem.call_count >= 3)
+                  }
+                  onClick={() => onCall?.(callingItem)}
+                  className='h-8 text-xs font-semibold px-2.5 sm:px-3 gap-1.5 rounded-xl border-primary/30 hover:bg-primary/5 hover:border-primary cursor-pointer'
+                  title='Panggil pasien kembali jika belum masuk (maksimal 3 kali)'
+                >
+                  <Icons.refresh className={cn('size-3.5', isActionLoading && 'animate-spin')} />
+                  <span>
+                    {callingItem.call_count
+                      ? `Panggil (${callingItem.call_count}/3)`
+                      : 'Panggil Ulang'}
+                  </span>
+                </Button>
+
+                <Button
+                  type='button'
+                  variant='default'
+                  size='sm'
+                  disabled={isActionLoading}
+                  onClick={() => onRespond?.(callingItem)}
+                  className='h-8 text-xs font-semibold px-3 gap-1.5 rounded-xl shadow-xs cursor-pointer'
+                  title='Konfirmasi kehadiran pasien dan mulai konsultasi'
+                >
+                  <Icons.userCheck className='size-3.5' />
+                  <span>Pasien Hadir</span>
+                </Button>
+
+                <Button
+                  type='button'
+                  variant='outline'
+                  size='sm'
+                  disabled={isActionLoading}
+                  onClick={() => onNoShow?.(callingItem)}
+                  className='h-8 text-xs font-semibold px-2.5 sm:px-3 gap-1.5 rounded-xl border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10 cursor-pointer'
+                  title='Pasien tidak merespons: geser antrean ke belakang (maksimal 3 kali, setelahnya status no-show)'
+                >
+                  <Icons.userX className='size-3.5' />
+                  <span>Tidak Merespons</span>
+                </Button>
+
+                <Button
+                  type='button'
+                  variant='outline'
+                  size='sm'
+                  disabled={isActionLoading}
+                  onClick={() => onComplete?.(callingItem)}
+                  className='h-8 text-xs font-semibold px-2.5 sm:px-3 gap-1.5 rounded-xl border-emerald-500/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 cursor-pointer'
+                  title='Selesaikan konsultasi dan tutup tiket antrean'
+                >
+                  <Icons.check className='size-3.5' />
+                  <span>Selesai Periksa</span>
+                </Button>
               </div>
             </div>
           </div>

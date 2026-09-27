@@ -118,7 +118,6 @@ export const SCHEDULE_RESCHEDULE_MESSAGES = {
   DEFAULT_CONFLICT: 'Terjadi bentrok jadwal atau ruangan sudah terpakai pada jam tersebut.'
 } as const;
 
-
 export const SCHEDULE_SHIFT_BOUNDARIES: Record<
   ScheduleShift,
   {

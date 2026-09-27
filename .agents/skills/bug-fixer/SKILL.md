@@ -506,12 +506,12 @@ When multiple causes are possible, create an internal hypothesis matrix.
 
 Example:
 
-| Hypothesis | Can Explain Symptom? | Evidence | Status |
-|---|---:|---|---|
-| React Query cache issue | Yes | UI updates before refresh | Investigating |
-| Wrong API payload | Yes | Contract mismatch suspected | Investigating |
-| Database failure | Possibly | Persistence missing | Investigating |
-| CSS rendering bug | No | Data disappears after reload | Rejected |
+| Hypothesis              | Can Explain Symptom? | Evidence                     | Status        |
+| ----------------------- | -------------------: | ---------------------------- | ------------- |
+| React Query cache issue |                  Yes | UI updates before refresh    | Investigating |
+| Wrong API payload       |                  Yes | Contract mismatch suspected  | Investigating |
+| Database failure        |             Possibly | Persistence missing          | Investigating |
+| CSS rendering bug       |                   No | Data disappears after reload | Rejected      |
 
 Do not modify the first plausible hypothesis.
 
@@ -752,11 +752,11 @@ Do not hide symptoms.
 Examples of weak fixes:
 
 ```ts
-setTimeout(() => retry(), 500)
+setTimeout(() => retry(), 500);
 ```
 
 ```ts
-if (!data) return previousData
+if (!data) return previousData;
 ```
 
 ```ts
@@ -766,7 +766,7 @@ catch {
 ```
 
 ```ts
-window.location.reload()
+window.location.reload();
 ```
 
 These may make the symptom disappear while leaving the root cause intact.

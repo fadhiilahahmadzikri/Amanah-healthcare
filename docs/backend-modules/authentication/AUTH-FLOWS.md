@@ -1,7 +1,7 @@
 # Diagram Alir & Siklus Autentikasi: Modul Authentication
 
 > **Standard:** Mermaid Diagrams (Sequence & Flowchart)  
-> **Source Evidence:** [`src/auth/auth.controller.ts`](file:///D:/Amanah-backend/src/auth/auth.controller.ts), [`src/auth/auth.service.ts`](file:///D:/Amanah-backend/src/auth/auth.service.ts), [`src/auth/better-auth/auth.ts`](file:///D:/Amanah-backend/src/auth/better-auth/auth.ts)  
+> **Source Evidence:** [`src/auth/auth.controller.ts`](file:///D:/Amanah-backend/src/auth/auth.controller.ts), [`src/auth/auth.service.ts`](file:///D:/Amanah-backend/src/auth/auth.service.ts), [`src/auth/better-auth/auth.ts`](file:///D:/Amanah-backend/src/auth/better-auth/auth.ts)
 
 ---
 

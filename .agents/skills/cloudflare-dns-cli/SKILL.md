@@ -11,14 +11,14 @@ interchangeable — pick based on what the record needs to point to.
 
 ## Decision: which method?
 
-| What the record needs to point to | Method |
-|---|---|
-| A Cloudflare Tunnel running locally (`cloudflared`) | **Method 1** — `cloudflared tunnel route dns` |
-| Anything else: a value handed to the user by a third-party service (Clerk, Resend, Vercel, Google Workspace, SendGrid, an SSL/verification TXT record, a plain A record to a VPS IP, etc.) | **Method 2** — Cloudflare API |
+| What the record needs to point to                                                                                                                                                          | Method                                        |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------- |
+| A Cloudflare Tunnel running locally (`cloudflared`)                                                                                                                                        | **Method 1** — `cloudflared tunnel route dns` |
+| Anything else: a value handed to the user by a third-party service (Clerk, Resend, Vercel, Google Workspace, SendGrid, an SSL/verification TXT record, a plain A record to a VPS IP, etc.) | **Method 2** — Cloudflare API                 |
 
 A very common mix-up: someone successfully used Method 1 to add subdomains in the
 past (e.g. for a homelab service or self-hosted app behind `cloudflared`), and
-assumes the same command can be reused for *any* new subdomain. It can't — Method 1's
+assumes the same command can be reused for _any_ new subdomain. It can't — Method 1's
 CNAME target is hardcoded to the tunnel's address. If a service (like Clerk) gives a
 specific Name + Value to add, that's always Method 2.
 
@@ -29,18 +29,21 @@ specific Name + Value to add, that's always Method 2.
 **Use only when** routing a hostname to a Cloudflare Tunnel the user runs with `cloudflared`.
 
 Prerequisites (one-time):
+
 - `cloudflared` installed
 - Authenticated once via `cloudflared tunnel login` (this writes a `cert.pem` used for
-  API calls made by the CLI itself — this is *how* it manages to touch DNS without the
+  API calls made by the CLI itself — this is _how_ it manages to touch DNS without the
   dashboard)
 - A tunnel already created: `cloudflared tunnel create <tunnel-name>`
 
 Command:
+
 ```bash
 cloudflared tunnel route dns <tunnel-name-or-uuid> <hostname>
 ```
 
 Example:
+
 ```bash
 cloudflared tunnel route dns my-tunnel app.autovoid.cyou
 ```
@@ -65,8 +68,8 @@ like Clerk production-domain CNAMEs.
 
 ### One-time setup
 
-1. **API Token** — dashboard.cloudflare.com → profile icon (top right) → *My Profile* →
-   *API Tokens* → *Create Token* → use the **"Edit zone DNS"** template → scope to the
+1. **API Token** — dashboard.cloudflare.com → profile icon (top right) → _My Profile_ →
+   _API Tokens_ → _Create Token_ → use the **"Edit zone DNS"** template → scope to the
    specific zone (domain).
 2. **Zone ID** — Cloudflare dashboard → select the domain → Overview page, right
    sidebar, under "API" → **Zone ID**. (Or resolve it via the API — see
@@ -78,6 +81,7 @@ like Clerk production-domain CNAMEs.
    ```
 
 ### List existing records
+
 ```bash
 curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records" \
   -H "Authorization: Bearer $CF_API_TOKEN" \
@@ -85,6 +89,7 @@ curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_recor
 ```
 
 ### Add a record
+
 ```bash
 curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records" \
   -H "Authorization: Bearer $CF_API_TOKEN" \
@@ -106,7 +111,9 @@ Cloudflare's proxy IP. The dashboard equivalent of `proxied: false` is the **gre
 only" cloud** — never the orange "Proxied" cloud — for these records.
 
 ### Update a record
+
 Get the record's `id` from the list call above, then:
+
 ```bash
 curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records/<record_id>" \
   -H "Authorization: Bearer $CF_API_TOKEN" \
@@ -115,6 +122,7 @@ curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_rec
 ```
 
 ### Delete a record
+
 ```bash
 curl -s -X DELETE "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records/<record_id>" \
   -H "Authorization: Bearer $CF_API_TOKEN"

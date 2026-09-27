@@ -118,7 +118,6 @@ import { unstable_rethrow } from 'next/navigation';
 
 async function action() {
   try {
-
     redirect('/success');
   } catch (error) {
     unstable_rethrow(error);
@@ -162,7 +161,6 @@ async function Page() {
 Create corresponding error pages:
 
 ```tsx
-
 export default function Forbidden() {
   return <div>You don't have access to this resource</div>;
 }

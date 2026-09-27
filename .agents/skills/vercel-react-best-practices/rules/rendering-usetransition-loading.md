@@ -49,7 +49,6 @@ function SearchResults() {
     setQuery(value);
 
     startTransition(async () => {
-
       const data = await fetchResults(value);
       setResults(data);
     });

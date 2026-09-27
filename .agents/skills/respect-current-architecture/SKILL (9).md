@@ -36,11 +36,11 @@ Then go deeper by hand, on the specific area you're about to touch:
 - If the repo uses barrel files (`index.ts` re-exporting a slice's public surface), check one or two to see whether other modules are expected to import through the barrel or reach into files directly — and follow whichever is standard, since mixing the two silently breaks the boundary the barrels exist to enforce.
 - Skim the root `tsconfig.json` for path aliases (e.g. `@/shared/*`) and use them the way neighboring files already do, instead of a fresh relative `../../../..` chain.
 
-If the repo is small, inconsistent, or genuinely has no established pattern for the thing you're building, say so. Propose the closest fit based on whatever convention *does* exist elsewhere in the repo, and flag it as an assumption rather than presenting it as "the" convention.
+If the repo is small, inconsistent, or genuinely has no established pattern for the thing you're building, say so. Propose the closest fit based on whatever convention _does_ exist elsewhere in the repo, and flag it as an assumption rather than presenting it as "the" convention.
 
 ## 2. Recognizing the architecture you find
 
-Two paradigms show up constantly in TypeScript/Next.js codebases, often combined. Treat both as things to *recognize when you see them*, not as a template to impose on a repo that does something else:
+Two paradigms show up constantly in TypeScript/Next.js codebases, often combined. Treat both as things to _recognize when you see them_, not as a template to impose on a repo that does something else:
 
 - **Feature-Sliced Design (FSD)** — layers code by business meaning: `app → pages → widgets → features → entities → shared`, where a layer may only import from layers strictly below it. See `references/fsd-primer.md` for the layer breakdown, segment conventions (`ui/`, `model/`, `api/`, `lib/`), and the import-boundary rules — read it when deciding which layer a new slice belongs in, or whether an import you're about to write would cross a boundary this repo enforces.
 - **Atomic Design** — layers UI by composition size: atoms → molecules → organisms → templates → pages. See `references/atomic-design-primer.md` for the level definitions, and — importantly — how real codebases usually fold this into FSD's `shared/ui` (atoms/molecules) plus `entities`/`widgets` (organisms), rather than keeping literal `atoms/`, `molecules/` folders. Check which flavor this specific repo uses before assuming literal folder names exist.

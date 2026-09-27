@@ -36,6 +36,7 @@
 ## 3. Search Coverage
 
 The investigation audited 100% of the relevant files in the doctor scheduling scope from start to finish:
+
 - `src/server/contracts/schedules/doctor-schedules.dto.ts` (Lines 1–189 of 189)
 - `src/server/api/paths.ts` (Lines 1–52 of 52)
 - `src/features/jadwal-dokter/index.ts` (Lines 1–3 of 3)
@@ -77,6 +78,7 @@ EXECUTIVE FINDING: DYNAMICIZATION CANDIDATES FOUND & CONTRACT MISALIGNMENT DETEC
 ```
 
 **Forensic Summary:**
+
 1. **Critical Source-of-Truth Drift:** Polyclinic lists are hardcoded in two separate files with conflicting entries (5 items in `constants/options.ts` vs 12 items in `config/doctor-schedule-filter-options.ts`), even though a backend API (`GET /admin/doctor-schedules/filter-options`) already exists.
 2. **Ambiguous & Deprecated Status Paradigms:** The frontend extensively hardcodes and branches upon `'Penuh'` (commercial airline bulk capacity paradigm) and treats `'Cuti'` as an ad-hoc master status, whereas the clinical domain operates on discrete consultation intervals (`OPEN` / `Buka`, `OCCUPIED` / `Terisi`, `CLOSED` / `Tutup`). The canonical status `OCCUPIED` (`Terisi`) is completely absent from frontend types, DTOs, and token systems.
 3. **Violations of Backend SSOT & Zero Client Arithmetic:** The frontend performs client-side synthetic session division (`SHIFTS` with 4 fixed 6-hour windows in `doctor-daily-hourly-grid.tsx` and `PRESET_SESSIONS` in `doctor-add-session-modal.tsx`), along with manual summation of quota and slots, bypassing the backend Schedule V2 serialized milestone projection engine (`timeline_intervals`).
@@ -87,23 +89,24 @@ EXECUTIVE FINDING: DYNAMICIZATION CANDIDATES FOUND & CONTRACT MISALIGNMENT DETEC
 
 ## 5. Candidate Inventory
 
-| ID | Concept | Source / File | Current Form | Classification | Ownership |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **HD-001** | Poliklinik Master Data | `constants/options.ts` & `config/doctor-schedule-filter-options.ts` | Hardcoded Arrays (5 vs 12 items) | **STRONG CANDIDATE** | Backend Domain Ownership |
-| **HD-002** | Schedule & Slot Status Paradigm | `constants/options.ts`, `clinical-tokens.ts`, DTOs | String Unions & Enums (`'Buka'\|'Penuh'\|'Cuti'\|'Tutup'`) | **STRONG CANDIDATE** | Shared Contract (Backend Enum + Frontend Tokens) |
-| **HD-003** | Shift Presets & Hourly Windows | `doctor-daily-hourly-grid.tsx` & `doctor-add-session-modal.tsx` | Hardcoded Array Objects (`SHIFTS`, `PRESET_SESSIONS`) | **STRONG CANDIDATE** | Backend Projection Engine Ownership |
-| **HD-004** | Available Calendar Years | `doctor-timeline-calendar.tsx` (Line 56) | Static Number Array `[2024, 2025, 2026, 2027]` | **POSSIBLE CANDIDATE** | Frontend Dynamic Calculation / Configuration |
-| **HD-005** | Capacity & Quota Derivation | `doctor-daily-hourly-grid.tsx` & `doctor-schedule-edit-modal.tsx` | Client-Side Arithmetic & Form Inputs | **STRONG CANDIDATE** | Backend Calculation (Zero Client Arithmetic) |
-| **HD-006** | Session Deletion Mutation | `doctor-daily-hourly-grid.tsx` & `mutations.ts` | Client Action & Mutation (`deleteSession`) | **STRONG CANDIDATE** | Prohibited Operation (Backend Contract Violation) |
-| **HD-007** | Session Reschedule Workflow | `doctor-schedule-card.tsx` | Fallback calling Edit Modal | **STRONG CANDIDATE** | Backend Domain Workflow (`POST .../reschedule`) |
-| **HD-008** | Consultation Duration Policy | None in UI (Missing) | Not Implemented | **STRONG CANDIDATE** | Backend Dynamic Policy (`PATCH .../duration`) |
-| **HD-009** | Serialized Gantt Timeline Interval | `doctor-daily-hourly-grid.tsx` | Synthetic 24h Hourly Matrix | **STRONG CANDIDATE** | Backend Projection (`timeline_intervals`) |
+| ID         | Concept                            | Source / File                                                       | Current Form                                               | Classification         | Ownership                                         |
+| :--------- | :--------------------------------- | :------------------------------------------------------------------ | :--------------------------------------------------------- | :--------------------- | :------------------------------------------------ |
+| **HD-001** | Poliklinik Master Data             | `constants/options.ts` & `config/doctor-schedule-filter-options.ts` | Hardcoded Arrays (5 vs 12 items)                           | **STRONG CANDIDATE**   | Backend Domain Ownership                          |
+| **HD-002** | Schedule & Slot Status Paradigm    | `constants/options.ts`, `clinical-tokens.ts`, DTOs                  | String Unions & Enums (`'Buka'\|'Penuh'\|'Cuti'\|'Tutup'`) | **STRONG CANDIDATE**   | Shared Contract (Backend Enum + Frontend Tokens)  |
+| **HD-003** | Shift Presets & Hourly Windows     | `doctor-daily-hourly-grid.tsx` & `doctor-add-session-modal.tsx`     | Hardcoded Array Objects (`SHIFTS`, `PRESET_SESSIONS`)      | **STRONG CANDIDATE**   | Backend Projection Engine Ownership               |
+| **HD-004** | Available Calendar Years           | `doctor-timeline-calendar.tsx` (Line 56)                            | Static Number Array `[2024, 2025, 2026, 2027]`             | **POSSIBLE CANDIDATE** | Frontend Dynamic Calculation / Configuration      |
+| **HD-005** | Capacity & Quota Derivation        | `doctor-daily-hourly-grid.tsx` & `doctor-schedule-edit-modal.tsx`   | Client-Side Arithmetic & Form Inputs                       | **STRONG CANDIDATE**   | Backend Calculation (Zero Client Arithmetic)      |
+| **HD-006** | Session Deletion Mutation          | `doctor-daily-hourly-grid.tsx` & `mutations.ts`                     | Client Action & Mutation (`deleteSession`)                 | **STRONG CANDIDATE**   | Prohibited Operation (Backend Contract Violation) |
+| **HD-007** | Session Reschedule Workflow        | `doctor-schedule-card.tsx`                                          | Fallback calling Edit Modal                                | **STRONG CANDIDATE**   | Backend Domain Workflow (`POST .../reschedule`)   |
+| **HD-008** | Consultation Duration Policy       | None in UI (Missing)                                                | Not Implemented                                            | **STRONG CANDIDATE**   | Backend Dynamic Policy (`PATCH .../duration`)     |
+| **HD-009** | Serialized Gantt Timeline Interval | `doctor-daily-hourly-grid.tsx`                                      | Synthetic 24h Hourly Matrix                                | **STRONG CANDIDATE**   | Backend Projection (`timeline_intervals`)         |
 
 ---
 
 ## 6. Strong Database/API Candidates
 
 ### HD-001 — Poliklinik / Clinical Department Master Data
+
 - **Current Definition:**
   - `src/features/jadwal-dokter/constants/options.ts:13-19`:
     ```typescript
@@ -118,10 +121,18 @@ EXECUTIVE FINDING: DYNAMICIZATION CANDIDATES FOUND & CONTRACT MISALIGNMENT DETEC
   - `src/features/jadwal-dokter/config/doctor-schedule-filter-options.ts:1-14`:
     ```typescript
     export const POLI_OPTIONS = [
-      'Penyakit Dalam', 'Spesialis Anak', 'Kebidanan & Kandungan', 'Dokter Gigi',
-      'Ortopedi & Traumatologi', 'Dermatologi', 'Jantung & Kardiovaskular',
-      'Spesialis Mata', 'Spesialis THT', 'Kesehatan Jiwa & Psikiatri',
-      'Neurologi / Saraf', 'Dokter Umum'
+      'Penyakit Dalam',
+      'Spesialis Anak',
+      'Kebidanan & Kandungan',
+      'Dokter Gigi',
+      'Ortopedi & Traumatologi',
+      'Dermatologi',
+      'Jantung & Kardiovaskular',
+      'Spesialis Mata',
+      'Spesialis THT',
+      'Kesehatan Jiwa & Psikiatri',
+      'Neurologi / Saraf',
+      'Dokter Umum'
     ] as const;
     ```
 - **File & Symbol:** `constants/options.ts` (`POLI_OPTIONS`), `config/doctor-schedule-filter-options.ts` (`POLI_OPTIONS`).
@@ -147,6 +158,7 @@ EXECUTIVE FINDING: DYNAMICIZATION CANDIDATES FOUND & CONTRACT MISALIGNMENT DETEC
 ---
 
 ### HD-002 — Canonical Status Paradigm (Deprecation of `Penuh`, Introduction of `Terisi`)
+
 - **Current Definition:**
   - `src/styles/clinical-tokens.ts:120-262` (`getStatusConfig`): maps `PENUH` to `status.pending` with label `'Penuh'`. No mapping for `OCCUPIED` or `TERISI`.
   - `src/server/contracts/schedules/doctor-schedules.dto.ts:3`:
@@ -183,12 +195,18 @@ EXECUTIVE FINDING: DYNAMICIZATION CANDIDATES FOUND & CONTRACT MISALIGNMENT DETEC
 ---
 
 ### HD-003 — Shift Preset Definitions & Fixed 24h Hourly Division
+
 - **Current Definition:**
   - `src/features/jadwal-dokter/components/doctor-daily-hourly-grid.tsx:99-124`:
     ```typescript
     const SHIFTS = [
       { id: 'pagi', name: 'Pagi', range: '06:00 - 12:00', hours: [6, 7, 8, 9, 10, 11] },
-      { id: 'siang', name: 'Siang / Sore', range: '12:00 - 18:00', hours: [12, 13, 14, 15, 16, 17] },
+      {
+        id: 'siang',
+        name: 'Siang / Sore',
+        range: '12:00 - 18:00',
+        hours: [12, 13, 14, 15, 16, 17]
+      },
       { id: 'malam', name: 'Malam', range: '18:00 - 24:00', hours: [18, 19, 20, 21, 22, 23] },
       { id: 'dini-hari', name: 'Dini Hari', range: '00:00 - 06:00', hours: [0, 1, 2, 3, 4, 5] }
     ];
@@ -225,6 +243,7 @@ EXECUTIVE FINDING: DYNAMICIZATION CANDIDATES FOUND & CONTRACT MISALIGNMENT DETEC
 ---
 
 ### HD-005 — Client-Side Capacity & Quota Arithmetic
+
 - **Current Definition:**
   - `src/features/jadwal-dokter/components/doctor-daily-hourly-grid.tsx:311-315`:
     ```typescript
@@ -257,6 +276,7 @@ EXECUTIVE FINDING: DYNAMICIZATION CANDIDATES FOUND & CONTRACT MISALIGNMENT DETEC
 ---
 
 ### HD-006 — Prohibited Session Deletion Mutation
+
 - **Current Definition:**
   - `src/features/jadwal-dokter/components/doctor-daily-hourly-grid.tsx:239-250, 734-742`: Delete button invoking `deleteSessionMutation`.
   - `src/features/jadwal-dokter/api/mutations.ts:111-131`: `useDeleteDoctorSessionMutation`.
@@ -285,6 +305,7 @@ EXECUTIVE FINDING: DYNAMICIZATION CANDIDATES FOUND & CONTRACT MISALIGNMENT DETEC
 ---
 
 ### HD-007 — Missing Reschedule Session Contract & Workflow
+
 - **Current Definition:**
   - `src/features/jadwal-dokter/components/doctor-schedule-card.tsx:353-363, 438-441`: "Reschedule" button merely triggers `onOpenEdit?.(doctor)` which opens generic edit modal.
   - No `rescheduleDoctorSessionAction`, no `useRescheduleDoctorSessionMutation`, no `paths.doctorSchedules.reschedule`.
@@ -315,6 +336,7 @@ EXECUTIVE FINDING: DYNAMICIZATION CANDIDATES FOUND & CONTRACT MISALIGNMENT DETEC
 ---
 
 ### HD-008 — Doctor Consultation Duration Configuration
+
 - **Current Definition:**
   - Absent in frontend. Frontend implicitly assumes fixed duration or delegates blindly to unknown intervals.
 - **File & Symbol:** Missing in `paths.ts`, `types.ts`, `service.ts`, `mutations.ts`.
@@ -336,6 +358,7 @@ EXECUTIVE FINDING: DYNAMICIZATION CANDIDATES FOUND & CONTRACT MISALIGNMENT DETEC
 ---
 
 ### HD-009 — Gantt Milestone Timeline Interval Contract (`timeline_intervals`)
+
 - **Current Definition:**
   - `src/features/jadwal-dokter/components/doctor-daily-hourly-grid.tsx`: Employs 24-hour grid with static 1-hour buttons.
   - `src/server/contracts/schedules/doctor-schedules.dto.ts`: Lacks `timeline_intervals` schema.
@@ -387,6 +410,7 @@ EXECUTIVE FINDING: DYNAMICIZATION CANDIDATES FOUND & CONTRACT MISALIGNMENT DETEC
 ## 7. Possible Candidates
 
 ### HD-004 — Hardcoded Calendar Years Range
+
 - **Current Definition:** `src/features/jadwal-dokter/components/doctor-timeline-calendar.tsx:56`:
   ```typescript
   const AVAILABLE_YEARS = [2024, 2025, 2026, 2027];
@@ -406,14 +430,14 @@ EXECUTIVE FINDING: DYNAMICIZATION CANDIDATES FOUND & CONTRACT MISALIGNMENT DETEC
 
 The following elements are verified as legitimate static frontend constructs that **must NOT** be migrated to backend database ownership:
 
-| Item | Location | Classification | Reason to Keep Static |
-| :--- | :--- | :--- | :--- |
-| **Month Names** (`Januari`..`Desember`) | `doctor-daily-hourly-grid.tsx:41-54`, `doctor-timeline-calendar.tsx:41-54` | STATIC UI LOCALE | Standard Indonesian calendar month names; universal immutable calendar standard. |
-| **Day Names** (`Sen`..`Min`, `Minggu`..`Sabtu`) | `doctor-calendar-grid.tsx:53`, `doctor-timeline-calendar.tsx:57`, `doctor-daily-hourly-grid.tsx:56` | STATIC UI LOCALE | Standard days of week; universal immutable calendar standard. |
-| **Pagination Page Size Options** (`[6, 12, 18, 24, 30]`) | `doctor-schedule-view.tsx:134` | STATIC UI CONFIG | Viewport density preference for grid cards; UI display concern only. |
-| **Icon Mappings** (`Icons.calendar`, `Icons.stethoscope`, etc.) | Throughout all components | STATIC DESIGN SYSTEM | Presentation component assets tied to visual design tokens. |
-| **Standard UI Copy** (`"Kembali"`, `"Hari Ini"`, `"Batal"`, `"Simpan perubahan"`) | Throughout all modals and sheets | STATIC UI COPY | Application UI strings. Not dynamic business content. |
-| **Pill & Border Geometry Tokens** (`radius: 20px`, etc.) | `clinical-tokens.ts:99-108` | STATIC DESIGN TOKEN | Established design-system geometry specifications. |
+| Item                                                                              | Location                                                                                            | Classification       | Reason to Keep Static                                                            |
+| :-------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------- | :------------------- | :------------------------------------------------------------------------------- |
+| **Month Names** (`Januari`..`Desember`)                                           | `doctor-daily-hourly-grid.tsx:41-54`, `doctor-timeline-calendar.tsx:41-54`                          | STATIC UI LOCALE     | Standard Indonesian calendar month names; universal immutable calendar standard. |
+| **Day Names** (`Sen`..`Min`, `Minggu`..`Sabtu`)                                   | `doctor-calendar-grid.tsx:53`, `doctor-timeline-calendar.tsx:57`, `doctor-daily-hourly-grid.tsx:56` | STATIC UI LOCALE     | Standard days of week; universal immutable calendar standard.                    |
+| **Pagination Page Size Options** (`[6, 12, 18, 24, 30]`)                          | `doctor-schedule-view.tsx:134`                                                                      | STATIC UI CONFIG     | Viewport density preference for grid cards; UI display concern only.             |
+| **Icon Mappings** (`Icons.calendar`, `Icons.stethoscope`, etc.)                   | Throughout all components                                                                           | STATIC DESIGN SYSTEM | Presentation component assets tied to visual design tokens.                      |
+| **Standard UI Copy** (`"Kembali"`, `"Hari Ini"`, `"Batal"`, `"Simpan perubahan"`) | Throughout all modals and sheets                                                                    | STATIC UI COPY       | Application UI strings. Not dynamic business content.                            |
+| **Pill & Border Geometry Tokens** (`radius: 20px`, etc.)                          | `clinical-tokens.ts:99-108`                                                                         | STATIC DESIGN TOKEN  | Established design-system geometry specifications.                               |
 
 ---
 
@@ -426,6 +450,7 @@ The following status codes represent **controlled domain workflow states** rathe
 3. **`CLOSED` / `Tutup`:** Unavailable slot due to shift boundaries or registered leave (`closedReason: "LEAVE"`).
 
 **Why these should NOT become database-driven mutable master data:**
+
 - Application branching logic in both frontend and backend depends on these exact semantic states (e.g., booking engines only allow `OPEN` slots; check-in flows only attach to `OCCUPIED` slots).
 - Allowing arbitrary user-created statuses in the database (e.g., "Mungkin Buka", "Antri Dikit") would break deterministic queue calculation and state machines.
 - They must remain a shared, type-safe contract between backend and frontend.
@@ -435,6 +460,7 @@ The following status codes represent **controlled domain workflow states** rathe
 ## 10. Duplicate Hardcoded Sources
 
 ### Concept: Poliklinik List
+
 - **Definitions:**
   - Definition A: `src/features/jadwal-dokter/constants/options.ts:13-19` (`POLI_OPTIONS`, 5 entries).
   - Definition B: `src/features/jadwal-dokter/config/doctor-schedule-filter-options.ts:1-14` (`POLI_OPTIONS`, 12 entries).
@@ -476,11 +502,12 @@ This represents clear **Hardcoded Source-of-Truth Drift**, proving that hardcodi
 ## 12. Validation Coupling
 
 Hardcoded domain values are coupled to validation schemas and type unions in:
+
 1. `src/server/contracts/schedules/doctor-schedules.dto.ts:3`:
    ```typescript
    export const scheduleDayStatusSchema = z.enum(['Buka', 'Penuh', 'Cuti', 'Tutup']);
    ```
-   *Risk:* Incoming Schedule V2 responses with canonical status `OPEN`, `OCCUPIED`, `CLOSED` will be rejected by Zod validation if not updated.
+   _Risk:_ Incoming Schedule V2 responses with canonical status `OPEN`, `OCCUPIED`, `CLOSED` will be rejected by Zod validation if not updated.
 2. `src/features/jadwal-dokter/api/types.ts:1`:
    ```typescript
    export type ScheduleDayStatus = 'Buka' | 'Penuh' | 'Cuti' | 'Tutup';
@@ -516,44 +543,44 @@ Hardcoded domain values are coupled to validation schemas and type unions in:
 
 ## 15. Existing Backend/API Evidence
 
-| Candidate | Existing Endpoint | Existing Persistence | Current Frontend Integration | Integration Gap |
-| :--- | :--- | :--- | :--- | :--- |
-| **Poliklinik List** | `GET /api/v1/admin/doctor-schedules/filter-options` | PostgreSQL `clinical_units` | Integrated via `doctorScheduleFilterOptionsQueryOptions()` | Frontend still keeps static fallback arrays that drift. |
-| **Gantt Intervals** | `GET /api/v1/admin/doctor-schedules/:id?date=YYYY-MM-DD` | PostgreSQL Schedule Projection | **NOT INTEGRATED** | Endpoint returns `timeline_intervals`, but frontend DTO drops it and component renders static 24h hourly grid. |
-| **Reschedule Session** | `POST /api/v1/admin/doctor-schedules/:id/sessions/:sessionId/reschedule` | PostgreSQL Schedules & Appointments | **NOT INTEGRATED** | Path missing in `paths.ts`, no action, no mutation, card button opens generic modal. |
-| **Duration Config** | `PATCH /api/v1/admin/doctor-schedules/:id/duration` | PostgreSQL Practitioner Policy | **NOT INTEGRATED** | Missing in API service and UI settings. |
-| **Session Deletion** | `DELETE /api/v1/admin/doctor-schedules/:id/sessions/:sessionId` | Rejects with 403 Forbidden | **ERRONEOUSLY INTEGRATED** | Frontend exposes trash icon and calls forbidden DELETE endpoint. |
+| Candidate              | Existing Endpoint                                                        | Existing Persistence                | Current Frontend Integration                               | Integration Gap                                                                                                |
+| :--------------------- | :----------------------------------------------------------------------- | :---------------------------------- | :--------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------- |
+| **Poliklinik List**    | `GET /api/v1/admin/doctor-schedules/filter-options`                      | PostgreSQL `clinical_units`         | Integrated via `doctorScheduleFilterOptionsQueryOptions()` | Frontend still keeps static fallback arrays that drift.                                                        |
+| **Gantt Intervals**    | `GET /api/v1/admin/doctor-schedules/:id?date=YYYY-MM-DD`                 | PostgreSQL Schedule Projection      | **NOT INTEGRATED**                                         | Endpoint returns `timeline_intervals`, but frontend DTO drops it and component renders static 24h hourly grid. |
+| **Reschedule Session** | `POST /api/v1/admin/doctor-schedules/:id/sessions/:sessionId/reschedule` | PostgreSQL Schedules & Appointments | **NOT INTEGRATED**                                         | Path missing in `paths.ts`, no action, no mutation, card button opens generic modal.                           |
+| **Duration Config**    | `PATCH /api/v1/admin/doctor-schedules/:id/duration`                      | PostgreSQL Practitioner Policy      | **NOT INTEGRATED**                                         | Missing in API service and UI settings.                                                                        |
+| **Session Deletion**   | `DELETE /api/v1/admin/doctor-schedules/:id/sessions/:sessionId`          | Rejects with 403 Forbidden          | **ERRONEOUSLY INTEGRATED**                                 | Frontend exposes trash icon and calls forbidden DELETE endpoint.                                               |
 
 ---
 
 ## 16. Ownership Matrix
 
-| Concept | Frontend Static | Backend Domain | Shared Contract | Unknown | Rationale |
-| :--- | :---: | :---: | :---: | :---: | :--- |
-| **Poliklinik List** | | X | | | Domain master data owned by clinic administration. |
-| **Schedule Slot Status** | | | X | | Backend owns state transitions; frontend owns color/badge rendering. |
-| **Shift & Interval Projections** | | X | | | Backend projection engine calculates milestone boundaries. |
-| **Calendar Horizon Years** | X | | | | Display horizon bounded relative to current date. |
-| **Capacity & Slot Counts** | | X | | | Authoritative derived state from interval calculations. |
-| **Reschedule Operation** | | X | | | Transactional backend domain workflow. |
-| **Consultation Duration** | | X | | | Practitioner policy configured in database. |
-| **Gantt Timeline Intervals** | | X | | | Serialized milestone intervals returned by backend. |
+| Concept                          | Frontend Static | Backend Domain | Shared Contract | Unknown | Rationale                                                            |
+| :------------------------------- | :-------------: | :------------: | :-------------: | :-----: | :------------------------------------------------------------------- |
+| **Poliklinik List**              |                 |       X        |                 |         | Domain master data owned by clinic administration.                   |
+| **Schedule Slot Status**         |                 |                |        X        |         | Backend owns state transitions; frontend owns color/badge rendering. |
+| **Shift & Interval Projections** |                 |       X        |                 |         | Backend projection engine calculates milestone boundaries.           |
+| **Calendar Horizon Years**       |        X        |                |                 |         | Display horizon bounded relative to current date.                    |
+| **Capacity & Slot Counts**       |                 |       X        |                 |         | Authoritative derived state from interval calculations.              |
+| **Reschedule Operation**         |                 |       X        |                 |         | Transactional backend domain workflow.                               |
+| **Consultation Duration**        |                 |       X        |                 |         | Practitioner policy configured in database.                          |
+| **Gantt Timeline Intervals**     |                 |       X        |                 |         | Serialized milestone intervals returned by backend.                  |
 
 ---
 
 ## 17. Dynamicization Requirement Matrix
 
-| ID | Concept | Addable? | Removable? | Renameable? | Persist? | Backend Candidate |
-| :--- | :--- | :---: | :---: | :---: | :---: | :--- |
-| **HD-001** | Poliklinik Master Data | YES | YES | YES | YES | STRONG DATABASE/API CANDIDATE |
-| **HD-002** | Schedule Slot Status | NO | NO | NO | YES | STRONG SHARED CONTRACT CANDIDATE |
-| **HD-003** | Shift & Interval Projections | YES | YES | YES | YES | STRONG DATABASE/API CANDIDATE |
-| **HD-004** | Calendar Years Range | NO | NO | NO | NO | KEEP STATIC (DERIVE DYNAMICALLY) |
-| **HD-005** | Capacity & Slot Projections | N/A | N/A | N/A | YES | STRONG DATABASE/API CANDIDATE |
-| **HD-006** | Session Deletion Prohibited | NO | NO | NO | N/A | PURGE FRONTEND ACTION (CONTRACT COMPLIANCE) |
-| **HD-007** | Session Reschedule Workflow | YES | N/A | N/A | YES | STRONG DATABASE/API CANDIDATE |
-| **HD-008** | Consultation Duration Config | YES | NO | N/A | YES | STRONG DATABASE/API CANDIDATE |
-| **HD-009** | Gantt Timeline Intervals | YES | YES | N/A | YES | STRONG DATABASE/API CANDIDATE |
+| ID         | Concept                      | Addable? | Removable? | Renameable? | Persist? | Backend Candidate                           |
+| :--------- | :--------------------------- | :------: | :--------: | :---------: | :------: | :------------------------------------------ |
+| **HD-001** | Poliklinik Master Data       |   YES    |    YES     |     YES     |   YES    | STRONG DATABASE/API CANDIDATE               |
+| **HD-002** | Schedule Slot Status         |    NO    |     NO     |     NO      |   YES    | STRONG SHARED CONTRACT CANDIDATE            |
+| **HD-003** | Shift & Interval Projections |   YES    |    YES     |     YES     |   YES    | STRONG DATABASE/API CANDIDATE               |
+| **HD-004** | Calendar Years Range         |    NO    |     NO     |     NO      |    NO    | KEEP STATIC (DERIVE DYNAMICALLY)            |
+| **HD-005** | Capacity & Slot Projections  |   N/A    |    N/A     |     N/A     |   YES    | STRONG DATABASE/API CANDIDATE               |
+| **HD-006** | Session Deletion Prohibited  |    NO    |     NO     |     NO      |   N/A    | PURGE FRONTEND ACTION (CONTRACT COMPLIANCE) |
+| **HD-007** | Session Reschedule Workflow  |   YES    |    N/A     |     N/A     |   YES    | STRONG DATABASE/API CANDIDATE               |
+| **HD-008** | Consultation Duration Config |   YES    |     NO     |     N/A     |   YES    | STRONG DATABASE/API CANDIDATE               |
+| **HD-009** | Gantt Timeline Intervals     |   YES    |    YES     |     N/A     |   YES    | STRONG DATABASE/API CANDIDATE               |
 
 ---
 
@@ -593,13 +620,14 @@ When the frontend is updated to integrate Schedule V2 dynamic data, the followin
 ## 19. Requested Backend Capabilities
 
 Frontend requires the following backend-authoritative capabilities:
+
 1. **Serialized Gantt Timeline Projections:** Authoritative provision of `timeline_intervals` array inside `GET /api/v1/admin/doctor-schedules/:id?date=YYYY-MM-DD`, eliminating any need for frontend time calculations or shift boundary guessing.
 2. **Dynamic Poliklinik Options:** Continued authoritative provision of active polyclinics via `GET /api/v1/admin/doctor-schedules/filter-options`.
 3. **Transactional Reschedule Endpoint:** `POST /api/v1/admin/doctor-schedules/:id/sessions/:sessionId/reschedule` handling time-shift validation and active appointment cascade.
 4. **Consultation Duration Policy:** `PATCH /api/v1/admin/doctor-schedules/:id/duration` allowing administrators to configure practitioner consultation duration.
 5. **Strict 403 Deletion Gating:** Maintained rejection of `DELETE /sessions/:sessionId` with `403 Forbidden` (`ADMIN_SCHEDULE_DELETION_PROHIBITED`).
 
-*Note: All of the above capabilities have already been completed and verified by the backend team in Amanah Healthcare Backend v1.2.0 (Schedule V2 API Specification).*
+_Note: All of the above capabilities have already been completed and verified by the backend team in Amanah Healthcare Backend v1.2.0 (Schedule V2 API Specification)._
 
 ---
 
@@ -609,13 +637,14 @@ Frontend requires the following backend-authoritative capabilities:
 2. **NO Client-Side Time Arithmetic:** No local interval slicing, no `endTime = startTime + 30` calculation on frontend.
 3. **NO Microservices or Message Queues:** Standard Next.js App Router to REST API integration.
 4. **NO Arbitrary Status Creation:** No user-defined schedule statuses; must strictly adhere to `OPEN`, `OCCUPIED`, `CLOSED`.
-5. **NO Unverified Redesign:** The user explicitly commanded: *"Signator UI harus sama. Pokoknya ini cuma paradigma perubahan logic. Gantt chart dibuat rapi, minimalis, compact."*
+5. **NO Unverified Redesign:** The user explicitly commanded: _"Signator UI harus sama. Pokoknya ini cuma paradigma perubahan logic. Gantt chart dibuat rapi, minimalis, compact."_
 
 ---
 
 ## 21. Backend Handoff References
 
 The following items are transferred to `backend-dynamic-data-requirements-handoff.md`:
+
 - `HD-001`: Poliklinik filter options integration verification.
 - `HD-002`: Canonical status semantics mapping (`OPEN` / `OCCUPIED` / `CLOSED`).
 - `HD-003` & `HD-009`: `timeline_intervals` Gantt milestone payload specification.
@@ -628,9 +657,9 @@ The following items are transferred to `backend-dynamic-data-requirements-handof
 ## 22. Unresolved Items
 
 - **Item 1: Displaying Patient Info on Occupied Slot Click**
-  - *Known:* Backend returns sanitized `appointmentRef: { appointmentId, queueNumber, status }` without PII.
-  - *Unknown:* Does clicking an occupied slot in the Admin Gantt timeline require opening a full patient appointment detail modal (fetching from `GET /admin/appointments/:id`), or merely showing the queue number and status?
-  - *Required Evidence:* Clinical workflow confirmation from hospital administration.
+  - _Known:_ Backend returns sanitized `appointmentRef: { appointmentId, queueNumber, status }` without PII.
+  - _Unknown:_ Does clicking an occupied slot in the Admin Gantt timeline require opening a full patient appointment detail modal (fetching from `GET /admin/appointments/:id`), or merely showing the queue number and status?
+  - _Required Evidence:_ Clinical workflow confirmation from hospital administration.
 
 ---
 

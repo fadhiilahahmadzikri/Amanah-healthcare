@@ -83,7 +83,6 @@ function Composer({
 **Correct: composition eliminates conditionals**
 
 ```tsx
-
 function ChannelComposer() {
   return (
     <Composer.Frame>
@@ -261,7 +260,6 @@ useState, Zustand, or a server sync.
 
 ```tsx
 function ChannelComposer({ channelId }: { channelId: string }) {
-
   const state = useGlobalChannelState(channelId);
   const { submit, updateInput } = useChannelSync(channelId);
 
@@ -277,7 +275,6 @@ function ChannelComposer({ channelId }: { channelId: string }) {
 **Correct: state management isolated in provider**
 
 ```tsx
-
 function ChannelProvider({
   channelId,
   children
@@ -319,7 +316,6 @@ function Channel({ channelId }: { channelId: string }) {
 **Different providers, same UI:**
 
 ```tsx
-
 function ForwardMessageProvider({ children }) {
   const [state, setState] = useState(initialState);
   const forwardMessage = useForwardMessage();
@@ -366,7 +362,6 @@ dependency-injectable.
 
 ```tsx
 function ComposerInput() {
-
   const { input, setInput } = useChannelComposerState();
   return <TextInput value={input} onChangeText={setInput} />;
 }
@@ -375,7 +370,6 @@ function ComposerInput() {
 **Correct: generic interface enables dependency injection**
 
 ```tsx
-
 interface ComposerState {
   input: string;
   attachments: Attachment[];
@@ -423,7 +417,6 @@ function ComposerInput() {
 **Different providers implement the same interface:**
 
 ```tsx
-
 function ForwardMessageProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState(initialState);
   const inputRef = useRef(null);
@@ -685,7 +678,6 @@ itself.
 **Incorrect: one component, many modes**
 
 ```tsx
-
 <Composer isThread isEditing={false} channelId='abc' showAttachments showFormatting={false} />
 ```
 
@@ -838,7 +830,6 @@ return (
 **When render props are appropriate:**
 
 ```tsx
-
 <List data={items} renderItem={({ item, index }) => <Item item={item} index={index} />} />
 ```
 

@@ -7,7 +7,7 @@ Assumes the paradigm, vocabulary, and technology decisions established in `01-ar
 
 ## 1. Role of the Backend
 
-The backend owns everything a feature module and a client (Flutter/Next.js web) are explicitly *not* allowed to know about: event durability, recipient resolution, persistence, delivery-channel selection, retries, idempotency, and real-time fan-out. It is built as **Next.js** (API/Route Handlers for the REST surface and event-publishing entry point), paired with two additional Node.js services — a **Notification Worker** and a **Realtime Gateway** — that are architecturally part of "the backend" even though they run as separate Docker containers. This split exists specifically to satisfy the requirements around statelessness, horizontal scaling, and single responsibility discussed in Document 1 §10.
+The backend owns everything a feature module and a client (Flutter/Next.js web) are explicitly _not_ allowed to know about: event durability, recipient resolution, persistence, delivery-channel selection, retries, idempotency, and real-time fan-out. It is built as **Next.js** (API/Route Handlers for the REST surface and event-publishing entry point), paired with two additional Node.js services — a **Notification Worker** and a **Realtime Gateway** — that are architecturally part of "the backend" even though they run as separate Docker containers. This split exists specifically to satisfy the requirements around statelessness, horizontal scaling, and single responsibility discussed in Document 1 §10.
 
 ## 2. Internal Module Layout
 
@@ -78,7 +78,8 @@ export class RedisStreamsPublisher implements NotificationPublisher {
     await this.redis.xadd(
       'notifications:events',
       '*', // auto-generated stream ID
-      'payload', JSON.stringify(event),
+      'payload',
+      JSON.stringify(event)
     );
     // Fire-and-forget from the caller's perspective: this resolves as soon as
     // Redis acknowledges the XADD, which is durable — the caller does not wait
@@ -101,8 +102,8 @@ export async function confirmAppointment(appointmentId: string) {
       appointmentId: appointment.id,
       patientId: appointment.patientId,
       doctorName: appointment.doctorName,
-      scheduledAt: appointment.scheduledAt,
-    },
+      scheduledAt: appointment.scheduledAt
+    }
   });
 
   return appointment; // HTTP response returns now — publish already completed the durable handoff
@@ -141,7 +142,7 @@ export const notificationRegistry = new NotificationRulesRegistry();
 notificationRegistry.register<AppointmentConfirmedPayload>('appointment.confirmed', {
   defaultChannels: ['in_app', 'push'],
   resolveRecipient: (payload) => payload.patientId,
-  titleTemplate: 'Your appointment with {{doctorName}} is confirmed',
+  titleTemplate: 'Your appointment with {{doctorName}} is confirmed'
 });
 ```
 
@@ -158,14 +159,22 @@ Runs as its own container, consuming the stream via a **consumer group** (`notif
 ```typescript
 // services/notification-worker/index.ts
 async function runConsumerLoop() {
-  await redis.xgroup('CREATE', 'notifications:events', 'notification-service', '$', 'MKSTREAM')
+  await redis
+    .xgroup('CREATE', 'notifications:events', 'notification-service', '$', 'MKSTREAM')
     .catch(() => {}); // group may already exist
 
   while (true) {
     const entries = await redis.xreadgroup(
-      'GROUP', 'notification-service', `worker-${process.env.HOSTNAME}`,
-      'COUNT', 10, 'BLOCK', 5000,
-      'STREAMS', 'notifications:events', '>',
+      'GROUP',
+      'notification-service',
+      `worker-${process.env.HOSTNAME}`,
+      'COUNT',
+      10,
+      'BLOCK',
+      5000,
+      'STREAMS',
+      'notifications:events',
+      '>'
     );
     if (!entries) continue;
 
@@ -191,7 +200,7 @@ export class NotificationOrchestrationService {
   constructor(
     private readonly registry: NotificationRulesRegistry,
     private readonly repo: NotificationRepository,
-    private readonly channels: Map<NotificationChannel, DeliveryChannelAdapter>,
+    private readonly channels: Map<NotificationChannel, DeliveryChannelAdapter>
   ) {}
 
   async handle(event: DomainEvent): Promise<void> {
@@ -206,10 +215,10 @@ export class NotificationOrchestrationService {
         recipientId,
         type: event.type,
         module: event.module,
-        referenceType: event.module,        // convention: module name doubles as reference type
+        referenceType: event.module, // convention: module name doubles as reference type
         referenceId: firstIdLikeField(event.payload),
         payload: minimalDisplayPayload(event.payload, rule),
-        channels: rule.defaultChannels,
+        channels: rule.defaultChannels
       });
 
       if (!notification) continue; // already existed — redelivered stream message, safe no-op
@@ -337,12 +346,12 @@ This single mechanism elegantly serves two purposes at once: it's the "real-time
 
 ## 10. REST API Contract
 
-| Method & Path | Purpose | Notes |
-|---|---|---|
+| Method & Path                                     | Purpose                                  | Notes                                                                                        |
+| ------------------------------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------- |
 | `GET /api/notifications?page=&unreadOnly=&since=` | Paginated history / reconciliation fetch | `since` param supports the reconnect-reconciliation pattern (Doc 1 §8.3, Doc 2 §6, Doc 3 §3) |
-| `GET /api/notifications/unread-count` | Badge count | Backed by the partial index (§7) |
-| `PATCH /api/notifications/:id/read` | Mark one as read | Triggers `notification:read` sync emit to the user's room |
-| `PATCH /api/notifications/read-all` | Mark all as read | Same sync mechanism, bulk |
+| `GET /api/notifications/unread-count`             | Badge count                              | Backed by the partial index (§7)                                                             |
+| `PATCH /api/notifications/:id/read`               | Mark one as read                         | Triggers `notification:read` sync emit to the user's room                                    |
+| `PATCH /api/notifications/read-all`               | Mark all as read                         | Same sync mechanism, bulk                                                                    |
 
 All authenticated via the same session/JWT mechanism already used elsewhere in the application — no separate auth scheme for notifications.
 
@@ -360,16 +369,20 @@ export class PushChannelAdapter implements DeliveryChannelAdapter {
   constructor(private readonly queue: Queue) {}
 
   async deliver(notification: PersistedNotification): Promise<DeliveryResult> {
-    await this.queue.add('deliver-push', { notificationId: notification.id }, {
-      attempts: 5,
-      backoff: { type: 'exponential', delay: 2000 },
-    });
+    await this.queue.add(
+      'deliver-push',
+      { notificationId: notification.id },
+      {
+        attempts: 5,
+        backoff: { type: 'exponential', delay: 2000 }
+      }
+    );
     return { status: 'queued' };
   }
 }
 ```
 
-In-app delivery (§8) deliberately has *no* retry queue of its own — there is nothing to retry, because persistence already succeeded before delivery was attempted (Document 1 §5, §8.2), and a missed real-time push is fully recovered by the client's own reconciliation fetch.
+In-app delivery (§8) deliberately has _no_ retry queue of its own — there is nothing to retry, because persistence already succeeded before delivery was attempted (Document 1 §5, §8.2), and a missed real-time push is fully recovered by the client's own reconciliation fetch.
 
 ## 12. Idempotency and Duplicate Handling — Backend Mechanics
 
@@ -377,25 +390,25 @@ Recapping Document 1 §8.1 at the implementation level: `repo.createIfNotExists`
 
 ## 13. Observability
 
-| Signal | Mechanism |
-|---|---|
-| Structured logs, correlated across services | `pino`, every log line carries `eventId` as a correlation ID from publish through delivery |
-| Throughput / error metrics | Prometheus counters: `events_published_total`, `notifications_created_total`, `delivery_failures_total{channel}` |
-| Live connection count | `socket_connections_gauge`, exported from the Realtime Gateway |
-| Consumer backlog / lag | `XINFO GROUPS notifications:events` polled periodically — surfaces if the worker is falling behind |
-| Service health | `/healthz` on each of the three services (API, worker, gateway), checked by Docker's `healthcheck` (see §14) |
+| Signal                                      | Mechanism                                                                                                        |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Structured logs, correlated across services | `pino`, every log line carries `eventId` as a correlation ID from publish through delivery                       |
+| Throughput / error metrics                  | Prometheus counters: `events_published_total`, `notifications_created_total`, `delivery_failures_total{channel}` |
+| Live connection count                       | `socket_connections_gauge`, exported from the Realtime Gateway                                                   |
+| Consumer backlog / lag                      | `XINFO GROUPS notifications:events` polled periodically — surfaces if the worker is falling behind               |
+| Service health                              | `/healthz` on each of the three services (API, worker, gateway), checked by Docker's `healthcheck` (see §14)     |
 
 ## 14. Docker Architecture
 
 ### 14.1 Services
 
-| Service | Statefulness | Exposed to host? | Responsibility |
-|---|---|---|---|
-| `web` | Stateless | Yes (via reverse proxy) | Next.js app: UI pages + REST API routes + event publishing (`XADD`) |
-| `notification-worker` | Stateless (state lives in Redis/Postgres, not the process) | No | Consumes Redis Streams, orchestrates, persists, triggers in-app/push/email delivery |
-| `realtime-gateway` | Stateless (connection state is ephemeral, coordinated via Redis adapter) | Yes (WebSocket endpoint) | Holds client WebSocket connections, emits to rooms |
-| `redis` | **Stateful** | No | Streams (durable event handoff), Pub/Sub (Socket.IO adapter/emitter), BullMQ queues |
-| `postgres` | **Stateful** | No | Notification persistence + rest of the application's data |
+| Service               | Statefulness                                                             | Exposed to host?         | Responsibility                                                                      |
+| --------------------- | ------------------------------------------------------------------------ | ------------------------ | ----------------------------------------------------------------------------------- |
+| `web`                 | Stateless                                                                | Yes (via reverse proxy)  | Next.js app: UI pages + REST API routes + event publishing (`XADD`)                 |
+| `notification-worker` | Stateless (state lives in Redis/Postgres, not the process)               | No                       | Consumes Redis Streams, orchestrates, persists, triggers in-app/push/email delivery |
+| `realtime-gateway`    | Stateless (connection state is ephemeral, coordinated via Redis adapter) | Yes (WebSocket endpoint) | Holds client WebSocket connections, emits to rooms                                  |
+| `redis`               | **Stateful**                                                             | No                       | Streams (durable event handoff), Pub/Sub (Socket.IO adapter/emitter), BullMQ queues |
+| `postgres`            | **Stateful**                                                             | No                       | Notification persistence + rest of the application's data                           |
 
 ### 14.2 docker-compose sketch
 
@@ -407,7 +420,7 @@ services:
     environment:
       REDIS_URL: redis://redis:6379
       DATABASE_URL: postgres://app:app@postgres:5432/app
-    ports: ["3000:3000"]
+    ports: ['3000:3000']
 
   notification-worker:
     build: ./services/notification-worker
@@ -417,7 +430,7 @@ services:
       DATABASE_URL: postgres://app:app@postgres:5432/app
     # no ports exposed — internal-only service
     healthcheck:
-      test: ["CMD", "node", "healthcheck.js"]
+      test: ['CMD', 'node', 'healthcheck.js']
 
   realtime-gateway:
     build: ./services/realtime-gateway
@@ -425,12 +438,12 @@ services:
     environment:
       REDIS_URL: redis://redis:6379
       JWT_PUBLIC_KEY_PATH: /run/secrets/jwt_public_key
-    ports: ["4001:4001"]
+    ports: ['4001:4001']
 
   redis:
     image: redis:7-alpine
-    command: redis-server --appendonly yes   # AOF persistence: protects Streams data across restarts
-    volumes: ["redis_data:/data"]
+    command: redis-server --appendonly yes # AOF persistence: protects Streams data across restarts
+    volumes: ['redis_data:/data']
 
   postgres:
     image: postgres:16-alpine
@@ -438,7 +451,7 @@ services:
       POSTGRES_DB: app
       POSTGRES_USER: app
       POSTGRES_PASSWORD: app
-    volumes: ["postgres_data:/var/lib/postgresql/data"]
+    volumes: ['postgres_data:/var/lib/postgresql/data']
 
 volumes:
   redis_data:
@@ -456,18 +469,18 @@ All five services share a single Docker Compose bridge network by default, and r
 
 ### 14.5 Behavior on container restart
 
-| Container restarts | What happens |
-|---|---|
-| `web` | Stateless — restarts cleanly, in-flight HTTP requests fail over to the next request/replica, nothing lost |
-| `notification-worker` | Any unacknowledged stream entries remain in the consumer group's Pending Entries List and are picked up (via `XCLAIM`) once the worker (or another replica) comes back — no events are lost |
-| `realtime-gateway` | All connected sockets drop; Socket.IO's client-side reconnection logic (Documents 2 §6, 3 §3) reconnects automatically, and the client's reconciliation fetch on reconnect covers anything emitted during the gap |
-| `redis` | With AOF enabled, Streams data (and BullMQ queue state) survives; Pub/Sub in-flight messages at the exact moment of restart are lost, which is acceptable because Pub/Sub is only used for the ephemeral real-time-push step, not for durability |
-| `postgres` | Standard database restart semantics; volume ensures no data loss |
+| Container restarts    | What happens                                                                                                                                                                                                                                     |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `web`                 | Stateless — restarts cleanly, in-flight HTTP requests fail over to the next request/replica, nothing lost                                                                                                                                        |
+| `notification-worker` | Any unacknowledged stream entries remain in the consumer group's Pending Entries List and are picked up (via `XCLAIM`) once the worker (or another replica) comes back — no events are lost                                                      |
+| `realtime-gateway`    | All connected sockets drop; Socket.IO's client-side reconnection logic (Documents 2 §6, 3 §3) reconnects automatically, and the client's reconciliation fetch on reconnect covers anything emitted during the gap                                |
+| `redis`               | With AOF enabled, Streams data (and BullMQ queue state) survives; Pub/Sub in-flight messages at the exact moment of restart are lost, which is acceptable because Pub/Sub is only used for the ephemeral real-time-push step, not for durability |
+| `postgres`            | Standard database restart semantics; volume ensures no data loss                                                                                                                                                                                 |
 
 ## 15. How a Future Feature Y Integrates — Concretely
 
-1. Feature Y's service code calls `notificationPublisher.publish({ type: 'invoice.overdue', module: 'billing', payload: {...} })` at the point where the business event occurs. *(One line, using a contract that already exists.)*
-2. Feature Y adds one bootstrap file registering `invoice.overdue` with a recipient resolver and default channels. *(One new file.)*
+1. Feature Y's service code calls `notificationPublisher.publish({ type: 'invoice.overdue', module: 'billing', payload: {...} })` at the point where the business event occurs. _(One line, using a contract that already exists.)_
+2. Feature Y adds one bootstrap file registering `invoice.overdue` with a recipient resolver and default channels. _(One new file.)_
 3. Nothing in `notifications/`, the database schema, the Notification Worker, or the Realtime Gateway changes. No migration. No new table. No new WebSocket wiring. No changes in Flutter or Next.js beyond what already renders any notification generically (title/body from `payload`, timestamp, read state).
 
 This is the "plug-and-play" outcome your brief specified, achieved by the combination of the domain-agnostic contract (§3), the registry pattern that keeps coupling one-directional (§4), and a database schema built on generic identifiers rather than feature-specific columns (§7).

@@ -14,7 +14,6 @@ itself.
 **Incorrect (one component, many modes):**
 
 ```tsx
-
 <Composer isThread isEditing={false} channelId='abc' showAttachments showFormatting={false} />
 ```
 

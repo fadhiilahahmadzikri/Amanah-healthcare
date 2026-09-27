@@ -308,7 +308,7 @@ Custom segments are allowed when needed (for example, `routes` and `i18n`
 in the Shared layer, or `auth` for token storage when split out from
 `shared/api`).
 
-### Group by what it is *for*, not by what it *is*
+### Group by what it is _for_, not by what it _is_
 
 Segment names describe **purpose**, not the kind of code they hold. This
 is the desegmentation principle:
@@ -377,8 +377,8 @@ Every slice must have an `index.ts` that re-exports its public interface:
 
 ```typescript
 // entities/user/index.ts
-export { UserAvatar } from "./ui/UserAvatar";
-export { useUser, type User } from "./model/user";
+export { UserAvatar } from './ui/UserAvatar';
+export { useUser, type User } from './model/user';
 ```
 
 ---
@@ -427,8 +427,8 @@ entities/
 Imports go through the full path:
 
 ```typescript
-import { Invoice } from "@/entities/payment/invoice";
-import { Receipt } from "@/entities/payment/receipt";
+import { Invoice } from '@/entities/payment/invoice';
+import { Receipt } from '@/entities/payment/receipt';
 ```
 
 The same pattern applies to the Pages layer. For example, grouping

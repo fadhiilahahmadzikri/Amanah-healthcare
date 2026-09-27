@@ -27,7 +27,6 @@ export async function getUser(id: string) {
   cache.set(id, user);
   return user;
 }
-
 ```
 
 Use when sequential user actions hit multiple endpoints needing the same data within seconds.

@@ -23,7 +23,6 @@ app/
 ## Step 1: Root Layout with Slot
 
 ```tsx
-
 export default function RootLayout({
   children,
   modal
@@ -47,7 +46,6 @@ export default function RootLayout({
 **Every parallel route slot MUST have a `default.tsx`** to prevent 404s on hard navigation.
 
 ```tsx
-
 export default function Default() {
   return null;
 }
@@ -60,7 +58,6 @@ Without this file, refreshing any page will 404 because Next.js can't determine 
 The `(.)` prefix intercepts routes at the same level.
 
 ```tsx
-
 import { Modal } from '@/components/modal';
 
 export default async function PhotoModal({ params }: { params: Promise<{ id: string }> }) {
@@ -78,7 +75,6 @@ export default async function PhotoModal({ params }: { params: Promise<{ id: str
 ## Step 4: Full Page (Direct Access)
 
 ```tsx
-
 export default async function PhotoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const photo = await getPhoto(id);
@@ -97,7 +93,6 @@ export default async function PhotoPage({ params }: { params: Promise<{ id: stri
 **Critical: Use `router.back()` to close modals, NOT `router.push()` or `<Link>`.**
 
 ```tsx
-
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -184,7 +179,6 @@ When users directly visit `/photos/123` (bookmark, refresh, shared link):
 If you want the modal to appear on direct access too, you need additional logic:
 
 ```tsx
-
 import { Modal } from '@/components/modal';
 
 export default async function PhotoPage({ params }) {
@@ -234,7 +228,6 @@ Check your matcher:
 In Next.js 15+, `params` is a Promise:
 
 ```tsx
-
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 }
@@ -260,7 +253,6 @@ app/
 Links in the gallery:
 
 ```tsx
-
 import Link from 'next/link';
 
 export default async function Gallery() {

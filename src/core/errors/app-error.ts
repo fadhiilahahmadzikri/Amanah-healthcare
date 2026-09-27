@@ -27,7 +27,8 @@ export class AppError extends Error {
     this.name = 'AppError';
     this.code = init.code;
     this.status = init.status ?? 500;
-    this.expected = init.expected ?? (this.status >= 400 && this.status < 500 && this.status !== 408);
+    this.expected =
+      init.expected ?? (this.status >= 400 && this.status < 500 && this.status !== 408);
     this.problemDetails = init.problemDetails;
     this.invalidParams = init.invalidParams ?? init.problemDetails?.invalidParams;
     this.retryAfter = init.retryAfter ?? init.problemDetails?.retryAfter;
@@ -116,7 +117,10 @@ export class AppError extends Error {
     });
   }
 
-  static internal(message = 'An internal server error occurred', cause?: unknown): UnexpectedAppError {
+  static internal(
+    message = 'An internal server error occurred',
+    cause?: unknown
+  ): UnexpectedAppError {
     return new UnexpectedAppError(message, 500, undefined, cause);
   }
 }

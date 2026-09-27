@@ -126,15 +126,12 @@ Generate dynamic Open Graph images using `next/og`.
 3. **Avoid Edge runtime** - Use default Node.js runtime
 
 ```tsx
-
 import { ImageResponse } from 'next/og';
-
 ```
 
 ## Basic OG Image
 
 ```tsx
-
 import { ImageResponse } from 'next/og';
 
 export const alt = 'Site Name';
@@ -164,7 +161,6 @@ export default function Image() {
 ## Dynamic OG Image
 
 ```tsx
-
 import { ImageResponse } from 'next/og';
 
 export const alt = 'Blog Post';
@@ -240,7 +236,6 @@ ImageResponse uses Flexbox layout:
 Use `generateImageMetadata` for multiple images per route:
 
 ```tsx
-
 import { ImageResponse } from 'next/og';
 
 export async function generateImageMetadata({ params }) {
@@ -265,11 +260,9 @@ export default async function Image({ params, id }) {
 Use `generateSitemaps` for large sites:
 
 ```tsx
-
 import type { MetadataRoute } from 'next';
 
 export async function generateSitemaps() {
-
   return [{ id: 0 }, { id: 1 }, { id: 2 }];
 }
 

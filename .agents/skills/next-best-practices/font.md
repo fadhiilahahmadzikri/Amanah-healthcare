@@ -5,7 +5,6 @@ Use `next/font` for automatic font optimization with zero layout shift.
 ## Google Fonts
 
 ```tsx
-
 import { Inter } from 'next/font/google';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -58,7 +57,6 @@ code {
 ## Font Weights and Styles
 
 ```tsx
-
 const inter = Inter({
   subsets: ['latin'],
   weight: '400'
@@ -71,7 +69,6 @@ const inter = Inter({
 
 const inter = Inter({
   subsets: ['latin']
-
 });
 
 const inter = Inter({
@@ -113,7 +110,6 @@ const myFont = localFont({
 ## Tailwind CSS Integration
 
 ```tsx
-
 import { Inter } from 'next/font/google';
 
 const inter = Inter({
@@ -131,7 +127,6 @@ export default function RootLayout({ children }) {
 ```
 
 ```js
-
 module.exports = {
   theme: {
     extend: {
@@ -148,7 +143,6 @@ module.exports = {
 Only load needed character subsets:
 
 ```tsx
-
 const inter = Inter({ subsets: ['latin'] });
 
 const inter = Inter({ subsets: ['latin', 'latin-ext', 'cyrillic'] });
@@ -163,7 +157,6 @@ const inter = Inter({
   subsets: ['latin'],
   display: 'swap'
 });
-
 ```
 
 ## Don't Use Manual Font Links
@@ -206,7 +199,6 @@ const inter = Inter({ subsets: ['latin'] })
 ## Font in Specific Components
 
 ```tsx
-
 import { Inter, Playfair_Display } from 'next/font/google';
 
 export const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });

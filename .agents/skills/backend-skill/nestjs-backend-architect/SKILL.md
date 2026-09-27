@@ -22,6 +22,7 @@ This applies even when you're confident. Especially then, actually — the plan 
 Goal: leave this phase with a clear map of (a) what features exist, (b) which files belong to each feature, and (c) — most important — real evidence of what data shape each feature needs. Guessing the schema from feature names alone ("Projects" probably has a name and description, right?) is exactly what this phase exists to avoid.
 
 Start broad, then narrow:
+
 - Map the directory structure and identify how the project organizes itself (by route, by feature folder, by layer).
 - Walk the routes/pages to get the feature list. Each route is usually a feature or a view onto one.
 - For each feature, collect its file set: the page/route, the components it renders, any hooks or API-client calls it uses, and the TypeScript types involved.
@@ -34,6 +35,7 @@ Don't move to Phase 2 for a feature until you have at least one concrete, eviden
 ## Phase 2 — Plan, then stop
 
 Turn what you found into two things:
+
 - A **database schema** — tables, columns, types, relationships — sized to what the frontend actually needs, not a speculative "complete" version of the product.
 - A set of **API endpoints** — one per piece of frontend functionality that needs server data, matching the request/response shape the frontend already expects wherever you found evidence of one (an existing `fetch('/api/projects')` call is a stronger signal than REST convention; if you deviate from what the frontend expects because convention pulls the other way, say so explicitly rather than quietly picking one).
 
@@ -58,11 +60,11 @@ Build what was approved. If you hit something during implementation that genuine
 
 ## Reference files
 
-| File | Read it when... |
-|---|---|
-| `references/exploration.md` | You're in Phase 1 and want the detailed tracing techniques — feature mapping, data-contract tracing, the full dummy-data git archaeology walkthrough. |
-| `references/schema-and-api-design.md` | You're designing the schema/endpoints in Phase 2 and want naming, relation, and REST conventions to apply. |
-| `references/plan-report-template.md` | You're about to write the Phase 2 report — use this structure. |
-| `references/setup-and-implementation.md` | You have approval and are moving into Phase 3 — the build checklist. |
+| File                                     | Read it when...                                                                                                                                       |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `references/exploration.md`              | You're in Phase 1 and want the detailed tracing techniques — feature mapping, data-contract tracing, the full dummy-data git archaeology walkthrough. |
+| `references/schema-and-api-design.md`    | You're designing the schema/endpoints in Phase 2 and want naming, relation, and REST conventions to apply.                                            |
+| `references/plan-report-template.md`     | You're about to write the Phase 2 report — use this structure.                                                                                        |
+| `references/setup-and-implementation.md` | You have approval and are moving into Phase 3 — the build checklist.                                                                                  |
 
 `scripts/detect_stack.sh` and `scripts/find_deleted_sample_data.sh` are both read-only and safe to run anytime during Phase 1.

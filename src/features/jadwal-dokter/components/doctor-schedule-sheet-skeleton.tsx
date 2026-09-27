@@ -26,7 +26,12 @@ export function ShimmerSkeleton({ className, ...props }: React.ComponentProps<ty
  */
 export function DoctorProfileHeaderSkeleton({ className }: { className?: string }) {
   return (
-    <div className={cn('relative w-full shrink-0 border-b border-border/40 bg-card select-none', className)}>
+    <div
+      className={cn(
+        'relative w-full shrink-0 border-b border-border/40 bg-card select-none',
+        className
+      )}
+    >
       {/* Cover Banner Skeleton */}
       <div className='relative w-full h-24 sm:h-28 bg-muted/40 overflow-hidden'>
         <ShimmerSkeleton className='w-full h-full rounded-none' />
@@ -67,7 +72,12 @@ export function DoctorProfileHeaderSkeleton({ className }: { className?: string 
  */
 export function DoctorTabsListSkeleton({ className }: { className?: string }) {
   return (
-    <div className={cn('px-6 pt-3 pb-2 border-b border-border/40 shrink-0 bg-muted/20 select-none', className)}>
+    <div
+      className={cn(
+        'px-6 pt-3 pb-2 border-b border-border/40 shrink-0 bg-muted/20 select-none',
+        className
+      )}
+    >
       <div className='grid w-full grid-cols-3 h-9 p-1 bg-muted/40 rounded-lg gap-1'>
         <ShimmerSkeleton className='h-full rounded-md' />
         <ShimmerSkeleton className='h-full rounded-md' />

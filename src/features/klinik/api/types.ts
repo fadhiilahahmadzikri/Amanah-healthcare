@@ -29,9 +29,17 @@ export interface Appointment {
   updated_at: string;
 }
 
-export type QueueStatus = 'SELESAI' | 'DIPANGGIL' | 'MENUNGGU';
+export type QueueStatus =
+  | 'SELESAI'
+  | 'DIPANGGIL'
+  | 'MENUNGGU'
+  | 'SEDANG_DIPERIKSA'
+  | 'BATAL'
+  | 'NO_SHOW'
+  | string;
 
 export interface QueueItem {
+  id: string;
   queue_number: string;
   patient_name: string;
   patient_avatar: string;
@@ -43,6 +51,7 @@ export interface QueueItem {
   called_time?: string;
   waiting_count?: number;
   room?: string;
+  call_count?: number;
 }
 
 export interface AppointmentFormData {

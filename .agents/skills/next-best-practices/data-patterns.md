@@ -27,9 +27,7 @@ Need to fetch data?
 Fetch data directly in Server Components - no API layer needed.
 
 ```tsx
-
 async function UsersPage() {
-
   const users = await db.user.findMany();
 
   const posts = await fetch('https://api.example.com/posts').then((r) => r.json());
@@ -56,7 +54,6 @@ async function UsersPage() {
 Server Actions are the recommended way to handle mutations.
 
 ```tsx
-
 'use server';
 
 import { revalidatePath } from 'next/cache';
@@ -77,7 +74,6 @@ export async function deletePost(id: string) {
 ```
 
 ```tsx
-
 import { createPost } from '@/app/actions';
 
 export default function NewPost() {
@@ -108,7 +104,6 @@ export default function NewPost() {
 Use Route Handlers when you need a REST API.
 
 ```tsx
-
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
@@ -140,7 +135,6 @@ export async function POST(request: NextRequest) {
 ### Problem: Sequential Fetches
 
 ```tsx
-
 async function Dashboard() {
   const user = await getUser();
   const posts = await getPosts();
@@ -153,7 +147,6 @@ async function Dashboard() {
 ### Solution 1: Parallel Fetching with Promise.all
 
 ```tsx
-
 async function Dashboard() {
   const [user, posts, comments] = await Promise.all([getUser(), getPosts(), getComments()]);
 
@@ -164,7 +157,6 @@ async function Dashboard() {
 ### Solution 2: Streaming with Suspense
 
 ```tsx
-
 import { Suspense } from 'react';
 
 async function Dashboard() {
@@ -194,7 +186,6 @@ async function PostsSection() {
 ### Solution 3: Preload Pattern
 
 ```tsx
-
 import { cache } from 'react';
 
 export const getUser = cache(async (id: string) => {
@@ -207,7 +198,6 @@ export const preloadUser = (id: string) => {
 ```
 
 ```tsx
-
 import { getUser, preloadUser } from '@/lib/data';
 
 export default async function UserPage({ params }) {
@@ -227,7 +217,6 @@ When Client Components need data:
 ### Option 1: Pass from Server Component (Preferred)
 
 ```tsx
-
 async function Page() {
   const data = await fetchData();
   return <ClientComponent initialData={data} />;
@@ -236,7 +225,6 @@ async function Page() {
 ('use client');
 function ClientComponent({ initialData }) {
   const [data, setData] = useState(initialData);
-
 }
 ```
 

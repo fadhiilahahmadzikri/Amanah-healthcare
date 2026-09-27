@@ -2,9 +2,8 @@ import { describe, it, expect, mock } from 'bun:test';
 
 mock.module('server-only', () => ({}));
 
-const { patientProfileDtoSchema, updatePatientProfileRequestDtoSchema } = await import(
-  './patient-profile.dto'
-);
+const { patientProfileDtoSchema, updatePatientProfileRequestDtoSchema } =
+  await import('./patient-profile.dto');
 
 const validPatientProfile = {
   id: '564aa704-3fbb-4cc7-a6ef-70fb155f2fa9',

@@ -5,7 +5,6 @@
 Queries that depend on data from other queries:
 
 ```typescript
-
 const { data: user } = useQuery({
   queryKey: ['user'],
   queryFn: fetchCurrentUser
@@ -145,7 +144,6 @@ const { data } = useQuery({
   queryKey: ['post', postId],
   queryFn: () => fetchPost(postId),
   initialData: () => {
-
     return queryClient.getQueryData(['posts'])?.find((post) => post.id === postId);
   }
 });
@@ -175,7 +173,6 @@ const queryClient = useQueryClient();
 const { mutate } = useMutation({
   mutationFn: updatePost,
   onMutate: async (newPost) => {
-
     await queryClient.cancelQueries({ queryKey: ['post', newPost.id] });
 
     const previousPost = queryClient.getQueryData(['post', newPost.id]);
@@ -185,11 +182,9 @@ const { mutate } = useMutation({
     return { previousPost };
   },
   onError: (err, newPost, context) => {
-
     queryClient.setQueryData(['post', newPost.id], context?.previousPost);
   },
   onSettled: (newPost) => {
-
     queryClient.invalidateQueries({ queryKey: ['post', newPost.id] });
   }
 });

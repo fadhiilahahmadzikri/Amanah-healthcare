@@ -42,7 +42,6 @@ function Composer({
 **Correct (composition eliminates conditionals):**
 
 ```tsx
-
 function ChannelComposer() {
   return (
     <Composer.Frame>

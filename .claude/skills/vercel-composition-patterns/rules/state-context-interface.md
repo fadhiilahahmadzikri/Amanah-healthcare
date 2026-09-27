@@ -19,7 +19,6 @@ dependency-injectable.
 
 ```tsx
 function ComposerInput() {
-
   const { input, setInput } = useChannelComposerState();
   return <TextInput value={input} onChangeText={setInput} />;
 }
@@ -28,7 +27,6 @@ function ComposerInput() {
 **Correct (generic interface enables dependency injection):**
 
 ```tsx
-
 interface ComposerState {
   input: string;
   attachments: Attachment[];
@@ -76,7 +74,6 @@ function ComposerInput() {
 **Different providers implement the same interface:**
 
 ```tsx
-
 function ForwardMessageProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState(initialState);
   const inputRef = useRef(null);

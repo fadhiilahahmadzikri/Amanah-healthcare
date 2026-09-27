@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
-import Image from 'next/image';
+import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { QueueItem } from '../api/types';
 import { cn } from '@/lib/utils';
@@ -14,8 +13,6 @@ export interface QueueSeatCardProps {
 }
 
 export function QueueSeatCard({ item, isNext = false, className, onClick }: QueueSeatCardProps) {
-  const [hasError, setHasError] = useState(false);
-
   // Extract initials for smart fallback
   const cleanName = item.patient_name
     .replace(/^drg?\.?\s*/i, '')
@@ -81,22 +78,8 @@ export function QueueSeatCard({ item, isNext = false, className, onClick }: Queu
               : 'border-border/60 bg-muted/20'
           )}
         >
-          <div className='w-full h-full rounded-[9px] overflow-hidden bg-muted relative'>
-            {!item.patient_avatar || hasError ? (
-              <div className='w-full h-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[9.5px]'>
-                <span>{initials}</span>
-              </div>
-            ) : (
-              <Image
-                src={item.patient_avatar}
-                alt={item.patient_name || 'Pasien'}
-                width={80}
-                height={80}
-                unoptimized
-                onError={() => setHasError(true)}
-                className='w-full h-full object-cover object-center rounded-[9px]'
-              />
-            )}
+          <div className='w-full h-full rounded-[9px] overflow-hidden bg-primary/10 text-primary flex items-center justify-center font-bold text-[10px] select-none'>
+            <span>{initials}</span>
           </div>
         </div>
       </div>

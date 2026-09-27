@@ -8,10 +8,21 @@ let memoryAccessToken: string | null = null;
 
 export const setAccessToken = (token: string | null): void => {
   memoryAccessToken = token;
+  if (typeof window !== 'undefined') {
+    if (token) {
+      localStorage.setItem('amanah_token', token);
+    } else {
+      localStorage.removeItem('amanah_token');
+    }
+  }
 };
 
 export const getAccessToken = (): string | null => {
-  return memoryAccessToken;
+  if (memoryAccessToken) return memoryAccessToken;
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('amanah_token');
+  }
+  return null;
 };
 
 export const getRefreshToken = (): string | null => {
@@ -57,7 +68,23 @@ export async function apiClient<T = unknown>(
   endpoint: string,
   options: FetchOptions = {}
 ): Promise<T> {
-  const url = endpoint.startsWith('http') ? endpoint : `${BASE_URL}${endpoint}`;
+  let url = endpoint.startsWith('http') ? endpoint : `${BASE_URL}${endpoint}`;
+  if (options.query) {
+    const searchParams = new URLSearchParams();
+    for (const [key, value] of Object.entries(options.query)) {
+      if (value !== undefined && value !== null && value !== '') {
+        if (Array.isArray(value)) {
+          value.forEach((v) => searchParams.append(key, String(v)));
+        } else {
+          searchParams.append(key, String(value));
+        }
+      }
+    }
+    const qs = searchParams.toString();
+    if (qs) {
+      url += (url.includes('?') ? '&' : '?') + qs;
+    }
+  }
   const headers = new Headers(options.headers);
 
   if (!headers.has('Content-Type') && options.body && typeof options.body === 'string') {
@@ -72,9 +99,10 @@ export async function apiClient<T = unknown>(
     headers.set('x-correlation-id', crypto.randomUUID());
   }
 
-  // 2. In-memory access token
-  if (!options.skipAuth && memoryAccessToken && !headers.has('Authorization')) {
-    headers.set('Authorization', `Bearer ${memoryAccessToken}`);
+  // 2. Active access token (memory or persistent)
+  const activeToken = getAccessToken();
+  if (!options.skipAuth && activeToken && !headers.has('Authorization')) {
+    headers.set('Authorization', `Bearer ${activeToken}`);
   }
 
   let response: Response;

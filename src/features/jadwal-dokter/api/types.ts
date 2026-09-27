@@ -166,7 +166,6 @@ export type CreateDoctorSessionPayload = CreateAdminDoctorSessionPayload;
 
 export type UpdateDoctorSessionPayload = UpdateAdminDoctorSessionPayload;
 
-
 /**
  * @deprecated Sesi jadwal dokter dilarang dihapus oleh admin (403 ADMIN_SCHEDULE_DELETION_PROHIBITED).
  */

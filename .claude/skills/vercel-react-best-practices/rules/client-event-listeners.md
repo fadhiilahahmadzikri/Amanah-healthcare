@@ -35,7 +35,6 @@ import useSWRSubscription from 'swr/subscription';
 const keyCallbacks = new Map<string, Set<() => void>>();
 
 function useKeyboardShortcut(key: string, callback: () => void) {
-
   useEffect(() => {
     if (!keyCallbacks.has(key)) {
       keyCallbacks.set(key, new Set());
@@ -65,13 +64,7 @@ function useKeyboardShortcut(key: string, callback: () => void) {
 }
 
 function Profile() {
-
-  useKeyboardShortcut('p', () => {
-
-  });
-  useKeyboardShortcut('k', () => {
-
-  });
-
+  useKeyboardShortcut('p', () => {});
+  useKeyboardShortcut('k', () => {});
 }
 ```

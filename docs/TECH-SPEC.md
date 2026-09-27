@@ -1,20 +1,21 @@
 # Technical Specification
+
 ## Stock Management System — v1.0
 
 ---
 
 ## 1. Tech Stack
 
-| Layer            | Technology                                      |
-|------------------|-------------------------------------------------|
-| Framework        | Next.js (App Router)                            |
-| UI Components    | shadcn/ui + Tailwind CSS                        |
-| Form Handling    | react-hook-form + zod                           |
-| Charts           | recharts                                        |
-| State Management | React Server Components + minimal client state  |
-| ORM              | Prisma                                          |
-| Database         | PostgreSQL                                      |
-| Validation       | Zod (shared between client and server)          |
+| Layer            | Technology                                     |
+| ---------------- | ---------------------------------------------- |
+| Framework        | Next.js (App Router)                           |
+| UI Components    | shadcn/ui + Tailwind CSS                       |
+| Form Handling    | react-hook-form + zod                          |
+| Charts           | recharts                                       |
+| State Management | React Server Components + minimal client state |
+| ORM              | Prisma                                         |
+| Database         | PostgreSQL                                     |
+| Validation       | Zod (shared between client and server)         |
 
 ---
 
@@ -46,13 +47,13 @@ CREATE TABLE categories (
 );
 ```
 
-| Column        | Type         | Constraints          | Notes                    |
-|---------------|--------------|----------------------|--------------------------|
-| `id`          | UUID         | PK, default          | Auto-generated UUID      |
-| `name`        | VARCHAR(100) | NOT NULL, UNIQUE     | e.g., "Electronics", "Spare Parts" |
-| `description` | TEXT         | nullable             | Optional explanation     |
-| `created_at`  | TIMESTAMPTZ  | NOT NULL             |                          |
-| `updated_at`  | TIMESTAMPTZ  | NOT NULL             | Trigger on update        |
+| Column        | Type         | Constraints      | Notes                              |
+| ------------- | ------------ | ---------------- | ---------------------------------- |
+| `id`          | UUID         | PK, default      | Auto-generated UUID                |
+| `name`        | VARCHAR(100) | NOT NULL, UNIQUE | e.g., "Electronics", "Spare Parts" |
+| `description` | TEXT         | nullable         | Optional explanation               |
+| `created_at`  | TIMESTAMPTZ  | NOT NULL         |                                    |
+| `updated_at`  | TIMESTAMPTZ  | NOT NULL         | Trigger on update                  |
 
 ---
 
@@ -82,19 +83,19 @@ CREATE INDEX idx_products_sku      ON products(sku);
 CREATE INDEX idx_products_name     ON products(name);
 ```
 
-| Column          | Type          | Constraints             | Notes                                    |
-|-----------------|---------------|-------------------------|------------------------------------------|
-| `id`            | UUID          | PK                      |                                          |
-| `sku`           | VARCHAR(100)  | NOT NULL, UNIQUE        | Stock Keeping Unit; user-defined or auto |
-| `name`          | VARCHAR(255)  | NOT NULL                |                                          |
-| `description`   | TEXT          | nullable                |                                          |
-| `category_id`   | UUID          | FK → categories         | SET NULL on category delete              |
-| `unit`          | VARCHAR(50)   | NOT NULL                | pcs, kg, liter, box, pair, etc.          |
-| `buy_price`     | DECIMAL(15,2) | NOT NULL, ≥ 0           | Cost price per unit                      |
-| `sell_price`    | DECIMAL(15,2) | NOT NULL, ≥ 0           | Sale price per unit                      |
-| `current_stock` | INTEGER       | NOT NULL, ≥ 0           | Live stock count; updated by trigger     |
-| `min_stock`     | INTEGER       | NOT NULL, ≥ 0           | Threshold for low-stock alert            |
-| `is_active`     | BOOLEAN       | NOT NULL, DEFAULT TRUE  | Soft delete flag                         |
+| Column          | Type          | Constraints            | Notes                                    |
+| --------------- | ------------- | ---------------------- | ---------------------------------------- |
+| `id`            | UUID          | PK                     |                                          |
+| `sku`           | VARCHAR(100)  | NOT NULL, UNIQUE       | Stock Keeping Unit; user-defined or auto |
+| `name`          | VARCHAR(255)  | NOT NULL               |                                          |
+| `description`   | TEXT          | nullable               |                                          |
+| `category_id`   | UUID          | FK → categories        | SET NULL on category delete              |
+| `unit`          | VARCHAR(50)   | NOT NULL               | pcs, kg, liter, box, pair, etc.          |
+| `buy_price`     | DECIMAL(15,2) | NOT NULL, ≥ 0          | Cost price per unit                      |
+| `sell_price`    | DECIMAL(15,2) | NOT NULL, ≥ 0          | Sale price per unit                      |
+| `current_stock` | INTEGER       | NOT NULL, ≥ 0          | Live stock count; updated by trigger     |
+| `min_stock`     | INTEGER       | NOT NULL, ≥ 0          | Threshold for low-stock alert            |
+| `is_active`     | BOOLEAN       | NOT NULL, DEFAULT TRUE | Soft delete flag                         |
 
 > **Note:** `current_stock` is the authoritative live count. It is **updated directly** by each stock movement operation inside a DB transaction to ensure atomicity.
 
@@ -124,17 +125,17 @@ CREATE INDEX idx_movements_created    ON stock_movements(created_at DESC);
 CREATE INDEX idx_movements_ref        ON stock_movements(reference_id) WHERE reference_id IS NOT NULL;
 ```
 
-| Column           | Type         | Notes                                                               |
-|------------------|--------------|---------------------------------------------------------------------|
-| `id`             | UUID         | PK                                                                  |
-| `product_id`     | UUID         | FK → products                                                       |
-| `type`           | VARCHAR(30)  | See enum values above                                               |
-| `quantity`       | INTEGER      | **Positive** = stock added; **Negative** = stock removed           |
-| `stock_before`   | INTEGER      | `current_stock` before this movement                               |
-| `stock_after`    | INTEGER      | `current_stock` after this movement                                |
-| `reference_type` | VARCHAR(30)  | `'transaction'` or `'manual'` (nullable for manual ops)            |
-| `reference_id`   | UUID         | FK to `transactions.id` when applicable                            |
-| `note`           | TEXT         | Free text; required for adjustments and manual out                 |
+| Column           | Type        | Notes                                                    |
+| ---------------- | ----------- | -------------------------------------------------------- |
+| `id`             | UUID        | PK                                                       |
+| `product_id`     | UUID        | FK → products                                            |
+| `type`           | VARCHAR(30) | See enum values above                                    |
+| `quantity`       | INTEGER     | **Positive** = stock added; **Negative** = stock removed |
+| `stock_before`   | INTEGER     | `current_stock` before this movement                     |
+| `stock_after`    | INTEGER     | `current_stock` after this movement                      |
+| `reference_type` | VARCHAR(30) | `'transaction'` or `'manual'` (nullable for manual ops)  |
+| `reference_id`   | UUID        | FK to `transactions.id` when applicable                  |
+| `note`           | TEXT        | Free text; required for adjustments and manual out       |
 
 ---
 
@@ -164,17 +165,17 @@ CREATE INDEX idx_transactions_status ON transactions(status);
 CREATE INDEX idx_transactions_date   ON transactions(transaction_date DESC);
 ```
 
-| Column               | Type          | Notes                                        |
-|----------------------|---------------|----------------------------------------------|
-| `id`                 | UUID          | PK                                           |
+| Column               | Type          | Notes                                       |
+| -------------------- | ------------- | ------------------------------------------- |
+| `id`                 | UUID          | PK                                          |
 | `transaction_number` | VARCHAR(50)   | Auto-generated: `TXN-YYYYMMDD-NNNN`         |
 | `type`               | VARCHAR(20)   | `'sale'` or `'purchase'`                    |
 | `status`             | VARCHAR(20)   | `'completed'` or `'cancelled'`              |
-| `total_amount`       | DECIMAL(15,2) | Sum of all line item subtotals               |
-| `cash_tendered`      | DECIMAL(15,2) | For sales only; how much customer paid       |
-| `change_amount`      | DECIMAL(15,2) | `cash_tendered - total_amount` (sales only)  |
+| `total_amount`       | DECIMAL(15,2) | Sum of all line item subtotals              |
+| `cash_tendered`      | DECIMAL(15,2) | For sales only; how much customer paid      |
+| `change_amount`      | DECIMAL(15,2) | `cash_tendered - total_amount` (sales only) |
 | `note`               | TEXT          | Optional transaction note                   |
-| `transaction_date`   | TIMESTAMPTZ   | Effective date (can be overridden)           |
+| `transaction_date`   | TIMESTAMPTZ   | Effective date (can be overridden)          |
 
 ---
 
@@ -197,14 +198,14 @@ CREATE INDEX idx_items_transaction ON transaction_items(transaction_id);
 CREATE INDEX idx_items_product     ON transaction_items(product_id);
 ```
 
-| Column           | Type          | Notes                                           |
-|------------------|---------------|-------------------------------------------------|
-| `id`             | UUID          | PK                                              |
-| `transaction_id` | UUID          | FK → transactions                               |
+| Column           | Type          | Notes                                                                         |
+| ---------------- | ------------- | ----------------------------------------------------------------------------- |
+| `id`             | UUID          | PK                                                                            |
+| `transaction_id` | UUID          | FK → transactions                                                             |
 | `product_id`     | UUID          | FK → products (RESTRICT: cannot delete product if it has transaction history) |
-| `quantity`       | INTEGER       | Must be > 0                                     |
-| `unit_price`     | DECIMAL(15,2) | Price snapshotted at time of transaction        |
-| `subtotal`       | DECIMAL(15,2) | `quantity × unit_price`; stored for integrity   |
+| `quantity`       | INTEGER       | Must be > 0                                                                   |
+| `unit_price`     | DECIMAL(15,2) | Price snapshotted at time of transaction                                      |
+| `subtotal`       | DECIMAL(15,2) | `quantity × unit_price`; stored for integrity                                 |
 
 ---
 
@@ -322,48 +323,48 @@ All routes live under `app/api/`. Responses follow a consistent envelope:
 
 ### 3.1 Products
 
-| Method | Route                        | Description                                      |
-|--------|------------------------------|--------------------------------------------------|
-| GET    | `/api/products`              | List products (paginated, searchable, filterable)|
-| POST   | `/api/products`              | Create new product                               |
-| GET    | `/api/products/:id`          | Get single product detail                        |
-| PATCH  | `/api/products/:id`          | Update product fields                            |
-| DELETE | `/api/products/:id`          | Soft-delete product (`is_active = false`)        |
-| GET    | `/api/products/:id/movements`| Get stock movement history for a product         |
+| Method | Route                         | Description                                       |
+| ------ | ----------------------------- | ------------------------------------------------- |
+| GET    | `/api/products`               | List products (paginated, searchable, filterable) |
+| POST   | `/api/products`               | Create new product                                |
+| GET    | `/api/products/:id`           | Get single product detail                         |
+| PATCH  | `/api/products/:id`           | Update product fields                             |
+| DELETE | `/api/products/:id`           | Soft-delete product (`is_active = false`)         |
+| GET    | `/api/products/:id/movements` | Get stock movement history for a product          |
 
 **GET `/api/products` Query Params:**
 
-| Param        | Type    | Description                                   |
-|--------------|---------|-----------------------------------------------|
-| `search`     | string  | Filter by name or SKU (ILIKE)                 |
-| `categoryId` | UUID    | Filter by category                            |
-| `status`     | string  | `ok` / `low` / `out`                         |
-| `page`       | number  | Page number (default: 1)                      |
-| `limit`      | number  | Items per page (default: 20, max: 100)        |
-| `sortBy`     | string  | `name` / `currentStock` / `createdAt`         |
-| `sortDir`    | string  | `asc` / `desc`                               |
+| Param        | Type   | Description                            |
+| ------------ | ------ | -------------------------------------- |
+| `search`     | string | Filter by name or SKU (ILIKE)          |
+| `categoryId` | UUID   | Filter by category                     |
+| `status`     | string | `ok` / `low` / `out`                   |
+| `page`       | number | Page number (default: 1)               |
+| `limit`      | number | Items per page (default: 20, max: 100) |
+| `sortBy`     | string | `name` / `currentStock` / `createdAt`  |
+| `sortDir`    | string | `asc` / `desc`                         |
 
 ---
 
 ### 3.2 Categories
 
-| Method | Route                 | Description               |
-|--------|-----------------------|---------------------------|
-| GET    | `/api/categories`     | List all categories       |
-| POST   | `/api/categories`     | Create category           |
-| PATCH  | `/api/categories/:id` | Rename / update           |
-| DELETE | `/api/categories/:id` | Delete (guard if products)|
+| Method | Route                 | Description                |
+| ------ | --------------------- | -------------------------- |
+| GET    | `/api/categories`     | List all categories        |
+| POST   | `/api/categories`     | Create category            |
+| PATCH  | `/api/categories/:id` | Rename / update            |
+| DELETE | `/api/categories/:id` | Delete (guard if products) |
 
 ---
 
 ### 3.3 Stock Operations
 
-| Method | Route                    | Description                                  |
-|--------|--------------------------|----------------------------------------------|
-| POST   | `/api/stock/in`          | Record stock in for one or more products     |
-| POST   | `/api/stock/out`         | Record manual stock out                      |
-| POST   | `/api/stock/adjustment`  | Record physical count adjustment             |
-| GET    | `/api/stock/movements`   | List all movements (filterable)              |
+| Method | Route                   | Description                              |
+| ------ | ----------------------- | ---------------------------------------- |
+| POST   | `/api/stock/in`         | Record stock in for one or more products |
+| POST   | `/api/stock/out`        | Record manual stock out                  |
+| POST   | `/api/stock/adjustment` | Record physical count adjustment         |
+| GET    | `/api/stock/movements`  | List all movements (filterable)          |
 
 **POST `/api/stock/in` Request Body:**
 
@@ -394,24 +395,24 @@ All routes live under `app/api/`. Responses follow a consistent envelope:
 
 ### 3.4 Transactions
 
-| Method | Route                          | Description                                  |
-|--------|--------------------------------|----------------------------------------------|
-| GET    | `/api/transactions`            | List transactions (filterable, paginated)    |
-| POST   | `/api/transactions`            | Create new transaction (sale or purchase)    |
-| GET    | `/api/transactions/:id`        | Get full transaction detail with items       |
-| PATCH  | `/api/transactions/:id/cancel` | Cancel transaction + reverse stock           |
+| Method | Route                          | Description                               |
+| ------ | ------------------------------ | ----------------------------------------- |
+| GET    | `/api/transactions`            | List transactions (filterable, paginated) |
+| POST   | `/api/transactions`            | Create new transaction (sale or purchase) |
+| GET    | `/api/transactions/:id`        | Get full transaction detail with items    |
+| PATCH  | `/api/transactions/:id/cancel` | Cancel transaction + reverse stock        |
 
 **GET `/api/transactions` Query Params:**
 
-| Param      | Type    | Description                                   |
-|------------|---------|-----------------------------------------------|
-| `type`     | string  | `sale` / `purchase`                          |
-| `status`   | string  | `completed` / `cancelled`                    |
-| `from`     | date    | Start of date range (transaction_date)        |
-| `to`       | date    | End of date range                             |
-| `search`   | string  | Search by transaction number                  |
-| `page`     | number  | Default: 1                                    |
-| `limit`    | number  | Default: 20                                   |
+| Param    | Type   | Description                            |
+| -------- | ------ | -------------------------------------- |
+| `type`   | string | `sale` / `purchase`                    |
+| `status` | string | `completed` / `cancelled`              |
+| `from`   | date   | Start of date range (transaction_date) |
+| `to`     | date   | End of date range                      |
+| `search` | string | Search by transaction number           |
+| `page`   | number | Default: 1                             |
+| `limit`  | number | Default: 20                            |
 
 **POST `/api/transactions` Request Body:**
 
@@ -432,12 +433,12 @@ All routes live under `app/api/`. Responses follow a consistent envelope:
 
 ### 3.5 Reports
 
-| Method | Route                    | Description                                  |
-|--------|--------------------------|----------------------------------------------|
-| GET    | `/api/reports/summary`   | Dashboard stats (products, sales, low stock) |
-| GET    | `/api/reports/sales`     | Sales report (grouped by day/week/month)     |
-| GET    | `/api/reports/stock`     | Stock value and movement summary             |
-| GET    | `/api/reports/top-products` | Top products by qty sold / revenue        |
+| Method | Route                       | Description                                  |
+| ------ | --------------------------- | -------------------------------------------- |
+| GET    | `/api/reports/summary`      | Dashboard stats (products, sales, low stock) |
+| GET    | `/api/reports/sales`        | Sales report (grouped by day/week/month)     |
+| GET    | `/api/reports/stock`        | Stock value and movement summary             |
+| GET    | `/api/reports/top-products` | Top products by qty sold / revenue           |
 
 **GET `/api/reports/summary` Response:**
 
@@ -483,16 +484,13 @@ async function generateTransactionNumber(date: Date): Promise<string> {
 
   const last = await prisma.transaction.findFirst({
     where: { transactionNumber: { startsWith: prefix } },
-    orderBy: { transactionNumber: 'desc' },
+    orderBy: { transactionNumber: 'desc' }
   });
 
-  const seq = last
-    ? parseInt(last.transactionNumber.split('-')[2]) + 1
-    : 1;
+  const seq = last ? parseInt(last.transactionNumber.split('-')[2]) + 1 : 1;
 
   return `${prefix}${String(seq).padStart(4, '0')}`;
 }
-
 ```
 
 ### 4.3 Create Sale Transaction (Atomic Flow)
@@ -571,7 +569,6 @@ function generateSku(productName: string): string {
   const suffix = Date.now().toString(36).toUpperCase().slice(-4);
   return `${prefix}-${suffix}`;
 }
-
 ```
 
 ### 4.7 Low Stock Detection
@@ -595,7 +592,6 @@ These are computed at query time — no separate flag stored.
 ## 5. Zod Validation Schemas
 
 ```ts
-
 export const createProductSchema = z.object({
   sku: z.string().max(100).optional(),
   name: z.string().min(1).max(255),
@@ -605,34 +601,42 @@ export const createProductSchema = z.object({
   buyPrice: z.number().min(0),
   sellPrice: z.number().min(0),
   initialStock: z.number().int().min(0),
-  minStock: z.number().int().min(0).default(0),
+  minStock: z.number().int().min(0).default(0)
 });
 
 export const stockInSchema = z.object({
-  entries: z.array(z.object({
-    productId: z.string().uuid(),
-    quantity: z.number().int().positive(),
-    note: z.string().optional(),
-  })).min(1),
-  date: z.string().datetime().optional(),
+  entries: z
+    .array(
+      z.object({
+        productId: z.string().uuid(),
+        quantity: z.number().int().positive(),
+        note: z.string().optional()
+      })
+    )
+    .min(1),
+  date: z.string().datetime().optional()
 });
 
 export const adjustmentSchema = z.object({
   productId: z.string().uuid(),
   physicalCount: z.number().int().min(0),
-  note: z.string().min(3, "Adjustment reason is required"),
+  note: z.string().min(3, 'Adjustment reason is required')
 });
 
 export const createTransactionSchema = z.object({
   type: z.enum(['sale', 'purchase']),
-  items: z.array(z.object({
-    productId: z.string().uuid(),
-    quantity: z.number().int().positive(),
-    unitPrice: z.number().min(0),
-  })).min(1),
+  items: z
+    .array(
+      z.object({
+        productId: z.string().uuid(),
+        quantity: z.number().int().positive(),
+        unitPrice: z.number().min(0)
+      })
+    )
+    .min(1),
   cashTendered: z.number().min(0).optional(),
   note: z.string().optional(),
-  transactionDate: z.string().datetime().optional(),
+  transactionDate: z.string().datetime().optional()
 });
 ```
 
@@ -640,15 +644,15 @@ export const createTransactionSchema = z.object({
 
 ## 6. Error Codes Reference
 
-| HTTP Status | Code                   | Meaning                                    |
-|-------------|------------------------|--------------------------------------------|
-| 400         | `VALIDATION_ERROR`     | Zod schema failed                          |
-| 404         | `NOT_FOUND`            | Resource ID does not exist                 |
-| 409         | `DUPLICATE_SKU`        | SKU already exists                         |
-| 409         | `CATEGORY_HAS_PRODUCTS`| Cannot delete category with products       |
-| 422         | `INSUFFICIENT_STOCK`   | Stock-out would result in negative stock   |
-| 422         | `ALREADY_CANCELLED`    | Transaction already cancelled              |
-| 500         | `INTERNAL_ERROR`       | Unexpected server error                    |
+| HTTP Status | Code                    | Meaning                                  |
+| ----------- | ----------------------- | ---------------------------------------- |
+| 400         | `VALIDATION_ERROR`      | Zod schema failed                        |
+| 404         | `NOT_FOUND`             | Resource ID does not exist               |
+| 409         | `DUPLICATE_SKU`         | SKU already exists                       |
+| 409         | `CATEGORY_HAS_PRODUCTS` | Cannot delete category with products     |
+| 422         | `INSUFFICIENT_STOCK`    | Stock-out would result in negative stock |
+| 422         | `ALREADY_CANCELLED`     | Transaction already cancelled            |
+| 500         | `INTERNAL_ERROR`        | Unexpected server error                  |
 
 ---
 

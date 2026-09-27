@@ -7,7 +7,6 @@ Client hooks that cause CSR bailout without Suspense boundaries.
 Always requires Suspense boundary in static routes. Without it, the entire page becomes client-side rendered.
 
 ```tsx
-
 'use client';
 
 import { useSearchParams } from 'next/navigation';
@@ -19,7 +18,6 @@ export default function SearchBar() {
 ```
 
 ```tsx
-
 import { Suspense } from 'react';
 import SearchBar from './search-bar';
 
@@ -37,7 +35,6 @@ export default function Page() {
 Requires Suspense boundary when route has dynamic parameters.
 
 ```tsx
-
 'use client';
 import { usePathname } from 'next/navigation';
 
@@ -48,7 +45,6 @@ export function Breadcrumb() {
 ```
 
 ```tsx
-
 <Suspense fallback={<BreadcrumbSkeleton />}>
   <Breadcrumb />
 </Suspense>

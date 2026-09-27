@@ -19,7 +19,6 @@ Popular icon and component libraries can have **up to 10,000 re-exports** in the
 import { Check, X, Menu } from 'lucide-react';
 
 import { Button, TextField } from '@mui/material';
-
 ```
 
 **Correct (imports only what you need):**
@@ -31,13 +30,11 @@ import Menu from 'lucide-react/dist/esm/icons/menu';
 
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-
 ```
 
 **Alternative (Next.js 13.5+):**
 
 ```js
-
 module.exports = {
   experimental: {
     optimizePackageImports: ['lucide-react', '@mui/material']
@@ -45,7 +42,6 @@ module.exports = {
 };
 
 import { Check, X, Menu } from 'lucide-react';
-
 ```
 
 Direct imports provide 15-70% faster dev boot, 28% faster builds, 40% faster cold starts, and significantly faster HMR.

@@ -155,7 +155,7 @@ export const getExampleData = () => {
   } catch {
     return Response.json(null, {
       status: 500,
-      statusText: 'Ouch, something went wrong',
+      statusText: 'Ouch, something went wrong'
     });
   }
 };
@@ -262,7 +262,7 @@ my-nuxt-project/
   <HomePage />
 </template>
 <script setup>
-import { HomePage } from "@/pages/home";
+import { HomePage } from '@/pages/home';
 </script>
 ```
 
@@ -273,17 +273,17 @@ runtime aliases in `nuxt.config.ts`:
 
 ```typescript
 // nuxt.config.ts
-import { resolve } from "path";
+import { resolve } from 'path';
 
 export default defineNuxtConfig({
   alias: {
-    "@/app": resolve(__dirname, "src/app"),
-    "@/pages": resolve(__dirname, "src/pages"),
-    "@/widgets": resolve(__dirname, "src/widgets"),
-    "@/features": resolve(__dirname, "src/features"),
-    "@/entities": resolve(__dirname, "src/entities"),
-    "@/shared": resolve(__dirname, "src/shared"),
-  },
+    '@/app': resolve(__dirname, 'src/app'),
+    '@/pages': resolve(__dirname, 'src/pages'),
+    '@/widgets': resolve(__dirname, 'src/widgets'),
+    '@/features': resolve(__dirname, 'src/features'),
+    '@/entities': resolve(__dirname, 'src/entities'),
+    '@/shared': resolve(__dirname, 'src/shared')
+  }
 });
 ```
 
@@ -313,22 +313,22 @@ Vite resolver agrees with TypeScript:
 
 ```typescript
 // vite.config.ts
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import { resolve } from "path";
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
 
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@/app": resolve(__dirname, "src/app"),
-      "@/pages": resolve(__dirname, "src/pages"),
-      "@/widgets": resolve(__dirname, "src/widgets"),
-      "@/features": resolve(__dirname, "src/features"),
-      "@/entities": resolve(__dirname, "src/entities"),
-      "@/shared": resolve(__dirname, "src/shared"),
-    },
-  },
+      '@/app': resolve(__dirname, 'src/app'),
+      '@/pages': resolve(__dirname, 'src/pages'),
+      '@/widgets': resolve(__dirname, 'src/widgets'),
+      '@/features': resolve(__dirname, 'src/features'),
+      '@/entities': resolve(__dirname, 'src/entities'),
+      '@/shared': resolve(__dirname, 'src/shared')
+    }
+  }
 });
 ```
 
@@ -341,19 +341,19 @@ override the webpack config:
 
 ```javascript
 // craco.config.js
-const path = require("path");
+const path = require('path');
 
 module.exports = {
   webpack: {
     alias: {
-      "@/app": path.resolve(__dirname, "src/app"),
-      "@/pages": path.resolve(__dirname, "src/pages"),
-      "@/widgets": path.resolve(__dirname, "src/widgets"),
-      "@/features": path.resolve(__dirname, "src/features"),
-      "@/entities": path.resolve(__dirname, "src/entities"),
-      "@/shared": path.resolve(__dirname, "src/shared"),
-    },
-  },
+      '@/app': path.resolve(__dirname, 'src/app'),
+      '@/pages': path.resolve(__dirname, 'src/pages'),
+      '@/widgets': path.resolve(__dirname, 'src/widgets'),
+      '@/features': path.resolve(__dirname, 'src/features'),
+      '@/entities': path.resolve(__dirname, 'src/entities'),
+      '@/shared': path.resolve(__dirname, 'src/shared')
+    }
+  }
 };
 ```
 

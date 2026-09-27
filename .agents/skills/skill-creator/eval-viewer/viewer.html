@@ -604,7 +604,6 @@
 
       <div class="view-panel active" id="panel-outputs">
         <div class="main">
-
           <div class="section">
             <div class="section-header">
               Prompt <span class="config-badge" id="config-badge" style="display: none"></span>
@@ -692,13 +691,11 @@
     <div class="toast" id="toast"></div>
 
     <script>
-
       let feedbackMap = {};
       let currentIndex = 0;
       let visitedRuns = new Set();
 
       async function init() {
-
         const hasPrevious =
           Object.keys(EMBEDDED_DATA.previous_feedback || {}).length > 0 ||
           Object.keys(EMBEDDED_DATA.previous_outputs || {}).length > 0;
@@ -709,9 +706,7 @@
             if (data.reviews) {
               for (const r of data.reviews) feedbackMap[r.run_id] = r.feedback;
             }
-          } catch {
-
-          }
+          } catch {}
         }
 
         document.getElementById('skill-name').textContent = EMBEDDED_DATA.skill_name;
@@ -1045,13 +1040,11 @@
             document.getElementById('feedback-status').textContent = 'Saved';
           })
           .catch(() => {
-
             document.getElementById('feedback-status').textContent = 'Will download on submit';
           });
       }
 
       function showDoneDialog() {
-
         const run = EMBEDDED_DATA.runs[currentIndex];
         const text = document.getElementById('feedback').value;
         if (text.trim() === '') {
@@ -1075,7 +1068,6 @@
             document.getElementById('done-overlay').classList.add('visible');
           })
           .catch(() => {
-
             const blob = new Blob([payload], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -1088,7 +1080,6 @@
       }
 
       function closeDoneDialog() {
-
         saveCurrentFeedback();
         document.getElementById('done-overlay').classList.remove('visible');
       }
@@ -1101,7 +1092,6 @@
       }
 
       document.addEventListener('keydown', (e) => {
-
         if (e.target.tagName === 'TEXTAREA') return;
 
         if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
@@ -1328,7 +1318,6 @@
               (runs) => runs.length > 0
             );
             if (hasAnyExpectations) {
-
               const allAssertions = [];
               const seen = new Set();
               for (const config of configGroups) {

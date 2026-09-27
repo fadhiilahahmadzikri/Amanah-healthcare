@@ -16,7 +16,6 @@ async function handleRequest(userId: string, skipProcessing: boolean) {
   const userData = await fetchUserData(userId);
 
   if (skipProcessing) {
-
     return { skipped: true };
   }
 
@@ -29,7 +28,6 @@ async function handleRequest(userId: string, skipProcessing: boolean) {
 ```typescript
 async function handleRequest(userId: string, skipProcessing: boolean) {
   if (skipProcessing) {
-
     return { skipped: true };
   }
 
@@ -41,7 +39,6 @@ async function handleRequest(userId: string, skipProcessing: boolean) {
 **Another example (early return optimization):**
 
 ```typescript
-
 async function updateResource(resourceId: string, userId: string) {
   const permissions = await fetchPermissions(userId);
   const resource = await getResource(resourceId);

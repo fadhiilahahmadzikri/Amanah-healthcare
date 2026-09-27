@@ -20,7 +20,7 @@ Conventions to apply once Phase 1 has given you a feature list and evidence of t
 
 **Resource-oriented paths.** `/projects`, `/projects/:id`, `/projects/:id/tasks` — standard REST verbs (GET for list/detail, POST to create, PATCH for partial update, DELETE to remove). Nest a route under its parent when the UI treats it as scoped that way (tasks-of-a-project), rather than a flat `/tasks?projectId=` unless that's what the frontend already calls.
 
-**Match the frontend's existing contract first.** If Phase 1 turned up an actual `fetch`/`axios`/query-hook call with a real path and payload shape, that *is* the contract — implement to it, even if a purist would design it slightly differently. If you do deviate from it for a good reason (the existing call was clearly a placeholder, or genuinely inconsistent with itself across two components), call that out explicitly in the report rather than quietly "fixing" it.
+**Match the frontend's existing contract first.** If Phase 1 turned up an actual `fetch`/`axios`/query-hook call with a real path and payload shape, that _is_ the contract — implement to it, even if a purist would design it slightly differently. If you do deviate from it for a good reason (the existing call was clearly a placeholder, or genuinely inconsistent with itself across two components), call that out explicitly in the report rather than quietly "fixing" it.
 
 **Pagination and filtering.** Only include if the UI shows evidence of it — a paginator, a search box, filter controls. Don't add `?page=&limit=` to every list endpoint by default if the frontend just renders a full list.
 

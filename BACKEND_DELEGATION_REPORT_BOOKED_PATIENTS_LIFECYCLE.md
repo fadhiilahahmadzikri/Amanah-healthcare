@@ -6,7 +6,7 @@
 **Scope:** Doctor Schedule Administration, Session Slot Visibility, Patient Queue Management, and Appointment Lifecycle State Machine  
 **Reference Document:** `# Web Admin — Spesifikasi Resmi & Changelog: Level-1 vs Level-2 SSOT Synchronization on Reschedule & Day Status`  
 **Status:** DRAFT / DELEGATION SPECIFICATION  
-**Date:** September 24, 2026  
+**Date:** September 24, 2026
 
 ---
 
@@ -15,6 +15,7 @@
 Following the successful resolution and SSOT stabilization of Level-1 (Monthly Calendar) and Level-2 (Daily Sessions) aggregation, the Frontend Web Admin team requires a standardized backend contract and endpoint suite to support **Patient Booking Visibility, Patient Showcase Grid, Comprehensive Patient Demographics, and the Patient Appointment Cancellation & Queue Lifecycle**.
 
 Currently, the Doctor Schedule view presents slot metrics (e.g., `8 / 12` slots filled in a shift session, or `X / Y` accumulated across a daily schedule). However, administrative staff and practitioners currently lack:
+
 1. **Direct Visibility into Booked Patients:** An explicit, authenticated admin endpoint that retrieves the exact roster of patients who booked a specific doctor session or date.
 2. **5-Column Grid Showcase Modal:** A responsive UI modal presenting patient cards in a spacious 5-column grid layout (`grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5`). Outer cards must remain minimal (Patient Name, Chief Complaint, Room, Queue/Slot Time, Status Badge), deliberately omitting crowded demographic data (age, NIK, addresses).
 3. **Comprehensive Patient Demographic Sub-Modal:** A nested detail modal opened by clicking a card, revealing full civil and clinical identity data (Full Name, NIK, Medical Record Number/No. RM, Gender, Birth Date, Calculated Age, Guardian/Emergency Contact, Phone, Full Address, Reservation Timestamp, Intake Notes).
@@ -56,13 +57,13 @@ The backend database currently defines the `appointment_status` enum as `('booke
                    └───────────┘
 ```
 
-| Domain Status Code | Indonesian Label | Allowed Transitions | Description |
-| :--- | :--- | :--- | :--- |
-| `waiting` / `checked_in` | **Menunggu (Antrean)** | `-> in_service`, `-> cancelled`, `-> no_show` | Patient has confirmed attendance and is in the clinic waiting area. |
-| `in_service` | **Sedang Diperiksa (Dalam Sesi)** | `-> completed` | Patient has been called by the practitioner and is currently inside the examination room. |
-| `completed` | **Selesai Pemeriksaan** | *Terminal state* (None) | Clinical examination and electronic medical record (EMR) entry concluded. |
-| `no_show` / `late` | **Terlambat / Tidak Hadir** | `-> cancelled` (optional) | Patient failed to attend their booked time slot within clinic grace period tolerance (e.g., > 15-30 mins late). |
-| `cancelled` | **Dibatalkan** | *Terminal state* (None) | Appointment cancelled by patient or admin prior to examination start. |
+| Domain Status Code       | Indonesian Label                  | Allowed Transitions                           | Description                                                                                                     |
+| :----------------------- | :-------------------------------- | :-------------------------------------------- | :-------------------------------------------------------------------------------------------------------------- |
+| `waiting` / `checked_in` | **Menunggu (Antrean)**            | `-> in_service`, `-> cancelled`, `-> no_show` | Patient has confirmed attendance and is in the clinic waiting area.                                             |
+| `in_service`             | **Sedang Diperiksa (Dalam Sesi)** | `-> completed`                                | Patient has been called by the practitioner and is currently inside the examination room.                       |
+| `completed`              | **Selesai Pemeriksaan**           | _Terminal state_ (None)                       | Clinical examination and electronic medical record (EMR) entry concluded.                                       |
+| `no_show` / `late`       | **Terlambat / Tidak Hadir**       | `-> cancelled` (optional)                     | Patient failed to attend their booked time slot within clinic grace period tolerance (e.g., > 15-30 mins late). |
+| `cancelled`              | **Dibatalkan**                    | _Terminal state_ (None)                       | Appointment cancelled by patient or admin prior to examination start.                                           |
 
 ---
 
@@ -88,11 +89,12 @@ The backend database currently defines the `appointment_status` enum as `('booke
 
 Retrieves all patient bookings assigned to a specific schedule shift session.
 
-* **Route:** `GET /api/v1/admin/doctor-schedules/:id/sessions/:sessionId/patients`
-* **Alternative Query Route:** `GET /api/v1/admin/doctor-schedules/sessions/:sessionId/booked-patients`
-* **HTTP Method:** `GET`
-* **Auth Guard:** `@Roles('ADMIN', 'STAF')`
-* **Query Parameters:**
+- **Route:** `GET /api/v1/admin/doctor-schedules/:id/sessions/:sessionId/patients`
+- **Alternative Query Route:** `GET /api/v1/admin/doctor-schedules/sessions/:sessionId/booked-patients`
+- **HTTP Method:** `GET`
+- **Auth Guard:** `@Roles('ADMIN', 'STAF')`
+- **Query Parameters:**
+
   ```typescript
   export class GetSessionPatientsQueryDto {
     @IsOptional()
@@ -106,6 +108,7 @@ Retrieves all patient bookings assigned to a specific schedule shift session.
   ```
 
 #### Success Response: `200 OK`
+
 ```json
 {
   "success": true,
@@ -169,15 +172,16 @@ Retrieves all patient bookings assigned to a specific schedule shift session.
 
 For daily accumulation and search across all 4 sessions of the day (Dini Hari, Pagi, Siang, Malam).
 
-* **Route:** `GET /api/v1/admin/doctor-schedules/:id/patients`
-* **HTTP Method:** `GET`
-* **Auth Guard:** `@Roles('ADMIN', 'STAF')`
-* **Query Parameters:**
+- **Route:** `GET /api/v1/admin/doctor-schedules/:id/patients`
+- **HTTP Method:** `GET`
+- **Auth Guard:** `@Roles('ADMIN', 'STAF')`
+- **Query Parameters:**
   - `date`: `YYYY-MM-DD` (Required, e.g. `2026-09-24`)
   - `sessionShift`: Optional (`dini_hari`, `pagi`, `siang`, `malam`)
   - `status`: Optional (`waiting`, `in_service`, `completed`, `cancelled`, `no_show`)
 
 #### Response Summary Structure:
+
 ```json
 {
   "success": true,
@@ -214,15 +218,16 @@ For daily accumulation and search across all 4 sessions of the day (Dini Hari, P
 
 Cancels an appointment and immediately triggers slot recovery in `practitioner_schedule_sessions`.
 
-* **Route:** `PATCH /api/v1/admin/appointments/:appointmentId/cancel`
-* **HTTP Method:** `PATCH`
-* **Auth Guard:** `@Roles('ADMIN', 'STAF', 'PATIENT')`
-* **Request Body Schema:**
+- **Route:** `PATCH /api/v1/admin/appointments/:appointmentId/cancel`
+- **HTTP Method:** `PATCH`
+- **Auth Guard:** `@Roles('ADMIN', 'STAF', 'PATIENT')`
+- **Request Body Schema:**
+
   ```typescript
   export class CancelAppointmentDto {
     @ApiProperty({
       description: 'Alasan pembatalan janji temu',
-      example: 'Pasien terlambat melebihi 30 menit atau berhalangan hadir',
+      example: 'Pasien terlambat melebihi 30 menit atau berhalangan hadir'
     })
     @IsNotEmpty()
     @IsString()
@@ -230,7 +235,7 @@ Cancels an appointment and immediately triggers slot recovery in `practitioner_s
 
     @ApiPropertyOptional({
       description: 'Menandai apakah pembatalan disebabkan karena pasien terlambat (No-Show)',
-      example: true,
+      example: true
     })
     @IsOptional()
     @IsBoolean()
@@ -239,6 +244,7 @@ Cancels an appointment and immediately triggers slot recovery in `practitioner_s
   ```
 
 #### Success Response: `200 OK`
+
 ```json
 {
   "success": true,
@@ -260,6 +266,7 @@ Cancels an appointment and immediately triggers slot recovery in `practitioner_s
 ```
 
 #### Error Response: `400 Bad Request` (Attempt to cancel active or completed consultation)
+
 ```json
 {
   "statusCode": 400,
@@ -274,10 +281,10 @@ Cancels an appointment and immediately triggers slot recovery in `practitioner_s
 
 For moving patients through the consultation workflow.
 
-* **Route:** `PATCH /api/v1/admin/appointments/:appointmentId/status`
-* **HTTP Method:** `PATCH`
-* **Auth Guard:** `@Roles('ADMIN', 'STAF')`
-* **Request Body:**
+- **Route:** `PATCH /api/v1/admin/appointments/:appointmentId/status`
+- **HTTP Method:** `PATCH`
+- **Auth Guard:** `@Roles('ADMIN', 'STAF')`
+- **Request Body:**
   ```json
   {
     "status": "in_service", // Options: "waiting", "in_service", "completed", "no_show", "cancelled"
@@ -290,6 +297,7 @@ For moving patients through the consultation workflow.
 ## 4. Frontend UI Architectural Contract
 
 ### 4.1 Showcase Card on Doctor Schedule Listing (`DoctorScheduleCard`)
+
 1. **Upcoming Schedule Badge ("Jadwal Praktik Mendatang"):**
    - Must evaluate the closest upcoming session based on real-time current hour (`currentMinutes`).
    - If an ongoing session is active, highlight the active session. If upcoming, show the earliest future shift.
@@ -304,21 +312,22 @@ For moving patients through the consultation workflow.
 
 When an administrator clicks on a session's slot badge (e.g. `8 / 12 Terisi`) or clicks "Lihat Pasien Terdaftar", a spacious modal renders.
 
-* **Grid Breakpoints:**  
+- **Grid Breakpoints:**  
   `grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3.5`
-* **Outer Card Information Hierarchy (Strict Minimalism):**
+- **Outer Card Information Hierarchy (Strict Minimalism):**
   1. **Queue Number & Time Slot:** e.g., `#P-003 • 08:30 WIB`
   2. **Patient Full Name:** Prominent semi-bold title (e.g., `Budi Santoso`).
   3. **Chief Complaint ("Sakit / Keluhan"):** Short badge or 1-line truncated note (e.g., `Sakit Kepala & Mual`).
   4. **Room Name:** (e.g., `Ruang Poli Umum 1`).
   5. **Status Badge:** Pill indicator (`Menunggu`, `Di Sesi`, `Terlambat`, `Batal`, `Selesai`).
-  *Excluded from outer card:* Age, NIK, No. RM, Gender, Full Address. This ensures cards fit comfortably in 5 columns without visual crowding.
+     _Excluded from outer card:_ Age, NIK, No. RM, Gender, Full Address. This ensures cards fit comfortably in 5 columns without visual crowding.
 
 ---
 
 ### 4.3 Modal 2: Patient Demographic & Reservation Detail Sub-Modal
 
 Clicking any card in the 5-column grid opens the nested Detail Sub-Modal containing:
+
 1. **Complete Demographics:**
    - Nama Lengkap (Full Name)
    - NIK (16 Digits)
@@ -377,7 +386,7 @@ await this.db.transaction(async (tx) => {
       status: 'cancelled',
       cancelledAt: nowIso,
       cancelReason: reason,
-      updatedAt: nowIso,
+      updatedAt: nowIso
     })
     .where(eq(appointments.id, appointmentId));
 
@@ -385,7 +394,7 @@ await this.db.transaction(async (tx) => {
     .update(queueTickets)
     .set({
       status: 'cancelled',
-      updatedAt: nowIso,
+      updatedAt: nowIso
     })
     .where(eq(queueTickets.appointmentId, appointmentId));
 
@@ -406,7 +415,7 @@ await this.db.transaction(async (tx) => {
         .set({
           availableSlots: newAvailable,
           status: newStatus,
-          updatedAt: nowIso,
+          updatedAt: nowIso
         })
         .where(eq(practitionerScheduleSessions.id, session.id));
     }
@@ -418,7 +427,7 @@ await this.db.transaction(async (tx) => {
     previousStatus: apt.status,
     newStatus: 'cancelled',
     changedBy: actorUserId,
-    reason: reason,
+    reason: reason
   });
 });
 ```
@@ -435,7 +444,7 @@ await Promise.all([
   queryClient.invalidateQueries({ queryKey: ['doctor-schedules'] }),
   queryClient.invalidateQueries({ queryKey: ['doctor-schedule-detail', doctorId] }),
   queryClient.invalidateQueries({ queryKey: ['session-booked-patients', sessionId] }),
-  queryClient.invalidateQueries({ queryKey: ['daily-queue', date] }),
+  queryClient.invalidateQueries({ queryKey: ['daily-queue', date] })
 ]);
 ```
 
@@ -443,19 +452,19 @@ await Promise.all([
 
 ## 7. Acceptance Criteria for Backend Team
 
-| ID | Scenario | Expected Result |
-| :--- | :--- | :--- |
-| **AC-01** | Query booked patients for session with 8 bookings | Returns array of 8 patient objects with full demographic and appointment data. |
-| **AC-02** | Filter booked patients by status (`waiting`) | Returns only patients currently in `waiting` status. |
-| **AC-03** | Cancel appointment in `waiting` status | Updates status to `cancelled`, sets `cancelled_at` & `cancel_reason`. |
-| **AC-04** | Slot recovery check on cancellation | `practitioner_schedule_sessions.available_slots` increments by 1. |
-| **AC-05** | Session status recovery on cancellation | If session was `terisi` (0 available), status transitions back to `open`. |
-| **AC-06** | Cancel appointment in `in_service` status | Returns `400 Bad Request` with descriptive rejection message. |
-| **AC-07** | Cancel appointment in `completed` status | Returns `400 Bad Request` with descriptive rejection message. |
-| **AC-08** | Idempotent cancellation on already cancelled appointment | Returns `200 OK` with existing cancelled record without incrementing slots again. |
-| **AC-09** | Mark appointment as `no_show` / `late` | Updates status to `no_show`, records event log, restores slot if configured. |
-| **AC-10** | Patient demographic data completeness | Response includes NIK, No. RM, Gender, Birth Date, Calculated Age, Phone, Address, Guardian. |
+| ID        | Scenario                                                 | Expected Result                                                                              |
+| :-------- | :------------------------------------------------------- | :------------------------------------------------------------------------------------------- |
+| **AC-01** | Query booked patients for session with 8 bookings        | Returns array of 8 patient objects with full demographic and appointment data.               |
+| **AC-02** | Filter booked patients by status (`waiting`)             | Returns only patients currently in `waiting` status.                                         |
+| **AC-03** | Cancel appointment in `waiting` status                   | Updates status to `cancelled`, sets `cancelled_at` & `cancel_reason`.                        |
+| **AC-04** | Slot recovery check on cancellation                      | `practitioner_schedule_sessions.available_slots` increments by 1.                            |
+| **AC-05** | Session status recovery on cancellation                  | If session was `terisi` (0 available), status transitions back to `open`.                    |
+| **AC-06** | Cancel appointment in `in_service` status                | Returns `400 Bad Request` with descriptive rejection message.                                |
+| **AC-07** | Cancel appointment in `completed` status                 | Returns `400 Bad Request` with descriptive rejection message.                                |
+| **AC-08** | Idempotent cancellation on already cancelled appointment | Returns `200 OK` with existing cancelled record without incrementing slots again.            |
+| **AC-09** | Mark appointment as `no_show` / `late`                   | Updates status to `no_show`, records event log, restores slot if configured.                 |
+| **AC-10** | Patient demographic data completeness                    | Response includes NIK, No. RM, Gender, Birth Date, Calculated Age, Phone, Address, Guardian. |
 
 ---
 
-*End of Delegation Report. Please review and provide the delivery changelog once implemented.*
+_End of Delegation Report. Please review and provide the delivery changelog once implemented._

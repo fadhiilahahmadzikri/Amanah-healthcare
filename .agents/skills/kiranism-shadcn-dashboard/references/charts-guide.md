@@ -185,7 +185,6 @@ import { Icons } from '@/components/icons';
 const chartData = [
   { month: 'January', desktop: 186, mobile: 80 },
   { month: 'February', desktop: 305, mobile: 200 }
-
 ];
 
 const chartConfig = {
@@ -336,9 +335,7 @@ const chartConfig = {
   users: { label: 'Users', color: 'var(--chart-3)' }
 } satisfies ChartConfig;
 
-const chartData = [
-
-];
+const chartData = [];
 
 export function LineGraph() {
   return (
@@ -394,9 +391,7 @@ export default function OverviewLayout({
   bar_stats,
   area_stats,
   line_stats
-}: {
-
-}) {
+}: {}) {
   return (
     <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7'>
       {}

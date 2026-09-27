@@ -15,7 +15,6 @@ Use Next.js's `after()` to schedule work that should execute after a response is
 import { logUserAction } from '@/app/utils';
 
 export async function POST(request: Request) {
-
   await updateDatabase(request);
 
   const userAgent = request.headers.get('user-agent') || 'unknown';
@@ -36,7 +35,6 @@ import { headers, cookies } from 'next/headers';
 import { logUserAction } from '@/app/utils';
 
 export async function POST(request: Request) {
-
   await updateDatabase(request);
 
   after(async () => {

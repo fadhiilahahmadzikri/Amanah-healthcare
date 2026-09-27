@@ -1075,8 +1075,5 @@
       "prepare": "husky"
     }
   },
-  "config_files_found": [
-    "tsconfig.json",
-    "next.config.ts"
-  ]
+  "config_files_found": ["tsconfig.json", "next.config.ts"]
 }

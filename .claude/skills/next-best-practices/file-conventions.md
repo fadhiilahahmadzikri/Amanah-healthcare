@@ -96,12 +96,10 @@ Prefix with `_` to exclude from routing.
 ### Next.js 14-15: `middleware.ts`
 
 ```ts
-
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-
   return NextResponse.next();
 }
 
@@ -115,12 +113,10 @@ export const config = {
 Renamed for clarity - same capabilities, different names:
 
 ```ts
-
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function proxy(request: NextRequest) {
-
   return NextResponse.next();
 }
 

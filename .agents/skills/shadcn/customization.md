@@ -80,7 +80,6 @@ Or edit CSS variables directly in `globals.css`.
 Add variables to the file at `tailwindCssFile` from `npx shadcn@latest info` (typically `globals.css`). Never create a new CSS file for this.
 
 ```css
-
 :root {
   --warning: oklch(0.84 0.16 84);
   --warning-foreground: oklch(0.28 0.07 46);
@@ -92,7 +91,6 @@ Add variables to the file at `tailwindCssFile` from `npx shadcn@latest info` (ty
 ```
 
 ```css
-
 @theme inline {
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
@@ -102,7 +100,6 @@ Add variables to the file at `tailwindCssFile` from `npx shadcn@latest info` (ty
 When `tailwindVersion` is `"v3"` (check via `npx shadcn@latest info`), register in `tailwind.config.js` instead:
 
 ```js
-
 module.exports = {
   theme: {
     extend: {
@@ -116,7 +113,6 @@ module.exports = {
 ```
 
 ```tsx
-
 <div className='bg-warning text-warning-foreground'>Warning</div>
 ```
 
@@ -191,7 +187,8 @@ npx shadcn@latest add button --diff
 
 To preview exactly what would change before updating, use `--dry-run` and `--diff`:
 
-```bash
+````bash
 npx shadcn@latest add button --dry-run        npx shadcn@latest add button --diff button.tsx ```
 
 See [Updating Components in SKILL.md](./SKILL.md#updating-components) for the full smart merge workflow.
+````

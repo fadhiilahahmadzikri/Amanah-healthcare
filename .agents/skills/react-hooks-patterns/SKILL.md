@@ -10,15 +10,17 @@ Master modern React hooks patterns for building scalable, maintainable applicati
 ## Common Hooks
 
 ### useState
+
 ```typescript
 const [count, setCount] = useState(0);
 const [user, setUser] = useState<User | null>(null);
 
 // Functional updates
-setCount(prev => prev + 1);
+setCount((prev) => prev + 1);
 ```
 
 ### useEffect
+
 ```typescript
 useEffect(() => {
   // Side effect
@@ -28,17 +30,20 @@ useEffect(() => {
 ```
 
 ### useContext
+
 ```typescript
 const theme = useContext(ThemeContext);
 ```
 
 ### useMemo & useCallback
+
 ```typescript
 const memoized = useMemo(() => expensive(a, b), [a, b]);
 const callback = useCallback(() => doSomething(a), [a]);
 ```
 
 ### Custom Hooks
+
 ```typescript
 function useFetch<T>(url: string) {
   const [data, setData] = useState<T | null>(null);
@@ -47,7 +52,7 @@ function useFetch<T>(url: string) {
 
   useEffect(() => {
     fetch(url)
-      .then(res => res.json())
+      .then((res) => res.json())
       .then(setData)
       .catch(setError)
       .finally(() => setLoading(false));

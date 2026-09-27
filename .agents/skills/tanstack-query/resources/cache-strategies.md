@@ -34,7 +34,6 @@ queryClient.invalidateQueries({
 const { mutate } = useMutation({
   mutationFn: createPost,
   onSuccess: () => {
-
     queryClient.invalidateQueries({ queryKey: ['posts'] });
   }
 });
@@ -45,7 +44,6 @@ const { mutate } = useMutation({
 ### Set Query Data
 
 ```typescript
-
 queryClient.setQueryData(['post', postId], (oldData) => ({
   ...oldData,
   title: 'New Title'
@@ -57,7 +55,6 @@ queryClient.setQueryData(['post', postId], newPost);
 ### Get Query Data
 
 ```typescript
-
 const cachedPost = queryClient.getQueryData(['post', postId]);
 
 const { data } = useQuery({
@@ -134,7 +131,6 @@ const persister = createSyncStoragePersister({
 ### Automatic Request Deduplication
 
 ```typescript
-
 function Component1() {
   const { data } = useQuery({
     queryKey: ['posts'],
@@ -176,7 +172,6 @@ router.beforeEach(async (to, from, next) => {
 ### Ensure Query Data
 
 ```typescript
-
 await queryClient.ensureQueryData({
   queryKey: ['post', postId],
   queryFn: () => fetchPost(postId)
@@ -196,7 +191,6 @@ queryClient.setQueryData(['posts'], (oldPosts) => {
 ### Add to List Cache
 
 ```typescript
-
 queryClient.setQueryData(['posts'], (oldPosts = []) => {
   return [newPost, ...oldPosts];
 });
@@ -205,7 +199,6 @@ queryClient.setQueryData(['posts'], (oldPosts = []) => {
 ### Remove from List Cache
 
 ```typescript
-
 queryClient.setQueryData(['posts'], (oldPosts) => {
   return oldPosts.filter((post) => post.id !== deletedPostId);
 });

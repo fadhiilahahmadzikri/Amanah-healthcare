@@ -114,7 +114,6 @@ async function handleRequest(userId: string, skipProcessing: boolean) {
   const userData = await fetchUserData(userId);
 
   if (skipProcessing) {
-
     return { skipped: true };
   }
 
@@ -127,7 +126,6 @@ async function handleRequest(userId: string, skipProcessing: boolean) {
 ```typescript
 async function handleRequest(userId: string, skipProcessing: boolean) {
   if (skipProcessing) {
-
     return { skipped: true };
   }
 
@@ -139,7 +137,6 @@ async function handleRequest(userId: string, skipProcessing: boolean) {
 **Another example: early return optimization**
 
 ```typescript
-
 async function updateResource(resourceId: string, userId: string) {
   const permissions = await fetchPermissions(userId);
   const resource = await getResource(resourceId);
@@ -326,7 +323,6 @@ Sidebar, Header, and Footer render immediately. Only DataDisplay waits for data.
 
 ```tsx
 function Page() {
-
   const dataPromise = fetchData();
 
   return (
@@ -391,7 +387,6 @@ Popular icon and component libraries can have **up to 10,000 re-exports** in the
 import { Check, X, Menu } from 'lucide-react';
 
 import { Button, TextField } from '@mui/material';
-
 ```
 
 **Correct: imports only what you need**
@@ -403,13 +398,11 @@ import Menu from 'lucide-react/dist/esm/icons/menu';
 
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-
 ```
 
 **Alternative: Next.js 13.5+**
 
 ```js
-
 module.exports = {
   experimental: {
     optimizePackageImports: ['lucide-react', '@mui/material']
@@ -417,7 +410,6 @@ module.exports = {
 };
 
 import { Check, X, Menu } from 'lucide-react';
-
 ```
 
 Direct imports provide 15-70% faster dev boot, 28% faster builds, 40% faster cold starts, and significantly faster HMR.
@@ -595,7 +587,6 @@ Next.js documentation explicitly states: "Treat Server Actions with the same sec
 'use server';
 
 export async function deleteUser(userId: string) {
-
   await db.user.delete({ where: { id: userId } });
   return { success: true };
 }
@@ -610,7 +601,6 @@ import { verifySession } from '@/lib/auth';
 import { unauthorized } from '@/lib/errors';
 
 export async function deleteUser(userId: string) {
-
   const session = await verifySession();
 
   if (!session) {
@@ -641,7 +631,6 @@ const updateProfileSchema = z.object({
 });
 
 export async function updateProfile(data: unknown) {
-
   const validated = updateProfileSchema.parse(data);
 
   const session = await verifySession();
@@ -676,14 +665,12 @@ RSC→client serialization deduplicates by object reference, not value. Same ref
 **Incorrect: duplicates array**
 
 ```tsx
-
 <ClientList usernames={usernames} usernamesOrdered={usernames.toSorted()} />
 ```
 
 **Correct: sends 3 strings**
 
 ```tsx
-
 <ClientList usernames={usernames} />;
 
 ('use client');
@@ -749,7 +736,6 @@ export async function getUser(id: string) {
   cache.set(id, user);
   return user;
 }
-
 ```
 
 Use when sequential user actions hit multiple endpoints needing the same data within seconds.
@@ -990,7 +976,6 @@ Use Next.js's `after()` to schedule work that should execute after a response is
 import { logUserAction } from '@/app/utils';
 
 export async function POST(request: Request) {
-
   await updateDatabase(request);
 
   const userAgent = request.headers.get('user-agent') || 'unknown';
@@ -1011,7 +996,6 @@ import { headers, cookies } from 'next/headers';
 import { logUserAction } from '@/app/utils';
 
 export async function POST(request: Request) {
-
   await updateDatabase(request);
 
   after(async () => {
@@ -1090,7 +1074,6 @@ import useSWRSubscription from 'swr/subscription';
 const keyCallbacks = new Map<string, Set<() => void>>();
 
 function useKeyboardShortcut(key: string, callback: () => void) {
-
   useEffect(() => {
     if (!keyCallbacks.has(key)) {
       keyCallbacks.set(key, new Set());
@@ -1120,14 +1103,8 @@ function useKeyboardShortcut(key: string, callback: () => void) {
 }
 
 function Profile() {
-
-  useKeyboardShortcut('p', () => {
-
-  });
-  useKeyboardShortcut('k', () => {
-
-  });
-
+  useKeyboardShortcut('p', () => {});
+  useKeyboardShortcut('k', () => {});
 }
 ```
 
@@ -1236,7 +1213,6 @@ Add version prefix to keys and store only needed fields. Prevents schema conflic
 **Incorrect:**
 
 ```typescript
-
 localStorage.setItem('userConfig', JSON.stringify(fullUserObject));
 const data = localStorage.getItem('userConfig');
 ```
@@ -1249,9 +1225,7 @@ const VERSION = 'v2';
 function saveConfig(config: { theme: string; language: string }) {
   try {
     localStorage.setItem(`userConfig:${VERSION}`, JSON.stringify(config));
-  } catch {
-
-  }
+  } catch {}
 }
 
 function loadConfig() {
@@ -1278,7 +1252,6 @@ function migrate() {
 **Store minimal fields from server responses:**
 
 ```typescript
-
 function cachePrefs(user: FullUser) {
   try {
     localStorage.setItem(
@@ -1392,7 +1365,6 @@ function Header({ user, notifications }: Props) {
   }, [user.isLoading, notifications.isLoading]);
 
   if (isLoading) return <Skeleton />;
-
 }
 ```
 
@@ -1403,7 +1375,6 @@ function Header({ user, notifications }: Props) {
   const isLoading = user.isLoading || notifications.isLoading;
 
   if (isLoading) return <Skeleton />;
-
 }
 ```
 
@@ -1419,7 +1390,6 @@ A common reason developers do this is to access parent variables without passing
 
 ```tsx
 function UserProfile({ user, theme }) {
-
   const Avatar = () => (
     <img src={user.avatarUrl} className={theme === 'dark' ? 'avatar-dark' : 'avatar-light'} />
   );
@@ -1573,7 +1543,6 @@ useEffect(() => {
 **For derived state, compute outside effect:**
 
 ```tsx
-
 useEffect(() => {
   if (width < 768) {
     enableMobileMode();
@@ -1801,7 +1770,6 @@ Pass a function to `useState` for expensive initial values. Without the function
 
 ```tsx
 function FilteredList({ items }: { items: Item[] }) {
-
   const [searchIndex, setSearchIndex] = useState(buildSearchIndex(items));
   const [query, setQuery] = useState('');
 
@@ -1809,7 +1777,6 @@ function FilteredList({ items }: { items: Item[] }) {
 }
 
 function UserProfile() {
-
   const [settings, setSettings] = useState(JSON.parse(localStorage.getItem('settings') || '{}'));
 
   return <SettingsForm settings={settings} onChange={setSettings} />;
@@ -1820,7 +1787,6 @@ function UserProfile() {
 
 ```tsx
 function FilteredList({ items }: { items: Item[] }) {
-
   const [searchIndex, setSearchIndex] = useState(() => buildSearchIndex(items));
   const [query, setQuery] = useState('');
 
@@ -1828,7 +1794,6 @@ function FilteredList({ items }: { items: Item[] }) {
 }
 
 function UserProfile() {
-
   const [settings, setSettings] = useState(() => {
     const stored = localStorage.getItem('settings');
     return stored ? JSON.parse(stored) : {};
@@ -2146,7 +2111,6 @@ When rendering content that depends on client-side storage (localStorage, cookie
 
 ```tsx
 function ThemeWrapper({ children }: { children: ReactNode }) {
-
   const theme = localStorage.getItem('theme') || 'light';
 
   return <div className={theme}>{children}</div>;
@@ -2162,7 +2126,6 @@ function ThemeWrapper({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState('light');
 
   useEffect(() => {
-
     const stored = localStorage.getItem('theme');
     if (stored) {
       setTheme(stored);
@@ -2307,7 +2270,6 @@ Use explicit ternary operators (`? :`) instead of `&&` for conditional rendering
 function Badge({ count }: { count: number }) {
   return <div>{count && <span className='badge'>{count}</span>}</div>;
 }
-
 ```
 
 **Correct: renders nothing when count is 0**
@@ -2316,7 +2278,6 @@ function Badge({ count }: { count: number }) {
 function Badge({ count }: { count: number }) {
   return <div>{count > 0 ? <span className='badge'>{count}</span> : null}</div>;
 }
-
 ```
 
 ### 6.10 Use React DOM Resource Hints
@@ -2356,7 +2317,6 @@ export default function App() {
 import { preload, preinit } from 'react-dom';
 
 export default function RootLayout({ children }) {
-
   preload('/fonts/inter.woff2', { as: 'font', type: 'font/woff2', crossOrigin: 'anonymous' });
 
   preinit('/styles/critical.css', { as: 'style' });
@@ -2455,7 +2415,6 @@ function SearchResults() {
     setQuery(value);
 
     startTransition(async () => {
-
       const data = await fetchResults(value);
       setResults(data);
     });
@@ -2501,7 +2460,6 @@ Avoid interleaving style writes with layout reads. When you read a layout proper
 
 ```typescript
 function updateElementStyles(element: HTMLElement) {
-
   element.style.width = '100px';
   element.style.height = '200px';
   element.style.backgroundColor = 'blue';
@@ -2524,7 +2482,6 @@ function layoutThrashing(element: HTMLElement) {
 
 ```typescript
 function updateElementStyles(element: HTMLElement) {
-
   element.style.width = '100px';
   element.style.height = '200px';
   element.style.backgroundColor = 'blue';
@@ -2549,7 +2506,6 @@ function updateElementStyles(element: HTMLElement) {
 **React example:**
 
 ```tsx
-
 function Box({ isHighlighted }: { isHighlighted: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -2718,7 +2674,6 @@ Reference: [https://vercel.com/blog/how-we-made-the-vercel-dashboard-twice-as-fa
 function getTheme() {
   return localStorage.getItem('theme') ?? 'light';
 }
-
 ```
 
 **Correct: Map cache**
@@ -2810,7 +2765,6 @@ In real-world applications, this optimization is especially valuable when the co
 
 ```typescript
 function hasChanges(current: string[], original: string[]) {
-
   return current.sort().join() !== original.sort().join();
 }
 ```
@@ -2821,7 +2775,6 @@ Two O(n log n) sorts run even when `current.length` is 5 and `original.length` i
 
 ```typescript
 function hasChanges(current: string[], original: string[]) {
-
   if (current.length !== original.length) {
     return true;
   }
@@ -2869,7 +2822,6 @@ function validateUsers(users: User[]) {
       hasError = true;
       errorMessage = 'Name required';
     }
-
   }
 
   return hasError ? { valid: false, error: errorMessage } : { valid: true };
@@ -2955,7 +2907,6 @@ const userNames = users.flatMap((user) => (user.isActive ? [user.name] : []));
 **More examples:**
 
 ```typescript
-
 const emails = responses.map((r) => (r.success ? r.data.email : null)).filter(Boolean);
 
 const emails = responses.flatMap((r) => (r.success ? [r.data.email] : []));
@@ -3115,7 +3066,6 @@ function UserList({ users }: { users: User[] }) {
 **Browser support: fallback for older browsers**
 
 ```typescript
-
 const sorted = [...items].sort((a, b) => a.value - b.value);
 ```
 
@@ -3153,7 +3103,6 @@ function Comp() {
     loadFromStorage();
     checkAuthToken();
   }, []);
-
 }
 ```
 
@@ -3169,7 +3118,6 @@ function Comp() {
     loadFromStorage();
     checkAuthToken();
   }, []);
-
 }
 ```
 

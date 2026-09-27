@@ -193,7 +193,7 @@ You should now be able to access the application at http://localhost:3000.
 
 To remove optional features you don't need (auth, kanban, chat, notifications, extra themes, sentry), run the cleanup script:
 
-```bash
+````bash
 node scripts/cleanup.js --interactive   node scripts/cleanup.js --list          node scripts/cleanup.js --dry-run chat  node scripts/cleanup.js kanban chat     ```
 
 Run `node scripts/cleanup.js --help` for all options. Delete `scripts/cleanup.js` when you're done.
@@ -214,7 +214,7 @@ docker build \
 docker build -f Dockerfile.bun \
   --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_xxxxx \
   -t shadcn-dashboard .
-```
+````
 
 **Run the container:**
 

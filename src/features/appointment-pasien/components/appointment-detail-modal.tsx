@@ -4,10 +4,10 @@ import React from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getStatusConfig } from '@/styles/clinical-tokens';
 import { cn } from '@/lib/utils';
 import type { AdminAppointment } from '../api/types';
+import { AppointmentCallAttemptsTimeline } from './appointment-call-attempts-timeline';
 
 export interface AppointmentDetailModalProps {
   isOpen: boolean;
@@ -44,15 +44,8 @@ export function AppointmentDetailModal({
         {/* 1. Patient & Doctor Identity Header & Status in Top-Right Position */}
         <div className='flex items-start justify-between gap-4 pb-3.5 border-b border-border/40'>
           <div className='flex items-center gap-4 min-w-0 flex-1'>
-            <div className='size-16 min-w-[64px] min-h-[64px] rounded-full overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square'>
-              <Avatar className='size-full rounded-full'>
-                {appointment.avatar && (
-                  <AvatarImage src={appointment.avatar} alt={appointment.pasien} />
-                )}
-                <AvatarFallback className='bg-primary/10 text-primary font-bold text-lg'>
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
+            <div className='size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-base shrink-0 border border-primary/20 select-none'>
+              {initials}
             </div>
 
             <div className='flex flex-col items-start min-w-0 flex-1 space-y-0.5'>
@@ -227,7 +220,12 @@ export function AppointmentDetailModal({
           </p>
         </div>
 
-        {/* 6. Modal Action Buttons */}
+        {/* 6. Riwayat Pemanggilan Pasien (Call Attempts Timeline) */}
+        <div className='py-2.5 border-b border-border/40'>
+          <AppointmentCallAttemptsTimeline appointmentId={String(appointment.id)} />
+        </div>
+
+        {/* 7. Modal Action Buttons */}
         <div className='pt-2 flex items-center justify-end gap-3'>
           {onUpdateStatus && (
             <Button

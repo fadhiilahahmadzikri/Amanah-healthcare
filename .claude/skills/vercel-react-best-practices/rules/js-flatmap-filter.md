@@ -26,7 +26,6 @@ const userNames = users.flatMap((user) => (user.isActive ? [user.name] : []));
 **More examples:**
 
 ```typescript
-
 const emails = responses.map((r) => (r.success ? r.data.email : null)).filter(Boolean);
 
 const emails = responses.flatMap((r) => (r.success ? [r.data.email] : []));

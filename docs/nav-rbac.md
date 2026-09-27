@@ -70,7 +70,6 @@ import { useFilteredNavItems } from '@/hooks/use-nav';
 
 function MyComponent() {
   const filteredItems = useFilteredNavItems(navItems);
-
 }
 ```
 
@@ -153,7 +152,6 @@ The system automatically:
 The old `visible` function still works for backward compatibility:
 
 ```typescript
-
 visible: (context) => !!context?.organization;
 
 access: {

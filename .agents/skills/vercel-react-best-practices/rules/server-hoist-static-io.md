@@ -95,7 +95,6 @@ export async function GET(request: Request) {
 **General Node.js example: loading config or templates**
 
 ```typescript
-
 export async function processRequest(data: Data) {
   const config = JSON.parse(await fs.readFile('./config.json', 'utf-8'));
   const template = await fs.readFile('./template.html', 'utf-8');

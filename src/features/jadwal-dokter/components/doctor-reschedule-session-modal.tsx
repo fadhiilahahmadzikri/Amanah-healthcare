@@ -273,11 +273,7 @@ export function DoctorRescheduleSessionModal({
                   </span>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent
-                className='w-auto p-0 z-[70] shadow-xl'
-                align='start'
-                sideOffset={8}
-              >
+              <PopoverContent className='w-auto p-0 z-[70] shadow-xl' align='start' sideOffset={8}>
                 <Calendar
                   mode='single'
                   selected={selectedDateObj}

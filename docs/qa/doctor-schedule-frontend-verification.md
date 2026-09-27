@@ -7,7 +7,7 @@
 > **Audit Date:** 22 September 2026  
 > **Runtime / Stack:** Next.js 16.2.6 (Turbopack), React 19, TypeScript 5.7, Tailwind CSS v4, Bun v1.2.19, Docker Compose  
 > **Final Verdict:** **READY TO ANNOUNCE**  
-> **Total Identified Blockers:** 0 Blockers  
+> **Total Identified Blockers:** 0 Blockers
 
 ---
 
@@ -25,34 +25,34 @@ Following the delivery of the backend contract (`BE-SCHED-001`), the frontend in
 
 ## 2. Comprehensive Domain Verification Matrix
 
-| Check | Domain | Method Actually Used | Result | Evidence & Concrete Audit Findings |
-| :--- | :--- | :--- | :---: | :--- |
-| **A.1** | Functional Completeness | Code inspection of `src/server/api/paths.ts` | **PASS** | `doctorSchedules` (`list`, `detail`, `update`, `updateDayStatus`, `createSession`) and `clinicalPractitioners` (`list`) paths registered in `paths.ts:36-44`. |
-| **A.2** | Functional Completeness | Code inspection of `src/features/jadwal-dokter/api/service.ts` | **PASS** | Removed empty array `doctorScheduleRecords = []`. Replaced with live Server Action calls mapping backend `doctors` and `meta.total_doctors`. |
-| **A.3** | Functional Completeness | Code inspection of `doctor-add-session-modal.tsx` | **PASS** | Wired to `useCreateDoctorSessionMutation` dispatching directly to `POST /api/v1/admin/doctor-schedules/:id/sessions`. Backend collision checks (`checkScheduleConflicts`) are actively enforced. |
-| **A.4** | Functional Completeness | Code inspection of `appointment-calendar-day-picker.tsx` | **PASS** | Implemented `useQuery` hook querying `getDoctorScheduleByName` reactively, ensuring patient booking reflects real doctor leave periods and open slot statuses. |
-| **A.5** | Functional Completeness | Code inspection of `src/features/klinik/api/service.ts` | **PASS** | Added `fetchClinicalDoctors()` wired to `getClinicalPractitionersAction` for live practitioner lookups. |
-| **A.6** | Functional Completeness | Grep search for `TODO`, `FIXME`, `XXX`, `not implemented` | **PASS** | 0 occurrences in `src/features/jadwal-dokter/` and `src/features/klinik/`. |
-| **B.1** | Build & Deploy Reality | Executed `bun run build` (`next build`) | **PASS** | Turbopack build succeeded with Exit Code 0 in 20.8s. All dynamic routes (`/dashboard/jadwal-dokter`, `/dashboard/klinik/janji-temu`) generated without errors. |
-| **B.2** | Build & Deploy Reality | Environment variables audit | **PASS** | `serverEnv.API_BASE_URL` in `src/core/config/env.server.ts:6` defaults to `http://localhost:3001` or `process.env.API_BASE_URL`. Matches Docker backend container. |
-| **C.1** | Test Execution Reality | Executed `bun test` | **PASS** | 81 tests passed across 8 files (0 failures). Dedicated suite `doctor-schedule.test.ts` verified 10/10 tests for leave resolution, schedule evaluation, and backend DTO schemas. |
-| **D.1** | Security Audit | Grep for `NEXT_PUBLIC_` env vars | **PASS** | No secrets leaked. Only Sentry DSN, Better Auth URL, and API URL exposed publicly. |
-| **D.2** | Security Audit | Route guarding inspection | **PASS** | `/dashboard/jadwal-dokter` is gated by `await requireAdmin();` in `page.tsx:17`. `/dashboard/klinik/janji-temu` is gated by `await requirePatient();` in `page.tsx:10`. |
-| **D.3** | Security Audit | Grep for `dangerouslySetInnerHTML` | **PASS** | 0 occurrences in `src/features/jadwal-dokter/`. |
-| **E.1** | Sloppy-Gap Audit | Inspection of toast notifications | **PASS** | Removed hardcoded "Mei 2026" from `mutations.ts:47`. Now dynamically displays formatted date: `Jadwal tanggal ${variables.date} berhasil diubah menjadi ${variables.status}`. |
-| **E.2** | Sloppy-Gap Audit | Calendar grid calculation inspection | **PASS** | Dynamic start offset computed in `doctor-calendar-grid.tsx` via `(firstDate.getDay() + 6) % 7`. Fallback dates generated from current year/month. |
-| **E.3** | Sloppy-Gap Audit | Dead mock files audit | **PASS** | Removed legacy `src/constants/mock-api-doctor-schedules.ts` and `src/constants/mock-data/doctor-schedules.json`. Schedule UI now reads backend contracts only. |
-| **E.4** | Sloppy-Gap Audit | Grep for leftover `console.log` | **PASS** | 0 debug `console.log` statements in feature code. |
-| **F.1** | Code Quality & Optimization | Executed `bun x oxlint src/features/jadwal-dokter src/features/klinik` | **PASS** | **0 errors**. Accessibility and non-interactive click issues resolved. |
-| **F.2** | Code Quality & Optimization | Executed `bun x tsc --noEmit` | **PASS** | TypeScript compiler exited with 0 errors across the entire repository. |
-| **G.1** | Well-Definedness (Contract Alignment) | Schema comparison against backend contract `BE-SCHED-001` | **PASS** | Full Zod contract schemas created in `src/server/contracts/schedules/doctor-schedules.dto.ts`. Response envelope mapped to extract `meta.total_doctors`. |
-| **G.2** | Well-Definedness (Contract Alignment) | Status enum alignment | **PASS** | Added `'Tutup'` status across `types.ts`, `doctor-schedules.dto.ts`, `doctor-calendar-grid.tsx`, and `columns.tsx`. |
-| **H.1** | Handoff & Documentation Readiness | Inspection of documentation artifacts | **PASS** | Manifest (`doctor-schedule-management-manifest.md`) and Backend Contract (`BE-SCHED-001`) fully aligned. |
-| **I.1** | Contract Delivery Verification | Cross-team reality check against live backend container | **PASS** | All 6 REST endpoints (`GET /api/v1/admin/doctor-schedules`, `GET /:id`, `PUT /:id`, `PATCH /day-status`, `POST /sessions`, `GET /api/v1/clinical/practitioners`) bound via typed Server Actions. |
-| **J.1** | Deployment Risk | Operational impact analysis | **PASS** | No breaking database migrations required. Fallback error handling protects UI from server disconnects. Zero "Tambah Dokter" action exposed. |
-| **K.1** | Environment & Infra Sync | Docker stack verification | **PASS** | Backend API running on port 3001, PostgreSQL on port 5433. Next.js communicates cleanly with backend. |
-| **L.1** | Accessibility & Cross-Device Reality | Interactive element accessibility review | **PASS** | `<h3 onClick>` replaced with accessible `<button type="button">`. Keyboard event handler added to `queue-seat-card.tsx`. |
-| **M.1** | Process Hygiene | Clean build and test confirmation | **PASS** | Clean build, clean tests, clean types, zero lint errors. |
+| Check   | Domain                                | Method Actually Used                                                   |  Result  | Evidence & Concrete Audit Findings                                                                                                                                                               |
+| :------ | :------------------------------------ | :--------------------------------------------------------------------- | :------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A.1** | Functional Completeness               | Code inspection of `src/server/api/paths.ts`                           | **PASS** | `doctorSchedules` (`list`, `detail`, `update`, `updateDayStatus`, `createSession`) and `clinicalPractitioners` (`list`) paths registered in `paths.ts:36-44`.                                    |
+| **A.2** | Functional Completeness               | Code inspection of `src/features/jadwal-dokter/api/service.ts`         | **PASS** | Removed empty array `doctorScheduleRecords = []`. Replaced with live Server Action calls mapping backend `doctors` and `meta.total_doctors`.                                                     |
+| **A.3** | Functional Completeness               | Code inspection of `doctor-add-session-modal.tsx`                      | **PASS** | Wired to `useCreateDoctorSessionMutation` dispatching directly to `POST /api/v1/admin/doctor-schedules/:id/sessions`. Backend collision checks (`checkScheduleConflicts`) are actively enforced. |
+| **A.4** | Functional Completeness               | Code inspection of `appointment-calendar-day-picker.tsx`               | **PASS** | Implemented `useQuery` hook querying `getDoctorScheduleByName` reactively, ensuring patient booking reflects real doctor leave periods and open slot statuses.                                   |
+| **A.5** | Functional Completeness               | Code inspection of `src/features/klinik/api/service.ts`                | **PASS** | Added `fetchClinicalDoctors()` wired to `getClinicalPractitionersAction` for live practitioner lookups.                                                                                          |
+| **A.6** | Functional Completeness               | Grep search for `TODO`, `FIXME`, `XXX`, `not implemented`              | **PASS** | 0 occurrences in `src/features/jadwal-dokter/` and `src/features/klinik/`.                                                                                                                       |
+| **B.1** | Build & Deploy Reality                | Executed `bun run build` (`next build`)                                | **PASS** | Turbopack build succeeded with Exit Code 0 in 20.8s. All dynamic routes (`/dashboard/jadwal-dokter`, `/dashboard/klinik/janji-temu`) generated without errors.                                   |
+| **B.2** | Build & Deploy Reality                | Environment variables audit                                            | **PASS** | `serverEnv.API_BASE_URL` in `src/core/config/env.server.ts:6` defaults to `http://localhost:3001` or `process.env.API_BASE_URL`. Matches Docker backend container.                               |
+| **C.1** | Test Execution Reality                | Executed `bun test`                                                    | **PASS** | 81 tests passed across 8 files (0 failures). Dedicated suite `doctor-schedule.test.ts` verified 10/10 tests for leave resolution, schedule evaluation, and backend DTO schemas.                  |
+| **D.1** | Security Audit                        | Grep for `NEXT_PUBLIC_` env vars                                       | **PASS** | No secrets leaked. Only Sentry DSN, Better Auth URL, and API URL exposed publicly.                                                                                                               |
+| **D.2** | Security Audit                        | Route guarding inspection                                              | **PASS** | `/dashboard/jadwal-dokter` is gated by `await requireAdmin();` in `page.tsx:17`. `/dashboard/klinik/janji-temu` is gated by `await requirePatient();` in `page.tsx:10`.                          |
+| **D.3** | Security Audit                        | Grep for `dangerouslySetInnerHTML`                                     | **PASS** | 0 occurrences in `src/features/jadwal-dokter/`.                                                                                                                                                  |
+| **E.1** | Sloppy-Gap Audit                      | Inspection of toast notifications                                      | **PASS** | Removed hardcoded "Mei 2026" from `mutations.ts:47`. Now dynamically displays formatted date: `Jadwal tanggal ${variables.date} berhasil diubah menjadi ${variables.status}`.                    |
+| **E.2** | Sloppy-Gap Audit                      | Calendar grid calculation inspection                                   | **PASS** | Dynamic start offset computed in `doctor-calendar-grid.tsx` via `(firstDate.getDay() + 6) % 7`. Fallback dates generated from current year/month.                                                |
+| **E.3** | Sloppy-Gap Audit                      | Dead mock files audit                                                  | **PASS** | Removed legacy `src/constants/mock-api-doctor-schedules.ts` and `src/constants/mock-data/doctor-schedules.json`. Schedule UI now reads backend contracts only.                                   |
+| **E.4** | Sloppy-Gap Audit                      | Grep for leftover `console.log`                                        | **PASS** | 0 debug `console.log` statements in feature code.                                                                                                                                                |
+| **F.1** | Code Quality & Optimization           | Executed `bun x oxlint src/features/jadwal-dokter src/features/klinik` | **PASS** | **0 errors**. Accessibility and non-interactive click issues resolved.                                                                                                                           |
+| **F.2** | Code Quality & Optimization           | Executed `bun x tsc --noEmit`                                          | **PASS** | TypeScript compiler exited with 0 errors across the entire repository.                                                                                                                           |
+| **G.1** | Well-Definedness (Contract Alignment) | Schema comparison against backend contract `BE-SCHED-001`              | **PASS** | Full Zod contract schemas created in `src/server/contracts/schedules/doctor-schedules.dto.ts`. Response envelope mapped to extract `meta.total_doctors`.                                         |
+| **G.2** | Well-Definedness (Contract Alignment) | Status enum alignment                                                  | **PASS** | Added `'Tutup'` status across `types.ts`, `doctor-schedules.dto.ts`, `doctor-calendar-grid.tsx`, and `columns.tsx`.                                                                              |
+| **H.1** | Handoff & Documentation Readiness     | Inspection of documentation artifacts                                  | **PASS** | Manifest (`doctor-schedule-management-manifest.md`) and Backend Contract (`BE-SCHED-001`) fully aligned.                                                                                         |
+| **I.1** | Contract Delivery Verification        | Cross-team reality check against live backend container                | **PASS** | All 6 REST endpoints (`GET /api/v1/admin/doctor-schedules`, `GET /:id`, `PUT /:id`, `PATCH /day-status`, `POST /sessions`, `GET /api/v1/clinical/practitioners`) bound via typed Server Actions. |
+| **J.1** | Deployment Risk                       | Operational impact analysis                                            | **PASS** | No breaking database migrations required. Fallback error handling protects UI from server disconnects. Zero "Tambah Dokter" action exposed.                                                      |
+| **K.1** | Environment & Infra Sync              | Docker stack verification                                              | **PASS** | Backend API running on port 3001, PostgreSQL on port 5433. Next.js communicates cleanly with backend.                                                                                            |
+| **L.1** | Accessibility & Cross-Device Reality  | Interactive element accessibility review                               | **PASS** | `<h3 onClick>` replaced with accessible `<button type="button">`. Keyboard event handler added to `queue-seat-card.tsx`.                                                                         |
+| **M.1** | Process Hygiene                       | Clean build and test confirmation                                      | **PASS** | Clean build, clean tests, clean types, zero lint errors.                                                                                                                                         |
 
 ---
 
@@ -72,6 +72,7 @@ Following the delivery of the backend contract (`BE-SCHED-001`), the frontend in
 ## 4. Final Verdict
 
 ### **VERDICT: READY TO ANNOUNCE**
-* **Blocker Count:** 0
-* **Report Location:** `docs/qa/doctor-schedule-frontend-verification.md`
-* **Status:** The Doctor Schedule Management frontend is **fully integrated, tested, and verified** against the live backend contract (`BE-SCHED-001`). Ready for production deployment and cross-team announcement.
+
+- **Blocker Count:** 0
+- **Report Location:** `docs/qa/doctor-schedule-frontend-verification.md`
+- **Status:** The Doctor Schedule Management frontend is **fully integrated, tested, and verified** against the live backend contract (`BE-SCHED-001`). Ready for production deployment and cross-team announcement.

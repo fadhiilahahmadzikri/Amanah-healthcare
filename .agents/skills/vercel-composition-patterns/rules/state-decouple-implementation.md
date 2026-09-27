@@ -15,7 +15,6 @@ useState, Zustand, or a server sync.
 
 ```tsx
 function ChannelComposer({ channelId }: { channelId: string }) {
-
   const state = useGlobalChannelState(channelId);
   const { submit, updateInput } = useChannelSync(channelId);
 
@@ -31,7 +30,6 @@ function ChannelComposer({ channelId }: { channelId: string }) {
 **Correct (state management isolated in provider):**
 
 ```tsx
-
 function ChannelProvider({
   channelId,
   children
@@ -73,7 +71,6 @@ function Channel({ channelId }: { channelId: string }) {
 **Different providers, same UI:**
 
 ```tsx
-
 function ForwardMessageProvider({ children }) {
   const [state, setState] = useState(initialState);
   const forwardMessage = useForwardMessage();

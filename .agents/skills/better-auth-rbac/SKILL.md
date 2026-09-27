@@ -16,12 +16,12 @@ between majors (for example, OAuth state options moved from `advanced` into `acc
 
 ## Read this first, then load what you need
 
-| You are doing | Read |
-| --- | --- |
-| First-time setup, Google credentials, callback URLs, sign-in flows | [references/google-provider.md](references/google-provider.md) |
-| Roles, permissions, statements, enforcement, multi-tenant orgs | [references/rbac.md](references/rbac.md) |
-| Config hardening, cookies, CSRF, rate limits, account-linking attacks | [references/security-hardening.md](references/security-hardening.md) |
-| Auditing an existing setup, or before declaring work finished | [references/verification-checklist.md](references/verification-checklist.md) |
+| You are doing                                                         | Read                                                                         |
+| --------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| First-time setup, Google credentials, callback URLs, sign-in flows    | [references/google-provider.md](references/google-provider.md)               |
+| Roles, permissions, statements, enforcement, multi-tenant orgs        | [references/rbac.md](references/rbac.md)                                     |
+| Config hardening, cookies, CSRF, rate limits, account-linking attacks | [references/security-hardening.md](references/security-hardening.md)         |
+| Auditing an existing setup, or before declaring work finished         | [references/verification-checklist.md](references/verification-checklist.md) |
 
 Load reference files using `view_file` as you reach the relevant step (progressive disclosure). Do not guess at option names — the reference files carry the verified ones.
 
@@ -35,8 +35,8 @@ rather than shipping it.
    session from cookies and re-checks permission before touching data.
 2. **Deny by default.** A route with no explicit permission check is closed, not open. Never rely on
    "this route isn't linked anywhere in the UI".
-3. **Authenticated ≠ authorized.** After confirming a session, confirm that *this* user may act on
-   *this* object. Ownership and tenant scoping are separate checks from role.
+3. **Authenticated ≠ authorized.** After confirming a session, confirm that _this_ user may act on
+   _this_ object. Ownership and tenant scoping are separate checks from role.
 4. **The session cookie is the only thing you trust from the browser.** Never accept `role`,
    `userId`, `organizationId`, or `isAdmin` from a request body, query string, or header as an
    authorization input.
@@ -79,7 +79,7 @@ produces the failures listed at the end of this file.
    before any code reads them.
 3. **Route handler** — mount the catch-all handler at `basePath` (default `/api/auth`).
 4. **Google provider** — credentials, redirect URIs, `baseURL`. See [references/google-provider.md](references/google-provider.md).
-5. **Hardening pass** — cookies, trusted origins, rate limiting, account linking, secrets. See [references/security-hardening.md](references/security-hardening.md). Do this *before* building features, not after.
+5. **Hardening pass** — cookies, trusted origins, rate limiting, account linking, secrets. See [references/security-hardening.md](references/security-hardening.md). Do this _before_ building features, not after.
 6. **Access control** — statements, roles, plugin wiring, then the server-side guard helper. See [references/rbac.md](references/rbac.md).
 7. **Enforcement + UI** — guard every protected entry point, then gate the UI for usability only.
 8. **Verify** — walk [references/verification-checklist.md](references/verification-checklist.md) and report the result.
@@ -91,21 +91,21 @@ helper per access-control domain and route every check through it. The shape tha
 
 ```ts
 // server/guard.ts
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
-import { forbidden, unauthorized } from "@/lib/errors";
+import { headers } from 'next/headers';
+import { auth } from '@/lib/auth';
+import { forbidden, unauthorized } from '@/lib/errors';
 
 export async function requireSession() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) throw unauthorized();
-  if (session.user.banned) throw forbidden("account_banned");
+  if (session.user.banned) throw forbidden('account_banned');
   return session;
 }
 
 export async function requirePermission(permissions: Record<string, string[]>) {
   const session = await requireSession();
   const { success } = await auth.api.userHasPermission({
-    body: { userId: session.user.id, permissions },
+    body: { userId: session.user.id, permissions }
   });
   if (!success) throw forbidden();
   return session;
@@ -118,7 +118,7 @@ Rules for the helper:
 - It reads the session from request headers on every call. Never from a module-level variable, and
   never from an argument the caller supplies.
 - Permission names are imported from the statement definition, never typed as string literals at the
-  call site — a typo in a resource name fails *open* in some check styles and is invisible in review.
+  call site — a typo in a resource name fails _open_ in some check styles and is invisible in review.
 - Ownership and tenant checks live beside it and are mandatory for object-scoped operations. Role
   alone answers "may this kind of user do this kind of thing", not "may this user touch this row".
 
@@ -127,20 +127,20 @@ Rules for the helper:
 Apply these unless the user has a stated reason not to. [references/security-hardening.md](references/security-hardening.md) explains
 each one and what breaks without it.
 
-| Setting | Value | Why it matters |
-| --- | --- | --- |
-| `baseURL` | explicit, from env | Inferred base URLs produce wrong OAuth callbacks and open redirect surface |
-| `secret` | from env, 32+ random bytes | Signs cookies and encrypts tokens; the built-in fallback is public |
-| `trustedOrigins` | explicit list | Origin allowlist for CSRF protection; no blanket wildcards |
-| `advanced.useSecureCookies` | `true` in production | Prevents cookie transmission over plaintext |
-| `advanced.disableCSRFCheck` | `false` (never change) | Turning it off removes origin + Fetch Metadata validation |
-| `advanced.disableOriginCheck` | `false` (never change) | Turning it off allows arbitrary `callbackURL` redirects |
-| `account.encryptOAuthTokens` | `true` | Provider access/refresh tokens are credentials at rest |
-| `account.accountLinking.allowDifferentEmails` | `false` | Linking across emails is an account-takeover path |
-| `session.expiresIn` / `updateAge` | tuned deliberately | 7-day default is not right for every product |
-| `rateLimit.storage` | shared (`secondary-storage` or `database`) | Memory storage multiplies the limit by replica count |
-| `advanced.ipAddress.trustedProxies` | set when behind a proxy | Otherwise clients forge their own rate-limit identity |
-| `emailAndPassword.enabled` | `false` unless required | Every enabled credential path is attack surface |
+| Setting                                       | Value                                      | Why it matters                                                             |
+| --------------------------------------------- | ------------------------------------------ | -------------------------------------------------------------------------- |
+| `baseURL`                                     | explicit, from env                         | Inferred base URLs produce wrong OAuth callbacks and open redirect surface |
+| `secret`                                      | from env, 32+ random bytes                 | Signs cookies and encrypts tokens; the built-in fallback is public         |
+| `trustedOrigins`                              | explicit list                              | Origin allowlist for CSRF protection; no blanket wildcards                 |
+| `advanced.useSecureCookies`                   | `true` in production                       | Prevents cookie transmission over plaintext                                |
+| `advanced.disableCSRFCheck`                   | `false` (never change)                     | Turning it off removes origin + Fetch Metadata validation                  |
+| `advanced.disableOriginCheck`                 | `false` (never change)                     | Turning it off allows arbitrary `callbackURL` redirects                    |
+| `account.encryptOAuthTokens`                  | `true`                                     | Provider access/refresh tokens are credentials at rest                     |
+| `account.accountLinking.allowDifferentEmails` | `false`                                    | Linking across emails is an account-takeover path                          |
+| `session.expiresIn` / `updateAge`             | tuned deliberately                         | 7-day default is not right for every product                               |
+| `rateLimit.storage`                           | shared (`secondary-storage` or `database`) | Memory storage multiplies the limit by replica count                       |
+| `advanced.ipAddress.trustedProxies`           | set when behind a proxy                    | Otherwise clients forge their own rate-limit identity                      |
+| `emailAndPassword.enabled`                    | `false` unless required                    | Every enabled credential path is attack surface                            |
 
 ## When you are reviewing existing code
 

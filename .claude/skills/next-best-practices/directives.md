@@ -32,9 +32,7 @@ Marks a function as a Server Action. Can be passed to Client Components.
 ```tsx
 'use server';
 
-export async function submitForm(formData: FormData) {
-
-}
+export async function submitForm(formData: FormData) {}
 ```
 
 Or inline within a Server Component:
@@ -43,7 +41,6 @@ Or inline within a Server Component:
 export default function Page() {
   async function submit() {
     'use server';
-
   }
   return <form action={submit}>...</form>;
 }

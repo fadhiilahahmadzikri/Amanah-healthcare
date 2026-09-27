@@ -6,11 +6,7 @@ import { InfoSidebar } from '@/components/layout/info-sidebar';
 import { InfobarProvider } from '@/components/ui/infobar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { ChatwootWidget } from '@/components/chatwoot/chatwoot-widget';
-import { PatientRegistrationModal } from '@/features/data-pasien';
-import {
-  getCurrentPatientRegistrationContext,
-  getPatientRegistrationRedirectPath
-} from '@/features/data-pasien/index.server';
+
 import { auth } from '@/lib/auth';
 import { isRouteAuthorized } from '@/lib/rbac/route-manifest';
 import { filterNavGroupsByRole, type SupportedRole } from '@/lib/rbac/navigation';
@@ -78,23 +74,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
     }
   }
 
-  const userId = user.id;
-  const isPatient = userRole === 'patient';
-
-  const registrationContext = isPatient
-    ? await getCurrentPatientRegistrationContext(userId)
-    : { isComplete: true, initialName: '' };
-
-  const redirectPath = getPatientRegistrationRedirectPath({
-    isAuthenticated: Boolean(userId),
-    isRegistrationComplete: registrationContext.isComplete,
-    pathname
-  });
-
-  if (redirectPath && redirectPath !== pathname) {
-    redirect(redirectPath);
-  }
-
   // Pre-filter navigation groups on the server for Zero-Flicker Hydration
   const authorizedNavGroups = filterNavGroupsByRole(navGroups, userRole);
 
@@ -118,12 +97,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
               <InfoSidebar side='right' />
               <ChatwootWidget />
               {/* <GreetingDialog /> */}
-              {isPatient && !registrationContext.isComplete ? (
-                <PatientRegistrationModal
-                  isOpen={true}
-                  initialName={registrationContext.initialName}
-                />
-              ) : null}
             </InfobarProvider>
           </SidebarInset>
         </SidebarProvider>

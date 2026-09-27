@@ -48,7 +48,6 @@ Discover all routes by scanning filesystem:
 
 ```json
 { "name": "get_routes", "arguments": {} }
-
 ```
 
 Returns: `{ "appRouter": ["/", "/api/users/[id]", ...], "pagesRouter": [...] }`

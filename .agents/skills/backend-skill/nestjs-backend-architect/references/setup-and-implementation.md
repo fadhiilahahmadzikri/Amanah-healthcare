@@ -24,6 +24,7 @@ Generate the initial migration from the schema you just wrote (`typeorm migratio
 ## 5. NestJS modules
 
 Per feature from the plan: `nest g resource <name>` (or the equivalent manual files) to get the module/controller/service/DTO skeleton, then fill in:
+
 - The entity/DTO fields to match the approved schema exactly
 - `class-validator` decorators on DTOs matching the constraints from the plan
 - Service methods for the approved endpoints, including any feature-specific queries called out in the plan (e.g., "tasks filtered by project")

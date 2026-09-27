@@ -14,14 +14,12 @@ Brief explanation of the rule and why it matters. This should be clear and conci
 **Incorrect (description of what's wrong):**
 
 ```typescript
-
 const bad = example();
 ```
 
 **Correct (description of what's right):**
 
 ```typescript
-
 const good = example();
 ```
 

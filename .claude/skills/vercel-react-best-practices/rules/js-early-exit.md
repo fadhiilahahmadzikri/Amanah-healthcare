@@ -25,7 +25,6 @@ function validateUsers(users: User[]) {
       hasError = true;
       errorMessage = 'Name required';
     }
-
   }
 
   return hasError ? { valid: false, error: errorMessage } : { valid: true };

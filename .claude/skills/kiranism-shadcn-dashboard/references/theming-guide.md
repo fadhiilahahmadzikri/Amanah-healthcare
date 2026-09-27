@@ -17,7 +17,6 @@
 Create `src/styles/themes/<name>.css`:
 
 ```css
-
 [data-theme='your-theme'] {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -60,7 +59,6 @@ Create `src/styles/themes/<name>.css`:
 [data-theme='your-theme'].dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
-
 }
 
 [data-theme='your-theme'] {
@@ -141,10 +139,7 @@ const fontYourName = Your_Font({
   variable: '--font-your-name'
 });
 
-export const fontVariables = cn(
-
-  fontYourName.variable
-);
+export const fontVariables = cn(fontYourName.variable);
 ```
 
 In your theme CSS, use the font's **display name** (not the CSS variable):

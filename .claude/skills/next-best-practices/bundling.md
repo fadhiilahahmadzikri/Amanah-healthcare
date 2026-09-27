@@ -20,7 +20,6 @@ Module not found: Can't resolve 'fs'
 If the package is only needed on client:
 
 ```tsx
-
 import SomeChart from 'some-chart-library';
 
 export default function Page() {
@@ -43,7 +42,6 @@ export default function Page() {
 For packages that should run on server but have bundling issues:
 
 ```js
-
 module.exports = {
   serverExternalPackages: ['problematic-package']
 };
@@ -60,7 +58,6 @@ Use this for:
 Wrap the entire usage in a client component:
 
 ```tsx
-
 'use client';
 
 import { Chart } from 'chart-library';
@@ -81,7 +78,6 @@ export default function Page() {
 Import CSS files instead of using `<link>` tags. Next.js handles bundling and optimization.
 
 ```tsx
-
 <link rel='stylesheet' href='/styles.css' />;
 
 import './styles.css';
@@ -96,9 +92,7 @@ Next.js includes common polyfills automatically. Don't load redundant ones from 
 Already included: `Array.from`, `Object.assign`, `Promise`, `fetch`, `Map`, `Set`, `Symbol`, `URLSearchParams`, and 50+ others.
 
 ```tsx
-
 <script src='https://polyfill.io/v3/polyfill.min.js?features=fetch,Promise,Array.from' />
-
 ```
 
 ## ESM/CommonJS Issues
@@ -114,7 +108,6 @@ Module not found: ESM packages need to be imported
 ### Solution: Transpile Package
 
 ```js
-
 module.exports = {
   transpilePackages: ['some-esm-package', 'another-package']
 };
@@ -160,15 +153,11 @@ Reference: https://nextjs.org/docs/app/guides/package-bundling
 Turbopack is the default bundler in Next.js 15+. If you have custom webpack config, migrate to Turbopack-compatible alternatives:
 
 ```js
-
 module.exports = {
-
   serverExternalPackages: ['package'],
   transpilePackages: ['package'],
 
-  webpack: (config) => {
-
-  }
+  webpack: (config) => {}
 };
 ```
 

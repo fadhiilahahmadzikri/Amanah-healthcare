@@ -16,15 +16,21 @@ business logic. Keep them in shared:
 
 ```typescript
 // shared/auth/token.ts
-const TOKEN_KEY = "auth_token";
+const TOKEN_KEY = 'auth_token';
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
 export const setToken = (t: string) => localStorage.setItem(TOKEN_KEY, t);
 export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
 
 // shared/auth/session.ts
-export interface Session { userId: string; email: string; role: "admin" | "user" }
+export interface Session {
+  userId: string;
+  email: string;
+  role: 'admin' | 'user';
+}
 // useSession depends on the auth provider (React Context, Zustand, etc.)
-export const useSession = (): Session | null => { /* ... */ };
+export const useSession = (): Session | null => {
+  /* ... */
+};
 ```
 
 The `shared/auth/index.ts` re-exports from these files following the
@@ -90,13 +96,13 @@ See `references/excessive-entities.md` for the full decision matrix.
 
 The location of type definitions follows the same rules as any other code:
 
-| Type scope | Location |
-| --- | --- |
-| API response/request shapes shared across the app | Domain-named files in `shared/api/` (e.g., `shared/api/product.ts`) |
-| Types for a specific entity's domain model | `entities/<name>/model/<name>.ts` |
-| Types used only within one page | `pages/<name>/model/<name>.ts` |
-| Types used only within one feature | `features/<name>/model/<name>.ts` |
-| Generic utility types (e.g., `Nullable<T>`) | Domain-named files in `shared/lib/` (e.g., `shared/lib/nullable.ts`) |
+| Type scope                                        | Location                                                             |
+| ------------------------------------------------- | -------------------------------------------------------------------- |
+| API response/request shapes shared across the app | Domain-named files in `shared/api/` (e.g., `shared/api/product.ts`)  |
+| Types for a specific entity's domain model        | `entities/<name>/model/<name>.ts`                                    |
+| Types used only within one page                   | `pages/<name>/model/<name>.ts`                                       |
+| Types used only within one feature                | `features/<name>/model/<name>.ts`                                    |
+| Generic utility types (e.g., `Nullable<T>`)       | Domain-named files in `shared/lib/` (e.g., `shared/lib/nullable.ts`) |
 
 Per Rule 4-4 (domain-based file naming), avoid grouping all types in
 `types.ts` or `utils.ts`. A file named `types.ts` cannot answer "types
@@ -119,7 +125,7 @@ export interface ProductDTO {
 
 ```typescript
 // entities/product/model/product.ts: domain model layered on top
-import type { ProductDTO } from "@/shared/api/product";
+import type { ProductDTO } from '@/shared/api/product';
 
 export interface Product extends ProductDTO {
   formattedPrice: string;
@@ -129,7 +135,7 @@ export interface Product extends ProductDTO {
 export const fromDTO = (dto: ProductDTO): Product => ({
   ...dto,
   formattedPrice: `$${dto.price.toFixed(2)}`,
-  isOnSale: dto.price < 10,
+  isOnSale: dto.price < 10
 });
 ```
 
@@ -143,8 +149,8 @@ create an entity just for types.
 
 ```typescript
 // pages/product-detail/api/fetch-product.ts
-import { apiClient } from "@/shared/api/client";
-import type { ProductDTO } from "@/shared/api/product";
+import { apiClient } from '@/shared/api/client';
+import type { ProductDTO } from '@/shared/api/product';
 
 export const fetchProduct = (id: string): Promise<ProductDTO> =>
   apiClient.get(`/products/${id}`).then((r) => r.data);
@@ -154,8 +160,8 @@ export const fetchProduct = (id: string): Promise<ProductDTO> =>
 
 ```typescript
 // shared/api/client.ts
-import axios from "axios";
-import { getToken } from "@/shared/auth/token";
+import axios from 'axios';
+import { getToken } from '@/shared/auth/token';
 
 export const apiClient = axios.create({ baseURL: import.meta.env.VITE_API_URL });
 
@@ -170,14 +176,15 @@ apiClient.interceptors.request.use((config) => {
 
 ```typescript
 // shared/api/create-crud-api.ts
-import { apiClient } from "./client";
+import { apiClient } from './client';
 
 export const createCrudApi = <T>(resource: string) => ({
   getAll: () => apiClient.get<T[]>(`/${resource}`).then((r) => r.data),
   getById: (id: string) => apiClient.get<T>(`/${resource}/${id}`).then((r) => r.data),
   create: (data: Partial<T>) => apiClient.post<T>(`/${resource}`, data).then((r) => r.data),
-  update: (id: string, data: Partial<T>) => apiClient.put<T>(`/${resource}/${id}`, data).then((r) => r.data),
-  remove: (id: string) => apiClient.delete(`/${resource}/${id}`),
+  update: (id: string, data: Partial<T>) =>
+    apiClient.put<T>(`/${resource}/${id}`, data).then((r) => r.data),
+  remove: (id: string) => apiClient.delete(`/${resource}/${id}`)
 });
 
 // Usage: export const productsApi = createCrudApi<ProductDTO>("products");
@@ -213,33 +220,43 @@ single page, keep it in that page's `model/` segment until reuse appears.
 
 ```typescript
 // entities/todo/model/todo.ts
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { apiClient } from "@/shared/api/client";
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { apiClient } from '@/shared/api/client';
 
-interface Todo { id: string; title: string; completed: boolean }
-interface TodoState { items: Todo[]; loading: boolean }
+interface Todo {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+interface TodoState {
+  items: Todo[];
+  loading: boolean;
+}
 
-export const fetchTodos = createAsyncThunk("todos/fetch", async () =>
-  (await apiClient.get<Todo[]>("/todos")).data,
+export const fetchTodos = createAsyncThunk(
+  'todos/fetch',
+  async () => (await apiClient.get<Todo[]>('/todos')).data
 );
 
 const todoSlice = createSlice({
-  name: "todos",
+  name: 'todos',
   initialState: { items: [], loading: false } as TodoState,
   reducers: {
     setCompleted: (state, { payload }: { payload: { id: string; completed: boolean } }) => {
       const todo = state.items.find((t) => t.id === payload.id);
       if (todo) todo.completed = payload.completed;
-    },
+    }
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchTodos.pending, (state) => { state.loading = true; })
+      .addCase(fetchTodos.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(fetchTodos.fulfilled, (state, action) => {
         state.items = action.payload;
         state.loading = false;
       });
-  },
+  }
 });
 
 export const { setCompleted } = todoSlice.actions;
@@ -251,7 +268,7 @@ The slice's public API re-exports what consumers need:
 
 ```typescript
 // entities/todo/index.ts
-export { todoReducer, selectTodos, setCompleted, fetchTodos } from "./model/todo";
+export { todoReducer, selectTodos, setCompleted, fetchTodos } from './model/todo';
 ```
 
 **Key:** The entire Redux slice (reducer + selectors + thunks) lives in a
@@ -266,13 +283,12 @@ public API and consumes the entity's reducer:
 
 ```typescript
 // features/toggle-todo/model/use-toggle-todo.ts
-import { useDispatch } from "react-redux";
-import { setCompleted } from "@/entities/todo";
+import { useDispatch } from 'react-redux';
+import { setCompleted } from '@/entities/todo';
 
 export const useToggleTodo = () => {
   const dispatch = useDispatch();
-  return (id: string, current: boolean) =>
-    dispatch(setCompleted({ id, completed: !current }));
+  return (id: string, current: boolean) => dispatch(setCompleted({ id, completed: !current }));
 };
 ```
 
@@ -280,15 +296,15 @@ export const useToggleTodo = () => {
 
 ```typescript
 // app/providers/store.ts
-import { configureStore } from "@reduxjs/toolkit";
-import { todoReducer } from "@/entities/todo";
-import { userReducer } from "@/entities/user";
+import { configureStore } from '@reduxjs/toolkit';
+import { todoReducer } from '@/entities/todo';
+import { userReducer } from '@/entities/user';
 
 export const store = configureStore({
   reducer: {
     todos: todoReducer,
-    user: userReducer,
-  },
+    user: userReducer
+  }
 });
 
 export type RootState = ReturnType<typeof store.getState>;
@@ -347,8 +363,10 @@ Do not mix mutations with queries. Two patterns are accepted:
    export const useUpdateExample = () => {
      const queryClient = useQueryClient();
      return useMutation({
-       mutationFn: ({ id, newTitle }) => apiClient.patch(`/posts/${id}`, { title: newTitle }).then((r) => r.data),
-       onSuccess: (newPost, { id }) => queryClient.setQueryData(POST_QUERIES.detail({ id }).queryKey, newPost),
+       mutationFn: ({ id, newTitle }) =>
+         apiClient.patch(`/posts/${id}`, { title: newTitle }).then((r) => r.data),
+       onSuccess: (newPost, { id }) =>
+         queryClient.setQueryData(POST_QUERIES.detail({ id }).queryKey, newPost)
      });
    };
    ```
@@ -366,21 +384,23 @@ without rewriting them:
 
 ```typescript
 // src/shared/api/post/post.queries.ts
-import { queryOptions } from "@tanstack/react-query";
-import { getPosts, getDetailPost, type DetailPostQuery } from "./get-posts";
+import { queryOptions } from '@tanstack/react-query';
+import { getPosts, getDetailPost, type DetailPostQuery } from './get-posts';
 
 export const POST_QUERIES = {
-  all: () => ["posts"],
-  lists: () => [...POST_QUERIES.all(), "list"],
-  list: (page: number, limit: number) => queryOptions({
-    queryKey: [...POST_QUERIES.lists(), page, limit],
-    queryFn: () => getPosts(page, limit),
-    placeholderData: (prev) => prev,
-  }),
-  detail: (query?: DetailPostQuery) => queryOptions({
-    queryKey: [...POST_QUERIES.all(), "detail", query?.id],
-    queryFn: () => getDetailPost({ id: query?.id }),
-  }),
+  all: () => ['posts'],
+  lists: () => [...POST_QUERIES.all(), 'list'],
+  list: (page: number, limit: number) =>
+    queryOptions({
+      queryKey: [...POST_QUERIES.lists(), page, limit],
+      queryFn: () => getPosts(page, limit),
+      placeholderData: (prev) => prev
+    }),
+  detail: (query?: DetailPostQuery) =>
+    queryOptions({
+      queryKey: [...POST_QUERIES.all(), 'detail', query?.id],
+      queryFn: () => getDetailPost({ id: query?.id })
+    })
 };
 ```
 
@@ -421,8 +441,8 @@ not change. Components use `useSuspenseQuery` instead of `useQuery` and skip
 
 ```tsx
 // src/app/providers/suspense-provider.tsx
-import { Suspense } from "react";
-import { ErrorBoundary } from "react-error-boundary";
+import { Suspense } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 
 export const SuspenseProvider = ({ children }) => (
   <ErrorBoundary fallback={<div>Something went wrong</div>}>
@@ -440,8 +460,8 @@ to the query factory:
 ```typescript
 // src/shared/api/post/post.queries.ts
 export const POST_MUTATIONS = {
-  updateTitle: () => ["post", "update-title"],
-  create: () => ["post", "create"],
+  updateTitle: () => ['post', 'update-title'],
+  create: () => ['post', 'create']
 };
 ```
 
@@ -452,18 +472,19 @@ Tag the mutation with `mutationKey`, then read its state from any component:
 export const useUpdatePostTitle = () =>
   useMutation({
     mutationKey: POST_MUTATIONS.updateTitle(),
-    mutationFn: ({ id, newTitle }) => apiClient.patch(`/posts/${id}`, { title: newTitle }),
+    mutationFn: ({ id, newTitle }) => apiClient.patch(`/posts/${id}`, { title: newTitle })
   });
 
 // src/widgets/save-indicator/ui/save-indicator.tsx
-import { useMutationState } from "@tanstack/react-query";
-import { POST_MUTATIONS } from "@/shared/api/post";
+import { useMutationState } from '@tanstack/react-query';
+import { POST_MUTATIONS } from '@/shared/api/post';
 
 export const SaveIndicator = () => {
-  const isPending = useMutationState({
-    filters: { mutationKey: POST_MUTATIONS.updateTitle(), status: "pending" },
-    select: (m) => m.state.status,
-  }).length > 0;
+  const isPending =
+    useMutationState({
+      filters: { mutationKey: POST_MUTATIONS.updateTitle(), status: 'pending' },
+      select: (m) => m.state.status
+    }).length > 0;
   return isPending && <span>Saving...</span>;
 };
 ```
@@ -472,14 +493,14 @@ export const SaveIndicator = () => {
 
 ```tsx
 // src/app/providers/query-provider.tsx
-import { QueryClient, QueryClientProvider, MutationCache, QueryCache } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { toast } from "sonner";
+import { QueryClient, QueryClientProvider, MutationCache, QueryCache } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { toast } from 'sonner';
 
 const queryClient = new QueryClient({
   queryCache: new QueryCache({ onError: (e) => toast.error(e.message) }),
   mutationCache: new MutationCache({ onError: (e) => toast.error(e.message) }),
-  defaultOptions: { queries: { staleTime: 5 * 60 * 1000, gcTime: 5 * 60 * 1000 } },
+  defaultOptions: { queries: { staleTime: 5 * 60 * 1000, gcTime: 5 * 60 * 1000 } }
 });
 
 export const QueryProvider = ({ children }) => (
@@ -508,7 +529,9 @@ Standardize base URL, headers, and JSON handling in a single class in
 // src/shared/api/api-client.ts
 export class ApiClient {
   #baseUrl: string;
-  constructor(url: string) { this.#baseUrl = url; }
+  constructor(url: string) {
+    this.#baseUrl = url;
+  }
 
   async #handle<T>(response: Response): Promise<T> {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);

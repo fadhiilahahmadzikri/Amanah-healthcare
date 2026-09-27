@@ -20,11 +20,11 @@ It is **not a final UI specification**.
 
 For example, if the target page is a **[componentn card master componentn in jadwal dokter in scope dashboard admin]** page, the provided context should be interpreted as the source of truth for:
 
-* what patient information exists,
-* what fields need to be represented,
-* what information needs to be visible,
-* what actions or states are explicitly required,
-* and what substantive content the page needs to communicate.
+- what patient information exists,
+- what fields need to be represented,
+- what information needs to be visible,
+- what actions or states are explicitly required,
+- and what substantive content the page needs to communicate.
 
 Treat that context as a **data and content mapping resource**, not as an instruction to invent a completely new visual design.
 
@@ -71,56 +71,56 @@ The goal is to understand how the application already solves comparable UI and a
 
 Inspect the existing project structure and identify relevant implementations of:
 
-* pages,
-* routes,
-* layouts,
-* page containers,
-* headers,
-* sections,
-* forms,
-* cards,
-* tables,
-* lists,
-* detail views,
-* filters,
-* search interfaces,
-* tabs,
-* buttons,
-* inputs,
-* selects,
-* dialogs,
-* drawers,
-* badges,
-* status indicators,
-* pagination,
-* empty states,
-* loading states,
-* error states,
-* validation,
-* typography,
-* icons,
-* spacing,
-* borders,
-* radii,
-* backgrounds,
-* responsive behavior,
-* interaction states,
-* reusable components,
-* shared primitives,
-* hooks,
-* utilities,
-* services,
-* schemas,
-* types,
-* state-management patterns,
-* data-fetching patterns,
-* form-handling patterns,
-* design tokens,
-* theme configuration,
-* CSS variables,
-* Tailwind configuration,
-* Shadcn components or configuration when present,
-* and any other implementation that can establish the application's existing conventions.
+- pages,
+- routes,
+- layouts,
+- page containers,
+- headers,
+- sections,
+- forms,
+- cards,
+- tables,
+- lists,
+- detail views,
+- filters,
+- search interfaces,
+- tabs,
+- buttons,
+- inputs,
+- selects,
+- dialogs,
+- drawers,
+- badges,
+- status indicators,
+- pagination,
+- empty states,
+- loading states,
+- error states,
+- validation,
+- typography,
+- icons,
+- spacing,
+- borders,
+- radii,
+- backgrounds,
+- responsive behavior,
+- interaction states,
+- reusable components,
+- shared primitives,
+- hooks,
+- utilities,
+- services,
+- schemas,
+- types,
+- state-management patterns,
+- data-fetching patterns,
+- form-handling patterns,
+- design tokens,
+- theme configuration,
+- CSS variables,
+- Tailwind configuration,
+- Shadcn components or configuration when present,
+- and any other implementation that can establish the application's existing conventions.
 
 Do not inspect only one convenient page.
 
@@ -168,42 +168,42 @@ The surrounding application is the visual source of truth.
 
 Study existing pages and reproduce their established visual grammar, including where applicable:
 
-* font family,
-* font sizes,
-* font weights,
-* line heights,
-* letter spacing,
-* text hierarchy,
-* content width,
-* page padding,
-* section spacing,
-* internal component spacing,
-* grid behavior,
-* alignment,
-* density,
-* border treatment,
-* border radius,
-* surface treatment,
-* backgrounds,
-* shadows,
-* iconography,
-* icon sizing,
-* button dimensions,
-* input dimensions,
-* labels,
-* helper text,
-* badges,
-* status treatments,
-* hover states,
-* focus states,
-* disabled states,
-* active states,
-* transitions,
-* responsive breakpoints,
-* content rhythm,
-* whitespace,
-* visual hierarchy,
-* and overall UI atmosphere.
+- font family,
+- font sizes,
+- font weights,
+- line heights,
+- letter spacing,
+- text hierarchy,
+- content width,
+- page padding,
+- section spacing,
+- internal component spacing,
+- grid behavior,
+- alignment,
+- density,
+- border treatment,
+- border radius,
+- surface treatment,
+- backgrounds,
+- shadows,
+- iconography,
+- icon sizing,
+- button dimensions,
+- input dimensions,
+- labels,
+- helper text,
+- badges,
+- status treatments,
+- hover states,
+- focus states,
+- disabled states,
+- active states,
+- transitions,
+- responsive breakpoints,
+- content rhythm,
+- whitespace,
+- visual hierarchy,
+- and overall UI atmosphere.
 
 The goal is not merely to use approximately similar colors or components.
 
@@ -223,16 +223,16 @@ Where exact values already exist in the codebase, **reuse those values or their 
 
 Do not arbitrarily introduce:
 
-* new spacing values,
-* new font sizes,
-* new colors,
-* new shadows,
-* new radii,
-* new component dimensions,
-* new breakpoint behavior,
-* new button styles,
-* new input styles,
-* or new visual patterns
+- new spacing values,
+- new font sizes,
+- new colors,
+- new shadows,
+- new radii,
+- new component dimensions,
+- new breakpoint behavior,
+- new button styles,
+- new input styles,
+- or new visual patterns
 
 when equivalent values or patterns already exist.
 
@@ -288,20 +288,20 @@ Inspect how the similarity is actually implemented.
 
 For relevant reference pages, determine:
 
-* which layout component is used,
-* which container establishes page width,
-* where spacing originates,
-* which typography classes or tokens are used,
-* which components establish borders and surfaces,
-* how sections are separated,
-* how form fields are composed,
-* how actions are aligned,
-* how responsive behavior works,
-* how loading and error states are handled,
-* how data flows into the page,
-* how validation is performed,
-* how shared components expose variants,
-* and how the page integrates with the rest of the application architecture.
+- which layout component is used,
+- which container establishes page width,
+- where spacing originates,
+- which typography classes or tokens are used,
+- which components establish borders and surfaces,
+- how sections are separated,
+- how form fields are composed,
+- how actions are aligned,
+- how responsive behavior works,
+- how loading and error states are handled,
+- how data flows into the page,
+- how validation is performed,
+- how shared components expose variants,
+- and how the page integrates with the rest of the application architecture.
 
 Use this evidence to construct the target implementation.
 
@@ -318,22 +318,22 @@ You must not invent information that cannot be established from either:
 
 Never fabricate:
 
-* fields,
-* data,
-* business rules,
-* user permissions,
-* workflows,
-* API behavior,
-* backend capabilities,
-* validation requirements,
-* component APIs,
-* design tokens,
-* routes,
-* database fields,
-* status values,
-* interactions,
-* responsive behavior,
-* or application conventions.
+- fields,
+- data,
+- business rules,
+- user permissions,
+- workflows,
+- API behavior,
+- backend capabilities,
+- validation requirements,
+- component APIs,
+- design tokens,
+- routes,
+- database fields,
+- status values,
+- interactions,
+- responsive behavior,
+- or application conventions.
 
 If something is not specified by the provided context, search the codebase for evidence.
 
@@ -355,18 +355,18 @@ Do not produce a generic dashboard, generic SaaS page, generic CRUD interface, o
 
 Do not automatically add:
 
-* oversized page titles,
-* excessive cards,
-* unnecessary gradients,
-* decorative shadows,
-* arbitrary KPI sections,
-* random badges,
-* excessive rounded containers,
-* redundant descriptions,
-* unnecessary icons,
-* artificial empty states,
-* decorative charts,
-* or additional actions
+- oversized page titles,
+- excessive cards,
+- unnecessary gradients,
+- decorative shadows,
+- arbitrary KPI sections,
+- random badges,
+- excessive rounded containers,
+- redundant descriptions,
+- unnecessary icons,
+- artificial empty states,
+- decorative charts,
+- or additional actions
 
 unless they are justified by the provided context or established by the existing application.
 
@@ -537,18 +537,18 @@ The implementation must be production-oriented.
 
 Maintain:
 
-* clear separation of concerns,
-* strong typing,
-* clean naming,
-* predictable component boundaries,
-* minimal duplication,
-* reusable composition,
-* maintainable state flow,
-* appropriate data ownership,
-* existing project conventions,
-* accessibility,
-* responsive behavior,
-* and compatibility with the project's current technology stack.
+- clear separation of concerns,
+- strong typing,
+- clean naming,
+- predictable component boundaries,
+- minimal duplication,
+- reusable composition,
+- maintainable state flow,
+- appropriate data ownership,
+- existing project conventions,
+- accessibility,
+- responsive behavior,
+- and compatibility with the project's current technology stack.
 
 Do not perform unrelated architectural rewrites.
 
@@ -582,21 +582,21 @@ Check that no unnecessary duplicate abstraction was introduced.
 
 Compare the target page against relevant existing pages and verify consistency in:
 
-* typography,
-* spacing,
-* dimensions,
-* alignment,
-* content density,
-* surfaces,
-* borders,
-* radii,
-* iconography,
-* buttons,
-* controls,
-* responsive behavior,
-* interaction states,
-* hierarchy,
-* and overall visual atmosphere.
+- typography,
+- spacing,
+- dimensions,
+- alignment,
+- content density,
+- surfaces,
+- borders,
+- radii,
+- iconography,
+- buttons,
+- controls,
+- responsive behavior,
+- interaction states,
+- hierarchy,
+- and overall visual atmosphere.
 
 Do not accept "close enough" when the existing codebase provides exact reusable values or components.
 
@@ -632,17 +632,17 @@ If evidence conflicts, prioritize compatibility with the existing application un
 
 The implementation is successful only when the target page:
 
-* contains the required data and content,
-* does not invent unsupported information,
-* follows the current architecture,
-* maximizes reuse,
-* avoids unnecessary duplication,
-* respects the existing design system,
-* matches neighboring pages with high visual fidelity,
-* preserves the application's ambient look and feel,
-* uses established typography, spacing, dimensions, and interaction patterns,
-* remains maintainable and reusable,
-* and appears to be a natural extension of the existing product rather than an independently generated interface.
+- contains the required data and content,
+- does not invent unsupported information,
+- follows the current architecture,
+- maximizes reuse,
+- avoids unnecessary duplication,
+- respects the existing design system,
+- matches neighboring pages with high visual fidelity,
+- preserves the application's ambient look and feel,
+- uses established typography, spacing, dimensions, and interaction patterns,
+- remains maintainable and reusable,
+- and appears to be a natural extension of the existing product rather than an independently generated interface.
 
 The final result should create the impression that the target page was designed and implemented by the **same team, using the same design system, architecture, components, and engineering conventions as the rest of the application**.
 
@@ -662,7 +662,7 @@ Do not hallucinate.
 
 The context supplied below defines the **substantive data and information that must be represented on the target page**. Treat it as a mapping/resource of truth for page content, not as a final UI design.
 
-**[Ini adalah halaman data pasien pada cakupan admin dashboard, tolong dibuatkan halamannya
+\*\*[Ini adalah halaman data pasien pada cakupan admin dashboard, tolong dibuatkan halamannya
 
 ## Continued Structural UI Analysis — “Data Pasien”
 
@@ -717,10 +717,10 @@ The top horizontal region provides application-level navigation and utilities.
 
 At the upper-left is a navigation trail consisting of:
 
-* A small navigation/sidebar-style icon
-* `Dashboard`
-* `/` separator
-* `Data-pasien`
+- A small navigation/sidebar-style icon
+- `Dashboard`
+- `/` separator
+- `Data-pasien`
 
 The current location is therefore explicitly represented as `Data-pasien`.
 
@@ -753,9 +753,9 @@ Next to the repository icon is a global search control.
 
 It contains:
 
-* Search icon
-* Placeholder: `Search...`
-* Keyboard shortcut indicator: `⌘ K`
+- Search icon
+- Placeholder: `Search...`
+- Keyboard shortcut indicator: `⌘ K`
 
 The visible structure is:
 
@@ -786,10 +786,10 @@ No textual label is provided, so its exact function cannot be reliably determine
 
 Another control contains:
 
-* An icon resembling a palette/theme control
-* `Admin Custom`
-* `TT`
-* A downward chevron
+- An icon resembling a palette/theme control
+- `Admin Custom`
+- `TT`
+- A downward chevron
 
 The visible structure is:
 
@@ -839,8 +839,8 @@ This is the main page heading.
 
 The description explicitly states that this page contains:
 
-* Patient medical records
-* Patient clinic profiles
+- Patient medical records
+- Patient clinic profiles
 
 It also states that clicking a patient row opens a detailed inspection panel.
 
@@ -983,10 +983,10 @@ The leftmost field contains the placeholder:
 
 The visible search concepts are therefore:
 
-* Patient name
-* NIK
-* Medical-record number
-* Telephone number
+- Patient name
+- NIK
+- Medical-record number
+- Telephone number
 
 The displayed placeholder ends with a comma, and no additional text should be invented.
 
@@ -1052,9 +1052,9 @@ On the right side of the toolbar is a control labeled:
 
 It contains:
 
-* A settings/sliders-style icon
-* `View`
-* Up/down chevrons
+- A settings/sliders-style icon
+- `View`
+- Up/down chevrons
 
 Logical structure:
 
@@ -1097,11 +1097,11 @@ A sorting indicator appears next to the header.
 
 The field contains patient medical-record identifiers such as:
 
-* `RM-2024-0047`
-* `RM-2025-0012`
-* `RM-2024-0089`
-* `RM-2024-0000`
-* `RM-2026-0031`
+- `RM-2024-0047`
+- `RM-2025-0012`
+- `RM-2024-0089`
+- `RM-2024-0000`
+- `RM-2026-0031`
 
 This is an independently identifiable patient identifier field.
 
@@ -1115,8 +1115,8 @@ The second column is:
 
 Each visible row contains two logically separate pieces of information:
 
-* Patient avatar
-* Patient name
+- Patient avatar
+- Patient name
 
 These should **not** be treated as a single undifferentiated patient field.
 
@@ -1124,28 +1124,28 @@ Visible records include:
 
 ### Row 1
 
-* Avatar
-* `Ahmad Fauzi`
+- Avatar
+- `Ahmad Fauzi`
 
 ### Row 2
 
-* Avatar
-* `Budi Kurniawan`
+- Avatar
+- `Budi Kurniawan`
 
 ### Row 3
 
-* Avatar
-* `Dewi Rahayu`
+- Avatar
+- `Dewi Rahayu`
 
 ### Row 4
 
-* Avatar
-* `Madonna Sari`
+- Avatar
+- `Madonna Sari`
 
 ### Row 5
 
-* Avatar
-* `Rizky Pratama`
+- Avatar
+- `Rizky Pratama`
 
 Logical representation:
 
@@ -1167,11 +1167,11 @@ The third column is:
 
 Visible values are:
 
-* `Laki-laki`
-* `Laki-laki`
-* `Perempuan`
-* `Perempuan`
-* `Laki-laki`
+- `Laki-laki`
+- `Laki-laki`
+- `Perempuan`
+- `Perempuan`
+- `Laki-laki`
 
 This is an independently represented gender field.
 
@@ -1195,11 +1195,11 @@ The fourth column is:
 
 Visible values:
 
-* `41 th`
-* `51 th`
-* `27 th`
-* `36 th`
-* `34 th`
+- `41 th`
+- `51 th`
+- `27 th`
+- `36 th`
+- `34 th`
 
 The data field is therefore an age value, displayed with the `th` unit.
 
@@ -1233,11 +1233,11 @@ This represents the record/account creation date.
 
 Visible values:
 
-* `05/03/2024`
-* `22/01/2025`
-* `18/05/2024`
-* `10/01/2024`
-* `12/02/2026`
+- `05/03/2024`
+- `22/01/2025`
+- `18/05/2024`
+- `10/01/2024`
+- `12/02/2026`
 
 Logical mapping:
 
@@ -1258,8 +1258,8 @@ The sixth column is:
 
 Each row contains a status badge composed of:
 
-* Small circular status indicator
-* Status text
+- Small circular status indicator
+- Status text
 
 Visible statuses are:
 
@@ -1546,33 +1546,32 @@ Data Pasien
 
 ### Directly observable
 
-* The page is titled `Data Pasien`.
-* It contains patient medical-record/profile data.
-* The page explicitly states that patient rows can open a detailed inspection panel.
-* There are three patient aggregate metrics.
-* There is a patient search field.
-* Gender and account-status filters are available.
-* A view control is present.
-* There is an export-data action.
-* The table has seven visible columns.
-* The `PASIEN` column contains both an avatar and patient name.
-* The table displays patient IDs, gender, age, creation dates, account statuses, and row actions.
-* Each visible row has `Lihat Detail` and `Edit`.
-* Five patient records are fully visible.
-* A sixth row is only partially visible at the bottom.
+- The page is titled `Data Pasien`.
+- It contains patient medical-record/profile data.
+- The page explicitly states that patient rows can open a detailed inspection panel.
+- There are three patient aggregate metrics.
+- There is a patient search field.
+- Gender and account-status filters are available.
+- A view control is present.
+- There is an export-data action.
+- The table has seven visible columns.
+- The `PASIEN` column contains both an avatar and patient name.
+- The table displays patient IDs, gender, age, creation dates, account statuses, and row actions.
+- Each visible row has `Lihat Detail` and `Edit`.
+- Five patient records are fully visible.
+- A sixth row is only partially visible at the bottom.
 
 ### Not established by the screenshot
 
-* The exact data format produced by `Ekspor Data`.
-* The destination or function of the Git/repository icon.
-* The exact function of the unlabeled utility controls in the global header.
-* The meaning of `TT`.
-* The available options inside `View`.
-* The filtering interaction model for `Gender` and `Status Akun`.
-* Whether sorting is ascending/descending by default; only sortable-column indicators are visible.
-* The contents of the detailed inspection panel.
-* The fields available when selecting `Edit`.
-* The total number of table pages or pagination behavior.
-* Any patient fields not visible in the table.
-]**
-
+- The exact data format produced by `Ekspor Data`.
+- The destination or function of the Git/repository icon.
+- The exact function of the unlabeled utility controls in the global header.
+- The meaning of `TT`.
+- The available options inside `View`.
+- The filtering interaction model for `Gender` and `Status Akun`.
+- Whether sorting is ascending/descending by default; only sortable-column indicators are visible.
+- The contents of the detailed inspection panel.
+- The fields available when selecting `Edit`.
+- The total number of table pages or pagination behavior.
+- Any patient fields not visible in the table.
+  ]\*\*

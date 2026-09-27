@@ -37,7 +37,6 @@ export default function App() {
 import { preload, preinit } from 'react-dom';
 
 export default function RootLayout({ children }) {
-
   preload('/fonts/inter.woff2', { as: 'font', type: 'font/woff2', crossOrigin: 'anonymous' });
 
   preinit('/styles/critical.css', { as: 'style' });

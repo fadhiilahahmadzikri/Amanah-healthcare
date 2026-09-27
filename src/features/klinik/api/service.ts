@@ -1,24 +1,21 @@
+import { apiClient } from '@/lib/api-client';
 import { Appointment, Doctor, QueueItem, AppointmentFormData } from './types';
-
-const LOCAL_STORAGE_KEY_APPOINTMENTS = 'amanah_appointments_v4';
-const LOCAL_STORAGE_KEY_QUEUES = 'amanah_queues_v10';
-
 import { getAmanahServiceByName } from '../constants/services';
 import { getClinicalPractitionersAction } from '@/features/jadwal-dokter/api/doctor-schedule-actions';
+
+const LOCAL_STORAGE_KEY_APPOINTMENTS = 'amanah_appointments_v4';
 
 export async function fetchClinicalDoctors(serviceName?: string): Promise<Doctor[]> {
   try {
     const list = await getClinicalPractitionersAction({ service: serviceName });
     return list.map((doc) => ({
-      id: doc.id,
       name: doc.name,
       spec: doc.spec,
       avatar: doc.avatar || '',
       location: doc.location,
       rating: doc.rating || '5.0',
       tags: doc.tags || [doc.spec],
-      schedule: doc.schedule,
-      is_available: doc.is_available
+      schedule: doc.schedule
     }));
   } catch (err) {
     console.error('Failed to fetch clinical practitioners from backend:', err);
@@ -41,7 +38,7 @@ export const getDoctorsByService = (serviceName?: string): Doctor[] => {
   const srvInfo = getAmanahServiceByName(serviceName);
   const targetSpec = srvInfo ? srvInfo.shortName.toLowerCase() : serviceName.toLowerCase();
 
-  const filtered = all.filter((doc) => {
+  return all.filter((doc) => {
     const docSpec = doc.spec.toLowerCase();
     const docLoc = doc.location.toLowerCase();
     return (
@@ -51,25 +48,103 @@ export const getDoctorsByService = (serviceName?: string): Doctor[] => {
       (doc.tags && doc.tags.some((t) => t.toLowerCase().includes(targetSpec)))
     );
   });
-
-  return filtered;
 };
 
 export const getTimeSlots = (): string[] => {
   return [];
 };
 
-export const loadStoredAppointments = (): Appointment[] => {
-  if (typeof window === 'undefined') {
+export async function getDailyQueuesFromApi(params?: {
+  poliklinikId?: string;
+  date?: string;
+  session?: string;
+}): Promise<QueueItem[]> {
+  const query = new URLSearchParams();
+  if (params?.poliklinikId) query.set('poliklinikId', params.poliklinikId);
+  if (params?.date) query.set('date', params.date);
+  if (params?.session) query.set('session', params.session);
+
+  const qs = query.toString();
+  const endpoint = `/api/v1/appointments/queue/daily${qs ? `?${qs}` : ''}`;
+  try {
+    const list = await apiClient<Record<string, unknown>[]>(endpoint);
+    if (!Array.isArray(list)) return [];
+    return list.map((item) => {
+      const rawStatus = String(item.status || '');
+      const ticketStatus = String(item.ticketStatus || '');
+      let status = 'MENUNGGU';
+
+      if (rawStatus === 'SELESAI' || rawStatus === 'completed') {
+        status = 'SELESAI';
+      } else if (
+        ticketStatus === 'called' ||
+        rawStatus === 'SEDANG_DIPERIKSA' ||
+        rawStatus === 'in_service'
+      ) {
+        status = 'DIPANGGIL';
+      } else if (rawStatus === 'BATAL' || rawStatus === 'cancelled') {
+        status = 'BATAL';
+      } else {
+        status = 'MENUNGGU';
+      }
+
+      const startTime =
+        typeof item.scheduledStartTime === 'string' ? item.scheduledStartTime.slice(0, 5) : '08:00';
+      const endTime =
+        typeof item.scheduledEndTime === 'string' ? item.scheduledEndTime.slice(0, 5) : '08:30';
+
+      return {
+        id: String(item.id),
+        queue_number: String(item.queueNumber || '-'),
+        patient_name: String(item.patientName || 'Pasien'),
+        patient_avatar: '',
+        doctor_name: String(item.doctorName || '-'),
+        poli: String(item.poliklinikName || 'Poli Umum'),
+        estimated_time: `${startTime} - ${endTime}`,
+        status,
+        is_user: false,
+        called_time: item.calledAt
+          ? new Date(String(item.calledAt)).toLocaleTimeString('id-ID', {
+              hour: '2-digit',
+              minute: '2-digit'
+            })
+          : undefined,
+        room: String(item.room || 'Ruang Periksa'),
+        call_count: Number(item.callCount ?? item.call_count ?? 0)
+      };
+    });
+  } catch (err) {
+    console.error('Failed to fetch daily queues from backend:', err);
     return [];
   }
+}
+
+export async function callPatientQueue(appointmentId: string): Promise<unknown> {
+  return await apiClient(`/api/v1/appointments/${appointmentId}/call`, { method: 'POST' });
+}
+
+export async function respondPatientQueue(appointmentId: string): Promise<unknown> {
+  return await apiClient(`/api/v1/appointments/${appointmentId}/respond`, { method: 'POST' });
+}
+
+export async function noShowPatientQueue(appointmentId: string): Promise<unknown> {
+  return await apiClient(`/api/v1/appointments/${appointmentId}/no-show`, { method: 'POST' });
+}
+
+export async function completePatientQueue(appointmentId: string): Promise<unknown> {
+  return await apiClient(`/api/v1/appointments/${appointmentId}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status: 'SELESAI' })
+  });
+}
+
+export const loadStoredAppointments = (): Appointment[] => {
+  if (typeof window === 'undefined') return [];
   try {
     const stored = localStorage.getItem(LOCAL_STORAGE_KEY_APPOINTMENTS);
     if (stored) {
       const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed)) {
-        return parsed as Appointment[];
-      }
+      if (Array.isArray(parsed)) return parsed as Appointment[];
     }
   } catch (e) {
     console.warn('Could not read appointments from localStorage', e);
@@ -87,31 +162,10 @@ export const saveAppointmentsToStorage = (appointments: Appointment[]): void => 
 };
 
 export const loadStoredQueues = (): QueueItem[] => {
-  if (typeof window === 'undefined') {
-    return [];
-  }
-  try {
-    const stored = localStorage.getItem(LOCAL_STORAGE_KEY_QUEUES);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed)) {
-        return parsed as QueueItem[];
-      }
-    }
-  } catch (e) {
-    console.warn('Could not read queues from localStorage', e);
-  }
   return [];
 };
 
-export const saveQueuesToStorage = (queues: QueueItem[]): void => {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(LOCAL_STORAGE_KEY_QUEUES, JSON.stringify(queues));
-  } catch (e) {
-    console.warn('Could not save queues to localStorage', e);
-  }
-};
+export const saveQueuesToStorage = (_queues: QueueItem[]): void => {};
 
 export const createAppointmentRecord = (
   formData: AppointmentFormData,
@@ -127,7 +181,7 @@ export const createAppointmentRecord = (
     booking_code: `KLINIK-${randomCode}`,
     patient_name: formData.patientName || '',
     patient_email: formData.patientEmail || '',
-    patient_avatar: formData.patientAvatar || '',
+    patient_avatar: '',
     doctor_name: formData.doctor,
     date: formData.dateStr,
     time: formData.timeSlot,
@@ -147,41 +201,18 @@ export const createAppointmentRecordWithQueue = (
   existingList: Appointment[]
 ): { appointment: Appointment; queueItem: QueueItem } => {
   const appointment = createAppointmentRecord(formData, existingList);
-  const srv = getAmanahServiceByName(formData.service);
-  const codePrefix = srv?.codePrefix || 'KIA';
-
-  // Count existing waiting patients in this poli
-  const existingQueues = loadStoredQueues();
-  const currentPoliQueues = existingQueues.filter(
-    (q) => q.poli.toLowerCase() === (srv?.name.toLowerCase() || formData.service.toLowerCase())
-  );
-  const nextQueueIndex = currentPoliQueues.length + 1;
-  const queueNumber = `${codePrefix}-${String(nextQueueIndex).padStart(3, '0')}`;
-
-  const doc = getDoctorByName(formData.doctor);
-
-  const timeMatch = formData.timeSlot.match(/(\d{1,2}[:.]\d{2})/);
-  const estimatedTime = timeMatch ? `${timeMatch[1].replace('.', ':')} WIB` : '';
-
   const queueItem: QueueItem = {
-    queue_number: queueNumber,
+    id: appointment.id,
+    queue_number: appointment.booking_code.replace('KLINIK-', 'A-'),
     patient_name: appointment.patient_name,
-    patient_avatar: appointment.patient_avatar,
-    doctor_name: formData.doctor,
-    poli: srv?.name || formData.service || 'Poli KIA',
-    room: doc?.location || 'Ruang KIA',
-    estimated_time: estimatedTime,
+    patient_avatar: '',
+    doctor_name: appointment.doctor_name,
+    poli: formData.service || 'Poli Umum',
+    estimated_time: appointment.time || '08:00 - 08:30',
     status: 'MENUNGGU',
     is_user: true,
-    waiting_count: currentPoliQueues.filter((q) => q.status === 'MENUNGGU').length + 1
+    room: 'Ruang Periksa 1'
   };
-
-  // Sync to queues storage
-  const updatedQueues = [queueItem, ...existingQueues];
-  saveQueuesToStorage(updatedQueues);
-
-  const updatedAppointments = [appointment, ...existingList];
-  saveAppointmentsToStorage(updatedAppointments);
 
   return { appointment, queueItem };
 };

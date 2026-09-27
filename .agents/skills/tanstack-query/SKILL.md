@@ -180,7 +180,6 @@ function CreatePostButton() {
 const mutation = useMutation({
   mutationFn: postsApi.update,
   onMutate: async (updatedPost) => {
-
     await queryClient.cancelQueries({ queryKey: ['posts', updatedPost.id] });
 
     const previousPost = queryClient.getQueryData(['posts', updatedPost.id]);
@@ -190,11 +189,9 @@ const mutation = useMutation({
     return { previousPost };
   },
   onError: (err, updatedPost, context) => {
-
     queryClient.setQueryData(['posts', updatedPost.id], context.previousPost);
   },
   onSettled: (data, error, variables) => {
-
     queryClient.invalidateQueries({ queryKey: ['posts', variables.id] });
   }
 });
@@ -221,7 +218,6 @@ queryClient.invalidateQueries();
 ### Manual Updates
 
 ```typescript
-
 queryClient.setQueryData(['posts', postId], newPost);
 
 queryClient.setQueryData(['posts'], (oldPosts) => [...oldPosts, newPost]);
@@ -258,7 +254,6 @@ const prefetchPost = (postId: string) => {
 ### Centralized API Service
 
 ```typescript
-
 import { apiClient } from '@/lib/apiClient';
 import type { Post, CreatePostDto, UpdatePostDto } from '~/types/post';
 
@@ -316,12 +311,7 @@ const mutation = useMutation({
 ### Key Structure
 
 ```typescript
-
-['posts'][('posts', { status: 'published' })][
-
-  ('posts', postId)
-][('posts', postId, 'comments')][
-
+['posts'][('posts', { status: 'published' })][('posts', postId)][('posts', postId, 'comments')][
   ('users', userId, 'posts')
 ][('users', userId, 'posts', postId)];
 ```
@@ -329,7 +319,6 @@ const mutation = useMutation({
 ### Key Factories
 
 ```typescript
-
 export const postKeys = {
   all: ['posts'] as const,
   lists: () => [...postKeys.all, 'list'] as const,
@@ -412,7 +401,6 @@ function DataComponent() {
 ### 2. Consistent Query Keys
 
 ```typescript
-
 const { data } = useSuspenseQuery({
   queryKey: postKeys.detail(id),
   queryFn: () => postsApi.get(id)
@@ -427,7 +415,6 @@ const { data } = useSuspenseQuery({
 ### 3. Centralized API Services
 
 ```typescript
-
 const { data } = useSuspenseQuery({
   queryKey: ['posts'],
   queryFn: postsApi.getAll

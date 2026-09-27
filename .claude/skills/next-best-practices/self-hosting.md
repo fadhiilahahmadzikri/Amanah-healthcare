@@ -7,7 +7,6 @@ Deploy Next.js outside of Vercel with confidence.
 For Docker or any containerized deployment, use standalone output:
 
 ```js
-
 module.exports = {
   output: 'standalone'
 };
@@ -88,7 +87,6 @@ services:
 For traditional server deployments:
 
 ```js
-
 module.exports = {
   apps: [
     {
@@ -125,7 +123,6 @@ ISR (Incremental Static Regeneration) uses filesystem caching by default. This *
 Next.js 14+ supports custom cache handlers for shared storage:
 
 ```js
-
 module.exports = {
   cacheHandler: require.resolve('./cache-handler.js'),
   cacheMaxMemorySize: 0
@@ -135,7 +132,6 @@ module.exports = {
 #### Redis Cache Handler Example
 
 ```js
-
 const Redis = require('ioredis');
 
 const redis = new Redis(process.env.REDIS_URL);
@@ -170,16 +166,13 @@ module.exports = class CacheHandler {
     }
   }
 
-  async revalidateTag(tags) {
-
-  }
+  async revalidateTag(tags) {}
 };
 ```
 
 #### S3 Cache Handler Example
 
 ```js
-
 const { S3Client, GetObjectCommand, PutObjectCommand } = require('@aws-sdk/client-s3');
 
 const s3 = new S3Client({ region: process.env.AWS_REGION });
@@ -244,7 +237,6 @@ Works automatically, but consider:
 - Use `minimumCacheTTL` to reduce regeneration
 
 ```js
-
 module.exports = {
   images: {
     minimumCacheTTL: 60 * 60 * 24,
@@ -258,7 +250,6 @@ module.exports = {
 Offload to Cloudinary, Imgix, or similar:
 
 ```js
-
 module.exports = {
   images: {
     loader: 'custom',
@@ -268,7 +259,6 @@ module.exports = {
 ```
 
 ```js
-
 export default function cloudinaryLoader({ src, width, quality }) {
   const params = ['f_auto', 'c_limit', `w_${width}`, `q_${quality || 'auto'}`];
   return `https://res.cloudinary.com/demo/image/upload/${params.join(',')}${src}`;
@@ -292,7 +282,6 @@ API_SECRET=...
 For truly dynamic config, don't use `NEXT_PUBLIC_*`. Instead:
 
 ```tsx
-
 export async function GET() {
   return Response.json({
     apiUrl: process.env.API_URL,
@@ -322,10 +311,8 @@ Supports:
 Always include a health check for load balancers:
 
 ```tsx
-
 export async function GET() {
   try {
-
     return Response.json({ status: 'healthy' }, { status: 200 });
   } catch (error) {
     return Response.json({ status: 'unhealthy' }, { status: 503 });

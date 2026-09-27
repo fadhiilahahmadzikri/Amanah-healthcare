@@ -1,6 +1,7 @@
 # TypeScript Patterns — Frontend Engineering
 
 ## Table of Contents
+
 1. [Prop Typing Conventions](#prop-typing-conventions)
 2. [Discriminated Unions](#discriminated-unions)
 3. [Generic Components](#generic-components)
@@ -17,6 +18,7 @@
 Use `type` over `interface` for component props. Reserve `interface` for contracts that may be extended by consumers (design system public API surface).
 
 **Naming:**
+
 - Component props: `ComponentNameProps`
 - Internal state shape: `ComponentNameState`
 - Hook return: `UseHookNameReturn`
@@ -42,6 +44,7 @@ function Card({ variant = 'elevated', children, ...rest }: CardProps) { ... }
 `React.FC` forces `children` as always optional, prevents generic components from working correctly, and complicates `forwardRef` composition.
 
 **Required vs optional:**
+
 - Props with sensible defaults → optional with explicit `defaultValue` in destructuring
 - Props with no safe default → required, no `?`
 - Event handlers → always optional unless the component cannot function without them
@@ -81,10 +84,14 @@ type AlertProps =
 
 function Alert(props: AlertProps) {
   switch (props.status) {
-    case 'loading': return <LoadingAlert message={props.message} />;
-    case 'success': return <SuccessAlert message={props.message} onDismiss={props.onDismiss} />;
-    case 'error': return <ErrorAlert message={props.message} onRetry={props.onRetry} />;
-    case 'warning': return <WarningAlert message={props.message} onDismiss={props.onDismiss} />;
+    case 'loading':
+      return <LoadingAlert message={props.message} />;
+    case 'success':
+      return <SuccessAlert message={props.message} onDismiss={props.onDismiss} />;
+    case 'error':
+      return <ErrorAlert message={props.message} onRetry={props.onRetry} />;
+    case 'warning':
+      return <WarningAlert message={props.message} onDismiss={props.onDismiss} />;
   }
 }
 ```
@@ -108,6 +115,7 @@ type AsyncState<T> =
 Generic components maintain type safety while remaining reusable across different data shapes.
 
 **Generic list:**
+
 ```tsx
 type SelectProps<T> = {
   options: T[];
@@ -131,6 +139,7 @@ function Select<T>({
 ```
 
 **Usage:**
+
 ```tsx
 <Select
   options={users}
@@ -144,6 +153,7 @@ function Select<T>({
 TypeScript infers `T = User` from `options` — no explicit type annotation required at the call site.
 
 **Generic table:**
+
 ```tsx
 type Column<T> = {
   key: keyof T | string;
@@ -186,21 +196,25 @@ type ButtonProps = OmitNative<'onClick' | 'disabled'> & {
 ```
 
 **Pick for sub-typing:**
+
 ```tsx
 type UserSummary = Pick<User, 'id' | 'fullName' | 'avatarUrl'>;
 ```
 
 **Partial for update shapes:**
+
 ```tsx
 type UserUpdatePayload = Partial<Omit<User, 'id' | 'createdAt' | 'updatedAt'>>;
 ```
 
 **Required for enforcing optional fields in sub-contexts:**
+
 ```tsx
 type SubmittedFormData = Required<DraftFormData>;
 ```
 
 **Record for mapped config:**
+
 ```tsx
 type VariantStyles = Record<ButtonVariant, string>;
 
@@ -208,7 +222,7 @@ const variantStyles: VariantStyles = {
   primary: styles.primary,
   secondary: styles.secondary,
   ghost: styles.ghost,
-  destructive: styles.destructive,
+  destructive: styles.destructive
 };
 ```
 
@@ -220,12 +234,7 @@ Use type guards for runtime narrowing, especially when dealing with API response
 
 ```tsx
 function isApiError(value: unknown): value is ApiError {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    'code' in value &&
-    'message' in value
-  );
+  return typeof value === 'object' && value !== null && 'code' in value && 'message' in value;
 }
 
 function isUser(value: unknown): value is User {
@@ -239,6 +248,7 @@ function isUser(value: unknown): value is User {
 ```
 
 **Assertion function for invariants:**
+
 ```tsx
 function assertDefined<T>(value: T | null | undefined, message: string): asserts value is T {
   if (value === null || value === undefined) {
@@ -263,6 +273,7 @@ type TextAreaKeyHandler = React.KeyboardEventHandler<HTMLTextAreaElement>;
 ```
 
 **For custom event emitters:**
+
 ```tsx
 type OnChange<T> = (value: T) => void;
 type OnChangeEvent<T> = (value: T, event: React.ChangeEvent<HTMLInputElement>) => void;

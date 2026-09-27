@@ -35,9 +35,7 @@ All themes are located in `src/styles/themes/` directory. Each theme is a comple
 Each theme file must follow this structure:
 
 ```css
-
 [data-theme='your-theme-name'] {
-
   --background: oklch(...);
   --foreground: oklch(...);
   --card: oklch(...);
@@ -99,15 +97,12 @@ Each theme file must follow this structure:
 }
 
 [data-theme='your-theme-name'].dark {
-
   --background: oklch(...);
   --foreground: oklch(...);
-
 }
 
 [data-theme='your-theme-name'] {
   @theme inline {
-
     --color-background: var(--background);
     --color-foreground: var(--foreground);
     --color-card: var(--card);
@@ -188,23 +183,19 @@ src/styles/themes/your-theme-name.css
 Copy the structure from the "File Format" section above and fill in your color values. Use OKLCH color format for better color consistency:
 
 ```css
-
 [data-theme='your-theme-name'] {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(...);
-
 }
 
 [data-theme='your-theme-name'].dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
-
 }
 
 [data-theme='your-theme-name'] {
   @theme inline {
-
   }
 }
 ```
@@ -240,7 +231,6 @@ Add your theme to the `THEMES` array in `src/components/themes/theme.config.ts`:
 
 ```typescript
 export const THEMES = [
-
   {
     name: 'Your Theme Name',
     value: 'your-theme-name'
@@ -277,10 +267,7 @@ const fontYourName = Your_Font_Name({
 3. **Add it to the `fontVariables` export**:
 
 ```typescript
-export const fontVariables = cn(
-
-  fontYourName.variable
-);
+export const fontVariables = cn(fontYourName.variable);
 ```
 
 4. **Use the font in your theme CSS** by its display name (not the CSS variable):
@@ -312,7 +299,6 @@ If you want your theme to be the default theme that loads when users first visit
 **File:** `src/components/themes/theme.config.ts`
 
 ```typescript
-
 export const DEFAULT_THEME = 'your-theme-name';
 ```
 
@@ -402,7 +388,6 @@ oklch(lightness chroma hue)
 ### Examples
 
 ```css
-
 --background: oklch(1 0 0);
 
 --foreground: oklch(0 0 0);
@@ -453,7 +438,6 @@ By default, the application uses the `vercel` theme. To change the default theme
 Edit `src/components/themes/theme.config.ts` and update the `DEFAULT_THEME` constant:
 
 ```typescript
-
 export const DEFAULT_THEME = 'your-theme-name';
 ```
 
@@ -507,10 +491,7 @@ const fontRoboto = Roboto({
 3. **Add to fontVariables export**:
 
 ```typescript
-export const fontVariables = cn(
-
-  fontRoboto.variable
-);
+export const fontVariables = cn(fontRoboto.variable);
 ```
 
 4. **Use in your theme CSS** with the font's display name:
@@ -544,10 +525,7 @@ const fontArchitectsDaughter = Architects_Daughter({
   variable: '--font-architects-daughter'
 });
 
-export const fontVariables = cn(
-
-  fontArchitectsDaughter.variable
-);
+export const fontVariables = cn(fontArchitectsDaughter.variable);
 ```
 
 **In `notebook.css`:**

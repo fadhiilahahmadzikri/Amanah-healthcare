@@ -802,8 +802,8 @@ export function DoctorDailyHourlyGrid({
 
                     const isSlotUpdating = Boolean(
                       matchingSession &&
-                        updateSessionMutation.isPending &&
-                        pendingSessionId === matchingSession.id
+                      updateSessionMutation.isPending &&
+                      pendingSessionId === matchingSession.id
                     );
 
                     const slotButton = (
@@ -1197,9 +1197,7 @@ export function DoctorDailyHourlyGrid({
               onClick={handleConfirmCloseSession}
               className='text-xs px-4 font-semibold gap-1.5 cursor-pointer'
             >
-              {updateSessionMutation.isPending && (
-                <Spinner className='size-3.5' />
-              )}
+              {updateSessionMutation.isPending && <Spinner className='size-3.5' />}
               <span>Ya, Tutup Jadwal</span>
             </Button>
           </div>

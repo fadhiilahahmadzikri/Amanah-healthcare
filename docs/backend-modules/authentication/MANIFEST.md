@@ -4,7 +4,7 @@
 > **Source Directory:** [`src/auth/`](file:///D:/Amanah-backend/src/auth/)  
 > **Documentation Directory:** [`docs/backend-modules/authentication/`](file:///D:/Amanah-backend/docs/backend-modules/authentication/)  
 > **Verification Status:** **100% Fully Implemented, Persisted & Verified in PostgreSQL**  
-> **Delegation Readiness:** **READY FOR APPLY (PRODUCTION-GRADE)**  
+> **Delegation Readiness:** **READY FOR APPLY (PRODUCTION-GRADE)**
 
 ---
 
@@ -29,27 +29,27 @@ Global Prefix: /api
 
 ## 2. Inventaris Lengkap Endpoint
 
-| No | Method | URI Pattern | Kategori | Status Implementasi | Guard / Auth | Scope / Role | Keterangan Singkat |
-| :---: | :---: | :--- | :---: | :---: | :---: | :---: | :--- |
-| **01** | `POST` | `/api/v1/auth/email/register` | Kredensial | ✅ **IMPLEMENTED** | Public | All | Mendaftarkan akun pasien baru, hash bcrypt, dan simpan permanen ke DB |
-| **02** | `POST` | `/api/v1/auth/email/login` | Kredensial | ✅ **IMPLEMENTED** | Public | All | Otentikasi email + password, menerbitkan access & refresh token |
-| **03** | `GET` | `/api/v1/auth/me` | Profil | ✅ **IMPLEMENTED** | `AuthGuard('jwt')` | Authenticated | Mengambil profil user aktif beserta relasi staff / patient |
-| **04** | `PATCH`| `/api/v1/auth/me` | Profil | ✅ **IMPLEMENTED** | `AuthGuard('jwt')` | Authenticated | Memperbarui nama dan/atau mengganti password akun |
-| **05** | `DELETE`|`/api/v1/auth/me` | Profil | ✅ **IMPLEMENTED** | `AuthGuard('jwt')` | Authenticated | Soft-delete akun (status menjadi inactive / banned) |
-| **06** | `POST` | `/api/v1/auth/refresh` | Token | ✅ **IMPLEMENTED** | `AuthGuard('jwt-refresh')` | Authenticated | Menukarkan valid refresh token dengan token pair baru |
-| **07** | `POST` | `/api/v1/auth/forgot/password` | Recovery | ✅ **IMPLEMENTED** | Public | All | Mengirim tautan reset kata sandi ke email pengguna via SMTP Mailpit |
-| **08** | `POST` | `/api/v1/auth/reset/password` | Recovery | ✅ **IMPLEMENTED** | Public | All | Memverifikasi JWT hash token & meng-update hash sandi baru di DB |
-| **09** | `POST` | `/api/v1/auth/email/confirm` | Verifikasi | ✅ **IMPLEMENTED** | Public | All | Memverifikasi kepemilikan email menggunakan token verifikasi |
-| **10** | `POST` | `/api/v1/auth/email/confirm/new` | Verifikasi | ✅ **IMPLEMENTED** | Public | All | Mengonfirmasi alamat email pengganti |
-| **11** | `POST` | `/api/v1/auth/logout` | Sesi | ✅ **IMPLEMENTED** | `AuthGuard('jwt')` | Authenticated | Endpoint logout (client membersihkan token dari local storage) |
-| **12** | `GET/POST`| `/api/auth/sign-in/social` | Google | ✅ **IMPLEMENTED** | Public | All | Inisiasi Google OAuth 2.0 (Web redirect atau Mobile ID Token) |
-| **13** | `POST` | `/api/auth/sign-in/email` | Better Auth | ✅ **IMPLEMENTED** | Public | All | Otentikasi email Better Auth dengan session cookie / bearer |
-| **14** | `POST` | `/api/auth/sign-out` | Better Auth | ✅ **IMPLEMENTED** | Session | Authenticated | Menghapus baris sesi aktif dari tabel database `"session"` |
-| **15** | `GET` | `/api/auth/get-session` | Better Auth | ✅ **IMPLEMENTED** | Session | Authenticated | Mengembalikan session metadata dan user profile |
-| **16** | `POST` | `/api/auth/admin/list-users` | Backoffice | ✅ **IMPLEMENTED** | Admin Session | `admin` | Mengambil daftar pengguna backoffice & pagination |
-| **17** | `POST` | `/api/auth/admin/set-role` | Backoffice | ✅ **IMPLEMENTED** | Admin Session | `admin` | Mengubah peran (role) pengguna |
-| **18** | `POST` | `/api/auth/admin/ban-user` | Backoffice | ✅ **IMPLEMENTED** | Admin Session | `admin` | Memblokir akun pengguna tertentu |
-| **19** | `POST` | `/api/auth/admin/impersonate-user` | Backoffice | ✅ **IMPLEMENTED** | Admin Session | `admin` | Membuat sesi impersonasi sementara untuk audit staf |
+|   No   |   Method   | URI Pattern                        |  Kategori   | Status Implementasi |        Guard / Auth        | Scope / Role  | Keterangan Singkat                                                    |
+| :----: | :--------: | :--------------------------------- | :---------: | :-----------------: | :------------------------: | :-----------: | :-------------------------------------------------------------------- |
+| **01** |   `POST`   | `/api/v1/auth/email/register`      | Kredensial  | ✅ **IMPLEMENTED**  |           Public           |      All      | Mendaftarkan akun pasien baru, hash bcrypt, dan simpan permanen ke DB |
+| **02** |   `POST`   | `/api/v1/auth/email/login`         | Kredensial  | ✅ **IMPLEMENTED**  |           Public           |      All      | Otentikasi email + password, menerbitkan access & refresh token       |
+| **03** |   `GET`    | `/api/v1/auth/me`                  |   Profil    | ✅ **IMPLEMENTED**  |     `AuthGuard('jwt')`     | Authenticated | Mengambil profil user aktif beserta relasi staff / patient            |
+| **04** |  `PATCH`   | `/api/v1/auth/me`                  |   Profil    | ✅ **IMPLEMENTED**  |     `AuthGuard('jwt')`     | Authenticated | Memperbarui nama dan/atau mengganti password akun                     |
+| **05** |  `DELETE`  | `/api/v1/auth/me`                  |   Profil    | ✅ **IMPLEMENTED**  |     `AuthGuard('jwt')`     | Authenticated | Soft-delete akun (status menjadi inactive / banned)                   |
+| **06** |   `POST`   | `/api/v1/auth/refresh`             |    Token    | ✅ **IMPLEMENTED**  | `AuthGuard('jwt-refresh')` | Authenticated | Menukarkan valid refresh token dengan token pair baru                 |
+| **07** |   `POST`   | `/api/v1/auth/forgot/password`     |  Recovery   | ✅ **IMPLEMENTED**  |           Public           |      All      | Mengirim tautan reset kata sandi ke email pengguna via SMTP Mailpit   |
+| **08** |   `POST`   | `/api/v1/auth/reset/password`      |  Recovery   | ✅ **IMPLEMENTED**  |           Public           |      All      | Memverifikasi JWT hash token & meng-update hash sandi baru di DB      |
+| **09** |   `POST`   | `/api/v1/auth/email/confirm`       | Verifikasi  | ✅ **IMPLEMENTED**  |           Public           |      All      | Memverifikasi kepemilikan email menggunakan token verifikasi          |
+| **10** |   `POST`   | `/api/v1/auth/email/confirm/new`   | Verifikasi  | ✅ **IMPLEMENTED**  |           Public           |      All      | Mengonfirmasi alamat email pengganti                                  |
+| **11** |   `POST`   | `/api/v1/auth/logout`              |    Sesi     | ✅ **IMPLEMENTED**  |     `AuthGuard('jwt')`     | Authenticated | Endpoint logout (client membersihkan token dari local storage)        |
+| **12** | `GET/POST` | `/api/auth/sign-in/social`         |   Google    | ✅ **IMPLEMENTED**  |           Public           |      All      | Inisiasi Google OAuth 2.0 (Web redirect atau Mobile ID Token)         |
+| **13** |   `POST`   | `/api/auth/sign-in/email`          | Better Auth | ✅ **IMPLEMENTED**  |           Public           |      All      | Otentikasi email Better Auth dengan session cookie / bearer           |
+| **14** |   `POST`   | `/api/auth/sign-out`               | Better Auth | ✅ **IMPLEMENTED**  |          Session           | Authenticated | Menghapus baris sesi aktif dari tabel database `"session"`            |
+| **15** |   `GET`    | `/api/auth/get-session`            | Better Auth | ✅ **IMPLEMENTED**  |          Session           | Authenticated | Mengembalikan session metadata dan user profile                       |
+| **16** |   `POST`   | `/api/auth/admin/list-users`       | Backoffice  | ✅ **IMPLEMENTED**  |       Admin Session        |    `admin`    | Mengambil daftar pengguna backoffice & pagination                     |
+| **17** |   `POST`   | `/api/auth/admin/set-role`         | Backoffice  | ✅ **IMPLEMENTED**  |       Admin Session        |    `admin`    | Mengubah peran (role) pengguna                                        |
+| **18** |   `POST`   | `/api/auth/admin/ban-user`         | Backoffice  | ✅ **IMPLEMENTED**  |       Admin Session        |    `admin`    | Memblokir akun pengguna tertentu                                      |
+| **19** |   `POST`   | `/api/auth/admin/impersonate-user` | Backoffice  | ✅ **IMPLEMENTED**  |       Admin Session        |    `admin`    | Membuat sesi impersonasi sementara untuk audit staf                   |
 
 ---
 

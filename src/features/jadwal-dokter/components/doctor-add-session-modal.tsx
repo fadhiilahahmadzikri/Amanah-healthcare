@@ -230,10 +230,9 @@ function ShiftSlotRow({
                   const hasTimeInLabel =
                     Boolean(s.displayLabel) &&
                     (s.displayLabel.includes(s.time) || s.displayLabel.includes(s.endTime));
-                  const statusText =
-                    s.conflict?.occupantName
-                      ? `Terisi: ${s.conflict.occupantName}`
-                      : s.displayLabel || (s.isAvailable ? 'Tersedia' : 'Terisi');
+                  const statusText = s.conflict?.occupantName
+                    ? `Terisi: ${s.conflict.occupantName}`
+                    : s.displayLabel || (s.isAvailable ? 'Tersedia' : 'Terisi');
                   const label = hasTimeInLabel
                     ? s.displayLabel
                     : `${s.time} - ${s.endTime} WIB (${statusText})`;
@@ -569,13 +568,9 @@ export function DoctorAddSessionModal({
                 r.id.toLowerCase() === doctorRoom?.toLowerCase()
             );
             const fallbackId =
-              bootstrapData?.doctor?.defaultRoomId ||
-              matchedDoctorRoom?.id ||
-              rooms[0].id;
+              bootstrapData?.doctor?.defaultRoomId || matchedDoctorRoom?.id || rooms[0].id;
             const fallbackName =
-              bootstrapData?.doctor?.defaultRoomName ||
-              matchedDoctorRoom?.name ||
-              rooms[0].name;
+              bootstrapData?.doctor?.defaultRoomName || matchedDoctorRoom?.name || rooms[0].name;
 
             updated[shift] = {
               ...shiftState,
@@ -801,10 +796,7 @@ export function DoctorAddSessionModal({
       await syncAllDoctorSchedules(queryClient);
 
       toast.success(
-        SCHEDULE_TOAST_MESSAGES.SESSIONS_ADDED_SUCCESS(
-          activeSlotsList.length,
-          doctor.nama_dokter
-        )
+        SCHEDULE_TOAST_MESSAGES.SESSIONS_ADDED_SUCCESS(activeSlotsList.length, doctor.nama_dokter)
       );
 
       if (lastCreatedSession) {
@@ -877,11 +869,7 @@ export function DoctorAddSessionModal({
                 <span>{SCHEDULE_BUTTON_LABELS.CHANGE_DATE}</span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent
-              className='w-auto p-0 z-[70] shadow-xl'
-              align='end'
-              sideOffset={8}
-            >
+            <PopoverContent className='w-auto p-0 z-[70] shadow-xl' align='end' sideOffset={8}>
               <Calendar
                 mode='single'
                 selected={selectedDateObj}
@@ -907,9 +895,7 @@ export function DoctorAddSessionModal({
             const apiShift = CANONICAL_TO_API_SHIFT[shift];
             const bootstrapShift = bootstrapData?.shifts?.find(
               (s) =>
-                s.id === apiShift ||
-                s.code === apiShift ||
-                DB_STAFF_SHIFT_MAP[s.code] === shift
+                s.id === apiShift || s.code === apiShift || DB_STAFF_SHIFT_MAP[s.code] === shift
             );
 
             return (
@@ -920,20 +906,15 @@ export function DoctorAddSessionModal({
                 staffId={doctorStaffId}
                 bootstrapShift={bootstrapShift}
                 defaultRoomId={
-                  bootstrapData?.doctor?.defaultRoomId ||
-                  (rooms.length > 0 ? rooms[0].id : '')
+                  bootstrapData?.doctor?.defaultRoomId || (rooms.length > 0 ? rooms[0].id : '')
                 }
                 rooms={rooms}
-                consultationDuration={
-                  bootstrapData?.doctor?.consultationDurationMinutes ?? 0
-                }
+                consultationDuration={bootstrapData?.doctor?.consultationDurationMinutes ?? 0}
                 isActive={shiftState.active}
                 slots={shiftState.slots}
                 onToggleActive={(active) => handleToggleShiftActive(shift, active)}
                 onAddSlot={() => handleAddSlotToShift(shift)}
-                onUpdateSlot={(slotId, updated) =>
-                  handleUpdateSlot(shift, slotId, updated)
-                }
+                onUpdateSlot={(slotId, updated) => handleUpdateSlot(shift, slotId, updated)}
                 onRemoveSlot={(slotId) => handleRemoveSlot(shift, slotId)}
               />
             );

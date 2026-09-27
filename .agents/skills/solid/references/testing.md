@@ -24,6 +24,7 @@
 Test ONE class or function in isolation.
 
 **Characteristics:**
+
 - Fast (milliseconds)
 - No external dependencies (mocked)
 - Most of your tests should be unit tests
@@ -45,6 +46,7 @@ describe('Order', () => {
 Test multiple components together.
 
 **Characteristics:**
+
 - Slower (may use real DB)
 - Test boundaries between components
 - Fewer than unit tests
@@ -74,6 +76,7 @@ describe('OrderService Integration', () => {
 Test the entire system from user perspective.
 
 **Characteristics:**
+
 - Slowest
 - Most brittle (many moving parts)
 - Test critical paths only
@@ -128,17 +131,17 @@ Sometimes easier to write in reverse:
 ### Bad: Abstract, Technical
 
 ```typescript
-it('should work correctly')
-it('handles the edge case')
-it('sets the data property')
+it('should work correctly');
+it('handles the edge case');
+it('sets the data property');
 ```
 
 ### Good: Concrete Examples, Domain Language
 
 ```typescript
-it('calculates 20% discount for premium users')
-it('returns error when cart is empty')
-it('recognizes "racecar" as a palindrome')
+it('calculates 20% discount for premium users');
+it('returns error when cart is empty');
+it('recognizes "racecar" as a palindrome');
 ```
 
 ### Format
@@ -178,7 +181,7 @@ Returns predefined values.
 ```typescript
 const stubRepo: UserRepo = {
   findById: () => Promise.resolve(new User({ name: 'Test' })),
-  save: () => Promise.resolve(),
+  save: () => Promise.resolve()
 };
 ```
 
@@ -352,7 +355,7 @@ class OrderBuilder {
     id: 'order-1',
     customerId: 'cust-1',
     items: [],
-    status: 'pending',
+    status: 'pending'
   };
 
   withId(id: string): OrderBuilder {
@@ -386,11 +389,11 @@ const order = new OrderBuilder()
 
 ## Common Testing Mistakes
 
-| Mistake | Problem | Solution |
-|---------|---------|----------|
-| Testing implementation | Brittle tests | Test behavior only |
-| Too many mocks | Tests prove nothing | Use real objects when possible |
-| Shared state | Flaky tests | Isolate each test |
-| No assertions | False confidence | Always assert something meaningful |
-| Testing trivial code | Wasted effort | Focus on logic and edge cases |
-| Slow tests | Reduced feedback | Optimize, use unit tests |
+| Mistake                | Problem             | Solution                           |
+| ---------------------- | ------------------- | ---------------------------------- |
+| Testing implementation | Brittle tests       | Test behavior only                 |
+| Too many mocks         | Tests prove nothing | Use real objects when possible     |
+| Shared state           | Flaky tests         | Isolate each test                  |
+| No assertions          | False confidence    | Always assert something meaningful |
+| Testing trivial code   | Wasted effort       | Focus on logic and edge cases      |
+| Slow tests             | Reduced feedback    | Optimize, use unit tests           |

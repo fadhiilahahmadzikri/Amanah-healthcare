@@ -19,7 +19,6 @@ Next.js documentation explicitly states: "Treat Server Actions with the same sec
 'use server';
 
 export async function deleteUser(userId: string) {
-
   await db.user.delete({ where: { id: userId } });
   return { success: true };
 }
@@ -34,7 +33,6 @@ import { verifySession } from '@/lib/auth';
 import { unauthorized } from '@/lib/errors';
 
 export async function deleteUser(userId: string) {
-
   const session = await verifySession();
 
   if (!session) {
@@ -65,7 +63,6 @@ const updateProfileSchema = z.object({
 });
 
 export async function updateProfile(data: unknown) {
-
   const validated = updateProfileSchema.parse(data);
 
   const session = await verifySession();

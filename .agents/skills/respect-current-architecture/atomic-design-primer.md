@@ -1,6 +1,6 @@
 # Atomic Design primer
 
-This is a reference for recognizing atomic-design thinking in a repo, not a folder structure to impose. Very few real-world codebases keep literal `atoms/`, `molecules/`, `organisms/` folders long-term — most fold the same idea into whatever architecture (like FSD) they otherwise use. Read this to understand the *composition-size* thinking, then go check how this specific repo expresses it.
+This is a reference for recognizing atomic-design thinking in a repo, not a folder structure to impose. Very few real-world codebases keep literal `atoms/`, `molecules/`, `organisms/` folders long-term — most fold the same idea into whatever architecture (like FSD) they otherwise use. Read this to understand the _composition-size_ thinking, then go check how this specific repo expresses it.
 
 ## The five levels
 
@@ -23,12 +23,12 @@ pages      — a template filled with real content and real data for a
 
 Rather than literal `atoms/molecules/organisms` folders, a repo combining both paradigms typically maps composition size onto FSD's business-meaning layers like this:
 
-| Atomic level        | Typical FSD home                          |
-|----------------------|--------------------------------------------|
-| atoms, molecules      | `shared/ui` — no business meaning, pure UI |
-| organisms              | `entities/*/ui` or `widgets/*/ui` — composition + business data |
-| templates               | `widgets` or `pages` — layout composition |
-| pages                     | `pages` (or the Next.js route file that composes them) |
+| Atomic level     | Typical FSD home                                                |
+| ---------------- | --------------------------------------------------------------- |
+| atoms, molecules | `shared/ui` — no business meaning, pure UI                      |
+| organisms        | `entities/*/ui` or `widgets/*/ui` — composition + business data |
+| templates        | `widgets` or `pages` — layout composition                       |
+| pages            | `pages` (or the Next.js route file that composes them)          |
 
 So "where does this Button go" usually resolves to `shared/ui/button/` even in a repo with no folder literally named `atoms`, because a Button has no business meaning and belongs at the bottom of both hierarchies. A `ProductCard`, by contrast, has business meaning (it knows about a "product") and is organism-sized, so it typically belongs in `entities/product/ui/` rather than `shared/ui`, even though visually it might feel like "just a card."
 

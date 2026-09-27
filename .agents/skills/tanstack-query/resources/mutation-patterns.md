@@ -24,7 +24,6 @@ Update UI immediately, rollback on error:
 const { mutate } = useMutation({
   mutationFn: updatePost,
   onMutate: async (newPost) => {
-
     await queryClient.cancelQueries({ queryKey: ['posts'] });
 
     const previousPosts = queryClient.getQueryData(['posts']);
@@ -36,11 +35,9 @@ const { mutate } = useMutation({
     return { previousPosts };
   },
   onError: (err, newPost, context) => {
-
     queryClient.setQueryData(['posts'], context.previousPosts);
   },
   onSettled: () => {
-
     queryClient.invalidateQueries({ queryKey: ['posts'] });
   }
 });
@@ -52,7 +49,6 @@ Run mutations in sequence:
 
 ```typescript
 const createAndPublish = async (postData) => {
-
   const post = await createPostMutation.mutateAsync(postData);
 
   const published = await publishPostMutation.mutateAsync(post.id);
@@ -84,7 +80,6 @@ const { mutate } = useMutation({
 const { mutate } = useMutation({
   mutationFn: createPost,
   onSuccess: () => {
-
     queryClient.invalidateQueries({ queryKey: ['posts'] });
 
     queryClient.setQueryData(['posts'], (old) => [newPost, ...old]);
@@ -98,7 +93,6 @@ const { mutate } = useMutation({
 const { mutate } = useMutation({
   mutationFn: deletePost,
   onSuccess: (_, deletedPostId) => {
-
     queryClient.setQueryData(['posts'], (old) => old.filter((post) => post.id !== deletedPostId));
 
     queryClient.setQueryData(['postsCount'], (old) => old - 1);
@@ -250,7 +244,6 @@ const queryClient = new QueryClient({
       retry: 3,
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       onError: (error) => {
-
         console.error('Mutation error:', error);
       }
     }

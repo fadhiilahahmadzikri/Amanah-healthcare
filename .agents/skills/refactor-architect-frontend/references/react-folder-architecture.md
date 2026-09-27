@@ -1,6 +1,7 @@
 # React Folder Architecture Reference — FSD v2.1
 
 ## Table of Contents
+
 1. FSD v2.1 Mental Model (Pages-First)
 2. Layer Definitions
 3. Canonical Folder Structure
@@ -21,6 +22,7 @@
 **FSD v2.1** → start with pages. Extract to lower layers only when code is truly reused.
 
 ### Pages-First Decision Tree
+
 ```
 Is this code used on more than one page?
   NO  → Keep it in the page's slice.
@@ -32,6 +34,7 @@ Is this code used on more than one page?
 ```
 
 ### Steiger Rules Enforcing v2.1
+
 - `insignificant-slice` — entity/feature used by only one page → merge into page.
 - `excessive-slicing` — too many slices → decomposition too fine-grained, consolidate.
 - `no-higher-level-imports` — lower layers cannot import from higher layers.
@@ -46,11 +49,13 @@ Install: `npm install --save-dev steiger @feature-sliced/steiger-plugin`
 ## 2. Layer Definitions (Top → Bottom)
 
 ### `app/` — Application Bootstrap
+
 - Initializes router, global stores, providers, global styles.
 - No business logic. No slices (divided into segments directly).
 - Cannot import from any slice — only from shared infrastructure.
 
 ### `pages/` — Route-Level Slices
+
 - One slice per route / page.
 - **v2.1: Keep most UI, forms, and data logic here until reuse demands extraction.**
 - A page composes widgets, features, and entities — but can also own its own
@@ -58,6 +63,7 @@ Install: `npm install --save-dev steiger @feature-sliced/steiger-plugin`
 - In Next.js App Router: maps to `app/` dir. In Remix: maps to `routes/`.
 
 ### `widgets/` — Self-Contained UI Blocks
+
 - Large, reusable UI blocks that deliver a complete use case.
 - **v2.1: Widgets own their stores, business logic, and API interactions.**
   They are NOT just compositional shells.
@@ -65,12 +71,14 @@ Install: `npm install --save-dev steiger @feature-sliced/steiger-plugin`
 - Reused across multiple pages.
 
 ### `features/` — Reused Cross-Page Interactions
+
 - User interactions that have business value and are reused across pages.
 - Only extract here when the same interaction appears on 2+ pages.
 - Examples: `auth/login`, `cart/add-item`, `profile/edit`.
 - Contains UI for the interaction + the state and API logic driving it.
 
 ### `entities/` — Business Domain Objects
+
 - Canonical representations of business concepts.
 - Examples: `user`, `product`, `order`, `transaction`.
 - Contains: types/interfaces, validation schemas, API query hooks, base UI representations.
@@ -78,6 +86,7 @@ Install: `npm install --save-dev steiger @feature-sliced/steiger-plugin`
   (use @x-notation for explicit cross-entity references).
 
 ### `shared/` — Detached Infrastructure
+
 - No business logic. No domain concepts.
 - Reusable regardless of the specific project/business.
 - Application-aware items allowed: route constants, API base client, company logo.
@@ -197,14 +206,14 @@ src/
 
 ## 4. Segment Names Reference
 
-| Segment | Purpose | Notes |
-|---------|---------|-------|
-| `ui/` | React components, date formatters, styles | Rendering only |
-| `model/` | State, store slices, selectors, types, schemas | Domain logic |
-| `api/` | React Query hooks, SWR hooks, fetch functions | Network layer |
-| `lib/` | Pure utils local to this slice | No external imports |
-| `config/` | Constants and config scoped to slice | No side effects |
-| `@x/` | Cross-import public API (entities only) | FSD v2.1 |
+| Segment   | Purpose                                        | Notes               |
+| --------- | ---------------------------------------------- | ------------------- |
+| `ui/`     | React components, date formatters, styles      | Rendering only      |
+| `model/`  | State, store slices, selectors, types, schemas | Domain logic        |
+| `api/`    | React Query hooks, SWR hooks, fetch functions  | Network layer       |
+| `lib/`    | Pure utils local to this slice                 | No external imports |
+| `config/` | Constants and config scoped to slice           | No side effects     |
+| `@x/`     | Cross-import public API (entities only)        | FSD v2.1            |
 
 Segments are not mandatory — create them as needed. Start with `ui/` and `model/`,
 add `api/` when network calls appear.
@@ -218,19 +227,20 @@ External layers import only from `index.ts`, never from internal files.
 
 ```ts
 // entities/user/index.ts — public API only
-export { UserCard } from './ui/UserCard'
-export { UserAvatar } from './ui/UserAvatar'
-export { useUserQuery } from './api/userApi'
-export type { User, UserStatus } from './model/user.types'
+export { UserCard } from './ui/UserCard';
+export { UserAvatar } from './ui/UserAvatar';
+export { useUserQuery } from './api/userApi';
+export type { User, UserStatus } from './model/user.types';
 
 // Correct external import
-import { UserCard } from '@/entities/user'
+import { UserCard } from '@/entities/user';
 
 // VIOLATION — importing from internal file
-import { UserCard } from '@/entities/user/ui/UserCard'
+import { UserCard } from '@/entities/user/ui/UserCard';
 ```
 
 Rules:
+
 - No wildcard re-exports (`export * from './x'`).
 - `index.ts` must NOT re-export internal implementation files.
 - App and Shared layers: segments may import from each other directly (no slice isolation).
@@ -244,15 +254,15 @@ dependency explicit and auditable. Do NOT import from entity's `index.ts` direct
 
 ```ts
 // entities/artist/model/artist.types.ts
-import type { Song } from 'entities/song/@x/artist'
+import type { Song } from 'entities/song/@x/artist';
 
 export interface Artist {
-  name: string
-  songs: Song[]
+  name: string;
+  songs: Song[];
 }
 
 // entities/song/@x/artist.ts — the cross-import public API
-export type { Song } from '../model/song.types'
+export type { Song } from '../model/song.types';
 ```
 
 The `@x/[consumer-slice-name].ts` file is what the consumer entity imports from.
@@ -272,6 +282,7 @@ shared    ← cannot import from any slice layer
 ```
 
 **Violations to flag:**
+
 - `shared/` importing from `entities/` or `features/`
 - `entities/` importing from `features/` or `pages/`
 - `features/` importing from `pages/` or `widgets/`
@@ -281,15 +292,15 @@ shared    ← cannot import from any slice layer
 
 ## 8. State Management Taxonomy
 
-| Category | Scope | Correct Tool | Wrong Tool |
-|----------|-------|-------------|------------|
-| UI toggle / local state | Single component | `useState`, `useReducer` | Zustand, Redux |
-| Form state | Single form | `react-hook-form`, `useState` | Global store |
-| Derived state | Co-located | `useMemo` / inline | `useState` + `useEffect` sync |
-| Server / remote data | App-wide cache | React Query / SWR | Raw `useState` + `useEffect` |
-| Shared feature state | Feature boundary | Zustand slice (scoped) | Unbounded Context |
-| Global app state | Entire app | Zustand global / App Context | Overuse (most is server state) |
-| URL state | URL | `useSearchParams` / router | Component `useState` |
+| Category                | Scope            | Correct Tool                  | Wrong Tool                     |
+| ----------------------- | ---------------- | ----------------------------- | ------------------------------ |
+| UI toggle / local state | Single component | `useState`, `useReducer`      | Zustand, Redux                 |
+| Form state              | Single form      | `react-hook-form`, `useState` | Global store                   |
+| Derived state           | Co-located       | `useMemo` / inline            | `useState` + `useEffect` sync  |
+| Server / remote data    | App-wide cache   | React Query / SWR             | Raw `useState` + `useEffect`   |
+| Shared feature state    | Feature boundary | Zustand slice (scoped)        | Unbounded Context              |
+| Global app state        | Entire app       | Zustand global / App Context  | Overuse (most is server state) |
+| URL state               | URL              | `useSearchParams` / router    | Component `useState`           |
 
 **Default assumption:** When unsure if state is "global," assume it is NOT.
 Most apparent global state is server state (use React Query) or feature state (scoped store).
@@ -303,23 +314,29 @@ Props passed through intermediary components that don't use them.
 Fix: bounded Context, Zustand slice, or component composition.
 
 **Raw Fetch in useState + useEffect**
+
 ```tsx
 // WRONG
-const [data, setData] = useState(null)
-useEffect(() => { fetch(url).then(r => r.json()).then(setData) }, [url])
+const [data, setData] = useState(null);
+useEffect(() => {
+  fetch(url)
+    .then((r) => r.json())
+    .then(setData);
+}, [url]);
 
 // CORRECT
-const { data, isLoading, error } = useQuery({ queryKey: ['key'], queryFn: () => fetchFn() })
+const { data, isLoading, error } = useQuery({ queryKey: ['key'], queryFn: () => fetchFn() });
 ```
 
 **Storing Derived State**
+
 ```tsx
 // WRONG — SSOT violation
-const [filtered, setFiltered] = useState([])
-useEffect(() => setFiltered(items.filter(i => i.active)), [items])
+const [filtered, setFiltered] = useState([]);
+useEffect(() => setFiltered(items.filter((i) => i.active)), [items]);
 
 // CORRECT
-const filtered = useMemo(() => items.filter(i => i.active), [items])
+const filtered = useMemo(() => items.filter((i) => i.active), [items]);
 ```
 
 **Unbounded Context**
@@ -331,13 +348,14 @@ Filters, pagination, search query stored in `useState`.
 Fix: `useSearchParams` (React Router / Next.js).
 
 **Direct State Mutation**
+
 ```tsx
 // WRONG
-state.items.push(newItem)
-state.user.name = 'new'
+state.items.push(newItem);
+state.user.name = 'new';
 
 // CORRECT — produce new reference
-setState(prev => ({ ...prev, items: [...prev.items, newItem] }))
+setState((prev) => ({ ...prev, items: [...prev.items, newItem] }));
 ```
 
 **State Synchronization**
@@ -349,44 +367,47 @@ Fix: unify into one source of truth; derive the second value.
 ## 10. Naming Conventions
 
 ### Files
-| Type | Convention | Example |
-|------|-----------|---------|
-| Component | `PascalCase.tsx` | `UserProfileCard.tsx` |
-| Hook | `useCamelCase.ts` | `useCurrentUser.ts` |
-| Utility | `camelCase.ts` | `formatCurrency.ts` |
-| Types | `camelCase.types.ts` | `user.types.ts` |
-| Schema | `camelCase.schema.ts` | `user.schema.ts` |
-| Store slice | `camelCaseStore.ts` | `authStore.ts` |
-| API hooks | `camelCaseApi.ts` | `userApi.ts` |
-| Constants | `camelCase.constants.ts` | `apiRoutes.constants.ts` |
-| CSS Module | `PascalCase.module.css` | `UserCard.module.css` |
-| Tests | `PascalCase.test.tsx` | `UserCard.test.tsx` |
-| Storybook | `PascalCase.stories.tsx` | `Button.stories.tsx` |
-| Barrel | `index.ts` (always) | `index.ts` |
+
+| Type        | Convention               | Example                  |
+| ----------- | ------------------------ | ------------------------ |
+| Component   | `PascalCase.tsx`         | `UserProfileCard.tsx`    |
+| Hook        | `useCamelCase.ts`        | `useCurrentUser.ts`      |
+| Utility     | `camelCase.ts`           | `formatCurrency.ts`      |
+| Types       | `camelCase.types.ts`     | `user.types.ts`          |
+| Schema      | `camelCase.schema.ts`    | `user.schema.ts`         |
+| Store slice | `camelCaseStore.ts`      | `authStore.ts`           |
+| API hooks   | `camelCaseApi.ts`        | `userApi.ts`             |
+| Constants   | `camelCase.constants.ts` | `apiRoutes.constants.ts` |
+| CSS Module  | `PascalCase.module.css`  | `UserCard.module.css`    |
+| Tests       | `PascalCase.test.tsx`    | `UserCard.test.tsx`      |
+| Storybook   | `PascalCase.stories.tsx` | `Button.stories.tsx`     |
+| Barrel      | `index.ts` (always)      | `index.ts`               |
 
 ### Component Roles
-| Role | Convention | Example |
-|------|-----------|---------|
-| Container/Smart | `FeatureNameContainer` or `FeatureName` | `OrderCheckoutContainer` |
-| Presentation/Dumb | `FeatureNameView`, `FeatureNameCard` | `OrderSummaryView` |
-| List | `FeatureNameList` | `ProductList` |
-| Form | `FeatureNameForm` | `LoginForm` |
-| Modal | `FeatureNameModal` | `DeleteConfirmModal` |
-| Provider | `FeatureNameProvider` | `AuthProvider` |
-| HOC | `withFeatureName` | `withAuthentication` |
-| Context hook | `useFeatureName` | `useAuth` |
-| Skeleton | `FeatureNameSkeleton` | `UserCardSkeleton` |
-| Empty state | `FeatureNameEmpty` | `SearchResultsEmpty` |
+
+| Role              | Convention                              | Example                  |
+| ----------------- | --------------------------------------- | ------------------------ |
+| Container/Smart   | `FeatureNameContainer` or `FeatureName` | `OrderCheckoutContainer` |
+| Presentation/Dumb | `FeatureNameView`, `FeatureNameCard`    | `OrderSummaryView`       |
+| List              | `FeatureNameList`                       | `ProductList`            |
+| Form              | `FeatureNameForm`                       | `LoginForm`              |
+| Modal             | `FeatureNameModal`                      | `DeleteConfirmModal`     |
+| Provider          | `FeatureNameProvider`                   | `AuthProvider`           |
+| HOC               | `withFeatureName`                       | `withAuthentication`     |
+| Context hook      | `useFeatureName`                        | `useAuth`                |
+| Skeleton          | `FeatureNameSkeleton`                   | `UserCardSkeleton`       |
+| Empty state       | `FeatureNameEmpty`                      | `SearchResultsEmpty`     |
 
 ### Variables and Functions
-| Type | Convention | Example |
-|------|-----------|---------|
-| Event handler | `handle` prefix | `handleSubmit`, `handleClose` |
-| Boolean | predicate form | `isLoading`, `hasError`, `canSubmit` |
-| Constant | `UPPER_SNAKE_CASE` | `MAX_RETRY_COUNT` |
-| Enum name | `PascalCase` | `OrderStatus` |
-| Enum values | `UPPER_SNAKE_CASE` | `PENDING`, `PAID` |
-| React Query key | `['entity', 'operation', ...params]` | `['user', 'detail', userId]` |
+
+| Type            | Convention                           | Example                              |
+| --------------- | ------------------------------------ | ------------------------------------ |
+| Event handler   | `handle` prefix                      | `handleSubmit`, `handleClose`        |
+| Boolean         | predicate form                       | `isLoading`, `hasError`, `canSubmit` |
+| Constant        | `UPPER_SNAKE_CASE`                   | `MAX_RETRY_COUNT`                    |
+| Enum name       | `PascalCase`                         | `OrderStatus`                        |
+| Enum values     | `UPPER_SNAKE_CASE`                   | `PENDING`, `PAID`                    |
+| React Query key | `['entity', 'operation', ...params]` | `['user', 'detail', userId]`         |
 
 ---
 
@@ -395,72 +416,68 @@ Fix: unify into one source of truth; derive the second value.
 ```tsx
 // 1. Imports — grouped and ordered:
 //    React → Framework → Third-party → Internal absolute → Relative → Types
-import { useState, useCallback, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
-import { UserCard } from '@/entities/user'
-import type { UserProfileProps } from './UserProfile.types'
+import { useState, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
+import { UserCard } from '@/entities/user';
+import type { UserProfileProps } from './UserProfile.types';
 
 // 2. File-scoped constants
-const DEBOUNCE_MS = 300
+const DEBOUNCE_MS = 300;
 
 // 3. Types (if not in separate .types.ts)
 interface UserProfileProps {
-  userId: string
-  onUpdate?: (user: User) => void
+  userId: string;
+  onUpdate?: (user: User) => void;
 }
 
 // 4. Pure helper functions (no hooks)
 function buildDisplayName(user: User): string {
-  return `${user.firstName} ${user.lastName}`
+  return `${user.firstName} ${user.lastName}`;
 }
 
 // 5. Component definition — internal order:
 function UserProfile({ userId, onUpdate }: UserProfileProps) {
   // 5a. useState / useReducer
-  const [isEditing, setIsEditing] = useState(false)
+  const [isEditing, setIsEditing] = useState(false);
 
   // 5b. Data hooks (queries, mutations)
-  const { data: user, isLoading } = useUserQuery(userId)
+  const { data: user, isLoading } = useUserQuery(userId);
 
   // 5c. Derived values (useMemo)
-  const displayName = useMemo(
-    () => (user ? buildDisplayName(user) : ''),
-    [user]
-  )
+  const displayName = useMemo(() => (user ? buildDisplayName(user) : ''), [user]);
 
   // 5d. Callbacks (useCallback)
   const handleEditToggle = useCallback(() => {
-    setIsEditing(prev => !prev)
-  }, [])
+    setIsEditing((prev) => !prev);
+  }, []);
 
   // 5e. Effects (useEffect — always last among hooks)
   useEffect(() => {
-    document.title = displayName
-  }, [displayName])
+    document.title = displayName;
+  }, [displayName]);
 
   // 5f. Early returns (loading → error → empty)
-  if (isLoading) return <UserProfileSkeleton />
-  if (!user) return <UserProfileEmpty />
+  if (isLoading) return <UserProfileSkeleton />;
+  if (!user) return <UserProfileEmpty />;
 
   // 5g. Main render
   return (
     <section>
       <h1>{displayName}</h1>
       {isEditing && <UserEditForm user={user} onSubmit={onUpdate} />}
-      <button onClick={handleEditToggle}>
-        {isEditing ? 'Cancel' : 'Edit'}
-      </button>
+      <button onClick={handleEditToggle}>{isEditing ? 'Cancel' : 'Edit'}</button>
     </section>
-  )
+  );
 }
 
 // 6. Export — named for all non-page components
-export { UserProfile }
+export { UserProfile };
 // Default export ONLY for page-level route components
 ```
 
 ### Export Rule Summary
+
 - Named exports: all components, hooks, utilities, types.
 - Default exports: ONLY for page-level route components and the app entry point.
 - No wildcard re-exports.

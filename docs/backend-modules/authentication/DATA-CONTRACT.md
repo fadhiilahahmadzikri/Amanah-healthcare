@@ -1,13 +1,14 @@
 # Kontrak Data & Skema Tipe: Modul Authentication
 
 > **Standard:** TypeScript Definitions & JSON Schema Specifications  
-> **Source Evidence:** [`src/auth/dto/*`](file:///D:/Amanah-backend/src/auth/dto/), [`src/users/domain/user.ts`](file:///D:/Amanah-backend/src/users/domain/user.ts), [`src/common/filters/problem-details.filter.ts`](file:///D:/Amanah-backend/src/common/filters/problem-details.filter.ts)  
+> **Source Evidence:** [`src/auth/dto/*`](file:///D:/Amanah-backend/src/auth/dto/), [`src/users/domain/user.ts`](file:///D:/Amanah-backend/src/users/domain/user.ts), [`src/common/filters/problem-details.filter.ts`](file:///D:/Amanah-backend/src/common/filters/problem-details.filter.ts)
 
 ---
 
 ## 1. Skema Request DTO (Data Transfer Object)
 
 ### A. `AuthEmailLoginDto` (Kanonikal Login)
+
 Digunakan pada `POST /api/v1/auth/email/login`.
 
 ```typescript
@@ -29,6 +30,7 @@ export interface AuthEmailLoginDto {
 ```
 
 ### B. `AuthForgotPasswordDto` (Pemulihan Sandi)
+
 Digunakan pada `POST /api/v1/auth/forgot/password`.
 
 ```typescript
@@ -42,6 +44,7 @@ export interface AuthForgotPasswordDto {
 ```
 
 ### C. `AuthRegisterLoginDto` (⚠️ STUB — Tidak Digunakan di Produksi)
+
 Digunakan pada `POST /api/v1/auth/email/register`.
 
 ```typescript
@@ -58,6 +61,7 @@ export interface AuthRegisterLoginDto {
 ## 2. Skema Response DTO
 
 ### A. `LoginResponseDto`
+
 Dikembalikan oleh `POST /api/v1/auth/email/login`.
 
 ```typescript
@@ -88,6 +92,7 @@ export interface LoginResponseDto {
 ```
 
 ### B. `RefreshResponseDto`
+
 Dikembalikan oleh `POST /api/v1/auth/refresh`.
 
 ```typescript
@@ -161,6 +166,7 @@ export interface PatientProfilePayload {
 ## 4. Skema Better Auth Data
 
 ### `BetterAuthSessionResponse`
+
 Dikembalikan oleh `GET /api/auth/get-session`:
 
 ```typescript

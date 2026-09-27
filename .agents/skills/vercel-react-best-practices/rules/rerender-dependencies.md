@@ -28,7 +28,6 @@ useEffect(() => {
 **For derived state, compute outside effect:**
 
 ```tsx
-
 useEffect(() => {
   if (width < 768) {
     enableMobileMode();

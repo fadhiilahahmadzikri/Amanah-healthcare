@@ -59,7 +59,6 @@ export function isSessionShiftUnavailable({
   isEditingThisSession = false,
   referenceNow
 }: IsSessionShiftUnavailableParams): AvailabilityGuardResult {
-
   const now = referenceNow ?? new Date();
 
   let selectedYear: number;

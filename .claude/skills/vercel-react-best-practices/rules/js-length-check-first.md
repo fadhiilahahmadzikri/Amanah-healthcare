@@ -15,7 +15,6 @@ In real-world applications, this optimization is especially valuable when the co
 
 ```typescript
 function hasChanges(current: string[], original: string[]) {
-
   return current.sort().join() !== original.sort().join();
 }
 ```
@@ -26,7 +25,6 @@ Two O(n log n) sorts run even when `current.length` is 5 and `original.length` i
 
 ```typescript
 function hasChanges(current: string[], original: string[]) {
-
   if (current.length !== original.length) {
     return true;
   }

@@ -17,7 +17,6 @@ function Comp() {
     loadFromStorage();
     checkAuthToken();
   }, []);
-
 }
 ```
 
@@ -33,7 +32,6 @@ function Comp() {
     loadFromStorage();
     checkAuthToken();
   }, []);
-
 }
 ```
 

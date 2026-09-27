@@ -3,7 +3,6 @@
 import { Column, ColumnDef } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { getStatusConfig } from '@/styles/clinical-tokens';
@@ -82,12 +81,9 @@ export const columns: ColumnDef<AdminAppointment>[] = [
       const appt = row.original;
       return (
         <div className='flex items-center gap-3'>
-          <Avatar className='h-8 w-8 rounded-md'>
-            {appt.avatar && <AvatarImage src={appt.avatar} alt={appt.pasien} />}
-            <AvatarFallback className='rounded-md text-xs bg-primary/10 text-primary font-semibold'>
-              {getInitials(appt.pasien)}
-            </AvatarFallback>
-          </Avatar>
+          <div className='h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 select-none'>
+            {getInitials(appt.pasien)}
+          </div>
           <div className='flex flex-col'>
             <span className='font-medium leading-none text-sm text-foreground'>{appt.pasien}</span>
             <span className='mt-1 text-xs text-muted-foreground'>{appt.id_pasien}</span>

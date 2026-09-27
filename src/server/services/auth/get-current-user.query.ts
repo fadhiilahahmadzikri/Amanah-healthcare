@@ -43,4 +43,3 @@ export async function getCurrentUserQuery(
 
   return ok(null);
 }
-

@@ -60,7 +60,6 @@ Sidebar, Header, and Footer render immediately. Only DataDisplay waits for data.
 
 ```tsx
 function Page() {
-
   const dataPromise = fetchData();
 
   return (

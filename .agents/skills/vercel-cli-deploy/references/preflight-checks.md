@@ -16,6 +16,7 @@ vercel --version
 ```
 
 **Not installed:**
+
 ```bash
 # npm (recommended)
 npm i -g vercel
@@ -50,11 +51,13 @@ vercel whoami
 It does not trigger implicit linking.
 
 ### Auth source priority (CLI checks in this order):
+
 1. `--token <token>` flag (avoid — exposes in shell history)
 2. `VERCEL_TOKEN` environment variable (preferred for CI)
 3. Session stored in `~/.local/share/com.vercel.cli/` (from `vercel login`)
 
 ### Check if VERCEL_TOKEN is set:
+
 ```bash
 echo $VERCEL_TOKEN
 # → empty: not set
@@ -62,6 +65,7 @@ echo $VERCEL_TOKEN
 ```
 
 ### Interactive auth (local dev):
+
 ```bash
 vercel login
 # Opens browser tab for OAuth once.
@@ -70,6 +74,7 @@ vercel login
 ```
 
 ### Token-based auth (CI/CD, scripts):
+
 ```bash
 export VERCEL_TOKEN=<token>
 # Do NOT: vercel deploy --token $VERCEL_TOKEN  (visible in ps aux)
@@ -77,6 +82,7 @@ export VERCEL_TOKEN=<token>
 ```
 
 ### Verify which team/scope you're authenticated as:
+
 ```bash
 vercel teams list
 vercel whoami --scope <team-slug>
@@ -96,6 +102,7 @@ cat .vercel/repo.json 2>/dev/null
 ```
 
 ### project.json structure:
+
 ```json
 {
   "orgId": "team_xxxxxxxxxxxx",
@@ -104,6 +111,7 @@ cat .vercel/repo.json 2>/dev/null
 ```
 
 ### repo.json structure (monorepo):
+
 ```json
 {
   "orgId": "team_xxxxxxxxxxxx",
@@ -112,6 +120,7 @@ cat .vercel/repo.json 2>/dev/null
 ```
 
 ### Linking (when .vercel/ does not exist):
+
 ```bash
 # Single project
 vercel link
@@ -124,6 +133,7 @@ vercel link --yes --project my-project-name
 ```
 
 ### Wrong team linked (common mistake):
+
 ```bash
 # Detect: orgId in .vercel/project.json doesn't match your team
 vercel whoami   # shows current team
@@ -133,9 +143,11 @@ vercel link     # re-link under correct team
 ```
 
 ### .vercel/ should be in .gitignore:
+
 ```bash
 echo ".vercel" >> .gitignore
 ```
+
 Exception: `repo.json` can be committed in monorepos if all team members share the same org.
 
 ---
@@ -150,12 +162,12 @@ git remote get-url origin 2>/dev/null
 
 Git remote presence determines the ideal deploy path:
 
-| Has Remote | Linked | Best Path |
-|---|---|---|
-| Yes | Yes | `git push` → auto-deploy via Vercel git integration |
-| Yes | No | `vercel link` first, then `git push` |
-| No | Yes | `vercel deploy` via CLI |
-| No | No | `vercel link` then `vercel deploy` |
+| Has Remote | Linked | Best Path                                           |
+| ---------- | ------ | --------------------------------------------------- |
+| Yes        | Yes    | `git push` → auto-deploy via Vercel git integration |
+| Yes        | No     | `vercel link` first, then `git push`                |
+| No         | Yes    | `vercel deploy` via CLI                             |
+| No         | No     | `vercel link` then `vercel deploy`                  |
 
 ---
 

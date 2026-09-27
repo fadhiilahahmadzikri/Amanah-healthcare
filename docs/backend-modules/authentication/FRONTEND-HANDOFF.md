@@ -3,7 +3,7 @@
 > **Dokumen Resmi Integrasi Frontend (Authoritative Frontend Integration Manual)**  
 > **Target Pengguna:** Frontend Engineer (Web SPA/Next.js/Vite), Mobile App Engineer (Flutter/Android), QA Automation  
 > **Status:** **PRODUCTION-READY & FULLY PERSISTED** (Terverifikasi End-to-End di PostgreSQL)  
-> **Basis Implementasi:** [`src/auth/auth.service.ts`](file:///D:/Amanah-backend/src/auth/auth.service.ts), [`src/auth/better-auth/auth.ts`](file:///D:/Amanah-backend/src/auth/better-auth/auth.ts), Migrasi `0003_auth_dual_engine_sync_triggers.sql`  
+> **Basis Implementasi:** [`src/auth/auth.service.ts`](file:///D:/Amanah-backend/src/auth/auth.service.ts), [`src/auth/better-auth/auth.ts`](file:///D:/Amanah-backend/src/auth/better-auth/auth.ts), Migrasi `0003_auth_dual_engine_sync_triggers.sql`
 
 ---
 
@@ -12,6 +12,7 @@
 Sebagai arsitektur backend Amanah Healthcare, backend bertanggung jawab menjamin **alur autentikasi yang deterministik, aman, dan data yang tersimpan secara permanen**. Frontend tidak perlu membuat keputusan arsitektural yang rumit atau memilih-milih engine.
 
 ### Aturan Integrasi Frontend:
+
 1. **Pendaftaran & Masuk dengan Email & Sandi:**  
    Gunakan rute standar Kanonikal API (`/api/v1/auth/*`). Seluruh aksi (Registrasi, Login, Forgot Password, Reset Password, Update Profil) **telah diimplementasikan secara penuh dan menyimpan data ke database PostgreSQL**.
 2. **Masuk / Pendaftaran dengan Google (Google Sign-In):**  
@@ -24,10 +25,11 @@ Sebagai arsitektur backend Amanah Healthcare, backend bertanggung jawab menjamin
 ## 2. Alur 1: Email & Password (Mobile & Web)
 
 ### A. Registrasi Pengguna Baru (Register)
-* **Endpoint:** `POST /api/v1/auth/email/register`
-* **Status:** ✅ **IMPLEMENTED & PERSISTED**
-* **Headers:** `Content-Type: application/json`
-* **Request Body:**
+
+- **Endpoint:** `POST /api/v1/auth/email/register`
+- **Status:** ✅ **IMPLEMENTED & PERSISTED**
+- **Headers:** `Content-Type: application/json`
+- **Request Body:**
   ```json
   {
     "email": "pasien.baru@example.com",
@@ -36,8 +38,8 @@ Sebagai arsitektur backend Amanah Healthcare, backend bertanggung jawab menjamin
     "lastName": "Santoso"
   }
   ```
-* **Respons Berhasil:** `HTTP 204 No Content`
-* **Jaminan Backend:**
+- **Respons Berhasil:** `HTTP 204 No Content`
+- **Jaminan Backend:**
   1. Memvalidasi bahwa email belum terdaftar (jika sudah ada, return `HTTP 422 { errors: { email: "emailAlreadyExists" } }`).
   2. Meng-hash kata sandi menggunakan bcrypt (10 salt rounds).
   3. Menyimpan baris pengguna ke tabel `users` dengan status `active`.
@@ -49,16 +51,17 @@ Sebagai arsitektur backend Amanah Healthcare, backend bertanggung jawab menjamin
 ---
 
 ### B. Login Kredensial
-* **Endpoint:** `POST /api/v1/auth/email/login`
-* **Status:** ✅ **IMPLEMENTED & PERSISTED**
-* **Request Body:**
+
+- **Endpoint:** `POST /api/v1/auth/email/login`
+- **Status:** ✅ **IMPLEMENTED & PERSISTED**
+- **Request Body:**
   ```json
   {
     "email": "pasien.baru@example.com",
     "password": "Password123!"
   }
   ```
-* **Respons Berhasil:** `HTTP 200 OK`
+- **Respons Berhasil:** `HTTP 200 OK`
   ```json
   {
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -81,22 +84,25 @@ Sebagai arsitektur backend Amanah Healthcare, backend bertanggung jawab menjamin
 ---
 
 ### C. Ambil Profil Sesi Aktif
-* **Endpoint:** `GET /api/v1/auth/me`
-* **Headers:** `Authorization: Bearer <token>`
-* **Respons:** `HTTP 200 OK` berisi objek profil lengkap pengguna.
+
+- **Endpoint:** `GET /api/v1/auth/me`
+- **Headers:** `Authorization: Bearer <token>`
+- **Respons:** `HTTP 200 OK` berisi objek profil lengkap pengguna.
 
 ---
 
 ### D. Pembaruan Access Token (Silent Refresh)
-* **Endpoint:** `POST /api/v1/auth/refresh`
-* **Headers:** `Authorization: Bearer <refreshToken>`
-* **Respons:** `HTTP 200 OK` `{ "token": "...", "refreshToken": "...", "tokenExpires": ... }`.
+
+- **Endpoint:** `POST /api/v1/auth/refresh`
+- **Headers:** `Authorization: Bearer <refreshToken>`
+- **Respons:** `HTTP 200 OK` `{ "token": "...", "refreshToken": "...", "tokenExpires": ... }`.
 
 ---
 
 ### E. Lupa Password & Reset Password
+
 1. **Kirim Permintaan Reset:** `POST /api/v1/auth/forgot/password` dengan body `{ "email": "..." }`.  
-   *Backend mengirimkan token JWT berdurasi 30 menit ke email pengguna via SMTP/Mailpit (bisa dipantau di `http://localhost:8025`).*
+   _Backend mengirimkan token JWT berdurasi 30 menit ke email pengguna via SMTP/Mailpit (bisa dipantau di `http://localhost:8025`)._
 2. **Kirim Kata Sandi Baru:** `POST /api/v1/auth/reset/password`
    ```json
    {
@@ -104,7 +110,7 @@ Sebagai arsitektur backend Amanah Healthcare, backend bertanggung jawab menjamin
      "password": "PasswordBaru123!"
    }
    ```
-   *Backend memverifikasi tanda tangan kriptografis token, meng-hash kata sandi baru, dan memperbarui database secara atomik.*
+   _Backend memverifikasi tanda tangan kriptografis token, meng-hash kata sandi baru, dan memperbarui database secara atomik._
 
 ---
 
@@ -112,7 +118,8 @@ Sebagai arsitektur backend Amanah Healthcare, backend bertanggung jawab menjamin
 
 Untuk mengaktifkan autentikasi Google, frontend cukup menggunakan alur standar berikut tanpa logika tambahan:
 
-### A. Web Application (Next.js / React / Vue) — *Redirect Flow*
+### A. Web Application (Next.js / React / Vue) — _Redirect Flow_
+
 Frontend cukup mengarahkan pengguna ke URL Google OAuth backend:
 
 ```typescript
@@ -120,12 +127,13 @@ Frontend cukup mengarahkan pengguna ke URL Google OAuth backend:
 const handleGoogleSignIn = () => {
   const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
   const callbackUrl = encodeURIComponent('http://localhost:3000/dashboard');
-  
+
   window.location.href = `${backendUrl}/api/auth/sign-in/social?provider=google&callbackURL=${callbackUrl}`;
 };
 ```
 
 **Yang Terjadi di Backend & Database:**
+
 1. Pengguna login di akun Google dan menyetujui izin profil/email.
 2. Google redirect kembali ke backend: `/api/auth/callback/google`.
 3. Backend memvalidasi token Google, menyimpan data pengguna di tabel `"user"`, dan membuat sesi di `"session"`.
@@ -134,7 +142,8 @@ const handleGoogleSignIn = () => {
 
 ---
 
-### B. Mobile Application (Flutter / React Native) — *Native ID Token Flow*
+### B. Mobile Application (Flutter / React Native) — _Native ID Token Flow_
+
 Aplikasi mobile menggunakan Google Sign-In SDK native perangkat untuk mendapatkan `idToken`, lalu mengirimkannya ke backend:
 
 ```dart
@@ -183,9 +192,9 @@ export const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-    Accept: 'application/json',
+    Accept: 'application/json'
   },
-  timeout: 15000,
+  timeout: 15000
 });
 
 let memoryAccessToken: string | null = null;
@@ -280,9 +289,9 @@ apiClient.interceptors.response.use(
           {},
           {
             headers: {
-              Authorization: `Bearer ${currentRefreshToken}`,
-            },
-          },
+              Authorization: `Bearer ${currentRefreshToken}`
+            }
+          }
         );
 
         setAccessToken(data.token);
@@ -304,7 +313,7 @@ apiClient.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  },
+  }
 );
 ```
 
@@ -323,7 +332,7 @@ export const AUTH_FIELD_ERROR_MAP: Record<string, string> = {
   emailNotExists: 'Email tidak ditemukan di sistem.',
   invalidHash: 'Tautan atau token reset kata sandi tidak valid atau telah kedaluwarsa.',
   missingOldPassword: 'Kata sandi lama wajib diisi.',
-  incorrectOldPassword: 'Kata sandi lama yang Anda masukkan tidak sesuai.',
+  incorrectOldPassword: 'Kata sandi lama yang Anda masukkan tidak sesuai.'
 };
 
 export function getFriendlyErrorMessage(field: string, reason: string): string {
@@ -340,11 +349,11 @@ export function getFriendlyErrorMessage(field: string, reason: string): string {
 
 Database lokal telah terisi (seeded) dengan akun-akun siap pakai untuk verifikasi integrasi:
 
-| Role Klinis | Email | Kata Sandi | Deskripsi Akses |
-| :--- | :--- | :--- | :--- |
-| **Pasien (Baru Didaftarkan)** | `anasabiyyu123@gmail.com` | `Password123!` | Pasien umum terverifikasi di PostgreSQL |
-| **Pasien (Baru Didaftarkan)** | `maganghealthcare666@gmail.com` | `Password123!` | Pasien umum terverifikasi di PostgreSQL |
-| **Dokter Spesialis Anak** | `dr.ahmad@amanah-healthcare.test` | `Password123!` | Akses antrean poli, jadwal praktik, rekam medis |
-| **Bidan** | `bidan.siti@amanah-healthcare.test` | `Password123!` | Akses layanan kebidanan, pemeriksaan ibu dan anak |
-| **Staf Pendaftaran / Kasir** | `frontdesk.dimas@amanah-healthcare.test`| `Password123!` | Akses pendaftaran pasien, presensi, absensi |
-| **Administrator Sistem** | `admin@amanah.com` | `Password123!` | Akses backoffice, manajemen peran dan pengguna |
+| Role Klinis                   | Email                                    | Kata Sandi     | Deskripsi Akses                                   |
+| :---------------------------- | :--------------------------------------- | :------------- | :------------------------------------------------ |
+| **Pasien (Baru Didaftarkan)** | `anasabiyyu123@gmail.com`                | `Password123!` | Pasien umum terverifikasi di PostgreSQL           |
+| **Pasien (Baru Didaftarkan)** | `maganghealthcare666@gmail.com`          | `Password123!` | Pasien umum terverifikasi di PostgreSQL           |
+| **Dokter Spesialis Anak**     | `dr.ahmad@amanah-healthcare.test`        | `Password123!` | Akses antrean poli, jadwal praktik, rekam medis   |
+| **Bidan**                     | `bidan.siti@amanah-healthcare.test`      | `Password123!` | Akses layanan kebidanan, pemeriksaan ibu dan anak |
+| **Staf Pendaftaran / Kasir**  | `frontdesk.dimas@amanah-healthcare.test` | `Password123!` | Akses pendaftaran pasien, presensi, absensi       |
+| **Administrator Sistem**      | `admin@amanah.com`                       | `Password123!` | Akses backoffice, manajemen peran dan pengguna    |

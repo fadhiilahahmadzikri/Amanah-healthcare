@@ -117,9 +117,7 @@ import { FormTextField } from '@/components/ui/tanstack-form';
 ```tsx
 const form = useAppForm({
   validators: { onSubmit: orderSchema },
-  onSubmit: async ({ value }) => {
-
-  }
+  onSubmit: async ({ value }) => {}
 });
 ```
 
@@ -171,7 +169,6 @@ The key pattern for forms inside sheets or dialogs: give the `<form.Form>` an `i
 </form.AppForm>;
 
 {
-
 }
 <SheetFooter>
   <Button type='submit' form='my-sheet-form'>
@@ -189,7 +186,6 @@ On success, call `onOpenChange(false)` to close the sheet and `form.reset()` for
 Use `withFieldGroup` + `useAppForm` with `StepButton`:
 
 ```tsx
-
 const Step1 = withFieldGroup({
   fields: ['name', 'email'],
   render: ({ form }) => {
@@ -259,7 +255,6 @@ Use the `useStepper` hook from `src/hooks/use-stepper.tsx` to manage step state.
   options={countryOptions}
   listeners={{
     onChange: ({ value }) => {
-
       form.setFieldValue('city', '');
     }
   }}

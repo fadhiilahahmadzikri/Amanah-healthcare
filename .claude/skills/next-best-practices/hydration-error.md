@@ -16,7 +16,6 @@ In development, click the hydration error to see the server/client diff.
 ### Browser-only APIs
 
 ```tsx
-
 <div>{window.innerWidth}</div>;
 
 ('use client');
@@ -34,7 +33,6 @@ export function ClientOnly({ children }: { children: React.ReactNode }) {
 Server and client may be in different timezones:
 
 ```tsx
-
 <span>{new Date().toLocaleString()}</span>;
 
 ('use client');
@@ -72,7 +70,6 @@ function Input() {
 Scripts that modify DOM during hydration.
 
 ```tsx
-
 import Script from 'next/script';
 
 export default function Page() {

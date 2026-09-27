@@ -98,7 +98,6 @@ src/features/products/
 **Schema file example:**
 
 ```ts
-
 import * as z from 'zod';
 
 export const productSchema = z.object({
@@ -887,7 +886,6 @@ Creating a new field (e.g., `DatePickerField`) requires **2 touchpoints**:
 ### 1. Create the field file
 
 ```tsx
-
 'use client';
 
 import { useStore } from '@tanstack/react-form';
@@ -929,7 +927,6 @@ export const FormDatePickerField = createFormField(DatePickerField);
 ### 2. Export from barrel
 
 ```tsx
-
 export { DatePickerField } from './date-picker-field';
 export { FormDatePickerField } from './date-picker-field';
 ```
@@ -937,7 +934,6 @@ export { FormDatePickerField } from './date-picker-field';
 ### 3. Use it
 
 ```tsx
-
 import { FormDatePickerField } from '@/components/forms/fields';
 <FormDatePickerField name='birthDate' label='Birth Date' />;
 
@@ -945,7 +941,6 @@ import { typedField } from '@/components/ui/tanstack-form';
 const narrow = typedField<FormValues>();
 const TypedDatePicker = narrow(FormDatePickerField);
 <TypedDatePicker name='birthDate' label='Birth Date' />;
-
 ```
 
 ### Optional: Register for AppField render props

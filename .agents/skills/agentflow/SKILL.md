@@ -1,9 +1,9 @@
 ---
 name: agentflow
-description: "Orchestrate autonomous AI development pipelines through your Kanban board (Asana, GitHub Projects, Linear). Manages multi-worker Claude Code dispatch, deterministic quality gates, adversarial review, per-task cost tracking, and crash-proof pipeline execution."
+description: 'Orchestrate autonomous AI development pipelines through your Kanban board (Asana, GitHub Projects, Linear). Manages multi-worker Claude Code dispatch, deterministic quality gates, adversarial review, per-task cost tracking, and crash-proof pipeline execution.'
 risk: safe
 source: community
-date_added: "2026-04-02"
+date_added: '2026-04-02'
 ---
 
 # AgentFlow
@@ -47,18 +47,23 @@ Tasks that unblock the most downstream work get built first, automatically compu
 ## Skills / Commands
 
 ### `/spec-to-board`
+
 Decomposes a SPEC.md into atomic tasks on your Kanban board with dependencies mapped.
 
 ### `/sdlc-orchestrate`
+
 Dispatches tasks to workers based on transitive priority and conflict detection. Runs as a crontab sweep.
 
 ### `/sdlc-worker --slot <N>`
+
 Runs a worker in a terminal slot that picks up tasks, builds code, and creates PRs. Run 3-4 workers in parallel.
 
 ### `/sdlc-health`
+
 Real-time pipeline status dashboard showing current stage, assigned agent, retry count, and accumulated cost for every task.
 
 ### `/sdlc-stop`
+
 Graceful shutdown: active workers finish their current task, unstarted tasks return to Backlog.
 
 ## Step-by-Step Guide
@@ -173,14 +178,17 @@ Or install as a Claude Code plugin:
 ## Troubleshooting
 
 ### Problem: Worker appears stuck or dead
+
 **Symptoms:** Task card hasn't moved in 15+ minutes, no new comments
 **Solution:** The orchestrator detects dead agents via heartbeat and reassigns after 10 minutes. If the issue persists, run `/sdlc-health` to check status and manually drag the card back to Backlog.
 
 ### Problem: Cost guardrail triggered
+
 **Symptoms:** Task moved to "Needs Human" with COST:CRITICAL tag
 **Solution:** Review the task's comment thread for accumulated context. Decide whether to increase the budget, simplify the task, or split it into smaller pieces.
 
 ### Problem: Integration test failure after merge
+
 **Symptoms:** Task auto-reverted from main
 **Solution:** The auto-revert preserves main stability. Check the task's retry context in comments, which carries what was tried and what failed. The next worker assigned will use this context.
 
@@ -199,6 +207,7 @@ Or install as a Claude Code plugin:
 - [Getting Started Guide](https://github.com/UrRhb/agentflow/blob/main/docs/getting-started.md)
 
 ## Limitations
+
 - Use this skill only when the task clearly matches the scope described above.
 - Do not treat the output as a substitute for environment-specific validation, testing, or expert review.
 - Stop and ask for clarification if required inputs, permissions, safety boundaries, or success criteria are missing.

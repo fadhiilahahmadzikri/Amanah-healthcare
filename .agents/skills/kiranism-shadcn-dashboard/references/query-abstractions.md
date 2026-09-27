@@ -9,7 +9,6 @@ The core insight: **`queryOptions` and `mutationOptions` are the right abstracti
 ### The Pattern
 
 ```ts
-
 import { queryOptions } from '@tanstack/react-query';
 
 export function invoiceOptions(id: number) {
@@ -31,7 +30,6 @@ export function invoiceListOptions(filters: InvoiceFilters) {
 ### Usage — always compose at the call site
 
 ```ts
-
 const { data } = useQuery(invoiceOptions(id));
 
 const { data } = useSuspenseQuery(invoiceOptions(id));
@@ -74,7 +72,6 @@ function useInvoice(id: number, options?: Partial<UseQueryOptions<Invoice>>) { .
 If a component always uses the same composition, a hook is fine — but build it _on top of_ `queryOptions`:
 
 ```ts
-
 function useInvoice(id: number) {
   return useQuery(invoiceOptions(id));
 }
@@ -91,7 +88,6 @@ function useInvoiceWithSuspense(id: number) {
 ### The Pattern
 
 ```ts
-
 import { mutationOptions } from '@tanstack/react-query';
 import { getQueryClient } from '@/lib/query-client';
 
@@ -117,14 +113,12 @@ export const updateInvoiceMutation = mutationOptions({
 ### Usage
 
 ```ts
-
 const { mutate } = useMutation(createInvoiceMutation);
 
 const { mutate } = useMutation({
   ...createInvoiceMutation,
   onError: (err) => toast.error(err.message),
   onSuccess: (data) => {
-
     router.push(`/invoices/${data.id}`);
   }
 });

@@ -58,30 +58,30 @@ Run tests multiple times and analyze result distributions
 **When to use**: Evaluating stochastic agent behavior
 
 interface TestResult {
-    testId: string;
-    runId: string;
-    passed: boolean;
-    score: number;  // 0-1 for partial credit
-    latencyMs: number;
-    tokensUsed: number;
-    output: string;
-    expectedBehaviors: string[];
-    actualBehaviors: string[];
+testId: string;
+runId: string;
+passed: boolean;
+score: number; // 0-1 for partial credit
+latencyMs: number;
+tokensUsed: number;
+output: string;
+expectedBehaviors: string[];
+actualBehaviors: string[];
 }
 
 interface StatisticalAnalysis {
-    passRate: number;
-    confidence95: [number, number];
-    meanScore: number;
-    stdDevScore: number;
-    meanLatency: number;
-    p95Latency: number;
-    behaviorConsistency: number;
+passRate: number;
+confidence95: [number, number];
+meanScore: number;
+stdDevScore: number;
+meanLatency: number;
+p95Latency: number;
+behaviorConsistency: number;
 }
 
 class StatisticalEvaluator {
-    private readonly minRuns = 10;
-    private readonly confidenceLevel = 0.95;
+private readonly minRuns = 10;
+private readonly confidenceLevel = 0.95;
 
     async evaluateAgent(
         agent: Agent,
@@ -198,6 +198,7 @@ class StatisticalEvaluator {
 
         return concerns;
     }
+
 }
 
 ### Behavioral Contract Testing
@@ -209,21 +210,21 @@ Define and test agent behavioral invariants
 // Define behavioral contracts: what agent must/must not do
 
 interface BehavioralContract {
-    name: string;
-    description: string;
-    mustBehaviors: BehaviorAssertion[];
-    mustNotBehaviors: BehaviorAssertion[];
-    contextual?: ConditionalBehavior[];
+name: string;
+description: string;
+mustBehaviors: BehaviorAssertion[];
+mustNotBehaviors: BehaviorAssertion[];
+contextual?: ConditionalBehavior[];
 }
 
 interface BehaviorAssertion {
-    behavior: string;
-    detector: (output: AgentOutput) => boolean;
-    severity: 'critical' | 'high' | 'medium' | 'low';
+behavior: string;
+detector: (output: AgentOutput) => boolean;
+severity: 'critical' | 'high' | 'medium' | 'low';
 }
 
 class BehavioralContractTester {
-    private contracts: BehavioralContract[] = [];
+private contracts: BehavioralContract[] = [];
 
     // Example contract for a customer service agent
     defineCustomerServiceContract(): BehavioralContract {
@@ -353,6 +354,7 @@ class BehavioralContractTester {
             passed: violations.filter(v => v.severity === 'critical').length === 0
         };
     }
+
 }
 
 ### Adversarial Testing
@@ -362,13 +364,13 @@ Actively try to break agent behavior
 **When to use**: Need to find edge cases and failure modes
 
 class AdversarialTester {
-    private readonly attackCategories = [
-        'prompt_injection',
-        'role_confusion',
-        'boundary_testing',
-        'resource_exhaustion',
-        'output_manipulation'
-    ];
+private readonly attackCategories = [
+'prompt_injection',
+'role_confusion',
+'boundary_testing',
+'resource_exhaustion',
+'output_manipulation'
+];
 
     async generateAdversarialTests(
         agent: Agent,
@@ -502,6 +504,7 @@ class AdversarialTester {
             byCategory: this.groupByCategory(results)
         };
     }
+
 }
 
 ### Regression Testing Pipeline
@@ -511,7 +514,7 @@ Catch capability degradation on agent updates
 **When to use**: Agent model or code changes
 
 class AgentRegressionTester {
-    private baselineResults: Map<string, TestResult[]> = new Map();
+private baselineResults: Map<string, TestResult[]> = new Map();
 
     async establishBaseline(
         agent: Agent,
@@ -590,6 +593,7 @@ class AgentRegressionTester {
             pValue
         };
     }
+
 }
 
 ## Sharp Edges
@@ -601,6 +605,7 @@ Severity: HIGH
 Situation: High benchmark scores don't predict real-world performance
 
 Symptoms:
+
 - High benchmark scores, low user satisfaction
 - Production errors not seen in testing
 - Performance degrades under real load
@@ -615,12 +620,12 @@ Recommended fix:
 // Bridge benchmark and production evaluation
 
 class ProductionReadinessEvaluator {
-    async evaluateForProduction(
-        agent: Agent,
-        benchmarkResults: BenchmarkResults,
-        productionSamples: ProductionSample[]
-    ): Promise<ProductionReadinessReport> {
-        const gaps: ProductionGap[] = [];
+async evaluateForProduction(
+agent: Agent,
+benchmarkResults: BenchmarkResults,
+productionSamples: ProductionSample[]
+): Promise<ProductionReadinessReport> {
+const gaps: ProductionGap[] = [];
 
         // 1. Test on real production samples (anonymized)
         const productionAccuracy = await this.testOnProductionSamples(
@@ -718,6 +723,7 @@ class ProductionReadinessEvaluator {
             variantResults: results
         };
     }
+
 }
 
 ### Same test passes sometimes, fails other times
@@ -727,6 +733,7 @@ Severity: HIGH
 Situation: Test suite is unreliable, CI is broken or ignored
 
 Symptoms:
+
 - CI randomly fails
 - Tests pass locally, fail in CI
 - Re-running fixes test failures
@@ -741,9 +748,9 @@ Recommended fix:
 // Handle flaky tests in LLM agent evaluation
 
 class FlakyTestHandler {
-    private readonly minRuns = 5;
-    private readonly passThreshold = 0.8;  // 80% pass rate required
-    private readonly flakinessThreshold = 0.2;  // Allow 20% flakiness
+private readonly minRuns = 5;
+private readonly passThreshold = 0.8; // 80% pass rate required
+private readonly flakinessThreshold = 0.2; // Allow 20% flakiness
 
     async runWithFlakinessHandling(
         agent: Agent,
@@ -818,6 +825,7 @@ class FlakyTestHandler {
                 : 'OK to merge'
         };
     }
+
 }
 
 ### Agent optimized for metric, not actual task
@@ -827,6 +835,7 @@ Severity: MEDIUM
 Situation: Agent scores well on metric but quality is poor
 
 Symptoms:
+
 - Metric scores high but users complain
 - Agent behavior feels "off" despite good scores
 - Gaming becomes obvious when metric changed
@@ -841,37 +850,37 @@ Recommended fix:
 // Multi-dimensional evaluation to prevent gaming
 
 class MultiDimensionalEvaluator {
-    async evaluate(
-        agent: Agent,
-        testCases: TestCase[]
-    ): Promise<MultiDimensionalReport> {
-        const dimensions: EvaluationDimension[] = [
-            {
-                name: 'correctness',
-                weight: 0.3,
-                evaluator: this.evaluateCorrectness.bind(this)
-            },
-            {
-                name: 'helpfulness',
-                weight: 0.2,
-                evaluator: this.evaluateHelpfulness.bind(this)
-            },
-            {
-                name: 'safety',
-                weight: 0.25,
-                evaluator: this.evaluateSafety.bind(this)
-            },
-            {
-                name: 'efficiency',
-                weight: 0.15,
-                evaluator: this.evaluateEfficiency.bind(this)
-            },
-            {
-                name: 'user_preference',
-                weight: 0.1,
-                evaluator: this.evaluateUserPreference.bind(this)
-            }
-        ];
+async evaluate(
+agent: Agent,
+testCases: TestCase[]
+): Promise<MultiDimensionalReport> {
+const dimensions: EvaluationDimension[] = [
+{
+name: 'correctness',
+weight: 0.3,
+evaluator: this.evaluateCorrectness.bind(this)
+},
+{
+name: 'helpfulness',
+weight: 0.2,
+evaluator: this.evaluateHelpfulness.bind(this)
+},
+{
+name: 'safety',
+weight: 0.25,
+evaluator: this.evaluateSafety.bind(this)
+},
+{
+name: 'efficiency',
+weight: 0.15,
+evaluator: this.evaluateEfficiency.bind(this)
+},
+{
+name: 'user_preference',
+weight: 0.1,
+evaluator: this.evaluateUserPreference.bind(this)
+}
+];
 
         const results: DimensionResult[] = [];
 
@@ -937,6 +946,7 @@ class MultiDimensionalEvaluator {
 
         return ratings.reduce((a, b) => a + b, 0) / ratings.length;
     }
+
 }
 
 ### Test data accidentally used in training or prompts
@@ -946,6 +956,7 @@ Severity: CRITICAL
 Situation: Agent has seen test examples, artificially inflating scores
 
 Symptoms:
+
 - Perfect scores on specific tests
 - Score drops on new test versions
 - Agent "knows" answers it shouldn't
@@ -960,13 +971,13 @@ Recommended fix:
 // Prevent data leakage in agent evaluation
 
 class LeakageDetector {
-    async detectLeakage(
-        agent: Agent,
-        testSuite: TestCase[],
-        trainingData: TrainingExample[],
-        systemPrompt: string
-    ): Promise<LeakageReport> {
-        const leaks: Leak[] = [];
+async detectLeakage(
+agent: Agent,
+testSuite: TestCase[],
+trainingData: TrainingExample[],
+systemPrompt: string
+): Promise<LeakageReport> {
+const leaks: Leak[] = [];
 
         // 1. Check for exact matches in training data
         for (const test of testSuite) {
@@ -1068,6 +1079,7 @@ class LeakageDetector {
 
         return leaks;
     }
+
 }
 
 ## Collaboration
@@ -1123,6 +1135,7 @@ Workflow:
 Works well with: `multi-agent-orchestration`, `agent-communication`, `autonomous-agents`
 
 ## When to Use
+
 - User mentions or implies: agent testing
 - User mentions or implies: agent evaluation
 - User mentions or implies: benchmark agents
@@ -1130,6 +1143,7 @@ Works well with: `multi-agent-orchestration`, `agent-communication`, `autonomous
 - User mentions or implies: test agent
 
 ## Limitations
+
 - Use this skill only when the task clearly matches the scope described above.
 - Do not treat the output as a substitute for environment-specific validation, testing, or expert review.
 - Stop and ask for clarification if required inputs, permissions, safety boundaries, or success criteria are missing.

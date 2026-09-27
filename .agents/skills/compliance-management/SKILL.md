@@ -26,11 +26,13 @@ Ensure compliance with security regulations and standards through proper control
 # GDPR Compliance Checklist
 
 ## Lawful Basis
+
 - [ ] Document lawful basis for processing
 - [ ] Obtain consent where required
 - [ ] Provide clear privacy notice
 
 ## Data Subject Rights
+
 - [ ] Right to access (data export)
 - [ ] Right to rectification (data correction)
 - [ ] Right to erasure (data deletion)
@@ -38,6 +40,7 @@ Ensure compliance with security regulations and standards through proper control
 - [ ] Right to object (opt-out)
 
 ## Data Protection
+
 - [ ] Encryption in transit (TLS 1.2+)
 - [ ] Encryption at rest
 - [ ] Access controls
@@ -45,6 +48,7 @@ Ensure compliance with security regulations and standards through proper control
 - [ ] Retention policies
 
 ## Accountability
+
 - [ ] Privacy by design
 - [ ] Data Protection Impact Assessment (DPIA)
 - [ ] Data processing agreements (DPAs)
@@ -52,6 +56,7 @@ Ensure compliance with security regulations and standards through proper control
 - [ ] Data protection officer (if required)
 
 ## Documentation
+
 - [ ] Record of processing activities
 - [ ] Privacy policy
 - [ ] Cookie policy
@@ -64,6 +69,7 @@ Ensure compliance with security regulations and standards through proper control
 # SOC 2 Trust Service Criteria
 
 ## Security (Required)
+
 - Access controls
 - Encryption
 - Firewall management
@@ -72,22 +78,26 @@ Ensure compliance with security regulations and standards through proper control
 - Incident response
 
 ## Availability
+
 - System monitoring
 - Backup procedures
 - Disaster recovery
 - Capacity planning
 
 ## Processing Integrity
+
 - Data validation
 - Error handling
 - Quality assurance
 
 ## Confidentiality
+
 - Access restrictions
 - Encryption
 - Non-disclosure agreements
 
 ## Privacy
+
 - Consent management
 - Data retention
 - Third-party sharing

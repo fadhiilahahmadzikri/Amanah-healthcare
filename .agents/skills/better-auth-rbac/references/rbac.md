@@ -34,10 +34,10 @@ union of the roles held.
 
 Two access controllers can coexist in one app. Keep them separate:
 
-| Controller | Scope | Subject | Typical resources |
-| --- | --- | --- | --- |
-| admin | whole application | the user row | `user`, `session`, plus platform resources |
-| organization | one organization | the membership row | `project`, `invoice`, `member`, `team` |
+| Controller   | Scope             | Subject            | Typical resources                          |
+| ------------ | ----------------- | ------------------ | ------------------------------------------ |
+| admin        | whole application | the user row       | `user`, `session`, plus platform resources |
+| organization | one organization  | the membership row | `project`, `invoice`, `member`, `team`     |
 
 ## 2. Defining statements and roles
 
@@ -46,33 +46,33 @@ permission vocabulary.
 
 ```ts
 // lib/permissions.ts
-import { createAccessControl } from "better-auth/plugins/access";
-import { defaultStatements, adminAc, userAc } from "better-auth/plugins/admin/access";
+import { createAccessControl } from 'better-auth/plugins/access';
+import { defaultStatements, adminAc, userAc } from 'better-auth/plugins/admin/access';
 
 // `as const` is required — without it, TypeScript infers string[] and all inference is lost.
 export const statement = {
-  ...defaultStatements,            // keep the plugin's own `user` and `session` permissions
-  project: ["create", "read", "update", "delete", "publish"],
-  billing: ["read", "manage"],
+  ...defaultStatements, // keep the plugin's own `user` and `session` permissions
+  project: ['create', 'read', 'update', 'delete', 'publish'],
+  billing: ['read', 'manage']
 } as const;
 
 export const ac = createAccessControl(statement);
 
 export const user = ac.newRole({
   ...userAc.statements,
-  project: ["read"],
+  project: ['read']
 });
 
 export const support = ac.newRole({
-  user: ["list", "get", "ban"],
-  session: ["list", "revoke"],
-  project: ["read"],
+  user: ['list', 'get', 'ban'],
+  session: ['list', 'revoke'],
+  project: ['read']
 });
 
 export const admin = ac.newRole({
-  ...adminAc.statements,           // keep every default admin permission
-  project: ["create", "read", "update", "delete", "publish"],
-  billing: ["read", "manage"],
+  ...adminAc.statements, // keep every default admin permission
+  project: ['create', 'read', 'update', 'delete', 'publish'],
+  billing: ['read', 'manage']
 });
 ```
 
@@ -82,7 +82,7 @@ Two rules that prevent silent breakage:
   `better-auth/plugins/admin/access` (or `better-auth/plugins/organization/access`), not
   `better-auth/plugins` — the wide import pulls unnecessary code into the bundle.
 - **Spread the defaults.** Redefining a role name that the plugin already knows (`admin`, `user`,
-  `owner`, `member`) *replaces* its permissions. Without `...adminAc.statements`, your `admin` role
+  `owner`, `member`) _replaces_ its permissions. Without `...adminAc.statements`, your `admin` role
   loses the ability to ban users, revoke sessions, and so on — and the failure appears later, as a
   confusing 403 on an endpoint nobody changed.
 
@@ -90,32 +90,32 @@ Two rules that prevent silent breakage:
 
 ```ts
 // lib/auth.ts
-import { betterAuth } from "better-auth";
-import { admin as adminPlugin } from "better-auth/plugins";
-import { ac, admin, support, user } from "./permissions";
+import { betterAuth } from 'better-auth';
+import { admin as adminPlugin } from 'better-auth/plugins';
+import { ac, admin, support, user } from './permissions';
 
 export const auth = betterAuth({
   plugins: [
     adminPlugin({
       ac,
       roles: { admin, support, user },
-      defaultRole: "user",
-      adminRoles: ["admin"],              // roles treated as administrative
+      defaultRole: 'user',
+      adminRoles: ['admin'], // roles treated as administrative
       impersonationSessionDuration: 60 * 15,
-      bannedUserMessage: "Your account is suspended. Contact support.",
-    }),
-  ],
+      bannedUserMessage: 'Your account is suspended. Contact support.'
+    })
+  ]
 });
 ```
 
 ```ts
 // lib/auth-client.ts
-import { createAuthClient } from "better-auth/react";
-import { adminClient } from "better-auth/client/plugins";
-import { ac, admin, support, user } from "./permissions";
+import { createAuthClient } from 'better-auth/react';
+import { adminClient } from 'better-auth/client/plugins';
+import { ac, admin, support, user } from './permissions';
 
 export const authClient = createAuthClient({
-  plugins: [adminClient({ ac, roles: { admin, support, user } })],
+  plugins: [adminClient({ ac, roles: { admin, support, user } })]
 });
 ```
 
@@ -150,17 +150,19 @@ Security notes specific to this plugin:
 ## 4. Organization plugin
 
 ```ts
-import { organization } from "better-auth/plugins";
-import { ac, owner, admin, member } from "./org-permissions";
+import { organization } from 'better-auth/plugins';
+import { ac, owner, admin, member } from './org-permissions';
 
 organization({
   ac,
   roles: { owner, admin, member },
-  creatorRole: "owner",
+  creatorRole: 'owner',
   membershipLimit: 100,
   invitationExpiresIn: 60 * 60 * 48,
-  sendInvitationEmail: async ({ email, id, organization }) => { /* ... */ },
-})
+  sendInvitationEmail: async ({ email, id, organization }) => {
+    /* ... */
+  }
+});
 ```
 
 Org statements come from `better-auth/plugins/organization/access` (`defaultStatements`, `ownerAc`,
@@ -175,7 +177,7 @@ Enforcement uses the active organization from the session, not an ID from the re
 ```ts
 const { success } = await auth.api.hasPermission({
   headers: await headers(),
-  body: { permissions: { project: ["delete"] } },
+  body: { permissions: { project: ['delete'] } }
 });
 ```
 
@@ -184,8 +186,8 @@ trusting a client-supplied role. If a call must name the organization explicitly
 of that organization first, then check the permission.
 
 Invitations deserve their own scrutiny: they are a way to grant a role to an email address that has
-not authenticated yet. Confirm the inviter holds the permission to invite *at the role they are
-granting* (a member must not be able to invite an owner), expire invitations, and make acceptance
+not authenticated yet. Confirm the inviter holds the permission to invite _at the role they are
+granting_ (a member must not be able to invite an owner), expire invitations, and make acceptance
 require the invited email's own authenticated session.
 
 ## 5. Dynamic access control
@@ -194,9 +196,9 @@ Runtime-created roles, stored per organization, for products where customers def
 
 ```ts
 organization({
-  ac,                                   // required — it defines the permission universe
-  dynamicAccessControl: { enabled: true },
-})
+  ac, // required — it defines the permission universe
+  dynamicAccessControl: { enabled: true }
+});
 ```
 
 The `ac` instance still bounds what any dynamic role can contain: customers compose from your
@@ -218,13 +220,13 @@ Consequences to handle explicitly:
 ```ts
 // Admin domain
 const { success } = await auth.api.userHasPermission({
-  body: { userId: session.user.id, permissions: { project: ["delete"] } },
+  body: { userId: session.user.id, permissions: { project: ['delete'] } }
 });
 
 // Organization domain (permissions resolved against the active organization)
 const { success } = await auth.api.hasPermission({
   headers: await headers(),
-  body: { permissions: { project: ["delete"] } },
+  body: { permissions: { project: ['delete'] } }
 });
 ```
 
@@ -239,7 +241,7 @@ useful for building an admin UI that explains a role, not for authorizing a requ
    currently acting in?
 
 Step 3 is the one that gets skipped. Role checks answer "may an editor delete projects"; only the
-scope check answers "may this editor delete *that* project". Enforce the scope in the query itself
+scope check answers "may this editor delete _that_ project". Enforce the scope in the query itself
 (filter by owner or organization in the `where` clause) rather than fetching first and comparing
 afterwards — a filtered query cannot be forgotten in a later code path.
 
@@ -253,7 +255,7 @@ handler, server action, and job that touches data re-checks.
 // static roles only, synchronous, browser-side
 const canDelete = authClient.admin.checkRolePermission({
   role: session.user.role,
-  permissions: { project: ["delete"] },
+  permissions: { project: ['delete'] }
 });
 ```
 
@@ -296,16 +298,16 @@ in a coffee shop" is not the same assurance level as "authenticated one minute a
 
 ## 10. Pitfalls
 
-| Pitfall | Consequence | Avoid by |
-| --- | --- | --- |
-| Custom role without spreading defaults | Role loses plugin permissions; confusing 403s later | Spread `adminAc.statements` / `defaultStatements` |
-| Plural resource names | Check never matches; may read as "no permission" or be skipped | Singular names, imported constants |
-| Client `checkRolePermission` as the gate | Anyone can call the endpoint directly | Server check in the handler |
-| App-wide `role` used for tenant permissions | A user gets the same power in every organization | Organization plugin with membership roles |
-| `organizationId` taken from the request body | Cross-tenant access | Use the active organization from the session |
-| Role check without an ownership check | User edits another user's row within the same role | Scope filter in the query |
-| Missing migration after adding a plugin | Fields read as `undefined`; checks behave unpredictably | Generate/apply schema first, verify columns exist |
-| `adminUserIds` used for convenience | Permission system bypassed silently | Real roles; break-glass only, audited |
-| Self-service `setRole` | Privilege escalation | Explicitly block self-elevation; require `user:set-role` |
-| Long `cookieCache` maxAge | Ban and demotion take minutes to apply | Short maxAge + revoke sessions on privilege change |
-| Dynamic role creation ungated | Any role-manager escalates to full control | Gate role management; forbid granting permissions the creator lacks |
+| Pitfall                                      | Consequence                                                    | Avoid by                                                            |
+| -------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Custom role without spreading defaults       | Role loses plugin permissions; confusing 403s later            | Spread `adminAc.statements` / `defaultStatements`                   |
+| Plural resource names                        | Check never matches; may read as "no permission" or be skipped | Singular names, imported constants                                  |
+| Client `checkRolePermission` as the gate     | Anyone can call the endpoint directly                          | Server check in the handler                                         |
+| App-wide `role` used for tenant permissions  | A user gets the same power in every organization               | Organization plugin with membership roles                           |
+| `organizationId` taken from the request body | Cross-tenant access                                            | Use the active organization from the session                        |
+| Role check without an ownership check        | User edits another user's row within the same role             | Scope filter in the query                                           |
+| Missing migration after adding a plugin      | Fields read as `undefined`; checks behave unpredictably        | Generate/apply schema first, verify columns exist                   |
+| `adminUserIds` used for convenience          | Permission system bypassed silently                            | Real roles; break-glass only, audited                               |
+| Self-service `setRole`                       | Privilege escalation                                           | Explicitly block self-elevation; require `user:set-role`            |
+| Long `cookieCache` maxAge                    | Ban and demotion take minutes to apply                         | Short maxAge + revoke sessions on privilege change                  |
+| Dynamic role creation ungated                | Any role-manager escalates to full control                     | Gate role management; forbid granting permissions the creator lacks |

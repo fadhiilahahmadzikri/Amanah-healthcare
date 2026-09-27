@@ -8,12 +8,12 @@ This file contains detailed patterns, checklists, and code samples referenced by
 
 ```javascript
 // accessibility-test.js
-const { AxePuppeteer } = require("@axe-core/puppeteer");
-const puppeteer = require("puppeteer");
+const { AxePuppeteer } = require('@axe-core/puppeteer');
+const puppeteer = require('puppeteer');
 
 class AccessibilityAuditor {
   constructor(options = {}) {
-    this.wcagLevel = options.wcagLevel || "AA";
+    this.wcagLevel = options.wcagLevel || 'AA';
     this.viewport = options.viewport || { width: 1920, height: 1080 };
   }
 
@@ -21,11 +21,11 @@ class AccessibilityAuditor {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     await page.setViewport(this.viewport);
-    await page.goto(url, { waitUntil: "networkidle2" });
+    await page.goto(url, { waitUntil: 'networkidle2' });
 
     const results = await new AxePuppeteer(page)
-      .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
-      .exclude(".no-a11y-check")
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+      .exclude('.no-a11y-check')
       .analyze();
 
     await browser.close();
@@ -42,10 +42,10 @@ class AccessibilityAuditor {
         nodes: v.nodes.map((n) => ({
           html: n.html,
           target: n.target,
-          failureSummary: n.failureSummary,
-        })),
+          failureSummary: n.failureSummary
+        }))
       })),
-      score: this.calculateScore(results),
+      score: this.calculateScore(results)
     };
   }
 
@@ -60,13 +60,13 @@ class AccessibilityAuditor {
 }
 
 // Component testing with jest-axe
-import { render } from "@testing-library/react";
-import { axe, toHaveNoViolations } from "jest-axe";
+import { render } from '@testing-library/react';
+import { axe, toHaveNoViolations } from 'jest-axe';
 
 expect.extend(toHaveNoViolations);
 
-describe("Accessibility Tests", () => {
-  it("should have no violations", async () => {
+describe('Accessibility Tests', () => {
+  it('should have no violations', async () => {
     const { container } = render(<MyComponent />);
     const results = await axe(container);
     expect(results).toHaveNoViolations();
@@ -160,17 +160,16 @@ class KeyboardNavigationTester {
     const results = {
       focusableElements: [],
       missingFocusIndicators: [],
-      keyboardTraps: [],
+      keyboardTraps: []
     };
 
     // Get all focusable elements
     const focusable = await page.evaluate(() => {
-      const selector =
-        'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
+      const selector = 'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
       return Array.from(document.querySelectorAll(selector)).map((el) => ({
         tagName: el.tagName.toLowerCase(),
-        text: el.innerText || el.value || el.placeholder || "",
-        tabIndex: el.tabIndex,
+        text: el.innerText || el.value || el.placeholder || '',
+        tabIndex: el.tabIndex
       }));
     });
 
@@ -178,13 +177,13 @@ class KeyboardNavigationTester {
 
     // Test tab order and focus indicators
     for (let i = 0; i < focusable.length; i++) {
-      await page.keyboard.press("Tab");
+      await page.keyboard.press('Tab');
 
       const focused = await page.evaluate(() => {
         const el = document.activeElement;
         return {
           tagName: el.tagName.toLowerCase(),
-          hasFocusIndicator: window.getComputedStyle(el).outline !== "none",
+          hasFocusIndicator: window.getComputedStyle(el).outline !== 'none'
         };
       });
 
@@ -198,20 +197,20 @@ class KeyboardNavigationTester {
 }
 
 // Enhance keyboard accessibility
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") {
-    const modal = document.querySelector(".modal.open");
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const modal = document.querySelector('.modal.open');
     if (modal) closeModal(modal);
   }
 });
 
 // Make div clickable accessible
-document.querySelectorAll("[onclick]").forEach((el) => {
-  if (!["a", "button", "input"].includes(el.tagName.toLowerCase())) {
-    el.setAttribute("tabindex", "0");
-    el.setAttribute("role", "button");
-    el.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
+document.querySelectorAll('[onclick]').forEach((el) => {
+  if (!['a', 'button', 'input'].includes(el.tagName.toLowerCase())) {
+    el.setAttribute('tabindex', '0');
+    el.setAttribute('role', 'button');
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
         el.click();
         e.preventDefault();
       }
@@ -230,18 +229,16 @@ class ScreenReaderTester {
       landmarks: await this.testLandmarks(page),
       headings: await this.testHeadingStructure(page),
       images: await this.testImageAccessibility(page),
-      forms: await this.testFormAccessibility(page),
+      forms: await this.testFormAccessibility(page)
     };
   }
 
   async testHeadingStructure(page) {
     const headings = await page.evaluate(() => {
-      return Array.from(
-        document.querySelectorAll("h1, h2, h3, h4, h5, h6"),
-      ).map((h) => ({
+      return Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6')).map((h) => ({
         level: parseInt(h.tagName[1]),
         text: h.textContent.trim(),
-        isEmpty: !h.textContent.trim(),
+        isEmpty: !h.textContent.trim()
       }));
     });
 
@@ -251,18 +248,18 @@ class ScreenReaderTester {
     headings.forEach((heading, index) => {
       if (heading.level > previousLevel + 1 && previousLevel !== 0) {
         issues.push({
-          type: "skipped-level",
-          message: `Heading level ${heading.level} skips from level ${previousLevel}`,
+          type: 'skipped-level',
+          message: `Heading level ${heading.level} skips from level ${previousLevel}`
         });
       }
       if (heading.isEmpty) {
-        issues.push({ type: "empty-heading", index });
+        issues.push({ type: 'empty-heading', index });
       }
       previousLevel = heading.level;
     });
 
     if (!headings.some((h) => h.level === 1)) {
-      issues.push({ type: "missing-h1", message: "Page missing h1 element" });
+      issues.push({ type: 'missing-h1', message: 'Page missing h1 element' });
     }
 
     return { headings, issues };
@@ -270,18 +267,18 @@ class ScreenReaderTester {
 
   async testFormAccessibility(page) {
     const forms = await page.evaluate(() => {
-      return Array.from(document.querySelectorAll("form")).map((form) => {
-        const inputs = form.querySelectorAll("input, textarea, select");
+      return Array.from(document.querySelectorAll('form')).map((form) => {
+        const inputs = form.querySelectorAll('input, textarea, select');
         return {
           fields: Array.from(inputs).map((input) => ({
             type: input.type || input.tagName.toLowerCase(),
             id: input.id,
             hasLabel: input.id
               ? !!document.querySelector(`label[for="${input.id}"]`)
-              : !!input.closest("label"),
-            hasAriaLabel: !!input.getAttribute("aria-label"),
-            required: input.required,
-          })),
+              : !!input.closest('label'),
+            hasAriaLabel: !!input.getAttribute('aria-label'),
+            required: input.required
+          }))
         };
       });
     });
@@ -290,7 +287,7 @@ class ScreenReaderTester {
     forms.forEach((form, i) => {
       form.fields.forEach((field, j) => {
         if (!field.hasLabel && !field.hasAriaLabel) {
-          issues.push({ type: "missing-label", form: i, field: j });
+          issues.push({ type: 'missing-label', form: i, field: j });
         }
       });
     });
@@ -316,7 +313,7 @@ const ariaPatterns = {
   form: `
 <label for="name">Name <span aria-label="required">*</span></label>
 <input id="name" required aria-required="true" aria-describedby="name-error">
-<span id="name-error" role="alert" aria-live="polite"></span>`,
+<span id="name-error" role="alert" aria-live="polite"></span>`
 };
 ```
 
@@ -364,20 +361,17 @@ const ariaPatterns = {
 
 ```javascript
 // Fix missing alt text
-document.querySelectorAll("img:not([alt])").forEach((img) => {
-  const isDecorative =
-    img.role === "presentation" || img.closest('[role="presentation"]');
-  img.setAttribute("alt", isDecorative ? "" : img.title || "Image");
+document.querySelectorAll('img:not([alt])').forEach((img) => {
+  const isDecorative = img.role === 'presentation' || img.closest('[role="presentation"]');
+  img.setAttribute('alt', isDecorative ? '' : img.title || 'Image');
 });
 
 // Fix missing labels
-document
-  .querySelectorAll("input:not([aria-label]):not([id])")
-  .forEach((input) => {
-    if (input.placeholder) {
-      input.setAttribute("aria-label", input.placeholder);
-    }
-  });
+document.querySelectorAll('input:not([aria-label]):not([id])').forEach((input) => {
+  if (input.placeholder) {
+    input.setAttribute('aria-label', input.placeholder);
+  }
+});
 
 // React accessible components
 const AccessibleButton = ({ children, onClick, ariaLabel, ...props }) => (
@@ -386,13 +380,8 @@ const AccessibleButton = ({ children, onClick, ariaLabel, ...props }) => (
   </button>
 );
 
-const LiveRegion = ({ message, politeness = "polite" }) => (
-  <div
-    role="status"
-    aria-live={politeness}
-    aria-atomic="true"
-    className="sr-only"
-  >
+const LiveRegion = ({ message, politeness = 'polite' }) => (
+  <div role='status' aria-live={politeness} aria-atomic='true' className='sr-only'>
     {message}
   </div>
 );
@@ -416,7 +405,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "18"
+          node-version: '18'
 
       - name: Install and build
         run: |
@@ -482,9 +471,9 @@ class AccessibilityReportGenerator {
             <p>${v.description}</p>
             <a href="${v.helpUrl}">Learn more</a>
         </div>
-    `,
+    `
       )
-      .join("")}
+      .join('')}
 </body>
 </html>`;
   }

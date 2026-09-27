@@ -88,13 +88,12 @@ export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: Det
                 {doctor.name || '-'}
               </h3>
               <p className='text-sm font-medium text-muted-foreground truncate w-full'>
-                {serviceName}
+                {doctor.specialty || 'Dokter Umum'}
               </p>
-              {doctor.rating ? (
-                <div className='pt-0.5'>
-                  <span className='inline-flex items-center gap-1 px-2.5 py-0.5 bg-amber-500/15 text-amber-700 dark:text-amber-300 rounded-md text-xs font-bold leading-none'>
-                    <Icons.star className='size-3 fill-amber-500 text-amber-500' />
-                    <span>{doctor.rating}</span>
+              {appointment.queue_number ? (
+                <div className='pt-1'>
+                  <span className='inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded-md text-xs font-bold font-mono'>
+                    <span>Nomor Antrean: {appointment.queue_number}</span>
                   </span>
                 </div>
               ) : null}

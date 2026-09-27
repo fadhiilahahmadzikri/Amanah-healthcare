@@ -7,12 +7,15 @@ Zero browser. All terminal.
 ## Core Concepts
 
 ### Three Environments
+
 - `development` — local dev (`next dev`, `vite dev`, etc.)
 - `preview` — every `vercel deploy` without `--prod`
 - `production` — `vercel deploy --prod` or `git push` to production branch
 
 ### Sensitive vs Plain
+
 When adding a var via CLI, Vercel defaults to **sensitive** for production/preview:
+
 - Sensitive: encrypted at rest, cannot be viewed after set (even in dashboard)
 - Non-sensitive: visible in dashboard
 - Development env: always encrypted (Vercel API restriction), never sensitive flag
@@ -22,6 +25,7 @@ When adding a var via CLI, Vercel defaults to **sensitive** for production/previ
 ## Add Environment Variables
 
 ### Interactive (prompts for value securely)
+
 ```bash
 # Single environment
 vercel env add DATABASE_URL production
@@ -36,6 +40,7 @@ vercel env add NEXT_PUBLIC_API_URL production preview development
 CLI prompts: `Enter value for DATABASE_URL:` — value is not echoed.
 
 ### Non-interactive (pipe value in)
+
 ```bash
 # Pipe value — no prompt
 echo "postgresql://user:pass@host:5432/db" | vercel env add DATABASE_URL production
@@ -45,11 +50,13 @@ cat /secrets/db-url.txt | vercel env add DATABASE_URL production
 ```
 
 ### Force overwrite (skip confirmation)
+
 ```bash
 vercel env add DATABASE_URL production --force
 ```
 
 ### Update existing variable
+
 ```bash
 vercel env update DATABASE_URL production
 # Prompts for new value
@@ -80,23 +87,27 @@ Sensitive values: cannot be read back. Name visible, value not.
 ## Pull to Local File
 
 ### Pull development vars (most common)
+
 ```bash
 vercel env pull .env.local
 # Creates/overwrites .env.local with development environment vars
 ```
 
 ### Pull specific environment
+
 ```bash
 vercel env pull .env.production --environment=production
 vercel env pull .env.preview --environment=preview
 ```
 
 ### Pull for a specific branch (preview)
+
 ```bash
 vercel env pull .env.local --git-branch my-feature-branch
 ```
 
 ### Pull without writing file (inject into process)
+
 ```bash
 vercel env run -- node scripts/seed.js
 vercel env run -- npm run migrate
@@ -105,6 +116,7 @@ vercel env run -- npm run migrate
 ```
 
 ### Pull for vercel build / vercel dev (different from env pull)
+
 ```bash
 # vercel pull writes to .vercel/ — used by vercel build and vercel dev
 vercel pull
@@ -112,7 +124,7 @@ vercel pull --environment=production
 ```
 
 Note: `vercel env pull` → writes to a file you specify.
-      `vercel pull` → writes to `.vercel/.env.$target.local` for internal CLI use.
+`vercel pull` → writes to `.vercel/.env.$target.local` for internal CLI use.
 
 ---
 
@@ -133,6 +145,7 @@ vercel env rm DATABASE_URL production --yes
 ### Bulk push from .env file (no native CLI command — use workarounds)
 
 **Option A: Loop in bash (native)**
+
 ```bash
 # Read .env file and add each var to production
 while IFS='=' read -r key value; do
@@ -147,6 +160,7 @@ done < .env.production
 ```
 
 **Option B: vercel-env-push (community tool)**
+
 ```bash
 npx vercel-env-push .env.production production
 npx vercel-env-push .env.production production preview  # multiple environments
@@ -161,6 +175,7 @@ Use the multi-environment flag to avoid this.
 ## Framework-Specific Env Variable Rules
 
 ### Next.js
+
 - `NEXT_PUBLIC_*` — baked into static bundle at build time. Must be set in Vercel before build, not just at runtime.
 - Server-only vars — no prefix needed. Available in API routes, Server Components, Route Handlers.
 - Changing `NEXT_PUBLIC_*` vars requires a new deploy (cache invalidation).
@@ -173,7 +188,8 @@ vercel deploy --prod --force
 ```
 
 ### Vite
-- `VITE_*` — baked into bundle at build time. Same rule as NEXT_PUBLIC_*.
+
+- `VITE_*` — baked into bundle at build time. Same rule as NEXT*PUBLIC*\*.
 - Non-prefixed vars: server-side only (not available in browser bundle).
 
 ```bash
@@ -181,10 +197,12 @@ vercel env add VITE_API_BASE_URL production preview development
 ```
 
 ### SvelteKit
+
 - `PUBLIC_*` — baked into bundle (via `$env/static/public`)
 - Private env: available server-side only (via `$env/static/private` or `$env/dynamic/private`)
 
 ### Nuxt
+
 - `NUXT_PUBLIC_*` — exposed to client
 - `NUXT_*` — server-only
 
@@ -217,6 +235,7 @@ vercel deploy --prebuilt --prod
 ```
 
 ### Why --prebuilt?
+
 Build happens in CI, not on Vercel's build servers.
 Faster. Reproducible. Uses your CI's caching.
 Vercel just hosts the output — no rebuild on their end.
@@ -226,26 +245,31 @@ Vercel just hosts the output — no rebuild on their end.
 ## Security Rules
 
 **Never do this:**
+
 ```bash
 vercel deploy --token $VERCEL_TOKEN  # token visible in ps aux, shell history
 ```
 
 **Always do this:**
+
 ```bash
 export VERCEL_TOKEN=<token>
 vercel deploy  # CLI reads from env var internally
 ```
 
 **Never commit:**
+
 - `.env.local`
 - `.env.production`
 - Any file containing real secret values
 
 **Always commit:**
+
 - `.env.example` — with placeholder values, documents what vars are needed
 - `.vercelignore` — exclude files from upload
 
 **.vercelignore example:**
+
 ```
 .env*
 .env.local

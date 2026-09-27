@@ -90,6 +90,7 @@ output_dir = context.get_scratch_dir()
 ## Enforcement Checklist
 
 When reviewing AI-generated code, verify:
+
 - [ ] No duplication (G5)
 - [ ] Clear intent, no magic numbers (G16, G25)
 - [ ] Polymorphism over conditionals (G23)

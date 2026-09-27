@@ -30,9 +30,9 @@ Rotation without invalidating existing data uses versioned secrets:
 
 ```ts
 secrets: [
-  { version: 2, value: process.env.BETTER_AUTH_SECRET_V2! },  // current: encrypts new data
-  { version: 1, value: process.env.BETTER_AUTH_SECRET_V1! },  // decryption only
-]
+  { version: 2, value: process.env.BETTER_AUTH_SECRET_V2! }, // current: encrypts new data
+  { version: 1, value: process.env.BETTER_AUTH_SECRET_V1! } // decryption only
+];
 ```
 
 Or `BETTER_AUTH_SECRETS=2:...,1:...`. The first entry encrypts; the rest only decrypt. Plan rotation

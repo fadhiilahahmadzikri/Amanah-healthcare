@@ -711,7 +711,8 @@ export function DoctorTimelineCalendar({
                 </span>
               </div>
               <p className='text-[11.5px] text-muted-foreground leading-relaxed'>
-                Setelah ditutup, jadwal pada tanggal ini tidak beroperasi dan tidak dapat dipesan oleh pasien baru.
+                Setelah ditutup, jadwal pada tanggal ini tidak beroperasi dan tidak dapat dipesan
+                oleh pasien baru.
               </p>
             </div>
           )}
@@ -756,9 +757,7 @@ export function DoctorTimelineCalendar({
               onClick={handleConfirmClose}
               className='text-xs px-4 font-semibold gap-1.5 cursor-pointer'
             >
-              {isCellPending && (
-                <Spinner className='size-3.5' />
-              )}
+              {isCellPending && <Spinner className='size-3.5' />}
               <span>Ya, Tutup Jadwal</span>
             </Button>
           </div>

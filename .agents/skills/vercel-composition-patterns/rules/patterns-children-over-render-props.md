@@ -74,7 +74,6 @@ return (
 **When render props are appropriate:**
 
 ```tsx
-
 <List data={items} renderItem={({ item, index }) => <Item item={item} index={index} />} />
 ```
 

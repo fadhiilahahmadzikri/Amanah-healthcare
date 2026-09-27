@@ -9,6 +9,7 @@ Start with a directory listing two or three levels deep. Look for the organizing
 Once you know the pattern, enumerate features by walking routes/pages rather than by reading every component file — a route is almost always a feature (or a view onto one), and it gives you an entry point to trace outward from.
 
 For each feature, build a file set:
+
 - The route/page component itself
 - Components it renders (follow imports one or two levels deep — you don't need the entire component tree, just enough to see what data flows in)
 - Any hooks, API client modules, or store slices it pulls from
@@ -51,11 +52,12 @@ If there's genuinely no git history to mine (repo isn't version-controlled, or h
 ## 4. Know when you're done
 
 Before moving to Phase 2, you should be able to answer, for every feature:
+
 - What is its short name and its user-facing purpose?
 - Which files implement it?
 - What does one real (or recovered) example of its data look like?
 
-If a feature is missing that last one — no types, no recovered dummy data, no API stub with a payload — don't invent fields to fill the gap. Note it as a feature where you're working from the UI alone (what's rendered on screen implies *some* fields, but you're less sure about types, optionality, and anything not currently displayed), and let the plan report flag it as lower-confidence rather than presenting a guess with the same confidence as everything else.
+If a feature is missing that last one — no types, no recovered dummy data, no API stub with a payload — don't invent fields to fill the gap. Note it as a feature where you're working from the UI alone (what's rendered on screen implies _some_ fields, but you're less sure about types, optionality, and anything not currently displayed), and let the plan report flag it as lower-confidence rather than presenting a guess with the same confidence as everything else.
 
 ## 5. Run the stack detector
 

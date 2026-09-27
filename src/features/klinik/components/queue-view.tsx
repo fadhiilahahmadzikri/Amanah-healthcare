@@ -73,6 +73,11 @@ export function QueueView() {
                 queueView.currentCalling?.called_time ||
                 ''
               }
+              isActionLoading={queueView.isActionLoading}
+              onCall={(item) => queueView.actions.callPatient(item.id)}
+              onRespond={(item) => queueView.actions.respondPatient(item.id)}
+              onNoShow={(item) => queueView.actions.noShowPatient(item.id)}
+              onComplete={(item) => queueView.actions.completePatient(item.id)}
               className='flex-1 h-full'
             />
           </div>
@@ -120,7 +125,12 @@ export function QueueView() {
                   {queueView.paginatedSeats.map((item, idx) => {
                     const isNextSeat = queueView.currentPage === 1 && idx === 0;
                     return (
-                      <QueueSeatCard key={`seat-slot-${idx}`} item={item} isNext={isNextSeat} />
+                      <QueueSeatCard
+                        key={`seat-slot-${idx}`}
+                        item={item}
+                        isNext={isNextSeat}
+                        onClick={() => queueView.actions.callPatient(item.id)}
+                      />
                     );
                   })}
                 </div>

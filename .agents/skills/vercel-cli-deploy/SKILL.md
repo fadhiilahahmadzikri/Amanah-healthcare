@@ -15,6 +15,7 @@ description: >
 All interaction is terminal-only. No browser dashboard. No clicking.
 
 Read reference files when needed:
+
 - `references/preflight-checks.md` — Step-by-step system state detection
 - `references/env-management.md` — Full env variable workflow (add/pull/push/bulk)
 - `references/framework-matrix.md` — Framework-specific detection + overrides
@@ -35,11 +36,13 @@ Before any deploy command, know the answers to:
 These three checks gate every operation. Run them in this order. Do not skip.
 
 **Safe commands to run anywhere (no side effects):**
+
 - `vercel whoami` — safe in any directory, linked or not
 - `vercel ls` — safe in unlinked directory (shows all account deployments)
 - `git remote get-url origin` — pure read
 
 **Commands that MUST NOT run in unlinked directories:**
+
 - `vercel link` — will prompt interactively or silently auto-link as side effect
 - `vercel project inspect` — same
 - `vercel ls` in a directory that will trigger implicit link
@@ -85,6 +88,7 @@ CLI installed?
 ## Deploy Commands — Core Reference
 
 ### Preview deploy (default — always safe)
+
 ```bash
 vercel
 # or
@@ -92,6 +96,7 @@ vercel deploy
 ```
 
 ### Production deploy (explicit intent required)
+
 ```bash
 vercel --prod
 # or
@@ -99,21 +104,25 @@ vercel deploy --prod
 ```
 
 ### Deploy without waiting for build to finish
+
 ```bash
 vercel deploy --no-wait
 ```
 
 ### Force deploy (bypass build cache)
+
 ```bash
 vercel deploy --force
 ```
 
 ### Deploy to a specific team scope
+
 ```bash
 vercel deploy --scope <team-slug>
 ```
 
 ### Deploy to custom environment (Pro/Enterprise)
+
 ```bash
 vercel deploy --target=staging
 ```
@@ -123,12 +132,14 @@ vercel deploy --target=staging
 ## Authentication Methods
 
 ### Method 1: Interactive (local development)
+
 ```bash
 vercel login
 # Opens browser once for OAuth. Session stored in ~/.local/share/com.vercel.cli
 ```
 
 ### Method 2: Token-based (CI/CD, automation, non-interactive)
+
 ```bash
 # Set as env var — preferred. Never pass as CLI flag (shell history leak).
 export VERCEL_TOKEN=<your-token>
@@ -138,6 +149,7 @@ vercel whoami   # verify it works
 Token creation: `vercel.com/account/tokens` → New Token → select scope + expiry.
 
 ### Method 3: Environment variables for full non-interactive CI
+
 ```bash
 export VERCEL_TOKEN=<token>
 export VERCEL_ORG_ID=<org-id>       # from .vercel/project.json → orgId
@@ -151,6 +163,7 @@ vercel deploy --prod
 ## Project Linking
 
 ### New project (first deploy)
+
 ```bash
 cd my-project
 vercel
@@ -162,6 +175,7 @@ vercel
 ```
 
 ### Link to existing Vercel project
+
 ```bash
 vercel link
 # or non-interactively:
@@ -169,6 +183,7 @@ vercel link --yes --project <project-name>
 ```
 
 ### Monorepo — link entire repo (not single project)
+
 ```bash
 vercel link --repo
 # Creates .vercel/repo.json instead of project.json
@@ -176,6 +191,7 @@ vercel link --repo
 ```
 
 ### Inspect linked state
+
 ```bash
 cat .vercel/project.json
 # { "orgId": "team_xxx", "projectId": "prj_xxx" }
@@ -249,9 +265,7 @@ Only needed when auto-detection fails or needs customization.
   "functions": {
     "api/**/*.js": { "maxDuration": 30 }
   },
-  "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/:path*" }
-  ],
+  "rewrites": [{ "source": "/api/:path*", "destination": "/api/:path*" }],
   "headers": [
     {
       "source": "/(.*)",

@@ -53,7 +53,6 @@ Reference: https://nextjs.org/docs/app/api-reference/functions
 Use `next/link` for internal navigation instead of `<a>` tags.
 
 ```tsx
-
 <a href='/about'>About</a>;
 
 import Link from 'next/link';
@@ -83,7 +82,6 @@ export function NavLink({ href, children }) {
 ### Static Generation
 
 ```tsx
-
 export async function generateStaticParams() {
   const posts = await getPosts();
   return posts.map((post) => ({ slug: post.slug }));

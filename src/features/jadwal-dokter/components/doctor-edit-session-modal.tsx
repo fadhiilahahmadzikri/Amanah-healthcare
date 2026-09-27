@@ -48,10 +48,7 @@ const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
   return `${String(h).padStart(2, '0')}:${m}`;
 });
 
-function normalizeRoomValue(
-  rawRoom: string | undefined | null,
-  roomList: ClinicRoom[]
-): string {
+function normalizeRoomValue(rawRoom: string | undefined | null, roomList: ClinicRoom[]): string {
   if (!rawRoom) return '';
   const trimmed = rawRoom.trim();
   const exact = roomList.find((r) => r.name.toLowerCase() === trimmed.toLowerCase());

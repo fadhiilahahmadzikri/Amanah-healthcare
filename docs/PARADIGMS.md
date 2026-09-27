@@ -1,6 +1,6 @@
 # PARADIGMS.md — Best-Practice Catalog
 
-> **Purpose:** a lookup index, not a tutorial. Each entry is a *name to reach for*. If you do not know the name, look it up before writing code.
+> **Purpose:** a lookup index, not a tutorial. Each entry is a _name to reach for_. If you do not know the name, look it up before writing code.
 > **Usage rule:** when installing an endpoint (see [`AGENTS.md`](../AGENTS.md) §9), name the paradigms you are applying at each step.
 > Entries marked **★** are mandatory in this repository.
 
@@ -119,25 +119,25 @@
 
 98. ★ Contract-First / Schema-First development
 99. ★ OpenAPI codegen (generated code is read-only)
-100. ★ Parse, Don't Validate
-101. ★ Runtime validation at the boundary (zod / valibot)
-102. ★ Schema as SSOT + type inference
-103. ★ Branded / Nominal Types
-104. ★ Discriminated Unions (tagged unions)
-105. ★ Exhaustiveness Checking (`assertNever`)
-106. ★ Make Illegal States Unrepresentable
-107. Type Guards / Type Predicates
-108. Opaque Types
-109. Phantom Types
-110. `readonly` / `as const` / deep-freeze
-111. ★ Tolerant Reader
-112. Consumer-Driven Contract Testing (Pact)
-113. Semantic Versioning of contracts
-114. Backward & forward compatibility
-115. Expand–Contract (parallel change) migration
-116. Zero-`any` policy
-117. `strict` + `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes`
-118. Type-only imports (`import type`)
+100.  ★ Parse, Don't Validate
+101.  ★ Runtime validation at the boundary (zod / valibot)
+102.  ★ Schema as SSOT + type inference
+103.  ★ Branded / Nominal Types
+104.  ★ Discriminated Unions (tagged unions)
+105.  ★ Exhaustiveness Checking (`assertNever`)
+106.  ★ Make Illegal States Unrepresentable
+107.  Type Guards / Type Predicates
+108.  Opaque Types
+109.  Phantom Types
+110.  `readonly` / `as const` / deep-freeze
+111.  ★ Tolerant Reader
+112.  Consumer-Driven Contract Testing (Pact)
+113.  Semantic Versioning of contracts
+114.  Backward & forward compatibility
+115.  Expand–Contract (parallel change) migration
+116.  Zero-`any` policy
+117.  `strict` + `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes`
+118.  Type-only imports (`import type`)
 
 ## F. Data fetching & rendering (Next.js)
 

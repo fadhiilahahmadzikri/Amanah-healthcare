@@ -9,19 +9,19 @@ Override only when detection is wrong or project is non-standard.
 
 Vercel reads `package.json` → checks for framework-specific packages → applies preset.
 
-| Detects package | Framework Preset | Build Command | Output Directory |
-|---|---|---|---|
-| `next` | Next.js | `next build` | `.next` |
-| `@sveltejs/kit` | SvelteKit | `vite build` | `.svelte-kit` |
-| `nuxt` | Nuxt | `nuxt build` | `.output` |
-| `@remix-run/react` | Remix | `remix build` | `build` |
-| `astro` | Astro | `astro build` | `dist` |
-| `vite` (no above) | Vite | `vite build` | `dist` |
-| `react-scripts` | CRA | `react-scripts build` | `build` |
-| `gatsby` | Gatsby | `gatsby build` | `public` |
-| `vue` | Vue.js | `vite build` | `dist` |
-| `@tanstack/start` | TanStack Start | auto | auto |
-| None matched | Other | (requires manual config) | `public` |
+| Detects package    | Framework Preset | Build Command            | Output Directory |
+| ------------------ | ---------------- | ------------------------ | ---------------- |
+| `next`             | Next.js          | `next build`             | `.next`          |
+| `@sveltejs/kit`    | SvelteKit        | `vite build`             | `.svelte-kit`    |
+| `nuxt`             | Nuxt             | `nuxt build`             | `.output`        |
+| `@remix-run/react` | Remix            | `remix build`            | `build`          |
+| `astro`            | Astro            | `astro build`            | `dist`           |
+| `vite` (no above)  | Vite             | `vite build`             | `dist`           |
+| `react-scripts`    | CRA              | `react-scripts build`    | `build`          |
+| `gatsby`           | Gatsby           | `gatsby build`           | `public`         |
+| `vue`              | Vue.js           | `vite build`             | `dist`           |
+| `@tanstack/start`  | TanStack Start   | auto                     | auto             |
+| None matched       | Other            | (requires manual config) | `public`         |
 
 ---
 
@@ -49,10 +49,12 @@ vercel deploy --prod
 ```
 
 **Env var rules:**
+
 - `NEXT_PUBLIC_*` → baked into client bundle at build time → set before deploy
 - Server vars → no prefix needed → available in Server Components, API routes, Route Handlers
 
 **Common issues:**
+
 - `next` not in `dependencies` (only in `devDependencies`) → detection fails → move to `dependencies`
 - App Router with `output: 'standalone'` → set `outputDirectory: ".next/standalone"` in vercel.json
 
@@ -74,6 +76,7 @@ vercel deploy --prod
 ```
 
 **Env var rules:**
+
 - `VITE_*` → baked into bundle → set before deploy
 - Non-prefixed → server-side only (not accessible in browser)
 
@@ -95,17 +98,18 @@ vercel deploy --prod
 
 ```js
 // svelte.config.js
-import adapter from '@sveltejs/adapter-vercel'
+import adapter from '@sveltejs/adapter-vercel';
 export default {
   kit: {
     adapter: adapter({
-      runtime: 'nodejs22.x',  // or edge
+      runtime: 'nodejs22.x' // or edge
     })
   }
-}
+};
 ```
 
 **Env var rules:**
+
 - `PUBLIC_*` → `$env/static/public` → baked into bundle
 - Private → `$env/static/private` or `$env/dynamic/private` → server only
 
@@ -122,6 +126,7 @@ vercel deploy --prod
 Detect: `nuxt` or `nuxt3` in package.json.
 
 **Env var rules:**
+
 - `NUXT_PUBLIC_*` → exposed to client via `useRuntimeConfig().public`
 - `NUXT_*` → server only via `useRuntimeConfig()`
 
@@ -160,19 +165,21 @@ npm i @astrojs/vercel
 ```
 
 **Static site (no SSR):**
+
 ```js
 // astro.config.mjs
-export default defineConfig({ output: 'static' })
+export default defineConfig({ output: 'static' });
 // No adapter needed — Vercel hosts static output from dist/
 ```
 
 **SSR:**
+
 ```js
-import vercel from '@astrojs/vercel/serverless'
+import vercel from '@astrojs/vercel/serverless';
 export default defineConfig({
   output: 'server',
   adapter: vercel()
-})
+});
 ```
 
 ---
@@ -196,6 +203,7 @@ vercel deploy --prod --cwd packages/my-app
 ```
 
 **Link entire monorepo:**
+
 ```bash
 vercel link --repo   # creates .vercel/repo.json — not project.json
 ```
@@ -221,6 +229,7 @@ When auto-detection is wrong:
 ```
 
 Or via CLI flags (per-deployment, not saved):
+
 ```bash
 vercel deploy --build-env NODE_ENV=production
 ```
@@ -246,21 +255,15 @@ vercel deploy --build-env NODE_ENV=production
       "memory": 512
     }
   },
-  "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/:path*" }
-  ],
-  "redirects": [
-    { "source": "/old", "destination": "/new", "permanent": true }
-  ],
+  "rewrites": [{ "source": "/api/:path*", "destination": "/api/:path*" }],
+  "redirects": [{ "source": "/old", "destination": "/new", "permanent": true }],
   "headers": [
     {
       "source": "/api/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "no-store" }]
     }
   ],
-  "crons": [
-    { "path": "/api/cron/daily", "schedule": "0 0 * * *" }
-  ]
+  "crons": [{ "path": "/api/cron/daily", "schedule": "0 0 * * *" }]
 }
 ```
 

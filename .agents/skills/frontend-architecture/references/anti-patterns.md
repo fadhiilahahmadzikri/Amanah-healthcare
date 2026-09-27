@@ -1,6 +1,7 @@
 # Anti-Patterns — Frontend Architecture
 
 ## Table of Contents
+
 1. [God Component](#god-component)
 2. [Prop Drilling](#prop-drilling)
 3. [Boolean Flag Explosion](#boolean-flag-explosion)
@@ -21,6 +22,7 @@
 **Root cause:** Starting with a single file and never extracting as complexity grows.
 
 **Before (anti-pattern):**
+
 ```tsx
 function UserDashboard({ userId }: { userId: string }) {
   const [user, setUser] = useState<User | null>(null);
@@ -30,15 +32,12 @@ function UserDashboard({ userId }: { userId: string }) {
   const [activeTab, setActiveTab] = useState('profile');
   // ... 40 more lines of state and effects
 
-  return (
-    <div>
-      {/* 200 lines of deeply nested JSX */}
-    </div>
-  );
+  return <div>{/* 200 lines of deeply nested JSX */}</div>;
 }
 ```
 
 **After (correct):**
+
 ```tsx
 function UserDashboard({ userId }: { userId: string }) {
   const { data: user } = useUser(userId);
@@ -46,13 +45,17 @@ function UserDashboard({ userId }: { userId: string }) {
 
   return (
     <DashboardLayout header={<DashboardHeader user={user} />}>
-      <Tabs defaultTab="profile">
+      <Tabs defaultTab='profile'>
         <Tabs.List>
-          <Tabs.Tab id="profile">Profile</Tabs.Tab>
-          <Tabs.Tab id="posts">Posts</Tabs.Tab>
+          <Tabs.Tab id='profile'>Profile</Tabs.Tab>
+          <Tabs.Tab id='posts'>Posts</Tabs.Tab>
         </Tabs.List>
-        <Tabs.Panel for="profile"><UserProfileSection user={user} /></Tabs.Panel>
-        <Tabs.Panel for="posts"><UserPostsFeed posts={posts} /></Tabs.Panel>
+        <Tabs.Panel for='profile'>
+          <UserProfileSection user={user} />
+        </Tabs.Panel>
+        <Tabs.Panel for='posts'>
+          <UserPostsFeed posts={posts} />
+        </Tabs.Panel>
       </Tabs>
     </DashboardLayout>
   );
@@ -60,6 +63,7 @@ function UserDashboard({ userId }: { userId: string }) {
 ```
 
 **Decomposition checklist:**
+
 - Can any block of JSX be named and extracted? Extract it.
 - Can any group of related state + effects be extracted to a hook? Extract it.
 - Does the component render meaningfully different UI based on a condition? Split into two components.
@@ -73,6 +77,7 @@ function UserDashboard({ userId }: { userId: string }) {
 **Root cause:** Choosing the wrong composition strategy. Prop drilling is not solved by Context — it is solved by **component composition**.
 
 **Before (anti-pattern):**
+
 ```tsx
 function Page({ currentUser }: { currentUser: User }) {
   return <Layout currentUser={currentUser} />;
@@ -88,6 +93,7 @@ function Sidebar({ currentUser }: { currentUser: User }) {
 ```
 
 **After — composition solution (preferred):**
+
 ```tsx
 function Page({ currentUser }: { currentUser: User }) {
   return (
@@ -99,6 +105,7 @@ function Page({ currentUser }: { currentUser: User }) {
 ```
 
 **After — Context solution (when composition is impractical):**
+
 ```tsx
 const CurrentUserContext = createContext<User | null>(null);
 
@@ -127,32 +134,22 @@ function UserMenu() {
 **Root cause:** Extending a component with new requirements by adding flags instead of composing variants or splitting components.
 
 **Before (anti-pattern):**
+
 ```tsx
-<Button
-  isPrimary
-  isLarge
-  isFullWidth
-  hasLeadingIcon
-  isLoading
-  isRounded
-/>
+<Button isPrimary isLarge isFullWidth hasLeadingIcon isLoading isRounded />
 ```
 
 **After — variant system:**
+
 ```tsx
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
-<Button
-  variant="primary"
-  size="lg"
-  isFullWidth
-  isLoading
-  leadingIcon={<SpinnerIcon />}
-/>
+<Button variant='primary' size='lg' isFullWidth isLoading leadingIcon={<SpinnerIcon />} />;
 ```
 
 **After — discriminated union for structural variants:**
+
 ```tsx
 type ButtonProps =
   | { layout: 'inline'; children: React.ReactNode }
@@ -171,6 +168,7 @@ type ButtonProps =
 **Rule:** Build inline first. Extract on second repetition. Abstract API on third. Lock the interface when used across multiple features.
 
 **Before (anti-pattern — too early):**
+
 ```tsx
 function EntityList<T extends object>({
   items,
@@ -190,6 +188,7 @@ function EntityList<T extends object>({
 Built before any specific use case required it. Now must evolve the API to satisfy real needs — creating breaking changes.
 
 **After (correct progression):**
+
 1. Build `ProductList` specifically
 2. Build `OrderList` specifically — notice the pattern
 3. Extract `ResourceList<T>` with only the props both components actually needed
@@ -202,6 +201,7 @@ Built before any specific use case required it. Now must evolve the API to satis
 **Signal:** Ternary chains, multiple `.map()` calls, complex conditional rendering blocks, and filter/sort logic embedded directly in the return statement.
 
 **Before (anti-pattern):**
+
 ```tsx
 return (
   <div>
@@ -224,6 +224,7 @@ return (
 ```
 
 **After:**
+
 ```tsx
 const activeItems = useMemo(
   () =>
@@ -249,6 +250,7 @@ return (
 ```
 
 **Rules:**
+
 - Early returns for loading/error/empty states before the main render
 - Extract filtered/sorted data to `useMemo`
 - Extract handlers to named `useCallback` functions
@@ -280,6 +282,7 @@ function NotificationIcon() {
 ```
 
 **Fix:**
+
 ```tsx
 // Atom is pure — accepts primitive props
 type AvatarProps = {
@@ -291,7 +294,7 @@ type AvatarProps = {
 // Domain awareness lives in the organism
 function UserAvatarButton({ userId }: { userId: string }) {
   const { data: user } = useUser(userId);
-  return <Avatar src={user?.avatarUrl} alt={user?.fullName ?? 'User'} size="md" />;
+  return <Avatar src={user?.avatarUrl} alt={user?.fullName ?? 'User'} size='md' />;
 }
 ```
 
@@ -303,31 +306,35 @@ function UserAvatarButton({ userId }: { userId: string }) {
 
 **Rule — state placement hierarchy:**
 
-| State type | Where it lives |
-|---|---|
-| UI interaction state (tooltip open, tab active, accordion expanded) | Local `useState` in owning component |
-| Form state | Local `useState` or `react-hook-form` in form component |
-| Shared local UI state (modal triggered from multiple places) | Context or Zustand slice scoped to feature |
-| Server/async state (fetched data) | React Query / SWR — never raw `useState` |
-| Cross-session persistent state (theme, user preferences) | Zustand with persistence middleware |
-| URL-driven state (filters, pagination, current tab visible in URL) | URL search params via router |
+| State type                                                          | Where it lives                                          |
+| ------------------------------------------------------------------- | ------------------------------------------------------- |
+| UI interaction state (tooltip open, tab active, accordion expanded) | Local `useState` in owning component                    |
+| Form state                                                          | Local `useState` or `react-hook-form` in form component |
+| Shared local UI state (modal triggered from multiple places)        | Context or Zustand slice scoped to feature              |
+| Server/async state (fetched data)                                   | React Query / SWR — never raw `useState`                |
+| Cross-session persistent state (theme, user preferences)            | Zustand with persistence middleware                     |
+| URL-driven state (filters, pagination, current tab visible in URL)  | URL search params via router                            |
 
 **Anti-pattern:**
+
 ```tsx
 const useStore = create((set) => ({
   isModalOpen: false,
   tooltipVisible: false,
-  activeAccordionIndex: 0,
+  activeAccordionIndex: 0
   // ... UI state that should be local useState
 }));
 ```
 
 **Anti-pattern:**
+
 ```tsx
 function UserProfile() {
   const [user, setUser] = useState<User | null>(null);
   useEffect(() => {
-    fetch('/api/user').then(r => r.json()).then(setUser);
+    fetch('/api/user')
+      .then((r) => r.json())
+      .then(setUser);
   }, []);
   // Missing: loading state, error state, caching, deduplication, refetch
 }
@@ -342,6 +349,7 @@ Use React Query or SWR for all server state.
 **Signal:** Passing inline object literals, inline arrays, or non-memoized callbacks as props — causing child components to re-render on every parent render regardless of value changes.
 
 **Before (anti-pattern):**
+
 ```tsx
 function Parent() {
   const [count, setCount] = useState(0);
@@ -359,6 +367,7 @@ function Parent() {
 Every `Parent` re-render creates new object/array/function references, causing `ExpensiveChild` to re-render even if the values are semantically identical.
 
 **After:**
+
 ```tsx
 const DEFAULT_CONFIG = { theme: 'dark' as const, size: 'lg' as const };
 const DEFAULT_FILTERS = ['active', 'verified'] as const;
@@ -371,11 +380,7 @@ function Parent() {
   }, []);
 
   return (
-    <ExpensiveChild
-      config={DEFAULT_CONFIG}
-      onAction={handleAction}
-      filters={DEFAULT_FILTERS}
-    />
+    <ExpensiveChild config={DEFAULT_CONFIG} onAction={handleAction} filters={DEFAULT_FILTERS} />
   );
 }
 ```
@@ -398,13 +403,13 @@ function Parent() {
 
 **Signal:** Inline styles for anything except dynamic computed values, global class name strings without collision protection, deeply nested CSS that mirrors the component tree structure, `!important` usage.
 
-| Anti-pattern | Correct approach |
-|---|---|
-| Inline styles for static values | CSS Modules, Tailwind, CSS-in-JS |
-| Global class names without scoping | CSS Modules (local by default) |
-| CSS mirroring component nesting | Flat BEM-style or utility classes |
-| `!important` overrides | Increase specificity correctly, or restructure |
-| Magic number values | Design tokens and CSS custom properties |
+| Anti-pattern                                         | Correct approach                                    |
+| ---------------------------------------------------- | --------------------------------------------------- |
+| Inline styles for static values                      | CSS Modules, Tailwind, CSS-in-JS                    |
+| Global class names without scoping                   | CSS Modules (local by default)                      |
+| CSS mirroring component nesting                      | Flat BEM-style or utility classes                   |
+| `!important` overrides                               | Increase specificity correctly, or restructure      |
+| Magic number values                                  | Design tokens and CSS custom properties             |
 | Styles scattered across multiple files per component | Co-locate: `Button.module.css` next to `Button.tsx` |
 
 Read `styling-architecture.md` for full conventions.

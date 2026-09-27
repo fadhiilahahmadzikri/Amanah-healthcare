@@ -527,9 +527,7 @@ describe('Admin Doctor Schedules Contract DTOs', () => {
         { id: 'room-uuid-01', name: 'Ruang Poli Gigi 1', isOccupied: false },
         { id: 'room-uuid-02', name: 'Ruang Poli Gigi 2', isOccupied: true, occupiedBy: 'dr. Budi' }
       ],
-      polikliniks: [
-        { id: 'poli-uuid-01', name: 'Poli Gigi & Mulut' }
-      ],
+      polikliniks: [{ id: 'poli-uuid-01', name: 'Poli Gigi & Mulut' }],
       shifts: [
         {
           id: 'dini_hari',
@@ -615,8 +613,6 @@ describe('Admin Doctor Schedules Contract DTOs', () => {
     expect(parsed.slots).toHaveLength(2);
     expect(parsed.slots[0].isAvailable).toBe(false);
     expect(parsed.slots[1].isAvailable).toBe(true);
-    expect(parsed.slots[0].conflict?.message).toBe(
-      'Ruangan telah digunakan oleh dr. Budi Santoso'
-    );
+    expect(parsed.slots[0].conflict?.message).toBe('Ruangan telah digunakan oleh dr. Budi Santoso');
   });
 });

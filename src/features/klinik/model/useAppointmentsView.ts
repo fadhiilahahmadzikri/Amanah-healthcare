@@ -1,8 +1,12 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import type { Appointment, AppointmentFormData, AppointmentStatus, Doctor } from '../api/types';
-import { getDoctorByName, loadStoredAppointments, saveAppointmentsToStorage } from '../api/service';
+import { getDoctorByName } from '../api/service';
+import {
+  patientAffiliationService,
+  type BackendAppointmentItem
+} from '@/features/data-pasien/api/patient-affiliation-service';
 import {
   type AppointmentFilterState,
   type AppointmentFormMode,
@@ -52,7 +56,6 @@ export interface UseAppointmentsViewResult {
 
 export function useAppointmentsView(): UseAppointmentsViewResult {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [isInitialized, setIsInitialized] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [monthFilter, setMonthFilter] = useState('ALL');
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
@@ -65,16 +68,50 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
-  useEffect(() => {
-    setAppointments(loadStoredAppointments());
-    setIsInitialized(true);
+  const mapBackendToUi = useCallback((apt: BackendAppointmentItem): Appointment => {
+    let uiStatus: AppointmentStatus = 'Sudah Buat Janji';
+    const st = (apt.status || '').toUpperCase();
+    if (st === 'MENUNGGU' || st === 'WAITING' || st === 'CHECKED_IN') uiStatus = 'Menunggu';
+    else if (st === 'SEDANG_DIPERIKSA' || st === 'IN_SERVICE') uiStatus = 'Sedang Diperiksa';
+    else if (st === 'SELESAI' || st === 'COMPLETED') uiStatus = 'Selesai';
+    else if (st === 'BATAL' || st === 'CANCELLED') uiStatus = 'Batal';
+    else if (st === 'TIDAK_HADIR' || st === 'NO_SHOW') uiStatus = 'Tidak Hadir';
+
+    return {
+      id: apt.id,
+      booking_code: apt.id.slice(0, 8).toUpperCase(),
+      patient_name: apt.patientName || 'Pasien',
+      patient_email: '',
+      patient_avatar: '',
+      doctor_name: apt.doctorName || 'Dokter Jaga',
+      date: apt.appointmentDate,
+      time: apt.session,
+      complaint: apt.complaint || '-',
+      status: uiStatus,
+      service: apt.layananName || 'Poliklinik',
+      created_at: apt.createdAt,
+      queue_number: apt.queueNumber || '-'
+    };
   }, []);
 
-  useEffect(() => {
-    if (isInitialized) {
-      saveAppointmentsToStorage(appointments);
+  const loadAppointments = useCallback(async () => {
+    try {
+      const data = await patientAffiliationService.getMyAppointments();
+      if (Array.isArray(data) && data.length > 0) {
+        setAppointments(data.map(mapBackendToUi));
+      } else {
+        setAppointments(loadStoredAppointments());
+      }
+    } catch {
+      setAppointments(loadStoredAppointments());
+    } finally {
+      setIsInitialized(true);
     }
-  }, [appointments, isInitialized]);
+  }, [mapBackendToUi]);
+
+  useEffect(() => {
+    loadAppointments();
+  }, [loadAppointments]);
 
   const filters = useMemo(
     () => ({
@@ -162,7 +199,7 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
       return { type: 'edit' as const };
     }
 
-    setAppointments(loadStoredAppointments());
+    loadAppointments();
     return { type: 'create' as const };
   };
 
@@ -192,7 +229,8 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
       openDetailsModal: handleOpenDetailsModal,
       closeFormModal: () => setIsFormModalOpen(false),
       closeDetailsModal: () => setIsDetailsModalOpen(false),
-      submitForm: handleSubmitForm
+      submitForm: handleSubmitForm,
+      reload: loadAppointments
     }
   };
 }

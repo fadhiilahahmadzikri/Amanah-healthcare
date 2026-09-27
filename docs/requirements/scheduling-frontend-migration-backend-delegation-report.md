@@ -29,11 +29,11 @@ The frontend must not manually create arbitrary empty slots. It must render proj
 
 The three frontend-facing availability states are:
 
-| Canonical state | Indonesian label | Meaning |
-| --- | --- | --- |
-| `OPEN` | `Buka` | The interval can accept a patient and has no active appointment. |
-| `OCCUPIED` | `Terisi` | The interval already has an active appointment or queue entry. Authorized users may inspect occupant details. |
-| `CLOSED` | `Tutup` | The interval cannot accept appointments. The reason may exist as metadata, for example `closedReason`. |
+| Canonical state | Indonesian label | Meaning                                                                                                       |
+| --------------- | ---------------- | ------------------------------------------------------------------------------------------------------------- |
+| `OPEN`          | `Buka`           | The interval can accept a patient and has no active appointment.                                              |
+| `OCCUPIED`      | `Terisi`         | The interval already has an active appointment or queue entry. Authorized users may inspect occupant details. |
+| `CLOSED`        | `Tutup`          | The interval cannot accept appointments. The reason may exist as metadata, for example `closedReason`.        |
 
 `Penuh` is not a primary availability state. It is an old aggregate-slot mental model.
 
@@ -69,15 +69,15 @@ These rules are explicit product direction from the user conversation, not infer
 
 This report is based on inspected frontend files only:
 
-| Area | Evidence |
-| --- | --- |
-| Next.js stack | `package.json` shows Next.js `16.2.6`, React `19.2.4`, TypeScript `5.7.2`, TanStack Query, Zustand, and Nuqs. |
-| Next.js admin schedule contract | `src/server/contracts/schedules/doctor-schedules.dto.ts` and `src/features/jadwal-dokter/api/types.ts`. |
-| Next.js admin schedule UI | `src/features/jadwal-dokter/components/*`. |
-| Next.js patient appointment UI | `src/features/klinik/*`. |
-| Next.js admin appointment UI | `src/features/appointment-pasien/*`. |
+| Area                                         | Evidence                                                                                                                                                     |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Next.js stack                                | `package.json` shows Next.js `16.2.6`, React `19.2.4`, TypeScript `5.7.2`, TanStack Query, Zustand, and Nuqs.                                                |
+| Next.js admin schedule contract              | `src/server/contracts/schedules/doctor-schedules.dto.ts` and `src/features/jadwal-dokter/api/types.ts`.                                                      |
+| Next.js admin schedule UI                    | `src/features/jadwal-dokter/components/*`.                                                                                                                   |
+| Next.js patient appointment UI               | `src/features/klinik/*`.                                                                                                                                     |
+| Next.js admin appointment UI                 | `src/features/appointment-pasien/*`.                                                                                                                         |
 | Flutter mobile schedule model and repository | `D:\amanah-healthcare-mobile\packages\amanah_healthcare\lib\features\schedule\domain\amanah_schedule_model.dart` and `data\amanah_schedule_repository.dart`. |
-| Flutter mobile schedule store and form | `data\amanah_schedule_store.dart` and `presentation\components\amanah_schedule_form_and_calendar_dialog.dart`. |
+| Flutter mobile schedule store and form       | `data\amanah_schedule_store.dart` and `presentation\components\amanah_schedule_form_and_calendar_dialog.dart`.                                               |
 
 This report deliberately does not assert backend table names, backend service logic, or database constraints as facts.
 
@@ -89,21 +89,21 @@ This report deliberately does not assert backend table names, backend service lo
 
 Flutter mobile currently contains:
 
-| Current area | Verified evidence | Current behavior |
-| --- | --- | --- |
-| Schedule model | `amanah_schedule_model.dart:210-248` | `DoctorSchedule` has `capacity`, `availableSlots`, `bookedPatientCount`, and `isAvailable`. It derives a badge as `Buka` or `Tutup`. |
-| Default capacity | `amanah_schedule_model.dart:210`, `246` | Default capacity is `8`. |
-| Available slots | `amanah_schedule_model.dart:248` | `availableSlots` defaults to `capacity - bookedPatientCount`. |
-| Duration option reference | `amanah_schedule_model.dart:644-652` | Reads `timeSlotIntervals` from reference options. This is promising but not yet the canonical projection model. |
-| API repository | `amanah_schedule_repository.dart:221-516` | Uses `/api/v1/schedules/*` endpoints for my schedules, calendar summary, day settings, create/update schedules, availability toggle, booked patients, and reference options. |
-| Create schedule payload | `amanah_schedule_repository.dart:319-343` | Requires `startTime`, `endTime`, optional `capacity`, and optional `isAvailable`. |
-| Update schedule payload | `amanah_schedule_repository.dart:360-384` | Still sends optional `startTime`, `endTime`, `capacity`, and `isAvailable`. |
-| Form time options | `amanah_schedule_form_and_calendar_dialog.dart:8` | Time choices are currently predefined, not a demonstrated arbitrary-minute input. |
-| Manual From/To slot model | `amanah_schedule_form_and_calendar_dialog.dart:443-454` | `_ScheduleFormSlot` has `from` and `to`. |
-| Manual From/To UI | `amanah_schedule_form_and_calendar_dialog.dart:1794-1817` | The drawer renders `From` and `To` time pickers. |
-| Mobile status options | `amanah_schedule_form_and_calendar_dialog.dart:542-547` | Status options include `Menunggu`, `Buka`, and `Cuti`. |
-| Optimistic fallback | `amanah_schedule_store.dart:305-307` | On error, the store keeps the optimistic local update. |
-| Local default quota | `amanah_schedule_store.dart:65` | Default day setting uses `targetQuota: 8`. |
+| Current area              | Verified evidence                                         | Current behavior                                                                                                                                                             |
+| ------------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Schedule model            | `amanah_schedule_model.dart:210-248`                      | `DoctorSchedule` has `capacity`, `availableSlots`, `bookedPatientCount`, and `isAvailable`. It derives a badge as `Buka` or `Tutup`.                                         |
+| Default capacity          | `amanah_schedule_model.dart:210`, `246`                   | Default capacity is `8`.                                                                                                                                                     |
+| Available slots           | `amanah_schedule_model.dart:248`                          | `availableSlots` defaults to `capacity - bookedPatientCount`.                                                                                                                |
+| Duration option reference | `amanah_schedule_model.dart:644-652`                      | Reads `timeSlotIntervals` from reference options. This is promising but not yet the canonical projection model.                                                              |
+| API repository            | `amanah_schedule_repository.dart:221-516`                 | Uses `/api/v1/schedules/*` endpoints for my schedules, calendar summary, day settings, create/update schedules, availability toggle, booked patients, and reference options. |
+| Create schedule payload   | `amanah_schedule_repository.dart:319-343`                 | Requires `startTime`, `endTime`, optional `capacity`, and optional `isAvailable`.                                                                                            |
+| Update schedule payload   | `amanah_schedule_repository.dart:360-384`                 | Still sends optional `startTime`, `endTime`, `capacity`, and `isAvailable`.                                                                                                  |
+| Form time options         | `amanah_schedule_form_and_calendar_dialog.dart:8`         | Time choices are currently predefined, not a demonstrated arbitrary-minute input.                                                                                            |
+| Manual From/To slot model | `amanah_schedule_form_and_calendar_dialog.dart:443-454`   | `_ScheduleFormSlot` has `from` and `to`.                                                                                                                                     |
+| Manual From/To UI         | `amanah_schedule_form_and_calendar_dialog.dart:1794-1817` | The drawer renders `From` and `To` time pickers.                                                                                                                             |
+| Mobile status options     | `amanah_schedule_form_and_calendar_dialog.dart:542-547`   | Status options include `Menunggu`, `Buka`, and `Cuti`.                                                                                                                       |
+| Optimistic fallback       | `amanah_schedule_store.dart:305-307`                      | On error, the store keeps the optimistic local update.                                                                                                                       |
+| Local default quota       | `amanah_schedule_store.dart:65`                           | Default day setting uses `targetQuota: 8`.                                                                                                                                   |
 
 Current mobile conclusion:
 
@@ -113,27 +113,27 @@ Flutter is already shaped as the upstream workflow, but its frontend model still
 
 Next.js admin currently contains:
 
-| Current area | Verified evidence | Current behavior |
-| --- | --- | --- |
-| Contract enum | `src/server/contracts/schedules/doctor-schedules.dto.ts:3` | `ScheduleDayStatus` is `Buka`, `Penuh`, `Cuti`, `Tutup`. |
-| Feature enum | `src/features/jadwal-dokter/api/types.ts:1` | Same status union is used in feature types. |
-| Session fields | `doctor-schedules.dto.ts:15-19`, `108-111` | Daily sessions include `jam_selesai`, `slot_tersedia`, and `status_sesi`. |
-| Aggregate counters | `doctor-schedules.dto.ts:43-44` | Doctor list/detail includes `slot_tersedia` and `kapasitas_per_hari`. |
-| Admin API path wrappers | `src/server/api/paths.ts:36-46` | Admin schedule paths exist for list, detail, update, day status, create session, update session, delete session, and filter options. |
-| Error fallback | `src/features/jadwal-dokter/api/service.ts:34-52` | List/detail service catches errors and returns empty or undefined data. |
-| Filter fallback | `src/features/jadwal-dokter/api/service.ts:112-124` | Filter options fallback includes `Penuh` and `Cuti`. |
-| Card status | `doctor-schedule-card.tsx:398-408` | Card computes `Cuti`, `Belum Diatur`, `Tutup`, `Penuh`, or `Buka` from old fields. |
-| Detail sheet status | `doctor-schedule-detail-sheet.tsx:64-72` | Detail sheet computes `Cuti`, `Tutup`, `Belum Diatur`, `Penuh`, or `Buka`. |
-| Detail status mapping bug | `doctor-schedule-detail-sheet.tsx:295-298` | Calendar status mapping maps every non-`buka`/non-`cuti` selection to `Penuh`, including `tutup`. |
-| Calendar statuses | `doctor-timeline-calendar.tsx:18`, `77-95`, `112-115`, `626-634` | Calendar presents `Buka`, `Penuh`, `Cuti`, and `Tutup`. |
-| Hourly grid statuses | `doctor-daily-hourly-grid.tsx:24` | Hourly grid status is `buka`, `penuh`, `tutup`, `cuti`. |
-| Hour-only matching | `doctor-daily-hourly-grid.tsx:152-153` | Grid parses only the hour from `jam_mulai` and `jam_selesai`, losing minute precision. |
-| Local hourly overrides | `doctor-daily-hourly-grid.tsx:226-231`, `267-270` | Per-hour status can be changed locally through `hourlyOverrides`. |
-| Local extra sessions | `doctor-daily-hourly-grid.tsx:231`, `308-314` | `extraSessions` are locally added and capacity/slot counters are recomputed in the UI. |
-| Add session modal | `doctor-add-session-modal.tsx:28`, `66-70`, `93-112`, `183-261` | Uses preset sessions, manual start/end, quota, slot count, and status including `Penuh` and `Cuti`. |
-| Edit session modal | `doctor-edit-session-modal.tsx:36-40`, `66-70`, `131-208` | Same manual session model is used for editing. |
-| Schedule edit modal | `doctor-schedule-edit-modal.tsx:30`, `61`, `180-181`, `205` | Edits `slot_tersedia`, uses `Penuh` and `Cuti`, and treats leave as schedule status. |
-| Design status mapper | `src/styles/clinical-tokens.ts:120-193` | Maps `PENUH/FULL` to `Penuh` and `CUTI/LEAVE` to `Cuti` as primary status labels. |
+| Current area              | Verified evidence                                                | Current behavior                                                                                                                     |
+| ------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Contract enum             | `src/server/contracts/schedules/doctor-schedules.dto.ts:3`       | `ScheduleDayStatus` is `Buka`, `Penuh`, `Cuti`, `Tutup`.                                                                             |
+| Feature enum              | `src/features/jadwal-dokter/api/types.ts:1`                      | Same status union is used in feature types.                                                                                          |
+| Session fields            | `doctor-schedules.dto.ts:15-19`, `108-111`                       | Daily sessions include `jam_selesai`, `slot_tersedia`, and `status_sesi`.                                                            |
+| Aggregate counters        | `doctor-schedules.dto.ts:43-44`                                  | Doctor list/detail includes `slot_tersedia` and `kapasitas_per_hari`.                                                                |
+| Admin API path wrappers   | `src/server/api/paths.ts:36-46`                                  | Admin schedule paths exist for list, detail, update, day status, create session, update session, delete session, and filter options. |
+| Error fallback            | `src/features/jadwal-dokter/api/service.ts:34-52`                | List/detail service catches errors and returns empty or undefined data.                                                              |
+| Filter fallback           | `src/features/jadwal-dokter/api/service.ts:112-124`              | Filter options fallback includes `Penuh` and `Cuti`.                                                                                 |
+| Card status               | `doctor-schedule-card.tsx:398-408`                               | Card computes `Cuti`, `Belum Diatur`, `Tutup`, `Penuh`, or `Buka` from old fields.                                                   |
+| Detail sheet status       | `doctor-schedule-detail-sheet.tsx:64-72`                         | Detail sheet computes `Cuti`, `Tutup`, `Belum Diatur`, `Penuh`, or `Buka`.                                                           |
+| Detail status mapping bug | `doctor-schedule-detail-sheet.tsx:295-298`                       | Calendar status mapping maps every non-`buka`/non-`cuti` selection to `Penuh`, including `tutup`.                                    |
+| Calendar statuses         | `doctor-timeline-calendar.tsx:18`, `77-95`, `112-115`, `626-634` | Calendar presents `Buka`, `Penuh`, `Cuti`, and `Tutup`.                                                                              |
+| Hourly grid statuses      | `doctor-daily-hourly-grid.tsx:24`                                | Hourly grid status is `buka`, `penuh`, `tutup`, `cuti`.                                                                              |
+| Hour-only matching        | `doctor-daily-hourly-grid.tsx:152-153`                           | Grid parses only the hour from `jam_mulai` and `jam_selesai`, losing minute precision.                                               |
+| Local hourly overrides    | `doctor-daily-hourly-grid.tsx:226-231`, `267-270`                | Per-hour status can be changed locally through `hourlyOverrides`.                                                                    |
+| Local extra sessions      | `doctor-daily-hourly-grid.tsx:231`, `308-314`                    | `extraSessions` are locally added and capacity/slot counters are recomputed in the UI.                                               |
+| Add session modal         | `doctor-add-session-modal.tsx:28`, `66-70`, `93-112`, `183-261`  | Uses preset sessions, manual start/end, quota, slot count, and status including `Penuh` and `Cuti`.                                  |
+| Edit session modal        | `doctor-edit-session-modal.tsx:36-40`, `66-70`, `131-208`        | Same manual session model is used for editing.                                                                                       |
+| Schedule edit modal       | `doctor-schedule-edit-modal.tsx:30`, `61`, `180-181`, `205`      | Edits `slot_tersedia`, uses `Penuh` and `Cuti`, and treats leave as schedule status.                                                 |
+| Design status mapper      | `src/styles/clinical-tokens.ts:120-193`                          | Maps `PENUH/FULL` to `Penuh` and `CUTI/LEAVE` to `Cuti` as primary status labels.                                                    |
 
 Current admin conclusion:
 
@@ -143,15 +143,15 @@ The admin web UI is wired to a backend-facing service layer, but the contract it
 
 Next.js patient booking currently contains:
 
-| Current area | Verified evidence | Current behavior |
-| --- | --- | --- |
-| Appointment storage | `src/features/klinik/api/service.ts:3-4`, `67-112` | Appointments and queues are stored in `localStorage`. |
-| Appointment creation | `src/features/klinik/api/service.ts:145-184` | `createAppointmentRecordWithQueue` creates local appointment and queue records. |
-| Reservation hook | `useAppointmentReservation.ts:109`, `257` | Reads doctors from local `getDoctors()` and creates appointment locally. |
-| View hook persistence | `useAppointmentsView.ts:5`, `75` | Appointment view saves to localStorage. |
-| Calendar day states | `appointment-calendar-day-picker.tsx:117-206` | Day picker uses `Penuh` and `Cuti` to disable dates. |
-| Time slot generator | `appointment-time-slot-picker.tsx:24`, `181-205` | Time picker uses hardcoded standard shifts and increments by hardcoded `30` minutes. |
-| Fake booking pressure | `appointment-time-slot-picker.tsx:204-208` | Simulates booked counts by shift index. |
+| Current area          | Verified evidence                                  | Current behavior                                                                     |
+| --------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Appointment storage   | `src/features/klinik/api/service.ts:3-4`, `67-112` | Appointments and queues are stored in `localStorage`.                                |
+| Appointment creation  | `src/features/klinik/api/service.ts:145-184`       | `createAppointmentRecordWithQueue` creates local appointment and queue records.      |
+| Reservation hook      | `useAppointmentReservation.ts:109`, `257`          | Reads doctors from local `getDoctors()` and creates appointment locally.             |
+| View hook persistence | `useAppointmentsView.ts:5`, `75`                   | Appointment view saves to localStorage.                                              |
+| Calendar day states   | `appointment-calendar-day-picker.tsx:117-206`      | Day picker uses `Penuh` and `Cuti` to disable dates.                                 |
+| Time slot generator   | `appointment-time-slot-picker.tsx:24`, `181-205`   | Time picker uses hardcoded standard shifts and increments by hardcoded `30` minutes. |
+| Fake booking pressure | `appointment-time-slot-picker.tsx:204-208`         | Simulates booked counts by shift index.                                              |
 
 Current patient booking conclusion:
 
@@ -161,10 +161,10 @@ The patient-facing booking frontend still has localStorage as a source of truth 
 
 Next.js admin appointment currently contains:
 
-| Current area | Verified evidence | Current behavior |
-| --- | --- | --- |
-| In-memory admin appointments | `src/features/appointment-pasien/api/service.ts:10-109` | Admin appointment records are stored in an in-memory array. |
-| Appointment lifecycle | `src/features/appointment-pasien/api/types.ts:1-32` | `LiveStatus` contains appointment/queue statuses such as `SUDAH BUAT JANJI`, `MENUNGGU`, `SELESAI`, and `TIDAK ADA DOKTER`. |
+| Current area                 | Verified evidence                                       | Current behavior                                                                                                            |
+| ---------------------------- | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| In-memory admin appointments | `src/features/appointment-pasien/api/service.ts:10-109` | Admin appointment records are stored in an in-memory array.                                                                 |
+| Appointment lifecycle        | `src/features/appointment-pasien/api/types.ts:1-32`     | `LiveStatus` contains appointment/queue statuses such as `SUDAH BUAT JANJI`, `MENUNGGU`, `SELESAI`, and `TIDAK ADA DOKTER`. |
 
 Current appointment conclusion:
 
@@ -174,22 +174,22 @@ Appointment lifecycle already exists as a separate concept in the frontend. It m
 
 ## 5. Frontend Contradictions Against Target Domain
 
-| Contradiction | Current behavior | Why it conflicts | Affected frontend layers | Required frontend migration |
-| --- | --- | --- | --- | --- |
-| `Penuh` as primary state | Contracts, filters, cards, calendars, grids, modals, and tokens treat `Penuh` as a status. | Target state is `OCCUPIED -> Terisi`; "full" is an old aggregate slot concept. | DTO/types, filters, calendar, detail sheet, grid, modals, status tokens. | Replace primary availability enum with `OPEN`, `OCCUPIED`, `CLOSED`; label `OCCUPIED` as `Terisi`. |
-| `Cuti` as primary state | Mobile and web treat `Cuti` as a schedule/day status. | Target state is `CLOSED`; leave is metadata such as `closedReason = leave`. | Mobile form/store, admin status logic, calendar, grid, leave calculator, tokens. | Render leave as `Tutup` with reason, not as a fourth top-level availability state. |
-| Manual interval end input | Mobile form has `From` and `To`; web session modals have `jam_mulai` and `jam_selesai`. | Product says doctors should not enter per-consultation `to`; interval end derives from duration. | Flutter drawer, mobile repository payload, web add/edit session modals, DTOs. | Replace per-interval end input with availability start plus authoritative boundary/window. |
-| Manual empty slot/slot count CRUD | Admin modals expose `slot_tersedia`, `kuota_pasien`, `kapasitas_per_hari`; mobile exposes capacity. | Slots should be projected from duration and boundary, not manually edited as empty rows/counters. | Web DTOs, cards, modals, tables, export, mobile model/store. | Use projection summaries and interval statuses from backend. |
-| Hardcoded duration | Patient time picker increments by `30` minutes. | Duration is configurable and should come from the canonical effective policy. | Patient web booking time picker. | Remove local duration math; render server projection. |
-| Hardcoded shifts | Patient web uses fixed standard shifts; web admin grid uses fixed day-part shift groups. | Start time must be arbitrary and anchored to practitioner availability. | Patient time picker, admin hourly grid. | Replace with timeline projection windows from backend. |
-| Hour-only schedule rendering | Admin hourly grid parses only `HH` from `HH:mm`. | `08:45` or `09:40` cannot render correctly in hour cells. | Admin detail sheet grid. | Replace with minute-accurate timeline blocks. |
-| Local status overrides | Admin hourly grid uses `hourlyOverrides`. | Status cannot be locally authoritative. | Admin detail sheet grid. | Mutate backend, then refetch canonical projection. |
-| Local extra sessions | Admin hourly grid adds `extraSessions` and recomputes capacity locally. | Projection must be canonical; local projection can drift. | Admin detail sheet grid and add session flow. | Replace with backend mutation plus projection refetch. |
-| LocalStorage appointments | Patient booking saves appointments and queues in localStorage. | Appointment booking must be authoritative and double-booking-safe server-side. | Patient booking service and hooks. | Replace with booking API and canonical query invalidation/refetch. |
-| In-memory admin appointment service | Admin appointments are stored in an array. | Admin appointment view cannot reconcile with schedule occupancy. | Appointment admin service. | Use canonical appointment API. |
-| Failed optimistic mobile mutation persists | Mobile keeps optimistic local update after server error. | Failed schedule mutation must not silently become local truth. | Flutter store. | Mark stale/offline state clearly or rollback; canonical response/refetch required. |
-| Status mapping bug | Detail sheet maps `tutup` selection to `Penuh`. | `CLOSED` and occupancy cannot be conflated. | Admin detail sheet. | Delete old mapping with new canonical state model. |
-| Stale docs | Existing reports still call `Penuh/Cuti` ready or acceptable. | They conflict with current product direction. | Documentation and team handoff. | Treat this report as the new frontend migration source. |
+| Contradiction                              | Current behavior                                                                                    | Why it conflicts                                                                                  | Affected frontend layers                                                         | Required frontend migration                                                                        |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `Penuh` as primary state                   | Contracts, filters, cards, calendars, grids, modals, and tokens treat `Penuh` as a status.          | Target state is `OCCUPIED -> Terisi`; "full" is an old aggregate slot concept.                    | DTO/types, filters, calendar, detail sheet, grid, modals, status tokens.         | Replace primary availability enum with `OPEN`, `OCCUPIED`, `CLOSED`; label `OCCUPIED` as `Terisi`. |
+| `Cuti` as primary state                    | Mobile and web treat `Cuti` as a schedule/day status.                                               | Target state is `CLOSED`; leave is metadata such as `closedReason = leave`.                       | Mobile form/store, admin status logic, calendar, grid, leave calculator, tokens. | Render leave as `Tutup` with reason, not as a fourth top-level availability state.                 |
+| Manual interval end input                  | Mobile form has `From` and `To`; web session modals have `jam_mulai` and `jam_selesai`.             | Product says doctors should not enter per-consultation `to`; interval end derives from duration.  | Flutter drawer, mobile repository payload, web add/edit session modals, DTOs.    | Replace per-interval end input with availability start plus authoritative boundary/window.         |
+| Manual empty slot/slot count CRUD          | Admin modals expose `slot_tersedia`, `kuota_pasien`, `kapasitas_per_hari`; mobile exposes capacity. | Slots should be projected from duration and boundary, not manually edited as empty rows/counters. | Web DTOs, cards, modals, tables, export, mobile model/store.                     | Use projection summaries and interval statuses from backend.                                       |
+| Hardcoded duration                         | Patient time picker increments by `30` minutes.                                                     | Duration is configurable and should come from the canonical effective policy.                     | Patient web booking time picker.                                                 | Remove local duration math; render server projection.                                              |
+| Hardcoded shifts                           | Patient web uses fixed standard shifts; web admin grid uses fixed day-part shift groups.            | Start time must be arbitrary and anchored to practitioner availability.                           | Patient time picker, admin hourly grid.                                          | Replace with timeline projection windows from backend.                                             |
+| Hour-only schedule rendering               | Admin hourly grid parses only `HH` from `HH:mm`.                                                    | `08:45` or `09:40` cannot render correctly in hour cells.                                         | Admin detail sheet grid.                                                         | Replace with minute-accurate timeline blocks.                                                      |
+| Local status overrides                     | Admin hourly grid uses `hourlyOverrides`.                                                           | Status cannot be locally authoritative.                                                           | Admin detail sheet grid.                                                         | Mutate backend, then refetch canonical projection.                                                 |
+| Local extra sessions                       | Admin hourly grid adds `extraSessions` and recomputes capacity locally.                             | Projection must be canonical; local projection can drift.                                         | Admin detail sheet grid and add session flow.                                    | Replace with backend mutation plus projection refetch.                                             |
+| LocalStorage appointments                  | Patient booking saves appointments and queues in localStorage.                                      | Appointment booking must be authoritative and double-booking-safe server-side.                    | Patient booking service and hooks.                                               | Replace with booking API and canonical query invalidation/refetch.                                 |
+| In-memory admin appointment service        | Admin appointments are stored in an array.                                                          | Admin appointment view cannot reconcile with schedule occupancy.                                  | Appointment admin service.                                                       | Use canonical appointment API.                                                                     |
+| Failed optimistic mobile mutation persists | Mobile keeps optimistic local update after server error.                                            | Failed schedule mutation must not silently become local truth.                                    | Flutter store.                                                                   | Mark stale/offline state clearly or rollback; canonical response/refetch required.                 |
+| Status mapping bug                         | Detail sheet maps `tutup` selection to `Penuh`.                                                     | `CLOSED` and occupancy cannot be conflated.                                                       | Admin detail sheet.                                                              | Delete old mapping with new canonical state model.                                                 |
+| Stale docs                                 | Existing reports still call `Penuh/Cuti` ready or acceptable.                                       | They conflict with current product direction.                                                     | Documentation and team handoff.                                                  | Treat this report as the new frontend migration source.                                            |
 
 ---
 
@@ -380,14 +380,14 @@ Status options include Menunggu, Buka, Cuti
 
 Required UI:
 
-| Current field | Migration |
-| --- | --- |
-| `From` | Keep as `Start`, but support arbitrary minute precision such as `08:45`. |
-| `To` | Remove as per-appointment end input. If a boundary is required, rename and reposition it as availability boundary/window, not consultation end. |
-| `capacity` or `targetQuota` | Remove as direct empty-slot authoring. Show projected capacity from server. |
-| `isAvailable` toggle | Replace with `OPEN/CLOSED` availability intent and closure reason. |
-| `Cuti` status | Replace with `Tutup` plus `closedReason = leave`. |
-| `Menunggu` schedule status | Keep only if it belongs to approval workflow; do not mix with availability. |
+| Current field               | Migration                                                                                                                                       |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `From`                      | Keep as `Start`, but support arbitrary minute precision such as `08:45`.                                                                        |
+| `To`                        | Remove as per-appointment end input. If a boundary is required, rename and reposition it as availability boundary/window, not consultation end. |
+| `capacity` or `targetQuota` | Remove as direct empty-slot authoring. Show projected capacity from server.                                                                     |
+| `isAvailable` toggle        | Replace with `OPEN/CLOSED` availability intent and closure reason.                                                                              |
+| `Cuti` status               | Replace with `Tutup` plus `closedReason = leave`.                                                                                               |
+| `Menunggu` schedule status  | Keep only if it belongs to approval workflow; do not mix with availability.                                                                     |
 
 ### 7.3 Mobile schedule screen migration
 
@@ -518,12 +518,12 @@ The timeline must be minute-accurate. `08:45` and `09:40` must render as anchore
 
 Current modals should be replaced or refactored:
 
-| Current UI | Required migration |
-| --- | --- |
-| `DoctorAddSessionModal` | Availability/window editor. Do not ask for manual `slot_tersedia`. Do not expose `Penuh` or `Cuti` as primary statuses. |
-| `DoctorEditSessionModal` | Availability/window or closure editor. If editing an existing occupied window affects appointments, backend must return conflict information. |
-| `DoctorScheduleEditModal` | Duration policy and closure controls must be separated from availability projection. |
-| Calendar day status dropdown | Only allowed actions should map to canonical mutations: open/reopen, close with reason, or inspect summary. No `Penuh` action. |
+| Current UI                   | Required migration                                                                                                                            |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DoctorAddSessionModal`      | Availability/window editor. Do not ask for manual `slot_tersedia`. Do not expose `Penuh` or `Cuti` as primary statuses.                       |
+| `DoctorEditSessionModal`     | Availability/window or closure editor. If editing an existing occupied window affects appointments, backend must return conflict information. |
+| `DoctorScheduleEditModal`    | Duration policy and closure controls must be separated from availability projection.                                                          |
+| Calendar day status dropdown | Only allowed actions should map to canonical mutations: open/reopen, close with reason, or inspect summary. No `Penuh` action.                |
 
 Admin mutation UX rules:
 
@@ -712,19 +712,19 @@ The frontend needs explicit backend permissions for:
 
 ## 12. Candidate Removals Verified In Frontend
 
-| Candidate removal | Exists? | Evidence | Action |
-| --- | --- | --- | --- |
-| Manual end-time input | Yes | Mobile `from/to`; web `jam_selesai` in DTOs and modals. | Remove as per-consultation end input. Keep boundary/window only if domain requires it. |
-| Manual empty-slot CRUD | Yes | Web `slot_tersedia`, `kuota_pasien`, `kapasitas_per_hari`; mobile `capacity`, `availableSlots`. | Replace with projection summaries. |
-| `Penuh` primary state | Yes | DTOs, types, calendar, grid, modals, filters, tokens. | Replace with `OCCUPIED -> Terisi`. |
-| `Cuti` primary state | Yes | Mobile status options, admin status logic, tokens, filters. | Replace with `CLOSED -> Tutup` plus `closedReason`. |
-| Duplicated duration calculation | Yes | Patient web increments by hardcoded 30 minutes. | Remove local slot generation. |
-| Duplicated slot generation | Yes | Patient web and admin hourly grid both infer slots/status locally. | Render backend projection. |
-| Hardcoded 30-minute values | Yes | Patient time slot picker uses `curMins + 30`. | Use `effectiveDurationMinutes` from projection. |
-| Fallback schedule data | Yes | Admin service catches errors and returns empty or static status options. Mobile returns local cached schedules. | Do not silently hide canonical data failures. |
-| Local dummy appointments | Yes | Patient localStorage and admin in-memory array. | Replace with backend appointment API. |
-| Manual frontend-only state transformations | Yes | `hourlyOverrides`, `extraSessions`, local capacity recompute. | Remove or make pending-only until canonical response. |
-| Obsolete API parameters | Likely for target domain | `endTime`, `capacity`, `slot_tersedia`, `status_sesi`. | Backend/frontend contract migration required. |
+| Candidate removal                          | Exists?                  | Evidence                                                                                                        | Action                                                                                 |
+| ------------------------------------------ | ------------------------ | --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Manual end-time input                      | Yes                      | Mobile `from/to`; web `jam_selesai` in DTOs and modals.                                                         | Remove as per-consultation end input. Keep boundary/window only if domain requires it. |
+| Manual empty-slot CRUD                     | Yes                      | Web `slot_tersedia`, `kuota_pasien`, `kapasitas_per_hari`; mobile `capacity`, `availableSlots`.                 | Replace with projection summaries.                                                     |
+| `Penuh` primary state                      | Yes                      | DTOs, types, calendar, grid, modals, filters, tokens.                                                           | Replace with `OCCUPIED -> Terisi`.                                                     |
+| `Cuti` primary state                       | Yes                      | Mobile status options, admin status logic, tokens, filters.                                                     | Replace with `CLOSED -> Tutup` plus `closedReason`.                                    |
+| Duplicated duration calculation            | Yes                      | Patient web increments by hardcoded 30 minutes.                                                                 | Remove local slot generation.                                                          |
+| Duplicated slot generation                 | Yes                      | Patient web and admin hourly grid both infer slots/status locally.                                              | Render backend projection.                                                             |
+| Hardcoded 30-minute values                 | Yes                      | Patient time slot picker uses `curMins + 30`.                                                                   | Use `effectiveDurationMinutes` from projection.                                        |
+| Fallback schedule data                     | Yes                      | Admin service catches errors and returns empty or static status options. Mobile returns local cached schedules. | Do not silently hide canonical data failures.                                          |
+| Local dummy appointments                   | Yes                      | Patient localStorage and admin in-memory array.                                                                 | Replace with backend appointment API.                                                  |
+| Manual frontend-only state transformations | Yes                      | `hourlyOverrides`, `extraSessions`, local capacity recompute.                                                   | Remove or make pending-only until canonical response.                                  |
+| Obsolete API parameters                    | Likely for target domain | `endTime`, `capacity`, `slot_tersedia`, `status_sesi`.                                                          | Backend/frontend contract migration required.                                          |
 
 ---
 

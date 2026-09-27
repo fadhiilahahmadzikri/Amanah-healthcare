@@ -3,13 +3,14 @@ name: leaflet
 description: >-
   Build interactive maps with Leaflet.js. Use when a user asks to create map-based applications, add markers and popups, draw shapes, handle geolocation, or integrate tile layers in web applications.
 license: Apache-2.0
-compatibility: "No special requirements"
+compatibility: 'No special requirements'
 metadata:
   author: terminal-skills
-  version: "1.0.0"
+  version: '1.0.0'
   category: data-ai
-  tags: ["maps", "open-source", "geospatial", "markers", "layers"]
+  tags: ['maps', 'open-source', 'geospatial', 'markers', 'layers']
 ---
+
 # Leaflet — Lightweight Open-Source Maps
 
 ## Overview
@@ -21,16 +22,15 @@ You are an expert in Leaflet, the lightweight open-source JavaScript library for
 ### React Integration
 
 ```tsx
-import { MapContainer, TileLayer, Marker, Popup, GeoJSON, useMap } from "react-leaflet";
-import MarkerClusterGroup from "react-leaflet-cluster";
-import "leaflet/dist/leaflet.css";
+import { MapContainer, TileLayer, Marker, Popup, GeoJSON, useMap } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-cluster';
+import 'leaflet/dist/leaflet.css';
 
 function StoreMap({ stores }) {
   return (
-    <MapContainer center={[40.75, -73.98]} zoom={12}
-                  style={{ height: "100vh", width: "100%" }}>
+    <MapContainer center={[40.75, -73.98]} zoom={12} style={{ height: '100vh', width: '100%' }}>
       <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
         attribution='&copy; OpenStreetMap contributors'
       />
 
@@ -54,14 +54,14 @@ function StoreMap({ stores }) {
 function DeliveryZones({ zones }) {
   return (
     <MapContainer center={[40.75, -73.98]} zoom={11}>
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <TileLayer url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' />
       <GeoJSON
         data={zones}
         style={(feature) => ({
-          fillColor: feature.properties.active ? "#22c55e" : "#ef4444",
+          fillColor: feature.properties.active ? '#22c55e' : '#ef4444',
           weight: 2,
           opacity: 0.8,
-          fillOpacity: 0.3,
+          fillOpacity: 0.3
         })}
         onEachFeature={(feature, layer) => {
           layer.bindPopup(`
@@ -79,24 +79,21 @@ function DeliveryZones({ zones }) {
 ### Custom Icons and Controls
 
 ```tsx
-import L from "leaflet";
+import L from 'leaflet';
 
 // Custom marker icon
 const storeIcon = new L.Icon({
-  iconUrl: "/icons/store-pin.png",
+  iconUrl: '/icons/store-pin.png',
   iconSize: [32, 32],
   iconAnchor: [16, 32],
-  popupAnchor: [0, -32],
+  popupAnchor: [0, -32]
 });
 
 // Custom map control (e.g., "Locate Me" button)
 function LocateControl() {
   const map = useMap();
   return (
-    <button
-      className="leaflet-control"
-      onClick={() => map.locate({ setView: true, maxZoom: 16 })}
-    >
+    <button className='leaflet-control' onClick={() => map.locate({ setView: true, maxZoom: 16 })}>
       📍 My Location
     </button>
   );
@@ -118,6 +115,7 @@ npm install @types/leaflet             # TypeScript types
 User: "Help me set up leaflet for my project"
 
 The agent should:
+
 1. Check system requirements and prerequisites
 2. Install or configure leaflet
 3. Set up initial project structure
@@ -128,6 +126,7 @@ The agent should:
 User: "Create a dashboard using leaflet"
 
 The agent should:
+
 1. Scaffold the component or configuration
 2. Connect to the appropriate data source
 3. Implement the requested feature

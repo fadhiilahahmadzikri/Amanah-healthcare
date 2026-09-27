@@ -70,6 +70,7 @@ interface DataProcessor {
 Code that has grown too large to handle.
 
 #### Long Method
+
 - Methods doing too many things
 - Difficult to understand at a glance
 - **Refactoring**: Extract Method, Replace Temp with Query
@@ -97,11 +98,13 @@ function processOrder(order: Order) {
 ```
 
 #### Large Class
+
 - Class with too many responsibilities
 - Too many instance variables
 - **Refactoring**: Extract Class, Extract Subclass
 
 #### Primitive Obsession
+
 - Overuse of primitives instead of small objects
 - Using strings for phone numbers, money, etc.
 - **Refactoring**: Replace Primitive with Object, Introduce Parameter Object
@@ -127,11 +130,13 @@ function createUser(
 ```
 
 #### Long Parameter List
+
 - Methods with too many parameters
 - Hard to understand and call correctly
 - **Refactoring**: Introduce Parameter Object, Preserve Whole Object
 
 #### Data Clumps
+
 - Groups of data that always appear together
 - **Refactoring**: Extract Class, Introduce Parameter Object
 
@@ -140,6 +145,7 @@ function createUser(
 Improper application of OO principles.
 
 #### Switch Statements
+
 - Complex switch/case or if/else chains
 - Often indicates missing polymorphism
 - **Refactoring**: Replace Conditional with Polymorphism, Replace Type Code with Subclasses
@@ -170,14 +176,17 @@ class Circle implements Shape {
 ```
 
 #### Temporary Field
+
 - Fields only set in certain circumstances
 - **Refactoring**: Extract Class, Introduce Null Object
 
 #### Refused Bequest
+
 - Subclass doesn't use inherited methods
 - **Refactoring**: Replace Inheritance with Delegation
 
 #### Alternative Classes with Different Interfaces
+
 - Classes doing the same thing with different method names
 - **Refactoring**: Rename Method, Extract Superclass
 
@@ -186,15 +195,18 @@ class Circle implements Shape {
 Code that makes changes difficult.
 
 #### Divergent Change
+
 - One class changes for multiple reasons
 - Violates Single Responsibility Principle
 - **Refactoring**: Extract Class
 
 #### Shotgun Surgery
+
 - One change requires modifications in many classes
 - **Refactoring**: Move Method, Move Field, Inline Class
 
 #### Parallel Inheritance Hierarchies
+
 - Creating a subclass requires creating another subclass elsewhere
 - **Refactoring**: Move Method, Move Field
 
@@ -203,6 +215,7 @@ Code that makes changes difficult.
 Code that is unnecessary.
 
 #### Duplicate Code
+
 - Same code structure in multiple places
 - **Refactoring**: Extract Method, Extract Class, Pull Up Method
 
@@ -227,14 +240,17 @@ function isValidEmail(email: string): boolean {
 ```
 
 #### Dead Code
+
 - Unreachable or unused code
 - **Refactoring**: Remove Dead Code
 
 #### Speculative Generality
+
 - Unused abstractions created "just in case"
 - **Refactoring**: Collapse Hierarchy, Inline Class, Remove Parameter
 
 #### Comments (as smell)
+
 - Comments explaining what code does (instead of why)
 - Often indicates code that should be clearer
 - **Refactoring**: Extract Method, Rename Method
@@ -258,6 +274,7 @@ if (user.age >= LEGAL_ADULT_AGE) { ... }
 Code with excessive coupling.
 
 #### Feature Envy
+
 - Method uses another class's data more than its own
 - **Refactoring**: Move Method, Extract Method
 
@@ -267,29 +284,30 @@ class OrderPrinter {
   print(order: Order) {
     console.log(`Order: ${order.id}`);
     console.log(`Customer: ${order.customer.name}`);
-    console.log(`Total: ${order.items.reduce((sum, item) =>
-      sum + item.price * item.quantity, 0)}`);
+    console.log(`Total: ${order.items.reduce((sum, item) => sum + item.price * item.quantity, 0)}`);
   }
 }
 
 // Good: Move calculation to Order
 class Order {
   getTotal(): number {
-    return this.items.reduce((sum, item) =>
-      sum + item.price * item.quantity, 0);
+    return this.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   }
 }
 ```
 
 #### Inappropriate Intimacy
+
 - Classes too dependent on each other's internals
 - **Refactoring**: Move Method, Move Field, Change Bidirectional to Unidirectional
 
 #### Message Chains
+
 - Long chains of method calls (a.b().c().d())
 - **Refactoring**: Hide Delegate, Extract Method
 
 #### Middle Man
+
 - Class that only delegates to another class
 - **Refactoring**: Remove Middle Man, Inline Method
 
@@ -298,6 +316,7 @@ class Order {
 ### Composing Methods
 
 #### Extract Method
+
 The most important refactoring. Turn code fragments into methods with intention-revealing names.
 
 ```typescript
@@ -323,9 +342,11 @@ function printDetails() {
 ```
 
 #### Inline Method
+
 When method body is as clear as its name.
 
 #### Replace Temp with Query
+
 Replace temporary variables with method calls.
 
 ```typescript
@@ -348,20 +369,25 @@ function getBasePrice() {
 ### Moving Features
 
 #### Move Method
+
 Move method to the class that uses it most.
 
 #### Move Field
+
 Move field to where it's used most.
 
 #### Extract Class
+
 When a class does work that should be done by two.
 
 #### Inline Class
+
 When a class isn't doing much.
 
 ### Organizing Data
 
 #### Replace Magic Number with Symbolic Constant
+
 Always name your constants!
 
 ```typescript
@@ -381,14 +407,17 @@ setTimeout(callback, MILLISECONDS_PER_DAY);
 ```
 
 #### Encapsulate Field
+
 Make fields private, provide accessors.
 
 #### Replace Data Value with Object
+
 When a data item needs additional behavior.
 
 ### Simplifying Conditionals
 
 #### Decompose Conditional
+
 Extract condition and branches into methods.
 
 ```typescript
@@ -408,9 +437,11 @@ if (isWinter(date)) {
 ```
 
 #### Consolidate Conditional Expression
+
 Combine conditionals that have the same result.
 
 #### Replace Nested Conditional with Guard Clauses
+
 Use early returns to reduce nesting.
 
 ```typescript
@@ -445,6 +476,7 @@ function getPayAmount() {
 ### Simplifying Method Calls
 
 #### Rename Method
+
 Names should reveal intent.
 
 ```typescript
@@ -460,12 +492,15 @@ function validateUserCredentials(credentials) { ... }
 ```
 
 #### Add/Remove Parameter
+
 Keep parameter lists minimal and meaningful.
 
 #### Introduce Parameter Object
+
 Group related parameters.
 
 #### Preserve Whole Object
+
 Pass the object instead of extracting values.
 
 ## Intention-Revealing Code
@@ -583,12 +618,14 @@ Provide review results in this format:
 # Kent Beck Style Code Review Report
 
 ## Summary
+
 - Overall Code Health: [Good/Needs Improvement/Critical]
 - Key findings summary
 
 ## Code Smells Detected
 
 ### [Smell Category]: [Specific Smell]
+
 - **Location**: file:line
 - **Description**: What the problem is
 - **Impact**: Why it matters
@@ -597,15 +634,19 @@ Provide review results in this format:
 ## Refactoring Recommendations
 
 ### High Priority
+
 1. [Most impactful improvements]
 
 ### Medium Priority
+
 1. [Moderate improvements]
 
 ### Low Priority (Nice to Have)
+
 1. [Minor improvements]
 
 ## Positive Aspects
+
 - What the code does well
 ```
 

@@ -56,4 +56,3 @@ export async function clearAuthCookies(): Promise<void> {
     // Mutations are only allowed in Server Actions or Route Handlers.
   }
 }
-

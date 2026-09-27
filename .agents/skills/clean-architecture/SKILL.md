@@ -20,6 +20,7 @@ This skill analyzes and reviews code based on Robert C. Martin's (Uncle Bob) Cle
 ### 1. Project Structure Analysis
 
 First, understand the project's directory structure:
+
 - Check if layers are separated
 - Examine module/package structure
 - Identify dependency direction
@@ -45,6 +46,7 @@ First, understand the project's directory structure:
 ```
 
 Checklist:
+
 - Do inner layers avoid referencing outer layers?
 - Are Entities unaware of Use Cases, Adapters, and Infrastructure?
 - Do Use Cases avoid directly referencing Adapters or Infrastructure?
@@ -61,6 +63,7 @@ Controller → Use Case → Presenter
 ```
 
 Example: When Use Case needs to call Presenter
+
 - Directly referencing Presenter from Use Case violates the dependency rule
 - **Solution**: Define Output Port (interface) inside Use Case, Presenter implements it
 
@@ -93,14 +96,16 @@ class OrderPresenter implements OrderOutputPort {
 ```typescript
 // Bad: Passing Entity directly
 class GetUserUseCase {
-  execute(): User { // Returning Entity directly
+  execute(): User {
+    // Returning Entity directly
     return this.userRepository.findById(id);
   }
 }
 
 // Good: Transform to DTO
 class GetUserUseCase {
-  execute(): UserResponseDTO { // Simple data structure
+  execute(): UserResponseDTO {
+    // Simple data structure
     const user = this.userRepository.findById(id);
     return { id: user.id, name: user.name };
   }
@@ -108,6 +113,7 @@ class GetUserUseCase {
 ```
 
 Checklist:
+
 - Are Entities or Database Rows not crossing boundaries directly?
 - Are external framework data formats not penetrating inner layers?
 - Are appropriate DTOs defined for each layer?
@@ -115,40 +121,48 @@ Checklist:
 ### 3. Layer Structure Review
 
 #### Entities (Domain Layer)
+
 - Contains core business rules
 - No external dependencies
 - Least likely to change
 
 Checklist:
+
 - Does Entity avoid depending on frameworks?
 - Does it contain only pure business logic?
 - Are there no external library imports?
 
 #### Use Cases (Application Layer)
+
 - Application-specific business rules
 - Orchestrates Entities to implement features
 - Defines interfaces for external systems
 
 Checklist:
+
 - Does each Use Case have a single responsibility?
 - Are Input/Output ports clearly defined?
 - Does it use Repository interfaces (not implementations)?
 
 #### Interface Adapters
+
 - Handles data transformation
 - Contains Controllers, Presenters, Gateways
 - Can apply patterns like MVC, MVVM
 
 Checklist:
+
 - Is transformation between DTOs and Entities happening here?
 - Is the separation between external and internal formats clear?
 
 #### Frameworks & Drivers (Infrastructure Layer)
+
 - DB, Web Framework, external services
 - Mostly glue code
 - Most likely to change
 
 Checklist:
+
 - Are framework dependencies isolated to this layer?
 - Are Repository implementations located here?
 
@@ -156,13 +170,13 @@ Checklist:
 
 Object-oriented design principles used in Clean Architecture implementation. **DIP** is essential for Crossing Boundaries.
 
-| Principle | Description | Clean Architecture Relevance |
-|-----------|-------------|------------------------------|
-| **SRP** | A class should have only one reason to change | Layer responsibility separation |
-| **OCP** | Open for extension, closed for modification | Extension through interfaces |
-| **LSP** | Subtypes must be substitutable for base types | Implementation replaceability |
-| **ISP** | Don't depend on interfaces you don't use | Port interface segregation |
-| **DIP** | Depend on abstractions, not concretions | **Core of Crossing Boundaries** |
+| Principle | Description                                   | Clean Architecture Relevance    |
+| --------- | --------------------------------------------- | ------------------------------- |
+| **SRP**   | A class should have only one reason to change | Layer responsibility separation |
+| **OCP**   | Open for extension, closed for modification   | Extension through interfaces    |
+| **LSP**   | Subtypes must be substitutable for base types | Implementation replaceability   |
+| **ISP**   | Don't depend on interfaces you don't use      | Port interface segregation      |
+| **DIP**   | Depend on abstractions, not concretions       | **Core of Crossing Boundaries** |
 
 ## Output Format
 
@@ -172,20 +186,27 @@ Provide review results in this format:
 # Clean Architecture Review Report
 
 ## Summary
+
 - Overall Assessment: [Good/Needs Improvement/Critical]
 - Key findings summary
 
 ## Dependency Rule Analysis
+
 - List of violations
 - Improvement suggestions
 
 ## Layer Structure Review
+
 ### Entities: [Good/Needs Improvement]
+
 ### Use Cases: [Good/Needs Improvement]
+
 ### Interface Adapters: [Good/Needs Improvement]
+
 ### Infrastructure: [Good/Needs Improvement]
 
 ## Recommendations
+
 1. High priority improvements
 2. Medium priority improvements
 3. Long-term suggestions
@@ -209,6 +230,7 @@ Provide review results in this format:
 ### Key Questions
 
 Always consider these questions during review:
+
 - "Does this separation actually provide benefits?"
 - "Is the dependency rule truly being followed?"
 - "Is the impact scope minimized when changes occur?"
@@ -216,6 +238,7 @@ Always consider these questions during review:
 ### Practical Verification
 
 Ask yourself if you're really benefiting from Clean Architecture:
+
 - Is it the layer separation that helps, or just IDE auto-refactoring?
 - Is a Repository interface with only one implementation really necessary?
 - Are you over-abstracting for a 0.001% chance of future change?
@@ -224,6 +247,7 @@ Ask yourself if you're really benefiting from Clean Architecture:
 ## Language-Specific Examples
 
 ### TypeScript/JavaScript
+
 ```typescript
 // Good: Dependency Inversion
 interface UserRepository {
@@ -241,6 +265,7 @@ class GetUserUseCase {
 ```
 
 ### Python
+
 ```python
 # Good: Interface definition using Protocol
 from typing import Protocol
@@ -253,6 +278,7 @@ from infrastructure.postgres import PostgresUserRepository
 ```
 
 ### Java/Kotlin
+
 ```kotlin
 // Good: Interface segregation
 interface UserRepository {

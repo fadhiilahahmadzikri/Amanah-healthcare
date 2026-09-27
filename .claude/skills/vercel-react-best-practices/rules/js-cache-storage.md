@@ -15,7 +15,6 @@ tags: javascript, localStorage, storage, caching, performance
 function getTheme() {
   return localStorage.getItem('theme') ?? 'light';
 }
-
 ```
 
 **Correct (Map cache):**

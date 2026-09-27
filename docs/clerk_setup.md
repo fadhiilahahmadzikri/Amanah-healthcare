@@ -85,7 +85,6 @@ Clerk Billing costs **0.7% per transaction**, plus transaction fees which are pa
 **Server-side checks using `has()`:**
 
 ```typescript
-
 const hasPremiumAccess = has({ plan: 'gold' });
 
 const hasPremiumAccess = has({ feature: 'widgets' });

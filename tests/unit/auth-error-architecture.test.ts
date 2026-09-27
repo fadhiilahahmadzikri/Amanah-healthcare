@@ -221,8 +221,12 @@ describe('Auth Error Architecture & Taxonomy', () => {
       };
 
       const tokenStore = await import('@/server/auth/token-store');
-      const getAccessSpy = spyOn(tokenStore, 'getAccessTokenCookie').mockImplementation(async () => 'expired-token');
-      const getRefreshSpy = spyOn(tokenStore, 'getRefreshTokenCookie').mockImplementation(async () => null);
+      const getAccessSpy = spyOn(tokenStore, 'getAccessTokenCookie').mockImplementation(
+        async () => 'expired-token'
+      );
+      const getRefreshSpy = spyOn(tokenStore, 'getRefreshTokenCookie').mockImplementation(
+        async () => null
+      );
 
       const result = await getCurrentUserQuery(mockRepo);
       expect(result.ok).toBe(true);
@@ -247,7 +251,9 @@ describe('Auth Error Architecture & Taxonomy', () => {
       };
 
       const tokenStore = await import('@/server/auth/token-store');
-      const getAccessSpy = spyOn(tokenStore, 'getAccessTokenCookie').mockImplementation(async () => 'token');
+      const getAccessSpy = spyOn(tokenStore, 'getAccessTokenCookie').mockImplementation(
+        async () => 'token'
+      );
 
       const result = await getCurrentUserQuery(mockRepo);
       expect(result.ok).toBe(false);
@@ -270,7 +276,9 @@ describe('Auth Error Architecture & Taxonomy', () => {
       });
 
       const queryModule = await import('@/server/services/auth/get-current-user.query');
-      const querySpy = spyOn(queryModule, 'getCurrentUserQuery').mockImplementation(async () => ok(null));
+      const querySpy = spyOn(queryModule, 'getCurrentUserQuery').mockImplementation(async () =>
+        ok(null)
+      );
 
       let caughtErr: unknown;
       try {

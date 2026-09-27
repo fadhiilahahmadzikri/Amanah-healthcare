@@ -1,6 +1,7 @@
 # Styling Architecture — Frontend Component Systems
 
 ## Table of Contents
+
 1. [Strategy Selection](#strategy-selection)
 2. [CSS Modules](#css-modules)
 3. [Tailwind CSS Integration](#tailwind-css-integration)
@@ -15,12 +16,12 @@
 
 Choose one primary styling strategy per project and enforce it consistently. Mixing multiple strategies (CSS Modules + styled-components + inline styles) creates maintenance overhead and architectural inconsistency.
 
-| Strategy | Best for | Avoid when |
-|---|---|---|
-| CSS Modules | Component-scoped styles, SSR-first projects, no design system toolchain | You need dynamic styles based on JS values at runtime |
-| Tailwind CSS | Rapid UI development, design-token-aligned utilities, large teams | Custom visual design far outside Tailwind's constraint system |
-| CSS-in-JS (vanilla-extract, linaria) | Zero-runtime type-safe styles, design system tokens in TypeScript | Bundle size is critical, SSR complexity is undesirable |
-| Styled-components / Emotion | Runtime theming, component style encapsulation with JS values | Performance-critical apps (runtime style injection cost) |
+| Strategy                             | Best for                                                                | Avoid when                                                    |
+| ------------------------------------ | ----------------------------------------------------------------------- | ------------------------------------------------------------- |
+| CSS Modules                          | Component-scoped styles, SSR-first projects, no design system toolchain | You need dynamic styles based on JS values at runtime         |
+| Tailwind CSS                         | Rapid UI development, design-token-aligned utilities, large teams       | Custom visual design far outside Tailwind's constraint system |
+| CSS-in-JS (vanilla-extract, linaria) | Zero-runtime type-safe styles, design system tokens in TypeScript       | Bundle size is critical, SSR complexity is undesirable        |
+| Styled-components / Emotion          | Runtime theming, component style encapsulation with JS values           | Performance-critical apps (runtime style injection cost)      |
 
 **Enterprise recommendation:** CSS Modules for component styles + CSS custom properties for design tokens, or Tailwind CSS with a curated config.
 
@@ -31,6 +32,7 @@ Choose one primary styling strategy per project and enforce it consistently. Mix
 CSS Modules provide locally scoped class names, eliminating global name collision without requiring a runtime.
 
 **File structure:**
+
 ```
 Button/
   Button.tsx
@@ -38,6 +40,7 @@ Button/
 ```
 
 **Button.module.css:**
+
 ```css
 .root {
   display: inline-flex;
@@ -45,7 +48,9 @@ Button/
   justify-content: center;
   border-radius: var(--radius-md);
   font-weight: var(--font-weight-medium);
-  transition: background-color 150ms ease, box-shadow 150ms ease;
+  transition:
+    background-color 150ms ease,
+    box-shadow 150ms ease;
   cursor: pointer;
 }
 
@@ -55,7 +60,7 @@ Button/
 }
 
 .root[disabled],
-.root[aria-disabled="true"] {
+.root[aria-disabled='true'] {
   opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
@@ -83,23 +88,28 @@ Button/
 }
 
 /* Sizes */
-.sm { padding: var(--space-1) var(--space-3); font-size: var(--font-size-sm); }
-.md { padding: var(--space-2) var(--space-4); font-size: var(--font-size-md); }
-.lg { padding: var(--space-3) var(--space-6); font-size: var(--font-size-lg); }
+.sm {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-sm);
+}
+.md {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-md);
+}
+.lg {
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--font-size-lg);
+}
 ```
 
 **Button.tsx usage:**
+
 ```tsx
 import styles from './Button.module.css';
 import { cn } from '@/lib/utils/cn';
 
 function Button({ variant = 'primary', size = 'md', className, ...rest }: ButtonProps) {
-  return (
-    <button
-      className={cn(styles.root, styles[variant], styles[size], className)}
-      {...rest}
-    />
-  );
+  return <button className={cn(styles.root, styles[variant], styles[size], className)} {...rest} />;
 }
 ```
 
@@ -110,6 +120,7 @@ function Button({ variant = 'primary', size = 'md', className, ...rest }: Button
 When using Tailwind, establish conventions to prevent arbitrary class proliferation and maintain consistency.
 
 **curated tailwind.config.ts:**
+
 ```ts
 import type { Config } from 'tailwindcss';
 
@@ -140,6 +151,7 @@ const config: Config = {
 Map Tailwind's scale to CSS custom properties — this keeps the design token system as the single source of truth.
 
 **Class variant management with `cva`:**
+
 ```tsx
 import { cva, type VariantProps } from 'class-variance-authority';
 
@@ -151,18 +163,18 @@ const buttonVariants = cva(
         primary: 'bg-primary-500 text-white hover:bg-primary-600',
         secondary: 'border border-neutral-300 bg-transparent hover:bg-neutral-50',
         ghost: 'bg-transparent text-primary-500 hover:bg-primary-50',
-        destructive: 'bg-red-500 text-white hover:bg-red-600',
+        destructive: 'bg-red-500 text-white hover:bg-red-600'
       },
       size: {
         sm: 'h-8 px-3 text-sm',
         md: 'h-10 px-4 text-base',
-        lg: 'h-12 px-6 text-lg',
-      },
+        lg: 'h-12 px-6 text-lg'
+      }
     },
     defaultVariants: {
       variant: 'primary',
-      size: 'md',
-    },
+      size: 'md'
+    }
   }
 );
 
@@ -170,9 +182,7 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
   VariantProps<typeof buttonVariants>;
 
 function Button({ variant, size, className, ...rest }: ButtonProps) {
-  return (
-    <button className={cn(buttonVariants({ variant, size }), className)} {...rest} />
-  );
+  return <button className={cn(buttonVariants({ variant, size }), className)} {...rest} />;
 }
 ```
 
@@ -183,6 +193,7 @@ function Button({ variant, size, className, ...rest }: ButtonProps) {
 All spacing, color, typography, radius, shadow, and z-index values must be defined as CSS custom properties (tokens). No magic numbers in component styles.
 
 **styles/tokens.css:**
+
 ```css
 :root {
   /* Color primitives */
@@ -190,14 +201,14 @@ All spacing, color, typography, radius, shadow, and z-index values must be defin
   --color-primary-500: #3b82f6;
   --color-primary-600: #2563eb;
   --color-primary-900: #1e3a8a;
-  
+
   --color-neutral-50: #f9fafb;
   --color-neutral-100: #f3f4f6;
   --color-neutral-300: #d1d5db;
   --color-neutral-500: #6b7280;
   --color-neutral-700: #374151;
   --color-neutral-900: #111827;
-  
+
   /* Semantic aliases */
   --color-text-primary: var(--color-neutral-900);
   --color-text-secondary: var(--color-neutral-500);
@@ -205,7 +216,7 @@ All spacing, color, typography, radius, shadow, and z-index values must be defin
   --color-background: var(--color-neutral-50);
   --color-surface: #ffffff;
   --color-focus-ring: var(--color-primary-500);
-  
+
   /* Spacing scale */
   --space-1: 4px;
   --space-2: 8px;
@@ -281,16 +292,16 @@ For CSS Modules projects, `clsx` alone is sufficient (no Tailwind class conflict
 
 ## Styling Anti-Patterns
 
-| Anti-pattern | Problem | Fix |
-|---|---|---|
-| Inline styles for static values | Not cacheable, cannot be overridden, no design tokens | Use CSS classes or CSS Modules |
-| `style={{ color: 'red' }}` for error states | Bypasses design system color tokens | Use semantic class names tied to tokens |
-| Global class names without scoping | Name collisions, specificity wars | CSS Modules or scoped utility classes |
-| CSS nesting that mirrors component tree | Creates tight CSS-to-JSX coupling, brittle | Flat class names with descriptive names |
-| `!important` | Unpredictable cascade, unsalvageable override chain | Fix specificity at the source |
-| Mixing em/rem/px arbitrarily | Inconsistent scaling across viewports | Use rem for all sizing via token system |
-| Hardcoded hex values in components | Token drift, impossible to theme | Always reference CSS custom properties |
-| Styling via JavaScript object spreading | No static analysis, no browser caching | CSS Modules or utility classes |
+| Anti-pattern                                | Problem                                               | Fix                                     |
+| ------------------------------------------- | ----------------------------------------------------- | --------------------------------------- |
+| Inline styles for static values             | Not cacheable, cannot be overridden, no design tokens | Use CSS classes or CSS Modules          |
+| `style={{ color: 'red' }}` for error states | Bypasses design system color tokens                   | Use semantic class names tied to tokens |
+| Global class names without scoping          | Name collisions, specificity wars                     | CSS Modules or scoped utility classes   |
+| CSS nesting that mirrors component tree     | Creates tight CSS-to-JSX coupling, brittle            | Flat class names with descriptive names |
+| `!important`                                | Unpredictable cascade, unsalvageable override chain   | Fix specificity at the source           |
+| Mixing em/rem/px arbitrarily                | Inconsistent scaling across viewports                 | Use rem for all sizing via token system |
+| Hardcoded hex values in components          | Token drift, impossible to theme                      | Always reference CSS custom properties  |
+| Styling via JavaScript object spreading     | No static analysis, no browser caching                | CSS Modules or utility classes          |
 
 ---
 
@@ -299,6 +310,7 @@ For CSS Modules projects, `clsx` alone is sufficient (no Tailwind class conflict
 Use a mobile-first approach with consistent breakpoint tokens.
 
 **Breakpoint tokens:**
+
 ```css
 :root {
   --breakpoint-sm: 640px;
@@ -310,6 +322,7 @@ Use a mobile-first approach with consistent breakpoint tokens.
 ```
 
 **CSS Modules responsive pattern:**
+
 ```css
 .grid {
   display: grid;

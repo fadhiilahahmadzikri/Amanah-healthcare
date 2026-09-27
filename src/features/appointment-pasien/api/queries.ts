@@ -12,7 +12,7 @@ export const appointmentKeys = {
   all: ['admin-appointments'] as const,
   list: (filters: AppointmentFilters) => [...appointmentKeys.all, 'list', filters] as const,
   summary: () => [...appointmentKeys.all, 'summary'] as const,
-  detail: (id: number) => [...appointmentKeys.all, 'detail', id] as const
+  detail: (id: number | string) => [...appointmentKeys.all, 'detail', id] as const
 };
 
 export const appointmentQueryOptions = (filters: AppointmentFilters) =>
@@ -27,7 +27,7 @@ export const appointmentSummaryQueryOptions = () =>
     queryFn: () => getAdminAppointmentSummary()
   });
 
-export const appointmentDetailQueryOptions = (id: number) =>
+export const appointmentDetailQueryOptions = (id: number | string) =>
   queryOptions({
     queryKey: appointmentKeys.detail(id),
     queryFn: () => getAdminAppointmentById(id)

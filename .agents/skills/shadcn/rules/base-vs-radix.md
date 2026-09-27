@@ -74,7 +74,6 @@ When `render` changes an element to a non-button (`<a>`, `<span>`), add `nativeB
 Same for triggers whose `render` is not a `Button`:
 
 ```tsx
-
 <PopoverTrigger render={<InputGroupAddon />} nativeButton={false}>
   Pick date
 </PopoverTrigger>

@@ -13,7 +13,6 @@ Pass a function to `useState` for expensive initial values. Without the function
 
 ```tsx
 function FilteredList({ items }: { items: Item[] }) {
-
   const [searchIndex, setSearchIndex] = useState(buildSearchIndex(items));
   const [query, setQuery] = useState('');
 
@@ -21,7 +20,6 @@ function FilteredList({ items }: { items: Item[] }) {
 }
 
 function UserProfile() {
-
   const [settings, setSettings] = useState(JSON.parse(localStorage.getItem('settings') || '{}'));
 
   return <SettingsForm settings={settings} onChange={setSettings} />;
@@ -32,7 +30,6 @@ function UserProfile() {
 
 ```tsx
 function FilteredList({ items }: { items: Item[] }) {
-
   const [searchIndex, setSearchIndex] = useState(() => buildSearchIndex(items));
   const [query, setQuery] = useState('');
 
@@ -40,7 +37,6 @@ function FilteredList({ items }: { items: Item[] }) {
 }
 
 function UserProfile() {
-
   const [settings, setSettings] = useState(() => {
     const stored = localStorage.getItem('settings');
     return stored ? JSON.parse(stored) : {};

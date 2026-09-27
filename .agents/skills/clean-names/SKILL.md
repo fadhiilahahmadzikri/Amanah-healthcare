@@ -127,12 +127,12 @@ def get_or_create_config():
 
 ## Quick Reference
 
-| Rule | Principle | Example |
-|------|-----------|---------|
-| N1 | Descriptive names | `SECONDS_PER_DAY` not `d` |
-| N2 | Right abstraction level | `get_user_directory()` not `get_dict_of_...` |
-| N3 | Standard nomenclature | `UserFactory`, `calculate_amortization` |
-| N4 | Unambiguous | `rename_file(old_path, new_path)` |
-| N5 | Length matches scope | Short for loops, long for globals |
-| N6 | No encodings | `users` not `lst_users` |
-| N7 | Describe side effects | `get_or_create_config()` |
+| Rule | Principle               | Example                                      |
+| ---- | ----------------------- | -------------------------------------------- |
+| N1   | Descriptive names       | `SECONDS_PER_DAY` not `d`                    |
+| N2   | Right abstraction level | `get_user_directory()` not `get_dict_of_...` |
+| N3   | Standard nomenclature   | `UserFactory`, `calculate_amortization`      |
+| N4   | Unambiguous             | `rename_file(old_path, new_path)`            |
+| N5   | Length matches scope    | Short for loops, long for globals            |
+| N6   | No encodings            | `users` not `lst_users`                      |
+| N7   | Describe side effects   | `get_or_create_config()`                     |

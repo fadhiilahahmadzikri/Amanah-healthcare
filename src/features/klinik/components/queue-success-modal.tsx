@@ -89,7 +89,7 @@ export function QueueSuccessModal({
         /* STATE 2: REUSABLE QUEUE TICKET CARD DENGAN GSAP & CONFETTI */
         <div className='w-full flex justify-center py-1'>
           <QueueTicketCard
-            queueNumber={queueItem?.queue_number || '-'}
+            queueNumber={queueItem?.queue_number || appointment?.queue_number || '-'}
             serviceName={appointment?.service || queueItem?.poli || '-'}
             doctorName={appointment?.doctor_name || queueItem?.doctor_name || '-'}
             dateStr={appointment?.date || '-'}

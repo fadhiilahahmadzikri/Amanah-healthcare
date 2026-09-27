@@ -213,8 +213,7 @@ export function ClinicProfileView() {
   const displayKelurahan = patientData?.kelurahan || patientData?.addressDetail?.villageName || '-';
   const displayKecamatan =
     patientData?.kecamatan || patientData?.addressDetail?.districtName || '-';
-  const displayKabupaten =
-    patientData?.kabupaten || patientData?.addressDetail?.regencyName || '-';
+  const displayKabupaten = patientData?.kabupaten || patientData?.addressDetail?.regencyName || '-';
   const displayProvinsi = patientData?.provinsi || patientData?.addressDetail?.provinceName || '-';
 
   const displayEmName =
@@ -291,7 +290,10 @@ export function ClinicProfileView() {
                   </span>
                 </h2>
                 {patientData?.medicalRecordNumber && (
-                  <Badge variant='outline' className='text-[11px] font-semibold bg-primary/5 text-primary border-primary/20'>
+                  <Badge
+                    variant='outline'
+                    className='text-[11px] font-semibold bg-primary/5 text-primary border-primary/20'
+                  >
                     Rekam Medis: {patientData.medicalRecordNumber}
                   </Badge>
                 )}
@@ -305,45 +307,45 @@ export function ClinicProfileView() {
             <div className='grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 py-6 my-6 border-y border-border/50'>
               <div className='space-y-1'>
                 <span className='text-xs text-muted-foreground font-normal'>No. Rekam Medis</span>
-                <p className='text-sm sm:text-base font-bold text-foreground'>
-                  {displayMrn}
-                </p>
+                <p className='text-sm sm:text-base font-bold text-foreground'>{displayMrn}</p>
               </div>
 
               <div className='space-y-1'>
                 <span className='text-xs text-muted-foreground font-normal'>NIK</span>
-                <p className='text-sm sm:text-base font-bold text-foreground'>
-                  {displayNik}
-                </p>
+                <p className='text-sm sm:text-base font-bold text-foreground'>{displayNik}</p>
               </div>
 
               <div className='space-y-1'>
                 <span className='text-xs text-muted-foreground font-normal'>Jenis Kelamin</span>
-                <p className='text-sm sm:text-base font-bold text-foreground'>
-                  {displayGender}
-                </p>
+                <p className='text-sm sm:text-base font-bold text-foreground'>{displayGender}</p>
               </div>
 
               <div className='space-y-1'>
-                <span className='text-xs text-muted-foreground font-normal'>Tempat, Tanggal Lahir</span>
-                <p className='text-sm sm:text-base font-bold text-foreground'>
-                  {displayBirth}
-                </p>
+                <span className='text-xs text-muted-foreground font-normal'>
+                  Tempat, Tanggal Lahir
+                </span>
+                <p className='text-sm sm:text-base font-bold text-foreground'>{displayBirth}</p>
               </div>
             </div>
 
             {/* 4. Section 1: Demografi & Kependudukan */}
             <div className='grid grid-cols-1 lg:grid-cols-12 gap-6 pb-8 border-b border-border/50'>
               <div className='lg:col-span-4 space-y-1'>
-                <h3 className='text-sm sm:text-base font-bold text-foreground'>Demografi & Kependudukan</h3>
+                <h3 className='text-sm sm:text-base font-bold text-foreground'>
+                  Demografi & Kependudukan
+                </h3>
                 <p className='text-xs sm:text-sm text-muted-foreground leading-relaxed'>
-                  Informasi resmi kependudukan dan status sosial pasien yang tercatat pada rekam medis.
+                  Informasi resmi kependudukan dan status sosial pasien yang tercatat pada rekam
+                  medis.
                 </p>
               </div>
 
               <div className='lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl'>
                 <div className='space-y-1.5'>
-                  <Label htmlFor='view-demografi-name' className='text-xs font-semibold text-muted-foreground'>
+                  <Label
+                    htmlFor='view-demografi-name'
+                    className='text-xs font-semibold text-muted-foreground'
+                  >
                     Nama Lengkap Pasien
                   </Label>
                   <Input
@@ -355,7 +357,10 @@ export function ClinicProfileView() {
                 </div>
 
                 <div className='space-y-1.5'>
-                  <Label htmlFor='view-demografi-ibu' className='text-xs font-semibold text-muted-foreground'>
+                  <Label
+                    htmlFor='view-demografi-ibu'
+                    className='text-xs font-semibold text-muted-foreground'
+                  >
                     Nama Ibu Kandung
                   </Label>
                   <Input
@@ -367,7 +372,10 @@ export function ClinicProfileView() {
                 </div>
 
                 <div className='space-y-1.5'>
-                  <Label htmlFor='view-demografi-pekerjaan' className='text-xs font-semibold text-muted-foreground'>
+                  <Label
+                    htmlFor='view-demografi-pekerjaan'
+                    className='text-xs font-semibold text-muted-foreground'
+                  >
                     Pekerjaan / Profesi
                   </Label>
                   <Input
@@ -379,7 +387,10 @@ export function ClinicProfileView() {
                 </div>
 
                 <div className='space-y-1.5'>
-                  <Label htmlFor='view-demografi-phone' className='text-xs font-semibold text-muted-foreground'>
+                  <Label
+                    htmlFor='view-demografi-phone'
+                    className='text-xs font-semibold text-muted-foreground'
+                  >
                     Nomor Telepon / WhatsApp
                   </Label>
                   <Input
@@ -395,15 +406,21 @@ export function ClinicProfileView() {
             {/* 5. Section 2: Alamat Domisili Terstruktur */}
             <div className='grid grid-cols-1 lg:grid-cols-12 gap-6 py-8 border-b border-border/50'>
               <div className='lg:col-span-4 space-y-1'>
-                <h3 className='text-sm sm:text-base font-bold text-foreground'>Alamat Domisili Terstruktur</h3>
+                <h3 className='text-sm sm:text-base font-bold text-foreground'>
+                  Alamat Domisili Terstruktur
+                </h3>
                 <p className='text-xs sm:text-sm text-muted-foreground leading-relaxed'>
-                  Alamat tempat tinggal pasien yang terdaftar untuk keperluan rujukan dan administrasi klinik.
+                  Alamat tempat tinggal pasien yang terdaftar untuk keperluan rujukan dan
+                  administrasi klinik.
                 </p>
               </div>
 
               <div className='lg:col-span-8 space-y-4 max-w-2xl'>
                 <div className='space-y-1.5'>
-                  <Label htmlFor='view-domisili-detail' className='text-xs font-semibold text-muted-foreground'>
+                  <Label
+                    htmlFor='view-domisili-detail'
+                    className='text-xs font-semibold text-muted-foreground'
+                  >
                     Alamat Lengkap / Jalan
                   </Label>
                   <Input
@@ -416,7 +433,10 @@ export function ClinicProfileView() {
 
                 <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                   <div className='space-y-1.5'>
-                    <Label htmlFor='view-domisili-kelurahan' className='text-xs font-semibold text-muted-foreground'>
+                    <Label
+                      htmlFor='view-domisili-kelurahan'
+                      className='text-xs font-semibold text-muted-foreground'
+                    >
                       Kelurahan / Desa
                     </Label>
                     <Input
@@ -428,7 +448,10 @@ export function ClinicProfileView() {
                   </div>
 
                   <div className='space-y-1.5'>
-                    <Label htmlFor='view-domisili-kecamatan' className='text-xs font-semibold text-muted-foreground'>
+                    <Label
+                      htmlFor='view-domisili-kecamatan'
+                      className='text-xs font-semibold text-muted-foreground'
+                    >
                       Kecamatan
                     </Label>
                     <Input
@@ -440,7 +463,10 @@ export function ClinicProfileView() {
                   </div>
 
                   <div className='space-y-1.5'>
-                    <Label htmlFor='view-domisili-kabupaten' className='text-xs font-semibold text-muted-foreground'>
+                    <Label
+                      htmlFor='view-domisili-kabupaten'
+                      className='text-xs font-semibold text-muted-foreground'
+                    >
                       Kabupaten / Kota
                     </Label>
                     <Input
@@ -452,7 +478,10 @@ export function ClinicProfileView() {
                   </div>
 
                   <div className='space-y-1.5'>
-                    <Label htmlFor='view-domisili-provinsi' className='text-xs font-semibold text-muted-foreground'>
+                    <Label
+                      htmlFor='view-domisili-provinsi'
+                      className='text-xs font-semibold text-muted-foreground'
+                    >
                       Provinsi
                     </Label>
                     <Input
@@ -469,7 +498,9 @@ export function ClinicProfileView() {
             {/* 6. Section 3: Kontak Darurat & Catatan Medis */}
             <div className='grid grid-cols-1 lg:grid-cols-12 gap-6 py-8 border-b border-border/50'>
               <div className='lg:col-span-4 space-y-1'>
-                <h3 className='text-sm sm:text-base font-bold text-foreground'>Kontak Darurat & Catatan Medis</h3>
+                <h3 className='text-sm sm:text-base font-bold text-foreground'>
+                  Kontak Darurat & Catatan Medis
+                </h3>
                 <p className='text-xs sm:text-sm text-muted-foreground leading-relaxed'>
                   Informasi kontak keluarga darurat dan catatan penting untuk rujukan medis dokter.
                 </p>
@@ -478,7 +509,10 @@ export function ClinicProfileView() {
               <div className='lg:col-span-8 space-y-4 max-w-2xl'>
                 <div className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
                   <div className='space-y-1.5'>
-                    <Label htmlFor='view-medis-em-name' className='text-xs font-semibold text-muted-foreground'>
+                    <Label
+                      htmlFor='view-medis-em-name'
+                      className='text-xs font-semibold text-muted-foreground'
+                    >
                       Nama Kontak Darurat
                     </Label>
                     <Input
@@ -490,7 +524,10 @@ export function ClinicProfileView() {
                   </div>
 
                   <div className='space-y-1.5'>
-                    <Label htmlFor='view-medis-em-phone' className='text-xs font-semibold text-muted-foreground'>
+                    <Label
+                      htmlFor='view-medis-em-phone'
+                      className='text-xs font-semibold text-muted-foreground'
+                    >
                       Nomor Telepon Kontak
                     </Label>
                     <Input
@@ -502,7 +539,10 @@ export function ClinicProfileView() {
                   </div>
 
                   <div className='space-y-1.5'>
-                    <Label htmlFor='view-medis-em-rel' className='text-xs font-semibold text-muted-foreground'>
+                    <Label
+                      htmlFor='view-medis-em-rel'
+                      className='text-xs font-semibold text-muted-foreground'
+                    >
                       Hubungan
                     </Label>
                     <Input
@@ -516,7 +556,10 @@ export function ClinicProfileView() {
 
                 <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                   <div className='space-y-1.5'>
-                    <Label htmlFor='view-medis-blood' className='text-xs font-semibold text-muted-foreground'>
+                    <Label
+                      htmlFor='view-medis-blood'
+                      className='text-xs font-semibold text-muted-foreground'
+                    >
                       Golongan Darah
                     </Label>
                     <Input
@@ -528,7 +571,10 @@ export function ClinicProfileView() {
                   </div>
 
                   <div className='space-y-1.5'>
-                    <Label htmlFor='view-medis-allergies' className='text-xs font-semibold text-muted-foreground'>
+                    <Label
+                      htmlFor='view-medis-allergies'
+                      className='text-xs font-semibold text-muted-foreground'
+                    >
                       Alergi Obat / Makanan
                     </Label>
                     <Input
@@ -541,7 +587,10 @@ export function ClinicProfileView() {
                 </div>
 
                 <div className='space-y-1.5'>
-                  <Label htmlFor='view-medis-history' className='text-xs font-semibold text-muted-foreground'>
+                  <Label
+                    htmlFor='view-medis-history'
+                    className='text-xs font-semibold text-muted-foreground'
+                  >
                     Riwayat Penyakit / Catatan Tambahan
                   </Label>
                   <Input
@@ -585,8 +634,9 @@ export function ClinicProfileView() {
                   <span>Hapus Akun Permanen (Zona Bahaya)</span>
                 </h3>
                 <p className='text-xs sm:text-sm text-muted-foreground leading-relaxed'>
-                  Sesuai hak privasi data (GDPR Right to Erasure), tindakan ini akan menghapus akun, profil pasien,
-                  nomor rekam medis, riwayat antrean, dan seluruh data Anda secara permanen (*hard-purge*).
+                  Sesuai hak privasi data (GDPR Right to Erasure), tindakan ini akan menghapus akun,
+                  profil pasien, nomor rekam medis, riwayat antrean, dan seluruh data Anda secara
+                  permanen (*hard-purge*).
                 </p>
               </div>
 
@@ -604,22 +654,35 @@ export function ClinicProfileView() {
           <DialogHeader>
             <DialogTitle className='text-base sm:text-lg font-bold'>Edit Profil Pasien</DialogTitle>
             <DialogDescription className='text-xs text-muted-foreground'>
-              Perbarui rincian identitas kependudukan, domisili, kontak darurat, dan catatan medis Anda di bawah ini.
+              Perbarui rincian identitas kependudukan, domisili, kontak darurat, dan catatan medis
+              Anda di bawah ini.
             </DialogDescription>
           </DialogHeader>
 
-          <Tabs defaultValue='demografi' className='w-full flex-1 overflow-hidden flex flex-col pt-2'>
+          <Tabs
+            defaultValue='demografi'
+            className='w-full flex-1 overflow-hidden flex flex-col pt-2'
+          >
             <TabsList className='grid grid-cols-3 w-full mb-3'>
-              <TabsTrigger value='demografi' className='text-xs'>Demografi</TabsTrigger>
-              <TabsTrigger value='domisili' className='text-xs'>Alamat Domisili</TabsTrigger>
-              <TabsTrigger value='medis' className='text-xs'>Kontak & Medis</TabsTrigger>
+              <TabsTrigger value='demografi' className='text-xs'>
+                Demografi
+              </TabsTrigger>
+              <TabsTrigger value='domisili' className='text-xs'>
+                Alamat Domisili
+              </TabsTrigger>
+              <TabsTrigger value='medis' className='text-xs'>
+                Kontak & Medis
+              </TabsTrigger>
             </TabsList>
 
             <div className='flex-1 overflow-y-auto pr-1'>
               {/* Tab 1: Demografi */}
               <TabsContent value='demografi' className='space-y-3.5 m-0'>
                 <div className='space-y-1.5'>
-                  <Label htmlFor='edit-profile-fullname' className='text-xs font-medium text-foreground'>
+                  <Label
+                    htmlFor='edit-profile-fullname'
+                    className='text-xs font-medium text-foreground'
+                  >
                     Nama Lengkap
                   </Label>
                   <Input
@@ -631,7 +694,10 @@ export function ClinicProfileView() {
                 </div>
 
                 <div className='space-y-1.5'>
-                  <Label htmlFor='edit-profile-gender' className='text-xs font-medium text-foreground'>
+                  <Label
+                    htmlFor='edit-profile-gender'
+                    className='text-xs font-medium text-foreground'
+                  >
                     Jenis Kelamin
                   </Label>
                   <Select
@@ -640,7 +706,11 @@ export function ClinicProfileView() {
                       setEditForm((prev) => ({ ...prev, gender: val }))
                     }
                   >
-                    <SelectTrigger id='edit-profile-gender' aria-label='Pilih Jenis Kelamin' className='h-9 text-xs rounded-lg'>
+                    <SelectTrigger
+                      id='edit-profile-gender'
+                      aria-label='Pilih Jenis Kelamin'
+                      className='h-9 text-xs rounded-lg'
+                    >
                       <SelectValue placeholder='Pilih Jenis Kelamin' />
                     </SelectTrigger>
                     <SelectContent>
@@ -652,7 +722,10 @@ export function ClinicProfileView() {
 
                 <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
                   <div className='space-y-1.5'>
-                    <Label htmlFor='edit-profile-birthplace' className='text-xs font-medium text-foreground'>
+                    <Label
+                      htmlFor='edit-profile-birthplace'
+                      className='text-xs font-medium text-foreground'
+                    >
                       Tempat Lahir
                     </Label>
                     <Input
@@ -666,7 +739,10 @@ export function ClinicProfileView() {
                   </div>
 
                   <div className='space-y-1.5'>
-                    <Label htmlFor='edit-profile-birthdate' className='text-xs font-medium text-foreground'>
+                    <Label
+                      htmlFor='edit-profile-birthdate'
+                      className='text-xs font-medium text-foreground'
+                    >
                       Tanggal Lahir
                     </Label>
                     <Input
@@ -683,7 +759,10 @@ export function ClinicProfileView() {
 
                 <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
                   <div className='space-y-1.5'>
-                    <Label htmlFor='edit-profile-pekerjaan' className='text-xs font-medium text-foreground'>
+                    <Label
+                      htmlFor='edit-profile-pekerjaan'
+                      className='text-xs font-medium text-foreground'
+                    >
                       Pekerjaan / Profesi
                     </Label>
                     <Input
@@ -697,7 +776,10 @@ export function ClinicProfileView() {
                   </div>
 
                   <div className='space-y-1.5'>
-                    <Label htmlFor='edit-profile-phone' className='text-xs font-medium text-foreground'>
+                    <Label
+                      htmlFor='edit-profile-phone'
+                      className='text-xs font-medium text-foreground'
+                    >
                       Nomor Telepon / WhatsApp
                     </Label>
                     <Input
@@ -715,7 +797,10 @@ export function ClinicProfileView() {
               {/* Tab 2: Alamat Domisili */}
               <TabsContent value='domisili' className='space-y-3.5 m-0'>
                 <div className='space-y-1.5'>
-                  <Label htmlFor='edit-profile-address-detail' className='text-xs font-medium text-foreground'>
+                  <Label
+                    htmlFor='edit-profile-address-detail'
+                    className='text-xs font-medium text-foreground'
+                  >
                     Alamat Lengkap / Jalan
                   </Label>
                   <Textarea
@@ -730,7 +815,10 @@ export function ClinicProfileView() {
 
                 <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
                   <div className='space-y-1.5'>
-                    <Label htmlFor='edit-profile-provinsi' className='text-xs font-medium text-foreground'>
+                    <Label
+                      htmlFor='edit-profile-provinsi'
+                      className='text-xs font-medium text-foreground'
+                    >
                       Provinsi
                     </Label>
                     <Input
@@ -744,7 +832,10 @@ export function ClinicProfileView() {
                   </div>
 
                   <div className='space-y-1.5'>
-                    <Label htmlFor='edit-profile-kabupaten' className='text-xs font-medium text-foreground'>
+                    <Label
+                      htmlFor='edit-profile-kabupaten'
+                      className='text-xs font-medium text-foreground'
+                    >
                       Kabupaten / Kota
                     </Label>
                     <Input
@@ -760,7 +851,10 @@ export function ClinicProfileView() {
 
                 <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
                   <div className='space-y-1.5'>
-                    <Label htmlFor='edit-profile-kecamatan' className='text-xs font-medium text-foreground'>
+                    <Label
+                      htmlFor='edit-profile-kecamatan'
+                      className='text-xs font-medium text-foreground'
+                    >
                       Kecamatan
                     </Label>
                     <Input
@@ -774,7 +868,10 @@ export function ClinicProfileView() {
                   </div>
 
                   <div className='space-y-1.5'>
-                    <Label htmlFor='edit-profile-kelurahan' className='text-xs font-medium text-foreground'>
+                    <Label
+                      htmlFor='edit-profile-kelurahan'
+                      className='text-xs font-medium text-foreground'
+                    >
                       Kelurahan / Desa
                     </Label>
                     <Input
@@ -792,7 +889,10 @@ export function ClinicProfileView() {
               {/* Tab 3: Kontak & Medis */}
               <TabsContent value='medis' className='space-y-3.5 m-0'>
                 <div className='space-y-1.5'>
-                  <Label htmlFor='edit-profile-em-name' className='text-xs font-medium text-foreground'>
+                  <Label
+                    htmlFor='edit-profile-em-name'
+                    className='text-xs font-medium text-foreground'
+                  >
                     Nama Kontak Darurat
                   </Label>
                   <Input
@@ -807,7 +907,10 @@ export function ClinicProfileView() {
 
                 <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
                   <div className='space-y-1.5'>
-                    <Label htmlFor='edit-profile-em-phone' className='text-xs font-medium text-foreground'>
+                    <Label
+                      htmlFor='edit-profile-em-phone'
+                      className='text-xs font-medium text-foreground'
+                    >
                       Nomor Telepon Kontak
                     </Label>
                     <Input
@@ -821,7 +924,10 @@ export function ClinicProfileView() {
                   </div>
 
                   <div className='space-y-1.5'>
-                    <Label htmlFor='edit-profile-em-rel' className='text-xs font-medium text-foreground'>
+                    <Label
+                      htmlFor='edit-profile-em-rel'
+                      className='text-xs font-medium text-foreground'
+                    >
                       Hubungan
                     </Label>
                     <Input
@@ -839,7 +945,10 @@ export function ClinicProfileView() {
                 </div>
 
                 <div className='space-y-1.5'>
-                  <Label htmlFor='edit-profile-blood-type' className='text-xs font-medium text-foreground'>
+                  <Label
+                    htmlFor='edit-profile-blood-type'
+                    className='text-xs font-medium text-foreground'
+                  >
                     Golongan Darah
                   </Label>
                   <Select
@@ -848,7 +957,11 @@ export function ClinicProfileView() {
                       setEditForm((prev) => ({ ...prev, bloodType: val }))
                     }
                   >
-                    <SelectTrigger id='edit-profile-blood-type' aria-label='Pilih Golongan Darah' className='h-9 text-xs rounded-lg'>
+                    <SelectTrigger
+                      id='edit-profile-blood-type'
+                      aria-label='Pilih Golongan Darah'
+                      className='h-9 text-xs rounded-lg'
+                    >
                       <SelectValue placeholder='Pilih Golongan Darah' />
                     </SelectTrigger>
                     <SelectContent>
@@ -862,7 +975,10 @@ export function ClinicProfileView() {
                 </div>
 
                 <div className='space-y-1.5'>
-                  <Label htmlFor='edit-profile-allergies' className='text-xs font-medium text-foreground'>
+                  <Label
+                    htmlFor='edit-profile-allergies'
+                    className='text-xs font-medium text-foreground'
+                  >
                     Alergi Obat / Makanan (Pisahkan dengan koma)
                   </Label>
                   <Input
@@ -877,7 +993,10 @@ export function ClinicProfileView() {
                 </div>
 
                 <div className='space-y-1.5'>
-                  <Label htmlFor='edit-profile-med-history' className='text-xs font-medium text-foreground'>
+                  <Label
+                    htmlFor='edit-profile-med-history'
+                    className='text-xs font-medium text-foreground'
+                  >
                     Riwayat Penyakit / Catatan Tambahan
                   </Label>
                   <Textarea

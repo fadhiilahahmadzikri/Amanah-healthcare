@@ -1,7 +1,7 @@
 # Role-Based Access Control (RBAC): Modul Authentication
 
 > **Standard:** Dual-Model RBAC (Kanonikal System Role & Fine-Grained Better Auth Permissions)  
-> **Source Evidence:** [`src/common/auth/roles.guard.ts`](file:///D:/Amanah-backend/src/common/auth/roles.guard.ts), [`src/auth/better-auth/permissions.ts`](file:///D:/Amanah-backend/src/auth/better-auth/permissions.ts), [`src/auth/better-auth/guards/better-auth-rbac.guard.ts`](file:///D:/Amanah-backend/src/auth/better-auth/guards/better-auth-rbac.guard.ts)  
+> **Source Evidence:** [`src/common/auth/roles.guard.ts`](file:///D:/Amanah-backend/src/common/auth/roles.guard.ts), [`src/auth/better-auth/permissions.ts`](file:///D:/Amanah-backend/src/auth/better-auth/permissions.ts), [`src/auth/better-auth/guards/better-auth-rbac.guard.ts`](file:///D:/Amanah-backend/src/auth/better-auth/guards/better-auth-rbac.guard.ts)
 
 ---
 
@@ -22,12 +22,14 @@ Backend Amanah Healthcare mengoperasikan dua model kontrol akses yang saling mel
 ```
 
 ### Model 1: Core SystemRole (Kanonikal JWT)
+
 Model ini tertanam pada JWT Access Token untuk otorisasi cepat pada level controller:
-* **Tiga Nilai Role Utama:**
+
+- **Tiga Nilai Role Utama:**
   1. `ADMIN`: Administrator sistem klinik dengan hak akses tak terbatas.
   2. `STAF`: Tenaga medis dan operasional klinik (Dokter, Bidan, Perawat, Staf Pendaftaran).
   3. `PATIENT`: Pengguna publik / pasien klinik.
-* **Logika Resolusi Role (`auth.service.ts` & `jwt.strategy.ts`):**
+- **Logika Resolusi Role (`auth.service.ts` & `jwt.strategy.ts`):**
   ```typescript
   // Resolusi otomatis berdasarkan profil database:
   if (primaryRole?.code === 'admin') {
@@ -45,7 +47,9 @@ Model ini tertanam pada JWT Access Token untuk otorisasi cepat pada level contro
   ```
 
 ### Model 2: Better Auth RBAC (Granular Medical Permissions)
+
 Model ini mendefinisikan 5 peran klinis spesifik dengan izin per-resource:
+
 1. `admin`: Administrator Sistem
 2. `staffDoctor`: Dokter Spesialis / Dokter Umum
 3. `staffMidwife`: Bidan & Tenaga Kebidanan
@@ -58,29 +62,29 @@ Model ini mendefinisikan 5 peran klinis spesifik dengan izin per-resource:
 
 Tabel berikut adalah matriks izin yang dieksekusi secara ketat oleh [`src/auth/better-auth/permissions.ts`](file:///D:/Amanah-backend/src/auth/better-auth/permissions.ts#L8-L73):
 
-| Resource | Action | `admin` | `staffDoctor` | `staffMidwife` | `staffWorker` | `patient` |
-| :--- | :--- | :---: | :---: | :---: | :---: | :---: |
-| **`clinic`** | `create`, `update`, `delete` | ✅ | ❌ | ❌ | ❌ | ❌ |
-| | `read` | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **`patient`** | `create`, `delete` | ✅ | ❌ | ❌ | ❌ | ❌ |
-| | `read` | ✅ | ✅ | ✅ | ❌ | ✅ *(Milik sendiri)* |
-| | `update` | ✅ | ❌ | ❌ | ❌ | ✅ *(Milik sendiri)* |
-| **`staff`** | `create`, `update`, `delete` | ✅ | ❌ | ❌ | ❌ | ❌ |
-| | `read` | ✅ | ✅ | ✅ | ✅ | ❌ |
-| **`schedule`** | `create`, `update` | ✅ | ✅ | ✅ | ❌ | ❌ |
-| | `read` | ✅ | ✅ | ✅ | ❌ | ❌ |
-| | `delete` | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **`appointment`**| `create` | ✅ | ❌ | ❌ | ❌ | ✅ |
-| | `read` | ✅ | ✅ | ✅ | ❌ | ✅ *(Milik sendiri)* |
-| | `call` (Panggil antrean) | ✅ | ✅ | ✅ | ❌ | ❌ |
-| | `complete` (Selesaikan) | ✅ | ✅ | ✅ | ❌ | ❌ |
-| | `update`, `delete` | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **`medicalRecord`**| `create`, `update` | ✅ | ✅ | ✅ | ❌ | ❌ |
-| | `read` | ✅ | ✅ | ✅ | ❌ | ✅ *(Milik sendiri)* |
-| **`attendance`** | `record`, `read` | ✅ | ✅ | ✅ | ✅ | ❌ |
-| | `export` | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **`leave`** | `create`, `read` | ✅ | ✅ | ✅ | ✅ | ❌ |
-| | `approve`, `update` | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Resource            | Action                       | `admin` | `staffDoctor` | `staffMidwife` | `staffWorker` |      `patient`       |
+| :------------------ | :--------------------------- | :-----: | :-----------: | :------------: | :-----------: | :------------------: |
+| **`clinic`**        | `create`, `update`, `delete` |   ✅    |      ❌       |       ❌       |      ❌       |          ❌          |
+|                     | `read`                       |   ✅    |      ✅       |       ✅       |      ✅       |          ✅          |
+| **`patient`**       | `create`, `delete`           |   ✅    |      ❌       |       ❌       |      ❌       |          ❌          |
+|                     | `read`                       |   ✅    |      ✅       |       ✅       |      ❌       | ✅ _(Milik sendiri)_ |
+|                     | `update`                     |   ✅    |      ❌       |       ❌       |      ❌       | ✅ _(Milik sendiri)_ |
+| **`staff`**         | `create`, `update`, `delete` |   ✅    |      ❌       |       ❌       |      ❌       |          ❌          |
+|                     | `read`                       |   ✅    |      ✅       |       ✅       |      ✅       |          ❌          |
+| **`schedule`**      | `create`, `update`           |   ✅    |      ✅       |       ✅       |      ❌       |          ❌          |
+|                     | `read`                       |   ✅    |      ✅       |       ✅       |      ❌       |          ❌          |
+|                     | `delete`                     |   ✅    |      ❌       |       ❌       |      ❌       |          ❌          |
+| **`appointment`**   | `create`                     |   ✅    |      ❌       |       ❌       |      ❌       |          ✅          |
+|                     | `read`                       |   ✅    |      ✅       |       ✅       |      ❌       | ✅ _(Milik sendiri)_ |
+|                     | `call` (Panggil antrean)     |   ✅    |      ✅       |       ✅       |      ❌       |          ❌          |
+|                     | `complete` (Selesaikan)      |   ✅    |      ✅       |       ✅       |      ❌       |          ❌          |
+|                     | `update`, `delete`           |   ✅    |      ❌       |       ❌       |      ❌       |          ❌          |
+| **`medicalRecord`** | `create`, `update`           |   ✅    |      ✅       |       ✅       |      ❌       |          ❌          |
+|                     | `read`                       |   ✅    |      ✅       |       ✅       |      ❌       | ✅ _(Milik sendiri)_ |
+| **`attendance`**    | `record`, `read`             |   ✅    |      ✅       |       ✅       |      ✅       |          ❌          |
+|                     | `export`                     |   ✅    |      ❌       |       ❌       |      ❌       |          ❌          |
+| **`leave`**         | `create`, `read`             |   ✅    |      ✅       |       ✅       |      ✅       |          ❌          |
+|                     | `approve`, `update`          |   ✅    |      ❌       |       ❌       |      ❌       |          ❌          |
 
 ---
 

@@ -4,7 +4,7 @@
 > **Status:** **Production-Ready & Fully Persisted in PostgreSQL** (Evidence-Based)  
 > **Target Audience:** Frontend Engineers, Mobile App Engineers (Flutter/Android), QA Engineers, Tech Lead  
 > **Repository Base:** `D:\Amanah-backend`  
-> **Generated & Verified Date:** 2026-09-19  
+> **Generated & Verified Date:** 2026-09-19
 
 ---
 
@@ -56,18 +56,18 @@ Bundel dokumentasi modul autentikasi terbagi ke dalam 11 dokumen terstruktur:
 
 ## 3. Matriks Status Endpoint Singkat
 
-| Engine / Jalur | Method | Endpoint Path | Status Implementasi | Auth Guard | Keterangan |
-| :--- | :--- | :--- | :---: | :--- | :--- |
-| **Email Auth** | `POST` | `/api/v1/auth/email/register` | ✅ **IMPLEMENTED** | Public | Registrasi akun baru (disimpan ke DB) |
-| **Email Auth** | `POST` | `/api/v1/auth/email/login` | ✅ **IMPLEMENTED** | Public | Login email + kata sandi |
-| **Profil User**| `GET` | `/api/v1/auth/me` | ✅ **IMPLEMENTED** | `AuthGuard('jwt')` | Mengambil profil user & peran klinis |
-| **Profil User**| `PATCH`| `/api/v1/auth/me` | ✅ **IMPLEMENTED** | `AuthGuard('jwt')` | Memperbarui nama dan/atau sandi |
-| **Profil User**| `DELETE`|`/api/v1/auth/me` | ✅ **IMPLEMENTED** | `AuthGuard('jwt')` | Menonaktifkan akun sendiri (Soft delete) |
-| **Token Auth** | `POST` | `/api/v1/auth/refresh` | ✅ **IMPLEMENTED** | `AuthGuard('jwt-refresh')` | Pembaruan access token |
-| **Sandi** | `POST` | `/api/v1/auth/forgot/password` | ✅ **IMPLEMENTED** | Public | Kirim email pemulihan via Mailpit |
-| **Sandi** | `POST` | `/api/v1/auth/reset/password` | ✅ **IMPLEMENTED** | Public | Reset sandi dengan token hash |
-| **Email** | `POST` | `/api/v1/auth/email/confirm` | ✅ **IMPLEMENTED** | Public | Konfirmasi alamat email |
-| **Google** | `GET/POST`| `/api/auth/sign-in/social` | ✅ **IMPLEMENTED** | Public | Inisiasi login Google (Web/Mobile) |
-| **Session** | `GET` | `/api/auth/get-session` | ✅ **IMPLEMENTED** | Session | Cek sesi aktif |
-| **Session** | `POST` | `/api/auth/sign-out` | ✅ **IMPLEMENTED** | Session | Logout & hapus sesi server |
-| **Backoffice** | `POST` | `/api/auth/admin/*` | ✅ **IMPLEMENTED** | Admin | Manajemen user & role admin |
+| Engine / Jalur  | Method     | Endpoint Path                  | Status Implementasi | Auth Guard                 | Keterangan                               |
+| :-------------- | :--------- | :----------------------------- | :-----------------: | :------------------------- | :--------------------------------------- |
+| **Email Auth**  | `POST`     | `/api/v1/auth/email/register`  | ✅ **IMPLEMENTED**  | Public                     | Registrasi akun baru (disimpan ke DB)    |
+| **Email Auth**  | `POST`     | `/api/v1/auth/email/login`     | ✅ **IMPLEMENTED**  | Public                     | Login email + kata sandi                 |
+| **Profil User** | `GET`      | `/api/v1/auth/me`              | ✅ **IMPLEMENTED**  | `AuthGuard('jwt')`         | Mengambil profil user & peran klinis     |
+| **Profil User** | `PATCH`    | `/api/v1/auth/me`              | ✅ **IMPLEMENTED**  | `AuthGuard('jwt')`         | Memperbarui nama dan/atau sandi          |
+| **Profil User** | `DELETE`   | `/api/v1/auth/me`              | ✅ **IMPLEMENTED**  | `AuthGuard('jwt')`         | Menonaktifkan akun sendiri (Soft delete) |
+| **Token Auth**  | `POST`     | `/api/v1/auth/refresh`         | ✅ **IMPLEMENTED**  | `AuthGuard('jwt-refresh')` | Pembaruan access token                   |
+| **Sandi**       | `POST`     | `/api/v1/auth/forgot/password` | ✅ **IMPLEMENTED**  | Public                     | Kirim email pemulihan via Mailpit        |
+| **Sandi**       | `POST`     | `/api/v1/auth/reset/password`  | ✅ **IMPLEMENTED**  | Public                     | Reset sandi dengan token hash            |
+| **Email**       | `POST`     | `/api/v1/auth/email/confirm`   | ✅ **IMPLEMENTED**  | Public                     | Konfirmasi alamat email                  |
+| **Google**      | `GET/POST` | `/api/auth/sign-in/social`     | ✅ **IMPLEMENTED**  | Public                     | Inisiasi login Google (Web/Mobile)       |
+| **Session**     | `GET`      | `/api/auth/get-session`        | ✅ **IMPLEMENTED**  | Session                    | Cek sesi aktif                           |
+| **Session**     | `POST`     | `/api/auth/sign-out`           | ✅ **IMPLEMENTED**  | Session                    | Logout & hapus sesi server               |
+| **Backoffice**  | `POST`     | `/api/auth/admin/*`            | ✅ **IMPLEMENTED**  | Admin                      | Manajemen user & role admin              |

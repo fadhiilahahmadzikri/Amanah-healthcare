@@ -13,7 +13,7 @@ export type LiveStatus =
   | 'Tidak Ada Dokter';
 
 export interface AdminAppointment {
-  id: number;
+  id: number | string;
   no_antrian: string;
   nomor_antrian: string;
   pasien: string;
@@ -76,6 +76,31 @@ export type AppointmentDetailResponse = {
 };
 
 export type UpdateStatusPayload = {
-  id: number;
+  id: number | string;
   status: LiveStatus;
 };
+
+export interface BackendAppointmentRecord {
+  id: string | number;
+  status?: string;
+  patientName?: string;
+  patientProfile?: { fullName?: string };
+  doctorName?: string;
+  practitioner?: { staffProfile?: { fullName?: string } };
+  poliklinikName?: string;
+  clinicRoom?: { clinicUnit?: { name?: string } };
+  queueNumber?: string;
+  queueTickets?: Array<{ queueNumber?: string }>;
+  appointmentDate?: string;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+  scheduledStartTime?: string;
+  session?: string;
+  patientId?: string;
+  visitType?: string;
+  gender?: string;
+  phone?: string;
+  email?: string;
+  complaint?: string;
+  [key: string]: unknown;
+}

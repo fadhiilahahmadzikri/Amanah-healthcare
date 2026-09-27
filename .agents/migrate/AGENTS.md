@@ -12,9 +12,9 @@
 
 ## 0\. Naming Notes (to avoid confusion)
 
-* **Project A / "Main Portal"** = `D:\\manage-stock` → the main application (clinic-like portal), built on Next.js. This is the migration target.
-* **Project B / "Landing"** = `D:\\mcp-example` → the landing-page project, deliberately isolated from Project A, also built on Next.js, already completed and ready for integration. This is the migration source.
-* Folder names do not reflect their contents (`mcp-example` does not mean MCP-related, and `manage-stock` does not mean inventory management) — these are purely legacy names. Ignore the names and follow the definitions above.
+- **Project A / "Main Portal"** = `D:\\manage-stock` → the main application (clinic-like portal), built on Next.js. This is the migration target.
+- **Project B / "Landing"** = `D:\\mcp-example` → the landing-page project, deliberately isolated from Project A, also built on Next.js, already completed and ready for integration. This is the migration source.
+- Folder names do not reflect their contents (`mcp-example` does not mean MCP-related, and `manage-stock` does not mean inventory management) — these are purely legacy names. Ignore the names and follow the definitions above.
 
 \---
 
@@ -31,14 +31,14 @@ The project owner's analogy: this process is like cutting a large pipe (Project 
 
 What is **eligible for acquisition** from Project B into Project A:
 
-* Components (atoms/molecules/organisms) unique to the landing page.
-* Landing-page pages/views.
-* Libraries/dependencies used in Project B but not yet present in Project A.
-* Utility config files that follow "best practice" principles and do not yet exist in Project A — examples: `lefthook.yml`, `codecov.yml`, `crowdin.yml`, Biome config, etc. If such a file already exists in Project A, **do not overwrite it**.
+- Components (atoms/molecules/organisms) unique to the landing page.
+- Landing-page pages/views.
+- Libraries/dependencies used in Project B but not yet present in Project A.
+- Utility config files that follow "best practice" principles and do not yet exist in Project A — examples: `lefthook.yml`, `codecov.yml`, `crowdin.yml`, Biome config, etc. If such a file already exists in Project A, **do not overwrite it**.
 
 What is **NOT moved** (excluded by default):
 
-* `.git`, `node\_modules`, lockfiles (`package-lock.json` / `pnpm-lock.yaml` / `yarn.lock`), Project B's `package.json` as a whole (diff it first rather than copying it blindly), `.env\*`, Project B-specific `README.md`, build folders (`.next`, `dist`, etc.).
+- `.git`, `node\_modules`, lockfiles (`package-lock.json` / `pnpm-lock.yaml` / `yarn.lock`), Project B's `package.json` as a whole (diff it first rather than copying it blindly), `.env\*`, Project B-specific `README.md`, build folders (`.next`, `dist`, etc.).
 
 Two things are **deliberately isolated** first and are not merged directly into Project A's core structure:
 
@@ -80,20 +80,20 @@ The following are **NOT** completion requirements for this stage (intentionally 
 
 ## 4\. Workflow Map (11-Phase Summary)
 
-|Phase|Name|Nature|Repeatable?|
-|-|-|-|-|
-|0|Safety Net (git branch, backup)|Preparation|Once at the beginning|
-|1|Discovery \& Inventory|Read-only|Yes, whenever re-checking is needed|
-|2|Classification \& Analysis|Read-only + reasoning|Yes|
-|3|Build Migration Manifest (whitelist)|Generates manifest file|Yes, until complete|
-|4|**HUMAN CHECKPOINT**|STOP \& wait for confirmation|Required before continuing|
-|5|Copy Execution|Changes Project A filesystem|Idempotent (safe to repeat)|
-|6|Merge Dependencies|Changes `package.json`|After Phase 5|
-|7|Adopt Utility Configs|Changes Project A root|After Phase 5|
-|8|CSS Isolation|Special rules, part of Phase 5|—|
-|9|Component Isolation|Special rules, part of Phase 5|—|
-|10|Validation: build + lint loop|Iterative until green|Loop until passing|
-|11|Final Verification \& Report|Read-only + report|Once at the end|
+| Phase | Name                                 | Nature                         | Repeatable?                         |
+| ----- | ------------------------------------ | ------------------------------ | ----------------------------------- |
+| 0     | Safety Net (git branch, backup)      | Preparation                    | Once at the beginning               |
+| 1     | Discovery \& Inventory               | Read-only                      | Yes, whenever re-checking is needed |
+| 2     | Classification \& Analysis           | Read-only + reasoning          | Yes                                 |
+| 3     | Build Migration Manifest (whitelist) | Generates manifest file        | Yes, until complete                 |
+| 4     | **HUMAN CHECKPOINT**                 | STOP \& wait for confirmation  | Required before continuing          |
+| 5     | Copy Execution                       | Changes Project A filesystem   | Idempotent (safe to repeat)         |
+| 6     | Merge Dependencies                   | Changes `package.json`         | After Phase 5                       |
+| 7     | Adopt Utility Configs                | Changes Project A root         | After Phase 5                       |
+| 8     | CSS Isolation                        | Special rules, part of Phase 5 | —                                   |
+| 9     | Component Isolation                  | Special rules, part of Phase 5 | —                                   |
+| 10    | Validation: build + lint loop        | Iterative until green          | Loop until passing                  |
+| 11    | Final Verification \& Report         | Read-only + report             | Once at the end                     |
 
 Phases 8 and 9 are actually **rules** applied **during** Phase 5 (not separate time-based phases), but they are explained separately because they are critical.
 
@@ -136,23 +136,23 @@ Use the `inventory\_scan.py` script in Appendix A for points 1, 2, and 8 automat
 
 Using the Phase 1 results, inspect Project B thoroughly (folder by folder, not just filenames) and classify **every candidate item** into one of the following categories:
 
-|Category|Example|Treatment|
-|-|-|-|
-|`PRIMITIVE\_ATOM`|`components/atoms/Button.tsx`|Migration candidate, placed in isolated namespace|
-|`MOLECULE`|`components/molecules/SearchBar.tsx`|Migration candidate, placed in isolated namespace|
-|`ORGANISM`|`components/organisms/Hero.tsx`|Migration candidate, placed in isolated namespace|
-|`PAGE\_VIEW`|`app/page.tsx`, `views/LandingHome.tsx`|Migration candidate, placed in isolated namespace, wired through a thin wrapper route|
-|`HOOK\_OR\_UTIL`|`hooks/useScrollSpy.ts`, `lib/formatDate.ts`|Migration candidate, first check that there is no equivalent/duplicate functionality in Project A|
-|`STYLE\_ASSET`|`\*.css`, `\*.module.css`, `tailwind.config.ts` (custom theme section)|Migration candidate, **must follow Phase 8 isolation rules**|
-|`STATIC\_ASSET`|images, fonts, icons, `public/\*`|Migration candidate, migrated to `public/landing-import/`|
-|`LIBRARY\_DEPENDENCY`|entry in `dependencies`/`devDependencies`|Not a file, but an entry in `package.json` — handled in Phase 6|
-|`UTILITY\_CONFIG`|`lefthook.yml`, `codecov.yml`, `crowdin.yml`|Candidate for adoption **only if it does not already exist** in Project A — Phase 7|
-|`EXCLUDE`|`.git`, `node\_modules`, lockfile, `.env\*`, landing-specific README|Do not migrate at all|
+| Category              | Example                                                                | Treatment                                                                                         |
+| --------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `PRIMITIVE\_ATOM`     | `components/atoms/Button.tsx`                                          | Migration candidate, placed in isolated namespace                                                 |
+| `MOLECULE`            | `components/molecules/SearchBar.tsx`                                   | Migration candidate, placed in isolated namespace                                                 |
+| `ORGANISM`            | `components/organisms/Hero.tsx`                                        | Migration candidate, placed in isolated namespace                                                 |
+| `PAGE\_VIEW`          | `app/page.tsx`, `views/LandingHome.tsx`                                | Migration candidate, placed in isolated namespace, wired through a thin wrapper route             |
+| `HOOK\_OR\_UTIL`      | `hooks/useScrollSpy.ts`, `lib/formatDate.ts`                           | Migration candidate, first check that there is no equivalent/duplicate functionality in Project A |
+| `STYLE\_ASSET`        | `\*.css`, `\*.module.css`, `tailwind.config.ts` (custom theme section) | Migration candidate, **must follow Phase 8 isolation rules**                                      |
+| `STATIC\_ASSET`       | images, fonts, icons, `public/\*`                                      | Migration candidate, migrated to `public/landing-import/`                                         |
+| `LIBRARY\_DEPENDENCY` | entry in `dependencies`/`devDependencies`                              | Not a file, but an entry in `package.json` — handled in Phase 6                                   |
+| `UTILITY\_CONFIG`     | `lefthook.yml`, `codecov.yml`, `crowdin.yml`                           | Candidate for adoption **only if it does not already exist** in Project A — Phase 7               |
+| `EXCLUDE`             | `.git`, `node\_modules`, lockfile, `.env\*`, landing-specific README   | Do not migrate at all                                                                             |
 
 For each non-`EXCLUDE` candidate, also record:
 
-* **Duplicate or not?** Does an identical/similar function/component already exist in Project A? If yes, mark `requires\_manual\_review: true` and add a note; do not automatically skip or automatically copy.
-* **Dependencies:** which dependencies are used by this file (which `node\_modules` imports), so they can be matched against Phase 6.
+- **Duplicate or not?** Does an identical/similar function/component already exist in Project A? If yes, mark `requires\_manual\_review: true` and add a note; do not automatically skip or automatically copy.
+- **Dependencies:** which dependencies are used by this file (which `node\_modules` imports), so they can be matched against Phase 6.
 
 **Phase 2 Output:** a classified list (which can be structured notes/table) serving as the raw material for the manifest in Phase 3.
 
@@ -164,14 +164,14 @@ Convert the Phase 2 results into one `migration\_manifest.json` file that is **e
 
 The format \& example contents are provided in **Appendix C**. Required fields for each entry:
 
-* `id` — unique identifier, e.g. `COMP-001`.
-* `category` — one of the Phase 2 categories.
-* `source` — relative path from the root of Project B.
-* `destination` — relative path from the root of Project A (following the namespace rules in Phases 8/9).
-* `action` — `copy` or `skip`.
-* `reason` — short reason why the item is included/excluded from the whitelist.
-* `conflict\_risk` — `low` / `medium` / `high`.
-* `requires\_manual\_review` — `true`/`false`.
+- `id` — unique identifier, e.g. `COMP-001`.
+- `category` — one of the Phase 2 categories.
+- `source` — relative path from the root of Project B.
+- `destination` — relative path from the root of Project A (following the namespace rules in Phases 8/9).
+- `action` — `copy` or `skip`.
+- `reason` — short reason why the item is included/excluded from the whitelist.
+- `conflict\_risk` — `low` / `medium` / `high`.
+- `requires\_manual\_review` — `true`/`false`.
 
 After the first manifest is created, the agent MUST perform a second verification: read Project B's structure again, check whether all important items are included in the manifest (nothing missed), and make sure no `EXCLUDE` item was incorrectly marked as `copy`. Repeat this process until the agent is confident the manifest is representative and complete — this may be repeated several times before proceeding to Phase 4.
 
@@ -230,8 +230,8 @@ Because the copied files may contain import statements referring to Project B's 
 
 Use the results of `diff\_inventory.py` to determine:
 
-* `dependencies\_to\_add` — packages present in Project B but absent from Project A → add them to Project A's `package.json` using exactly the version specified in Project B (unless there is a strong reason to use a different version).
-* `dependency\_version\_conflicts` — packages present in both but with different versions → **do not automatically choose one**, mark them for human review and include them in the final report (Phase 11).
+- `dependencies\_to\_add` — packages present in Project B but absent from Project A → add them to Project A's `package.json` using exactly the version specified in Project B (unless there is a strong reason to use a different version).
+- `dependency\_version\_conflicts` — packages present in both but with different versions → **do not automatically choose one**, mark them for human review and include them in the final report (Phase 11).
 
 After updating `package.json`, run install using the package manager used by Project A (detected from the existing lockfile: `package-lock.json` → npm, `pnpm-lock.yaml` → pnpm, `yarn.lock` → yarn):
 
@@ -257,13 +257,13 @@ This is the highest-risk area for conflicts, so it must be handled conservativel
 2. These files are **only imported inside the landing route/layout scope** (see Phase 9 for the route structure), **never** from `globals.css` or Project A's root layout.
 3. **Do not touch** Project A's `globals.css`, design tokens, global CSS variables, or `tailwind.config.\*` during this migration stage.
 4. If both projects use **Tailwind**:
+   - Do not automatically merge/overwrite Project A's `tailwind.config.\*` with Project B's.
+   - If Project B contains custom Tailwind theme/tokens (colors, custom spacing, etc.) used by landing components, record them as `requires\_manual\_review` in the manifest — this requires a conscious decision rather than automatic merging, because Tailwind is inherently global (utility classes can "leak" and affect other elements).
+   - If possible, direct landing components to use CSS Modules/scoped styles for their custom visual requirements during the isolation period, reducing the risk of styles "leaking" outside the landing scope.
 
-   * Do not automatically merge/overwrite Project A's `tailwind.config.\*` with Project B's.
-   * If Project B contains custom Tailwind theme/tokens (colors, custom spacing, etc.) used by landing components, record them as `requires\_manual\_review` in the manifest — this requires a conscious decision rather than automatic merging, because Tailwind is inherently global (utility classes can "leak" and affect other elements).
-   * If possible, direct landing components to use CSS Modules/scoped styles for their custom visual requirements during the isolation period, reducing the risk of styles "leaking" outside the landing scope.
 5. If the landing page uses **CSS Modules** (`\*.module.css`) per component — this is the safest case; simply follow the 1:1 copy rules in Phase 9 because scoping is already local to each file.
 6. Add an explicit note to `src/landing-import/README.md` (create this file):
-*"The styles in this folder have not yet been harmonized with Project A's main design system. Visual harmonization is a separate task to be performed after this landing-page design has been validated/approved by the client."*
+   _"The styles in this folder have not yet been harmonized with Project A's main design system. Visual harmonization is a separate task to be performed after this landing-page design has been validated/approved by the client."_
 
 \---
 
@@ -293,9 +293,9 @@ manage-stock/
 
 Next.js routing wiring rules:
 
-* If Project A uses **App Router**: create a thin new route wrapper, for example `src/app/(landing or another path as required)/page.tsx`, containing only a re-export/import of the page component from `src/landing-import/views/...`. Do not put logic directly in the route file — let the route be the entry point while the actual content remains in the isolated folder.
-* If Project A uses **Pages Router**: follow the same principle; the file under `pages/...` should only import from `landing-import/views/...`.
-* The URL slug/path used to mount this landing page is **not determined here** — that is a business decision (whether it should become the new homepage, `/promo`, etc.). If it is still unclear during Phase 3/4, mark it as `requires\_manual\_review` and ask the user before execution.
+- If Project A uses **App Router**: create a thin new route wrapper, for example `src/app/(landing or another path as required)/page.tsx`, containing only a re-export/import of the page component from `src/landing-import/views/...`. Do not put logic directly in the route file — let the route be the entry point while the actual content remains in the isolated folder.
+- If Project A uses **Pages Router**: follow the same principle; the file under `pages/...` should only import from `landing-import/views/...`.
+- The URL slug/path used to mount this landing page is **not determined here** — that is a business decision (whether it should become the new homepage, `/promo`, etc.). If it is still unclear during Phase 3/4, mark it as `requires\_manual\_review` and ask the user before execution.
 
 Why preserve the structure exactly (rather than reorganizing it)? So that relative imports between files (`../../lib/utils`) remain valid without requiring one-by-one rewrites — as technically explained in Phase 5.
 
@@ -310,26 +310,26 @@ After Phases 5–7 are complete, run the following cycle, and **repeat until eve
 ```bash
    npm install --save-dev --save-exact @biomejs/biome
    npx biome init            # if biome.json does not exist yet
-   ```
+```
 
 2. Run lint \& auto-fix:
 
 ```bash
    npx biome check --write .
-   ```
+```
 
 3. Run the build:
 
 ```bash
    npm run build
-   ```
+```
 
 4. If there are errors:
+   - **Import path/alias not found** → usually a remaining alias-remapping issue (Phase 5); fix it there.
+   - **TypeScript type error** (different type dependencies, etc.) → fix the type definitions; do not immediately use `// @ts-ignore` unless absolutely necessary, and document it as technical debt in the final report.
+   - **Style/CSS not found** → check whether the CSS import points to the new isolated location (Phase 8).
+   - **Dependency not installed** → re-check Phase 6; a transitive dependency may have been missed.
 
-   * **Import path/alias not found** → usually a remaining alias-remapping issue (Phase 5); fix it there.
-   * **TypeScript type error** (different type dependencies, etc.) → fix the type definitions; do not immediately use `// @ts-ignore` unless absolutely necessary, and document it as technical debt in the final report.
-   * **Style/CSS not found** → check whether the CSS import points to the new isolated location (Phase 8).
-   * **Dependency not installed** → re-check Phase 6; a transitive dependency may have been missed.
 5. Repeat steps 2–4 until both `biome check` and `npm run build` succeed without blocking errors.
 
 If the same error continues to recur after several iterations (for example, 5–6 times) and its root cause remains unclear, **stop the loop and report it to the user** with the exact error details — do not loop endlessly without direction. This indicates that a human decision is needed rather than simply another bug fix.
@@ -340,13 +340,13 @@ If the same error continues to recur after several iterations (for example, 5–
 
 1. Re-check: every `action: copy` entry in `migration\_manifest.json` actually exists at its `destination` (you can rerun `inventory\_scan.py` against Project A and verify the existence of each path).
 2. Create `MIGRATION\_REPORT.md` at the root of Project A containing at minimum:
+   - Summary of the number of successfully migrated files per category.
+   - List of added dependencies + list of version conflicts requiring manual review.
+   - List of utility configs adopted vs. skipped because they already exist.
+   - List of `requires\_manual\_review` items that remain open.
+   - Build \& lint status (green/not green, and the last verification date).
+   - An explicit reminder of intentionally postponed items (see Section 6 below).
 
-   * Summary of the number of successfully migrated files per category.
-   * List of added dependencies + list of version conflicts requiring manual review.
-   * List of utility configs adopted vs. skipped because they already exist.
-   * List of `requires\_manual\_review` items that remain open.
-   * Build \& lint status (green/not green, and the last verification date).
-   * An explicit reminder of intentionally postponed items (see Section 6 below).
 3. Commit the migration results on the `feat/migrate-landing-page` branch with clear commit messages for each stage (not one giant commit), so that if a partial rollback is required, it can still be performed granularly.
 
 \---
@@ -355,20 +355,20 @@ If the same error continues to recur after several iterations (for example, 5–
 
 To make the scope clear and avoid excessive expectations:
 
-* **Visual/CSS harmonization** between the landing page and portal (colors, typography, spacing, design tokens) — to be handled later, after the landing-page design has been validated and accepted by the client.
-* **Full integration** of landing components into Project A's core design system (`atoms/molecules/organisms`) — planned, but not part of this migration stage.
-* **Database migration** — not relevant yet; both projects are still frontend-only prototypes.
-* **Deletion/cleanup of Project B** (`mcp-example`) — a separate decision, to be performed only after this migration has been fully verified as stable by the user manually.
-* **Dependency version conflict resolution** marked as `requires\_manual\_review` — requires a conscious decision rather than automatic resolution.
+- **Visual/CSS harmonization** between the landing page and portal (colors, typography, spacing, design tokens) — to be handled later, after the landing-page design has been validated and accepted by the client.
+- **Full integration** of landing components into Project A's core design system (`atoms/molecules/organisms`) — planned, but not part of this migration stage.
+- **Database migration** — not relevant yet; both projects are still frontend-only prototypes.
+- **Deletion/cleanup of Project B** (`mcp-example`) — a separate decision, to be performed only after this migration has been fully verified as stable by the user manually.
+- **Dependency version conflict resolution** marked as `requires\_manual\_review` — requires a conscious decision rather than automatic resolution.
 
 \---
 
 ## 6\. Agent Communication Protocol
 
-* Before Phase 5, always show the manifest as a concise, human-reviewable summary (table/list), not a raw JSON dump without context.
-* Every time a file is copied/modified, record it in the log — never do it silently.
-* If anything ambiguous is discovered (for example, two components with the same name but different contents between Project A and B), **do not guess which one is correct** — mark it as `requires\_manual\_review` and ask.
-* No destructive operation (delete/overwrite/move-and-delete-source) may be performed without explicit approval that is specifically named in the human confirmation message.
+- Before Phase 5, always show the manifest as a concise, human-reviewable summary (table/list), not a raw JSON dump without context.
+- Every time a file is copied/modified, record it in the log — never do it silently.
+- If anything ambiguous is discovered (for example, two components with the same name but different contents between Project A and B), **do not guess which one is correct** — mark it as `requires\_manual\_review` and ask.
+- No destructive operation (delete/overwrite/move-and-delete-source) may be performed without explicit approval that is specifically named in the human confirmation message.
 
 \---
 
@@ -676,16 +676,15 @@ if \_\_name\_\_ == "\_\_main\_\_":
 
 ## Appendix E — Quick Checklist (TL;DR)
 
-* \[ ] Phase 0: Create a new branch in Project A
-* \[ ] Phase 1: Inventory of both projects completed; router/language/styling detected (not assumed)
-* \[ ] Phase 2: All candidates classified; duplicates identified
-* \[ ] Phase 3: `migration\_manifest.json` completed \& re-verified
-* \[ ] Phase 4: **Human confirmation received** before proceeding
-* \[ ] Phase 5: Dry run reviewed, copy executed, aliases remapped
-* \[ ] Phase 6: Dependencies added, install executed, version conflicts recorded
-* \[ ] Phase 7: Utility configs adopted (without overwriting existing ones)
-* \[ ] Phase 8: Landing CSS isolated; Project A's global styles untouched
-* \[ ] Phase 9: Landing components placed in `src/landing-import/`; not merged into the core folders
-* \[ ] Phase 10: `biome check` and `next build` pass
-* \[ ] Phase 11: `MIGRATION\_REPORT.md` created; granular commits made per stage
-
+- \[ ] Phase 0: Create a new branch in Project A
+- \[ ] Phase 1: Inventory of both projects completed; router/language/styling detected (not assumed)
+- \[ ] Phase 2: All candidates classified; duplicates identified
+- \[ ] Phase 3: `migration\_manifest.json` completed \& re-verified
+- \[ ] Phase 4: **Human confirmation received** before proceeding
+- \[ ] Phase 5: Dry run reviewed, copy executed, aliases remapped
+- \[ ] Phase 6: Dependencies added, install executed, version conflicts recorded
+- \[ ] Phase 7: Utility configs adopted (without overwriting existing ones)
+- \[ ] Phase 8: Landing CSS isolated; Project A's global styles untouched
+- \[ ] Phase 9: Landing components placed in `src/landing-import/`; not merged into the core folders
+- \[ ] Phase 10: `biome check` and `next build` pass
+- \[ ] Phase 11: `MIGRATION\_REPORT.md` created; granular commits made per stage

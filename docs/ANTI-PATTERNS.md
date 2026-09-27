@@ -122,17 +122,17 @@
 97. Testing implementation details (mocking what you don't own)
 98. Flaky tests tolerated / skipped tests accumulating
 99. Non-deterministic tests (real clock, real network, real randomness)
-100. Snapshot tests approved without reading the diff
-101. TODO-Driven Development
-102. Commented-out code committed
-103. Adding a dependency to work around a boundary rule
-104. Bypassing lint with inline disables
-105. Cargo Cult Programming (a pattern copied without its reason)
-106. Bikeshedding structure while the contract is undefined
-107. Refactoring and feature work in one commit
-108. Version drift between the NestJS and Next.js repos, undocumented
-109. Architecture decided in chat, recorded nowhere (no ADR)
-110. "Temporary" workaround with no owner and no expiry
+100.  Snapshot tests approved without reading the diff
+101.  TODO-Driven Development
+102.  Commented-out code committed
+103.  Adding a dependency to work around a boundary rule
+104.  Bypassing lint with inline disables
+105.  Cargo Cult Programming (a pattern copied without its reason)
+106.  Bikeshedding structure while the contract is undefined
+107.  Refactoring and feature work in one commit
+108.  Version drift between the NestJS and Next.js repos, undocumented
+109.  Architecture decided in chat, recorded nowhere (no ADR)
+110.  "Temporary" workaround with no owner and no expiry
 
 ---
 

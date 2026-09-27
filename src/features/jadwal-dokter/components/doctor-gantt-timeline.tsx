@@ -517,7 +517,9 @@ export function DoctorGanttTimeline({
                                 <span className='text-[11px] font-bold leading-none'>
                                   {isOpen && SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.OPEN]}
                                   {isOccupied && SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.OCCUPIED]}
-                                  {isClosed && (interval.closedReason ?? SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.CLOSED])}
+                                  {isClosed &&
+                                    (interval.closedReason ??
+                                      SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.CLOSED])}
                                 </span>
 
                                 {isOccupied && interval.appointmentRef?.queueNumber && (

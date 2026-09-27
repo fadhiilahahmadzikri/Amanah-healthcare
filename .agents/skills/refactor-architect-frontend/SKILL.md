@@ -25,11 +25,11 @@ Architecture knowledge base: `references/` (load per phase, not all at once).
 
 ## Reference Files — Load When Needed
 
-| File | Load When |
-|------|-----------|
-| `references/frontend-principle-template.md` | Phase 1 — generating `frontend-principle.md` |
-| `references/react-folder-architecture.md` | Phase 2 — folder audit, FSD migration, state mgmt |
-| `references/react-antipattern-catalog.md` | Phase 3/4 — component + hook + state audit |
+| File                                        | Load When                                         |
+| ------------------------------------------- | ------------------------------------------------- |
+| `references/frontend-principle-template.md` | Phase 1 — generating `frontend-principle.md`      |
+| `references/react-folder-architecture.md`   | Phase 2 — folder audit, FSD migration, state mgmt |
+| `references/react-antipattern-catalog.md`   | Phase 3/4 — component + hook + state audit        |
 
 ---
 
@@ -83,6 +83,7 @@ across multiple pages. Only then extract to `features/`, `entities/`, or `shared
 Avoid premature over-decomposition into entities/features.
 
 Audit and report:
+
 - Files in wrong layer (business logic in `shared/`, API calls in `pages/` that belong in `entities/api/`, etc.)
 - Import direction violations — lower layers importing from higher layers.
 - Missing `index.ts` public API barrel files on slice boundaries.
@@ -103,6 +104,7 @@ Recommend adding `steiger` + `@feature-sliced/steiger-plugin` for ongoing lint e
 Evaluate every component file against the anti-pattern catalog. Report per-component:
 
 ### Component Design
+
 - Fat Component (fetch + transform + render + error + layout in one)
 - Missing Container / Presentation split where business logic is complex
 - Prop drilling beyond 2 levels
@@ -114,6 +116,7 @@ Evaluate every component file against the anti-pattern catalog. Report per-compo
 - Spreading unknown props onto DOM elements (`<div {...props}>`)
 
 ### Hook Violations
+
 - Business logic in component body instead of custom hook
 - `useEffect` with missing or incorrect dependency arrays
 - `useEffect` for derived state (use `useMemo` or inline compute)
@@ -127,6 +130,7 @@ Evaluate every component file against the anti-pattern catalog. Report per-compo
 - Async `useEffect` without AbortController / isMounted guard (memory leak)
 
 ### Prop Contract Violations
+
 - Props interface missing (no TypeScript interface or PropTypes)
 - Optional props with no defaults and no null guards
 - Boolean props not predicate-named (`isLoading`, `hasError`, `canSubmit`)
@@ -142,15 +146,15 @@ Evaluate every component file against the anti-pattern catalog. Report per-compo
 
 Classify all state by category and check tool alignment:
 
-| Category | Correct Tool | Common Violation |
-|----------|-------------|-----------------|
-| UI toggle / local | `useState` / `useReducer` | Zustand/Redux for single-component state |
-| Form state | `react-hook-form` / `useState` | Global store for form data |
-| Derived state | `useMemo` / inline | Separate `useState` + `useEffect` sync |
-| Server/remote data | React Query / SWR | `useState` + `useEffect` raw fetch |
-| Shared feature state | Zustand slice (scoped) | Unbounded Context wrapping whole app |
-| Global app state | Zustand global / App-level Context | Overuse — most "global" is actually server state |
-| URL state | `useSearchParams` / router | Component state for filters/pagination |
+| Category             | Correct Tool                       | Common Violation                                 |
+| -------------------- | ---------------------------------- | ------------------------------------------------ |
+| UI toggle / local    | `useState` / `useReducer`          | Zustand/Redux for single-component state         |
+| Form state           | `react-hook-form` / `useState`     | Global store for form data                       |
+| Derived state        | `useMemo` / inline                 | Separate `useState` + `useEffect` sync           |
+| Server/remote data   | React Query / SWR                  | `useState` + `useEffect` raw fetch               |
+| Shared feature state | Zustand slice (scoped)             | Unbounded Context wrapping whole app             |
+| Global app state     | Zustand global / App-level Context | Overuse — most "global" is actually server state |
+| URL state            | `useSearchParams` / router         | Component state for filters/pagination           |
 
 Flag: state mutation without immutability, SSOT violations, state duplication.
 
@@ -161,6 +165,7 @@ Flag: state mutation without immutability, SSOT violations, state duplication.
 Verify file and export naming against the convention table in `references/react-folder-architecture.md`.
 
 Key violations to flag:
+
 - Component files not PascalCase
 - Hook files not prefixed `use`
 - Default exports on non-page components
@@ -201,39 +206,51 @@ Generate `agents/quality/mandatory/FRONTEND_REFACTOR_REPORT.md`:
 # Frontend Refactoring Report
 
 ## Stack Detected
+
 [React version, framework, TypeScript, state lib, styling]
 
 ## FSD Version
+
 [v2.0 / v2.1 / migrated]
 
 ## Principle Document
+
 agents/quality/mandatory/frontend-principle.md — [generated / updated]
 
 ## Folder Architecture
+
 [FSD v2.1 migration map — before/after]
 
 ## Pages-First Assessment
+
 [Slices merged back into pages | Slices correctly elevated]
 
 ## Component Findings
+
 | Component | File | Violation | Severity | Action Taken |
 
 ## State Management Findings
+
 [Per-category: tool used vs correct tool]
 
 ## Naming Violations
+
 [File/export naming issues resolved]
 
 ## Refactoring Completed
+
 [Ordered list of changes applied]
 
 ## Remaining Technical Debt
+
 [Unfixed items with rationale]
 
 ## Tooling Recommendations
+
 [Steiger, eslint-plugin-boundaries, etc.]
 
 ## Compliance Score
+
 [Per-principle: PASS / PARTIAL / FAIL]
 ```
 

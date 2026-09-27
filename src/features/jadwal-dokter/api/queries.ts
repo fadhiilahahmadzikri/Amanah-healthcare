@@ -187,13 +187,12 @@ export const scheduleSlotAvailabilityQueryOptions = (params: {
     gcTime: 2 * 60 * 1000,
     enabled: Boolean(
       params.date &&
-        params.shift &&
-        params.roomId &&
-        params.date.trim().length > 0 &&
-        params.shift.trim().length > 0 &&
-        params.roomId.trim().length > 0
+      params.shift &&
+      params.roomId &&
+      params.date.trim().length > 0 &&
+      params.shift.trim().length > 0 &&
+      params.roomId.trim().length > 0
     )
   });
 
 export { doctorScheduleKeys };
-

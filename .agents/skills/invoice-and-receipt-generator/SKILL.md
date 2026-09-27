@@ -37,6 +37,7 @@ npm install -D @types/qrcode   # kalau proyeknya TypeScript — bwip-js dan @rea
 Two smaller TypeScript-only snags confirmed while testing this template: `renderToBuffer()`'s type signature only accepts `React.ReactElement<DocumentProps>`, so passing a custom wrapper component (like `InvoiceDocument`) needs a type cast even though it works fine at runtime — see the cast in `route.ts`. And a Node `Buffer` isn't directly accepted as a Web `Response` body under `strict` mode when both DOM and Node types are loaded — wrap it as `new Uint8Array(buffer)`.
 
 **Files to use as a starting point:**
+
 - `scripts/invoice-pdf/InvoiceDocument.tsx` — the actual invoice layout as a react-pdf component (header, billing info, line-items table, totals, QR + barcode footer).
 - `scripts/invoice-pdf/generate-codes.ts` — small helper that turns an invoice number/payment URL into the data URIs `InvoiceDocument` needs.
 - `scripts/invoice-pdf/route.ts` — a Next.js App Router Route Handler (`app/api/invoice/[id]/route.ts`) that fetches invoice data, renders the PDF server-side, and returns it with the right headers so the browser either downloads it or opens it inline.
@@ -56,6 +57,7 @@ npm install node-thermal-printer
 The lower-level alternative is `escpos`/`node-escpos`, which also has `.qrimage()` and `.barcode()` built in and gives more direct control over the byte stream (useful for serial/Bluetooth printers with quirky drivers), but `node-thermal-printer` covers the vast majority of real cash-register setups with a friendlier API and active maintenance — default to it unless the user already has an `escpos`-based codebase or a printer model `node-thermal-printer` doesn't recognize.
 
 **Connecting to the actual printer** — the `interface` string changes by connection type, and getting this wrong is the most common "it doesn't print anything" bug:
+
 - USB (most common for a single till): `interface: 'printer:AUTO'` or the OS device path, e.g. `/dev/usb/lp0` on Linux. On Linux this usually needs the user added to the `lp` group or a udev rule — if `execute()` hangs or throws a permissions error, that's almost always why.
 - Network printer (common for kitchen/packing stations): `interface: 'tcp://<printer-ip>:9100'` — port 9100 is the standard raw-printing port on Epson/Star network printers.
 - Serial: `interface: '/dev/ttyUSB0'` (Linux) or `COM3` (Windows).
@@ -65,6 +67,7 @@ The lower-level alternative is `escpos`/`node-escpos`, which also has `.qrimage(
 **Encoding:** receipts often have Rupiah symbols, accented names, or non-Latin characters. Set `characterSet` to match what the printer model actually supports (commonly `WPC1252` or `PC852_LATIN2` for Indonesian text; check the printer's manual) — wrong character set is the usual cause of receipts printing garbled symbols instead of letters.
 
 **Files to use as a starting point:**
+
 - `scripts/thermal-receipt/print-struk.ts` — POS receipt: store header, itemized list via `tableCustom`, total, QR code linking to a digital copy of the receipt, barcode of the transaction ID, paper cut.
 - `scripts/thermal-receipt/print-resi.ts` — shipping label variant: courier name, sender/recipient blocks, AWB/tracking number as a Code128 barcode, QR code linking to live tracking, weight/cost line.
 
@@ -72,13 +75,13 @@ Both scripts are plain Node/TypeScript functions (not React) — call them from 
 
 ## Quick reference
 
-| Need | Library | Output |
-|---|---|---|
-| Formal invoice document | `@react-pdf/renderer` | PDF buffer |
-| QR code inside a PDF | `qrcode` | data URI / buffer |
-| Barcode inside a PDF | `bwip-js` | data URI / buffer |
-| Pixel-perfect HTML invoice design | Puppeteer/Playwright | PDF buffer (heavier) |
-| POS receipt / resi on a real printer | `node-thermal-printer` | ESC/POS byte stream → printed paper |
-| QR/barcode on that receipt | built into `node-thermal-printer` | — no extra library needed |
+| Need                                 | Library                           | Output                              |
+| ------------------------------------ | --------------------------------- | ----------------------------------- |
+| Formal invoice document              | `@react-pdf/renderer`             | PDF buffer                          |
+| QR code inside a PDF                 | `qrcode`                          | data URI / buffer                   |
+| Barcode inside a PDF                 | `bwip-js`                         | data URI / buffer                   |
+| Pixel-perfect HTML invoice design    | Puppeteer/Playwright              | PDF buffer (heavier)                |
+| POS receipt / resi on a real printer | `node-thermal-printer`            | ESC/POS byte stream → printed paper |
+| QR/barcode on that receipt           | built into `node-thermal-printer` | — no extra library needed           |
 
 For the full research behind these picks (download counts, alternatives considered, why some popular-sounding packages were rejected), see `references/library-research.md`.

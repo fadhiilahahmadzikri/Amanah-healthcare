@@ -13,7 +13,6 @@ When rendering content that depends on client-side storage (localStorage, cookie
 
 ```tsx
 function ThemeWrapper({ children }: { children: ReactNode }) {
-
   const theme = localStorage.getItem('theme') || 'light';
 
   return <div className={theme}>{children}</div>;
@@ -29,7 +28,6 @@ function ThemeWrapper({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState('light');
 
   useEffect(() => {
-
     const stored = localStorage.getItem('theme');
     if (stored) {
       setTheme(stored);

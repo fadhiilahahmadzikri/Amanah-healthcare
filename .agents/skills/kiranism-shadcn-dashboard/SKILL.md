@@ -57,24 +57,12 @@ export type Order = {
 
 export const fakeOrders = {
   records: [] as Order[],
-  initialize() {
-
-  },
-  async getOrders({ page, limit, search, sort }) {
-
-  },
-  async getOrderById(id: number) {
-
-  },
-  async createOrder(data) {
-
-  },
-  async updateOrder(id, data) {
-
-  },
-  async deleteOrder(id) {
-
-  }
+  initialize() {},
+  async getOrders({ page, limit, search, sort }) {},
+  async getOrderById(id: number) {},
+  async createOrder(data) {},
+  async updateOrder(id, data) {},
+  async deleteOrder(id) {}
 };
 fakeOrders.initialize();
 ```
@@ -452,7 +440,7 @@ To register a new icon, import from `@tabler/icons-react` and add to the `Icons`
 
 ```tsx
 import { IconShoppingCart } from '@tabler/icons-react';
-export const Icons = {  cart: IconShoppingCart };
+export const Icons = { cart: IconShoppingCart };
 ```
 
 Never import `@tabler/icons-react` anywhere else. Always use `Icons.keyName`.
@@ -499,7 +487,7 @@ export function OrderFormSheet({
     }
   });
   const form = useAppForm({
-    defaultValues: { customer: order?.customer ?? ''  } as OrderFormValues,
+    defaultValues: { customer: order?.customer ?? '' } as OrderFormValues,
     validators: { onSubmit: orderSchema },
     onSubmit: async ({ value }) => {
       await mutation.mutateAsync(value);
@@ -555,7 +543,6 @@ The pattern is: server prefetch → HydrationBoundary → client useSuspenseQuer
 **Mutations** use `mutationOptions` + `getQueryClient()` in `mutations.ts`, composed via spread at the call site:
 
 ```tsx
-
 export const createOrderMutation = mutationOptions({
   mutationFn: (data) => createOrder(data),
   onSuccess: () => {

@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  isSessionShiftUnavailable,
-  parseTimeToMinutes
-} from './schedule-availability-guard';
+import { isSessionShiftUnavailable, parseTimeToMinutes } from './schedule-availability-guard';
 import {
   SCHEDULE_SHIFT_BOUNDARIES,
   SCHEDULE_SHIFT,

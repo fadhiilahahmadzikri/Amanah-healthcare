@@ -53,7 +53,6 @@ export function AppointmentCard({
     spec: appointment.service || '',
     avatar: '',
     location: '',
-    rating: '',
     tags: [],
     schedule: ''
   };
@@ -126,12 +125,10 @@ export function AppointmentCard({
             <p className='text-[12.5px] font-medium text-muted-foreground truncate'>
               {appointment.service || docInfo.spec || '-'}
             </p>
-
-            {docInfo.rating ? (
+            {appointment.queue_number && appointment.queue_number !== '-' ? (
               <div className='pt-0.5'>
-                <span className='inline-flex items-center gap-1 px-2 py-0.5 bg-amber-500/15 text-amber-700 dark:text-amber-300 rounded-[6px] text-[11px] font-bold leading-none'>
-                  <Icons.star className='size-2.5 fill-amber-500 text-amber-500' />
-                  <span>{docInfo.rating}</span>
+                <span className='inline-flex items-center px-1.5 py-0.2 rounded font-mono font-bold text-[10px] bg-primary/10 text-primary border border-primary/20'>
+                  Antrean: {appointment.queue_number}
                 </span>
               </div>
             ) : null}

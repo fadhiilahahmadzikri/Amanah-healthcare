@@ -11,28 +11,28 @@ Flutter is a **presentation-layer consumer** of a stable notification contract. 
 
 ## 2. Responsibilities Flutter Owns vs. Does Not Own
 
-| Owns | Does not own |
-|---|---|
-| Maintaining a live socket connection while the app is usable | Deciding *who* a notification's recipient is |
-| Reacting to app lifecycle transitions (foreground/background) | Persisting notifications durably (source of truth is the backend) |
-| Local, in-memory/cached notification state for fast UI rendering | Retry logic for failed deliveries |
-| Deduplicating notifications arriving from two sources (push + fetch) | Generating idempotency keys |
-| Displaying local system notifications while foregrounded | Deciding which channels (in-app/push/email) a notification type uses |
-| Requesting missed notifications after reconnect | Broker/queue infrastructure of any kind |
+| Owns                                                                 | Does not own                                                         |
+| -------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Maintaining a live socket connection while the app is usable         | Deciding _who_ a notification's recipient is                         |
+| Reacting to app lifecycle transitions (foreground/background)        | Persisting notifications durably (source of truth is the backend)    |
+| Local, in-memory/cached notification state for fast UI rendering     | Retry logic for failed deliveries                                    |
+| Deduplicating notifications arriving from two sources (push + fetch) | Generating idempotency keys                                          |
+| Displaying local system notifications while foregrounded             | Deciding which channels (in-app/push/email) a notification type uses |
+| Requesting missed notifications after reconnect                      | Broker/queue infrastructure of any kind                              |
 
 ## 3. Recommended Packages
 
 Per your instruction to use mature libraries rather than reinventing low-level mechanisms:
 
-| Concern | Package | Why |
-|---|---|---|
-| Real-time transport client | `socket_io_client` | Matches the Socket.IO server chosen in Document 1/4; handles reconnection, acks, rooms transparently |
-| State management | `flutter_riverpod` (or `flutter_bloc` if that's already the project's standard) | Testable, supports dependency injection of the repository interface described below |
-| REST networking | `dio` | Interceptors for auth token attachment/refresh, cancellation, typed error handling |
-| Background/killed-state push | `firebase_messaging` | Delivers notifications when the socket cannot realistically stay open (app backgrounded/killed) — this is the `push` channel adapter's client-side counterpart from Document 4 |
-| Local notification display | `flutter_local_notifications` | Shows a system notification when a socket-delivered event arrives while the app is foregrounded but the user isn't looking at the relevant screen |
-| Connectivity awareness | `connectivity_plus` | Used to avoid futile reconnect attempts while genuinely offline, and to trigger reconciliation fetch on connectivity restoration |
-| Lifecycle observation | `WidgetsBindingObserver` (Flutter SDK, no package needed) | Drives the foreground/background socket policy in §7 |
+| Concern                      | Package                                                                         | Why                                                                                                                                                                            |
+| ---------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Real-time transport client   | `socket_io_client`                                                              | Matches the Socket.IO server chosen in Document 1/4; handles reconnection, acks, rooms transparently                                                                           |
+| State management             | `flutter_riverpod` (or `flutter_bloc` if that's already the project's standard) | Testable, supports dependency injection of the repository interface described below                                                                                            |
+| REST networking              | `dio`                                                                           | Interceptors for auth token attachment/refresh, cancellation, typed error handling                                                                                             |
+| Background/killed-state push | `firebase_messaging`                                                            | Delivers notifications when the socket cannot realistically stay open (app backgrounded/killed) — this is the `push` channel adapter's client-side counterpart from Document 4 |
+| Local notification display   | `flutter_local_notifications`                                                   | Shows a system notification when a socket-delivered event arrives while the app is foregrounded but the user isn't looking at the relevant screen                              |
+| Connectivity awareness       | `connectivity_plus`                                                             | Used to avoid futile reconnect attempts while genuinely offline, and to trigger reconciliation fetch on connectivity restoration                                               |
+| Lifecycle observation        | `WidgetsBindingObserver` (Flutter SDK, no package needed)                       | Drives the foreground/background socket policy in §7                                                                                                                           |
 
 ## 4. Internal Layering
 
@@ -120,11 +120,11 @@ This reconciliation call is not optional — it is the mechanism that guarantees
 
 ## 7. Foreground / Background / Killed State Handling
 
-| App state | Socket policy | Delivery mechanism |
-|---|---|---|
-| **Foreground** | Connected | Real-time push over Socket.IO; shown via in-app UI update, optionally a local system notification (`flutter_local_notifications`) if the relevant screen isn't visible |
-| **Background (briefly, e.g. app-switcher)** | Kept connected for a short grace period (tens of seconds), then disconnected | Real-time if still connected; otherwise falls to push |
-| **Background (extended) / Killed** | Disconnected — a WebSocket cannot realistically survive OS process suspension or termination | **FCM push notification** (the `push` channel adapter from Document 4), delivered by the OS notification tray outside the app process entirely |
+| App state                                   | Socket policy                                                                                | Delivery mechanism                                                                                                                                                     |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Foreground**                              | Connected                                                                                    | Real-time push over Socket.IO; shown via in-app UI update, optionally a local system notification (`flutter_local_notifications`) if the relevant screen isn't visible |
+| **Background (briefly, e.g. app-switcher)** | Kept connected for a short grace period (tens of seconds), then disconnected                 | Real-time if still connected; otherwise falls to push                                                                                                                  |
+| **Background (extended) / Killed**          | Disconnected — a WebSocket cannot realistically survive OS process suspension or termination | **FCM push notification** (the `push` channel adapter from Document 4), delivered by the OS notification tray outside the app process entirely                         |
 
 ```dart
 class AppLifecycleNotificationHandler extends WidgetsBindingObserver {
@@ -187,7 +187,7 @@ class NotificationState extends StateNotifier<NotificationListState> {
 }
 ```
 
-Deduplication by notification `id` (assigned server-side, globally unique) is what makes it safe for the same notification to arrive via both an initial REST fetch *and* a subsequent real-time push without producing a visible duplicate.
+Deduplication by notification `id` (assigned server-side, globally unique) is what makes it safe for the same notification to arrive via both an initial REST fetch _and_ a subsequent real-time push without producing a visible duplicate.
 
 ## 9. Fetching History and Pagination
 
@@ -195,7 +195,7 @@ Standard cursor or offset pagination against the REST contract defined in Docume
 
 ## 10. Read/Unread Synchronization
 
-`markAsRead` and `markAllAsRead` are REST mutations (`PATCH /api/notifications/:id/read`), never socket emissions from the client — writes go through the authenticated REST surface, which is easier to secure, log, and rate-limit than accepting write operations over the socket. The *result* of that write is then broadcast back out over the real-time channel (`notification:read`) so that a second device belonging to the same user (e.g., tablet + phone both logged in) reflects the read state without a manual refresh — this is the multi-device sync mentioned in Document 1 §5.
+`markAsRead` and `markAllAsRead` are REST mutations (`PATCH /api/notifications/:id/read`), never socket emissions from the client — writes go through the authenticated REST surface, which is easier to secure, log, and rate-limit than accepting write operations over the socket. The _result_ of that write is then broadcast back out over the real-time channel (`notification:read`) so that a second device belonging to the same user (e.g., tablet + phone both logged in) reflects the read state without a manual refresh — this is the multi-device sync mentioned in Document 1 §5.
 
 ## 11. Decoupling Checklist
 

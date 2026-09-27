@@ -44,7 +44,7 @@ NEVER describe a visual grouping as a single data field when it contains multipl
 For example, if a visible record contains:
 
 "John Doe"
-"[john@example.com](mailto\:john@example.com)"
+"[john@example.com](mailto:john@example.com)"
 "Administrator"
 "Active"
 
@@ -57,7 +57,7 @@ these should be represented as separate fields:
 
 not as:
 
-- user\_information
+- user_information
 
 Likewise, if a product record contains:
 
@@ -80,12 +80,12 @@ Dataset: Orders
 
 Fields:
 
-- order\_id
-- customer\_name
-- product\_name
+- order_id
+- customer_name
+- product_name
 - quantity
 - price
-- order\_date
+- order_date
 - status
 
 Then identify the visible records belonging to those fields.
@@ -109,9 +109,9 @@ Instead of:
 
 Extract:
 
-- total\_revenue: visible value
-- total\_orders: visible value
-- active\_customers: visible value
+- total_revenue: visible value
+- total_orders: visible value
+- active_customers: visible value
 
 The visual container is irrelevant unless it communicates meaningful data relationships.
 
@@ -152,20 +152,20 @@ For example:
 Dataset A — Summary
 Fields:
 
-- total\_revenue
-- total\_orders
+- total_revenue
+- total_orders
 
 Dataset B — Customers
 Fields:
 
-- customer\_name
+- customer_name
 - email
 - status
 
 Dataset C — Transactions
 Fields:
 
-- transaction\_id
+- transaction_id
 - date
 - amount
 

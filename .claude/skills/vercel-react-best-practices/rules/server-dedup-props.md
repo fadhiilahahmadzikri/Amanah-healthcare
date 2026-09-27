@@ -14,14 +14,12 @@ RSC→client serialization deduplicates by object reference, not value. Same ref
 **Incorrect (duplicates array):**
 
 ```tsx
-
 <ClientList usernames={usernames} usernamesOrdered={usernames.toSorted()} />
 ```
 
 **Correct (sends 3 strings):**
 
 ```tsx
-
 <ClientList usernames={usernames} />;
 
 ('use client');

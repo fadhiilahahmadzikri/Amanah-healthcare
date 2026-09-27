@@ -5,7 +5,6 @@ Use `next/image` for automatic image optimization.
 ## Always Use next/image
 
 ```tsx
-
 <img src='/hero.png' alt='Hero' />;
 
 import Image from 'next/image';
@@ -33,7 +32,6 @@ import heroImage from './hero.png'
 Remote domains must be configured in `next.config.js`:
 
 ```js
-
 module.exports = {
   images: {
     remotePatterns: [
@@ -140,7 +138,6 @@ Use `priority` for above-the-fold images (LCP):
 When using `output: 'export'`, use `unoptimized` or custom loader:
 
 ```tsx
-
 <Image src='/hero.png' alt='Hero' width={800} height={400} unoptimized />;
 
 module.exports = {

@@ -37,21 +37,25 @@ Systematically identify and assess security threats using structured methodologi
 # Threat Model: User Authentication System
 
 ## System Overview
+
 Web application with username/password authentication, session management, and password reset functionality.
 
 ## Assets
+
 - User credentials (usernames, password hashes)
 - Session tokens
 - User personal data
 - Password reset tokens
 
 ## Entry Points
+
 1. Login page
 2. Password reset page
 3. API endpoints
 4. Database
 
 ## Trust Boundaries
+
 - Client ↔ Server (HTTPS)
 - Application ↔ Database
 - User ↔ Application
@@ -59,48 +63,56 @@ Web application with username/password authentication, session management, and p
 ## Threats (STRIDE Analysis)
 
 ### Spoofing
-| ID | Threat | Impact | Mitigation |
-|----|--------|--------|------------|
-| S1 | Credential stuffing | High | Rate limiting, MFA |
-| S2 | Session token theft | High | Secure cookies, HTTPS only |
-| S3 | Password reset abuse | Med | Token expiration, email verification |
+
+| ID  | Threat               | Impact | Mitigation                           |
+| --- | -------------------- | ------ | ------------------------------------ |
+| S1  | Credential stuffing  | High   | Rate limiting, MFA                   |
+| S2  | Session token theft  | High   | Secure cookies, HTTPS only           |
+| S3  | Password reset abuse | Med    | Token expiration, email verification |
 
 ### Tampering
-| ID | Threat | Impact | Mitigation |
-|----|--------|--------|------------|
-| T1 | SQL injection | High | Prepared statements, input validation |
-| T2 | Session fixation | Med | Regenerate session on login |
+
+| ID  | Threat           | Impact | Mitigation                            |
+| --- | ---------------- | ------ | ------------------------------------- |
+| T1  | SQL injection    | High   | Prepared statements, input validation |
+| T2  | Session fixation | Med    | Regenerate session on login           |
 
 ### Repudiation
-| ID | Threat | Impact | Mitigation |
-|----|--------|--------|------------|
-| R1 | No audit trail | Low | Comprehensive logging |
+
+| ID  | Threat         | Impact | Mitigation            |
+| --- | -------------- | ------ | --------------------- |
+| R1  | No audit trail | Low    | Comprehensive logging |
 
 ### Information Disclosure
-| ID | Threat | Impact | Mitigation |
-|----|--------|--------|------------|
-| I1 | Plaintext passwords | Critical | Bcrypt hashing |
-| I2 | Verbose error messages | Med | Generic error responses |
+
+| ID  | Threat                 | Impact   | Mitigation              |
+| --- | ---------------------- | -------- | ----------------------- |
+| I1  | Plaintext passwords    | Critical | Bcrypt hashing          |
+| I2  | Verbose error messages | Med      | Generic error responses |
 
 ### Denial of Service
-| ID | Threat | Impact | Mitigation |
-|----|--------|--------|------------|
-| D1 | Brute force attacks | High | Account lockout, CAPTCHA |
-| D2 | Resource exhaustion | Med | Rate limiting |
+
+| ID  | Threat              | Impact | Mitigation               |
+| --- | ------------------- | ------ | ------------------------ |
+| D1  | Brute force attacks | High   | Account lockout, CAPTCHA |
+| D2  | Resource exhaustion | Med    | Rate limiting            |
 
 ### Elevation of Privilege
-| ID | Threat | Impact | Mitigation |
-|----|--------|--------|------------|
-| E1 | Broken access control | High | Role-based access control |
-| E2 | Insecure direct object refs | High | Authorization checks |
+
+| ID  | Threat                      | Impact | Mitigation                |
+| --- | --------------------------- | ------ | ------------------------- |
+| E1  | Broken access control       | High   | Role-based access control |
+| E2  | Insecure direct object refs | High   | Authorization checks      |
 
 ## Risk Rating
+
 - Critical: Immediate remediation
 - High: Fix before release
 - Medium: Fix in next sprint
 - Low: Track for future
 
 ## Action Items
+
 1. Implement MFA (S1)
 2. Add SQL injection prevention (T1)
 3. Implement comprehensive logging (R1)

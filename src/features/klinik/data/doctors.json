@@ -113,7 +113,12 @@
     "avatar": "https://i.pravatar.cc/150?img=45",
     "location": "Poli Gizi, Room 109",
     "rating": "4.8",
-    "tags": ["Diet Nutrisi Medis", "Program Penurunan Berat Badan", "Nutrisi Diabetes", "Body Composition"],
+    "tags": [
+      "Diet Nutrisi Medis",
+      "Program Penurunan Berat Badan",
+      "Nutrisi Diabetes",
+      "Body Composition"
+    ],
     "schedule": "Senin - Sabtu (09:00 - 16:00)"
   }
 ]

@@ -30,6 +30,7 @@ Conduct comprehensive security assessments to identify vulnerabilities, test sec
 **Tool**: Nessus
 
 ### Critical Vulnerabilities (2)
+
 1. **CVE-2023-XXXXX**: SQL Injection in login form
    - CVSS: 9.8 (Critical)
    - Remediation: Update framework to v2.1.5
@@ -41,6 +42,7 @@ Conduct comprehensive security assessments to identify vulnerabilities, test sec
    - Priority: P0
 
 ### High Vulnerabilities (5)
+
 3. **Missing Security Headers**
    - Missing: CSP, X-Frame-Options, HSTS
    - CVSS: 7.5
@@ -52,6 +54,7 @@ Conduct comprehensive security assessments to identify vulnerabilities, test sec
    - Remediation: Disable old TLS versions
 
 ### Remediation Plan
+
 - Week 1: Fix critical issues (1, 2)
 - Week 2: Fix high severity (3, 4, 5)
 - Week 3: Rescan and verify
@@ -63,6 +66,7 @@ Conduct comprehensive security assessments to identify vulnerabilities, test sec
 # Security Test Plan: E-Commerce Application
 
 ## Scope
+
 - Web application
 - API endpoints
 - Mobile apps (iOS/Android)
@@ -70,6 +74,7 @@ Conduct comprehensive security assessments to identify vulnerabilities, test sec
 ## Test Categories
 
 ### Authentication & Session Management
+
 - [ ] Brute force protection
 - [ ] Password complexity
 - [ ] Session timeout
@@ -78,12 +83,14 @@ Conduct comprehensive security assessments to identify vulnerabilities, test sec
 - [ ] Password reset security
 
 ### Authorization
+
 - [ ] Horizontal privilege escalation
 - [ ] Vertical privilege escalation
 - [ ] Insecure direct object references
 - [ ] Missing function-level access control
 
 ### Input Validation
+
 - [ ] SQL injection
 - [ ] XSS (reflected, stored, DOM)
 - [ ] Command injection
@@ -91,24 +98,28 @@ Conduct comprehensive security assessments to identify vulnerabilities, test sec
 - [ ] XXE
 
 ### Cryptography
+
 - [ ] Sensitive data encryption (in transit)
 - [ ] Sensitive data encryption (at rest)
 - [ ] Weak cryptographic algorithms
 - [ ] Insecure random number generation
 
 ### Business Logic
+
 - [ ] Payment bypass
 - [ ] Cart manipulation
 - [ ] Price tampering
 - [ ] Inventory manipulation
 
 ### API Security
+
 - [ ] API authentication
 - [ ] Rate limiting
 - [ ] Input validation
 - [ ] Error handling
 
 ## Test Approach
+
 1. Automated scanning (OWASP ZAP)
 2. Manual testing (Burp Suite)
 3. Code review (key areas)

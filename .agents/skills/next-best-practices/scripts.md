@@ -7,7 +7,6 @@ Loading third-party scripts in Next.js.
 Always use `next/script` instead of native `<script>` tags for better performance.
 
 ```tsx
-
 <script src='https://example.com/script.js'></script>;
 
 import Script from 'next/script';
@@ -106,7 +105,6 @@ export default function Layout({ children }) {
 ## Other Third-Party Scripts
 
 ```tsx
-
 import { YouTubeEmbed } from '@next/third-parties/google';
 
 <YouTubeEmbed videoid='dQw4w9WgXcQ' />;

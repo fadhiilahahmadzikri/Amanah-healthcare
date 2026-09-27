@@ -3,7 +3,7 @@
 **Document 3 of 4 — Web Client Architecture**
 Assumes the paradigm, vocabulary, and backend contract defined in `01-architecture-overview.md`. This document covers the **web presentation layer** — the pages/components that render notifications to a logged-in user in the browser. The API routes and server-side orchestration are covered in `04-backend-notifications.md`, even though both may live in the same Next.js codebase.
 
-> **Note on structure:** In a Next.js App Router project, "the web interface" and "the backend" are often two halves of the same application (Server/Client Components vs. Route Handlers). This document deliberately treats them as separate architectural *concerns* regardless of whether they end up in one deployable or two — see Document 4 §2 for how the codebase is actually organized.
+> **Note on structure:** In a Next.js App Router project, "the web interface" and "the backend" are often two halves of the same application (Server/Client Components vs. Route Handlers). This document deliberately treats them as separate architectural _concerns_ regardless of whether they end up in one deployable or two — see Document 4 §2 for how the codebase is actually organized.
 
 ---
 
@@ -13,13 +13,13 @@ Identical role to Flutter (Document 2) from the architecture's point of view: a 
 
 ## 2. Responsibilities Owned vs. Not Owned
 
-| Owns | Does not own |
-|---|---|
+| Owns                                                                         | Does not own                                                 |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------ |
 | Establishing the socket connection client-side only, after auth is available | Recipient resolution, persistence, retry logic (all backend) |
-| Cleaning up the connection on unmount/logout | Broker or queue infrastructure |
-| Synchronizing notification state into the app's client-side cache | Deciding which channels a notification type uses |
-| Preventing duplicate rendering across socket + fetch + multiple tabs | Generating idempotency keys |
-| Read/unread UI state, optimistic updates | Being the source of truth for read state (the backend is) |
+| Cleaning up the connection on unmount/logout                                 | Broker or queue infrastructure                               |
+| Synchronizing notification state into the app's client-side cache            | Deciding which channels a notification type uses             |
+| Preventing duplicate rendering across socket + fetch + multiple tabs         | Generating idempotency keys                                  |
+| Read/unread UI state, optimistic updates                                     | Being the source of truth for read state (the backend is)    |
 
 ## 3. Connection Establishment
 
@@ -46,7 +46,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     const socket = io(process.env.NEXT_PUBLIC_REALTIME_GATEWAY_URL!, {
       transports: ['websocket'],
       auth: { token: session.accessToken },
-      reconnection: true,
+      reconnection: true
     });
 
     socket.on('notification:new', (n) => dispatch({ type: 'INCOMING', notification: n }));
@@ -86,7 +86,7 @@ Same principle as Flutter: the token travels in the Socket.IO `auth` payload at 
 
 - **Initialize**: once, at the provider level, gated on `session` being available — not per-component, to avoid dozens of components each opening their own socket.
 - **Clean up**: the `useEffect` return function disconnects on unmount (route change out of the authenticated app shell) and, importantly, re-runs the whole effect (disconnect old, connect new) if `session.accessToken` changes — which naturally covers logout (`session` becomes `null`, socket disconnects, no reconnect attempted) without special-casing it.
-- Components that only need to *read* notification state (a bell icon, a dropdown list) never call `io()` themselves — they consume `useNotifications()`, keeping the transport entirely inside the provider.
+- Components that only need to _read_ notification state (a bell icon, a dropdown list) never call `io()` themselves — they consume `useNotifications()`, keeping the transport entirely inside the provider.
 
 ## 6. Notification State Synchronization
 
@@ -119,9 +119,8 @@ Either way, the architectural requirement is the same one from Document 1 §8.3:
 function useNotificationHistory(unreadOnly = false) {
   return useInfiniteQuery({
     queryKey: ['notifications', 'list', { unreadOnly }],
-    queryFn: ({ pageParam = 0 }) =>
-      fetchNotifications({ page: pageParam, unreadOnly }), // hits the REST contract, Doc 4 §10
-    getNextPageParam: (lastPage) => lastPage.nextPage,
+    queryFn: ({ pageParam = 0 }) => fetchNotifications({ page: pageParam, unreadOnly }), // hits the REST contract, Doc 4 §10
+    getNextPageParam: (lastPage) => lastPage.nextPage
   });
 }
 ```
@@ -138,12 +137,14 @@ function useMarkAsRead() {
     onMutate: async (id) => {
       // optimistic: flip read state in the cache immediately
       queryClient.setQueryData(['notifications', 'list'], (old) => flipRead(old, id));
-      queryClient.setQueryData(['notifications', 'unread-count'], (c: number) => Math.max(0, c - 1));
+      queryClient.setQueryData(['notifications', 'unread-count'], (c: number) =>
+        Math.max(0, c - 1)
+      );
     },
     onError: (_err, id, context) => {
       // roll back on failure; the next reconcile/fetch will correct any lingering drift
       queryClient.invalidateQueries(['notifications']);
-    },
+    }
   });
 }
 ```
@@ -156,7 +157,7 @@ Because a socket push and a REST page fetch can both deliver the same notificati
 
 ## 10. Multi-Tab Considerations
 
-A user may have several tabs open, each independently holding its own socket connection and each joined to the same `user:{userId}` room server-side (Document 1 §5, §7 — Socket.IO rooms broadcast to *every* socket in the room, which includes every open tab and every device). This is desirable, not a bug: opening a notification in one tab and marking it read triggers the `notification:read` sync event, which every other open tab receives and applies, keeping unread counts consistent across tabs without any tab-to-tab communication (`BroadcastChannel`, etc.) needing to be built separately.
+A user may have several tabs open, each independently holding its own socket connection and each joined to the same `user:{userId}` room server-side (Document 1 §5, §7 — Socket.IO rooms broadcast to _every_ socket in the room, which includes every open tab and every device). This is desirable, not a bug: opening a notification in one tab and marking it read triggers the `notification:read` sync event, which every other open tab receives and applies, keeping unread counts consistent across tabs without any tab-to-tab communication (`BroadcastChannel`, etc.) needing to be built separately.
 
 ## 11. Decoupling Checklist
 

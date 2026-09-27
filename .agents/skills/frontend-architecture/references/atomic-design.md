@@ -1,6 +1,7 @@
 # Atomic Design — Component Hierarchy Reference
 
 ## Table of Contents
+
 1. [Atoms](#atoms)
 2. [Molecules](#molecules)
 3. [Organisms](#organisms)
@@ -17,6 +18,7 @@
 The smallest indivisible unit of the UI. Atoms map directly to HTML elements enhanced with design system constraints.
 
 **Rules:**
+
 - Zero domain knowledge. No API types. No business logic.
 - No internal state beyond accessibility or animation primitives
 - Fully controlled by props
@@ -26,6 +28,7 @@ The smallest indivisible unit of the UI. Atoms map directly to HTML elements enh
 **Examples:** Button, Input, Label, Icon, Badge, Spinner, Checkbox, Radio, Textarea, Divider, Avatar, Tooltip, Tag
 
 **Atom implementation pattern:**
+
 ```tsx
 import { forwardRef } from 'react';
 
@@ -52,6 +55,7 @@ Input.displayName = 'Input';
 ```
 
 **Atom boundary violations:**
+
 - Importing from `features/` or any domain module
 - Fetching data internally
 - Rendering other named components (only native HTML elements and other atoms)
@@ -64,6 +68,7 @@ Input.displayName = 'Input';
 A focused composition of 2–5 atoms that achieves a single UI interaction unit.
 
 **Rules:**
+
 - Can hold minimal local state for interaction (e.g., open/closed toggle)
 - Still domain-agnostic in most cases — accepts generic props, not domain types
 - Represents a complete interaction primitive, not a domain concept
@@ -72,6 +77,7 @@ A focused composition of 2–5 atoms that achieves a single UI interaction unit.
 **Examples:** FormField (Label + Input + Error), SearchBar (Input + IconButton), PasswordInput (Input + VisibilityToggle), Pagination, DatePicker, FileUpload, Dropdown, Combobox, Stepper
 
 **Molecule implementation pattern:**
+
 ```tsx
 type FormFieldProps = {
   label: string;
@@ -89,7 +95,7 @@ function FormField({ label, error, required, children, htmlFor }: FormFieldProps
       </Label>
       {children}
       {error && (
-        <span role="alert" className={styles.error}>
+        <span role='alert' className={styles.error}>
           {error}
         </span>
       )}
@@ -99,6 +105,7 @@ function FormField({ label, error, required, children, htmlFor }: FormFieldProps
 ```
 
 **Molecule boundary violations:**
+
 - Accepting domain model types directly (e.g., `UserProfile`, `ProductItem`)
 - Fetching data or calling API hooks internally
 - Containing navigation or routing logic
@@ -111,6 +118,7 @@ function FormField({ label, error, required, children, htmlFor }: FormFieldProps
 Domain-aware UI sections that compose molecules and atoms into meaningful product interfaces.
 
 **Rules:**
+
 - Can import domain types, business rules, and feature-specific hooks
 - Represents a complete UI section that makes sense to the product (e.g., a login form, a product card, a comment thread)
 - Manages local state for its section
@@ -120,6 +128,7 @@ Domain-aware UI sections that compose molecules and atoms into meaningful produc
 **Examples:** LoginForm, ProductCard, NavigationBar, CommentThread, CheckoutSummary, NotificationPanel, DataTable, UserProfileCard
 
 **Organism implementation pattern:**
+
 ```tsx
 type LoginFormProps = {
   onSuccess: (user: AuthenticatedUser) => void;
@@ -131,23 +140,23 @@ function LoginForm({ onSuccess, onForgotPassword }: LoginFormProps) {
 
   return (
     <form onSubmit={form.handleSubmit(submitLogin)} noValidate>
-      <FormField label="Email" error={form.errors.email?.message} htmlFor="email">
+      <FormField label='Email' error={form.errors.email?.message} htmlFor='email'>
         <Input
-          id="email"
-          type="email"
+          id='email'
+          type='email'
           isInvalid={!!form.errors.email}
           {...form.register('email')}
         />
       </FormField>
-      <FormField label="Password" error={form.errors.password?.message} htmlFor="password">
+      <FormField label='Password' error={form.errors.password?.message} htmlFor='password'>
         <PasswordInput
-          id="password"
+          id='password'
           isInvalid={!!form.errors.password}
           {...form.register('password')}
         />
       </FormField>
       {error && <ErrorAlert message={error} />}
-      <Button type="submit" isLoading={isPending} isFullWidth>
+      <Button type='submit' isLoading={isPending} isFullWidth>
         Sign In
       </Button>
       <TextButton onClick={onForgotPassword}>Forgot password?</TextButton>
@@ -157,6 +166,7 @@ function LoginForm({ onSuccess, onForgotPassword }: LoginFormProps) {
 ```
 
 **Organism boundary violations:**
+
 - Directly calling `fetch` or axios — delegate to hooks
 - Rendering page-level layout (headers, sidebars)
 - Owning global application state
@@ -169,6 +179,7 @@ function LoginForm({ onSuccess, onForgotPassword }: LoginFormProps) {
 Page-level layout scaffolding. Templates define spatial relationships and slot structures without any data.
 
 **Rules:**
+
 - Pure layout — no data, no business logic, no API awareness
 - Accept `children` or named slot props (`header`, `sidebar`, `footer`, `main`)
 - Define the responsive grid, spacing rhythm, and structural zones
@@ -177,6 +188,7 @@ Page-level layout scaffolding. Templates define spatial relationships and slot s
 **Examples:** DashboardLayout, AuthLayout, TwoColumnLayout, FullPageLayout, SidebarLayout
 
 **Template implementation pattern:**
+
 ```tsx
 type DashboardLayoutProps = {
   header: React.ReactNode;
@@ -204,12 +216,14 @@ function DashboardLayout({ header, sidebar, children }: DashboardLayoutProps) {
 Route-level components that wire templates with real data and organisms.
 
 **Rules:**
+
 - Own the data-fetching boundary (or delegate to a loader/server component)
 - Compose templates and organisms — do not render atoms directly except for trivial cases
 - Handle route-level error/loading states
 - Do not contain reusable UI logic — that belongs in organisms or hooks
 
 **Page implementation pattern:**
+
 ```tsx
 function DashboardPage() {
   const { data: user, isLoading } = useCurrentUser();
@@ -218,10 +232,7 @@ function DashboardPage() {
   if (isLoading) return <PageSpinner />;
 
   return (
-    <DashboardLayout
-      header={<DashboardHeader user={user} />}
-      sidebar={<DashboardSidebar />}
-    >
+    <DashboardLayout header={<DashboardHeader user={user} />} sidebar={<DashboardSidebar />}>
       <StatsOverview stats={stats} />
       <RecentActivityFeed />
     </DashboardLayout>
@@ -235,13 +246,13 @@ function DashboardPage() {
 
 These rules govern imports and dependencies across layers:
 
-| Layer | Can import from | Cannot import from |
-|---|---|---|
-| Atom | Nothing in `src/` except `lib/` and design tokens | Molecules, Organisms, Templates, Pages, Features |
-| Molecule | Atoms, `lib/`, design tokens | Organisms, Templates, Pages, Features |
-| Organism | Atoms, Molecules, `hooks/`, `lib/`, domain types | Templates, Pages |
-| Template | Atoms, Molecules (for structural layout only) | Organisms with domain logic, Pages |
-| Page | Everything | Nothing is off-limits — this is the composition root |
+| Layer    | Can import from                                   | Cannot import from                                   |
+| -------- | ------------------------------------------------- | ---------------------------------------------------- |
+| Atom     | Nothing in `src/` except `lib/` and design tokens | Molecules, Organisms, Templates, Pages, Features     |
+| Molecule | Atoms, `lib/`, design tokens                      | Organisms, Templates, Pages, Features                |
+| Organism | Atoms, Molecules, `hooks/`, `lib/`, domain types  | Templates, Pages                                     |
+| Template | Atoms, Molecules (for structural layout only)     | Organisms with domain logic, Pages                   |
+| Page     | Everything                                        | Nothing is off-limits — this is the composition root |
 
 Violations of this import hierarchy introduce tight coupling and prevent isolated component development.
 
@@ -250,7 +261,9 @@ Violations of this import hierarchy introduce tight coupling and prevent isolate
 ## Composition Patterns
 
 ### Slot Pattern
+
 Use explicit slot props for structural flexibility:
+
 ```tsx
 type CardProps = {
   header?: React.ReactNode;
@@ -260,7 +273,9 @@ type CardProps = {
 ```
 
 ### Compound Component Pattern
+
 Use static sub-components for compositional APIs:
+
 ```tsx
 Modal.Header = ModalHeader;
 Modal.Body = ModalBody;
@@ -268,7 +283,9 @@ Modal.Footer = ModalFooter;
 ```
 
 ### Render Prop Pattern
+
 Use when the parent must control how the child renders:
+
 ```tsx
 type DataListProps<T> = {
   data: T[];
@@ -278,7 +295,9 @@ type DataListProps<T> = {
 ```
 
 ### Headless Component Pattern
+
 Separate logic from presentation entirely using custom hooks:
+
 ```tsx
 function useDropdown(options: DropdownOptions) {
   // All behavior, state, keyboard handling

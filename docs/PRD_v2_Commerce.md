@@ -43,29 +43,29 @@ The dashboard becomes the operational command center.
 
 ### Key Metrics
 
-* Current Balance
-* Total Revenue
-* Total Assets
-* Inventory Value
-* Monthly Revenue
-* Monthly Orders
-* Pending Orders
-* Completed Orders
-* Cancelled Orders
-* Customer Growth
-* Average Order Value
-* Fulfillment Rate
-* Top Selling Products
+- Current Balance
+- Total Revenue
+- Total Assets
+- Inventory Value
+- Monthly Revenue
+- Monthly Orders
+- Pending Orders
+- Completed Orders
+- Cancelled Orders
+- Customer Growth
+- Average Order Value
+- Fulfillment Rate
+- Top Selling Products
 
 ### Dashboard Widgets
 
-* Revenue Trends
-* Order Activity Timeline
-* Recent Orders
-* Customer Activity Feed
-* Inventory Health
-* Product Performance
-* Fulfillment Status
+- Revenue Trends
+- Order Activity Timeline
+- Recent Orders
+- Customer Activity Feed
+- Inventory Health
+- Product Performance
+- Fulfillment Status
 
 The existing dashboard layout should be preserved while updating its content to align with the new business model.
 
@@ -77,31 +77,31 @@ The existing dashboard layout should be preserved while updating its content to 
 
 Full client-side CRUD support:
 
-* Create Product
-* Edit Product
-* Delete Product
-* Duplicate Product
-* Archive Product
+- Create Product
+- Edit Product
+- Delete Product
+- Duplicate Product
+- Archive Product
 
 ### Product Properties
 
-* Product Name
-* SKU
-* Category
-* Cost Price
-* Selling Price
-* Stock Quantity
-* Product Images
-* Product Description
-* Status
+- Product Name
+- SKU
+- Category
+- Cost Price
+- Selling Price
+- Stock Quantity
+- Product Images
+- Product Description
+- Status
 
 ### Inventory Synchronization
 
 Inventory updates automatically when:
 
-* Orders are completed
-* Orders are cancelled
-* Inventory adjustments occur
+- Orders are completed
+- Orders are cancelled
+- Inventory adjustments occur
 
 Inventory should be treated as a background operational system.
 
@@ -128,14 +128,14 @@ Optional:
 
 ### Order Information
 
-* Order Number
-* Customer Information
-* Product Information
-* Quantity
-* Order Total
-* Shipping Information
-* Payment Status
-* Fulfillment Status
+- Order Number
+- Customer Information
+- Product Information
+- Quantity
+- Order Total
+- Shipping Information
+- Payment Status
+- Fulfillment Status
 
 All calculations should be performed automatically.
 
@@ -145,19 +145,19 @@ All calculations should be performed automatically.
 
 ### Customer Profiles
 
-* Customer Name
-* Phone Number
-* Address
-* Order History
-* Total Spend
-* Customer Status
+- Customer Name
+- Phone Number
+- Address
+- Order History
+- Total Spend
+- Customer Status
 
 ### Customer Analytics
 
-* New Customers
-* Returning Customers
-* Top Customers
-* Lifetime Value
+- New Customers
+- Returning Customers
+- Top Customers
+- Lifetime Value
 
 ---
 
@@ -169,31 +169,31 @@ Since no backend currently exists, realistic customer activity should be generat
 
 Powered by:
 
-* Faker
+- Faker
 
 Simulation events include:
 
-* New Customers
-* New Orders
-* Repeat Purchases
-* Order Cancellations
-* Shipping Events
+- New Customers
+- New Orders
+- Repeat Purchases
+- Order Cancellations
+- Shipping Events
 
 ### Configurable Settings
 
-* Event Frequency
-* Orders Per Interval
-* Customer Growth Rate
-* Product Popularity Distribution
-* Revenue Targets
+- Event Frequency
+- Orders Per Interval
+- Customer Growth Rate
+- Product Popularity Distribution
+- Revenue Targets
 
 Example:
 
 Every 5 minutes:
 
-* Generate 1–5 new customers
-* Generate 1–10 new orders
-* Generate random purchasing activity
+- Generate 1–5 new customers
+- Generate 1–10 new orders
+- Generate random purchasing activity
 
 The system should appear operational at all times.
 
@@ -205,12 +205,12 @@ Real-time operational notifications.
 
 Examples:
 
-* New Order Received
-* Order Processing Started
-* Invoice Generated
-* Shipment Prepared
-* Payment Confirmed
-* Low Inventory Warning
+- New Order Received
+- Order Processing Started
+- Invoice Generated
+- Shipment Prepared
+- Payment Confirmed
+- Low Inventory Warning
 
 ### Notification Sound Effects
 
@@ -218,7 +218,7 @@ Events should trigger subtle sounds similar to operational dashboards used in e-
 
 Suggested Library:
 
-* Howler.js
+- Howler.js
 
 ---
 
@@ -238,19 +238,19 @@ Order Received
 
 The system should generate printable shipping stickers similar to:
 
-* Shopee Labels
-* Tokopedia Labels
-* Shopify Fulfillment Labels
+- Shopee Labels
+- Tokopedia Labels
+- Shopify Fulfillment Labels
 
 Label Contents:
 
-* Store Information
-* Customer Information
-* Shipping Address
-* Order Number
-* Tracking Number
-* QR Code
-* Courier Information
+- Store Information
+- Customer Information
+- Shipping Address
+- Order Number
+- Tracking Number
+- QR Code
+- Courier Information
 
 ### QR-Based Tracking
 
@@ -258,18 +258,18 @@ Every order receives a unique QR code.
 
 Scanning the QR code should reveal:
 
-* Order Information
-* Customer Information
-* Fulfillment Status
-* Tracking Information
+- Order Information
+- Customer Information
+- Fulfillment Status
+- Tracking Information
 
 Recommended Library:
 
-* qrcode
+- qrcode
 
 Alternative:
 
-* react-qr-code
+- react-qr-code
 
 ---
 
@@ -279,23 +279,23 @@ Every completed order can generate a printable invoice.
 
 ### Invoice Contents
 
-* Invoice Number
-* Order Number
-* Customer Information
-* Product List
-* Quantity
-* Pricing
-* Tax
-* Total
+- Invoice Number
+- Order Number
+- Customer Information
+- Product List
+- Quantity
+- Pricing
+- Tax
+- Total
 
 ### Export Formats
 
-* PDF Download
-* Print Invoice
+- PDF Download
+- Print Invoice
 
 Recommended Library:
 
-* pdf-lib
+- pdf-lib
 
 ---
 
@@ -305,18 +305,18 @@ Automatic financial calculations.
 
 ### Metrics
 
-* Balance
-* Revenue
-* Expenses
-* Profit
-* Inventory Value
-* Cash Flow
+- Balance
+- Revenue
+- Expenses
+- Profit
+- Inventory Value
+- Cash Flow
 
 Financial data updates automatically when:
 
-* Orders complete
-* Refunds occur
-* Inventory changes
+- Orders complete
+- Refunds occur
+- Inventory changes
 
 ---
 
@@ -326,19 +326,19 @@ Business reporting and analytics.
 
 ### Reports
 
-* Sales Report
-* Revenue Report
-* Product Performance Report
-* Inventory Report
-* Customer Report
-* Fulfillment Report
+- Sales Report
+- Revenue Report
+- Product Performance Report
+- Inventory Report
+- Customer Report
+- Fulfillment Report
 
 ### Export
 
-* PDF
-* CSV
+- PDF
+- CSV
 
 Libraries:
 
-* pdf-lib
-* papaparse
+- pdf-lib
+- papaparse

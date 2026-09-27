@@ -5,7 +5,7 @@ import { appointmentKeys } from './queries';
 import type { LiveStatus } from './types';
 
 export const updateLiveStatusMutation = mutationOptions({
-  mutationFn: async ({ id, status }: { id: number; status: LiveStatus }) => {
+  mutationFn: async ({ id, status }: { id: number | string; status: LiveStatus }) => {
     return updateAdminLiveStatus(id, status);
   },
   onSuccess: () => {
@@ -14,7 +14,7 @@ export const updateLiveStatusMutation = mutationOptions({
 });
 
 export const deleteAppointmentMutation = mutationOptions({
-  mutationFn: async (id: number) => {
+  mutationFn: async (id: number | string) => {
     return deleteAdminAppointment(id);
   },
   onSuccess: () => {

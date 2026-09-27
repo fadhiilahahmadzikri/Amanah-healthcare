@@ -231,4 +231,3 @@ export async function getScheduleSlotAvailabilityAction(params: {
 }) {
   return fetchScheduleSlotAvailability(params);
 }
-

@@ -51,12 +51,12 @@ Cross-imports between slices on the same layer are forbidden.
 
 ```typescript
 // ✅ Allowed
-import { Button } from "@/shared/ui/Button"; // features → shared
-import { useUser } from "@/entities/user"; // pages → entities
+import { Button } from '@/shared/ui/Button'; // features → shared
+import { useUser } from '@/entities/user'; // pages → entities
 
 // ❌ Violation
-import { loginUser } from "@/features/auth"; // entities → features
-import { likePost } from "@/features/like-post"; // features → features
+import { loginUser } from '@/features/auth'; // entities → features
+import { likePost } from '@/features/like-post'; // features → features
 ```
 
 **Note**: The `processes/` layer is **deprecated** in v2.1. For migration
@@ -141,10 +141,10 @@ of internal files are forbidden.
 
 ```typescript
 // ✅ Correct
-import { LoginForm } from "@/features/auth";
+import { LoginForm } from '@/features/auth';
 
 // ❌ Violation: bypasses public API
-import { LoginForm } from "@/features/auth/ui/LoginForm";
+import { LoginForm } from '@/features/auth/ui/LoginForm';
 ```
 
 **Shared layer:** Shared has no slices. Define a separate public API per

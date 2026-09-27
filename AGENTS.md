@@ -1,4 +1,5 @@
 # AGENTS.md - AI Coding Agent Reference
+
 # Strict Existing-First Design System & Atomic Component Engineering
 
 ## Purpose
@@ -43,15 +44,15 @@ Creation is the final option, not the default option.
 
 Before creating anything new, verify:
 
-* Does the component already exist?
-* Does a visually similar component already exist?
-* Does a structurally similar component already exist?
-* Does a primitive already exist that can compose the required result?
-* Does another page already implement the required behavior?
-* Does the design system already provide the required token?
-* Does an existing variant already support the requirement?
-* Can the existing component be extended safely?
-* Is the required behavior already implemented elsewhere?
+- Does the component already exist?
+- Does a visually similar component already exist?
+- Does a structurally similar component already exist?
+- Does a primitive already exist that can compose the required result?
+- Does another page already implement the required behavior?
+- Does the design system already provide the required token?
+- Does an existing variant already support the requirement?
+- Can the existing component be extended safely?
+- Is the required behavior already implemented elsewhere?
 
 Only after these possibilities have been investigated should a new implementation be considered.
 
@@ -80,43 +81,43 @@ Instead, use a shared component with controlled variants, attributes, slots, com
 For example:
 
 ```tsx
-<Button variant="solid" size="sm" trailing />
+<Button variant='solid' size='sm' trailing />
 ```
 
 is preferable to creating another button component.
 
 The same principle applies to:
 
-* buttons
-* cards
-* headers
-* avatars
-* badges
-* dialogs
-* modals
-* pagination
-* tables
-* toolbars
-* forms
-* inputs
-* navigation
-* status indicators
-* typography
-* layout primitives
-* spacing
-* icons
-* animations
-* interaction patterns
+- buttons
+- cards
+- headers
+- avatars
+- badges
+- dialogs
+- modals
+- pagination
+- tables
+- toolbars
+- forms
+- inputs
+- navigation
+- status indicators
+- typography
+- layout primitives
+- spacing
+- icons
+- animations
+- interaction patterns
 
 ### Never duplicate because:
 
-* the page looks slightly different
-* the component needs another color
-* the component needs another alignment
-* the component needs optional content
-* the component needs a trailing element
-* the component needs another state
-* the component is being used in another domain
+- the page looks slightly different
+- the component needs another color
+- the component needs another alignment
+- the component needs optional content
+- the component needs a trailing element
+- the component needs another state
+- the component is being used in another domain
 
 First determine whether the difference can be represented through the existing component architecture.
 
@@ -130,24 +131,24 @@ Do not start writing code immediately.
 
 First inspect:
 
-* project structure
-* component directories
-* design-system directories
-* token definitions
-* theme definitions
-* CSS variables
-* Tailwind configuration
-* Shadcn configuration
-* Radix primitives
-* existing variants
-* existing layouts
-* existing pages
-* existing utilities
-* existing hooks
-* existing state management
-* existing animation systems
-* existing responsive behavior
-* existing examples of similar UI
+- project structure
+- component directories
+- design-system directories
+- token definitions
+- theme definitions
+- CSS variables
+- Tailwind configuration
+- Shadcn configuration
+- Radix primitives
+- existing variants
+- existing layouts
+- existing pages
+- existing utilities
+- existing hooks
+- existing state management
+- existing animation systems
+- existing responsive behavior
+- existing examples of similar UI
 
 Search the entire relevant codebase before concluding that something does not exist.
 
@@ -208,17 +209,17 @@ The primitives provide the structural and behavioral foundation.
 
 The project design system provides:
 
-* visual language
-* typography
-* colors
-* spacing
-* radius
-* borders
-* states
-* variants
-* animation
-* composition
-* interaction behavior
+- visual language
+- typography
+- colors
+- spacing
+- radius
+- borders
+- states
+- variants
+- animation
+- composition
+- interaction behavior
 
 Therefore:
 
@@ -250,24 +251,24 @@ An Atom is the smallest reusable visual or interaction primitive.
 
 Examples:
 
-* text
-* icon wrapper
-* avatar
-* badge
-* button
-* input
-* separator
-* label
-* typography primitive
+- text
+- icon wrapper
+- avatar
+- badge
+- button
+- input
+- separator
+- label
+- typography primitive
 
 Atoms should be:
 
-* independent
-* reusable
-* theme-aware
-* token-driven
-* predictable
-* composable
+- independent
+- reusable
+- theme-aware
+- token-driven
+- predictable
+- composable
 
 ---
 
@@ -305,12 +306,12 @@ An Organism combines molecules and atoms into a larger reusable interface struct
 
 Examples:
 
-* card header
-* appointment summary
-* patient information section
-* toolbar
-* navigation section
-* complex card body
+- card header
+- appointment summary
+- patient information section
+- toolbar
+- navigation section
+- complex card body
 
 Organisms may have richer composition but must remain reusable.
 
@@ -322,14 +323,14 @@ A Component represents a complete reusable UI pattern composed from organisms, m
 
 Examples:
 
-* appointment card
-* patient card
-* dashboard card
-* data table
-* modal
-* dialog
-* complex form
-* reusable page section
+- appointment card
+- patient card
+- dashboard card
+- data table
+- modal
+- dialog
+- complex form
+- reusable page section
 
 The component should remain independent from the page that consumes it.
 
@@ -341,12 +342,12 @@ Every abstraction must have a clear responsibility.
 
 Avoid components that attempt to control:
 
-* unrelated layout
-* business logic
-* data fetching
-* global state
-* styling
-* unrelated UI concerns
+- unrelated layout
+- business logic
+- data fetching
+- global state
+- styling
+- unrelated UI concerns
 
 at the same time.
 
@@ -402,17 +403,17 @@ The component should know **what semantic role a color represents**, not the raw
 
 Do not hardcode:
 
-* colors
-* status colors
-* gradients
-* typography colors
-* border colors
-* surface colors
-* spacing values that belong to the system
-* radius values
-* shadows
-* animation values
-* semantic states
+- colors
+- status colors
+- gradients
+- typography colors
+- border colors
+- surface colors
+- spacing values that belong to the system
+- radius values
+- shadows
+- animation values
+- semantic states
 
 when an appropriate design token already exists.
 
@@ -421,13 +422,13 @@ The component should consume the token.
 For example:
 
 ```tsx
-status="success"
+status = 'success';
 ```
 
 rather than:
 
 ```tsx
-className="text-[#22C55E]"
+className = 'text-[#22C55E]';
 ```
 
 The semantic state should resolve to the appropriate theme token.
@@ -462,7 +463,7 @@ For example, if a new status requires a color that does not exist:
 **Do not:**
 
 ```tsx
-className="bg-[#something]"
+className = 'bg-[#something]';
 ```
 
 Instead, introduce the appropriate semantic token into the theme system and then consume that token.
@@ -531,18 +532,18 @@ Every component must belong to the same visual system.
 
 Before implementing a new visual pattern, compare it against existing:
 
-* typography
-* spacing
-* borders
-* radius
-* buttons
-* cards
-* dialogs
-* status treatments
-* icons
-* animation
-* interaction states
-* responsive behavior
+- typography
+- spacing
+- borders
+- radius
+- buttons
+- cards
+- dialogs
+- status treatments
+- icons
+- animation
+- interaction states
+- responsive behavior
 
 Do not introduce a visual language that conflicts with existing components.
 
@@ -558,26 +559,26 @@ The goal is not to make the UI look novel.
 
 The goal is to make it:
 
-* understandable
-* predictable
-* consistent
-* accessible
-* reusable
-* maintainable
-* scalable
+- understandable
+- predictable
+- consistent
+- accessible
+- reusable
+- maintainable
+- scalable
 
 Do not introduce visual complexity merely because it makes the interface appear more sophisticated.
 
 Do not add:
 
-* unnecessary icons
-* decorative gradients
-* excessive badges
-* unnecessary cards
-* arbitrary glassmorphism
-* unnecessary shadows
-* excessive animation
-* AI-style dashboard patterns
+- unnecessary icons
+- decorative gradients
+- excessive badges
+- unnecessary cards
+- arbitrary glassmorphism
+- unnecessary shadows
+- excessive animation
+- AI-style dashboard patterns
 
 unless the existing design system or actual usability requirement calls for them.
 
@@ -611,11 +612,7 @@ Components should expose meaningful configuration through variants and compositi
 For example:
 
 ```tsx
-<Button
-  variant="solid"
-  size="md"
-  trailing
->
+<Button variant='solid' size='md' trailing>
   Continue
 </Button>
 ```
@@ -628,12 +625,12 @@ rather than:
 
 The component API should be:
 
-* readable
-* predictable
-* composable
-* scalable
-* type-safe where possible
-* easy to maintain
+- readable
+- predictable
+- composable
+- scalable
+- type-safe where possible
+- easy to maintain
 
 Avoid creating a new component for every combination of visual properties.
 
@@ -696,16 +693,16 @@ When a component already exists, study its implementation before extending it.
 
 Understand:
 
-* its API
-* variants
-* token usage
-* composition
-* responsive behavior
-* states
-* accessibility
-* animation
-* dependencies
-* consumers
+- its API
+- variants
+- token usage
+- composition
+- responsive behavior
+- states
+- accessibility
+- animation
+- dependencies
+- consumers
 
 Then extend it using the same architectural language.
 
@@ -757,13 +754,13 @@ Understand the existing system.
 
 Identify existing:
 
-* components
-* primitives
-* tokens
-* themes
-* utilities
-* variants
-* patterns
+- components
+- primitives
+- tokens
+- themes
+- utilities
+- variants
+- patterns
 
 ### Phase 3 — Map
 
@@ -793,14 +790,14 @@ Only create a new abstraction when its absence has been established and the abst
 
 Check for:
 
-* duplication
-* hardcoded values
-* inconsistent tokens
-* inconsistent variants
-* broken hierarchy
-* unnecessary abstractions
-* page-specific coupling
-* theme coupling
+- duplication
+- hardcoded values
+- inconsistent tokens
+- inconsistent variants
+- broken hierarchy
+- unnecessary abstractions
+- page-specific coupling
+- theme coupling
 
 ---
 
@@ -1008,7 +1005,7 @@ Dockerfile.bun             # Bun production Dockerfile
 
 ## Build & Development Commands
 
-```bash
+````bash
 bun install
 
 bun run dev
@@ -1037,7 +1034,7 @@ NEXT_PUBLIC_CLERK_SIGN_IN_URL="/auth/sign-in"
 NEXT_PUBLIC_CLERK_SIGN_UP_URL="/auth/sign-up"
 NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL="/dashboard/overview"
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL="/dashboard/overview"
-```
+````
 
 ### Optional for Error Tracking (Sentry)
 
@@ -1178,7 +1175,6 @@ import { redirect } from 'next/navigation';
 export default async function Page() {
   const { orgId } = await auth();
   if (!orgId) redirect('/dashboard/workspaces');
-
 }
 ```
 
@@ -1258,7 +1254,6 @@ The project uses TanStack React Query with server-side prefetching and client-si
 4. **Suspense boundary** wraps the client component — shows a fallback skeleton only on subsequent client-side navigations when cache is empty
 
 ```tsx
-
 const queryClient = getQueryClient();
 void queryClient.prefetchQuery(entitiesQueryOptions(filters));
 
@@ -1443,11 +1438,9 @@ icon={Icons.check}
 3. Use `Icons.yourKey` everywhere — never the raw import
 
 ```tsx
-
 import { IconNewIcon } from '@tabler/icons-react';
 
 export const Icons = {
-
   newIcon: IconNewIcon
 };
 ```
@@ -1564,6 +1557,7 @@ See "Theming System" section above or `docs/themes.md`.
 12. **Data layer** - Always go through the service layer: `types.ts` → `service.ts` → `queries.ts`. Components import types from `types.ts`, functions from `service.ts`, query options from `queries.ts`. Never import from `@/constants/mock-api*` directly in components.
 
 ## Client Specific Rules (Added by User Request)
+
 - **Frontend Only (Mock Data)**: The application is strictly frontend-only using interactive dummy/mock data. Ignore any PRD/Tech-Spec requirements regarding real backend or database integration.
 - **Clean Code (No Dirty Comments)**: Do not dirty the codebase with unnecessary comments or docstrings. Write clean, self-explanatory code.
 - **Component Reusability**: Do not introduce new UI components if existing ones (e.g. from shadcn) can fulfill the requirement. Re-use existing components to maintain styling consistency. If a new shadcn component is truly needed, install it via the standard CLI.

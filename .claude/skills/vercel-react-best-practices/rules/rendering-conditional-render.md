@@ -15,7 +15,6 @@ Use explicit ternary operators (`? :`) instead of `&&` for conditional rendering
 function Badge({ count }: { count: number }) {
   return <div>{count && <span className='badge'>{count}</span>}</div>;
 }
-
 ```
 
 **Correct (renders nothing when count is 0):**
@@ -24,5 +23,4 @@ function Badge({ count }: { count: number }) {
 function Badge({ count }: { count: number }) {
   return <div>{count > 0 ? <span className='badge'>{count}</span> : null}</div>;
 }
-
 ```

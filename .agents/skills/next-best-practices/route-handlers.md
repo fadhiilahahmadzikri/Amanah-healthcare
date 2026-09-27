@@ -5,7 +5,6 @@ Create API endpoints with `route.ts` files.
 ## Basic Usage
 
 ```tsx
-
 export async function GET() {
   const users = await getUsers();
   return Response.json(users);
@@ -59,7 +58,6 @@ Route handlers run in a **Server Component-like environment**:
 - No: Cannot use browser APIs
 
 ```tsx
-
 import { renderToString } from 'react-dom/server';
 
 export async function GET() {
@@ -71,7 +69,6 @@ export async function GET() {
 ## Dynamic Route Handlers
 
 ```tsx
-
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const user = await getUser(id);
@@ -88,7 +85,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
 ```tsx
 export async function GET(request: Request) {
-
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('q');
 
@@ -104,7 +100,6 @@ export async function GET(request: Request) {
 ## Response Helpers
 
 ```tsx
-
 return Response.json({ data });
 
 return Response.json({ error: 'Not found' }, { status: 404 });

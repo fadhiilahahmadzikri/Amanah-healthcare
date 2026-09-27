@@ -1,7 +1,8 @@
 # 🤝 Panduan Kolaborasi Git (Git Collaboration Guidelines)
+
 **Project:** Amanah Healthcare Dashboard
 
-Dokumen ini berisi panduan standar alur kerja tim agar proses kolaborasi berjalan lancar tanpa kehilangan pekerjaan (*uncommitted changes*) atau bentrok (*merge conflict*).
+Dokumen ini berisi panduan standar alur kerja tim agar proses kolaborasi berjalan lancar tanpa kehilangan pekerjaan (_uncommitted changes_) atau bentrok (_merge conflict_).
 
 ---
 
@@ -9,8 +10,9 @@ Dokumen ini berisi panduan standar alur kerja tim agar proses kolaborasi berjala
 
 Jika rekan tim mengirim pembaruan ke remote (`main`) sementara kamu masih memiliki pekerjaan lokal yang belum di-commit, **jangan langsung `git pull` biasa** karena Git bisa menolaknya. Gunakan salah satu metode berikut:
 
-### Skenario A: Metode Paling Praktis (`git stash`) ⭐ *(Direkomendasikan)*
-Metode ini menyimpan sementara perubahan lokal ke memori penyimpanan Git (*stash*), menarik kode terbaru, lalu menerapkan kembali perubahanmu.
+### Skenario A: Metode Paling Praktis (`git stash`) ⭐ _(Direkomendasikan)_
+
+Metode ini menyimpan sementara perubahan lokal ke memori penyimpanan Git (_stash_), menarik kode terbaru, lalu menerapkan kembali perubahanmu.
 
 ```bash
 # 1. Simpan perubahan lokal ke stash
@@ -26,6 +28,7 @@ git stash pop
 ---
 
 ### Skenario B: Metode Commit Lokal Dulu (`git pull --rebase`)
+
 Jika perubahan lokalmu sudah cukup banyak dan ingin dijadikan commit terlebih dahulu:
 
 ```bash
@@ -39,7 +42,8 @@ git pull --rebase origin main
 
 ---
 
-### Skenario C: Menggunakan Branch Fitur Sendiri *(Best Practice Tim)*
+### Skenario C: Menggunakan Branch Fitur Sendiri _(Best Practice Tim)_
+
 Untuk fitur baru, sangat disarankan bekerja di branch terpisah agar tidak bentrok dengan `main`:
 
 ```bash
@@ -72,11 +76,12 @@ Jika file dan baris yang sama diedit oleh dua orang secara bersamaan, Git akan m
 ```
 
 **Langkah penyelesaian:**
+
 1. Buka file yang berkonflik di VS Code.
 2. Pilih salah satu opsi:
-   - *Accept Current Change*
-   - *Accept Incoming Change*
-   - *Accept Both Changes*
+   - _Accept Current Change_
+   - _Accept Incoming Change_
+   - _Accept Both Changes_
 3. Simpan file.
 4. Lakukan staging dan commit:
    ```bash
@@ -115,9 +120,9 @@ Gunakan format pesan commit yang jelas dan konsisten:
 
 ## 🚀 5. Ringkasan Perintah Harian (Cheatsheet)
 
-| Kebutuhan | Perintah |
-|---|---|
-| Cek status perubahan | `git status` |
+| Kebutuhan                 | Perintah                                               |
+| ------------------------- | ------------------------------------------------------ |
+| Cek status perubahan      | `git status`                                           |
 | Simpan sementara & update | `git stash` ➔ `git pull origin main` ➔ `git stash pop` |
-| Buat branch baru | `git checkout -b feat/fitur-baru` |
-| Jalankan dev server lokal | `npm run dev` atau `bun dev` |
+| Buat branch baru          | `git checkout -b feat/fitur-baru`                      |
+| Jalankan dev server lokal | `npm run dev` atau `bun dev`                           |

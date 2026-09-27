@@ -1,6 +1,7 @@
 # Component Patterns — Composition Strategies
 
 ## Table of Contents
+
 1. [Compound Components](#compound-components)
 2. [Headless Components](#headless-components)
 3. [Polymorphic Components](#polymorphic-components)
@@ -16,6 +17,7 @@
 Compound components share implicit state through React Context, creating a composable API where the parent coordinates child behavior without exposing internal state through props.
 
 **When to use:**
+
 - Complex UI components with multiple coordinated parts (Modal, Tabs, Accordion, Select, Menu)
 - When consumers need full control over rendering order and structure
 - When boolean flag proliferation is beginning to occur
@@ -45,10 +47,13 @@ type TabsProps = {
 function Tabs({ defaultTab, onChange, children }: TabsProps) {
   const [activeTab, setActiveTab] = useState(defaultTab);
 
-  const handleChange = useCallback((id: string) => {
-    setActiveTab(id);
-    onChange?.(id);
-  }, [onChange]);
+  const handleChange = useCallback(
+    (id: string) => {
+      setActiveTab(id);
+      onChange?.(id);
+    },
+    [onChange]
+  );
 
   return (
     <TabsContext.Provider value={{ activeTab, setActiveTab: handleChange }}>
@@ -60,7 +65,11 @@ function Tabs({ defaultTab, onChange, children }: TabsProps) {
 type TabListProps = { children: React.ReactNode };
 
 function TabList({ children }: TabListProps) {
-  return <div role="tablist" className={styles.tabList}>{children}</div>;
+  return (
+    <div role='tablist' className={styles.tabList}>
+      {children}
+    </div>
+  );
 }
 
 type TabProps = {
@@ -74,7 +83,7 @@ function Tab({ id, children }: TabProps) {
 
   return (
     <button
-      role="tab"
+      role='tab'
       aria-selected={isActive}
       className={cn(styles.tab, isActive && styles.active)}
       onClick={() => setActiveTab(id)}
@@ -92,7 +101,7 @@ type TabPanelProps = {
 function TabPanel({ for: tabId, children }: TabPanelProps) {
   const { activeTab } = useTabs();
   if (activeTab !== tabId) return null;
-  return <div role="tabpanel">{children}</div>;
+  return <div role='tabpanel'>{children}</div>;
 }
 
 Tabs.List = TabList;
@@ -101,16 +110,23 @@ Tabs.Panel = TabPanel;
 ```
 
 **Usage:**
+
 ```tsx
-<Tabs defaultTab="overview" onChange={handleTabChange}>
+<Tabs defaultTab='overview' onChange={handleTabChange}>
   <Tabs.List>
-    <Tabs.Tab id="overview">Overview</Tabs.Tab>
-    <Tabs.Tab id="details">Details</Tabs.Tab>
-    <Tabs.Tab id="history">History</Tabs.Tab>
+    <Tabs.Tab id='overview'>Overview</Tabs.Tab>
+    <Tabs.Tab id='details'>Details</Tabs.Tab>
+    <Tabs.Tab id='history'>History</Tabs.Tab>
   </Tabs.List>
-  <Tabs.Panel for="overview"><OverviewContent /></Tabs.Panel>
-  <Tabs.Panel for="details"><DetailsContent /></Tabs.Panel>
-  <Tabs.Panel for="history"><HistoryContent /></Tabs.Panel>
+  <Tabs.Panel for='overview'>
+    <OverviewContent />
+  </Tabs.Panel>
+  <Tabs.Panel for='details'>
+    <DetailsContent />
+  </Tabs.Panel>
+  <Tabs.Panel for='history'>
+    <HistoryContent />
+  </Tabs.Panel>
 </Tabs>
 ```
 
@@ -121,6 +137,7 @@ Tabs.Panel = TabPanel;
 Headless components separate all logic and accessibility behavior into a custom hook, leaving full rendering control to the consumer. This is the most powerful pattern for building design-system-agnostic components.
 
 **When to use:**
+
 - Building component primitives intended for cross-team or cross-project use
 - When the same behavior must support radically different visual implementations
 - Accessibility-critical components (combobox, dialog, popover, date picker)
@@ -146,7 +163,7 @@ type UseDisclosureReturn = {
 function useDisclosure({
   defaultOpen = false,
   onOpen,
-  onClose,
+  onClose
 }: UseDisclosureOptions = {}): UseDisclosureReturn {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
@@ -170,12 +187,13 @@ function useDisclosure({
     close,
     toggle,
     getDisclosureProps: () => ({ onClick: toggle, 'aria-expanded': isOpen }),
-    getContentProps: () => ({ hidden: !isOpen }),
+    getContentProps: () => ({ hidden: !isOpen })
   };
 }
 ```
 
 **Usage across different visual implementations:**
+
 ```tsx
 function CustomAccordion() {
   const { isOpen, getDisclosureProps, getContentProps } = useDisclosure();
@@ -184,9 +202,7 @@ function CustomAccordion() {
       <MyCustomTrigger {...getDisclosureProps()} isOpen={isOpen}>
         Toggle
       </MyCustomTrigger>
-      <AnimatedPanel {...getContentProps()}>
-        Content here
-      </AnimatedPanel>
+      <AnimatedPanel {...getContentProps()}>Content here</AnimatedPanel>
     </div>
   );
 }
@@ -199,6 +215,7 @@ function CustomAccordion() {
 A polymorphic component renders as different HTML elements or components via an `as` prop while maintaining full TypeScript type inference for the rendered element's native props.
 
 **When to use:**
+
 - Design system primitives that must render as multiple semantic elements (Text as h1/h2/p/span, Button as button/a, Box as any HTML element)
 - Avoiding wrapper div soup while maintaining semantic HTML
 
@@ -211,7 +228,7 @@ type PropsToOmit<C extends React.ElementType, P> = keyof (AsProp<C> & P);
 
 type PolymorphicComponentProps<
   C extends React.ElementType,
-  Props = object,
+  Props = object
 > = React.PropsWithChildren<Props & AsProp<C>> &
   Omit<React.ComponentPropsWithoutRef<C>, PropsToOmit<C, Props>>;
 
@@ -238,10 +255,7 @@ function Text<C extends React.ElementType = 'span'>({
 }: TextProps<C>) {
   const Component = as ?? 'span';
   return (
-    <Component
-      className={cn(styles[variant], styles[weight], styles[color], className)}
-      {...rest}
-    >
+    <Component className={cn(styles[variant], styles[weight], styles[color], className)} {...rest}>
       {children}
     </Component>
   );
@@ -249,6 +263,7 @@ function Text<C extends React.ElementType = 'span'>({
 ```
 
 **Usage:**
+
 ```tsx
 <Text as="h1" variant="display">Page Title</Text>
 <Text as="p" variant="body" color="secondary">Paragraph text</Text>
@@ -264,6 +279,7 @@ TypeScript correctly infers `htmlFor` is valid when `as="label"` and rejects it 
 Components must explicitly support both controlled and uncontrolled usage patterns when input state is involved.
 
 **Controlled** — parent owns the state:
+
 ```tsx
 type ControlledInputProps = {
   value: string;
@@ -272,6 +288,7 @@ type ControlledInputProps = {
 ```
 
 **Uncontrolled** — component owns the state, parent gets notified:
+
 ```tsx
 type UncontrolledInputProps = {
   defaultValue?: string;
@@ -280,6 +297,7 @@ type UncontrolledInputProps = {
 ```
 
 **Supporting both with a single component:**
+
 ```tsx
 type RatingProps = {
   value?: number;
@@ -292,19 +310,18 @@ function Rating({ value, defaultValue = 0, onChange }: RatingProps) {
   const isControlled = value !== undefined;
   const activeValue = isControlled ? value : internalValue;
 
-  const handleChange = useCallback((rating: number) => {
-    if (!isControlled) setInternalValue(rating);
-    onChange?.(rating);
-  }, [isControlled, onChange]);
+  const handleChange = useCallback(
+    (rating: number) => {
+      if (!isControlled) setInternalValue(rating);
+      onChange?.(rating);
+    },
+    [isControlled, onChange]
+  );
 
   return (
     <div>
       {[1, 2, 3, 4, 5].map((star) => (
-        <StarIcon
-          key={star}
-          isActive={star <= activeValue}
-          onClick={() => handleChange(star)}
-        />
+        <StarIcon key={star} isActive={star <= activeValue} onClick={() => handleChange(star)} />
       ))}
     </div>
   );
@@ -318,6 +335,7 @@ function Rating({ value, defaultValue = 0, onChange }: RatingProps) {
 Use render props when the parent must control what gets rendered inside a child's behavior boundary.
 
 **When to use:**
+
 - Data-driven lists with custom item rendering
 - Components that provide data/state to children without controlling their appearance
 - Now largely superseded by hooks, but still valid for explicit composition
@@ -338,7 +356,7 @@ function DataList<T>({
   renderItem,
   renderEmpty = () => <EmptyState />,
   renderLoading = () => <ListSkeleton />,
-  keyExtractor,
+  keyExtractor
 }: DataListProps<T>) {
   if (isLoading) return <>{renderLoading()}</>;
   if (!data.length) return <>{renderEmpty()}</>;
@@ -360,11 +378,13 @@ function DataList<T>({
 HOCs are largely superseded by hooks but remain valid for cross-cutting concerns that wrap components structurally (error boundaries, analytics instrumentation, feature flags).
 
 **Acceptable HOC use cases:**
+
 - `withErrorBoundary(Component)` — structural wrapping
 - `withAnalytics(Component, eventConfig)` — instrumentation without render coupling
 - `withFeatureFlag(Component, flagKey, FallbackComponent)` — conditional rendering
 
 **HOC rules:**
+
 - Always forward refs: `React.forwardRef` inside the HOC
 - Always copy static methods: `hoistNonReactStatics(WrappedComponent, Component)`
 - Always set a meaningful `displayName`
@@ -374,18 +394,19 @@ HOCs are largely superseded by hooks but remain valid for cross-cutting concerns
 
 ## Pattern Selection Guide
 
-| Scenario | Recommended Pattern |
-|---|---|
-| Complex UI with multiple coordinated parts | Compound Components |
-| Behavior reuse across different visual designs | Headless Hook |
-| Same component, multiple semantic elements | Polymorphic Component |
-| Input with optional parent state control | Controlled/Uncontrolled Dual-mode |
-| Data list with custom rendering | Render Props or children function |
-| Cross-cutting structural wrapping | HOC (limited use) |
-| Simple shared behavior | Custom Hook |
-| Optional child sections | Slot Pattern (ReactNode props) |
+| Scenario                                       | Recommended Pattern               |
+| ---------------------------------------------- | --------------------------------- |
+| Complex UI with multiple coordinated parts     | Compound Components               |
+| Behavior reuse across different visual designs | Headless Hook                     |
+| Same component, multiple semantic elements     | Polymorphic Component             |
+| Input with optional parent state control       | Controlled/Uncontrolled Dual-mode |
+| Data list with custom rendering                | Render Props or children function |
+| Cross-cutting structural wrapping              | HOC (limited use)                 |
+| Simple shared behavior                         | Custom Hook                       |
+| Optional child sections                        | Slot Pattern (ReactNode props)    |
 
 **Priority order for new components:**
+
 1. Custom Hook (if pure logic)
 2. Compound Component (if complex multi-part UI)
 3. Headless Component (if cross-design-system flexibility needed)

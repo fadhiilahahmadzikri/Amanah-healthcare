@@ -6,7 +6,7 @@ The CLI includes an MCP server that lets AI assistants search, browse, view, and
 
 ## Setup
 
-```bash
+````bash
 shadcn mcp        shadcn mcp init   ```
 
 Editor config files:
@@ -83,7 +83,7 @@ Registries are set in `components.json`. The `@shadcn` registry is always built-
     }
   }
 }
-```
+````
 
 - Names must start with `@`.
 - URLs must contain `{name}`.

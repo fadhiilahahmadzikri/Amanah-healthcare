@@ -11,7 +11,6 @@ Client components **cannot** be async functions. Only Server Components can be a
 **Detect:** File has `'use client'` AND component is `async function` or returns `Promise`
 
 ```tsx
-
 'use client';
 export default async function UserProfile() {
   const user = await getUser();
@@ -30,13 +29,11 @@ export function UserProfile({ user }: { user: User }) {
 ```
 
 ```tsx
-
 'use client';
 const Dashboard = async () => {
   const data = await fetchDashboard();
   return <div>{data}</div>;
 };
-
 ```
 
 ### 2. Non-Serializable Props to Client Components
@@ -53,7 +50,6 @@ Props passed from Server → Client must be JSON-serializable.
 - Circular references
 
 ```tsx
-
 export default function Page() {
   const handleClick = () => console.log('clicked');
   return <ClientButton onClick={handleClick} />;
@@ -67,7 +63,6 @@ export function ClientButton() {
 ```
 
 ```tsx
-
 export default async function Page() {
   const post = await getPost();
   return <PostCard createdAt={post.createdAt} />;
@@ -112,11 +107,8 @@ const user = await getUser()
 Functions marked with `'use server'` CAN be passed to client components.
 
 ```tsx
-
 'use server';
-export async function submitForm(formData: FormData) {
-
-}
+export async function submitForm(formData: FormData) {}
 
 import { submitForm } from './actions';
 export default function Page() {

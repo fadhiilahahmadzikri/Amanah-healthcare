@@ -2,7 +2,7 @@
 
 > **Module Name:** `authentication`  
 > **Target Standard:** RFC 7807 (Problem Details), RFC 6750 (OAuth 2.0 Bearer Token), RFC 7231 (HTTP Semantics)  
-> **Source Evidence:** [`src/main.ts`](file:///D:/Amanah-backend/src/main.ts), [`src/app.config.ts`](file:///D:/Amanah-backend/src/app.config.ts), [`src/common/filters/problem-details.filter.ts`](file:///D:/Amanah-backend/src/common/filters/problem-details.filter.ts)  
+> **Source Evidence:** [`src/main.ts`](file:///D:/Amanah-backend/src/main.ts), [`src/app.config.ts`](file:///D:/Amanah-backend/src/app.config.ts), [`src/common/filters/problem-details.filter.ts`](file:///D:/Amanah-backend/src/common/filters/problem-details.filter.ts)
 
 ---
 
@@ -10,11 +10,11 @@
 
 Dalam lingkungan lokal maupun kontainer Docker industri, backend diekspos melalui spesifikasi berikut:
 
-* **Local Base URL (Docker / Direct):** `http://localhost:3001`
-* **Local Alternative:** `http://127.0.0.1:3001`
-* **Production Base URL:** Ditetapkan via environment variable `BACKEND_DOMAIN` (misal: `https://api.amanah.health`)
-* **Transport:** HTTP/1.1 & HTTP/2 over TLS (HTTPS pada lingkungan staging & produksi)
-* **Encoding:** UTF-8 (`application/json; charset=utf-8`)
+- **Local Base URL (Docker / Direct):** `http://localhost:3001`
+- **Local Alternative:** `http://127.0.0.1:3001`
+- **Production Base URL:** Ditetapkan via environment variable `BACKEND_DOMAIN` (misal: `https://api.amanah.health`)
+- **Transport:** HTTP/1.1 & HTTP/2 over TLS (HTTPS pada lingkungan staging & produksi)
+- **Encoding:** UTF-8 (`application/json; charset=utf-8`)
 
 ---
 
@@ -25,25 +25,26 @@ Aplikasi menggunakan pengaturan global NestJS sebagai berikut:
 ```typescript
 // Bukti: src/main.ts baris 46-56
 app.setGlobalPrefix('api', {
-  exclude: ['/'],
+  exclude: ['/']
 });
 app.enableVersioning({
-  type: VersioningType.URI,
+  type: VersioningType.URI
 });
 ```
 
 ### Aturan Resolusi URI:
+
 1. **Engine A: Kanonikal JWT API**
-   * Format URI: `/api/v1/auth/{subpath}`
-   * Versi eksplisit: `v1` (wajib ada pada path).
-   * Contoh valid: `POST http://localhost:3001/api/v1/auth/email/login`
-   * Contoh **salah**: `/auth/email/login` (404) atau `/api/auth/email/login` (404/BetterAuth conflict).
+   - Format URI: `/api/v1/auth/{subpath}`
+   - Versi eksplisit: `v1` (wajib ada pada path).
+   - Contoh valid: `POST http://localhost:3001/api/v1/auth/email/login`
+   - Contoh **salah**: `/auth/email/login` (404) atau `/api/auth/email/login` (404/BetterAuth conflict).
 
 2. **Engine B: Better Auth Engine**
-   * Format URI: `/api/auth/{subpath}`
-   * Versi: `VERSION_NEUTRAL` (tanpa prefix versi `v1`).
-   * Controller mengekspos `@Controller({ path: 'auth', version: VERSION_NEUTRAL })` pada [`src/auth/better-auth/better-auth.controller.ts`](file:///D:/Amanah-backend/src/auth/better-auth/better-auth.controller.ts#L8-L12).
-   * Contoh valid: `POST http://localhost:3001/api/auth/sign-in/email`
+   - Format URI: `/api/auth/{subpath}`
+   - Versi: `VERSION_NEUTRAL` (tanpa prefix versi `v1`).
+   - Controller mengekspos `@Controller({ path: 'auth', version: VERSION_NEUTRAL })` pada [`src/auth/better-auth/better-auth.controller.ts`](file:///D:/Amanah-backend/src/auth/better-auth/better-auth.controller.ts#L8-L12).
+   - Contoh valid: `POST http://localhost:3001/api/auth/sign-in/email`
 
 ---
 
@@ -51,24 +52,24 @@ app.enableVersioning({
 
 ### Request Headers
 
-| Header | Wajib / Opsional | Tipe Data | Deskripsi & Aturan |
-| :--- | :---: | :--- | :--- |
-| `Content-Type` | **Wajib** (pada `POST`/`PATCH`) | `string` | Harus bernilai `application/json`. Payload form-data akan ditolak kecuali untuk endpoint upload file. |
-| `Accept` | Disarankan | `string` | Disarankan `application/json, application/problem+json`. |
-| `Authorization` | **Wajib** (pada endpoint terproteksi) | `string` | Skema Bearer token standar RFC 6750: `Bearer <token>`. Digunakan oleh `GET /api/v1/auth/me`, `POST /api/v1/auth/refresh`, serta rute Better Auth bearer. |
-| `x-correlation-id` | Opsional (Disarankan) | `UUID v4` | Header penelusuran terdistribusi (Distributed Tracing). Jika frontend tidak menyertakannya, backend akan meng-generate ID acak dan mengembalikannya pada response header. |
-| `Idempotency-Key` | Opsional | `UUID v4` / `string` | Kunci idempotensi untuk mencegah duplicate charge / form submission ganda pada jaringan yang tidak stabil. Disimpan pada cache Redis selama 24 jam. |
+| Header             |           Wajib / Opsional            | Tipe Data            | Deskripsi & Aturan                                                                                                                                                        |
+| :----------------- | :-----------------------------------: | :------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Content-Type`     |    **Wajib** (pada `POST`/`PATCH`)    | `string`             | Harus bernilai `application/json`. Payload form-data akan ditolak kecuali untuk endpoint upload file.                                                                     |
+| `Accept`           |              Disarankan               | `string`             | Disarankan `application/json, application/problem+json`.                                                                                                                  |
+| `Authorization`    | **Wajib** (pada endpoint terproteksi) | `string`             | Skema Bearer token standar RFC 6750: `Bearer <token>`. Digunakan oleh `GET /api/v1/auth/me`, `POST /api/v1/auth/refresh`, serta rute Better Auth bearer.                  |
+| `x-correlation-id` |         Opsional (Disarankan)         | `UUID v4`            | Header penelusuran terdistribusi (Distributed Tracing). Jika frontend tidak menyertakannya, backend akan meng-generate ID acak dan mengembalikannya pada response header. |
+| `Idempotency-Key`  |               Opsional                | `UUID v4` / `string` | Kunci idempotensi untuk mencegah duplicate charge / form submission ganda pada jaringan yang tidak stabil. Disimpan pada cache Redis selama 24 jam.                       |
 
 ### Response Headers
 
-| Header | Nilai Contoh | Penjelasan |
-| :--- | :--- | :--- |
-| `Content-Type` | `application/json` atau `application/problem+json` | Media type resmi payload. Error terpusat selalu menggunakan `application/problem+json`. |
-| `x-correlation-id` | `3fa85f64-5717-4562-b3fc-2c963f66afa6` | ID unik pelacakan transaksi, sangat berguna saat melaporkan isu produksi ke Sentry / Datadog. |
-| `Cache-Control` | `no-store, no-cache, must-revalidate` | Seluruh endpoint autentikasi wajib mematikan browser caching untuk mencegah kebocoran kredensial. |
-| `X-RateLimit-Limit` | `100` | Batas maksimum request dalam satu time window. |
-| `X-RateLimit-Remaining`| `98` | Sisa kuota request yang diizinkan. |
-| `X-RateLimit-Reset` | `1726707600` | Waktu Unix Epoch saat kuota di-reset kembali. |
+| Header                  | Nilai Contoh                                       | Penjelasan                                                                                        |
+| :---------------------- | :------------------------------------------------- | :------------------------------------------------------------------------------------------------ |
+| `Content-Type`          | `application/json` atau `application/problem+json` | Media type resmi payload. Error terpusat selalu menggunakan `application/problem+json`.           |
+| `x-correlation-id`      | `3fa85f64-5717-4562-b3fc-2c963f66afa6`             | ID unik pelacakan transaksi, sangat berguna saat melaporkan isu produksi ke Sentry / Datadog.     |
+| `Cache-Control`         | `no-store, no-cache, must-revalidate`              | Seluruh endpoint autentikasi wajib mematikan browser caching untuk mencegah kebocoran kredensial. |
+| `X-RateLimit-Limit`     | `100`                                              | Batas maksimum request dalam satu time window.                                                    |
+| `X-RateLimit-Remaining` | `98`                                               | Sisa kuota request yang diizinkan.                                                                |
+| `X-RateLimit-Reset`     | `1726707600`                                       | Waktu Unix Epoch saat kuota di-reset kembali.                                                     |
 
 ---
 
@@ -79,6 +80,7 @@ app.enableVersioning({
 Endpoint Kanonikal JWT **tidak menggunakan wrapping arbitrary** seperti `{ data: ... }`. Response langsung mengembalikan DTO data murni.
 
 Contoh `POST /api/v1/auth/email/login`:
+
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -132,7 +134,7 @@ Setiap exception yang terjadi pada rute `/api/v1/*` ditangkap oleh [`ProblemDeta
 
 Rute `/api/auth/*` dikelola langsung oleh handler Better Auth. Response sukses dan error mengikuti spesifikasi standar Better Auth:
 
-* **Sukses (`GET /api/auth/get-session`):**
+- **Sukses (`GET /api/auth/get-session`):**
   ```json
   {
     "session": {
@@ -148,7 +150,7 @@ Rute `/api/auth/*` dikelola langsung oleh handler Better Auth. Response sukses d
     }
   }
   ```
-* **Error (`POST /api/auth/sign-in/email` dengan sandi salah):**
+- **Error (`POST /api/auth/sign-in/email` dengan sandi salah):**
   ```json
   {
     "error": {
@@ -164,12 +166,12 @@ Rute `/api/auth/*` dikelola langsung oleh handler Better Auth. Response sukses d
 
 Backend menerapkan sliding-window rate limiting yang didukung oleh Redis:
 
-* **Aturan Global:** Maksimum 100 request / 60 detik per IP.
-* **Aturan Khusus Better Auth (`auth.ts`):**
-  * `/sign-in/email`: Maksimum **5 request / 60 detik** (mencegah brute force password).
-  * `/sign-in/social`: Maksimum **10 request / 60 detik**.
-  * `/send-verification-email`: Maksimum **20 request / 60 detik**.
-* **Respons Saat Limit Tercapai (HTTP 429 Too Many Requests):**
+- **Aturan Global:** Maksimum 100 request / 60 detik per IP.
+- **Aturan Khusus Better Auth (`auth.ts`):**
+  - `/sign-in/email`: Maksimum **5 request / 60 detik** (mencegah brute force password).
+  - `/sign-in/social`: Maksimum **10 request / 60 detik**.
+  - `/send-verification-email`: Maksimum **20 request / 60 detik**.
+- **Respons Saat Limit Tercapai (HTTP 429 Too Many Requests):**
   ```json
   {
     "type": "https://amanah.health/errors/rate_limit_exceeded",

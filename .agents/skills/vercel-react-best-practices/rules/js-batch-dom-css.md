@@ -13,7 +13,6 @@ Avoid interleaving style writes with layout reads. When you read a layout proper
 
 ```typescript
 function updateElementStyles(element: HTMLElement) {
-
   element.style.width = '100px';
   element.style.height = '200px';
   element.style.backgroundColor = 'blue';
@@ -36,7 +35,6 @@ function layoutThrashing(element: HTMLElement) {
 
 ```typescript
 function updateElementStyles(element: HTMLElement) {
-
   element.style.width = '100px';
   element.style.height = '200px';
   element.style.backgroundColor = 'blue';
@@ -50,7 +48,6 @@ function updateElementStyles(element: HTMLElement) {
 
 ```typescript
 function avoidThrashing(element: HTMLElement) {
-
   const rect1 = element.getBoundingClientRect();
   const offsetWidth = element.offsetWidth;
   const offsetHeight = element.offsetHeight;
@@ -82,7 +79,6 @@ function updateElementStyles(element: HTMLElement) {
 **React example:**
 
 ```tsx
-
 function Box({ isHighlighted }: { isHighlighted: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
 

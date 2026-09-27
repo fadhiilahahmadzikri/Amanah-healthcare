@@ -5,6 +5,7 @@
 ## Authentication Errors
 
 ### "Error: Not authenticated"
+
 ```
 Cause: No session and no VERCEL_TOKEN
 Fix:
@@ -14,6 +15,7 @@ Fix:
 ```
 
 ### "Error: The specified token is not valid"
+
 ```
 Cause: Token expired or revoked
 Fix:
@@ -23,6 +25,7 @@ Fix:
 ```
 
 ### "Error: project configuration does not belong to a team you are a member of"
+
 ```
 Cause: .vercel/project.json has orgId from a team you left or cloned from someone else
 Fix:
@@ -32,6 +35,7 @@ Fix:
 ```
 
 ### "Authentication required" in CI despite VERCEL_TOKEN being set
+
 ```
 Cause: Token set after vercel process started, or in subshell
 Fix:
@@ -45,6 +49,7 @@ Fix:
 ## Build Errors
 
 ### "No framework detected"
+
 ```
 Cause: Framework package not in dependencies (only devDependencies) or package.json missing
 Fix:
@@ -55,6 +60,7 @@ Fix:
 ```
 
 ### "No Build Script found"
+
 ```
 Cause: package.json has no "build" script and no framework detected
 Fix:
@@ -65,6 +71,7 @@ Fix:
 ```
 
 ### "Error: No Next.js version detected"
+
 ```
 Cause: next not in dependencies
 Fix:
@@ -73,6 +80,7 @@ Fix:
 ```
 
 ### Build succeeds locally but fails on Vercel
+
 ```
 Cause 1: Missing env vars — NEXT_PUBLIC_* or VITE_* not set in Vercel
   Fix: vercel env add NEXT_PUBLIC_API_URL production preview development
@@ -90,7 +98,8 @@ Cause 4: Node.js version mismatch
     { "buildCommand": "node --version && npm run build" }  (debug)
 ```
 
-### "NEXT_PUBLIC_* env var has wrong value in production"
+### "NEXT*PUBLIC*\* env var has wrong value in production"
+
 ```
 Cause: Var baked at build time from wrong environment, or cached build used
 Fix:
@@ -103,6 +112,7 @@ Fix:
 ## Linking Errors
 
 ### "Error: Could not find project with that name"
+
 ```
 Cause: Project name doesn't exist in the selected scope
 Fix:
@@ -111,6 +121,7 @@ Fix:
 ```
 
 ### Wrong project linked (deployed to wrong project)
+
 ```
 Detect: cat .vercel/project.json → check projectId
 Fix:
@@ -120,6 +131,7 @@ Fix:
 ```
 
 ### Monorepo: deployed root instead of sub-package
+
 ```
 Cause: vercel run from repo root, not package root
 Fix:
@@ -133,6 +145,7 @@ Fix:
 ## Deployment Errors
 
 ### "Error: The deployment attempt timed out"
+
 ```
 Cause: Build takes too long (Vercel hobby: 45min limit, pro: unlimited)
 Fix:
@@ -142,6 +155,7 @@ Fix:
 ```
 
 ### "Error: Function size limit exceeded"
+
 ```
 Cause: Serverless function bundle too large (250MB limit)
 Fix:
@@ -151,6 +165,7 @@ Fix:
 ```
 
 ### "404 on all routes except /"
+
 ```
 Cause: SPA with client-side routing, no rewrite rule
 Fix (vercel.json):
@@ -161,6 +176,7 @@ Applies to: Vite, CRA, any SPA without SSR
 ```
 
 ### "502 Bad Gateway" on API routes
+
 ```
 Cause: Function crashed at startup
 Fix:
@@ -174,6 +190,7 @@ Fix:
 ## Environment Variable Errors
 
 ### "env var undefined at runtime but set in dashboard"
+
 ```
 Cause 1: Var set after deploy — env vars only apply to NEW deployments
   Fix: redeploy after setting var
@@ -189,6 +206,7 @@ Cause 3: NEXT_PUBLIC_* set for runtime but not build time
 ```
 
 ### "Sensitive environment variable cannot be read"
+
 ```
 This is expected behavior — sensitive vars are write-only after setting.
 If you need to verify:
@@ -200,6 +218,7 @@ If you need to verify:
 ```
 
 ### "Edge Config connection string is outdated"
+
 ```
 Cause: EDGE_CONFIG env var references deleted Edge Config or invalid token
 Fix:
@@ -212,6 +231,7 @@ Fix:
 ## Domain and URL Errors
 
 ### Preview URL not accessible / 401
+
 ```
 Cause: Deployment protection enabled (Vercel Authentication)
 Fix:
@@ -221,6 +241,7 @@ Fix:
 ```
 
 ### Custom domain not pointing to new deployment
+
 ```
 Cause: Used vercel deploy --skip-domain — domains not auto-promoted
 Fix:
@@ -233,6 +254,7 @@ Fix:
 ## CI/CD Specific
 
 ### "Error: Command failed: vercel deploy" in GitHub Actions
+
 ```
 Fix: ensure all three vars are exported:
   export VERCEL_TOKEN=${{ secrets.VERCEL_TOKEN }}
@@ -245,6 +267,7 @@ VERCEL_ORG_ID and VERCEL_PROJECT_ID: read from .vercel/project.json
 ```
 
 ### Deployment triggers on every push but only specific paths changed
+
 ```
 Fix: set ignoreCommand in vercel.json:
   { "ignoreCommand": "git diff HEAD^ HEAD --quiet . ':(exclude)docs'" }

@@ -45,7 +45,6 @@ function UserList({ users }: { users: User[] }) {
 `.toSorted()` is available in all modern browsers (Chrome 110+, Safari 16+, Firefox 115+, Node.js 20+). For older environments, use spread operator:
 
 ```typescript
-
 const sorted = [...items].sort((a, b) => a.value - b.value);
 ```
 

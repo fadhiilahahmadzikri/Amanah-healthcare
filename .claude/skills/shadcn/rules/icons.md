@@ -90,7 +90,6 @@ function StatusBadge({ icon }: { icon: string }) {
 **Correct:**
 
 ```tsx
-
 import { CheckIcon } from 'lucide-react';
 
 function StatusBadge({ icon: Icon }: { icon: React.ComponentType }) {

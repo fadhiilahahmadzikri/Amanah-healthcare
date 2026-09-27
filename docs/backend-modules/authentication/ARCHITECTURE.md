@@ -3,7 +3,7 @@
 > **Document Type:** Normative Architecture Reference  
 > **Target Subsystem:** Authentication, Identity & Access Management (IAM)  
 > **Repository Scope:** Upstream NestJS Backend (`D:\Amanah-backend`) & Next.js Consumer (`D:\kolaborasihealthcare`)  
-> **Last Updated:** September 19, 2026  
+> **Last Updated:** September 19, 2026
 
 ---
 
@@ -47,6 +47,7 @@ The Amanah Healthcare authentication architecture operates as a **dual-engine hy
 ## 2. Dual Engine Architecture
 
 ### 2.1 Engine A: Kanonikal JWT (Passport)
+
 - **Base Route**: `/api/v1/auth`
 - **Specification**: OpenAPI 3.0 / Swagger documented under tag `Auth (Kanonikal JWT)`
 - **Core Controller**: `src/auth/auth.controller.ts`
@@ -57,6 +58,7 @@ The Amanah Healthcare authentication architecture operates as a **dual-engine hy
 - **Purpose**: Authorizes all 34 internal domain controllers across the clinical ecosystem (`/api/v1/patients`, `/api/v1/appointments`, `/api/v1/medical-records`, `/api/v1/schedules`, `/api/v1/attendance`, etc.).
 
 ### 2.2 Engine B: Better Auth Gateway
+
 - **Base Route**: `/api/auth`
 - **Specification**: Excluded from OpenAPI Swagger (`@ApiExcludeController()`).
 - **Core Controller**: `src/auth/better-auth/better-auth.controller.ts`
@@ -89,7 +91,7 @@ sequenceDiagram
     AuthAPI->>AuthAPI: signAsync(accessToken, refreshToken)
     AuthAPI-->>BFF: 200 OK { token, refreshToken, user }
     BFF-->>User: Set-Cookie: amanah_access_token (HttpOnly, Secure)
-    
+
     Note over User, DomainAPI: Subsequent Protected Domain Request
     User->>BFF: Request patient list
     BFF->>DomainAPI: GET /api/v1/patients [Authorization: Bearer <token>]
@@ -127,19 +129,20 @@ sequenceDiagram
 
 ### 4.1 Schema Mapping Matrix
 
-| Domain Property | Canonical Schema (Engine A) | Better Auth Schema (Engine B) | Synchronization Mechanism |
-| :--- | :--- | :--- | :--- |
-| **User Identity** | `users (id: uuid, email, name, status)` | `"user" (id: uuid, email, name, role)` | Matched during dev seeding (`seed.ts#L208-L268`). |
-| **Credentials** | `auth_accounts (provider_id, password_hash)` | `account (providerId, password)` | Matched during dev seeding (`seed.ts#L234-L304`). |
-| **Role Definition**| `roles (code, name)` & `user_roles (user_id, role_id)` | `"user".role (text)` | `mapRoleCodeToBetterAuthRole()` during seeding. |
-| **Session State** | Stateless JWT (No DB row) | `"session" (id, token, userId, expiresAt)` | Distinct. Session table created by Better Auth. |
-| **Verification** | Stateless JWT Hash | `verification (identifier, value, expiresAt)` | Distinct. |
+| Domain Property     | Canonical Schema (Engine A)                            | Better Auth Schema (Engine B)                 | Synchronization Mechanism                         |
+| :------------------ | :----------------------------------------------------- | :-------------------------------------------- | :------------------------------------------------ |
+| **User Identity**   | `users (id: uuid, email, name, status)`                | `"user" (id: uuid, email, name, role)`        | Matched during dev seeding (`seed.ts#L208-L268`). |
+| **Credentials**     | `auth_accounts (provider_id, password_hash)`           | `account (providerId, password)`              | Matched during dev seeding (`seed.ts#L234-L304`). |
+| **Role Definition** | `roles (code, name)` & `user_roles (user_id, role_id)` | `"user".role (text)`                          | `mapRoleCodeToBetterAuthRole()` during seeding.   |
+| **Session State**   | Stateless JWT (No DB row)                              | `"session" (id, token, userId, expiresAt)`    | Distinct. Session table created by Better Auth.   |
+| **Verification**    | Stateless JWT Hash                                     | `verification (identifier, value, expiresAt)` | Distinct.                                         |
 
 ---
 
 ## 5. Security Model
 
 ### 5.1 Cryptography & Hashing
+
 - **Password Hashes**: Salted bcrypt (`bcrypt.hash(password, 10)`), shared between both engines.
 - **Token Signing**: HMAC-SHA256 (`HS256`).
   - Access Token: Signed with `auth.secret` (`JWT_SECRET`).
@@ -147,11 +150,13 @@ sequenceDiagram
   - Forgot Password Token: Signed with `auth.forgotSecret` (`JWT_FORGOT_SECRET`).
 
 ### 5.2 Cookie Security Architecture
+
 - **`HttpOnly`**: Enabled on all auth cookies, preventing XSS-based token extraction.
 - **`SameSite`**: Configured to `Lax`, mitigating Cross-Site Request Forgery (CSRF).
 - **`Secure`**: Enforced when `NODE_ENV === 'production'`.
 
 ### 5.3 Network & Sink Isolation
+
 - **SMTP Isolation**: All outbound emails are routed through the local Mailpit container (`http://localhost:8025` / SMTP `1025`). Zero outbound emails leak to third-party services in non-production environments.
 
 ---
@@ -159,6 +164,7 @@ sequenceDiagram
 ## 6. Guard Pipeline & Middleware Chain
 
 ### 6.1 Execution Order for Protected Domain Requests
+
 ```
 Incoming HTTP Request
        │

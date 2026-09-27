@@ -19,7 +19,6 @@ function Header({ user, notifications }: Props) {
   }, [user.isLoading, notifications.isLoading]);
 
   if (isLoading) return <Skeleton />;
-
 }
 ```
 
@@ -30,6 +29,5 @@ function Header({ user, notifications }: Props) {
   const isLoading = user.isLoading || notifications.isLoading;
 
   if (isLoading) return <Skeleton />;
-
 }
 ```

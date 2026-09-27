@@ -159,13 +159,13 @@ Prefer existing tokens and primitives.
 For example, if the codebase already uses:
 
 ```tsx
-<Button variant="primary" />
+<Button variant='primary' />
 ```
 
 do not create:
 
 ```tsx
-<button className="bg-blue-600 rounded-lg px-5 py-2.5" />
+<button className='bg-blue-600 rounded-lg px-5 py-2.5' />
 ```
 
 unless there is a documented reason that the existing abstraction is insufficient.
@@ -438,7 +438,7 @@ Every module should have a clear reason to change.
 Avoid giant components such as:
 
 ```tsx
-UserDashboard.tsx
+UserDashboard.tsx;
 ```
 
 containing:
@@ -528,7 +528,7 @@ when appropriate.
 Prefer explicit domain types over:
 
 ```ts
-any
+any;
 ```
 
 Avoid:
@@ -624,7 +624,7 @@ Before creating an API client/helper, search for an existing implementation.
 Never duplicate:
 
 ```ts
-fetch("/api/users")
+fetch('/api/users');
 ```
 
 in multiple unrelated components when an established data-access abstraction exists.

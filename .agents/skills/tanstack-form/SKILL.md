@@ -33,7 +33,6 @@ function MyForm() {
       age: 0
     },
     onSubmit: async ({ value }) => {
-
       await submitToServer(value);
     },
     onSubmitInvalid: ({ value, formApi }) => {
@@ -261,7 +260,6 @@ field.moveValue(from, to);
   name='country'
   listeners={{
     onChange: ({ value }) => {
-
       form.setFieldValue('state', '');
       form.setFieldValue('postalCode', '');
     }
@@ -272,7 +270,6 @@ field.moveValue(from, to);
 ## Reactivity (form.Subscribe & useStore)
 
 ```tsx
-
 <form.Subscribe
   selector={(state) => ({ canSubmit: state.canSubmit, isDirty: state.isDirty })}
   children={({ canSubmit, isDirty }) => (
@@ -351,16 +348,13 @@ const sharedOpts = formOptions({
 
 const form = useForm({
   ...sharedOpts,
-  onSubmit: async ({ value }) => {
-
-  }
+  onSubmit: async ({ value }) => {}
 });
 ```
 
 ## Server-Side Validation
 
 ```tsx
-
 import { ServerValidateError } from '@tanstack/react-form/nextjs';
 
 export async function validateForm(data: FormData) {

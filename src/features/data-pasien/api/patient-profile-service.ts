@@ -86,16 +86,12 @@ export async function updatePatientProfileMe(
   }
 
   try {
-    const updatedProfile = await httpClient.request(
-      paths.patients.me(),
-      patientProfileDtoSchema,
-      {
-        method: 'PATCH',
-        body: payload,
-        tokenOverride: token,
-        cache: 'no-store'
-      }
-    );
+    const updatedProfile = await httpClient.request(paths.patients.me(), patientProfileDtoSchema, {
+      method: 'PATCH',
+      body: payload,
+      tokenOverride: token,
+      cache: 'no-store'
+    });
 
     try {
       revalidatePath('/dashboard/profile', 'layout');
@@ -112,8 +108,7 @@ export async function updatePatientProfileMe(
     };
   } catch (error: unknown) {
     if (error instanceof AppError) {
-      let message =
-        error.problemDetails?.message || error.problemDetails?.detail || error.message;
+      let message = error.problemDetails?.message || error.problemDetails?.detail || error.message;
 
       if (error.status === 401) {
         message = 'Sesi masuk Anda telah berakhir. Silakan masuk kembali.';

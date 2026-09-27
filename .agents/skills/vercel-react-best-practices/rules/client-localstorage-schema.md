@@ -12,7 +12,6 @@ Add version prefix to keys and store only needed fields. Prevents schema conflic
 **Incorrect:**
 
 ```typescript
-
 localStorage.setItem('userConfig', JSON.stringify(fullUserObject));
 const data = localStorage.getItem('userConfig');
 ```
@@ -25,9 +24,7 @@ const VERSION = 'v2';
 function saveConfig(config: { theme: string; language: string }) {
   try {
     localStorage.setItem(`userConfig:${VERSION}`, JSON.stringify(config));
-  } catch {
-
-  }
+  } catch {}
 }
 
 function loadConfig() {
@@ -54,7 +51,6 @@ function migrate() {
 **Store minimal fields from server responses:**
 
 ```typescript
-
 function cachePrefs(user: FullUser) {
   try {
     localStorage.setItem(

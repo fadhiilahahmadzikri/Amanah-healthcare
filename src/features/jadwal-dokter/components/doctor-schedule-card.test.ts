@@ -6,7 +6,7 @@ import {
   isSlotClosed,
   formatUpcomingFallback,
   parseDateToIso
-} from './doctor-schedule-card';
+} from '../utils/doctor-schedule-card-utils';
 import type { DoctorSchedule } from '../api/types';
 
 describe('DoctorScheduleCard Logic & Status Contracts', () => {

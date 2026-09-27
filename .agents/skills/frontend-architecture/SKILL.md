@@ -37,6 +37,7 @@ A component that cannot be described in one sentence is doing too much. Apply Si
 Prefer composing smaller focused components over configuring one monolithic component via props.
 
 **Reject this:**
+
 ```tsx
 <Modal
   hasHeader
@@ -51,6 +52,7 @@ Prefer composing smaller focused components over configuring one monolithic comp
 ```
 
 **Prefer this:**
+
 ```tsx
 <Modal onClose={...}>
   <Modal.Header title="..." />
@@ -137,15 +139,15 @@ When encountering a component design decision, apply this sequence:
 
 Immediately flag and reject these patterns when encountered:
 
-| Anti-Pattern | Signal | Correct Direction |
-|---|---|---|
-| God component | >300 LOC, 10+ props | Decompose by responsibility |
-| Prop drilling >2 levels | Passing props through intermediaries | Context or component composition |
-| Boolean flag explosion | `isX`, `hasY`, `showZ` accumulation | Discriminated union or compound pattern |
-| Premature abstraction | Generic component too early | Inline first, abstract on 3rd repetition |
-| Logic in JSX | Ternary chains, map inside map | Extract to named functions or components |
-| Domain in atoms | Atom importing API types | Move to molecule/organism layer |
-| Colocation neglect | Styles/tests/types scattered | Co-locate next to component file |
+| Anti-Pattern            | Signal                               | Correct Direction                        |
+| ----------------------- | ------------------------------------ | ---------------------------------------- |
+| God component           | >300 LOC, 10+ props                  | Decompose by responsibility              |
+| Prop drilling >2 levels | Passing props through intermediaries | Context or component composition         |
+| Boolean flag explosion  | `isX`, `hasY`, `showZ` accumulation  | Discriminated union or compound pattern  |
+| Premature abstraction   | Generic component too early          | Inline first, abstract on 3rd repetition |
+| Logic in JSX            | Ternary chains, map inside map       | Extract to named functions or components |
+| Domain in atoms         | Atom importing API types             | Move to molecule/organism layer          |
+| Colocation neglect      | Styles/tests/types scattered         | Co-locate next to component file         |
 
 Read `references/anti-patterns.md` for full detail, root causes, and refactoring strategies.
 

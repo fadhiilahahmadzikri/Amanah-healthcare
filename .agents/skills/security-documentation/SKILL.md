@@ -26,12 +26,15 @@ Create comprehensive security documentation including policies, procedures, inci
 # Information Security Policy
 
 ## Purpose
+
 Define security requirements and responsibilities for protecting company information assets.
 
 ## Scope
+
 All employees, contractors, systems, and data.
 
 ## Password Policy
+
 - Minimum 12 characters
 - Complexity requirements (upper, lower, number, special)
 - No password reuse (last 10)
@@ -39,6 +42,7 @@ All employees, contractors, systems, and data.
 - MFA required for sensitive systems
 
 ## Access Control
+
 - Principle of least privilege
 - Role-based access control
 - Access review quarterly
@@ -46,17 +50,20 @@ All employees, contractors, systems, and data.
 - Remote access via VPN only
 
 ## Data Classification
+
 - Public: No restrictions
 - Internal: Company personnel only
 - Confidential: Need-to-know basis
 - Restricted: Executive approval required
 
 ## Incident Reporting
+
 - Report security incidents within 1 hour
 - Contact: security@company.com
 - Incident response team activation
 
 ## Compliance
+
 - Violation consequences
 - Review annually
 - Approval: CISO
@@ -71,6 +78,7 @@ All employees, contractors, systems, and data.
 # Incident Response Plan
 
 ## Incident Types
+
 - Data breach
 - Malware infection
 - Unauthorized access
@@ -78,6 +86,7 @@ All employees, contractors, systems, and data.
 - Physical security breach
 
 ## Response Team
+
 - Incident Commander: CISO
 - Technical Lead: IT Director
 - Communications: PR Manager
@@ -87,36 +96,42 @@ All employees, contractors, systems, and data.
 ## Response Phases
 
 ### 1. Detection & Analysis (0-1 hour)
+
 - Identify incident type
 - Assess severity
 - Activate response team
 - Begin logging
 
 ### 2. Containment (1-4 hours)
+
 - Isolate affected systems
 - Preserve evidence
 - Implement temporary controls
 - Prevent spread
 
 ### 3. Eradication (4-24 hours)
+
 - Remove threat
 - Patch vulnerabilities
 - Reset credentials
 - Verify clean
 
 ### 4. Recovery (24-72 hours)
+
 - Restore systems
 - Monitor for reoccurrence
 - Validate functionality
 - Return to normal
 
 ### 5. Post-Incident (Week 1)
+
 - Document timeline
 - Lessons learned
 - Update procedures
 - Report to stakeholders
 
 ## Communication Protocol
+
 - Internal: Email, Slack
 - External: PR team approval
 - Customers: Within 72 hours (GDPR)
