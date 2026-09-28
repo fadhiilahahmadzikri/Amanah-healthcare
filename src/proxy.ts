@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionCookie } from 'better-auth/cookies';
-import { defaultHttpObservability } from '@/core/observability';
+// proxy.ts runs in the Edge Runtime (it is the Next.js middleware).
+// Must import from the Edge adapter — NOT the barrel or the Node adapter.
+import { defaultHttpObservability } from '@/core/observability/adapters/http/next-http-observability.adapter.edge';
 
 const PROTECTED_PREFIXES = ['/dashboard', '/patient-registration'];
 const AUTH_ONLY_PREFIXES = [

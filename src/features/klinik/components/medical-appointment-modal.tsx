@@ -18,6 +18,9 @@ export interface MedicalAppointmentModalProps {
   onSuccess?: () => void;
   initialService?: string;
   initialDoctor?: string;
+  flow?: string;
+  onBackToService?: () => void;
+  onCreated?: (medicalFormData: unknown) => void;
 }
 
 type ModalBookingStep = 'select_patient' | 'new_patient_form' | 'select_schedule' | 'success';

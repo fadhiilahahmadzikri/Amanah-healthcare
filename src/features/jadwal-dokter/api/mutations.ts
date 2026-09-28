@@ -29,6 +29,7 @@ import type {
   ScheduleDaySettingsPayload
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 import { SCHEDULE_QUERY_KEYS, SCHEDULE_STATUS } from '../constants/schedule-shift.constants';
+import type { ApiMessageResponse } from './service';
 
 /**
  * Canonical 4-Query Post-Mutation Synchronization Pattern (syncAll)
@@ -94,15 +95,14 @@ export function useUpdateDoctorDayStatusMutation() {
       await queryClient.refetchQueries({ queryKey: doctorScheduleKeys.all, type: 'active' });
 
       const response = rawResponse as
-        | {
-            message?: string;
+        | (ApiMessageResponse & {
             affectedSessionsCount?: number;
             cancelledAppointmentsCount?: number;
             data?: {
               affectedSessionsCount?: number;
               cancelledAppointmentsCount?: number;
             };
-          }
+          })
         | null
         | undefined;
 

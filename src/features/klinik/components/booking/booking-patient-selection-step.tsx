@@ -8,18 +8,24 @@ import { cn } from '@/lib/utils';
 import type { PatientAffiliationProfile } from '@/features/data-pasien/api/patient-affiliation-service';
 
 export interface BookingPatientSelectionStepProps {
-  affiliations: PatientAffiliationProfile[];
+  affiliations?: PatientAffiliationProfile[];
+  patients?: PatientAffiliationProfile[];
   selectedPatientId: string | null;
   onSelectPatient: (patient: PatientAffiliationProfile) => void;
   onAddNewPatient: () => void;
+  onContinue?: () => void;
 }
 
 export function BookingPatientSelectionStep({
   affiliations,
+  patients,
   selectedPatientId,
   onSelectPatient,
-  onAddNewPatient
+  onAddNewPatient,
+  onContinue: _onContinue
 }: BookingPatientSelectionStepProps) {
+  const patientList = affiliations ?? patients ?? [];
+
   return (
     <div className='space-y-4'>
       <div className='flex items-center justify-between'>
@@ -44,7 +50,7 @@ export function BookingPatientSelectionStep({
       </div>
 
       <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[380px] overflow-y-auto pr-1'>
-        {affiliations.map((patient) => {
+        {patientList.map((patient) => {
           const isSelected = selectedPatientId === patient.id;
           const genderText =
             patient.gender === 'L' || patient.gender === 'LAKI_LAKI' ? 'Laki-laki' : 'Perempuan';

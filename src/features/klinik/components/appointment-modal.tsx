@@ -233,7 +233,7 @@ export function AppointmentModal({
               <BookingPatientSelectionStep
                 patients={patients}
                 selectedPatientId={selectedPatientId}
-                onSelectPatient={setSelectedPatientId}
+                onSelectPatient={(p) => setSelectedPatientId(p.id)}
                 onAddNewPatient={() => setStep('patient_new')}
                 onContinue={() => setStep('schedule')}
               />
@@ -304,7 +304,9 @@ export function AppointmentModal({
             setActiveMedicalFlow(null);
             onClose();
           }}
-          onCreated={(medicalFormData) => onSubmit(medicalFormData)}
+          onCreated={(medicalFormData) =>
+            onSubmit(medicalFormData as unknown as AppointmentFormData)
+          }
         />
       ) : null}
     </>

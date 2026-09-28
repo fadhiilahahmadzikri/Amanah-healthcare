@@ -45,9 +45,8 @@ export const doctorScheduleFilterOptionsQueryOptions = () =>
   });
 
 export const clinicRoomsQueryOptions = (params?: {
-  date?: string;
-  startTime?: string;
-  endTime?: string;
+  poliklinikId?: string;
+  clinicUnitId?: string;
 }) =>
   queryOptions({
     queryKey: ['schedules', 'reference-rooms', params] as const,

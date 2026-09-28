@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 
 import { getPatients } from '@/features/data-pasien/api/service';
 import type { Patient } from '@/features/data-pasien/api/types';
-import { withApiObservability } from '@/core/observability';
+import { withApiObservability } from '@/core/observability/adapters/http/route-observability.adapter';
 
 export const GET = withApiObservability(async function GET() {
   const reqHeaders = await headers();

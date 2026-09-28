@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { refreshTokenCommand } from '@/server/services/auth/refresh-token.command';
-import { withApiObservability } from '@/core/observability';
+import { withApiObservability } from '@/core/observability/adapters/http/route-observability.adapter';
 
 export const POST = withApiObservability(async function POST() {
   const result = await refreshTokenCommand();

@@ -1,8 +1,21 @@
-export type AppointmentStatus = 'CONFIRMED' | 'PENDING' | 'CHECKED_IN' | 'COMPLETED' | 'CANCELLED';
+export type AppointmentStatus =
+  | 'CONFIRMED'
+  | 'PENDING'
+  | 'CHECKED_IN'
+  | 'COMPLETED'
+  | 'CANCELLED'
+  | 'Sudah Buat Janji'
+  | 'Menunggu'
+  | 'Sedang Diperiksa'
+  | 'Selesai'
+  | 'Batal'
+  | 'Tidak Hadir'
+  | string;
 
 export interface Doctor {
   name: string;
   spec: string;
+  specialty?: string;
   avatar: string;
   location: string;
   rating: string;
@@ -23,10 +36,11 @@ export interface Appointment {
   status: AppointmentStatus;
   visit_type?: string;
   service?: string;
+  queue_number?: string;
   medical_flow?: MedicalAppointmentFlow;
   medical_intake?: MedicalIntakeRecord;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 export type QueueStatus =
@@ -41,17 +55,21 @@ export type QueueStatus =
 export interface QueueItem {
   id: string;
   queue_number: string;
+  appointment_id?: string;
   patient_name: string;
-  patient_avatar: string;
+  patient_avatar?: string;
   doctor_name: string;
-  poli: string;
-  estimated_time: string;
+  poli?: string;
+  estimated_time?: string;
   status: QueueStatus;
-  is_user: boolean;
+  is_user?: boolean;
   called_time?: string;
   waiting_count?: number;
   room?: string;
   call_count?: number;
+  called_at?: string | null;
+  created_at?: string;
+  service?: string;
 }
 
 export interface AppointmentFormData {

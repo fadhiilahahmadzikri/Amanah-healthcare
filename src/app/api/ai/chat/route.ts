@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { buildClinicSystemPrompt } from '@/config/clinic-context-prompt';
-import { withApiObservability } from '@/core/observability';
+import { withApiObservability } from '@/core/observability/adapters/http/route-observability.adapter';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';

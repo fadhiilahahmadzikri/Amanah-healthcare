@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import type { Appointment, AppointmentFormData, AppointmentStatus, Doctor } from '../api/types';
-import { getDoctorByName } from '../api/service';
+import { getDoctorByName, loadStoredAppointments } from '../api/service';
 import {
   patientAffiliationService,
   type BackendAppointmentItem
@@ -51,11 +51,13 @@ export interface UseAppointmentsViewResult {
       data: AppointmentFormData,
       appointmentId?: string
     ) => { type: AppointmentFormMode };
+    reload: () => Promise<void>;
   };
 }
 
 export function useAppointmentsView(): UseAppointmentsViewResult {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [_isInitialized, setIsInitialized] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [monthFilter, setMonthFilter] = useState('ALL');
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);

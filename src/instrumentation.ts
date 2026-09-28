@@ -1,10 +1,10 @@
 import * as Sentry from '@sentry/nextjs';
-import {
-  ssotLogger,
-  defaultHttpObservability,
-  extractClientMetadata,
-  extractClientIp
-} from '@/core/observability';
+// Import extractors directly from source — NOT from @/core/observability barrel.
+// The barrel is Edge-safe now, but keeping direct imports here documents intent:
+// instrumentation.ts must never acquire a static dependency on Node-only modules.
+import { extractClientMetadata } from '@/core/observability/extractors/client-metadata.extractor';
+import { extractClientIp } from '@/core/observability/extractors/ip.extractor';
+import type { IHttpObservabilityAdapter } from '@/core/observability/ports/http-observability.port';
 
 const sentryOptions: Sentry.NodeOptions | Sentry.EdgeOptions = {
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -14,9 +14,38 @@ const sentryOptions: Sentry.NodeOptions | Sentry.EdgeOptions = {
   debug: false
 };
 
+/**
+ * Composition root — wires the correct HTTP observability adapter per runtime.
+ *
+ * Dynamic imports inside each branch ensure the Node.js adapter (which uses
+ * process.stdout / Pino) is NEVER included in the Edge bundle, and the Edge
+ * adapter (console.* only) is NEVER burdened with Node-specific transports.
+ *
+ * NEXT_RUNTIME is injected by Next.js at build time for each bundle:
+ *   'nodejs' — server-side Node.js (API routes, RSC, middleware on Node)
+ *   'edge'   — Vercel Edge / Cloudflare Workers runtime (middleware, edge routes)
+ */
+let httpObservability: IHttpObservabilityAdapter | null = null;
+
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
+    const { NodeHttpObservabilityAdapter, defaultHttpObservability } =
+      await import('./core/observability/adapters/http/next-http-observability.adapter.node');
+
+    httpObservability = defaultHttpObservability;
+
+    // Notify via the Node logger that the runtime is up (Pino is safe here)
+    const { ssotLogger } = await import('./core/observability/adapters/pino/pino-logger.adapter');
     ssotLogger.debug('Next.js server runtime initialized with Pino SSOT observability');
+
+    void NodeHttpObservabilityAdapter; // keep import side-effect-free but suppress unused warning
+  }
+
+  if (process.env.NEXT_RUNTIME === 'edge') {
+    const { defaultHttpObservability } =
+      await import('./core/observability/adapters/http/next-http-observability.adapter.edge');
+
+    httpObservability = defaultHttpObservability;
   }
 
   if (!process.env.NEXT_PUBLIC_SENTRY_DISABLED) {
@@ -46,7 +75,7 @@ export async function onRequestError(
     const requestId = headers['x-request-id'] || `req_err_${Date.now()}`;
     const correlationId = headers['x-correlation-id'] || requestId;
 
-    defaultHttpObservability.logErrorEvent({
+    httpObservability?.logErrorEvent({
       event: 'http.error',
       requestId,
       correlationId,

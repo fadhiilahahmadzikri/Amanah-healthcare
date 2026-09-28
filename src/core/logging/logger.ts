@@ -1,8 +1,8 @@
-import {
-  ssotLogger,
-  type ILogger as IObservabilityLogger,
-  type LogLevel as ObsLogLevel
-} from '@/core/observability';
+// Import ssotLogger directly — the @/core/observability barrel no longer exports
+// Node-only symbols (Pino) to stay Edge-safe. Direct imports document intent clearly.
+import { ssotLogger } from '@/core/observability/adapters/pino/pino-logger.adapter';
+import type { ILogger as IObservabilityLogger } from '@/core/observability/ports/logger.port';
+import type { LogLevel as ObsLogLevel } from '@/core/observability/ports/logger.port';
 
 export type LogLevel = ObsLogLevel;
 
