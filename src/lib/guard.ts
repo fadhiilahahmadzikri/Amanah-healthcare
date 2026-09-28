@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { auth } from './auth';
 import { isRouteAuthorized } from './rbac/route-manifest';
 import { loadCurrentUser } from '@/server/loaders/auth.loader';
+import { getRoleLandingPath } from './safe-redirect';
 
 export type SessionType = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;
 
@@ -13,7 +14,14 @@ export async function getUnifiedSession(): Promise<SessionType | null> {
   const reqHeaders = await headers();
   const session = await auth.api.getSession({ headers: reqHeaders });
   if (session?.user) {
-    return session;
+    const role = session.user.role === 'admin' ? 'admin' : 'patient';
+    return {
+      ...session,
+      user: {
+        ...session.user,
+        role
+      }
+    } as unknown as SessionType;
   }
 
   const currentUser = await loadCurrentUser();
@@ -81,11 +89,9 @@ export async function requireRouteAccess(pathname: string): Promise<SessionType>
     }
 
     if (authResult.reason === 'forbidden') {
-      // Role mismatch: redirect to the respective authorized home portal
-      if (session.user.role === 'admin') {
-        redirect('/dashboard/admin');
-      } else {
-        redirect('/dashboard/klinik/antrean');
+      const destination = getRoleLandingPath(session?.user?.role);
+      if (pathname !== destination) {
+        redirect(destination);
       }
     }
   }

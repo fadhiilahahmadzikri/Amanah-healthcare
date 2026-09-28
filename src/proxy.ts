@@ -19,34 +19,6 @@ function safeCallbackUrl(pathname: string): string {
   return '/dashboard';
 }
 
-async function getBackendSession(req: NextRequest) {
-  try {
-    const cookie = req.headers.get('cookie') || '';
-    if (!cookie || (!cookie.includes('better-auth') && !cookie.includes('session'))) {
-      return null;
-    }
-
-    const backendUrl = (
-      process.env.BETTER_AUTH_URL ||
-      process.env.NEXT_PUBLIC_BETTER_AUTH_URL ||
-      process.env.NEXT_PUBLIC_API_URL ||
-      'http://localhost:3001'
-    ).replace(/\/+$/, '');
-
-    const res = await fetch(`${backendUrl}/api/auth/get-session`, {
-      headers: { cookie },
-      cache: 'no-store',
-      signal: AbortSignal.timeout(1500)
-    });
-
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data?.user ?? null;
-  } catch {
-    return null;
-  }
-}
-
 function isJwtExpired(token: string): boolean {
   try {
     const parts = token.split('.');
@@ -144,7 +116,6 @@ export default async function proxy(request: NextRequest) {
   const isAuthOnly =
     !isResetPassword &&
     AUTH_ONLY_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
-  const isOtpRoute = pathname.startsWith('/verify-otp') || pathname.startsWith('/verify-email');
 
   // 1. Unauthenticated users accessing protected paths -> redirect to sign-in
   if (isProtected && !sessionCookie) {
@@ -160,50 +131,16 @@ export default async function proxy(request: NextRequest) {
     return response;
   }
 
-  // 2. If session cookie exists, check backend session for email verification and auth routes
-  if (sessionCookie && (isProtected || isAuthOnly || isOtpRoute)) {
-    const user = await getBackendSession(request);
-    if (user) {
-      // If user is logged in but email is not verified
-      if (user.emailVerified === false && user.email) {
-        if (!isOtpRoute) {
-          const otpUrl = new URL('/verify-otp', request.url);
-          otpUrl.searchParams.set('email', user.email);
-          const response = NextResponse.redirect(otpUrl);
-          response.headers.set('Cache-Control', 'no-store, max-age=0');
-          if (obsContext)
-            defaultHttpObservability.onResponse(obsContext, {
-              status: response.status,
-              headers: response.headers
-            });
-          return response;
-        }
-      } else {
-        // User is logged in and email is verified
-        if (isAuthOnly || isOtpRoute) {
-          const response = NextResponse.redirect(new URL('/dashboard', request.url));
-          response.headers.set('Cache-Control', 'no-store, max-age=0');
-          if (obsContext)
-            defaultHttpObservability.onResponse(obsContext, {
-              status: response.status,
-              headers: response.headers
-            });
-          return response;
-        }
-      }
-    } else if (isProtected && !request.cookies.get('amanah_access_token')?.value) {
-      // Session cookie is invalid or expired
-      const url = new URL('/auth/sign-in', request.url);
-      url.searchParams.set('redirect', safeCallbackUrl(pathname));
-      const response = NextResponse.redirect(url);
-      response.headers.set('Cache-Control', 'no-store, max-age=0');
-      if (obsContext)
-        defaultHttpObservability.onResponse(obsContext, {
-          status: response.status,
-          headers: response.headers
-        });
-      return response;
-    }
+  // 2. Authenticated users accessing auth-only pages -> redirect to dashboard
+  if (isAuthOnly && sessionCookie) {
+    const response = NextResponse.redirect(new URL('/dashboard', request.url));
+    response.headers.set('Cache-Control', 'no-store, max-age=0');
+    if (obsContext)
+      defaultHttpObservability.onResponse(obsContext, {
+        status: response.status,
+        headers: response.headers
+      });
+    return response;
   }
 
   // 3. Forward request with injected x-pathname and correlation/request ID headers

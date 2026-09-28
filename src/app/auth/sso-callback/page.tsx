@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   }
 };
 
-export default function SsoCallbackPage() {
-  redirect('/dashboard/admin');
+import { getUnifiedSession } from '@/lib/guard';
+import { getRoleLandingPath } from '@/lib/safe-redirect';
+
+export default async function SsoCallbackPage() {
+  const session = await getUnifiedSession();
+  const target = getRoleLandingPath(session?.user?.role);
+  redirect(target);
 }

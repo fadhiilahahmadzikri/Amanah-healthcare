@@ -25,51 +25,33 @@ export const metadata: Metadata = {
   }
 };
 
-import { authLoader } from '@/server/loaders/auth.loader';
+import { getUnifiedSession } from '@/lib/guard';
+import { getRoleLandingPath } from '@/lib/safe-redirect';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const reqHeaders = await headers();
-  let user: {
-    id: string;
-    name?: string | null;
-    email?: string | null;
-    image?: string | null;
-    role?: string | null;
-  } | null = null;
-  let userRole: SupportedRole = 'patient';
+  const session = await getUnifiedSession();
+  const pathname = reqHeaders.get('x-pathname') || '/dashboard';
 
-  const session = await auth.api.getSession({ headers: reqHeaders });
-  if (session?.user) {
-    if (session.user.emailVerified === false && session.user.email) {
-      redirect(`/verify-otp?email=${encodeURIComponent(session.user.email)}`);
-    }
-    user = session.user;
-    userRole = session.user.role === 'admin' ? 'admin' : 'patient';
-  } else {
-    const currentUser = await authLoader();
-    user = {
-      id: currentUser.id,
-      name: currentUser.staff?.fullName || currentUser.patient?.fullName || currentUser.email,
-      email: currentUser.email,
-      role: currentUser.systemRole === 'ADMIN' ? 'admin' : 'patient'
-    };
-    userRole = currentUser.systemRole === 'ADMIN' ? 'admin' : 'patient';
+  if (!session?.user) {
+    redirect(`/auth/sign-in?redirect=${encodeURIComponent(pathname)}`);
   }
 
-  if (!user) {
-    redirect('/auth/sign-in');
+  if (session.user.emailVerified === false && session.user.email) {
+    redirect(`/verify-otp?email=${encodeURIComponent(session.user.email)}`);
   }
+
+  const user = session.user;
+  const userRole: SupportedRole = user.role === 'admin' ? 'admin' : 'patient';
 
   // Enforce Route Manifest RBAC at Layout Boundary
-  const pathname = reqHeaders.get('x-pathname') || '/dashboard';
   const authResult = isRouteAuthorized(pathname, userRole);
 
   if (!authResult.allowed) {
     if (authResult.reason === 'forbidden') {
-      if (userRole === 'admin') {
-        redirect('/dashboard/admin');
-      } else {
-        redirect('/dashboard/klinik/antrean');
+      const destination = getRoleLandingPath(userRole);
+      if (pathname !== destination) {
+        redirect(destination);
       }
     }
   }
