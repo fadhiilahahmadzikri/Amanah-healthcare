@@ -56,7 +56,7 @@ export function AppointmentCalendarDayPicker({
   onSelectDate,
   className
 }: AppointmentCalendarDayPickerProps) {
-  const { data: doctorSchedule } = useQuery<DoctorSchedule | undefined>({
+  const { data: doctorSchedule } = useQuery<DoctorSchedule | null>({
     queryKey: ['doctor-schedule-by-name', doctorName],
     queryFn: () => getDoctorScheduleByName(doctorName),
     enabled: Boolean(doctorName),

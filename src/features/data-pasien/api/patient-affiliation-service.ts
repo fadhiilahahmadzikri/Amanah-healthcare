@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/api-client';
+import { clientFetch } from '@/lib/client-fetch';
 
 export interface PatientAffiliationProfile {
   id: string;
@@ -87,7 +87,7 @@ export interface BackendAppointmentItem {
 export const patientAffiliationService = {
   async getMyAffiliations(): Promise<PatientAffiliationProfile[]> {
     try {
-      const res = await apiClient<
+      const res = await clientFetch<
         { success?: boolean; data?: PatientAffiliationProfile[] } | PatientAffiliationProfile[]
       >('/api/v1/patients/affiliations/me');
       if (Array.isArray(res)) return res;
@@ -100,7 +100,7 @@ export const patientAffiliationService = {
   },
 
   async createAffiliation(payload: CreateAffiliationPayload): Promise<PatientAffiliationProfile> {
-    const res = await apiClient<
+    const res = await clientFetch<
       { success?: boolean; data?: PatientAffiliationProfile } | PatientAffiliationProfile
     >('/api/v1/patients/affiliations', {
       method: 'POST',
@@ -112,9 +112,9 @@ export const patientAffiliationService = {
 
   async getOccupations(): Promise<OccupationItem[]> {
     try {
-      const res = await apiClient<
+      const res = await clientFetch<
         { success?: boolean; data?: OccupationItem[] } | OccupationItem[]
-      >('/api/v1/occupations', { skipAuth: true });
+      >('/api/v1/occupations');
       if (Array.isArray(res)) return res;
       if (res && 'data' in res && Array.isArray(res.data)) return res.data;
       return [];
@@ -126,7 +126,7 @@ export const patientAffiliationService = {
 
   async getBookingOptions(date: string): Promise<BookingOptionShift[]> {
     try {
-      const res = await apiClient<
+      const res = await clientFetch<
         { success?: boolean; data?: BookingOptionShift[] } | BookingOptionShift[]
       >(`/api/v1/schedules/booking-options?date=${date}`);
       if (Array.isArray(res)) return res;
@@ -139,7 +139,7 @@ export const patientAffiliationService = {
   },
 
   async createAppointment(payload: CreateAppointmentPayload): Promise<BackendAppointmentItem> {
-    const res = await apiClient<
+    const res = await clientFetch<
       { success?: boolean; data?: BackendAppointmentItem } | BackendAppointmentItem
     >('/api/v1/appointments', {
       method: 'POST',
@@ -151,7 +151,7 @@ export const patientAffiliationService = {
 
   async getMyAppointments(): Promise<BackendAppointmentItem[]> {
     try {
-      const res = await apiClient<
+      const res = await clientFetch<
         { success?: boolean; data?: BackendAppointmentItem[] } | BackendAppointmentItem[]
       >('/api/v1/appointments/me');
       if (Array.isArray(res)) return res;
@@ -167,7 +167,7 @@ export const patientAffiliationService = {
     appointmentId: string,
     payload: { targetDate: string; targetSession: string; reason?: string }
   ): Promise<BackendAppointmentItem> {
-    const res = await apiClient<
+    const res = await clientFetch<
       { success?: boolean; data?: BackendAppointmentItem } | BackendAppointmentItem
     >(`/api/v1/appointments/${appointmentId}/reschedule`, {
       method: 'POST',
@@ -178,7 +178,7 @@ export const patientAffiliationService = {
   },
 
   async cancelAppointment(appointmentId: string, reason = 'Dibatalkan oleh pasien'): Promise<void> {
-    await apiClient(`/api/v1/appointments/${appointmentId}/cancel`, {
+    await clientFetch(`/api/v1/appointments/${appointmentId}/cancel`, {
       method: 'PATCH',
       body: JSON.stringify({ reason })
     });

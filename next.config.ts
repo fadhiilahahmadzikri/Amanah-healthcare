@@ -91,8 +91,8 @@ const baseConfig: NextConfig = {
   async rewrites() {
     return [
       {
-        source: '/api/v1/users/:path*',
-        destination: `${apiBaseUrl}/api/v1/users/:path*`
+        source: '/api/v1/:path*',
+        destination: `${apiBaseUrl}/api/v1/:path*`
       }
     ];
   }

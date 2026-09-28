@@ -216,6 +216,10 @@ export default async function proxy(request: NextRequest) {
     requestHeaders.set('x-request-start-time', String(obsContext.startTime));
   }
 
+  if (rawAccessToken && !requestHeaders.has('authorization')) {
+    requestHeaders.set('authorization', `Bearer ${rawAccessToken}`);
+  }
+
   const response = NextResponse.next({
     request: {
       headers: requestHeaders

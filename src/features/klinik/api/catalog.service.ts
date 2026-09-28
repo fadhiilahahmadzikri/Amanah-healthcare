@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/api-client';
+import { clientFetch } from '@/lib/client-fetch';
 
 export interface ServiceCatalogItem {
   id: string;
@@ -45,7 +45,7 @@ class CatalogService {
 
     this.cachePromise = (async () => {
       try {
-        const res = await apiClient<ServiceCatalogResponse | { data: ServiceCatalogResponse }>(
+        const res = await clientFetch<ServiceCatalogResponse | { data: ServiceCatalogResponse }>(
           '/api/v1/clinics/services/catalog',
           { method: 'GET' }
         );

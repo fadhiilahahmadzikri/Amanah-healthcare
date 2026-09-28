@@ -3,7 +3,6 @@
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useQueryClient } from '@tanstack/react-query';
-import { getAccessToken } from '@/lib/api-client';
 import type { BackendNotification } from '../api/notification-api-service';
 
 export interface AppointmentCalledPayload {
@@ -26,7 +25,6 @@ export function useNotificationSocket(callbacks?: {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const token = getAccessToken() || localStorage.getItem('amanah_token');
     const baseUrl =
       process.env.NEXT_PUBLIC_API_URL ||
       process.env.NEXT_PUBLIC_BETTER_AUTH_URL ||
@@ -35,7 +33,7 @@ export function useNotificationSocket(callbacks?: {
     const socket: Socket = io(baseUrl, {
       path: '/socket.io',
       transports: ['websocket', 'polling'],
-      auth: { token: token ? `Bearer ${token}` : undefined },
+      withCredentials: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 2000
     });

@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/api-client';
+import { clientFetch } from '@/lib/client-fetch';
 import type {
   AdminAppointment,
   AppointmentFilters,
@@ -35,7 +35,7 @@ export async function getAdminAppointments(
       queryParams.status = mapLiveStatusToBackendStatus(filters.status as LiveStatus);
     }
 
-    const response = await apiClient<
+    const response = await clientFetch<
       { data?: BackendAppointmentRecord[]; meta?: { total?: number } } | BackendAppointmentRecord[]
     >('/api/v1/appointments', {
       query: queryParams
@@ -105,7 +105,7 @@ export async function getAdminAppointments(
 
 export async function getAdminAppointmentSummary(): Promise<AppointmentSummary> {
   try {
-    const response = await apiClient<
+    const response = await clientFetch<
       { data?: BackendAppointmentRecord[] } | BackendAppointmentRecord[]
     >('/api/v1/appointments', {
       query: { limit: 200 }
@@ -127,7 +127,7 @@ export async function getAdminAppointmentById(
   id: number | string
 ): Promise<AppointmentDetailResponse> {
   try {
-    const response = await apiClient<
+    const response = await clientFetch<
       { data?: BackendAppointmentRecord } | BackendAppointmentRecord
     >(`/api/v1/appointments/${id}`);
     const rawData =
@@ -160,13 +160,12 @@ export async function updateAdminLiveStatus(id: number | string, status: LiveSta
   const backendStatus = mapLiveStatusToBackendStatus(status);
 
   try {
-    const updated = await apiClient<{ data?: BackendAppointmentRecord } | BackendAppointmentRecord>(
-      `/api/v1/appointments/${id}/status`,
-      {
-        method: 'PATCH',
-        body: JSON.stringify({ status: backendStatus })
-      }
-    );
+    const updated = await clientFetch<
+      { data?: BackendAppointmentRecord } | BackendAppointmentRecord
+    >(`/api/v1/appointments/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status: backendStatus })
+    });
     const rawUpdated =
       updated && typeof updated === 'object' && 'data' in updated && updated.data
         ? (updated.data as BackendAppointmentRecord)
@@ -194,7 +193,7 @@ export async function updateAdminLiveStatus(id: number | string, status: LiveSta
 
 export async function deleteAdminAppointment(id: number | string) {
   try {
-    await apiClient(`/api/v1/appointments/${id}`, {
+    await clientFetch(`/api/v1/appointments/${id}`, {
       method: 'DELETE'
     });
 
@@ -227,7 +226,7 @@ export async function getAppointmentCallAttempts(
   appointmentId: string
 ): Promise<AppointmentCallAttempt[]> {
   try {
-    const list = await apiClient<AppointmentCallAttempt[]>(
+    const list = await clientFetch<AppointmentCallAttempt[]>(
       `/api/v1/appointments/${appointmentId}/call-attempts`
     );
     return Array.isArray(list) ? list : [];

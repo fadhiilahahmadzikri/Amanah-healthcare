@@ -1,9 +1,5 @@
-import { HydrationBoundary, dehydrate } from '@tanstack/react-query';
-import { getQueryClient } from '@/lib/query-client';
-import { searchParamsCache } from '@/lib/searchparams';
-import { doctorScheduleQueryOptions } from '../api/queries';
-import { DoctorScheduleView } from './doctor-schedule-view';
 import { Suspense } from 'react';
+import { DoctorScheduleView } from './doctor-schedule-view';
 import { Skeleton } from '@/components/ui/skeleton';
 
 function DoctorScheduleCardsSkeleton() {
@@ -22,25 +18,10 @@ function DoctorScheduleCardsSkeleton() {
   );
 }
 
-export default async function DoctorScheduleListingPage() {
-  const page = searchParamsCache.get('page') || 1;
-  const search = searchParamsCache.get('search') || searchParamsCache.get('name');
-  const pageLimit = searchParamsCache.get('perPage') || 6;
-
-  const filters = {
-    page,
-    limit: pageLimit,
-    ...(search && { search })
-  };
-
-  const queryClient = getQueryClient();
-  void queryClient.prefetchQuery(doctorScheduleQueryOptions(filters));
-
+export default function DoctorScheduleListingPage() {
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <Suspense fallback={<DoctorScheduleCardsSkeleton />}>
-        <DoctorScheduleView />
-      </Suspense>
-    </HydrationBoundary>
+    <Suspense fallback={<DoctorScheduleCardsSkeleton />}>
+      <DoctorScheduleView />
+    </Suspense>
   );
 }

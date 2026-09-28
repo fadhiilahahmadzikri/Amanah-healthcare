@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/api-client';
+import { clientFetch } from '@/lib/client-fetch';
 import { Appointment, Doctor, QueueItem, AppointmentFormData } from './types';
 import { getAmanahServiceByName } from '../constants/services';
 import { getClinicalPractitionersAction } from '@/features/jadwal-dokter/api/doctor-schedule-actions';
@@ -67,7 +67,7 @@ export async function getDailyQueuesFromApi(params?: {
   const qs = query.toString();
   const endpoint = `/api/v1/appointments/queue/daily${qs ? `?${qs}` : ''}`;
   try {
-    const list = await apiClient<Record<string, unknown>[]>(endpoint);
+    const list = await clientFetch<Record<string, unknown>[]>(endpoint);
     if (!Array.isArray(list)) return [];
     return list.map((item) => {
       const rawStatus = String(item.status || '');
@@ -120,19 +120,19 @@ export async function getDailyQueuesFromApi(params?: {
 }
 
 export async function callPatientQueue(appointmentId: string): Promise<unknown> {
-  return await apiClient(`/api/v1/appointments/${appointmentId}/call`, { method: 'POST' });
+  return await clientFetch(`/api/v1/appointments/${appointmentId}/call`, { method: 'POST' });
 }
 
 export async function respondPatientQueue(appointmentId: string): Promise<unknown> {
-  return await apiClient(`/api/v1/appointments/${appointmentId}/respond`, { method: 'POST' });
+  return await clientFetch(`/api/v1/appointments/${appointmentId}/respond`, { method: 'POST' });
 }
 
 export async function noShowPatientQueue(appointmentId: string): Promise<unknown> {
-  return await apiClient(`/api/v1/appointments/${appointmentId}/no-show`, { method: 'POST' });
+  return await clientFetch(`/api/v1/appointments/${appointmentId}/no-show`, { method: 'POST' });
 }
 
 export async function completePatientQueue(appointmentId: string): Promise<unknown> {
-  return await apiClient(`/api/v1/appointments/${appointmentId}/status`, {
+  return await clientFetch(`/api/v1/appointments/${appointmentId}/status`, {
     method: 'PATCH',
     body: JSON.stringify({ status: 'SELESAI' })
   });

@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/api-client';
+import { clientFetch } from '@/lib/client-fetch';
 
 export interface BackendNotification {
   id: string;
@@ -29,7 +29,7 @@ export interface UnreadCountResponse {
 export const notificationApiService = {
   async getUnreadCount(): Promise<UnreadCountResponse> {
     try {
-      return await apiClient<UnreadCountResponse>('/api/v1/notifications/unread-count');
+      return await clientFetch<UnreadCountResponse>('/api/v1/notifications/unread-count');
     } catch {
       return { unreadCount: 0 };
     }
@@ -47,11 +47,11 @@ export const notificationApiService = {
 
     const qs = query.toString();
     const endpoint = `/api/v1/notifications/me${qs ? `?${qs}` : ''}`;
-    return await apiClient<NotificationListResponse>(endpoint);
+    return await clientFetch<NotificationListResponse>(endpoint);
   },
 
   async markAsRead(id: string): Promise<{ success: boolean; unreadCount: number }> {
-    return await apiClient<{ success: boolean; unreadCount: number }>(
+    return await clientFetch<{ success: boolean; unreadCount: number }>(
       `/api/v1/notifications/${id}/read`,
       { method: 'PATCH' }
     );

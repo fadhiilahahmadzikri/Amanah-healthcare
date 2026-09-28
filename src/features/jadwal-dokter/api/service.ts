@@ -1,4 +1,4 @@
-import { apiClient } from '@/lib/api-client';
+import { clientFetch } from '@/lib/client-fetch';
 import type {
   DoctorSchedule,
   DoctorScheduleFilters,
@@ -39,19 +39,22 @@ export async function getDoctorSchedules(
   const endpoint = `/api/v1/admin/doctor-schedules${qs ? `?${qs}` : ''}`;
 
   try {
-    const res = await apiClient<{
+    const res = await clientFetch<{
+      doctors?: DoctorSchedule[];
       data?: DoctorSchedule[];
+      total_doctors?: number;
       meta?: { total_doctors?: number; total_pages?: number; page?: number; limit?: number };
     }>(endpoint);
 
-    const doctors = res.data ?? [];
+    const doctors = res.doctors ?? res.data ?? [];
+    const total = res.total_doctors ?? res.meta?.total_doctors ?? doctors.length;
     return {
       doctors,
-      total_doctors: res.meta?.total_doctors ?? doctors.length,
+      total_doctors: total,
       meta: {
         page: res.meta?.page ?? filters.page ?? 1,
         limit: res.meta?.limit ?? filters.limit ?? 6,
-        total_doctors: res.meta?.total_doctors ?? doctors.length,
+        total_doctors: total,
         total_pages: res.meta?.total_pages ?? 1
       }
     };
@@ -68,7 +71,7 @@ export async function getDoctorSchedules(
 export async function getDoctorScheduleById(
   id: string,
   params?: DoctorScheduleDetailParams
-): Promise<DoctorSchedule | undefined> {
+): Promise<DoctorSchedule | null> {
   const query = new URLSearchParams();
   if (params?.date) query.set('date', params.date);
   if (params?.month) query.set('month', params.month);
@@ -77,14 +80,14 @@ export async function getDoctorScheduleById(
   const endpoint = `/api/v1/admin/doctor-schedules/${id}${qs ? `?${qs}` : ''}`;
 
   try {
-    const res = await apiClient<{ data?: DoctorSchedule } | DoctorSchedule>(endpoint);
+    const res = await clientFetch<{ data?: DoctorSchedule } | DoctorSchedule>(endpoint);
     if ('data' in res && res.data) {
       return res.data;
     }
-    return res as DoctorSchedule;
+    return (res as DoctorSchedule) ?? null;
   } catch (err) {
     console.error(`Error fetching doctor schedule ${id}:`, err);
-    return undefined;
+    return null;
   }
 }
 
@@ -92,7 +95,7 @@ export async function updateDoctorSchedule(
   id: string,
   payload: Partial<DoctorSchedule>
 ): Promise<DoctorSchedule> {
-  return await apiClient<DoctorSchedule>(`/api/v1/admin/doctor-schedules/${id}`, {
+  return await clientFetch<DoctorSchedule>(`/api/v1/admin/doctor-schedules/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(payload)
   });
@@ -104,10 +107,13 @@ export async function updateDoctorDayStatus(
   status: ScheduleDayStatus,
   reason?: string
 ): Promise<DoctorSchedule> {
-  return await apiClient<DoctorSchedule>(`/api/v1/admin/doctor-schedules/${doctorId}/day-status`, {
-    method: 'PATCH',
-    body: JSON.stringify({ date, status, reason })
-  });
+  return await clientFetch<DoctorSchedule>(
+    `/api/v1/admin/doctor-schedules/${doctorId}/day-status`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ date, status, reason })
+    }
+  );
 }
 
 export { isDoctorOnLeaveOnDay } from '../utils/leave-calculator';
@@ -115,18 +121,19 @@ export { isDoctorOnLeaveOnDay } from '../utils/leave-calculator';
 export async function getDoctorScheduleByName(
   name: string,
   params?: DoctorScheduleDetailParams
-): Promise<DoctorSchedule | undefined> {
+): Promise<DoctorSchedule | null> {
   const all = await getDoctorSchedules({ search: name, limit: 10, ...params });
   return (
     all.doctors.find((d) => (d.nama_dokter || '').toLowerCase().includes(name.toLowerCase())) ||
-    all.doctors[0]
+    all.doctors[0] ||
+    null
   );
 }
 
 export async function getDoctorScheduleFilterOptions(): Promise<
   AdminDoctorScheduleFilterOptionsResponse['data']
 > {
-  const res = await apiClient<
+  const res = await clientFetch<
     | AdminDoctorScheduleFilterOptionsResponse
     | { data: AdminDoctorScheduleFilterOptionsResponse['data'] }
   >('/api/v1/admin/doctor-schedules/filter-options');
@@ -144,8 +151,8 @@ export async function getClinicRooms(params?: {
   if (params?.poliklinikId) qs.set('poliklinikId', params.poliklinikId);
   if (params?.clinicUnitId) qs.set('clinicUnitId', params.clinicUnitId);
   const q = qs.toString();
-  const res = await apiClient<ClinicRoom[] | { data?: ClinicRoom[] }>(
-    `/api/v1/admin/doctor-schedules/rooms${q ? `?${q}` : ''}`
+  const res = await clientFetch<ClinicRoom[] | { data?: ClinicRoom[] }>(
+    `/api/v1/schedules/reference/rooms${q ? `?${q}` : ''}`
   );
   if (res && 'data' in res && Array.isArray(res.data)) {
     return res.data;
@@ -163,7 +170,7 @@ export async function getDoctorOccupancyOverview(
     }
   }
   const q = qs.toString();
-  return await apiClient(`/api/v1/admin/doctor-schedules/occupancy${q ? `?${q}` : ''}`);
+  return await clientFetch(`/api/v1/admin/doctor-schedules/occupancy${q ? `?${q}` : ''}`);
 }
 
 export async function checkRescheduleEligibility(
@@ -182,7 +189,7 @@ export async function checkRescheduleEligibility(
     }
   }
   const q = qs.toString();
-  const res = await apiClient<{ data?: RescheduleEligibilityData } | RescheduleEligibilityData>(
+  const res = await clientFetch<{ data?: RescheduleEligibilityData } | RescheduleEligibilityData>(
     `/api/v1/admin/doctor-schedules/${id}/sessions/${sessionId}/reschedule-eligibility${q ? `?${q}` : ''}`
   );
   if (res && 'data' in res && res.data) {
@@ -200,7 +207,7 @@ export async function getSessionPatients(
   if (filters.status) qs.set('status', filters.status);
   if (filters.search) qs.set('search', filters.search);
   const q = qs.toString();
-  const res = await apiClient<{ data?: AdminSessionPatientsData } | AdminSessionPatientsData>(
+  const res = await clientFetch<{ data?: AdminSessionPatientsData } | AdminSessionPatientsData>(
     `/api/v1/admin/doctor-schedules/${doctorId}/sessions/${sessionId}/patients${q ? `?${q}` : ''}`
   );
   if (res && 'data' in res && res.data) {
@@ -219,7 +226,7 @@ export async function getScheduleProjection(
     }
   }
   const q = qs.toString();
-  const res = await apiClient<ScheduleProjectionResponse | { data?: ScheduleProjectionResponse }>(
+  const res = await clientFetch<ScheduleProjectionResponse | { data?: ScheduleProjectionResponse }>(
     `/api/v1/admin/doctor-schedules/projection${q ? `?${q}` : ''}`
   );
   if (res && 'data' in res && res.data) {
@@ -229,7 +236,7 @@ export async function getScheduleProjection(
 }
 
 export async function getScheduleReferenceOptions(): Promise<unknown> {
-  return await apiClient('/api/v1/admin/doctor-schedules/reference-options');
+  return await clientFetch('/api/v1/admin/doctor-schedules/reference-options');
 }
 
 export async function getScheduleContexts(
@@ -244,7 +251,7 @@ export async function getScheduleContexts(
     }
   }
   const q = qs.toString();
-  const res = await apiClient<ScheduleContextsResponse | { data?: ScheduleContextsResponse }>(
+  const res = await clientFetch<ScheduleContextsResponse | { data?: ScheduleContextsResponse }>(
     `/api/v1/admin/doctor-schedules/contexts${q ? `?${q}` : ''}`
   );
   if (res && 'data' in res && Array.isArray(res.data)) {
@@ -263,7 +270,7 @@ export async function getScheduleFormBootstrap(
     }
   }
   const q = qs.toString();
-  const res = await apiClient<
+  const res = await clientFetch<
     ScheduleFormBootstrapResponse | { data?: ScheduleFormBootstrapResponse }
   >(`/api/v1/admin/doctor-schedules/form-bootstrap${q ? `?${q}` : ''}`);
   if (res && 'data' in res && res.data) {
@@ -279,7 +286,7 @@ export async function getScheduleSlotAvailability(
   for (const [k, v] of Object.entries(params)) {
     if (v !== undefined && v !== null) qs.set(k, String(v));
   }
-  const res = await apiClient<
+  const res = await clientFetch<
     ScheduleSlotAvailabilityResponse | { data?: ScheduleSlotAvailabilityResponse }
   >(`/api/v1/admin/doctor-schedules/slot-availability?${qs.toString()}`);
   if (res && 'data' in res && res.data) {
@@ -292,7 +299,7 @@ export async function createDoctorSession(
   _doctorId: string,
   payload: unknown
 ): Promise<ApiMessageResponse> {
-  return await apiClient<ApiMessageResponse>('/api/v1/admin/doctor-schedules/sessions', {
+  return await clientFetch<ApiMessageResponse>('/api/v1/admin/doctor-schedules/sessions', {
     method: 'POST',
     body: JSON.stringify(payload)
   });
@@ -303,7 +310,7 @@ export async function updateDoctorSession(
   sessionId: string,
   payload: unknown
 ): Promise<ApiMessageResponse> {
-  return await apiClient<ApiMessageResponse>(
+  return await clientFetch<ApiMessageResponse>(
     `/api/v1/admin/doctor-schedules/sessions/${sessionId}`,
     {
       method: 'PUT',
@@ -316,7 +323,7 @@ export async function deleteDoctorSession(
   _doctorId: string,
   sessionId: string
 ): Promise<ApiMessageResponse> {
-  return await apiClient<ApiMessageResponse>(
+  return await clientFetch<ApiMessageResponse>(
     `/api/v1/admin/doctor-schedules/sessions/${sessionId}`,
     {
       method: 'DELETE'
@@ -329,7 +336,7 @@ export async function rescheduleDoctorSession(
   _sessionId: string,
   payload: unknown
 ): Promise<ApiMessageResponse> {
-  return await apiClient<ApiMessageResponse>('/api/v1/admin/doctor-schedules/reschedule', {
+  return await clientFetch<ApiMessageResponse>('/api/v1/admin/doctor-schedules/reschedule', {
     method: 'POST',
     body: JSON.stringify(payload)
   });
@@ -339,7 +346,7 @@ export async function updateDoctorDuration(
   _doctorId: string,
   payload: unknown
 ): Promise<ApiMessageResponse> {
-  return await apiClient<ApiMessageResponse>('/api/v1/admin/doctor-schedules/duration', {
+  return await clientFetch<ApiMessageResponse>('/api/v1/admin/doctor-schedules/duration', {
     method: 'PATCH',
     body: JSON.stringify(payload)
   });
@@ -349,7 +356,7 @@ export async function cancelAppointment(
   appointmentId: string,
   payload?: unknown
 ): Promise<ApiMessageResponse> {
-  return await apiClient<ApiMessageResponse>(`/api/v1/appointments/${appointmentId}/cancel`, {
+  return await clientFetch<ApiMessageResponse>(`/api/v1/appointments/${appointmentId}/cancel`, {
     method: 'PATCH',
     body: JSON.stringify(payload || {})
   });
@@ -359,14 +366,14 @@ export async function updateAppointmentStatus(
   appointmentId: string,
   payload: unknown
 ): Promise<ApiMessageResponse> {
-  return await apiClient<ApiMessageResponse>(`/api/v1/appointments/${appointmentId}/status`, {
+  return await clientFetch<ApiMessageResponse>(`/api/v1/appointments/${appointmentId}/status`, {
     method: 'PATCH',
     body: JSON.stringify(payload)
   });
 }
 
 export async function callPatientAppointment(appointmentId: string): Promise<ApiMessageResponse> {
-  return await apiClient<ApiMessageResponse>(`/api/v1/appointments/${appointmentId}/call`, {
+  return await clientFetch<ApiMessageResponse>(`/api/v1/appointments/${appointmentId}/call`, {
     method: 'POST'
   });
 }
@@ -374,13 +381,13 @@ export async function callPatientAppointment(appointmentId: string): Promise<Api
 export async function completePatientAppointment(
   appointmentId: string
 ): Promise<ApiMessageResponse> {
-  return await apiClient<ApiMessageResponse>(`/api/v1/appointments/${appointmentId}/complete`, {
+  return await clientFetch<ApiMessageResponse>(`/api/v1/appointments/${appointmentId}/complete`, {
     method: 'PATCH'
   });
 }
 
 export async function updateScheduleDaySettings(payload: unknown): Promise<ApiMessageResponse> {
-  return await apiClient<ApiMessageResponse>('/api/v1/admin/doctor-schedules/day-settings', {
+  return await clientFetch<ApiMessageResponse>('/api/v1/admin/doctor-schedules/day-settings', {
     method: 'PATCH',
     body: JSON.stringify(payload)
   });
