@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import type { BackendNotification } from '../api/notification-api-service';
 
 export interface AppointmentCalledPayload {
@@ -38,20 +39,30 @@ export function useNotificationSocket(callbacks?: {
       reconnectionDelay: 2000
     });
 
-    socketRef.current = socket;
-
-    socket.on('notification:new', (notification: BackendNotification) => {
+    const reconcile = () => {
       queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] });
       queryClient.invalidateQueries({ queryKey: ['notifications', 'me'] });
+    };
+
+    socket.on('connect', reconcile);
+    socket.io.on('reconnect', reconcile);
+
+    socket.on('notification:new', (notification: BackendNotification) => {
+      reconcile();
+      if (notification?.title) {
+        toast.info(notification.title, {
+          description: notification.body || undefined
+        });
+      }
       callbacks?.onNewNotification?.(notification);
     });
 
-    socket.on('notification:read', () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] });
-      queryClient.invalidateQueries({ queryKey: ['notifications', 'me'] });
+    socket.on('notification:read', (data?: { id?: string; all?: boolean }) => {
+      reconcile();
     });
 
-    socket.on('notification:unread_count', ({ count }: { count: number }) => {
+    socket.on('notification:unread_count', (data: { count?: number; unreadCount?: number }) => {
+      const count = data.unreadCount ?? data.count ?? 0;
       queryClient.setQueryData(['notifications', 'unread-count'], { unreadCount: count });
     });
 

@@ -2,16 +2,29 @@ import { clientFetch } from '@/lib/client-fetch';
 
 export interface BackendNotification {
   id: string;
-  userId: string;
-  title: string;
+  userId?: string;
+  title?: string | null;
   body: string;
-  category: 'appointment' | 'schedule' | 'presence' | 'system' | string;
-  priority: 'low' | 'normal' | 'high' | 'urgent' | string;
+  category: string;
+  priority?: string;
+  senderName?: string | null;
+  senderRole?: string | null;
+  badgeIcon?: string | null;
+  metaIcon?: string | null;
+  visualKey?: string | null;
+  isUrgent?: boolean;
   metadata?: Record<string, unknown> | null;
-  isRead: boolean;
-  readAt: string | null;
+  isRead?: boolean;
+  readAt?: string | null;
   createdAt: string;
   actionUrl?: string | null;
+  actions?: Array<{
+    id?: string;
+    label: string;
+    actionKey: string;
+    actionType?: string;
+    url?: string;
+  }>;
 }
 
 export interface NotificationListResponse {
@@ -50,9 +63,15 @@ export const notificationApiService = {
     return await clientFetch<NotificationListResponse>(endpoint);
   },
 
-  async markAsRead(id: string): Promise<{ success: boolean; unreadCount: number }> {
-    return await clientFetch<{ success: boolean; unreadCount: number }>(
-      `/api/v1/notifications/${id}/read`,
+  async markAsRead(id: string): Promise<{ success: boolean }> {
+    return await clientFetch<{ success: boolean }>(`/api/v1/notifications/${id}/read`, {
+      method: 'PATCH'
+    });
+  },
+
+  async markAllAsRead(): Promise<{ success: boolean; updatedCount: number }> {
+    return await clientFetch<{ success: boolean; updatedCount: number }>(
+      '/api/v1/notifications/read-all',
       { method: 'PATCH' }
     );
   }

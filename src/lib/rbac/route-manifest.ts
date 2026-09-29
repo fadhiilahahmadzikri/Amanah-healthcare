@@ -116,8 +116,8 @@ export const routeManifest: RouteRule[] = [
     pattern: '/dashboard/notifications',
     match: 'prefix',
     visibility: 'protected',
-    allowedRoles: ['patient'],
-    description: 'Notifikasi Pasien'
+    allowedRoles: ['admin', 'patient'],
+    description: 'Notifikasi Pengguna & Pasien'
   },
   {
     pattern: '/patient-registration',

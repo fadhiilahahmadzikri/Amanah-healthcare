@@ -52,6 +52,13 @@ export const navGroups: NavGroup[] = [
             icon: 'badgeCheck',
             shortcut: ['k', 'p'],
             access: { role: 'admin' }
+          },
+          {
+            title: 'Notifikasi',
+            url: '/dashboard/notifications',
+            icon: 'notification',
+            shortcut: ['n', 'a'],
+            access: { role: 'admin' }
           }
         ]
       },

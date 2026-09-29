@@ -2,6 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import gsap from 'gsap';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { notificationApiService } from '../api/notification-api-service';
+import { mapBackendToClinicNotification } from '../utils/notification-mapper';
 import { useNotificationStore } from '../utils/store';
 import type {
   ClinicNotification,
@@ -57,8 +60,29 @@ interface UseNotificationsPageResult {
 }
 
 export function useNotificationsPage(): UseNotificationsPageResult {
-  const { notifications, markAsRead, markAllAsRead, bulkMarkAsRead, bulkDelete } =
-    useNotificationStore();
+  const queryClient = useQueryClient();
+  const {
+    notifications,
+    setNotifications,
+    markAsRead: storeMarkAsRead,
+    markAllAsRead: storeMarkAllAsRead,
+    bulkMarkAsRead: storeBulkMarkAsRead,
+    bulkDelete
+  } = useNotificationStore();
+
+  const listQuery = useQuery({
+    queryKey: ['notifications', 'me'],
+    queryFn: () => notificationApiService.getMyNotifications({ limit: 100 }),
+    staleTime: 10_000
+  });
+
+  useEffect(() => {
+    if (listQuery.data?.data) {
+      const mapped = listQuery.data.data.map(mapBackendToClinicNotification);
+      setNotifications(mapped);
+    }
+  }, [listQuery.data?.data, setNotifications]);
+
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [categoryFilter, setCategoryFilter] = useState<NotificationCategoryFilter>('ALL');
   const [statusFilter, setStatusFilter] = useState<NotificationStatusFilter>('ALL');
@@ -113,6 +137,26 @@ export function useNotificationsPage(): UseNotificationsPageResult {
     return ids.length;
   };
 
+  const handleMarkAsRead = async (id: string) => {
+    storeMarkAsRead(id);
+    try {
+      await notificationApiService.markAsRead(id);
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] });
+    } catch {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    storeMarkAllAsRead();
+    try {
+      await notificationApiService.markAllAsRead();
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] });
+    } catch {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    }
+  };
+
   return {
     notifications,
     paginatedList,
@@ -130,9 +174,9 @@ export function useNotificationsPage(): UseNotificationsPageResult {
     isStatusOpen,
     bulkBarRef,
     actions: {
-      markAsRead,
-      markAllAsRead,
-      bulkMarkAsRead: () => consumeSelectedIds(bulkMarkAsRead),
+      markAsRead: handleMarkAsRead,
+      markAllAsRead: handleMarkAllAsRead,
+      bulkMarkAsRead: () => consumeSelectedIds(storeBulkMarkAsRead),
       bulkDelete: () => consumeSelectedIds(bulkDelete),
       toggleSelect: (id) => setSelectedIds((prev) => toggleSelection(prev, id)),
       toggleSelectAll: () =>

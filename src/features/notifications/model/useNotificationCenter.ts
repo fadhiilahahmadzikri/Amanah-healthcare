@@ -1,83 +1,92 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { notificationApiService } from '../api/notification-api-service';
+import { mapBackendToClinicNotification } from '../utils/notification-mapper';
 import { useNotificationStore } from '../utils/store';
 import type { ClinicNotification } from '../types';
 
-type NotificationCenterTab = 'all' | 'Janji Temu' | 'Promo' | 'Hasil Lab';
-
-interface NotificationCategoryCount {
-  all: number;
-  janjiTemu: number;
-  promo: number;
-  lab: number;
-}
-
 export interface UseNotificationCenterResult {
   open: boolean;
-  activeTab: NotificationCenterTab;
   notifications: ClinicNotification[];
-  filteredNotifications: ClinicNotification[];
   unreadTotal: number;
-  categoriesCount: NotificationCategoryCount;
+  isLoading: boolean;
   actions: {
     setOpen: (open: boolean) => void;
-    changeTab: (tab: string) => void;
     close: () => void;
-    markAsRead: (id: string) => void;
-    markAllAsRead: () => void;
+    markAsRead: (id: string) => Promise<void>;
+    markAllAsRead: () => Promise<void>;
   };
 }
 
 export function useNotificationCenter(): UseNotificationCenterResult {
   const [open, setOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<NotificationCenterTab>('all');
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationStore();
+  const queryClient = useQueryClient();
+  const {
+    notifications,
+    unreadCount,
+    setNotifications,
+    setUnreadServerCount,
+    markAsRead: markAsReadStore,
+    markAllAsRead: markAllAsReadStore
+  } = useNotificationStore();
 
-  const filteredNotifications = useMemo(
-    () =>
-      notifications.filter((notification) => {
-        if (activeTab === 'all') {
-          return true;
-        }
+  const unreadQuery = useQuery({
+    queryKey: ['notifications', 'unread-count'],
+    queryFn: () => notificationApiService.getUnreadCount(),
+    staleTime: 10_000
+  });
 
-        return notification.category?.toLowerCase() === activeTab.toLowerCase();
-      }),
-    [activeTab, notifications]
-  );
+  const listQuery = useQuery({
+    queryKey: ['notifications', 'me'],
+    queryFn: () => notificationApiService.getMyNotifications({ limit: 50 }),
+    staleTime: 10_000
+  });
 
-  const categoriesCount = useMemo(
-    () => ({
-      all: notifications.length,
-      janjiTemu: notifications.filter((notification) => notification.category === 'Janji Temu')
-        .length,
-      promo: notifications.filter((notification) => notification.category === 'Promo').length,
-      lab: notifications.filter((notification) => notification.category === 'Hasil Lab').length
-    }),
-    [notifications]
-  );
+  useEffect(() => {
+    if (unreadQuery.data?.unreadCount !== undefined) {
+      setUnreadServerCount(unreadQuery.data.unreadCount);
+    }
+  }, [unreadQuery.data?.unreadCount, setUnreadServerCount]);
+
+  useEffect(() => {
+    if (listQuery.data?.data) {
+      const mapped = listQuery.data.data.map(mapBackendToClinicNotification);
+      setNotifications(mapped);
+    }
+  }, [listQuery.data?.data, setNotifications]);
+
+  const handleMarkAsRead = async (id: string) => {
+    markAsReadStore(id);
+    try {
+      await notificationApiService.markAsRead(id);
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] });
+    } catch {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    markAllAsReadStore();
+    try {
+      await notificationApiService.markAllAsRead();
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] });
+    } catch {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    }
+  };
 
   return {
     open,
-    activeTab,
     notifications,
-    filteredNotifications,
     unreadTotal: unreadCount(),
-    categoriesCount,
+    isLoading: listQuery.isLoading,
     actions: {
       setOpen,
-      changeTab: (tab) => setActiveTab(toNotificationCenterTab(tab)),
       close: () => setOpen(false),
-      markAsRead,
-      markAllAsRead
+      markAsRead: handleMarkAsRead,
+      markAllAsRead: handleMarkAllAsRead
     }
   };
-}
-
-function toNotificationCenterTab(tab: string): NotificationCenterTab {
-  if (tab === 'Janji Temu' || tab === 'Promo' || tab === 'Hasil Lab') {
-    return tab;
-  }
-
-  return 'all';
 }

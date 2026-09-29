@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import { Icons } from '@/components/icons';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ClinicNotification } from '../types';
@@ -258,16 +258,19 @@ export function ClinicNotificationCard({
             className='size-4.5 rounded border-2 border-primary/50 bg-background data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground transition-all cursor-pointer shadow-2xs'
           />
 
-          <div className='relative size-10 sm:size-11 rounded-full overflow-hidden shrink-0 ring-1 ring-border/60 bg-muted'>
-            <Image
-              src={notification.avatar}
-              alt={notification.sender}
-              width={88}
-              height={88}
-              unoptimized
-              className='size-full object-cover object-center rounded-full'
-            />
-            {/* Sub-badge corner icon */}
+          <div className='relative shrink-0'>
+            <Avatar className='size-10 sm:size-11 ring-1 ring-border/60 bg-muted'>
+              {notification.avatar ? (
+                <AvatarImage
+                  src={notification.avatar}
+                  alt={notification.sender}
+                  className='object-cover object-center'
+                />
+              ) : null}
+              <AvatarFallback className='bg-primary/10 text-primary font-bold text-xs sm:text-sm'>
+                {notification.sender.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
             <div className='absolute -bottom-0.5 -right-0.5 size-4.5 sm:size-5 rounded-full bg-primary flex items-center justify-center ring-2 ring-card shadow-2xs'>
               {renderBadgeIcon(notification.badgeIcon)}
             </div>

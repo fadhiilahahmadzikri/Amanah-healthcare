@@ -18,6 +18,7 @@ export interface NotificationActionItem {
 
 export interface ClinicNotification {
   id: string;
+  title: string;
   sender: string;
   roleSubtitle: string;
   avatar: string;
