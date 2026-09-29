@@ -1,7 +1,9 @@
 import 'server-only';
 import { cookies } from 'next/headers';
+import type { NextResponse } from 'next/server';
 import { serverEnv } from '@/core/config/env.server';
 import { runtimeConfig } from '@/core/config/runtime.config';
+import { ALL_AUTH_COOKIE_NAMES } from '@/core/auth/auth.constants';
 
 export interface TokenPair {
   accessToken: string;
@@ -9,29 +11,33 @@ export interface TokenPair {
   expiresAt?: number;
 }
 
-export async function setAuthCookies(tokens: TokenPair): Promise<void> {
+export function authCookieOptions(maxAgeSeconds: number) {
   const isProduction = serverEnv.NODE_ENV === 'production';
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'lax' as const,
+    path: '/',
+    maxAge: maxAgeSeconds
+  };
+}
 
+export async function setAuthCookies(tokens: TokenPair): Promise<void> {
   try {
     const cookieStore = await cookies();
-    cookieStore.set(serverEnv.ACCESS_TOKEN_COOKIE_NAME, tokens.accessToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: runtimeConfig.auth.accessTokenCookieMaxAge
-    });
+    cookieStore.set(
+      serverEnv.ACCESS_TOKEN_COOKIE_NAME,
+      tokens.accessToken,
+      authCookieOptions(runtimeConfig.auth.accessTokenCookieMaxAge)
+    );
 
-    cookieStore.set(serverEnv.REFRESH_TOKEN_COOKIE_NAME, tokens.refreshToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: runtimeConfig.auth.refreshTokenCookieMaxAge
-    });
+    cookieStore.set(
+      serverEnv.REFRESH_TOKEN_COOKIE_NAME,
+      tokens.refreshToken,
+      authCookieOptions(runtimeConfig.auth.refreshTokenCookieMaxAge)
+    );
   } catch {
     // In Server Components (RSC), cookies() is read-only.
-    // Mutations are only allowed in Server Actions or Route Handlers.
   }
 }
 
@@ -48,11 +54,17 @@ export async function getRefreshTokenCookie(): Promise<string | null> {
 export async function clearAuthCookies(): Promise<void> {
   try {
     const cookieStore = await cookies();
-    cookieStore.delete(serverEnv.ACCESS_TOKEN_COOKIE_NAME);
-    cookieStore.delete(serverEnv.REFRESH_TOKEN_COOKIE_NAME);
-    cookieStore.delete(serverEnv.SESSION_COOKIE_NAME);
+    for (const name of ALL_AUTH_COOKIE_NAMES) {
+      cookieStore.delete(name);
+    }
   } catch {
     // In Server Components (RSC), cookies() is read-only.
-    // Mutations are only allowed in Server Actions or Route Handlers.
+  }
+}
+
+export function clearAuthCookiesOnResponse(responseCookies: NextResponse['cookies']): void {
+  for (const name of ALL_AUTH_COOKIE_NAMES) {
+    responseCookies.set(name, '', authCookieOptions(0));
+    responseCookies.delete(name);
   }
 }

@@ -33,22 +33,24 @@ export const PatientLineInput = React.forwardRef<HTMLInputElement, PatientLineIn
       className,
       placeholder,
       disabled,
+      onFocus,
+      onBlur,
       ...rest
     },
     ref
   ) => {
+    const [isFocused, setIsFocused] = React.useState(false);
     const isInvalid = Boolean(invalid || error);
+    const hasValue = Boolean(value && String(value).trim().length > 0);
+    const isFloating = isFocused || hasValue;
 
     return (
-      <div className={cn('space-y-1.5', containerClassName)}>
-        <label htmlFor={id} className='block text-xs font-normal text-muted-foreground'>
-          {label}*
-        </label>
+      <div className={cn('relative pt-3', containerClassName)}>
         <div
           data-slot='line-input-group'
           data-invalid={isInvalid}
           className={cn(
-            'relative flex items-center justify-between border-b-[1.5px] border-border pb-1 transition-colors duration-200 focus-within:border-primary',
+            'relative flex items-center justify-between border-b-[1.5px] border-border pb-1.5 transition-colors duration-200 focus-within:border-primary',
             isInvalid && '!border-destructive',
             disabled && 'opacity-60 pointer-events-none'
           )}
@@ -58,16 +60,40 @@ export const PatientLineInput = React.forwardRef<HTMLInputElement, PatientLineIn
             id={id}
             value={value}
             disabled={disabled}
+            onFocus={(e) => {
+              setIsFocused(true);
+              onFocus?.(e);
+            }}
+            onBlur={(e) => {
+              setIsFocused(false);
+              onBlur?.(e);
+            }}
             onChange={(e) => onChange(e.target.value)}
-            placeholder={placeholder}
+            placeholder={isFloating ? placeholder : ''}
             aria-invalid={isInvalid}
             className={cn(
-              'w-full border-0 bg-transparent px-0 py-1.5 text-sm font-medium text-primary outline-none placeholder:font-normal placeholder:text-muted-foreground/60',
+              'w-full border-0 bg-transparent px-0 py-1 text-sm font-medium text-foreground outline-none placeholder:font-normal placeholder:text-muted-foreground/50',
               isMonospace && 'font-mono tracking-wide',
               className
             )}
             {...rest}
           />
+
+          {/* Google Material Floating Label */}
+          <label
+            htmlFor={id}
+            className={cn(
+              'absolute left-0 pointer-events-none origin-left select-none transition-all duration-200 ease-out',
+              isFloating
+                ? '-top-3 text-[11px] font-semibold text-primary'
+                : 'top-1 text-sm font-normal text-muted-foreground/70',
+              isFloating && !isFocused && 'text-muted-foreground',
+              isInvalid && '!text-destructive'
+            )}
+          >
+            {label}
+          </label>
+
           {trailingIcon ? (
             <div className='flex shrink-0 items-center justify-center pl-2'>{trailingIcon}</div>
           ) : null}

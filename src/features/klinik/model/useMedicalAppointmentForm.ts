@@ -88,7 +88,6 @@ export interface CatalogActionState {
 }
 
 export const scheduleStepDescriptors: StepDescriptor[] = [
-  { type: 'doctor' },
   { type: 'date' },
   { type: 'time' },
   { type: 'review' }
@@ -785,7 +784,7 @@ function checkCurrentStepValid(
   }
 
   if (descriptor.type === 'doctor') {
-    return Boolean(schedule.doctor);
+    return true;
   }
 
   if (descriptor.type === 'date') {
@@ -796,7 +795,7 @@ function checkCurrentStepValid(
     return Boolean(schedule.timeSlot);
   }
 
-  return Boolean(schedule.doctor && schedule.dateStr && schedule.timeSlot);
+  return Boolean(schedule.dateStr && schedule.timeSlot);
 }
 
 function buildComplaintText(complaintFieldId: string, values: MedicalAppointmentValues): string {

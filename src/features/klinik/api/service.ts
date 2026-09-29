@@ -113,7 +113,75 @@ export async function getDailyQueuesFromApi(params?: {
         call_count: Number(item.callCount ?? item.call_count ?? 0)
       };
     });
-  } catch (err) {
+  } catch (err: unknown) {
+    const errorObj = err as { status?: number; statusCode?: number; message?: string };
+    const isForbidden =
+      errorObj?.status === 403 ||
+      errorObj?.statusCode === 403 ||
+      String(errorObj?.message || '').toLowerCase().includes('forbidden');
+
+    if (isForbidden) {
+      // Patient role: fallback to public queue display monitor
+      try {
+        const displayQuery = new URLSearchParams();
+        if (params?.date) displayQuery.set('date', params.date);
+        if (params?.poliklinikId) displayQuery.set('poliklinikId', params.poliklinikId);
+        const qsDisplay = displayQuery.toString();
+        const displayEndpoint = `/api/v1/appointments/queue/display${qsDisplay ? `?${qsDisplay}` : ''}`;
+        const display = await clientFetch<{
+          currentTicket?: {
+            queueNumber?: string;
+            patientName?: string;
+            roomName?: string;
+            doctorName?: string;
+            calledAt?: string;
+          } | null;
+          nextTickets?: Array<{
+            queueNumber?: string;
+            patientName?: string;
+            poliklinikName?: string;
+          }>;
+        }>(displayEndpoint);
+
+        const items: QueueItem[] = [];
+        if (display?.currentTicket) {
+          items.push({
+            id: 'display-current',
+            queue_number: display.currentTicket.queueNumber || '-',
+            patient_name: display.currentTicket.patientName || 'Pasien',
+            doctor_name: display.currentTicket.doctorName || '-',
+            poli: display.currentTicket.roomName || 'Poli',
+            estimated_time: 'Sedang Berlangsung',
+            status: 'DIPANGGIL',
+            called_time: display.currentTicket.calledAt
+              ? new Date(display.currentTicket.calledAt).toLocaleTimeString('id-ID', {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })
+              : undefined,
+            room: display.currentTicket.roomName || 'Ruang Periksa'
+          });
+        }
+        if (Array.isArray(display?.nextTickets)) {
+          display.nextTickets.forEach((t, idx) => {
+            items.push({
+              id: `display-next-${idx}`,
+              queue_number: t.queueNumber || '-',
+              patient_name: t.patientName || 'Pasien',
+              doctor_name: '-',
+              poli: t.poliklinikName || 'Poli',
+              estimated_time: 'Menunggu',
+              status: 'MENUNGGU',
+              room: t.poliklinikName || 'Ruang Periksa'
+            });
+          });
+        }
+        return items;
+      } catch {
+        return [];
+      }
+    }
+
     console.error('Failed to fetch daily queues from backend:', err);
     return [];
   }

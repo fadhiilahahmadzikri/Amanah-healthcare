@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUnifiedSession } from '@/lib/guard';
 import { fetchAdminDoctorSchedules } from '@/features/jadwal-dokter/api/doctor-schedule-service';
+import { withApiObservability } from '@/core/observability/adapters/http/route-observability.adapter';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+export const GET = withApiObservability(async function GET(request: NextRequest) {
   // 1. RBAC Guard: Require Admin
   const session = await getUnifiedSession();
   if (!session?.user) {
@@ -50,4 +51,4 @@ export async function GET(request: NextRequest) {
     const message = err instanceof Error ? err.message : 'Internal Server Error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
-}
+});

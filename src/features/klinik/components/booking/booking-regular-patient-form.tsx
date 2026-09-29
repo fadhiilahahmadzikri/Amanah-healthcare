@@ -1,0 +1,476 @@
+'use client';
+
+import * as React from 'react';
+import { Icons } from '@/components/icons';
+import { cn } from '@/lib/utils';
+import type { PatientAffiliationProfile } from '@/features/data-pasien/api/patient-affiliation-service';
+import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
+import { PatientBirthdatePicker } from '@/features/data-pasien/components/registration/molecules/patient-birthdate-picker';
+import { PatientGenderSelector } from '@/features/data-pasien/components/registration/molecules/patient-gender-selector';
+import { PatientRegionDropdown } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
+import { PatientSearchableSelect } from '@/features/data-pasien/components/registration/molecules/patient-searchable-select';
+import { useBookingRegularPatientForm } from '../../model/useBookingRegularPatientForm';
+
+export interface BookingRegularPatientFormProps {
+  onSuccess: (newPatient: PatientAffiliationProfile) => void;
+  onCancel: () => void;
+}
+
+export function BookingRegularPatientForm({
+  onSuccess,
+  onCancel
+}: BookingRegularPatientFormProps) {
+  const {
+    currentStep,
+    isReviewStep,
+    currentStepMeta,
+    stepContainerRef,
+    isSubmitting,
+    errorMessage,
+    isCurrentStepValid,
+
+    fullName,
+    setFullName,
+    nik,
+    setNik,
+    motherName,
+    setMotherName,
+    placeOfBirth,
+    setPlaceOfBirth,
+    dateOfBirth,
+    setDateOfBirth,
+    gender,
+    setGender,
+    bloodType,
+    setBloodType,
+    knowsBloodType,
+    handleSelectTahu,
+    handleSelectBelumTahu,
+    region,
+    setRegion,
+    relationship,
+    handleSelectRelationship,
+    occupationCode,
+    setOccupationCode,
+
+    references,
+
+    handleBack,
+    handleNext,
+    handleJumpToStep,
+    isEditingFromReview
+  } = useBookingRegularPatientForm({ onSuccess, onCancel });
+
+  const activeRelationshipLabel = React.useMemo(() => {
+    const found = references.relationships.find((r) => r.value === relationship);
+    return found ? found.label : relationship;
+  }, [references.relationships, relationship]);
+
+  const activeOccupationName = React.useMemo(() => {
+    const found = references.occupations.find((o) => o.code === occupationCode);
+    return found ? found.name : '';
+  }, [references.occupations, occupationCode]);
+
+  const reviewItems = React.useMemo(
+    () => [
+      {
+        step: 1,
+        label: 'Hubungan dengan akun',
+        value: activeRelationshipLabel,
+        valueClass: 'font-bold text-primary'
+      },
+      {
+        step: 2,
+        label: 'Nama lengkap',
+        value: fullName || '-',
+        valueClass: 'font-bold text-foreground'
+      },
+      {
+        step: 3,
+        label: 'NIK',
+        value: nik || '-',
+        valueClass: 'font-mono font-bold text-primary'
+      },
+      {
+        step: 4,
+        label: 'Nama ibu kandung',
+        value: motherName || '-',
+        valueClass: 'font-semibold text-foreground'
+      },
+      {
+        step: 5,
+        label: 'Tempat, tanggal lahir',
+        value:
+          placeOfBirth || dateOfBirth ? `${placeOfBirth || '-'}, ${dateOfBirth || '-'}` : '-',
+        valueClass: 'font-semibold text-foreground'
+      },
+      {
+        step: 6,
+        label: 'Jenis kelamin / golongan darah',
+        value: `${gender || '-'} / ${bloodType || '-'}`,
+        valueClass: 'font-semibold text-foreground'
+      },
+      {
+        step: 9,
+        label: 'Pekerjaan',
+        value: activeOccupationName || '-',
+        valueClass: 'font-semibold text-foreground'
+      },
+      {
+        step: 8,
+        label: 'Alamat',
+        value: region.alamatDetail || '-',
+        valueClass: 'font-semibold text-foreground truncate max-w-[170px] sm:max-w-[210px]'
+      }
+    ],
+    [
+      activeRelationshipLabel,
+      fullName,
+      nik,
+      motherName,
+      placeOfBirth,
+      dateOfBirth,
+      gender,
+      bloodType,
+      activeOccupationName,
+      region.alamatDetail
+    ]
+  );
+
+  return (
+    <div className='flex flex-col space-y-2.5 font-sans select-none'>
+      {/* Step Title & Instruction with compact gutter */}
+      <div className='space-y-0.5'>
+        <h3 className='text-sm sm:text-base font-bold tracking-tight text-foreground'>
+          {currentStepMeta.title}
+        </h3>
+        <p className='text-[11px] sm:text-xs text-muted-foreground leading-normal'>
+          {currentStepMeta.description}
+        </p>
+      </div>
+
+      {errorMessage && (
+        <div className='p-2.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs'>
+          {errorMessage}
+        </div>
+      )}
+
+      {/* Step Body Animated Container - HUG content height, no fixed min-height */}
+      <div ref={stepContainerRef} className='py-1 flex flex-col justify-start'>
+        {/* STEP 1: PILIH HUBUNGAN AFILIASI PASIEN (UNTUK SIAPA JANJI TEMU) */}
+        {currentStep === 1 && (
+          <div className='space-y-1.5'>
+            <div className='grid grid-cols-2 sm:grid-cols-3 gap-2'>
+              {references.relationships.map((opt) => {
+                const isSelected = relationship === opt.value;
+                const icon =
+                  opt.value === 'self'
+                    ? '👤'
+                    : opt.value === 'child'
+                    ? '👶'
+                    : opt.value === 'spouse'
+                    ? '💍'
+                    : opt.value === 'parent'
+                    ? '🧓'
+                    : opt.value === 'sibling'
+                    ? '👥'
+                    : '🤝';
+
+                return (
+                  <button
+                    key={opt.value}
+                    type='button'
+                    onClick={() => handleSelectRelationship(opt.value as typeof relationship)}
+                    className={cn(
+                      'p-2.5 rounded-xl border text-left text-xs transition-all cursor-pointer select-none flex flex-col justify-between gap-2',
+                      isSelected
+                        ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs ring-1 ring-primary/40'
+                        : 'border-border/80 bg-card text-foreground hover:border-primary/40 hover:bg-muted/15'
+                    )}
+                  >
+                    <div className='flex items-center justify-between w-full'>
+                      <span className='text-lg'>{icon}</span>
+                      {isSelected && (
+                        <div className='size-3.5 rounded-full bg-primary text-primary-foreground flex items-center justify-center'>
+                          <Icons.check className='size-2 stroke-[3]' />
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <div className='font-bold text-xs'>{opt.label}</div>
+                      {opt.description && (
+                        <div className='text-[10px] text-muted-foreground mt-0.5 line-clamp-1 leading-tight font-normal'>
+                          {opt.description}
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* STEP 2: NAMA LENGKAP */}
+        {currentStep === 2 && (
+          <PatientLineInput
+            id='patient-name'
+            label='Nama lengkap'
+            placeholder='contoh: Siti Aminah / Ahmad Dahlan'
+            value={fullName}
+            onChange={(val) => setFullName(val)}
+            autoComplete='name'
+          />
+        )}
+
+        {/* STEP 3: NIK (16 DIGIT) */}
+        {currentStep === 3 && (
+          <PatientLineInput
+            id='patient-nik'
+            label='NIK KTP (16 digit angka)'
+            placeholder='3271012345670001'
+            value={nik}
+            onChange={(val) => {
+              const numericOnly = val.replace(/\D/g, '').slice(0, 16);
+              setNik(numericOnly);
+            }}
+            maxLength={16}
+            inputMode='numeric'
+            isMonospace
+            autoComplete='off'
+          />
+        )}
+
+        {/* STEP 4: NAMA IBU KANDUNG */}
+        {currentStep === 4 && (
+          <PatientLineInput
+            id='patient-mother-name'
+            label='Nama ibu kandung'
+            placeholder='contoh: Maryam / Nurjanah'
+            value={motherName}
+            onChange={(val) => setMotherName(val)}
+            autoComplete='off'
+          />
+        )}
+
+        {/* STEP 5: TEMPAT & TANGGAL LAHIR */}
+        {currentStep === 5 && (
+          <div className='space-y-3'>
+            <PatientLineInput
+              id='patient-pob'
+              label='Tempat lahir (sesuai KTP)'
+              placeholder='contoh: Sleman / Yogyakarta'
+              value={placeOfBirth}
+              onChange={(val) => setPlaceOfBirth(val)}
+              autoComplete='off'
+            />
+            <PatientBirthdatePicker
+              value={dateOfBirth}
+              label='Tanggal lahir (sesuai KTP)*'
+              placeholder='Pilih tanggal lahir sesuai KTP / KK...'
+              onChange={(iso) => setDateOfBirth(iso)}
+            />
+          </div>
+        )}
+
+        {/* STEP 6: JENIS KELAMIN (SINGLE CANONICAL) */}
+        {currentStep === 6 && (
+          <div className='space-y-2'>
+            <PatientGenderSelector
+              value={gender}
+              options={references.genders}
+              onChange={(val) => setGender(val === 'Perempuan' || val === 'P' ? 'Perempuan' : 'Laki-laki')}
+            />
+          </div>
+        )}
+
+        {/* STEP 7: GOLONGAN DARAH (SWAPPED CONTEXT) */}
+        {currentStep === 7 && (
+          <div className='space-y-2.5'>
+            {/* Context A: Pertanyaan Tahu vs Belum Tahu (Single Line Height, No Wrap) */}
+            {knowsBloodType !== true && (
+              <div className='flex items-center gap-2 w-full'>
+                <button
+                  type='button'
+                  onClick={handleSelectTahu}
+                  className='flex-1 py-3 px-3.5 rounded-2xl border text-center transition-all cursor-pointer select-none flex items-center justify-center gap-2 border-border/80 bg-card text-foreground hover:border-primary/50 hover:bg-muted/15'
+                >
+                  <span className='text-base shrink-0 leading-none'>🩸</span>
+                  <span className='text-xs font-semibold whitespace-nowrap leading-none'>
+                    Tahu golongan darah
+                  </span>
+                </button>
+
+                <button
+                  type='button'
+                  onClick={handleSelectBelumTahu}
+                  className='flex-1 py-3 px-3.5 rounded-2xl border text-center transition-all cursor-pointer select-none flex items-center justify-center gap-2 border-border/80 bg-card text-foreground hover:border-primary/50 hover:bg-muted/15'
+                >
+                  <span className='text-base shrink-0 leading-none'>❓</span>
+                  <span className='text-xs font-semibold whitespace-nowrap leading-none'>
+                    Belum tahu
+                  </span>
+                </button>
+              </div>
+            )}
+
+            {/* Context B: Pilihan Golongan Darah (A, B, AB, O) yang Menggantikan Tombol Sebelumnya */}
+            {knowsBloodType === true && (
+              <div className='space-y-3 pt-0.5'>
+                <div className='grid grid-cols-4 gap-2'>
+                  {(['A', 'B', 'AB', 'O'] as const).map((type) => {
+                    const isSelected = bloodType === type;
+                    return (
+                      <button
+                        key={type}
+                        type='button'
+                        onClick={() => setBloodType(type)}
+                        className={cn(
+                          'py-3 px-3 rounded-xl border text-center text-sm font-bold transition-all cursor-pointer select-none leading-none',
+                          isSelected
+                            ? 'border-primary bg-primary text-primary-foreground shadow-xs'
+                            : 'border-border/80 bg-card text-foreground hover:border-primary/50 hover:bg-muted/20'
+                        )}
+                      >
+                        {type}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className='flex justify-center pt-0.5'>
+                  <button
+                    type='button'
+                    onClick={handleSelectBelumTahu}
+                    className='text-[11px] text-muted-foreground hover:text-foreground transition underline underline-offset-2 cursor-pointer'
+                  >
+                    Ternyata belum tahu golongan darah?
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* STEP 8: WILAYAH & ALAMAT DOMISILI */}
+        {currentStep === 8 && (
+          <PatientRegionDropdown
+            values={region}
+            onChange={(updates) => setRegion((prev) => ({ ...prev, ...updates }))}
+          />
+        )}
+
+        {/* STEP 9: PEKERJAAN PASIEN */}
+        {currentStep === 9 && (
+          <div className='space-y-1.5'>
+            <PatientSearchableSelect
+              id='patient-occupation'
+              label='Pekerjaan pasien'
+              value={activeOccupationName}
+              placeholder='Pilih pekerjaan pasien...'
+              options={references.occupations.map((occ) => ({
+                id: occ.code,
+                name: occ.name,
+                description: occ.description
+              }))}
+              isLoading={references.isLoading}
+              onSelect={(item) => setOccupationCode(item.id)}
+              searchPlaceholder='Cari pekerjaan...'
+              required
+            />
+          </div>
+        )}
+
+        {/* STEP 10: RINGKASAN & KONFIRMASI */}
+        {currentStep === 10 && (
+          <div className='space-y-0.5 text-xs border border-border/80 rounded-2xl p-2 bg-muted/20'>
+            {reviewItems.map((item, idx) => (
+              <div
+                key={item.label}
+                role='button'
+                tabIndex={0}
+                onClick={() => handleJumpToStep(item.step)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleJumpToStep(item.step);
+                  }
+                }}
+                className={cn(
+                  'group/item relative flex items-center justify-between py-2 px-2.5 rounded-xl transition-colors cursor-pointer select-none border border-transparent',
+                  'hover:bg-card hover:border-border/60 hover:shadow-xs active:scale-[0.995]',
+                  idx < reviewItems.length - 1 && 'border-b-border/40'
+                )}
+              >
+                {/* Sisi Kiri: Label record */}
+                <span className='text-muted-foreground text-[11px] sm:text-xs shrink-0 group-hover/item:text-foreground transition-colors'>
+                  {item.label}
+                </span>
+
+                {/* Sisi Kanan: Nilai record dengan aksi 'Edit data ini' yang muncul halus via opacity tanpa layout shift */}
+                <div className='flex items-center gap-2 shrink-0 ml-auto pl-2'>
+                  <div className='flex items-center gap-1 text-[11px] font-semibold text-primary shrink-0 opacity-0 sm:group-hover/item:opacity-100 transition-opacity duration-150 pointer-events-none'>
+                    <Icons.arrowRight className='size-3 stroke-[2.5]' />
+                    <span className='text-[10.5px] whitespace-nowrap'>Edit data ini</span>
+                  </div>
+
+                  <span className={cn('text-xs truncate text-right max-w-[170px] sm:max-w-[210px]', item.valueClass)}>
+                    {item.value}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Footer Navigation Buttons */}
+      <div className='flex items-center justify-between pt-2'>
+        <button
+          type='button'
+          onClick={handleBack}
+          className='flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition cursor-pointer select-none'
+        >
+          <Icons.arrowLeft className='size-3.5' />
+          <span>{isEditingFromReview ? 'Ke ringkasan' : currentStep === 1 ? 'Batal' : 'Kembali'}</span>
+        </button>
+
+        <button
+          type='button'
+          disabled={!isCurrentStepValid || isSubmitting}
+          onClick={handleNext}
+          className={cn(
+            'flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold transition cursor-pointer select-none',
+            isCurrentStepValid && !isSubmitting
+              ? 'bg-primary text-primary-foreground shadow-xs hover:opacity-95'
+              : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60'
+          )}
+        >
+          {isSubmitting ? (
+            <>
+              <Icons.spinner className='size-3.5 animate-spin' />
+              <span>Menyimpan...</span>
+            </>
+          ) : isReviewStep ? (
+            <>
+              <span>Simpan profil pasien</span>
+              <Icons.check className='size-3.5' />
+            </>
+          ) : isEditingFromReview ? (
+            <>
+              <span>Simpan & kembali</span>
+              <Icons.check className='size-3.5' />
+            </>
+          ) : (
+            <>
+              <span>Lanjut</span>
+              <Icons.arrowRight className='size-3.5' />
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default BookingRegularPatientForm;

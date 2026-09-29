@@ -31,7 +31,7 @@ export function BookingPatientSelectionStep({
       <div className='flex items-center justify-between'>
         <div>
           <h4 className='text-sm sm:text-base font-bold text-foreground'>
-            Pilih Pasien yang Berobat
+            Pilih pasien yang berobat
           </h4>
           <p className='text-xs text-muted-foreground'>
             Gunakan data profil yang sudah ada atau daftarkan profil baru
@@ -45,7 +45,7 @@ export function BookingPatientSelectionStep({
           onClick={onAddNewPatient}
           className='text-xs font-semibold'
         >
-          <Icons.add className='mr-1.5 size-3.5' />+ Pasien Baru
+          <Icons.add className='mr-1.5 size-3.5' />+ Pasien baru
         </Button>
       </div>
 
@@ -78,7 +78,7 @@ export function BookingPatientSelectionStep({
                 <Badge
                   variant='secondary'
                   className={cn(
-                    'text-[10px] font-semibold px-2 py-0.5 rounded-md uppercase tracking-wider shrink-0',
+                    'text-[10px] font-semibold px-2 py-0.5 rounded-md shrink-0',
                     patient.relationship === 'self'
                       ? 'bg-primary/10 text-primary border-primary/20'
                       : 'bg-muted text-muted-foreground'
@@ -116,7 +116,7 @@ export function BookingPatientSelectionStep({
           <div className='size-8 rounded-full bg-primary/10 text-primary flex items-center justify-center'>
             <Icons.add className='size-4' />
           </div>
-          <span className='text-xs font-bold text-foreground'>Daftarkan Pasien Baru</span>
+          <span className='text-xs font-bold text-foreground'>Daftarkan pasien baru</span>
           <span className='text-[11px] text-muted-foreground'>
             Formulir identitas pre-service on-demand
           </span>

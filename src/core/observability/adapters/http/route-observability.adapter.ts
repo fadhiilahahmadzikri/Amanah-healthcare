@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { IHttpObservabilityAdapter } from '../../ports/http-observability.port';
 import { defaultHttpObservability } from './next-http-observability.adapter';
 import { extractAuthContext } from '../../extractors/auth-context.extractor';
+import { apiFileLogger } from '../../services/api-file-logger.service';
 
 type RouteContext<TParams = Record<string, string | string[]>> = {
   params?: Promise<TParams> | TParams;
@@ -76,17 +77,66 @@ export function withApiObservability<TParams = Record<string, string | string[]>
         responseBody = '[EVENT_STREAM_ACTIVE]';
       }
 
-      // 6. Record response
+      // 6. Record response in adapter
       adapter.onResponse(obsContext, {
         status: response.status,
         headers: response.headers,
         body: responseBody
       });
 
+      // 7. Record transaction into versioned file log
+      apiFileLogger.logTransaction({
+        id: obsContext.requestId,
+        requestId: obsContext.requestId,
+        correlationId: obsContext.correlationId,
+        timestamp: new Date(obsContext.startTime).toISOString(),
+        durationMs: Math.max(0, Date.now() - obsContext.startTime),
+        request: {
+          method: obsContext.method,
+          url: req.url,
+          path: obsContext.path,
+          query: Object.keys(obsContext.query).length > 0 ? (obsContext.query as Record<string, string>) : undefined,
+          headers: obsContext.headers,
+          body: obsContext.requestBody
+        },
+        response: {
+          statusCode: response.status,
+          headers: Object.fromEntries(response.headers.entries()),
+          body: responseBody
+        },
+        client: obsContext.client,
+        ip: obsContext.ip
+      });
+
       return response;
     } catch (error: unknown) {
-      // 7. Record exception and rethrow without swallowing
+      // 8. Record exception and rethrow without swallowing
       adapter.onError(obsContext, error, 500);
+
+      apiFileLogger.logTransaction({
+        id: obsContext.requestId,
+        requestId: obsContext.requestId,
+        correlationId: obsContext.correlationId,
+        timestamp: new Date(obsContext.startTime).toISOString(),
+        durationMs: Math.max(0, Date.now() - obsContext.startTime),
+        request: {
+          method: obsContext.method,
+          url: req.url,
+          path: obsContext.path,
+          query: Object.keys(obsContext.query).length > 0 ? (obsContext.query as Record<string, string>) : undefined,
+          headers: obsContext.headers,
+          body: obsContext.requestBody
+        },
+        error: {
+          name: error instanceof Error ? error.name : 'UnhandledRouteError',
+          message: error instanceof Error ? error.message : String(error),
+          statusCode: 500,
+          stack: error instanceof Error ? error.stack : undefined
+        },
+        client: obsContext.client,
+        ip: obsContext.ip
+      });
+
       throw error;
     }
   };

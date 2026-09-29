@@ -1,210 +1,291 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
-import { ModalWrapper } from '@/components/ui/modal-wrapper';
+import type { AnyFieldApi } from '@tanstack/form-core';
+import * as React from 'react';
+
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
-  patientAffiliationService,
-  type PatientAffiliationProfile
-} from '@/features/data-pasien/api/patient-affiliation-service';
-import { BookingPatientSelectionStep } from './booking/booking-patient-selection-step';
-import { BookingOnDemandPatientForm } from './booking/booking-on-demand-patient-form';
-import { BookingScheduleSlotStep } from './booking/booking-schedule-slot-step';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
+import { ModalWrapper } from '@/components/ui/modal-wrapper';
+import { cn } from '@/lib/utils';
 
-export interface MedicalAppointmentModalProps {
+import type { AppointmentFormData, MedicalAppointmentFlow } from '../api/types';
+import { historyGroups, useMedicalAppointmentForm } from '../model/useMedicalAppointmentForm';
+import {
+  DateStep,
+  MedicalSectionStep,
+  ReviewStep,
+  TimeStep
+} from './booking/medical-appointment-steps';
+import { getFieldValidators, MedicalSchemaField } from './booking/medical-schema-field';
+import { MedicalHistoryCatalog } from './medical-history-catalog';
+import { QueueSuccessModal } from './queue-success-modal';
+
+interface MedicalAppointmentModalProps {
+  flow: MedicalAppointmentFlow;
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: () => void;
-  initialService?: string;
-  initialDoctor?: string;
-  flow?: string;
+  onCreated: (appointment: AppointmentFormData) => void;
   onBackToService?: () => void;
-  onCreated?: (medicalFormData: unknown) => void;
 }
-
-type ModalBookingStep = 'select_patient' | 'new_patient_form' | 'select_schedule' | 'success';
 
 export function MedicalAppointmentModal({
+  flow,
   isOpen,
   onClose,
-  onSuccess
+  onCreated,
+  onBackToService
 }: MedicalAppointmentModalProps) {
-  const [step, setStep] = useState<ModalBookingStep>('select_patient');
-  const [affiliations, setAffiliations] = useState<PatientAffiliationProfile[]>([]);
-  const [isLoadingAffiliations, setIsLoadingAffiliations] = useState(true);
-  const [selectedPatient, setSelectedPatient] = useState<PatientAffiliationProfile | null>(null);
-  const [bookingSuccessResult, setBookingSuccessResult] = useState<{
-    queueNumber?: string;
-    appointmentDate?: string;
-    patientName?: string;
-    session?: string;
-  } | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const medical = useMedicalAppointmentForm({
+    flow,
+    isOpen,
+    onClose,
+    onCreated,
+    onBackToService
+  });
 
-  const fetchAffiliations = useCallback(() => {
-    setIsLoadingAffiliations(true);
-    patientAffiliationService.getMyAffiliations().then((data) => {
-      setAffiliations(data);
-      if (data.length > 0) {
-        setSelectedPatient((prev) => prev || data[0]);
-      }
-      setIsLoadingAffiliations(false);
+  const stepContainerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!stepContainerRef.current) {
+      return;
+    }
+
+    const scrollableElements = stepContainerRef.current.querySelectorAll<HTMLElement>(
+      '[data-radix-scroll-area-viewport], .overflow-y-auto'
+    );
+    scrollableElements.forEach((element) => {
+      element.scrollTop = 0;
     });
-  }, []);
+    stepContainerRef.current.scrollTop = 0;
+  }, [medical.currentStep]);
 
-  useEffect(() => {
-    if (isOpen) {
-      setStep('select_patient');
-      setBookingSuccessResult(null);
-      fetchAffiliations();
-    }
-  }, [isOpen, fetchAffiliations]);
+  if (!isOpen) {
+    return null;
+  }
 
-  const handlePatientSelected = (patient: PatientAffiliationProfile) => {
-    setSelectedPatient(patient);
-    setStep('select_schedule');
-  };
+  const {
+    definition,
+    form,
+    values,
+    visibleMedicalSections,
+    repeatableMedicalSections,
+    currentStep,
+    currentDescriptor,
+    schedule,
+    isProcessing,
+    isQueueSuccessOpen,
+    createdAppointment,
+    createdQueueItem,
+    historyCounts,
+    historyPrompt,
+    catalogAction,
+    isCurrentStepValid,
+    actions
+  } = medical;
 
-  const handleNewPatientSuccess = (newPatient: PatientAffiliationProfile) => {
-    setSelectedPatient(newPatient);
-    fetchAffiliations();
-    setStep('select_schedule');
-  };
-
-  const handleSubmitBooking = async (bookingData: {
-    poliklinikId: string;
-    layananId: string;
-    appointmentDate: string;
-    session: string;
-    visitType: string;
-    complaint: string;
-  }) => {
-    if (!selectedPatient) return;
-
-    try {
-      setIsSubmitting(true);
-      const res = await patientAffiliationService.createAppointment({
-        patientId: selectedPatient.id,
-        poliklinikId: bookingData.poliklinikId,
-        layananId: bookingData.layananId,
-        appointmentDate: bookingData.appointmentDate,
-        session: bookingData.session,
-        visitType: bookingData.visitType,
-        complaint: bookingData.complaint
-      });
-
-      const bookingResult = (res && typeof res === 'object' ? res : {}) as {
-        queueNumber?: string;
-        no_antrian?: string;
-      };
-
-      setBookingSuccessResult({
-        queueNumber: bookingResult.queueNumber || bookingResult.no_antrian || '-',
-        appointmentDate: bookingData.appointmentDate,
-        patientName: selectedPatient.fullName,
-        session: bookingData.session
-      });
-      setStep('success');
-      onSuccess?.();
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const currentSection =
+    currentDescriptor?.type === 'medical'
+      ? visibleMedicalSections[currentDescriptor.sectionIndex]
+      : undefined;
+  const isQuestionnaireStep = currentSection?.layout === 'questionnaire';
+  const isHistoryCatalogStep = currentDescriptor?.type === 'history-catalog';
 
   return (
-    <ModalWrapper
-      isOpen={isOpen}
-      onClose={onClose}
-      maxWidth='max-w-[620px]'
-      showCloseButton={step !== 'success'}
-    >
-      <div className='p-2 sm:p-3 font-sans'>
-        {step === 'select_patient' && (
-          <div>
-            {isLoadingAffiliations ? (
-              <div className='p-12 text-center'>
-                <div className='size-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3' />
-                <p className='text-xs text-muted-foreground'>Memuat data profil pasien...</p>
-              </div>
-            ) : affiliations.length === 0 ? (
-              <BookingOnDemandPatientForm onSuccess={handleNewPatientSuccess} onCancel={onClose} />
-            ) : (
-              <BookingPatientSelectionStep
-                affiliations={affiliations}
-                selectedPatientId={selectedPatient?.id ?? null}
-                onSelectPatient={handlePatientSelected}
-                onAddNewPatient={() => setStep('new_patient_form')}
-              />
-            )}
-          </div>
+    <>
+      <ModalWrapper
+        isOpen={isOpen && !isQueueSuccessOpen}
+        onClose={onClose}
+        maxWidth={isQuestionnaireStep || isHistoryCatalogStep ? 'max-w-[820px]' : 'max-w-[680px]'}
+        showCloseButton={false}
+        backdropClassName='overflow-hidden'
+        className={cn(
+          'flex h-[96dvh] max-h-[96dvh] flex-col p-5 transition-all duration-300 sm:h-[660px] sm:max-h-[88vh] sm:p-6',
+          (isQuestionnaireStep || isHistoryCatalogStep) && 'sm:max-w-[820px]'
         )}
+      >
+        <form.AppForm>
+          <form.Form className='flex h-full min-h-0 flex-1 flex-col gap-0 p-0 md:p-0'>
+            <div className='flex h-full min-h-0 flex-1 flex-col justify-between gap-4'>
+              <div ref={stepContainerRef} className='flex h-full min-h-0 flex-1 flex-col'>
+                {currentDescriptor.type === 'medical' ? (
+                  <MedicalSectionStep
+                    section={visibleMedicalSections[currentDescriptor.sectionIndex]}
+                    catalogActionType={catalogAction?.type ?? null}
+                    onReturnToCatalog={actions.cancelCatalogAction}
+                    values={values}
+                    onFieldChange={(fieldId, nextValue) => {
+                      form.setFieldValue(fieldId, nextValue);
+                    }}
+                    renderField={(field) => (
+                      <form.AppField
+                        key={field.id}
+                        name={field.id}
+                        validators={getFieldValidators(field)}
+                      >
+                        {(fieldApi: AnyFieldApi) => (
+                          <MedicalSchemaField fieldApi={fieldApi} schemaField={field} />
+                        )}
+                      </form.AppField>
+                    )}
+                  />
+                ) : null}
 
-        {step === 'new_patient_form' && (
-          <BookingOnDemandPatientForm
-            onSuccess={handleNewPatientSuccess}
-            onCancel={() => setStep('select_patient')}
-          />
-        )}
+                {currentDescriptor.type === 'history-catalog' ? (
+                  <MedicalHistoryCatalog
+                    groupKey={currentDescriptor.historyKey}
+                    recordsCount={historyCounts[currentDescriptor.historyKey]}
+                    maxRecords={historyGroups[currentDescriptor.historyKey].maxRecords}
+                    values={values}
+                    onEditRecord={(recordNumber) =>
+                      actions.editHistoryFromCatalog(currentDescriptor.historyKey, recordNumber)
+                    }
+                    onRemoveRecord={(recordNumber) =>
+                      actions.removeHistoryRecord(currentDescriptor.historyKey, recordNumber)
+                    }
+                    onAddRecord={() => actions.addHistoryFromCatalog(currentDescriptor.historyKey)}
+                    className='h-full min-h-0 flex-1 overflow-y-auto pr-1 pb-2'
+                  />
+                ) : null}
 
-        {step === 'select_schedule' && selectedPatient && (
-          <BookingScheduleSlotStep
-            onBack={() => setStep('select_patient')}
-            onSubmitBooking={handleSubmitBooking}
-            isSubmitting={isSubmitting}
-          />
-        )}
+                {currentDescriptor.type === 'date' ? (
+                  <DateStep
+                    selectedDateStr={schedule.dateStr}
+                    onSelectDate={(dateStr) =>
+                      actions.setSchedule((previous) => ({
+                        ...previous,
+                        dateStr,
+                        timeSlot: ''
+                      }))
+                    }
+                  />
+                ) : null}
 
-        {step === 'success' && bookingSuccessResult && (
-          <div className='py-6 text-center space-y-4'>
-            <div className='size-16 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto ring-4 ring-primary/5'>
-              <Icons.check className='size-8 stroke-[2.5]' />
-            </div>
+                {currentDescriptor.type === 'time' ? (
+                  <TimeStep
+                    selectedDateStr={schedule.dateStr}
+                    selectedTimeSlot={schedule.timeSlot}
+                    onSelectTimeSlot={(timeSlot) =>
+                      actions.setSchedule((previous) => ({ ...previous, timeSlot }))
+                    }
+                  />
+                ) : null}
 
-            <div>
-              <h3 className='text-lg font-bold text-foreground'>Janji Temu Berhasil Dibuat!</h3>
-              <p className='text-xs text-muted-foreground mt-1'>
-                Nomor antrean dan reservasi Anda telah tercatat di sistem klinik
-              </p>
-            </div>
-
-            <div className='p-4 rounded-2xl bg-muted/30 border border-border/60 max-w-sm mx-auto space-y-2 text-left'>
-              <div className='flex justify-between items-center text-xs'>
-                <span className='text-muted-foreground'>Pasien</span>
-                <span className='font-bold text-foreground'>
-                  {bookingSuccessResult.patientName}
-                </span>
+                {currentDescriptor.type === 'review' ? (
+                  <ReviewStep
+                    definitionTitle={definition.formTitle}
+                    flow={flow}
+                    answeredFields={actions.collectAnsweredFields(repeatableMedicalSections)}
+                    schedule={schedule}
+                    serviceName={definition.serviceName}
+                    values={values}
+                  />
+                ) : null}
               </div>
-              <div className='flex justify-between items-center text-xs'>
-                <span className='text-muted-foreground'>Nomor Antrean</span>
-                <span className='font-bold text-primary font-mono text-sm'>
-                  {bookingSuccessResult.queueNumber}
-                </span>
-              </div>
-              <div className='flex justify-between items-center text-xs'>
-                <span className='text-muted-foreground'>Tanggal & Sesi</span>
-                <span className='font-semibold text-foreground'>
-                  {bookingSuccessResult.appointmentDate} ({bookingSuccessResult.session})
-                </span>
-              </div>
-            </div>
 
-            <div className='pt-2'>
-              <Button
-                type='button'
-                variant='default'
-                shape='pill'
-                onClick={onClose}
-                className='font-bold px-8'
-              >
-                Selesai
-              </Button>
+              <div className='flex shrink-0 items-center justify-between pt-2'>
+                <Button type='button' variant='ghost' shape='pill' onClick={actions.prevStep}>
+                  {currentStep === 1 && !onBackToService ? 'Batal' : 'Kembali'}
+                </Button>
+                <div className='flex items-center gap-2.5'>
+                  {currentDescriptor.type === 'history-catalog' &&
+                  historyCounts[currentDescriptor.historyKey] <
+                    historyGroups[currentDescriptor.historyKey].maxRecords ? (
+                    <Button
+                      type='button'
+                      variant='outline'
+                      shape='pill'
+                      onClick={() => actions.addHistoryFromCatalog(currentDescriptor.historyKey)}
+                      className='border-dashed text-xs font-medium hover:border-primary hover:bg-primary/5 sm:text-sm'
+                    >
+                      <Icons.add className='mr-1 size-3.5 shrink-0' />
+                      <span className='hidden sm:inline'>
+                        {currentDescriptor.historyKey === 'pregnancy'
+                          ? 'Tambah Riwayat Kehamilan Baru'
+                          : 'Tambah Riwayat KB Baru'}
+                      </span>
+                      <span className='sm:hidden'>
+                        {currentDescriptor.historyKey === 'pregnancy'
+                          ? 'Tambah Kehamilan'
+                          : 'Tambah KB'}
+                      </span>
+                    </Button>
+                  ) : null}
+                  <Button
+                    type='button'
+                    variant='primary'
+                    shape='pill'
+                    hug
+                    disabled={!isCurrentStepValid}
+                    onClick={actions.nextStep}
+                    withTrailingCircleIcon
+                    trailingIcon={
+                      currentDescriptor.type === 'review' ? <Icons.check /> : <Icons.arrowUpRight />
+                    }
+                  >
+                    {currentDescriptor.type === 'review' ? 'Simpan Janji Temu' : 'Lanjutkan'}
+                  </Button>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
-    </ModalWrapper>
+          </form.Form>
+        </form.AppForm>
+      </ModalWrapper>
+
+      <Dialog
+        open={Boolean(historyPrompt)}
+        onOpenChange={(open) => {
+          if (!open) {
+            actions.promptNo();
+          }
+        }}
+      >
+        <DialogContent className='sm:max-w-md'>
+          <DialogHeader>
+            <DialogTitle>Tambah Riwayat Lain?</DialogTitle>
+            <DialogDescription>
+              {historyPrompt?.groupKey === 'pregnancy'
+                ? 'Apakah ada lagi riwayat kehamilan atau persalinan sebelumnya yang ingin Anda tambahkan?'
+                : 'Apakah ada lagi riwayat penggunaan KB/kontrasepsi yang ingin Anda tambahkan?'}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className='flex flex-col-reverse gap-2 pt-3 sm:flex-row sm:justify-end'>
+            <Button
+              type='button'
+              variant='outline'
+              shape='pill'
+              onClick={actions.promptNo}
+              className='text-xs'
+            >
+              Tidak, Buka Katalog
+            </Button>
+            <Button
+              type='button'
+              variant='primary'
+              shape='pill'
+              onClick={actions.promptYes}
+              className='text-xs'
+            >
+              Ya, Tambah Riwayat
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <QueueSuccessModal
+        isOpen={isQueueSuccessOpen}
+        isProcessing={isProcessing}
+        appointment={createdAppointment}
+        queueItem={createdQueueItem}
+        onClose={actions.closeQueueSuccess}
+      />
+    </>
   );
 }
-
-export default MedicalAppointmentModal;

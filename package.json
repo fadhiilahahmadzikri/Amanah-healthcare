@@ -18,6 +18,7 @@
     "format:check": "oxfmt --check .",
     "test": "bun test --preload ./tests/setup.ts",
     "test:unit": "bun test --preload ./tests/setup.ts tests/unit",
+    "log:interface": "bun scripts/tools/log-interface.ts",
     "prepare": "husky"
   },
   "dependencies": {

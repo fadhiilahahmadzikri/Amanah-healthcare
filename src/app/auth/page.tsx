@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { ROUTES } from '@/core/routes';
 
 export const metadata: Metadata = {
   robots: {
@@ -9,5 +10,5 @@ export const metadata: Metadata = {
 };
 
 export default function AuthPage() {
-  redirect('/auth/sign-in');
+  redirect(ROUTES.signIn);
 }

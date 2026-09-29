@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test';
 import { NextRequest, NextResponse } from 'next/server';
+import { ssotLogger } from '@/core/observability/adapters/pino/pino-logger.adapter';
+import { withApiObservability } from '@/core/observability/adapters/http/route-observability.adapter';
 import {
-  ssotLogger,
-  withApiObservability,
   redactSensitiveValue,
   redactHeaders,
   sanitizePayload,

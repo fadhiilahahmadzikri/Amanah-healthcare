@@ -18,6 +18,7 @@ import { healthcareNavigationItems } from './data';
 import { getHealthcareHref } from './healthcareNavigation';
 import { SectionContainer } from './SectionContainer';
 import { ThemeToggle } from './ThemeToggle';
+import { ROUTES } from '@/core/routes';
 import { ViewportLine } from './ViewportLine';
 
 type HealthcareHeaderProps = {
@@ -57,7 +58,7 @@ const curtainPanelClass = `
 
 const activeNavigationLinkClass = 'bg-primary text-primary-foreground';
 
-const healthcareSignInHref = '/auth/sign-in';
+const healthcareSignInHref = ROUTES.signIn;
 
 function getNavigationActiveValue(item: { hash?: string; path: string }) {
   return item.hash ?? item.path;

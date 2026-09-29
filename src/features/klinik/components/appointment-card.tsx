@@ -50,25 +50,54 @@ export function AppointmentCard({
 }: AppointmentCardProps) {
   const docInfo = doctor || {
     name: appointment.doctor_name || '',
-    spec: appointment.service || '',
+    spec: appointment.doctor_specialty || '',
     avatar: '',
     location: '',
     tags: [],
     schedule: ''
   };
 
-  const displayLocation = docInfo.location || '-';
+  const displayLocation =
+    appointment.poliklinik_name && appointment.room_name
+      ? `${appointment.poliklinik_name}, ${appointment.room_name}`
+      : appointment.poliklinik_name || appointment.room_name || '-';
+
+  const doctorSpecialty = appointment.doctor_specialty || '-';
 
   // Time & duration parsing
   const timeStr = appointment.time || '';
   const timeRangeMatch = timeStr.match(/(\d{1,2}[:.]\d{2})\s*-\s*(\d{1,2}[:.]\d{2})/);
   const sessionMatch = timeStr.match(/Sesi\s+[A-Za-z]+/i);
 
-  const startTime = timeRangeMatch ? timeRangeMatch[1].replace(':', '.') : '-';
-  const endTime = timeRangeMatch ? timeRangeMatch[2].replace(':', '.') : '-';
+  const formatTimeSlot = (time?: string) => {
+    if (!time) return null;
+    const match = time.match(/(\d{1,2})[:.](\d{2})/);
+    return match ? `${match[1].padStart(2, '0')}.${match[2]}` : null;
+  };
+
+  const startTime =
+    formatTimeSlot(appointment.scheduled_start_time) ||
+    (timeRangeMatch ? timeRangeMatch[1].replace(':', '.') : '-');
+  const endTime =
+    formatTimeSlot(appointment.scheduled_end_time) ||
+    (timeRangeMatch ? timeRangeMatch[2].replace(':', '.') : '-');
 
   let durationText = sessionMatch ? sessionMatch[0] : '-';
-  if (!sessionMatch && timeRangeMatch) {
+  if (startTime !== '-' && endTime !== '-') {
+    const startParts = startTime.split('.').map(Number);
+    const endParts = endTime.split('.').map(Number);
+    if (
+      !isNaN(startParts[0]) &&
+      !isNaN(startParts[1]) &&
+      !isNaN(endParts[0]) &&
+      !isNaN(endParts[1])
+    ) {
+      const diffMins = endParts[0] * 60 + endParts[1] - (startParts[0] * 60 + startParts[1]);
+      if (diffMins > 0) {
+        durationText = `${diffMins} minutes`;
+      }
+    }
+  } else if (!sessionMatch && timeRangeMatch) {
     const startParts = timeRangeMatch[1].replace('.', ':').split(':').map(Number);
     const endParts = timeRangeMatch[2].replace('.', ':').split(':').map(Number);
     if (
@@ -122,16 +151,9 @@ export function AppointmentCard({
             >
               {appointment.doctor_name || '-'}
             </h3>
-            <p className='text-[12.5px] font-medium text-muted-foreground truncate'>
-              {appointment.service || docInfo.spec || '-'}
+            <p className='text-[12.5px] font-medium text-muted-foreground truncate' title={doctorSpecialty}>
+              {doctorSpecialty}
             </p>
-            {appointment.queue_number && appointment.queue_number !== '-' ? (
-              <div className='pt-0.5'>
-                <span className='inline-flex items-center px-1.5 py-0.2 rounded font-mono font-bold text-[10px] bg-primary/10 text-primary border border-primary/20'>
-                  Antrean: {appointment.queue_number}
-                </span>
-              </div>
-            ) : null}
           </div>
         </div>
 
@@ -173,7 +195,7 @@ export function AppointmentCard({
 
         <div className='flex items-center gap-1.5 min-w-0 py-1.5 text-muted-foreground font-medium'>
           <Icons.mapPin className='size-3.5 text-primary shrink-0' strokeWidth={1.8} />
-          <span className='truncate'>{displayLocation}</span>
+          <span className='truncate' title={displayLocation}>{displayLocation}</span>
         </div>
       </div>
 
@@ -208,31 +230,43 @@ export function AppointmentCard({
         </div>
       </div>
 
-      {/* 4. Actions (Reschedule + Detail) */}
-      <div className='relative z-2 flex items-center justify-end gap-2 pt-2 border-t border-border/40'>
-        <Button
-          type='button'
-          variant='outline'
-          shape='pill'
-          size='card-action'
-          onClick={() => onReschedule(appointment)}
-          leadingIcon={<RescheduleIcon className='size-3.5' stroke='currentColor' />}
-          className='font-semibold shadow-2xs'
-        >
-          Reschedule
-        </Button>
+      {/* 4. Footer Section: Prominent Queue Number on Bottom-Left + Action Buttons on Bottom-Right */}
+      <div className='relative z-2 flex items-center justify-between gap-3 pt-2.5 border-t border-border/40'>
+        {/* Focal Point: Nomor antrean besar di pojok kiri bawah (tanpa paksaan huruf besar semua) */}
+        <div className='flex flex-col items-start min-w-0'>
+          <span className='text-[10px] sm:text-[11px] font-medium text-muted-foreground leading-tight'>
+            Nomor antrean
+          </span>
+          <span className='text-2xl sm:text-3xl font-extrabold font-mono tracking-tight text-primary leading-none mt-0.5'>
+            {appointment.queue_number || '-'}
+          </span>
+        </div>
 
-        <Button
-          type='button'
-          variant='default'
-          shape='pill'
-          size='card-action'
-          withTrailingCircleIcon
-          onClick={() => onViewDetails(appointment)}
-          className='font-bold shadow-2xs'
-        >
-          Detail
-        </Button>
+        <div className='flex items-center gap-2 shrink-0'>
+          <Button
+            type='button'
+            variant='outline'
+            shape='pill'
+            size='card-action'
+            onClick={() => onReschedule(appointment)}
+            leadingIcon={<RescheduleIcon className='size-3.5' stroke='currentColor' />}
+            className='font-semibold shadow-2xs'
+          >
+            Reschedule
+          </Button>
+
+          <Button
+            type='button'
+            variant='default'
+            shape='pill'
+            size='card-action'
+            withTrailingCircleIcon
+            onClick={() => onViewDetails(appointment)}
+            className='font-bold shadow-2xs'
+          >
+            Detail
+          </Button>
+        </div>
       </div>
     </div>
   );

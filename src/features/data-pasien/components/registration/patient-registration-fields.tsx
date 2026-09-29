@@ -171,7 +171,7 @@ export function PatientRegistrationStepFields({ controller }: PatientRegistratio
             <PatientGenderSelector
               value={field.state.value}
               onChange={(val) => {
-                field.handleChange(val);
+                field.handleChange(val as PatientRegistrationFormValues['gender']);
                 field.handleBlur();
               }}
               error={error}
@@ -193,8 +193,8 @@ export function PatientRegistrationStepFields({ controller }: PatientRegistratio
           return (
             <PatientBloodTypeSelector
               value={field.state.value}
-              onChange={(val: BloodTypeValue) => {
-                field.handleChange(val);
+              onChange={(val) => {
+                field.handleChange(val as PatientRegistrationFormValues['blood_type']);
                 field.handleBlur();
               }}
               error={error}

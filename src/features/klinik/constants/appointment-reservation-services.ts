@@ -215,6 +215,16 @@ export const APPOINTMENT_RESERVATION_SERVICES: AppointmentReservationService[] =
       src: '/healthcare/assets/images/asset_konsul_kb.webp',
       alt: 'Konsultasi kesehatan reproduksi'
     }
+  },
+  {
+    id: 'midwifery-khitan',
+    categoryId: 'midwifery',
+    title: 'Layanan Khitanan (Sirkumsisi)',
+    doctorServiceName: 'Poli KIA',
+    image: {
+      src: '/healthcare/assets/images/ChatGPT_Image_Aug_14__2026__08_21_37_PM_1_eb18f970.webp',
+      alt: 'Layanan Khitanan (Sirkumsisi)'
+    }
   }
 ];
 
@@ -236,4 +246,78 @@ export function getReservationDoctorServiceName(service: AppointmentReservationS
 
 export function getReservationMedicalFlow(service: AppointmentReservationService) {
   return service.medicalFlow;
+}
+
+export function getServiceImage(title?: string): { src: string; alt: string } {
+  if (!title) {
+    return {
+      src: '/healthcare/assets/images/layanan-umum-pemeriksaan.webp',
+      alt: 'Layanan Poliklinik'
+    };
+  }
+
+  const s = title.toLowerCase();
+  if (s.includes('khitan') || s.includes('sirkumsisi') || s.includes('sunat')) {
+    return {
+      src: '/healthcare/assets/images/ChatGPT_Image_Aug_14__2026__08_21_37_PM_1_eb18f970.webp',
+      alt: title
+    };
+  }
+  if (s.includes('usg')) {
+    return { src: '/healthcare/assets/images/asset-index-6.webp', alt: title };
+  }
+  if (s.includes('imunisasi')) {
+    return { src: '/healthcare/assets/images/asset_imunisasi.webp', alt: title };
+  }
+  if (s.includes('persalinan') || s.includes('melahirkan')) {
+    return { src: '/healthcare/assets/images/asset_persalinan.webp', alt: title };
+  }
+  if (s.includes('toilet') || s.includes('intim')) {
+    return { src: '/healthcare/assets/images/asset_konsul_kb.webp', alt: title };
+  }
+  if (s.includes('kehamilan') || s.includes('hamil') || s.includes('anc')) {
+    return { src: '/healthcare/assets/images/layanan-umum-kehamilan.webp', alt: title };
+  }
+  if (s.includes('nifas')) {
+    return { src: '/healthcare/assets/images/asset-perawatannifas.webp', alt: title };
+  }
+  if (s.includes('kb') || s.includes('keluarga berencana')) {
+    return { src: '/healthcare/assets/images/asset_kb.webp', alt: title };
+  }
+  if (s.includes('tumbuh kembang')) {
+    return { src: '/healthcare/assets/images/asset_tumbuhkembanganak.webp', alt: title };
+  }
+  if (s.includes('tekanan darah') || s.includes('tensi')) {
+    return { src: '/healthcare/assets/images/layanan-umum-tekanan-darah.webp', alt: title };
+  }
+  if (s.includes('laboratorium') || s.includes('lab') || s.includes('darah')) {
+    return { src: '/healthcare/assets/images/layanan-umum-laboratorium.webp', alt: title };
+  }
+  if (s.includes('nebulizer') || s.includes('uap')) {
+    return { src: '/healthcare/assets/images/dokumentasi/nebulizer.webp', alt: title };
+  }
+  if (s.includes('ecg') || s.includes('ekg') || s.includes('jantung')) {
+    return { src: '/healthcare/assets/images/layanan-umum-pemantauan.webp', alt: title };
+  }
+  if (s.includes('surat') || s.includes('keterangan')) {
+    return { src: '/healthcare/assets/images/layanan-umum-keterangan.webp', alt: title };
+  }
+  if (s.includes('konsultasi')) {
+    return { src: '/healthcare/assets/images/layanan-umum-konsultasi.webp', alt: title };
+  }
+  if (s.includes('keluhan')) {
+    return { src: '/healthcare/assets/images/layanan-umum-keluhan.webp', alt: title };
+  }
+
+  const found = APPOINTMENT_RESERVATION_SERVICES.find(
+    (item) => item.title.toLowerCase() === s || s.includes(item.title.toLowerCase())
+  );
+  if (found) {
+    return found.image;
+  }
+
+  return {
+    src: '/healthcare/assets/images/layanan-umum-pemeriksaan.webp',
+    alt: title
+  };
 }

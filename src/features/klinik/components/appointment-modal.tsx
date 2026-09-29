@@ -1,32 +1,25 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React from 'react';
+import { Icons } from '@/components/icons';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
-import { StepperProgress } from './stepper-progress';
-import { BookingServiceCatalogStep } from './booking/booking-service-catalog-step';
-import { BookingPatientSelectionStep } from './booking/booking-patient-selection-step';
-import { BookingOnDemandPatientForm } from './booking/booking-on-demand-patient-form';
-import { BookingScheduleSlotStep } from './booking/booking-schedule-slot-step';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { QueueSuccessModal } from './queue-success-modal';
 import { MedicalAppointmentModal } from './medical-appointment-modal';
-import {
-  patientAffiliationService,
-  type PatientAffiliationProfile,
-  type BackendAppointmentItem
-} from '@/features/data-pasien/api/patient-affiliation-service';
-import type { ServiceCatalogItem } from '../api/catalog.service';
-import type { Appointment, AppointmentFormData } from '../api/types';
-import { toast } from 'sonner';
+import { BookingCategoryStep } from './booking/booking-category-step';
+import { BookingServiceStep } from './booking/booking-service-step';
+import { BookingPatientSelectionStep } from './booking/booking-patient-selection-step';
+import { BookingRegularPatientForm } from './booking/booking-regular-patient-form';
+import { BookingDateStep } from './booking/booking-date-step';
+import { BookingSessionStep } from './booking/booking-session-step';
+import { BookingVisitTypeStep } from './booking/booking-visit-type-step';
+import { BookingComplaintStep } from './booking/booking-complaint-step';
+import { BookingConfirmationStep } from './booking/booking-confirmation-step';
+import { useAppointmentModal, type UseAppointmentModalProps } from '../model/useAppointmentModal';
+import type { AppointmentFormData } from '../api/types';
 
-export type BookingWizardStep = 'service' | 'patient_select' | 'patient_new' | 'schedule';
-
-export interface AppointmentModalProps {
-  isOpen: boolean;
-  mode: 'create' | 'edit';
-  initialAppointment?: Appointment | null;
-  onClose: () => void;
-  onSubmit: (formData: AppointmentFormData, appointmentId?: string) => void;
-}
+export type AppointmentModalProps = UseAppointmentModalProps;
 
 export function AppointmentModal({
   isOpen,
@@ -35,233 +28,368 @@ export function AppointmentModal({
   onClose,
   onSubmit
 }: AppointmentModalProps) {
-  // Wizard state
-  const [step, setStep] = useState<BookingWizardStep>('service');
-  const [selectedService, setSelectedService] = useState<ServiceCatalogItem | null>(null);
-  const [selectedComplaint, setSelectedComplaint] = useState('');
-  const [customComplaint, setCustomComplaint] = useState('');
-  const [visitType, setVisitType] = useState<'Pemeriksaan Baru' | 'Kontrol Ulang'>(
-    'Pemeriksaan Baru'
-  );
-
-  // Patient profiles state
-  const [patients, setPatients] = useState<PatientAffiliationProfile[]>([]);
-  const [selectedPatientId, setSelectedPatientId] = useState<string>('');
-  const [isLoadingPatients, setIsLoadingPatients] = useState(false);
-
-  // Specialized flow
-  const [activeMedicalFlow, setActiveMedicalFlow] = useState<'pregnancy' | 'immunization' | null>(
-    null
-  );
-
-  // Booking result & Queue modal
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isQueueSuccessOpen, setIsQueueSuccessOpen] = useState(false);
-  const [createdAppointment, setCreatedAppointment] = useState<Appointment | null>(null);
-
-  // Load patients
-  const loadPatients = useCallback(async () => {
-    try {
-      setIsLoadingPatients(true);
-      const data = await patientAffiliationService.getMyAffiliations();
-      setPatients(data);
-      if (data.length > 0 && !selectedPatientId) {
-        setSelectedPatientId(data[0].id);
-      }
-    } catch (err) {
-      console.error('Failed to load patient affiliations:', err);
-    } finally {
-      setIsLoadingPatients(false);
-    }
-  }, [selectedPatientId]);
-
-  useEffect(() => {
-    if (isOpen) {
-      setStep(mode === 'edit' ? 'schedule' : 'service');
-      loadPatients();
-    } else {
-      setSelectedService(null);
-      setSelectedComplaint('');
-      setCustomComplaint('');
-      setActiveMedicalFlow(null);
-      setIsQueueSuccessOpen(false);
-      setCreatedAppointment(null);
-    }
-  }, [isOpen, mode, loadPatients]);
+  const {
+    step,
+    setStep,
+    selectedCategoryId,
+    setSelectedCategoryId,
+    isLoadingCatalog,
+    selectedService,
+    activeCategoryList,
+    serviceBentoItems,
+    dateStr,
+    setDateStr,
+    timeSlot,
+    setTimeSlot,
+    setSelectedSessionId,
+    visitType,
+    setVisitType,
+    complaint,
+    setComplaint,
+    isVisitTypeOpen,
+    setIsVisitTypeOpen,
+    visitTypeOptions,
+    patients,
+    selectedPatientId,
+    setSelectedPatientId,
+    selectedPatient,
+    activeMedicalFlow,
+    setActiveMedicalFlow,
+    isSubmitting,
+    isQueueSuccessOpen,
+    setIsQueueSuccessOpen,
+    createdAppointment,
+    visitTypeDropdownRef,
+    stepContainerRef,
+    handleSelectServiceItem,
+    handlePatientCreated,
+    handleFinalSubmit
+  } = useAppointmentModal({
+    isOpen,
+    mode,
+    initialAppointment,
+    onClose,
+    onSubmit
+  });
 
   if (!isOpen) return null;
 
-  // Step calculations for progress bar
-  const stepNumber =
-    step === 'service' ? 1 : step === 'patient_select' || step === 'patient_new' ? 2 : 3;
-
-  // 1. Service Selection Proceed Handler
-  const handleServiceContinue = () => {
-    if (!selectedService) return;
-
-    // Specialized flows (Persalinan & Imunisasi are deferred clinical intake)
-    if (
-      selectedService.medicalFlow === 'pregnancy' ||
-      selectedService.medicalFlow === 'immunization'
-    ) {
-      setActiveMedicalFlow(selectedService.medicalFlow);
-      return;
-    }
-
-    // Regular services proceed to on-demand patient profile selection
-    if (patients.length === 0) {
-      setStep('patient_new');
-    } else {
-      setStep('patient_select');
-    }
-  };
-
-  // 2. Patient Form Success
-  const handlePatientCreated = (newPatient: PatientAffiliationProfile) => {
-    setPatients((prev) => [newPatient, ...prev]);
-    setSelectedPatientId(newPatient.id);
-    setStep('schedule');
-    toast.success('Data pasien berhasil didaftarkan');
-  };
-
-  // 3. Final Booking Submission to Backend
-  const handleFinalBooking = async (bookingData: {
-    poliklinikId: string;
-    layananId: string;
-    appointmentDate: string;
-    session: string;
-    visitType: string;
-    complaint: string;
-  }) => {
-    if (!selectedPatientId) {
-      toast.error('Silakan tentukan data pasien terlebih dahulu');
-      setStep('patient_select');
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      const res: BackendAppointmentItem = await patientAffiliationService.createAppointment({
-        patientId: selectedPatientId,
-        poliklinikId: bookingData.poliklinikId,
-        layananId: bookingData.layananId,
-        appointmentDate: bookingData.appointmentDate,
-        session: bookingData.session,
-        visitType: bookingData.visitType,
-        complaint: bookingData.complaint
-      });
-
-      const selectedPatient = patients.find((p) => p.id === selectedPatientId);
-
-      // Convert backend appointment into UI representation
-      const uiApt: Appointment = {
-        id: res.id,
-        booking_code: res.id.slice(0, 8).toUpperCase(),
-        patient_name: res.patientName || selectedPatient?.fullName || 'Pasien',
-        patient_email: '',
-        patient_avatar: '',
-        doctor_name: res.doctorName || 'Dokter Jaga',
-        date: res.appointmentDate,
-        time: res.session,
-        complaint: res.complaint || bookingData.complaint,
-        status: 'Sudah Buat Janji',
-        service: res.layananName || selectedService?.name || 'Poliklinik',
-        created_at: res.createdAt || new Date().toISOString(),
-        queue_number: res.queueNumber || 'P-001'
-      };
-
-      setCreatedAppointment(uiApt);
-      setIsQueueSuccessOpen(true);
-
-      // Notify parent to refetch dashboard
-      onSubmit({
-        service: uiApt.service || '',
-        complaint: uiApt.complaint,
-        visitType: bookingData.visitType as any,
-        doctor: uiApt.doctor_name,
-        dateStr: uiApt.date,
-        timeSlot: uiApt.time
-      });
-
-      toast.success('Janji temu berhasil dibuat beserta tiket antrean resmi');
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Gagal membuat janji temu';
-      toast.error(msg);
-      throw err;
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const isCompactStep =
+    step === 'date' ||
+    step === 'session' ||
+    step === 'visit_type' ||
+    step === 'complaint' ||
+    step === 'patient_new' ||
+    step === 'confirmation';
 
   return (
     <>
       <ModalWrapper
         isOpen={isOpen && !activeMedicalFlow && !isQueueSuccessOpen}
         onClose={onClose}
-        maxWidth={step === 'service' ? 'max-w-3xl' : 'max-w-2xl'}
+        maxWidth={
+          step === 'category' || step === 'service'
+            ? 'max-w-3xl'
+            : isCompactStep
+            ? 'max-w-[500px]'
+            : 'max-w-xl'
+        }
         backdropClassName='overflow-hidden'
-        className='flex flex-col max-h-[92vh] max-h-[92dvh] w-full p-4 sm:p-6 overflow-hidden'
+        className={cn(
+          'flex flex-col',
+          isCompactStep
+            ? 'h-auto max-h-none overflow-visible rounded-2xl border border-border bg-card p-5 sm:p-6 w-full max-w-[500px] my-auto shadow-2xl'
+            : 'max-h-[92vh] max-h-[92dvh] w-full p-5 sm:p-6 overflow-hidden'
+        )}
       >
-        <div className='flex flex-col flex-auto min-h-0 justify-between gap-3 font-sans select-none'>
-          {/* Header & Stepper */}
-          <div className='flex flex-col shrink-0 gap-2 border-b border-border/50 pb-3'>
-            <div className='flex items-center justify-between'>
-              <h2 className='text-base sm:text-lg font-bold text-foreground'>
-                {mode === 'create' ? 'Buat Janji Temu Pelayanan Klinik' : 'Ubah Jadwal Janji Temu'}
-              </h2>
-            </div>
-            {mode === 'create' && <StepperProgress currentStep={stepNumber} totalSteps={3} />}
-          </div>
-
-          {/* Wizard Step Body */}
-          <div className='flex-auto min-h-0 overflow-y-auto pr-1'>
-            {step === 'service' && (
-              <BookingServiceCatalogStep
-                selectedService={selectedService}
-                onSelectService={setSelectedService}
-                selectedComplaint={selectedComplaint}
-                onSelectComplaint={setSelectedComplaint}
-                customComplaint={customComplaint}
-                onChangeCustomComplaint={setCustomComplaint}
-                visitType={visitType}
-                onChangeVisitType={setVisitType}
-                onContinue={handleServiceContinue}
+        <div
+          className={cn(
+            'flex flex-col font-sans select-none',
+            isCompactStep
+              ? 'h-auto min-h-0 gap-4 justify-start'
+              : 'flex-auto min-h-0 justify-between gap-3'
+          )}
+        >
+          {/* Direct to Step Content - No Redundant Top Header, No Stepper Dots, No Header Separator Underline */}
+          <div
+            ref={stepContainerRef}
+            className={cn(
+              'pr-1',
+              isCompactStep ? 'h-auto overflow-visible' : 'flex-auto min-h-0 overflow-y-auto'
+            )}
+          >
+            {/* 1. STEP: KATEGORI LAYANAN */}
+            {mode === 'create' && step === 'category' && (
+              <BookingCategoryStep
+                isLoadingCatalog={isLoadingCatalog}
+                activeCategoryList={activeCategoryList}
+                onSelectCategory={(catId) => {
+                  setSelectedCategoryId(catId);
+                  setStep('service');
+                }}
               />
             )}
 
-            {step === 'patient_select' && (
+            {/* 2. STEP: DAFTAR LAYANAN SPESIFIK */}
+            {mode === 'create' && step === 'service' && (
+              <BookingServiceStep
+                serviceBentoItems={serviceBentoItems}
+                onSelectServiceItem={handleSelectServiceItem}
+                onBackToCategory={() => setStep('category')}
+              />
+            )}
+
+            {/* 3. STEP: DATA PASIEN (PROFILE SELECTION) */}
+            {step === 'patient' && (
               <BookingPatientSelectionStep
                 patients={patients}
                 selectedPatientId={selectedPatientId}
                 onSelectPatient={(p) => setSelectedPatientId(p.id)}
                 onAddNewPatient={() => setStep('patient_new')}
-                onContinue={() => setStep('schedule')}
+                onContinue={() => setStep('date')}
               />
             )}
 
+            {/* 3B. STEP: FORM PASIEN BARU REGULER (COMPACT, NO PROGRESS DOTS) */}
             {step === 'patient_new' && (
-              <BookingOnDemandPatientForm
+              <BookingRegularPatientForm
                 onSuccess={handlePatientCreated}
                 onCancel={() =>
-                  patients.length > 0 ? setStep('patient_select') : setStep('service')
+                  patients.length > 0 ? setStep('patient') : setStep('service')
                 }
               />
             )}
 
-            {step === 'schedule' && (
-              <BookingScheduleSlotStep
-                onBack={() =>
-                  patients.length > 0 ? setStep('patient_select') : setStep('service')
-                }
-                onSubmitBooking={handleFinalBooking}
-                isSubmitting={isSubmitting}
-                initialVisitType={visitType}
-                initialComplaint={customComplaint.trim() || selectedComplaint}
-                poliklinikId={selectedService?.poliklinikId}
-                layananId={selectedService?.id}
+            {/* 4. STEP: TANGGAL KUNJUNGAN */}
+            {step === 'date' && (
+              <BookingDateStep dateStr={dateStr} setDateStr={setDateStr} />
+            )}
+
+            {/* 4B. STEP: SESI PRAKTIK DOKTER JAGA (DEDICATED SLIDE) */}
+            {step === 'session' && (
+              <BookingSessionStep
+                selectedService={selectedService}
+                dateStr={dateStr}
+                timeSlot={timeSlot}
+                setTimeSlot={setTimeSlot}
+                onSelectSessionId={setSelectedSessionId}
+              />
+            )}
+
+            {/* 4C. STEP: TIPE KUNJUNGAN (DEDICATED SLIDE) */}
+            {step === 'visit_type' && (
+              <BookingVisitTypeStep
+                visitType={visitType}
+                setVisitType={setVisitType}
+              />
+            )}
+
+            {/* 4D. STEP: KELUHAN MEDIS (DEDICATED SLIDE) */}
+            {step === 'complaint' && (
+              <BookingComplaintStep
+                complaint={complaint}
+                setComplaint={setComplaint}
+              />
+            )}
+
+            {/* 5. STEP: KONFIRMASI RINGKASAN */}
+            {step === 'confirmation' && (
+              <BookingConfirmationStep
+                selectedService={selectedService}
+                selectedPatient={selectedPatient}
+                dateStr={dateStr}
+                timeSlot={timeSlot}
+                visitType={visitType}
+                complaint={complaint}
+                serviceName={selectedService?.name || initialAppointment?.service}
+                patientName={selectedPatient?.fullName || initialAppointment?.patient_name}
               />
             )}
           </div>
+
+          {/* Modal Bottom Actions - No Top Separator Border (Underline Removed) */}
+          {step !== 'patient_new' && (
+            <div className='flex items-center justify-between shrink-0 pt-2'>
+              <div>
+                {step === 'category' ? (
+                  <Button type='button' variant='ghost' size='md' shape='pill' onClick={onClose}>
+                    Batal
+                  </Button>
+                ) : step === 'service' ? (
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='md'
+                    shape='pill'
+                    leadingIcon={<Icons.arrowLeft className='size-3.5' />}
+                    onClick={() => setStep('category')}
+                  >
+                    Kembali
+                  </Button>
+                ) : step === 'patient' ? (
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='md'
+                    shape='pill'
+                    leadingIcon={<Icons.arrowLeft className='size-3.5' />}
+                    onClick={() => setStep('service')}
+                  >
+                    Kembali
+                  </Button>
+                ) : step === 'date' ? (
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='md'
+                    shape='pill'
+                    leadingIcon={mode === 'edit' ? undefined : <Icons.arrowLeft className='size-3.5' />}
+                    onClick={() => {
+                      if (mode === 'edit') {
+                        onClose();
+                      } else {
+                        setStep(patients.length > 0 ? 'patient' : 'service');
+                      }
+                    }}
+                  >
+                    {mode === 'edit' ? 'Batal' : 'Kembali'}
+                  </Button>
+                ) : step === 'session' ? (
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='md'
+                    shape='pill'
+                    leadingIcon={<Icons.arrowLeft className='size-3.5' />}
+                    onClick={() => setStep('date')}
+                  >
+                    Kembali
+                  </Button>
+                ) : step === 'visit_type' ? (
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='md'
+                    shape='pill'
+                    leadingIcon={<Icons.arrowLeft className='size-3.5' />}
+                    onClick={() => setStep('session')}
+                  >
+                    Kembali
+                  </Button>
+                ) : step === 'complaint' ? (
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='md'
+                    shape='pill'
+                    leadingIcon={<Icons.arrowLeft className='size-3.5' />}
+                    onClick={() => setStep('visit_type')}
+                  >
+                    Kembali
+                  </Button>
+                ) : step === 'confirmation' ? (
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='md'
+                    shape='pill'
+                    leadingIcon={<Icons.arrowLeft className='size-3.5' />}
+                    onClick={() => (mode === 'edit' ? setStep('session') : setStep('complaint'))}
+                  >
+                    Kembali
+                  </Button>
+                ) : null}
+              </div>
+
+              <div>
+                {step === 'patient' && patients.length > 0 ? (
+                  <Button
+                    type='button'
+                    variant='primary'
+                    size='md'
+                    shape='pill'
+                    onClick={() => setStep('date')}
+                    withTrailingCircleIcon={true}
+                    className='min-w-[140px]'
+                    trailingIcon={<Icons.arrowRight className='size-3 stroke-[2.5]' />}
+                  >
+                    Lanjut
+                  </Button>
+                ) : step === 'date' ? (
+                  <Button
+                    type='button'
+                    variant='primary'
+                    size='md'
+                    shape='pill'
+                    onClick={() => setStep('session')}
+                    withTrailingCircleIcon={true}
+                    className='min-w-[140px]'
+                    trailingIcon={<Icons.arrowRight className='size-3 stroke-[2.5]' />}
+                  >
+                    Lanjut
+                  </Button>
+                ) : step === 'session' ? (
+                  <Button
+                    type='button'
+                    variant='primary'
+                    size='md'
+                    shape='pill'
+                    onClick={() => (mode === 'edit' ? setStep('confirmation') : setStep('visit_type'))}
+                    withTrailingCircleIcon={true}
+                    className='min-w-[140px]'
+                    trailingIcon={<Icons.arrowRight className='size-3 stroke-[2.5]' />}
+                  >
+                    Lanjut
+                  </Button>
+                ) : step === 'visit_type' ? (
+                  <Button
+                    type='button'
+                    variant='primary'
+                    size='md'
+                    shape='pill'
+                    onClick={() => setStep('complaint')}
+                    withTrailingCircleIcon={true}
+                    className='min-w-[140px]'
+                    trailingIcon={<Icons.arrowRight className='size-3 stroke-[2.5]' />}
+                  >
+                    Lanjut
+                  </Button>
+                ) : step === 'complaint' ? (
+                  <Button
+                    type='button'
+                    variant='primary'
+                    size='md'
+                    shape='pill'
+                    onClick={() => setStep('confirmation')}
+                    withTrailingCircleIcon={true}
+                    className='min-w-[140px]'
+                    trailingIcon={<Icons.arrowRight className='size-3 stroke-[2.5]' />}
+                  >
+                    Lanjut
+                  </Button>
+                ) : step === 'confirmation' ? (
+                  <Button
+                    type='button'
+                    variant='primary'
+                    size='md'
+                    shape='pill'
+                    disabled={isSubmitting}
+                    isLoading={isSubmitting}
+                    onClick={handleFinalSubmit}
+                    withTrailingCircleIcon={true}
+                    className='min-w-[160px]'
+                    trailingIcon={<Icons.arrowUpRight className='size-3 stroke-[2.5]' />}
+                  >
+                    {isSubmitting
+                      ? 'Memproses antrean...'
+                      : mode === 'edit'
+                      ? 'Simpan Jadwal Baru'
+                      : 'Buat Janji Temu'}
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+          )}
         </div>
       </ModalWrapper>
 
@@ -275,7 +403,7 @@ export function AppointmentModal({
             ? {
                 id: createdAppointment.id,
                 appointment_id: createdAppointment.id,
-                queue_number: createdAppointment.queue_number || 'P-001',
+                queue_number: createdAppointment.queue_number || '-',
                 service: createdAppointment.service || '',
                 doctor_name: createdAppointment.doctor_name,
                 patient_name: createdAppointment.patient_name,
@@ -312,4 +440,5 @@ export function AppointmentModal({
     </>
   );
 }
+
 export default AppointmentModal;

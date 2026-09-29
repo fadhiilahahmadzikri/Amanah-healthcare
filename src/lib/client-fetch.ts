@@ -82,8 +82,13 @@ export async function clientFetch<T>(
 
     if (response.status === 401) {
       if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth')) {
-        const currentPath = window.location.pathname + window.location.search;
-        window.location.href = `/auth/sign-in?redirect=${encodeURIComponent(currentPath)}`;
+        const lastRedirect = sessionStorage.getItem('last_auth_redirect');
+        const now = Date.now();
+        if (!lastRedirect || now - Number(lastRedirect) > 5000) {
+          sessionStorage.setItem('last_auth_redirect', String(now));
+          const currentPath = window.location.pathname + window.location.search;
+          window.location.href = `/auth/sign-in?redirect=${encodeURIComponent(currentPath)}`;
+        }
       }
       throw AppError.unauthenticated(message);
     }

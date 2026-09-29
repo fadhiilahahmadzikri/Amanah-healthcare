@@ -30,6 +30,12 @@ export interface Appointment {
   patient_email: string;
   patient_avatar: string;
   doctor_name: string;
+  doctor_specialty?: string;
+  poliklinik_name?: string;
+  room_name?: string;
+  room_location?: string;
+  scheduled_start_time?: string;
+  scheduled_end_time?: string;
   date: string;
   time: string;
   complaint: string;

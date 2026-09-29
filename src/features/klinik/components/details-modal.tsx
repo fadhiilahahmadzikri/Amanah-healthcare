@@ -25,7 +25,7 @@ export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: Det
 
   const doctor: Doctor = getDoctorByName(appointment.doctor_name) || {
     name: appointment.doctor_name || '',
-    spec: appointment.service || '',
+    spec: appointment.doctor_specialty || '',
     avatar: '',
     location: '',
     rating: '',
@@ -33,17 +33,46 @@ export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: Det
     schedule: ''
   };
 
-  const displayLocation = doctor.location || '-';
+  const displayLocation =
+    appointment.poliklinik_name && appointment.room_name
+      ? `${appointment.poliklinik_name}, ${appointment.room_name}`
+      : appointment.poliklinik_name || appointment.room_name || '-';
+
+  const doctorSpecialty = appointment.doctor_specialty || '-';
 
   const timeStr = appointment.time || '';
   const timeRangeMatch = timeStr.match(/(\d{1,2}[:.]\d{2})\s*-\s*(\d{1,2}[:.]\d{2})/);
   const sessionMatch = timeStr.match(/Sesi\s+[A-Za-z]+/i);
 
-  const startTime = timeRangeMatch ? timeRangeMatch[1].replace(':', '.') : '-';
-  const endTime = timeRangeMatch ? timeRangeMatch[2].replace(':', '.') : '-';
+  const formatTimeSlot = (time?: string) => {
+    if (!time) return null;
+    const match = time.match(/(\d{1,2})[:.](\d{2})/);
+    return match ? `${match[1].padStart(2, '0')}.${match[2]}` : null;
+  };
+
+  const startTime =
+    formatTimeSlot(appointment.scheduled_start_time) ||
+    (timeRangeMatch ? timeRangeMatch[1].replace(':', '.') : '-');
+  const endTime =
+    formatTimeSlot(appointment.scheduled_end_time) ||
+    (timeRangeMatch ? timeRangeMatch[2].replace(':', '.') : '-');
 
   let durationText = sessionMatch ? sessionMatch[0] : '-';
-  if (!sessionMatch && timeRangeMatch) {
+  if (startTime !== '-' && endTime !== '-') {
+    const startParts = startTime.split('.').map(Number);
+    const endParts = endTime.split('.').map(Number);
+    if (
+      !isNaN(startParts[0]) &&
+      !isNaN(startParts[1]) &&
+      !isNaN(endParts[0]) &&
+      !isNaN(endParts[1])
+    ) {
+      const diffMins = endParts[0] * 60 + endParts[1] - (startParts[0] * 60 + startParts[1]);
+      if (diffMins > 0) {
+        durationText = `${diffMins} minutes`;
+      }
+    }
+  } else if (!sessionMatch && timeRangeMatch) {
     const startParts = timeRangeMatch[1].replace('.', ':').split(':').map(Number);
     const endParts = timeRangeMatch[2].replace('.', ':').split(':').map(Number);
     if (
@@ -62,10 +91,7 @@ export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: Det
   const visitType = appointment.visit_type || '-';
   const statusConfig = getStatusConfig(appointment.status);
 
-  const qualifications = doctor.tags || [];
-
   const patientName = appointment.patient_name || '-';
-  const patientEmail = appointment.patient_email || '-';
   const serviceName = appointment.service || doctor.spec || '-';
   const complaintText = appointment.complaint || '-';
 
@@ -88,15 +114,8 @@ export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: Det
                 {doctor.name || '-'}
               </h3>
               <p className='text-sm font-medium text-muted-foreground truncate w-full'>
-                {doctor.specialty || 'Dokter Umum'}
+                {doctorSpecialty}
               </p>
-              {appointment.queue_number ? (
-                <div className='pt-1'>
-                  <span className='inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded-md text-xs font-bold font-mono'>
-                    <span>Nomor Antrean: {appointment.queue_number}</span>
-                  </span>
-                </div>
-              ) : null}
             </div>
           </div>
 
@@ -127,28 +146,7 @@ export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: Det
           </div>
         </div>
 
-        {/* 2. Doctor Qualifications (Amanah Minimalist Underline Style) */}
-        <div className='pb-3 border-b border-border/40'>
-          <span className='text-xs font-normal text-muted-foreground block mb-1.5'>
-            Kualifikasi Dokter
-          </span>
-          <div className='flex flex-wrap gap-1.5'>
-            {qualifications.length > 0 ? (
-              qualifications.map((qual, idx) => (
-                <span
-                  key={idx}
-                  className='px-2.5 py-0.5 bg-muted text-foreground text-xs font-medium rounded-md'
-                >
-                  {qual}
-                </span>
-              ))
-            ) : (
-              <span className='text-sm font-semibold text-foreground'>-</span>
-            )}
-          </div>
-        </div>
-
-        {/* 3. Date & Location Row (Amanah Minimalist Underline Style) */}
+        {/* 2. Date & Location Row (Amanah Minimalist Underline Style) */}
         <div className='py-2.5 border-b border-border/40 flex items-center justify-between gap-3 text-sm'>
           <div className='flex items-center gap-2 text-foreground font-semibold min-w-0'>
             <Icons.calendar className='size-4 text-primary shrink-0' strokeWidth={1.8} />
@@ -160,7 +158,7 @@ export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: Det
           </div>
         </div>
 
-        {/* 4. Timeline Container (Amanah Minimalist Underline Style) */}
+        {/* 3. Timeline Container (Amanah Minimalist Underline Style) */}
         <div className='py-2.5 border-b border-border/40 flex items-center justify-between'>
           <div className='flex flex-col items-start min-w-[60px]'>
             <span className='text-xl sm:text-2xl font-bold text-foreground leading-tight tracking-tight'>
@@ -189,7 +187,7 @@ export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: Det
           </div>
         </div>
 
-        {/* 5. Patient Details Grid (Amanah Minimalist Underline Style) */}
+        {/* 4. Patient & Service Details Grid (Symmetrical 2x2, Underline Style) */}
         <div className='grid grid-cols-2 gap-y-3 gap-x-5'>
           <div className='border-b border-border/40 pb-2'>
             <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
@@ -202,13 +200,10 @@ export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: Det
 
           <div className='border-b border-border/40 pb-2'>
             <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-              Kontak / Email
+              Nomor Antrean
             </span>
-            <span
-              className='text-sm font-semibold text-foreground block truncate'
-              title={patientEmail}
-            >
-              {patientEmail}
+            <span className='text-sm font-bold font-mono text-primary block truncate'>
+              {appointment.queue_number || '-'}
             </span>
           </div>
 
@@ -231,7 +226,7 @@ export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: Det
           </div>
         </div>
 
-        {/* 6. Medical Complaint (Amanah Minimalist Underline Style) */}
+        {/* 5. Medical Complaint (Amanah Minimalist Underline Style) */}
         <div className='border-b border-border/40 pb-3 pt-0.5'>
           <span className='text-xs font-normal text-muted-foreground block mb-1'>
             Keluhan Medis

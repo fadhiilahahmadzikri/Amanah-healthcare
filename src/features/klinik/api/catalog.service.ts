@@ -57,7 +57,10 @@ class CatalogService {
               ? (res.data as any)
               : { success: false, categories: [] };
 
-        this.cache = data.categories || [];
+        const validCategories = (data.categories || []).filter(
+          (c) => Array.isArray(c.services) && c.services.length > 0
+        );
+        this.cache = validCategories;
         return this.cache;
       } catch (error) {
         console.error('Failed to load clinic service catalog from backend:', error);

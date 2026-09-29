@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import type { Appointment, AppointmentFormData, AppointmentStatus, Doctor } from '../api/types';
-import { getDoctorByName, loadStoredAppointments } from '../api/service';
+import { getDoctorByName } from '../api/service';
 import {
   patientAffiliationService,
   type BackendAppointmentItem
@@ -79,18 +79,38 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
     else if (st === 'BATAL' || st === 'CANCELLED') uiStatus = 'Batal';
     else if (st === 'TIDAK_HADIR' || st === 'NO_SHOW') uiStatus = 'Tidak Hadir';
 
+    const formatTime = (t?: string) => {
+      if (!t) return '';
+      const match = t.match(/^(\d{1,2}):(\d{2})/);
+      return match ? `${match[1].padStart(2, '0')}.${match[2]}` : t;
+    };
+
+    const startTimeFormatted = formatTime(apt.scheduledStartTime);
+    const endTimeFormatted = formatTime(apt.scheduledEndTime);
+    const timeDisplay =
+      startTimeFormatted && endTimeFormatted
+        ? `${startTimeFormatted} - ${endTimeFormatted} WIB`
+        : apt.session || '-';
+
     return {
       id: apt.id,
       booking_code: apt.id.slice(0, 8).toUpperCase(),
       patient_name: apt.patientName || 'Pasien',
       patient_email: '',
       patient_avatar: '',
-      doctor_name: apt.doctorName || 'Dokter Jaga',
+      doctor_name: apt.doctorName || '',
+      doctor_specialty: apt.doctorSpecialty || '',
+      poliklinik_name: apt.poliklinikName || '',
+      room_name: apt.roomName || '',
+      room_location: apt.roomLocation || '',
+      scheduled_start_time: startTimeFormatted || undefined,
+      scheduled_end_time: endTimeFormatted || undefined,
       date: apt.appointmentDate,
-      time: apt.session,
+      time: timeDisplay,
       complaint: apt.complaint || '-',
       status: uiStatus,
-      service: apt.layananName || 'Poliklinik',
+      visit_type: apt.visitType || '',
+      service: apt.layananName || '',
       created_at: apt.createdAt,
       queue_number: apt.queueNumber || '-'
     };
@@ -99,13 +119,13 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
   const loadAppointments = useCallback(async () => {
     try {
       const data = await patientAffiliationService.getMyAppointments();
-      if (Array.isArray(data) && data.length > 0) {
+      if (Array.isArray(data)) {
         setAppointments(data.map(mapBackendToUi));
       } else {
-        setAppointments(loadStoredAppointments());
+        setAppointments([]);
       }
     } catch {
-      setAppointments(loadStoredAppointments());
+      setAppointments([]);
     } finally {
       setIsInitialized(true);
     }
@@ -194,14 +214,10 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
   };
 
   const handleSubmitForm = (data: AppointmentFormData, appointmentId?: string) => {
-    if (formModalMode === 'edit' && appointmentId) {
-      setAppointments((prev) =>
-        updateAppointmentList(prev, appointmentId, data, new Date().toISOString())
-      );
+    loadAppointments();
+    if (formModalMode === 'edit') {
       return { type: 'edit' as const };
     }
-
-    loadAppointments();
     return { type: 'create' as const };
   };
 
