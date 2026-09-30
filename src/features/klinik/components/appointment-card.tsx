@@ -116,6 +116,18 @@ export function AppointmentCard({
   const visitType = appointment.visit_type || '-';
   const statusConfig = getStatusConfig(appointment.status);
 
+  const isCancelled =
+    appointment.status === 'Batal' ||
+    appointment.status === 'CANCELLED' ||
+    appointment.status === 'Tidak Hadir' ||
+    appointment.status === 'NO_SHOW';
+  const isCompleted =
+    appointment.status === 'Selesai' ||
+    appointment.status === 'COMPLETED' ||
+    appointment.status === 'Sedang Diperiksa' ||
+    appointment.status === 'IN_SERVICE';
+  const canReschedule = !isCancelled && !isCompleted;
+
   return (
     <div
       className={cn(
@@ -243,17 +255,19 @@ export function AppointmentCard({
         </div>
 
         <div className='flex items-center gap-2 shrink-0'>
-          <Button
-            type='button'
-            variant='outline'
-            shape='pill'
-            size='card-action'
-            onClick={() => onReschedule(appointment)}
-            leadingIcon={<RescheduleIcon className='size-3.5' stroke='currentColor' />}
-            className='font-semibold shadow-2xs'
-          >
-            Reschedule
-          </Button>
+          {canReschedule && (
+            <Button
+              type='button'
+              variant='outline'
+              shape='pill'
+              size='card-action'
+              onClick={() => onReschedule(appointment)}
+              leadingIcon={<RescheduleIcon className='size-3.5' stroke='currentColor' />}
+              className='font-semibold shadow-2xs'
+            >
+              Reschedule
+            </Button>
+          )}
 
           <Button
             type='button'

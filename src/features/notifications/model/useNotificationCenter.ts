@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { notificationApiService } from '../api/notification-api-service';
 import { mapBackendToClinicNotification } from '../utils/notification-mapper';
@@ -67,7 +67,7 @@ export function useNotificationCenter(): UseNotificationCenterResult {
     }
   };
 
-  const handleMarkAllAsRead = async () => {
+  const handleMarkAllAsRead = useCallback(async () => {
     markAllAsReadStore();
     try {
       await notificationApiService.markAllAsRead();
@@ -75,7 +75,24 @@ export function useNotificationCenter(): UseNotificationCenterResult {
     } catch {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     }
-  };
+  }, [markAllAsReadStore, queryClient]);
+
+  /**
+   * Auto mark-all-as-read when popover opens (WhatsApp paradigm).
+   * When the notification window is opened and there are unread notifications,
+   * automatically mark them all as read so the badge count clears.
+   */
+  const hasTriggeredAutoReadRef = useRef(false);
+
+  useEffect(() => {
+    if (open && unreadCount() > 0 && !hasTriggeredAutoReadRef.current) {
+      hasTriggeredAutoReadRef.current = true;
+      handleMarkAllAsRead();
+    }
+    if (!open) {
+      hasTriggeredAutoReadRef.current = false;
+    }
+  }, [open, unreadCount, handleMarkAllAsRead]);
 
   return {
     open,

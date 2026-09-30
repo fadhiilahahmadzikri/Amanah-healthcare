@@ -7,6 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Appointment, Doctor, MedicalIntakeRecord } from '../api/types';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { DoctorAvatar } from './doctor-avatar';
+import { CancelStepContent } from './cancel-step-content';
 import { getDoctorByName } from '../api/service';
 import { getMedicalFlowDefinition } from '../constants/medical-appointment-schemas';
 import { getMedicalFieldLabel } from '../utils/medical-appointment';
@@ -21,6 +22,8 @@ export interface DetailsModalProps {
   onCancel?: (appointment: Appointment, reason?: string) => Promise<void> | void;
 }
 
+type ModalStep = 'details' | 'cancel-confirm';
+
 export function DetailsModal({
   isOpen,
   appointment,
@@ -28,13 +31,13 @@ export function DetailsModal({
   onReschedule,
   onCancel
 }: DetailsModalProps) {
-  const [isConfirmingCancel, setIsConfirmingCancel] = useState(false);
+  const [modalStep, setModalStep] = useState<ModalStep>('details');
   const [cancelReason, setCancelReason] = useState('');
   const [isCancelling, setIsCancelling] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
-      setIsConfirmingCancel(false);
+      setModalStep('details');
       setCancelReason('');
       setIsCancelling(false);
     }
@@ -65,7 +68,7 @@ export function DetailsModal({
 
   const formatTimeSlot = (time?: string) => {
     if (!time) return null;
-    const match = time.match(/(\d{1,2})[:.](\d{2})/);
+    const match = time.match(/(\d{1,2})[:.](d{2})/);
     return match ? `${match[1].padStart(2, '0')}.${match[2]}` : null;
   };
 
@@ -132,8 +135,8 @@ export function DetailsModal({
     setIsCancelling(true);
     try {
       await onCancel(appointment, cancelReason.trim() || undefined);
-      setIsConfirmingCancel(false);
       setCancelReason('');
+      setModalStep('details');
     } catch {
       // handled in parent
     } finally {
@@ -147,255 +150,293 @@ export function DetailsModal({
       onClose={onClose}
       maxWidth='max-w-[560px]'
       showCloseButton={false}
+      dismissible={!isCancelling}
     >
       <div className='relative font-sans space-y-3.5'>
-        {/* 1. Doctor Identity Header */}
-        <div className='flex items-center gap-4 pb-3 border-b border-border/40'>
-          <div className='size-16 min-w-[64px] min-h-[64px] rounded-full overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square'>
-            <DoctorAvatar name={doctor.name} avatarUrl={doctor.avatar} size={64} />
-          </div>
-          <div className='flex flex-col items-start min-w-0 flex-1 space-y-0.5'>
-            <h3 className='text-base sm:text-lg font-bold text-foreground truncate w-full tracking-tight'>
-              {doctor.name || '-'}
-            </h3>
-            <p className='text-sm font-medium text-muted-foreground truncate w-full'>
-              {doctorSpecialty}
-            </p>
-          </div>
-        </div>
-
-        {/* 2. Date & Location Row (Amanah Minimalist Underline Style) */}
-        <div className='py-2.5 border-b border-border/40 flex items-center justify-between gap-3 text-sm'>
-          <div className='flex items-center gap-2 text-foreground font-semibold min-w-0'>
-            <Icons.calendar className='size-4 text-primary shrink-0' strokeWidth={1.8} />
-            <span className='truncate'>{appointment.date || '-'}</span>
-          </div>
-          <div className='flex items-center gap-1.5 text-muted-foreground font-medium min-w-0'>
-            <Icons.mapPin className='size-4 text-primary shrink-0' strokeWidth={1.8} />
-            <span className='truncate'>{displayLocation}</span>
-          </div>
-        </div>
-
-        {/* 3. Timeline Container (Amanah Minimalist Underline Style) */}
-        <div className='py-2.5 border-b border-border/40 flex items-center justify-between'>
-          <div className='flex flex-col items-start min-w-[60px]'>
-            <span className='text-xl sm:text-2xl font-bold text-foreground leading-tight tracking-tight'>
-              {startTime}
-            </span>
-            <span className='text-xs font-normal text-muted-foreground mt-0.5'>Mulai</span>
-          </div>
-
-          <div className='flex-1 flex flex-col items-center px-3'>
-            <span className='text-xs font-semibold text-muted-foreground mb-1'>{durationText}</span>
-            <div className='w-full flex items-center justify-center relative'>
-              <span className='size-2 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0' />
-              <div className='flex-1 border-t border-dashed border-slate-300 dark:border-slate-600 mx-2' />
-              <span className='size-2 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0' />
-            </div>
-            <span className='text-xs font-medium text-muted-foreground mt-1 truncate max-w-full'>
-              {visitType}
-            </span>
-          </div>
-
-          <div className='flex flex-col items-end min-w-[60px]'>
-            <span className='text-xl sm:text-2xl font-bold text-foreground leading-tight tracking-tight'>
-              {endTime}
-            </span>
-            <span className='text-xs font-normal text-muted-foreground mt-0.5'>Selesai</span>
-          </div>
-        </div>
-
-        {/* 4. Patient & Service Details Grid (Symmetrical 3x2, Underline Style) */}
-        <div className='grid grid-cols-2 gap-y-3 gap-x-5'>
-          <div className='border-b border-border/40 pb-2'>
-            <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-              Nama Pasien
-            </span>
-            <span className='text-sm font-semibold text-foreground block truncate'>
-              {patientName}
-            </span>
-          </div>
-
-          <div className='border-b border-border/40 pb-2'>
-            <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-              Nomor Antrean
-            </span>
-            <span className='text-sm font-bold font-mono text-primary block truncate'>
-              {appointment.queue_number || '-'}
-            </span>
-          </div>
-
-          <div className='border-b border-border/40 pb-2'>
-            <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-              Layanan Poliklinik
-            </span>
-            <span className='text-sm font-semibold text-foreground block truncate'>
-              {serviceName}
-            </span>
-          </div>
-
-          <div className='border-b border-border/40 pb-2'>
-            <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-              Ruang & Lokasi
-            </span>
-            <span className='text-sm font-semibold text-foreground block truncate'>
-              {displayLocation}
-            </span>
-          </div>
-
-          <div className='border-b border-border/40 pb-2'>
-            <span className='text-xs font-normal text-muted-foreground block mb-1'>
-              Status Janji Temu
-            </span>
-            <div
-              className={cn(
-                'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-sm select-none shadow-none',
-                statusConfig.pillBg,
-                statusConfig.pillBorder
-              )}
-            >
-              <span
-                className={cn(
-                  'size-2 rounded-full shrink-0 ring-1 ring-white/60 dark:ring-white/20',
-                  statusConfig.dotGradient
-                )}
-              />
-              <span
-                className={cn(
-                  'bg-clip-text text-transparent font-bold tracking-tight',
-                  statusConfig.textGradient
-                )}
-              >
-                {statusConfig.label}
-              </span>
-            </div>
-          </div>
-
-          <div className='border-b border-border/40 pb-2'>
-            <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-              Tipe Kunjungan
-            </span>
-            <span className='text-sm font-semibold text-foreground block truncate'>
-              {visitType}
-            </span>
-          </div>
-        </div>
-
-        {/* 5. Medical Complaint (Amanah Minimalist Underline Style) */}
-        <div className='border-b border-border/40 pb-3 pt-0.5'>
-          <span className='text-xs font-normal text-muted-foreground block mb-1'>
-            Keluhan Medis
-          </span>
-          <p className='text-sm font-medium text-foreground leading-relaxed'>{complaintText}</p>
-        </div>
-
-        {appointment.medical_intake ? (
-          <MedicalIntakeSummary intake={appointment.medical_intake} />
-        ) : null}
-
-        {/* 6. Inline Cancellation Confirmation Box */}
-        {isConfirmingCancel && (
-          <div className='p-3.5 rounded-xl bg-destructive/5 border border-destructive/20 space-y-3 animate-in fade-in-50 duration-200'>
-            <div className='flex items-center gap-2 text-destructive font-bold text-xs'>
-              <Icons.warning className='size-4 shrink-0' />
-              <span>Konfirmasi Pembatalan Janji Temu</span>
-            </div>
-            <p className='text-xs text-muted-foreground leading-relaxed'>
-              Apakah Anda yakin ingin membatalkan janji temu ini? 1 slot kuota jadwal praktik dokter akan dikembalikan secara otomatis.
-            </p>
-            <div className='space-y-1.5'>
-              <label
-                htmlFor='cancel-reason-input'
-                className='text-xs font-semibold text-foreground block'
-              >
-                Alasan Pembatalan (Opsional)
-              </label>
-              <textarea
-                id='cancel-reason-input'
-                rows={2}
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                placeholder='Masukkan alasan pembatalan (misal: Berhalangan hadir karena ada keperluan mendesak)...'
-                className='w-full text-xs p-2.5 rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-1 focus:ring-destructive'
-              />
-            </div>
-            <div className='flex items-center justify-end gap-2 pt-1'>
-              <Button
-                type='button'
-                variant='outline'
-                size='sm'
-                shape='pill'
-                onClick={() => setIsConfirmingCancel(false)}
-                disabled={isCancelling}
-                className='text-xs'
-              >
-                Kembali
-              </Button>
-              <Button
-                type='button'
-                variant='destructive'
-                size='sm'
-                shape='pill'
-                onClick={handleConfirmCancel}
-                disabled={isCancelling}
-                className='text-xs font-bold'
-              >
-                {isCancelling ? 'Membatalkan...' : 'Ya, Batalkan'}
-              </Button>
-            </div>
-          </div>
+        {/* ─── STEP: DETAILS (default view) ─── */}
+        {modalStep === 'details' && (
+          <DetailsStepContent
+            appointment={appointment}
+            doctor={doctor}
+            doctorSpecialty={doctorSpecialty}
+            statusConfig={statusConfig}
+            displayLocation={displayLocation}
+            startTime={startTime}
+            endTime={endTime}
+            durationText={durationText}
+            visitType={visitType}
+            patientName={patientName}
+            serviceName={serviceName}
+            complaintText={complaintText}
+            canCancel={canCancel}
+            canReschedule={canReschedule}
+            onClose={onClose}
+            onReschedule={onReschedule}
+            onCancel={onCancel}
+            onStartCancel={() => setModalStep('cancel-confirm')}
+          />
         )}
 
-        {/* 7. Modal Action Buttons */}
-        {!isConfirmingCancel && (
-          <div className='pt-2 flex items-center justify-between gap-3'>
-            <Button
-              type='button'
-              variant='outline'
-              shape='pill'
-              size='default'
-              onClick={onClose}
-              className='px-6 font-semibold'
-            >
-              Tutup
-            </Button>
-
-            <div className='flex items-center gap-2.5'>
-              {canCancel && onCancel && (
-                <Button
-                  type='button'
-                  variant='destructive'
-                  shape='pill'
-                  size='default'
-                  onClick={() => setIsConfirmingCancel(true)}
-                  className='px-5 font-medium'
-                >
-                  Batalkan
-                </Button>
-              )}
-
-              {canReschedule && onReschedule && (
-                <Button
-                  type='button'
-                  variant='outline'
-                  shape='pill'
-                  size='default'
-                  onClick={() => {
-                    onClose();
-                    onReschedule(appointment);
-                  }}
-                  className='px-5 font-medium'
-                >
-                  Reschedule
-                </Button>
-              )}
-            </div>
-          </div>
+        {/* ─── STEP: CANCEL CONFIRMATION (full context replacement) ─── */}
+        {modalStep === 'cancel-confirm' && (
+          <CancelStepContent
+            appointment={appointment}
+            patientName={patientName}
+            doctorName={doctor.name}
+            queueNumber={appointment.queue_number || '-'}
+            appointmentDate={appointment.date || '-'}
+            cancelReason={cancelReason}
+            setCancelReason={setCancelReason}
+            isCancelling={isCancelling}
+            onBack={() => setModalStep('details')}
+            onConfirm={handleConfirmCancel}
+          />
         )}
       </div>
     </ModalWrapper>
   );
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Step 1: Details View — the standard appointment detail view
+   ═══════════════════════════════════════════════════════════════════════ */
+
+interface DetailsStepProps {
+  appointment: Appointment;
+  doctor: Doctor;
+  doctorSpecialty: string;
+  statusConfig: ReturnType<typeof getStatusConfig>;
+  displayLocation: string;
+  startTime: string;
+  endTime: string;
+  durationText: string;
+  visitType: string;
+  patientName: string;
+  serviceName: string;
+  complaintText: string;
+  canCancel: boolean;
+  canReschedule: boolean;
+  onClose: () => void;
+  onReschedule?: (appointment: Appointment) => void;
+  onCancel?: (appointment: Appointment, reason?: string) => Promise<void> | void;
+  onStartCancel: () => void;
+}
+
+function DetailsStepContent({
+  appointment,
+  doctor,
+  doctorSpecialty,
+  statusConfig,
+  displayLocation,
+  startTime,
+  endTime,
+  durationText,
+  visitType,
+  patientName,
+  serviceName,
+  complaintText,
+  canCancel,
+  canReschedule,
+  onClose,
+  onReschedule,
+  onCancel,
+  onStartCancel
+}: DetailsStepProps) {
+  return (
+    <>
+      {/* 1. Doctor Identity Header + Status Badge at top-right */}
+      <div className='flex items-center gap-4 pb-3 border-b border-border/40'>
+        <div className='size-16 min-w-[64px] min-h-[64px] rounded-full overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square'>
+          <DoctorAvatar name={doctor.name} avatarUrl={doctor.avatar} size={64} />
+        </div>
+        <div className='flex flex-col items-start min-w-0 flex-1 space-y-0.5'>
+          <h3 className='text-base sm:text-lg font-bold text-foreground truncate w-full tracking-tight'>
+            {doctor.name || '-'}
+          </h3>
+          <p className='text-sm font-medium text-muted-foreground truncate w-full'>
+            {doctorSpecialty}
+          </p>
+        </div>
+
+        {/* Status Badge — top-right */}
+        <div className='shrink-0 pt-0.5'>
+          <div
+            className={cn(
+              'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-sm select-none shadow-none',
+              statusConfig.pillBg,
+              statusConfig.pillBorder
+            )}
+          >
+            <span
+              className={cn(
+                'size-2 rounded-full shrink-0 ring-1 ring-white/60 dark:ring-white/20',
+                statusConfig.dotGradient
+              )}
+            />
+            <span
+              className={cn(
+                'bg-clip-text text-transparent font-bold tracking-tight',
+                statusConfig.textGradient
+              )}
+            >
+              {statusConfig.label}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Date & Location Row */}
+      <div className='py-2.5 border-b border-border/40 flex items-center justify-between gap-3 text-sm'>
+        <div className='flex items-center gap-2 text-foreground font-semibold min-w-0'>
+          <Icons.calendar className='size-4 text-primary shrink-0' strokeWidth={1.8} />
+          <span className='truncate'>{appointment.date || '-'}</span>
+        </div>
+        <div className='flex items-center gap-1.5 text-muted-foreground font-medium min-w-0'>
+          <Icons.mapPin className='size-4 text-primary shrink-0' strokeWidth={1.8} />
+          <span className='truncate'>{displayLocation}</span>
+        </div>
+      </div>
+
+      {/* 3. Timeline Container */}
+      <div className='py-2.5 border-b border-border/40 flex items-center justify-between'>
+        <div className='flex flex-col items-start min-w-[60px]'>
+          <span className='text-xl sm:text-2xl font-bold text-foreground leading-tight tracking-tight'>
+            {startTime}
+          </span>
+          <span className='text-xs font-normal text-muted-foreground mt-0.5'>Mulai</span>
+        </div>
+
+        <div className='flex-1 flex flex-col items-center px-3'>
+          <span className='text-xs font-semibold text-muted-foreground mb-1'>{durationText}</span>
+          <div className='w-full flex items-center justify-center relative'>
+            <span className='size-2 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0' />
+            <div className='flex-1 border-t border-dashed border-slate-300 dark:border-slate-600 mx-2' />
+            <span className='size-2 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0' />
+          </div>
+          <span className='text-xs font-medium text-muted-foreground mt-1 truncate max-w-full'>
+            {visitType}
+          </span>
+        </div>
+
+        <div className='flex flex-col items-end min-w-[60px]'>
+          <span className='text-xl sm:text-2xl font-bold text-foreground leading-tight tracking-tight'>
+            {endTime}
+          </span>
+          <span className='text-xs font-normal text-muted-foreground mt-0.5'>Selesai</span>
+        </div>
+      </div>
+
+      {/* 4. Patient & Service Details Grid */}
+      <div className='grid grid-cols-2 gap-y-3 gap-x-5'>
+        <div className='border-b border-border/40 pb-2'>
+          <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+            Nama Pasien
+          </span>
+          <span className='text-sm font-semibold text-foreground block truncate'>
+            {patientName}
+          </span>
+        </div>
+
+        <div className='border-b border-border/40 pb-2'>
+          <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+            Nomor Antrean
+          </span>
+          <span className='text-sm font-bold font-mono text-primary block truncate'>
+            {appointment.queue_number || '-'}
+          </span>
+        </div>
+
+        <div className='border-b border-border/40 pb-2'>
+          <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+            Layanan Poliklinik
+          </span>
+          <span className='text-sm font-semibold text-foreground block truncate'>
+            {serviceName}
+          </span>
+        </div>
+
+        <div className='border-b border-border/40 pb-2'>
+          <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+            Ruang & Lokasi
+          </span>
+          <span className='text-sm font-semibold text-foreground block truncate'>
+            {displayLocation}
+          </span>
+        </div>
+
+        <div className='border-b border-border/40 pb-2'>
+          <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+            Tipe Kunjungan
+          </span>
+          <span className='text-sm font-semibold text-foreground block truncate'>
+            {visitType}
+          </span>
+        </div>
+      </div>
+
+      {/* 5. Medical Complaint */}
+      <div className='border-b border-border/40 pb-3 pt-0.5'>
+        <span className='text-xs font-normal text-muted-foreground block mb-1'>
+          Keluhan Medis
+        </span>
+        <p className='text-sm font-medium text-foreground leading-relaxed'>{complaintText}</p>
+      </div>
+
+      {appointment.medical_intake ? (
+        <MedicalIntakeSummary intake={appointment.medical_intake} />
+      ) : null}
+
+      {/* 6. Modal Action Buttons */}
+      <div className='pt-2 flex items-center justify-between gap-3'>
+        <Button
+          type='button'
+          variant='outline'
+          shape='pill'
+          size='default'
+          onClick={onClose}
+          className='px-6 font-semibold'
+        >
+          Tutup
+        </Button>
+
+        <div className='flex items-center gap-2.5'>
+          {canCancel && onCancel && (
+            <Button
+              type='button'
+              variant='destructive'
+              shape='pill'
+              size='default'
+              onClick={onStartCancel}
+              className='px-5 font-medium'
+            >
+              Batalkan
+            </Button>
+          )}
+
+          {canReschedule && onReschedule && (
+            <Button
+              type='button'
+              variant='outline'
+              shape='pill'
+              size='default'
+              onClick={() => {
+                onClose();
+                onReschedule(appointment);
+              }}
+              className='px-5 font-medium'
+            >
+              Reschedule
+            </Button>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Supporting Components
+   ═══════════════════════════════════════════════════════════════════════ */
 
 const automaticLabels: Record<string, string> = {
   estimatedDueDate: 'HPL otomatis',
