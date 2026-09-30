@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState, useCallback } from 'react';
+import { toast } from 'sonner';
 import type { Appointment, AppointmentFormData, AppointmentStatus, Doctor } from '../api/types';
 import { getDoctorByName } from '../api/service';
 import {
@@ -47,6 +48,7 @@ export interface UseAppointmentsViewResult {
     openDetailsModal: (appointment: Appointment) => void;
     closeFormModal: () => void;
     closeDetailsModal: () => void;
+    cancelAppointment: (appointmentId: string, reason?: string) => Promise<void>;
     submitForm: (
       data: AppointmentFormData,
       appointmentId?: string
@@ -133,6 +135,20 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
 
   useEffect(() => {
     loadAppointments();
+
+    const handleRealtimeSync = () => {
+      loadAppointments();
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('clinic:notification_received', handleRealtimeSync);
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('clinic:notification_received', handleRealtimeSync);
+      }
+    };
   }, [loadAppointments]);
 
   const filters = useMemo(
@@ -213,6 +229,24 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
     setIsDetailsModalOpen(true);
   };
 
+  const handleCancelAppointment = async (appointmentId: string, reason?: string) => {
+    try {
+      await patientAffiliationService.cancelAppointment(appointmentId, reason);
+      setAppointments((prev) =>
+        prev.map((item) => (item.id === appointmentId ? { ...item, status: 'Batal' } : item))
+      );
+      setSelectedAppointment((prev) =>
+        prev && prev.id === appointmentId ? { ...prev, status: 'Batal' } : prev
+      );
+      toast.success('Janji temu berhasil dibatalkan');
+      await loadAppointments();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Gagal membatalkan janji temu';
+      toast.error(msg);
+      throw err;
+    }
+  };
+
   const handleSubmitForm = (data: AppointmentFormData, appointmentId?: string) => {
     loadAppointments();
     if (formModalMode === 'edit') {
@@ -247,6 +281,7 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
       openDetailsModal: handleOpenDetailsModal,
       closeFormModal: () => setIsFormModalOpen(false),
       closeDetailsModal: () => setIsDetailsModalOpen(false),
+      cancelAppointment: handleCancelAppointment,
       submitForm: handleSubmitForm,
       reload: loadAppointments
     }

@@ -136,6 +136,9 @@ export function AppointmentsView() {
         appointment={appointmentsView.selectedAppointment}
         onClose={appointmentsView.actions.closeDetailsModal}
         onReschedule={appointmentsView.actions.openRescheduleModal}
+        onCancel={async (apt, reason) => {
+          await appointmentsView.actions.cancelAppointment(apt.id, reason);
+        }}
       />
     </div>
   );

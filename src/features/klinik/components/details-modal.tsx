@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -18,9 +18,28 @@ export interface DetailsModalProps {
   appointment: Appointment | null;
   onClose: () => void;
   onReschedule?: (appointment: Appointment) => void;
+  onCancel?: (appointment: Appointment, reason?: string) => Promise<void> | void;
 }
 
-export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: DetailsModalProps) {
+export function DetailsModal({
+  isOpen,
+  appointment,
+  onClose,
+  onReschedule,
+  onCancel
+}: DetailsModalProps) {
+  const [isConfirmingCancel, setIsConfirmingCancel] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [isCancelling, setIsCancelling] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setIsConfirmingCancel(false);
+      setCancelReason('');
+      setIsCancelling(false);
+    }
+  }, [isOpen]);
+
   if (!appointment) return null;
 
   const doctor: Doctor = getDoctorByName(appointment.doctor_name) || {
@@ -95,6 +114,33 @@ export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: Det
   const serviceName = appointment.service || doctor.spec || '-';
   const complaintText = appointment.complaint || '-';
 
+  const isCancelled =
+    appointment.status === 'Batal' ||
+    appointment.status === 'CANCELLED' ||
+    appointment.status === 'Tidak Hadir' ||
+    appointment.status === 'NO_SHOW';
+  const isCompleted =
+    appointment.status === 'Selesai' ||
+    appointment.status === 'COMPLETED' ||
+    appointment.status === 'Sedang Diperiksa' ||
+    appointment.status === 'IN_SERVICE';
+  const canCancel = !isCancelled && !isCompleted;
+  const canReschedule = !isCancelled && !isCompleted;
+
+  const handleConfirmCancel = async () => {
+    if (!onCancel || !appointment) return;
+    setIsCancelling(true);
+    try {
+      await onCancel(appointment, cancelReason.trim() || undefined);
+      setIsConfirmingCancel(false);
+      setCancelReason('');
+    } catch {
+      // handled in parent
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
   return (
     <ModalWrapper
       isOpen={isOpen}
@@ -103,46 +149,18 @@ export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: Det
       showCloseButton={false}
     >
       <div className='relative font-sans space-y-3.5'>
-        {/* 1. Doctor Identity Header & Status in Top-Right Position */}
-        <div className='flex items-start justify-between gap-4 pb-3 border-b border-border/40'>
-          <div className='flex items-center gap-4 min-w-0 flex-1'>
-            <div className='size-16 min-w-[64px] min-h-[64px] rounded-full overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square'>
-              <DoctorAvatar name={doctor.name} avatarUrl={doctor.avatar} size={64} />
-            </div>
-            <div className='flex flex-col items-start min-w-0 flex-1 space-y-0.5'>
-              <h3 className='text-base sm:text-lg font-bold text-foreground truncate w-full tracking-tight'>
-                {doctor.name || '-'}
-              </h3>
-              <p className='text-sm font-medium text-muted-foreground truncate w-full'>
-                {doctorSpecialty}
-              </p>
-            </div>
+        {/* 1. Doctor Identity Header */}
+        <div className='flex items-center gap-4 pb-3 border-b border-border/40'>
+          <div className='size-16 min-w-[64px] min-h-[64px] rounded-full overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square'>
+            <DoctorAvatar name={doctor.name} avatarUrl={doctor.avatar} size={64} />
           </div>
-
-          {/* Status Badge in place of the old close button */}
-          <div className='shrink-0 pt-0.5'>
-            <div
-              className={cn(
-                'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-sm select-none shadow-none',
-                statusConfig.pillBg,
-                statusConfig.pillBorder
-              )}
-            >
-              <span
-                className={cn(
-                  'size-2 rounded-full shrink-0 ring-1 ring-white/60 dark:ring-white/20',
-                  statusConfig.dotGradient
-                )}
-              />
-              <span
-                className={cn(
-                  'bg-clip-text text-transparent font-bold tracking-tight',
-                  statusConfig.textGradient
-                )}
-              >
-                {statusConfig.label}
-              </span>
-            </div>
+          <div className='flex flex-col items-start min-w-0 flex-1 space-y-0.5'>
+            <h3 className='text-base sm:text-lg font-bold text-foreground truncate w-full tracking-tight'>
+              {doctor.name || '-'}
+            </h3>
+            <p className='text-sm font-medium text-muted-foreground truncate w-full'>
+              {doctorSpecialty}
+            </p>
           </div>
         </div>
 
@@ -187,7 +205,7 @@ export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: Det
           </div>
         </div>
 
-        {/* 4. Patient & Service Details Grid (Symmetrical 2x2, Underline Style) */}
+        {/* 4. Patient & Service Details Grid (Symmetrical 3x2, Underline Style) */}
         <div className='grid grid-cols-2 gap-y-3 gap-x-5'>
           <div className='border-b border-border/40 pb-2'>
             <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
@@ -224,6 +242,43 @@ export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: Det
               {displayLocation}
             </span>
           </div>
+
+          <div className='border-b border-border/40 pb-2'>
+            <span className='text-xs font-normal text-muted-foreground block mb-1'>
+              Status Janji Temu
+            </span>
+            <div
+              className={cn(
+                'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-sm select-none shadow-none',
+                statusConfig.pillBg,
+                statusConfig.pillBorder
+              )}
+            >
+              <span
+                className={cn(
+                  'size-2 rounded-full shrink-0 ring-1 ring-white/60 dark:ring-white/20',
+                  statusConfig.dotGradient
+                )}
+              />
+              <span
+                className={cn(
+                  'bg-clip-text text-transparent font-bold tracking-tight',
+                  statusConfig.textGradient
+                )}
+              >
+                {statusConfig.label}
+              </span>
+            </div>
+          </div>
+
+          <div className='border-b border-border/40 pb-2'>
+            <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+              Tipe Kunjungan
+            </span>
+            <span className='text-sm font-semibold text-foreground block truncate'>
+              {visitType}
+            </span>
+          </div>
         </div>
 
         {/* 5. Medical Complaint (Amanah Minimalist Underline Style) */}
@@ -238,35 +293,105 @@ export function DetailsModal({ isOpen, appointment, onClose, onReschedule }: Det
           <MedicalIntakeSummary intake={appointment.medical_intake} />
         ) : null}
 
+        {/* 6. Inline Cancellation Confirmation Box */}
+        {isConfirmingCancel && (
+          <div className='p-3.5 rounded-xl bg-destructive/5 border border-destructive/20 space-y-3 animate-in fade-in-50 duration-200'>
+            <div className='flex items-center gap-2 text-destructive font-bold text-xs'>
+              <Icons.warning className='size-4 shrink-0' />
+              <span>Konfirmasi Pembatalan Janji Temu</span>
+            </div>
+            <p className='text-xs text-muted-foreground leading-relaxed'>
+              Apakah Anda yakin ingin membatalkan janji temu ini? 1 slot kuota jadwal praktik dokter akan dikembalikan secara otomatis.
+            </p>
+            <div className='space-y-1.5'>
+              <label
+                htmlFor='cancel-reason-input'
+                className='text-xs font-semibold text-foreground block'
+              >
+                Alasan Pembatalan (Opsional)
+              </label>
+              <textarea
+                id='cancel-reason-input'
+                rows={2}
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder='Masukkan alasan pembatalan (misal: Berhalangan hadir karena ada keperluan mendesak)...'
+                className='w-full text-xs p-2.5 rounded-lg border border-border bg-card text-foreground focus:outline-none focus:ring-1 focus:ring-destructive'
+              />
+            </div>
+            <div className='flex items-center justify-end gap-2 pt-1'>
+              <Button
+                type='button'
+                variant='outline'
+                size='sm'
+                shape='pill'
+                onClick={() => setIsConfirmingCancel(false)}
+                disabled={isCancelling}
+                className='text-xs'
+              >
+                Kembali
+              </Button>
+              <Button
+                type='button'
+                variant='destructive'
+                size='sm'
+                shape='pill'
+                onClick={handleConfirmCancel}
+                disabled={isCancelling}
+                className='text-xs font-bold'
+              >
+                {isCancelling ? 'Membatalkan...' : 'Ya, Batalkan'}
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* 7. Modal Action Buttons */}
-        <div className='pt-2 flex items-center justify-end gap-3'>
-          {onReschedule && (
+        {!isConfirmingCancel && (
+          <div className='pt-2 flex items-center justify-between gap-3'>
             <Button
               type='button'
               variant='outline'
               shape='pill'
               size='default'
-              onClick={() => {
-                onClose();
-                onReschedule(appointment);
-              }}
-              className='px-5 font-medium'
+              onClick={onClose}
+              className='px-6 font-semibold'
             >
-              Reschedule
+              Tutup
             </Button>
-          )}
 
-          <Button
-            type='button'
-            variant='default'
-            shape='pill'
-            size='default'
-            onClick={onClose}
-            className='px-7 font-semibold'
-          >
-            Tutup
-          </Button>
-        </div>
+            <div className='flex items-center gap-2.5'>
+              {canCancel && onCancel && (
+                <Button
+                  type='button'
+                  variant='destructive'
+                  shape='pill'
+                  size='default'
+                  onClick={() => setIsConfirmingCancel(true)}
+                  className='px-5 font-medium'
+                >
+                  Batalkan
+                </Button>
+              )}
+
+              {canReschedule && onReschedule && (
+                <Button
+                  type='button'
+                  variant='outline'
+                  shape='pill'
+                  size='default'
+                  onClick={() => {
+                    onClose();
+                    onReschedule(appointment);
+                  }}
+                  className='px-5 font-medium'
+                >
+                  Reschedule
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </ModalWrapper>
   );

@@ -49,6 +49,14 @@ export function useNotificationSocket(callbacks?: {
 
     socket.on('notification:new', (notification: BackendNotification) => {
       reconcile();
+      queryClient.invalidateQueries({ queryKey: ['schedules'] });
+      queryClient.invalidateQueries({ queryKey: ['doctor-schedules'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-doctor-schedules'] });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('clinic:notification_received', { detail: notification })
+        );
+      }
       if (notification?.title) {
         toast.info(notification.title, {
           description: notification.body || undefined

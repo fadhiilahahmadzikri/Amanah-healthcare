@@ -131,6 +131,51 @@ async function runE2EVerification() {
   const postCountData = (await postCountRes.json()) as { unreadCount: number };
   console.log(`REST post-mark unreadCount: ${postCountData.unreadCount}`);
 
+  console.log('--- [Step 9] Authenticating Patient & Testing Patient Cancellation ---');
+  const patientLoginRes = await fetch(`${API_BASE}/api/v1/auth/email/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: 'pasien@amanah.com',
+      password: 'secret123'
+    })
+  });
+  const patientLoginData = (await patientLoginRes.json()) as { token: string };
+  const patientToken = patientLoginData.token;
+
+  const cancelNotifications: any[] = [];
+  const cancelListener = (data: any) => {
+    cancelNotifications.push(data);
+  };
+  socket.on('notification:new', cancelListener);
+
+  const cancelRes = await fetch(`${API_BASE}/api/v1/appointments/${createdAppointment.id}/cancel`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${patientToken}`
+    },
+    body: JSON.stringify({ reason: 'Pasien ada keperluan mendesak di luar kota' })
+  });
+
+  console.log(`Patient cancel appointment HTTP status: ${cancelRes.status}`);
+
+  const cancelWaitStart = Date.now();
+  while (cancelNotifications.length === 0 && Date.now() - cancelWaitStart < 6000) {
+    await new Promise((r) => setTimeout(r, 200));
+  }
+
+  if (cancelNotifications.length > 0) {
+    console.log(
+      '>> [ADMIN RECEIVED CANCELLATION NOTIFICATION]:',
+      JSON.stringify(cancelNotifications[cancelNotifications.length - 1], null, 2)
+    );
+    console.log('PASS: Admin received real-time cancellation notification when patient cancelled!');
+  } else {
+    throw new Error('Cancellation notification was not received by admin within 6s.');
+  }
+
+  socket.off('notification:new', cancelListener);
   socket.disconnect();
   console.log('--- [ALL E2E CHECKS COMPLETED] ---');
 }
