@@ -4,16 +4,11 @@ import {
   getAdminAppointmentSummary,
   getAdminAppointmentById
 } from './service';
+import { appointmentKeys } from './query-keys';
 import type { AdminAppointment, AppointmentFilters } from './types';
 
 export type { AdminAppointment };
-
-export const appointmentKeys = {
-  all: ['admin-appointments'] as const,
-  list: (filters: AppointmentFilters) => [...appointmentKeys.all, 'list', filters] as const,
-  summary: () => [...appointmentKeys.all, 'summary'] as const,
-  detail: (id: number | string) => [...appointmentKeys.all, 'detail', id] as const
-};
+export { appointmentKeys };
 
 export const appointmentQueryOptions = (filters: AppointmentFilters) =>
   queryOptions({
