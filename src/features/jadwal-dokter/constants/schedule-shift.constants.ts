@@ -62,7 +62,6 @@ export const SCHEDULE_QUERY_KEYS = {
   SCHEDULES: 'schedules',
   PRACTITIONERS: 'clinical-practitioners',
   APPOINTMENTS: 'appointments',
-  BOOTSTRAP: 'schedule-form-bootstrap',
   SLOT_AVAILABILITY: 'schedule-slot-availability',
   OCCUPANCY_OVERVIEW: 'schedule-occupancy-overview'
 } as const;

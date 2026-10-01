@@ -18,7 +18,6 @@ import {
   scheduleProjectionResponseSchema,
   callAppointmentResponseSchema,
   completeAppointmentResponseSchema,
-  scheduleFormBootstrapResponseSchema,
   scheduleSlotAvailabilityResponseSchema
 } from './doctor-schedules.dto';
 
@@ -509,71 +508,6 @@ describe('Admin Doctor Schedules Contract DTOs', () => {
     expect(parsed.data.targetValidation?.projectedEndTime).toBe('12:00');
     expect(parsed.data.targetSimulation?.availableSlotCount).toBe(12);
     expect(parsed.data.affectedPatients).toHaveLength(1);
-  });
-
-  it('validates scheduleFormBootstrapResponseSchema with 4 canonical shifts', () => {
-    const bootstrapPayload = {
-      date: '2026-09-25',
-      doctor: {
-        id: 'doc-uuid-001',
-        name: 'drg. Sarah Jenkins, Sp.KG',
-        defaultRoomId: 'room-uuid-01',
-        defaultRoomName: 'Ruang Poli Gigi 1',
-        defaultPoliklinikId: 'poli-uuid-01',
-        defaultPoliklinikName: 'Poli Gigi & Mulut',
-        consultationDurationMinutes: 30
-      },
-      rooms: [
-        { id: 'room-uuid-01', name: 'Ruang Poli Gigi 1', isOccupied: false },
-        { id: 'room-uuid-02', name: 'Ruang Poli Gigi 2', isOccupied: true, occupiedBy: 'dr. Budi' }
-      ],
-      polikliniks: [{ id: 'poli-uuid-01', name: 'Poli Gigi & Mulut' }],
-      shifts: [
-        {
-          id: 'dini_hari',
-          code: 'DINI_HARI',
-          name: 'Sesi Dini Hari',
-          startTime: '00:00',
-          endTime: '06:00',
-          isPast: true,
-          existingSchedule: null
-        },
-        {
-          id: 'pagi',
-          code: 'PAGI',
-          name: 'Sesi Pagi',
-          startTime: '08:00',
-          endTime: '11:30',
-          isPast: true,
-          existingSchedule: null
-        },
-        {
-          id: 'siang',
-          code: 'SIANG',
-          name: 'Sesi Siang',
-          startTime: '13:00',
-          endTime: '16:30',
-          isPast: true,
-          existingSchedule: null
-        },
-        {
-          id: 'malam',
-          code: 'MALAM',
-          name: 'Sesi Malam',
-          startTime: '18:00',
-          endTime: '24:00',
-          isPast: false,
-          existingSchedule: null
-        }
-      ]
-    };
-
-    const parsed = scheduleFormBootstrapResponseSchema.parse(bootstrapPayload);
-    expect(parsed.date).toBe('2026-09-25');
-    expect(parsed.doctor?.name).toBe('drg. Sarah Jenkins, Sp.KG');
-    expect(parsed.rooms).toHaveLength(2);
-    expect(parsed.shifts).toHaveLength(4);
-    expect(parsed.shifts[3].isPast).toBe(false);
   });
 
   it('validates scheduleSlotAvailabilityResponseSchema with 12 pre-rendered slots', () => {

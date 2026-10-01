@@ -1125,62 +1125,6 @@ export const scheduleReferenceOptionsResponseSchema = z.union([
 ]);
 export type ScheduleReferenceOptionsResponse = ScheduleReferenceOptionsData;
 
-// Form Bootstrap DTO (SSOT for doctor preferences, active rooms, polikliniks, and 4 canonical shifts)
-export const scheduleFormBootstrapShiftSchema = z.object({
-  id: z.string(),
-  code: z.string(),
-  name: z.string(),
-  startTime: z.string(),
-  endTime: z.string(),
-  isPast: z.boolean().optional().default(false),
-  existingSchedule: z.any().nullable().optional()
-});
-export type ScheduleFormBootstrapShift = z.infer<typeof scheduleFormBootstrapShiftSchema>;
-
-export const scheduleFormBootstrapDataSchema = z.object({
-  date: z.string(),
-  doctor: z
-    .object({
-      id: z.string(),
-      name: z.string(),
-      defaultRoomId: z.string().nullable().optional(),
-      defaultRoomName: z.string().nullable().optional(),
-      defaultPoliklinikId: z.string().nullable().optional(),
-      defaultPoliklinikName: z.string().nullable().optional(),
-      consultationDurationMinutes: z.number().optional().default(30)
-    })
-    .optional(),
-  rooms: z.array(
-    z.object({
-      id: z.string(),
-      name: z.string(),
-      isOccupied: z.boolean().optional().default(false),
-      occupiedBy: z.string().nullable().optional(),
-      location: z.string().nullable().optional(),
-      floor: z.union([z.string(), z.number()]).nullable().optional()
-    })
-  ),
-  polikliniks: z.array(
-    z.object({
-      id: z.string(),
-      name: z.string()
-    })
-  ),
-  shifts: z.array(scheduleFormBootstrapShiftSchema)
-});
-export type ScheduleFormBootstrapData = z.infer<typeof scheduleFormBootstrapDataSchema>;
-
-export const scheduleFormBootstrapResponseSchema = z.union([
-  z
-    .object({
-      success: z.boolean().optional(),
-      data: scheduleFormBootstrapDataSchema
-    })
-    .transform((val) => val.data),
-  scheduleFormBootstrapDataSchema
-]);
-export type ScheduleFormBootstrapResponse = ScheduleFormBootstrapData;
-
 // Slot Availability Matrix DTO (Deterministic 12-slot Pre-Rendered Dropdown)
 export const scheduleSlotConflictSchema = z.object({
   type: z.string(),

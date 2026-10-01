@@ -52,9 +52,7 @@ import {
   scheduleReferenceOptionsResponseSchema,
   type ScheduleProjectionResponse,
   type ScheduleReferenceOptionsResponse,
-  scheduleFormBootstrapResponseSchema,
   scheduleSlotAvailabilityResponseSchema,
-  type ScheduleFormBootstrapResponse,
   type ScheduleSlotAvailabilityResponse
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 import { z } from 'zod';
@@ -582,32 +580,6 @@ export async function updateScheduleDaySettings(
     {
       method: 'PUT',
       body: payload,
-      tokenOverride: token,
-      cache: 'no-store'
-    }
-  );
-
-  return response;
-}
-
-export async function fetchScheduleFormBootstrap(params: {
-  date: string;
-  scheduleId?: string;
-  staffId?: string;
-}): Promise<ScheduleFormBootstrapResponse> {
-  const token = await resolveActiveToken();
-  const query: Record<string, unknown> = {
-    date: params.date
-  };
-  if (params.scheduleId) query.scheduleId = params.scheduleId;
-  if (params.staffId) query.staffId = params.staffId;
-
-  const response = await httpClient.request(
-    paths.schedules.formBootstrap(),
-    scheduleFormBootstrapResponseSchema,
-    {
-      method: 'GET',
-      query,
       tokenOverride: token,
       cache: 'no-store'
     }

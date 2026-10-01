@@ -13,7 +13,6 @@ import type {
   AdminSessionPatientsData,
   ScheduleContextsResponse,
   ScheduleProjectionResponse,
-  ScheduleFormBootstrapResponse,
   ScheduleSlotAvailabilityResponse
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 
@@ -260,25 +259,6 @@ export async function getScheduleContexts(
   return (Array.isArray(res) ? res : []) as ScheduleContextsResponse;
 }
 
-export async function getScheduleFormBootstrap(
-  params?: Record<string, unknown>
-): Promise<ScheduleFormBootstrapResponse> {
-  const qs = new URLSearchParams();
-  if (params) {
-    for (const [k, v] of Object.entries(params)) {
-      if (v !== undefined && v !== null) qs.set(k, String(v));
-    }
-  }
-  const q = qs.toString();
-  const res = await clientFetch<
-    ScheduleFormBootstrapResponse | { data?: ScheduleFormBootstrapResponse }
-  >(`/api/v1/admin/doctor-schedules/form-bootstrap${q ? `?${q}` : ''}`);
-  if (res && 'data' in res && res.data) {
-    return res.data;
-  }
-  return res as ScheduleFormBootstrapResponse;
-}
-
 export async function getScheduleSlotAvailability(
   params: Record<string, unknown>
 ): Promise<ScheduleSlotAvailabilityResponse> {
@@ -288,7 +268,7 @@ export async function getScheduleSlotAvailability(
   }
   const res = await clientFetch<
     ScheduleSlotAvailabilityResponse | { data?: ScheduleSlotAvailabilityResponse }
-  >(`/api/v1/admin/doctor-schedules/slot-availability?${qs.toString()}`);
+  >(`/api/v1/schedules/slot-availability?${qs.toString()}`);
   if (res && 'data' in res && res.data) {
     return res.data;
   }
@@ -296,10 +276,13 @@ export async function getScheduleSlotAvailability(
 }
 
 export async function createDoctorSession(
-  _doctorId: string,
+  doctorId: string,
   payload: unknown
 ): Promise<ApiMessageResponse> {
-  return await clientFetch<ApiMessageResponse>('/api/v1/admin/doctor-schedules/sessions', {
+  const url = doctorId
+    ? `/api/v1/admin/doctor-schedules/${doctorId}/sessions`
+    : '/api/v1/admin/doctor-schedules/sessions';
+  return await clientFetch<ApiMessageResponse>(url, {
     method: 'POST',
     body: JSON.stringify(payload)
   });

@@ -8,7 +8,7 @@ import { DataTable } from '@/components/ui/table/data-table';
 import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
 import { doctorScheduleQueryOptions } from '../../api/queries';
 import { getColumns } from './columns';
-import { DoctorScheduleDetailModal } from '../doctor-schedule-detail-modal';
+import { DoctorScheduleDetailSheet } from '../doctor-schedule-detail-sheet';
 import { DoctorRescheduleSessionModal } from '../doctor-reschedule-session-modal';
 import { DoctorExportButton } from '../doctor-export-button';
 import type { DoctorSchedule } from '../../api/types';
@@ -71,7 +71,7 @@ export function DoctorScheduleTable() {
 
   return (
     <>
-      <DoctorScheduleDetailModal
+      <DoctorScheduleDetailSheet
         doctor={selectedDoctor}
         isOpen={detailOpen}
         onClose={() => setDetailOpen(false)}

@@ -25,7 +25,6 @@ import {
   callPatientAppointment,
   completePatientAppointment,
   updateScheduleDaySettings,
-  fetchScheduleFormBootstrap,
   fetchScheduleSlotAvailability
 } from './doctor-schedule-service';
 import type {
@@ -212,14 +211,6 @@ export async function completePatientAppointmentAction(appointmentId: string) {
 
 export async function updateScheduleDaySettingsAction(payload: ScheduleDaySettingsPayload) {
   return updateScheduleDaySettings(payload);
-}
-
-export async function getScheduleFormBootstrapAction(params: {
-  date: string;
-  scheduleId?: string;
-  staffId?: string;
-}) {
-  return fetchScheduleFormBootstrap(params);
 }
 
 export async function getScheduleSlotAvailabilityAction(params: {

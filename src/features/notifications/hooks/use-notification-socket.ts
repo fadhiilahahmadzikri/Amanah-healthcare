@@ -60,6 +60,9 @@ export function useNotificationSocket(callbacks?: {
       queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all });
       queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES] });
       queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.APPOINTMENTS] });
+      void queryClient.refetchQueries({ queryKey: doctorScheduleKeys.all, type: 'active' });
+      void queryClient.refetchQueries({ queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES], type: 'active' });
+      void queryClient.refetchQueries({ queryKey: appointmentKeys.all, type: 'active' });
       if (typeof window !== 'undefined') {
         window.dispatchEvent(
           new CustomEvent('clinic:notification_received', { detail: notification })
@@ -73,7 +76,7 @@ export function useNotificationSocket(callbacks?: {
       callbacksRef.current?.onNewNotification?.(notification);
     });
 
-    socket.on('notification:read', (data?: { id?: string; all?: boolean }) => {
+    socket.on('notification:read', (_data?: { id?: string; all?: boolean }) => {
       reconcile();
     });
 

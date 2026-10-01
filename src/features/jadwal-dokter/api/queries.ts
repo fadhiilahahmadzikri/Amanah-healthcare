@@ -10,7 +10,6 @@ import {
   getScheduleProjection,
   getScheduleReferenceOptions,
   getScheduleContexts,
-  getScheduleFormBootstrap,
   getScheduleSlotAvailability
 } from './service';
 import { doctorScheduleKeys } from './query-keys';
@@ -51,8 +50,8 @@ export const clinicRoomsQueryOptions = (params?: {
   queryOptions({
     queryKey: ['schedules', 'reference-rooms', params] as const,
     queryFn: () => getClinicRooms(params),
-    staleTime: 60 * 1000,
-    gcTime: 5 * 60 * 1000
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000
   });
 
 export const doctorOccupancyOverviewQueryOptions = (params: {
@@ -145,25 +144,6 @@ export const scheduleContextsQueryOptions = (date?: string) =>
     enabled: Boolean(date && date.trim().length > 0)
   });
 
-export const scheduleFormBootstrapQueryOptions = (params: {
-  date: string;
-  scheduleId?: string;
-  staffId?: string;
-}) =>
-  queryOptions({
-    queryKey: [
-      'schedules',
-      'form-bootstrap',
-      params.date,
-      params.scheduleId,
-      params.staffId
-    ] as const,
-    queryFn: () => getScheduleFormBootstrap(params),
-    staleTime: 10 * 1000,
-    gcTime: 5 * 60 * 1000,
-    enabled: Boolean(params.date && params.date.trim().length > 0)
-  });
-
 export const scheduleSlotAvailabilityQueryOptions = (params: {
   date: string;
   shift: string;
@@ -182,8 +162,8 @@ export const scheduleSlotAvailabilityQueryOptions = (params: {
       params.staffId
     ] as const,
     queryFn: () => getScheduleSlotAvailability(params),
-    staleTime: 5 * 1000,
-    gcTime: 2 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     enabled: Boolean(
       params.date &&
       params.shift &&
