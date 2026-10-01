@@ -109,12 +109,17 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
       scheduled_end_time: endTimeFormatted || undefined,
       date: apt.appointmentDate,
       time: timeDisplay,
+      session: apt.session || undefined,
       complaint: apt.complaint || '-',
       status: uiStatus,
       visit_type: apt.visitType || '',
       service: apt.layananName || '',
       created_at: apt.createdAt,
-      queue_number: apt.queueNumber || '-'
+      queue_number: apt.queueNumber || '-',
+      doctor_id: apt.staffId,
+      staff_id: apt.staffId,
+      poliklinik_id: apt.poliklinikId,
+      layanan_id: apt.layananId
     };
   }, []);
 

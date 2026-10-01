@@ -36,6 +36,8 @@ export interface DoctorRescheduleSessionModalProps {
   onClose: () => void;
   portalContainerRef?: React.RefObject<HTMLElement | null>;
   initialDate?: string;
+  /** The specific grid slot's start time (HH:mm) the admin hovered on. Pre-populates targetStartTime and shown in the session info card. */
+  initialStartTime?: string;
 }
 
 // 48 discrete intervals covering 24 hours
@@ -51,7 +53,8 @@ export function DoctorRescheduleSessionModal({
   isOpen,
   onClose,
   portalContainerRef,
-  initialDate
+  initialDate,
+  initialStartTime
 }: DoctorRescheduleSessionModalProps) {
   const rescheduleMutation = useRescheduleDoctorSessionMutation();
 
@@ -85,7 +88,7 @@ export function DoctorRescheduleSessionModal({
 
   useEffect(() => {
     if (session) {
-      setTargetStartTime('');
+      setTargetStartTime(initialStartTime || '');
       setNotes('');
       setRescheduleActiveAppointments(true);
       if (initialDate) {
@@ -96,7 +99,7 @@ export function DoctorRescheduleSessionModal({
         setTargetDate(tomorrow.toISOString().split('T')[0]);
       }
     }
-  }, [session, initialDate]);
+  }, [session, initialDate, initialStartTime]);
 
   // Set default targetRoomId to the session's current room if matched
   useEffect(() => {
@@ -243,7 +246,12 @@ export function DoctorRescheduleSessionModal({
             <div className='flex items-center gap-1.5 font-semibold text-foreground truncate'>
               <Icons.calendar className='size-3.5 text-primary shrink-0' />
               <span>
-                {session.nama_sesi} ({session.jam_mulai} - {session.jam_selesai} WIB)
+                {session.nama_sesi}
+                {initialStartTime ? (
+                  <> &bull; <span className='font-mono'>{initialStartTime} WIB</span></>
+                ) : (
+                  <> ({session.jam_mulai} - {session.jam_selesai} WIB)</>
+                )}
               </span>
             </div>
             <StatusBadge status={session.status_sesi} size='sm' className='shrink-0' />

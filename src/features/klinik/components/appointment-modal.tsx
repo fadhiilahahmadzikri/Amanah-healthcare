@@ -55,6 +55,8 @@ export function AppointmentModal({
     selectedPatient,
     activeMedicalFlow,
     setActiveMedicalFlow,
+    rescheduleStaffId,
+    reschedulePoliklinikId,
     isSubmitting,
     isQueueSuccessOpen,
     setIsQueueSuccessOpen,
@@ -173,6 +175,8 @@ export function AppointmentModal({
                 timeSlot={timeSlot}
                 setTimeSlot={setTimeSlot}
                 onSelectSessionId={setSelectedSessionId}
+                staffId={rescheduleStaffId}
+                poliklinikId={reschedulePoliklinikId}
               />
             )}
 
@@ -334,6 +338,7 @@ export function AppointmentModal({
                     variant='primary'
                     size='md'
                     shape='pill'
+                    disabled={!timeSlot}
                     onClick={() => (mode === 'edit' ? setStep('confirmation') : setStep('visit_type'))}
                     withTrailingCircleIcon={true}
                     className='min-w-[140px]'

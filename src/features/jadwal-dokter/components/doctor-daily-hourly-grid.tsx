@@ -252,6 +252,7 @@ export function DoctorDailyHourlyGrid({
   const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
   const [selectedSessionForReschedule, setSelectedSessionForReschedule] =
     useState<DoctorDailySession | null>(null);
+  const [selectedSlotStartTime, setSelectedSlotStartTime] = useState<string | undefined>(undefined);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<DoctorDailySession | null>(null);
@@ -342,9 +343,10 @@ export function DoctorDailyHourlyGrid({
     setIsDetailModalOpen(true);
   };
 
-  const handleOpenReschedule = (session: DoctorDailySession) => {
+  const handleOpenReschedule = (session: DoctorDailySession, slotStartTime?: string) => {
     setIsDetailModalOpen(false);
     setSelectedSessionForReschedule(session);
+    setSelectedSlotStartTime(slotStartTime);
     setIsRescheduleOpen(true);
   };
 
@@ -934,7 +936,7 @@ export function DoctorDailyHourlyGrid({
                                 type='button'
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleOpenReschedule(matchingSession);
+                                  handleOpenReschedule(matchingSession, slot.startTime);
                                 }}
                                 className='flex items-center gap-2 w-full px-2 py-1.5 rounded-lg text-xs font-semibold hover:bg-muted text-foreground transition-colors cursor-pointer text-left'
                               >
@@ -1103,9 +1105,11 @@ export function DoctorDailyHourlyGrid({
           onClose={() => {
             setIsRescheduleOpen(false);
             setSelectedSessionForReschedule(null);
+            setSelectedSlotStartTime(undefined);
           }}
           portalContainerRef={modalContainerRef}
           initialDate={`${activeYear}-${String(activeMonth + 1).padStart(2, '0')}-${String(activeDay).padStart(2, '0')}`}
+          initialStartTime={selectedSlotStartTime}
         />
       )}
 

@@ -38,11 +38,17 @@ export interface Appointment {
   scheduled_end_time?: string;
   date: string;
   time: string;
+  /** Canonical session shift from backend: DINI_HARI | PAGI | SIANG | MALAM */
+  session?: string;
   complaint: string;
   status: AppointmentStatus;
   visit_type?: string;
   service?: string;
   queue_number?: string;
+  doctor_id?: string;
+  staff_id?: string;
+  poliklinik_id?: string;
+  layanan_id?: string;
   medical_flow?: MedicalAppointmentFlow;
   medical_intake?: MedicalIntakeRecord;
   created_at: string;

@@ -200,7 +200,7 @@ export function getUpcomingScheduleTime(
   if (currentMatchingSlot) {
     hasActive = true;
     activeTime = `${currentMatchingSlot.startTime.replace(':', '.')} – ${currentMatchingSlot.endTime.replace(':', '.')}`;
-    isActiveClosed = !currentMatchingSlot.isOpen || !currentMatchingSlot.isAvailable;
+    isActiveClosed = !currentMatchingSlot.isOpen;
   } else if (sessions && sessions.length > 0 && allSlots.length === 0) {
     const activeSession = sessions.find(
       (s) =>
@@ -209,10 +209,7 @@ export function getUpcomingScheduleTime(
     );
     if (activeSession) {
       hasActive = true;
-      isActiveClosed =
-        activeSession.status_sesi?.toUpperCase() === 'CLOSED' ||
-        activeSession.status_sesi?.toUpperCase() === 'TUTUP' ||
-        activeSession.status_sesi?.toUpperCase() === 'CUTI';
+      isActiveClosed = isSlotClosed({ status: activeSession.status_sesi });
       const sStart = parseTimeToMinutes(activeSession.jam_mulai);
       const offset = Math.floor((currentMinutes - sStart) / 30) * 30;
       const winStart = sStart + offset;

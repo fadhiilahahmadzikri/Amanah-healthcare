@@ -119,6 +119,43 @@ export interface BookingOptionShift {
   practitioners: BookingPractitioner[];
 }
 
+export interface RescheduleShiftOption {
+  sessionId: string;
+  startTime: string;
+  endTime: string;
+  shift: string;
+  sessionShift: string;
+  availableSlots: number;
+  capacity: number;
+  isAvailable: boolean;
+}
+
+export interface RescheduleDateOption {
+  date: string;
+  shifts: RescheduleShiftOption[];
+}
+
+export interface RescheduleOptionsResponse {
+  appointmentId: string;
+  currentDate: string;
+  currentStartTime?: string | null;
+  currentEndTime?: string | null;
+  patient: {
+    id: string;
+    name: string;
+  };
+  doctor: {
+    id: string;
+    name: string;
+    specialization: string;
+  };
+  service: {
+    id: string;
+    name: string;
+  };
+  availableDates: RescheduleDateOption[];
+}
+
 export interface CreateAppointmentPayload {
   patientId: string;
   poliklinikId: string;
@@ -195,11 +232,18 @@ export const patientAffiliationService = {
     }
   },
 
-  async getBookingOptions(date: string, poliklinikId?: string): Promise<BookingOptionShift[]> {
+  async getBookingOptions(
+    date: string,
+    poliklinikId?: string,
+    staffId?: string
+  ): Promise<BookingOptionShift[]> {
     try {
       const params = new URLSearchParams({ date });
       if (poliklinikId) {
         params.append('poliklinikId', poliklinikId);
+      }
+      if (staffId) {
+        params.append('staffId', staffId);
       }
       const res = await clientFetch<{
         success?: boolean;
@@ -277,6 +321,23 @@ export const patientAffiliationService = {
     });
     if ('data' in res && res.data) return res.data;
     return res as BackendAppointmentItem;
+  },
+
+  async getRescheduleOptions(appointmentId: string): Promise<RescheduleOptionsResponse | null> {
+    try {
+      const res = await clientFetch<{
+        success?: boolean;
+        data?: RescheduleOptionsResponse;
+      } | RescheduleOptionsResponse>(`/api/v1/appointments/${appointmentId}/reschedule-options`);
+      if (res && typeof res === 'object') {
+        if ('data' in res && res.data) return res.data;
+        if ('appointmentId' in res) return res as RescheduleOptionsResponse;
+      }
+      return null;
+    } catch (err) {
+      console.error('Failed to get reschedule options:', err);
+      return null;
+    }
   },
 
   async cancelAppointment(appointmentId: string, reason = 'Dibatalkan oleh pasien'): Promise<void> {

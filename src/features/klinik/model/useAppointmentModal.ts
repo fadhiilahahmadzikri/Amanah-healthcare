@@ -71,6 +71,8 @@ export function useAppointmentModal({
 
   // Submission & Queue Ticket Modal
   const [selectedSessionId, setSelectedSessionId] = useState<string>('');
+  const [rescheduleStaffId, setRescheduleStaffId] = useState<string>('');
+  const [reschedulePoliklinikId, setReschedulePoliklinikId] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isQueueSuccessOpen, setIsQueueSuccessOpen] = useState(false);
   const [createdAppointment, setCreatedAppointment] = useState<Appointment | null>(null);
@@ -128,15 +130,29 @@ export function useAppointmentModal({
         setStep('date');
         setDateStr(initialAppointment.date || defaultDateStr);
         setComplaint(initialAppointment.complaint || '');
-        if (initialAppointment.time?.includes('Siang')) setTimeSlot('SIANG');
-        else if (initialAppointment.time?.includes('Malam')) setTimeSlot('MALAM');
-        else setTimeSlot('PAGI');
+        setTimeSlot(initialAppointment.session || 'PAGI');
+
+        const initialDoctorId = initialAppointment.staff_id || initialAppointment.doctor_id || '';
+        const initialPoliId = initialAppointment.poliklinik_id || '';
+        setRescheduleStaffId(initialDoctorId);
+        setReschedulePoliklinikId(initialPoliId);
+
+        // Fetch canonical reschedule options to ensure 100% accurate doctor ID from backend SSOT
+        if (initialAppointment.id) {
+          patientAffiliationService.getRescheduleOptions(initialAppointment.id).then((options) => {
+            if (options?.doctor?.id) {
+              setRescheduleStaffId(options.doctor.id);
+            }
+          });
+        }
       } else {
         setStep('category');
         setSelectedService(null);
         setComplaint('');
         setDateStr(defaultDateStr);
         setTimeSlot('PAGI');
+        setRescheduleStaffId('');
+        setReschedulePoliklinikId('');
       }
       loadPatients();
     } else if (!isOpen && wasOpen) {
@@ -145,6 +161,8 @@ export function useAppointmentModal({
       setActiveMedicalFlow(null);
       setIsQueueSuccessOpen(false);
       setCreatedAppointment(null);
+      setRescheduleStaffId('');
+      setReschedulePoliklinikId('');
     }
   }, [isOpen, mode, initialAppointment, defaultDateStr, loadPatients]);
 
@@ -450,6 +468,8 @@ export function useAppointmentModal({
     isLoadingPatients,
     activeMedicalFlow,
     setActiveMedicalFlow,
+    rescheduleStaffId,
+    reschedulePoliklinikId,
     isSubmitting,
     isQueueSuccessOpen,
     setIsQueueSuccessOpen,

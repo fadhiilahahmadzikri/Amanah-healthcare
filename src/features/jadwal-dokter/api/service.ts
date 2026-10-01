@@ -332,24 +332,30 @@ export async function deleteDoctorSession(
 }
 
 export async function rescheduleDoctorSession(
-  _doctorId: string,
-  _sessionId: string,
+  doctorId: string,
+  sessionId: string,
   payload: unknown
 ): Promise<ApiMessageResponse> {
-  return await clientFetch<ApiMessageResponse>('/api/v1/admin/doctor-schedules/reschedule', {
-    method: 'POST',
-    body: JSON.stringify(payload)
-  });
+  return await clientFetch<ApiMessageResponse>(
+    `/api/v1/admin/doctor-schedules/${doctorId}/sessions/${sessionId}/reschedule`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }
+  );
 }
 
 export async function updateDoctorDuration(
-  _doctorId: string,
+  doctorId: string,
   payload: unknown
 ): Promise<ApiMessageResponse> {
-  return await clientFetch<ApiMessageResponse>('/api/v1/admin/doctor-schedules/duration', {
-    method: 'PATCH',
-    body: JSON.stringify(payload)
-  });
+  return await clientFetch<ApiMessageResponse>(
+    `/api/v1/admin/doctor-schedules/${doctorId}/duration`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    }
+  );
 }
 
 export async function cancelAppointment(
