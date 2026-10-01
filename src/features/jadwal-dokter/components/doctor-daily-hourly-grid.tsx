@@ -5,7 +5,6 @@ import { Icons } from '@/components/icons';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
-import { CustomCalendar } from '@/components/ui/custom-calendar';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule } from '../api/types';
 import type { HourlySlotStatus } from '../utils/shift-slot-builder';
@@ -15,7 +14,8 @@ import {
   DoctorGridHeader,
   DoctorGridMetrics,
   DoctorGridShiftSection,
-  DoctorGridLegend
+  DoctorGridLegend,
+  DoctorGridCalendarAccordion
 } from './grid';
 
 import { DoctorAddSessionModal, type ReturnDoctorContext } from './doctor-add-session-modal';
@@ -202,19 +202,13 @@ export function DoctorDailyHourlyGrid({
           onOpenAddSession={() => openAddSessionModal()}
         />
 
-        {isCalendarOpen && (
-          <div className='border-b border-border/40 bg-muted/15 p-3 sm:p-4 flex flex-col items-center justify-center animate-in fade-in-0 slide-in-from-top-2 duration-200'>
-            <div className='w-full max-w-[340px] bg-background rounded-2xl border border-border/60 p-3 shadow-xs'>
-              <CustomCalendar
-                value={formattedTargetDate}
-                onChange={(_iso, d) => {
-                  handleSelectDate(d);
-                  setIsCalendarOpen(false);
-                }}
-              />
-            </div>
-          </div>
-        )}
+        <DoctorGridCalendarAccordion
+          isOpen={isCalendarOpen}
+          formattedTargetDate={formattedTargetDate}
+          activeYear={activeYear}
+          onSelectDate={handleSelectDate}
+          onClose={() => setIsCalendarOpen(false)}
+        />
 
         <DoctorGridMetrics
           doctor={doctor}

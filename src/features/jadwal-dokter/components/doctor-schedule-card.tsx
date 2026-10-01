@@ -131,7 +131,7 @@ export function DoctorScheduleCard({
       className={cn(
         'group relative overflow-hidden rounded-[24px] border border-border font-sans flex flex-col justify-between select-none transition-all duration-200 hover:border-primary/60 hover:shadow-md p-5 sm:p-6 min-h-[340px] text-card-foreground',
         isSelected &&
-          'ring-2 ring-primary ring-offset-2 ring-offset-background border-primary shadow-lg animate-pulse',
+          'ring-2 ring-primary/40 ring-offset-2 ring-offset-background border-primary/50 shadow-md',
         variant === 'elevated' && 'shadow-sm',
         variant === 'flat' && 'border-transparent shadow-none',
         className

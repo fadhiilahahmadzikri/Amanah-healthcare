@@ -263,7 +263,7 @@ export function CustomCalendar({
                 }
               }}
               className={cn(
-                'rounded-lg p-1.5 text-center font-medium transition-colors select-none',
+                'w-full rounded-lg p-1.5 sm:py-2 text-center font-medium transition-colors select-none',
                 isSelected
                   ? cn(
                       'bg-primary font-semibold text-primary-foreground hover:bg-primary/95 shadow-2xs',

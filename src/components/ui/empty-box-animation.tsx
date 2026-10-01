@@ -472,11 +472,13 @@ export function EmptyBoxAnimation({
       const width = rect.width;
       const height = rect.height;
 
-      // When a modal or mobile sheet is open, pause animation to prevent background movement
       const isModalOpen =
         typeof document !== 'undefined' && document.body.hasAttribute('data-scroll-locked');
+      const isInsideDialog = Boolean(
+        canvas.closest('[role="dialog"], [data-slot="dialog-content"], [data-slot="modal"]')
+      );
 
-      if (width === 0 || height === 0 || isModalOpen) {
+      if (width === 0 || height === 0 || (isModalOpen && !isInsideDialog)) {
         animFrameRef.current = requestAnimationFrame(render);
         return;
       }

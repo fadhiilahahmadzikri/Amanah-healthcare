@@ -126,7 +126,7 @@ export function DoctorGridShiftSection({
             </span>
           ) : (
             <>
-              {primaryShiftSession && (
+              {primaryShiftSession && (shift.registeredPatientsCount ?? shiftBookedCount) > 0 && (
                 <button
                   type='button'
                   onClick={() => onOpenPatients(primaryShiftSession)}
@@ -137,9 +137,7 @@ export function DoctorGridShiftSection({
                   <span>
                     {shift.registeredPatientsCount !== undefined
                       ? `${shift.registeredPatientsCount} Pasien`
-                      : shiftBookedCount > 0
-                        ? `${shiftBookedCount} Pasien`
-                        : '0 Pasien'}
+                      : `${shiftBookedCount} Pasien`}
                   </span>
                 </button>
               )}

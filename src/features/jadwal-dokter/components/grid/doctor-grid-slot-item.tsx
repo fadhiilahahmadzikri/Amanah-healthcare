@@ -180,7 +180,7 @@ export function DoctorGridSlotItem({
               <span className='truncate'>{matchingSession.nama_sesi}</span>
               <span className='font-mono text-[9.5px] shrink-0'>{slot.startTime}</span>
             </div>
-            {onOpenPatients && (
+            {onOpenPatients && (matchingSession.pasien_terdaftar ?? 0) > 0 && (
               <button
                 type='button'
                 onClick={(e) => {
