@@ -6,8 +6,10 @@ import {
   type ScheduleShift,
   type ScheduleUnavailableReason
 } from '../constants/schedule-shift.constants';
-import { isSessionShiftUnavailable } from '../utils/schedule-availability-guard';
-import { resolveCanonicalShift } from '../utils/shift-slot-builder';
+import {
+  isSessionShiftUnavailable,
+  parseTimeToMinutes
+} from '../utils/schedule-availability-guard';
 import type { DoctorDailySession } from '../api/types';
 
 export interface ShiftAvailabilityStatus {
@@ -31,41 +33,59 @@ export function evaluateShiftAvailability({
 
   for (const shift of ALL_SCHEDULE_SHIFTS) {
     const shiftBounds = SCHEDULE_SHIFT_BOUNDARIES[shift];
-    const hasExisting = existingSessions.some((s) => {
-      const canonical = resolveCanonicalShift(s.nama_sesi || s.jam_mulai);
-      return canonical === shift;
-    });
+    const shiftStartM = shiftBounds.startHour * 60;
+    const shiftEndM = shiftBounds.endHour * 60;
+    const totalShiftMinutes = shiftEndM - shiftStartM;
+
+    // Calculate minutes occupied by doctor's existing sessions within this shift boundary
+    let occupiedMinutes = 0;
+    for (const session of existingSessions) {
+      const sStart = parseTimeToMinutes(session.jam_mulai);
+      const sEnd = parseTimeToMinutes(session.jam_selesai);
+      if (sStart !== null && sEnd !== null) {
+        const overlap = Math.max(0, Math.min(sEnd, shiftEndM) - Math.max(sStart, shiftStartM));
+        occupiedMinutes += overlap;
+      }
+    }
+
+    const remainingMinutes = totalShiftMinutes - occupiedMinutes;
+    const isCompletelyFull = remainingMinutes < consultationDuration;
 
     const guard = isSessionShiftUnavailable({
       selectedDate,
       isPastFromBackend: false,
-      hasExistingSchedule: hasExisting,
       bounds: {
-        startMinutes: shiftBounds.startHour * 60,
-        endMinutes: shiftBounds.endHour * 60,
+        startMinutes: shiftStartM,
+        endMinutes: shiftEndM,
         defaultStart: shiftBounds.startTime,
         defaultEnd: shiftBounds.endTime
       },
       consultationDuration
     });
 
+    let isUnavailable = guard.unavailable;
+    let reason = guard.reason;
     let badgeLabel: string | null = null;
-    if (guard.unavailable) {
-      if (hasExisting) {
-        badgeLabel = 'Sudah Ada Jadwal';
-      } else if (
-        guard.reason === SCHEDULE_UNAVAILABLE_REASONS.PAST ||
-        guard.reason === SCHEDULE_UNAVAILABLE_REASONS.TIME_EXHAUSTED
+
+    if (!isUnavailable && isCompletelyFull) {
+      isUnavailable = true;
+      reason = SCHEDULE_UNAVAILABLE_REASONS.FULL;
+    }
+
+    if (isUnavailable) {
+      if (
+        reason === SCHEDULE_UNAVAILABLE_REASONS.PAST ||
+        reason === SCHEDULE_UNAVAILABLE_REASONS.TIME_EXHAUSTED
       ) {
         badgeLabel = 'Sudah Berlalu';
-      } else if (guard.reason === SCHEDULE_UNAVAILABLE_REASONS.FULL) {
+      } else if (reason === SCHEDULE_UNAVAILABLE_REASONS.FULL) {
         badgeLabel = 'Penuh';
       }
     }
 
     result[shift] = {
-      isUnavailable: guard.unavailable,
-      reason: guard.reason,
+      isUnavailable,
+      reason,
       badgeLabel
     };
   }

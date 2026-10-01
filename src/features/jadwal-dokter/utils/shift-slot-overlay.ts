@@ -3,7 +3,14 @@ import type {
   OccupancySlot
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 import type { DoctorDailySession } from '../api/types';
-import { SCHEDULE_STATUS } from '../constants/schedule-shift.constants';
+import {
+  SCHEDULE_STATUS,
+  AVAILABILITY_STATE,
+  EFFECTIVE_SLOT_STATUS,
+  SLOT_UI_STATUS,
+  SLOT_UI_VARIANT,
+  SLOT_ACTION_TYPE
+} from '../constants/schedule-shift.constants';
 
 /**
  * Pure, deterministic utility that reconciles doctor shifts with active sessions.
@@ -41,9 +48,9 @@ export function overlaySessionsOnShifts(
 
       // If slot is already configured and not UNSCHEDULED / ADD_SESSION, keep unless session is closed
       const isUnscheduled =
-        slot.status === 'UNSCHEDULED' ||
-        slot.availabilityState === 'UNSCHEDULED' ||
-        slot.actionType === 'ADD_SESSION';
+        slot.status === AVAILABILITY_STATE.UNSCHEDULED ||
+        slot.availabilityState === AVAILABILITY_STATE.UNSCHEDULED ||
+        slot.actionType === SLOT_ACTION_TYPE.ADD_SESSION;
 
       if (!isUnscheduled && slot.sessionId === matchingSession.id) {
         return slot;
@@ -64,13 +71,13 @@ export function overlaySessionsOnShifts(
       if (isDayCuti) {
         return {
           ...slot,
-          status: 'CLOSED_LEAVE',
-          effectiveStatus: 'CLOSED',
-          availabilityState: 'CLOSED',
-          uiStatus: 'CLOSED_LEAVE',
+          status: SLOT_UI_STATUS.CLOSED_LEAVE,
+          effectiveStatus: EFFECTIVE_SLOT_STATUS.CLOSED,
+          availabilityState: AVAILABILITY_STATE.CLOSED,
+          uiStatus: SLOT_UI_STATUS.CLOSED_LEAVE,
           uiLabel: 'Cuti',
-          uiVariant: 'sky_badge',
-          actionType: 'NONE',
+          uiVariant: SLOT_UI_VARIANT.SKY_BADGE,
+          actionType: SLOT_ACTION_TYPE.NONE,
           isClickable: false,
           isSelectable: false,
           sessionId: matchingSession.id,
@@ -82,13 +89,13 @@ export function overlaySessionsOnShifts(
       if (isSessionClosed) {
         return {
           ...slot,
-          status: 'CLOSED',
-          effectiveStatus: 'CLOSED',
-          availabilityState: 'CLOSED',
-          uiStatus: 'CLOSED_CLINIC',
+          status: EFFECTIVE_SLOT_STATUS.CLOSED,
+          effectiveStatus: EFFECTIVE_SLOT_STATUS.CLOSED,
+          availabilityState: AVAILABILITY_STATE.CLOSED,
+          uiStatus: SLOT_UI_STATUS.CLOSED_CLINIC,
           uiLabel: 'Ditutup',
-          uiVariant: 'danger_red',
-          actionType: 'VIEW_SESSION',
+          uiVariant: SLOT_UI_VARIANT.DANGER_RED,
+          actionType: SLOT_ACTION_TYPE.VIEW_SESSION,
           isClickable: true,
           isSelectable: false,
           sessionId: matchingSession.id,
@@ -100,13 +107,13 @@ export function overlaySessionsOnShifts(
       if (isSessionOccupied) {
         return {
           ...slot,
-          status: 'OCCUPIED',
-          effectiveStatus: 'OCCUPIED',
-          availabilityState: 'OCCUPIED',
-          uiStatus: 'OCCUPIED',
+          status: EFFECTIVE_SLOT_STATUS.OCCUPIED,
+          effectiveStatus: EFFECTIVE_SLOT_STATUS.OCCUPIED,
+          availabilityState: AVAILABILITY_STATE.OCCUPIED,
+          uiStatus: SLOT_UI_STATUS.OCCUPIED,
           uiLabel: 'Terisi',
-          uiVariant: 'info_blue',
-          actionType: 'VIEW_PATIENTS',
+          uiVariant: SLOT_UI_VARIANT.INFO_BLUE,
+          actionType: SLOT_ACTION_TYPE.VIEW_PATIENTS,
           isClickable: true,
           isSelectable: true,
           sessionId: matchingSession.id,
@@ -121,13 +128,13 @@ export function overlaySessionsOnShifts(
 
       return {
         ...slot,
-        status: 'AVAILABLE',
-        effectiveStatus: 'AVAILABLE',
-        availabilityState: 'AVAILABLE',
-        uiStatus: 'AVAILABLE',
+        status: EFFECTIVE_SLOT_STATUS.AVAILABLE,
+        effectiveStatus: EFFECTIVE_SLOT_STATUS.AVAILABLE,
+        availabilityState: AVAILABILITY_STATE.AVAILABLE,
+        uiStatus: SLOT_UI_STATUS.AVAILABLE,
         uiLabel: 'Tersedia',
-        uiVariant: 'success_green',
-        actionType: 'VIEW_SESSION',
+        uiVariant: SLOT_UI_VARIANT.SUCCESS_GREEN,
+        actionType: SLOT_ACTION_TYPE.VIEW_SESSION,
         isClickable: true,
         isSelectable: true,
         sessionId: matchingSession.id,
@@ -151,18 +158,27 @@ export function overlaySessionsOnShifts(
     let closedSlots = 0;
 
     for (const s of updatedSlots) {
-      if (s.status === 'UNSCHEDULED' || s.availabilityState === 'UNSCHEDULED') {
+      if (
+        s.status === AVAILABILITY_STATE.UNSCHEDULED ||
+        s.availabilityState === AVAILABILITY_STATE.UNSCHEDULED
+      ) {
         unscheduledSlots++;
       } else {
         scheduledSlots++;
-        if (s.status === 'AVAILABLE' || s.effectiveStatus === 'AVAILABLE') {
+        if (
+          s.status === AVAILABILITY_STATE.AVAILABLE ||
+          s.effectiveStatus === EFFECTIVE_SLOT_STATUS.AVAILABLE
+        ) {
           availableSlots++;
-        } else if (s.status === 'OCCUPIED' || s.effectiveStatus === 'OCCUPIED') {
+        } else if (
+          s.status === AVAILABILITY_STATE.OCCUPIED ||
+          s.effectiveStatus === EFFECTIVE_SLOT_STATUS.OCCUPIED
+        ) {
           occupiedSlots++;
         } else if (
-          s.status === 'CLOSED' ||
-          s.status === 'CLOSED_LEAVE' ||
-          s.effectiveStatus === 'CLOSED'
+          s.status === EFFECTIVE_SLOT_STATUS.CLOSED ||
+          s.status === SLOT_UI_STATUS.CLOSED_LEAVE ||
+          s.effectiveStatus === EFFECTIVE_SLOT_STATUS.CLOSED
         ) {
           closedSlots++;
         }

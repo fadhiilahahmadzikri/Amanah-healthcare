@@ -10,6 +10,12 @@ import {
 } from '../utils/shift-slot-builder';
 import { occupancyShiftSchema } from '@/server/contracts/schedules/doctor-schedules.dto';
 import type { DoctorSchedule, TimelineInterval } from './types';
+import {
+  SHIFT_OPERATIONAL_STATUS,
+  SLOT_UI_STATUS,
+  SLOT_UI_VARIANT,
+  SLOT_ACTION_TYPE
+} from '../constants/schedule-shift.constants';
 
 describe('Doctor Schedule & Occupancy SSOT Hierarchy', () => {
   const baseDoctor: DoctorSchedule = {
@@ -331,12 +337,20 @@ describe('Doctor Schedule & Occupancy SSOT Hierarchy', () => {
       }
     });
 
+    it('UI_VARIANT_CONFIG defines purple_other variant with purple semantic tokens', () => {
+      expect(UI_VARIANT_CONFIG.purple_other).toBeDefined();
+      expect(UI_VARIANT_CONFIG.purple_other.cellBg).toContain('purple');
+      expect(UI_VARIANT_CONFIG.purple_other.border).toContain('purple');
+      expect(STATUS_CONFIG.OCCUPIED_BY_OTHER.cellBg).toContain('purple');
+      expect(STATUS_CONFIG.OCCUPIED_BY_OTHER.label).toBe('Terisi Dokter Lain');
+    });
+
     it('occupancyShiftSchema validates shifts with operationalStatus and UI-ready slots', () => {
       const parsedShift = occupancyShiftSchema.parse({
         shiftId: 'early_morning',
         shiftName: 'Dini Hari',
         timeRange: '00:00 - 06:00 WIB',
-        operationalStatus: 'NO_PRACTICE',
+        operationalStatus: SHIFT_OPERATIONAL_STATUS.NO_PRACTICE,
         operationalLabel: 'Tidak Ada Praktik',
         activeSessionsCount: 0,
         registeredPatientsCount: 0,
@@ -347,25 +361,25 @@ describe('Doctor Schedule & Occupancy SSOT Hierarchy', () => {
             startTime: '00:00',
             endTime: '00:30',
             timeRange: '00:00 - 00:30 WIB',
-            uiStatus: 'UNSCHEDULED_PAST',
+            uiStatus: SLOT_UI_STATUS.UNSCHEDULED_PAST,
             uiLabel: 'Belum Terjadwal',
             uiSubLabel: '00:30',
-            uiVariant: 'neutral_disabled',
+            uiVariant: SLOT_UI_VARIANT.NEUTRAL_DISABLED,
             isClickable: false,
-            actionType: 'NONE'
+            actionType: SLOT_ACTION_TYPE.NONE
           }
         ]
       });
 
       expect(parsedShift.contextId).toBe('early_morning');
       expect(parsedShift.contextLabel).toBe('Dini Hari');
-      expect(parsedShift.operationalStatus).toBe('NO_PRACTICE');
+      expect(parsedShift.operationalStatus).toBe(SHIFT_OPERATIONAL_STATUS.NO_PRACTICE);
       expect(parsedShift.operationalLabel).toBe('Tidak Ada Praktik');
-      expect(parsedShift.slots[0].uiStatus).toBe('UNSCHEDULED_PAST');
+      expect(parsedShift.slots[0].uiStatus).toBe(SLOT_UI_STATUS.UNSCHEDULED_PAST);
       expect(parsedShift.slots[0].uiLabel).toBe('Belum Terjadwal');
-      expect(parsedShift.slots[0].uiVariant).toBe('neutral_disabled');
+      expect(parsedShift.slots[0].uiVariant).toBe(SLOT_UI_VARIANT.NEUTRAL_DISABLED);
       expect(parsedShift.slots[0].isClickable).toBe(false);
-      expect(parsedShift.slots[0].actionType).toBe('NONE');
+      expect(parsedShift.slots[0].actionType).toBe(SLOT_ACTION_TYPE.NONE);
     });
 
     describe('Date Normalization & Query Parameter Contracts (Anti-422 Regression)', () => {

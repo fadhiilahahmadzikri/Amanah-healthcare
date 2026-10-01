@@ -18,12 +18,18 @@ export function DoctorScheduleView() {
 
   return (
     <>
-      {/* 1. Detail Sheet */}
       <DoctorScheduleDetailSheet
         doctor={scheduleView.selectedDoctor}
         isOpen={scheduleView.isDetailOpen}
         onClose={scheduleView.actions.closeDetail}
         onOpenEdit={scheduleView.actions.openEditFromDetail}
+        highlightSlotTime={scheduleView.highlightSlotTime}
+        onClearHighlightSlotTime={scheduleView.actions.clearHighlightSlotTime}
+        onReturnToSourceModal={scheduleView.actions.returnToSourceModal}
+        returnDoctorName={scheduleView.returnContext?.sourceDoctorName}
+        returnContext={scheduleView.returnContext}
+        onClearReturnContext={scheduleView.actions.clearReturnContext}
+        onViewDoctorSchedule={scheduleView.actions.openDoctorScheduleById}
       />
 
       {/* 2. Reschedule Modal (Real Reschedule Flow) */}
@@ -120,6 +126,13 @@ export function DoctorScheduleView() {
                             scheduleView.dateFilter
                               ? scheduleView.dateFilter.toISOString().split('T')[0]
                               : undefined
+                          }
+                          isSelected={
+                            Boolean(
+                              scheduleView.selectedDoctorId &&
+                                (scheduleView.selectedDoctorId === doctor.id ||
+                                  scheduleView.selectedDoctorId === doctor.practitioner_id)
+                            )
                           }
                           onOpenDetail={scheduleView.actions.openDetail}
                           onOpenEdit={scheduleView.actions.openEdit}

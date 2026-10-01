@@ -5,7 +5,11 @@ import { Icons } from '@/components/icons';
 import type { OccupancyShift, OccupancySlot } from '@/server/contracts/schedules/doctor-schedules.dto';
 import type { DoctorDailySession } from '../../api/types';
 import { DoctorGridSlotItem } from './doctor-grid-slot-item';
-import { SCHEDULE_STATUS } from '../../constants/schedule-shift.constants';
+import {
+  SCHEDULE_STATUS,
+  SHIFT_OPERATIONAL_STATUS,
+  SHIFT_OPERATIONAL_LABELS
+} from '../../constants/schedule-shift.constants';
 
 export interface DoctorGridShiftSectionProps {
   shift: OccupancyShift;
@@ -23,6 +27,9 @@ export interface DoctorGridShiftSectionProps {
   onOpenEdit: (session: DoctorDailySession) => void;
   onOpenReschedule: (session: DoctorDailySession, slotStartTime?: string) => void;
   onToggleSessionStatus: (session: DoctorDailySession) => void;
+  highlightSlotTime?: string;
+  onReturnToSourceModal?: () => void;
+  returnDoctorName?: string;
 }
 
 export function DoctorGridShiftSection({
@@ -40,8 +47,20 @@ export function DoctorGridShiftSection({
   onOpenPatients,
   onOpenEdit,
   onOpenReschedule,
-  onToggleSessionStatus
+  onToggleSessionStatus,
+  highlightSlotTime,
+  onReturnToSourceModal,
+  returnDoctorName
 }: DoctorGridShiftSectionProps) {
+  const isHighlightedShift = Boolean(
+    highlightSlotTime &&
+      shift.slots.some(
+        (slot) =>
+          slot.startTime === highlightSlotTime ||
+          (slot.startTime <= highlightSlotTime && slot.endTime > highlightSlotTime)
+      )
+  );
+
   const matchingShiftSessions = activeSessions.filter((s) =>
     Boolean(
       shift.boundaryStartTime &&
@@ -81,7 +100,18 @@ export function DoctorGridShiftSection({
         </div>
 
         {/* Indikator Kuota / Slot Khusus Sesi Shift Ini (Backend SSOT) */}
-        <div className='flex items-center gap-2'>
+        <div className='flex items-center gap-2 flex-wrap'>
+          {onReturnToSourceModal && isHighlightedShift && (
+            <button
+              type='button'
+              onClick={onReturnToSourceModal}
+              className='inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/25 transition-all cursor-pointer shadow-2xs'
+              title={returnDoctorName ? `Kembali ke pemilihan ruang ${returnDoctorName}` : 'Kembali ke pemilihan ruang'}
+            >
+              <Icons.chevronLeft className='size-3 stroke-[2.5]' />
+              <span>Kembali ke Pemilihan Ruang</span>
+            </button>
+          )}
           {isDayCuti ? (
             <span className='text-[11px] font-semibold text-sky-600 dark:text-sky-400'>
               Praktik Cuti
@@ -90,9 +120,9 @@ export function DoctorGridShiftSection({
             <span className='text-[11px] font-semibold text-muted-foreground'>
               Praktik Ditutup
             </span>
-          ) : shift.operationalStatus === 'NO_PRACTICE' ? (
+          ) : shift.operationalStatus === SHIFT_OPERATIONAL_STATUS.NO_PRACTICE ? (
             <span className='font-mono text-xs text-muted-foreground'>
-              {shift.operationalLabel || 'Tidak Ada Praktik'}
+              {shift.operationalLabel || SHIFT_OPERATIONAL_LABELS[SHIFT_OPERATIONAL_STATUS.NO_PRACTICE]}
             </span>
           ) : (
             <>
@@ -167,6 +197,12 @@ export function DoctorGridShiftSection({
           const isThisSessionPending =
             isMutationPending && pendingSessionId === matchingSession?.id;
 
+          const isHighlighted = Boolean(
+            highlightSlotTime &&
+            (slot.startTime === highlightSlotTime ||
+              (slot.startTime <= highlightSlotTime && slot.endTime > highlightSlotTime))
+          );
+
           return (
             <DoctorGridSlotItem
               key={`${shift.contextId}-${slot.slotIndex}-${slot.startTime}`}
@@ -175,6 +211,7 @@ export function DoctorGridShiftSection({
               isNow={isNow}
               isClickable={isClickable}
               isSlotUpdating={isSlotUpdating}
+              isHighlighted={isHighlighted}
               matchingSession={matchingSession}
               hasHoverMenu={hasHoverMenu}
               isSessionClosed={isSessionClosed}

@@ -670,3 +670,21 @@ html:not(.dark) .cl-logoImage {
     opacity: 0.25;
   }
 }
+
+@keyframes hazard-blink {
+  0%, 100% {
+    opacity: 1;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 65%, transparent);
+  }
+  50% {
+    opacity: 0.35;
+    border-color: transparent;
+    box-shadow: none;
+  }
+}
+
+.animate-hazard-blink {
+  animation: hazard-blink 0.55s ease-in-out infinite;
+}
+

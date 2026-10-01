@@ -46,11 +46,15 @@ export const doctorScheduleFilterOptionsQueryOptions = () =>
 export const clinicRoomsQueryOptions = (params?: {
   poliklinikId?: string;
   clinicUnitId?: string;
+  date?: string;
+  startTime?: string;
+  endTime?: string;
+  excludePractitionerId?: string;
 }) =>
   queryOptions({
     queryKey: ['schedules', 'reference-rooms', params] as const,
     queryFn: () => getClinicRooms(params),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 60 * 1000,
     gcTime: 10 * 60 * 1000
   });
 

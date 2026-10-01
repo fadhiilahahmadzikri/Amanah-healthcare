@@ -16,7 +16,7 @@ describe('evaluateShiftAvailability', () => {
     expect(result[SCHEDULE_SHIFT.DINI_HARI].isUnavailable).toBe(true);
   });
 
-  it('marks shift as unavailable with "Sudah Ada Jadwal" badge when doctor already has schedule', () => {
+  it('marks shift as unavailable with "Penuh" badge when doctor already occupied the full shift duration', () => {
     const result = evaluateShiftAvailability({
       selectedDate: '2030-10-15',
       existingSessions: [
@@ -30,8 +30,26 @@ describe('evaluateShiftAvailability', () => {
     });
 
     expect(result[SCHEDULE_SHIFT.SIANG].isUnavailable).toBe(true);
-    expect(result[SCHEDULE_SHIFT.SIANG].badgeLabel).toBe('Sudah Ada Jadwal');
+    expect(result[SCHEDULE_SHIFT.SIANG].badgeLabel).toBe('Penuh');
     expect(result[SCHEDULE_SHIFT.MALAM].isUnavailable).toBe(false);
+  });
+
+  it('allows selecting shift when doctor has one session but remaining slots are open', () => {
+    const result = evaluateShiftAvailability({
+      selectedDate: '2030-10-15',
+      existingSessions: [
+        {
+          id: 'sched-1',
+          nama_sesi: 'Malam',
+          jam_mulai: '18:00',
+          jam_selesai: '18:30'
+        } as unknown as DoctorDailySession
+      ],
+      consultationDuration: 30
+    });
+
+    expect(result[SCHEDULE_SHIFT.MALAM].isUnavailable).toBe(false);
+    expect(result[SCHEDULE_SHIFT.MALAM].badgeLabel).toBeNull();
   });
 
   it('marks shift as unavailable with "Sudah Berlalu" when date is in the past', () => {

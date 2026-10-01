@@ -11,13 +11,10 @@ export interface DoctorGridHeaderProps {
   isDayClosed: boolean;
   activeSessions: DoctorDailySession[];
   isCurrentDayToday: boolean;
-  activeDay: number;
-  activeMonth: number;
-  totalDaysInMonth: number;
   readOnly: boolean;
   onToday: () => void;
-  onPrevDay: () => void;
-  onNextDay: () => void;
+  isCalendarOpen: boolean;
+  onToggleCalendar: () => void;
   onOpenAddSession: () => void;
 }
 
@@ -27,13 +24,10 @@ export function DoctorGridHeader({
   isDayClosed,
   activeSessions,
   isCurrentDayToday,
-  activeDay,
-  activeMonth,
-  totalDaysInMonth,
   readOnly,
   onToday,
-  onPrevDay,
-  onNextDay,
+  isCalendarOpen,
+  onToggleCalendar,
   onOpenAddSession
 }: DoctorGridHeaderProps) {
   return (
@@ -77,28 +71,19 @@ export function DoctorGridHeader({
           Hari Ini
         </button>
 
-        <div className='flex items-center border border-border/50 rounded-lg bg-background p-0.5 shadow-2xs'>
-          <button
-            type='button'
-            onClick={onPrevDay}
-            disabled={activeDay <= 1 && activeMonth <= 0}
-            className='size-7 flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer'
-            aria-label='Hari Sebelumnya'
-            title='Hari Sebelumnya'
-          >
-            <Icons.chevronLeft className='size-4' />
-          </button>
-          <button
-            type='button'
-            onClick={onNextDay}
-            disabled={activeDay >= totalDaysInMonth && activeMonth >= 11}
-            className='size-7 flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer'
-            aria-label='Hari Berikutnya'
-            title='Hari Berikutnya'
-          >
-            <Icons.chevronRight className='size-4' />
-          </button>
-        </div>
+        {/* Calendar Toggle Button */}
+        <button
+          type='button'
+          onClick={onToggleCalendar}
+          className={cn(
+            'size-7 flex items-center justify-center rounded-lg border border-border/60 bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shadow-2xs cursor-pointer',
+            isCalendarOpen && 'border-primary/50 bg-primary/10 text-primary font-bold shadow-xs'
+          )}
+          aria-label='Buka kalender tanggal'
+          title='Buka kalender'
+        >
+          <Icons.calendar className='size-3.5' />
+        </button>
 
         {!readOnly && !isDayCuti && !isDayClosed && (
           <button

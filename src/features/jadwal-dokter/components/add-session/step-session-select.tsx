@@ -104,14 +104,7 @@ export function StepSessionSelect({
                       Sesi {SCHEDULE_SHIFT_LABELS[shift]}
                     </span>
                     {badgeLabel && (
-                      <span
-                        className={cn(
-                          'inline-flex items-center px-2 py-0.2 rounded-full text-[10px] font-bold border',
-                          badgeLabel === 'Sudah Ada Jadwal'
-                            ? 'bg-sky-500/10 text-sky-600 border-sky-500/20'
-                            : 'bg-muted text-muted-foreground border-border/40'
-                        )}
-                      >
+                      <span className='inline-flex items-center px-2 py-0.2 rounded-full text-[10px] font-bold border bg-muted text-muted-foreground border-border/40'>
                         {badgeLabel}
                       </span>
                     )}

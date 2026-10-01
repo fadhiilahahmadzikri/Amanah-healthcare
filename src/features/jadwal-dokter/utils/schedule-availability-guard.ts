@@ -51,7 +51,7 @@ export function isSessionShiftUnavailable({
   sessionId: _sessionId,
   selectedDate,
   isPastFromBackend,
-  hasExistingSchedule = false,
+  hasExistingSchedule: _hasExistingSchedule = false,
   allRoomsOccupied = false,
   occupancy,
   bounds,
@@ -96,11 +96,6 @@ export function isSessionShiftUnavailable({
   // Pengecualian: Mode Edit Jadwal Sendiri (tetap aktif jika bukan tanggal lampau)
   if (isEditingThisSession) {
     return { unavailable: false, reason: null };
-  }
-
-  // 1b. Jika dokter sudah memiliki sesi pada shift ini (pada mode tambah)
-  if (hasExistingSchedule) {
-    return { unavailable: true, reason: SCHEDULE_UNAVAILABLE_REASONS.FULL };
   }
 
   // 1c. Jika seluruh ruangan praktik sudah terisi penuh

@@ -1,15 +1,26 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { doctorScheduleQueryOptions } from '../api/queries';
 import type { DoctorSchedule, DoctorScheduleFilters } from '../api/types';
 
+export interface ReturnDoctorContext {
+  sourceDoctorId: string;
+  sourceDoctorName: string;
+  sourceDate?: string;
+  sourceSlotStartTime?: string;
+  sourceSlotEndTime?: string;
+}
+
 interface UseDoctorScheduleViewResult {
   doctors: DoctorSchedule[];
   totalDoctors: number;
   selectedDoctor: DoctorSchedule | null;
+  selectedDoctorId: string;
+  highlightSlotTime: string;
+  returnContext: ReturnDoctorContext | null;
   isDetailOpen: boolean;
   isEditOpen: boolean;
   isRescheduleOpen: boolean;
@@ -26,6 +37,14 @@ interface UseDoctorScheduleViewResult {
   actions: {
     openDetail: (doctor: DoctorSchedule) => void;
     closeDetail: () => void;
+    openDoctorScheduleById: (
+      doctorId: string,
+      highlightTime?: string,
+      returnCtx?: ReturnDoctorContext
+    ) => void;
+    returnToSourceModal: () => void;
+    clearHighlightSlotTime: () => void;
+    clearReturnContext: () => void;
     openEdit: (doctor: DoctorSchedule) => void;
     closeEdit: () => void;
     openEditFromDetail: (doctor: DoctorSchedule) => void;
@@ -44,6 +63,7 @@ interface UseDoctorScheduleViewResult {
 
 export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
   const [selectedDoctor, setSelectedDoctor] = useState<DoctorSchedule | null>(null);
+  const [returnContext, setReturnContext] = useState<ReturnDoctorContext | null>(null);
   const [activeDialog, setActiveDialog] = useState<'detail' | 'edit' | 'reschedule' | null>(null);
   const [params, setParams] = useQueryStates(
     {
@@ -53,7 +73,9 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
       month: parseAsString.withDefault('ALL'),
       date: parseAsString.withDefault(''),
       poli: parseAsString.withDefault(''),
-      status: parseAsString.withDefault('')
+      status: parseAsString.withDefault(''),
+      selectedDoctorId: parseAsString.withDefault(''),
+      highlightSlotTime: parseAsString.withDefault('')
     },
     { shallow: true }
   );
@@ -76,6 +98,40 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
 
   const { data, isFetching, isLoading } = useQuery(doctorScheduleQueryOptions(filters));
 
+  useEffect(() => {
+    if (!params.selectedDoctorId) {
+      return;
+    }
+
+    const targetId = params.selectedDoctorId;
+    const found = data?.doctors?.find(
+      (d) => d.id === targetId || d.practitioner_id === targetId
+    );
+    if (found) {
+      setSelectedDoctor(found);
+      setActiveDialog('detail');
+    } else {
+      setSelectedDoctor((prev) => {
+        if (prev && (prev.id === targetId || prev.practitioner_id === targetId)) {
+          return prev;
+        }
+        return {
+          id: targetId,
+          nama_dokter: '',
+          spesialisasi: '',
+          status_dokter: 'Buka',
+          ruang_praktik: '',
+          slot_tersedia: 0,
+          kapasitas_per_hari: 0,
+          jadwal_hari_ini: '',
+          status_jadwal: 'Buka',
+          is_cuti: false
+        };
+      });
+      setActiveDialog('detail');
+    }
+  }, [params.selectedDoctorId, data?.doctors]);
+
   const openEdit = (doctor: DoctorSchedule) => {
     setSelectedDoctor(doctor);
     setActiveDialog('edit');
@@ -86,10 +142,73 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     setActiveDialog('reschedule');
   };
 
+  const openDoctorScheduleById = (
+    doctorId: string,
+    highlightTime?: string,
+    returnCtx?: ReturnDoctorContext
+  ) => {
+    if (returnCtx) {
+      setReturnContext(returnCtx);
+    }
+    setParams(
+      {
+        selectedDoctorId: doctorId,
+        highlightSlotTime: highlightTime || null
+      },
+      { shallow: true }
+    );
+    const found = data?.doctors?.find(
+      (d) => d.id === doctorId || d.practitioner_id === doctorId
+    );
+    if (found) {
+      setSelectedDoctor(found);
+    } else {
+      setSelectedDoctor({
+        id: doctorId,
+        nama_dokter: '',
+        spesialisasi: '',
+        status_dokter: 'Buka',
+        ruang_praktik: '',
+        slot_tersedia: 0,
+        kapasitas_per_hari: 0,
+        jadwal_hari_ini: '',
+        status_jadwal: 'Buka',
+        is_cuti: false
+      });
+    }
+    setActiveDialog('detail');
+  };
+
+  const returnToSourceModal = () => {
+    if (!returnContext) return;
+    const targetSourceId = returnContext.sourceDoctorId;
+    const sourceDoctor = data?.doctors?.find(
+      (d) => d.id === targetSourceId || d.practitioner_id === targetSourceId
+    );
+    if (sourceDoctor) {
+      setSelectedDoctor(sourceDoctor);
+    }
+    setActiveDialog('detail');
+    setParams(
+      {
+        selectedDoctorId: targetSourceId,
+        highlightSlotTime: null
+      },
+      { shallow: true }
+    );
+  };
+
+  const clearHighlightSlotTime = () => {
+    setParams({ highlightSlotTime: null }, { shallow: true });
+  };
+
   return {
     doctors: data?.doctors ?? [],
     totalDoctors: data?.total_doctors ?? 0,
     selectedDoctor,
+    selectedDoctorId: params.selectedDoctorId,
+    highlightSlotTime: params.highlightSlotTime,
+    returnContext,
     isDetailOpen: activeDialog === 'detail',
     isEditOpen: activeDialog === 'edit',
     isRescheduleOpen: activeDialog === 'reschedule',
@@ -109,8 +228,18 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
       openDetail: (doctor) => {
         setSelectedDoctor(doctor);
         setActiveDialog('detail');
+        setParams({ selectedDoctorId: doctor.id }, { shallow: true });
       },
-      closeDetail: () => setActiveDialog(null),
+      closeDetail: () => {
+        setActiveDialog(null);
+        setSelectedDoctor(null);
+        setReturnContext(null);
+        setParams({ selectedDoctorId: null, highlightSlotTime: null }, { shallow: true });
+      },
+      openDoctorScheduleById,
+      returnToSourceModal,
+      clearHighlightSlotTime,
+      clearReturnContext: () => setReturnContext(null),
       openEdit,
       closeEdit: () => setActiveDialog(null),
       openEditFromDetail: openEdit,

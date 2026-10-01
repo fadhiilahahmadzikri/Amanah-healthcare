@@ -1,5 +1,6 @@
 export type {
   ClinicRoom,
+  ClinicRoomOccupantDetails,
   ClosureMetadata,
   RescheduleMetadata,
   SlotProjectionMetrics,
@@ -7,6 +8,27 @@ export type {
   OccupancyShift,
   RescheduleEligibilityData
 } from '@/server/contracts/schedules/doctor-schedules.dto';
+
+export {
+  SHIFT_OPERATIONAL_STATUS,
+  SHIFT_OPERATIONAL_LABELS,
+  AVAILABILITY_STATE,
+  TEMPORAL_STATE,
+  EFFECTIVE_SLOT_STATUS,
+  SLOT_UI_STATUS,
+  SLOT_UI_VARIANT,
+  SLOT_ACTION_TYPE
+} from '../constants/schedule-shift.constants';
+
+export type {
+  ShiftOperationalStatus,
+  AvailabilityState,
+  TemporalState,
+  EffectiveSlotStatus,
+  SlotUiStatus,
+  SlotUiVariant,
+  SlotActionType
+} from '../constants/schedule-shift.constants';
 
 import type {
   ClosureMetadata,

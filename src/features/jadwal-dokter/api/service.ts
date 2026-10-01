@@ -145,10 +145,18 @@ export async function getDoctorScheduleFilterOptions(): Promise<
 export async function getClinicRooms(params?: {
   poliklinikId?: string;
   clinicUnitId?: string;
+  date?: string;
+  startTime?: string;
+  endTime?: string;
+  excludePractitionerId?: string;
 }): Promise<ClinicRoom[]> {
   const qs = new URLSearchParams();
   if (params?.poliklinikId) qs.set('poliklinikId', params.poliklinikId);
   if (params?.clinicUnitId) qs.set('clinicUnitId', params.clinicUnitId);
+  if (params?.date) qs.set('date', params.date);
+  if (params?.startTime) qs.set('startTime', params.startTime);
+  if (params?.endTime) qs.set('endTime', params.endTime);
+  if (params?.excludePractitionerId) qs.set('excludePractitionerId', params.excludePractitionerId);
   const q = qs.toString();
   const res = await clientFetch<ClinicRoom[] | { data?: ClinicRoom[] }>(
     `/api/v1/schedules/reference/rooms${q ? `?${q}` : ''}`

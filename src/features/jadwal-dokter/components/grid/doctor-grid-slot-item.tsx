@@ -25,6 +25,7 @@ export interface DoctorGridSlotItemProps {
   isClickable?: boolean;
   isSlotUpdating?: boolean;
   isSelected?: boolean;
+  isHighlighted?: boolean;
   matchingSession?: DoctorDailySession;
   hasHoverMenu?: boolean;
   isSessionClosed?: boolean;
@@ -44,6 +45,7 @@ export function DoctorGridSlotItem({
   isClickable = true,
   isSlotUpdating = false,
   isSelected = false,
+  isHighlighted = false,
   matchingSession,
   hasHoverMenu = false,
   isSessionClosed = false,
@@ -55,6 +57,13 @@ export function DoctorGridSlotItem({
   onToggleSessionStatus,
   className
 }: DoctorGridSlotItemProps) {
+  const slotRef = React.useRef<HTMLButtonElement>(null);
+
+  React.useEffect(() => {
+    if (isHighlighted && slotRef.current) {
+      slotRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [isHighlighted]);
   const variantCfg = isFinished
     ? STATUS_CONFIG.EXPIRED
     : (slot.uiVariant && UI_VARIANT_CONFIG[slot.uiVariant]) ||
@@ -76,6 +85,7 @@ export function DoctorGridSlotItem({
 
   const slotButton = (
     <button
+      ref={slotRef}
       type='button'
       onClick={onSlotClick}
       disabled={!isClickable || isSlotUpdating}
@@ -84,6 +94,8 @@ export function DoctorGridSlotItem({
         variantCfg.cellBg,
         variantCfg.border,
         isSelected && 'border-primary ring-2 ring-primary/40 bg-primary/10 shadow-xs',
+        isHighlighted &&
+          'ring-2 ring-primary ring-offset-2 ring-offset-background border-primary bg-primary/25 shadow-lg animate-hazard-blink z-10',
         !isClickable
           ? 'cursor-default opacity-80'
           : 'cursor-pointer hover:shadow-xs hover:border-primary/50',

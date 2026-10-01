@@ -51,6 +51,7 @@ export type { UpcomingScheduleResult };
 export interface DoctorScheduleCardProps {
   doctor: DoctorSchedule;
   date?: string;
+  isSelected?: boolean;
   onOpenDetail?: (doctor: DoctorSchedule) => void;
   onOpenEdit?: (doctor: DoctorSchedule) => void;
   onOpenReschedule?: (doctor: DoctorSchedule) => void;
@@ -65,6 +66,7 @@ export interface DoctorScheduleCardProps {
 export function DoctorScheduleCard({
   doctor,
   date,
+  isSelected,
   onOpenDetail,
   onOpenEdit,
   onOpenReschedule,
@@ -75,6 +77,14 @@ export function DoctorScheduleCard({
   showStats = true,
   className
 }: DoctorScheduleCardProps) {
+  const cardRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (isSelected && cardRef.current) {
+      cardRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [isSelected]);
+
   const detailQuery = useQuery({
     ...doctorScheduleDetailQueryOptions(doctor.id, {
       date: date || parseDateToIso(doctor.tanggal_praktik)
@@ -113,12 +123,15 @@ export function DoctorScheduleCard({
 
   return (
     <div
+      ref={cardRef}
       style={{
         background:
           'radial-gradient(ellipse 80% 60% at 100% 0%, color-mix(in oklab, var(--primary) 18%, transparent) 0%, color-mix(in oklab, var(--primary) 5%, transparent) 45%, transparent 80%), var(--card)'
       }}
       className={cn(
         'group relative overflow-hidden rounded-[24px] border border-border font-sans flex flex-col justify-between select-none transition-all duration-200 hover:border-primary/60 hover:shadow-md p-5 sm:p-6 min-h-[340px] text-card-foreground',
+        isSelected &&
+          'ring-2 ring-primary ring-offset-2 ring-offset-background border-primary shadow-lg animate-pulse',
         variant === 'elevated' && 'shadow-sm',
         variant === 'flat' && 'border-transparent shadow-none',
         className

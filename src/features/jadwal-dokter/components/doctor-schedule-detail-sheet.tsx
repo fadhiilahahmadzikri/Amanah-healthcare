@@ -24,23 +24,50 @@ import {
 } from './doctor-schedule-sheet-skeleton';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule, ScheduleDayStatus } from '../api/types';
+import type { ReturnDoctorContext } from './doctor-add-session-modal';
 
 export interface DoctorScheduleDetailSheetProps {
   doctor: DoctorSchedule | null;
   isOpen: boolean;
   onClose: () => void;
   onOpenEdit: (doctor: DoctorSchedule) => void;
+  highlightSlotTime?: string;
+  onClearHighlightSlotTime?: () => void;
+  onReturnToSourceModal?: () => void;
+  returnDoctorName?: string;
+  returnContext?: ReturnDoctorContext | null;
+  onClearReturnContext?: () => void;
+  onViewDoctorSchedule?: (
+    doctorId: string,
+    targetSlotTime?: string,
+    returnContext?: ReturnDoctorContext
+  ) => void;
 }
 
 export function DoctorScheduleDetailSheet({
   doctor: selectedDoctor,
   isOpen,
   onClose,
-  onOpenEdit: _onOpenEdit
+  onOpenEdit: _onOpenEdit,
+  highlightSlotTime,
+  onClearHighlightSlotTime,
+  onReturnToSourceModal,
+  returnDoctorName,
+  returnContext,
+  onClearReturnContext,
+  onViewDoctorSchedule
 }: DoctorScheduleDetailSheetProps) {
   const updateDayMutation = useUpdateDoctorDayStatusMutation();
 
-  const [activeTab, setActiveTab] = React.useState<'kalender' | 'kuota' | 'informasi'>('kalender');
+  const [activeTab, setActiveTab] = React.useState<'kalender' | 'kuota' | 'informasi'>(() =>
+    highlightSlotTime ? 'kuota' : 'kalender'
+  );
+
+  React.useEffect(() => {
+    if (highlightSlotTime && isOpen) {
+      setActiveTab('kuota');
+    }
+  }, [highlightSlotTime, isOpen]);
   const [selectedDay, setSelectedDay] = React.useState<number>(new Date().getDate());
   const [currentMonth, setCurrentMonth] = React.useState<number>(new Date().getMonth());
   const [currentYear, setCurrentYear] = React.useState<number>(new Date().getFullYear());
@@ -262,9 +289,8 @@ export function DoctorScheduleDetailSheet({
               </TabsList>
             </div>
 
-            <div className='flex-1 overflow-y-auto p-6 space-y-4 select-none'>
-              {/* Tab 1: Standard Calendar System */}
-              <TabsContent value='kalender' className='m-0 space-y-3 outline-none'>
+            <div className={cn('flex-1 overflow-y-auto p-4 sm:p-6 select-none', activeTab === 'kalender' ? 'flex flex-col min-h-0' : 'space-y-4')}>
+              <TabsContent value='kalender' className='m-0 flex-1 flex flex-col min-h-0 outline-none animate-in fade-in-50 duration-200'>
                 <DoctorTimelineCalendar
                   doctor={doctor}
                   selectedDay={selectedDay}
@@ -280,11 +306,11 @@ export function DoctorScheduleDetailSheet({
                     setActiveTab('kuota');
                   }}
                   onSelectDayStatus={(day, st, notes) => handleDayStatusChange(day, st, notes)}
+                  className='h-full flex-1'
                 />
               </TabsContent>
 
-              {/* Tab 2: Grid Jadwal & Kuota Harian (POV 24 Jam dengan 4 Shift) */}
-              <TabsContent value='kuota' className='m-0 space-y-3 outline-none'>
+              <TabsContent value='kuota' className='m-0 space-y-3 outline-none animate-in fade-in-50 duration-200'>
                 <DoctorDailyHourlyGrid
                   doctor={doctor}
                   selectedDay={selectedDay}
@@ -293,6 +319,13 @@ export function DoctorScheduleDetailSheet({
                   onMonthChange={setCurrentMonth}
                   currentYear={currentYear}
                   onYearChange={setCurrentYear}
+                  highlightSlotTime={highlightSlotTime}
+                  onClearHighlightSlotTime={onClearHighlightSlotTime}
+                  onReturnToSourceModal={onReturnToSourceModal}
+                  returnDoctorName={returnDoctorName}
+                  returnContext={returnContext}
+                  onClearReturnContext={onClearReturnContext}
+                  onViewDoctorSchedule={onViewDoctorSchedule}
                 />
               </TabsContent>
 

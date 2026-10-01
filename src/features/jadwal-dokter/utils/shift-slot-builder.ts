@@ -132,6 +132,13 @@ export const UI_VARIANT_CONFIG: Record<
     text: 'text-rose-700 dark:text-rose-400',
     dotBg: 'bg-rose-500',
     timeText: 'text-foreground'
+  },
+  purple_other: {
+    cellBg: 'bg-purple-500/10 hover:bg-purple-500/15',
+    border: 'border-purple-500/30',
+    text: 'text-purple-700 dark:text-purple-400',
+    dotBg: 'bg-purple-500',
+    timeText: 'text-foreground'
   }
 };
 
@@ -177,11 +184,11 @@ export const STATUS_CONFIG: Record<
     dotBg: 'bg-sky-500'
   },
   OCCUPIED_BY_OTHER: {
-    label: 'Terisi Lain',
-    cellBg: 'bg-amber-500/10 hover:bg-amber-500/15',
-    border: 'border-amber-500/30',
-    text: 'text-amber-700 dark:text-amber-400',
-    dotBg: 'bg-amber-500'
+    label: 'Terisi Dokter Lain',
+    cellBg: 'bg-purple-500/10 hover:bg-purple-500/15',
+    border: 'border-purple-500/30',
+    text: 'text-purple-700 dark:text-purple-400',
+    dotBg: 'bg-purple-500'
   },
   // 4. CLOSED: Merah Mawar / Rose (Ditutup Rapat/Operasional)
   CLOSED: {

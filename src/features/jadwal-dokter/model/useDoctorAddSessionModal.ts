@@ -71,7 +71,10 @@ export function useDoctorAddSessionModal({
   }, [targetDate]);
 
   const isDirectSlotMode = Boolean(initialStartTime);
-  const [step, setStep] = useState<AddSessionStep>(isDirectSlotMode ? 'room' : 'date');
+  const [step, setStep] = useState<AddSessionStep>(() => (initialStartTime ? 'room' : 'date'));
+  const effectiveStep: AddSessionStep =
+    Boolean(initialStartTime) && step === 'date' ? 'room' : step;
+
   const [selectedDate, setSelectedDate] = useState(defaultDate);
   const [selectedShift, setSelectedShift] = useState<ScheduleShift | null>(() => {
     if (initialStartTime) return resolveCanonicalShift(initialStartTime);
@@ -91,32 +94,45 @@ export function useDoctorAddSessionModal({
 
   const doctorStaffId = doctor?.practitioner_id || doctor?.id || '';
 
-  // 1. Fetch Master Clinic Rooms
+  const queryStartTime = selectedSlot?.time || initialStartTime;
+  const queryEndTime =
+    selectedSlot?.endTime ||
+    (initialStartTime ? computeSafeEndTime(initialStartTime, initialEndTime) : undefined);
+
+  // 1. Fetch Master Clinic Rooms with occupancy awareness for the selected date and time
   const { data: clinicRooms = [], isLoading: isLoadingRooms } = useQuery({
-    ...clinicRoomsQueryOptions(),
+    ...clinicRoomsQueryOptions({
+      date: selectedDate,
+      startTime: queryStartTime,
+      endTime: queryEndTime,
+      excludePractitionerId: doctorStaffId || undefined
+    }),
     enabled: isOpen
   });
 
   const rooms = clinicRooms;
 
-  // 2. Auto-populate default room immediately without blocking
+  // 2. Auto-populate default room immediately without selecting occupied rooms
   const defaultRoomId = useMemo(() => {
     if (rooms.length === 0) return '';
     const doctorRoom = doctor?.ruang_praktik?.trim().toLowerCase();
     if (doctorRoom) {
       const matched = rooms.find(
-        (r) => r.name.toLowerCase() === doctorRoom || r.id.toLowerCase() === doctorRoom
+        (r) =>
+          (r.name.toLowerCase() === doctorRoom || r.id.toLowerCase() === doctorRoom) &&
+          !r.isOccupied
       );
       if (matched) return matched.id;
     }
-    return rooms[0]?.id || '';
+    const firstAvailable = rooms.find((r) => !r.isOccupied);
+    return firstAvailable?.id || '';
   }, [rooms, doctor?.ruang_praktik]);
 
   useEffect(() => {
-    if (!selectedRoomId && defaultRoomId) {
+    if (defaultRoomId && (!selectedRoomId || rooms.find((r) => r.id === selectedRoomId)?.isOccupied)) {
       setSelectedRoomId(defaultRoomId);
     }
-  }, [selectedRoomId, defaultRoomId]);
+  }, [selectedRoomId, defaultRoomId, rooms]);
 
   // 4. Fetch slot availability ONLY for wizard slot selection (bypassed in directSlotMode)
   const effectiveShift = selectedShift || SCHEDULE_SHIFT.PAGI;
@@ -208,10 +224,13 @@ export function useDoctorAddSessionModal({
     if (step === 'date') return Boolean(selectedDate);
     if (step === 'session') return Boolean(selectedShift);
     if (step === 'slot') return Boolean(selectedSlot);
-    if (step === 'room') return Boolean(selectedRoomId);
+    if (step === 'room') {
+      const room = rooms.find((r) => r.id === selectedRoomId);
+      return Boolean(room && !room.isOccupied);
+    }
     if (step === 'confirmation') return Boolean(selectedSlot && selectedShift) && !isSubmitting;
     return false;
-  }, [step, selectedDate, selectedShift, selectedSlot, selectedRoomId, isSubmitting]);
+  }, [step, selectedDate, selectedShift, selectedSlot, selectedRoomId, rooms, isSubmitting]);
 
   const isFirstStep = isDirectSlotMode ? step === 'room' : step === 'date';
 
@@ -324,7 +343,7 @@ export function useDoctorAddSessionModal({
   };
 
   return {
-    step,
+    step: effectiveStep,
     setStep,
     selectedDate,
     setSelectedDate,

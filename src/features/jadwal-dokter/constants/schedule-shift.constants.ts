@@ -52,6 +52,92 @@ export const SCHEDULE_STATUS_LABELS: Record<ScheduleStatus, string> = {
   [SCHEDULE_STATUS.OCCUPIED]: 'Penuh'
 } as const;
 
+export const SHIFT_OPERATIONAL_STATUS = {
+  ACTIVE: 'ACTIVE',
+  NO_PRACTICE: 'NO_PRACTICE',
+  CLOSED: 'CLOSED',
+  CUTI: 'CUTI'
+} as const;
+
+export type ShiftOperationalStatus =
+  (typeof SHIFT_OPERATIONAL_STATUS)[keyof typeof SHIFT_OPERATIONAL_STATUS];
+
+export const SHIFT_OPERATIONAL_LABELS: Record<ShiftOperationalStatus, string> = {
+  [SHIFT_OPERATIONAL_STATUS.ACTIVE]: 'Aktif',
+  [SHIFT_OPERATIONAL_STATUS.NO_PRACTICE]: 'Tidak Ada Praktik',
+  [SHIFT_OPERATIONAL_STATUS.CLOSED]: 'Praktik Ditutup',
+  [SHIFT_OPERATIONAL_STATUS.CUTI]: 'Cuti Dokter'
+} as const;
+
+export const AVAILABILITY_STATE = {
+  UNSCHEDULED: 'UNSCHEDULED',
+  AVAILABLE: 'AVAILABLE',
+  OCCUPIED: 'OCCUPIED',
+  CLOSED: 'CLOSED'
+} as const;
+
+export type AvailabilityState =
+  (typeof AVAILABILITY_STATE)[keyof typeof AVAILABILITY_STATE];
+
+export const TEMPORAL_STATE = {
+  PAST: 'PAST',
+  CURRENT: 'CURRENT',
+  FUTURE: 'FUTURE'
+} as const;
+
+export type TemporalState =
+  (typeof TEMPORAL_STATE)[keyof typeof TEMPORAL_STATE];
+
+export const EFFECTIVE_SLOT_STATUS = {
+  EXPIRED: 'EXPIRED',
+  CLOSED: 'CLOSED',
+  OCCUPIED: 'OCCUPIED',
+  AVAILABLE: 'AVAILABLE',
+  UNSCHEDULED: 'UNSCHEDULED'
+} as const;
+
+export type EffectiveSlotStatus =
+  (typeof EFFECTIVE_SLOT_STATUS)[keyof typeof EFFECTIVE_SLOT_STATUS];
+
+export const SLOT_UI_STATUS = {
+  UNSCHEDULED_PAST: 'UNSCHEDULED_PAST',
+  UNSCHEDULED: 'UNSCHEDULED',
+  COMPLETED: 'COMPLETED',
+  AVAILABLE: 'AVAILABLE',
+  OCCUPIED: 'OCCUPIED',
+  OCCUPIED_BY_OTHER: 'OCCUPIED_BY_OTHER',
+  RESCHEDULED: 'RESCHEDULED',
+  CLOSED_LEAVE: 'CLOSED_LEAVE',
+  CLOSED_CLINIC: 'CLOSED_CLINIC'
+} as const;
+
+export type SlotUiStatus = (typeof SLOT_UI_STATUS)[keyof typeof SLOT_UI_STATUS];
+
+export const SLOT_UI_VARIANT = {
+  NEUTRAL_DISABLED: 'neutral_disabled',
+  DASHED_BORDER: 'dashed_border',
+  MUTED_GRAY: 'muted_gray',
+  SUCCESS_GREEN: 'success_green',
+  INFO_BLUE: 'info_blue',
+  PURPLE_OTHER: 'purple_other',
+  WARNING_AMBER: 'warning_amber',
+  SKY_BADGE: 'sky_badge',
+  DANGER_RED: 'danger_red'
+} as const;
+
+export type SlotUiVariant = (typeof SLOT_UI_VARIANT)[keyof typeof SLOT_UI_VARIANT];
+
+export const SLOT_ACTION_TYPE = {
+  NONE: 'NONE',
+  ADD_SESSION: 'ADD_SESSION',
+  VIEW_SESSION: 'VIEW_SESSION',
+  VIEW_PATIENTS: 'VIEW_PATIENTS',
+  VIEW_OCCUPANCY_CONFLICT: 'VIEW_OCCUPANCY_CONFLICT'
+} as const;
+
+export type SlotActionType =
+  (typeof SLOT_ACTION_TYPE)[keyof typeof SLOT_ACTION_TYPE];
+
 export const SCHEDULE_MUTATION_NOTES = {
   CLOSE_SESSION: 'Tutup sesi operasional',
   OPEN_SESSION: 'Buka kembali sesi operasional'

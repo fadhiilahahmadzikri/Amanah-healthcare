@@ -189,7 +189,7 @@ describe('schedule-availability-guard', () => {
     expect(result.reason).toBe(SCHEDULE_UNAVAILABLE_REASONS.FULL);
   });
 
-  it('locks shift when doctor already has an existing schedule in this shift', () => {
+  it('does NOT lock shift simply because hasExistingSchedule is present', () => {
     const futureDate = new Date('2026-10-01');
     const fixedNow = new Date('2026-09-25T10:00:00');
 
@@ -200,7 +200,7 @@ describe('schedule-availability-guard', () => {
       referenceNow: fixedNow
     });
 
-    expect(result.unavailable).toBe(true);
-    expect(result.reason).toBe(SCHEDULE_UNAVAILABLE_REASONS.FULL);
+    expect(result.unavailable).toBe(false);
+    expect(result.reason).toBeNull();
   });
 });

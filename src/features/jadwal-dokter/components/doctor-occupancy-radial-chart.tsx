@@ -187,7 +187,11 @@ export function DoctorOccupancyRadialChart({
           </span>
           <span className='hidden sm:inline'>belum dijadwalkan</span>
         </div>
-      ) : null}
+      ) : (
+        <div className='text-[11px] text-muted-foreground font-medium pl-1'>
+          Semua slot telah terjadwal
+        </div>
+      )}
     </div>
   );
 }

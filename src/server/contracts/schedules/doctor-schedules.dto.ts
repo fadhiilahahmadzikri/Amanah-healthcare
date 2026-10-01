@@ -180,6 +180,7 @@ export const timelineIntervalSchema = z.object({
       'COMPLETED',
       'AVAILABLE',
       'OCCUPIED',
+      'OCCUPIED_BY_OTHER',
       'RESCHEDULED',
       'CLOSED_LEAVE',
       'CLOSED_CLINIC'
@@ -195,6 +196,7 @@ export const timelineIntervalSchema = z.object({
       'muted_gray',
       'success_green',
       'info_blue',
+      'purple_other',
       'warning_amber',
       'sky_badge',
       'danger_red'
@@ -203,10 +205,11 @@ export const timelineIntervalSchema = z.object({
     .optional(),
   isClickable: z.boolean().optional(),
   actionType: z
-    .enum(['NONE', 'ADD_SESSION', 'VIEW_SESSION', 'VIEW_PATIENTS'])
+    .enum(['NONE', 'ADD_SESSION', 'VIEW_SESSION', 'VIEW_PATIENTS', 'VIEW_OCCUPANCY_CONFLICT'])
     .or(z.string())
     .optional(),
-  sessionId: z.string().nullable().optional()
+  sessionId: z.string().nullable().optional(),
+  conflictInfo: z.any().nullable().optional()
 });
 export type TimelineInterval = z.infer<typeof timelineIntervalSchema>;
 
@@ -268,6 +271,7 @@ export const occupancySlotSchema = z
         'COMPLETED',
         'AVAILABLE',
         'OCCUPIED',
+        'OCCUPIED_BY_OTHER',
         'RESCHEDULED',
         'CLOSED_LEAVE',
         'CLOSED_CLINIC'
@@ -283,6 +287,7 @@ export const occupancySlotSchema = z
         'muted_gray',
         'success_green',
         'info_blue',
+        'purple_other',
         'warning_amber',
         'sky_badge',
         'danger_red'
@@ -291,7 +296,7 @@ export const occupancySlotSchema = z
       .optional(),
     isClickable: z.boolean().optional(),
     actionType: z
-      .enum(['NONE', 'ADD_SESSION', 'VIEW_SESSION', 'VIEW_PATIENTS'])
+      .enum(['NONE', 'ADD_SESSION', 'VIEW_SESSION', 'VIEW_PATIENTS', 'VIEW_OCCUPANCY_CONFLICT'])
       .or(z.string())
       .optional(),
     sessionId: z.string().nullable().optional(),
@@ -330,6 +335,14 @@ export const occupancySlotSchema = z
   });
 export type OccupancySlot = z.infer<typeof occupancySlotSchema>;
 
+export const shiftOperationalStatusSchema = z.enum([
+  'ACTIVE',
+  'NO_PRACTICE',
+  'CLOSED',
+  'CUTI'
+]);
+export type ShiftOperationalStatus = z.infer<typeof shiftOperationalStatusSchema>;
+
 export const occupancyShiftSchema = z
   .object({
     contextId: z.string().optional(),
@@ -338,7 +351,7 @@ export const occupancyShiftSchema = z
     shiftName: z.string().optional(),
     shift: z.string().optional(),
     label: z.string().optional(),
-    operationalStatus: z.enum(['NO_PRACTICE', 'ACTIVE']).or(z.string()).optional(),
+    operationalStatus: shiftOperationalStatusSchema.or(z.string()).optional(),
     operationalLabel: z.string().optional(),
     activeSessionsCount: z.number().optional(),
     registeredPatientsCount: z.number().optional(),
@@ -692,6 +705,18 @@ export type AdminDoctorScheduleFilterOptionsResponse = z.infer<
   typeof adminDoctorScheduleFilterOptionsSchema
 >;
 
+export const clinicRoomOccupantDetailsSchema = z.object({
+  practitionerId: z.string().optional().nullable(),
+  staffProfileId: z.string().optional().nullable(),
+  practitionerName: z.string(),
+  specialty: z.string().optional().nullable(),
+  unitName: z.string().optional().nullable(),
+  startTime: z.string(),
+  endTime: z.string(),
+  roomName: z.string()
+});
+export type ClinicRoomOccupantDetails = z.infer<typeof clinicRoomOccupantDetailsSchema>;
+
 export const clinicRoomSchema = z.object({
   id: z.string(),
   code: z.string(),
@@ -699,7 +724,8 @@ export const clinicRoomSchema = z.object({
   location: z.string().optional().nullable(),
   floor: z.number().optional().nullable(),
   isOccupied: z.boolean().optional().default(false),
-  occupiedBy: z.string().optional().nullable()
+  occupiedBy: z.string().optional().nullable(),
+  occupantDetails: clinicRoomOccupantDetailsSchema.optional().nullable()
 });
 export type ClinicRoom = z.infer<typeof clinicRoomSchema>;
 

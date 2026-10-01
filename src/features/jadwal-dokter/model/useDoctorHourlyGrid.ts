@@ -15,7 +15,15 @@ import { overlaySessionsOnShifts } from '../utils/shift-slot-overlay';
 import { isDoctorOnLeaveOnDay } from '../api/service';
 import { resolveDayStatus } from '../components/doctor-timeline-calendar';
 import { useUpdateDoctorSessionMutation } from '../api/mutations';
-import { SCHEDULE_STATUS, SCHEDULE_MUTATION_NOTES } from '../constants/schedule-shift.constants';
+import {
+  SCHEDULE_STATUS,
+  SCHEDULE_MUTATION_NOTES,
+  SHIFT_OPERATIONAL_STATUS,
+  AVAILABILITY_STATE,
+  TEMPORAL_STATE,
+  EFFECTIVE_SLOT_STATUS,
+  SLOT_ACTION_TYPE
+} from '../constants/schedule-shift.constants';
 
 const MONTH_NAMES = [
   'Januari',
@@ -109,9 +117,9 @@ export function useDoctorHourlyGrid({
   const isSlotFinished = (slot: OccupancySlot): boolean => {
     if (isPastDay) return true;
     if (isCurrentDayToday && currentTimeString >= slot.endTime) return true;
-    if (slot.temporalState === 'PAST') return true;
-    if (slot.effectiveStatus === 'EXPIRED') return true;
-    if (slot.status === 'EXPIRED') return true;
+    if (slot.temporalState === TEMPORAL_STATE.PAST) return true;
+    if (slot.effectiveStatus === EFFECTIVE_SLOT_STATUS.EXPIRED) return true;
+    if (slot.status === EFFECTIVE_SLOT_STATUS.EXPIRED) return true;
     return false;
   };
 
@@ -158,11 +166,12 @@ export function useDoctorHourlyGrid({
     let closedSlots = 0;
     let activeBookableSlots = 0;
 
+    let futureUnscheduledSlots = 0;
+
     for (const shift of displayedShifts) {
       if (shift.metrics) {
         totalSlots += shift.metrics.totalSlots ?? 12;
         scheduledSlots += shift.metrics.scheduledSlots;
-        unscheduledSlots += shift.metrics.unscheduledSlots;
         availableSlots += shift.metrics.availableSlots;
         occupiedSlots += shift.metrics.occupiedSlots;
         closedSlots += shift.metrics.closedSlots;
@@ -172,7 +181,18 @@ export function useDoctorHourlyGrid({
         availableSlots += shift.availableSlotsCount ?? 0;
         occupiedSlots += shift.occupiedSlotsCount ?? 0;
       }
+
+      if (shift.operationalStatus !== SHIFT_OPERATIONAL_STATUS.NO_PRACTICE) {
+        const remaining = (shift.slots || []).filter(
+          (s) =>
+            s.availabilityState === AVAILABILITY_STATE.UNSCHEDULED &&
+            s.temporalState !== TEMPORAL_STATE.PAST
+        ).length;
+        futureUnscheduledSlots += remaining;
+      }
     }
+
+    unscheduledSlots = futureUnscheduledSlots;
 
     const occupancyPercentage =
       activeBookableSlots > 0
@@ -208,7 +228,9 @@ export function useDoctorHourlyGrid({
         displayText: `Alokasi Praktik: ${scheduledSlots}/${totalSlots} Slot (${coveragePercentage}%)`
       },
       unscheduledNotice:
-        unscheduledSlots > 0 ? `${unscheduledSlots} slot belum dijadwalkan` : undefined
+        unscheduledSlots > 0
+          ? `${unscheduledSlots} slot belum dijadwalkan`
+          : 'Semua slot telah terjadwal'
     };
   }, [doctor?.summary, doctor?.metrics, displayedShifts]);
 
@@ -216,8 +238,7 @@ export function useDoctorHourlyGrid({
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
-  const [selectedSessionForReschedule, setSelectedSessionForReschedule] =
-    useState<DoctorDailySession | null>(null);
+  const [selectedSessionForReschedule, setSelectedSessionForReschedule] = useState<DoctorDailySession | null>(null);
   const [selectedSlotStartTime, setSelectedSlotStartTime] = useState<string | undefined>(undefined);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -228,9 +249,7 @@ export function useDoctorHourlyGrid({
   const [addSessionInitialEndTime, setAddSessionInitialEndTime] = useState<string | undefined>(undefined);
 
   const [isPatientsModalOpen, setIsPatientsModalOpen] = useState(false);
-  const [selectedSessionForPatients, setSelectedSessionForPatients] =
-    useState<DoctorDailySession | null>(null);
-
+  const [selectedSessionForPatients, setSelectedSessionForPatients] = useState<DoctorDailySession | null>(null);
   const [isReasonOpen, setIsReasonOpen] = useState(false);
 
   const updateSessionMutation = useUpdateDoctorSessionMutation();
@@ -334,12 +353,15 @@ export function useDoctorHourlyGrid({
   const handleSlotClick = (slot: OccupancySlot) => {
     if (isDayCuti || isSlotFinished(slot)) return;
 
-    if (slot.actionType === 'ADD_SESSION') {
+    if (slot.actionType === SLOT_ACTION_TYPE.ADD_SESSION) {
       openAddSessionModal(slot.startTime, slot.endTime);
       return;
     }
 
-    if (slot.actionType === 'VIEW_PATIENTS' || slot.actionType === 'VIEW_SESSION') {
+    if (
+      slot.actionType === SLOT_ACTION_TYPE.VIEW_PATIENTS ||
+      slot.actionType === SLOT_ACTION_TYPE.VIEW_SESSION
+    ) {
       const matchingSession = activeSessions.find(
         (s) =>
           (slot.sessionId && s.id === slot.sessionId) ||
@@ -347,7 +369,7 @@ export function useDoctorHourlyGrid({
           slot.startTime === s.jam_mulai
       );
       if (matchingSession) {
-        if (slot.actionType === 'VIEW_PATIENTS') {
+        if (slot.actionType === SLOT_ACTION_TYPE.VIEW_PATIENTS) {
           handleOpenPatients(matchingSession);
         } else {
           handleOpenSessionDetail(matchingSession);
@@ -375,9 +397,7 @@ export function useDoctorHourlyGrid({
         .replace(/^(dr\.\s*|drg\.\s*|prof\.\s*)/g, '')
         .split(' ')
         .map((n) => n[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase()
+        .slice(0, 2).join('').toUpperCase()
     : 'DR';
 
   const handlePrevDay = () => {
@@ -405,11 +425,18 @@ export function useDoctorHourlyGrid({
     setActiveYear(realCurrentYear);
   };
 
+  const handleSelectDate = (date: Date) => {
+    setActiveDay(date.getDate());
+    setActiveMonth(date.getMonth());
+    setActiveYear(date.getFullYear());
+  };
+
   return {
     activeDay,
     activeMonth,
     activeYear,
     totalDaysInMonth,
+    dateObj,
     formattedSelectedDate,
     isCurrentDayToday,
     currentTimeString,
@@ -425,6 +452,7 @@ export function useDoctorHourlyGrid({
     handlePrevDay,
     handleNextDay,
     handleToday,
+    handleSelectDate,
     handleSlotClick,
     handleOpenPatients,
     handleOpenSessionDetail,

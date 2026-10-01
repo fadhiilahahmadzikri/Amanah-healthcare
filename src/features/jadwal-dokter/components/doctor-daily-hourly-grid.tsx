@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icons } from '@/components/icons';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
+import { CustomCalendar } from '@/components/ui/custom-calendar';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule } from '../api/types';
 import type { HourlySlotStatus } from '../utils/shift-slot-builder';
@@ -17,7 +18,7 @@ import {
   DoctorGridLegend
 } from './grid';
 
-import { DoctorAddSessionModal } from './doctor-add-session-modal';
+import { DoctorAddSessionModal, type ReturnDoctorContext } from './doctor-add-session-modal';
 import { DoctorEditSessionModal } from './doctor-edit-session-modal';
 import { DoctorRescheduleSessionModal } from './doctor-reschedule-session-modal';
 import { DoctorSessionDetailModal } from './doctor-session-detail-modal';
@@ -37,6 +38,17 @@ export interface DoctorDailyHourlyGridProps {
   onAddSchedule?: () => void;
   modalContainerRef?: React.RefObject<HTMLElement | null>;
   readOnly?: boolean;
+  highlightSlotTime?: string;
+  onClearHighlightSlotTime?: () => void;
+  onReturnToSourceModal?: () => void;
+  returnDoctorName?: string;
+  returnContext?: ReturnDoctorContext | null;
+  onClearReturnContext?: () => void;
+  onViewDoctorSchedule?: (
+    doctorId: string,
+    targetSlotTime?: string,
+    returnContext?: ReturnDoctorContext
+  ) => void;
   className?: string;
 }
 
@@ -51,13 +63,20 @@ export function DoctorDailyHourlyGrid({
   onAddSchedule,
   modalContainerRef,
   readOnly = false,
+  highlightSlotTime,
+  onClearHighlightSlotTime,
+  onReturnToSourceModal,
+  returnDoctorName,
+  returnContext,
+  onClearReturnContext,
+  onViewDoctorSchedule,
   className
 }: DoctorDailyHourlyGridProps) {
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const {
     activeDay,
     activeMonth,
     activeYear,
-    totalDaysInMonth,
     formattedSelectedDate,
     isCurrentDayToday,
     currentTimeString,
@@ -69,9 +88,8 @@ export function DoctorDailyHourlyGrid({
     displayedShifts,
     overallMetrics,
     initials,
-    handlePrevDay,
-    handleNextDay,
     handleToday,
+    handleSelectDate,
     handleSlotClick,
     handleOpenPatients,
     handleOpenReschedule,
@@ -125,6 +143,44 @@ export function DoctorDailyHourlyGrid({
 
   const formattedTargetDate = `${activeYear}-${String(activeMonth + 1).padStart(2, '0')}-${String(activeDay).padStart(2, '0')}`;
 
+  const [activeHighlightTime, setActiveHighlightTime] = useState<string | undefined>(highlightSlotTime);
+
+  useEffect(() => {
+    if (highlightSlotTime) {
+      setActiveHighlightTime(highlightSlotTime);
+      const timer = setTimeout(() => {
+        setActiveHighlightTime(undefined);
+        onClearHighlightSlotTime?.();
+      }, 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightSlotTime, onClearHighlightSlotTime]);
+
+  useEffect(() => {
+    if (
+      returnContext &&
+      doctor?.id &&
+      (returnContext.sourceDoctorId === doctor.id || returnContext.sourceDoctorId === doctor.practitioner_id)
+    ) {
+      if (returnContext.sourceSlotStartTime) {
+        setAddSessionInitialTime(returnContext.sourceSlotStartTime);
+      }
+      if (returnContext.sourceSlotEndTime) {
+        setAddSessionInitialEndTime(returnContext.sourceSlotEndTime);
+      }
+      setIsAddModalOpen(true);
+      onClearReturnContext?.();
+    }
+  }, [
+    returnContext,
+    doctor?.id,
+    doctor?.practitioner_id,
+    onClearReturnContext,
+    setAddSessionInitialTime,
+    setAddSessionInitialEndTime,
+    setIsAddModalOpen
+  ]);
+
   return (
     <>
       <div
@@ -133,24 +189,33 @@ export function DoctorDailyHourlyGrid({
           className
         )}
       >
-        {/* 1. Header Grid: Judul Tanggal & Day Navigation Controls */}
         <DoctorGridHeader
           formattedSelectedDate={formattedSelectedDate}
           isDayCuti={isDayCuti}
           isDayClosed={isDayClosed}
           activeSessions={activeSessions}
           isCurrentDayToday={isCurrentDayToday}
-          activeDay={activeDay}
-          activeMonth={activeMonth}
-          totalDaysInMonth={totalDaysInMonth}
           readOnly={readOnly}
           onToday={handleToday}
-          onPrevDay={handlePrevDay}
-          onNextDay={handleNextDay}
+          isCalendarOpen={isCalendarOpen}
+          onToggleCalendar={() => setIsCalendarOpen((prev) => !prev)}
           onOpenAddSession={() => openAddSessionModal()}
         />
 
-        {/* 2. Cuti Reason Accordion, Notice & Radial Chart Metrics */}
+        {isCalendarOpen && (
+          <div className='border-b border-border/40 bg-muted/15 p-3 sm:p-4 flex flex-col items-center justify-center animate-in fade-in-0 slide-in-from-top-2 duration-200'>
+            <div className='w-full max-w-[340px] bg-background rounded-2xl border border-border/60 p-3 shadow-xs'>
+              <CustomCalendar
+                value={formattedTargetDate}
+                onChange={(_iso, d) => {
+                  handleSelectDate(d);
+                  setIsCalendarOpen(false);
+                }}
+              />
+            </div>
+          </div>
+        )}
+
         <DoctorGridMetrics
           doctor={doctor}
           isDayCuti={isDayCuti}
@@ -165,7 +230,6 @@ export function DoctorDailyHourlyGrid({
           overallMetrics={overallMetrics}
         />
 
-        {/* 3. Body Grid: Discrete 30-min Consultation Slots per Shift */}
         <div className='p-3.5 sm:p-4 space-y-4.5 overflow-x-auto'>
           {displayedShifts.map((shift) => (
             <DoctorGridShiftSection
@@ -185,10 +249,12 @@ export function DoctorDailyHourlyGrid({
               onOpenEdit={handleOpenEditSession}
               onOpenReschedule={handleOpenReschedule}
               onToggleSessionStatus={handleToggleSessionStatus}
+              highlightSlotTime={activeHighlightTime}
+              onReturnToSourceModal={onReturnToSourceModal}
+              returnDoctorName={returnDoctorName}
             />
           ))}
 
-          {/* Tombol Tambah Jadwal di Bawah Grid */}
           {!readOnly && !isDayCuti && !isDayClosed && (
             <div className='pt-1'>
               <button
@@ -203,11 +269,9 @@ export function DoctorDailyHourlyGrid({
           )}
         </div>
 
-        {/* 4. Footer Legend */}
         <DoctorGridLegend />
       </div>
 
-      {/* Sub-Modals */}
       {doctor && selectedSessionDetail && (
         <DoctorSessionDetailModal
           doctor={doctor}
@@ -224,8 +288,9 @@ export function DoctorDailyHourlyGrid({
         />
       )}
 
-      {doctor && (
+      {doctor && isAddModalOpen && (
         <DoctorAddSessionModal
+          key={`add-session-${formattedTargetDate}-${addSessionInitialTime || 'wizard'}`}
           doctor={doctor}
           isOpen={isAddModalOpen}
           onClose={() => {
@@ -242,6 +307,7 @@ export function DoctorDailyHourlyGrid({
           targetDate={formattedTargetDate}
           initialStartTime={addSessionInitialTime}
           initialEndTime={addSessionInitialEndTime}
+          onViewDoctorSchedule={onViewDoctorSchedule}
         />
       )}
 
