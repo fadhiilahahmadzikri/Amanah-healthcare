@@ -3,14 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Appointment, Doctor, MedicalIntakeRecord } from '../api/types';
+import { Appointment, Doctor } from '../api/types';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { DoctorAvatar } from './doctor-avatar';
 import { CancelStepContent } from './cancel-step-content';
+import { MedicalIntakeSummary } from './medical-intake-summary';
 import { getDoctorByName } from '../api/service';
-import { getMedicalFlowDefinition } from '../constants/medical-appointment-schemas';
-import { getMedicalFieldLabel } from '../utils/medical-appointment';
 import { getStatusConfig } from '@/styles/clinical-tokens';
 import { cn } from '@/lib/utils';
 
@@ -23,6 +21,12 @@ export interface DetailsModalProps {
 }
 
 type ModalStep = 'details' | 'cancel-confirm';
+
+function formatTimeSlot(time?: string) {
+  if (!time) return null;
+  const match = time.match(/(\d{1,2})[:.](\d{2})/);
+  return match ? `${match[1].padStart(2, '0')}.${match[2]}` : null;
+}
 
 export function DetailsModal({
   isOpen,
@@ -65,12 +69,6 @@ export function DetailsModal({
   const timeStr = appointment.time || '';
   const timeRangeMatch = timeStr.match(/(\d{1,2}[:.]\d{2})\s*-\s*(\d{1,2}[:.]\d{2})/);
   const sessionMatch = timeStr.match(/Sesi\s+[A-Za-z]+/i);
-
-  const formatTimeSlot = (time?: string) => {
-    if (!time) return null;
-    const match = time.match(/(\d{1,2})[:.](d{2})/);
-    return match ? `${match[1].padStart(2, '0')}.${match[2]}` : null;
-  };
 
   const startTime =
     formatTimeSlot(appointment.scheduled_start_time) ||
@@ -368,17 +366,13 @@ function DetailsStepContent({
           <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
             Tipe Kunjungan
           </span>
-          <span className='text-sm font-semibold text-foreground block truncate'>
-            {visitType}
-          </span>
+          <span className='text-sm font-semibold text-foreground block truncate'>{visitType}</span>
         </div>
       </div>
 
       {/* 5. Medical Complaint */}
       <div className='border-b border-border/40 pb-3 pt-0.5'>
-        <span className='text-xs font-normal text-muted-foreground block mb-1'>
-          Keluhan Medis
-        </span>
+        <span className='text-xs font-normal text-muted-foreground block mb-1'>Keluhan Medis</span>
         <p className='text-sm font-medium text-foreground leading-relaxed'>{complaintText}</p>
       </div>
 
@@ -431,67 +425,5 @@ function DetailsStepContent({
         </div>
       </div>
     </>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════════════
-   Supporting Components
-   ═══════════════════════════════════════════════════════════════════════ */
-
-const automaticLabels: Record<string, string> = {
-  estimatedDueDate: 'HPL otomatis',
-  gestationalAgeAtSubmit: 'Umur kehamilan saat submit',
-  childAgeAtSubmit: 'Umur anak saat submit',
-  imtAtSubmit: 'IMT (Indeks Massa Tubuh)'
-};
-
-function MedicalIntakeSummary({ intake }: { intake: MedicalIntakeRecord }) {
-  const definition = getMedicalFlowDefinition(intake.flow);
-  const automaticEntries = Object.entries(intake.automatic).filter(([, value]) => value);
-  const answerEntries = Object.entries(intake.answersByFieldId).filter(([, value]) => value.trim());
-
-  return (
-    <div className='border-b border-border/40 pb-3'>
-      <div className='mb-2 flex items-center justify-between gap-3'>
-        <div>
-          <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-            Intake Medis
-          </span>
-          <p className='text-sm font-semibold text-foreground'>{definition.formTitle}</p>
-        </div>
-        <span className='shrink-0 rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground'>
-          {intake.submittedAt}
-        </span>
-      </div>
-
-      {automaticEntries.length > 0 ? (
-        <div className='mb-2 grid gap-1.5 text-xs'>
-          {automaticEntries.map(([key, value]) => (
-            <IntakeRow key={key} label={automaticLabels[key] || key} value={value} />
-          ))}
-        </div>
-      ) : null}
-
-      <ScrollArea className='h-[160px] rounded-lg border border-border/60 p-3'>
-        <div className='grid gap-1.5 pr-3 text-xs'>
-          {answerEntries.map(([fieldId, value]) => (
-            <IntakeRow
-              key={fieldId}
-              label={getMedicalFieldLabel(intake.flow, fieldId)}
-              value={value}
-            />
-          ))}
-        </div>
-      </ScrollArea>
-    </div>
-  );
-}
-
-function IntakeRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className='grid grid-cols-[130px_1fr] gap-3 border-b border-border/50 pb-1.5 last:border-b-0'>
-      <span className='text-muted-foreground'>{label}</span>
-      <span className='font-medium text-foreground'>{value}</span>
-    </div>
   );
 }

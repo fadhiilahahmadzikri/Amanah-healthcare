@@ -10,6 +10,13 @@ import {
   calculateGestationalAge as calculateObstetricGa,
   formatIndonesianDateText
 } from './obstetric-calculator';
+import {
+  CONTRACEPTION_CHOICE,
+  FLOW_NAMES,
+  PREVIOUS_PREGNANCY_CHOICE,
+  SECTION_IDS
+} from '../constants/kia-constants';
+import { normalizeBirthDate } from './medical-form-helpers';
 
 const INDONESIAN_MONTHS = [
   'Januari',
@@ -26,18 +33,18 @@ const INDONESIAN_MONTHS = [
   'Desember'
 ];
 
-const previousPregnancySectionIds = new Set([
-  'previousPregnancy1Details',
-  'previousPregnancy2Details',
-  'previousPregnancy3Details',
-  'previousPregnancy4Details'
+const previousPregnancySectionIds = new Set<string>([
+  SECTION_IDS.PREVIOUS_PREGNANCY_1,
+  SECTION_IDS.PREVIOUS_PREGNANCY_2,
+  SECTION_IDS.PREVIOUS_PREGNANCY_3,
+  SECTION_IDS.PREVIOUS_PREGNANCY_4
 ]);
 
-const contraceptionSectionIds = new Set([
-  'contraception1Details',
-  'contraception2Details',
-  'contraception3Details',
-  'contraception4Details'
+const contraceptionSectionIds = new Set<string>([
+  SECTION_IDS.CONTRACEPTION_1,
+  SECTION_IDS.CONTRACEPTION_2,
+  SECTION_IDS.CONTRACEPTION_3,
+  SECTION_IDS.CONTRACEPTION_4
 ]);
 
 export type MedicalAppointmentValues = Record<string, string>;
@@ -67,11 +74,11 @@ export function getActiveMedicalSections(
     }
 
     if (previousPregnancySectionIds.has(section.id)) {
-      return values.hasPreviousPregnancyHistory === 'Ya, ada';
+      return values.hasPreviousPregnancyHistory === PREVIOUS_PREGNANCY_CHOICE.YES;
     }
 
     if (contraceptionSectionIds.has(section.id)) {
-      return values.hasContraceptionHistory === 'Ya, pernah';
+      return values.hasContraceptionHistory === CONTRACEPTION_CHOICE.YES;
     }
 
     return true;
@@ -128,7 +135,7 @@ export function buildAutomaticRecord(
   values: MedicalAppointmentValues,
   submittedAt = new Date()
 ): Record<string, string> {
-  if (flow === 'pregnancy') {
+  if (flow === FLOW_NAMES.PREGNANCY) {
     return buildPregnancyAutomaticRecord(values, submittedAt);
   }
 
@@ -201,20 +208,16 @@ export function calculateAgeInYears(
   }
 
   try {
+    const normalized = normalizeBirthDate(birthDateStr);
     let birthDate: Date;
-    if (/^\d{4}-\d{2}-\d{2}$/.test(birthDateStr)) {
-      birthDate = toDateOnly(birthDateStr);
+    if (normalized) {
+      birthDate = toDateOnly(normalized);
     } else {
-      const match = birthDateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-      if (match) {
-        birthDate = new Date(Date.UTC(Number(match[3]), Number(match[2]) - 1, Number(match[1])));
-      } else {
-        const parsed = new Date(birthDateStr);
-        if (isNaN(parsed.getTime())) {
-          return '';
-        }
-        birthDate = toDateOnly(parsed);
+      const parsed = new Date(birthDateStr);
+      if (Number.isNaN(parsed.getTime())) {
+        return '';
       }
+      birthDate = toDateOnly(parsed);
     }
 
     const reference = toDateOnly(referenceDate);
@@ -355,11 +358,20 @@ function toDateOnly(value: string | Date): Date {
     return new Date(Date.UTC(value.getFullYear(), value.getMonth(), value.getDate()));
   }
 
-  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-
-  if (!match) {
-    throw new Error('Tanggal harus berupa Date atau teks YYYY-MM-DD.');
+  const parts = value.trim().split('-');
+  if (
+    parts.length === 3 &&
+    parts[0].length === 4 &&
+    parts[1].length === 2 &&
+    parts[2].length === 2
+  ) {
+    const year = Number(parts[0]);
+    const month = Number(parts[1]) - 1;
+    const day = Number(parts[2]);
+    if (!Number.isNaN(year) && !Number.isNaN(month) && !Number.isNaN(day)) {
+      return new Date(Date.UTC(year, month, day));
+    }
   }
 
-  return new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+  throw new Error('Tanggal harus berupa Date atau teks YYYY-MM-DD.');
 }

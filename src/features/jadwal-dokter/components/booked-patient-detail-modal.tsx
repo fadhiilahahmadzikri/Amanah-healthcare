@@ -12,6 +12,7 @@ import {
   useCompletePatientAppointmentMutation
 } from '../api/mutations';
 import type { BookedPatientItem } from '@/server/contracts/schedules/doctor-schedules.dto';
+import { BookedPatientKiaIntake } from './booked-patient-kia-intake';
 
 export interface BookedPatientDetailModalProps {
   patient: BookedPatientItem | null;
@@ -205,6 +206,9 @@ export function BookedPatientDetailModal({
             </div>
           </div>
         </div>
+
+        {/* 2.5 Specialized KIA Medical Intake */}
+        <BookedPatientKiaIntake appointmentId={patient.appointmentId} />
 
         {/* 3. Clinical Intake & Queue Details */}
         <div className='space-y-2.5'>

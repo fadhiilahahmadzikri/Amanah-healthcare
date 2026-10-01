@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 
 import type { AppointmentFormData, MedicalAppointmentFlow } from '../api/types';
 import { historyGroups, useMedicalAppointmentForm } from '../model/useMedicalAppointmentForm';
+import { REPEATABLE_GROUP_KEYS, STEP_DESCRIPTOR_TYPES } from '../constants/kia-constants';
 import {
   DateStep,
   MedicalSectionStep,
@@ -92,11 +93,11 @@ export function MedicalAppointmentModal({
   } = medical;
 
   const currentSection =
-    currentDescriptor?.type === 'medical'
+    currentDescriptor?.type === STEP_DESCRIPTOR_TYPES.MEDICAL
       ? visibleMedicalSections[currentDescriptor.sectionIndex]
       : undefined;
   const isQuestionnaireStep = currentSection?.layout === 'questionnaire';
-  const isHistoryCatalogStep = currentDescriptor?.type === 'history-catalog';
+  const isHistoryCatalogStep = currentDescriptor?.type === STEP_DESCRIPTOR_TYPES.HISTORY_CATALOG;
 
   return (
     <>
@@ -115,7 +116,7 @@ export function MedicalAppointmentModal({
           <form.Form className='flex h-full min-h-0 flex-1 flex-col gap-0 p-0 md:p-0'>
             <div className='flex h-full min-h-0 flex-1 flex-col justify-between gap-4'>
               <div ref={stepContainerRef} className='flex h-full min-h-0 flex-1 flex-col'>
-                {currentDescriptor.type === 'medical' ? (
+                {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.MEDICAL ? (
                   <MedicalSectionStep
                     section={visibleMedicalSections[currentDescriptor.sectionIndex]}
                     catalogActionType={catalogAction?.type ?? null}
@@ -138,7 +139,7 @@ export function MedicalAppointmentModal({
                   />
                 ) : null}
 
-                {currentDescriptor.type === 'history-catalog' ? (
+                {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.HISTORY_CATALOG ? (
                   <MedicalHistoryCatalog
                     groupKey={currentDescriptor.historyKey}
                     recordsCount={historyCounts[currentDescriptor.historyKey]}
@@ -155,7 +156,7 @@ export function MedicalAppointmentModal({
                   />
                 ) : null}
 
-                {currentDescriptor.type === 'date' ? (
+                {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.DATE ? (
                   <DateStep
                     selectedDateStr={schedule.dateStr}
                     onSelectDate={(dateStr) =>
@@ -168,7 +169,7 @@ export function MedicalAppointmentModal({
                   />
                 ) : null}
 
-                {currentDescriptor.type === 'time' ? (
+                {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.TIME ? (
                   <TimeStep
                     selectedDateStr={schedule.dateStr}
                     selectedTimeSlot={schedule.timeSlot}
@@ -178,7 +179,7 @@ export function MedicalAppointmentModal({
                   />
                 ) : null}
 
-                {currentDescriptor.type === 'review' ? (
+                {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.REVIEW ? (
                   <ReviewStep
                     definitionTitle={definition.formTitle}
                     flow={flow}
@@ -195,7 +196,7 @@ export function MedicalAppointmentModal({
                   {currentStep === 1 && !onBackToService ? 'Batal' : 'Kembali'}
                 </Button>
                 <div className='flex items-center gap-2.5'>
-                  {currentDescriptor.type === 'history-catalog' &&
+                  {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.HISTORY_CATALOG &&
                   historyCounts[currentDescriptor.historyKey] <
                     historyGroups[currentDescriptor.historyKey].maxRecords ? (
                     <Button
@@ -207,12 +208,12 @@ export function MedicalAppointmentModal({
                     >
                       <Icons.add className='mr-1 size-3.5 shrink-0' />
                       <span className='hidden sm:inline'>
-                        {currentDescriptor.historyKey === 'pregnancy'
+                        {currentDescriptor.historyKey === REPEATABLE_GROUP_KEYS.PREGNANCY
                           ? 'Tambah Riwayat Kehamilan Baru'
                           : 'Tambah Riwayat KB Baru'}
                       </span>
                       <span className='sm:hidden'>
-                        {currentDescriptor.historyKey === 'pregnancy'
+                        {currentDescriptor.historyKey === REPEATABLE_GROUP_KEYS.PREGNANCY
                           ? 'Tambah Kehamilan'
                           : 'Tambah KB'}
                       </span>
@@ -227,10 +228,16 @@ export function MedicalAppointmentModal({
                     onClick={actions.nextStep}
                     withTrailingCircleIcon
                     trailingIcon={
-                      currentDescriptor.type === 'review' ? <Icons.check /> : <Icons.arrowUpRight />
+                      currentDescriptor.type === STEP_DESCRIPTOR_TYPES.REVIEW ? (
+                        <Icons.check />
+                      ) : (
+                        <Icons.arrowUpRight />
+                      )
                     }
                   >
-                    {currentDescriptor.type === 'review' ? 'Simpan Janji Temu' : 'Lanjutkan'}
+                    {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.REVIEW
+                      ? 'Simpan Janji Temu'
+                      : 'Lanjutkan'}
                   </Button>
                 </div>
               </div>
