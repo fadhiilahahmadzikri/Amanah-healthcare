@@ -57,6 +57,7 @@ export function AppointmentModal({
     setActiveMedicalFlow,
     rescheduleStaffId,
     reschedulePoliklinikId,
+    rescheduleStaffIdReady,
     isSubmitting,
     isQueueSuccessOpen,
     setIsQueueSuccessOpen,
@@ -169,15 +170,22 @@ export function AppointmentModal({
 
             {/* 4B. STEP: SESI PRAKTIK DOKTER JAGA (DEDICATED SLIDE) */}
             {step === 'session' && (
-              <BookingSessionStep
-                selectedService={selectedService}
-                dateStr={dateStr}
-                timeSlot={timeSlot}
-                setTimeSlot={setTimeSlot}
-                onSelectSessionId={setSelectedSessionId}
-                staffId={rescheduleStaffId}
-                poliklinikId={reschedulePoliklinikId}
-              />
+              mode === 'edit' && !rescheduleStaffIdReady ? (
+                <div className='flex items-center justify-center py-10 text-sm text-muted-foreground gap-2'>
+                  <Icons.spinner className='size-4 animate-spin' />
+                  <span>Memuat info dokter...</span>
+                </div>
+              ) : (
+                <BookingSessionStep
+                  selectedService={selectedService}
+                  dateStr={dateStr}
+                  timeSlot={timeSlot}
+                  setTimeSlot={setTimeSlot}
+                  onSelectSessionId={setSelectedSessionId}
+                  staffId={rescheduleStaffId || undefined}
+                  poliklinikId={reschedulePoliklinikId}
+                />
+              )
             )}
 
             {/* 4C. STEP: TIPE KUNJUNGAN (DEDICATED SLIDE) */}
