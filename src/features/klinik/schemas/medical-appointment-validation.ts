@@ -120,6 +120,22 @@ export function normalizeMedicalFieldInput(field: MedicalFormField, value: strin
     return value.replace(/\D/g, '').slice(0, 16);
   }
 
+  if (phoneFieldIds.has(field.id)) {
+    return value.replace(/\D/g, '').slice(0, 15);
+  }
+
+  if (countFieldIds.has(field.id)) {
+    return value.replace(/\D/g, '').slice(0, 2);
+  }
+
+  if (
+    field.id.endsWith('BirthYear') ||
+    field.id.endsWith('HistoryYear') ||
+    field.id.endsWith('Year')
+  ) {
+    return value.replace(/\D/g, '').slice(0, 4);
+  }
+
   return value;
 }
 

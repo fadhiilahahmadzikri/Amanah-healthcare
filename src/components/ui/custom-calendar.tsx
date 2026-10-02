@@ -13,9 +13,10 @@ import {
 import { cn } from '@/lib/utils';
 
 export interface CustomCalendarProps {
-  value: string; // ISO format 'YYYY-MM-DD'
+  value: string;
   onChange: (isoDate: string, dateObj: Date) => void;
   disablePastDates?: boolean;
+  disableFutureDates?: boolean;
   isDateDisabled?: (date: Date, isoStr: string) => boolean;
   minYear?: number;
   maxYear?: number;
@@ -45,6 +46,7 @@ export function CustomCalendar({
   value,
   onChange,
   disablePastDates = false,
+  disableFutureDates = false,
   isDateDisabled,
   minYear: customMinYear,
   maxYear: customMaxYear,
@@ -103,7 +105,8 @@ export function CustomCalendar({
   const month = viewDate.getMonth();
 
   const currentYear = new Date().getFullYear();
-  const maxYear = customMaxYear ?? Math.max(currentYear + 5, year);
+  const maxYear =
+    customMaxYear ?? (disableFutureDates ? currentYear : Math.max(currentYear + 5, year));
   const minYear = customMinYear ?? Math.min(1930, year);
 
   const yearOptions = React.useMemo(() => {
@@ -121,6 +124,9 @@ export function CustomCalendar({
 
   const handleNextMonth = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (disableFutureDates && year >= currentYear && month >= today.getMonth()) {
+      return;
+    }
     setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
   };
 
@@ -212,9 +218,10 @@ export function CustomCalendar({
 
         <button
           type='button'
+          disabled={disableFutureDates && year >= currentYear && month >= today.getMonth()}
           onClick={handleNextMonth}
           aria-label='Bulan berikutnya'
-          className='cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground'
+          className='cursor-pointer rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-30'
         >
           <Icons.chevronRight className='size-4' />
         </button>
@@ -243,14 +250,14 @@ export function CustomCalendar({
           const currentDayIso = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
           const isPast = currentDayObj.getTime() < todayStart;
+          const isFuture = currentDayObj.getTime() > todayStart;
           const isSelesai =
             (disablePastDates && isPast) ||
+            (disableFutureDates && isFuture) ||
             (isDateDisabled ? isDateDisabled(currentDayObj, currentDayIso) : false);
 
           const isSelected =
-            parsedValue?.year === year &&
-            parsedValue?.month === month &&
-            parsedValue?.day === day;
+            parsedValue?.year === year && parsedValue?.month === month && parsedValue?.day === day;
 
           return (
             <button
@@ -270,14 +277,11 @@ export function CustomCalendar({
                       selectedDateClassName
                     )
                   : isSelesai
-                  ? cn(
-                      'text-muted-foreground/35 cursor-not-allowed select-none pointer-events-none',
-                      disabledDateClassName
-                    )
-                  : cn(
-                      'text-foreground hover:bg-accent cursor-pointer',
-                      activeDateClassName
-                    )
+                    ? cn(
+                        'text-muted-foreground/35 cursor-not-allowed select-none pointer-events-none',
+                        disabledDateClassName
+                      )
+                    : cn('text-foreground hover:bg-accent cursor-pointer', activeDateClassName)
               )}
             >
               {day}

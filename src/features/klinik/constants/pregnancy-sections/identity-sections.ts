@@ -4,6 +4,7 @@ import {
   LIST,
   PARAGRAPH,
   TEXT,
+  bloodTypeChoices,
   defaultOccupationChoices,
   educationChoices,
   field,
@@ -25,7 +26,8 @@ export const motherIdentitySection: MedicalFormSection = {
     field('motherBirthDate', DATE, 'Tanggal lahir', 'Tanggal lahir', { colSpan: 1 }),
     field('motherAge', TEXT, 'Umur saat ini', 'Umur', {
       helpText: 'Otomatis terhitung dari tanggal lahir.',
-      colSpan: 1
+      colSpan: 1,
+      disabled: true
     }),
     field('marriageOrder', TEXT, 'Pernikahan ke berapa?', 'Pernikahan ke', {
       helpText: 'Isi angka urutan pernikahan. Contoh: 1.',
@@ -53,7 +55,16 @@ export const motherIdentitySection: MedicalFormSection = {
     }),
     field('identityCardAddress', PARAGRAPH, 'Alamat sesuai KTP', 'Alamat KTP', {
       colSpan: 'full'
-    }),
+    })
+  ]
+};
+
+export const domicileHealthCoverageSection: MedicalFormSection = {
+  id: 'domicileHealthCoverage',
+  title: 'Wilayah & Fasilitas Domisili',
+  description: 'Isi data kelompok Dasawisma, Posyandu, dan Puskesmas wilayah domisili.',
+  layout: 'grid',
+  fields: [
     field('dasawisma', TEXT, 'Nama Dasawisma', 'Dasawisma', {
       helpText: 'Isi nama kelompok Dasawisma jika terdaftar.',
       colSpan: 1
@@ -94,6 +105,10 @@ export const partnerIdentitySection: MedicalFormSection = {
     }),
     field('partnerEducation', LIST, 'Pendidikan terakhir suami', 'Pendidikan suami', {
       choices: educationChoices,
+      colSpan: 1
+    }),
+    field('partnerBloodType', LIST, 'Golongan darah suami', 'Gol. darah suami', {
+      choices: bloodTypeChoices,
       colSpan: 1
     })
   ]

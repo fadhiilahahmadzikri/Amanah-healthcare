@@ -1,3 +1,4 @@
+import gsap from 'gsap';
 import * as React from 'react';
 
 import { Icons } from '@/components/icons';
@@ -12,7 +13,10 @@ import type {
   MedicalFormSection
 } from '../../constants/medical-appointment-schemas';
 import type { ScheduleValues } from '../../model/useMedicalAppointmentForm';
-import { buildAutomaticRecord, type MedicalAppointmentValues } from '../../utils/medical-appointment';
+import {
+  buildAutomaticRecord,
+  type MedicalAppointmentValues
+} from '../../utils/medical-appointment';
 import { AppointmentCalendarDayPicker } from '../appointment-calendar-day-picker';
 import { AppointmentTimeSlotPicker } from '../appointment-time-slot-picker';
 import { MedicalQuestionnaire } from '../questionnaire';
@@ -51,6 +55,7 @@ export function MedicalSectionStep({
   onFieldChange?: (fieldId: string, value: string) => void;
 }) {
   const scrollRef = React.useRef<HTMLDivElement>(null);
+  const containerRef = React.useRef<HTMLDivElement>(null);
   const isGrid = section?.layout === 'grid';
   const isQuestionnaire = section?.layout === 'questionnaire';
 
@@ -72,8 +77,23 @@ export function MedicalSectionStep({
     return () => cancelAnimationFrame(rafId);
   }, [section?.id]);
 
+  React.useEffect(() => {
+    if (!containerRef.current) return;
+    gsap.fromTo(
+      containerRef.current,
+      { y: 12, opacity: 0, scale: 0.99 },
+      {
+        y: 0,
+        opacity: 1,
+        scale: 1,
+        duration: 0.24,
+        ease: 'power3.out'
+      }
+    );
+  }, [section?.id]);
+
   return (
-    <div className='flex min-h-0 flex-1 flex-col gap-4'>
+    <div ref={containerRef} className='flex min-h-0 flex-1 flex-col gap-4'>
       {catalogActionType && onReturnToCatalog ? (
         <div className='flex items-center justify-between rounded-lg bg-primary/10 px-3.5 py-2 text-xs font-medium text-primary'>
           <div className='flex items-center gap-2'>

@@ -11,8 +11,12 @@ export function PatientBirthdatePicker({
   placeholder = 'pilih tanggal lahir...',
   ariaLabel = 'Tanggal lahir',
   minYear = 1930,
+  maxYear,
+  disableFutureDates = true,
   ...props
 }: PatientBirthdatePickerProps) {
+  const dynamicMaxYear = maxYear ?? new Date().getFullYear();
+
   return (
     <CustomDatePicker
       id={id}
@@ -20,6 +24,8 @@ export function PatientBirthdatePicker({
       placeholder={placeholder}
       ariaLabel={ariaLabel}
       minYear={minYear}
+      maxYear={dynamicMaxYear}
+      disableFutureDates={disableFutureDates}
       {...props}
     />
   );

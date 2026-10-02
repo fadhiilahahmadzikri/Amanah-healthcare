@@ -1,15 +1,7 @@
 import type { AnyFieldApi } from '@tanstack/form-core';
 import * as React from 'react';
 
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-  FieldLegend,
-  FieldSet
-} from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
+import { FieldDescription, FieldError, FieldLegend, FieldSet } from '@/components/ui/field';
 import {
   Select,
   SelectContent,
@@ -20,6 +12,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
 import { PatientBirthdatePicker } from '@/features/data-pasien/components/registration/molecules/patient-birthdate-picker';
 import { cn } from '@/lib/utils';
 
@@ -208,16 +201,18 @@ export function MedicalSchemaField({
     const placeholder = getFieldPlaceholder(schemaField);
 
     return (
-      <Field data-invalid={isInvalid} className={cn('gap-2', colSpanClass)}>
-        <FieldLabel
+      <div className={cn('relative pt-2', colSpanClass)}>
+        <label
           htmlFor={schemaField.id}
-          className='min-h-[1.25rem] text-sm leading-snug font-medium'
+          className={cn(
+            'block text-[11px] font-semibold transition-colors duration-200 select-none',
+            value ? 'text-primary' : 'text-muted-foreground/80',
+            isInvalid && '!text-destructive'
+          )}
         >
-          <span>
-            {schemaField.title}
-            {requiredAsterisk}
-          </span>
-        </FieldLabel>
+          {schemaField.title}
+          {requiredAsterisk}
+        </label>
         <Select
           value={value}
           disabled={schemaField.disabled}
@@ -226,21 +221,30 @@ export function MedicalSchemaField({
             fieldApi.handleBlur();
           }}
         >
-          <SelectTrigger id={schemaField.id} aria-invalid={isInvalid} className='w-full'>
+          <SelectTrigger
+            id={schemaField.id}
+            aria-invalid={isInvalid}
+            className={cn(
+              'w-full cursor-pointer rounded-none border-0 border-b-[1.5px] border-border bg-transparent px-0 py-1.5 text-sm font-medium shadow-none transition-colors duration-200 focus:border-primary focus:ring-0 focus-visible:ring-0 select-none',
+              isInvalid && '!border-destructive'
+            )}
+          >
             <SelectValue placeholder={placeholder} />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
               {schemaField.choices.map((choice) => (
-                <SelectItem key={choice} value={choice}>
+                <SelectItem key={choice} value={choice} className='cursor-pointer'>
                   {choice}
                 </SelectItem>
               ))}
             </SelectGroup>
           </SelectContent>
         </Select>
-        <FieldError errors={displayError ? [displayError] : []} />
-      </Field>
+        {displayError ? (
+          <p className='pt-0.5 text-[11px] font-normal text-destructive'>{displayError}</p>
+        ) : null}
+      </div>
     );
   }
 
@@ -248,28 +252,40 @@ export function MedicalSchemaField({
     const placeholder = getFieldPlaceholder(schemaField);
 
     return (
-      <Field data-invalid={isInvalid} className={cn('gap-2', colSpanClass)}>
-        <FieldLabel
+      <div className={cn('relative pt-2', colSpanClass)}>
+        <label
           htmlFor={schemaField.id}
-          className='min-h-[1.25rem] text-sm leading-snug font-medium'
+          className={cn(
+            'block text-[11px] font-semibold transition-colors duration-200 select-none',
+            value ? 'text-primary' : 'text-muted-foreground/80',
+            isInvalid && '!text-destructive'
+          )}
         >
-          <span>
-            {schemaField.title}
-            {requiredAsterisk}
-          </span>
-        </FieldLabel>
-        <Textarea
-          id={schemaField.id}
-          value={value}
-          placeholder={placeholder}
-          disabled={schemaField.disabled}
-          onBlur={fieldApi.handleBlur}
-          onChange={(event) => fieldApi.handleChange(event.target.value)}
-          aria-invalid={isInvalid}
-          rows={3}
-        />
-        <FieldError errors={displayError ? [displayError] : []} />
-      </Field>
+          {schemaField.title}
+          {requiredAsterisk}
+        </label>
+        <div
+          className={cn(
+            'border-b-[1.5px] border-border transition-colors duration-200 focus-within:border-primary',
+            isInvalid && '!border-destructive'
+          )}
+        >
+          <Textarea
+            id={schemaField.id}
+            value={value}
+            placeholder={placeholder}
+            disabled={schemaField.disabled}
+            onBlur={fieldApi.handleBlur}
+            onChange={(event) => fieldApi.handleChange(event.target.value)}
+            aria-invalid={isInvalid}
+            rows={2}
+            className='w-full resize-none rounded-none border-0 bg-transparent px-0 py-1 text-sm font-medium shadow-none outline-none focus-visible:ring-0'
+          />
+        </div>
+        {displayError ? (
+          <p className='pt-0.5 text-[11px] font-normal text-destructive'>{displayError}</p>
+        ) : null}
+      </div>
     );
   }
 
@@ -277,16 +293,7 @@ export function MedicalSchemaField({
     const placeholder = getFieldPlaceholder(schemaField);
 
     return (
-      <Field data-invalid={isInvalid} className={cn('gap-2', colSpanClass)}>
-        <FieldLabel
-          htmlFor={schemaField.id}
-          className='min-h-[1.25rem] text-sm leading-snug font-medium'
-        >
-          <span>
-            {schemaField.title}
-            {requiredAsterisk}
-          </span>
-        </FieldLabel>
+      <div className={cn('relative pt-2', colSpanClass)}>
         <PatientBirthdatePicker
           id={schemaField.id}
           value={value}
@@ -294,15 +301,16 @@ export function MedicalSchemaField({
             fieldApi.handleChange(nextValue);
             fieldApi.handleBlur();
           }}
-          label={null}
+          variant='underline'
+          label={schemaField.title + (schemaField.required ? ' *' : '')}
+          labelClassName='text-[11px] font-semibold text-primary'
           placeholder={placeholder}
           ariaLabel={schemaField.title}
-          error={undefined}
+          error={displayError}
           invalid={isInvalid}
-          className='w-full space-y-0'
+          className='w-full space-y-1'
         />
-        <FieldError errors={displayError ? [displayError] : []} />
-      </Field>
+      </div>
     );
   }
 
@@ -316,66 +324,63 @@ export function MedicalSchemaField({
     const placeholder = getFieldPlaceholder(schemaField);
 
     return (
-      <Field data-invalid={isInvalid} className={cn('gap-2', colSpanClass)}>
-        <FieldLabel
-          htmlFor={schemaField.id}
-          className='min-h-[1.25rem] text-sm leading-snug font-medium'
-        >
-          <span>
-            {schemaField.title}
-            {requiredAsterisk}
-          </span>
-        </FieldLabel>
-        <Input
-          id={schemaField.id}
-          type='text'
-          value={value}
-          placeholder={placeholder}
-          disabled={schemaField.disabled}
-          onBlur={fieldApi.handleBlur}
-          onChange={(event) =>
-            fieldApi.handleChange(normalizeMedicalFieldInput(schemaField, event.target.value))
-          }
-          aria-invalid={isInvalid}
-          className={cn(value && 'bg-muted/20 font-normal text-foreground')}
-        />
-        {value ? <p className='text-xs text-muted-foreground'>Otomatis terhitung</p> : null}
-        <FieldError errors={displayError ? [displayError] : []} />
-      </Field>
+      <PatientLineInput
+        id={schemaField.id}
+        label={schemaField.title + (schemaField.required ? ' *' : '')}
+        value={value}
+        onChange={(nextVal) =>
+          fieldApi.handleChange(normalizeMedicalFieldInput(schemaField, nextVal))
+        }
+        onBlur={fieldApi.handleBlur}
+        error={displayError}
+        invalid={isInvalid}
+        placeholder={placeholder}
+        disabled={true}
+        readOnly={true}
+        containerClassName={colSpanClass}
+        trailingIcon={
+          value ? (
+            <span className='rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary select-none'>
+              Otomatis
+            </span>
+          ) : null
+        }
+      />
     );
   }
 
   const placeholder = getFieldPlaceholder(schemaField);
-  const isPairedGridCount = schemaField.id === 'gravidaCount' || schemaField.id === 'parityCount';
+  const isNik = schemaField.id.toLowerCase().includes('nik');
+  const isPhone =
+    schemaField.id.toLowerCase().includes('phone') ||
+    schemaField.id.toLowerCase().includes('telepon');
+  const isCount =
+    schemaField.id.toLowerCase().includes('count') ||
+    schemaField.id.toLowerCase().includes('order') ||
+    schemaField.id === 'marriageOrder';
+  const isYear = schemaField.id.endsWith('Year');
+
+  const inputMode = isNik || isCount || isYear ? 'numeric' : isPhone ? 'tel' : undefined;
+  const maxLength = isNik ? 16 : isPhone ? 15 : isYear ? 4 : isCount ? 2 : undefined;
 
   return (
-    <Field data-invalid={isInvalid} className={cn('gap-2', colSpanClass)}>
-      <FieldLabel
-        htmlFor={schemaField.id}
-        className={cn(
-          'text-sm leading-snug font-medium',
-          isPairedGridCount ? 'flex items-start sm:min-h-[2.5rem]' : 'min-h-[1.25rem]'
-        )}
-      >
-        <span>
-          {schemaField.title}
-          {requiredAsterisk}
-        </span>
-      </FieldLabel>
-      <Input
-        id={schemaField.id}
-        type='text'
-        value={value}
-        placeholder={placeholder}
-        disabled={schemaField.disabled}
-        onBlur={fieldApi.handleBlur}
-        onChange={(event) =>
-          fieldApi.handleChange(normalizeMedicalFieldInput(schemaField, event.target.value))
-        }
-        aria-invalid={isInvalid}
-      />
-      <FieldError errors={displayError ? [displayError] : []} />
-    </Field>
+    <PatientLineInput
+      id={schemaField.id}
+      label={schemaField.title + (schemaField.required ? ' *' : '')}
+      value={value}
+      onChange={(nextVal) =>
+        fieldApi.handleChange(normalizeMedicalFieldInput(schemaField, nextVal))
+      }
+      onBlur={fieldApi.handleBlur}
+      error={displayError}
+      invalid={isInvalid}
+      placeholder={placeholder}
+      disabled={schemaField.disabled}
+      containerClassName={colSpanClass}
+      isMonospace={isNik}
+      inputMode={inputMode}
+      maxLength={maxLength}
+    />
   );
 }
 

@@ -108,8 +108,10 @@ export function MedicalAppointmentModal({
         showCloseButton={false}
         backdropClassName='overflow-hidden'
         className={cn(
-          'flex h-[96dvh] max-h-[96dvh] flex-col p-5 transition-all duration-300 sm:h-[660px] sm:max-h-[88vh] sm:p-6',
-          (isQuestionnaireStep || isHistoryCatalogStep) && 'sm:max-w-[820px]'
+          'flex h-auto max-h-[92dvh] flex-col p-5 transition-all duration-300 sm:max-h-[88vh] sm:p-6 shadow-2xl',
+          isQuestionnaireStep || isHistoryCatalogStep
+            ? 'sm:h-[660px] sm:max-w-[820px]'
+            : 'sm:min-h-[460px]'
         )}
       >
         <form.AppForm>

@@ -1,5 +1,6 @@
 import type { MedicalFlowDefinition } from './medical-appointment-types';
 import {
+  domicileHealthCoverageSection,
   motherIdentitySection,
   partnerIdentitySection
 } from './pregnancy-sections/identity-sections';
@@ -29,6 +30,7 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
   complaintFieldId: 'currentComplaints',
   sections: [
     motherIdentitySection,
+    domicileHealthCoverageSection,
     partnerIdentitySection,
     baselineMeasurementsSection,
     currentPregnancySection,

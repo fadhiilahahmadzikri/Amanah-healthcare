@@ -21,6 +21,7 @@ export interface CustomDatePickerProps {
   popupClassName?: string;
   variant?: 'outline' | 'underline';
   disablePastDates?: boolean;
+  disableFutureDates?: boolean;
   isDateDisabled?: (date: Date, isoStr: string) => boolean;
   minYear?: number;
   maxYear?: number;
@@ -41,6 +42,7 @@ export function CustomDatePicker({
   popupClassName,
   variant = 'outline',
   disablePastDates = false,
+  disableFutureDates = false,
   isDateDisabled,
   minYear,
   maxYear
@@ -215,6 +217,7 @@ export function CustomDatePicker({
           minYear={minYear}
           maxYear={maxYear}
           disablePastDates={disablePastDates}
+          disableFutureDates={disableFutureDates}
           isDateDisabled={isDateDisabled}
           onSelectDropdownChange={(open) => {
             isSelectOpenRef.current = open;

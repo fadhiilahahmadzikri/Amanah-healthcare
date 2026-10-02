@@ -51,6 +51,7 @@ export const DEFAULT_INTAKE_VALUES = {
 
 export const SECTION_IDS = {
   MOTHER_IDENTITY: 'motherIdentity',
+  DOMICILE_HEALTH_COVERAGE: 'domicileHealthCoverage',
   PARTNER_IDENTITY: 'partnerIdentity',
   BASELINE_MEASUREMENTS: 'baselineMeasurements',
   OBSTETRIC_SUMMARY: 'obstetricSummary',

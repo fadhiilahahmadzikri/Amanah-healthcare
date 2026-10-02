@@ -45,10 +45,6 @@ export const baselineMeasurementsSection: MedicalFormSection = {
     field('motherBloodType', LIST, 'Golongan darah', 'Gol. darah', {
       choices: bloodTypeChoices,
       colSpan: 1
-    }),
-    field('partnerBloodType', LIST, 'Golongan darah suami/pasangan', 'Gol. darah suami', {
-      choices: bloodTypeChoices,
-      colSpan: 1
     })
   ]
 };
