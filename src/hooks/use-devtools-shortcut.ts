@@ -24,7 +24,8 @@ const HIDE_DEV_TOOLS_CSS = `
   button[aria-label*="React Query Devtools"],
   button[aria-label*="TanStack Query Devtools"],
   [class*="ReactQueryDevtools"],
-  [data-tanstack-query-devtools] {
+  [data-tanstack-query-devtools],
+  [data-dev-autofill-toolbar] {
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;

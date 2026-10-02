@@ -230,6 +230,47 @@ export function useMedicalAppointmentForm({
   }, [history, values.hasPreviousPregnancyHistory]);
 
   React.useEffect(() => {
+    if (process.env.NODE_ENV === 'production') {
+      return;
+    }
+
+    const handleAutofill = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        flow: string;
+        values: Record<string, string>;
+        schedule?: ScheduleValues;
+        step?: number;
+      }>;
+      const detail = customEvent.detail;
+      if (!detail || detail.flow !== flow) {
+        return;
+      }
+
+      if (detail.values) {
+        Object.entries(detail.values).forEach(([fieldId, value]) => {
+          form.setFieldValue(fieldId, value);
+        });
+      }
+
+      if (detail.schedule) {
+        setSchedule((previous) => ({
+          ...previous,
+          ...detail.schedule
+        }));
+      }
+
+      if (typeof detail.step === 'number') {
+        setCurrentStep(detail.step);
+      }
+    };
+
+    window.addEventListener('devtool:autofill', handleAutofill);
+    return () => {
+      window.removeEventListener('devtool:autofill', handleAutofill);
+    };
+  }, [flow, form, setSchedule]);
+
+  React.useEffect(() => {
     if (!history.pendingNavigateSectionId) {
       return;
     }

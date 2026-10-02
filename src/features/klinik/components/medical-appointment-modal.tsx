@@ -144,7 +144,10 @@ export function MedicalAppointmentModal({
         </div>
 
         <form.AppForm>
-          <form.Form className='flex flex-1 min-h-0 flex-col gap-0 p-0 md:p-0'>
+          <form.Form
+            data-medical-flow={flow}
+            className='flex flex-1 min-h-0 flex-col gap-0 p-0 md:p-0'
+          >
             <div
               ref={stepContainerRef}
               className='flex-1 min-h-0 max-h-[calc(88dvh-8rem)] overflow-y-auto overflow-x-hidden pr-1.5 py-2'
