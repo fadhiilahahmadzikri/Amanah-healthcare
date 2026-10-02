@@ -4,7 +4,6 @@ import * as React from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { FieldGroup } from '@/components/ui/field';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
 import type { MedicalAppointmentFlow } from '../../api/types';
@@ -54,46 +53,26 @@ export function MedicalSectionStep({
   values?: MedicalAppointmentValues;
   onFieldChange?: (fieldId: string, value: string) => void;
 }) {
-  const scrollRef = React.useRef<HTMLDivElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const isGrid = section?.layout === 'grid';
   const isQuestionnaire = section?.layout === 'questionnaire';
-
-  React.useLayoutEffect(() => {
-    const scrollToTop = () => {
-      if (scrollRef.current) {
-        const viewport = scrollRef.current.querySelector(
-          '[data-radix-scroll-area-viewport]'
-        ) as HTMLElement | null;
-        if (viewport) {
-          viewport.scrollTop = 0;
-        }
-        scrollRef.current.scrollTop = 0;
-      }
-    };
-
-    scrollToTop();
-    const rafId = requestAnimationFrame(scrollToTop);
-    return () => cancelAnimationFrame(rafId);
-  }, [section?.id]);
 
   React.useEffect(() => {
     if (!containerRef.current) return;
     gsap.fromTo(
       containerRef.current,
-      { y: 12, opacity: 0, scale: 0.99 },
+      { y: 8, opacity: 0 },
       {
         y: 0,
         opacity: 1,
-        scale: 1,
-        duration: 0.24,
+        duration: 0.2,
         ease: 'power3.out'
       }
     );
   }, [section?.id]);
 
   return (
-    <div ref={containerRef} className='flex min-h-0 flex-1 flex-col gap-4'>
+    <div ref={containerRef} className='flex min-h-0 flex-1 flex-col gap-3'>
       {catalogActionType && onReturnToCatalog ? (
         <div className='flex items-center justify-between rounded-lg bg-primary/10 px-3.5 py-2 text-xs font-medium text-primary'>
           <div className='flex items-center gap-2'>
@@ -120,29 +99,20 @@ export function MedicalSectionStep({
           </Button>
         </div>
       ) : null}
-      <StepTitle title={section.title} description={section.description} />
-      <ScrollArea
-        ref={scrollRef}
-        key={section.id}
-        className='min-h-0 flex-1 [&_[data-slot=scroll-area-scrollbar]]:hidden'
-      >
-        {isQuestionnaire && values && onFieldChange ? (
-          <div className='px-1 pt-0 pb-8'>
-            <MedicalQuestionnaire section={section} values={values} onFieldChange={onFieldChange} />
-          </div>
-        ) : (
-          <FieldGroup
-            className={cn(
-              isGrid
-                ? 'grid grid-cols-1 items-start gap-x-4 gap-y-4 sm:grid-cols-2 sm:gap-x-5 sm:gap-y-4.5'
-                : 'gap-5',
-              'px-1 pt-1 pb-8'
-            )}
-          >
-            {section.fields.map(renderField)}
-          </FieldGroup>
-        )}
-      </ScrollArea>
+      {isQuestionnaire && values && onFieldChange ? (
+        <div className='px-0.5 pt-0 pb-2'>
+          <MedicalQuestionnaire section={section} values={values} onFieldChange={onFieldChange} />
+        </div>
+      ) : (
+        <FieldGroup
+          className={cn(
+            isGrid ? 'grid grid-cols-1 items-start gap-x-5 gap-y-3.5 sm:grid-cols-2' : 'space-y-4',
+            'px-0.5 pt-0 pb-2'
+          )}
+        >
+          {section.fields.map(renderField)}
+        </FieldGroup>
+      )}
     </div>
   );
 }
@@ -155,17 +125,8 @@ export function DateStep({
   onSelectDate: (dateStr: string) => void;
 }) {
   return (
-    <div className='flex min-h-0 flex-1 flex-col gap-4'>
-      <StepTitle
-        title='Tanggal kunjungan'
-        description='Pilih tanggal praktik kunjungan yang tersedia.'
-      />
-      <div className='min-h-0 flex-1 overflow-y-auto pr-1 pb-2'>
-        <AppointmentCalendarDayPicker
-          selectedDateStr={selectedDateStr}
-          onSelectDate={onSelectDate}
-        />
-      </div>
+    <div className='flex min-h-0 flex-1 flex-col gap-3 py-1'>
+      <AppointmentCalendarDayPicker selectedDateStr={selectedDateStr} onSelectDate={onSelectDate} />
     </div>
   );
 }
@@ -180,18 +141,12 @@ export function TimeStep({
   onSelectTimeSlot: (timeSlot: string) => void;
 }) {
   return (
-    <div className='flex min-h-0 flex-1 flex-col gap-4'>
-      <StepTitle
-        title='Jam kunjungan'
-        description={`Pilih slot sesi jam kunjungan yang tersedia pada ${selectedDateStr}.`}
+    <div className='flex min-h-0 flex-1 flex-col gap-3 py-1'>
+      <AppointmentTimeSlotPicker
+        selectedDateStr={selectedDateStr}
+        selectedTimeSlot={selectedTimeSlot}
+        onSelectTimeSlot={onSelectTimeSlot}
       />
-      <div className='min-h-0 flex-1 overflow-y-auto pr-1 pb-2'>
-        <AppointmentTimeSlotPicker
-          selectedDateStr={selectedDateStr}
-          selectedTimeSlot={selectedTimeSlot}
-          onSelectTimeSlot={onSelectTimeSlot}
-        />
-      </div>
     </div>
   );
 }
@@ -221,11 +176,7 @@ export function ReviewStep({
   };
 
   return (
-    <div className='flex min-h-0 flex-1 flex-col gap-4'>
-      <StepTitle
-        title='Konfirmasi data'
-        description='Pastikan jadwal dan jawaban form sudah benar sebelum disimpan.'
-      />
+    <div className='flex min-h-0 flex-1 flex-col gap-3 py-1'>
       <div className='grid shrink-0 gap-2 text-xs'>
         <SummaryRow label='Form' value={definitionTitle} />
         <SummaryRow label='Layanan' value={serviceName} />
@@ -239,13 +190,13 @@ export function ReviewStep({
           ))}
       </div>
 
-      <ScrollArea className='min-h-[160px] flex-1 rounded-lg border border-border p-3'>
-        <div className='grid gap-2 pr-3 text-xs'>
+      <div className='max-h-56 min-h-0 flex-1 overflow-y-auto rounded-lg border border-border p-3'>
+        <div className='grid gap-2 pr-2 text-xs'>
           {answeredFields.map((answer) => (
             <SummaryRow key={answer.id} label={answer.label} value={answer.value} />
           ))}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 }

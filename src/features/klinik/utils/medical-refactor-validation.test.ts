@@ -134,4 +134,35 @@ describe('Childbirth Form Refactoring Validations', () => {
       expect(baselineFieldIds).toContain('motherBloodType');
     });
   });
+
+  describe('Date Field Full Width & Column Sizing Validation', () => {
+    it('sets motherBirthDate and marriageDate to full colSpan', () => {
+      const birthDateField = findMedicalField(pregnancyFlowDefinition, 'motherBirthDate');
+      const marriageDateField = findMedicalField(pregnancyFlowDefinition, 'marriageDate');
+
+      expect(birthDateField?.colSpan).toBe('full');
+      expect(marriageDateField?.colSpan).toBe('full');
+    });
+
+    it('sets partnerBirthDate to full colSpan', () => {
+      const partnerBirthDateField = findMedicalField(pregnancyFlowDefinition, 'partnerBirthDate');
+      expect(partnerBirthDateField?.colSpan).toBe('full');
+    });
+
+    it('pairs motherAge with marriageOrder as colSpan 1', () => {
+      const ageField = findMedicalField(pregnancyFlowDefinition, 'motherAge');
+      const orderField = findMedicalField(pregnancyFlowDefinition, 'marriageOrder');
+
+      expect(ageField?.colSpan).toBe(1);
+      expect(orderField?.colSpan).toBe(1);
+    });
+
+    it('pairs partnerAge with partnerBloodType as colSpan 1', () => {
+      const partnerAge = findMedicalField(pregnancyFlowDefinition, 'partnerAge');
+      const partnerBlood = findMedicalField(pregnancyFlowDefinition, 'partnerBloodType');
+
+      expect(partnerAge?.colSpan).toBe(1);
+      expect(partnerBlood?.colSpan).toBe(1);
+    });
+  });
 });

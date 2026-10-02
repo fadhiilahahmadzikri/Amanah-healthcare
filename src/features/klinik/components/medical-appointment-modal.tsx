@@ -14,7 +14,6 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
-import { cn } from '@/lib/utils';
 
 import type { AppointmentFormData, MedicalAppointmentFlow } from '../api/types';
 import { historyGroups, useMedicalAppointmentForm } from '../model/useMedicalAppointmentForm';
@@ -79,6 +78,7 @@ export function MedicalAppointmentModal({
     visibleMedicalSections,
     repeatableMedicalSections,
     currentStep,
+    totalSteps,
     currentDescriptor,
     schedule,
     isProcessing,
@@ -99,149 +99,186 @@ export function MedicalAppointmentModal({
   const isQuestionnaireStep = currentSection?.layout === 'questionnaire';
   const isHistoryCatalogStep = currentDescriptor?.type === STEP_DESCRIPTOR_TYPES.HISTORY_CATALOG;
 
+  let stepTitle = definition.formTitle;
+  let stepDescription = definition.serviceName;
+
+  if (currentDescriptor?.type === STEP_DESCRIPTOR_TYPES.MEDICAL) {
+    if (currentSection) {
+      stepTitle = currentSection.title;
+      stepDescription = currentSection.description;
+    }
+  } else if (currentDescriptor?.type === STEP_DESCRIPTOR_TYPES.HISTORY_CATALOG) {
+    const isPregnancy = currentDescriptor.historyKey === 'pregnancy';
+    stepTitle = isPregnancy
+      ? 'Katalog Riwayat Kehamilan & Persalinan'
+      : 'Katalog Riwayat KB / Kontrasepsi';
+    stepDescription = isPregnancy
+      ? 'Daftar riwayat kehamilan dan persalinan sebelumnya yang telah dicatat. Tinjau atau ubah riwayat bila diperlukan.'
+      : 'Daftar riwayat penggunaan KB/kontrasepsi yang telah dicatat. Tinjau atau ubah riwayat bila diperlukan.';
+  } else if (currentDescriptor?.type === STEP_DESCRIPTOR_TYPES.DATE) {
+    stepTitle = 'Tanggal Kunjungan';
+    stepDescription = 'Pilih tanggal praktik kunjungan yang tersedia.';
+  } else if (currentDescriptor?.type === STEP_DESCRIPTOR_TYPES.TIME) {
+    stepTitle = 'Jam Kunjungan';
+    stepDescription = `Pilih slot sesi jam kunjungan yang tersedia pada ${schedule.dateStr || 'tanggal terpilih'}.`;
+  } else if (currentDescriptor?.type === STEP_DESCRIPTOR_TYPES.REVIEW) {
+    stepTitle = 'Konfirmasi Data';
+    stepDescription = 'Pastikan jadwal dan jawaban formulir sudah benar sebelum disimpan.';
+  }
+
   return (
     <>
       <ModalWrapper
         isOpen={isOpen && !isQueueSuccessOpen}
         onClose={onClose}
-        maxWidth={isQuestionnaireStep || isHistoryCatalogStep ? 'max-w-[820px]' : 'max-w-[680px]'}
+        maxWidth={isQuestionnaireStep || isHistoryCatalogStep ? 'max-w-[840px]' : 'max-w-[760px]'}
         showCloseButton={false}
-        backdropClassName='overflow-hidden'
-        className={cn(
-          'flex h-auto max-h-[92dvh] flex-col p-5 transition-all duration-300 sm:max-h-[88vh] sm:p-6 shadow-2xl',
-          isQuestionnaireStep || isHistoryCatalogStep
-            ? 'sm:h-[660px] sm:max-w-[820px]'
-            : 'sm:min-h-[460px]'
-        )}
+        className='flex h-auto max-h-[88dvh] flex-col overflow-hidden p-5 sm:p-6 shadow-2xl transition-[max-width,width,max-height,height] duration-300'
       >
+        <div className='flex shrink-0 items-start justify-between gap-4 border-b border-border/40 pb-3'>
+          <div className='min-w-0 flex-1 space-y-0.5'>
+            <h3 className='text-base font-bold tracking-tight text-foreground sm:text-lg'>
+              {stepTitle}
+            </h3>
+            <p className='text-xs text-muted-foreground'>{stepDescription}</p>
+          </div>
+          <div className='shrink-0 pt-0.5'>
+            <span className='inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary select-none'>
+              Langkah {currentStep} dari {totalSteps}
+            </span>
+          </div>
+        </div>
+
         <form.AppForm>
-          <form.Form className='flex h-full min-h-0 flex-1 flex-col gap-0 p-0 md:p-0'>
-            <div className='flex h-full min-h-0 flex-1 flex-col justify-between gap-4'>
-              <div ref={stepContainerRef} className='flex h-full min-h-0 flex-1 flex-col'>
-                {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.MEDICAL ? (
-                  <MedicalSectionStep
-                    section={visibleMedicalSections[currentDescriptor.sectionIndex]}
-                    catalogActionType={catalogAction?.type ?? null}
-                    onReturnToCatalog={actions.cancelCatalogAction}
-                    values={values}
-                    onFieldChange={(fieldId, nextValue) => {
-                      form.setFieldValue(fieldId, nextValue);
-                    }}
-                    renderField={(field) => (
-                      <form.AppField
-                        key={field.id}
-                        name={field.id}
-                        validators={getFieldValidators(field)}
-                      >
-                        {(fieldApi: AnyFieldApi) => (
-                          <MedicalSchemaField fieldApi={fieldApi} schemaField={field} />
-                        )}
-                      </form.AppField>
-                    )}
-                  />
-                ) : null}
-
-                {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.HISTORY_CATALOG ? (
-                  <MedicalHistoryCatalog
-                    groupKey={currentDescriptor.historyKey}
-                    recordsCount={historyCounts[currentDescriptor.historyKey]}
-                    maxRecords={historyGroups[currentDescriptor.historyKey].maxRecords}
-                    values={values}
-                    onEditRecord={(recordNumber) =>
-                      actions.editHistoryFromCatalog(currentDescriptor.historyKey, recordNumber)
-                    }
-                    onRemoveRecord={(recordNumber) =>
-                      actions.removeHistoryRecord(currentDescriptor.historyKey, recordNumber)
-                    }
-                    onAddRecord={() => actions.addHistoryFromCatalog(currentDescriptor.historyKey)}
-                    className='h-full min-h-0 flex-1 overflow-y-auto pr-1 pb-2'
-                  />
-                ) : null}
-
-                {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.DATE ? (
-                  <DateStep
-                    selectedDateStr={schedule.dateStr}
-                    onSelectDate={(dateStr) =>
-                      actions.setSchedule((previous) => ({
-                        ...previous,
-                        dateStr,
-                        timeSlot: ''
-                      }))
-                    }
-                  />
-                ) : null}
-
-                {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.TIME ? (
-                  <TimeStep
-                    selectedDateStr={schedule.dateStr}
-                    selectedTimeSlot={schedule.timeSlot}
-                    onSelectTimeSlot={(timeSlot) =>
-                      actions.setSchedule((previous) => ({ ...previous, timeSlot }))
-                    }
-                  />
-                ) : null}
-
-                {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.REVIEW ? (
-                  <ReviewStep
-                    definitionTitle={definition.formTitle}
-                    flow={flow}
-                    answeredFields={actions.collectAnsweredFields(repeatableMedicalSections)}
-                    schedule={schedule}
-                    serviceName={definition.serviceName}
-                    values={values}
-                  />
-                ) : null}
-              </div>
-
-              <div className='flex shrink-0 items-center justify-between pt-2'>
-                <Button type='button' variant='ghost' shape='pill' onClick={actions.prevStep}>
-                  {currentStep === 1 && !onBackToService ? 'Batal' : 'Kembali'}
-                </Button>
-                <div className='flex items-center gap-2.5'>
-                  {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.HISTORY_CATALOG &&
-                  historyCounts[currentDescriptor.historyKey] <
-                    historyGroups[currentDescriptor.historyKey].maxRecords ? (
-                    <Button
-                      type='button'
-                      variant='outline'
-                      shape='pill'
-                      onClick={() => actions.addHistoryFromCatalog(currentDescriptor.historyKey)}
-                      className='border-dashed text-xs font-medium hover:border-primary hover:bg-primary/5 sm:text-sm'
+          <form.Form className='flex flex-1 min-h-0 flex-col gap-0 p-0 md:p-0'>
+            <div
+              ref={stepContainerRef}
+              className='flex-1 min-h-0 max-h-[calc(88dvh-8rem)] overflow-y-auto overflow-x-hidden pr-1.5 py-2'
+            >
+              {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.MEDICAL ? (
+                <MedicalSectionStep
+                  section={visibleMedicalSections[currentDescriptor.sectionIndex]}
+                  catalogActionType={catalogAction?.type ?? null}
+                  onReturnToCatalog={actions.cancelCatalogAction}
+                  values={values}
+                  onFieldChange={(fieldId, nextValue) => {
+                    form.setFieldValue(fieldId, nextValue);
+                  }}
+                  renderField={(field) => (
+                    <form.AppField
+                      key={field.id}
+                      name={field.id}
+                      validators={getFieldValidators(field)}
                     >
-                      <Icons.add className='mr-1 size-3.5 shrink-0' />
-                      <span className='hidden sm:inline'>
-                        {currentDescriptor.historyKey === REPEATABLE_GROUP_KEYS.PREGNANCY
-                          ? 'Tambah Riwayat Kehamilan Baru'
-                          : 'Tambah Riwayat KB Baru'}
-                      </span>
-                      <span className='sm:hidden'>
-                        {currentDescriptor.historyKey === REPEATABLE_GROUP_KEYS.PREGNANCY
-                          ? 'Tambah Kehamilan'
-                          : 'Tambah KB'}
-                      </span>
-                    </Button>
-                  ) : null}
+                      {(fieldApi: AnyFieldApi) => (
+                        <MedicalSchemaField fieldApi={fieldApi} schemaField={field} />
+                      )}
+                    </form.AppField>
+                  )}
+                />
+              ) : null}
+
+              {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.HISTORY_CATALOG ? (
+                <MedicalHistoryCatalog
+                  groupKey={currentDescriptor.historyKey}
+                  recordsCount={historyCounts[currentDescriptor.historyKey]}
+                  maxRecords={historyGroups[currentDescriptor.historyKey].maxRecords}
+                  values={values}
+                  showHeader={false}
+                  onEditRecord={(recordNumber) =>
+                    actions.editHistoryFromCatalog(currentDescriptor.historyKey, recordNumber)
+                  }
+                  onRemoveRecord={(recordNumber) =>
+                    actions.removeHistoryRecord(currentDescriptor.historyKey, recordNumber)
+                  }
+                  onAddRecord={() => actions.addHistoryFromCatalog(currentDescriptor.historyKey)}
+                  className='h-full min-h-0 flex-1 overflow-y-auto pr-1 pb-2'
+                />
+              ) : null}
+
+              {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.DATE ? (
+                <DateStep
+                  selectedDateStr={schedule.dateStr}
+                  onSelectDate={(dateStr) =>
+                    actions.setSchedule((previous) => ({
+                      ...previous,
+                      dateStr,
+                      timeSlot: ''
+                    }))
+                  }
+                />
+              ) : null}
+
+              {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.TIME ? (
+                <TimeStep
+                  selectedDateStr={schedule.dateStr}
+                  selectedTimeSlot={schedule.timeSlot}
+                  onSelectTimeSlot={(timeSlot) =>
+                    actions.setSchedule((previous) => ({ ...previous, timeSlot }))
+                  }
+                />
+              ) : null}
+
+              {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.REVIEW ? (
+                <ReviewStep
+                  definitionTitle={definition.formTitle}
+                  flow={flow}
+                  answeredFields={actions.collectAnsweredFields(repeatableMedicalSections)}
+                  schedule={schedule}
+                  serviceName={definition.serviceName}
+                  values={values}
+                />
+              ) : null}
+            </div>
+
+            <div className='flex shrink-0 items-center justify-between border-t border-border/40 pt-3 mt-auto'>
+              <Button type='button' variant='ghost' shape='pill' onClick={actions.prevStep}>
+                {currentStep === 1 && !onBackToService ? 'Batal' : 'Kembali'}
+              </Button>
+              <div className='flex items-center gap-2.5'>
+                {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.HISTORY_CATALOG &&
+                historyCounts[currentDescriptor.historyKey] <
+                  historyGroups[currentDescriptor.historyKey].maxRecords ? (
                   <Button
                     type='button'
-                    variant='primary'
+                    variant='outline'
                     shape='pill'
-                    hug
-                    disabled={!isCurrentStepValid}
-                    onClick={actions.nextStep}
-                    withTrailingCircleIcon
-                    trailingIcon={
-                      currentDescriptor.type === STEP_DESCRIPTOR_TYPES.REVIEW ? (
-                        <Icons.check />
-                      ) : (
-                        <Icons.arrowUpRight />
-                      )
-                    }
+                    onClick={() => actions.addHistoryFromCatalog(currentDescriptor.historyKey)}
+                    className='border-dashed text-xs font-medium hover:border-primary hover:bg-primary/5 sm:text-sm'
                   >
-                    {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.REVIEW
-                      ? 'Simpan Janji Temu'
-                      : 'Lanjutkan'}
+                    <Icons.add className='mr-1 size-3.5 shrink-0' />
+                    <span className='hidden sm:inline'>
+                      {currentDescriptor.historyKey === REPEATABLE_GROUP_KEYS.PREGNANCY
+                        ? 'Tambah Riwayat Kehamilan Baru'
+                        : 'Tambah Riwayat KB Baru'}
+                    </span>
+                    <span className='sm:hidden'>
+                      {currentDescriptor.historyKey === REPEATABLE_GROUP_KEYS.PREGNANCY
+                        ? 'Tambah Kehamilan'
+                        : 'Tambah KB'}
+                    </span>
                   </Button>
-                </div>
+                ) : null}
+                <Button
+                  type='button'
+                  variant='primary'
+                  shape='pill'
+                  hug
+                  disabled={!isCurrentStepValid}
+                  onClick={actions.nextStep}
+                  withTrailingCircleIcon
+                  trailingIcon={
+                    currentDescriptor.type === STEP_DESCRIPTOR_TYPES.REVIEW ? (
+                      <Icons.check />
+                    ) : (
+                      <Icons.arrowUpRight />
+                    )
+                  }
+                >
+                  {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.REVIEW
+                    ? 'Simpan Janji Temu'
+                    : 'Lanjutkan'}
+                </Button>
               </div>
             </div>
           </form.Form>

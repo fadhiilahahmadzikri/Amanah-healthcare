@@ -16,6 +16,7 @@ export interface MedicalHistoryCatalogProps {
   onRemoveRecord: (recordNumber: number) => void;
   onAddRecord: () => void;
   className?: string;
+  showHeader?: boolean;
 }
 
 export function MedicalHistoryCatalog({
@@ -26,7 +27,8 @@ export function MedicalHistoryCatalog({
   onEditRecord,
   onRemoveRecord,
   onAddRecord,
-  className
+  className,
+  showHeader = true
 }: MedicalHistoryCatalogProps) {
   const isPregnancy = groupKey === 'pregnancy';
   const title = isPregnancy
@@ -43,16 +45,17 @@ export function MedicalHistoryCatalog({
       data-slot='medical-history-catalog'
       className={cn('flex flex-col gap-4 w-full h-full flex-1 min-h-0', className)}
     >
-      {/* Header Info */}
-      <div className='flex shrink-0 items-start justify-between gap-3 border-b border-border/70 pb-3.5'>
-        <div>
-          <h3 className='text-base font-semibold tracking-tight text-foreground'>{title}</h3>
-          <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>{description}</p>
+      {showHeader ? (
+        <div className='flex shrink-0 items-start justify-between gap-3 border-b border-border/70 pb-3.5'>
+          <div>
+            <h3 className='text-base font-semibold tracking-tight text-foreground'>{title}</h3>
+            <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>{description}</p>
+          </div>
+          <span className='shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary'>
+            {recordsCount} Riwayat
+          </span>
         </div>
-        <span className='shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary'>
-          {recordsCount} Riwayat
-        </span>
-      </div>
+      ) : null}
 
       {/* Grid of History Cards or Empty State */}
       {recordsCount === 0 ? (

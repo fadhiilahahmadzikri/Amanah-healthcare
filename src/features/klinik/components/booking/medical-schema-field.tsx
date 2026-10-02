@@ -138,7 +138,10 @@ export function MedicalSchemaField({
   const value = String(fieldApi.state.value ?? '');
 
   const isColSpanFull =
-    schemaField.colSpan === 'full' || schemaField.colSpan === 2 || schemaField.type === 'PARAGRAPH';
+    schemaField.colSpan === 'full' ||
+    schemaField.colSpan === 2 ||
+    schemaField.type === 'PARAGRAPH' ||
+    schemaField.type === 'DATE';
   const colSpanClass = isColSpanFull ? 'col-span-1 sm:col-span-2' : 'col-span-1';
 
   const requiredAsterisk = schemaField.required ? (

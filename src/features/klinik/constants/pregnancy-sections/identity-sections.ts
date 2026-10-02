@@ -23,7 +23,7 @@ export const motherIdentitySection: MedicalFormSection = {
       helpText: 'Isi 16 digit angka sesuai KTP.',
       colSpan: 1
     }),
-    field('motherBirthDate', DATE, 'Tanggal lahir', 'Tanggal lahir', { colSpan: 1 }),
+    field('motherBirthDate', DATE, 'Tanggal lahir', 'Tanggal lahir', { colSpan: 'full' }),
     field('motherAge', TEXT, 'Umur saat ini', 'Umur', {
       helpText: 'Otomatis terhitung dari tanggal lahir.',
       colSpan: 1,
@@ -35,7 +35,7 @@ export const motherIdentitySection: MedicalFormSection = {
     }),
     optionalField('marriageDate', DATE, 'Tanggal menikah', 'Tanggal menikah', {
       helpText: 'Pilih tanggal menikah jika ingat. Kosongkan jika belum ingat.',
-      colSpan: 1
+      colSpan: 'full'
     }),
     field('motherJob', LIST, 'Pekerjaan', 'Pekerjaan', {
       choices: defaultOccupationChoices,
@@ -93,7 +93,7 @@ export const partnerIdentitySection: MedicalFormSection = {
     }),
     optionalField('partnerBirthDate', DATE, 'Tanggal lahir suami', 'Tanggal lahir suami', {
       helpText: 'Pilih tanggal lahir suami jika diketahui.',
-      colSpan: 1
+      colSpan: 'full'
     }),
     field('partnerAge', TEXT, 'Umur suami saat ini', 'Umur suami', {
       helpText: 'Contoh: 31 tahun. Boleh isi perkiraan jika usia pasti belum diketahui.',
