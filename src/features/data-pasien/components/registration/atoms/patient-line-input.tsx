@@ -85,7 +85,7 @@ export const PatientLineInput = React.forwardRef<HTMLInputElement, PatientLineIn
               'absolute left-0 pointer-events-none origin-left select-none transition-all duration-200 ease-out',
               isFloating
                 ? '-top-3 text-[11px] font-semibold text-primary'
-                : 'top-1 text-sm font-normal text-muted-foreground/70',
+                : 'top-1 text-sm font-normal text-muted-foreground/70 line-clamp-1 w-full pr-2',
               isFloating && !isFocused && 'text-muted-foreground',
               isInvalid && '!text-destructive'
             )}

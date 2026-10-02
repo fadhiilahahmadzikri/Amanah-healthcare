@@ -14,7 +14,7 @@ export const obstetricSummarySection: MedicalFormSection = {
     'Isi jumlahnya dulu. Detail riwayat sebelumnya akan ditanyakan satu per satu jika ada.',
   layout: 'grid',
   fields: [
-    field('gravidaCount', TEXT, 'Berapa total kehamilan termasuk yang sekarang?', 'G', {
+    field('gravidaCount', TEXT, 'Total kehamilan termasuk sekarang', 'G', {
       helpText: 'Contoh: sedang hamil anak kedua, isi 2.',
       placeholder: 'Contoh: 1',
       colSpan: 1
