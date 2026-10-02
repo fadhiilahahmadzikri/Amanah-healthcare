@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 
 export interface PatientLineTextareaProps {
@@ -29,14 +28,30 @@ export function PatientLineTextarea({
   error,
   invalid,
   disabled,
-  rows = 2,
+  rows = 1,
   containerClassName,
   className
 }: PatientLineTextareaProps) {
   const [isFocused, setIsFocused] = React.useState(false);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const isInvalid = Boolean(invalid || error);
   const hasValue = Boolean(value && String(value).trim().length > 0);
   const isFloating = isFocused || hasValue;
+
+  const adjustHeight = React.useCallback(() => {
+    const element = textareaRef.current;
+    if (!element) {
+      return;
+    }
+    element.style.height = 'auto';
+    element.style.height = `${Math.max(28, element.scrollHeight)}px`;
+  }, []);
+
+  React.useEffect(() => {
+    adjustHeight();
+    window.addEventListener('resize', adjustHeight);
+    return () => window.removeEventListener('resize', adjustHeight);
+  }, [value, adjustHeight]);
 
   return (
     <div className={cn('relative pt-3', containerClassName)}>
@@ -44,14 +59,17 @@ export function PatientLineTextarea({
         data-slot='line-textarea-group'
         data-invalid={isInvalid}
         className={cn(
-          'relative border-b-[1.5px] border-border pb-1 transition-colors duration-200 focus-within:border-primary',
+          'relative flex flex-col border-b-[1.5px] border-border pb-1.5 transition-colors duration-200 focus-within:border-primary',
           isInvalid && '!border-destructive',
           disabled && 'opacity-60 pointer-events-none'
         )}
       >
-        <Textarea
+        <textarea
+          ref={textareaRef}
           id={id}
+          aria-labelledby={`${id}-label`}
           value={value}
+          rows={rows}
           placeholder={isFloating ? placeholder : ''}
           disabled={disabled}
           onFocus={() => setIsFocused(true)}
@@ -59,16 +77,19 @@ export function PatientLineTextarea({
             setIsFocused(false);
             onBlur?.();
           }}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            onChange(e.target.value);
+            adjustHeight();
+          }}
           aria-invalid={isInvalid}
-          rows={rows}
           className={cn(
-            'w-full resize-none border-0 bg-transparent px-0 pt-1 pb-0 text-sm font-medium text-foreground outline-none shadow-none focus-visible:ring-0 placeholder:font-normal placeholder:text-muted-foreground/50',
+            'w-full resize-none border-0 bg-transparent px-0 py-1 text-sm font-medium leading-normal text-foreground outline-none shadow-none focus:outline-none focus:ring-0 focus-visible:ring-0 placeholder:font-normal placeholder:text-muted-foreground/50 overflow-hidden min-h-[28px]',
             className
           )}
         />
 
         <label
+          id={`${id}-label`}
           htmlFor={id}
           className={cn(
             'absolute left-0 pointer-events-none origin-left select-none transition-all duration-200 ease-out',
