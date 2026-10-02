@@ -7,14 +7,18 @@ import type { ServiceCardItem } from '@/features/public-site/pages/services/type
 import {
   patientAffiliationService,
   type PatientAffiliationProfile,
-  type BackendAppointmentItem
+  type PatientRelationshipType,
+  type BackendAppointmentItem,
+  type BookingServiceContextResponse
 } from '@/features/data-pasien/api/patient-affiliation-service';
 import {
   catalogService,
   type ServiceCatalogItem,
   type ServiceCategoryCatalog
 } from '../api/catalog.service';
+import { kiaIntakeService } from '../api/kia-intake-service';
 import { getServiceImage } from '../constants/appointment-reservation-services';
+import { mapBackendAppointmentToUi } from '../utils/booking-appointment-mapper';
 import type { Appointment, AppointmentFormData } from '../api/types';
 
 export type BookingModalStep =
@@ -43,50 +47,51 @@ export function useAppointmentModal({
   onClose,
   onSubmit
 }: UseAppointmentModalProps) {
-  // Wizard state
   const [step, setStep] = useState<BookingModalStep>('category');
   const [categories, setCategories] = useState<ServiceCategoryCatalog[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
   const [isLoadingCatalog, setIsLoadingCatalog] = useState<boolean>(false);
   const [selectedService, setSelectedService] = useState<ServiceCatalogItem | null>(null);
 
-  // Form state
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const defaultDateStr = tomorrow.toISOString().slice(0, 10);
 
   const [dateStr, setDateStr] = useState<string>(defaultDateStr);
   const [timeSlot, setTimeSlot] = useState<string>('PAGI');
-  const [visitType, setVisitType] = useState<'Pemeriksaan Baru' | 'Kontrol Ulang'>('Pemeriksaan Baru');
+  const [visitType, setVisitType] = useState<'Pemeriksaan Baru' | 'Kontrol Ulang'>(
+    'Pemeriksaan Baru'
+  );
   const [complaint, setComplaint] = useState<string>('');
   const [isVisitTypeOpen, setIsVisitTypeOpen] = useState(false);
 
-  // Patient profiles state
   const [patients, setPatients] = useState<PatientAffiliationProfile[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState<string>('');
+  const [selectedRelationship, setSelectedRelationship] = useState<
+    PatientRelationshipType | string
+  >('');
   const [isLoadingPatients, setIsLoadingPatients] = useState(false);
+  const [bookingContext, setBookingContext] = useState<BookingServiceContextResponse | null>(null);
+  const [isLoadingBookingContext, setIsLoadingBookingContext] = useState(false);
 
-  // Specialized flows (Persalinan / Imunisasi)
-  const [activeMedicalFlow, setActiveMedicalFlow] = useState<'pregnancy' | 'immunization' | null>(null);
+  const [activeMedicalFlow, setActiveMedicalFlow] = useState<'pregnancy' | 'immunization' | null>(
+    null
+  );
 
-  // Submission & Queue Ticket Modal
   const [selectedSessionId, setSelectedSessionId] = useState<string>('');
   const [rescheduleStaffId, setRescheduleStaffId] = useState<string>('');
   const [reschedulePoliklinikId, setReschedulePoliklinikId] = useState<string>('');
-  // True once the practitioner ID is confirmed (either from initial data or SSOT fetch).
-  // Prevents BookingSessionStep from firing a global session fetch before staffId is ready.
   const [rescheduleStaffIdReady, setRescheduleStaffIdReady] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isQueueSuccessOpen, setIsQueueSuccessOpen] = useState(false);
   const [createdAppointment, setCreatedAppointment] = useState<Appointment | null>(null);
 
-  // Refs for GSAP transitions
   const visitTypeDropdownRef = useRef<HTMLDivElement>(null);
   const stepContainerRef = useRef<HTMLDivElement>(null);
+  const prevIsOpenRef = useRef(false);
 
   const visitTypeOptions = ['Pemeriksaan Baru', 'Kontrol Ulang'] as const;
 
-  // 1. Load Categories & Services from Backend Catalog
   const loadCatalog = useCallback(async () => {
     try {
       setIsLoadingCatalog(true);
@@ -106,24 +111,28 @@ export function useAppointmentModal({
     loadCatalog();
   }, [loadCatalog]);
 
-  // Track open state transitions to prevent unintended resets on state updates
-  const prevIsOpenRef = useRef(false);
-
-  // 2. Load Patient Profiles
-  const loadPatients = useCallback(async () => {
+  const loadPatients = useCallback(async (serviceId?: string) => {
     try {
       setIsLoadingPatients(true);
+      if (serviceId) {
+        setIsLoadingBookingContext(true);
+        const ctx = await patientAffiliationService.getBookingContext(serviceId);
+        setBookingContext(ctx);
+        if (ctx?.patients) {
+          setPatients(ctx.patients as unknown as PatientAffiliationProfile[]);
+          return;
+        }
+      }
       const data = await patientAffiliationService.getMyAffiliations();
       setPatients(data);
-      setSelectedPatientId((prev) => prev || (data.length > 0 ? data[0].id : ''));
     } catch (err) {
       console.error('Failed to load patient affiliations:', err);
     } finally {
       setIsLoadingPatients(false);
+      setIsLoadingBookingContext(false);
     }
   }, []);
 
-  // 3. Reset or initialize ONLY on modal open transition
   useEffect(() => {
     const wasOpen = prevIsOpenRef.current;
     prevIsOpenRef.current = isOpen;
@@ -138,10 +147,6 @@ export function useAppointmentModal({
         const initialDoctorId = initialAppointment.staff_id || initialAppointment.doctor_id || '';
         const initialPoliId = initialAppointment.poliklinik_id || '';
         setReschedulePoliklinikId(initialPoliId);
-
-        // Hold the session fetch until the canonical practitioner ID is confirmed.
-        // If we already have an ID from the mapped appointment, use it immediately.
-        // Either way, we verify via SSOT and update if the SSOT returns a different value.
         setRescheduleStaffIdReady(false);
 
         if (initialDoctorId) {
@@ -149,7 +154,6 @@ export function useAppointmentModal({
           setRescheduleStaffIdReady(true);
         }
 
-        // Fetch canonical reschedule options to ensure 100% accurate doctor ID from backend SSOT
         if (initialAppointment.id) {
           patientAffiliationService.getRescheduleOptions(initialAppointment.id).then((options) => {
             if (options?.doctor?.id) {
@@ -166,7 +170,7 @@ export function useAppointmentModal({
         setTimeSlot('PAGI');
         setRescheduleStaffId('');
         setReschedulePoliklinikId('');
-        setRescheduleStaffIdReady(true); // create mode: no staffId filter, fetch immediately
+        setRescheduleStaffIdReady(true);
       }
       loadPatients();
     } else if (!isOpen && wasOpen) {
@@ -181,7 +185,6 @@ export function useAppointmentModal({
     }
   }, [isOpen, mode, initialAppointment, defaultDateStr, loadPatients]);
 
-  // 4. GSAP Step Animations
   useEffect(() => {
     if (stepContainerRef.current) {
       stepContainerRef.current.scrollTop = 0;
@@ -193,7 +196,6 @@ export function useAppointmentModal({
     }
   }, [step]);
 
-  // 5. GSAP Dropdown Animation for Visit Type
   useEffect(() => {
     if (visitTypeDropdownRef.current) {
       if (isVisitTypeOpen) {
@@ -213,19 +215,17 @@ export function useAppointmentModal({
     }
   }, [isVisitTypeOpen]);
 
-  // Derived selected patient
   const selectedPatient = useMemo(
-    () => patients.find((p) => p.id === selectedPatientId) || patients[0] || null,
+    () => patients.find((p) => p.id === selectedPatientId) || null,
     [patients, selectedPatientId]
   );
 
-  // Derived categories display list - 100% backend SSOT, NO dummy fallback
   const activeCategoryList = useMemo(() => {
     return categories.map((c) => ({
       id: c.id,
       code: c.code,
       title: c.name,
-      icon: c.code.includes('kia') || c.code.includes('midwifery') ? '👶' : '🩺',
+      icon: c.code.includes('kia') || c.code.includes('midwifery') ? 'kia' : 'general',
       description:
         c.description ||
         (c.code.includes('kia')
@@ -236,7 +236,6 @@ export function useAppointmentModal({
     }));
   }, [categories]);
 
-  // Derived services for the selected category
   const activeCategoryServices = useMemo(() => {
     const foundCat =
       categories.find((c) => c.id === selectedCategoryId || c.code === selectedCategoryId) ||
@@ -247,7 +246,6 @@ export function useAppointmentModal({
     return [];
   }, [categories, selectedCategoryId]);
 
-  // Bento Grid Items mapping images from frontend assets
   const serviceBentoItems = useMemo<ServiceCardItem[]>(() => {
     return activeCategoryServices.map((srv) => {
       const img = getServiceImage(srv.name);
@@ -262,120 +260,130 @@ export function useAppointmentModal({
     });
   }, [activeCategoryServices]);
 
-  // Handle service card click in Bento Grid
-  const handleSelectServiceItem = (item: ServiceCardItem) => {
+  const handleSelectServiceItem = async (item: ServiceCardItem) => {
     const srv = activeCategoryServices.find((s) => s.id === item.id);
     if (!srv) return;
 
     setSelectedService(srv);
+    setIsLoadingBookingContext(true);
 
-    // Specialized Flow Trigger
-    if (srv.medicalFlow === 'pregnancy') {
-      setActiveMedicalFlow('pregnancy');
-      return;
-    }
-    if (srv.medicalFlow === 'immunization') {
-      setActiveMedicalFlow('immunization');
-      return;
-    }
+    try {
+      const ctx = await patientAffiliationService.getBookingContext(srv.id);
+      setBookingContext(ctx);
 
-    // Regular On-Demand Flow: Proceed to Patient Profile Step
-    if (patients.length === 0) {
-      setStep('patient_new');
-    } else {
-      setStep('patient');
+      const relevantPatients = ctx?.patients ?? [];
+      setPatients(relevantPatients as unknown as PatientAffiliationProfile[]);
+
+      if (relevantPatients.length > 0) {
+        setSelectedPatientId('');
+        setStep('patient');
+      } else {
+        setStep('patient_new');
+      }
+    } catch (err) {
+      console.error('Failed to resolve booking context:', err);
+      if (patients.length === 0) {
+        setStep('patient_new');
+      } else {
+        setStep('patient');
+      }
+    } finally {
+      setIsLoadingBookingContext(false);
     }
   };
 
-  // Handle patient created via regular patient form
+  const handleAddNewPatient = useCallback(() => {
+    setSelectedPatientId('');
+    setSelectedRelationship('');
+    setStep('patient_new');
+  }, []);
+
+  const handleRelationshipSubmitForMedicalFlow = useCallback(
+    (relationship: PatientRelationshipType) => {
+      setSelectedRelationship(relationship);
+      const currentFlow =
+        bookingContext?.formType ||
+        (selectedService?.medicalFlow === 'pregnancy'
+          ? 'pregnancy'
+          : selectedService?.medicalFlow === 'immunization'
+            ? 'immunization'
+            : null);
+
+      if (currentFlow === 'pregnancy') {
+        setActiveMedicalFlow('pregnancy');
+      } else if (currentFlow === 'immunization') {
+        setActiveMedicalFlow('immunization');
+      }
+    },
+    [bookingContext, selectedService]
+  );
+
+  const handlePatientContinue = async () => {
+    const patientToUse = patients.find((p) => p.id === selectedPatientId) || null;
+    if (!patientToUse) {
+      toast.error('Pilih pasien yang akan berobat');
+      return;
+    }
+
+    const currentFormType =
+      bookingContext?.formType ||
+      (selectedService?.medicalFlow === 'pregnancy'
+        ? 'pregnancy'
+        : selectedService?.medicalFlow === 'immunization'
+          ? 'immunization'
+          : 'regular');
+
+    if (currentFormType === 'pregnancy' || currentFormType === 'immunization') {
+      const flow = currentFormType;
+      const ctxPatient = bookingContext?.patients.find((p) => p.id === patientToUse.id);
+      if (ctxPatient?.hasExistingIntake || (patientToUse as any).hasExistingIntake) {
+        toast.success(
+          `Data ${flow === 'pregnancy' ? 'kehamilan' : 'imunisasi'} tercatat untuk ${patientToUse.fullName} digunakan`
+        );
+        setStep('date');
+        return;
+      }
+
+      try {
+        const latestIntake = await kiaIntakeService.getLatestIntakeByPatientId(
+          patientToUse.id,
+          flow
+        );
+        if (latestIntake?.data) {
+          toast.success(
+            `Data ${flow === 'pregnancy' ? 'kehamilan' : 'imunisasi'} tercatat untuk ${patientToUse.fullName} digunakan`
+          );
+          setStep('date');
+          return;
+        }
+      } catch {}
+      setActiveMedicalFlow(flow);
+      return;
+    }
+
+    setStep('date');
+  };
+
   const handlePatientCreated = (newPatient: PatientAffiliationProfile) => {
     setPatients((prev) => [newPatient, ...prev]);
     setSelectedPatientId(newPatient.id);
+    if (selectedService?.medicalFlow === 'pregnancy') {
+      setActiveMedicalFlow('pregnancy');
+      return;
+    }
+    if (selectedService?.medicalFlow === 'immunization') {
+      setActiveMedicalFlow('immunization');
+      return;
+    }
     setStep('date');
     toast.success('Data profil pasien berhasil didaftarkan');
   };
 
-  // Handle final submission to backend API
   const handleFinalSubmit = async () => {
-    if (mode === 'edit' && initialAppointment?.id) {
-      try {
-        setIsSubmitting(true);
-        const res: BackendAppointmentItem = await patientAffiliationService.rescheduleAppointment(
-          initialAppointment.id,
-          {
-            targetDate: dateStr,
-            targetSessionId: selectedSessionId || undefined,
-            targetSession: timeSlot,
-            reason: complaint.trim() || 'Penjadwalan ulang sesi periksa'
-          }
-        );
-
-        const formatTime = (t?: string) => {
-          if (!t) return '';
-          const match = t.match(/^(\d{1,2}):(\d{2})/);
-          return match ? `${match[1].padStart(2, '0')}.${match[2]}` : t;
-        };
-        const startTimeFormatted = formatTime(res.scheduledStartTime);
-        const endTimeFormatted = formatTime(res.scheduledEndTime);
-        const timeDisplay =
-          startTimeFormatted && endTimeFormatted
-            ? `${startTimeFormatted} - ${endTimeFormatted} WIB`
-            : res.session || timeSlot;
-
-        const uiApt: Appointment = {
-          id: res.id,
-          booking_code: res.id.slice(0, 8).toUpperCase(),
-          patient_name: res.patientName || initialAppointment.patient_name || 'Pasien',
-          patient_email: initialAppointment.patient_email || '',
-          patient_avatar: initialAppointment.patient_avatar || '',
-          doctor_name: res.doctorName || initialAppointment.doctor_name || '',
-          doctor_specialty: res.doctorSpecialty || initialAppointment.doctor_specialty || '',
-          poliklinik_name: res.poliklinikName || initialAppointment.poliklinik_name || '',
-          room_name: res.roomName || initialAppointment.room_name || '',
-          room_location: res.roomLocation || initialAppointment.room_location || '',
-          scheduled_start_time: startTimeFormatted || initialAppointment.scheduled_start_time,
-          scheduled_end_time: endTimeFormatted || initialAppointment.scheduled_end_time,
-          date: res.appointmentDate || dateStr,
-          time: timeDisplay,
-          complaint: res.complaint || complaint,
-          status: 'Sudah Buat Janji',
-          visit_type: res.visitType || initialAppointment.visit_type || '',
-          service: res.layananName || initialAppointment.service || '',
-          created_at: res.createdAt || new Date().toISOString(),
-          queue_number: res.queueNumber || initialAppointment.queue_number || '-'
-        };
-
-        setCreatedAppointment(uiApt);
-        setIsQueueSuccessOpen(true);
-
-        onSubmit(
-          {
-            service: uiApt.service || '',
-            complaint: uiApt.complaint,
-            visitType: visitType as any,
-            doctor: uiApt.doctor_name,
-            dateStr: uiApt.date,
-            timeSlot: uiApt.time
-          },
-          initialAppointment.id
-        );
-
-        toast.success('Jadwal janji temu berhasil di-reschedule');
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : 'Gagal me-reschedule janji temu';
-        toast.error(msg);
-      } finally {
-        setIsSubmitting(false);
-      }
-      return;
-    }
-
-    if (!selectedPatientId && patients.length > 0) {
-      setSelectedPatientId(patients[0].id);
-    }
-
+    const isEdit = mode === 'edit' && Boolean(initialAppointment?.id);
     const patientIdToUse = selectedPatientId || (patients[0] ? patients[0].id : '');
-    if (!patientIdToUse) {
+
+    if (!isEdit && !patientIdToUse) {
       toast.error('Silakan tentukan data pasien terlebih dahulu');
       setStep('patient_new');
       return;
@@ -383,69 +391,56 @@ export function useAppointmentModal({
 
     try {
       setIsSubmitting(true);
-      const res: BackendAppointmentItem = await patientAffiliationService.createAppointment({
-        patientId: patientIdToUse,
-        poliklinikId: selectedService?.poliklinikId || '',
-        layananId: selectedService?.id || '',
-        appointmentDate: dateStr,
-        session: timeSlot,
-        visitType,
-        complaint: complaint.trim() || 'Konsultasi dan pemeriksaan kesehatan'
-      });
+      const res: BackendAppointmentItem = isEdit
+        ? await patientAffiliationService.rescheduleAppointment(initialAppointment!.id, {
+            targetDate: dateStr,
+            targetSessionId: selectedSessionId || undefined,
+            targetSession: timeSlot,
+            reason: complaint.trim() || 'Penjadwalan ulang sesi periksa'
+          })
+        : await patientAffiliationService.createAppointment({
+            patientId: patientIdToUse,
+            poliklinikId: selectedService?.poliklinikId || '',
+            layananId: selectedService?.id || '',
+            appointmentDate: dateStr,
+            session: timeSlot,
+            visitType,
+            complaint: complaint.trim() || 'Konsultasi dan pemeriksaan kesehatan'
+          });
 
       const currentPatient = patients.find((p) => p.id === patientIdToUse);
-
-      const formatTime = (t?: string) => {
-        if (!t) return '';
-        const match = t.match(/^(\d{1,2}):(\d{2})/);
-        return match ? `${match[1].padStart(2, '0')}.${match[2]}` : t;
-      };
-      const startTimeFormatted = formatTime(res.scheduledStartTime);
-      const endTimeFormatted = formatTime(res.scheduledEndTime);
-      const timeDisplay =
-        startTimeFormatted && endTimeFormatted
-          ? `${startTimeFormatted} - ${endTimeFormatted} WIB`
-          : res.session || timeSlot;
-
-      const uiApt: Appointment = {
-        id: res.id,
-        booking_code: res.id.slice(0, 8).toUpperCase(),
-        patient_name: res.patientName || currentPatient?.fullName || 'Pasien',
-        patient_email: '',
-        patient_avatar: '',
-        doctor_name: res.doctorName || '',
-        doctor_specialty: res.doctorSpecialty || '',
-        poliklinik_name: res.poliklinikName || '',
-        room_name: res.roomName || '',
-        room_location: res.roomLocation || '',
-        scheduled_start_time: startTimeFormatted || undefined,
-        scheduled_end_time: endTimeFormatted || undefined,
-        date: res.appointmentDate || dateStr,
-        time: timeDisplay,
-        complaint: res.complaint || complaint,
-        status: 'Sudah Buat Janji',
-        visit_type: res.visitType || '',
-        service: res.layananName || selectedService?.name || '',
-        created_at: res.createdAt || new Date().toISOString(),
-        queue_number: res.queueNumber || '-'
-      };
+      const uiApt = mapBackendAppointmentToUi({
+        res,
+        currentPatient,
+        initialAppointment,
+        dateStr,
+        complaint,
+        timeSlot,
+        selectedService
+      });
 
       setCreatedAppointment(uiApt);
       setIsQueueSuccessOpen(true);
 
-      // Notify parent view
-      onSubmit({
-        service: uiApt.service || '',
-        complaint: uiApt.complaint,
-        visitType: visitType as any,
-        doctor: uiApt.doctor_name,
-        dateStr: uiApt.date,
-        timeSlot: uiApt.time
-      });
+      onSubmit(
+        {
+          service: uiApt.service || '',
+          complaint: uiApt.complaint,
+          visitType: visitType as any,
+          doctor: uiApt.doctor_name,
+          dateStr: uiApt.date,
+          timeSlot: uiApt.time
+        },
+        isEdit ? initialAppointment!.id : undefined
+      );
 
-      toast.success('Janji temu berhasil dibuat beserta tiket antrean resmi');
+      toast.success(
+        isEdit
+          ? 'Jadwal janji temu berhasil di-reschedule'
+          : 'Janji temu berhasil dibuat beserta tiket antrean resmi'
+      );
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Gagal membuat janji temu';
+      const msg = err instanceof Error ? err.message : 'Gagal memproses janji temu';
       toast.error(msg);
     } finally {
       setIsSubmitting(false);
@@ -480,7 +475,11 @@ export function useAppointmentModal({
     selectedPatientId,
     setSelectedPatientId,
     selectedPatient,
+    selectedRelationship,
+    setSelectedRelationship,
     isLoadingPatients,
+    bookingContext,
+    isLoadingBookingContext,
     activeMedicalFlow,
     setActiveMedicalFlow,
     rescheduleStaffId,
@@ -494,6 +493,11 @@ export function useAppointmentModal({
     stepContainerRef,
     handleSelectServiceItem,
     handlePatientCreated,
+    handleAddNewPatient,
+    handleRelationshipSubmitForMedicalFlow,
+    handlePatientContinue,
     handleFinalSubmit
   };
 }
+
+export default useAppointmentModal;

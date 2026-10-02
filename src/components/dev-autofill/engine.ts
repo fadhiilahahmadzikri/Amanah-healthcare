@@ -32,15 +32,89 @@ export function fillVisibleFields(presetValues: Record<string, string>, flow: st
   }
 
   const currentStepValues: Record<string, string> = {};
-  const inputs = document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>(
-    '[role="dialog"] input[id], [role="dialog"] textarea[id]'
+  const visibleElements = document.querySelectorAll<HTMLElement>(
+    '[role="dialog"] [id], [role="dialog"] [name], [role="dialog"] [data-field-id]'
   );
 
-  inputs.forEach((input) => {
-    if (input.id && presetValues[input.id] !== undefined) {
-      currentStepValues[input.id] = presetValues[input.id];
+  visibleElements.forEach((el) => {
+    const key = el.getAttribute('data-field-id') || el.id || el.getAttribute('name');
+    if (key && presetValues[key] !== undefined) {
+      currentStepValues[key] = presetValues[key];
     }
   });
+
+  const inputs = document.querySelectorAll<
+    HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+  >('[role="dialog"] input, [role="dialog"] textarea, [role="dialog"] select');
+  inputs.forEach((input) => {
+    const key = input.id || input.name;
+    if (key && presetValues[key] !== undefined) {
+      currentStepValues[key] = presetValues[key];
+    }
+  });
+
+  const hasQuestionnaire = document.querySelector(
+    '[role="dialog"] [role="radiogroup"], [role="dialog"] table'
+  );
+  if (hasQuestionnaire) {
+    const questionnaireKeys = [
+      'smokedBeforePregnancy',
+      'alcoholBeforePregnancy',
+      'irregularDietBeforePregnancy',
+      'reducedPhysicalActivityBeforePregnancy',
+      'unprescribedMedicationBeforePregnancy',
+      'concerningCosmeticUseBeforePregnancy',
+      'pesticideExposureBeforePregnancy',
+      'chemicalExposureBeforePregnancy',
+      'smokeExposureBeforePregnancy',
+      'hasHypertensionHistory',
+      'hypertensionHistoryNotes',
+      'hasHeartDiseaseHistory',
+      'heartDiseaseHistoryNotes',
+      'hasThyroidDiseaseHistory',
+      'thyroidDiseaseHistoryNotes',
+      'hasAutoimmuneHistory',
+      'autoimmuneHistoryNotes',
+      'hasDiabetesHistory',
+      'diabetesHistoryNotes',
+      'hasAsthmaHistory',
+      'asthmaHistoryNotes',
+      'hasTuberculosisHistory',
+      'tuberculosisHistoryNotes',
+      'hasHepatitisBHistory',
+      'hepatitisBHistoryNotes',
+      'hasHivOrSyphilisHistory',
+      'hivOrSyphilisHistoryNotes',
+      'hasMentalHealthHistory',
+      'mentalHealthHistoryNotes',
+      'hasTwinPregnancyHistory',
+      'twinPregnancyHistoryNotes',
+      'hasCystMyomaTumorHistory',
+      'cystMyomaTumorHistoryNotes',
+      'hasSurgeryHistory',
+      'surgeryHistoryNotes',
+      'hasOtherDiseaseHistory',
+      'otherDiseaseHistoryNotes',
+      'otherDiseaseHistoryYear',
+      'hasPreviousPregnancyHistory',
+      'hasContraceptionHistory'
+    ];
+    questionnaireKeys.forEach((k) => {
+      if (presetValues[k] !== undefined) {
+        currentStepValues[k] = presetValues[k];
+      }
+    });
+  }
+
+  if (currentStepValues.motherBirthDate && presetValues.motherAge) {
+    currentStepValues.motherAge = presetValues.motherAge;
+  }
+  if (currentStepValues.partnerName && presetValues.partnerAge) {
+    currentStepValues.partnerAge = presetValues.partnerAge;
+  }
+  if (currentStepValues.heightCm && presetValues.initialBmi) {
+    currentStepValues.initialBmi = presetValues.initialBmi;
+  }
 
   dispatchAutofillEvent(flow, currentStepValues);
 }

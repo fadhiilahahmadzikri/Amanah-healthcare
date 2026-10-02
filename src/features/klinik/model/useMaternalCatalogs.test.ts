@@ -10,7 +10,12 @@ describe('enrichMedicalFlowDefinition', () => {
       religionChoices: ['Islam', 'Kristen'],
       bloodTypeChoices: ['A', 'B', 'AB', 'O', 'Belum Tahu'],
       tetanusChoices: ['Belum pernah', 'T1', 'T2'],
-      occupationChoices: ['PNS', 'Karyawan', 'Wiraswasta']
+      occupationChoices: ['PNS', 'Karyawan', 'Wiraswasta'],
+      deliveryMethodChoices: ['Normal / Spontan', 'Sectio Caesarea (SC)'],
+      deliveryPlaceChoices: ['Rumah Sakit', 'Puskesmas', 'Klinik Bersalin'],
+      childSexChoices: ['Laki-laki', 'Perempuan'],
+      birthAttendantChoices: ['Dokter Spesialis Kandungan (Sp.OG)', 'Bidan'],
+      contraceptiveTypeChoices: ['Suntik 3 Bulan', 'IUD / Spiral', 'Pil KB']
     };
 
     const enriched = enrichMedicalFlowDefinition(pregnancyFlowDefinition, mockCatalogs);
@@ -50,6 +55,31 @@ describe('enrichMedicalFlowDefinition', () => {
       .flatMap((s) => s.fields)
       .find((f) => f.id === 'tetanusStatus');
     expect(tetanus?.choices).toEqual(['Belum pernah', 'T1', 'T2']);
+
+    const deliveryMethod = enriched.sections
+      .flatMap((s) => s.fields)
+      .find((f) => f.id === 'previousPregnancy1DeliveryMethod');
+    expect(deliveryMethod?.choices).toEqual(['Normal / Spontan', 'Sectio Caesarea (SC)']);
+
+    const deliveryPlace = enriched.sections
+      .flatMap((s) => s.fields)
+      .find((f) => f.id === 'previousPregnancy1DeliveryPlace');
+    expect(deliveryPlace?.choices).toEqual(['Rumah Sakit', 'Puskesmas', 'Klinik Bersalin']);
+
+    const childSex = enriched.sections
+      .flatMap((s) => s.fields)
+      .find((f) => f.id === 'previousPregnancy1ChildSex');
+    expect(childSex?.choices).toEqual(['Laki-laki', 'Perempuan']);
+
+    const birthAttendant = enriched.sections
+      .flatMap((s) => s.fields)
+      .find((f) => f.id === 'previousPregnancy1BirthAttendant');
+    expect(birthAttendant?.choices).toEqual(['Dokter Spesialis Kandungan (Sp.OG)', 'Bidan']);
+
+    const contraType = enriched.sections
+      .flatMap((s) => s.fields)
+      .find((f) => f.id === 'contraception1Type');
+    expect(contraType?.choices).toEqual(['Suntik 3 Bulan', 'IUD / Spiral', 'Pil KB']);
   });
 
   it('leaves non-pregnancy flow definitions untouched', () => {

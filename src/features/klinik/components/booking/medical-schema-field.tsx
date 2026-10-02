@@ -2,7 +2,6 @@ import type { AnyFieldApi } from '@tanstack/form-core';
 import * as React from 'react';
 
 import { FieldDescription, FieldError, FieldLegend, FieldSet } from '@/components/ui/field';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
 import { PatientLineSelect } from '@/features/data-pasien/components/registration/atoms/patient-line-select';
 import { PatientLineTextarea } from '@/features/data-pasien/components/registration/atoms/patient-line-textarea';
@@ -144,11 +143,23 @@ export function MedicalSchemaField({
   ) : null;
 
   if (schemaField.type === 'MULTIPLE_CHOICE') {
-    const isSmoked = schemaField.id === 'smokedBeforePregnancy';
-    const isTwoChoices = schemaField.choices.length === 2;
+    const choiceCount = schemaField.choices.length;
+    const gridColsClass =
+      choiceCount === 2
+        ? 'grid grid-cols-2 gap-2.5'
+        : choiceCount === 3
+          ? 'grid grid-cols-3 gap-2.5'
+          : choiceCount === 4
+            ? 'grid grid-cols-2 sm:grid-cols-4 gap-2.5'
+            : 'grid grid-cols-2 sm:grid-cols-3 gap-2.5';
 
     return (
-      <FieldSet data-invalid={isInvalid} className={cn('gap-3', colSpanClass)}>
+      <FieldSet
+        id={schemaField.id}
+        data-field-id={schemaField.id}
+        data-invalid={isInvalid}
+        className={cn('gap-3', colSpanClass)}
+      >
         {schemaField.title ? (
           <FieldLegend variant='label' className='mb-1.5 text-sm leading-snug font-medium'>
             <span>
@@ -162,37 +173,32 @@ export function MedicalSchemaField({
             {schemaField.helpText}
           </FieldDescription>
         ) : null}
-        <ToggleGroup
-          type='single'
-          value={value}
-          onValueChange={(nextValue: string) => {
-            if (!nextValue) {
-              return;
-            }
-
-            fieldApi.handleChange(nextValue);
-            fieldApi.handleBlur();
-          }}
-          className={cn(
-            'mt-1 w-full',
-            isTwoChoices ? '!grid !grid-cols-2 gap-2.5' : 'flex flex-wrap gap-2'
-          )}
-        >
-          {schemaField.choices.map((choice) => (
-            <ToggleGroupItem
-              key={choice}
-              value={choice}
-              aria-invalid={isInvalid}
-              className={cn(
-                'h-auto min-h-10 cursor-pointer justify-center whitespace-normal !rounded-lg border border-border px-3 py-2 text-center text-xs leading-snug font-medium transition-all data-[state=on]:border-primary data-[state=on]:bg-primary/10 data-[state=on]:font-semibold data-[state=on]:text-primary',
-                isTwoChoices ? '!w-full !min-w-0' : 'w-fit',
-                isSmoked && 'justify-center text-center font-medium'
-              )}
-            >
-              {choice}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
+        <div role='radiogroup' className={cn('mt-1 w-full', gridColsClass)}>
+          {schemaField.choices.map((choice) => {
+            const isSelected = value === choice;
+            return (
+              <button
+                key={choice}
+                type='button'
+                role='radio'
+                aria-checked={isSelected}
+                onClick={() => {
+                  fieldApi.handleChange(choice);
+                  fieldApi.handleBlur();
+                }}
+                className={cn(
+                  'h-auto min-h-10 w-full min-w-0 cursor-pointer rounded-lg border px-3 py-2 text-center text-xs leading-snug font-medium transition-all select-none',
+                  isSelected
+                    ? 'border-primary bg-primary/10 font-semibold text-primary shadow-xs'
+                    : 'border-border bg-background text-foreground hover:bg-muted/50 hover:text-foreground',
+                  isInvalid && !value && 'border-destructive/60'
+                )}
+              >
+                {choice}
+              </button>
+            );
+          })}
+        </div>
         <FieldError errors={displayError ? [displayError] : []} />
       </FieldSet>
     );

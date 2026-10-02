@@ -8,7 +8,6 @@ import type {
 } from '../api/kia-intake-service';
 import {
   CONTRACEPTION_CHOICE,
-  DEFAULT_INTAKE_VALUES,
   GENDER_CHOICE,
   MATERNAL_CONDITION_CODES,
   MATERNAL_QUESTION_CODES,
@@ -44,16 +43,27 @@ export function buildMaternityIntakePayload(
 
   const contraceptiveHistories = [];
   for (let i = 1; i <= 4; i += 1) {
-    const contraceptiveType = submittedValues[`contraceptive${i}Type`];
+    const contraceptiveType =
+      submittedValues[`contraception${i}Type`] || submittedValues[`contraceptive${i}Type`];
     if (contraceptiveType) {
       contraceptiveHistories.push({
         orderNumber: i,
         contraceptiveType,
-        startDate: submittedValues[`contraceptive${i}StartDate`],
-        durationText: submittedValues[`contraceptive${i}Duration`],
-        stopDate: submittedValues[`contraceptive${i}StopDate`],
-        problems: submittedValues[`contraceptive${i}Problems`],
-        sideEffects: submittedValues[`contraceptive${i}SideEffects`]
+        startDate:
+          submittedValues[`contraception${i}StartDate`] ||
+          submittedValues[`contraceptive${i}StartDate`],
+        durationText:
+          submittedValues[`contraception${i}Duration`] ||
+          submittedValues[`contraceptive${i}Duration`],
+        stopDate:
+          submittedValues[`contraception${i}StopDate`] ||
+          submittedValues[`contraceptive${i}StopDate`],
+        problems:
+          submittedValues[`contraception${i}Problems`] ||
+          submittedValues[`contraceptive${i}Problems`],
+        sideEffects:
+          submittedValues[`contraception${i}SideEffects`] ||
+          submittedValues[`contraceptive${i}SideEffects`]
       });
     }
   }
@@ -231,9 +241,8 @@ export function buildMaternityIntakePayload(
 
   return {
     patientId,
-    motherNik: submittedValues.motherNik || DEFAULT_INTAKE_VALUES.DEFAULT_PLACEHOLDER_NIK,
-    motherName:
-      submittedValues.motherName || patientName || DEFAULT_INTAKE_VALUES.DEFAULT_MOTHER_NAME,
+    motherNik: submittedValues.motherNik || '',
+    motherName: submittedValues.motherName || patientName || '',
     motherBirthDate: submittedValues.motherBirthDate || null,
     motherAge: parsePureInteger(submittedValues.motherAge),
     marriageOrder: parsePureInteger(submittedValues.marriageOrder) || 1,
@@ -301,14 +310,12 @@ export function buildChildImmunizationIntakePayload(
 ): CreateChildImmunizationPayload {
   return {
     patientId,
-    childName: submittedValues.childName || patientName || DEFAULT_INTAKE_VALUES.DEFAULT_CHILD_NAME,
-    childNik: submittedValues.childNik || DEFAULT_INTAKE_VALUES.DEFAULT_PLACEHOLDER_NIK,
-    childBirthDate:
-      submittedValues.childBirthDate || DEFAULT_INTAKE_VALUES.DEFAULT_CHILD_BIRTH_DATE,
-    childSex: submittedValues.childSex || GENDER_CHOICE.MALE,
+    childName: submittedValues.childName || patientName || '',
+    childNik: submittedValues.childNik || '',
+    childBirthDate: submittedValues.childBirthDate || '',
+    childSex: submittedValues.childSex || '',
     childAgeFormatted: submittedValues.childAgeFormatted || null,
-    parentPhone:
-      submittedValues.parentPhone || patientContact || DEFAULT_INTAKE_VALUES.DEFAULT_PARENT_PHONE,
+    parentPhone: submittedValues.parentPhone || patientContact || '',
     fatherName: submittedValues.fatherName || null,
     motherName: submittedValues.motherName || null,
     childAddress: submittedValues.childAddress || null,

@@ -3,11 +3,18 @@
 import React, { useState, useEffect } from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 import { Appointment, Doctor } from '../api/types';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { DoctorAvatar } from './doctor-avatar';
 import { CancelStepContent } from './cancel-step-content';
-import { MedicalIntakeSummary } from './medical-intake-summary';
+import { AppointmentFormInspector } from './appointment-form-inspector';
 import { getDoctorByName } from '../api/service';
 import { getStatusConfig } from '@/styles/clinical-tokens';
 import { cn } from '@/lib/utils';
@@ -38,12 +45,14 @@ export function DetailsModal({
   const [modalStep, setModalStep] = useState<ModalStep>('details');
   const [cancelReason, setCancelReason] = useState('');
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isFormExpanded, setIsFormExpanded] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
       setModalStep('details');
       setCancelReason('');
       setIsCancelling(false);
+      setIsFormExpanded(false);
     }
   }, [isOpen]);
 
@@ -136,7 +145,6 @@ export function DetailsModal({
       setCancelReason('');
       setModalStep('details');
     } catch {
-      // handled in parent
     } finally {
       setIsCancelling(false);
     }
@@ -146,58 +154,76 @@ export function DetailsModal({
     <ModalWrapper
       isOpen={isOpen}
       onClose={onClose}
-      maxWidth='max-w-[560px]'
+      maxWidth={isFormExpanded ? 'max-w-5xl' : 'max-w-lg'}
       showCloseButton={false}
       dismissible={!isCancelling}
+      className='transition-[max-width] duration-300 ease-out'
     >
-      <div className='relative font-sans space-y-3.5'>
-        {/* ─── STEP: DETAILS (default view) ─── */}
-        {modalStep === 'details' && (
-          <DetailsStepContent
-            appointment={appointment}
-            doctor={doctor}
-            doctorSpecialty={doctorSpecialty}
-            statusConfig={statusConfig}
-            displayLocation={displayLocation}
-            startTime={startTime}
-            endTime={endTime}
-            durationText={durationText}
-            visitType={visitType}
-            patientName={patientName}
-            serviceName={serviceName}
-            complaintText={complaintText}
-            canCancel={canCancel}
-            canReschedule={canReschedule}
-            onClose={onClose}
-            onReschedule={onReschedule}
-            onCancel={onCancel}
-            onStartCancel={() => setModalStep('cancel-confirm')}
-          />
+      <div
+        className={cn(
+          'w-full flex items-stretch min-h-[460px]',
+          isFormExpanded ? 'flex-col md:flex-row' : 'flex-col'
         )}
+      >
+        <div
+          className={cn(
+            'w-full flex flex-col font-sans select-none justify-between h-full min-h-0 min-w-0 transition-all duration-300 ease-out',
+            isFormExpanded ? 'md:w-[460px] md:shrink-0 md:pr-10' : 'w-full'
+          )}
+        >
+          {modalStep === 'details' && (
+            <DetailsStepContent
+              appointment={appointment}
+              doctor={doctor}
+              doctorSpecialty={doctorSpecialty}
+              statusConfig={statusConfig}
+              displayLocation={displayLocation}
+              startTime={startTime}
+              endTime={endTime}
+              durationText={durationText}
+              visitType={visitType}
+              patientName={patientName}
+              serviceName={serviceName}
+              complaintText={complaintText}
+              canCancel={canCancel}
+              canReschedule={canReschedule}
+              isFormExpanded={isFormExpanded}
+              onToggleForm={() => setIsFormExpanded((prev) => !prev)}
+              onClose={onClose}
+              onReschedule={onReschedule}
+              onCancel={onCancel}
+              onStartCancel={() => setModalStep('cancel-confirm')}
+            />
+          )}
 
-        {/* ─── STEP: CANCEL CONFIRMATION (full context replacement) ─── */}
-        {modalStep === 'cancel-confirm' && (
-          <CancelStepContent
-            appointment={appointment}
-            patientName={patientName}
-            doctorName={doctor.name}
-            queueNumber={appointment.queue_number || '-'}
-            appointmentDate={appointment.date || '-'}
-            cancelReason={cancelReason}
-            setCancelReason={setCancelReason}
-            isCancelling={isCancelling}
-            onBack={() => setModalStep('details')}
-            onConfirm={handleConfirmCancel}
-          />
+          {modalStep === 'cancel-confirm' && (
+            <CancelStepContent
+              appointment={appointment}
+              patientName={patientName}
+              doctorName={doctor.name}
+              queueNumber={appointment.queue_number || '-'}
+              appointmentDate={appointment.date || '-'}
+              cancelReason={cancelReason}
+              setCancelReason={setCancelReason}
+              isCancelling={isCancelling}
+              onBack={() => setModalStep('details')}
+              onConfirm={handleConfirmCancel}
+            />
+          )}
+        </div>
+
+        {isFormExpanded && modalStep === 'details' && (
+          <div className='w-full flex-1 flex flex-col font-sans select-none h-full min-h-0 min-w-0 md:pl-10 md:border-l border-border/40 pt-6 md:pt-0 animate-in fade-in-0 slide-in-from-right-6 duration-300 ease-out'>
+            <AppointmentFormInspector
+              appointment={appointment}
+              onClose={() => setIsFormExpanded(false)}
+            />
+          </div>
         )}
       </div>
     </ModalWrapper>
   );
 }
-
-/* ═══════════════════════════════════════════════════════════════════════
-   Step 1: Details View — the standard appointment detail view
-   ═══════════════════════════════════════════════════════════════════════ */
 
 interface DetailsStepProps {
   appointment: Appointment;
@@ -214,6 +240,8 @@ interface DetailsStepProps {
   complaintText: string;
   canCancel: boolean;
   canReschedule: boolean;
+  isFormExpanded: boolean;
+  onToggleForm: () => void;
   onClose: () => void;
   onReschedule?: (appointment: Appointment) => void;
   onCancel?: (appointment: Appointment, reason?: string) => Promise<void> | void;
@@ -235,6 +263,8 @@ function DetailsStepContent({
   complaintText,
   canCancel,
   canReschedule,
+  isFormExpanded,
+  onToggleForm,
   onClose,
   onReschedule,
   onCancel,
@@ -242,69 +272,96 @@ function DetailsStepContent({
 }: DetailsStepProps) {
   return (
     <>
-      {/* 1. Doctor Identity Header + Status Badge at top-right */}
-      <div className='flex items-center gap-4 pb-3 border-b border-border/40'>
-        <div className='size-16 min-w-[64px] min-h-[64px] rounded-full overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square'>
-          <DoctorAvatar name={doctor.name} avatarUrl={doctor.avatar} size={64} />
-        </div>
-        <div className='flex flex-col items-start min-w-0 flex-1 space-y-0.5'>
-          <h3 className='text-base sm:text-lg font-bold text-foreground truncate w-full tracking-tight'>
-            {doctor.name || '-'}
-          </h3>
-          <p className='text-sm font-medium text-muted-foreground truncate w-full'>
-            {doctorSpecialty}
-          </p>
+      <div className='flex items-center justify-between gap-3 pb-3 border-b border-border/40 min-h-[77px]'>
+        <div className='flex items-center gap-3.5 min-w-0 flex-1'>
+          <div className='size-14 min-w-[56px] min-h-[56px] rounded-full overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square'>
+            <DoctorAvatar name={doctor.name} avatarUrl={doctor.avatar} size={56} />
+          </div>
+          <div className='flex flex-col items-start min-w-0 flex-1 space-y-0.5'>
+            <h3 className='text-base sm:text-lg font-bold text-foreground truncate w-full tracking-tight'>
+              {doctor.name || '-'}
+            </h3>
+            <p className='text-sm font-medium text-muted-foreground truncate w-full'>
+              {doctorSpecialty}
+            </p>
+          </div>
         </div>
 
-        {/* Status Badge — top-right */}
-        <div className='shrink-0 pt-0.5'>
-          <div
-            className={cn(
-              'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-sm select-none shadow-none',
-              statusConfig.pillBg,
-              statusConfig.pillBorder
-            )}
-          >
-            <span
-              className={cn(
-                'size-2 rounded-full shrink-0 ring-1 ring-white/60 dark:ring-white/20',
-                statusConfig.dotGradient
-              )}
-            />
-            <span
-              className={cn(
-                'bg-clip-text text-transparent font-bold tracking-tight',
-                statusConfig.textGradient
-              )}
+        <div className='shrink-0'>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type='button'
+                className='p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors cursor-pointer select-none'
+                aria-label='Opsi tindakan janji temu'
+              >
+                <Icons.ellipsis className='size-5' />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align='end'
+              className='w-48 p-1.5 rounded-xl shadow-lg border border-border/60 bg-card font-sans text-xs'
             >
-              {statusConfig.label}
-            </span>
-          </div>
+              {!isFormExpanded && (
+                <DropdownMenuItem
+                  onClick={onToggleForm}
+                  className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
+                >
+                  <Icons.forms className='size-4 text-primary shrink-0' />
+                  <span>Lihat Formulir</span>
+                </DropdownMenuItem>
+              )}
+
+              {canReschedule && onReschedule && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    onClose();
+                    onReschedule(appointment);
+                  }}
+                  className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
+                >
+                  <Icons.calendar className='size-4 text-muted-foreground shrink-0' />
+                  <span>Reschedule Jadwal</span>
+                </DropdownMenuItem>
+              )}
+
+              {canCancel && onCancel && (
+                <>
+                  <DropdownMenuSeparator className='my-1 border-border/40' />
+                  <DropdownMenuItem
+                    onClick={onStartCancel}
+                    className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium text-destructive hover:bg-destructive/10 focus:bg-destructive/10 focus:text-destructive transition-colors'
+                  >
+                    <Icons.close className='size-4 text-destructive shrink-0' />
+                    <span>Batalkan Janji Temu</span>
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
-      {/* 2. Date & Location Row */}
-      <div className='py-2.5 border-b border-border/40 flex items-center justify-between gap-3 text-sm'>
-        <div className='flex items-center gap-2 text-foreground font-semibold min-w-0'>
+      <div className='py-2.5 border-b border-border/40 flex items-center justify-between gap-3 text-sm min-w-0'>
+        <div className='flex items-center gap-2 text-foreground font-semibold min-w-0 shrink-0'>
           <Icons.calendar className='size-4 text-primary shrink-0' strokeWidth={1.8} />
           <span className='truncate'>{appointment.date || '-'}</span>
         </div>
-        <div className='flex items-center gap-1.5 text-muted-foreground font-medium min-w-0'>
+        <div className='flex items-center gap-1.5 text-muted-foreground font-medium min-w-0 max-w-[55%] justify-end shrink'>
           <Icons.mapPin className='size-4 text-primary shrink-0' strokeWidth={1.8} />
-          <span className='truncate'>{displayLocation}</span>
+          <span className='truncate text-right'>{displayLocation}</span>
         </div>
       </div>
 
-      {/* 3. Timeline Container */}
-      <div className='py-2.5 border-b border-border/40 flex items-center justify-between'>
-        <div className='flex flex-col items-start min-w-[60px]'>
+      <div className='py-3 border-b border-border/40 flex items-center justify-between min-w-0'>
+        <div className='flex flex-col items-start min-w-[54px] shrink-0'>
           <span className='text-xl sm:text-2xl font-bold text-foreground leading-tight tracking-tight'>
             {startTime}
           </span>
           <span className='text-xs font-normal text-muted-foreground mt-0.5'>Mulai</span>
         </div>
 
-        <div className='flex-1 flex flex-col items-center px-3'>
+        <div className='flex-1 flex flex-col items-center px-2 min-w-0'>
           <span className='text-xs font-semibold text-muted-foreground mb-1'>{durationText}</span>
           <div className='w-full flex items-center justify-center relative'>
             <span className='size-2 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0' />
@@ -316,7 +373,7 @@ function DetailsStepContent({
           </span>
         </div>
 
-        <div className='flex flex-col items-end min-w-[60px]'>
+        <div className='flex flex-col items-end min-w-[54px] shrink-0'>
           <span className='text-xl sm:text-2xl font-bold text-foreground leading-tight tracking-tight'>
             {endTime}
           </span>
@@ -324,8 +381,7 @@ function DetailsStepContent({
         </div>
       </div>
 
-      {/* 4. Patient & Service Details Grid */}
-      <div className='grid grid-cols-2 gap-y-3 gap-x-5'>
+      <div className='pt-4 pb-1 grid grid-cols-2 gap-y-3.5 gap-x-6 min-w-0'>
         <div className='border-b border-border/40 pb-2'>
           <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
             Nama Pasien
@@ -333,6 +389,36 @@ function DetailsStepContent({
           <span className='text-sm font-semibold text-foreground block truncate'>
             {patientName}
           </span>
+        </div>
+
+        <div className='border-b border-border/40 pb-2'>
+          <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+            Status Janji Temu
+          </span>
+          <div className='pt-0.5'>
+            <div
+              className={cn(
+                'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border backdrop-blur-sm select-none shadow-none',
+                statusConfig.pillBg,
+                statusConfig.pillBorder
+              )}
+            >
+              <span
+                className={cn(
+                  'size-1.5 rounded-full shrink-0 ring-1 ring-white/60 dark:ring-white/20',
+                  statusConfig.dotGradient
+                )}
+              />
+              <span
+                className={cn(
+                  'bg-clip-text text-transparent font-bold tracking-tight',
+                  statusConfig.textGradient
+                )}
+              >
+                {statusConfig.label}
+              </span>
+            </div>
+          </div>
         </div>
 
         <div className='border-b border-border/40 pb-2'>
@@ -370,59 +456,24 @@ function DetailsStepContent({
         </div>
       </div>
 
-      {/* 5. Medical Complaint */}
-      <div className='border-b border-border/40 pb-3 pt-0.5'>
+      <div className='border-b border-border/40 pb-3 pt-0.5 min-w-0'>
         <span className='text-xs font-normal text-muted-foreground block mb-1'>Keluhan Medis</span>
-        <p className='text-sm font-medium text-foreground leading-relaxed'>{complaintText}</p>
+        <p className='text-sm font-medium text-foreground leading-relaxed break-words'>
+          {complaintText}
+        </p>
       </div>
 
-      {appointment.medical_intake ? (
-        <MedicalIntakeSummary intake={appointment.medical_intake} />
-      ) : null}
-
-      {/* 6. Modal Action Buttons */}
-      <div className='pt-2 flex items-center justify-between gap-3'>
+      <div className='pt-3 flex items-center justify-end min-w-0'>
         <Button
           type='button'
           variant='outline'
           shape='pill'
           size='default'
           onClick={onClose}
-          className='px-6 font-semibold'
+          className='px-6 font-semibold cursor-pointer min-w-[100px]'
         >
           Tutup
         </Button>
-
-        <div className='flex items-center gap-2.5'>
-          {canCancel && onCancel && (
-            <Button
-              type='button'
-              variant='destructive'
-              shape='pill'
-              size='default'
-              onClick={onStartCancel}
-              className='px-5 font-medium'
-            >
-              Batalkan
-            </Button>
-          )}
-
-          {canReschedule && onReschedule && (
-            <Button
-              type='button'
-              variant='outline'
-              shape='pill'
-              size='default'
-              onClick={() => {
-                onClose();
-                onReschedule(appointment);
-              }}
-              className='px-5 font-medium'
-            >
-              Reschedule
-            </Button>
-          )}
-        </div>
       </div>
     </>
   );

@@ -20,25 +20,31 @@ export function MedicalQuestionnaireGrid({
 }: MedicalQuestionnaireGridProps) {
   const answeredCount = items.filter((item) => Boolean(values[item.id])).length;
   const totalCount = items.length;
+  const hasAnyYear = React.useMemo(
+    () => items.some((item) => Boolean(item.yearFieldId || item.notesFieldId)),
+    [items]
+  );
 
   return (
     <div data-slot='medical-questionnaire-grid' className={cn('w-full flex flex-col', className)}>
-      {/* Header bar: Sticky Minimal Comparison Grid Header */}
       <div className='sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-border bg-background/95 backdrop-blur-xs px-3 py-2.5 text-xs font-medium text-muted-foreground shadow-xs'>
         <div className='flex-1 pr-4 flex items-center justify-between'>
-          <span className='font-semibold text-foreground'>Kondisi / Riwayat kesehatan</span>
+          <span className='font-semibold text-foreground'>
+            {hasAnyYear ? 'Kondisi / Riwayat kesehatan' : 'Pertanyaan / Kebiasaan'}
+          </span>
           <span className='text-[11px] font-normal text-muted-foreground/80'>
             {answeredCount} dari {totalCount} dijawab
           </span>
         </div>
         <div className='w-16 text-center shrink-0 font-medium text-foreground/80'>Tidak</div>
         <div className='w-16 text-center shrink-0 font-medium text-foreground/80'>Ya</div>
-        <div className='w-40 shrink-0 text-left pl-1 font-medium text-foreground/80'>
-          Tahun (jika Ya)
-        </div>
+        {hasAnyYear ? (
+          <div className='w-40 shrink-0 text-left pl-1 font-medium text-foreground/80'>
+            Tahun (jika Ya)
+          </div>
+        ) : null}
       </div>
 
-      {/* Row list */}
       <div className='flex flex-col divide-y-0 pt-1'>
         {items.map((item, index) => {
           const statusValue = values[item.id] || '';
@@ -79,6 +85,7 @@ export function MedicalQuestionnaireGrid({
               onSelectStatus={handleSelectStatus}
               onChangeYear={handleChangeYear}
               onChangeNotes={handleChangeNotes}
+              hasAnyYear={hasAnyYear}
               isLast={index === items.length - 1}
             />
           );

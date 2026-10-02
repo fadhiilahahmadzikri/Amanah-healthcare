@@ -93,14 +93,14 @@ export function MedicalSectionStep({
         </div>
       ) : null}
       {isQuestionnaire && values && onFieldChange ? (
-        <div className='px-0.5 pt-0 pb-2'>
+        <div className='px-0.5 pt-1.5 pb-2'>
           <MedicalQuestionnaire section={section} values={values} onFieldChange={onFieldChange} />
         </div>
       ) : (
         <FieldGroup
           className={cn(
             isGrid ? 'grid grid-cols-1 items-start gap-x-5 gap-y-3.5 sm:grid-cols-2' : 'space-y-4',
-            'px-0.5 pt-0 pb-2'
+            'px-0.5 pt-1.5 pb-2'
           )}
         >
           {section.fields.map(renderField)}

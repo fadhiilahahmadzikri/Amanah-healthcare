@@ -24,12 +24,10 @@ export function MedicalQuestionnaire({
 
   return (
     <div data-slot='medical-questionnaire' className={cn('w-full flex flex-col', className)}>
-      {/* Desktop / Tablet View: Minimal Comparison Grid (Modern SaaS Comparison Table) */}
       <div className='hidden sm:block'>
         <MedicalQuestionnaireGrid items={items} values={values} onFieldChange={onFieldChange} />
       </div>
 
-      {/* Mobile View: Vertical Sequential Flow with Lightweight Morphing Accordion */}
       <div className='block sm:hidden'>
         <MedicalQuestionnaireAccordion
           items={items}

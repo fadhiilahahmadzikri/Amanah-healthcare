@@ -18,7 +18,6 @@ export function MedicalQuestionnaireAccordion({
   onFieldChange,
   className
 }: MedicalQuestionnaireAccordionProps) {
-  // Find first unanswered index or default to 0
   const firstUnansweredIndex = React.useMemo(() => {
     const idx = items.findIndex((item) => !values[item.id]);
     return idx !== -1 ? idx : 0;
@@ -35,18 +34,15 @@ export function MedicalQuestionnaireAccordion({
   };
 
   const handleAdvance = (currentIndex: number) => {
-    // Find next unanswered index starting from currentIndex + 1
     const nextUnanswered = items.findIndex((item, idx) => idx > currentIndex && !values[item.id]);
 
     if (nextUnanswered !== -1) {
       setActiveIndex(nextUnanswered);
     } else {
-      // If none after, check if any before were missed
       const anyUnanswered = items.findIndex((item) => !values[item.id]);
       if (anyUnanswered !== -1) {
         setActiveIndex(anyUnanswered);
       } else {
-        // All answered! Close accordion or keep at current
         setActiveIndex(-1);
       }
     }
@@ -54,7 +50,6 @@ export function MedicalQuestionnaireAccordion({
 
   return (
     <div data-slot='medical-questionnaire-accordion' className={cn('flex flex-col', className)}>
-      {/* Mobile Sticky Progress Bar Header */}
       <div className='sticky top-0 z-20 -mx-1 bg-background/95 backdrop-blur-xs px-2 pt-1 pb-3 mb-1 border-b border-border/70 shadow-xs'>
         <div className='flex items-center justify-between text-xs mb-1.5'>
           <span className='font-medium text-foreground'>Kelengkapan Jawaban</span>
@@ -70,7 +65,6 @@ export function MedicalQuestionnaireAccordion({
         </div>
       </div>
 
-      {/* Accordion list */}
       <div className='flex flex-col divide-y-0'>
         {items.map((item, index) => {
           const statusValue = values[item.id] || '';

@@ -9,14 +9,15 @@ import {
   TransientServerError,
   UnexpectedAppError
 } from '@/core/errors/app-error';
-import { handleHttpErrorResponse } from '@/server/http/interceptors/error.interceptor';
-import { logOutboundError } from '@/server/http/interceptors/logging.interceptor';
 import { logger } from '@/core/logging/logger';
-import { AuthRepository } from '@/server/repositories/auth/auth.repository';
-import { getCurrentUserQuery } from '@/server/services/auth/get-current-user.query';
-import { authLoader } from '@/server/loaders/auth.loader';
 import { ok, err } from '@/core/result/result';
 import type { IAuthRepository } from '@/server/repositories/auth/auth.repository.port';
+
+const { handleHttpErrorResponse } = await import('@/server/http/interceptors/error.interceptor');
+const { logOutboundError } = await import('@/server/http/interceptors/logging.interceptor');
+const { AuthRepository } = await import('@/server/repositories/auth/auth.repository');
+const { getCurrentUserQuery } = await import('@/server/services/auth/get-current-user.query');
+const { authLoader } = await import('@/server/loaders/auth.loader');
 
 describe('Auth Error Architecture & Taxonomy', () => {
   describe('1. Error Taxonomy', () => {

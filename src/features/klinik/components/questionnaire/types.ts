@@ -33,7 +33,6 @@ export function extractQuestionnaireItems(fields: MedicalFormField[]): Questionn
     }
   }
 
-  // Also include any other binary yes/no questions if present in the section
   for (const f of fields) {
     if (
       !handledIds.has(f.id) &&

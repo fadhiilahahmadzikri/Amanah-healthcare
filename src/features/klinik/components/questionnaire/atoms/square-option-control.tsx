@@ -47,22 +47,17 @@ export function SquareOptionControl({
           size === 'sm' && 'size-4.5',
           size === 'md' && 'size-5.5',
           size === 'lg' && 'size-6.5',
-          // Unchecked states
           !checked && 'bg-background hover:border-primary/60 hover:bg-accent/40',
-          // Checked positive ('Ya')
           checked &&
             isPositive &&
             'border-primary bg-primary text-primary-foreground shadow-xs shadow-primary/20',
-          // Checked negative ('Tidak')
           checked &&
             isNegative &&
             'border-foreground/80 bg-foreground text-background shadow-xs dark:border-foreground/90 dark:bg-foreground dark:text-background',
-          // Checked default
           checked &&
             !isPositive &&
             !isNegative &&
             'border-primary bg-primary text-primary-foreground',
-          // Focus ring
           'group-focus-visible:border-ring group-focus-visible:ring-[3px] group-focus-visible:ring-ring/40'
         )}
       >

@@ -1,5 +1,5 @@
 import type { AutofillDefinition } from './types';
-import { PREGNANCY_AUTOFILL_PRESET, PREGNANCY_SCHEDULE_PRESET } from './presets/pregnancy-preset';
+import { getPregnancyAutofillPreset } from './presets/pregnancy-preset';
 import { clearVisibleFields, dispatchAutofillEvent, fillVisibleFields } from './engine';
 
 const registry: AutofillDefinition[] = [
@@ -18,15 +18,18 @@ const registry: AutofillDefinition[] = [
       );
     },
     fillFull: () => {
-      dispatchAutofillEvent('pregnancy', PREGNANCY_AUTOFILL_PRESET, PREGNANCY_SCHEDULE_PRESET);
+      const preset = getPregnancyAutofillPreset();
+      dispatchAutofillEvent('pregnancy', preset.values, preset.schedule);
       return true;
     },
     fillCurrentStep: () => {
-      fillVisibleFields(PREGNANCY_AUTOFILL_PRESET, 'pregnancy');
+      const preset = getPregnancyAutofillPreset();
+      fillVisibleFields(preset.values, 'pregnancy');
       return true;
     },
     clear: () => {
-      clearVisibleFields(PREGNANCY_AUTOFILL_PRESET, 'pregnancy');
+      const preset = getPregnancyAutofillPreset();
+      clearVisibleFields(preset.values, 'pregnancy');
     }
   }
 ];

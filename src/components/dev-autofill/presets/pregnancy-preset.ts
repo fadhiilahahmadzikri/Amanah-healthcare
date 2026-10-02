@@ -1,70 +1,15 @@
 import type { AutofillSchedule } from '../types';
+import { PregnancyFakerFactory } from '../factories/pregnancy-faker-factory';
 
-export const PREGNANCY_AUTOFILL_PRESET: Record<string, string> = {
-  motherName: 'Siti Rahmawati',
-  motherNik: '3201014506950002',
-  motherBirthDate: '1995-06-15',
-  marriageOrder: '1',
-  marriageDate: '2020-08-20',
-  motherJob: 'Karyawan Swasta',
-  motherEducation: 'S1',
-  religion: 'Islam',
-  phoneNumber: '081234567890',
-  domicileAddress:
-    'Jl. Margonda Raya No. 120, RT 02/RW 07, Kelurahan Kemirimuka, Kecamatan Beji, Kota Depok',
-  identityCardAddress:
-    'Jl. Margonda Raya No. 120, RT 02/RW 07, Kelurahan Kemirimuka, Kecamatan Beji, Kota Depok',
-  dasawisma: 'Dahlia 03',
-  posyandu: 'Posyandu Mawar Indah',
-  puskesmas: 'Puskesmas Beji',
-  partnerName: 'Budi Santoso',
-  partnerNik: '3201011004920001',
-  partnerBirthDate: '1992-04-10',
-  partnerJob: 'Wiraswasta / Pengusaha',
-  partnerEducation: 'S1',
-  partnerBloodType: 'O',
-  heightCm: '158',
-  prePregnancyWeightKg: '54',
-  upperArmCircumferenceCm: '24.5',
-  tetanusStatus: 'T2',
-  motherBloodType: 'A',
-  hpht: '2026-05-10',
-  currentComplaints: 'Mual ringan di pagi hari',
-  smokedBeforePregnancy: 'Tidak',
-  alcoholBeforePregnancy: 'Tidak',
-  irregularDietBeforePregnancy: 'Tidak',
-  reducedPhysicalActivityBeforePregnancy: 'Tidak',
-  unprescribedMedicationBeforePregnancy: 'Tidak',
-  concerningCosmeticUseBeforePregnancy: 'Tidak',
-  pesticideExposureBeforePregnancy: 'Tidak',
-  chemicalExposureBeforePregnancy: 'Tidak',
-  smokeExposureBeforePregnancy: 'Tidak',
-  concerningEnvironmentNotes: '',
-  allergyInfo: 'Tidak ada alergi obat maupun makanan',
-  otherNotes: '',
-  hasHypertensionHistory: 'Tidak',
-  hasHeartDiseaseHistory: 'Tidak',
-  hasThyroidDiseaseHistory: 'Tidak',
-  hasAutoimmuneHistory: 'Tidak',
-  hasDiabetesHistory: 'Tidak',
-  hasAsthmaHistory: 'Tidak',
-  hasTuberculosisHistory: 'Tidak',
-  hasHepatitisBHistory: 'Tidak',
-  hasHivOrSyphilisHistory: 'Tidak',
-  hasMentalHealthHistory: 'Tidak',
-  hasTwinPregnancyHistory: 'Tidak',
-  hasCystMyomaTumorHistory: 'Tidak',
-  hasSurgeryHistory: 'Tidak',
-  hasOtherDiseaseHistory: 'Tidak',
-  gravidaCount: '1',
-  parityCount: '0',
-  abortionCount: '0',
-  livingChildrenCount: '0',
-  hasPreviousPregnancyHistory: 'Belum/tidak ada',
-  hasContraceptionHistory: 'Belum pernah'
-};
+export function getPregnancyAutofillPreset(): {
+  values: Record<string, string>;
+  schedule: AutofillSchedule;
+} {
+  return PregnancyFakerFactory.generate();
+}
 
-export const PREGNANCY_SCHEDULE_PRESET: AutofillSchedule = {
-  dateStr: '2026-10-10',
-  timeSlot: '09:00 - 10:00'
-};
+export const PREGNANCY_AUTOFILL_PRESET: Record<string, string> =
+  PregnancyFakerFactory.generate().values;
+
+export const PREGNANCY_SCHEDULE_PRESET: AutofillSchedule =
+  PregnancyFakerFactory.generate().schedule;

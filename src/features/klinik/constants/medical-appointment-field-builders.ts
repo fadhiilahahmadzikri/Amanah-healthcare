@@ -14,34 +14,12 @@ export const DATE = FIELD_TYPES.DATE;
 export const MULTIPLE_CHOICE = FIELD_TYPES.MULTIPLE_CHOICE;
 export const LIST = FIELD_TYPES.LIST;
 
-export const yesNoChoices = ['Tidak', 'Ya'];
-export const educationChoices = ['Tidak sekolah', 'SD', 'SMP', 'SMA/SMK', 'D1-D3', 'S1', 'S2/S3'];
-export const bloodTypeChoices = ['A', 'B', 'AB', 'O'];
-export const religionChoices = [
-  'Islam',
-  'Kristen',
-  'Katolik',
-  'Hindu',
-  'Buddha',
-  'Konghucu',
-  'Lainnya'
-];
-export const defaultOccupationChoices = [
-  'Pegawai Negeri Sipil / TNI / Polri',
-  'Karyawan Swasta',
-  'Wiraswasta / Pengusaha',
-  'Ibu Rumah Tangga',
-  'Pelajar / Mahasiswa',
-  'Guru / Dosen',
-  'Tenaga Medis / Kesehatan',
-  'Petani / Peternak',
-  'Nelayan',
-  'Buruh Harian Lepas',
-  'Pensiunan',
-  'Belum / Tidak Bekerja',
-  'Lainnya'
-];
-export const tetanusChoices = ['T1', 'T2', 'T3', 'T4', 'T5', 'Belum pernah'];
+export const yesNoChoices: string[] = ['Tidak', 'Ya'];
+export const educationChoices: string[] = [];
+export const bloodTypeChoices: string[] = [];
+export const religionChoices: string[] = [];
+export const defaultOccupationChoices: string[] = [];
+export const tetanusChoices: string[] = [];
 
 export function field(
   id: string,
@@ -175,7 +153,7 @@ export function previousPregnancyFields(order: number): MedicalFormField[] {
       'Jenis kelamin bayi',
       `${labelPrefix} - jenis kelamin`,
       {
-        choices: ['Laki-laki', 'Perempuan'],
+        choices: [],
         colSpan: 1
       }
     ),
@@ -190,18 +168,18 @@ export function previousPregnancyFields(order: number): MedicalFormField[] {
         colSpan: 1
       }
     ),
-    field(`${prefix}BirthAttendant`, TEXT, 'Ditolong oleh siapa?', `${labelPrefix} - penolong`, {
-      helpText: 'Contoh: bidan, dokter, atau rumah sakit.',
-      placeholder: 'Contoh: Bidan, Dokter',
+    field(`${prefix}BirthAttendant`, LIST, 'Ditolong oleh siapa?', `${labelPrefix} - penolong`, {
+      helpText: 'Pilih penolong persalinan.',
+      choices: [],
       colSpan: 1
     }),
     field(`${prefix}DeliveryMethod`, LIST, 'Cara persalinan', `${labelPrefix} - cara persalinan`, {
-      choices: ['Normal/spontan', 'Operasi caesar', 'Vakum/forceps', 'Keguguran', 'Lainnya'],
+      choices: [],
       colSpan: 1
     }),
-    field(`${prefix}DeliveryPlace`, TEXT, 'Tempat persalinan', `${labelPrefix} - tempat`, {
-      helpText: 'Contoh: PMB, puskesmas, klinik, atau rumah sakit.',
-      placeholder: 'Contoh: PMB, Puskesmas, RS',
+    field(`${prefix}DeliveryPlace`, LIST, 'Tempat persalinan', `${labelPrefix} - tempat`, {
+      helpText: 'Pilih tempat persalinan.',
+      choices: [],
       colSpan: 1
     }),
     field(
@@ -228,16 +206,7 @@ export function contraceptionFields(order: number): MedicalFormField[] {
       colSpan: 1
     }),
     field(`${prefix}Type`, LIST, 'Jenis KB/kontrasepsi', `${labelPrefix} - jenis`, {
-      choices: [
-        'Pil KB',
-        'Suntik 1 bulan',
-        'Suntik 3 bulan',
-        'Implan',
-        'IUD/spiral',
-        'Kondom',
-        'Steril',
-        'Lainnya'
-      ],
+      choices: [],
       colSpan: 1
     }),
     field(`${prefix}Duration`, TEXT, 'Berapa lama dipakai?', `${labelPrefix} - masa pakai`, {

@@ -15,6 +15,11 @@ import {
 } from '@/components/ui/dialog';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 
+import type { ServiceCatalogItem } from '../api/catalog.service';
+import type {
+  PatientAffiliationProfile,
+  PatientRelationshipType
+} from '@/features/data-pasien/api/patient-affiliation-service';
 import type { AppointmentFormData, MedicalAppointmentFlow } from '../api/types';
 import { historyGroups, useMedicalAppointmentForm } from '../model/useMedicalAppointmentForm';
 import { REPEATABLE_GROUP_KEYS, STEP_DESCRIPTOR_TYPES } from '../constants/kia-constants';
@@ -27,6 +32,9 @@ import { ReservationModal, type ReservationContext } from './reservation/reserva
 interface MedicalAppointmentModalProps {
   flow: MedicalAppointmentFlow;
   isOpen: boolean;
+  selectedService?: ServiceCatalogItem | null;
+  selectedPatient?: PatientAffiliationProfile | null;
+  newPatientRelationship?: PatientRelationshipType | string;
   onClose: () => void;
   onCreated?: (appointment: AppointmentFormData) => void;
   onCompleteIntake?: (context: ReservationContext) => void;
@@ -36,6 +44,9 @@ interface MedicalAppointmentModalProps {
 export function MedicalAppointmentModal({
   flow,
   isOpen,
+  selectedService,
+  selectedPatient,
+  newPatientRelationship,
   onClose,
   onCreated,
   onCompleteIntake,
@@ -58,6 +69,9 @@ export function MedicalAppointmentModal({
   const medical = useMedicalAppointmentForm({
     flow,
     isOpen,
+    selectedService,
+    selectedPatient,
+    newPatientRelationship,
     onClose,
     onCreated,
     onCompleteIntake: handleCompleteIntake,
@@ -138,12 +152,14 @@ export function MedicalAppointmentModal({
         showCloseButton={false}
         className='flex h-auto max-h-[88dvh] flex-col overflow-hidden p-5 sm:p-6 shadow-2xl transition-[max-width,width,max-height,height] duration-300'
       >
-        <div className='flex shrink-0 items-start justify-between gap-4 border-b border-border/40 pb-3'>
-          <div className='min-w-0 flex-1 space-y-0.5'>
+        <div className='flex shrink-0 items-start justify-between gap-4 border-b border-border/40 pb-4 mb-4 sm:pb-5 sm:mb-5'>
+          <div className='min-w-0 flex-1 space-y-1 sm:space-y-1.5'>
             <h3 className='text-base font-bold tracking-tight text-foreground sm:text-lg'>
               {stepTitle}
             </h3>
-            <p className='text-xs text-muted-foreground'>{stepDescription}</p>
+            <p className='text-xs sm:text-sm text-muted-foreground leading-normal'>
+              {stepDescription}
+            </p>
           </div>
         </div>
 
@@ -154,7 +170,7 @@ export function MedicalAppointmentModal({
           >
             <div
               ref={stepContainerRef}
-              className='flex-1 min-h-0 max-h-[calc(88dvh-8rem)] overflow-y-auto overflow-x-hidden pr-1.5 pb-2'
+              className='flex-1 min-h-0 max-h-[calc(88dvh-8rem)] overflow-y-auto overflow-x-hidden pr-1.5 pt-1 pb-2'
             >
               {currentDescriptor?.type === STEP_DESCRIPTOR_TYPES.MEDICAL ? (
                 <MedicalSectionStep
@@ -258,7 +274,6 @@ export function MedicalAppointmentModal({
             onClose();
           }}
           onSuccess={(apt) => {
-            setInternalReservationContext(null);
             onCreated?.(apt as unknown as AppointmentFormData);
           }}
         />

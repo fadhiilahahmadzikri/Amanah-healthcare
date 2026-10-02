@@ -1,10 +1,17 @@
 'use client';
 
 import * as React from 'react';
+import { toast } from 'sonner';
 import type { Patient } from '@/features/data-pasien/api/types';
 import type { Appointment, AppointmentFormData, QueueItem } from '../api/types';
 import { createAppointmentRecordWithQueue, loadStoredAppointments } from '../api/service';
+import {
+  patientAffiliationService,
+  type PatientAffiliationProfile,
+  type PatientRelationshipType
+} from '@/features/data-pasien/api/patient-affiliation-service';
 import { kiaIntakeService } from '../api/kia-intake-service';
+import type { ServiceCatalogItem } from '../api/catalog.service';
 import type {
   MedicalFlowDefinition,
   MedicalFormSection
@@ -20,7 +27,6 @@ import {
   buildMaternityIntakePayload
 } from '../utils/kia-intake-payload-builder';
 import { FLOW_NAMES } from '../constants/kia-constants';
-
 import type { ReservationContext } from '../components/reservation/reservation-modal';
 
 interface UseMedicalAppointmentSubmitParams {
@@ -28,6 +34,9 @@ interface UseMedicalAppointmentSubmitParams {
   schedule?: ScheduleValues;
   registeredPatient: Patient | null;
   repeatableMedicalSections: MedicalFormSection[];
+  selectedService?: ServiceCatalogItem | null;
+  selectedPatient?: PatientAffiliationProfile | null;
+  newPatientRelationship?: PatientRelationshipType | string;
   onCreated?: (formData: AppointmentFormData) => void;
   onCompleteIntake?: (context: ReservationContext) => void;
 }
@@ -37,6 +46,9 @@ export function useMedicalAppointmentSubmit({
   schedule,
   registeredPatient,
   repeatableMedicalSections,
+  selectedService,
+  selectedPatient,
+  newPatientRelationship,
   onCreated,
   onCompleteIntake
 }: UseMedicalAppointmentSubmitParams) {
@@ -59,27 +71,79 @@ export function useMedicalAppointmentSubmit({
         registeredPatient?.email_pasien || registeredPatient?.email || patientContact || undefined;
       const patientId =
         registeredPatient?.patient_id ||
-        (registeredPatient?.id ? String(registeredPatient.id) : 'pat_guest');
+        (registeredPatient?.id ? String(registeredPatient.id) : '');
 
       if (onCompleteIntake) {
+        if (!selectedService?.id || !selectedService?.poliklinikId) {
+          toast.error('Layanan klinik belum dipilih atau tidak valid.');
+          return;
+        }
+
         setIsProcessing(true);
         void (async () => {
           try {
+            let resolvedPatientId = selectedPatient?.id || '';
+            let resolvedPatientName = selectedPatient?.fullName || patientName || '';
+
+            if (!resolvedPatientId) {
+              const targetName = (
+                submittedValues.motherName ||
+                submittedValues.patientName ||
+                patientName ||
+                ''
+              ).trim();
+              const targetNik = (submittedValues.motherNik || submittedValues.nik || '').trim();
+              const targetBirthDate =
+                submittedValues.motherBirthDate || submittedValues.birthDate || '';
+              const targetBirthPlace =
+                submittedValues.motherBirthPlace || submittedValues.birthPlace || 'Jakarta';
+              const targetBloodType = submittedValues.motherBloodType || 'Belum Tahu';
+              const targetPhone = submittedValues.phoneNumber || patientContact || '';
+              const targetAddress =
+                submittedValues.domicileAddress || submittedValues.residenceAddress || '';
+
+              if (!targetName || !targetNik) {
+                toast.error('Nama dan NIK pasien wajib diisi.');
+                setIsProcessing(false);
+                return;
+              }
+
+              const newAffiliation = await patientAffiliationService.createAffiliation({
+                name: targetName,
+                nik: targetNik,
+                birth_date: targetBirthDate,
+                tempat_lahir: targetBirthPlace,
+                gender: 'Perempuan',
+                blood_type: targetBloodType as any,
+                nama_ibu_kandung: submittedValues.ibuKandung || targetName,
+                relationship_type: (newPatientRelationship as any) || 'relative',
+                phone: targetPhone,
+                alamat_detail: targetAddress
+              });
+
+              if (!newAffiliation?.id) {
+                throw new Error('Gagal mendapatkan ID rekam medis pasien.');
+              }
+
+              resolvedPatientId = newAffiliation.id;
+              resolvedPatientName = newAffiliation.fullName;
+            }
+
             let sourceIntakeId: string | undefined = undefined;
             if (definition.flow === FLOW_NAMES.PREGNANCY) {
               const maternityPayload = buildMaternityIntakePayload(
-                patientId,
+                resolvedPatientId,
                 submittedValues,
-                patientName,
+                resolvedPatientName,
                 complaint
               );
               const intakeRes = await kiaIntakeService.createMaternityIntake(maternityPayload);
               sourceIntakeId = intakeRes?.id || intakeRes?.intakeSubmissionId;
             } else if (definition.flow === FLOW_NAMES.IMMUNIZATION) {
               const immunizationPayload = buildChildImmunizationIntakePayload(
-                patientId,
+                resolvedPatientId,
                 submittedValues,
-                patientName,
+                resolvedPatientName,
                 patientContact
               );
               const intakeRes =
@@ -88,29 +152,20 @@ export function useMedicalAppointmentSubmit({
             }
 
             const reservationCtx: ReservationContext = {
-              patientId,
-              patientName: patientName || registeredPatient?.name || 'Pasien',
-              serviceId: 'midwifery-childbirth',
-              serviceName: definition.serviceName,
-              poliklinikId: 'b18b4e7c-b6fa-4993-8025-a13437e2311f',
+              patientId: resolvedPatientId,
+              patientName: resolvedPatientName || 'Pasien',
+              serviceId: selectedService.id,
+              serviceName: selectedService.name,
+              poliklinikId: selectedService.poliklinikId,
               complaint: complaint || 'Pemeriksaan Persalinan',
               sourceIntakeId,
               medicalFlow: definition.flow
             };
 
             onCompleteIntake(reservationCtx);
-          } catch (err) {
-            console.error('Failed to persist intake:', err);
-            const fallbackCtx: ReservationContext = {
-              patientId,
-              patientName: patientName || 'Pasien',
-              serviceId: 'midwifery-childbirth',
-              serviceName: definition.serviceName,
-              poliklinikId: 'b18b4e7c-b6fa-4993-8025-a13437e2311f',
-              complaint: complaint || 'Pemeriksaan Persalinan',
-              medicalFlow: definition.flow
-            };
-            onCompleteIntake(fallbackCtx);
+          } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Gagal memproses data pasien';
+            toast.error(message);
           } finally {
             setIsProcessing(false);
           }
@@ -142,7 +197,7 @@ export function useMedicalAppointmentSubmit({
       setCreatedQueueItem(result.queueItem);
       onCreated?.(payload);
 
-      if (registeredPatient?.id) {
+      if (patientId) {
         void (async () => {
           try {
             if (definition.flow === FLOW_NAMES.PREGNANCY) {
@@ -177,6 +232,9 @@ export function useMedicalAppointmentSubmit({
       schedule,
       registeredPatient,
       repeatableMedicalSections,
+      selectedService,
+      selectedPatient,
+      newPatientRelationship,
       onCreated,
       onCompleteIntake
     ]

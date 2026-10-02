@@ -38,7 +38,6 @@ export function YearInputControl({
   }, [autoFocus]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Only allow numeric digits up to 4 characters
     const numeric = e.target.value.replace(/\D/g, '').slice(0, 4);
     onChange(numeric);
   };

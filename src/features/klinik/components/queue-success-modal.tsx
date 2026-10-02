@@ -60,7 +60,6 @@ export function QueueSuccessModal({
       }
     >
       {isProcessing ? (
-        /* STATE 1: DIALOG PROSES RESERVASI */
         <div className='p-6 rounded-3xl bg-card border border-border/80 shadow-2xl flex flex-col items-center justify-center text-center space-y-4 select-none'>
           <div className='relative'>
             <div className='size-16 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center animate-pulse'>
@@ -80,13 +79,11 @@ export function QueueSuccessModal({
             </p>
           </div>
 
-          {/* Animated Progress Bar */}
           <div className='w-full max-w-[220px] h-1.5 bg-muted rounded-full overflow-hidden'>
             <div className='h-full bg-gradient-to-r from-primary-bright to-emerald-500 rounded-full animate-[pulse_1s_ease-in-out_infinite] w-3/4' />
           </div>
         </div>
       ) : (
-        /* STATE 2: REUSABLE QUEUE TICKET CARD DENGAN GSAP & CONFETTI */
         <div className='w-full flex justify-center py-1'>
           <QueueTicketCard
             queueNumber={queueItem?.queue_number || appointment?.queue_number || '-'}
@@ -96,7 +93,7 @@ export function QueueSuccessModal({
             timeSlot={appointment?.time || ''}
             bookingCode={appointment?.booking_code || ''}
             patientName={appointment?.patient_name || '-'}
-            roomName={queueItem?.room || '-'}
+            roomName={queueItem?.room || appointment?.room_name || '-'}
             illustrationSrc='/assets/klinik/waiting-room.svg'
             onClose={onClose}
             onDownload={handleDownload}

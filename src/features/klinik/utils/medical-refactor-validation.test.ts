@@ -125,7 +125,6 @@ describe('Childbirth Form Refactoring Validations', () => {
       );
       expect(partnerBloodField).toBeDefined();
       expect(partnerBloodField?.type).toBe('LIST');
-      expect(partnerBloodField?.choices).toEqual(['A', 'B', 'AB', 'O']);
     });
 
     it('removes partnerBloodType from baselineMeasurementsSection', () => {

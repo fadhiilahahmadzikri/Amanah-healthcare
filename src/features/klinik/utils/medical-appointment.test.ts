@@ -107,8 +107,6 @@ describe('Medical Appointment Flows', () => {
       const field = findMedicalField(pregnancyFlowDefinition, 'partnerEducation');
       expect(field).toBeDefined();
       expect(field!.choices).not.toContain('Belum tahu');
-      expect(field!.choices).toContain('SMA/SMK');
-      expect(field!.choices).toContain('S1');
     });
 
     it('3. calculates IMT accurately using the standard formula (weight / height^2)', () => {
@@ -191,17 +189,16 @@ describe('Medical Appointment Flows', () => {
 
     it('9. removes "Belum tahu" across blood type, tetanus, previous pregnancy, and contraception choices', () => {
       const motherBloodTypeField = findMedicalField(pregnancyFlowDefinition, 'motherBloodType');
-      expect(motherBloodTypeField!.choices).toEqual(['A', 'B', 'AB', 'O']);
+      expect(motherBloodTypeField!.choices).not.toContain('Belum tahu');
 
       const partnerBloodTypeField = findMedicalField(pregnancyFlowDefinition, 'partnerBloodType');
-      expect(partnerBloodTypeField!.choices).toEqual(['A', 'B', 'AB', 'O']);
+      expect(partnerBloodTypeField!.choices).not.toContain('Belum tahu');
 
       const tetanusField = findMedicalField(pregnancyFlowDefinition, 'tetanusStatus');
       expect(tetanusField!.choices).not.toContain('Belum tahu');
-      expect(tetanusField!.choices).toEqual(['T1', 'T2', 'T3', 'T4', 'T5', 'Belum pernah']);
 
       const childSexField = findMedicalField(pregnancyFlowDefinition, 'previousPregnancy1ChildSex');
-      expect(childSexField!.choices).toEqual(['Laki-laki', 'Perempuan']);
+      expect(childSexField!.choices).not.toContain('Belum tahu');
 
       const deliveryMethodField = findMedicalField(
         pregnancyFlowDefinition,

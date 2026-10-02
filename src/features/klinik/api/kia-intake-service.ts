@@ -88,6 +88,11 @@ export interface MaternalReferenceOptions {
   bloodTypes: MaternalReferenceOptionItem[];
   tetanusStatuses: MaternalReferenceOptionItem[];
   deliveryMethods?: MaternalReferenceOptionItem[];
+  deliveryPlaces?: MaternalReferenceOptionItem[];
+  childSexes?: MaternalReferenceOptionItem[];
+  birthAttendants?: MaternalReferenceOptionItem[];
+  contraceptiveTypes?: MaternalReferenceOptionItem[];
+  occupations?: MaternalReferenceOptionItem[];
   genders?: MaternalReferenceOptionItem[];
 }
 
@@ -197,7 +202,7 @@ export interface ChildImmunizationResponse extends CreateChildImmunizationPayloa
 export interface UnifiedIntakeResponse {
   flow: FlowName;
   type: IntakeType;
-  data: MaternalIntakeResponse | ChildImmunizationResponse;
+  data: MaternalIntakeResponse | ChildImmunizationResponse | any;
 }
 
 class KiaIntakeService {
@@ -226,6 +231,23 @@ class KiaIntakeService {
         method: 'GET'
       }
     );
+  }
+
+  async getLatestIntakeByPatientId(
+    patientId: string,
+    flow?: string
+  ): Promise<UnifiedIntakeResponse | null> {
+    try {
+      const query = flow ? `?flow=${encodeURIComponent(flow)}` : '';
+      return await clientFetch<UnifiedIntakeResponse>(
+        `/medical-records/intakes/patient/${patientId}/latest${query}`,
+        {
+          method: 'GET'
+        }
+      );
+    } catch {
+      return null;
+    }
   }
 
   async getMaternalIntakeById(id: string): Promise<MaternalIntakeResponse> {

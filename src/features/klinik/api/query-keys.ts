@@ -4,5 +4,7 @@ export const klinikKeys = {
   queues: () => [...klinikKeys.all, 'queues'] as const,
   doctors: () => [...klinikKeys.all, 'doctors'] as const,
   maternalReferenceOptions: () => [...klinikKeys.all, 'maternal', 'reference-options'] as const,
-  occupations: () => [...klinikKeys.all, 'occupations'] as const
+  occupations: () => [...klinikKeys.all, 'occupations'] as const,
+  appointmentIntake: (appointmentId: string) =>
+    [...klinikKeys.all, 'intake', appointmentId] as const
 };

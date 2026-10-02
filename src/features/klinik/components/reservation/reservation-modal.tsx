@@ -116,7 +116,8 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
         appointmentDate: dateStr,
         session: timeSlot,
         visitType: 'Pemeriksaan Baru',
-        complaint: context.complaint || 'Pemeriksaan Kesehatan'
+        complaint: context.complaint || 'Pemeriksaan Kesehatan',
+        sourceIntakeId: context.sourceIntakeId
       });
 
       const startTime = formatTimeString(res.scheduledStartTime);
@@ -288,8 +289,10 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
                 appointment_id: createdAppointment.id,
                 queue_number: createdAppointment.queue_number || '-',
                 service: createdAppointment.service || '',
+                poli: createdAppointment.service || '',
                 doctor_name: createdAppointment.doctor_name,
                 patient_name: createdAppointment.patient_name,
+                room: createdAppointment.room_name || '-',
                 status: 'waiting',
                 called_at: null,
                 created_at: createdAppointment.created_at || new Date().toISOString()

@@ -18,11 +18,15 @@ import type { PatientRegionValues } from '@/features/data-pasien/components/regi
 export interface UseBookingRegularPatientFormOptions {
   onSuccess: (newPatient: PatientAffiliationProfile) => void;
   onCancel: () => void;
+  targetFlow?: 'pregnancy' | 'immunization' | 'regular';
+  onRelationshipSubmit?: (relationship: PatientRelationshipType) => void;
 }
 
 export function useBookingRegularPatientForm({
   onSuccess,
-  onCancel
+  onCancel,
+  targetFlow,
+  onRelationshipSubmit
 }: UseBookingRegularPatientFormOptions) {
   const references = usePatientFormReferences();
 
@@ -36,9 +40,7 @@ export function useBookingRegularPatientForm({
     setCurrentStep(stepNumber);
   }, []);
 
-  // Form values - strictly aligned to backend SSOT
-  const [relationship, setRelationship] =
-    React.useState<PatientRelationshipType>('self');
+  const [relationship, setRelationship] = React.useState<PatientRelationshipType>('self');
   const [fullName, setFullName] = React.useState('');
   const [nik, setNik] = React.useState('');
   const [motherName, setMotherName] = React.useState('');
@@ -63,15 +65,10 @@ export function useBookingRegularPatientForm({
   const stepContainerRef = React.useRef<HTMLDivElement>(null);
   const isAnimatingRef = React.useRef(false);
 
-  // Handle relationship selection
-  const handleSelectRelationship = React.useCallback(
-    (newRel: PatientRelationshipType) => {
-      setRelationship(newRel);
-    },
-    []
-  );
+  const handleSelectRelationship = React.useCallback((newRel: PatientRelationshipType) => {
+    setRelationship(newRel);
+  }, []);
 
-  // Handle knows blood type selection
   const handleSelectTahu = React.useCallback(() => {
     setKnowsBloodType(true);
     setBloodType('');
@@ -80,7 +77,6 @@ export function useBookingRegularPatientForm({
   const handleSelectBelumTahu = React.useCallback(() => {
     setKnowsBloodType(false);
     setBloodType('Belum Tahu');
-    // Auto-advance to next step or return to review
     setTimeout(() => {
       if (isEditingFromReview) {
         setIsEditingFromReview(false);
@@ -91,7 +87,6 @@ export function useBookingRegularPatientForm({
     }, 120);
   }, [isEditingFromReview]);
 
-  // Step transition animation with GSAP (Steep upward spike acceleration)
   React.useEffect(() => {
     if (!stepContainerRef.current) return;
     gsap.fromTo(
@@ -110,7 +105,6 @@ export function useBookingRegularPatientForm({
     );
   }, [currentStep, knowsBloodType]);
 
-  // Validation per step (1 through 10)
   const isCurrentStepValid = React.useMemo(() => {
     switch (currentStep) {
       case 1:
@@ -155,7 +149,6 @@ export function useBookingRegularPatientForm({
   ]);
 
   const handleBack = () => {
-    // If in Step 7 and in swapped "knowsBloodType" state, revert to the initial question first
     if (currentStep === 7 && knowsBloodType === true) {
       setKnowsBloodType(null);
       setBloodType('');
@@ -232,6 +225,16 @@ export function useBookingRegularPatientForm({
 
   const handleNext = () => {
     if (!isCurrentStepValid || isAnimatingRef.current) return;
+
+    if (
+      currentStep === 1 &&
+      (targetFlow === 'pregnancy' || targetFlow === 'immunization') &&
+      onRelationshipSubmit
+    ) {
+      onRelationshipSubmit(relationship);
+      return;
+    }
+
     if (isEditingFromReview) {
       isAnimatingRef.current = true;
       setIsEditingFromReview(false);
@@ -247,7 +250,6 @@ export function useBookingRegularPatientForm({
     }
   };
 
-  // Conversational sentence-case diksi (Huruf awal kapital, selebihnya kecil)
   const currentStepMeta: PatientRegistrationStep = React.useMemo(() => {
     const isSelf = relationship === 'self';
     const isChild = relationship === 'child';
@@ -257,161 +259,113 @@ export function useBookingRegularPatientForm({
     switch (currentStep) {
       case 1:
         return {
-          title: 'Siapa yang akan berobat? 🩺',
-          description: 'Pilih siapa yang akan berkonsultasi ke Klinik Amanah hari ini 😊'
+          title: 'Siapa yang akan berobat?',
+          description: 'Pilih profil yang akan berkonsultasi ke klinik hari ini'
         };
       case 2:
         if (isSelf) {
           return {
-            title: 'Halo kak! Kenalan dulu yuk 😊',
-            description: 'Boleh tahu nama lengkap kamu sesuai KTP / KK?'
+            title: 'Data identitas diri',
+            description: 'Masukkan nama lengkap Anda sesuai KTP atau KK'
           };
         }
         if (isChild) {
           return {
-            title: 'Siapa nama buah hati kamu? 👶',
-            description: 'Boleh tahu nama lengkap anak sesuai akta / kartu keluarga?'
+            title: 'Nama anak',
+            description: 'Masukkan nama lengkap anak sesuai akta atau kartu keluarga'
           };
         }
         if (isSpouse) {
           return {
-            title: 'Siapa nama pasangan kamu? 💍',
-            description: 'Boleh tahu nama lengkap suami / istri sesuai KTP?'
+            title: 'Nama pasangan',
+            description: 'Masukkan nama lengkap pasangan sesuai KTP'
           };
         }
         if (isParent) {
           return {
-            title: 'Siapa nama orang tua kamu? 🧓',
-            description: 'Boleh tahu nama lengkap ayah / ibu sesuai KTP?'
+            title: 'Nama orang tua',
+            description: 'Masukkan nama lengkap orang tua sesuai KTP'
           };
         }
         return {
-          title: 'Siapa nama lengkapnya? 👥',
-          description: 'Boleh tahu nama lengkap yang akan berobat sesuai KTP?'
+          title: 'Nama lengkap pasien',
+          description: 'Masukkan nama lengkap yang akan berobat sesuai KTP'
         };
       case 3:
         if (isSelf) {
           return {
-            title: 'Sip! Minta NIK kamu ya 🪪',
-            description: '16 digit NIK KTP kamu untuk identifikasi rekam medis resmi.'
+            title: 'Nomor Induk Kependudukan',
+            description: '16 digit NIK KTP Anda untuk identifikasi rekam medis resmi'
           };
         }
         if (isChild) {
           return {
-            title: 'Sip! Minta NIK anak ya 🪪',
-            description: '16 digit NIK anak sesuai kartu keluarga atau KIA.'
+            title: 'NIK anak',
+            description: '16 digit NIK anak sesuai kartu keluarga atau KIA'
           };
         }
         return {
-          title: 'Sip! Minta NIK-nya ya 🪪',
-          description: '16 digit NIK sesuai KTP / KK untuk verifikasi rekam medis.'
+          title: 'NIK pasien',
+          description: '16 digit NIK sesuai KTP atau KK untuk verifikasi rekam medis'
         };
       case 4:
-        if (isSelf) {
-          return {
-            title: 'Boleh tahu nama ibu kandung kamu? 👩‍👧',
-            description: 'Data nama ibu kandung diperlukan untuk verifikasi identitas & rekam medis.'
-          };
-        }
-        if (isChild) {
-          return {
-            title: 'Boleh tahu nama ibu kandung anak? 👩‍👧',
-            description: 'Data nama ibu kandung diperlukan untuk verifikasi identitas & rekam medis.'
-          };
-        }
         return {
-          title: 'Boleh tahu nama ibu kandungnya? 👩‍👧',
-          description: 'Data nama ibu kandung diperlukan untuk verifikasi identitas & rekam medis.'
+          title: 'Nama ibu kandung',
+          description: 'Data nama ibu kandung diperlukan untuk verifikasi identitas dan rekam medis'
         };
       case 5:
-        if (isSelf) {
-          return {
-            title: 'Di mana & kapan kamu lahir? 🎂',
-            description: 'Pastikan tempat dan tanggal lahir sesuai KTP kamu ya.'
-          };
-        }
-        if (isChild) {
-          return {
-            title: 'Di mana & kapan anak lahir? 🎂',
-            description: 'Pastikan tempat dan tanggal lahir sesuai akta / kartu keluarga.'
-          };
-        }
         return {
-          title: 'Di mana & kapan tanggal lahirnya? 🎂',
-          description: 'Pastikan tempat dan tanggal lahir sesuai identitas KTP / KK.'
+          title: 'Tempat dan tanggal lahir',
+          description: 'Pastikan tempat dan tanggal lahir sesuai identitas resmi'
         };
       case 6:
         if (isSelf) {
           return {
-            title: 'Pilih jenis kelamin kamu 🚻',
-            description: 'Pilih jenis kelamin sesuai identitas KTP kamu.'
+            title: 'Jenis kelamin Anda',
+            description: 'Pilih jenis kelamin sesuai identitas KTP Anda'
           };
         }
         if (isChild) {
           return {
-            title: 'Apa jenis kelamin buah hati kamu? 👶',
-            description: 'Pilih jenis kelamin anak.'
+            title: 'Jenis kelamin anak',
+            description: 'Pilih jenis kelamin anak'
           };
         }
         if (isSpouse) {
           return {
-            title: 'Apa jenis kelamin pasangan kamu? 💍',
-            description: 'Pilih jenis kelamin pasangan.'
-          };
-        }
-        if (isParent) {
-          return {
-            title: 'Apa jenis kelamin orang tua kamu? 🧓',
-            description: 'Pilih jenis kelamin orang tua.'
+            title: 'Jenis kelamin pasangan',
+            description: 'Pilih jenis kelamin pasangan'
           };
         }
         return {
-          title: 'Apa jenis kelaminnya? 🚻',
-          description: 'Pilih jenis kelamin sesuai identitas KTP.'
+          title: 'Jenis kelamin pasien',
+          description: 'Pilih jenis kelamin sesuai identitas resmi'
         };
       case 7:
         if (knowsBloodType === true) {
           return {
-            title: isSelf ? 'Pilih golongan darah kamu 🩸' : 'Pilih golongan darahnya 🩸',
-            description: 'Pilih tipe golongan darah sesuai hasil pemeriksaan laboratorium.'
+            title: 'Pilih golongan darah',
+            description: 'Pilih tipe golongan darah sesuai hasil pemeriksaan laboratorium'
           };
         }
         return {
-          title: isSelf ? 'Apakah kamu tahu golongan darah kamu? 🩸' : 'Apakah kamu tahu golongan darahnya? 🩸',
-          description: 'Pilih tahu jika kamu mengetahui golongan darah, atau belum tahu.'
+          title: 'Golongan darah pasien',
+          description: 'Tentukan apakah sudah mengetahui golongan darah atau belum'
         };
       case 8:
-        if (isSelf) {
-          return {
-            title: 'Sekarang kamu tinggal di mana? 🏡',
-            description: 'Alamat domisili saat ini untuk rujukan & pengiriman obat.'
-          };
-        }
         return {
-          title: 'Sekarang tinggal di mana? 🏡',
-          description: 'Alamat domisili saat ini untuk rujukan & pengiriman obat.'
+          title: 'Alamat domisili saat ini',
+          description: 'Alamat tempat tinggal untuk rujukan dan data pasien'
         };
       case 9:
-        if (isSelf) {
-          return {
-            title: 'Dikit lagi kelar nih! 💼',
-            description: 'Apa pekerjaan atau kegiatan kamu sehari-hari?'
-          };
-        }
-        if (isChild) {
-          return {
-            title: 'Dikit lagi kelar nih! 👶',
-            description: 'Pilih status kegiatan anak (misal: belum bekerja / pelajar).'
-          };
-        }
         return {
-          title: 'Dikit lagi kelar nih! 💼',
-          description: 'Apa pekerjaan atau kegiatan sehari-hari?'
+          title: 'Pekerjaan pasien',
+          description: 'Pilih jenis pekerjaan atau kegiatan utama sehari-hari'
         };
       case 10:
         return {
-          title: 'Hore! Data udah rapi 🎉',
-          description: 'Ketuk data yang ingin diubah, atau simpan jika sudah sesuai.'
+          title: 'Konfirmasi data pendaftaran',
+          description: 'Periksa kembali kelengkapan data sebelum disimpan'
         };
       default:
         return {
@@ -424,7 +378,6 @@ export function useBookingRegularPatientForm({
   const isReviewStep = currentStep === 10;
 
   return {
-    // Stepper state
     currentStep,
     totalSteps: 9,
     isReviewStep,
@@ -434,7 +387,6 @@ export function useBookingRegularPatientForm({
     errorMessage,
     isCurrentStepValid,
 
-    // Form values & setters
     fullName,
     setFullName,
     nik,
@@ -459,10 +411,8 @@ export function useBookingRegularPatientForm({
     occupationCode,
     setOccupationCode,
 
-    // Backend reference options
     references,
 
-    // Actions
     handleBack,
     handleNext,
     handleSubmit,
@@ -470,3 +420,5 @@ export function useBookingRegularPatientForm({
     isEditingFromReview
   };
 }
+
+export default useBookingRegularPatientForm;

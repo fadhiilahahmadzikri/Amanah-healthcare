@@ -17,6 +17,40 @@ export interface PatientAffiliationProfile {
   occupationName?: string | null;
   phoneNumber?: string | null;
   isSelf?: boolean;
+  hasExistingIntake?: boolean;
+  latestIntakeId?: string | null;
+  latestIntakeDate?: string | null;
+}
+
+export interface BookingContextPatient {
+  id: string;
+  affiliationId: string;
+  fullName: string;
+  nik: string;
+  gender: string;
+  bloodType: string | null;
+  relationship: string;
+  relationshipLabel: string;
+  occupationName: string | null;
+  hasExistingIntake: boolean;
+  latestIntakeId: string | null;
+  latestIntakeDate: string | null;
+}
+
+export interface BookingContextAllowedRelationship {
+  value: string;
+  label: string;
+}
+
+export interface BookingServiceContextResponse {
+  serviceId: string;
+  serviceName: string;
+  medicalFlow: 'pregnancy' | 'immunization' | 'general';
+  formType: 'pregnancy' | 'immunization' | 'regular';
+  allowedRelationships: BookingContextAllowedRelationship[];
+  patients: BookingContextPatient[];
+  totalPatients: number;
+  hasExistingPatient: boolean;
 }
 
 export interface OccupationItem {
@@ -81,11 +115,16 @@ function mapAffiliationEntityToProfile(entity: any): PatientAffiliationProfile {
     motherName: patient?.namaIbuKandung ?? null,
     placeOfBirth: patient?.birthPlace ?? null,
     dateOfBirth: patient?.birthDate ?? null,
-    gender: (patient?.gender === 'female' || patient?.gender === 'Perempuan' || patient?.gender === 'P') ? 'P' : 'L',
+    gender:
+      patient?.gender === 'female' || patient?.gender === 'Perempuan' || patient?.gender === 'P'
+        ? 'P'
+        : 'L',
     bloodType: (patient?.bloodType as PatientBloodType) ?? null,
     address: primaryAddress?.fullAddress ?? primaryAddress?.line1 ?? patient?.address ?? null,
     relationship: entity.relationshipType,
-    relationshipLabel: entity.relationLabel ?? (entity.relationshipType === 'self' ? 'Diri Sendiri' : entity.relationshipType),
+    relationshipLabel:
+      entity.relationLabel ??
+      (entity.relationshipType === 'self' ? 'Diri Sendiri' : entity.relationshipType),
     occupationCode: null,
     occupationName: patient?.pekerjaan ?? null,
     phoneNumber: patient?.phoneNumber ?? null,
@@ -160,10 +199,12 @@ export interface CreateAppointmentPayload {
   patientId: string;
   poliklinikId: string;
   layananId: string;
+  staffId?: string;
   appointmentDate: string;
   session: 'DINI_HARI' | 'PAGI' | 'SIANG' | 'MALAM' | string;
   visitType: string;
   complaint: string;
+  sourceIntakeId?: string;
 }
 
 export interface BackendAppointmentItem {
@@ -247,9 +288,11 @@ export const patientAffiliationService = {
       }
       const res = await clientFetch<{
         success?: boolean;
-        data?: {
-          sessions?: BookingOptionShift[];
-        } | BookingOptionShift[];
+        data?:
+          | {
+              sessions?: BookingOptionShift[];
+            }
+          | BookingOptionShift[];
       }>(`/api/v1/schedules/booking-options?${params.toString()}`);
 
       if (res && typeof res === 'object') {
@@ -325,10 +368,13 @@ export const patientAffiliationService = {
 
   async getRescheduleOptions(appointmentId: string): Promise<RescheduleOptionsResponse | null> {
     try {
-      const res = await clientFetch<{
-        success?: boolean;
-        data?: RescheduleOptionsResponse;
-      } | RescheduleOptionsResponse>(`/api/v1/appointments/${appointmentId}/reschedule-options`);
+      const res = await clientFetch<
+        | {
+            success?: boolean;
+            data?: RescheduleOptionsResponse;
+          }
+        | RescheduleOptionsResponse
+      >(`/api/v1/appointments/${appointmentId}/reschedule-options`);
       if (res && typeof res === 'object') {
         if ('data' in res && res.data) return res.data;
         if ('appointmentId' in res) return res as RescheduleOptionsResponse;
@@ -336,6 +382,21 @@ export const patientAffiliationService = {
       return null;
     } catch (err) {
       console.error('Failed to get reschedule options:', err);
+      return null;
+    }
+  },
+
+  async getBookingContext(serviceId: string): Promise<BookingServiceContextResponse | null> {
+    try {
+      const res = await clientFetch<{
+        success: boolean;
+        data: BookingServiceContextResponse;
+      }>(
+        `/api/v1/patients/affiliations/booking-context?serviceId=${encodeURIComponent(serviceId)}`
+      );
+      return res?.data ?? null;
+    } catch (err) {
+      console.error('Failed to get booking context from backend:', err);
       return null;
     }
   },

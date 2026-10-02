@@ -13,7 +13,6 @@ import {
 } from '../model/medical-form-history-types';
 import {
   CATALOG_ACTION_TYPES,
-  DEFAULT_INTAKE_VALUES,
   FLOW_NAMES,
   REPEATABLE_GROUP_KEYS,
   SECTION_IDS,
@@ -116,10 +115,7 @@ export function buildComplaintText(
   values: MedicalAppointmentValues
 ): string {
   const complaint = values[complaintFieldId]?.trim();
-  if (complaint) {
-    return complaint;
-  }
-  return DEFAULT_INTAKE_VALUES.FALLBACK_COMPLAINT;
+  return complaint || '';
 }
 
 export function checkCurrentStepValid(

@@ -44,6 +44,11 @@ import { useMedicalFormCalculations } from './useMedicalFormCalculations';
 import { useRegisteredPatient } from './useRegisteredPatient';
 import { useMedicalAppointmentSubmit } from './useMedicalAppointmentSubmit';
 import type { ReservationContext } from '../components/reservation/reservation-modal';
+import type { ServiceCatalogItem } from '../api/catalog.service';
+import type {
+  PatientAffiliationProfile,
+  PatientRelationshipType
+} from '@/features/data-pasien/api/patient-affiliation-service';
 
 export type {
   CatalogActionState,
@@ -60,6 +65,9 @@ export { defaultHistoryCounts, historyGroups, scheduleStepDescriptors };
 export interface UseMedicalAppointmentFormOptions {
   flow: MedicalAppointmentFlow;
   isOpen: boolean;
+  selectedService?: ServiceCatalogItem | null;
+  selectedPatient?: PatientAffiliationProfile | null;
+  newPatientRelationship?: PatientRelationshipType | string;
   onClose: () => void;
   onCreated?: (formData: AppointmentFormData) => void;
   onCompleteIntake?: (context: ReservationContext) => void;
@@ -71,6 +79,9 @@ export type UseMedicalAppointmentFormResult = ReturnType<typeof useMedicalAppoin
 export function useMedicalAppointmentForm({
   flow,
   isOpen,
+  selectedService,
+  selectedPatient,
+  newPatientRelationship,
   onClose,
   onCreated,
   onCompleteIntake,
@@ -186,6 +197,9 @@ export function useMedicalAppointmentForm({
     schedule,
     registeredPatient,
     repeatableMedicalSections,
+    selectedService,
+    selectedPatient,
+    newPatientRelationship,
     onCreated,
     onCompleteIntake
   });
@@ -209,48 +223,32 @@ export function useMedicalAppointmentForm({
     });
   }, [form, registrationPrefill]);
 
-  const prevContraceptionHistoryRef = React.useRef(values.hasContraceptionHistory);
+  const prevContraceptionRef = React.useRef(values.hasContraceptionHistory);
   React.useEffect(() => {
-    const contraceptionGroup = historyGroups.contraception;
-
+    const group = historyGroups.contraception;
     if (
-      values.hasContraceptionHistory === contraceptionGroup.disabledValue &&
-      prevContraceptionHistoryRef.current !== contraceptionGroup.disabledValue
+      values.hasContraceptionHistory === group.disabledValue &&
+      prevContraceptionRef.current !== group.disabledValue
     ) {
-      history.clearHistoryRecordRange(contraceptionGroup, 1, contraceptionGroup.maxRecords);
-      history.setHistoryCounts((previous) => {
-        if (previous.contraception === 1) {
-          return previous;
-        }
-        return {
-          ...previous,
-          contraception: 1
-        };
-      });
+      history.clearHistoryRecordRange(group, 1, group.maxRecords);
+      history.setHistoryCounts((prev) =>
+        prev.contraception === 1 ? prev : { ...prev, contraception: 1 }
+      );
     }
-    prevContraceptionHistoryRef.current = values.hasContraceptionHistory;
+    prevContraceptionRef.current = values.hasContraceptionHistory;
   }, [history, values.hasContraceptionHistory]);
 
-  const prevPregnancyHistoryRef = React.useRef(values.hasPreviousPregnancyHistory);
+  const prevPregnancyRef = React.useRef(values.hasPreviousPregnancyHistory);
   React.useEffect(() => {
-    const pregnancyGroup = historyGroups.pregnancy;
-
+    const group = historyGroups.pregnancy;
     if (
-      values.hasPreviousPregnancyHistory === pregnancyGroup.disabledValue &&
-      prevPregnancyHistoryRef.current !== pregnancyGroup.disabledValue
+      values.hasPreviousPregnancyHistory === group.disabledValue &&
+      prevPregnancyRef.current !== group.disabledValue
     ) {
-      history.clearHistoryRecordRange(pregnancyGroup, 1, pregnancyGroup.maxRecords);
-      history.setHistoryCounts((previous) => {
-        if (previous.pregnancy === 1) {
-          return previous;
-        }
-        return {
-          ...previous,
-          pregnancy: 1
-        };
-      });
+      history.clearHistoryRecordRange(group, 1, group.maxRecords);
+      history.setHistoryCounts((prev) => (prev.pregnancy === 1 ? prev : { ...prev, pregnancy: 1 }));
     }
-    prevPregnancyHistoryRef.current = values.hasPreviousPregnancyHistory;
+    prevPregnancyRef.current = values.hasPreviousPregnancyHistory;
   }, [history, values.hasPreviousPregnancyHistory]);
 
   React.useEffect(() => {
@@ -275,6 +273,19 @@ export function useMedicalAppointmentForm({
           Object.entries(detail.values).forEach(([fieldId, value]) => {
             form.setFieldValue(fieldId, value);
           });
+
+          if (detail.values.hasPreviousPregnancyHistory === 'Ya, ada') {
+            history.setHistoryCounts((prev) => ({
+              ...prev,
+              pregnancy: Math.max(prev.pregnancy, 1)
+            }));
+          }
+          if (detail.values.hasContraceptionHistory === 'Ya, pernah') {
+            history.setHistoryCounts((prev) => ({
+              ...prev,
+              contraception: Math.max(prev.contraception, 1)
+            }));
+          }
         }
 
         if (detail.schedule) {

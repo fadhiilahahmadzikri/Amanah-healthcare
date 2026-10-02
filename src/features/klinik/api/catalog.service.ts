@@ -50,14 +50,23 @@ class CatalogService {
           { method: 'GET' }
         );
 
-        const data: ServiceCatalogResponse =
-          res && 'categories' in res
-            ? res
-            : res && 'data' in res && 'categories' in (res.data as any)
-              ? (res.data as any)
-              : { success: false, categories: [] };
+        let rawList: ServiceCategoryCatalog[] = [];
+        if (Array.isArray(res)) {
+          rawList = res;
+        } else if (res && 'data' in res && Array.isArray(res.data)) {
+          rawList = res.data;
+        } else if (res && 'categories' in res && Array.isArray(res.categories)) {
+          rawList = res.categories;
+        } else if (
+          res &&
+          'data' in res &&
+          'categories' in (res.data as any) &&
+          Array.isArray((res.data as any).categories)
+        ) {
+          rawList = (res.data as any).categories;
+        }
 
-        const validCategories = (data.categories || []).filter(
+        const validCategories = rawList.filter(
           (c) => Array.isArray(c.services) && c.services.length > 0
         );
         this.cache = validCategories;

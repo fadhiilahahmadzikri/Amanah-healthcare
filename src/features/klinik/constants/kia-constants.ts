@@ -35,35 +35,7 @@ export const STEP_DESCRIPTOR_TYPES = {
 } as const;
 
 export const GENDER_CHOICE = {
-  MALE: 'Laki-laki',
-  FEMALE: 'Perempuan'
-} as const;
-
-export const DELIVERY_METHOD_CHOICES = [
-  'Normal/spontan',
-  'Operasi caesar',
-  'Vakum/forceps',
-  'Keguguran',
-  'Lainnya'
-] as const;
-
-export const DELIVERY_PLACE_CHOICES = [
-  'Puskesmas',
-  'Klinik',
-  'Praktik Mandiri Bidan (PMB)',
-  'Rumah Sakit',
-  'Rumah',
-  'Lainnya'
-] as const;
-
-export const DEFAULT_INTAKE_VALUES = {
-  FALLBACK_COMPLAINT: 'Intake medis awal sudah diisi pasien.',
-  DEFAULT_MOTHER_NAME: 'Pasien',
-  DEFAULT_CHILD_NAME: 'Ananda',
-  DEFAULT_PLACEHOLDER_NIK: '3200000000000000',
-  DEFAULT_CHILD_BIRTH_DATE: '2025-01-01',
-  DEFAULT_CHILD_SEX: 'Laki-laki',
-  DEFAULT_PARENT_PHONE: '081234567890'
+  MALE: 'Laki-laki'
 } as const;
 
 export const SECTION_IDS = {

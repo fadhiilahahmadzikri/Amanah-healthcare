@@ -50,6 +50,8 @@ export function AppointmentModal({
     selectedPatientId,
     setSelectedPatientId,
     selectedPatient,
+    selectedRelationship,
+    bookingContext,
     activeMedicalFlow,
     setActiveMedicalFlow,
     rescheduleStaffId,
@@ -62,6 +64,9 @@ export function AppointmentModal({
     stepContainerRef,
     handleSelectServiceItem,
     handlePatientCreated,
+    handleAddNewPatient,
+    handleRelationshipSubmitForMedicalFlow,
+    handlePatientContinue,
     handleFinalSubmit
   } = useAppointmentModal({
     isOpen,
@@ -74,6 +79,14 @@ export function AppointmentModal({
   const [reservationContext, setReservationContext] = React.useState<ReservationContext | null>(
     null
   );
+  const [isCompleted, setIsCompleted] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!isOpen) {
+      setReservationContext(null);
+      setIsCompleted(false);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -85,10 +98,20 @@ export function AppointmentModal({
     step === 'patient_new' ||
     step === 'confirmation';
 
+  const targetFlow =
+    bookingContext?.formType ||
+    (selectedService?.medicalFlow === 'pregnancy'
+      ? 'pregnancy'
+      : selectedService?.medicalFlow === 'immunization'
+        ? 'immunization'
+        : 'regular');
+
   return (
     <>
       <ModalWrapper
-        isOpen={isOpen && !activeMedicalFlow && !isQueueSuccessOpen && !reservationContext}
+        isOpen={
+          isOpen && !activeMedicalFlow && !isQueueSuccessOpen && !reservationContext && !isCompleted
+        }
         onClose={onClose}
         maxWidth={
           step === 'category' || step === 'service'
@@ -144,8 +167,8 @@ export function AppointmentModal({
                 patients={patients}
                 selectedPatientId={selectedPatientId}
                 onSelectPatient={(p) => setSelectedPatientId(p.id)}
-                onAddNewPatient={() => setStep('patient_new')}
-                onContinue={() => setStep('date')}
+                onAddNewPatient={handleAddNewPatient}
+                onContinue={handlePatientContinue}
               />
             )}
 
@@ -153,6 +176,9 @@ export function AppointmentModal({
               <BookingRegularPatientForm
                 onSuccess={handlePatientCreated}
                 onCancel={() => (patients.length > 0 ? setStep('patient') : setStep('service'))}
+                allowedRelationships={bookingContext?.allowedRelationships}
+                targetFlow={targetFlow}
+                onRelationshipSubmit={handleRelationshipSubmitForMedicalFlow}
               />
             )}
 
@@ -300,7 +326,8 @@ export function AppointmentModal({
                     variant='primary'
                     size='md'
                     shape='pill'
-                    onClick={() => setStep('date')}
+                    disabled={!selectedPatientId}
+                    onClick={handlePatientContinue}
                     withTrailingCircleIcon={true}
                     className='min-w-[140px]'
                     trailingIcon={<Icons.arrowRight className='size-3 stroke-[2.5]' />}
@@ -417,9 +444,12 @@ export function AppointmentModal({
         <MedicalAppointmentModal
           flow={activeMedicalFlow}
           isOpen={isOpen}
+          selectedService={selectedService}
+          selectedPatient={selectedPatient}
+          newPatientRelationship={selectedRelationship}
           onBackToService={() => {
             setActiveMedicalFlow(null);
-            setStep('service');
+            setStep('patient');
           }}
           onClose={() => {
             setActiveMedicalFlow(null);
@@ -441,10 +471,11 @@ export function AppointmentModal({
           context={reservationContext}
           onClose={() => {
             setReservationContext(null);
+            setIsCompleted(false);
             onClose();
           }}
           onSuccess={(apt) => {
-            setReservationContext(null);
+            setIsCompleted(true);
             onSubmit(apt as unknown as AppointmentFormData);
           }}
         />

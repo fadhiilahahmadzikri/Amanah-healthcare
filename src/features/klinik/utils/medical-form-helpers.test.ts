@@ -10,12 +10,7 @@ import {
 } from './medical-form-helpers';
 import type { MedicalFormSection } from '../constants/medical-appointment-schemas';
 import type { Patient } from '@/features/data-pasien/api/types';
-import {
-  DEFAULT_INTAKE_VALUES,
-  FLOW_NAMES,
-  GENDER_CHOICE,
-  STEP_DESCRIPTOR_TYPES
-} from '../constants/kia-constants';
+import { FLOW_NAMES, GENDER_CHOICE, STEP_DESCRIPTOR_TYPES } from '../constants/kia-constants';
 
 describe('medical-form-helpers', () => {
   it('normalizes birth date formats correctly without regex fragility', () => {
@@ -92,9 +87,7 @@ describe('medical-form-helpers', () => {
 
   it('builds complaint text fallback when complaint is empty', () => {
     expect(buildComplaintText('complaint', { complaint: 'Mual muntah' })).toBe('Mual muntah');
-    expect(buildComplaintText('complaint', { complaint: '   ' })).toBe(
-      DEFAULT_INTAKE_VALUES.FALLBACK_COMPLAINT
-    );
+    expect(buildComplaintText('complaint', { complaint: '   ' })).toBe('');
   });
 
   it('detects empty history section records', () => {

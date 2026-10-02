@@ -16,7 +16,7 @@ export interface QuestionnaireMobileItemProps {
   total: number;
   isOpen: boolean;
   onToggle: () => void;
-  statusValue: string; // 'Tidak' | 'Ya' | ''
+  statusValue: string;
   yearValue: string;
   notesValue?: string;
   onSelectStatus: (status: 'Tidak' | 'Ya') => void;
@@ -38,14 +38,33 @@ export function QuestionnaireMobileItem({
   onChangeNotes,
   onAdvance
 }: QuestionnaireMobileItemProps) {
-  const isAnswered = Boolean(statusValue);
-  const isYes = statusValue === 'Ya';
-  const isNo = statusValue === 'Tidak';
+  const [localStatus, setLocalStatus] = React.useState(statusValue);
+  const [localYear, setLocalYear] = React.useState(yearValue);
+  const [localNotes, setLocalNotes] = React.useState(notesValue);
+
+  React.useEffect(() => {
+    setLocalStatus(statusValue);
+  }, [statusValue]);
+
+  React.useEffect(() => {
+    setLocalYear(yearValue);
+  }, [yearValue]);
+
+  React.useEffect(() => {
+    setLocalNotes(notesValue);
+  }, [notesValue]);
+
+  const currentStatus = localStatus || statusValue;
+  const currentYear = localYear !== undefined ? localYear : yearValue;
+  const currentNotes = localNotes !== undefined ? localNotes : notesValue;
+
+  const isAnswered = Boolean(currentStatus);
+  const isYes = currentStatus === 'Ya';
+  const isNo = currentStatus === 'Tidak';
   const hasNotes = Boolean(item.notesFieldId);
   const mobileNotesInputId = `${item.id}-mobile-notes`;
   const mobileYearInputId = `${item.id}-mobile-year`;
 
-  // Local state for morphing: 'options' | 'year'
   const [viewMode, setViewMode] = React.useState<'options' | 'year'>(() =>
     isYes && (item.yearFieldId || item.notesFieldId) ? 'year' : 'options'
   );
@@ -54,7 +73,6 @@ export function QuestionnaireMobileItem({
   const optionsBoxRef = React.useRef<HTMLDivElement>(null);
   const yearBoxRef = React.useRef<HTMLDivElement>(null);
 
-  // Sync viewMode if statusValue changes externally
   React.useEffect(() => {
     if (isYes && item.yearFieldId) {
       setViewMode('year');
@@ -64,14 +82,17 @@ export function QuestionnaireMobileItem({
   }, [isYes, isNo, item.yearFieldId]);
 
   const handleSelectNo = () => {
+    setLocalStatus('Tidak');
+    setLocalYear('');
+    setLocalNotes('');
     onSelectStatus('Tidak');
-    // Animate subtle confirmation then advance
     setTimeout(() => {
       onAdvance();
     }, 220);
   };
 
   const handleSelectYes = () => {
+    setLocalStatus('Ya');
     onSelectStatus('Ya');
 
     if (!item.yearFieldId) {
@@ -81,7 +102,6 @@ export function QuestionnaireMobileItem({
       return;
     }
 
-    // GSAP Morphing Transition: Options fade & shrink -> Year input expands in
     if (optionsBoxRef.current) {
       gsap.to(optionsBoxRef.current, {
         opacity: 0,
@@ -134,12 +154,7 @@ export function QuestionnaireMobileItem({
   };
 
   const handleSaveYearAndAdvance = () => {
-    if (yearValue.trim()) {
-      onAdvance();
-    } else {
-      // If user clicks Lanjut without year, still allow advance
-      onAdvance();
-    }
+    onAdvance();
   };
 
   return (
@@ -147,7 +162,6 @@ export function QuestionnaireMobileItem({
       data-slot='questionnaire-mobile-item'
       className='border-b border-border/50 py-3 transition-colors last:border-b-0'
     >
-      {/* Header Trigger */}
       <button
         type='button'
         onClick={onToggle}
@@ -171,16 +185,15 @@ export function QuestionnaireMobileItem({
             <p className='text-xs font-semibold text-foreground leading-snug line-clamp-2'>
               {item.title}
             </p>
-            {/* Answer Preview Badge */}
             <div className='mt-1 flex items-center gap-1.5'>
               {isYes ? (
                 <span className='inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary'>
                   <Icons.check className='size-2.5 stroke-[3]' />
                   Ya{' '}
-                  {notesValue
-                    ? `(${notesValue}${yearValue ? `, ${yearValue}` : ''})`
-                    : yearValue
-                      ? `(${yearValue})`
+                  {currentNotes
+                    ? `(${currentNotes}${currentYear ? `, ${currentYear}` : ''})`
+                    : currentYear
+                      ? `(${currentYear})`
                       : ''}
                 </span>
               ) : isNo ? (
@@ -204,7 +217,6 @@ export function QuestionnaireMobileItem({
         />
       </button>
 
-      {/* Accordion Body */}
       <QuestionnaireAccordionPrimitive isOpen={isOpen}>
         <div className='pt-2 pb-1'>
           {item.helpText ? (
@@ -214,10 +226,8 @@ export function QuestionnaireMobileItem({
           ) : null}
 
           <div ref={morphContainerRef} className='relative min-h-[70px]'>
-            {/* Mode 1: Options View */}
             {viewMode === 'options' ? (
               <div ref={optionsBoxRef} className='grid grid-cols-2 gap-2.5 pt-1'>
-                {/* Tidak Action Button */}
                 <button
                   type='button'
                   onClick={handleSelectNo}
@@ -232,7 +242,6 @@ export function QuestionnaireMobileItem({
                   Tidak
                 </button>
 
-                {/* Ya Action Button */}
                 <button
                   type='button'
                   onClick={handleSelectYes}
@@ -249,7 +258,6 @@ export function QuestionnaireMobileItem({
               </div>
             ) : null}
 
-            {/* Mode 2: Input Morph View (Year or Notes+Year) */}
             {viewMode === 'year' ? (
               <div
                 ref={yearBoxRef}
@@ -279,8 +287,11 @@ export function QuestionnaireMobileItem({
                       </label>
                       <Input
                         id={mobileNotesInputId}
-                        value={notesValue}
-                        onChange={(e) => onChangeNotes?.(e.target.value)}
+                        value={currentNotes}
+                        onChange={(e) => {
+                          setLocalNotes(e.target.value);
+                          onChangeNotes?.(e.target.value);
+                        }}
                         placeholder='Contoh: Maag kronis, Asam urat'
                         className='h-8.5 text-xs bg-background'
                       />
@@ -294,8 +305,11 @@ export function QuestionnaireMobileItem({
                       </label>
                       <YearInputControl
                         id={mobileYearInputId}
-                        value={yearValue}
-                        onChange={onChangeYear}
+                        value={currentYear}
+                        onChange={(val) => {
+                          setLocalYear(val);
+                          onChangeYear(val);
+                        }}
                         placeholder='Contoh: 2020'
                         onEnter={handleSaveYearAndAdvance}
                         ariaLabel={`Tahun untuk ${item.title}`}
@@ -310,8 +324,11 @@ export function QuestionnaireMobileItem({
 
                     <YearInputControl
                       id={mobileYearInputId}
-                      value={yearValue}
-                      onChange={onChangeYear}
+                      value={currentYear}
+                      onChange={(val) => {
+                        setLocalYear(val);
+                        onChangeYear(val);
+                      }}
                       placeholder='Contoh: 2021'
                       onEnter={handleSaveYearAndAdvance}
                       ariaLabel={`Tahun untuk ${item.title}`}

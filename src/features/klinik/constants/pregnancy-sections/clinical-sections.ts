@@ -83,19 +83,12 @@ export const currentPregnancySection: MedicalFormSection = {
 
 export const riskFactorsSmokingSection: MedicalFormSection = {
   id: 'riskFactorsSmoking',
-  title: 'Boleh cerita kebiasaan sebelum hamil?',
-  description: 'Jawab untuk kondisi sekitar 1 bulan sebelum hamil.',
+  title: 'Dalam 1 bulan sebelum hamil, apakah Anda merokok?',
+  description: 'Termasuk rokok elektrik/vape jika digunakan.',
   fields: [
-    field(
-      'smokedBeforePregnancy',
-      MULTIPLE_CHOICE,
-      'Dalam 1 bulan sebelum hamil, apakah Anda merokok?',
-      'Merokok sebelum hamil',
-      {
-        helpText: 'Termasuk rokok elektrik/vape jika digunakan.',
-        choices: ['Aktif', 'Pasif', 'Tidak']
-      }
-    )
+    field('smokedBeforePregnancy', MULTIPLE_CHOICE, '', 'Merokok sebelum hamil', {
+      choices: ['Aktif', 'Pasif', 'Tidak']
+    })
   ]
 };
 
