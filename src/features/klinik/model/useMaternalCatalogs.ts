@@ -12,6 +12,8 @@ export interface MaternalCatalogs {
   bloodTypeChoices?: string[];
   tetanusChoices?: string[];
   occupationChoices?: string[];
+  deliveryMethodChoices?: string[];
+  childSexChoices?: string[];
 }
 
 export function useMaternalCatalogs(enabled = true) {
@@ -35,7 +37,9 @@ export function useMaternalCatalogs(enabled = true) {
       religionChoices: refOptions?.religions?.map((item) => item.label),
       bloodTypeChoices: refOptions?.bloodTypes?.map((item) => item.label),
       tetanusChoices: refOptions?.tetanusStatuses?.map((item) => item.label),
-      occupationChoices: occupations?.map((item) => item.name)
+      occupationChoices: occupations?.map((item) => item.name),
+      deliveryMethodChoices: refOptions?.deliveryMethods?.map((item) => item.label),
+      childSexChoices: refOptions?.genders?.map((item) => item.label)
     };
   }, [refOptions, occupations]);
 
@@ -78,6 +82,12 @@ export function enrichMedicalFlowDefinition(
       }
       if (f.id === 'partnerJob' && catalogs.occupationChoices?.length) {
         return { ...f, choices: catalogs.occupationChoices };
+      }
+      if (f.id.endsWith('DeliveryMethod') && catalogs.deliveryMethodChoices?.length) {
+        return { ...f, choices: catalogs.deliveryMethodChoices };
+      }
+      if (f.id.endsWith('ChildSex') && catalogs.childSexChoices?.length) {
+        return { ...f, choices: catalogs.childSexChoices };
       }
       return f;
     });

@@ -9,8 +9,7 @@ import {
   type RepeatableHistoryGroup,
   type ScheduleValues,
   type StepDescriptor,
-  historyGroups,
-  scheduleStepDescriptors
+  historyGroups
 } from '../model/medical-form-history-types';
 import {
   CATALOG_ACTION_TYPES,
@@ -288,6 +287,5 @@ export function buildMedicalActiveSteps({
     }
   });
 
-  steps.push(...scheduleStepDescriptors);
   return steps;
 }

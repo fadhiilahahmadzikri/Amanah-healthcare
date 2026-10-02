@@ -663,6 +663,118 @@ CREATE TABLE medical_intake_submissions (
   CONSTRAINT medical_intake_automatic_object CHECK (jsonb_typeof(automatic) = 'object')
 );
 
+CREATE TABLE maternal_health_intakes (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  intake_submission_id uuid NOT NULL REFERENCES medical_intake_submissions(id) ON DELETE CASCADE,
+  patient_id uuid NOT NULL REFERENCES patient_profiles(id) ON DELETE CASCADE,
+  appointment_id uuid REFERENCES appointments(id) ON DELETE SET NULL,
+  mother_nik varchar(16) NOT NULL,
+  mother_name varchar(255) NOT NULL,
+  mother_birth_date date,
+  mother_age integer,
+  marriage_order integer DEFAULT 1,
+  marriage_date date,
+  mother_job varchar(128),
+  mother_education varchar(64),
+  religion varchar(32),
+  phone_number varchar(32),
+  domicile_address text,
+  identity_card_address text,
+  dasawisma varchar(128),
+  posyandu varchar(128),
+  puskesmas varchar(128),
+  partner_name varchar(255),
+  partner_nik varchar(16),
+  partner_birth_date date,
+  partner_age integer,
+  partner_job varchar(128),
+  partner_education varchar(64),
+  partner_blood_type varchar(8),
+  height_cm numeric(5, 2),
+  pre_pregnancy_weight_kg numeric(5, 2),
+  upper_arm_circumference_cm numeric(4, 1),
+  initial_bmi numeric(4, 1),
+  tetanus_status varchar(32),
+  mother_blood_type varchar(8),
+  hpht date,
+  estimated_due_date date,
+  gestational_age_weeks numeric(4, 1),
+  gestational_age_formatted varchar(64),
+  current_complaints text,
+  gravida_count integer NOT NULL DEFAULT 1,
+  parity_count integer NOT NULL DEFAULT 0,
+  abortion_count integer NOT NULL DEFAULT 0,
+  living_children_count integer NOT NULL DEFAULT 0,
+  has_previous_pregnancy_history boolean NOT NULL DEFAULT false,
+  has_contraception_history boolean NOT NULL DEFAULT false,
+  smoked_before_pregnancy varchar(16),
+  alcohol_before_pregnancy boolean DEFAULT false,
+  irregular_diet_before_pregnancy boolean DEFAULT false,
+  reduced_physical_activity_before_pregnancy boolean DEFAULT false,
+  unprescribed_medication_before_pregnancy boolean DEFAULT false,
+  concerning_cosmetic_use_before_pregnancy boolean DEFAULT false,
+  pesticide_exposure_before_pregnancy boolean DEFAULT false,
+  chemical_exposure_before_pregnancy boolean DEFAULT false,
+  smoke_exposure_before_pregnancy boolean DEFAULT false,
+  concerning_environment_notes text,
+  allergy_info text,
+  other_notes text,
+  disease_history jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE maternal_previous_pregnancies (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  maternal_intake_id uuid NOT NULL REFERENCES maternal_health_intakes(id) ON DELETE CASCADE,
+  order_number integer NOT NULL,
+  birth_year varchar(16),
+  birth_weight_grams integer,
+  birth_length_cm numeric(4, 1),
+  child_sex varchar(16),
+  gestational_age_at_birth varchar(64),
+  birth_attendant varchar(128),
+  delivery_method varchar(64),
+  delivery_place varchar(128),
+  complications text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT maternal_prev_preg_order_positive CHECK (order_number > 0)
+);
+
+CREATE TABLE maternal_contraceptive_histories (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  maternal_intake_id uuid NOT NULL REFERENCES maternal_health_intakes(id) ON DELETE CASCADE,
+  order_number integer NOT NULL,
+  start_date date,
+  contraceptive_type varchar(64),
+  duration_text varchar(64),
+  stop_date date,
+  problems text,
+  side_effects text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT maternal_contra_order_positive CHECK (order_number > 0)
+);
+
+CREATE TABLE child_immunization_intakes (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  intake_submission_id uuid NOT NULL REFERENCES medical_intake_submissions(id) ON DELETE CASCADE,
+  patient_id uuid NOT NULL REFERENCES patient_profiles(id) ON DELETE CASCADE,
+  appointment_id uuid REFERENCES appointments(id) ON DELETE SET NULL,
+  child_name varchar(255) NOT NULL,
+  child_nik varchar(16) NOT NULL,
+  child_birth_date date NOT NULL,
+  child_sex varchar(16) NOT NULL,
+  child_age_formatted varchar(64),
+  parent_phone varchar(32) NOT NULL,
+  father_name varchar(255),
+  mother_name varchar(255),
+  child_address text,
+  previous_vaccine_history text,
+  child_allergy_history text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
 CREATE TABLE clinical_encounters (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   appointment_id uuid UNIQUE REFERENCES appointments(id) ON DELETE SET NULL,
@@ -1105,6 +1217,14 @@ CREATE INDEX queue_tickets_live_idx ON queue_tickets (queue_date, service_id, st
 CREATE INDEX queue_tickets_priority_idx ON queue_tickets (queue_date, status, priority);
 CREATE INDEX medical_intake_patient_idx ON medical_intake_submissions (patient_id, submitted_at DESC);
 CREATE INDEX medical_intake_answers_gin_idx ON medical_intake_submissions USING gin (answers jsonb_path_ops);
+CREATE INDEX maternal_health_intakes_patient_idx ON maternal_health_intakes (patient_id);
+CREATE INDEX maternal_health_intakes_submission_idx ON maternal_health_intakes (intake_submission_id);
+CREATE INDEX maternal_health_intakes_appointment_idx ON maternal_health_intakes (appointment_id);
+CREATE INDEX maternal_prev_preg_intake_idx ON maternal_previous_pregnancies (maternal_intake_id);
+CREATE INDEX maternal_contra_intake_idx ON maternal_contraceptive_histories (maternal_intake_id);
+CREATE INDEX child_immunization_intakes_patient_idx ON child_immunization_intakes (patient_id);
+CREATE INDEX child_immunization_intakes_submission_idx ON child_immunization_intakes (intake_submission_id);
+CREATE INDEX child_immunization_intakes_appointment_idx ON child_immunization_intakes (appointment_id);
 CREATE INDEX clinical_encounters_patient_date_idx ON clinical_encounters (patient_id, encounter_date DESC);
 CREATE INDEX clinical_encounters_practitioner_date_idx
   ON clinical_encounters (practitioner_id, encounter_date DESC);

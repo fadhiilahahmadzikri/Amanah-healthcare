@@ -87,6 +87,8 @@ export interface MaternalReferenceOptions {
   religions: MaternalReferenceOptionItem[];
   bloodTypes: MaternalReferenceOptionItem[];
   tetanusStatuses: MaternalReferenceOptionItem[];
+  deliveryMethods?: MaternalReferenceOptionItem[];
+  genders?: MaternalReferenceOptionItem[];
 }
 
 export interface OccupationItem {

@@ -173,7 +173,10 @@ export function MedicalSchemaField({
             fieldApi.handleChange(nextValue);
             fieldApi.handleBlur();
           }}
-          className={cn('mt-1 w-fit gap-2.5', isTwoChoices ? 'grid grid-cols-2' : 'flex flex-wrap')}
+          className={cn(
+            'mt-1 w-full',
+            isTwoChoices ? '!grid !grid-cols-2 gap-2.5' : 'flex flex-wrap gap-2'
+          )}
         >
           {schemaField.choices.map((choice) => (
             <ToggleGroupItem
@@ -181,8 +184,8 @@ export function MedicalSchemaField({
               value={choice}
               aria-invalid={isInvalid}
               className={cn(
-                'h-auto min-h-10 cursor-pointer justify-center whitespace-normal rounded-md border border-border px-4 py-2 text-center text-xs leading-snug font-medium transition-all first:rounded-md last:rounded-md data-[state=on]:border-primary data-[state=on]:bg-primary/10 data-[state=on]:font-semibold data-[state=on]:text-primary',
-                isTwoChoices ? 'w-full min-w-[130px] sm:min-w-[140px]' : 'w-fit',
+                'h-auto min-h-10 cursor-pointer justify-center whitespace-normal !rounded-lg border border-border px-3 py-2 text-center text-xs leading-snug font-medium transition-all data-[state=on]:border-primary data-[state=on]:bg-primary/10 data-[state=on]:font-semibold data-[state=on]:text-primary',
+                isTwoChoices ? '!w-full !min-w-0' : 'w-fit',
                 isSmoked && 'justify-center text-center font-medium'
               )}
             >

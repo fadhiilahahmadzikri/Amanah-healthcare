@@ -43,6 +43,7 @@ import { useMedicalFormHistory } from './useMedicalFormHistory';
 import { useMedicalFormCalculations } from './useMedicalFormCalculations';
 import { useRegisteredPatient } from './useRegisteredPatient';
 import { useMedicalAppointmentSubmit } from './useMedicalAppointmentSubmit';
+import type { ReservationContext } from '../components/reservation/reservation-modal';
 
 export type {
   CatalogActionState,
@@ -60,7 +61,8 @@ export interface UseMedicalAppointmentFormOptions {
   flow: MedicalAppointmentFlow;
   isOpen: boolean;
   onClose: () => void;
-  onCreated: (formData: AppointmentFormData) => void;
+  onCreated?: (formData: AppointmentFormData) => void;
+  onCompleteIntake?: (context: ReservationContext) => void;
   onBackToService?: () => void;
 }
 
@@ -71,6 +73,7 @@ export function useMedicalAppointmentForm({
   isOpen,
   onClose,
   onCreated,
+  onCompleteIntake,
   onBackToService
 }: UseMedicalAppointmentFormOptions) {
   const baseDefinition = React.useMemo(() => getMedicalFlowDefinition(flow), [flow]);
@@ -183,7 +186,8 @@ export function useMedicalAppointmentForm({
     schedule,
     registeredPatient,
     repeatableMedicalSections,
-    onCreated
+    onCreated,
+    onCompleteIntake
   });
 
   React.useEffect(() => {
@@ -356,7 +360,7 @@ export function useMedicalAppointmentForm({
       return;
     }
 
-    if (currentDescriptor.type === STEP_DESCRIPTOR_TYPES.REVIEW) {
+    if (currentDescriptor.type === STEP_DESCRIPTOR_TYPES.REVIEW || currentStep >= totalSteps) {
       void form.handleSubmit();
       return;
     }

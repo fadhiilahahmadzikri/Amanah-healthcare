@@ -169,10 +169,16 @@ export function previousPregnancyFields(order: number): MedicalFormField[] {
       placeholder: 'Contoh: 49 cm',
       colSpan: 1
     }),
-    field(`${prefix}ChildSex`, LIST, 'Jenis kelamin bayi', `${labelPrefix} - jenis kelamin`, {
-      choices: ['Laki-laki', 'Perempuan'],
-      colSpan: 1
-    }),
+    field(
+      `${prefix}ChildSex`,
+      MULTIPLE_CHOICE,
+      'Jenis kelamin bayi',
+      `${labelPrefix} - jenis kelamin`,
+      {
+        choices: ['Laki-laki', 'Perempuan'],
+        colSpan: 1
+      }
+    ),
     field(
       `${prefix}GestationalAgeAtBirth`,
       TEXT,

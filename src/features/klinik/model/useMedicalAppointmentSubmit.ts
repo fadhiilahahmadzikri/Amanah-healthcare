@@ -21,12 +21,15 @@ import {
 } from '../utils/kia-intake-payload-builder';
 import { FLOW_NAMES } from '../constants/kia-constants';
 
+import type { ReservationContext } from '../components/reservation/reservation-modal';
+
 interface UseMedicalAppointmentSubmitParams {
   definition: MedicalFlowDefinition;
-  schedule: ScheduleValues;
+  schedule?: ScheduleValues;
   registeredPatient: Patient | null;
   repeatableMedicalSections: MedicalFormSection[];
-  onCreated: (formData: AppointmentFormData) => void;
+  onCreated?: (formData: AppointmentFormData) => void;
+  onCompleteIntake?: (context: ReservationContext) => void;
 }
 
 export function useMedicalAppointmentSubmit({
@@ -34,7 +37,8 @@ export function useMedicalAppointmentSubmit({
   schedule,
   registeredPatient,
   repeatableMedicalSections,
-  onCreated
+  onCreated,
+  onCompleteIntake
 }: UseMedicalAppointmentSubmitParams) {
   const [isProcessing, setIsProcessing] = React.useState(false);
   const [isQueueSuccessOpen, setIsQueueSuccessOpen] = React.useState(false);
@@ -53,12 +57,73 @@ export function useMedicalAppointmentSubmit({
       const patientContact = submittedValues[definition.patientContactFieldId] || undefined;
       const patientEmail =
         registeredPatient?.email_pasien || registeredPatient?.email || patientContact || undefined;
+      const patientId =
+        registeredPatient?.patient_id ||
+        (registeredPatient?.id ? String(registeredPatient.id) : 'pat_guest');
+
+      if (onCompleteIntake) {
+        setIsProcessing(true);
+        void (async () => {
+          try {
+            let sourceIntakeId: string | undefined = undefined;
+            if (definition.flow === FLOW_NAMES.PREGNANCY) {
+              const maternityPayload = buildMaternityIntakePayload(
+                patientId,
+                submittedValues,
+                patientName,
+                complaint
+              );
+              const intakeRes = await kiaIntakeService.createMaternityIntake(maternityPayload);
+              sourceIntakeId = intakeRes?.id || intakeRes?.intakeSubmissionId;
+            } else if (definition.flow === FLOW_NAMES.IMMUNIZATION) {
+              const immunizationPayload = buildChildImmunizationIntakePayload(
+                patientId,
+                submittedValues,
+                patientName,
+                patientContact
+              );
+              const intakeRes =
+                await kiaIntakeService.createImmunizationIntake(immunizationPayload);
+              sourceIntakeId = intakeRes?.id || intakeRes?.intakeSubmissionId;
+            }
+
+            const reservationCtx: ReservationContext = {
+              patientId,
+              patientName: patientName || registeredPatient?.name || 'Pasien',
+              serviceId: 'midwifery-childbirth',
+              serviceName: definition.serviceName,
+              poliklinikId: 'b18b4e7c-b6fa-4993-8025-a13437e2311f',
+              complaint: complaint || 'Pemeriksaan Persalinan',
+              sourceIntakeId,
+              medicalFlow: definition.flow
+            };
+
+            onCompleteIntake(reservationCtx);
+          } catch (err) {
+            console.error('Failed to persist intake:', err);
+            const fallbackCtx: ReservationContext = {
+              patientId,
+              patientName: patientName || 'Pasien',
+              serviceId: 'midwifery-childbirth',
+              serviceName: definition.serviceName,
+              poliklinikId: 'b18b4e7c-b6fa-4993-8025-a13437e2311f',
+              complaint: complaint || 'Pemeriksaan Persalinan',
+              medicalFlow: definition.flow
+            };
+            onCompleteIntake(fallbackCtx);
+          } finally {
+            setIsProcessing(false);
+          }
+        })();
+        return;
+      }
+
       const payload: AppointmentFormData = {
         visitType: definition.visitType,
         service: definition.serviceName,
-        doctor: schedule.doctor,
-        dateStr: schedule.dateStr,
-        timeSlot: schedule.timeSlot,
+        doctor: schedule?.doctor || '',
+        dateStr: schedule?.dateStr || '',
+        timeSlot: schedule?.timeSlot || '',
         complaint,
         patientName,
         patientEmail,
@@ -75,12 +140,11 @@ export function useMedicalAppointmentSubmit({
 
       setCreatedAppointment(result.appointment);
       setCreatedQueueItem(result.queueItem);
-      onCreated(payload);
+      onCreated?.(payload);
 
       if (registeredPatient?.id) {
         void (async () => {
           try {
-            const patientId = registeredPatient.patient_id || String(registeredPatient.id);
             if (definition.flow === FLOW_NAMES.PREGNANCY) {
               const maternityPayload = buildMaternityIntakePayload(
                 patientId,
@@ -108,7 +172,14 @@ export function useMedicalAppointmentSubmit({
         setIsProcessing(false);
       }, 1200);
     },
-    [definition, schedule, registeredPatient, repeatableMedicalSections, onCreated]
+    [
+      definition,
+      schedule,
+      registeredPatient,
+      repeatableMedicalSections,
+      onCreated,
+      onCompleteIntake
+    ]
   );
 
   return {

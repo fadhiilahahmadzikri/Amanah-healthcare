@@ -18,21 +18,18 @@ import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import type { AppointmentFormData, MedicalAppointmentFlow } from '../api/types';
 import { historyGroups, useMedicalAppointmentForm } from '../model/useMedicalAppointmentForm';
 import { REPEATABLE_GROUP_KEYS, STEP_DESCRIPTOR_TYPES } from '../constants/kia-constants';
-import {
-  DateStep,
-  MedicalSectionStep,
-  ReviewStep,
-  TimeStep
-} from './booking/medical-appointment-steps';
+import { MedicalSectionStep } from './booking/medical-appointment-steps';
 import { getFieldValidators, MedicalSchemaField } from './booking/medical-schema-field';
 import { MedicalHistoryCatalog } from './medical-history-catalog';
 import { QueueSuccessModal } from './queue-success-modal';
+import { ReservationModal, type ReservationContext } from './reservation/reservation-modal';
 
 interface MedicalAppointmentModalProps {
   flow: MedicalAppointmentFlow;
   isOpen: boolean;
   onClose: () => void;
-  onCreated: (appointment: AppointmentFormData) => void;
+  onCreated?: (appointment: AppointmentFormData) => void;
+  onCompleteIntake?: (context: ReservationContext) => void;
   onBackToService?: () => void;
 }
 
@@ -41,13 +38,29 @@ export function MedicalAppointmentModal({
   isOpen,
   onClose,
   onCreated,
+  onCompleteIntake,
   onBackToService
 }: MedicalAppointmentModalProps) {
+  const [internalReservationContext, setInternalReservationContext] =
+    React.useState<ReservationContext | null>(null);
+
+  const handleCompleteIntake = React.useCallback(
+    (ctx: ReservationContext) => {
+      if (onCompleteIntake) {
+        onCompleteIntake(ctx);
+      } else {
+        setInternalReservationContext(ctx);
+      }
+    },
+    [onCompleteIntake]
+  );
+
   const medical = useMedicalAppointmentForm({
     flow,
     isOpen,
     onClose,
     onCreated,
+    onCompleteIntake: handleCompleteIntake,
     onBackToService
   });
 
@@ -76,10 +89,8 @@ export function MedicalAppointmentModal({
     form,
     values,
     visibleMedicalSections,
-    repeatableMedicalSections,
     currentStep,
     currentDescriptor,
-    schedule,
     isProcessing,
     isQueueSuccessOpen,
     createdAppointment,
@@ -114,21 +125,14 @@ export function MedicalAppointmentModal({
     stepDescription = isPregnancy
       ? 'Daftar riwayat kehamilan dan persalinan sebelumnya yang telah dicatat. Tinjau atau ubah riwayat bila diperlukan.'
       : 'Daftar riwayat penggunaan KB/kontrasepsi yang telah dicatat. Tinjau atau ubah riwayat bila diperlukan.';
-  } else if (currentDescriptor?.type === STEP_DESCRIPTOR_TYPES.DATE) {
-    stepTitle = 'Tanggal Kunjungan';
-    stepDescription = 'Pilih tanggal praktik kunjungan yang tersedia.';
-  } else if (currentDescriptor?.type === STEP_DESCRIPTOR_TYPES.TIME) {
-    stepTitle = 'Jam Kunjungan';
-    stepDescription = `Pilih slot sesi jam kunjungan yang tersedia pada ${schedule.dateStr || 'tanggal terpilih'}.`;
-  } else if (currentDescriptor?.type === STEP_DESCRIPTOR_TYPES.REVIEW) {
-    stepTitle = 'Konfirmasi Data';
-    stepDescription = 'Pastikan jadwal dan jawaban formulir sudah benar sebelum disimpan.';
   }
+
+  const isLastStep = currentStep === medical.totalSteps;
 
   return (
     <>
       <ModalWrapper
-        isOpen={isOpen && !isQueueSuccessOpen}
+        isOpen={isOpen && !isQueueSuccessOpen && !internalReservationContext}
         onClose={onClose}
         maxWidth={isQuestionnaireStep || isHistoryCatalogStep ? 'max-w-[720px]' : 'max-w-[580px]'}
         showCloseButton={false}
@@ -152,7 +156,7 @@ export function MedicalAppointmentModal({
               ref={stepContainerRef}
               className='flex-1 min-h-0 max-h-[calc(88dvh-8rem)] overflow-y-auto overflow-x-hidden pr-1.5 pb-2'
             >
-              {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.MEDICAL ? (
+              {currentDescriptor?.type === STEP_DESCRIPTOR_TYPES.MEDICAL ? (
                 <MedicalSectionStep
                   section={visibleMedicalSections[currentDescriptor.sectionIndex]}
                   catalogActionType={catalogAction?.type ?? null}
@@ -175,7 +179,7 @@ export function MedicalAppointmentModal({
                 />
               ) : null}
 
-              {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.HISTORY_CATALOG ? (
+              {currentDescriptor?.type === STEP_DESCRIPTOR_TYPES.HISTORY_CATALOG ? (
                 <MedicalHistoryCatalog
                   groupKey={currentDescriptor.historyKey}
                   recordsCount={historyCounts[currentDescriptor.historyKey]}
@@ -192,40 +196,6 @@ export function MedicalAppointmentModal({
                   className='h-full min-h-0 flex-1 overflow-y-auto pr-1 pb-2'
                 />
               ) : null}
-
-              {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.DATE ? (
-                <DateStep
-                  selectedDateStr={schedule.dateStr}
-                  onSelectDate={(dateStr) =>
-                    actions.setSchedule((previous) => ({
-                      ...previous,
-                      dateStr,
-                      timeSlot: ''
-                    }))
-                  }
-                />
-              ) : null}
-
-              {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.TIME ? (
-                <TimeStep
-                  selectedDateStr={schedule.dateStr}
-                  selectedTimeSlot={schedule.timeSlot}
-                  onSelectTimeSlot={(timeSlot) =>
-                    actions.setSchedule((previous) => ({ ...previous, timeSlot }))
-                  }
-                />
-              ) : null}
-
-              {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.REVIEW ? (
-                <ReviewStep
-                  definitionTitle={definition.formTitle}
-                  flow={flow}
-                  answeredFields={actions.collectAnsweredFields(repeatableMedicalSections)}
-                  schedule={schedule}
-                  serviceName={definition.serviceName}
-                  values={values}
-                />
-              ) : null}
             </div>
 
             <div className='flex shrink-0 items-center justify-between border-t border-border/40 pt-3 mt-auto'>
@@ -233,7 +203,7 @@ export function MedicalAppointmentModal({
                 {currentStep === 1 && !onBackToService ? 'Batal' : 'Kembali'}
               </Button>
               <div className='flex items-center gap-2.5'>
-                {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.HISTORY_CATALOG &&
+                {currentDescriptor?.type === STEP_DESCRIPTOR_TYPES.HISTORY_CATALOG &&
                 historyCounts[currentDescriptor.historyKey] <
                   historyGroups[currentDescriptor.historyKey].maxRecords ? (
                   <Button
@@ -261,19 +231,16 @@ export function MedicalAppointmentModal({
                   variant='primary'
                   shape='pill'
                   hug
-                  disabled={!isCurrentStepValid}
+                  disabled={!isCurrentStepValid || isProcessing}
+                  isLoading={isProcessing}
                   onClick={actions.nextStep}
                   withTrailingCircleIcon
-                  trailingIcon={
-                    currentDescriptor.type === STEP_DESCRIPTOR_TYPES.REVIEW ? (
-                      <Icons.check />
-                    ) : (
-                      <Icons.arrowUpRight />
-                    )
-                  }
+                  trailingIcon={<Icons.arrowUpRight />}
                 >
-                  {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.REVIEW
-                    ? 'Simpan Janji Temu'
+                  {isLastStep
+                    ? isProcessing
+                      ? 'Menyimpan data...'
+                      : 'Lanjutkan ke Reservasi'
                     : 'Lanjutkan'}
                 </Button>
               </div>
@@ -281,6 +248,21 @@ export function MedicalAppointmentModal({
           </form.Form>
         </form.AppForm>
       </ModalWrapper>
+
+      {internalReservationContext ? (
+        <ReservationModal
+          isOpen={Boolean(internalReservationContext)}
+          context={internalReservationContext}
+          onClose={() => {
+            setInternalReservationContext(null);
+            onClose();
+          }}
+          onSuccess={(apt) => {
+            setInternalReservationContext(null);
+            onCreated?.(apt as unknown as AppointmentFormData);
+          }}
+        />
+      ) : null}
 
       <Dialog
         open={Boolean(historyPrompt)}

@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import {
-  calculateEddFromArt,
   calculateEddFromLmp,
-  calculateEddFromUsg,
   calculateGestationalAge,
   determineBestObstetricEdd,
   formatIndonesianDateText

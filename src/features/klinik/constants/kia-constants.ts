@@ -39,6 +39,23 @@ export const GENDER_CHOICE = {
   FEMALE: 'Perempuan'
 } as const;
 
+export const DELIVERY_METHOD_CHOICES = [
+  'Normal/spontan',
+  'Operasi caesar',
+  'Vakum/forceps',
+  'Keguguran',
+  'Lainnya'
+] as const;
+
+export const DELIVERY_PLACE_CHOICES = [
+  'Puskesmas',
+  'Klinik',
+  'Praktik Mandiri Bidan (PMB)',
+  'Rumah Sakit',
+  'Rumah',
+  'Lainnya'
+] as const;
+
 export const DEFAULT_INTAKE_VALUES = {
   FALLBACK_COMPLAINT: 'Intake medis awal sudah diisi pasien.',
   DEFAULT_MOTHER_NAME: 'Pasien',

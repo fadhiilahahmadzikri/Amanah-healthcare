@@ -6,18 +6,11 @@ import { Button } from '@/components/ui/button';
 import { FieldGroup } from '@/components/ui/field';
 import { cn } from '@/lib/utils';
 
-import type { MedicalAppointmentFlow } from '../../api/types';
 import type {
   MedicalFormField,
   MedicalFormSection
 } from '../../constants/medical-appointment-schemas';
-import type { ScheduleValues } from '../../model/useMedicalAppointmentForm';
-import {
-  buildAutomaticRecord,
-  type MedicalAppointmentValues
-} from '../../utils/medical-appointment';
-import { AppointmentCalendarDayPicker } from '../appointment-calendar-day-picker';
-import { AppointmentTimeSlotPicker } from '../appointment-time-slot-picker';
+import type { MedicalAppointmentValues } from '../../utils/medical-appointment';
 import { MedicalQuestionnaire } from '../questionnaire';
 
 export function StepTitle({ title, description }: { title: string; description: string }) {
@@ -113,90 +106,6 @@ export function MedicalSectionStep({
           {section.fields.map(renderField)}
         </FieldGroup>
       )}
-    </div>
-  );
-}
-
-export function DateStep({
-  selectedDateStr,
-  onSelectDate
-}: {
-  selectedDateStr: string;
-  onSelectDate: (dateStr: string) => void;
-}) {
-  return (
-    <div className='flex min-h-0 flex-1 flex-col gap-3 py-1'>
-      <AppointmentCalendarDayPicker selectedDateStr={selectedDateStr} onSelectDate={onSelectDate} />
-    </div>
-  );
-}
-
-export function TimeStep({
-  selectedDateStr,
-  selectedTimeSlot,
-  onSelectTimeSlot
-}: {
-  selectedDateStr: string;
-  selectedTimeSlot: string;
-  onSelectTimeSlot: (timeSlot: string) => void;
-}) {
-  return (
-    <div className='flex min-h-0 flex-1 flex-col gap-3 py-1'>
-      <AppointmentTimeSlotPicker
-        selectedDateStr={selectedDateStr}
-        selectedTimeSlot={selectedTimeSlot}
-        onSelectTimeSlot={onSelectTimeSlot}
-      />
-    </div>
-  );
-}
-
-export function ReviewStep({
-  definitionTitle,
-  flow,
-  answeredFields,
-  schedule,
-  serviceName,
-  values
-}: {
-  definitionTitle: string;
-  flow: MedicalAppointmentFlow;
-  answeredFields: { id: string; label: string; value: string }[];
-  schedule: ScheduleValues;
-  serviceName: string;
-  values: MedicalAppointmentValues;
-}) {
-  const automatic = buildAutomaticRecord(flow, values);
-
-  const automaticLabels: Record<string, string> = {
-    imtAtSubmit: 'IMT (Indeks Massa Tubuh)',
-    estimatedDueDate: 'Taksiran Persalinan (HPL)',
-    gestationalAgeAtSubmit: 'Usia Kehamilan Saat Submit',
-    childAgeAtSubmit: 'Usia Anak Saat Submit'
-  };
-
-  return (
-    <div className='flex min-h-0 flex-1 flex-col gap-3 py-1'>
-      <div className='grid shrink-0 gap-2 text-xs'>
-        <SummaryRow label='Form' value={definitionTitle} />
-        <SummaryRow label='Layanan' value={serviceName} />
-        <SummaryRow label='Tenaga medis' value={schedule.doctor || 'Dokter / Bidan Jaga'} />
-        <SummaryRow label='Tanggal' value={schedule.dateStr} />
-        <SummaryRow label='Jam' value={schedule.timeSlot} />
-        {Object.entries(automatic)
-          .filter(([, value]) => value)
-          .map(([key, value]) => (
-            <SummaryRow key={key} label={automaticLabels[key] || key} value={value} />
-          ))}
-      </div>
-
-      <div className='max-h-56 min-h-0 flex-1 overflow-y-auto rounded-lg border border-border p-3'>
-        <div className='grid gap-2 pr-2 text-xs'>
-          {answeredFields.map((answer) => (
-            <SummaryRow key={answer.id} label={answer.label} value={answer.value} />
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

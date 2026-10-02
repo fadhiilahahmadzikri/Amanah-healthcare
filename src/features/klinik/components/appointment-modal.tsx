@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { QueueSuccessModal } from './queue-success-modal';
 import { MedicalAppointmentModal } from './medical-appointment-modal';
+import { ReservationModal, type ReservationContext } from './reservation/reservation-modal';
 import { BookingCategoryStep } from './booking/booking-category-step';
 import { BookingServiceStep } from './booking/booking-service-step';
 import { BookingPatientSelectionStep } from './booking/booking-patient-selection-step';
@@ -31,7 +32,6 @@ export function AppointmentModal({
   const {
     step,
     setStep,
-    selectedCategoryId,
     setSelectedCategoryId,
     isLoadingCatalog,
     selectedService,
@@ -46,9 +46,6 @@ export function AppointmentModal({
     setVisitType,
     complaint,
     setComplaint,
-    isVisitTypeOpen,
-    setIsVisitTypeOpen,
-    visitTypeOptions,
     patients,
     selectedPatientId,
     setSelectedPatientId,
@@ -62,7 +59,6 @@ export function AppointmentModal({
     isQueueSuccessOpen,
     setIsQueueSuccessOpen,
     createdAppointment,
-    visitTypeDropdownRef,
     stepContainerRef,
     handleSelectServiceItem,
     handlePatientCreated,
@@ -74,6 +70,10 @@ export function AppointmentModal({
     onClose,
     onSubmit
   });
+
+  const [reservationContext, setReservationContext] = React.useState<ReservationContext | null>(
+    null
+  );
 
   if (!isOpen) return null;
 
@@ -88,14 +88,14 @@ export function AppointmentModal({
   return (
     <>
       <ModalWrapper
-        isOpen={isOpen && !activeMedicalFlow && !isQueueSuccessOpen}
+        isOpen={isOpen && !activeMedicalFlow && !isQueueSuccessOpen && !reservationContext}
         onClose={onClose}
         maxWidth={
           step === 'category' || step === 'service'
             ? 'max-w-3xl'
             : isCompactStep
-            ? 'max-w-[500px]'
-            : 'max-w-xl'
+              ? 'max-w-[500px]'
+              : 'max-w-xl'
         }
         backdropClassName='overflow-hidden'
         className={cn(
@@ -113,7 +113,6 @@ export function AppointmentModal({
               : 'flex-auto min-h-0 justify-between gap-3'
           )}
         >
-          {/* Direct to Step Content - No Redundant Top Header, No Stepper Dots, No Header Separator Underline */}
           <div
             ref={stepContainerRef}
             className={cn(
@@ -121,7 +120,6 @@ export function AppointmentModal({
               isCompactStep ? 'h-auto overflow-visible' : 'flex-auto min-h-0 overflow-y-auto'
             )}
           >
-            {/* 1. STEP: KATEGORI LAYANAN */}
             {mode === 'create' && step === 'category' && (
               <BookingCategoryStep
                 isLoadingCatalog={isLoadingCatalog}
@@ -133,7 +131,6 @@ export function AppointmentModal({
               />
             )}
 
-            {/* 2. STEP: DAFTAR LAYANAN SPESIFIK */}
             {mode === 'create' && step === 'service' && (
               <BookingServiceStep
                 serviceBentoItems={serviceBentoItems}
@@ -142,7 +139,6 @@ export function AppointmentModal({
               />
             )}
 
-            {/* 3. STEP: DATA PASIEN (PROFILE SELECTION) */}
             {step === 'patient' && (
               <BookingPatientSelectionStep
                 patients={patients}
@@ -153,24 +149,17 @@ export function AppointmentModal({
               />
             )}
 
-            {/* 3B. STEP: FORM PASIEN BARU REGULER (COMPACT, NO PROGRESS DOTS) */}
             {step === 'patient_new' && (
               <BookingRegularPatientForm
                 onSuccess={handlePatientCreated}
-                onCancel={() =>
-                  patients.length > 0 ? setStep('patient') : setStep('service')
-                }
+                onCancel={() => (patients.length > 0 ? setStep('patient') : setStep('service'))}
               />
             )}
 
-            {/* 4. STEP: TANGGAL KUNJUNGAN */}
-            {step === 'date' && (
-              <BookingDateStep dateStr={dateStr} setDateStr={setDateStr} />
-            )}
+            {step === 'date' && <BookingDateStep dateStr={dateStr} setDateStr={setDateStr} />}
 
-            {/* 4B. STEP: SESI PRAKTIK DOKTER JAGA (DEDICATED SLIDE) */}
-            {step === 'session' && (
-              mode === 'edit' && !rescheduleStaffIdReady ? (
+            {step === 'session' &&
+              (mode === 'edit' && !rescheduleStaffIdReady ? (
                 <div className='flex items-center justify-center py-10 text-sm text-muted-foreground gap-2'>
                   <Icons.spinner className='size-4 animate-spin' />
                   <span>Memuat info dokter...</span>
@@ -185,26 +174,16 @@ export function AppointmentModal({
                   staffId={rescheduleStaffId || undefined}
                   poliklinikId={reschedulePoliklinikId}
                 />
-              )
-            )}
+              ))}
 
-            {/* 4C. STEP: TIPE KUNJUNGAN (DEDICATED SLIDE) */}
             {step === 'visit_type' && (
-              <BookingVisitTypeStep
-                visitType={visitType}
-                setVisitType={setVisitType}
-              />
+              <BookingVisitTypeStep visitType={visitType} setVisitType={setVisitType} />
             )}
 
-            {/* 4D. STEP: KELUHAN MEDIS (DEDICATED SLIDE) */}
             {step === 'complaint' && (
-              <BookingComplaintStep
-                complaint={complaint}
-                setComplaint={setComplaint}
-              />
+              <BookingComplaintStep complaint={complaint} setComplaint={setComplaint} />
             )}
 
-            {/* 5. STEP: KONFIRMASI RINGKASAN */}
             {step === 'confirmation' && (
               <BookingConfirmationStep
                 selectedService={selectedService}
@@ -219,7 +198,6 @@ export function AppointmentModal({
             )}
           </div>
 
-          {/* Modal Bottom Actions - No Top Separator Border (Underline Removed) */}
           {step !== 'patient_new' && (
             <div className='flex items-center justify-between shrink-0 pt-2'>
               <div>
@@ -255,7 +233,9 @@ export function AppointmentModal({
                     variant='ghost'
                     size='md'
                     shape='pill'
-                    leadingIcon={mode === 'edit' ? undefined : <Icons.arrowLeft className='size-3.5' />}
+                    leadingIcon={
+                      mode === 'edit' ? undefined : <Icons.arrowLeft className='size-3.5' />
+                    }
                     onClick={() => {
                       if (mode === 'edit') {
                         onClose();
@@ -347,7 +327,9 @@ export function AppointmentModal({
                     size='md'
                     shape='pill'
                     disabled={!timeSlot}
-                    onClick={() => (mode === 'edit' ? setStep('confirmation') : setStep('visit_type'))}
+                    onClick={() =>
+                      mode === 'edit' ? setStep('confirmation') : setStep('visit_type')
+                    }
                     withTrailingCircleIcon={true}
                     className='min-w-[140px]'
                     trailingIcon={<Icons.arrowRight className='size-3 stroke-[2.5]' />}
@@ -396,8 +378,8 @@ export function AppointmentModal({
                     {isSubmitting
                       ? 'Memproses antrean...'
                       : mode === 'edit'
-                      ? 'Simpan Jadwal Baru'
-                      : 'Buat Janji Temu'}
+                        ? 'Simpan Jadwal Baru'
+                        : 'Buat Janji Temu'}
                   </Button>
                 ) : null}
               </div>
@@ -406,7 +388,6 @@ export function AppointmentModal({
         </div>
       </ModalWrapper>
 
-      {/* Real Queue Success Modal consuming DB queue tickets */}
       <QueueSuccessModal
         isOpen={isQueueSuccessOpen}
         isProcessing={isSubmitting}
@@ -432,7 +413,6 @@ export function AppointmentModal({
         }}
       />
 
-      {/* Specialized Flow Modal (Persalinan & Imunisasi) */}
       {activeMedicalFlow ? (
         <MedicalAppointmentModal
           flow={activeMedicalFlow}
@@ -445,9 +425,28 @@ export function AppointmentModal({
             setActiveMedicalFlow(null);
             onClose();
           }}
+          onCompleteIntake={(ctx) => {
+            setActiveMedicalFlow(null);
+            setReservationContext(ctx);
+          }}
           onCreated={(medicalFormData) =>
             onSubmit(medicalFormData as unknown as AppointmentFormData)
           }
+        />
+      ) : null}
+
+      {reservationContext ? (
+        <ReservationModal
+          isOpen={Boolean(reservationContext)}
+          context={reservationContext}
+          onClose={() => {
+            setReservationContext(null);
+            onClose();
+          }}
+          onSuccess={(apt) => {
+            setReservationContext(null);
+            onSubmit(apt as unknown as AppointmentFormData);
+          }}
         />
       ) : null}
     </>

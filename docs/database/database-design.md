@@ -93,7 +93,11 @@ Sensitive identifiers are split into `national_id_hash` for exact lookup and `na
 
 `queue_tickets` stores live queue numbers issued from appointments. Queue numbers are unique per service and queue date. Mobile queue cards also require a queue priority such as regular, priority, BPJS, or VIP.
 
-`medical_intake_submissions` stores structured intake answers as `jsonb`. The current pregnancy and immunization flows have many dynamic fields, so JSONB is the right boundary for the intake payload while the appointment and patient relationships remain relational.
+`medical_intake_submissions` stores structured intake answers as `jsonb` for dynamic schema versioning and form replay. In addition, canonical normalized tables persist structured records:
+- `maternal_health_intakes`: Normalized maternal demographic snapshot, partner identity, baseline anthropometrics, current obstetric state, GPA counts, and risk factor flags.
+- `maternal_previous_pregnancies`: Childbirth and gestation history (order number, birth year, birth weight grams, birth length cm, child sex, gestational age, birth attendant, delivery method, delivery place, complications).
+- `maternal_contraceptive_histories`: Contraceptive history (order number, start date, contraceptive type, duration, stop date, problems, side effects).
+- `child_immunization_intakes`: Normalized child identity, parent contacts, vaccine history, and allergy records.
 
 `clinical_encounters` is the lean EMR backbone. It gives the backend a place to attach clinical notes and mark a visit as planned, in progress, completed, or cancelled.
 
