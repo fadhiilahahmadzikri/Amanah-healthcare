@@ -24,19 +24,20 @@ export function buildMaternityIntakePayload(
 ): CreateMaternityIntakePayload {
   const previousPregnancies = [];
   for (let i = 1; i <= 4; i += 1) {
-    const birthYear = submittedValues[`prevPregnancy${i}BirthYear`];
+    const prefix = `previousPregnancy${i}`;
+    const birthYear = submittedValues[`${prefix}BirthYear`];
     if (birthYear) {
       previousPregnancies.push({
         orderNumber: i,
         birthYear,
-        birthWeightGrams: parsePureInteger(submittedValues[`prevPregnancy${i}Weight`]) ?? undefined,
-        birthLengthCm: parsePureNumeric(submittedValues[`prevPregnancy${i}Height`]) ?? undefined,
-        childSex: submittedValues[`prevPregnancy${i}ChildSex`],
-        gestationalAgeAtBirth: submittedValues[`prevPregnancy${i}GestationalAge`],
-        birthAttendant: submittedValues[`prevPregnancy${i}Attendant`],
-        deliveryMethod: submittedValues[`prevPregnancy${i}DeliveryMethod`],
-        deliveryPlace: submittedValues[`prevPregnancy${i}Place`],
-        complications: submittedValues[`prevPregnancy${i}Complications`]
+        birthWeightGrams: parsePureInteger(submittedValues[`${prefix}BirthWeight`]) ?? undefined,
+        birthLengthCm: parsePureNumeric(submittedValues[`${prefix}BirthLength`]) ?? undefined,
+        childSex: submittedValues[`${prefix}ChildSex`],
+        gestationalAgeAtBirth: submittedValues[`${prefix}GestationalAgeAtBirth`],
+        birthAttendant: submittedValues[`${prefix}BirthAttendant`],
+        deliveryMethod: submittedValues[`${prefix}DeliveryMethod`],
+        deliveryPlace: submittedValues[`${prefix}DeliveryPlace`],
+        complications: submittedValues[`${prefix}Complications`]
       });
     }
   }

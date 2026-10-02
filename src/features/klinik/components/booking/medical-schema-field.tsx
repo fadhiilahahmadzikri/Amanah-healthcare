@@ -143,7 +143,7 @@ export function MedicalSchemaField({
     </span>
   ) : null;
 
-  if (schemaField.type === 'MULTIPLE_CHOICE' || schemaField.choices.length === 2) {
+  if (schemaField.type === 'MULTIPLE_CHOICE') {
     const isSmoked = schemaField.id === 'smokedBeforePregnancy';
     const isTwoChoices = schemaField.choices.length === 2;
 
