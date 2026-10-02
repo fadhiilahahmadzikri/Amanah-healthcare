@@ -8,12 +8,15 @@ import {
   baselineMeasurementsSection,
   currentPregnancySection,
   diseaseHistorySection,
-  riskFactorsSection
+  riskFactorsBehaviorSection,
+  riskFactorsNotesSection,
+  riskFactorsSmokingSection
 } from './pregnancy-sections/clinical-sections';
 import {
   closingSection,
   contraceptionGatewaySection,
   contraceptionSections,
+  obstetricGatewaySection,
   obstetricSummarySection,
   previousPregnancySections
 } from './pregnancy-sections/history-sections';
@@ -34,9 +37,12 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
     partnerIdentitySection,
     baselineMeasurementsSection,
     currentPregnancySection,
-    riskFactorsSection,
+    riskFactorsSmokingSection,
+    riskFactorsBehaviorSection,
+    riskFactorsNotesSection,
     diseaseHistorySection,
     obstetricSummarySection,
+    obstetricGatewaySection,
     ...previousPregnancySections,
     contraceptionGatewaySection,
     ...contraceptionSections,

@@ -16,7 +16,7 @@ import {
 
 export const baselineMeasurementsSection: MedicalFormSection = {
   id: 'baselineMeasurements',
-  title: 'Ukuran tubuh dan data dasar',
+  title: 'Boleh tahu ukuran tubuh kamu?',
   description: 'Isi angka dari catatan buku KIA atau hasil pengukuran terkini.',
   layout: 'grid',
   fields: [
@@ -51,8 +51,8 @@ export const baselineMeasurementsSection: MedicalFormSection = {
 
 export const currentPregnancySection: MedicalFormSection = {
   id: 'currentPregnancy',
-  title: 'Kehamilan saat ini',
-  description: 'Bagian ini dipakai bidan untuk membaca kondisi kehamilan saat ini.',
+  title: 'Ceritakan kondisi kehamilanmu sekarang',
+  description: 'Isi sesuai kondisi dan catatan buku KIA.',
   layout: 'grid',
   fields: [
     optionalField('hpht', DATE, 'Tanggal pertama haid terakhir yang diingat (HPHT)', 'HPHT', {
@@ -81,10 +81,10 @@ export const currentPregnancySection: MedicalFormSection = {
   ]
 };
 
-export const riskFactorsSection: MedicalFormSection = {
-  id: 'riskFactors',
-  title: 'Kebiasaan dan lingkungan sebelum hamil',
-  description: 'Jawab satu per satu untuk kondisi sekitar 1 bulan sebelum hamil.',
+export const riskFactorsSmokingSection: MedicalFormSection = {
+  id: 'riskFactorsSmoking',
+  title: 'Boleh cerita kebiasaan sebelum hamil?',
+  description: 'Jawab untuk kondisi sekitar 1 bulan sebelum hamil.',
   fields: [
     field(
       'smokedBeforePregnancy',
@@ -95,7 +95,16 @@ export const riskFactorsSection: MedicalFormSection = {
         helpText: 'Termasuk rokok elektrik/vape jika digunakan.',
         choices: ['Aktif', 'Pasif', 'Tidak']
       }
-    ),
+    )
+  ]
+};
+
+export const riskFactorsBehaviorSection: MedicalFormSection = {
+  id: 'riskFactorsBehavior',
+  title: 'Masih soal kebiasaan sebelum hamil',
+  description: 'Pilih Tidak atau Ya untuk masing-masing kebiasaan sekitar 1 bulan sebelum hamil.',
+  layout: 'questionnaire',
+  fields: [
     yesNoField(
       'alcoholBeforePregnancy',
       'Dalam 1 bulan sebelum hamil, apakah Anda minum alkohol?',
@@ -136,7 +145,15 @@ export const riskFactorsSection: MedicalFormSection = {
       'smokeExposureBeforePregnancy',
       'Dalam 1 bulan sebelum hamil, apakah Anda sering terpapar asap rokok atau asap pembakaran?',
       'Paparan asap'
-    ),
+    )
+  ]
+};
+
+export const riskFactorsNotesSection: MedicalFormSection = {
+  id: 'riskFactorsNotes',
+  title: 'Ada catatan lingkungan atau alergi?',
+  description: 'Kosongkan bagian yang tidak ada.',
+  fields: [
     optionalField(
       'concerningEnvironmentNotes',
       PARAGRAPH,
@@ -169,7 +186,7 @@ export const riskFactorsSection: MedicalFormSection = {
 
 export const diseaseHistorySection: MedicalFormSection = {
   id: 'diseaseHistory',
-  title: 'Riwayat kesehatan',
+  title: 'Pernah punya riwayat kesehatan tertentu?',
   description:
     'Pilih Ya hanya jika pernah diberi tahu petugas kesehatan atau Anda memang sedang mengalaminya.',
   layout: 'questionnaire',

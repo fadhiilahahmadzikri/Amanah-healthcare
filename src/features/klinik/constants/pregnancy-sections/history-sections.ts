@@ -9,7 +9,7 @@ import {
 
 export const obstetricSummarySection: MedicalFormSection = {
   id: 'obstetricSummary',
-  title: 'Riwayat kehamilan dan persalinan',
+  title: 'Ceritakan riwayat kehamilan kamu',
   description:
     'Isi jumlahnya dulu. Detail riwayat sebelumnya akan ditanyakan satu per satu jika ada.',
   layout: 'grid',
@@ -39,7 +39,15 @@ export const obstetricSummarySection: MedicalFormSection = {
       helpText: 'Jika belum ada, isi 0.',
       placeholder: 'Contoh: 1',
       colSpan: 'full'
-    }),
+    })
+  ]
+};
+
+export const obstetricGatewaySection: MedicalFormSection = {
+  id: 'obstetricGateway',
+  title: 'Ada riwayat kehamilan atau persalinan sebelumnya?',
+  description: 'Informasi ini membantu bidan memahami kondisi kehamilan saat ini.',
+  fields: [
     field(
       'hasPreviousPregnancyHistory',
       MULTIPLE_CHOICE,
@@ -60,14 +68,14 @@ export const obstetricSummarySection: MedicalFormSection = {
 export const previousPregnancySections: MedicalFormSection[] = [
   {
     id: 'previousPregnancy1Details',
-    title: 'Riwayat kehamilan/persalinan sebelumnya',
+    title: 'Ceritakan riwayat persalinan sebelumnya',
     description: 'Isi riwayat yang diingat. Lewati bagian yang tidak ada atau tidak ingat.',
     layout: 'grid',
     fields: previousPregnancyFields(1)
   },
   {
     id: 'previousPregnancy2Details',
-    title: 'Riwayat kehamilan/persalinan sebelumnya',
+    title: 'Ceritakan riwayat persalinan sebelumnya',
     description:
       'Isi riwayat berikutnya yang diingat. Lewati bagian yang tidak ada atau tidak ingat.',
     layout: 'grid',
@@ -75,7 +83,7 @@ export const previousPregnancySections: MedicalFormSection[] = [
   },
   {
     id: 'previousPregnancy3Details',
-    title: 'Riwayat kehamilan/persalinan sebelumnya',
+    title: 'Ceritakan riwayat persalinan sebelumnya',
     description:
       'Isi riwayat berikutnya yang diingat. Lewati bagian yang tidak ada atau tidak ingat.',
     layout: 'grid',
@@ -83,7 +91,7 @@ export const previousPregnancySections: MedicalFormSection[] = [
   },
   {
     id: 'previousPregnancy4Details',
-    title: 'Riwayat kehamilan/persalinan sebelumnya',
+    title: 'Ceritakan riwayat persalinan sebelumnya',
     description:
       'Isi riwayat berikutnya yang diingat. Lewati bagian yang tidak ada atau tidak ingat.',
     layout: 'grid',
@@ -93,7 +101,7 @@ export const previousPregnancySections: MedicalFormSection[] = [
 
 export const contraceptionGatewaySection: MedicalFormSection = {
   id: 'contraceptionGateway',
-  title: 'Riwayat KB',
+  title: 'Pernah menggunakan KB sebelumnya?',
   description: 'KB berarti alat atau cara untuk mengatur kehamilan.',
   fields: [
     field(
@@ -115,28 +123,28 @@ export const contraceptionGatewaySection: MedicalFormSection = {
 export const contraceptionSections: MedicalFormSection[] = [
   {
     id: 'contraception1Details',
-    title: 'Riwayat KB',
+    title: 'Ceritakan riwayat KB kamu',
     description: 'Isi riwayat KB dalam bagian ini. Lewati bagian yang tidak ada atau tidak ingat.',
     layout: 'grid',
     fields: contraceptionFields(1)
   },
   {
     id: 'contraception2Details',
-    title: 'Riwayat KB',
+    title: 'Ceritakan riwayat KB kamu',
     description: 'Isi jika ada riwayat KB berikutnya. Lewati jika tidak ada.',
     layout: 'grid',
     fields: contraceptionFields(2)
   },
   {
     id: 'contraception3Details',
-    title: 'Riwayat KB',
+    title: 'Ceritakan riwayat KB kamu',
     description: 'Isi jika ada riwayat KB berikutnya. Lewati jika tidak ada.',
     layout: 'grid',
     fields: contraceptionFields(3)
   },
   {
     id: 'contraception4Details',
-    title: 'Riwayat KB',
+    title: 'Ceritakan riwayat KB kamu',
     description:
       'Isi jika ada riwayat KB berikutnya. Bila lebih dari 4, sampaikan sisanya ke bidan saat kunjungan.',
     layout: 'grid',

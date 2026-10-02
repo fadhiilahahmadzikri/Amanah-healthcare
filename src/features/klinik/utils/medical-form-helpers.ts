@@ -256,7 +256,7 @@ export function buildMedicalActiveSteps({
       catalogAction.type === CATALOG_ACTION_TYPES.ADD
         ? `previousPregnancy${catalogAction.recordNumber}Details`
         : historyCounts.pregnancy === 0
-          ? SECTION_IDS.OBSTETRIC_SUMMARY
+          ? SECTION_IDS.OBSTETRIC_GATEWAY
           : `previousPregnancy${historyCounts.pregnancy}Details`;
 
     if (

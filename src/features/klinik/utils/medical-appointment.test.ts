@@ -218,7 +218,7 @@ describe('Medical Appointment Flows', () => {
 
     it('10. starts directly with Data Diri (motherIdentity), removing intro/opening section', () => {
       expect(pregnancyFlowDefinition.sections[0].id).toBe('motherIdentity');
-      expect(pregnancyFlowDefinition.sections[0].title).toBe('Data Diri');
+      expect(pregnancyFlowDefinition.sections[0].title).toBe('Kenalan dulu, yuk');
       expect(findMedicalField(pregnancyFlowDefinition, 'patientConsent')).toBeUndefined();
     });
 

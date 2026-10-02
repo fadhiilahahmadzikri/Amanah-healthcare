@@ -96,7 +96,7 @@ describe('Childbirth Form Refactoring Validations', () => {
       expect(coverageFieldIds).toContain('dasawisma');
       expect(coverageFieldIds).toContain('posyandu');
       expect(coverageFieldIds).toContain('puskesmas');
-      expect(domicileHealthCoverageSection.title).toBe('Wilayah & Fasilitas Domisili');
+      expect(domicileHealthCoverageSection.title).toBe('Di mana kamu tinggal dan faskes terdekat?');
     });
 
     it('places domicileHealthCoverageSection immediately following motherIdentity in flow definition', () => {

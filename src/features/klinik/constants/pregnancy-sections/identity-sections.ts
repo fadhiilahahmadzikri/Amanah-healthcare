@@ -14,7 +14,7 @@ import {
 
 export const motherIdentitySection: MedicalFormSection = {
   id: 'motherIdentity',
-  title: 'Data Diri',
+  title: 'Kenalan dulu, yuk',
   description: 'Isi data sesuai identitas dan kondisi saat ini.',
   layout: 'grid',
   fields: [
@@ -61,7 +61,7 @@ export const motherIdentitySection: MedicalFormSection = {
 
 export const domicileHealthCoverageSection: MedicalFormSection = {
   id: 'domicileHealthCoverage',
-  title: 'Wilayah & Fasilitas Domisili',
+  title: 'Di mana kamu tinggal dan faskes terdekat?',
   description: 'Isi data kelompok Dasawisma, Posyandu, dan Puskesmas wilayah domisili.',
   layout: 'grid',
   fields: [
@@ -82,7 +82,7 @@ export const domicileHealthCoverageSection: MedicalFormSection = {
 
 export const partnerIdentitySection: MedicalFormSection = {
   id: 'partnerIdentity',
-  title: 'Data Suami',
+  title: 'Boleh kenal lebih jauh dengan suami kamu?',
   description: 'Isi sesuai data suami yang diketahui.',
   layout: 'grid',
   fields: [
