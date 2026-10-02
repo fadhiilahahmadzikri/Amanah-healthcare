@@ -31,8 +31,8 @@ export function MedicalQuestionnaireGrid({
             {answeredCount} dari {totalCount} dijawab
           </span>
         </div>
-        <div className='w-20 text-center shrink-0 font-medium text-foreground/80'>Tidak</div>
-        <div className='w-20 text-center shrink-0 font-medium text-foreground/80'>Ya</div>
+        <div className='w-16 text-center shrink-0 font-medium text-foreground/80'>Tidak</div>
+        <div className='w-16 text-center shrink-0 font-medium text-foreground/80'>Ya</div>
         <div className='w-40 shrink-0 text-left pl-1 font-medium text-foreground/80'>
           Tahun (jika Ya)
         </div>

@@ -130,7 +130,7 @@ export function MedicalAppointmentModal({
       <ModalWrapper
         isOpen={isOpen && !isQueueSuccessOpen}
         onClose={onClose}
-        maxWidth={isQuestionnaireStep || isHistoryCatalogStep ? 'max-w-[640px]' : 'max-w-[580px]'}
+        maxWidth={isQuestionnaireStep || isHistoryCatalogStep ? 'max-w-[720px]' : 'max-w-[580px]'}
         showCloseButton={false}
         className='flex h-auto max-h-[88dvh] flex-col overflow-hidden p-5 sm:p-6 shadow-2xl transition-[max-width,width,max-height,height] duration-300'
       >
@@ -150,7 +150,7 @@ export function MedicalAppointmentModal({
           >
             <div
               ref={stepContainerRef}
-              className='flex-1 min-h-0 max-h-[calc(88dvh-8rem)] overflow-y-auto overflow-x-hidden pr-1.5 py-2'
+              className='flex-1 min-h-0 max-h-[calc(88dvh-8rem)] overflow-y-auto overflow-x-hidden pr-1.5 pb-2'
             >
               {currentDescriptor.type === STEP_DESCRIPTOR_TYPES.MEDICAL ? (
                 <MedicalSectionStep

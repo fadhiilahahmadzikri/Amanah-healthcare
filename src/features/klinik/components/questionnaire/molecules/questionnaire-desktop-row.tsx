@@ -56,7 +56,7 @@ export function QuestionnaireDesktopRow({
         </div>
 
         {/* Column 2: Tidak (Desktop Square Checkbox) */}
-        <div className='w-20 flex justify-center shrink-0'>
+        <div className='w-16 flex justify-center shrink-0'>
           <SquareOptionControl
             checked={isNo}
             onClick={() => onSelectStatus('Tidak')}
@@ -67,7 +67,7 @@ export function QuestionnaireDesktopRow({
         </div>
 
         {/* Column 3: Ya (Desktop Square Checkbox) */}
-        <div className='w-20 flex justify-center shrink-0'>
+        <div className='w-16 flex justify-center shrink-0'>
           <SquareOptionControl
             checked={isYes}
             onClick={() => onSelectStatus('Ya')}
