@@ -48,20 +48,14 @@ export const obstetricGatewaySection: MedicalFormSection = {
   title: 'Ada riwayat kehamilan atau persalinan sebelumnya?',
   description: 'Informasi ini membantu bidan memahami kondisi kehamilan saat ini.',
   fields: [
-    field(
-      'hasPreviousPregnancyHistory',
-      MULTIPLE_CHOICE,
-      'Apakah Anda memiliki riwayat kehamilan atau persalinan sebelumnya?',
-      'Ada riwayat obstetri',
-      {
-        choices: ['Ya, ada', 'Belum/tidak ada'],
-        goToSectionIdByChoice: {
-          'Ya, ada': 'previousPregnancy1Details',
-          'Belum/tidak ada': 'contraceptionGateway'
-        },
-        colSpan: 'full'
-      }
-    )
+    field('hasPreviousPregnancyHistory', MULTIPLE_CHOICE, '', 'Ada riwayat obstetri', {
+      choices: ['Ya, ada', 'Belum/tidak ada'],
+      goToSectionIdByChoice: {
+        'Ya, ada': 'previousPregnancy1Details',
+        'Belum/tidak ada': 'contraceptionGateway'
+      },
+      colSpan: 'full'
+    })
   ]
 };
 
@@ -104,19 +98,13 @@ export const contraceptionGatewaySection: MedicalFormSection = {
   title: 'Pernah menggunakan KB sebelumnya?',
   description: 'KB berarti alat atau cara untuk mengatur kehamilan.',
   fields: [
-    field(
-      'hasContraceptionHistory',
-      MULTIPLE_CHOICE,
-      'Apakah Anda pernah menggunakan KB/kontrasepsi?',
-      'Ada riwayat KB',
-      {
-        choices: ['Ya, pernah', 'Belum pernah'],
-        goToSectionIdByChoice: {
-          'Ya, pernah': 'contraception1Details',
-          'Belum pernah': 'closing'
-        }
+    field('hasContraceptionHistory', MULTIPLE_CHOICE, '', 'Ada riwayat KB', {
+      choices: ['Ya, pernah', 'Belum pernah'],
+      goToSectionIdByChoice: {
+        'Ya, pernah': 'contraception1Details',
+        'Belum pernah': 'closing'
       }
-    )
+    })
   ]
 };
 

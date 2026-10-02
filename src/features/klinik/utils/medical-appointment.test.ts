@@ -431,11 +431,11 @@ describe('Medical Appointment Flows', () => {
       expect(stopDateField?.title).not.toContain('KB 1:');
     });
 
-    it('3. updates hasPreviousPregnancyHistory question title', () => {
+    it('3. gateway fields have empty title — section header carries the question', () => {
       const historyField = findMedicalField(pregnancyFlowDefinition, 'hasPreviousPregnancyHistory');
-      expect(historyField?.title).toBe(
-        'Apakah Anda memiliki riwayat kehamilan atau persalinan sebelumnya?'
-      );
+      expect(historyField?.title).toBe('');
+      const contraField = findMedicalField(pregnancyFlowDefinition, 'hasContraceptionHistory');
+      expect(contraField?.title).toBe('');
     });
 
     it('4. configures clean example placeholders for obstetric summary fields', () => {

@@ -149,12 +149,14 @@ export function MedicalSchemaField({
 
     return (
       <FieldSet data-invalid={isInvalid} className={cn('gap-3', colSpanClass)}>
-        <FieldLegend variant='label' className='mb-1.5 text-sm leading-snug font-medium'>
-          <span>
-            {schemaField.title}
-            {requiredAsterisk}
-          </span>
-        </FieldLegend>
+        {schemaField.title ? (
+          <FieldLegend variant='label' className='mb-1.5 text-sm leading-snug font-medium'>
+            <span>
+              {schemaField.title}
+              {requiredAsterisk}
+            </span>
+          </FieldLegend>
+        ) : null}
         {schemaField.helpText ? (
           <FieldDescription className='text-xs text-muted-foreground'>
             {schemaField.helpText}
