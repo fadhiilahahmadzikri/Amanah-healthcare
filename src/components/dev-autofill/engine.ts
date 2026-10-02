@@ -2,26 +2,6 @@ import type { AutofillPayload, AutofillSchedule } from './types';
 
 export const AUTOFILL_EVENT_NAME = 'devtool:autofill';
 
-export function injectNativeInputValue(element: HTMLElement, value: string): void {
-  if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
-    const valueSetter = Object.getOwnPropertyDescriptor(
-      element instanceof HTMLTextAreaElement
-        ? window.HTMLTextAreaElement.prototype
-        : window.HTMLInputElement.prototype,
-      'value'
-    )?.set;
-
-    if (valueSetter) {
-      valueSetter.call(element, value);
-    } else {
-      element.value = value;
-    }
-
-    element.dispatchEvent(new Event('input', { bubbles: true }));
-    element.dispatchEvent(new Event('change', { bubbles: true }));
-  }
-}
-
 export function dispatchAutofillEvent(
   flow: string,
   values: Record<string, string>,
@@ -44,13 +24,6 @@ export function dispatchAutofillEvent(
       detail: payload
     })
   );
-
-  Object.entries(values).forEach(([fieldId, val]) => {
-    const el = document.getElementById(fieldId);
-    if (el) {
-      injectNativeInputValue(el, val);
-    }
-  });
 }
 
 export function fillVisibleFields(presetValues: Record<string, string>, flow: string): void {
@@ -66,7 +39,6 @@ export function fillVisibleFields(presetValues: Record<string, string>, flow: st
   inputs.forEach((input) => {
     if (input.id && presetValues[input.id] !== undefined) {
       currentStepValues[input.id] = presetValues[input.id];
-      injectNativeInputValue(input, presetValues[input.id]);
     }
   });
 

@@ -205,28 +205,48 @@ export function useMedicalAppointmentForm({
     });
   }, [form, registrationPrefill]);
 
+  const prevContraceptionHistoryRef = React.useRef(values.hasContraceptionHistory);
   React.useEffect(() => {
     const contraceptionGroup = historyGroups.contraception;
 
-    if (values.hasContraceptionHistory === contraceptionGroup.disabledValue) {
+    if (
+      values.hasContraceptionHistory === contraceptionGroup.disabledValue &&
+      prevContraceptionHistoryRef.current !== contraceptionGroup.disabledValue
+    ) {
       history.clearHistoryRecordRange(contraceptionGroup, 1, contraceptionGroup.maxRecords);
-      history.setHistoryCounts((previous) => ({
-        ...previous,
-        contraception: 1
-      }));
+      history.setHistoryCounts((previous) => {
+        if (previous.contraception === 1) {
+          return previous;
+        }
+        return {
+          ...previous,
+          contraception: 1
+        };
+      });
     }
+    prevContraceptionHistoryRef.current = values.hasContraceptionHistory;
   }, [history, values.hasContraceptionHistory]);
 
+  const prevPregnancyHistoryRef = React.useRef(values.hasPreviousPregnancyHistory);
   React.useEffect(() => {
     const pregnancyGroup = historyGroups.pregnancy;
 
-    if (values.hasPreviousPregnancyHistory === pregnancyGroup.disabledValue) {
+    if (
+      values.hasPreviousPregnancyHistory === pregnancyGroup.disabledValue &&
+      prevPregnancyHistoryRef.current !== pregnancyGroup.disabledValue
+    ) {
       history.clearHistoryRecordRange(pregnancyGroup, 1, pregnancyGroup.maxRecords);
-      history.setHistoryCounts((previous) => ({
-        ...previous,
-        pregnancy: 1
-      }));
+      history.setHistoryCounts((previous) => {
+        if (previous.pregnancy === 1) {
+          return previous;
+        }
+        return {
+          ...previous,
+          pregnancy: 1
+        };
+      });
     }
+    prevPregnancyHistoryRef.current = values.hasPreviousPregnancyHistory;
   }, [history, values.hasPreviousPregnancyHistory]);
 
   React.useEffect(() => {
@@ -246,22 +266,24 @@ export function useMedicalAppointmentForm({
         return;
       }
 
-      if (detail.values) {
-        Object.entries(detail.values).forEach(([fieldId, value]) => {
-          form.setFieldValue(fieldId, value);
-        });
-      }
+      React.startTransition(() => {
+        if (detail.values) {
+          Object.entries(detail.values).forEach(([fieldId, value]) => {
+            form.setFieldValue(fieldId, value);
+          });
+        }
 
-      if (detail.schedule) {
-        setSchedule((previous) => ({
-          ...previous,
-          ...detail.schedule
-        }));
-      }
+        if (detail.schedule) {
+          setSchedule((previous) => ({
+            ...previous,
+            ...detail.schedule
+          }));
+        }
 
-      if (typeof detail.step === 'number') {
-        setCurrentStep(detail.step);
-      }
+        if (typeof detail.step === 'number') {
+          setCurrentStep(detail.step);
+        }
+      });
     };
 
     window.addEventListener('devtool:autofill', handleAutofill);
