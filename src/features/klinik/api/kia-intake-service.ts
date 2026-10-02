@@ -24,6 +24,79 @@ export interface ContraceptiveHistoryPayload {
   sideEffects?: string;
 }
 
+export interface HusbandPayload {
+  fullName?: string | null;
+  nik?: string | null;
+  birthDate?: string | null;
+  age?: number | null;
+  job?: string | null;
+  education?: string | null;
+  bloodType?: string | null;
+  phoneNumber?: string | null;
+}
+
+export interface AnamnesisResponsePayload {
+  questionCode: string;
+  selectedOptionCode?: string | null;
+  answerText?: string | null;
+}
+
+export interface HealthConditionResponsePayload {
+  conditionCode: string;
+  hasCondition: boolean;
+  diagnosisYear?: number | null;
+  notes?: string | null;
+}
+
+export interface MaternalQuestionOption {
+  id: string;
+  optionCode: string;
+  label: string;
+  displayOrder: number;
+}
+
+export interface MaternalQuestion {
+  id: string;
+  code: string;
+  category: string;
+  questionText: string;
+  helpText?: string | null;
+  inputType: string;
+  isRequired: boolean;
+  displayOrder: number;
+  options: MaternalQuestionOption[];
+}
+
+export interface MaternalHealthCondition {
+  id: string;
+  code: string;
+  name: string;
+  questionPrompt: string;
+  displayOrder: number;
+}
+
+export interface MaternalReferenceOptionItem {
+  code: string;
+  label: string;
+  description?: string;
+  displayOrder: number;
+}
+
+export interface MaternalReferenceOptions {
+  educationLevels: MaternalReferenceOptionItem[];
+  religions: MaternalReferenceOptionItem[];
+  bloodTypes: MaternalReferenceOptionItem[];
+  tetanusStatuses: MaternalReferenceOptionItem[];
+}
+
+export interface OccupationItem {
+  id: string;
+  code: string;
+  name: string;
+  description?: string | null;
+  displayOrder: number;
+}
+
 export interface CreateMaternityIntakePayload {
   patientId: string;
   appointmentId?: string | null;
@@ -55,7 +128,6 @@ export interface CreateMaternityIntakePayload {
   initialBmi?: number | null;
   tetanusStatus?: string | null;
   motherBloodType?: string | null;
-  /** HPHT (LMP) date string YYYY-MM-DD. EDD & gestational age are computed server-side from this. */
   hpht?: string | null;
   currentComplaints?: string | null;
   gravidaCount?: number;
@@ -77,6 +149,9 @@ export interface CreateMaternityIntakePayload {
   allergyInfo?: string | null;
   otherNotes?: string | null;
   diseaseHistory?: Record<string, unknown>;
+  husband?: HusbandPayload | null;
+  anamnesisResponses?: AnamnesisResponsePayload[];
+  healthConditions?: HealthConditionResponsePayload[];
   previousPregnancies?: PreviousPregnancyPayload[];
   contraceptiveHistories?: ContraceptiveHistoryPayload[];
 }
@@ -102,11 +177,8 @@ export interface MaternalIntakeResponse extends CreateMaternityIntakePayload {
   intakeSubmissionId: string;
   createdAt: string;
   updatedAt: string;
-  /** Server-computed from HPHT using Naegele's Rule (YYYY-MM-DD) */
   estimatedDueDate?: string | null;
-  /** Server-computed gestational age in whole weeks */
   gestationalAgeWeeks?: number | null;
-  /** Server-computed gestational age formatted string e.g. "17 minggu 5 hari" */
   gestationalAgeFormatted?: string | null;
   answers?: Record<string, unknown>;
   automatic?: Record<string, unknown>;
@@ -167,6 +239,34 @@ class KiaIntakeService {
         method: 'GET'
       }
     );
+  }
+
+  async getMaternalQuestions(): Promise<MaternalQuestion[]> {
+    const res = await clientFetch<{ success: boolean; data: MaternalQuestion[] }>(
+      KIA_API_ENDPOINTS.MATERNAL_QUESTIONS
+    );
+    return res?.data ?? [];
+  }
+
+  async getMaternalConditions(): Promise<MaternalHealthCondition[]> {
+    const res = await clientFetch<{ success: boolean; data: MaternalHealthCondition[] }>(
+      KIA_API_ENDPOINTS.MATERNAL_CONDITIONS
+    );
+    return res?.data ?? [];
+  }
+
+  async getMaternalReferenceOptions(): Promise<MaternalReferenceOptions> {
+    const res = await clientFetch<{ success: boolean; data: MaternalReferenceOptions }>(
+      KIA_API_ENDPOINTS.MATERNAL_REFERENCE_OPTIONS
+    );
+    return res?.data;
+  }
+
+  async getOccupations(): Promise<OccupationItem[]> {
+    const res = await clientFetch<{ success: boolean; data: OccupationItem[] }>(
+      KIA_API_ENDPOINTS.OCCUPATIONS
+    );
+    return res?.data ?? [];
   }
 }
 

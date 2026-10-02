@@ -17,15 +17,32 @@ describe('kia-intake-payload-builder', () => {
       motherBirthDate: '1995-05-10',
       motherAge: '29',
       phoneNumber: '081234567890',
-      heightCm: '160',
-      prePregnancyWeightKg: '55',
+      partnerName: 'Tn. Budi Setiawan',
+      partnerNik: '3201234567890002',
+      partnerAge: '32 tahun',
+      partnerJob: 'Wiraswasta / Pengusaha',
+      partnerEducation: 'S1',
+      partnerBloodType: 'O',
+      heightCm: '160.5 cm',
+      prePregnancyWeightKg: '55.2 KG',
+      upperArmCircumferenceCm: '23.5 CM',
+      initialBmi: '21.4',
       gravidaCount: '2',
       parityCount: '1',
+      smokedBeforePregnancy: 'Aktif',
+      alcoholBeforePregnancy: 'Tidak',
+      concerningEnvironmentNotes: 'Bebas polusi',
+      hasHypertensionHistory: 'Ya',
+      hypertensionHistoryNotes: '2021',
+      hasAsthmaHistory: 'Tidak',
+      hasOtherDiseaseHistory: 'Ya',
+      otherDiseaseHistoryNotes: 'Maag kronis',
+      otherDiseaseHistoryYear: '2020',
       hasPreviousPregnancyHistory: PREVIOUS_PREGNANCY_CHOICE.YES,
       hasContraceptionHistory: CONTRACEPTION_CHOICE.YES,
       prevPregnancy1BirthYear: '2022',
-      prevPregnancy1Weight: '3200',
-      prevPregnancy1Height: '49',
+      prevPregnancy1Weight: '3200 gram',
+      prevPregnancy1Height: '49.5 cm',
       prevPregnancy1ChildSex: GENDER_CHOICE.FEMALE,
       contraceptive1Type: 'IUD',
       contraceptive1StartDate: '2022-08-01',
@@ -38,19 +55,57 @@ describe('kia-intake-payload-builder', () => {
     expect(payload.motherNik).toBe('3201234567890001');
     expect(payload.motherName).toBe('Ny. Siti');
     expect(payload.motherAge).toBe(29);
-    expect(payload.heightCm).toBe(160);
-    expect(payload.prePregnancyWeightKg).toBe(55);
+    expect(payload.heightCm).toBe(160.5);
+    expect(payload.prePregnancyWeightKg).toBe(55.2);
+    expect(payload.upperArmCircumferenceCm).toBe(23.5);
+    expect(payload.initialBmi).toBe(21.4);
     expect(payload.gravidaCount).toBe(2);
     expect(payload.hasPreviousPregnancyHistory).toBe(true);
     expect(payload.hasContraceptionHistory).toBe(true);
     expect(payload.currentComplaints).toBe('Mual');
+
+    expect(payload.husband).toEqual({
+      fullName: 'Tn. Budi Setiawan',
+      nik: '3201234567890002',
+      birthDate: null,
+      age: 32,
+      job: 'Wiraswasta / Pengusaha',
+      education: 'S1',
+      bloodType: 'O',
+      phoneNumber: null
+    });
+
+    const smoking = payload.anamnesisResponses?.find((r) => r.questionCode === 'SMOKING_HABIT');
+    expect(smoking?.selectedOptionCode).toBe('aktif');
+
+    const alcohol = payload.anamnesisResponses?.find(
+      (r) => r.questionCode === 'ALCOHOL_CONSUMPTION'
+    );
+    expect(alcohol?.selectedOptionCode).toBe('tidak');
+
+    const envNotes = payload.anamnesisResponses?.find(
+      (r) => r.questionCode === 'CONCERNING_ENVIRONMENT_NOTES'
+    );
+    expect(envNotes?.answerText).toBe('Bebas polusi');
+
+    const hypertension = payload.healthConditions?.find((c) => c.conditionCode === 'HYPERTENSION');
+    expect(hypertension?.hasCondition).toBe(true);
+    expect(hypertension?.diagnosisYear).toBe(2021);
+
+    const asthma = payload.healthConditions?.find((c) => c.conditionCode === 'ASTHMA');
+    expect(asthma?.hasCondition).toBe(false);
+
+    const other = payload.healthConditions?.find((c) => c.conditionCode === 'OTHER');
+    expect(other?.hasCondition).toBe(true);
+    expect(other?.diagnosisYear).toBe(2020);
+    expect(other?.notes).toBe('Maag kronis');
 
     expect(payload.previousPregnancies).toHaveLength(1);
     expect(payload.previousPregnancies[0]).toEqual({
       orderNumber: 1,
       birthYear: '2022',
       birthWeightGrams: 3200,
-      birthLengthCm: 49,
+      birthLengthCm: 49.5,
       childSex: GENDER_CHOICE.FEMALE,
       gestationalAgeAtBirth: undefined,
       birthAttendant: undefined,

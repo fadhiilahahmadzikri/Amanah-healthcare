@@ -10,6 +10,7 @@ import {
   getMedicalFlowDefinition,
   type MedicalFormSection
 } from '../constants/medical-appointment-schemas';
+import { enrichMedicalFlowDefinition, useMaternalCatalogs } from './useMaternalCatalogs';
 import {
   buildDefaultMedicalValues,
   getActiveMedicalSections,
@@ -72,8 +73,16 @@ export function useMedicalAppointmentForm({
   onCreated,
   onBackToService
 }: UseMedicalAppointmentFormOptions) {
-  const definition = React.useMemo(() => getMedicalFlowDefinition(flow), [flow]);
-  const defaultValues = React.useMemo(() => buildDefaultMedicalValues(definition), [definition]);
+  const baseDefinition = React.useMemo(() => getMedicalFlowDefinition(flow), [flow]);
+  const { catalogs } = useMaternalCatalogs(isOpen && flow === 'pregnancy');
+  const definition = React.useMemo(
+    () => enrichMedicalFlowDefinition(baseDefinition, catalogs),
+    [baseDefinition, catalogs]
+  );
+  const defaultValues = React.useMemo(
+    () => buildDefaultMedicalValues(baseDefinition),
+    [baseDefinition]
+  );
   const doctors = React.useMemo<Doctor[]>(
     () => getDoctorsByService(definition.serviceName),
     [definition.serviceName]
