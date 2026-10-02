@@ -7,7 +7,7 @@ export interface PatientLineInputProps extends Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
   'onChange'
 > {
-  label: string;
+  label: React.ReactNode;
   id: string;
   value: string;
   onChange: (value: string) => void;
@@ -79,7 +79,6 @@ export const PatientLineInput = React.forwardRef<HTMLInputElement, PatientLineIn
             {...rest}
           />
 
-          {/* Google Material Floating Label */}
           <label
             htmlFor={id}
             className={cn(

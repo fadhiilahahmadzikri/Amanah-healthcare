@@ -78,7 +78,6 @@ export function MedicalAppointmentModal({
     visibleMedicalSections,
     repeatableMedicalSections,
     currentStep,
-    totalSteps,
     currentDescriptor,
     schedule,
     isProcessing,
@@ -131,7 +130,7 @@ export function MedicalAppointmentModal({
       <ModalWrapper
         isOpen={isOpen && !isQueueSuccessOpen}
         onClose={onClose}
-        maxWidth={isQuestionnaireStep || isHistoryCatalogStep ? 'max-w-[840px]' : 'max-w-[760px]'}
+        maxWidth={isQuestionnaireStep || isHistoryCatalogStep ? 'max-w-[640px]' : 'max-w-[580px]'}
         showCloseButton={false}
         className='flex h-auto max-h-[88dvh] flex-col overflow-hidden p-5 sm:p-6 shadow-2xl transition-[max-width,width,max-height,height] duration-300'
       >
@@ -141,11 +140,6 @@ export function MedicalAppointmentModal({
               {stepTitle}
             </h3>
             <p className='text-xs text-muted-foreground'>{stepDescription}</p>
-          </div>
-          <div className='shrink-0 pt-0.5'>
-            <span className='inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary select-none'>
-              Langkah {currentStep} dari {totalSteps}
-            </span>
           </div>
         </div>
 

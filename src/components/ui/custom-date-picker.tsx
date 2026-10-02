@@ -136,6 +136,94 @@ export function CustomDatePicker({
   }, [isOpen, animateClose]);
 
   const isInvalid = Boolean(invalid || error);
+  const hasValue = Boolean(value && String(value).trim().length > 0);
+  const isFloating = isOpen || hasValue;
+
+  if (variant === 'underline') {
+    return (
+      <div ref={containerRef} className={cn('relative pt-3', className)}>
+        <div
+          id={`${id}-trigger`}
+          role='button'
+          tabIndex={0}
+          aria-haspopup='dialog'
+          aria-expanded={isOpen}
+          onClick={toggleOpen}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggleOpen();
+            }
+          }}
+          className={cn(
+            'relative flex cursor-pointer items-center justify-between border-b-[1.5px] border-border pb-1.5 transition-colors duration-200 select-none',
+            isOpen ? 'border-primary' : 'focus-within:border-primary',
+            isInvalid && '!border-destructive',
+            triggerClassName
+          )}
+        >
+          <input
+            id={id}
+            type='text'
+            readOnly
+            aria-label={ariaLabel}
+            value={displayLabel}
+            placeholder={isFloating ? placeholder : ''}
+            className='w-full min-w-0 cursor-pointer border-0 bg-transparent px-0 py-1 text-sm font-medium text-foreground outline-none pointer-events-none placeholder:font-normal placeholder:text-muted-foreground/50'
+          />
+          {label ? (
+            <label
+              htmlFor={id}
+              className={cn(
+                'absolute left-0 pointer-events-none origin-left select-none transition-all duration-200 ease-out',
+                isFloating
+                  ? '-top-3 text-[11px] font-semibold text-primary'
+                  : 'top-1 text-sm font-normal text-muted-foreground/70',
+                isFloating && !isOpen && 'text-muted-foreground',
+                isInvalid && '!text-destructive',
+                labelClassName
+              )}
+            >
+              {label}
+            </label>
+          ) : null}
+          <Icons.calendar
+            className={cn(
+              'size-4 shrink-0 transition-colors',
+              isOpen ? 'text-primary' : 'text-muted-foreground'
+            )}
+          />
+        </div>
+
+        {error ? <p className='pt-0.5 text-[11px] font-normal text-destructive'>{error}</p> : null}
+
+        <div
+          ref={popupRef}
+          style={{ display: 'none' }}
+          className={cn(
+            'mt-2 overflow-hidden rounded-xl border border-border bg-card p-4 shadow-md',
+            popupClassName
+          )}
+        >
+          <CustomCalendar
+            value={value}
+            onChange={(isoStr, dateObj) => {
+              onChange(isoStr, dateObj);
+              animateClose(() => setIsOpen(false));
+            }}
+            minYear={minYear}
+            maxYear={maxYear}
+            disablePastDates={disablePastDates}
+            disableFutureDates={disableFutureDates}
+            isDateDisabled={isDateDisabled}
+            onSelectDropdownChange={(open) => {
+              isSelectOpenRef.current = open;
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div ref={containerRef} className={cn('relative space-y-1.5', className)}>
@@ -143,9 +231,7 @@ export function CustomDatePicker({
         <label
           htmlFor={id}
           className={cn(
-            variant === 'outline'
-              ? 'flex w-fit items-center gap-1 text-sm font-medium leading-snug text-foreground'
-              : 'block text-xs font-normal text-muted-foreground',
+            'flex w-fit items-center gap-1 text-sm font-medium leading-snug text-foreground',
             labelClassName
           )}
         >
@@ -153,7 +239,6 @@ export function CustomDatePicker({
         </label>
       ) : null}
 
-      {/* Trigger row matching design system inputs with full border stroke */}
       <div
         id={`${id}-trigger`}
         role='button'
@@ -168,10 +253,8 @@ export function CustomDatePicker({
           }
         }}
         className={cn(
-          variant === 'outline'
-            ? 'flex h-9 w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-1 shadow-xs transition-[color,box-shadow] outline-none select-none dark:bg-input/30 hover:bg-accent/40 dark:hover:bg-input/50 focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]'
-            : 'flex cursor-pointer items-center justify-between border-b-[1.5px] border-border pb-1 transition-colors duration-200 focus-within:border-primary select-none',
-          isOpen && variant === 'outline' && 'border-ring ring-ring/50 ring-[3px]',
+          'flex h-9 w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-input bg-transparent px-3 py-1 shadow-xs transition-[color,box-shadow] outline-none select-none dark:bg-input/30 hover:bg-accent/40 dark:hover:bg-input/50 focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]',
+          isOpen && 'border-ring ring-ring/50 ring-[3px]',
           isInvalid && '!border-destructive ring-destructive/20 dark:ring-destructive/40',
           triggerClassName
         )}
@@ -183,23 +266,13 @@ export function CustomDatePicker({
           aria-label={ariaLabel}
           value={displayLabel}
           placeholder={placeholder}
-          className={cn(
-            'w-full min-w-0 cursor-pointer border-0 bg-transparent p-0 text-sm font-normal outline-none placeholder:text-muted-foreground pointer-events-none',
-            displayLabel ? 'text-foreground' : 'text-muted-foreground',
-            variant === 'underline' && 'py-1.5 text-primary placeholder:text-muted-foreground/60'
-          )}
+          className='w-full min-w-0 cursor-pointer border-0 bg-transparent p-0 text-sm font-normal outline-none placeholder:text-muted-foreground pointer-events-none'
         />
-        <Icons.calendar
-          className={cn(
-            'size-4 shrink-0',
-            variant === 'outline' ? 'text-muted-foreground' : 'text-primary'
-          )}
-        />
+        <Icons.calendar className='size-4 shrink-0 text-muted-foreground' />
       </div>
 
       {error ? <p className='pt-0.5 text-[11px] font-normal text-destructive'>{error}</p> : null}
 
-      {/* Embedded Master Custom Calendar Popup with GSAP */}
       <div
         ref={popupRef}
         style={{ display: 'none' }}

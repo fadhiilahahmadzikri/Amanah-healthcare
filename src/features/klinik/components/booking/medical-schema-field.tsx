@@ -2,17 +2,10 @@ import type { AnyFieldApi } from '@tanstack/form-core';
 import * as React from 'react';
 
 import { FieldDescription, FieldError, FieldLegend, FieldSet } from '@/components/ui/field';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
+import { PatientLineSelect } from '@/features/data-pasien/components/registration/atoms/patient-line-select';
+import { PatientLineTextarea } from '@/features/data-pasien/components/registration/atoms/patient-line-textarea';
 import { PatientBirthdatePicker } from '@/features/data-pasien/components/registration/molecules/patient-birthdate-picker';
 import { cn } from '@/lib/utils';
 
@@ -204,50 +197,26 @@ export function MedicalSchemaField({
     const placeholder = getFieldPlaceholder(schemaField);
 
     return (
-      <div className={cn('relative pt-2', colSpanClass)}>
-        <label
-          htmlFor={schemaField.id}
-          className={cn(
-            'block text-[11px] font-semibold transition-colors duration-200 select-none',
-            value ? 'text-primary' : 'text-muted-foreground/80',
-            isInvalid && '!text-destructive'
-          )}
-        >
-          {schemaField.title}
-          {requiredAsterisk}
-        </label>
-        <Select
-          value={value}
-          disabled={schemaField.disabled}
-          onValueChange={(nextValue) => {
-            fieldApi.handleChange(nextValue);
-            fieldApi.handleBlur();
-          }}
-        >
-          <SelectTrigger
-            id={schemaField.id}
-            aria-invalid={isInvalid}
-            className={cn(
-              'w-full cursor-pointer rounded-none border-0 border-b-[1.5px] border-border bg-transparent px-0 py-1.5 text-sm font-medium shadow-none transition-colors duration-200 focus:border-primary focus:ring-0 focus-visible:ring-0 select-none',
-              isInvalid && '!border-destructive'
-            )}
-          >
-            <SelectValue placeholder={placeholder} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {schemaField.choices.map((choice) => (
-                <SelectItem key={choice} value={choice} className='cursor-pointer'>
-                  {choice}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-        {displayError ? (
-          <p className='pt-0.5 text-[11px] font-normal text-destructive'>{displayError}</p>
-        ) : null}
-      </div>
+      <PatientLineSelect
+        id={schemaField.id}
+        label={
+          <span>
+            {schemaField.title}
+            {requiredAsterisk}
+          </span>
+        }
+        value={value}
+        onChange={(nextValue) => {
+          fieldApi.handleChange(nextValue);
+          fieldApi.handleBlur();
+        }}
+        options={schemaField.choices}
+        placeholder={placeholder}
+        error={displayError}
+        invalid={isInvalid}
+        disabled={schemaField.disabled}
+        containerClassName={colSpanClass}
+      />
     );
   }
 
@@ -255,40 +224,23 @@ export function MedicalSchemaField({
     const placeholder = getFieldPlaceholder(schemaField);
 
     return (
-      <div className={cn('relative pt-2', colSpanClass)}>
-        <label
-          htmlFor={schemaField.id}
-          className={cn(
-            'block text-[11px] font-semibold transition-colors duration-200 select-none',
-            value ? 'text-primary' : 'text-muted-foreground/80',
-            isInvalid && '!text-destructive'
-          )}
-        >
-          {schemaField.title}
-          {requiredAsterisk}
-        </label>
-        <div
-          className={cn(
-            'border-b-[1.5px] border-border transition-colors duration-200 focus-within:border-primary',
-            isInvalid && '!border-destructive'
-          )}
-        >
-          <Textarea
-            id={schemaField.id}
-            value={value}
-            placeholder={placeholder}
-            disabled={schemaField.disabled}
-            onBlur={fieldApi.handleBlur}
-            onChange={(event) => fieldApi.handleChange(event.target.value)}
-            aria-invalid={isInvalid}
-            rows={2}
-            className='w-full resize-none rounded-none border-0 bg-transparent px-0 py-1 text-sm font-medium shadow-none outline-none focus-visible:ring-0'
-          />
-        </div>
-        {displayError ? (
-          <p className='pt-0.5 text-[11px] font-normal text-destructive'>{displayError}</p>
-        ) : null}
-      </div>
+      <PatientLineTextarea
+        id={schemaField.id}
+        label={
+          <span>
+            {schemaField.title}
+            {requiredAsterisk}
+          </span>
+        }
+        value={value}
+        onChange={(nextValue) => fieldApi.handleChange(nextValue)}
+        onBlur={fieldApi.handleBlur}
+        placeholder={placeholder}
+        error={displayError}
+        invalid={isInvalid}
+        disabled={schemaField.disabled}
+        containerClassName={colSpanClass}
+      />
     );
   }
 
@@ -296,24 +248,26 @@ export function MedicalSchemaField({
     const placeholder = getFieldPlaceholder(schemaField);
 
     return (
-      <div className={cn('relative pt-2', colSpanClass)}>
-        <PatientBirthdatePicker
-          id={schemaField.id}
-          value={value}
-          onChange={(nextValue) => {
-            fieldApi.handleChange(nextValue);
-            fieldApi.handleBlur();
-          }}
-          variant='underline'
-          label={schemaField.title + (schemaField.required ? ' *' : '')}
-          labelClassName='text-[11px] font-semibold text-primary'
-          placeholder={placeholder}
-          ariaLabel={schemaField.title}
-          error={displayError}
-          invalid={isInvalid}
-          className='w-full space-y-1'
-        />
-      </div>
+      <PatientBirthdatePicker
+        id={schemaField.id}
+        value={value}
+        onChange={(nextValue) => {
+          fieldApi.handleChange(nextValue);
+          fieldApi.handleBlur();
+        }}
+        variant='underline'
+        label={
+          <span>
+            {schemaField.title}
+            {requiredAsterisk}
+          </span>
+        }
+        placeholder={placeholder}
+        ariaLabel={schemaField.title}
+        error={displayError}
+        invalid={isInvalid}
+        className={colSpanClass}
+      />
     );
   }
 
@@ -329,7 +283,12 @@ export function MedicalSchemaField({
     return (
       <PatientLineInput
         id={schemaField.id}
-        label={schemaField.title + (schemaField.required ? ' *' : '')}
+        label={
+          <span>
+            {schemaField.title}
+            {requiredAsterisk}
+          </span>
+        }
         value={value}
         onChange={(nextVal) =>
           fieldApi.handleChange(normalizeMedicalFieldInput(schemaField, nextVal))
@@ -369,7 +328,12 @@ export function MedicalSchemaField({
   return (
     <PatientLineInput
       id={schemaField.id}
-      label={schemaField.title + (schemaField.required ? ' *' : '')}
+      label={
+        <span>
+          {schemaField.title}
+          {requiredAsterisk}
+        </span>
+      }
       value={value}
       onChange={(nextVal) =>
         fieldApi.handleChange(normalizeMedicalFieldInput(schemaField, nextVal))
