@@ -25,6 +25,49 @@ export const ALLERGY_GATEWAY_CHOICE = {
   NO: 'Tidak ada alergi'
 } as const;
 
+export interface VaccineItem {
+  id: string;
+  name: string;
+  ageGroup: string;
+  description: string;
+}
+
+export const CORE_VACCINE_LIST: VaccineItem[] = [
+  { id: 'HB_0', name: 'HB 0', ageGroup: 'Saat Lahir', description: 'Hepatitis B (< 24 jam)' },
+  { id: 'BCG', name: 'BCG', ageGroup: '1 Bulan', description: 'Tuberkulosis (TBC)' },
+  {
+    id: 'PENTA_1',
+    name: 'PENTA 1 / Heksavalen 1',
+    ageGroup: '2 Bulan',
+    description: 'DPT-HB-Hib 1 atau Kombo 6-in-1'
+  },
+  { id: 'IPV_1', name: 'IPV 1', ageGroup: '2 Bulan', description: 'Polio suntik 1' },
+  { id: 'PCV_1', name: 'PCV 1', ageGroup: '2 Bulan', description: 'Pneumokokus 1' },
+  { id: 'RV_1', name: 'RV 1', ageGroup: '2 Bulan', description: 'Rotavirus tetes 1' },
+  {
+    id: 'PENTA_2',
+    name: 'PENTA 2 / Heksavalen 2',
+    ageGroup: '3 Bulan',
+    description: 'DPT-HB-Hib 2 atau Kombo 6-in-1'
+  },
+  { id: 'IPV_2', name: 'IPV 2', ageGroup: '3 Bulan', description: 'Polio suntik 2' },
+  { id: 'PCV_2', name: 'PCV 2', ageGroup: '3 Bulan', description: 'Pneumokokus 2' },
+  { id: 'RV_2', name: 'RV 2', ageGroup: '3 Bulan', description: 'Rotavirus tetes 2' },
+  {
+    id: 'PENTA_3',
+    name: 'PENTA 3 / Heksavalen 3',
+    ageGroup: '4 Bulan',
+    description: 'DPT-HB-Hib 3 atau Kombo 6-in-1'
+  },
+  { id: 'IPV_3', name: 'IPV 3', ageGroup: '4 Bulan', description: 'Polio suntik 3' },
+  { id: 'RV_3', name: 'RV 3', ageGroup: '4 Bulan', description: 'Rotavirus tetes 3' },
+  { id: 'MR', name: 'MR', ageGroup: '9 Bulan', description: 'Campak Rubela' },
+  { id: 'JE', name: 'JE', ageGroup: '10 Bulan', description: 'Japanese Encephalitis' },
+  { id: 'PCV_B', name: 'PCV-B', ageGroup: '12 Bulan', description: 'Booster Pneumokokus' },
+  { id: 'PENTA_B', name: 'PENTA-B', ageGroup: '18 Bulan', description: 'Booster DPT-HB-Hib' },
+  { id: 'MR_B', name: 'MR-B', ageGroup: '18 Bulan', description: 'Booster Campak Rubela' }
+];
+
 export const REPEATABLE_GROUP_KEYS = {
   PREGNANCY: 'pregnancy',
   CONTRACEPTION: 'contraception'

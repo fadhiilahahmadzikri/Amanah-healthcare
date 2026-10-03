@@ -72,19 +72,34 @@ export class ImmunizationFakerFactory {
     ];
     const timeSlot = timeSlots[faker.number.int({ min: 0, max: timeSlots.length - 1 })];
 
+    const values: Record<string, string> = {
+      childName,
+      childNik,
+      childBirthDate,
+      childSex,
+      parentPhone,
+      fatherName,
+      motherName,
+      childAddress,
+      hasVaccineHistory: 'Ya, pernah',
+      vaccine_HB_0_status: 'Sudah',
+      vaccine_HB_0_date: childBirthDate,
+      vaccine_BCG_status: 'Sudah',
+      vaccine_PENTA_1_status: 'Sudah',
+      vaccine_IPV_1_status: 'Sudah',
+      vaccine_PCV_1_status: 'Sudah',
+      vaccine_RV_1_status: 'Sudah',
+      vaccine_PENTA_2_status: 'Belum',
+      vaccine_IPV_2_status: 'Belum',
+      vaccine_PCV_2_status: 'Belum',
+      otherVaccinesNote: 'Polio tetes 4 kali di Puskesmas',
+      hasAllergyHistory: 'Tidak ada alergi',
+      previousVaccineHistory,
+      childAllergyHistory
+    };
+
     return {
-      values: {
-        childName,
-        childNik,
-        childBirthDate,
-        childSex,
-        parentPhone,
-        fatherName,
-        motherName,
-        childAddress,
-        previousVaccineHistory,
-        childAllergyHistory
-      },
+      values,
       schedule: {
         dateStr: scheduleDateStr,
         timeSlot

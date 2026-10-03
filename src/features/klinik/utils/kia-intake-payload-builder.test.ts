@@ -153,4 +153,44 @@ describe('kia-intake-payload-builder', () => {
     expect(payload.motherName).toBe('Ny. Siti');
     expect(payload.fatherName).toBe('Tn. Budi');
   });
+
+  it('formats structured vaccine checklist into previousVaccineHistory summary string', () => {
+    const values = {
+      childNik: '3201234567890009',
+      childName: 'Bayi Ahmad',
+      childBirthDate: '2025-06-01',
+      childSex: GENDER_CHOICE.MALE,
+      parentPhone: '081234567899',
+      hasVaccineHistory: 'Ya, pernah',
+      vaccine_HB_0_status: 'Sudah',
+      vaccine_HB_0_date: '2025-06-02',
+      vaccine_BCG_status: 'Sudah',
+      vaccine_BCG_date: '2025-07-01',
+      vaccine_PENTA_1_status: 'Belum',
+      otherVaccinesNote: 'Polio tetes 2 kali',
+      hasAllergyHistory: 'Tidak ada alergi'
+    };
+
+    const payload = buildChildImmunizationIntakePayload('pat-1', values);
+    expect(payload.previousVaccineHistory).toContain('HB 0: Sudah (2025-06-02)');
+    expect(payload.previousVaccineHistory).toContain('BCG: Sudah (2025-07-01)');
+    expect(payload.previousVaccineHistory).toContain('PENTA 1 / Heksavalen 1: Belum');
+    expect(payload.previousVaccineHistory).toContain('Lainnya: Polio tetes 2 kali');
+    expect(payload.childAllergyHistory).toBe('Tidak ada riwayat alergi.');
+  });
+
+  it('sets previousVaccineHistory to Belum pernah sama sekali when gateway is negative', () => {
+    const values = {
+      childNik: '3201234567890009',
+      childName: 'Bayi Ahmad',
+      childBirthDate: '2025-06-01',
+      childSex: GENDER_CHOICE.MALE,
+      parentPhone: '081234567899',
+      hasVaccineHistory: 'Belum pernah sama sekali',
+      hasAllergyHistory: 'Tidak ada alergi'
+    };
+
+    const payload = buildChildImmunizationIntakePayload('pat-1', values);
+    expect(payload.previousVaccineHistory).toBe('Belum pernah imunisasi sama sekali');
+  });
 });

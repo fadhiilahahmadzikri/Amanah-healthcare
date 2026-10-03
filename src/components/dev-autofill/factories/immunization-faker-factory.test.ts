@@ -19,6 +19,9 @@ describe('ImmunizationFakerFactory', () => {
     expect(v.childAddress).toBeTruthy();
     expect(v.previousVaccineHistory).toBeTruthy();
     expect(v.childAllergyHistory).toBeTruthy();
+    expect(v.hasVaccineHistory).toBe('Ya, pernah');
+    expect(v.hasAllergyHistory).toBe('Tidak ada alergi');
+    expect(v.vaccine_HB_0_status).toBe('Sudah');
 
     expect(result.schedule.dateStr).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(result.schedule.timeSlot).toBeTruthy();

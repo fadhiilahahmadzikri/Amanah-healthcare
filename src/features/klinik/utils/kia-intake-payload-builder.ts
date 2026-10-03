@@ -7,11 +7,14 @@ import type {
   HusbandPayload
 } from '../api/kia-intake-service';
 import {
+  ALLERGY_GATEWAY_CHOICE,
   CONTRACEPTION_CHOICE,
+  CORE_VACCINE_LIST,
   GENDER_CHOICE,
   MATERNAL_CONDITION_CODES,
   MATERNAL_QUESTION_CODES,
-  PREVIOUS_PREGNANCY_CHOICE
+  PREVIOUS_PREGNANCY_CHOICE,
+  VACCINE_GATEWAY_CHOICE
 } from '../constants/kia-constants';
 import { parsePureInteger, parsePureNumeric } from './numeric-parser';
 
@@ -308,6 +311,41 @@ export function buildChildImmunizationIntakePayload(
   patientName?: string,
   patientContact?: string
 ): CreateChildImmunizationPayload {
+  let previousVaccineHistory = submittedValues.previousVaccineHistory || null;
+  if (!previousVaccineHistory) {
+    if (submittedValues.hasVaccineHistory === VACCINE_GATEWAY_CHOICE.NO) {
+      previousVaccineHistory = 'Belum pernah imunisasi sama sekali';
+    } else if (submittedValues.hasVaccineHistory === VACCINE_GATEWAY_CHOICE.YES) {
+      const summaryItems: string[] = [];
+      for (const vaccine of CORE_VACCINE_LIST) {
+        const status = submittedValues[`vaccine_${vaccine.id}_status`];
+        const date = submittedValues[`vaccine_${vaccine.id}_date`];
+        if (status) {
+          if (status === 'Sudah' && date) {
+            summaryItems.push(`${vaccine.name}: Sudah (${date})`);
+          } else {
+            summaryItems.push(`${vaccine.name}: ${status}`);
+          }
+        }
+      }
+      if (submittedValues.otherVaccinesNote) {
+        summaryItems.push(`Lainnya: ${submittedValues.otherVaccinesNote}`);
+      }
+      if (summaryItems.length > 0) {
+        previousVaccineHistory = summaryItems.join('; ');
+      }
+    }
+  }
+
+  let childAllergyHistory = submittedValues.childAllergyHistory || null;
+  if (!childAllergyHistory) {
+    if (submittedValues.hasAllergyHistory === ALLERGY_GATEWAY_CHOICE.NO) {
+      childAllergyHistory = 'Tidak ada riwayat alergi.';
+    } else if (submittedValues.hasAllergyHistory === ALLERGY_GATEWAY_CHOICE.YES) {
+      childAllergyHistory = 'Ada riwayat alergi.';
+    }
+  }
+
   return {
     patientId,
     childName: submittedValues.childName || patientName || '',
@@ -319,7 +357,7 @@ export function buildChildImmunizationIntakePayload(
     fatherName: submittedValues.fatherName || null,
     motherName: submittedValues.motherName || null,
     childAddress: submittedValues.childAddress || null,
-    previousVaccineHistory: submittedValues.previousVaccineHistory || null,
-    childAllergyHistory: submittedValues.childAllergyHistory || null
+    previousVaccineHistory,
+    childAllergyHistory
   };
 }
