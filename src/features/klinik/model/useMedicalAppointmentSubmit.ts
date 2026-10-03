@@ -86,21 +86,50 @@ export function useMedicalAppointmentSubmit({
             let resolvedPatientName = selectedPatient?.fullName || patientName || '';
 
             if (!resolvedPatientId) {
-              const targetName = (
-                submittedValues.motherName ||
-                submittedValues.patientName ||
-                patientName ||
-                ''
-              ).trim();
-              const targetNik = (submittedValues.motherNik || submittedValues.nik || '').trim();
-              const targetBirthDate =
-                submittedValues.motherBirthDate || submittedValues.birthDate || '';
-              const targetBirthPlace =
-                submittedValues.motherBirthPlace || submittedValues.birthPlace || 'Jakarta';
-              const targetBloodType = submittedValues.motherBloodType || 'Belum Tahu';
-              const targetPhone = submittedValues.phoneNumber || patientContact || '';
-              const targetAddress =
-                submittedValues.domicileAddress || submittedValues.residenceAddress || '';
+              const isImmunization = definition.flow === FLOW_NAMES.IMMUNIZATION;
+              const targetName =
+                (isImmunization
+                  ? submittedValues.childName || patientName
+                  : submittedValues.motherName || submittedValues.patientName || patientName
+                )?.trim() || '';
+
+              const targetNik =
+                (isImmunization
+                  ? submittedValues.childNik
+                  : submittedValues.motherNik || submittedValues.nik
+                )?.trim() || '';
+
+              const targetBirthDate = isImmunization
+                ? submittedValues.childBirthDate || ''
+                : submittedValues.motherBirthDate || submittedValues.birthDate || '';
+
+              const targetBirthPlace = isImmunization
+                ? submittedValues.childBirthPlace || 'Jakarta'
+                : submittedValues.motherBirthPlace || submittedValues.birthPlace || 'Jakarta';
+
+              const targetGender = isImmunization
+                ? submittedValues.childSex === 'Perempuan'
+                  ? 'Perempuan'
+                  : 'Laki-laki'
+                : 'Perempuan';
+
+              const targetBloodType = isImmunization
+                ? submittedValues.childBloodType || 'Belum Tahu'
+                : submittedValues.motherBloodType || 'Belum Tahu';
+
+              const targetPhone = isImmunization
+                ? submittedValues.parentPhone || patientContact || ''
+                : submittedValues.phoneNumber || patientContact || '';
+
+              const targetAddress = isImmunization
+                ? submittedValues.childAddress || ''
+                : submittedValues.domicileAddress || submittedValues.residenceAddress || '';
+
+              const targetMotherName =
+                submittedValues.motherName || submittedValues.ibuKandung || targetName;
+
+              const targetRelationship =
+                (newPatientRelationship as any) || (isImmunization ? 'child' : 'relative');
 
               if (!targetName || !targetNik) {
                 toast.error('Nama dan NIK pasien wajib diisi.');
@@ -113,10 +142,10 @@ export function useMedicalAppointmentSubmit({
                 nik: targetNik,
                 birth_date: targetBirthDate,
                 tempat_lahir: targetBirthPlace,
-                gender: 'Perempuan',
+                gender: targetGender,
                 blood_type: targetBloodType as any,
-                nama_ibu_kandung: submittedValues.ibuKandung || targetName,
-                relationship_type: (newPatientRelationship as any) || 'relative',
+                nama_ibu_kandung: targetMotherName,
+                relationship_type: targetRelationship,
                 phone: targetPhone,
                 alamat_detail: targetAddress
               });
@@ -157,7 +186,11 @@ export function useMedicalAppointmentSubmit({
               serviceId: selectedService.id,
               serviceName: selectedService.name,
               poliklinikId: selectedService.poliklinikId,
-              complaint: complaint || 'Pemeriksaan Persalinan',
+              complaint:
+                complaint ||
+                (definition.flow === FLOW_NAMES.IMMUNIZATION
+                  ? 'Imunisasi Anak'
+                  : 'Pemeriksaan Persalinan'),
               sourceIntakeId,
               medicalFlow: definition.flow
             };
@@ -179,8 +212,12 @@ export function useMedicalAppointmentSubmit({
         doctor: schedule?.doctor || '',
         dateStr: schedule?.dateStr || '',
         timeSlot: schedule?.timeSlot || '',
-        complaint,
-        patientName,
+        complaint:
+          complaint ||
+          (definition.flow === FLOW_NAMES.IMMUNIZATION
+            ? 'Imunisasi Anak'
+            : 'Pemeriksaan Persalinan'),
+        patientName: patientName || submittedValues.childName || submittedValues.motherName || '',
         patientEmail,
         patientAvatar: registeredPatient?.avatar,
         medicalFlow: definition.flow,
