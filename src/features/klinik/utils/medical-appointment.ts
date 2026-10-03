@@ -14,7 +14,8 @@ import {
   CONTRACEPTION_CHOICE,
   FLOW_NAMES,
   PREVIOUS_PREGNANCY_CHOICE,
-  SECTION_IDS
+  SECTION_IDS,
+  VACCINE_GATEWAY_CHOICE
 } from '../constants/kia-constants';
 import { normalizeBirthDate } from './medical-form-helpers';
 
@@ -79,6 +80,10 @@ export function getActiveMedicalSections(
 
     if (contraceptionSectionIds.has(section.id)) {
       return values.hasContraceptionHistory === CONTRACEPTION_CHOICE.YES;
+    }
+
+    if (section.id === 'vaccineHistory') {
+      return values.hasVaccineHistory === VACCINE_GATEWAY_CHOICE.YES;
     }
 
     return true;

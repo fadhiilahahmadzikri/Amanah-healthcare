@@ -15,6 +15,16 @@ export const CONTRACEPTION_CHOICE = {
   NO: 'Belum pernah'
 } as const;
 
+export const VACCINE_GATEWAY_CHOICE = {
+  YES: 'Ya, pernah',
+  NO: 'Belum pernah sama sekali'
+} as const;
+
+export const ALLERGY_GATEWAY_CHOICE = {
+  YES: 'Ada riwayat alergi',
+  NO: 'Tidak ada alergi'
+} as const;
+
 export const REPEATABLE_GROUP_KEYS = {
   PREGNANCY: 'pregnancy',
   CONTRACEPTION: 'contraception'
@@ -60,6 +70,11 @@ export const SECTION_IDS = {
   CONTRACEPTION_3: 'contraception3Details',
   CONTRACEPTION_4: 'contraception4Details',
   LIFESTYLE: 'lifestyle',
+  CHILD_IDENTITY: 'childIdentity',
+  PARENT_IDENTITY: 'parentIdentity',
+  VACCINE_GATEWAY: 'vaccineGateway',
+  VACCINE_HISTORY: 'vaccineHistory',
+  ALLERGY_HISTORY: 'allergyHistory',
   IMMUNIZATION_PATIENT_IDENTITY: 'immunizationPatientIdentity',
   IMMUNIZATION_PARENT_IDENTITY: 'immunizationParentIdentity',
   IMMUNIZATION_MEDICAL_HISTORY: 'immunizationMedicalHistory'
@@ -68,6 +83,9 @@ export const SECTION_IDS = {
 export const FIELD_IDS = {
   HAS_PREVIOUS_PREGNANCY_HISTORY: 'hasPreviousPregnancyHistory',
   HAS_CONTRACEPTION_HISTORY: 'hasContraceptionHistory',
+  HAS_VACCINE_HISTORY: 'hasVaccineHistory',
+  HAS_ALLERGY_HISTORY: 'hasAllergyHistory',
+  OTHER_VACCINES_NOTE: 'otherVaccinesNote',
   PRE_PREGNANCY_WEIGHT: 'prePregnancyWeightKg',
   HEIGHT_CM: 'heightCm',
   INITIAL_BMI: 'initialBmi',

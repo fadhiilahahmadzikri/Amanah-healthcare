@@ -10,7 +10,8 @@ import {
   buildMedicalIntakeRecord,
   calculateAgeInYears,
   calculateBmi,
-  findMedicalField
+  findMedicalField,
+  getActiveMedicalSections
 } from './medical-appointment';
 import {
   getReservationMedicalFlow,
@@ -250,13 +251,14 @@ describe('Medical Appointment Flows', () => {
   });
 
   describe('Immunization Form Registration Design', () => {
-    it('structures immunization form into exactly 3 patient-filled sections', () => {
-      expect(immunizationFlowDefinition.sections.length).toBe(3);
-      expect(immunizationFlowDefinition.sections.map((s) => s.id)).toEqual([
-        'childIdentity',
-        'parentIdentity',
-        'vaccineAndAllergyHistory'
-      ]);
+    it('structures immunization form into distinct identity, vaccine gateway, vaccine history, and allergy sections', () => {
+      const sectionIds = immunizationFlowDefinition.sections.map((s) => s.id);
+      expect(sectionIds).toContain('childIdentity');
+      expect(sectionIds).toContain('parentIdentity');
+      expect(sectionIds).toContain('vaccineGateway');
+      expect(sectionIds).toContain('vaccineHistory');
+      expect(sectionIds).toContain('allergyHistory');
+      expect(sectionIds).not.toContain('vaccineAndAllergyHistory');
     });
 
     it('contains all required patient/parent registration fields', () => {
@@ -271,19 +273,35 @@ describe('Medical Appointment Flows', () => {
       expect(fieldIds).toContain('fatherName');
       expect(fieldIds).toContain('motherName');
       expect(fieldIds).toContain('childAddress');
-      expect(fieldIds).toContain('previousVaccineHistory');
-      expect(fieldIds).toContain('childAllergyHistory');
+      expect(fieldIds).toContain('hasVaccineHistory');
+      expect(fieldIds).toContain('hasAllergyHistory');
 
-      // Uses DATE picker for childBirthDate
       const birthDateField = findMedicalField(immunizationFlowDefinition, 'childBirthDate');
       expect(birthDateField?.type).toBe('DATE');
+    });
+
+    it('skips vaccineHistory section when gateway answer is Belum pernah sama sekali', () => {
+      const activeSectionsWithNoHistory = getActiveMedicalSections(immunizationFlowDefinition, {
+        hasVaccineHistory: 'Belum pernah sama sekali'
+      });
+      const ids = activeSectionsWithNoHistory.map((s) => s.id);
+      expect(ids).not.toContain('vaccineHistory');
+      expect(ids).toContain('allergyHistory');
+    });
+
+    it('includes vaccineHistory section when gateway answer is Ya, pernah', () => {
+      const activeSectionsWithHistory = getActiveMedicalSections(immunizationFlowDefinition, {
+        hasVaccineHistory: 'Ya, pernah'
+      });
+      const ids = activeSectionsWithHistory.map((s) => s.id);
+      expect(ids).toContain('vaccineHistory');
+      expect(ids).toContain('allergyHistory');
     });
 
     it('excludes clinical staff examination fields from patient registration', () => {
       const fieldIds = immunizationFlowDefinition.sections.flatMap((s) =>
         s.fields.map((f) => f.id)
       );
-      // Clinical observation / physical measurement fields must not be present
       expect(fieldIds).not.toContain('weightKg');
       expect(fieldIds).not.toContain('heightCm');
       expect(fieldIds).not.toContain('bodyTemperature');
