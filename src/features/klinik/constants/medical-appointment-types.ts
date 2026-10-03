@@ -16,6 +16,7 @@ export interface MedicalFormField {
   yearFieldId?: string;
   notesFieldId?: string;
   disabled?: boolean;
+  visibleIf?: (values: Record<string, string>) => boolean;
 }
 
 export interface MedicalFormSection {

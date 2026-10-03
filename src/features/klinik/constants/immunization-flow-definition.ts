@@ -1,4 +1,4 @@
-import type { MedicalFlowDefinition, MedicalFormField } from './medical-appointment-types';
+import type { MedicalFlowDefinition } from './medical-appointment-types';
 import {
   DATE,
   LIST,
@@ -9,74 +9,6 @@ import {
   optionalField
 } from './medical-appointment-field-builders';
 import { ALLERGY_GATEWAY_CHOICE, VACCINE_GATEWAY_CHOICE } from './kia-constants';
-
-const vaccineCodes = [
-  { id: 'HB_0', title: 'HB 0 (Hepatitis B 0)', label: 'HB 0' },
-  { id: 'BCG', title: 'BCG', label: 'BCG' },
-  { id: 'PENTA_1', title: 'PENTA 1 / Heksavalen 1', label: 'PENTA 1' },
-  { id: 'IPV_1', title: 'IPV 1 (Polio suntik 1)', label: 'IPV 1' },
-  { id: 'PCV_1', title: 'PCV 1 (Pneumokokus 1)', label: 'PCV 1' },
-  { id: 'RV_1', title: 'RV 1 (Rotavirus tetes 1)', label: 'RV 1' },
-  { id: 'PENTA_2', title: 'PENTA 2 / Heksavalen 2', label: 'PENTA 2' },
-  { id: 'IPV_2', title: 'IPV 2 (Polio suntik 2)', label: 'IPV 2' },
-  { id: 'PCV_2', title: 'PCV 2 (Pneumokokus 2)', label: 'PCV 2' },
-  { id: 'RV_2', title: 'RV 2 (Rotavirus tetes 2)', label: 'RV 2' },
-  { id: 'PENTA_3', title: 'PENTA 3 / Heksavalen 3', label: 'PENTA 3' },
-  { id: 'IPV_3', title: 'IPV 3 (Polio suntik 3)', label: 'IPV 3' },
-  { id: 'RV_3', title: 'RV 3 (Rotavirus tetes 3)', label: 'RV 3' },
-  { id: 'MR', title: 'MR (Campak Rubela)', label: 'MR' },
-  { id: 'JE', title: 'JE (Japanese Encephalitis)', label: 'JE' },
-  { id: 'PCV_B', title: 'PCV-B (Booster PCV)', label: 'PCV-B' },
-  { id: 'PENTA_B', title: 'PENTA-B (Booster DPT-HB-Hib)', label: 'PENTA-B' },
-  { id: 'MR_B', title: 'MR-B (Booster Campak Rubela)', label: 'MR-B' }
-];
-
-function buildVaccineChecklistFields(): MedicalFormField[] {
-  const fields: MedicalFormField[] = [];
-
-  for (const v of vaccineCodes) {
-    fields.push(
-      optionalField(`vaccine_${v.id}_status`, MULTIPLE_CHOICE, v.title, `${v.label} - status`, {
-        choices: ['Sudah', 'Belum', 'Tidak tahu'],
-        colSpan: 1
-      })
-    );
-    fields.push(
-      optionalField(
-        `vaccine_${v.id}_date`,
-        DATE,
-        `Tanggal suntik ${v.label}`,
-        `${v.label} - tanggal`,
-        {
-          colSpan: 1
-        }
-      )
-    );
-  }
-
-  fields.push(
-    optionalField('otherVaccinesNote', PARAGRAPH, 'Imunisasi lain', 'Imunisasi lain', {
-      helpText:
-        'Tuliskan jika ada imunisasi lain seperti polio tetes, influenza, atau catatan lain.',
-      placeholder: 'Contoh: Polio tetes 4 kali di Puskesmas...',
-      colSpan: 'full'
-    })
-  );
-
-  fields.push(
-    optionalField(
-      'previousVaccineHistory',
-      PARAGRAPH,
-      'Ringkasan riwayat vaksinasi',
-      'Riwayat vaksin',
-      {
-        colSpan: 'full'
-      }
-    )
-  );
-
-  return fields;
-}
 
 export const immunizationFlowDefinition: MedicalFlowDefinition = {
   flow: 'immunization',
@@ -164,7 +96,7 @@ export const immunizationFlowDefinition: MedicalFlowDefinition = {
       title: 'Daftar Riwayat Vaksinasi Anak',
       description: 'Pilih status pemberian vaksin yang diingat atau sesuai catatan Buku KIA.',
       layout: 'questionnaire',
-      fields: buildVaccineChecklistFields()
+      fields: []
     },
     {
       id: 'allergyHistory',
@@ -190,8 +122,9 @@ export const immunizationFlowDefinition: MedicalFlowDefinition = {
           {
             helpText:
               'Tuliskan jika anak memiliki riwayat alergi obat, makanan, vaksin, atau hal lain.',
-            placeholder: 'Contoh: Alergi antibiotik, alergi telur, atau tidak ada...',
-            colSpan: 'full'
+            placeholder: 'Contoh: Alergi antibiotik, alergi telur, atau hal lain...',
+            colSpan: 'full',
+            visibleIf: (values) => values.hasAllergyHistory === ALLERGY_GATEWAY_CHOICE.YES
           }
         )
       ]

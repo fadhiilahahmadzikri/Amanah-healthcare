@@ -46,4 +46,52 @@ describe('InspectorImmunizationTab Component', () => {
     expect(element).toBeDefined();
     expect(element.type).toBe(InspectorImmunizationTab);
   });
+
+  it('renders correctly with live backend immunization data shape', () => {
+    const liveBackendData: any = {
+      flow: 'immunization',
+      type: 'immunization',
+      child: {
+        id: '18a98efe-1f10-4449-9824-59509ea6602c',
+        childName: 'Laksana Herlambang',
+        childNik: '3201012509257504',
+        childBirthDate: '2025-09-25',
+        childSex: 'Laki-laki',
+        parentPhone: '085348441137',
+        fatherName: 'Nalar Hidayat',
+        motherName: 'Eka Anandya',
+        childAddress: 'Ki. Purnawarman no 3, Selong',
+        hasVaccineHistory: 'Ya, pernah',
+        hasAllergyHistory: 'Tidak ada alergi',
+        childAllergyHistory: 'Tidak ada'
+      },
+      answers: {
+        childName: 'Laksana Herlambang',
+        childNik: '3201012509257504',
+        childBirthDate: '2025-09-25',
+        childSex: 'Laki-laki',
+        parentPhone: '085348441137',
+        fatherName: 'Nalar Hidayat',
+        motherName: 'Eka Anandya',
+        childAddress: 'Ki. Purnawarman no 3, Selong',
+        hasVaccineHistory: 'Ya, pernah',
+        hasAllergyHistory: 'Tidak ada alergi',
+        childAllergyHistory: 'Tidak ada'
+      },
+      automatic: {
+        childAgeAtSubmit: ''
+      }
+    };
+
+    const element = React.createElement(InspectorImmunizationTab, {
+      appointment: {
+        id: 'ecf22581-b6a3-47f5-b1c3-df931baca024',
+        patient_name: 'Laksana Herlambang',
+        service: 'Imunisasi Dasar & Lanjutan'
+      } as any,
+      data: liveBackendData
+    });
+    expect(element).toBeDefined();
+    expect(element.type).toBe(InspectorImmunizationTab);
+  });
 });

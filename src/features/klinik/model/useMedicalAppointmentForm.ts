@@ -6,28 +6,16 @@ import { useAppForm } from '@/components/ui/tanstack-form';
 import { toast } from 'sonner';
 import type { AppointmentFormData, Doctor, MedicalAppointmentFlow } from '../api/types';
 import { getDoctorsByService } from '../api/service';
-import {
-  getMedicalFlowDefinition,
-  type MedicalFormSection
-} from '../constants/medical-appointment-schemas';
+import { getMedicalFlowDefinition, type MedicalFormSection } from '../constants/medical-appointment-schemas';
 import { enrichMedicalFlowDefinition, useMaternalCatalogs } from './useMaternalCatalogs';
 import {
-  buildDefaultMedicalValues,
-  getActiveMedicalSections,
-  type MedicalAppointmentValues
+  buildDefaultMedicalValues, getActiveMedicalSections, type MedicalAppointmentValues
 } from '../utils/medical-appointment';
 import {
-  type CatalogActionState,
-  type HistoryPromptState,
-  type HistoryRecordActions,
-  type RepeatableHistoryCounts,
-  type RepeatableHistoryGroup,
-  type RepeatableHistoryKey,
-  type ScheduleValues,
-  type StepDescriptor,
-  defaultHistoryCounts,
-  historyGroups,
-  scheduleStepDescriptors
+  type CatalogActionState, type HistoryPromptState, type HistoryRecordActions,
+  type RepeatableHistoryCounts, type RepeatableHistoryGroup, type RepeatableHistoryKey,
+  type ScheduleValues, type StepDescriptor,
+  defaultHistoryCounts, historyGroups, scheduleStepDescriptors
 } from './medical-form-history-types';
 import {
   buildMedicalActiveSteps,
@@ -38,7 +26,9 @@ import {
   isHistoryRecordEmpty,
   isHistorySectionVisible
 } from '../utils/medical-form-helpers';
-import { CATALOG_ACTION_TYPES, STEP_DESCRIPTOR_TYPES } from '../constants/kia-constants';
+import {
+  ALLERGY_GATEWAY_CHOICE, CATALOG_ACTION_TYPES, SECTION_IDS, STEP_DESCRIPTOR_TYPES
+} from '../constants/kia-constants';
 import { useMedicalFormHistory } from './useMedicalFormHistory';
 import { useMedicalFormCalculations } from './useMedicalFormCalculations';
 import { useRegisteredPatient } from './useRegisteredPatient';
@@ -51,14 +41,9 @@ import type {
 } from '@/features/data-pasien/api/patient-affiliation-service';
 
 export type {
-  CatalogActionState,
-  HistoryPromptState,
-  HistoryRecordActions,
-  RepeatableHistoryCounts,
-  RepeatableHistoryGroup,
-  RepeatableHistoryKey,
-  ScheduleValues,
-  StepDescriptor
+  CatalogActionState, HistoryPromptState, HistoryRecordActions,
+  RepeatableHistoryCounts, RepeatableHistoryGroup, RepeatableHistoryKey,
+  ScheduleValues, StepDescriptor
 };
 export { defaultHistoryCounts, historyGroups, scheduleStepDescriptors };
 
@@ -77,15 +62,8 @@ export interface UseMedicalAppointmentFormOptions {
 export type UseMedicalAppointmentFormResult = ReturnType<typeof useMedicalAppointmentForm>;
 
 export function useMedicalAppointmentForm({
-  flow,
-  isOpen,
-  selectedService,
-  selectedPatient,
-  newPatientRelationship,
-  onClose,
-  onCreated,
-  onCompleteIntake,
-  onBackToService
+  flow, isOpen, selectedService, selectedPatient, newPatientRelationship,
+  onClose, onCreated, onCompleteIntake, onBackToService
 }: UseMedicalAppointmentFormOptions) {
   const baseDefinition = React.useMemo(() => getMedicalFlowDefinition(flow), [flow]);
   const { catalogs } = useMaternalCatalogs(isOpen && flow === 'pregnancy');
@@ -93,10 +71,7 @@ export function useMedicalAppointmentForm({
     () => enrichMedicalFlowDefinition(baseDefinition, catalogs),
     [baseDefinition, catalogs]
   );
-  const defaultValues = React.useMemo(
-    () => buildDefaultMedicalValues(baseDefinition),
-    [baseDefinition]
-  );
+  const defaultValues = React.useMemo(() => buildDefaultMedicalValues(baseDefinition), [baseDefinition]);
   const doctors = React.useMemo<Doctor[]>(
     () => getDoctorsByService(definition.serviceName),
     [definition.serviceName]
@@ -165,10 +140,14 @@ export function useMedicalAppointmentForm({
       repeatableMedicalSections
         .map((section) => ({
           ...section,
-          fields: section.fields.filter((field) => !prefilledFieldIds.has(field.id))
+          fields: section.fields.filter(
+            (field) => !prefilledFieldIds.has(field.id) && (!field.visibleIf || field.visibleIf(values))
+          )
         }))
-        .filter((section) => section.fields.length > 0),
-    [repeatableMedicalSections, prefilledFieldIds]
+        .filter(
+          (section) => section.id === SECTION_IDS.VACCINE_HISTORY || section.fields.length > 0
+        ),
+    [repeatableMedicalSections, prefilledFieldIds, values]
   );
 
   const activeSteps = React.useMemo<StepDescriptor[]>(
@@ -250,6 +229,17 @@ export function useMedicalAppointmentForm({
     }
     prevPregnancyRef.current = values.hasPreviousPregnancyHistory;
   }, [history, values.hasPreviousPregnancyHistory]);
+
+  const prevAllergyRef = React.useRef(values.hasAllergyHistory);
+  React.useEffect(() => {
+    if (
+      values.hasAllergyHistory !== ALLERGY_GATEWAY_CHOICE.YES &&
+      prevAllergyRef.current === ALLERGY_GATEWAY_CHOICE.YES
+    ) {
+      form.setFieldValue('childAllergyHistory', '');
+    }
+    prevAllergyRef.current = values.hasAllergyHistory;
+  }, [form, values.hasAllergyHistory]);
 
   React.useEffect(() => {
     if (process.env.NODE_ENV === 'production') {

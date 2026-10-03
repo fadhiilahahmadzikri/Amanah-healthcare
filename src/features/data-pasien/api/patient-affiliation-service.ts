@@ -209,6 +209,8 @@ export interface CreateAppointmentPayload {
 
 export interface BackendAppointmentItem {
   id: string;
+  bookingCode?: string;
+  medicalFlow?: string;
   patientId: string;
   poliklinikId: string;
   poliklinikName?: string;

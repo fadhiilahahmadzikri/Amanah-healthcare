@@ -38,6 +38,7 @@ export function field(
       | 'notesFieldId'
       | 'placeholder'
       | 'disabled'
+      | 'visibleIf'
     >
   >
 ): MedicalFormField {
@@ -54,7 +55,8 @@ export function field(
     colSpan: options?.colSpan || (type === 'PARAGRAPH' ? 'full' : 1),
     yearFieldId: options?.yearFieldId,
     notesFieldId: options?.notesFieldId,
-    disabled: options?.disabled
+    disabled: options?.disabled,
+    visibleIf: options?.visibleIf
   };
 }
 
@@ -74,6 +76,7 @@ export function optionalField(
       | 'notesFieldId'
       | 'placeholder'
       | 'disabled'
+      | 'visibleIf'
     >
   >
 ): MedicalFormField {

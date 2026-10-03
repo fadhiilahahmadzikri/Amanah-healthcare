@@ -95,6 +95,10 @@ export function isSectionComplete(
   values: MedicalAppointmentValues
 ): boolean {
   return section.fields.every((field) => {
+    if (field.visibleIf && !field.visibleIf(values)) {
+      return true;
+    }
+
     if (!field.required) {
       return true;
     }
@@ -111,6 +115,7 @@ export function collectAnsweredFields(
 
   return activeSections.flatMap((section) =>
     section.fields
+      .filter((field) => !field.visibleIf || field.visibleIf(values))
       .map((field) => ({
         id: field.id,
         label: field.label,
@@ -316,7 +321,7 @@ function calculateGestationalAge(value: string, referenceDate: Date): string {
   return `${ga.formatted} (${ga.formattedMedical})`;
 }
 
-function calculateChildAge(value: string, referenceDate: Date): string {
+export function calculateChildAge(value: string, referenceDate: Date = new Date()): string {
   const birthDate = toDateOnly(value);
   const reference = toDateOnly(referenceDate);
 

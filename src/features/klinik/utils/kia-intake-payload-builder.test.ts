@@ -154,7 +154,7 @@ describe('kia-intake-payload-builder', () => {
     expect(payload.fatherName).toBe('Tn. Budi');
   });
 
-  it('formats structured vaccine checklist into previousVaccineHistory summary string', () => {
+  it('formats structured vaccine checklist into entries and previousVaccineHistory summary string', () => {
     const values = {
       childNik: '3201234567890009',
       childName: 'Bayi Ahmad',
@@ -167,16 +167,22 @@ describe('kia-intake-payload-builder', () => {
       vaccine_BCG_status: 'Sudah',
       vaccine_BCG_date: '2025-07-01',
       vaccine_PENTA_1_status: 'Belum',
-      otherVaccinesNote: 'Polio tetes 2 kali',
       hasAllergyHistory: 'Tidak ada alergi'
     };
 
     const payload = buildChildImmunizationIntakePayload('pat-1', values);
-    expect(payload.previousVaccineHistory).toContain('HB 0: Sudah (2025-06-02)');
+    expect(payload.previousVaccineHistory).toContain('HB_0: Sudah (2025-06-02)');
     expect(payload.previousVaccineHistory).toContain('BCG: Sudah (2025-07-01)');
-    expect(payload.previousVaccineHistory).toContain('PENTA 1 / Heksavalen 1: Belum');
-    expect(payload.previousVaccineHistory).toContain('Lainnya: Polio tetes 2 kali');
+    expect(payload.previousVaccineHistory).toContain('PENTA_1: Belum');
     expect(payload.childAllergyHistory).toBe('Tidak ada riwayat alergi.');
+    expect(payload.entries).toBeDefined();
+    expect(payload.entries?.length).toBe(3);
+    const hb0 = payload.entries?.find((e) => e.vaccineCode === 'HB_0');
+    expect(hb0?.status).toBe('GIVEN');
+    expect(hb0?.givenDate).toBe('2025-06-02');
+    expect(hb0?.datePrecision).toBe('EXACT');
+    const penta1 = payload.entries?.find((e) => e.vaccineCode === 'PENTA_1');
+    expect(penta1?.status).toBe('NOT_GIVEN');
   });
 
   it('sets previousVaccineHistory to Belum pernah sama sekali when gateway is negative', () => {
@@ -192,5 +198,6 @@ describe('kia-intake-payload-builder', () => {
 
     const payload = buildChildImmunizationIntakePayload('pat-1', values);
     expect(payload.previousVaccineHistory).toBe('Belum pernah imunisasi sama sekali');
+    expect(payload.entries).toBeUndefined();
   });
 });

@@ -51,14 +51,28 @@ export function AppointmentFormInspector({ appointment, onClose }: AppointmentFo
   }, [affiliations, appointment]);
 
   const parsedData = React.useMemo<UnifiedInspectorData>(() => {
-    const rawData = serverIntake?.data as any;
+    const rawData =
+      serverIntake && typeof serverIntake === 'object' && 'data' in serverIntake && serverIntake.data
+        ? (typeof serverIntake.data === 'object' && 'data' in serverIntake.data
+            ? (serverIntake.data as any).data
+            : serverIntake.data)
+        : serverIntake;
+
     const flow =
       serverIntake?.flow ||
+      (serverIntake as any)?.data?.flow ||
       appointment.medical_flow ||
       appointment.medical_intake?.flow ||
+      (appointment.service?.toLowerCase().includes('imunisasi') ? 'immunization' : undefined) ||
+      (appointment.service?.toLowerCase().includes('kebidanan') ||
+      appointment.service?.toLowerCase().includes('persalinan')
+        ? 'pregnancy'
+        : undefined) ||
       'regular';
+
     const type =
       serverIntake?.type ||
+      (serverIntake as any)?.data?.type ||
       (flow === 'pregnancy' ? 'maternal' : flow === 'immunization' ? 'immunization' : 'generic');
 
     let answers: Record<string, any> = {};
@@ -69,11 +83,12 @@ export function AppointmentFormInspector({ appointment, onClose }: AppointmentFo
     if (rawData) {
       if (type === 'maternal' || flow === 'pregnancy') {
         maternal = rawData as MaternalIntakeResponse;
-        answers = (maternal.answers as Record<string, any>) || {};
-        automatic = (maternal.automatic as Record<string, any>) || {};
+        answers = (maternal.answers as Record<string, any>) || (rawData.answers as Record<string, any>) || {};
+        automatic = (maternal.automatic as Record<string, any>) || (rawData.automatic as Record<string, any>) || {};
       } else if (type === 'immunization' || flow === 'immunization') {
         child = rawData as ChildImmunizationResponse;
-        answers = (child.answers as Record<string, any>) || {};
+        answers = (child.answers as Record<string, any>) || (rawData.answers as Record<string, any>) || {};
+        automatic = (child.automatic as Record<string, any>) || (rawData.automatic as Record<string, any>) || {};
       } else {
         answers = (rawData.answers as Record<string, any>) || {};
         automatic = (rawData.automatic as Record<string, any>) || {};

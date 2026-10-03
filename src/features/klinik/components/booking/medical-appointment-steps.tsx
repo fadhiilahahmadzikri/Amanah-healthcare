@@ -108,7 +108,9 @@ export function MedicalSectionStep({
             'px-0.5 pt-1.5 pb-2'
           )}
         >
-          {section.fields.map(renderField)}
+          {section.fields
+            .filter((field) => !field.visibleIf || (values && field.visibleIf(values)))
+            .map(renderField)}
         </FieldGroup>
       )}
     </div>

@@ -298,6 +298,19 @@ describe('Medical Appointment Flows', () => {
       expect(ids).toContain('allergyHistory');
     });
 
+    it('configures childAllergyHistory as conditional on hasAllergyHistory being Ada riwayat alergi', () => {
+      const allergySection = immunizationFlowDefinition.sections.find((s) => s.id === 'allergyHistory');
+      expect(allergySection).toBeDefined();
+
+      const detailField = allergySection?.fields.find((f) => f.id === 'childAllergyHistory');
+      expect(detailField).toBeDefined();
+      expect(detailField?.visibleIf).toBeDefined();
+
+      expect(detailField?.visibleIf?.({ hasAllergyHistory: 'Tidak ada alergi' })).toBe(false);
+      expect(detailField?.visibleIf?.({ hasAllergyHistory: '' })).toBe(false);
+      expect(detailField?.visibleIf?.({ hasAllergyHistory: 'Ada riwayat alergi' })).toBe(true);
+    });
+
     it('excludes clinical staff examination fields from patient registration', () => {
       const fieldIds = immunizationFlowDefinition.sections.flatMap((s) =>
         s.fields.map((f) => f.id)

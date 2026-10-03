@@ -205,12 +205,20 @@ export function pickMedicalValues(
   activeSections: MedicalFormSection[],
   values: MedicalAppointmentValues
 ): MedicalAppointmentValues {
-  return activeSections.reduce<MedicalAppointmentValues>((result, section) => {
+  const result = activeSections.reduce<MedicalAppointmentValues>((acc, section) => {
     section.fields.forEach((field) => {
-      result[field.id] = values[field.id] || '';
+      acc[field.id] = values[field.id] || '';
     });
-    return result;
+    return acc;
   }, {});
+
+  for (const [key, value] of Object.entries(values)) {
+    if (key.startsWith('vaccine_') && value) {
+      result[key] = value;
+    }
+  }
+
+  return result;
 }
 
 export function collectAnsweredFieldsFromSections(
@@ -219,6 +227,7 @@ export function collectAnsweredFieldsFromSections(
 ) {
   return sections.flatMap((section) =>
     section.fields
+      .filter((field) => !field.visibleIf || field.visibleIf(values))
       .map((field) => ({
         id: field.id,
         label: field.label,

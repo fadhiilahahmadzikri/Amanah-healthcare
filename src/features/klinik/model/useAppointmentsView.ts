@@ -94,9 +94,19 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
         ? `${startTimeFormatted} - ${endTimeFormatted} WIB`
         : apt.session || '-';
 
+    const rawFlow =
+      apt.medicalFlow ||
+      (apt.layananName?.toLowerCase().includes('imunisasi')
+        ? 'immunization'
+        : apt.layananName?.toLowerCase().includes('kebidanan') ||
+            apt.layananName?.toLowerCase().includes('persalinan')
+          ? 'pregnancy'
+          : undefined);
+
     return {
       id: apt.id,
-      booking_code: apt.id.slice(0, 8).toUpperCase(),
+      patient_id: apt.patientId,
+      booking_code: apt.bookingCode || apt.id.slice(0, 8).toUpperCase(),
       patient_name: apt.patientName || 'Pasien',
       patient_email: '',
       patient_avatar: '',
@@ -114,6 +124,7 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
       status: uiStatus,
       visit_type: apt.visitType || '',
       service: apt.layananName || '',
+      medical_flow: rawFlow as any,
       created_at: apt.createdAt,
       queue_number: apt.queueNumber || '-',
       doctor_id: apt.staffId,

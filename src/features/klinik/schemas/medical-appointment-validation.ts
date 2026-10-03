@@ -88,6 +88,10 @@ export function isMedicalSectionValid(
   }
 
   return section.fields.every((field) => {
+    if (field.visibleIf && !field.visibleIf(values)) {
+      return true;
+    }
+
     const isFieldValid = getMedicalFieldValidationSchema(field).safeParse(
       values[field.id] || ''
     ).success;
@@ -95,7 +99,6 @@ export function isMedicalSectionValid(
       return false;
     }
 
-    // When condition is 'Ya' on a question with yearFieldId, year is required
     if (field.yearFieldId && (values[field.id] || '').trim() === 'Ya') {
       const yearVal = (values[field.yearFieldId] || '').trim();
       if (!yearVal) {
@@ -103,7 +106,6 @@ export function isMedicalSectionValid(
       }
     }
 
-    // When condition is 'Ya' on a question with notesFieldId, notes is required
     if (field.notesFieldId && (values[field.id] || '').trim() === 'Ya') {
       const notesVal = (values[field.notesFieldId] || '').trim();
       if (!notesVal) {

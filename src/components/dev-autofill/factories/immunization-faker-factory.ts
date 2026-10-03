@@ -92,7 +92,6 @@ export class ImmunizationFakerFactory {
       vaccine_PENTA_2_status: 'Belum',
       vaccine_IPV_2_status: 'Belum',
       vaccine_PCV_2_status: 'Belum',
-      otherVaccinesNote: 'Polio tetes 4 kali di Puskesmas',
       hasAllergyHistory: 'Tidak ada alergi',
       previousVaccineHistory,
       childAllergyHistory

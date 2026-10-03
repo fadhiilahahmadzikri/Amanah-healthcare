@@ -1,5 +1,12 @@
 import { clientFetch } from '@/lib/client-fetch';
-import { type FlowName, type IntakeType, KIA_API_ENDPOINTS } from '../constants/kia-constants';
+import {
+  type FlowName,
+  type IntakeType,
+  KIA_API_ENDPOINTS,
+  type VaccineCatalogItem,
+} from '../constants/kia-constants';
+
+export type { VaccineCatalogItem };
 
 export interface PreviousPregnancyPayload {
   orderNumber: number;
@@ -163,6 +170,17 @@ export interface CreateMaternityIntakePayload {
   contraceptiveHistories?: ContraceptiveHistoryPayload[];
 }
 
+export interface ChildImmunizationEntryPayload {
+  vaccineCode: string;
+  status: 'GIVEN' | 'NOT_GIVEN' | 'UNKNOWN';
+  givenDate?: string | null;
+  givenMonth?: string | null;
+  ageEstimateMonths?: number | null;
+  datePrecision?: 'EXACT' | 'MONTH_YEAR' | 'AGE_ESTIMATE' | 'NONE' | null;
+  reviewReasons?: any;
+  notes?: string | null;
+}
+
 export interface CreateChildImmunizationPayload {
   patientId: string;
   appointmentId?: string | null;
@@ -175,8 +193,11 @@ export interface CreateChildImmunizationPayload {
   fatherName?: string | null;
   motherName?: string | null;
   childAddress?: string | null;
+  hasVaccineHistory?: string | null;
   previousVaccineHistory?: string | null;
+  hasAllergyHistory?: string | null;
   childAllergyHistory?: string | null;
+  entries?: ChildImmunizationEntryPayload[];
 }
 
 export interface MaternalIntakeResponse extends CreateMaternityIntakePayload {
@@ -196,7 +217,9 @@ export interface ChildImmunizationResponse extends CreateChildImmunizationPayloa
   intakeSubmissionId: string;
   createdAt: string;
   updatedAt: string;
+  entries?: (ChildImmunizationEntryPayload & { id: string; createdAt: string; updatedAt: string })[];
   answers?: Record<string, unknown>;
+  automatic?: Record<string, unknown>;
 }
 
 export interface UnifiedIntakeResponse {
@@ -209,28 +232,48 @@ class KiaIntakeService {
   async createMaternityIntake(
     payload: CreateMaternityIntakePayload
   ): Promise<MaternalIntakeResponse> {
-    return clientFetch<MaternalIntakeResponse>(KIA_API_ENDPOINTS.MATERNITY_INTAKE, {
+    const res = await clientFetch<
+      { success?: boolean; data?: MaternalIntakeResponse } | MaternalIntakeResponse
+    >(KIA_API_ENDPOINTS.MATERNITY_INTAKE, {
       method: 'POST',
       body: JSON.stringify(payload)
     });
+    if (res && typeof res === 'object' && 'data' in res && res.data) {
+      return res.data as MaternalIntakeResponse;
+    }
+    return res as MaternalIntakeResponse;
   }
 
   async createImmunizationIntake(
     payload: CreateChildImmunizationPayload
   ): Promise<ChildImmunizationResponse> {
-    return clientFetch<ChildImmunizationResponse>(KIA_API_ENDPOINTS.IMMUNIZATION_INTAKE, {
+    const res = await clientFetch<
+      { success?: boolean; data?: ChildImmunizationResponse } | ChildImmunizationResponse
+    >(KIA_API_ENDPOINTS.IMMUNIZATION_INTAKE, {
       method: 'POST',
       body: JSON.stringify(payload)
     });
+    if (res && typeof res === 'object' && 'data' in res && res.data) {
+      return res.data as ChildImmunizationResponse;
+    }
+    return res as ChildImmunizationResponse;
   }
 
   async getIntakeByAppointmentId(appointmentId: string): Promise<UnifiedIntakeResponse> {
-    return clientFetch<UnifiedIntakeResponse>(
-      `${KIA_API_ENDPOINTS.INTAKE_BY_APPOINTMENT}/${appointmentId}`,
-      {
-        method: 'GET'
+    const res = await clientFetch<
+      { success?: boolean; data?: UnifiedIntakeResponse } | UnifiedIntakeResponse
+    >(`${KIA_API_ENDPOINTS.INTAKE_BY_APPOINTMENT}/${appointmentId}`, {
+      method: 'GET'
+    });
+    if (res && typeof res === 'object') {
+      if ('flow' in res && 'data' in res) {
+        return res as UnifiedIntakeResponse;
       }
-    );
+      if ('data' in res && res.data && typeof res.data === 'object' && 'flow' in res.data) {
+        return res.data as UnifiedIntakeResponse;
+      }
+    }
+    return res as UnifiedIntakeResponse;
   }
 
   async getLatestIntakeByPatientId(
@@ -239,30 +282,47 @@ class KiaIntakeService {
   ): Promise<UnifiedIntakeResponse | null> {
     try {
       const query = flow ? `?flow=${encodeURIComponent(flow)}` : '';
-      return await clientFetch<UnifiedIntakeResponse>(
-        `/medical-records/intakes/patient/${patientId}/latest${query}`,
-        {
-          method: 'GET'
+      const res = await clientFetch<
+        { success?: boolean; data?: UnifiedIntakeResponse } | UnifiedIntakeResponse
+      >(`/medical-records/intakes/patient/${patientId}/latest${query}`, {
+        method: 'GET'
+      });
+      if (res && typeof res === 'object') {
+        if ('flow' in res && 'data' in res) {
+          return res as UnifiedIntakeResponse;
         }
-      );
+        if ('data' in res && res.data && typeof res.data === 'object' && 'flow' in res.data) {
+          return res.data as UnifiedIntakeResponse;
+        }
+      }
+      return res as UnifiedIntakeResponse;
     } catch {
       return null;
     }
   }
 
   async getMaternalIntakeById(id: string): Promise<MaternalIntakeResponse> {
-    return clientFetch<MaternalIntakeResponse>(`${KIA_API_ENDPOINTS.MATERNITY_INTAKE}/${id}`, {
+    const res = await clientFetch<
+      { success?: boolean; data?: MaternalIntakeResponse } | MaternalIntakeResponse
+    >(`${KIA_API_ENDPOINTS.MATERNITY_INTAKE}/${id}`, {
       method: 'GET'
     });
+    if (res && typeof res === 'object' && 'data' in res && res.data) {
+      return res.data as MaternalIntakeResponse;
+    }
+    return res as MaternalIntakeResponse;
   }
 
   async getImmunizationIntakeById(id: string): Promise<ChildImmunizationResponse> {
-    return clientFetch<ChildImmunizationResponse>(
-      `${KIA_API_ENDPOINTS.IMMUNIZATION_INTAKE}/${id}`,
-      {
-        method: 'GET'
-      }
-    );
+    const res = await clientFetch<
+      { success?: boolean; data?: ChildImmunizationResponse } | ChildImmunizationResponse
+    >(`${KIA_API_ENDPOINTS.IMMUNIZATION_INTAKE}/${id}`, {
+      method: 'GET'
+    });
+    if (res && typeof res === 'object' && 'data' in res && res.data) {
+      return res.data as ChildImmunizationResponse;
+    }
+    return res as ChildImmunizationResponse;
   }
 
   async getMaternalQuestions(): Promise<MaternalQuestion[]> {
@@ -289,6 +349,13 @@ class KiaIntakeService {
   async getOccupations(): Promise<OccupationItem[]> {
     const res = await clientFetch<{ success: boolean; data: OccupationItem[] }>(
       KIA_API_ENDPOINTS.OCCUPATIONS
+    );
+    return res?.data ?? [];
+  }
+
+  async getVaccineCatalog(): Promise<VaccineCatalogItem[]> {
+    const res = await clientFetch<{ success: boolean; data: VaccineCatalogItem[] }>(
+      KIA_API_ENDPOINTS.VACCINE_CATALOG
     );
     return res?.data ?? [];
   }

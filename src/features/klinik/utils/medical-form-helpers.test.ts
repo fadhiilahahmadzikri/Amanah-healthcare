@@ -6,6 +6,7 @@ import {
   isHistoryRecordEmpty,
   normalizeBirthDate,
   normalizeBloodType,
+  pickMedicalValues,
   pruneEmptyValues
 } from './medical-form-helpers';
 import type { MedicalFormSection } from '../constants/medical-appointment-schemas';
@@ -129,5 +130,31 @@ describe('medical-form-helpers', () => {
         { ...schedule, timeSlot: '' }
       )
     ).toBe(false);
+  });
+
+  it('preserves dynamic vaccine values in pickMedicalValues', () => {
+    const sections: any[] = [
+      {
+        id: 'childIdentity',
+        fields: [{ id: 'childName', label: 'Nama', type: 'text' }]
+      },
+      {
+        id: 'vaccineHistory',
+        fields: []
+      }
+    ];
+    const values = {
+      childName: 'Empluk Marpaung',
+      unrelatedField: 'ignored',
+      vaccine_HB_0_status: 'Sudah',
+      vaccine_HB_0_date: '2025-04-18',
+      vaccine_BCG_status: 'Belum'
+    };
+    const picked = pickMedicalValues(sections, values);
+    expect(picked.childName).toBe('Empluk Marpaung');
+    expect(picked.unrelatedField).toBeUndefined();
+    expect(picked.vaccine_HB_0_status).toBe('Sudah');
+    expect(picked.vaccine_HB_0_date).toBe('2025-04-18');
+    expect(picked.vaccine_BCG_status).toBe('Belum');
   });
 });

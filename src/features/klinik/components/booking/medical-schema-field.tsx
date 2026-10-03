@@ -135,6 +135,9 @@ export function MedicalSchemaField({
     schemaField.type === 'PARAGRAPH' ||
     schemaField.type === 'DATE';
   const colSpanClass = isColSpanFull ? 'col-span-1 sm:col-span-2' : 'col-span-1';
+  const animationClass = schemaField.visibleIf
+    ? 'animate-in fade-in slide-in-from-top-2 duration-300'
+    : '';
 
   const requiredAsterisk = schemaField.required ? (
     <span className='ml-1 font-bold text-red-500 dark:text-red-400' aria-hidden='true'>
@@ -250,7 +253,7 @@ export function MedicalSchemaField({
         error={displayError}
         invalid={isInvalid}
         disabled={schemaField.disabled}
-        containerClassName={colSpanClass}
+        containerClassName={cn(colSpanClass, animationClass)}
       />
     );
   }

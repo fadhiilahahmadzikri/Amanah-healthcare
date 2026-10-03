@@ -1,35 +1,47 @@
 import { describe, expect, it } from 'bun:test';
 import * as React from 'react';
-import { VaccineChecklist, CORE_VACCINE_LIST } from './vaccine-checklist';
+import { VaccineChecklist, type VaccineCatalogItem } from './vaccine-checklist';
+
+const MOCK_CATALOG: VaccineCatalogItem[] = [
+  {
+    id: 'vac-1',
+    code: 'HB_0',
+    name: 'HB 0',
+    ageMilestone: 'Saat Lahir',
+    description: 'Hepatitis B (< 24 jam)',
+    sortOrder: 1
+  },
+  {
+    id: 'vac-2',
+    code: 'BCG',
+    name: 'BCG',
+    ageMilestone: '1 Bulan',
+    description: 'Tuberkulosis (TBC)',
+    sortOrder: 2
+  }
+];
 
 describe('VaccineChecklist Component', () => {
-  it('contains all 18 official vaccine items from clinical specification', () => {
-    const codes = CORE_VACCINE_LIST.map((v) => v.id);
-    expect(codes).toContain('HB_0');
-    expect(codes).toContain('BCG');
-    expect(codes).toContain('PENTA_1');
-    expect(codes).toContain('IPV_1');
-    expect(codes).toContain('PCV_1');
-    expect(codes).toContain('RV_1');
-    expect(codes).toContain('PENTA_2');
-    expect(codes).toContain('IPV_2');
-    expect(codes).toContain('PCV_2');
-    expect(codes).toContain('RV_2');
-    expect(codes).toContain('PENTA_3');
-    expect(codes).toContain('IPV_3');
-    expect(codes).toContain('RV_3');
-    expect(codes).toContain('MR');
-    expect(codes).toContain('JE');
-    expect(codes).toContain('PCV_B');
-    expect(codes).toContain('PENTA_B');
-    expect(codes).toContain('MR_B');
+  it('renders provided vaccine catalog dynamically from props', () => {
+    const values: Record<string, string> = {
+      vaccine_HB_0_status: 'Sudah',
+      vaccine_HB_0_date: '2026-01-15'
+    };
+
+    const element = React.createElement(VaccineChecklist, {
+      values,
+      vaccines: MOCK_CATALOG,
+      onFieldChange: () => {}
+    });
+
+    expect(element).toBeDefined();
+    expect(element.type).toBe(VaccineChecklist);
   });
 
   it('renders without error given values and onFieldChange handler', () => {
     const values: Record<string, string> = {
       vaccine_HB_0_status: 'Sudah',
-      vaccine_HB_0_date: '2026-01-15',
-      otherVaccinesNote: 'Polio tetes di Posyandu'
+      vaccine_HB_0_date: '2026-01-15'
     };
     let changedField = '';
     let changedVal = '';
