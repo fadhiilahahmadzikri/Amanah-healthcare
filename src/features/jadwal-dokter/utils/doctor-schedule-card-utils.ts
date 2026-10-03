@@ -306,24 +306,6 @@ export function getUpcomingScheduleTime(
 	}
 
 	if (scheduleTime && scheduleTime.trim() !== "") {
-		const parts = scheduleTime.split("-").map((p) => p.trim());
-		if (parts.length === 2 && parts[0]) {
-			const sMin = parseTimeToMinutes(parts[0]);
-			const eMin = sMin + 30;
-			const sTime = parts[0].replace(":", ".");
-			const eTime = `${String(Math.floor(eMin / 60)).padStart(2, "0")}.${String(eMin % 60).padStart(2, "0")}`;
-			const isPastSchedule = sMin <= currentMinutes;
-			const rawSlot = `${sTime} – ${eTime}`;
-			const formattedUpcoming = isPastSchedule ? `Besok, ${rawSlot}` : rawSlot;
-			return {
-				labelTime: rawSlot,
-				upcomingTime: formattedUpcoming,
-				activeTime,
-				hasActive,
-				isActiveClosed,
-				isTomorrow: isPastSchedule,
-			};
-		}
 		const cleanTime = scheduleTime.replace(/:/g, ".");
 		return {
 			labelTime: cleanTime,

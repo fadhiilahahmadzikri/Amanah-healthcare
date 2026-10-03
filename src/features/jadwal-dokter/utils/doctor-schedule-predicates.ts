@@ -14,6 +14,7 @@ export const DOCTOR_CARD_STATUS = {
 	TERISI: "Terisi",
 	BELUM_DIATUR: "Belum Diatur",
 	TUTUP: "Tutup",
+	SELESAI: "Selesai",
 } as const;
 
 export type DoctorCardStatus =
@@ -139,21 +140,20 @@ export function isDoctorSessionActive(
 export function getDoctorCardStatus(
 	doctor: DoctorSchedule,
 	referenceDate?: Date,
+	targetDate?: string,
 ): DoctorCardStatus {
+	if (doctor.is_cuti) {
+		return DOCTOR_CARD_STATUS.CUTI;
+	}
+
 	const statusDokter = (doctor.status_dokter || "").trim().toUpperCase();
 	const statusJadwal = (doctor.status_jadwal || "").trim().toUpperCase();
-	const cutiStatus = SCHEDULE_STATUS.CUTI;
-	const closedStatus = SCHEDULE_STATUS.CLOSED;
-	const closedLabel =
-		SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.CLOSED].toUpperCase();
-	const occupiedStatus = SCHEDULE_STATUS.OCCUPIED;
-	const occupiedLabel =
-		SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.OCCUPIED].toUpperCase();
 
 	if (
-		doctor.is_cuti ||
-		statusDokter === cutiStatus ||
-		statusJadwal === cutiStatus
+		statusDokter === SCHEDULE_STATUS.CUTI ||
+		statusDokter === "CUTI" ||
+		statusJadwal === SCHEDULE_STATUS.CUTI ||
+		statusJadwal === "CUTI"
 	) {
 		return DOCTOR_CARD_STATUS.CUTI;
 	}
@@ -163,86 +163,54 @@ export function getDoctorCardStatus(
 	}
 
 	if (
-		statusDokter === closedStatus ||
-		statusDokter === closedLabel ||
-		statusJadwal === closedStatus ||
-		statusJadwal === closedLabel
+		statusDokter === SCHEDULE_STATUS.CLOSED ||
+		statusDokter === "CLOSED" ||
+		statusDokter === "TUTUP" ||
+		statusJadwal === SCHEDULE_STATUS.CLOSED ||
+		statusJadwal === "CLOSED" ||
+		statusJadwal === "TUTUP"
 	) {
 		return DOCTOR_CARD_STATUS.TUTUP;
 	}
 
 	const now = referenceDate ?? new Date();
+	const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+
+	if (targetDate && targetDate < todayIso) {
+		return DOCTOR_CARD_STATUS.SELESAI;
+	}
+
+	if (
+		statusDokter === SCHEDULE_STATUS.OCCUPIED ||
+		statusDokter === "OCCUPIED" ||
+		statusDokter === "TERISI" ||
+		statusDokter === "PENUH" ||
+		statusJadwal === SCHEDULE_STATUS.OCCUPIED ||
+		statusJadwal === "OCCUPIED" ||
+		statusJadwal === "TERISI" ||
+		statusJadwal === "PENUH" ||
+		(doctor.slot_tersedia !== undefined && doctor.slot_tersedia <= 0)
+	) {
+		return DOCTOR_CARD_STATUS.TERISI;
+	}
+
 	const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
 	const sessions = doctor.sesi_harian;
 	if (sessions && sessions.length > 0) {
-		const activeSession = sessions.find((s) =>
-			isDoctorSessionActive(s, currentMinutes),
+		const allClosed = sessions.every((s) =>
+			isSlotClosed({ status: s.status_sesi }),
 		);
-
-		if (!activeSession) {
+		if (allClosed) {
 			return DOCTOR_CARD_STATUS.TUTUP;
 		}
 
-		if (isSlotClosed({ status: activeSession.status_sesi })) {
+		const allPast = sessions.every(
+			(s) => parseMinutesFromTime(s.jam_selesai) <= currentMinutes,
+		);
+		if (allPast && referenceDate !== undefined) {
 			return DOCTOR_CARD_STATUS.TUTUP;
 		}
-
-		const sessStatus = (activeSession.status_sesi || "").trim().toUpperCase();
-		const isNoSlots =
-			activeSession.slot_tersedia !== undefined &&
-			activeSession.slot_tersedia <= 0;
-
-		if (
-			sessStatus === occupiedStatus ||
-			sessStatus === occupiedLabel ||
-			sessStatus === DOCTOR_CARD_STATUS.TERISI.toUpperCase() ||
-			isNoSlots
-		) {
-			return DOCTOR_CARD_STATUS.TERISI;
-		}
-
-		return DOCTOR_CARD_STATUS.BUKA;
-	}
-
-	if (doctor.shifts && doctor.shifts.length > 0) {
-		let hasActiveShift = false;
-		let isOccupied = false;
-
-		for (const shift of doctor.shifts) {
-			for (const slot of shift.slots) {
-				if (isSlotUnscheduled(slot)) continue;
-				const sMin = parseMinutesFromTime(slot.startTime);
-				const eMin = parseMinutesFromTime(slot.endTime);
-				if (currentMinutes >= sMin && currentMinutes < eMin) {
-					hasActiveShift = true;
-					if (isSlotClosed(slot)) {
-						return DOCTOR_CARD_STATUS.TUTUP;
-					}
-					if (!isSlotAvailable(slot)) {
-						isOccupied = true;
-					}
-				}
-			}
-		}
-
-		if (!hasActiveShift) {
-			return DOCTOR_CARD_STATUS.TUTUP;
-		}
-
-		return isOccupied ? DOCTOR_CARD_STATUS.TERISI : DOCTOR_CARD_STATUS.BUKA;
-	}
-
-	if (
-		statusDokter === occupiedStatus ||
-		statusDokter === occupiedLabel ||
-		statusDokter === DOCTOR_CARD_STATUS.TERISI.toUpperCase() ||
-		statusJadwal === occupiedStatus ||
-		statusJadwal === occupiedLabel ||
-		statusJadwal === DOCTOR_CARD_STATUS.TERISI.toUpperCase() ||
-		doctor.slot_tersedia <= 0
-	) {
-		return DOCTOR_CARD_STATUS.TERISI;
 	}
 
 	return DOCTOR_CARD_STATUS.BUKA;

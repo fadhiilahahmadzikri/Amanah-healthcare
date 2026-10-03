@@ -89,9 +89,22 @@ export function DoctorScheduleCard({
 		}
 	}, [isSelected]);
 
+	const todayIso = React.useMemo(() => {
+		const now = new Date();
+		const y = now.getFullYear();
+		const m = String(now.getMonth() + 1).padStart(2, "0");
+		const d = String(now.getDate()).padStart(2, "0");
+		return `${y}-${m}-${d}`;
+	}, []);
+
+	const cardDate =
+		date ||
+		parseDateToIso(doctor.tanggal_praktik) ||
+		todayIso;
+
 	const detailQuery = useQuery({
 		...doctorScheduleDetailQueryOptions(doctor.id, {
-			date: date || parseDateToIso(doctor.tanggal_praktik),
+			date: cardDate,
 		}),
 		enabled: Boolean(!doctor.timeline_intervals && !doctor.shifts && doctor.id),
 	});
@@ -99,9 +112,10 @@ export function DoctorScheduleCard({
 		? { ...doctor, ...detailQuery.data }
 		: doctor;
 
-	const statusLabel = getDoctorCardStatus(effectiveDoctor);
+	const statusLabel = getDoctorCardStatus(effectiveDoctor, undefined, cardDate);
 	const isCuti = statusLabel === DOCTOR_CARD_STATUS.CUTI;
 	const isUnconfigured = statusLabel === DOCTOR_CARD_STATUS.BELUM_DIATUR;
+	const isSelesai = statusLabel === DOCTOR_CARD_STATUS.SELESAI;
 
 	const handleCall = (e: React.MouseEvent) => {
 		e.stopPropagation();
@@ -145,8 +159,8 @@ export function DoctorScheduleCard({
 			<DoctorCardImage src={doctor.avatar} alt={doctor.nama_dokter} />
 
 			<div className="flex items-center justify-between gap-3 relative z-20">
-				<DoctorStatusBadge status={statusLabel} />
-				{showCallButton && !isUnconfigured && (
+				{!isSelesai ? <DoctorStatusBadge status={statusLabel} /> : <div />}
+				{showCallButton && !isUnconfigured && !isSelesai && (
 					<DoctorQuickCallButton
 						phoneNumber={doctor.nomor_telepon ?? undefined}
 						onClick={handleCall}
@@ -184,10 +198,10 @@ export function DoctorScheduleCard({
 					text={doctor.ruang_praktik}
 				/>
 
-				{!isCuti && !isUnconfigured && doctor.tanggal_praktik && (
+				{!isCuti && !isUnconfigured && (effectiveDoctor.tanggal_praktik || doctor.tanggal_praktik) && (
 					<DoctorInfoRow
 						icon={<Icons.calendar className="size-3.5 text-muted-foreground" />}
-						text={doctor.tanggal_praktik}
+						text={effectiveDoctor.tanggal_praktik || doctor.tanggal_praktik || ""}
 						className="mt-1"
 					/>
 				)}
@@ -204,6 +218,11 @@ export function DoctorScheduleCard({
 						title="Belum ada jadwal praktik"
 						subtitle="Dokter ini belum memiliki sesi praktik yang diatur."
 					/>
+				) : isSelesai ? (
+					<DoctorCutiNotice
+						title="Praktik Selesai"
+						subtitle="Seluruh sesi praktik dokter untuk tanggal ini telah selesai."
+					/>
 				) : (
 					<DoctorScheduleStats
 						scheduleTime={effectiveDoctor.jadwal_hari_ini || "Belum diatur"}
@@ -213,6 +232,7 @@ export function DoctorScheduleCard({
 						upcomingScheduleTime={effectiveDoctor.jadwal_praktik_mendatang}
 						sessions={effectiveDoctor.sesi_harian}
 						doctor={effectiveDoctor}
+						date={cardDate}
 					/>
 				))}
 
@@ -222,7 +242,7 @@ export function DoctorScheduleCard({
 						"flex items-center justify-end gap-2 pt-3 mt-auto border-t border-border/40 relative z-20",
 					)}
 				>
-					{!isCuti && (
+					{!isCuti && !isSelesai && (
 						<Button
 							type="button"
 							variant="outline"

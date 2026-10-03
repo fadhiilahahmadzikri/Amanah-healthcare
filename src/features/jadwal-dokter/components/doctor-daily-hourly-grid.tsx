@@ -343,7 +343,7 @@ export function DoctorDailyHourlyGrid({
         <DoctorSessionPatientsModal
           doctor={doctor}
           session={selectedSessionForPatients}
-          selectedDate={formattedSelectedDate}
+          selectedDate={formattedTargetDate}
           isOpen={isPatientsModalOpen}
           onClose={() => {
             setIsPatientsModalOpen(false);
@@ -354,7 +354,6 @@ export function DoctorDailyHourlyGrid({
         />
       )}
 
-      {/* Modal Konfirmasi Tutup Jadwal Sesi */}
       <ModalWrapper
         isOpen={isCloseModalOpen}
         onClose={() => {

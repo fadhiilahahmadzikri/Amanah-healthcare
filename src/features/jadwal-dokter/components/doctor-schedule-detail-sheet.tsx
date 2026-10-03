@@ -47,6 +47,7 @@ export interface DoctorScheduleDetailSheetProps {
 	isOpen: boolean;
 	onClose: () => void;
 	onOpenEdit: (doctor: DoctorSchedule) => void;
+	selectedDate?: string;
 	highlightSlotTime?: string;
 	onClearHighlightSlotTime?: () => void;
 	onReturnToSourceModal?: () => void;
@@ -60,9 +61,18 @@ export interface DoctorScheduleDetailSheetProps {
 	) => void;
 }
 
-function getInitialDoctorDate(doctor: DoctorSchedule | null): Date {
-	if (doctor?.tanggal_praktik) {
-		const iso = parseDateToIso(doctor.tanggal_praktik);
+function getInitialDoctorDate(
+	selectedDate?: string,
+	returnContext?: ReturnDoctorContext | null,
+): Date {
+	if (returnContext?.sourceDate) {
+		const parsed = new Date(`${returnContext.sourceDate}T00:00:00`);
+		if (!Number.isNaN(parsed.getTime())) {
+			return parsed;
+		}
+	}
+	if (selectedDate) {
+		const iso = parseDateToIso(selectedDate);
 		if (iso) {
 			const parsed = new Date(`${iso}T00:00:00`);
 			if (!Number.isNaN(parsed.getTime())) {
@@ -78,6 +88,7 @@ export function DoctorScheduleDetailSheet({
 	isOpen,
 	onClose,
 	onOpenEdit: _onOpenEdit,
+	selectedDate,
 	highlightSlotTime,
 	onClearHighlightSlotTime,
 	onReturnToSourceModal,
@@ -93,8 +104,8 @@ export function DoctorScheduleDetailSheet({
 	);
 
 	const initialDate = React.useMemo(
-		() => getInitialDoctorDate(selectedDoctor),
-		[selectedDoctor],
+		() => getInitialDoctorDate(selectedDate, returnContext),
+		[selectedDate, returnContext],
 	);
 
 	const [selectedDay, setSelectedDay] = React.useState<number>(
@@ -111,7 +122,7 @@ export function DoctorScheduleDetailSheet({
 	);
 
 	const resetFocusState = React.useCallback(() => {
-		const targetDate = getInitialDoctorDate(selectedDoctor);
+		const targetDate = getInitialDoctorDate(selectedDate, returnContext);
 		setSelectedDay(targetDate.getDate());
 		setCurrentMonth(targetDate.getMonth());
 		setCurrentYear(targetDate.getFullYear());
@@ -119,7 +130,7 @@ export function DoctorScheduleDetailSheet({
 			highlightSlotTime ? DOCTOR_DETAIL_TAB.KUOTA : DOCTOR_DETAIL_TAB.KALENDER,
 		);
 		setPendingStatusDay(null);
-	}, [selectedDoctor, highlightSlotTime]);
+	}, [selectedDate, returnContext, highlightSlotTime]);
 
 	React.useEffect(() => {
 		if (isOpen) {

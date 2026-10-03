@@ -6,14 +6,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { DoctorDailySession, DoctorSchedule } from "../api/types";
 import {
-	formatUpcomingFallback,
 	getUpcomingScheduleTime,
 } from "../utils/doctor-schedule-card-utils";
-import {
-	ActiveSessionIndicator,
-	SlotCounterIndicator,
-	UpcomingScheduleIndicator,
-} from "./doctor-card-atoms";
 
 export interface DoctorScheduleStatsProps {
 	scheduleTime: string;
@@ -23,6 +17,7 @@ export interface DoctorScheduleStatsProps {
 	upcomingScheduleTime?: string;
 	sessions?: DoctorDailySession[];
 	doctor?: DoctorSchedule;
+	date?: string;
 	className?: string;
 }
 
@@ -34,14 +29,24 @@ export function DoctorScheduleStats({
 	upcomingScheduleTime,
 	sessions,
 	doctor,
+	date,
 	className,
 }: DoctorScheduleStatsProps) {
+	const now = new Date();
+	const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+	const isPastDate = Boolean(date && date < todayIso);
+
 	const { labelTime, activeTime, upcomingTime, hasActive, isActiveClosed } =
-		getUpcomingScheduleTime(scheduleTime, sessions, doctor);
-	const resolvedUpcoming =
+		isPastDate
+			? { labelTime: "Selesai", activeTime: undefined, upcomingTime: "Selesai", hasActive: false, isActiveClosed: false }
+			: getUpcomingScheduleTime(scheduleTime, sessions, doctor);
+	const resolvedUpcoming = isPastDate
+		? "Selesai"
+		: doctor?.jadwal_praktik_mendatang ||
+		upcomingScheduleTime ||
 		upcomingTime ||
 		labelTime ||
-		formatUpcomingFallback(upcomingScheduleTime) ||
+		doctor?.jadwal_hari_ini ||
 		"Belum diatur";
 
 	const effectiveTotal =
@@ -59,26 +64,55 @@ export function DoctorScheduleStats({
 				: Math.max(0, effectiveTotal - availableSlots);
 
 	const slotDisplay =
-		effectiveTotal > 0 ? `${bookedCount}/${effectiveTotal}` : "0/0";
+		doctor?.display_akumulasi_slot ||
+		_displaySlot ||
+		(effectiveTotal > 0 ? `${bookedCount}/${effectiveTotal}` : "0/0");
 
 	if (hasActive && activeTime) {
 		return (
 			<div
 				className={cn(
-					"flex items-center justify-between gap-2 pt-2.5 mt-3 border-t border-border/40 relative z-20 min-w-0",
+					"grid grid-cols-3 gap-2 sm:gap-2.5 pt-3 mt-3.5 border-t border-border/50 relative z-20",
 					className,
 				)}
 			>
-				<ActiveSessionIndicator time={activeTime} isClosed={isActiveClosed} />
+				<div className="flex flex-col min-w-0">
+					{isActiveClosed ? (
+						<div className="flex items-center gap-1.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400">
+							<span className="size-1.5 rounded-full bg-rose-500 shrink-0" />
+							<span className="truncate">Tutup</span>
+						</div>
+					) : (
+						<div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+							<span className="size-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+							<span className="truncate">Sedang Aktif</span>
+						</div>
+					)}
+					<span className="font-bold text-foreground font-mono mt-1 text-[13px] sm:text-[13.5px] tracking-tight truncate">
+						{activeTime}
+					</span>
+				</div>
 
-				{resolvedUpcoming && resolvedUpcoming !== "Belum diatur" && (
-					<UpcomingScheduleIndicator
-						time={resolvedUpcoming}
-						className="text-muted-foreground font-semibold text-[11.5px] sm:text-xs"
-					/>
-				)}
+				<div className="flex flex-col min-w-0">
+					<div className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
+						<Icons.clock className="size-3 shrink-0 text-muted-foreground/80" />
+						<span className="truncate">Jadwal Mendatang</span>
+					</div>
+					<span className="font-bold text-foreground font-mono mt-1 text-[13px] sm:text-[13.5px] tracking-tight truncate">
+						{resolvedUpcoming}
+					</span>
+				</div>
 
-				<SlotCounterIndicator display={slotDisplay} />
+				<div className="flex flex-col min-w-0">
+					<div className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
+						<Icons.teams className="size-3 shrink-0 text-muted-foreground/80" />
+						<span className="truncate">Slot Tersedia</span>
+					</div>
+					<div className="flex items-center gap-1 text-[13px] sm:text-[13.5px] font-bold text-foreground font-mono mt-1 tracking-tight">
+						<Icons.user className="size-3 text-foreground shrink-0" />
+						<span>{slotDisplay}</span>
+					</div>
+				</div>
 			</div>
 		);
 	}
@@ -86,12 +120,30 @@ export function DoctorScheduleStats({
 	return (
 		<div
 			className={cn(
-				"flex items-center justify-between gap-3 pt-2.5 mt-3 border-t border-border/40 relative z-20 min-w-0",
+				"grid grid-cols-2 gap-3 pt-3.5 mt-3.5 border-t border-border/50 relative z-20",
 				className,
 			)}
 		>
-			<UpcomingScheduleIndicator time={resolvedUpcoming} />
-			<SlotCounterIndicator display={slotDisplay} />
+			<div className="flex flex-col min-w-0">
+				<div className="flex items-center gap-1.5 text-[11.5px] font-medium text-muted-foreground">
+					<Icons.clock className="size-3.5 shrink-0 text-muted-foreground/80" />
+					<span>Jadwal Mendatang</span>
+				</div>
+				<span className="font-bold text-foreground font-mono mt-1 text-[15px] sm:text-[15.5px] tracking-tight truncate">
+					{resolvedUpcoming}
+				</span>
+			</div>
+
+			<div className="flex flex-col min-w-0">
+				<div className="flex items-center gap-1.5 text-[11.5px] font-medium text-muted-foreground">
+					<Icons.teams className="size-3.5 shrink-0 text-muted-foreground/80" />
+					<span>Slot Tersedia</span>
+				</div>
+				<div className="flex items-center gap-1.5 text-[15px] sm:text-[15.5px] font-bold text-foreground font-mono mt-1 tracking-tight">
+					<Icons.user className="size-3.5 text-foreground shrink-0" />
+					<span>{slotDisplay}</span>
+				</div>
+			</div>
 		</div>
 	);
 }

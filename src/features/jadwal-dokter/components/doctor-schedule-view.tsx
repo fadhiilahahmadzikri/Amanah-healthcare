@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { useDoctorScheduleView } from '../model/useDoctorScheduleView';
+import { toDateParam, useDoctorScheduleView } from '../model/useDoctorScheduleView';
 import { DoctorScheduleFilters } from './doctor-schedule-filters';
 import { DoctorScheduleCard } from './doctor-schedule-card';
 import { DoctorScheduleDetailSheet } from './doctor-schedule-detail-sheet';
@@ -23,6 +23,11 @@ export function DoctorScheduleView() {
         isOpen={scheduleView.isDetailOpen}
         onClose={scheduleView.actions.closeDetail}
         onOpenEdit={scheduleView.actions.openEditFromDetail}
+        selectedDate={
+          scheduleView.dateFilter
+            ? toDateParam(scheduleView.dateFilter)
+            : undefined
+        }
         highlightSlotTime={scheduleView.highlightSlotTime}
         onClearHighlightSlotTime={scheduleView.actions.clearHighlightSlotTime}
         onReturnToSourceModal={scheduleView.actions.returnToSourceModal}
@@ -32,7 +37,6 @@ export function DoctorScheduleView() {
         onViewDoctorSchedule={scheduleView.actions.openDoctorScheduleById}
       />
 
-      {/* 2. Reschedule Modal (Real Reschedule Flow) */}
       <DoctorRescheduleSessionModal
         doctor={scheduleView.selectedDoctor}
         session={scheduleView.selectedDoctor?.sesi_harian?.[0] || null}
@@ -43,9 +47,7 @@ export function DoctorScheduleView() {
         }}
       />
 
-      {/* 3. Main Workspace Container */}
       <div className='flex h-full min-h-0 flex-1 flex-col gap-4 select-none'>
-        {/* Toolbar Header (Search, Filters, Export) - Only rendered when data exists or filters are active */}
         {(scheduleView.totalDoctors > 0 || scheduleView.hasActiveFilters) && (
           <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3'>
             <DoctorScheduleFilters
@@ -69,7 +71,6 @@ export function DoctorScheduleView() {
           </div>
         )}
 
-        {/* Doctor Schedules Card Grid with ScrollArea */}
         <div className='relative flex flex-1 min-h-0 flex-col overflow-hidden'>
           {scheduleView.isLoading && scheduleView.doctors.length === 0 ? (
             <div className='absolute inset-0 flex overflow-hidden'>
@@ -124,7 +125,7 @@ export function DoctorScheduleView() {
                           doctor={doctor}
                           date={
                             scheduleView.dateFilter
-                              ? scheduleView.dateFilter.toISOString().split('T')[0]
+                              ? toDateParam(scheduleView.dateFilter)
                               : undefined
                           }
                           isSelected={
@@ -144,7 +145,6 @@ export function DoctorScheduleView() {
                 </ScrollArea>
               </div>
 
-              {/* Floating Detached Glass Pagination Bar (Backdrop Blur Over Content) */}
               {scheduleView.totalDoctors > 0 ? (
                 <div className='absolute bottom-0 inset-x-0 z-20 pointer-events-none flex justify-center'>
                   <div className='pointer-events-auto w-full'>

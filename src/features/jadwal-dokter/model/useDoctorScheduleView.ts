@@ -80,20 +80,22 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     { shallow: true }
   );
 
+  const todayStr = useMemo(() => getTodayDateParam(), []);
+  const effectiveDate = params.date || todayStr;
   const selectedPoli = useMemo(() => toList(params.poli), [params.poli]);
   const selectedStatuses = useMemo(() => toList(params.status), [params.status]);
-  const dateFilter = useMemo(() => parseDateParam(params.date), [params.date]);
+  const dateFilter = useMemo(() => parseDateParam(effectiveDate), [effectiveDate]);
   const filters = useMemo<DoctorScheduleFilters>(
     () => ({
       page: params.page,
       limit: params.perPage,
       ...(params.search ? { search: params.search } : {}),
       ...(params.month && params.month !== 'ALL' ? { month: params.month } : {}),
-      ...(params.date ? { date: params.date } : {}),
+      date: effectiveDate,
       ...(selectedPoli.length > 0 ? { poli: selectedPoli } : {}),
       ...(selectedStatuses.length > 0 ? { status: selectedStatuses } : {})
     }),
-    [params, selectedPoli, selectedStatuses]
+    [params.page, params.perPage, params.search, params.month, effectiveDate, selectedPoli, selectedStatuses]
   );
 
   const { data, isFetching, isLoading } = useQuery(doctorScheduleQueryOptions(filters));
@@ -220,7 +222,11 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     selectedPoli,
     selectedStatuses,
     hasActiveFilters: Boolean(
-      params.search || params.month !== 'ALL' || params.date || params.poli || params.status
+      params.search ||
+        (params.month && params.month !== 'ALL') ||
+        (params.date && params.date !== todayStr) ||
+        params.poli ||
+        params.status
     ),
     page: params.page,
     pageSize: params.perPage,
@@ -272,6 +278,14 @@ function toParam(value: string[]): string | null {
   return value.length > 0 ? value.join(',') : null;
 }
 
+export function getTodayDateParam(): string {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function parseDateParam(value: string): Date | undefined {
   if (!value) return undefined;
 
@@ -279,7 +293,7 @@ function parseDateParam(value: string): Date | undefined {
   return Number.isNaN(parsed.getTime()) ? undefined : parsed;
 }
 
-function toDateParam(date: Date): string {
+export function toDateParam(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
