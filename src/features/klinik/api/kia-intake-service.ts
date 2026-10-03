@@ -222,6 +222,18 @@ export interface ChildImmunizationResponse extends CreateChildImmunizationPayloa
   automatic?: Record<string, unknown>;
 }
 
+export interface FormRequirementData {
+  flow: 'immunization' | 'pregnancy' | 'general';
+  serviceId: string;
+  serviceName: string;
+  isExistingPatient: boolean;
+  patientId: string | null;
+  patientName: string | null;
+  reusableIdentity: Record<string, any>;
+  prefilledValues: Record<string, any>;
+  omittedFieldIds: string[];
+}
+
 export interface UnifiedIntakeResponse {
   flow: FlowName;
   type: IntakeType;
@@ -229,6 +241,28 @@ export interface UnifiedIntakeResponse {
 }
 
 class KiaIntakeService {
+  async getFormRequirement(
+    serviceId: string,
+    patientId?: string
+  ): Promise<FormRequirementData | null> {
+    try {
+      const q = new URLSearchParams({ serviceId });
+      if (patientId) {
+        q.set('patientId', patientId);
+      }
+      const res = await clientFetch<
+        { success?: boolean; data?: FormRequirementData } | FormRequirementData
+      >(`/api/v1/medical-records/intakes/form-requirement?${q.toString()}`, {
+        method: 'GET'
+      });
+      if (res && typeof res === 'object' && 'data' in res && res.data) {
+        return res.data as FormRequirementData;
+      }
+      return res as FormRequirementData;
+    } catch {
+      return null;
+    }
+  }
   async createMaternityIntake(
     payload: CreateMaternityIntakePayload
   ): Promise<MaternalIntakeResponse> {

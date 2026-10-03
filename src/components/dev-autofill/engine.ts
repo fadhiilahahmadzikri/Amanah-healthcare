@@ -1,3 +1,4 @@
+import { resolveAdaptiveAutofillValues, resolveAdaptiveClearValues } from './adaptive-autofill';
 import type { AutofillPayload, AutofillSchedule } from './types';
 
 export const AUTOFILL_EVENT_NAME = 'devtool:autofill';
@@ -31,6 +32,7 @@ export function fillVisibleFields(presetValues: Record<string, string>, flow: st
     return;
   }
 
+  const adaptivePreset = resolveAdaptiveAutofillValues(flow, presetValues);
   const currentStepValues: Record<string, string> = {};
   const visibleElements = document.querySelectorAll<HTMLElement>(
     '[role="dialog"] [id], [role="dialog"] [name], [role="dialog"] [data-field-id]'
@@ -38,8 +40,8 @@ export function fillVisibleFields(presetValues: Record<string, string>, flow: st
 
   visibleElements.forEach((el) => {
     const key = el.getAttribute('data-field-id') || el.id || el.getAttribute('name');
-    if (key && presetValues[key] !== undefined) {
-      currentStepValues[key] = presetValues[key];
+    if (key && adaptivePreset[key] !== undefined) {
+      currentStepValues[key] = adaptivePreset[key];
     }
   });
 
@@ -48,8 +50,8 @@ export function fillVisibleFields(presetValues: Record<string, string>, flow: st
   >('[role="dialog"] input, [role="dialog"] textarea, [role="dialog"] select');
   inputs.forEach((input) => {
     const key = input.id || input.name;
-    if (key && presetValues[key] !== undefined) {
-      currentStepValues[key] = presetValues[key];
+    if (key && adaptivePreset[key] !== undefined) {
+      currentStepValues[key] = adaptivePreset[key];
     }
   });
 
@@ -100,30 +102,27 @@ export function fillVisibleFields(presetValues: Record<string, string>, flow: st
       'hasContraceptionHistory'
     ];
     questionnaireKeys.forEach((k) => {
-      if (presetValues[k] !== undefined) {
-        currentStepValues[k] = presetValues[k];
+      if (adaptivePreset[k] !== undefined) {
+        currentStepValues[k] = adaptivePreset[k];
       }
     });
   }
 
-  if (currentStepValues.motherBirthDate && presetValues.motherAge) {
-    currentStepValues.motherAge = presetValues.motherAge;
+  if (currentStepValues.motherBirthDate && adaptivePreset.motherAge) {
+    currentStepValues.motherAge = adaptivePreset.motherAge;
   }
-  if (currentStepValues.partnerName && presetValues.partnerAge) {
-    currentStepValues.partnerAge = presetValues.partnerAge;
+  if (currentStepValues.partnerName && adaptivePreset.partnerAge) {
+    currentStepValues.partnerAge = adaptivePreset.partnerAge;
   }
-  if (currentStepValues.heightCm && presetValues.initialBmi) {
-    currentStepValues.initialBmi = presetValues.initialBmi;
+  if (currentStepValues.heightCm && adaptivePreset.initialBmi) {
+    currentStepValues.initialBmi = adaptivePreset.initialBmi;
   }
 
   dispatchAutofillEvent(flow, currentStepValues);
 }
 
 export function clearVisibleFields(presetValues: Record<string, string>, flow: string): void {
-  const emptyValues: Record<string, string> = {};
-  Object.keys(presetValues).forEach((key) => {
-    emptyValues[key] = '';
-  });
-
+  const emptyValues = resolveAdaptiveClearValues(flow, presetValues);
   dispatchAutofillEvent(flow, emptyValues);
 }
+

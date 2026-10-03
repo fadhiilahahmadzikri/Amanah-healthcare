@@ -157,18 +157,21 @@ export function DetailsModal({
       maxWidth={isFormExpanded ? 'max-w-5xl' : 'max-w-lg'}
       showCloseButton={false}
       dismissible={!isCancelling}
-      className='transition-[max-width] duration-300 ease-out'
+      className={cn(
+        'transition-[max-width,height,max-height] duration-300 ease-out flex flex-col overflow-hidden',
+        isFormExpanded ? 'h-[85vh] max-h-[85vh]' : 'max-h-[90vh]'
+      )}
     >
       <div
         className={cn(
-          'w-full flex items-stretch min-h-[460px]',
+          'w-full flex items-stretch flex-1 min-h-0',
           isFormExpanded ? 'flex-col md:flex-row' : 'flex-col'
         )}
       >
         <div
           className={cn(
             'w-full flex flex-col font-sans select-none justify-between h-full min-h-0 min-w-0 transition-all duration-300 ease-out',
-            isFormExpanded ? 'md:w-[460px] md:shrink-0 md:pr-10' : 'w-full'
+            isFormExpanded ? 'md:w-[420px] md:shrink-0 md:pr-8' : 'w-full'
           )}
         >
           {modalStep === 'details' && (
@@ -213,7 +216,7 @@ export function DetailsModal({
         </div>
 
         {isFormExpanded && modalStep === 'details' && (
-          <div className='w-full flex-1 flex flex-col font-sans select-none h-full min-h-0 min-w-0 md:pl-10 md:border-l border-border/40 pt-6 md:pt-0 animate-in fade-in-0 slide-in-from-right-6 duration-300 ease-out'>
+          <div className='w-full flex-1 flex flex-col font-sans select-none h-full min-h-0 min-w-0 md:pl-8 md:border-l border-border/40 pt-6 md:pt-0 animate-in fade-in-0 slide-in-from-right-6 duration-300 ease-out'>
             <AppointmentFormInspector
               appointment={appointment}
               onClose={() => setIsFormExpanded(false)}
@@ -271,8 +274,8 @@ function DetailsStepContent({
   onStartCancel
 }: DetailsStepProps) {
   return (
-    <>
-      <div className='flex items-center justify-between gap-3 pb-3 border-b border-border/40 min-h-[77px]'>
+    <div className='flex flex-col h-full min-h-0 w-full justify-between'>
+      <div className='flex items-center justify-between gap-3 pb-3 border-b border-border/40 min-h-[77px] shrink-0'>
         <div className='flex items-center gap-3.5 min-w-0 flex-1'>
           <div className='size-14 min-w-[56px] min-h-[56px] rounded-full overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square'>
             <DoctorAvatar name={doctor.name} avatarUrl={doctor.avatar} size={56} />
@@ -342,128 +345,130 @@ function DetailsStepContent({
         </div>
       </div>
 
-      <div className='py-2.5 border-b border-border/40 flex items-center justify-between gap-3 text-sm min-w-0'>
-        <div className='flex items-center gap-2 text-foreground font-semibold min-w-0 shrink-0'>
-          <Icons.calendar className='size-4 text-primary shrink-0' strokeWidth={1.8} />
-          <span className='truncate'>{appointment.date || '-'}</span>
-        </div>
-        <div className='flex items-center gap-1.5 text-muted-foreground font-medium min-w-0 max-w-[55%] justify-end shrink'>
-          <Icons.mapPin className='size-4 text-primary shrink-0' strokeWidth={1.8} />
-          <span className='truncate text-right'>{displayLocation}</span>
-        </div>
-      </div>
-
-      <div className='py-3 border-b border-border/40 flex items-center justify-between min-w-0'>
-        <div className='flex flex-col items-start min-w-[54px] shrink-0'>
-          <span className='text-xl sm:text-2xl font-bold text-foreground leading-tight tracking-tight'>
-            {startTime}
-          </span>
-          <span className='text-xs font-normal text-muted-foreground mt-0.5'>Mulai</span>
-        </div>
-
-        <div className='flex-1 flex flex-col items-center px-2 min-w-0'>
-          <span className='text-xs font-semibold text-muted-foreground mb-1'>{durationText}</span>
-          <div className='w-full flex items-center justify-center relative'>
-            <span className='size-2 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0' />
-            <div className='flex-1 border-t border-dashed border-slate-300 dark:border-slate-600 mx-2' />
-            <span className='size-2 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0' />
+      <div className='flex-1 min-h-0 overflow-y-auto pr-1 py-1'>
+        <div className='py-2.5 border-b border-border/40 flex items-center justify-between gap-3 text-sm min-w-0'>
+          <div className='flex items-center gap-2 text-foreground font-semibold min-w-0 shrink-0'>
+            <Icons.calendar className='size-4 text-primary shrink-0' strokeWidth={1.8} />
+            <span className='truncate'>{appointment.date || '-'}</span>
           </div>
-          <span className='text-xs font-medium text-muted-foreground mt-1 truncate max-w-full'>
-            {visitType}
-          </span>
+          <div className='flex items-center gap-1.5 text-muted-foreground font-medium min-w-0 max-w-[55%] justify-end shrink'>
+            <Icons.mapPin className='size-4 text-primary shrink-0' strokeWidth={1.8} />
+            <span className='truncate text-right'>{displayLocation}</span>
+          </div>
         </div>
 
-        <div className='flex flex-col items-end min-w-[54px] shrink-0'>
-          <span className='text-xl sm:text-2xl font-bold text-foreground leading-tight tracking-tight'>
-            {endTime}
-          </span>
-          <span className='text-xs font-normal text-muted-foreground mt-0.5'>Selesai</span>
-        </div>
-      </div>
+        <div className='py-3 border-b border-border/40 flex items-center justify-between min-w-0'>
+          <div className='flex flex-col items-start min-w-[54px] shrink-0'>
+            <span className='text-xl sm:text-2xl font-bold text-foreground leading-tight tracking-tight'>
+              {startTime}
+            </span>
+            <span className='text-xs font-normal text-muted-foreground mt-0.5'>Mulai</span>
+          </div>
 
-      <div className='pt-4 pb-1 grid grid-cols-2 gap-y-3.5 gap-x-6 min-w-0'>
-        <div className='border-b border-border/40 pb-2'>
-          <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-            Nama Pasien
-          </span>
-          <span className='text-sm font-semibold text-foreground block truncate'>
-            {patientName}
-          </span>
+          <div className='flex-1 flex flex-col items-center px-2 min-w-0'>
+            <span className='text-xs font-semibold text-muted-foreground mb-1'>{durationText}</span>
+            <div className='w-full flex items-center justify-center relative'>
+              <span className='size-2 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0' />
+              <div className='flex-1 border-t border-dashed border-slate-300 dark:border-slate-600 mx-2' />
+              <span className='size-2 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0' />
+            </div>
+            <span className='text-xs font-medium text-muted-foreground mt-1 truncate max-w-full'>
+              {visitType}
+            </span>
+          </div>
+
+          <div className='flex flex-col items-end min-w-[54px] shrink-0'>
+            <span className='text-xl sm:text-2xl font-bold text-foreground leading-tight tracking-tight'>
+              {endTime}
+            </span>
+            <span className='text-xs font-normal text-muted-foreground mt-0.5'>Selesai</span>
+          </div>
         </div>
 
-        <div className='border-b border-border/40 pb-2'>
-          <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-            Status Janji Temu
-          </span>
-          <div className='pt-0.5'>
-            <div
-              className={cn(
-                'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border backdrop-blur-sm select-none shadow-none',
-                statusConfig.pillBg,
-                statusConfig.pillBorder
-              )}
-            >
-              <span
+        <div className='pt-4 pb-1 grid grid-cols-2 gap-y-3.5 gap-x-6 min-w-0'>
+          <div className='border-b border-border/40 pb-2'>
+            <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+              Nama Pasien
+            </span>
+            <span className='text-sm font-semibold text-foreground block truncate'>
+              {patientName}
+            </span>
+          </div>
+
+          <div className='border-b border-border/40 pb-2'>
+            <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+              Status Janji Temu
+            </span>
+            <div className='pt-0.5'>
+              <div
                 className={cn(
-                  'size-1.5 rounded-full shrink-0 ring-1 ring-white/60 dark:ring-white/20',
-                  statusConfig.dotGradient
-                )}
-              />
-              <span
-                className={cn(
-                  'bg-clip-text text-transparent font-bold tracking-tight',
-                  statusConfig.textGradient
+                  'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border backdrop-blur-sm select-none shadow-none',
+                  statusConfig.pillBg,
+                  statusConfig.pillBorder
                 )}
               >
-                {statusConfig.label}
-              </span>
+                <span
+                  className={cn(
+                    'size-1.5 rounded-full shrink-0 ring-1 ring-white/60 dark:ring-white/20',
+                    statusConfig.dotGradient
+                  )}
+                />
+                <span
+                  className={cn(
+                    'bg-clip-text text-transparent font-bold tracking-tight',
+                    statusConfig.textGradient
+                  )}
+                >
+                  {statusConfig.label}
+                </span>
+              </div>
             </div>
+          </div>
+
+          <div className='border-b border-border/40 pb-2'>
+            <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+              Nomor Antrean
+            </span>
+            <span className='text-sm font-bold font-mono text-primary block truncate'>
+              {appointment.queue_number || '-'}
+            </span>
+          </div>
+
+          <div className='border-b border-border/40 pb-2'>
+            <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+              Layanan Poliklinik
+            </span>
+            <span className='text-sm font-semibold text-foreground block truncate'>
+              {serviceName}
+            </span>
+          </div>
+
+          <div className='border-b border-border/40 pb-2'>
+            <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+              Ruang & Lokasi
+            </span>
+            <span className='text-sm font-semibold text-foreground block truncate'>
+              {displayLocation}
+            </span>
+          </div>
+
+          <div className='border-b border-border/40 pb-2'>
+            <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+              Tipe Kunjungan
+            </span>
+            <span className='text-sm font-semibold text-foreground block truncate'>{visitType}</span>
           </div>
         </div>
 
-        <div className='border-b border-border/40 pb-2'>
-          <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-            Nomor Antrean
-          </span>
-          <span className='text-sm font-bold font-mono text-primary block truncate'>
-            {appointment.queue_number || '-'}
-          </span>
-        </div>
-
-        <div className='border-b border-border/40 pb-2'>
-          <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-            Layanan Poliklinik
-          </span>
-          <span className='text-sm font-semibold text-foreground block truncate'>
-            {serviceName}
-          </span>
-        </div>
-
-        <div className='border-b border-border/40 pb-2'>
-          <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-            Ruang & Lokasi
-          </span>
-          <span className='text-sm font-semibold text-foreground block truncate'>
-            {displayLocation}
-          </span>
-        </div>
-
-        <div className='border-b border-border/40 pb-2'>
-          <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-            Tipe Kunjungan
-          </span>
-          <span className='text-sm font-semibold text-foreground block truncate'>{visitType}</span>
+        <div className='border-b border-border/40 pb-3 pt-0.5 min-w-0'>
+          <span className='text-xs font-normal text-muted-foreground block mb-1'>Keluhan Medis</span>
+          <p className='text-sm font-medium text-foreground leading-relaxed break-words'>
+            {complaintText}
+          </p>
         </div>
       </div>
 
-      <div className='border-b border-border/40 pb-3 pt-0.5 min-w-0'>
-        <span className='text-xs font-normal text-muted-foreground block mb-1'>Keluhan Medis</span>
-        <p className='text-sm font-medium text-foreground leading-relaxed break-words'>
-          {complaintText}
-        </p>
-      </div>
-
-      <div className='pt-3 flex items-center justify-end min-w-0'>
+      <div className='pt-3 border-t border-border/40 flex items-center justify-end min-w-0 shrink-0'>
         <Button
           type='button'
           variant='outline'
@@ -475,6 +480,6 @@ function DetailsStepContent({
           Tutup
         </Button>
       </div>
-    </>
+    </div>
   );
 }

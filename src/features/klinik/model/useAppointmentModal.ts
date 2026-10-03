@@ -16,9 +16,9 @@ import {
   type ServiceCatalogItem,
   type ServiceCategoryCatalog
 } from '../api/catalog.service';
-import { kiaIntakeService } from '../api/kia-intake-service';
 import { getServiceImage } from '../constants/appointment-reservation-services';
 import { mapBackendAppointmentToUi } from '../utils/booking-appointment-mapper';
+import { formRequirementGuard } from './form-requirement-guard';
 import type { Appointment, AppointmentFormData } from '../api/types';
 
 export type BookingModalStep =
@@ -77,6 +77,13 @@ export function useAppointmentModal({
   const [activeMedicalFlow, setActiveMedicalFlow] = useState<'pregnancy' | 'immunization' | null>(
     null
   );
+  const [isResolvingMedicalFlow, setIsResolvingMedicalFlow] = useState(false);
+
+  useEffect(() => {
+    if (selectedService?.id && selectedPatientId) {
+      void formRequirementGuard.prefetch(selectedService.id, selectedPatientId);
+    }
+  }, [selectedService?.id, selectedPatientId]);
 
   const [selectedSessionId, setSelectedSessionId] = useState<string>('');
   const [rescheduleStaffId, setRescheduleStaffId] = useState<string>('');
@@ -177,6 +184,7 @@ export function useAppointmentModal({
       setSelectedService(null);
       setComplaint('');
       setActiveMedicalFlow(null);
+      formRequirementGuard.clearActiveRequirement();
       setIsQueueSuccessOpen(false);
       setCreatedAppointment(null);
       setRescheduleStaffId('');
@@ -299,7 +307,7 @@ export function useAppointmentModal({
   }, []);
 
   const handleRelationshipSubmitForMedicalFlow = useCallback(
-    (relationship: PatientRelationshipType) => {
+    async (relationship: PatientRelationshipType) => {
       setSelectedRelationship(relationship);
       const currentFlow =
         bookingContext?.formType ||
@@ -309,13 +317,19 @@ export function useAppointmentModal({
             ? 'immunization'
             : null);
 
-      if (currentFlow === 'pregnancy') {
-        setActiveMedicalFlow('pregnancy');
-      } else if (currentFlow === 'immunization') {
-        setActiveMedicalFlow('immunization');
+      if (currentFlow === 'pregnancy' || currentFlow === 'immunization') {
+        if (selectedService?.id) {
+          setIsResolvingMedicalFlow(true);
+          try {
+            await formRequirementGuard.resolveAndLock(selectedService.id, selectedPatientId);
+          } finally {
+            setIsResolvingMedicalFlow(false);
+          }
+        }
+        setActiveMedicalFlow(currentFlow);
       }
     },
-    [bookingContext, selectedService]
+    [bookingContext, selectedService, selectedPatientId]
   );
 
   const handlePatientContinue = async () => {
@@ -334,45 +348,38 @@ export function useAppointmentModal({
           : 'regular');
 
     if (currentFormType === 'pregnancy' || currentFormType === 'immunization') {
-      const flow = currentFormType;
-      const ctxPatient = bookingContext?.patients.find((p) => p.id === patientToUse.id);
-      if (ctxPatient?.hasExistingIntake || (patientToUse as any).hasExistingIntake) {
-        toast.success(
-          `Data ${flow === 'pregnancy' ? 'kehamilan' : 'imunisasi'} tercatat untuk ${patientToUse.fullName} digunakan`
-        );
-        setStep('date');
-        return;
-      }
-
-      try {
-        const latestIntake = await kiaIntakeService.getLatestIntakeByPatientId(
-          patientToUse.id,
-          flow
-        );
-        if (latestIntake?.data) {
-          toast.success(
-            `Data ${flow === 'pregnancy' ? 'kehamilan' : 'imunisasi'} tercatat untuk ${patientToUse.fullName} digunakan`
-          );
-          setStep('date');
-          return;
+      if (selectedService?.id) {
+        setIsResolvingMedicalFlow(true);
+        try {
+          await formRequirementGuard.resolveAndLock(selectedService.id, patientToUse.id);
+        } finally {
+          setIsResolvingMedicalFlow(false);
         }
-      } catch {}
-      setActiveMedicalFlow(flow);
+      }
+      setActiveMedicalFlow(currentFormType);
       return;
     }
 
     setStep('date');
   };
 
-  const handlePatientCreated = (newPatient: PatientAffiliationProfile) => {
+  const handlePatientCreated = async (newPatient: PatientAffiliationProfile) => {
     setPatients((prev) => [newPatient, ...prev]);
     setSelectedPatientId(newPatient.id);
-    if (selectedService?.medicalFlow === 'pregnancy') {
-      setActiveMedicalFlow('pregnancy');
-      return;
-    }
-    if (selectedService?.medicalFlow === 'immunization') {
-      setActiveMedicalFlow('immunization');
+    if (
+      selectedService?.medicalFlow === 'pregnancy' ||
+      selectedService?.medicalFlow === 'immunization'
+    ) {
+      const targetFlow = selectedService.medicalFlow;
+      if (selectedService?.id) {
+        setIsResolvingMedicalFlow(true);
+        try {
+          await formRequirementGuard.resolveAndLock(selectedService.id, newPatient.id);
+        } finally {
+          setIsResolvingMedicalFlow(false);
+        }
+      }
+      setActiveMedicalFlow(targetFlow);
       return;
     }
     setStep('date');
@@ -464,39 +471,17 @@ export function useAppointmentModal({
     setTimeSlot,
     selectedSessionId,
     setSelectedSessionId,
-    visitType,
-    setVisitType,
-    complaint,
-    setComplaint,
-    isVisitTypeOpen,
-    setIsVisitTypeOpen,
-    visitTypeOptions,
-    patients,
-    selectedPatientId,
-    setSelectedPatientId,
-    selectedPatient,
-    selectedRelationship,
-    setSelectedRelationship,
-    isLoadingPatients,
-    bookingContext,
-    isLoadingBookingContext,
-    activeMedicalFlow,
-    setActiveMedicalFlow,
-    rescheduleStaffId,
-    reschedulePoliklinikId,
-    rescheduleStaffIdReady,
-    isSubmitting,
-    isQueueSuccessOpen,
-    setIsQueueSuccessOpen,
-    createdAppointment,
-    visitTypeDropdownRef,
-    stepContainerRef,
-    handleSelectServiceItem,
-    handlePatientCreated,
-    handleAddNewPatient,
-    handleRelationshipSubmitForMedicalFlow,
-    handlePatientContinue,
-    handleFinalSubmit
+    visitType, setVisitType, complaint, setComplaint,
+    isVisitTypeOpen, setIsVisitTypeOpen, visitTypeOptions,
+    patients, selectedPatientId, setSelectedPatientId, selectedPatient,
+    selectedRelationship, setSelectedRelationship,
+    isLoadingPatients, bookingContext, isLoadingBookingContext,
+    activeMedicalFlow, setActiveMedicalFlow, isResolvingMedicalFlow,
+    rescheduleStaffId, reschedulePoliklinikId, rescheduleStaffIdReady,
+    isSubmitting, isQueueSuccessOpen, setIsQueueSuccessOpen,
+    createdAppointment, visitTypeDropdownRef, stepContainerRef,
+    handleSelectServiceItem, handlePatientCreated, handleAddNewPatient,
+    handleRelationshipSubmitForMedicalFlow, handlePatientContinue, handleFinalSubmit
   };
 }
 

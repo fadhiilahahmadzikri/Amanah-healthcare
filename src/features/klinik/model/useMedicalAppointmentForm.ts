@@ -2,8 +2,11 @@
 
 import * as React from 'react';
 import { useStore } from '@tanstack/react-form';
+import { useQuery } from '@tanstack/react-query';
 import { useAppForm } from '@/components/ui/tanstack-form';
 import { toast } from 'sonner';
+import { kiaIntakeService } from '../api/kia-intake-service';
+import { formRequirementGuard } from './form-requirement-guard';
 import type { AppointmentFormData, Doctor, MedicalAppointmentFlow } from '../api/types';
 import { getDoctorsByService } from '../api/service';
 import { getMedicalFlowDefinition, type MedicalFormSection } from '../constants/medical-appointment-schemas';
@@ -71,7 +74,42 @@ export function useMedicalAppointmentForm({
     () => enrichMedicalFlowDefinition(baseDefinition, catalogs),
     [baseDefinition, catalogs]
   );
-  const defaultValues = React.useMemo(() => buildDefaultMedicalValues(baseDefinition), [baseDefinition]);
+  const guardRequirement = React.useMemo(() => {
+    return (
+      formRequirementGuard.getActiveRequirement() ||
+      formRequirementGuard.getCached(selectedService?.id, selectedPatient?.id)
+    );
+  }, [selectedService?.id, selectedPatient?.id]);
+
+  const { data: formRequirement } = useQuery({
+    queryKey: ['form-requirement', selectedService?.id, selectedPatient?.id],
+    queryFn: () =>
+      selectedService?.id
+        ? kiaIntakeService.getFormRequirement(selectedService.id, selectedPatient?.id)
+        : null,
+    enabled: isOpen && Boolean(selectedService?.id),
+    initialData: guardRequirement || undefined,
+    staleTime: 60_000
+  });
+
+  const effectiveRequirement = formRequirement || guardRequirement;
+
+  const defaultValues = React.useMemo(() => {
+    const base = buildDefaultMedicalValues(baseDefinition);
+    const target = base as Record<string, string>;
+    if (effectiveRequirement?.reusableIdentity) {
+      Object.entries(effectiveRequirement.reusableIdentity).forEach(([fieldId, val]) => {
+        if (val !== undefined && val !== null && val !== '') target[fieldId] = String(val);
+      });
+    }
+    if (effectiveRequirement?.prefilledValues) {
+      Object.entries(effectiveRequirement.prefilledValues).forEach(([fieldId, val]) => {
+        if (val !== undefined && val !== null && val !== '') target[fieldId] = String(val);
+      });
+    }
+    return base;
+  }, [baseDefinition, effectiveRequirement]);
+
   const doctors = React.useMemo<Doctor[]>(
     () => getDoctorsByService(definition.serviceName),
     [definition.serviceName]
@@ -122,6 +160,10 @@ export function useMedicalAppointmentForm({
     [activeMedicalSections, history.historyCounts, history.catalogAction]
   );
 
+  const omittedFieldIdsSet = React.useMemo(() => {
+    return new Set(effectiveRequirement?.omittedFieldIds || []);
+  }, [effectiveRequirement]);
+
   const registrationPrefill = React.useMemo(
     () => buildRegistrationPrefill(flow, registeredPatient),
     [flow, registeredPatient]
@@ -141,13 +183,16 @@ export function useMedicalAppointmentForm({
         .map((section) => ({
           ...section,
           fields: section.fields.filter(
-            (field) => !prefilledFieldIds.has(field.id) && (!field.visibleIf || field.visibleIf(values))
+            (field) =>
+              !omittedFieldIdsSet.has(field.id) &&
+              !prefilledFieldIds.has(field.id) &&
+              (!field.visibleIf || field.visibleIf(values))
           )
         }))
         .filter(
           (section) => section.id === SECTION_IDS.VACCINE_HISTORY || section.fields.length > 0
         ),
-    [repeatableMedicalSections, prefilledFieldIds, values]
+    [repeatableMedicalSections, omittedFieldIdsSet, prefilledFieldIds, values]
   );
 
   const activeSteps = React.useMemo<StepDescriptor[]>(
@@ -196,106 +241,73 @@ export function useMedicalAppointmentForm({
 
   React.useEffect(() => {
     Object.entries(registrationPrefill).forEach(([fieldId, value]) => {
-      if (value.trim()) {
-        form.setFieldValue(fieldId, value);
-      }
+      if (value.trim()) form.setFieldValue(fieldId, value);
     });
-  }, [form, registrationPrefill]);
-
-  const prevContraceptionRef = React.useRef(values.hasContraceptionHistory);
-  React.useEffect(() => {
-    const group = historyGroups.contraception;
-    if (
-      values.hasContraceptionHistory === group.disabledValue &&
-      prevContraceptionRef.current !== group.disabledValue
-    ) {
-      history.clearHistoryRecordRange(group, 1, group.maxRecords);
-      history.setHistoryCounts((prev) =>
-        prev.contraception === 1 ? prev : { ...prev, contraception: 1 }
-      );
+    if (effectiveRequirement?.reusableIdentity) {
+      Object.entries(effectiveRequirement.reusableIdentity).forEach(([fieldId, value]) => {
+        if (value) form.setFieldValue(fieldId, value);
+      });
     }
-    prevContraceptionRef.current = values.hasContraceptionHistory;
-  }, [history, values.hasContraceptionHistory]);
-
-  const prevPregnancyRef = React.useRef(values.hasPreviousPregnancyHistory);
-  React.useEffect(() => {
-    const group = historyGroups.pregnancy;
-    if (
-      values.hasPreviousPregnancyHistory === group.disabledValue &&
-      prevPregnancyRef.current !== group.disabledValue
-    ) {
-      history.clearHistoryRecordRange(group, 1, group.maxRecords);
-      history.setHistoryCounts((prev) => (prev.pregnancy === 1 ? prev : { ...prev, pregnancy: 1 }));
-    }
-    prevPregnancyRef.current = values.hasPreviousPregnancyHistory;
-  }, [history, values.hasPreviousPregnancyHistory]);
-
-  const prevAllergyRef = React.useRef(values.hasAllergyHistory);
-  React.useEffect(() => {
-    if (
-      values.hasAllergyHistory !== ALLERGY_GATEWAY_CHOICE.YES &&
-      prevAllergyRef.current === ALLERGY_GATEWAY_CHOICE.YES
-    ) {
-      form.setFieldValue('childAllergyHistory', '');
-    }
-    prevAllergyRef.current = values.hasAllergyHistory;
-  }, [form, values.hasAllergyHistory]);
-
-  React.useEffect(() => {
-    if (process.env.NODE_ENV === 'production') {
-      return;
-    }
-
-    const handleAutofill = (event: Event) => {
-      const customEvent = event as CustomEvent<{
-        flow: string;
-        values: Record<string, string>;
-        schedule?: ScheduleValues;
-        step?: number;
-      }>;
-      const detail = customEvent.detail;
-      if (!detail || detail.flow !== flow) {
-        return;
-      }
-
-      React.startTransition(() => {
-        if (detail.values) {
-          Object.entries(detail.values).forEach(([fieldId, value]) => {
-            form.setFieldValue(fieldId, value);
-          });
-
-          if (detail.values.hasPreviousPregnancyHistory === 'Ya, ada') {
-            history.setHistoryCounts((prev) => ({
-              ...prev,
-              pregnancy: Math.max(prev.pregnancy, 1)
-            }));
-          }
-          if (detail.values.hasContraceptionHistory === 'Ya, pernah') {
-            history.setHistoryCounts((prev) => ({
-              ...prev,
-              contraception: Math.max(prev.contraception, 1)
-            }));
-          }
-        }
-
-        if (detail.schedule) {
-          setSchedule((previous) => ({
-            ...previous,
-            ...detail.schedule
-          }));
-        }
-
-        if (typeof detail.step === 'number') {
-          setCurrentStep(detail.step);
+    if (effectiveRequirement?.prefilledValues) {
+      Object.entries(effectiveRequirement.prefilledValues).forEach(([fieldId, value]) => {
+        if (value && !form.getFieldValue(fieldId)) {
+          form.setFieldValue(fieldId, value);
         }
       });
-    };
+    }
+  }, [form, registrationPrefill, effectiveRequirement]);
 
-    window.addEventListener('devtool:autofill', handleAutofill);
-    return () => {
-      window.removeEventListener('devtool:autofill', handleAutofill);
+  const prevHistoriesRef = React.useRef({
+    contraception: values.hasContraceptionHistory,
+    pregnancy: values.hasPreviousPregnancyHistory,
+    allergy: values.hasAllergyHistory
+  });
+
+  React.useEffect(() => {
+    const prev = prevHistoriesRef.current;
+    const cGroup = historyGroups.contraception;
+    if (values.hasContraceptionHistory === cGroup.disabledValue && prev.contraception !== cGroup.disabledValue) {
+      history.clearHistoryRecordRange(cGroup, 1, cGroup.maxRecords);
+      history.setHistoryCounts((p) => (p.contraception === 1 ? p : { ...p, contraception: 1 }));
+    }
+    const pGroup = historyGroups.pregnancy;
+    if (values.hasPreviousPregnancyHistory === pGroup.disabledValue && prev.pregnancy !== pGroup.disabledValue) {
+      history.clearHistoryRecordRange(pGroup, 1, pGroup.maxRecords);
+      history.setHistoryCounts((p) => (p.pregnancy === 1 ? p : { ...p, pregnancy: 1 }));
+    }
+    if (values.hasAllergyHistory !== ALLERGY_GATEWAY_CHOICE.YES && prev.allergy === ALLERGY_GATEWAY_CHOICE.YES) {
+      form.setFieldValue('childAllergyHistory', '');
+    }
+    prevHistoriesRef.current = {
+      contraception: values.hasContraceptionHistory,
+      pregnancy: values.hasPreviousPregnancyHistory,
+      allergy: values.hasAllergyHistory
     };
-  }, [flow, form, setSchedule]);
+  }, [history, form, values.hasContraceptionHistory, values.hasPreviousPregnancyHistory, values.hasAllergyHistory]);
+
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === 'production') return;
+    const handleAutofill = (e: Event) => {
+      const d = (e as CustomEvent<{ flow: string; values: Record<string, string>; schedule?: ScheduleValues; step?: number }>).detail;
+      if (!d || d.flow !== flow) return;
+      React.startTransition(() => {
+        if (d.values) {
+          Object.entries(d.values).forEach(([k, v]) => {
+            if (omittedFieldIdsSet.has(k)) {
+              return;
+            }
+            form.setFieldValue(k, v);
+          });
+          if (d.values.hasPreviousPregnancyHistory === 'Ya, ada') history.setHistoryCounts((p) => ({ ...p, pregnancy: Math.max(p.pregnancy, 1) }));
+          if (d.values.hasContraceptionHistory === 'Ya, pernah') history.setHistoryCounts((p) => ({ ...p, contraception: Math.max(p.contraception, 1) }));
+        }
+        if (d.schedule) setSchedule((p) => ({ ...p, ...d.schedule }));
+        if (typeof d.step === 'number') setCurrentStep(d.step);
+      });
+    };
+    window.addEventListener('devtool:autofill', handleAutofill);
+    return () => window.removeEventListener('devtool:autofill', handleAutofill);
+  }, [flow, form, setSchedule, history, omittedFieldIdsSet]);
 
   React.useEffect(() => {
     if (!history.pendingNavigateSectionId) {
@@ -413,38 +425,24 @@ export function useMedicalAppointmentForm({
 
     if (currentDescriptor.type === STEP_DESCRIPTOR_TYPES.HISTORY_CATALOG) {
       const groupKey = currentDescriptor.historyKey;
-
       if (history.historyCounts[groupKey] === 0) {
-        form.setFieldValue(
-          historyGroups[groupKey].gatewayFieldId,
-          historyGroups[groupKey].disabledValue
-        );
+        form.setFieldValue(historyGroups[groupKey].gatewayFieldId, historyGroups[groupKey].disabledValue);
       }
-
-      setCurrentStep((step) => Math.min(totalSteps, step + 1));
-      return;
     }
-
     setCurrentStep((step) => Math.min(totalSteps, step + 1));
   }
 
   function handlePromptNo() {
-    if (!history.historyPrompt) {
-      return;
-    }
-
+    if (!history.historyPrompt) return;
     const groupKey = history.historyPrompt.groupKey;
     history.setHistoryPrompt(null);
-
     const catalogIndex = activeSteps.findIndex(
       (step) => step.type === STEP_DESCRIPTOR_TYPES.HISTORY_CATALOG && step.historyKey === groupKey
     );
-
     if (catalogIndex !== -1) {
       setCurrentStep(catalogIndex + 1);
       return;
     }
-
     setCurrentStep((step) => Math.min(totalSteps, step + 1));
   }
 
@@ -454,17 +452,8 @@ export function useMedicalAppointmentForm({
   );
 
   return {
-    definition,
-    form,
-    values,
-    visibleMedicalSections,
-    repeatableMedicalSections,
-    activeSteps,
-    currentStep,
-    totalSteps,
-    currentDescriptor,
-    schedule,
-    doctors,
+    definition, form, values, visibleMedicalSections, repeatableMedicalSections,
+    activeSteps, currentStep, totalSteps, currentDescriptor, schedule, doctors,
     isProcessing: submit.isProcessing,
     isQueueSuccessOpen: submit.isQueueSuccessOpen,
     createdAppointment: submit.createdAppointment,

@@ -152,7 +152,7 @@ export function MedicalAppointmentModal({
         showCloseButton={false}
         className='flex h-auto max-h-[88dvh] flex-col overflow-hidden p-5 sm:p-6 shadow-2xl transition-[max-width,width,max-height,height] duration-300'
       >
-        <div className='flex shrink-0 items-start justify-between gap-4 border-b border-border/40 pb-4 mb-4 sm:pb-5 sm:mb-5'>
+        <div className='flex shrink-0 items-start justify-between gap-4 pb-2 mb-3 sm:pb-3 sm:mb-4'>
           <div className='min-w-0 flex-1 space-y-1 sm:space-y-1.5'>
             <h3 className='text-base font-bold tracking-tight text-foreground sm:text-lg'>
               {stepTitle}
@@ -214,7 +214,7 @@ export function MedicalAppointmentModal({
               ) : null}
             </div>
 
-            <div className='flex shrink-0 items-center justify-between border-t border-border/40 pt-3 mt-auto'>
+            <div className='flex shrink-0 items-center justify-between pt-3 mt-auto'>
               <Button type='button' variant='ghost' shape='pill' onClick={actions.prevStep}>
                 {currentStep === 1 && !onBackToService ? 'Batal' : 'Kembali'}
               </Button>

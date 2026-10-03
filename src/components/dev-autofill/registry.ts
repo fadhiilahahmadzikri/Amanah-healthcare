@@ -1,3 +1,4 @@
+import { resolveAdaptiveAutofillValues } from './adaptive-autofill';
 import type { AutofillDefinition } from './types';
 import { getPregnancyAutofillPreset } from './presets/pregnancy-preset';
 import { getImmunizationAutofillPreset } from './presets/immunization-preset';
@@ -20,7 +21,8 @@ const registry: AutofillDefinition[] = [
     },
     fillFull: () => {
       const preset = getPregnancyAutofillPreset();
-      dispatchAutofillEvent('pregnancy', preset.values, preset.schedule);
+      const adaptiveValues = resolveAdaptiveAutofillValues('pregnancy', preset.values);
+      dispatchAutofillEvent('pregnancy', adaptiveValues, preset.schedule);
       return true;
     },
     fillCurrentStep: () => {
@@ -49,7 +51,8 @@ const registry: AutofillDefinition[] = [
     },
     fillFull: () => {
       const preset = getImmunizationAutofillPreset();
-      dispatchAutofillEvent('immunization', preset.values, preset.schedule);
+      const adaptiveValues = resolveAdaptiveAutofillValues('immunization', preset.values);
+      dispatchAutofillEvent('immunization', adaptiveValues, preset.schedule);
       return true;
     },
     fillCurrentStep: () => {

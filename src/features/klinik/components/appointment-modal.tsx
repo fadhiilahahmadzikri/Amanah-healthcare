@@ -54,6 +54,7 @@ export function AppointmentModal({
     bookingContext,
     activeMedicalFlow,
     setActiveMedicalFlow,
+    isResolvingMedicalFlow,
     rescheduleStaffId,
     reschedulePoliklinikId,
     rescheduleStaffIdReady,
@@ -326,13 +327,19 @@ export function AppointmentModal({
                     variant='primary'
                     size='md'
                     shape='pill'
-                    disabled={!selectedPatientId}
+                    disabled={!selectedPatientId || isResolvingMedicalFlow}
                     onClick={handlePatientContinue}
                     withTrailingCircleIcon={true}
                     className='min-w-[140px]'
-                    trailingIcon={<Icons.arrowRight className='size-3 stroke-[2.5]' />}
+                    trailingIcon={
+                      isResolvingMedicalFlow ? (
+                        <Icons.spinner className='size-3 animate-spin stroke-[2.5]' />
+                      ) : (
+                        <Icons.arrowRight className='size-3 stroke-[2.5]' />
+                      )
+                    }
                   >
-                    Lanjut
+                    {isResolvingMedicalFlow ? 'Menyiapkan...' : 'Lanjut'}
                   </Button>
                 ) : step === 'date' ? (
                   <Button

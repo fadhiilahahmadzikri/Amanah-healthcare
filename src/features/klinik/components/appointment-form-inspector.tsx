@@ -14,6 +14,7 @@ import { patientAffiliationService } from '@/features/data-pasien/api/patient-af
 import type { Appointment } from '../api/types';
 import type { UnifiedInspectorData, UnifiedInspectorPatient } from './inspector/types';
 import { InspectorIdentityTab } from './inspector/inspector-identity-tab';
+import { InspectorPartnerTab } from './inspector/inspector-partner-tab';
 import { InspectorClinicalTab } from './inspector/inspector-clinical-tab';
 import { InspectorObstetricTab } from './inspector/inspector-obstetric-tab';
 import { InspectorImmunizationTab } from './inspector/inspector-immunization-tab';
@@ -182,20 +183,23 @@ export function AppointmentFormInspector({ appointment, onClose }: AppointmentFo
         )}
       </div>
 
-      <div className='py-3 flex-1 overflow-y-auto min-h-0 pr-1'>
+      <div className='py-3 flex-1 min-h-0 flex flex-col'>
         {isLoading && !appointment.medical_intake ? (
           <div className='flex flex-col items-center justify-center py-16 text-muted-foreground space-y-2'>
             <Icons.spinner className='size-5 animate-spin text-primary' />
             <span className='text-xs font-medium'>Memuat formulir medis...</span>
           </div>
         ) : isPregnancy ? (
-          <Tabs defaultValue='identitas' className='w-full flex flex-col h-full'>
-            <TabsList className='grid grid-cols-3 w-full h-9 mb-3 shrink-0'>
+          <Tabs defaultValue='identitas' className='w-full flex flex-col h-full min-h-0'>
+            <TabsList className='grid grid-cols-4 w-full h-9 mb-3 shrink-0'>
               <TabsTrigger value='identitas' className='text-xs font-semibold cursor-pointer'>
-                Identitas & Fisik
+                Identitas Ibu
+              </TabsTrigger>
+              <TabsTrigger value='suami' className='text-xs font-semibold cursor-pointer'>
+                Suami & Alamat
               </TabsTrigger>
               <TabsTrigger value='klinis' className='text-xs font-semibold cursor-pointer'>
-                Kebiasaan & Penyakit
+                Skrining Klinis
               </TabsTrigger>
               <TabsTrigger value='obstetri' className='text-xs font-semibold cursor-pointer'>
                 Obstetri & KB
@@ -205,6 +209,10 @@ export function AppointmentFormInspector({ appointment, onClose }: AppointmentFo
             <div className='flex-1 overflow-y-auto min-h-0 pr-1'>
               <TabsContent value='identitas' className='m-0 outline-none'>
                 <InspectorIdentityTab appointment={appointment} data={parsedData} />
+              </TabsContent>
+
+              <TabsContent value='suami' className='m-0 outline-none'>
+                <InspectorPartnerTab appointment={appointment} data={parsedData} />
               </TabsContent>
 
               <TabsContent value='klinis' className='m-0 outline-none'>
@@ -219,7 +227,9 @@ export function AppointmentFormInspector({ appointment, onClose }: AppointmentFo
         ) : isImmunization ? (
           <InspectorImmunizationTab appointment={appointment} data={parsedData} />
         ) : (
-          <InspectorGenericView appointment={appointment} data={parsedData} />
+          <div className='flex-1 overflow-y-auto min-h-0 pr-1'>
+            <InspectorGenericView appointment={appointment} data={parsedData} />
+          </div>
         )}
       </div>
     </div>
