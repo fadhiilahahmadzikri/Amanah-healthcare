@@ -16,6 +16,7 @@ import type { UnifiedInspectorData, UnifiedInspectorPatient } from './inspector/
 import { InspectorIdentityTab } from './inspector/inspector-identity-tab';
 import { InspectorClinicalTab } from './inspector/inspector-clinical-tab';
 import { InspectorObstetricTab } from './inspector/inspector-obstetric-tab';
+import { InspectorImmunizationTab } from './inspector/inspector-immunization-tab';
 import { InspectorGenericView } from './inspector/inspector-generic-view';
 
 export interface AppointmentFormInspectorProps {
@@ -132,6 +133,7 @@ export function AppointmentFormInspector({ appointment, onClose }: AppointmentFo
   }, [serverIntake, appointment, matchingAffiliation]);
 
   const isPregnancy = parsedData.flow === 'pregnancy';
+  const isImmunization = parsedData.flow === 'immunization' || Boolean(parsedData.child);
 
   return (
     <div className='w-full flex flex-col font-sans select-none justify-between h-full min-h-0'>
@@ -199,6 +201,8 @@ export function AppointmentFormInspector({ appointment, onClose }: AppointmentFo
               </TabsContent>
             </div>
           </Tabs>
+        ) : isImmunization ? (
+          <InspectorImmunizationTab appointment={appointment} data={parsedData} />
         ) : (
           <InspectorGenericView appointment={appointment} data={parsedData} />
         )}
