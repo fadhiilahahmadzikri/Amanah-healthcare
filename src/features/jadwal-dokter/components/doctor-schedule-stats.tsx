@@ -1,182 +1,148 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Icons } from '@/components/icons';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import type { DoctorSchedule, DoctorDailySession } from '../api/types';
+import type React from "react";
+import { Icons } from "@/components/icons";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import type { DoctorDailySession, DoctorSchedule } from "../api/types";
 import {
-  getUpcomingScheduleTime,
-  formatUpcomingFallback
-} from '../utils/doctor-schedule-card-utils';
+	formatUpcomingFallback,
+	getUpcomingScheduleTime,
+} from "../utils/doctor-schedule-card-utils";
+import {
+	ActiveSessionIndicator,
+	SlotCounterIndicator,
+	UpcomingScheduleIndicator,
+} from "./doctor-card-atoms";
 
 export interface DoctorScheduleStatsProps {
-  scheduleTime: string;
-  availableSlots: number;
-  totalCapacity: number;
-  displaySlot?: string;
-  upcomingScheduleTime?: string;
-  sessions?: DoctorDailySession[];
-  doctor?: DoctorSchedule;
-  className?: string;
+	scheduleTime: string;
+	availableSlots: number;
+	totalCapacity: number;
+	displaySlot?: string;
+	upcomingScheduleTime?: string;
+	sessions?: DoctorDailySession[];
+	doctor?: DoctorSchedule;
+	className?: string;
 }
 
 export function DoctorScheduleStats({
-  scheduleTime,
-  availableSlots,
-  totalCapacity,
-  displaySlot: _displaySlot,
-  upcomingScheduleTime,
-  sessions,
-  doctor,
-  className
+	scheduleTime,
+	availableSlots,
+	totalCapacity,
+	displaySlot: _displaySlot,
+	upcomingScheduleTime,
+	sessions,
+	doctor,
+	className,
 }: DoctorScheduleStatsProps) {
-  const { labelTime, activeTime, upcomingTime, hasActive, isActiveClosed } =
-    getUpcomingScheduleTime(scheduleTime, sessions, doctor);
-  const resolvedUpcoming =
-    upcomingTime || labelTime || formatUpcomingFallback(upcomingScheduleTime) || 'Belum diatur';
+	const { labelTime, activeTime, upcomingTime, hasActive, isActiveClosed } =
+		getUpcomingScheduleTime(scheduleTime, sessions, doctor);
+	const resolvedUpcoming =
+		upcomingTime ||
+		labelTime ||
+		formatUpcomingFallback(upcomingScheduleTime) ||
+		"Belum diatur";
 
-  const effectiveTotal =
-    totalCapacity > 0
-      ? totalCapacity
-      : sessions && sessions.length > 0
-        ? sessions.reduce((acc, s) => acc + (s.kuota_pasien || 0), 0)
-        : 0;
+	const effectiveTotal =
+		totalCapacity > 0
+			? totalCapacity
+			: sessions && sessions.length > 0
+				? sessions.reduce((acc, s) => acc + (s.kuota_pasien || 0), 0)
+				: 0;
 
-  const bookedCount =
-    typeof doctor?.slot_terisi_akumulasi === 'number'
-      ? doctor.slot_terisi_akumulasi
-      : typeof doctor?.metrics?.occupiedSlots === 'number'
-        ? doctor.metrics.occupiedSlots
-        : Math.max(0, effectiveTotal - availableSlots);
+	const bookedCount =
+		typeof doctor?.slot_terisi_akumulasi === "number"
+			? doctor.slot_terisi_akumulasi
+			: typeof doctor?.metrics?.occupiedSlots === "number"
+				? doctor.metrics.occupiedSlots
+				: Math.max(0, effectiveTotal - availableSlots);
 
-  const slotDisplay = effectiveTotal > 0 ? `${bookedCount}/${effectiveTotal}` : '0/0';
+	const slotDisplay =
+		effectiveTotal > 0 ? `${bookedCount}/${effectiveTotal}` : "0/0";
 
-  if (hasActive && activeTime) {
-    return (
-      <div
-        className={cn(
-          'grid grid-cols-3 gap-2 sm:gap-2.5 pt-3 mt-3.5 border-t border-border/50 relative z-20',
-          className
-        )}
-      >
-        <div className='flex flex-col min-w-0'>
-          {isActiveClosed ? (
-            <div className='flex items-center gap-1.5 text-[11px] font-semibold text-rose-600 dark:text-rose-400'>
-              <span className='size-1.5 rounded-full bg-rose-500 shrink-0' />
-              <span className='truncate'>Tutup</span>
-            </div>
-          ) : (
-            <div className='flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400'>
-              <span className='size-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0' />
-              <span className='truncate'>Sedang Aktif</span>
-            </div>
-          )}
-          <span className='font-bold text-foreground font-mono mt-1 text-[13px] sm:text-[13.5px] tracking-tight truncate'>
-            {activeTime}
-          </span>
-        </div>
+	if (hasActive && activeTime) {
+		return (
+			<div
+				className={cn(
+					"flex items-center justify-between gap-2 pt-2.5 mt-3 border-t border-border/40 relative z-20 min-w-0",
+					className,
+				)}
+			>
+				<ActiveSessionIndicator time={activeTime} isClosed={isActiveClosed} />
 
-        <div className='flex flex-col min-w-0'>
-          <div className='flex items-center gap-1 text-[11px] font-medium text-muted-foreground'>
-            <Icons.clock className='size-3 shrink-0 text-muted-foreground/80' />
-            <span className='truncate'>Jadwal Mendatang</span>
-          </div>
-          <span className='font-bold text-foreground font-mono mt-1 text-[13px] sm:text-[13.5px] tracking-tight truncate'>
-            {resolvedUpcoming}
-          </span>
-        </div>
+				{resolvedUpcoming && resolvedUpcoming !== "Belum diatur" && (
+					<UpcomingScheduleIndicator
+						time={resolvedUpcoming}
+						className="text-muted-foreground font-semibold text-[11.5px] sm:text-xs"
+					/>
+				)}
 
-        <div className='flex flex-col min-w-0'>
-          <div className='flex items-center gap-1 text-[11px] font-medium text-muted-foreground'>
-            <Icons.teams className='size-3 shrink-0 text-muted-foreground/80' />
-            <span className='truncate'>Slot Tersedia</span>
-          </div>
-          <div className='flex items-center gap-1 text-[13px] sm:text-[13.5px] font-bold text-foreground font-mono mt-1 tracking-tight'>
-            <Icons.user className='size-3 text-foreground shrink-0' />
-            <span>{slotDisplay}</span>
-          </div>
-        </div>
-      </div>
-    );
-  }
+				<SlotCounterIndicator display={slotDisplay} />
+			</div>
+		);
+	}
 
-  return (
-    <div
-      className={cn(
-        'grid grid-cols-2 gap-3 pt-3.5 mt-3.5 border-t border-border/50 relative z-20',
-        className
-      )}
-    >
-      <div className='flex flex-col min-w-0'>
-        <div className='flex items-center gap-1.5 text-[11.5px] font-medium text-muted-foreground'>
-          <Icons.clock className='size-3.5 shrink-0 text-muted-foreground/80' />
-          <span>Jadwal Mendatang</span>
-        </div>
-        <span className='font-bold text-foreground font-mono mt-1 text-[15px] sm:text-[15.5px] tracking-tight truncate'>
-          {resolvedUpcoming}
-        </span>
-      </div>
-
-      <div className='flex flex-col min-w-0'>
-        <div className='flex items-center gap-1.5 text-[11.5px] font-medium text-muted-foreground'>
-          <Icons.teams className='size-3.5 shrink-0 text-muted-foreground/80' />
-          <span>Slot Tersedia</span>
-        </div>
-        <div className='flex items-center gap-1.5 text-[15px] sm:text-[15.5px] font-bold text-foreground font-mono mt-1 tracking-tight'>
-          <Icons.user className='size-3.5 text-foreground shrink-0' />
-          <span>{slotDisplay}</span>
-        </div>
-      </div>
-    </div>
-  );
+	return (
+		<div
+			className={cn(
+				"flex items-center justify-between gap-3 pt-2.5 mt-3 border-t border-border/40 relative z-20 min-w-0",
+				className,
+			)}
+		>
+			<UpcomingScheduleIndicator time={resolvedUpcoming} />
+			<SlotCounterIndicator display={slotDisplay} />
+		</div>
+	);
 }
 
 export interface DoctorCardActionsProps {
-  onReschedule?: (e: React.MouseEvent) => void;
-  onDetail?: (e: React.MouseEvent) => void;
-  rescheduleLabel?: string;
-  detailLabel?: string;
-  className?: string;
+	onReschedule?: (e: React.MouseEvent) => void;
+	onDetail?: (e: React.MouseEvent) => void;
+	rescheduleLabel?: string;
+	detailLabel?: string;
+	className?: string;
 }
 
 export function DoctorCardActions({
-  onReschedule,
-  onDetail,
-  rescheduleLabel = 'Reschedule',
-  detailLabel = 'Detail',
-  className
+	onReschedule,
+	onDetail,
+	rescheduleLabel = "Reschedule",
+	detailLabel = "Detail",
+	className,
 }: DoctorCardActionsProps) {
-  return (
-    <div
-      className={cn(
-        'flex items-center justify-end gap-2 pt-3 mt-auto border-t border-border/40 relative z-20',
-        className
-      )}
-    >
-      <Button
-        type='button'
-        variant='outline'
-        size='card-action'
-        shape='pill'
-        onClick={onReschedule}
-        className='font-semibold'
-        leadingIcon={<Icons.calendar className='size-3.5 text-muted-foreground' />}
-      >
-        {rescheduleLabel}
-      </Button>
+	return (
+		<div
+			className={cn(
+				"flex items-center justify-end gap-2 pt-3 mt-auto border-t border-border/40 relative z-20",
+				className,
+			)}
+		>
+			<Button
+				type="button"
+				variant="outline"
+				size="card-action"
+				shape="pill"
+				onClick={onReschedule}
+				className="font-semibold"
+				leadingIcon={
+					<Icons.calendar className="size-3.5 text-muted-foreground" />
+				}
+			>
+				{rescheduleLabel}
+			</Button>
 
-      <Button
-        type='button'
-        variant='default'
-        size='card-action'
-        shape='pill'
-        withTrailingCircleIcon
-        onClick={onDetail}
-        className='font-bold'
-      >
-        {detailLabel}
-      </Button>
-    </div>
-  );
+			<Button
+				type="button"
+				variant="default"
+				size="card-action"
+				shape="pill"
+				withTrailingCircleIcon
+				onClick={onDetail}
+				className="font-bold"
+			>
+				{detailLabel}
+			</Button>
+		</div>
+	);
 }
