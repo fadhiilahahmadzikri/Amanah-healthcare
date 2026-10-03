@@ -12,6 +12,7 @@ import type {
 } from '../../constants/medical-appointment-schemas';
 import type { MedicalAppointmentValues } from '../../utils/medical-appointment';
 import { MedicalQuestionnaire } from '../questionnaire';
+import { VaccineChecklist } from './vaccine-checklist';
 
 export function StepTitle({ title, description }: { title: string; description: string }) {
   return (
@@ -92,7 +93,11 @@ export function MedicalSectionStep({
           </Button>
         </div>
       ) : null}
-      {isQuestionnaire && values && onFieldChange ? (
+      {section.id === 'vaccineHistory' && values && onFieldChange ? (
+        <div className='px-0.5 pt-1.5 pb-2'>
+          <VaccineChecklist values={values} onFieldChange={onFieldChange} />
+        </div>
+      ) : isQuestionnaire && values && onFieldChange ? (
         <div className='px-0.5 pt-1.5 pb-2'>
           <MedicalQuestionnaire section={section} values={values} onFieldChange={onFieldChange} />
         </div>
