@@ -121,6 +121,7 @@ export function useDoctorSessionPatients({
     paginatedPatients,
     capacity,
     bookedCount,
+    scheduleDate: sessionData?.scheduleDate,
     totalPatients,
     totalPages,
     isLoading,

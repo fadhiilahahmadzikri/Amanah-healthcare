@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { DoctorSchedule } from "../api/types";
 import {
+	DOCTOR_CARD_STATUS,
 	formatUpcomingFallback,
 	getDoctorCardStatus,
 	getUpcomingScheduleTime,
@@ -35,8 +36,18 @@ describe("DoctorScheduleCard Logic & Status Contracts", () => {
 		],
 	};
 
-	it("correctly identifies OPEN doctor as Buka", () => {
-		expect(getDoctorCardStatus(baseDoctor)).toBe("Buka");
+	it("correctly identifies OPEN doctor as Buka during active session", () => {
+		const refDate = new Date("2026-09-24T09:30:00");
+		expect(getDoctorCardStatus(baseDoctor, refDate)).toBe(
+			DOCTOR_CARD_STATUS.BUKA,
+		);
+	});
+
+	it("correctly identifies doctor as Tutup when outside session hours", () => {
+		const refDate = new Date("2026-09-24T23:14:00");
+		expect(getDoctorCardStatus(baseDoctor, refDate)).toBe(
+			DOCTOR_CARD_STATUS.TUTUP,
+		);
 	});
 
 	it("correctly identifies CLOSED doctor (canonical backend enum) as Tutup even with configured sessions", () => {
@@ -47,7 +58,7 @@ describe("DoctorScheduleCard Logic & Status Contracts", () => {
 			slot_tersedia: 0,
 			kapasitas_per_hari: 0,
 		};
-		expect(getDoctorCardStatus(closedDoctor)).toBe("Tutup");
+		expect(getDoctorCardStatus(closedDoctor)).toBe(DOCTOR_CARD_STATUS.TUTUP);
 	});
 
 	it("correctly identifies legacy Tutup doctor as Tutup", () => {
@@ -56,16 +67,31 @@ describe("DoctorScheduleCard Logic & Status Contracts", () => {
 			status_dokter: "Tutup",
 			status_jadwal: "Tutup",
 		};
-		expect(getDoctorCardStatus(closedDoctor)).toBe("Tutup");
+		expect(getDoctorCardStatus(closedDoctor)).toBe(DOCTOR_CARD_STATUS.TUTUP);
 	});
 
-	it("correctly identifies OCCUPIED doctor as Terisi", () => {
+	it("correctly identifies OCCUPIED doctor as Terisi during active session", () => {
+		const refDate = new Date("2026-09-24T09:30:00");
 		const occupiedDoctor: DoctorSchedule = {
 			...baseDoctor,
 			status_dokter: "OCCUPIED",
 			status_jadwal: "OCCUPIED",
+			sesi_harian: [
+				{
+					...baseDoctor.sesi_harian?.[0],
+					id: "sess-1",
+					nama_sesi: "Sesi Pagi",
+					jam_mulai: "08:00",
+					jam_selesai: "12:00",
+					kuota_pasien: 12,
+					status_sesi: "OCCUPIED",
+					slot_tersedia: 0,
+				},
+			],
 		};
-		expect(getDoctorCardStatus(occupiedDoctor)).toBe("Terisi");
+		expect(getDoctorCardStatus(occupiedDoctor, refDate)).toBe(
+			DOCTOR_CARD_STATUS.TERISI,
+		);
 	});
 
 	it("correctly identifies doctor on leave as Cuti", () => {
@@ -74,7 +100,7 @@ describe("DoctorScheduleCard Logic & Status Contracts", () => {
 			is_cuti: true,
 			cuti_reason: "Cuti Tahunan",
 		};
-		expect(getDoctorCardStatus(cutiDoctor)).toBe("Cuti");
+		expect(getDoctorCardStatus(cutiDoctor)).toBe(DOCTOR_CARD_STATUS.CUTI);
 	});
 
 	it("correctly identifies unconfigured doctor as Belum Diatur", () => {
@@ -84,7 +110,9 @@ describe("DoctorScheduleCard Logic & Status Contracts", () => {
 			jadwal_hari_ini: "",
 		};
 		expect(hasConfiguredDoctorSchedule(unconfiguredDoctor)).toBe(false);
-		expect(getDoctorCardStatus(unconfiguredDoctor)).toBe("Belum Diatur");
+		expect(getDoctorCardStatus(unconfiguredDoctor)).toBe(
+			DOCTOR_CARD_STATUS.BELUM_DIATUR,
+		);
 	});
 
 	it("retrieves upcoming schedule time from active sessions", () => {

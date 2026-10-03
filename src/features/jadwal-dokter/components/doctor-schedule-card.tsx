@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 import { doctorScheduleDetailQueryOptions } from "../api/queries";
 import type { DoctorSchedule } from "../api/types";
 import {
+	DOCTOR_CARD_STATUS,
+	type DoctorCardStatus,
 	formatUpcomingFallback,
 	getDoctorCardStatus,
 	getUpcomingScheduleTime,
@@ -29,8 +31,9 @@ import {
 } from "./doctor-card-atoms";
 import { DoctorScheduleStats } from "./doctor-schedule-stats";
 
-export type { UpcomingScheduleResult };
+export type { DoctorCardStatus, UpcomingScheduleResult };
 export {
+	DOCTOR_CARD_STATUS,
 	DoctorCardImage,
 	DoctorCutiNotice,
 	DoctorInfoRow,
@@ -97,9 +100,8 @@ export function DoctorScheduleCard({
 		: doctor;
 
 	const statusLabel = getDoctorCardStatus(effectiveDoctor);
-	const isCuti = statusLabel === "Cuti";
-	const isUnconfigured = statusLabel === "Belum Diatur";
-	const isTutup = statusLabel === "Tutup";
+	const isCuti = statusLabel === DOCTOR_CARD_STATUS.CUTI;
+	const isUnconfigured = statusLabel === DOCTOR_CARD_STATUS.BELUM_DIATUR;
 
 	const handleCall = (e: React.MouseEvent) => {
 		e.stopPropagation();
@@ -182,7 +184,7 @@ export function DoctorScheduleCard({
 					text={doctor.ruang_praktik}
 				/>
 
-				{!isCuti && !isUnconfigured && !isTutup && doctor.tanggal_praktik && (
+				{!isCuti && !isUnconfigured && doctor.tanggal_praktik && (
 					<DoctorInfoRow
 						icon={<Icons.calendar className="size-3.5 text-muted-foreground" />}
 						text={doctor.tanggal_praktik}
@@ -196,11 +198,6 @@ export function DoctorScheduleCard({
 					<DoctorCutiNotice
 						title="Dokter sedang cuti"
 						subtitle={doctor.cuti_reason || "Tidak ada jadwal praktik"}
-					/>
-				) : isTutup ? (
-					<DoctorCutiNotice
-						title="Praktik Ditutup"
-						subtitle="Tidak ada jadwal praktik aktif pada tanggal ini."
 					/>
 				) : isUnconfigured ? (
 					<DoctorCutiNotice
@@ -225,7 +222,7 @@ export function DoctorScheduleCard({
 						"flex items-center justify-end gap-2 pt-3 mt-auto border-t border-border/40 relative z-20",
 					)}
 				>
-					{!isCuti && !isTutup && (
+					{!isCuti && (
 						<Button
 							type="button"
 							variant="outline"

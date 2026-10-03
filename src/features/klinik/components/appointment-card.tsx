@@ -1,13 +1,13 @@
 'use client';
 
-import React from 'react';
-import { Icons } from '@/components/icons';
-import { Button } from '@/components/ui/button';
-import { Appointment, Doctor } from '../api/types';
-import { DoctorAvatar } from './doctor-avatar';
-import { PixelTexture } from './pixel-texture';
-import { getStatusConfig } from '@/styles/clinical-tokens';
-import { cn } from '@/lib/utils';
+import * as React from 'react';
+import {
+  AppointmentCardOrganism,
+  type AppointmentCardOrganismProps
+} from './appointment-card/organisms/appointment-card-organism';
+import type { Appointment, Doctor } from '../api/types';
+
+export type { AppointmentCardOrganismProps };
 
 export interface AppointmentCardProps {
   appointment: Appointment;
@@ -17,30 +17,6 @@ export interface AppointmentCardProps {
   className?: string;
 }
 
-const RescheduleIcon = ({
-  className = 'w-3.5 h-3.5',
-  stroke = 'currentColor'
-}: {
-  className?: string;
-  stroke?: string;
-}) => (
-  <svg
-    className={className}
-    viewBox='0 0 24 24'
-    fill='none'
-    stroke={stroke}
-    strokeWidth='1.8'
-    strokeLinecap='round'
-    strokeLinejoin='round'
-  >
-    <rect x='3' y='4' width='18' height='18' rx='2' ry='2' />
-    <line x1='16' y1='2' x2='16' y2='6' />
-    <line x1='8' y1='2' x2='8' y2='6' />
-    <path d='M12 10a3 3 0 1 0 3 3' />
-    <polyline points='15 10 15 13 12 13' />
-  </svg>
-);
-
 export function AppointmentCard({
   appointment,
   doctor,
@@ -48,240 +24,16 @@ export function AppointmentCard({
   onViewDetails,
   className
 }: AppointmentCardProps) {
-  const docInfo = doctor || {
-    name: appointment.doctor_name || '',
-    spec: appointment.doctor_specialty || '',
-    avatar: '',
-    location: '',
-    tags: [],
-    schedule: ''
-  };
-
-  const displayLocation =
-    appointment.poliklinik_name && appointment.room_name
-      ? `${appointment.poliklinik_name}, ${appointment.room_name}`
-      : appointment.poliklinik_name || appointment.room_name || '-';
-
-  const doctorSpecialty = appointment.doctor_specialty || '-';
-
-  // Time & duration parsing
-  const timeStr = appointment.time || '';
-  const timeRangeMatch = timeStr.match(/(\d{1,2}[:.]\d{2})\s*-\s*(\d{1,2}[:.]\d{2})/);
-  const sessionMatch = timeStr.match(/Sesi\s+[A-Za-z]+/i);
-
-  const formatTimeSlot = (time?: string) => {
-    if (!time) return null;
-    const match = time.match(/(\d{1,2})[:.](\d{2})/);
-    return match ? `${match[1].padStart(2, '0')}.${match[2]}` : null;
-  };
-
-  const startTime =
-    formatTimeSlot(appointment.scheduled_start_time) ||
-    (timeRangeMatch ? timeRangeMatch[1].replace(':', '.') : '-');
-  const endTime =
-    formatTimeSlot(appointment.scheduled_end_time) ||
-    (timeRangeMatch ? timeRangeMatch[2].replace(':', '.') : '-');
-
-  let durationText = sessionMatch ? sessionMatch[0] : '-';
-  if (startTime !== '-' && endTime !== '-') {
-    const startParts = startTime.split('.').map(Number);
-    const endParts = endTime.split('.').map(Number);
-    if (
-      !isNaN(startParts[0]) &&
-      !isNaN(startParts[1]) &&
-      !isNaN(endParts[0]) &&
-      !isNaN(endParts[1])
-    ) {
-      const diffMins = endParts[0] * 60 + endParts[1] - (startParts[0] * 60 + startParts[1]);
-      if (diffMins > 0) {
-        durationText = `${diffMins} minutes`;
-      }
-    }
-  } else if (!sessionMatch && timeRangeMatch) {
-    const startParts = timeRangeMatch[1].replace('.', ':').split(':').map(Number);
-    const endParts = timeRangeMatch[2].replace('.', ':').split(':').map(Number);
-    if (
-      !isNaN(startParts[0]) &&
-      !isNaN(startParts[1]) &&
-      !isNaN(endParts[0]) &&
-      !isNaN(endParts[1])
-    ) {
-      const diffMins = endParts[0] * 60 + endParts[1] - (startParts[0] * 60 + startParts[1]);
-      if (diffMins > 0) {
-        durationText = `${diffMins} minutes`;
-      }
-    }
-  }
-
-  const visitType = appointment.visit_type || '-';
-  const statusConfig = getStatusConfig(appointment.status);
-
-  const isCancelled =
-    appointment.status === 'Batal' ||
-    appointment.status === 'CANCELLED' ||
-    appointment.status === 'Tidak Hadir' ||
-    appointment.status === 'NO_SHOW';
-  const isCompleted =
-    appointment.status === 'Selesai' ||
-    appointment.status === 'COMPLETED' ||
-    appointment.status === 'Sedang Diperiksa' ||
-    appointment.status === 'IN_SERVICE';
-  const canReschedule = !isCancelled && !isCompleted;
-
   return (
-    <div
-      className={cn(
-        'group relative w-full bg-gradient-to-t from-primary/6 via-primary/[0.015] to-card dark:from-primary/12 dark:via-card dark:to-card text-card-foreground border border-border rounded-[20px] shadow-none hover:border-primary/60 hover:shadow-md overflow-hidden font-sans flex flex-col justify-between h-full p-4 sm:p-5 gap-3.5 select-none transition-all duration-200',
-        className
-      )}
-    >
-      {/* Dynamic Master Pixel Texture at Bottom with Inverted Curved Arch Mask */}
-      <div className='absolute bottom-0 left-0 right-0 h-[145px] pointer-events-none z-0 overflow-hidden'>
-        <PixelTexture
-          colorMode='theme'
-          maskVariant='curved-convex'
-          invertMask={true}
-          opacity={0.24}
-          density='medium'
-          pixelSize={4.5}
-          gap={1.5}
-          height='100%'
-        />
-      </div>
-
-      {/* 1. Doctor & Wrapped Status Section */}
-      <div className='relative z-2 flex items-start justify-between gap-3'>
-        <div className='flex items-center gap-3.5 min-w-0 flex-1'>
-          <div className='w-[64px] h-[64px] min-w-[64px] min-h-[64px] max-w-[64px] max-h-[64px] rounded-full overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square shadow-xs'>
-            <DoctorAvatar name={appointment.doctor_name} avatarUrl={docInfo.avatar} size={64} />
-          </div>
-
-          <div className='min-w-0 flex-1 space-y-0.5'>
-            <h3
-              className='text-[15px] font-bold tracking-tight text-foreground truncate'
-              title={appointment.doctor_name}
-            >
-              {appointment.doctor_name || '-'}
-            </h3>
-            <p className='text-[12.5px] font-medium text-muted-foreground truncate' title={doctorSpecialty}>
-              {doctorSpecialty}
-            </p>
-          </div>
-        </div>
-
-        {/* Gradient Status Badge */}
-        <div className='shrink-0 self-start pt-0.5'>
-          <span
-            className={cn(
-              'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-[11.5px] font-bold border backdrop-blur-sm select-none shadow-none',
-              statusConfig.pillBg,
-              statusConfig.pillBorder
-            )}
-          >
-            <span
-              className={cn(
-                'size-2 rounded-full shrink-0 ring-1 ring-white/60 dark:ring-white/20',
-                statusConfig.dotGradient
-              )}
-            />
-            <span
-              className={cn(
-                'bg-clip-text text-transparent font-bold tracking-tight',
-                statusConfig.textGradient
-              )}
-            >
-              {statusConfig.label}
-            </span>
-          </span>
-        </div>
-      </div>
-
-      {/* 2. Metadata Section (Date & Location: format 'Poli X, Room Y') */}
-      <div className='relative z-2 flex items-center justify-between text-[12px] px-0.5 py-0.5 border-t border-border/40'>
-        <div className='flex items-center gap-1.5 min-w-0 py-1.5 text-foreground font-semibold'>
-          <Icons.calendar className='size-3.5 text-primary shrink-0' strokeWidth={1.8} />
-          <span className='truncate'>{appointment.date || '-'}</span>
-        </div>
-
-        <div className='w-[1px] h-3.5 bg-border/40 shrink-0 mx-1.5' />
-
-        <div className='flex items-center gap-1.5 min-w-0 py-1.5 text-muted-foreground font-medium'>
-          <Icons.mapPin className='size-3.5 text-primary shrink-0' strokeWidth={1.8} />
-          <span className='truncate' title={displayLocation}>{displayLocation}</span>
-        </div>
-      </div>
-
-      {/* 3. Timeline Container (Trajectory Dash Line Clear & Visible) */}
-      <div className='relative z-2 py-1 px-1 flex items-center justify-between'>
-        <div className='flex flex-col items-start min-w-[55px]'>
-          <span className='text-[17px] sm:text-[18px] font-bold text-foreground leading-tight tracking-tight'>
-            {startTime}
-          </span>
-          <span className='text-[10.5px] font-normal text-muted-foreground mt-0.5'>Mulai</span>
-        </div>
-
-        <div className='flex-1 flex flex-col items-center px-2 sm:px-3'>
-          <span className='text-[11px] font-semibold text-muted-foreground mb-1'>
-            {durationText}
-          </span>
-          <div className='w-full flex items-center justify-center relative'>
-            <span className='size-2 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0' />
-            <div className='flex-1 border-t border-dashed border-slate-300 dark:border-slate-600 mx-2' />
-            <span className='size-2 rounded-full bg-slate-300 dark:bg-slate-600 shrink-0' />
-          </div>
-          <span className='text-[10.5px] font-normal text-muted-foreground mt-1 truncate max-w-[120px]'>
-            {visitType}
-          </span>
-        </div>
-
-        <div className='flex flex-col items-end min-w-[55px]'>
-          <span className='text-[17px] sm:text-[18px] font-bold text-foreground leading-tight tracking-tight'>
-            {endTime}
-          </span>
-          <span className='text-[10.5px] font-normal text-muted-foreground mt-0.5'>Selesai</span>
-        </div>
-      </div>
-
-      {/* 4. Footer Section: Prominent Queue Number on Bottom-Left + Action Buttons on Bottom-Right */}
-      <div className='relative z-2 flex items-center justify-between gap-3 pt-2.5 border-t border-border/40'>
-        {/* Focal Point: Nomor antrean besar di pojok kiri bawah (tanpa paksaan huruf besar semua) */}
-        <div className='flex flex-col items-start min-w-0'>
-          <span className='text-[10px] sm:text-[11px] font-medium text-muted-foreground leading-tight'>
-            Nomor antrean
-          </span>
-          <span className='text-2xl sm:text-3xl font-extrabold font-mono tracking-tight text-primary leading-none mt-0.5'>
-            {appointment.queue_number || '-'}
-          </span>
-        </div>
-
-        <div className='flex items-center gap-2 shrink-0'>
-          {canReschedule && (
-            <Button
-              type='button'
-              variant='outline'
-              shape='pill'
-              size='card-action'
-              onClick={() => onReschedule(appointment)}
-              leadingIcon={<RescheduleIcon className='size-3.5' stroke='currentColor' />}
-              className='font-semibold shadow-2xs'
-            >
-              Reschedule
-            </Button>
-          )}
-
-          <Button
-            type='button'
-            variant='default'
-            shape='pill'
-            size='card-action'
-            withTrailingCircleIcon
-            onClick={() => onViewDetails(appointment)}
-            className='font-bold shadow-2xs'
-          >
-            Detail
-          </Button>
-        </div>
-      </div>
-    </div>
+    <AppointmentCardOrganism
+      appointment={appointment}
+      doctor={doctor}
+      subjectRole='doctor'
+      onReschedule={onReschedule}
+      onViewDetails={onViewDetails}
+      className={className}
+    />
   );
 }
+
+export * from './appointment-card/index';

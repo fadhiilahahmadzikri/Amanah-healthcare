@@ -49,9 +49,9 @@ describe('Doctor Schedule & Occupancy SSOT Hierarchy', () => {
       expect(status).toBe('buka');
     });
 
-    it('resolves day 26 as "cuti" when set to Cuti in monthly_schedule', () => {
+    it('resolves day 26 as "tutup" when set to Cuti in monthly_schedule', () => {
       const status = resolveDayStatus(26, baseDoctor);
-      expect(status).toBe('cuti');
+      expect(status).toBe('tutup');
     });
 
     it('resolves unconfigured days (not present in monthly_schedule) as "tutup" without fallback to buka', () => {

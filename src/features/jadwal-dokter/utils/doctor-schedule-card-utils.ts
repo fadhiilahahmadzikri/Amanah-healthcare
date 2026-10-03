@@ -1,25 +1,35 @@
 import type { DoctorDailySession, DoctorSchedule } from "../api/types";
+import {
+	SCHEDULE_STATUS,
+	SCHEDULE_STATUS_LABELS,
+} from "../constants/schedule-shift.constants";
+import {
+	DOCTOR_CARD_STATUS,
+	type DoctorCardStatus,
+	getDoctorCardStatus,
+	hasConfiguredDoctorSchedule,
+	isDoctorSessionActive,
+	isSlotAvailable,
+	isSlotClosed,
+	isSlotUnscheduled,
+	parseMinutesFromTime,
+	UNCONFIGURED_SCHEDULE_VALUES,
+} from "./doctor-schedule-predicates";
+
+export {
+	DOCTOR_CARD_STATUS,
+	type DoctorCardStatus,
+	getDoctorCardStatus,
+	hasConfiguredDoctorSchedule,
+	isDoctorSessionActive,
+	isSlotAvailable,
+	isSlotClosed,
+	isSlotUnscheduled,
+	UNCONFIGURED_SCHEDULE_VALUES,
+};
 
 export function parseTimeToMinutes(timeStr: string): number {
-	const clean = timeStr.replace(".", ":");
-	const [h, m] = clean.split(":").map((v) => Number.parseInt(v, 10) || 0);
-	return h * 60 + m;
-}
-
-export const UNCONFIGURED_SCHEDULE_VALUES = new Set([
-	"",
-	"-",
-	"belum diatur",
-	"belum dijadwalkan",
-]);
-
-export function hasConfiguredDoctorSchedule(doctor: DoctorSchedule): boolean {
-	if (doctor.sesi_harian && doctor.sesi_harian.length > 0) {
-		return true;
-	}
-
-	const scheduleTime = doctor.jadwal_hari_ini?.trim().toLowerCase() ?? "";
-	return !UNCONFIGURED_SCHEDULE_VALUES.has(scheduleTime);
+	return parseMinutesFromTime(timeStr);
 }
 
 export interface UpcomingScheduleResult {
@@ -30,53 +40,6 @@ export interface UpcomingScheduleResult {
 	hasActive?: boolean;
 	isActiveClosed?: boolean;
 	isTomorrow?: boolean;
-}
-
-export function isSlotClosed(slot: {
-	status?: string | null;
-	availabilityState?: string | null;
-	effectiveStatus?: string | null;
-	uiStatus?: string | null;
-	closure?: unknown;
-	closureInfo?: unknown;
-	closedReason?: string | null;
-}): boolean {
-	const status = (slot.status || "").toUpperCase();
-	const avail = (slot.availabilityState || "").toUpperCase();
-	const eff = (slot.effectiveStatus || "").toUpperCase();
-	const ui = (slot.uiStatus || "").toUpperCase();
-	return (
-		status === "CLOSED" ||
-		status === "CLOSED_LEAVE" ||
-		status === "TUTUP" ||
-		avail === "CLOSED" ||
-		eff === "CLOSED" ||
-		ui.startsWith("CLOSED") ||
-		Boolean(slot.closure) ||
-		Boolean(slot.closureInfo) ||
-		Boolean(slot.closedReason)
-	);
-}
-
-export function isSlotAvailable(slot: {
-	isAvailable?: boolean;
-	status?: string | null;
-	availabilityState?: string | null;
-	effectiveStatus?: string | null;
-	isOccupied?: boolean;
-}): boolean {
-	if (slot.isOccupied) return false;
-	if (typeof slot.isAvailable === "boolean") return slot.isAvailable;
-	const status = (slot.status || "").toUpperCase();
-	const avail = (slot.availabilityState || "").toUpperCase();
-	const eff = (slot.effectiveStatus || "").toUpperCase();
-	return (
-		status === "AVAILABLE" ||
-		status === "OPEN" ||
-		status === "BUKA" ||
-		avail === "AVAILABLE" ||
-		eff === "AVAILABLE"
-	);
 }
 
 export function formatUpcomingFallback(text?: string): string | undefined {
@@ -158,6 +121,8 @@ export function getUpcomingScheduleTime(
 	if (doctor?.shifts && doctor.shifts.length > 0) {
 		for (const shift of doctor.shifts) {
 			for (const slot of shift.slots) {
+				if (isSlotUnscheduled(slot)) continue;
+
 				const closed = isSlotClosed(slot);
 				allSlots.push({
 					startTime: slot.startTime,
@@ -173,6 +138,8 @@ export function getUpcomingScheduleTime(
 		doctor.timeline_intervals.length > 0
 	) {
 		for (const it of doctor.timeline_intervals) {
+			if (isSlotUnscheduled(it)) continue;
+
 			const closed = isSlotClosed(it);
 			allSlots.push({
 				startTime: it.startTime,
@@ -187,9 +154,11 @@ export function getUpcomingScheduleTime(
 				parseTimeToMinutes(a.jam_mulai) - parseTimeToMinutes(b.jam_mulai),
 		);
 		for (const s of sorted) {
+			const sessionStatus = (s.status_sesi || "").toUpperCase();
 			const isSessionOpen =
-				s.status_sesi?.toUpperCase() === "OPEN" ||
-				s.status_sesi?.toUpperCase() === "BUKA";
+				sessionStatus === SCHEDULE_STATUS.OPEN ||
+				sessionStatus ===
+					SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.OPEN].toUpperCase();
 			const hasSlot = (s.slot_tersedia ?? 1) > 0;
 			const sMin = parseTimeToMinutes(s.jam_mulai);
 			const eMin = parseTimeToMinutes(s.jam_selesai);
@@ -223,10 +192,8 @@ export function getUpcomingScheduleTime(
 		activeTime = `${currentMatchingSlot.startTime.replace(":", ".")} – ${currentMatchingSlot.endTime.replace(":", ".")}`;
 		isActiveClosed = !currentMatchingSlot.isOpen;
 	} else if (sessions && sessions.length > 0 && allSlots.length === 0) {
-		const activeSession = sessions.find(
-			(s) =>
-				parseTimeToMinutes(s.jam_mulai) <= currentMinutes &&
-				parseTimeToMinutes(s.jam_selesai) > currentMinutes,
+		const activeSession = sessions.find((s) =>
+			isDoctorSessionActive(s, currentMinutes),
 		);
 		if (activeSession) {
 			hasActive = true;
@@ -290,8 +257,7 @@ export function getUpcomingScheduleTime(
 		const upcomingSession = sessions.find(
 			(s) =>
 				parseTimeToMinutes(s.jam_mulai) > currentMinutes &&
-				s.status_sesi?.toUpperCase() !== "CLOSED" &&
-				s.status_sesi?.toUpperCase() !== "TUTUP",
+				!isSlotClosed({ status: s.status_sesi }),
 		);
 
 		if (upcomingSession) {
@@ -312,11 +278,8 @@ export function getUpcomingScheduleTime(
 		}
 
 		const firstSession =
-			sessions.find(
-				(s) =>
-					s.status_sesi?.toUpperCase() !== "CLOSED" &&
-					s.status_sesi?.toUpperCase() !== "TUTUP",
-			) || sessions[0];
+			sessions.find((s) => !isSlotClosed({ status: s.status_sesi })) ||
+			sessions[0];
 
 		if (firstSession) {
 			const sMin = parseTimeToMinutes(firstSession.jam_mulai);
@@ -380,40 +343,4 @@ export function getUpcomingScheduleTime(
 		isActiveClosed,
 		isTomorrow: false,
 	};
-}
-
-export function getDoctorCardStatus(
-	doctor: DoctorSchedule,
-): "Buka" | "Cuti" | "Terisi" | "Belum Diatur" | "Tutup" {
-	const statusDokter = (doctor.status_dokter || "").trim().toUpperCase();
-	const statusJadwal = (doctor.status_jadwal || "").trim().toUpperCase();
-
-	if (doctor.is_cuti || statusDokter === "CUTI" || statusJadwal === "CUTI") {
-		return "Cuti";
-	}
-
-	if (
-		statusDokter === "CLOSED" ||
-		statusDokter === "TUTUP" ||
-		statusJadwal === "CLOSED" ||
-		statusJadwal === "TUTUP"
-	) {
-		return "Tutup";
-	}
-
-	if (!hasConfiguredDoctorSchedule(doctor)) {
-		return "Belum Diatur";
-	}
-
-	if (
-		statusDokter === "OCCUPIED" ||
-		statusDokter === "TERISI" ||
-		statusJadwal === "OCCUPIED" ||
-		statusJadwal === "TERISI" ||
-		doctor.slot_tersedia <= 0
-	) {
-		return "Terisi";
-	}
-
-	return "Buka";
 }

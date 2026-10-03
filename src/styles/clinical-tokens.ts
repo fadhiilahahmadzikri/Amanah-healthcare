@@ -167,6 +167,10 @@ export const getStatusConfig = (status: string): StatusConfig => {
         ...clinicalTokens.colors.status.confirmed,
         label: 'Sudah Datang'
       };
+    case 'BOOK':
+    case 'BOOKED':
+    case 'BUAT_JANJI':
+    case 'BUAT JANJI':
     case 'SUDAH_BUAT_JANJI':
     case 'SUDAH BUAT JANJI':
       return {

@@ -343,12 +343,14 @@ export function DoctorDailyHourlyGrid({
         <DoctorSessionPatientsModal
           doctor={doctor}
           session={selectedSessionForPatients}
+          selectedDate={formattedSelectedDate}
           isOpen={isPatientsModalOpen}
           onClose={() => {
             setIsPatientsModalOpen(false);
             setSelectedSessionForPatients(null);
           }}
           portalContainerRef={modalContainerRef}
+          onOpenReschedule={handleOpenReschedule}
         />
       )}
 

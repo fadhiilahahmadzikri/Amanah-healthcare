@@ -1,272 +1,368 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { cn } from '@/lib/utils';
-import { resolveDayStatus, type SimpleScheduleStatus } from '../utils/leave-calculator';
-import type { DoctorSchedule } from '../api/types';
+import type React from "react";
+import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+import type { DoctorSchedule } from "../api/types";
 import {
-  DoctorCalendarHeader,
-  DoctorCalendarCutiBanner,
-  DoctorCalendarDayCell,
-  DoctorCalendarCloseModal,
-  DoctorCalendarLegend,
-  MONTH_NAMES
-} from './calendar';
+	isSlotAvailable,
+	isSlotClosed,
+	isSlotUnscheduled,
+	parseTimeToMinutes,
+} from "../utils/doctor-schedule-card-utils";
+import {
+	resolveDayStatus,
+	type SimpleScheduleStatus,
+} from "../utils/leave-calculator";
+import {
+	DoctorCalendarCloseModal,
+	DoctorCalendarDayCell,
+	DoctorCalendarHeader,
+	DoctorCalendarLegend,
+	MONTH_NAMES,
+} from "./calendar";
+import { DoctorGridCalendarAccordion } from "./grid";
 
 export { resolveDayStatus, type SimpleScheduleStatus };
 
-const DAY_NAMES = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+const DAY_NAMES = ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"];
 
 export interface DoctorTimelineCalendarProps {
-  doctor?: DoctorSchedule;
-  selectedDay?: number;
-  onSelectDay?: (day: number) => void;
-  currentMonth?: number;
-  onMonthChange?: (month: number) => void;
-  currentYear?: number;
-  onYearChange?: (year: number) => void;
-  onSelectDayStatus?: (day: number, status: 'OPEN' | 'CLOSED', notes?: string) => void;
-  onNavigateToDailyGrid?: (day: number) => void;
-  readOnly?: boolean;
-  portalContainerRef?: React.RefObject<HTMLElement | null>;
-  className?: string;
-  pendingDay?: number | null;
-  isUpdatingDay?: boolean;
+	doctor?: DoctorSchedule;
+	selectedDay?: number;
+	onSelectDay?: (day: number) => void;
+	currentMonth?: number;
+	onMonthChange?: (month: number) => void;
+	currentYear?: number;
+	onYearChange?: (year: number) => void;
+	onSelectDayStatus?: (
+		day: number,
+		status: "OPEN" | "CLOSED",
+		notes?: string,
+	) => void;
+	onNavigateToDailyGrid?: (day: number) => void;
+	readOnly?: boolean;
+	portalContainerRef?: React.RefObject<HTMLElement | null>;
+	className?: string;
+	pendingDay?: number | null;
+	isUpdatingDay?: boolean;
 }
 
 export function DoctorTimelineCalendar({
-  doctor,
-  selectedDay: selectedDayProp,
-  onSelectDay,
-  currentMonth: currentMonthProp,
-  onMonthChange,
-  currentYear: currentYearProp,
-  onYearChange,
-  onSelectDayStatus,
-  onNavigateToDailyGrid,
-  readOnly = false,
-  portalContainerRef,
-  className,
-  pendingDay,
-  isUpdatingDay = false
+	doctor,
+	selectedDay: selectedDayProp,
+	onSelectDay,
+	currentMonth: currentMonthProp,
+	onMonthChange,
+	currentYear: currentYearProp,
+	onYearChange,
+	onSelectDayStatus,
+	onNavigateToDailyGrid,
+	readOnly = false,
+	portalContainerRef,
+	className,
+	pendingDay,
+	isUpdatingDay = false,
 }: DoctorTimelineCalendarProps) {
-  const today = new Date();
-  const realCurrentYear = today.getFullYear();
-  const realCurrentMonth = today.getMonth();
-  const realCurrentDay = today.getDate();
+	const today = new Date();
+	const realCurrentYear = today.getFullYear();
+	const realCurrentMonth = today.getMonth();
+	const realCurrentDay = today.getDate();
 
-  const [internalMonth, setInternalMonth] = useState<number>(realCurrentMonth);
-  const [internalYear, setInternalYear] = useState<number>(realCurrentYear);
-  const [internalDay, setInternalDay] = useState<number>(realCurrentDay);
-  const [isReasonOpen, setIsReasonOpen] = useState(false);
+	const [internalMonth, setInternalMonth] = useState<number>(realCurrentMonth);
+	const [internalYear, setInternalYear] = useState<number>(realCurrentYear);
+	const [internalDay, setInternalDay] = useState<number>(realCurrentDay);
 
-  const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
-  const [closingDay, setClosingDay] = useState<number | null>(null);
-  const [closeNotes, setCloseNotes] = useState('');
-  const [localUpdatingDay, setLocalUpdatingDay] = useState<number | null>(null);
+	const [isCalendarPickerOpen, setIsCalendarPickerOpen] = useState(false);
+	const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
+	const [closingDay, setClosingDay] = useState<number | null>(null);
+	const [closeNotes, setCloseNotes] = useState("");
+	const [localUpdatingDay, setLocalUpdatingDay] = useState<number | null>(null);
 
-  useEffect(() => {
-    if (!isUpdatingDay) {
-      setLocalUpdatingDay(null);
-    }
-  }, [isUpdatingDay]);
+	useEffect(() => {
+		if (!isUpdatingDay) {
+			setLocalUpdatingDay(null);
+		}
+	}, [isUpdatingDay]);
 
-  const activePendingDay = pendingDay !== undefined ? pendingDay : localUpdatingDay;
-  const isCellPending = isUpdatingDay || localUpdatingDay !== null;
+	const activePendingDay =
+		pendingDay !== undefined ? pendingDay : localUpdatingDay;
+	const isCellPending = isUpdatingDay || localUpdatingDay !== null;
 
-  const currentMonth = currentMonthProp !== undefined ? currentMonthProp : internalMonth;
-  const currentYear = currentYearProp !== undefined ? currentYearProp : internalYear;
-  const selectedDay = selectedDayProp !== undefined ? selectedDayProp : internalDay;
+	const currentMonth =
+		currentMonthProp !== undefined ? currentMonthProp : internalMonth;
+	const currentYear =
+		currentYearProp !== undefined ? currentYearProp : internalYear;
+	const selectedDay =
+		selectedDayProp !== undefined ? selectedDayProp : internalDay;
 
-  const setCurrentMonth = (m: number | ((prev: number) => number)) => {
-    const nextVal = typeof m === 'function' ? m(currentMonth) : m;
-    setInternalMonth(nextVal);
-    onMonthChange?.(nextVal);
-  };
-  const setCurrentYear = (y: number | ((prev: number) => number)) => {
-    const nextVal = typeof y === 'function' ? y(currentYear) : y;
-    setInternalYear(nextVal);
-    onYearChange?.(nextVal);
-  };
-  const setSelectedDay = (d: number) => {
-    setInternalDay(d);
-    onSelectDay?.(d);
-  };
+	const setCurrentMonth = (m: number | ((prev: number) => number)) => {
+		const nextVal = typeof m === "function" ? m(currentMonth) : m;
+		setInternalMonth(nextVal);
+		onMonthChange?.(nextVal);
+	};
+	const setCurrentYear = (y: number | ((prev: number) => number)) => {
+		const nextVal = typeof y === "function" ? y(currentYear) : y;
+		setInternalYear(nextVal);
+		onYearChange?.(nextVal);
+	};
+	const setSelectedDay = (d: number) => {
+		setInternalDay(d);
+		onSelectDay?.(d);
+	};
 
-  const isDoctorCuti = Boolean(
-    doctor?.is_cuti ||
-    doctor?.status_dokter === 'Cuti' ||
-    doctor?.status_jadwal === 'Cuti' ||
-    doctor?.status_jadwal === 'Cuti / Tutup'
-  );
+	const handleStatusChange = (day: number, status: "OPEN" | "CLOSED") => {
+		if (status === "CLOSED") {
+			setClosingDay(day);
+			setCloseNotes("");
+			setIsCloseModalOpen(true);
+		} else {
+			setLocalUpdatingDay(day);
+			onSelectDayStatus?.(day, "OPEN");
+		}
+	};
 
-  const initials = doctor?.nama_dokter
-    ? doctor.nama_dokter
-        .replace(/^(dr\.\s*|drg\.\s*|prof\.\s*)/g, '')
-        .split(' ')
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase()
-    : 'DR';
+	const handleConfirmClose = () => {
+		if (closingDay !== null) {
+			setLocalUpdatingDay(closingDay);
+			onSelectDayStatus?.(closingDay, "CLOSED", closeNotes.trim() || undefined);
+		}
+		setIsCloseModalOpen(false);
+		setClosingDay(null);
+		setCloseNotes("");
+	};
 
-  const handleStatusChange = (day: number, status: 'OPEN' | 'CLOSED') => {
-    if (status === 'CLOSED') {
-      setClosingDay(day);
-      setCloseNotes('');
-      setIsCloseModalOpen(true);
-    } else {
-      setLocalUpdatingDay(day);
-      onSelectDayStatus?.(day, 'OPEN');
-    }
-  };
+	const checkIsPast = (day: number) => {
+		if (currentYear < realCurrentYear) return true;
+		if (currentYear > realCurrentYear) return false;
+		if (currentMonth < realCurrentMonth) return true;
+		if (currentMonth > realCurrentMonth) return false;
+		return day < realCurrentDay;
+	};
 
-  const handleConfirmClose = () => {
-    if (closingDay !== null) {
-      setLocalUpdatingDay(closingDay);
-      onSelectDayStatus?.(closingDay, 'CLOSED', closeNotes.trim() || undefined);
-    }
-    setIsCloseModalOpen(false);
-    setClosingDay(null);
-    setCloseNotes('');
-  };
+	const getStatusForDay = (day: number): SimpleScheduleStatus => {
+		if (checkIsPast(day)) {
+			return "selesai";
+		}
 
-  const getStatusForDay = (day: number): SimpleScheduleStatus => {
-    const item = doctor?.monthly_schedule?.find((m) => m.day === day);
-    if (item?.dayStatus) {
-      if (item.dayStatus === 'OPEN') return 'buka';
-      if (item.dayStatus === 'CUTI') return 'cuti';
-      if (item.dayStatus === 'CLOSED' || item.dayStatus === 'EMPTY') return 'tutup';
-    }
-    return resolveDayStatus(day, doctor);
-  };
+		const isToday =
+			currentYear === realCurrentYear &&
+			currentMonth === realCurrentMonth &&
+			day === realCurrentDay;
 
-  const firstDayOfWeek = new Date(currentYear, currentMonth, 1).getDay();
-  const startOffset = (firstDayOfWeek + 6) % 7;
-  const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
+		if (isToday) {
+			const currentMinutes = today.getHours() * 60 + today.getMinutes();
+			const sessions = doctor?.sesi_harian;
 
-  const handlePrevMonth = () => {
-    if (currentMonth === 0) {
-      setCurrentMonth(11);
-      setCurrentYear((y) => y - 1);
-    } else {
-      setCurrentMonth((m) => m - 1);
-    }
-  };
+			if (sessions && sessions.length > 0) {
+				const hasOpenSession = sessions.some((s) => {
+					const rawStatus = (s.status_sesi || "").trim().toUpperCase();
+					if (rawStatus === "CLOSED" || rawStatus === "TUTUP") return false;
+					const endMin = parseTimeToMinutes(s.jam_selesai);
+					return endMin > currentMinutes;
+				});
 
-  const handleNextMonth = () => {
-    if (currentMonth === 11) {
-      setCurrentMonth(0);
-      setCurrentYear((y) => y + 1);
-    } else {
-      setCurrentMonth((m) => m + 1);
-    }
-  };
+				if (hasOpenSession) {
+					return "buka";
+				}
 
-  const handleToday = () => {
-    setCurrentMonth(realCurrentMonth);
-    setCurrentYear(realCurrentYear);
-    setSelectedDay(realCurrentDay);
-  };
+				const allFinished = sessions.every((s) => {
+					const endMin = parseTimeToMinutes(s.jam_selesai);
+					return endMin <= currentMinutes;
+				});
 
-  const checkIsPast = (day: number) => {
-    if (currentYear < realCurrentYear) return true;
-    if (currentYear > realCurrentYear) return false;
-    if (currentMonth < realCurrentMonth) return true;
-    if (currentMonth > realCurrentMonth) return false;
-    return day < realCurrentDay;
-  };
+				if (allFinished) {
+					return "selesai";
+				}
+			}
 
-  return (
-    <div
-      className={cn(
-        'w-full h-full flex-1 flex flex-col bg-card text-card-foreground border border-border/50 rounded-2xl shadow-xs font-sans overflow-hidden select-none',
-        className
-      )}
-    >
-      <DoctorCalendarHeader
-        currentMonth={currentMonth}
-        currentYear={currentYear}
-        onMonthChange={setCurrentMonth}
-        onYearChange={setCurrentYear}
-        onToday={handleToday}
-        onPrevMonth={handlePrevMonth}
-        onNextMonth={handleNextMonth}
-      />
+			if (doctor?.shifts && doctor.shifts.length > 0) {
+				let hasOpenSlot = false;
+				let allSlotsFinished = true;
 
-      {isDoctorCuti && (
-        <DoctorCalendarCutiBanner
-          doctor={doctor}
-          initials={initials}
-          isOpen={isReasonOpen}
-          onOpenChange={setIsReasonOpen}
-        />
-      )}
+				for (const shift of doctor.shifts) {
+					for (const slot of shift.slots) {
+						if (isSlotUnscheduled(slot)) continue;
+						const endMin = parseTimeToMinutes(slot.endTime);
+						if (
+							endMin > currentMinutes &&
+							!isSlotClosed(slot) &&
+							isSlotAvailable(slot)
+						) {
+							hasOpenSlot = true;
+						}
+						if (endMin > currentMinutes) {
+							allSlotsFinished = false;
+						}
+					}
+				}
 
-      <div className='p-3.5 sm:p-4 flex-1 flex flex-col min-h-0 space-y-2.5 overflow-hidden'>
-        <div className='grid grid-cols-7 gap-1.5 text-center text-xs font-bold text-muted-foreground pb-1.5 border-b border-border/40 shrink-0'>
-          {DAY_NAMES.map((d) => (
-            <div key={d} className='py-1'>
-              {d}
-            </div>
-          ))}
-        </div>
+				if (hasOpenSlot) return "buka";
+				if (allSlotsFinished) return "selesai";
+				return "tutup";
+			}
 
-        <div className='grid grid-cols-7 auto-rows-fr gap-1.5 flex-1 min-h-0'>
-          {Array.from({ length: startOffset }).map((_, i) => (
-            <div
-              key={`empty-${i}`}
-              className='min-h-[52px] sm:min-h-[58px] h-full rounded-xl border border-dashed border-border/25 bg-muted/5 opacity-30'
-            />
-          ))}
+			const statusDokter = (doctor?.status_dokter || "").trim().toUpperCase();
+			if (statusDokter === "CLOSED" || statusDokter === "TUTUP") {
+				return "tutup";
+			}
+		}
 
-          {Array.from({ length: totalDays }, (_, i) => {
-            const day = i + 1;
-            const status = getStatusForDay(day);
-            const isPast = checkIsPast(day);
-            const isSelected = selectedDay === day;
-            const isCellUpdating = activePendingDay === day && isCellPending;
-            const isCellDisabled = isCellUpdating || isCellPending;
+		const item = doctor?.monthly_schedule?.find((m) => m.day === day);
+		if (item) {
+			const rawStatus = (item.dayStatus || item.status || "")
+				.trim()
+				.toUpperCase();
+			if (
+				rawStatus === "CLOSED" ||
+				rawStatus === "TUTUP" ||
+				rawStatus === "EMPTY"
+			) {
+				return "tutup";
+			}
+			if (
+				rawStatus === "OPEN" ||
+				rawStatus === "BUKA" ||
+				rawStatus === "OCCUPIED" ||
+				rawStatus === "TERISI"
+			) {
+				return "buka";
+			}
+			return "tutup";
+		}
 
-            return (
-              <DoctorCalendarDayCell
-                key={day}
-                day={day}
-                status={status}
-                isPast={isPast}
-                isSelected={isSelected}
-                isCellUpdating={isCellUpdating}
-                isCellDisabled={isCellDisabled}
-                readOnly={readOnly}
-                monthName={MONTH_NAMES[currentMonth]}
-                onSelectDay={setSelectedDay}
-                onStatusChange={handleStatusChange}
-                onNavigateToDailyGrid={onNavigateToDailyGrid}
-              />
-            );
-          })}
-        </div>
-      </div>
+		return resolveDayStatus(day, doctor);
+	};
 
-      <DoctorCalendarLegend />
+	const firstDayOfWeek = new Date(currentYear, currentMonth, 1).getDay();
+	const startOffset = (firstDayOfWeek + 6) % 7;
+	const totalDays = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-      <DoctorCalendarCloseModal
-        isOpen={isCloseModalOpen}
-        closingDay={closingDay}
-        doctorName={doctor?.nama_dokter}
-        monthName={MONTH_NAMES[currentMonth]}
-        currentYear={currentYear}
-        closeNotes={closeNotes}
-        isPending={isCellPending}
-        onNotesChange={setCloseNotes}
-        onClose={() => {
-          setIsCloseModalOpen(false);
-          setClosingDay(null);
-          setCloseNotes('');
-        }}
-        onConfirm={handleConfirmClose}
-        portalContainerRef={portalContainerRef}
-      />
-    </div>
-  );
+	const handlePrevMonth = () => {
+		if (currentMonth === 0) {
+			setCurrentMonth(11);
+			setCurrentYear((y) => y - 1);
+		} else {
+			setCurrentMonth((m) => m - 1);
+		}
+	};
+
+	const handleNextMonth = () => {
+		if (currentMonth === 11) {
+			setCurrentMonth(0);
+			setCurrentYear((y) => y + 1);
+		} else {
+			setCurrentMonth((m) => m + 1);
+		}
+	};
+
+	const handleToday = () => {
+		setCurrentMonth(realCurrentMonth);
+		setCurrentYear(realCurrentYear);
+		setSelectedDay(realCurrentDay);
+	};
+
+	const formattedTargetDate = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(selectedDay).padStart(2, "0")}`;
+
+	return (
+		<div
+			className={cn(
+				"w-full h-full flex-1 flex flex-col bg-card text-card-foreground border border-border/50 rounded-2xl shadow-xs font-sans overflow-hidden select-none",
+				className,
+			)}
+		>
+			<DoctorCalendarHeader
+				currentMonth={currentMonth}
+				currentYear={currentYear}
+				onMonthChange={setCurrentMonth}
+				onYearChange={setCurrentYear}
+				onToday={handleToday}
+				onPrevMonth={handlePrevMonth}
+				onNextMonth={handleNextMonth}
+				isCalendarOpen={isCalendarPickerOpen}
+				onToggleCalendar={() => setIsCalendarPickerOpen((prev) => !prev)}
+			/>
+
+			<DoctorGridCalendarAccordion
+				isOpen={isCalendarPickerOpen}
+				formattedTargetDate={formattedTargetDate}
+				activeYear={currentYear}
+				onSelectDate={(date) => {
+					setSelectedDay(date.getDate());
+					setCurrentMonth(date.getMonth());
+					setCurrentYear(date.getFullYear());
+					setIsCalendarPickerOpen(false);
+				}}
+				onClose={() => setIsCalendarPickerOpen(false)}
+			/>
+
+			<div className="p-3.5 sm:p-4 flex-1 flex flex-col min-h-0 space-y-2.5 overflow-hidden">
+				<div className="grid grid-cols-7 gap-1.5 text-center text-xs font-bold text-muted-foreground pb-1.5 border-b border-border/40 shrink-0">
+					{DAY_NAMES.map((d) => (
+						<div key={d} className="py-1">
+							{d}
+						</div>
+					))}
+				</div>
+
+				<div className="grid grid-cols-7 auto-rows-fr gap-1.5 flex-1 min-h-0">
+					{Array.from(
+						{ length: startOffset },
+						(_, i) => `empty-offset-${startOffset}-${i}`,
+					).map((cellKey) => (
+						<div
+							key={cellKey}
+							className="min-h-[52px] sm:min-h-[58px] h-full rounded-xl border border-dashed border-border/25 bg-muted/5 opacity-30"
+						/>
+					))}
+
+					{Array.from({ length: totalDays }, (_, i) => {
+						const day = i + 1;
+						const status = getStatusForDay(day);
+						const isPast = checkIsPast(day);
+						const isSelected = selectedDay === day;
+						const isCellUpdating = activePendingDay === day && isCellPending;
+						const isCellDisabled = isCellUpdating || isCellPending;
+
+						return (
+							<DoctorCalendarDayCell
+								key={day}
+								day={day}
+								status={status}
+								isPast={isPast}
+								isSelected={isSelected}
+								isCellUpdating={isCellUpdating}
+								isCellDisabled={isCellDisabled}
+								readOnly={readOnly}
+								monthName={MONTH_NAMES[currentMonth]}
+								onSelectDay={setSelectedDay}
+								onStatusChange={handleStatusChange}
+								onNavigateToDailyGrid={onNavigateToDailyGrid}
+							/>
+						);
+					})}
+				</div>
+			</div>
+
+			<DoctorCalendarLegend />
+
+			<DoctorCalendarCloseModal
+				isOpen={isCloseModalOpen}
+				closingDay={closingDay}
+				doctorName={doctor?.nama_dokter}
+				monthName={MONTH_NAMES[currentMonth]}
+				currentYear={currentYear}
+				closeNotes={closeNotes}
+				isPending={isCellPending}
+				onNotesChange={setCloseNotes}
+				onClose={() => {
+					setIsCloseModalOpen(false);
+					setClosingDay(null);
+					setCloseNotes("");
+				}}
+				onConfirm={handleConfirmClose}
+				portalContainerRef={portalContainerRef}
+			/>
+		</div>
+	);
 }
