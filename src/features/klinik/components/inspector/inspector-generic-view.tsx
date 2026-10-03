@@ -96,6 +96,23 @@ export function InspectorGenericView({ appointment, data }: InspectorTabProps) {
     ([, val]) => val && String(val).trim().length > 0
   );
 
+  const relationship = patient?.relationLabel || patient?.relationshipType || 'Diri Sendiri';
+
+  const isChild = React.useMemo(() => {
+    if (patient?.relationshipType === 'child' || String(relationship).toLowerCase().includes('anak')) {
+      return true;
+    }
+    const bDate = patient?.birthDate || answers.birthDate;
+    if (bDate) {
+      const birthYear = new Date(bDate).getFullYear();
+      const currentYear = new Date().getFullYear();
+      if (!isNaN(birthYear) && currentYear - birthYear < 17) {
+        return true;
+      }
+    }
+    return false;
+  }, [patient, relationship, answers.birthDate]);
+
   const mrn = patient?.medicalRecordNumber || '-';
   const nik = patient?.nik || answers.nik || answers.nik_ktp || '-';
   const birthInfo = patient?.birthDate
@@ -109,12 +126,22 @@ export function InspectorGenericView({ appointment, data }: InspectorTabProps) {
       : patient?.gender === 'male' || patient?.gender === 'L' || patient?.gender === 'LAKI_LAKI'
         ? 'Laki-laki'
         : patient?.gender || '-';
-  const bloodType = patient?.bloodType && patient.bloodType !== 'unknown' ? patient.bloodType : '-';
+
+  const rawBlood = patient?.bloodType || answers.bloodType || answers.golonganDarah;
+  const bloodType =
+    rawBlood && rawBlood !== 'unknown'
+      ? rawBlood === 'Belum Tahu'
+        ? 'Belum Tahu'
+        : rawBlood.toUpperCase()
+      : 'Belum Tahu';
+
   const motherName = patient?.motherName || answers.motherName || answers.ibuKandung || '-';
-  const occupation = patient?.occupation || answers.occupation || answers.pekerjaan || '-';
+  const rawOccupation = patient?.occupation || answers.occupation || answers.pekerjaan;
+  const occupation = isChild && !rawOccupation ? 'Belum Bekerja' : rawOccupation || '-';
+
   const phone = patient?.phone || appointment.patient_phone || answers.phone || '-';
-  const email = patient?.email || answers.email || '-';
-  const relationship = patient?.relationLabel || patient?.relationshipType || 'Diri Sendiri';
+  const email = patient?.email || answers.email || appointment.patient_email || '-';
+
   const address =
     patient?.address ||
     [patient?.villageName, patient?.districtName, patient?.regencyName, patient?.provinceName]
@@ -188,13 +215,13 @@ export function InspectorGenericView({ appointment, data }: InspectorTabProps) {
 
       <div className='border-b border-border/40 pb-2'>
         <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-          No. Telepon Pasien
+          No. Telepon
         </span>
         <span className='text-sm font-semibold text-foreground block truncate'>{phone}</span>
       </div>
 
       <div className='border-b border-border/40 pb-2'>
-        <span className='text-xs font-normal text-muted-foreground block mb-0.5'>Email Pasien</span>
+        <span className='text-xs font-normal text-muted-foreground block mb-0.5'>Email</span>
         <span className='text-sm font-semibold text-foreground block truncate'>{email}</span>
       </div>
 

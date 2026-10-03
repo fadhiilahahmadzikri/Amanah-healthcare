@@ -147,6 +147,7 @@ export function useMedicalAppointmentSubmit({
                 nama_ibu_kandung: targetMotherName,
                 relationship_type: targetRelationship,
                 phone: targetPhone,
+                email: submittedValues.email || submittedValues.patientEmail || undefined,
                 alamat_detail: targetAddress
               });
 

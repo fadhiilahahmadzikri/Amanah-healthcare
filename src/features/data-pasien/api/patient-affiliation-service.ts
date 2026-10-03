@@ -16,6 +16,7 @@ export interface PatientAffiliationProfile {
   occupationCode?: string | null;
   occupationName?: string | null;
   phoneNumber?: string | null;
+  email?: string | null;
   isSelf?: boolean;
   hasExistingIntake?: boolean;
   latestIntakeId?: string | null;
@@ -98,6 +99,7 @@ export interface CreatePatientAffiliationDto {
   kelurahan?: string;
   kelurahan_id?: string;
   alamat_detail?: string;
+  email?: string;
 }
 
 export type CreateAffiliationPayload = CreatePatientAffiliationDto;
@@ -128,6 +130,7 @@ function mapAffiliationEntityToProfile(entity: any): PatientAffiliationProfile {
     occupationCode: null,
     occupationName: patient?.pekerjaan ?? null,
     phoneNumber: patient?.phoneNumber ?? null,
+    email: patient?.email ?? null,
     isSelf: entity.relationshipType === 'self' || Boolean(entity.isPrimary)
   };
 }
