@@ -35,7 +35,7 @@ export const immunizationFlowDefinition: MedicalFlowDefinition = {
           choices: ['Laki-laki', 'Perempuan'],
           colSpan: 1
         }),
-        field('parentPhone', TEXT, 'Nomor WhatsApp/HP orang tua', 'No HP', {
+        field('parentPhone', TEXT, 'Nomor HP orang tua/wali', 'Nomor HP', {
           helpText: 'Nomor aktif yang dapat dihubungi untuk konfirmasi jadwal.',
           placeholder: 'Contoh: 081234567890',
           colSpan: 'full'
