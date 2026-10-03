@@ -179,9 +179,12 @@ export function DoctorScheduleDetailSheet({
 		);
 	}
 
-	if (!doctor) return null;
-
-	const doctorStatus = getDoctorCardStatus(doctor);
+	const activeTargetDate = formatDateParam(
+		currentYear,
+		currentMonth,
+		selectedDay,
+	);
+	const doctorStatus = getDoctorCardStatus(doctor, undefined, activeTargetDate);
 	const doctorStatusConfig = getStatusConfig(doctorStatus);
 	const isUnconfigured = doctorStatus === DOCTOR_CARD_STATUS.BELUM_DIATUR;
 

@@ -5,12 +5,6 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { DoctorSchedule } from "../api/types";
 import {
-	isSlotAvailable,
-	isSlotClosed,
-	isSlotUnscheduled,
-	parseTimeToMinutes,
-} from "../utils/doctor-schedule-card-utils";
-import {
 	resolveDayStatus,
 	type SimpleScheduleStatus,
 } from "../utils/leave-calculator";
@@ -143,92 +137,6 @@ export function DoctorTimelineCalendar({
 	const getStatusForDay = (day: number): SimpleScheduleStatus => {
 		if (checkIsPast(day)) {
 			return "selesai";
-		}
-
-		const isToday =
-			currentYear === realCurrentYear &&
-			currentMonth === realCurrentMonth &&
-			day === realCurrentDay;
-
-		if (isToday) {
-			const currentMinutes = today.getHours() * 60 + today.getMinutes();
-			const sessions = doctor?.sesi_harian;
-
-			if (sessions && sessions.length > 0) {
-				const hasOpenSession = sessions.some((s) => {
-					const rawStatus = (s.status_sesi || "").trim().toUpperCase();
-					if (rawStatus === "CLOSED" || rawStatus === "TUTUP") return false;
-					const endMin = parseTimeToMinutes(s.jam_selesai);
-					return endMin > currentMinutes;
-				});
-
-				if (hasOpenSession) {
-					return "buka";
-				}
-
-				const allFinished = sessions.every((s) => {
-					const endMin = parseTimeToMinutes(s.jam_selesai);
-					return endMin <= currentMinutes;
-				});
-
-				if (allFinished) {
-					return "selesai";
-				}
-			}
-
-			if (doctor?.shifts && doctor.shifts.length > 0) {
-				let hasOpenSlot = false;
-				let allSlotsFinished = true;
-
-				for (const shift of doctor.shifts) {
-					for (const slot of shift.slots) {
-						if (isSlotUnscheduled(slot)) continue;
-						const endMin = parseTimeToMinutes(slot.endTime);
-						if (
-							endMin > currentMinutes &&
-							!isSlotClosed(slot) &&
-							isSlotAvailable(slot)
-						) {
-							hasOpenSlot = true;
-						}
-						if (endMin > currentMinutes) {
-							allSlotsFinished = false;
-						}
-					}
-				}
-
-				if (hasOpenSlot) return "buka";
-				if (allSlotsFinished) return "selesai";
-				return "tutup";
-			}
-
-			const statusDokter = (doctor?.status_dokter || "").trim().toUpperCase();
-			if (statusDokter === "CLOSED" || statusDokter === "TUTUP") {
-				return "tutup";
-			}
-		}
-
-		const item = doctor?.monthly_schedule?.find((m) => m.day === day);
-		if (item) {
-			const rawStatus = (item.dayStatus || item.status || "")
-				.trim()
-				.toUpperCase();
-			if (
-				rawStatus === "CLOSED" ||
-				rawStatus === "TUTUP" ||
-				rawStatus === "EMPTY"
-			) {
-				return "tutup";
-			}
-			if (
-				rawStatus === "OPEN" ||
-				rawStatus === "BUKA" ||
-				rawStatus === "OCCUPIED" ||
-				rawStatus === "TERISI"
-			) {
-				return "buka";
-			}
-			return "tutup";
 		}
 
 		return resolveDayStatus(day, doctor);

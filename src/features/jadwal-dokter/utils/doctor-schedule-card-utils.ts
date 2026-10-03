@@ -306,7 +306,8 @@ export function getUpcomingScheduleTime(
 	}
 
 	if (scheduleTime && scheduleTime.trim() !== "") {
-		const cleanTime = scheduleTime.replace(/:/g, ".");
+		const formattedUpcoming = formatUpcomingFallback(scheduleTime);
+		const cleanTime = formattedUpcoming || scheduleTime.replace(/:/g, ".");
 		return {
 			labelTime: cleanTime,
 			upcomingTime: cleanTime,

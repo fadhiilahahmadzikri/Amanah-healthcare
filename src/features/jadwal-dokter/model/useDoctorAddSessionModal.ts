@@ -99,7 +99,6 @@ export function useDoctorAddSessionModal({
     selectedSlot?.endTime ||
     (initialStartTime ? computeSafeEndTime(initialStartTime, initialEndTime) : undefined);
 
-  // 1. Fetch Master Clinic Rooms with occupancy awareness for the selected date and time
   const { data: clinicRooms = [], isLoading: isLoadingRooms } = useQuery({
     ...clinicRoomsQueryOptions({
       date: selectedDate,
@@ -112,7 +111,6 @@ export function useDoctorAddSessionModal({
 
   const rooms = clinicRooms;
 
-  // 2. Auto-populate default room immediately without selecting occupied rooms
   const defaultRoomId = useMemo(() => {
     if (rooms.length === 0) return '';
     const doctorRoom = doctor?.ruang_praktik?.trim().toLowerCase();
@@ -134,7 +132,6 @@ export function useDoctorAddSessionModal({
     }
   }, [selectedRoomId, defaultRoomId, rooms]);
 
-  // 4. Fetch slot availability ONLY for wizard slot selection (bypassed in directSlotMode)
   const effectiveShift = selectedShift || SCHEDULE_SHIFT.PAGI;
   const { data: slotAvailability, isLoading: isLoadingSlots } = useQuery({
     ...scheduleSlotAvailabilityQueryOptions({
@@ -150,7 +147,6 @@ export function useDoctorAddSessionModal({
       Boolean(selectedDate && (selectedRoomId || rooms[0]?.id))
   });
 
-  // 5. Reset or initialize state on modal open
   useEffect(() => {
     if (isOpen) {
       const initialDateValue =
@@ -175,7 +171,6 @@ export function useDoctorAddSessionModal({
     }
   }, [isOpen, targetDate, defaultDate, initialStartTime, initialEndTime]);
 
-  // 6. Match slot automatically when initialStartTime is provided
   useEffect(() => {
     if (initialStartTime) {
       if (slotAvailability?.slots) {
@@ -195,7 +190,6 @@ export function useDoctorAddSessionModal({
     }
   }, [initialStartTime, initialEndTime, slotAvailability?.slots]);
 
-  // Selected date object for formatting
   const selectedDateObj = useMemo(() => {
     if (!selectedDate) return undefined;
     const parts = selectedDate.split('-');
@@ -275,7 +269,6 @@ export function useDoctorAddSessionModal({
       setIsSubmitting(true);
       const sessionName = SCHEDULE_SHIFT_LABELS[selectedShift];
 
-      // Single Source of Truth: 1 slot = 1 patient (capacity: 1)
       const payload = {
         schedule_date: selectedDate,
         nama_sesi: sessionName,
@@ -308,7 +301,6 @@ export function useDoctorAddSessionModal({
         ruang: selectedRoom?.name || doctor.ruang_praktik || 'Ruang Konsultasi'
       };
 
-      // Optimistically & deterministically update active doctor detail query cache
       queryClient.setQueriesData<DoctorSchedule>(
         { queryKey: [...doctorScheduleKeys.details(), doctor.id] },
         (oldDoctor) => {

@@ -137,11 +137,13 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
   const openEdit = (doctor: DoctorSchedule) => {
     setSelectedDoctor(doctor);
     setActiveDialog('edit');
+    setParams({ selectedDoctorId: doctor.id }, { shallow: true });
   };
 
   const openReschedule = (doctor: DoctorSchedule) => {
     setSelectedDoctor(doctor);
     setActiveDialog('reschedule');
+    setParams({ selectedDoctorId: doctor.id }, { shallow: true });
   };
 
   const openDoctorScheduleById = (
@@ -247,10 +249,18 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
       clearHighlightSlotTime,
       clearReturnContext: () => setReturnContext(null),
       openEdit,
-      closeEdit: () => setActiveDialog(null),
+      closeEdit: () => {
+        setActiveDialog(null);
+        setSelectedDoctor(null);
+        setParams({ selectedDoctorId: null }, { shallow: true });
+      },
       openEditFromDetail: openEdit,
       openReschedule,
-      closeReschedule: () => setActiveDialog(null),
+      closeReschedule: () => {
+        setActiveDialog(null);
+        setSelectedDoctor(null);
+        setParams({ selectedDoctorId: null }, { shallow: true });
+      },
       changeSearch: (value) => setParams({ search: value || null, page: 1 }, { shallow: true }),
       changeMonthFilter: (month) =>
         setParams({ month: month === 'ALL' ? null : month, page: 1 }, { shallow: true }),

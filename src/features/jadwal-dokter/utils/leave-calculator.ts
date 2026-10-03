@@ -102,7 +102,7 @@ export function resolveDayStatus(
 
 	const monthlyItem = doctor.monthly_schedule?.find((d) => d.day === dayNumber);
 	if (monthlyItem) {
-		const raw = (monthlyItem.status || "").trim().toUpperCase();
+		const raw = (monthlyItem.dayStatus || monthlyItem.status || "").trim().toUpperCase();
 		if (
 			raw === SCHEDULE_STATUS.CLOSED ||
 			raw === SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.CLOSED].toUpperCase()
@@ -113,7 +113,7 @@ export function resolveDayStatus(
 			raw === SCHEDULE_STATUS.OPEN ||
 			raw === SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.OPEN].toUpperCase() ||
 			raw === SCHEDULE_STATUS.OCCUPIED ||
-			raw === "TERISI"
+			raw === SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.OCCUPIED].toUpperCase()
 		) {
 			return "buka";
 		}
@@ -138,7 +138,8 @@ export function resolveDayStatus(
 			rawDocStatus === SCHEDULE_STATUS.OPEN ||
 			rawDocStatus ===
 				SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.OPEN].toUpperCase() ||
-			rawDocStatus === "TERISI" ||
+			rawDocStatus ===
+				SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.OCCUPIED].toUpperCase() ||
 			rawDocStatus === SCHEDULE_STATUS.OCCUPIED
 		) {
 			return "buka";
