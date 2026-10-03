@@ -156,6 +156,7 @@ export interface BookingOptionShift {
   capacity: number;
   availableSlots: number;
   bookedSlots: number;
+  isPast?: boolean;
   isDisabled: boolean;
   disabledReason: string | null;
   practitioners: BookingPractitioner[];

@@ -16,9 +16,7 @@ export interface BookingSessionStepProps {
   timeSlot: string;
   setTimeSlot: (slot: string) => void;
   onSelectSessionId?: (sessionId: string) => void;
-  /** Filters availability to a specific doctor (reschedule context). Omit for clinic-wide create context. */
   staffId?: string;
-  /** Overrides the poliklinik derived from selectedService when explicitly known (reschedule context). */
   poliklinikId?: string;
 }
 
@@ -43,7 +41,7 @@ export function BookingSessionStep({
       <div className='flex items-start justify-between gap-2'>
         <div>
           <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
-            Pilih sesi praktik dokter jaga ⏰
+            Pilih sesi praktik dokter jaga
           </h3>
           <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
             Tentukan shift konsultasi yang paling pas untuk pemeriksaanmu.
@@ -73,24 +71,19 @@ export function BookingSessionStep({
   );
 }
 
-// ─── Sub-components ────────────────────────────────────────────────────────
-
 function SessionSkeletons() {
   return (
-    <div className='space-y-2 pt-1'>
+    <div className='grid grid-cols-2 gap-2 sm:gap-2.5 pt-0.5'>
       {[1, 2, 3, 4].map((i) => (
         <div
           key={i}
-          className='relative flex items-center justify-between p-3 rounded-xl border border-border/70 bg-card/60 gap-3'
+          className='relative flex items-center justify-between p-2.5 sm:p-3 rounded-xl border border-border/70 bg-card/60 gap-2 sm:gap-2.5 min-w-0'
         >
-          <div className='flex items-center gap-3 flex-1 min-w-0'>
-            <Skeleton className='size-9 sm:size-10 rounded-full shrink-0' />
+          <div className='flex items-center gap-2 sm:gap-2.5 flex-1 min-w-0'>
+            <Skeleton className='size-8 sm:size-9 rounded-full shrink-0' />
             <div className='space-y-1.5 flex-1 min-w-0'>
-              <Skeleton className='h-4 w-20 rounded-md' />
-              <div className='flex items-center gap-2'>
-                <Skeleton className='h-3 w-28 rounded-md' />
-                <Skeleton className='h-3 w-16 rounded-md' />
-              </div>
+              <Skeleton className='h-3.5 w-16 sm:w-20 rounded-md' />
+              <Skeleton className='h-3 w-12 sm:w-16 rounded-md' />
             </div>
           </div>
           <Skeleton className='size-4 rounded-full shrink-0' />
@@ -127,37 +120,48 @@ interface SessionListProps {
 
 function SessionList({ sessions, timeSlot, onSelectSlot }: SessionListProps) {
   return (
-    <div className='space-y-2 pt-0.5'>
-      <RadioGroup value={timeSlot} onValueChange={(val) => onSelectSlot(val)} className='gap-2'>
+    <div className='pt-0.5'>
+      <RadioGroup
+        value={timeSlot}
+        onValueChange={(val) => onSelectSlot(val)}
+        className='grid grid-cols-2 gap-2 sm:gap-2.5'
+      >
         {sessions.map((session) => {
           const isSelected = timeSlot === session.session;
           const isDisabled = session.isDisabled;
           const sessionConfig = CONSULTATION_SESSIONS.find((c) => c.value === session.session);
           const SessionIcon = sessionConfig?.icon || Icons.clock;
-          const timeRange = `${session.startTime.slice(0, 5)} - ${session.endTime.slice(0, 5)} WIB`;
           const primaryPractitioner = session.practitioners?.[0];
 
           return (
             <div
               key={session.session}
+              role='button'
+              tabIndex={isDisabled ? -1 : 0}
+              onKeyDown={(e) => {
+                if (!isDisabled && (e.key === 'Enter' || e.key === ' ')) {
+                  e.preventDefault();
+                  onSelectSlot(session.session, primaryPractitioner?.sessionId);
+                }
+              }}
               onClick={() => {
                 if (!isDisabled) {
                   onSelectSlot(session.session, primaryPractitioner?.sessionId);
                 }
               }}
               className={cn(
-                'relative flex items-center justify-between p-3 rounded-xl border transition-all select-none gap-3 min-w-0',
+                'relative flex items-center justify-between p-2.5 sm:p-3 rounded-xl border transition-all select-none gap-2 sm:gap-2.5 min-w-0',
                 isDisabled
-                  ? 'opacity-60 bg-muted/30 border-dashed border-border cursor-not-allowed'
+                  ? 'opacity-50 bg-muted/20 border-dashed border-border cursor-not-allowed'
                   : isSelected
                   ? 'border-2 border-primary bg-primary/5 shadow-xs cursor-pointer'
                   : 'border-border bg-card hover:border-primary/40 cursor-pointer'
               )}
             >
-              <div className='flex items-center gap-3 min-w-0 flex-1'>
+              <div className='flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1'>
                 <div
                   className={cn(
-                    'size-9 sm:size-10 rounded-full flex items-center justify-center shrink-0 transition-colors',
+                    'size-8 sm:size-9 rounded-full flex items-center justify-center shrink-0 transition-colors',
                     isDisabled
                       ? 'bg-muted text-muted-foreground'
                       : isSelected
@@ -165,32 +169,25 @@ function SessionList({ sessions, timeSlot, onSelectSlot }: SessionListProps) {
                       : 'bg-muted text-muted-foreground'
                   )}
                 >
-                  <SessionIcon className='size-4 sm:size-5' />
+                  <SessionIcon className='size-3.5 sm:size-4' />
                 </div>
 
-                <div className='min-w-0 flex-1 space-y-0.5'>
-                  <div className='text-xs sm:text-sm font-bold text-foreground truncate'>
+                <div className='min-w-0 flex-1 space-y-1'>
+                  <div className='text-xs sm:text-sm font-semibold text-foreground truncate'>
                     {session.label}
                   </div>
 
-                  <div className='flex items-center gap-2 flex-wrap'>
-                    <span className='text-[11px] sm:text-xs text-muted-foreground font-medium'>
-                      {timeRange}
-                    </span>
-                    {isDisabled ? (
-                      <span className='inline-flex items-center rounded-md bg-destructive/10 text-destructive border border-destructive/20 px-1.5 py-0.5 text-[10px] font-semibold'>
-                        {session.disabledReason || 'Sesi Tidak Tersedia'}
-                      </span>
-                    ) : (
-                      <span className='inline-flex items-center rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 text-[10px] font-semibold'>
+                  {!isDisabled && (
+                    <div>
+                      <span className='inline-flex items-center rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 text-[10px] font-semibold leading-none'>
                         Sisa {session.availableSlots} slot
                       </span>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <div className='shrink-0 pl-1'>
+              <div className='shrink-0 pl-0.5'>
                 <RadioGroupItem
                   value={session.session}
                   id={`session-radio-${session.session}`}
