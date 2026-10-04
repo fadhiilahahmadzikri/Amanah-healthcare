@@ -276,6 +276,35 @@ export function DoctorRescheduleSessionModal({
     );
   };
 
+  const shiftBounds = SCHEDULE_SHIFT_BOUNDARIES[selectedShift];
+
+  const stepMeta = useMemo(() => {
+    const docName = doctor?.nama_dokter ? `dokter ${doctor.nama_dokter}` : 'dokter';
+    switch (step) {
+      case 'date':
+        return {
+          title: 'Pilih Tanggal Tujuan',
+          subtitle: `Tentukan tanggal baru untuk memindahkan jadwal praktik ${docName}.`
+        };
+      case 'room':
+        return {
+          title: 'Pilih Ruangan Praktik',
+          subtitle: `Tentukan ruangan poliklinik tempat ${docName} akan bertugas.`
+        };
+      case 'slot':
+        return {
+          title: 'Pilih Jam Mulai Baru',
+          subtitle: `Pilih jam praktik dokter pada rentang ${shiftBounds.timeRange}.`
+        };
+      case 'note':
+        return {
+          title: 'Konfirmasi Pemindahan Jadwal',
+          subtitle:
+            'Tinjau rincian jadwal baru dan tambahkan catatan alasan perpindahan sesi dokter.'
+        };
+    }
+  }, [step, doctor?.nama_dokter, shiftBounds.timeRange]);
+
   if (!doctor) return null;
 
   if (!effectiveSession) {
@@ -300,8 +329,6 @@ export function DoctorRescheduleSessionModal({
     return null;
   }
 
-  const shiftBounds = SCHEDULE_SHIFT_BOUNDARIES[selectedShift];
-
   return (
     <ModalWrapper
       isOpen={isOpen}
@@ -309,64 +336,61 @@ export function DoctorRescheduleSessionModal({
       maxWidth='max-w-[508px]'
       showCloseButton={false}
       portalContainerRef={portalContainerRef}
-      className='h-auto max-h-none overflow-hidden rounded-2xl border border-border bg-card p-5 sm:p-6 w-full my-auto shadow-2xl'
+      className='h-auto max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-card p-5 sm:p-6 w-full my-auto shadow-2xl'
     >
-      <div className='flex flex-col font-sans select-none justify-between h-full min-h-[460px]'>
-        {/* Top Header */}
-        <div className='flex items-center justify-between gap-3 pb-3 border-b border-border/40 shrink-0'>
+      <div className='flex flex-col font-sans select-none gap-4'>
+        {/* Top Header - No border-b */}
+        <div className='flex items-start justify-between gap-3 shrink-0'>
           <div className='space-y-0.5 min-w-0 flex-1'>
             <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
-              Reschedule
+              {stepMeta.title}
             </h3>
-            <p className='text-xs text-muted-foreground truncate'>
-              {doctor.nama_dokter} &bull;{' '}
-              {doctor.spesialisasi.toLowerCase().startsWith('poli')
-                ? doctor.spesialisasi
-                : `Poli ${doctor.spesialisasi}`}
-            </p>
+            <p className='text-xs text-muted-foreground leading-relaxed'>{stepMeta.subtitle}</p>
           </div>
           <button
             type='button'
             onClick={onClose}
             aria-label='Tutup'
-            className='rounded-full p-1.5 text-muted-foreground hover:bg-muted transition-colors cursor-pointer shrink-0'
+            className='rounded-full p-1.5 text-muted-foreground hover:bg-muted transition-colors cursor-pointer shrink-0 -mr-1 -mt-1'
           >
             <Icons.close className='size-4' />
           </button>
         </div>
 
-        {/* Original Session Context */}
-        <div className='my-3 w-full p-2.5 rounded-xl bg-muted/30 border border-border/50 text-xs space-y-1.5 shrink-0'>
-          <div className='flex items-center justify-between gap-2'>
-            <div className='flex items-center gap-1.5 font-semibold text-foreground truncate'>
-              <Icons.calendar className='size-3.5 text-primary shrink-0' />
+        {/* Original Session Context: ONLY in Step 1 ('date') directly below header */}
+        {step === 'date' && (
+          <div className='w-full p-2.5 rounded-xl bg-muted/30 border border-border/50 text-xs space-y-1.5 shrink-0'>
+            <div className='flex items-center justify-between gap-2'>
+              <div className='flex items-center gap-1.5 font-semibold text-foreground truncate'>
+                <Icons.calendar className='size-3.5 text-primary shrink-0' />
+                <span className='truncate'>
+                  {effectiveSession.nama_sesi}
+                  {initialStartTime ? (
+                    <>
+                      {' '}
+                      &bull; <span className='font-mono'>{initialStartTime} WIB</span>
+                    </>
+                  ) : (
+                    <>
+                      {' '}
+                      ({effectiveSession.jam_mulai} - {effectiveSession.jam_selesai} WIB)
+                    </>
+                  )}
+                </span>
+              </div>
+              <StatusBadge status={effectiveSession.status_sesi} size='sm' className='shrink-0' />
+            </div>
+            <div className='text-[11.5px] text-muted-foreground flex items-center gap-1.5'>
+              <Icons.location className='size-3 text-muted-foreground/70 shrink-0' />
               <span className='truncate'>
-                {effectiveSession.nama_sesi}
-                {initialStartTime ? (
-                  <>
-                    {' '}
-                    &bull; <span className='font-mono'>{initialStartTime} WIB</span>
-                  </>
-                ) : (
-                  <>
-                    {' '}
-                    ({effectiveSession.jam_mulai} - {effectiveSession.jam_selesai} WIB)
-                  </>
-                )}
+                {effectiveSession.ruang || doctor.ruang_praktik || 'Ruang Praktik'}
               </span>
             </div>
-            <StatusBadge status={effectiveSession.status_sesi} size='sm' className='shrink-0' />
           </div>
-          <div className='text-[11.5px] text-muted-foreground flex items-center gap-1.5'>
-            <Icons.location className='size-3 text-muted-foreground/70 shrink-0' />
-            <span className='truncate'>
-              {effectiveSession.ruang || doctor.ruang_praktik || 'Ruang Praktik'}
-            </span>
-          </div>
-        </div>
+        )}
 
         {/* Wizard Steps Content */}
-        <div className='flex-1 overflow-y-auto min-h-0 pr-0.5 py-1'>
+        <div className='w-full'>
           {/* STEP 1: Tanggal Tujuan */}
           {step === 'date' && (
             <BookingDateStep
@@ -376,8 +400,7 @@ export function DoctorRescheduleSessionModal({
                 setTargetStartTime('');
                 setTargetEndTime('');
               }}
-              title='Pilih Tanggal Tujuan'
-              subtitle={`Tentukan tanggal baru untuk memindahkan jadwal praktik dokter ${doctor.nama_dokter}.`}
+              showHeader={false}
               label='Tanggal Baru*'
               placeholder='Pilih tanggal praktik...'
               id='tanggalTujuanRescheduleTrigger'
@@ -398,27 +421,13 @@ export function DoctorRescheduleSessionModal({
               }}
               doctorName={doctor.nama_dokter}
               isLoading={isLoadingRooms}
+              showHeader={false}
             />
           )}
 
           {/* STEP 3: Jam Mulai Baru (Grid-Based) */}
           {step === 'slot' && (
             <div className='space-y-3.5'>
-              <div className='flex items-start justify-between gap-2 pb-2 border-b border-border/30'>
-                <div>
-                  <h4 className='text-sm sm:text-base font-bold text-foreground tracking-tight'>
-                    Pilih Jam Mulai Baru
-                  </h4>
-                  <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
-                    Pilih jam praktik dokter pada rentang {shiftBounds.timeRange}.
-                  </p>
-                </div>
-                <div className='flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border/50 bg-muted/20 text-xs font-mono font-medium text-foreground shrink-0'>
-                  <Icons.clock className='size-3 text-muted-foreground' />
-                  <span>{shiftBounds.timeRange}</span>
-                </div>
-              </div>
-
               {/* Shift Selector Switcher */}
               <div className='flex items-center gap-1.5 p-1 rounded-xl bg-muted/40 border border-border/40'>
                 {([SCHEDULE_SHIFT.PAGI, SCHEDULE_SHIFT.SIANG, SCHEDULE_SHIFT.MALAM] as const).map(
@@ -530,7 +539,7 @@ export function DoctorRescheduleSessionModal({
 
               {/* Selected Slot Information Display without redundant calculated input */}
               {targetStartTime && (
-                <div className='flex items-center justify-between p-3 rounded-xl border border-primary/30 bg-primary/5 text-xs'>
+                <div className='flex items-center justify-between p-2.5 rounded-xl border border-primary/30 bg-primary/5 text-xs'>
                   <span className='font-semibold text-foreground'>Slot Terpilih:</span>
                   <span className='font-mono font-bold text-primary'>
                     {targetStartTime} - {targetEndTime || targetEndTimeCalculated || '--:--'} WIB
@@ -543,15 +552,6 @@ export function DoctorRescheduleSessionModal({
           {/* STEP 4: Catatan Perpindahan & Konfirmasi */}
           {step === 'note' && (
             <div className='space-y-3.5'>
-              <div>
-                <h4 className='text-sm sm:text-base font-bold text-foreground tracking-tight'>
-                  Konfirmasi Pemindahan Jadwal
-                </h4>
-                <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
-                  Tinjau rincian jadwal baru dan tambahkan catatan alasan perpindahan sesi dokter.
-                </p>
-              </div>
-
               {/* Summary Card */}
               <div className='p-3 rounded-xl bg-muted/20 border border-border/50 text-xs space-y-2'>
                 <div className='grid grid-cols-2 gap-2 text-xs'>
@@ -634,8 +634,8 @@ export function DoctorRescheduleSessionModal({
           )}
         </div>
 
-        {/* Stepper Navigation Footer */}
-        <div className='pt-4 flex items-center justify-between gap-3 border-t border-border/40 select-none shrink-0 mt-auto'>
+        {/* Stepper Navigation Footer - No border-t */}
+        <div className='pt-2 flex items-center justify-between gap-3 select-none shrink-0'>
           <Button
             type='button'
             variant='outline'

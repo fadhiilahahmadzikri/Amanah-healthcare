@@ -13,6 +13,7 @@ export interface StepRoomSelectProps {
   doctorName?: string;
   isLoading?: boolean;
   onViewConflict?: (room: ClinicRoom) => void;
+  showHeader?: boolean;
 }
 
 export function StepRoomSelect({
@@ -21,18 +22,22 @@ export function StepRoomSelect({
   onSelectRoomId,
   doctorName,
   isLoading = false,
-  onViewConflict
+  onViewConflict,
+  showHeader = true
 }: StepRoomSelectProps) {
   return (
     <div className='space-y-4 font-sans select-none'>
-      <div>
-        <h4 className='text-sm sm:text-base font-bold text-foreground tracking-tight'>
-          Pilih Ruang Praktik
-        </h4>
-        <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
-          Tentukan ruangan poliklinik tempat {doctorName ? `dokter ${doctorName}` : 'dokter'} akan bertugas.
-        </p>
-      </div>
+      {showHeader && (
+        <div>
+          <h4 className='text-sm sm:text-base font-bold text-foreground tracking-tight'>
+            Pilih Ruang Praktik
+          </h4>
+          <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
+            Tentukan ruangan poliklinik tempat {doctorName ? `dokter ${doctorName}` : 'dokter'} akan
+            bertugas.
+          </p>
+        </div>
+      )}
 
       {isLoading && rooms.length === 0 ? (
         <div className='space-y-2.5 max-h-[46vh] overflow-y-auto pr-1'>

@@ -13,6 +13,7 @@ export interface BookingDateStepProps {
   id?: string;
   ariaLabel?: string;
   disablePastDates?: boolean;
+  showHeader?: boolean;
 }
 
 export function BookingDateStep({
@@ -24,18 +25,17 @@ export function BookingDateStep({
   placeholder = 'Pilih tanggal kunjungan...',
   id = 'tanggalKunjunganTrigger',
   ariaLabel = 'Tanggal kunjungan',
-  disablePastDates = true
+  disablePastDates = true,
+  showHeader = true
 }: BookingDateStepProps) {
   return (
     <div className='space-y-4'>
-      <div>
-        <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
-          {title}
-        </h3>
-        <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
-          {subtitle}
-        </p>
-      </div>
+      {showHeader && title && (
+        <div>
+          <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>{title}</h3>
+          <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>{subtitle}</p>
+        </div>
+      )}
 
       <div className='pt-1'>
         <CustomDatePicker
