@@ -204,26 +204,10 @@ export function getDoctorCardStatus(
 				return DOCTOR_CARD_STATUS.TUTUP;
 			}
 
-			if (doctor.timeline_intervals && doctor.timeline_intervals.length > 0) {
-				const currentSlot = doctor.timeline_intervals.find(
-					(slot) =>
-						parseMinutesFromTime(slot.startTime) <= currentMinutes &&
-						currentMinutes < parseMinutesFromTime(slot.endTime),
-				);
-				if (
-					currentSlot &&
-					(currentSlot.isOccupied ||
-						currentSlot.effectiveStatus === "OCCUPIED" ||
-						currentSlot.availabilityState === "OCCUPIED" ||
-						currentSlot.status === "OCCUPIED")
-				) {
-					return DOCTOR_CARD_STATUS.TERISI;
-				}
-			}
-
 			const activeSessionStatus = (activeSession.status_sesi || "").trim().toUpperCase();
 			if (
 				activeSessionStatus === SCHEDULE_STATUS.OCCUPIED ||
+				activeSessionStatus === "TERISI" ||
 				statusDokter === SCHEDULE_STATUS.OCCUPIED ||
 				statusJadwal === SCHEDULE_STATUS.OCCUPIED
 			) {
@@ -231,11 +215,9 @@ export function getDoctorCardStatus(
 			}
 
 			if (
-				(typeof activeSession.slot_tersedia === "number" &&
-					activeSession.slot_tersedia === 0 &&
-					(activeSession.kuota_pasien || 0) > 0) ||
-				(typeof activeSession.pasien_terdaftar === "number" &&
-					activeSession.pasien_terdaftar > 0)
+				typeof activeSession.slot_tersedia === "number" &&
+				activeSession.slot_tersedia === 0 &&
+				(activeSession.kuota_pasien || 0) > 0
 			) {
 				return DOCTOR_CARD_STATUS.TERISI;
 			}
