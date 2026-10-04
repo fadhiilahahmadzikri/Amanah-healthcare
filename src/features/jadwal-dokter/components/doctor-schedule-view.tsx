@@ -35,11 +35,26 @@ export function DoctorScheduleView() {
 
       <DoctorRescheduleSessionModal
         doctor={scheduleView.selectedDoctor}
-        session={scheduleView.selectedDoctor?.sesi_harian?.[0] || null}
+        session={
+          scheduleView.returnContext?.sourceSession ||
+          scheduleView.selectedDoctor?.sesi_harian?.[0] ||
+          null
+        }
         isOpen={scheduleView.isRescheduleOpen || scheduleView.isEditOpen}
+        initialDate={scheduleView.returnContext?.sourceDate}
+        initialStartTime={scheduleView.returnContext?.sourceSlotStartTime}
+        initialStep={
+          (scheduleView.returnContext?.initialStep === 'room' ||
+          scheduleView.returnContext?.initialStep === 'slot' ||
+          scheduleView.returnContext?.initialStep === 'date' ||
+          scheduleView.returnContext?.initialStep === 'note'
+            ? scheduleView.returnContext.initialStep
+            : 'room') as import('./doctor-reschedule-session-modal').RescheduleStep
+        }
         onClose={() => {
           scheduleView.actions.closeReschedule();
           scheduleView.actions.closeEdit();
+          scheduleView.actions.clearReturnContext();
         }}
         onViewDoctorSchedule={scheduleView.actions.openDoctorScheduleById}
       />

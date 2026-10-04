@@ -168,7 +168,7 @@ export function DoctorDailyHourlyGrid({
 
   useEffect(() => {
     if (doctor?.id) {
-      const reopen = conflictNav.consumePendingReopen(doctor.id);
+      const reopen = conflictNav.consumePendingReopen(doctor.id, doctor.practitioner_id);
       if (reopen) {
         if (reopen.wizardType === 'add') {
           setAddSessionInitialTime(reopen.sourceSlotStartTime);

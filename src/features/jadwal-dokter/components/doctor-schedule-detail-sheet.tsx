@@ -104,7 +104,8 @@ export function DoctorScheduleDetailSheet({
 		highlightSlotTime ||
 		conflictNav.pendingReopen ||
 		conflictNav.isInspecting ||
-		conflictNav.phase === "returning"
+		conflictNav.phase === "returning" ||
+		returnContext
 	);
 
 	const [activeTab, setActiveTab] = React.useState<DoctorDetailTab>(() =>
@@ -419,7 +420,7 @@ export function DoctorScheduleDetailSheet({
 								value={DOCTOR_DETAIL_TAB.KUOTA}
 								className="m-0 space-y-3 outline-none animate-in fade-in-50 duration-200"
 							>
-								{isUnconfigured ? (
+								{isUnconfigured && !conflictNav.pendingReopen && !returnContext ? (
 									<div className="flex-1 flex flex-col p-4 sm:p-6 select-none">
 										<EmptyState
 											title="Belum ada jadwal praktik"

@@ -39,7 +39,10 @@ export interface DoctorConflictNavigationState {
     onNavigateBack?: (sourceDoctorId: string) => void;
   }) => void;
 
-  consumePendingReopen: (currentDoctorId?: string) => DoctorConflictReturnContext | null;
+  consumePendingReopen: (
+    currentDoctorId?: string,
+    secondaryId?: string
+  ) => DoctorConflictReturnContext | null;
   clearConflictNavigation: () => void;
   setHighlightSlotTime: (time: string | null) => void;
 }
@@ -82,13 +85,14 @@ export const useDoctorConflictNavigation = create<DoctorConflictNavigationState>
     params?.onNavigateBack?.(sourceDoctorId);
   },
 
-  consumePendingReopen: (currentDoctorId?: string) => {
+  consumePendingReopen: (currentDoctorId?: string, secondaryId?: string) => {
     const { pendingReopen } = get();
     if (!pendingReopen) return null;
 
     if (currentDoctorId) {
       const match =
-        pendingReopen.sourceDoctorId === currentDoctorId;
+        pendingReopen.sourceDoctorId === currentDoctorId ||
+        (secondaryId && pendingReopen.sourceDoctorId === secondaryId);
       if (!match) return null;
     }
 

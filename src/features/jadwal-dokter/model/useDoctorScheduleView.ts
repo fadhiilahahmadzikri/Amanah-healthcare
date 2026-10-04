@@ -192,7 +192,11 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     if (sourceDoctor) {
       setSelectedDoctor(sourceDoctor);
     }
-    setActiveDialog('detail');
+    if (effectiveContext.wizardType === 'reschedule') {
+      setActiveDialog('reschedule');
+    } else {
+      setActiveDialog('detail');
+    }
     setParams(
       {
         selectedDoctorId: targetSourceId,

@@ -135,6 +135,8 @@ export function DoctorScheduleCard({
     onOpenDetail?.(effectiveDoctor);
   };
 
+  const hasPill = Boolean(statusLabel && !isSelesai);
+
   return (
     <div
       ref={cardRef}
@@ -153,17 +155,28 @@ export function DoctorScheduleCard({
     >
       <DoctorCardImage src={doctor.avatar} alt={doctor.nama_dokter} />
 
-      <div className='flex items-center justify-between gap-3 relative z-20'>
-        {statusLabel && !isSelesai ? <DoctorStatusBadge status={statusLabel} /> : <div />}
-        {showCallButton && !isUnconfigured && !isSelesai && (
-          <DoctorQuickCallButton
-            phoneNumber={doctor.nomor_telepon ?? undefined}
-            onClick={handleCall}
-          />
-        )}
-      </div>
+      {hasPill ? (
+        <div className='flex items-center justify-between gap-3 relative z-20'>
+          <DoctorStatusBadge status={statusLabel!} />
+          {showCallButton && !isUnconfigured && !isSelesai && (
+            <DoctorQuickCallButton
+              phoneNumber={doctor.nomor_telepon ?? undefined}
+              onClick={handleCall}
+            />
+          )}
+        </div>
+      ) : (
+        showCallButton && !isUnconfigured && !isSelesai && (
+          <div className='absolute top-5 sm:top-6 right-5 sm:right-6 z-20'>
+            <DoctorQuickCallButton
+              phoneNumber={doctor.nomor_telepon ?? undefined}
+              onClick={handleCall}
+            />
+          </div>
+        )
+      )}
 
-      <div className='flex flex-col relative z-20 mt-2.5'>
+      <div className={cn('flex flex-col relative z-20', hasPill ? 'mt-2.5' : 'mt-0')}>
         <h3
           title={doctor.nama_dokter}
           className='text-[17px] sm:text-[18px] font-bold text-card-foreground tracking-tight leading-snug pr-24 sm:pr-28 line-clamp-1'
