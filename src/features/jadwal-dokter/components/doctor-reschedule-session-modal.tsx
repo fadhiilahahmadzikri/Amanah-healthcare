@@ -34,6 +34,7 @@ import {
 import { getTodayDateParam } from '../model/useDoctorScheduleView';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule, DoctorDailySession } from '../api/types';
+import { DOCTOR_DIALOG_TYPE, WIZARD_STEP } from '../constants/doctor-dialog.constants';
 import {
   useDoctorConflictNavigation,
   type DoctorConflictReturnContext
@@ -84,7 +85,8 @@ export function DoctorRescheduleSessionModal({
   const [, setParams] = useQueryStates(
     {
       selectedDoctorId: parseAsString.withDefault(''),
-      highlightSlotTime: parseAsString.withDefault('')
+      highlightSlotTime: parseAsString.withDefault(''),
+      dialog: parseAsString.withDefault('')
     },
     { shallow: true }
   );
@@ -209,7 +211,6 @@ export function DoctorRescheduleSessionModal({
   const handleViewOccupantDoctorSchedule = useCallback(
     (occupantDoctorId?: string | null, slotTime?: string) => {
       if (!occupantDoctorId || !doctor) return;
-      onClose();
 
       conflictNav.inspectConflictDoctor({
         occupantDoctorId,
@@ -223,17 +224,19 @@ export function DoctorRescheduleSessionModal({
           sourceSession: effectiveSession,
           sourceSessionId: effectiveSession?.id,
           sourceRoomId: targetRoomId,
-          wizardType: 'reschedule',
-          initialStep: 'room'
+          wizardType: DOCTOR_DIALOG_TYPE.WIZARD_RESCHEDULE,
+          initialStep: WIZARD_STEP.ROOM
         },
         onNavigate: (id, time) => {
+          onClose();
           if (onViewDoctorSchedule) {
             onViewDoctorSchedule(id, time);
           } else {
             setParams(
               {
                 selectedDoctorId: id,
-                highlightSlotTime: time || null
+                highlightSlotTime: time || null,
+                dialog: DOCTOR_DIALOG_TYPE.DETAIL_SHEET
               },
               { shallow: true }
             );
@@ -455,10 +458,8 @@ export function DoctorRescheduleSessionModal({
               showHeader={false}
               onViewConflict={(room) => {
                 const occupantId =
-                  room.occupantDetails?.practitionerId ||
-                  room.occupantDetails?.staffProfileId;
-                const targetSlotTime =
-                  room.occupantDetails?.startTime || targetStartTime;
+                  room.occupantDetails?.practitionerId || room.occupantDetails?.staffProfileId;
+                const targetSlotTime = room.occupantDetails?.startTime || targetStartTime;
                 if (occupantId) {
                   handleViewOccupantDoctorSchedule(occupantId, targetSlotTime);
                 }

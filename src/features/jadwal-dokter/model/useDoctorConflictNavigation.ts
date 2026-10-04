@@ -2,9 +2,17 @@
 
 import { create } from 'zustand';
 import type { DoctorDailySession } from '../api/types';
+import {
+  DOCTOR_DIALOG_TYPE,
+  type DoctorDialogType,
+  WIZARD_STEP,
+  type WizardStep,
+  INSPECTION_PHASE,
+  type InspectionPhase
+} from '../constants/doctor-dialog.constants';
 
-export type ConflictWizardType = 'add' | 'reschedule';
-export type ConflictWizardStep = 'date' | 'room' | 'slot' | 'confirmation' | 'note';
+export type ConflictWizardType = DoctorDialogType | 'add' | 'reschedule';
+export type ConflictWizardStep = WizardStep;
 
 export interface DoctorConflictReturnContext {
   sourceDoctorId: string;
@@ -19,7 +27,7 @@ export interface DoctorConflictReturnContext {
   initialStep?: ConflictWizardStep;
 }
 
-export type ConflictNavigationPhase = 'idle' | 'inspecting' | 'returning';
+export type ConflictNavigationPhase = InspectionPhase;
 
 export interface DoctorConflictNavigationState {
   phase: ConflictNavigationPhase;
@@ -35,9 +43,7 @@ export interface DoctorConflictNavigationState {
     onNavigate?: (occupantDoctorId: string, slotTime?: string) => void;
   }) => void;
 
-  returnToSourceWizard: (params?: {
-    onNavigateBack?: (sourceDoctorId: string) => void;
-  }) => void;
+  returnToSourceWizard: (params?: { onNavigateBack?: (sourceDoctorId: string) => void }) => void;
 
   consumePendingReopen: (
     currentDoctorId?: string,
@@ -48,7 +54,7 @@ export interface DoctorConflictNavigationState {
 }
 
 export const useDoctorConflictNavigation = create<DoctorConflictNavigationState>((set, get) => ({
-  phase: 'idle',
+  phase: INSPECTION_PHASE.IDLE,
   returnContext: null,
   highlightSlotTime: null,
   pendingReopen: null,
@@ -56,7 +62,7 @@ export const useDoctorConflictNavigation = create<DoctorConflictNavigationState>
 
   inspectConflictDoctor: ({ occupantDoctorId, targetSlotTime, context, onNavigate }) => {
     set({
-      phase: 'inspecting',
+      phase: INSPECTION_PHASE.INSPECTING,
       isInspecting: true,
       returnContext: context,
       highlightSlotTime: targetSlotTime ?? null,
@@ -72,11 +78,11 @@ export const useDoctorConflictNavigation = create<DoctorConflictNavigationState>
     const sourceDoctorId = returnContext.sourceDoctorId;
     const reopenPayload: DoctorConflictReturnContext = {
       ...returnContext,
-      initialStep: returnContext.initialStep || 'room'
+      initialStep: returnContext.initialStep || WIZARD_STEP.ROOM
     };
 
     set({
-      phase: 'returning',
+      phase: INSPECTION_PHASE.RETURNING,
       isInspecting: false,
       pendingReopen: reopenPayload,
       highlightSlotTime: null
@@ -97,7 +103,7 @@ export const useDoctorConflictNavigation = create<DoctorConflictNavigationState>
     }
 
     set({
-      phase: 'idle',
+      phase: INSPECTION_PHASE.IDLE,
       isInspecting: false,
       returnContext: null,
       pendingReopen: null
@@ -108,7 +114,7 @@ export const useDoctorConflictNavigation = create<DoctorConflictNavigationState>
 
   clearConflictNavigation: () => {
     set({
-      phase: 'idle',
+      phase: INSPECTION_PHASE.IDLE,
       isInspecting: false,
       returnContext: null,
       highlightSlotTime: null,

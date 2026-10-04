@@ -159,43 +159,10 @@ export function DoctorDailyHourlyGrid({
       setActiveHighlightTime(effectiveHighlight);
       const timer = setTimeout(() => {
         setActiveHighlightTime(undefined);
-        onClearHighlightSlotTime?.();
-        conflictNav.setHighlightSlotTime(null);
       }, 3500);
       return () => clearTimeout(timer);
     }
-  }, [highlightSlotTime, conflictNav.highlightSlotTime, onClearHighlightSlotTime, conflictNav]);
-
-  useEffect(() => {
-    if (doctor?.id) {
-      const reopen = conflictNav.consumePendingReopen(doctor.id, doctor.practitioner_id);
-      if (reopen) {
-        if (reopen.wizardType === 'add') {
-          setAddSessionInitialTime(reopen.sourceSlotStartTime);
-          setAddSessionInitialEndTime(reopen.sourceSlotEndTime);
-          setIsAddModalOpen(true);
-        } else if (reopen.wizardType === 'reschedule') {
-          setSelectedSessionForReschedule(
-            reopen.sourceSession ||
-              doctor.sesi_harian?.find((s) => s.id === reopen.sourceSessionId) ||
-              doctor.sesi_harian?.[0] ||
-              null
-          );
-          setSelectedSlotStartTime(reopen.sourceSlotStartTime);
-          setIsRescheduleOpen(true);
-        }
-      }
-    }
-  }, [
-    doctor,
-    conflictNav,
-    setAddSessionInitialTime,
-    setAddSessionInitialEndTime,
-    setIsAddModalOpen,
-    setSelectedSessionForReschedule,
-    setSelectedSlotStartTime,
-    setIsRescheduleOpen
-  ]);
+  }, [highlightSlotTime, conflictNav.highlightSlotTime]);
 
   return (
     <>

@@ -10,6 +10,7 @@ import { DoctorScheduleFilters } from './doctor-schedule-filters';
 import { DoctorScheduleCard } from './doctor-schedule-card';
 import { DoctorScheduleDetailSheet } from './doctor-schedule-detail-sheet';
 import { DoctorRescheduleSessionModal } from './doctor-reschedule-session-modal';
+import { DoctorAddSessionModal } from './doctor-add-session-modal';
 import { DoctorExportButton } from './doctor-export-button';
 import { DoctorSchedulePagination } from './doctor-schedule-pagination';
 
@@ -54,7 +55,26 @@ export function DoctorScheduleView() {
         onClose={() => {
           scheduleView.actions.closeReschedule();
           scheduleView.actions.closeEdit();
-          scheduleView.actions.clearReturnContext();
+        }}
+        onViewDoctorSchedule={scheduleView.actions.openDoctorScheduleById}
+      />
+
+      <DoctorAddSessionModal
+        doctor={scheduleView.selectedDoctor}
+        isOpen={scheduleView.isAddSessionOpen}
+        targetDate={scheduleView.returnContext?.sourceDate}
+        initialStartTime={scheduleView.returnContext?.sourceSlotStartTime}
+        initialEndTime={scheduleView.returnContext?.sourceSlotEndTime}
+        initialStep={
+          (scheduleView.returnContext?.initialStep === 'room' ||
+          scheduleView.returnContext?.initialStep === 'slot' ||
+          scheduleView.returnContext?.initialStep === 'date' ||
+          scheduleView.returnContext?.initialStep === 'confirmation'
+            ? scheduleView.returnContext.initialStep
+            : 'room') as import('./doctor-add-session-modal').AddSessionStep
+        }
+        onClose={() => {
+          scheduleView.actions.closeAddSession();
         }}
         onViewDoctorSchedule={scheduleView.actions.openDoctorScheduleById}
       />

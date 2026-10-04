@@ -27,7 +27,11 @@ export interface DoctorGridShiftSectionProps {
   pendingSessionId: string | null;
   isMutationPending: boolean;
   onSlotClick: (slot: OccupancySlot) => void;
-  onOpenPatients: (session: DoctorDailySession, slotStartTime?: string, slotEndTime?: string) => void;
+  onOpenPatients: (
+    session: DoctorDailySession,
+    slotStartTime?: string,
+    slotEndTime?: string
+  ) => void;
   onOpenPatientDetail?: (session: DoctorDailySession, slot: OccupancySlot | GridSlotData) => void;
   onOpenReschedule: (session: DoctorDailySession, slotStartTime?: string) => void;
   onToggleSessionStatus: (session: DoctorDailySession) => void;
@@ -57,7 +61,11 @@ export function DoctorGridShiftSection({
   returnDoctorName
 }: DoctorGridShiftSectionProps) {
   const conflictNav = useDoctorConflictNavigation();
-  const effectiveHighlightTime = highlightSlotTime || conflictNav.highlightSlotTime || undefined;
+  const effectiveHighlightTime =
+    highlightSlotTime ||
+    conflictNav.highlightSlotTime ||
+    conflictNav.returnContext?.sourceSlotStartTime ||
+    undefined;
 
   const isHighlightedShift = Boolean(
     effectiveHighlightTime &&
@@ -69,10 +77,13 @@ export function DoctorGridShiftSection({
   );
 
   const showReturnButton = Boolean(
-    (onReturnToSourceModal || conflictNav.isInspecting) && isHighlightedShift
+    (onReturnToSourceModal || conflictNav.isInspecting || conflictNav.returnContext) &&
+    isHighlightedShift
   );
   const effectiveReturnDoctorName =
-    returnDoctorName || conflictNav.returnContext?.sourceDoctorName;
+    returnDoctorName ||
+    conflictNav.returnContext?.sourceDoctorName ||
+    conflictNav.pendingReopen?.sourceDoctorName;
 
   const matchingShiftSessions = activeSessions.filter((s) =>
     Boolean(

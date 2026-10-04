@@ -15,6 +15,7 @@ import {
   useDoctorConflictNavigation,
   type DoctorConflictReturnContext
 } from '../model/useDoctorConflictNavigation';
+import { DOCTOR_DIALOG_TYPE, WIZARD_STEP } from '../constants/doctor-dialog.constants';
 import {
   ALL_SCHEDULE_SHIFTS,
   SCHEDULE_SHIFT_LABELS,
@@ -24,6 +25,7 @@ import { StepRoomSelect } from './add-session/step-room-select';
 import { StepConfirmation } from './add-session/step-confirmation';
 import { DoctorGridSlotItem, type GridSlotData } from './grid/doctor-grid-slot-item';
 
+export type { AddSessionStep };
 export type ReturnDoctorContext = DoctorConflictReturnContext;
 
 export interface DoctorAddSessionModalProps {
@@ -93,7 +95,8 @@ export function DoctorAddSessionModal({
   const [, setParams] = useQueryStates(
     {
       selectedDoctorId: parseAsString.withDefault(''),
-      highlightSlotTime: parseAsString.withDefault('')
+      highlightSlotTime: parseAsString.withDefault(''),
+      dialog: parseAsString.withDefault('')
     },
     { shallow: true }
   );
@@ -101,7 +104,6 @@ export function DoctorAddSessionModal({
   const handleViewOccupantDoctorSchedule = useCallback(
     (occupantDoctorId?: string | null, slotTime?: string) => {
       if (!occupantDoctorId || !doctor) return;
-      onClose();
 
       conflictNav.inspectConflictDoctor({
         occupantDoctorId,
@@ -112,17 +114,19 @@ export function DoctorAddSessionModal({
           sourceDate: selectedDate,
           sourceSlotStartTime: slotTime,
           sourceSlotEndTime: selectedSlot?.endTime,
-          wizardType: 'add',
-          initialStep: 'room'
+          wizardType: DOCTOR_DIALOG_TYPE.WIZARD_ADD_SESSION,
+          initialStep: WIZARD_STEP.ROOM
         },
         onNavigate: (id, time) => {
+          onClose();
           if (onViewDoctorSchedule) {
             onViewDoctorSchedule(id, time);
           } else {
             setParams(
               {
                 selectedDoctorId: id,
-                highlightSlotTime: time || null
+                highlightSlotTime: time || null,
+                dialog: DOCTOR_DIALOG_TYPE.DETAIL_SHEET
               },
               { shallow: true }
             );
@@ -227,10 +231,8 @@ export function DoctorAddSessionModal({
               showHeader={false}
               onViewConflict={(room) => {
                 const occupantId =
-                  room.occupantDetails?.practitionerId ||
-                  room.occupantDetails?.staffProfileId;
-                const targetSlotTime =
-                  room.occupantDetails?.startTime || selectedSlot?.time;
+                  room.occupantDetails?.practitionerId || room.occupantDetails?.staffProfileId;
+                const targetSlotTime = room.occupantDetails?.startTime || selectedSlot?.time;
                 if (occupantId) {
                   handleViewOccupantDoctorSchedule(occupantId, targetSlotTime);
                 }
