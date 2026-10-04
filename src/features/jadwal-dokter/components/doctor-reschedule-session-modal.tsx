@@ -39,6 +39,7 @@ import {
   useDoctorConflictNavigation,
   type DoctorConflictReturnContext
 } from '../model/useDoctorConflictNavigation';
+import { computeSafeEndTime } from '../model/useDoctorAddSessionModal';
 
 export type RescheduleStep = 'date' | 'room' | 'slot' | 'note';
 export type ReturnDoctorContext = DoctorConflictReturnContext;
@@ -123,9 +124,22 @@ export function DoctorRescheduleSessionModal({
     }
   }, [effectiveSession, isOpen, initialDate, initialStartTime, initialStep]);
 
-  // Query rooms for target date
+  // Query rooms for target date (evaluates slot occupancy in direct slot mode)
+  const isDirectSlotMode = Boolean(initialStartTime);
+  const directSlotStartTime = initialStartTime || targetStartTime;
+  const directSlotEndTime = initialStartTime ? computeSafeEndTime(initialStartTime) : targetEndTime;
+
+  const queryStartTime = isDirectSlotMode ? directSlotStartTime : undefined;
+  const queryEndTime = isDirectSlotMode ? directSlotEndTime : undefined;
+  const doctorStaffId = doctor?.practitioner_id || doctor?.id || '';
+
   const { data: rooms = [], isLoading: isLoadingRooms } = useQuery({
-    ...clinicRoomsQueryOptions({ date: targetDate || undefined }),
+    ...clinicRoomsQueryOptions({
+      date: targetDate || undefined,
+      startTime: queryStartTime,
+      endTime: queryEndTime,
+      excludePractitionerId: doctorStaffId || undefined
+    }),
     enabled: Boolean(isOpen && targetDate)
   });
 

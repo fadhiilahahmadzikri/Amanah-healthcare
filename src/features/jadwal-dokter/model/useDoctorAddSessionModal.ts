@@ -31,7 +31,7 @@ export interface UseDoctorAddSessionModalProps {
   initialStep?: AddSessionStep;
 }
 
-function computeSafeEndTime(startTime: string, providedEnd?: string): string {
+export function computeSafeEndTime(startTime: string, providedEnd?: string): string {
   if (providedEnd && /^\d{1,2}:\d{2}/.test(providedEnd.trim())) {
     return providedEnd.trim();
   }
@@ -70,7 +70,9 @@ export function useDoctorAddSessionModal({
   }, [targetDate]);
 
   const isDirectSlotMode = Boolean(initialStartTime);
-  const [step, setStep] = useState<AddSessionStep>(() => initialStep || (initialStartTime ? 'room' : 'date'));
+  const [step, setStep] = useState<AddSessionStep>(
+    () => initialStep || (initialStartTime ? 'room' : 'date')
+  );
   const effectiveStep: AddSessionStep =
     initialStep || (Boolean(initialStartTime) && step === 'date' ? 'room' : step);
 
