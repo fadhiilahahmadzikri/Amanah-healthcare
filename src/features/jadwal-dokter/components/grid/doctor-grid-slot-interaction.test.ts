@@ -52,44 +52,35 @@ describe('Doctor Grid Slot Interaction & Modal Flow SSOT', () => {
     expect(hasBookedGreen).toBe(false);
   });
 
-  it('evaluates isClickable as false for green available slots so they cannot be clicked', () => {
+  it('evaluates isClickable as true for green available slots so they can be clicked to view slot info', () => {
     const matchingSession = dummySessionAvailableGreen;
-    const hasBookedPatients = Boolean(
-      matchingSession && (matchingSession.pasien_terdaftar ?? 0) > 0
-    );
-
-    const isUnscheduled = false;
+    const isUnscheduled = !matchingSession;
     const isFinished = false;
     const isDayCuti = false;
     const readOnly = false;
     const isDayClosed = false;
 
     const isClickable =
-      !isFinished && !isDayCuti && !readOnly && (isUnscheduled ? !isDayClosed : hasBookedPatients);
+      !isFinished && !isDayCuti && !readOnly && (isUnscheduled ? !isDayClosed : true);
 
-    expect(isClickable).toBe(false);
+    expect(isClickable).toBe(true);
   });
 
-  it('evaluates isClickable as true for slots with booked patients to open patient modal directly', () => {
+  it('evaluates isClickable as true for slots with booked patients to open slot info modal', () => {
     const matchingSession = dummySessionWithPatients;
-    const hasBookedPatients = Boolean(
-      matchingSession && (matchingSession.pasien_terdaftar ?? 0) > 0
-    );
-
-    const isUnscheduled = false;
+    const isUnscheduled = !matchingSession;
     const isFinished = false;
     const isDayCuti = false;
     const readOnly = false;
     const isDayClosed = false;
 
     const isClickable =
-      !isFinished && !isDayCuti && !readOnly && (isUnscheduled ? !isDayClosed : hasBookedPatients);
+      !isFinished && !isDayCuti && !readOnly && (isUnscheduled ? !isDayClosed : true);
 
     expect(isClickable).toBe(true);
   });
 
   it('evaluates isClickable as true for unscheduled slots to add new practice schedule', () => {
-    const matchingSession = undefined;
     const isUnscheduled = true;
     const isFinished = false;
     const isDayCuti = false;
@@ -97,13 +88,13 @@ describe('Doctor Grid Slot Interaction & Modal Flow SSOT', () => {
     const isDayClosed = false;
 
     const isClickable =
-      !isFinished && !isDayCuti && !readOnly && (isUnscheduled ? !isDayClosed : false);
+      !isFinished && !isDayCuti && !readOnly && (isUnscheduled ? !isDayClosed : true);
 
     expect(isClickable).toBe(true);
   });
 
-  it('directly dispatches handleOpenPatients on click when slot has patients, and does nothing when green', () => {
-    const openPatientsMock = mock();
+  it('directly dispatches handleOpenSlotModal on click for any active session slot (green available or occupied)', () => {
+    const openSlotModalMock = mock();
     const openAddSessionMock = mock();
 
     const handleSlotClick = (slot: OccupancySlot, session: DoctorDailySession | undefined) => {
@@ -113,24 +104,14 @@ describe('Doctor Grid Slot Interaction & Modal Flow SSOT', () => {
       }
 
       if (session) {
-        const hasBookedPatients = Boolean(
-          (session.pasien_terdaftar ?? 0) > 0 ||
-          (session.kuota_pasien > 0 &&
-            session.slot_tersedia !== undefined &&
-            session.slot_tersedia < session.kuota_pasien) ||
-          slot.actionType === SLOT_ACTION_TYPE.VIEW_PATIENTS
-        );
-
-        if (hasBookedPatients) {
-          openPatientsMock(session);
-        }
+        openSlotModalMock(slot, session);
         return;
       }
 
       openAddSessionMock(slot.startTime, slot.endTime);
     };
 
-    // Case 1: Slot with registered patients
+    // Case 1: Slot with registered patients (opens slot modal with context)
     const slotOccupied: OccupancySlot = {
       slotIndex: 0,
       startTime: '08:00',
@@ -140,10 +121,10 @@ describe('Doctor Grid Slot Interaction & Modal Flow SSOT', () => {
       sessionId: dummySessionWithPatients.id
     };
     handleSlotClick(slotOccupied, dummySessionWithPatients);
-    expect(openPatientsMock).toHaveBeenCalledTimes(1);
-    expect(openPatientsMock).toHaveBeenCalledWith(dummySessionWithPatients);
+    expect(openSlotModalMock).toHaveBeenCalledTimes(1);
+    expect(openSlotModalMock).toHaveBeenCalledWith(slotOccupied, dummySessionWithPatients);
 
-    // Case 2: Green available slot (no patients)
+    // Case 2: Green available slot (no patients) - opens slot info modal
     const slotAvailable: OccupancySlot = {
       slotIndex: 1,
       startTime: '18:30',
@@ -153,11 +134,10 @@ describe('Doctor Grid Slot Interaction & Modal Flow SSOT', () => {
       sessionId: dummySessionAvailableGreen.id
     };
     handleSlotClick(slotAvailable, dummySessionAvailableGreen);
-    // Should NOT call openPatients or openAddSession
-    expect(openPatientsMock).toHaveBeenCalledTimes(1);
-    expect(openAddSessionMock).toHaveBeenCalledTimes(0);
+    expect(openSlotModalMock).toHaveBeenCalledTimes(2);
+    expect(openSlotModalMock).toHaveBeenCalledWith(slotAvailable, dummySessionAvailableGreen);
 
-    // Case 3: Unscheduled slot
+    // Case 3: Unscheduled slot - opens add session modal
     const slotUnscheduled: OccupancySlot = {
       slotIndex: 2,
       startTime: '20:00',
@@ -173,14 +153,103 @@ describe('Doctor Grid Slot Interaction & Modal Flow SSOT', () => {
   it('guarantees hover menu only shows Reschedule and Tutup Jadwal when slot has zero patients', () => {
     const session = dummySessionAvailableGreen;
     const isSessionClosed = session.status_sesi === SCHEDULE_STATUS.CLOSED;
-    const hasBookedPatients = Boolean((session.pasien_terdaftar ?? 0) > 0);
+    const slot = {
+      status: 'AVAILABLE',
+      actionType: 'VIEW_SESSION',
+      uiVariant: 'success_green'
+    };
 
-    const showViewPatients = !isSessionClosed && hasBookedPatients;
+    const hasSlotBookedPatients = Boolean(
+      slot.actionType === 'VIEW_PATIENTS' ||
+      slot.status === 'OCCUPIED' ||
+      (slot.uiVariant && slot.uiVariant !== 'success_green')
+    );
+
+    const showViewPatients = !isSessionClosed && hasSlotBookedPatients;
     const showReschedule = !isSessionClosed && Boolean(session.is_reschedule_eligible);
     const showToggleStatus = true;
 
     expect(showViewPatients).toBe(false);
     expect(showReschedule).toBe(true);
     expect(showToggleStatus).toBe(true);
+  });
+
+  it('disables hover menu completely when slot is finished/expired', () => {
+    const matchingSession = dummySessionWithPatients;
+    const isFinished = true;
+    const hasHoverMenuProp = true;
+
+    // Both shift section and slot item guard with !isFinished
+    const shouldRenderHoverMenu = hasHoverMenuProp && Boolean(matchingSession) && !isFinished;
+    expect(shouldRenderHoverMenu).toBe(false);
+  });
+
+  it('filters patient list strictly by slotStartTime in Level 2 mode while keeping all in Level 1', () => {
+    const allPatients = [
+      { appointmentId: 'apt-1', timeSlot: '08:00 - 08:30 WIB', queueNumber: 'P-001' },
+      { appointmentId: 'apt-2', timeSlot: '08:30 - 09:00 WIB', queueNumber: 'P-002' },
+      { appointmentId: 'apt-3', timeSlot: '08:00 - 08:30 WIB', queueNumber: 'P-003' }
+    ];
+
+    // Level 1: Global session (slotStartTime is undefined)
+    const level1Patients = allPatients.filter((p) => {
+      const slotStartTime = undefined;
+      if (!slotStartTime) return true;
+      const start = p.timeSlot?.split('-')[0].trim().replace(/wib/i, '').trim();
+      return start === slotStartTime;
+    });
+    expect(level1Patients).toHaveLength(3);
+
+    // Level 2: Slot 08:00
+    const level2Patients = allPatients.filter((p) => {
+      const slotStartTime = '08:00';
+      const start = p.timeSlot?.split('-')[0].trim().replace(/wib/i, '').trim();
+      return start === slotStartTime || p.timeSlot?.startsWith(slotStartTime);
+    });
+    expect(level2Patients).toHaveLength(2);
+    expect(level2Patients.map((p) => p.appointmentId)).toEqual(['apt-1', 'apt-3']);
+  });
+
+  it('guarantees shift header invokes onOpenPatients for multi-patient session while grid slot invokes onOpenPatientDetail directly for single patient', () => {
+    const openPatientsHeaderMock = mock();
+    const openPatientDetailSlotMock = mock();
+
+    // 1. Shift header button interaction: multi-patient session accumulation
+    const onHeaderClick = (session: DoctorDailySession) => {
+      openPatientsHeaderMock(session);
+    };
+    onHeaderClick(dummySessionWithPatients);
+    expect(openPatientsHeaderMock).toHaveBeenCalledTimes(1);
+    expect(openPatientsHeaderMock).toHaveBeenCalledWith(dummySessionWithPatients);
+
+    // 2. Grid slot hover menu / slot info modal button interaction: direct patient detail
+    const slot: OccupancySlot = {
+      slotIndex: 0,
+      startTime: '08:00',
+      endTime: '08:30',
+      status: 'OCCUPIED',
+      actionType: SLOT_ACTION_TYPE.VIEW_PATIENTS,
+      sessionId: dummySessionWithPatients.id,
+      appointmentRef: {
+        appointmentId: 'apt-101',
+        queueNumber: 'A-01',
+        status: 'waiting',
+        patientName: 'Budi Santoso'
+      }
+    };
+
+    const onGridSlotViewPatient = (
+      session: DoctorDailySession,
+      targetSlot: OccupancySlot,
+      onOpenPatientDetail?: (session: DoctorDailySession, slot: OccupancySlot) => void
+    ) => {
+      if (onOpenPatientDetail) {
+        onOpenPatientDetail(session, targetSlot);
+      }
+    };
+
+    onGridSlotViewPatient(dummySessionWithPatients, slot, openPatientDetailSlotMock);
+    expect(openPatientDetailSlotMock).toHaveBeenCalledTimes(1);
+    expect(openPatientDetailSlotMock).toHaveBeenCalledWith(dummySessionWithPatients, slot);
   });
 });

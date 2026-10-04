@@ -139,7 +139,8 @@ export function DoctorRescheduleSessionModal({
       date: targetDate,
       shift: CANONICAL_TO_API_SHIFT[selectedShift],
       roomId: targetRoomId,
-      staffId: doctor?.id
+      staffId: doctor?.id,
+      excludeScheduleId: effectiveSession?.id
     }),
     enabled: Boolean(isOpen && step === 'slot' && targetDate && targetRoomId && doctor?.id)
   });

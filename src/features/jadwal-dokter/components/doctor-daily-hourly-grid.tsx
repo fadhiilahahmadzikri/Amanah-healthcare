@@ -18,9 +18,12 @@ import {
   DoctorGridCalendarAccordion
 } from './grid';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { DoctorAddSessionModal, type ReturnDoctorContext } from './doctor-add-session-modal';
 import { DoctorRescheduleSessionModal } from './doctor-reschedule-session-modal';
 import { DoctorSessionPatientsModal } from './doctor-session-patients-modal';
+import { DoctorScheduleSlotModal } from './doctor-schedule-slot-modal';
+import { BookedPatientDetailModal } from './booked-patient-detail-modal';
 
 export type { HourlySlotStatus };
 
@@ -110,6 +113,16 @@ export function DoctorDailyHourlyGrid({
     setIsPatientsModalOpen,
     selectedSessionForPatients,
     setSelectedSessionForPatients,
+    selectedSlotForPatients,
+    setSelectedSlotForPatients,
+    selectedPatientForDetail,
+    isPatientDetailOpen,
+    patientDetailSession,
+    handleOpenPatientDetail,
+    handleClosePatientDetail,
+    isSlotModalOpen,
+    selectedSlotModalData,
+    handleCloseSlotModal,
     isReasonOpen,
     setIsReasonOpen,
     isCloseModalOpen,
@@ -130,6 +143,7 @@ export function DoctorDailyHourlyGrid({
     readOnly
   });
 
+  const queryClient = useQueryClient();
   const formattedTargetDate = `${activeYear}-${String(activeMonth + 1).padStart(2, '0')}-${String(activeDay).padStart(2, '0')}`;
 
   const [activeHighlightTime, setActiveHighlightTime] = useState<string | undefined>(
@@ -232,6 +246,7 @@ export function DoctorDailyHourlyGrid({
               isMutationPending={updateSessionMutation.isPending}
               onSlotClick={handleSlotClick}
               onOpenPatients={handleOpenPatients}
+              onOpenPatientDetail={handleOpenPatientDetail}
               onOpenReschedule={handleOpenReschedule}
               onToggleSessionStatus={handleToggleSessionStatus}
               highlightSlotTime={activeHighlightTime}
@@ -301,14 +316,57 @@ export function DoctorDailyHourlyGrid({
         <DoctorSessionPatientsModal
           doctor={doctor}
           session={selectedSessionForPatients}
-          selectedDate={formattedTargetDate}
+          selectedDate={formattedSelectedDate || formattedTargetDate}
+          slotStartTime={selectedSlotForPatients?.startTime}
+          slotEndTime={selectedSlotForPatients?.endTime}
           isOpen={isPatientsModalOpen}
           onClose={() => {
             setIsPatientsModalOpen(false);
             setSelectedSessionForPatients(null);
+            setSelectedSlotForPatients(undefined);
           }}
           portalContainerRef={modalContainerRef}
           onOpenReschedule={handleOpenReschedule}
+        />
+      )}
+
+      <DoctorScheduleSlotModal
+        isOpen={isSlotModalOpen}
+        data={selectedSlotModalData}
+        onClose={handleCloseSlotModal}
+        portalContainerRef={modalContainerRef}
+      />
+
+      {doctor && selectedPatientForDetail && patientDetailSession && (
+        <BookedPatientDetailModal
+          patient={selectedPatientForDetail}
+          isOpen={isPatientDetailOpen}
+          sessionContext={{
+            doctorName: doctor.nama_dokter,
+            doctorSpecialty: doctor.spesialisasi,
+            sessionTime: `${patientDetailSession.jam_mulai} - ${patientDetailSession.jam_selesai} WIB`,
+            date: formattedSelectedDate || formattedTargetDate
+          }}
+          onClose={handleClosePatientDetail}
+          doctorId={doctor.id || doctor.practitioner_id || ''}
+          sessionId={patientDetailSession.id}
+          portalContainerRef={modalContainerRef}
+          onReschedule={() => {
+            handleClosePatientDetail();
+            if (patientDetailSession) {
+              handleOpenReschedule(patientDetailSession);
+            }
+          }}
+          onAppointmentCancelled={() => {
+            queryClient.invalidateQueries({
+              queryKey: ['doctor-schedules']
+            });
+          }}
+          onAppointmentUpdated={() => {
+            queryClient.invalidateQueries({
+              queryKey: ['doctor-schedules']
+            });
+          }}
         />
       )}
 

@@ -30,6 +30,7 @@ export interface UseDoctorSessionPatientsProps {
   doctorId: string;
   sessionId: string;
   isOpen: boolean;
+  slotStartTime?: string;
   initialCapacity?: number;
   pageSize?: number;
 }
@@ -38,6 +39,7 @@ export function useDoctorSessionPatients({
   doctorId,
   sessionId,
   isOpen,
+  slotStartTime,
   initialCapacity = 0,
   pageSize = 10
 }: UseDoctorSessionPatientsProps) {
@@ -57,7 +59,7 @@ export function useDoctorSessionPatients({
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedStatus, debouncedSearch]);
+  }, [selectedStatus, debouncedSearch, slotStartTime]);
 
   const queryFilters = useMemo(
     () => ({
@@ -80,10 +82,19 @@ export function useDoctorSessionPatients({
     placeholderData: (previousData) => previousData
   });
 
-  const patientsList: BookedPatientItem[] = useMemo(
+  const rawPatientsList: BookedPatientItem[] = useMemo(
     () => sessionData?.patients ?? [],
     [sessionData?.patients]
   );
+
+  const patientsList: BookedPatientItem[] = useMemo(() => {
+    if (!slotStartTime) return rawPatientsList;
+    return rawPatientsList.filter((p) => {
+      if (!p.timeSlot) return true;
+      const start = p.timeSlot.split('-')[0].trim().replace(/wib/i, '').trim();
+      return start === slotStartTime || p.timeSlot.startsWith(slotStartTime);
+    });
+  }, [rawPatientsList, slotStartTime]);
 
   const capacity = sessionData?.capacity ?? initialCapacity;
   const bookedCount = sessionData?.bookedCount ?? patientsList.length;

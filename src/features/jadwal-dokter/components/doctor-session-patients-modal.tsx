@@ -20,6 +20,8 @@ export interface DoctorSessionPatientsModalProps {
 	doctor: DoctorSchedule;
 	session: DoctorDailySession;
 	selectedDate?: string;
+	slotStartTime?: string;
+	slotEndTime?: string;
 	isOpen: boolean;
 	onClose: () => void;
 	portalContainerRef?: React.RefObject<HTMLElement | null>;
@@ -30,6 +32,8 @@ export function DoctorSessionPatientsModal({
 	doctor,
 	session,
 	selectedDate,
+	slotStartTime,
+	slotEndTime,
 	isOpen,
 	onClose,
 	portalContainerRef,
@@ -64,6 +68,7 @@ export function DoctorSessionPatientsModal({
 		doctorId,
 		sessionId,
 		isOpen,
+		slotStartTime,
 		initialCapacity: session.kuota_pasien,
 	});
 
@@ -78,22 +83,65 @@ export function DoctorSessionPatientsModal({
 			),
 		[],
 	);
+
+	const formattedDisplayDate = React.useMemo(() => {
+		const rawDate =
+			scheduleDate || selectedDate || session.tanggal || doctor.tanggal_praktik || "";
+		if (!rawDate) return "";
+		if (
+			rawDate.includes("Januari") ||
+			rawDate.includes("Februari") ||
+			rawDate.includes("Maret") ||
+			rawDate.includes("April") ||
+			rawDate.includes("Mei") ||
+			rawDate.includes("Juni") ||
+			rawDate.includes("Juli") ||
+			rawDate.includes("Agustus") ||
+			rawDate.includes("September") ||
+			rawDate.includes("Oktober") ||
+			rawDate.includes("November") ||
+			rawDate.includes("Desember") ||
+			rawDate.includes("Senin") ||
+			rawDate.includes("Minggu")
+		) {
+			return rawDate;
+		}
+		const parts = rawDate.split("-");
+		if (parts.length === 3) {
+			const y = parseInt(parts[0], 10);
+			const m = parseInt(parts[1], 10);
+			const d = parseInt(parts[2], 10);
+			if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+				return new Date(y, m - 1, d).toLocaleDateString("id-ID", {
+					weekday: "long",
+					day: "numeric",
+					month: "long",
+					year: "numeric",
+				});
+			}
+		}
+		return rawDate;
+	}, [scheduleDate, selectedDate, session.tanggal, doctor.tanggal_praktik]);
+
+	const slotTimeDisplay = React.useMemo(() => {
+		if (slotStartTime) {
+			return slotEndTime ? `${slotStartTime} - ${slotEndTime} WIB` : `${slotStartTime} WIB`;
+		}
+		return `${session.jam_mulai} - ${session.jam_selesai} WIB`;
+	}, [slotStartTime, slotEndTime, session.jam_mulai, session.jam_selesai]);
+
 	const sessionContext = React.useMemo(
 		() => ({
 			doctorName: doctor.nama_dokter,
 			doctorSpecialty: doctor.spesialisasi,
-			date: scheduleDate || selectedDate || session.tanggal || doctor.tanggal_praktik || "",
-			sessionTime: `${session.jam_mulai} - ${session.jam_selesai}`,
+			date: formattedDisplayDate,
+			sessionTime: slotTimeDisplay,
 		}),
 		[
 			doctor.nama_dokter,
 			doctor.spesialisasi,
-			doctor.tanggal_praktik,
-			scheduleDate,
-			selectedDate,
-			session.tanggal,
-			session.jam_mulai,
-			session.jam_selesai,
+			formattedDisplayDate,
+			slotTimeDisplay,
 		],
 	);
 
@@ -119,8 +167,16 @@ export function DoctorSessionPatientsModal({
 								</span>
 								<span className="text-border/80">•</span>
 								<span className="font-mono font-medium text-foreground">
-									{session.jam_mulai} - {session.jam_selesai} WIB
+									{slotTimeDisplay}
 								</span>
+								{formattedDisplayDate && (
+									<>
+										<span className="text-border/80">•</span>
+										<span className="font-medium text-foreground">
+											{formattedDisplayDate}
+										</span>
+									</>
+								)}
 								{(session.ruang !== ""
 									? session.ruang
 									: doctor.ruang_praktik) && (
@@ -135,6 +191,14 @@ export function DoctorSessionPatientsModal({
 								)}
 							</div>
 						</div>
+						<button
+							type="button"
+							onClick={onClose}
+							aria-label="Tutup"
+							className="rounded-full p-1.5 text-muted-foreground hover:bg-muted transition-colors cursor-pointer shrink-0 -mr-1 -mt-1"
+						>
+							<Icons.close className="size-4" />
+						</button>
 					</div>
 
 					<div className="flex flex-wrap items-center justify-between gap-2.5 shrink-0">
@@ -219,7 +283,11 @@ export function DoctorSessionPatientsModal({
 								<EmptyState
 									animated
 									title="Belum Ada Pasien Terdaftar"
-									description="Belum ada pasien yang melakukan booking antrean pada sesi praktik ini."
+									description={
+										slotStartTime
+											? `Belum ada pasien yang melakukan booking antrean pada jam ${slotStartTime} WIB.`
+											: "Belum ada pasien yang melakukan booking antrean pada sesi praktik ini."
+									}
 									className="border-0 bg-transparent py-4"
 								/>
 							</div>

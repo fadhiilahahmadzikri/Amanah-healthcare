@@ -7,13 +7,11 @@ import type {
   OccupancySlot
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 import type { DoctorDailySession } from '../../api/types';
-import { DoctorGridSlotItem } from './doctor-grid-slot-item';
+import { DoctorGridSlotItem, type GridSlotData } from './doctor-grid-slot-item';
 import {
   SCHEDULE_STATUS,
   SHIFT_OPERATIONAL_STATUS,
-  SHIFT_OPERATIONAL_LABELS,
-  AVAILABILITY_STATE,
-  SLOT_ACTION_TYPE
+  SHIFT_OPERATIONAL_LABELS
 } from '../../constants/schedule-shift.constants';
 
 export interface DoctorGridShiftSectionProps {
@@ -28,7 +26,8 @@ export interface DoctorGridShiftSectionProps {
   pendingSessionId: string | null;
   isMutationPending: boolean;
   onSlotClick: (slot: OccupancySlot) => void;
-  onOpenPatients: (session: DoctorDailySession) => void;
+  onOpenPatients: (session: DoctorDailySession, slotStartTime?: string, slotEndTime?: string) => void;
+  onOpenPatientDetail?: (session: DoctorDailySession, slot: OccupancySlot | GridSlotData) => void;
   onOpenReschedule: (session: DoctorDailySession, slotStartTime?: string) => void;
   onToggleSessionStatus: (session: DoctorDailySession) => void;
   highlightSlotTime?: string;
@@ -49,6 +48,7 @@ export function DoctorGridShiftSection({
   isMutationPending,
   onSlotClick,
   onOpenPatients,
+  onOpenPatientDetail,
   onOpenReschedule,
   onToggleSessionStatus,
   highlightSlotTime,
@@ -178,27 +178,14 @@ export function DoctorGridShiftSection({
               (slot.conflictInfo?.sessionId && s.id === slot.conflictInfo.sessionId)
           );
 
-          const hasBookedPatients = Boolean(
-            matchingSession &&
-            ((matchingSession.pasien_terdaftar ?? 0) > 0 ||
-              (matchingSession.kuota_pasien > 0 &&
-                matchingSession.slot_tersedia !== undefined &&
-                matchingSession.slot_tersedia < matchingSession.kuota_pasien) ||
-              slot.actionType === SLOT_ACTION_TYPE.VIEW_PATIENTS)
-          );
-
-          const isUnscheduled =
-            !matchingSession &&
-            (slot.actionType === SLOT_ACTION_TYPE.ADD_SESSION ||
-              slot.availabilityState === AVAILABILITY_STATE.UNSCHEDULED ||
-              slot.status === 'UNSCHEDULED');
+          const isUnscheduled = !matchingSession;
 
           const isClickable =
             !isFinished &&
             !isDayCuti &&
             !readOnly &&
             slot.isClickable !== false &&
-            (isUnscheduled ? !isDayClosed : hasBookedPatients);
+            (isUnscheduled ? !isDayClosed : true);
 
           const hasHoverMenu = Boolean(matchingSession && !isFinished && !isDayCuti && !readOnly);
 
@@ -232,6 +219,7 @@ export function DoctorGridShiftSection({
               isThisSessionPending={isThisSessionPending}
               onSlotClick={() => onSlotClick(slot)}
               onOpenPatients={onOpenPatients}
+              onOpenPatientDetail={onOpenPatientDetail}
               onOpenReschedule={onOpenReschedule}
               onToggleSessionStatus={onToggleSessionStatus}
             />

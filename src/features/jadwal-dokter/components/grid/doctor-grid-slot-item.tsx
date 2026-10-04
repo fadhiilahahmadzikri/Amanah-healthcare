@@ -32,7 +32,8 @@ export interface DoctorGridSlotItemProps {
   isSessionClosed?: boolean;
   isThisSessionPending?: boolean;
   onSlotClick?: () => void;
-  onOpenPatients?: (session: DoctorDailySession) => void;
+  onOpenPatients?: (session: DoctorDailySession, slotStartTime?: string, slotEndTime?: string) => void;
+  onOpenPatientDetail?: (session: DoctorDailySession, slot: GridSlotData) => void;
   onOpenReschedule?: (session: DoctorDailySession, slotStartTime?: string) => void;
   onToggleSessionStatus?: (session: DoctorDailySession) => void;
   className?: string;
@@ -52,6 +53,7 @@ export function DoctorGridSlotItem({
   isThisSessionPending = false,
   onSlotClick,
   onOpenPatients,
+  onOpenPatientDetail,
   onOpenReschedule,
   onToggleSessionStatus,
   className
@@ -147,13 +149,17 @@ export function DoctorGridSlotItem({
     </button>
   );
 
-  if (hasHoverMenu && matchingSession) {
+  if (hasHoverMenu && matchingSession && !isFinished) {
     const hasBookedPatients = Boolean(
-      (matchingSession.pasien_terdaftar ?? 0) > 0 ||
-      (matchingSession.kuota_pasien > 0 &&
-        matchingSession.slot_tersedia !== undefined &&
-        matchingSession.slot_tersedia < matchingSession.kuota_pasien) ||
-      slot.actionType === 'VIEW_PATIENTS'
+      slot.appointmentRef != null ||
+      slot.actionType === 'VIEW_PATIENTS' ||
+      slot.status === 'OCCUPIED' ||
+      slot.status === 'OCCUPIED_BY_SELF' ||
+      (slot.uiVariant &&
+        slot.uiVariant !== 'success_green' &&
+        slot.uiVariant !== 'neutral_disabled' &&
+        slot.uiVariant !== 'purple_other' &&
+        slot.uiVariant !== 'dashed_border')
     );
 
     return (
@@ -170,12 +176,16 @@ export function DoctorGridSlotItem({
               <span className='truncate'>{matchingSession.nama_sesi}</span>
               <span className='font-mono text-[9.5px] shrink-0'>{slot.startTime}</span>
             </div>
-            {!isSessionClosed && onOpenPatients && hasBookedPatients && (
+            {!isSessionClosed && (onOpenPatientDetail || onOpenPatients) && hasBookedPatients && (
               <button
                 type='button'
                 onClick={(e) => {
                   e.stopPropagation();
-                  onOpenPatients(matchingSession);
+                  if (onOpenPatientDetail) {
+                    onOpenPatientDetail(matchingSession, slot);
+                  } else {
+                    onOpenPatients?.(matchingSession, slot.startTime, slot.endTime);
+                  }
                 }}
                 className='flex items-center gap-2 w-full px-2 py-1.5 rounded-lg text-xs font-semibold hover:bg-muted text-foreground transition-colors cursor-pointer text-left'
               >

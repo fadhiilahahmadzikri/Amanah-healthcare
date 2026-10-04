@@ -43,10 +43,17 @@ describe("DoctorScheduleCard Logic & Status Contracts", () => {
 		);
 	});
 
-	it("correctly identifies doctor as Tutup when outside session hours", () => {
-		const refDate = new Date("2026-09-24T23:14:00");
+	it("correctly identifies doctor as Tutup when outside session hours before practice", () => {
+		const refDate = new Date("2026-09-24T06:00:00");
 		expect(getDoctorCardStatus(baseDoctor, refDate)).toBe(
 			DOCTOR_CARD_STATUS.TUTUP,
+		);
+	});
+
+	it("correctly identifies doctor as Selesai when all sessions today have elapsed", () => {
+		const refDate = new Date("2026-09-24T23:14:00");
+		expect(getDoctorCardStatus(baseDoctor, refDate)).toBe(
+			DOCTOR_CARD_STATUS.SELESAI,
 		);
 	});
 

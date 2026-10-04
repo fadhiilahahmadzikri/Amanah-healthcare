@@ -1,17 +1,22 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import type { DoctorSchedule, DoctorDailySession } from '../api/types';
+import type { ScheduleSlotModalData } from './useDoctorScheduleSlotModal';
 import type {
   OccupancyShift,
-  OccupancySlot
+  OccupancySlot,
+  BookedPatientItem
 } from '@/server/contracts/schedules/doctor-schedules.dto';
+import type { GridSlotData } from '../components/grid/doctor-grid-slot-item';
+import { doctorScheduleKeys } from '../api/queries';
 import {
   buildShiftsFromTimelineIntervals,
   buildLocalFallbackShifts
 } from '../utils/shift-slot-builder';
 import { overlaySessionsOnShifts } from '../utils/shift-slot-overlay';
-import { isDoctorOnLeaveOnDay } from '../api/service';
+import { isDoctorOnLeaveOnDay, getSessionPatients } from '../api/service';
 import { resolveDayStatus } from '../components/doctor-timeline-calendar';
 import { useUpdateDoctorSessionMutation } from '../api/mutations';
 import {
@@ -248,9 +253,21 @@ export function useDoctorHourlyGrid({
     undefined
   );
 
+  const queryClient = useQueryClient();
   const [isPatientsModalOpen, setIsPatientsModalOpen] = useState(false);
   const [selectedSessionForPatients, setSelectedSessionForPatients] =
     useState<DoctorDailySession | null>(null);
+  const [selectedSlotForPatients, setSelectedSlotForPatients] = useState<
+    { startTime: string; endTime: string } | undefined
+  >(undefined);
+  const [selectedPatientForDetail, setSelectedPatientForDetail] =
+    useState<BookedPatientItem | null>(null);
+  const [isPatientDetailOpen, setIsPatientDetailOpen] = useState(false);
+  const [patientDetailSession, setPatientDetailSession] =
+    useState<DoctorDailySession | null>(null);
+  const [isSlotModalOpen, setIsSlotModalOpen] = useState(false);
+  const [selectedSlotModalData, setSelectedSlotModalData] =
+    useState<ScheduleSlotModalData | null>(null);
   const [isReasonOpen, setIsReasonOpen] = useState(false);
 
   const updateSessionMutation = useUpdateDoctorSessionMutation();
@@ -317,8 +334,17 @@ export function useDoctorHourlyGrid({
     );
   };
 
-  const handleOpenPatients = (session: DoctorDailySession) => {
+  const handleOpenPatients = (
+    session: DoctorDailySession,
+    slotStartTime?: string,
+    slotEndTime?: string
+  ) => {
     setSelectedSessionForPatients(session);
+    setSelectedSlotForPatients(
+      slotStartTime
+        ? { startTime: slotStartTime, endTime: slotEndTime || '' }
+        : undefined
+    );
     setIsPatientsModalOpen(true);
   };
 
@@ -334,6 +360,84 @@ export function useDoctorHourlyGrid({
     setAddSessionInitialTime(initialTime);
     setAddSessionInitialEndTime(initialEndTime);
     setIsAddModalOpen(true);
+  };
+
+  const handleOpenPatientDetail = async (
+    session: DoctorDailySession,
+    slot: OccupancySlot | GridSlotData
+  ) => {
+    if (!doctor) return;
+
+    setPatientDetailSession(session);
+
+    const doctorId = doctor.id || doctor.practitioner_id || '';
+    const cachedData = queryClient.getQueryData<{ patients?: BookedPatientItem[] }>(
+      doctorScheduleKeys.sessionPatients(doctorId, session.id, {})
+    );
+
+    let foundPatient: BookedPatientItem | undefined;
+    if (cachedData?.patients) {
+      foundPatient = cachedData.patients.find(
+        (p) =>
+          (slot.appointmentRef?.appointmentId && p.appointmentId === slot.appointmentRef.appointmentId) ||
+          p.timeSlot?.startsWith(slot.startTime) ||
+          p.timeSlot?.includes(slot.startTime)
+      );
+    }
+
+    if (foundPatient) {
+      setSelectedPatientForDetail(foundPatient);
+      setIsPatientDetailOpen(true);
+      return;
+    }
+
+    try {
+      const fetched = await queryClient.fetchQuery({
+        queryKey: doctorScheduleKeys.sessionPatients(doctorId, session.id, {}),
+        queryFn: () => getSessionPatients(doctorId, session.id, {}),
+        staleTime: 5 * 1000
+      });
+      if (fetched?.patients) {
+        const matched = fetched.patients.find(
+          (p) =>
+            (slot.appointmentRef?.appointmentId && p.appointmentId === slot.appointmentRef.appointmentId) ||
+            p.timeSlot?.startsWith(slot.startTime) ||
+            p.timeSlot?.includes(slot.startTime)
+        );
+        if (matched) {
+          setSelectedPatientForDetail(matched);
+          setIsPatientDetailOpen(true);
+        }
+      }
+    } catch {
+      // Query failed or cancelled
+    }
+  };
+
+  const handleClosePatientDetail = () => {
+    setIsPatientDetailOpen(false);
+    setSelectedPatientForDetail(null);
+    setPatientDetailSession(null);
+  };
+
+  const handleOpenSlotModal = (slot: OccupancySlot, session: DoctorDailySession) => {
+    if (!doctor) return;
+    setSelectedSlotModalData({
+      doctor,
+      session,
+      slot,
+      date: formattedSelectedDate,
+      onOpenPatients: handleOpenPatients,
+      onOpenPatientDetail: handleOpenPatientDetail,
+      onOpenReschedule: handleOpenReschedule,
+      onToggleSessionStatus: handleToggleSessionStatus
+    });
+    setIsSlotModalOpen(true);
+  };
+
+  const handleCloseSlotModal = () => {
+    setIsSlotModalOpen(false);
+    setSelectedSlotModalData(null);
   };
 
   const handleSlotClick = (slot: OccupancySlot) => {
@@ -353,17 +457,7 @@ export function useDoctorHourlyGrid({
     );
 
     if (matchingSession) {
-      const hasBookedPatients = Boolean(
-        (matchingSession.pasien_terdaftar ?? 0) > 0 ||
-        (matchingSession.kuota_pasien > 0 &&
-          matchingSession.slot_tersedia !== undefined &&
-          matchingSession.slot_tersedia < matchingSession.kuota_pasien) ||
-        slot.actionType === SLOT_ACTION_TYPE.VIEW_PATIENTS
-      );
-
-      if (hasBookedPatients) {
-        handleOpenPatients(matchingSession);
-      }
+      handleOpenSlotModal(slot, matchingSession);
       return;
     }
 
@@ -457,6 +551,20 @@ export function useDoctorHourlyGrid({
     setIsPatientsModalOpen,
     selectedSessionForPatients,
     setSelectedSessionForPatients,
+    selectedSlotForPatients,
+    setSelectedSlotForPatients,
+    selectedPatientForDetail,
+    setSelectedPatientForDetail,
+    isPatientDetailOpen,
+    setIsPatientDetailOpen,
+    patientDetailSession,
+    handleOpenPatientDetail,
+    handleClosePatientDetail,
+    isSlotModalOpen,
+    setIsSlotModalOpen,
+    selectedSlotModalData,
+    handleOpenSlotModal,
+    handleCloseSlotModal,
     isReasonOpen,
     setIsReasonOpen,
     isCloseModalOpen,

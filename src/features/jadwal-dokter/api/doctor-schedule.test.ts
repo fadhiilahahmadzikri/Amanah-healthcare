@@ -350,7 +350,7 @@ describe('Doctor Card Status & Unconfigured Zero-Quota Handling', () => {
     expect(getDoctorCardStatus(quotaOnlyDoctor)).toBe('Belum Diatur');
   });
 
-  it('returns "Terisi" for scheduled doctors whose slots are completely filled', () => {
+  it('returns "Terisi" for scheduled doctors whose slots are completely filled during active hours', () => {
     const fullDoctor: DoctorSchedule = {
       id: 'doc-full-1',
       nama_dokter: 'dr. Siti, Sp.OG',
@@ -360,14 +360,15 @@ describe('Doctor Card Status & Unconfigured Zero-Quota Handling', () => {
       slot_tersedia: 0,
       kapasitas_per_hari: 20,
       jadwal_hari_ini: '08:00 - 12:00',
-      status_jadwal: 'Penuh',
+      status_jadwal: SCHEDULE_STATUS.OCCUPIED,
       is_cuti: false
     };
 
-    expect(getDoctorCardStatus(fullDoctor)).toBe('Terisi');
+    const refDate = new Date('2026-09-24T09:00:00');
+    expect(getDoctorCardStatus(fullDoctor, refDate)).toBe('Terisi');
   });
 
-  it('returns "Buka" for scheduled doctors with available slots', () => {
+  it('returns "Buka" for scheduled doctors with available slots during active hours', () => {
     const openDoctor: DoctorSchedule = {
       id: 'doc-open-1',
       nama_dokter: 'dr. Andi, Sp.B',
@@ -381,7 +382,8 @@ describe('Doctor Card Status & Unconfigured Zero-Quota Handling', () => {
       is_cuti: false
     };
 
-    expect(getDoctorCardStatus(openDoctor)).toBe('Buka');
+    const refDate = new Date('2026-09-24T09:00:00');
+    expect(getDoctorCardStatus(openDoctor, refDate)).toBe('Buka');
   });
 
   it('returns "Cuti" when is_cuti is true regardless of quota', () => {

@@ -170,12 +170,17 @@ export function getDoctorCardStatus(
 		return DOCTOR_CARD_STATUS.SELESAI;
 	}
 
-	if (
-		statusDokter === SCHEDULE_STATUS.OCCUPIED ||
-		statusJadwal === SCHEDULE_STATUS.OCCUPIED ||
-		(doctor.slot_tersedia !== undefined && doctor.slot_tersedia <= 0)
-	) {
-		return DOCTOR_CARD_STATUS.TERISI;
+	if (targetDate && targetDate > todayIso) {
+		const sessions = doctor.sesi_harian;
+		if (sessions && sessions.length > 0) {
+			const allClosed = sessions.every((s) =>
+				isSlotClosed({ status: s.status_sesi }),
+			);
+			if (allClosed) {
+				return DOCTOR_CARD_STATUS.TUTUP;
+			}
+		}
+		return DOCTOR_CARD_STATUS.BUKA;
 	}
 
 	const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -192,8 +197,69 @@ export function getDoctorCardStatus(
 		const allPast = sessions.every(
 			(s) => parseMinutesFromTime(s.jam_selesai) <= currentMinutes,
 		);
-		if (allPast && referenceDate !== undefined) {
-			return DOCTOR_CARD_STATUS.TUTUP;
+		if (allPast) {
+			return DOCTOR_CARD_STATUS.SELESAI;
+		}
+
+		const activeSession = sessions.find((s) =>
+			isDoctorSessionActive(s, currentMinutes),
+		);
+
+		if (activeSession) {
+			if (isSlotClosed({ status: activeSession.status_sesi })) {
+				return DOCTOR_CARD_STATUS.TUTUP;
+			}
+
+			if (doctor.timeline_intervals && doctor.timeline_intervals.length > 0) {
+				const currentSlot = doctor.timeline_intervals.find(
+					(slot) =>
+						parseMinutesFromTime(slot.startTime) <= currentMinutes &&
+						currentMinutes < parseMinutesFromTime(slot.endTime),
+				);
+				if (
+					currentSlot &&
+					(currentSlot.isOccupied ||
+						currentSlot.effectiveStatus === "OCCUPIED" ||
+						currentSlot.availabilityState === "OCCUPIED" ||
+						currentSlot.status === "OCCUPIED")
+				) {
+					return DOCTOR_CARD_STATUS.TERISI;
+				}
+			}
+
+			const activeSessionStatus = (activeSession.status_sesi || "").trim().toUpperCase();
+			if (
+				activeSessionStatus === SCHEDULE_STATUS.OCCUPIED ||
+				statusDokter === SCHEDULE_STATUS.OCCUPIED ||
+				statusJadwal === SCHEDULE_STATUS.OCCUPIED
+			) {
+				return DOCTOR_CARD_STATUS.TERISI;
+			}
+
+			return DOCTOR_CARD_STATUS.BUKA;
+		}
+
+		return DOCTOR_CARD_STATUS.TUTUP;
+	}
+
+	if (doctor.jadwal_hari_ini && doctor.jadwal_hari_ini.includes("-")) {
+		const [startStr, endStr] = doctor.jadwal_hari_ini.split("-");
+		if (startStr && endStr) {
+			const sMin = parseMinutesFromTime(startStr.trim());
+			const eMin = parseMinutesFromTime(endStr.trim());
+			if (currentMinutes >= eMin) {
+				return DOCTOR_CARD_STATUS.SELESAI;
+			}
+			if (currentMinutes < sMin) {
+				return DOCTOR_CARD_STATUS.TUTUP;
+			}
+			if (
+				statusDokter === SCHEDULE_STATUS.OCCUPIED ||
+				statusJadwal === SCHEDULE_STATUS.OCCUPIED
+			) {
+				return DOCTOR_CARD_STATUS.TERISI;
+			}
+			return DOCTOR_CARD_STATUS.BUKA;
 		}
 	}
 

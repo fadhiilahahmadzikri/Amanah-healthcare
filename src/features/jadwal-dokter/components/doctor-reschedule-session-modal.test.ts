@@ -199,5 +199,26 @@ describe('DoctorRescheduleSessionModal Wizard & Collision Architecture', () => {
       expect(SCHEDULE_SHIFT_LABELS[SCHEDULE_SHIFT.SIANG]).toBe('Siang');
       expect(SCHEDULE_SHIFT_LABELS[SCHEDULE_SHIFT.MALAM]).toBe('Malam');
     });
+
+    it('scheduleSlotAvailabilityQueryOptions passes excludeScheduleId to queryKey preventing self-overlap', () => {
+      const { scheduleSlotAvailabilityQueryOptions } = require('../api/queries');
+      const options = scheduleSlotAvailabilityQueryOptions({
+        date: '2026-10-05',
+        shift: 'morning',
+        roomId: 'b77d141b-2fa5-4481-9f47-a5a040faf57a',
+        staffId: 'ea70f2d2-6471-49da-8797-49b315388687',
+        excludeScheduleId: '342d1528-e2e9-4cf2-8c09-159da800f623'
+      });
+
+      expect(options.queryKey).toEqual([
+        'schedules',
+        'slot-availability',
+        '2026-10-05',
+        'morning',
+        'b77d141b-2fa5-4481-9f47-a5a040faf57a',
+        '342d1528-e2e9-4cf2-8c09-159da800f623',
+        'ea70f2d2-6471-49da-8797-49b315388687'
+      ]);
+    });
   });
 });
