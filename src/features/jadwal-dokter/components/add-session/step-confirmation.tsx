@@ -15,6 +15,7 @@ export interface StepConfirmationProps {
   selectedShift?: ScheduleShift | null;
   selectedSlot?: { time: string; endTime: string } | null;
   selectedRoom: ClinicRoom | null;
+  showHeader?: boolean;
 }
 
 export function StepConfirmation({
@@ -22,20 +23,23 @@ export function StepConfirmation({
   formattedDisplayDate,
   selectedShift,
   selectedSlot,
-  selectedRoom
+  selectedRoom,
+  showHeader = true
 }: StepConfirmationProps) {
   const isDataIncomplete = !selectedSlot || !selectedShift;
 
   return (
     <div className='space-y-4 font-sans select-none'>
-      <div>
-        <h4 className='text-sm sm:text-base font-bold text-foreground tracking-tight'>
-          Konfirmasi Jadwal Praktik
-        </h4>
-        <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
-          Periksa kembali rincian sesi dokter {doctor.nama_dokter} sebelum menyimpan jadwal.
-        </p>
-      </div>
+      {showHeader && (
+        <div>
+          <h4 className='text-sm sm:text-base font-bold text-foreground tracking-tight'>
+            Konfirmasi Jadwal Praktik
+          </h4>
+          <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
+            Periksa kembali rincian sesi dokter {doctor.nama_dokter} sebelum menyimpan jadwal.
+          </p>
+        </div>
+      )}
 
       {/* Summary Card */}
       {isDataIncomplete ? (

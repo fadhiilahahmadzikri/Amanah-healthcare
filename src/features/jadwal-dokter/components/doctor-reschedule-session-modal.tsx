@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
 import { Icons } from '@/components/icons';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { BookingDateStep } from '@/features/klinik/components/booking/booking-date-step';
@@ -460,15 +461,13 @@ export function DoctorRescheduleSessionModal({
                   ))}
                 </div>
               ) : availableSlots.length === 0 ? (
-                <div className='p-6 rounded-2xl border border-dashed border-border bg-muted/15 flex flex-col items-center justify-center text-center space-y-2'>
-                  <div className='size-9 rounded-full bg-muted flex items-center justify-center text-muted-foreground'>
-                    <Icons.clock className='size-4' />
-                  </div>
-                  <p className='text-xs font-bold text-foreground'>Tidak ada slot pada sesi ini</p>
-                  <p className='text-[11px] text-muted-foreground max-w-xs'>
-                    Silakan beralih ke sesi lain untuk melihat ketersediaan slot.
-                  </p>
-                </div>
+                <EmptyState
+                  animated
+                  title='Tidak Ada Slot Pada Sesi Ini'
+                  description='Silakan beralih ke sesi lain untuk melihat ketersediaan slot.'
+                  className='border-0 bg-transparent py-2 min-h-0'
+                  animationClassName='w-32 h-32 sm:w-36 sm:h-36'
+                />
               ) : (
                 <div className='grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-[42vh] overflow-y-auto pr-1'>
                   {availableSlots.map((rawSlot) => {

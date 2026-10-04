@@ -3,6 +3,7 @@
 import React from 'react';
 import { Icons } from '@/components/icons';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
 import { cn } from '@/lib/utils';
 import type { ClinicRoom } from '../../api/types';
 
@@ -46,14 +47,13 @@ export function StepRoomSelect({
           <Skeleton className='h-[68px] w-full rounded-xl' />
         </div>
       ) : rooms.length === 0 ? (
-        <div className='p-8 rounded-2xl border border-dashed border-border bg-muted/15 flex flex-col items-center justify-center text-center space-y-2'>
-          <div className='size-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground'>
-            <Icons.location className='size-5' />
-          </div>
-          <p className='text-xs sm:text-sm font-bold text-foreground'>
-            Tidak ada ruangan praktik terdaftar
-          </p>
-        </div>
+        <EmptyState
+          animated
+          title='Tidak Ada Ruangan Praktik'
+          description='Belum ada ruangan poliklinik yang terdaftar pada tanggal ini.'
+          className='border-0 bg-transparent py-2 min-h-0'
+          animationClassName='w-32 h-32 sm:w-36 sm:h-36'
+        />
       ) : (
         <div className='space-y-2.5 max-h-[46vh] overflow-y-auto pr-1'>
           {rooms.map((room) => {

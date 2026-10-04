@@ -8,17 +8,17 @@ import {
   SCHEDULE_SHIFT_LABELS,
   SCHEDULE_STATUS,
   CANONICAL_TO_API_SHIFT,
-  SCHEDULE_TOAST_MESSAGES,
   resolveShiftFromTime,
   type ScheduleShift
 } from '../constants/schedule-shift.constants';
 import {
   scheduleSlotAvailabilityQueryOptions,
-  clinicRoomsQueryOptions
+  clinicRoomsQueryOptions,
+  doctorScheduleDetailQueryOptions
 } from '../api/queries';
 import { useCreateDoctorSessionMutation } from '../api/mutations';
 
-export type AddSessionStep = 'date' | 'session' | 'slot' | 'room' | 'confirmation';
+export type AddSessionStep = 'date' | 'room' | 'slot' | 'confirmation';
 
 export interface UseDoctorAddSessionModalProps {
   doctor: DoctorSchedule | null;
@@ -73,9 +73,9 @@ export function useDoctorAddSessionModal({
     Boolean(initialStartTime) && step === 'date' ? 'room' : step;
 
   const [selectedDate, setSelectedDate] = useState(defaultDate);
-  const [selectedShift, setSelectedShift] = useState<ScheduleShift | null>(() => {
+  const [selectedShift, setSelectedShift] = useState<ScheduleShift>(() => {
     if (initialStartTime) return resolveShiftFromTime(initialStartTime);
-    return null;
+    return SCHEDULE_SHIFT.PAGI;
   });
   const [selectedSlot, setSelectedSlot] = useState<{ time: string; endTime: string } | null>(() => {
     if (initialStartTime) {
@@ -91,59 +91,72 @@ export function useDoctorAddSessionModal({
 
   const doctorStaffId = doctor?.practitioner_id || doctor?.id || '';
 
-  const queryStartTime = selectedSlot?.time || initialStartTime;
-  const queryEndTime =
-    selectedSlot?.endTime ||
-    (initialStartTime ? computeSafeEndTime(initialStartTime, initialEndTime) : undefined);
-
+  // Query clinic rooms for the chosen date (consistent with Reschedule modal step 2)
   const { data: clinicRooms = [], isLoading: isLoadingRooms } = useQuery({
     ...clinicRoomsQueryOptions({
-      date: selectedDate,
-      startTime: queryStartTime,
-      endTime: queryEndTime,
-      excludePractitionerId: doctorStaffId || undefined
+      date: selectedDate || undefined
     }),
-    enabled: isOpen
+    enabled: Boolean(isOpen && selectedDate)
   });
 
   const rooms = clinicRooms;
 
+  // Fetch doctor detail for up-to-date daily sessions
+  const detailQuery = useQuery({
+    ...doctorScheduleDetailQueryOptions(doctor?.id || '', {
+      date: selectedDate
+    }),
+    enabled: Boolean(isOpen && doctor?.id && selectedDate)
+  });
+
+  const effectiveExistingSessions = useMemo(() => {
+    return detailQuery.data?.sesi_harian || doctor?.sesi_harian || [];
+  }, [detailQuery.data?.sesi_harian, doctor?.sesi_harian]);
+
+  // Default room selection matching doctor's assigned room
   const defaultRoomId = useMemo(() => {
     if (rooms.length === 0) return '';
-    const doctorRoom = doctor?.ruang_praktik?.trim().toLowerCase();
+    const doctorRoom = (doctor?.ruang_praktik ?? '').trim().toLowerCase();
     if (doctorRoom) {
       const matched = rooms.find(
         (r) =>
-          (r.name.toLowerCase() === doctorRoom || r.id.toLowerCase() === doctorRoom) &&
-          !r.isOccupied
+          r.name.toLowerCase() === doctorRoom ||
+          r.id.toLowerCase() === doctorRoom ||
+          r.name.toLowerCase().startsWith(doctorRoom) ||
+          doctorRoom.startsWith(r.name.toLowerCase())
       );
       if (matched) return matched.id;
     }
-    const firstAvailable = rooms.find((r) => !r.isOccupied);
-    return firstAvailable?.id || '';
+    return rooms[0]?.id || '';
   }, [rooms, doctor?.ruang_praktik]);
 
   useEffect(() => {
-    if (defaultRoomId && (!selectedRoomId || rooms.find((r) => r.id === selectedRoomId)?.isOccupied)) {
+    if (defaultRoomId && !selectedRoomId) {
       setSelectedRoomId(defaultRoomId);
     }
-  }, [selectedRoomId, defaultRoomId, rooms]);
+  }, [selectedRoomId, defaultRoomId]);
 
+  // Slot availability for chosen room, shift, and date (consistent with Reschedule modal step 3)
   const effectiveShift = selectedShift || SCHEDULE_SHIFT.PAGI;
   const { data: slotAvailability, isLoading: isLoadingSlots } = useQuery({
     ...scheduleSlotAvailabilityQueryOptions({
       date: selectedDate,
       shift: CANONICAL_TO_API_SHIFT[effectiveShift],
-      roomId: selectedRoomId || (rooms[0]?.id ?? ''),
+      roomId: selectedRoomId,
       staffId: doctorStaffId || undefined
     }),
-    enabled:
-      isOpen &&
-      !isDirectSlotMode &&
-      step === 'slot' &&
-      Boolean(selectedDate && (selectedRoomId || rooms[0]?.id))
+    enabled: Boolean(isOpen && step === 'slot' && selectedDate && selectedRoomId)
   });
 
+  const availableSlots = useMemo(() => {
+    if (!slotAvailability?.slots) return [];
+    return slotAvailability.slots.filter((s) => {
+      if (s.conflict?.type === 'TEMPORAL_PAST') return false;
+      return true;
+    });
+  }, [slotAvailability?.slots]);
+
+  // Reset or initialize state when modal opens
   useEffect(() => {
     if (isOpen) {
       const initialDateValue =
@@ -159,7 +172,7 @@ export function useDoctorAddSessionModal({
         setSelectedSlot({ time: initialStartTime, endTime: safeEndTime });
         setStep('room');
       } else {
-        setSelectedShift(null);
+        setSelectedShift(SCHEDULE_SHIFT.PAGI);
         setSelectedSlot(null);
         setStep('date');
       }
@@ -167,25 +180,6 @@ export function useDoctorAddSessionModal({
       setIsSubmitting(false);
     }
   }, [isOpen, targetDate, defaultDate, initialStartTime, initialEndTime]);
-
-  useEffect(() => {
-    if (initialStartTime) {
-      if (slotAvailability?.slots) {
-        const matched = slotAvailability.slots.find((s) => s.time === initialStartTime);
-        if (matched) {
-          setSelectedSlot({ time: matched.time, endTime: matched.endTime });
-          return;
-        }
-      }
-      setSelectedSlot((prev) => {
-        if (prev?.time === initialStartTime) return prev;
-        return {
-          time: initialStartTime,
-          endTime: computeSafeEndTime(initialStartTime, initialEndTime)
-        };
-      });
-    }
-  }, [initialStartTime, initialEndTime, slotAvailability?.slots]);
 
   const selectedDateObj = useMemo(() => {
     if (!selectedDate) return undefined;
@@ -201,8 +195,9 @@ export function useDoctorAddSessionModal({
   const formattedDisplayDate = useMemo(() => {
     if (!selectedDateObj) return 'Pilih Tanggal';
     return selectedDateObj.toLocaleDateString('id-ID', {
+      weekday: 'long',
       day: 'numeric',
-      month: 'short',
+      month: 'long',
       year: 'numeric'
     });
   }, [selectedDateObj]);
@@ -213,28 +208,40 @@ export function useDoctorAddSessionModal({
 
   const canProceedNext = useMemo(() => {
     if (step === 'date') return Boolean(selectedDate);
-    if (step === 'session') return Boolean(selectedShift);
+    if (step === 'room') return Boolean(selectedRoomId);
     if (step === 'slot') return Boolean(selectedSlot);
-    if (step === 'room') {
-      const room = rooms.find((r) => r.id === selectedRoomId);
-      return Boolean(room && !room.isOccupied);
+    if (step === 'confirmation') {
+      return Boolean(selectedDate && selectedRoomId && selectedSlot && selectedShift) && !isSubmitting;
     }
-    if (step === 'confirmation') return Boolean(selectedSlot && selectedShift) && !isSubmitting;
     return false;
-  }, [step, selectedDate, selectedShift, selectedSlot, selectedRoomId, rooms, isSubmitting]);
+  }, [step, selectedDate, selectedRoomId, selectedSlot, selectedShift, isSubmitting]);
 
   const isFirstStep = isDirectSlotMode ? step === 'room' : step === 'date';
 
   const handleNext = () => {
     if (!canProceedNext) return;
-    if (step === 'date') setStep('session');
-    else if (step === 'session') setStep('slot');
-    else if (step === 'slot') setStep('room');
-    else if (step === 'room') setStep('confirmation');
+    if (step === 'date') setStep('room');
+    else if (step === 'room') {
+      if (isDirectSlotMode && selectedSlot) {
+        setStep('confirmation');
+      } else {
+        setStep('slot');
+      }
+    } else if (step === 'slot') {
+      setStep('confirmation');
+    }
   };
 
   const handleBack = () => {
     if (step === 'confirmation') {
+      if (isDirectSlotMode) {
+        setStep('room');
+      } else {
+        setStep('slot');
+      }
+      return;
+    }
+    if (step === 'slot') {
       setStep('room');
       return;
     }
@@ -242,16 +249,8 @@ export function useDoctorAddSessionModal({
       if (isDirectSlotMode) {
         onClose();
       } else {
-        setStep('slot');
+        setStep('date');
       }
-      return;
-    }
-    if (step === 'slot') {
-      setStep('session');
-      return;
-    }
-    if (step === 'session') {
-      setStep('date');
       return;
     }
     if (step === 'date') {
@@ -260,7 +259,16 @@ export function useDoctorAddSessionModal({
   };
 
   const handleFinalSubmit = async () => {
-    if (!doctor || !selectedShift || !selectedSlot || !selectedRoomId || isSubmitting || createSessionMutation.isPending) return;
+    if (
+      !doctor ||
+      !selectedShift ||
+      !selectedSlot ||
+      !selectedRoomId ||
+      isSubmitting ||
+      createSessionMutation.isPending
+    ) {
+      return;
+    }
 
     try {
       setIsSubmitting(true);
@@ -314,10 +322,12 @@ export function useDoctorAddSessionModal({
     rooms,
     isLoadingRooms,
     slotAvailability,
+    availableSlots,
     isLoadingSlots,
     canProceedNext,
     isFirstStep,
     isDirectSlotMode,
+    effectiveExistingSessions,
     handleNext,
     handleBack,
     handleFinalSubmit

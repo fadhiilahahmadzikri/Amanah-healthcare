@@ -18,16 +18,24 @@ export interface ShiftAvailabilityStatus {
   badgeLabel: string | null;
 }
 
+export interface ShiftOccupancyData {
+  totalSlots: number;
+  availableSlotsCount: number;
+  slots?: Array<{ startTime: string; isAvailable: boolean }>;
+}
+
 export interface UseScheduleShiftAvailabilityParams {
   selectedDate: string;
   existingSessions?: DoctorDailySession[];
   consultationDuration?: number;
+  occupancyByShift?: Partial<Record<ScheduleShift, ShiftOccupancyData>>;
 }
 
 export function evaluateShiftAvailability({
   selectedDate,
   existingSessions = [],
-  consultationDuration = 30
+  consultationDuration = 30,
+  occupancyByShift
 }: UseScheduleShiftAvailabilityParams): Record<ScheduleShift, ShiftAvailabilityStatus> {
   const result = {} as Record<ScheduleShift, ShiftAvailabilityStatus>;
 

@@ -21,6 +21,7 @@ export interface StepSessionSelectProps {
   existingSessions?: DoctorDailySession[];
   doctorName?: string;
   isLoading?: boolean;
+  showHeader?: boolean;
 }
 
 export function StepSessionSelect({
@@ -30,7 +31,8 @@ export function StepSessionSelect({
   formattedDisplayDate,
   existingSessions = [],
   doctorName,
-  isLoading = false
+  isLoading = false,
+  showHeader = true
 }: StepSessionSelectProps) {
   const shiftAvailability = useScheduleShiftAvailability({
     selectedDate,
@@ -39,14 +41,16 @@ export function StepSessionSelect({
 
   return (
     <div className='space-y-4 font-sans select-none'>
-      <div>
-        <h4 className='text-sm sm:text-base font-bold text-foreground tracking-tight'>
-          Pilih Sesi Shift Praktik
-        </h4>
-        <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
-          Tentukan shift praktik {doctorName ? `dokter ${doctorName}` : 'dokter'} untuk tanggal {formattedDisplayDate}.
-        </p>
-      </div>
+      {showHeader && (
+        <div>
+          <h4 className='text-sm sm:text-base font-bold text-foreground tracking-tight'>
+            Pilih Sesi Shift Praktik
+          </h4>
+          <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
+            Tentukan shift praktik {doctorName ? `dokter ${doctorName}` : 'dokter'} untuk tanggal {formattedDisplayDate}.
+          </p>
+        </div>
+      )}
 
       {/* Canonical 4 Shifts Cards */}
       {isLoading ? (

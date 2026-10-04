@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react';
 import { Icons } from '@/components/icons';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
 import { DoctorGridSlotItem, type GridSlotData } from '../grid/doctor-grid-slot-item';
 import {
   SCHEDULE_SHIFT_LABELS,
@@ -18,6 +19,8 @@ export interface StepSlotGridProps {
   slotAvailability?: ScheduleSlotAvailabilityResponse;
   isLoadingSlots: boolean;
   doctorName?: string;
+  showHeader?: boolean;
+  onViewDoctorSchedule?: (doctorId: string, targetSlotTime?: string) => void;
 }
 
 export function StepSlotGrid({
@@ -26,7 +29,9 @@ export function StepSlotGrid({
   onSelectSlot,
   slotAvailability,
   isLoadingSlots,
-  doctorName
+  doctorName,
+  showHeader = true,
+  onViewDoctorSchedule
 }: StepSlotGridProps) {
   const shiftBounds = SCHEDULE_SHIFT_BOUNDARIES[selectedShift];
 
@@ -44,20 +49,22 @@ export function StepSlotGrid({
   return (
     <div className='space-y-4 font-sans select-none'>
       {/* Title & Shift Context */}
-      <div className='flex items-start justify-between gap-2 pb-2 border-b border-border/30'>
-        <div>
-          <h4 className='text-sm sm:text-base font-bold text-foreground tracking-tight'>
-            Pilih Jam Praktik {SCHEDULE_SHIFT_LABELS[selectedShift]}
-          </h4>
-          <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
-            Pilih jam mulai dan selesai {doctorName ? `dokter ${doctorName}` : 'dokter'} pada rentang {shiftBounds.timeRange}.
-          </p>
+      {showHeader && (
+        <div className='flex items-start justify-between gap-2 pb-2 border-b border-border/30'>
+          <div>
+            <h4 className='text-sm sm:text-base font-bold text-foreground tracking-tight'>
+              Pilih Jam Praktik {SCHEDULE_SHIFT_LABELS[selectedShift]}
+            </h4>
+            <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
+              Pilih jam mulai dan selesai {doctorName ? `dokter ${doctorName}` : 'dokter'} pada rentang {shiftBounds.timeRange}.
+            </p>
+          </div>
+          <div className='flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border/50 bg-muted/20 text-xs font-mono font-medium text-foreground shrink-0'>
+            <Icons.clock className='size-3 text-muted-foreground' />
+            <span>{shiftBounds.timeRange}</span>
+          </div>
         </div>
-        <div className='flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border/50 bg-muted/20 text-xs font-mono font-medium text-foreground shrink-0'>
-          <Icons.clock className='size-3 text-muted-foreground' />
-          <span>{shiftBounds.timeRange}</span>
-        </div>
-      </div>
+      )}
 
       {/* Grid of Slots */}
       {isLoadingSlots && availableSlots.length === 0 ? (
@@ -67,35 +74,44 @@ export function StepSlotGrid({
           ))}
         </div>
       ) : availableSlots.length === 0 ? (
-        <div className='p-8 rounded-2xl border border-dashed border-border bg-muted/15 flex flex-col items-center justify-center text-center space-y-2'>
-          <div className='size-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground'>
-            <Icons.clock className='size-5' />
-          </div>
-          <p className='text-xs sm:text-sm font-bold text-foreground'>
-            Tidak ada slot jam aktif yang tersedia
-          </p>
-          <p className='text-xs text-muted-foreground max-w-xs leading-relaxed'>
-            Seluruh slot pada sesi {SCHEDULE_SHIFT_LABELS[selectedShift]} sudah terisi atau telah
-            berlalu. Silakan kembali untuk memilih sesi lain.
-          </p>
-        </div>
+        <EmptyState
+          animated
+          title='Tidak Ada Slot Jam Aktif'
+          description={`Seluruh slot pada sesi ${SCHEDULE_SHIFT_LABELS[selectedShift]} sudah terisi atau telah berlalu.`}
+          className='border-0 bg-transparent py-2 min-h-0'
+          animationClassName='w-32 h-32 sm:w-36 sm:h-36'
+        />
       ) : (
         <div className='grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-[46vh] overflow-y-auto pr-1'>
           {availableSlots.map((rawSlot) => {
             const isSelected = selectedSlot?.time === rawSlot.time;
-            const isSlotClickable = rawSlot.isAvailable;
+            const isPurpleConflict = rawSlot.status === 'OCCUPIED_BY_OTHER';
+            const isSlotClickable = rawSlot.isAvailable || isPurpleConflict;
 
             // Map ScheduleSlotAvailabilityItem into GridSlotData shape for DoctorGridSlotItem
             const occupancySlot: GridSlotData = {
               slotIndex: rawSlot.slotIndex,
               startTime: rawSlot.time,
               endTime: rawSlot.endTime,
-              status: rawSlot.isAvailable ? 'AVAILABLE' : 'OCCUPIED',
+              status: rawSlot.isAvailable
+                ? 'AVAILABLE'
+                : isPurpleConflict
+                  ? 'OCCUPIED_BY_OTHER'
+                  : rawSlot.status || 'CLOSED',
               isAvailable: rawSlot.isAvailable,
-              displayLabel: rawSlot.displayLabel || (rawSlot.isAvailable ? 'Tersedia' : 'Terisi'),
-              isClickable: rawSlot.isAvailable,
-              uiVariant: rawSlot.isAvailable ? 'available' : 'occupied_other',
-              uiStatus: rawSlot.isAvailable ? 'AVAILABLE' : 'OCCUPIED',
+              displayLabel:
+                rawSlot.displayLabel || (rawSlot.isAvailable ? 'Tersedia' : 'Terisi'),
+              isClickable: isSlotClickable,
+              uiVariant: rawSlot.isAvailable
+                ? 'available'
+                : isPurpleConflict
+                  ? 'purple_other'
+                  : 'neutral_disabled',
+              uiStatus: rawSlot.isAvailable
+                ? 'AVAILABLE'
+                : isPurpleConflict
+                  ? 'OCCUPIED_BY_OTHER'
+                  : 'CLOSED',
               conflictInfo: rawSlot.conflict
                 ? {
                     type: rawSlot.conflict.type,
@@ -115,6 +131,12 @@ export function StepSlotGrid({
                 onSlotClick={() => {
                   if (rawSlot.isAvailable) {
                     onSelectSlot({ time: rawSlot.time, endTime: rawSlot.endTime });
+                  } else if (isPurpleConflict) {
+                    const occupantId =
+                      rawSlot.conflict?.practitionerId || rawSlot.conflict?.staffId;
+                    if (occupantId && onViewDoctorSchedule) {
+                      onViewDoctorSchedule(occupantId, rawSlot.time);
+                    }
                   }
                 }}
               />

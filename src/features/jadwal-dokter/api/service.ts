@@ -13,7 +13,8 @@ import type {
   AdminSessionPatientsData,
   ScheduleContextsResponse,
   ScheduleProjectionResponse,
-  ScheduleSlotAvailabilityResponse
+  ScheduleSlotAvailabilityResponse,
+  DoctorOccupancyOverviewResponse
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 
 /** Minimal shape returned by endpoints that include a human-readable message in their body. */
@@ -169,7 +170,7 @@ export async function getClinicRooms(params?: {
 
 export async function getDoctorOccupancyOverview(
   params?: Record<string, unknown>
-): Promise<unknown> {
+): Promise<DoctorOccupancyOverviewResponse | null> {
   const qs = new URLSearchParams();
   if (params) {
     for (const [k, v] of Object.entries(params)) {
@@ -177,7 +178,13 @@ export async function getDoctorOccupancyOverview(
     }
   }
   const q = qs.toString();
-  return await clientFetch(`/api/v1/admin/doctor-schedules/occupancy${q ? `?${q}` : ''}`);
+  const res = await clientFetch<
+    { data?: DoctorOccupancyOverviewResponse } | DoctorOccupancyOverviewResponse
+  >(`/api/v1/schedules/occupancy-overview${q ? `?${q}` : ''}`);
+  if (res && 'data' in res && res.data) {
+    return res.data;
+  }
+  return (res as DoctorOccupancyOverviewResponse) ?? null;
 }
 
 export async function checkRescheduleEligibility(
