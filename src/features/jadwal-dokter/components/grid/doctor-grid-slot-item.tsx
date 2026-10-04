@@ -33,7 +33,6 @@ export interface DoctorGridSlotItemProps {
   isThisSessionPending?: boolean;
   onSlotClick?: () => void;
   onOpenPatients?: (session: DoctorDailySession) => void;
-  onOpenEdit?: (session: DoctorDailySession) => void;
   onOpenReschedule?: (session: DoctorDailySession, slotStartTime?: string) => void;
   onToggleSessionStatus?: (session: DoctorDailySession) => void;
   className?: string;
@@ -53,7 +52,6 @@ export function DoctorGridSlotItem({
   isThisSessionPending = false,
   onSlotClick,
   onOpenPatients,
-  onOpenEdit,
   onOpenReschedule,
   onToggleSessionStatus,
   className
@@ -79,8 +77,9 @@ export function DoctorGridSlotItem({
     <button
       ref={slotRef}
       type='button'
-      onClick={onSlotClick}
-      disabled={!isClickable || isSlotUpdating}
+      onClick={isClickable ? onSlotClick : undefined}
+      disabled={isSlotUpdating}
+      aria-disabled={!isClickable}
       className={cn(
         'w-full min-h-[52px] sm:min-h-[56px] rounded-xl border p-2 flex flex-col justify-between transition-all text-left relative outline-none overflow-hidden select-none',
         variantCfg.cellBg,
@@ -149,6 +148,14 @@ export function DoctorGridSlotItem({
   );
 
   if (hasHoverMenu && matchingSession) {
+    const hasBookedPatients = Boolean(
+      (matchingSession.pasien_terdaftar ?? 0) > 0 ||
+      (matchingSession.kuota_pasien > 0 &&
+        matchingSession.slot_tersedia !== undefined &&
+        matchingSession.slot_tersedia < matchingSession.kuota_pasien) ||
+      slot.actionType === 'VIEW_PATIENTS'
+    );
+
     return (
       <HoverCard openDelay={200} closeDelay={150}>
         <HoverCardTrigger asChild>{slotButton}</HoverCardTrigger>
@@ -163,7 +170,7 @@ export function DoctorGridSlotItem({
               <span className='truncate'>{matchingSession.nama_sesi}</span>
               <span className='font-mono text-[9.5px] shrink-0'>{slot.startTime}</span>
             </div>
-            {!isSessionClosed && onOpenPatients && (matchingSession.pasien_terdaftar ?? 0) > 0 && (
+            {!isSessionClosed && onOpenPatients && hasBookedPatients && (
               <button
                 type='button'
                 onClick={(e) => {
@@ -174,19 +181,6 @@ export function DoctorGridSlotItem({
               >
                 <Icons.teams className='size-3.5 text-sky-600 dark:text-sky-400 shrink-0' />
                 <span>Lihat Pasien</span>
-              </button>
-            )}
-            {!isSessionClosed && onOpenEdit && (
-              <button
-                type='button'
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onOpenEdit(matchingSession);
-                }}
-                className='flex items-center gap-2 w-full px-2 py-1.5 rounded-lg text-xs font-semibold hover:bg-muted text-foreground transition-colors cursor-pointer text-left'
-              >
-                <Icons.edit className='size-3.5 text-primary shrink-0' />
-                <span>Ubah Sesi</span>
               </button>
             )}
             {!isSessionClosed && matchingSession.is_reschedule_eligible && onOpenReschedule && (

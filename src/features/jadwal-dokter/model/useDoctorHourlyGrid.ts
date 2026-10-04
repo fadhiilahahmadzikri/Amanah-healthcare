@@ -140,7 +140,11 @@ export function useDoctorHourlyGrid({
     } else if (doctor?.context_projections && doctor.context_projections.length > 0) {
       baseShifts = doctor.context_projections;
     } else if (doctor?.timeline_intervals && doctor.timeline_intervals.length > 0) {
-      baseShifts = buildShiftsFromTimelineIntervals(doctor.timeline_intervals, activeSessions, dayStatus);
+      baseShifts = buildShiftsFromTimelineIntervals(
+        doctor.timeline_intervals,
+        activeSessions,
+        dayStatus
+      );
     } else {
       baseShifts = buildLocalFallbackShifts(activeSessions, dayStatus);
     }
@@ -233,22 +237,20 @@ export function useDoctorHourlyGrid({
     };
   }, [doctor?.summary, doctor?.metrics, displayedShifts]);
 
-  const [selectedSessionDetail, setSelectedSessionDetail] = useState<DoctorDailySession | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-
   const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
-  const [selectedSessionForReschedule, setSelectedSessionForReschedule] = useState<DoctorDailySession | null>(null);
+  const [selectedSessionForReschedule, setSelectedSessionForReschedule] =
+    useState<DoctorDailySession | null>(null);
   const [selectedSlotStartTime, setSelectedSlotStartTime] = useState<string | undefined>(undefined);
-
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingSession, setEditingSession] = useState<DoctorDailySession | null>(null);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [addSessionInitialTime, setAddSessionInitialTime] = useState<string | undefined>(undefined);
-  const [addSessionInitialEndTime, setAddSessionInitialEndTime] = useState<string | undefined>(undefined);
+  const [addSessionInitialEndTime, setAddSessionInitialEndTime] = useState<string | undefined>(
+    undefined
+  );
 
   const [isPatientsModalOpen, setIsPatientsModalOpen] = useState(false);
-  const [selectedSessionForPatients, setSelectedSessionForPatients] = useState<DoctorDailySession | null>(null);
+  const [selectedSessionForPatients, setSelectedSessionForPatients] =
+    useState<DoctorDailySession | null>(null);
   const [isReasonOpen, setIsReasonOpen] = useState(false);
 
   const updateSessionMutation = useUpdateDoctorSessionMutation();
@@ -316,27 +318,14 @@ export function useDoctorHourlyGrid({
   };
 
   const handleOpenPatients = (session: DoctorDailySession) => {
-    setIsDetailModalOpen(false);
     setSelectedSessionForPatients(session);
     setIsPatientsModalOpen(true);
   };
 
-  const handleOpenSessionDetail = (session: DoctorDailySession) => {
-    setSelectedSessionDetail(session);
-    setIsDetailModalOpen(true);
-  };
-
   const handleOpenReschedule = (session: DoctorDailySession, slotStartTime?: string) => {
-    setIsDetailModalOpen(false);
     setSelectedSessionForReschedule(session);
     setSelectedSlotStartTime(slotStartTime);
     setIsRescheduleOpen(true);
-  };
-
-  const handleOpenEditSession = (session: DoctorDailySession) => {
-    setIsDetailModalOpen(false);
-    setEditingSession(session);
-    setIsEditModalOpen(true);
   };
 
   const openAddSessionModal = (initialTime?: string, initialEndTime?: string) => {
@@ -355,36 +344,30 @@ export function useDoctorHourlyGrid({
       return;
     }
 
-    if (
-      slot.actionType === SLOT_ACTION_TYPE.VIEW_PATIENTS ||
-      slot.actionType === SLOT_ACTION_TYPE.VIEW_SESSION
-    ) {
-      const matchingSession = activeSessions.find(
-        (s) =>
-          (slot.sessionId && s.id === slot.sessionId) ||
-          (slot.startTime >= s.jam_mulai && slot.startTime < s.jam_selesai) ||
-          slot.startTime === s.jam_mulai
-      );
-      if (matchingSession) {
-        if (slot.actionType === SLOT_ACTION_TYPE.VIEW_PATIENTS) {
-          handleOpenPatients(matchingSession);
-        } else {
-          handleOpenSessionDetail(matchingSession);
-        }
-        return;
-      }
-    }
-
     const matchingSession = activeSessions.find(
       (s) =>
+        (slot.sessionId && s.id === slot.sessionId) ||
         (slot.startTime >= s.jam_mulai && slot.startTime < s.jam_selesai) ||
         slot.startTime === s.jam_mulai ||
         (slot.conflictInfo?.sessionId && s.id === slot.conflictInfo.sessionId)
     );
 
     if (matchingSession) {
-      handleOpenSessionDetail(matchingSession);
-    } else if (!isDayClosed && !readOnly && slot.isClickable !== false) {
+      const hasBookedPatients = Boolean(
+        (matchingSession.pasien_terdaftar ?? 0) > 0 ||
+        (matchingSession.kuota_pasien > 0 &&
+          matchingSession.slot_tersedia !== undefined &&
+          matchingSession.slot_tersedia < matchingSession.kuota_pasien) ||
+        slot.actionType === SLOT_ACTION_TYPE.VIEW_PATIENTS
+      );
+
+      if (hasBookedPatients) {
+        handleOpenPatients(matchingSession);
+      }
+      return;
+    }
+
+    if (!isDayClosed && !readOnly && slot.isClickable !== false) {
       openAddSessionModal(slot.startTime, slot.endTime);
     }
   };
@@ -394,7 +377,9 @@ export function useDoctorHourlyGrid({
         .replace(/^(dr\.\s*|drg\.\s*|prof\.\s*)/g, '')
         .split(' ')
         .map((n) => n[0])
-        .slice(0, 2).join('').toUpperCase()
+        .slice(0, 2)
+        .join('')
+        .toUpperCase()
     : 'DR';
 
   const handlePrevDay = () => {
@@ -452,26 +437,16 @@ export function useDoctorHourlyGrid({
     handleSelectDate,
     handleSlotClick,
     handleOpenPatients,
-    handleOpenSessionDetail,
     handleOpenReschedule,
-    handleOpenEditSession,
     openAddSessionModal,
     handleToggleSessionStatus,
     handleConfirmCloseSession,
-    isDetailModalOpen,
-    setIsDetailModalOpen,
-    selectedSessionDetail,
-    setSelectedSessionDetail,
     isRescheduleOpen,
     setIsRescheduleOpen,
     selectedSessionForReschedule,
     setSelectedSessionForReschedule,
     selectedSlotStartTime,
     setSelectedSlotStartTime,
-    isEditModalOpen,
-    setIsEditModalOpen,
-    editingSession,
-    setEditingSession,
     isAddModalOpen,
     setIsAddModalOpen,
     addSessionInitialTime,

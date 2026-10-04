@@ -19,9 +19,7 @@ import {
 } from './grid';
 
 import { DoctorAddSessionModal, type ReturnDoctorContext } from './doctor-add-session-modal';
-import { DoctorEditSessionModal } from './doctor-edit-session-modal';
 import { DoctorRescheduleSessionModal } from './doctor-reschedule-session-modal';
-import { DoctorSessionDetailModal } from './doctor-session-detail-modal';
 import { DoctorSessionPatientsModal } from './doctor-session-patients-modal';
 
 export type { HourlySlotStatus };
@@ -93,24 +91,15 @@ export function DoctorDailyHourlyGrid({
     handleSlotClick,
     handleOpenPatients,
     handleOpenReschedule,
-    handleOpenEditSession,
     openAddSessionModal,
     handleToggleSessionStatus,
     handleConfirmCloseSession,
-    isDetailModalOpen,
-    setIsDetailModalOpen,
-    selectedSessionDetail,
-    setSelectedSessionDetail,
     isRescheduleOpen,
     setIsRescheduleOpen,
     selectedSessionForReschedule,
     setSelectedSessionForReschedule,
     selectedSlotStartTime,
     setSelectedSlotStartTime,
-    isEditModalOpen,
-    setIsEditModalOpen,
-    editingSession,
-    setEditingSession,
     isAddModalOpen,
     setIsAddModalOpen,
     addSessionInitialTime,
@@ -143,7 +132,9 @@ export function DoctorDailyHourlyGrid({
 
   const formattedTargetDate = `${activeYear}-${String(activeMonth + 1).padStart(2, '0')}-${String(activeDay).padStart(2, '0')}`;
 
-  const [activeHighlightTime, setActiveHighlightTime] = useState<string | undefined>(highlightSlotTime);
+  const [activeHighlightTime, setActiveHighlightTime] = useState<string | undefined>(
+    highlightSlotTime
+  );
 
   useEffect(() => {
     if (highlightSlotTime) {
@@ -160,7 +151,8 @@ export function DoctorDailyHourlyGrid({
     if (
       returnContext &&
       doctor?.id &&
-      (returnContext.sourceDoctorId === doctor.id || returnContext.sourceDoctorId === doctor.practitioner_id)
+      (returnContext.sourceDoctorId === doctor.id ||
+        returnContext.sourceDoctorId === doctor.practitioner_id)
     ) {
       if (returnContext.sourceSlotStartTime) {
         setAddSessionInitialTime(returnContext.sourceSlotStartTime);
@@ -240,7 +232,6 @@ export function DoctorDailyHourlyGrid({
               isMutationPending={updateSessionMutation.isPending}
               onSlotClick={handleSlotClick}
               onOpenPatients={handleOpenPatients}
-              onOpenEdit={handleOpenEditSession}
               onOpenReschedule={handleOpenReschedule}
               onToggleSessionStatus={handleToggleSessionStatus}
               highlightSlotTime={activeHighlightTime}
@@ -266,22 +257,6 @@ export function DoctorDailyHourlyGrid({
         <DoctorGridLegend />
       </div>
 
-      {doctor && selectedSessionDetail && (
-        <DoctorSessionDetailModal
-          doctor={doctor}
-          session={selectedSessionDetail}
-          isOpen={isDetailModalOpen}
-          onClose={() => {
-            setIsDetailModalOpen(false);
-            setSelectedSessionDetail(null);
-          }}
-          onOpenReschedule={(sess) => handleOpenReschedule(sess)}
-          onOpenEdit={(sess) => handleOpenEditSession(sess)}
-          onOpenPatients={(sess) => handleOpenPatients(sess)}
-          portalContainerRef={modalContainerRef}
-        />
-      )}
-
       {doctor && isAddModalOpen && (
         <DoctorAddSessionModal
           key={`add-session-${formattedTargetDate}-${addSessionInitialTime || 'wizard'}`}
@@ -302,24 +277,6 @@ export function DoctorDailyHourlyGrid({
           initialStartTime={addSessionInitialTime}
           initialEndTime={addSessionInitialEndTime}
           onViewDoctorSchedule={onViewDoctorSchedule}
-        />
-      )}
-
-      {doctor && editingSession && (
-        <DoctorEditSessionModal
-          doctor={doctor}
-          session={editingSession}
-          isOpen={isEditModalOpen}
-          targetDate={formattedTargetDate}
-          onClose={() => {
-            setIsEditModalOpen(false);
-            setEditingSession(null);
-          }}
-          onOpenReschedule={(sess) => {
-            setIsEditModalOpen(false);
-            handleOpenReschedule(sess);
-          }}
-          portalContainerRef={modalContainerRef}
         />
       )}
 

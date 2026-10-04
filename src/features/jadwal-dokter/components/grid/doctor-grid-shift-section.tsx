@@ -2,13 +2,18 @@
 
 import React from 'react';
 import { Icons } from '@/components/icons';
-import type { OccupancyShift, OccupancySlot } from '@/server/contracts/schedules/doctor-schedules.dto';
+import type {
+  OccupancyShift,
+  OccupancySlot
+} from '@/server/contracts/schedules/doctor-schedules.dto';
 import type { DoctorDailySession } from '../../api/types';
 import { DoctorGridSlotItem } from './doctor-grid-slot-item';
 import {
   SCHEDULE_STATUS,
   SHIFT_OPERATIONAL_STATUS,
-  SHIFT_OPERATIONAL_LABELS
+  SHIFT_OPERATIONAL_LABELS,
+  AVAILABILITY_STATE,
+  SLOT_ACTION_TYPE
 } from '../../constants/schedule-shift.constants';
 
 export interface DoctorGridShiftSectionProps {
@@ -24,7 +29,6 @@ export interface DoctorGridShiftSectionProps {
   isMutationPending: boolean;
   onSlotClick: (slot: OccupancySlot) => void;
   onOpenPatients: (session: DoctorDailySession) => void;
-  onOpenEdit: (session: DoctorDailySession) => void;
   onOpenReschedule: (session: DoctorDailySession, slotStartTime?: string) => void;
   onToggleSessionStatus: (session: DoctorDailySession) => void;
   highlightSlotTime?: string;
@@ -45,7 +49,6 @@ export function DoctorGridShiftSection({
   isMutationPending,
   onSlotClick,
   onOpenPatients,
-  onOpenEdit,
   onOpenReschedule,
   onToggleSessionStatus,
   highlightSlotTime,
@@ -54,11 +57,11 @@ export function DoctorGridShiftSection({
 }: DoctorGridShiftSectionProps) {
   const isHighlightedShift = Boolean(
     highlightSlotTime &&
-      shift.slots.some(
-        (slot) =>
-          slot.startTime === highlightSlotTime ||
-          (slot.startTime <= highlightSlotTime && slot.endTime > highlightSlotTime)
-      )
+    shift.slots.some(
+      (slot) =>
+        slot.startTime === highlightSlotTime ||
+        (slot.startTime <= highlightSlotTime && slot.endTime > highlightSlotTime)
+    )
   );
 
   const matchingShiftSessions = activeSessions.filter((s) =>
@@ -106,7 +109,11 @@ export function DoctorGridShiftSection({
               type='button'
               onClick={onReturnToSourceModal}
               className='inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/25 transition-all cursor-pointer shadow-2xs'
-              title={returnDoctorName ? `Kembali ke pemilihan ruang ${returnDoctorName}` : 'Kembali ke pemilihan ruang'}
+              title={
+                returnDoctorName
+                  ? `Kembali ke pemilihan ruang ${returnDoctorName}`
+                  : 'Kembali ke pemilihan ruang'
+              }
             >
               <Icons.chevronLeft className='size-3 stroke-[2.5]' />
               <span>Kembali ke Pemilihan Ruang</span>
@@ -117,12 +124,11 @@ export function DoctorGridShiftSection({
               Praktik Cuti
             </span>
           ) : isDayClosed ? (
-            <span className='text-[11px] font-semibold text-muted-foreground'>
-              Praktik Ditutup
-            </span>
+            <span className='text-[11px] font-semibold text-muted-foreground'>Praktik Ditutup</span>
           ) : shift.operationalStatus === SHIFT_OPERATIONAL_STATUS.NO_PRACTICE ? (
             <span className='font-mono text-xs text-muted-foreground'>
-              {shift.operationalLabel || SHIFT_OPERATIONAL_LABELS[SHIFT_OPERATIONAL_STATUS.NO_PRACTICE]}
+              {shift.operationalLabel ||
+                SHIFT_OPERATIONAL_LABELS[SHIFT_OPERATIONAL_STATUS.NO_PRACTICE]}
             </span>
           ) : (
             <>
@@ -164,13 +170,6 @@ export function DoctorGridShiftSection({
             currentTimeString >= slot.startTime &&
             currentTimeString < slot.endTime;
 
-          const isClickable =
-            !isFinished &&
-            !isDayCuti &&
-            (slot.isClickable !== undefined
-              ? slot.isClickable
-              : !isDayClosed && !readOnly);
-
           const matchingSession = activeSessions.find(
             (s) =>
               (slot.sessionId && s.id === slot.sessionId) ||
@@ -179,18 +178,35 @@ export function DoctorGridShiftSection({
               (slot.conflictInfo?.sessionId && s.id === slot.conflictInfo.sessionId)
           );
 
-          const hasHoverMenu = Boolean(
-            matchingSession && !isFinished && !isDayCuti && !readOnly
+          const hasBookedPatients = Boolean(
+            matchingSession &&
+            ((matchingSession.pasien_terdaftar ?? 0) > 0 ||
+              (matchingSession.kuota_pasien > 0 &&
+                matchingSession.slot_tersedia !== undefined &&
+                matchingSession.slot_tersedia < matchingSession.kuota_pasien) ||
+              slot.actionType === SLOT_ACTION_TYPE.VIEW_PATIENTS)
           );
+
+          const isUnscheduled =
+            !matchingSession &&
+            (slot.actionType === SLOT_ACTION_TYPE.ADD_SESSION ||
+              slot.availabilityState === AVAILABILITY_STATE.UNSCHEDULED ||
+              slot.status === 'UNSCHEDULED');
+
+          const isClickable =
+            !isFinished &&
+            !isDayCuti &&
+            !readOnly &&
+            slot.isClickable !== false &&
+            (isUnscheduled ? !isDayClosed : hasBookedPatients);
+
+          const hasHoverMenu = Boolean(matchingSession && !isFinished && !isDayCuti && !readOnly);
 
           const isSlotUpdating = Boolean(
-            matchingSession &&
-            isMutationPending &&
-            pendingSessionId === matchingSession.id
+            matchingSession && isMutationPending && pendingSessionId === matchingSession.id
           );
 
-          const isSessionClosed =
-            matchingSession?.status_sesi === SCHEDULE_STATUS.CLOSED;
+          const isSessionClosed = matchingSession?.status_sesi === SCHEDULE_STATUS.CLOSED;
 
           const isThisSessionPending =
             isMutationPending && pendingSessionId === matchingSession?.id;
@@ -216,7 +232,6 @@ export function DoctorGridShiftSection({
               isThisSessionPending={isThisSessionPending}
               onSlotClick={() => onSlotClick(slot)}
               onOpenPatients={onOpenPatients}
-              onOpenEdit={onOpenEdit}
               onOpenReschedule={onOpenReschedule}
               onToggleSessionStatus={onToggleSessionStatus}
             />

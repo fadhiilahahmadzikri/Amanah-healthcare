@@ -8,7 +8,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { DoctorRescheduleSessionModal } from './doctor-reschedule-session-modal';
 import { DoctorAddSessionModal } from './doctor-add-session-modal';
-import { DoctorEditSessionModal } from './doctor-edit-session-modal';
 import { isDoctorOnLeaveOnDay } from '../api/service';
 import {
   SCHEDULE_STATUS,
@@ -178,8 +177,6 @@ export function DoctorGanttTimeline({
   const [selectedSessionForReschedule, setSelectedSessionForReschedule] =
     useState<DoctorDailySession | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingSession, setEditingSession] = useState<DoctorDailySession | null>(null);
   const [isReasonOpen, setIsReasonOpen] = useState(false);
 
   // Leave status
@@ -236,11 +233,6 @@ export function DoctorGanttTimeline({
   const handleOpenReschedule = (session: DoctorDailySession) => {
     setSelectedSessionForReschedule(session);
     setIsRescheduleOpen(true);
-  };
-
-  const handleOpenEditSession = (session: DoctorDailySession) => {
-    setEditingSession(session);
-    setIsEditModalOpen(true);
   };
 
   const formattedDateParam = `${activeYear}-${String(activeMonth + 1).padStart(2, '0')}-${String(activeDay).padStart(2, '0')}`;
@@ -465,13 +457,13 @@ export function DoctorGanttTimeline({
                             variant='outline'
                             size='sm'
                             shape='pill'
-                            onClick={() => handleOpenEditSession(session)}
+                            onClick={() => handleOpenReschedule(session)}
                             className='h-7 px-3 text-xs font-semibold text-foreground/85 hover:text-foreground'
                             leadingIcon={
-                              <Icons.settings className='size-3.5 text-muted-foreground' />
+                              <Icons.history className='size-3.5 text-muted-foreground' />
                             }
                           >
-                            Atur Sesi
+                            Reschedule
                           </Button>
                         )}
                       </div>
@@ -640,24 +632,6 @@ export function DoctorGanttTimeline({
           onClose={() => setIsAddModalOpen(false)}
           portalContainerRef={modalContainerRef}
           targetDate={formattedDateParam}
-        />
-      )}
-
-      {/* Edit Session Modal */}
-      {doctor && editingSession && (
-        <DoctorEditSessionModal
-          doctor={doctor}
-          session={editingSession}
-          isOpen={isEditModalOpen}
-          targetDate={formattedDateParam}
-          onClose={() => {
-            setIsEditModalOpen(false);
-            setEditingSession(null);
-          }}
-          onOpenReschedule={(sess) => {
-            handleOpenReschedule(sess);
-          }}
-          portalContainerRef={modalContainerRef}
         />
       )}
     </>
