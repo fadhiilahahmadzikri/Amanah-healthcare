@@ -521,7 +521,8 @@ export const rescheduleAdminDoctorSessionPayloadSchema = z.object({
   targetRoomId: z.string().optional(),
   notes: z.string().optional(),
   reason: z.string().optional(),
-  rescheduleActiveAppointments: z.boolean().optional().default(true)
+  rescheduleActiveAppointments: z.boolean().optional().default(true),
+  unscheduleSourceSlot: z.boolean().optional().default(false)
 });
 export type RescheduleAdminDoctorSessionPayload = z.input<
   typeof rescheduleAdminDoctorSessionPayloadSchema

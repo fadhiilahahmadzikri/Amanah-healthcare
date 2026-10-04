@@ -81,6 +81,7 @@ export function DoctorRescheduleSessionModal({
   const [targetEndTime, setTargetEndTime] = useState('');
   const [notes, setNotes] = useState('');
   const [rescheduleActiveAppointments, setRescheduleActiveAppointments] = useState(true);
+  const [unscheduleSourceSlot, setUnscheduleSourceSlot] = useState(true);
 
   const [, setParams] = useQueryStates(
     {
@@ -108,6 +109,7 @@ export function DoctorRescheduleSessionModal({
       setStep(initialStep || 'date');
       setNotes('');
       setRescheduleActiveAppointments(true);
+      setUnscheduleSourceSlot(true);
       setTargetStartTime(initialStartTime || '');
       setTargetEndTime('');
 
@@ -299,7 +301,8 @@ export function DoctorRescheduleSessionModal({
           targetRoomId: targetRoomId || undefined,
           notes: finalReason,
           reason: finalReason,
-          rescheduleActiveAppointments: hasActiveAppointments && rescheduleActiveAppointments
+          rescheduleActiveAppointments: hasActiveAppointments && rescheduleActiveAppointments,
+          unscheduleSourceSlot
         }
       },
       {
@@ -653,6 +656,30 @@ export function DoctorRescheduleSessionModal({
                   </div>
                 </div>
               )}
+
+              {/* Unschedule Source Slot Checkbox */}
+              <div className='flex items-start gap-2.5 p-3 rounded-xl border border-border/50 bg-muted/20'>
+                <Checkbox
+                  id='unschedule-source-slot'
+                  checked={unscheduleSourceSlot}
+                  onCheckedChange={(checked) => setUnscheduleSourceSlot(Boolean(checked))}
+                  className='mt-0.5'
+                />
+                <div className='space-y-0.5'>
+                  <Label
+                    htmlFor='unschedule-source-slot'
+                    className='text-xs font-bold text-foreground cursor-pointer'
+                  >
+                    Ubah slot asal (
+                    {initialStartTime || session?.jam_mulai?.slice(0, 5) || 'jam asal'}) menjadi
+                    Belum Terjadwal
+                  </Label>
+                  <p className='text-[11px] text-muted-foreground leading-relaxed'>
+                    Tutup slot waktu asal agar tidak dapat dipesan lagi. Jika tidak dicentang, slot
+                    waktu asal akan tetap tersedia (Available) untuk pasien lain.
+                  </p>
+                </div>
+              </div>
 
               {/* Error notice if mutation failed */}
               {rescheduleMutation.isError && (

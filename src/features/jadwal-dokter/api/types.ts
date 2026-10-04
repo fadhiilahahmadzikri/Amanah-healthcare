@@ -209,6 +209,7 @@ export interface RescheduleDoctorSessionPayload {
   notes?: string;
   reason?: string;
   rescheduleActiveAppointments?: boolean;
+  unscheduleSourceSlot?: boolean;
 }
 
 export interface UpdateDoctorDayByDatePayload {
