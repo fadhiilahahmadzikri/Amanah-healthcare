@@ -107,6 +107,7 @@ export function DoctorRescheduleSessionModal({
   // Initialize or reset form state whenever effectiveSession or modal opens
   useEffect(() => {
     if (effectiveSession && isOpen) {
+      conflictNav.consumePendingReopen(doctor?.id);
       setStep(initialStep || 'date');
       setNotes('');
       setRescheduleActiveAppointments(true);
@@ -228,25 +229,27 @@ export function DoctorRescheduleSessionModal({
     (occupantDoctorId?: string | null, slotTime?: string) => {
       if (!occupantDoctorId || !doctor) return;
 
+      const context: DoctorConflictReturnContext = {
+        sourceDoctorId: doctor.id,
+        sourceDoctorName: doctor.nama_dokter,
+        sourceDate: targetDate || initialDate,
+        sourceSlotStartTime: targetStartTime || initialStartTime,
+        sourceSlotEndTime: targetEndTime,
+        sourceSession: effectiveSession,
+        sourceSessionId: effectiveSession?.id,
+        sourceRoomId: targetRoomId,
+        wizardType: DOCTOR_DIALOG_TYPE.WIZARD_RESCHEDULE,
+        initialStep: WIZARD_STEP.ROOM
+      };
+
       conflictNav.inspectConflictDoctor({
         occupantDoctorId,
         targetSlotTime: slotTime,
-        context: {
-          sourceDoctorId: doctor.id,
-          sourceDoctorName: doctor.nama_dokter,
-          sourceDate: targetDate || initialDate,
-          sourceSlotStartTime: slotTime,
-          sourceSlotEndTime: targetEndTime,
-          sourceSession: effectiveSession,
-          sourceSessionId: effectiveSession?.id,
-          sourceRoomId: targetRoomId,
-          wizardType: DOCTOR_DIALOG_TYPE.WIZARD_RESCHEDULE,
-          initialStep: WIZARD_STEP.ROOM
-        },
+        context,
         onNavigate: (id, time) => {
           onClose();
           if (onViewDoctorSchedule) {
-            onViewDoctorSchedule(id, time);
+            onViewDoctorSchedule(id, time, context);
           } else {
             setParams(
               {

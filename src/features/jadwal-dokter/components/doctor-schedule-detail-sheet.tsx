@@ -437,6 +437,7 @@ export function DoctorScheduleDetailSheet({
                   </div>
                 ) : (
                   <DoctorDailyHourlyGrid
+                    key={`grid-${doctor.id}-${selectedDay}-${currentMonth}-${currentYear}-${highlightSlotTime || ''}`}
                     doctor={doctor}
                     selectedDay={selectedDay}
                     onSelectDay={setSelectedDay}

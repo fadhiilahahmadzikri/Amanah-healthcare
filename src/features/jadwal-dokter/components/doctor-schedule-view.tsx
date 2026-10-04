@@ -45,12 +45,12 @@ export function DoctorScheduleView() {
         initialDate={scheduleView.returnContext?.sourceDate}
         initialStartTime={scheduleView.returnContext?.sourceSlotStartTime}
         initialStep={
-          (scheduleView.returnContext?.initialStep === 'room' ||
+          scheduleView.returnContext?.initialStep === 'room' ||
           scheduleView.returnContext?.initialStep === 'slot' ||
           scheduleView.returnContext?.initialStep === 'date' ||
           scheduleView.returnContext?.initialStep === 'note'
             ? scheduleView.returnContext.initialStep
-            : 'room') as import('./doctor-reschedule-session-modal').RescheduleStep
+            : undefined
         }
         onClose={() => {
           scheduleView.actions.closeReschedule();
@@ -60,18 +60,19 @@ export function DoctorScheduleView() {
       />
 
       <DoctorAddSessionModal
+        key={`add-session-view-${scheduleView.selectedDoctor?.id || ''}-${scheduleView.returnContext?.sourceSlotStartTime || 'default'}-${scheduleView.isAddSessionOpen}`}
         doctor={scheduleView.selectedDoctor}
         isOpen={scheduleView.isAddSessionOpen}
         targetDate={scheduleView.returnContext?.sourceDate}
         initialStartTime={scheduleView.returnContext?.sourceSlotStartTime}
         initialEndTime={scheduleView.returnContext?.sourceSlotEndTime}
         initialStep={
-          (scheduleView.returnContext?.initialStep === 'room' ||
+          scheduleView.returnContext?.initialStep === 'room' ||
           scheduleView.returnContext?.initialStep === 'slot' ||
           scheduleView.returnContext?.initialStep === 'date' ||
           scheduleView.returnContext?.initialStep === 'confirmation'
             ? scheduleView.returnContext.initialStep
-            : 'room') as import('./doctor-add-session-modal').AddSessionStep
+            : undefined
         }
         onClose={() => {
           scheduleView.actions.closeAddSession();

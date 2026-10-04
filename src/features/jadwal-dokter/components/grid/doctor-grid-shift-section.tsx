@@ -71,9 +71,8 @@ export function DoctorGridShiftSection({
     effectiveHighlightTime &&
     shift.slots.some(
       (slot) =>
-        !isSlotFinished(slot) &&
-        (slot.startTime === effectiveHighlightTime ||
-          (slot.startTime <= effectiveHighlightTime && slot.endTime > effectiveHighlightTime))
+        slot.startTime === effectiveHighlightTime ||
+        (slot.startTime <= effectiveHighlightTime && slot.endTime > effectiveHighlightTime)
     )
   );
 
@@ -227,7 +226,6 @@ export function DoctorGridShiftSection({
             isMutationPending && pendingSessionId === matchingSession?.id;
 
           const isHighlighted = Boolean(
-            !isFinished &&
             highlightSlotTime &&
             (slot.startTime === highlightSlotTime ||
               (slot.startTime <= highlightSlotTime && slot.endTime > highlightSlotTime))

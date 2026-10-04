@@ -105,22 +105,24 @@ export function DoctorAddSessionModal({
     (occupantDoctorId?: string | null, slotTime?: string) => {
       if (!occupantDoctorId || !doctor) return;
 
+      const context: DoctorConflictReturnContext = {
+        sourceDoctorId: doctor.id,
+        sourceDoctorName: doctor.nama_dokter,
+        sourceDate: selectedDate,
+        sourceSlotStartTime: selectedSlot?.time || initialStartTime,
+        sourceSlotEndTime: selectedSlot?.endTime || initialEndTime,
+        wizardType: DOCTOR_DIALOG_TYPE.WIZARD_ADD_SESSION,
+        initialStep: WIZARD_STEP.ROOM
+      };
+
       conflictNav.inspectConflictDoctor({
         occupantDoctorId,
         targetSlotTime: slotTime,
-        context: {
-          sourceDoctorId: doctor.id,
-          sourceDoctorName: doctor.nama_dokter,
-          sourceDate: selectedDate,
-          sourceSlotStartTime: slotTime,
-          sourceSlotEndTime: selectedSlot?.endTime,
-          wizardType: DOCTOR_DIALOG_TYPE.WIZARD_ADD_SESSION,
-          initialStep: WIZARD_STEP.ROOM
-        },
+        context,
         onNavigate: (id, time) => {
           onClose();
           if (onViewDoctorSchedule) {
-            onViewDoctorSchedule(id, time);
+            onViewDoctorSchedule(id, time, context);
           } else {
             setParams(
               {
@@ -224,7 +226,9 @@ export function DoctorAddSessionModal({
               selectedRoomId={selectedRoomId}
               onSelectRoomId={(id) => {
                 setSelectedRoomId(id);
-                setSelectedSlot(null);
+                if (!isDirectSlotMode) {
+                  setSelectedSlot(null);
+                }
               }}
               doctorName={doctor.nama_dokter}
               isLoading={isLoadingRooms}

@@ -183,8 +183,9 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     highlightTime?: string,
     returnCtx?: ReturnDoctorContext
   ) => {
-    if (returnCtx) {
-      setReturnContext(returnCtx);
+    const effectiveReturnCtx = returnCtx || conflictNav.returnContext;
+    if (effectiveReturnCtx) {
+      setReturnContext(effectiveReturnCtx);
     }
     setParams(
       {

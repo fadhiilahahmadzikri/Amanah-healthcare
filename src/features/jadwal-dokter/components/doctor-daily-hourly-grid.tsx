@@ -159,10 +159,12 @@ export function DoctorDailyHourlyGrid({
       setActiveHighlightTime(effectiveHighlight);
       const timer = setTimeout(() => {
         setActiveHighlightTime(undefined);
-      }, 3500);
+      }, 4000);
       return () => clearTimeout(timer);
+    } else {
+      setActiveHighlightTime(undefined);
     }
-  }, [highlightSlotTime, conflictNav.highlightSlotTime]);
+  }, [highlightSlotTime, conflictNav.highlightSlotTime, doctor?.id]);
 
   return (
     <>

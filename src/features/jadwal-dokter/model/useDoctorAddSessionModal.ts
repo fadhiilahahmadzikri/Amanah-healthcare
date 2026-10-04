@@ -17,6 +17,7 @@ import {
   doctorScheduleDetailQueryOptions
 } from '../api/queries';
 import { useCreateDoctorSessionMutation } from '../api/mutations';
+import { useDoctorConflictNavigation } from './useDoctorConflictNavigation';
 
 export type AddSessionStep = 'date' | 'room' | 'slot' | 'confirmation';
 
@@ -60,6 +61,7 @@ export function useDoctorAddSessionModal({
   initialStep
 }: UseDoctorAddSessionModalProps) {
   const createSessionMutation = useCreateDoctorSessionMutation();
+  const conflictNav = useDoctorConflictNavigation();
 
   const defaultDate = useMemo(() => {
     if (targetDate && /^\d{4}-\d{2}-\d{2}$/.test(targetDate.trim())) {
@@ -73,8 +75,6 @@ export function useDoctorAddSessionModal({
   const [step, setStep] = useState<AddSessionStep>(
     () => initialStep || (initialStartTime ? 'room' : 'date')
   );
-  const effectiveStep: AddSessionStep =
-    initialStep || (Boolean(initialStartTime) && step === 'date' ? 'room' : step);
 
   const [selectedDate, setSelectedDate] = useState(defaultDate);
   const [selectedShift, setSelectedShift] = useState<ScheduleShift>(() => {
@@ -109,8 +109,7 @@ export function useDoctorAddSessionModal({
     ...clinicRoomsQueryOptions({
       date: selectedDate || undefined,
       startTime: queryStartTime,
-      endTime: queryEndTime,
-      excludePractitionerId: doctorStaffId || undefined
+      endTime: queryEndTime
     }),
     enabled: Boolean(isOpen && selectedDate)
   });
@@ -177,6 +176,8 @@ export function useDoctorAddSessionModal({
   // Reset or initialize state when modal opens
   useEffect(() => {
     if (isOpen) {
+      conflictNav.consumePendingReopen(doctor?.id);
+
       const initialDateValue =
         targetDate && /^\d{4}-\d{2}-\d{2}$/.test(targetDate.trim())
           ? targetDate.trim()
@@ -205,7 +206,16 @@ export function useDoctorAddSessionModal({
 
       setIsSubmitting(false);
     }
-  }, [isOpen, targetDate, defaultDate, initialStartTime, initialEndTime, initialStep]);
+  }, [
+    isOpen,
+    targetDate,
+    defaultDate,
+    initialStartTime,
+    initialEndTime,
+    initialStep,
+    conflictNav,
+    doctor?.id
+  ]);
 
   const selectedDateObj = useMemo(() => {
     if (!selectedDate) return undefined;
@@ -241,14 +251,24 @@ export function useDoctorAddSessionModal({
     if (step === 'slot') return Boolean(selectedSlot);
     if (step === 'confirmation') {
       const room = rooms.find((r) => r.id === selectedRoomId);
+      const hasSlot = Boolean(selectedSlot || initialStartTime);
       return (
-        Boolean(selectedDate && selectedRoomId && selectedSlot && selectedShift) &&
+        Boolean(selectedDate && selectedRoomId && hasSlot && selectedShift) &&
         Boolean(room && !room.isOccupied) &&
         !isSubmitting
       );
     }
     return false;
-  }, [step, selectedDate, selectedRoomId, selectedSlot, selectedShift, rooms, isSubmitting]);
+  }, [
+    step,
+    selectedDate,
+    selectedRoomId,
+    selectedSlot,
+    initialStartTime,
+    selectedShift,
+    rooms,
+    isSubmitting
+  ]);
 
   const isFirstStep = isDirectSlotMode ? step === 'room' : step === 'date';
 
@@ -256,7 +276,13 @@ export function useDoctorAddSessionModal({
     if (!canProceedNext) return;
     if (step === 'date') setStep('room');
     else if (step === 'room') {
-      if (isDirectSlotMode && selectedSlot) {
+      if (isDirectSlotMode) {
+        if (!selectedSlot && initialStartTime) {
+          setSelectedSlot({
+            time: initialStartTime,
+            endTime: computeSafeEndTime(initialStartTime, initialEndTime)
+          });
+        }
         setStep('confirmation');
       } else {
         setStep('slot');
@@ -293,10 +319,19 @@ export function useDoctorAddSessionModal({
   };
 
   const handleFinalSubmit = async () => {
+    const effectiveSlot =
+      selectedSlot ||
+      (initialStartTime
+        ? {
+            time: initialStartTime,
+            endTime: computeSafeEndTime(initialStartTime, initialEndTime)
+          }
+        : null);
+
     if (
       !doctor ||
       !selectedShift ||
-      !selectedSlot ||
+      !effectiveSlot ||
       !selectedRoomId ||
       isSubmitting ||
       createSessionMutation.isPending
@@ -312,10 +347,10 @@ export function useDoctorAddSessionModal({
         schedule_date: selectedDate,
         nama_sesi: sessionName,
         session: selectedShift,
-        jam_mulai: selectedSlot.time,
-        jam_selesai: selectedSlot.endTime,
-        startTime: selectedSlot.time,
-        endTime: selectedSlot.endTime,
+        jam_mulai: effectiveSlot.time,
+        jam_selesai: effectiveSlot.endTime,
+        startTime: effectiveSlot.time,
+        endTime: effectiveSlot.endTime,
         kuota_pasien: 1,
         slot_tersedia: 1,
         capacity: 1,
@@ -339,7 +374,7 @@ export function useDoctorAddSessionModal({
   };
 
   return {
-    step: effectiveStep,
+    step,
     setStep,
     selectedDate,
     setSelectedDate,
