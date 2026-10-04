@@ -1,11 +1,3 @@
-/**
- * Centralized Canonical Constants for Doctor Schedules
- * Single Source of Truth aligning directly with PostgreSQL enums:
- * - `staff_shift`: ('early_morning', 'morning', 'afternoon', 'night')
- * - `schedule_status`: ('open', 'closed')
- * Zero Magic Strings.
- */
-
 export const SCHEDULE_SHIFT = {
   DINI_HARI: 'DINI_HARI',
   PAGI: 'PAGI',
@@ -106,7 +98,6 @@ export const SLOT_UI_STATUS = {
   AVAILABLE: 'AVAILABLE',
   OCCUPIED: 'OCCUPIED',
   OCCUPIED_BY_OTHER: 'OCCUPIED_BY_OTHER',
-  RESCHEDULED: 'RESCHEDULED',
   CLOSED_LEAVE: 'CLOSED_LEAVE',
   CLOSED_CLINIC: 'CLOSED_CLINIC'
 } as const;
@@ -120,7 +111,6 @@ export const SLOT_UI_VARIANT = {
   SUCCESS_GREEN: 'success_green',
   INFO_BLUE: 'info_blue',
   PURPLE_OTHER: 'purple_other',
-  WARNING_AMBER: 'warning_amber',
   SKY_BADGE: 'sky_badge',
   DANGER_RED: 'danger_red'
 } as const;
@@ -247,50 +237,26 @@ export const SCHEDULE_SHIFT_BOUNDARIES: Record<
     totalSlots: 12
   }
 } as const;
-
 export function normalizeScheduleStatus(raw?: string | null): ScheduleStatus {
-  if (!raw) return SCHEDULE_STATUS.OPEN;
-  const clean = raw.trim().toUpperCase();
-  if (clean === SCHEDULE_STATUS.CLOSED || clean === 'TUTUP') {
-    return SCHEDULE_STATUS.CLOSED;
-  }
-  return SCHEDULE_STATUS.OPEN;
+  return raw?.trim().toUpperCase() === SCHEDULE_STATUS.CLOSED
+    ? SCHEDULE_STATUS.CLOSED
+    : SCHEDULE_STATUS.OPEN;
 }
 
 export function normalizeScheduleShift(raw?: string | null): ScheduleShift {
   if (!raw) return SCHEDULE_SHIFT.PAGI;
-  const clean = raw.trim().toUpperCase();
-
-  // If time format HH:mm or HH.mm (e.g. "00:30", "00:30 WIB", "08:00", "14:15", "19:00")
-  const timeMatch = clean.match(/^(\d{1,2})[:.](\d{2})/);
-  if (timeMatch) {
-    const hour = parseInt(timeMatch[1], 10);
-    if (hour >= 0 && hour < 6) return SCHEDULE_SHIFT.DINI_HARI;
-    if (hour >= 6 && hour < 12) return SCHEDULE_SHIFT.PAGI;
-    if (hour >= 12 && hour < 18) return SCHEDULE_SHIFT.SIANG;
-    if (hour >= 18 && hour < 24) return SCHEDULE_SHIFT.MALAM;
+  const key = raw.trim();
+  if (key in SCHEDULE_SHIFT) {
+    return SCHEDULE_SHIFT[key as keyof typeof SCHEDULE_SHIFT];
   }
-
-  if (clean === SCHEDULE_SHIFT.DINI_HARI || clean === 'EARLY_MORNING' || clean.includes('DINI')) {
-    return SCHEDULE_SHIFT.DINI_HARI;
-  }
-  if (clean === SCHEDULE_SHIFT.PAGI || clean === 'MORNING') {
-    return SCHEDULE_SHIFT.PAGI;
-  }
-  if (
-    clean === SCHEDULE_SHIFT.SIANG ||
-    clean === 'AFTERNOON' ||
-    clean.includes('SORE') ||
-    clean.includes('SIANG')
-  ) {
-    return SCHEDULE_SHIFT.SIANG;
-  }
-  if (clean === SCHEDULE_SHIFT.MALAM || clean === 'NIGHT') {
-    return SCHEDULE_SHIFT.MALAM;
-  }
-  return SCHEDULE_SHIFT.PAGI;
+  return DB_STAFF_SHIFT_MAP[key] ?? SCHEDULE_SHIFT.PAGI;
 }
 
 export function resolveShiftFromTime(timeStr?: string | null): ScheduleShift {
-  return normalizeScheduleShift(timeStr);
+  if (!timeStr) return SCHEDULE_SHIFT.PAGI;
+  const hour = Number.parseInt(timeStr.split(':')[0] ?? '', 10);
+  if (hour < 6) return SCHEDULE_SHIFT.DINI_HARI;
+  if (hour < 12) return SCHEDULE_SHIFT.PAGI;
+  if (hour < 18) return SCHEDULE_SHIFT.SIANG;
+  return SCHEDULE_SHIFT.MALAM;
 }

@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import type { MonthlyScheduleDay, ScheduleDayStatus } from '../api/types';
+import { SCHEDULE_STATUS } from '../constants/schedule-shift.constants';
 
 interface DoctorCalendarGridProps {
   days?: MonthlyScheduleDay[];
@@ -26,13 +27,13 @@ function getStatusPillClasses(status: ScheduleDayStatus, badgeVariant?: string):
   if (badgeVariant === 'neutral') return 'bg-muted/40 text-muted-foreground border-border/60';
 
   const upper = (status || '').toUpperCase();
-  if (upper === 'OPEN' || upper === 'BUKA') {
+  if (upper === SCHEDULE_STATUS.OPEN) {
     return 'bg-success-subtle text-success border-success-border';
   }
-  if (upper === 'OCCUPIED' || upper === 'TERISI') {
+  if (upper === SCHEDULE_STATUS.OCCUPIED) {
     return 'bg-warning-subtle text-warning border-warning-border';
   }
-  if (upper === 'CUTI') {
+  if (upper === SCHEDULE_STATUS.CUTI) {
     return 'bg-info-subtle text-info border-info-border';
   }
   return 'bg-muted/40 text-muted-foreground border-border/60';
@@ -45,13 +46,13 @@ function getStatusDot(status: ScheduleDayStatus, badgeVariant?: string): string 
   if (badgeVariant === 'neutral') return 'bg-muted-foreground/40';
 
   const upper = (status || '').toUpperCase();
-  if (upper === 'OPEN' || upper === 'BUKA') {
+  if (upper === SCHEDULE_STATUS.OPEN) {
     return 'bg-success';
   }
-  if (upper === 'OCCUPIED' || upper === 'TERISI') {
+  if (upper === SCHEDULE_STATUS.OCCUPIED) {
     return 'bg-warning';
   }
-  if (upper === 'CUTI') {
+  if (upper === SCHEDULE_STATUS.CUTI) {
     return 'bg-info';
   }
   return 'bg-muted-foreground/40';
@@ -62,7 +63,6 @@ export function DoctorCalendarGrid({
   onSelectDayStatus,
   readOnly = false
 }: DoctorCalendarGridProps) {
-  // Days of week in Indonesian starting from Monday: Sen, Sel, Rab, Kam, Jum, Sab, Min
   const dayNames = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 
   const firstDateStr = days[0]?.date;
@@ -70,7 +70,6 @@ export function DoctorCalendarGrid({
     if (firstDateStr) {
       const d = new Date(firstDateStr);
       if (!Number.isNaN(d.getTime())) {
-        // Monday = 0, Sunday = 6
         return (d.getDay() + 6) % 7;
       }
     }
@@ -89,22 +88,19 @@ export function DoctorCalendarGrid({
     return Array.from({ length: totalDays }, (_, i) => ({
       day: i + 1,
       date: `${year}-${monthStr}-${String(i + 1).padStart(2, '0')}`,
-      status: 'CLOSED' as ScheduleDayStatus
+      status: SCHEDULE_STATUS.CLOSED as ScheduleDayStatus
     }));
   }, [days]);
 
   return (
     <div className='w-full space-y-2.5 select-none'>
-      {/* 1. Day of Week Header */}
       <div className='grid grid-cols-7 gap-1 text-center text-[11px] font-semibold text-muted-foreground/80 border-b border-border/40 pb-1.5'>
         {dayNames.map((d) => (
           <div key={d}>{d}</div>
         ))}
       </div>
 
-      {/* 2. Month Calendar 7-Column Grid */}
       <div className='grid grid-cols-7 gap-1.5'>
-        {/* Leading empty slots for starting day of month */}
         {Array.from({ length: startOffset }).map((_, i) => (
           <div
             key={`empty-${i}`}
@@ -112,7 +108,6 @@ export function DoctorCalendarGrid({
           />
         ))}
 
-        {/* Dynamic Calendar Days */}
         {safeDays.map((item) => {
           const badgeVariant =
             'badgeVariant' in item &&
@@ -152,8 +147,8 @@ export function DoctorCalendarGrid({
                   Set status tanggal {item.day}:
                 </div>
                 {[
-                  { value: 'OPEN' as const, label: 'Buka' },
-                  { value: 'CLOSED' as const, label: 'Tutup' }
+                  { value: SCHEDULE_STATUS.OPEN, label: 'Buka' },
+                  { value: SCHEDULE_STATUS.CLOSED, label: 'Tutup' }
                 ].map((opt) => {
                   const upperStatus = (item.status || '').toUpperCase();
                   const isMatch = upperStatus === opt.value;
@@ -174,7 +169,6 @@ export function DoctorCalendarGrid({
         })}
       </div>
 
-      {/* 3. Calendar Legend */}
       <div className='flex flex-wrap items-center justify-end gap-3.5 pt-1 text-[11px] font-medium text-muted-foreground'>
         <div className='flex items-center gap-1.5'>
           <span className='size-2 rounded-full bg-success' />

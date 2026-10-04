@@ -8,6 +8,7 @@ import { getStatusConfig } from '@/styles/clinical-tokens';
 import { CellAction } from './cell-action';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule } from '../../api/types';
+import { SCHEDULE_STATUS } from '../../constants/schedule-shift.constants';
 
 export const getColumns = ({
   onOpenDetail,
@@ -72,8 +73,8 @@ export const getColumns = ({
             <div className='flex items-center gap-1.5 flex-wrap'>
               {sesi_harian.map((sesi) => {
                 const upper = (sesi.status_sesi || '').toUpperCase();
-                const isClosed = upper === 'CLOSED';
-                const isOccupied = upper === 'OCCUPIED';
+                const isClosed = upper === SCHEDULE_STATUS.CLOSED;
+                const isOccupied = upper === SCHEDULE_STATUS.OCCUPIED;
                 return (
                   <span
                     key={sesi.id}

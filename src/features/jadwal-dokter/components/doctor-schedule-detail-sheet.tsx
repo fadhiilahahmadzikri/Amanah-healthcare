@@ -165,7 +165,7 @@ export function DoctorScheduleDetailSheet({
 	const isDetailLoading = detailQuery.isLoading && !detailQuery.data;
 	const doctor = detailQuery.data ?? selectedDoctor;
 
-	if (!selectedDoctor && !doctor) {
+	if (!doctor) {
 		return (
 			<Sheet open={isOpen} onOpenChange={(open) => !open && handleClose()}>
 				<SheetContent

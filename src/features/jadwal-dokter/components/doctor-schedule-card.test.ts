@@ -61,15 +61,6 @@ describe("DoctorScheduleCard Logic & Status Contracts", () => {
 		expect(getDoctorCardStatus(closedDoctor)).toBe(DOCTOR_CARD_STATUS.TUTUP);
 	});
 
-	it("correctly identifies legacy Tutup doctor as Tutup", () => {
-		const closedDoctor: DoctorSchedule = {
-			...baseDoctor,
-			status_dokter: "Tutup",
-			status_jadwal: "Tutup",
-		};
-		expect(getDoctorCardStatus(closedDoctor)).toBe(DOCTOR_CARD_STATUS.TUTUP);
-	});
-
 	it("correctly identifies OCCUPIED doctor as Terisi during active session", () => {
 		const refDate = new Date("2026-09-24T09:30:00");
 		const occupiedDoctor: DoctorSchedule = {
@@ -134,7 +125,7 @@ describe("DoctorScheduleCard Logic & Status Contracts", () => {
 			undefined,
 			fixedMorning,
 		);
-		expect(upcoming.labelTime).toBe("13.00 – 13.30");
+		expect(upcoming.upcomingTime).toBe("13.00 – 13.30");
 		expect(upcoming.sessionName).toBe("Sesi Siang");
 	});
 
@@ -312,7 +303,6 @@ describe("DoctorScheduleCard Logic & Status Contracts", () => {
 		expect(result.hasActive).toBe(false);
 		expect(result.isTomorrow).toBe(true);
 		expect(result.upcomingTime).toBe("Besok, 06.00 – 06.30");
-		expect(result.labelTime).toBe("06.00 – 06.30");
 	});
 
 	it("correctly marks upcoming schedule as tomorrow even when doctor has an active session right now at 21:38", () => {
@@ -352,7 +342,6 @@ describe("DoctorScheduleCard Logic & Status Contracts", () => {
 		expect(result.activeTime).toBe("21.30 – 22.00");
 		expect(result.isTomorrow).toBe(true);
 		expect(result.upcomingTime).toBe("Besok, 06.00 – 06.30");
-		expect(result.labelTime).toBe("06.00 – 06.30");
 	});
 
 	it("parses Indonesian date strings to ISO format", () => {

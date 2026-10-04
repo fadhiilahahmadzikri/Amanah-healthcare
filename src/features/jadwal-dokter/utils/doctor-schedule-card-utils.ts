@@ -33,10 +33,9 @@ export function parseTimeToMinutes(timeStr: string): number {
 }
 
 export interface UpcomingScheduleResult {
-	labelTime: string;
+	upcomingTime: string;
 	sessionName?: string;
 	activeTime?: string;
-	upcomingTime?: string;
 	hasActive?: boolean;
 	isActiveClosed?: boolean;
 	isTomorrow?: boolean;
@@ -46,6 +45,7 @@ export function formatUpcomingFallback(text?: string): string | undefined {
 	if (
 		!text ||
 		text.trim() === "" ||
+		text === DOCTOR_CARD_STATUS.BELUM_DIATUR ||
 		text === "Belum diatur" ||
 		text === "Tidak Ada Jadwal"
 	) {
@@ -220,7 +220,6 @@ export function getUpcomingScheduleTime(
 		const eTime = futureAvailableSlot.endTime.replace(":", ".");
 		const formattedUpcoming = `${sTime} – ${eTime}`;
 		return {
-			labelTime: formattedUpcoming,
 			upcomingTime: formattedUpcoming,
 			sessionName: futureAvailableSlot.sessionName,
 			activeTime,
@@ -243,7 +242,6 @@ export function getUpcomingScheduleTime(
 			? `Besok, ${rawUpcoming}`
 			: rawUpcoming;
 		return {
-			labelTime: rawUpcoming,
 			upcomingTime: formattedUpcoming,
 			sessionName: firstAvailableSlot.sessionName,
 			activeTime,
@@ -267,7 +265,6 @@ export function getUpcomingScheduleTime(
 			const eTime = `${String(Math.floor(eMin / 60)).padStart(2, "0")}.${String(eMin % 60).padStart(2, "0")}`;
 			const formattedUpcoming = `${sTime} – ${eTime}`;
 			return {
-				labelTime: formattedUpcoming,
 				upcomingTime: formattedUpcoming,
 				sessionName: upcomingSession.nama_sesi,
 				activeTime,
@@ -294,7 +291,6 @@ export function getUpcomingScheduleTime(
 				? `Besok, ${rawUpcoming}`
 				: rawUpcoming;
 			return {
-				labelTime: rawUpcoming,
 				upcomingTime: formattedUpcoming,
 				sessionName: firstSession.nama_sesi,
 				activeTime,
@@ -309,7 +305,6 @@ export function getUpcomingScheduleTime(
 		const formattedUpcoming = formatUpcomingFallback(scheduleTime);
 		const cleanTime = formattedUpcoming || scheduleTime.replace(/:/g, ".");
 		return {
-			labelTime: cleanTime,
 			upcomingTime: cleanTime,
 			activeTime,
 			hasActive,
@@ -319,8 +314,7 @@ export function getUpcomingScheduleTime(
 	}
 
 	return {
-		labelTime: "Belum diatur",
-		upcomingTime: "Belum diatur",
+		upcomingTime: DOCTOR_CARD_STATUS.BELUM_DIATUR,
 		activeTime,
 		hasActive,
 		isActiveClosed,

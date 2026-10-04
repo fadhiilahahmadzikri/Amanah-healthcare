@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
 import type { DoctorSchedule, DoctorDailySession } from '../api/types';
 import {
   SCHEDULE_SHIFT,
@@ -10,16 +9,14 @@ import {
   SCHEDULE_STATUS,
   CANONICAL_TO_API_SHIFT,
   SCHEDULE_TOAST_MESSAGES,
+  resolveShiftFromTime,
   type ScheduleShift
 } from '../constants/schedule-shift.constants';
 import {
   scheduleSlotAvailabilityQueryOptions,
-  clinicRoomsQueryOptions,
-  doctorScheduleKeys
+  clinicRoomsQueryOptions
 } from '../api/queries';
-import { createDoctorSession } from '../api/service';
-import { syncAllDoctorSchedules } from '../api/mutations';
-import { resolveCanonicalShift } from '../utils/shift-slot-builder';
+import { useCreateDoctorSessionMutation } from '../api/mutations';
 
 export type AddSessionStep = 'date' | 'session' | 'slot' | 'room' | 'confirmation';
 
@@ -60,7 +57,7 @@ export function useDoctorAddSessionModal({
   initialStartTime,
   initialEndTime
 }: UseDoctorAddSessionModalProps) {
-  const queryClient = useQueryClient();
+  const createSessionMutation = useCreateDoctorSessionMutation();
 
   const defaultDate = useMemo(() => {
     if (targetDate && /^\d{4}-\d{2}-\d{2}$/.test(targetDate.trim())) {
@@ -77,7 +74,7 @@ export function useDoctorAddSessionModal({
 
   const [selectedDate, setSelectedDate] = useState(defaultDate);
   const [selectedShift, setSelectedShift] = useState<ScheduleShift | null>(() => {
-    if (initialStartTime) return resolveCanonicalShift(initialStartTime);
+    if (initialStartTime) return resolveShiftFromTime(initialStartTime);
     return null;
   });
   const [selectedSlot, setSelectedSlot] = useState<{ time: string; endTime: string } | null>(() => {
@@ -156,7 +153,7 @@ export function useDoctorAddSessionModal({
       setSelectedDate(initialDateValue);
 
       if (initialStartTime) {
-        const canonical = resolveCanonicalShift(initialStartTime);
+        const canonical = resolveShiftFromTime(initialStartTime);
         setSelectedShift(canonical);
         const safeEndTime = computeSafeEndTime(initialStartTime, initialEndTime);
         setSelectedSlot({ time: initialStartTime, endTime: safeEndTime });
@@ -263,7 +260,7 @@ export function useDoctorAddSessionModal({
   };
 
   const handleFinalSubmit = async () => {
-    if (!doctor || !selectedShift || !selectedSlot || !selectedRoomId || isSubmitting) return;
+    if (!doctor || !selectedShift || !selectedSlot || !selectedRoomId || isSubmitting || createSessionMutation.isPending) return;
 
     try {
       setIsSubmitting(true);
@@ -286,49 +283,14 @@ export function useDoctorAddSessionModal({
         roomId: selectedRoomId
       };
 
-      const res = await createDoctorSession(doctor.id, payload);
-      const serverSessionId = (res as { data?: { id?: string } })?.data?.id;
+      await createSessionMutation.mutateAsync({
+        doctorId: doctor.id,
+        payload
+      });
 
-      const createdSession: DoctorDailySession = {
-        id: serverSessionId || `${doctor.id}-s-${Date.now()}`,
-        nama_sesi: sessionName,
-        jam_mulai: selectedSlot.time,
-        jam_selesai: selectedSlot.endTime,
-        waktu: `${selectedSlot.time} - ${selectedSlot.endTime} WIB`,
-        kuota_pasien: 1,
-        slot_tersedia: 1,
-        status_sesi: SCHEDULE_STATUS.OPEN,
-        ruang: selectedRoom?.name || doctor.ruang_praktik || 'Ruang Konsultasi'
-      };
-
-      queryClient.setQueriesData<DoctorSchedule>(
-        { queryKey: [...doctorScheduleKeys.details(), doctor.id] },
-        (oldDoctor) => {
-          if (!oldDoctor) return oldDoctor;
-          const currentSessions = oldDoctor.sesi_harian || [];
-          const exists = currentSessions.some(
-            (s) => s.id === createdSession.id || s.jam_mulai === createdSession.jam_mulai
-          );
-          if (exists) return oldDoctor;
-          return {
-            ...oldDoctor,
-            sesi_harian: [...currentSessions, createdSession]
-          };
-        }
-      );
-
-      onSessionAdded?.(createdSession);
-
-      toast.success(
-        SCHEDULE_TOAST_MESSAGES.SESSIONS_ADDED_SUCCESS(1, doctor.nama_dokter)
-      );
-
-      await syncAllDoctorSchedules(queryClient);
+      onSessionAdded?.(undefined as any);
       onClose();
-    } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : SCHEDULE_TOAST_MESSAGES.SESSIONS_ADDED_ERROR;
-      toast.error(message);
+    } catch {
     } finally {
       setIsSubmitting(false);
     }
@@ -348,7 +310,7 @@ export function useDoctorAddSessionModal({
     selectedRoomId,
     setSelectedRoomId,
     selectedRoom,
-    isSubmitting,
+    isSubmitting: isSubmitting || createSessionMutation.isPending,
     rooms,
     isLoadingRooms,
     slotAvailability,

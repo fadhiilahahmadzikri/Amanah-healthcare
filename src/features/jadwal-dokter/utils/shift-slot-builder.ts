@@ -112,13 +112,6 @@ export const UI_VARIANT_CONFIG: Record<
     dotBg: 'bg-sky-500',
     timeText: 'text-foreground'
   },
-  warning_amber: {
-    cellBg: 'bg-amber-500/10 hover:bg-amber-500/15',
-    border: 'border-amber-500/30',
-    text: 'text-amber-700 dark:text-amber-400',
-    dotBg: 'bg-amber-500',
-    timeText: 'text-foreground'
-  },
   sky_badge: {
     cellBg: 'bg-sky-500/10',
     border: 'border-sky-500/30',
@@ -205,14 +198,6 @@ export const STATUS_CONFIG: Record<
     border: 'border-sky-500/30',
     text: 'text-sky-700 dark:text-sky-400',
     dotBg: 'bg-sky-500'
-  },
-  // 6. RESCHEDULED: Oranye / Amber (Dijadwalkan Ulang / Reschedule Event)
-  RESCHEDULED: {
-    label: 'Dijadwalkan Ulang',
-    cellBg: 'bg-amber-500/10 hover:bg-amber-500/15',
-    border: 'border-amber-500/30',
-    text: 'text-amber-700 dark:text-amber-400',
-    dotBg: 'bg-amber-500'
   },
   // 7. EXPIRED: Abu-abu Muted / Selesai (Waktu telah terlewati, persis seperti kalender)
   EXPIRED: {
@@ -490,13 +475,13 @@ export function buildLocalFallbackShifts(
         let slotStatus: OccupancySlot['status'] = 'OCCUPIED_BY_SELF';
         let displayLabel = `Jadwal Dokter (${matching.nama_sesi})`;
 
-        if (rawStatus === 'CLOSED' || rawStatus === 'TUTUP') {
+        if (rawStatus === SCHEDULE_STATUS.CLOSED) {
           slotStatus = 'CLOSED';
           displayLabel = 'Tutup';
-        } else if (rawStatus === 'CUTI') {
+        } else if (rawStatus === SCHEDULE_STATUS.CUTI) {
           slotStatus = 'CLOSED_LEAVE';
           displayLabel = 'Cuti';
-        } else if (rawStatus === 'OPEN' || rawStatus === 'BUKA') {
+        } else if (rawStatus === SCHEDULE_STATUS.OPEN) {
           if (matching.slot_tersedia > 0) {
             slotStatus = 'AVAILABLE';
             displayLabel = 'Buka';
@@ -561,7 +546,7 @@ export function buildLocalFallbackShifts(
         : shiftSessions.reduce(
             (acc, s) =>
               acc +
-              (s.status_sesi?.toUpperCase() === 'OPEN' || s.status_sesi?.toUpperCase() === 'BUKA'
+              (s.status_sesi?.toUpperCase() === SCHEDULE_STATUS.OPEN
                 ? s.slot_tersedia
                 : 0),
             0

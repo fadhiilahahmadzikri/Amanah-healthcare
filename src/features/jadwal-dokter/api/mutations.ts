@@ -34,17 +34,21 @@ import type { ApiMessageResponse } from './service';
 export async function syncAllDoctorSchedules(
   queryClient: ReturnType<typeof useQueryClient>
 ): Promise<void> {
+  queryClient.removeQueries({ queryKey: ['schedules', 'reschedule-eligibility'] });
   await Promise.all([
     queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all }),
     queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES] }),
     queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.PRACTITIONERS] }),
     queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.APPOINTMENTS] }),
-    queryClient.invalidateQueries({ queryKey: ['schedules'] })
+    queryClient.invalidateQueries({ queryKey: ['schedules', 'reference-rooms'] }),
+    queryClient.invalidateQueries({ queryKey: ['schedules', 'slot-availability'] }),
+    queryClient.invalidateQueries({ queryKey: ['schedules', 'contexts'] })
   ]);
   await Promise.all([
     queryClient.refetchQueries({ queryKey: doctorScheduleKeys.all, type: 'active' }),
     queryClient.refetchQueries({ queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES], type: 'active' }),
-    queryClient.refetchQueries({ queryKey: ['schedules'], type: 'active' })
+    queryClient.refetchQueries({ queryKey: ['schedules', 'reference-rooms'], type: 'active' }),
+    queryClient.refetchQueries({ queryKey: ['schedules', 'slot-availability'], type: 'active' })
   ]);
 }
 
@@ -133,15 +137,18 @@ export function useCreateDoctorSessionMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       doctorId,
       payload
     }: {
       doctorId: string;
       payload: CreateDoctorSessionPayload;
-    }) => createDoctorSession(doctorId, payload),
-    onSuccess: async () => {
+    }) => {
+      const res = await createDoctorSession(doctorId, payload);
       await syncAllDoctorSchedules(queryClient);
+      return res;
+    },
+    onSuccess: () => {
       toast.success('Sesi praktik baru berhasil ditambahkan');
     },
     onError: (err: unknown) => {
@@ -155,7 +162,7 @@ export function useUpdateDoctorSessionMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       doctorId,
       sessionId,
       payload
@@ -163,10 +170,12 @@ export function useUpdateDoctorSessionMutation() {
       doctorId: string;
       sessionId: string;
       payload: UpdateDoctorSessionPayload;
-    }) => updateDoctorSession(doctorId, sessionId, payload),
-    onSuccess: async (_data, variables) => {
+    }) => {
+      const res = await updateDoctorSession(doctorId, sessionId, payload);
       await syncAllDoctorSchedules(queryClient);
-
+      return res;
+    },
+    onSuccess: (_data, variables) => {
       if (variables.payload.status === SCHEDULE_STATUS.CLOSED) {
         toast.success('Jadwal sesi berhasil ditutup');
       } else if (variables.payload.status === SCHEDULE_STATUS.OPEN) {
@@ -203,7 +212,7 @@ export function useRescheduleDoctorSessionMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       doctorId,
       sessionId,
       payload
@@ -211,9 +220,12 @@ export function useRescheduleDoctorSessionMutation() {
       doctorId: string;
       sessionId: string;
       payload: RescheduleDoctorSessionPayload;
-    }) => rescheduleDoctorSession(doctorId, sessionId, payload),
-    onSuccess: async () => {
+    }) => {
+      const res = await rescheduleDoctorSession(doctorId, sessionId, payload);
       await syncAllDoctorSchedules(queryClient);
+      return res;
+    },
+    onSuccess: () => {
       toast.success('Sesi praktik berhasil di-reschedule');
     },
     onError: (err: unknown) => {

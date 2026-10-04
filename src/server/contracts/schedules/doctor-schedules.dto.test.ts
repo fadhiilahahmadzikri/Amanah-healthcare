@@ -187,7 +187,6 @@ describe('Admin Doctor Schedules Contract DTOs', () => {
     const parsedBuka = updateAdminDayByDatePayloadSchema.parse(payloadBuka);
     expect(parsedBuka.status).toBe('Buka');
 
-    // Canonical backend enum values
     const payloadClosed = { status: 'CLOSED', notes: 'Dokter berhalangan' };
     const parsedClosed = updateAdminDayByDatePayloadSchema.parse(payloadClosed);
     expect(parsedClosed.status).toBe('CLOSED');
@@ -481,7 +480,7 @@ describe('Admin Doctor Schedules Contract DTOs', () => {
         shift: 'morning',
         startTime: '06:00',
         endTime: '12:00',
-        activePatientsCount: 2
+        activeAppointmentsCount: 2
       },
       targetSimulation: {
         targetDate: '2026-09-25',

@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import type { OccupancySlot } from '@/server/contracts/schedules/doctor-schedules.dto';
 import type { DoctorDailySession } from '../../api/types';
 import { STATUS_CONFIG, UI_VARIANT_CONFIG } from '../../utils/shift-slot-builder';
+import { isSlotClosed } from '../../utils/doctor-schedule-predicates';
 
 export type GridSlotData = Partial<OccupancySlot> & {
   startTime: string;
@@ -70,18 +71,9 @@ export function DoctorGridSlotItem({
       (slot.status && STATUS_CONFIG[slot.status]) ||
       UI_VARIANT_CONFIG.neutral_disabled;
 
-  const displayLabel = isFinished ? 'Selesai' : slot.displayLabel;
+  const displayLabel = isFinished ? STATUS_CONFIG.EXPIRED.label : slot.displayLabel;
 
-  const isRescheduled =
-    !isFinished &&
-    (slot.uiStatus === 'RESCHEDULED' || Boolean(slot.reschedule?.isRescheduled));
-
-  const isClosed =
-    !isFinished &&
-    (slot.uiStatus === 'CLOSED_CLINIC' ||
-      slot.uiStatus === 'CLOSED_LEAVE' ||
-      slot.status === 'CLOSED' ||
-      slot.status === 'CLOSED_LEAVE');
+  const isClosed = !isFinished && isSlotClosed(slot);
 
   const slotButton = (
     <button
@@ -104,7 +96,6 @@ export function DoctorGridSlotItem({
         className
       )}
     >
-      {/* In-Slot Loading Overlay */}
       {isSlotUpdating && (
         <div
           role='status'
@@ -115,7 +106,6 @@ export function DoctorGridSlotItem({
         </div>
       )}
 
-      {/* Baris Atas: Jam Mulai & Indikator Titik / Reschedule / Closure */}
       <div className='flex items-center justify-between'>
         <span
           className={cn(
@@ -130,12 +120,6 @@ export function DoctorGridSlotItem({
           {slot.startTime}
         </span>
         <div className='flex items-center gap-1 shrink-0'>
-          {isRescheduled && (
-            <Icons.history
-              className='size-3 text-amber-600 dark:text-amber-400 shrink-0'
-              title={slot.reschedule?.reasonText || 'Sesi dijadwalkan ulang'}
-            />
-          )}
           {isClosed && slot.closure && (
             <Icons.lock
               className='size-2.5 text-rose-600 dark:text-rose-400 shrink-0'
@@ -146,7 +130,6 @@ export function DoctorGridSlotItem({
         </div>
       </div>
 
-      {/* Baris Bawah: Status Label Kanonikal & Jam Selesai */}
       <div className='mt-1 flex items-end justify-between gap-1'>
         <span
           className={cn(
@@ -180,7 +163,7 @@ export function DoctorGridSlotItem({
               <span className='truncate'>{matchingSession.nama_sesi}</span>
               <span className='font-mono text-[9.5px] shrink-0'>{slot.startTime}</span>
             </div>
-            {onOpenPatients && (matchingSession.pasien_terdaftar ?? 0) > 0 && (
+            {!isSessionClosed && onOpenPatients && (matchingSession.pasien_terdaftar ?? 0) > 0 && (
               <button
                 type='button'
                 onClick={(e) => {
@@ -193,7 +176,7 @@ export function DoctorGridSlotItem({
                 <span>Lihat Pasien</span>
               </button>
             )}
-            {onOpenEdit && (
+            {!isSessionClosed && onOpenEdit && (
               <button
                 type='button'
                 onClick={(e) => {
@@ -206,7 +189,7 @@ export function DoctorGridSlotItem({
                 <span>Ubah Sesi</span>
               </button>
             )}
-            {onOpenReschedule && (
+            {!isSessionClosed && matchingSession.is_reschedule_eligible && onOpenReschedule && (
               <button
                 type='button'
                 onClick={(e) => {
@@ -215,7 +198,7 @@ export function DoctorGridSlotItem({
                 }}
                 className='flex items-center gap-2 w-full px-2 py-1.5 rounded-lg text-xs font-semibold hover:bg-muted text-foreground transition-colors cursor-pointer text-left'
               >
-                <Icons.history className='size-3.5 text-amber-600 dark:text-amber-400 shrink-0' />
+                <Icons.history className='size-3.5 text-primary shrink-0' />
                 <span>Reschedule</span>
               </button>
             )}

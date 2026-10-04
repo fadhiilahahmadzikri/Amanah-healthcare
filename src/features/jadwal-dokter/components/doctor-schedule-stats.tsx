@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { DoctorDailySession, DoctorSchedule } from "../api/types";
 import {
+	DOCTOR_CARD_STATUS,
 	getUpcomingScheduleTime,
 } from "../utils/doctor-schedule-card-utils";
 
@@ -36,18 +37,16 @@ export function DoctorScheduleStats({
 	const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 	const isPastDate = Boolean(date && date < todayIso);
 
-	const { labelTime, activeTime, upcomingTime, hasActive, isActiveClosed } =
+	const { activeTime, upcomingTime, hasActive, isActiveClosed } =
 		isPastDate
-			? { labelTime: "Selesai", activeTime: undefined, upcomingTime: "Selesai", hasActive: false, isActiveClosed: false }
+			? { activeTime: undefined, upcomingTime: DOCTOR_CARD_STATUS.SELESAI, hasActive: false, isActiveClosed: false }
 			: getUpcomingScheduleTime(scheduleTime, sessions, doctor);
 	const resolvedUpcoming = isPastDate
-		? "Selesai"
+		? DOCTOR_CARD_STATUS.SELESAI
 		: doctor?.jadwal_praktik_mendatang ||
 		upcomingScheduleTime ||
 		upcomingTime ||
-		labelTime ||
-		doctor?.jadwal_hari_ini ||
-		"Belum diatur";
+		DOCTOR_CARD_STATUS.BELUM_DIATUR;
 
 	const effectiveTotal =
 		totalCapacity > 0

@@ -8,8 +8,7 @@ import type {
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 import {
   buildShiftsFromTimelineIntervals,
-  buildLocalFallbackShifts,
-  resolveCanonicalShift
+  buildLocalFallbackShifts
 } from '../utils/shift-slot-builder';
 import { overlaySessionsOnShifts } from '../utils/shift-slot-overlay';
 import { isDoctorOnLeaveOnDay } from '../api/service';
@@ -271,7 +270,6 @@ export function useDoctorHourlyGrid({
         doctorId: doctor.id,
         sessionId: closingSession.id,
         payload: {
-          session: resolveCanonicalShift(closingSession.nama_sesi),
           status: SCHEDULE_STATUS.CLOSED,
           status_sesi: SCHEDULE_STATUS.CLOSED,
           notes: SCHEDULE_MUTATION_NOTES.CLOSE_SESSION
@@ -304,7 +302,6 @@ export function useDoctorHourlyGrid({
         doctorId: doctor.id,
         sessionId: session.id,
         payload: {
-          session: resolveCanonicalShift(session.nama_sesi),
           status: SCHEDULE_STATUS.OPEN,
           status_sesi: SCHEDULE_STATUS.OPEN,
           notes: SCHEDULE_MUTATION_NOTES.OPEN_SESSION

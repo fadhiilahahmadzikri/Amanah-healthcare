@@ -42,6 +42,13 @@ export const STATUS_CONFIG: Record<
 		text: "text-muted-foreground",
 		dotBg: "bg-muted-foreground/40",
 	},
+	cuti: {
+		label: "Cuti",
+		cellBg: "bg-sky-500/10 hover:bg-sky-500/20",
+		border: "border-sky-500/30",
+		text: "text-sky-700 dark:text-sky-400",
+		dotBg: "bg-sky-500",
+	},
 };
 
 export interface DoctorCalendarDayCellProps {

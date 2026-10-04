@@ -36,11 +36,9 @@ export interface DoctorRescheduleSessionModalProps {
   onClose: () => void;
   portalContainerRef?: React.RefObject<HTMLElement | null>;
   initialDate?: string;
-  /** The specific grid slot's start time (HH:mm) the admin hovered on. Pre-populates targetStartTime and shown in the session info card. */
   initialStartTime?: string;
 }
 
-// 48 discrete intervals covering 24 hours
 const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
   const h = Math.floor(i / 2);
   const m = i % 2 === 0 ? '00' : '30';
@@ -66,24 +64,40 @@ export function DoctorRescheduleSessionModal({
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
 
-  // Fetch dynamic clinic rooms from PostgreSQL SSOT
   const { data: rooms = [], isLoading: isLoadingRooms } = useQuery(clinicRoomsQueryOptions());
 
-  // Live Pre-Check Reschedule Eligibility via Backend SSOT (only runs when targetStartTime is selected)
+  const hasTarget = Boolean(targetDate && targetStartTime);
+
   const { data: eligibilityData, isFetching: isCheckingEligibility } = useQuery({
-    ...rescheduleEligibilityQueryOptions(doctor?.id || '', session?.id || '', {
-      targetDate,
-      targetStartTime,
-      targetRoomId: targetRoomId || undefined
-    }),
-    enabled: Boolean(isOpen && doctor?.id && session?.id && targetDate && targetStartTime)
+    ...rescheduleEligibilityQueryOptions(
+      doctor?.id || '',
+      session?.id || '',
+      hasTarget
+        ? { targetDate, targetStartTime, targetRoomId: targetRoomId || undefined }
+        : undefined
+    ),
+    enabled: Boolean(
+      isOpen &&
+      doctor?.id &&
+      session?.id &&
+      !rescheduleMutation.isPending &&
+      !rescheduleMutation.isSuccess
+    ),
+    placeholderData: (previous) => previous
   });
 
   useEffect(() => {
     setBannerDismissed(false);
   }, [targetDate, targetStartTime, targetRoomId]);
 
-  const hasConflict = Boolean(targetStartTime && eligibilityData && !eligibilityData.isEligible);
+  const hasActiveAppointments = (eligibilityData?.sourceSession?.activeAppointmentsCount ?? 0) > 0;
+  const hasConflict = Boolean(
+    hasTarget &&
+    eligibilityData &&
+    !eligibilityData.isEligible &&
+    !rescheduleMutation.isPending &&
+    !rescheduleMutation.isSuccess
+  );
   const showConflictBanner = hasConflict && !bannerDismissed;
 
   useEffect(() => {
@@ -101,7 +115,6 @@ export function DoctorRescheduleSessionModal({
     }
   }, [session, initialDate, initialStartTime]);
 
-  // Set default targetRoomId to the session's current room if matched
   useEffect(() => {
     if (session && rooms.length > 0 && !targetRoomId) {
       const currentRoomName = (session.ruang ?? doctor?.ruang_praktik ?? '').trim();
@@ -157,11 +170,12 @@ export function DoctorRescheduleSessionModal({
         payload: {
           targetDate,
           targetStartTime,
+          sourceStartTime: initialStartTime || undefined,
           targetShift: derivedShift,
           targetRoomId: targetRoomId || undefined,
           notes: finalReason,
           reason: finalReason,
-          rescheduleActiveAppointments
+          rescheduleActiveAppointments: hasActiveAppointments && rescheduleActiveAppointments
         }
       },
       {
@@ -181,7 +195,6 @@ export function DoctorRescheduleSessionModal({
       portalContainerRef={portalContainerRef}
     >
       <form onSubmit={handleSubmit} className='relative font-sans space-y-3.5'>
-        {/* Accordion Dropdown Ineligibility/Conflict Banner */}
         <div
           className={cn(
             'grid transition-all duration-300 ease-in-out',
@@ -217,7 +230,6 @@ export function DoctorRescheduleSessionModal({
           </div>
         </div>
 
-        {/* Header Identitas */}
         <div className='flex items-center justify-between gap-3 pb-2.5 border-b border-border/40'>
           <div className='space-y-0.5 min-w-0 flex-1'>
             <h3 className='text-base font-bold text-foreground tracking-tight'>
@@ -240,7 +252,6 @@ export function DoctorRescheduleSessionModal({
           </button>
         </div>
 
-        {/* Sumber Info Sesi Asal (Fluid Full Width) */}
         <div className='w-full p-2.5 rounded-xl bg-muted/30 border border-border/50 text-xs space-y-1.5'>
           <div className='flex items-center justify-between gap-2'>
             <div className='flex items-center gap-1.5 font-semibold text-foreground truncate'>
@@ -262,7 +273,6 @@ export function DoctorRescheduleSessionModal({
           </div>
         </div>
 
-        {/* Record 1: Tanggal Tujuan & Ruang Tujuan (2 Fields Side-by-Side) */}
         <div className='grid grid-cols-2 gap-2.5'>
           <div>
             <Label className='text-xs font-semibold text-foreground/80 block mb-1'>
@@ -329,7 +339,6 @@ export function DoctorRescheduleSessionModal({
           </div>
         </div>
 
-        {/* Record 2: Jam Mulai Baru & Jam Selesai Baru (2 Fields Side-by-Side) */}
         <div className='grid grid-cols-2 gap-2.5'>
           <div>
             <Label className='text-xs font-semibold text-foreground/80 block mb-1'>
@@ -371,7 +380,6 @@ export function DoctorRescheduleSessionModal({
           </div>
         </div>
 
-        {/* Catatan Pemindahan (Opsional) */}
         <div>
           <Label className='text-xs font-semibold text-foreground/80 block mb-1'>
             Catatan Pemindahan <span className='text-muted-foreground font-normal'>(Opsional)</span>
@@ -385,29 +393,29 @@ export function DoctorRescheduleSessionModal({
           />
         </div>
 
-        {/* Checkbox Alihkan Pasien */}
-        <div className='flex items-start gap-2.5 p-2.5 rounded-xl border border-border/50 bg-muted/20'>
-          <Checkbox
-            id='reschedule-active'
-            checked={rescheduleActiveAppointments}
-            onCheckedChange={(checked) => setRescheduleActiveAppointments(Boolean(checked))}
-            className='mt-0.5'
-          />
-          <div className='space-y-0.5'>
-            <Label
-              htmlFor='reschedule-active'
-              className='text-xs font-bold text-foreground cursor-pointer'
-            >
-              Alihkan antrean pasien terdaftar secara otomatis
-            </Label>
-            <p className='text-[11px] text-muted-foreground leading-relaxed'>
-              Seluruh janji temu pasien yang sudah booking pada jam ini akan otomatis dialihkan ke
-              jadwal baru.
-            </p>
+        {hasActiveAppointments && (
+          <div className='flex items-start gap-2.5 p-2.5 rounded-xl border border-border/50 bg-muted/20'>
+            <Checkbox
+              id='reschedule-active'
+              checked={rescheduleActiveAppointments}
+              onCheckedChange={(checked) => setRescheduleActiveAppointments(Boolean(checked))}
+              className='mt-0.5'
+            />
+            <div className='space-y-0.5'>
+              <Label
+                htmlFor='reschedule-active'
+                className='text-xs font-bold text-foreground cursor-pointer'
+              >
+                Alihkan antrean pasien terdaftar secara otomatis
+              </Label>
+              <p className='text-[11px] text-muted-foreground leading-relaxed'>
+                Seluruh janji temu pasien yang sudah booking pada jam ini akan otomatis dialihkan ke
+                jadwal baru.
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Conflict Error Message Display */}
         {rescheduleMutation.isError && (
           <div className='p-2.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs space-y-1'>
             <div className='flex items-center gap-1.5 font-bold'>
@@ -421,7 +429,6 @@ export function DoctorRescheduleSessionModal({
           </div>
         )}
 
-        {/* Footer Actions */}
         <div className='pt-2 flex items-center justify-end gap-2.5 border-t border-border/40'>
           <Button
             type='button'

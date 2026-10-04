@@ -5,7 +5,8 @@ import { doctorScheduleKeys } from './query-keys';
 import {
   normalizeScheduleShift,
   resolveShiftFromTime,
-  SCHEDULE_SHIFT
+  SCHEDULE_SHIFT,
+  SCHEDULE_STATUS
 } from '../constants/schedule-shift.constants';
 import {
   adminDoctorScheduleListResponseSchema,
@@ -97,7 +98,7 @@ describe('Doctor Schedule Business Logic & Leave Resolution', () => {
 describe('Upcoming Schedule Time Evaluation', () => {
   it('returns default schedule time if sessions array is empty', () => {
     const result = getUpcomingScheduleTime('08:00 - 12:00', []);
-    expect(result.labelTime).toBe('08.00 – 08.30');
+    expect(result.upcomingTime).toBe('08.00 – 08.30');
   });
 
   it('extracts session label from available non-cuti sessions', () => {
@@ -409,7 +410,7 @@ describe('Occupancy Overview Session Status Mapping', () => {
         nama_sesi: 'Dini Hari',
         jam_mulai: '00:00',
         jam_selesai: '00:30',
-        status_sesi: 'Tutup',
+        status_sesi: SCHEDULE_STATUS.CLOSED,
         slot_tersedia: 0
       }
     ]);
@@ -431,7 +432,7 @@ describe('Occupancy Overview Session Status Mapping', () => {
         nama_sesi: 'Pagi',
         jam_mulai: '08:00',
         jam_selesai: '08:30',
-        status_sesi: 'Cuti',
+        status_sesi: SCHEDULE_STATUS.CUTI,
         slot_tersedia: 0
       }
     ]);
@@ -450,7 +451,7 @@ describe('Occupancy Overview Session Status Mapping', () => {
         nama_sesi: 'Siang',
         jam_mulai: '13:00',
         jam_selesai: '13:30',
-        status_sesi: 'Buka',
+        status_sesi: SCHEDULE_STATUS.OPEN,
         slot_tersedia: 5
       }
     ]);
@@ -464,26 +465,16 @@ describe('Occupancy Overview Session Status Mapping', () => {
 });
 
 describe('Time-Based Shift Resolution (resolveShiftFromTime)', () => {
-  it('correctly maps 00:30 and midnight hours to DINI_HARI', () => {
-    expect(normalizeScheduleShift('00:30')).toBe(SCHEDULE_SHIFT.DINI_HARI);
+  it('correctly maps hours across shifts', () => {
     expect(resolveShiftFromTime('00:30')).toBe(SCHEDULE_SHIFT.DINI_HARI);
     expect(resolveShiftFromTime('02:00')).toBe(SCHEDULE_SHIFT.DINI_HARI);
     expect(resolveShiftFromTime('05:59')).toBe(SCHEDULE_SHIFT.DINI_HARI);
-  });
-
-  it('correctly maps morning hours to PAGI', () => {
     expect(resolveShiftFromTime('06:00')).toBe(SCHEDULE_SHIFT.PAGI);
     expect(resolveShiftFromTime('08:30')).toBe(SCHEDULE_SHIFT.PAGI);
     expect(resolveShiftFromTime('11:59')).toBe(SCHEDULE_SHIFT.PAGI);
-  });
-
-  it('correctly maps afternoon hours to SIANG', () => {
     expect(resolveShiftFromTime('12:00')).toBe(SCHEDULE_SHIFT.SIANG);
     expect(resolveShiftFromTime('14:30')).toBe(SCHEDULE_SHIFT.SIANG);
     expect(resolveShiftFromTime('17:59')).toBe(SCHEDULE_SHIFT.SIANG);
-  });
-
-  it('correctly maps evening and night hours to MALAM', () => {
     expect(resolveShiftFromTime('18:00')).toBe(SCHEDULE_SHIFT.MALAM);
     expect(resolveShiftFromTime('20:00')).toBe(SCHEDULE_SHIFT.MALAM);
     expect(resolveShiftFromTime('23:30')).toBe(SCHEDULE_SHIFT.MALAM);
@@ -491,11 +482,12 @@ describe('Time-Based Shift Resolution (resolveShiftFromTime)', () => {
 
   it('preserves existing canonical shift name and aliases', () => {
     expect(normalizeScheduleShift('DINI_HARI')).toBe(SCHEDULE_SHIFT.DINI_HARI);
-    expect(normalizeScheduleShift('EARLY_MORNING')).toBe(SCHEDULE_SHIFT.DINI_HARI);
-    expect(normalizeScheduleShift('Sesi Dini Hari')).toBe(SCHEDULE_SHIFT.DINI_HARI);
+    expect(normalizeScheduleShift('early_morning')).toBe(SCHEDULE_SHIFT.DINI_HARI);
     expect(normalizeScheduleShift('PAGI')).toBe(SCHEDULE_SHIFT.PAGI);
-    expect(normalizeScheduleShift('MORNING')).toBe(SCHEDULE_SHIFT.PAGI);
+    expect(normalizeScheduleShift('morning')).toBe(SCHEDULE_SHIFT.PAGI);
     expect(normalizeScheduleShift('SIANG')).toBe(SCHEDULE_SHIFT.SIANG);
+    expect(normalizeScheduleShift('afternoon')).toBe(SCHEDULE_SHIFT.SIANG);
     expect(normalizeScheduleShift('MALAM')).toBe(SCHEDULE_SHIFT.MALAM);
+    expect(normalizeScheduleShift('night')).toBe(SCHEDULE_SHIFT.MALAM);
   });
 });

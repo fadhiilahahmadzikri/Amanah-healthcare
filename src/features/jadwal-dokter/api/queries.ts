@@ -99,7 +99,7 @@ export const rescheduleEligibilityQueryOptions = (
     queryKey: ['schedules', 'reschedule-eligibility', id, sessionId, params] as const,
     queryFn: () => checkRescheduleEligibility(id, sessionId, params),
     staleTime: 5 * 1000,
-    enabled: Boolean(id && sessionId && params?.targetDate && params?.targetStartTime)
+    enabled: Boolean(id && sessionId)
   });
 
 export const sessionPatientsQueryOptions = (

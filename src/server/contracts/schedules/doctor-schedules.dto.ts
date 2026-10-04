@@ -194,7 +194,6 @@ export const timelineIntervalSchema = z.object({
 			"AVAILABLE",
 			"OCCUPIED",
 			"OCCUPIED_BY_OTHER",
-			"RESCHEDULED",
 			"CLOSED_LEAVE",
 			"CLOSED_CLINIC",
 		])
@@ -210,7 +209,6 @@ export const timelineIntervalSchema = z.object({
 			"success_green",
 			"info_blue",
 			"purple_other",
-			"warning_amber",
 			"sky_badge",
 			"danger_red",
 		])
@@ -294,7 +292,6 @@ export const occupancySlotSchema = z
 				"AVAILABLE",
 				"OCCUPIED",
 				"OCCUPIED_BY_OTHER",
-				"RESCHEDULED",
 				"CLOSED_LEAVE",
 				"CLOSED_CLINIC",
 			])
@@ -310,7 +307,6 @@ export const occupancySlotSchema = z
 				"success_green",
 				"info_blue",
 				"purple_other",
-				"warning_amber",
 				"sky_badge",
 				"danger_red",
 			])
@@ -583,6 +579,7 @@ export type DeleteAdminDoctorSessionResponse = z.infer<
 export const rescheduleAdminDoctorSessionPayloadSchema = z.object({
 	targetDate: z.string(),
 	targetStartTime: z.string(),
+	sourceStartTime: z.string().optional(),
 	targetShift: z.string().optional(),
 	targetScheduleContextId: z.string().optional(),
 	targetRoomId: z.string().optional(),
@@ -624,7 +621,7 @@ export const rescheduleEligibilityDataSchema = z
 				timeRange: z.string().optional(),
 				startTime: z.string().optional(),
 				endTime: z.string().optional(),
-				activePatientsCount: z.number().optional(),
+				activeAppointmentsCount: z.number().optional(),
 			})
 			.optional(),
 		targetSimulation: z

@@ -1,8 +1,5 @@
 import type { DoctorSchedule } from "../api/types";
-import {
-	SCHEDULE_STATUS,
-	SCHEDULE_STATUS_LABELS,
-} from "../constants/schedule-shift.constants";
+import { SCHEDULE_STATUS } from "../constants/schedule-shift.constants";
 
 export function isDoctorOnLeaveOnDay(
 	doctor?: DoctorSchedule,
@@ -14,21 +11,9 @@ export function isDoctorOnLeaveOnDay(
 		(day) => day.day === dayNumber,
 	);
 
-	if (
-		monthlyItem?.status === SCHEDULE_STATUS.CUTI ||
-		monthlyItem?.status === SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.CUTI]
-	) {
-		return {
-			isLeave: true,
-			reason:
-				(monthlyItem.notes as string) ||
-				(doctor.cuti_reason as string) ||
-				"Cuti Dokter",
-		};
-	}
+	const monthlyStatus = (monthlyItem?.status || "").toUpperCase();
 
-	const notes = (monthlyItem?.notes || "").toLowerCase();
-	if (notes.includes("cuti") || notes.includes("leave")) {
+	if (monthlyStatus === SCHEDULE_STATUS.CUTI) {
 		return {
 			isLeave: true,
 			reason:
@@ -38,11 +23,7 @@ export function isDoctorOnLeaveOnDay(
 		};
 	}
 
-	if (
-		monthlyItem &&
-		(monthlyItem.status === SCHEDULE_STATUS.OPEN ||
-			monthlyItem.status === SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.OPEN])
-	) {
+	if (monthlyItem && monthlyStatus === SCHEDULE_STATUS.OPEN) {
 		if (doctor.cuti_start && doctor.cuti_end) {
 			const startDay = extractDayNumber(doctor.cuti_start);
 			const endDay = extractDayNumber(doctor.cuti_end);
@@ -56,13 +37,13 @@ export function isDoctorOnLeaveOnDay(
 		return { isLeave: false };
 	}
 
+	const docStatus = (doctor.status_dokter || "").toUpperCase();
+	const schedStatus = (doctor.status_jadwal || "").toUpperCase();
+
 	const isDoctorOnLeave = Boolean(
 		doctor.is_cuti ||
-			doctor.status_dokter === SCHEDULE_STATUS.CUTI ||
-			doctor.status_dokter === SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.CUTI] ||
-			doctor.status_jadwal === SCHEDULE_STATUS.CUTI ||
-			doctor.status_jadwal === SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.CUTI] ||
-			doctor.status_jadwal === "Cuti / Tutup",
+			docStatus === SCHEDULE_STATUS.CUTI ||
+			schedStatus === SCHEDULE_STATUS.CUTI,
 	);
 
 	if (!isDoctorOnLeave) return { isLeave: false };
@@ -92,7 +73,7 @@ export function extractDayNumber(dateStr: string): number | null {
 	return Number.isNaN(day) ? null : day;
 }
 
-export type SimpleScheduleStatus = "buka" | "selesai" | "tutup";
+export type SimpleScheduleStatus = "buka" | "selesai" | "cuti" | "tutup";
 
 export function resolveDayStatus(
 	dayNumber: number,
@@ -100,21 +81,21 @@ export function resolveDayStatus(
 ): SimpleScheduleStatus {
 	if (!doctor) return "tutup";
 
+	const leaveCheck = isDoctorOnLeaveOnDay(doctor, dayNumber);
+	if (leaveCheck.isLeave) {
+		return "cuti";
+	}
+
 	const monthlyItem = doctor.monthly_schedule?.find((d) => d.day === dayNumber);
 	if (monthlyItem) {
 		const raw = (monthlyItem.dayStatus || monthlyItem.status || "").trim().toUpperCase();
-		if (
-			raw === SCHEDULE_STATUS.CLOSED ||
-			raw === SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.CLOSED].toUpperCase()
-		) {
+		if (raw === SCHEDULE_STATUS.CUTI) {
+			return "cuti";
+		}
+		if (raw === SCHEDULE_STATUS.CLOSED) {
 			return "tutup";
 		}
-		if (
-			raw === SCHEDULE_STATUS.OPEN ||
-			raw === SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.OPEN].toUpperCase() ||
-			raw === SCHEDULE_STATUS.OCCUPIED ||
-			raw === SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.OCCUPIED].toUpperCase()
-		) {
+		if (raw === SCHEDULE_STATUS.OPEN || raw === SCHEDULE_STATUS.OCCUPIED) {
 			return "buka";
 		}
 		return "tutup";
@@ -122,13 +103,13 @@ export function resolveDayStatus(
 
 	if (!doctor.monthly_schedule || doctor.monthly_schedule.length === 0) {
 		if (
-			doctor.sesi_harian?.some(
-				(s) =>
-					(s.status_sesi || "").toUpperCase() === SCHEDULE_STATUS.OPEN ||
-					(s.status_sesi || "").toUpperCase() ===
-						SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.OPEN].toUpperCase() ||
-					(s.status_sesi || "").toUpperCase() === SCHEDULE_STATUS.OCCUPIED,
-			)
+			doctor.sesi_harian?.some((s) => {
+				const sStatus = (s.status_sesi || "").toUpperCase();
+				return (
+					sStatus === SCHEDULE_STATUS.OPEN ||
+					sStatus === SCHEDULE_STATUS.OCCUPIED
+				);
+			})
 		) {
 			return "buka";
 		}
@@ -136,10 +117,6 @@ export function resolveDayStatus(
 		const rawDocStatus = (doctor.status_dokter || "").trim().toUpperCase();
 		if (
 			rawDocStatus === SCHEDULE_STATUS.OPEN ||
-			rawDocStatus ===
-				SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.OPEN].toUpperCase() ||
-			rawDocStatus ===
-				SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.OCCUPIED].toUpperCase() ||
 			rawDocStatus === SCHEDULE_STATUS.OCCUPIED
 		) {
 			return "buka";

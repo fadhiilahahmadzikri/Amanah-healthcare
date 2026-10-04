@@ -14,7 +14,8 @@ import {
   SHIFT_OPERATIONAL_STATUS,
   SLOT_UI_STATUS,
   SLOT_UI_VARIANT,
-  SLOT_ACTION_TYPE
+  SLOT_ACTION_TYPE,
+  SCHEDULE_STATUS
 } from '../constants/schedule-shift.constants';
 
 describe('Doctor Schedule & Occupancy SSOT Hierarchy', () => {
@@ -22,19 +23,19 @@ describe('Doctor Schedule & Occupancy SSOT Hierarchy', () => {
     id: 'doc-1',
     nama_dokter: 'dr. Ahmad Pratama',
     spesialisasi: 'Dokter Umum',
-    status_dokter: 'Tutup',
+    status_dokter: SCHEDULE_STATUS.CLOSED,
     slot_tersedia: 0,
     kapasitas_per_hari: 0,
     jadwal_hari_ini: '',
-    status_jadwal: 'Tutup',
+    status_jadwal: SCHEDULE_STATUS.CLOSED,
     bulan_jadwal: 'September 2026',
     ruang_praktik: 'Poli Umum 1',
     avatar: '',
     sesi_harian: [],
     monthly_schedule: [
-      { day: 24, status: 'Tutup' },
-      { day: 25, status: 'Buka' },
-      { day: 26, status: 'Cuti' }
+      { day: 24, status: SCHEDULE_STATUS.CLOSED },
+      { day: 25, status: SCHEDULE_STATUS.OPEN },
+      { day: 26, status: SCHEDULE_STATUS.CUTI }
     ]
   };
 
@@ -49,13 +50,12 @@ describe('Doctor Schedule & Occupancy SSOT Hierarchy', () => {
       expect(status).toBe('buka');
     });
 
-    it('resolves day 26 as "tutup" when set to Cuti in monthly_schedule', () => {
+    it('resolves day 26 as "cuti" when set to Cuti in monthly_schedule', () => {
       const status = resolveDayStatus(26, baseDoctor);
-      expect(status).toBe('tutup');
+      expect(status).toBe('cuti');
     });
 
     it('resolves unconfigured days (not present in monthly_schedule) as "tutup" without fallback to buka', () => {
-      // Day 10 is not configured for this doctor
       const status = resolveDayStatus(10, baseDoctor);
       expect(status).toBe('tutup');
     });
@@ -69,8 +69,8 @@ describe('Doctor Schedule & Occupancy SSOT Hierarchy', () => {
       const rescheduledDoctor: DoctorSchedule = {
         ...baseDoctor,
         monthly_schedule: [
-          { day: 25, status: 'Tutup' },
-          { day: 26, status: 'Buka' }
+          { day: 25, status: SCHEDULE_STATUS.CLOSED },
+          { day: 26, status: SCHEDULE_STATUS.OPEN }
         ]
       };
       expect(resolveDayStatus(25, rescheduledDoctor)).toBe('tutup');
@@ -81,10 +81,9 @@ describe('Doctor Schedule & Occupancy SSOT Hierarchy', () => {
   describe('generateFallbackSlots (Default slot initialization)', () => {
     it('initializes all unassigned slots as CLOSED (Tutup), NEVER AVAILABLE (Buka)', () => {
       const { slots, totalSlots } = generateFallbackSlots(0, 6);
-      expect(totalSlots).toBe(12); // 6 hours * 2 slots/hr
+      expect(totalSlots).toBe(12);
       expect(slots).toHaveLength(12);
 
-      // Verify that every unassigned slot is strictly CLOSED and unavailable
       for (const slot of slots) {
         expect(slot.isAvailable).toBe(false);
         expect(slot.status).toBe('CLOSED');
@@ -100,7 +99,6 @@ describe('Doctor Schedule & Occupancy SSOT Hierarchy', () => {
       expect(overview.summary.availableSlots).toBe(0);
       expect(overview.summary.occupiedSlots).toBe(0);
 
-      // All shifts must have 0 availableSlotsCount
       for (const shift of overview.shifts) {
         expect(shift.availableSlotsCount).toBe(0);
       }
@@ -115,7 +113,7 @@ describe('Doctor Schedule & Occupancy SSOT Hierarchy', () => {
           jam_selesai: '00:30',
           kuota_pasien: 1,
           slot_tersedia: 0,
-          status_sesi: 'Tutup' as const,
+          status_sesi: SCHEDULE_STATUS.CLOSED,
           ruang: 'Poli Umum 1'
         },
         {
@@ -125,7 +123,7 @@ describe('Doctor Schedule & Occupancy SSOT Hierarchy', () => {
           jam_selesai: '06:30',
           kuota_pasien: 1,
           slot_tersedia: 0,
-          status_sesi: 'Tutup' as const,
+          status_sesi: SCHEDULE_STATUS.CLOSED,
           ruang: 'Poli Umum 1'
         }
       ];
@@ -133,18 +131,15 @@ describe('Doctor Schedule & Occupancy SSOT Hierarchy', () => {
       const overview = generateFallbackOccupancyOverview('2026-09-24', 'doc-1', closedSessions);
       expect(overview.summary.availableSlots).toBe(0);
 
-      // Early morning shift (00:00 - 06:00) contains sess-1 which is closed
       const earlyMorning = overview.shifts.find((s) => s.contextId === 'early_morning');
       expect(earlyMorning).toBeDefined();
       expect(earlyMorning!.availableSlotsCount).toBe(0);
 
-      // The slot 00:00 - 00:30 must be CLOSED
       const firstSlot = earlyMorning!.slots.find((s) => s.startTime === '00:00');
       expect(firstSlot?.status).toBe('CLOSED');
       expect(firstSlot?.displayLabel).toBe('Tutup');
       expect(firstSlot?.isAvailable).toBe(false);
 
-      // Unassigned slot 00:30 - 01:00 must also be CLOSED, not AVAILABLE
       const secondSlot = earlyMorning!.slots.find((s) => s.startTime === '00:30');
       expect(secondSlot?.status).toBe('CLOSED');
       expect(secondSlot?.displayLabel).toBe('Tutup');
@@ -160,7 +155,7 @@ describe('Doctor Schedule & Occupancy SSOT Hierarchy', () => {
           jam_selesai: '09:00',
           kuota_pasien: 4,
           slot_tersedia: 3,
-          status_sesi: 'Buka' as const,
+          status_sesi: SCHEDULE_STATUS.OPEN,
           ruang: 'Poli Umum 1'
         }
       ];
@@ -176,7 +171,6 @@ describe('Doctor Schedule & Occupancy SSOT Hierarchy', () => {
       expect(activeSlot?.isAvailable).toBe(true);
       expect(activeSlot?.displayLabel).toBe('Buka');
 
-      // But an unassigned slot in the same shift must still be CLOSED
       const unassignedSlot = morningShift!.slots.find((s) => s.startTime === '07:00');
       expect(unassignedSlot?.status).toBe('CLOSED');
       expect(unassignedSlot?.isAvailable).toBe(false);
@@ -268,39 +262,32 @@ describe('Doctor Schedule & Occupancy SSOT Hierarchy', () => {
       const slots = morningShift!.slots;
       expect(slots).toHaveLength(4);
 
-      // 1. UNSCHEDULED slot
       expect(slots[0].status).toBe('UNSCHEDULED');
       expect(slots[0].displayLabel).toBe('Belum Terjadwal');
       expect(slots[0].isAvailable).toBe(false);
 
-      // 2. AVAILABLE slot
       expect(slots[1].status).toBe('AVAILABLE');
       expect(slots[1].displayLabel).toBe('Tersedia');
       expect(slots[1].isAvailable).toBe(true);
 
-      // 3. OCCUPIED slot
       expect(slots[2].status).toBe('OCCUPIED');
       expect(slots[2].displayLabel).toContain('Ny. Siti Rahma');
       expect(slots[2].appointmentRef?.patientName).toBe('Ny. Siti Rahma');
 
-      // 4. CLOSED slot with reschedule and closure metadata
       expect(slots[3].status).toBe('CLOSED');
       expect(slots[3].displayLabel).toBe('Rapat Komite Medis');
       expect(slots[3].closure?.reasonCode).toBe('MEETING');
       expect(slots[3].reschedule?.isRescheduled).toBe(true);
 
-      // Check metrics calculation
       expect(morningShift!.metrics).toBeDefined();
       expect(morningShift!.metrics!.totalSlots).toBe(4);
       expect(morningShift!.metrics!.unscheduledSlots).toBe(1);
       expect(morningShift!.metrics!.availableSlots).toBe(1);
       expect(morningShift!.metrics!.occupiedSlots).toBe(1);
       expect(morningShift!.metrics!.closedSlots).toBe(1);
-      expect(morningShift!.metrics!.scheduledSlots).toBe(3); // 1 available + 1 occupied + 1 closed
+      expect(morningShift!.metrics!.scheduledSlots).toBe(3);
 
-      // Coverage: 3 / 4 = 75%
       expect(morningShift!.metrics!.scheduleCoverage.percentage).toBe(75);
-      // Occupancy: 1 / 2 = 50%
       expect(morningShift!.metrics!.occupancy.percentage).toBe(50);
     });
 
@@ -316,14 +303,13 @@ describe('Doctor Schedule & Occupancy SSOT Hierarchy', () => {
       }
     });
 
-    it('UI_VARIANT_CONFIG defines all 8 canonical UI-ready variants from backend changelog', () => {
+    it('UI_VARIANT_CONFIG defines all canonical UI-ready variants from backend contract', () => {
       const expectedVariants = [
         'neutral_disabled',
         'dashed_border',
         'muted_gray',
         'success_green',
         'info_blue',
-        'warning_amber',
         'sky_badge',
         'danger_red'
       ];

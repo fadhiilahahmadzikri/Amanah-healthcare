@@ -3,7 +3,6 @@ import {
 	AVAILABILITY_STATE,
 	EFFECTIVE_SLOT_STATUS,
 	SCHEDULE_STATUS,
-	SCHEDULE_STATUS_LABELS,
 	SLOT_ACTION_TYPE,
 	SLOT_UI_STATUS,
 } from "../constants/schedule-shift.constants";
@@ -86,16 +85,15 @@ export function isSlotClosed(slot: {
 	const avail = (slot.availabilityState || "").toUpperCase();
 	const eff = (slot.effectiveStatus || "").toUpperCase();
 	const ui = (slot.uiStatus || "").toUpperCase();
-	const closedLabel =
-		SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.CLOSED].toUpperCase();
 
 	return (
 		status === SCHEDULE_STATUS.CLOSED ||
 		status === SLOT_UI_STATUS.CLOSED_LEAVE ||
-		status === closedLabel ||
+		status === SLOT_UI_STATUS.CLOSED_CLINIC ||
 		avail === AVAILABILITY_STATE.CLOSED ||
 		eff === EFFECTIVE_SLOT_STATUS.CLOSED ||
-		ui.startsWith(SCHEDULE_STATUS.CLOSED) ||
+		ui === SLOT_UI_STATUS.CLOSED_LEAVE ||
+		ui === SLOT_UI_STATUS.CLOSED_CLINIC ||
 		Boolean(slot.closure) ||
 		Boolean(slot.closureInfo) ||
 		Boolean(slot.closedReason)
@@ -114,12 +112,10 @@ export function isSlotAvailable(slot: {
 	const status = (slot.status || "").toUpperCase();
 	const avail = (slot.availabilityState || "").toUpperCase();
 	const eff = (slot.effectiveStatus || "").toUpperCase();
-	const openLabel = SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.OPEN].toUpperCase();
 
 	return (
 		status === AVAILABILITY_STATE.AVAILABLE ||
 		status === SCHEDULE_STATUS.OPEN ||
-		status === openLabel ||
 		avail === AVAILABILITY_STATE.AVAILABLE ||
 		eff === EFFECTIVE_SLOT_STATUS.AVAILABLE
 	);
@@ -151,9 +147,7 @@ export function getDoctorCardStatus(
 
 	if (
 		statusDokter === SCHEDULE_STATUS.CUTI ||
-		statusDokter === "CUTI" ||
-		statusJadwal === SCHEDULE_STATUS.CUTI ||
-		statusJadwal === "CUTI"
+		statusJadwal === SCHEDULE_STATUS.CUTI
 	) {
 		return DOCTOR_CARD_STATUS.CUTI;
 	}
@@ -164,11 +158,7 @@ export function getDoctorCardStatus(
 
 	if (
 		statusDokter === SCHEDULE_STATUS.CLOSED ||
-		statusDokter === "CLOSED" ||
-		statusDokter === "TUTUP" ||
-		statusJadwal === SCHEDULE_STATUS.CLOSED ||
-		statusJadwal === "CLOSED" ||
-		statusJadwal === "TUTUP"
+		statusJadwal === SCHEDULE_STATUS.CLOSED
 	) {
 		return DOCTOR_CARD_STATUS.TUTUP;
 	}
@@ -182,13 +172,7 @@ export function getDoctorCardStatus(
 
 	if (
 		statusDokter === SCHEDULE_STATUS.OCCUPIED ||
-		statusDokter === "OCCUPIED" ||
-		statusDokter === "TERISI" ||
-		statusDokter === "PENUH" ||
 		statusJadwal === SCHEDULE_STATUS.OCCUPIED ||
-		statusJadwal === "OCCUPIED" ||
-		statusJadwal === "TERISI" ||
-		statusJadwal === "PENUH" ||
 		(doctor.slot_tersedia !== undefined && doctor.slot_tersedia <= 0)
 	) {
 		return DOCTOR_CARD_STATUS.TERISI;

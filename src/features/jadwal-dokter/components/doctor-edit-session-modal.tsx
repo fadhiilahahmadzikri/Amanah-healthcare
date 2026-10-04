@@ -41,7 +41,6 @@ export interface DoctorEditSessionModalProps {
   targetDate?: string;
 }
 
-// 48 discrete intervals covering 24 hours (00:00 - 23:30)
 const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
   const h = Math.floor(i / 2);
   const m = i % 2 === 0 ? '00' : '30';
@@ -51,19 +50,10 @@ const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
 function normalizeRoomValue(rawRoom: string | undefined | null, roomList: ClinicRoom[]): string {
   if (!rawRoom) return '';
   const trimmed = rawRoom.trim();
-  const exact = roomList.find((r) => r.name.toLowerCase() === trimmed.toLowerCase());
-  if (exact) return exact.name;
-  const byId = roomList.find((r) => r.id.toLowerCase() === trimmed.toLowerCase());
-  if (byId) return byId.name;
-  const startsWith = roomList.find((r) => trimmed.toLowerCase().startsWith(r.name.toLowerCase()));
-  if (startsWith) return startsWith.name;
-  const partial = roomList.find(
-    (r) =>
-      r.name.toLowerCase().includes(trimmed.toLowerCase()) ||
-      trimmed.toLowerCase().includes(r.name.toLowerCase())
+  const match = roomList.find(
+    (r) => r.name.toLowerCase() === trimmed.toLowerCase() || r.id.toLowerCase() === trimmed.toLowerCase()
   );
-  if (partial) return partial.name;
-  return trimmed;
+  return match ? match.name : trimmed;
 }
 
 function calculateProjectedEndTime(startTime: string, durationMinutes = 30): string {
@@ -102,19 +92,16 @@ export function DoctorEditSessionModal({
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   }, [targetDate, session?.tanggal]);
 
-  // 1. Dynamic clinic rooms from master database
   const { data: rooms = [], isLoading: isLoadingRooms } = useQuery({
     ...clinicRoomsQueryOptions(),
     enabled: isOpen
   });
 
-  // 2. Dynamic schedule contexts from backend SSOT
   const { data: contexts = [] } = useQuery({
     ...scheduleContextsQueryOptions(sessionDate),
     enabled: Boolean(isOpen && sessionDate)
   });
 
-  // 3. Resolve active context dynamically from backend contexts
   const activeContext = useMemo(() => {
     return contexts.find((c) => {
       const start = c.startTime;
@@ -123,7 +110,6 @@ export function DoctorEditSessionModal({
     });
   }, [contexts, jamMulai]);
 
-  // 4. Live Schedule Projection from Backend SSOT
   const { data: projectionData } = useQuery({
     ...scheduleProjectionQueryOptions({
       scheduleContextId: activeContext?.id ?? 'morning',
@@ -240,7 +226,6 @@ export function DoctorEditSessionModal({
       portalContainerRef={portalContainerRef}
     >
       <form onSubmit={handleSubmit} className='relative font-sans space-y-3.5'>
-        {/* Header Identitas */}
         <div className='flex items-center justify-between gap-3 pb-2.5 border-b border-border/40'>
           <div className='space-y-0.5 min-w-0 flex-1'>
             <h3 className='text-base font-bold text-foreground tracking-tight'>Edit Sesi Dokter</h3>
@@ -261,7 +246,6 @@ export function DoctorEditSessionModal({
           </button>
         </div>
 
-        {/* Sumber Info Sesi Saat Ini (Fluid Full Width) */}
         <div className='w-full p-2.5 rounded-xl bg-muted/30 border border-border/50 text-xs space-y-1.5'>
           <div className='flex items-center justify-between gap-2'>
             <div className='flex items-center gap-1.5 font-semibold text-foreground truncate'>
@@ -280,7 +264,6 @@ export function DoctorEditSessionModal({
           </div>
         </div>
 
-        {/* Record 1: Jam Mulai & Jam Selesai (2 Kolom Side-by-Side) */}
         <div className='grid grid-cols-2 gap-2.5'>
           <div>
             <Label className='text-xs font-semibold text-foreground/80 block mb-1'>Jam Mulai</Label>
@@ -315,7 +298,6 @@ export function DoctorEditSessionModal({
           </div>
         </div>
 
-        {/* Record 2: Ruang Praktik & Kuota Pasien (2 Kolom Side-by-Side) */}
         <div className='grid grid-cols-2 gap-2.5'>
           <div>
             <Label className='text-xs font-semibold text-foreground/80 block mb-1'>
@@ -371,7 +353,6 @@ export function DoctorEditSessionModal({
           </div>
         </div>
 
-        {/* Footer Actions */}
         <div className='pt-2 flex items-center justify-between gap-2.5 border-t border-border/40'>
           {onOpenReschedule ? (
             <Button

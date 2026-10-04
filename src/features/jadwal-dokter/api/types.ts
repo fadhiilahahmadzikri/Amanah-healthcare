@@ -202,6 +202,7 @@ export interface DeleteDoctorSessionResponse {
 export interface RescheduleDoctorSessionPayload {
   targetDate: string;
   targetStartTime: string;
+  sourceStartTime?: string;
   targetScheduleContextId?: string;
   targetShift?: string;
   targetRoomId?: string;
