@@ -22,6 +22,7 @@ import {
   doctorScheduleDetailQueryOptions
 } from '../api/queries';
 import {
+  ALL_SCHEDULE_SHIFTS,
   SCHEDULE_SHIFT,
   SCHEDULE_SHIFT_LABELS,
   SCHEDULE_SHIFT_BOUNDARIES,
@@ -429,27 +430,25 @@ export function DoctorRescheduleSessionModal({
           {step === 'slot' && (
             <div className='space-y-3.5'>
               {/* Shift Selector Switcher */}
-              <div className='flex items-center gap-1.5 p-1 rounded-xl bg-muted/40 border border-border/40'>
-                {([SCHEDULE_SHIFT.PAGI, SCHEDULE_SHIFT.SIANG, SCHEDULE_SHIFT.MALAM] as const).map(
-                  (shiftKey) => {
-                    const isActive = selectedShift === shiftKey;
-                    return (
-                      <button
-                        key={shiftKey}
-                        type='button'
-                        onClick={() => setSelectedShift(shiftKey)}
-                        className={cn(
-                          'flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all text-center cursor-pointer',
-                          isActive
-                            ? 'bg-card text-foreground shadow-xs font-bold'
-                            : 'text-muted-foreground hover:text-foreground'
-                        )}
-                      >
-                        {SCHEDULE_SHIFT_LABELS[shiftKey]}
-                      </button>
-                    );
-                  }
-                )}
+              <div className='grid grid-cols-4 gap-1 p-1 rounded-xl bg-muted/40 border border-border/40'>
+                {ALL_SCHEDULE_SHIFTS.map((shiftKey) => {
+                  const isActive = selectedShift === shiftKey;
+                  return (
+                    <button
+                      key={shiftKey}
+                      type='button'
+                      onClick={() => setSelectedShift(shiftKey)}
+                      className={cn(
+                        'py-1.5 px-1 rounded-lg text-xs font-semibold transition-all text-center cursor-pointer truncate',
+                        isActive
+                          ? 'bg-card text-foreground shadow-xs font-bold'
+                          : 'text-muted-foreground hover:text-foreground'
+                      )}
+                    >
+                      {SCHEDULE_SHIFT_LABELS[shiftKey]}
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Grid of Slots */}
@@ -466,8 +465,7 @@ export function DoctorRescheduleSessionModal({
                   </div>
                   <p className='text-xs font-bold text-foreground'>Tidak ada slot pada sesi ini</p>
                   <p className='text-[11px] text-muted-foreground max-w-xs'>
-                    Silakan beralih ke sesi (Pagi / Siang / Malam) lain untuk melihat ketersediaan
-                    slot.
+                    Silakan beralih ke sesi lain untuk melihat ketersediaan slot.
                   </p>
                 </div>
               ) : (

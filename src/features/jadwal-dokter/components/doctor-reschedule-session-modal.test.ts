@@ -180,5 +180,24 @@ describe('DoctorRescheduleSessionModal Wizard & Collision Architecture', () => {
       expect(hasActive1).toBe(false);
       expect(hasActive2).toBe(true);
     });
+
+    it('renders all canonical schedule shifts including DINI_HARI without hardcoded subset', () => {
+      const {
+        ALL_SCHEDULE_SHIFTS,
+        SCHEDULE_SHIFT,
+        SCHEDULE_SHIFT_LABELS
+      } = require('../constants/schedule-shift.constants');
+
+      expect(ALL_SCHEDULE_SHIFTS).toHaveLength(4);
+      expect(ALL_SCHEDULE_SHIFTS).toContain(SCHEDULE_SHIFT.DINI_HARI);
+      expect(ALL_SCHEDULE_SHIFTS).toContain(SCHEDULE_SHIFT.PAGI);
+      expect(ALL_SCHEDULE_SHIFTS).toContain(SCHEDULE_SHIFT.SIANG);
+      expect(ALL_SCHEDULE_SHIFTS).toContain(SCHEDULE_SHIFT.MALAM);
+
+      expect(SCHEDULE_SHIFT_LABELS[SCHEDULE_SHIFT.DINI_HARI]).toBe('Dini Hari');
+      expect(SCHEDULE_SHIFT_LABELS[SCHEDULE_SHIFT.PAGI]).toBe('Pagi');
+      expect(SCHEDULE_SHIFT_LABELS[SCHEDULE_SHIFT.SIANG]).toBe('Siang');
+      expect(SCHEDULE_SHIFT_LABELS[SCHEDULE_SHIFT.MALAM]).toBe('Malam');
+    });
   });
 });
