@@ -63,7 +63,7 @@ export function StepConfirmation({
         <div className='p-4 rounded-2xl border border-border/70 bg-card/60 space-y-3 shadow-2xs'>
           <div className='flex items-center justify-between pb-3 border-b border-border/30'>
             <div>
-              <span className='text-[11px] font-semibold text-muted-foreground block uppercase tracking-wider'>
+              <span className='text-[11px] font-semibold text-muted-foreground block'>
                 Dokter Bertugas
               </span>
               <span className='text-sm font-bold text-foreground'>

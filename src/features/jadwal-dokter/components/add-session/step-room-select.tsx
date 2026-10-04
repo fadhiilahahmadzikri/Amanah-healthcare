@@ -83,7 +83,7 @@ export function StepRoomSelect({
                     </div>
                   </div>
 
-                  <div className='relative flex items-center gap-2.5 shrink-0 pl-2'>
+                  <div className='flex items-center gap-2 shrink-0 pl-2'>
                     {onViewConflict && (
                       <button
                         type='button'
@@ -92,19 +92,19 @@ export function StepRoomSelect({
                           e.preventDefault();
                           onViewConflict(room);
                         }}
-                        className='absolute right-[calc(100%+8px)] opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto text-[11px] font-semibold text-primary hover:underline hover:text-primary/80 cursor-pointer inline-flex items-center gap-0.5 whitespace-nowrap'
+                        className='opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto text-[11.5px] font-semibold text-primary hover:text-primary/80 hover:underline cursor-pointer inline-flex items-center gap-1 whitespace-nowrap'
                         aria-label={`Lihat dokter di ${room.name}`}
                       >
                         <span>Lihat dokter</span>
-                        <Icons.arrowRight className='size-2.5 stroke-[2.5]' />
+                        <Icons.arrowRight className='size-3 stroke-[2.5]' />
                       </button>
                     )}
 
-                    <span className='inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-destructive/10 text-destructive border border-destructive/20'>
+                    <span className='inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-destructive/10 text-destructive border border-destructive/20 shrink-0'>
                       Terisi
                     </span>
 
-                    <div className='size-5 rounded-full border border-muted-foreground/15 bg-muted/30 flex items-center justify-center' />
+                    <div className='size-5 rounded-full border border-muted-foreground/15 bg-muted/30 flex items-center justify-center shrink-0' />
                   </div>
                 </div>
               );

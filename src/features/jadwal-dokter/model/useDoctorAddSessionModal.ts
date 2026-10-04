@@ -91,10 +91,22 @@ export function useDoctorAddSessionModal({
 
   const doctorStaffId = doctor?.practitioner_id || doctor?.id || '';
 
-  // Query clinic rooms for the chosen date (consistent with Reschedule modal step 2)
+  const directSlotStartTime = initialStartTime || selectedSlot?.time;
+  const directSlotEndTime =
+    initialStartTime && initialEndTime
+      ? computeSafeEndTime(initialStartTime, initialEndTime)
+      : selectedSlot?.endTime;
+
+  const queryStartTime = isDirectSlotMode ? directSlotStartTime : undefined;
+  const queryEndTime = isDirectSlotMode ? directSlotEndTime : undefined;
+
+  // Query clinic rooms for the chosen date & slot time (in direct slot mode, room occupancy is evaluated for that slot)
   const { data: clinicRooms = [], isLoading: isLoadingRooms } = useQuery({
     ...clinicRoomsQueryOptions({
-      date: selectedDate || undefined
+      date: selectedDate || undefined,
+      startTime: queryStartTime,
+      endTime: queryEndTime,
+      excludePractitionerId: doctorStaffId || undefined
     }),
     enabled: Boolean(isOpen && selectedDate)
   });
@@ -113,21 +125,23 @@ export function useDoctorAddSessionModal({
     return detailQuery.data?.sesi_harian || doctor?.sesi_harian || [];
   }, [detailQuery.data?.sesi_harian, doctor?.sesi_harian]);
 
-  // Default room selection matching doctor's assigned room
+  // Default room selection matching doctor's assigned room (only if not occupied)
   const defaultRoomId = useMemo(() => {
     if (rooms.length === 0) return '';
     const doctorRoom = (doctor?.ruang_praktik ?? '').trim().toLowerCase();
     if (doctorRoom) {
       const matched = rooms.find(
         (r) =>
-          r.name.toLowerCase() === doctorRoom ||
-          r.id.toLowerCase() === doctorRoom ||
-          r.name.toLowerCase().startsWith(doctorRoom) ||
-          doctorRoom.startsWith(r.name.toLowerCase())
+          (r.name.toLowerCase() === doctorRoom ||
+            r.id.toLowerCase() === doctorRoom ||
+            r.name.toLowerCase().startsWith(doctorRoom) ||
+            doctorRoom.startsWith(r.name.toLowerCase())) &&
+          !r.isOccupied
       );
       if (matched) return matched.id;
     }
-    return rooms[0]?.id || '';
+    const firstAvailable = rooms.find((r) => !r.isOccupied);
+    return firstAvailable?.id || '';
   }, [rooms, doctor?.ruang_praktik]);
 
   useEffect(() => {
@@ -208,13 +222,21 @@ export function useDoctorAddSessionModal({
 
   const canProceedNext = useMemo(() => {
     if (step === 'date') return Boolean(selectedDate);
-    if (step === 'room') return Boolean(selectedRoomId);
+    if (step === 'room') {
+      const room = rooms.find((r) => r.id === selectedRoomId);
+      return Boolean(room && !room.isOccupied);
+    }
     if (step === 'slot') return Boolean(selectedSlot);
     if (step === 'confirmation') {
-      return Boolean(selectedDate && selectedRoomId && selectedSlot && selectedShift) && !isSubmitting;
+      const room = rooms.find((r) => r.id === selectedRoomId);
+      return (
+        Boolean(selectedDate && selectedRoomId && selectedSlot && selectedShift) &&
+        Boolean(room && !room.isOccupied) &&
+        !isSubmitting
+      );
     }
     return false;
-  }, [step, selectedDate, selectedRoomId, selectedSlot, selectedShift, isSubmitting]);
+  }, [step, selectedDate, selectedRoomId, selectedSlot, selectedShift, rooms, isSubmitting]);
 
   const isFirstStep = isDirectSlotMode ? step === 'room' : step === 'date';
 

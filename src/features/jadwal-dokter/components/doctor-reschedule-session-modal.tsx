@@ -425,6 +425,16 @@ export function DoctorRescheduleSessionModal({
               doctorName={doctor.nama_dokter}
               isLoading={isLoadingRooms}
               showHeader={false}
+              onViewConflict={(room) => {
+                const occupantId =
+                  room.occupantDetails?.practitionerId ||
+                  room.occupantDetails?.staffProfileId;
+                const targetSlotTime =
+                  room.occupantDetails?.startTime || targetStartTime;
+                if (occupantId) {
+                  handleViewOccupantDoctorSchedule(occupantId, targetSlotTime);
+                }
+              }}
             />
           )}
 

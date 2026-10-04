@@ -74,6 +74,7 @@ export function DoctorAddSessionModal({
     isLoadingSlots,
     canProceedNext,
     isFirstStep,
+    isDirectSlotMode,
     handleNext,
     handleBack,
     handleFinalSubmit
@@ -136,7 +137,10 @@ export function DoctorAddSessionModal({
       case 'room':
         return {
           title: 'Pilih Ruangan Praktik',
-          subtitle: `Tentukan ruangan poliklinik tempat ${docName} akan bertugas.`
+          subtitle:
+            isDirectSlotMode && selectedSlot
+              ? `Tentukan ruangan poliklinik untuk jadwal ${selectedSlot.time} - ${selectedSlot.endTime} WIB.`
+              : `Tentukan ruangan poliklinik tempat ${docName} akan bertugas.`
         };
       case 'slot':
         return {
@@ -149,7 +153,7 @@ export function DoctorAddSessionModal({
           subtitle: `Periksa kembali rincian sesi ${docName} sebelum menyimpan jadwal.`
         };
     }
-  }, [step, doctor?.nama_dokter, shiftBounds.timeRange]);
+  }, [step, doctor?.nama_dokter, isDirectSlotMode, selectedSlot, shiftBounds.timeRange]);
 
   if (!doctor) return null;
 
@@ -212,6 +216,16 @@ export function DoctorAddSessionModal({
               doctorName={doctor.nama_dokter}
               isLoading={isLoadingRooms}
               showHeader={false}
+              onViewConflict={(room) => {
+                const occupantId =
+                  room.occupantDetails?.practitionerId ||
+                  room.occupantDetails?.staffProfileId;
+                const targetSlotTime =
+                  room.occupantDetails?.startTime || selectedSlot?.time;
+                if (occupantId) {
+                  handleViewOccupantDoctorSchedule(occupantId, targetSlotTime);
+                }
+              }}
             />
           )}
 
