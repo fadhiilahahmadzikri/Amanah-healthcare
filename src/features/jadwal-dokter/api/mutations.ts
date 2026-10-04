@@ -144,11 +144,10 @@ export function useCreateDoctorSessionMutation() {
       doctorId: string;
       payload: CreateDoctorSessionPayload;
     }) => {
-      const res = await createDoctorSession(doctorId, payload);
-      await syncAllDoctorSchedules(queryClient);
-      return res;
+      return await createDoctorSession(doctorId, payload);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      await syncAllDoctorSchedules(queryClient);
       toast.success('Sesi praktik baru berhasil ditambahkan');
     },
     onError: (err: unknown) => {
@@ -171,11 +170,10 @@ export function useUpdateDoctorSessionMutation() {
       sessionId: string;
       payload: UpdateDoctorSessionPayload;
     }) => {
-      const res = await updateDoctorSession(doctorId, sessionId, payload);
-      await syncAllDoctorSchedules(queryClient);
-      return res;
+      return await updateDoctorSession(doctorId, sessionId, payload);
     },
-    onSuccess: (_data, variables) => {
+    onSuccess: async (_data, variables) => {
+      await syncAllDoctorSchedules(queryClient);
       if (variables.payload.status === SCHEDULE_STATUS.CLOSED) {
         toast.success('Jadwal sesi berhasil ditutup');
       } else if (variables.payload.status === SCHEDULE_STATUS.OPEN) {

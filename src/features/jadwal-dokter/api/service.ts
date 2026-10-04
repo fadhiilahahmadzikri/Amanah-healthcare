@@ -297,29 +297,29 @@ export async function createDoctorSession(
 }
 
 export async function updateDoctorSession(
-  _doctorId: string,
+  doctorId: string,
   sessionId: string,
   payload: unknown
 ): Promise<ApiMessageResponse> {
-  return await clientFetch<ApiMessageResponse>(
-    `/api/v1/admin/doctor-schedules/sessions/${sessionId}`,
-    {
-      method: 'PUT',
-      body: JSON.stringify(payload)
-    }
-  );
+  const url = doctorId
+    ? `/api/v1/admin/doctor-schedules/${doctorId}/sessions/${sessionId}`
+    : `/api/v1/admin/doctor-schedules/sessions/${sessionId}`;
+  return await clientFetch<ApiMessageResponse>(url, {
+    method: 'PATCH',
+    body: JSON.stringify(payload)
+  });
 }
 
 export async function deleteDoctorSession(
-  _doctorId: string,
+  doctorId: string,
   sessionId: string
 ): Promise<ApiMessageResponse> {
-  return await clientFetch<ApiMessageResponse>(
-    `/api/v1/admin/doctor-schedules/sessions/${sessionId}`,
-    {
-      method: 'DELETE'
-    }
-  );
+  const url = doctorId
+    ? `/api/v1/admin/doctor-schedules/${doctorId}/sessions/${sessionId}`
+    : `/api/v1/admin/doctor-schedules/sessions/${sessionId}`;
+  return await clientFetch<ApiMessageResponse>(url, {
+    method: 'DELETE'
+  });
 }
 
 export async function rescheduleDoctorSession(
