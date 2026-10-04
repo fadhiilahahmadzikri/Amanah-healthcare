@@ -23,11 +23,7 @@ export function DoctorScheduleView() {
         isOpen={scheduleView.isDetailOpen}
         onClose={scheduleView.actions.closeDetail}
         onOpenEdit={scheduleView.actions.openEditFromDetail}
-        selectedDate={
-          scheduleView.dateFilter
-            ? toDateParam(scheduleView.dateFilter)
-            : undefined
-        }
+        selectedDate={scheduleView.dateFilter ? toDateParam(scheduleView.dateFilter) : undefined}
         highlightSlotTime={scheduleView.highlightSlotTime}
         onClearHighlightSlotTime={scheduleView.actions.clearHighlightSlotTime}
         onReturnToSourceModal={scheduleView.actions.returnToSourceModal}
@@ -45,6 +41,7 @@ export function DoctorScheduleView() {
           scheduleView.actions.closeReschedule();
           scheduleView.actions.closeEdit();
         }}
+        onViewDoctorSchedule={scheduleView.actions.openDoctorScheduleById}
       />
 
       <div className='flex h-full min-h-0 flex-1 flex-col gap-4 select-none'>
@@ -128,13 +125,11 @@ export function DoctorScheduleView() {
                               ? toDateParam(scheduleView.dateFilter)
                               : undefined
                           }
-                          isSelected={
-                            Boolean(
-                              scheduleView.selectedDoctorId &&
-                                (scheduleView.selectedDoctorId === doctor.id ||
-                                  scheduleView.selectedDoctorId === doctor.practitioner_id)
-                            )
-                          }
+                          isSelected={Boolean(
+                            scheduleView.selectedDoctorId &&
+                            (scheduleView.selectedDoctorId === doctor.id ||
+                              scheduleView.selectedDoctorId === doctor.practitioner_id)
+                          )}
                           onOpenDetail={scheduleView.actions.openDetail}
                           onOpenEdit={scheduleView.actions.openEdit}
                           onOpenReschedule={scheduleView.actions.openReschedule}

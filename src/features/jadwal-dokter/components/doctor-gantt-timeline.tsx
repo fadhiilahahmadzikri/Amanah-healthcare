@@ -7,7 +7,7 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/component
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { DoctorRescheduleSessionModal } from './doctor-reschedule-session-modal';
-import { DoctorAddSessionModal } from './doctor-add-session-modal';
+import { DoctorAddSessionModal, type ReturnDoctorContext } from './doctor-add-session-modal';
 import { isDoctorOnLeaveOnDay } from '../api/service';
 import {
   SCHEDULE_STATUS,
@@ -27,6 +27,11 @@ export interface DoctorGanttTimelineProps {
   onYearChange?: (year: number) => void;
   modalContainerRef?: React.RefObject<HTMLElement | null>;
   readOnly?: boolean;
+  onViewDoctorSchedule?: (
+    doctorId: string,
+    targetSlotTime?: string,
+    returnContext?: ReturnDoctorContext
+  ) => void;
   className?: string;
 }
 
@@ -132,6 +137,7 @@ export function DoctorGanttTimeline({
   onYearChange,
   modalContainerRef,
   readOnly = false,
+  onViewDoctorSchedule,
   className
 }: DoctorGanttTimelineProps) {
   const today = new Date();
@@ -621,6 +627,7 @@ export function DoctorGanttTimeline({
           }}
           portalContainerRef={modalContainerRef}
           initialDate={formattedDateParam}
+          onViewDoctorSchedule={onViewDoctorSchedule}
         />
       )}
 
@@ -632,6 +639,7 @@ export function DoctorGanttTimeline({
           onClose={() => setIsAddModalOpen(false)}
           portalContainerRef={modalContainerRef}
           targetDate={formattedDateParam}
+          onViewDoctorSchedule={onViewDoctorSchedule}
         />
       )}
     </>

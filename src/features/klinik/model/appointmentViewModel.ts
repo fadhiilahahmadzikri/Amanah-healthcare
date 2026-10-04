@@ -68,7 +68,11 @@ export function filterAppointments(
 
     if (filters.dateFilter) {
       const datePattern = toAppointmentDatePattern(filters.dateFilter);
-      if (!item.date.includes(datePattern)) {
+      const y = filters.dateFilter.getFullYear();
+      const m = String(filters.dateFilter.getMonth() + 1).padStart(2, '0');
+      const d = String(filters.dateFilter.getDate()).padStart(2, '0');
+      const isoPattern = `${y}-${m}-${d}`;
+      if (!item.date.includes(datePattern) && !item.date.includes(isoPattern)) {
         return false;
       }
     }

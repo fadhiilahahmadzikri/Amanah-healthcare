@@ -17,6 +17,16 @@ export interface DateFilterProps {
   resetLabel?: string;
   align?: 'start' | 'center' | 'end';
   className?: string;
+  defaultDate?: Date;
+}
+
+function isSameDay(d1?: Date, d2?: Date): boolean {
+  if (!d1 || !d2) return false;
+  return (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate()
+  );
 }
 
 export function DateFilter({
@@ -25,7 +35,8 @@ export function DateFilter({
   onSelectDate,
   resetLabel = 'Reset Tanggal',
   align = 'start',
-  className
+  className,
+  defaultDate
 }: DateFilterProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -59,13 +70,13 @@ export function DateFilter({
           }}
           initialFocus
         />
-        {selectedDate ? (
+        {selectedDate && (!defaultDate || !isSameDay(selectedDate, defaultDate)) ? (
           <div className='p-2 border-t border-border'>
             <Button
               variant='ghost'
               size='sm'
               onClick={() => {
-                onSelectDate(undefined);
+                onSelectDate(defaultDate);
                 setOpen(false);
               }}
               className='w-full text-xs h-7 justify-center'

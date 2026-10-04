@@ -293,6 +293,7 @@ export function DoctorDailyHourlyGrid({
           portalContainerRef={modalContainerRef}
           initialDate={formattedTargetDate}
           initialStartTime={selectedSlotStartTime}
+          onViewDoctorSchedule={onViewDoctorSchedule}
         />
       )}
 

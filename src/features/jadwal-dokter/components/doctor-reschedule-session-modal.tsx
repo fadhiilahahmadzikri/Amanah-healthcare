@@ -1,49 +1,55 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { parseAsString, useQueryStates } from 'nuqs';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Icons } from '@/components/icons';
 import { StatusBadge } from '@/components/ui/status-badge';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
+import { BookingDateStep } from '@/features/klinik/components/booking/booking-date-step';
+import { StepRoomSelect } from './add-session/step-room-select';
+import { DoctorGridSlotItem, type GridSlotData } from './grid/doctor-grid-slot-item';
 import { useRescheduleDoctorSessionMutation } from '../api/mutations';
-import { clinicRoomsQueryOptions, rescheduleEligibilityQueryOptions } from '../api/queries';
 import {
-  SCHEDULE_TIME_LABELS,
-  SCHEDULE_BUTTON_LABELS,
-  SCHEDULE_OCCUPANT_LABELS,
-  SCHEDULE_RESCHEDULE_MESSAGES
+  clinicRoomsQueryOptions,
+  scheduleSlotAvailabilityQueryOptions,
+  rescheduleEligibilityQueryOptions,
+  doctorScheduleDetailQueryOptions
+} from '../api/queries';
+import {
+  SCHEDULE_SHIFT,
+  SCHEDULE_SHIFT_LABELS,
+  SCHEDULE_SHIFT_BOUNDARIES,
+  CANONICAL_TO_API_SHIFT,
+  resolveShiftFromTime,
+  type ScheduleShift
 } from '../constants/schedule-shift.constants';
+import { getTodayDateParam } from '../model/useDoctorScheduleView';
+import { cn } from '@/lib/utils';
 import type { DoctorSchedule, DoctorDailySession } from '../api/types';
+import type { ReturnDoctorContext } from './doctor-add-session-modal';
+
+export type RescheduleStep = 'date' | 'room' | 'slot' | 'note';
 
 export interface DoctorRescheduleSessionModalProps {
   doctor: DoctorSchedule | null;
-  session: DoctorDailySession | null;
+  session?: DoctorDailySession | null;
   isOpen: boolean;
   onClose: () => void;
   portalContainerRef?: React.RefObject<HTMLElement | null>;
   initialDate?: string;
   initialStartTime?: string;
+  onViewDoctorSchedule?: (
+    doctorId: string,
+    targetSlotTime?: string,
+    returnContext?: ReturnDoctorContext
+  ) => void;
 }
-
-const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
-  const h = Math.floor(i / 2);
-  const m = i % 2 === 0 ? '00' : '30';
-  return `${String(h).padStart(2, '0')}:${m}`;
-});
 
 export function DoctorRescheduleSessionModal({
   doctor,
@@ -52,72 +58,68 @@ export function DoctorRescheduleSessionModal({
   onClose,
   portalContainerRef,
   initialDate,
-  initialStartTime
+  initialStartTime,
+  onViewDoctorSchedule
 }: DoctorRescheduleSessionModalProps) {
   const rescheduleMutation = useRescheduleDoctorSessionMutation();
 
+  const [step, setStep] = useState<RescheduleStep>('date');
   const [targetDate, setTargetDate] = useState('');
-  const [targetStartTime, setTargetStartTime] = useState('');
   const [targetRoomId, setTargetRoomId] = useState('');
+  const [selectedShift, setSelectedShift] = useState<ScheduleShift>(SCHEDULE_SHIFT.PAGI);
+  const [targetStartTime, setTargetStartTime] = useState('');
+  const [targetEndTime, setTargetEndTime] = useState('');
   const [notes, setNotes] = useState('');
   const [rescheduleActiveAppointments, setRescheduleActiveAppointments] = useState(true);
-  const [calendarOpen, setCalendarOpen] = useState(false);
-  const [bannerDismissed, setBannerDismissed] = useState(false);
 
-  const { data: rooms = [], isLoading: isLoadingRooms } = useQuery(clinicRoomsQueryOptions());
+  const [, setParams] = useQueryStates(
+    {
+      selectedDoctorId: parseAsString.withDefault(''),
+      highlightSlotTime: parseAsString.withDefault('')
+    },
+    { shallow: true }
+  );
 
-  const hasTarget = Boolean(targetDate && targetStartTime);
-
-  const { data: eligibilityData, isFetching: isCheckingEligibility } = useQuery({
-    ...rescheduleEligibilityQueryOptions(
-      doctor?.id || '',
-      session?.id || '',
-      hasTarget
-        ? { targetDate, targetStartTime, targetRoomId: targetRoomId || undefined }
-        : undefined
-    ),
-    enabled: Boolean(
-      isOpen &&
-      doctor?.id &&
-      session?.id &&
-      !rescheduleMutation.isPending &&
-      !rescheduleMutation.isSuccess
-    ),
-    placeholderData: (previous) => previous
+  // Fallback query doctor detail if session is not passed upfront
+  const detailQuery = useQuery({
+    ...doctorScheduleDetailQueryOptions(doctor?.id || '', {
+      date: initialDate || getTodayDateParam()
+    }),
+    enabled: Boolean(isOpen && doctor?.id && !session)
   });
 
-  useEffect(() => {
-    setBannerDismissed(false);
-  }, [targetDate, targetStartTime, targetRoomId]);
+  const effectiveSession =
+    session || doctor?.sesi_harian?.[0] || detailQuery.data?.sesi_harian?.[0] || null;
 
-  const hasActiveAppointments = (eligibilityData?.sourceSession?.activeAppointmentsCount ?? 0) > 0;
-  const hasConflict = Boolean(
-    hasTarget &&
-    eligibilityData &&
-    !eligibilityData.isEligible &&
-    !rescheduleMutation.isPending &&
-    !rescheduleMutation.isSuccess
-  );
-  const showConflictBanner = hasConflict && !bannerDismissed;
-
+  // Initialize or reset form state whenever effectiveSession or modal opens
   useEffect(() => {
-    if (session) {
-      setTargetStartTime(initialStartTime || '');
+    if (effectiveSession && isOpen) {
+      setStep('date');
       setNotes('');
       setRescheduleActiveAppointments(true);
-      if (initialDate) {
-        setTargetDate(initialDate);
-      } else {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        setTargetDate(tomorrow.toISOString().split('T')[0]);
-      }
-    }
-  }, [session, initialDate, initialStartTime]);
+      setTargetStartTime(initialStartTime || '');
+      setTargetEndTime('');
 
+      // Default date focus: dynamically set to current date
+      const today = getTodayDateParam();
+      setTargetDate(initialDate || today);
+
+      // Default shift matching the session's start time
+      const initialShift = resolveShiftFromTime(initialStartTime || effectiveSession.jam_mulai);
+      setSelectedShift(initialShift);
+    }
+  }, [effectiveSession, isOpen, initialDate, initialStartTime]);
+
+  // Query rooms for target date
+  const { data: rooms = [], isLoading: isLoadingRooms } = useQuery({
+    ...clinicRoomsQueryOptions({ date: targetDate || undefined }),
+    enabled: Boolean(isOpen && targetDate)
+  });
+
+  // Automatically match room to session room if not yet set
   useEffect(() => {
-    if (session && rooms.length > 0 && !targetRoomId) {
-      const currentRoomName = (session.ruang ?? doctor?.ruang_praktik ?? '').trim();
+    if (effectiveSession && rooms.length > 0 && !targetRoomId) {
+      const currentRoomName = (effectiveSession.ruang ?? doctor?.ruang_praktik ?? '').trim();
       const matched = rooms.find(
         (r) =>
           r.name.toLowerCase() === currentRoomName.toLowerCase() ||
@@ -128,37 +130,125 @@ export function DoctorRescheduleSessionModal({
         setTargetRoomId(matched.id);
       }
     }
-  }, [session, doctor, rooms, targetRoomId]);
+  }, [effectiveSession, doctor, rooms, targetRoomId]);
 
-  const selectedDateObj = useMemo(() => {
-    if (!targetDate) return undefined;
+  // Query slot availability for the selected shift and room
+  const { data: slotAvailability, isLoading: isLoadingSlots } = useQuery({
+    ...scheduleSlotAvailabilityQueryOptions({
+      date: targetDate,
+      shift: CANONICAL_TO_API_SHIFT[selectedShift],
+      roomId: targetRoomId,
+      staffId: doctor?.id
+    }),
+    enabled: Boolean(isOpen && step === 'slot' && targetDate && targetRoomId && doctor?.id)
+  });
+
+  // Filter slots for the grid (excluding past/expired slots)
+  const availableSlots = useMemo(() => {
+    if (!slotAvailability?.slots) return [];
+    return slotAvailability.slots.filter((s) => {
+      if (s.conflict?.type === 'TEMPORAL_PAST') return false;
+      return true;
+    });
+  }, [slotAvailability?.slots]);
+
+  // Check eligibility & active appointments for transfer note
+  const hasTarget = Boolean(targetDate && targetStartTime);
+  const { data: eligibilityData } = useQuery({
+    ...rescheduleEligibilityQueryOptions(
+      doctor?.id || '',
+      effectiveSession?.id || '',
+      hasTarget
+        ? { targetDate, targetStartTime, targetRoomId: targetRoomId || undefined }
+        : undefined
+    ),
+    enabled: Boolean(isOpen && doctor?.id && effectiveSession?.id && hasTarget),
+    placeholderData: (previous) => previous
+  });
+
+  const hasActiveAppointments =
+    (eligibilityData?.sourceSession?.activeAppointmentsCount ??
+      effectiveSession?.pasien_terdaftar ??
+      0) > 0;
+
+  const targetRoom = useMemo(() => {
+    return rooms.find((r) => r.id === targetRoomId) || null;
+  }, [rooms, targetRoomId]);
+
+  const targetEndTimeCalculated = useMemo(() => {
+    return eligibilityData?.targetValidation?.projectedEndTime || targetEndTime || '';
+  }, [eligibilityData?.targetValidation?.projectedEndTime, targetEndTime]);
+
+  const formattedDisplayDate = useMemo(() => {
+    if (!targetDate) return '';
     const parts = targetDate.split('-');
-    if (parts.length !== 3) return undefined;
+    if (parts.length !== 3) return targetDate;
     const y = parseInt(parts[0] || '0', 10);
     const m = parseInt(parts[1] || '0', 10);
     const d = parseInt(parts[2] || '0', 10);
-    if (isNaN(y) || isNaN(m) || isNaN(d)) return undefined;
-    return new Date(y, m - 1, d);
-  }, [targetDate]);
-
-  const formattedDisplayDate = useMemo(() => {
-    if (!selectedDateObj) return SCHEDULE_TIME_LABELS.CHOOSE_DATE;
-    return selectedDateObj.toLocaleDateString('id-ID', {
+    if (isNaN(y) || isNaN(m) || isNaN(d)) return targetDate;
+    return new Date(y, m - 1, d).toLocaleDateString('id-ID', {
+      weekday: 'long',
       day: 'numeric',
-      month: 'short',
+      month: 'long',
       year: 'numeric'
     });
-  }, [selectedDateObj]);
+  }, [targetDate]);
 
-  const targetEndTimeCalculated = useMemo(() => {
-    return eligibilityData?.targetValidation?.projectedEndTime || '';
-  }, [eligibilityData?.targetValidation?.projectedEndTime]);
+  // Jump to occupant doctor's schedule on conflicting purple slot click
+  const handleViewOccupantDoctorSchedule = useCallback(
+    (occupantDoctorId?: string | null, slotTime?: string) => {
+      if (!occupantDoctorId) return;
+      onClose();
+      const returnContext: ReturnDoctorContext | undefined = doctor
+        ? {
+            sourceDoctorId: doctor.id,
+            sourceDoctorName: doctor.nama_dokter,
+            sourceDate: targetDate,
+            sourceSlotStartTime: slotTime
+          }
+        : undefined;
 
-  if (!doctor || !session) return null;
+      if (onViewDoctorSchedule) {
+        onViewDoctorSchedule(occupantDoctorId, slotTime, returnContext);
+      } else {
+        setParams(
+          {
+            selectedDoctorId: occupantDoctorId,
+            highlightSlotTime: slotTime || null
+          },
+          { shallow: true }
+        );
+      }
+    },
+    [doctor, onClose, onViewDoctorSchedule, setParams, targetDate]
+  );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Stepper navigation guards
+  const canProceedNext = useMemo(() => {
+    if (step === 'date') return Boolean(targetDate);
+    if (step === 'room') return Boolean(targetRoomId);
+    if (step === 'slot') return Boolean(targetStartTime);
+    if (step === 'note') return Boolean(targetDate && targetRoomId && targetStartTime);
+    return false;
+  }, [step, targetDate, targetRoomId, targetStartTime]);
+
+  const handleNext = () => {
+    if (step === 'date') setStep('room');
+    else if (step === 'room') setStep('slot');
+    else if (step === 'slot') setStep('note');
+  };
+
+  const handleBack = () => {
+    if (step === 'note') setStep('slot');
+    else if (step === 'slot') setStep('room');
+    else if (step === 'room') setStep('date');
+    else if (step === 'date') onClose();
+  };
+
+  const handleFinalSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!targetStartTime || !targetDate) return;
+    if (!targetStartTime || !targetDate || !doctor || !effectiveSession) return;
 
     const finalReason = notes.trim() ? notes.trim() : undefined;
     const derivedShift = eligibilityData?.targetSimulation?.targetShift;
@@ -166,7 +256,7 @@ export function DoctorRescheduleSessionModal({
     rescheduleMutation.mutate(
       {
         doctorId: doctor.id,
-        sessionId: session.id,
+        sessionId: effectiveSession.id,
         payload: {
           targetDate,
           targetStartTime,
@@ -186,57 +276,50 @@ export function DoctorRescheduleSessionModal({
     );
   };
 
+  if (!doctor) return null;
+
+  if (!effectiveSession) {
+    if (detailQuery.isLoading) {
+      return (
+        <ModalWrapper
+          isOpen={isOpen}
+          onClose={onClose}
+          maxWidth='max-w-[508px]'
+          showCloseButton={false}
+          portalContainerRef={portalContainerRef}
+          className='h-auto max-h-none overflow-hidden rounded-2xl border border-border bg-card p-5 sm:p-6 w-full my-auto shadow-2xl'
+        >
+          <div className='p-6 space-y-4'>
+            <Skeleton className='h-8 w-1/2' />
+            <Skeleton className='h-24 w-full rounded-xl' />
+            <Skeleton className='h-48 w-full rounded-xl' />
+          </div>
+        </ModalWrapper>
+      );
+    }
+    return null;
+  }
+
+  const shiftBounds = SCHEDULE_SHIFT_BOUNDARIES[selectedShift];
+
   return (
     <ModalWrapper
       isOpen={isOpen}
       onClose={onClose}
-      maxWidth='max-w-[480px]'
+      maxWidth='max-w-[508px]'
       showCloseButton={false}
       portalContainerRef={portalContainerRef}
+      className='h-auto max-h-none overflow-hidden rounded-2xl border border-border bg-card p-5 sm:p-6 w-full my-auto shadow-2xl'
     >
-      <form onSubmit={handleSubmit} className='relative font-sans space-y-3.5'>
-        <div
-          className={cn(
-            'grid transition-all duration-300 ease-in-out',
-            showConflictBanner
-              ? 'grid-rows-[1fr] opacity-100 mb-3'
-              : 'grid-rows-[0fr] opacity-0 mb-0 pointer-events-none'
-          )}
-        >
-          <div className='overflow-hidden'>
-            <div className='px-3.5 py-2.5 bg-destructive/10 dark:bg-destructive/20 border border-destructive/25 text-destructive flex items-center justify-between gap-3 select-none rounded-xl'>
-              <div className='flex items-center gap-2 min-w-0 flex-1'>
-                <Icons.warning className='size-4 shrink-0 text-destructive' />
-                <div className='text-xs leading-snug min-w-0'>
-                  <span className='font-bold mr-1'>
-                    {SCHEDULE_RESCHEDULE_MESSAGES.INELIGIBLE_TITLE}
-                  </span>
-                  <span className='text-[11.5px] opacity-90'>
-                    {eligibilityData?.targetValidation?.conflictMessage ??
-                      eligibilityData?.actionableGuidance ??
-                      SCHEDULE_RESCHEDULE_MESSAGES.DEFAULT_CONFLICT}
-                  </span>
-                </div>
-              </div>
-              <button
-                type='button'
-                onClick={() => setBannerDismissed(true)}
-                aria-label='Tutup pemberitahuan'
-                className='p-1 rounded-full text-destructive/70 hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer shrink-0'
-              >
-                <Icons.close className='size-3.5' />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className='flex items-center justify-between gap-3 pb-2.5 border-b border-border/40'>
+      <div className='flex flex-col font-sans select-none justify-between h-full min-h-[460px]'>
+        {/* Top Header */}
+        <div className='flex items-center justify-between gap-3 pb-3 border-b border-border/40 shrink-0'>
           <div className='space-y-0.5 min-w-0 flex-1'>
-            <h3 className='text-base font-bold text-foreground tracking-tight'>
-              Reschedule Sesi Dokter
+            <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
+              Reschedule
             </h3>
             <p className='text-xs text-muted-foreground truncate'>
-              {doctor.nama_dokter} •{' '}
+              {doctor.nama_dokter} &bull;{' '}
               {doctor.spesialisasi.toLowerCase().startsWith('poli')
                 ? doctor.spesialisasi
                 : `Poli ${doctor.spesialisasi}`}
@@ -246,223 +329,360 @@ export function DoctorRescheduleSessionModal({
             type='button'
             onClick={onClose}
             aria-label='Tutup'
-            className='rounded-full p-1 text-muted-foreground hover:bg-muted transition-colors cursor-pointer shrink-0'
+            className='rounded-full p-1.5 text-muted-foreground hover:bg-muted transition-colors cursor-pointer shrink-0'
           >
             <Icons.close className='size-4' />
           </button>
         </div>
 
-        <div className='w-full p-2.5 rounded-xl bg-muted/30 border border-border/50 text-xs space-y-1.5'>
+        {/* Original Session Context */}
+        <div className='my-3 w-full p-2.5 rounded-xl bg-muted/30 border border-border/50 text-xs space-y-1.5 shrink-0'>
           <div className='flex items-center justify-between gap-2'>
             <div className='flex items-center gap-1.5 font-semibold text-foreground truncate'>
               <Icons.calendar className='size-3.5 text-primary shrink-0' />
-              <span>
-                {session.nama_sesi}
+              <span className='truncate'>
+                {effectiveSession.nama_sesi}
                 {initialStartTime ? (
-                  <> &bull; <span className='font-mono'>{initialStartTime} WIB</span></>
+                  <>
+                    {' '}
+                    &bull; <span className='font-mono'>{initialStartTime} WIB</span>
+                  </>
                 ) : (
-                  <> ({session.jam_mulai} - {session.jam_selesai} WIB)</>
+                  <>
+                    {' '}
+                    ({effectiveSession.jam_mulai} - {effectiveSession.jam_selesai} WIB)
+                  </>
                 )}
               </span>
             </div>
-            <StatusBadge status={session.status_sesi} size='sm' className='shrink-0' />
+            <StatusBadge status={effectiveSession.status_sesi} size='sm' className='shrink-0' />
           </div>
           <div className='text-[11.5px] text-muted-foreground flex items-center gap-1.5'>
             <Icons.location className='size-3 text-muted-foreground/70 shrink-0' />
-            <span className='truncate'>{session.ruang}</span>
+            <span className='truncate'>
+              {effectiveSession.ruang || doctor.ruang_praktik || 'Ruang Praktik'}
+            </span>
           </div>
         </div>
 
-        <div className='grid grid-cols-2 gap-2.5'>
-          <div>
-            <Label className='text-xs font-semibold text-foreground/80 block mb-1'>
-              Tanggal Tujuan
-            </Label>
-            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  type='button'
-                  variant='outline'
-                  className='w-full h-8.5 px-2.5 justify-start text-left font-normal text-xs font-mono shadow-2xs hover:bg-muted/50 cursor-pointer'
-                >
-                  <Icons.calendar className='mr-1.5 size-3.5 text-muted-foreground shrink-0' />
-                  <span className={cn('truncate', !targetDate && 'text-muted-foreground')}>
-                    {formattedDisplayDate}
-                  </span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className='w-auto p-0 z-[70] shadow-xl' align='start' sideOffset={8}>
-                <Calendar
-                  mode='single'
-                  selected={selectedDateObj}
-                  onSelect={(d) => {
-                    if (d) {
-                      const y = d.getFullYear();
-                      const m = String(d.getMonth() + 1).padStart(2, '0');
-                      const day = String(d.getDate()).padStart(2, '0');
-                      setTargetDate(`${y}-${m}-${day}`);
-                      setCalendarOpen(false);
-                    }
-                  }}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          <div>
-            <Label className='text-xs font-semibold text-foreground/80 block mb-1'>
-              Ruangan Tujuan
-            </Label>
-            <Select value={targetRoomId || undefined} onValueChange={setTargetRoomId}>
-              <SelectTrigger className='w-full h-8.5 text-xs truncate'>
-                <SelectValue placeholder='Pilih Ruangan Tujuan' />
-              </SelectTrigger>
-              <SelectContent className='z-[70]'>
-                {rooms.map((room) => {
-                  const locationText = room.location ? ` (${room.location})` : '';
-                  return (
-                    <SelectItem key={room.id} value={room.id} disabled={room.isOccupied}>
-                      {room.name}
-                      {locationText}
-                      {room.isOccupied
-                        ? ` — Terisi (${room.occupiedBy ?? SCHEDULE_OCCUPANT_LABELS.OTHER_DOCTOR})`
-                        : ''}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-            {isLoadingRooms && (
-              <p className='text-[10px] text-muted-foreground mt-0.5'>Memuat ruangan...</p>
-            )}
-          </div>
-        </div>
-
-        <div className='grid grid-cols-2 gap-2.5'>
-          <div>
-            <Label className='text-xs font-semibold text-foreground/80 block mb-1'>
-              Jam Mulai Baru
-            </Label>
-            <Select value={targetStartTime || undefined} onValueChange={setTargetStartTime}>
-              <SelectTrigger className='w-full h-8.5 text-xs font-mono font-semibold'>
-                <SelectValue placeholder='Pilih jam mulai baru' />
-              </SelectTrigger>
-              <SelectContent className='max-h-56 z-[70]'>
-                {TIME_OPTIONS.map((time) => {
-                  const isOriginalTime =
-                    time === session.jam_mulai &&
-                    targetDate === (initialDate || doctor?.tanggal_praktik);
-                  return (
-                    <SelectItem key={time} value={time} className='font-mono text-xs'>
-                      {time} {SCHEDULE_TIME_LABELS.TIMEZONE} {isOriginalTime ? '(Jadwal Asal)' : ''}
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label className='text-xs font-semibold text-foreground/80 block mb-1'>
-              Jam Selesai Baru
-            </Label>
-            <div className='w-full h-8.5 px-3 rounded-md border border-border/50 bg-muted/30 text-xs font-mono font-semibold text-foreground flex items-center justify-between select-none'>
-              <span>
-                {targetEndTimeCalculated
-                  ? `${targetEndTimeCalculated} ${SCHEDULE_TIME_LABELS.TIMEZONE}`
-                  : SCHEDULE_TIME_LABELS.DASH}
-              </span>
-              <span className='text-[10px] font-sans font-medium text-muted-foreground'>
-                {SCHEDULE_TIME_LABELS.AUTOMATIC}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <Label className='text-xs font-semibold text-foreground/80 block mb-1'>
-            Catatan Pemindahan <span className='text-muted-foreground font-normal'>(Opsional)</span>
-          </Label>
-          <Input
-            type='text'
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder='Contoh: Penyesuaian shift operasional dokter'
-            className='h-8.5 text-xs'
-          />
-        </div>
-
-        {hasActiveAppointments && (
-          <div className='flex items-start gap-2.5 p-2.5 rounded-xl border border-border/50 bg-muted/20'>
-            <Checkbox
-              id='reschedule-active'
-              checked={rescheduleActiveAppointments}
-              onCheckedChange={(checked) => setRescheduleActiveAppointments(Boolean(checked))}
-              className='mt-0.5'
+        {/* Wizard Steps Content */}
+        <div className='flex-1 overflow-y-auto min-h-0 pr-0.5 py-1'>
+          {/* STEP 1: Tanggal Tujuan */}
+          {step === 'date' && (
+            <BookingDateStep
+              dateStr={targetDate}
+              setDateStr={(d) => {
+                setTargetDate(d);
+                setTargetStartTime('');
+                setTargetEndTime('');
+              }}
+              title='Pilih Tanggal Tujuan'
+              subtitle={`Tentukan tanggal baru untuk memindahkan jadwal praktik dokter ${doctor.nama_dokter}.`}
+              label='Tanggal Baru*'
+              placeholder='Pilih tanggal praktik...'
+              id='tanggalTujuanRescheduleTrigger'
+              ariaLabel='Tanggal tujuan reschedule'
+              disablePastDates={true}
             />
-            <div className='space-y-0.5'>
-              <Label
-                htmlFor='reschedule-active'
-                className='text-xs font-bold text-foreground cursor-pointer'
-              >
-                Alihkan antrean pasien terdaftar secara otomatis
-              </Label>
-              <p className='text-[11px] text-muted-foreground leading-relaxed'>
-                Seluruh janji temu pasien yang sudah booking pada jam ini akan otomatis dialihkan ke
-                jadwal baru.
-              </p>
-            </div>
-          </div>
-        )}
+          )}
 
-        {rescheduleMutation.isError && (
-          <div className='p-2.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs space-y-1'>
-            <div className='flex items-center gap-1.5 font-bold'>
-              <Icons.warning className='size-3.5 shrink-0' />
-              <span>Gagal Reschedule</span>
-            </div>
-            <p className='text-[11px]'>
-              {(rescheduleMutation.error as Error)?.message ||
-                'Terjadi bentrok jadwal atau ruangan sudah terpakai pada jam tersebut.'}
-            </p>
-          </div>
-        )}
+          {/* STEP 2: Ruang Tujuan */}
+          {step === 'room' && (
+            <StepRoomSelect
+              rooms={rooms}
+              selectedRoomId={targetRoomId}
+              onSelectRoomId={(id) => {
+                setTargetRoomId(id);
+                setTargetStartTime('');
+                setTargetEndTime('');
+              }}
+              doctorName={doctor.nama_dokter}
+              isLoading={isLoadingRooms}
+            />
+          )}
 
-        <div className='pt-2 flex items-center justify-end gap-2.5 border-t border-border/40'>
+          {/* STEP 3: Jam Mulai Baru (Grid-Based) */}
+          {step === 'slot' && (
+            <div className='space-y-3.5'>
+              <div className='flex items-start justify-between gap-2 pb-2 border-b border-border/30'>
+                <div>
+                  <h4 className='text-sm sm:text-base font-bold text-foreground tracking-tight'>
+                    Pilih Jam Mulai Baru
+                  </h4>
+                  <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
+                    Pilih jam praktik dokter pada rentang {shiftBounds.timeRange}.
+                  </p>
+                </div>
+                <div className='flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border/50 bg-muted/20 text-xs font-mono font-medium text-foreground shrink-0'>
+                  <Icons.clock className='size-3 text-muted-foreground' />
+                  <span>{shiftBounds.timeRange}</span>
+                </div>
+              </div>
+
+              {/* Shift Selector Switcher */}
+              <div className='flex items-center gap-1.5 p-1 rounded-xl bg-muted/40 border border-border/40'>
+                {([SCHEDULE_SHIFT.PAGI, SCHEDULE_SHIFT.SIANG, SCHEDULE_SHIFT.MALAM] as const).map(
+                  (shiftKey) => {
+                    const isActive = selectedShift === shiftKey;
+                    return (
+                      <button
+                        key={shiftKey}
+                        type='button'
+                        onClick={() => setSelectedShift(shiftKey)}
+                        className={cn(
+                          'flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold transition-all text-center cursor-pointer',
+                          isActive
+                            ? 'bg-card text-foreground shadow-xs font-bold'
+                            : 'text-muted-foreground hover:text-foreground'
+                        )}
+                      >
+                        {SCHEDULE_SHIFT_LABELS[shiftKey]}
+                      </button>
+                    );
+                  }
+                )}
+              </div>
+
+              {/* Grid of Slots */}
+              {isLoadingSlots && availableSlots.length === 0 ? (
+                <div className='grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-[42vh] overflow-y-auto pr-1'>
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <Skeleton key={i} className='h-[56px] w-full rounded-xl' />
+                  ))}
+                </div>
+              ) : availableSlots.length === 0 ? (
+                <div className='p-6 rounded-2xl border border-dashed border-border bg-muted/15 flex flex-col items-center justify-center text-center space-y-2'>
+                  <div className='size-9 rounded-full bg-muted flex items-center justify-center text-muted-foreground'>
+                    <Icons.clock className='size-4' />
+                  </div>
+                  <p className='text-xs font-bold text-foreground'>Tidak ada slot pada sesi ini</p>
+                  <p className='text-[11px] text-muted-foreground max-w-xs'>
+                    Silakan beralih ke sesi (Pagi / Siang / Malam) lain untuk melihat ketersediaan
+                    slot.
+                  </p>
+                </div>
+              ) : (
+                <div className='grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-[42vh] overflow-y-auto pr-1'>
+                  {availableSlots.map((rawSlot) => {
+                    const isSelected = targetStartTime === rawSlot.time;
+                    const isPurpleConflict = rawSlot.status === 'OCCUPIED_BY_OTHER';
+                    const isClickable = rawSlot.isAvailable || isPurpleConflict;
+
+                    const occupancySlot: GridSlotData = {
+                      slotIndex: rawSlot.slotIndex,
+                      startTime: rawSlot.time,
+                      endTime: rawSlot.endTime,
+                      status: rawSlot.isAvailable
+                        ? 'AVAILABLE'
+                        : isPurpleConflict
+                          ? 'OCCUPIED_BY_OTHER'
+                          : rawSlot.status || 'CLOSED',
+                      isAvailable: rawSlot.isAvailable,
+                      displayLabel:
+                        rawSlot.displayLabel || (rawSlot.isAvailable ? 'Tersedia' : 'Terisi'),
+                      isClickable,
+                      uiVariant: rawSlot.isAvailable
+                        ? 'available'
+                        : isPurpleConflict
+                          ? 'purple_other'
+                          : 'neutral_disabled',
+                      uiStatus: rawSlot.isAvailable
+                        ? 'AVAILABLE'
+                        : isPurpleConflict
+                          ? 'OCCUPIED_BY_OTHER'
+                          : 'CLOSED',
+                      conflictInfo: rawSlot.conflict
+                        ? {
+                            type: rawSlot.conflict.type,
+                            occupantName: rawSlot.conflict.occupantName ?? undefined
+                          }
+                        : null
+                    };
+
+                    return (
+                      <DoctorGridSlotItem
+                        key={`${rawSlot.slotIndex}-${rawSlot.time}`}
+                        slot={occupancySlot}
+                        isFinished={false}
+                        isNow={false}
+                        isClickable={isClickable}
+                        isSelected={isSelected}
+                        onSlotClick={() => {
+                          if (rawSlot.isAvailable) {
+                            setTargetStartTime(rawSlot.time);
+                            setTargetEndTime(rawSlot.endTime);
+                          } else if (isPurpleConflict) {
+                            const occupantId =
+                              rawSlot.conflict?.practitionerId ||
+                              rawSlot.conflict?.staffId ||
+                              targetRoom?.occupantDetails?.practitionerId ||
+                              targetRoom?.occupantDetails?.staffProfileId;
+                            if (occupantId) {
+                              handleViewOccupantDoctorSchedule(occupantId, rawSlot.time);
+                            }
+                          }
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Selected Slot Information Display without redundant calculated input */}
+              {targetStartTime && (
+                <div className='flex items-center justify-between p-3 rounded-xl border border-primary/30 bg-primary/5 text-xs'>
+                  <span className='font-semibold text-foreground'>Slot Terpilih:</span>
+                  <span className='font-mono font-bold text-primary'>
+                    {targetStartTime} - {targetEndTime || targetEndTimeCalculated || '--:--'} WIB
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* STEP 4: Catatan Perpindahan & Konfirmasi */}
+          {step === 'note' && (
+            <div className='space-y-3.5'>
+              <div>
+                <h4 className='text-sm sm:text-base font-bold text-foreground tracking-tight'>
+                  Konfirmasi Pemindahan Jadwal
+                </h4>
+                <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
+                  Tinjau rincian jadwal baru dan tambahkan catatan alasan perpindahan sesi dokter.
+                </p>
+              </div>
+
+              {/* Summary Card */}
+              <div className='p-3 rounded-xl bg-muted/20 border border-border/50 text-xs space-y-2'>
+                <div className='grid grid-cols-2 gap-2 text-xs'>
+                  <div>
+                    <span className='text-[11px] text-muted-foreground block'>Tanggal Baru</span>
+                    <span className='font-semibold text-foreground truncate block'>
+                      {formattedDisplayDate}
+                    </span>
+                  </div>
+                  <div>
+                    <span className='text-[11px] text-muted-foreground block'>Ruangan Baru</span>
+                    <span className='font-semibold text-foreground truncate block'>
+                      {targetRoom?.name || 'Ruang Praktik'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className='pt-1.5 border-t border-border/30 flex items-center justify-between text-xs'>
+                  <span className='text-muted-foreground'>Jam Praktik Baru</span>
+                  <span className='font-mono font-bold text-primary'>
+                    {targetStartTime} - {targetEndTime || targetEndTimeCalculated || '--:--'} WIB
+                  </span>
+                </div>
+              </div>
+
+              {/* Notes Textarea */}
+              <div className='space-y-1.5'>
+                <Label htmlFor='reschedule-notes' className='text-xs font-semibold text-foreground'>
+                  Catatan Pemindahan{' '}
+                  <span className='text-muted-foreground font-normal'>(Opsional)</span>
+                </Label>
+                <Textarea
+                  id='reschedule-notes'
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder='Contoh: Penyesuaian shift operasional dokter'
+                  rows={2}
+                  className='text-xs min-h-[64px]'
+                />
+              </div>
+
+              {/* Auto Transfer Checkbox */}
+              {hasActiveAppointments && (
+                <div className='flex items-start gap-2.5 p-3 rounded-xl border border-border/50 bg-muted/20'>
+                  <Checkbox
+                    id='reschedule-active'
+                    checked={rescheduleActiveAppointments}
+                    onCheckedChange={(checked) => setRescheduleActiveAppointments(Boolean(checked))}
+                    className='mt-0.5'
+                  />
+                  <div className='space-y-0.5'>
+                    <Label
+                      htmlFor='reschedule-active'
+                      className='text-xs font-bold text-foreground cursor-pointer'
+                    >
+                      Alihkan antrean pasien terdaftar secara otomatis
+                    </Label>
+                    <p className='text-[11px] text-muted-foreground leading-relaxed'>
+                      Seluruh janji temu pasien yang sudah booking pada jam ini akan otomatis
+                      dialihkan ke jadwal baru.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Error notice if mutation failed */}
+              {rescheduleMutation.isError && (
+                <div className='p-2.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs space-y-1'>
+                  <div className='flex items-center gap-1.5 font-bold'>
+                    <Icons.warning className='size-3.5 shrink-0' />
+                    <span>Gagal Reschedule</span>
+                  </div>
+                  <p className='text-[11px]'>
+                    {(rescheduleMutation.error as Error)?.message ||
+                      'Terjadi bentrok jadwal atau ruangan sudah terpakai pada jam tersebut.'}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Stepper Navigation Footer */}
+        <div className='pt-4 flex items-center justify-between gap-3 border-t border-border/40 select-none shrink-0 mt-auto'>
           <Button
             type='button'
             variant='outline'
             shape='pill'
-            size='sm'
-            onClick={onClose}
-            className='px-4 font-medium text-xs'
-          >
-            {SCHEDULE_BUTTON_LABELS.CANCEL}
-          </Button>
-          <Button
-            type='submit'
-            variant='default'
-            shape='pill'
-            size='sm'
-            disabled={
-              !targetStartTime ||
-              !targetDate ||
-              rescheduleMutation.isPending ||
-              isCheckingEligibility ||
-              (eligibilityData !== undefined && !eligibilityData.isEligible)
+            size='md'
+            onClick={handleBack}
+            disabled={rescheduleMutation.isPending}
+            leadingIcon={
+              step !== 'date' ? <Icons.arrowLeft className='size-3 stroke-[2.5]' /> : undefined
             }
-            className='px-5 font-semibold text-xs'
+            className='min-w-[100px] cursor-pointer'
           >
-            {rescheduleMutation.isPending || isCheckingEligibility ? (
-              <Icons.spinner className='mr-1.5 size-3.5 animate-spin' />
-            ) : (
-              <Icons.calendar className='mr-1.5 size-3.5' />
-            )}
-            Konfirmasi Reschedule
+            {step === 'date' ? 'Batal' : 'Kembali'}
           </Button>
+
+          {step !== 'note' ? (
+            <Button
+              type='button'
+              variant='primary'
+              shape='pill'
+              size='md'
+              disabled={!canProceedNext || rescheduleMutation.isPending}
+              onClick={handleNext}
+              withTrailingCircleIcon={true}
+              trailingIcon={<Icons.arrowRight className='size-3 stroke-[2.5]' />}
+              className='min-w-[120px] cursor-pointer'
+            >
+              Lanjut
+            </Button>
+          ) : (
+            <Button
+              type='button'
+              variant='primary'
+              shape='pill'
+              size='md'
+              disabled={!canProceedNext || rescheduleMutation.isPending}
+              onClick={handleFinalSubmit}
+              isLoading={rescheduleMutation.isPending}
+              withTrailingCircleIcon={true}
+              trailingIcon={<Icons.calendar className='size-3 stroke-[2.5]' />}
+              className='min-w-[160px] cursor-pointer'
+            >
+              {rescheduleMutation.isPending ? 'Menyimpan...' : 'Konfirmasi Reschedule'}
+            </Button>
+          )}
         </div>
-      </form>
+      </div>
     </ModalWrapper>
   );
 }

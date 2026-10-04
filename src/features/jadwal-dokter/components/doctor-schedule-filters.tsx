@@ -8,7 +8,7 @@ import { FacetedFilter } from '@/shared/ui/faceted-filter';
 import { DateFilter } from '@/shared/ui/date-filter';
 import { SearchInput } from '@/shared/ui/search-input';
 import { toggleItem } from '@/shared/lib/array/toggle-item';
-import { buildMonthOptions } from '@/features/klinik/model/appointment-filters.rules';
+import { buildMonthOptions, isToday } from '@/features/klinik/model/appointment-filters.rules';
 import { doctorScheduleFilterOptionsQueryOptions } from '../api/queries';
 import { cn } from '@/lib/utils';
 
@@ -48,6 +48,7 @@ export function DoctorScheduleFilters({
   className
 }: DoctorScheduleFiltersProps) {
   const [localSearch, setLocalSearch] = React.useState(searchQuery || '');
+  const today = React.useMemo(() => new Date(), []);
 
   const { data: filterOptionsData } = useQuery(doctorScheduleFilterOptionsQueryOptions());
 
@@ -69,7 +70,7 @@ export function DoctorScheduleFilters({
     Boolean(searchQuery.trim()) ||
     Boolean(localSearch.trim()) ||
     (monthFilter !== 'ALL' && monthFilter !== '') ||
-    Boolean(dateFilter) ||
+    Boolean(dateFilter && !isToday(dateFilter)) ||
     selectedPoli.length > 0 ||
     selectedStatuses.length > 0;
 
@@ -115,7 +116,8 @@ export function DoctorScheduleFilters({
         label='Tanggal'
         selectedDate={dateFilter}
         onSelectDate={onDateFilterChange}
-        resetLabel='Reset Tanggal'
+        defaultDate={today}
+        resetLabel='Kembali ke Hari Ini'
       />
 
       {/* 4. Poli Filter */}

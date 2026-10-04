@@ -40,14 +40,36 @@ export interface BuildMonthOptionsConfig {
   futureMonths?: number;
 }
 
+export function isSameDay(d1?: Date, d2?: Date): boolean {
+  if (!d1 || !d2) return false;
+  return (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate()
+  );
+}
+
+export function isToday(d?: Date): boolean {
+  if (!d) return false;
+  return isSameDay(d, new Date());
+}
+
 /**
  * Pure rule to determine if any appointment filter is currently active.
+ * When defaultDate is provided, dateFilter is only considered active if different from defaultDate.
  */
-export function isAppointmentFilterActive(filters: AppointmentFilterState): boolean {
+export function isAppointmentFilterActive(
+  filters: AppointmentFilterState,
+  defaultDate?: Date
+): boolean {
+  const isDateActive = Boolean(
+    filters.dateFilter && (defaultDate ? !isSameDay(filters.dateFilter, defaultDate) : true)
+  );
+
   return (
     Boolean(filters.searchQuery.trim()) ||
     (filters.monthFilter !== 'ALL' && Boolean(filters.monthFilter)) ||
-    Boolean(filters.dateFilter) ||
+    isDateActive ||
     filters.selectedServices.length > 0 ||
     filters.selectedStatuses.length > 0
   );

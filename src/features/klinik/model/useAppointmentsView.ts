@@ -12,8 +12,7 @@ import {
   type AppointmentFilterState,
   type AppointmentFormMode,
   filterAppointments,
-  paginateAppointments,
-  updateAppointmentList
+  paginateAppointments
 } from './appointmentViewModel';
 import { isAppointmentFilterActive } from './appointment-filters.rules';
 
@@ -58,11 +57,12 @@ export interface UseAppointmentsViewResult {
 }
 
 export function useAppointmentsView(): UseAppointmentsViewResult {
+  const today = useMemo(() => new Date(), []);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [_isInitialized, setIsInitialized] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [monthFilter, setMonthFilter] = useState('ALL');
-  const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
+  const [dateFilter, setDateFilter] = useState<Date | undefined>(() => new Date());
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<AppointmentStatus[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -124,7 +124,7 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
       status: uiStatus,
       visit_type: apt.visitType || '',
       service: apt.layananName || '',
-      medical_flow: rawFlow as any,
+      medical_flow: rawFlow as Appointment['medical_flow'],
       created_at: apt.createdAt,
       queue_number: apt.queueNumber || '-',
       doctor_id: apt.staffId,
@@ -205,7 +205,7 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
   };
 
   const handleDateFilterChange = (value: Date | undefined) => {
-    setDateFilter(value);
+    setDateFilter(value || new Date());
     resetPage();
   };
 
@@ -222,7 +222,7 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
   const handleResetAllFilters = () => {
     setSearchQuery('');
     setMonthFilter('ALL');
-    setDateFilter(undefined);
+    setDateFilter(new Date());
     setSelectedServices([]);
     setSelectedStatuses([]);
     resetPage();
@@ -263,7 +263,7 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
     }
   };
 
-  const handleSubmitForm = (data: AppointmentFormData, appointmentId?: string) => {
+  const handleSubmitForm = (_data: AppointmentFormData, _appointmentId?: string) => {
     loadAppointments();
     if (formModalMode === 'edit') {
       return { type: 'edit' as const };
@@ -275,7 +275,7 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
     cards,
     filteredCount: filteredAppointments.length,
     totalAppointments: appointments.length,
-    hasActiveFilters: isAppointmentFilterActive(filters),
+    hasActiveFilters: isAppointmentFilterActive(filters, today),
     filters,
     currentPage,
     pageSize,

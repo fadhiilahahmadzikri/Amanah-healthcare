@@ -79,7 +79,8 @@ export function AppointmentFilters({
     actions?.changeSelectedStatuses ?? discreteOnStatusesChange ?? (() => {});
   const handleReset = actions?.resetFilters ?? discreteOnResetAll ?? (() => {});
 
-  const isFiltered = isAppointmentFilterActive(currentFilters);
+  const today = React.useMemo(() => new Date(), []);
+  const isFiltered = isAppointmentFilterActive(currentFilters, today);
   const monthOptions = React.useMemo(() => buildMonthOptions(), []);
 
   const serviceFacetOptions = React.useMemo(
@@ -119,7 +120,8 @@ export function AppointmentFilters({
         label='Tanggal'
         selectedDate={currentFilters.dateFilter}
         onSelectDate={handleDateChange}
-        resetLabel='Reset Tanggal'
+        defaultDate={today}
+        resetLabel='Kembali ke Hari Ini'
       />
 
       {/* 4. Layanan / Poli Filter */}

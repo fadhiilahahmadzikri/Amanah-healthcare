@@ -69,6 +69,15 @@ export function DoctorScheduleTable() {
     setDetailOpen(true);
   };
 
+  const handleViewDoctorSchedule = (doctorId: string) => {
+    setEditOpen(false);
+    const targetDoc = data.doctors.find((d) => d.id === doctorId || d.practitioner_id === doctorId);
+    if (targetDoc) {
+      setSelectedDoctor(targetDoc);
+      setDetailOpen(true);
+    }
+  };
+
   return (
     <>
       <DoctorScheduleDetailSheet
@@ -80,6 +89,7 @@ export function DoctorScheduleTable() {
           setDetailOpen(false);
           setEditOpen(true);
         }}
+        onViewDoctorSchedule={handleViewDoctorSchedule}
       />
 
       <DoctorRescheduleSessionModal
@@ -87,6 +97,7 @@ export function DoctorScheduleTable() {
         session={selectedDoctor?.sesi_harian?.[0] || null}
         isOpen={editOpen}
         onClose={() => setEditOpen(false)}
+        onViewDoctorSchedule={handleViewDoctorSchedule}
       />
 
       <div className='flex h-full flex-1 flex-col gap-4'>

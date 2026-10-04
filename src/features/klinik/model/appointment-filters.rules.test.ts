@@ -63,6 +63,18 @@ describe('appointment-filters rules and pure utilities', () => {
       expect(isAppointmentFilterActive({ ...emptyState, dateFilter: new Date() })).toBe(true);
     });
 
+    it('returns false when dateFilter matches defaultDate (current date)', () => {
+      const today = new Date();
+      expect(isAppointmentFilterActive({ ...emptyState, dateFilter: today }, today)).toBe(false);
+    });
+
+    it('returns true when dateFilter differs from defaultDate', () => {
+      const today = new Date();
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      expect(isAppointmentFilterActive({ ...emptyState, dateFilter: tomorrow }, today)).toBe(true);
+    });
+
     it('returns true when services or statuses are selected', () => {
       expect(
         isAppointmentFilterActive({
