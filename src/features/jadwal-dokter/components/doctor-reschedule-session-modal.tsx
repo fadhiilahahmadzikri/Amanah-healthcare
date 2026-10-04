@@ -34,9 +34,13 @@ import {
 import { getTodayDateParam } from '../model/useDoctorScheduleView';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule, DoctorDailySession } from '../api/types';
-import type { ReturnDoctorContext } from './doctor-add-session-modal';
+import {
+  useDoctorConflictNavigation,
+  type DoctorConflictReturnContext
+} from '../model/useDoctorConflictNavigation';
 
 export type RescheduleStep = 'date' | 'room' | 'slot' | 'note';
+export type ReturnDoctorContext = DoctorConflictReturnContext;
 
 export interface DoctorRescheduleSessionModalProps {
   doctor: DoctorSchedule | null;
@@ -46,6 +50,7 @@ export interface DoctorRescheduleSessionModalProps {
   portalContainerRef?: React.RefObject<HTMLElement | null>;
   initialDate?: string;
   initialStartTime?: string;
+  initialStep?: RescheduleStep;
   onViewDoctorSchedule?: (
     doctorId: string,
     targetSlotTime?: string,
@@ -61,11 +66,13 @@ export function DoctorRescheduleSessionModal({
   portalContainerRef,
   initialDate,
   initialStartTime,
+  initialStep,
   onViewDoctorSchedule
 }: DoctorRescheduleSessionModalProps) {
+  const conflictNav = useDoctorConflictNavigation();
   const rescheduleMutation = useRescheduleDoctorSessionMutation();
 
-  const [step, setStep] = useState<RescheduleStep>('date');
+  const [step, setStep] = useState<RescheduleStep>(() => initialStep || 'date');
   const [targetDate, setTargetDate] = useState('');
   const [targetRoomId, setTargetRoomId] = useState('');
   const [selectedShift, setSelectedShift] = useState<ScheduleShift>(SCHEDULE_SHIFT.PAGI);
@@ -96,7 +103,7 @@ export function DoctorRescheduleSessionModal({
   // Initialize or reset form state whenever effectiveSession or modal opens
   useEffect(() => {
     if (effectiveSession && isOpen) {
-      setStep('date');
+      setStep(initialStep || 'date');
       setNotes('');
       setRescheduleActiveAppointments(true);
       setTargetStartTime(initialStartTime || '');
@@ -110,7 +117,7 @@ export function DoctorRescheduleSessionModal({
       const initialShift = resolveShiftFromTime(initialStartTime || effectiveSession.jam_mulai);
       setSelectedShift(initialShift);
     }
-  }, [effectiveSession, isOpen, initialDate, initialStartTime]);
+  }, [effectiveSession, isOpen, initialDate, initialStartTime, initialStep]);
 
   // Query rooms for target date
   const { data: rooms = [], isLoading: isLoadingRooms } = useQuery({
@@ -201,30 +208,51 @@ export function DoctorRescheduleSessionModal({
   // Jump to occupant doctor's schedule on conflicting purple slot click
   const handleViewOccupantDoctorSchedule = useCallback(
     (occupantDoctorId?: string | null, slotTime?: string) => {
-      if (!occupantDoctorId) return;
+      if (!occupantDoctorId || !doctor) return;
       onClose();
-      const returnContext: ReturnDoctorContext | undefined = doctor
-        ? {
-            sourceDoctorId: doctor.id,
-            sourceDoctorName: doctor.nama_dokter,
-            sourceDate: targetDate,
-            sourceSlotStartTime: slotTime
-          }
-        : undefined;
 
-      if (onViewDoctorSchedule) {
-        onViewDoctorSchedule(occupantDoctorId, slotTime, returnContext);
-      } else {
-        setParams(
-          {
-            selectedDoctorId: occupantDoctorId,
-            highlightSlotTime: slotTime || null
-          },
-          { shallow: true }
-        );
-      }
+      conflictNav.inspectConflictDoctor({
+        occupantDoctorId,
+        targetSlotTime: slotTime,
+        context: {
+          sourceDoctorId: doctor.id,
+          sourceDoctorName: doctor.nama_dokter,
+          sourceDate: targetDate || initialDate,
+          sourceSlotStartTime: slotTime,
+          sourceSlotEndTime: targetEndTime,
+          sourceSession: effectiveSession,
+          sourceSessionId: effectiveSession?.id,
+          sourceRoomId: targetRoomId,
+          wizardType: 'reschedule',
+          initialStep: 'room'
+        },
+        onNavigate: (id, time) => {
+          if (onViewDoctorSchedule) {
+            onViewDoctorSchedule(id, time);
+          } else {
+            setParams(
+              {
+                selectedDoctorId: id,
+                highlightSlotTime: time || null
+              },
+              { shallow: true }
+            );
+          }
+        }
+      });
     },
-    [doctor, onClose, onViewDoctorSchedule, setParams, targetDate]
+    [
+      doctor,
+      onClose,
+      onViewDoctorSchedule,
+      setParams,
+      targetDate,
+      initialDate,
+      targetEndTime,
+      effectiveSession,
+      targetRoomId,
+      conflictNav
+    ]
   );
 
   // Stepper navigation guards
@@ -393,7 +421,7 @@ export function DoctorRescheduleSessionModal({
         )}
 
         {/* Wizard Steps Content */}
-        <div className='w-full'>
+        <div key={step} className='w-full animate-in fade-in-50 duration-200'>
           {/* STEP 1: Tanggal Tujuan */}
           {step === 'date' && (
             <BookingDateStep

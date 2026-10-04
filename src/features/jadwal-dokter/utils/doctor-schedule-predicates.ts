@@ -17,7 +17,8 @@ export const DOCTOR_CARD_STATUS = {
 } as const;
 
 export type DoctorCardStatus =
-	(typeof DOCTOR_CARD_STATUS)[keyof typeof DOCTOR_CARD_STATUS];
+	| (typeof DOCTOR_CARD_STATUS)[keyof typeof DOCTOR_CARD_STATUS]
+	| null;
 
 export const UNCONFIGURED_SCHEDULE_VALUES = new Set([
 	"",
@@ -194,13 +195,6 @@ export function getDoctorCardStatus(
 			return DOCTOR_CARD_STATUS.TUTUP;
 		}
 
-		const allPast = sessions.every(
-			(s) => parseMinutesFromTime(s.jam_selesai) <= currentMinutes,
-		);
-		if (allPast) {
-			return DOCTOR_CARD_STATUS.SELESAI;
-		}
-
 		const activeSession = sessions.find((s) =>
 			isDoctorSessionActive(s, currentMinutes),
 		);
@@ -236,10 +230,21 @@ export function getDoctorCardStatus(
 				return DOCTOR_CARD_STATUS.TERISI;
 			}
 
+			if (
+				(typeof activeSession.slot_tersedia === "number" &&
+					activeSession.slot_tersedia === 0 &&
+					(activeSession.kuota_pasien || 0) > 0) ||
+				(typeof activeSession.pasien_terdaftar === "number" &&
+					activeSession.pasien_terdaftar > 0)
+			) {
+				return DOCTOR_CARD_STATUS.TERISI;
+			}
+
 			return DOCTOR_CARD_STATUS.BUKA;
 		}
 
-		return DOCTOR_CARD_STATUS.TUTUP;
+		// Jika saat ini belum/tidak ada sesi yang aktif pada jam sekarang, jangan fallback ke Terisi/Buka
+		return null;
 	}
 
 	if (doctor.jadwal_hari_ini && doctor.jadwal_hari_ini.includes("-")) {
@@ -247,21 +252,19 @@ export function getDoctorCardStatus(
 		if (startStr && endStr) {
 			const sMin = parseMinutesFromTime(startStr.trim());
 			const eMin = parseMinutesFromTime(endStr.trim());
-			if (currentMinutes >= eMin) {
-				return DOCTOR_CARD_STATUS.SELESAI;
+			const isActive = currentMinutes >= sMin && currentMinutes < eMin;
+			if (isActive) {
+				if (
+					statusDokter === SCHEDULE_STATUS.OCCUPIED ||
+					statusJadwal === SCHEDULE_STATUS.OCCUPIED
+				) {
+					return DOCTOR_CARD_STATUS.TERISI;
+				}
+				return DOCTOR_CARD_STATUS.BUKA;
 			}
-			if (currentMinutes < sMin) {
-				return DOCTOR_CARD_STATUS.TUTUP;
-			}
-			if (
-				statusDokter === SCHEDULE_STATUS.OCCUPIED ||
-				statusJadwal === SCHEDULE_STATUS.OCCUPIED
-			) {
-				return DOCTOR_CARD_STATUS.TERISI;
-			}
-			return DOCTOR_CARD_STATUS.BUKA;
+			return null;
 		}
 	}
 
-	return DOCTOR_CARD_STATUS.BUKA;
+	return null;
 }

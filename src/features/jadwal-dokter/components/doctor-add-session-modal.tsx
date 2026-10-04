@@ -10,7 +10,11 @@ import { BookingDateStep } from '@/features/klinik/components/booking/booking-da
 import { parseAsString, useQueryStates } from 'nuqs';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule, DoctorDailySession } from '../api/types';
-import { useDoctorAddSessionModal } from '../model/useDoctorAddSessionModal';
+import { useDoctorAddSessionModal, type AddSessionStep } from '../model/useDoctorAddSessionModal';
+import {
+  useDoctorConflictNavigation,
+  type DoctorConflictReturnContext
+} from '../model/useDoctorConflictNavigation';
 import {
   ALL_SCHEDULE_SHIFTS,
   SCHEDULE_SHIFT_LABELS,
@@ -20,13 +24,7 @@ import { StepRoomSelect } from './add-session/step-room-select';
 import { StepConfirmation } from './add-session/step-confirmation';
 import { DoctorGridSlotItem, type GridSlotData } from './grid/doctor-grid-slot-item';
 
-export interface ReturnDoctorContext {
-  sourceDoctorId: string;
-  sourceDoctorName: string;
-  sourceDate?: string;
-  sourceSlotStartTime?: string;
-  sourceSlotEndTime?: string;
-}
+export type ReturnDoctorContext = DoctorConflictReturnContext;
 
 export interface DoctorAddSessionModalProps {
   doctor: DoctorSchedule | null;
@@ -37,6 +35,7 @@ export interface DoctorAddSessionModalProps {
   targetDate?: string;
   initialStartTime?: string;
   initialEndTime?: string;
+  initialStep?: AddSessionStep;
   onViewDoctorSchedule?: (
     doctorId: string,
     targetSlotTime?: string,
@@ -53,8 +52,10 @@ export function DoctorAddSessionModal({
   targetDate,
   initialStartTime,
   initialEndTime,
+  initialStep,
   onViewDoctorSchedule
 }: DoctorAddSessionModalProps) {
+  const conflictNav = useDoctorConflictNavigation();
   const {
     step,
     selectedDate,
@@ -85,7 +86,8 @@ export function DoctorAddSessionModal({
     onSessionAdded,
     targetDate,
     initialStartTime,
-    initialEndTime
+    initialEndTime,
+    initialStep
   });
 
   const [, setParams] = useQueryStates(
@@ -98,30 +100,37 @@ export function DoctorAddSessionModal({
 
   const handleViewOccupantDoctorSchedule = useCallback(
     (occupantDoctorId?: string | null, slotTime?: string) => {
-      if (!occupantDoctorId) return;
+      if (!occupantDoctorId || !doctor) return;
       onClose();
-      const returnContext: ReturnDoctorContext | undefined = doctor
-        ? {
-            sourceDoctorId: doctor.id,
-            sourceDoctorName: doctor.nama_dokter,
-            sourceDate: selectedDate,
-            sourceSlotStartTime: slotTime
-          }
-        : undefined;
 
-      if (onViewDoctorSchedule) {
-        onViewDoctorSchedule(occupantDoctorId, slotTime, returnContext);
-      } else {
-        setParams(
-          {
-            selectedDoctorId: occupantDoctorId,
-            highlightSlotTime: slotTime || null
-          },
-          { shallow: true }
-        );
-      }
+      conflictNav.inspectConflictDoctor({
+        occupantDoctorId,
+        targetSlotTime: slotTime,
+        context: {
+          sourceDoctorId: doctor.id,
+          sourceDoctorName: doctor.nama_dokter,
+          sourceDate: selectedDate,
+          sourceSlotStartTime: slotTime,
+          sourceSlotEndTime: selectedSlot?.endTime,
+          wizardType: 'add',
+          initialStep: 'room'
+        },
+        onNavigate: (id, time) => {
+          if (onViewDoctorSchedule) {
+            onViewDoctorSchedule(id, time);
+          } else {
+            setParams(
+              {
+                selectedDoctorId: id,
+                highlightSlotTime: time || null
+              },
+              { shallow: true }
+            );
+          }
+        }
+      });
     },
-    [doctor, onClose, onViewDoctorSchedule, selectedDate, setParams]
+    [doctor, onClose, onViewDoctorSchedule, selectedDate, selectedSlot, setParams, conflictNav]
   );
 
   const shiftBounds = SCHEDULE_SHIFT_BOUNDARIES[selectedShift];
@@ -186,7 +195,7 @@ export function DoctorAddSessionModal({
         </div>
 
         {/* Wizard Steps Content */}
-        <div className='w-full'>
+        <div key={step} className='w-full animate-in fade-in-50 duration-200'>
           {/* STEP 1: Tanggal Praktik */}
           {step === 'date' && (
             <BookingDateStep

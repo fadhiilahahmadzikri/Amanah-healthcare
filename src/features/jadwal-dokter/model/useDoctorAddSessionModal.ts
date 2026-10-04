@@ -28,6 +28,7 @@ export interface UseDoctorAddSessionModalProps {
   targetDate?: string;
   initialStartTime?: string;
   initialEndTime?: string;
+  initialStep?: AddSessionStep;
 }
 
 function computeSafeEndTime(startTime: string, providedEnd?: string): string {
@@ -55,7 +56,8 @@ export function useDoctorAddSessionModal({
   onSessionAdded,
   targetDate,
   initialStartTime,
-  initialEndTime
+  initialEndTime,
+  initialStep
 }: UseDoctorAddSessionModalProps) {
   const createSessionMutation = useCreateDoctorSessionMutation();
 
@@ -68,9 +70,9 @@ export function useDoctorAddSessionModal({
   }, [targetDate]);
 
   const isDirectSlotMode = Boolean(initialStartTime);
-  const [step, setStep] = useState<AddSessionStep>(() => (initialStartTime ? 'room' : 'date'));
+  const [step, setStep] = useState<AddSessionStep>(() => initialStep || (initialStartTime ? 'room' : 'date'));
   const effectiveStep: AddSessionStep =
-    Boolean(initialStartTime) && step === 'date' ? 'room' : step;
+    initialStep || (Boolean(initialStartTime) && step === 'date' ? 'room' : step);
 
   const [selectedDate, setSelectedDate] = useState(defaultDate);
   const [selectedShift, setSelectedShift] = useState<ScheduleShift>(() => {
@@ -179,7 +181,15 @@ export function useDoctorAddSessionModal({
           : defaultDate;
       setSelectedDate(initialDateValue);
 
-      if (initialStartTime) {
+      if (initialStep) {
+        setStep(initialStep);
+        if (initialStartTime) {
+          const canonical = resolveShiftFromTime(initialStartTime);
+          setSelectedShift(canonical);
+          const safeEndTime = computeSafeEndTime(initialStartTime, initialEndTime);
+          setSelectedSlot({ time: initialStartTime, endTime: safeEndTime });
+        }
+      } else if (initialStartTime) {
         const canonical = resolveShiftFromTime(initialStartTime);
         setSelectedShift(canonical);
         const safeEndTime = computeSafeEndTime(initialStartTime, initialEndTime);
@@ -193,7 +203,7 @@ export function useDoctorAddSessionModal({
 
       setIsSubmitting(false);
     }
-  }, [isOpen, targetDate, defaultDate, initialStartTime, initialEndTime]);
+  }, [isOpen, targetDate, defaultDate, initialStartTime, initialEndTime, initialStep]);
 
   const selectedDateObj = useMemo(() => {
     if (!selectedDate) return undefined;

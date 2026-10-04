@@ -13,6 +13,7 @@ import {
   SHIFT_OPERATIONAL_STATUS,
   SHIFT_OPERATIONAL_LABELS
 } from '../../constants/schedule-shift.constants';
+import { useDoctorConflictNavigation } from '../../model/useDoctorConflictNavigation';
 
 export interface DoctorGridShiftSectionProps {
   shift: OccupancyShift;
@@ -55,14 +56,23 @@ export function DoctorGridShiftSection({
   onReturnToSourceModal,
   returnDoctorName
 }: DoctorGridShiftSectionProps) {
+  const conflictNav = useDoctorConflictNavigation();
+  const effectiveHighlightTime = highlightSlotTime || conflictNav.highlightSlotTime || undefined;
+
   const isHighlightedShift = Boolean(
-    highlightSlotTime &&
+    effectiveHighlightTime &&
     shift.slots.some(
       (slot) =>
-        slot.startTime === highlightSlotTime ||
-        (slot.startTime <= highlightSlotTime && slot.endTime > highlightSlotTime)
+        slot.startTime === effectiveHighlightTime ||
+        (slot.startTime <= effectiveHighlightTime && slot.endTime > effectiveHighlightTime)
     )
   );
+
+  const showReturnButton = Boolean(
+    (onReturnToSourceModal || conflictNav.isInspecting) && isHighlightedShift
+  );
+  const effectiveReturnDoctorName =
+    returnDoctorName || conflictNav.returnContext?.sourceDoctorName;
 
   const matchingShiftSessions = activeSessions.filter((s) =>
     Boolean(
@@ -104,14 +114,20 @@ export function DoctorGridShiftSection({
 
         {/* Indikator Kuota / Slot Khusus Sesi Shift Ini (Backend SSOT) */}
         <div className='flex items-center gap-2 flex-wrap'>
-          {onReturnToSourceModal && isHighlightedShift && (
+          {showReturnButton && (
             <button
               type='button'
-              onClick={onReturnToSourceModal}
+              onClick={() => {
+                if (onReturnToSourceModal) {
+                  onReturnToSourceModal();
+                } else {
+                  conflictNav.returnToSourceWizard();
+                }
+              }}
               className='inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/25 transition-all cursor-pointer shadow-2xs'
               title={
-                returnDoctorName
-                  ? `Kembali ke pemilihan ruang ${returnDoctorName}`
+                effectiveReturnDoctorName
+                  ? `Kembali ke pemilihan ruang ${effectiveReturnDoctorName}`
                   : 'Kembali ke pemilihan ruang'
               }
             >

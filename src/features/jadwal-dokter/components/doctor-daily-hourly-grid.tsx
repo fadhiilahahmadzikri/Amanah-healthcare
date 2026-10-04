@@ -19,6 +19,7 @@ import {
 } from './grid';
 
 import { useQueryClient } from '@tanstack/react-query';
+import { useDoctorConflictNavigation } from '../model/useDoctorConflictNavigation';
 import { DoctorAddSessionModal, type ReturnDoctorContext } from './doctor-add-session-modal';
 import { DoctorRescheduleSessionModal } from './doctor-reschedule-session-modal';
 import { DoctorSessionPatientsModal } from './doctor-session-patients-modal';
@@ -146,45 +147,54 @@ export function DoctorDailyHourlyGrid({
   const queryClient = useQueryClient();
   const formattedTargetDate = `${activeYear}-${String(activeMonth + 1).padStart(2, '0')}-${String(activeDay).padStart(2, '0')}`;
 
+  const conflictNav = useDoctorConflictNavigation();
+
   const [activeHighlightTime, setActiveHighlightTime] = useState<string | undefined>(
-    highlightSlotTime
+    highlightSlotTime || conflictNav.highlightSlotTime || undefined
   );
 
   useEffect(() => {
-    if (highlightSlotTime) {
-      setActiveHighlightTime(highlightSlotTime);
+    const effectiveHighlight = highlightSlotTime || conflictNav.highlightSlotTime;
+    if (effectiveHighlight) {
+      setActiveHighlightTime(effectiveHighlight);
       const timer = setTimeout(() => {
         setActiveHighlightTime(undefined);
         onClearHighlightSlotTime?.();
+        conflictNav.setHighlightSlotTime(null);
       }, 3500);
       return () => clearTimeout(timer);
     }
-  }, [highlightSlotTime, onClearHighlightSlotTime]);
+  }, [highlightSlotTime, conflictNav.highlightSlotTime, onClearHighlightSlotTime, conflictNav]);
 
   useEffect(() => {
-    if (
-      returnContext &&
-      doctor?.id &&
-      (returnContext.sourceDoctorId === doctor.id ||
-        returnContext.sourceDoctorId === doctor.practitioner_id)
-    ) {
-      if (returnContext.sourceSlotStartTime) {
-        setAddSessionInitialTime(returnContext.sourceSlotStartTime);
+    if (doctor?.id) {
+      const reopen = conflictNav.consumePendingReopen(doctor.id);
+      if (reopen) {
+        if (reopen.wizardType === 'add') {
+          setAddSessionInitialTime(reopen.sourceSlotStartTime);
+          setAddSessionInitialEndTime(reopen.sourceSlotEndTime);
+          setIsAddModalOpen(true);
+        } else if (reopen.wizardType === 'reschedule') {
+          setSelectedSessionForReschedule(
+            reopen.sourceSession ||
+              doctor.sesi_harian?.find((s) => s.id === reopen.sourceSessionId) ||
+              doctor.sesi_harian?.[0] ||
+              null
+          );
+          setSelectedSlotStartTime(reopen.sourceSlotStartTime);
+          setIsRescheduleOpen(true);
+        }
       }
-      if (returnContext.sourceSlotEndTime) {
-        setAddSessionInitialEndTime(returnContext.sourceSlotEndTime);
-      }
-      setIsAddModalOpen(true);
-      onClearReturnContext?.();
     }
   }, [
-    returnContext,
-    doctor?.id,
-    doctor?.practitioner_id,
-    onClearReturnContext,
+    doctor,
+    conflictNav,
     setAddSessionInitialTime,
     setAddSessionInitialEndTime,
-    setIsAddModalOpen
+    setIsAddModalOpen,
+    setSelectedSessionForReschedule,
+    setSelectedSlotStartTime,
+    setIsRescheduleOpen
   ]);
 
   return (
@@ -291,6 +301,7 @@ export function DoctorDailyHourlyGrid({
           targetDate={formattedTargetDate}
           initialStartTime={addSessionInitialTime}
           initialEndTime={addSessionInitialEndTime}
+          initialStep={addSessionInitialTime ? 'room' : undefined}
           onViewDoctorSchedule={onViewDoctorSchedule}
         />
       )}
@@ -308,6 +319,7 @@ export function DoctorDailyHourlyGrid({
           portalContainerRef={modalContainerRef}
           initialDate={formattedTargetDate}
           initialStartTime={selectedSlotStartTime}
+          initialStep={selectedSlotStartTime ? 'room' : undefined}
           onViewDoctorSchedule={onViewDoctorSchedule}
         />
       )}

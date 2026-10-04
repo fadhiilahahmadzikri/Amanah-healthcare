@@ -154,7 +154,7 @@ export function DoctorScheduleCard({
       <DoctorCardImage src={doctor.avatar} alt={doctor.nama_dokter} />
 
       <div className='flex items-center justify-between gap-3 relative z-20'>
-        {!isSelesai ? <DoctorStatusBadge status={statusLabel} /> : <div />}
+        {statusLabel && !isSelesai ? <DoctorStatusBadge status={statusLabel} /> : <div />}
         {showCallButton && !isUnconfigured && !isSelesai && (
           <DoctorQuickCallButton
             phoneNumber={doctor.nomor_telepon ?? undefined}
@@ -234,7 +234,7 @@ export function DoctorScheduleCard({
             'flex items-center justify-end gap-2 pt-3 mt-auto border-t border-border/40 relative z-20'
           )}
         >
-          {!isCuti && !isSelesai && (
+          {Boolean(statusLabel) && !isCuti && !isSelesai && (
             <Button
               type='button'
               variant='outline'

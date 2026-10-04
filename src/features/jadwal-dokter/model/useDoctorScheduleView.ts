@@ -5,14 +5,12 @@ import { useQuery } from '@tanstack/react-query';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { doctorScheduleQueryOptions } from '../api/queries';
 import type { DoctorSchedule, DoctorScheduleFilters } from '../api/types';
+import {
+  useDoctorConflictNavigation,
+  type DoctorConflictReturnContext
+} from './useDoctorConflictNavigation';
 
-export interface ReturnDoctorContext {
-  sourceDoctorId: string;
-  sourceDoctorName: string;
-  sourceDate?: string;
-  sourceSlotStartTime?: string;
-  sourceSlotEndTime?: string;
-}
+export type ReturnDoctorContext = DoctorConflictReturnContext;
 
 interface UseDoctorScheduleViewResult {
   doctors: DoctorSchedule[];
@@ -62,6 +60,7 @@ interface UseDoctorScheduleViewResult {
 }
 
 export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
+  const conflictNav = useDoctorConflictNavigation();
   const [selectedDoctor, setSelectedDoctor] = useState<DoctorSchedule | null>(null);
   const [returnContext, setReturnContext] = useState<ReturnDoctorContext | null>(null);
   const [activeDialog, setActiveDialog] = useState<'detail' | 'edit' | 'reschedule' | null>(null);
@@ -184,8 +183,9 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
   };
 
   const returnToSourceModal = () => {
-    if (!returnContext) return;
-    const targetSourceId = returnContext.sourceDoctorId;
+    const effectiveContext = returnContext || conflictNav.returnContext;
+    if (!effectiveContext) return;
+    const targetSourceId = effectiveContext.sourceDoctorId;
     const sourceDoctor = data?.doctors?.find(
       (d) => d.id === targetSourceId || d.practitioner_id === targetSourceId
     );
@@ -200,10 +200,12 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
       },
       { shallow: true }
     );
+    conflictNav.returnToSourceWizard();
   };
 
   const clearHighlightSlotTime = () => {
     setParams({ highlightSlotTime: null }, { shallow: true });
+    conflictNav.setHighlightSlotTime(null);
   };
 
   return {
@@ -211,8 +213,8 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     totalDoctors: data?.total_doctors ?? 0,
     selectedDoctor,
     selectedDoctorId: params.selectedDoctorId,
-    highlightSlotTime: params.highlightSlotTime,
-    returnContext,
+    highlightSlotTime: params.highlightSlotTime || conflictNav.highlightSlotTime || '',
+    returnContext: returnContext || conflictNav.returnContext,
     isDetailOpen: activeDialog === 'detail',
     isEditOpen: activeDialog === 'edit',
     isRescheduleOpen: activeDialog === 'reschedule',
@@ -242,12 +244,16 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
         setActiveDialog(null);
         setSelectedDoctor(null);
         setReturnContext(null);
+        conflictNav.clearConflictNavigation();
         setParams({ selectedDoctorId: null, highlightSlotTime: null }, { shallow: true });
       },
       openDoctorScheduleById,
       returnToSourceModal,
       clearHighlightSlotTime,
-      clearReturnContext: () => setReturnContext(null),
+      clearReturnContext: () => {
+        setReturnContext(null);
+        conflictNav.clearConflictNavigation();
+      },
       openEdit,
       closeEdit: () => {
         setActiveDialog(null);

@@ -24,6 +24,7 @@ import {
 	getDoctorCardStatus,
 	parseDateToIso,
 } from "../utils/doctor-schedule-card-utils";
+import { useDoctorConflictNavigation } from "../model/useDoctorConflictNavigation";
 import type { ReturnDoctorContext } from "./doctor-add-session-modal";
 import { DoctorDailyHourlyGrid } from "./doctor-daily-hourly-grid";
 import {
@@ -98,9 +99,16 @@ export function DoctorScheduleDetailSheet({
 	onViewDoctorSchedule,
 }: DoctorScheduleDetailSheetProps) {
 	const updateDayMutation = useUpdateDoctorDayStatusMutation();
+	const conflictNav = useDoctorConflictNavigation();
+	const shouldShowKuotaTab = Boolean(
+		highlightSlotTime ||
+		conflictNav.pendingReopen ||
+		conflictNav.isInspecting ||
+		conflictNav.phase === "returning"
+	);
 
 	const [activeTab, setActiveTab] = React.useState<DoctorDetailTab>(() =>
-		highlightSlotTime ? DOCTOR_DETAIL_TAB.KUOTA : DOCTOR_DETAIL_TAB.KALENDER,
+		shouldShowKuotaTab ? DOCTOR_DETAIL_TAB.KUOTA : DOCTOR_DETAIL_TAB.KALENDER,
 	);
 
 	const initialDate = React.useMemo(
@@ -127,16 +135,30 @@ export function DoctorScheduleDetailSheet({
 		setCurrentMonth(targetDate.getMonth());
 		setCurrentYear(targetDate.getFullYear());
 		setActiveTab(
-			highlightSlotTime ? DOCTOR_DETAIL_TAB.KUOTA : DOCTOR_DETAIL_TAB.KALENDER,
+			shouldShowKuotaTab ? DOCTOR_DETAIL_TAB.KUOTA : DOCTOR_DETAIL_TAB.KALENDER,
 		);
 		setPendingStatusDay(null);
-	}, [selectedDate, returnContext, highlightSlotTime]);
+	}, [selectedDate, returnContext, shouldShowKuotaTab]);
 
 	React.useEffect(() => {
 		if (isOpen) {
 			resetFocusState();
 		}
 	}, [isOpen, resetFocusState]);
+
+	React.useEffect(() => {
+		if (conflictNav.pendingReopen && isOpen) {
+			setActiveTab(DOCTOR_DETAIL_TAB.KUOTA);
+			if (conflictNav.pendingReopen.sourceDate) {
+				const parts = conflictNav.pendingReopen.sourceDate.split("-").map(Number);
+				if (parts.length === 3 && !Number.isNaN(parts[0])) {
+					setCurrentYear(parts[0]);
+					setCurrentMonth(parts[1] - 1);
+					setSelectedDay(parts[2]);
+				}
+			}
+		}
+	}, [conflictNav.pendingReopen, isOpen]);
 
 	React.useEffect(() => {
 		if (highlightSlotTime && isOpen) {
@@ -185,7 +207,7 @@ export function DoctorScheduleDetailSheet({
 		selectedDay,
 	);
 	const doctorStatus = getDoctorCardStatus(doctor, undefined, activeTargetDate);
-	const doctorStatusConfig = getStatusConfig(doctorStatus);
+	const doctorStatusConfig = doctorStatus ? getStatusConfig(doctorStatus) : null;
 	const isUnconfigured = doctorStatus === DOCTOR_CARD_STATUS.BELUM_DIATUR;
 
 	const initials = doctor.nama_dokter
@@ -223,7 +245,7 @@ export function DoctorScheduleDetailSheet({
 			<SheetContent
 				side="right"
 				showCloseButton={false}
-				className="w-full sm:max-w-[680px] lg:max-w-[760px] p-0 flex flex-col gap-0 border-l border-border/50 bg-card text-card-foreground shadow-2xl font-sans"
+				className="w-full sm:max-w-[680px] lg:max-w-[760px] p-0 flex flex-col gap-0 overflow-hidden border-l border-border/50 bg-card text-card-foreground shadow-2xl font-sans"
 			>
 				<div className="relative w-full shrink-0 border-b border-border/40 bg-card">
 					<div className="relative w-full h-24 sm:h-28 bg-[linear-gradient(to_bottom,color-mix(in_oklab,var(--primary-bright,var(--primary))_28%,transparent)_0%,color-mix(in_oklab,var(--primary-bright,var(--primary))_10%,transparent)_60%,transparent_100%)] overflow-hidden">
@@ -295,28 +317,30 @@ export function DoctorScheduleDetailSheet({
 										</span>
 									</span>
 
-									<span
-										className={cn(
-											"inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border backdrop-blur-sm select-none shadow-none",
-											doctorStatusConfig.pillBg,
-											doctorStatusConfig.pillBorder,
-										)}
-									>
+									{doctorStatusConfig && (
 										<span
 											className={cn(
-												"size-1.5 rounded-full shrink-0 ring-1 ring-white/60 dark:ring-white/20",
-												doctorStatusConfig.dotGradient,
-											)}
-										/>
-										<span
-											className={cn(
-												"bg-clip-text text-transparent font-bold tracking-tight",
-												doctorStatusConfig.textGradient,
+												"inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border backdrop-blur-sm select-none shadow-none",
+												doctorStatusConfig.pillBg,
+												doctorStatusConfig.pillBorder,
 											)}
 										>
-											{doctorStatusConfig.label}
+											<span
+												className={cn(
+													"size-1.5 rounded-full shrink-0 ring-1 ring-white/60 dark:ring-white/20",
+													doctorStatusConfig.dotGradient,
+												)}
+											/>
+											<span
+												className={cn(
+													"bg-clip-text text-transparent font-bold tracking-tight",
+													doctorStatusConfig.textGradient,
+												)}
+											>
+												{doctorStatusConfig.label}
+											</span>
 										</span>
-									</span>
+									)}
 								</div>
 
 								<SheetDescription className="sr-only">
