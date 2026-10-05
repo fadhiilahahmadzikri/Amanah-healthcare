@@ -14,7 +14,6 @@ import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { requireSession } from '@/server/auth/session.dal';
 import { getRoleLandingPath } from '@/core/routes';
-import { NotificationProvider } from '@/components/providers/notification-provider';
 
 export const metadata: Metadata = {
   title: 'Next Shadcn Dashboard Starter',
@@ -55,21 +54,19 @@ export default async function DashboardLayout({ children }: { children: React.Re
       initialNavGroups={authorizedNavGroups}
       allNavGroups={navGroups}
     >
-      <NotificationProvider>
-        <KBar>
-          <SidebarProvider defaultOpen={defaultOpen}>
-            <AppSidebar />
-            <SidebarInset>
-              <Header />
-              <InfobarProvider defaultOpen={false}>
-                {children}
-                <InfoSidebar side='right' />
-                <ChatwootWidget />
-              </InfobarProvider>
-            </SidebarInset>
-          </SidebarProvider>
-        </KBar>
-      </NotificationProvider>
+      <KBar>
+        <SidebarProvider defaultOpen={defaultOpen}>
+          <AppSidebar />
+          <SidebarInset>
+            <Header />
+            <InfobarProvider defaultOpen={false}>
+              {children}
+              <InfoSidebar side='right' />
+              <ChatwootWidget />
+            </InfobarProvider>
+          </SidebarInset>
+        </SidebarProvider>
+      </KBar>
     </AuthorizationProvider>
   );
 }

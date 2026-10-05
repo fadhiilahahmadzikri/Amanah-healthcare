@@ -23,6 +23,7 @@ interface UseDoctorScheduleViewResult {
   selectedDoctor: DoctorSchedule | null;
   selectedDoctorId: string;
   highlightSlotTime: string;
+  openPatients: boolean;
   returnContext: ReturnDoctorContext | null;
   isDetailOpen: boolean;
   isEditOpen: boolean;
@@ -41,6 +42,7 @@ interface UseDoctorScheduleViewResult {
   actions: {
     openDetail: (doctor: DoctorSchedule) => void;
     closeDetail: () => void;
+    clearOpenPatients: () => void;
     openDoctorScheduleById: (
       doctorId: string,
       highlightTime?: string,
@@ -83,7 +85,8 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
       status: parseAsString.withDefault(''),
       selectedDoctorId: parseAsString.withDefault(''),
       highlightSlotTime: parseAsString.withDefault(''),
-      dialog: parseAsString.withDefault('')
+      dialog: parseAsString.withDefault(''),
+      openPatients: parseAsString.withDefault('')
     },
     { shallow: true }
   );
@@ -261,6 +264,7 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     selectedDoctor,
     selectedDoctorId: params.selectedDoctorId,
     highlightSlotTime: params.highlightSlotTime || conflictNav.highlightSlotTime || '',
+    openPatients: Boolean(params.openPatients === 'true' || params.openPatients === '1'),
     returnContext: returnContext || conflictNav.returnContext,
     isDetailOpen: currentDialog === DOCTOR_DIALOG_TYPE.DETAIL_SHEET,
     isEditOpen: currentDialog === DOCTOR_DIALOG_TYPE.EDIT,
@@ -298,10 +302,11 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
         setReturnContext(null);
         conflictNav.clearConflictNavigation();
         setParams(
-          { selectedDoctorId: null, highlightSlotTime: null, dialog: null },
+          { selectedDoctorId: null, highlightSlotTime: null, dialog: null, openPatients: null },
           { shallow: true }
         );
       },
+      clearOpenPatients: () => setParams({ openPatients: null }, { shallow: true }),
       openDoctorScheduleById,
       returnToSourceModal,
       clearHighlightSlotTime,

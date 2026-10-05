@@ -1,14 +1,15 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { Icons } from '@/components/icons';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ClinicNotification } from '../types';
+import type { ClinicNotification, NotificationActionItem } from '../types';
 import { clinicalTokens } from '@/styles/clinical-tokens';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
+import { executeNotificationAction } from '../utils/notification-action-dispatcher';
 
 export interface ClinicNotificationCardProps {
   notification: ClinicNotification;
@@ -86,15 +87,61 @@ export function ClinicNotificationCard({
   onMarkAsRead,
   className
 }: ClinicNotificationCardProps) {
+  const router = useRouter();
   const isUnread = notification.status === 'unread';
   const categoryConfig = getCategoryTagConfig(notification.category);
 
-  // Sub-badge icon selector based on badgeIcon string
-  const renderBadgeIcon = (iconName: string) => {
+  // Sub-badge icon selector: strictly backend-driven, null if omitted
+  const renderBadgeIcon = (iconName?: string | null) => {
+    if (!iconName) return null;
     switch (iconName) {
       case 'stethoscope':
         return (
           <Icons.stethoscope
+            className='size-2.5 sm:size-3 text-primary-foreground'
+            strokeWidth={2.5}
+          />
+        );
+      case 'calendar':
+        return (
+          <Icons.calendar
+            className='size-2.5 sm:size-3 text-primary-foreground'
+            strokeWidth={2.5}
+          />
+        );
+      case 'user-plus':
+      case 'user':
+        return (
+          <Icons.user
+            className='size-2.5 sm:size-3 text-primary-foreground'
+            strokeWidth={2.5}
+          />
+        );
+      case 'bell':
+        return (
+          <Icons.notification
+            className='size-2.5 sm:size-3 text-primary-foreground'
+            strokeWidth={2.5}
+          />
+        );
+      case 'clock':
+        return (
+          <Icons.clock
+            className='size-2.5 sm:size-3 text-primary-foreground'
+            strokeWidth={2.5}
+          />
+        );
+      case 'check-circle':
+      case 'check':
+        return (
+          <Icons.check
+            className='size-2.5 sm:size-3 text-primary-foreground'
+            strokeWidth={2.5}
+          />
+        );
+      case 'alert-circle':
+        return (
+          <Icons.alertCircle
             className='size-2.5 sm:size-3 text-primary-foreground'
             strokeWidth={2.5}
           />
@@ -123,17 +170,13 @@ export function ClinicNotificationCard({
           <Icons.video className='size-2.5 sm:size-3 text-primary-foreground' strokeWidth={2.5} />
         );
       default:
-        return (
-          <Icons.notification
-            className='size-2.5 sm:size-3 text-primary-foreground'
-            strokeWidth={2.5}
-          />
-        );
+        return null;
     }
   };
 
-  // Meta Pill Icon
-  const renderMetaIcon = (iconName: string) => {
+  // Meta Pill Icon: strictly backend-driven, null if omitted
+  const renderMetaIcon = (iconName?: string | null) => {
+    if (!iconName) return null;
     switch (iconName) {
       case 'calendar':
         return <Icons.calendar className='size-3.5 shrink-0 text-primary' />;
@@ -147,60 +190,19 @@ export function ClinicNotificationCard({
         return <Icons.package className='size-3.5 shrink-0 text-primary' />;
       case 'video':
         return <Icons.video className='size-3.5 shrink-0 text-primary' />;
-      default:
+      case 'clock':
         return <Icons.clock className='size-3.5 shrink-0 text-primary' />;
+      default:
+        return null;
     }
   };
 
-  // Action Button Click Handler with rich toast feedback
-  const handleActionClick = (actionKey: string, label: string) => {
+  // Action Button Click Handler delegating to centralized dispatcher
+  const handleActionClick = (action: NotificationActionItem) => {
     if (onMarkAsRead) {
       onMarkAsRead(notification.id);
     }
-
-    switch (actionKey) {
-      case 'confirm':
-        toast.success('Kehadiran Janji Temu Dikonfirmasi', {
-          description: `Terima kasih! Jadwal kunjungan ke ${notification.roleSubtitle} telah dikonfirmasi.`
-        });
-        break;
-      case 'reschedule':
-        toast.info('Ubah Jadwal Janji Temu', {
-          description: 'Membuka dialog pemilihan jadwal dan slot dokter pengganti...'
-        });
-        break;
-      case 'claim_promo':
-        toast.success('Voucher Promo Berhasil Diklaim! 🎁', {
-          description:
-            'Voucher diskon 30% telah tersimpan di akun Anda dan dapat digunakan saat pembayaran kasir.'
-        });
-        break;
-      case 'download_lab':
-        toast.success('Mengunduh Hasil Laboratorium 📄', {
-          description: 'Dokumen PDF Hasil Tes Medis Anda sedang diunduh secara aman.'
-        });
-        break;
-      case 'view_queue':
-        toast.info('Menuju Monitor Antrean Live', {
-          description: 'Mengarahkan ke layar Cek Antrean Poliklinik...'
-        });
-        break;
-      case 'track_medication':
-        toast.info('Opsi Pengambilan Obat Farmasi', {
-          description: 'Resep digital siap diambil di Loket 3 Apotek atau melalui kurir express.'
-        });
-        break;
-      case 'view_telemedicine':
-        toast.info('Ringkasan Telemedisin', {
-          description: 'Membuka catatan resep dokter dan anjuran medis sesi telemedisin.'
-        });
-        break;
-      default:
-        toast.info(label, {
-          description: `Aksi untuk notifikasi dari ${notification.sender} telah diproses.`
-        });
-        break;
-    }
+    executeNotificationAction(router, action, notification);
   };
 
   return (
@@ -271,9 +273,11 @@ export function ClinicNotificationCard({
                 {notification.sender.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <div className='absolute -bottom-0.5 -right-0.5 size-4.5 sm:size-5 rounded-full bg-primary flex items-center justify-center ring-2 ring-card shadow-2xs'>
-              {renderBadgeIcon(notification.badgeIcon)}
-            </div>
+            {notification.badgeIcon && (
+              <div className='absolute -bottom-0.5 -right-0.5 size-4.5 sm:size-5 rounded-full bg-primary flex items-center justify-center ring-2 ring-card shadow-2xs'>
+                {renderBadgeIcon(notification.badgeIcon)}
+              </div>
+            )}
           </div>
         </div>
 
@@ -317,7 +321,7 @@ export function ClinicNotificationCard({
                     <Button
                       key={act.id}
                       size='sm'
-                      onClick={() => handleActionClick(act.actionKey, act.label)}
+                      onClick={() => handleActionClick(act)}
                       className='h-8 px-3.5 rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1.5'
                     >
                       <Icons.check className='size-3.5' />
@@ -329,7 +333,7 @@ export function ClinicNotificationCard({
                     <Button
                       key={act.id}
                       size='sm'
-                      onClick={() => handleActionClick(act.actionKey, act.label)}
+                      onClick={() => handleActionClick(act)}
                       className='h-8 px-3.5 rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1.5'
                     >
                       <Icons.ticket className='size-3.5' />
@@ -342,7 +346,7 @@ export function ClinicNotificationCard({
                       key={act.id}
                       variant='secondary'
                       size='sm'
-                      onClick={() => handleActionClick(act.actionKey, act.label)}
+                      onClick={() => handleActionClick(act)}
                       className='h-8 px-3.5 rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1.5'
                     >
                       <Icons.download className='size-3.5' />
@@ -355,7 +359,7 @@ export function ClinicNotificationCard({
                       key={act.id}
                       variant='outline'
                       size='sm'
-                      onClick={() => handleActionClick(act.actionKey, act.label)}
+                      onClick={() => handleActionClick(act)}
                       className='h-8 px-3.5 rounded-lg text-xs font-medium border-border/60 hover:bg-muted text-foreground flex items-center gap-1.5'
                     >
                       {act.icon === 'truck' && <Icons.truck className='size-3.5' />}

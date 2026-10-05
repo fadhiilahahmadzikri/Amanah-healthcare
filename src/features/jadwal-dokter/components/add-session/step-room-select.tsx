@@ -13,7 +13,6 @@ export interface StepRoomSelectProps {
   onSelectRoomId: (roomId: string) => void;
   doctorName?: string;
   isLoading?: boolean;
-  onViewConflict?: (room: ClinicRoom) => void;
   showHeader?: boolean;
 }
 
@@ -23,7 +22,6 @@ export function StepRoomSelect({
   onSelectRoomId,
   doctorName,
   isLoading = false,
-  onViewConflict,
   showHeader = true
 }: StepRoomSelectProps) {
   return (
@@ -58,57 +56,6 @@ export function StepRoomSelect({
         <div className='space-y-2.5 max-h-[46vh] overflow-y-auto pr-1'>
           {rooms.map((room) => {
             const isSelected = selectedRoomId === room.id;
-            const isOccupied = room.isOccupied;
-
-            if (isOccupied) {
-              return (
-                <div
-                  key={room.id}
-                  className='group w-full text-left relative flex items-center justify-between p-3.5 rounded-xl border border-border/40 bg-muted/20 opacity-75 hover:opacity-100 transition-all'
-                >
-                  <div className='flex items-center gap-3 min-w-0 flex-1'>
-                    <div className='size-9 rounded-full flex items-center justify-center shrink-0 bg-muted/60 text-muted-foreground/50'>
-                      <Icons.location className='size-4' />
-                    </div>
-
-                    <div className='min-w-0 flex-1 space-y-0.5'>
-                      <span className='text-xs sm:text-sm font-bold text-muted-foreground truncate block'>
-                        {room.name}
-                      </span>
-                      {room.location && (
-                        <p className='text-xs text-muted-foreground truncate'>
-                          {room.location} {room.floor ? `• Lantai ${room.floor}` : ''}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className='flex items-center gap-2 shrink-0 pl-2'>
-                    {onViewConflict && (
-                      <button
-                        type='button'
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          onViewConflict(room);
-                        }}
-                        className='opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto text-[11.5px] font-semibold text-primary hover:text-primary/80 hover:underline cursor-pointer inline-flex items-center gap-1 whitespace-nowrap'
-                        aria-label={`Lihat dokter di ${room.name}`}
-                      >
-                        <span>Lihat dokter</span>
-                        <Icons.arrowRight className='size-3 stroke-[2.5]' />
-                      </button>
-                    )}
-
-                    <span className='inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-destructive/10 text-destructive border border-destructive/20 shrink-0'>
-                      Terisi
-                    </span>
-
-                    <div className='size-5 rounded-full border border-muted-foreground/15 bg-muted/30 flex items-center justify-center shrink-0' />
-                  </div>
-                </div>
-              );
-            }
 
             return (
               <button

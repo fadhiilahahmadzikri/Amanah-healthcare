@@ -102,4 +102,17 @@ describe('mapBackendToClinicNotification', () => {
       '/api/v1/users/usr-abc-123/avatar'
     );
   });
+
+  it('should not provide fallback icons when backend does not supply badgeIcon or metaIcon', () => {
+    const notifNoIcons: BackendNotification = {
+      id: 'notif-no-icons',
+      category: 'appointment',
+      body: 'Pesan tanpa icon.',
+      createdAt: '2026-09-29T10:00:00.000Z'
+    };
+
+    const result = mapBackendToClinicNotification(notifNoIcons);
+    expect(result.badgeIcon).toBeNull();
+    expect(result.metaIcon).toBeNull();
+  });
 });

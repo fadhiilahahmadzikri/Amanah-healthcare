@@ -2,6 +2,7 @@
 import React from 'react';
 import { ActiveThemeProvider } from '../themes/active-theme';
 import QueryProvider from './query-provider';
+import { NotificationProvider } from '../providers/notification-provider';
 
 export default function Providers({
   activeThemeValue,
@@ -12,7 +13,10 @@ export default function Providers({
 }) {
   return (
     <ActiveThemeProvider initialTheme={activeThemeValue}>
-      <QueryProvider>{children}</QueryProvider>
+      <QueryProvider>
+        <NotificationProvider>{children}</NotificationProvider>
+      </QueryProvider>
     </ActiveThemeProvider>
   );
 }
+

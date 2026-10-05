@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useNotificationStore } from '../utils/store';
 import type { ActionType } from '@/components/ui/notification-card';
+import { executeNotificationAction } from '../utils/notification-action-dispatcher';
+import type { ClinicNotification, NotificationActionItem } from '../types';
 
 export function useNotificationAction() {
   const router = useRouter();
@@ -12,29 +14,21 @@ export function useNotificationAction() {
     notificationId: string,
     actionId: string,
     actionType: ActionType,
-    postActionCallback?: () => void
+    postActionCallback?: () => void,
+    notification?: ClinicNotification
   ) => {
     setLoadingActionId(actionId);
 
     try {
-      if (actionType === 'redirect') {
-        const actionRoutes: Record<string, string> = {
-          'view-orders': '/dashboard/orders',
-          'view-products': '/dashboard/products',
-          'view-stock': '/dashboard/stock',
-          view: '/dashboard/workspaces',
-          billing: '/dashboard/billing',
-          open: '/dashboard/kanban',
-          'open-chat': '/dashboard/chat'
-        };
+      // Find matching action item from notification if present
+      const actionItem: NotificationActionItem | undefined = notification?.actions?.find(
+        (a) => a.id === actionId || a.actionKey === actionId
+      );
 
-        const route = actionRoutes[actionId];
-        if (route) {
-          router.push(route);
-        }
-      } else if (actionType === 'api_call') {
-        // Simulate API call delay for approve/decline/download
-        await new Promise((resolve) => setTimeout(resolve, 600));
+      if (actionItem) {
+        executeNotificationAction(router, actionItem, notification);
+      } else if (notification?.actionUrl) {
+        router.push(notification.actionUrl);
       }
 
       markAsRead(notificationId);

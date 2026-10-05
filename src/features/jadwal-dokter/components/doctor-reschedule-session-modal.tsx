@@ -107,7 +107,25 @@ export function DoctorRescheduleSessionModal({
   // Initialize or reset form state whenever effectiveSession or modal opens
   useEffect(() => {
     if (effectiveSession && isOpen) {
-      conflictNav.consumePendingReopen(doctor?.id);
+      const consumed = conflictNav.consumePendingReopen(doctor?.id);
+      if (consumed) {
+        if (consumed.sourceDate) setTargetDate(consumed.sourceDate);
+        if (consumed.sourceRoomId) setTargetRoomId(consumed.sourceRoomId);
+        if (consumed.sourceSlotStartTime) {
+          setTargetStartTime(consumed.sourceSlotStartTime);
+          const canonical = resolveShiftFromTime(consumed.sourceSlotStartTime);
+          setSelectedShift(canonical);
+        }
+        if (consumed.sourceSlotEndTime) {
+          setTargetEndTime(consumed.sourceSlotEndTime);
+        }
+        setStep((consumed.initialStep as RescheduleStep) || 'room');
+        setNotes('');
+        setRescheduleActiveAppointments(true);
+        setUnscheduleSourceSlot(true);
+        return;
+      }
+
       setStep(initialStep || 'date');
       setNotes('');
       setRescheduleActiveAppointments(true);
@@ -125,20 +143,12 @@ export function DoctorRescheduleSessionModal({
     }
   }, [effectiveSession, isOpen, initialDate, initialStartTime, initialStep]);
 
-  // Query rooms for target date (evaluates slot occupancy in direct slot mode)
-  const isDirectSlotMode = Boolean(initialStartTime);
-  const directSlotStartTime = initialStartTime || targetStartTime;
-  const directSlotEndTime = initialStartTime ? computeSafeEndTime(initialStartTime) : targetEndTime;
-
-  const queryStartTime = isDirectSlotMode ? directSlotStartTime : undefined;
-  const queryEndTime = isDirectSlotMode ? directSlotEndTime : undefined;
+  // Query rooms for target date (room selection is cleanly separated; slot anti-bentrok is SSOT in Step 3)
   const doctorStaffId = doctor?.practitioner_id || doctor?.id || '';
 
   const { data: rooms = [], isLoading: isLoadingRooms } = useQuery({
     ...clinicRoomsQueryOptions({
       date: targetDate || undefined,
-      startTime: queryStartTime,
-      endTime: queryEndTime,
       excludePractitionerId: doctorStaffId || undefined
     }),
     enabled: Boolean(isOpen && targetDate)
@@ -172,13 +182,9 @@ export function DoctorRescheduleSessionModal({
     enabled: Boolean(isOpen && step === 'slot' && targetDate && targetRoomId && doctor?.id)
   });
 
-  // Filter slots for the grid (excluding past/expired slots)
+  // Slots from Backend SSOT for the grid
   const availableSlots = useMemo(() => {
-    if (!slotAvailability?.slots) return [];
-    return slotAvailability.slots.filter((s) => {
-      if (s.conflict?.type === 'TEMPORAL_PAST') return false;
-      return true;
-    });
+    return slotAvailability?.slots || [];
   }, [slotAvailability?.slots]);
 
   // Check eligibility & active appointments for transfer note
@@ -239,7 +245,7 @@ export function DoctorRescheduleSessionModal({
         sourceSessionId: effectiveSession?.id,
         sourceRoomId: targetRoomId,
         wizardType: DOCTOR_DIALOG_TYPE.WIZARD_RESCHEDULE,
-        initialStep: WIZARD_STEP.ROOM
+        initialStep: step === 'slot' ? WIZARD_STEP.SLOT : WIZARD_STEP.ROOM
       };
 
       conflictNav.inspectConflictDoctor({
@@ -476,14 +482,6 @@ export function DoctorRescheduleSessionModal({
               doctorName={doctor.nama_dokter}
               isLoading={isLoadingRooms}
               showHeader={false}
-              onViewConflict={(room) => {
-                const occupantId =
-                  room.occupantDetails?.practitionerId || room.occupantDetails?.staffProfileId;
-                const targetSlotTime = room.occupantDetails?.startTime || targetStartTime;
-                if (occupantId) {
-                  handleViewOccupantDoctorSchedule(occupantId, targetSlotTime);
-                }
-              }}
             />
           )}
 
@@ -580,9 +578,7 @@ export function DoctorRescheduleSessionModal({
                           } else if (isPurpleConflict) {
                             const occupantId =
                               rawSlot.conflict?.practitionerId ||
-                              rawSlot.conflict?.staffId ||
-                              targetRoom?.occupantDetails?.practitionerId ||
-                              targetRoom?.occupantDetails?.staffProfileId;
+                              rawSlot.conflict?.staffId;
                             if (occupantId) {
                               handleViewOccupantDoctorSchedule(occupantId, rawSlot.time);
                             }

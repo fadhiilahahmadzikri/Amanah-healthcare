@@ -27,6 +27,8 @@ export function DoctorScheduleView() {
         selectedDate={scheduleView.dateFilter ? toDateParam(scheduleView.dateFilter) : undefined}
         highlightSlotTime={scheduleView.highlightSlotTime}
         onClearHighlightSlotTime={scheduleView.actions.clearHighlightSlotTime}
+        openPatientsModal={scheduleView.openPatients}
+        onClearOpenPatients={scheduleView.actions.clearOpenPatients}
         onReturnToSourceModal={scheduleView.actions.returnToSourceModal}
         returnDoctorName={scheduleView.returnContext?.sourceDoctorName}
         returnContext={scheduleView.returnContext}

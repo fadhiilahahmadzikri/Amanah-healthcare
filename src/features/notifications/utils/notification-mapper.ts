@@ -49,6 +49,7 @@ export function mapBackendToClinicNotification(backend: BackendNotification): Cl
     label: action.label,
     type: (action.actionType as any) || 'primary',
     actionKey: action.actionKey,
+    url: action.url,
     icon: undefined
   }));
 
@@ -72,14 +73,16 @@ export function mapBackendToClinicNotification(backend: BackendNotification): Cl
     sender,
     roleSubtitle,
     avatar: rawAvatar,
-    badgeIcon: backend.badgeIcon || 'bell',
+    badgeIcon: backend.badgeIcon || null,
     timeAgo: formatTimeAgo(backend.createdAt),
     dateFull: formatFullDate(backend.createdAt),
     body: backend.body?.trim() || '',
     category,
     status: backend.isRead || backend.readAt != null ? 'read' : 'unread',
-    metaIcon: backend.metaIcon || 'calendar',
+    metaIcon: backend.metaIcon || null,
     createdAt: backend.createdAt,
+    actionUrl: backend.actionUrl || null,
+    metadata: backend.metadata || null,
     actions: actions.length > 0 ? actions : undefined
   };
 }

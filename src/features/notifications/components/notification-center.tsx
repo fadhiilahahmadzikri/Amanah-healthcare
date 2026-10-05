@@ -4,14 +4,19 @@ import { Icons } from '@/components/icons';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
-import { NotificationCard } from '@/components/ui/notification-card';
+import {
+  NotificationCard,
+  type NotificationAction
+} from '@/components/ui/notification-card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
 import { useNotificationCenter } from '../model/useNotificationCenter';
+import { useNotificationAction } from '../hooks/use-notification-action';
 
 export function NotificationCenter() {
   const { open, notifications, unreadTotal, actions } = useNotificationCenter();
+  const { handleAction, loadingActionId } = useNotificationAction();
 
   return (
     <Popover open={open} onOpenChange={actions.setOpen}>
@@ -45,22 +50,43 @@ export function NotificationCenter() {
         <ScrollArea className='h-[420px]'>
           {notifications.length > 0 ? (
             <div className='flex flex-col'>
-              {notifications.map((notification) => (
-                <NotificationCard
-                  key={notification.id}
-                  id={notification.id}
-                  title={notification.title}
-                  body={notification.body}
-                  user={{
-                    name: notification.sender,
-                    avatar: notification.avatar
-                  }}
-                  category={notification.category}
-                  status={notification.status}
-                  createdAt={notification.createdAt}
-                  onMarkAsRead={actions.markAsRead}
-                />
-              ))}
+              {notifications.map((notification) => {
+                const cardActions: NotificationAction[] | undefined =
+                  notification.actions?.map((act) => ({
+                    id: act.id,
+                    label: act.label,
+                    type: 'redirect' as const,
+                    style: act.type === 'primary' ? 'primary' : 'default'
+                  }));
+
+                return (
+                  <NotificationCard
+                    key={notification.id}
+                    id={notification.id}
+                    title={notification.title}
+                    body={notification.body}
+                    user={{
+                      name: notification.sender,
+                      avatar: notification.avatar
+                    }}
+                    category={notification.category}
+                    status={notification.status}
+                    createdAt={notification.createdAt}
+                    actions={cardActions}
+                    loadingActionId={loadingActionId}
+                    onAction={(_id, actionId, actionType) => {
+                      handleAction(
+                        notification.id,
+                        actionId,
+                        actionType,
+                        () => actions.close(),
+                        notification
+                      );
+                    }}
+                    onMarkAsRead={actions.markAsRead}
+                  />
+                );
+              })}
             </div>
           ) : (
             <EmptyState

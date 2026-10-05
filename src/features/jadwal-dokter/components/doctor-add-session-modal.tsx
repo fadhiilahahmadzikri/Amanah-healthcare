@@ -111,8 +111,9 @@ export function DoctorAddSessionModal({
         sourceDate: selectedDate,
         sourceSlotStartTime: selectedSlot?.time || initialStartTime,
         sourceSlotEndTime: selectedSlot?.endTime || initialEndTime,
+        sourceRoomId: selectedRoomId,
         wizardType: DOCTOR_DIALOG_TYPE.WIZARD_ADD_SESSION,
-        initialStep: WIZARD_STEP.ROOM
+        initialStep: step === 'slot' ? WIZARD_STEP.SLOT : WIZARD_STEP.ROOM
       };
 
       conflictNav.inspectConflictDoctor({
@@ -233,14 +234,6 @@ export function DoctorAddSessionModal({
               doctorName={doctor.nama_dokter}
               isLoading={isLoadingRooms}
               showHeader={false}
-              onViewConflict={(room) => {
-                const occupantId =
-                  room.occupantDetails?.practitionerId || room.occupantDetails?.staffProfileId;
-                const targetSlotTime = room.occupantDetails?.startTime || selectedSlot?.time;
-                if (occupantId) {
-                  handleViewOccupantDoctorSchedule(occupantId, targetSlotTime);
-                }
-              }}
             />
           )}
 
@@ -339,9 +332,7 @@ export function DoctorAddSessionModal({
                           } else if (isPurpleConflict) {
                             const occupantId =
                               rawSlot.conflict?.practitionerId ||
-                              rawSlot.conflict?.staffId ||
-                              selectedRoom?.occupantDetails?.practitionerId ||
-                              selectedRoom?.occupantDetails?.staffProfileId;
+                              rawSlot.conflict?.staffId;
                             if (occupantId) {
                               handleViewOccupantDoctorSchedule(occupantId, rawSlot.time);
                             }

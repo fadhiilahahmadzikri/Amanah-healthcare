@@ -101,15 +101,10 @@ export function useDoctorAddSessionModal({
       ? computeSafeEndTime(initialStartTime, initialEndTime)
       : selectedSlot?.endTime;
 
-  const queryStartTime = isDirectSlotMode ? directSlotStartTime : undefined;
-  const queryEndTime = isDirectSlotMode ? directSlotEndTime : undefined;
-
-  // Query clinic rooms for the chosen date & slot time (in direct slot mode, room occupancy is evaluated for that slot)
+  // Query clinic rooms for the chosen date (anti-collision is centralized in slot-availability SSOT)
   const { data: clinicRooms = [], isLoading: isLoadingRooms } = useQuery({
     ...clinicRoomsQueryOptions({
-      date: selectedDate || undefined,
-      startTime: queryStartTime,
-      endTime: queryEndTime
+      date: selectedDate || undefined
     }),
     enabled: Boolean(isOpen && selectedDate)
   });
@@ -128,23 +123,21 @@ export function useDoctorAddSessionModal({
     return detailQuery.data?.sesi_harian || doctor?.sesi_harian || [];
   }, [detailQuery.data?.sesi_harian, doctor?.sesi_harian]);
 
-  // Default room selection matching doctor's assigned room (only if not occupied)
+  // Default room selection matching doctor's assigned room
   const defaultRoomId = useMemo(() => {
     if (rooms.length === 0) return '';
     const doctorRoom = (doctor?.ruang_praktik ?? '').trim().toLowerCase();
     if (doctorRoom) {
       const matched = rooms.find(
         (r) =>
-          (r.name.toLowerCase() === doctorRoom ||
-            r.id.toLowerCase() === doctorRoom ||
-            r.name.toLowerCase().startsWith(doctorRoom) ||
-            doctorRoom.startsWith(r.name.toLowerCase())) &&
-          !r.isOccupied
+          r.name.toLowerCase() === doctorRoom ||
+          r.id.toLowerCase() === doctorRoom ||
+          r.name.toLowerCase().startsWith(doctorRoom) ||
+          doctorRoom.startsWith(r.name.toLowerCase())
       );
       if (matched) return matched.id;
     }
-    const firstAvailable = rooms.find((r) => !r.isOccupied);
-    return firstAvailable?.id || '';
+    return rooms[0]?.id || '';
   }, [rooms, doctor?.ruang_praktik]);
 
   useEffect(() => {
@@ -166,17 +159,29 @@ export function useDoctorAddSessionModal({
   });
 
   const availableSlots = useMemo(() => {
-    if (!slotAvailability?.slots) return [];
-    return slotAvailability.slots.filter((s) => {
-      if (s.conflict?.type === 'TEMPORAL_PAST') return false;
-      return true;
-    });
+    return slotAvailability?.slots || [];
   }, [slotAvailability?.slots]);
 
   // Reset or initialize state when modal opens
   useEffect(() => {
     if (isOpen) {
-      conflictNav.consumePendingReopen(doctor?.id);
+      const consumed = conflictNav.consumePendingReopen(doctor?.id);
+      if (consumed) {
+        if (consumed.sourceDate) setSelectedDate(consumed.sourceDate);
+        if (consumed.sourceRoomId) setSelectedRoomId(consumed.sourceRoomId);
+        if (consumed.sourceSlotStartTime) {
+          const canonical = resolveShiftFromTime(consumed.sourceSlotStartTime);
+          setSelectedShift(canonical);
+          const safeEndTime = computeSafeEndTime(
+            consumed.sourceSlotStartTime,
+            consumed.sourceSlotEndTime
+          );
+          setSelectedSlot({ time: consumed.sourceSlotStartTime, endTime: safeEndTime });
+        }
+        setStep((consumed.initialStep as AddSessionStep) || 'room');
+        setIsSubmitting(false);
+        return;
+      }
 
       const initialDateValue =
         targetDate && /^\d{4}-\d{2}-\d{2}$/.test(targetDate.trim())
@@ -246,7 +251,7 @@ export function useDoctorAddSessionModal({
     if (step === 'date') return Boolean(selectedDate);
     if (step === 'room') {
       const room = rooms.find((r) => r.id === selectedRoomId);
-      return Boolean(room && !room.isOccupied);
+      return Boolean(room);
     }
     if (step === 'slot') return Boolean(selectedSlot);
     if (step === 'confirmation') {
@@ -254,7 +259,7 @@ export function useDoctorAddSessionModal({
       const hasSlot = Boolean(selectedSlot || initialStartTime);
       return (
         Boolean(selectedDate && selectedRoomId && hasSlot && selectedShift) &&
-        Boolean(room && !room.isOccupied) &&
+        Boolean(room) &&
         !isSubmitting
       );
     }

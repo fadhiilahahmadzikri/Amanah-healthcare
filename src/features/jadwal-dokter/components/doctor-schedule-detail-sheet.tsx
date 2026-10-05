@@ -60,6 +60,8 @@ export interface DoctorScheduleDetailSheetProps {
     targetSlotTime?: string,
     returnContext?: ReturnDoctorContext
   ) => void;
+  openPatientsModal?: boolean;
+  onClearOpenPatients?: () => void;
 }
 
 function getInitialDoctorDate(
@@ -92,6 +94,8 @@ export function DoctorScheduleDetailSheet({
   selectedDate,
   highlightSlotTime,
   onClearHighlightSlotTime,
+  openPatientsModal,
+  onClearOpenPatients,
   onReturnToSourceModal,
   returnDoctorName,
   returnContext,
@@ -103,6 +107,7 @@ export function DoctorScheduleDetailSheet({
   const isConflictReturning = conflictNav.phase === INSPECTION_PHASE.RETURNING;
   const shouldShowKuotaTab = Boolean(
     highlightSlotTime ||
+    openPatientsModal ||
     conflictNav.pendingReopen ||
     conflictNav.isInspecting ||
     isConflictReturning ||
@@ -447,6 +452,8 @@ export function DoctorScheduleDetailSheet({
                     onYearChange={setCurrentYear}
                     highlightSlotTime={highlightSlotTime}
                     onClearHighlightSlotTime={onClearHighlightSlotTime}
+                    openPatientsModal={openPatientsModal}
+                    onClearOpenPatients={onClearOpenPatients}
                     onReturnToSourceModal={onReturnToSourceModal}
                     returnDoctorName={returnDoctorName}
                     returnContext={returnContext}

@@ -230,6 +230,7 @@ export function DoctorGridShiftSection({
             isMutationPending && pendingSessionId === matchingSession?.id;
 
           const isHighlighted = Boolean(
+            !isFinished &&
             highlightSlotTime &&
             (slot.startTime === highlightSlotTime ||
               (slot.startTime <= highlightSlotTime && slot.endTime > highlightSlotTime))
