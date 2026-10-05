@@ -6,7 +6,9 @@ import type {
   AppointmentSummary,
   AppointmentDetailResponse,
   LiveStatus,
-  BackendAppointmentRecord
+  BackendAppointmentRecord,
+  DoctorCandidatesResult,
+  RoomCandidateItem
 } from './types';
 
 const emptyAppointmentSummary: AppointmentSummary = {
@@ -236,6 +238,82 @@ export async function getAppointmentCallAttempts(
   }
 }
 
+export async function getDoctorCandidates(
+  appointmentId: string
+): Promise<DoctorCandidatesResult> {
+  return clientFetch<DoctorCandidatesResult>(
+    `/api/v1/admin/appointments/${appointmentId}/candidates/doctors`
+  );
+}
+
+export async function getRoomCandidates(
+  appointmentId: string
+): Promise<RoomCandidateItem[]> {
+  const response = await clientFetch<RoomCandidateItem[]>(
+    `/api/v1/admin/appointments/${appointmentId}/candidates/rooms`
+  );
+  return Array.isArray(response) ? response : [];
+}
+
+export async function changeAppointmentDoctor(
+  appointmentId: string,
+  doctorId: string,
+  options?: { closeOldSchedule?: boolean; reason?: string }
+): Promise<{ success: boolean; message: string; appointment?: AdminAppointment }> {
+  try {
+    const response = await clientFetch<{
+      success: boolean;
+      message: string;
+      data: BackendAppointmentRecord;
+    }>(`/api/v1/admin/appointments/${appointmentId}/doctor`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        doctorId,
+        closeOldSchedule: options?.closeOldSchedule,
+        reason: options?.reason,
+      })
+    });
+
+    return {
+      success: true,
+      message: response.message,
+      appointment: response.data ? mapToAdminAppointment(response.data) : undefined
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : String(error)
+    };
+  }
+}
+
+export async function changeAppointmentRoom(
+  appointmentId: string,
+  roomId: string
+): Promise<{ success: boolean; message: string; appointment?: AdminAppointment }> {
+  try {
+    const response = await clientFetch<{
+      success: boolean;
+      message: string;
+      data: BackendAppointmentRecord;
+    }>(`/api/v1/admin/appointments/${appointmentId}/room`, {
+      method: 'PATCH',
+      body: JSON.stringify({ roomId })
+    });
+
+    return {
+      success: true,
+      message: response.message,
+      appointment: response.data ? mapToAdminAppointment(response.data) : undefined
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : String(error)
+    };
+  }
+}
+
 function computeSummary(records: AdminAppointment[]): AppointmentSummary {
   if (records.length === 0) return emptyAppointmentSummary;
 
@@ -322,22 +400,16 @@ function mapBackendStatusToLiveStatus(status?: string): LiveStatus {
 function mapLiveStatusToBackendStatus(status: LiveStatus): string {
   switch (status) {
     case 'SUDAH DATANG':
-    case 'Sudah Datang':
       return 'SUDAH_DATANG';
     case 'SEDANG PERIKSA':
-    case 'Sedang Periksa':
       return 'SEDANG_DIPERIKSA';
     case 'MENUNGGU':
-    case 'Menunggu':
       return 'MENUNGGU';
     case 'SELESAI':
-    case 'Selesai':
       return 'SELESAI';
     case 'TIDAK ADA DOKTER':
-    case 'Tidak Ada Dokter':
       return 'BATAL';
     case 'SUDAH BUAT JANJI':
-    case 'Sudah Buat Janji':
     default:
       return 'SUDAH_BUAT_JANJI';
   }

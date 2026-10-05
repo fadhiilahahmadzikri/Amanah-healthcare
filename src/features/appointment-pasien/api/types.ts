@@ -4,13 +4,7 @@ export type LiveStatus =
   | 'MENUNGGU'
   | 'SEDANG PERIKSA'
   | 'SELESAI'
-  | 'TIDAK ADA DOKTER'
-  | 'Sudah Buat Janji'
-  | 'Sudah Datang'
-  | 'Menunggu'
-  | 'Sedang Periksa'
-  | 'Selesai'
-  | 'Tidak Ada Dokter';
+  | 'TIDAK ADA DOKTER';
 
 export interface AdminAppointment {
   id: number | string;
@@ -103,4 +97,53 @@ export interface BackendAppointmentRecord {
   email?: string;
   complaint?: string;
   [key: string]: unknown;
+}
+
+export interface DoctorCandidateItem {
+  id: string;
+  name: string;
+  specialty: string;
+  staffType: string;
+  availability: 'AVAILABLE' | 'SCHEDULE_REQUIRED';
+  existingSessionId: string | null;
+  defaultRoomName: string | null;
+}
+
+export interface DoctorCandidateGroup {
+  id: string;
+  name: string;
+  doctors: DoctorCandidateItem[];
+}
+
+export interface DoctorCandidatesResult {
+  appointmentId: string;
+  currentDoctorId: string | null;
+  scheduledDate: string;
+  scheduledTime: string;
+  groups: DoctorCandidateGroup[];
+}
+
+export interface RoomCandidateItem {
+  id: string;
+  name: string;
+  code: string;
+  location: string | null;
+  isAvailable: boolean;
+  occupantDetails?: {
+    doctorName?: string;
+    bookingCode?: string;
+  } | null;
+}
+
+export interface ChangeDoctorPayload {
+  appointmentId: string;
+  doctorId: string;
+  closeOldSchedule?: boolean;
+  reason?: string;
+}
+
+
+export interface ChangeRoomPayload {
+  appointmentId: string;
+  roomId: string;
 }

@@ -34,6 +34,8 @@ export interface DoctorGridSlotItemProps {
   onSlotClick?: () => void;
   onOpenPatients?: (session: DoctorDailySession, slotStartTime?: string, slotEndTime?: string) => void;
   onOpenPatientDetail?: (session: DoctorDailySession, slot: GridSlotData) => void;
+  onOpenChangeDoctor?: (session: DoctorDailySession, slot: GridSlotData) => void;
+  onOpenChangeRoom?: (session: DoctorDailySession, slot: GridSlotData) => void;
   onOpenReschedule?: (session: DoctorDailySession, slotStartTime?: string) => void;
   onToggleSessionStatus?: (session: DoctorDailySession) => void;
   className?: string;
@@ -54,6 +56,8 @@ export function DoctorGridSlotItem({
   onSlotClick,
   onOpenPatients,
   onOpenPatientDetail,
+  onOpenChangeDoctor,
+  onOpenChangeRoom,
   onOpenReschedule,
   onToggleSessionStatus,
   className
@@ -191,6 +195,32 @@ export function DoctorGridSlotItem({
               >
                 <Icons.teams className='size-3.5 text-sky-600 dark:text-sky-400 shrink-0' />
                 <span>Lihat Pasien</span>
+              </button>
+            )}
+            {!isSessionClosed && hasBookedPatients && onOpenChangeDoctor && (
+              <button
+                type='button'
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenChangeDoctor(matchingSession, slot);
+                }}
+                className='flex items-center gap-2 w-full px-2 py-1.5 rounded-lg text-xs font-semibold hover:bg-muted text-foreground transition-colors cursor-pointer text-left'
+              >
+                <Icons.userCheck className='size-3.5 text-amber-600 dark:text-amber-400 shrink-0' />
+                <span>Ganti Dokter</span>
+              </button>
+            )}
+            {!isSessionClosed && hasBookedPatients && onOpenChangeRoom && (
+              <button
+                type='button'
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenChangeRoom(matchingSession, slot);
+                }}
+                className='flex items-center gap-2 w-full px-2 py-1.5 rounded-lg text-xs font-semibold hover:bg-muted text-foreground transition-colors cursor-pointer text-left'
+              >
+                <Icons.mapPin className='size-3.5 text-purple-600 dark:text-purple-400 shrink-0' />
+                <span>Ganti Ruangan</span>
               </button>
             )}
             {!isSessionClosed && matchingSession.is_reschedule_eligible && onOpenReschedule && (

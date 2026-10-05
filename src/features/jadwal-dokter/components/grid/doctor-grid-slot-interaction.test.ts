@@ -166,12 +166,40 @@ describe('Doctor Grid Slot Interaction & Modal Flow SSOT', () => {
     );
 
     const showViewPatients = !isSessionClosed && hasSlotBookedPatients;
+    const showChangeDoctor = !isSessionClosed && hasSlotBookedPatients;
+    const showChangeRoom = !isSessionClosed && hasSlotBookedPatients;
     const showReschedule = !isSessionClosed && Boolean(session.is_reschedule_eligible);
     const showToggleStatus = true;
 
     expect(showViewPatients).toBe(false);
+    expect(showChangeDoctor).toBe(false);
+    expect(showChangeRoom).toBe(false);
     expect(showReschedule).toBe(true);
     expect(showToggleStatus).toBe(true);
+  });
+
+  it('guarantees hover menu displays Ganti Dokter and Ganti Ruangan when slot has booked patients', () => {
+    const session = dummySessionWithPatients;
+    const isSessionClosed = session.status_sesi === SCHEDULE_STATUS.CLOSED;
+    const slot = {
+      status: 'OCCUPIED',
+      actionType: 'VIEW_PATIENTS',
+      uiVariant: 'sky_patient'
+    };
+
+    const hasSlotBookedPatients = Boolean(
+      slot.actionType === 'VIEW_PATIENTS' ||
+      slot.status === 'OCCUPIED' ||
+      (slot.uiVariant && slot.uiVariant !== 'success_green')
+    );
+
+    const showViewPatients = !isSessionClosed && hasSlotBookedPatients;
+    const showChangeDoctor = !isSessionClosed && hasSlotBookedPatients;
+    const showChangeRoom = !isSessionClosed && hasSlotBookedPatients;
+
+    expect(showViewPatients).toBe(true);
+    expect(showChangeDoctor).toBe(true);
+    expect(showChangeRoom).toBe(true);
   });
 
   it('disables hover menu completely when slot is finished/expired', () => {

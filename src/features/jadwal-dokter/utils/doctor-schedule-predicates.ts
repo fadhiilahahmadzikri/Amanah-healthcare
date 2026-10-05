@@ -225,9 +225,27 @@ export function getDoctorCardStatus(
 			return DOCTOR_CARD_STATUS.BUKA;
 		}
 
-		// Jika saat ini belum/tidak ada sesi yang aktif pada jam sekarang, jangan fallback ke Terisi/Buka
+		const sessionRanges = sessions
+			.map((s) => ({
+				start: parseMinutesFromTime(s.jam_mulai),
+				end: parseMinutesFromTime(s.jam_selesai),
+			}))
+			.filter((r) => r.start >= 0 && r.end >= 0);
+
+		if (sessionRanges.length > 0) {
+			const allElapsed = sessionRanges.every((r) => currentMinutes >= r.end);
+			if (allElapsed) {
+				return DOCTOR_CARD_STATUS.SELESAI;
+			}
+			const beforeFirstSession = sessionRanges.every((r) => currentMinutes < r.start);
+			if (beforeFirstSession) {
+				return DOCTOR_CARD_STATUS.TUTUP;
+			}
+		}
+
 		return null;
 	}
+
 
 	if (doctor.jadwal_hari_ini && doctor.jadwal_hari_ini.includes("-")) {
 		const [startStr, endStr] = doctor.jadwal_hari_ini.split("-");

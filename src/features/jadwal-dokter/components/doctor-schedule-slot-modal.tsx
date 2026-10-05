@@ -246,27 +246,60 @@ export function DoctorScheduleSlotModal({
         <div ref={bannerContainerRef} style={{ overflow: 'hidden' }} className='w-full'>
           <div className='py-0.5'>
             {isOccupied && (
-              <div className='p-3.5 sm:p-4 rounded-xl bg-sky-500/10 border border-sky-500/25 text-xs text-muted-foreground leading-relaxed flex items-center justify-between gap-3 shadow-2xs'>
-                <div className='flex items-start gap-2.5 min-w-0'>
-                  <Icons.teams className='size-4 text-sky-600 dark:text-sky-400 shrink-0 mt-0.5' />
-                  <div className='space-y-0.5 min-w-0'>
-                    <span className='font-bold text-sky-700 dark:text-sky-400 block text-xs'>
-                      Pasien Terjadwal
-                    </span>
-                    <p className='text-[11.5px] text-muted-foreground truncate'>
-                      {slot.appointmentRef?.patientName || 'Pasien terdaftar pada slot ini'}
-                    </p>
+              <div className='p-3.5 sm:p-4 rounded-xl bg-sky-500/10 border border-sky-500/25 text-xs text-muted-foreground leading-relaxed flex flex-col gap-2.5 shadow-2xs'>
+                <div className='flex items-center justify-between gap-3'>
+                  <div className='flex items-start gap-2.5 min-w-0'>
+                    <Icons.teams className='size-4 text-sky-600 dark:text-sky-400 shrink-0 mt-0.5' />
+                    <div className='space-y-0.5 min-w-0'>
+                      <span className='font-bold text-sky-700 dark:text-sky-400 block text-xs'>
+                        Pasien Terjadwal
+                      </span>
+                      <p className='text-[11.5px] text-muted-foreground truncate'>
+                        {slot.appointmentRef?.patientName || 'Pasien terdaftar pada slot ini'}
+                      </p>
+                    </div>
                   </div>
+
+                  {(data.onOpenPatientDetail || data.onOpenPatients) && (
+                    <button
+                      type='button'
+                      onClick={handleOpenPatientsDetail}
+                      className='text-xs font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 hover:underline cursor-pointer shrink-0 transition-colors'
+                    >
+                      Lihat Pasien
+                    </button>
+                  )}
                 </div>
 
-                {(data.onOpenPatientDetail || data.onOpenPatients) && (
-                  <button
-                    type='button'
-                    onClick={handleOpenPatientsDetail}
-                    className='text-xs font-semibold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 hover:underline cursor-pointer shrink-0 transition-colors'
-                  >
-                    Lihat Pasien
-                  </button>
+                {!isClosed && (data.onOpenChangeDoctor || data.onOpenChangeRoom) && (
+                  <div className='flex items-center gap-2 pt-2 border-t border-sky-500/20'>
+                    {data.onOpenChangeDoctor && (
+                      <button
+                        type='button'
+                        onClick={() => {
+                          onClose();
+                          data.onOpenChangeDoctor?.(session, slot);
+                        }}
+                        className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-400 border border-amber-500/30 transition-colors cursor-pointer'
+                      >
+                        <Icons.userCheck className='size-3.5' />
+                        <span>Ganti Dokter</span>
+                      </button>
+                    )}
+                    {data.onOpenChangeRoom && (
+                      <button
+                        type='button'
+                        onClick={() => {
+                          onClose();
+                          data.onOpenChangeRoom?.(session, slot);
+                        }}
+                        className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-500/15 hover:bg-purple-500/25 text-purple-700 dark:text-purple-400 border border-purple-500/30 transition-colors cursor-pointer'
+                      >
+                        <Icons.mapPin className='size-3.5' />
+                        <span>Ganti Ruangan</span>
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             )}

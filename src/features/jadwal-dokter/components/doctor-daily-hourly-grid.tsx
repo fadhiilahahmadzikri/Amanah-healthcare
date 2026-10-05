@@ -2,9 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Icons } from '@/components/icons';
-import { ModalWrapper } from '@/components/ui/modal-wrapper';
-import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule } from '../api/types';
 import type { HourlySlotStatus } from '../utils/shift-slot-builder';
@@ -25,6 +22,14 @@ import { DoctorRescheduleSessionModal } from './doctor-reschedule-session-modal'
 import { DoctorSessionPatientsModal } from './doctor-session-patients-modal';
 import { DoctorScheduleSlotModal } from './doctor-schedule-slot-modal';
 import { BookedPatientDetailModal } from './booked-patient-detail-modal';
+import { DoctorCloseSessionModal } from './doctor-close-session-modal';
+import { ChangeDoctorModal } from '@/features/appointment-pasien/components/change-doctor-modal';
+import { ChangeRoomModal } from '@/features/appointment-pasien/components/change-room-modal';
+import { resolveSlotPatient, buildSlotAppointment } from '../utils/slot-patient-resolver';
+import type { Appointment } from '@/features/klinik/api/types';
+import type { OccupancySlot } from '@/server/contracts/schedules/doctor-schedules.dto';
+import type { GridSlotData } from './grid/doctor-grid-slot-item';
+import type { DoctorDailySession } from '../api/types';
 
 export type { HourlySlotStatus };
 
@@ -66,11 +71,11 @@ export function DoctorDailyHourlyGrid({
   modalContainerRef,
   readOnly = false,
   highlightSlotTime,
-  onClearHighlightSlotTime,
+  onClearHighlightSlotTime: _onClearHighlightSlotTime,
   onReturnToSourceModal,
   returnDoctorName,
-  returnContext,
-  onClearReturnContext,
+  returnContext: _returnContext,
+  onClearReturnContext: _onClearReturnContext,
   onViewDoctorSchedule,
   className
 }: DoctorDailyHourlyGridProps) {
@@ -166,6 +171,56 @@ export function DoctorDailyHourlyGrid({
     }
   }, [highlightSlotTime, conflictNav.highlightSlotTime, doctor?.id]);
 
+  const [reassignAppointment, setReassignAppointment] = useState<Appointment | null>(null);
+  const [isChangeDoctorModalOpen, setIsChangeDoctorModalOpen] = useState(false);
+  const [isChangeRoomModalOpen, setIsChangeRoomModalOpen] = useState(false);
+
+  const handleOpenChangeDoctor = async (
+    session: DoctorDailySession,
+    slot: OccupancySlot | GridSlotData
+  ) => {
+    if (!doctor) return;
+    const doctorId = doctor.id || doctor.practitioner_id || '';
+    const patient = await resolveSlotPatient(queryClient, doctorId, session, slot);
+    if (patient) {
+      const apt = buildSlotAppointment(
+        patient,
+        doctor,
+        session,
+        formattedSelectedDate || formattedTargetDate
+      );
+      setReassignAppointment(apt);
+      setIsChangeDoctorModalOpen(true);
+    }
+  };
+
+  const handleOpenChangeRoom = async (
+    session: DoctorDailySession,
+    slot: OccupancySlot | GridSlotData
+  ) => {
+    if (!doctor) return;
+    const doctorId = doctor.id || doctor.practitioner_id || '';
+    const patient = await resolveSlotPatient(queryClient, doctorId, session, slot);
+    if (patient) {
+      const apt = buildSlotAppointment(
+        patient,
+        doctor,
+        session,
+        formattedSelectedDate || formattedTargetDate
+      );
+      setReassignAppointment(apt);
+      setIsChangeRoomModalOpen(true);
+    }
+  };
+
+  const enrichedSlotModalData = selectedSlotModalData
+    ? {
+        ...selectedSlotModalData,
+        onOpenChangeDoctor: handleOpenChangeDoctor,
+        onOpenChangeRoom: handleOpenChangeRoom
+      }
+    : null;
+
   return (
     <>
       <div
@@ -226,6 +281,8 @@ export function DoctorDailyHourlyGrid({
               onSlotClick={handleSlotClick}
               onOpenPatients={handleOpenPatients}
               onOpenPatientDetail={handleOpenPatientDetail}
+              onOpenChangeDoctor={handleOpenChangeDoctor}
+              onOpenChangeRoom={handleOpenChangeRoom}
               onOpenReschedule={handleOpenReschedule}
               onToggleSessionStatus={handleToggleSessionStatus}
               highlightSlotTime={activeHighlightTime}
@@ -313,7 +370,7 @@ export function DoctorDailyHourlyGrid({
 
       <DoctorScheduleSlotModal
         isOpen={isSlotModalOpen}
-        data={selectedSlotModalData}
+        data={enrichedSlotModalData}
         onClose={handleCloseSlotModal}
         portalContainerRef={modalContainerRef}
       />
@@ -351,85 +408,61 @@ export function DoctorDailyHourlyGrid({
         />
       )}
 
-      <ModalWrapper
+      <DoctorCloseSessionModal
         isOpen={isCloseModalOpen}
+        closingSession={closingSession}
+        isPending={updateSessionMutation.isPending}
         onClose={() => {
           setIsCloseModalOpen(false);
           setClosingSession(null);
         }}
-        maxWidth='w-full sm:w-fit sm:min-w-[440px] max-w-[calc(100vw-2rem)]'
+        onConfirm={handleConfirmCloseSession}
         portalContainerRef={modalContainerRef}
-        showCloseButton={false}
-      >
-        <div className='relative font-sans space-y-4 text-left p-1'>
-          <div className='flex items-start justify-between gap-4'>
-            <div className='space-y-1 min-w-0 flex-1'>
-              <div className='flex items-center gap-1.5 text-rose-600 dark:text-rose-400'>
-                <Icons.lock className='size-4 shrink-0' />
-                <span className='text-xs font-bold tracking-tight whitespace-nowrap'>
-                  Konfirmasi Tutup Jadwal
-                </span>
-              </div>
-              <h3 className='text-sm sm:text-base font-bold text-foreground leading-snug whitespace-nowrap'>
-                Apakah Anda yakin ingin menutup sesi ini?
-              </h3>
-            </div>
-            <button
-              type='button'
-              onClick={() => {
-                setIsCloseModalOpen(false);
-                setClosingSession(null);
-              }}
-              aria-label='Tutup dialog'
-              className='rounded-full p-1 text-muted-foreground hover:bg-muted transition-colors cursor-pointer shrink-0'
-            >
-              <Icons.close className='size-4' />
-            </button>
-          </div>
+      />
 
-          {closingSession && (
-            <div className='rounded-xl border border-border/60 bg-muted/20 p-3 space-y-1.5 text-xs'>
-              <div className='flex items-center justify-between font-semibold'>
-                <span className='text-foreground'>{closingSession.nama_sesi}</span>
-                <span className='font-mono text-muted-foreground'>
-                  {closingSession.jam_mulai} - {closingSession.jam_selesai}
-                </span>
-              </div>
-              <p className='text-[11.5px] text-muted-foreground leading-relaxed'>
-                Setelah ditutup, sesi ini tidak akan dapat dipesan oleh pasien baru.
-              </p>
-            </div>
-          )}
+      <ChangeDoctorModal
+        isOpen={isChangeDoctorModalOpen}
+        appointmentId={reassignAppointment ? String(reassignAppointment.id) : ''}
+        patientName={reassignAppointment?.patient_name || '-'}
+        patientId={reassignAppointment?.patient_id || ''}
+        queueNumber={reassignAppointment?.queue_number || '-'}
+        currentDoctorName={doctor?.nama_dokter || reassignAppointment?.doctor_name || ''}
+        appointmentDate={reassignAppointment?.date || '-'}
+        appointmentTime={reassignAppointment?.time || ''}
+        onClose={() => {
+          setIsChangeDoctorModalOpen(false);
+          setReassignAppointment(null);
+        }}
+        onSuccess={() => {
+          setIsChangeDoctorModalOpen(false);
+          setReassignAppointment(null);
+          queryClient.invalidateQueries({
+            queryKey: ['doctor-schedules']
+          });
+        }}
+      />
 
-          <div className='flex items-center justify-end gap-2 pt-2 border-t border-border/40'>
-            <Button
-              type='button'
-              variant='outline'
-              size='sm'
-              shape='pill'
-              onClick={() => {
-                setIsCloseModalOpen(false);
-                setClosingSession(null);
-              }}
-              className='text-xs px-4 font-semibold cursor-pointer'
-            >
-              Tidak
-            </Button>
-            <Button
-              type='button'
-              variant='destructive'
-              size='sm'
-              shape='pill'
-              disabled={updateSessionMutation.isPending}
-              onClick={handleConfirmCloseSession}
-              className='text-xs px-4 font-semibold gap-1.5 cursor-pointer'
-            >
-              {updateSessionMutation.isPending && <Spinner className='size-3.5' />}
-              <span>Ya, Tutup Jadwal</span>
-            </Button>
-          </div>
-        </div>
-      </ModalWrapper>
+      <ChangeRoomModal
+        isOpen={isChangeRoomModalOpen}
+        appointmentId={reassignAppointment ? String(reassignAppointment.id) : ''}
+        patientName={reassignAppointment?.patient_name || '-'}
+        patientId={reassignAppointment?.patient_id || ''}
+        queueNumber={reassignAppointment?.queue_number || '-'}
+        currentRoomName={reassignAppointment?.room_name || ''}
+        appointmentDate={reassignAppointment?.date || '-'}
+        appointmentTime={reassignAppointment?.time || ''}
+        onClose={() => {
+          setIsChangeRoomModalOpen(false);
+          setReassignAppointment(null);
+        }}
+        onSuccess={() => {
+          setIsChangeRoomModalOpen(false);
+          setReassignAppointment(null);
+          queryClient.invalidateQueries({
+            queryKey: ['doctor-schedules']
+          });
+        }}
+      />
     </>
   );
 }

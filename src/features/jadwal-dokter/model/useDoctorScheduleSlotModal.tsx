@@ -12,6 +12,8 @@ export interface ScheduleSlotModalData {
   date?: string;
   onOpenPatients?: (session: DoctorDailySession, slotStartTime?: string, slotEndTime?: string) => void;
   onOpenPatientDetail?: (session: DoctorDailySession, slot: OccupancySlot | GridSlotData) => void;
+  onOpenChangeDoctor?: (session: DoctorDailySession, slot: OccupancySlot | GridSlotData) => void;
+  onOpenChangeRoom?: (session: DoctorDailySession, slot: OccupancySlot | GridSlotData) => void;
   onOpenReschedule?: (session: DoctorDailySession, slotStartTime?: string) => void;
   onToggleSessionStatus?: (session: DoctorDailySession) => void;
 }

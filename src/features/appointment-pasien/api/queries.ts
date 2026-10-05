@@ -2,7 +2,9 @@ import { queryOptions } from '@tanstack/react-query';
 import {
   getAdminAppointments,
   getAdminAppointmentSummary,
-  getAdminAppointmentById
+  getAdminAppointmentById,
+  getDoctorCandidates,
+  getRoomCandidates
 } from './service';
 import { appointmentKeys } from './query-keys';
 import type { AdminAppointment, AppointmentFilters } from './types';
@@ -26,4 +28,18 @@ export const appointmentDetailQueryOptions = (id: number | string) =>
   queryOptions({
     queryKey: appointmentKeys.detail(id),
     queryFn: () => getAdminAppointmentById(id)
+  });
+
+export const doctorCandidatesQueryOptions = (appointmentId: string) =>
+  queryOptions({
+    queryKey: appointmentKeys.doctorCandidates(appointmentId),
+    queryFn: () => getDoctorCandidates(appointmentId),
+    enabled: Boolean(appointmentId)
+  });
+
+export const roomCandidatesQueryOptions = (appointmentId: string) =>
+  queryOptions({
+    queryKey: appointmentKeys.roomCandidates(appointmentId),
+    queryFn: () => getRoomCandidates(appointmentId),
+    enabled: Boolean(appointmentId)
   });

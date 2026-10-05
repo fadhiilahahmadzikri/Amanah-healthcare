@@ -33,6 +33,8 @@ export interface DoctorGridShiftSectionProps {
     slotEndTime?: string
   ) => void;
   onOpenPatientDetail?: (session: DoctorDailySession, slot: OccupancySlot | GridSlotData) => void;
+  onOpenChangeDoctor?: (session: DoctorDailySession, slot: OccupancySlot | GridSlotData) => void;
+  onOpenChangeRoom?: (session: DoctorDailySession, slot: OccupancySlot | GridSlotData) => void;
   onOpenReschedule: (session: DoctorDailySession, slotStartTime?: string) => void;
   onToggleSessionStatus: (session: DoctorDailySession) => void;
   highlightSlotTime?: string;
@@ -54,6 +56,8 @@ export function DoctorGridShiftSection({
   onSlotClick,
   onOpenPatients,
   onOpenPatientDetail,
+  onOpenChangeDoctor,
+  onOpenChangeRoom,
   onOpenReschedule,
   onToggleSessionStatus,
   highlightSlotTime,
@@ -247,6 +251,8 @@ export function DoctorGridShiftSection({
               onSlotClick={() => onSlotClick(slot)}
               onOpenPatients={onOpenPatients}
               onOpenPatientDetail={onOpenPatientDetail}
+              onOpenChangeDoctor={onOpenChangeDoctor}
+              onOpenChangeRoom={onOpenChangeRoom}
               onOpenReschedule={onOpenReschedule}
               onToggleSessionStatus={onToggleSessionStatus}
             />

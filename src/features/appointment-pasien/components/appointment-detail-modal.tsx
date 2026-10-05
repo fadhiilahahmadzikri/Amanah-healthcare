@@ -8,6 +8,9 @@ import { getStatusConfig } from '@/styles/clinical-tokens';
 import { cn } from '@/lib/utils';
 import type { AdminAppointment } from '../api/types';
 import { AppointmentCallAttemptsTimeline } from './appointment-call-attempts-timeline';
+import { ChangeDoctorModal } from './change-doctor-modal';
+import { ChangeRoomModal } from './change-room-modal';
+import { isAppointmentTerminal } from '../constants/options';
 
 export interface AppointmentDetailModalProps {
   isOpen: boolean;
@@ -22,7 +25,19 @@ export function AppointmentDetailModal({
   onClose,
   onUpdateStatus
 }: AppointmentDetailModalProps) {
+  const [isChangeDoctorOpen, setIsChangeDoctorOpen] = React.useState(false);
+  const [isChangeRoomOpen, setIsChangeRoomOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!isOpen) {
+      setIsChangeDoctorOpen(false);
+      setIsChangeRoomOpen(false);
+    }
+  }, [isOpen]);
+
   if (!appointment) return null;
+
+  const canReassign = !isAppointmentTerminal(appointment.live_status);
 
   const initials = appointment.pasien
     .split(' ')
@@ -34,7 +49,8 @@ export function AppointmentDetailModal({
   const statusConfig = getStatusConfig(appointment.live_status);
 
   return (
-    <ModalWrapper
+    <>
+      <ModalWrapper
       isOpen={isOpen}
       onClose={onClose}
       maxWidth='max-w-[580px]'
@@ -226,36 +242,100 @@ export function AppointmentDetailModal({
         </div>
 
         {/* 7. Modal Action Buttons */}
-        <div className='pt-2 flex items-center justify-end gap-3'>
-          {onUpdateStatus && (
+        <div className='pt-2 flex flex-wrap items-center justify-between gap-2.5'>
+          <div className='flex items-center gap-2'>
+            {canReassign && (
+              <>
+                <Button
+                  type='button'
+                  variant='outline'
+                  shape='pill'
+                  size='default'
+                  onClick={() => setIsChangeDoctorOpen(true)}
+                  className='px-3.5 font-medium text-xs'
+                >
+                  <Icons.userCheck className='mr-1.5 size-3.5 text-muted-foreground' />
+                  Ganti Dokter
+                </Button>
+                <Button
+                  type='button'
+                  variant='outline'
+                  shape='pill'
+                  size='default'
+                  onClick={() => setIsChangeRoomOpen(true)}
+                  className='px-3.5 font-medium text-xs'
+                >
+                  <Icons.mapPin className='mr-1.5 size-3.5 text-muted-foreground' />
+                  Ganti Ruangan
+                </Button>
+              </>
+            )}
+          </div>
+
+          <div className='flex items-center gap-2'>
+            {onUpdateStatus && (
+              <Button
+                type='button'
+                variant='outline'
+                shape='pill'
+                size='default'
+                onClick={() => {
+                  onClose();
+                  onUpdateStatus(appointment);
+                }}
+                className='px-4 font-medium text-xs'
+              >
+                <Icons.refresh className='mr-1.5 size-3.5' />
+                Update Status Live
+              </Button>
+            )}
+
             <Button
               type='button'
-              variant='outline'
+              variant='default'
               shape='pill'
               size='default'
-              onClick={() => {
-                onClose();
-                onUpdateStatus(appointment);
-              }}
-              className='px-5 font-medium'
+              onClick={onClose}
+              className='px-6 font-semibold text-xs'
             >
-              <Icons.refresh className='mr-1.5 size-3.5' />
-              Update Status Live
+              Tutup
             </Button>
-          )}
-
-          <Button
-            type='button'
-            variant='default'
-            shape='pill'
-            size='default'
-            onClick={onClose}
-            className='px-7 font-semibold'
-          >
-            Tutup
-          </Button>
+          </div>
         </div>
       </div>
     </ModalWrapper>
-  );
+
+    <ChangeDoctorModal
+      isOpen={isChangeDoctorOpen}
+      appointmentId={String(appointment.id)}
+      patientName={appointment.pasien}
+      patientId={appointment.id_pasien}
+      queueNumber={appointment.no_antrian}
+      currentDoctorName={appointment.dokter}
+      appointmentDate={appointment.tanggal_booking}
+      appointmentTime={appointment.jam_booking}
+      onClose={() => setIsChangeDoctorOpen(false)}
+      onSuccess={() => {
+        setIsChangeDoctorOpen(false);
+        onClose();
+      }}
+    />
+
+    <ChangeRoomModal
+      isOpen={isChangeRoomOpen}
+      appointmentId={String(appointment.id)}
+      patientName={appointment.pasien}
+      patientId={appointment.id_pasien}
+      queueNumber={appointment.no_antrian}
+      currentRoomName={appointment.layanan_poli}
+      appointmentDate={appointment.tanggal_booking}
+      appointmentTime={appointment.jam_booking}
+      onClose={() => setIsChangeRoomOpen(false)}
+      onSuccess={() => {
+        setIsChangeRoomOpen(false);
+        onClose();
+      }}
+    />
+  </>
+);
 }

@@ -20,6 +20,13 @@ import { DoctorAvatar } from "../../doctor-avatar";
 import { AppointmentStatusPill } from "../atoms/appointment-status-pill";
 import { AppointmentTimeTrajectory } from "../atoms/appointment-time-trajectory";
 import { normalizeAppointmentTimes } from "../utils/appointment-adapter";
+import { ChangeDoctorModal } from "@/features/appointment-pasien/components/change-doctor-modal";
+import { ChangeRoomModal } from "@/features/appointment-pasien/components/change-room-modal";
+import {
+	isAppointmentTerminal,
+	isAppointmentInService,
+	isAppointmentWaiting,
+} from "@/features/appointment-pasien/constants/options";
 
 export interface AppointmentDetailOrganismProps {
 	isOpen: boolean;
@@ -55,6 +62,8 @@ export function AppointmentDetailOrganism({
 	const [cancelReason, setCancelReason] = React.useState("");
 	const [isCancelling, setIsCancelling] = React.useState(false);
 	const [isFormExpanded, setIsFormExpanded] = React.useState(false);
+	const [isChangeDoctorOpen, setIsChangeDoctorOpen] = React.useState(false);
+	const [isChangeRoomOpen, setIsChangeRoomOpen] = React.useState(false);
 
 	React.useEffect(() => {
 		if (!isOpen) {
@@ -62,6 +71,8 @@ export function AppointmentDetailOrganism({
 			setCancelReason("");
 			setIsCancelling(false);
 			setIsFormExpanded(false);
+			setIsChangeDoctorOpen(false);
+			setIsChangeRoomOpen(false);
 		}
 	}, [isOpen]);
 
@@ -91,26 +102,14 @@ export function AppointmentDetailOrganism({
 	const serviceName = appointment.service || doctor.spec || "-";
 	const complaintText = appointment.complaint || "-";
 
-	const isCancelled =
-		appointment.status === "Batal" ||
-		appointment.status === "CANCELLED" ||
-		appointment.status === "Tidak Hadir" ||
-		appointment.status === "NO_SHOW";
-	const isCompleted =
-		appointment.status === "Selesai" || appointment.status === "COMPLETED";
-	const isInService =
-		appointment.status === "Sedang Diperiksa" ||
-		appointment.status === "IN_SERVICE" ||
-		appointment.status === "SEDANG_DILAYANI";
-	const isWaiting =
-		appointment.status === "Menunggu" ||
-		appointment.status === "Sudah Buat Janji" ||
-		appointment.status === "WAITING" ||
-		appointment.status === "BOOKED" ||
-		appointment.status === "PENDING";
+	const isTerminal = isAppointmentTerminal(appointment.status);
+	const isInService = isAppointmentInService(appointment.status);
+	const isWaiting = isAppointmentWaiting(appointment.status);
 
-	const canCancel = !isCancelled && !isCompleted;
-	const canReschedule = !isCancelled && !isCompleted;
+	const canCancel = !isTerminal;
+	const canReschedule = !isTerminal;
+	const canReassign = !isTerminal;
+
 
 	const handleConfirmCancel = async () => {
 		if (!onCancel || !appointment) return;
@@ -126,7 +125,8 @@ export function AppointmentDetailOrganism({
 	};
 
 	return (
-		<ModalWrapper
+		<>
+			<ModalWrapper
 			isOpen={isOpen}
 			onClose={onClose}
 			maxWidth={isFormExpanded ? "max-w-5xl" : "max-w-lg"}
@@ -207,6 +207,26 @@ export function AppointmentDetailOrganism({
 													<Icons.calendar className="size-4 text-muted-foreground shrink-0" />
 													<span>Reschedule Jadwal</span>
 												</DropdownMenuItem>
+											)}
+
+											{canReassign && (
+												<>
+													<DropdownMenuItem
+														onClick={() => setIsChangeDoctorOpen(true)}
+														className="flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors"
+													>
+														<Icons.userCheck className="size-4 text-muted-foreground shrink-0" />
+														<span>Ganti Dokter</span>
+													</DropdownMenuItem>
+
+													<DropdownMenuItem
+														onClick={() => setIsChangeRoomOpen(true)}
+														className="flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors"
+													>
+														<Icons.mapPin className="size-4 text-muted-foreground shrink-0" />
+														<span>Ganti Ruangan</span>
+													</DropdownMenuItem>
+												</>
 											)}
 
 											{canCancel && onCancel && (
@@ -408,5 +428,38 @@ export function AppointmentDetailOrganism({
 				)}
 			</div>
 		</ModalWrapper>
+
+		<ChangeDoctorModal
+			isOpen={isChangeDoctorOpen}
+			appointmentId={String(appointment.id)}
+			patientName={patientName}
+			patientId={appointment.patient_id || String(appointment.id)}
+			queueNumber={appointment.queue_number || "-"}
+			currentDoctorName={doctor.name}
+			appointmentDate={appointment.date || "-"}
+			appointmentTime={`${startTime} - ${endTime} WIB`}
+			onClose={() => setIsChangeDoctorOpen(false)}
+			onSuccess={() => {
+				setIsChangeDoctorOpen(false);
+				onClose();
+			}}
+		/>
+
+		<ChangeRoomModal
+			isOpen={isChangeRoomOpen}
+			appointmentId={String(appointment.id)}
+			patientName={patientName}
+			patientId={appointment.patient_id || String(appointment.id)}
+			queueNumber={appointment.queue_number || "-"}
+			currentRoomName={displayLocation}
+			appointmentDate={appointment.date || "-"}
+			appointmentTime={`${startTime} - ${endTime} WIB`}
+			onClose={() => setIsChangeRoomOpen(false)}
+			onSuccess={() => {
+				setIsChangeRoomOpen(false);
+				onClose();
+			}}
+		/>
+	</>
 	);
 }

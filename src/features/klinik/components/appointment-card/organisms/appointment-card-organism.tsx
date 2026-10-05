@@ -9,6 +9,10 @@ import { AppointmentTimeTrajectory } from "../atoms/appointment-time-trajectory"
 import { AppointmentCardFooter } from "../molecules/appointment-card-footer";
 import { AppointmentCardHeader } from "../molecules/appointment-card-header";
 import { normalizeAppointmentTimes } from "../utils/appointment-adapter";
+import {
+	isAppointmentTerminal,
+	isAppointmentInService,
+} from "@/features/appointment-pasien/constants/options";
 
 export interface AppointmentCardOrganismProps {
 	appointment: Appointment;
@@ -68,17 +72,10 @@ export function AppointmentCardOrganism({
 	const { startTime, endTime, durationText } =
 		normalizeAppointmentTimes(appointment);
 
-	const isCancelled =
-		appointment.status === "Batal" ||
-		appointment.status === "CANCELLED" ||
-		appointment.status === "Tidak Hadir" ||
-		appointment.status === "NO_SHOW";
-	const isCompleted =
-		appointment.status === "Selesai" ||
-		appointment.status === "COMPLETED" ||
-		appointment.status === "Sedang Diperiksa" ||
-		appointment.status === "IN_SERVICE";
-	const canReschedule = !isCancelled && !isCompleted;
+	const canReschedule =
+		!isAppointmentTerminal(appointment.status) &&
+		!isAppointmentInService(appointment.status);
+
 
 	return (
 		<div
