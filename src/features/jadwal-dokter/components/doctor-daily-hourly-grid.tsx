@@ -8,12 +8,10 @@ import type { HourlySlotStatus } from '../utils/shift-slot-builder';
 
 import { useDoctorHourlyGrid } from '../model/useDoctorHourlyGrid';
 import {
-  DoctorGridHeader,
-  DoctorGridMetrics,
-  DoctorGridShiftSection,
-  DoctorGridLegend,
-  DoctorGridCalendarAccordion
+  DoctorGridHeader, DoctorGridMetrics, DoctorGridShiftSection,
+  DoctorGridLegend, DoctorGridCalendarAccordion
 } from './grid';
+import { DOCTOR_DIALOG_TYPE, WIZARD_STEP } from '../constants/doctor-dialog.constants';
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useDoctorConflictNavigation } from '../model/useDoctorConflictNavigation';
@@ -70,14 +68,10 @@ export function DoctorDailyHourlyGrid({
   onAddSchedule,
   modalContainerRef,
   readOnly = false,
-  highlightSlotTime,
-  onClearHighlightSlotTime: _onClearHighlightSlotTime,
-  onReturnToSourceModal,
-  returnDoctorName,
-  returnContext: _returnContext,
-  onClearReturnContext: _onClearReturnContext,
-  onViewDoctorSchedule,
-  className
+  highlightSlotTime, onClearHighlightSlotTime: _onClearHighlightSlotTime,
+  onReturnToSourceModal, returnDoctorName,
+  returnContext: _returnContext, onClearReturnContext: _onClearReturnContext,
+  onViewDoctorSchedule, className
 }: DoctorDailyHourlyGridProps) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const {
@@ -172,6 +166,8 @@ export function DoctorDailyHourlyGrid({
   }, [highlightSlotTime, conflictNav.highlightSlotTime, doctor?.id]);
 
   const [reassignAppointment, setReassignAppointment] = useState<Appointment | null>(null);
+  const [reassignSession, setReassignSession] = useState<DoctorDailySession | null>(null);
+  const [reassignSlot, setReassignSlot] = useState<OccupancySlot | GridSlotData | null>(null);
   const [isChangeDoctorModalOpen, setIsChangeDoctorModalOpen] = useState(false);
   const [isChangeRoomModalOpen, setIsChangeRoomModalOpen] = useState(false);
 
@@ -190,6 +186,8 @@ export function DoctorDailyHourlyGrid({
         formattedSelectedDate || formattedTargetDate
       );
       setReassignAppointment(apt);
+      setReassignSession(session);
+      setReassignSlot(slot);
       setIsChangeDoctorModalOpen(true);
     }
   };
@@ -209,8 +207,29 @@ export function DoctorDailyHourlyGrid({
         formattedSelectedDate || formattedTargetDate
       );
       setReassignAppointment(apt);
+      setReassignSession(session);
+      setReassignSlot(slot);
       setIsChangeRoomModalOpen(true);
     }
+  };
+
+  const handleViewReassignPatient = () => {
+    if (reassignSession && reassignSlot) {
+      void handleOpenPatientDetail(reassignSession, reassignSlot);
+    }
+  };
+
+  const handleCloseReassign = () => {
+    setIsChangeDoctorModalOpen(false);
+    setIsChangeRoomModalOpen(false);
+    setReassignAppointment(null);
+    setReassignSession(null);
+    setReassignSlot(null);
+  };
+
+  const handleSuccessReassign = () => {
+    handleCloseReassign();
+    queryClient.invalidateQueries({ queryKey: ['doctor-schedules'] });
   };
 
   const enrichedSlotModalData = selectedSlotModalData
@@ -429,17 +448,9 @@ export function DoctorDailyHourlyGrid({
         currentDoctorName={doctor?.nama_dokter || reassignAppointment?.doctor_name || ''}
         appointmentDate={reassignAppointment?.date || '-'}
         appointmentTime={reassignAppointment?.time || ''}
-        onClose={() => {
-          setIsChangeDoctorModalOpen(false);
-          setReassignAppointment(null);
-        }}
-        onSuccess={() => {
-          setIsChangeDoctorModalOpen(false);
-          setReassignAppointment(null);
-          queryClient.invalidateQueries({
-            queryKey: ['doctor-schedules']
-          });
-        }}
+        onViewAppointment={handleViewReassignPatient}
+        onClose={handleCloseReassign}
+        onSuccess={handleSuccessReassign}
       />
 
       <ChangeRoomModal
@@ -451,17 +462,33 @@ export function DoctorDailyHourlyGrid({
         currentRoomName={reassignAppointment?.room_name || ''}
         appointmentDate={reassignAppointment?.date || '-'}
         appointmentTime={reassignAppointment?.time || ''}
-        onClose={() => {
-          setIsChangeRoomModalOpen(false);
-          setReassignAppointment(null);
-        }}
-        onSuccess={() => {
-          setIsChangeRoomModalOpen(false);
-          setReassignAppointment(null);
-          queryClient.invalidateQueries({
-            queryKey: ['doctor-schedules']
-          });
-        }}
+        onViewAppointment={handleViewReassignPatient}
+        onViewDoctorSchedule={
+          onViewDoctorSchedule
+            ? (docId, targetSlotTime) => {
+                const context: ReturnDoctorContext = {
+                  sourceDoctorId: doctor?.id || doctor?.practitioner_id || '',
+                  sourceDoctorName: doctor?.nama_dokter || '',
+                  sourceDate: formattedSelectedDate || formattedTargetDate,
+                  sourceSlotStartTime: targetSlotTime || reassignAppointment?.time,
+                  sourceSession: reassignSession,
+                  wizardType: DOCTOR_DIALOG_TYPE.DETAIL_SHEET,
+                  initialStep: WIZARD_STEP.ROOM
+                };
+                conflictNav.inspectConflictDoctor({
+                  occupantDoctorId: docId,
+                  targetSlotTime: targetSlotTime || reassignAppointment?.time,
+                  context,
+                  onNavigate: (id, time) => {
+                    handleCloseReassign();
+                    onViewDoctorSchedule(id, time, context);
+                  }
+                });
+              }
+            : undefined
+        }
+        onClose={handleCloseReassign}
+        onSuccess={handleSuccessReassign}
       />
     </>
   );

@@ -126,12 +126,14 @@ export interface DoctorCandidatesResult {
 export interface RoomCandidateItem {
   id: string;
   name: string;
-  code: string;
-  location: string | null;
+  code?: string | null;
+  location?: string | null;
   isAvailable: boolean;
   occupantDetails?: {
+    practitionerId?: string;
     doctorName?: string;
     bookingCode?: string;
+    startTime?: string;
   } | null;
 }
 

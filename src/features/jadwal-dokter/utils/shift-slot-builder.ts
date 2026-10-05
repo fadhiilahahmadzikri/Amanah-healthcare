@@ -4,40 +4,6 @@ import type {
   OccupancySlot
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 import type { SimpleScheduleStatus } from './leave-calculator';
-
-export type HourlySlotStatus = 'buka' | 'terisi' | 'tutup' | 'cuti';
-
-export const SHIFT_CONFIGS = [
-  {
-    contextId: 'early_morning',
-    contextLabel: 'Dini Hari',
-    startH: 0,
-    endH: 6,
-    timeRange: '00:00 - 06:00 WIB'
-  },
-  {
-    contextId: 'morning',
-    contextLabel: 'Pagi',
-    startH: 6,
-    endH: 12,
-    timeRange: '06:00 - 12:00 WIB'
-  },
-  {
-    contextId: 'afternoon',
-    contextLabel: 'Siang',
-    startH: 12,
-    endH: 18,
-    timeRange: '12:00 - 18:00 WIB'
-  },
-  {
-    contextId: 'night',
-    contextLabel: 'Malam',
-    startH: 18,
-    endH: 24,
-    timeRange: '18:00 - 24:00 WIB'
-  }
-] as const;
-
 import {
   SCHEDULE_SHIFT,
   ALL_SCHEDULE_SHIFTS,
@@ -47,6 +13,39 @@ import {
   type ScheduleShift,
   type ScheduleStatus
 } from '../constants/schedule-shift.constants';
+
+export type HourlySlotStatus = 'buka' | 'terisi' | 'tutup' | 'cuti';
+
+export const SHIFT_CONFIGS = [
+  {
+    contextId: 'early_morning',
+    contextLabel: SCHEDULE_SHIFT_LABELS[SCHEDULE_SHIFT.DINI_HARI],
+    startH: 0,
+    endH: 6,
+    timeRange: '00:00 - 06:00 WIB'
+  },
+  {
+    contextId: 'morning',
+    contextLabel: SCHEDULE_SHIFT_LABELS[SCHEDULE_SHIFT.PAGI],
+    startH: 6,
+    endH: 12,
+    timeRange: '06:00 - 12:00 WIB'
+  },
+  {
+    contextId: 'afternoon',
+    contextLabel: SCHEDULE_SHIFT_LABELS[SCHEDULE_SHIFT.SIANG],
+    startH: 12,
+    endH: 18,
+    timeRange: '12:00 - 18:00 WIB'
+  },
+  {
+    contextId: 'night',
+    contextLabel: SCHEDULE_SHIFT_LABELS[SCHEDULE_SHIFT.MALAM],
+    startH: 18,
+    endH: 24,
+    timeRange: '18:00 - 24:00 WIB'
+  }
+];
 
 export {
   SCHEDULE_SHIFT,

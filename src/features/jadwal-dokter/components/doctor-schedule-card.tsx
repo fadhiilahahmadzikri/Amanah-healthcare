@@ -234,7 +234,6 @@ export function DoctorScheduleCard({
             availableSlots={effectiveDoctor.slot_tersedia}
             totalCapacity={effectiveDoctor.kapasitas_per_hari}
             displaySlot={effectiveDoctor.display_akumulasi_slot}
-            upcomingScheduleTime={effectiveDoctor.jadwal_praktik_mendatang}
             sessions={effectiveDoctor.sesi_harian}
             doctor={effectiveDoctor}
             date={cardDate}

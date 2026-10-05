@@ -11,6 +11,7 @@ import { AppointmentCallAttemptsTimeline } from './appointment-call-attempts-tim
 import { ChangeDoctorModal } from './change-doctor-modal';
 import { ChangeRoomModal } from './change-room-modal';
 import { isAppointmentTerminal } from '../constants/options';
+import { useAuthContext } from '@/lib/rbac/auth-context';
 
 export interface AppointmentDetailModalProps {
   isOpen: boolean;
@@ -25,6 +26,9 @@ export function AppointmentDetailModal({
   onClose,
   onUpdateStatus
 }: AppointmentDetailModalProps) {
+  const { role, hasRole } = useAuthContext();
+  const isAdmin = role === 'admin' || hasRole('admin');
+
   const [isChangeDoctorOpen, setIsChangeDoctorOpen] = React.useState(false);
   const [isChangeRoomOpen, setIsChangeRoomOpen] = React.useState(false);
 
@@ -37,7 +41,7 @@ export function AppointmentDetailModal({
 
   if (!appointment) return null;
 
-  const canReassign = !isAppointmentTerminal(appointment.live_status);
+  const canReassign = isAdmin && !isAppointmentTerminal(appointment.live_status);
 
   const initials = appointment.pasien
     .split(' ')

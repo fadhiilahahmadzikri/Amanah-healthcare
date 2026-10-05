@@ -25,6 +25,7 @@ export interface ChangeRoomModalProps {
   onClose: () => void;
   onSuccess?: () => void;
   onViewAppointment?: (appointmentId: string) => void;
+  onViewDoctorSchedule?: (doctorId: string, targetSlotTime?: string) => void;
 }
 
 export function ChangeRoomModal({
@@ -38,7 +39,8 @@ export function ChangeRoomModal({
   appointmentTime = '-',
   onClose,
   onSuccess,
-  onViewAppointment
+  onViewAppointment,
+  onViewDoctorSchedule
 }: ChangeRoomModalProps) {
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
 
@@ -111,23 +113,42 @@ export function ChangeRoomModal({
     <ModalWrapper
       isOpen={isOpen}
       onClose={onClose}
-      maxWidth='max-w-[580px]'
+      maxWidth='max-w-[508px]'
       showCloseButton={false}
       dismissible={!mutation.isPending}
+      className='h-auto max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-card p-5 sm:p-6 w-full my-auto shadow-2xl'
     >
       <form onSubmit={handleSubmit} className='relative font-sans space-y-3.5'>
         {/* 1. Header */}
         <div className='flex items-start justify-between gap-4 pb-3 border-b border-border/40'>
-          <div className='space-y-0.5 min-w-0 flex-1'>
-            <div className='flex items-center gap-2'>
-              <Icons.mapPin className='size-5 text-primary shrink-0' />
-              <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
-                Ganti Ruangan Janji Temu
-              </h3>
+          <div className='space-y-1 min-w-0 flex-1'>
+            <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
+              Ganti Ruangan Janji Temu
+            </h3>
+            <div className='flex items-center gap-2 text-xs text-muted-foreground flex-wrap'>
+              <span>
+                Pasien: <strong className='text-foreground font-semibold'>{patientName}</strong>
+              </span>
+              {queueNumber && queueNumber !== '-' && (
+                <span className='inline-flex items-center px-1.5 py-0.5 rounded bg-primary/10 text-primary font-semibold text-[11px]'>
+                  Antrean: {queueNumber}
+                </span>
+              )}
+              {currentRoomName && currentRoomName !== '-' && (
+                <span className='text-muted-foreground'>
+                  • Ruang saat ini: <span className='text-foreground font-medium'>{currentRoomName}</span>
+                </span>
+              )}
+              {onViewAppointment && (
+                <button
+                  type='button'
+                  onClick={() => onViewAppointment(appointmentId)}
+                  className='text-xs font-semibold text-primary hover:underline cursor-pointer transition-colors ml-1'
+                >
+                  Lihat Pasien
+                </button>
+              )}
             </div>
-            <p className='text-xs text-muted-foreground'>
-              Pindahkan lokasi ruangan pemeriksaan janji temu pasien.
-            </p>
           </div>
           <button
             type='button'
@@ -140,57 +161,7 @@ export function ChangeRoomModal({
           </button>
         </div>
 
-        {/* 2. Informasi Janji Temu Saat Ini */}
-        <div className='pb-3 border-b border-border/40'>
-          <span className='text-xs font-normal text-muted-foreground/80 block mb-2'>
-            Informasi Janji Temu Saat Ini
-          </span>
-          <div className='grid grid-cols-2 sm:grid-cols-3 gap-y-2.5 gap-x-4 text-xs'>
-            <div className='border-b border-border/40 pb-1.5'>
-              <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>Nama Pasien</span>
-              <span className='font-semibold text-foreground truncate block' title={patientName}>
-                {patientName}
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-1.5'>
-              <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>ID Pasien</span>
-              <span className='font-semibold text-foreground font-mono truncate block' title={patientId}>
-                {patientId}
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-1.5'>
-              <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>No. Antrean</span>
-              <span className='font-bold text-primary font-mono truncate block'>
-                {queueNumber}
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-1.5'>
-              <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>Ruang Saat Ini</span>
-              <span className='font-semibold text-foreground truncate block' title={currentRoomName}>
-                {currentRoomName}
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-1.5'>
-              <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>Tanggal</span>
-              <span className='font-medium text-muted-foreground truncate block'>
-                {appointmentDate}
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-1.5'>
-              <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>Jam / Slot</span>
-              <span className='font-medium text-muted-foreground font-mono truncate block'>
-                {appointmentTime}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* 3. Pilihan Ruangan Klinik */}
+        {/* 2. Pilihan Ruangan Klinik */}
         <div className='space-y-2.5 pt-0.5 min-h-[160px]'>
           <div className='flex items-center justify-between'>
             <span className='text-xs font-semibold text-foreground block'>
@@ -218,88 +189,117 @@ export function ChangeRoomModal({
               Tidak ada ruangan aktif yang terdaftar.
             </div>
           ) : (
-            <div className='space-y-2 max-h-[240px] overflow-y-auto pr-1'>
+            <div className='space-y-2.5 max-h-[260px] overflow-y-auto pr-1'>
               {rooms.map((room: RoomCandidateItem) => {
                 const isSelected = selectedRoomId === room.id;
                 const isAvailable = room.isAvailable;
                 const occupant = room.occupantDetails;
 
+                if (!isAvailable) {
+                  return (
+                    <div
+                      key={room.id}
+                      className='group w-full text-left relative flex items-center justify-between p-3.5 rounded-xl border border-border/40 bg-muted/20 opacity-75 hover:opacity-100 transition-all select-none'
+                    >
+                      <div className='flex items-center gap-3 min-w-0 flex-1'>
+                        <div className='size-9 rounded-full flex items-center justify-center shrink-0 bg-muted/60 text-muted-foreground/50'>
+                          <Icons.location className='size-4' />
+                        </div>
+
+                        <div className='min-w-0 flex-1 space-y-0.5'>
+                          <span className='text-xs sm:text-sm font-bold text-muted-foreground truncate block'>
+                            {room.name}
+                          </span>
+                          <p className='text-xs text-muted-foreground truncate'>
+                            {room.location || 'Gedung Utama'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className='flex items-center gap-2 shrink-0 pl-2'>
+                        {onViewDoctorSchedule && occupant?.practitionerId && (
+                          <button
+                            type='button'
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              onClose();
+                              const targetSlotTime =
+                                occupant.startTime ||
+                                (appointmentTime ? appointmentTime.split(' ')[0] : undefined);
+                              onViewDoctorSchedule(occupant.practitionerId!, targetSlotTime);
+                            }}
+                            className='opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto text-[11.5px] font-semibold text-primary hover:text-primary/80 hover:underline cursor-pointer inline-flex items-center gap-1 whitespace-nowrap'
+                            aria-label={`Lihat dokter di ${room.name}`}
+                          >
+                            <span>Lihat dokter</span>
+                            <Icons.arrowRight className='size-3 stroke-[2.5]' />
+                          </button>
+                        )}
+
+                        <span
+                          className='inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-destructive/10 text-destructive border border-destructive/20 shrink-0'
+                          title={occupant?.doctorName ? `Digunakan oleh ${occupant.doctorName}` : undefined}
+                        >
+                          Terisi{occupant?.doctorName ? `: ${occupant.doctorName}` : ''}
+                        </span>
+
+                        <div className='size-5 rounded-full border border-muted-foreground/15 bg-muted/30 flex items-center justify-center shrink-0' />
+                      </div>
+                    </div>
+                  );
+                }
+
                 return (
                   <button
                     key={room.id}
                     type='button'
-                    disabled={!isAvailable}
-                    onClick={() => {
-                      if (isAvailable) setSelectedRoomId(room.id);
-                    }}
+                    aria-label={`Pilih Ruang ${room.name}`}
+                    onClick={() => setSelectedRoomId(room.id)}
                     className={cn(
-                      'w-full text-left p-2.5 rounded-xl border transition-all flex items-center justify-between gap-3 select-none',
-                      !isAvailable
-                        ? 'opacity-60 cursor-not-allowed bg-muted/40 border-border/40'
-                        : isSelected
-                          ? 'border-primary bg-primary/5 ring-1 ring-primary/30 shadow-xs cursor-pointer'
-                          : 'border-border/60 bg-card hover:border-border hover:bg-accent/40 cursor-pointer'
+                      'w-full text-left relative flex items-center justify-between p-3.5 rounded-xl border transition-all cursor-pointer select-none',
+                      isSelected
+                        ? 'border-primary ring-2 ring-primary/30 bg-primary/5 shadow-xs'
+                        : 'border-border/60 bg-card hover:border-primary/40 hover:bg-muted/20'
                     )}
                   >
                     <div className='flex items-center gap-3 min-w-0 flex-1'>
                       <div
                         className={cn(
-                          'size-10 min-w-10 rounded-xl flex items-center justify-center shrink-0 border transition-colors',
-                          isAvailable
-                            ? 'bg-primary/10 text-primary border-primary/20'
-                            : 'bg-muted text-muted-foreground border-border/40'
+                          'size-9 rounded-full flex items-center justify-center shrink-0 transition-colors',
+                          isSelected
+                            ? 'bg-primary text-primary-foreground shadow-xs'
+                            : 'bg-muted text-muted-foreground'
                         )}
                       >
-                        <Icons.mapPin className='size-5' />
+                        <Icons.location className='size-4' />
                       </div>
 
-                      <div className='min-w-0 flex-1'>
-                        <div className='flex items-center gap-2'>
-                          <h4 className='text-xs font-bold text-foreground truncate'>
-                            {room.name}
-                          </h4>
-                          {room.code && (
-                            <span className='px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono text-muted-foreground'>
-                              {room.code}
-                            </span>
-                          )}
-                        </div>
-                        <p className='text-[11px] text-muted-foreground truncate'>
+                      <div className='min-w-0 flex-1 space-y-0.5'>
+                        <span className='text-xs sm:text-sm font-bold text-foreground truncate block'>
+                          {room.name}
+                        </span>
+                        <p className='text-xs text-muted-foreground truncate'>
                           {room.location || 'Gedung Utama'}
                         </p>
                       </div>
                     </div>
 
-                    <div className='flex items-center gap-2 shrink-0'>
-                      {isAvailable ? (
-                        <Badge
-                          variant='outline'
-                          className='bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-[10px] font-semibold py-0.5'
-                        >
-                          Tersedia
-                        </Badge>
-                      ) : (
-                        <Badge
-                          variant='outline'
-                          className='bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 text-[10px] font-semibold py-0.5'
-                          title={occupant?.doctorName ? `Digunakan oleh ${occupant.doctorName}` : undefined}
-                        >
-                          Terisi{occupant?.doctorName ? `: ${occupant.doctorName}` : ''}
-                        </Badge>
-                      )}
+                    <div className='flex items-center gap-2 shrink-0 pl-2'>
+                      <span className='inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0'>
+                        Tersedia
+                      </span>
 
-                      {isAvailable && (
-                        <div
-                          className={cn(
-                            'size-4 rounded-full border flex items-center justify-center transition-colors',
-                            isSelected
-                              ? 'border-primary bg-primary text-primary-foreground'
-                              : 'border-muted-foreground/40 bg-background'
-                          )}
-                        >
-                          {isSelected && <Icons.check className='size-2.5 stroke-[3]' />}
-                        </div>
-                      )}
+                      <div
+                        className={cn(
+                          'size-5 rounded-full border flex items-center justify-center transition-all',
+                          isSelected
+                            ? 'border-primary bg-primary text-primary-foreground'
+                            : 'border-muted-foreground/30 bg-transparent'
+                        )}
+                      >
+                        {isSelected && <div className='size-2 rounded-full bg-white' />}
+                      </div>
                     </div>
                   </button>
                 );

@@ -27,6 +27,7 @@ import {
 	isAppointmentInService,
 	isAppointmentWaiting,
 } from "@/features/appointment-pasien/constants/options";
+import { useAuthContext } from "@/lib/rbac/auth-context";
 
 export interface AppointmentDetailOrganismProps {
 	isOpen: boolean;
@@ -106,9 +107,12 @@ export function AppointmentDetailOrganism({
 	const isInService = isAppointmentInService(appointment.status);
 	const isWaiting = isAppointmentWaiting(appointment.status);
 
+	const { role, hasRole } = useAuthContext();
+	const isAdmin = role === "admin" || hasRole("admin");
+
 	const canCancel = !isTerminal;
 	const canReschedule = !isTerminal;
-	const canReassign = !isTerminal;
+	const canReassign = isAdmin && !isTerminal;
 
 
 	const handleConfirmCancel = async () => {

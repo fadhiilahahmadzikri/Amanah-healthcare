@@ -3,8 +3,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { doctorCandidatesQueryOptions, appointmentKeys } from '../api/queries';
@@ -140,23 +142,42 @@ export function ChangeDoctorModal({
     <ModalWrapper
       isOpen={isOpen}
       onClose={onClose}
-      maxWidth='max-w-[620px]'
+      maxWidth='max-w-[508px]'
       showCloseButton={false}
       dismissible={!mutation.isPending}
+      className='h-auto max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-card p-5 sm:p-6 w-full my-auto shadow-2xl'
     >
       <form onSubmit={handleSubmit} className='relative font-sans space-y-3.5'>
         {/* 1. Header */}
         <div className='flex items-start justify-between gap-4 pb-3 border-b border-border/40'>
-          <div className='space-y-0.5 min-w-0 flex-1'>
-            <div className='flex items-center gap-2'>
-              <Icons.userCheck className='size-5 text-primary shrink-0' />
-              <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
-                Ganti Dokter Janji Temu
-              </h3>
+          <div className='space-y-1 min-w-0 flex-1'>
+            <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
+              Ganti Dokter Janji Temu
+            </h3>
+            <div className='flex items-center gap-2 text-xs text-muted-foreground flex-wrap'>
+              <span>
+                Pasien: <strong className='text-foreground font-semibold'>{patientName}</strong>
+              </span>
+              {queueNumber && queueNumber !== '-' && (
+                <span className='inline-flex items-center px-1.5 py-0.5 rounded bg-primary/10 text-primary font-semibold text-[11px]'>
+                  Antrean: {queueNumber}
+                </span>
+              )}
+              {currentDoctorName && currentDoctorName !== '-' && (
+                <span className='text-muted-foreground'>
+                  • Dokter saat ini: <span className='text-foreground font-medium'>{currentDoctorName}</span>
+                </span>
+              )}
+              {onViewAppointment && (
+                <button
+                  type='button'
+                  onClick={() => onViewAppointment(appointmentId)}
+                  className='text-xs font-semibold text-primary hover:underline cursor-pointer transition-colors ml-1'
+                >
+                  Lihat Pasien
+                </button>
+              )}
             </div>
-            <p className='text-xs text-muted-foreground'>
-              Alihkan janji temu ke dokter lain yang tersedia pada slot tanggal dan waktu ini.
-            </p>
           </div>
           <button
             type='button'
@@ -169,57 +190,7 @@ export function ChangeDoctorModal({
           </button>
         </div>
 
-        {/* 2. Informasi Janji Temu Saat Ini */}
-        <div className='pb-3 border-b border-border/40'>
-          <span className='text-xs font-normal text-muted-foreground/80 block mb-2'>
-            Informasi Janji Temu Saat Ini
-          </span>
-          <div className='grid grid-cols-2 sm:grid-cols-3 gap-y-2.5 gap-x-4 text-xs'>
-            <div className='border-b border-border/40 pb-1.5'>
-              <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>Nama Pasien</span>
-              <span className='font-semibold text-foreground truncate block' title={patientName}>
-                {patientName}
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-1.5'>
-              <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>ID Pasien</span>
-              <span className='font-semibold text-foreground font-mono truncate block' title={patientId}>
-                {patientId}
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-1.5'>
-              <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>No. Antrean</span>
-              <span className='font-bold text-primary font-mono truncate block'>
-                {queueNumber}
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-1.5'>
-              <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>Dokter Saat Ini</span>
-              <span className='font-semibold text-foreground truncate block' title={currentDoctorName}>
-                {currentDoctorName}
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-1.5'>
-              <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>Tanggal</span>
-              <span className='font-medium text-muted-foreground truncate block'>
-                {appointmentDate}
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-1.5'>
-              <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>Jam / Slot</span>
-              <span className='font-medium text-muted-foreground font-mono truncate block'>
-                {appointmentTime}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* 3. Daftar Kandidat Dokter */}
+        {/* 2. Daftar Kandidat Dokter */}
         <div className='space-y-2.5 pt-0.5 min-h-[180px]'>
           <div className='flex items-center justify-between'>
             <span className='text-xs font-semibold text-foreground block'>
@@ -276,10 +247,10 @@ export function ChangeDoctorModal({
                           type='button'
                           onClick={() => setSelectedDoctorId(doctor.id)}
                           className={cn(
-                            'w-full text-left p-2.5 rounded-xl border transition-all flex items-center justify-between gap-3 cursor-pointer select-none',
+                            'w-full text-left relative flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer select-none',
                             isSelected
-                              ? 'border-primary bg-primary/5 ring-1 ring-primary/30 shadow-xs'
-                              : 'border-border/60 bg-card hover:border-border hover:bg-accent/40'
+                              ? 'border-primary ring-2 ring-primary/30 bg-primary/5 shadow-xs'
+                              : 'border-border/60 bg-card hover:border-primary/40 hover:bg-muted/20'
                           )}
                         >
                           <div className='flex items-center gap-3 min-w-0 flex-1'>
@@ -298,32 +269,16 @@ export function ChangeDoctorModal({
                             </div>
                           </div>
 
-                          <div className='flex items-center gap-2 shrink-0'>
-                            {doctor.availability === 'AVAILABLE' ? (
-                              <Badge
-                                variant='outline'
-                                className='bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-[10px] font-semibold py-0.5'
-                              >
-                                Tersedia Sesi
-                              </Badge>
-                            ) : (
-                              <Badge
-                                variant='outline'
-                                className='bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20 text-[10px] font-semibold py-0.5'
-                              >
-                                Sesi Dibuat Otomatis
-                              </Badge>
-                            )}
-
+                          <div className='flex items-center shrink-0'>
                             <div
                               className={cn(
-                                'size-4 rounded-full border flex items-center justify-center transition-colors',
+                                'size-5 rounded-full border flex items-center justify-center shrink-0 transition-colors',
                                 isSelected
-                                  ? 'border-primary bg-primary text-primary-foreground'
-                                  : 'border-muted-foreground/40 bg-background'
+                                  ? 'border-primary bg-primary text-primary-foreground shadow-xs'
+                                  : 'border-muted-foreground/30 bg-background'
                               )}
                             >
-                              {isSelected && <Icons.check className='size-2.5 stroke-[3]' />}
+                              {isSelected && <Icons.check className='size-3 stroke-[2.5]' />}
                             </div>
                           </div>
                         </button>
@@ -336,33 +291,36 @@ export function ChangeDoctorModal({
           )}
         </div>
 
-        {/* Edge Case 5 & 6: Option to close previous doctor's schedule */}
-        <div className='p-3 rounded-xl border border-border/50 bg-muted/20 space-y-2'>
-          <label className='flex items-center gap-2 cursor-pointer select-none'>
-            <input
-              type='checkbox'
+        {/* Opsi penutupan sesi dokter sebelumnya */}
+        <div className='p-3 sm:p-3.5 rounded-xl border border-border/50 bg-muted/20 space-y-2.5'>
+          <div className='flex items-start gap-2.5'>
+            <Checkbox
+              id='close-old-schedule'
               checked={shouldCloseOldSchedule}
-              onChange={(e) => setShouldCloseOldSchedule(e.target.checked)}
-              aria-label='Tutup jadwal dokter sebelumnya untuk sesi ini'
-              className='size-4 rounded border-border/70 text-primary focus:ring-primary/40'
+              onCheckedChange={(checked) => setShouldCloseOldSchedule(Boolean(checked))}
+              className='mt-0.5'
             />
-            <span className='text-xs font-semibold text-foreground'>
-              Tutup jadwal dokter sebelumnya untuk sesi ini (Edge Case: berhalangan hadir)
-            </span>
-          </label>
+            <div className='space-y-0.5 leading-none flex-1'>
+              <Label
+                htmlFor='close-old-schedule'
+                className='text-xs font-semibold cursor-pointer select-none text-foreground'
+              >
+                Tutup sesi jadwal dokter sebelumnya
+              </Label>
+              <p className='text-[11px] text-muted-foreground leading-normal'>
+                Sesi ini akan ditandai tutup dan tidak menerima antrean baru.
+              </p>
+            </div>
+          </div>
+
           {shouldCloseOldSchedule && (
-            <div className='pt-1 animate-in fade-in duration-150 space-y-1'>
-              <input
-                type='text'
+            <div className='pt-1 animate-in fade-in duration-150 space-y-1.5'>
+              <Input
                 value={closeReason}
                 onChange={(e) => setCloseReason(e.target.value)}
-                placeholder='Alasan penutupan sesi (misal: Dokter berhalangan hadir mendadak)'
-                aria-label='Alasan penutupan sesi dokter sebelumnya'
-                className='w-full px-2.5 py-1.5 rounded-lg border border-border/60 bg-background text-foreground text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary'
+                placeholder='Alasan penutupan sesi (opsional)'
+                className='h-8 text-xs bg-background'
               />
-              <p className='text-[10.5px] text-muted-foreground'>
-                Sesi dokter sebelumnya akan ditutup permanen dan sisa slot di-reset ke 0.
-              </p>
             </div>
           )}
         </div>

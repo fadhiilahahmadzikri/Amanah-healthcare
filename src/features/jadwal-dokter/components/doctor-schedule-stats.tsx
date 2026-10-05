@@ -15,7 +15,6 @@ export interface DoctorScheduleStatsProps {
 	availableSlots: number;
 	totalCapacity: number;
 	displaySlot?: string;
-	upcomingScheduleTime?: string;
 	sessions?: DoctorDailySession[];
 	doctor?: DoctorSchedule;
 	date?: string;
@@ -24,10 +23,9 @@ export interface DoctorScheduleStatsProps {
 
 export function DoctorScheduleStats({
 	scheduleTime,
-	availableSlots,
+	availableSlots: _availableSlots,
 	totalCapacity,
 	displaySlot: _displaySlot,
-	upcomingScheduleTime,
 	sessions,
 	doctor,
 	date,
@@ -37,35 +35,19 @@ export function DoctorScheduleStats({
 	const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 	const isPastDate = Boolean(date && date < todayIso);
 
-	const { activeTime, upcomingTime, hasActive, isActiveClosed } =
+	const { activeTime, hasActive, isActiveClosed } =
 		isPastDate
-			? { activeTime: undefined, upcomingTime: DOCTOR_CARD_STATUS.SELESAI, hasActive: false, isActiveClosed: false }
+			? { activeTime: undefined, hasActive: false, isActiveClosed: false }
 			: getUpcomingScheduleTime(scheduleTime, sessions, doctor);
+
 	const resolvedUpcoming = isPastDate
 		? DOCTOR_CARD_STATUS.SELESAI
-		: doctor?.jadwal_praktik_mendatang ||
-		upcomingScheduleTime ||
-		upcomingTime ||
-		DOCTOR_CARD_STATUS.BELUM_DIATUR;
-
-	const effectiveTotal =
-		totalCapacity > 0
-			? totalCapacity
-			: sessions && sessions.length > 0
-				? sessions.reduce((acc, s) => acc + (s.kuota_pasien || 0), 0)
-				: 0;
-
-	const bookedCount =
-		typeof doctor?.slot_terisi_akumulasi === "number"
-			? doctor.slot_terisi_akumulasi
-			: typeof doctor?.metrics?.occupiedSlots === "number"
-				? doctor.metrics.occupiedSlots
-				: Math.max(0, effectiveTotal - availableSlots);
+		: doctor?.jadwal_praktik_mendatang || DOCTOR_CARD_STATUS.BELUM_DIATUR;
 
 	const slotDisplay =
 		doctor?.display_akumulasi_slot ||
 		_displaySlot ||
-		(effectiveTotal > 0 ? `${bookedCount}/${effectiveTotal}` : "0/0");
+		`${doctor?.slot_terisi_akumulasi ?? 0}/${totalCapacity > 0 ? totalCapacity : 0}`;
 
 	if (hasActive && activeTime) {
 		return (
@@ -105,7 +87,7 @@ export function DoctorScheduleStats({
 				<div className="flex flex-col min-w-0">
 					<div className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
 						<Icons.teams className="size-3 shrink-0 text-muted-foreground/80" />
-						<span className="truncate">Slot Tersedia</span>
+						<span className="truncate">Pasien Terdaftar</span>
 					</div>
 					<div className="flex items-center gap-1 text-[13px] sm:text-[13.5px] font-bold text-foreground font-mono mt-1 tracking-tight">
 						<Icons.user className="size-3 text-foreground shrink-0" />
@@ -136,7 +118,7 @@ export function DoctorScheduleStats({
 			<div className="flex flex-col min-w-0">
 				<div className="flex items-center gap-1.5 text-[11.5px] font-medium text-muted-foreground">
 					<Icons.teams className="size-3.5 shrink-0 text-muted-foreground/80" />
-					<span>Slot Tersedia</span>
+					<span>Pasien Terdaftar</span>
 				</div>
 				<div className="flex items-center gap-1.5 text-[15px] sm:text-[15.5px] font-bold text-foreground font-mono mt-1 tracking-tight">
 					<Icons.user className="size-3.5 text-foreground shrink-0" />

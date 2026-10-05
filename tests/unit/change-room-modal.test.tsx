@@ -26,7 +26,12 @@ describe('ChangeRoomModal component structure', () => {
     expect(fileContent).toContain('shape=\'pill\'');
     // 4. Toast with action
     expect(fileContent).toContain('Lihat Janji Temu');
-    // 5. Under 500 lines of code constraint
+    // 5. Does not expose ID Pasien and does not contain developer jargon
+    expect(fileContent).not.toContain('ID Pasien');
+    expect(fileContent).not.toContain('Edge Case');
+    // 6. Contains Lihat Pasien button
+    expect(fileContent).toContain('Lihat Pasien');
+    // 7. Under 500 lines of code constraint
     const lineCount = fileContent.split('\n').length;
     expect(lineCount).toBeLessThan(500);
   });
