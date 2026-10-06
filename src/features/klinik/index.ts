@@ -9,6 +9,7 @@ export { GuideView } from './components/guide-view';
 export { QueueView } from './components/queue-view';
 export { useAppointmentsView } from './model/useAppointmentsView';
 export { useQueueView } from './model/useQueueView';
+export { useConsultationTimer } from './hooks/useConsultationTimer';
 export { useAppointmentReservation } from './model/useAppointmentReservation';
 export { useMedicalAppointmentForm } from './model/useMedicalAppointmentForm';
 export type {
@@ -21,6 +22,10 @@ export type {
 } from './api/types';
 export type { AppointmentCardItem, UseAppointmentsViewResult } from './model/useAppointmentsView';
 export type { UseQueueViewResult } from './model/useQueueView';
+export type {
+  UseConsultationTimerParams,
+  UseConsultationTimerResult
+} from './hooks/useConsultationTimer';
 export type { QueuePoliStats } from './model/queueViewModel';
 export type {
   ReservationEntryStep,

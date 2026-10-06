@@ -36,6 +36,9 @@ export interface Appointment {
   room_location?: string;
   scheduled_start_time?: string;
   scheduled_end_time?: string;
+  actual_started_at?: string;
+  actual_completed_at?: string;
+  estimated_duration_minutes?: number;
   date: string;
   time: string;
   patient_id?: string;
@@ -81,6 +84,9 @@ export interface QueueItem {
   room?: string;
   call_count?: number;
   called_at?: string | null;
+  actual_started_at?: string | null;
+  actual_completed_at?: string | null;
+  estimated_duration_minutes?: number;
   created_at?: string;
   service?: string;
 }

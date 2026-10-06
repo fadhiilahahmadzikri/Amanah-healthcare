@@ -67,7 +67,6 @@ export function QueueView() {
               callingItem={queueView.currentCalling}
               nextItem={queueView.waitingList[0]}
               afterNextItem={queueView.waitingList[1]}
-              timeRemaining={queueView.poliStats.timeRemaining}
               bookingTime={
                 queueView.currentCalling?.estimated_time ||
                 queueView.currentCalling?.called_time ||

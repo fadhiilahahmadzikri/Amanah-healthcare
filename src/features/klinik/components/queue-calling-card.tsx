@@ -5,6 +5,7 @@ import { Icons } from '@/components/icons';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
 import { QueueItem } from '../api/types';
+import { useConsultationTimer } from '../hooks/useConsultationTimer';
 import { cn } from '@/lib/utils';
 
 export interface QueueCallingCardProps {
@@ -12,7 +13,6 @@ export interface QueueCallingCardProps {
   nextItem?: QueueItem;
   afterNextItem?: QueueItem;
   clinicRoomName?: string;
-  timeRemaining?: string;
   bookingTime?: string;
   className?: string;
 }
@@ -22,10 +22,16 @@ export function QueueCallingCard({
   nextItem,
   afterNextItem,
   clinicRoomName,
-  timeRemaining = '-',
   bookingTime,
   className
 }: QueueCallingCardProps) {
+  const timer = useConsultationTimer({
+    startedAt: callingItem?.actual_started_at || callingItem?.called_at,
+    completedAt: callingItem?.actual_completed_at,
+    status: callingItem?.status,
+    policyMinutes: callingItem?.estimated_duration_minutes ?? 30
+  });
+
   if (!callingItem) {
     return (
       <div
@@ -219,17 +225,32 @@ export function QueueCallingCard({
           </div>
 
           <div className='flex items-center gap-3'>
-            <Icons.clock className='size-6 sm:size-7 text-primary shrink-0 stroke-[1.8]' />
+            <Icons.clock
+              className={cn(
+                'size-6 sm:size-7 shrink-0 stroke-[1.8]',
+                timer.isOvertime ? 'text-destructive animate-pulse' : 'text-primary'
+              )}
+            />
             <div className='min-w-0 space-y-0.5'>
               <span className='text-[11px] font-medium text-muted-foreground block whitespace-nowrap'>
-                Time Tersisa
+                Waktu Konsultasi
               </span>
-              <span
-                id='time-remaining-value'
-                className='text-sm sm:text-base font-bold text-foreground block whitespace-nowrap'
-              >
-                {isFinished ? '0 Menit' : timeRemaining}
-              </span>
+              <div className='flex items-center gap-1.5'>
+                <span
+                  id='time-remaining-value'
+                  className={cn(
+                    'text-sm sm:text-base font-bold block whitespace-nowrap',
+                    timer.isOvertime ? 'text-destructive font-black' : 'text-foreground'
+                  )}
+                >
+                  {timer.formattedDuration}
+                </span>
+                {timer.isOvertime && (
+                  <Badge variant='destructive' className='text-[9.5px] px-1.5 py-0 h-4 font-bold'>
+                    Lewat {callingItem.estimated_duration_minutes ?? 30} Mnt
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
 

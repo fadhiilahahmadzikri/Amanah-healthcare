@@ -229,6 +229,8 @@ export interface BackendAppointmentItem {
   scheduledStartTime?: string;
   scheduledEndTime?: string;
   estimatedDurationMinutes?: number;
+  actualStartedAt?: string | null;
+  actualCompletedAt?: string | null;
   session: string;
   queueNumber?: string;
   status: string;

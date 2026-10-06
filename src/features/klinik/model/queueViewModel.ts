@@ -1,8 +1,8 @@
 import type { QueueItem } from '../api/types';
+import { QUEUE_POLI_LIST, CLINIC_OPERATIONAL_HOURS } from '../constants/queue-policy';
 
-export const QUEUE_POLI_LIST = ['Poli Umum', 'Poli KIA'] as const;
+export { QUEUE_POLI_LIST };
 
-export const QUEUE_MINUTES_PER_PATIENT = 6;
 export const QUEUE_AUTOPLAY_INTERVAL_MS = 3500;
 
 export interface QueuePoliStats {
@@ -45,22 +45,17 @@ export function paginateQueues(
   return queues.slice(start, start + pageSize);
 }
 
-export function getEstimatedWaitingMinutes(waitingCount: number): number {
-  return waitingCount * QUEUE_MINUTES_PER_PATIENT;
-}
-
 export function buildQueuePoliStats(
   queues: QueueItem[],
   activePoli: string,
   waitingCount: number
 ): QueuePoliStats {
   const allInPoli = queues.filter((queue) => queue.poli === activePoli);
-  const totalEstimateMins = getEstimatedWaitingMinutes(waitingCount);
 
   return {
     totalToday: `${allInPoli.length} Pasien`,
-    timeRemaining: `${totalEstimateMins} Menit`,
-    operationalHours: '08.00 - 17.00 WIB'
+    timeRemaining: waitingCount > 0 ? `${waitingCount} Antrean Menunggu` : 'Tidak Ada Antrean',
+    operationalHours: CLINIC_OPERATIONAL_HOURS
   };
 }
 

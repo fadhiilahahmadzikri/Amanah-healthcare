@@ -74,7 +74,7 @@ export async function getDailyQueuesFromApi(params?: {
       const ticketStatus = String(item.ticketStatus || '');
       let status = 'MENUNGGU';
 
-      if (rawStatus === 'SELESAI' || rawStatus === 'completed') {
+      if (rawStatus === 'SELESAI' || rawStatus === 'completed' || ticketStatus === 'completed') {
         status = 'SELESAI';
       } else if (
         ticketStatus === 'called' ||
@@ -82,8 +82,14 @@ export async function getDailyQueuesFromApi(params?: {
         rawStatus === 'in_service'
       ) {
         status = 'DIPANGGIL';
-      } else if (rawStatus === 'BATAL' || rawStatus === 'cancelled') {
+      } else if (
+        rawStatus === 'BATAL' ||
+        rawStatus === 'cancelled' ||
+        ticketStatus === 'cancelled'
+      ) {
         status = 'BATAL';
+      } else if (rawStatus === 'NO_SHOW' || rawStatus === 'no_show' || ticketStatus === 'no_show') {
+        status = 'NO_SHOW';
       } else {
         status = 'MENUNGGU';
       }
@@ -109,8 +115,17 @@ export async function getDailyQueuesFromApi(params?: {
               minute: '2-digit'
             })
           : undefined,
-        room: String(item.room || 'Ruang Periksa'),
-        call_count: Number(item.callCount ?? item.call_count ?? 0)
+        room: String(item.room || item.roomName || 'Ruang Periksa'),
+        call_count: Number(item.callCount ?? item.call_count ?? 0),
+        called_at: item.calledAt ? String(item.calledAt) : null,
+        actual_started_at: item.actualStartedAt
+          ? String(item.actualStartedAt)
+          : item.calledAt
+            ? String(item.calledAt)
+            : null,
+        actual_completed_at: item.actualCompletedAt ? String(item.actualCompletedAt) : null,
+        estimated_duration_minutes:
+          typeof item.estimatedDurationMinutes === 'number' ? item.estimatedDurationMinutes : 30
       };
     });
   } catch (err: unknown) {
@@ -118,10 +133,11 @@ export async function getDailyQueuesFromApi(params?: {
     const isForbidden =
       errorObj?.status === 403 ||
       errorObj?.statusCode === 403 ||
-      String(errorObj?.message || '').toLowerCase().includes('forbidden');
+      String(errorObj?.message || '')
+        .toLowerCase()
+        .includes('forbidden');
 
     if (isForbidden) {
-      // Patient role: fallback to public queue display monitor
       try {
         const displayQuery = new URLSearchParams();
         if (params?.date) displayQuery.set('date', params.date);
@@ -159,7 +175,15 @@ export async function getDailyQueuesFromApi(params?: {
                   minute: '2-digit'
                 })
               : undefined,
-            room: display.currentTicket.roomName || 'Ruang Periksa'
+            room: display.currentTicket.roomName || 'Ruang Periksa',
+            called_at: display.currentTicket.calledAt
+              ? String(display.currentTicket.calledAt)
+              : null,
+            actual_started_at: display.currentTicket.calledAt
+              ? String(display.currentTicket.calledAt)
+              : null,
+            actual_completed_at: null,
+            estimated_duration_minutes: 30
           });
         }
         if (Array.isArray(display?.nextTickets)) {
@@ -172,7 +196,10 @@ export async function getDailyQueuesFromApi(params?: {
               poli: t.poliklinikName || 'Poli',
               estimated_time: 'Menunggu',
               status: 'MENUNGGU',
-              room: t.poliklinikName || 'Ruang Periksa'
+              room: t.poliklinikName || 'Ruang Periksa',
+              actual_started_at: null,
+              actual_completed_at: null,
+              estimated_duration_minutes: 30
             });
           });
         }
