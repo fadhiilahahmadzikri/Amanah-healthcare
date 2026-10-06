@@ -38,23 +38,21 @@ export function useAppointmentTable({
   const [params] = useQueryStates({
     page: parseAsInteger.withDefault(1),
     perPage: parseAsInteger.withDefault(10),
-    pasien: parseAsString,
     search: parseAsString,
-    live_status: parseAsArrayOf(parseAsString, ','),
+    patientName: parseAsString,
     status: parseAsArrayOf(parseAsString, ','),
-    layanan_poli: parseAsArrayOf(parseAsString, ','),
     poli: parseAsArrayOf(parseAsString, ','),
+    poliklinikName: parseAsArrayOf(parseAsString, ','),
     sort: getSortingStateParser<AdminAppointment>(columnIds).withDefault([])
   });
 
-  const querySearch = params.pasien || params.search;
-  const queryStatus = params.live_status || params.status;
-  const queryPoli = params.layanan_poli || params.poli;
+  const querySearch = params.search || params.patientName;
+  const queryPoli = params.poli || params.poliklinikName;
   const filters: AppointmentFilters = {
     page: params.page,
     limit: params.perPage,
     ...(querySearch && { search: querySearch }),
-    ...(queryStatus && queryStatus.length > 0 && { status: queryStatus }),
+    ...(params.status && params.status.length > 0 && { status: params.status }),
     ...(queryPoli && queryPoli.length > 0 && { poli: queryPoli }),
     ...(params.sort.length > 0 && { sort: JSON.stringify(params.sort) })
   };

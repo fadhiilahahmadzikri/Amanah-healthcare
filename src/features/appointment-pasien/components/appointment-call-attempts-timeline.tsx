@@ -22,9 +22,7 @@ export function AppointmentCallAttemptsTimeline({
     getAppointmentCallAttempts(appointmentId)
       .then((data) => {
         if (isMounted) {
-          // Sort ascending for chronological timeline display
-          // oxlint-disable-next-line unicorn/no-array-sort
-          const sorted = [...data].sort((a, b) => a.attemptNumber - b.attemptNumber);
+          const sorted = [...data].toSorted((a, b) => a.attemptNumber - b.attemptNumber);
           setAttempts(sorted);
         }
       })
@@ -59,9 +57,8 @@ export function AppointmentCallAttemptsTimeline({
     <div className='space-y-2'>
       <div className='flex items-center justify-between'>
         <span className='text-xs font-semibold text-foreground tracking-tight'>
-          Riwayat Pemanggilan ({attempts.length}/3)
+          Riwayat Pemanggilan ({attempts.length})
         </span>
-        <span className='text-[11px] text-muted-foreground'>Kebijakan Retry: Maksimal 3 kali</span>
       </div>
 
       <div className='relative pl-4 space-y-3 before:absolute before:left-1.5 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-border/60'>
@@ -84,7 +81,6 @@ export function AppointmentCallAttemptsTimeline({
 
           return (
             <div key={att.id || `att-${att.attemptNumber}`} className='relative text-xs'>
-              {/* Dot Indicator */}
               <div
                 className={cn(
                   'absolute -left-4 top-1 size-3 rounded-full ring-2 ring-background border',

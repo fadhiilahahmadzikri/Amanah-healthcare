@@ -4,12 +4,16 @@ import React, { useState, useEffect } from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
-import { getStatusConfig } from '@/styles/clinical-tokens';
-import { useMutation } from '@tanstack/react-query';
-import { updateLiveStatusMutation } from '../api/mutations';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { updateAdminLiveStatus } from '../api/service';
+import { appointmentKeys } from '../api/queries';
+import {
+  APPOINTMENT_STATUS_OPTIONS,
+  getAppointmentStatusConfig
+} from '../constants/appointment-status.dictionary';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import type { AdminAppointment, LiveStatus } from '../api/types';
+import type { AdminAppointment, AppointmentStatus } from '../api/types';
 
 export interface AppointmentStatusModalProps {
   isOpen: boolean;
@@ -17,64 +21,31 @@ export interface AppointmentStatusModalProps {
   onClose: () => void;
 }
 
-const AVAILABLE_STATUSES: {
-  value: LiveStatus;
-  label: string;
-  desc: string;
-}[] = [
-  {
-    value: 'SUDAH BUAT JANJI',
-    label: 'Sudah Buat Janji',
-    desc: 'Reservasi terjadwal, pasien belum hadir di klinik'
-  },
-  {
-    value: 'SUDAH DATANG',
-    label: 'Sudah Datang',
-    desc: 'Pasien telah check-in / hadir di lokasi poliklinik'
-  },
-  {
-    value: 'MENUNGGU',
-    label: 'Menunggu',
-    desc: 'Pasien berada di ruang tunggu antrean pemeriksaan'
-  },
-  {
-    value: 'SEDANG PERIKSA',
-    label: 'Sedang Periksa',
-    desc: 'Pasien sedang dalam ruang konsultasi dengan dokter'
-  },
-  {
-    value: 'SELESAI',
-    label: 'Selesai',
-    desc: 'Pemeriksaan selesai, rekam medis telah diperbarui'
-  },
-  {
-    value: 'TIDAK ADA DOKTER',
-    label: 'Tidak Ada Dokter',
-    desc: 'Dokter berhalangan / jadwal praktik dibatalkan'
-  }
-];
-
 export function AppointmentStatusModal({
   isOpen,
   appointment,
   onClose
 }: AppointmentStatusModalProps) {
-  const [selectedStatus, setSelectedStatus] = useState<LiveStatus>('SUDAH DATANG');
+  const [selectedStatus, setSelectedStatus] = useState<AppointmentStatus>('WAITING');
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (appointment) {
-      setSelectedStatus(appointment.live_status);
+      setSelectedStatus(appointment.status);
     }
   }, [appointment]);
 
   const mutation = useMutation({
-    ...updateLiveStatusMutation,
+    mutationFn: ({ id, status }: { id: number | string; status: AppointmentStatus }) =>
+      updateAdminLiveStatus(id, status),
     onSuccess: () => {
-      toast.success('Status live antrean berhasil diperbarui');
+      queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
+      toast.success('Status janji temu berhasil diperbarui');
       onClose();
     },
-    onError: () => {
-      toast.error('Gagal memperbarui status live antrean');
+    onError: (error: Error) => {
+      queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
+      toast.error(error.message || 'Gagal memperbarui status janji temu');
     }
   });
 
@@ -96,14 +67,13 @@ export function AppointmentStatusModal({
       showCloseButton={false}
     >
       <form onSubmit={handleSubmit} className='relative font-sans space-y-3.5'>
-        {/* 1. Header */}
         <div className='flex items-start justify-between gap-4 pb-3 border-b border-border/40'>
           <div className='space-y-0.5 min-w-0 flex-1'>
             <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
-              Update Status Live Antrean
+              Update Status Janji Temu
             </h3>
             <p className='text-xs text-muted-foreground'>
-              Pilih progres status kedatangan dan antrean live pasien saat ini.
+              Pilih progres status operasional antrean pasien saat ini.
             </p>
           </div>
           <button
@@ -116,65 +86,63 @@ export function AppointmentStatusModal({
           </button>
         </div>
 
-        {/* 2. Ringkasan Appointment Pasien (Underline Style) */}
         <div className='pb-3 border-b border-border/40'>
           <span className='text-xs font-normal text-muted-foreground/80 block mb-2'>
-            Informasi Appointment Pasien
+            Informasi Janji Temu Pasien
           </span>
           <div className='grid grid-cols-2 sm:grid-cols-3 gap-y-2.5 gap-x-4 text-xs'>
             <div className='border-b border-border/40 pb-1.5'>
               <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>Nama Pasien</span>
               <span className='font-semibold text-foreground truncate block'>
-                {appointment.pasien}
+                {appointment.patientName}
               </span>
             </div>
 
             <div className='border-b border-border/40 pb-1.5'>
               <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>ID Pasien</span>
               <span className='font-semibold text-foreground font-mono truncate block'>
-                {appointment.id_pasien}
+                {appointment.patientId}
               </span>
             </div>
 
             <div className='border-b border-border/40 pb-1.5'>
               <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>No. Antrean</span>
               <span className='font-bold text-primary font-mono truncate block'>
-                {appointment.no_antrian}
+                {appointment.queueNumber}
               </span>
             </div>
 
             <div className='border-b border-border/40 pb-1.5'>
               <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>Dokter</span>
               <span className='font-semibold text-foreground truncate block'>
-                {appointment.dokter}
+                {appointment.doctorName}
               </span>
             </div>
 
             <div className='border-b border-border/40 pb-1.5'>
               <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>Tanggal</span>
               <span className='font-medium text-muted-foreground truncate block'>
-                {appointment.tanggal_booking}
+                {appointment.scheduledDate}
               </span>
             </div>
 
             <div className='border-b border-border/40 pb-1.5'>
               <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>Jam / Slot</span>
               <span className='font-medium text-muted-foreground font-mono truncate block'>
-                {appointment.jam_booking}
+                {appointment.scheduledStartTime}
               </span>
             </div>
           </div>
         </div>
 
-        {/* 3. Pilihan Status Live Antrean (6 Status Selection Grid) */}
         <div className='space-y-2 pt-0.5'>
           <span className='text-xs font-normal text-muted-foreground/80 block'>
-            Pilih Status Progres Terkini:
+            Pilih Status Operasional Terkini:
           </span>
           <div className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
-            {AVAILABLE_STATUSES.map((st) => {
+            {APPOINTMENT_STATUS_OPTIONS.map((st) => {
               const isSelected = selectedStatus === st.value;
-              const config = getStatusConfig(st.value);
+              const config = getAppointmentStatusConfig(st.value);
 
               return (
                 <button
@@ -215,7 +183,7 @@ export function AppointmentStatusModal({
                       </span>
                     </div>
                     <p className='text-[11px] text-muted-foreground line-clamp-1 mt-0.5 leading-tight'>
-                      {st.desc}
+                      {st.description}
                     </p>
                   </div>
                 </button>
@@ -224,7 +192,6 @@ export function AppointmentStatusModal({
           </div>
         </div>
 
-        {/* 4. Footer Actions */}
         <div className='pt-3 border-t border-border/40 flex items-center justify-end gap-3'>
           <Button
             type='button'

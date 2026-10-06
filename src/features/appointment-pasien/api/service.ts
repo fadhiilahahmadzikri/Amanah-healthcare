@@ -1,11 +1,13 @@
 import { clientFetch } from '@/lib/client-fetch';
+import { normalizeToAppointmentStatus } from '../constants/appointment-status.dictionary';
 import type {
   AdminAppointment,
   AppointmentFilters,
   AppointmentResponse,
   AppointmentSummary,
   AppointmentDetailResponse,
-  LiveStatus,
+  AppointmentStatus,
+  AppointmentAction,
   BackendAppointmentRecord,
   DoctorCandidatesResult,
   RoomCandidateItem
@@ -13,12 +15,11 @@ import type {
 
 const emptyAppointmentSummary: AppointmentSummary = {
   total: 0,
-  sudah_datang: 0,
-  sudah_buat_janji: 0,
-  menunggu: 0,
-  sedang_periksa: 0,
-  selesai: 0,
-  tidak_ada_dokter: 0
+  waiting: 0,
+  inService: 0,
+  completed: 0,
+  cancelled: 0,
+  late: 0
 };
 
 export async function getAdminAppointments(
@@ -34,7 +35,7 @@ export async function getAdminAppointments(
     };
 
     if (filters.status && typeof filters.status === 'string') {
-      queryParams.status = mapLiveStatusToBackendStatus(filters.status as LiveStatus);
+      queryParams.status = filters.status;
     }
 
     const response = await clientFetch<
@@ -54,7 +55,7 @@ export async function getAdminAppointments(
     if (filters.poli) {
       const poliFilter = Array.isArray(filters.poli) ? filters.poli : [filters.poli];
       appointments = appointments.filter((apt) =>
-        poliFilter.some((p) => p.toLowerCase() === apt.layanan_poli.toLowerCase())
+        poliFilter.some((p) => p.toLowerCase() === apt.poliklinikName.toLowerCase())
       );
     }
 
@@ -62,12 +63,12 @@ export async function getAdminAppointments(
       const query = filters.search.trim().toLowerCase();
       appointments = appointments.filter((apt) =>
         [
-          apt.pasien,
-          apt.id_pasien,
-          apt.no_antrian,
-          apt.dokter,
-          apt.layanan_poli,
-          apt.keluhan_pasien
+          apt.patientName,
+          apt.patientId,
+          apt.queueNumber,
+          apt.doctorName,
+          apt.poliklinikName,
+          apt.complaint
         ]
           .join(' ')
           .toLowerCase()
@@ -158,38 +159,48 @@ export async function getAdminAppointmentById(
   }
 }
 
-export async function updateAdminLiveStatus(id: number | string, status: LiveStatus) {
-  const backendStatus = mapLiveStatusToBackendStatus(status);
-
+export async function updateAdminLiveStatus(id: number | string, status: AppointmentStatus) {
   try {
-    const updated = await clientFetch<
-      { data?: BackendAppointmentRecord } | BackendAppointmentRecord
-    >(`/api/v1/appointments/${id}/status`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status: backendStatus })
-    });
-    const rawUpdated =
-      updated && typeof updated === 'object' && 'data' in updated && updated.data
-        ? (updated.data as BackendAppointmentRecord)
-        : (updated as BackendAppointmentRecord);
+    let rawUpdated: BackendAppointmentRecord | undefined;
 
-    if (!rawUpdated || !rawUpdated.id) {
-      return {
-        success: false,
-        message: 'Gagal memperbarui status live antrean'
-      };
+    if (status === 'IN_SERVICE') {
+      const res = await startService(id);
+      rawUpdated = res as BackendAppointmentRecord;
+    } else if (status === 'COMPLETED') {
+      const res = await completeService(id);
+      rawUpdated = res as BackendAppointmentRecord;
+    } else if (status === 'CANCELLED') {
+      const res = await cancelAppointmentAction(id);
+      rawUpdated = res as BackendAppointmentRecord;
+    } else {
+      const updated = await clientFetch<
+        { data?: BackendAppointmentRecord } | BackendAppointmentRecord
+      >(`/api/v1/appointments/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status })
+      });
+      rawUpdated =
+        updated && typeof updated === 'object' && 'data' in updated && updated.data
+          ? (updated.data as BackendAppointmentRecord)
+          : (updated as BackendAppointmentRecord);
     }
 
     return {
       success: true,
-      message: 'Status live antrean berhasil diperbarui',
-      appointment: mapToAdminAppointment(rawUpdated)
+      message: 'Status janji temu berhasil diperbarui',
+      appointment: rawUpdated ? mapToAdminAppointment(rawUpdated) : undefined
     };
-  } catch (error) {
-    return {
-      success: false,
-      message: `Gagal memperbarui status live antrean: ${String(error)}`
-    };
+  } catch (error: unknown) {
+    const err = error as { status?: number; statusCode?: number; message?: string };
+    const isConflict =
+      err?.status === 409 ||
+      err?.statusCode === 409 ||
+      String(err?.message).includes('409') ||
+      String(err).includes('Conflict');
+    const errorMsg = isConflict
+      ? 'Status janji temu telah diperbarui oleh pengguna lain (409 Conflict). Silakan muat ulang halaman.'
+      : err?.message || String(error);
+    throw new Error(errorMsg, { cause: error });
   }
 }
 
@@ -238,17 +249,13 @@ export async function getAppointmentCallAttempts(
   }
 }
 
-export async function getDoctorCandidates(
-  appointmentId: string
-): Promise<DoctorCandidatesResult> {
+export async function getDoctorCandidates(appointmentId: string): Promise<DoctorCandidatesResult> {
   return clientFetch<DoctorCandidatesResult>(
     `/api/v1/admin/appointments/${appointmentId}/candidates/doctors`
   );
 }
 
-export async function getRoomCandidates(
-  appointmentId: string
-): Promise<RoomCandidateItem[]> {
+export async function getRoomCandidates(appointmentId: string): Promise<RoomCandidateItem[]> {
   const response = await clientFetch<RoomCandidateItem[]>(
     `/api/v1/admin/appointments/${appointmentId}/candidates/rooms`
   );
@@ -270,7 +277,7 @@ export async function changeAppointmentDoctor(
       body: JSON.stringify({
         doctorId,
         closeOldSchedule: options?.closeOldSchedule,
-        reason: options?.reason,
+        reason: options?.reason
       })
     });
 
@@ -317,100 +324,88 @@ export async function changeAppointmentRoom(
 function computeSummary(records: AdminAppointment[]): AppointmentSummary {
   if (records.length === 0) return emptyAppointmentSummary;
 
-  const countOf = (status: string) =>
-    records.filter((r) => r.live_status.toUpperCase() === status).length;
+  const countOf = (st: AppointmentStatus) => records.filter((r) => r.status === st).length;
 
   return {
     total: records.length,
-    sudah_datang: countOf('SUDAH DATANG'),
-    sudah_buat_janji: countOf('SUDAH BUAT JANJI'),
-    menunggu: countOf('MENUNGGU'),
-    sedang_periksa: countOf('SEDANG PERIKSA'),
-    selesai: countOf('SELESAI'),
-    tidak_ada_dokter: countOf('TIDAK ADA DOKTER')
+    waiting: countOf('WAITING'),
+    inService: countOf('IN_SERVICE'),
+    completed: countOf('COMPLETED'),
+    cancelled: countOf('CANCELLED'),
+    late: countOf('LATE')
   };
 }
 
 function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppointment {
-  const liveStatus = mapBackendStatusToLiveStatus(item.status);
+  const status = normalizeToAppointmentStatus(item.status);
   const patientName = item.patientName || item.patientProfile?.fullName || 'Pasien Amanah';
   const doctorName =
     item.doctorName || item.practitioner?.staffProfile?.fullName || 'Dokter Amanah';
-  const poliName = item.poliklinikName || item.clinicRoom?.clinicUnit?.name || 'Poli Umum';
-  const queueNo = item.queueNumber || item.queueTickets?.[0]?.queueNumber || '-';
-  const bookingDate =
+  const poliklinikName = item.poliklinikName || item.clinicRoom?.clinicUnit?.name || 'Poli Umum';
+  const queueNumber = item.queueNumber
+    ? String(item.queueNumber)
+    : item.queueTickets?.[0]?.queueNumber || '-';
+  const scheduledDate =
     item.appointmentDate ||
     (item.createdAt ? String(item.createdAt).slice(0, 10) : new Date().toISOString().slice(0, 10));
-  const bookingTime = item.scheduledStartTime || item.session || '-';
+  const scheduledStartTime = item.scheduledStartTime || item.session || '-';
+
+  const allowedActions =
+    (item.allowedActions as AppointmentAction[]) ||
+    (status === 'WAITING'
+      ? ['CALL', 'START_SERVICE', 'CANCEL']
+      : status === 'IN_SERVICE'
+        ? ['COMPLETE']
+        : []);
 
   return {
-    id: item.id,
-    no_antrian: queueNo,
-    nomor_antrian: queueNo,
-    pasien: patientName,
-    nama_pasien: patientName,
-    nama_lengkap: patientName,
-    id_pasien: item.patientId || String(item.id),
-    avatar: '', // Zero avatar strictly enforced
-    tanggal_booking: bookingDate,
-    tanggal_reservasi: bookingDate,
-    jam_booking: bookingTime,
-    jam_slot_booking: bookingTime,
-    dokter: doctorName,
-    dokter_tujuan: doctorName,
-    layanan_poli: poliName,
-    poliklinik_layanan: poliName,
-    live_status: liveStatus,
-    status_kunjungan: liveStatus,
-    tipe_kunjungan: item.visitType || 'Pemeriksaan Baru',
-    jenis_kelamin: item.gender === 'female' ? 'Perempuan' : 'Laki-laki',
-    nomor_telepon_wa: item.phone || '-',
-    email_pasien: item.email || '-',
-    keluhan_pasien: item.complaint || '-',
-    created_at: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
-    updated_at: item.updatedAt ? new Date(item.updatedAt).toISOString() : new Date().toISOString()
+    id: String(item.id),
+    queueNumber,
+    patientId: item.patientId || String(item.id),
+    patientName,
+    gender: item.gender === 'female' ? 'Perempuan' : 'Laki-laki',
+    phone: item.phone || '-',
+    email: item.email || '-',
+    scheduledDate,
+    scheduledStartTime,
+    doctorName,
+    poliklinikName,
+    visitType: item.visitType || 'Pemeriksaan Baru',
+    complaint: item.complaint || '-',
+    status,
+    allowedActions,
+    lastCalledAt: item.lastCalledAt ? String(item.lastCalledAt) : null,
+    actualStartedAt: item.actualStartedAt ? String(item.actualStartedAt) : null,
+    actualCompletedAt: item.actualCompletedAt ? String(item.actualCompletedAt) : null,
+    estimatedStartAt: item.estimatedStartAt ? String(item.estimatedStartAt) : null,
+    estimatedEndAt: item.estimatedEndAt ? String(item.estimatedEndAt) : null,
+    createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
+    updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : new Date().toISOString()
   };
 }
 
-function mapBackendStatusToLiveStatus(status?: string): LiveStatus {
-  switch (status?.toUpperCase()) {
-    case 'SUDAH_DATANG':
-      return 'SUDAH DATANG';
-    case 'SEDANG_DIPERIKSA':
-    case 'SEDANG_PERIKSA':
-    case 'IN_SERVICE':
-      return 'SEDANG PERIKSA';
-    case 'MENUNGGU':
-    case 'WAITING':
-    case 'CHECKED_IN':
-      return 'MENUNGGU';
-    case 'SELESAI':
-    case 'COMPLETED':
-      return 'SELESAI';
-    case 'BATAL':
-    case 'CANCELLED':
-    case 'TIDAK_ADA_DOKTER':
-      return 'TIDAK ADA DOKTER';
-    case 'SUDAH_BUAT_JANJI':
-    default:
-      return 'SUDAH BUAT JANJI';
-  }
+export async function callPatient(appointmentId: string | number, notes?: string) {
+  return await clientFetch(`/api/v1/appointments/${appointmentId}/call`, {
+    method: 'POST',
+    body: JSON.stringify({ notes: notes || 'Panggilan pemeriksaan' })
+  });
 }
 
-function mapLiveStatusToBackendStatus(status: LiveStatus): string {
-  switch (status) {
-    case 'SUDAH DATANG':
-      return 'SUDAH_DATANG';
-    case 'SEDANG PERIKSA':
-      return 'SEDANG_DIPERIKSA';
-    case 'MENUNGGU':
-      return 'MENUNGGU';
-    case 'SELESAI':
-      return 'SELESAI';
-    case 'TIDAK ADA DOKTER':
-      return 'BATAL';
-    case 'SUDAH BUAT JANJI':
-    default:
-      return 'SUDAH_BUAT_JANJI';
-  }
+export async function startService(appointmentId: string | number) {
+  return await clientFetch(`/api/v1/appointments/${appointmentId}/start`, {
+    method: 'POST'
+  });
+}
+
+export async function completeService(appointmentId: string | number) {
+  return await clientFetch(`/api/v1/appointments/${appointmentId}/complete`, {
+    method: 'POST'
+  });
+}
+
+export async function cancelAppointmentAction(appointmentId: string | number, reason?: string) {
+  return await clientFetch(`/api/v1/appointments/${appointmentId}/cancel`, {
+    method: 'POST',
+    body: JSON.stringify({ reason })
+  });
 }

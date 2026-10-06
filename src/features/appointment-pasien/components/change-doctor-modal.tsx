@@ -35,11 +35,11 @@ export function ChangeDoctorModal({
   isOpen,
   appointmentId,
   patientName = '-',
-  patientId = '-',
+  patientId: _patientId = '-',
   queueNumber = '-',
   currentDoctorName = '-',
-  appointmentDate = '-',
-  appointmentTime = '-',
+  appointmentDate: _appointmentDate = '-',
+  appointmentTime: _appointmentTime = '-',
   onClose,
   onSuccess,
   onViewAppointment
@@ -60,14 +60,12 @@ export function ChangeDoctorModal({
 
   const groups = useMemo(() => candidatesData?.groups || [], [candidatesData]);
 
-  // Set default active tab when groups load
   useEffect(() => {
     if (groups.length > 0 && (!activeTab || !groups.some((g) => g.id === activeTab))) {
       setActiveTab(groups[0].id);
     }
   }, [groups, activeTab]);
 
-  // Reset selected doctor when modal opens/closes
   useEffect(() => {
     if (!isOpen) {
       setSelectedDoctorId(null);
@@ -148,7 +146,6 @@ export function ChangeDoctorModal({
       className='h-auto max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-card p-5 sm:p-6 w-full my-auto shadow-2xl'
     >
       <form onSubmit={handleSubmit} className='relative font-sans space-y-3.5'>
-        {/* 1. Header */}
         <div className='flex items-start justify-between gap-4 pb-3 border-b border-border/40'>
           <div className='space-y-1 min-w-0 flex-1'>
             <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
@@ -165,7 +162,8 @@ export function ChangeDoctorModal({
               )}
               {currentDoctorName && currentDoctorName !== '-' && (
                 <span className='text-muted-foreground'>
-                  • Dokter saat ini: <span className='text-foreground font-medium'>{currentDoctorName}</span>
+                  • Dokter saat ini:{' '}
+                  <span className='text-foreground font-medium'>{currentDoctorName}</span>
                 </span>
               )}
               {onViewAppointment && (
@@ -189,8 +187,6 @@ export function ChangeDoctorModal({
             <Icons.close className='size-4' />
           </button>
         </div>
-
-        {/* 2. Daftar Kandidat Dokter */}
         <div className='space-y-2.5 pt-0.5 min-h-[180px]'>
           <div className='flex items-center justify-between'>
             <span className='text-xs font-semibold text-foreground block'>
@@ -211,7 +207,9 @@ export function ChangeDoctorModal({
           ) : isError ? (
             <div className='p-4 rounded-xl border border-destructive/30 bg-destructive/5 text-destructive text-xs space-y-1'>
               <p className='font-semibold'>Gagal memuat kandidat dokter</p>
-              <p className='text-muted-foreground'>Silakan periksa koneksi atau coba beberapa saat lagi.</p>
+              <p className='text-muted-foreground'>
+                Silakan periksa koneksi atau coba beberapa saat lagi.
+              </p>
             </div>
           ) : groups.length === 0 ? (
             <div className='py-8 text-center text-xs text-muted-foreground border border-dashed border-border/60 rounded-xl p-4'>
@@ -233,7 +231,11 @@ export function ChangeDoctorModal({
               </TabsList>
 
               {groups.map((group) => (
-                <TabsContent key={group.id} value={group.id} className='pt-2 space-y-2 max-h-[220px] overflow-y-auto pr-1'>
+                <TabsContent
+                  key={group.id}
+                  value={group.id}
+                  className='pt-2 space-y-2 max-h-[220px] overflow-y-auto pr-1'
+                >
                   {group.doctors.length === 0 ? (
                     <p className='text-xs text-muted-foreground text-center py-4'>
                       Tidak ada dokter di kategori ini yang tersedia.
@@ -245,6 +247,7 @@ export function ChangeDoctorModal({
                         <button
                           key={doctor.id}
                           type='button'
+                          aria-label={`Pilih dokter ${doctor.name}`}
                           onClick={() => setSelectedDoctorId(doctor.id)}
                           className={cn(
                             'w-full text-left relative flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer select-none',
@@ -290,8 +293,6 @@ export function ChangeDoctorModal({
             </Tabs>
           )}
         </div>
-
-        {/* Opsi penutupan sesi dokter sebelumnya */}
         <div className='p-3 sm:p-3.5 rounded-xl border border-border/50 bg-muted/20 space-y-2.5'>
           <div className='flex items-start gap-2.5'>
             <Checkbox
@@ -324,8 +325,6 @@ export function ChangeDoctorModal({
             </div>
           )}
         </div>
-
-        {/* 4. Footer Actions */}
         <div className='pt-3 border-t border-border/40 flex items-center justify-end gap-3'>
           <Button
             type='button'

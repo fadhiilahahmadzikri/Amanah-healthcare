@@ -46,7 +46,6 @@ export function AppointmentTable() {
 export function AppointmentTableSkeleton() {
   return (
     <div className='flex flex-1 flex-col space-y-4'>
-      {/* Toolbar Skeleton */}
       <div className='flex w-full items-center justify-between gap-2 overflow-auto p-1'>
         <div className='flex flex-1 items-center gap-2'>
           <Skeleton className='h-8 w-56 rounded-md' />
@@ -56,7 +55,6 @@ export function AppointmentTableSkeleton() {
         <Skeleton className='h-8 w-20 rounded-md' />
       </div>
 
-      {/* Clean Borderless Table Skeleton matching reference image */}
       <div className='flex-1 overflow-hidden'>
         <div className='border-b border-border/60 px-4 py-3 flex items-center justify-between gap-6'>
           <Skeleton className='size-4 rounded-[4px]' />

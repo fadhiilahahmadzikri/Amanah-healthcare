@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { buildCsvContent, downloadCsv } from '@/shared/lib/csv';
 import { getAdminAppointments } from '../api/service';
+import { getAppointmentStatusConfig } from '../constants/appointment-status.dictionary';
 
 type AppointmentExportResult = 'empty' | 'success' | 'error';
 
@@ -38,25 +39,28 @@ export function useAppointmentExport(): UseAppointmentExportResult {
         'Dokter',
         'Layanan Poli',
         'Tipe Kunjungan',
-        'Status Live',
+        'Status',
         'Keluhan'
       ];
 
-      const rows = appointments.map((appointment) => [
-        `"${appointment.no_antrian}"`,
-        `"${appointment.id_pasien}"`,
-        `"${appointment.pasien.replace(/"/g, '""')}"`,
-        `"${appointment.jenis_kelamin}"`,
-        `"${appointment.nomor_telepon_wa}"`,
-        `"${appointment.email_pasien}"`,
-        `"${appointment.tanggal_booking}"`,
-        `"${appointment.jam_booking}"`,
-        `"${appointment.dokter.replace(/"/g, '""')}"`,
-        `"${appointment.layanan_poli.replace(/"/g, '""')}"`,
-        `"${appointment.tipe_kunjungan}"`,
-        `"${appointment.live_status}"`,
-        `"${(appointment.keluhan_pasien || '').replace(/"/g, '""')}"`
-      ]);
+      const rows = appointments.map((appointment) => {
+        const statusLabel = getAppointmentStatusConfig(appointment.status).label;
+        return [
+          `"${appointment.queueNumber}"`,
+          `"${appointment.patientId}"`,
+          `"${appointment.patientName.replace(/"/g, '""')}"`,
+          `"${appointment.gender}"`,
+          `"${appointment.phone}"`,
+          `"${appointment.email}"`,
+          `"${appointment.scheduledDate}"`,
+          `"${appointment.scheduledStartTime}"`,
+          `"${appointment.doctorName.replace(/"/g, '""')}"`,
+          `"${appointment.poliklinikName.replace(/"/g, '""')}"`,
+          `"${appointment.visitType}"`,
+          `"${statusLabel}"`,
+          `"${(appointment.complaint || '').replace(/"/g, '""')}"`
+        ];
+      });
 
       downloadCsv(
         `appointment_pasien_${new Date().toISOString().slice(0, 10)}.csv`,

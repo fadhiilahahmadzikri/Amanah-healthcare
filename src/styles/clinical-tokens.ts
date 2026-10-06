@@ -256,7 +256,13 @@ export const getStatusConfig = (status: string): StatusConfig => {
     case 'BATAL':
       return {
         ...clinicalTokens.colors.status.cancelled,
-        label: 'Cancelled'
+        label: normalized === 'BATAL' ? 'Dibatalkan' : 'Cancelled'
+      };
+    case 'LATE':
+    case 'TERLAMBAT':
+      return {
+        ...clinicalTokens.colors.status.pending,
+        label: 'Terlambat'
       };
     default:
       return {

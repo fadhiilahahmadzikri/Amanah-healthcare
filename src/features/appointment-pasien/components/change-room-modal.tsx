@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { roomCandidatesQueryOptions, appointmentKeys } from '../api/queries';
@@ -32,10 +31,10 @@ export function ChangeRoomModal({
   isOpen,
   appointmentId,
   patientName = '-',
-  patientId = '-',
+  patientId: _patientId = '-',
   queueNumber = '-',
   currentRoomName = '-',
-  appointmentDate = '-',
+  appointmentDate: _appointmentDate = '-',
   appointmentTime = '-',
   onClose,
   onSuccess,
@@ -53,7 +52,6 @@ export function ChangeRoomModal({
     enabled: isOpen && Boolean(appointmentId)
   });
 
-  // Reset selected room when modal opens/closes
   useEffect(() => {
     if (!isOpen) {
       setSelectedRoomId(null);
@@ -119,7 +117,6 @@ export function ChangeRoomModal({
       className='h-auto max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-card p-5 sm:p-6 w-full my-auto shadow-2xl'
     >
       <form onSubmit={handleSubmit} className='relative font-sans space-y-3.5'>
-        {/* 1. Header */}
         <div className='flex items-start justify-between gap-4 pb-3 border-b border-border/40'>
           <div className='space-y-1 min-w-0 flex-1'>
             <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
@@ -136,7 +133,8 @@ export function ChangeRoomModal({
               )}
               {currentRoomName && currentRoomName !== '-' && (
                 <span className='text-muted-foreground'>
-                  • Ruang saat ini: <span className='text-foreground font-medium'>{currentRoomName}</span>
+                  • Ruang saat ini:{' '}
+                  <span className='text-foreground font-medium'>{currentRoomName}</span>
                 </span>
               )}
               {onViewAppointment && (
@@ -160,8 +158,6 @@ export function ChangeRoomModal({
             <Icons.close className='size-4' />
           </button>
         </div>
-
-        {/* 2. Pilihan Ruangan Klinik */}
         <div className='space-y-2.5 pt-0.5 min-h-[160px]'>
           <div className='flex items-center justify-between'>
             <span className='text-xs font-semibold text-foreground block'>
@@ -182,7 +178,9 @@ export function ChangeRoomModal({
           ) : isError ? (
             <div className='p-4 rounded-xl border border-destructive/30 bg-destructive/5 text-destructive text-xs space-y-1'>
               <p className='font-semibold'>Gagal memuat daftar ruangan</p>
-              <p className='text-muted-foreground'>Silakan periksa koneksi atau coba beberapa saat lagi.</p>
+              <p className='text-muted-foreground'>
+                Silakan periksa koneksi atau coba beberapa saat lagi.
+              </p>
             </div>
           ) : rooms.length === 0 ? (
             <div className='py-8 text-center text-xs text-muted-foreground border border-dashed border-border/60 rounded-xl p-4'>
@@ -239,7 +237,11 @@ export function ChangeRoomModal({
 
                         <span
                           className='inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-destructive/10 text-destructive border border-destructive/20 shrink-0'
-                          title={occupant?.doctorName ? `Digunakan oleh ${occupant.doctorName}` : undefined}
+                          title={
+                            occupant?.doctorName
+                              ? `Digunakan oleh ${occupant.doctorName}`
+                              : undefined
+                          }
                         >
                           Terisi{occupant?.doctorName ? `: ${occupant.doctorName}` : ''}
                         </span>
@@ -307,8 +309,6 @@ export function ChangeRoomModal({
             </div>
           )}
         </div>
-
-        {/* 4. Footer Actions */}
         <div className='pt-3 border-t border-border/40 flex items-center justify-end gap-3'>
           <Button
             type='button'

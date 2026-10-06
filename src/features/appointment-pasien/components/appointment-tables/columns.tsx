@@ -5,10 +5,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
-import { getStatusConfig } from '@/styles/clinical-tokens';
+import {
+  getAppointmentStatusConfig,
+  APPOINTMENT_STATUS_OPTIONS
+} from '../../constants/appointment-status.dictionary';
+import { POLI_OPTIONS } from '../../constants/options';
 import type { AdminAppointment } from '../../api/types';
 import { CellAction } from './cell-action';
-import { LIVE_STATUS_OPTIONS, POLI_OPTIONS } from '../../constants/options';
 
 const getInitials = (name: string) => {
   return name
@@ -41,7 +44,6 @@ const getAntreanPillClasses = (noAntrian: string) => {
 };
 
 export const columns: ColumnDef<AdminAppointment>[] = [
-  // 0. Select checkbox
   {
     id: 'select',
     header: ({ table }) => (
@@ -59,7 +61,7 @@ export const columns: ColumnDef<AdminAppointment>[] = [
     cell: ({ row }) => (
       <div className='flex items-center pl-1.5'>
         <Checkbox
-          aria-label={`Pilih ${row.original.pasien}`}
+          aria-label={`Pilih ${row.original.patientName}`}
           checked={row.getIsSelected()}
           onCheckedChange={(value) => row.toggleSelected(!!value)}
         />
@@ -69,11 +71,9 @@ export const columns: ColumnDef<AdminAppointment>[] = [
     enableHiding: false,
     size: 48
   },
-
-  // 1. Pasien
   {
-    id: 'pasien',
-    accessorKey: 'pasien',
+    id: 'patientName',
+    accessorKey: 'patientName',
     header: ({ column }: { column: Column<AdminAppointment, unknown> }) => (
       <DataTableColumnHeader column={column} title='Pasien' />
     ),
@@ -82,11 +82,13 @@ export const columns: ColumnDef<AdminAppointment>[] = [
       return (
         <div className='flex items-center gap-3'>
           <div className='h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 select-none'>
-            {getInitials(appt.pasien)}
+            {getInitials(appt.patientName)}
           </div>
           <div className='flex flex-col'>
-            <span className='font-medium leading-none text-sm text-foreground'>{appt.pasien}</span>
-            <span className='mt-1 text-xs text-muted-foreground'>{appt.id_pasien}</span>
+            <span className='font-medium leading-none text-sm text-foreground'>
+              {appt.patientName}
+            </span>
+            <span className='mt-1 text-xs text-muted-foreground'>{appt.patientId}</span>
           </div>
         </div>
       );
@@ -101,48 +103,42 @@ export const columns: ColumnDef<AdminAppointment>[] = [
     enableSorting: true,
     enableHiding: true
   },
-
-  // 2. Tanggal Booking
   {
-    id: 'tanggal_booking',
-    accessorKey: 'tanggal_booking',
+    id: 'scheduledDate',
+    accessorKey: 'scheduledDate',
     header: ({ column }: { column: Column<AdminAppointment, unknown> }) => (
       <DataTableColumnHeader column={column} title='Tanggal Booking' />
     ),
     cell: ({ row }) => (
       <span className='text-sm text-muted-foreground whitespace-nowrap font-medium'>
-        {row.original.tanggal_booking}
+        {row.original.scheduledDate}
       </span>
     ),
     enableSorting: true,
     enableHiding: true
   },
-
-  // 3. Jam Booking
   {
-    id: 'jam_booking',
-    accessorKey: 'jam_booking',
+    id: 'scheduledStartTime',
+    accessorKey: 'scheduledStartTime',
     header: ({ column }: { column: Column<AdminAppointment, unknown> }) => (
       <DataTableColumnHeader column={column} title='Jam Booking' />
     ),
     cell: ({ row }) => (
       <span className='text-sm text-muted-foreground font-mono tabular-nums whitespace-nowrap'>
-        {row.original.jam_booking}
+        {row.original.scheduledStartTime}
       </span>
     ),
     enableSorting: true,
     enableHiding: true
   },
-
-  // 4. Status Antrean
   {
-    id: 'live_status',
-    accessorKey: 'live_status',
+    id: 'status',
+    accessorKey: 'status',
     header: ({ column }: { column: Column<AdminAppointment, unknown> }) => (
       <DataTableColumnHeader column={column} title='Status Antrean' />
     ),
     cell: ({ row }) => {
-      const statusConfig = getStatusConfig(row.original.live_status);
+      const statusConfig = getAppointmentStatusConfig(row.original.status);
       return (
         <span
           className={cn(
@@ -171,23 +167,21 @@ export const columns: ColumnDef<AdminAppointment>[] = [
     meta: {
       label: 'Status Antrean',
       variant: 'multiSelect' as const,
-      options: LIVE_STATUS_OPTIONS
+      options: APPOINTMENT_STATUS_OPTIONS
     },
     enableColumnFilter: true,
     enableSorting: true,
     enableHiding: true
   },
-
-  // 5. No. Antrean
   {
-    id: 'no_antrian',
-    accessorKey: 'no_antrian',
+    id: 'queueNumber',
+    accessorKey: 'queueNumber',
     header: ({ column }: { column: Column<AdminAppointment, unknown> }) => (
       <DataTableColumnHeader column={column} title='No. Antrean' />
     ),
     cell: ({ row }) => {
-      const isNull = !row.original.no_antrian || row.original.no_antrian === '-';
-      const gradientClass = getAntreanPillClasses(row.original.no_antrian);
+      const isNull = !row.original.queueNumber || row.original.queueNumber === '-';
+      const gradientClass = getAntreanPillClasses(row.original.queueNumber);
       return (
         <span
           className={cn(
@@ -196,7 +190,7 @@ export const columns: ColumnDef<AdminAppointment>[] = [
           )}
         >
           <span className='drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]'>
-            {isNull ? '-' : row.original.no_antrian}
+            {isNull ? '-' : row.original.queueNumber}
           </span>
         </span>
       );
@@ -210,33 +204,29 @@ export const columns: ColumnDef<AdminAppointment>[] = [
     enableSorting: true,
     enableHiding: true
   },
-
-  // 6. Dokter
   {
-    id: 'dokter',
-    accessorKey: 'dokter',
+    id: 'doctorName',
+    accessorKey: 'doctorName',
     header: ({ column }: { column: Column<AdminAppointment, unknown> }) => (
       <DataTableColumnHeader column={column} title='Dokter' />
     ),
     cell: ({ row }) => (
       <span className='text-sm font-medium text-foreground truncate max-w-[160px] block'>
-        {row.original.dokter}
+        {row.original.doctorName}
       </span>
     ),
     enableSorting: true,
     enableHiding: true
   },
-
-  // 7. Layanan Poli
   {
-    id: 'layanan_poli',
-    accessorKey: 'layanan_poli',
+    id: 'poliklinikName',
+    accessorKey: 'poliklinikName',
     header: ({ column }: { column: Column<AdminAppointment, unknown> }) => (
       <DataTableColumnHeader column={column} title='Layanan Poli' />
     ),
     cell: ({ row }) => (
       <span className='text-sm text-muted-foreground truncate max-w-[150px] block'>
-        {row.original.layanan_poli}
+        {row.original.poliklinikName}
       </span>
     ),
     meta: {
@@ -248,8 +238,6 @@ export const columns: ColumnDef<AdminAppointment>[] = [
     enableSorting: true,
     enableHiding: true
   },
-
-  // 8. Aksi
   {
     id: 'actions',
     header: () => <span className='text-[13px] font-semibold text-foreground px-1'>Aksi</span>,

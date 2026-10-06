@@ -1,11 +1,11 @@
-export const LIVE_STATUS_OPTIONS = [
-  { label: 'Sudah Buat Janji', value: 'SUDAH BUAT JANJI' },
-  { label: 'Sudah Datang', value: 'SUDAH DATANG' },
-  { label: 'Menunggu', value: 'MENUNGGU' },
-  { label: 'Sedang Periksa', value: 'SEDANG PERIKSA' },
-  { label: 'Selesai', value: 'SELESAI' },
-  { label: 'Tidak Ada Dokter', value: 'TIDAK ADA DOKTER' }
-];
+import {
+  APPOINTMENT_STATUS_OPTIONS,
+  normalizeToAppointmentStatus
+} from './appointment-status.dictionary';
+import type { AppointmentStatus } from '../api/types';
+
+export { APPOINTMENT_STATUS_OPTIONS };
+export const LIVE_STATUS_OPTIONS = APPOINTMENT_STATUS_OPTIONS;
 
 export const POLI_OPTIONS = [
   { label: 'Poli Orthopedi', value: 'Poli Orthopedi' },
@@ -16,47 +16,17 @@ export const POLI_OPTIONS = [
   { label: 'Poli Kandungan', value: 'Poli Kandungan' }
 ];
 
-export const TERMINAL_LIVE_STATUSES = ['SELESAI', 'TIDAK ADA DOKTER'] as const;
+export const TERMINAL_STATUSES: AppointmentStatus[] = ['COMPLETED', 'CANCELLED', 'LATE'];
 
-export function normalizeStatusString(status: string | null | undefined): string {
-  if (!status) return '';
-  return status.trim().toUpperCase().replace(/_/g, ' ');
+export function isAppointmentTerminal(status?: AppointmentStatus | string | null): boolean {
+  const canonical = normalizeToAppointmentStatus(status);
+  return canonical === 'COMPLETED' || canonical === 'CANCELLED' || canonical === 'LATE';
 }
 
-export function isAppointmentTerminal(status: string | null | undefined): boolean {
-  const normalized = normalizeStatusString(status);
-  return (
-    normalized === 'SELESAI' ||
-    normalized === 'COMPLETED' ||
-    normalized === 'BATAL' ||
-    normalized === 'CANCELLED' ||
-    normalized === 'TIDAK ADA DOKTER' ||
-    normalized === 'NO SHOW' ||
-    normalized === 'TIDAK HADIR'
-  );
+export function isAppointmentInService(status?: AppointmentStatus | string | null): boolean {
+  return normalizeToAppointmentStatus(status) === 'IN_SERVICE';
 }
 
-export function isAppointmentInService(status: string | null | undefined): boolean {
-  const normalized = normalizeStatusString(status);
-  return (
-    normalized === 'SEDANG PERIKSA' ||
-    normalized === 'SEDANG DIPERIKSA' ||
-    normalized === 'IN SERVICE' ||
-    normalized === 'SEDANG DILAYANI'
-  );
+export function isAppointmentWaiting(status?: AppointmentStatus | string | null): boolean {
+  return normalizeToAppointmentStatus(status) === 'WAITING';
 }
-
-export function isAppointmentWaiting(status: string | null | undefined): boolean {
-  const normalized = normalizeStatusString(status);
-  return (
-    normalized === 'MENUNGGU' ||
-    normalized === 'WAITING' ||
-    normalized === 'SUDAH BUAT JANJI' ||
-    normalized === 'BOOKED' ||
-    normalized === 'BOOK' ||
-    normalized === 'PENDING' ||
-    normalized === 'SUDAH DATANG' ||
-    normalized === 'CHECKED IN'
-  );
-}
-

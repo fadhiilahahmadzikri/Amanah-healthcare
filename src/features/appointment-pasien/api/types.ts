@@ -1,47 +1,41 @@
-export type LiveStatus =
-  | 'SUDAH BUAT JANJI'
-  | 'SUDAH DATANG'
-  | 'MENUNGGU'
-  | 'SEDANG PERIKSA'
-  | 'SELESAI'
-  | 'TIDAK ADA DOKTER';
+export type AppointmentStatus = 'WAITING' | 'IN_SERVICE' | 'COMPLETED' | 'CANCELLED' | 'LATE';
+
+export type AppointmentAction = 'CALL' | 'START_SERVICE' | 'COMPLETE' | 'CANCEL';
+
+export type LiveStatus = AppointmentStatus;
 
 export interface AdminAppointment {
-  id: number | string;
-  no_antrian: string;
-  nomor_antrian: string;
-  pasien: string;
-  nama_pasien: string;
-  nama_lengkap: string;
-  id_pasien: string;
-  avatar: string;
-  tanggal_booking: string;
-  tanggal_reservasi: string;
-  jam_booking: string;
-  jam_slot_booking: string;
-  dokter: string;
-  dokter_tujuan: string;
-  layanan_poli: string;
-  poliklinik_layanan: string;
-  live_status: LiveStatus;
-  status_kunjungan: string;
-  tipe_kunjungan: string;
-  jenis_kelamin: 'Laki-laki' | 'Perempuan';
-  nomor_telepon_wa: string;
-  email_pasien: string;
-  keluhan_pasien: string;
-  created_at: string;
-  updated_at: string;
+  id: string;
+  queueNumber: string;
+  patientId: string;
+  patientName: string;
+  gender: 'Laki-laki' | 'Perempuan';
+  phone: string;
+  email: string;
+  scheduledDate: string;
+  scheduledStartTime: string;
+  doctorName: string;
+  poliklinikName: string;
+  visitType: string;
+  complaint: string;
+  status: AppointmentStatus;
+  allowedActions: AppointmentAction[];
+  lastCalledAt: string | null;
+  actualStartedAt: string | null;
+  actualCompletedAt: string | null;
+  estimatedStartAt: string | null;
+  estimatedEndAt: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AppointmentSummary {
   total: number;
-  sudah_datang: number;
-  sudah_buat_janji: number;
-  menunggu: number;
-  sedang_periksa: number;
-  selesai: number;
-  tidak_ada_dokter: number;
+  waiting: number;
+  inService: number;
+  completed: number;
+  cancelled: number;
+  late: number;
 }
 
 export type AppointmentFilters = {
@@ -71,7 +65,7 @@ export type AppointmentDetailResponse = {
 
 export type UpdateStatusPayload = {
   id: number | string;
-  status: LiveStatus;
+  status: AppointmentStatus;
 };
 
 export interface BackendAppointmentRecord {
@@ -83,7 +77,7 @@ export interface BackendAppointmentRecord {
   practitioner?: { staffProfile?: { fullName?: string } };
   poliklinikName?: string;
   clinicRoom?: { clinicUnit?: { name?: string } };
-  queueNumber?: string;
+  queueNumber?: string | number;
   queueTickets?: Array<{ queueNumber?: string }>;
   appointmentDate?: string;
   createdAt?: string | Date;
@@ -96,6 +90,12 @@ export interface BackendAppointmentRecord {
   phone?: string;
   email?: string;
   complaint?: string;
+  allowedActions?: AppointmentAction[];
+  lastCalledAt?: string | Date | null;
+  actualStartedAt?: string | Date | null;
+  actualCompletedAt?: string | Date | null;
+  estimatedStartAt?: string | Date | null;
+  estimatedEndAt?: string | Date | null;
   [key: string]: unknown;
 }
 
@@ -143,7 +143,6 @@ export interface ChangeDoctorPayload {
   closeOldSchedule?: boolean;
   reason?: string;
 }
-
 
 export interface ChangeRoomPayload {
   appointmentId: string;
