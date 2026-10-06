@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+import { AppointmentStatusDescriptor } from '@/constants/appointment-status.constants';
 import {
   getDailyQueuesFromApi,
   callPatientQueue,
@@ -84,21 +85,55 @@ export function useQueueView(): UseQueueViewResult {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const handleUpdate = () => {
+    const handleUpdate = (e?: Event) => {
+      const customEvt = e as CustomEvent<Record<string, unknown>> | undefined;
+      const detail = customEvt?.detail;
+
+      if (detail && (detail.appointmentId || detail.queueNumber)) {
+        const aptId = String(detail.appointmentId || '');
+        const qNum = String(detail.queueNumber || '');
+        const rawStatus = detail.status ? String(detail.status) : undefined;
+        const actualStartedAt = detail.actualStartedAt ? String(detail.actualStartedAt) : undefined;
+        const actualCompletedAt = detail.actualCompletedAt ? String(detail.actualCompletedAt) : undefined;
+
+        setQueues((prev) =>
+          prev.map((item) => {
+            const matches =
+              (aptId && (item.id === aptId || item.appointment_id === aptId)) ||
+              (qNum && item.queue_number === qNum);
+
+            if (!matches) return item;
+
+            const nextStatusDesc = rawStatus
+              ? AppointmentStatusDescriptor.from(rawStatus)
+              : undefined;
+
+            return {
+              ...item,
+              ...(nextStatusDesc && { status: nextStatusDesc.queueDisplayStatus }),
+              ...(actualStartedAt !== undefined && { actual_started_at: actualStartedAt }),
+              ...(actualCompletedAt !== undefined && { actual_completed_at: actualCompletedAt }),
+              ...(nextStatusDesc?.queueDisplayStatus === 'DIPANGGIL' && !item.called_at && {
+                called_at: actualStartedAt || new Date().toISOString(),
+                called_time: new Date().toLocaleTimeString('id-ID', {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })
+              })
+            };
+          })
+        );
+      }
+
       void refreshQueues();
     };
 
-    window.addEventListener('clinic:appointment_updated', handleUpdate);
-    window.addEventListener('clinic:notification_received', handleUpdate);
-
-    const interval = setInterval(() => {
-      void refreshQueues();
-    }, 5000);
+    window.addEventListener('clinic:appointment_updated', handleUpdate as EventListener);
+    window.addEventListener('clinic:notification_received', handleUpdate as EventListener);
 
     return () => {
-      window.removeEventListener('clinic:appointment_updated', handleUpdate);
-      window.removeEventListener('clinic:notification_received', handleUpdate);
-      clearInterval(interval);
+      window.removeEventListener('clinic:appointment_updated', handleUpdate as EventListener);
+      window.removeEventListener('clinic:notification_received', handleUpdate as EventListener);
     };
   }, [refreshQueues]);
 

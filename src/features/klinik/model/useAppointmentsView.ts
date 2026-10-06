@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { toast } from 'sonner';
+import { AppointmentStatusDescriptor } from '@/constants/appointment-status.constants';
 import type { Appointment, AppointmentFormData, AppointmentStatus, Doctor } from '../api/types';
 import { getDoctorByName } from '../api/service';
 import {
@@ -74,13 +75,7 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   const mapBackendToUi = useCallback((apt: BackendAppointmentItem): Appointment => {
-    let uiStatus: AppointmentStatus = 'Sudah Buat Janji';
-    const st = (apt.status || '').toUpperCase();
-    if (st === 'MENUNGGU' || st === 'WAITING' || st === 'CHECKED_IN') uiStatus = 'Menunggu';
-    else if (st === 'SEDANG_DIPERIKSA' || st === 'IN_SERVICE') uiStatus = 'Sedang Diperiksa';
-    else if (st === 'SELESAI' || st === 'COMPLETED') uiStatus = 'Selesai';
-    else if (st === 'BATAL' || st === 'CANCELLED') uiStatus = 'Batal';
-    else if (st === 'TIDAK_HADIR' || st === 'NO_SHOW') uiStatus = 'Tidak Hadir';
+    const uiStatus: AppointmentStatus = AppointmentStatusDescriptor.from(apt.status).uiStatus;
 
     const formatTime = (t?: string) => {
       if (!t) return '';
@@ -162,11 +157,13 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
 
     if (typeof window !== 'undefined') {
       window.addEventListener('clinic:notification_received', handleRealtimeSync);
+      window.addEventListener('clinic:appointment_updated', handleRealtimeSync);
     }
 
     return () => {
       if (typeof window !== 'undefined') {
         window.removeEventListener('clinic:notification_received', handleRealtimeSync);
+        window.removeEventListener('clinic:appointment_updated', handleRealtimeSync);
       }
     };
   }, [loadAppointments]);

@@ -1,4 +1,8 @@
 import {
+  AppointmentStatusDescriptor,
+  APPOINTMENT_STATUS
+} from '@/constants/appointment-status.constants';
+import {
   APPOINTMENT_STATUS_OPTIONS,
   normalizeToAppointmentStatus
 } from './appointment-status.dictionary';
@@ -16,17 +20,20 @@ export const POLI_OPTIONS = [
   { label: 'Poli Kandungan', value: 'Poli Kandungan' }
 ];
 
-export const TERMINAL_STATUSES: AppointmentStatus[] = ['COMPLETED', 'CANCELLED', 'LATE'];
+export const TERMINAL_STATUSES: AppointmentStatus[] = [
+  APPOINTMENT_STATUS.COMPLETED,
+  APPOINTMENT_STATUS.CANCELLED,
+  APPOINTMENT_STATUS.LATE
+];
 
 export function isAppointmentTerminal(status?: AppointmentStatus | string | null): boolean {
-  const canonical = normalizeToAppointmentStatus(status);
-  return canonical === 'COMPLETED' || canonical === 'CANCELLED' || canonical === 'LATE';
+  return AppointmentStatusDescriptor.from(status).isTerminal;
 }
 
 export function isAppointmentInService(status?: AppointmentStatus | string | null): boolean {
-  return normalizeToAppointmentStatus(status) === 'IN_SERVICE';
+  return AppointmentStatusDescriptor.from(status).isInService;
 }
 
 export function isAppointmentWaiting(status?: AppointmentStatus | string | null): boolean {
-  return normalizeToAppointmentStatus(status) === 'WAITING';
+  return AppointmentStatusDescriptor.from(status).isWaiting;
 }

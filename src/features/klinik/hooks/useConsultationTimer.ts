@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import {
+  APPOINTMENT_STATUS,
+  AppointmentStatusDescriptor
+} from '@/constants/appointment-status.constants';
+import {
   computeConsultationElapsedSeconds,
   formatConsultationTimer,
   isConsultationOvertime
@@ -28,10 +32,9 @@ export function useConsultationTimer({
   status,
   policyMinutes = DEFAULT_CONSULTATION_DURATION_MINUTES
 }: UseConsultationTimerParams): UseConsultationTimerResult {
-  const isFinished = status === 'SELESAI' || status === 'COMPLETED' || Boolean(completedAt);
-  const isActive =
-    (status === 'DIPANGGIL' || status === 'IN_SERVICE' || status === 'SEDANG_DIPERIKSA') &&
-    !isFinished;
+  const desc = AppointmentStatusDescriptor.from(status);
+  const isFinished = desc.code === APPOINTMENT_STATUS.COMPLETED || Boolean(completedAt);
+  const isActive = (desc.isInService || desc.queueDisplayStatus === 'DIPANGGIL') && !isFinished;
 
   const [now, setNow] = useState<Date>(() => new Date());
 

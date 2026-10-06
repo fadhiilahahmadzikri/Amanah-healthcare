@@ -1,3 +1,4 @@
+import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
 import { normalizeToAppointmentStatus } from '../constants/appointment-status.dictionary';
 import type {
   AdminAppointment,
@@ -23,11 +24,11 @@ export function computeSummary(records: AdminAppointment[]): AppointmentSummary 
 
   return {
     total: records.length,
-    waiting: countOf('WAITING'),
-    inService: countOf('IN_SERVICE'),
-    completed: countOf('COMPLETED'),
-    cancelled: countOf('CANCELLED'),
-    late: countOf('LATE')
+    waiting: countOf(APPOINTMENT_STATUS.WAITING),
+    inService: countOf(APPOINTMENT_STATUS.IN_SERVICE),
+    completed: countOf(APPOINTMENT_STATUS.COMPLETED),
+    cancelled: countOf(APPOINTMENT_STATUS.CANCELLED),
+    late: countOf(APPOINTMENT_STATUS.LATE)
   };
 }
 
@@ -47,9 +48,9 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
 
   const allowedActions =
     (item.allowedActions as AppointmentAction[]) ||
-    (status === 'WAITING'
+    (status === APPOINTMENT_STATUS.WAITING
       ? ['CALL', 'START_SERVICE', 'CANCEL']
-      : status === 'IN_SERVICE'
+      : status === APPOINTMENT_STATUS.IN_SERVICE
         ? ['COMPLETE']
         : []);
 

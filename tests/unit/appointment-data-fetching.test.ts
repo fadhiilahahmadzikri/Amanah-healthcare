@@ -77,6 +77,22 @@ describe('AppointmentDataFetchingArchitecture', () => {
     expect(mapped.allowedActions).toEqual(['CALL', 'START_SERVICE', 'CANCEL']);
   });
 
+  it('should preserve formatted queue number with prefix from backend record', () => {
+    const recordUmum = mapToAdminAppointment({
+      id: 'apt-um',
+      status: 'waiting',
+      queueNumber: 'UM-001'
+    });
+    expect(recordUmum.queueNumber).toBe('UM-001');
+
+    const recordKia = mapToAdminAppointment({
+      id: 'apt-kia',
+      status: 'waiting',
+      queueNumber: 'BD-001'
+    });
+    expect(recordKia.queueNumber).toBe('BD-001');
+  });
+
   it('should compute summary accurately from mapped appointments', () => {
     expect(computeSummary([])).toEqual(emptyAppointmentSummary);
 

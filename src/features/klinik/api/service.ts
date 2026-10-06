@@ -1,4 +1,5 @@
 import { clientFetch } from '@/lib/client-fetch';
+import { AppointmentStatusDescriptor } from '@/constants/appointment-status.constants';
 import { Appointment, Doctor, QueueItem, AppointmentFormData } from './types';
 import { getAmanahServiceByName } from '../constants/services';
 import { getClinicalPractitionersAction } from '@/features/jadwal-dokter/api/doctor-schedule-actions';
@@ -72,27 +73,10 @@ export async function getDailyQueuesFromApi(params?: {
     return list.map((item) => {
       const rawStatus = String(item.status || '');
       const ticketStatus = String(item.ticketStatus || '');
-      let status = 'MENUNGGU';
-
-      if (rawStatus === 'SELESAI' || rawStatus === 'completed' || ticketStatus === 'completed') {
-        status = 'SELESAI';
-      } else if (
-        ticketStatus === 'called' ||
-        rawStatus === 'SEDANG_DIPERIKSA' ||
-        rawStatus === 'in_service'
-      ) {
-        status = 'DIPANGGIL';
-      } else if (
-        rawStatus === 'BATAL' ||
-        rawStatus === 'cancelled' ||
-        ticketStatus === 'cancelled'
-      ) {
-        status = 'BATAL';
-      } else if (rawStatus === 'NO_SHOW' || rawStatus === 'no_show' || ticketStatus === 'no_show') {
-        status = 'NO_SHOW';
-      } else {
-        status = 'MENUNGGU';
-      }
+      const statusDesc = AppointmentStatusDescriptor.from(
+        ticketStatus === 'called' ? 'IN_SERVICE' : rawStatus || ticketStatus
+      );
+      const status = statusDesc.queueDisplayStatus;
 
       const startTime =
         typeof item.scheduledStartTime === 'string' ? item.scheduledStartTime.slice(0, 5) : '08:00';

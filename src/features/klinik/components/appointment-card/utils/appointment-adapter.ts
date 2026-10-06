@@ -1,3 +1,7 @@
+import {
+  APPOINTMENT_STATUS,
+  AppointmentStatusDescriptor
+} from '@/constants/appointment-status.constants';
 import type { BookedPatientItem } from '@/server/contracts/schedules/doctor-schedules.dto';
 import type { Appointment, AppointmentStatus } from '../../../api/types';
 
@@ -27,9 +31,9 @@ export function normalizeAppointmentTimes(appointment: Partial<Appointment>): {
   endTime: string;
   durationText: string;
 } {
-  const isCompleted = appointment.status === 'Selesai' || appointment.status === 'COMPLETED';
-  const isInService =
-    appointment.status === 'Sedang Diperiksa' || appointment.status === 'IN_SERVICE';
+  const desc = AppointmentStatusDescriptor.from(appointment.status);
+  const isCompleted = desc.code === APPOINTMENT_STATUS.COMPLETED;
+  const isInService = desc.isInService;
 
   if (isCompleted && appointment.actual_started_at && appointment.actual_completed_at) {
     const actualStart = formatTimeSlotString(appointment.actual_started_at);
@@ -108,23 +112,8 @@ export function bookedPatientToAppointment(
   const startClock = timeParts[0] || '';
   const endClock = timeParts[1] || '';
 
-  const rawStatus = (item.statusBadge || item.status || '').toLowerCase();
-  let canonicalStatus: AppointmentStatus = 'Sudah Buat Janji';
-  if (rawStatus === 'waiting' || rawStatus === 'menunggu') {
-    canonicalStatus = 'Menunggu';
-  } else if (
-    rawStatus === 'in_service' ||
-    rawStatus === 'sedang diperiksa' ||
-    rawStatus === 'di sesi'
-  ) {
-    canonicalStatus = 'Sedang Diperiksa';
-  } else if (rawStatus === 'completed' || rawStatus === 'selesai') {
-    canonicalStatus = 'Selesai';
-  } else if (rawStatus === 'cancelled' || rawStatus === 'batal') {
-    canonicalStatus = 'Batal';
-  } else if (rawStatus === 'no_show' || rawStatus === 'terlambat' || rawStatus === 'tidak hadir') {
-    canonicalStatus = 'Tidak Hadir';
-  }
+  const descriptor = AppointmentStatusDescriptor.from(item.statusBadge || item.status);
+  const canonicalStatus: AppointmentStatus = descriptor.uiStatus;
 
   const poliklinik_name = item.poliklinikName || '';
   const service = item.serviceName || '';

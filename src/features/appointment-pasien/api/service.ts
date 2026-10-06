@@ -1,4 +1,5 @@
 import { clientFetch } from '@/lib/client-fetch';
+import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
 import { computeSummary, mapToAdminAppointment, emptyAppointmentSummary } from './mapper';
 import type {
   AdminAppointment,
@@ -143,13 +144,13 @@ export async function updateAdminLiveStatus(id: number | string, status: Appoint
   try {
     let rawUpdated: BackendAppointmentRecord | undefined;
 
-    if (status === 'IN_SERVICE') {
+    if (status === APPOINTMENT_STATUS.IN_SERVICE) {
       const res = await startService(id);
       rawUpdated = res as BackendAppointmentRecord;
-    } else if (status === 'COMPLETED') {
+    } else if (status === APPOINTMENT_STATUS.COMPLETED) {
       const res = await completeService(id);
       rawUpdated = res as BackendAppointmentRecord;
-    } else if (status === 'CANCELLED') {
+    } else if (status === APPOINTMENT_STATUS.CANCELLED) {
       const res = await cancelAppointmentAction(id);
       rawUpdated = res as BackendAppointmentRecord;
     } else {
