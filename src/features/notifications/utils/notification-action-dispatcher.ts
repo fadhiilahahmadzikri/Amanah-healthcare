@@ -87,14 +87,17 @@ export function resolveNotificationRoute(
         if (isPatient) return '/dashboard/klinik/antrean';
         const docId = semanticParams.staffId || semanticParams.doctorId || '';
         const params = new URLSearchParams();
-        if (docId) params.set('selectedDoctorId', docId);
-        params.set('dialog', 'detail');
+        if (docId) {
+          params.set('selectedDoctorId', docId);
+          params.set('dialog', 'detail');
+          params.set('openPatients', 'true');
+        }
         if (semanticParams.date) params.set('date', semanticParams.date);
-        params.set('openPatients', 'true');
-        if (semanticParams.scheduledStartTime) {
+        if (semanticParams.scheduledStartTime && docId) {
           params.set('highlightSlotTime', semanticParams.scheduledStartTime.slice(0, 5));
         }
-        return `/dashboard/jadwal-dokter?${params.toString()}`;
+        const qs = params.toString();
+        return `/dashboard/jadwal-dokter${qs ? `?${qs}` : ''}`;
       }
 
       case 'view_schedule':
@@ -102,13 +105,16 @@ export function resolveNotificationRoute(
         if (isPatient) return '/dashboard/klinik/antrean';
         const docId = semanticParams.doctorId || semanticParams.staffId || '';
         const params = new URLSearchParams();
-        if (docId) params.set('selectedDoctorId', docId);
-        params.set('dialog', 'detail');
+        if (docId) {
+          params.set('selectedDoctorId', docId);
+          params.set('dialog', 'detail');
+        }
         if (semanticParams.date) params.set('date', semanticParams.date);
-        if (semanticParams.slotTime) {
+        if (semanticParams.slotTime && docId) {
           params.set('highlightSlotTime', semanticParams.slotTime.slice(0, 5));
         }
-        return `/dashboard/jadwal-dokter?${params.toString()}`;
+        const qs = params.toString();
+        return `/dashboard/jadwal-dokter${qs ? `?${qs}` : ''}`;
       }
 
       default:
@@ -139,22 +145,28 @@ export function resolveNotificationRoute(
   if (action.actionKey === 'view_patient') {
     if (isPatient) return '/dashboard/klinik/antrean';
     const params = new URLSearchParams();
-    if (doctorId) params.set('selectedDoctorId', doctorId);
-    params.set('dialog', 'detail');
+    if (doctorId) {
+      params.set('selectedDoctorId', doctorId);
+      params.set('dialog', 'detail');
+      params.set('openPatients', 'true');
+    }
     if (date) params.set('date', date);
-    params.set('openPatients', 'true');
-    if (slotTime) params.set('highlightSlotTime', slotTime);
-    return `/dashboard/jadwal-dokter?${params.toString()}`;
+    if (slotTime && doctorId) params.set('highlightSlotTime', slotTime);
+    const qs = params.toString();
+    return `/dashboard/jadwal-dokter${qs ? `?${qs}` : ''}`;
   }
 
   if (action.actionKey === 'view_schedule' || action.actionKey === 'reschedule') {
     if (isPatient) return '/dashboard/klinik/antrean';
     const params = new URLSearchParams();
-    if (doctorId) params.set('selectedDoctorId', doctorId);
-    params.set('dialog', 'detail');
+    if (doctorId) {
+      params.set('selectedDoctorId', doctorId);
+      params.set('dialog', 'detail');
+    }
     if (date) params.set('date', date);
-    if (slotTime) params.set('highlightSlotTime', slotTime);
-    return `/dashboard/jadwal-dokter?${params.toString()}`;
+    if (slotTime && doctorId) params.set('highlightSlotTime', slotTime);
+    const qs = params.toString();
+    return `/dashboard/jadwal-dokter${qs ? `?${qs}` : ''}`;
   }
 
   if (action.actionKey === 'view_appointment') {

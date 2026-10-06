@@ -14,6 +14,7 @@ import {
   type DoctorDialogType,
   INSPECTION_PHASE
 } from '../constants/doctor-dialog.constants';
+import { useDoctorDetailDrawerStore } from './useDoctorDetailDrawerStore';
 
 export type ReturnDoctorContext = DoctorConflictReturnContext;
 
@@ -123,39 +124,39 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     if (!params.selectedDoctorId) {
       if (activeDialog === DOCTOR_DIALOG_TYPE.DETAIL_SHEET) {
         setActiveDialog(null);
-        setSelectedDoctor(null);
+        useDoctorDetailDrawerStore.getState().closeDrawer();
       }
       return;
     }
 
     const targetId = params.selectedDoctorId;
     const found = data?.doctors?.find((d) => d.id === targetId || d.practitioner_id === targetId);
+
     if (found) {
       setSelectedDoctor(found);
+      useDoctorDetailDrawerStore.getState().setCachedDoctor(found);
     } else {
-      setSelectedDoctor((prev) => {
-        if (prev && (prev.id === targetId || prev.practitioner_id === targetId)) {
-          return prev;
-        }
-        return {
-          id: targetId,
-          nama_dokter: '',
-          spesialisasi: '',
-          status_dokter: 'Buka',
-          ruang_praktik: '',
-          slot_tersedia: 0,
-          kapasitas_per_hari: 0,
-          jadwal_hari_ini: '',
-          status_jadwal: 'Buka',
-          is_cuti: false
-        };
-      });
+      const cached = useDoctorDetailDrawerStore.getState().cachedDoctor;
+      if (cached && (cached.id === targetId || cached.practitioner_id === targetId)) {
+        setSelectedDoctor(cached);
+      } else {
+        useDoctorDetailDrawerStore.getState().openWithId(targetId, {
+          highlightSlotTime: params.highlightSlotTime || null,
+          openPatients: Boolean(params.openPatients === 'true' || params.openPatients === '1')
+        });
+      }
     }
 
     if (params.dialog) {
       setActiveDialog(params.dialog as DoctorDialogType);
     }
-  }, [params.selectedDoctorId, params.dialog, data?.doctors]);
+  }, [
+    params.selectedDoctorId,
+    params.dialog,
+    data?.doctors,
+    params.highlightSlotTime,
+    params.openPatients
+  ]);
 
   const openEdit = (doctor: DoctorSchedule) => {
     setSelectedDoctor(doctor);
@@ -201,19 +202,18 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     const found = data?.doctors?.find((d) => d.id === doctorId || d.practitioner_id === doctorId);
     if (found) {
       setSelectedDoctor(found);
-    } else {
-      setSelectedDoctor({
-        id: doctorId,
-        nama_dokter: '',
-        spesialisasi: '',
-        status_dokter: 'Buka',
-        ruang_praktik: '',
-        slot_tersedia: 0,
-        kapasitas_per_hari: 0,
-        jadwal_hari_ini: '',
-        status_jadwal: 'Buka',
-        is_cuti: false
+      useDoctorDetailDrawerStore.getState().openWithDoctor(found, {
+        highlightSlotTime: highlightTime || null
       });
+    } else {
+      const cached = useDoctorDetailDrawerStore.getState().cachedDoctor;
+      if (cached && (cached.id === doctorId || cached.practitioner_id === doctorId)) {
+        setSelectedDoctor(cached);
+      } else {
+        useDoctorDetailDrawerStore.getState().openWithId(doctorId, {
+          highlightSlotTime: highlightTime || null
+        });
+      }
     }
     setActiveDialog(DOCTOR_DIALOG_TYPE.DETAIL_SHEET);
   };
@@ -289,6 +289,10 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     actions: {
       openDetail: (doctor) => {
         setSelectedDoctor(doctor);
+        useDoctorDetailDrawerStore.getState().openWithDoctor(doctor, {
+          highlightSlotTime: params.highlightSlotTime || null,
+          openPatients: Boolean(params.openPatients === 'true' || params.openPatients === '1')
+        });
         setActiveDialog(DOCTOR_DIALOG_TYPE.DETAIL_SHEET);
         setParams(
           { selectedDoctorId: doctor.id, dialog: DOCTOR_DIALOG_TYPE.DETAIL_SHEET },
@@ -298,7 +302,7 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
       closeDetail: () => {
         if (conflictNav.phase === INSPECTION_PHASE.RETURNING) return;
         setActiveDialog(null);
-        setSelectedDoctor(null);
+        useDoctorDetailDrawerStore.getState().closeDrawer();
         setReturnContext(null);
         conflictNav.clearConflictNavigation();
         setParams(

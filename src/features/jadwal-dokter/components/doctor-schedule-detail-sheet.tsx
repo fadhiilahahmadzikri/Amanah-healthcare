@@ -35,13 +35,13 @@ import {
 import { DoctorTimelineCalendar } from './doctor-timeline-calendar';
 import { DoctorScheduleInfoTab } from './sheet/doctor-schedule-info-tab';
 
-export const DOCTOR_DETAIL_TAB = {
-  KALENDER: 'kalender',
-  KUOTA: 'kuota',
-  INFORMASI: 'informasi'
-} as const;
+import {
+  DOCTOR_DETAIL_TAB,
+  type DoctorDetailTab,
+  useDoctorDetailDrawerStore
+} from '../model/useDoctorDetailDrawerStore';
 
-export type DoctorDetailTab = (typeof DOCTOR_DETAIL_TAB)[keyof typeof DOCTOR_DETAIL_TAB];
+export { DOCTOR_DETAIL_TAB, type DoctorDetailTab };
 
 export interface DoctorScheduleDetailSheetProps {
   doctor: DoctorSchedule | null;
@@ -177,13 +177,41 @@ export function DoctorScheduleDetailSheet({
     };
   }, [currentMonth, currentYear, selectedDay]);
 
+  const cachedDoctor = useDoctorDetailDrawerStore((s) => s.cachedDoctor);
+  const setCachedDoctor = useDoctorDetailDrawerStore((s) => s.setCachedDoctor);
+  const targetStoreDoctorId = useDoctorDetailDrawerStore((s) => s.targetDoctorId);
+  const lastDoctorRef = React.useRef<DoctorSchedule | null>(null);
+
+  const effectiveDoctorId =
+    selectedDoctor?.id || targetStoreDoctorId || '';
+
   const detailQuery = useQuery({
-    ...doctorScheduleDetailQueryOptions(selectedDoctor?.id ?? '', detailParams),
-    enabled: isOpen && Boolean(selectedDoctor?.id)
+    ...doctorScheduleDetailQueryOptions(effectiveDoctorId, detailParams),
+    enabled: isOpen && Boolean(effectiveDoctorId)
   });
 
-  const isDetailLoading = detailQuery.isLoading && !detailQuery.data;
-  const doctor = detailQuery.data ?? selectedDoctor;
+  React.useEffect(() => {
+    if (detailQuery.data?.nama_dokter) {
+      setCachedDoctor(detailQuery.data);
+      lastDoctorRef.current = detailQuery.data;
+    }
+  }, [detailQuery.data, setCachedDoctor]);
+
+  React.useEffect(() => {
+    if (selectedDoctor?.nama_dokter) {
+      setCachedDoctor(selectedDoctor);
+      lastDoctorRef.current = selectedDoctor;
+    }
+  }, [selectedDoctor, setCachedDoctor]);
+
+  // Persist last valid doctor during exit transitions so drawer close never collapses into skeleton
+  const doctor =
+    (detailQuery.data?.nama_dokter ? detailQuery.data : null) ??
+    (selectedDoctor?.nama_dokter ? selectedDoctor : null) ??
+    (cachedDoctor?.nama_dokter ? cachedDoctor : null) ??
+    lastDoctorRef.current;
+
+  const isDetailLoading = detailQuery.isLoading && !detailQuery.data && !doctor;
 
   if (!doctor) {
     return (
@@ -193,6 +221,10 @@ export function DoctorScheduleDetailSheet({
           showCloseButton={false}
           className='w-full sm:max-w-[680px] lg:max-w-[760px] p-0 flex flex-col gap-0 border-l border-border/50 bg-card text-card-foreground shadow-2xl font-sans'
         >
+          <SheetHeader className='sr-only'>
+            <SheetTitle>Memuat Detail Jadwal Dokter</SheetTitle>
+            <SheetDescription>Memuat informasi sesi dan jadwal praktik dokter...</SheetDescription>
+          </SheetHeader>
           <DoctorScheduleSheetSkeleton activeTab={activeTab} />
         </SheetContent>
       </Sheet>

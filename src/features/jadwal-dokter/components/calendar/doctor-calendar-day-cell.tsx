@@ -83,14 +83,21 @@ export function DoctorCalendarDayCell({
 
 	if (isFinished) {
 		return (
-			<button
-				type="button"
+			<div
+				role="button"
+				tabIndex={0}
 				className={cn(
 					"w-full h-full min-h-[52px] sm:min-h-[58px] rounded-xl border border-border/20 bg-muted/10 p-2 flex flex-col justify-between text-left select-none cursor-pointer transition-all outline-none",
 					isSelected && "ring-2 ring-primary/40 shadow-xs border-primary/40",
 					isPast && "opacity-40",
 				)}
 				onClick={() => onSelectDay(day)}
+				onKeyDown={(e) => {
+					if (e.key === "Enter" || e.key === " ") {
+						e.preventDefault();
+						onSelectDay(day);
+					}
+				}}
 			>
 				<div className="flex items-center justify-between w-full">
 					<span className="text-xs sm:text-sm tabular-nums font-bold text-muted-foreground">
@@ -117,7 +124,7 @@ export function DoctorCalendarDayCell({
 						</button>
 					)}
 				</div>
-			</button>
+			</div>
 		);
 	}
 
@@ -185,13 +192,20 @@ export function DoctorCalendarDayCell({
 
 	if (readOnly) {
 		return (
-			<button
-				type="button"
+			<div
+				role="button"
+				tabIndex={0}
 				onClick={() => onSelectDay(day)}
-				className="w-full h-full text-left outline-none"
+				onKeyDown={(e) => {
+					if (e.key === "Enter" || e.key === " ") {
+						e.preventDefault();
+						onSelectDay(day);
+					}
+				}}
+				className="w-full h-full text-left outline-none cursor-pointer"
 			>
 				{cellContent}
-			</button>
+			</div>
 		);
 	}
 
@@ -202,16 +216,22 @@ export function DoctorCalendarDayCell({
 				disabled={isCellDisabled}
 				onClick={() => onSelectDay(day)}
 			>
-				<button
-					type="button"
-					disabled={isCellDisabled}
+				<div
+					role="button"
+					tabIndex={isCellDisabled ? -1 : 0}
 					className={cn(
-						"w-full h-full text-left outline-none",
+						"w-full h-full text-left outline-none cursor-pointer",
 						isCellDisabled && "cursor-wait pointer-events-none",
 					)}
+					onKeyDown={(e) => {
+						if (!isCellDisabled && (e.key === "Enter" || e.key === " ")) {
+							e.preventDefault();
+							onSelectDay(day);
+						}
+					}}
 				>
 					{cellContent}
-				</button>
+				</div>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="center" className="w-44">
 				{onNavigateToDailyGrid && (
