@@ -1,4 +1,5 @@
 import { AppError } from '@/core/errors/app-error';
+import { isProtectedRoute } from '@/core/routes';
 
 export interface ClientFetchOptions extends RequestInit {
   query?: Record<string, unknown>;
@@ -81,7 +82,7 @@ export async function clientFetch<T>(
       `HTTP ${response.status} ${response.statusText}`;
 
     if (response.status === 401) {
-      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth')) {
+      if (typeof window !== 'undefined' && isProtectedRoute(window.location.pathname)) {
         const lastRedirect = sessionStorage.getItem('last_auth_redirect');
         const now = Date.now();
         if (!lastRedirect || now - Number(lastRedirect) > 5000) {

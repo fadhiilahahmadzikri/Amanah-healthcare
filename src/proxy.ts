@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { defaultHttpObservability } from '@/core/observability/adapters/http/next-http-observability.adapter.edge';
 import { ALL_AUTH_COOKIE_NAMES } from '@/core/auth/auth.constants';
-import { PROTECTED_PREFIXES, ROUTES, safeRedirect } from '@/core/routes';
+import { isProtectedRoute, ROUTES, safeRedirect } from '@/core/routes';
 
 export default async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
@@ -63,9 +63,7 @@ export default async function proxy(request: NextRequest) {
   }
 
   // 2. Protected routes check (presence check only, deny-only)
-  const isProtected = PROTECTED_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
-  );
+  const isProtected = isProtectedRoute(pathname);
 
   const hasAnyAuthCookie = ALL_AUTH_COOKIE_NAMES.some((name) => request.cookies.has(name));
 
@@ -117,7 +115,5 @@ export default async function proxy(request: NextRequest) {
 export { proxy };
 
 export const config = {
-  matcher: [
-    '/((?!_next|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest)$).*)'
-  ]
+  matcher: ['/((?!_next|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest)$).*)']
 };

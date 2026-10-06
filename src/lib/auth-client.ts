@@ -1,5 +1,6 @@
 import { createAuthClient } from 'better-auth/react';
 import { organizationClient, adminClient, emailOTPClient } from 'better-auth/client/plugins';
+import { isProtectedRoute } from '@/core/routes';
 import { ac, admin, patient, user } from './permissions';
 
 export const authClient = createAuthClient({
@@ -17,7 +18,7 @@ export const authClient = createAuthClient({
     credentials: 'include',
     onError: async (context) => {
       if (context.response?.status === 401) {
-        if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth/')) {
+        if (typeof window !== 'undefined' && isProtectedRoute(window.location.pathname)) {
           window.location.href = '/auth/sign-in';
         }
       }

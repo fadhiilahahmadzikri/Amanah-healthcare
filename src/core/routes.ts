@@ -12,6 +12,12 @@ export const ROUTES = {
 export const REDIRECT_PARAM = 'redirect';
 export const PROTECTED_PREFIXES = ['/dashboard', '/patient-registration'] as const;
 
+export function isProtectedRoute(pathname: string): boolean {
+  return PROTECTED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+}
+
 export function safeRedirect(path: string | null | undefined, fallback = ROUTES.dashboard): string {
   if (!path) return fallback;
   if (path.startsWith('/') && !path.startsWith('//') && !path.startsWith('/\\')) {
