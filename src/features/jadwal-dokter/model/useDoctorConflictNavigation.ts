@@ -27,6 +27,8 @@ export interface DoctorConflictReturnContext {
   initialStep?: ConflictWizardStep;
 }
 
+export type ReturnDoctorContext = DoctorConflictReturnContext;
+
 export type ConflictNavigationPhase = InspectionPhase;
 
 export interface DoctorConflictNavigationState {

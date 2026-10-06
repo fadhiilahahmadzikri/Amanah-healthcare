@@ -1,6 +1,5 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import React from 'react';
 import { Icons } from '@/components/icons';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -15,18 +14,14 @@ import {
 } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
-import { getStatusConfig } from '@/styles/clinical-tokens';
-import { useUpdateDoctorDayStatusMutation } from '../api/mutations';
-import { doctorScheduleDetailQueryOptions } from '../api/queries';
-import type { DoctorSchedule, ScheduleDayStatus } from '../api/types';
+import type { DoctorSchedule } from '../api/types';
+import { DOCTOR_CARD_STATUS } from '../utils/doctor-schedule-card-utils';
+import { DOCTOR_DETAIL_TAB, type DoctorDetailTab } from '../model/useDoctorDetailDrawerStore';
 import {
-  DOCTOR_CARD_STATUS,
-  getDoctorCardStatus,
-  parseDateToIso
-} from '../utils/doctor-schedule-card-utils';
-import { useDoctorConflictNavigation } from '../model/useDoctorConflictNavigation';
-import { INSPECTION_PHASE } from '../constants/doctor-dialog.constants';
-import type { ReturnDoctorContext } from './doctor-add-session-modal';
+  useDoctorScheduleDetailSheet,
+  type UseDoctorScheduleDetailSheetProps
+} from '../model/useDoctorScheduleDetailSheet';
+import type { ReturnDoctorContext } from '../model/useDoctorConflictNavigation';
 import { DoctorDailyHourlyGrid } from './doctor-daily-hourly-grid';
 import {
   DoctorScheduleSheetContentSkeleton,
@@ -35,187 +30,57 @@ import {
 import { DoctorTimelineCalendar } from './doctor-timeline-calendar';
 import { DoctorScheduleInfoTab } from './sheet/doctor-schedule-info-tab';
 
-import {
-  DOCTOR_DETAIL_TAB,
-  type DoctorDetailTab,
-  useDoctorDetailDrawerStore
-} from '../model/useDoctorDetailDrawerStore';
-
 export { DOCTOR_DETAIL_TAB, type DoctorDetailTab };
 
-export interface DoctorScheduleDetailSheetProps {
-  doctor: DoctorSchedule | null;
-  isOpen: boolean;
-  onClose: () => void;
+export interface DoctorScheduleDetailSheetProps extends UseDoctorScheduleDetailSheetProps {
   onOpenEdit: (doctor: DoctorSchedule) => void;
-  selectedDate?: string;
-  highlightSlotTime?: string;
   onClearHighlightSlotTime?: () => void;
-  onReturnToSourceModal?: () => void;
-  returnDoctorName?: string;
-  returnContext?: ReturnDoctorContext | null;
+  onClearOpenPatients?: () => void;
   onClearReturnContext?: () => void;
   onViewDoctorSchedule?: (
     doctorId: string,
     targetSlotTime?: string,
     returnContext?: ReturnDoctorContext
   ) => void;
-  openPatientsModal?: boolean;
-  onClearOpenPatients?: () => void;
 }
 
-function getInitialDoctorDate(
-  selectedDate?: string,
-  returnContext?: ReturnDoctorContext | null
-): Date {
-  if (returnContext?.sourceDate) {
-    const parsed = new Date(`${returnContext.sourceDate}T00:00:00`);
-    if (!Number.isNaN(parsed.getTime())) {
-      return parsed;
-    }
-  }
-  if (selectedDate) {
-    const iso = parseDateToIso(selectedDate);
-    if (iso) {
-      const parsed = new Date(`${iso}T00:00:00`);
-      if (!Number.isNaN(parsed.getTime())) {
-        return parsed;
-      }
-    }
-  }
-  return new Date();
-}
+/**
+ * Pure Presentation: DoctorScheduleDetailSheet
+ * Decoupled from data queries and mutations via useDoctorScheduleDetailSheet.
+ * Preserves in-memory visual stability during unmount transitions (zero flicker on close).
+ */
+export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps) {
+  const {
+    isOpen,
+    highlightSlotTime,
+    onClearHighlightSlotTime,
+    openPatientsModal,
+    onClearOpenPatients,
+    onReturnToSourceModal,
+    returnContext,
+    onClearReturnContext,
+    onViewDoctorSchedule
+  } = props;
 
-export function DoctorScheduleDetailSheet({
-  doctor: selectedDoctor,
-  isOpen,
-  onClose,
-  onOpenEdit: _onOpenEdit,
-  selectedDate,
-  highlightSlotTime,
-  onClearHighlightSlotTime,
-  openPatientsModal,
-  onClearOpenPatients,
-  onReturnToSourceModal,
-  returnDoctorName,
-  returnContext,
-  onClearReturnContext,
-  onViewDoctorSchedule
-}: DoctorScheduleDetailSheetProps) {
-  const updateDayMutation = useUpdateDoctorDayStatusMutation();
-  const conflictNav = useDoctorConflictNavigation();
-  const isConflictReturning = conflictNav.phase === INSPECTION_PHASE.RETURNING;
-  const shouldShowKuotaTab = Boolean(
-    highlightSlotTime ||
-    openPatientsModal ||
-    conflictNav.pendingReopen ||
-    conflictNav.isInspecting ||
-    isConflictReturning ||
-    returnContext
-  );
+  const {
+    doctor,
+    isDetailLoading,
+    activeTab,
+    setActiveTab,
+    dateContext,
+    conflict,
+    mutation,
+    meta,
+    handlers
+  } = useDoctorScheduleDetailSheet(props);
 
-  const [activeTab, setActiveTab] = React.useState<DoctorDetailTab>(() =>
-    shouldShowKuotaTab ? DOCTOR_DETAIL_TAB.KUOTA : DOCTOR_DETAIL_TAB.KALENDER
-  );
-
-  const initialDate = React.useMemo(
-    () => getInitialDoctorDate(selectedDate, returnContext),
-    [selectedDate, returnContext]
-  );
-
-  const [selectedDay, setSelectedDay] = React.useState<number>(initialDate.getDate());
-  const [currentMonth, setCurrentMonth] = React.useState<number>(initialDate.getMonth());
-  const [currentYear, setCurrentYear] = React.useState<number>(initialDate.getFullYear());
-  const [pendingStatusDay, setPendingStatusDay] = React.useState<number | null>(null);
-
-  const resetFocusState = React.useCallback(() => {
-    const targetDate = getInitialDoctorDate(selectedDate, returnContext);
-    setSelectedDay(targetDate.getDate());
-    setCurrentMonth(targetDate.getMonth());
-    setCurrentYear(targetDate.getFullYear());
-    setActiveTab(shouldShowKuotaTab ? DOCTOR_DETAIL_TAB.KUOTA : DOCTOR_DETAIL_TAB.KALENDER);
-    setPendingStatusDay(null);
-  }, [selectedDate, returnContext, shouldShowKuotaTab]);
-
-  React.useEffect(() => {
-    if (isOpen) {
-      resetFocusState();
-    }
-  }, [isOpen, resetFocusState]);
-
-  React.useEffect(() => {
-    if (conflictNav.pendingReopen && isOpen) {
-      setActiveTab(DOCTOR_DETAIL_TAB.KUOTA);
-      if (conflictNav.pendingReopen.sourceDate) {
-        const parts = conflictNav.pendingReopen.sourceDate.split('-').map(Number);
-        if (parts.length === 3 && !Number.isNaN(parts[0])) {
-          setCurrentYear(parts[0]);
-          setCurrentMonth(parts[1] - 1);
-          setSelectedDay(parts[2]);
-        }
-      }
-    }
-  }, [conflictNav.pendingReopen, isOpen]);
-
-  React.useEffect(() => {
-    if ((highlightSlotTime || conflictNav.isInspecting) && isOpen) {
-      setActiveTab(DOCTOR_DETAIL_TAB.KUOTA);
-    }
-  }, [highlightSlotTime, conflictNav.isInspecting, isOpen]);
-
-  const handleClose = React.useCallback(() => {
-    if (conflictNav.phase === INSPECTION_PHASE.RETURNING) return;
-    resetFocusState();
-    onClose();
-  }, [onClose, resetFocusState, conflictNav.phase]);
-
-  const detailParams = React.useMemo(() => {
-    const month = formatMonthParam(currentYear, currentMonth);
-    return {
-      month,
-      date: formatDateParam(currentYear, currentMonth, selectedDay)
-    };
-  }, [currentMonth, currentYear, selectedDay]);
-
-  const cachedDoctor = useDoctorDetailDrawerStore((s) => s.cachedDoctor);
-  const setCachedDoctor = useDoctorDetailDrawerStore((s) => s.setCachedDoctor);
-  const targetStoreDoctorId = useDoctorDetailDrawerStore((s) => s.targetDoctorId);
-  const lastDoctorRef = React.useRef<DoctorSchedule | null>(null);
-
-  const effectiveDoctorId =
-    selectedDoctor?.id || targetStoreDoctorId || '';
-
-  const detailQuery = useQuery({
-    ...doctorScheduleDetailQueryOptions(effectiveDoctorId, detailParams),
-    enabled: isOpen && Boolean(effectiveDoctorId)
-  });
-
-  React.useEffect(() => {
-    if (detailQuery.data?.nama_dokter) {
-      setCachedDoctor(detailQuery.data);
-      lastDoctorRef.current = detailQuery.data;
-    }
-  }, [detailQuery.data, setCachedDoctor]);
-
-  React.useEffect(() => {
-    if (selectedDoctor?.nama_dokter) {
-      setCachedDoctor(selectedDoctor);
-      lastDoctorRef.current = selectedDoctor;
-    }
-  }, [selectedDoctor, setCachedDoctor]);
-
-  // Persist last valid doctor during exit transitions so drawer close never collapses into skeleton
-  const doctor =
-    (detailQuery.data?.nama_dokter ? detailQuery.data : null) ??
-    (selectedDoctor?.nama_dokter ? selectedDoctor : null) ??
-    (cachedDoctor?.nama_dokter ? cachedDoctor : null) ??
-    lastDoctorRef.current;
-
-  const isDetailLoading = detailQuery.isLoading && !detailQuery.data && !doctor;
-
+  // If no doctor has ever been loaded (first deep-link query in flight), render accessible skeleton
   if (!doctor) {
     return (
-      <Sheet open={isOpen} onOpenChange={(open) => !open && !isConflictReturning && handleClose()}>
+      <Sheet
+        open={isOpen}
+        onOpenChange={(open) => !open && !conflict.isConflictReturning && handlers.handleClose()}
+      >
         <SheetContent
           side='right'
           showCloseButton={false}
@@ -231,74 +96,41 @@ export function DoctorScheduleDetailSheet({
     );
   }
 
-  const activeTargetDate = formatDateParam(currentYear, currentMonth, selectedDay);
-  const doctorStatus = getDoctorCardStatus(doctor, undefined, activeTargetDate);
-  const doctorStatusConfig = doctorStatus ? getStatusConfig(doctorStatus) : null;
-  const isUnconfigured = doctorStatus === DOCTOR_CARD_STATUS.BELUM_DIATUR;
-
-  const initials = doctor.nama_dokter
-    .replace('dr. ', '')
-    .split(' ')
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-
-  const handleDayStatusChange = (day: number, status: ScheduleDayStatus, notes?: string) => {
-    setPendingStatusDay(day);
-    const formattedDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    updateDayMutation.mutate(
-      {
-        doctorId: doctor.id,
-        date: formattedDate,
-        status,
-        reason: notes
-      },
-      {
-        onSettled: () => {
-          setPendingStatusDay(null);
-        }
-      }
-    );
-  };
+  const { initials, doctorStatus, doctorStatusConfig, isUnconfigured } = meta;
+  const {
+    selectedDay,
+    currentMonth,
+    currentYear,
+    setSelectedDay,
+    setCurrentMonth,
+    setCurrentYear
+  } = dateContext;
 
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => !open && !isConflictReturning && handleClose()}>
+    <Sheet
+      open={isOpen}
+      onOpenChange={(open) => !open && !conflict.isConflictReturning && handlers.handleClose()}
+    >
       <SheetContent
         side='right'
         showCloseButton={false}
         className='w-full sm:max-w-[680px] lg:max-w-[760px] p-0 flex flex-col gap-0 overflow-hidden border-l border-border/50 bg-card text-card-foreground shadow-2xl font-sans'
       >
+        {/* Profile Header Shell */}
         <div className='relative w-full shrink-0 border-b border-border/40 bg-card'>
           <div className='relative w-full h-24 sm:h-28 bg-[linear-gradient(to_bottom,color-mix(in_oklab,var(--primary-bright,var(--primary))_28%,transparent)_0%,color-mix(in_oklab,var(--primary-bright,var(--primary))_10%,transparent)_60%,transparent_100%)] overflow-hidden'>
             <button
               type='button'
               onClick={
-                conflictNav.isInspecting ||
-                returnContext ||
-                conflictNav.pendingReopen ||
-                isConflictReturning
-                  ? () => {
-                      if (onReturnToSourceModal) {
-                        onReturnToSourceModal();
-                      } else {
-                        conflictNav.returnToSourceWizard();
-                      }
-                    }
-                  : handleClose
+                conflict.hasReturnTarget ? handlers.handleReturnToSource : handlers.handleClose
               }
               className='absolute top-3 left-4 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background/85 hover:bg-background text-foreground/90 hover:text-foreground text-xs font-semibold backdrop-blur-md border border-border/50 shadow-2xs transition-all cursor-pointer select-none'
             >
               <Icons.chevronLeft className='size-3.5' />
               <span>
-                {conflictNav.isInspecting ||
-                returnContext ||
-                conflictNav.pendingReopen ||
-                isConflictReturning
-                  ? returnDoctorName ||
-                    conflictNav.returnContext?.sourceDoctorName ||
-                    conflictNav.pendingReopen?.sourceDoctorName
-                    ? `Kembali ke Pemilihan Ruang (${returnDoctorName || conflictNav.returnContext?.sourceDoctorName || conflictNav.pendingReopen?.sourceDoctorName})`
+                {conflict.hasReturnTarget
+                  ? conflict.returnDoctorName
+                    ? `Kembali ke Pemilihan Ruang (${conflict.returnDoctorName})`
                     : 'Kembali ke Pemilihan Ruang'
                   : 'Kembali'}
               </span>
@@ -323,14 +155,13 @@ export function DoctorScheduleDetailSheet({
                 <span
                   className={cn(
                     'absolute bottom-1 right-1 size-4 rounded-full ring-2 ring-card shadow-xs',
-                    doctorStatus === DOCTOR_CARD_STATUS.CUTI
+                    doctorStatus === DOCTOR_CARD_STATUS.CUTI ||
+                      doctorStatus === DOCTOR_CARD_STATUS.TERISI
                       ? 'bg-sky-500'
-                      : doctorStatus === DOCTOR_CARD_STATUS.TERISI
-                        ? 'bg-sky-500'
-                        : doctorStatus === DOCTOR_CARD_STATUS.BELUM_DIATUR ||
-                            doctorStatus === DOCTOR_CARD_STATUS.TUTUP
-                          ? 'bg-slate-400'
-                          : 'bg-emerald-500'
+                      : doctorStatus === DOCTOR_CARD_STATUS.BELUM_DIATUR ||
+                          doctorStatus === DOCTOR_CARD_STATUS.TUTUP
+                        ? 'bg-slate-400'
+                        : 'bg-emerald-500'
                   )}
                 />
               </div>
@@ -397,6 +228,7 @@ export function DoctorScheduleDetailSheet({
           </SheetHeader>
         </div>
 
+        {/* Content Body: Adaptive Tabs or Content Skeleton */}
         {isDetailLoading ? (
           <DoctorScheduleSheetContentSkeleton activeTab={activeTab} />
         ) : (
@@ -437,13 +269,15 @@ export function DoctorScheduleDetailSheet({
                   onMonthChange={setCurrentMonth}
                   currentYear={currentYear}
                   onYearChange={setCurrentYear}
-                  pendingDay={pendingStatusDay}
-                  isUpdatingDay={updateDayMutation.isPending}
+                  pendingDay={mutation.pendingStatusDay}
+                  isUpdatingDay={mutation.isUpdatingDay}
                   onNavigateToDailyGrid={(day) => {
                     setSelectedDay(day);
                     setActiveTab(DOCTOR_DETAIL_TAB.KUOTA);
                   }}
-                  onSelectDayStatus={(day, st, notes) => handleDayStatusChange(day, st, notes)}
+                  onSelectDayStatus={(day, st, notes) =>
+                    mutation.handleDayStatusChange(day, st, notes)
+                  }
                   className='h-full flex-1'
                 />
               </TabsContent>
@@ -452,7 +286,7 @@ export function DoctorScheduleDetailSheet({
                 value={DOCTOR_DETAIL_TAB.KUOTA}
                 className='m-0 space-y-3 outline-none animate-in fade-in-50 duration-200'
               >
-                {isUnconfigured && !conflictNav.pendingReopen && !returnContext ? (
+                {isUnconfigured && !conflict.pendingReopen && !returnContext ? (
                   <div className='flex-1 flex flex-col p-4 sm:p-6 select-none'>
                     <EmptyState
                       title='Belum ada jadwal praktik'
@@ -487,7 +321,7 @@ export function DoctorScheduleDetailSheet({
                     openPatientsModal={openPatientsModal}
                     onClearOpenPatients={onClearOpenPatients}
                     onReturnToSourceModal={onReturnToSourceModal}
-                    returnDoctorName={returnDoctorName}
+                    returnDoctorName={conflict.returnDoctorName}
                     returnContext={returnContext}
                     onClearReturnContext={onClearReturnContext}
                     onViewDoctorSchedule={onViewDoctorSchedule}
@@ -507,15 +341,4 @@ export function DoctorScheduleDetailSheet({
       </SheetContent>
     </Sheet>
   );
-}
-
-function formatMonthParam(year: number, zeroBasedMonth: number): string {
-  return `${year}-${String(zeroBasedMonth + 1).padStart(2, '0')}`;
-}
-
-function formatDateParam(year: number, zeroBasedMonth: number, day: number): string {
-  const daysInMonth = new Date(year, zeroBasedMonth + 1, 0).getDate();
-  const safeDay = Math.min(Math.max(day, 1), daysInMonth);
-
-  return `${formatMonthParam(year, zeroBasedMonth)}-${String(safeDay).padStart(2, '0')}`;
 }
