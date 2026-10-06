@@ -145,8 +145,8 @@ export function bookedPatientToAppointment(
     scheduled_end_time: endClock.replace('.', ':'),
     actual_started_at: (item as unknown as { actualStartedAt?: string }).actualStartedAt,
     actual_completed_at: (item as unknown as { actualCompletedAt?: string }).actualCompletedAt,
-    estimated_duration_minutes:
-      (item as unknown as { estimatedDurationMinutes?: number }).estimatedDurationMinutes ?? 30,
+    estimated_duration_minutes: (item as unknown as { estimatedDurationMinutes?: number })
+      .estimatedDurationMinutes,
     date,
     time: item.timeSlot || context?.sessionTime || '',
     complaint: item.chiefComplaint || '',

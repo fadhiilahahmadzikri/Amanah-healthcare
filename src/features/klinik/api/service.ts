@@ -55,6 +55,44 @@ export const getTimeSlots = (): string[] => {
   return [];
 };
 
+export async function fetchPoliListFromApi(): Promise<string[]> {
+  try {
+    const res = await clientFetch<
+      Array<{ id: string; name: string }> | { items?: Array<{ id: string; name: string }> }
+    >('/api/v1/schedules/reference/polikliniks');
+    const list = Array.isArray(res) ? res : res?.items || [];
+    return list.map((item) => item.name);
+  } catch (err) {
+    console.error('Failed to fetch poliklinik list from backend:', err);
+    return [];
+  }
+}
+
+export async function fetchClinicOperationalHoursFromApi(): Promise<string> {
+  try {
+    const res = await clientFetch<{ operationalHours?: string }>('/api/v1/time/current');
+    return res?.operationalHours || '08:00 - 21:00';
+  } catch (err) {
+    console.error('Failed to fetch clinic operational hours from backend:', err);
+    return '08:00 - 21:00';
+  }
+}
+
+export async function fetchConsultationSessionsFromApi(): Promise<
+  Array<{ id: string; label: string; timeRange: string; value: string }>
+> {
+  try {
+    const res = await clientFetch<
+      | Array<{ id: string; label: string; timeRange: string; value: string }>
+      | { items?: Array<{ id: string; label: string; timeRange: string; value: string }> }
+    >('/api/v1/schedules/reference/sessions');
+    return Array.isArray(res) ? res : res?.items || [];
+  } catch (err) {
+    console.error('Failed to fetch consultation sessions from backend:', err);
+    return [];
+  }
+}
+
 export async function getDailyQueuesFromApi(params?: {
   poliklinikId?: string;
   date?: string;
@@ -68,8 +106,10 @@ export async function getDailyQueuesFromApi(params?: {
   const qs = query.toString();
   const endpoint = `/api/v1/appointments/queue/daily${qs ? `?${qs}` : ''}`;
   try {
-    const list = await clientFetch<Record<string, unknown>[]>(endpoint);
-    if (!Array.isArray(list)) return [];
+    const res = await clientFetch<
+      Record<string, unknown>[] | { items?: Record<string, unknown>[] }
+    >(endpoint);
+    const list = Array.isArray(res) ? res : res?.items || [];
     return list.map((item) => {
       const rawStatus = String(item.status || '');
       const ticketStatus = String(item.ticketStatus || '');
@@ -79,9 +119,11 @@ export async function getDailyQueuesFromApi(params?: {
       const status = statusDesc.queueDisplayStatus;
 
       const startTime =
-        typeof item.scheduledStartTime === 'string' ? item.scheduledStartTime.slice(0, 5) : '08:00';
+        typeof item.scheduledStartTime === 'string' ? item.scheduledStartTime.slice(0, 5) : '';
       const endTime =
-        typeof item.scheduledEndTime === 'string' ? item.scheduledEndTime.slice(0, 5) : '08:30';
+        typeof item.scheduledEndTime === 'string' ? item.scheduledEndTime.slice(0, 5) : '';
+      const estimatedTime =
+        startTime && endTime ? `${startTime} - ${endTime}` : startTime || endTime || '-';
 
       return {
         id: String(item.id),
@@ -90,7 +132,7 @@ export async function getDailyQueuesFromApi(params?: {
         patient_avatar: '',
         doctor_name: String(item.doctorName || '-'),
         poli: String(item.poliklinikName || 'Poli Umum'),
-        estimated_time: `${startTime} - ${endTime}`,
+        estimated_time: estimatedTime,
         status,
         is_user: false,
         called_time: item.calledAt
@@ -109,91 +151,148 @@ export async function getDailyQueuesFromApi(params?: {
             : null,
         actual_completed_at: item.actualCompletedAt ? String(item.actualCompletedAt) : null,
         estimated_duration_minutes:
-          typeof item.estimatedDurationMinutes === 'number' ? item.estimatedDurationMinutes : 30
+          typeof item.estimatedDurationMinutes === 'number'
+            ? item.estimatedDurationMinutes
+            : undefined
       };
     });
   } catch (err: unknown) {
-    const errorObj = err as { status?: number; statusCode?: number; message?: string };
-    const isForbidden =
-      errorObj?.status === 403 ||
-      errorObj?.statusCode === 403 ||
-      String(errorObj?.message || '')
-        .toLowerCase()
-        .includes('forbidden');
-
-    if (isForbidden) {
-      try {
-        const displayQuery = new URLSearchParams();
-        if (params?.date) displayQuery.set('date', params.date);
-        if (params?.poliklinikId) displayQuery.set('poliklinikId', params.poliklinikId);
-        const qsDisplay = displayQuery.toString();
-        const displayEndpoint = `/api/v1/appointments/queue/display${qsDisplay ? `?${qsDisplay}` : ''}`;
-        const display = await clientFetch<{
-          currentTicket?: {
-            queueNumber?: string;
-            patientName?: string;
-            roomName?: string;
-            doctorName?: string;
-            calledAt?: string;
-          } | null;
-          nextTickets?: Array<{
-            queueNumber?: string;
-            patientName?: string;
-            poliklinikName?: string;
-          }>;
-        }>(displayEndpoint);
-
-        const items: QueueItem[] = [];
-        if (display?.currentTicket) {
-          items.push({
-            id: 'display-current',
-            queue_number: display.currentTicket.queueNumber || '-',
-            patient_name: display.currentTicket.patientName || 'Pasien',
-            doctor_name: display.currentTicket.doctorName || '-',
-            poli: display.currentTicket.roomName || 'Poli',
-            estimated_time: 'Sedang Berlangsung',
-            status: 'DIPANGGIL',
-            called_time: display.currentTicket.calledAt
-              ? new Date(display.currentTicket.calledAt).toLocaleTimeString('id-ID', {
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })
-              : undefined,
-            room: display.currentTicket.roomName || 'Ruang Periksa',
-            called_at: display.currentTicket.calledAt
-              ? String(display.currentTicket.calledAt)
-              : null,
-            actual_started_at: display.currentTicket.calledAt
-              ? String(display.currentTicket.calledAt)
-              : null,
-            actual_completed_at: null,
-            estimated_duration_minutes: 30
-          });
-        }
-        if (Array.isArray(display?.nextTickets)) {
-          display.nextTickets.forEach((t, idx) => {
-            items.push({
-              id: `display-next-${idx}`,
-              queue_number: t.queueNumber || '-',
-              patient_name: t.patientName || 'Pasien',
-              doctor_name: '-',
-              poli: t.poliklinikName || 'Poli',
-              estimated_time: 'Menunggu',
-              status: 'MENUNGGU',
-              room: t.poliklinikName || 'Ruang Periksa',
-              actual_started_at: null,
-              actual_completed_at: null,
-              estimated_duration_minutes: 30
-            });
-          });
-        }
-        return items;
-      } catch {
-        return [];
-      }
-    }
-
     console.error('Failed to fetch daily queues from backend:', err);
+    return [];
+  }
+}
+
+export async function getMyQueueFromApi(params?: { poliklinikId?: string }): Promise<QueueItem[]> {
+  const query = new URLSearchParams();
+  if (params?.poliklinikId) query.set('poliklinikId', params.poliklinikId);
+
+  const qs = query.toString();
+  const endpoint = `/api/v1/appointments/queue/my${qs ? `?${qs}` : ''}`;
+  try {
+    const res = await clientFetch<
+      Record<string, unknown>[] | { items?: Record<string, unknown>[] }
+    >(endpoint);
+    const list = Array.isArray(res) ? res : res?.items || [];
+    return list.map((item) => {
+      const rawStatus = String(item.status || '');
+      const ticketStatus = String(item.ticketStatus || '');
+      const statusDesc = AppointmentStatusDescriptor.from(
+        ticketStatus === 'called' ? 'IN_SERVICE' : rawStatus || ticketStatus
+      );
+      const status = statusDesc.queueDisplayStatus;
+
+      const startTime =
+        typeof item.scheduledStartTime === 'string' ? item.scheduledStartTime.slice(0, 5) : '';
+      const endTime =
+        typeof item.scheduledEndTime === 'string' ? item.scheduledEndTime.slice(0, 5) : '';
+      const estimatedTime =
+        startTime && endTime ? `${startTime} - ${endTime}` : startTime || endTime || '-';
+
+      return {
+        id: String(item.id),
+        queue_number: String(item.queueNumber || '-'),
+        patient_name: String(item.patientName || 'Pasien'),
+        patient_avatar: '',
+        doctor_name: String(item.doctorName || '-'),
+        poli: String(item.poliklinikName || 'Poli Umum'),
+        estimated_time: estimatedTime,
+        status,
+        is_user: true,
+        called_time: item.calledAt
+          ? new Date(String(item.calledAt)).toLocaleTimeString('id-ID', {
+              hour: '2-digit',
+              minute: '2-digit'
+            })
+          : undefined,
+        room: String(item.room || item.roomName || 'Ruang Periksa'),
+        call_count: Number(item.callCount ?? item.call_count ?? 0),
+        called_at: item.calledAt ? String(item.calledAt) : null,
+        actual_started_at: item.actualStartedAt
+          ? String(item.actualStartedAt)
+          : item.calledAt
+            ? String(item.calledAt)
+            : null,
+        actual_completed_at: item.actualCompletedAt ? String(item.actualCompletedAt) : null,
+        estimated_duration_minutes:
+          typeof item.estimatedDurationMinutes === 'number'
+            ? item.estimatedDurationMinutes
+            : undefined
+      };
+    });
+  } catch (err: unknown) {
+    console.error('Failed to fetch patient queue from backend:', err);
+    return [];
+  }
+}
+
+export async function getDisplayQueueFromApi(params?: {
+  poliklinikId?: string;
+  date?: string;
+}): Promise<QueueItem[]> {
+  const query = new URLSearchParams();
+  if (params?.date) query.set('date', params.date);
+  if (params?.poliklinikId) query.set('poliklinikId', params.poliklinikId);
+  const qs = query.toString();
+  const endpoint = `/api/v1/appointments/queue/display${qs ? `?${qs}` : ''}`;
+  try {
+    const display = await clientFetch<{
+      currentTicket?: {
+        queueNumber?: string;
+        patientName?: string;
+        roomName?: string;
+        doctorName?: string;
+        calledAt?: string;
+      } | null;
+      nextTickets?: Array<{
+        queueNumber?: string;
+        patientName?: string;
+        poliklinikName?: string;
+      }>;
+    }>(endpoint);
+
+    const items: QueueItem[] = [];
+    if (display?.currentTicket) {
+      items.push({
+        id: 'display-current',
+        queue_number: display.currentTicket.queueNumber || '-',
+        patient_name: display.currentTicket.patientName || 'Pasien',
+        doctor_name: display.currentTicket.doctorName || '-',
+        poli: display.currentTicket.roomName || 'Poli',
+        estimated_time: 'Sedang Berlangsung',
+        status: 'DIPANGGIL',
+        called_time: display.currentTicket.calledAt
+          ? new Date(display.currentTicket.calledAt).toLocaleTimeString('id-ID', {
+              hour: '2-digit',
+              minute: '2-digit'
+            })
+          : undefined,
+        room: display.currentTicket.roomName || 'Ruang Periksa',
+        called_at: display.currentTicket.calledAt ? String(display.currentTicket.calledAt) : null,
+        actual_started_at: display.currentTicket.calledAt
+          ? String(display.currentTicket.calledAt)
+          : null,
+        actual_completed_at: null
+      });
+    }
+    if (Array.isArray(display?.nextTickets)) {
+      display.nextTickets.forEach((t, idx) => {
+        items.push({
+          id: `display-next-${idx}`,
+          queue_number: t.queueNumber || '-',
+          patient_name: t.patientName || 'Pasien',
+          doctor_name: '-',
+          poli: t.poliklinikName || 'Poli',
+          estimated_time: 'Menunggu',
+          status: 'MENUNGGU',
+          room: t.poliklinikName || 'Ruang Periksa',
+          actual_started_at: null,
+          actual_completed_at: null
+        });
+      });
+    }
+    return items;
+  } catch (err: unknown) {
+    console.error('Failed to fetch display queues from backend:', err);
     return [];
   }
 }
@@ -287,7 +386,7 @@ export const createAppointmentRecordWithQueue = (
     patient_avatar: '',
     doctor_name: appointment.doctor_name,
     poli: formData.service || 'Poli Umum',
-    estimated_time: appointment.time || '08:00 - 08:30',
+    estimated_time: appointment.time || '-',
     status: 'MENUNGGU',
     is_user: true,
     room: 'Ruang Periksa 1'

@@ -46,5 +46,7 @@ describe('Queue Timer Utilities', () => {
     expect(isConsultationOvertime(1800, 30)).toBe(false);
     expect(isConsultationOvertime(1801, 30)).toBe(true);
     expect(isConsultationOvertime(2400, 30)).toBe(true);
+    expect(isConsultationOvertime(2400)).toBe(false);
+    expect(isConsultationOvertime(2400, 0)).toBe(false);
   });
 });

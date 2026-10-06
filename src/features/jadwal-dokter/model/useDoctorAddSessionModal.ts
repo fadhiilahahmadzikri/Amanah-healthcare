@@ -32,22 +32,28 @@ export interface UseDoctorAddSessionModalProps {
   initialStep?: AddSessionStep;
 }
 
-export function computeSafeEndTime(startTime: string, providedEnd?: string): string {
+export function computeSafeEndTime(
+  startTime: string,
+  providedEnd?: string,
+  durationMinutes?: number
+): string {
   if (providedEnd && /^\d{1,2}:\d{2}/.test(providedEnd.trim())) {
     return providedEnd.trim();
   }
-  const parts = startTime.split(':');
-  if (parts.length >= 2) {
-    const h = parseInt(parts[0], 10);
-    const m = parseInt(parts[1], 10);
-    if (!isNaN(h) && !isNaN(m)) {
-      const endTotal = h * 60 + m + 30;
-      const endH = Math.floor(endTotal / 60) % 24;
-      const endM = endTotal % 60;
-      return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+  if (durationMinutes && durationMinutes > 0) {
+    const parts = startTime.split(':');
+    if (parts.length >= 2) {
+      const h = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10);
+      if (!isNaN(h) && !isNaN(m)) {
+        const endTotal = h * 60 + m + durationMinutes;
+        const endH = Math.floor(endTotal / 60) % 24;
+        const endM = endTotal % 60;
+        return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+      }
     }
   }
-  return startTime;
+  return providedEnd || startTime;
 }
 
 export function useDoctorAddSessionModal({

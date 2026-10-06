@@ -68,8 +68,7 @@ export const AVAILABILITY_STATE = {
   CLOSED: 'CLOSED'
 } as const;
 
-export type AvailabilityState =
-  (typeof AVAILABILITY_STATE)[keyof typeof AVAILABILITY_STATE];
+export type AvailabilityState = (typeof AVAILABILITY_STATE)[keyof typeof AVAILABILITY_STATE];
 
 export const TEMPORAL_STATE = {
   PAST: 'PAST',
@@ -77,8 +76,7 @@ export const TEMPORAL_STATE = {
   FUTURE: 'FUTURE'
 } as const;
 
-export type TemporalState =
-  (typeof TEMPORAL_STATE)[keyof typeof TEMPORAL_STATE];
+export type TemporalState = (typeof TEMPORAL_STATE)[keyof typeof TEMPORAL_STATE];
 
 export const EFFECTIVE_SLOT_STATUS = {
   EXPIRED: 'EXPIRED',
@@ -90,6 +88,26 @@ export const EFFECTIVE_SLOT_STATUS = {
 
 export type EffectiveSlotStatus =
   (typeof EFFECTIVE_SLOT_STATUS)[keyof typeof EFFECTIVE_SLOT_STATUS];
+
+export const SCHEDULE_SLOT_STATUS = {
+  AVAILABLE: 'AVAILABLE',
+  PAST: 'PAST',
+  OCCUPIED_BY_OTHER: 'OCCUPIED_BY_OTHER',
+  OCCUPIED_BY_SELF: 'OCCUPIED_BY_SELF',
+  CLOSED_LEAVE: 'CLOSED_LEAVE'
+} as const;
+
+export type ScheduleSlotStatus = (typeof SCHEDULE_SLOT_STATUS)[keyof typeof SCHEDULE_SLOT_STATUS];
+
+export const SCHEDULE_SLOT_CONFLICT_TYPE = {
+  TEMPORAL_PAST: 'TEMPORAL_PAST',
+  ROOM_OCCUPIED: 'ROOM_OCCUPIED',
+  PRACTITIONER_OVERLAP: 'PRACTITIONER_OVERLAP',
+  LEAVE: 'LEAVE'
+} as const;
+
+export type ScheduleSlotConflictType =
+  (typeof SCHEDULE_SLOT_CONFLICT_TYPE)[keyof typeof SCHEDULE_SLOT_CONFLICT_TYPE];
 
 export const SLOT_UI_STATUS = {
   UNSCHEDULED_PAST: 'UNSCHEDULED_PAST',
@@ -125,8 +143,7 @@ export const SLOT_ACTION_TYPE = {
   VIEW_OCCUPANCY_CONFLICT: 'VIEW_OCCUPANCY_CONFLICT'
 } as const;
 
-export type SlotActionType =
-  (typeof SLOT_ACTION_TYPE)[keyof typeof SLOT_ACTION_TYPE];
+export type SlotActionType = (typeof SLOT_ACTION_TYPE)[keyof typeof SLOT_ACTION_TYPE];
 
 export const SCHEDULE_MUTATION_NOTES = {
   CLOSE_SESSION: 'Tutup sesi operasional',
@@ -160,7 +177,6 @@ export const CANONICAL_TO_API_SHIFT: Record<ScheduleShift, string> = {
 } as const;
 
 export const SCHEDULE_TIME_LABELS = {
-  TIMEZONE: 'WIB',
   AUTOMATIC: 'Otomatis',
   SELECT_TIME: 'Pilih Jam Mulai',
   LOADING_SLOTS: 'Memuat slot...',
@@ -193,50 +209,6 @@ export const SCHEDULE_RESCHEDULE_MESSAGES = {
   DEFAULT_CONFLICT: 'Terjadi bentrok jadwal atau ruangan sudah terpakai pada jam tersebut.'
 } as const;
 
-export const SCHEDULE_SHIFT_BOUNDARIES: Record<
-  ScheduleShift,
-  {
-    startTime: string;
-    endTime: string;
-    startHour: number;
-    endHour: number;
-    timeRange: string;
-    totalSlots: number;
-  }
-> = {
-  [SCHEDULE_SHIFT.DINI_HARI]: {
-    startTime: '00:00',
-    endTime: '06:00',
-    startHour: 0,
-    endHour: 6,
-    timeRange: '00:00 - 06:00 WIB',
-    totalSlots: 12
-  },
-  [SCHEDULE_SHIFT.PAGI]: {
-    startTime: '06:00',
-    endTime: '12:00',
-    startHour: 6,
-    endHour: 12,
-    timeRange: '06:00 - 12:00 WIB',
-    totalSlots: 12
-  },
-  [SCHEDULE_SHIFT.SIANG]: {
-    startTime: '12:00',
-    endTime: '18:00',
-    startHour: 12,
-    endHour: 18,
-    timeRange: '12:00 - 18:00 WIB',
-    totalSlots: 12
-  },
-  [SCHEDULE_SHIFT.MALAM]: {
-    startTime: '18:00',
-    endTime: '24:00',
-    startHour: 18,
-    endHour: 24,
-    timeRange: '18:00 - 24:00 WIB',
-    totalSlots: 12
-  }
-} as const;
 export function normalizeScheduleStatus(raw?: string | null): ScheduleStatus {
   return raw?.trim().toUpperCase() === SCHEDULE_STATUS.CLOSED
     ? SCHEDULE_STATUS.CLOSED

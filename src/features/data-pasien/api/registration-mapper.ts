@@ -7,7 +7,7 @@ export const PATIENT_REGISTRATION_COMPLETED_METADATA_KEY = 'patientRegistrationC
 const DEFAULT_PATIENT_AVATAR = '/logo-symbol-only.png';
 const DEFAULT_VISIT_LABEL = 'Belum ada kunjungan';
 const MEDICAL_RECORD_PADDING = 4;
-const WIB_TIME_ZONE = 'Asia/Jakarta';
+const CLINIC_TIME_ZONE = process.env.NEXT_PUBLIC_CLINIC_TIMEZONE || 'Asia/Jakarta';
 const INDONESIAN_MONTHS = [
   'Januari',
   'Februari',
@@ -172,7 +172,7 @@ function parseIsoDate(date: string) {
 
 function getDatePartsInTimeZone(date: Date): DateParts {
   const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: WIB_TIME_ZONE,
+    timeZone: CLINIC_TIME_ZONE,
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',

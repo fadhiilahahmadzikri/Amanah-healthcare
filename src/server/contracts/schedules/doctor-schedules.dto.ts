@@ -376,7 +376,7 @@ export const occupancyShiftSchema = z
   .transform((shift) => {
     const boundaryStartTime = shift.boundaryStartTime || '00:00';
     const boundaryEndTime = shift.boundaryEndTime || '24:00';
-    const timeRange = shift.timeRange || `${boundaryStartTime} - ${boundaryEndTime} WIB`;
+    const timeRange = shift.timeRange || `${boundaryStartTime} - ${boundaryEndTime}`;
     const contextId = shift.contextId || shift.shiftId || shift.shift || 'shift';
     const contextLabel = shift.contextLabel || shift.shiftName || shift.label || 'Shift';
     const totalSlots =
@@ -737,7 +737,7 @@ export const doctorOccupancyOverviewDataSchema = z.object({
   date: z.string(),
   practitionerId: z.string(),
   practitionerName: z.string().optional(),
-  effectiveConsultationDurationMinutes: z.number().optional().default(30),
+  effectiveConsultationDurationMinutes: z.number().optional(),
   roomId: z.string().nullable().optional(),
   roomName: z.string().nullable().optional(),
   isCuti: z.boolean().optional().default(false),
@@ -1074,7 +1074,13 @@ export const scheduleReferenceShiftOptionSchema = z
     canonical_status: z.string().optional(),
     default_start_time: z.string().optional(),
     default_end_time: z.string().optional(),
-    default_quota: z.number().optional()
+    default_quota: z.number().optional(),
+    timeRange: z.string().optional(),
+    startHour: z.number().optional(),
+    endHour: z.number().optional(),
+    totalSlots: z.number().optional(),
+    durationMinutes: z.number().optional(),
+    precisionMinutes: z.number().optional()
   })
   .transform((val) => {
     const code = val.code || val.shift || val.id || '';
@@ -1086,6 +1092,11 @@ export const scheduleReferenceShiftOptionSchema = z
     const shift = val.shift || val.code || '';
     const startTime = val.startTime || val.default_start_time || '00:00';
     const endTime = val.endTime || val.default_end_time || '24:00';
+    const timeRange = val.timeRange || `${startTime} - ${endTime}`;
+    const startHour = val.startHour ?? Number.parseInt(startTime.split(':')[0] || '0', 10);
+    const endHour = val.endHour ?? Number.parseInt(endTime.split(':')[0] || '24', 10);
+    const totalSlots = val.totalSlots ?? val.default_quota ?? 12;
+
     return {
       ...val,
       id,
@@ -1097,7 +1108,11 @@ export const scheduleReferenceShiftOptionSchema = z
       name,
       default_start_time,
       default_end_time,
-      default_quota: val.default_quota ?? 12
+      default_quota: totalSlots,
+      timeRange,
+      startHour,
+      endHour,
+      totalSlots
     };
   });
 export type ScheduleReferenceShiftOption = z.infer<typeof scheduleReferenceShiftOptionSchema>;
@@ -1130,7 +1145,7 @@ export const scheduleReferenceOptionsDataSchema = z
   })
   .transform((val) => {
     const defaultDuration =
-      val.effectiveConsultationDurationMinutes ?? val.default_consultation_duration_minutes ?? 30;
+      val.effectiveConsultationDurationMinutes ?? val.default_consultation_duration_minutes;
     return {
       ...val,
       effectiveConsultationDurationMinutes: defaultDuration,
@@ -1150,7 +1165,26 @@ export const scheduleReferenceOptionsResponseSchema = z.union([
 ]);
 export type ScheduleReferenceOptionsResponse = ScheduleReferenceOptionsData;
 
-// Slot Availability Matrix DTO (Deterministic 12-slot Pre-Rendered Dropdown)
+export const SCHEDULE_SLOT_STATUS = {
+  AVAILABLE: 'AVAILABLE',
+  PAST: 'PAST',
+  OCCUPIED_BY_OTHER: 'OCCUPIED_BY_OTHER',
+  OCCUPIED_BY_SELF: 'OCCUPIED_BY_SELF',
+  CLOSED_LEAVE: 'CLOSED_LEAVE'
+} as const;
+
+export type ScheduleSlotStatus = (typeof SCHEDULE_SLOT_STATUS)[keyof typeof SCHEDULE_SLOT_STATUS];
+
+export const SCHEDULE_SLOT_CONFLICT_TYPE = {
+  TEMPORAL_PAST: 'TEMPORAL_PAST',
+  ROOM_OCCUPIED: 'ROOM_OCCUPIED',
+  PRACTITIONER_OVERLAP: 'PRACTITIONER_OVERLAP',
+  LEAVE: 'LEAVE'
+} as const;
+
+export type ScheduleSlotConflictType =
+  (typeof SCHEDULE_SLOT_CONFLICT_TYPE)[keyof typeof SCHEDULE_SLOT_CONFLICT_TYPE];
+
 export const scheduleSlotConflictSchema = z.object({
   type: z.string(),
   message: z.string().optional(),

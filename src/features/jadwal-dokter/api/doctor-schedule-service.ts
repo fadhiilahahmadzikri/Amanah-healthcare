@@ -1,10 +1,7 @@
 import 'server-only';
 
-import { headers } from 'next/headers';
-import { auth } from '@/lib/auth';
 import { httpClient } from '@/server/http/http-client';
 import { paths } from '@/server/api/paths';
-import { getAccessTokenCookie } from '@/server/auth/token-store';
 import {
   adminDoctorScheduleListResponseSchema,
   adminDoctorScheduleDetailResponseSchema,
@@ -33,21 +30,11 @@ import {
   type UpdateAdminDoctorDurationPayload,
   type AdminDoctorScheduleFilterOptionsResponse,
   type ClinicalPractitionersResponse,
-  adminSessionPatientsResponseSchema,
-  cancelAppointmentResponseSchema,
-  callAppointmentResponseSchema,
-  completeAppointmentResponseSchema,
   scheduleContextsResponseSchema,
   scheduleDaySettingsResponseSchema,
-  type AdminSessionPatientsResponse,
-  type CancelAppointmentPayload,
-  type CancelAppointmentResponse,
-  type CallAppointmentResponse,
-  type CompleteAppointmentResponse,
   type ScheduleContextsResponse,
   type ScheduleDaySettingsPayload,
   type ScheduleDaySettingsResponse,
-  type UpdateAppointmentStatusPayload,
   scheduleProjectionResponseSchema,
   scheduleReferenceOptionsResponseSchema,
   type ScheduleProjectionResponse,
@@ -58,23 +45,16 @@ import {
 import { z } from 'zod';
 import { normalizeDateParam } from '../utils/shift-slot-builder';
 import type { DoctorScheduleDetailParams, DoctorScheduleFilters } from './types';
+import { resolveActiveToken } from './token-resolver';
 
-export async function resolveActiveToken(): Promise<string | null> {
-  let token = await getAccessTokenCookie();
-
-  if (!token) {
-    try {
-      const session = await auth.api.getSession({ headers: await headers() });
-      if (session?.session?.token) {
-        token = session.session.token;
-      }
-    } catch {
-      // Ignore fallback error
-    }
-  }
-
-  return token;
-}
+export { resolveActiveToken };
+export {
+  fetchAdminSessionPatients,
+  cancelAdminAppointment,
+  updateAdminAppointmentStatus,
+  callPatientAppointment,
+  completePatientAppointment
+} from './doctor-appointment-service';
 
 export async function fetchAdminDoctorSchedules(
   filters: DoctorScheduleFilters = {}
@@ -467,105 +447,6 @@ export async function fetchDoctorOccupancyOverview(params: {
       cache: 'no-store'
     }
   );
-  return response;
-}
-
-export async function fetchAdminSessionPatients(
-  doctorId: string,
-  sessionId: string,
-  queryFilters?: { status?: string; search?: string }
-): Promise<AdminSessionPatientsResponse> {
-  const token = await resolveActiveToken();
-  const query: Record<string, unknown> = {
-    status: queryFilters?.status || 'all'
-  };
-  if (queryFilters?.search) {
-    query.search = queryFilters.search;
-  }
-
-  const response = await httpClient.request(
-    paths.doctorSchedules.sessionPatients(doctorId, sessionId),
-    adminSessionPatientsResponseSchema,
-    {
-      method: 'GET',
-      query,
-      tokenOverride: token,
-      cache: 'no-store'
-    }
-  );
-
-  return response;
-}
-
-export async function cancelAdminAppointment(
-  appointmentId: string,
-  payload: CancelAppointmentPayload
-): Promise<CancelAppointmentResponse> {
-  const token = await resolveActiveToken();
-
-  const response = await httpClient.request(
-    paths.appointments.cancel(appointmentId),
-    cancelAppointmentResponseSchema,
-    {
-      method: 'PATCH',
-      body: payload,
-      tokenOverride: token,
-      cache: 'no-store'
-    }
-  );
-
-  return response;
-}
-
-export async function updateAdminAppointmentStatus(
-  appointmentId: string,
-  payload: UpdateAppointmentStatusPayload
-): Promise<unknown> {
-  const token = await resolveActiveToken();
-
-  const response = await httpClient.request(paths.appointments.status(appointmentId), z.any(), {
-    method: 'PATCH',
-    body: payload,
-    tokenOverride: token,
-    cache: 'no-store'
-  });
-
-  return response;
-}
-
-export async function callPatientAppointment(
-  appointmentId: string
-): Promise<CallAppointmentResponse> {
-  const token = await resolveActiveToken();
-
-  const response = await httpClient.request(
-    paths.appointments.call(appointmentId),
-    callAppointmentResponseSchema,
-    {
-      method: 'PATCH',
-      tokenOverride: token,
-      cache: 'no-store'
-    }
-  );
-
-  return response;
-}
-
-export async function completePatientAppointment(
-  appointmentId: string
-): Promise<CompleteAppointmentResponse> {
-  const token = await resolveActiveToken();
-
-  const response = await httpClient.request(
-    paths.appointments.complete(appointmentId),
-    completeAppointmentResponseSchema,
-    {
-      method: 'PATCH',
-      tokenOverride: token,
-      cache: 'no-store'
-    }
-  );
-
   return response;
 }
 

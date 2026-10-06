@@ -29,7 +29,7 @@ export function QueueCallingCard({
     startedAt: callingItem?.actual_started_at || callingItem?.called_at,
     completedAt: callingItem?.actual_completed_at,
     status: callingItem?.status,
-    policyMinutes: callingItem?.estimated_duration_minutes ?? 30
+    policyMinutes: callingItem?.estimated_duration_minutes
   });
 
   if (!callingItem) {
@@ -245,9 +245,9 @@ export function QueueCallingCard({
                 >
                   {timer.formattedDuration}
                 </span>
-                {timer.isOvertime && (
+                {timer.isOvertime && callingItem.estimated_duration_minutes && (
                   <Badge variant='destructive' className='text-[9.5px] px-1.5 py-0 h-4 font-bold'>
-                    Lewat {callingItem.estimated_duration_minutes ?? 30} Mnt
+                    Lewat {callingItem.estimated_duration_minutes} Mnt
                   </Badge>
                 )}
               </div>

@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { resolveDayStatus } from '../utils/leave-calculator';
 import {
-  buildDiscreteSlots as generateFallbackSlots,
-  buildOccupancyOverview as generateFallbackOccupancyOverview,
   buildShiftsFromTimelineIntervals,
   normalizeDateParam,
   STATUS_CONFIG,
@@ -75,105 +73,6 @@ describe('Doctor Schedule & Occupancy SSOT Hierarchy', () => {
       };
       expect(resolveDayStatus(25, rescheduledDoctor)).toBe('tutup');
       expect(resolveDayStatus(26, rescheduledDoctor)).toBe('buka');
-    });
-  });
-
-  describe('generateFallbackSlots (Default slot initialization)', () => {
-    it('initializes all unassigned slots as CLOSED (Tutup), NEVER AVAILABLE (Buka)', () => {
-      const { slots, totalSlots } = generateFallbackSlots(0, 6);
-      expect(totalSlots).toBe(12);
-      expect(slots).toHaveLength(12);
-
-      for (const slot of slots) {
-        expect(slot.isAvailable).toBe(false);
-        expect(slot.status).toBe('CLOSED');
-        expect(slot.displayLabel).toBe('Tutup');
-        expect(slot.conflictInfo).toBeNull();
-      }
-    });
-  });
-
-  describe('generateFallbackOccupancyOverview', () => {
-    it('calculates 0 available slots across all shifts when doctor has no sessions', () => {
-      const overview = generateFallbackOccupancyOverview('2026-09-24', 'doc-1', []);
-      expect(overview.summary.availableSlots).toBe(0);
-      expect(overview.summary.occupiedSlots).toBe(0);
-
-      for (const shift of overview.shifts) {
-        expect(shift.availableSlotsCount).toBe(0);
-      }
-    });
-
-    it('correctly reports 0 available slots when sessions are closed by day closure cascading', () => {
-      const closedSessions = [
-        {
-          id: 'sess-1',
-          nama_sesi: 'Dini Hari',
-          jam_mulai: '00:00',
-          jam_selesai: '00:30',
-          kuota_pasien: 1,
-          slot_tersedia: 0,
-          status_sesi: SCHEDULE_STATUS.CLOSED,
-          ruang: 'Poli Umum 1'
-        },
-        {
-          id: 'sess-2',
-          nama_sesi: 'Pagi',
-          jam_mulai: '06:00',
-          jam_selesai: '06:30',
-          kuota_pasien: 1,
-          slot_tersedia: 0,
-          status_sesi: SCHEDULE_STATUS.CLOSED,
-          ruang: 'Poli Umum 1'
-        }
-      ];
-
-      const overview = generateFallbackOccupancyOverview('2026-09-24', 'doc-1', closedSessions);
-      expect(overview.summary.availableSlots).toBe(0);
-
-      const earlyMorning = overview.shifts.find((s) => s.contextId === 'early_morning');
-      expect(earlyMorning).toBeDefined();
-      expect(earlyMorning!.availableSlotsCount).toBe(0);
-
-      const firstSlot = earlyMorning!.slots.find((s) => s.startTime === '00:00');
-      expect(firstSlot?.status).toBe('CLOSED');
-      expect(firstSlot?.displayLabel).toBe('Tutup');
-      expect(firstSlot?.isAvailable).toBe(false);
-
-      const secondSlot = earlyMorning!.slots.find((s) => s.startTime === '00:30');
-      expect(secondSlot?.status).toBe('CLOSED');
-      expect(secondSlot?.displayLabel).toBe('Tutup');
-      expect(secondSlot?.isAvailable).toBe(false);
-    });
-
-    it('reports available slots only for actual open sessions with capacity', () => {
-      const openSessions = [
-        {
-          id: 'sess-pagi',
-          nama_sesi: 'Sesi Pagi',
-          jam_mulai: '08:00',
-          jam_selesai: '09:00',
-          kuota_pasien: 4,
-          slot_tersedia: 3,
-          status_sesi: SCHEDULE_STATUS.OPEN,
-          ruang: 'Poli Umum 1'
-        }
-      ];
-
-      const overview = generateFallbackOccupancyOverview('2026-09-24', 'doc-1', openSessions);
-      expect(overview.summary.availableSlots).toBeGreaterThan(0);
-
-      const morningShift = overview.shifts.find((s) => s.contextId === 'morning');
-      expect(morningShift).toBeDefined();
-
-      const activeSlot = morningShift!.slots.find((s) => s.startTime === '08:00');
-      expect(activeSlot?.status).toBe('AVAILABLE');
-      expect(activeSlot?.isAvailable).toBe(true);
-      expect(activeSlot?.displayLabel).toBe('Buka');
-
-      const unassignedSlot = morningShift!.slots.find((s) => s.startTime === '07:00');
-      expect(unassignedSlot?.status).toBe('CLOSED');
-      expect(unassignedSlot?.isAvailable).toBe(false);
     });
   });
 

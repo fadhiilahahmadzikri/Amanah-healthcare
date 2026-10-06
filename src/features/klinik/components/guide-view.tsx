@@ -180,7 +180,7 @@ const GUIDE_DATA: GuideStepItem[] = [
         text: 'Anda juga dapat menekan salah satu tombol pilihan cepat (seperti Jadwal Dokter Hari Ini atau Pendaftaran BPJS) untuk mendapatkan informasi otomatis.'
       }
     ],
-    note: 'Layanan percakapan online aktif setiap hari kerja pada jam operasional klinik (08.00 - 17.00 WIB).'
+    note: 'Layanan percakapan online aktif setiap hari kerja pada jam operasional klinik.'
   },
   {
     id: 'step-7',
@@ -237,7 +237,6 @@ export function GuideView() {
     });
   }, [activeTab, searchQuery]);
 
-  // ScrollSpy with IntersectionObserver to activate glyph on scroll
   useEffect(() => {
     const handleScroll = () => {
       const stepElements = filteredSteps.map((step) => ({
@@ -278,9 +277,7 @@ export function GuideView() {
       scrollable
     >
       <div className='flex flex-col flex-1 w-full space-y-6 font-sans select-none pb-16'>
-        {/* 1. Direct Search & Category Filter (No Redundant Wrapper) */}
         <div className='space-y-3.5'>
-          {/* Search Box */}
           <div className='relative w-full max-w-xl'>
             <Icons.search className='size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground' />
             <Input
@@ -292,7 +289,6 @@ export function GuideView() {
             />
           </div>
 
-          {/* Category Tabs */}
           <div className='flex items-center gap-1.5 overflow-x-auto no-scrollbar'>
             {CATEGORY_TABS.map((tab) => {
               const isActive = activeTab === tab;

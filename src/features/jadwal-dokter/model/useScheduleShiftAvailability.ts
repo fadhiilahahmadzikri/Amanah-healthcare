@@ -1,7 +1,5 @@
 import { useMemo } from 'react';
 import {
-  ALL_SCHEDULE_SHIFTS,
-  SCHEDULE_SHIFT_BOUNDARIES,
   SCHEDULE_UNAVAILABLE_REASONS,
   type ScheduleShift,
   type ScheduleUnavailableReason
@@ -11,6 +9,7 @@ import {
   parseTimeToMinutes
 } from '../utils/schedule-availability-guard';
 import type { DoctorDailySession } from '../api/types';
+import type { ScheduleReferenceShiftOption } from '@/server/contracts/schedules/doctor-schedules.dto';
 
 export interface ShiftAvailabilityStatus {
   isUnavailable: boolean;
@@ -29,23 +28,30 @@ export interface UseScheduleShiftAvailabilityParams {
   existingSessions?: DoctorDailySession[];
   consultationDuration?: number;
   occupancyByShift?: Partial<Record<ScheduleShift, ShiftOccupancyData>>;
+  shifts?: ScheduleReferenceShiftOption[];
 }
 
 export function evaluateShiftAvailability({
   selectedDate,
   existingSessions = [],
-  consultationDuration = 30,
-  occupancyByShift
+  consultationDuration,
+  shifts = []
 }: UseScheduleShiftAvailabilityParams): Record<ScheduleShift, ShiftAvailabilityStatus> {
   const result = {} as Record<ScheduleShift, ShiftAvailabilityStatus>;
+  const effectiveDuration = consultationDuration ?? shifts[0]?.durationMinutes ?? 0;
 
-  for (const shift of ALL_SCHEDULE_SHIFTS) {
-    const shiftBounds = SCHEDULE_SHIFT_BOUNDARIES[shift];
-    const shiftStartM = shiftBounds.startHour * 60;
-    const shiftEndM = shiftBounds.endHour * 60;
-    const totalShiftMinutes = shiftEndM - shiftStartM;
+  for (const shiftDef of shifts) {
+    const shift = (shiftDef.shift || shiftDef.id).toUpperCase() as ScheduleShift;
+    const startTime = shiftDef.startTime;
+    const endTime = shiftDef.endTime;
+    const shiftStartM =
+      shiftDef.startHour !== undefined
+        ? shiftDef.startHour * 60
+        : (parseTimeToMinutes(startTime) ?? 0);
+    const shiftEndM =
+      shiftDef.endHour !== undefined ? shiftDef.endHour * 60 : (parseTimeToMinutes(endTime) ?? 0);
+    const totalShiftMinutes = Math.max(0, shiftEndM - shiftStartM);
 
-    // Calculate minutes occupied by doctor's existing sessions within this shift boundary
     let occupiedMinutes = 0;
     for (const session of existingSessions) {
       const sStart = parseTimeToMinutes(session.jam_mulai);
@@ -57,7 +63,8 @@ export function evaluateShiftAvailability({
     }
 
     const remainingMinutes = totalShiftMinutes - occupiedMinutes;
-    const isCompletelyFull = remainingMinutes < consultationDuration;
+    const isCompletelyFull =
+      remainingMinutes <= 0 || (effectiveDuration > 0 && remainingMinutes < effectiveDuration);
 
     const guard = isSessionShiftUnavailable({
       selectedDate,
@@ -65,10 +72,10 @@ export function evaluateShiftAvailability({
       bounds: {
         startMinutes: shiftStartM,
         endMinutes: shiftEndM,
-        defaultStart: shiftBounds.startTime,
-        defaultEnd: shiftBounds.endTime
+        defaultStart: startTime,
+        defaultEnd: endTime
       },
-      consultationDuration
+      consultationDuration: effectiveDuration
     });
 
     let isUnavailable = guard.unavailable;
@@ -104,15 +111,17 @@ export function evaluateShiftAvailability({
 export function useScheduleShiftAvailability({
   selectedDate,
   existingSessions = [],
-  consultationDuration = 30
+  consultationDuration,
+  shifts = []
 }: UseScheduleShiftAvailabilityParams): Record<ScheduleShift, ShiftAvailabilityStatus> {
   return useMemo(
     () =>
       evaluateShiftAvailability({
         selectedDate,
         existingSessions,
-        consultationDuration
+        consultationDuration,
+        shifts
       }),
-    [selectedDate, existingSessions, consultationDuration]
+    [selectedDate, existingSessions, consultationDuration, shifts]
   );
 }

@@ -19,11 +19,13 @@ import { DOCTOR_DIALOG_TYPE, WIZARD_STEP } from '../constants/doctor-dialog.cons
 import {
   ALL_SCHEDULE_SHIFTS,
   SCHEDULE_SHIFT_LABELS,
-  SCHEDULE_SHIFT_BOUNDARIES
+  SCHEDULE_SLOT_STATUS
 } from '../constants/schedule-shift.constants';
+import { useScheduleReferenceOptions } from '../hooks/useScheduleReferenceOptions';
 import { StepRoomSelect } from './add-session/step-room-select';
 import { StepConfirmation } from './add-session/step-confirmation';
-import { DoctorGridSlotItem, type GridSlotData } from './grid/doctor-grid-slot-item';
+import { DoctorGridSlotItem } from './grid/doctor-grid-slot-item';
+import { mapScheduleSlotToGridSlot } from '../utils/map-schedule-slot';
 
 export type { AddSessionStep };
 export type ReturnDoctorContext = DoctorConflictReturnContext;
@@ -140,7 +142,11 @@ export function DoctorAddSessionModal({
     [doctor, onClose, onViewDoctorSchedule, selectedDate, selectedSlot, setParams, conflictNav]
   );
 
-  const shiftBounds = SCHEDULE_SHIFT_BOUNDARIES[selectedShift];
+  const { getShiftBounds } = useScheduleReferenceOptions();
+  const shiftBounds = getShiftBounds(selectedShift);
+  const shiftTimeRange =
+    shiftBounds?.timeRange ||
+    (shiftBounds ? `${shiftBounds.startTime} - ${shiftBounds.endTime}` : '');
 
   const stepMeta = useMemo(() => {
     const docName = doctor?.nama_dokter ? `dokter ${doctor.nama_dokter}` : 'dokter';
@@ -155,13 +161,13 @@ export function DoctorAddSessionModal({
           title: 'Pilih Ruangan Praktik',
           subtitle:
             isDirectSlotMode && selectedSlot
-              ? `Tentukan ruangan poliklinik untuk jadwal ${selectedSlot.time} - ${selectedSlot.endTime} WIB.`
+              ? `Tentukan ruangan poliklinik untuk jadwal ${selectedSlot.time} - ${selectedSlot.endTime}.`
               : `Tentukan ruangan poliklinik tempat ${docName} akan bertugas.`
         };
       case 'slot':
         return {
           title: 'Pilih Jam Praktik',
-          subtitle: `Pilih jam praktik dokter pada rentang ${shiftBounds.timeRange}.`
+          subtitle: `Pilih jam praktik dokter pada rentang ${shiftTimeRange}.`
         };
       case 'confirmation':
         return {
@@ -169,7 +175,7 @@ export function DoctorAddSessionModal({
           subtitle: `Periksa kembali rincian sesi ${docName} sebelum menyimpan jadwal.`
         };
     }
-  }, [step, doctor?.nama_dokter, isDirectSlotMode, selectedSlot, shiftBounds.timeRange]);
+  }, [step, doctor?.nama_dokter, isDirectSlotMode, selectedSlot, shiftTimeRange]);
 
   if (!doctor) return null;
 
@@ -265,7 +271,6 @@ export function DoctorAddSessionModal({
                 })}
               </div>
 
-              {/* Grid of Slots */}
               {isLoadingSlots && availableSlots.length === 0 ? (
                 <div className='grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-[42vh] overflow-y-auto pr-1'>
                   {Array.from({ length: 8 }).map((_, i) => (
@@ -284,39 +289,9 @@ export function DoctorAddSessionModal({
                 <div className='grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-[42vh] overflow-y-auto pr-1'>
                   {availableSlots.map((rawSlot) => {
                     const isSelected = selectedSlot?.time === rawSlot.time;
-                    const isPurpleConflict = rawSlot.status === 'OCCUPIED_BY_OTHER';
-                    const isClickable = rawSlot.isAvailable || isPurpleConflict;
-
-                    const occupancySlot: GridSlotData = {
-                      slotIndex: rawSlot.slotIndex,
-                      startTime: rawSlot.time,
-                      endTime: rawSlot.endTime,
-                      status: rawSlot.isAvailable
-                        ? 'AVAILABLE'
-                        : isPurpleConflict
-                          ? 'OCCUPIED_BY_OTHER'
-                          : rawSlot.status || 'CLOSED',
-                      isAvailable: rawSlot.isAvailable,
-                      displayLabel:
-                        rawSlot.displayLabel || (rawSlot.isAvailable ? 'Tersedia' : 'Terisi'),
-                      isClickable,
-                      uiVariant: rawSlot.isAvailable
-                        ? 'available'
-                        : isPurpleConflict
-                          ? 'purple_other'
-                          : 'neutral_disabled',
-                      uiStatus: rawSlot.isAvailable
-                        ? 'AVAILABLE'
-                        : isPurpleConflict
-                          ? 'OCCUPIED_BY_OTHER'
-                          : 'CLOSED',
-                      conflictInfo: rawSlot.conflict
-                        ? {
-                            type: rawSlot.conflict.type,
-                            occupantName: rawSlot.conflict.occupantName ?? undefined
-                          }
-                        : null
-                    };
+                    const isPurpleConflict =
+                      rawSlot.status === SCHEDULE_SLOT_STATUS.OCCUPIED_BY_OTHER;
+                    const occupancySlot = mapScheduleSlotToGridSlot(rawSlot);
 
                     return (
                       <DoctorGridSlotItem
@@ -324,15 +299,14 @@ export function DoctorAddSessionModal({
                         slot={occupancySlot}
                         isFinished={false}
                         isNow={false}
-                        isClickable={isClickable}
+                        isClickable={occupancySlot.isClickable}
                         isSelected={isSelected}
                         onSlotClick={() => {
                           if (rawSlot.isAvailable) {
                             setSelectedSlot({ time: rawSlot.time, endTime: rawSlot.endTime });
                           } else if (isPurpleConflict) {
                             const occupantId =
-                              rawSlot.conflict?.practitionerId ||
-                              rawSlot.conflict?.staffId;
+                              rawSlot.conflict?.practitionerId || rawSlot.conflict?.staffId;
                             if (occupantId) {
                               handleViewOccupantDoctorSchedule(occupantId, rawSlot.time);
                             }
@@ -344,12 +318,11 @@ export function DoctorAddSessionModal({
                 </div>
               )}
 
-              {/* Selected Slot Information Display */}
               {selectedSlot && (
                 <div className='flex items-center justify-between p-2.5 rounded-xl border border-primary/30 bg-primary/5 text-xs'>
                   <span className='font-semibold text-foreground'>Slot Terpilih:</span>
                   <span className='font-mono font-bold text-primary'>
-                    {selectedSlot.time} - {selectedSlot.endTime} WIB
+                    {selectedSlot.time} - {selectedSlot.endTime}
                   </span>
                 </div>
               )}

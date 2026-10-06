@@ -35,10 +35,7 @@ export function formatConsultationSummary(elapsedSeconds: number): string {
   return `${mins} Menit`;
 }
 
-export function isConsultationOvertime(
-  elapsedSeconds: number,
-  policyMinutes: number = 30
-): boolean {
-  if (elapsedSeconds <= 0 || policyMinutes <= 0) return false;
+export function isConsultationOvertime(elapsedSeconds: number, policyMinutes?: number): boolean {
+  if (elapsedSeconds <= 0 || !policyMinutes || policyMinutes <= 0) return false;
   return elapsedSeconds > policyMinutes * 60;
 }

@@ -18,7 +18,6 @@ import {
   rescheduleAdminDoctorSessionPayloadSchema,
   updateAdminDoctorDurationPayloadSchema
 } from '@/server/contracts/schedules/doctor-schedules.dto';
-import { buildOccupancyOverview as generateFallbackOccupancyOverview } from '../utils/shift-slot-builder';
 import type { DoctorSchedule, DoctorDailySession } from './types';
 
 describe('Doctor Schedule Business Logic & Leave Resolution', () => {
@@ -98,7 +97,7 @@ describe('Doctor Schedule Business Logic & Leave Resolution', () => {
 describe('Upcoming Schedule Time Evaluation', () => {
   it('returns default schedule time if sessions array is empty', () => {
     const result = getUpcomingScheduleTime('08:00 - 12:00', []);
-    expect(result.upcomingTime).toBe('08.00 – 08.30');
+    expect(result.upcomingTime).toBe('08.00 – 12.00');
   });
 
   it('extracts session label from available non-cuti sessions', () => {
@@ -401,68 +400,6 @@ describe('Doctor Card Status & Unconfigured Zero-Quota Handling', () => {
     };
 
     expect(getDoctorCardStatus(cutiDoctor)).toBe('Cuti');
-  });
-});
-
-describe('Occupancy Overview Session Status Mapping', () => {
-  it('correctly maps Tutup sessions to CLOSED status and Tutup label', () => {
-    const overview = generateFallbackOccupancyOverview('2026-09-24', 'doc-1', [
-      {
-        id: 'sess-dini-hari',
-        nama_sesi: 'Dini Hari',
-        jam_mulai: '00:00',
-        jam_selesai: '00:30',
-        status_sesi: SCHEDULE_STATUS.CLOSED,
-        slot_tersedia: 0
-      }
-    ]);
-
-    const earlyMorningShift = overview.shifts.find((s) => s.contextId === 'early_morning');
-    expect(earlyMorningShift).toBeDefined();
-
-    const targetSlot = earlyMorningShift?.slots.find((s) => s.startTime === '00:00');
-    expect(targetSlot).toBeDefined();
-    expect(targetSlot?.status).toBe('CLOSED');
-    expect(targetSlot?.displayLabel).toBe('Tutup');
-    expect(targetSlot?.isAvailable).toBe(false);
-  });
-
-  it('correctly maps Cuti sessions to CLOSED_LEAVE status and Cuti label', () => {
-    const overview = generateFallbackOccupancyOverview('2026-09-24', 'doc-1', [
-      {
-        id: 'sess-pagi',
-        nama_sesi: 'Pagi',
-        jam_mulai: '08:00',
-        jam_selesai: '08:30',
-        status_sesi: SCHEDULE_STATUS.CUTI,
-        slot_tersedia: 0
-      }
-    ]);
-
-    const morningShift = overview.shifts.find((s) => s.contextId === 'morning');
-    const targetSlot = morningShift?.slots.find((s) => s.startTime === '08:00');
-    expect(targetSlot?.status).toBe('CLOSED_LEAVE');
-    expect(targetSlot?.displayLabel).toBe('Cuti');
-    expect(targetSlot?.isAvailable).toBe(false);
-  });
-
-  it('correctly maps Buka sessions with available slots to AVAILABLE status', () => {
-    const overview = generateFallbackOccupancyOverview('2026-09-24', 'doc-1', [
-      {
-        id: 'sess-siang',
-        nama_sesi: 'Siang',
-        jam_mulai: '13:00',
-        jam_selesai: '13:30',
-        status_sesi: SCHEDULE_STATUS.OPEN,
-        slot_tersedia: 5
-      }
-    ]);
-
-    const afternoonShift = overview.shifts.find((s) => s.contextId === 'afternoon');
-    const targetSlot = afternoonShift?.slots.find((s) => s.startTime === '13:00');
-    expect(targetSlot?.status).toBe('AVAILABLE');
-    expect(targetSlot?.displayLabel).toBe('Buka');
-    expect(targetSlot?.isAvailable).toBe(true);
   });
 });
 

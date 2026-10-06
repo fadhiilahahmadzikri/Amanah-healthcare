@@ -14,7 +14,8 @@ import type {
   ScheduleContextsResponse,
   ScheduleProjectionResponse,
   ScheduleSlotAvailabilityResponse,
-  DoctorOccupancyOverviewResponse
+  DoctorOccupancyOverviewResponse,
+  ScheduleReferenceOptionsData
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 
 /** Minimal shape returned by endpoints that include a human-readable message in their body. */
@@ -240,8 +241,14 @@ export async function getScheduleProjection(
   return res as ScheduleProjectionResponse;
 }
 
-export async function getScheduleReferenceOptions(): Promise<unknown> {
-  return await clientFetch('/api/v1/admin/doctor-schedules/reference-options');
+export async function getScheduleReferenceOptions(): Promise<ScheduleReferenceOptionsData> {
+  const res = await clientFetch<
+    ScheduleReferenceOptionsData | { data?: ScheduleReferenceOptionsData }
+  >('/api/v1/admin/doctor-schedules/reference-options');
+  if (res && typeof res === 'object' && 'data' in res && res.data) {
+    return res.data;
+  }
+  return res as ScheduleReferenceOptionsData;
 }
 
 export async function getScheduleContexts(

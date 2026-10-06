@@ -5,6 +5,9 @@ import { toast } from 'sonner';
 import { AppointmentStatusDescriptor } from '@/constants/appointment-status.constants';
 import {
   getDailyQueuesFromApi,
+  getMyQueueFromApi,
+  fetchPoliListFromApi,
+  fetchClinicOperationalHoursFromApi,
   callPatientQueue,
   respondPatientQueue,
   noShowPatientQueue,
@@ -12,13 +15,13 @@ import {
 } from '../api/service';
 import type { QueueItem } from '../api/types';
 import {
-  QUEUE_POLI_LIST,
   buildQueuePoliStats,
   filterWaitingQueues,
   findCurrentCallingQueue,
   paginateQueues,
   type QueuePoliStats
 } from './queueViewModel';
+import { useAuthContext } from '@/lib/rbac/auth-context';
 
 export interface UseQueueViewResult {
   activePoli: string;
@@ -51,7 +54,12 @@ export interface UseQueueViewResult {
 }
 
 export function useQueueView(): UseQueueViewResult {
+  const { role } = useAuthContext();
+  const isPatient = role === 'patient';
+
   const [queues, setQueues] = useState<QueueItem[]>([]);
+  const [poliList, setPoliList] = useState<string[]>([]);
+  const [operationalHours, setOperationalHours] = useState('08:00 - 21:00');
   const [activePoli, setActivePoli] = useState('Poli Umum');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -59,14 +67,37 @@ export function useQueueView(): UseQueueViewResult {
   const [isLoading, setIsLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
 
-  const refreshQueues = useCallback(async () => {
-    const items = await getDailyQueuesFromApi();
-    setQueues(items);
+  useEffect(() => {
+    let isMounted = true;
+    Promise.all([fetchPoliListFromApi(), fetchClinicOperationalHoursFromApi()])
+      .then(([polis, hours]) => {
+        if (!isMounted) return;
+        if (polis.length > 0) {
+          setPoliList(polis);
+          setActivePoli((prev) => (polis.includes(prev) ? prev : polis[0]));
+        }
+        if (hours) {
+          setOperationalHours(hours);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load clinic reference data:', err);
+      });
+    return () => {
+      isMounted = false;
+    };
   }, []);
+
+  const refreshQueues = useCallback(async () => {
+    const fetcher = isPatient ? getMyQueueFromApi : getDailyQueuesFromApi;
+    const items = await fetcher();
+    setQueues(items);
+  }, [isPatient]);
 
   useEffect(() => {
     let isMounted = true;
-    getDailyQueuesFromApi()
+    const fetcher = isPatient ? getMyQueueFromApi : getDailyQueuesFromApi;
+    fetcher()
       .then((items) => {
         if (isMounted) {
           setQueues(items);
@@ -80,7 +111,7 @@ export function useQueueView(): UseQueueViewResult {
     return () => {
       isMounted = false;
     };
-  }, [activePoli]);
+  }, [isPatient, activePoli]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -94,7 +125,9 @@ export function useQueueView(): UseQueueViewResult {
         const qNum = String(detail.queueNumber || '');
         const rawStatus = detail.status ? String(detail.status) : undefined;
         const actualStartedAt = detail.actualStartedAt ? String(detail.actualStartedAt) : undefined;
-        const actualCompletedAt = detail.actualCompletedAt ? String(detail.actualCompletedAt) : undefined;
+        const actualCompletedAt = detail.actualCompletedAt
+          ? String(detail.actualCompletedAt)
+          : undefined;
 
         setQueues((prev) =>
           prev.map((item) => {
@@ -113,13 +146,14 @@ export function useQueueView(): UseQueueViewResult {
               ...(nextStatusDesc && { status: nextStatusDesc.queueDisplayStatus }),
               ...(actualStartedAt !== undefined && { actual_started_at: actualStartedAt }),
               ...(actualCompletedAt !== undefined && { actual_completed_at: actualCompletedAt }),
-              ...(nextStatusDesc?.queueDisplayStatus === 'DIPANGGIL' && !item.called_at && {
-                called_at: actualStartedAt || new Date().toISOString(),
-                called_time: new Date().toLocaleTimeString('id-ID', {
-                  hour: '2-digit',
-                  minute: '2-digit'
+              ...(nextStatusDesc?.queueDisplayStatus === 'DIPANGGIL' &&
+                !item.called_at && {
+                  called_at: actualStartedAt || new Date().toISOString(),
+                  called_time: new Date().toLocaleTimeString('id-ID', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })
                 })
-              })
             };
           })
         );
@@ -247,8 +281,8 @@ export function useQueueView(): UseQueueViewResult {
   );
 
   const poliStats = useMemo(
-    () => buildQueuePoliStats(queues, activePoli, waitingList.length),
-    [queues, activePoli, waitingList.length]
+    () => buildQueuePoliStats(queues, activePoli, waitingList.length, operationalHours),
+    [queues, activePoli, waitingList.length, operationalHours]
   );
 
   return {
@@ -264,7 +298,7 @@ export function useQueueView(): UseQueueViewResult {
     waitingList,
     paginatedSeats,
     poliStats,
-    poliList: QUEUE_POLI_LIST,
+    poliList,
     totalItems,
     isActionLoading,
     actions: {

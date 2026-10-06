@@ -1,17 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { isSessionShiftUnavailable, parseTimeToMinutes } from './schedule-availability-guard';
-import {
-  SCHEDULE_SHIFT_BOUNDARIES,
-  SCHEDULE_SHIFT,
-  SCHEDULE_UNAVAILABLE_REASONS
-} from '../constants/schedule-shift.constants';
+import { SCHEDULE_UNAVAILABLE_REASONS } from '../constants/schedule-shift.constants';
 
 describe('schedule-availability-guard', () => {
   const morningBounds = {
-    startMinutes: SCHEDULE_SHIFT_BOUNDARIES[SCHEDULE_SHIFT.PAGI].startHour * 60,
-    endMinutes: SCHEDULE_SHIFT_BOUNDARIES[SCHEDULE_SHIFT.PAGI].endHour * 60,
-    defaultStart: SCHEDULE_SHIFT_BOUNDARIES[SCHEDULE_SHIFT.PAGI].startTime,
-    defaultEnd: SCHEDULE_SHIFT_BOUNDARIES[SCHEDULE_SHIFT.PAGI].endTime
+    startMinutes: 6 * 60,
+    endMinutes: 12 * 60,
+    defaultStart: '06:00',
+    defaultEnd: '12:00'
   };
 
   it('parses valid time strings to minutes', () => {
@@ -66,7 +62,6 @@ describe('schedule-availability-guard', () => {
   });
 
   it('locks shift on today when current time exceeds shift boundary', () => {
-    // Current time: 13:00 (780 min), Morning end: 12:00 (720 min)
     const today = new Date('2026-09-25T13:00:00');
 
     const result = isSessionShiftUnavailable({
@@ -80,7 +75,6 @@ describe('schedule-availability-guard', () => {
   });
 
   it('locks shift on today when remaining shift time is less than consultation duration', () => {
-    // Morning end: 12:00 (720 min), Current time: 11:45 (705 min), remaining = 15m < 30m
     const today = new Date('2026-09-25T11:45:00');
 
     const result = isSessionShiftUnavailable({
@@ -95,7 +89,6 @@ describe('schedule-availability-guard', () => {
   });
 
   it('locks shift on today when all remaining future slots are occupied or past', () => {
-    // Morning end: 12:00, Current time: 10:00
     const today = new Date('2026-09-25T10:00:00');
 
     const result = isSessionShiftUnavailable({
@@ -103,12 +96,12 @@ describe('schedule-availability-guard', () => {
       bounds: morningBounds,
       occupancy: {
         totalSlots: 12,
-        availableSlotsCount: 1, // 1 slot available in the past
+        availableSlotsCount: 1,
         slots: [
-          { startTime: '08:00', isAvailable: true }, // past
-          { startTime: '10:00', isAvailable: false }, // occupied
-          { startTime: '10:30', isAvailable: false }, // occupied
-          { startTime: '11:00', isAvailable: false } // occupied
+          { startTime: '08:00', isAvailable: true },
+          { startTime: '10:00', isAvailable: false },
+          { startTime: '10:30', isAvailable: false },
+          { startTime: '11:00', isAvailable: false }
         ]
       },
       consultationDuration: 30,
@@ -120,7 +113,6 @@ describe('schedule-availability-guard', () => {
   });
 
   it('enables shift when future slots are available', () => {
-    // Current time: 07:00, morning shift starting 08:00 has available slots
     const today = new Date('2026-09-25T07:00:00');
 
     const result = isSessionShiftUnavailable({

@@ -42,11 +42,6 @@ export interface AvailabilityGuardResult {
   reason: ScheduleUnavailableReason | null;
 }
 
-/**
- * Parent Switch Observer Guard
- * Standardized with Mobile Flutter & Backend Delegation Specification (CHG-20260925-SCHED-003)
- * Pure function with zero magic strings and zero client guessing.
- */
 export function isSessionShiftUnavailable({
   sessionId: _sessionId,
   selectedDate,
@@ -88,42 +83,34 @@ export function isSessionShiftUnavailable({
   const isBeforeToday = targetDateOnly.getTime() < nowDateOnly.getTime();
   const isToday = targetDateOnly.getTime() === nowDateOnly.getTime();
 
-  // 1. Shift is in the past by calendar date or backend flag
   if (isBeforeToday || isPastFromBackend) {
     return { unavailable: true, reason: SCHEDULE_UNAVAILABLE_REASONS.PAST };
   }
 
-  // Pengecualian: Mode Edit Jadwal Sendiri (tetap aktif jika bukan tanggal lampau)
   if (isEditingThisSession) {
     return { unavailable: false, reason: null };
   }
 
-  // 1c. Jika seluruh ruangan praktik sudah terisi penuh
   if (allRoomsOccupied) {
     return { unavailable: true, reason: SCHEDULE_UNAVAILABLE_REASONS.FULL };
   }
 
-  // 2. Sumbu Waktu: Evaluasi pada hari ini
   if (isToday) {
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-    // 2a. Batas jam shift sudah berakhir hari ini
     if (currentMinutes >= bounds.endMinutes) {
       return { unavailable: true, reason: SCHEDULE_UNAVAILABLE_REASONS.PAST };
     }
 
-    // 2b. Sisa waktu shift kurang dari durasi minimal konsultasi pasien
     if (consultationDuration > 0 && bounds.endMinutes - currentMinutes < consultationDuration) {
       return { unavailable: true, reason: SCHEDULE_UNAVAILABLE_REASONS.TIME_EXHAUSTED };
     }
   }
 
-  // 3. Sumbu Okupansi: Kuota shift penuh di seluruh ruangan (availableSlotsCount == 0)
   if (occupancy && occupancy.totalSlots > 0 && occupancy.availableSlotsCount === 0) {
     return { unavailable: true, reason: SCHEDULE_UNAVAILABLE_REASONS.FULL };
   }
 
-  // 4. Sumbu Okupansi: Seluruh slot masa depan hari ini telah terisi dokter lain / lampau
   if (isToday && occupancy?.slots && occupancy.slots.length > 0) {
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
     const hasFutureAvailable = occupancy.slots.some((s) => {

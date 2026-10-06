@@ -4,13 +4,15 @@ import React, { useMemo } from 'react';
 import { Icons } from '@/components/icons';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
-import { DoctorGridSlotItem, type GridSlotData } from '../grid/doctor-grid-slot-item';
+import { DoctorGridSlotItem } from '../grid/doctor-grid-slot-item';
 import {
   SCHEDULE_SHIFT_LABELS,
-  SCHEDULE_SHIFT_BOUNDARIES,
+  SCHEDULE_SLOT_STATUS,
   type ScheduleShift
 } from '../../constants/schedule-shift.constants';
 import type { ScheduleSlotAvailabilityResponse } from '@/server/contracts/schedules/doctor-schedules.dto';
+import { useScheduleReferenceOptions } from '../../hooks/useScheduleReferenceOptions';
+import { mapScheduleSlotToGridSlot } from '../../utils/map-schedule-slot';
 
 export interface StepSlotGridProps {
   selectedShift: ScheduleShift;
@@ -33,22 +35,18 @@ export function StepSlotGrid({
   showHeader = true,
   onViewDoctorSchedule
 }: StepSlotGridProps) {
-  const shiftBounds = SCHEDULE_SHIFT_BOUNDARIES[selectedShift];
+  const { getShiftBounds } = useScheduleReferenceOptions();
+  const shiftBounds = getShiftBounds(selectedShift);
+  const timeRange =
+    shiftBounds?.timeRange ||
+    (shiftBounds ? `${shiftBounds.startTime} - ${shiftBounds.endTime}` : '');
 
-  // Filter only forward / active / available slots (exclude PAST and already completed slots)
-  const availableSlots = useMemo(() => {
-    if (!slotAvailability?.slots) return [];
-    return slotAvailability.slots.filter((s) => {
-      // Exclude past/expired slots
-      if (s.status === 'PAST' || s.status === 'EXPIRED') return false;
-      if (s.conflict?.type === 'TEMPORAL_PAST') return false;
-      return true;
-    });
+  const slots = useMemo(() => {
+    return slotAvailability?.slots || [];
   }, [slotAvailability?.slots]);
 
   return (
     <div className='space-y-4 font-sans select-none'>
-      {/* Title & Shift Context */}
       {showHeader && (
         <div className='flex items-start justify-between gap-2 pb-2 border-b border-border/30'>
           <div>
@@ -56,24 +54,24 @@ export function StepSlotGrid({
               Pilih Jam Praktik {SCHEDULE_SHIFT_LABELS[selectedShift]}
             </h4>
             <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
-              Pilih jam mulai dan selesai {doctorName ? `dokter ${doctorName}` : 'dokter'} pada rentang {shiftBounds.timeRange}.
+              Pilih jam mulai dan selesai {doctorName ? `dokter ${doctorName}` : 'dokter'} pada
+              rentang {timeRange}.
             </p>
           </div>
           <div className='flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border/50 bg-muted/20 text-xs font-mono font-medium text-foreground shrink-0'>
             <Icons.clock className='size-3 text-muted-foreground' />
-            <span>{shiftBounds.timeRange}</span>
+            <span>{timeRange}</span>
           </div>
         </div>
       )}
 
-      {/* Grid of Slots */}
-      {isLoadingSlots && availableSlots.length === 0 ? (
+      {isLoadingSlots && slots.length === 0 ? (
         <div className='grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-[46vh] overflow-y-auto pr-1'>
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className='h-[76px] w-full rounded-xl' />
           ))}
         </div>
-      ) : availableSlots.length === 0 ? (
+      ) : slots.length === 0 ? (
         <EmptyState
           animated
           title='Tidak Ada Slot Jam Aktif'
@@ -83,42 +81,10 @@ export function StepSlotGrid({
         />
       ) : (
         <div className='grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-[46vh] overflow-y-auto pr-1'>
-          {availableSlots.map((rawSlot) => {
+          {slots.map((rawSlot) => {
             const isSelected = selectedSlot?.time === rawSlot.time;
-            const isPurpleConflict = rawSlot.status === 'OCCUPIED_BY_OTHER';
-            const isSlotClickable = rawSlot.isAvailable || isPurpleConflict;
-
-            // Map ScheduleSlotAvailabilityItem into GridSlotData shape for DoctorGridSlotItem
-            const occupancySlot: GridSlotData = {
-              slotIndex: rawSlot.slotIndex,
-              startTime: rawSlot.time,
-              endTime: rawSlot.endTime,
-              status: rawSlot.isAvailable
-                ? 'AVAILABLE'
-                : isPurpleConflict
-                  ? 'OCCUPIED_BY_OTHER'
-                  : rawSlot.status || 'CLOSED',
-              isAvailable: rawSlot.isAvailable,
-              displayLabel:
-                rawSlot.displayLabel || (rawSlot.isAvailable ? 'Tersedia' : 'Terisi'),
-              isClickable: isSlotClickable,
-              uiVariant: rawSlot.isAvailable
-                ? 'available'
-                : isPurpleConflict
-                  ? 'purple_other'
-                  : 'neutral_disabled',
-              uiStatus: rawSlot.isAvailable
-                ? 'AVAILABLE'
-                : isPurpleConflict
-                  ? 'OCCUPIED_BY_OTHER'
-                  : 'CLOSED',
-              conflictInfo: rawSlot.conflict
-                ? {
-                    type: rawSlot.conflict.type,
-                    occupantName: rawSlot.conflict.occupantName ?? undefined
-                  }
-                : null
-            };
+            const isPurpleConflict = rawSlot.status === SCHEDULE_SLOT_STATUS.OCCUPIED_BY_OTHER;
+            const occupancySlot = mapScheduleSlotToGridSlot(rawSlot);
 
             return (
               <DoctorGridSlotItem
@@ -126,7 +92,7 @@ export function StepSlotGrid({
                 slot={occupancySlot}
                 isFinished={false}
                 isNow={false}
-                isClickable={isSlotClickable}
+                isClickable={occupancySlot.isClickable}
                 isSelected={isSelected}
                 onSlotClick={() => {
                   if (rawSlot.isAvailable) {
@@ -149,7 +115,7 @@ export function StepSlotGrid({
         <div className='flex items-center justify-between p-3 rounded-xl border border-primary/30 bg-primary/5 text-xs'>
           <span className='font-semibold text-foreground'>Slot Terpilih:</span>
           <span className='font-mono font-bold text-primary'>
-            {selectedSlot.time} - {selectedSlot.endTime} WIB
+            {selectedSlot.time} - {selectedSlot.endTime}
           </span>
         </div>
       )}

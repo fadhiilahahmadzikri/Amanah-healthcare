@@ -54,16 +54,15 @@ export function QueueTicketCard({
   className,
   style
 }: QueueTicketCardProps) {
-  // Extract start hour or session info cleanly
   const displayTime = useMemo(() => {
     if (!timeSlot) return '-';
     const timeMatch = timeSlot.match(/(\d{1,2}[:.]\d{2})/);
     const sessionMatch = timeSlot.match(/Sesi\s+[A-Za-z]+/i);
     if (sessionMatch && timeMatch) {
-      return `${sessionMatch[0]} (${timeMatch[1].replace('.', ':')} WIB)`;
+      return `${sessionMatch[0]} (${timeMatch[1].replace('.', ':')})`;
     }
     const startPart = timeSlot.split('-')[0].trim().replace(/wib/i, '').trim();
-    return startPart ? `${startPart} WIB` : timeSlot;
+    return startPart || timeSlot;
   }, [timeSlot]);
 
   const cardWrapperRef = useRef<HTMLDivElement>(null);

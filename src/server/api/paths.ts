@@ -74,6 +74,7 @@ export const paths = {
     adminCancel: (appointmentId: string) =>
       `${getBaseApiUrl()}/api/v1/admin/appointments/${appointmentId}/cancel`,
     queueDaily: () => `${getBaseApiUrl()}/api/v1/appointments/queue/daily`,
+    queueMy: () => `${getBaseApiUrl()}/api/v1/appointments/queue/my`,
     queueDisplay: () => `${getBaseApiUrl()}/api/v1/appointments/queue/display`,
     status: (appointmentId: string) =>
       `${getBaseApiUrl()}/api/v1/admin/appointments/${appointmentId}/status`
@@ -81,6 +82,7 @@ export const paths = {
   schedules: {
     slotAvailability: () => `${getBaseApiUrl()}/api/v1/schedules/slot-availability`,
     referenceOptions: () => `${getBaseApiUrl()}/api/v1/schedules/reference/options`,
+    referenceSessions: () => `${getBaseApiUrl()}/api/v1/schedules/reference/sessions`,
     referenceRooms: () => `${getBaseApiUrl()}/api/v1/schedules/reference/rooms`,
     referencePolikliniks: () => `${getBaseApiUrl()}/api/v1/schedules/reference/polikliniks`,
     contexts: () => `${getBaseApiUrl()}/api/v1/schedules/contexts`,
@@ -108,5 +110,8 @@ export const paths = {
   },
   clinicalPractitioners: {
     list: () => `${getBaseApiUrl()}/api/v1/clinical/practitioners`
+  },
+  time: {
+    current: () => `${getBaseApiUrl()}/api/v1/time/current`
   }
 } as const;

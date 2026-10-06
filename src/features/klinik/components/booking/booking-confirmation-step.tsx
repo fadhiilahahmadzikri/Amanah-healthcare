@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { Icons } from '@/components/icons';
-import { CONSULTATION_SESSIONS } from '../../constants/consultation-sessions';
 import type { ServiceCatalogItem } from '../../api/catalog.service';
 import type { PatientAffiliationProfile } from '@/features/data-pasien/api/patient-affiliation-service';
 
@@ -27,8 +26,7 @@ export function BookingConfirmationStep({
   serviceName,
   patientName
 }: BookingConfirmationStepProps) {
-  const sessionLabel =
-    CONSULTATION_SESSIONS.find((s) => s.value === timeSlot)?.label || timeSlot;
+  const sessionLabel = timeSlot;
   const displayServiceName = serviceName || selectedService?.name || 'Poliklinik';
   const displayPatientName = patientName || selectedPatient?.fullName || 'Pasien';
 
@@ -80,9 +78,7 @@ export function BookingConfirmationStep({
 
       <div className='flex items-center gap-2 p-2.5 rounded-lg bg-muted/60 text-muted-foreground text-xs'>
         <Icons.check className='size-4 text-emerald-600 shrink-0' />
-        <span>
-          Setelah disimpan, tiket nomor antrean resmi klinik akan otomatis diterbitkan.
-        </span>
+        <span>Setelah disimpan, tiket nomor antrean resmi klinik akan otomatis diterbitkan.</span>
       </div>
     </div>
   );

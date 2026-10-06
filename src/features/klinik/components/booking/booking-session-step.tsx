@@ -4,7 +4,7 @@ import React from 'react';
 import { Icons } from '@/components/icons';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CONSULTATION_SESSIONS } from '../../constants/consultation-sessions';
+import { getSessionIcon } from '../../constants/consultation-sessions';
 import type { ServiceCatalogItem } from '../../api/catalog.service';
 import { cn } from '@/lib/utils';
 import { useBookingSessions } from '../../model/useBookingSessions';
@@ -129,8 +129,7 @@ function SessionList({ sessions, timeSlot, onSelectSlot }: SessionListProps) {
         {sessions.map((session) => {
           const isSelected = timeSlot === session.session;
           const isDisabled = session.isDisabled;
-          const sessionConfig = CONSULTATION_SESSIONS.find((c) => c.value === session.session);
-          const SessionIcon = sessionConfig?.icon || Icons.clock;
+          const SessionIcon = getSessionIcon(session.session);
           const primaryPractitioner = session.practitioners?.[0];
 
           return (
@@ -154,8 +153,8 @@ function SessionList({ sessions, timeSlot, onSelectSlot }: SessionListProps) {
                 isDisabled
                   ? 'opacity-50 bg-muted/20 border-dashed border-border cursor-not-allowed'
                   : isSelected
-                  ? 'border-2 border-primary bg-primary/5 shadow-xs cursor-pointer'
-                  : 'border-border bg-card hover:border-primary/40 cursor-pointer'
+                    ? 'border-2 border-primary bg-primary/5 shadow-xs cursor-pointer'
+                    : 'border-border bg-card hover:border-primary/40 cursor-pointer'
               )}
             >
               <div className='flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1'>
@@ -165,8 +164,8 @@ function SessionList({ sessions, timeSlot, onSelectSlot }: SessionListProps) {
                     isDisabled
                       ? 'bg-muted text-muted-foreground'
                       : isSelected
-                      ? 'bg-primary text-primary-foreground shadow-xs'
-                      : 'bg-muted text-muted-foreground'
+                        ? 'bg-primary text-primary-foreground shadow-xs'
+                        : 'bg-muted text-muted-foreground'
                   )}
                 >
                   <SessionIcon className='size-3.5 sm:size-4' />

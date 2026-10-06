@@ -191,7 +191,6 @@ export function DoctorGridShiftSection({
         </div>
       </div>
 
-      {/* X-Axis: Discrete Consultation Slots Grid (Serial 30-menit) */}
       <div className='grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-1.5'>
         {shift.slots.map((slot) => {
           const isFinished = isSlotFinished(slot);

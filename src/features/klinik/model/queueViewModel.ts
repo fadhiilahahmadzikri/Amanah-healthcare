@@ -1,7 +1,4 @@
 import type { QueueItem } from '../api/types';
-import { QUEUE_POLI_LIST, CLINIC_OPERATIONAL_HOURS } from '../constants/queue-policy';
-
-export { QUEUE_POLI_LIST };
 
 export const QUEUE_AUTOPLAY_INTERVAL_MS = 3500;
 
@@ -48,14 +45,15 @@ export function paginateQueues(
 export function buildQueuePoliStats(
   queues: QueueItem[],
   activePoli: string,
-  waitingCount: number
+  waitingCount: number,
+  operationalHours = '08:00 - 21:00'
 ): QueuePoliStats {
   const allInPoli = queues.filter((queue) => queue.poli === activePoli);
 
   return {
     totalToday: `${allInPoli.length} Pasien`,
     timeRemaining: waitingCount > 0 ? `${waitingCount} Antrean Menunggu` : 'Tidak Ada Antrean',
-    operationalHours: CLINIC_OPERATIONAL_HOURS
+    operationalHours
   };
 }
 
@@ -97,10 +95,8 @@ export function advanceQueue(
 }
 
 export function getCurrentQueueCalledTime(): string {
-  return (
-    new Date().toLocaleTimeString('id-ID', {
-      hour: '2-digit',
-      minute: '2-digit'
-    }) + ' WIB'
-  );
+  return new Date().toLocaleTimeString('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 }

@@ -123,7 +123,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
       const startTime = formatTimeString(res.scheduledStartTime);
       const endTime = formatTimeString(res.scheduledEndTime);
       const timeDisplay =
-        startTime && endTime ? `${startTime} - ${endTime} WIB` : res.session || timeSlot;
+        startTime && endTime ? `${startTime} - ${endTime}` : res.session || timeSlot;
 
       const uiApt: Appointment = {
         id: res.id,

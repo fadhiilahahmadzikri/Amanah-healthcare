@@ -166,8 +166,8 @@ describe('DoctorRescheduleSessionModal Wizard & Collision Architecture', () => {
         endTime: '08:30'
       };
 
-      const displayTime = `${slot.startTime} - ${slot.endTime} WIB`;
-      expect(displayTime).toBe('08:00 - 08:30 WIB');
+      const displayTime = `${slot.startTime} - ${slot.endTime}`;
+      expect(displayTime).toBe('08:00 - 08:30');
     });
 
     it('conditionally shows auto-redirect checkbox only when active appointments exist', () => {

@@ -115,7 +115,7 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
       scheduled_end_time: endTimeFormatted || undefined,
       actual_started_at: apt.actualStartedAt ? String(apt.actualStartedAt) : undefined,
       actual_completed_at: apt.actualCompletedAt ? String(apt.actualCompletedAt) : undefined,
-      estimated_duration_minutes: apt.estimatedDurationMinutes ?? 30,
+      estimated_duration_minutes: apt.estimatedDurationMinutes,
       date: apt.appointmentDate,
       time: timeDisplay,
       session: apt.session || undefined,
