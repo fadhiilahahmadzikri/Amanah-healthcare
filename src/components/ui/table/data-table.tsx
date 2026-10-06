@@ -13,6 +13,7 @@ import {
 import { getCommonPinningStyles } from '@/lib/data-table';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { EmptyState } from '@/components/ui/empty-state';
+import { DataTableSkeleton } from './data-table-skeleton';
 
 import { DataTableBulkActions } from './data-table-bulk-actions';
 
@@ -23,6 +24,7 @@ interface DataTableProps<TData> extends React.ComponentProps<'div'> {
   entityName?: string;
   bulkActions?: React.ReactNode;
   emptyState?: React.ReactNode;
+  isLoading?: boolean;
 }
 
 const interactiveRowSelector = [
@@ -44,7 +46,8 @@ export function DataTable<TData>({
   onRowClick,
   entityName,
   bulkActions,
-  emptyState
+  emptyState,
+  isLoading
 }: DataTableProps<TData>) {
   const handleRowClick = (event: React.MouseEvent<HTMLTableRowElement>, row: TData) => {
     if (!onRowClick || event.defaultPrevented || isInteractiveElement(event.target)) return;
@@ -53,6 +56,14 @@ export function DataTable<TData>({
   };
 
   const hasCoreData = (table.getCoreRowModel().rows?.length ?? 0) > 0;
+
+  if (isLoading && !hasCoreData) {
+    return (
+      <div className='flex min-h-0 flex-1 h-full w-full flex-col'>
+        <DataTableSkeleton columnCount={table.getAllColumns().length} />
+      </div>
+    );
+  }
 
   if (!hasCoreData) {
     return (

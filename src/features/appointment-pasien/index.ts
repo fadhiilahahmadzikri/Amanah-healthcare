@@ -1,5 +1,6 @@
 export { default as AppointmentListingPage } from './components/appointment-listing';
 export { AppointmentExportButton } from './components/appointment-export-button';
+export { AppointmentTable, AppointmentTableSkeleton } from './components/appointment-tables';
 export type {
   AdminAppointment,
   AppointmentFilters,

@@ -47,6 +47,41 @@ export type AppointmentFilters = {
   sort?: string;
 };
 
+export type NormalizedAppointmentFilters = {
+  page: number;
+  limit: number;
+  status?: string[];
+  poli?: string[];
+  search?: string;
+  sort?: string;
+};
+
+export function normalizeFilters(raw: Partial<AppointmentFilters>): NormalizedAppointmentFilters {
+  const page = raw.page && raw.page > 0 ? Number(raw.page) : 1;
+  const limit = raw.limit && raw.limit > 0 ? Number(raw.limit) : 10;
+  const statusArray = Array.isArray(raw.status)
+    ? [...raw.status].filter(Boolean).sort()
+    : typeof raw.status === 'string' && raw.status.trim()
+      ? [raw.status.trim()]
+      : undefined;
+  const poliArray = Array.isArray(raw.poli)
+    ? [...raw.poli].filter(Boolean).sort()
+    : typeof raw.poli === 'string' && raw.poli.trim()
+      ? [raw.poli.trim()]
+      : undefined;
+  const searchTrimmed = raw.search?.trim() || undefined;
+  const sortTrimmed = raw.sort?.trim() || undefined;
+
+  return {
+    page,
+    limit,
+    ...(statusArray && statusArray.length > 0 && { status: statusArray }),
+    ...(poliArray && poliArray.length > 0 && { poli: poliArray }),
+    ...(searchTrimmed && { search: searchTrimmed }),
+    ...(sortTrimmed && { sort: sortTrimmed })
+  };
+}
+
 export type AppointmentResponse = {
   success: boolean;
   time: string;

@@ -7,7 +7,7 @@ import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'n
 import { useDataTable } from '@/hooks/use-data-table';
 import { getSortingStateParser } from '@/lib/parsers';
 import { appointmentQueryOptions } from '../api/queries';
-import type { AdminAppointment, AppointmentFilters } from '../api/types';
+import { normalizeFilters, type AdminAppointment, type AppointmentFilters } from '../api/types';
 
 interface UseAppointmentTableParams {
   columns: ColumnDef<AdminAppointment>[];
@@ -19,6 +19,9 @@ export interface UseAppointmentTableResult {
   selectedAppointment: AdminAppointment | null;
   isDetailOpen: boolean;
   isStatusOpen: boolean;
+  isFetching: boolean;
+  totalAppointments: number;
+  hasFilters: boolean;
   actions: {
     openDetail: (appointment: AdminAppointment) => void;
     closeDetail: () => void;
@@ -48,16 +51,22 @@ export function useAppointmentTable({
 
   const querySearch = params.search || params.patientName;
   const queryPoli = params.poli || params.poliklinikName;
-  const filters: AppointmentFilters = {
+  const hasFilters = Boolean(
+    (querySearch && querySearch.trim().length > 0) ||
+    (params.status && params.status.length > 0) ||
+    (queryPoli && queryPoli.length > 0)
+  );
+
+  const filters: AppointmentFilters = normalizeFilters({
     page: params.page,
     limit: params.perPage,
     ...(querySearch && { search: querySearch }),
     ...(params.status && params.status.length > 0 && { status: params.status }),
     ...(queryPoli && queryPoli.length > 0 && { poli: queryPoli }),
     ...(params.sort.length > 0 && { sort: JSON.stringify(params.sort) })
-  };
+  });
 
-  const { data } = useSuspenseQuery(appointmentQueryOptions(filters));
+  const { data, isFetching } = useSuspenseQuery(appointmentQueryOptions(filters));
   const pageCount = Math.ceil(data.total_appointments / params.perPage);
 
   const { table } = useDataTable({
@@ -99,6 +108,9 @@ export function useAppointmentTable({
     selectedAppointment,
     isDetailOpen: activeDialog === 'detail',
     isStatusOpen: activeDialog === 'status',
+    isFetching,
+    totalAppointments: data.total_appointments,
+    hasFilters,
     actions: {
       openDetail,
       closeDetail,

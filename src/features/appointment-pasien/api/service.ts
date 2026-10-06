@@ -1,5 +1,5 @@
 import { clientFetch } from '@/lib/client-fetch';
-import { normalizeToAppointmentStatus } from '../constants/appointment-status.dictionary';
+import { computeSummary, mapToAdminAppointment, emptyAppointmentSummary } from './mapper';
 import type {
   AdminAppointment,
   AppointmentFilters,
@@ -13,97 +13,77 @@ import type {
   RoomCandidateItem
 } from './types';
 
-const emptyAppointmentSummary: AppointmentSummary = {
-  total: 0,
-  waiting: 0,
-  inService: 0,
-  completed: 0,
-  cancelled: 0,
-  late: 0
-};
-
 export async function getAdminAppointments(
-  filters: AppointmentFilters
+  filters: AppointmentFilters,
+  signal?: AbortSignal
 ): Promise<AppointmentResponse> {
   const limit = filters.limit ?? 10;
   const page = filters.page ?? 1;
 
-  try {
-    const queryParams: Record<string, unknown> = {
-      page,
-      limit
-    };
+  const queryParams: Record<string, unknown> = {
+    page,
+    limit
+  };
 
-    if (filters.status && typeof filters.status === 'string') {
-      queryParams.status = filters.status;
-    }
-
-    const response = await clientFetch<
-      { data?: BackendAppointmentRecord[]; meta?: { total?: number } } | BackendAppointmentRecord[]
-    >('/api/v1/appointments', {
-      query: queryParams
-    });
-
-    const rawList: BackendAppointmentRecord[] = Array.isArray(response)
-      ? response
-      : Array.isArray(response?.data)
-        ? response.data
-        : [];
-
-    let appointments = rawList.map(mapToAdminAppointment);
-
-    if (filters.poli) {
-      const poliFilter = Array.isArray(filters.poli) ? filters.poli : [filters.poli];
-      appointments = appointments.filter((apt) =>
-        poliFilter.some((p) => p.toLowerCase() === apt.poliklinikName.toLowerCase())
-      );
-    }
-
-    if (filters.search) {
-      const query = filters.search.trim().toLowerCase();
-      appointments = appointments.filter((apt) =>
-        [
-          apt.patientName,
-          apt.patientId,
-          apt.queueNumber,
-          apt.doctorName,
-          apt.poliklinikName,
-          apt.complaint
-        ]
-          .join(' ')
-          .toLowerCase()
-          .includes(query)
-      );
-    }
-
-    const totalCount =
-      !Array.isArray(response) && typeof response?.meta?.total === 'number'
-        ? response.meta.total
-        : appointments.length;
-
-    const summary = computeSummary(appointments);
-
-    return {
-      success: true,
-      time: new Date().toISOString(),
-      total_appointments: totalCount,
-      offset: (page - 1) * limit,
-      limit,
-      appointments,
-      summary
-    };
-  } catch (error) {
-    console.warn('Failed to load admin appointments from backend:', error);
-    return {
-      success: false,
-      time: new Date().toISOString(),
-      total_appointments: 0,
-      offset: 0,
-      limit,
-      appointments: [],
-      summary: emptyAppointmentSummary
-    };
+  if (filters.status && typeof filters.status === 'string') {
+    queryParams.status = filters.status;
   }
+
+  const response = await clientFetch<
+    { data?: BackendAppointmentRecord[]; meta?: { total?: number } } | BackendAppointmentRecord[]
+  >('/api/v1/appointments', {
+    query: queryParams,
+    signal
+  });
+
+  const rawList: BackendAppointmentRecord[] = Array.isArray(response)
+    ? response
+    : Array.isArray(response?.data)
+      ? response.data
+      : [];
+
+  let appointments = rawList.map(mapToAdminAppointment);
+
+  if (filters.poli) {
+    const poliFilter = Array.isArray(filters.poli) ? filters.poli : [filters.poli];
+    appointments = appointments.filter((apt) =>
+      poliFilter.some((p) => p.toLowerCase() === apt.poliklinikName.toLowerCase())
+    );
+  }
+
+  if (filters.search) {
+    const query = filters.search.trim().toLowerCase();
+    appointments = appointments.filter((apt) =>
+      [
+        apt.patientName,
+        apt.patientId,
+        apt.queueNumber,
+        apt.doctorName,
+        apt.poliklinikName,
+        apt.complaint
+      ]
+        .join(' ')
+        .toLowerCase()
+        .includes(query)
+    );
+  }
+
+  const totalCount =
+    !Array.isArray(response) && typeof response?.meta?.total === 'number'
+      ? response.meta.total
+      : appointments.length;
+
+  const summary = computeSummary(appointments);
+
+  return {
+    success: true,
+    time: new Date().toISOString(),
+    total_appointments: totalCount,
+    offset: (page - 1) * limit,
+    limit,
+    appointments,
+    summary
+  };
 }
 
 export async function getAdminAppointmentSummary(): Promise<AppointmentSummary> {
@@ -319,69 +299,6 @@ export async function changeAppointmentRoom(
       message: error instanceof Error ? error.message : String(error)
     };
   }
-}
-
-function computeSummary(records: AdminAppointment[]): AppointmentSummary {
-  if (records.length === 0) return emptyAppointmentSummary;
-
-  const countOf = (st: AppointmentStatus) => records.filter((r) => r.status === st).length;
-
-  return {
-    total: records.length,
-    waiting: countOf('WAITING'),
-    inService: countOf('IN_SERVICE'),
-    completed: countOf('COMPLETED'),
-    cancelled: countOf('CANCELLED'),
-    late: countOf('LATE')
-  };
-}
-
-function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppointment {
-  const status = normalizeToAppointmentStatus(item.status);
-  const patientName = item.patientName || item.patientProfile?.fullName || 'Pasien Amanah';
-  const doctorName =
-    item.doctorName || item.practitioner?.staffProfile?.fullName || 'Dokter Amanah';
-  const poliklinikName = item.poliklinikName || item.clinicRoom?.clinicUnit?.name || 'Poli Umum';
-  const queueNumber = item.queueNumber
-    ? String(item.queueNumber)
-    : item.queueTickets?.[0]?.queueNumber || '-';
-  const scheduledDate =
-    item.appointmentDate ||
-    (item.createdAt ? String(item.createdAt).slice(0, 10) : new Date().toISOString().slice(0, 10));
-  const scheduledStartTime = item.scheduledStartTime || item.session || '-';
-
-  const allowedActions =
-    (item.allowedActions as AppointmentAction[]) ||
-    (status === 'WAITING'
-      ? ['CALL', 'START_SERVICE', 'CANCEL']
-      : status === 'IN_SERVICE'
-        ? ['COMPLETE']
-        : []);
-
-  return {
-    id: String(item.id),
-    queueNumber,
-    patientId: item.patientId || String(item.id),
-    patientName,
-    gender: item.gender === 'female' ? 'Perempuan' : 'Laki-laki',
-    phone: item.phone || '-',
-    email: item.email || '-',
-    scheduledDate,
-    scheduledStartTime,
-    doctorName,
-    poliklinikName,
-    visitType: item.visitType || 'Pemeriksaan Baru',
-    complaint: item.complaint || '-',
-    status,
-    allowedActions,
-    lastCalledAt: item.lastCalledAt ? String(item.lastCalledAt) : null,
-    actualStartedAt: item.actualStartedAt ? String(item.actualStartedAt) : null,
-    actualCompletedAt: item.actualCompletedAt ? String(item.actualCompletedAt) : null,
-    estimatedStartAt: item.estimatedStartAt ? String(item.estimatedStartAt) : null,
-    estimatedEndAt: item.estimatedEndAt ? String(item.estimatedEndAt) : null,
-    createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
-    updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : new Date().toISOString()
-  };
 }
 
 export async function callPatient(appointmentId: string | number, notes?: string) {

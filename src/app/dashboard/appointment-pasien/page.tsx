@@ -1,5 +1,10 @@
+import { Suspense } from 'react';
 import PageContainer from '@/components/layout/page-container';
-import { AppointmentExportButton, AppointmentListingPage } from '@/features/appointment-pasien';
+import {
+  AppointmentExportButton,
+  AppointmentListingPage,
+  AppointmentTableSkeleton
+} from '@/features/appointment-pasien';
 import { searchParamsCache } from '@/lib/searchparams';
 import { SearchParams } from 'nuqs/server';
 import { requireAdmin } from '@/lib/guard';
@@ -24,7 +29,9 @@ export default async function Page(props: PageProps) {
       pageDescription='Daftar janji temu dan reservasi pasien dengan dokter klinik Amanah.'
       pageHeaderAction={<AppointmentExportButton />}
     >
-      <AppointmentListingPage />
+      <Suspense fallback={<AppointmentTableSkeleton />}>
+        <AppointmentListingPage />
+      </Suspense>
     </PageContainer>
   );
 }

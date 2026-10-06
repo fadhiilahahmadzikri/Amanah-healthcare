@@ -4,6 +4,8 @@ import { DataTable } from '@/components/ui/table/data-table';
 import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
 import { DefaultBulkActions } from '@/components/ui/table/default-bulk-actions';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
+import { cn } from '@/lib/utils';
 import { useAppointmentTable } from '../../model/useAppointmentTable';
 import { columns } from './columns';
 import { AppointmentDetailModal } from '../appointment-detail-modal';
@@ -29,12 +31,31 @@ export function AppointmentTable() {
         onClose={appointmentTable.actions.closeStatus}
       />
 
-      <div className='flex h-full min-h-0 flex-1 flex-col gap-4'>
+      <div
+        aria-busy={appointmentTable.isFetching}
+        className={cn(
+          'flex h-full min-h-0 flex-1 flex-col gap-4',
+          appointmentTable.isFetching && 'opacity-75 transition-opacity'
+        )}
+      >
         <DataTable
           table={appointmentTable.table}
           onRowClick={appointmentTable.actions.openDetail}
           entityName='appointment'
           bulkActions={<DefaultBulkActions />}
+          emptyState={
+            appointmentTable.hasFilters ? (
+              <EmptyState
+                title='Tidak ada antrean yang cocok'
+                description='Tidak ditemukan antrean janji temu dengan filter atau kata kunci pencarian yang dipilih.'
+              />
+            ) : (
+              <EmptyState
+                title='Belum ada antrean janji temu'
+                description='Data janji temu dan reservasi pasien akan ditampilkan di sini setelah didaftarkan.'
+              />
+            )
+          }
         >
           <DataTableToolbar table={appointmentTable.table} />
         </DataTable>

@@ -1,0 +1,80 @@
+import { normalizeToAppointmentStatus } from '../constants/appointment-status.dictionary';
+import type {
+  AdminAppointment,
+  AppointmentSummary,
+  AppointmentAction,
+  AppointmentStatus,
+  BackendAppointmentRecord
+} from './types';
+
+export const emptyAppointmentSummary: AppointmentSummary = {
+  total: 0,
+  waiting: 0,
+  inService: 0,
+  completed: 0,
+  cancelled: 0,
+  late: 0
+};
+
+export function computeSummary(records: AdminAppointment[]): AppointmentSummary {
+  if (records.length === 0) return emptyAppointmentSummary;
+
+  const countOf = (st: AppointmentStatus) => records.filter((r) => r.status === st).length;
+
+  return {
+    total: records.length,
+    waiting: countOf('WAITING'),
+    inService: countOf('IN_SERVICE'),
+    completed: countOf('COMPLETED'),
+    cancelled: countOf('CANCELLED'),
+    late: countOf('LATE')
+  };
+}
+
+export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppointment {
+  const status = normalizeToAppointmentStatus(item.status);
+  const patientName = item.patientName || item.patientProfile?.fullName || 'Pasien Amanah';
+  const doctorName =
+    item.doctorName || item.practitioner?.staffProfile?.fullName || 'Dokter Amanah';
+  const poliklinikName = item.poliklinikName || item.clinicRoom?.clinicUnit?.name || 'Poli Umum';
+  const queueNumber = item.queueNumber
+    ? String(item.queueNumber)
+    : item.queueTickets?.[0]?.queueNumber || '-';
+  const scheduledDate =
+    item.appointmentDate ||
+    (item.createdAt ? String(item.createdAt).slice(0, 10) : new Date().toISOString().slice(0, 10));
+  const scheduledStartTime = item.scheduledStartTime || item.session || '-';
+
+  const allowedActions =
+    (item.allowedActions as AppointmentAction[]) ||
+    (status === 'WAITING'
+      ? ['CALL', 'START_SERVICE', 'CANCEL']
+      : status === 'IN_SERVICE'
+        ? ['COMPLETE']
+        : []);
+
+  return {
+    id: String(item.id),
+    queueNumber,
+    patientId: item.patientId || String(item.id),
+    patientName,
+    gender: item.gender === 'female' ? 'Perempuan' : 'Laki-laki',
+    phone: item.phone || '-',
+    email: item.email || '-',
+    scheduledDate,
+    scheduledStartTime,
+    doctorName,
+    poliklinikName,
+    visitType: item.visitType || 'Pemeriksaan Baru',
+    complaint: item.complaint || '-',
+    status,
+    allowedActions,
+    lastCalledAt: item.lastCalledAt ? String(item.lastCalledAt) : null,
+    actualStartedAt: item.actualStartedAt ? String(item.actualStartedAt) : null,
+    actualCompletedAt: item.actualCompletedAt ? String(item.actualCompletedAt) : null,
+    estimatedStartAt: item.estimatedStartAt ? String(item.estimatedStartAt) : null,
+    estimatedEndAt: item.estimatedEndAt ? String(item.estimatedEndAt) : null,
+    createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
+    updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : new Date().toISOString()
+  };
+}

@@ -2,6 +2,8 @@ import { HydrationBoundary, dehydrate } from '@tanstack/react-query';
 import { getQueryClient } from '@/lib/query-client';
 import { searchParamsCache } from '@/lib/searchparams';
 import { appointmentQueryOptions } from '../api/queries';
+import { getAppointmentsOnServer } from '../api/server';
+import { normalizeFilters } from '../api/types';
 import { AppointmentTable, AppointmentTableSkeleton } from './appointment-tables';
 import { Suspense } from 'react';
 
@@ -12,16 +14,19 @@ export default async function AppointmentListingPage() {
   const status = searchParamsCache.get('status');
   const sort = searchParamsCache.get('sort');
 
-  const filters = {
+  const filters = normalizeFilters({
     page,
     limit: pageLimit,
     ...(search && { search }),
     ...(status && { status }),
     ...(sort && { sort })
-  };
+  });
 
   const queryClient = getQueryClient();
-  await queryClient.prefetchQuery(appointmentQueryOptions(filters));
+  await queryClient.prefetchQuery({
+    ...appointmentQueryOptions(filters),
+    queryFn: () => getAppointmentsOnServer(filters)
+  });
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
