@@ -5,18 +5,21 @@ import { extractAuthContext } from '../../extractors/auth-context.extractor';
 import { apiFileLogger } from '../../services/api-file-logger.service';
 
 type RouteContext<TParams = Record<string, string | string[]>> = {
-  params?: Promise<TParams> | TParams;
+  params: Promise<TParams>;
 };
 
 type RouteHandler<TParams = Record<string, string | string[]>> = (
   req: NextRequest,
-  ctx?: RouteContext<TParams>
+  ctx: RouteContext<TParams>
 ) => Promise<Response | NextResponse> | Response | NextResponse;
 
 export function withApiObservability<TParams = Record<string, string | string[]>>(
-  handler: RouteHandler<TParams>,
+  handler: (
+    req: NextRequest,
+    ctx?: RouteContext<TParams>
+  ) => Promise<Response | NextResponse> | Response | NextResponse,
   adapter: IHttpObservabilityAdapter = defaultHttpObservability
-): RouteHandler<TParams> {
+): (req: NextRequest, ctx: RouteContext<TParams>) => Promise<Response | NextResponse> {
   return async (
     req: NextRequest,
     rawCtx?: RouteContext<TParams>
@@ -95,7 +98,10 @@ export function withApiObservability<TParams = Record<string, string | string[]>
           method: obsContext.method,
           url: req.url,
           path: obsContext.path,
-          query: Object.keys(obsContext.query).length > 0 ? (obsContext.query as Record<string, string>) : undefined,
+          query:
+            Object.keys(obsContext.query).length > 0
+              ? (obsContext.query as Record<string, string>)
+              : undefined,
           headers: obsContext.headers,
           body: obsContext.requestBody
         },
@@ -123,7 +129,10 @@ export function withApiObservability<TParams = Record<string, string | string[]>
           method: obsContext.method,
           url: req.url,
           path: obsContext.path,
-          query: Object.keys(obsContext.query).length > 0 ? (obsContext.query as Record<string, string>) : undefined,
+          query:
+            Object.keys(obsContext.query).length > 0
+              ? (obsContext.query as Record<string, string>)
+              : undefined,
           headers: obsContext.headers,
           body: obsContext.requestBody
         },

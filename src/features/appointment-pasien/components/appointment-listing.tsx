@@ -21,7 +21,7 @@ export default async function AppointmentListingPage() {
   };
 
   const queryClient = getQueryClient();
-  void queryClient.prefetchQuery(appointmentQueryOptions(filters));
+  await queryClient.prefetchQuery(appointmentQueryOptions(filters));
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

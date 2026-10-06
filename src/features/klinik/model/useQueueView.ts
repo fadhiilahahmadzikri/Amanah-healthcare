@@ -73,6 +73,27 @@ export function useQueueView(): UseQueueViewResult {
     };
   }, [activePoli]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleUpdate = () => {
+      void refreshQueues();
+    };
+
+    window.addEventListener('clinic:appointment_updated', handleUpdate);
+    window.addEventListener('clinic:notification_received', handleUpdate);
+
+    const interval = setInterval(() => {
+      void refreshQueues();
+    }, 5000);
+
+    return () => {
+      window.removeEventListener('clinic:appointment_updated', handleUpdate);
+      window.removeEventListener('clinic:notification_received', handleUpdate);
+      clearInterval(interval);
+    };
+  }, [refreshQueues]);
+
   const callPatient = useCallback(
     async (appointmentId: string) => {
       if (!appointmentId) return;

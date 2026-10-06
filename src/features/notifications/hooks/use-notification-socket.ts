@@ -110,6 +110,7 @@ export function useNotificationSocket(callbacks?: {
     queryClient.invalidateQueries({ queryKey: ['notifications', 'me'] });
     queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
     queryClient.invalidateQueries({ queryKey: klinikKeys.all });
+    queryClient.invalidateQueries({ queryKey: ['queue', 'daily'] });
     queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all });
     queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES] });
     queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.APPOINTMENTS] });
@@ -136,7 +137,9 @@ export function useNotificationSocket(callbacks?: {
         : '');
 
     if (!baseUrl) {
-      console.error('[RealtimeTransport] Configuration error: NEXT_PUBLIC_SOCKET_URL is missing in production');
+      console.error(
+        '[RealtimeTransport] Configuration error: NEXT_PUBLIC_SOCKET_URL is missing in production'
+      );
       setConnectionStatus('failed_auth');
       return;
     }
@@ -193,96 +196,87 @@ export function useNotificationSocket(callbacks?: {
       console.log(`[RealtimeTransport] Disconnected: ${reason}`);
     });
 
-    socket.on(
-      'notification:new',
-      (envelope: NotificationEnvelopeV2 | BackendNotification) => {
-        // 1. Data Store Synchronization (always process for inbox & counters)
-        reconcile();
-        void queryClient.refetchQueries({ queryKey: doctorScheduleKeys.all, type: 'active' });
-        void queryClient.refetchQueries({ queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES], type: 'active' });
-        void queryClient.refetchQueries({ queryKey: appointmentKeys.all, type: 'active' });
+    socket.on('notification:new', (envelope: NotificationEnvelopeV2 | BackendNotification) => {
+      // 1. Data Store Synchronization (always process for inbox & counters)
+      reconcile();
+      void queryClient.refetchQueries({ queryKey: doctorScheduleKeys.all, type: 'active' });
+      void queryClient.refetchQueries({
+        queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES],
+        type: 'active'
+      });
+      void queryClient.refetchQueries({ queryKey: appointmentKeys.all, type: 'active' });
 
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(
-            new CustomEvent('clinic:notification_received', { detail: envelope })
-          );
-        }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clinic:notification_received', { detail: envelope }));
+      }
 
-        // Notify subscribers
-        callbacksRef.current?.onNewNotification?.(envelope);
+      // Notify subscribers
+      callbacksRef.current?.onNewNotification?.(envelope);
 
-        // 2. Fail-Closed Presenter Rules for Toaster
-        const envelopeRecipient =
-          'recipientUserId' in envelope ? envelope.recipientUserId : envelope.userId;
-        const envelopeAudience =
-          'audience' in envelope ? envelope.audience : undefined;
-        const presentationToast =
-          'presentation' in envelope ? envelope.presentation?.toast : true;
+      // 2. Fail-Closed Presenter Rules for Toaster
+      const envelopeRecipient =
+        'recipientUserId' in envelope ? envelope.recipientUserId : envelope.userId;
+      const envelopeAudience = 'audience' in envelope ? envelope.audience : undefined;
+      const presentationToast = 'presentation' in envelope ? envelope.presentation?.toast : true;
 
-        // Rule A: Recipient mismatch tripwire
-        if (envelopeRecipient && envelopeRecipient !== currentUserId) {
-          console.warn(
-            `[NotificationPresenter] Tripwire: recipientUserId mismatch. Dropped toast. (envelope=${envelopeRecipient}, session=${currentUserId})`
-          );
+      // Rule A: Recipient mismatch tripwire
+      if (envelopeRecipient && envelopeRecipient !== currentUserId) {
+        console.warn(
+          `[NotificationPresenter] Tripwire: recipientUserId mismatch. Dropped toast. (envelope=${envelopeRecipient}, session=${currentUserId})`
+        );
+        return;
+      }
+
+      // Rule B: Audience mismatch tripwire
+      if (envelopeAudience && envelopeAudience !== viewerAudience) {
+        console.warn(
+          `[NotificationPresenter] Tripwire: audience mismatch. Dropped toast. (envelopeAudience=${envelopeAudience}, viewerAudience=${viewerAudience})`
+        );
+        return;
+      }
+
+      // Rule C: Toast suppressed (e.g. actor performed the action, local mutation toast already shown)
+      if (presentationToast === false) {
+        return;
+      }
+
+      // Rule D: Deduplication check (prevents double toasts from socket replay or duplicate events)
+      if (envelope.id) {
+        if (presentedToastIdsRef.current.has(envelope.id)) {
           return;
         }
-
-        // Rule B: Audience mismatch tripwire
-        if (envelopeAudience && envelopeAudience !== viewerAudience) {
-          console.warn(
-            `[NotificationPresenter] Tripwire: audience mismatch. Dropped toast. (envelopeAudience=${envelopeAudience}, viewerAudience=${viewerAudience})`
-          );
-          return;
-        }
-
-        // Rule C: Toast suppressed (e.g. actor performed the action, local mutation toast already shown)
-        if (presentationToast === false) {
-          return;
-        }
-
-        // Rule D: Deduplication check (prevents double toasts from socket replay or duplicate events)
-        if (envelope.id) {
-          if (presentedToastIdsRef.current.has(envelope.id)) {
-            return;
-          }
-          presentedToastIdsRef.current.add(envelope.id);
-          // Keep LRU size bounded to 100 entries
-          if (presentedToastIdsRef.current.size > 100) {
-            const firstItem = presentedToastIdsRef.current.values().next().value;
-            if (firstItem) presentedToastIdsRef.current.delete(firstItem);
-          }
-        }
-
-        // Rule E: Present Toast with Semantic Action
-        if (envelope?.title) {
-          const primaryAction =
-            ('action' in envelope && envelope.action) ||
-            ('actions' in envelope && envelope.actions?.[0]) ||
-            undefined;
-
-          const toastAction = primaryAction
-            ? {
-                label: primaryAction.label || 'Lihat',
-                onClick: () => {
-                  executeNotificationAction(
-                    router,
-                    primaryAction,
-                    envelope as any,
-                    userRole
-                  );
-                }
-              }
-            : undefined;
-
-          toast(envelope.title, {
-            description: envelope.body || undefined,
-            icon: renderBackendIcon(envelope.badgeIcon),
-            action: toastAction,
-            duration: 6000
-          });
+        presentedToastIdsRef.current.add(envelope.id);
+        // Keep LRU size bounded to 100 entries
+        if (presentedToastIdsRef.current.size > 100) {
+          const firstItem = presentedToastIdsRef.current.values().next().value;
+          if (firstItem) presentedToastIdsRef.current.delete(firstItem);
         }
       }
-    );
+
+      // Rule E: Present Toast with Semantic Action
+      if (envelope?.title) {
+        const primaryAction =
+          ('action' in envelope && envelope.action) ||
+          ('actions' in envelope && envelope.actions?.[0]) ||
+          undefined;
+
+        const toastAction = primaryAction
+          ? {
+              label: primaryAction.label || 'Lihat',
+              onClick: () => {
+                executeNotificationAction(router, primaryAction, envelope as any, userRole);
+              }
+            }
+          : undefined;
+
+        toast(envelope.title, {
+          description: envelope.body || undefined,
+          icon: renderBackendIcon(envelope.badgeIcon),
+          action: toastAction,
+          duration: 6000
+        });
+      }
+    });
 
     socket.on('notification:read', (_data?: { id?: string; all?: boolean }) => {
       reconcile();
@@ -293,10 +287,25 @@ export function useNotificationSocket(callbacks?: {
       queryClient.setQueryData(['notifications', 'unread-count'], { unreadCount: count });
     });
 
-    socket.on('appointment:called', (payload: AppointmentCalledPayload) => {
-      queryClient.invalidateQueries({ queryKey: ['queue', 'daily'] });
+    const handleAppointmentCalled = (payload: AppointmentCalledPayload) => {
+      reconcile();
       callbacksRef.current?.onAppointmentCalled?.(payload);
-    });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clinic:appointment_updated', { detail: payload }));
+      }
+    };
+
+    const handleAppointmentStatusChanged = (payload: unknown) => {
+      reconcile();
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clinic:appointment_updated', { detail: payload }));
+      }
+    };
+
+    socket.on('appointment:called', handleAppointmentCalled);
+    socket.on('appointment.patient_called', handleAppointmentCalled);
+    socket.on('appointment:status_changed', handleAppointmentStatusChanged);
+    socket.on('appointment.status_changed', handleAppointmentStatusChanged);
 
     return () => {
       socket.disconnect();
