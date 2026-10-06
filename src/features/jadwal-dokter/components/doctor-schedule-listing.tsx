@@ -1,27 +1,44 @@
 import { Suspense } from 'react';
+import { HydrationBoundary, dehydrate } from '@tanstack/react-query';
+import { getQueryClient } from '@/lib/query-client';
+import { searchParamsCache } from '@/lib/searchparams';
+import { doctorScheduleQueryOptions } from '../api/queries';
+import { fetchAdminDoctorSchedules } from '../api/doctor-schedule-service';
+import type { DoctorScheduleFilters } from '../api/types';
 import { DoctorScheduleView } from './doctor-schedule-view';
-import { Skeleton } from '@/components/ui/skeleton';
+import { DoctorScheduleCardsSkeleton } from './doctor-schedule-cards-skeleton';
 
-function DoctorScheduleCardsSkeleton() {
-  return (
-    <div className='space-y-4'>
-      <div className='flex items-center justify-between gap-4'>
-        <Skeleton className='h-9 w-64 rounded-lg' />
-        <Skeleton className='h-9 w-32 rounded-lg' />
-      </div>
-      <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5'>
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className='h-[230px] rounded-[20px]' />
-        ))}
-      </div>
-    </div>
-  );
-}
+export { DoctorScheduleCardsSkeleton };
 
-export default function DoctorScheduleListingPage() {
+export default async function DoctorScheduleListingPage() {
+  const page = searchParamsCache.get('page');
+  const search = searchParamsCache.get('search');
+  const perPage = searchParamsCache.get('perPage');
+
+  const filters: DoctorScheduleFilters = {
+    page: page || 1,
+    limit: perPage || 6,
+    ...(search && { search })
+  };
+
+  const queryClient = getQueryClient();
+  await queryClient.prefetchQuery({
+    ...doctorScheduleQueryOptions(filters),
+    queryFn: async () => {
+      const data = await fetchAdminDoctorSchedules(filters);
+      return {
+        doctors: data.doctors,
+        total_doctors: data.meta.total_doctors,
+        meta: data.meta
+      };
+    }
+  });
+
   return (
-    <Suspense fallback={<DoctorScheduleCardsSkeleton />}>
-      <DoctorScheduleView />
-    </Suspense>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <Suspense fallback={<DoctorScheduleCardsSkeleton />}>
+        <DoctorScheduleView />
+      </Suspense>
+    </HydrationBoundary>
   );
 }

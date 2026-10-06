@@ -27,6 +27,7 @@ export interface UseQueueViewResult {
   pageCount: number;
   canPrevious: boolean;
   canNext: boolean;
+  isLoading: boolean;
   currentCalling?: QueueItem;
   waitingList: QueueItem[];
   paginatedSeats: QueueItem[];
@@ -54,6 +55,7 @@ export function useQueueView(): UseQueueViewResult {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [isLoading, setIsLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
 
   const refreshQueues = useCallback(async () => {
@@ -63,11 +65,17 @@ export function useQueueView(): UseQueueViewResult {
 
   useEffect(() => {
     let isMounted = true;
-    getDailyQueuesFromApi().then((items) => {
-      if (isMounted) {
-        setQueues(items);
-      }
-    });
+    getDailyQueuesFromApi()
+      .then((items) => {
+        if (isMounted) {
+          setQueues(items);
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      });
     return () => {
       isMounted = false;
     };
@@ -216,6 +224,7 @@ export function useQueueView(): UseQueueViewResult {
     pageCount,
     canPrevious: currentPage > 1,
     canNext: currentPage < pageCount,
+    isLoading,
     currentCalling,
     waitingList,
     paginatedSeats,

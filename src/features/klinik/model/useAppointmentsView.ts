@@ -26,6 +26,7 @@ export interface UseAppointmentsViewResult {
   filteredCount: number;
   totalAppointments: number;
   hasActiveFilters: boolean;
+  isLoading: boolean;
   filters: AppointmentFilterState;
   currentPage: number;
   pageSize: number;
@@ -59,7 +60,7 @@ export interface UseAppointmentsViewResult {
 export function useAppointmentsView(): UseAppointmentsViewResult {
   const today = useMemo(() => new Date(), []);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [_isInitialized, setIsInitialized] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [monthFilter, setMonthFilter] = useState('ALL');
   const [dateFilter, setDateFilter] = useState<Date | undefined>(() => new Date());
@@ -279,6 +280,7 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
     filteredCount: filteredAppointments.length,
     totalAppointments: appointments.length,
     hasActiveFilters: isAppointmentFilterActive(filters, today),
+    isLoading: !isInitialized,
     filters,
     currentPage,
     pageSize,

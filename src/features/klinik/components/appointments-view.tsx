@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { useAppointmentsView } from '../model/useAppointmentsView';
 import { AppointmentCard } from './appointment-card';
+import { AppointmentCardsSkeleton } from './appointment-cards-skeleton';
 import { AppointmentFilters } from './appointment-filters';
 import { AppointmentModal } from './appointment-modal';
 import { AppointmentPagination } from './appointment-pagination';
@@ -46,9 +47,16 @@ export function AppointmentsView() {
         </div>
       )}
 
-      {/* 2. Appointments Card Grid with ScrollArea */}
       <div className='relative flex flex-1 min-h-0 flex-col overflow-hidden'>
-        {appointmentsView.cards.length > 0 ? (
+        {appointmentsView.isLoading && appointmentsView.cards.length === 0 ? (
+          <div className='absolute inset-0 flex overflow-hidden'>
+            <ScrollArea className='h-full w-full pr-3'>
+              <div className='pb-20 pt-1'>
+                <AppointmentCardsSkeleton />
+              </div>
+            </ScrollArea>
+          </div>
+        ) : appointmentsView.cards.length > 0 ? (
           <>
             <div className='absolute inset-0 flex overflow-hidden'>
               <ScrollArea className='h-full w-full pr-3'>

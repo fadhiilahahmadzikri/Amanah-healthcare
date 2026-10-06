@@ -1,5 +1,6 @@
+import { Suspense } from 'react';
 import PageContainer from '@/components/layout/page-container';
-import { DoctorScheduleListingPage } from '@/features/jadwal-dokter';
+import { DoctorScheduleListingPage, DoctorScheduleCardsSkeleton } from '@/features/jadwal-dokter';
 import { searchParamsCache } from '@/lib/searchparams';
 import { SearchParams } from 'nuqs/server';
 
@@ -24,7 +25,9 @@ export default async function Page(props: PageProps) {
       pageTitle='Jadwal Dokter'
       pageDescription='Kelola jadwal praktik dokter, atur ketersediaan dan slot pasien.'
     >
-      <DoctorScheduleListingPage />
+      <Suspense fallback={<DoctorScheduleCardsSkeleton />}>
+        <DoctorScheduleListingPage />
+      </Suspense>
     </PageContainer>
   );
 }

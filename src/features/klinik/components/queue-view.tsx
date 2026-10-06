@@ -15,6 +15,7 @@ import {
 import { ChevronLeftIcon, ChevronRightIcon } from '@radix-ui/react-icons';
 import { QueueCallingCard } from './queue-calling-card';
 import { QueueSeatCard } from './queue-seat-card';
+import { QueueViewSkeleton } from './queue-view-skeleton';
 import { useQueueView } from '../model/useQueueView';
 import { DevicePushToggle } from '@/features/notifications';
 import { cn } from '@/lib/utils';
@@ -51,7 +52,9 @@ export function QueueView() {
 
       <DevicePushToggle />
 
-      {!queueView.currentCalling && queueView.totalItems === 0 && !queueView.searchQuery ? (
+      {queueView.isLoading && queueView.totalItems === 0 && !queueView.currentCalling ? (
+        <QueueViewSkeleton />
+      ) : !queueView.currentCalling && queueView.totalItems === 0 && !queueView.searchQuery ? (
         <div className='flex flex-1 min-h-0 h-full w-full flex-col'>
           <EmptyState
             icon={Icons.inbox}

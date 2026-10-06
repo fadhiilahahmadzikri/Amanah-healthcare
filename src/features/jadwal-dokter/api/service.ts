@@ -38,34 +38,25 @@ export async function getDoctorSchedules(
   const qs = query.toString();
   const endpoint = `/api/v1/admin/doctor-schedules${qs ? `?${qs}` : ''}`;
 
-  try {
-    const res = await clientFetch<{
-      doctors?: DoctorSchedule[];
-      data?: DoctorSchedule[];
-      total_doctors?: number;
-      meta?: { total_doctors?: number; total_pages?: number; page?: number; limit?: number };
-    }>(endpoint);
+  const res = await clientFetch<{
+    doctors?: DoctorSchedule[];
+    data?: DoctorSchedule[];
+    total_doctors?: number;
+    meta?: { total_doctors?: number; total_pages?: number; page?: number; limit?: number };
+  }>(endpoint);
 
-    const doctors = res.doctors ?? res.data ?? [];
-    const total = res.total_doctors ?? res.meta?.total_doctors ?? doctors.length;
-    return {
-      doctors,
+  const doctors = res.doctors ?? res.data ?? [];
+  const total = res.total_doctors ?? res.meta?.total_doctors ?? doctors.length;
+  return {
+    doctors,
+    total_doctors: total,
+    meta: {
+      page: res.meta?.page ?? filters.page ?? 1,
+      limit: res.meta?.limit ?? filters.limit ?? 6,
       total_doctors: total,
-      meta: {
-        page: res.meta?.page ?? filters.page ?? 1,
-        limit: res.meta?.limit ?? filters.limit ?? 6,
-        total_doctors: total,
-        total_pages: res.meta?.total_pages ?? 1
-      }
-    };
-  } catch (err) {
-    console.error('Error fetching admin doctor schedules:', err);
-    return {
-      doctors: [],
-      total_doctors: 0,
-      meta: { page: 1, limit: 6, total_doctors: 0, total_pages: 0 }
-    };
-  }
+      total_pages: res.meta?.total_pages ?? 1
+    }
+  };
 }
 
 export async function getDoctorScheduleById(
