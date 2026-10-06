@@ -16,6 +16,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from '@radix-ui/react-icons';
 import { QueueCallingCard } from './queue-calling-card';
 import { QueueSeatCard } from './queue-seat-card';
 import { useQueueView } from '../model/useQueueView';
+import { DevicePushToggle } from '@/features/notifications';
 import { cn } from '@/lib/utils';
 
 export function QueueView() {
@@ -23,7 +24,6 @@ export function QueueView() {
 
   return (
     <div className='flex flex-col h-[calc(100vh-5rem)] max-h-[calc(100vh-5rem)] overflow-hidden font-sans select-none gap-3 pb-1'>
-      {/* 1. Top Page Bar: Poliklinik Switcher Navigation with standard Heading */}
       <Heading
         title='Antrean Poliklinik'
         description='Pantau status panggilan dan nomor antrean pasien secara real-time'
@@ -49,7 +49,8 @@ export function QueueView() {
         className='shrink-0'
       />
 
-      {/* 2. Main Harmonized Section: Single full-height EmptyState if both panels empty, else 2-column layout */}
+      <DevicePushToggle />
+
       {!queueView.currentCalling && queueView.totalItems === 0 && !queueView.searchQuery ? (
         <div className='flex flex-1 min-h-0 h-full w-full flex-col'>
           <EmptyState
@@ -61,7 +62,6 @@ export function QueueView() {
         </div>
       ) : (
         <div className='grid grid-cols-1 lg:grid-cols-12 gap-5 xl:gap-6 flex-1 min-h-0 items-stretch overflow-hidden'>
-          {/* LEFT SIDE: YANG SEDANG DIPANGGIL (DOMINANT HERO CARD WITH REAL MULTI-CARD STACKING) */}
           <div className='lg:col-span-7 xl:col-span-7 flex flex-col min-h-0 h-full overflow-hidden'>
             <QueueCallingCard
               callingItem={queueView.currentCalling}
@@ -82,9 +82,7 @@ export function QueueView() {
             />
           </div>
 
-          {/* RIGHT SIDE: YANG SEDANG DUDUK (20 SEATS PER PAGE - 4 ROWS X 5 COLS FULLY FILLING VERTICAL SPACE) */}
           <div className='lg:col-span-5 xl:col-span-5 rounded-[22px] border border-border/50 bg-card p-5 sm:p-6 shadow-none flex flex-col justify-between min-h-0 h-full overflow-hidden'>
-            {/* Top Header & Search inside Right Box (Shrink-0) */}
             <div className='space-y-3 shrink-0'>
               <div className='flex items-center justify-between gap-2'>
                 <div className='flex items-center gap-2'>
@@ -104,7 +102,6 @@ export function QueueView() {
                 </span>
               </div>
 
-              {/* Search Bar */}
               <div className='relative w-full'>
                 <Icons.search className='size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground' />
                 <input
@@ -118,7 +115,6 @@ export function QueueView() {
               </div>
             </div>
 
-            {/* Seat Grid Area (Strict 5 Columns x 4 Rows = 20 Seats, Fixed Slot Keys for Zero-Jump Transition) */}
             {queueView.paginatedSeats.length > 0 ? (
               <div className='flex-1 min-h-0 overflow-y-auto overflow-x-hidden py-1.5 my-auto'>
                 <div className='grid grid-cols-5 gap-2 sm:gap-2.5 items-start justify-items-center w-full'>
@@ -144,7 +140,6 @@ export function QueueView() {
               />
             )}
 
-            {/* Fixed Pinned Bottom Pagination Bar (Shrink-0, Never Gets Scrolled) */}
             <div className='pt-2.5 border-t border-border/40 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground shrink-0 mt-auto bg-card z-10'>
               <div className='whitespace-nowrap font-medium text-[11px]'>
                 {queueView.totalItems} kursi menunggu

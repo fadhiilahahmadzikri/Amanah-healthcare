@@ -74,5 +74,37 @@ export const notificationApiService = {
       '/api/v1/notifications/read-all',
       { method: 'PATCH' }
     );
+  },
+
+  async getVapidPublicKey(): Promise<{ publicKey: string | null }> {
+    try {
+      return await clientFetch<{ publicKey: string | null }>(
+        '/api/v1/notifications/push/public-key'
+      );
+    } catch {
+      return { publicKey: null };
+    }
+  },
+
+  async subscribePush(payload: {
+    endpoint: string;
+    keys: { p256dh: string; auth: string };
+    platform?: string;
+    userAgent?: string;
+  }): Promise<{ success: boolean; id: string }> {
+    return await clientFetch<{ success: boolean; id: string }>(
+      '/api/v1/notifications/push/subscribe',
+      {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      }
+    );
+  },
+
+  async unsubscribePush(endpoint: string): Promise<{ success: boolean }> {
+    return await clientFetch<{ success: boolean }>('/api/v1/notifications/push/unsubscribe', {
+      method: 'DELETE',
+      body: JSON.stringify({ endpoint })
+    });
   }
 };
