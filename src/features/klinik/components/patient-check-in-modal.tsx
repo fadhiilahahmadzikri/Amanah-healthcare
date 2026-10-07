@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { cn } from '@/lib/utils';
 import { usePatientCheckIn } from '../model/usePatientCheckIn';
+import { PatientQrScanner } from './patient-qr-scanner';
 import type { PerformCheckInSuccessData } from '@/features/appointment-pasien/api/types';
 
 export interface PatientCheckInModalProps {
@@ -19,20 +20,12 @@ export function PatientCheckInModal({
   onClose,
   onCheckInSuccess
 }: PatientCheckInModalProps) {
-  const {
-    activeTab,
-    manualCode,
-    isSubmitting,
-    isScannerStarting,
-    cameraError,
-    successResult,
-    containerId,
-    actions
-  } = usePatientCheckIn({
-    isOpen,
-    onClose,
-    onCheckInSuccess
-  });
+  const { activeTab, manualCode, isSubmitting, cameraError, successResult, actions } =
+    usePatientCheckIn({
+      isOpen,
+      onClose,
+      onCheckInSuccess
+    });
 
   return (
     <ModalWrapper
@@ -74,16 +67,15 @@ export function PatientCheckInModal({
                 <span className='size-2 rounded-full bg-warning' />
                 Menunggu Panggilan
               </span>
-              <p className='text-sm font-bold text-foreground pt-1'>
-                Nomor Antrean Anda:
-              </p>
+              <p className='text-sm font-bold text-foreground pt-1'>Nomor Antrean Anda:</p>
               <div className='text-3xl font-black font-mono tracking-wider text-primary'>
                 {successResult.queueNumber || '-'}
               </div>
             </div>
 
             <p className='text-xs text-muted-foreground max-w-[320px] leading-relaxed'>
-              Silakan duduk di ruang tunggu klinik. Anda akan menerima notifikasi suara dan push saat nomor antrean dipanggil.
+              Silakan duduk di ruang tunggu klinik. Anda akan menerima notifikasi suara dan push
+              saat nomor antrean dipanggil.
             </p>
 
             <Button
@@ -130,14 +122,11 @@ export function PatientCheckInModal({
             {activeTab === 'scan' && (
               <div className='space-y-3'>
                 <div className='relative w-full aspect-square max-w-[320px] mx-auto rounded-2xl overflow-hidden bg-black/90 flex flex-col items-center justify-center border border-border/60 shadow-inner'>
-                  <div id={containerId} className='w-full h-full' />
-
-                  {isScannerStarting && (
-                    <div className='absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-2 text-white/80 z-10'>
-                      <Icons.spinner className='size-7 animate-spin text-primary' />
-                      <span className='text-xs font-medium'>Mengaktifkan kamera...</span>
-                    </div>
-                  )}
+                  <PatientQrScanner
+                    onScan={actions.handleScan}
+                    onError={actions.handleScannerError}
+                    isSubmitting={isSubmitting}
+                  />
 
                   {isSubmitting && (
                     <div className='absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-2 text-white z-20'>
@@ -150,15 +139,27 @@ export function PatientCheckInModal({
                 {cameraError ? (
                   <div className='bg-destructive/10 text-destructive text-xs p-3 rounded-xl border border-destructive/20 text-center space-y-2'>
                     <p>{cameraError}</p>
-                    <Button
-                      type='button'
-                      variant='outline'
-                      size='sm'
-                      onClick={() => actions.setActiveTab('manual')}
-                      className='text-xs h-7'
-                    >
-                      Beralih ke Input Manual
-                    </Button>
+                    <div className='flex items-center justify-center gap-2 pt-1'>
+                      <Button
+                        type='button'
+                        variant='default'
+                        size='sm'
+                        onClick={actions.clearCameraError}
+                        className='text-xs h-7 gap-1 px-3'
+                      >
+                        <Icons.refresh className='size-3' />
+                        <span>Coba Lagi</span>
+                      </Button>
+                      <Button
+                        type='button'
+                        variant='outline'
+                        size='sm'
+                        onClick={() => actions.setActiveTab('manual')}
+                        className='text-xs h-7 px-3'
+                      >
+                        Beralih ke Input Manual
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <p className='text-center text-[11px] text-muted-foreground'>

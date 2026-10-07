@@ -19,14 +19,7 @@ export function AppointmentCheckInQrModal({
   appointment,
   onClose
 }: AppointmentCheckInQrModalProps) {
-  const {
-    qrData,
-    isLoading,
-    isCopied,
-    isExpired,
-    formattedCountdown,
-    actions
-  } = useAppointmentCheckInQr({
+  const { qrData, isLoading, isCopied, formattedCountdown, actions } = useAppointmentCheckInQr({
     isOpen,
     appointment,
     onClose
@@ -94,36 +87,15 @@ export function AppointmentCheckInQrModal({
               <Icons.spinner className='size-8 animate-spin text-primary' />
               <span className='text-xs font-medium'>Menghasilkan QR Code...</span>
             </div>
-          ) : isExpired ? (
-            <div className='flex flex-col items-center justify-center py-10 gap-3'>
-              <div className='size-12 rounded-full bg-destructive/10 text-destructive flex items-center justify-center'>
-                <Icons.warning className='size-6' />
-              </div>
-              <div className='space-y-1'>
-                <p className='text-sm font-bold text-foreground'>QR Code Kedaluwarsa</p>
-                <p className='text-xs text-muted-foreground max-w-[240px]'>
-                  Masa berlaku kode telah habis. Silakan perbarui untuk membuat QR baru.
-                </p>
-              </div>
-              <Button
-                variant='outline'
-                size='sm'
-                onClick={actions.fetchQr}
-                className='text-xs gap-1.5 mt-1'
-              >
-                <Icons.refresh className='size-3.5' />
-                <span>Perbarui QR</span>
-              </Button>
-            </div>
           ) : qrData ? (
             <div className='w-full flex flex-col items-center space-y-3'>
               <div className='size-[200px] flex items-center justify-center bg-white p-2 rounded-xl border border-border/40 shadow-xs'>
                 <ModernStyledQRCode data={qrData.qrPayload} size={190} />
               </div>
 
-              <div className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-semibold'>
+              <div className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold'>
                 <Icons.clock className='size-3.5' />
-                <span>Kedaluwarsa dalam: {formattedCountdown}</span>
+                <span>Batas Waktu Check-In: {formattedCountdown}</span>
               </div>
             </div>
           ) : (
@@ -136,7 +108,7 @@ export function AppointmentCheckInQrModal({
           )}
         </div>
 
-        {qrData?.manualCode && !isExpired && (
+        {qrData?.manualCode && (
           <div className='bg-primary/5 border border-primary/20 rounded-xl p-3 flex items-center justify-between gap-3'>
             <div className='text-left min-w-0'>
               <span className='text-[10px] uppercase font-bold tracking-wider text-muted-foreground block'>
@@ -178,7 +150,7 @@ export function AppointmentCheckInQrModal({
             className='text-xs text-muted-foreground hover:text-foreground gap-1.5'
           >
             <Icons.refresh className='size-3.5' />
-            <span>Regenerasi QR</span>
+            <span>Muat Ulang QR</span>
           </Button>
 
           <Button
@@ -189,7 +161,7 @@ export function AppointmentCheckInQrModal({
             onClick={onClose}
             className='px-6 font-semibold text-xs'
           >
-            Selesai
+            Tutup
           </Button>
         </div>
       </div>

@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { generateCheckInQr } from '../api/service';
 import type { AdminAppointment, CheckInQrData } from '../api/types';
+import { appointmentKeys } from '../api/queries';
 
 export interface UseAppointmentCheckInQrParams {
   isOpen: boolean;
@@ -26,8 +28,13 @@ export interface UseAppointmentCheckInQrResult {
 }
 
 function formatCountdown(totalSec: number): string {
-  const mins = Math.floor(totalSec / 60);
+  if (totalSec <= 0) return '00:00';
+  const hours = Math.floor(totalSec / 3600);
+  const mins = Math.floor((totalSec % 3600) / 60);
   const secs = totalSec % 60;
+  if (hours > 0) {
+    return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  }
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 
@@ -36,6 +43,7 @@ export function useAppointmentCheckInQr({
   appointment,
   onClose
 }: UseAppointmentCheckInQrParams): UseAppointmentCheckInQrResult {
+  const queryClient = useQueryClient();
   const [qrData, setQrData] = useState<CheckInQrData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
@@ -56,12 +64,15 @@ export function useAppointmentCheckInQr({
 
       if (data && data.token && data.qrPayload) {
         setQrData(data);
-        let remaining = data.remainingSeconds;
-        if (typeof remaining !== 'number' && data.expiresAt) {
-          const diffMs = new Date(data.expiresAt).getTime() - Date.now();
-          remaining = Math.max(0, Math.floor(diffMs / 1000));
+        const deadline = data.appointmentEligibilityDeadline || data.expiresAt;
+        if (deadline) {
+          const diffMs = new Date(deadline).getTime() - Date.now();
+          setSecondsRemaining(Math.max(0, Math.floor(diffMs / 1000)));
+        } else if (typeof data.remainingSeconds === 'number') {
+          setSecondsRemaining(Math.max(0, data.remainingSeconds));
+        } else {
+          setSecondsRemaining(0);
         }
-        setSecondsRemaining(typeof remaining === 'number' && remaining > 0 ? remaining : 900);
       } else {
         const errMsg = (res as { message?: string })?.message || 'Gagal membuat QR Code check-in';
         toast.error(errMsg);
@@ -106,6 +117,30 @@ export function useAppointmentCheckInQr({
       }
     };
   }, [secondsRemaining]);
+
+  useEffect(() => {
+    if (!isOpen || !appointment) return;
+
+    const handleStatusUpdate = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const detail = customEvent.detail;
+      if (!detail) return;
+
+      const targetId = detail.appointmentId || detail.id;
+      const targetStatus = String(detail.status || '').toLowerCase();
+
+      if (targetId === appointment.id && targetStatus === 'waiting') {
+        toast.success(`Check-in berhasil! Pasien ${appointment.patientName} kini dalam antrean.`);
+        queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
+        onClose();
+      }
+    };
+
+    window.addEventListener('clinic:appointment_updated', handleStatusUpdate);
+    return () => {
+      window.removeEventListener('clinic:appointment_updated', handleStatusUpdate);
+    };
+  }, [isOpen, appointment, onClose, queryClient]);
 
   const handleCopyCode = async () => {
     if (!qrData?.manualCode) return;
