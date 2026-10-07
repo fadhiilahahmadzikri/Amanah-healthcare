@@ -16,6 +16,7 @@ import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
 import type { AdminAppointment } from '../../api/types';
 import { callPatient } from '../../api/service';
 import { appointmentKeys } from '../../api/queries';
+import { AppointmentRecordModal } from '../appointment-record-modal';
 import { AppointmentDetailOrganism } from '@/features/klinik/components/details-modal';
 import { adminAppointmentToAppointment } from '../../api/mapper';
 import { AppointmentStatusModal } from '../appointment-status-modal';
@@ -29,6 +30,7 @@ interface CellActionProps {
 
 export function CellAction({ data }: CellActionProps) {
   const queryClient = useQueryClient();
+  const [milestoneOpen, setMilestoneOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
@@ -58,6 +60,16 @@ export function CellAction({ data }: CellActionProps) {
 
   return (
     <>
+      <AppointmentRecordModal
+        isOpen={milestoneOpen}
+        appointment={data}
+        onClose={() => setMilestoneOpen(false)}
+        onViewPatientDetail={() => setDetailOpen(true)}
+        onUpdateStatus={() => setStatusOpen(true)}
+        onChangeDoctor={() => setChangeDoctorOpen(true)}
+        onChangeRoom={() => setChangeRoomOpen(true)}
+        onQrCheckIn={() => setQrOpen(true)}
+      />
       <AppointmentDetailOrganism
         appointment={adminAppointmentToAppointment(data)}
         isOpen={detailOpen}
@@ -159,15 +171,15 @@ export function CellAction({ data }: CellActionProps) {
               className='size-8 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-md transition-colors'
               onClick={(e) => {
                 e.stopPropagation();
-                setDetailOpen(true);
+                setMilestoneOpen(true);
               }}
             >
               <Icons.eye className='size-4' />
-              <span className='sr-only'>Lihat Detail</span>
+              <span className='sr-only'>Lihat Riwayat & Detail</span>
             </Button>
           </TooltipTrigger>
           <TooltipContent side='top' className='text-xs'>
-            Lihat Detail
+            Lihat Riwayat & Detail
           </TooltipContent>
         </Tooltip>
 

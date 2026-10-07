@@ -21,6 +21,8 @@ export interface AdminAppointment {
   scheduledDate: string;
   scheduledStartTime: string;
   doctorName: string;
+  staffId?: string | null;
+  doctorId?: string | null;
   poliklinikName: string;
   layananId?: string | null;
   layananName?: string | null;
@@ -135,6 +137,8 @@ export interface BackendAppointmentRecord {
   patientName?: string;
   patientProfile?: { fullName?: string };
   doctorName?: string;
+  staffId?: string;
+  doctorId?: string;
   practitioner?: { staffProfile?: { fullName?: string } };
   poliklinikName?: string;
   clinicRoom?: { clinicUnit?: { name?: string } };

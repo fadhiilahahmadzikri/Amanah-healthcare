@@ -70,6 +70,8 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
     scheduledDate,
     scheduledStartTime,
     doctorName,
+    staffId: item.staffId ? String(item.staffId) : item.doctorId ? String(item.doctorId) : null,
+    doctorId: item.doctorId ? String(item.doctorId) : item.staffId ? String(item.staffId) : null,
     poliklinikName,
     layananId: (item.layananId as string) || null,
     layananName: (item.layananName as string) || item.clinicService?.name || null,

@@ -14,7 +14,11 @@ import { adminAppointmentToAppointment } from '../../api/mapper';
 import { callPatient, completeService, cancelAppointmentAction } from '../../api/service';
 import { useQueryClient } from '@tanstack/react-query';
 import { getAppointmentColumns } from './columns';
+import { AppointmentRecordModal } from '../appointment-record-modal';
 import { AppointmentStatusModal } from '../appointment-status-modal';
+import { AppointmentCheckInQrModal } from '../appointment-check-in-qr-modal';
+import { ChangeDoctorModal } from '../change-doctor-modal';
+import { ChangeRoomModal } from '../change-room-modal';
 import { DoctorScheduleDetailSheet } from '@/features/jadwal-dokter/components/doctor-schedule-detail-sheet';
 import { useDoctorDetailDrawerStore } from '@/features/jadwal-dokter/model/useDoctorDetailDrawerStore';
 
@@ -59,6 +63,17 @@ export function AppointmentTable() {
 
   return (
     <>
+      <AppointmentRecordModal
+        isOpen={appointmentTable.isMilestoneOpen}
+        appointment={appointmentTable.selectedAppointment}
+        onClose={appointmentTable.actions.closeMilestone}
+        onViewPatientDetail={appointmentTable.actions.openPatientDetailFromMilestone}
+        onUpdateStatus={appointmentTable.actions.openStatusFromMilestone}
+        onChangeDoctor={appointmentTable.actions.openChangeDoctorFromMilestone}
+        onChangeRoom={appointmentTable.actions.openChangeRoomFromMilestone}
+        onQrCheckIn={appointmentTable.actions.openQrFromMilestone}
+      />
+
       <AppointmentDetailOrganism
         appointment={adaptedAppointment}
         isOpen={appointmentTable.isDetailOpen}
@@ -72,6 +87,48 @@ export function AppointmentTable() {
         appointment={appointmentTable.selectedAppointment}
         isOpen={appointmentTable.isStatusOpen}
         onClose={appointmentTable.actions.closeStatus}
+      />
+
+      {appointmentTable.selectedAppointment && (
+        <ChangeDoctorModal
+          isOpen={appointmentTable.isChangeDoctorOpen}
+          appointmentId={appointmentTable.selectedAppointment.id}
+          patientName={appointmentTable.selectedAppointment.patientName}
+          patientId={appointmentTable.selectedAppointment.patientId}
+          queueNumber={appointmentTable.selectedAppointment.queueNumber}
+          currentDoctorName={appointmentTable.selectedAppointment.doctorName}
+          appointmentDate={appointmentTable.selectedAppointment.scheduledDate}
+          appointmentTime={appointmentTable.selectedAppointment.scheduledStartTime}
+          onClose={appointmentTable.actions.closeChangeDoctor}
+          onSuccess={() => {
+            appointmentTable.actions.closeChangeDoctor();
+            queryClient.invalidateQueries({ queryKey: ['appointments'] });
+          }}
+        />
+      )}
+
+      {appointmentTable.selectedAppointment && (
+        <ChangeRoomModal
+          isOpen={appointmentTable.isChangeRoomOpen}
+          appointmentId={appointmentTable.selectedAppointment.id}
+          patientName={appointmentTable.selectedAppointment.patientName}
+          patientId={appointmentTable.selectedAppointment.patientId}
+          queueNumber={appointmentTable.selectedAppointment.queueNumber}
+          currentRoomName={appointmentTable.selectedAppointment.poliklinikName}
+          appointmentDate={appointmentTable.selectedAppointment.scheduledDate}
+          appointmentTime={appointmentTable.selectedAppointment.scheduledStartTime}
+          onClose={appointmentTable.actions.closeChangeRoom}
+          onSuccess={() => {
+            appointmentTable.actions.closeChangeRoom();
+            queryClient.invalidateQueries({ queryKey: ['appointments'] });
+          }}
+        />
+      )}
+
+      <AppointmentCheckInQrModal
+        appointment={appointmentTable.selectedAppointment}
+        isOpen={appointmentTable.isQrOpen}
+        onClose={appointmentTable.actions.closeQr}
       />
 
       <DoctorScheduleDetailSheet
@@ -90,7 +147,7 @@ export function AppointmentTable() {
       >
         <DataTable
           table={appointmentTable.table}
-          onRowClick={appointmentTable.actions.openDetail}
+          onRowClick={appointmentTable.actions.openMilestone}
           entityName='appointment'
           bulkActions={<DefaultBulkActions />}
           emptyState={

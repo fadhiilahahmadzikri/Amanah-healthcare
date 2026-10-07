@@ -233,7 +233,7 @@ export function getAppointmentColumns(
       ),
       cell: ({ row }) => {
         const appt = row.original;
-        const targetDoctorId = (appt as any).staffId || appt.doctorName;
+        const targetDoctorId = appt.staffId || appt.doctorId || appt.doctorName;
         return (
           <button
             type='button'

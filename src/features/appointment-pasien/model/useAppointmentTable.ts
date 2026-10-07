@@ -9,6 +9,15 @@ import { getSortingStateParser } from '@/lib/parsers';
 import { appointmentQueryOptions } from '../api/queries';
 import { normalizeFilters, type AdminAppointment, type AppointmentFilters } from '../api/types';
 
+export type AppointmentDialogType =
+  | 'milestone'
+  | 'patientDetail'
+  | 'status'
+  | 'changeDoctor'
+  | 'changeRoom'
+  | 'qr'
+  | null;
+
 interface UseAppointmentTableParams {
   columns: ColumnDef<AdminAppointment>[];
   columnIds: string[];
@@ -17,17 +26,34 @@ interface UseAppointmentTableParams {
 export interface UseAppointmentTableResult {
   table: Table<AdminAppointment>;
   selectedAppointment: AdminAppointment | null;
+  activeDialog: AppointmentDialogType;
+  isMilestoneOpen: boolean;
   isDetailOpen: boolean;
   isStatusOpen: boolean;
+  isChangeDoctorOpen: boolean;
+  isChangeRoomOpen: boolean;
+  isQrOpen: boolean;
   isFetching: boolean;
   totalAppointments: number;
   hasFilters: boolean;
   actions: {
+    openMilestone: (appointment: AdminAppointment) => void;
+    closeMilestone: () => void;
     openDetail: (appointment: AdminAppointment) => void;
     closeDetail: () => void;
     openStatus: (appointment: AdminAppointment) => void;
     closeStatus: () => void;
-    openStatusFromDetail: (appointment: AdminAppointment) => void;
+    openChangeDoctor: (appointment: AdminAppointment) => void;
+    closeChangeDoctor: () => void;
+    openChangeRoom: (appointment: AdminAppointment) => void;
+    closeChangeRoom: () => void;
+    openQr: (appointment: AdminAppointment) => void;
+    closeQr: () => void;
+    openPatientDetailFromMilestone: () => void;
+    openStatusFromMilestone: () => void;
+    openChangeDoctorFromMilestone: () => void;
+    openChangeRoomFromMilestone: () => void;
+    openQrFromMilestone: () => void;
   };
 }
 
@@ -36,8 +62,8 @@ export function useAppointmentTable({
   columnIds
 }: UseAppointmentTableParams): UseAppointmentTableResult {
   const [selectedAppointment, setSelectedAppointment] = useState<AdminAppointment | null>(null);
-  const [activeDialog, setActiveDialog] = useState<'detail' | 'status' | null>(null);
-  const [returnToDetail, setReturnToDetail] = useState(false);
+  const [activeDialog, setActiveDialog] = useState<AppointmentDialogType>(null);
+  const [returnToMilestone, setReturnToMilestone] = useState(false);
 
   const [params] = useQueryStates({
     page: parseAsInteger.withDefault(1),
@@ -88,52 +114,148 @@ export function useAppointmentTable({
     }
   });
 
-  const openDetail = (appointment: AdminAppointment) => {
+  const openMilestone = (appointment: AdminAppointment) => {
     setSelectedAppointment(appointment);
-    setReturnToDetail(false);
-    setActiveDialog('detail');
+    setReturnToMilestone(false);
+    setActiveDialog('milestone');
   };
 
-  const closeDetail = () => {
-    setReturnToDetail(false);
+  const closeMilestone = () => {
+    setReturnToMilestone(false);
     setActiveDialog(null);
   };
 
-  const openStatus = (appointment: AdminAppointment) => {
+  const openDetail = (appointment: AdminAppointment) => {
     setSelectedAppointment(appointment);
-    setReturnToDetail(false);
-    setActiveDialog('status');
+    setReturnToMilestone(false);
+    setActiveDialog('patientDetail');
   };
 
-  const closeStatus = () => {
-    if (returnToDetail) {
-      setReturnToDetail(false);
-      setActiveDialog('detail');
+  const closeDetail = () => {
+    if (returnToMilestone) {
+      setReturnToMilestone(false);
+      setActiveDialog('milestone');
     } else {
       setActiveDialog(null);
     }
   };
 
-  const openStatusFromDetail = (appointment: AdminAppointment) => {
+  const openStatus = (appointment: AdminAppointment) => {
     setSelectedAppointment(appointment);
-    setReturnToDetail(true);
+    setReturnToMilestone(false);
     setActiveDialog('status');
+  };
+
+  const closeStatus = () => {
+    if (returnToMilestone) {
+      setReturnToMilestone(false);
+      setActiveDialog('milestone');
+    } else {
+      setActiveDialog(null);
+    }
+  };
+
+  const openChangeDoctor = (appointment: AdminAppointment) => {
+    setSelectedAppointment(appointment);
+    setReturnToMilestone(false);
+    setActiveDialog('changeDoctor');
+  };
+
+  const closeChangeDoctor = () => {
+    if (returnToMilestone) {
+      setReturnToMilestone(false);
+      setActiveDialog('milestone');
+    } else {
+      setActiveDialog(null);
+    }
+  };
+
+  const openChangeRoom = (appointment: AdminAppointment) => {
+    setSelectedAppointment(appointment);
+    setReturnToMilestone(false);
+    setActiveDialog('changeRoom');
+  };
+
+  const closeChangeRoom = () => {
+    if (returnToMilestone) {
+      setReturnToMilestone(false);
+      setActiveDialog('milestone');
+    } else {
+      setActiveDialog(null);
+    }
+  };
+
+  const openQr = (appointment: AdminAppointment) => {
+    setSelectedAppointment(appointment);
+    setReturnToMilestone(false);
+    setActiveDialog('qr');
+  };
+
+  const closeQr = () => {
+    if (returnToMilestone) {
+      setReturnToMilestone(false);
+      setActiveDialog('milestone');
+    } else {
+      setActiveDialog(null);
+    }
+  };
+
+  const openPatientDetailFromMilestone = () => {
+    setReturnToMilestone(true);
+    setActiveDialog('patientDetail');
+  };
+
+  const openStatusFromMilestone = () => {
+    setReturnToMilestone(true);
+    setActiveDialog('status');
+  };
+
+  const openChangeDoctorFromMilestone = () => {
+    setReturnToMilestone(true);
+    setActiveDialog('changeDoctor');
+  };
+
+  const openChangeRoomFromMilestone = () => {
+    setReturnToMilestone(true);
+    setActiveDialog('changeRoom');
+  };
+
+  const openQrFromMilestone = () => {
+    setReturnToMilestone(true);
+    setActiveDialog('qr');
   };
 
   return {
     table,
     selectedAppointment,
-    isDetailOpen: activeDialog === 'detail',
+    activeDialog,
+    isMilestoneOpen: activeDialog === 'milestone',
+    isDetailOpen: activeDialog === 'patientDetail',
     isStatusOpen: activeDialog === 'status',
+    isChangeDoctorOpen: activeDialog === 'changeDoctor',
+    isChangeRoomOpen: activeDialog === 'changeRoom',
+    isQrOpen: activeDialog === 'qr',
     isFetching,
     totalAppointments: data.total_appointments,
     hasFilters,
     actions: {
+      openMilestone,
+      closeMilestone,
       openDetail,
       closeDetail,
       openStatus,
       closeStatus,
-      openStatusFromDetail
+      openChangeDoctor,
+      closeChangeDoctor,
+      openChangeRoom,
+      closeChangeRoom,
+      openQr,
+      closeQr,
+      openPatientDetailFromMilestone,
+      openStatusFromMilestone,
+      openChangeDoctorFromMilestone,
+      openChangeRoomFromMilestone,
+      openQrFromMilestone
     }
   };
 }
