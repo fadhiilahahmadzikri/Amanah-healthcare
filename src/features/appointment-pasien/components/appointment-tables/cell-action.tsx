@@ -3,6 +3,12 @@
 import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 import { Icons } from '@/components/icons';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
@@ -13,6 +19,8 @@ import { appointmentKeys } from '../../api/queries';
 import { AppointmentDetailModal } from '../appointment-detail-modal';
 import { AppointmentStatusModal } from '../appointment-status-modal';
 import { AppointmentCheckInQrModal } from '../appointment-check-in-qr-modal';
+import { ChangeDoctorModal } from '../change-doctor-modal';
+import { ChangeRoomModal } from '../change-room-modal';
 
 interface CellActionProps {
   data: AdminAppointment;
@@ -23,6 +31,8 @@ export function CellAction({ data }: CellActionProps) {
   const [detailOpen, setDetailOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
+  const [changeDoctorOpen, setChangeDoctorOpen] = useState(false);
+  const [changeRoomOpen, setChangeRoomOpen] = useState(false);
   const [isCalling, setIsCalling] = useState(false);
 
   const canCall = Boolean(data.allowedActions?.includes('CALL'));
@@ -66,6 +76,36 @@ export function CellAction({ data }: CellActionProps) {
         isOpen={qrOpen}
         onClose={() => setQrOpen(false)}
       />
+      <ChangeDoctorModal
+        isOpen={changeDoctorOpen}
+        appointmentId={String(data.id)}
+        patientName={data.patientName}
+        patientId={data.patientId}
+        queueNumber={data.queueNumber}
+        currentDoctorName={data.doctorName}
+        appointmentDate={data.scheduledDate}
+        appointmentTime={data.scheduledStartTime}
+        onClose={() => setChangeDoctorOpen(false)}
+        onSuccess={() => {
+          setChangeDoctorOpen(false);
+          queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
+        }}
+      />
+      <ChangeRoomModal
+        isOpen={changeRoomOpen}
+        appointmentId={String(data.id)}
+        patientName={data.patientName}
+        patientId={data.patientId}
+        queueNumber={data.queueNumber}
+        currentRoomName={data.poliklinikName}
+        appointmentDate={data.scheduledDate}
+        appointmentTime={data.scheduledStartTime}
+        onClose={() => setChangeRoomOpen(false)}
+        onSuccess={() => {
+          setChangeRoomOpen(false);
+          queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
+        }}
+      />
 
       <div className='flex items-center gap-1'>
         {canCheckIn && (
@@ -89,6 +129,7 @@ export function CellAction({ data }: CellActionProps) {
             </TooltipContent>
           </Tooltip>
         )}
+
         {canCall && (
           <Tooltip>
             <TooltipTrigger asChild>
@@ -133,25 +174,53 @@ export function CellAction({ data }: CellActionProps) {
           </TooltipContent>
         </Tooltip>
 
-        <Tooltip>
-          <TooltipTrigger asChild>
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger asChild>
             <Button
               variant='ghost'
               size='icon'
               className='size-8 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-md transition-colors'
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Icons.ellipsis className='size-4' />
+              <span className='sr-only'>Menu Aksi</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align='end' className='w-44 text-xs font-medium'>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                setChangeDoctorOpen(true);
+              }}
+              className='cursor-pointer text-xs gap-2'
+            >
+              <Icons.userCheck className='size-3.5 text-muted-foreground' />
+              <span>Ganti Dokter</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                setChangeRoomOpen(true);
+              }}
+              className='cursor-pointer text-xs gap-2'
+            >
+              <Icons.mapPin className='size-3.5 text-muted-foreground' />
+              <span>Ganti Ruangan</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem
               onClick={(e) => {
                 e.stopPropagation();
                 setStatusOpen(true);
               }}
+              className='cursor-pointer text-xs gap-2'
             >
-              <Icons.refresh className='size-4' />
-              <span className='sr-only'>Update Status</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side='top' className='text-xs'>
-            Update Status
-          </TooltipContent>
-        </Tooltip>
+              <Icons.refresh className='size-3.5 text-muted-foreground' />
+              <span>Update Status</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </>
   );

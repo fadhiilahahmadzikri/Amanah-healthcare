@@ -28,8 +28,16 @@ export async function getAdminAppointments(
     limit
   };
 
-  if (filters.status && typeof filters.status === 'string') {
-    queryParams.status = filters.status;
+  if (filters.status) {
+    queryParams.status = Array.isArray(filters.status) ? filters.status[0] : filters.status;
+  }
+
+  if (filters.poli) {
+    queryParams.poliklinikName = Array.isArray(filters.poli) ? filters.poli[0] : filters.poli;
+  }
+
+  if (filters.search && filters.search.trim().length > 0) {
+    queryParams.search = filters.search.trim();
   }
 
   const response = await clientFetch<
@@ -45,31 +53,7 @@ export async function getAdminAppointments(
       ? response.data
       : [];
 
-  let appointments = rawList.map(mapToAdminAppointment);
-
-  if (filters.poli) {
-    const poliFilter = Array.isArray(filters.poli) ? filters.poli : [filters.poli];
-    appointments = appointments.filter((apt) =>
-      poliFilter.some((p) => p.toLowerCase() === apt.poliklinikName.toLowerCase())
-    );
-  }
-
-  if (filters.search) {
-    const query = filters.search.trim().toLowerCase();
-    appointments = appointments.filter((apt) =>
-      [
-        apt.patientName,
-        apt.patientId,
-        apt.queueNumber,
-        apt.doctorName,
-        apt.poliklinikName,
-        apt.complaint
-      ]
-        .join(' ')
-        .toLowerCase()
-        .includes(query)
-    );
-  }
+  const appointments = rawList.map(mapToAdminAppointment);
 
   const totalCount =
     !Array.isArray(response) && typeof response?.meta?.total === 'number'

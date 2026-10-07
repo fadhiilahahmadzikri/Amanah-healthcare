@@ -27,7 +27,9 @@ export function AppointmentStatusModal({
   appointment,
   onClose
 }: AppointmentStatusModalProps) {
-  const [selectedStatus, setSelectedStatus] = useState<AppointmentStatus>(APPOINTMENT_STATUS.WAITING);
+  const [selectedStatus, setSelectedStatus] = useState<AppointmentStatus>(
+    APPOINTMENT_STATUS.WAITING
+  );
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -64,80 +66,32 @@ export function AppointmentStatusModal({
     <ModalWrapper
       isOpen={isOpen}
       onClose={onClose}
-      maxWidth='max-w-[620px]'
+      maxWidth='max-w-[540px]'
       showCloseButton={false}
     >
-      <form onSubmit={handleSubmit} className='relative font-sans space-y-3.5'>
+      <form onSubmit={handleSubmit} className='relative font-sans space-y-4'>
         <div className='flex items-start justify-between gap-4 pb-3 border-b border-border/40'>
           <div className='space-y-0.5 min-w-0 flex-1'>
             <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
               Update Status Janji Temu
             </h3>
-            <p className='text-xs text-muted-foreground'>
-              Pilih progres status operasional antrean pasien saat ini.
+            <p className='text-xs text-muted-foreground truncate'>
+              Antrean {appointment.queueNumber} • {appointment.patientName} (
+              {appointment.poliklinikName})
             </p>
           </div>
           <button
             type='button'
             onClick={onClose}
             aria-label='Tutup'
-            className='rounded-full p-1 text-muted-foreground hover:bg-muted transition-colors cursor-pointer'
+            className='rounded-full p-1 text-muted-foreground hover:bg-muted transition-colors cursor-pointer shrink-0'
           >
             <Icons.close className='size-4' />
           </button>
         </div>
 
-        <div className='pb-3 border-b border-border/40'>
-          <span className='text-xs font-normal text-muted-foreground/80 block mb-2'>
-            Informasi Janji Temu Pasien
-          </span>
-          <div className='grid grid-cols-2 sm:grid-cols-3 gap-y-2.5 gap-x-4 text-xs'>
-            <div className='border-b border-border/40 pb-1.5'>
-              <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>Nama Pasien</span>
-              <span className='font-semibold text-foreground truncate block'>
-                {appointment.patientName}
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-1.5'>
-              <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>ID Pasien</span>
-              <span className='font-semibold text-foreground font-mono truncate block'>
-                {appointment.patientId}
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-1.5'>
-              <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>No. Antrean</span>
-              <span className='font-bold text-primary font-mono truncate block'>
-                {appointment.queueNumber}
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-1.5'>
-              <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>Dokter</span>
-              <span className='font-semibold text-foreground truncate block'>
-                {appointment.doctorName}
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-1.5'>
-              <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>Tanggal</span>
-              <span className='font-medium text-muted-foreground truncate block'>
-                {appointment.scheduledDate}
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-1.5'>
-              <span className='text-muted-foreground/70 block text-[11px] mb-0.5'>Jam / Slot</span>
-              <span className='font-medium text-muted-foreground font-mono truncate block'>
-                {appointment.scheduledStartTime}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className='space-y-2 pt-0.5'>
-          <span className='text-xs font-normal text-muted-foreground/80 block'>
+        <div className='space-y-2'>
+          <span className='text-xs font-semibold text-foreground tracking-tight block'>
             Pilih Status Operasional Terkini:
           </span>
           <div className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
@@ -152,7 +106,7 @@ export function AppointmentStatusModal({
                   aria-label={`Pilih status ${st.label}`}
                   onClick={() => setSelectedStatus(st.value)}
                   className={cn(
-                    'w-full text-left p-2.5 rounded-xl border transition-all flex items-start gap-2.5 cursor-pointer select-none',
+                    'w-full text-left p-3 rounded-xl border transition-all flex items-start gap-2.5 cursor-pointer select-none',
                     isSelected
                       ? 'border-primary bg-primary/5 shadow-xs ring-1 ring-primary/30'
                       : 'border-border/60 bg-card hover:border-border hover:bg-accent/40'
@@ -193,14 +147,14 @@ export function AppointmentStatusModal({
           </div>
         </div>
 
-        <div className='pt-3 border-t border-border/40 flex items-center justify-end gap-3'>
+        <div className='pt-3 border-t border-border/40 flex items-center justify-end gap-2.5'>
           <Button
             type='button'
             variant='outline'
             shape='pill'
             size='default'
             onClick={onClose}
-            className='px-6 font-medium'
+            className='px-5 font-medium text-xs'
           >
             Batal
           </Button>
@@ -210,7 +164,7 @@ export function AppointmentStatusModal({
             shape='pill'
             size='default'
             disabled={mutation.isPending}
-            className='px-7 font-semibold'
+            className='px-6 font-semibold text-xs'
           >
             {mutation.isPending ? (
               <Icons.spinner className='mr-1.5 size-3.5 animate-spin' />

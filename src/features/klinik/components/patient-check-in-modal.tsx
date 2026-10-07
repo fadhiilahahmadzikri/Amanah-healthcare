@@ -7,6 +7,7 @@ import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { cn } from '@/lib/utils';
 import { usePatientCheckIn } from '../model/usePatientCheckIn';
 import { PatientQrScanner } from './patient-qr-scanner';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import type { PerformCheckInSuccessData } from '@/features/appointment-pasien/api/types';
 
 export interface PatientCheckInModalProps {
@@ -171,26 +172,35 @@ export function PatientCheckInModal({
 
             {activeTab === 'manual' && (
               <form onSubmit={actions.handleManualSubmit} className='space-y-4 py-2'>
-                <div className='space-y-2'>
+                <div className='space-y-3 text-center'>
                   <label
                     htmlFor='checkin-manual-code'
-                    className='text-xs font-medium text-foreground block text-left'
+                    className='text-xs font-medium text-foreground block text-center'
                   >
                     Kode Manual Check-In (6 Karakter)
                   </label>
-                  <div className='relative'>
-                    <input
+                  <div className='flex justify-center'>
+                    <InputOTP
                       id='checkin-manual-code'
                       aria-label='Kode Manual Check-In'
-                      type='text'
+                      maxLength={6}
                       value={manualCode}
-                      onChange={(e) => actions.setManualCode(e.target.value.toUpperCase())}
-                      placeholder='Contoh: CK-8F42'
-                      maxLength={10}
-                      className='w-full text-center text-xl font-bold font-mono tracking-widest py-3 px-4 bg-muted/30 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary uppercase'
-                    />
+                      onChange={(val) => actions.setManualCode(val.toUpperCase())}
+                      disabled={isSubmitting}
+                      containerClassName='justify-center'
+                    >
+                      <InputOTPGroup>
+                        {Array.from({ length: 6 }).map((_, index) => (
+                          <InputOTPSlot
+                            key={index}
+                            index={index}
+                            className='size-11 text-base font-bold font-mono uppercase'
+                          />
+                        ))}
+                      </InputOTPGroup>
+                    </InputOTP>
                   </div>
-                  <p className='text-[11px] text-muted-foreground text-left'>
+                  <p className='text-[11px] text-muted-foreground text-center'>
                     Masukkan 6 digit kode unik yang tertera pada layar admin klinik.
                   </p>
                 </div>

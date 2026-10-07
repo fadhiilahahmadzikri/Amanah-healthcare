@@ -16,7 +16,8 @@ export const appointmentQueryOptions = (filters: AppointmentFilters) =>
   queryOptions({
     queryKey: appointmentKeys.list(filters),
     queryFn: ({ signal }) => getAdminAppointments(filters, signal),
-    staleTime: 30 * 1000
+    staleTime: 30 * 1000,
+    placeholderData: (prev) => prev
   });
 
 export const appointmentSummaryQueryOptions = () =>

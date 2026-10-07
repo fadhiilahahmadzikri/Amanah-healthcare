@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useMemo } from 'react';
 import { DataTable } from '@/components/ui/table/data-table';
 import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
 import { DefaultBulkActions } from '@/components/ui/table/default-bulk-actions';
@@ -7,14 +8,21 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { cn } from '@/lib/utils';
 import { useAppointmentTable } from '../../model/useAppointmentTable';
-import { columns } from './columns';
+import { useClinicFilterOptions } from '../../model/useClinicFilterOptions';
+import { getAppointmentColumns } from './columns';
 import { AppointmentDetailModal } from '../appointment-detail-modal';
 import { AppointmentStatusModal } from '../appointment-status-modal';
-
-const columnIds = columns.map((c) => c.id).filter(Boolean) as string[];
+import { DoctorScheduleDetailSheet } from '@/features/jadwal-dokter/components/doctor-schedule-detail-sheet';
+import { useDoctorDetailDrawerStore } from '@/features/jadwal-dokter/model/useDoctorDetailDrawerStore';
 
 export function AppointmentTable() {
+  const { poliOptions } = useClinicFilterOptions();
+  const columns = useMemo(() => getAppointmentColumns({ poliOptions }), [poliOptions]);
+  const columnIds = useMemo(() => columns.map((c) => c.id).filter(Boolean) as string[], [columns]);
   const appointmentTable = useAppointmentTable({ columns, columnIds });
+
+  const isDoctorDrawerOpen = useDoctorDetailDrawerStore((s) => s.isOpen);
+  const closeDoctorDrawer = () => useDoctorDetailDrawerStore.getState().closeDrawer();
 
   return (
     <>
@@ -29,6 +37,13 @@ export function AppointmentTable() {
         appointment={appointmentTable.selectedAppointment}
         isOpen={appointmentTable.isStatusOpen}
         onClose={appointmentTable.actions.closeStatus}
+      />
+
+      <DoctorScheduleDetailSheet
+        doctor={null}
+        isOpen={isDoctorDrawerOpen}
+        onClose={closeDoctorDrawer}
+        onOpenEdit={() => {}}
       />
 
       <div

@@ -4,10 +4,10 @@ import React from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
-import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
 import { getAppointmentStatusConfig } from '../constants/appointment-status.dictionary';
 import { cn } from '@/lib/utils';
 import type { AdminAppointment } from '../api/types';
+import { AppointmentHistoryTimeline } from './appointment-history-timeline';
 import { AppointmentCallAttemptsTimeline } from './appointment-call-attempts-timeline';
 import { ChangeDoctorModal } from './change-doctor-modal';
 import { ChangeRoomModal } from './change-room-modal';
@@ -61,32 +61,33 @@ export function AppointmentDetailModal({
         maxWidth='max-w-[580px]'
         showCloseButton={false}
       >
-        <div className='relative font-sans space-y-3.5'>
+        <div className='relative font-sans space-y-4'>
           <div className='flex items-start justify-between gap-4 pb-3.5 border-b border-border/40'>
-            <div className='flex items-center gap-4 min-w-0 flex-1'>
+            <div className='flex items-center gap-3.5 min-w-0 flex-1'>
               <div className='size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-base shrink-0 border border-primary/20 select-none'>
                 {initials}
               </div>
 
               <div className='flex flex-col items-start min-w-0 flex-1 space-y-0.5'>
-                <h3 className='text-base sm:text-lg font-bold text-foreground truncate w-full tracking-tight'>
-                  {appointment.patientName}
-                </h3>
-                <p className='text-sm font-medium text-muted-foreground truncate w-full'>
-                  ID Pasien: {appointment.patientId}
-                </p>
-                <div className='pt-0.5 flex items-center gap-1.5'>
-                  <span className='inline-flex items-center px-2 py-0.5 bg-primary/10 text-primary rounded-md text-xs font-semibold leading-none'>
-                    <span>Antrean: {appointment.queueNumber}</span>
-                  </span>
-                  <span className='text-xs text-muted-foreground font-medium'>
-                    • {appointment.poliklinikName}
-                  </span>
+                <div className='flex items-center gap-2 max-w-full'>
+                  <h3 className='text-base sm:text-lg font-bold text-foreground truncate tracking-tight'>
+                    {appointment.patientName}
+                  </h3>
+                  {appointment.isAffiliated && (
+                    <span className='inline-flex items-center px-1.5 py-0.5 text-[10px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 rounded leading-none shrink-0'>
+                      Afiliasi
+                    </span>
+                  )}
+                </div>
+                <div className='flex items-center gap-1.5 text-xs text-muted-foreground font-medium truncate w-full'>
+                  <span className='font-semibold text-primary'>{appointment.poliklinikName}</span>
+                  <span>•</span>
+                  <span>{appointment.visitType}</span>
                 </div>
               </div>
             </div>
 
-            <div className='shrink-0 pt-0.5'>
+            <div className='shrink-0 flex items-center gap-2 pt-0.5'>
               <span
                 className={cn(
                   'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-sm select-none shadow-none',
@@ -109,210 +110,55 @@ export function AppointmentDetailModal({
                   {statusConfig.label}
                 </span>
               </span>
+              <button
+                type='button'
+                onClick={onClose}
+                aria-label='Tutup'
+                className='rounded-full p-1 text-muted-foreground hover:bg-muted transition-colors cursor-pointer'
+              >
+                <Icons.close className='size-4' />
+              </button>
             </div>
           </div>
 
-          <div className='pb-3 border-b border-border/40'>
-            <span className='text-xs font-normal text-muted-foreground/80 block mb-2'>
-              Informasi Janji Temu & Antrean
-            </span>
-            <div className='grid grid-cols-2 gap-y-3 gap-x-5'>
-              <div className='border-b border-border/40 pb-2'>
-                <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                  Nomor Antrean
-                </span>
-                <span className='text-sm font-bold text-foreground block truncate font-mono select-text'>
-                  {appointment.queueNumber}
-                </span>
-              </div>
-
-              <div className='border-b border-border/40 pb-2'>
-                <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                  Tipe Kunjungan
-                </span>
-                <span className='text-sm font-medium text-muted-foreground block truncate select-text'>
-                  {appointment.visitType}
-                </span>
-              </div>
-
-              <div className='border-b border-border/40 pb-2'>
-                <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                  Tanggal Reservasi
-                </span>
-                <span className='text-sm font-medium text-muted-foreground block truncate select-text'>
-                  {appointment.scheduledDate}
-                </span>
-              </div>
-
-              <div className='border-b border-border/40 pb-2'>
-                <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                  Jam / Slot Booking
-                </span>
-                <span className='text-sm font-medium text-muted-foreground block truncate font-mono select-text'>
-                  {appointment.scheduledStartTime}
-                </span>
-              </div>
+          <div className='bg-muted/30 rounded-xl p-3 border border-border/40 grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs'>
+            <div>
+              <span className='text-[11px] text-muted-foreground/80 block'>No. Antrean</span>
+              <span className='font-bold text-primary font-mono block text-sm'>
+                {appointment.queueNumber}
+              </span>
             </div>
+            <div>
+              <span className='text-[11px] text-muted-foreground/80 block'>Dokter Pemeriksa</span>
+              <span className='font-semibold text-foreground truncate block'>
+                {appointment.doctorName}
+              </span>
+            </div>
+            <div>
+              <span className='text-[11px] text-muted-foreground/80 block'>Jadwal Praktek</span>
+              <span className='font-medium text-foreground font-mono block tabular-nums'>
+                {appointment.scheduledDate} ({appointment.scheduledStartTime})
+              </span>
+            </div>
+            {appointment.complaint && appointment.complaint !== '-' && (
+              <div className='col-span-2 sm:col-span-3 pt-1 border-t border-border/30'>
+                <span className='text-[11px] text-muted-foreground/80 block'>Keluhan Pasien</span>
+                <p className='text-xs font-medium text-foreground line-clamp-2'>
+                  {appointment.complaint}
+                </p>
+              </div>
+            )}
           </div>
 
-          <div className='py-2.5 border-b border-border/40'>
-            <span className='text-xs font-normal text-muted-foreground/80 block mb-2'>
-              Dokter & Layanan Poli
-            </span>
-            <div className='grid grid-cols-2 gap-y-3 gap-x-5'>
-              <div className='border-b border-border/40 pb-2'>
-                <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                  Dokter Tujuan
-                </span>
-                <span className='text-sm font-medium text-muted-foreground block truncate select-text'>
-                  {appointment.doctorName}
-                </span>
-              </div>
-
-              <div className='border-b border-border/40 pb-2'>
-                <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                  Poliklinik & Layanan
-                </span>
-                <span className='text-sm font-medium text-muted-foreground block truncate select-text'>
-                  {appointment.poliklinikName}
-                </span>
-              </div>
-            </div>
+          <div className='py-1 border-y border-border/40'>
+            <AppointmentHistoryTimeline appointment={appointment} />
           </div>
 
-          <div className='py-2.5 border-b border-border/40'>
-            <span className='text-xs font-normal text-muted-foreground/80 block mb-2'>
-              Data Pasien & Kontak
-            </span>
-            <div className='grid grid-cols-2 gap-y-3 gap-x-5'>
-              <div className='border-b border-border/40 pb-2'>
-                <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                  Nama Lengkap
-                </span>
-                <span className='text-sm font-medium text-muted-foreground block truncate select-text'>
-                  {appointment.patientName} ({appointment.gender})
-                </span>
-              </div>
-
-              <div className='border-b border-border/40 pb-2'>
-                <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                  ID Pasien
-                </span>
-                <span className='text-sm font-medium text-muted-foreground block font-mono select-text'>
-                  {appointment.patientId}
-                </span>
-              </div>
-
-              <div className='border-b border-border/40 pb-2'>
-                <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                  Nomor Telepon / WhatsApp
-                </span>
-                <span className='text-sm font-medium text-muted-foreground block truncate select-text'>
-                  {appointment.phone}
-                </span>
-              </div>
-
-              <div className='border-b border-border/40 pb-2'>
-                <span className='text-xs font-normal text-muted-foreground/70 block mb-0.5'>
-                  Email Pasien
-                </span>
-                <span
-                  className='text-sm font-medium text-muted-foreground block truncate select-text'
-                  title={appointment.email}
-                >
-                  {appointment.email}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {appointment.isAffiliated && (
-            <div className='py-2.5 border-b border-border/40 bg-blue-50/50 dark:bg-blue-950/20 p-3 rounded-lg border border-blue-200/50 dark:border-blue-900/40'>
-              <div className='flex items-center gap-2 mb-2'>
-                <Icons.teams className='size-4 text-blue-600 dark:text-blue-400' />
-                <span className='text-xs font-semibold text-blue-900 dark:text-blue-300'>
-                  Status Pasien Afiliasi (Keluarga)
-                </span>
-              </div>
-              <div className='grid grid-cols-2 gap-y-2 gap-x-4 text-xs'>
-                <div>
-                  <span className='text-muted-foreground block'>Hubungan Keluarga:</span>
-                  <span className='font-medium text-foreground capitalize'>
-                    {appointment.affiliationRelationship || 'Keluarga'}
-                  </span>
-                </div>
-                <div>
-                  <span className='text-muted-foreground block'>Akun Penanggung Jawab:</span>
-                  <span className='font-medium text-foreground'>
-                    {appointment.parentUserName || appointment.parentUserId || '-'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {(appointment.actualStartedAt || appointment.status === APPOINTMENT_STATUS.IN_SERVICE || appointment.status === APPOINTMENT_STATUS.COMPLETED) && (
-            <div className='py-2.5 border-b border-border/40 bg-emerald-50/40 dark:bg-emerald-950/20 p-3 rounded-lg border border-emerald-200/50 dark:border-emerald-900/40'>
-              <div className='flex items-center gap-2 mb-2'>
-                <Icons.clock className='size-4 text-emerald-600 dark:text-emerald-400' />
-                <span className='text-xs font-semibold text-emerald-900 dark:text-emerald-300'>
-                  Waktu & Durasi Konsultasi
-                </span>
-              </div>
-              <div className='grid grid-cols-3 gap-y-2 gap-x-3 text-xs'>
-                <div>
-                  <span className='text-muted-foreground block'>Mulai Diperiksa:</span>
-                  <span className='font-medium text-foreground font-mono'>
-                    {appointment.actualStartedAt
-                      ? new Date(appointment.actualStartedAt).toLocaleTimeString('id-ID', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          second: '2-digit'
-                        })
-                      : '-'}
-                  </span>
-                </div>
-                <div>
-                  <span className='text-muted-foreground block'>Selesai:</span>
-                  <span className='font-medium text-foreground font-mono'>
-                    {appointment.actualCompletedAt
-                      ? new Date(appointment.actualCompletedAt).toLocaleTimeString('id-ID', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          second: '2-digit'
-                        })
-                      : appointment.status === APPOINTMENT_STATUS.IN_SERVICE
-                        ? 'Sedang Berlangsung'
-                        : '-'}
-                  </span>
-                </div>
-                <div>
-                  <span className='text-muted-foreground block'>Durasi:</span>
-                  <span className='font-medium text-foreground font-mono'>
-                    {appointment.consultationDurationFormatted ||
-                      (appointment.consultationElapsedSeconds
-                        ? `${Math.floor(appointment.consultationElapsedSeconds / 60)} menit`
-                        : '-')}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className='py-2.5 border-b border-border/40'>
-            <span className='text-xs font-normal text-muted-foreground/80 block mb-1'>
-              Keluhan Pasien
-            </span>
-            <p className='text-sm font-medium text-muted-foreground leading-relaxed select-text'>
-              {appointment.complaint || '-'}
-            </p>
-          </div>
-
-          <div className='py-2.5 border-b border-border/40'>
+          <div className='pb-1'>
             <AppointmentCallAttemptsTimeline appointmentId={String(appointment.id)} />
           </div>
 
-          <div className='pt-2 flex flex-wrap items-center justify-between gap-2.5'>
+          <div className='pt-2 flex flex-wrap items-center justify-between gap-2.5 border-t border-border/40'>
             <div className='flex items-center gap-2'>
               {canReassign && (
                 <>
