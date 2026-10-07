@@ -75,6 +75,17 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
     actualCompletedAt: item.actualCompletedAt ? String(item.actualCompletedAt) : null,
     estimatedStartAt: item.estimatedStartAt ? String(item.estimatedStartAt) : null,
     estimatedEndAt: item.estimatedEndAt ? String(item.estimatedEndAt) : null,
+    isAffiliated: Boolean(item.isAffiliated),
+    affiliationRelationship: item.affiliationRelationship ? String(item.affiliationRelationship) : null,
+    parentUserId: item.parentUserId ? String(item.parentUserId) : null,
+    parentUserName: item.parentUserName ? String(item.parentUserName) : null,
+    consultationElapsedSeconds:
+      typeof item.consultationElapsedSeconds === 'number'
+        ? item.consultationElapsedSeconds
+        : null,
+    consultationDurationFormatted: item.consultationDurationFormatted
+      ? String(item.consultationDurationFormatted)
+      : null,
     createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
     updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : new Date().toISOString()
   };

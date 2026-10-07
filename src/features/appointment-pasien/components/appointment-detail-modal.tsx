@@ -225,6 +225,79 @@ export function AppointmentDetailModal({
             </div>
           </div>
 
+          {appointment.isAffiliated && (
+            <div className='py-2.5 border-b border-border/40 bg-blue-50/50 dark:bg-blue-950/20 p-3 rounded-lg border border-blue-200/50 dark:border-blue-900/40'>
+              <div className='flex items-center gap-2 mb-2'>
+                <Icons.teams className='size-4 text-blue-600 dark:text-blue-400' />
+                <span className='text-xs font-semibold text-blue-900 dark:text-blue-300'>
+                  Status Pasien Afiliasi (Keluarga)
+                </span>
+              </div>
+              <div className='grid grid-cols-2 gap-y-2 gap-x-4 text-xs'>
+                <div>
+                  <span className='text-muted-foreground block'>Hubungan Keluarga:</span>
+                  <span className='font-medium text-foreground capitalize'>
+                    {appointment.affiliationRelationship || 'Keluarga'}
+                  </span>
+                </div>
+                <div>
+                  <span className='text-muted-foreground block'>Akun Penanggung Jawab:</span>
+                  <span className='font-medium text-foreground'>
+                    {appointment.parentUserName || appointment.parentUserId || '-'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {(appointment.actualStartedAt || appointment.status === 'IN_SERVICE' || appointment.status === 'COMPLETED') && (
+            <div className='py-2.5 border-b border-border/40 bg-emerald-50/40 dark:bg-emerald-950/20 p-3 rounded-lg border border-emerald-200/50 dark:border-emerald-900/40'>
+              <div className='flex items-center gap-2 mb-2'>
+                <Icons.clock className='size-4 text-emerald-600 dark:text-emerald-400' />
+                <span className='text-xs font-semibold text-emerald-900 dark:text-emerald-300'>
+                  Waktu & Durasi Konsultasi
+                </span>
+              </div>
+              <div className='grid grid-cols-3 gap-y-2 gap-x-3 text-xs'>
+                <div>
+                  <span className='text-muted-foreground block'>Mulai Diperiksa:</span>
+                  <span className='font-medium text-foreground font-mono'>
+                    {appointment.actualStartedAt
+                      ? new Date(appointment.actualStartedAt).toLocaleTimeString('id-ID', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit'
+                        })
+                      : '-'}
+                  </span>
+                </div>
+                <div>
+                  <span className='text-muted-foreground block'>Selesai:</span>
+                  <span className='font-medium text-foreground font-mono'>
+                    {appointment.actualCompletedAt
+                      ? new Date(appointment.actualCompletedAt).toLocaleTimeString('id-ID', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit'
+                        })
+                      : appointment.status === 'IN_SERVICE'
+                        ? 'Sedang Berlangsung'
+                        : '-'}
+                  </span>
+                </div>
+                <div>
+                  <span className='text-muted-foreground block'>Durasi:</span>
+                  <span className='font-medium text-foreground font-mono'>
+                    {appointment.consultationDurationFormatted ||
+                      (appointment.consultationElapsedSeconds
+                        ? `${Math.floor(appointment.consultationElapsedSeconds / 60)} menit`
+                        : '-')}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className='py-2.5 border-b border-border/40'>
             <span className='text-xs font-normal text-muted-foreground/80 block mb-1'>
               Keluhan Pasien

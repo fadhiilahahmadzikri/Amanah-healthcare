@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import type { AdminAppointment } from '../../api/types';
 import { callPatient } from '../../api/service';
+import { appointmentKeys } from '../../api/queries';
 import { AppointmentDetailModal } from '../appointment-detail-modal';
 import { AppointmentStatusModal } from '../appointment-status-modal';
 
@@ -15,6 +17,7 @@ interface CellActionProps {
 }
 
 export function CellAction({ data }: CellActionProps) {
+  const queryClient = useQueryClient();
   const [detailOpen, setDetailOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
   const [isCalling, setIsCalling] = useState(false);
@@ -27,6 +30,7 @@ export function CellAction({ data }: CellActionProps) {
     setIsCalling(true);
     try {
       await callPatient(data.id);
+      await queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
       toast.success(`Pasien dipanggil: Nomor antrean ${data.queueNumber}`);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);

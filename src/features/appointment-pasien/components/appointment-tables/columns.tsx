@@ -85,9 +85,16 @@ export const columns: ColumnDef<AdminAppointment>[] = [
             {getInitials(appt.patientName)}
           </div>
           <div className='flex flex-col'>
-            <span className='font-medium leading-none text-sm text-foreground'>
-              {appt.patientName}
-            </span>
+            <div className='flex items-center gap-1.5'>
+              <span className='font-medium leading-none text-sm text-foreground'>
+                {appt.patientName}
+              </span>
+              {appt.isAffiliated && (
+                <span className='inline-flex items-center px-1.5 py-0.5 text-[10px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 rounded leading-none'>
+                  Afiliasi
+                </span>
+              )}
+            </div>
             <span className='mt-1 text-xs text-muted-foreground'>{appt.patientId}</span>
           </div>
         </div>

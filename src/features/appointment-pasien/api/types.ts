@@ -25,6 +25,12 @@ export interface AdminAppointment {
   actualCompletedAt: string | null;
   estimatedStartAt: string | null;
   estimatedEndAt: string | null;
+  isAffiliated?: boolean;
+  affiliationRelationship?: string | null;
+  parentUserId?: string | null;
+  parentUserName?: string | null;
+  consultationElapsedSeconds?: number | null;
+  consultationDurationFormatted?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -131,6 +137,12 @@ export interface BackendAppointmentRecord {
   actualCompletedAt?: string | Date | null;
   estimatedStartAt?: string | Date | null;
   estimatedEndAt?: string | Date | null;
+  isAffiliated?: boolean;
+  affiliationRelationship?: string | null;
+  parentUserId?: string | null;
+  parentUserName?: string | null;
+  consultationElapsedSeconds?: number | null;
+  consultationDurationFormatted?: string | null;
   [key: string]: unknown;
 }
 

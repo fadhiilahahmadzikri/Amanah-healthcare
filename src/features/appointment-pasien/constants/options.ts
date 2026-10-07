@@ -3,8 +3,7 @@ import {
   APPOINTMENT_STATUS
 } from '@/constants/appointment-status.constants';
 import {
-  APPOINTMENT_STATUS_OPTIONS,
-  normalizeToAppointmentStatus
+  APPOINTMENT_STATUS_OPTIONS
 } from './appointment-status.dictionary';
 import type { AppointmentStatus } from '../api/types';
 

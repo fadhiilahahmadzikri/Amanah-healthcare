@@ -8,7 +8,6 @@ import type {
   AppointmentSummary,
   AppointmentDetailResponse,
   AppointmentStatus,
-  AppointmentAction,
   BackendAppointmentRecord,
   DoctorCandidatesResult,
   RoomCandidateItem

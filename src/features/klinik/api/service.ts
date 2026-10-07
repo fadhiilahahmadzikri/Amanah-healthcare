@@ -103,25 +103,20 @@ export function normalizeQueueStatus(
   rawStatus?: string | null,
   ticketStatus?: string | null
 ): QueueStatus {
-  const normTicket = (ticketStatus || '').toUpperCase();
   const normApt = (rawStatus || '').toUpperCase();
+  const normTicket = (ticketStatus || '').toUpperCase();
+  const candidate = normApt || normTicket;
 
-  if (normTicket === QUEUE_STATUS.IN_SERVICE || normApt === QUEUE_STATUS.IN_SERVICE) {
-    return QUEUE_STATUS.IN_SERVICE;
-  }
-  if (normTicket === QUEUE_STATUS.CALLED || normApt === QUEUE_STATUS.CALLED) {
-    return QUEUE_STATUS.CALLED;
-  }
-  if (normTicket === QUEUE_STATUS.COMPLETED || normApt === QUEUE_STATUS.COMPLETED) {
-    return QUEUE_STATUS.COMPLETED;
-  }
-  if (normTicket === QUEUE_STATUS.CANCELLED || normApt === QUEUE_STATUS.CANCELLED) {
-    return QUEUE_STATUS.CANCELLED;
-  }
-  if (normTicket === 'SKIPPED' || normApt === 'LATE' || normApt === QUEUE_STATUS.NO_SHOW) {
+  if (candidate === QUEUE_STATUS.IN_SERVICE) return QUEUE_STATUS.IN_SERVICE;
+  if (candidate === QUEUE_STATUS.CALLED) return QUEUE_STATUS.CALLED;
+  if (candidate === QUEUE_STATUS.COMPLETED) return QUEUE_STATUS.COMPLETED;
+  if (candidate === QUEUE_STATUS.CANCELLED) return QUEUE_STATUS.CANCELLED;
+  if (candidate === QUEUE_STATUS.NO_SHOW || candidate === 'SKIPPED' || candidate === 'LATE') {
     return QUEUE_STATUS.NO_SHOW;
   }
-  return QUEUE_STATUS.WAITING;
+  if (candidate === QUEUE_STATUS.WAITING) return QUEUE_STATUS.WAITING;
+
+  return candidate as QueueStatus;
 }
 
 function mapBackendQueueItemToFrontend(item: Record<string, unknown>, isUser = false): QueueItem {
