@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
 import { getAppointmentStatusConfig } from '../constants/appointment-status.dictionary';
 import { AppointmentHistoryTimeline } from './appointment-history-timeline';
 import type { AdminAppointment } from '../api/types';
@@ -39,15 +40,19 @@ export function AppointmentRecordModal({
   if (!appointment) return null;
 
   const statusConfig = getAppointmentStatusConfig(appointment.status);
-  const subtitle = `Antrean ${appointment.queueNumber} • ${appointment.layananName || appointment.poliklinikName || '-'}`;
+  const serviceName = appointment.layananName || appointment.poliklinikName;
+  const subtitle = `Antrean ${appointment.queueNumber} pasien ${appointment.patientName}${serviceName ? ` dengan layanan ${serviceName}` : ''}`;
+  const canCheckIn =
+    appointment.status !== APPOINTMENT_STATUS.LATE &&
+    Boolean(appointment.allowedActions?.includes('CHECK_IN'));
 
   return (
     <ModalWrapper
       isOpen={isOpen}
       onClose={onClose}
-      maxWidth='max-w-[560px]'
+      maxWidth='max-w-2xl sm:max-w-3xl'
       showCloseButton={false}
-      className='flex flex-col max-h-[88vh] overflow-hidden'
+      className='flex flex-col max-h-[90vh] overflow-hidden'
     >
       <div className='flex flex-col font-sans h-full min-h-0 select-none'>
         <div className='flex items-center justify-between gap-3 pb-3.5 border-b border-border/40 shrink-0'>
@@ -132,7 +137,7 @@ export function AppointmentRecordModal({
                   </DropdownMenuItem>
                 )}
 
-                {onQrCheckIn && (
+                {canCheckIn && onQrCheckIn && (
                   <DropdownMenuItem
                     onClick={onQrCheckIn}
                     className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
@@ -146,11 +151,11 @@ export function AppointmentRecordModal({
           </div>
         </div>
 
-        <div className='flex-1 min-h-0 overflow-y-auto py-3 pr-1'>
+        <div className='flex-1 min-h-0 overflow-y-auto py-3.5 pr-1'>
           <AppointmentHistoryTimeline appointment={appointment} />
         </div>
 
-        <div className='pt-3.5 border-t border-border/40 flex items-center justify-end gap-2.5 shrink-0'>
+        <div className='pt-3.5 border-t border-border/40 flex items-center justify-between gap-4 shrink-0'>
           <Button
             type='button'
             variant='outline'
@@ -162,29 +167,33 @@ export function AppointmentRecordModal({
             Tutup
           </Button>
 
-          <Button
-            type='button'
-            variant='outline'
-            shape='pill'
-            size='default'
-            onClick={onUpdateStatus}
-            className='px-4 font-semibold text-xs cursor-pointer'
-            leadingIcon={<Icons.refresh className='size-3.5' />}
-          >
-            Update Status
-          </Button>
+          <div className='flex items-center gap-2.5'>
+            <Button
+              type='button'
+              variant='outline'
+              shape='pill'
+              size='default'
+              onClick={onUpdateStatus}
+              className='px-4 font-semibold text-xs cursor-pointer'
+              leadingIcon={<Icons.refresh className='size-3.5' />}
+            >
+              Update Status
+            </Button>
 
-          <Button
-            type='button'
-            variant='default'
-            shape='pill'
-            size='default'
-            onClick={onViewPatientDetail}
-            className='px-4 font-semibold text-xs cursor-pointer'
-            leadingIcon={<Icons.user className='size-3.5' />}
-          >
-            Lihat Detail Pasien
-          </Button>
+            {canCheckIn && onQrCheckIn && (
+              <Button
+                type='button'
+                variant='default'
+                shape='pill'
+                size='default'
+                onClick={onQrCheckIn}
+                className='px-5 font-semibold text-xs cursor-pointer shadow-xs'
+                leadingIcon={<Icons.qrCode className='size-3.5' />}
+              >
+                QR Check-In
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </ModalWrapper>
