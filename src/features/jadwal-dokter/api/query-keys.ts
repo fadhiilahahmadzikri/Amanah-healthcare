@@ -12,5 +12,9 @@ export const doctorScheduleKeys = {
     doctorId: string,
     sessionId: string,
     filters: { status?: string; search?: string } = {}
-  ) => [...doctorScheduleKeys.all, 'session-patients', doctorId, sessionId, filters] as const
+  ) => [...doctorScheduleKeys.all, 'session-patients', doctorId, sessionId, filters] as const,
+  shiftPatients: (
+    doctorId: string,
+    params: { date: string; sessionShift?: string; status?: string; search?: string }
+  ) => [...doctorScheduleKeys.all, 'shift-patients', doctorId, params] as const
 };

@@ -47,6 +47,12 @@ export function useDoctorHourlyGridModals({
   const [selectedSlotForPatients, setSelectedSlotForPatients] = useState<
     { startTime: string; endTime: string } | undefined
   >(undefined);
+  const [selectedShiftForPatients, setSelectedShiftForPatients] = useState<string | undefined>(
+    undefined
+  );
+  const [selectedShiftLabelForPatients, setSelectedShiftLabelForPatients] = useState<
+    string | undefined
+  >(undefined);
 
   const [selectedPatientForDetail, setSelectedPatientForDetail] =
     useState<BookedPatientItem | null>(null);
@@ -124,12 +130,16 @@ export function useDoctorHourlyGridModals({
   const handleOpenPatients = (
     session: DoctorDailySession,
     slotStartTime?: string,
-    slotEndTime?: string
+    slotEndTime?: string,
+    sessionShift?: string,
+    shiftLabel?: string
   ) => {
     setSelectedSessionForPatients(session);
     setSelectedSlotForPatients(
       slotStartTime ? { startTime: slotStartTime, endTime: slotEndTime || '' } : undefined
     );
+    setSelectedShiftForPatients(sessionShift);
+    setSelectedShiftLabelForPatients(shiftLabel);
     setIsPatientsModalOpen(true);
   };
 
@@ -244,6 +254,10 @@ export function useDoctorHourlyGridModals({
     setSelectedSessionForPatients,
     selectedSlotForPatients,
     setSelectedSlotForPatients,
+    selectedShiftForPatients,
+    setSelectedShiftForPatients,
+    selectedShiftLabelForPatients,
+    setSelectedShiftLabelForPatients,
     selectedPatientForDetail,
     setSelectedPatientForDetail,
     isPatientDetailOpen,

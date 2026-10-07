@@ -8,8 +8,11 @@ import type { HourlySlotStatus } from '../utils/shift-slot-builder';
 
 import { useDoctorHourlyGrid } from '../model/useDoctorHourlyGrid';
 import {
-  DoctorGridHeader, DoctorGridMetrics, DoctorGridShiftSection,
-  DoctorGridLegend, DoctorGridCalendarAccordion
+  DoctorGridHeader,
+  DoctorGridMetrics,
+  DoctorGridShiftSection,
+  DoctorGridLegend,
+  DoctorGridCalendarAccordion
 } from './grid';
 import { DOCTOR_DIALOG_TYPE, WIZARD_STEP } from '../constants/doctor-dialog.constants';
 
@@ -70,11 +73,16 @@ export function DoctorDailyHourlyGrid({
   onAddSchedule,
   modalContainerRef,
   readOnly = false,
-  highlightSlotTime, onClearHighlightSlotTime: _onClearHighlightSlotTime,
-  openPatientsModal, onClearOpenPatients,
-  onReturnToSourceModal, returnDoctorName,
-  returnContext: _returnContext, onClearReturnContext: _onClearReturnContext,
-  onViewDoctorSchedule, className
+  highlightSlotTime,
+  onClearHighlightSlotTime: _onClearHighlightSlotTime,
+  openPatientsModal,
+  onClearOpenPatients,
+  onReturnToSourceModal,
+  returnDoctorName,
+  returnContext: _returnContext,
+  onClearReturnContext: _onClearReturnContext,
+  onViewDoctorSchedule,
+  className
 }: DoctorDailyHourlyGridProps) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const {
@@ -102,21 +110,42 @@ export function DoctorDailyHourlyGrid({
     handleConfirmCloseSession,
     isRescheduleOpen,
     setIsRescheduleOpen,
-    selectedSessionForReschedule, setSelectedSessionForReschedule,
-    selectedSlotStartTime, setSelectedSlotStartTime,
-    isAddModalOpen, setIsAddModalOpen,
-    addSessionInitialTime, setAddSessionInitialTime,
-    addSessionInitialEndTime, setAddSessionInitialEndTime,
-    isPatientsModalOpen, setIsPatientsModalOpen,
-    selectedSessionForPatients, setSelectedSessionForPatients,
-    selectedSlotForPatients, setSelectedSlotForPatients,
-    selectedPatientForDetail, isPatientDetailOpen,
-    patientDetailSession, handleOpenPatientDetail, handleClosePatientDetail,
-    isSlotModalOpen, selectedSlotModalData, handleCloseSlotModal,
-    isReasonOpen, setIsReasonOpen,
-    isCloseModalOpen, setIsCloseModalOpen,
-    closingSession, setClosingSession,
-    pendingSessionId, updateSessionMutation
+    selectedSessionForReschedule,
+    setSelectedSessionForReschedule,
+    selectedSlotStartTime,
+    setSelectedSlotStartTime,
+    isAddModalOpen,
+    setIsAddModalOpen,
+    addSessionInitialTime,
+    setAddSessionInitialTime,
+    addSessionInitialEndTime,
+    setAddSessionInitialEndTime,
+    isPatientsModalOpen,
+    setIsPatientsModalOpen,
+    selectedSessionForPatients,
+    setSelectedSessionForPatients,
+    selectedSlotForPatients,
+    setSelectedSlotForPatients,
+    selectedShiftForPatients,
+    setSelectedShiftForPatients,
+    selectedShiftLabelForPatients,
+    setSelectedShiftLabelForPatients,
+    selectedPatientForDetail,
+    isPatientDetailOpen,
+    patientDetailSession,
+    handleOpenPatientDetail,
+    handleClosePatientDetail,
+    isSlotModalOpen,
+    selectedSlotModalData,
+    handleCloseSlotModal,
+    isReasonOpen,
+    setIsReasonOpen,
+    isCloseModalOpen,
+    setIsCloseModalOpen,
+    closingSession,
+    setClosingSession,
+    pendingSessionId,
+    updateSessionMutation
   } = useDoctorHourlyGrid({
     doctor,
     selectedDay,
@@ -144,7 +173,14 @@ export function DoctorDailyHourlyGrid({
         onClearOpenPatients?.();
       }
     }
-  }, [openPatientsModal, activeSessions, highlightSlotTime, isPatientsModalOpen, handleOpenPatients, onClearOpenPatients]);
+  }, [
+    openPatientsModal,
+    activeSessions,
+    highlightSlotTime,
+    isPatientsModalOpen,
+    handleOpenPatients,
+    onClearOpenPatients
+  ]);
 
   const queryClient = useQueryClient();
   const formattedTargetDate = `${activeYear}-${String(activeMonth + 1).padStart(2, '0')}-${String(activeDay).padStart(2, '0')}`;
@@ -378,11 +414,15 @@ export function DoctorDailyHourlyGrid({
           selectedDate={formattedSelectedDate || formattedTargetDate}
           slotStartTime={selectedSlotForPatients?.startTime}
           slotEndTime={selectedSlotForPatients?.endTime}
+          sessionShift={selectedShiftForPatients}
+          shiftLabel={selectedShiftLabelForPatients}
           isOpen={isPatientsModalOpen}
           onClose={() => {
             setIsPatientsModalOpen(false);
             setSelectedSessionForPatients(null);
             setSelectedSlotForPatients(undefined);
+            setSelectedShiftForPatients(undefined);
+            setSelectedShiftLabelForPatients(undefined);
           }}
           portalContainerRef={modalContainerRef}
           onOpenReschedule={handleOpenReschedule}
@@ -417,14 +457,10 @@ export function DoctorDailyHourlyGrid({
             }
           }}
           onAppointmentCancelled={() => {
-            queryClient.invalidateQueries({
-              queryKey: ['doctor-schedules']
-            });
+            queryClient.invalidateQueries({ queryKey: ['doctor-schedules'] });
           }}
           onAppointmentUpdated={() => {
-            queryClient.invalidateQueries({
-              queryKey: ['doctor-schedules']
-            });
+            queryClient.invalidateQueries({ queryKey: ['doctor-schedules'] });
           }}
         />
       )}

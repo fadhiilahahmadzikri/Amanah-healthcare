@@ -222,6 +222,51 @@ export async function getSessionPatients(
   return res as AdminSessionPatientsData;
 }
 
+export async function getDoctorShiftPatients(
+  doctorId: string,
+  params: { date: string; sessionShift?: string; status?: string; search?: string }
+): Promise<AdminSessionPatientsData> {
+  const qs = new URLSearchParams();
+  qs.set('date', params.date);
+  if (params.sessionShift) qs.set('sessionShift', params.sessionShift);
+  if (params.status) qs.set('status', params.status);
+  if (params.search) qs.set('search', params.search);
+  const q = qs.toString();
+  const res = await clientFetch<{
+    data?: {
+      sessionId?: string;
+      shift?: string;
+      date?: string;
+      accumulatedCapacity?: number;
+      accumulatedAvailableSlots?: number;
+      accumulatedBookedCount?: number;
+      sessions?: Array<{
+        startTime?: string;
+        endTime?: string;
+        patients?: AdminSessionPatientsData['patients'];
+      }>;
+      patients?: AdminSessionPatientsData['patients'];
+    };
+  }>(`/api/v1/admin/doctor-schedules/${doctorId}/patients${q ? `?${q}` : ''}`);
+  const raw = res && 'data' in res && res.data ? res.data : undefined;
+  const patients =
+    raw?.patients ||
+    (Array.isArray(raw?.sessions) ? raw.sessions.flatMap((s) => s.patients || []) : []);
+  return {
+    sessionId: raw?.sessionId || '',
+    sessionLabel: raw?.shift || params.sessionShift || '',
+    shift: raw?.shift || params.sessionShift || '',
+    scheduleDate: raw?.date || params.date,
+    startTime: raw?.sessions?.[0]?.startTime || '00:00',
+    endTime: raw?.sessions?.[raw?.sessions?.length - 1]?.endTime || '23:59',
+    capacity: raw?.accumulatedCapacity ?? 0,
+    availableSlots: raw?.accumulatedAvailableSlots ?? 0,
+    bookedCount: raw?.accumulatedBookedCount ?? patients.length,
+    clinicRoom: null,
+    patients
+  };
+}
+
 export async function getScheduleProjection(
   params?: Record<string, unknown>
 ): Promise<ScheduleProjectionResponse> {

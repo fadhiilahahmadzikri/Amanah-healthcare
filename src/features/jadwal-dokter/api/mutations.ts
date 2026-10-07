@@ -31,25 +31,15 @@ import type {
 import { SCHEDULE_QUERY_KEYS, SCHEDULE_STATUS } from '../constants/schedule-shift.constants';
 import type { ApiMessageResponse } from './service';
 
-export async function syncAllDoctorSchedules(
-  queryClient: ReturnType<typeof useQueryClient>
-): Promise<void> {
+export function syncAllDoctorSchedules(queryClient: ReturnType<typeof useQueryClient>): void {
   queryClient.removeQueries({ queryKey: ['schedules', 'reschedule-eligibility'] });
-  await Promise.all([
-    queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all }),
-    queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES] }),
-    queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.PRACTITIONERS] }),
-    queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.APPOINTMENTS] }),
-    queryClient.invalidateQueries({ queryKey: ['schedules', 'reference-rooms'] }),
-    queryClient.invalidateQueries({ queryKey: ['schedules', 'slot-availability'] }),
-    queryClient.invalidateQueries({ queryKey: ['schedules', 'contexts'] })
-  ]);
-  await Promise.all([
-    queryClient.refetchQueries({ queryKey: doctorScheduleKeys.all, type: 'active' }),
-    queryClient.refetchQueries({ queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES], type: 'active' }),
-    queryClient.refetchQueries({ queryKey: ['schedules', 'reference-rooms'], type: 'active' }),
-    queryClient.refetchQueries({ queryKey: ['schedules', 'slot-availability'], type: 'active' })
-  ]);
+  queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all });
+  queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES] });
+  queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.PRACTITIONERS] });
+  queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.APPOINTMENTS] });
+  queryClient.invalidateQueries({ queryKey: ['schedules', 'reference-rooms'] });
+  queryClient.invalidateQueries({ queryKey: ['schedules', 'slot-availability'] });
+  queryClient.invalidateQueries({ queryKey: ['schedules', 'contexts'] });
 }
 
 export function useUpdateDoctorScheduleMutation() {
@@ -59,7 +49,7 @@ export function useUpdateDoctorScheduleMutation() {
     mutationFn: ({ id, payload }: { id: string; payload: UpdateDoctorSchedulePayload }) =>
       updateDoctorSchedule(id, payload),
     onSuccess: async (updated) => {
-      await syncAllDoctorSchedules(queryClient);
+      syncAllDoctorSchedules(queryClient);
       toast.success(
         updated.is_cuti
           ? `Status ${updated.nama_dokter} diset ke CUTI. Slot otomatis ditutup.`
@@ -89,7 +79,7 @@ export function useUpdateDoctorDayStatusMutation() {
       reason?: string;
     }) => updateDoctorDayStatus(doctorId, date, status, reason),
     onSuccess: async (rawResponse: unknown, variables) => {
-      await syncAllDoctorSchedules(queryClient);
+      syncAllDoctorSchedules(queryClient);
 
       const response = rawResponse as
         | (ApiMessageResponse & {
@@ -147,7 +137,7 @@ export function useCreateDoctorSessionMutation() {
       return await createDoctorSession(doctorId, payload);
     },
     onSuccess: async () => {
-      await syncAllDoctorSchedules(queryClient);
+      syncAllDoctorSchedules(queryClient);
       toast.success('Sesi praktik baru berhasil ditambahkan');
     },
     onError: (err: unknown) => {
@@ -173,7 +163,7 @@ export function useUpdateDoctorSessionMutation() {
       return await updateDoctorSession(doctorId, sessionId, payload);
     },
     onSuccess: async (_data, variables) => {
-      await syncAllDoctorSchedules(queryClient);
+      syncAllDoctorSchedules(queryClient);
       if (variables.payload.status === SCHEDULE_STATUS.CLOSED) {
         toast.success('Jadwal sesi berhasil ditutup');
       } else if (variables.payload.status === SCHEDULE_STATUS.OPEN) {
@@ -196,7 +186,7 @@ export function useDeleteDoctorSessionMutation() {
     mutationFn: ({ doctorId, sessionId }: { doctorId: string; sessionId: string }) =>
       deleteDoctorSession(doctorId, sessionId),
     onSuccess: async () => {
-      await syncAllDoctorSchedules(queryClient);
+      syncAllDoctorSchedules(queryClient);
       toast.success('Sesi praktik berhasil dihapus');
     },
     onError: (err: unknown) => {
@@ -219,11 +209,10 @@ export function useRescheduleDoctorSessionMutation() {
       sessionId: string;
       payload: RescheduleDoctorSessionPayload;
     }) => {
-      const res = await rescheduleDoctorSession(doctorId, sessionId, payload);
-      await syncAllDoctorSchedules(queryClient);
-      return res;
+      return await rescheduleDoctorSession(doctorId, sessionId, payload);
     },
     onSuccess: () => {
+      syncAllDoctorSchedules(queryClient);
       toast.success('Sesi praktik berhasil di-reschedule');
     },
     onError: (err: unknown) => {
@@ -245,7 +234,7 @@ export function useUpdateDoctorDurationMutation() {
       payload: UpdateDoctorDurationPayload;
     }) => updateDoctorDuration(doctorId, payload),
     onSuccess: async () => {
-      await syncAllDoctorSchedules(queryClient);
+      syncAllDoctorSchedules(queryClient);
       toast.success('Durasi konsultasi dokter berhasil diperbarui');
     },
     onError: (err: unknown) => {
@@ -272,7 +261,7 @@ export function useCancelAppointmentMutation(doctorId?: string, sessionId?: stri
           queryKey: doctorScheduleKeys.sessionPatients(doctorId, sessionId)
         });
       }
-      await syncAllDoctorSchedules(queryClient);
+      syncAllDoctorSchedules(queryClient);
       toast.success(
         response?.message || 'Janji temu berhasil dibatalkan dan 1 slot kuota telah dipulihkan'
       );
@@ -301,7 +290,7 @@ export function useUpdateAppointmentStatusMutation(doctorId?: string, sessionId?
           queryKey: doctorScheduleKeys.sessionPatients(doctorId, sessionId)
         });
       }
-      await syncAllDoctorSchedules(queryClient);
+      syncAllDoctorSchedules(queryClient);
       toast.success('Status janji temu berhasil diperbarui');
     },
     onError: (err: unknown) => {
@@ -322,7 +311,7 @@ export function useCallPatientAppointmentMutation(doctorId?: string, sessionId?:
           queryKey: doctorScheduleKeys.sessionPatients(doctorId, sessionId)
         });
       }
-      await syncAllDoctorSchedules(queryClient);
+      syncAllDoctorSchedules(queryClient);
       toast.success(response?.message || 'Pasien berhasil dipanggil ke ruang periksa.');
     },
     onError: (err: unknown) => {
@@ -343,7 +332,7 @@ export function useCompletePatientAppointmentMutation(doctorId?: string, session
           queryKey: doctorScheduleKeys.sessionPatients(doctorId, sessionId)
         });
       }
-      await syncAllDoctorSchedules(queryClient);
+      syncAllDoctorSchedules(queryClient);
       toast.success(response?.message || 'Pemeriksaan pasien telah selesai.');
     },
     onError: (err: unknown) => {
@@ -359,7 +348,7 @@ export function useUpdateScheduleDaySettingsMutation() {
   return useMutation({
     mutationFn: (payload: ScheduleDaySettingsPayload) => updateScheduleDaySettings(payload),
     onSuccess: async (response) => {
-      await syncAllDoctorSchedules(queryClient);
+      syncAllDoctorSchedules(queryClient);
       toast.success(response?.message || 'Pengaturan hari berhasil diperbarui');
     },
     onError: (err: unknown) => {

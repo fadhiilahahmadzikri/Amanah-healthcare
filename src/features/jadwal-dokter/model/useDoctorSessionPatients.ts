@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { sessionPatientsQueryOptions } from '../api/queries';
+import { sessionPatientsQueryOptions, doctorShiftPatientsQueryOptions } from '../api/queries';
 import type { BookedPatientItem } from '@/server/contracts/schedules/doctor-schedules.dto';
 
 export type FilterStatusType =
@@ -28,7 +28,9 @@ export const PATIENT_STATUS_OPTIONS: {
 
 export interface UseDoctorSessionPatientsProps {
   doctorId: string;
-  sessionId: string;
+  sessionId?: string;
+  date?: string;
+  sessionShift?: string;
   isOpen: boolean;
   slotStartTime?: string;
   initialCapacity?: number;
@@ -38,6 +40,8 @@ export interface UseDoctorSessionPatientsProps {
 export function useDoctorSessionPatients({
   doctorId,
   sessionId,
+  date,
+  sessionShift,
   isOpen,
   slotStartTime,
   initialCapacity = 0,
@@ -69,18 +73,31 @@ export function useDoctorSessionPatients({
     [selectedStatus, debouncedSearch]
   );
 
-  const {
-    data: sessionData,
-    isLoading,
-    isFetching,
-    isError,
-    error,
-    refetch
-  } = useQuery({
-    ...sessionPatientsQueryOptions(doctorId, sessionId, queryFilters),
-    enabled: isOpen && Boolean(doctorId && sessionId),
+  const isShiftMode = Boolean(date && sessionShift && !slotStartTime);
+
+  const sessionQuery = useQuery({
+    ...sessionPatientsQueryOptions(doctorId, sessionId || '', queryFilters),
+    enabled: isOpen && Boolean(doctorId && sessionId && !isShiftMode),
     placeholderData: (previousData) => previousData
   });
+
+  const shiftQuery = useQuery({
+    ...doctorShiftPatientsQueryOptions(doctorId, {
+      date: date || '',
+      sessionShift,
+      status: queryFilters.status,
+      search: queryFilters.search
+    }),
+    enabled: isOpen && Boolean(doctorId && date && isShiftMode),
+    placeholderData: (previousData) => previousData
+  });
+
+  const sessionData = isShiftMode ? shiftQuery.data : sessionQuery.data;
+  const isLoading = isShiftMode ? shiftQuery.isLoading : sessionQuery.isLoading;
+  const isFetching = isShiftMode ? shiftQuery.isFetching : sessionQuery.isFetching;
+  const isError = isShiftMode ? shiftQuery.isError : sessionQuery.isError;
+  const error = isShiftMode ? shiftQuery.error : sessionQuery.error;
+  const refetch = isShiftMode ? shiftQuery.refetch : sessionQuery.refetch;
 
   const rawPatientsList: BookedPatientItem[] = useMemo(
     () => sessionData?.patients ?? [],
@@ -109,7 +126,11 @@ export function useDoctorSessionPatients({
 
   const isFiltered = Boolean(searchQuery.trim()) || selectedStatus !== 'all';
   const hasNoPatients =
-    !isLoading && !isError && patientsList.length === 0 && selectedStatus === 'all' && !searchQuery.trim();
+    !isLoading &&
+    !isError &&
+    patientsList.length === 0 &&
+    selectedStatus === 'all' &&
+    !searchQuery.trim();
 
   const resetFilters = () => {
     setSelectedStatus('all');

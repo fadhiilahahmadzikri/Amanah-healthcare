@@ -7,6 +7,7 @@ import {
   getDoctorOccupancyOverview,
   checkRescheduleEligibility,
   getSessionPatients,
+  getDoctorShiftPatients,
   getScheduleProjection,
   getScheduleReferenceOptions,
   getScheduleContexts,
@@ -112,6 +113,17 @@ export const sessionPatientsQueryOptions = (
     queryFn: () => getSessionPatients(doctorId, sessionId, filters),
     staleTime: 5 * 1000,
     enabled: Boolean(doctorId && sessionId)
+  });
+
+export const doctorShiftPatientsQueryOptions = (
+  doctorId: string,
+  params: { date: string; sessionShift?: string; status?: string; search?: string }
+) =>
+  queryOptions({
+    queryKey: doctorScheduleKeys.shiftPatients(doctorId, params),
+    queryFn: () => getDoctorShiftPatients(doctorId, params),
+    staleTime: 5 * 1000,
+    enabled: Boolean(doctorId && params.date)
   });
 
 export const scheduleProjectionQueryOptions = (params: {
