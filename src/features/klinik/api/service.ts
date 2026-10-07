@@ -106,19 +106,19 @@ export function normalizeQueueStatus(
   const normTicket = (ticketStatus || '').toUpperCase();
   const normApt = (rawStatus || '').toUpperCase();
 
-  if (normTicket === 'IN_SERVICE' || normApt === 'IN_SERVICE') {
+  if (normTicket === QUEUE_STATUS.IN_SERVICE || normApt === QUEUE_STATUS.IN_SERVICE) {
     return QUEUE_STATUS.IN_SERVICE;
   }
-  if (normTicket === 'CALLED' || normApt === 'CALLED' || normApt === 'DIPANGGIL') {
+  if (normTicket === QUEUE_STATUS.CALLED || normApt === QUEUE_STATUS.CALLED) {
     return QUEUE_STATUS.CALLED;
   }
-  if (normTicket === 'COMPLETED' || normApt === 'COMPLETED' || normApt === 'SELESAI') {
+  if (normTicket === QUEUE_STATUS.COMPLETED || normApt === QUEUE_STATUS.COMPLETED) {
     return QUEUE_STATUS.COMPLETED;
   }
-  if (normTicket === 'CANCELLED' || normApt === 'CANCELLED' || normApt === 'BATAL') {
+  if (normTicket === QUEUE_STATUS.CANCELLED || normApt === QUEUE_STATUS.CANCELLED) {
     return QUEUE_STATUS.CANCELLED;
   }
-  if (normTicket === 'SKIPPED' || normApt === 'LATE' || normApt === 'NO_SHOW') {
+  if (normTicket === 'SKIPPED' || normApt === 'LATE' || normApt === QUEUE_STATUS.NO_SHOW) {
     return QUEUE_STATUS.NO_SHOW;
   }
   return QUEUE_STATUS.WAITING;
@@ -309,7 +309,7 @@ export async function noShowPatientQueue(appointmentId: string): Promise<unknown
 export async function completePatientQueue(appointmentId: string): Promise<unknown> {
   return await clientFetch(`/api/v1/appointments/${appointmentId}/status`, {
     method: 'PATCH',
-    body: JSON.stringify({ status: 'SELESAI' })
+    body: JSON.stringify({ status: QUEUE_STATUS.COMPLETED })
   });
 }
 
@@ -384,7 +384,7 @@ export const createAppointmentRecordWithQueue = (
     doctor_name: appointment.doctor_name,
     poli: formData.service || 'Poli Umum',
     estimated_time: appointment.time || '-',
-    status: 'MENUNGGU',
+    status: QUEUE_STATUS.WAITING,
     is_user: true,
     room: 'Ruang Periksa 1'
   };

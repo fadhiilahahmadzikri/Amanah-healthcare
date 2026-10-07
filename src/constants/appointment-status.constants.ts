@@ -27,7 +27,7 @@ export interface StatusDescriptorInit {
   readonly description: string;
   readonly uiStatus: string;
   readonly badge: string;
-  readonly queueDisplayStatus: 'MENUNGGU' | 'DIPANGGIL' | 'SEDANG_DIPERIKSA' | 'SELESAI' | 'BATAL' | 'NO_SHOW';
+  readonly queueDisplayStatus: 'WAITING' | 'CALLED' | 'IN_SERVICE' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW';
   readonly isTerminal: boolean;
   readonly isInService: boolean;
   readonly isWaiting: boolean;
@@ -42,7 +42,7 @@ export class AppointmentStatusDescriptor {
   readonly description: string;
   readonly uiStatus: string;
   readonly badge: string;
-  readonly queueDisplayStatus: 'MENUNGGU' | 'DIPANGGIL' | 'SEDANG_DIPERIKSA' | 'SELESAI' | 'BATAL' | 'NO_SHOW';
+  readonly queueDisplayStatus: 'WAITING' | 'CALLED' | 'IN_SERVICE' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW';
   readonly isTerminal: boolean;
   readonly isInService: boolean;
   readonly isWaiting: boolean;
@@ -83,7 +83,7 @@ export const APPOINTMENT_STATUS_REGISTRY: Record<
     description: 'Pasien telah menjadwalkan janji temu dan menunggu konfirmasi kehadiran',
     uiStatus: 'Sudah Buat Janji',
     badge: 'Booked',
-    queueDisplayStatus: 'MENUNGGU',
+    queueDisplayStatus: 'WAITING',
     isTerminal: false,
     isInService: false,
     isWaiting: false,
@@ -103,7 +103,7 @@ export const APPOINTMENT_STATUS_REGISTRY: Record<
     description: 'Pasien berada di ruang tunggu antrean pemeriksaan',
     uiStatus: 'Menunggu',
     badge: 'Menunggu',
-    queueDisplayStatus: 'MENUNGGU',
+    queueDisplayStatus: 'WAITING',
     isTerminal: false,
     isInService: false,
     isWaiting: true,
@@ -123,7 +123,7 @@ export const APPOINTMENT_STATUS_REGISTRY: Record<
     description: 'Pasien sedang dalam ruang konsultasi dengan dokter',
     uiStatus: 'Sedang Diperiksa',
     badge: 'Di Sesi',
-    queueDisplayStatus: 'SEDANG_DIPERIKSA',
+    queueDisplayStatus: 'IN_SERVICE',
     isTerminal: false,
     isInService: true,
     isWaiting: false,
@@ -143,7 +143,7 @@ export const APPOINTMENT_STATUS_REGISTRY: Record<
     description: 'Pemeriksaan selesai, rekam medis telah diperbarui',
     uiStatus: 'Selesai',
     badge: 'Selesai',
-    queueDisplayStatus: 'SELESAI',
+    queueDisplayStatus: 'COMPLETED',
     isTerminal: true,
     isInService: false,
     isWaiting: false,
@@ -163,7 +163,7 @@ export const APPOINTMENT_STATUS_REGISTRY: Record<
     description: 'Janji temu dibatalkan oleh pasien atau pihak klinik',
     uiStatus: 'Batal',
     badge: 'Batal',
-    queueDisplayStatus: 'BATAL',
+    queueDisplayStatus: 'CANCELLED',
     isTerminal: true,
     isInService: false,
     isWaiting: false,
