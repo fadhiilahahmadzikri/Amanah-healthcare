@@ -9,7 +9,10 @@ import type {
   AppointmentDetailResponse,
   AppointmentStatus,
   BackendAppointmentRecord,
+  CheckInQrResponse,
   DoctorCandidatesResult,
+  PerformCheckInPayload,
+  PerformCheckInResponse,
   RoomCandidateItem
 } from './types';
 
@@ -324,5 +327,22 @@ export async function cancelAppointmentAction(appointmentId: string | number, re
   return await clientFetch(`/api/v1/appointments/${appointmentId}/cancel`, {
     method: 'POST',
     body: JSON.stringify({ reason })
+  });
+}
+
+export async function generateCheckInQr(
+  appointmentId: string | number
+): Promise<CheckInQrResponse> {
+  return await clientFetch<CheckInQrResponse>(`/api/v1/appointments/${appointmentId}/check-in-qr`, {
+    method: 'POST'
+  });
+}
+
+export async function performCheckIn(
+  payload: PerformCheckInPayload
+): Promise<PerformCheckInResponse> {
+  return await clientFetch<PerformCheckInResponse>('/api/v1/appointments/check-in', {
+    method: 'POST',
+    body: JSON.stringify(payload)
   });
 }

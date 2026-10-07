@@ -1,6 +1,6 @@
 'use client';
 
-import type { ComponentProps } from 'react';
+import { useState, type ComponentProps } from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -13,11 +13,13 @@ import { AppointmentFilters } from './appointment-filters';
 import { AppointmentModal } from './appointment-modal';
 import { AppointmentPagination } from './appointment-pagination';
 import { DetailsModal } from './details-modal';
+import { PatientCheckInModal } from './patient-check-in-modal';
 
 type AppointmentModalSubmit = ComponentProps<typeof AppointmentModal>['onSubmit'];
 
 export function AppointmentsView() {
   const appointmentsView = useAppointmentsView();
+  const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
 
   const handleFormSubmit: AppointmentModalSubmit = (data, appointmentId) => {
     const result = appointmentsView.actions.submitForm(data, appointmentId);
@@ -37,13 +39,23 @@ export function AppointmentsView() {
             className='flex-1'
           />
 
-          <Button
-            onClick={appointmentsView.actions.openCreateModal}
-            className='shrink-0 text-xs md:text-sm'
-          >
-            <Icons.add className='mr-2 h-4 w-4' />
-            <span>Tambah Janji Temu</span>
-          </Button>
+          <div className='flex items-center gap-2 shrink-0'>
+            <Button
+              variant='outline'
+              onClick={() => setIsCheckInModalOpen(true)}
+              className='text-xs md:text-sm gap-2'
+            >
+              <Icons.qrCode className='h-4 w-4' />
+              <span>Check-In Pasien</span>
+            </Button>
+            <Button
+              onClick={appointmentsView.actions.openCreateModal}
+              className='text-xs md:text-sm'
+            >
+              <Icons.add className='mr-2 h-4 w-4' />
+              <span>Tambah Janji Temu</span>
+            </Button>
+          </div>
         </div>
       )}
 
@@ -113,14 +125,25 @@ export function AppointmentsView() {
                     Reset Filter
                   </Button>
                 ) : (
-                  <Button
-                    onClick={appointmentsView.actions.openCreateModal}
-                    size='sm'
-                    className='text-xs md:text-sm'
-                  >
-                    <Icons.add className='mr-2 h-4 w-4' />
-                    <span>Tambah Janji Temu</span>
-                  </Button>
+                  <div className='flex items-center gap-2'>
+                    <Button
+                      variant='outline'
+                      onClick={() => setIsCheckInModalOpen(true)}
+                      size='sm'
+                      className='text-xs md:text-sm gap-2'
+                    >
+                      <Icons.qrCode className='h-4 w-4' />
+                      <span>Check-In Pasien</span>
+                    </Button>
+                    <Button
+                      onClick={appointmentsView.actions.openCreateModal}
+                      size='sm'
+                      className='text-xs md:text-sm'
+                    >
+                      <Icons.add className='mr-2 h-4 w-4' />
+                      <span>Tambah Janji Temu</span>
+                    </Button>
+                  </div>
                 )
               }
               className='h-full w-full flex-1'
@@ -147,6 +170,12 @@ export function AppointmentsView() {
         onCancel={async (apt, reason) => {
           await appointmentsView.actions.cancelAppointment(apt.id, reason);
         }}
+      />
+
+      {/* Patient Self/Kiosk Check-In Modal */}
+      <PatientCheckInModal
+        isOpen={isCheckInModalOpen}
+        onClose={() => setIsCheckInModalOpen(false)}
       />
     </div>
   );

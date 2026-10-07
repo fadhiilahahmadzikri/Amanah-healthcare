@@ -10,7 +10,7 @@ export const APPOINTMENT_STATUS = {
 export type CanonicalAppointmentStatus =
   (typeof APPOINTMENT_STATUS)[keyof typeof APPOINTMENT_STATUS];
 
-export type DomainAppointmentStatus = 'WAITING' | 'IN_SERVICE' | 'COMPLETED' | 'CANCELLED' | 'LATE';
+export type DomainAppointmentStatus = 'BOOKED' | 'WAITING' | 'IN_SERVICE' | 'COMPLETED' | 'CANCELLED' | 'LATE';
 
 export interface StatusStyling {
   readonly pillBg: string;
@@ -78,7 +78,7 @@ export const APPOINTMENT_STATUS_REGISTRY: Record<
 > = {
   [APPOINTMENT_STATUS.BOOKED]: new AppointmentStatusDescriptor({
     code: APPOINTMENT_STATUS.BOOKED,
-    domainStatus: 'WAITING',
+    domainStatus: 'BOOKED',
     label: 'Sudah Buat Janji',
     description: 'Pasien telah menjadwalkan janji temu dan menunggu konfirmasi kehadiran',
     uiStatus: 'Sudah Buat Janji',

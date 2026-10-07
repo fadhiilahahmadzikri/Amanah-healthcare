@@ -11,6 +11,7 @@ import { callPatient } from '../../api/service';
 import { appointmentKeys } from '../../api/queries';
 import { AppointmentDetailModal } from '../appointment-detail-modal';
 import { AppointmentStatusModal } from '../appointment-status-modal';
+import { AppointmentCheckInQrModal } from '../appointment-check-in-qr-modal';
 
 interface CellActionProps {
   data: AdminAppointment;
@@ -20,9 +21,11 @@ export function CellAction({ data }: CellActionProps) {
   const queryClient = useQueryClient();
   const [detailOpen, setDetailOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
   const [isCalling, setIsCalling] = useState(false);
 
   const canCall = data.allowedActions?.includes('CALL');
+  const canCheckIn = data.status === 'BOOKED' || data.allowedActions?.includes('CHECK_IN');
 
   const handleCallPatient = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -56,8 +59,34 @@ export function CellAction({ data }: CellActionProps) {
         isOpen={statusOpen}
         onClose={() => setStatusOpen(false)}
       />
+      <AppointmentCheckInQrModal
+        appointment={data}
+        isOpen={qrOpen}
+        onClose={() => setQrOpen(false)}
+      />
 
       <div className='flex items-center gap-1'>
+        {canCheckIn && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant='ghost'
+                size='icon'
+                className='size-8 text-primary hover:text-primary hover:bg-primary/10 rounded-md transition-colors'
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setQrOpen(true);
+                }}
+              >
+                <Icons.qrCode className='size-4' />
+                <span className='sr-only'>QR Check-In</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side='top' className='text-xs'>
+              QR Check-In Pasien
+            </TooltipContent>
+          </Tooltip>
+        )}
         {canCall && (
           <Tooltip>
             <TooltipTrigger asChild>

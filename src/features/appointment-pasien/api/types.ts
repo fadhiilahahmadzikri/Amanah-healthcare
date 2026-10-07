@@ -1,6 +1,12 @@
-export type AppointmentStatus = 'WAITING' | 'IN_SERVICE' | 'COMPLETED' | 'CANCELLED' | 'LATE';
+export type AppointmentStatus =
+  | 'BOOKED'
+  | 'WAITING'
+  | 'IN_SERVICE'
+  | 'COMPLETED'
+  | 'CANCELLED'
+  | 'LATE';
 
-export type AppointmentAction = 'CALL' | 'START_SERVICE' | 'COMPLETE' | 'CANCEL';
+export type AppointmentAction = 'CHECK_IN' | 'CALL' | 'START_SERVICE' | 'COMPLETE' | 'CANCEL';
 
 export type LiveStatus = AppointmentStatus;
 
@@ -25,6 +31,7 @@ export interface AdminAppointment {
   actualCompletedAt: string | null;
   estimatedStartAt: string | null;
   estimatedEndAt: string | null;
+  checkedInAt?: string | null;
   isAffiliated?: boolean;
   affiliationRelationship?: string | null;
   parentUserId?: string | null;
@@ -37,6 +44,7 @@ export interface AdminAppointment {
 
 export interface AppointmentSummary {
   total: number;
+  booked?: number;
   waiting: number;
   inService: number;
   completed: number;
@@ -137,6 +145,7 @@ export interface BackendAppointmentRecord {
   actualCompletedAt?: string | Date | null;
   estimatedStartAt?: string | Date | null;
   estimatedEndAt?: string | Date | null;
+  checkedInAt?: string | Date | null;
   isAffiliated?: boolean;
   affiliationRelationship?: string | null;
   parentUserId?: string | null;
@@ -194,4 +203,35 @@ export interface ChangeDoctorPayload {
 export interface ChangeRoomPayload {
   appointmentId: string;
   roomId: string;
+}
+
+export interface CheckInQrData {
+  token: string;
+  manualCode: string;
+  qrPayload: string;
+  expiresAt: string;
+  remainingSeconds: number;
+}
+
+export interface CheckInQrResponse {
+  success: boolean;
+  message: string;
+  data: CheckInQrData;
+}
+
+export interface PerformCheckInPayload {
+  token?: string;
+  manualCode?: string;
+  appointmentId?: string;
+}
+
+export interface PerformCheckInResponse {
+  success: boolean;
+  message: string;
+  data: {
+    appointmentId: string;
+    status: AppointmentStatus;
+    checkedInAt: string;
+    queueNumber?: string;
+  };
 }

@@ -10,6 +10,7 @@ import type {
 
 export const emptyAppointmentSummary: AppointmentSummary = {
   total: 0,
+  booked: 0,
   waiting: 0,
   inService: 0,
   completed: 0,
@@ -24,6 +25,7 @@ export function computeSummary(records: AdminAppointment[]): AppointmentSummary 
 
   return {
     total: records.length,
+    booked: countOf(APPOINTMENT_STATUS.BOOKED),
     waiting: countOf(APPOINTMENT_STATUS.WAITING),
     inService: countOf(APPOINTMENT_STATUS.IN_SERVICE),
     completed: countOf(APPOINTMENT_STATUS.COMPLETED),
@@ -48,11 +50,13 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
 
   const allowedActions =
     (item.allowedActions as AppointmentAction[]) ||
-    (status === APPOINTMENT_STATUS.WAITING
-      ? ['CALL', 'START_SERVICE', 'CANCEL']
-      : status === APPOINTMENT_STATUS.IN_SERVICE
-        ? ['COMPLETE']
-        : []);
+    (status === APPOINTMENT_STATUS.BOOKED
+      ? ['CHECK_IN', 'CANCEL']
+      : status === APPOINTMENT_STATUS.WAITING
+        ? ['CALL', 'START_SERVICE', 'CANCEL']
+        : status === APPOINTMENT_STATUS.IN_SERVICE
+          ? ['COMPLETE']
+          : []);
 
   return {
     id: String(item.id),
@@ -75,6 +79,7 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
     actualCompletedAt: item.actualCompletedAt ? String(item.actualCompletedAt) : null,
     estimatedStartAt: item.estimatedStartAt ? String(item.estimatedStartAt) : null,
     estimatedEndAt: item.estimatedEndAt ? String(item.estimatedEndAt) : null,
+    checkedInAt: item.checkedInAt ? String(item.checkedInAt) : null,
     isAffiliated: Boolean(item.isAffiliated),
     affiliationRelationship: item.affiliationRelationship ? String(item.affiliationRelationship) : null,
     parentUserId: item.parentUserId ? String(item.parentUserId) : null,

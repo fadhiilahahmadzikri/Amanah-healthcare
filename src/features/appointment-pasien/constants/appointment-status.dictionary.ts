@@ -15,6 +15,11 @@ export interface StatusPresentationConfig {
 }
 
 export const APPOINTMENT_STATUS_MAP: Record<AppointmentStatus, StatusPresentationConfig> = {
+  BOOKED: {
+    label: APPOINTMENT_STATUS_REGISTRY.BOOKED.label,
+    description: APPOINTMENT_STATUS_REGISTRY.BOOKED.description,
+    ...APPOINTMENT_STATUS_REGISTRY.BOOKED.styling
+  },
   WAITING: {
     label: APPOINTMENT_STATUS_REGISTRY.WAITING.label,
     description: APPOINTMENT_STATUS_REGISTRY.WAITING.description,
