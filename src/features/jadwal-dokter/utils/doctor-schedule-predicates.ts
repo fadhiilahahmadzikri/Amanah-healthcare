@@ -1,270 +1,270 @@
-import type { DoctorDailySession, DoctorSchedule } from "../api/types";
+import type { DoctorDailySession, DoctorSchedule } from '../api/types';
 import {
-	AVAILABILITY_STATE,
-	EFFECTIVE_SLOT_STATUS,
-	SCHEDULE_STATUS,
-	SLOT_ACTION_TYPE,
-	SLOT_UI_STATUS,
-} from "../constants/schedule-shift.constants";
+  AVAILABILITY_STATE,
+  EFFECTIVE_SLOT_STATUS,
+  SCHEDULE_SLOT_STATUS,
+  SCHEDULE_STATUS,
+  SLOT_ACTION_TYPE,
+  SLOT_UI_STATUS
+} from '../constants/schedule-shift.constants';
 
 export const DOCTOR_CARD_STATUS = {
-	BUKA: "Buka",
-	CUTI: "Cuti",
-	TERISI: "Terisi",
-	BELUM_DIATUR: "Belum Diatur",
-	TUTUP: "Tutup",
-	SELESAI: "Selesai",
+  BUKA: 'Buka',
+  CUTI: 'Cuti',
+  TERISI: 'Terisi',
+  BELUM_DIATUR: 'Belum Diatur',
+  TUTUP: 'Tutup',
+  SELESAI: 'Selesai'
 } as const;
 
-export type DoctorCardStatus =
-	| (typeof DOCTOR_CARD_STATUS)[keyof typeof DOCTOR_CARD_STATUS]
-	| null;
+export type DoctorCardStatus = (typeof DOCTOR_CARD_STATUS)[keyof typeof DOCTOR_CARD_STATUS] | null;
 
-export const UNCONFIGURED_SCHEDULE_VALUES = new Set([
-	"",
-	"-",
-	"belum diatur",
-	"belum dijadwalkan",
-]);
+export const UNCONFIGURED_SCHEDULE_VALUES = new Set(['', '-', 'belum diatur', 'belum dijadwalkan']);
 
 export function parseMinutesFromTime(timeStr: string): number {
-	const clean = timeStr.replace(".", ":");
-	const [h, m] = clean.split(":").map((v) => Number.parseInt(v, 10) || 0);
-	return h * 60 + m;
+  const clean = timeStr.replace('.', ':');
+  const [h, m] = clean.split(':').map((v) => Number.parseInt(v, 10) || 0);
+  return h * 60 + m;
 }
 
 export function hasConfiguredDoctorSchedule(doctor: DoctorSchedule): boolean {
-	if (doctor.sesi_harian && doctor.sesi_harian.length > 0) {
-		return true;
-	}
+  if (doctor.sesi_harian && doctor.sesi_harian.length > 0) {
+    return true;
+  }
 
-	const scheduleTime = doctor.jadwal_hari_ini?.trim().toLowerCase() ?? "";
-	return !UNCONFIGURED_SCHEDULE_VALUES.has(scheduleTime);
+  const scheduleTime = doctor.jadwal_hari_ini?.trim().toLowerCase() ?? '';
+  return !UNCONFIGURED_SCHEDULE_VALUES.has(scheduleTime);
 }
 
 export function isSlotUnscheduled(slot: {
-	availabilityState?: string | null;
-	effectiveStatus?: string | null;
-	uiStatus?: string | null;
-	status?: string | null;
-	sessionId?: string | null;
-	appointmentRef?: unknown;
-	actionType?: string | null;
+  availabilityState?: string | null;
+  effectiveStatus?: string | null;
+  uiStatus?: string | null;
+  status?: string | null;
+  sessionId?: string | null;
+  appointmentRef?: unknown;
+  actionType?: string | null;
 }): boolean {
-	if (slot.sessionId === null) return true;
-	if (
-		slot.appointmentRef === null &&
-		slot.actionType === SLOT_ACTION_TYPE.ADD_SESSION
-	) {
-		return true;
-	}
+  if (slot.sessionId === null) return true;
+  if (slot.appointmentRef === null && slot.actionType === SLOT_ACTION_TYPE.ADD_SESSION) {
+    return true;
+  }
 
-	const avail = (slot.availabilityState || "").toUpperCase();
-	const eff = (slot.effectiveStatus || "").toUpperCase();
-	const ui = (slot.uiStatus || "").toUpperCase();
-	const status = (slot.status || "").toUpperCase();
+  const avail = (slot.availabilityState || '').toUpperCase();
+  const eff = (slot.effectiveStatus || '').toUpperCase();
+  const ui = (slot.uiStatus || '').toUpperCase();
+  const status = (slot.status || '').toUpperCase();
 
-	return (
-		avail === AVAILABILITY_STATE.UNSCHEDULED ||
-		eff === EFFECTIVE_SLOT_STATUS.UNSCHEDULED ||
-		ui === SLOT_UI_STATUS.UNSCHEDULED ||
-		ui === SLOT_UI_STATUS.UNSCHEDULED_PAST ||
-		status === AVAILABILITY_STATE.UNSCHEDULED
-	);
+  return (
+    avail === AVAILABILITY_STATE.UNSCHEDULED ||
+    eff === EFFECTIVE_SLOT_STATUS.UNSCHEDULED ||
+    ui === SLOT_UI_STATUS.UNSCHEDULED ||
+    ui === SLOT_UI_STATUS.UNSCHEDULED_PAST ||
+    status === AVAILABILITY_STATE.UNSCHEDULED
+  );
 }
 
 export function isSlotClosed(slot: {
-	status?: string | null;
-	availabilityState?: string | null;
-	effectiveStatus?: string | null;
-	uiStatus?: string | null;
-	closure?: unknown;
-	closureInfo?: unknown;
-	closedReason?: string | null;
+  status?: string | null;
+  availabilityState?: string | null;
+  effectiveStatus?: string | null;
+  uiStatus?: string | null;
+  closure?: unknown;
+  closureInfo?: unknown;
+  closedReason?: string | null;
 }): boolean {
-	const status = (slot.status || "").toUpperCase();
-	const avail = (slot.availabilityState || "").toUpperCase();
-	const eff = (slot.effectiveStatus || "").toUpperCase();
-	const ui = (slot.uiStatus || "").toUpperCase();
+  const status = (slot.status || '').toUpperCase();
+  const avail = (slot.availabilityState || '').toUpperCase();
+  const eff = (slot.effectiveStatus || '').toUpperCase();
+  const ui = (slot.uiStatus || '').toUpperCase();
 
-	return (
-		status === SCHEDULE_STATUS.CLOSED ||
-		status === SLOT_UI_STATUS.CLOSED_LEAVE ||
-		status === SLOT_UI_STATUS.CLOSED_CLINIC ||
-		avail === AVAILABILITY_STATE.CLOSED ||
-		eff === EFFECTIVE_SLOT_STATUS.CLOSED ||
-		ui === SLOT_UI_STATUS.CLOSED_LEAVE ||
-		ui === SLOT_UI_STATUS.CLOSED_CLINIC ||
-		Boolean(slot.closure) ||
-		Boolean(slot.closureInfo) ||
-		Boolean(slot.closedReason)
-	);
+  return (
+    status === SCHEDULE_STATUS.CLOSED ||
+    status === SLOT_UI_STATUS.CLOSED_LEAVE ||
+    status === SLOT_UI_STATUS.CLOSED_CLINIC ||
+    avail === AVAILABILITY_STATE.CLOSED ||
+    eff === EFFECTIVE_SLOT_STATUS.CLOSED ||
+    ui === SLOT_UI_STATUS.CLOSED_LEAVE ||
+    ui === SLOT_UI_STATUS.CLOSED_CLINIC ||
+    Boolean(slot.closure) ||
+    Boolean(slot.closureInfo) ||
+    Boolean(slot.closedReason)
+  );
 }
 
 export function isSlotAvailable(slot: {
-	isAvailable?: boolean;
-	status?: string | null;
-	availabilityState?: string | null;
-	effectiveStatus?: string | null;
-	isOccupied?: boolean;
+  isAvailable?: boolean;
+  status?: string | null;
+  availabilityState?: string | null;
+  effectiveStatus?: string | null;
+  isOccupied?: boolean;
 }): boolean {
-	if (slot.isOccupied) return false;
-	if (typeof slot.isAvailable === "boolean") return slot.isAvailable;
-	const status = (slot.status || "").toUpperCase();
-	const avail = (slot.availabilityState || "").toUpperCase();
-	const eff = (slot.effectiveStatus || "").toUpperCase();
+  if (slot.isOccupied) return false;
+  if (typeof slot.isAvailable === 'boolean') return slot.isAvailable;
+  const status = (slot.status || '').toUpperCase();
+  const avail = (slot.availabilityState || '').toUpperCase();
+  const eff = (slot.effectiveStatus || '').toUpperCase();
 
-	return (
-		status === AVAILABILITY_STATE.AVAILABLE ||
-		status === SCHEDULE_STATUS.OPEN ||
-		avail === AVAILABILITY_STATE.AVAILABLE ||
-		eff === EFFECTIVE_SLOT_STATUS.AVAILABLE
-	);
+  return (
+    status === AVAILABILITY_STATE.AVAILABLE ||
+    status === SCHEDULE_STATUS.OPEN ||
+    avail === AVAILABILITY_STATE.AVAILABLE ||
+    eff === EFFECTIVE_SLOT_STATUS.AVAILABLE
+  );
 }
 
 export function isDoctorSessionActive(
-	session: DoctorDailySession,
-	currentMinutes: number,
+  session: DoctorDailySession,
+  currentMinutes: number
 ): boolean {
-	const sMin = parseMinutesFromTime(session.jam_mulai);
-	const eMin = parseMinutesFromTime(session.jam_selesai);
-	if (eMin > sMin) {
-		return currentMinutes >= sMin && currentMinutes < eMin;
-	}
-	return currentMinutes >= sMin || currentMinutes < eMin;
+  const sMin = parseMinutesFromTime(session.jam_mulai);
+  const eMin = parseMinutesFromTime(session.jam_selesai);
+  if (eMin > sMin) {
+    return currentMinutes >= sMin && currentMinutes < eMin;
+  }
+  return currentMinutes >= sMin || currentMinutes < eMin;
 }
 
 export function getDoctorCardStatus(
-	doctor: DoctorSchedule,
-	referenceDate?: Date,
-	targetDate?: string,
+  doctor: DoctorSchedule,
+  referenceDate?: Date,
+  targetDate?: string
 ): DoctorCardStatus {
-	if (doctor.is_cuti) {
-		return DOCTOR_CARD_STATUS.CUTI;
-	}
+  if (doctor.is_cuti) {
+    return DOCTOR_CARD_STATUS.CUTI;
+  }
 
-	const statusDokter = (doctor.status_dokter || "").trim().toUpperCase();
-	const statusJadwal = (doctor.status_jadwal || "").trim().toUpperCase();
+  const statusDokter = (doctor.status_dokter || '').trim().toUpperCase();
+  const statusJadwal = (doctor.status_jadwal || '').trim().toUpperCase();
 
-	if (
-		statusDokter === SCHEDULE_STATUS.CUTI ||
-		statusJadwal === SCHEDULE_STATUS.CUTI
-	) {
-		return DOCTOR_CARD_STATUS.CUTI;
-	}
+  if (statusDokter === SCHEDULE_STATUS.CUTI || statusJadwal === SCHEDULE_STATUS.CUTI) {
+    return DOCTOR_CARD_STATUS.CUTI;
+  }
 
-	if (!hasConfiguredDoctorSchedule(doctor)) {
-		return DOCTOR_CARD_STATUS.BELUM_DIATUR;
-	}
+  if (!hasConfiguredDoctorSchedule(doctor)) {
+    return DOCTOR_CARD_STATUS.BELUM_DIATUR;
+  }
 
-	if (
-		statusDokter === SCHEDULE_STATUS.CLOSED ||
-		statusJadwal === SCHEDULE_STATUS.CLOSED
-	) {
-		return DOCTOR_CARD_STATUS.TUTUP;
-	}
+  if (statusDokter === SCHEDULE_STATUS.CLOSED || statusJadwal === SCHEDULE_STATUS.CLOSED) {
+    return DOCTOR_CARD_STATUS.TUTUP;
+  }
 
-	const now = referenceDate ?? new Date();
-	const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const now = referenceDate ?? new Date();
+  const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-	if (targetDate && targetDate < todayIso) {
-		return DOCTOR_CARD_STATUS.SELESAI;
-	}
+  if (targetDate && targetDate < todayIso) {
+    return DOCTOR_CARD_STATUS.SELESAI;
+  }
 
-	if (targetDate && targetDate > todayIso) {
-		const sessions = doctor.sesi_harian;
-		if (sessions && sessions.length > 0) {
-			const allClosed = sessions.every((s) =>
-				isSlotClosed({ status: s.status_sesi }),
-			);
-			if (allClosed) {
-				return DOCTOR_CARD_STATUS.TUTUP;
-			}
-		}
-		return DOCTOR_CARD_STATUS.BUKA;
-	}
+  if (targetDate && targetDate > todayIso) {
+    const sessions = doctor.sesi_harian;
+    if (sessions && sessions.length > 0) {
+      const allClosed = sessions.every((s) => isSlotClosed({ status: s.status_sesi }));
+      if (allClosed) {
+        return DOCTOR_CARD_STATUS.TUTUP;
+      }
+    }
+    return DOCTOR_CARD_STATUS.BUKA;
+  }
 
-	const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-	const sessions = doctor.sesi_harian;
-	if (sessions && sessions.length > 0) {
-		const allClosed = sessions.every((s) =>
-			isSlotClosed({ status: s.status_sesi }),
-		);
-		if (allClosed) {
-			return DOCTOR_CARD_STATUS.TUTUP;
-		}
+  const sessions = doctor.sesi_harian;
+  if (sessions && sessions.length > 0) {
+    const allClosed = sessions.every((s) => isSlotClosed({ status: s.status_sesi }));
+    if (allClosed) {
+      return DOCTOR_CARD_STATUS.TUTUP;
+    }
 
-		const activeSession = sessions.find((s) =>
-			isDoctorSessionActive(s, currentMinutes),
-		);
+    const activeSession = sessions.find((s) => isDoctorSessionActive(s, currentMinutes));
 
-		if (activeSession) {
-			if (isSlotClosed({ status: activeSession.status_sesi })) {
-				return DOCTOR_CARD_STATUS.TUTUP;
-			}
+    if (activeSession) {
+      if (isSlotClosed({ status: activeSession.status_sesi })) {
+        return DOCTOR_CARD_STATUS.TUTUP;
+      }
 
-			const activeSessionStatus = (activeSession.status_sesi || "").trim().toUpperCase();
-			if (
-				activeSessionStatus === SCHEDULE_STATUS.OCCUPIED ||
-				activeSessionStatus === "TERISI" ||
-				statusDokter === SCHEDULE_STATUS.OCCUPIED ||
-				statusJadwal === SCHEDULE_STATUS.OCCUPIED
-			) {
-				return DOCTOR_CARD_STATUS.TERISI;
-			}
+      const activeSessionStatus = (activeSession.status_sesi || '').trim().toUpperCase();
+      if (
+        activeSessionStatus === SCHEDULE_STATUS.OCCUPIED ||
+        activeSessionStatus === 'TERISI' ||
+        statusDokter === SCHEDULE_STATUS.OCCUPIED ||
+        statusJadwal === SCHEDULE_STATUS.OCCUPIED
+      ) {
+        return DOCTOR_CARD_STATUS.TERISI;
+      }
 
-			if (
-				typeof activeSession.slot_tersedia === "number" &&
-				activeSession.slot_tersedia === 0 &&
-				(activeSession.kuota_pasien || 0) > 0
-			) {
-				return DOCTOR_CARD_STATUS.TERISI;
-			}
+      if (
+        typeof activeSession.slot_tersedia === 'number' &&
+        activeSession.slot_tersedia === 0 &&
+        (activeSession.kuota_pasien || 0) > 0
+      ) {
+        return DOCTOR_CARD_STATUS.TERISI;
+      }
 
-			return DOCTOR_CARD_STATUS.BUKA;
-		}
+      return DOCTOR_CARD_STATUS.BUKA;
+    }
 
-		const sessionRanges = sessions
-			.map((s) => ({
-				start: parseMinutesFromTime(s.jam_mulai),
-				end: parseMinutesFromTime(s.jam_selesai),
-			}))
-			.filter((r) => r.start >= 0 && r.end >= 0);
+    const sessionRanges = sessions
+      .map((s) => ({
+        start: parseMinutesFromTime(s.jam_mulai),
+        end: parseMinutesFromTime(s.jam_selesai)
+      }))
+      .filter((r) => r.start >= 0 && r.end >= 0);
 
-		if (sessionRanges.length > 0) {
-			const allElapsed = sessionRanges.every((r) => currentMinutes >= r.end);
-			if (allElapsed) {
-				return DOCTOR_CARD_STATUS.SELESAI;
-			}
-			const beforeFirstSession = sessionRanges.every((r) => currentMinutes < r.start);
-			if (beforeFirstSession) {
-				return DOCTOR_CARD_STATUS.TUTUP;
-			}
-		}
+    if (sessionRanges.length > 0) {
+      const allElapsed = sessionRanges.every((r) => currentMinutes >= r.end);
+      if (allElapsed) {
+        return DOCTOR_CARD_STATUS.SELESAI;
+      }
+      const beforeFirstSession = sessionRanges.every((r) => currentMinutes < r.start);
+      if (beforeFirstSession) {
+        return DOCTOR_CARD_STATUS.TUTUP;
+      }
+    }
 
-		return null;
-	}
+    return null;
+  }
 
+  if (doctor.jadwal_hari_ini && doctor.jadwal_hari_ini.includes('-')) {
+    const [startStr, endStr] = doctor.jadwal_hari_ini.split('-');
+    if (startStr && endStr) {
+      const sMin = parseMinutesFromTime(startStr.trim());
+      const eMin = parseMinutesFromTime(endStr.trim());
+      const isActive = currentMinutes >= sMin && currentMinutes < eMin;
+      if (isActive) {
+        if (
+          statusDokter === SCHEDULE_STATUS.OCCUPIED ||
+          statusJadwal === SCHEDULE_STATUS.OCCUPIED
+        ) {
+          return DOCTOR_CARD_STATUS.TERISI;
+        }
+        return DOCTOR_CARD_STATUS.BUKA;
+      }
+      return null;
+    }
+  }
 
-	if (doctor.jadwal_hari_ini && doctor.jadwal_hari_ini.includes("-")) {
-		const [startStr, endStr] = doctor.jadwal_hari_ini.split("-");
-		if (startStr && endStr) {
-			const sMin = parseMinutesFromTime(startStr.trim());
-			const eMin = parseMinutesFromTime(endStr.trim());
-			const isActive = currentMinutes >= sMin && currentMinutes < eMin;
-			if (isActive) {
-				if (
-					statusDokter === SCHEDULE_STATUS.OCCUPIED ||
-					statusJadwal === SCHEDULE_STATUS.OCCUPIED
-				) {
-					return DOCTOR_CARD_STATUS.TERISI;
-				}
-				return DOCTOR_CARD_STATUS.BUKA;
-			}
-			return null;
-		}
-	}
+  return null;
+}
 
-	return null;
+export function isSlotOccupiedOrBooked(
+  slot?: {
+    appointmentRef?: unknown;
+    actionType?: string | null;
+    status?: string | null;
+    availabilityState?: string | null;
+    patient?: unknown;
+  } | null
+): boolean {
+  if (!slot) return false;
+  if (Boolean(slot.appointmentRef) || Boolean(slot.patient)) return true;
+  if (slot.actionType === SLOT_ACTION_TYPE.VIEW_PATIENTS) return true;
+  const status = (slot.status || '').toUpperCase();
+  const avail = (slot.availabilityState || '').toUpperCase();
+  return (
+    status === SCHEDULE_STATUS.OCCUPIED ||
+    status === SCHEDULE_SLOT_STATUS.OCCUPIED_BY_SELF ||
+    status === SCHEDULE_SLOT_STATUS.OCCUPIED_BY_OTHER ||
+    avail === AVAILABILITY_STATE.OCCUPIED
+  );
 }

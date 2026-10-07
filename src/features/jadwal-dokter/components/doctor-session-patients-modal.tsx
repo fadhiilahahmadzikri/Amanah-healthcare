@@ -161,7 +161,11 @@ export function DoctorSessionPatientsModal({
               </h3>
               <div className='text-xs text-muted-foreground flex items-center gap-2 flex-wrap pt-0.5'>
                 <span className='font-semibold text-foreground'>
-                  {shiftLabel ? `Shift ${shiftLabel}` : session.nama_sesi}
+                  {shiftLabel
+                    ? shiftLabel.startsWith('Shift')
+                      ? shiftLabel
+                      : `Shift ${shiftLabel}`
+                    : session.nama_sesi}
                 </span>
                 <span className='text-border/80'>•</span>
                 <span className='font-mono font-medium text-foreground'>{slotTimeDisplay}</span>

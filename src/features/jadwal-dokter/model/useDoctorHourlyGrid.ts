@@ -10,6 +10,7 @@ import { buildShiftsFromTimelineIntervals } from '../utils/shift-slot-builder';
 import { overlaySessionsOnShifts } from '../utils/shift-slot-overlay';
 import { isDoctorOnLeaveOnDay } from '../api/service';
 import { resolveDayStatus } from '../components/doctor-timeline-calendar';
+import { isSlotOccupiedOrBooked } from '../utils/doctor-schedule-predicates';
 import {
   SHIFT_OPERATIONAL_STATUS,
   AVAILABILITY_STATE,
@@ -241,12 +242,7 @@ export function useDoctorHourlyGrid({
   });
 
   const handleSlotClick = (slot: OccupancySlot) => {
-    if (isDayCuti || isSlotFinished(slot)) return;
-
-    if (slot.actionType === SLOT_ACTION_TYPE.ADD_SESSION) {
-      modals.openAddSessionModal(slot.startTime, slot.endTime);
-      return;
-    }
+    if (isDayCuti) return;
 
     const matchingSession = activeSessions.find(
       (s) =>
@@ -255,6 +251,20 @@ export function useDoctorHourlyGrid({
         slot.startTime === s.jam_mulai ||
         (slot.conflictInfo?.sessionId && s.id === slot.conflictInfo.sessionId)
     );
+
+    const hasBookedPatient = isSlotOccupiedOrBooked(slot);
+
+    if (matchingSession && hasBookedPatient) {
+      modals.handleOpenPatientDetail(matchingSession, slot);
+      return;
+    }
+
+    if (isSlotFinished(slot)) return;
+
+    if (slot.actionType === SLOT_ACTION_TYPE.ADD_SESSION) {
+      modals.openAddSessionModal(slot.startTime, slot.endTime);
+      return;
+    }
 
     if (matchingSession) {
       modals.handleOpenSlotModal(slot, matchingSession);

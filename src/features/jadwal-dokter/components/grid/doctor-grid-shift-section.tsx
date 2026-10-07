@@ -13,6 +13,7 @@ import {
   SHIFT_OPERATIONAL_STATUS,
   SHIFT_OPERATIONAL_LABELS
 } from '../../constants/schedule-shift.constants';
+import { isSlotOccupiedOrBooked } from '../../utils/doctor-schedule-predicates';
 import { useDoctorConflictNavigation } from '../../model/useDoctorConflictNavigation';
 
 export interface DoctorGridShiftSectionProps {
@@ -171,8 +172,8 @@ export function DoctorGridShiftSection({
                   onClick={() =>
                     onOpenPatients(
                       primaryShiftSession,
-                      undefined,
-                      undefined,
+                      shift.boundaryStartTime,
+                      shift.boundaryEndTime,
                       shift.shift,
                       shift.contextLabel
                     )
@@ -204,6 +205,7 @@ export function DoctorGridShiftSection({
       <div className='grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-1.5'>
         {shift.slots.map((slot) => {
           const isFinished = isSlotFinished(slot);
+          const hasBookedPatients = isSlotOccupiedOrBooked(slot);
           const isNow =
             !isFinished &&
             isCurrentDayToday &&
@@ -221,10 +223,10 @@ export function DoctorGridShiftSection({
           const isUnscheduled = !matchingSession;
 
           const isClickable =
-            !isFinished &&
             !isDayCuti &&
             !readOnly &&
             slot.isClickable !== false &&
+            (!isFinished || hasBookedPatients) &&
             (isUnscheduled ? !isDayClosed : true);
 
           const hasHoverMenu = Boolean(matchingSession && !isFinished && !isDayCuti && !readOnly);

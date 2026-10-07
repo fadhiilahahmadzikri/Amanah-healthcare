@@ -109,27 +109,19 @@ export function DoctorDailyHourlyGrid({
     handleToggleSessionStatus,
     handleConfirmCloseSession,
     isRescheduleOpen,
-    setIsRescheduleOpen,
     selectedSessionForReschedule,
-    setSelectedSessionForReschedule,
     selectedSlotStartTime,
-    setSelectedSlotStartTime,
+    handleCloseRescheduleModal,
     isAddModalOpen,
-    setIsAddModalOpen,
     addSessionInitialTime,
-    setAddSessionInitialTime,
     addSessionInitialEndTime,
-    setAddSessionInitialEndTime,
+    handleCloseAddModal,
     isPatientsModalOpen,
-    setIsPatientsModalOpen,
     selectedSessionForPatients,
-    setSelectedSessionForPatients,
     selectedSlotForPatients,
-    setSelectedSlotForPatients,
     selectedShiftForPatients,
-    setSelectedShiftForPatients,
     selectedShiftLabelForPatients,
-    setSelectedShiftLabelForPatients,
+    handleClosePatientsModal,
     selectedPatientForDetail,
     isPatientDetailOpen,
     patientDetailSession,
@@ -371,16 +363,8 @@ export function DoctorDailyHourlyGrid({
           key={`add-session-${formattedTargetDate}-${addSessionInitialTime || 'wizard'}`}
           doctor={doctor}
           isOpen={isAddModalOpen}
-          onClose={() => {
-            setIsAddModalOpen(false);
-            setAddSessionInitialTime(undefined);
-            setAddSessionInitialEndTime(undefined);
-          }}
-          onSessionAdded={(_newSession) => {
-            setIsAddModalOpen(false);
-            setAddSessionInitialTime(undefined);
-            setAddSessionInitialEndTime(undefined);
-          }}
+          onClose={handleCloseAddModal}
+          onSessionAdded={handleCloseAddModal}
           portalContainerRef={modalContainerRef}
           targetDate={formattedTargetDate}
           initialStartTime={addSessionInitialTime}
@@ -395,11 +379,7 @@ export function DoctorDailyHourlyGrid({
           doctor={doctor}
           session={selectedSessionForReschedule}
           isOpen={isRescheduleOpen}
-          onClose={() => {
-            setIsRescheduleOpen(false);
-            setSelectedSessionForReschedule(null);
-            setSelectedSlotStartTime(undefined);
-          }}
+          onClose={handleCloseRescheduleModal}
           portalContainerRef={modalContainerRef}
           initialDate={formattedTargetDate}
           initialStartTime={selectedSlotStartTime}
@@ -411,19 +391,13 @@ export function DoctorDailyHourlyGrid({
         <DoctorSessionPatientsModal
           doctor={doctor}
           session={selectedSessionForPatients}
-          selectedDate={formattedSelectedDate || formattedTargetDate}
+          selectedDate={formattedTargetDate}
           slotStartTime={selectedSlotForPatients?.startTime}
           slotEndTime={selectedSlotForPatients?.endTime}
           sessionShift={selectedShiftForPatients}
           shiftLabel={selectedShiftLabelForPatients}
           isOpen={isPatientsModalOpen}
-          onClose={() => {
-            setIsPatientsModalOpen(false);
-            setSelectedSessionForPatients(null);
-            setSelectedSlotForPatients(undefined);
-            setSelectedShiftForPatients(undefined);
-            setSelectedShiftLabelForPatients(undefined);
-          }}
+          onClose={handleClosePatientsModal}
           portalContainerRef={modalContainerRef}
           onOpenReschedule={handleOpenReschedule}
         />

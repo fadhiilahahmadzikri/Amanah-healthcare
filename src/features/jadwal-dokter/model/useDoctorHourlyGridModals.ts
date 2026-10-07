@@ -143,10 +143,24 @@ export function useDoctorHourlyGridModals({
     setIsPatientsModalOpen(true);
   };
 
+  const handleClosePatientsModal = () => {
+    setIsPatientsModalOpen(false);
+    setSelectedSessionForPatients(null);
+    setSelectedSlotForPatients(undefined);
+    setSelectedShiftForPatients(undefined);
+    setSelectedShiftLabelForPatients(undefined);
+  };
+
   const handleOpenReschedule = (session: DoctorDailySession, slotStartTime?: string) => {
     setSelectedSessionForReschedule(session);
     setSelectedSlotStartTime(slotStartTime);
     setIsRescheduleOpen(true);
+  };
+
+  const handleCloseRescheduleModal = () => {
+    setIsRescheduleOpen(false);
+    setSelectedSessionForReschedule(null);
+    setSelectedSlotStartTime(undefined);
   };
 
   const openAddSessionModal = (initialTime?: string, initialEndTime?: string) => {
@@ -155,6 +169,12 @@ export function useDoctorHourlyGridModals({
     setAddSessionInitialTime(initialTime);
     setAddSessionInitialEndTime(initialEndTime);
     setIsAddModalOpen(true);
+  };
+
+  const handleCloseAddModal = () => {
+    setIsAddModalOpen(false);
+    setAddSessionInitialTime(undefined);
+    setAddSessionInitialEndTime(undefined);
   };
 
   const handleOpenPatientDetail = async (
@@ -281,8 +301,11 @@ export function useDoctorHourlyGridModals({
     handleConfirmCloseSession,
     handleToggleSessionStatus,
     handleOpenPatients,
+    handleClosePatientsModal,
     handleOpenReschedule,
+    handleCloseRescheduleModal,
     openAddSessionModal,
+    handleCloseAddModal,
     updateSessionMutation
   };
 }

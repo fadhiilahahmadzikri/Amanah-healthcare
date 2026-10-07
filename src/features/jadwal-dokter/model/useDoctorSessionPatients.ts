@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { sessionPatientsQueryOptions, doctorShiftPatientsQueryOptions } from '../api/queries';
 import type { BookedPatientItem } from '@/server/contracts/schedules/doctor-schedules.dto';
+import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
 
 export type FilterStatusType =
   | 'all'
@@ -13,17 +14,33 @@ export type FilterStatusType =
   | 'completed'
   | 'cancelled';
 
-export const PATIENT_STATUS_OPTIONS: {
+export const PATIENT_STATUS_OPTIONS: readonly {
   value: FilterStatusType;
   label: string;
   dotColor: string;
 }[] = [
   { value: 'all', label: 'Semua Status', dotColor: 'bg-primary' },
-  { value: 'waiting', label: 'Menunggu', dotColor: 'bg-amber-500' },
-  { value: 'in_service', label: 'Di Sesi', dotColor: 'bg-sky-500' },
+  {
+    value: APPOINTMENT_STATUS.WAITING.toLowerCase() as FilterStatusType,
+    label: 'Menunggu',
+    dotColor: 'bg-amber-500'
+  },
+  {
+    value: APPOINTMENT_STATUS.IN_SERVICE.toLowerCase() as FilterStatusType,
+    label: 'Di Sesi',
+    dotColor: 'bg-sky-500'
+  },
   { value: 'no_show', label: 'Terlambat', dotColor: 'bg-orange-500' },
-  { value: 'completed', label: 'Selesai', dotColor: 'bg-emerald-500' },
-  { value: 'cancelled', label: 'Batal', dotColor: 'bg-rose-500' }
+  {
+    value: APPOINTMENT_STATUS.COMPLETED.toLowerCase() as FilterStatusType,
+    label: 'Selesai',
+    dotColor: 'bg-emerald-500'
+  },
+  {
+    value: APPOINTMENT_STATUS.CANCELLED.toLowerCase() as FilterStatusType,
+    label: 'Batal',
+    dotColor: 'bg-rose-500'
+  }
 ];
 
 export interface UseDoctorSessionPatientsProps {
@@ -73,7 +90,7 @@ export function useDoctorSessionPatients({
     [selectedStatus, debouncedSearch]
   );
 
-  const isShiftMode = Boolean(date && sessionShift && !slotStartTime);
+  const isShiftMode = Boolean(date && sessionShift);
 
   const sessionQuery = useQuery({
     ...sessionPatientsQueryOptions(doctorId, sessionId || '', queryFilters),
@@ -105,13 +122,13 @@ export function useDoctorSessionPatients({
   );
 
   const patientsList: BookedPatientItem[] = useMemo(() => {
-    if (!slotStartTime) return rawPatientsList;
+    if (!slotStartTime || isShiftMode) return rawPatientsList;
     return rawPatientsList.filter((p) => {
       if (!p.timeSlot) return true;
       const start = p.timeSlot.split('-')[0].trim().replace(/wib/i, '').trim();
       return start === slotStartTime || p.timeSlot.startsWith(slotStartTime);
     });
-  }, [rawPatientsList, slotStartTime]);
+  }, [rawPatientsList, slotStartTime, isShiftMode]);
 
   const capacity = sessionData?.capacity ?? initialCapacity;
   const bookedCount = sessionData?.bookedCount ?? patientsList.length;

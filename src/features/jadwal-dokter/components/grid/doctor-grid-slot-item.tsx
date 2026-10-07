@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import type { OccupancySlot } from '@/server/contracts/schedules/doctor-schedules.dto';
 import type { DoctorDailySession } from '../../api/types';
 import { STATUS_CONFIG, UI_VARIANT_CONFIG } from '../../utils/shift-slot-builder';
-import { isSlotClosed } from '../../utils/doctor-schedule-predicates';
+import { isSlotClosed, isSlotOccupiedOrBooked } from '../../utils/doctor-schedule-predicates';
 
 export type GridSlotData = Partial<OccupancySlot> & {
   startTime: string;
@@ -32,7 +32,11 @@ export interface DoctorGridSlotItemProps {
   isSessionClosed?: boolean;
   isThisSessionPending?: boolean;
   onSlotClick?: () => void;
-  onOpenPatients?: (session: DoctorDailySession, slotStartTime?: string, slotEndTime?: string) => void;
+  onOpenPatients?: (
+    session: DoctorDailySession,
+    slotStartTime?: string,
+    slotEndTime?: string
+  ) => void;
   onOpenPatientDetail?: (session: DoctorDailySession, slot: GridSlotData) => void;
   onOpenChangeDoctor?: (session: DoctorDailySession, slot: GridSlotData) => void;
   onOpenChangeRoom?: (session: DoctorDailySession, slot: GridSlotData) => void;
@@ -154,17 +158,7 @@ export function DoctorGridSlotItem({
   );
 
   if (hasHoverMenu && matchingSession && !isFinished) {
-    const hasBookedPatients = Boolean(
-      slot.appointmentRef != null ||
-      slot.actionType === 'VIEW_PATIENTS' ||
-      slot.status === 'OCCUPIED' ||
-      slot.status === 'OCCUPIED_BY_SELF' ||
-      (slot.uiVariant &&
-        slot.uiVariant !== 'success_green' &&
-        slot.uiVariant !== 'neutral_disabled' &&
-        slot.uiVariant !== 'purple_other' &&
-        slot.uiVariant !== 'dashed_border')
-    );
+    const hasBookedPatients = isSlotOccupiedOrBooked(slot);
 
     return (
       <HoverCard openDelay={200} closeDelay={150}>
