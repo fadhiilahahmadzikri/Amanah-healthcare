@@ -25,8 +25,9 @@ export function CellAction({ data }: CellActionProps) {
   const [qrOpen, setQrOpen] = useState(false);
   const [isCalling, setIsCalling] = useState(false);
 
-  const canCall = data.allowedActions?.includes('CALL');
-  const canCheckIn = data.status === APPOINTMENT_STATUS.BOOKED || data.allowedActions?.includes('CHECK_IN');
+  const canCall = Boolean(data.allowedActions?.includes('CALL'));
+  const canCheckIn =
+    data.status !== APPOINTMENT_STATUS.LATE && Boolean(data.allowedActions?.includes('CHECK_IN'));
 
   const handleCallPatient = async (e: React.MouseEvent) => {
     e.stopPropagation();
