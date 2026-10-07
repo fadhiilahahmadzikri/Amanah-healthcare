@@ -4,7 +4,7 @@ import React from 'react';
 import { Icons } from '@/components/icons';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
-import { QueueItem } from '../api/types';
+import { QueueItem, QUEUE_STATUS } from '../api/types';
 import { useConsultationTimer } from '../hooks/useConsultationTimer';
 import { cn } from '@/lib/utils';
 
@@ -26,7 +26,7 @@ export function QueueCallingCard({
   className
 }: QueueCallingCardProps) {
   const timer = useConsultationTimer({
-    startedAt: callingItem?.actual_started_at || callingItem?.called_at,
+    startedAt: callingItem?.actual_started_at,
     completedAt: callingItem?.actual_completed_at,
     status: callingItem?.status,
     policyMinutes: callingItem?.estimated_duration_minutes
@@ -78,7 +78,8 @@ export function QueueCallingCard({
     );
   }
 
-  const isFinished = callingItem.status === 'SELESAI';
+  const isFinished = callingItem.status === QUEUE_STATUS.COMPLETED;
+  const isInService = callingItem.status === QUEUE_STATUS.IN_SERVICE;
   const patientName = callingItem.patient_name || '-';
   const queueNumber = callingItem.queue_number || '-';
   const calledTime = callingItem.called_time || callingItem.estimated_time || '-';
@@ -142,12 +143,20 @@ export function QueueCallingCard({
         <div className='relative z-10 flex items-center justify-between gap-3 shrink-0'>
           <div className='flex items-center gap-2'>
             <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
-              {isFinished ? 'Pemeriksaan Selesai' : 'Sedang Dipanggil'}
+              {isFinished
+                ? 'Pemeriksaan Selesai'
+                : isInService
+                  ? 'Sedang Diperiksa'
+                  : 'Sedang Dipanggil'}
             </h3>
             <span
               className={cn(
                 'size-2 rounded-full',
-                isFinished ? 'bg-muted-foreground' : 'bg-primary animate-pulse'
+                isFinished
+                  ? 'bg-muted-foreground'
+                  : isInService
+                    ? 'bg-emerald-500 animate-pulse'
+                    : 'bg-primary animate-pulse'
               )}
             />
           </div>
@@ -157,7 +166,13 @@ export function QueueCallingCard({
             className='text-xs font-medium px-2.5 py-0.5 gap-1.5 border border-border/40'
           >
             <Icons.clock className='size-3 stroke-[2]' />
-            <span>{isFinished ? 'Semua Dilayani' : `Dipanggil ${calledTime}`}</span>
+            <span>
+              {isFinished
+                ? 'Semua Dilayani'
+                : isInService
+                  ? 'Dalam Pemeriksaan'
+                  : `Dipanggil ${calledTime}`}
+            </span>
           </Badge>
         </div>
 

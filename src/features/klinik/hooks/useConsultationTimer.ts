@@ -1,10 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-  APPOINTMENT_STATUS,
-  AppointmentStatusDescriptor
-} from '@/constants/appointment-status.constants';
+import { QUEUE_STATUS } from '../api/types';
 import {
   computeConsultationElapsedSeconds,
   formatConsultationTimer,
@@ -31,9 +28,8 @@ export function useConsultationTimer({
   status,
   policyMinutes
 }: UseConsultationTimerParams): UseConsultationTimerResult {
-  const desc = AppointmentStatusDescriptor.from(status);
-  const isFinished = desc.code === APPOINTMENT_STATUS.COMPLETED || Boolean(completedAt);
-  const isActive = (desc.isInService || desc.queueDisplayStatus === 'DIPANGGIL') && !isFinished;
+  const isFinished = status === QUEUE_STATUS.COMPLETED || Boolean(completedAt);
+  const isActive = status === QUEUE_STATUS.IN_SERVICE && Boolean(startedAt) && !isFinished;
 
   const [now, setNow] = useState<Date>(() => new Date());
 

@@ -75,6 +75,21 @@ export function StatusBadge({
 					c2: "var(--primary-bright)",
 					c3: "var(--primary-bright)",
 				},
+				IN_SERVICE: {
+					c1: "var(--border-accent)",
+					c2: "var(--primary-bright)",
+					c3: "var(--primary-bright)",
+				},
+				SEDANG_DIPERIKSA: {
+					c1: "var(--border-accent)",
+					c2: "var(--primary-bright)",
+					c3: "var(--primary-bright)",
+				},
+				CALLED: {
+					c1: "var(--border-accent)",
+					c2: "var(--primary-bright)",
+					c3: "var(--primary-bright)",
+				},
 				DIPANGGIL: {
 					c1: "var(--border-accent)",
 					c2: "var(--primary-bright)",
@@ -202,6 +217,21 @@ export function StatusBadge({
 					c3: "var(--info)",
 				},
 				CHECKED_IN: {
+					c1: "var(--border-accent)",
+					c2: "var(--primary-bright)",
+					c3: "var(--primary-bright)",
+				},
+				IN_SERVICE: {
+					c1: "var(--border-accent)",
+					c2: "var(--primary-bright)",
+					c3: "var(--primary-bright)",
+				},
+				SEDANG_DIPERIKSA: {
+					c1: "var(--border-accent)",
+					c2: "var(--primary-bright)",
+					c3: "var(--primary-bright)",
+				},
+				CALLED: {
 					c1: "var(--border-accent)",
 					c2: "var(--primary-bright)",
 					c3: "var(--primary-bright)",

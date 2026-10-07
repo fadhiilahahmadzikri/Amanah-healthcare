@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Icons } from '@/components/icons';
-import { QueueItem } from '../api/types';
+import { QueueItem, QUEUE_STATUS_LABELS } from '../api/types';
 import { DoctorAvatar } from './doctor-avatar';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { cn } from '@/lib/utils';
@@ -23,7 +23,7 @@ export function QueueCard({ item, className }: QueueCardProps) {
     >
       <div className='flex items-center justify-between pb-2 border-b border-border/40'>
         <span className='font-mono text-sm font-bold text-primary'>{item.queue_number}</span>
-        <StatusBadge status={item.status} size='sm' />
+        <StatusBadge status={item.status} label={QUEUE_STATUS_LABELS[item.status]} size='sm' />
       </div>
 
       <div className='space-y-1.5'>

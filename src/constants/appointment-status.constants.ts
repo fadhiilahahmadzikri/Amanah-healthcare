@@ -27,7 +27,7 @@ export interface StatusDescriptorInit {
   readonly description: string;
   readonly uiStatus: string;
   readonly badge: string;
-  readonly queueDisplayStatus: 'MENUNGGU' | 'DIPANGGIL' | 'SELESAI' | 'BATAL' | 'NO_SHOW';
+  readonly queueDisplayStatus: 'MENUNGGU' | 'DIPANGGIL' | 'SEDANG_DIPERIKSA' | 'SELESAI' | 'BATAL' | 'NO_SHOW';
   readonly isTerminal: boolean;
   readonly isInService: boolean;
   readonly isWaiting: boolean;
@@ -42,7 +42,7 @@ export class AppointmentStatusDescriptor {
   readonly description: string;
   readonly uiStatus: string;
   readonly badge: string;
-  readonly queueDisplayStatus: 'MENUNGGU' | 'DIPANGGIL' | 'SELESAI' | 'BATAL' | 'NO_SHOW';
+  readonly queueDisplayStatus: 'MENUNGGU' | 'DIPANGGIL' | 'SEDANG_DIPERIKSA' | 'SELESAI' | 'BATAL' | 'NO_SHOW';
   readonly isTerminal: boolean;
   readonly isInService: boolean;
   readonly isWaiting: boolean;
@@ -123,7 +123,7 @@ export const APPOINTMENT_STATUS_REGISTRY: Record<
     description: 'Pasien sedang dalam ruang konsultasi dengan dokter',
     uiStatus: 'Sedang Diperiksa',
     badge: 'Di Sesi',
-    queueDisplayStatus: 'DIPANGGIL',
+    queueDisplayStatus: 'SEDANG_DIPERIKSA',
     isTerminal: false,
     isInService: true,
     isWaiting: false,
@@ -208,9 +208,9 @@ const STATUS_ALIASES: Readonly<Record<string, CanonicalAppointmentStatus>> = {
   IN_SERVICE: APPOINTMENT_STATUS.IN_SERVICE,
   SEDANG_DIPERIKSA: APPOINTMENT_STATUS.IN_SERVICE,
   SEDANG_PERIKSA: APPOINTMENT_STATUS.IN_SERVICE,
-  DIPANGGIL: APPOINTMENT_STATUS.IN_SERVICE,
-  CALLED: APPOINTMENT_STATUS.IN_SERVICE,
   DI_SESI: APPOINTMENT_STATUS.IN_SERVICE,
+  DIPANGGIL: APPOINTMENT_STATUS.WAITING,
+  CALLED: APPOINTMENT_STATUS.WAITING,
   COMPLETED: APPOINTMENT_STATUS.COMPLETED,
   SELESAI: APPOINTMENT_STATUS.COMPLETED,
   CANCELLED: APPOINTMENT_STATUS.CANCELLED,

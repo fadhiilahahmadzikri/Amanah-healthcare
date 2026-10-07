@@ -3,7 +3,8 @@
 import React from 'react';
 import { Icons } from '@/components/icons';
 import { EmptyState } from '@/components/ui/empty-state';
-import { QueueItem } from '../api/types';
+import { QueueItem, QUEUE_STATUS } from '../api/types';
+import { isQueueActive } from '../model/queueViewModel';
 import { cn } from '@/lib/utils';
 
 export interface QueueHighlightBannerProps {
@@ -12,12 +13,13 @@ export interface QueueHighlightBannerProps {
 }
 
 export function QueueHighlightBanner({ queues, className }: QueueHighlightBannerProps) {
-  const currentCalling = queues.find((q) => q.status === 'DIPANGGIL') || queues[0];
+  const currentCalling = queues.find((q) => isQueueActive(q.status)) || queues[0];
   const userQueue = queues.find((q) => q.is_user);
   const totalCount = queues.length;
-  const calledCount = queues.filter((q) => q.status === 'DIPANGGIL').length;
-  const waitingCount = queues.filter((q) => q.status === 'MENUNGGU').length;
-  const completedCount = queues.filter((q) => q.status === 'SELESAI').length;
+  const calledCount = queues.filter((q) => q.status === QUEUE_STATUS.CALLED).length;
+  const inServiceCount = queues.filter((q) => q.status === QUEUE_STATUS.IN_SERVICE).length;
+  const waitingCount = queues.filter((q) => q.status === QUEUE_STATUS.WAITING).length;
+  const completedCount = queues.filter((q) => q.status === QUEUE_STATUS.COMPLETED).length;
   const userQueueIndex = userQueue
     ? queues.findIndex((queue) => queue.queue_number === userQueue.queue_number) + 1
     : 0;
@@ -39,7 +41,9 @@ export function QueueHighlightBanner({ queues, className }: QueueHighlightBanner
       <div className='bg-primary text-primary-foreground rounded-2xl p-5 relative overflow-hidden shadow-none border border-primary/20 flex flex-col justify-between'>
         <div className='flex items-center justify-between'>
           <div className='text-[11px] font-medium text-primary-foreground/80'>
-            Sedang Dipanggil saat ini
+            {currentCalling?.status === QUEUE_STATUS.IN_SERVICE
+              ? 'Sedang Diperiksa saat ini'
+              : 'Sedang Dipanggil saat ini'}
           </div>
           <span className='flex size-2 rounded-full bg-emerald-400 animate-ping' />
         </div>
@@ -106,6 +110,9 @@ export function QueueHighlightBanner({ queues, className }: QueueHighlightBanner
         </div>
 
         <div className='text-[11px] text-muted-foreground flex items-center gap-3 mt-2 pt-2 border-t border-border/40'>
+          <span className='flex items-center gap-1'>
+            <span className='size-2 rounded-full bg-emerald-500' /> {inServiceCount} Diperiksa
+          </span>
           <span className='flex items-center gap-1'>
             <span className='size-2 rounded-full bg-indigo-500' /> {calledCount} Dipanggil
           </span>

@@ -59,14 +59,25 @@ export interface Appointment {
   updated_at?: string;
 }
 
-export type QueueStatus =
-  | 'SELESAI'
-  | 'DIPANGGIL'
-  | 'MENUNGGU'
-  | 'SEDANG_DIPERIKSA'
-  | 'BATAL'
-  | 'NO_SHOW'
-  | string;
+export const QUEUE_STATUS = {
+  WAITING: 'WAITING',
+  CALLED: 'CALLED',
+  IN_SERVICE: 'IN_SERVICE',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+  NO_SHOW: 'NO_SHOW',
+} as const;
+
+export type QueueStatus = (typeof QUEUE_STATUS)[keyof typeof QUEUE_STATUS] | string;
+
+export const QUEUE_STATUS_LABELS: Readonly<Record<string, string>> = {
+  [QUEUE_STATUS.WAITING]: 'Menunggu',
+  [QUEUE_STATUS.CALLED]: 'Dipanggil',
+  [QUEUE_STATUS.IN_SERVICE]: 'Sedang Diperiksa',
+  [QUEUE_STATUS.COMPLETED]: 'Selesai',
+  [QUEUE_STATUS.CANCELLED]: 'Batal',
+  [QUEUE_STATUS.NO_SHOW]: 'Tidak Hadir',
+};
 
 export interface QueueItem {
   id: string;
@@ -86,6 +97,8 @@ export interface QueueItem {
   called_at?: string | null;
   actual_started_at?: string | null;
   actual_completed_at?: string | null;
+  consultation_elapsed_seconds?: number | null;
+  consultation_duration_formatted?: string | null;
   estimated_duration_minutes?: number;
   created_at?: string;
   service?: string;

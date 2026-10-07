@@ -1,6 +1,4 @@
-import type { QueueItem } from '../api/types';
-
-export const QUEUE_AUTOPLAY_INTERVAL_MS = 3500;
+import { type QueueItem, QUEUE_STATUS, type QueueStatus } from '../api/types';
 
 export interface QueuePoliStats {
   totalToday: string;
@@ -8,11 +6,15 @@ export interface QueuePoliStats {
   operationalHours: string;
 }
 
+export function isQueueActive(status: QueueStatus): boolean {
+  return status === QUEUE_STATUS.IN_SERVICE || status === QUEUE_STATUS.CALLED;
+}
+
 export function findCurrentCallingQueue(
   queues: QueueItem[],
   activePoli: string
 ): QueueItem | undefined {
-  return queues.find((queue) => queue.status === 'DIPANGGIL' && queue.poli === activePoli);
+  return queues.find((queue) => queue.poli === activePoli && isQueueActive(queue.status));
 }
 
 export function filterWaitingQueues(
@@ -29,7 +31,7 @@ export function filterWaitingQueues(
       item.queue_number.toLowerCase().includes(query) ||
       item.doctor_name.toLowerCase().includes(query);
 
-    return item.status === 'MENUNGGU' && item.poli === activePoli && matchesSearch;
+    return item.status === QUEUE_STATUS.WAITING && item.poli === activePoli && matchesSearch;
   });
 }
 
@@ -55,43 +57,6 @@ export function buildQueuePoliStats(
     timeRemaining: waitingCount > 0 ? `${waitingCount} Antrean Menunggu` : 'Tidak Ada Antrean',
     operationalHours
   };
-}
-
-export function canRotateQueue(queues: QueueItem[], activePoli: string): boolean {
-  return queues.some(
-    (queue) =>
-      queue.poli === activePoli && (queue.status === 'MENUNGGU' || queue.status === 'DIPANGGIL')
-  );
-}
-
-export function advanceQueue(
-  queues: QueueItem[],
-  activePoli: string,
-  calledTime: string
-): QueueItem[] {
-  const list = queues.filter((queue) => queue.poli === activePoli);
-  const activeCall = list.find((queue) => queue.status === 'DIPANGGIL');
-  const nextWaiting = list.find((queue) => queue.status === 'MENUNGGU');
-
-  if (!nextWaiting && activeCall) {
-    return queues.map((item) =>
-      item.queue_number === activeCall.queue_number ? { ...item, status: 'SELESAI' } : item
-    );
-  }
-
-  if (!nextWaiting) return queues;
-
-  return queues.map((item) => {
-    if (item.queue_number === nextWaiting.queue_number) {
-      return { ...item, status: 'DIPANGGIL', called_time: calledTime };
-    }
-
-    if (activeCall && item.queue_number === activeCall.queue_number) {
-      return { ...item, status: 'SELESAI' };
-    }
-
-    return item;
-  });
 }
 
 export function getCurrentQueueCalledTime(): string {

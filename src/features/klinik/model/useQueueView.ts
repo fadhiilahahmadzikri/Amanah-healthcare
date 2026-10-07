@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { AppointmentStatusDescriptor } from '@/constants/appointment-status.constants';
 import {
   getDailyQueuesFromApi,
   getMyQueueFromApi,
@@ -11,9 +10,10 @@ import {
   callPatientQueue,
   respondPatientQueue,
   noShowPatientQueue,
-  completePatientQueue
+  completePatientQueue,
+  normalizeQueueStatus
 } from '../api/service';
-import type { QueueItem } from '../api/types';
+import { type QueueItem, QUEUE_STATUS } from '../api/types';
 import {
   buildQueuePoliStats,
   filterWaitingQueues,
@@ -137,18 +137,16 @@ export function useQueueView(): UseQueueViewResult {
 
             if (!matches) return item;
 
-            const nextStatusDesc = rawStatus
-              ? AppointmentStatusDescriptor.from(rawStatus)
-              : undefined;
+            const nextQueueStatus = rawStatus ? normalizeQueueStatus(rawStatus) : undefined;
 
             return {
               ...item,
-              ...(nextStatusDesc && { status: nextStatusDesc.queueDisplayStatus }),
+              ...(nextQueueStatus && { status: nextQueueStatus }),
               ...(actualStartedAt !== undefined && { actual_started_at: actualStartedAt }),
               ...(actualCompletedAt !== undefined && { actual_completed_at: actualCompletedAt }),
-              ...(nextStatusDesc?.queueDisplayStatus === 'DIPANGGIL' &&
+              ...(nextQueueStatus === QUEUE_STATUS.CALLED &&
                 !item.called_at && {
-                  called_at: actualStartedAt || new Date().toISOString(),
+                  called_at: new Date().toISOString(),
                   called_time: new Date().toLocaleTimeString('id-ID', {
                     hour: '2-digit',
                     minute: '2-digit'

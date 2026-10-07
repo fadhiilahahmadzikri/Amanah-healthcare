@@ -177,11 +177,13 @@ export const getStatusConfig = (status: string): StatusConfig => {
         ...clinicalTokens.colors.status.upcoming,
         label: 'Sudah Buat Janji'
       };
+    case 'IN_SERVICE':
+    case 'SEDANG_DIPERIKSA':
     case 'SEDANG_PERIKSA':
     case 'SEDANG PERIKSA':
       return {
         ...clinicalTokens.colors.status.checkedIn,
-        label: 'Sedang Periksa'
+        label: 'Sedang Diperiksa'
       };
     case 'TIDAK_ADA_DOKTER':
     case 'TIDAK ADA DOKTER':
@@ -241,11 +243,17 @@ export const getStatusConfig = (status: string): StatusConfig => {
       };
     case 'CHECKED_IN':
     case 'CHECKED IN':
-    case 'DIPANGGIL':
       return {
         ...clinicalTokens.colors.status.checkedIn,
         label: 'Checked In'
       };
+    case 'CALLED':
+    case 'DIPANGGIL':
+      return {
+        ...clinicalTokens.colors.status.checkedIn,
+        label: 'Dipanggil'
+      };
+    case 'WAITING':
     case 'PENDING':
     case 'MENUNGGU':
       return {
@@ -258,11 +266,12 @@ export const getStatusConfig = (status: string): StatusConfig => {
         ...clinicalTokens.colors.status.cancelled,
         label: normalized === 'BATAL' ? 'Dibatalkan' : 'Cancelled'
       };
+    case 'NO_SHOW':
     case 'LATE':
     case 'TERLAMBAT':
       return {
-        ...clinicalTokens.colors.status.pending,
-        label: 'Terlambat'
+        ...clinicalTokens.colors.status.cancelled,
+        label: 'Tidak Hadir'
       };
     default:
       return {
