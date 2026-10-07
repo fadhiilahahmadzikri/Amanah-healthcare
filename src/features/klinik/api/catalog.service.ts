@@ -51,19 +51,10 @@ class CatalogService {
         );
 
         let rawList: ServiceCategoryCatalog[] = [];
-        if (Array.isArray(res)) {
-          rawList = res;
-        } else if (res && 'data' in res && Array.isArray(res.data)) {
-          rawList = res.data;
-        } else if (res && 'categories' in res && Array.isArray(res.categories)) {
-          rawList = res.categories;
-        } else if (
-          res &&
-          'data' in res &&
-          'categories' in (res.data as any) &&
-          Array.isArray((res.data as any).categories)
-        ) {
-          rawList = (res.data as any).categories;
+        const candidate =
+          (res as any)?.data?.categories || (res as any)?.categories || (res as any)?.data || res;
+        if (Array.isArray(candidate)) {
+          rawList = candidate;
         }
 
         const validCategories = rawList.filter(

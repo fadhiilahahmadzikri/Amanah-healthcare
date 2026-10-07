@@ -37,6 +37,7 @@ export function useAppointmentTable({
 }: UseAppointmentTableParams): UseAppointmentTableResult {
   const [selectedAppointment, setSelectedAppointment] = useState<AdminAppointment | null>(null);
   const [activeDialog, setActiveDialog] = useState<'detail' | 'status' | null>(null);
+  const [returnToDetail, setReturnToDetail] = useState(false);
 
   const [params] = useQueryStates({
     page: parseAsInteger.withDefault(1),
@@ -46,15 +47,21 @@ export function useAppointmentTable({
     status: parseAsArrayOf(parseAsString, ','),
     poli: parseAsArrayOf(parseAsString, ','),
     poliklinikName: parseAsArrayOf(parseAsString, ','),
+    service: parseAsArrayOf(parseAsString, ','),
+    serviceName: parseAsArrayOf(parseAsString, ','),
+    layanan: parseAsArrayOf(parseAsString, ','),
+    layananName: parseAsArrayOf(parseAsString, ','),
     sort: getSortingStateParser<AdminAppointment>(columnIds).withDefault([])
   });
 
   const querySearch = params.search || params.patientName;
   const queryPoli = params.poli || params.poliklinikName;
+  const queryService = params.service || params.serviceName || params.layanan || params.layananName;
   const hasFilters = Boolean(
     (querySearch && querySearch.trim().length > 0) ||
     (params.status && params.status.length > 0) ||
-    (queryPoli && queryPoli.length > 0)
+    (queryPoli && queryPoli.length > 0) ||
+    (queryService && queryService.length > 0)
   );
 
   const filters: AppointmentFilters = normalizeFilters({
@@ -63,6 +70,7 @@ export function useAppointmentTable({
     ...(querySearch && { search: querySearch }),
     ...(params.status && params.status.length > 0 && { status: params.status }),
     ...(queryPoli && queryPoli.length > 0 && { poli: queryPoli }),
+    ...(queryService && queryService.length > 0 && { serviceName: queryService }),
     ...(params.sort.length > 0 && { sort: JSON.stringify(params.sort) })
   });
 
@@ -82,24 +90,33 @@ export function useAppointmentTable({
 
   const openDetail = (appointment: AdminAppointment) => {
     setSelectedAppointment(appointment);
+    setReturnToDetail(false);
     setActiveDialog('detail');
   };
 
   const closeDetail = () => {
+    setReturnToDetail(false);
     setActiveDialog(null);
   };
 
   const openStatus = (appointment: AdminAppointment) => {
     setSelectedAppointment(appointment);
+    setReturnToDetail(false);
     setActiveDialog('status');
   };
 
   const closeStatus = () => {
-    setActiveDialog(null);
+    if (returnToDetail) {
+      setReturnToDetail(false);
+      setActiveDialog('detail');
+    } else {
+      setActiveDialog(null);
+    }
   };
 
   const openStatusFromDetail = (appointment: AdminAppointment) => {
     setSelectedAppointment(appointment);
+    setReturnToDetail(true);
     setActiveDialog('status');
   };
 

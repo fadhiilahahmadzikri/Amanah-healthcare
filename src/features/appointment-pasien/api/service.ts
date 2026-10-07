@@ -36,6 +36,11 @@ export async function getAdminAppointments(
     queryParams.poliklinikName = Array.isArray(filters.poli) ? filters.poli[0] : filters.poli;
   }
 
+  const sName = filters.serviceName || filters.service;
+  if (sName) {
+    queryParams.serviceName = Array.isArray(sName) ? sName[0] : sName;
+  }
+
   if (filters.search && filters.search.trim().length > 0) {
     queryParams.search = filters.search.trim();
   }

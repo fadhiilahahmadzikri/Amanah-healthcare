@@ -44,3 +44,5 @@ export type {
   UsePatientCheckInParams,
   UsePatientCheckInResult
 } from './model/usePatientCheckIn';
+export { useClinicFilterOptions } from './hooks/use-clinic-filter-options';
+export type { FilterOption, UseClinicFilterOptionsResult } from './hooks/use-clinic-filter-options';

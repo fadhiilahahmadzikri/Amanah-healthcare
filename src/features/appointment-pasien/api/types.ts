@@ -22,6 +22,8 @@ export interface AdminAppointment {
   scheduledStartTime: string;
   doctorName: string;
   poliklinikName: string;
+  layananId?: string | null;
+  layananName?: string | null;
   visitType: string;
   complaint: string;
   status: AppointmentStatus;
@@ -57,6 +59,8 @@ export type AppointmentFilters = {
   limit?: number;
   status?: string | string[];
   poli?: string | string[];
+  service?: string | string[];
+  serviceName?: string | string[];
   search?: string;
   sort?: string;
 };
@@ -66,6 +70,7 @@ export type NormalizedAppointmentFilters = {
   limit: number;
   status?: string[];
   poli?: string[];
+  serviceName?: string[];
   search?: string;
   sort?: string;
 };
@@ -83,6 +88,12 @@ export function normalizeFilters(raw: Partial<AppointmentFilters>): NormalizedAp
     : typeof raw.poli === 'string' && raw.poli.trim()
       ? [raw.poli.trim()]
       : undefined;
+  const serviceRaw = raw.serviceName || raw.service;
+  const serviceArray = Array.isArray(serviceRaw)
+    ? [...serviceRaw].filter(Boolean).sort()
+    : typeof serviceRaw === 'string' && serviceRaw.trim()
+      ? [serviceRaw.trim()]
+      : undefined;
   const searchTrimmed = raw.search?.trim() || undefined;
   const sortTrimmed = raw.sort?.trim() || undefined;
 
@@ -91,6 +102,7 @@ export function normalizeFilters(raw: Partial<AppointmentFilters>): NormalizedAp
     limit,
     ...(statusArray && statusArray.length > 0 && { status: statusArray }),
     ...(poliArray && poliArray.length > 0 && { poli: poliArray }),
+    ...(serviceArray && serviceArray.length > 0 && { serviceName: serviceArray }),
     ...(searchTrimmed && { search: searchTrimmed }),
     ...(sortTrimmed && { sort: sortTrimmed })
   };
@@ -126,6 +138,9 @@ export interface BackendAppointmentRecord {
   practitioner?: { staffProfile?: { fullName?: string } };
   poliklinikName?: string;
   clinicRoom?: { clinicUnit?: { name?: string } };
+  layananId?: string;
+  layananName?: string;
+  clinicService?: { name?: string };
   queueNumber?: string | number;
   queueTickets?: Array<{ queueNumber?: string }>;
   appointmentDate?: string;

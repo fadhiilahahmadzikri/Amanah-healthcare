@@ -4,6 +4,7 @@ import { searchParamsCache } from '@/lib/searchparams';
 import { appointmentQueryOptions } from '../api/queries';
 import { getAppointmentsOnServer } from '../api/server';
 import { normalizeFilters } from '../api/types';
+import { prefetchClinicCatalog } from '@/features/klinik/api/server';
 import { AppointmentTable, AppointmentTableSkeleton } from './appointment-tables';
 import { Suspense } from 'react';
 
@@ -23,10 +24,13 @@ export default async function AppointmentListingPage() {
   });
 
   const queryClient = getQueryClient();
-  await queryClient.prefetchQuery({
-    ...appointmentQueryOptions(filters),
-    queryFn: () => getAppointmentsOnServer(filters)
-  });
+  await Promise.all([
+    queryClient.prefetchQuery({
+      ...appointmentQueryOptions(filters),
+      queryFn: () => getAppointmentsOnServer(filters)
+    }),
+    prefetchClinicCatalog(queryClient)
+  ]);
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

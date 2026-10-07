@@ -11,7 +11,7 @@ import {
 } from '../../constants/appointment-status.dictionary';
 import { useDoctorDetailDrawerStore } from '@/features/jadwal-dokter/model/useDoctorDetailDrawerStore';
 import type { AdminAppointment } from '../../api/types';
-import type { FilterOption } from '../../model/useClinicFilterOptions';
+import type { FilterOption } from '@/features/klinik';
 import { CellAction } from './cell-action';
 
 const getInitials = (name: string) => {
@@ -46,12 +46,14 @@ const getAntreanPillClasses = (noAntrian: string) => {
 
 export interface GetAppointmentColumnsOptions {
   poliOptions?: FilterOption[];
+  serviceOptions?: FilterOption[];
 }
 
 export function getAppointmentColumns(
   options: GetAppointmentColumnsOptions = {}
 ): ColumnDef<AdminAppointment>[] {
   const poliOptions = options.poliOptions ?? [];
+  const serviceOptions = options.serviceOptions ?? [];
 
   return [
     {
@@ -106,7 +108,7 @@ export function getAppointmentColumns(
                 )}
               </div>
               <span className='mt-1 text-xs text-muted-foreground font-medium'>
-                {appt.poliklinikName}
+                {appt.layananName || '-'}
               </span>
             </div>
           </div>
@@ -264,6 +266,26 @@ export function getAppointmentColumns(
         label: 'Layanan Poli',
         variant: 'multiSelect' as const,
         options: poliOptions
+      },
+      enableColumnFilter: true,
+      enableSorting: true,
+      enableHiding: true
+    },
+    {
+      id: 'layananName',
+      accessorKey: 'layananName',
+      header: ({ column }: { column: Column<AdminAppointment, unknown> }) => (
+        <DataTableColumnHeader column={column} title='Layanan' />
+      ),
+      cell: ({ row }) => (
+        <span className='text-sm text-foreground font-medium truncate max-w-[160px] block'>
+          {row.original.layananName || '-'}
+        </span>
+      ),
+      meta: {
+        label: 'Layanan',
+        variant: 'multiSelect' as const,
+        options: serviceOptions
       },
       enableColumnFilter: true,
       enableSorting: true,

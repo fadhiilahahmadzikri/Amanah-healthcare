@@ -8,29 +8,64 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { cn } from '@/lib/utils';
 import { useAppointmentTable } from '../../model/useAppointmentTable';
-import { useClinicFilterOptions } from '../../model/useClinicFilterOptions';
+import { useClinicFilterOptions, type Appointment } from '@/features/klinik';
+import { AppointmentDetailOrganism } from '@/features/klinik/components/details-modal';
+import { adminAppointmentToAppointment } from '../../api/mapper';
+import { callPatient, completeService, cancelAppointmentAction } from '../../api/service';
+import { useQueryClient } from '@tanstack/react-query';
 import { getAppointmentColumns } from './columns';
-import { AppointmentDetailModal } from '../appointment-detail-modal';
 import { AppointmentStatusModal } from '../appointment-status-modal';
 import { DoctorScheduleDetailSheet } from '@/features/jadwal-dokter/components/doctor-schedule-detail-sheet';
 import { useDoctorDetailDrawerStore } from '@/features/jadwal-dokter/model/useDoctorDetailDrawerStore';
 
 export function AppointmentTable() {
-  const { poliOptions } = useClinicFilterOptions();
-  const columns = useMemo(() => getAppointmentColumns({ poliOptions }), [poliOptions]);
+  const queryClient = useQueryClient();
+  const { poliOptions, serviceOptions } = useClinicFilterOptions();
+  const columns = useMemo(
+    () => getAppointmentColumns({ poliOptions, serviceOptions }),
+    [poliOptions, serviceOptions]
+  );
   const columnIds = useMemo(() => columns.map((c) => c.id).filter(Boolean) as string[], [columns]);
   const appointmentTable = useAppointmentTable({ columns, columnIds });
+
+  const adaptedAppointment = useMemo(
+    () =>
+      appointmentTable.selectedAppointment
+        ? adminAppointmentToAppointment(appointmentTable.selectedAppointment)
+        : null,
+    [appointmentTable.selectedAppointment]
+  );
+
+  const handleCallPatient = async (apt: Appointment) => {
+    await callPatient(apt.id);
+    await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+    appointmentTable.actions.closeDetail();
+  };
+
+  const handleCompletePatient = async (apt: Appointment) => {
+    await completeService(apt.id);
+    await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+    appointmentTable.actions.closeDetail();
+  };
+
+  const handleCancel = async (apt: Appointment, reason?: string) => {
+    await cancelAppointmentAction(apt.id, reason);
+    await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+    appointmentTable.actions.closeDetail();
+  };
 
   const isDoctorDrawerOpen = useDoctorDetailDrawerStore((s) => s.isOpen);
   const closeDoctorDrawer = () => useDoctorDetailDrawerStore.getState().closeDrawer();
 
   return (
     <>
-      <AppointmentDetailModal
-        appointment={appointmentTable.selectedAppointment}
+      <AppointmentDetailOrganism
+        appointment={adaptedAppointment}
         isOpen={appointmentTable.isDetailOpen}
         onClose={appointmentTable.actions.closeDetail}
-        onUpdateStatus={appointmentTable.actions.openStatusFromDetail}
+        onCallPatient={handleCallPatient}
+        onCompletePatient={handleCompletePatient}
+        onCancel={handleCancel}
       />
 
       <AppointmentStatusModal

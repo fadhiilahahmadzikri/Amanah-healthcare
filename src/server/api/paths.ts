@@ -111,6 +111,10 @@ export const paths = {
   clinicalPractitioners: {
     list: () => `${getBaseApiUrl()}/api/v1/clinical/practitioners`
   },
+  clinics: {
+    catalog: () => `${getBaseApiUrl()}/api/v1/clinics/services/catalog`,
+    list: () => `${getBaseApiUrl()}/api/v1/clinics`
+  },
   time: {
     current: () => `${getBaseApiUrl()}/api/v1/time/current`
   }

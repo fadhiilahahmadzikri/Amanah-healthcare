@@ -80,14 +80,6 @@ export function AppointmentStatusModal({
               {appointment.poliklinikName})
             </p>
           </div>
-          <button
-            type='button'
-            onClick={onClose}
-            aria-label='Tutup'
-            className='rounded-full p-1 text-muted-foreground hover:bg-muted transition-colors cursor-pointer shrink-0'
-          >
-            <Icons.close className='size-4' />
-          </button>
         </div>
 
         <div className='space-y-2'>

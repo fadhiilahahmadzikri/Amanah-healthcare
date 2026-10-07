@@ -1,5 +1,6 @@
 import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
 import { normalizeToAppointmentStatus } from '../constants/appointment-status.dictionary';
+import type { Appointment } from '@/features/klinik';
 import type {
   AdminAppointment,
   AppointmentSummary,
@@ -70,6 +71,8 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
     scheduledStartTime,
     doctorName,
     poliklinikName,
+    layananId: (item.layananId as string) || null,
+    layananName: (item.layananName as string) || item.clinicService?.name || null,
     visitType: item.visitType || 'Pemeriksaan Baru',
     complaint: item.complaint || '-',
     status,
@@ -81,17 +84,47 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
     estimatedEndAt: item.estimatedEndAt ? String(item.estimatedEndAt) : null,
     checkedInAt: item.checkedInAt ? String(item.checkedInAt) : null,
     isAffiliated: Boolean(item.isAffiliated),
-    affiliationRelationship: item.affiliationRelationship ? String(item.affiliationRelationship) : null,
+    affiliationRelationship: item.affiliationRelationship
+      ? String(item.affiliationRelationship)
+      : null,
     parentUserId: item.parentUserId ? String(item.parentUserId) : null,
     parentUserName: item.parentUserName ? String(item.parentUserName) : null,
     consultationElapsedSeconds:
-      typeof item.consultationElapsedSeconds === 'number'
-        ? item.consultationElapsedSeconds
-        : null,
+      typeof item.consultationElapsedSeconds === 'number' ? item.consultationElapsedSeconds : null,
     consultationDurationFormatted: item.consultationDurationFormatted
       ? String(item.consultationDurationFormatted)
       : null,
     createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
     updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : new Date().toISOString()
+  };
+}
+
+export function adminAppointmentToAppointment(item: AdminAppointment): Appointment {
+  return {
+    id: item.id,
+    booking_code: item.id.slice(0, 8).toUpperCase(),
+    patient_name: item.patientName,
+    patient_email: item.email || '',
+    patient_avatar: (item as any).patientAvatar || '',
+    doctor_name: item.doctorName,
+    doctor_specialty: (item as any).doctorSpecialty || '',
+    poliklinik_name: item.poliklinikName,
+    service: item.layananName || '',
+    room_name: (item as any).roomName || '',
+    scheduled_start_time: item.scheduledStartTime || '',
+    scheduled_end_time: (item as any).scheduledEndTime || item.estimatedEndAt || '',
+    actual_started_at: item.actualStartedAt || undefined,
+    actual_completed_at: item.actualCompletedAt || undefined,
+    consultation_elapsed_seconds: item.consultationElapsedSeconds ?? undefined,
+    consultation_duration_formatted: item.consultationDurationFormatted || undefined,
+    date: item.scheduledDate,
+    time: item.scheduledStartTime || '',
+    patient_id: item.patientId,
+    patient_phone: item.phone,
+    complaint: item.complaint || '',
+    status: item.status,
+    visit_type: item.visitType || 'Pemeriksaan Baru',
+    queue_number: item.queueNumber,
+    created_at: item.createdAt || new Date().toISOString()
   };
 }

@@ -16,7 +16,8 @@ import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
 import type { AdminAppointment } from '../../api/types';
 import { callPatient } from '../../api/service';
 import { appointmentKeys } from '../../api/queries';
-import { AppointmentDetailModal } from '../appointment-detail-modal';
+import { AppointmentDetailOrganism } from '@/features/klinik/components/details-modal';
+import { adminAppointmentToAppointment } from '../../api/mapper';
 import { AppointmentStatusModal } from '../appointment-status-modal';
 import { AppointmentCheckInQrModal } from '../appointment-check-in-qr-modal';
 import { ChangeDoctorModal } from '../change-doctor-modal';
@@ -57,14 +58,10 @@ export function CellAction({ data }: CellActionProps) {
 
   return (
     <>
-      <AppointmentDetailModal
-        appointment={data}
+      <AppointmentDetailOrganism
+        appointment={adminAppointmentToAppointment(data)}
         isOpen={detailOpen}
         onClose={() => setDetailOpen(false)}
-        onUpdateStatus={() => {
-          setDetailOpen(false);
-          setStatusOpen(true);
-        }}
       />
       <AppointmentStatusModal
         appointment={data}
