@@ -21,6 +21,7 @@ const { bookedPatientToAppointment, normalizeAppointmentTimes } = await import(
 );
 
 import type { BookedPatientItem } from "@/server/contracts/schedules/doctor-schedules.dto";
+import { APPOINTMENT_STATUS } from "@/constants/appointment-status.constants";
 import type { Appointment } from "../../api/types";
 
 describe("Appointment Card & Detail Atomic Design System", () => {
@@ -45,7 +46,7 @@ describe("Appointment Card & Detail Atomic Design System", () => {
 		expect(times.durationText).toBe("30 minutes");
 	});
 
-	it("converts BookedPatientItem to canonical Appointment and maps booked status to Sudah Buat Janji", () => {
+	it("converts BookedPatientItem to canonical Appointment and maps booked status to APPOINTMENT_STATUS.BOOKED", () => {
 		const rawPatient: BookedPatientItem = {
 			appointmentId: "apt-uuid-1234",
 			queueNumber: "A-05",
@@ -80,7 +81,7 @@ describe("Appointment Card & Detail Atomic Design System", () => {
 		expect(apt.room_name).toBe("Ruang Poli KIA 1");
 		expect(apt.scheduled_start_time).toBe("19:00");
 		expect(apt.scheduled_end_time).toBe("19:30");
-		expect(apt.status).toBe("Sudah Buat Janji");
+		expect(apt.status).toBe(APPOINTMENT_STATUS.BOOKED);
 		expect(apt.queue_number).toBe("A-05");
 	});
 
@@ -104,17 +105,12 @@ describe("Appointment Card & Detail Atomic Design System", () => {
 		expect(modalTrajectory).toBeDefined();
 	});
 
-	it("renders AppointmentStatusPill with canonical label for book and booked", () => {
-		const pillBook = AppointmentStatusPill({ status: "book" });
-		expect(pillBook).toBeDefined();
-
-		const pillBooked = AppointmentStatusPill({ status: "booked" });
+	it("renders AppointmentStatusPill with canonical label for BOOKED and WAITING", () => {
+		const pillBooked = AppointmentStatusPill({ status: APPOINTMENT_STATUS.BOOKED });
 		expect(pillBooked).toBeDefined();
 
-		const pillSudahBuatJanji = AppointmentStatusPill({
-			status: "Sudah Buat Janji",
-		});
-		expect(pillSudahBuatJanji).toBeDefined();
+		const pillWaiting = AppointmentStatusPill({ status: APPOINTMENT_STATUS.WAITING });
+		expect(pillWaiting).toBeDefined();
 	});
 
 	it("renders AppointmentCardOrganism in both doctor subject mode and patient subject mode", () => {
@@ -131,7 +127,7 @@ describe("Appointment Card & Detail Atomic Design System", () => {
 			date: "Sabtu, 3 Okt 2026",
 			time: "18:00 - 18:30",
 			complaint: "Pemeriksaan Tumbuh Kembang",
-			status: "Sudah Buat Janji",
+			status: APPOINTMENT_STATUS.BOOKED,
 			queue_number: "B-02",
 			created_at: "2026-10-03T10:00:00Z",
 		};

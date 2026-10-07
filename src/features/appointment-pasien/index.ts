@@ -11,3 +11,8 @@ export {
   APPOINTMENT_STATUS_OPTIONS,
   getAppointmentStatusConfig
 } from './constants/appointment-status.dictionary';
+export { useAppointmentCheckInQr } from './model/useAppointmentCheckInQr';
+export type {
+  UseAppointmentCheckInQrParams,
+  UseAppointmentCheckInQrResult
+} from './model/useAppointmentCheckInQr';

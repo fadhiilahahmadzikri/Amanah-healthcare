@@ -18,7 +18,7 @@ import { BookingVisitTypeStep } from './booking/booking-visit-type-step';
 import { BookingComplaintStep } from './booking/booking-complaint-step';
 import { BookingConfirmationStep } from './booking/booking-confirmation-step';
 import { useAppointmentModal, type UseAppointmentModalProps } from '../model/useAppointmentModal';
-import type { AppointmentFormData } from '../api/types';
+import { type AppointmentFormData, QUEUE_STATUS } from '../api/types';
 
 export type AppointmentModalProps = UseAppointmentModalProps;
 
@@ -435,7 +435,7 @@ export function AppointmentModal({
                 service: createdAppointment.service || '',
                 doctor_name: createdAppointment.doctor_name,
                 patient_name: createdAppointment.patient_name,
-                status: 'waiting',
+                status: QUEUE_STATUS.WAITING,
                 called_at: null,
                 created_at: createdAppointment.created_at || new Date().toISOString()
               }

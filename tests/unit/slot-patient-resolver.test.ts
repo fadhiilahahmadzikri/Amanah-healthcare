@@ -114,6 +114,6 @@ describe('Slot Patient Resolver Utility', () => {
     expect(appointment.room_name).toBe('Ruang 1');
     expect(appointment.date).toBe('2026-10-06');
     expect(appointment.queue_number).toBe('A-01');
-    expect(appointment.status).toBe('Menunggu');
+    expect(appointment.status).toBe('WAITING');
   });
 });

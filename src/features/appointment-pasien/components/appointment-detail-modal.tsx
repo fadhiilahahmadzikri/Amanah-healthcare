@@ -4,6 +4,7 @@ import React from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
+import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
 import { getAppointmentStatusConfig } from '../constants/appointment-status.dictionary';
 import { cn } from '@/lib/utils';
 import type { AdminAppointment } from '../api/types';
@@ -250,7 +251,7 @@ export function AppointmentDetailModal({
             </div>
           )}
 
-          {(appointment.actualStartedAt || appointment.status === 'IN_SERVICE' || appointment.status === 'COMPLETED') && (
+          {(appointment.actualStartedAt || appointment.status === APPOINTMENT_STATUS.IN_SERVICE || appointment.status === APPOINTMENT_STATUS.COMPLETED) && (
             <div className='py-2.5 border-b border-border/40 bg-emerald-50/40 dark:bg-emerald-950/20 p-3 rounded-lg border border-emerald-200/50 dark:border-emerald-900/40'>
               <div className='flex items-center gap-2 mb-2'>
                 <Icons.clock className='size-4 text-emerald-600 dark:text-emerald-400' />
@@ -280,7 +281,7 @@ export function AppointmentDetailModal({
                           minute: '2-digit',
                           second: '2-digit'
                         })
-                      : appointment.status === 'IN_SERVICE'
+                      : appointment.status === APPOINTMENT_STATUS.IN_SERVICE
                         ? 'Sedang Berlangsung'
                         : '-'}
                   </span>

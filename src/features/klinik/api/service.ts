@@ -5,7 +5,8 @@ import {
   QueueItem,
   AppointmentFormData,
   QueueStatus,
-  QUEUE_STATUS
+  QUEUE_STATUS,
+  APPOINTMENT_STATUS
 } from './types';
 import { getAmanahServiceByName } from '../constants/services';
 import { getClinicalPractitionersAction } from '@/features/jadwal-dokter/api/doctor-schedule-actions';
@@ -356,7 +357,7 @@ export const createAppointmentRecord = (
     date: formData.dateStr,
     time: formData.timeSlot,
     complaint: formData.complaint,
-    status: 'PENDING',
+    status: APPOINTMENT_STATUS.BOOKED,
     visit_type: formData.visitType,
     service: formData.service,
     medical_flow: formData.medicalFlow,

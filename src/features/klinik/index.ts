@@ -38,3 +38,9 @@ export type {
   UseMedicalAppointmentFormOptions,
   UseMedicalAppointmentFormResult
 } from './model/useMedicalAppointmentForm';
+export { usePatientCheckIn } from './model/usePatientCheckIn';
+export type {
+  CheckInTabMode,
+  UsePatientCheckInParams,
+  UsePatientCheckInResult
+} from './model/usePatientCheckIn';

@@ -1,10 +1,10 @@
-export type AppointmentStatus =
-  | 'BOOKED'
-  | 'WAITING'
-  | 'IN_SERVICE'
-  | 'COMPLETED'
-  | 'CANCELLED'
-  | 'LATE';
+import {
+  APPOINTMENT_STATUS,
+  type CanonicalAppointmentStatus
+} from '@/constants/appointment-status.constants';
+
+export { APPOINTMENT_STATUS };
+export type AppointmentStatus = CanonicalAppointmentStatus;
 
 export type AppointmentAction = 'CHECK_IN' | 'CALL' | 'START_SERVICE' | 'COMPLETE' | 'CANCEL';
 
@@ -206,18 +206,30 @@ export interface ChangeRoomPayload {
 }
 
 export interface CheckInQrData {
+  appointmentId?: string;
+  patientName?: string;
+  queueNumber?: string;
+  poliklinikName?: string;
+  doctorName?: string;
+  scheduledDate?: string;
   token: string;
   manualCode: string;
   qrPayload: string;
   expiresAt: string;
-  remainingSeconds: number;
+  remainingSeconds?: number;
 }
 
-export interface CheckInQrResponse {
-  success: boolean;
-  message: string;
-  data: CheckInQrData;
-}
+export type CheckInQrDataDto = CheckInQrData;
+
+export type CheckInQrResponse =
+  | CheckInQrData
+  | {
+      success?: boolean;
+      message?: string;
+      data: CheckInQrData;
+    };
+
+export type CheckInQrResponseDto = CheckInQrResponse;
 
 export interface PerformCheckInPayload {
   token?: string;
@@ -225,13 +237,31 @@ export interface PerformCheckInPayload {
   appointmentId?: string;
 }
 
-export interface PerformCheckInResponse {
-  success: boolean;
-  message: string;
-  data: {
-    appointmentId: string;
-    status: AppointmentStatus;
-    checkedInAt: string;
-    queueNumber?: string;
-  };
+export type PerformCheckInRequestDto = PerformCheckInPayload;
+
+export interface PerformCheckInSuccessData {
+  appointmentId: string;
+  status: AppointmentStatus;
+  checkedInAt: string;
+  queueNumber?: string;
 }
+
+export type PerformCheckInSuccessDataDto = PerformCheckInSuccessData;
+
+export type PerformCheckInResponse =
+  | PerformCheckInSuccessData
+  | {
+      id?: string;
+      appointmentId?: string;
+      status: AppointmentStatus;
+      checkedInAt?: string | null;
+      queueNumber?: string | number;
+      [key: string]: unknown;
+    }
+  | {
+      success?: boolean;
+      message?: string;
+      data: PerformCheckInSuccessData;
+    };
+
+export type PerformCheckInResponseDto = PerformCheckInResponse;

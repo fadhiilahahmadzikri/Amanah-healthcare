@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
+import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
 import type { AdminAppointment } from '../../api/types';
 import { callPatient } from '../../api/service';
 import { appointmentKeys } from '../../api/queries';
@@ -25,7 +26,7 @@ export function CellAction({ data }: CellActionProps) {
   const [isCalling, setIsCalling] = useState(false);
 
   const canCall = data.allowedActions?.includes('CALL');
-  const canCheckIn = data.status === 'BOOKED' || data.allowedActions?.includes('CHECK_IN');
+  const canCheckIn = data.status === APPOINTMENT_STATUS.BOOKED || data.allowedActions?.includes('CHECK_IN');
 
   const handleCallPatient = async (e: React.MouseEvent) => {
     e.stopPropagation();

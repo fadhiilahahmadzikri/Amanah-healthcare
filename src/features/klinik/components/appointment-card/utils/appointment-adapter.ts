@@ -109,7 +109,7 @@ export function bookedPatientToAppointment(
   const endClock = timeParts[1] || '';
 
   const descriptor = AppointmentStatusDescriptor.from(item.statusBadge || item.status);
-  const canonicalStatus: AppointmentStatus = descriptor.uiStatus;
+  const canonicalStatus: AppointmentStatus = descriptor.code;
 
   const poliklinik_name = item.poliklinikName || '';
   const service = item.serviceName || '';

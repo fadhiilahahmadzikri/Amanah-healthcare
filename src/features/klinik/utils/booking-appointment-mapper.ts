@@ -3,7 +3,7 @@ import type {
   PatientAffiliationProfile
 } from '@/features/data-pasien/api/patient-affiliation-service';
 import type { ServiceCatalogItem } from '../api/catalog.service';
-import type { Appointment } from '../api/types';
+import { APPOINTMENT_STATUS, type Appointment } from '../api/types';
 
 export interface MapAppointmentParams {
   res: BackendAppointmentItem;
@@ -49,7 +49,7 @@ export function mapBackendAppointmentToUi({
     date: res.appointmentDate || dateStr,
     time: timeDisplay,
     complaint: res.complaint || complaint,
-    status: 'Sudah Buat Janji',
+    status: APPOINTMENT_STATUS.BOOKED,
     visit_type: res.visitType || initialAppointment?.visit_type || '',
     service: res.layananName || selectedService?.name || initialAppointment?.service || '',
     created_at: res.createdAt || new Date().toISOString(),

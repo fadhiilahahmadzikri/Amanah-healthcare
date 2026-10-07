@@ -9,7 +9,6 @@ import {
   Inter,
   JetBrains_Mono,
   Lora,
-  Merriweather,
   Mulish,
   Playfair_Display,
   Noto_Sans_Mono,
@@ -17,6 +16,7 @@ import {
   Plus_Jakarta_Sans,
   Space_Mono
 } from 'next/font/google';
+import localFont from 'next/font/local';
 
 import { cn } from '@/lib/utils';
 
@@ -87,9 +87,19 @@ const fontJetBrainsMono = JetBrains_Mono({
   variable: '--font-jetbrains-mono'
 });
 
-const fontMerriweather = Merriweather({
-  subsets: ['latin'],
-  weight: ['400', '700'],
+const fontMerriweather = localFont({
+  src: [
+    {
+      path: '../../assets/fonts/merriweather-400.woff2',
+      weight: '400',
+      style: 'normal'
+    },
+    {
+      path: '../../assets/fonts/merriweather-700.woff2',
+      weight: '700',
+      style: 'normal'
+    }
+  ],
   variable: '--font-merriweather'
 });
 

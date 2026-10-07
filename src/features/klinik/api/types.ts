@@ -1,16 +1,10 @@
-export type AppointmentStatus =
-  | 'CONFIRMED'
-  | 'PENDING'
-  | 'CHECKED_IN'
-  | 'COMPLETED'
-  | 'CANCELLED'
-  | 'Sudah Buat Janji'
-  | 'Menunggu'
-  | 'Sedang Diperiksa'
-  | 'Selesai'
-  | 'Batal'
-  | 'Tidak Hadir'
-  | string;
+import {
+  APPOINTMENT_STATUS,
+  type CanonicalAppointmentStatus
+} from '@/constants/appointment-status.constants';
+
+export { APPOINTMENT_STATUS };
+export type AppointmentStatus = CanonicalAppointmentStatus;
 
 export interface Doctor {
   name: string;

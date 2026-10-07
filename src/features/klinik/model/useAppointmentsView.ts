@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { toast } from 'sonner';
-import { AppointmentStatusDescriptor } from '@/constants/appointment-status.constants';
+import { APPOINTMENT_STATUS, AppointmentStatusDescriptor } from '@/constants/appointment-status.constants';
 import type { Appointment, AppointmentFormData, AppointmentStatus, Doctor } from '../api/types';
 import { getDoctorByName } from '../api/service';
 import {
@@ -75,7 +75,7 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   const mapBackendToUi = useCallback((apt: BackendAppointmentItem): Appointment => {
-    const uiStatus: AppointmentStatus = AppointmentStatusDescriptor.from(apt.status).uiStatus;
+    const canonicalStatus: AppointmentStatus = AppointmentStatusDescriptor.from(apt.status).code;
 
     const formatTime = (t?: string) => {
       if (!t) return '';
@@ -122,7 +122,7 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
       time: timeDisplay,
       session: apt.session || undefined,
       complaint: apt.complaint || '-',
-      status: uiStatus,
+      status: canonicalStatus,
       visit_type: apt.visitType || '',
       service: apt.layananName || '',
       medical_flow: rawFlow as Appointment['medical_flow'],
@@ -252,10 +252,10 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
     try {
       await patientAffiliationService.cancelAppointment(appointmentId, reason);
       setAppointments((prev) =>
-        prev.map((item) => (item.id === appointmentId ? { ...item, status: 'Batal' } : item))
+        prev.map((item) => (item.id === appointmentId ? { ...item, status: APPOINTMENT_STATUS.CANCELLED } : item))
       );
       setSelectedAppointment((prev) =>
-        prev && prev.id === appointmentId ? { ...prev, status: 'Batal' } : prev
+        prev && prev.id === appointmentId ? { ...prev, status: APPOINTMENT_STATUS.CANCELLED } : prev
       );
       toast.success('Janji temu berhasil dibatalkan');
       await loadAppointments();

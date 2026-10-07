@@ -15,7 +15,7 @@ import { BookingDateStep } from '../booking/booking-date-step';
 import { BookingSessionStep } from '../booking/booking-session-step';
 import { BookingConfirmationStep } from '../booking/booking-confirmation-step';
 import { QueueSuccessModal } from '../queue-success-modal';
-import type { Appointment } from '../../api/types';
+import { APPOINTMENT_STATUS, QUEUE_STATUS, type Appointment } from '../../api/types';
 
 function formatTimeString(t?: string) {
   if (!t) return '';
@@ -141,7 +141,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
         date: res.appointmentDate || dateStr,
         time: timeDisplay,
         complaint: res.complaint || context.complaint || '',
-        status: 'Sudah Buat Janji',
+        status: APPOINTMENT_STATUS.BOOKED,
         visit_type: res.visitType || 'Pemeriksaan Baru',
         service: res.layananName || context.serviceName || '',
         created_at: res.createdAt || new Date().toISOString(),
@@ -293,7 +293,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
                 doctor_name: createdAppointment.doctor_name,
                 patient_name: createdAppointment.patient_name,
                 room: createdAppointment.room_name || '-',
-                status: 'waiting',
+                status: QUEUE_STATUS.WAITING,
                 called_at: null,
                 created_at: createdAppointment.created_at || new Date().toISOString()
               }

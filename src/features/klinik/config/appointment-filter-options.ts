@@ -1,4 +1,4 @@
-import type { AppointmentStatus } from '../api/types';
+import { APPOINTMENT_STATUS, type AppointmentStatus } from '../api/types';
 
 export const SERVICE_OPTIONS = [
   'Penyakit Dalam',
@@ -22,9 +22,11 @@ export interface StatusFilterOption {
 }
 
 export const STATUS_OPTIONS: readonly StatusFilterOption[] = [
-  { value: 'CONFIRMED', label: 'Confirmed', dotColor: 'bg-emerald-500' },
-  { value: 'PENDING', label: 'Pending', dotColor: 'bg-amber-500' },
-  { value: 'CHECKED_IN', label: 'Checked In', dotColor: 'bg-indigo-500' },
-  { value: 'COMPLETED', label: 'Completed', dotColor: 'bg-purple-500' },
-  { value: 'CANCELLED', label: 'Cancelled', dotColor: 'bg-rose-500' }
+  { value: APPOINTMENT_STATUS.BOOKED, label: 'Sudah Buat Janji', dotColor: 'bg-primary' },
+  { value: APPOINTMENT_STATUS.WAITING, label: 'Menunggu', dotColor: 'bg-amber-500' },
+  { value: APPOINTMENT_STATUS.IN_SERVICE, label: 'Sedang Diperiksa', dotColor: 'bg-sky-500' },
+  { value: APPOINTMENT_STATUS.COMPLETED, label: 'Selesai', dotColor: 'bg-emerald-500' },
+  { value: APPOINTMENT_STATUS.CANCELLED, label: 'Dibatalkan', dotColor: 'bg-rose-500' },
+  { value: APPOINTMENT_STATUS.LATE, label: 'Terlambat', dotColor: 'bg-slate-500' }
 ] as const;
+

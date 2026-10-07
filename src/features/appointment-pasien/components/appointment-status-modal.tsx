@@ -11,6 +11,7 @@ import {
   APPOINTMENT_STATUS_OPTIONS,
   getAppointmentStatusConfig
 } from '../constants/appointment-status.dictionary';
+import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { AdminAppointment, AppointmentStatus } from '../api/types';
@@ -26,7 +27,7 @@ export function AppointmentStatusModal({
   appointment,
   onClose
 }: AppointmentStatusModalProps) {
-  const [selectedStatus, setSelectedStatus] = useState<AppointmentStatus>('WAITING');
+  const [selectedStatus, setSelectedStatus] = useState<AppointmentStatus>(APPOINTMENT_STATUS.WAITING);
   const queryClient = useQueryClient();
 
   useEffect(() => {
