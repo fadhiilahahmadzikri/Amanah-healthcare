@@ -33,7 +33,8 @@ export interface DoctorGridShiftSectionProps {
     slotStartTime?: string,
     slotEndTime?: string,
     sessionShift?: string,
-    shiftLabel?: string
+    shiftLabel?: string,
+    shiftTimeRange?: string
   ) => void;
   onOpenPatientDetail?: (session: DoctorDailySession, slot: OccupancySlot | GridSlotData) => void;
   onOpenChangeDoctor?: (session: DoctorDailySession, slot: OccupancySlot | GridSlotData) => void;
@@ -172,10 +173,11 @@ export function DoctorGridShiftSection({
                   onClick={() =>
                     onOpenPatients(
                       primaryShiftSession,
-                      shift.boundaryStartTime,
-                      shift.boundaryEndTime,
-                      shift.shift,
-                      shift.contextLabel
+                      undefined,
+                      undefined,
+                      shift.sessionShift || shift.contextId,
+                      shift.contextLabel,
+                      shift.timeRange
                     )
                   }
                   className='inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-all cursor-pointer shadow-2xs'

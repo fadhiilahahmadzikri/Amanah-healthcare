@@ -289,7 +289,7 @@ export async function getScheduleProjection(
 export async function getScheduleReferenceOptions(): Promise<ScheduleReferenceOptionsData> {
   const res = await clientFetch<
     ScheduleReferenceOptionsData | { data?: ScheduleReferenceOptionsData }
-  >('/api/v1/admin/doctor-schedules/reference-options');
+  >('/api/v1/admin/doctor-schedules/filter-options');
   if (res && typeof res === 'object' && 'data' in res && res.data) {
     return res.data;
   }

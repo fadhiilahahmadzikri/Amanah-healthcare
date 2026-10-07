@@ -121,6 +121,7 @@ export function DoctorDailyHourlyGrid({
     selectedSlotForPatients,
     selectedShiftForPatients,
     selectedShiftLabelForPatients,
+    selectedShiftTimeRangeForPatients,
     handleClosePatientsModal,
     selectedPatientForDetail,
     isPatientDetailOpen,
@@ -396,6 +397,7 @@ export function DoctorDailyHourlyGrid({
           slotEndTime={selectedSlotForPatients?.endTime}
           sessionShift={selectedShiftForPatients}
           shiftLabel={selectedShiftLabelForPatients}
+          shiftTimeRange={selectedShiftTimeRangeForPatients}
           isOpen={isPatientsModalOpen}
           onClose={handleClosePatientsModal}
           portalContainerRef={modalContainerRef}

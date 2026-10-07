@@ -53,6 +53,9 @@ export function useDoctorHourlyGridModals({
   const [selectedShiftLabelForPatients, setSelectedShiftLabelForPatients] = useState<
     string | undefined
   >(undefined);
+  const [selectedShiftTimeRangeForPatients, setSelectedShiftTimeRangeForPatients] = useState<
+    string | undefined
+  >(undefined);
 
   const [selectedPatientForDetail, setSelectedPatientForDetail] =
     useState<BookedPatientItem | null>(null);
@@ -132,7 +135,8 @@ export function useDoctorHourlyGridModals({
     slotStartTime?: string,
     slotEndTime?: string,
     sessionShift?: string,
-    shiftLabel?: string
+    shiftLabel?: string,
+    shiftTimeRange?: string
   ) => {
     setSelectedSessionForPatients(session);
     setSelectedSlotForPatients(
@@ -140,6 +144,7 @@ export function useDoctorHourlyGridModals({
     );
     setSelectedShiftForPatients(sessionShift);
     setSelectedShiftLabelForPatients(shiftLabel);
+    setSelectedShiftTimeRangeForPatients(shiftTimeRange);
     setIsPatientsModalOpen(true);
   };
 
@@ -149,6 +154,7 @@ export function useDoctorHourlyGridModals({
     setSelectedSlotForPatients(undefined);
     setSelectedShiftForPatients(undefined);
     setSelectedShiftLabelForPatients(undefined);
+    setSelectedShiftTimeRangeForPatients(undefined);
   };
 
   const handleOpenReschedule = (session: DoctorDailySession, slotStartTime?: string) => {
@@ -278,6 +284,8 @@ export function useDoctorHourlyGridModals({
     setSelectedShiftForPatients,
     selectedShiftLabelForPatients,
     setSelectedShiftLabelForPatients,
+    selectedShiftTimeRangeForPatients,
+    setSelectedShiftTimeRangeForPatients,
     selectedPatientForDetail,
     setSelectedPatientForDetail,
     isPatientDetailOpen,

@@ -24,6 +24,7 @@ export interface DoctorSessionPatientsModalProps {
   slotEndTime?: string;
   sessionShift?: string;
   shiftLabel?: string;
+  shiftTimeRange?: string;
   isOpen: boolean;
   onClose: () => void;
   portalContainerRef?: React.RefObject<HTMLElement | null>;
@@ -38,6 +39,7 @@ export function DoctorSessionPatientsModal({
   slotEndTime,
   sessionShift,
   shiftLabel,
+  shiftTimeRange,
   isOpen,
   onClose,
   portalContainerRef,
@@ -130,8 +132,11 @@ export function DoctorSessionPatientsModal({
     if (slotStartTime) {
       return slotEndTime ? `${slotStartTime} - ${slotEndTime} WIB` : `${slotStartTime} WIB`;
     }
+    if (shiftTimeRange) {
+      return shiftTimeRange.includes('WIB') ? shiftTimeRange : `${shiftTimeRange} WIB`;
+    }
     return `${session.jam_mulai} - ${session.jam_selesai} WIB`;
-  }, [slotStartTime, slotEndTime, session.jam_mulai, session.jam_selesai]);
+  }, [slotStartTime, slotEndTime, shiftTimeRange, session.jam_mulai, session.jam_selesai]);
 
   const sessionContext = React.useMemo(
     () => ({
