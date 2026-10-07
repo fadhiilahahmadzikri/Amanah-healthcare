@@ -38,15 +38,11 @@ export function normalizeAppointmentTimes(appointment: Partial<Appointment>): {
   if (isCompleted && appointment.actual_started_at && appointment.actual_completed_at) {
     const actualStart = formatTimeSlotString(appointment.actual_started_at);
     const actualEnd = formatTimeSlotString(appointment.actual_completed_at);
-    const startMs = new Date(appointment.actual_started_at).getTime();
-    const endMs = new Date(appointment.actual_completed_at).getTime();
-    let diffMins = Math.round((endMs - startMs) / 60000);
-    if (diffMins <= 0) diffMins = 1;
 
     return {
       startTime: actualStart || '-',
       endTime: actualEnd || '-',
-      durationText: `${diffMins} minutes`
+      durationText: appointment.consultation_duration_formatted || '-'
     };
   }
 
@@ -145,6 +141,10 @@ export function bookedPatientToAppointment(
     scheduled_end_time: endClock.replace('.', ':'),
     actual_started_at: (item as unknown as { actualStartedAt?: string }).actualStartedAt,
     actual_completed_at: (item as unknown as { actualCompletedAt?: string }).actualCompletedAt,
+    consultation_elapsed_seconds: (item as unknown as { consultationElapsedSeconds?: number })
+      .consultationElapsedSeconds,
+    consultation_duration_formatted: (item as unknown as { consultationDurationFormatted?: string })
+      .consultationDurationFormatted,
     estimated_duration_minutes: (item as unknown as { estimatedDurationMinutes?: number })
       .estimatedDurationMinutes,
     date,

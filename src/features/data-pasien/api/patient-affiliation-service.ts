@@ -231,6 +231,8 @@ export interface BackendAppointmentItem {
   estimatedDurationMinutes?: number;
   actualStartedAt?: string | null;
   actualCompletedAt?: string | null;
+  consultationElapsedSeconds?: number | null;
+  consultationDurationFormatted?: string | null;
   session: string;
   queueNumber?: string;
   status: string;
