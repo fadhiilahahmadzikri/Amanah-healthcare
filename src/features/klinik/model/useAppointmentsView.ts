@@ -86,9 +86,10 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
     const startTimeFormatted = formatTime(apt.scheduledStartTime);
     const endTimeFormatted = formatTime(apt.scheduledEndTime);
     const timeDisplay =
-      startTimeFormatted && endTimeFormatted
+      apt.etaRange ||
+      (startTimeFormatted && endTimeFormatted
         ? `${startTimeFormatted} - ${endTimeFormatted} WIB`
-        : apt.session || '-';
+        : apt.session || '-');
 
     const rawFlow =
       apt.medicalFlow ||
@@ -118,6 +119,8 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
       consultation_elapsed_seconds: apt.consultationElapsedSeconds ?? undefined,
       consultation_duration_formatted: apt.consultationDurationFormatted || undefined,
       estimated_duration_minutes: apt.estimatedDurationMinutes,
+      eta_range: apt.etaRange || null,
+      ahead_count: apt.aheadCount ?? null,
       date: apt.appointmentDate,
       time: timeDisplay,
       session: apt.session || undefined,

@@ -333,7 +333,9 @@ export function QueueTicketCard({
                 </span>
               </div>
               <span className='text-[13px] font-medium text-slate-600 tracking-tight truncate'>
-                {doctorName}
+                {doctorName && doctorName !== '-'
+                  ? doctorName
+                  : 'Dokter & Ruangan ditentukan saat dipanggil'}
               </span>
             </div>
 

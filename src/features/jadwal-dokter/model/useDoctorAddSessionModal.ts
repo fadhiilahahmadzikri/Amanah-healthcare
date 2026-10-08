@@ -198,18 +198,12 @@ export function useDoctorAddSessionModal({
       const payload = {
         schedule_date: selectedDate,
         nama_sesi: sessionName,
-        session: selectedShift,
         jam_mulai: startTime,
         jam_selesai: endTime,
-        startTime,
-        endTime,
         kuota_pasien: DEFAULT_FALLBACK_CAPACITY,
         slot_tersedia: DEFAULT_FALLBACK_CAPACITY,
-        capacity: DEFAULT_FALLBACK_CAPACITY,
-        status: SCHEDULE_STATUS.OPEN,
         status_sesi: SCHEDULE_STATUS.OPEN,
-        ruang: selectedRoom?.name || doctor.ruang_praktik || 'Ruang Konsultasi',
-        roomId: selectedRoomId
+        ruang: selectedRoom?.name || doctor.ruang_praktik || 'Ruang Konsultasi'
       };
 
       await createSessionMutation.mutateAsync({

@@ -65,7 +65,7 @@ export function AppointmentHistoryTimeline({
     title: 'Reservasi Janji Temu Dibuat',
     timeStr: formatTime(appointment.createdAt),
     dateStr: formatDate(appointment.createdAt),
-    description: `Pendaftaran berhasil untuk slot ${appointment.scheduledDate} ${appointment.scheduledStartTime} di ${appointment.poliklinikName}.`,
+    description: `Pendaftaran berhasil untuk sesi ${appointment.scheduledDate} ${appointment.scheduledStartTime} di ${appointment.poliklinikName}.`,
     state: 'completed'
   });
 

@@ -88,12 +88,12 @@ export function QueueSuccessModal({
           <QueueTicketCard
             queueNumber={queueItem?.queue_number || appointment?.queue_number || '-'}
             serviceName={appointment?.service || queueItem?.poli || '-'}
-            doctorName={appointment?.doctor_name || queueItem?.doctor_name || '-'}
+            doctorName={appointment?.doctor_name || queueItem?.doctor_name || ''}
             dateStr={appointment?.date || '-'}
             timeSlot={appointment?.time || ''}
             bookingCode={appointment?.booking_code || ''}
             patientName={appointment?.patient_name || '-'}
-            roomName={queueItem?.room || appointment?.room_name || '-'}
+            roomName={appointment?.room_name || queueItem?.room || ''}
             illustrationSrc='/assets/klinik/waiting-room.svg'
             onClose={onClose}
             onDownload={handleDownload}

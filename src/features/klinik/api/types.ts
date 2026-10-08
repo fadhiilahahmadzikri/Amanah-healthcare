@@ -53,6 +53,8 @@ export interface Appointment {
   layanan_id?: string;
   medical_flow?: MedicalAppointmentFlow;
   medical_intake?: MedicalIntakeRecord;
+  eta_range?: string | null;
+  ahead_count?: number | null;
   created_at: string;
   updated_at?: string;
 }

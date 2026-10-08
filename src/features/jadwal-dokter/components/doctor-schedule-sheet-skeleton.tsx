@@ -78,8 +78,7 @@ export function DoctorTabsListSkeleton({ className }: { className?: string }) {
         className
       )}
     >
-      <div className='grid w-full grid-cols-3 h-9 p-1 bg-muted/40 rounded-lg gap-1'>
-        <ShimmerSkeleton className='h-full rounded-md' />
+      <div className='grid w-full grid-cols-2 h-9 p-1 bg-muted/40 rounded-lg gap-1'>
         <ShimmerSkeleton className='h-full rounded-md' />
         <ShimmerSkeleton className='h-full rounded-md' />
       </div>
@@ -203,7 +202,7 @@ export function DoctorInfoSkeleton({ className }: { className?: string }) {
 }
 
 export interface DoctorScheduleSheetContentSkeletonProps {
-  activeTab?: 'kalender' | 'kuota' | 'informasi';
+  activeTab?: 'kalender' | 'sesi';
   className?: string;
 }
 
@@ -220,15 +219,14 @@ export function DoctorScheduleSheetContentSkeleton({
       <DoctorTabsListSkeleton />
       <div className='flex-1 overflow-y-auto p-6 space-y-4'>
         {activeTab === 'kalender' && <DoctorCalendarGridSkeleton />}
-        {activeTab === 'kuota' && <DoctorDailyGridSkeleton />}
-        {activeTab === 'informasi' && <DoctorInfoSkeleton />}
+        {activeTab === 'sesi' && <DoctorDailyGridSkeleton />}
       </div>
     </div>
   );
 }
 
 export interface DoctorScheduleSheetSkeletonProps {
-  activeTab?: 'kalender' | 'kuota' | 'informasi';
+  activeTab?: 'kalender' | 'sesi';
   className?: string;
 }
 

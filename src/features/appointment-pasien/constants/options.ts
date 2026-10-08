@@ -25,3 +25,12 @@ export function isAppointmentInService(status?: AppointmentStatus | string | nul
 export function isAppointmentWaiting(status?: AppointmentStatus | string | null): boolean {
   return AppointmentStatusDescriptor.from(status).isWaiting;
 }
+
+export function isAppointmentBooked(status?: AppointmentStatus | string | null): boolean {
+  return AppointmentStatusDescriptor.from(status).code === APPOINTMENT_STATUS.BOOKED;
+}
+
+export function isAppointmentBeforeCall(status?: AppointmentStatus | string | null): boolean {
+  const desc = AppointmentStatusDescriptor.from(status);
+  return desc.isWaiting || desc.code === APPOINTMENT_STATUS.BOOKED;
+}

@@ -5,8 +5,7 @@ import type { DoctorSchedule } from '../api/types';
 
 export const DOCTOR_DETAIL_TAB = {
   KALENDER: 'kalender',
-  KUOTA: 'kuota',
-  INFORMASI: 'informasi'
+  SESI: 'sesi'
 } as const;
 
 export type DoctorDetailTab = (typeof DOCTOR_DETAIL_TAB)[keyof typeof DOCTOR_DETAIL_TAB];
@@ -54,13 +53,13 @@ export const useDoctorDetailDrawerStore = create<DoctorDetailDrawerState>((set, 
 
   openWithDoctor: (doctor, options = {}) => {
     const isSpecialized = Boolean(
-      options.highlightSlotTime || options.openPatients || options.tab === DOCTOR_DETAIL_TAB.KUOTA
+      options.highlightSlotTime || options.openPatients || options.tab === DOCTOR_DETAIL_TAB.SESI
     );
     set({
       isOpen: true,
       targetDoctorId: doctor.id,
       cachedDoctor: doctor,
-      activeTab: options.tab ?? (isSpecialized ? DOCTOR_DETAIL_TAB.KUOTA : DOCTOR_DETAIL_TAB.KALENDER),
+      activeTab: options.tab ?? (isSpecialized ? DOCTOR_DETAIL_TAB.SESI : DOCTOR_DETAIL_TAB.KALENDER),
       highlightSlotTime: options.highlightSlotTime ?? null,
       openPatients: options.openPatients ?? false,
       selectedDate: options.date ?? null
@@ -71,7 +70,7 @@ export const useDoctorDetailDrawerStore = create<DoctorDetailDrawerState>((set, 
     const current = get().cachedDoctor;
     const sameDoctor = current && (current.id === doctorId || current.practitioner_id === doctorId);
     const isSpecialized = Boolean(
-      options.highlightSlotTime || options.openPatients || options.tab === DOCTOR_DETAIL_TAB.KUOTA
+      options.highlightSlotTime || options.openPatients || options.tab === DOCTOR_DETAIL_TAB.SESI
     );
 
     set({
@@ -79,7 +78,7 @@ export const useDoctorDetailDrawerStore = create<DoctorDetailDrawerState>((set, 
       targetDoctorId: doctorId,
       // If we already have this doctor in cache, keep it! Do not reset to null!
       cachedDoctor: sameDoctor ? current : null,
-      activeTab: options.tab ?? (isSpecialized ? DOCTOR_DETAIL_TAB.KUOTA : DOCTOR_DETAIL_TAB.KALENDER),
+      activeTab: options.tab ?? (isSpecialized ? DOCTOR_DETAIL_TAB.SESI : DOCTOR_DETAIL_TAB.KALENDER),
       highlightSlotTime: options.highlightSlotTime ?? null,
       openPatients: options.openPatients ?? false,
       selectedDate: options.date ?? null

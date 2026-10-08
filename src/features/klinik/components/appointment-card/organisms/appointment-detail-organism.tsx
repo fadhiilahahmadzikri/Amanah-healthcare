@@ -25,7 +25,8 @@ import { ChangeRoomModal } from '@/features/appointment-pasien/components/change
 import {
   isAppointmentTerminal,
   isAppointmentInService,
-  isAppointmentWaiting
+  isAppointmentWaiting,
+  isAppointmentBeforeCall
 } from '@/features/appointment-pasien/constants/options';
 import { useAuthContext } from '@/lib/rbac/auth-context';
 
@@ -89,9 +90,10 @@ export function AppointmentDetailOrganism({
   const isTerminal = isAppointmentTerminal(appointment.status);
   const isInService = isAppointmentInService(appointment.status);
   const isWaiting = isAppointmentWaiting(appointment.status);
+  const isBeforeCall = isAppointmentBeforeCall(appointment.status);
 
   const displayLocation =
-    isWaiting
+    isBeforeCall
       ? 'Menunggu panggilan klinik'
       : appointment.poliklinik_name && appointment.room_name
         ? `${appointment.poliklinik_name}, ${appointment.room_name}`
@@ -157,14 +159,14 @@ export function AppointmentDetailOrganism({
                 <div className='flex items-center justify-between gap-3 pb-3 border-b border-border/40 min-h-[77px] shrink-0'>
                   <div className='flex items-center gap-3.5 min-w-0 flex-1'>
                     <div className='size-14 min-w-[56px] min-h-[56px] rounded-full overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square'>
-                      <DoctorAvatar name={doctor.name} avatarUrl={doctor.avatar} size={56} />
+                      <DoctorAvatar name={doctor.name || 'Dokter'} avatarUrl={doctor.avatar} size={56} />
                     </div>
                     <div className='flex flex-col items-start min-w-0 flex-1 space-y-0.5'>
                       <h3 className='text-base sm:text-lg font-bold text-foreground truncate w-full tracking-tight'>
-                        {doctor.name || '-'}
+                        {doctor.name || 'Dokter bertugas saat dipanggil'}
                       </h3>
                       <p className='text-sm font-medium text-muted-foreground truncate w-full'>
-                        {doctorSpecialty}
+                        {doctor.name ? doctorSpecialty : serviceName}
                       </p>
                     </div>
                   </div>

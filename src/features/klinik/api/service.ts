@@ -11,8 +11,6 @@ import {
 import { getAmanahServiceByName } from '../constants/services';
 import { getClinicalPractitionersAction } from '@/features/jadwal-dokter/api/doctor-schedule-actions';
 
-const LOCAL_STORAGE_KEY_APPOINTMENTS = 'amanah_appointments_v4';
-
 export async function fetchClinicalDoctors(serviceName?: string): Promise<Doctor[]> {
   try {
     const list = await getClinicalPractitionersAction({ service: serviceName });
@@ -309,28 +307,9 @@ export async function completePatientQueue(appointmentId: string): Promise<unkno
   });
 }
 
-export const loadStoredAppointments = (): Appointment[] => {
-  if (typeof window === 'undefined') return [];
-  try {
-    const stored = localStorage.getItem(LOCAL_STORAGE_KEY_APPOINTMENTS);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed)) return parsed as Appointment[];
-    }
-  } catch (e) {
-    console.warn('Could not read appointments from localStorage', e);
-  }
-  return [];
-};
+export const loadStoredAppointments = (): Appointment[] => [];
 
-export const saveAppointmentsToStorage = (appointments: Appointment[]): void => {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(LOCAL_STORAGE_KEY_APPOINTMENTS, JSON.stringify(appointments));
-  } catch (e) {
-    console.warn('Could not save appointments to localStorage', e);
-  }
-};
+export const saveAppointmentsToStorage = (_appointments: Appointment[]): void => {};
 
 export const loadStoredQueues = (): QueueItem[] => {
   return [];

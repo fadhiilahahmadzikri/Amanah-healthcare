@@ -117,7 +117,7 @@ export function DoctorCalendarDayCell({
 								onSelectDay(day);
 								onNavigateToDailyGrid(day);
 							}}
-							title={`Buka Jadwal & Kuota tanggal ${day}`}
+							title={`Buka Jadwal Sesi Praktik tanggal ${day}`}
 							className="size-4 rounded-md flex items-center justify-center text-muted-foreground/60 hover:text-primary hover:bg-background/90 transition-all opacity-60 cursor-pointer shrink-0"
 						>
 							<Icons.arrowUpRight className="size-3 stroke-[2.5]" />
@@ -177,7 +177,7 @@ export function DoctorCalendarDayCell({
 							onSelectDay(day);
 							onNavigateToDailyGrid(day);
 						}}
-						title={`Buka Jadwal & Kuota tanggal ${day}`}
+						title={`Buka Jadwal Sesi Praktik tanggal ${day}`}
 						className={cn(
 							"size-4 rounded-md flex items-center justify-center text-muted-foreground/60 hover:text-primary hover:bg-background/90 transition-all opacity-60 group-hover/cell:opacity-100 cursor-pointer shrink-0",
 							isCellDisabled && "pointer-events-none opacity-20",

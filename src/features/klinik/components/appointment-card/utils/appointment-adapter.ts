@@ -66,36 +66,12 @@ export function normalizeAppointmentTimes(appointment: Partial<Appointment>): {
     formatTimeSlotString(appointment.scheduled_end_time) ||
     (timeRangeMatch ? timeRangeMatch[2].replace(':', '.') : '-');
 
-  let durationText = sessionMatch ? sessionMatch[0] : '-';
-  if (startTime !== '-' && endTime !== '-') {
-    const startParts = startTime.split('.').map(Number);
-    const endParts = endTime.split('.').map(Number);
-    if (
-      !Number.isNaN(startParts[0]) &&
-      !Number.isNaN(startParts[1]) &&
-      !Number.isNaN(endParts[0]) &&
-      !Number.isNaN(endParts[1])
-    ) {
-      const diffMins = endParts[0] * 60 + endParts[1] - (startParts[0] * 60 + startParts[1]);
-      if (diffMins > 0) {
-        durationText = `${diffMins} minutes`;
-      }
-    }
-  } else if (!sessionMatch && timeRangeMatch) {
-    const startParts = timeRangeMatch[1].replace('.', ':').split(':').map(Number);
-    const endParts = timeRangeMatch[2].replace('.', ':').split(':').map(Number);
-    if (
-      !Number.isNaN(startParts[0]) &&
-      !Number.isNaN(startParts[1]) &&
-      !Number.isNaN(endParts[0]) &&
-      !Number.isNaN(endParts[1])
-    ) {
-      const diffMins = endParts[0] * 60 + endParts[1] - (startParts[0] * 60 + startParts[1]);
-      if (diffMins > 0) {
-        durationText = `${diffMins} minutes`;
-      }
-    }
-  }
+  // Frontend does not calculate minutes. Backend provides duration or session label.
+  const durationText =
+    sessionMatch
+      ? sessionMatch[0]
+      : appointment.consultation_duration_formatted ||
+        (appointment.estimated_duration_minutes ? `~${appointment.estimated_duration_minutes} mnt` : '-');
 
   return { startTime, endTime, durationText };
 }

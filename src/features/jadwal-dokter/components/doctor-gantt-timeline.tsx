@@ -99,14 +99,7 @@ function deriveIntervalsForSession(
       status,
       displayLabel: `${startTime} - ${endTime}`,
       isOccupied: status === SCHEDULE_STATUS.OCCUPIED,
-      appointmentRef:
-        status === 'OCCUPIED'
-          ? {
-              appointmentId: `APT-${session.id.slice(-4)}-${idx + 1}`,
-              queueNumber: idx + 1,
-              status: 'CONFIRMED'
-            }
-          : null,
+      appointmentRef: null,
       closedReason: isClosed ? (session.status_sesi === 'Cuti' ? 'Cuti' : 'Tutup') : null
     });
 
@@ -253,19 +246,23 @@ export function DoctorGanttTimeline({
                 <span className='text-sky-600 dark:text-sky-400 font-semibold'>
                   Praktik Ditutup (Cuti)
                 </span>
-              ) : totalCapacity === 0 && activeSessions.length === 0 ? (
+              ) : activeSessions.length === 0 ? (
                 <span className='text-muted-foreground font-medium'>
-                  Belum ada jadwal praktik diatur (0 Kuota)
+                  Belum ada jadwal praktik diatur
                 </span>
               ) : (
-                <span className='font-mono'>
-                  <strong className='text-primary font-semibold'>{totalSlots}</strong> /{' '}
-                  {totalCapacity} slot tersedia
-                  {totalSlots <= 0 && totalCapacity > 0 && (
-                    <span className='ml-1.5 text-sky-600 dark:text-sky-400 font-bold'>
-                      (Terisi Penuh)
-                    </span>
-                  )}
+                <span className='font-sans'>
+                  <strong className='text-primary font-semibold'>
+                    {activeSessions.length} Sesi Aktif
+                  </strong>
+                  {' • '}
+                  <span>
+                    {activeSessions.reduce(
+                      (acc, s) => acc + (s.pasien_terdaftar || 0),
+                      0
+                    )}{' '}
+                    Pasien Terdaftar
+                  </span>
                 </span>
               )}
             </div>

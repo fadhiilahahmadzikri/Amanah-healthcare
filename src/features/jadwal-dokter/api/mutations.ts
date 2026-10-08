@@ -263,7 +263,7 @@ export function useCancelAppointmentMutation(doctorId?: string, sessionId?: stri
       }
       syncAllDoctorSchedules(queryClient);
       toast.success(
-        response?.message || 'Janji temu berhasil dibatalkan dan 1 slot kuota telah dipulihkan'
+        response?.message || 'Janji temu berhasil dibatalkan'
       );
     },
     onError: (err: unknown) => {

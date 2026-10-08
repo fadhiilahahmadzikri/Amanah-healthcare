@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { AppointmentStatusDescriptor } from '@/constants/appointment-status.constants';
 import { generateCheckInQr } from '../api/service';
 import type { AdminAppointment, CheckInQrData } from '../api/types';
 import { appointmentKeys } from '../api/queries';
@@ -127,9 +128,9 @@ export function useAppointmentCheckInQr({
       if (!detail) return;
 
       const targetId = detail.appointmentId || detail.id;
-      const targetStatus = String(detail.status || '').toLowerCase();
+      const isWaitingStatus = AppointmentStatusDescriptor.from(detail.status).isWaiting;
 
-      if (targetId === appointment.id && targetStatus === 'waiting') {
+      if (targetId === appointment.id && isWaitingStatus) {
         toast.success(`Check-in berhasil! Pasien ${appointment.patientName} kini dalam antrean.`);
         queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
         onClose();

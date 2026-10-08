@@ -28,7 +28,6 @@ import {
   DoctorScheduleSheetSkeleton
 } from './doctor-schedule-sheet-skeleton';
 import { DoctorTimelineCalendar } from './doctor-timeline-calendar';
-import { DoctorScheduleInfoTab } from './sheet/doctor-schedule-info-tab';
 
 export { DOCTOR_DETAIL_TAB, type DoctorDetailTab };
 
@@ -238,15 +237,12 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
             className='flex-1 flex flex-col min-h-0 gap-0'
           >
             <div className='px-6 pt-3 pb-2 border-b border-border/40 shrink-0 bg-muted/20'>
-              <TabsList className='grid w-full grid-cols-3 h-9'>
+              <TabsList className='grid w-full grid-cols-2 h-9'>
                 <TabsTrigger value={DOCTOR_DETAIL_TAB.KALENDER} className='text-xs font-semibold'>
                   Kalender
                 </TabsTrigger>
-                <TabsTrigger value={DOCTOR_DETAIL_TAB.KUOTA} className='text-xs font-semibold'>
+                <TabsTrigger value={DOCTOR_DETAIL_TAB.SESI} className='text-xs font-semibold'>
                   Jadwal Sesi
-                </TabsTrigger>
-                <TabsTrigger value={DOCTOR_DETAIL_TAB.INFORMASI} className='text-xs font-semibold'>
-                  Info Dokter
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -273,7 +269,7 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
                   isUpdatingDay={mutation.isUpdatingDay}
                   onNavigateToDailyGrid={(day) => {
                     setSelectedDay(day);
-                    setActiveTab(DOCTOR_DETAIL_TAB.KUOTA);
+                    setActiveTab(DOCTOR_DETAIL_TAB.SESI);
                   }}
                   onSelectDayStatus={(day, st, notes) =>
                     mutation.handleDayStatusChange(day, st, notes)
@@ -283,7 +279,7 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
               </TabsContent>
 
               <TabsContent
-                value={DOCTOR_DETAIL_TAB.KUOTA}
+                value={DOCTOR_DETAIL_TAB.SESI}
                 className='m-0 space-y-3 outline-none animate-in fade-in-50 duration-200'
               >
                 {isUnconfigured && !conflict.pendingReopen && !returnContext ? (
@@ -322,13 +318,6 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
                     onViewDoctorSchedule={onViewDoctorSchedule}
                   />
                 )}
-              </TabsContent>
-
-              <TabsContent
-                value={DOCTOR_DETAIL_TAB.INFORMASI}
-                className='m-0 space-y-4 outline-none'
-              >
-                <DoctorScheduleInfoTab doctor={doctor} />
               </TabsContent>
             </div>
           </Tabs>

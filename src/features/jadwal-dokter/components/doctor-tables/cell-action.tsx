@@ -81,7 +81,7 @@ export function CellAction({ data, onOpenDetail, onOpenEdit }: CellActionProps) 
 
           <DropdownMenuItem onClick={() => onOpenEdit(data)} className='cursor-pointer text-xs'>
             <Icons.edit className='mr-2 h-3.5 w-3.5' />
-            Atur Jam & Kuota Slot
+            Atur Jadwal Praktik
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />

@@ -105,7 +105,7 @@ function DoctorSessionCardItem({
               )}
               <span>•</span>
               <span className='font-semibold text-foreground/80'>
-                {bookedCount} / {session.kuota_pasien} Pasien
+                {bookedCount} Pasien Terdaftar
               </span>
             </div>
           </div>

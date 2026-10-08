@@ -241,6 +241,8 @@ export interface BackendAppointmentItem {
   visitType?: string;
   complaint?: string;
   patientName?: string;
+  etaRange?: string | null;
+  aheadCount?: number | null;
   createdAt: string;
 }
 

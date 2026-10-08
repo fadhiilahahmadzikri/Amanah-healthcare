@@ -81,7 +81,7 @@ export function useDoctorScheduleDetailSheet({
   const storeActiveTab = useDoctorDetailDrawerStore((s) => s.activeTab);
   const setStoreActiveTab = useDoctorDetailDrawerStore((s) => s.setActiveTab);
 
-  const shouldDefaultToKuotaTab = Boolean(
+  const shouldDefaultToSesiTab = Boolean(
     highlightSlotTime ||
     openPatientsModal ||
     conflictNav.pendingReopen ||
@@ -91,7 +91,7 @@ export function useDoctorScheduleDetailSheet({
   );
 
   const [activeTab, setActiveTabLocal] = React.useState<DoctorDetailTab>(() =>
-    shouldDefaultToKuotaTab ? DOCTOR_DETAIL_TAB.KUOTA : storeActiveTab || DOCTOR_DETAIL_TAB.KALENDER
+    shouldDefaultToSesiTab ? DOCTOR_DETAIL_TAB.SESI : storeActiveTab || DOCTOR_DETAIL_TAB.KALENDER
   );
 
   const setActiveTab = React.useCallback(
@@ -117,9 +117,9 @@ export function useDoctorScheduleDetailSheet({
     setSelectedDay(targetDate.getDate());
     setCurrentMonth(targetDate.getMonth());
     setCurrentYear(targetDate.getFullYear());
-    setActiveTab(shouldDefaultToKuotaTab ? DOCTOR_DETAIL_TAB.KUOTA : DOCTOR_DETAIL_TAB.KALENDER);
+    setActiveTab(shouldDefaultToSesiTab ? DOCTOR_DETAIL_TAB.SESI : DOCTOR_DETAIL_TAB.KALENDER);
     setPendingStatusDay(null);
-  }, [selectedDate, returnContext, shouldDefaultToKuotaTab, setActiveTab]);
+  }, [selectedDate, returnContext, shouldDefaultToSesiTab, setActiveTab]);
 
   React.useEffect(() => {
     if (isOpen) {
@@ -129,7 +129,7 @@ export function useDoctorScheduleDetailSheet({
 
   React.useEffect(() => {
     if (conflictNav.pendingReopen && isOpen) {
-      setActiveTab(DOCTOR_DETAIL_TAB.KUOTA);
+      setActiveTab(DOCTOR_DETAIL_TAB.SESI);
       if (conflictNav.pendingReopen.sourceDate) {
         const parts = conflictNav.pendingReopen.sourceDate.split('-').map(Number);
         if (parts.length === 3 && !Number.isNaN(parts[0])) {
@@ -143,7 +143,7 @@ export function useDoctorScheduleDetailSheet({
 
   React.useEffect(() => {
     if ((highlightSlotTime || conflictNav.isInspecting) && isOpen) {
-      setActiveTab(DOCTOR_DETAIL_TAB.KUOTA);
+      setActiveTab(DOCTOR_DETAIL_TAB.SESI);
     }
   }, [highlightSlotTime, conflictNav.isInspecting, isOpen, setActiveTab]);
 

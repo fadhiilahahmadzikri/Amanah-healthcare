@@ -13,6 +13,7 @@ import {
 	isAppointmentTerminal,
 	isAppointmentInService,
 	isAppointmentWaiting,
+	isAppointmentBeforeCall,
 } from "@/features/appointment-pasien/constants/options";
 
 export interface AppointmentCardOrganismProps {
@@ -50,7 +51,7 @@ export function AppointmentCardOrganism({
 
 	const displayName = isPatientSubject
 		? appointment.patient_name || "Pasien"
-		: appointment.doctor_name || docInfo.name || "-";
+		: appointment.doctor_name || docInfo.name || "Dokter bertugas saat dipanggil";
 
 	const displaySubtitle = isPatientSubject
 		? appointment.service ||
@@ -63,10 +64,10 @@ export function AppointmentCardOrganism({
 		? appointment.patient_avatar || ""
 		: docInfo.avatar || "";
 
-	const isWaiting = isAppointmentWaiting(appointment.status);
+	const isBeforeCall = isAppointmentBeforeCall(appointment.status);
 
 	const displayLocation =
-		isPatientSubject && isWaiting
+		isPatientSubject && isBeforeCall
 			? "Menunggu panggilan klinik"
 			: appointment.room_name ||
 				appointment.room_location ||
