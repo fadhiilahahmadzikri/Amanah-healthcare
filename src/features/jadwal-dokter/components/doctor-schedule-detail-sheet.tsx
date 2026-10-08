@@ -22,7 +22,7 @@ import {
   type UseDoctorScheduleDetailSheetProps
 } from '../model/useDoctorScheduleDetailSheet';
 import type { ReturnDoctorContext } from '../model/useDoctorConflictNavigation';
-import { DoctorDailyHourlyGrid } from './doctor-daily-hourly-grid';
+import { DoctorDailySessions } from './doctor-daily-sessions';
 import {
   DoctorScheduleSheetContentSkeleton,
   DoctorScheduleSheetSkeleton
@@ -243,7 +243,7 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
                   Kalender
                 </TabsTrigger>
                 <TabsTrigger value={DOCTOR_DETAIL_TAB.KUOTA} className='text-xs font-semibold'>
-                  Jadwal & Kuota
+                  Jadwal Sesi
                 </TabsTrigger>
                 <TabsTrigger value={DOCTOR_DETAIL_TAB.INFORMASI} className='text-xs font-semibold'>
                   Info Dokter
@@ -307,8 +307,8 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
                     />
                   </div>
                 ) : (
-                  <DoctorDailyHourlyGrid
-                    key={`grid-${doctor.id}-${selectedDay}-${currentMonth}-${currentYear}-${highlightSlotTime || ''}`}
+                  <DoctorDailySessions
+                    key={`sessions-${doctor.id}-${selectedDay}-${currentMonth}-${currentYear}`}
                     doctor={doctor}
                     selectedDay={selectedDay}
                     onSelectDay={setSelectedDay}
@@ -316,14 +316,9 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
                     onMonthChange={setCurrentMonth}
                     currentYear={currentYear}
                     onYearChange={setCurrentYear}
-                    highlightSlotTime={highlightSlotTime}
-                    onClearHighlightSlotTime={onClearHighlightSlotTime}
-                    openPatientsModal={openPatientsModal}
-                    onClearOpenPatients={onClearOpenPatients}
                     onReturnToSourceModal={onReturnToSourceModal}
                     returnDoctorName={conflict.returnDoctorName}
                     returnContext={returnContext}
-                    onClearReturnContext={onClearReturnContext}
                     onViewDoctorSchedule={onViewDoctorSchedule}
                   />
                 )}

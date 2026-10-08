@@ -38,12 +38,9 @@ import {
   scheduleProjectionResponseSchema,
   scheduleReferenceOptionsResponseSchema,
   type ScheduleProjectionResponse,
-  type ScheduleReferenceOptionsResponse,
-  scheduleSlotAvailabilityResponseSchema,
-  type ScheduleSlotAvailabilityResponse
+  type ScheduleReferenceOptionsResponse
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 import { z } from 'zod';
-import { normalizeDateParam } from '../utils/shift-slot-builder';
 import type { DoctorScheduleDetailParams, DoctorScheduleFilters } from './types';
 import { resolveActiveToken } from './token-resolver';
 
@@ -398,10 +395,7 @@ export async function fetchScheduleReferenceOptions(): Promise<ScheduleReference
 
 export async function fetchScheduleContexts(date?: string): Promise<ScheduleContextsResponse> {
   const token = await resolveActiveToken();
-  const validDate = normalizeDateParam(date);
-  const query: Record<string, unknown> = {
-    date: validDate
-  };
+  const query: Record<string, unknown> = date ? { date } : {};
 
   const response = await httpClient.request(
     paths.schedules.contexts(),
@@ -461,36 +455,6 @@ export async function updateScheduleDaySettings(
     {
       method: 'PUT',
       body: payload,
-      tokenOverride: token,
-      cache: 'no-store'
-    }
-  );
-
-  return response;
-}
-
-export async function fetchScheduleSlotAvailability(params: {
-  date: string;
-  shift: string;
-  roomId: string;
-  scheduleId?: string;
-  staffId?: string;
-}): Promise<ScheduleSlotAvailabilityResponse> {
-  const token = await resolveActiveToken();
-  const query: Record<string, unknown> = {
-    date: params.date,
-    shift: params.shift,
-    roomId: params.roomId
-  };
-  if (params.scheduleId) query.scheduleId = params.scheduleId;
-  if (params.staffId) query.staffId = params.staffId;
-
-  const response = await httpClient.request(
-    paths.schedules.slotAvailability(),
-    scheduleSlotAvailabilityResponseSchema,
-    {
-      method: 'GET',
-      query,
       tokenOverride: token,
       cache: 'no-store'
     }

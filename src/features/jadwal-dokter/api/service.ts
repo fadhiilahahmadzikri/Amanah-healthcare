@@ -13,7 +13,6 @@ import type {
   AdminSessionPatientsData,
   ScheduleContextsResponse,
   ScheduleProjectionResponse,
-  ScheduleSlotAvailabilityResponse,
   DoctorOccupancyOverviewResponse,
   ScheduleReferenceOptionsData
 } from '@/server/contracts/schedules/doctor-schedules.dto';
@@ -315,22 +314,6 @@ export async function getScheduleContexts(
     return res.data;
   }
   return (Array.isArray(res) ? res : []) as ScheduleContextsResponse;
-}
-
-export async function getScheduleSlotAvailability(
-  params: Record<string, unknown>
-): Promise<ScheduleSlotAvailabilityResponse> {
-  const qs = new URLSearchParams();
-  for (const [k, v] of Object.entries(params)) {
-    if (v !== undefined && v !== null) qs.set(k, String(v));
-  }
-  const res = await clientFetch<
-    ScheduleSlotAvailabilityResponse | { data?: ScheduleSlotAvailabilityResponse }
-  >(`/api/v1/schedules/slot-availability?${qs.toString()}`);
-  if (res && 'data' in res && res.data) {
-    return res.data;
-  }
-  return res as ScheduleSlotAvailabilityResponse;
 }
 
 export async function createDoctorSession(

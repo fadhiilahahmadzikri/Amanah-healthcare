@@ -14,8 +14,8 @@ import {
   getDoctorCardStatus,
   getUpcomingScheduleTime,
   hasConfiguredDoctorSchedule,
-  isSlotAvailable,
-  isSlotClosed,
+  isSessionAvailable,
+  isSessionClosed,
   parseDateToIso,
   parseTimeToMinutes,
   type UpcomingScheduleResult
@@ -44,8 +44,8 @@ export {
   getDoctorCardStatus,
   getUpcomingScheduleTime,
   hasConfiguredDoctorSchedule,
-  isSlotAvailable,
-  isSlotClosed,
+  isSessionAvailable,
+  isSessionClosed,
   parseDateToIso,
   parseTimeToMinutes
 };
@@ -164,7 +164,9 @@ export function DoctorScheduleCard({
           )}
         </div>
       ) : (
-        showCallButton && !isUnconfigured && !isSelesai && (
+        showCallButton &&
+        !isUnconfigured &&
+        !isSelesai && (
           <div className='absolute top-5 sm:top-6 right-5 sm:right-6 z-20'>
             <DoctorQuickCallButton
               phoneNumber={doctor.nomor_telepon ?? undefined}

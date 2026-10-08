@@ -5,7 +5,7 @@ import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import type { DoctorDailySession } from '../../api/types';
 
-export interface DoctorGridHeaderProps {
+export interface DoctorSessionsHeaderProps {
   formattedSelectedDate: string;
   isDayCuti: boolean;
   isDayClosed: boolean;
@@ -18,7 +18,7 @@ export interface DoctorGridHeaderProps {
   onOpenAddSession: () => void;
 }
 
-export function DoctorGridHeader({
+export function DoctorSessionsHeader({
   formattedSelectedDate,
   isDayCuti,
   isDayClosed,
@@ -29,7 +29,7 @@ export function DoctorGridHeader({
   isCalendarOpen,
   onToggleCalendar,
   onOpenAddSession
-}: DoctorGridHeaderProps) {
+}: DoctorSessionsHeaderProps) {
   return (
     <div className='p-3.5 sm:p-4 border-b border-border/40 flex items-center justify-between gap-3 bg-muted/10 font-sans'>
       {/* Left: Clear Typographic Hierarchy (Date + Operational Context) */}
@@ -92,7 +92,7 @@ export function DoctorGridHeader({
             className='inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border border-dashed border-border/80 hover:border-primary/70 bg-background hover:bg-primary/5 text-foreground/80 hover:text-primary transition-all shadow-2xs cursor-pointer select-none shrink-0'
           >
             <Icons.add className='size-3.5' />
-            <span>Tambah jadwal</span>
+            <span>Tambah sesi</span>
           </button>
         )}
       </div>

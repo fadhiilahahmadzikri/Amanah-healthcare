@@ -5,7 +5,7 @@ import gsap from 'gsap';
 import { CustomCalendar } from '@/components/ui/custom-calendar';
 import { cn } from '@/lib/utils';
 
-export interface DoctorGridCalendarAccordionProps {
+export interface DoctorCalendarAccordionProps {
   isOpen: boolean;
   formattedTargetDate: string;
   activeYear: number;
@@ -15,7 +15,7 @@ export interface DoctorGridCalendarAccordionProps {
   duration?: number;
 }
 
-export function DoctorGridCalendarAccordion({
+export function DoctorCalendarAccordion({
   isOpen,
   formattedTargetDate,
   activeYear,
@@ -23,7 +23,7 @@ export function DoctorGridCalendarAccordion({
   onClose,
   className,
   duration = 0.28
-}: DoctorGridCalendarAccordionProps) {
+}: DoctorCalendarAccordionProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInitialMount = useRef(true);
 
@@ -61,33 +61,42 @@ export function DoctorGridCalendarAccordion({
         height: 0,
         opacity: 0,
         duration: duration * 0.8,
-        ease: 'power2.inOut',
+        ease: 'power2.in',
         onComplete: () => {
-          if (el) {
-            el.style.display = 'none';
-          }
+          if (el) el.style.display = 'none';
         }
       });
     }
   }, [isOpen, duration]);
 
+  const selectedDateObj = React.useMemo(() => {
+    const parts = formattedTargetDate.split('-');
+    if (parts.length === 3) {
+      return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    }
+    return new Date();
+  }, [formattedTargetDate]);
+
   return (
     <div
       ref={containerRef}
-      style={{ overflow: 'hidden' }}
-      className={cn('w-full border-b border-border/40 bg-muted/10 font-sans', className)}
+      className={cn(
+        'overflow-hidden border-b border-border/40 bg-muted/5 transition-colors',
+        className
+      )}
+      style={{ display: isOpen ? 'block' : 'none' }}
     >
-      <div className='p-3 sm:p-4 w-full'>
-        <div className='w-full bg-background rounded-2xl border border-border/60 p-3 sm:p-4 shadow-xs'>
+      <div className='p-4 flex flex-col items-center justify-center'>
+        <div className='w-full max-w-sm rounded-xl border border-border/60 bg-card p-3 shadow-xs'>
           <CustomCalendar
             value={formattedTargetDate}
-            className='w-full'
-            minYear={activeYear - 1}
-            maxYear={activeYear + 2}
-            onChange={(_iso, d) => {
-              onSelectDate(d);
-              onClose();
+            onChange={(_iso, dateObj) => {
+              if (dateObj) {
+                onSelectDate(dateObj);
+                onClose();
+              }
             }}
+            className='rounded-md'
           />
         </div>
       </div>

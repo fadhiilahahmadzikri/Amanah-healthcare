@@ -24,8 +24,7 @@ import {
   fetchScheduleContexts,
   callPatientAppointment,
   completePatientAppointment,
-  updateScheduleDaySettings,
-  fetchScheduleSlotAvailability
+  updateScheduleDaySettings
 } from './doctor-schedule-service';
 import type {
   UpdateAdminDoctorSchedulePayload,
@@ -211,14 +210,4 @@ export async function completePatientAppointmentAction(appointmentId: string) {
 
 export async function updateScheduleDaySettingsAction(payload: ScheduleDaySettingsPayload) {
   return updateScheduleDaySettings(payload);
-}
-
-export async function getScheduleSlotAvailabilityAction(params: {
-  date: string;
-  shift: string;
-  roomId: string;
-  scheduleId?: string;
-  staffId?: string;
-}) {
-  return fetchScheduleSlotAvailability(params);
 }

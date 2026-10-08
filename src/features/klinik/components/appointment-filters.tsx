@@ -7,7 +7,7 @@ import { FacetedFilter } from '@/shared/ui/faceted-filter';
 import { DateFilter } from '@/shared/ui/date-filter';
 import { SearchInput } from '@/shared/ui/search-input';
 import { toggleItem } from '@/shared/lib/array/toggle-item';
-import { SERVICE_OPTIONS, STATUS_OPTIONS } from '../config/appointment-filter-options';
+import { SERVICE_OPTIONS } from '../config/appointment-filter-options';
 import { buildMonthOptions, isAppointmentFilterActive } from '../model/appointment-filters.rules';
 import type { AppointmentStatus } from '../api/types';
 import type { AppointmentFilterState } from '../model/appointmentViewModel';
@@ -137,21 +137,6 @@ export function AppointmentFilters({
         onReset={() => handleServicesChange([])}
         resetLabel='Reset Layanan'
         popoverWidth='w-56'
-      />
-
-      {/* 5. Status Filter */}
-      <FacetedFilter<AppointmentStatus>
-        title='Status'
-        icon={Icons.plusCircle}
-        mode='multi'
-        options={STATUS_OPTIONS}
-        selectedValues={currentFilters.selectedStatuses}
-        onSelect={(status) =>
-          handleStatusesChange(toggleItem(currentFilters.selectedStatuses, status))
-        }
-        onReset={() => handleStatusesChange([])}
-        resetLabel='Reset Status'
-        popoverWidth='w-48'
       />
 
       {/* 6. Reset Filters Button */}

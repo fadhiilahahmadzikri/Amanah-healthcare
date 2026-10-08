@@ -27,12 +27,6 @@ export interface DoctorScheduleFiltersProps {
   className?: string;
 }
 
-const STATUS_DOTS: Record<string, string> = {
-  open: 'bg-emerald-500',
-  occupied: 'bg-sky-500',
-  closed: 'bg-slate-400'
-};
-
 export function DoctorScheduleFilters({
   searchQuery,
   onSearchChange,
@@ -80,14 +74,6 @@ export function DoctorScheduleFilters({
     return (filterOptionsData?.poliklinik ?? []).map((p) => ({ value: p.name, label: p.name }));
   }, [filterOptionsData]);
 
-  const statusFacetOptions = React.useMemo(() => {
-    return (filterOptionsData?.statuses ?? []).map((s) => ({
-      value: s.id,
-      label: s.label,
-      dotColor: STATUS_DOTS[s.id.toLowerCase()] || 'bg-primary'
-    }));
-  }, [filterOptionsData]);
-
   return (
     <div className={cn('flex flex-wrap items-center gap-2 font-sans select-none', className)}>
       {/* 1. Global Search Input */}
@@ -131,19 +117,6 @@ export function DoctorScheduleFilters({
         onReset={() => onSelectedPoliChange([])}
         resetLabel='Reset Poli'
         popoverWidth='w-56'
-      />
-
-      {/* 5. Status Filter */}
-      <FacetedFilter<string>
-        title='Status'
-        icon={Icons.plusCircle}
-        mode='multi'
-        options={statusFacetOptions}
-        selectedValues={selectedStatuses}
-        onSelect={(status) => onSelectedStatusesChange(toggleItem(selectedStatuses, status))}
-        onReset={() => onSelectedStatusesChange([])}
-        resetLabel='Reset Status'
-        popoverWidth='w-48'
       />
 
       {/* 6. Reset Filters Button */}

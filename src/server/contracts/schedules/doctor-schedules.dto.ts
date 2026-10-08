@@ -353,7 +353,6 @@ export const occupancyShiftSchema = z
     timeRange: z.string().optional(),
     boundaryStartTime: z.string().optional(),
     boundaryEndTime: z.string().optional(),
-    intervalMinutes: z.number().optional().default(30),
     totalSlots: z.number().optional(),
     availableSlotsCount: z.number().optional(),
     occupiedSlotsCount: z.number().optional(),
@@ -1197,47 +1196,3 @@ export const scheduleSlotConflictSchema = z.object({
   staffId: z.string().nullable().optional()
 });
 export type ScheduleSlotConflict = z.infer<typeof scheduleSlotConflictSchema>;
-
-export const scheduleSlotAvailabilityItemSchema = z
-  .object({
-    slotIndex: z.number(),
-    time: z.string(),
-    endTime: z.string(),
-    status: z.string(),
-    isAvailable: z.boolean(),
-    displayLabel: z.string(),
-    conflict: scheduleSlotConflictSchema.nullable().optional(),
-    conflictInfo: scheduleSlotConflictSchema.nullable().optional()
-  })
-  .transform((item) => ({
-    ...item,
-    conflict: item.conflict ?? item.conflictInfo ?? null
-  }));
-export type ScheduleSlotAvailabilityItem = z.infer<typeof scheduleSlotAvailabilityItemSchema>;
-
-export const scheduleSlotAvailabilityDataSchema = z.object({
-  date: z.string(),
-  shift: z.string(),
-  roomId: z.string(),
-  roomName: z.string().optional(),
-  summary: z
-    .object({
-      totalSlots: z.number(),
-      availableSlots: z.number(),
-      occupiedSlots: z.number()
-    })
-    .optional(),
-  slots: z.array(scheduleSlotAvailabilityItemSchema)
-});
-export type ScheduleSlotAvailabilityData = z.infer<typeof scheduleSlotAvailabilityDataSchema>;
-
-export const scheduleSlotAvailabilityResponseSchema = z.union([
-  z
-    .object({
-      success: z.boolean().optional(),
-      data: scheduleSlotAvailabilityDataSchema
-    })
-    .transform((val) => val.data),
-  scheduleSlotAvailabilityDataSchema
-]);
-export type ScheduleSlotAvailabilityResponse = ScheduleSlotAvailabilityData;

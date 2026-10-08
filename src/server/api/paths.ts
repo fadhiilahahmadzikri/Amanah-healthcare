@@ -80,7 +80,6 @@ export const paths = {
       `${getBaseApiUrl()}/api/v1/admin/appointments/${appointmentId}/status`
   },
   schedules: {
-    slotAvailability: () => `${getBaseApiUrl()}/api/v1/schedules/slot-availability`,
     referenceOptions: () => `${getBaseApiUrl()}/api/v1/schedules/reference/options`,
     referenceSessions: () => `${getBaseApiUrl()}/api/v1/schedules/reference/sessions`,
     referenceRooms: () => `${getBaseApiUrl()}/api/v1/schedules/reference/rooms`,

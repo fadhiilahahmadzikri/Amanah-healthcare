@@ -1,32 +1,180 @@
 import type { DoctorDailySession, DoctorSchedule } from '../api/types';
-import { SCHEDULE_STATUS, SCHEDULE_STATUS_LABELS } from '../constants/schedule-shift.constants';
-import {
-  DOCTOR_CARD_STATUS,
-  type DoctorCardStatus,
-  getDoctorCardStatus,
-  hasConfiguredDoctorSchedule,
-  isDoctorSessionActive,
-  isSlotAvailable,
-  isSlotClosed,
-  isSlotUnscheduled,
-  parseMinutesFromTime,
-  UNCONFIGURED_SCHEDULE_VALUES
-} from './doctor-schedule-predicates';
+import { SCHEDULE_STATUS } from '../constants/schedule-shift.constants';
 
-export {
-  DOCTOR_CARD_STATUS,
-  type DoctorCardStatus,
-  getDoctorCardStatus,
-  hasConfiguredDoctorSchedule,
-  isDoctorSessionActive,
-  isSlotAvailable,
-  isSlotClosed,
-  isSlotUnscheduled,
-  UNCONFIGURED_SCHEDULE_VALUES
-};
+export const DOCTOR_CARD_STATUS = {
+  BUKA: 'Buka',
+  CUTI: 'Cuti',
+  TERISI: 'Terisi',
+  BELUM_DIATUR: 'Belum Diatur',
+  TUTUP: 'Tutup',
+  SELESAI: 'Selesai'
+} as const;
+
+export type DoctorCardStatus = (typeof DOCTOR_CARD_STATUS)[keyof typeof DOCTOR_CARD_STATUS] | null;
+
+export const UNCONFIGURED_SCHEDULE_VALUES = new Set(['', '-', 'belum diatur', 'belum dijadwalkan']);
 
 export function parseTimeToMinutes(timeStr: string): number {
-  return parseMinutesFromTime(timeStr);
+  const clean = timeStr.replace('.', ':');
+  const [h, m] = clean.split(':').map((v) => Number.parseInt(v, 10) || 0);
+  return h * 60 + m;
+}
+
+export function isSessionClosed(session: { status_sesi?: string | null }): boolean {
+  const st = (session.status_sesi || '').toUpperCase();
+  return st === 'TUTUP' || st === 'CLOSED';
+}
+
+export function isSessionAvailable(session: {
+  status_sesi?: string | null;
+  slot_tersedia?: number;
+}): boolean {
+  if (isSessionClosed(session)) return false;
+  if (typeof session.slot_tersedia === 'number') {
+    return session.slot_tersedia > 0;
+  }
+  return true;
+}
+
+export function isDoctorSessionActive(
+  session: DoctorDailySession,
+  currentMinutes: number
+): boolean {
+  const sMin = parseTimeToMinutes(session.jam_mulai);
+  const eMin = parseTimeToMinutes(session.jam_selesai);
+  if (eMin > sMin) {
+    return currentMinutes >= sMin && currentMinutes < eMin;
+  }
+  return currentMinutes >= sMin || currentMinutes < eMin;
+}
+
+export function hasConfiguredDoctorSchedule(doctor: DoctorSchedule): boolean {
+  if (doctor.sesi_harian && doctor.sesi_harian.length > 0) {
+    return true;
+  }
+  const scheduleTime = doctor.jadwal_hari_ini?.trim().toLowerCase() ?? '';
+  return !UNCONFIGURED_SCHEDULE_VALUES.has(scheduleTime);
+}
+
+export function getDoctorCardStatus(
+  doctor: DoctorSchedule,
+  referenceDate?: Date,
+  targetDate?: string
+): DoctorCardStatus {
+  if (doctor.is_cuti) {
+    return DOCTOR_CARD_STATUS.CUTI;
+  }
+
+  const statusDokter = (doctor.status_dokter || '').trim().toUpperCase();
+  const statusJadwal = (doctor.status_jadwal || '').trim().toUpperCase();
+
+  if (statusDokter === SCHEDULE_STATUS.CUTI || statusJadwal === SCHEDULE_STATUS.CUTI) {
+    return DOCTOR_CARD_STATUS.CUTI;
+  }
+
+  if (!hasConfiguredDoctorSchedule(doctor)) {
+    return DOCTOR_CARD_STATUS.BELUM_DIATUR;
+  }
+
+  if (statusDokter === SCHEDULE_STATUS.CLOSED || statusJadwal === SCHEDULE_STATUS.CLOSED) {
+    return DOCTOR_CARD_STATUS.TUTUP;
+  }
+
+  const now = referenceDate ?? new Date();
+  const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+  if (targetDate && targetDate < todayIso) {
+    return DOCTOR_CARD_STATUS.SELESAI;
+  }
+
+  const sessions = doctor.sesi_harian;
+  if (targetDate && targetDate > todayIso) {
+    if (sessions && sessions.length > 0) {
+      const allClosed = sessions.every((s) => isSessionClosed(s));
+      if (allClosed) {
+        return DOCTOR_CARD_STATUS.TUTUP;
+      }
+    }
+    return DOCTOR_CARD_STATUS.BUKA;
+  }
+
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  if (sessions && sessions.length > 0) {
+    const allClosed = sessions.every((s) => isSessionClosed(s));
+    if (allClosed) {
+      return DOCTOR_CARD_STATUS.TUTUP;
+    }
+
+    const activeSession = sessions.find((s) => isDoctorSessionActive(s, currentMinutes));
+
+    if (activeSession) {
+      if (isSessionClosed(activeSession)) {
+        return DOCTOR_CARD_STATUS.TUTUP;
+      }
+
+      const activeSessionStatus = (activeSession.status_sesi || '').trim().toUpperCase();
+      if (
+        activeSessionStatus === SCHEDULE_STATUS.OCCUPIED ||
+        activeSessionStatus === 'TERISI' ||
+        statusDokter === SCHEDULE_STATUS.OCCUPIED ||
+        statusJadwal === SCHEDULE_STATUS.OCCUPIED
+      ) {
+        return DOCTOR_CARD_STATUS.TERISI;
+      }
+
+      if (
+        typeof activeSession.slot_tersedia === 'number' &&
+        activeSession.slot_tersedia === 0 &&
+        (activeSession.kuota_pasien || 0) > 0
+      ) {
+        return DOCTOR_CARD_STATUS.TERISI;
+      }
+
+      return DOCTOR_CARD_STATUS.BUKA;
+    }
+
+    const sessionRanges = sessions
+      .map((s) => ({
+        start: parseTimeToMinutes(s.jam_mulai),
+        end: parseTimeToMinutes(s.jam_selesai)
+      }))
+      .filter((r) => r.start >= 0 && r.end >= 0);
+
+    if (sessionRanges.length > 0) {
+      const allElapsed = sessionRanges.every((r) => currentMinutes >= r.end);
+      if (allElapsed) {
+        return DOCTOR_CARD_STATUS.SELESAI;
+      }
+      const beforeFirstSession = sessionRanges.every((r) => currentMinutes < r.start);
+      if (beforeFirstSession) {
+        return DOCTOR_CARD_STATUS.TUTUP;
+      }
+    }
+
+    return null;
+  }
+
+  if (doctor.jadwal_hari_ini && doctor.jadwal_hari_ini.includes('-')) {
+    const [startStr, endStr] = doctor.jadwal_hari_ini.split('-');
+    if (startStr && endStr) {
+      const sMin = parseTimeToMinutes(startStr.trim());
+      const eMin = parseTimeToMinutes(endStr.trim());
+      const isActive = currentMinutes >= sMin && currentMinutes < eMin;
+      if (isActive) {
+        if (
+          statusDokter === SCHEDULE_STATUS.OCCUPIED ||
+          statusJadwal === SCHEDULE_STATUS.OCCUPIED
+        ) {
+          return DOCTOR_CARD_STATUS.TERISI;
+        }
+        return DOCTOR_CARD_STATUS.BUKA;
+      }
+      return null;
+    }
+  }
+
+  return null;
 }
 
 export interface UpcomingScheduleResult {
@@ -95,142 +243,35 @@ export function parseDateToIso(dateStr?: string): string | undefined {
 export function getUpcomingScheduleTime(
   scheduleTime: string,
   sessions?: DoctorDailySession[],
-  doctor?: DoctorSchedule,
+  _doctor?: DoctorSchedule,
   referenceDate?: Date
 ): UpcomingScheduleResult {
   const now = referenceDate ?? new Date();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-  const allSlots: Array<{
-    startTime: string;
-    endTime: string;
-    isAvailable: boolean;
-    isOpen: boolean;
-    sessionName?: string;
-  }> = [];
-
-  if (doctor?.shifts && doctor.shifts.length > 0) {
-    for (const shift of doctor.shifts) {
-      for (const slot of shift.slots) {
-        if (isSlotUnscheduled(slot)) continue;
-
-        const closed = isSlotClosed(slot);
-        allSlots.push({
-          startTime: slot.startTime,
-          endTime: slot.endTime,
-          isAvailable: !closed && isSlotAvailable(slot),
-          isOpen: !closed,
-          sessionName: shift.contextLabel
-        });
-      }
-    }
-  } else if (doctor?.timeline_intervals && doctor.timeline_intervals.length > 0) {
-    for (const it of doctor.timeline_intervals) {
-      if (isSlotUnscheduled(it)) continue;
-
-      const closed = isSlotClosed(it);
-      allSlots.push({
-        startTime: it.startTime,
-        endTime: it.endTime,
-        isAvailable: !closed && isSlotAvailable(it),
-        isOpen: !closed
-      });
-    }
-  } else if (sessions && sessions.length > 0) {
-    const sorted = sessions.toSorted(
-      (a, b) => parseTimeToMinutes(a.jam_mulai) - parseTimeToMinutes(b.jam_mulai)
-    );
-    for (const s of sorted) {
-      const sessionStatus = (s.status_sesi || '').toUpperCase();
-      const isSessionOpen =
-        sessionStatus === SCHEDULE_STATUS.OPEN ||
-        sessionStatus === SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.OPEN].toUpperCase();
-      const hasSlot = (s.slot_tersedia ?? 1) > 0;
-      allSlots.push({
-        startTime: s.jam_mulai,
-        endTime: s.jam_selesai,
-        isAvailable: isSessionOpen && hasSlot,
-        isOpen: isSessionOpen,
-        sessionName: s.nama_sesi
-      });
-    }
-  }
-
   let activeTime: string | undefined;
   let hasActive = false;
   let isActiveClosed = false;
 
-  const currentMatchingSlot = allSlots.find(
-    (slot) =>
-      parseTimeToMinutes(slot.startTime) <= currentMinutes &&
-      parseTimeToMinutes(slot.endTime) > currentMinutes
-  );
-
-  if (currentMatchingSlot) {
-    hasActive = true;
-    activeTime = `${currentMatchingSlot.startTime.replace(':', '.')} – ${currentMatchingSlot.endTime.replace(':', '.')}`;
-    isActiveClosed = !currentMatchingSlot.isOpen;
-  } else if (sessions && sessions.length > 0 && allSlots.length === 0) {
+  if (sessions && sessions.length > 0) {
     const activeSession = sessions.find((s) => isDoctorSessionActive(s, currentMinutes));
     if (activeSession) {
       hasActive = true;
-      isActiveClosed = isSlotClosed({ status: activeSession.status_sesi });
+      isActiveClosed = isSessionClosed(activeSession);
       const sTime = activeSession.jam_mulai.replace(':', '.');
       const eTime = activeSession.jam_selesai.replace(':', '.');
       activeTime = `${sTime} – ${eTime}`;
     }
-  }
 
-  const futureAvailableSlot = allSlots.find(
-    (slot) =>
-      slot.isAvailable &&
-      slot.isOpen === true &&
-      parseTimeToMinutes(slot.startTime) > currentMinutes
-  );
-
-  if (futureAvailableSlot) {
-    const sTime = futureAvailableSlot.startTime.replace(':', '.');
-    const eTime = futureAvailableSlot.endTime.replace(':', '.');
-    const formattedUpcoming = `${sTime} – ${eTime}`;
-    return {
-      upcomingTime: formattedUpcoming,
-      sessionName: futureAvailableSlot.sessionName,
-      activeTime,
-      hasActive,
-      isActiveClosed,
-      isTomorrow: false
-    };
-  }
-
-  const firstAvailableSlot = allSlots.find((slot) => slot.isAvailable && slot.isOpen === true);
-  if (firstAvailableSlot) {
-    const sTime = firstAvailableSlot.startTime.replace(':', '.');
-    const eTime = firstAvailableSlot.endTime.replace(':', '.');
-    const isPastSlot = parseTimeToMinutes(firstAvailableSlot.startTime) <= currentMinutes;
-    const rawUpcoming = `${sTime} – ${eTime}`;
-    const formattedUpcoming = isPastSlot ? `Besok, ${rawUpcoming}` : rawUpcoming;
-    return {
-      upcomingTime: formattedUpcoming,
-      sessionName: firstAvailableSlot.sessionName,
-      activeTime,
-      hasActive,
-      isActiveClosed,
-      isTomorrow: isPastSlot
-    };
-  }
-
-  if (sessions && sessions.length > 0) {
     const upcomingSession = sessions.find(
-      (s) =>
-        parseTimeToMinutes(s.jam_mulai) > currentMinutes && !isSlotClosed({ status: s.status_sesi })
+      (s) => parseTimeToMinutes(s.jam_mulai) > currentMinutes && !isSessionClosed(s)
     );
 
     if (upcomingSession) {
       const sTime = upcomingSession.jam_mulai.replace(':', '.');
       const eTime = upcomingSession.jam_selesai.replace(':', '.');
-      const formattedUpcoming = `${sTime} – ${eTime}`;
       return {
-        upcomingTime: formattedUpcoming,
+        upcomingTime: `${sTime} – ${eTime}`,
         sessionName: upcomingSession.nama_sesi,
         activeTime,
         hasActive,
@@ -239,9 +280,7 @@ export function getUpcomingScheduleTime(
       };
     }
 
-    const firstSession =
-      sessions.find((s) => !isSlotClosed({ status: s.status_sesi })) || sessions[0];
-
+    const firstSession = sessions.find((s) => !isSessionClosed(s)) || sessions[0];
     if (firstSession) {
       const sTime = firstSession.jam_mulai.replace(':', '.');
       const eTime = firstSession.jam_selesai.replace(':', '.');
@@ -249,9 +288,8 @@ export function getUpcomingScheduleTime(
         parseTimeToMinutes(firstSession.jam_selesai) <= currentMinutes ||
         parseTimeToMinutes(firstSession.jam_mulai) <= currentMinutes;
       const rawUpcoming = `${sTime} – ${eTime}`;
-      const formattedUpcoming = isPastSession ? `Besok, ${rawUpcoming}` : rawUpcoming;
       return {
-        upcomingTime: formattedUpcoming,
+        upcomingTime: isPastSession ? `Besok, ${rawUpcoming}` : rawUpcoming,
         sessionName: firstSession.nama_sesi,
         activeTime,
         hasActive,
