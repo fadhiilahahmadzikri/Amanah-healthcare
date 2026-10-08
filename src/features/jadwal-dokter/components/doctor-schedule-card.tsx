@@ -29,7 +29,6 @@ import {
   DoctorSpecialtyText,
   DoctorStatusBadge
 } from './doctor-card-atoms';
-import { DoctorScheduleStats } from './doctor-schedule-stats';
 
 export type { DoctorCardStatus, UpcomingScheduleResult };
 export {
@@ -38,7 +37,6 @@ export {
   DoctorCutiNotice,
   DoctorInfoRow,
   DoctorQuickCallButton,
-  DoctorScheduleStats,
   DoctorSpecialtyBadge,
   DoctorSpecialtyText,
   DoctorStatusBadge,
@@ -228,17 +226,7 @@ export function DoctorScheduleCard({
             title='Praktik Selesai'
             subtitle='Seluruh sesi praktik dokter untuk tanggal ini telah selesai.'
           />
-        ) : (
-          <DoctorScheduleStats
-            scheduleTime={effectiveDoctor.jadwal_hari_ini || 'Belum diatur'}
-            availableSlots={effectiveDoctor.slot_tersedia}
-            totalCapacity={effectiveDoctor.kapasitas_per_hari}
-            displaySlot={effectiveDoctor.display_akumulasi_slot}
-            sessions={effectiveDoctor.sesi_harian}
-            doctor={effectiveDoctor}
-            date={cardDate}
-          />
-        ))}
+        ) : null)}
 
       {showActions && !isUnconfigured && (
         <div

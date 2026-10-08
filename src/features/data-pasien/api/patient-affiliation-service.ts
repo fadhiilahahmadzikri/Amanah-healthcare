@@ -1,4 +1,5 @@
 import { clientFetch } from '@/lib/client-fetch';
+import type { QueueLoadStatus } from '@/features/klinik/constants/queue-load.constants';
 
 export interface PatientAffiliationProfile {
   id: string;
@@ -159,6 +160,7 @@ export interface BookingOptionShift {
   isPast?: boolean;
   isDisabled: boolean;
   disabledReason: string | null;
+  loadStatus?: QueueLoadStatus;
   practitioners: BookingPractitioner[];
 }
 

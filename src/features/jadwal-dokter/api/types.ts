@@ -76,6 +76,8 @@ export interface TimelineInterval {
   closedReason?: string | null;
 }
 
+import type { QueueLoadStatus } from '@/features/klinik/constants/queue-load.constants';
+
 export interface DoctorDailySession {
   id: string;
   nama_sesi: string;
@@ -88,9 +90,12 @@ export interface DoctorDailySession {
   display_slot?: string;
   status_sesi: SessionStatus;
   ruang?: string;
+  roomId?: string;
+  ruang_id?: string;
   tanggal?: string;
   is_reschedule_eligible?: boolean;
   reschedule_ineligibility_reason?: string | null;
+  loadStatus?: QueueLoadStatus;
 }
 
 export interface MonthlyScheduleDay {

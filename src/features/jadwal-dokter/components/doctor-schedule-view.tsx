@@ -47,10 +47,8 @@ export function DoctorScheduleView() {
         initialDate={scheduleView.returnContext?.sourceDate}
         initialStartTime={scheduleView.returnContext?.sourceSlotStartTime}
         initialStep={
-          scheduleView.returnContext?.initialStep === 'room' ||
-          scheduleView.returnContext?.initialStep === 'slot' ||
-          scheduleView.returnContext?.initialStep === 'date' ||
-          scheduleView.returnContext?.initialStep === 'note'
+          scheduleView.returnContext?.initialStep === 'note' ||
+          scheduleView.returnContext?.initialStep === 'date'
             ? scheduleView.returnContext.initialStep
             : undefined
         }
@@ -70,7 +68,7 @@ export function DoctorScheduleView() {
         initialEndTime={scheduleView.returnContext?.sourceSlotEndTime}
         initialStep={
           scheduleView.returnContext?.initialStep === 'room' ||
-          scheduleView.returnContext?.initialStep === 'slot' ||
+          scheduleView.returnContext?.initialStep === 'session' ||
           scheduleView.returnContext?.initialStep === 'date' ||
           scheduleView.returnContext?.initialStep === 'confirmation'
             ? scheduleView.returnContext.initialStep

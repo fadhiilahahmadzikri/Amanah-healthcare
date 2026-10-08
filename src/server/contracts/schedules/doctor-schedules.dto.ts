@@ -22,6 +22,8 @@ export const doctorDailySessionSchema = z.object({
   display_slot: z.string().optional(),
   status_sesi: z.string(),
   ruang: z.string().optional(),
+  roomId: z.string().optional(),
+  ruang_id: z.string().optional(),
   is_reschedule_eligible: z.boolean().optional(),
   reschedule_ineligibility_reason: z.string().nullable().optional()
 });

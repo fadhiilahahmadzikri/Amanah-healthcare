@@ -9,6 +9,10 @@ import type { ServiceCatalogItem } from '../../api/catalog.service';
 import { cn } from '@/lib/utils';
 import { useBookingSessions } from '../../model/useBookingSessions';
 import type { BookingOptionShift } from '@/features/data-pasien/api/patient-affiliation-service';
+import {
+  QUEUE_LOAD_STATUS,
+  QUEUE_LOAD_BADGE_STYLES,
+} from '../../constants/queue-load.constants';
 
 export interface BookingSessionStepProps {
   selectedService: ServiceCatalogItem | null;
@@ -128,9 +132,11 @@ function SessionList({ sessions, timeSlot, onSelectSlot }: SessionListProps) {
       >
         {sessions.map((session) => {
           const isSelected = timeSlot === session.session;
-          const isDisabled = session.isDisabled;
+          const isDisabled = Boolean(session.isPast);
           const SessionIcon = getSessionIcon(session.session);
           const primaryPractitioner = session.practitioners?.[0];
+          const loadStatus = session.loadStatus || QUEUE_LOAD_STATUS.NORMAL;
+          const badgeStyle = QUEUE_LOAD_BADGE_STYLES[loadStatus];
 
           return (
             <div
@@ -176,13 +182,22 @@ function SessionList({ sessions, timeSlot, onSelectSlot }: SessionListProps) {
                     {session.label}
                   </div>
 
-                  {!isDisabled && (
-                    <div>
-                      <span className='inline-flex items-center rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 text-[10px] font-semibold leading-none'>
-                        Sisa {session.availableSlots} slot
+                  <div>
+                    {isDisabled ? (
+                      <span className='inline-flex items-center rounded-md bg-muted text-muted-foreground border px-1.5 py-0.5 text-[10px] font-semibold leading-none'>
+                        Waktu Terlewati
                       </span>
-                    </div>
-                  )}
+                    ) : (
+                      <span
+                        className={cn(
+                          'inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-semibold leading-none',
+                          badgeStyle
+                        )}
+                      >
+                        {loadStatus}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 

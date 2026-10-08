@@ -152,7 +152,7 @@ export function DoctorOccupancyRadialChart({
               Alokasi Praktik:
             </span>
             <span className='font-mono font-bold text-foreground text-[11.5px] sm:text-xs'>
-              {scheduleCoverage.scheduled}/{scheduleCoverage.total || 48} Slot
+              {scheduleCoverage.scheduled}/{scheduleCoverage.total || 3} Sesi
             </span>
             <span className='inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] sm:text-[10.5px] font-bold font-mono bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 leading-none'>
               {coveragePct}%
@@ -175,7 +175,7 @@ export function DoctorOccupancyRadialChart({
         </div>
       </div>
 
-      {/* Right: Unscheduled Slots Notice */}
+      {/* Right: Unscheduled Sessions Notice */}
       {unscheduledNotice ? (
         <div className='text-[11px] text-muted-foreground font-medium pl-1'>
           {unscheduledNotice}
@@ -183,13 +183,13 @@ export function DoctorOccupancyRadialChart({
       ) : unscheduledCount > 0 ? (
         <div className='text-[11px] text-muted-foreground font-medium flex items-center gap-1.5 pl-1'>
           <span className='inline-flex items-center justify-center px-2 py-0.5 rounded-md border border-dashed border-border/80 bg-background/60 font-mono font-bold text-foreground text-[10.5px]'>
-            {unscheduledCount} slot
+            {unscheduledCount} sesi
           </span>
-          <span className='hidden sm:inline'>belum dijadwalkan</span>
+          <span className='hidden sm:inline'>belum dibuka</span>
         </div>
       ) : (
         <div className='text-[11px] text-muted-foreground font-medium pl-1'>
-          Semua slot telah terjadwal
+          Semua sesi telah aktif
         </div>
       )}
     </div>

@@ -12,6 +12,7 @@ import { normalizeAppointmentTimes } from "../utils/appointment-adapter";
 import {
 	isAppointmentTerminal,
 	isAppointmentInService,
+	isAppointmentWaiting,
 } from "@/features/appointment-pasien/constants/options";
 
 export interface AppointmentCardOrganismProps {
@@ -62,17 +63,24 @@ export function AppointmentCardOrganism({
 		? appointment.patient_avatar || ""
 		: docInfo.avatar || "";
 
+	const isWaiting = isAppointmentWaiting(appointment.status);
+
 	const displayLocation =
-		appointment.room_name ||
-		appointment.room_location ||
-		docInfo.location ||
-		appointment.poliklinik_name ||
-		"-";
+		isPatientSubject && isWaiting
+			? "Menunggu panggilan klinik"
+			: appointment.room_name ||
+				appointment.room_location ||
+				docInfo.location ||
+				appointment.poliklinik_name ||
+				"-";
 
 	const { startTime, endTime, durationText } =
 		normalizeAppointmentTimes(appointment);
 
+	const isCheckedIn = Boolean(appointment.checked_in_at || appointment.checkedInAt);
+
 	const canReschedule =
+		!isCheckedIn &&
 		!isAppointmentTerminal(appointment.status) &&
 		!isAppointmentInService(appointment.status);
 

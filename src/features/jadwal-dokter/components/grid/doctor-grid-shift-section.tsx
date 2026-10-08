@@ -2,19 +2,23 @@
 
 import React from 'react';
 import { Icons } from '@/components/icons';
+import { cn } from '@/lib/utils';
 import type {
   OccupancyShift,
   OccupancySlot
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 import type { DoctorDailySession } from '../../api/types';
-import { DoctorGridSlotItem, type GridSlotData } from './doctor-grid-slot-item';
 import {
   SCHEDULE_STATUS,
   SHIFT_OPERATIONAL_STATUS,
   SHIFT_OPERATIONAL_LABELS
 } from '../../constants/schedule-shift.constants';
-import { isSlotOccupiedOrBooked } from '../../utils/doctor-schedule-predicates';
 import { useDoctorConflictNavigation } from '../../model/useDoctorConflictNavigation';
+import {
+  DEFAULT_FALLBACK_CAPACITY,
+  QUEUE_LOAD_BADGE_STYLES,
+  resolveQueueLoadStatus
+} from '@/features/klinik/constants/queue-load.constants';
 
 export interface DoctorGridShiftSectionProps {
   shift: OccupancyShift;
@@ -24,10 +28,10 @@ export interface DoctorGridShiftSectionProps {
   readOnly: boolean;
   isCurrentDayToday: boolean;
   currentTimeString: string;
-  isSlotFinished: (slot: OccupancySlot) => boolean;
+  isSlotFinished?: (slot: OccupancySlot) => boolean;
   pendingSessionId: string | null;
   isMutationPending: boolean;
-  onSlotClick: (slot: OccupancySlot) => void;
+  onSlotClick?: (slot: OccupancySlot) => void;
   onOpenPatients: (
     session: DoctorDailySession,
     slotStartTime?: string,
@@ -36,9 +40,6 @@ export interface DoctorGridShiftSectionProps {
     shiftLabel?: string,
     shiftTimeRange?: string
   ) => void;
-  onOpenPatientDetail?: (session: DoctorDailySession, slot: OccupancySlot | GridSlotData) => void;
-  onOpenChangeDoctor?: (session: DoctorDailySession, slot: OccupancySlot | GridSlotData) => void;
-  onOpenChangeRoom?: (session: DoctorDailySession, slot: OccupancySlot | GridSlotData) => void;
   onOpenReschedule: (session: DoctorDailySession, slotStartTime?: string) => void;
   onToggleSessionStatus: (session: DoctorDailySession) => void;
   highlightSlotTime?: string;
@@ -52,16 +53,9 @@ export function DoctorGridShiftSection({
   isDayCuti,
   isDayClosed,
   readOnly,
-  isCurrentDayToday,
-  currentTimeString,
-  isSlotFinished,
   pendingSessionId,
   isMutationPending,
-  onSlotClick,
   onOpenPatients,
-  onOpenPatientDetail,
-  onOpenChangeDoctor,
-  onOpenChangeRoom,
   onOpenReschedule,
   onToggleSessionStatus,
   highlightSlotTime,
@@ -77,7 +71,7 @@ export function DoctorGridShiftSection({
 
   const isHighlightedShift = Boolean(
     effectiveHighlightTime &&
-    shift.slots.some(
+    shift.slots?.some(
       (slot) =>
         slot.startTime === effectiveHighlightTime ||
         (slot.startTime <= effectiveHighlightTime && slot.endTime > effectiveHighlightTime)
@@ -101,7 +95,6 @@ export function DoctorGridShiftSection({
       s.jam_mulai < shift.boundaryEndTime
     )
   );
-  const primaryShiftSession = matchingShiftSessions[0];
 
   const sessionBookedCount = matchingShiftSessions.reduce((acc, s) => {
     const rawStatus = s.status_sesi ? s.status_sesi.toUpperCase() : '';
@@ -119,8 +112,8 @@ export function DoctorGridShiftSection({
   const shiftBookedCount = isDayClosed || isDayCuti ? 0 : sessionBookedCount;
 
   return (
-    <div className='space-y-2'>
-      {/* Y-Axis Shift Header: Shift Name, Time Range & Slot Metrics SSOT */}
+    <div className='space-y-2.5'>
+      {/* Shift Header: Name, Time Range & Summary */}
       <div className='flex items-center justify-between text-xs pb-1.5 border-b border-border/30'>
         <div className='flex items-center gap-2'>
           <span className='text-foreground font-bold text-xs sm:text-[13px]'>
@@ -131,7 +124,6 @@ export function DoctorGridShiftSection({
           </span>
         </div>
 
-        {/* Indikator Kuota / Slot Khusus Sesi Shift Ini (Backend SSOT) */}
         <div className='flex items-center gap-2 flex-wrap'>
           {showReturnButton && (
             <button
@@ -166,113 +158,124 @@ export function DoctorGridShiftSection({
                 SHIFT_OPERATIONAL_LABELS[SHIFT_OPERATIONAL_STATUS.NO_PRACTICE]}
             </span>
           ) : (
-            <>
-              {primaryShiftSession && (shift.registeredPatientsCount ?? shiftBookedCount) > 0 && (
-                <button
-                  type='button'
-                  onClick={() =>
-                    onOpenPatients(
-                      primaryShiftSession,
-                      undefined,
-                      undefined,
-                      shift.sessionShift || shift.contextId,
-                      shift.contextLabel,
-                      shift.timeRange
-                    )
-                  }
-                  className='inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-all cursor-pointer shadow-2xs'
-                  title='Lihat daftar pasien terdaftar pada sesi shift ini'
-                >
-                  <Icons.teams className='size-3 text-primary' />
-                  <span>
-                    {shift.registeredPatientsCount !== undefined
-                      ? `${shift.registeredPatientsCount} Pasien`
-                      : `${shiftBookedCount} Pasien`}
-                  </span>
-                </button>
-              )}
-              <span className='font-mono text-xs text-muted-foreground'>
-                {shift.operationalLabel ||
-                  (shift.metrics?.availableSlots !== undefined
-                    ? `${shift.metrics.availableSlots} slot tersedia`
-                    : primaryShiftSession?.slot_tersedia !== undefined
-                      ? `${primaryShiftSession.slot_tersedia} slot tersedia`
-                      : `${shift.availableSlotsCount ?? 0} slot tersedia`)}
-              </span>
-            </>
+            <span className='font-mono text-xs text-muted-foreground'>
+              {shiftBookedCount} Pasien Terdaftar
+            </span>
           )}
         </div>
       </div>
 
-      <div className='grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-1.5'>
-        {shift.slots.map((slot) => {
-          const isFinished = isSlotFinished(slot);
-          const hasBookedPatients = isSlotOccupiedOrBooked(slot);
-          const isNow =
-            !isFinished &&
-            isCurrentDayToday &&
-            currentTimeString >= slot.startTime &&
-            currentTimeString < slot.endTime;
+      {/* Session Cards for Shift */}
+      {matchingShiftSessions.length > 0 ? (
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-2.5'>
+          {matchingShiftSessions.map((session) => {
+            const isClosed = session.status_sesi?.toUpperCase() === SCHEDULE_STATUS.CLOSED;
+            const isUpdating = isMutationPending && pendingSessionId === session.id;
+            const effCap =
+              session.kuota_pasien > 0 ? session.kuota_pasien : DEFAULT_FALLBACK_CAPACITY;
+            const booked =
+              session.pasien_terdaftar !== undefined
+                ? session.pasien_terdaftar
+                : Math.max(0, effCap - session.slot_tersedia);
+            const loadStatus = session.loadStatus || resolveQueueLoadStatus(booked / effCap);
 
-          const matchingSession = activeSessions.find(
-            (s) =>
-              (slot.sessionId && s.id === slot.sessionId) ||
-              (slot.startTime >= s.jam_mulai && slot.startTime < s.jam_selesai) ||
-              slot.startTime === s.jam_mulai ||
-              (slot.conflictInfo?.sessionId && s.id === slot.conflictInfo.sessionId)
-          );
+            return (
+              <div
+                key={session.id}
+                className={cn(
+                  'rounded-xl border p-3.5 transition-all flex flex-col justify-between gap-3 text-card-foreground',
+                  isClosed
+                    ? 'bg-muted/30 border-border/40 opacity-75'
+                    : 'bg-card border-border/60 hover:border-primary/50 shadow-2xs'
+                )}
+              >
+                <div className='flex items-start justify-between gap-2'>
+                  <div className='space-y-0.5 min-w-0 flex-1'>
+                    <div className='flex items-center gap-2 flex-wrap'>
+                      <span className='font-bold text-xs sm:text-sm text-foreground truncate'>
+                        {session.nama_sesi || shift.contextLabel}
+                      </span>
+                      <span className='font-mono text-[11px] text-muted-foreground'>
+                        {session.jam_mulai} - {session.jam_selesai} WIB
+                      </span>
+                    </div>
+                    <div className='flex items-center gap-1.5 text-[11.5px] text-muted-foreground pt-0.5'>
+                      <Icons.location className='size-3 text-primary/70 shrink-0' />
+                      <span className='truncate'>{session.ruang || 'Ditentukan saat dipanggil'}</span>
+                    </div>
+                  </div>
 
-          const isUnscheduled = !matchingSession;
+                  <span
+                    className={cn(
+                      'px-2 py-0.5 rounded-full text-[10.5px] font-bold border select-none shrink-0',
+                      isClosed
+                        ? 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20'
+                        : QUEUE_LOAD_BADGE_STYLES[loadStatus]
+                    )}
+                  >
+                    {isClosed ? 'Ditutup' : loadStatus}
+                  </span>
+                </div>
 
-          const isClickable =
-            !isDayCuti &&
-            !readOnly &&
-            slot.isClickable !== false &&
-            (!isFinished || hasBookedPatients) &&
-            (isUnscheduled ? !isDayClosed : true);
+                <div className='pt-1 border-t border-border/30 flex items-center justify-between gap-2 flex-wrap'>
+                  <button
+                    type='button'
+                    onClick={() =>
+                      onOpenPatients(
+                        session,
+                        undefined,
+                        undefined,
+                        shift.sessionShift || shift.contextId,
+                        shift.contextLabel,
+                        shift.timeRange
+                      )
+                    }
+                    className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-primary/10 hover:bg-primary/20 text-primary transition-all cursor-pointer'
+                  >
+                    <Icons.teams className='size-3 text-primary' />
+                    <span>{booked} Pasien Terdaftar</span>
+                  </button>
 
-          const hasHoverMenu = Boolean(matchingSession && !isFinished && !isDayCuti && !readOnly);
+                  {!readOnly && (
+                    <div className='flex items-center gap-1.5'>
+                      <button
+                        type='button'
+                        onClick={() => onOpenReschedule(session)}
+                        className='px-2.5 py-1 rounded-lg text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer border border-border/40'
+                        title='Reschedule Sesi Praktik'
+                      >
+                        Reschedule
+                      </button>
 
-          const isSlotUpdating = Boolean(
-            matchingSession && isMutationPending && pendingSessionId === matchingSession.id
-          );
-
-          const isSessionClosed = matchingSession?.status_sesi === SCHEDULE_STATUS.CLOSED;
-
-          const isThisSessionPending =
-            isMutationPending && pendingSessionId === matchingSession?.id;
-
-          const isHighlighted = Boolean(
-            !isFinished &&
-            highlightSlotTime &&
-            (slot.startTime === highlightSlotTime ||
-              (slot.startTime <= highlightSlotTime && slot.endTime > highlightSlotTime))
-          );
-
-          return (
-            <DoctorGridSlotItem
-              key={`${shift.contextId}-${slot.slotIndex}-${slot.startTime}`}
-              slot={slot}
-              isFinished={isFinished}
-              isNow={isNow}
-              isClickable={isClickable}
-              isSlotUpdating={isSlotUpdating}
-              isHighlighted={isHighlighted}
-              matchingSession={matchingSession}
-              hasHoverMenu={hasHoverMenu}
-              isSessionClosed={isSessionClosed}
-              isThisSessionPending={isThisSessionPending}
-              onSlotClick={() => onSlotClick(slot)}
-              onOpenPatients={onOpenPatients}
-              onOpenPatientDetail={onOpenPatientDetail}
-              onOpenChangeDoctor={onOpenChangeDoctor}
-              onOpenChangeRoom={onOpenChangeRoom}
-              onOpenReschedule={onOpenReschedule}
-              onToggleSessionStatus={onToggleSessionStatus}
-            />
-          );
-        })}
-      </div>
+                      <button
+                        type='button'
+                        onClick={() => onToggleSessionStatus(session)}
+                        disabled={isUpdating}
+                        className={cn(
+                          'px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer border',
+                          isClosed
+                            ? 'text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/10'
+                            : 'text-amber-600 border-amber-500/30 hover:bg-amber-500/10'
+                        )}
+                      >
+                        {isUpdating ? '...' : isClosed ? 'Buka Sesi' : 'Tutup Sesi'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className='p-3.5 rounded-xl border border-dashed border-border/50 text-center text-xs text-muted-foreground'>
+          {isDayCuti
+            ? 'Dokter sedang cuti operasional pada shift ini.'
+            : isDayClosed
+              ? 'Praktik ditutup untuk shift ini.'
+              : 'Tidak ada sesi praktik terjadwal pada shift ini.'}
+        </div>
+      )}
     </div>
   );
 }

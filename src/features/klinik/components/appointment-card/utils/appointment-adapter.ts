@@ -61,7 +61,7 @@ export function normalizeAppointmentTimes(appointment: Partial<Appointment>): {
 
   const startTime =
     formatTimeSlotString(appointment.scheduled_start_time) ||
-    (timeRangeMatch ? timeRangeMatch[1].replace(':', '.') : '-');
+    (timeRangeMatch ? timeRangeMatch[1].replace(':', '.') : formatTimeSlotString(timeStr) || '-');
   const endTime =
     formatTimeSlotString(appointment.scheduled_end_time) ||
     (timeRangeMatch ? timeRangeMatch[2].replace(':', '.') : '-');

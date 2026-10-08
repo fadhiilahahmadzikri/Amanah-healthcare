@@ -19,6 +19,7 @@ import {
   SLOT_ACTION_TYPE
 } from '../constants/schedule-shift.constants';
 import { useDoctorHourlyGridModals } from './useDoctorHourlyGridModals';
+import { DEFAULT_FALLBACK_CAPACITY } from '@/features/klinik/constants/queue-load.constants';
 
 const MONTH_NAMES = [
   'Januari',
@@ -159,80 +160,62 @@ export function useDoctorHourlyGrid({
     if (doctor?.summary) return doctor.summary;
     if (doctor?.metrics) return doctor.metrics;
 
-    let totalSlots = 0;
-    let scheduledSlots = 0;
-    let unscheduledSlots = 0;
-    let availableSlots = 0;
-    let occupiedSlots = 0;
-    let closedSlots = 0;
-    let activeBookableSlots = 0;
-    let futureUnscheduledSlots = 0;
+    const totalShifts = displayedShifts.length > 0 ? displayedShifts.length : 3;
+    const scheduledSessions = activeSessions.filter(
+      (s) => s.status_sesi !== 'Tutup' && s.status_sesi !== 'CLOSED'
+    ).length;
+    const unscheduledShifts = Math.max(0, totalShifts - scheduledSessions);
 
-    for (const shift of displayedShifts) {
-      if (shift.metrics) {
-        totalSlots += shift.metrics.totalSlots ?? 12;
-        scheduledSlots += shift.metrics.scheduledSlots;
-        availableSlots += shift.metrics.availableSlots;
-        occupiedSlots += shift.metrics.occupiedSlots;
-        closedSlots += shift.metrics.closedSlots;
-        activeBookableSlots += shift.metrics.activeBookableSlots;
-      } else {
-        totalSlots += shift.totalSlots ?? 12;
-        availableSlots += shift.availableSlotsCount ?? 0;
-        occupiedSlots += shift.occupiedSlotsCount ?? 0;
-      }
+    let totalCapacity = 0;
+    let totalBooked = 0;
 
-      if (shift.operationalStatus !== SHIFT_OPERATIONAL_STATUS.NO_PRACTICE) {
-        const remaining = (shift.slots || []).filter(
-          (s) =>
-            s.availabilityState === AVAILABILITY_STATE.UNSCHEDULED &&
-            s.temporalState !== TEMPORAL_STATE.PAST
-        ).length;
-        futureUnscheduledSlots += remaining;
-      }
+    for (const s of activeSessions) {
+      const cap = s.kuota_pasien ?? DEFAULT_FALLBACK_CAPACITY;
+      totalCapacity += cap;
+      totalBooked += s.pasien_terdaftar ?? 0;
     }
 
-    unscheduledSlots = futureUnscheduledSlots;
+    if (totalCapacity === 0) {
+      totalCapacity = DEFAULT_FALLBACK_CAPACITY * Math.max(1, scheduledSessions);
+    }
 
     const occupancyPercentage =
-      activeBookableSlots > 0
-        ? Number(((occupiedSlots / activeBookableSlots) * 100).toFixed(1))
-        : 0;
+      totalCapacity > 0 ? Number(((totalBooked / totalCapacity) * 100).toFixed(1)) : 0;
     const coveragePercentage =
-      totalSlots > 0 ? Number(((scheduledSlots / totalSlots) * 100).toFixed(1)) : 0;
+      totalShifts > 0 ? Number(((scheduledSessions / totalShifts) * 100).toFixed(1)) : 0;
 
     return {
-      totalSlots,
-      scheduledSlots,
-      unscheduledSlots,
-      availableSlots,
-      occupiedSlots,
-      closedSlots,
-      activeBookableSlots,
+      totalSlots: totalShifts,
+      scheduledSlots: scheduledSessions,
+      unscheduledSlots: unscheduledShifts,
+      availableSlots: Math.max(0, totalCapacity - totalBooked),
+      occupiedSlots: totalBooked,
+      closedSlots: 0,
+      activeBookableSlots: totalCapacity,
       occupancy: {
-        occupied: occupiedSlots,
-        capacity: activeBookableSlots,
+        occupied: totalBooked,
+        capacity: totalCapacity,
         percentage: occupancyPercentage,
-        displayText: `Keterisian Kuota: ${occupiedSlots}/${activeBookableSlots} Pasien (${occupancyPercentage}%)`
+        displayText: `Keterisian Kuota: ${totalBooked}/${totalCapacity} Pasien (${occupancyPercentage}%)`
       },
       patientOccupancy: {
-        occupied: occupiedSlots,
-        capacity: activeBookableSlots,
+        occupied: totalBooked,
+        capacity: totalCapacity,
         percentage: occupancyPercentage,
-        displayText: `Keterisian Kuota: ${occupiedSlots}/${activeBookableSlots} Pasien (${occupancyPercentage}%)`
+        displayText: `Keterisian Kuota: ${totalBooked}/${totalCapacity} Pasien (${occupancyPercentage}%)`
       },
       scheduleCoverage: {
-        scheduled: scheduledSlots,
-        total: totalSlots,
+        scheduled: scheduledSessions,
+        total: totalShifts,
         percentage: coveragePercentage,
-        displayText: `Alokasi Praktik: ${scheduledSlots}/${totalSlots} Slot (${coveragePercentage}%)`
+        displayText: `Alokasi Praktik: ${scheduledSessions}/${totalShifts} Sesi (${coveragePercentage}%)`
       },
       unscheduledNotice:
-        unscheduledSlots > 0
-          ? `${unscheduledSlots} slot belum dijadwalkan`
-          : 'Semua slot telah terjadwal'
+        unscheduledShifts > 0
+          ? `${unscheduledShifts} sesi belum dibuka`
+          : 'Semua sesi telah aktif'
     };
-  }, [doctor?.summary, doctor?.metrics, displayedShifts]);
+  }, [doctor?.summary, doctor?.metrics, displayedShifts, activeSessions]);
 
   const modals = useDoctorHourlyGridModals({
     doctor,

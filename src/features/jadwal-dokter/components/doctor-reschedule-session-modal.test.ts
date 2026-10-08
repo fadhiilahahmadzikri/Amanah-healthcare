@@ -7,48 +7,30 @@ import type { ScheduleSlotAvailabilityItem } from '@/server/contracts/schedules/
 function evaluateCanProceedNext(
   step: RescheduleStep,
   targetDate: string,
-  targetRoomId: string,
-  targetStartTime: string
+  selectedShift: string
 ): boolean {
-  if (step === 'date') return Boolean(targetDate);
-  if (step === 'room') return Boolean(targetRoomId);
-  if (step === 'slot') return Boolean(targetStartTime);
-  if (step === 'note') return Boolean(targetDate && targetRoomId && targetStartTime);
+  if (step === 'date') return Boolean(targetDate && selectedShift);
+  if (step === 'note') return Boolean(targetDate && selectedShift);
   return false;
 }
 
-describe('DoctorRescheduleSessionModal Wizard & Collision Architecture', () => {
+describe('DoctorRescheduleSessionModal Wizard & Session Reschedule Architecture', () => {
   describe('Wizard Stepper Navigation & Guards', () => {
-    it('Step 1 (date): defaults to dynamic current date and allows proceeding', () => {
+    it('Step 1 (date): requires date and session shift before advancing', () => {
       const today = getTodayDateParam();
       expect(today).toMatch(/^\d{4}-\d{2}-\d{2}$/);
 
-      // Cannot proceed if date is empty
-      expect(evaluateCanProceedNext('date', '', '', '')).toBe(false);
-      // Can proceed when target date is set
-      expect(evaluateCanProceedNext('date', today, '', '')).toBe(true);
+      // Cannot proceed if date or shift is empty
+      expect(evaluateCanProceedNext('date', '', 'PAGI')).toBe(false);
+      expect(evaluateCanProceedNext('date', today, '')).toBe(false);
+      // Can proceed when target date and shift are set
+      expect(evaluateCanProceedNext('date', today, 'PAGI')).toBe(true);
     });
 
-    it('Step 2 (room): requires target room selection before advancing', () => {
+    it('Step 2 (note): ready for final submission when target date and shift are present', () => {
       const today = getTodayDateParam();
-      // Cannot proceed to slot without room
-      expect(evaluateCanProceedNext('room', today, '', '')).toBe(false);
-      // Can proceed when room is selected
-      expect(evaluateCanProceedNext('room', today, 'room-uuid-1', '')).toBe(true);
-    });
-
-    it('Step 3 (slot): requires selecting a start time from the slot grid', () => {
-      const today = getTodayDateParam();
-      expect(evaluateCanProceedNext('slot', today, 'room-uuid-1', '')).toBe(false);
-      expect(evaluateCanProceedNext('slot', today, 'room-uuid-1', '08:00')).toBe(true);
-    });
-
-    it('Step 4 (note): requires all prior fields (date, room, slot) before final submission', () => {
-      const today = getTodayDateParam();
-      expect(evaluateCanProceedNext('note', today, 'room-uuid-1', '08:00')).toBe(true);
-      expect(evaluateCanProceedNext('note', '', 'room-uuid-1', '08:00')).toBe(false);
-      expect(evaluateCanProceedNext('note', today, '', '08:00')).toBe(false);
-      expect(evaluateCanProceedNext('note', today, 'room-uuid-1', '')).toBe(false);
+      expect(evaluateCanProceedNext('note', today, 'PAGI')).toBe(true);
+      expect(evaluateCanProceedNext('note', '', 'PAGI')).toBe(false);
     });
   });
 

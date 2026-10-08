@@ -86,10 +86,16 @@ export function AppointmentDetailOrganism({
     schedule: ''
   };
 
+  const isTerminal = isAppointmentTerminal(appointment.status);
+  const isInService = isAppointmentInService(appointment.status);
+  const isWaiting = isAppointmentWaiting(appointment.status);
+
   const displayLocation =
-    appointment.poliklinik_name && appointment.room_name
-      ? `${appointment.poliklinik_name}, ${appointment.room_name}`
-      : appointment.poliklinik_name || appointment.room_name || '-';
+    isWaiting
+      ? 'Menunggu panggilan klinik'
+      : appointment.poliklinik_name && appointment.room_name
+        ? `${appointment.poliklinik_name}, ${appointment.room_name}`
+        : appointment.poliklinik_name || appointment.room_name || '-';
 
   const doctorSpecialty = appointment.doctor_specialty || doctor.spec || '-';
   const { startTime, endTime, durationText } = normalizeAppointmentTimes(appointment);
@@ -99,15 +105,12 @@ export function AppointmentDetailOrganism({
   const serviceName = appointment.service || doctor.spec || '-';
   const complaintText = appointment.complaint || '-';
 
-  const isTerminal = isAppointmentTerminal(appointment.status);
-  const isInService = isAppointmentInService(appointment.status);
-  const isWaiting = isAppointmentWaiting(appointment.status);
-
   const { role, hasRole } = useAuthContext();
   const isAdmin = role === 'admin' || hasRole('admin');
 
-  const canCancel = !isTerminal;
-  const canReschedule = !isTerminal;
+  const isCheckedIn = Boolean(appointment.checked_in_at || appointment.checkedInAt);
+  const canCancel = !isTerminal && !isCheckedIn;
+  const canReschedule = !isTerminal && !isCheckedIn;
   const canReassign = isAdmin && !isTerminal;
 
   const handleConfirmCancel = async () => {

@@ -30,6 +30,8 @@ export interface Appointment {
   room_location?: string;
   scheduled_start_time?: string;
   scheduled_end_time?: string;
+  checked_in_at?: string | null;
+  checkedInAt?: string | null;
   actual_started_at?: string;
   actual_completed_at?: string;
   consultation_elapsed_seconds?: number | null;

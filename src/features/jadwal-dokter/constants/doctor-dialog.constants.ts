@@ -15,6 +15,7 @@ export type DoctorDialogType = (typeof DOCTOR_DIALOG_TYPE)[keyof typeof DOCTOR_D
 export const WIZARD_STEP = {
   DATE: 'date',
   ROOM: 'room',
+  SESSION: 'session',
   SLOT: 'slot',
   NOTE: 'note',
   CONFIRMATION: 'confirmation'

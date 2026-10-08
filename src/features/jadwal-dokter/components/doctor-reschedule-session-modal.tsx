@@ -7,17 +7,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Icons } from '@/components/icons';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { BookingDateStep } from '@/features/klinik/components/booking/booking-date-step';
-import { StepRoomSelect } from './add-session/step-room-select';
-import { StepRescheduleSlot } from './reschedule-session/step-reschedule-slot';
+import { StepSessionSelect } from './add-session/step-session-select';
 import { StepRescheduleConfirmation } from './reschedule-session/step-reschedule-confirmation';
 import type { DoctorSchedule, DoctorDailySession } from '../api/types';
 import {
   useDoctorRescheduleSessionModal,
-  type RescheduleStep,
-  type ReturnDoctorContext
+  type RescheduleStep
 } from '../model/useDoctorRescheduleSessionModal';
+import type { DoctorConflictReturnContext } from '../model/useDoctorConflictNavigation';
 
-export type { RescheduleStep, ReturnDoctorContext };
+export type { RescheduleStep };
+export type ReturnDoctorContext = DoctorConflictReturnContext;
 
 export interface DoctorRescheduleSessionModalProps {
   doctor: DoctorSchedule | null;
@@ -50,14 +50,10 @@ export function DoctorRescheduleSessionModal({
     step,
     targetDate,
     setTargetDate,
-    targetRoomId,
-    setTargetRoomId,
     selectedShift,
     setSelectedShift,
     targetStartTime,
-    setTargetStartTime,
     targetEndTime,
-    setTargetEndTime,
     notes,
     setNotes,
     rescheduleActiveAppointments,
@@ -66,12 +62,7 @@ export function DoctorRescheduleSessionModal({
     setUnscheduleSourceSlot,
     effectiveSession,
     isLoadingDetail,
-    rooms,
-    isLoadingRooms,
-    availableSlots,
-    isLoadingSlots,
-    targetRoom,
-    targetEndTimeCalculated,
+    targetRoomName,
     formattedDisplayDate,
     hasActiveAppointments,
     canProceedNext,
@@ -79,7 +70,6 @@ export function DoctorRescheduleSessionModal({
     handleBack,
     handleFinalSubmit,
     stepMeta,
-    handleViewOccupantDoctorSchedule,
     isSubmitting,
     isError,
     errorMessage
@@ -178,61 +168,39 @@ export function DoctorRescheduleSessionModal({
 
         <div key={step} className='w-full animate-in fade-in-50 duration-200'>
           {step === 'date' && (
-            <BookingDateStep
-              dateStr={targetDate}
-              setDateStr={(d) => {
-                setTargetDate(d);
-                setTargetStartTime('');
-                setTargetEndTime('');
-              }}
-              showHeader={false}
-              label='Tanggal Baru*'
-              placeholder='Pilih tanggal praktik...'
-              id='tanggalTujuanRescheduleTrigger'
-              ariaLabel='Tanggal tujuan reschedule'
-              disablePastDates={true}
-            />
-          )}
+            <div className='space-y-4'>
+              <BookingDateStep
+                dateStr={targetDate}
+                setDateStr={(d) => {
+                  setTargetDate(d);
+                }}
+                showHeader={false}
+                label='Tanggal Baru*'
+                placeholder='Pilih tanggal praktik...'
+                id='tanggalTujuanRescheduleTrigger'
+                ariaLabel='Tanggal tujuan reschedule'
+                disablePastDates={true}
+              />
 
-          {step === 'room' && (
-            <StepRoomSelect
-              rooms={rooms}
-              selectedRoomId={targetRoomId}
-              onSelectRoomId={(id) => {
-                setTargetRoomId(id);
-                setTargetStartTime('');
-                setTargetEndTime('');
-              }}
-              doctorName={doctor.nama_dokter}
-              isLoading={isLoadingRooms}
-              showHeader={false}
-            />
-          )}
-
-          {step === 'slot' && (
-            <StepRescheduleSlot
-              selectedShift={selectedShift}
-              onSelectShift={setSelectedShift}
-              targetStartTime={targetStartTime}
-              targetEndTime={targetEndTime}
-              targetEndTimeCalculated={targetEndTimeCalculated}
-              onSelectSlot={(slot) => {
-                setTargetStartTime(slot.time);
-                setTargetEndTime(slot.endTime);
-              }}
-              availableSlots={availableSlots}
-              isLoadingSlots={isLoadingSlots}
-              onViewOccupantDoctorSchedule={handleViewOccupantDoctorSchedule}
-            />
+              <StepSessionSelect
+                selectedShift={selectedShift}
+                onSelectShift={(shift) => setSelectedShift(shift)}
+                selectedDate={targetDate}
+                formattedDisplayDate={formattedDisplayDate}
+                existingSessions={[]}
+                doctorName={doctor.nama_dokter}
+                showHeader={true}
+              />
+            </div>
           )}
 
           {step === 'note' && (
             <StepRescheduleConfirmation
               formattedDisplayDate={formattedDisplayDate}
-              targetRoomName={targetRoom?.name || 'Ruang Praktik'}
+              targetRoomName={targetRoomName}
               targetStartTime={targetStartTime}
               targetEndTime={targetEndTime}
-              targetEndTimeCalculated={targetEndTimeCalculated}
+              targetEndTimeCalculated={targetEndTime}
               notes={notes}
               onNotesChange={setNotes}
               hasActiveAppointments={hasActiveAppointments}
