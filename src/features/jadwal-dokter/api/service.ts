@@ -412,13 +412,13 @@ export async function completePatientAppointment(
   appointmentId: string
 ): Promise<ApiMessageResponse> {
   return await clientFetch<ApiMessageResponse>(`/api/v1/appointments/${appointmentId}/complete`, {
-    method: 'PATCH'
+    method: 'POST'
   });
 }
 
 export async function updateScheduleDaySettings(payload: unknown): Promise<ApiMessageResponse> {
-  return await clientFetch<ApiMessageResponse>('/api/v1/admin/doctor-schedules/day-settings', {
-    method: 'PATCH',
+  return await clientFetch<ApiMessageResponse>('/api/v1/schedules/day-settings', {
+    method: 'PUT',
     body: JSON.stringify(payload)
   });
 }

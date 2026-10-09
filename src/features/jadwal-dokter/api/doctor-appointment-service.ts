@@ -89,7 +89,7 @@ export async function callPatientAppointment(
     paths.appointments.call(appointmentId),
     callAppointmentResponseSchema,
     {
-      method: 'PATCH',
+      method: 'POST',
       tokenOverride: token,
       cache: 'no-store'
     }
@@ -107,7 +107,7 @@ export async function completePatientAppointment(
     paths.appointments.complete(appointmentId),
     completeAppointmentResponseSchema,
     {
-      method: 'PATCH',
+      method: 'POST',
       tokenOverride: token,
       cache: 'no-store'
     }

@@ -11,12 +11,19 @@ import { getColumns } from './columns';
 import { DoctorScheduleDetailSheet } from '../doctor-schedule-detail-sheet';
 import { DoctorRescheduleSessionModal } from '../doctor-reschedule-session-modal';
 import { DoctorExportButton } from '../doctor-export-button';
+import {
+  DoctorScheduleSettingsButton,
+  DoctorScheduleSettingsModal
+} from '../settings';
+import type { ConfigurationCategory } from '../../model/useDoctorScheduleSettingsModal';
 import type { DoctorSchedule } from '../../api/types';
 
 export function DoctorScheduleTable() {
   const [selectedDoctor, setSelectedDoctor] = useState<DoctorSchedule | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsCategory, setSettingsCategory] = useState<ConfigurationCategory>('session_defs');
 
   const [params] = useQueryStates({
     page: parseAsInteger.withDefault(1),
@@ -100,10 +107,22 @@ export function DoctorScheduleTable() {
         onViewDoctorSchedule={handleViewDoctorSchedule}
       />
 
+      <DoctorScheduleSettingsModal
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        category={settingsCategory}
+      />
+
       <div className='flex h-full flex-1 flex-col gap-4'>
         <DataTable table={table} onRowClick={handleRowClick} entityName='dokter'>
           <DataTableToolbar table={table}>
             <DoctorExportButton data={data.doctors} />
+            <DoctorScheduleSettingsButton
+              onSelectCategory={(cat) => {
+                setSettingsCategory(cat);
+                setSettingsOpen(true);
+              }}
+            />
           </DataTableToolbar>
         </DataTable>
       </div>

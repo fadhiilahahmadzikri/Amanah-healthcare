@@ -944,30 +944,47 @@ export const cancelAppointmentResponseSchema = z.object({
 });
 export type CancelAppointmentResponse = z.infer<typeof cancelAppointmentResponseSchema>;
 
-export const callAppointmentResponseSchema = z.object({
-  success: z.boolean().optional(),
-  data: z
-    .object({
-      id: z.string(),
-      status: z.string(),
-      queueTicket: z.any().optional()
-    })
-    .optional(),
-  message: z.string().optional()
-});
+export const callAppointmentResponseSchema = z
+  .object({
+    success: z.boolean().optional(),
+    attemptNumber: z.number().optional(),
+    maxAttempts: z.number().optional(),
+    status: z.string().optional(),
+    id: z.string().optional(),
+    data: z
+      .object({
+        id: z.string().optional(),
+        status: z.string().optional(),
+        attemptNumber: z.number().optional(),
+        maxAttempts: z.number().optional(),
+        queueTicket: z.any().optional()
+      })
+      .passthrough()
+      .optional(),
+    message: z.string().optional()
+  })
+  .passthrough();
 export type CallAppointmentResponse = z.infer<typeof callAppointmentResponseSchema>;
 
-export const completeAppointmentResponseSchema = z.object({
-  success: z.boolean().optional(),
-  data: z
-    .object({
-      id: z.string(),
-      status: z.string(),
-      completedAt: z.string().optional()
-    })
-    .optional(),
-  message: z.string().optional()
-});
+export const completeAppointmentResponseSchema = z
+  .object({
+    success: z.boolean().optional(),
+    id: z.string().optional(),
+    status: z.string().optional(),
+    completedAt: z.string().optional(),
+    actualCompletedAt: z.string().optional(),
+    data: z
+      .object({
+        id: z.string().optional(),
+        status: z.string().optional(),
+        completedAt: z.string().optional(),
+        actualCompletedAt: z.string().optional()
+      })
+      .passthrough()
+      .optional(),
+    message: z.string().optional()
+  })
+  .passthrough();
 export type CompleteAppointmentResponse = z.infer<typeof completeAppointmentResponseSchema>;
 
 export const updateAppointmentStatusPayloadSchema = z.object({

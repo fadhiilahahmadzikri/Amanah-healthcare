@@ -103,6 +103,9 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
     consultationDurationFormatted: item.consultationDurationFormatted
       ? String(item.consultationDurationFormatted)
       : null,
+    bookingCode: (item.bookingCode as string) || null,
+    aheadCount: typeof item.aheadCount === 'number' ? item.aheadCount : null,
+    etaRange: (item.etaRange as string) || null,
     createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
     updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : new Date().toISOString()
   };
@@ -111,7 +114,7 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
 export function adminAppointmentToAppointment(item: AdminAppointment): Appointment {
   return {
     id: item.id,
-    booking_code: item.id.slice(0, 8).toUpperCase(),
+    booking_code: item.bookingCode || item.id.slice(0, 8).toUpperCase(),
     patient_name: item.patientName,
     patient_email: item.email || '',
     patient_avatar: (item as any).patientAvatar || '',
@@ -126,6 +129,8 @@ export function adminAppointmentToAppointment(item: AdminAppointment): Appointme
     actual_completed_at: item.actualCompletedAt || undefined,
     consultation_elapsed_seconds: item.consultationElapsedSeconds ?? undefined,
     consultation_duration_formatted: item.consultationDurationFormatted || undefined,
+    eta_range: item.etaRange || null,
+    ahead_count: item.aheadCount ?? null,
     date: item.scheduledDate,
     time: item.scheduledStartTime || '',
     patient_id: item.patientId,

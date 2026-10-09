@@ -301,9 +301,8 @@ export async function noShowPatientQueue(appointmentId: string): Promise<unknown
 }
 
 export async function completePatientQueue(appointmentId: string): Promise<unknown> {
-  return await clientFetch(`/api/v1/appointments/${appointmentId}/status`, {
-    method: 'PATCH',
-    body: JSON.stringify({ status: QUEUE_STATUS.COMPLETED })
+  return await clientFetch(`/api/v1/appointments/${appointmentId}/complete`, {
+    method: 'POST'
   });
 }
 

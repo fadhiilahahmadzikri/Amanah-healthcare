@@ -59,10 +59,10 @@ export const paths = {
       `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/patients`,
     projection: () => `${getBaseApiUrl()}/api/v1/schedules/projection`,
     adminProjection: () =>
-      `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/projection/availability`,
+      `${getBaseApiUrl()}/api/v1/schedules/projection`,
     referenceOptions: () => `${getBaseApiUrl()}/api/v1/schedules/reference/options`,
     adminReferenceOptions: () =>
-      `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/reference/options`
+      `${getBaseApiUrl()}/api/v1/schedules/reference/options`
   },
   appointments: {
     list: () => `${getBaseApiUrl()}/api/v1/appointments`,

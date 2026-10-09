@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -13,9 +14,16 @@ import { DoctorRescheduleSessionModal } from './doctor-reschedule-session-modal'
 import { DoctorAddSessionModal } from './doctor-add-session-modal';
 import { DoctorExportButton } from './doctor-export-button';
 import { DoctorSchedulePagination } from './doctor-schedule-pagination';
+import {
+  DoctorScheduleSettingsButton,
+  DoctorScheduleSettingsModal
+} from './settings';
+import type { ConfigurationCategory } from '../model/useDoctorScheduleSettingsModal';
 
 export function DoctorScheduleView() {
   const scheduleView = useDoctorScheduleView();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingsCategory, setSettingsCategory] = useState<ConfigurationCategory>('session_defs');
 
   return (
     <>
@@ -80,6 +88,12 @@ export function DoctorScheduleView() {
         onViewDoctorSchedule={scheduleView.actions.openDoctorScheduleById}
       />
 
+      <DoctorScheduleSettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        category={settingsCategory}
+      />
+
       <div className='flex h-full min-h-0 flex-1 flex-col gap-4 select-none'>
         {(scheduleView.totalDoctors > 0 || scheduleView.hasActiveFilters) && (
           <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3'>
@@ -100,6 +114,12 @@ export function DoctorScheduleView() {
 
             <div className='flex items-center gap-2 shrink-0'>
               <DoctorExportButton data={scheduleView.doctors} />
+              <DoctorScheduleSettingsButton
+                onSelectCategory={(category) => {
+                  setSettingsCategory(category);
+                  setIsSettingsOpen(true);
+                }}
+              />
             </div>
           </div>
         )}

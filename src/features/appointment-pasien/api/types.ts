@@ -46,6 +46,9 @@ export interface AdminAppointment {
   parentUserName?: string | null;
   consultationElapsedSeconds?: number | null;
   consultationDurationFormatted?: string | null;
+  bookingCode?: string | null;
+  aheadCount?: number | null;
+  etaRange?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -179,6 +182,9 @@ export interface BackendAppointmentRecord {
   parentUserName?: string | null;
   consultationElapsedSeconds?: number | null;
   consultationDurationFormatted?: string | null;
+  bookingCode?: string | null;
+  aheadCount?: number | null;
+  etaRange?: string | null;
   [key: string]: unknown;
 }
 
