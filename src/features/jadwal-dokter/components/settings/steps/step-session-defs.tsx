@@ -34,12 +34,12 @@ export function StepSessionDefs({ sessionDefs, onToggleActive }: StepSessionDefs
               </div>
               <div className='flex flex-col min-w-0'>
                 <div className='flex items-center gap-1.5'>
-                  <span className='font-semibold text-sm text-foreground truncate'>
+                  <span className='font-semibold text-sm text-foreground whitespace-nowrap'>
                     {def.label}
                   </span>
                 </div>
                 {def.timeRange && (
-                  <span className='text-xs text-muted-foreground'>{def.timeRange}</span>
+                  <span className='text-xs text-muted-foreground whitespace-nowrap'>{def.timeRange}</span>
                 )}
               </div>
             </div>

@@ -1,17 +1,18 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { StatusBadge } from '@/components/ui/status-badge';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Accordion } from '@/components/ui/accordion';
 import { cn } from '@/lib/utils';
-import type { DoctorSchedule, DoctorDailySession } from '../api/types';
-import { sessionPatientsQueryOptions } from '../api/queries';
-import type { BookedPatientItem } from '@/server/contracts/schedules/doctor-schedules.dto';
+import type { DoctorSchedule } from '../api/types';
 import { useDoctorDailySessions } from '../model/useDoctorDailySessions';
-import { DoctorSessionsHeader, DoctorCalendarAccordion } from './sessions';
+import {
+  DoctorSessionsHeader,
+  DoctorCalendarAccordion,
+  DoctorSessionAccordionItem
+} from './sessions';
 import { DoctorAddSessionModal, type ReturnDoctorContext } from './doctor-add-session-modal';
 import { DoctorRescheduleSessionModal } from './doctor-reschedule-session-modal';
 import { DoctorSessionPatientsModal } from './doctor-session-patients-modal';
@@ -28,10 +29,10 @@ export interface DoctorDailySessionsProps {
   currentYear?: number;
   onYearChange?: (year: number) => void;
   onAddSchedule?: () => void;
-  modalContainerRef?: React.RefObject<HTMLElement | null>;
+  modalContainerRef?: React.RefObject<HTMLDivElement | null>;
   readOnly?: boolean;
-  onReturnToSourceModal?: () => void;
   returnDoctorName?: string;
+  onReturnToSourceModal?: () => void;
   returnContext?: ReturnDoctorContext | null;
   onViewDoctorSchedule?: (
     doctorId: string,
@@ -39,168 +40,6 @@ export interface DoctorDailySessionsProps {
     returnContext?: ReturnDoctorContext
   ) => void;
   className?: string;
-}
-
-/**
- * Session Card item with embedded patient list fetched from backend
- */
-function DoctorSessionCardItem({
-  session,
-  doctor,
-  formattedDate,
-  isPending,
-  onToggleStatus,
-  onReschedule,
-  onSelectPatient
-}: {
-  session: DoctorDailySession;
-  doctor: DoctorSchedule;
-  formattedDate: string;
-  isPending: boolean;
-  onToggleStatus: (session: DoctorDailySession) => void;
-  onReschedule: (session: DoctorDailySession) => void;
-  onSelectPatient: (patient: BookedPatientItem, session: DoctorDailySession) => void;
-}) {
-  const doctorId = doctor.id || doctor.practitioner_id || '';
-  const isClosed = session.status_sesi === 'Tutup' || session.status_sesi === 'CLOSED';
-
-  // Fetch registered patients for this specific session
-  const { data: patientsData, isLoading: isLoadingPatients } = useQuery({
-    ...sessionPatientsQueryOptions(doctorId, session.id),
-    enabled: Boolean(doctorId && session.id)
-  });
-
-  const patientsList: BookedPatientItem[] = patientsData?.patients || [];
-  const bookedCount = session.pasien_terdaftar ?? patientsList.length;
-
-  return (
-    <div
-      className={cn(
-        'rounded-xl border border-border/60 bg-card overflow-hidden shadow-2xs transition-all',
-        isClosed && 'bg-muted/10 opacity-80'
-      )}
-    >
-      {/* Session Header */}
-      <div className='p-4 border-b border-border/40 bg-muted/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3'>
-        <div className='flex items-center gap-3'>
-          <div className='size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold shrink-0'>
-            <Icons.clock className='size-5' />
-          </div>
-          <div>
-            <div className='flex items-center gap-2 flex-wrap'>
-              <h4 className='font-bold text-sm sm:text-base text-foreground'>
-                {session.nama_sesi}
-              </h4>
-              <StatusBadge status={isClosed ? 'Tutup' : 'Buka'} variant='pill' size='sm' />
-            </div>
-            <div className='flex items-center gap-3 text-xs text-muted-foreground mt-0.5'>
-              <span className='font-mono font-medium'>
-                {session.jam_mulai} – {session.jam_selesai} WIB
-              </span>
-              {session.ruang && (
-                <>
-                  <span>•</span>
-                  <span>{session.ruang}</span>
-                </>
-              )}
-              <span>•</span>
-              <span className='font-semibold text-foreground/80'>
-                {bookedCount} Pasien Terdaftar
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className='flex items-center gap-2 shrink-0 self-end sm:self-center'>
-          <Button
-            type='button'
-            variant='outline'
-            size='sm'
-            onClick={() => onReschedule(session)}
-            className='h-8 text-xs font-semibold'
-          >
-            <Icons.calendar className='size-3.5 mr-1.5' />
-            Reschedule
-          </Button>
-
-          <Button
-            type='button'
-            variant={isClosed ? 'default' : 'secondary'}
-            size='sm'
-            disabled={isPending}
-            onClick={() => onToggleStatus(session)}
-            className='h-8 text-xs font-semibold'
-          >
-            {isClosed ? 'Buka Sesi' : 'Tutup Sesi'}
-          </Button>
-        </div>
-      </div>
-
-      {/* Embedded Patients in Session */}
-      <div className='p-4'>
-        <div className='mb-2.5 flex items-center justify-between'>
-          <span className='text-xs font-bold text-muted-foreground uppercase tracking-wider'>
-            Daftar Pasien Terdaftar ({patientsList.length})
-          </span>
-        </div>
-
-        {isLoadingPatients ? (
-          <div className='space-y-2'>
-            {Array.from({ length: 2 }).map((_, i) => (
-              <div
-                key={i}
-                className='h-14 rounded-lg bg-muted/40 animate-pulse border border-border/30'
-              />
-            ))}
-          </div>
-        ) : patientsList.length === 0 ? (
-          <div className='py-6 px-4 text-center rounded-lg border border-dashed border-border/60 bg-muted/5'>
-            <p className='text-xs text-muted-foreground'>
-              Belum ada pasien yang mendaftar pada sesi ini.
-            </p>
-          </div>
-        ) : (
-          <div className='space-y-2'>
-            {patientsList.map((patient) => (
-              <div
-                key={patient.appointmentId}
-                onClick={() => onSelectPatient(patient, session)}
-                className='p-3 rounded-lg border border-border/50 bg-background/50 hover:bg-muted/30 transition-colors flex items-center justify-between gap-3 cursor-pointer'
-              >
-                <div className='flex items-center gap-3 min-w-0'>
-                  <div className='size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-mono font-bold text-xs shrink-0'>
-                    #{patient.queueNumber ?? '-'}
-                  </div>
-                  <div className='min-w-0'>
-                    <p className='text-xs sm:text-sm font-bold text-foreground truncate'>
-                      {patient.patient?.fullName ?? '-'}
-                    </p>
-                    <p className='text-[11px] text-muted-foreground truncate'>
-                      {patient.patient?.medicalRecordNumber
-                        ? `RM: ${patient.patient.medicalRecordNumber}`
-                        : ''}
-                      {patient.timeSlot ? ` • ${patient.timeSlot}` : ''}
-                      {patient.chiefComplaint ? ` • ${patient.chiefComplaint}` : ''}
-                    </p>
-                  </div>
-                </div>
-
-                <div className='flex items-center gap-2 shrink-0'>
-                  <StatusBadge
-                    status={patient.statusBadge || patient.status || 'Menunggu'}
-                    variant='pill'
-                    size='sm'
-                  />
-                  <Icons.chevronRight className='size-4 text-muted-foreground' />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
 }
 
 export function DoctorDailySessions({
@@ -334,25 +173,33 @@ export function DoctorDailySessions({
             />
           ) : (
             <div className='space-y-3.5'>
-              {doctor &&
-                activeSessions.map((session) => (
-                  <DoctorSessionCardItem
-                    key={session.id}
-                    session={session}
-                    doctor={doctor}
-                    formattedDate={formattedSelectedDate}
-                    isPending={updateSessionMutation.isPending && pendingSessionId === session.id}
-                    onToggleStatus={handleToggleSessionStatus}
-                    onReschedule={handleOpenReschedule}
-                    onSelectPatient={(patient, sess) => {
-                      setSelectedDetailSessionId(sess.id);
-                      handleOpenPatientDetail(patient);
-                    }}
-                  />
-                ))}
+              {doctor && (
+                <Accordion
+                  type='multiple'
+                  defaultValue={activeSessions.map((s) => s.id)}
+                  className='space-y-3'
+                >
+                  {activeSessions.map((session) => (
+                    <DoctorSessionAccordionItem
+                      key={session.id}
+                      session={session}
+                      doctor={doctor}
+                      isPending={
+                        updateSessionMutation.isPending && pendingSessionId === session.id
+                      }
+                      onToggleStatus={handleToggleSessionStatus}
+                      onReschedule={handleOpenReschedule}
+                      onSelectPatient={(patient, sess) => {
+                        setSelectedDetailSessionId(sess.id);
+                        handleOpenPatientDetail(patient);
+                      }}
+                    />
+                  ))}
+                </Accordion>
+              )}
 
               {!readOnly && (
-                <div className='pt-2'>
+                <div className='pt-3.5 pb-1'>
                   <button
                     type='button'
                     onClick={() => openAddSessionModal()}

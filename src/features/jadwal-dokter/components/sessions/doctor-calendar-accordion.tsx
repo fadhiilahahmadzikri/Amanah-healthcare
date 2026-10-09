@@ -86,8 +86,8 @@ export function DoctorCalendarAccordion({
       )}
       style={{ display: isOpen ? 'block' : 'none' }}
     >
-      <div className='p-4 flex flex-col items-center justify-center'>
-        <div className='w-full max-w-sm rounded-xl border border-border/60 bg-card p-3 shadow-xs'>
+      <div className='p-3 sm:p-4 w-full'>
+        <div className='w-full rounded-xl border border-border/60 bg-card p-3 sm:p-4 shadow-xs'>
           <CustomCalendar
             value={formattedTargetDate}
             onChange={(_iso, dateObj) => {
@@ -96,7 +96,7 @@ export function DoctorCalendarAccordion({
                 onClose();
               }
             }}
-            className='rounded-md'
+            className='w-full rounded-md'
           />
         </div>
       </div>

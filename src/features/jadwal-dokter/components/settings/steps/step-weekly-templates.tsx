@@ -1,9 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 import type {
   WeeklyTemplateConfig,
   SessionDefConfig,
@@ -23,6 +28,12 @@ interface StepWeeklyTemplatesProps {
   ) => void;
 }
 
+const BASE_TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
+  const h = String(Math.floor(i / 2)).padStart(2, '0');
+  const m = i % 2 === 0 ? '00' : '30';
+  return `${h}:${m}`;
+});
+
 export function StepWeeklyTemplates({
   days,
   sessionDefs,
@@ -35,8 +46,15 @@ export function StepWeeklyTemplates({
   // Group templates by session for selected day
   const dayTemplates = weeklyTemplates.filter((t) => t.dow === selectedDow);
 
+  const getTimeOptions = (currentTime: string) => {
+    if (!currentTime || BASE_TIME_OPTIONS.includes(currentTime)) {
+      return BASE_TIME_OPTIONS;
+    }
+    return [...BASE_TIME_OPTIONS, currentTime].sort();
+  };
+
   return (
-    <div className='flex flex-col gap-3.5'>
+    <div className='flex flex-col gap-3'>
       {/* Day Pills Bar */}
       <div className='flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none'>
         {days.map((d) => {
@@ -69,8 +87,8 @@ export function StepWeeklyTemplates({
         })}
       </div>
 
-      {/* Shifts on selected day */}
-      <div className='flex flex-col gap-2.5 mt-1'>
+      {/* Shifts on selected day - Single Row Hug Layout, Zero Blank Space, Custom UI Select */}
+      <div className='flex flex-col gap-2 max-h-[58vh] overflow-y-auto pr-1'>
         {sessionDefs.map((def) => {
           const template = dayTemplates.find((t) => t.sessionId === def.id);
           if (!template) return null;
@@ -85,42 +103,30 @@ export function StepWeeklyTemplates({
           return (
             <div
               key={def.id}
-              className={`p-3 rounded-xl border transition-all ${
+              className={`p-3 rounded-xl border space-y-2.5 transition-all ${
                 !isMasterActive
                   ? 'border-border/40 bg-muted/20 opacity-60'
                   : isActive
-                  ? 'border-border/90 bg-card shadow-xs'
-                  : 'border-border/40 bg-muted/15 opacity-70'
+                  ? 'border-border/90 bg-card shadow-2xs'
+                  : 'border-border/40 bg-muted/10 opacity-75'
               }`}
             >
-              <div className='flex items-center justify-between gap-3'>
-                <div className='flex items-center gap-2.5 min-w-0'>
-                  <div className='size-7 rounded-md bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold text-xs shrink-0'>
-                    {def.codePrefix}
-                  </div>
-                  <div className='flex flex-col'>
-                    <div className='flex items-center gap-1.5'>
-                      <span className='font-semibold text-sm text-foreground'>
-                        {shiftLabel}
-                      </span>
-                      <Badge variant='outline' className='text-[10px] px-1 py-0 h-3.5 font-mono'>
-                        {template.sessionCode}
-                      </Badge>
-                      {!isMasterActive && (
-                        <Badge
-                          variant='outline'
-                          className='text-[10px] px-1.5 py-0 h-4 font-normal bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
-                        >
-                          Nonaktif di Master Shift
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
+              {/* Row 1: Header (Shift Label on Left, Status Switch on Right) */}
+              <div className='flex items-center justify-between gap-2'>
+                <div className='flex items-center gap-2 min-w-0'>
+                  <span className='font-semibold text-xs sm:text-sm text-foreground truncate'>
+                    {shiftLabel}
+                  </span>
+                  {!isMasterActive && (
+                    <span className='text-[11px] text-muted-foreground italic shrink-0'>
+                      (Master Nonaktif)
+                    </span>
+                  )}
                 </div>
 
-                <div className='flex items-center gap-2'>
+                <div className='flex items-center gap-2 shrink-0'>
                   <span className='text-xs text-muted-foreground'>
-                    {!isMasterActive ? 'Nonaktif (Master)' : isActive ? 'Aktif' : 'Libur'}
+                    {!isMasterActive ? 'Nonaktif' : isActive ? 'Buka' : 'Tutup'}
                   </span>
                   <Switch
                     checked={isActive}
@@ -131,39 +137,60 @@ export function StepWeeklyTemplates({
                 </div>
               </div>
 
+              {/* Row 2: Timing Selectors (Di bawah, 2 kolom setara) */}
               {isActive && isMasterActive && (
-                <div className='mt-2.5 pt-2.5 border-t border-border/50 flex flex-wrap items-center gap-3'>
-                  <div className='flex items-center gap-1.5'>
-                    <span className='text-xs text-muted-foreground'>Mulai:</span>
-                    <Input
-                      type='time'
+                <div className='grid grid-cols-2 gap-2.5 pt-2 border-t border-border/50'>
+                  <div className='flex flex-col gap-1'>
+                    <span className='text-[10px] font-medium text-muted-foreground'>Jam Mulai</span>
+                    <Select
                       value={startsAt}
-                      onChange={(e) =>
-                        onUpdateTime(selectedDow, def.id, 'startsAt', `${e.target.value}:00`)
+                      onValueChange={(val) =>
+                        onUpdateTime(selectedDow, def.id, 'startsAt', `${val}:00`)
                       }
-                      className='h-7 w-24 text-xs font-mono px-2'
-                    />
+                    >
+                      <SelectTrigger className='h-8 w-full text-xs font-mono px-2.5 bg-background shadow-2xs'>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className='max-h-48'>
+                        {getTimeOptions(startsAt).map((t) => (
+                          <SelectItem key={t} value={t} className='text-xs font-mono'>
+                            {t}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
-                  <span className='text-muted-foreground text-xs'>s/d</span>
-
-                  <div className='flex items-center gap-1.5'>
-                    <span className='text-xs text-muted-foreground'>Selesai:</span>
-                    <Input
-                      type='time'
+                  <div className='flex flex-col gap-1'>
+                    <span className='text-[10px] font-medium text-muted-foreground'>Jam Selesai</span>
+                    <Select
                       value={endsAt}
-                      onChange={(e) =>
-                        onUpdateTime(selectedDow, def.id, 'endsAt', `${e.target.value}:00`)
+                      onValueChange={(val) =>
+                        onUpdateTime(selectedDow, def.id, 'endsAt', `${val}:00`)
                       }
-                      className='h-7 w-24 text-xs font-mono px-2'
-                    />
+                    >
+                      <SelectTrigger
+                        className={`h-8 w-full text-xs font-mono px-2.5 bg-background shadow-2xs ${
+                          isInvalidTime ? 'border-destructive text-destructive' : ''
+                        }`}
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className='max-h-48'>
+                        {getTimeOptions(endsAt).map((t) => (
+                          <SelectItem key={t} value={t} className='text-xs font-mono'>
+                            {t}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
+                </div>
+              )}
 
-                  {isInvalidTime && (
-                    <span className='text-[11px] text-destructive font-medium'>
-                      Jam selesai harus lebih lambat dari jam mulai!
-                    </span>
-                  )}
+              {isInvalidTime && (
+                <div className='text-[11px] text-destructive font-medium text-right pr-1'>
+                  Jam selesai harus lebih lambat dari jam mulai!
                 </div>
               )}
             </div>

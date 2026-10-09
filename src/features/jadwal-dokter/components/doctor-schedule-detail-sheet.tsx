@@ -95,7 +95,7 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
     );
   }
 
-  const { initials, doctorStatus, doctorStatusConfig, isUnconfigured } = meta;
+  const { initials, doctorStatus, isUnconfigured } = meta;
   const {
     selectedDay,
     currentMonth,
@@ -192,31 +192,6 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
                       {doctor.spesialisasi}
                     </span>
                   </span>
-
-                  {doctorStatusConfig && (
-                    <span
-                      className={cn(
-                        'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border backdrop-blur-sm select-none shadow-none',
-                        doctorStatusConfig.pillBg,
-                        doctorStatusConfig.pillBorder
-                      )}
-                    >
-                      <span
-                        className={cn(
-                          'size-1.5 rounded-full shrink-0 ring-1 ring-white/60 dark:ring-white/20',
-                          doctorStatusConfig.dotGradient
-                        )}
-                      />
-                      <span
-                        className={cn(
-                          'bg-clip-text text-transparent font-bold tracking-tight',
-                          doctorStatusConfig.textGradient
-                        )}
-                      >
-                        {doctorStatusConfig.label}
-                      </span>
-                    </span>
-                  )}
                 </div>
 
                 <SheetDescription className='sr-only'>

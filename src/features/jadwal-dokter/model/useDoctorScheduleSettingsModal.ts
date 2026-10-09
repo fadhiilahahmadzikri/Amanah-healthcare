@@ -273,7 +273,13 @@ export function useDoctorScheduleSettingsModal({
 
   const handleCancelImpactDialog = useCallback(() => {
     setShowImpactDialog(false);
-  }, []);
+    setImpactResult(null);
+    if (data) {
+      setDraftSessionDefs(JSON.parse(JSON.stringify(data.sessionDefs ?? [])));
+      setDraftWeeklyTemplates(JSON.parse(JSON.stringify(data.weeklyTemplates ?? [])));
+      setDraftClinicSettings(JSON.parse(JSON.stringify(data.clinicSettings ?? [])));
+    }
+  }, [data]);
 
   return {
     category,

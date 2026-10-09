@@ -35,6 +35,12 @@ const CATEGORY_META: Record<ConfigurationCategory, { title: string; subtitle: st
   }
 };
 
+const CATEGORY_MAX_WIDTH: Record<ConfigurationCategory, string> = {
+  session_defs: 'w-full sm:max-w-[540px]',
+  weekly_templates: 'w-full sm:max-w-[460px]',
+  clinic_settings: 'w-full sm:max-w-[640px]'
+};
+
 export function DoctorScheduleSettingsModal({
   isOpen,
   onClose,
@@ -64,16 +70,17 @@ export function DoctorScheduleSettingsModal({
   } = useDoctorScheduleSettingsModal({ isOpen, onClose, category });
 
   const meta = useMemo(() => CATEGORY_META[category] ?? CATEGORY_META.session_defs, [category]);
+  const modalMaxWidth = CATEGORY_MAX_WIDTH[category] ?? 'w-full sm:max-w-[540px]';
 
   return (
     <>
       <ModalWrapper
         isOpen={isOpen}
         onClose={onClose}
-        maxWidth='max-w-[620px]'
+        maxWidth={modalMaxWidth}
         showCloseButton={false}
         portalContainerRef={portalContainerRef}
-        className='h-auto max-h-[92vh] overflow-y-auto rounded-2xl border border-border bg-card p-5 sm:p-6 w-full my-auto shadow-2xl'
+        className='h-auto max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-card p-4.5 sm:p-5 w-full my-auto shadow-2xl'
       >
         <div className='flex flex-col font-sans select-none gap-4'>
           {/* Header - Regular Form Authority (Focused, No Redundancy) */}
@@ -138,8 +145,8 @@ export function DoctorScheduleSettingsModal({
           )}
 
           {/* Footer Navigation */}
-          <div className='flex items-center justify-between border-t border-border/70 pt-4 mt-1'>
-            <div className='text-xs text-muted-foreground'>
+          <div className='flex items-center justify-between border-t border-border/70 pt-4 mt-1 gap-2'>
+            <div className='text-xs text-muted-foreground truncate'>
               {dirtyCount > 0 ? (
                 <span className='text-primary font-medium'>
                   {dirtyCount} perubahan belum disimpan
@@ -149,13 +156,13 @@ export function DoctorScheduleSettingsModal({
               )}
             </div>
 
-            <div className='flex items-center gap-2'>
+            <div className='flex items-center gap-2 shrink-0'>
               <Button
                 variant='ghost'
                 size='sm'
                 onClick={onClose}
                 disabled={isSubmitting}
-                className='text-xs h-8.5 text-muted-foreground hover:text-foreground'
+                className='text-xs h-8.5 px-3 text-muted-foreground hover:text-foreground'
               >
                 Batal
               </Button>
@@ -165,7 +172,7 @@ export function DoctorScheduleSettingsModal({
                 size='sm'
                 onClick={handleRequestSave}
                 disabled={isSubmitting || dirtyCount === 0 || Boolean(timeValidationError)}
-                className='text-xs h-8.5 font-medium'
+                className='text-xs h-8.5 px-3 font-medium'
               >
                 {isSubmitting ? (
                   <>

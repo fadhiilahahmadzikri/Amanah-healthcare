@@ -31,6 +31,14 @@ export interface WeeklyTemplateConfig {
   isMasterActive?: boolean;
 }
 
+export interface ClinicSettingOption {
+  value: string;
+  label: string;
+  description?: string;
+  flagCode?: string;
+  countryCode?: string;
+}
+
 export interface ClinicSettingConfig {
   key: string;
   scopeType: string;
@@ -38,6 +46,13 @@ export interface ClinicSettingConfig {
   category: 'duration' | 'queue' | 'notification' | 'general';
   label: string;
   description: string;
+  controlType?: 'text' | 'number' | 'boolean' | 'select';
+  unit?: string;
+  min?: number;
+  max?: number;
+  step?: number;
+  options?: ClinicSettingOption[];
+  isAdminFacing?: boolean;
 }
 
 export interface ScheduleConfigurationResponse {
