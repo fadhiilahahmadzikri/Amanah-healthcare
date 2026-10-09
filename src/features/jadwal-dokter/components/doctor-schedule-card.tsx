@@ -22,6 +22,7 @@ import {
 } from '../utils/doctor-schedule-card-utils';
 import {
   DoctorCardImage,
+  DoctorCardSettingsButton,
   DoctorCutiNotice,
   DoctorInfoRow,
   DoctorQuickCallButton,
@@ -57,6 +58,7 @@ export interface DoctorScheduleCardProps {
   onOpenDetail?: (doctor: DoctorSchedule) => void;
   onOpenEdit?: (doctor: DoctorSchedule) => void;
   onOpenReschedule?: (doctor: DoctorSchedule) => void;
+  onOpenSettings?: (doctor: DoctorSchedule) => void;
   onCall?: (doctor: DoctorSchedule) => void;
   variant?: 'default' | 'compact' | 'flat' | 'elevated';
   showActions?: boolean;
@@ -72,6 +74,7 @@ export function DoctorScheduleCard({
   onOpenDetail,
   onOpenEdit,
   onOpenReschedule,
+  onOpenSettings,
   onCall,
   variant = 'default',
   showActions = true,
@@ -109,6 +112,11 @@ export function DoctorScheduleCard({
   const isCuti = statusLabel === DOCTOR_CARD_STATUS.CUTI;
   const isUnconfigured = statusLabel === DOCTOR_CARD_STATUS.BELUM_DIATUR;
   const isSelesai = statusLabel === DOCTOR_CARD_STATUS.SELESAI;
+
+  const handleSettings = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onOpenSettings?.(effectiveDoctor);
+  };
 
   const handleCall = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -156,6 +164,23 @@ export function DoctorScheduleCard({
       {hasPill ? (
         <div className='flex items-center justify-between gap-3 relative z-20'>
           <DoctorStatusBadge status={statusLabel!} />
+          <div className='flex items-center gap-1.5'>
+            {onOpenSettings && (
+              <DoctorCardSettingsButton onClick={handleSettings} />
+            )}
+            {showCallButton && !isUnconfigured && !isSelesai && (
+              <DoctorQuickCallButton
+                phoneNumber={doctor.nomor_telepon ?? undefined}
+                onClick={handleCall}
+              />
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className='absolute top-5 sm:top-6 right-5 sm:right-6 z-20 flex items-center gap-1.5'>
+          {onOpenSettings && (
+            <DoctorCardSettingsButton onClick={handleSettings} />
+          )}
           {showCallButton && !isUnconfigured && !isSelesai && (
             <DoctorQuickCallButton
               phoneNumber={doctor.nomor_telepon ?? undefined}
@@ -163,17 +188,6 @@ export function DoctorScheduleCard({
             />
           )}
         </div>
-      ) : (
-        showCallButton &&
-        !isUnconfigured &&
-        !isSelesai && (
-          <div className='absolute top-5 sm:top-6 right-5 sm:right-6 z-20'>
-            <DoctorQuickCallButton
-              phoneNumber={doctor.nomor_telepon ?? undefined}
-              onClick={handleCall}
-            />
-          </div>
-        )
       )}
 
       <div className={cn('flex flex-col relative z-20', hasPill ? 'mt-2.5' : 'mt-0')}>

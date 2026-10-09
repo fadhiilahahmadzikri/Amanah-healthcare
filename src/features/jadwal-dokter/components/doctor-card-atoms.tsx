@@ -125,6 +125,30 @@ export function DoctorQuickCallButton({
   );
 }
 
+export interface DoctorCardSettingsButtonProps {
+  onClick?: (e: React.MouseEvent) => void;
+  className?: string;
+}
+
+export function DoctorCardSettingsButton({
+  onClick,
+  className
+}: DoctorCardSettingsButtonProps) {
+  return (
+    <Button
+      variant='outline'
+      size='icon'
+      shape='pill'
+      onClick={onClick}
+      title='Atur Jadwal & Roster Dokter'
+      aria-label='Atur Jadwal & Roster Dokter'
+      className={cn('size-9 shadow-2xs z-20 shrink-0 text-muted-foreground hover:text-foreground hover:bg-accent/80', className)}
+    >
+      <Icons.settings className='size-4' />
+    </Button>
+  );
+}
+
 export interface DoctorCardImageProps {
   src?: string;
   alt: string;

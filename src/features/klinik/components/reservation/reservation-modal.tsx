@@ -290,7 +290,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
                 queue_number: createdAppointment.queue_number || '-',
                 service: createdAppointment.service || '',
                 poli: createdAppointment.service || '',
-                doctor_name: createdAppointment.doctor_name,
+                doctor_name: createdAppointment.doctor_name || '',
                 patient_name: createdAppointment.patient_name,
                 room: createdAppointment.room_name || '-',
                 status: QUEUE_STATUS.WAITING,

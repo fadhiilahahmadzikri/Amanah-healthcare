@@ -434,7 +434,7 @@ export function useAppointmentModal({
           service: uiApt.service || '',
           complaint: uiApt.complaint,
           visitType: visitType as any,
-          doctor: uiApt.doctor_name,
+          doctor: uiApt.doctor_name || '',
           dateStr: uiApt.date,
           timeSlot: uiApt.time
         },

@@ -18,12 +18,15 @@ import {
   DoctorScheduleSettingsButton,
   DoctorScheduleSettingsModal
 } from './settings';
+import { DoctorAssignmentModal } from './doctor-assignment-modal';
 import type { ConfigurationCategory } from '../model/useDoctorScheduleSettingsModal';
 
 export function DoctorScheduleView() {
   const scheduleView = useDoctorScheduleView();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsCategory, setSettingsCategory] = useState<ConfigurationCategory>('session_defs');
+  const [selectedDoctorForAssignment, setSelectedDoctorForAssignment] = useState<any>(null);
+  const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
 
   return (
     <>
@@ -92,6 +95,15 @@ export function DoctorScheduleView() {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         category={settingsCategory}
+      />
+
+      <DoctorAssignmentModal
+        doctor={selectedDoctorForAssignment}
+        isOpen={isAssignmentModalOpen}
+        onClose={() => {
+          setIsAssignmentModalOpen(false);
+          setSelectedDoctorForAssignment(null);
+        }}
       />
 
       <div className='flex h-full min-h-0 flex-1 flex-col gap-4 select-none'>
@@ -189,6 +201,10 @@ export function DoctorScheduleView() {
                           onOpenDetail={scheduleView.actions.openDetail}
                           onOpenEdit={scheduleView.actions.openEdit}
                           onOpenReschedule={scheduleView.actions.openReschedule}
+                          onOpenSettings={(doc) => {
+                            setSelectedDoctorForAssignment(doc);
+                            setIsAssignmentModalOpen(true);
+                          }}
                         />
                       ))}
                     </div>

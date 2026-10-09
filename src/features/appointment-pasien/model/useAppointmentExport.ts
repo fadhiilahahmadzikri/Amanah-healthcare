@@ -54,7 +54,7 @@ export function useAppointmentExport(): UseAppointmentExportResult {
           `"${appointment.email}"`,
           `"${appointment.scheduledDate}"`,
           `"${appointment.scheduledStartTime}"`,
-          `"${appointment.doctorName.replace(/"/g, '""')}"`,
+          `"${(appointment.doctorName || '').replace(/"/g, '""')}"`,
           `"${appointment.poliklinikName.replace(/"/g, '""')}"`,
           `"${appointment.visitType}"`,
           `"${statusLabel}"`,

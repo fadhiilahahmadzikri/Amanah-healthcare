@@ -275,7 +275,7 @@ export async function getDisplayQueueFromApi(params?: {
           poli: t.poliklinikName || 'Poli',
           estimated_time: 'Menunggu',
           status: QUEUE_STATUS.WAITING,
-          room: t.roomName || '',
+          room: (t as any).roomName || '',
           actual_started_at: null,
           actual_completed_at: null
         });
@@ -355,7 +355,7 @@ export const createAppointmentRecordWithQueue = (
     queue_number: appointment.booking_code.replace('KLINIK-', 'A-'),
     patient_name: appointment.patient_name,
     patient_avatar: '',
-    doctor_name: appointment.doctor_name,
+    doctor_name: appointment.doctor_name || '',
     poli: formData.service || 'Poli Umum',
     estimated_time: appointment.time || '-',
     status: QUEUE_STATUS.WAITING,

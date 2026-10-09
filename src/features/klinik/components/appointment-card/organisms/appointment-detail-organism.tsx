@@ -78,7 +78,7 @@ export function AppointmentDetailOrganism({
 
   if (!appointment) return null;
 
-  const doctor: Doctor = getDoctorByName(appointment.doctor_name) || {
+  const doctor: Doctor = getDoctorByName(appointment.doctor_name || '') || {
     name: appointment.doctor_name || '',
     spec: appointment.doctor_specialty || '',
     avatar: '',

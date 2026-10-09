@@ -193,7 +193,7 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
     () =>
       paginateAppointments(filteredAppointments, currentPage, pageSize).map((appointment) => ({
         appointment,
-        doctor: getDoctorByName(appointment.doctor_name)
+        doctor: getDoctorByName(appointment.doctor_name || '')
       })),
     [currentPage, filteredAppointments, pageSize]
   );

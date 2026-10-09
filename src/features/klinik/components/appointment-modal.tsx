@@ -433,7 +433,7 @@ export function AppointmentModal({
                 appointment_id: createdAppointment.id,
                 queue_number: createdAppointment.queue_number || '-',
                 service: createdAppointment.service || '',
-                doctor_name: createdAppointment.doctor_name,
+                doctor_name: createdAppointment.doctor_name || '',
                 patient_name: createdAppointment.patient_name,
                 status: QUEUE_STATUS.WAITING,
                 called_at: null,

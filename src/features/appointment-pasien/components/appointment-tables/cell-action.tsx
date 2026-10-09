@@ -93,7 +93,7 @@ export function CellAction({ data }: CellActionProps) {
         patientName={data.patientName}
         patientId={data.patientId}
         queueNumber={data.queueNumber}
-        currentDoctorName={data.doctorName}
+        currentDoctorName={data.doctorName || undefined}
         appointmentDate={data.scheduledDate}
         appointmentTime={data.scheduledStartTime}
         onClose={() => setChangeDoctorOpen(false)}

@@ -422,3 +422,88 @@ export async function updateScheduleDaySettings(payload: unknown): Promise<ApiMe
     body: JSON.stringify(payload)
   });
 }
+
+export interface DoctorRosterSessionItem {
+  sessionId: string;
+  sessionCode: string;
+  sessionLabel: string;
+  timeRange: string;
+  isActive: boolean;
+  preferredRoomId: string | null;
+  preferredRoomName: string | null;
+}
+
+export interface DoctorRosterDayItem {
+  dow: number;
+  dayCode: string;
+  dayName: string;
+  sortOrder: number;
+  isWeekend: boolean;
+  isOperatingDay: boolean;
+  sessions: DoctorRosterSessionItem[];
+}
+
+export interface DoctorRosterOverview {
+  doctorId: string;
+  doctorName: string;
+  specialization: string;
+  days: DoctorRosterDayItem[];
+}
+
+export interface UpdateDoctorRosterPayload {
+  assignments: {
+    dow: number;
+    sessionId: string;
+    isActive: boolean;
+    preferredRoomId?: string | null;
+  }[];
+  reason?: string;
+}
+
+export interface DoctorScheduleHistoryItem {
+  id: string;
+  doctorId: string;
+  scheduleDate: string | null;
+  sessionLabel: string | null;
+  dayName: string | null;
+  action: string;
+  previousStatus: string | null;
+  newStatus: string | null;
+  reason: string | null;
+  changedByName: string | null;
+  createdAt: string;
+}
+
+export interface DoctorScheduleHistoryResult {
+  items: DoctorScheduleHistoryItem[];
+  total: number;
+}
+
+export async function getDoctorRosterAssignments(doctorId: string): Promise<DoctorRosterOverview> {
+  return await clientFetch<DoctorRosterOverview>(
+    `/api/v1/admin/doctor-schedules/${doctorId}/assignments`
+  );
+}
+
+export async function updateDoctorRosterAssignments(
+  doctorId: string,
+  payload: UpdateDoctorRosterPayload
+): Promise<DoctorRosterOverview> {
+  return await clientFetch<DoctorRosterOverview>(
+    `/api/v1/admin/doctor-schedules/${doctorId}/assignments`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    }
+  );
+}
+
+export async function getDoctorScheduleHistory(
+  doctorId: string,
+  limit = 20,
+  offset = 0
+): Promise<DoctorScheduleHistoryResult> {
+  return await clientFetch<DoctorScheduleHistoryResult>(
+    `/api/v1/admin/doctor-schedules/${doctorId}/history?limit=${limit}&offset=${offset}`
+  );
+}

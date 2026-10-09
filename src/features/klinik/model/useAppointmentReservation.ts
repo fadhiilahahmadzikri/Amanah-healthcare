@@ -156,7 +156,7 @@ export function useAppointmentReservation({
             initialAppointment.visit_type === 'Kontrol Ulang'
               ? 'Kontrol Ulang'
               : 'Pemeriksaan Baru',
-          doctor: initialAppointment.doctor_name,
+          doctor: initialAppointment.doctor_name || '',
           dateStr: initialAppointment.date,
           timeSlot: initialAppointment.time
         });
