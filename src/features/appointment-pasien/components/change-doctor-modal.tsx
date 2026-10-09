@@ -7,7 +7,6 @@ import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { doctorCandidatesQueryOptions, appointmentKeys } from '../api/queries';
 import { changeAppointmentDoctor } from '../api/service';
@@ -45,9 +44,12 @@ export function ChangeDoctorModal({
   onViewAppointment
 }: ChangeDoctorModalProps) {
   const [selectedDoctorId, setSelectedDoctorId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<string>('');
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [shouldCloseOldSchedule, setShouldCloseOldSchedule] = useState(false);
   const [closeReason, setCloseReason] = useState('');
+
+  const isAssignMode =
+    !currentDoctorName || currentDoctorName === '-' || currentDoctorName === 'Belum di-assign';
 
   const {
     data: candidatesData,
@@ -61,18 +63,19 @@ export function ChangeDoctorModal({
   const groups = useMemo(() => candidatesData?.groups || [], [candidatesData]);
 
   useEffect(() => {
-    if (groups.length > 0 && (!activeTab || !groups.some((g) => g.id === activeTab))) {
-      setActiveTab(groups[0].id);
-    }
-  }, [groups, activeTab]);
-
-  useEffect(() => {
     if (!isOpen) {
       setSelectedDoctorId(null);
+      setSelectedGroupId(null);
       setShouldCloseOldSchedule(false);
       setCloseReason('');
+    } else if (groups.length === 1 && !selectedGroupId) {
+      setSelectedGroupId(groups[0].id);
     }
-  }, [isOpen]);
+  }, [isOpen, groups, selectedGroupId]);
+
+  const activeGroup = useMemo(() => {
+    return groups.find((g) => g.id === selectedGroupId) || null;
+  }, [groups, selectedGroupId]);
 
   const allDoctors = useMemo(() => {
     const map = new Map<string, DoctorCandidateItem>();
@@ -136,69 +139,62 @@ export function ChangeDoctorModal({
     });
   };
 
+  const currentStep = activeGroup ? 'doctor' : 'category';
+
+  const modalTitle =
+    currentStep === 'category'
+      ? isAssignMode
+        ? 'Pilih Kategori Dokter'
+        : 'Pilih Kategori Dokter Pengganti'
+      : isAssignMode
+        ? 'Tugaskan Dokter Pemeriksa'
+        : 'Ganti Dokter Pemeriksa';
+
   return (
     <ModalWrapper
       isOpen={isOpen}
       onClose={onClose}
-      maxWidth='max-w-[508px]'
+      maxWidth='max-w-[500px]'
       showCloseButton={false}
       dismissible={!mutation.isPending}
       className='h-auto max-h-[90vh] overflow-y-auto rounded-2xl border border-border bg-card p-5 sm:p-6 w-full my-auto shadow-2xl'
     >
-      <form onSubmit={handleSubmit} className='relative font-sans space-y-3.5'>
-        <div className='flex items-start justify-between gap-4 pb-3 border-b border-border/40'>
+      <form onSubmit={handleSubmit} className='relative font-sans space-y-4'>
+        <div className='flex items-start justify-between gap-3 pb-3 border-b border-border/40'>
           <div className='space-y-1 min-w-0 flex-1'>
             <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
-              Ganti Dokter Janji Temu
+              {modalTitle}
             </h3>
-            <div className='flex items-center gap-2 text-xs text-muted-foreground flex-wrap'>
-              <span>
-                Pasien: <strong className='text-foreground font-semibold'>{patientName}</strong>
-              </span>
-              {queueNumber && queueNumber !== '-' && (
-                <span className='inline-flex items-center px-1.5 py-0.5 rounded bg-primary/10 text-primary font-semibold text-[11px]'>
-                  Antrean: {queueNumber}
-                </span>
-              )}
-              {currentDoctorName && currentDoctorName !== '-' && (
-                <span className='text-muted-foreground'>
-                  • Dokter saat ini:{' '}
-                  <span className='text-foreground font-medium'>{currentDoctorName}</span>
-                </span>
-              )}
+            <p className='text-xs text-muted-foreground leading-relaxed'>
+              Janji temu untuk <span className='font-semibold text-foreground'>{patientName}</span>
+              {queueNumber && queueNumber !== '-' ? ` dengan nomor antrean ${queueNumber}` : ''}
+              {!isAssignMode && currentDoctorName && currentDoctorName !== '-'
+                ? `, saat ini ditangani oleh ${currentDoctorName}`
+                : ''}
+              .
               {onViewAppointment && (
                 <button
                   type='button'
                   onClick={() => onViewAppointment(appointmentId)}
-                  className='text-xs font-semibold text-primary hover:underline cursor-pointer transition-colors ml-1'
+                  className='text-xs font-semibold text-primary hover:underline cursor-pointer ml-1.5 inline-block'
                 >
                   Lihat Pasien
                 </button>
               )}
-            </div>
+            </p>
           </div>
           <button
             type='button'
             onClick={onClose}
             disabled={mutation.isPending}
             aria-label='Tutup'
-            className='rounded-full p-1 text-muted-foreground hover:bg-muted transition-colors cursor-pointer disabled:opacity-50'
+            className='rounded-full p-1 text-muted-foreground hover:bg-muted transition-colors cursor-pointer disabled:opacity-50 shrink-0'
           >
             <Icons.close className='size-4' />
           </button>
         </div>
-        <div className='space-y-2.5 pt-0.5 min-h-[180px]'>
-          <div className='flex items-center justify-between'>
-            <span className='text-xs font-semibold text-foreground block'>
-              Pilih Dokter Pengganti:
-            </span>
-            {selectedDoctor && (
-              <span className='text-[11px] text-primary font-medium truncate max-w-[200px]'>
-                Terpilih: {selectedDoctor.name}
-              </span>
-            )}
-          </div>
 
+        <div className='space-y-3 pt-0.5'>
           {isLoading ? (
             <div className='py-12 flex flex-col items-center justify-center gap-2 text-muted-foreground'>
               <Icons.spinner className='size-6 animate-spin text-primary' />
@@ -215,116 +211,150 @@ export function ChangeDoctorModal({
             <div className='py-8 text-center text-xs text-muted-foreground border border-dashed border-border/60 rounded-xl p-4'>
               Tidak ada dokter kandidat lain yang tersedia pada tanggal dan slot waktu ini.
             </div>
-          ) : (
-            <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
-              <TabsList className='w-full justify-start overflow-x-auto h-9 p-1 bg-muted/60'>
-                {groups.map((group) => (
-                  <TabsTrigger
+          ) : currentStep === 'category' ? (
+            <div
+              className={cn(
+                'grid gap-3 pt-1',
+                groups.length > 1 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'
+              )}
+            >
+              {groups.map((group) => {
+                const nameLower = group.name.toLowerCase();
+                const isKia =
+                  nameLower.includes('anak') ||
+                  nameLower.includes('ibu') ||
+                  nameLower.includes('kia') ||
+                  nameLower.includes('bidan');
+                return (
+                  <button
                     key={group.id}
-                    value={group.id}
-                    className='text-xs px-3 py-1 data-[state=active]:bg-background'
+                    type='button'
+                    onClick={() => setSelectedGroupId(group.id)}
+                    className='p-4 border border-border/70 hover:border-primary/60 transition-all cursor-pointer hover:shadow-xs rounded-2xl flex flex-col justify-between group bg-card text-left'
                   >
-                    <span>{group.name}</span>
-                    <span className='ml-1.5 text-[10px] opacity-70'>({group.doctors.length})</span>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-
-              {groups.map((group) => (
-                <TabsContent
-                  key={group.id}
-                  value={group.id}
-                  className='pt-2 space-y-2 max-h-[220px] overflow-y-auto pr-1'
-                >
-                  {group.doctors.length === 0 ? (
-                    <p className='text-xs text-muted-foreground text-center py-4'>
-                      Tidak ada dokter di kategori ini yang tersedia.
-                    </p>
-                  ) : (
-                    group.doctors.map((doctor) => {
-                      const isSelected = selectedDoctorId === doctor.id;
-                      return (
-                        <button
-                          key={doctor.id}
-                          type='button'
-                          aria-label={`Pilih dokter ${doctor.name}`}
-                          onClick={() => setSelectedDoctorId(doctor.id)}
-                          className={cn(
-                            'w-full text-left relative flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer select-none',
-                            isSelected
-                              ? 'border-primary ring-2 ring-primary/30 bg-primary/5 shadow-xs'
-                              : 'border-border/60 bg-card hover:border-primary/40 hover:bg-muted/20'
-                          )}
-                        >
-                          <div className='flex items-center gap-3 min-w-0 flex-1'>
-                            <div className='size-10 min-w-10 rounded-full overflow-hidden shrink-0 ring-1 ring-border/40'>
-                              <DoctorAvatar name={doctor.name} size={40} />
-                            </div>
-
-                            <div className='min-w-0 flex-1'>
-                              <h4 className='text-xs font-bold text-foreground truncate'>
-                                {doctor.name}
-                              </h4>
-                              <p className='text-[11px] text-muted-foreground truncate'>
-                                {doctor.specialty}
-                                {doctor.defaultRoomName ? ` • ${doctor.defaultRoomName}` : ''}
-                              </p>
-                            </div>
+                    <div className='flex items-center justify-between w-full mb-3'>
+                      <div className='size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center'>
+                        {isKia ? (
+                          <Icons.heart className='size-4.5 text-primary' />
+                        ) : (
+                          <Icons.stethoscope className='size-4.5 text-primary' />
+                        )}
+                      </div>
+                      <span className='text-[10.5px] font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground'>
+                        {group.doctors.length} Dokter
+                      </span>
+                    </div>
+                    <div className='space-y-1 mb-3'>
+                      <h4 className='text-sm font-bold text-foreground group-hover:text-primary transition-colors'>
+                        {group.name}
+                      </h4>
+                      <p className='text-xs text-muted-foreground leading-relaxed line-clamp-2'>
+                        {isKia
+                          ? 'Pelayanan kesehatan ibu, anak, imunisasi, dan kebidanan'
+                          : 'Pelayanan pemeriksaan medis umum dan konsultasi dokter'}
+                      </p>
+                    </div>
+                    <div className='flex items-center gap-1 text-xs font-semibold text-primary pt-1'>
+                      <span>Pilih Kategori</span>
+                      <Icons.arrowRight className='size-3 group-hover:translate-x-0.5 transition-transform' />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className='space-y-2.5'>
+              <div className='space-y-2 max-h-[250px] overflow-y-auto pr-1'>
+                {activeGroup?.doctors.length === 0 ? (
+                  <p className='text-xs text-muted-foreground text-center py-4'>
+                    Tidak ada dokter di kategori ini yang tersedia.
+                  </p>
+                ) : (
+                  activeGroup?.doctors.map((doctor) => {
+                    const isSelected = selectedDoctorId === doctor.id;
+                    return (
+                      <button
+                        key={doctor.id}
+                        type='button'
+                        aria-label={`Pilih dokter ${doctor.name}`}
+                        onClick={() => setSelectedDoctorId(doctor.id)}
+                        className={cn(
+                          'w-full text-left relative flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer select-none',
+                          isSelected
+                            ? 'border-primary ring-2 ring-primary/30 bg-primary/5 shadow-xs'
+                            : 'border-border/60 bg-card hover:border-primary/40 hover:bg-muted/20'
+                        )}
+                      >
+                        <div className='flex items-center gap-3 min-w-0 flex-1'>
+                          <div className='size-10 min-w-10 rounded-full overflow-hidden shrink-0 ring-1 ring-border/40'>
+                            <DoctorAvatar name={doctor.name} size={40} />
                           </div>
-
-                          <div className='flex items-center shrink-0'>
-                            <div
-                              className={cn(
-                                'size-5 rounded-full border flex items-center justify-center shrink-0 transition-colors',
-                                isSelected
-                                  ? 'border-primary bg-primary text-primary-foreground shadow-xs'
-                                  : 'border-muted-foreground/30 bg-background'
-                              )}
-                            >
-                              {isSelected && <Icons.check className='size-3 stroke-[2.5]' />}
-                            </div>
+                          <div className='min-w-0 flex-1'>
+                            <h4 className='text-xs font-bold text-foreground truncate'>
+                              {doctor.name}
+                            </h4>
+                            <p className='text-[11px] text-muted-foreground truncate'>
+                              {doctor.specialty || activeGroup.name}
+                            </p>
                           </div>
-                        </button>
-                      );
-                    })
+                        </div>
+
+                        <div className='flex items-center shrink-0 pl-2'>
+                          <div
+                            className={cn(
+                              'size-5 rounded-full border flex items-center justify-center shrink-0 transition-colors',
+                              isSelected
+                                ? 'border-primary bg-primary text-primary-foreground shadow-xs'
+                                : 'border-muted-foreground/30 bg-background'
+                            )}
+                          >
+                            {isSelected && <Icons.check className='size-3 stroke-[2.5]' />}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+
+              {!isAssignMode && (
+                <div className='p-3 rounded-xl border border-border/50 bg-muted/20 space-y-2 mt-2'>
+                  <div className='flex items-start gap-2.5'>
+                    <Checkbox
+                      id='close-old-schedule'
+                      checked={shouldCloseOldSchedule}
+                      onCheckedChange={(checked) => setShouldCloseOldSchedule(Boolean(checked))}
+                      className='mt-0.5'
+                    />
+                    <div className='space-y-0.5 leading-none flex-1'>
+                      <Label
+                        htmlFor='close-old-schedule'
+                        className='text-xs font-semibold cursor-pointer select-none text-foreground'
+                      >
+                        Tutup sesi jadwal dokter sebelumnya
+                      </Label>
+                      <p className='text-[11px] text-muted-foreground leading-normal'>
+                        Sesi ini akan ditandai tutup dan tidak menerima antrean baru.
+                      </p>
+                    </div>
+                  </div>
+
+                  {shouldCloseOldSchedule && (
+                    <div className='pt-1 animate-in fade-in duration-150'>
+                      <Input
+                        value={closeReason}
+                        onChange={(e) => setCloseReason(e.target.value)}
+                        placeholder='Alasan penutupan sesi (opsional)'
+                        className='h-8 text-xs bg-background'
+                      />
+                    </div>
                   )}
-                </TabsContent>
-              ))}
-            </Tabs>
+                </div>
+              )}
+            </div>
           )}
         </div>
-        <div className='p-3 sm:p-3.5 rounded-xl border border-border/50 bg-muted/20 space-y-2.5'>
-          <div className='flex items-start gap-2.5'>
-            <Checkbox
-              id='close-old-schedule'
-              checked={shouldCloseOldSchedule}
-              onCheckedChange={(checked) => setShouldCloseOldSchedule(Boolean(checked))}
-              className='mt-0.5'
-            />
-            <div className='space-y-0.5 leading-none flex-1'>
-              <Label
-                htmlFor='close-old-schedule'
-                className='text-xs font-semibold cursor-pointer select-none text-foreground'
-              >
-                Tutup sesi jadwal dokter sebelumnya
-              </Label>
-              <p className='text-[11px] text-muted-foreground leading-normal'>
-                Sesi ini akan ditandai tutup dan tidak menerima antrean baru.
-              </p>
-            </div>
-          </div>
 
-          {shouldCloseOldSchedule && (
-            <div className='pt-1 animate-in fade-in duration-150 space-y-1.5'>
-              <Input
-                value={closeReason}
-                onChange={(e) => setCloseReason(e.target.value)}
-                placeholder='Alasan penutupan sesi (opsional)'
-                className='h-8 text-xs bg-background'
-              />
-            </div>
-          )}
-        </div>
         <div className='pt-3 border-t border-border/40 flex items-center justify-end gap-3'>
           <Button
             type='button'
@@ -337,21 +367,24 @@ export function ChangeDoctorModal({
           >
             Batal
           </Button>
-          <Button
-            type='submit'
-            variant='default'
-            shape='pill'
-            size='default'
-            disabled={mutation.isPending || !selectedDoctorId}
-            className='px-7 font-semibold'
-          >
-            {mutation.isPending ? (
-              <Icons.spinner className='mr-1.5 size-3.5 animate-spin' />
-            ) : (
-              <Icons.check className='mr-1.5 size-3.5' />
-            )}
-            Simpan Perubahan Dokter
-          </Button>
+
+          {currentStep === 'doctor' && (
+            <Button
+              type='submit'
+              variant='default'
+              shape='pill'
+              size='default'
+              disabled={mutation.isPending || !selectedDoctorId}
+              className='px-7 font-semibold'
+            >
+              {mutation.isPending ? (
+                <Icons.spinner className='mr-1.5 size-3.5 animate-spin' />
+              ) : (
+                <Icons.check className='mr-1.5 size-3.5' />
+              )}
+              {isAssignMode ? 'Tugaskan Dokter' : 'Simpan Perubahan'}
+            </Button>
+          )}
         </div>
       </form>
     </ModalWrapper>

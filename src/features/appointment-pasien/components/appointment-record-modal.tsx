@@ -43,6 +43,7 @@ export function AppointmentRecordModal({
   const serviceName = appointment.layananName || appointment.poliklinikName;
   const subtitle = `Antrean ${appointment.queueNumber} pasien ${appointment.patientName}${serviceName ? ` dengan layanan ${serviceName}` : ''}`;
   const canCheckIn =
+    Boolean(appointment.doctorName) &&
     appointment.status !== APPOINTMENT_STATUS.LATE &&
     Boolean(appointment.allowedActions?.includes('CHECK_IN'));
 
@@ -123,7 +124,7 @@ export function AppointmentRecordModal({
                     className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
                   >
                     <Icons.userCheck className='size-4 text-muted-foreground shrink-0' />
-                    <span>Ganti Dokter</span>
+                    <span>{appointment.doctorName ? 'Ganti Dokter' : 'Tugaskan Dokter'}</span>
                   </DropdownMenuItem>
                 )}
 
@@ -133,7 +134,7 @@ export function AppointmentRecordModal({
                     className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
                   >
                     <Icons.mapPin className='size-4 text-muted-foreground shrink-0' />
-                    <span>Ganti Ruangan</span>
+                    <span>{appointment.roomName ? 'Ganti Ruangan' : 'Tugaskan Ruangan'}</span>
                   </DropdownMenuItem>
                 )}
 

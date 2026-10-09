@@ -40,7 +40,9 @@ export function CellAction({ data }: CellActionProps) {
 
   const canCall = Boolean(data.allowedActions?.includes('CALL'));
   const canCheckIn =
-    data.status !== APPOINTMENT_STATUS.LATE && Boolean(data.allowedActions?.includes('CHECK_IN'));
+    Boolean(data.doctorName) &&
+    data.status !== APPOINTMENT_STATUS.LATE &&
+    Boolean(data.allowedActions?.includes('CHECK_IN'));
 
   const handleCallPatient = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -106,7 +108,7 @@ export function CellAction({ data }: CellActionProps) {
         patientName={data.patientName}
         patientId={data.patientId}
         queueNumber={data.queueNumber}
-        currentRoomName={data.poliklinikName}
+        currentRoomName={data.roomName || undefined}
         appointmentDate={data.scheduledDate}
         appointmentTime={data.scheduledStartTime}
         onClose={() => setChangeRoomOpen(false)}
@@ -204,7 +206,7 @@ export function CellAction({ data }: CellActionProps) {
               className='cursor-pointer text-xs gap-2'
             >
               <Icons.userCheck className='size-3.5 text-muted-foreground' />
-              <span>Ganti Dokter</span>
+              <span>{data.doctorName ? 'Ganti Dokter' : 'Tugaskan Dokter'}</span>
             </DropdownMenuItem>
 
             <DropdownMenuItem
@@ -215,7 +217,7 @@ export function CellAction({ data }: CellActionProps) {
               className='cursor-pointer text-xs gap-2'
             >
               <Icons.mapPin className='size-3.5 text-muted-foreground' />
-              <span>Ganti Ruangan</span>
+              <span>{data.roomName ? 'Ganti Ruangan' : 'Tugaskan Ruangan'}</span>
             </DropdownMenuItem>
 
             <DropdownMenuItem

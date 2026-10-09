@@ -39,7 +39,7 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
   const status = normalizeToAppointmentStatus(item.status);
   const patientName = item.patientName || item.patientProfile?.fullName || 'Pasien Amanah';
   const doctorName =
-    item.doctorName || item.practitioner?.staffProfile?.fullName || 'Dokter Amanah';
+    item.doctorName || item.practitioner?.staffProfile?.fullName || null;
   const poliklinikName = item.poliklinikName || item.clinicRoom?.clinicUnit?.name || 'Poli Umum';
   const queueNumber = item.queueNumber
     ? String(item.queueNumber)
@@ -78,8 +78,8 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
     staffId: item.staffId ? String(item.staffId) : item.doctorId ? String(item.doctorId) : null,
     doctorId: item.doctorId ? String(item.doctorId) : item.staffId ? String(item.staffId) : null,
     poliklinikName,
-    roomName: (item.roomName as string) || null,
-    roomLocation: (item.roomLocation as string) || null,
+    roomName: (item.roomName as string) || item.clinicRoom?.name || null,
+    roomLocation: (item.roomLocation as string) || item.clinicRoom?.location || null,
     layananId: (item.layananId as string) || null,
     layananName: (item.layananName as string) || item.clinicService?.name || null,
     visitType: item.visitType || 'Pemeriksaan Baru',
@@ -118,7 +118,7 @@ export function adminAppointmentToAppointment(item: AdminAppointment): Appointme
     patient_name: item.patientName,
     patient_email: item.email || '',
     patient_avatar: (item as any).patientAvatar || '',
-    doctor_name: item.doctorName,
+    doctor_name: item.doctorName || '',
     doctor_specialty: item.doctorSpecialty || '',
     poliklinik_name: item.poliklinikName,
     service: item.layananName || '',

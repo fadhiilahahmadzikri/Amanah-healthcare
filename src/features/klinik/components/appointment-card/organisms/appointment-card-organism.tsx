@@ -12,7 +12,6 @@ import { normalizeAppointmentTimes } from "../utils/appointment-adapter";
 import {
 	isAppointmentTerminal,
 	isAppointmentInService,
-	isAppointmentWaiting,
 	isAppointmentBeforeCall,
 } from "@/features/appointment-pasien/constants/options";
 
@@ -49,31 +48,44 @@ export function AppointmentCardOrganism({
 		schedule: "",
 	};
 
+	const hasAssignedDoctor = Boolean(
+		(appointment.doctor_name && appointment.doctor_name.trim().length > 0) ||
+		(docInfo.name && docInfo.name.trim().length > 0)
+	);
+
 	const displayName = isPatientSubject
 		? appointment.patient_name || "Pasien"
-		: appointment.doctor_name || docInfo.name || "Dokter bertugas saat dipanggil";
+		: hasAssignedDoctor
+			? appointment.doctor_name || docInfo.name
+			: appointment.service || appointment.poliklinik_name || "Layanan Poliklinik";
 
 	const displaySubtitle = isPatientSubject
 		? appointment.service ||
 			appointment.poliklinik_name ||
 			appointment.doctor_specialty ||
 			"-"
-		: appointment.doctor_specialty || docInfo.spec || "-";
+		: hasAssignedDoctor
+			? appointment.doctor_specialty || docInfo.spec || "-"
+			: appointment.service && appointment.poliklinik_name && appointment.service !== appointment.poliklinik_name
+				? appointment.poliklinik_name
+				: undefined;
 
 	const displayAvatar = isPatientSubject
 		? appointment.patient_avatar || ""
-		: docInfo.avatar || "";
+		: hasAssignedDoctor
+			? docInfo.avatar || ""
+			: undefined;
+
+	const showAvatar = isPatientSubject || hasAssignedDoctor;
 
 	const isBeforeCall = isAppointmentBeforeCall(appointment.status);
 
-	const displayLocation =
-		isPatientSubject && isBeforeCall
-			? "Menunggu panggilan klinik"
-			: appointment.room_name ||
-				appointment.room_location ||
-				docInfo.location ||
-				appointment.poliklinik_name ||
-				"-";
+	const displayLocation = isBeforeCall
+		? "Menunggu panggilan klinik"
+		: appointment.room_name ||
+			appointment.room_location ||
+			appointment.poliklinik_name ||
+			"-";
 
 	const { startTime, endTime, durationText } =
 		normalizeAppointmentTimes(appointment);
@@ -84,7 +96,6 @@ export function AppointmentCardOrganism({
 		!isCheckedIn &&
 		!isAppointmentTerminal(appointment.status) &&
 		!isAppointmentInService(appointment.status);
-
 
 	return (
 		<div
@@ -113,6 +124,7 @@ export function AppointmentCardOrganism({
 					subtitle={displaySubtitle}
 					avatarUrl={displayAvatar}
 					status={appointment.status}
+					showAvatar={showAvatar}
 				/>
 			</div>
 

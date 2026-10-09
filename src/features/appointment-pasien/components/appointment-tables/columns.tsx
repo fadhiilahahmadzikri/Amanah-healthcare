@@ -23,6 +23,15 @@ const getInitials = (name: string) => {
     .toUpperCase();
 };
 
+const formatTimeOnly = (isoString?: string | null) => {
+  if (!isoString) return '-';
+  const d = new Date(isoString);
+  if (Number.isNaN(d.getTime())) return '-';
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
+
 const getAntreanPillClasses = (noAntrian: string) => {
   if (!noAntrian || noAntrian === '-') {
     return 'bg-gradient-to-b from-slate-400 via-slate-500 to-slate-600 text-white';
@@ -47,6 +56,8 @@ const getAntreanPillClasses = (noAntrian: string) => {
 export interface GetAppointmentColumnsOptions {
   poliOptions?: FilterOption[];
   serviceOptions?: FilterOption[];
+  doctorOptions?: FilterOption[];
+  roomOptions?: FilterOption[];
 }
 
 export function getAppointmentColumns(
@@ -54,6 +65,8 @@ export function getAppointmentColumns(
 ): ColumnDef<AdminAppointment>[] {
   const poliOptions = options.poliOptions ?? [];
   const serviceOptions = options.serviceOptions ?? [];
+  const doctorOptions = options.doctorOptions ?? [];
+  const roomOptions = options.roomOptions ?? [];
 
   return [
     {
@@ -107,9 +120,6 @@ export function getAppointmentColumns(
                   </span>
                 )}
               </div>
-              <span className='mt-1 text-xs text-muted-foreground font-medium'>
-                {appt.layananName || '-'}
-              </span>
             </div>
           </div>
         );
@@ -135,6 +145,11 @@ export function getAppointmentColumns(
           {row.original.scheduledDate}
         </span>
       ),
+      meta: {
+        label: 'Tanggal Booking',
+        variant: 'date' as const
+      },
+      enableColumnFilter: true,
       enableSorting: true,
       enableHiding: true
     },
@@ -231,8 +246,26 @@ export function getAppointmentColumns(
       header: ({ column }: { column: Column<AdminAppointment, unknown> }) => (
         <DataTableColumnHeader column={column} title='Dokter' />
       ),
-      cell: ({ row }) => {
+      cell: ({ row, table }) => {
         const appt = row.original;
+        if (!appt.doctorName) {
+          return (
+            <button
+              type='button'
+              onClick={(e) => {
+                e.stopPropagation();
+                const meta = table.options.meta as
+                  | { onAssignDoctor?: (item: AdminAppointment) => void }
+                  | undefined;
+                meta?.onAssignDoctor?.(appt);
+              }}
+              className='text-sm text-amber-600 dark:text-amber-400 hover:underline font-medium italic select-none cursor-pointer text-left'
+              title='Tugaskan Dokter'
+            >
+              Belum di-assign
+            </button>
+          );
+        }
         const targetDoctorId = appt.staffId || appt.doctorId || appt.doctorName;
         return (
           <button
@@ -248,6 +281,12 @@ export function getAppointmentColumns(
           </button>
         );
       },
+      meta: {
+        label: 'Dokter',
+        variant: 'multiSelect' as const,
+        options: doctorOptions
+      },
+      enableColumnFilter: true,
       enableSorting: true,
       enableHiding: true
     },
@@ -255,7 +294,7 @@ export function getAppointmentColumns(
       id: 'poliklinikName',
       accessorKey: 'poliklinikName',
       header: ({ column }: { column: Column<AdminAppointment, unknown> }) => (
-        <DataTableColumnHeader column={column} title='Layanan Poli' />
+        <DataTableColumnHeader column={column} title='Poli' />
       ),
       cell: ({ row }) => (
         <span className='text-sm text-muted-foreground truncate max-w-[150px] block'>
@@ -263,9 +302,61 @@ export function getAppointmentColumns(
         </span>
       ),
       meta: {
-        label: 'Layanan Poli',
+        label: 'Poli',
         variant: 'multiSelect' as const,
         options: poliOptions
+      },
+      enableColumnFilter: true,
+      enableSorting: true,
+      enableHiding: true
+    },
+    {
+      id: 'roomName',
+      accessorKey: 'roomName',
+      header: ({ column }: { column: Column<AdminAppointment, unknown> }) => (
+        <DataTableColumnHeader column={column} title='Ruangan' />
+      ),
+      cell: ({ row, table }) => {
+        const appt = row.original;
+        if (!appt.roomName) {
+          return (
+            <button
+              type='button'
+              onClick={(e) => {
+                e.stopPropagation();
+                const meta = table.options.meta as
+                  | { onAssignRoom?: (item: AdminAppointment) => void }
+                  | undefined;
+                meta?.onAssignRoom?.(appt);
+              }}
+              className='text-sm text-amber-600 dark:text-amber-400 hover:underline font-medium italic select-none cursor-pointer text-left'
+              title='Tugaskan Ruangan'
+            >
+              Belum di-assign
+            </button>
+          );
+        }
+        return (
+          <button
+            type='button'
+            onClick={(e) => {
+              e.stopPropagation();
+              const meta = table.options.meta as
+                | { onAssignRoom?: (item: AdminAppointment) => void }
+                | undefined;
+              meta?.onAssignRoom?.(appt);
+            }}
+            className='text-sm text-foreground hover:text-primary hover:underline truncate max-w-[140px] text-left cursor-pointer block font-medium'
+            title='Ganti Ruangan'
+          >
+            {appt.roomName}
+          </button>
+        );
+      },
+      meta: {
+        label: 'Ruangan',
+        variant: 'multiSelect' as const,
+        options: roomOptions
       },
       enableColumnFilter: true,
       enableSorting: true,
@@ -288,6 +379,48 @@ export function getAppointmentColumns(
         options: serviceOptions
       },
       enableColumnFilter: true,
+      enableSorting: true,
+      enableHiding: true
+    },
+    {
+      id: 'actualStartedAt',
+      accessorKey: 'actualStartedAt',
+      header: ({ column }: { column: Column<AdminAppointment, unknown> }) => (
+        <DataTableColumnHeader column={column} title='Mulai Pelayanan' />
+      ),
+      cell: ({ row }) => (
+        <span className='text-sm text-muted-foreground font-mono tabular-nums whitespace-nowrap'>
+          {formatTimeOnly(row.original.actualStartedAt)}
+        </span>
+      ),
+      enableSorting: true,
+      enableHiding: true
+    },
+    {
+      id: 'actualCompletedAt',
+      accessorKey: 'actualCompletedAt',
+      header: ({ column }: { column: Column<AdminAppointment, unknown> }) => (
+        <DataTableColumnHeader column={column} title='Selesai Pelayanan' />
+      ),
+      cell: ({ row }) => (
+        <span className='text-sm text-muted-foreground font-mono tabular-nums whitespace-nowrap'>
+          {formatTimeOnly(row.original.actualCompletedAt)}
+        </span>
+      ),
+      enableSorting: true,
+      enableHiding: true
+    },
+    {
+      id: 'consultationDurationFormatted',
+      accessorKey: 'consultationDurationFormatted',
+      header: ({ column }: { column: Column<AdminAppointment, unknown> }) => (
+        <DataTableColumnHeader column={column} title='Durasi Pelayanan' />
+      ),
+      cell: ({ row }) => (
+        <span className='text-sm text-foreground font-medium tabular-nums whitespace-nowrap'>
+          {row.original.consultationDurationFormatted || '-'}
+        </span>
+      ),
       enableSorting: true,
       enableHiding: true
     },

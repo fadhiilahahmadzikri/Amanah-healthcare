@@ -40,6 +40,7 @@ describe("Appointment Card & Detail Atomic Design System", () => {
 		const times = normalizeAppointmentTimes({
 			scheduled_start_time: "18:00",
 			scheduled_end_time: "18:30",
+			consultation_duration_formatted: "30 minutes",
 		});
 		expect(times.startTime).toBe("18.00");
 		expect(times.endTime).toBe("18.30");
@@ -143,5 +144,31 @@ describe("Appointment Card & Detail Atomic Design System", () => {
 			subjectRole: "patient",
 		});
 		expect(adminPerspectiveCard).toBeDefined();
+	});
+
+	it("renders AppointmentCardOrganism for unassigned doctor without fake placeholder", () => {
+		const unassignedAppointment: Appointment = {
+			id: "apt-unassigned-1",
+			booking_code: "APT-UN-1",
+			patient_name: "Budi Santoso",
+			patient_email: "budi@example.com",
+			patient_avatar: "",
+			doctor_name: "",
+			poliklinik_name: "Poli Umum",
+			service: "Pemeriksaan Dokter Umum",
+			date: "Sabtu, 10 Okt 2026",
+			time: "08:00 - 09:30",
+			complaint: "Flu dan batuk",
+			status: APPOINTMENT_STATUS.BOOKED,
+			queue_number: "A-01",
+			created_at: "2026-10-10T08:00:00Z",
+		};
+
+		const card = AppointmentCardOrganism({
+			appointment: unassignedAppointment,
+			subjectRole: "doctor",
+		});
+
+		expect(card).toBeDefined();
 	});
 });

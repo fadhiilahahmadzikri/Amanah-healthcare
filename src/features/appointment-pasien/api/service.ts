@@ -41,6 +41,34 @@ export async function getAdminAppointments(
     queryParams.serviceName = Array.isArray(sName) ? sName[0] : sName;
   }
 
+  if (filters.date) {
+    queryParams.date = filters.date;
+  }
+
+  if (filters.doctorName) {
+    queryParams.doctorName = Array.isArray(filters.doctorName)
+      ? filters.doctorName[0]
+      : filters.doctorName;
+  }
+
+  if (filters.doctorId) {
+    queryParams.doctorId = filters.doctorId;
+  }
+
+  if (filters.roomName) {
+    queryParams.roomName = Array.isArray(filters.roomName)
+      ? filters.roomName[0]
+      : filters.roomName;
+  }
+
+  if (filters.roomId) {
+    queryParams.roomId = filters.roomId;
+  }
+
+  if (filters.session) {
+    queryParams.session = filters.session;
+  }
+
   if (filters.search && filters.search.trim().length > 0) {
     queryParams.search = filters.search.trim();
   }

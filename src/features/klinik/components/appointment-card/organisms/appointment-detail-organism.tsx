@@ -63,6 +63,7 @@ export function AppointmentDetailOrganism({
   const [isFormExpanded, setIsFormExpanded] = React.useState(false);
   const [isChangeDoctorOpen, setIsChangeDoctorOpen] = React.useState(false);
   const [isChangeRoomOpen, setIsChangeRoomOpen] = React.useState(false);
+  const { role, hasRole } = useAuthContext();
 
   React.useEffect(() => {
     if (!isOpen) {
@@ -106,8 +107,6 @@ export function AppointmentDetailOrganism({
   const patientName = appointment.patient_name || '-';
   const serviceName = appointment.service || doctor.spec || '-';
   const complaintText = appointment.complaint || '-';
-
-  const { role, hasRole } = useAuthContext();
   const isAdmin = role === 'admin' || hasRole('admin');
 
   const isCheckedIn = Boolean(appointment.checked_in_at || appointment.checkedInAt);
@@ -158,17 +157,32 @@ export function AppointmentDetailOrganism({
               <div className='flex flex-col h-full min-h-0 w-full justify-between'>
                 <div className='flex items-center justify-between gap-3 pb-3 border-b border-border/40 min-h-[77px] shrink-0'>
                   <div className='flex items-center gap-3.5 min-w-0 flex-1'>
-                    <div className='size-14 min-w-[56px] min-h-[56px] rounded-full overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square'>
-                      <DoctorAvatar name={doctor.name || 'Dokter'} avatarUrl={doctor.avatar} size={56} />
-                    </div>
-                    <div className='flex flex-col items-start min-w-0 flex-1 space-y-0.5'>
-                      <h3 className='text-base sm:text-lg font-bold text-foreground truncate w-full tracking-tight'>
-                        {doctor.name || 'Dokter bertugas saat dipanggil'}
-                      </h3>
-                      <p className='text-sm font-medium text-muted-foreground truncate w-full'>
-                        {doctor.name ? doctorSpecialty : serviceName}
-                      </p>
-                    </div>
+                    {doctor.name ? (
+                      <>
+                        <div className='size-14 min-w-[56px] min-h-[56px] rounded-full overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square'>
+                          <DoctorAvatar name={doctor.name} avatarUrl={doctor.avatar} size={56} />
+                        </div>
+                        <div className='flex flex-col items-start min-w-0 flex-1 space-y-0.5'>
+                          <h3 className='text-base sm:text-lg font-bold text-foreground truncate w-full tracking-tight'>
+                            {doctor.name}
+                          </h3>
+                          <p className='text-sm font-medium text-muted-foreground truncate w-full'>
+                            {doctorSpecialty}
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <div className='flex flex-col items-start min-w-0 flex-1 space-y-0.5'>
+                        <h3 className='text-base sm:text-lg font-bold text-foreground truncate w-full tracking-tight'>
+                          {serviceName || appointment.poliklinik_name || 'Janji Temu Klinik'}
+                        </h3>
+                        {appointment.poliklinik_name && serviceName !== appointment.poliklinik_name && (
+                          <p className='text-sm font-medium text-muted-foreground truncate w-full'>
+                            {appointment.poliklinik_name}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className='shrink-0'>

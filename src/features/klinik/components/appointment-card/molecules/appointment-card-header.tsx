@@ -10,6 +10,7 @@ export interface AppointmentCardHeaderProps {
 	subtitle?: string;
 	avatarUrl?: string;
 	status: string;
+	showAvatar?: boolean;
 	className?: string;
 }
 
@@ -19,6 +20,7 @@ export function AppointmentCardHeader({
 	subtitle,
 	avatarUrl,
 	status,
+	showAvatar = true,
 	className,
 }: AppointmentCardHeaderProps) {
 	const isPatient = subjectRole === "patient";
@@ -31,13 +33,15 @@ export function AppointmentCardHeader({
 			)}
 		>
 			<div className="flex items-center gap-2.5 min-w-0 flex-1">
-				<div className="size-11 sm:size-12 min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] rounded-full overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square shadow-2xs">
-					<DoctorAvatar
-						name={name || (isPatient ? "Pasien" : "Dokter")}
-						avatarUrl={avatarUrl}
-						size={48}
-					/>
-				</div>
+				{showAvatar && (
+					<div className="size-11 sm:size-12 min-w-[44px] min-h-[44px] sm:min-w-[48px] sm:min-h-[48px] rounded-full overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square shadow-2xs">
+						<DoctorAvatar
+							name={name || (isPatient ? "Pasien" : "Dokter")}
+							avatarUrl={avatarUrl}
+							size={48}
+						/>
+					</div>
+				)}
 
 				<div className="min-w-0 flex-1 space-y-0.5">
 					<h3

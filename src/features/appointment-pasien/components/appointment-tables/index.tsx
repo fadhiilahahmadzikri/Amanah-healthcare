@@ -24,10 +24,10 @@ import { useDoctorDetailDrawerStore } from '@/features/jadwal-dokter/model/useDo
 
 export function AppointmentTable() {
   const queryClient = useQueryClient();
-  const { poliOptions, serviceOptions } = useClinicFilterOptions();
+  const { poliOptions, serviceOptions, doctorOptions, roomOptions } = useClinicFilterOptions();
   const columns = useMemo(
-    () => getAppointmentColumns({ poliOptions, serviceOptions }),
-    [poliOptions, serviceOptions]
+    () => getAppointmentColumns({ poliOptions, serviceOptions, doctorOptions, roomOptions }),
+    [poliOptions, serviceOptions, doctorOptions, roomOptions]
   );
   const columnIds = useMemo(() => columns.map((c) => c.id).filter(Boolean) as string[], [columns]);
   const appointmentTable = useAppointmentTable({ columns, columnIds });
@@ -96,7 +96,7 @@ export function AppointmentTable() {
           patientName={appointmentTable.selectedAppointment.patientName}
           patientId={appointmentTable.selectedAppointment.patientId}
           queueNumber={appointmentTable.selectedAppointment.queueNumber}
-          currentDoctorName={appointmentTable.selectedAppointment.doctorName}
+          currentDoctorName={appointmentTable.selectedAppointment.doctorName || undefined}
           appointmentDate={appointmentTable.selectedAppointment.scheduledDate}
           appointmentTime={appointmentTable.selectedAppointment.scheduledStartTime}
           onClose={appointmentTable.actions.closeChangeDoctor}
@@ -114,7 +114,7 @@ export function AppointmentTable() {
           patientName={appointmentTable.selectedAppointment.patientName}
           patientId={appointmentTable.selectedAppointment.patientId}
           queueNumber={appointmentTable.selectedAppointment.queueNumber}
-          currentRoomName={appointmentTable.selectedAppointment.poliklinikName}
+          currentRoomName={appointmentTable.selectedAppointment.roomName || undefined}
           appointmentDate={appointmentTable.selectedAppointment.scheduledDate}
           appointmentTime={appointmentTable.selectedAppointment.scheduledStartTime}
           onClose={appointmentTable.actions.closeChangeRoom}
@@ -193,6 +193,7 @@ export function AppointmentTableSkeleton() {
           <Skeleton className='h-4 w-16 rounded-md' />
           <Skeleton className='h-4 w-24 rounded-md' />
           <Skeleton className='h-4 w-20 rounded-md' />
+          <Skeleton className='h-4 w-20 rounded-md' />
           <Skeleton className='h-4 w-16 rounded-md' />
         </div>
         <div className='divide-y divide-border/40'>
@@ -205,6 +206,7 @@ export function AppointmentTableSkeleton() {
               <Skeleton className='h-4 w-20 rounded-full bg-muted/40' />
               <Skeleton className='h-4 w-14 rounded-full bg-muted/40' />
               <Skeleton className='h-4 w-24 rounded-full bg-muted/40' />
+              <Skeleton className='h-4 w-20 rounded-full bg-muted/40' />
               <Skeleton className='h-4 w-20 rounded-full bg-muted/40' />
               <Skeleton className='h-4 w-16 rounded-full bg-muted/40' />
             </div>

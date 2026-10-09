@@ -20,7 +20,7 @@ export interface AdminAppointment {
   email: string;
   scheduledDate: string;
   scheduledStartTime: string;
-  doctorName: string;
+  doctorName: string | null;
   doctorSpecialty?: string | null;
   doctorAvatarUrl?: string | null;
   staffId?: string | null;
@@ -72,6 +72,13 @@ export type AppointmentFilters = {
   serviceName?: string | string[];
   search?: string;
   sort?: string;
+  date?: string;
+  scheduledDate?: string | number | (string | number)[];
+  doctorName?: string | string[];
+  doctorId?: string;
+  roomName?: string | string[];
+  roomId?: string;
+  session?: string;
 };
 
 export type NormalizedAppointmentFilters = {
@@ -82,29 +89,49 @@ export type NormalizedAppointmentFilters = {
   serviceName?: string[];
   search?: string;
   sort?: string;
+  date?: string;
+  doctorName?: string[];
+  doctorId?: string;
+  roomName?: string[];
+  roomId?: string;
+  session?: string;
 };
 
 export function normalizeFilters(raw: Partial<AppointmentFilters>): NormalizedAppointmentFilters {
   const page = raw.page && raw.page > 0 ? Number(raw.page) : 1;
   const limit = raw.limit && raw.limit > 0 ? Number(raw.limit) : 10;
   const statusArray = Array.isArray(raw.status)
-    ? [...raw.status].filter(Boolean).sort()
+    ? [...raw.status].filter(Boolean).toSorted()
     : typeof raw.status === 'string' && raw.status.trim()
       ? [raw.status.trim()]
       : undefined;
   const poliArray = Array.isArray(raw.poli)
-    ? [...raw.poli].filter(Boolean).sort()
+    ? [...raw.poli].filter(Boolean).toSorted()
     : typeof raw.poli === 'string' && raw.poli.trim()
       ? [raw.poli.trim()]
       : undefined;
   const serviceRaw = raw.serviceName || raw.service;
   const serviceArray = Array.isArray(serviceRaw)
-    ? [...serviceRaw].filter(Boolean).sort()
+    ? [...serviceRaw].filter(Boolean).toSorted()
     : typeof serviceRaw === 'string' && serviceRaw.trim()
       ? [serviceRaw.trim()]
       : undefined;
+  const doctorArray = Array.isArray(raw.doctorName)
+    ? [...raw.doctorName].filter(Boolean).toSorted()
+    : typeof raw.doctorName === 'string' && raw.doctorName.trim()
+      ? [raw.doctorName.trim()]
+      : undefined;
+  const roomArray = Array.isArray(raw.roomName)
+    ? [...raw.roomName].filter(Boolean).toSorted()
+    : typeof raw.roomName === 'string' && raw.roomName.trim()
+      ? [raw.roomName.trim()]
+      : undefined;
   const searchTrimmed = raw.search?.trim() || undefined;
   const sortTrimmed = raw.sort?.trim() || undefined;
+  const dateTrimmed = typeof raw.date === 'string' && raw.date.trim() ? raw.date.trim() : undefined;
+  const doctorIdTrimmed = typeof raw.doctorId === 'string' && raw.doctorId.trim() ? raw.doctorId.trim() : undefined;
+  const roomIdTrimmed = typeof raw.roomId === 'string' && raw.roomId.trim() ? raw.roomId.trim() : undefined;
+  const sessionTrimmed = typeof raw.session === 'string' && raw.session.trim() ? raw.session.trim() : undefined;
 
   return {
     page,
@@ -112,6 +139,12 @@ export function normalizeFilters(raw: Partial<AppointmentFilters>): NormalizedAp
     ...(statusArray && statusArray.length > 0 && { status: statusArray }),
     ...(poliArray && poliArray.length > 0 && { poli: poliArray }),
     ...(serviceArray && serviceArray.length > 0 && { serviceName: serviceArray }),
+    ...(doctorArray && doctorArray.length > 0 && { doctorName: doctorArray }),
+    ...(roomArray && roomArray.length > 0 && { roomName: roomArray }),
+    ...(dateTrimmed && { date: dateTrimmed }),
+    ...(doctorIdTrimmed && { doctorId: doctorIdTrimmed }),
+    ...(roomIdTrimmed && { roomId: roomIdTrimmed }),
+    ...(sessionTrimmed && { session: sessionTrimmed }),
     ...(searchTrimmed && { search: searchTrimmed }),
     ...(sortTrimmed && { sort: sortTrimmed })
   };
@@ -195,7 +228,7 @@ export interface DoctorCandidateItem {
   staffType: string;
   availability: 'AVAILABLE' | 'SCHEDULE_REQUIRED';
   existingSessionId: string | null;
-  defaultRoomName: string | null;
+  defaultRoomName?: string | null;
 }
 
 export interface DoctorCandidateGroup {

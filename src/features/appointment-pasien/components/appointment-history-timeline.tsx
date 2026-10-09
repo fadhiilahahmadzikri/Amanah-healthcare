@@ -120,7 +120,9 @@ export function AppointmentHistoryTimeline({
       title: 'Konsultasi Dimulai',
       timeStr: formatTime(appointment.actualStartedAt),
       dateStr: formatDate(appointment.actualStartedAt),
-      description: `Pemeriksaan klinis bersama ${appointment.doctorName}.`,
+      description: appointment.doctorName
+        ? `Pemeriksaan klinis bersama ${appointment.doctorName}.`
+        : 'Pemeriksaan klinis bersama dokter pemeriksa.',
       state: appointment.actualCompletedAt ? 'completed' : 'active'
     });
   }

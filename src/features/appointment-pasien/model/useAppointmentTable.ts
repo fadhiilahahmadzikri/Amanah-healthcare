@@ -77,17 +77,39 @@ export function useAppointmentTable({
     serviceName: parseAsArrayOf(parseAsString, ','),
     layanan: parseAsArrayOf(parseAsString, ','),
     layananName: parseAsArrayOf(parseAsString, ','),
+    scheduledDate: parseAsString,
+    date: parseAsString,
+    doctorName: parseAsArrayOf(parseAsString, ','),
+    roomName: parseAsArrayOf(parseAsString, ','),
     sort: getSortingStateParser<AdminAppointment>(columnIds).withDefault([])
   });
 
   const querySearch = params.search || params.patientName;
   const queryPoli = params.poli || params.poliklinikName;
   const queryService = params.service || params.serviceName || params.layanan || params.layananName;
+  const rawDate = params.date || params.scheduledDate;
+  let formattedDate: string | undefined;
+  if (rawDate) {
+    const num = Number(rawDate);
+    if (!Number.isNaN(num) && num > 100000) {
+      const d = new Date(num);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      formattedDate = `${y}-${m}-${day}`;
+    } else {
+      formattedDate = rawDate;
+    }
+  }
+
   const hasFilters = Boolean(
     (querySearch && querySearch.trim().length > 0) ||
     (params.status && params.status.length > 0) ||
     (queryPoli && queryPoli.length > 0) ||
-    (queryService && queryService.length > 0)
+    (queryService && queryService.length > 0) ||
+    formattedDate ||
+    (params.doctorName && params.doctorName.length > 0) ||
+    (params.roomName && params.roomName.length > 0)
   );
 
   const filters: AppointmentFilters = normalizeFilters({
@@ -97,11 +119,44 @@ export function useAppointmentTable({
     ...(params.status && params.status.length > 0 && { status: params.status }),
     ...(queryPoli && queryPoli.length > 0 && { poli: queryPoli }),
     ...(queryService && queryService.length > 0 && { serviceName: queryService }),
+    ...(formattedDate && { date: formattedDate }),
+    ...(params.doctorName && params.doctorName.length > 0 && { doctorName: params.doctorName }),
+    ...(params.roomName && params.roomName.length > 0 && { roomName: params.roomName }),
     ...(params.sort.length > 0 && { sort: JSON.stringify(params.sort) })
   });
 
   const { data, isFetching } = useSuspenseQuery(appointmentQueryOptions(filters));
   const pageCount = Math.ceil(data.total_appointments / params.perPage);
+
+  const openChangeDoctor = (appointment: AdminAppointment) => {
+    setSelectedAppointment(appointment);
+    setReturnToMilestone(false);
+    setActiveDialog('changeDoctor');
+  };
+
+  const closeChangeDoctor = () => {
+    if (returnToMilestone) {
+      setReturnToMilestone(false);
+      setActiveDialog('milestone');
+    } else {
+      setActiveDialog(null);
+    }
+  };
+
+  const openChangeRoom = (appointment: AdminAppointment) => {
+    setSelectedAppointment(appointment);
+    setReturnToMilestone(false);
+    setActiveDialog('changeRoom');
+  };
+
+  const closeChangeRoom = () => {
+    if (returnToMilestone) {
+      setReturnToMilestone(false);
+      setActiveDialog('milestone');
+    } else {
+      setActiveDialog(null);
+    }
+  };
 
   const { table } = useDataTable({
     data: data.appointments,
@@ -111,6 +166,10 @@ export function useAppointmentTable({
     debounceMs: 300,
     initialState: {
       columnPinning: { left: ['select'], right: ['actions'] }
+    },
+    meta: {
+      onAssignDoctor: openChangeDoctor,
+      onAssignRoom: openChangeRoom
     }
   });
 
@@ -147,36 +206,6 @@ export function useAppointmentTable({
   };
 
   const closeStatus = () => {
-    if (returnToMilestone) {
-      setReturnToMilestone(false);
-      setActiveDialog('milestone');
-    } else {
-      setActiveDialog(null);
-    }
-  };
-
-  const openChangeDoctor = (appointment: AdminAppointment) => {
-    setSelectedAppointment(appointment);
-    setReturnToMilestone(false);
-    setActiveDialog('changeDoctor');
-  };
-
-  const closeChangeDoctor = () => {
-    if (returnToMilestone) {
-      setReturnToMilestone(false);
-      setActiveDialog('milestone');
-    } else {
-      setActiveDialog(null);
-    }
-  };
-
-  const openChangeRoom = (appointment: AdminAppointment) => {
-    setSelectedAppointment(appointment);
-    setReturnToMilestone(false);
-    setActiveDialog('changeRoom');
-  };
-
-  const closeChangeRoom = () => {
     if (returnToMilestone) {
       setReturnToMilestone(false);
       setActiveDialog('milestone');

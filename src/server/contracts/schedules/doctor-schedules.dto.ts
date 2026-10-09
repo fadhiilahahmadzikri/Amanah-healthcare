@@ -835,7 +835,7 @@ export const bookedPatientItemSchema = z.object({
   clinicRoomName: z
     .string()
     .nullish()
-    .transform((v) => v || 'Ruang Praktik'),
+    .transform((v) => v || null),
   roomName: z.string().nullish(),
   roomLocation: z.string().nullish(),
   poliklinikName: z.string().nullish(),

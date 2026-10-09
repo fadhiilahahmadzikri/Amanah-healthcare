@@ -146,7 +146,7 @@ function mapBackendQueueItemToFrontend(item: Record<string, unknown>, isUser = f
           minute: '2-digit'
         })
       : undefined,
-    room: String(item.room || item.roomName || 'Ruang Periksa'),
+    room: String(item.room || item.roomName || ''),
     call_count: Number(item.callCount ?? item.call_count ?? 0),
     called_at: item.calledAt ? String(item.calledAt) : null,
     actual_started_at: item.actualStartedAt ? String(item.actualStartedAt) : null,
@@ -255,7 +255,7 @@ export async function getDisplayQueueFromApi(params?: {
               minute: '2-digit'
             })
           : undefined,
-        room: display.currentTicket.roomName || 'Ruang Periksa',
+        room: display.currentTicket.roomName || '',
         called_at: display.currentTicket.calledAt ? String(display.currentTicket.calledAt) : null,
         actual_started_at: display.currentTicket.startedAt
           ? String(display.currentTicket.startedAt)
@@ -275,7 +275,7 @@ export async function getDisplayQueueFromApi(params?: {
           poli: t.poliklinikName || 'Poli',
           estimated_time: 'Menunggu',
           status: QUEUE_STATUS.WAITING,
-          room: t.poliklinikName || 'Ruang Periksa',
+          room: t.roomName || '',
           actual_started_at: null,
           actual_completed_at: null
         });
@@ -360,7 +360,7 @@ export const createAppointmentRecordWithQueue = (
     estimated_time: appointment.time || '-',
     status: QUEUE_STATUS.WAITING,
     is_user: true,
-    room: 'Ruang Periksa 1'
+    room: appointment.room_name || ''
   };
 
   return { appointment, queueItem };

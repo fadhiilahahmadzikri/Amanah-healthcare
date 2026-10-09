@@ -1,4 +1,4 @@
-import { describe, expect, it, mock } from 'bun:test';
+import { describe, expect, it } from 'bun:test';
 import { normalizeFilters } from '@/features/appointment-pasien/api/types';
 import { appointmentKeys } from '@/features/appointment-pasien/api/query-keys';
 import { appointmentQueryOptions } from '@/features/appointment-pasien/api/queries';
@@ -108,5 +108,58 @@ describe('AppointmentDataFetchingArchitecture', () => {
     expect(summary.completed).toBe(1);
     expect(summary.cancelled).toBe(0);
     expect(summary.late).toBe(0);
+  });
+
+  it('should map unassigned doctor and room to null without fake fallbacks', () => {
+    const unassignedRecord: BackendAppointmentRecord = {
+      id: 'apt-unassigned-1',
+      status: 'waiting',
+      patientName: 'Siti Aminah',
+      queueNumber: 'A-02',
+      appointmentDate: '2026-10-10',
+      scheduledStartTime: '09:00'
+    };
+
+    const mapped = mapToAdminAppointment(unassignedRecord);
+
+    expect(mapped.doctorName).toBeNull();
+    expect(mapped.roomName).toBeNull();
+    expect(mapped.doctorSpecialty).toBeNull();
+  });
+
+  it('should normalize doctorName, roomName, and date filters deterministically', () => {
+    const raw = {
+      page: 1,
+      limit: 10,
+      doctorName: ['dr. Siti Rahma', 'dr. Budi Santoso'],
+      roomName: ['Ruang 102', 'Ruang 101'],
+      date: '2026-10-10',
+      session: 'pagi'
+    };
+
+    const normalized = normalizeFilters(raw);
+
+    expect(normalized.doctorName).toEqual(['dr. Budi Santoso', 'dr. Siti Rahma']);
+    expect(normalized.roomName).toEqual(['Ruang 101', 'Ruang 102']);
+    expect(normalized.date).toBe('2026-10-10');
+    expect(normalized.session).toBe('pagi');
+  });
+
+  it('should map actualStartedAt, actualCompletedAt, and consultationDurationFormatted', () => {
+    const record: BackendAppointmentRecord = {
+      id: 'apt-duration-1',
+      status: 'completed',
+      actualStartedAt: '2026-10-10T10:00:00.000Z',
+      actualCompletedAt: '2026-10-10T10:15:30.000Z',
+      consultationElapsedSeconds: 930,
+      consultationDurationFormatted: '15 Menit 30 Dtk'
+    };
+
+    const mapped = mapToAdminAppointment(record);
+
+    expect(mapped.actualStartedAt).toBe('2026-10-10T10:00:00.000Z');
+    expect(mapped.actualCompletedAt).toBe('2026-10-10T10:15:30.000Z');
+    expect(mapped.consultationDurationFormatted).toBe('15 Menit 30 Dtk');
+    expect(mapped.consultationElapsedSeconds).toBe(930);
   });
 });
