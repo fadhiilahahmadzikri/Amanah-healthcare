@@ -13,13 +13,13 @@ export function isDoctorOnLeaveOnDay(
 
 	const monthlyStatus = (monthlyItem?.status || "").toUpperCase();
 
-	if (monthlyStatus === SCHEDULE_STATUS.CUTI) {
+	if (monthlyStatus === SCHEDULE_STATUS.isOnLeave) {
 		return {
 			isLeave: true,
 			reason:
 				(monthlyItem?.notes as string) ||
 				(doctor.cuti_reason as string) ||
-				"Cuti Dokter",
+				"isOnLeave Dokter",
 		};
 	}
 
@@ -30,7 +30,7 @@ export function isDoctorOnLeaveOnDay(
 			if (startDay !== null && endDay !== null) {
 				return {
 					isLeave: dayNumber >= startDay && dayNumber <= endDay,
-					reason: (doctor.cuti_reason as string) || "Cuti Dokter",
+					reason: (doctor.cuti_reason as string) || "isOnLeave Dokter",
 				};
 			}
 		}
@@ -41,9 +41,9 @@ export function isDoctorOnLeaveOnDay(
 	const schedStatus = (doctor.status_jadwal || "").toUpperCase();
 
 	const isDoctorOnLeave = Boolean(
-		doctor.is_cuti ||
-			docStatus === SCHEDULE_STATUS.CUTI ||
-			schedStatus === SCHEDULE_STATUS.CUTI,
+		doctor.isOnLeave ||
+			docStatus === SCHEDULE_STATUS.isOnLeave ||
+			schedStatus === SCHEDULE_STATUS.isOnLeave,
 	);
 
 	if (!isDoctorOnLeave) return { isLeave: false };
@@ -73,7 +73,7 @@ export function extractDayNumber(dateStr: string): number | null {
 	return Number.isNaN(day) ? null : day;
 }
 
-export type SimpleScheduleStatus = "buka" | "selesai" | "cuti" | "tutup";
+export type SimpleScheduleStatus = "buka" | "selesai" | "isOnLeave" | "tutup";
 
 export function resolveDayStatus(
 	dayNumber: number,
@@ -83,14 +83,14 @@ export function resolveDayStatus(
 
 	const leaveCheck = isDoctorOnLeaveOnDay(doctor, dayNumber);
 	if (leaveCheck.isLeave) {
-		return "cuti";
+		return "isOnLeave";
 	}
 
 	const monthlyItem = doctor.monthly_schedule?.find((d) => d.day === dayNumber);
 	if (monthlyItem) {
 		const raw = (monthlyItem.dayStatus || monthlyItem.status || "").trim().toUpperCase();
-		if (raw === SCHEDULE_STATUS.CUTI) {
-			return "cuti";
+		if (raw === SCHEDULE_STATUS.isOnLeave) {
+			return "isOnLeave";
 		}
 		if (raw === SCHEDULE_STATUS.CLOSED) {
 			return "tutup";

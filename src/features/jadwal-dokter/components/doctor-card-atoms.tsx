@@ -209,7 +209,7 @@ export interface DoctorCutiNoticeProps {
 }
 
 export function DoctorCutiNotice({
-  title = 'Dokter sedang cuti',
+  title = 'Dokter sedang isOnLeave',
   subtitle = 'Tidak ada jadwal praktik',
   className
 }: DoctorCutiNoticeProps) {

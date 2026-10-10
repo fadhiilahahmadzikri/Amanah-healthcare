@@ -31,7 +31,7 @@ export function DoctorCalendarCutiBanner({
           type='button'
           className='w-full px-4 py-2.5 flex items-center justify-between text-xs font-semibold text-foreground/80 hover:text-foreground hover:bg-muted/40 transition-colors cursor-pointer select-none'
         >
-          <span>Lihat kenapa dokter ini cuti</span>
+          <span>Lihat kenapa dokter ini isOnLeave</span>
           <Icons.chevronDown
             className={cn(
               'size-3.5 text-muted-foreground transition-transform duration-200 shrink-0',
@@ -45,7 +45,7 @@ export function DoctorCalendarCutiBanner({
           <div className='absolute top-3 right-3 flex items-center gap-1.5 z-10'>
             <span className='inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold border border-sky-300/80 dark:border-sky-600/50 bg-sky-500/10 text-sky-700 dark:text-sky-300 select-none'>
               <span className='size-1.5 rounded-full bg-sky-500 shrink-0' />
-              <span>Cuti</span>
+              <span>isOnLeave</span>
             </span>
           </div>
 
@@ -81,7 +81,7 @@ export function DoctorCalendarCutiBanner({
               <div className='mt-2 text-xs text-foreground/90 leading-relaxed font-normal'>
                 Dokter sedang dalam masa{' '}
                 <strong className='font-semibold text-foreground'>
-                  {doctor?.cuti_reason || 'Cuti Operasional'}
+                  {doctor?.cuti_reason || 'isOnLeave Operasional'}
                 </strong>
                 . Seluruh aktivitas praktik dan konsultasi ditutup sementara pada periode terkait.
               </div>

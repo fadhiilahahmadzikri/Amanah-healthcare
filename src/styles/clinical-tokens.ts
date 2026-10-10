@@ -131,13 +131,13 @@ export const getStatusConfig = (status: string): StatusConfig => {
         ...clinicalTokens.colors.status.confirmed,
         label: normalized === 'HADIR' ? 'Hadir' : 'Buka'
       };
-    case 'CUTI':
+    case 'isOnLeave':
     case 'LEAVE':
     case 'CUTI_/_TUTUP':
-    case 'CUTI / TUTUP':
+    case 'isOnLeave / TUTUP':
       return {
         ...clinicalTokens.colors.status.upcoming,
-        label: 'Cuti'
+        label: 'isOnLeave'
       };
     case 'TERISI':
     case 'OCCUPIED':

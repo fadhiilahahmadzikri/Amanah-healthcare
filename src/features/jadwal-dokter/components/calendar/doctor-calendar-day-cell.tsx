@@ -42,8 +42,8 @@ export const STATUS_CONFIG: Record<
 		text: "text-muted-foreground",
 		dotBg: "bg-muted-foreground/40",
 	},
-	cuti: {
-		label: "Cuti",
+	isOnLeave: {
+		label: "isOnLeave",
 		cellBg: "bg-sky-500/10 hover:bg-sky-500/20",
 		border: "border-sky-500/30",
 		text: "text-sky-700 dark:text-sky-400",

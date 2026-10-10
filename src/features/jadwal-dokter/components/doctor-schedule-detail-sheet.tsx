@@ -154,7 +154,7 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
                 <span
                   className={cn(
                     'absolute bottom-1 right-1 size-4 rounded-full ring-2 ring-card shadow-xs',
-                    doctorStatus === DOCTOR_CARD_STATUS.CUTI ||
+                    doctorStatus === DOCTOR_CARD_STATUS.isOnLeave ||
                       doctorStatus === DOCTOR_CARD_STATUS.TERISI
                       ? 'bg-sky-500'
                       : doctorStatus === DOCTOR_CARD_STATUS.BELUM_DIATUR ||

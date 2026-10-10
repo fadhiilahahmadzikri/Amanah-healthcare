@@ -43,7 +43,7 @@ export function DoctorSessionsHeader({
           <div className='text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5 font-normal'>
             {isDayCuti ? (
               <span className='text-sky-600 dark:text-sky-400 font-semibold'>
-                Praktik Ditutup (Cuti)
+                Praktik Ditutup (isOnLeave)
               </span>
             ) : isDayClosed && activeSessions.length === 0 ? (
               <span className='text-destructive dark:text-destructive font-semibold'>

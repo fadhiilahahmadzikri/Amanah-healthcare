@@ -90,9 +90,9 @@ export function useDoctorDailySessions({
 
   const leaveInfo = isDoctorOnLeaveOnDay(doctor, activeDay);
   const dayStatus = resolveDayStatus(activeDay, doctor);
-  const isDayCuti = dayStatus === 'cuti';
+  const isDayCuti = dayStatus === 'isOnLeave';
   const isDayClosed = dayStatus === 'tutup';
-  const dayLeaveReason = leaveInfo.reason || doctor?.cuti_reason || 'Cuti Operasional';
+  const dayLeaveReason = leaveInfo.reason || doctor?.cuti_reason || 'isOnLeave Operasional';
 
   const activeSessions: DoctorDailySession[] = useMemo(
     () => doctor?.sesi_harian || [],

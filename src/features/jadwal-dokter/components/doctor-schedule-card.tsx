@@ -109,7 +109,7 @@ export function DoctorScheduleCard({
   const effectiveDoctor = detailQuery.data ? { ...doctor, ...detailQuery.data } : doctor;
 
   const statusLabel = getDoctorCardStatus(effectiveDoctor, undefined, cardDate);
-  const isCuti = statusLabel === DOCTOR_CARD_STATUS.CUTI;
+  const isOnLeave= statusLabel === DOCTOR_CARD_STATUS.isOnLeave;
   const isUnconfigured = statusLabel === DOCTOR_CARD_STATUS.BELUM_DIATUR;
   const isSelesai = statusLabel === DOCTOR_CARD_STATUS.SELESAI;
 
@@ -215,7 +215,7 @@ export function DoctorScheduleCard({
           text={doctor.ruang_praktik}
         />
 
-        {!isCuti &&
+        {!isOnLeave&&
           !isUnconfigured &&
           (effectiveDoctor.tanggal_praktik || doctor.tanggal_praktik) && (
             <DoctorInfoRow
@@ -227,9 +227,9 @@ export function DoctorScheduleCard({
       </div>
 
       {showStats &&
-        (isCuti ? (
+        (isOnLeave? (
           <DoctorCutiNotice
-            title='Dokter sedang cuti'
+            title='Dokter sedang isOnLeave'
             subtitle={doctor.cuti_reason || 'Tidak ada jadwal praktik'}
           />
         ) : isUnconfigured ? (
@@ -250,7 +250,7 @@ export function DoctorScheduleCard({
             'flex items-center justify-end gap-2 pt-3 mt-auto border-t border-border/40 relative z-20'
           )}
         >
-          {Boolean(statusLabel) && !isCuti && !isSelesai && (
+          {Boolean(statusLabel) && !isOnLeave&& !isSelesai && (
             <Button
               type='button'
               variant='outline'

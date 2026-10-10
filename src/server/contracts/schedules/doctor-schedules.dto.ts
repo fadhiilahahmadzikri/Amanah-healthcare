@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const scheduleDayStatusSchema = z
-  .enum(['Buka', 'Terisi', 'Penuh', 'Cuti', 'Tutup'])
+  .enum(['Buka', 'Terisi', 'Penuh', 'isOnLeave', 'Tutup'])
   .or(z.string());
 export type ScheduleDayStatus = z.infer<typeof scheduleDayStatusSchema>;
 
@@ -34,7 +34,7 @@ export const monthlyScheduleDaySchema = z.object({
   date: z.string(),
   status: scheduleDayStatusSchema.optional(),
   notes: z.string().nullable().optional(),
-  dayStatus: z.enum(['OPEN', 'CLOSED', 'CUTI', 'EMPTY']).or(z.string()).optional(),
+  dayStatus: z.enum(['OPEN', 'CLOSED', 'isOnLeave', 'EMPTY']).or(z.string()).optional(),
   statusLabel: z.string().optional(),
   badgeVariant: z.enum(['success', 'danger', 'warning', 'neutral']).or(z.string()).optional(),
   activeSessions: z.number().optional(),
@@ -60,7 +60,7 @@ export const doctorScheduleItemSchema = z.object({
   jadwal_hari_ini: z.string().optional().default(''),
   status_jadwal: z.string().optional().default('Buka'),
   bulan_jadwal: z.string().optional(),
-  is_cuti: z.boolean(),
+  isOnLeave: z.boolean(),
   cuti_reason: z.string().nullable().optional(),
   cuti_start: z.string().nullable().optional(),
   cuti_end: z.string().nullable().optional(),
@@ -333,7 +333,7 @@ export const occupancySlotSchema = z
   });
 export type OccupancySlot = z.infer<typeof occupancySlotSchema>;
 
-export const shiftOperationalStatusSchema = z.enum(['ACTIVE', 'NO_PRACTICE', 'CLOSED', 'CUTI']);
+export const shiftOperationalStatusSchema = z.enum(['ACTIVE', 'NO_PRACTICE', 'CLOSED', 'isOnLeave']);
 export type ShiftOperationalStatus = z.infer<typeof shiftOperationalStatusSchema>;
 
 export const occupancyShiftSchema = z
@@ -417,7 +417,7 @@ export type AdminDoctorScheduleDetailResponse = z.infer<
 >;
 
 export const updateAdminDoctorSchedulePayloadSchema = z.object({
-  is_cuti: z.boolean().optional(),
+  isOnLeave: z.boolean().optional(),
   cuti_reason: z.string().nullable().optional(),
   cuti_start: z.string().nullable().optional(),
   cuti_end: z.string().nullable().optional(),
@@ -498,7 +498,7 @@ export type UpdateAdminDoctorSessionPayload = z.infer<typeof updateAdminDoctorSe
 
 /**
  * @deprecated Sesi jadwal dokter dilarang dihapus oleh admin (403 ADMIN_SCHEDULE_DELETION_PROHIBITED).
- * Gunakan ubah status sesi (Tutup/Cuti) atau reschedule.
+ * Gunakan ubah status sesi (Tutup/isOnLeave) atau reschedule.
  */
 export const deleteAdminDoctorSessionResponseSchema = z.object({
   success: z.boolean(),

@@ -144,7 +144,7 @@ export function DoctorDailySessions({
 
         <div className='p-4 space-y-4'>
           {isDayCuti ? (
-            <DoctorCutiNotice title='Dokter sedang cuti' subtitle={dayLeaveReason} />
+            <DoctorCutiNotice title='Dokter sedang isOnLeave' subtitle={dayLeaveReason} />
           ) : isDayClosed ? (
             <DoctorCutiNotice
               title='Praktik Ditutup'

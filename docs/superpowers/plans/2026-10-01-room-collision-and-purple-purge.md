@@ -5,7 +5,7 @@
 **Goal:** Purge misleading purple ("Terisi Dokter Lain") slots from the Doctor Schedule Grid and relocate room collision detection to its true location: the room selection step in the Add Session Modal, disabling occupied rooms and offering a "Lihat siapa" modal trigger.
 
 **Architecture:** 
-1. The Schedule Grid reflects doctor-level facts only (scheduled, cuti, clinic closed). Unscheduled slots remain clean `UNSCHEDULED` (dashed border) and directly clickable.
+1. The Schedule Grid reflects doctor-level facts only (scheduled, isOnLeave, clinic closed). Unscheduled slots remain clean `UNSCHEDULED` (dashed border) and directly clickable.
 2. Room collision occurs only when room and time intersect: `StepRoomSelect` calls `GET /api/v1/schedules/reference/rooms?date=...&startTime=...&endTime=...`. Occupied rooms are disabled with badge `Terisi (dr. ...)`, preventing selection, and render a `"Lihat dokter"` action button triggering `DoctorOccupancyConflictModal`.
 3. Backend reference repository loads occupant practitioner profile & specialty, returning `occupantDetails` along with `isOccupied`.
 

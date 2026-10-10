@@ -130,7 +130,7 @@ Inspected directly from `src/features/jadwal-dokter/components/doctor-schedule-c
 | UI Field / Element    | Label Rendered            | Data Type              | Example Value                              | Source / Derivation                                                | Mandatory | Nullable |        Admin Editable         | Backend Dependency / Entity                |
 | :-------------------- | :------------------------ | :--------------------- | :----------------------------------------- | :----------------------------------------------------------------- | :-------: | :------: | :---------------------------: | :----------------------------------------- |
 | **Doctor Avatar**     | Doctor Image              | `string` (URI)         | `/assets/avatar/docter/woman-docter-1.png` | `staff_profiles.avatar_url` or `users.image_url`                   |    No     |   Yes    |        No (Read-only)         | `staff_profiles.avatar_url`                |
-| **Status Badge**      | `Buka` / `Penuh` / `Cuti` | `enum`                 | `'Buka'`                                   | Computed from `is_cuti`, `slot_tersedia`, and session statuses     |    Yes    |    No    | Yes (via Cuti/Schedule Modal) | Read model computation / `schedule_status` |
+| **Status Badge**      | `Buka` / `Penuh` / `isOnLeave` | `enum`                 | `'Buka'`                                   | Computed from `isOnLeave`, `slot_tersedia`, and session statuses     |    Yes    |    No    | Yes (via isOnLeave/Schedule Modal) | Read model computation / `schedule_status` |
 | **Phone Action**      | Quick Phone Button        | `string` (tel)         | `'0812 3456 7890'`                         | `staff_profiles.phone`                                             |    No     |   Yes    |    No (Phone call trigger)    | `staff_profiles.phone`                     |
 | **Medical Specialty** | Specialty Badge           | `string`               | `'Penyakit Dalam'`                         | `medical_specialties.name`                                         |    Yes    |    No    |       No (Master data)        | `medical_specialties.name`                 |
 | **Doctor Name**       | Heading H3                | `string`               | `'dr. Sarah Putri, Sp.PD'`                 | `practitioners.display_name`                                       |    Yes    |    No    |      No (Staff profile)       | `practitioners.display_name`               |
@@ -139,7 +139,7 @@ Inspected directly from `src/features/jadwal-dokter/components/doctor-schedule-c
 | **Today's Hours**     | `Jadwal Praktik`          | `string`               | `'09.00 – 09.30'` or `'07:30 - 11:30'`     | Derived from upcoming/active session time                          |    Yes    |    No    |     Yes (via Edit Modal)      | `practitioner_schedule_sessions`           |
 | **Available Slots**   | `Slot Tersedia`           | `number`               | `18`                                       | Sum of `available_slots` across active daily sessions              |    Yes    |    No    |     Yes (via Edit Modal)      | Computed: `SUM(sessions.available_slots)`  |
 | **Total Capacity**    | `Kapasitas Harian`        | `number`               | `30`                                       | Sum of `capacity` across active daily sessions                     |    Yes    |    No    |     Yes (via Edit Modal)      | Computed: `SUM(sessions.capacity)`         |
-| **Cuti Notice**       | `Dokter sedang cuti`      | `string`               | `'Cuti Tahunan'`                           | `practitioner_leave_periods.reason` or `day_settings.leave_reason` |    No     |   Yes    |     Yes (via Cuti toggle)     | `practitioner_leave_periods`               |
+| **isOnLeave Notice**       | `Dokter sedang isOnLeave`      | `string`               | `'isOnLeave Tahunan'`                           | `practitioner_leave_periods.reason` or `day_settings.leave_reason` |    No     |   Yes    |     Yes (via isOnLeave toggle)     | `practitioner_leave_periods`               |
 | **Daily Sessions**    | Multi-session metadata    | `DoctorDailySession[]` | `[{ nama_sesi: 'Sesi Pagi', ... }]`        | Associated daily sessions array                                    |    Yes    |    No    |    Yes (Add/Edit sessions)    | `practitioner_schedule_sessions`           |
 | **Reschedule Action** | `Reschedule` Button       | Action Trigger         | N/A                                        | Opens `DoctorScheduleEditModal`                                    |    Yes    |    No    |              Yes              | Mutation trigger                           |
 | **Detail Action**     | `Detail` Button           | Action Trigger         | N/A                                        | Opens `DoctorScheduleDetailSheet`                                  |    Yes    |    No    |              N/A              | Detail fetch trigger                       |
@@ -152,7 +152,7 @@ When an Admin clicks **"Detail"**, `DoctorScheduleDetailSheet` (`src/features/ja
 
 ### 6.1 Top Header & Profile Strip
 
-- **Avatar & Verified Badge:** Verified icon badge and status indicator dot (Emerald = Buka, Amber = Penuh, Sky Blue = Cuti).
+- **Avatar & Verified Badge:** Verified icon badge and status indicator dot (Emerald = Buka, Amber = Penuh, Sky Blue = isOnLeave).
 - **Name & Professional Title:** `practitioners.display_name` with gradient specialty pill.
 - **Handle & Location:** Generates `@doctor_handle` from name and displays polyclinic room name.
 - **Header Action Button:** "Atur Jadwal" button triggers `DoctorScheduleEditModal`.
@@ -162,10 +162,10 @@ When an Admin clicks **"Detail"**, `DoctorScheduleDetailSheet` (`src/features/ja
 - **Monthly Matrix (7 Columns):** Renders the selected month (Mon–Sun).
 - **Date State Representation:**
   - Past dates are automatically disabled (`opacity-35 cursor-not-allowed`).
-  - Active/future dates display their status pill: **Buka (Green)**, **Penuh (Amber)**, **Cuti (Sky Blue)**.
-- **Interactive Day Status Override:** Admins can click any active day to open a dropdown menu and switch day status between `Buka`, `Penuh`, and `Cuti`.
+  - Active/future dates display their status pill: **Buka (Green)**, **Penuh (Amber)**, **isOnLeave (Sky Blue)**.
+- **Interactive Day Status Override:** Admins can click any active day to open a dropdown menu and switch day status between `Buka`, `Penuh`, and `isOnLeave`.
 - **Navigation Shortcut:** A diagonal arrow icon (`↗`) on each day cell transitions directly to Tab 2 ("Jadwal & Kuota") for that specific date.
-- **Collapsible Leave Banner:** If the doctor is on leave on the selected date, an accordion titled _"Lihat kenapa dokter ini cuti"_ expands to show the verified leave reason, date interval, and avatar.
+- **Collapsible Leave Banner:** If the doctor is on leave on the selected date, an accordion titled _"Lihat kenapa dokter ini isOnLeave"_ expands to show the verified leave reason, date interval, and avatar.
 
 ### 6.3 Tab 2: "Jadwal & Kuota" (`DoctorDailyHourlyGrid.tsx`)
 
@@ -184,10 +184,10 @@ When an Admin clicks **"Detail"**, `DoctorScheduleDetailSheet` (`src/features/ja
 ### 6.5 Secondary Interaction Modals
 
 1. **`DoctorScheduleEditModal` (`doctor-schedule-edit-modal.tsx`):**
-   - Allows setting/cancelling doctor-wide cuti status and entering leave reason.
-   - Adjusts today's practice hours, overall schedule status (`Buka`, `Penuh`, `Cuti`), daily patient capacity, available slots, and practice room.
+   - Allows setting/cancelling doctor-wide isOnLeave status and entering leave reason.
+   - Adjusts today's practice hours, overall schedule status (`Buka`, `Penuh`, `isOnLeave`), daily patient capacity, available slots, and practice room.
 2. **`DoctorAddSessionModal` (`doctor-add-session-modal.tsx`):**
-   - Inputs: Session Preset (`Sesi Pagi`, `Sesi Siang / Sore`, `Sesi Malam`, `Shift Dini Hari`, `Kustom`), Start Time (`jam_mulai`), End Time (`jam_selesai`), Patient Quota (`kuota_pasien`), Available Slots (`slot_tersedia`), and Session Status (`Buka`, `Penuh`, `Cuti`).
+   - Inputs: Session Preset (`Sesi Pagi`, `Sesi Siang / Sore`, `Sesi Malam`, `Shift Dini Hari`, `Kustom`), Start Time (`jam_mulai`), End Time (`jam_selesai`), Patient Quota (`kuota_pasien`), Available Slots (`slot_tersedia`), and Session Status (`Buka`, `Penuh`, `isOnLeave`).
 
 ---
 
@@ -199,9 +199,9 @@ When an Admin clicks **"Detail"**, `DoctorScheduleDetailSheet` (`src/features/ja
 | **Filter & Search Schedules** | Locate doctors by poli, date, month, status     | `admin`         |  Read-only  | Query params: `search`, `poli`, `status`, `date`, `month` | Query params on listing endpoint                      | **Frontend Ready, Backend Missing** |
 | **Inspect Monthly Calendar**  | Audit monthly day-level availability            | `admin`         |  Read-only  | `monthly_schedule` array (day, date, status, notes)       | Part of schedule detail response                      | **Frontend Ready, Backend Missing** |
 | **Inspect 24h Hourly Grid**   | Audit 24-hour shift coverage and capacity       | `admin`         |  Read-only  | Shift hours, session boundaries, slot stats               | Part of schedule detail response                      | **Frontend Ready, Backend Missing** |
-| **Emergency Leave Override**  | Mark doctor on urgent leave / cuti              | `admin`         |  Mutative   | `is_cuti`, `cuti_reason`, `cuti_start`, `cuti_end`        | `PATCH /api/v1/admin/doctor-schedules/:id`            |    **Frontend Mutation Mocked**     |
+| **Emergency Leave Override**  | Mark doctor on urgent leave / isOnLeave              | `admin`         |  Mutative   | `isOnLeave`, `cuti_reason`, `cuti_start`, `cuti_end`        | `PATCH /api/v1/admin/doctor-schedules/:id`            |    **Frontend Mutation Mocked**     |
 | **Close Practice For Today**  | Close clinic practice due to emergency          | `admin`         |  Mutative   | `status_jadwal = 'Tutup'`, `slot_tersedia = 0`            | `PATCH /api/v1/admin/doctor-schedules/:id`            |    **Frontend Mutation Mocked**     |
-| **Override Day Status**       | Adjust status of a specific calendar date       | `admin`         |  Mutative   | `day`, `status` (`'Buka' \| 'Penuh' \| 'Cuti'`)           | `PATCH /api/v1/admin/doctor-schedules/:id/days/:date` |    **Frontend Mutation Mocked**     |
+| **Override Day Status**       | Adjust status of a specific calendar date       | `admin`         |  Mutative   | `day`, `status` (`'Buka' \| 'Penuh' \| 'isOnLeave'`)           | `PATCH /api/v1/admin/doctor-schedules/:id/days/:date` |    **Frontend Mutation Mocked**     |
 | **Append Clinical Session**   | Add extra shift or surge clinic session         | `admin`         |  Mutative   | `nama_sesi`, `jam_mulai`, `jam_selesai`, `kuota`          | `POST /api/v1/admin/doctor-schedules/:id/sessions`    |    **Frontend Mutation Mocked**     |
 | **Export Schedules to CSV**   | Operational reporting and administrative audits | `admin`         | Client/Read | Doctor names, specialties, rooms, hours, slots            | Client generation from server data                    |         **Frontend Ready**          |
 
@@ -268,7 +268,7 @@ To replace all mock data and establish a unified server-driven contract, the bac
 | `limit`   | integer |    No    |   `6`   | Records per page (6, 12, 18, 24, 30)                                |
 | `search`  | string  |    No    |    —    | Search query against doctor name, specialty, or room                |
 | `poli`    | string  |    No    |    —    | Comma-separated polyclinic/specialty names                          |
-| `status`  | string  |    No    |    —    | Comma-separated status filters (`Buka`, `Penuh`, `Cuti`)            |
+| `status`  | string  |    No    |    —    | Comma-separated status filters (`Buka`, `Penuh`, `isOnLeave`)            |
 | `month`   | string  |    No    |    —    | Format `YYYY-MM` (e.g. `2026-09`) to resolve monthly calendar state |
 | `date`    | string  |    No    |    —    | Format `YYYY-MM-DD` to evaluate schedule state for a specific date  |
 
@@ -295,7 +295,7 @@ To replace all mock data and establish a unified server-driven contract, the bac
         "jadwal_hari_ini": "07:30 - 11:30",
         "status_jadwal": "Buka",
         "bulan_jadwal": "September 2026",
-        "is_cuti": false,
+        "isOnLeave": false,
         "cuti_reason": null,
         "cuti_start": null,
         "cuti_end": null,
@@ -369,7 +369,7 @@ To replace all mock data and establish a unified server-driven contract, the bac
     "slot_tersedia": 18,
     "kapasitas_per_hari": 30,
     "bulan_jadwal": "September 2026",
-    "is_cuti": false,
+    "isOnLeave": false,
     "cuti_reason": null,
     "cuti_start": null,
     "cuti_end": null,
@@ -389,7 +389,7 @@ To replace all mock data and establish a unified server-driven contract, the bac
       {
         "day": 15,
         "date": "2026-09-15",
-        "status": "Cuti",
+        "status": "isOnLeave",
         "notes": "Seminar Dokter Spesialis Penyakit Dalam"
       }
     ],
@@ -412,22 +412,22 @@ To replace all mock data and establish a unified server-driven contract, the bac
 
 ---
 
-### 10.3 Endpoint: Operational Schedule & Cuti Update
+### 10.3 Endpoint: Operational Schedule & isOnLeave Update
 
 - **Method:** `PATCH`
 - **Path:** `/api/v1/admin/doctor-schedules/:id`
-- **Purpose:** Execute administrative schedule overrides, toggle cuti status, adjust capacity, or close practice.
+- **Purpose:** Execute administrative schedule overrides, toggle isOnLeave status, adjust capacity, or close practice.
 - **Authorization:** Bearer Session Token, Role: `admin`.
 
 #### Request Body Schema:
 
 ```json
 {
-  "is_cuti": true,
-  "cuti_reason": "Cuti Tahunan & Pemulihan Operasi",
+  "isOnLeave": true,
+  "cuti_reason": "isOnLeave Tahunan & Pemulihan Operasi",
   "cuti_start": "2026-09-25",
   "cuti_end": "2026-09-30",
-  "status_jadwal": "Cuti / Tutup",
+  "status_jadwal": "isOnLeave / Tutup",
   "slot_tersedia": 0,
   "kapasitas_per_hari": 30,
   "ruang_praktik": "Poli Penyakit Dalam, Room 201"
@@ -451,7 +451,7 @@ Returns updated `DoctorSchedule` object with immediate invalidation tags.
 
 ```json
 {
-  "status": "Cuti",
+  "status": "isOnLeave",
   "notes": "Izin Dinas Luar Kota"
 }
 ```
@@ -534,8 +534,8 @@ A detailed comparison between frontend data expectations and `docs/database/sche
 | **Slot Availability (`slot_tersedia`)**   | `practitioner_schedule_sessions.available_slots`                    |  **Exists**  | **Aggregation Required:** Frontend card expects total daily remaining slots (`SUM(sessions.available_slots)` for that date).   | Backend SQL aggregation query projection.                      |
 | **Daily Capacity (`kapasitas_per_hari`)** | `practitioner_schedule_sessions.capacity`                           |  **Exists**  | **Aggregation Required:** Frontend card expects total daily capacity (`SUM(sessions.capacity)` for that date).                 | Backend SQL aggregation query projection.                      |
 | **Today's Hours (`jadwal_hari_ini`)**     | `practitioner_schedule_sessions.start_time` & `end_time`            |  **Exists**  | **Projection Required:** Formatted string (e.g. `'07:30 - 11:30'`).                                                            | Format earliest start to latest end or current active session. |
-| **Doctor Status (`status_dokter`)**       | `staff_profiles.status` (`active`, `inactive`, `on_leave`)          |  **Exists**  | Map DB enum: `active` -> `'Buka'`, `on_leave` -> `'Cuti'`, `inactive` -> `'Tutup'`.                                            | Map in backend DTO serializer.                                 |
-| **Schedule Status (`status_jadwal`)**     | `practitioner_schedule_sessions.status`                             |  **Exists**  | Map DB enum `schedule_status`: `open` -> `'Buka'`, `full` -> `'Penuh'`, `leave`/`closed` -> `'Cuti'`.                          | Map in backend DTO serializer.                                 |
+| **Doctor Status (`status_dokter`)**       | `staff_profiles.status` (`active`, `inactive`, `on_leave`)          |  **Exists**  | Map DB enum: `active` -> `'Buka'`, `on_leave` -> `'isOnLeave'`, `inactive` -> `'Tutup'`.                                            | Map in backend DTO serializer.                                 |
+| **Schedule Status (`status_jadwal`)**     | `practitioner_schedule_sessions.status`                             |  **Exists**  | Map DB enum `schedule_status`: `open` -> `'Buka'`, `full` -> `'Penuh'`, `leave`/`closed` -> `'isOnLeave'`.                          | Map in backend DTO serializer.                                 |
 | **Monthly Calendar Matrix**               | `practitioner_schedule_day_settings` & `practitioner_leave_periods` |  **Exists**  | Generate array of 28–31 days for target month, projecting day status based on day settings, leave periods, and session quotas. | Dedicated repository query method.                             |
 | **Daily Sessions Array**                  | `practitioner_schedule_sessions`                                    |  **Exists**  | Relational rows for doctor and date.                                                                                           | Subquery / `to_jsonb()` aggregation.                           |
 | **Leave Date Interval**                   | `practitioner_leave_periods.start_date` & `end_date`                |  **Exists**  | Direct column match from leave table.                                                                                          | Left join with active leave period.                            |
@@ -643,7 +643,7 @@ Provide complete server-side persistence and query capabilities for doctor pract
 2. **Service / Use Case Layer:**
    - `GetAdminDoctorSchedulesQuery`: Support search, multi-poli filtering, status filtering, and pagination.
    - `GetAdminDoctorScheduleDetailQuery`: Aggregate 31-day calendar matrix and 24-hour shift definitions.
-   - `UpdateAdminDoctorScheduleCommand`: Handle emergency cuti toggle, reason, and status updates.
+   - `UpdateAdminDoctorScheduleCommand`: Handle emergency isOnLeave toggle, reason, and status updates.
    - `UpdateAdminDoctorDayStatusCommand`: Update single day status (`practitioner_schedule_day_settings`).
    - `CreateAdminDoctorSessionCommand`: Append session row in `practitioner_schedule_sessions`.
    - `GetClinicalPractitionersQuery`: Patient-facing doctor lookup filtered by service and date availability.
@@ -658,7 +658,7 @@ Provide complete server-side persistence and query capabilities for doctor pract
 
 - [ ] No hardcoded dates or mock arrays remain.
 - [ ] `GET /api/v1/admin/doctor-schedules` returns accurate pagination and slot aggregations.
-- [ ] Toggling cuti immediately marks all sessions on the date as closed/leave and sets available slots to 0.
+- [ ] Toggling isOnLeave immediately marks all sessions on the date as closed/leave and sets available slots to 0.
 - [ ] Patient lookup at `/api/v1/clinical/practitioners` accurately reflects doctor leave status.
 - [ ] All database queries execute with indexed execution plans (`< 50ms`).
 ```
@@ -714,8 +714,8 @@ Once the Backend Team exposes the contract, the Frontend Team must execute the f
 - [ ] **AC-03 (Search & Filters):** Searching by doctor name, selecting polyclinics, and filtering by status updates the URL search params via `nuqs` and filters server records correctly.
 - [ ] **AC-04 (Detail Sheet & Calendar):** Clicking "Detail" loads the doctor's full monthly schedule without hardcoded May 2026 references.
 - [ ] **AC-05 (24h Hourly Shift Grid):** The hourly grid accurately displays the 4 shift periods (Pagi, Siang/Sore, Malam, Dini Hari) populated from `practitioner_schedule_sessions`.
-- [ ] **AC-06 (Cuti Operation):** Setting a doctor on cuti updates the backend, reflects immediately on the UI with a Sky Blue badge, and closes available slots.
-- [ ] **AC-07 (Patient Domain Synchronization):** In `/dashboard/klinik/janji-temu`, doctor availability in `AppointmentCalendarDayPicker` reflects real server availability and disables dates where the doctor is on cuti.
+- [ ] **AC-06 (isOnLeave Operation):** Setting a doctor on isOnLeave updates the backend, reflects immediately on the UI with a Sky Blue badge, and closes available slots.
+- [ ] **AC-07 (Patient Domain Synchronization):** In `/dashboard/klinik/janji-temu`, doctor availability in `AppointmentCalendarDayPicker` reflects real server availability and disables dates where the doctor is on isOnLeave.
 - [ ] **AC-08 (CSV Export):** The CSV export downloads clean, server-provided data for all doctors matching active filters.
 
 ---

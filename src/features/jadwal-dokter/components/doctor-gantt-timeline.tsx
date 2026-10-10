@@ -84,7 +84,7 @@ function deriveIntervalsForSession(
     const isOccupied = session.status_sesi === SCHEDULE_STATUS.OCCUPIED || idx < occupiedCount;
     const isClosed =
       session.status_sesi === SCHEDULE_STATUS.CLOSED ||
-      session.status_sesi === SCHEDULE_STATUS.CUTI;
+      session.status_sesi === SCHEDULE_STATUS.isOnLeave;
 
     const status: ScheduleStatus = isClosed
       ? SCHEDULE_STATUS.CLOSED
@@ -100,7 +100,7 @@ function deriveIntervalsForSession(
       displayLabel: `${startTime} - ${endTime}`,
       isOccupied: status === SCHEDULE_STATUS.OCCUPIED,
       appointmentRef: null,
-      closedReason: isClosed ? (session.status_sesi === 'Cuti' ? 'Cuti' : 'Tutup') : null
+      closedReason: isClosed ? (session.status_sesi === 'isOnLeave' ? 'isOnLeave' : 'Tutup') : null
     });
 
     currentMin = nextMin;
@@ -172,7 +172,7 @@ export function DoctorGanttTimeline({
 
   const leaveInfo = isDoctorOnLeaveOnDay(doctor, activeDay);
   const isDayCuti = leaveInfo.isLeave;
-  const dayLeaveReason = leaveInfo.reason || doctor?.cuti_reason || 'Cuti Operasional';
+  const dayLeaveReason = leaveInfo.reason || doctor?.cuti_reason || 'isOnLeave Operasional';
 
   const initials = doctor?.nama_dokter
     ? doctor.nama_dokter
@@ -244,7 +244,7 @@ export function DoctorGanttTimeline({
             <div className='text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5 font-normal'>
               {isDayCuti ? (
                 <span className='text-sky-600 dark:text-sky-400 font-semibold'>
-                  Praktik Ditutup (Cuti)
+                  Praktik Ditutup (isOnLeave)
                 </span>
               ) : activeSessions.length === 0 ? (
                 <span className='text-muted-foreground font-medium'>
@@ -327,7 +327,7 @@ export function DoctorGanttTimeline({
                 type='button'
                 className='w-full px-4 py-2.5 flex items-center justify-between text-xs font-semibold text-foreground/80 hover:text-foreground hover:bg-muted/40 transition-colors cursor-pointer select-none'
               >
-                <span>Lihat keterangan dokter cuti</span>
+                <span>Lihat keterangan dokter isOnLeave</span>
                 <Icons.chevronDown
                   className={cn(
                     'size-3.5 text-muted-foreground transition-transform duration-200 shrink-0',
@@ -438,7 +438,7 @@ export function DoctorGanttTimeline({
           </div>
           <div className='flex items-center gap-2'>
             <span className='size-2.5 rounded-full bg-slate-400' />
-            <span className='text-muted-foreground'>Tutup (Cuti / Non-Aktif)</span>
+            <span className='text-muted-foreground'>Tutup (isOnLeave / Non-Aktif)</span>
           </div>
         </div>
       </div>

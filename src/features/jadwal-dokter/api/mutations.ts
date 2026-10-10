@@ -51,8 +51,8 @@ export function useUpdateDoctorScheduleMutation() {
     onSuccess: async (updated) => {
       syncAllDoctorSchedules(queryClient);
       toast.success(
-        updated.is_cuti
-          ? `Status ${updated.nama_dokter} diset ke CUTI. Slot otomatis ditutup.`
+        updated.isOnLeave
+          ? `Status ${updated.nama_dokter} diset ke isOnLeave. Slot otomatis ditutup.`
           : `Jadwal ${updated.nama_dokter} berhasil diperbarui.`
       );
     },

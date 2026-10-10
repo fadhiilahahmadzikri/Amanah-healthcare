@@ -3,7 +3,7 @@ import { SCHEDULE_STATUS } from '../constants/schedule-shift.constants';
 
 export const DOCTOR_CARD_STATUS = {
   BUKA: 'Buka',
-  CUTI: 'Cuti',
+  isOnLeave: 'isOnLeave',
   TERISI: 'Terisi',
   BELUM_DIATUR: 'Belum Diatur',
   TUTUP: 'Tutup',
@@ -61,15 +61,15 @@ export function getDoctorCardStatus(
   referenceDate?: Date,
   targetDate?: string
 ): DoctorCardStatus {
-  if (doctor.is_cuti) {
-    return DOCTOR_CARD_STATUS.CUTI;
+  if (doctor.isOnLeave) {
+    return DOCTOR_CARD_STATUS.isOnLeave;
   }
 
   const statusDokter = (doctor.status_dokter || '').trim().toUpperCase();
   const statusJadwal = (doctor.status_jadwal || '').trim().toUpperCase();
 
-  if (statusDokter === SCHEDULE_STATUS.CUTI || statusJadwal === SCHEDULE_STATUS.CUTI) {
-    return DOCTOR_CARD_STATUS.CUTI;
+  if (statusDokter === SCHEDULE_STATUS.isOnLeave || statusJadwal === SCHEDULE_STATUS.isOnLeave) {
+    return DOCTOR_CARD_STATUS.isOnLeave;
   }
 
   if (!hasConfiguredDoctorSchedule(doctor)) {

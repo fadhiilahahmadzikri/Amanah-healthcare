@@ -27,9 +27,9 @@ export function CellAction({ data, onOpenDetail, onOpenEdit }: CellActionProps) 
     updateScheduleMutation.mutate({
       id: data.id,
       payload: {
-        is_cuti: !data.is_cuti,
-        status_dokter: data.is_cuti ? 'Aktif' : 'Cuti',
-        status_jadwal: data.is_cuti ? 'Aktif' : 'Cuti / Tutup'
+        isOnLeave: !data.isOnLeave,
+        status_dokter: data.isOnLeave ? 'Aktif' : 'isOnLeave',
+        status_jadwal: data.isOnLeave ? 'Aktif' : 'isOnLeave / Tutup'
       }
     });
   };
@@ -88,7 +88,7 @@ export function CellAction({ data, onOpenDetail, onOpenEdit }: CellActionProps) 
 
           <DropdownMenuItem
             onClick={handleCloseToday}
-            disabled={data.status_jadwal === 'Tutup' || data.is_cuti}
+            disabled={data.status_jadwal === 'Tutup' || data.isOnLeave}
             className='cursor-pointer text-xs'
           >
             <Icons.close className='mr-2 h-3.5 w-3.5 text-amber-500' />
@@ -100,7 +100,7 @@ export function CellAction({ data, onOpenDetail, onOpenEdit }: CellActionProps) 
             className='cursor-pointer text-xs text-destructive focus:text-destructive'
           >
             <Icons.userX className='mr-2 h-3.5 w-3.5' />
-            {data.is_cuti ? 'Aktifkan dari Cuti' : 'Set Dokter Cuti'}
+            {data.isOnLeave ? 'Aktifkan dari isOnLeave' : 'Set Dokter isOnLeave'}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

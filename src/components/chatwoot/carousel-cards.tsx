@@ -77,7 +77,7 @@ function parseSlideContent(slide: string, idx: number) {
       bulan_jadwal: '',
       monthly_schedule: [],
       sesi_harian: [],
-      is_cuti: lower.includes('cuti') || status.toLowerCase().includes('cuti')
+      isOnLeave: lower.includes('isOnLeave') || status.toLowerCase().includes('isOnLeave')
     };
 
     return {

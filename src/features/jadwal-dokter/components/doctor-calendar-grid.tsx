@@ -33,7 +33,7 @@ function getStatusPillClasses(status: ScheduleDayStatus, badgeVariant?: string):
   if (upper === SCHEDULE_STATUS.OCCUPIED) {
     return 'bg-warning-subtle text-warning border-warning-border';
   }
-  if (upper === SCHEDULE_STATUS.CUTI) {
+  if (upper === SCHEDULE_STATUS.isOnLeave) {
     return 'bg-info-subtle text-info border-info-border';
   }
   return 'bg-muted/40 text-muted-foreground border-border/60';
@@ -52,7 +52,7 @@ function getStatusDot(status: ScheduleDayStatus, badgeVariant?: string): string 
   if (upper === SCHEDULE_STATUS.OCCUPIED) {
     return 'bg-warning';
   }
-  if (upper === SCHEDULE_STATUS.CUTI) {
+  if (upper === SCHEDULE_STATUS.isOnLeave) {
     return 'bg-info';
   }
   return 'bg-muted-foreground/40';
@@ -180,7 +180,7 @@ export function DoctorCalendarGrid({
         </div>
         <div className='flex items-center gap-1.5'>
           <span className='size-2 rounded-full bg-info' />
-          <span className='text-info font-medium'>Cuti</span>
+          <span className='text-info font-medium'>isOnLeave</span>
         </div>
         <div className='flex items-center gap-1.5'>
           <span className='size-2 rounded-full bg-muted-foreground/40' />

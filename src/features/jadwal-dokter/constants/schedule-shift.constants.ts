@@ -31,7 +31,7 @@ export const DB_STAFF_SHIFT_MAP: Record<string, ScheduleShift> = {
 export const SCHEDULE_STATUS = {
   OPEN: 'OPEN',
   CLOSED: 'CLOSED',
-  CUTI: 'CUTI',
+  isOnLeave: 'isOnLeave',
   OCCUPIED: 'OCCUPIED'
 } as const;
 
@@ -40,7 +40,7 @@ export type ScheduleStatus = (typeof SCHEDULE_STATUS)[keyof typeof SCHEDULE_STAT
 export const SCHEDULE_STATUS_LABELS: Record<ScheduleStatus, string> = {
   [SCHEDULE_STATUS.OPEN]: 'Buka',
   [SCHEDULE_STATUS.CLOSED]: 'Tutup',
-  [SCHEDULE_STATUS.CUTI]: 'Cuti',
+  [SCHEDULE_STATUS.isOnLeave]: 'isOnLeave',
   [SCHEDULE_STATUS.OCCUPIED]: 'Penuh'
 } as const;
 
@@ -48,7 +48,7 @@ export const SHIFT_OPERATIONAL_STATUS = {
   ACTIVE: 'ACTIVE',
   NO_PRACTICE: 'NO_PRACTICE',
   CLOSED: 'CLOSED',
-  CUTI: 'CUTI'
+  isOnLeave: 'isOnLeave'
 } as const;
 
 export type ShiftOperationalStatus =
@@ -58,7 +58,7 @@ export const SHIFT_OPERATIONAL_LABELS: Record<ShiftOperationalStatus, string> = 
   [SHIFT_OPERATIONAL_STATUS.ACTIVE]: 'Aktif',
   [SHIFT_OPERATIONAL_STATUS.NO_PRACTICE]: 'Tidak Ada Praktik',
   [SHIFT_OPERATIONAL_STATUS.CLOSED]: 'Praktik Ditutup',
-  [SHIFT_OPERATIONAL_STATUS.CUTI]: 'Cuti Dokter'
+  [SHIFT_OPERATIONAL_STATUS.isOnLeave]: 'isOnLeave Dokter'
 } as const;
 
 export const AVAILABILITY_STATE = {

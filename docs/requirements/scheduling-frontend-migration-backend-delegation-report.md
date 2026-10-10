@@ -4,13 +4,13 @@
 > Scope: Flutter mobile, Next.js admin web, Next.js patient web  
 > Out of scope: backend implementation, database design, final table names, final endpoint names  
 > Status: Frontend requirement handoff based on inspected frontend code and explicit product direction  
-> Supersedes: any older schedule document that still treats `Penuh` and `Cuti` as primary availability states
+> Supersedes: any older schedule document that still treats `Penuh` and `isOnLeave` as primary availability states
 
 ---
 
 ## 1. Executive Correction
 
-The current scheduling frontend is still modeled around manually managed slots, manual end times, daily/session capacity counters, and primary statuses such as `Penuh` and `Cuti`.
+The current scheduling frontend is still modeled around manually managed slots, manual end times, daily/session capacity counters, and primary statuses such as `Penuh` and `isOnLeave`.
 
 The target product model is different.
 
@@ -37,7 +37,7 @@ The three frontend-facing availability states are:
 
 `Penuh` is not a primary availability state. It is an old aggregate-slot mental model.
 
-`Cuti` is not a primary availability state. It is a closure reason under `CLOSED`.
+`isOnLeave` is not a primary availability state. It is a closure reason under `CLOSED`.
 
 Appointment lifecycle statuses such as `pending`, `confirmed`, `waiting`, `completed`, or local equivalents must remain separate from availability states.
 
@@ -101,13 +101,13 @@ Flutter mobile currently contains:
 | Form time options         | `amanah_schedule_form_and_calendar_dialog.dart:8`         | Time choices are currently predefined, not a demonstrated arbitrary-minute input.                                                                                            |
 | Manual From/To slot model | `amanah_schedule_form_and_calendar_dialog.dart:443-454`   | `_ScheduleFormSlot` has `from` and `to`.                                                                                                                                     |
 | Manual From/To UI         | `amanah_schedule_form_and_calendar_dialog.dart:1794-1817` | The drawer renders `From` and `To` time pickers.                                                                                                                             |
-| Mobile status options     | `amanah_schedule_form_and_calendar_dialog.dart:542-547`   | Status options include `Menunggu`, `Buka`, and `Cuti`.                                                                                                                       |
+| Mobile status options     | `amanah_schedule_form_and_calendar_dialog.dart:542-547`   | Status options include `Menunggu`, `Buka`, and `isOnLeave`.                                                                                                                       |
 | Optimistic fallback       | `amanah_schedule_store.dart:305-307`                      | On error, the store keeps the optimistic local update.                                                                                                                       |
 | Local default quota       | `amanah_schedule_store.dart:65`                           | Default day setting uses `targetQuota: 8`.                                                                                                                                   |
 
 Current mobile conclusion:
 
-Flutter is already shaped as the upstream workflow, but its frontend model still lets a user create/update schedules with manual `endTime`, capacity/quota style fields, and `Cuti` as a first-class status. It also can preserve failed optimistic changes locally.
+Flutter is already shaped as the upstream workflow, but its frontend model still lets a user create/update schedules with manual `endTime`, capacity/quota style fields, and `isOnLeave` as a first-class status. It also can preserve failed optimistic changes locally.
 
 ### 4.2 Next.js admin schedule area
 
@@ -115,25 +115,25 @@ Next.js admin currently contains:
 
 | Current area              | Verified evidence                                                | Current behavior                                                                                                                     |
 | ------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Contract enum             | `src/server/contracts/schedules/doctor-schedules.dto.ts:3`       | `ScheduleDayStatus` is `Buka`, `Penuh`, `Cuti`, `Tutup`.                                                                             |
+| Contract enum             | `src/server/contracts/schedules/doctor-schedules.dto.ts:3`       | `ScheduleDayStatus` is `Buka`, `Penuh`, `isOnLeave`, `Tutup`.                                                                             |
 | Feature enum              | `src/features/jadwal-dokter/api/types.ts:1`                      | Same status union is used in feature types.                                                                                          |
 | Session fields            | `doctor-schedules.dto.ts:15-19`, `108-111`                       | Daily sessions include `jam_selesai`, `slot_tersedia`, and `status_sesi`.                                                            |
 | Aggregate counters        | `doctor-schedules.dto.ts:43-44`                                  | Doctor list/detail includes `slot_tersedia` and `kapasitas_per_hari`.                                                                |
 | Admin API path wrappers   | `src/server/api/paths.ts:36-46`                                  | Admin schedule paths exist for list, detail, update, day status, create session, update session, delete session, and filter options. |
 | Error fallback            | `src/features/jadwal-dokter/api/service.ts:34-52`                | List/detail service catches errors and returns empty or undefined data.                                                              |
-| Filter fallback           | `src/features/jadwal-dokter/api/service.ts:112-124`              | Filter options fallback includes `Penuh` and `Cuti`.                                                                                 |
-| Card status               | `doctor-schedule-card.tsx:398-408`                               | Card computes `Cuti`, `Belum Diatur`, `Tutup`, `Penuh`, or `Buka` from old fields.                                                   |
-| Detail sheet status       | `doctor-schedule-detail-sheet.tsx:64-72`                         | Detail sheet computes `Cuti`, `Tutup`, `Belum Diatur`, `Penuh`, or `Buka`.                                                           |
-| Detail status mapping bug | `doctor-schedule-detail-sheet.tsx:295-298`                       | Calendar status mapping maps every non-`buka`/non-`cuti` selection to `Penuh`, including `tutup`.                                    |
-| Calendar statuses         | `doctor-timeline-calendar.tsx:18`, `77-95`, `112-115`, `626-634` | Calendar presents `Buka`, `Penuh`, `Cuti`, and `Tutup`.                                                                              |
-| Hourly grid statuses      | `doctor-daily-hourly-grid.tsx:24`                                | Hourly grid status is `buka`, `penuh`, `tutup`, `cuti`.                                                                              |
+| Filter fallback           | `src/features/jadwal-dokter/api/service.ts:112-124`              | Filter options fallback includes `Penuh` and `isOnLeave`.                                                                                 |
+| Card status               | `doctor-schedule-card.tsx:398-408`                               | Card computes `isOnLeave`, `Belum Diatur`, `Tutup`, `Penuh`, or `Buka` from old fields.                                                   |
+| Detail sheet status       | `doctor-schedule-detail-sheet.tsx:64-72`                         | Detail sheet computes `isOnLeave`, `Tutup`, `Belum Diatur`, `Penuh`, or `Buka`.                                                           |
+| Detail status mapping bug | `doctor-schedule-detail-sheet.tsx:295-298`                       | Calendar status mapping maps every non-`buka`/non-`isOnLeave` selection to `Penuh`, including `tutup`.                                    |
+| Calendar statuses         | `doctor-timeline-calendar.tsx:18`, `77-95`, `112-115`, `626-634` | Calendar presents `Buka`, `Penuh`, `isOnLeave`, and `Tutup`.                                                                              |
+| Hourly grid statuses      | `doctor-daily-hourly-grid.tsx:24`                                | Hourly grid status is `buka`, `penuh`, `tutup`, `isOnLeave`.                                                                              |
 | Hour-only matching        | `doctor-daily-hourly-grid.tsx:152-153`                           | Grid parses only the hour from `jam_mulai` and `jam_selesai`, losing minute precision.                                               |
 | Local hourly overrides    | `doctor-daily-hourly-grid.tsx:226-231`, `267-270`                | Per-hour status can be changed locally through `hourlyOverrides`.                                                                    |
 | Local extra sessions      | `doctor-daily-hourly-grid.tsx:231`, `308-314`                    | `extraSessions` are locally added and capacity/slot counters are recomputed in the UI.                                               |
-| Add session modal         | `doctor-add-session-modal.tsx:28`, `66-70`, `93-112`, `183-261`  | Uses preset sessions, manual start/end, quota, slot count, and status including `Penuh` and `Cuti`.                                  |
+| Add session modal         | `doctor-add-session-modal.tsx:28`, `66-70`, `93-112`, `183-261`  | Uses preset sessions, manual start/end, quota, slot count, and status including `Penuh` and `isOnLeave`.                                  |
 | Edit session modal        | `doctor-edit-session-modal.tsx:36-40`, `66-70`, `131-208`        | Same manual session model is used for editing.                                                                                       |
-| Schedule edit modal       | `doctor-schedule-edit-modal.tsx:30`, `61`, `180-181`, `205`      | Edits `slot_tersedia`, uses `Penuh` and `Cuti`, and treats leave as schedule status.                                                 |
-| Design status mapper      | `src/styles/clinical-tokens.ts:120-193`                          | Maps `PENUH/FULL` to `Penuh` and `CUTI/LEAVE` to `Cuti` as primary status labels.                                                    |
+| Schedule edit modal       | `doctor-schedule-edit-modal.tsx:30`, `61`, `180-181`, `205`      | Edits `slot_tersedia`, uses `Penuh` and `isOnLeave`, and treats leave as schedule status.                                                 |
+| Design status mapper      | `src/styles/clinical-tokens.ts:120-193`                          | Maps `PENUH/FULL` to `Penuh` and `isOnLeave/LEAVE` to `isOnLeave` as primary status labels.                                                    |
 
 Current admin conclusion:
 
@@ -149,7 +149,7 @@ Next.js patient booking currently contains:
 | Appointment creation  | `src/features/klinik/api/service.ts:145-184`       | `createAppointmentRecordWithQueue` creates local appointment and queue records.      |
 | Reservation hook      | `useAppointmentReservation.ts:109`, `257`          | Reads doctors from local `getDoctors()` and creates appointment locally.             |
 | View hook persistence | `useAppointmentsView.ts:5`, `75`                   | Appointment view saves to localStorage.                                              |
-| Calendar day states   | `appointment-calendar-day-picker.tsx:117-206`      | Day picker uses `Penuh` and `Cuti` to disable dates.                                 |
+| Calendar day states   | `appointment-calendar-day-picker.tsx:117-206`      | Day picker uses `Penuh` and `isOnLeave` to disable dates.                                 |
 | Time slot generator   | `appointment-time-slot-picker.tsx:24`, `181-205`   | Time picker uses hardcoded standard shifts and increments by hardcoded `30` minutes. |
 | Fake booking pressure | `appointment-time-slot-picker.tsx:204-208`         | Simulates booked counts by shift index.                                              |
 
@@ -177,7 +177,7 @@ Appointment lifecycle already exists as a separate concept in the frontend. It m
 | Contradiction                              | Current behavior                                                                                    | Why it conflicts                                                                                  | Affected frontend layers                                                         | Required frontend migration                                                                        |
 | ------------------------------------------ | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
 | `Penuh` as primary state                   | Contracts, filters, cards, calendars, grids, modals, and tokens treat `Penuh` as a status.          | Target state is `OCCUPIED -> Terisi`; "full" is an old aggregate slot concept.                    | DTO/types, filters, calendar, detail sheet, grid, modals, status tokens.         | Replace primary availability enum with `OPEN`, `OCCUPIED`, `CLOSED`; label `OCCUPIED` as `Terisi`. |
-| `Cuti` as primary state                    | Mobile and web treat `Cuti` as a schedule/day status.                                               | Target state is `CLOSED`; leave is metadata such as `closedReason = leave`.                       | Mobile form/store, admin status logic, calendar, grid, leave calculator, tokens. | Render leave as `Tutup` with reason, not as a fourth top-level availability state.                 |
+| `isOnLeave` as primary state                    | Mobile and web treat `isOnLeave` as a schedule/day status.                                               | Target state is `CLOSED`; leave is metadata such as `closedReason = leave`.                       | Mobile form/store, admin status logic, calendar, grid, leave calculator, tokens. | Render leave as `Tutup` with reason, not as a fourth top-level availability state.                 |
 | Manual interval end input                  | Mobile form has `From` and `To`; web session modals have `jam_mulai` and `jam_selesai`.             | Product says doctors should not enter per-consultation `to`; interval end derives from duration.  | Flutter drawer, mobile repository payload, web add/edit session modals, DTOs.    | Replace per-interval end input with availability start plus authoritative boundary/window.         |
 | Manual empty slot/slot count CRUD          | Admin modals expose `slot_tersedia`, `kuota_pasien`, `kapasitas_per_hari`; mobile exposes capacity. | Slots should be projected from duration and boundary, not manually edited as empty rows/counters. | Web DTOs, cards, modals, tables, export, mobile model/store.                     | Use projection summaries and interval statuses from backend.                                       |
 | Hardcoded duration                         | Patient time picker increments by `30` minutes.                                                     | Duration is configurable and should come from the canonical effective policy.                     | Patient web booking time picker.                                                 | Remove local duration math; render server projection.                                              |
@@ -189,7 +189,7 @@ Appointment lifecycle already exists as a separate concept in the frontend. It m
 | In-memory admin appointment service        | Admin appointments are stored in an array.                                                          | Admin appointment view cannot reconcile with schedule occupancy.                                  | Appointment admin service.                                                       | Use canonical appointment API.                                                                     |
 | Failed optimistic mobile mutation persists | Mobile keeps optimistic local update after server error.                                            | Failed schedule mutation must not silently become local truth.                                    | Flutter store.                                                                   | Mark stale/offline state clearly or rollback; canonical response/refetch required.                 |
 | Status mapping bug                         | Detail sheet maps `tutup` selection to `Penuh`.                                                     | `CLOSED` and occupancy cannot be conflated.                                                       | Admin detail sheet.                                                              | Delete old mapping with new canonical state model.                                                 |
-| Stale docs                                 | Existing reports still call `Penuh/Cuti` ready or acceptable.                                       | They conflict with current product direction.                                                     | Documentation and team handoff.                                                  | Treat this report as the new frontend migration source.                                            |
+| Stale docs                                 | Existing reports still call `Penuh/isOnLeave` ready or acceptable.                                       | They conflict with current product direction.                                                     | Documentation and team handoff.                                                  | Treat this report as the new frontend migration source.                                            |
 
 ---
 
@@ -273,7 +273,7 @@ The frontend needs a canonical projection for a practitioner, date, and optional
       "label": "Tutup",
       "closedReason": {
         "code": "leave",
-        "label": "Cuti dokter"
+        "label": "isOnLeave dokter"
       },
       "appointment": null,
       "permissions": {
@@ -375,7 +375,7 @@ Current verified UI:
 ```text
 _ScheduleFormSlot has from/to
 UI labels are From and To
-Status options include Menunggu, Buka, Cuti
+Status options include Menunggu, Buka, isOnLeave
 ```
 
 Required UI:
@@ -386,7 +386,7 @@ Required UI:
 | `To`                        | Remove as per-appointment end input. If a boundary is required, rename and reposition it as availability boundary/window, not consultation end. |
 | `capacity` or `targetQuota` | Remove as direct empty-slot authoring. Show projected capacity from server.                                                                     |
 | `isAvailable` toggle        | Replace with `OPEN/CLOSED` availability intent and closure reason.                                                                              |
-| `Cuti` status               | Replace with `Tutup` plus `closedReason = leave`.                                                                                               |
+| `isOnLeave` status               | Replace with `Tutup` plus `closedReason = leave`.                                                                                               |
 | `Menunggu` schedule status  | Keep only if it belongs to approval workflow; do not mix with availability.                                                                     |
 
 ### 7.3 Mobile schedule screen migration
@@ -403,7 +403,7 @@ It should not render:
 
 1. Locally fabricated available slot counts.
 2. Locally persisted failed mutations as if they succeeded.
-3. `Cuti` as a fourth primary state.
+3. `isOnLeave` as a fourth primary state.
 4. Hour-only time choices when arbitrary minute starts are allowed.
 
 ### 7.4 Mobile store/cache migration
@@ -426,7 +426,7 @@ Allowed mobile cache behavior:
 Replace old feature types:
 
 ```text
-ScheduleDayStatus = 'Buka' | 'Penuh' | 'Cuti' | 'Tutup'
+ScheduleDayStatus = 'Buka' | 'Penuh' | 'isOnLeave' | 'Tutup'
 DoctorDailySession.jam_selesai
 DoctorDailySession.kuota_pasien
 DoctorDailySession.slot_tersedia
@@ -457,7 +457,7 @@ The doctor schedule card should stop centering the UI on:
 ```text
 slot_tersedia / kapasitas_per_hari
 Penuh
-Cuti
+isOnLeave
 ```
 
 It should show:
@@ -485,7 +485,7 @@ Current hourly grid problems:
 3. It parses only the hour from time strings.
 4. It lets admin override hour status locally.
 5. It adds extra sessions locally.
-6. It shows `Penuh` and `Cuti` as primary states.
+6. It shows `Penuh` and `isOnLeave` as primary states.
 
 Required detail layout:
 
@@ -520,7 +520,7 @@ Current modals should be replaced or refactored:
 
 | Current UI                   | Required migration                                                                                                                            |
 | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `DoctorAddSessionModal`      | Availability/window editor. Do not ask for manual `slot_tersedia`. Do not expose `Penuh` or `Cuti` as primary statuses.                       |
+| `DoctorAddSessionModal`      | Availability/window editor. Do not ask for manual `slot_tersedia`. Do not expose `Penuh` or `isOnLeave` as primary statuses.                       |
 | `DoctorEditSessionModal`     | Availability/window or closure editor. If editing an existing occupied window affects appointments, backend must return conflict information. |
 | `DoctorScheduleEditModal`    | Duration policy and closure controls must be separated from availability projection.                                                          |
 | Calendar day status dropdown | Only allowed actions should map to canonical mutations: open/reopen, close with reason, or inspect summary. No `Penuh` action.                |
@@ -538,7 +538,7 @@ Admin mutation UX rules:
 Replace filter/status options:
 
 ```text
-Old: Buka, Penuh, Cuti
+Old: Buka, Penuh, isOnLeave
 New: Buka, Terisi, Tutup
 ```
 
@@ -660,7 +660,7 @@ This section states what the frontend needs. It does not prescribe backend table
 ### Incorrect semantics in current frontend contract
 
 1. `Penuh` as primary status.
-2. `Cuti` as primary status.
+2. `isOnLeave` as primary status.
 3. `slot_tersedia` as editable schedule truth.
 4. `kapasitas_per_hari` as manually authored slot truth.
 5. `jam_selesai` as manually authored consultation interval end.
@@ -717,7 +717,7 @@ The frontend needs explicit backend permissions for:
 | Manual end-time input                      | Yes                      | Mobile `from/to`; web `jam_selesai` in DTOs and modals.                                                         | Remove as per-consultation end input. Keep boundary/window only if domain requires it. |
 | Manual empty-slot CRUD                     | Yes                      | Web `slot_tersedia`, `kuota_pasien`, `kapasitas_per_hari`; mobile `capacity`, `availableSlots`.                 | Replace with projection summaries.                                                     |
 | `Penuh` primary state                      | Yes                      | DTOs, types, calendar, grid, modals, filters, tokens.                                                           | Replace with `OCCUPIED -> Terisi`.                                                     |
-| `Cuti` primary state                       | Yes                      | Mobile status options, admin status logic, tokens, filters.                                                     | Replace with `CLOSED -> Tutup` plus `closedReason`.                                    |
+| `isOnLeave` primary state                       | Yes                      | Mobile status options, admin status logic, tokens, filters.                                                     | Replace with `CLOSED -> Tutup` plus `closedReason`.                                    |
 | Duplicated duration calculation            | Yes                      | Patient web increments by hardcoded 30 minutes.                                                                 | Remove local slot generation.                                                          |
 | Duplicated slot generation                 | Yes                      | Patient web and admin hourly grid both infer slots/status locally.                                              | Render backend projection.                                                             |
 | Hardcoded 30-minute values                 | Yes                      | Patient time slot picker uses `curMins + 30`.                                                                   | Use `effectiveDurationMinutes` from projection.                                        |
@@ -745,7 +745,7 @@ DurationPolicy
 OccupantSummary
 ```
 
-Block new UI work that introduces `Penuh` or `Cuti` as primary states.
+Block new UI work that introduces `Penuh` or `isOnLeave` as primary states.
 
 ### Phase 2: Mobile upstream correction
 
@@ -753,7 +753,7 @@ Block new UI work that introduces `Penuh` or `Cuti` as primary states.
 2. Support arbitrary minute input.
 3. Render backend-projected intervals.
 4. Remove silent persistence of failed optimistic updates.
-5. Replace `Cuti` top-level status with `Tutup` plus reason.
+5. Replace `isOnLeave` top-level status with `Tutup` plus reason.
 
 ### Phase 3: Next.js admin schedule correction
 
@@ -783,7 +783,7 @@ Block new UI work that introduces `Penuh` or `Cuti` as primary states.
 1. Update stale schedule manifest and QA docs.
 2. Add regression tests for `08:45` anchored starts.
 3. Add regression tests for `09:40-12:00` with `30` minute duration producing 4 intervals.
-4. Add tests that `Penuh` and `Cuti` are not primary availability states.
+4. Add tests that `Penuh` and `isOnLeave` are not primary availability states.
 5. Add tests that patient booking UI does not generate slots independently.
 
 ---
@@ -794,14 +794,14 @@ The frontend migration is not complete until all criteria below are true.
 
 1. Flutter schedule creation no longer asks doctors to manually input per-consultation `To`.
 2. Flutter supports arbitrary minute start times such as `08:45`.
-3. Flutter renders `Buka`, `Terisi`, and `Tutup`, not `Penuh` and `Cuti` as primary states.
+3. Flutter renders `Buka`, `Terisi`, and `Tutup`, not `Penuh` and `isOnLeave` as primary states.
 4. Flutter does not keep failed schedule mutations as canonical local truth.
-5. Next.js admin schedule types no longer define `ScheduleDayStatus = 'Buka' | 'Penuh' | 'Cuti' | 'Tutup'`.
+5. Next.js admin schedule types no longer define `ScheduleDayStatus = 'Buka' | 'Penuh' | 'isOnLeave' | 'Tutup'`.
 6. Next.js admin detail sheet no longer uses hour-only schedule cells as the source schedule view.
 7. Next.js admin detail sheet renders a minute-accurate timeline projection.
 8. Next.js admin modals no longer expose manual `slot_tersedia` as authoritative schedule input.
 9. Next.js status filters show only `Buka`, `Terisi`, and `Tutup`.
-10. `Cuti` appears only as closed reason or explanatory metadata.
+10. `isOnLeave` appears only as closed reason or explanatory metadata.
 11. `Penuh` does not appear as a primary schedule availability state.
 12. Patient web does not use `STANDARD_SHIFTS` to create available times.
 13. Patient web does not hardcode `30` minutes for production slot generation.

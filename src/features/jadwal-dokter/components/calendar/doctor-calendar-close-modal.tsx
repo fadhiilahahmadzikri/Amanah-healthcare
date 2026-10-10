@@ -90,7 +90,7 @@ export function DoctorCalendarCloseModal({
             id='close-calendar-notes'
             value={closeNotes}
             onChange={(e) => onNotesChange(e.target.value)}
-            placeholder='Contoh: Dokter ada keperluan mendadak / Cuti operasional'
+            placeholder='Contoh: Dokter ada keperluan mendadak / isOnLeave operasional'
             className='text-xs h-9'
           />
         </div>

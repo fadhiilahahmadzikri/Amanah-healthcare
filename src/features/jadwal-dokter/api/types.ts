@@ -39,12 +39,12 @@ import type {
   UpdateAdminDoctorSessionPayload
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 
-export type ScheduleDayStatus = 'Buka' | 'Terisi' | 'Penuh' | 'Cuti' | 'Tutup' | string;
+export type ScheduleDayStatus = 'Buka' | 'Terisi' | 'Penuh' | 'isOnLeave' | 'Tutup' | string;
 export type SessionStatus =
   | 'Buka'
   | 'Terisi'
   | 'Penuh'
-  | 'Cuti'
+  | 'isOnLeave'
   | 'Tutup'
   | 'OPEN'
   | 'OCCUPIED'
@@ -103,7 +103,7 @@ export interface MonthlyScheduleDay {
   date: string;
   status: ScheduleDayStatus;
   notes?: string | null;
-  dayStatus?: 'OPEN' | 'CLOSED' | 'CUTI' | 'EMPTY' | string;
+  dayStatus?: 'OPEN' | 'CLOSED' | 'isOnLeave' | 'EMPTY' | string;
   statusLabel?: string;
   badgeVariant?: 'success' | 'danger' | 'warning' | 'neutral' | string;
   activeSessions?: number;
@@ -117,7 +117,7 @@ export interface DoctorSchedule {
   practitioner_id?: string;
   nama_dokter: string;
   spesialisasi: string;
-  status_dokter: 'Buka' | 'Terisi' | 'Penuh' | 'Cuti' | 'Tutup' | string;
+  status_dokter: 'Buka' | 'Terisi' | 'Penuh' | 'isOnLeave' | 'Tutup' | string;
   email?: string | null;
   nomor_telepon?: string | null;
   ruang_praktik: string;
@@ -126,7 +126,7 @@ export interface DoctorSchedule {
   slot_tersedia: number;
   kapasitas_per_hari: number;
   jadwal_hari_ini: string;
-  status_jadwal: 'Buka' | 'Terisi' | 'Penuh' | 'Cuti' | 'Tutup' | string;
+  status_jadwal: 'Buka' | 'Terisi' | 'Penuh' | 'isOnLeave' | 'Tutup' | string;
   bulan_jadwal?: string;
   monthly_schedule?: MonthlyScheduleDay[];
   sesi_harian?: DoctorDailySession[];
@@ -135,7 +135,7 @@ export interface DoctorSchedule {
   context_projections?: OccupancyShift[];
   metrics?: SlotProjectionMetrics;
   summary?: SlotProjectionMetrics;
-  is_cuti: boolean;
+  isOnLeave: boolean;
   cuti_reason?: string | null;
   cuti_start?: string | null;
   cuti_end?: string | null;
@@ -174,7 +174,7 @@ export interface DoctorScheduleListResponse {
 }
 
 export interface UpdateDoctorSchedulePayload {
-  is_cuti?: boolean;
+  isOnLeave?: boolean;
   cuti_reason?: string | null;
   cuti_start?: string | null;
   cuti_end?: string | null;

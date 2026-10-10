@@ -130,10 +130,10 @@ export const getColumns = ({
     accessorKey: 'slot_tersedia',
     header: 'Slot Tersedia',
     cell: ({ row }) => {
-      const { slot_tersedia, kapasitas_per_hari, is_cuti } = row.original;
+      const { slot_tersedia, kapasitas_per_hari, isOnLeave } = row.original;
       const hasCapacity = kapasitas_per_hari > 0;
       const percentage =
-        is_cuti || !hasCapacity
+        isOnLeave || !hasCapacity
           ? 0
           : Math.round((slot_tersedia / Math.max(kapasitas_per_hari, 1)) * 100);
 
