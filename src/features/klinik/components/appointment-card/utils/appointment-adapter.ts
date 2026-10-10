@@ -81,7 +81,8 @@ export function bookedPatientToAppointment(
   item: BookedPatientItem,
   context?: SessionContext
 ): Appointment {
-  const timeMatches = (item.timeSlot || '').match(/(\d{1,2}[:.]\d{2})/g);
+  const timeSource = context?.sessionTime || '';
+  const timeMatches = timeSource.match(/(\d{1,2}[:.]\d{2})/g);
   const startClock = timeMatches?.[0] ? timeMatches[0].replace('.', ':') : '';
   const endClock = timeMatches?.[1] ? timeMatches[1].replace('.', ':') : '';
 
@@ -100,7 +101,7 @@ export function bookedPatientToAppointment(
     (item as unknown as { layananName?: string }).layananName ||
     'Pemeriksaan Baru';
 
-  const sessionDisplay = item.sessionTitle || context?.sessionTime || item.timeSlot || '';
+  const sessionDisplay = item.sessionTitle || context?.sessionTime || '';
 
   return {
     id: item.appointmentId,

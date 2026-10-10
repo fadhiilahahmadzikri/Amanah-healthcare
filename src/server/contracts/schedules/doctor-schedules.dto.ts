@@ -289,10 +289,6 @@ export const bookedPatientItemSchema = z.object({
     .union([z.string(), z.number()])
     .nullish()
     .transform((v) => (v != null ? String(v) : '-')),
-  timeSlot: z
-    .string()
-    .nullish()
-    .transform((v) => v || ''),
   sessionTitle: z.string().nullish(),
   status: z
     .string()
