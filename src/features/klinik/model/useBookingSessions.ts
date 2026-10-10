@@ -10,18 +10,11 @@ export interface UseBookingSessionsParams {
   dateStr: string;
   poliklinikId?: string;
   staffId?: string;
-  currentTimeSlot: string;
-}
-
-export interface UseBookingSessionsResult {
-  sessions: BookingOptionShift[];
-  isLoading: boolean;
-  setTimeSlot: (slot: string) => void;
-  setSessionId: (id: string) => void;
+  currentSession?: string;
 }
 
 export interface UseBookingSessionsOptions {
-  onTimeSlotChange: (slot: string) => void;
+  onSessionChange?: (session: string) => void;
   onSessionIdChange?: (id: string) => void;
 }
 
@@ -29,25 +22,24 @@ export interface UseBookingSessionsOptions {
  * Single source of truth for booking session availability.
  *
  * Fetches from GET /api/v1/schedules/booking-options with the correct
- * query parameters for both create and reschedule contexts:
- *   - Create:     date + poliklinikId (no staffId — clinic-level availability)
- *   - Reschedule: date + poliklinikId + staffId (doctor-specific availability)
+ * query parameters: date + poliklinikId (plus optional staffId).
  *
- * Handles auto-selection: if the current slot is disabled or absent after a
- * fetch, advances to the first available slot (or clears if none exist).
+ * Handles auto-selection: if the current session is disabled or absent after a
+ * fetch, advances to the first available session (or clears if none exist).
  */
 export function useBookingSessions(
-  { dateStr, poliklinikId, staffId, currentTimeSlot }: UseBookingSessionsParams,
-  { onTimeSlotChange, onSessionIdChange }: UseBookingSessionsOptions
+  { dateStr, poliklinikId, staffId, currentSession }: UseBookingSessionsParams,
+  { onSessionChange, onSessionIdChange }: UseBookingSessionsOptions
 ): { sessions: BookingOptionShift[]; isLoading: boolean } {
   const [sessions, setSessions] = useState<BookingOptionShift[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const currentTimeSlotRef = useRef(currentTimeSlot);
-  currentTimeSlotRef.current = currentTimeSlot;
+  const effectiveSession = currentSession ?? '';
+  const currentSessionRef = useRef(effectiveSession);
+  currentSessionRef.current = effectiveSession;
 
-  const onTimeSlotChangeRef = useRef(onTimeSlotChange);
-  onTimeSlotChangeRef.current = onTimeSlotChange;
+  const onSessionChangeRef = useRef(onSessionChange);
+  onSessionChangeRef.current = onSessionChange;
 
   const onSessionIdChangeRef = useRef(onSessionIdChange);
   onSessionIdChangeRef.current = onSessionIdChange;
@@ -67,18 +59,18 @@ export function useBookingSessions(
 
         setSessions(result);
 
-        const current = result.find((s) => s.session === currentTimeSlotRef.current);
+        const current = result.find((s) => s.session === currentSessionRef.current);
         const currentIsValid = current && !current.isDisabled;
 
         if (!currentIsValid) {
           const firstAvailable = result.find((s) => !s.isDisabled);
           if (firstAvailable) {
-            onTimeSlotChangeRef.current(firstAvailable.session);
+            onSessionChangeRef.current?.(firstAvailable.session);
             if (firstAvailable.practitioners[0]?.sessionId) {
               onSessionIdChangeRef.current?.(firstAvailable.practitioners[0].sessionId);
             }
           } else {
-            onTimeSlotChangeRef.current('');
+            onSessionChangeRef.current?.('');
             onSessionIdChangeRef.current?.('');
           }
         } else if (current.practitioners[0]?.sessionId) {

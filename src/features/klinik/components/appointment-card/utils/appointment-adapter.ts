@@ -12,7 +12,7 @@ export interface SessionContext {
   sessionTime?: string;
 }
 
-export function formatTimeSlotString(time?: string): string | null {
+export function formatTimeString(time?: string): string | null {
   if (!time) return null;
   if (time.includes('T') || time.endsWith('Z')) {
     const d = new Date(time);
@@ -36,8 +36,8 @@ export function normalizeAppointmentTimes(appointment: Partial<Appointment>): {
   const isInService = desc.isInService;
 
   if (isCompleted && appointment.actual_started_at && appointment.actual_completed_at) {
-    const actualStart = formatTimeSlotString(appointment.actual_started_at);
-    const actualEnd = formatTimeSlotString(appointment.actual_completed_at);
+    const actualStart = formatTimeString(appointment.actual_started_at);
+    const actualEnd = formatTimeString(appointment.actual_completed_at);
 
     return {
       startTime: actualStart || '-',
@@ -47,7 +47,7 @@ export function normalizeAppointmentTimes(appointment: Partial<Appointment>): {
   }
 
   if (isInService && appointment.actual_started_at) {
-    const actualStart = formatTimeSlotString(appointment.actual_started_at);
+    const actualStart = formatTimeString(appointment.actual_started_at);
     return {
       startTime: actualStart || '-',
       endTime: 'Sedang Berlangsung',
@@ -60,18 +60,19 @@ export function normalizeAppointmentTimes(appointment: Partial<Appointment>): {
   const sessionMatch = timeStr.match(/Sesi\s+[A-Za-z]+/i);
 
   const startTime =
-    formatTimeSlotString(appointment.scheduled_start_time) ||
-    (timeRangeMatch ? timeRangeMatch[1].replace(':', '.') : formatTimeSlotString(timeStr) || '-');
+    formatTimeString(appointment.scheduled_start_time) ||
+    (timeRangeMatch ? timeRangeMatch[1].replace(':', '.') : formatTimeString(timeStr) || '-');
   const endTime =
-    formatTimeSlotString(appointment.scheduled_end_time) ||
+    formatTimeString(appointment.scheduled_end_time) ||
     (timeRangeMatch ? timeRangeMatch[2].replace(':', '.') : '-');
 
   // Frontend does not calculate minutes. Backend provides duration or session label.
-  const durationText =
-    sessionMatch
-      ? sessionMatch[0]
-      : appointment.consultation_duration_formatted ||
-        (appointment.estimated_duration_minutes ? `~${appointment.estimated_duration_minutes} mnt` : '-');
+  const durationText = sessionMatch
+    ? sessionMatch[0]
+    : appointment.consultation_duration_formatted ||
+      (appointment.estimated_duration_minutes
+        ? `~${appointment.estimated_duration_minutes} mnt`
+        : '-');
 
   return { startTime, endTime, durationText };
 }
@@ -80,9 +81,9 @@ export function bookedPatientToAppointment(
   item: BookedPatientItem,
   context?: SessionContext
 ): Appointment {
-  const timeParts = (item.timeSlot || '').split('-').map((s) => s.trim());
-  const startClock = timeParts[0] || '';
-  const endClock = timeParts[1] || '';
+  const timeMatches = (item.timeSlot || '').match(/(\d{1,2}[:.]\d{2})/g);
+  const startClock = timeMatches?.[0] ? timeMatches[0].replace('.', ':') : '';
+  const endClock = timeMatches?.[1] ? timeMatches[1].replace('.', ':') : '';
 
   const descriptor = AppointmentStatusDescriptor.from(item.statusBadge || item.status);
   const canonicalStatus: AppointmentStatus = descriptor.code;
@@ -99,6 +100,8 @@ export function bookedPatientToAppointment(
     (item as unknown as { layananName?: string }).layananName ||
     'Pemeriksaan Baru';
 
+  const sessionDisplay = item.sessionTitle || context?.sessionTime || item.timeSlot || '';
+
   return {
     id: item.appointmentId,
     booking_code: item.appointmentId.slice(0, 8).toUpperCase(),
@@ -113,10 +116,16 @@ export function bookedPatientToAppointment(
     service,
     room_name,
     room_location,
-    scheduled_start_time: startClock.replace('.', ':'),
-    scheduled_end_time: endClock.replace('.', ':'),
-    actual_started_at: (item as unknown as { actualStartedAt?: string }).actualStartedAt,
-    actual_completed_at: (item as unknown as { actualCompletedAt?: string }).actualCompletedAt,
+    scheduled_start_time: startClock,
+    scheduled_end_time: endClock,
+    actual_started_at:
+      (item as unknown as { actualStartedAt?: string }).actualStartedAt ||
+      item.bookingMetadata?.startedAt ||
+      undefined,
+    actual_completed_at:
+      (item as unknown as { actualCompletedAt?: string }).actualCompletedAt ||
+      item.bookingMetadata?.completedAt ||
+      undefined,
     consultation_elapsed_seconds: (item as unknown as { consultationElapsedSeconds?: number })
       .consultationElapsedSeconds,
     consultation_duration_formatted: (item as unknown as { consultationDurationFormatted?: string })
@@ -124,7 +133,7 @@ export function bookedPatientToAppointment(
     estimated_duration_minutes: (item as unknown as { estimatedDurationMinutes?: number })
       .estimatedDurationMinutes,
     date,
-    time: item.timeSlot || context?.sessionTime || '',
+    time: sessionDisplay,
     complaint: item.chiefComplaint || '',
     status: canonicalStatus,
     visit_type: rawVisitType,

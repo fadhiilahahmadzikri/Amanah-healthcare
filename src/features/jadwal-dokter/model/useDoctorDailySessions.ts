@@ -2,8 +2,6 @@
 
 import { useState, useMemo } from 'react';
 import type { DoctorSchedule, DoctorDailySession } from '../api/types';
-import { isDoctorOnLeaveOnDay } from '../api/service';
-import { resolveDayStatus } from '../components/doctor-timeline-calendar';
 import { useDoctorSessionModals } from './useDoctorSessionModals';
 
 const MONTH_NAMES = [
@@ -44,7 +42,7 @@ export function useDoctorDailySessions({
   currentYear: currentYearProp,
   onYearChange,
   onAddSchedule,
-  readOnly = false
+  readOnly: _readOnly = false
 }: UseDoctorDailySessionsProps) {
   const today = new Date();
   const realCurrentYear = today.getFullYear();
@@ -88,11 +86,9 @@ export function useDoctorDailySessions({
   const currentMinute = new Date().getMinutes();
   const currentTimeString = `${String(currentHour).padStart(2, '0')}:${String(currentMinute).padStart(2, '0')}`;
 
-  const leaveInfo = isDoctorOnLeaveOnDay(doctor, activeDay);
-  const dayStatus = resolveDayStatus(activeDay, doctor);
-  const isDayCuti = dayStatus === 'isOnLeave';
-  const isDayClosed = dayStatus === 'tutup';
-  const dayLeaveReason = leaveInfo.reason || doctor?.cuti_reason || 'isOnLeave Operasional';
+  const isDayCuti = Boolean(doctor?.is_on_leave);
+  const isDayClosed = doctor?.status_dokter === 'CLOSED' || doctor?.status_jadwal === 'CLOSED';
+  const dayLeaveReason = doctor?.leave_reason || 'Cuti Dokter';
 
   const activeSessions: DoctorDailySession[] = useMemo(
     () => doctor?.sesi_harian || [],

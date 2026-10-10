@@ -6,19 +6,8 @@ import { getStatusConfig } from '@/styles/clinical-tokens';
 import { useUpdateDoctorDayStatusMutation } from '../api/mutations';
 import { doctorScheduleDetailQueryOptions } from '../api/queries';
 import type { DoctorSchedule, ScheduleDayStatus } from '../api/types';
-import {
-  DOCTOR_CARD_STATUS,
-  getDoctorCardStatus,
-  parseDateToIso
-} from '../utils/doctor-schedule-card-utils';
-import { useDoctorConflictNavigation } from './useDoctorConflictNavigation';
-import {
-  DOCTOR_DETAIL_TAB,
-  type DoctorDetailTab,
-  useDoctorDetailDrawerStore
-} from './useDoctorDetailDrawerStore';
-import { INSPECTION_PHASE } from '../constants/doctor-dialog.constants';
-import type { ReturnDoctorContext } from './useDoctorConflictNavigation';
+import { getDoctorCardStatus, parseDateToIso } from '../utils/doctor-schedule-card-utils';
+import { DOCTOR_DETAIL_TAB, type DoctorDetailTab } from '../constants/doctor-dialog.constants';
 
 export function formatMonthParam(year: number, zeroBasedMonth: number): string {
   return `${year}-${String(zeroBasedMonth + 1).padStart(2, '0')}`;
@@ -30,14 +19,7 @@ export function formatDateParam(year: number, zeroBasedMonth: number, day: numbe
   return `${formatMonthParam(year, zeroBasedMonth)}-${String(safeDay).padStart(2, '0')}`;
 }
 
-function resolveInitialDoctorDate(
-  selectedDate?: string,
-  returnContext?: ReturnDoctorContext | null
-): Date {
-  if (returnContext?.sourceDate) {
-    const parsed = new Date(`${returnContext.sourceDate}T00:00:00`);
-    if (!Number.isNaN(parsed.getTime())) return parsed;
-  }
+function resolveInitialDoctorDate(selectedDate?: string): Date {
   if (selectedDate) {
     const iso = parseDateToIso(selectedDate);
     if (iso) {
@@ -53,59 +35,18 @@ export interface UseDoctorScheduleDetailSheetProps {
   isOpen: boolean;
   onClose: () => void;
   selectedDate?: string;
-  highlightSlotTime?: string;
-  openPatientsModal?: boolean;
-  returnDoctorName?: string;
-  returnContext?: ReturnDoctorContext | null;
-  onReturnToSourceModal?: () => void;
 }
 
 export function useDoctorScheduleDetailSheet({
   doctor: propDoctor,
   isOpen,
   onClose,
-  selectedDate,
-  highlightSlotTime,
-  openPatientsModal,
-  returnDoctorName,
-  returnContext,
-  onReturnToSourceModal
+  selectedDate
 }: UseDoctorScheduleDetailSheetProps) {
   const updateDayMutation = useUpdateDoctorDayStatusMutation();
-  const conflictNav = useDoctorConflictNavigation();
-  const isConflictReturning = conflictNav.phase === INSPECTION_PHASE.RETURNING;
+  const [activeTab, setActiveTab] = React.useState<DoctorDetailTab>(DOCTOR_DETAIL_TAB.SESI);
 
-  const cachedDoctor = useDoctorDetailDrawerStore((s) => s.cachedDoctor);
-  const setCachedDoctor = useDoctorDetailDrawerStore((s) => s.setCachedDoctor);
-  const targetStoreDoctorId = useDoctorDetailDrawerStore((s) => s.targetDoctorId);
-  const storeActiveTab = useDoctorDetailDrawerStore((s) => s.activeTab);
-  const setStoreActiveTab = useDoctorDetailDrawerStore((s) => s.setActiveTab);
-
-  const shouldDefaultToSesiTab = Boolean(
-    highlightSlotTime ||
-    openPatientsModal ||
-    conflictNav.pendingReopen ||
-    conflictNav.isInspecting ||
-    isConflictReturning ||
-    returnContext
-  );
-
-  const [activeTab, setActiveTabLocal] = React.useState<DoctorDetailTab>(() =>
-    shouldDefaultToSesiTab ? DOCTOR_DETAIL_TAB.SESI : storeActiveTab || DOCTOR_DETAIL_TAB.KALENDER
-  );
-
-  const setActiveTab = React.useCallback(
-    (tab: DoctorDetailTab) => {
-      setActiveTabLocal(tab);
-      setStoreActiveTab(tab);
-    },
-    [setStoreActiveTab]
-  );
-
-  const initialDate = React.useMemo(
-    () => resolveInitialDoctorDate(selectedDate, returnContext),
-    [selectedDate, returnContext]
-  );
+  const initialDate = React.useMemo(() => resolveInitialDoctorDate(selectedDate), [selectedDate]);
 
   const [selectedDay, setSelectedDay] = React.useState<number>(initialDate.getDate());
   const [currentMonth, setCurrentMonth] = React.useState<number>(initialDate.getMonth());
@@ -113,13 +54,13 @@ export function useDoctorScheduleDetailSheet({
   const [pendingStatusDay, setPendingStatusDay] = React.useState<number | null>(null);
 
   const resetFocusState = React.useCallback(() => {
-    const targetDate = resolveInitialDoctorDate(selectedDate, returnContext);
+    const targetDate = resolveInitialDoctorDate(selectedDate);
     setSelectedDay(targetDate.getDate());
     setCurrentMonth(targetDate.getMonth());
     setCurrentYear(targetDate.getFullYear());
-    setActiveTab(shouldDefaultToSesiTab ? DOCTOR_DETAIL_TAB.SESI : DOCTOR_DETAIL_TAB.KALENDER);
+    setActiveTab(DOCTOR_DETAIL_TAB.SESI);
     setPendingStatusDay(null);
-  }, [selectedDate, returnContext, shouldDefaultToSesiTab, setActiveTab]);
+  }, [selectedDate, setActiveTab]);
 
   React.useEffect(() => {
     if (isOpen) {
@@ -127,31 +68,10 @@ export function useDoctorScheduleDetailSheet({
     }
   }, [isOpen, resetFocusState]);
 
-  React.useEffect(() => {
-    if (conflictNav.pendingReopen && isOpen) {
-      setActiveTab(DOCTOR_DETAIL_TAB.SESI);
-      if (conflictNav.pendingReopen.sourceDate) {
-        const parts = conflictNav.pendingReopen.sourceDate.split('-').map(Number);
-        if (parts.length === 3 && !Number.isNaN(parts[0])) {
-          setCurrentYear(parts[0]);
-          setCurrentMonth(parts[1] - 1);
-          setSelectedDay(parts[2]);
-        }
-      }
-    }
-  }, [conflictNav.pendingReopen, isOpen, setActiveTab]);
-
-  React.useEffect(() => {
-    if ((highlightSlotTime || conflictNav.isInspecting) && isOpen) {
-      setActiveTab(DOCTOR_DETAIL_TAB.SESI);
-    }
-  }, [highlightSlotTime, conflictNav.isInspecting, isOpen, setActiveTab]);
-
   const handleClose = React.useCallback(() => {
-    if (conflictNav.phase === INSPECTION_PHASE.RETURNING) return;
     resetFocusState();
     onClose();
-  }, [onClose, resetFocusState, conflictNav.phase]);
+  }, [onClose, resetFocusState]);
 
   const detailParams = React.useMemo(
     () => ({
@@ -161,7 +81,7 @@ export function useDoctorScheduleDetailSheet({
     [currentMonth, currentYear, selectedDay]
   );
 
-  const effectiveDoctorId = propDoctor?.id || targetStoreDoctorId || '';
+  const effectiveDoctorId = propDoctor?.id || '';
 
   const detailQuery = useQuery({
     ...doctorScheduleDetailQueryOptions(effectiveDoctorId, detailParams),
@@ -173,31 +93,27 @@ export function useDoctorScheduleDetailSheet({
 
   React.useEffect(() => {
     if (detailQuery.data?.nama_dokter) {
-      setCachedDoctor(detailQuery.data);
       lastDoctorRef.current = detailQuery.data;
     }
-  }, [detailQuery.data, setCachedDoctor]);
+  }, [detailQuery.data]);
 
   React.useEffect(() => {
     if (propDoctor?.nama_dokter) {
-      setCachedDoctor(propDoctor);
       lastDoctorRef.current = propDoctor;
     }
-  }, [propDoctor, setCachedDoctor]);
+  }, [propDoctor]);
 
   // 100% Real Data: No dummy stubs, completely persistent across unmount transitions
   const doctor =
     (detailQuery.data?.nama_dokter ? detailQuery.data : null) ??
     (propDoctor?.nama_dokter ? propDoctor : null) ??
-    (cachedDoctor?.nama_dokter ? cachedDoctor : null) ??
     lastDoctorRef.current;
 
   const isDetailLoading = detailQuery.isLoading && !detailQuery.data && !doctor;
 
-  const activeTargetDate = formatDateParam(currentYear, currentMonth, selectedDay);
-  const doctorStatus = doctor ? getDoctorCardStatus(doctor, undefined, activeTargetDate) : null;
+  const doctorStatus = doctor ? getDoctorCardStatus(doctor) : null;
   const doctorStatusConfig = doctorStatus ? getStatusConfig(doctorStatus) : null;
-  const isUnconfigured = doctorStatus === DOCTOR_CARD_STATUS.BELUM_DIATUR;
+  const isUnconfigured = !doctor?.sesi_harian || doctor.sesi_harian.length === 0;
 
   const initials = doctor?.nama_dokter
     ? doctor.nama_dokter
@@ -231,24 +147,6 @@ export function useDoctorScheduleDetailSheet({
     [doctor?.id, currentYear, currentMonth, updateDayMutation]
   );
 
-  const handleReturnToSource = React.useCallback(() => {
-    if (onReturnToSourceModal) {
-      onReturnToSourceModal();
-    } else {
-      conflictNav.returnToSourceWizard();
-    }
-  }, [onReturnToSourceModal, conflictNav]);
-
-  const effectiveReturnDoctorName =
-    returnDoctorName ||
-    conflictNav.returnContext?.sourceDoctorName ||
-    conflictNav.pendingReopen?.sourceDoctorName ||
-    '';
-
-  const hasReturnTarget = Boolean(
-    conflictNav.isInspecting || returnContext || conflictNav.pendingReopen || isConflictReturning
-  );
-
   return {
     doctor,
     isDetailLoading,
@@ -262,13 +160,6 @@ export function useDoctorScheduleDetailSheet({
       setCurrentMonth,
       setCurrentYear
     },
-    conflict: {
-      isConflictReturning,
-      isInspecting: conflictNav.isInspecting,
-      pendingReopen: conflictNav.pendingReopen,
-      hasReturnTarget,
-      returnDoctorName: effectiveReturnDoctorName
-    },
     mutation: {
       pendingStatusDay,
       isUpdatingDay: updateDayMutation.isPending,
@@ -281,8 +172,7 @@ export function useDoctorScheduleDetailSheet({
       isUnconfigured
     },
     handlers: {
-      handleClose,
-      handleReturnToSource
+      handleClose
     }
   };
 }

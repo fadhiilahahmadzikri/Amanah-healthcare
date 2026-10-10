@@ -20,30 +20,24 @@ export interface DoctorSessionPatientsModalProps {
   doctor: DoctorSchedule;
   session: DoctorDailySession;
   selectedDate?: string;
-  slotStartTime?: string;
-  slotEndTime?: string;
   sessionShift?: string;
   shiftLabel?: string;
   shiftTimeRange?: string;
   isOpen: boolean;
   onClose: () => void;
   portalContainerRef?: React.RefObject<HTMLElement | null>;
-  onOpenReschedule?: (session: DoctorDailySession) => void;
 }
 
 export function DoctorSessionPatientsModal({
   doctor,
   session,
   selectedDate,
-  slotStartTime,
-  slotEndTime,
   sessionShift,
   shiftLabel,
   shiftTimeRange,
   isOpen,
   onClose,
-  portalContainerRef,
-  onOpenReschedule
+  portalContainerRef
 }: DoctorSessionPatientsModalProps) {
   const doctorId = doctor.id !== '' ? doctor.id : (doctor.practitioner_id ?? '');
   const sessionId = session.id;
@@ -76,8 +70,7 @@ export function DoctorSessionPatientsModal({
     date: selectedDate,
     sessionShift: effectiveShift,
     isOpen,
-    slotStartTime,
-    initialCapacity: session.kuota_pasien
+    initialCapacity: session.pasien_terdaftar ?? 0
   });
 
   const statusFacetOptions = React.useMemo(
@@ -128,24 +121,21 @@ export function DoctorSessionPatientsModal({
     return rawDate;
   }, [scheduleDate, selectedDate, session.tanggal, doctor.tanggal_praktik]);
 
-  const slotTimeDisplay = React.useMemo(() => {
-    if (slotStartTime) {
-      return slotEndTime ? `${slotStartTime} - ${slotEndTime} WIB` : `${slotStartTime} WIB`;
-    }
+  const sessionTimeDisplay = React.useMemo(() => {
     if (shiftTimeRange) {
       return shiftTimeRange.includes('WIB') ? shiftTimeRange : `${shiftTimeRange} WIB`;
     }
     return `${session.jam_mulai} - ${session.jam_selesai} WIB`;
-  }, [slotStartTime, slotEndTime, shiftTimeRange, session.jam_mulai, session.jam_selesai]);
+  }, [shiftTimeRange, session.jam_mulai, session.jam_selesai]);
 
   const sessionContext = React.useMemo(
     () => ({
       doctorName: doctor.nama_dokter,
       doctorSpecialty: doctor.spesialisasi,
       date: formattedDisplayDate,
-      sessionTime: slotTimeDisplay
+      sessionTime: sessionTimeDisplay
     }),
-    [doctor.nama_dokter, doctor.spesialisasi, formattedDisplayDate, slotTimeDisplay]
+    [doctor.nama_dokter, doctor.spesialisasi, formattedDisplayDate, sessionTimeDisplay]
   );
 
   return (
@@ -173,7 +163,7 @@ export function DoctorSessionPatientsModal({
                     : session.nama_sesi}
                 </span>
                 <span className='text-border/80'>•</span>
-                <span className='font-mono font-medium text-foreground'>{slotTimeDisplay}</span>
+                <span className='font-mono font-medium text-foreground'>{sessionTimeDisplay}</span>
                 {formattedDisplayDate && (
                   <>
                     <span className='text-border/80'>•</span>
@@ -280,11 +270,7 @@ export function DoctorSessionPatientsModal({
                 <EmptyState
                   animated
                   title='Belum Ada Pasien Terdaftar'
-                  description={
-                    slotStartTime
-                      ? `Belum ada pasien yang melakukan booking antrean pada jam ${slotStartTime} WIB.`
-                      : 'Belum ada pasien yang melakukan booking antrean pada sesi praktik ini.'
-                  }
+                  description='Belum ada pasien yang melakukan booking antrean pada sesi praktik ini.'
                   className='border-0 bg-transparent py-4'
                 />
               </div>
@@ -390,15 +376,6 @@ export function DoctorSessionPatientsModal({
           doctorId={doctorId}
           sessionId={sessionId}
           portalContainerRef={portalContainerRef}
-          onReschedule={
-            onOpenReschedule
-              ? () => {
-                  setSelectedPatientForDetail(null);
-                  onClose();
-                  onOpenReschedule(session);
-                }
-              : undefined
-          }
           onAppointmentCancelled={() => {
             refetch();
           }}

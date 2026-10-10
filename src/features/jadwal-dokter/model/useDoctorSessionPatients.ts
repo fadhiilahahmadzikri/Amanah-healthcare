@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { sessionPatientsQueryOptions, doctorShiftPatientsQueryOptions } from '../api/queries';
+import { sessionPatientsQueryOptions } from '../api/queries';
 import type { BookedPatientItem } from '@/server/contracts/schedules/doctor-schedules.dto';
 import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
 
@@ -49,7 +49,6 @@ export interface UseDoctorSessionPatientsProps {
   date?: string;
   sessionShift?: string;
   isOpen: boolean;
-  slotStartTime?: string;
   initialCapacity?: number;
   pageSize?: number;
 }
@@ -57,10 +56,7 @@ export interface UseDoctorSessionPatientsProps {
 export function useDoctorSessionPatients({
   doctorId,
   sessionId,
-  date,
-  sessionShift,
   isOpen,
-  slotStartTime,
   initialCapacity = 0,
   pageSize = 10
 }: UseDoctorSessionPatientsProps) {
@@ -80,7 +76,7 @@ export function useDoctorSessionPatients({
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedStatus, debouncedSearch, slotStartTime]);
+  }, [selectedStatus, debouncedSearch]);
 
   const queryFilters = useMemo(
     () => ({
@@ -90,45 +86,25 @@ export function useDoctorSessionPatients({
     [selectedStatus, debouncedSearch]
   );
 
-  const isShiftMode = Boolean(date && sessionShift);
-
   const sessionQuery = useQuery({
     ...sessionPatientsQueryOptions(doctorId, sessionId || '', queryFilters),
-    enabled: isOpen && Boolean(doctorId && sessionId && !isShiftMode),
+    enabled: isOpen && Boolean(doctorId && sessionId),
     placeholderData: (previousData) => previousData
   });
 
-  const shiftQuery = useQuery({
-    ...doctorShiftPatientsQueryOptions(doctorId, {
-      date: date || '',
-      sessionShift,
-      status: queryFilters.status,
-      search: queryFilters.search
-    }),
-    enabled: isOpen && Boolean(doctorId && date && isShiftMode),
-    placeholderData: (previousData) => previousData
-  });
-
-  const sessionData = isShiftMode ? shiftQuery.data : sessionQuery.data;
-  const isLoading = isShiftMode ? shiftQuery.isLoading : sessionQuery.isLoading;
-  const isFetching = isShiftMode ? shiftQuery.isFetching : sessionQuery.isFetching;
-  const isError = isShiftMode ? shiftQuery.isError : sessionQuery.isError;
-  const error = isShiftMode ? shiftQuery.error : sessionQuery.error;
-  const refetch = isShiftMode ? shiftQuery.refetch : sessionQuery.refetch;
+  const sessionData = sessionQuery.data;
+  const isLoading = sessionQuery.isLoading;
+  const isFetching = sessionQuery.isFetching;
+  const isError = sessionQuery.isError;
+  const error = sessionQuery.error;
+  const refetch = sessionQuery.refetch;
 
   const rawPatientsList: BookedPatientItem[] = useMemo(
     () => sessionData?.patients ?? [],
     [sessionData?.patients]
   );
 
-  const patientsList: BookedPatientItem[] = useMemo(() => {
-    if (!slotStartTime || isShiftMode) return rawPatientsList;
-    return rawPatientsList.filter((p) => {
-      if (!p.timeSlot) return true;
-      const start = p.timeSlot.split('-')[0].trim().replace(/wib/i, '').trim();
-      return start === slotStartTime || p.timeSlot.startsWith(slotStartTime);
-    });
-  }, [rawPatientsList, slotStartTime, isShiftMode]);
+  const patientsList: BookedPatientItem[] = rawPatientsList;
 
   const capacity = sessionData?.capacity ?? initialCapacity;
   const bookedCount = sessionData?.bookedCount ?? patientsList.length;

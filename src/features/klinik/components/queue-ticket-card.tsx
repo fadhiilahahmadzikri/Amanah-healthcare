@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useLayoutEffect, useEffect, useRef, useMemo } from 'react';
+import React, { useLayoutEffect, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import gsap from 'gsap';
 import confetti from 'canvas-confetti';
@@ -16,7 +16,8 @@ export interface QueueTicketCardProps {
   serviceName?: string;
   doctorName?: string;
   dateStr?: string;
-  timeSlot?: string;
+  session?: string;
+  time?: string;
   bookingCode?: string;
   patientName?: string;
   roomName?: string;
@@ -42,7 +43,8 @@ export function QueueTicketCard({
   serviceName = '-',
   doctorName = '-',
   dateStr = '-',
-  timeSlot = '',
+  session,
+  time,
   bookingCode = '',
   userAvatars = DEFAULT_AVATARS,
   onClose,
@@ -54,16 +56,7 @@ export function QueueTicketCard({
   className,
   style
 }: QueueTicketCardProps) {
-  const displayTime = useMemo(() => {
-    if (!timeSlot) return '-';
-    const timeMatch = timeSlot.match(/(\d{1,2}[:.]\d{2})/);
-    const sessionMatch = timeSlot.match(/Sesi\s+[A-Za-z]+/i);
-    if (sessionMatch && timeMatch) {
-      return `${sessionMatch[0]} (${timeMatch[1].replace('.', ':')})`;
-    }
-    const startPart = timeSlot.split('-')[0].trim().replace(/wib/i, '').trim();
-    return startPart || timeSlot;
-  }, [timeSlot]);
+  const displayTime = session || time || '-';
 
   const cardWrapperRef = useRef<HTMLDivElement>(null);
   const layer1Ref = useRef<HTMLDivElement>(null);

@@ -12,7 +12,6 @@ export type { AppointmentCardOrganismProps };
 export interface AppointmentCardProps {
   appointment: Appointment;
   doctor?: Doctor;
-  onReschedule: (appointment: Appointment) => void;
   onViewDetails: (appointment: Appointment) => void;
   className?: string;
 }
@@ -20,7 +19,6 @@ export interface AppointmentCardProps {
 export function AppointmentCard({
   appointment,
   doctor,
-  onReschedule,
   onViewDetails,
   className
 }: AppointmentCardProps) {
@@ -29,7 +27,6 @@ export function AppointmentCard({
       appointment={appointment}
       doctor={doctor}
       subjectRole='doctor'
-      onReschedule={onReschedule}
       onViewDetails={onViewDetails}
       className={className}
     />

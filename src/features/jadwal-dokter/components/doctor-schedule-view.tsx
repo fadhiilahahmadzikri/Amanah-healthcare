@@ -10,22 +10,19 @@ import { toDateParam, useDoctorScheduleView } from '../model/useDoctorScheduleVi
 import { DoctorScheduleFilters } from './doctor-schedule-filters';
 import { DoctorScheduleCard } from './doctor-schedule-card';
 import { DoctorScheduleDetailSheet } from './doctor-schedule-detail-sheet';
-import { DoctorRescheduleSessionModal } from './doctor-reschedule-session-modal';
-import { DoctorAddSessionModal } from './doctor-add-session-modal';
 import { DoctorExportButton } from './doctor-export-button';
 import { DoctorSchedulePagination } from './doctor-schedule-pagination';
-import {
-  DoctorScheduleSettingsButton,
-  DoctorScheduleSettingsModal
-} from './settings';
+import { DoctorScheduleSettingsButton, DoctorScheduleSettingsModal } from './settings';
 import { DoctorAssignmentModal } from './doctor-assignment-modal';
 import type { ConfigurationCategory } from '../model/useDoctorScheduleSettingsModal';
+import type { DoctorSchedule } from '../api/types';
 
 export function DoctorScheduleView() {
   const scheduleView = useDoctorScheduleView();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsCategory, setSettingsCategory] = useState<ConfigurationCategory>('session_defs');
-  const [selectedDoctorForAssignment, setSelectedDoctorForAssignment] = useState<any>(null);
+  const [selectedDoctorForAssignment, setSelectedDoctorForAssignment] =
+    useState<DoctorSchedule | null>(null);
   const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
 
   return (
@@ -36,58 +33,6 @@ export function DoctorScheduleView() {
         onClose={scheduleView.actions.closeDetail}
         onOpenEdit={scheduleView.actions.openEditFromDetail}
         selectedDate={scheduleView.dateFilter ? toDateParam(scheduleView.dateFilter) : undefined}
-        highlightSlotTime={scheduleView.highlightSlotTime}
-        onClearHighlightSlotTime={scheduleView.actions.clearHighlightSlotTime}
-        openPatientsModal={scheduleView.openPatients}
-        onClearOpenPatients={scheduleView.actions.clearOpenPatients}
-        onReturnToSourceModal={scheduleView.actions.returnToSourceModal}
-        returnDoctorName={scheduleView.returnContext?.sourceDoctorName}
-        returnContext={scheduleView.returnContext}
-        onClearReturnContext={scheduleView.actions.clearReturnContext}
-        onViewDoctorSchedule={scheduleView.actions.openDoctorScheduleById}
-      />
-
-      <DoctorRescheduleSessionModal
-        doctor={scheduleView.selectedDoctor}
-        session={
-          scheduleView.returnContext?.sourceSession ||
-          scheduleView.selectedDoctor?.sesi_harian?.[0] ||
-          null
-        }
-        isOpen={scheduleView.isRescheduleOpen || scheduleView.isEditOpen}
-        initialDate={scheduleView.returnContext?.sourceDate}
-        initialStartTime={scheduleView.returnContext?.sourceSlotStartTime}
-        initialStep={
-          scheduleView.returnContext?.initialStep === 'note' ||
-          scheduleView.returnContext?.initialStep === 'date'
-            ? scheduleView.returnContext.initialStep
-            : undefined
-        }
-        onClose={() => {
-          scheduleView.actions.closeReschedule();
-          scheduleView.actions.closeEdit();
-        }}
-        onViewDoctorSchedule={scheduleView.actions.openDoctorScheduleById}
-      />
-
-      <DoctorAddSessionModal
-        key={`add-session-view-${scheduleView.selectedDoctor?.id || ''}-${scheduleView.returnContext?.sourceSlotStartTime || 'default'}-${scheduleView.isAddSessionOpen}`}
-        doctor={scheduleView.selectedDoctor}
-        isOpen={scheduleView.isAddSessionOpen}
-        targetDate={scheduleView.returnContext?.sourceDate}
-        initialStartTime={scheduleView.returnContext?.sourceSlotStartTime}
-        initialEndTime={scheduleView.returnContext?.sourceSlotEndTime}
-        initialStep={
-          scheduleView.returnContext?.initialStep === 'room' ||
-          scheduleView.returnContext?.initialStep === 'session' ||
-          scheduleView.returnContext?.initialStep === 'date' ||
-          scheduleView.returnContext?.initialStep === 'confirmation'
-            ? scheduleView.returnContext.initialStep
-            : undefined
-        }
-        onClose={() => {
-          scheduleView.actions.closeAddSession();
-        }}
         onViewDoctorSchedule={scheduleView.actions.openDoctorScheduleById}
       />
 
@@ -200,7 +145,6 @@ export function DoctorScheduleView() {
                           )}
                           onOpenDetail={scheduleView.actions.openDetail}
                           onOpenEdit={scheduleView.actions.openEdit}
-                          onOpenReschedule={scheduleView.actions.openReschedule}
                           onOpenSettings={(doc) => {
                             setSelectedDoctorForAssignment(doc);
                             setIsAssignmentModalOpen(true);

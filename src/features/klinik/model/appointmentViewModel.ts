@@ -113,7 +113,7 @@ export function updateAppointmentList(
       ...item,
       doctor_name: formData.doctor,
       date: formData.dateStr,
-      time: formData.timeSlot,
+      time: formData.session,
       complaint: formData.complaint,
       visit_type: formData.visitType,
       service: formData.service,

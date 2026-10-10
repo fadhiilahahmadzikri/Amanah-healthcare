@@ -72,8 +72,8 @@ const GUIDE_DATA: GuideStepItem[] = [
         text: 'Tuliskan keluhan atau alasan periksa secara singkat agar dokter dapat mempersiapkan rekam medis Anda sebelum pemeriksaan dimulai.'
       },
       {
-        label: 'Mengubah Jadwal (Reschedule)',
-        text: 'Jika Anda berhalangan hadir pada waktu yang telah ditentukan, tekan tombol Reschedule pada kartu janji temu untuk memilih hari pengganti.'
+        label: 'Pembatalan Janji Temu',
+        text: 'Jika Anda berhalangan hadir, Anda dapat membatalkan janji temu melalui menu rincian kartu untuk melepas antrean klinik.'
       }
     ],
     note: 'Disarankan hadir 15 menit sebelum jam pemeriksaan yang tertera pada jadwal janji temu Anda.',

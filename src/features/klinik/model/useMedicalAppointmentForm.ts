@@ -9,16 +9,28 @@ import { kiaIntakeService } from '../api/kia-intake-service';
 import { formRequirementGuard } from './form-requirement-guard';
 import type { AppointmentFormData, Doctor, MedicalAppointmentFlow } from '../api/types';
 import { getDoctorsByService } from '../api/service';
-import { getMedicalFlowDefinition, type MedicalFormSection } from '../constants/medical-appointment-schemas';
+import {
+  getMedicalFlowDefinition,
+  type MedicalFormSection
+} from '../constants/medical-appointment-schemas';
 import { enrichMedicalFlowDefinition, useMaternalCatalogs } from './useMaternalCatalogs';
 import {
-  buildDefaultMedicalValues, getActiveMedicalSections, type MedicalAppointmentValues
+  buildDefaultMedicalValues,
+  getActiveMedicalSections,
+  type MedicalAppointmentValues
 } from '../utils/medical-appointment';
 import {
-  type CatalogActionState, type HistoryPromptState, type HistoryRecordActions,
-  type RepeatableHistoryCounts, type RepeatableHistoryGroup, type RepeatableHistoryKey,
-  type ScheduleValues, type StepDescriptor,
-  defaultHistoryCounts, historyGroups, scheduleStepDescriptors
+  type CatalogActionState,
+  type HistoryPromptState,
+  type HistoryRecordActions,
+  type RepeatableHistoryCounts,
+  type RepeatableHistoryGroup,
+  type RepeatableHistoryKey,
+  type ScheduleValues,
+  type StepDescriptor,
+  defaultHistoryCounts,
+  historyGroups,
+  scheduleStepDescriptors
 } from './medical-form-history-types';
 import {
   buildMedicalActiveSteps,
@@ -30,7 +42,10 @@ import {
   isHistorySectionVisible
 } from '../utils/medical-form-helpers';
 import {
-  ALLERGY_GATEWAY_CHOICE, CATALOG_ACTION_TYPES, SECTION_IDS, STEP_DESCRIPTOR_TYPES
+  ALLERGY_GATEWAY_CHOICE,
+  CATALOG_ACTION_TYPES,
+  SECTION_IDS,
+  STEP_DESCRIPTOR_TYPES
 } from '../constants/kia-constants';
 import { useMedicalFormHistory } from './useMedicalFormHistory';
 import { useMedicalFormCalculations } from './useMedicalFormCalculations';
@@ -44,9 +59,14 @@ import type {
 } from '@/features/data-pasien/api/patient-affiliation-service';
 
 export type {
-  CatalogActionState, HistoryPromptState, HistoryRecordActions,
-  RepeatableHistoryCounts, RepeatableHistoryGroup, RepeatableHistoryKey,
-  ScheduleValues, StepDescriptor
+  CatalogActionState,
+  HistoryPromptState,
+  HistoryRecordActions,
+  RepeatableHistoryCounts,
+  RepeatableHistoryGroup,
+  RepeatableHistoryKey,
+  ScheduleValues,
+  StepDescriptor
 };
 export { defaultHistoryCounts, historyGroups, scheduleStepDescriptors };
 
@@ -65,8 +85,15 @@ export interface UseMedicalAppointmentFormOptions {
 export type UseMedicalAppointmentFormResult = ReturnType<typeof useMedicalAppointmentForm>;
 
 export function useMedicalAppointmentForm({
-  flow, isOpen, selectedService, selectedPatient, newPatientRelationship,
-  onClose, onCreated, onCompleteIntake, onBackToService
+  flow,
+  isOpen,
+  selectedService,
+  selectedPatient,
+  newPatientRelationship,
+  onClose,
+  onCreated,
+  onCompleteIntake,
+  onBackToService
 }: UseMedicalAppointmentFormOptions) {
   const baseDefinition = React.useMemo(() => getMedicalFlowDefinition(flow), [flow]);
   const { catalogs } = useMaternalCatalogs(isOpen && flow === 'pregnancy');
@@ -120,7 +147,7 @@ export function useMedicalAppointmentForm({
   const [schedule, setSchedule] = React.useState<ScheduleValues>({
     doctor: firstDoctorName,
     dateStr: '',
-    timeSlot: ''
+    session: ''
   });
 
   const registeredPatient = useRegisteredPatient(isOpen);
@@ -266,16 +293,25 @@ export function useMedicalAppointmentForm({
   React.useEffect(() => {
     const prev = prevHistoriesRef.current;
     const cGroup = historyGroups.contraception;
-    if (values.hasContraceptionHistory === cGroup.disabledValue && prev.contraception !== cGroup.disabledValue) {
+    if (
+      values.hasContraceptionHistory === cGroup.disabledValue &&
+      prev.contraception !== cGroup.disabledValue
+    ) {
       history.clearHistoryRecordRange(cGroup, 1, cGroup.maxRecords);
       history.setHistoryCounts((p) => (p.contraception === 1 ? p : { ...p, contraception: 1 }));
     }
     const pGroup = historyGroups.pregnancy;
-    if (values.hasPreviousPregnancyHistory === pGroup.disabledValue && prev.pregnancy !== pGroup.disabledValue) {
+    if (
+      values.hasPreviousPregnancyHistory === pGroup.disabledValue &&
+      prev.pregnancy !== pGroup.disabledValue
+    ) {
       history.clearHistoryRecordRange(pGroup, 1, pGroup.maxRecords);
       history.setHistoryCounts((p) => (p.pregnancy === 1 ? p : { ...p, pregnancy: 1 }));
     }
-    if (values.hasAllergyHistory !== ALLERGY_GATEWAY_CHOICE.YES && prev.allergy === ALLERGY_GATEWAY_CHOICE.YES) {
+    if (
+      values.hasAllergyHistory !== ALLERGY_GATEWAY_CHOICE.YES &&
+      prev.allergy === ALLERGY_GATEWAY_CHOICE.YES
+    ) {
       form.setFieldValue('childAllergyHistory', '');
     }
     prevHistoriesRef.current = {
@@ -283,12 +319,25 @@ export function useMedicalAppointmentForm({
       pregnancy: values.hasPreviousPregnancyHistory,
       allergy: values.hasAllergyHistory
     };
-  }, [history, form, values.hasContraceptionHistory, values.hasPreviousPregnancyHistory, values.hasAllergyHistory]);
+  }, [
+    history,
+    form,
+    values.hasContraceptionHistory,
+    values.hasPreviousPregnancyHistory,
+    values.hasAllergyHistory
+  ]);
 
   React.useEffect(() => {
     if (process.env.NODE_ENV === 'production') return;
     const handleAutofill = (e: Event) => {
-      const d = (e as CustomEvent<{ flow: string; values: Record<string, string>; schedule?: ScheduleValues; step?: number }>).detail;
+      const d = (
+        e as CustomEvent<{
+          flow: string;
+          values: Record<string, string>;
+          schedule?: ScheduleValues;
+          step?: number;
+        }>
+      ).detail;
       if (!d || d.flow !== flow) return;
       React.startTransition(() => {
         if (d.values) {
@@ -298,8 +347,13 @@ export function useMedicalAppointmentForm({
             }
             form.setFieldValue(k, v);
           });
-          if (d.values.hasPreviousPregnancyHistory === 'Ya, ada') history.setHistoryCounts((p) => ({ ...p, pregnancy: Math.max(p.pregnancy, 1) }));
-          if (d.values.hasContraceptionHistory === 'Ya, pernah') history.setHistoryCounts((p) => ({ ...p, contraception: Math.max(p.contraception, 1) }));
+          if (d.values.hasPreviousPregnancyHistory === 'Ya, ada')
+            history.setHistoryCounts((p) => ({ ...p, pregnancy: Math.max(p.pregnancy, 1) }));
+          if (d.values.hasContraceptionHistory === 'Ya, pernah')
+            history.setHistoryCounts((p) => ({
+              ...p,
+              contraception: Math.max(p.contraception, 1)
+            }));
         }
         if (d.schedule) setSchedule((p) => ({ ...p, ...d.schedule }));
         if (typeof d.step === 'number') setCurrentStep(d.step);
@@ -426,7 +480,10 @@ export function useMedicalAppointmentForm({
     if (currentDescriptor.type === STEP_DESCRIPTOR_TYPES.HISTORY_CATALOG) {
       const groupKey = currentDescriptor.historyKey;
       if (history.historyCounts[groupKey] === 0) {
-        form.setFieldValue(historyGroups[groupKey].gatewayFieldId, historyGroups[groupKey].disabledValue);
+        form.setFieldValue(
+          historyGroups[groupKey].gatewayFieldId,
+          historyGroups[groupKey].disabledValue
+        );
       }
     }
     setCurrentStep((step) => Math.min(totalSteps, step + 1));
@@ -452,8 +509,17 @@ export function useMedicalAppointmentForm({
   );
 
   return {
-    definition, form, values, visibleMedicalSections, repeatableMedicalSections,
-    activeSteps, currentStep, totalSteps, currentDescriptor, schedule, doctors,
+    definition,
+    form,
+    values,
+    visibleMedicalSections,
+    repeatableMedicalSections,
+    activeSteps,
+    currentStep,
+    totalSteps,
+    currentDescriptor,
+    schedule,
+    doctors,
     isProcessing: submit.isProcessing,
     isQueueSuccessOpen: submit.isQueueSuccessOpen,
     createdAppointment: submit.createdAppointment,

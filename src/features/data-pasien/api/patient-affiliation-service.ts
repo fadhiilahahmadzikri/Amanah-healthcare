@@ -155,50 +155,11 @@ export interface BookingOptionShift {
   startTime: string;
   endTime: string;
   capacity: number;
-  availableSlots: number;
-  bookedSlots: number;
   isPast?: boolean;
   isDisabled: boolean;
   disabledReason: string | null;
   loadStatus?: QueueLoadStatus;
   practitioners: BookingPractitioner[];
-}
-
-export interface RescheduleShiftOption {
-  sessionId: string;
-  startTime: string;
-  endTime: string;
-  shift: string;
-  sessionShift: string;
-  availableSlots: number;
-  capacity: number;
-  isAvailable: boolean;
-}
-
-export interface RescheduleDateOption {
-  date: string;
-  shifts: RescheduleShiftOption[];
-}
-
-export interface RescheduleOptionsResponse {
-  appointmentId: string;
-  currentDate: string;
-  currentStartTime?: string | null;
-  currentEndTime?: string | null;
-  patient: {
-    id: string;
-    name: string;
-  };
-  doctor: {
-    id: string;
-    name: string;
-    specialization: string;
-  };
-  service: {
-    id: string;
-    name: string;
-  };
-  availableDates: RescheduleDateOption[];
 }
 
 export interface CreateAppointmentPayload {
@@ -351,52 +312,6 @@ export const patientAffiliationService = {
     } catch (err) {
       console.error('Failed to get my appointments:', err);
       return [];
-    }
-  },
-
-  async rescheduleAppointment(
-    appointmentId: string,
-    payload: {
-      targetDate: string;
-      targetSessionId?: string;
-      targetSession?: string;
-      reason?: string;
-    }
-  ): Promise<BackendAppointmentItem> {
-    const body: Record<string, any> = {
-      target_date: payload.targetDate,
-      reason: payload.reason || 'Reschedule jadwal pasien'
-    };
-    if (payload.targetSessionId) {
-      body.target_session_id = payload.targetSessionId;
-    }
-    const res = await clientFetch<
-      { success?: boolean; data?: BackendAppointmentItem } | BackendAppointmentItem
-    >(`/api/v1/appointments/${appointmentId}/reschedule`, {
-      method: 'POST',
-      body: JSON.stringify(body)
-    });
-    if ('data' in res && res.data) return res.data;
-    return res as BackendAppointmentItem;
-  },
-
-  async getRescheduleOptions(appointmentId: string): Promise<RescheduleOptionsResponse | null> {
-    try {
-      const res = await clientFetch<
-        | {
-            success?: boolean;
-            data?: RescheduleOptionsResponse;
-          }
-        | RescheduleOptionsResponse
-      >(`/api/v1/appointments/${appointmentId}/reschedule-options`);
-      if (res && typeof res === 'object') {
-        if ('data' in res && res.data) return res.data;
-        if ('appointmentId' in res) return res as RescheduleOptionsResponse;
-      }
-      return null;
-    } catch (err) {
-      console.error('Failed to get reschedule options:', err);
-      return null;
     }
   },
 

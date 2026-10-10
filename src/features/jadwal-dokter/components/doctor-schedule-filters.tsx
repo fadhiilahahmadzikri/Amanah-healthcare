@@ -37,7 +37,7 @@ export function DoctorScheduleFilters({
   selectedPoli,
   onSelectedPoliChange,
   selectedStatuses,
-  onSelectedStatusesChange,
+  onSelectedStatusesChange: _onSelectedStatusesChange,
   onResetAll,
   className
 }: DoctorScheduleFiltersProps) {

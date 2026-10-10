@@ -63,14 +63,8 @@ export class ImmunizationFakerFactory {
     const targetDate = new Date();
     targetDate.setDate(targetDate.getDate() + faker.number.int({ min: 1, max: 5 }));
     const scheduleDateStr = targetDate.toISOString().split('T')[0];
-    const timeSlots = [
-      '08:30 - 09:00',
-      '09:00 - 09:30',
-      '10:00 - 10:30',
-      '11:00 - 11:30',
-      '13:30 - 14:00'
-    ];
-    const timeSlot = timeSlots[faker.number.int({ min: 0, max: timeSlots.length - 1 })];
+    const sessions = ['DINI_HARI', 'PAGI', 'SIANG', 'MALAM'];
+    const session = sessions[faker.number.int({ min: 0, max: sessions.length - 1 })];
 
     const values: Record<string, string> = {
       childName,
@@ -101,7 +95,7 @@ export class ImmunizationFakerFactory {
       values,
       schedule: {
         dateStr: scheduleDateStr,
-        timeSlot
+        session
       }
     };
   }

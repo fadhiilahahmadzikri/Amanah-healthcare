@@ -10,7 +10,6 @@ export { QueueView } from './components/queue-view';
 export { useAppointmentsView } from './model/useAppointmentsView';
 export { useQueueView } from './model/useQueueView';
 export { useConsultationTimer } from './hooks/useConsultationTimer';
-export { useAppointmentReservation } from './model/useAppointmentReservation';
 export { useMedicalAppointmentForm } from './model/useMedicalAppointmentForm';
 export type {
   Appointment,
@@ -27,11 +26,6 @@ export type {
   UseConsultationTimerResult
 } from './hooks/useConsultationTimer';
 export type { QueuePoliStats } from './model/queueViewModel';
-export type {
-  ReservationEntryStep,
-  UseAppointmentReservationOptions,
-  UseAppointmentReservationResult
-} from './model/useAppointmentReservation';
 export type {
   ScheduleValues,
   StepDescriptor,

@@ -61,7 +61,7 @@ export interface CatalogActionState {
 export type ScheduleValues = {
   doctor: string;
   dateStr: string;
-  timeSlot: string;
+  session: string;
 };
 
 export const scheduleStepDescriptors: StepDescriptor[] = [

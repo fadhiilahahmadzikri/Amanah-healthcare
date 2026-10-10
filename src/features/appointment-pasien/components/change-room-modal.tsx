@@ -24,7 +24,7 @@ export interface ChangeRoomModalProps {
   onClose: () => void;
   onSuccess?: () => void;
   onViewAppointment?: (appointmentId: string) => void;
-  onViewDoctorSchedule?: (doctorId: string, targetSlotTime?: string) => void;
+  onViewDoctorSchedule?: (doctorId: string, targetSessionTime?: string) => void;
 }
 
 export function ChangeRoomModal({
@@ -155,7 +155,6 @@ export function ChangeRoomModal({
         </div>
 
         <div className='space-y-2.5 pt-0.5'>
-
           {isLoading ? (
             <div className='py-12 flex flex-col items-center justify-center gap-2 text-muted-foreground'>
               <Icons.spinner className='size-6 animate-spin text-primary' />
@@ -204,12 +203,14 @@ export function ChangeRoomModal({
 
                       <div className='pt-2.5 flex items-center justify-between gap-1'>
                         <span
-                          className='inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-destructive/10 text-destructive border border-destructive/20 truncate max-w-[130px]'
+                          className='inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-destructive/10 text-destructive border border-destructive/20 truncate max-w-[170px]'
                           title={
-                            occupant?.doctorName ? `Digunakan oleh ${occupant.doctorName}` : undefined
+                            occupant?.doctorName
+                              ? `Digunakan oleh ${occupant.doctorName}`
+                              : undefined
                           }
                         >
-                          Terisi{occupant?.doctorName ? `: ${occupant.doctorName}` : ''}
+                          Sedang Digunakan{occupant?.doctorName ? `: ${occupant.doctorName}` : ''}
                         </span>
 
                         {onViewDoctorSchedule && occupant?.practitionerId && (
@@ -218,10 +219,10 @@ export function ChangeRoomModal({
                             onClick={(e) => {
                               e.stopPropagation();
                               onClose();
-                              const targetSlotTime =
+                              const targetSessionTime =
                                 occupant.startTime ||
                                 (appointmentTime ? appointmentTime.split(' ')[0] : undefined);
-                              onViewDoctorSchedule(occupant.practitionerId!, targetSlotTime);
+                              onViewDoctorSchedule(occupant.practitionerId!, targetSessionTime);
                             }}
                             className='text-[10.5px] font-semibold text-primary hover:underline cursor-pointer inline-flex items-center gap-0.5 whitespace-nowrap'
                           >

@@ -212,7 +212,7 @@ export function useMedicalAppointmentSubmit({
         service: definition.serviceName,
         doctor: schedule?.doctor || '',
         dateStr: schedule?.dateStr || '',
-        timeSlot: schedule?.timeSlot || '',
+        session: schedule?.session || '',
         complaint:
           complaint ||
           (definition.flow === FLOW_NAMES.IMMUNIZATION

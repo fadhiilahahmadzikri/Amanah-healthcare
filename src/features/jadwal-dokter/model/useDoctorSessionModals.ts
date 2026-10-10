@@ -13,24 +13,8 @@ export interface UseDoctorSessionModalsProps {
   onAddSchedule?: () => void;
 }
 
-export function useDoctorSessionModals({
-  doctor,
-  isDayCuti,
-  onAddSchedule
-}: UseDoctorSessionModalsProps) {
+export function useDoctorSessionModals({ doctor }: UseDoctorSessionModalsProps) {
   const updateSessionMutation = useUpdateDoctorSessionMutation();
-
-  // Reschedule Modal
-  const [isRescheduleOpen, setIsRescheduleOpen] = useState(false);
-  const [selectedSessionForReschedule, setSelectedSessionForReschedule] =
-    useState<DoctorDailySession | null>(null);
-
-  // Add Session Modal
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [addSessionInitialTime, setAddSessionInitialTime] = useState<string | undefined>(undefined);
-  const [addSessionInitialEndTime, setAddSessionInitialEndTime] = useState<string | undefined>(
-    undefined
-  );
 
   // Patients Modal
   const [isPatientsModalOpen, setIsPatientsModalOpen] = useState(false);
@@ -115,30 +99,6 @@ export function useDoctorSessionModals({
     setSelectedSessionForPatients(null);
   };
 
-  const handleOpenReschedule = (session: DoctorDailySession) => {
-    setSelectedSessionForReschedule(session);
-    setIsRescheduleOpen(true);
-  };
-
-  const handleCloseRescheduleModal = () => {
-    setIsRescheduleOpen(false);
-    setSelectedSessionForReschedule(null);
-  };
-
-  const openAddSessionModal = (initialTime?: string, initialEndTime?: string) => {
-    if (isDayCuti) return;
-    onAddSchedule?.();
-    setAddSessionInitialTime(initialTime);
-    setAddSessionInitialEndTime(initialEndTime);
-    setIsAddModalOpen(true);
-  };
-
-  const handleCloseAddModal = () => {
-    setIsAddModalOpen(false);
-    setAddSessionInitialTime(undefined);
-    setAddSessionInitialEndTime(undefined);
-  };
-
   const handleOpenPatientDetail = (patient: BookedPatientItem) => {
     setSelectedPatientForDetail(patient);
     setIsPatientDetailOpen(true);
@@ -150,14 +110,6 @@ export function useDoctorSessionModals({
   };
 
   return {
-    isRescheduleOpen,
-    setIsRescheduleOpen,
-    selectedSessionForReschedule,
-    setSelectedSessionForReschedule,
-    isAddModalOpen,
-    setIsAddModalOpen,
-    addSessionInitialTime,
-    addSessionInitialEndTime,
     isPatientsModalOpen,
     setIsPatientsModalOpen,
     selectedSessionForPatients,
@@ -173,10 +125,6 @@ export function useDoctorSessionModals({
     handleToggleSessionStatus,
     handleOpenPatients,
     handleClosePatientsModal,
-    handleOpenReschedule,
-    handleCloseRescheduleModal,
-    openAddSessionModal,
-    handleCloseAddModal,
     handleOpenPatientDetail,
     handleClosePatientDetail,
     updateSessionMutation

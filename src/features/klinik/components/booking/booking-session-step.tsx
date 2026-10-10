@@ -9,16 +9,13 @@ import type { ServiceCatalogItem } from '../../api/catalog.service';
 import { cn } from '@/lib/utils';
 import { useBookingSessions } from '../../model/useBookingSessions';
 import type { BookingOptionShift } from '@/features/data-pasien/api/patient-affiliation-service';
-import {
-  QUEUE_LOAD_STATUS,
-  QUEUE_LOAD_BADGE_STYLES,
-} from '../../constants/queue-load.constants';
+import { QUEUE_LOAD_STATUS, QUEUE_LOAD_BADGE_STYLES } from '../../constants/queue-load.constants';
 
 export interface BookingSessionStepProps {
   selectedService: ServiceCatalogItem | null;
   dateStr: string;
-  timeSlot: string;
-  setTimeSlot: (slot: string) => void;
+  session?: string;
+  setSession?: (session: string) => void;
   onSelectSessionId?: (sessionId: string) => void;
   staffId?: string;
   poliklinikId?: string;
@@ -27,17 +24,22 @@ export interface BookingSessionStepProps {
 export function BookingSessionStep({
   selectedService,
   dateStr,
-  timeSlot,
-  setTimeSlot,
+  session,
+  setSession,
   onSelectSessionId,
   staffId,
   poliklinikId
 }: BookingSessionStepProps) {
   const effectivePoliklinikId = poliklinikId || selectedService?.poliklinikId;
+  const currentSession = session ?? '';
+
+  const handleSessionChange = (newSession: string) => {
+    setSession?.(newSession);
+  };
 
   const { sessions: bookingSessions, isLoading: isLoadingSessions } = useBookingSessions(
-    { dateStr, poliklinikId: effectivePoliklinikId, staffId, currentTimeSlot: timeSlot },
-    { onTimeSlotChange: setTimeSlot, onSessionIdChange: onSelectSessionId }
+    { dateStr, poliklinikId: effectivePoliklinikId, staffId, currentSession },
+    { onSessionChange: handleSessionChange, onSessionIdChange: onSelectSessionId }
   );
 
   return (
@@ -64,9 +66,9 @@ export function BookingSessionStep({
       ) : (
         <SessionList
           sessions={bookingSessions}
-          timeSlot={timeSlot}
-          onSelectSlot={(session, sessionId) => {
-            setTimeSlot(session);
+          session={currentSession}
+          onSelectSession={(sess, sessionId) => {
+            handleSessionChange(sess);
             if (sessionId) onSelectSessionId?.(sessionId);
           }}
         />
@@ -118,40 +120,40 @@ function SessionEmptyState({ dateStr }: { dateStr: string }) {
 
 interface SessionListProps {
   sessions: BookingOptionShift[];
-  timeSlot: string;
-  onSelectSlot: (session: string, sessionId?: string) => void;
+  session: string;
+  onSelectSession: (session: string, sessionId?: string) => void;
 }
 
-function SessionList({ sessions, timeSlot, onSelectSlot }: SessionListProps) {
+function SessionList({ sessions, session, onSelectSession }: SessionListProps) {
   return (
     <div className='pt-0.5'>
       <RadioGroup
-        value={timeSlot}
-        onValueChange={(val) => onSelectSlot(val)}
+        value={session}
+        onValueChange={(val) => onSelectSession(val)}
         className='grid grid-cols-2 gap-2 sm:gap-2.5'
       >
-        {sessions.map((session) => {
-          const isSelected = timeSlot === session.session;
-          const isDisabled = Boolean(session.isPast);
-          const SessionIcon = getSessionIcon(session.session);
-          const primaryPractitioner = session.practitioners?.[0];
-          const loadStatus = session.loadStatus || QUEUE_LOAD_STATUS.NORMAL;
+        {sessions.map((sess) => {
+          const isSelected = session === sess.session;
+          const isDisabled = Boolean(sess.isDisabled || sess.isPast);
+          const SessionIcon = getSessionIcon(sess.session);
+          const primaryPractitioner = sess.practitioners?.[0];
+          const loadStatus = sess.loadStatus || QUEUE_LOAD_STATUS.NORMAL;
           const badgeStyle = QUEUE_LOAD_BADGE_STYLES[loadStatus];
 
           return (
             <div
-              key={session.session}
+              key={sess.session}
               role='button'
               tabIndex={isDisabled ? -1 : 0}
               onKeyDown={(e) => {
                 if (!isDisabled && (e.key === 'Enter' || e.key === ' ')) {
                   e.preventDefault();
-                  onSelectSlot(session.session, primaryPractitioner?.sessionId);
+                  onSelectSession(sess.session, primaryPractitioner?.sessionId);
                 }
               }}
               onClick={() => {
                 if (!isDisabled) {
-                  onSelectSlot(session.session, primaryPractitioner?.sessionId);
+                  onSelectSession(sess.session, primaryPractitioner?.sessionId);
                 }
               }}
               className={cn(
@@ -179,13 +181,13 @@ function SessionList({ sessions, timeSlot, onSelectSlot }: SessionListProps) {
 
                 <div className='min-w-0 flex-1 space-y-1'>
                   <div className='text-xs sm:text-sm font-semibold text-foreground truncate'>
-                    {session.label}
+                    {sess.label}
                   </div>
 
                   <div>
                     {isDisabled ? (
                       <span className='inline-flex items-center rounded-md bg-muted text-muted-foreground border px-1.5 py-0.5 text-[10px] font-semibold leading-none'>
-                        Waktu Terlewati
+                        {sess.isPast ? 'Waktu Terlewati' : sess.disabledReason || 'Sesi Tutup'}
                       </span>
                     ) : (
                       <span
@@ -203,8 +205,8 @@ function SessionList({ sessions, timeSlot, onSelectSlot }: SessionListProps) {
 
               <div className='shrink-0 pl-0.5'>
                 <RadioGroupItem
-                  value={session.session}
-                  id={`session-radio-${session.session}`}
+                  value={sess.session}
+                  id={`session-radio-${sess.session}`}
                   disabled={isDisabled}
                 />
               </div>

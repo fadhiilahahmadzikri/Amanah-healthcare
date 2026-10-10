@@ -39,17 +39,8 @@ export const paths = {
     update: (id: string) => `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}`,
     updateDayStatus: (id: string) =>
       `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/day-status`,
-    createSession: (id: string) =>
-      `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/sessions`,
     updateSession: (id: string, sessionId: string) =>
       `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/sessions/${sessionId}`,
-    deleteSession: (id: string, sessionId: string) =>
-      `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/sessions/${sessionId}`,
-    reschedule: (id: string, sessionId: string) =>
-      `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/sessions/${sessionId}/reschedule`,
-    rescheduleEligibility: (id: string, sessionId: string) =>
-      `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/sessions/${sessionId}/reschedule-eligibility`,
-    duration: (id: string) => `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/duration`,
     dayByDate: (id: string, date: string) =>
       `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/days/${date}`,
     filterOptions: () => `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/filter-options`,
@@ -57,12 +48,8 @@ export const paths = {
       `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/sessions/${sessionId}/patients`,
     doctorPatients: (id: string) =>
       `${getBaseApiUrl()}/api/v1/admin/doctor-schedules/${id}/patients`,
-    projection: () => `${getBaseApiUrl()}/api/v1/schedules/projection`,
-    adminProjection: () =>
-      `${getBaseApiUrl()}/api/v1/schedules/projection`,
     referenceOptions: () => `${getBaseApiUrl()}/api/v1/schedules/reference/options`,
-    adminReferenceOptions: () =>
-      `${getBaseApiUrl()}/api/v1/schedules/reference/options`
+    adminReferenceOptions: () => `${getBaseApiUrl()}/api/v1/schedules/reference/options`
   },
   appointments: {
     list: () => `${getBaseApiUrl()}/api/v1/appointments`,
@@ -84,8 +71,6 @@ export const paths = {
     referenceSessions: () => `${getBaseApiUrl()}/api/v1/schedules/reference/sessions`,
     referenceRooms: () => `${getBaseApiUrl()}/api/v1/schedules/reference/rooms`,
     referencePolikliniks: () => `${getBaseApiUrl()}/api/v1/schedules/reference/polikliniks`,
-    contexts: () => `${getBaseApiUrl()}/api/v1/schedules/contexts`,
-    projection: () => `${getBaseApiUrl()}/api/v1/schedules/projection`,
     occupancyOverview: () => `${getBaseApiUrl()}/api/v1/schedules/occupancy-overview`,
     poliSchedules: (poliklinikId: string) =>
       `${getBaseApiUrl()}/api/v1/schedules/poli/${poliklinikId}`,
@@ -101,11 +86,7 @@ export const paths = {
       `${getBaseApiUrl()}/api/v1/schedules/sessions/${sessionId}/patients`,
     bookedPatients: () => `${getBaseApiUrl()}/api/v1/schedules/booked-patients`,
     sessionBookedPatients: (id: string) =>
-      `${getBaseApiUrl()}/api/v1/schedules/${id}/booked-patients`,
-    rescheduleEligibility: (sessionId: string) =>
-      `${getBaseApiUrl()}/api/v1/schedules/sessions/${sessionId}/reschedule-eligibility`,
-    reschedule: (sessionId: string) =>
-      `${getBaseApiUrl()}/api/v1/schedules/sessions/${sessionId}/reschedule`
+      `${getBaseApiUrl()}/api/v1/schedules/${id}/booked-patients`
   },
   clinicalPractitioners: {
     list: () => `${getBaseApiUrl()}/api/v1/clinical/practitioners`

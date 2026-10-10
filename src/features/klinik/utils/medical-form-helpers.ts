@@ -141,10 +141,10 @@ export function checkCurrentStepValid(
   }
 
   if (descriptor.type === STEP_DESCRIPTOR_TYPES.TIME) {
-    return Boolean(schedule.timeSlot);
+    return Boolean(schedule.session);
   }
 
-  return Boolean(schedule.dateStr && schedule.timeSlot);
+  return Boolean(schedule.dateStr && schedule.session);
 }
 
 export function isHistoryRecordEmpty(

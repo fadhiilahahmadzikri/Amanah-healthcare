@@ -9,11 +9,7 @@ import type {
 import type {
   ClinicRoom,
   AdminDoctorScheduleFilterOptionsResponse,
-  RescheduleEligibilityData,
   AdminSessionPatientsData,
-  ScheduleContextsResponse,
-  ScheduleProjectionResponse,
-  DoctorOccupancyOverviewResponse,
   ScheduleReferenceOptionsData
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 
@@ -107,20 +103,6 @@ export async function updateDoctorDayStatus(
   );
 }
 
-export { isDoctorOnLeaveOnDay } from '../utils/leave-calculator';
-
-export async function getDoctorScheduleByName(
-  name: string,
-  params?: DoctorScheduleDetailParams
-): Promise<DoctorSchedule | null> {
-  const all = await getDoctorSchedules({ search: name, limit: 10, ...params });
-  return (
-    all.doctors.find((d) => (d.nama_dokter || '').toLowerCase().includes(name.toLowerCase())) ||
-    all.doctors[0] ||
-    null
-  );
-}
-
 export async function getDoctorScheduleFilterOptions(): Promise<
   AdminDoctorScheduleFilterOptionsResponse['data']
 > {
@@ -159,50 +141,6 @@ export async function getClinicRooms(params?: {
   return (Array.isArray(res) ? res : []) as ClinicRoom[];
 }
 
-export async function getDoctorOccupancyOverview(
-  params?: Record<string, unknown>
-): Promise<DoctorOccupancyOverviewResponse | null> {
-  const qs = new URLSearchParams();
-  if (params) {
-    for (const [k, v] of Object.entries(params)) {
-      if (v !== undefined && v !== null) qs.set(k, String(v));
-    }
-  }
-  const q = qs.toString();
-  const res = await clientFetch<
-    { data?: DoctorOccupancyOverviewResponse } | DoctorOccupancyOverviewResponse
-  >(`/api/v1/schedules/occupancy-overview${q ? `?${q}` : ''}`);
-  if (res && 'data' in res && res.data) {
-    return res.data;
-  }
-  return (res as DoctorOccupancyOverviewResponse) ?? null;
-}
-
-export async function checkRescheduleEligibility(
-  id: string,
-  sessionId: string,
-  params?: {
-    targetDate?: string;
-    targetStartTime?: string;
-    targetRoomId?: string;
-  }
-): Promise<RescheduleEligibilityData> {
-  const qs = new URLSearchParams();
-  if (params) {
-    for (const [k, v] of Object.entries(params)) {
-      if (v !== undefined && v !== null) qs.set(k, String(v));
-    }
-  }
-  const q = qs.toString();
-  const res = await clientFetch<{ data?: RescheduleEligibilityData } | RescheduleEligibilityData>(
-    `/api/v1/admin/doctor-schedules/${id}/sessions/${sessionId}/reschedule-eligibility${q ? `?${q}` : ''}`
-  );
-  if (res && 'data' in res && res.data) {
-    return res.data;
-  }
-  return res as RescheduleEligibilityData;
-}
-
 export async function getSessionPatients(
   doctorId: string,
   sessionId: string,
@@ -221,70 +159,6 @@ export async function getSessionPatients(
   return res as AdminSessionPatientsData;
 }
 
-export async function getDoctorShiftPatients(
-  doctorId: string,
-  params: { date: string; sessionShift?: string; status?: string; search?: string }
-): Promise<AdminSessionPatientsData> {
-  const qs = new URLSearchParams();
-  qs.set('date', params.date);
-  if (params.sessionShift) qs.set('sessionShift', params.sessionShift);
-  if (params.status) qs.set('status', params.status);
-  if (params.search) qs.set('search', params.search);
-  const q = qs.toString();
-  const res = await clientFetch<{
-    data?: {
-      sessionId?: string;
-      shift?: string;
-      date?: string;
-      accumulatedCapacity?: number;
-      accumulatedAvailableSlots?: number;
-      accumulatedBookedCount?: number;
-      sessions?: Array<{
-        startTime?: string;
-        endTime?: string;
-        patients?: AdminSessionPatientsData['patients'];
-      }>;
-      patients?: AdminSessionPatientsData['patients'];
-    };
-  }>(`/api/v1/admin/doctor-schedules/${doctorId}/patients${q ? `?${q}` : ''}`);
-  const raw = res && 'data' in res && res.data ? res.data : undefined;
-  const patients =
-    raw?.patients ||
-    (Array.isArray(raw?.sessions) ? raw.sessions.flatMap((s) => s.patients || []) : []);
-  return {
-    sessionId: raw?.sessionId || '',
-    sessionLabel: raw?.shift || params.sessionShift || '',
-    shift: raw?.shift || params.sessionShift || '',
-    scheduleDate: raw?.date || params.date,
-    startTime: raw?.sessions?.[0]?.startTime || '00:00',
-    endTime: raw?.sessions?.[raw?.sessions?.length - 1]?.endTime || '23:59',
-    capacity: raw?.accumulatedCapacity ?? 0,
-    availableSlots: raw?.accumulatedAvailableSlots ?? 0,
-    bookedCount: raw?.accumulatedBookedCount ?? patients.length,
-    clinicRoom: null,
-    patients
-  };
-}
-
-export async function getScheduleProjection(
-  params?: Record<string, unknown>
-): Promise<ScheduleProjectionResponse> {
-  const qs = new URLSearchParams();
-  if (params) {
-    for (const [k, v] of Object.entries(params)) {
-      if (v !== undefined && v !== null) qs.set(k, String(v));
-    }
-  }
-  const q = qs.toString();
-  const res = await clientFetch<ScheduleProjectionResponse | { data?: ScheduleProjectionResponse }>(
-    `/api/v1/admin/doctor-schedules/projection${q ? `?${q}` : ''}`
-  );
-  if (res && 'data' in res && res.data) {
-    return res.data;
-  }
-  return res as ScheduleProjectionResponse;
-}
-
 export async function getScheduleReferenceOptions(): Promise<ScheduleReferenceOptionsData> {
   const res = await clientFetch<
     ScheduleReferenceOptionsData | { data?: ScheduleReferenceOptionsData }
@@ -293,40 +167,6 @@ export async function getScheduleReferenceOptions(): Promise<ScheduleReferenceOp
     return res.data;
   }
   return res as ScheduleReferenceOptionsData;
-}
-
-export async function getScheduleContexts(
-  params?: string | Record<string, unknown>
-): Promise<ScheduleContextsResponse> {
-  const qs = new URLSearchParams();
-  if (typeof params === 'string') {
-    if (params) qs.set('date', params);
-  } else if (params) {
-    for (const [k, v] of Object.entries(params)) {
-      if (v !== undefined && v !== null) qs.set(k, String(v));
-    }
-  }
-  const q = qs.toString();
-  const res = await clientFetch<ScheduleContextsResponse | { data?: ScheduleContextsResponse }>(
-    `/api/v1/admin/doctor-schedules/contexts${q ? `?${q}` : ''}`
-  );
-  if (res && 'data' in res && Array.isArray(res.data)) {
-    return res.data;
-  }
-  return (Array.isArray(res) ? res : []) as ScheduleContextsResponse;
-}
-
-export async function createDoctorSession(
-  doctorId: string,
-  payload: unknown
-): Promise<ApiMessageResponse> {
-  const url = doctorId
-    ? `/api/v1/admin/doctor-schedules/${doctorId}/sessions`
-    : '/api/v1/admin/doctor-schedules/sessions';
-  return await clientFetch<ApiMessageResponse>(url, {
-    method: 'POST',
-    body: JSON.stringify(payload)
-  });
 }
 
 export async function updateDoctorSession(
@@ -341,45 +181,6 @@ export async function updateDoctorSession(
     method: 'PATCH',
     body: JSON.stringify(payload)
   });
-}
-
-export async function deleteDoctorSession(
-  doctorId: string,
-  sessionId: string
-): Promise<ApiMessageResponse> {
-  const url = doctorId
-    ? `/api/v1/admin/doctor-schedules/${doctorId}/sessions/${sessionId}`
-    : `/api/v1/admin/doctor-schedules/sessions/${sessionId}`;
-  return await clientFetch<ApiMessageResponse>(url, {
-    method: 'DELETE'
-  });
-}
-
-export async function rescheduleDoctorSession(
-  doctorId: string,
-  sessionId: string,
-  payload: unknown
-): Promise<ApiMessageResponse> {
-  return await clientFetch<ApiMessageResponse>(
-    `/api/v1/admin/doctor-schedules/${doctorId}/sessions/${sessionId}/reschedule`,
-    {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    }
-  );
-}
-
-export async function updateDoctorDuration(
-  doctorId: string,
-  payload: unknown
-): Promise<ApiMessageResponse> {
-  return await clientFetch<ApiMessageResponse>(
-    `/api/v1/admin/doctor-schedules/${doctorId}/duration`,
-    {
-      method: 'PATCH',
-      body: JSON.stringify(payload)
-    }
-  );
 }
 
 export async function cancelAppointment(

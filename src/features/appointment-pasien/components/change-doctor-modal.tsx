@@ -209,7 +209,7 @@ export function ChangeDoctorModal({
             </div>
           ) : groups.length === 0 ? (
             <div className='py-8 text-center text-xs text-muted-foreground border border-dashed border-border/60 rounded-xl p-4'>
-              Tidak ada dokter kandidat lain yang tersedia pada tanggal dan slot waktu ini.
+              Tidak ada dokter kandidat lain yang tersedia pada tanggal dan sesi praktik ini.
             </div>
           ) : currentStep === 'category' ? (
             <div

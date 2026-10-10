@@ -9,7 +9,7 @@ import {
   getAppointmentStatusConfig,
   APPOINTMENT_STATUS_OPTIONS
 } from '../../constants/appointment-status.dictionary';
-import { useDoctorDetailDrawerStore } from '@/features/jadwal-dokter/model/useDoctorDetailDrawerStore';
+import Link from 'next/link';
 import type { AdminAppointment } from '../../api/types';
 import type { FilterOption } from '@/features/klinik';
 import { CellAction } from './cell-action';
@@ -266,19 +266,19 @@ export function getAppointmentColumns(
             </button>
           );
         }
-        const targetDoctorId = appt.staffId || appt.doctorId || appt.doctorName;
+        const targetDoctorId = appt.staffId || appt.doctorId;
+        const href = targetDoctorId
+          ? `/dashboard/jadwal-dokter?selectedDoctorId=${encodeURIComponent(targetDoctorId)}&dialog=detail`
+          : `/dashboard/jadwal-dokter?search=${encodeURIComponent(appt.doctorName)}`;
         return (
-          <button
-            type='button'
-            onClick={(e) => {
-              e.stopPropagation();
-              useDoctorDetailDrawerStore.getState().openWithId(targetDoctorId);
-            }}
+          <Link
+            href={href}
+            onClick={(e) => e.stopPropagation()}
             className='text-sm font-semibold text-primary hover:underline hover:text-primary/80 truncate max-w-[160px] text-left cursor-pointer transition-colors block'
             title='Buka Jadwal & Profil Dokter'
           >
             {appt.doctorName}
-          </button>
+          </Link>
         );
       },
       meta: {

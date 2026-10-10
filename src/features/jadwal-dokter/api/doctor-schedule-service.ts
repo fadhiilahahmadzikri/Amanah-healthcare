@@ -7,37 +7,22 @@ import {
   adminDoctorScheduleDetailResponseSchema,
   clinicalPractitionersResponseSchema,
   adminDoctorScheduleFilterOptionsSchema,
-  deleteAdminDoctorSessionResponseSchema,
-  rescheduleAdminDoctorSessionResponseSchema,
-  rescheduleEligibilityResponseSchema,
   updateAdminDayByDateResponseSchema,
   clinicRoomsResponseSchema,
-  doctorOccupancyOverviewResponseSchema,
   type ClinicRoom,
-  type DoctorOccupancyOverviewResponse,
   type AdminDoctorScheduleListResponse,
   type AdminDoctorScheduleDetailResponse,
   type UpdateAdminDoctorSchedulePayload,
   type UpdateAdminDayStatusPayload,
   type UpdateAdminDayByDatePayload,
   type UpdateAdminDayByDateResponse,
-  type CreateAdminDoctorSessionPayload,
   type UpdateAdminDoctorSessionPayload,
-  type DeleteAdminDoctorSessionResponse,
-  type RescheduleAdminDoctorSessionPayload,
-  type RescheduleAdminDoctorSessionResponse,
-  type RescheduleEligibilityResponse,
-  type UpdateAdminDoctorDurationPayload,
   type AdminDoctorScheduleFilterOptionsResponse,
   type ClinicalPractitionersResponse,
-  scheduleContextsResponseSchema,
   scheduleDaySettingsResponseSchema,
-  type ScheduleContextsResponse,
   type ScheduleDaySettingsPayload,
   type ScheduleDaySettingsResponse,
-  scheduleProjectionResponseSchema,
   scheduleReferenceOptionsResponseSchema,
-  type ScheduleProjectionResponse,
   type ScheduleReferenceOptionsResponse
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 import { z } from 'zod';
@@ -70,10 +55,7 @@ export async function fetchAdminDoctorSchedules(
   if (filters.status && filters.status.length > 0) {
     const validStatuses = filters.status
       .map((st) => st.trim().toUpperCase())
-      .filter(
-        (st): st is 'OPEN' | 'OCCUPIED' | 'CLOSED' =>
-          st === 'OPEN' || st === 'OCCUPIED' || st === 'CLOSED'
-      );
+      .filter((st): st is 'OPEN' | 'CLOSED' => st === 'OPEN' || st === 'CLOSED');
 
     if (validStatuses.length > 0) {
       query.status = validStatuses.join(',');
@@ -153,21 +135,6 @@ export async function updateAdminDayStatus(
   return response;
 }
 
-export async function createAdminDoctorSession(
-  id: string,
-  payload: CreateAdminDoctorSessionPayload
-): Promise<unknown> {
-  const token = await resolveActiveToken();
-
-  const response = await httpClient.request(paths.doctorSchedules.createSession(id), z.any(), {
-    method: 'POST',
-    body: payload,
-    tokenOverride: token
-  });
-
-  return response;
-}
-
 export async function fetchClinicalPractitioners(params?: {
   search?: string;
   specialtyId?: string;
@@ -226,69 +193,6 @@ export async function updateAdminDoctorSession(
   return response;
 }
 
-export async function deleteAdminDoctorSession(
-  id: string,
-  sessionId: string
-): Promise<DeleteAdminDoctorSessionResponse> {
-  const token = await resolveActiveToken();
-
-  const response = await httpClient.request(
-    paths.doctorSchedules.deleteSession(id, sessionId),
-    deleteAdminDoctorSessionResponseSchema,
-    {
-      method: 'DELETE',
-      tokenOverride: token
-    }
-  );
-
-  return response;
-}
-
-export async function rescheduleAdminDoctorSession(
-  id: string,
-  sessionId: string,
-  payload: RescheduleAdminDoctorSessionPayload
-): Promise<RescheduleAdminDoctorSessionResponse> {
-  const token = await resolveActiveToken();
-
-  const response = await httpClient.request(
-    paths.doctorSchedules.reschedule(id, sessionId),
-    rescheduleAdminDoctorSessionResponseSchema,
-    {
-      method: 'POST',
-      body: payload,
-      tokenOverride: token
-    }
-  );
-
-  return response;
-}
-
-export async function checkRescheduleEligibility(
-  id: string,
-  sessionId: string,
-  params: {
-    targetDate?: string;
-    targetStartTime?: string;
-    targetRoomId?: string;
-  } = {}
-): Promise<RescheduleEligibilityResponse['data']> {
-  const token = await resolveActiveToken();
-
-  const response = await httpClient.request(
-    paths.doctorSchedules.rescheduleEligibility(id, sessionId),
-    rescheduleEligibilityResponseSchema,
-    {
-      method: 'GET',
-      query: params as Record<string, unknown>,
-      tokenOverride: token,
-      cache: 'no-store'
-    }
-  );
-
-  return response.data;
-}
-
 export async function updateAdminDayByDate(
   id: string,
   date: string,
@@ -305,21 +209,6 @@ export async function updateAdminDayByDate(
       tokenOverride: token
     }
   );
-
-  return response;
-}
-
-export async function updateAdminDoctorDuration(
-  id: string,
-  payload: UpdateAdminDoctorDurationPayload
-): Promise<unknown> {
-  const token = await resolveActiveToken();
-
-  const response = await httpClient.request(paths.doctorSchedules.duration(id), z.any(), {
-    method: 'PATCH',
-    body: payload,
-    tokenOverride: token
-  });
 
   return response;
 }
@@ -343,41 +232,6 @@ export async function fetchClinicRooms(params?: {
   return response;
 }
 
-export async function fetchScheduleProjection(params: {
-  scheduleContextId?: string;
-  startTime?: string;
-  endTime?: string;
-  practitionerId?: string;
-  shift?: string;
-  date?: string;
-  slotsCount?: number;
-  fillShift?: boolean;
-}): Promise<ScheduleProjectionResponse> {
-  const token = await resolveActiveToken();
-  const query: Record<string, unknown> = {};
-  if (params.scheduleContextId) query.scheduleContextId = params.scheduleContextId;
-  if (params.date) query.date = params.date;
-  if (params.startTime) query.startTime = params.startTime;
-  if (params.endTime) query.endTime = params.endTime;
-  if (params.practitionerId) query.practitionerId = params.practitionerId;
-  if (params.shift) query.shift = params.shift;
-  if (params.slotsCount !== undefined) query.slotsCount = params.slotsCount;
-  if (params.fillShift !== undefined) query.fillShift = params.fillShift;
-
-  const response = await httpClient.request(
-    paths.schedules.projection(),
-    scheduleProjectionResponseSchema,
-    {
-      method: 'GET',
-      query,
-      tokenOverride: token,
-      cache: 'no-store'
-    }
-  );
-
-  return response;
-}
-
 export async function fetchScheduleReferenceOptions(): Promise<ScheduleReferenceOptionsResponse> {
   const token = await resolveActiveToken();
   const response = await httpClient.request(
@@ -390,57 +244,6 @@ export async function fetchScheduleReferenceOptions(): Promise<ScheduleReference
     }
   );
 
-  return response;
-}
-
-export async function fetchScheduleContexts(date?: string): Promise<ScheduleContextsResponse> {
-  const token = await resolveActiveToken();
-  const query: Record<string, unknown> = date ? { date } : {};
-
-  const response = await httpClient.request(
-    paths.schedules.contexts(),
-    scheduleContextsResponseSchema,
-    {
-      method: 'GET',
-      query,
-      tokenOverride: token,
-      cache: 'no-store'
-    }
-  );
-
-  return response;
-}
-
-export async function fetchDoctorOccupancyOverview(params: {
-  date: string;
-  staffId: string;
-  roomId?: string;
-  existingSessions?: {
-    jam_mulai: string;
-    jam_selesai: string;
-    nama_sesi?: string;
-    id?: string;
-    status_sesi?: string;
-    slot_tersedia?: number;
-  }[];
-}): Promise<DoctorOccupancyOverviewResponse> {
-  const token = await resolveActiveToken();
-  const query: Record<string, unknown> = {
-    date: params.date,
-    staffId: params.staffId
-  };
-  if (params.roomId) query.roomId = params.roomId;
-
-  const response = await httpClient.request(
-    paths.schedules.occupancyOverview(),
-    doctorOccupancyOverviewResponseSchema,
-    {
-      method: 'GET',
-      query,
-      tokenOverride: token,
-      cache: 'no-store'
-    }
-  );
   return response;
 }
 

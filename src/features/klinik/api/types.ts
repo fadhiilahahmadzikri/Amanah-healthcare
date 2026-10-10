@@ -109,7 +109,7 @@ export interface AppointmentFormData {
   service: string;
   doctor: string;
   dateStr: string;
-  timeSlot: string;
+  session: string;
   complaint: string;
   patientName?: string;
   patientEmail?: string;

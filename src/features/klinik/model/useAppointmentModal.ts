@@ -34,17 +34,13 @@ export type BookingModalStep =
 
 export interface UseAppointmentModalProps {
   isOpen: boolean;
-  mode: 'create' | 'edit';
-  initialAppointment?: Appointment | null;
   onClose: () => void;
   onSubmit: (formData: AppointmentFormData, appointmentId?: string) => void;
 }
 
 export function useAppointmentModal({
   isOpen,
-  mode,
-  initialAppointment,
-  onClose,
+  onClose: _onClose,
   onSubmit
 }: UseAppointmentModalProps) {
   const [step, setStep] = useState<BookingModalStep>('category');
@@ -58,7 +54,7 @@ export function useAppointmentModal({
   const defaultDateStr = tomorrow.toISOString().slice(0, 10);
 
   const [dateStr, setDateStr] = useState<string>(defaultDateStr);
-  const [timeSlot, setTimeSlot] = useState<string>('PAGI');
+  const [session, setSession] = useState<string>('');
   const [visitType, setVisitType] = useState<'Pemeriksaan Baru' | 'Kontrol Ulang'>(
     'Pemeriksaan Baru'
   );
@@ -86,9 +82,6 @@ export function useAppointmentModal({
   }, [selectedService?.id, selectedPatientId]);
 
   const [selectedSessionId, setSelectedSessionId] = useState<string>('');
-  const [rescheduleStaffId, setRescheduleStaffId] = useState<string>('');
-  const [reschedulePoliklinikId, setReschedulePoliklinikId] = useState<string>('');
-  const [rescheduleStaffIdReady, setRescheduleStaffIdReady] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isQueueSuccessOpen, setIsQueueSuccessOpen] = useState(false);
   const [createdAppointment, setCreatedAppointment] = useState<Appointment | null>(null);
@@ -145,40 +138,11 @@ export function useAppointmentModal({
     prevIsOpenRef.current = isOpen;
 
     if (isOpen && !wasOpen) {
-      if (mode === 'edit' && initialAppointment) {
-        setStep('date');
-        setDateStr(initialAppointment.date || defaultDateStr);
-        setComplaint(initialAppointment.complaint || '');
-        setTimeSlot(initialAppointment.session || 'PAGI');
-
-        const initialDoctorId = initialAppointment.staff_id || initialAppointment.doctor_id || '';
-        const initialPoliId = initialAppointment.poliklinik_id || '';
-        setReschedulePoliklinikId(initialPoliId);
-        setRescheduleStaffIdReady(false);
-
-        if (initialDoctorId) {
-          setRescheduleStaffId(initialDoctorId);
-          setRescheduleStaffIdReady(true);
-        }
-
-        if (initialAppointment.id) {
-          patientAffiliationService.getRescheduleOptions(initialAppointment.id).then((options) => {
-            if (options?.doctor?.id) {
-              setRescheduleStaffId(options.doctor.id);
-              setRescheduleStaffIdReady(true);
-            }
-          });
-        }
-      } else {
-        setStep('category');
-        setSelectedService(null);
-        setComplaint('');
-        setDateStr(defaultDateStr);
-        setTimeSlot('PAGI');
-        setRescheduleStaffId('');
-        setReschedulePoliklinikId('');
-        setRescheduleStaffIdReady(true);
-      }
+      setStep('category');
+      setSelectedService(null);
+      setComplaint('');
+      setDateStr(defaultDateStr);
+      setSession('');
       loadPatients();
     } else if (!isOpen && wasOpen) {
       setSelectedService(null);
@@ -187,11 +151,8 @@ export function useAppointmentModal({
       formRequirementGuard.clearActiveRequirement();
       setIsQueueSuccessOpen(false);
       setCreatedAppointment(null);
-      setRescheduleStaffId('');
-      setReschedulePoliklinikId('');
-      setRescheduleStaffIdReady(false);
     }
-  }, [isOpen, mode, initialAppointment, defaultDateStr, loadPatients]);
+  }, [isOpen, defaultDateStr, loadPatients]);
 
   useEffect(() => {
     if (stepContainerRef.current) {
@@ -387,10 +348,9 @@ export function useAppointmentModal({
   };
 
   const handleFinalSubmit = async () => {
-    const isEdit = mode === 'edit' && Boolean(initialAppointment?.id);
     const patientIdToUse = selectedPatientId || (patients[0] ? patients[0].id : '');
 
-    if (!isEdit && !patientIdToUse) {
+    if (!patientIdToUse) {
       toast.error('Silakan tentukan data pasien terlebih dahulu');
       setStep('patient_new');
       return;
@@ -398,54 +358,38 @@ export function useAppointmentModal({
 
     try {
       setIsSubmitting(true);
-      const res: BackendAppointmentItem = isEdit
-        ? await patientAffiliationService.rescheduleAppointment(initialAppointment!.id, {
-            targetDate: dateStr,
-            targetSessionId: selectedSessionId || undefined,
-            targetSession: timeSlot,
-            reason: complaint.trim() || 'Penjadwalan ulang sesi periksa'
-          })
-        : await patientAffiliationService.createAppointment({
-            patientId: patientIdToUse,
-            poliklinikId: selectedService?.poliklinikId || '',
-            layananId: selectedService?.id || '',
-            appointmentDate: dateStr,
-            session: timeSlot,
-            visitType,
-            complaint: complaint.trim() || 'Konsultasi dan pemeriksaan kesehatan'
-          });
+      const res: BackendAppointmentItem = await patientAffiliationService.createAppointment({
+        patientId: patientIdToUse,
+        poliklinikId: selectedService?.poliklinikId || '',
+        layananId: selectedService?.id || '',
+        appointmentDate: dateStr,
+        session: session,
+        visitType,
+        complaint: complaint.trim() || 'Konsultasi dan pemeriksaan kesehatan'
+      });
 
       const currentPatient = patients.find((p) => p.id === patientIdToUse);
       const uiApt = mapBackendAppointmentToUi({
         res,
         currentPatient,
-        initialAppointment,
         dateStr,
         complaint,
-        timeSlot,
         selectedService
       });
 
       setCreatedAppointment(uiApt);
       setIsQueueSuccessOpen(true);
 
-      onSubmit(
-        {
-          service: uiApt.service || '',
-          complaint: uiApt.complaint,
-          visitType: visitType as any,
-          doctor: uiApt.doctor_name || '',
-          dateStr: uiApt.date,
-          timeSlot: uiApt.time
-        },
-        isEdit ? initialAppointment!.id : undefined
-      );
+      onSubmit({
+        service: uiApt.service || '',
+        complaint: uiApt.complaint,
+        visitType: visitType as any,
+        doctor: uiApt.doctor_name || '',
+        dateStr: uiApt.date,
+        session: session
+      });
 
-      toast.success(
-        isEdit
-          ? 'Jadwal janji temu berhasil di-reschedule'
-          : 'Janji temu berhasil dibuat beserta tiket antrean resmi'
-      );
+      toast.success('Janji temu berhasil dibuat beserta tiket antrean resmi');
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Gagal memproses janji temu';
       toast.error(msg);
@@ -467,21 +411,41 @@ export function useAppointmentModal({
     serviceBentoItems,
     dateStr,
     setDateStr,
-    timeSlot,
-    setTimeSlot,
+    session,
+    setSession,
     selectedSessionId,
     setSelectedSessionId,
-    visitType, setVisitType, complaint, setComplaint,
-    isVisitTypeOpen, setIsVisitTypeOpen, visitTypeOptions,
-    patients, selectedPatientId, setSelectedPatientId, selectedPatient,
-    selectedRelationship, setSelectedRelationship,
-    isLoadingPatients, bookingContext, isLoadingBookingContext,
-    activeMedicalFlow, setActiveMedicalFlow, isResolvingMedicalFlow,
-    rescheduleStaffId, reschedulePoliklinikId, rescheduleStaffIdReady,
-    isSubmitting, isQueueSuccessOpen, setIsQueueSuccessOpen,
-    createdAppointment, visitTypeDropdownRef, stepContainerRef,
-    handleSelectServiceItem, handlePatientCreated, handleAddNewPatient,
-    handleRelationshipSubmitForMedicalFlow, handlePatientContinue, handleFinalSubmit
+    visitType,
+    setVisitType,
+    complaint,
+    setComplaint,
+    isVisitTypeOpen,
+    setIsVisitTypeOpen,
+    visitTypeOptions,
+    patients,
+    selectedPatientId,
+    setSelectedPatientId,
+    selectedPatient,
+    selectedRelationship,
+    setSelectedRelationship,
+    isLoadingPatients,
+    bookingContext,
+    isLoadingBookingContext,
+    activeMedicalFlow,
+    setActiveMedicalFlow,
+    isResolvingMedicalFlow,
+    isSubmitting,
+    isQueueSuccessOpen,
+    setIsQueueSuccessOpen,
+    createdAppointment,
+    visitTypeDropdownRef,
+    stepContainerRef,
+    handleSelectServiceItem,
+    handlePatientCreated,
+    handleAddNewPatient,
+    handleRelationshipSubmitForMedicalFlow,
+    handlePatientContinue,
+    handleFinalSubmit
   };
 }
 

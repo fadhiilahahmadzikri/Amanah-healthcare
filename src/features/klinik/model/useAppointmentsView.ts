@@ -2,7 +2,10 @@
 
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { toast } from 'sonner';
-import { APPOINTMENT_STATUS, AppointmentStatusDescriptor } from '@/constants/appointment-status.constants';
+import {
+  APPOINTMENT_STATUS,
+  AppointmentStatusDescriptor
+} from '@/constants/appointment-status.constants';
 import type { Appointment, AppointmentFormData, AppointmentStatus, Doctor } from '../api/types';
 import { getDoctorByName } from '../api/service';
 import {
@@ -45,7 +48,6 @@ export interface UseAppointmentsViewResult {
     changePage: (page: number) => void;
     changePageSize: (size: number) => void;
     openCreateModal: () => void;
-    openRescheduleModal: (appointment: Appointment) => void;
     openDetailsModal: (appointment: Appointment) => void;
     closeFormModal: () => void;
     closeDetailsModal: () => void;
@@ -240,12 +242,6 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
     setIsFormModalOpen(true);
   };
 
-  const handleOpenRescheduleModal = (appointment: Appointment) => {
-    setSelectedAppointment(appointment);
-    setFormModalMode('edit');
-    setIsFormModalOpen(true);
-  };
-
   const handleOpenDetailsModal = (appointment: Appointment) => {
     setSelectedAppointment(appointment);
     setIsDetailsModalOpen(true);
@@ -255,7 +251,9 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
     try {
       await patientAffiliationService.cancelAppointment(appointmentId, reason);
       setAppointments((prev) =>
-        prev.map((item) => (item.id === appointmentId ? { ...item, status: APPOINTMENT_STATUS.CANCELLED } : item))
+        prev.map((item) =>
+          item.id === appointmentId ? { ...item, status: APPOINTMENT_STATUS.CANCELLED } : item
+        )
       );
       setSelectedAppointment((prev) =>
         prev && prev.id === appointmentId ? { ...prev, status: APPOINTMENT_STATUS.CANCELLED } : prev
@@ -271,9 +269,6 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
 
   const handleSubmitForm = (_data: AppointmentFormData, _appointmentId?: string) => {
     loadAppointments();
-    if (formModalMode === 'edit') {
-      return { type: 'edit' as const };
-    }
     return { type: 'create' as const };
   };
 
@@ -300,7 +295,6 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
       changePage: setCurrentPage,
       changePageSize: setPageSize,
       openCreateModal: handleOpenCreateModal,
-      openRescheduleModal: handleOpenRescheduleModal,
       openDetailsModal: handleOpenDetailsModal,
       closeFormModal: () => setIsFormModalOpen(false),
       closeDetailsModal: () => setIsDetailsModalOpen(false),

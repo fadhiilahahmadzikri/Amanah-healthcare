@@ -5,28 +5,13 @@
 export const DOCTOR_DIALOG_TYPE = {
   NONE: 'none',
   DETAIL_SHEET: 'detail',
-  WIZARD_RESCHEDULE: 'reschedule',
-  WIZARD_ADD_SESSION: 'add_session',
   EDIT: 'edit'
 } as const;
 
 export type DoctorDialogType = (typeof DOCTOR_DIALOG_TYPE)[keyof typeof DOCTOR_DIALOG_TYPE];
 
-export const WIZARD_STEP = {
-  DATE: 'date',
-  ROOM: 'room',
-  SESSION: 'session',
-  SLOT: 'slot',
-  NOTE: 'note',
-  CONFIRMATION: 'confirmation'
+export const DOCTOR_DETAIL_TAB = {
+  SESI: 'sesi'
 } as const;
 
-export type WizardStep = (typeof WIZARD_STEP)[keyof typeof WIZARD_STEP];
-
-export const INSPECTION_PHASE = {
-  IDLE: 'idle',
-  INSPECTING: 'inspecting',
-  RETURNING: 'returning'
-} as const;
-
-export type InspectionPhase = (typeof INSPECTION_PHASE)[keyof typeof INSPECTION_PHASE];
+export type DoctorDetailTab = (typeof DOCTOR_DETAIL_TAB)[keyof typeof DOCTOR_DETAIL_TAB];

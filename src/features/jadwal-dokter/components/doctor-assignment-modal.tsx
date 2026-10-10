@@ -9,7 +9,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
-  DialogTitle,
+  DialogTitle
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -20,7 +20,7 @@ import {
   DoctorScheduleHistoryResult,
   getDoctorRosterAssignments,
   getDoctorScheduleHistory,
-  updateDoctorRosterAssignments,
+  updateDoctorRosterAssignments
 } from '../api/service';
 import { doctorScheduleKeys } from '../api/query-keys';
 
@@ -30,38 +30,24 @@ export interface DoctorAssignmentModalProps {
   onClose: () => void;
 }
 
-export function DoctorAssignmentModal({
-  doctor,
-  isOpen,
-  onClose,
-}: DoctorAssignmentModalProps) {
+export function DoctorAssignmentModal({ doctor, isOpen, onClose }: DoctorAssignmentModalProps) {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'roster' | 'history'>('roster');
-  const [selectedAssignments, setSelectedAssignments] = useState<
-    Record<string, boolean>
-  >({});
+  const [selectedAssignments, setSelectedAssignments] = useState<Record<string, boolean>>({});
   const [reason, setReason] = useState('');
 
   const doctorId = doctor?.id || '';
 
-  const {
-    data: rosterData,
-    isLoading: isLoadingRoster,
-    refetch: refetchRoster,
-  } = useQuery<DoctorRosterOverview>({
+  const { data: rosterData, isLoading: isLoadingRoster } = useQuery<DoctorRosterOverview>({
     queryKey: ['doctor-roster-assignments', doctorId],
     queryFn: () => getDoctorRosterAssignments(doctorId),
-    enabled: Boolean(isOpen && doctorId),
+    enabled: Boolean(isOpen && doctorId)
   });
 
-  const {
-    data: historyData,
-    isLoading: isLoadingHistory,
-    refetch: refetchHistory,
-  } = useQuery<DoctorScheduleHistoryResult>({
+  const { data: historyData, isLoading: isLoadingHistory } = useQuery<DoctorScheduleHistoryResult>({
     queryKey: ['doctor-schedule-history', doctorId],
     queryFn: () => getDoctorScheduleHistory(doctorId),
-    enabled: Boolean(isOpen && doctorId && activeTab === 'history'),
+    enabled: Boolean(isOpen && doctorId && activeTab === 'history')
   });
 
   React.useEffect(() => {
@@ -96,37 +82,38 @@ export function DoctorAssignmentModal({
             dow: day.dow,
             sessionId: s.sessionId,
             isActive: isAct,
-            preferredRoomId: s.preferredRoomId,
+            preferredRoomId: s.preferredRoomId
           });
         }
       }
 
       return updateDoctorRosterAssignments(doctorId, {
         assignments: assignmentsList,
-        reason: reason.trim() || undefined,
+        reason: reason.trim() || undefined
       });
     },
     onSuccess: () => {
       toast.success('Roster jadwal dokter berhasil disimpan');
       queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all });
       queryClient.invalidateQueries({
-        queryKey: ['doctor-roster-assignments', doctorId],
+        queryKey: ['doctor-roster-assignments', doctorId]
       });
       queryClient.invalidateQueries({
-        queryKey: ['doctor-schedule-history', doctorId],
+        queryKey: ['doctor-schedule-history', doctorId]
       });
       onClose();
     },
-    onError: (err: any) => {
-      toast.error(err?.message || 'Gagal menyimpan roster jadwal dokter');
-    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : (err as { message?: string })?.message;
+      toast.error(msg || 'Gagal menyimpan roster jadwal dokter');
+    }
   });
 
   const toggleSession = (dow: number, sessionId: string) => {
     const key = `${dow}_${sessionId}`;
     setSelectedAssignments((prev) => ({
       ...prev,
-      [key]: !prev[key],
+      [key]: !prev[key]
     }));
   };
 
@@ -156,7 +143,7 @@ export function DoctorAssignmentModal({
                 'px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors cursor-pointer',
                 activeTab === 'roster'
                   ? 'bg-primary text-primary-foreground shadow-2xs'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               )}
             >
               Jadwal Mingguan (Roster)
@@ -168,7 +155,7 @@ export function DoctorAssignmentModal({
                 'px-4 py-1.5 rounded-lg text-sm font-semibold transition-colors cursor-pointer',
                 activeTab === 'history'
                   ? 'bg-primary text-primary-foreground shadow-2xs'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               )}
             >
               Riwayat Perubahan (History)
@@ -194,19 +181,17 @@ export function DoctorAssignmentModal({
                           'p-4 rounded-xl border transition-colors flex flex-col justify-between',
                           day.isOperatingDay
                             ? 'bg-card border-border/80'
-                            : 'bg-muted/30 border-dashed border-border/50 opacity-80',
+                            : 'bg-muted/30 border-dashed border-border/50 opacity-80'
                         )}
                       >
                         <div className='flex items-center justify-between pb-2 mb-3 border-b border-border/40'>
-                          <span className='font-bold text-sm text-foreground'>
-                            {day.dayName}
-                          </span>
+                          <span className='font-bold text-sm text-foreground'>{day.dayName}</span>
                           <span
                             className={cn(
                               'text-[10px] font-semibold px-2 py-0.5 rounded-full',
                               day.isOperatingDay
                                 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                                : 'bg-muted text-muted-foreground',
+                                : 'bg-muted text-muted-foreground'
                             )}
                           >
                             {day.isOperatingDay ? 'Klinik Buka' : 'Libur'}
@@ -221,26 +206,25 @@ export function DoctorAssignmentModal({
                             return (
                               <label
                                 key={s.sessionId}
+                                htmlFor={`session-chk-${key}`}
                                 className={cn(
                                   'flex items-center justify-between p-2 rounded-lg border text-xs cursor-pointer transition-colors',
                                   isChecked
                                     ? 'bg-primary/5 border-primary/40 text-foreground font-semibold'
-                                    : 'bg-muted/20 border-border/40 text-muted-foreground hover:bg-muted/40',
+                                    : 'bg-muted/20 border-border/40 text-muted-foreground hover:bg-muted/40'
                                 )}
                               >
                                 <div className='flex items-center gap-2.5 min-w-0'>
                                   <input
+                                    id={`session-chk-${key}`}
                                     type='checkbox'
+                                    aria-label={`${day.dayName} ${s.sessionLabel}`}
                                     checked={isChecked}
-                                    onChange={() =>
-                                      toggleSession(day.dow, s.sessionId)
-                                    }
+                                    onChange={() => toggleSession(day.dow, s.sessionId)}
                                     className='size-4 rounded border-border text-primary focus:ring-primary/30 accent-primary cursor-pointer'
                                   />
                                   <div className='truncate'>
-                                    <div className='truncate font-medium'>
-                                      {s.sessionLabel}
-                                    </div>
+                                    <div className='truncate font-medium'>{s.sessionLabel}</div>
                                     <div className='text-[10px] text-muted-foreground font-mono'>
                                       {s.timeRange}
                                     </div>
@@ -255,10 +239,14 @@ export function DoctorAssignmentModal({
                   </div>
 
                   <div className='pt-4 border-t border-border/60 space-y-2'>
-                    <label className='text-xs font-semibold text-foreground'>
+                    <label
+                      htmlFor='roster-change-reason'
+                      className='text-xs font-semibold text-foreground'
+                    >
                       Catatan / Alasan Perubahan (Opsional)
                     </label>
                     <Input
+                      id='roster-change-reason'
                       placeholder='Contoh: Penyesuaian jadwal dinas dokter mulai minggu ini'
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}
@@ -305,7 +293,7 @@ export function DoctorAssignmentModal({
                               month: 'short',
                               year: 'numeric',
                               hour: '2-digit',
-                              minute: '2-digit',
+                              minute: '2-digit'
                             })}
                           </td>
                           <td className='p-3 font-medium capitalize'>
@@ -322,7 +310,7 @@ export function DoctorAssignmentModal({
                                   'px-2 py-0.5 rounded-full font-bold text-[10px]',
                                   row.newStatus === 'OPEN'
                                     ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                                    : 'bg-rose-500/10 text-rose-600 dark:text-rose-400',
+                                    : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
                                 )}
                               >
                                 {row.newStatus === 'OPEN' ? 'Buka' : 'Tutup'}

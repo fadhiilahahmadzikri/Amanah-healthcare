@@ -79,7 +79,6 @@ export function AppointmentsView() {
                         key={appointment.id}
                         appointment={appointment}
                         doctor={doctor}
-                        onReschedule={appointmentsView.actions.openRescheduleModal}
                         onViewDetails={appointmentsView.actions.openDetailsModal}
                       />
                     ))}
@@ -152,11 +151,9 @@ export function AppointmentsView() {
         )}
       </div>
 
-      {/* Stepper Appointment Modal (Add & Reschedule) */}
+      {/* Stepper Appointment Modal (Add) */}
       <AppointmentModal
         isOpen={appointmentsView.isFormModalOpen}
-        mode={appointmentsView.formModalMode}
-        initialAppointment={appointmentsView.selectedAppointment}
         onClose={appointmentsView.actions.closeFormModal}
         onSubmit={handleFormSubmit}
       />
@@ -166,7 +163,6 @@ export function AppointmentsView() {
         isOpen={appointmentsView.isDetailsModalOpen}
         appointment={appointmentsView.selectedAppointment}
         onClose={appointmentsView.actions.closeDetailsModal}
-        onReschedule={appointmentsView.actions.openRescheduleModal}
         onCancel={async (apt, reason) => {
           await appointmentsView.actions.cancelAppointment(apt.id, reason);
         }}

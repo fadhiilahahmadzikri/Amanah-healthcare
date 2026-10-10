@@ -24,11 +24,7 @@ export function DoctorExportButton({
       const headers = [
         'Nama Dokter',
         'Spesialisasi',
-        'Ruang Praktik',
         'Status Dokter',
-        'Jam Praktik Hari Ini',
-        'Slot Tersedia',
-        'Kapasitas Harian',
         'Status Jadwal',
         'Email',
         'Nomor Telepon'
@@ -37,14 +33,10 @@ export function DoctorExportButton({
       const rows = data.map((doc) => [
         `"${doc.nama_dokter.replace(/"/g, '""')}"`,
         `"${doc.spesialisasi.replace(/"/g, '""')}"`,
-        `"${doc.ruang_praktik.replace(/"/g, '""')}"`,
         `"${doc.status_dokter}"`,
-        `"${doc.jadwal_hari_ini}"`,
-        `"${doc.slot_tersedia}"`,
-        `"${doc.kapasitas_per_hari}"`,
         `"${doc.status_jadwal}"`,
-        `"${doc.email}"`,
-        `"${doc.nomor_telepon}"`
+        `"${doc.email || ''}"`,
+        `"${doc.nomor_telepon || ''}"`
       ]);
 
       const csvContent = [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');

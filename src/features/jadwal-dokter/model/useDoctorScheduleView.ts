@@ -5,31 +5,16 @@ import { useQuery } from '@tanstack/react-query';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { doctorScheduleQueryOptions } from '../api/queries';
 import type { DoctorSchedule, DoctorScheduleFilters } from '../api/types';
-import {
-  useDoctorConflictNavigation,
-  type DoctorConflictReturnContext
-} from './useDoctorConflictNavigation';
-import {
-  DOCTOR_DIALOG_TYPE,
-  type DoctorDialogType,
-  INSPECTION_PHASE
-} from '../constants/doctor-dialog.constants';
-import { useDoctorDetailDrawerStore } from './useDoctorDetailDrawerStore';
-
-export type ReturnDoctorContext = DoctorConflictReturnContext;
+import { DOCTOR_DIALOG_TYPE, type DoctorDialogType } from '../constants/doctor-dialog.constants';
 
 interface UseDoctorScheduleViewResult {
   doctors: DoctorSchedule[];
   totalDoctors: number;
   selectedDoctor: DoctorSchedule | null;
   selectedDoctorId: string;
-  highlightSlotTime: string;
   openPatients: boolean;
-  returnContext: ReturnDoctorContext | null;
   isDetailOpen: boolean;
   isEditOpen: boolean;
-  isRescheduleOpen: boolean;
-  isAddSessionOpen: boolean;
   isFetching: boolean;
   isLoading: boolean;
   searchQuery: string;
@@ -44,21 +29,10 @@ interface UseDoctorScheduleViewResult {
     openDetail: (doctor: DoctorSchedule) => void;
     closeDetail: () => void;
     clearOpenPatients: () => void;
-    openDoctorScheduleById: (
-      doctorId: string,
-      highlightTime?: string,
-      returnCtx?: ReturnDoctorContext
-    ) => void;
-    returnToSourceModal: () => void;
-    clearHighlightSlotTime: () => void;
-    clearReturnContext: () => void;
+    openDoctorScheduleById: (doctorId: string) => void;
     openEdit: (doctor: DoctorSchedule) => void;
     closeEdit: () => void;
     openEditFromDetail: (doctor: DoctorSchedule) => void;
-    openReschedule: (doctor: DoctorSchedule) => void;
-    closeReschedule: () => void;
-    openAddSession: (doctor: DoctorSchedule) => void;
-    closeAddSession: () => void;
     changeSearch: (value: string) => void;
     changeMonthFilter: (month: string) => void;
     changeDateFilter: (date?: Date) => void;
@@ -71,9 +45,7 @@ interface UseDoctorScheduleViewResult {
 }
 
 export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
-  const conflictNav = useDoctorConflictNavigation();
   const [selectedDoctor, setSelectedDoctor] = useState<DoctorSchedule | null>(null);
-  const [returnContext, setReturnContext] = useState<ReturnDoctorContext | null>(null);
   const [activeDialog, setActiveDialog] = useState<DoctorDialogType | null>(null);
   const [params, setParams] = useQueryStates(
     {
@@ -85,7 +57,6 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
       poli: parseAsString.withDefault(''),
       status: parseAsString.withDefault(''),
       selectedDoctorId: parseAsString.withDefault(''),
-      highlightSlotTime: parseAsString.withDefault(''),
       dialog: parseAsString.withDefault(''),
       openPatients: parseAsString.withDefault('')
     },
@@ -104,15 +75,17 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
       ...(params.search ? { search: params.search } : {}),
       ...(params.month && params.month !== 'ALL' ? { month: params.month } : {}),
       date: effectiveDate,
-      ...(selectedPoli.length > 0 ? { poli: selectedPoli } : {}),
-      ...(selectedStatuses.length > 0 ? { status: selectedStatuses } : {})
+      ...(params.poli ? { poliklinik: selectedPoli } : {}),
+      ...(params.status ? { status: selectedStatuses } : {})
     }),
     [
+      effectiveDate,
+      params.month,
       params.page,
       params.perPage,
+      params.poli,
       params.search,
-      params.month,
-      effectiveDate,
+      params.status,
       selectedPoli,
       selectedStatuses
     ]
@@ -124,7 +97,6 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     if (!params.selectedDoctorId) {
       if (activeDialog === DOCTOR_DIALOG_TYPE.DETAIL_SHEET) {
         setActiveDialog(null);
-        useDoctorDetailDrawerStore.getState().closeDrawer();
       }
       return;
     }
@@ -134,29 +106,12 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
 
     if (found) {
       setSelectedDoctor(found);
-      useDoctorDetailDrawerStore.getState().setCachedDoctor(found);
-    } else {
-      const cached = useDoctorDetailDrawerStore.getState().cachedDoctor;
-      if (cached && (cached.id === targetId || cached.practitioner_id === targetId)) {
-        setSelectedDoctor(cached);
-      } else {
-        useDoctorDetailDrawerStore.getState().openWithId(targetId, {
-          highlightSlotTime: params.highlightSlotTime || null,
-          openPatients: Boolean(params.openPatients === 'true' || params.openPatients === '1')
-        });
-      }
     }
 
     if (params.dialog) {
       setActiveDialog(params.dialog as DoctorDialogType);
     }
-  }, [
-    params.selectedDoctorId,
-    params.dialog,
-    data?.doctors,
-    params.highlightSlotTime,
-    params.openPatients
-  ]);
+  }, [params.selectedDoctorId, params.dialog, data?.doctors, activeDialog]);
 
   const openEdit = (doctor: DoctorSchedule) => {
     setSelectedDoctor(doctor);
@@ -164,37 +119,10 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     setParams({ selectedDoctorId: doctor.id, dialog: DOCTOR_DIALOG_TYPE.EDIT }, { shallow: true });
   };
 
-  const openReschedule = (doctor: DoctorSchedule) => {
-    setSelectedDoctor(doctor);
-    setActiveDialog(DOCTOR_DIALOG_TYPE.WIZARD_RESCHEDULE);
-    setParams(
-      { selectedDoctorId: doctor.id, dialog: DOCTOR_DIALOG_TYPE.WIZARD_RESCHEDULE },
-      { shallow: true }
-    );
-  };
-
-  const openAddSession = (doctor: DoctorSchedule) => {
-    setSelectedDoctor(doctor);
-    setActiveDialog(DOCTOR_DIALOG_TYPE.WIZARD_ADD_SESSION);
-    setParams(
-      { selectedDoctorId: doctor.id, dialog: DOCTOR_DIALOG_TYPE.WIZARD_ADD_SESSION },
-      { shallow: true }
-    );
-  };
-
-  const openDoctorScheduleById = (
-    doctorId: string,
-    highlightTime?: string,
-    returnCtx?: ReturnDoctorContext
-  ) => {
-    const effectiveReturnCtx = returnCtx || conflictNav.returnContext;
-    if (effectiveReturnCtx) {
-      setReturnContext(effectiveReturnCtx);
-    }
+  const openDoctorScheduleById = (doctorId: string) => {
     setParams(
       {
         selectedDoctorId: doctorId,
-        highlightSlotTime: highlightTime || null,
         dialog: DOCTOR_DIALOG_TYPE.DETAIL_SHEET
       },
       { shallow: true }
@@ -202,57 +130,8 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     const found = data?.doctors?.find((d) => d.id === doctorId || d.practitioner_id === doctorId);
     if (found) {
       setSelectedDoctor(found);
-      useDoctorDetailDrawerStore.getState().openWithDoctor(found, {
-        highlightSlotTime: highlightTime || null
-      });
-    } else {
-      const cached = useDoctorDetailDrawerStore.getState().cachedDoctor;
-      if (cached && (cached.id === doctorId || cached.practitioner_id === doctorId)) {
-        setSelectedDoctor(cached);
-      } else {
-        useDoctorDetailDrawerStore.getState().openWithId(doctorId, {
-          highlightSlotTime: highlightTime || null
-        });
-      }
     }
     setActiveDialog(DOCTOR_DIALOG_TYPE.DETAIL_SHEET);
-  };
-
-  const returnToSourceModal = () => {
-    const effectiveContext =
-      returnContext || conflictNav.returnContext || conflictNav.pendingReopen;
-    if (!effectiveContext) return;
-    const targetSourceId = effectiveContext.sourceDoctorId;
-    const sourceDoctor = data?.doctors?.find(
-      (d) => d.id === targetSourceId || d.practitioner_id === targetSourceId
-    );
-    if (sourceDoctor) {
-      setSelectedDoctor(sourceDoctor);
-    }
-    const isAdd =
-      effectiveContext.wizardType === DOCTOR_DIALOG_TYPE.WIZARD_ADD_SESSION ||
-      effectiveContext.wizardType === 'add';
-    const targetDialog: DoctorDialogType = isAdd
-      ? DOCTOR_DIALOG_TYPE.WIZARD_ADD_SESSION
-      : DOCTOR_DIALOG_TYPE.WIZARD_RESCHEDULE;
-
-    setReturnContext(effectiveContext);
-    conflictNav.returnToSourceWizard();
-
-    setActiveDialog(targetDialog);
-    setParams(
-      {
-        selectedDoctorId: targetSourceId,
-        highlightSlotTime: null,
-        dialog: targetDialog
-      },
-      { shallow: true }
-    );
-  };
-
-  const clearHighlightSlotTime = () => {
-    setParams({ highlightSlotTime: null }, { shallow: true });
-    conflictNav.setHighlightSlotTime(null);
   };
 
   const currentDialog =
@@ -263,13 +142,9 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     totalDoctors: data?.total_doctors ?? 0,
     selectedDoctor,
     selectedDoctorId: params.selectedDoctorId,
-    highlightSlotTime: params.highlightSlotTime || conflictNav.highlightSlotTime || '',
     openPatients: Boolean(params.openPatients === 'true' || params.openPatients === '1'),
-    returnContext: returnContext || conflictNav.returnContext,
     isDetailOpen: currentDialog === DOCTOR_DIALOG_TYPE.DETAIL_SHEET,
     isEditOpen: currentDialog === DOCTOR_DIALOG_TYPE.EDIT,
-    isRescheduleOpen: currentDialog === DOCTOR_DIALOG_TYPE.WIZARD_RESCHEDULE,
-    isAddSessionOpen: currentDialog === DOCTOR_DIALOG_TYPE.WIZARD_ADD_SESSION,
     isFetching,
     isLoading,
     searchQuery: params.search,
@@ -289,10 +164,6 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     actions: {
       openDetail: (doctor) => {
         setSelectedDoctor(doctor);
-        useDoctorDetailDrawerStore.getState().openWithDoctor(doctor, {
-          highlightSlotTime: params.highlightSlotTime || null,
-          openPatients: Boolean(params.openPatients === 'true' || params.openPatients === '1')
-        });
         setActiveDialog(DOCTOR_DIALOG_TYPE.DETAIL_SHEET);
         setParams(
           { selectedDoctorId: doctor.id, dialog: DOCTOR_DIALOG_TYPE.DETAIL_SHEET },
@@ -300,24 +171,11 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
         );
       },
       closeDetail: () => {
-        if (conflictNav.phase === INSPECTION_PHASE.RETURNING) return;
         setActiveDialog(null);
-        useDoctorDetailDrawerStore.getState().closeDrawer();
-        setReturnContext(null);
-        conflictNav.clearConflictNavigation();
-        setParams(
-          { selectedDoctorId: null, highlightSlotTime: null, dialog: null, openPatients: null },
-          { shallow: true }
-        );
+        setParams({ selectedDoctorId: null, dialog: null, openPatients: null }, { shallow: true });
       },
       clearOpenPatients: () => setParams({ openPatients: null }, { shallow: true }),
       openDoctorScheduleById,
-      returnToSourceModal,
-      clearHighlightSlotTime,
-      clearReturnContext: () => {
-        setReturnContext(null);
-        conflictNav.clearConflictNavigation();
-      },
       openEdit,
       closeEdit: () => {
         setActiveDialog(null);
@@ -325,24 +183,6 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
         setParams({ selectedDoctorId: null, dialog: null }, { shallow: true });
       },
       openEditFromDetail: openEdit,
-      openReschedule,
-      closeReschedule: () => {
-        if (conflictNav.phase === INSPECTION_PHASE.INSPECTING) return;
-        setActiveDialog(null);
-        setSelectedDoctor(null);
-        setReturnContext(null);
-        conflictNav.clearConflictNavigation();
-        setParams({ selectedDoctorId: null, dialog: null }, { shallow: true });
-      },
-      openAddSession,
-      closeAddSession: () => {
-        if (conflictNav.phase === INSPECTION_PHASE.INSPECTING) return;
-        setActiveDialog(null);
-        setSelectedDoctor(null);
-        setReturnContext(null);
-        conflictNav.clearConflictNavigation();
-        setParams({ selectedDoctorId: null, dialog: null }, { shallow: true });
-      },
       changeSearch: (value) => setParams({ search: value || null, page: 1 }, { shallow: true }),
       changeMonthFilter: (month) =>
         setParams({ month: month === 'ALL' ? null : month, page: 1 }, { shallow: true }),

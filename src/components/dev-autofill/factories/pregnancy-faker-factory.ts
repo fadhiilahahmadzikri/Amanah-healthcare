@@ -185,14 +185,14 @@ export class PregnancyFakerFactory {
     const targetDate = new Date();
     targetDate.setDate(targetDate.getDate() + futureDays);
     const dateStr = targetDate.toISOString().slice(0, 10);
-    const timeSlots = ['PAGI', 'SIANG', 'SORE'];
-    const timeSlot = timeSlots[Math.floor(Math.random() * timeSlots.length)];
+    const sessions = ['DINI_HARI', 'PAGI', 'SIANG', 'MALAM'];
+    const session = sessions[Math.floor(Math.random() * sessions.length)];
 
     return {
       values,
       schedule: {
         dateStr,
-        timeSlot
+        session
       }
     };
   }

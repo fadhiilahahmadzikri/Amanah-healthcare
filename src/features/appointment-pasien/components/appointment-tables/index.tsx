@@ -19,8 +19,6 @@ import { AppointmentStatusModal } from '../appointment-status-modal';
 import { AppointmentCheckInQrModal } from '../appointment-check-in-qr-modal';
 import { ChangeDoctorModal } from '../change-doctor-modal';
 import { ChangeRoomModal } from '../change-room-modal';
-import { DoctorScheduleDetailSheet } from '@/features/jadwal-dokter/components/doctor-schedule-detail-sheet';
-import { useDoctorDetailDrawerStore } from '@/features/jadwal-dokter/model/useDoctorDetailDrawerStore';
 
 export function AppointmentTable() {
   const queryClient = useQueryClient();
@@ -57,9 +55,6 @@ export function AppointmentTable() {
     await queryClient.invalidateQueries({ queryKey: ['appointments'] });
     appointmentTable.actions.closeDetail();
   };
-
-  const isDoctorDrawerOpen = useDoctorDetailDrawerStore((s) => s.isOpen);
-  const closeDoctorDrawer = () => useDoctorDetailDrawerStore.getState().closeDrawer();
 
   return (
     <>
@@ -129,13 +124,6 @@ export function AppointmentTable() {
         appointment={appointmentTable.selectedAppointment}
         isOpen={appointmentTable.isQrOpen}
         onClose={appointmentTable.actions.closeQr}
-      />
-
-      <DoctorScheduleDetailSheet
-        doctor={null}
-        isOpen={isDoctorDrawerOpen}
-        onClose={closeDoctorDrawer}
-        onOpenEdit={() => {}}
       />
 
       <div

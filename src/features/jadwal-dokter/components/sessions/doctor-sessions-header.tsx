@@ -15,7 +15,6 @@ export interface DoctorSessionsHeaderProps {
   onToday: () => void;
   isCalendarOpen: boolean;
   onToggleCalendar: () => void;
-  onOpenAddSession: () => void;
 }
 
 export function DoctorSessionsHeader({
@@ -27,8 +26,7 @@ export function DoctorSessionsHeader({
   readOnly,
   onToday,
   isCalendarOpen,
-  onToggleCalendar,
-  onOpenAddSession
+  onToggleCalendar
 }: DoctorSessionsHeaderProps) {
   return (
     <div className='p-3.5 sm:p-4 border-b border-border/40 flex items-center justify-between gap-3 bg-muted/10 font-sans'>
@@ -84,17 +82,6 @@ export function DoctorSessionsHeader({
         >
           <Icons.calendar className='size-3.5' />
         </button>
-
-        {!readOnly && !isDayCuti && !isDayClosed && (
-          <button
-            type='button'
-            onClick={onOpenAddSession}
-            className='inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border border-dashed border-border/80 hover:border-primary/70 bg-background hover:bg-primary/5 text-foreground/80 hover:text-primary transition-all shadow-2xs cursor-pointer select-none shrink-0'
-          >
-            <Icons.add className='size-3.5' />
-            <span>Tambah sesi</span>
-          </button>
-        )}
       </div>
     </div>
   );

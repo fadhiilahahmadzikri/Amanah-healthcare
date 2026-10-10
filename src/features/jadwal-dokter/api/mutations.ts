@@ -2,11 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   updateDoctorDayStatus,
   updateDoctorSchedule,
-  createDoctorSession,
   updateDoctorSession,
-  deleteDoctorSession,
-  rescheduleDoctorSession,
-  updateDoctorDuration,
   cancelAppointment,
   updateAppointmentStatus,
   callPatientAppointment,
@@ -18,10 +14,7 @@ import { toast } from 'sonner';
 import type {
   ScheduleDayStatus,
   UpdateDoctorSchedulePayload,
-  CreateDoctorSessionPayload,
-  UpdateDoctorSessionPayload,
-  RescheduleDoctorSessionPayload,
-  UpdateDoctorDurationPayload
+  UpdateDoctorSessionPayload
 } from './types';
 import type {
   CancelAppointmentPayload,
@@ -32,27 +25,22 @@ import { SCHEDULE_QUERY_KEYS, SCHEDULE_STATUS } from '../constants/schedule-shif
 import type { ApiMessageResponse } from './service';
 
 export function syncAllDoctorSchedules(queryClient: ReturnType<typeof useQueryClient>): void {
-  queryClient.removeQueries({ queryKey: ['schedules', 'reschedule-eligibility'] });
   queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all });
   queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES] });
   queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.PRACTITIONERS] });
   queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.APPOINTMENTS] });
   queryClient.invalidateQueries({ queryKey: ['schedules', 'reference-rooms'] });
-  queryClient.invalidateQueries({ queryKey: ['schedules', 'slot-availability'] });
-  queryClient.invalidateQueries({ queryKey: ['schedules', 'contexts'] });
 }
 
 export function useUpdateDoctorScheduleMutation() {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateDoctorSchedulePayload }) =>
       updateDoctorSchedule(id, payload),
     onSuccess: async (updated) => {
-      syncAllDoctorSchedules(queryClient);
+      const isLeave = Boolean(updated.is_on_leave);
       toast.success(
-        updated.isOnLeave
-          ? `Status ${updated.nama_dokter} diset ke isOnLeave. Slot otomatis ditutup.`
+        isLeave
+          ? `Status ${updated.nama_dokter} diset ke Cuti. Seluruh sesi otomatis ditutup.`
           : `Jadwal ${updated.nama_dokter} berhasil diperbarui.`
       );
     },
@@ -97,10 +85,7 @@ export function useUpdateDoctorDayStatusMutation() {
       const cancelled =
         response?.data?.cancelledAppointmentsCount ?? response?.cancelledAppointmentsCount;
 
-      const isClosedStatus =
-        variables.status === 'CLOSED' ||
-        variables.status === 'Tutup' ||
-        (typeof variables.status === 'string' && variables.status.toUpperCase() === 'CLOSED');
+      const isClosedStatus = variables.status === 'CLOSED';
 
       if (isClosedStatus) {
         const sessionInfo = affected !== undefined ? ` (${affected} sesi dinonaktifkan)` : '';
@@ -118,30 +103,6 @@ export function useUpdateDoctorDayStatusMutation() {
     },
     onError: (err: unknown) => {
       const message = err instanceof Error ? err.message : 'Gagal memperbarui status tanggal';
-      toast.error(message);
-    }
-  });
-}
-
-export function useCreateDoctorSessionMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      doctorId,
-      payload
-    }: {
-      doctorId: string;
-      payload: CreateDoctorSessionPayload;
-    }) => {
-      return await createDoctorSession(doctorId, payload);
-    },
-    onSuccess: async () => {
-      syncAllDoctorSchedules(queryClient);
-      toast.success('Sesi praktik baru berhasil ditambahkan');
-    },
-    onError: (err: unknown) => {
-      const message = err instanceof Error ? err.message : 'Gagal menambahkan sesi praktik';
       toast.error(message);
     }
   });
@@ -179,71 +140,6 @@ export function useUpdateDoctorSessionMutation() {
   });
 }
 
-export function useDeleteDoctorSessionMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ doctorId, sessionId }: { doctorId: string; sessionId: string }) =>
-      deleteDoctorSession(doctorId, sessionId),
-    onSuccess: async () => {
-      syncAllDoctorSchedules(queryClient);
-      toast.success('Sesi praktik berhasil dihapus');
-    },
-    onError: (err: unknown) => {
-      const message = err instanceof Error ? err.message : 'Gagal menghapus sesi praktik';
-      toast.error(message);
-    }
-  });
-}
-
-export function useRescheduleDoctorSessionMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      doctorId,
-      sessionId,
-      payload
-    }: {
-      doctorId: string;
-      sessionId: string;
-      payload: RescheduleDoctorSessionPayload;
-    }) => {
-      return await rescheduleDoctorSession(doctorId, sessionId, payload);
-    },
-    onSuccess: () => {
-      syncAllDoctorSchedules(queryClient);
-      toast.success('Sesi praktik berhasil di-reschedule');
-    },
-    onError: (err: unknown) => {
-      const message = err instanceof Error ? err.message : 'Gagal me-reschedule sesi praktik';
-      toast.error(message);
-    }
-  });
-}
-
-export function useUpdateDoctorDurationMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      doctorId,
-      payload
-    }: {
-      doctorId: string;
-      payload: UpdateDoctorDurationPayload;
-    }) => updateDoctorDuration(doctorId, payload),
-    onSuccess: async () => {
-      syncAllDoctorSchedules(queryClient);
-      toast.success('Durasi konsultasi dokter berhasil diperbarui');
-    },
-    onError: (err: unknown) => {
-      const message = err instanceof Error ? err.message : 'Gagal memperbarui durasi konsultasi';
-      toast.error(message);
-    }
-  });
-}
-
 export function useCancelAppointmentMutation(doctorId?: string, sessionId?: string) {
   const queryClient = useQueryClient();
 
@@ -262,9 +158,7 @@ export function useCancelAppointmentMutation(doctorId?: string, sessionId?: stri
         });
       }
       syncAllDoctorSchedules(queryClient);
-      toast.success(
-        response?.message || 'Janji temu berhasil dibatalkan'
-      );
+      toast.success(response?.message || 'Janji temu berhasil dibatalkan');
     },
     onError: (err: unknown) => {
       const message = err instanceof Error ? err.message : 'Gagal membatalkan janji temu';

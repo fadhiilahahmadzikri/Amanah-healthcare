@@ -22,13 +22,7 @@ import { type AppointmentFormData, QUEUE_STATUS } from '../api/types';
 
 export type AppointmentModalProps = UseAppointmentModalProps;
 
-export function AppointmentModal({
-  isOpen,
-  mode,
-  initialAppointment,
-  onClose,
-  onSubmit
-}: AppointmentModalProps) {
+export function AppointmentModal({ isOpen, onClose, onSubmit }: AppointmentModalProps) {
   const {
     step,
     setStep,
@@ -39,8 +33,8 @@ export function AppointmentModal({
     serviceBentoItems,
     dateStr,
     setDateStr,
-    timeSlot,
-    setTimeSlot,
+    session,
+    setSession,
     setSelectedSessionId,
     visitType,
     setVisitType,
@@ -55,9 +49,6 @@ export function AppointmentModal({
     activeMedicalFlow,
     setActiveMedicalFlow,
     isResolvingMedicalFlow,
-    rescheduleStaffId,
-    reschedulePoliklinikId,
-    rescheduleStaffIdReady,
     isSubmitting,
     isQueueSuccessOpen,
     setIsQueueSuccessOpen,
@@ -71,8 +62,6 @@ export function AppointmentModal({
     handleFinalSubmit
   } = useAppointmentModal({
     isOpen,
-    mode,
-    initialAppointment,
     onClose,
     onSubmit
   });
@@ -144,7 +133,7 @@ export function AppointmentModal({
               isCompactStep ? 'h-auto overflow-visible' : 'flex-auto min-h-0 overflow-y-auto'
             )}
           >
-            {mode === 'create' && step === 'category' && (
+            {step === 'category' && (
               <BookingCategoryStep
                 isLoadingCatalog={isLoadingCatalog}
                 activeCategoryList={activeCategoryList}
@@ -155,7 +144,7 @@ export function AppointmentModal({
               />
             )}
 
-            {mode === 'create' && step === 'service' && (
+            {step === 'service' && (
               <BookingServiceStep
                 serviceBentoItems={serviceBentoItems}
                 onSelectServiceItem={handleSelectServiceItem}
@@ -185,23 +174,15 @@ export function AppointmentModal({
 
             {step === 'date' && <BookingDateStep dateStr={dateStr} setDateStr={setDateStr} />}
 
-            {step === 'session' &&
-              (mode === 'edit' && !rescheduleStaffIdReady ? (
-                <div className='flex items-center justify-center py-10 text-sm text-muted-foreground gap-2'>
-                  <Icons.spinner className='size-4 animate-spin' />
-                  <span>Memuat info dokter...</span>
-                </div>
-              ) : (
-                <BookingSessionStep
-                  selectedService={selectedService}
-                  dateStr={dateStr}
-                  timeSlot={timeSlot}
-                  setTimeSlot={setTimeSlot}
-                  onSelectSessionId={setSelectedSessionId}
-                  staffId={rescheduleStaffId || undefined}
-                  poliklinikId={reschedulePoliklinikId}
-                />
-              ))}
+            {step === 'session' && (
+              <BookingSessionStep
+                selectedService={selectedService}
+                dateStr={dateStr}
+                session={session}
+                setSession={setSession}
+                onSelectSessionId={setSelectedSessionId}
+              />
+            )}
 
             {step === 'visit_type' && (
               <BookingVisitTypeStep visitType={visitType} setVisitType={setVisitType} />
@@ -216,11 +197,11 @@ export function AppointmentModal({
                 selectedService={selectedService}
                 selectedPatient={selectedPatient}
                 dateStr={dateStr}
-                timeSlot={timeSlot}
+                session={session}
                 visitType={visitType}
                 complaint={complaint}
-                serviceName={selectedService?.name || initialAppointment?.service}
-                patientName={selectedPatient?.fullName || initialAppointment?.patient_name}
+                serviceName={selectedService?.name || ''}
+                patientName={selectedPatient?.fullName || ''}
               />
             )}
           </div>
@@ -260,18 +241,12 @@ export function AppointmentModal({
                     variant='ghost'
                     size='md'
                     shape='pill'
-                    leadingIcon={
-                      mode === 'edit' ? undefined : <Icons.arrowLeft className='size-3.5' />
-                    }
+                    leadingIcon={<Icons.arrowLeft className='size-3.5' />}
                     onClick={() => {
-                      if (mode === 'edit') {
-                        onClose();
-                      } else {
-                        setStep(patients.length > 0 ? 'patient' : 'service');
-                      }
+                      setStep(patients.length > 0 ? 'patient' : 'service');
                     }}
                   >
-                    {mode === 'edit' ? 'Batal' : 'Kembali'}
+                    Kembali
                   </Button>
                 ) : step === 'session' ? (
                   <Button
@@ -313,7 +288,7 @@ export function AppointmentModal({
                     size='md'
                     shape='pill'
                     leadingIcon={<Icons.arrowLeft className='size-3.5' />}
-                    onClick={() => (mode === 'edit' ? setStep('session') : setStep('complaint'))}
+                    onClick={() => setStep('complaint')}
                   >
                     Kembali
                   </Button>
@@ -360,10 +335,8 @@ export function AppointmentModal({
                     variant='primary'
                     size='md'
                     shape='pill'
-                    disabled={!timeSlot}
-                    onClick={() =>
-                      mode === 'edit' ? setStep('confirmation') : setStep('visit_type')
-                    }
+                    disabled={!session}
+                    onClick={() => setStep('visit_type')}
                     withTrailingCircleIcon={true}
                     className='min-w-[140px]'
                     trailingIcon={<Icons.arrowRight className='size-3 stroke-[2.5]' />}
@@ -409,11 +382,7 @@ export function AppointmentModal({
                     className='min-w-[160px]'
                     trailingIcon={<Icons.arrowUpRight className='size-3 stroke-[2.5]' />}
                   >
-                    {isSubmitting
-                      ? 'Memproses antrean...'
-                      : mode === 'edit'
-                        ? 'Simpan Jadwal Baru'
-                        : 'Buat Janji Temu'}
+                    {isSubmitting ? 'Memproses antrean...' : 'Buat Janji Temu'}
                   </Button>
                 ) : null}
               </div>

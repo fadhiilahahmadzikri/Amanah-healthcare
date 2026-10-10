@@ -9,7 +9,7 @@ export interface BookingConfirmationStepProps {
   selectedService: ServiceCatalogItem | null;
   selectedPatient: PatientAffiliationProfile | null;
   dateStr: string;
-  timeSlot: string;
+  session?: string;
   visitType: string;
   complaint: string;
   serviceName?: string;
@@ -20,13 +20,13 @@ export function BookingConfirmationStep({
   selectedService,
   selectedPatient,
   dateStr,
-  timeSlot,
+  session,
   visitType,
   complaint,
   serviceName,
   patientName
 }: BookingConfirmationStepProps) {
-  const sessionLabel = timeSlot;
+  const sessionLabel = session || '-';
   const displayServiceName = serviceName || selectedService?.name || 'Poliklinik';
   const displayPatientName = patientName || selectedPatient?.fullName || 'Pasien';
 
@@ -78,7 +78,10 @@ export function BookingConfirmationStep({
 
       <div className='flex items-center gap-2 p-2.5 rounded-lg bg-muted/60 text-muted-foreground text-xs'>
         <Icons.check className='size-4 text-emerald-600 shrink-0' />
-        <span>Setelah disimpan, tiket nomor antrean resmi klinik akan langsung terbit. Dokter dan ruangan konsultasi ditetapkan saat giliran dipanggil.</span>
+        <span>
+          Setelah disimpan, tiket nomor antrean resmi klinik akan langsung terbit. Dokter dan
+          ruangan konsultasi ditetapkan saat giliran dipanggil.
+        </span>
       </div>
     </div>
   );

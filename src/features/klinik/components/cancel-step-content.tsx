@@ -76,7 +76,7 @@ export function CancelStepContent({
 
       {/* Info text */}
       <p className='mt-3.5 text-xs text-muted-foreground leading-relaxed'>
-        Apakah Anda yakin ingin membatalkan janji temu ini? 1 slot kuota jadwal praktik dokter akan
+        Apakah Anda yakin ingin membatalkan janji temu ini? 1 kuota sesi praktik dokter akan
         dikembalikan secara otomatis.
       </p>
 
@@ -90,6 +90,7 @@ export function CancelStepContent({
         </label>
         <textarea
           id='cancel-reason-input'
+          aria-label='Alasan Pembatalan'
           rows={2}
           value={cancelReason}
           onChange={(e) => setCancelReason(e.target.value)}

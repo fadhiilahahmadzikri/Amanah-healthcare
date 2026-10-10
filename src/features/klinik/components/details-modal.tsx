@@ -11,7 +11,6 @@ export interface DetailsModalProps {
   isOpen: boolean;
   appointment: Appointment | null;
   onClose: () => void;
-  onReschedule?: (appointment: Appointment) => void;
   onCancel?: (appointment: Appointment, reason?: string) => Promise<void> | void;
   portalContainerRef?: React.RefObject<HTMLElement | null>;
 }

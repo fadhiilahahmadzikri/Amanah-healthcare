@@ -90,7 +90,7 @@ export function QueueSuccessModal({
             serviceName={appointment?.service || queueItem?.poli || '-'}
             doctorName={appointment?.doctor_name || queueItem?.doctor_name || ''}
             dateStr={appointment?.date || '-'}
-            timeSlot={appointment?.time || ''}
+            session={appointment?.session || appointment?.time}
             bookingCode={appointment?.booking_code || ''}
             patientName={appointment?.patient_name || '-'}
             roomName={appointment?.room_name || queueItem?.room || ''}

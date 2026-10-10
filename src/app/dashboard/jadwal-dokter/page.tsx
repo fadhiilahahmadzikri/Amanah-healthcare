@@ -23,7 +23,7 @@ export default async function Page(props: PageProps) {
     <PageContainer
       scrollable={false}
       pageTitle='Jadwal Dokter'
-      pageDescription='Kelola jadwal praktik dokter, atur ketersediaan dan slot pasien.'
+      pageDescription='Kelola jadwal praktik dokter dan status operasional.'
     >
       <Suspense fallback={<DoctorScheduleCardsSkeleton />}>
         <DoctorScheduleListingPage />

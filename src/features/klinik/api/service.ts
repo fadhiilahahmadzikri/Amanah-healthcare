@@ -56,10 +56,6 @@ export const getDoctorsByService = (serviceName?: string): Doctor[] => {
   });
 };
 
-export const getTimeSlots = (): string[] => {
-  return [];
-};
-
 export async function fetchPoliListFromApi(): Promise<string[]> {
   try {
     const res = await clientFetch<
@@ -159,9 +155,7 @@ function mapBackendQueueItemToFrontend(item: Record<string, unknown>, isUser = f
         ? item.consultationElapsedSeconds
         : undefined,
     estimated_duration_minutes:
-      typeof item.estimatedDurationMinutes === 'number'
-        ? item.estimatedDurationMinutes
-        : undefined
+      typeof item.estimatedDurationMinutes === 'number' ? item.estimatedDurationMinutes : undefined
   };
 }
 
@@ -333,7 +327,8 @@ export const createAppointmentRecord = (
     patient_avatar: '',
     doctor_name: formData.doctor,
     date: formData.dateStr,
-    time: formData.timeSlot,
+    time: formData.session,
+    session: formData.session,
     complaint: formData.complaint,
     status: APPOINTMENT_STATUS.BOOKED,
     visit_type: formData.visitType,

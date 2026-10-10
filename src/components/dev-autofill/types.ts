@@ -1,6 +1,6 @@
 export interface AutofillSchedule {
   dateStr: string;
-  timeSlot: string;
+  session: string;
 }
 
 export interface AutofillPayload {

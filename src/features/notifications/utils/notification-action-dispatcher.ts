@@ -7,7 +7,6 @@ export interface ActionPayloadContext {
   params?: Record<string, string> | null;
   doctorId?: string | null;
   date?: string | null;
-  slotTime?: string | null;
   openPatients?: boolean | null;
   patientId?: string | null;
   sessionId?: string | null;
@@ -75,7 +74,8 @@ export function resolveNotificationRoute(
 
   // 1. Semantic action type mapping (Envelope v2 SSOT)
   const semanticType = action.type || (context?.semanticAction as NotificationSemanticAction)?.type;
-  const semanticParams = action.params || (context?.semanticAction as NotificationSemanticAction)?.params || {};
+  const semanticParams =
+    action.params || (context?.semanticAction as NotificationSemanticAction)?.params || {};
 
   if (semanticType) {
     switch (semanticType) {
@@ -93,9 +93,6 @@ export function resolveNotificationRoute(
           params.set('openPatients', 'true');
         }
         if (semanticParams.date) params.set('date', semanticParams.date);
-        if (semanticParams.scheduledStartTime && docId) {
-          params.set('highlightSlotTime', semanticParams.scheduledStartTime.slice(0, 5));
-        }
         const qs = params.toString();
         return `/dashboard/jadwal-dokter${qs ? `?${qs}` : ''}`;
       }
@@ -110,9 +107,6 @@ export function resolveNotificationRoute(
           params.set('dialog', 'detail');
         }
         if (semanticParams.date) params.set('date', semanticParams.date);
-        if (semanticParams.slotTime && docId) {
-          params.set('highlightSlotTime', semanticParams.slotTime.slice(0, 5));
-        }
         const qs = params.toString();
         return `/dashboard/jadwal-dokter${qs ? `?${qs}` : ''}`;
       }
@@ -134,13 +128,6 @@ export function resolveNotificationRoute(
     (context?.targetDate as string) ||
     (context?.appointmentDate as string) ||
     '';
-  const rawSlotTime =
-    (context?.highlightSlotTime as string) ||
-    (context?.slotTime as string) ||
-    (context?.targetStartTime as string) ||
-    (context?.scheduledStartTime as string) ||
-    '';
-  const slotTime = rawSlotTime ? rawSlotTime.slice(0, 5) : '';
 
   if (action.actionKey === 'view_patient') {
     if (isPatient) return '/dashboard/klinik/antrean';
@@ -151,12 +138,11 @@ export function resolveNotificationRoute(
       params.set('openPatients', 'true');
     }
     if (date) params.set('date', date);
-    if (slotTime && doctorId) params.set('highlightSlotTime', slotTime);
     const qs = params.toString();
     return `/dashboard/jadwal-dokter${qs ? `?${qs}` : ''}`;
   }
 
-  if (action.actionKey === 'view_schedule' || action.actionKey === 'reschedule') {
+  if (action.actionKey === 'view_schedule') {
     if (isPatient) return '/dashboard/klinik/antrean';
     const params = new URLSearchParams();
     if (doctorId) {
@@ -164,7 +150,6 @@ export function resolveNotificationRoute(
       params.set('dialog', 'detail');
     }
     if (date) params.set('date', date);
-    if (slotTime && doctorId) params.set('highlightSlotTime', slotTime);
     const qs = params.toString();
     return `/dashboard/jadwal-dokter${qs ? `?${qs}` : ''}`;
   }
@@ -186,7 +171,13 @@ export function resolveNotificationRoute(
  */
 export function executeNotificationAction(
   router: { push: (url: string) => void },
-  action: { actionKey?: string; url?: string | null; label?: string; type?: string; params?: Record<string, string> },
+  action: {
+    actionKey?: string;
+    url?: string | null;
+    label?: string;
+    type?: string;
+    params?: Record<string, string>;
+  },
   notification?: {
     id?: string;
     metadata?: Record<string, unknown> | null;
@@ -203,4 +194,3 @@ export function executeNotificationAction(
   }
   onComplete?.();
 }
-

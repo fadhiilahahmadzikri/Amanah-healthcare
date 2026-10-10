@@ -34,7 +34,6 @@ export interface AppointmentDetailOrganismProps {
   isOpen: boolean;
   appointment: Appointment | null;
   onClose: () => void;
-  onReschedule?: (appointment: Appointment) => void;
   onCancel?: (appointment: Appointment, reason?: string) => Promise<void> | void;
   onCallPatient?: (appointment: Appointment) => Promise<void> | void;
   onCompletePatient?: (appointment: Appointment) => Promise<void> | void;
@@ -49,7 +48,6 @@ export function AppointmentDetailOrganism({
   isOpen,
   appointment,
   onClose,
-  onReschedule,
   onCancel,
   onCallPatient,
   onCompletePatient,
@@ -93,12 +91,11 @@ export function AppointmentDetailOrganism({
   const isWaiting = isAppointmentWaiting(appointment.status);
   const isBeforeCall = isAppointmentBeforeCall(appointment.status);
 
-  const displayLocation =
-    isBeforeCall
-      ? 'Menunggu panggilan klinik'
-      : appointment.poliklinik_name && appointment.room_name
-        ? `${appointment.poliklinik_name}, ${appointment.room_name}`
-        : appointment.poliklinik_name || appointment.room_name || '-';
+  const displayLocation = isBeforeCall
+    ? 'Menunggu panggilan klinik'
+    : appointment.poliklinik_name && appointment.room_name
+      ? `${appointment.poliklinik_name}, ${appointment.room_name}`
+      : appointment.poliklinik_name || appointment.room_name || '-';
 
   const doctorSpecialty = appointment.doctor_specialty || doctor.spec || '-';
   const { startTime, endTime, durationText } = normalizeAppointmentTimes(appointment);
@@ -111,7 +108,6 @@ export function AppointmentDetailOrganism({
 
   const isCheckedIn = Boolean(appointment.checked_in_at || appointment.checkedInAt);
   const canCancel = !isTerminal && !isCheckedIn;
-  const canReschedule = !isTerminal && !isCheckedIn;
   const canReassign = isAdmin && !isTerminal;
 
   const handleConfirmCancel = async () => {
@@ -176,11 +172,12 @@ export function AppointmentDetailOrganism({
                         <h3 className='text-base sm:text-lg font-bold text-foreground truncate w-full tracking-tight'>
                           {serviceName || appointment.poliklinik_name || 'Janji Temu Klinik'}
                         </h3>
-                        {appointment.poliklinik_name && serviceName !== appointment.poliklinik_name && (
-                          <p className='text-sm font-medium text-muted-foreground truncate w-full'>
-                            {appointment.poliklinik_name}
-                          </p>
-                        )}
+                        {appointment.poliklinik_name &&
+                          serviceName !== appointment.poliklinik_name && (
+                            <p className='text-sm font-medium text-muted-foreground truncate w-full'>
+                              {appointment.poliklinik_name}
+                            </p>
+                          )}
                       </div>
                     )}
                   </div>
@@ -207,19 +204,6 @@ export function AppointmentDetailOrganism({
                           >
                             <Icons.forms className='size-4 text-primary shrink-0' />
                             <span>Lihat Formulir</span>
-                          </DropdownMenuItem>
-                        )}
-
-                        {canReschedule && onReschedule && (
-                          <DropdownMenuItem
-                            onClick={() => {
-                              onClose();
-                              onReschedule(appointment);
-                            }}
-                            className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
-                          >
-                            <Icons.calendar className='size-4 text-muted-foreground shrink-0' />
-                            <span>Reschedule Jadwal</span>
                           </DropdownMenuItem>
                         )}
 

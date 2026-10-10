@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { Icons } from '@/components/icons';
-import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Accordion } from '@/components/ui/accordion';
 import { cn } from '@/lib/utils';
@@ -13,8 +12,6 @@ import {
   DoctorCalendarAccordion,
   DoctorSessionAccordionItem
 } from './sessions';
-import { DoctorAddSessionModal, type ReturnDoctorContext } from './doctor-add-session-modal';
-import { DoctorRescheduleSessionModal } from './doctor-reschedule-session-modal';
 import { DoctorSessionPatientsModal } from './doctor-session-patients-modal';
 import { DoctorCloseSessionModal } from './doctor-close-session-modal';
 import { BookedPatientDetailModal } from './booked-patient-detail-modal';
@@ -31,14 +28,7 @@ export interface DoctorDailySessionsProps {
   onAddSchedule?: () => void;
   modalContainerRef?: React.RefObject<HTMLDivElement | null>;
   readOnly?: boolean;
-  returnDoctorName?: string;
-  onReturnToSourceModal?: () => void;
-  returnContext?: ReturnDoctorContext | null;
-  onViewDoctorSchedule?: (
-    doctorId: string,
-    targetSlotTime?: string,
-    returnContext?: ReturnDoctorContext
-  ) => void;
+  onViewDoctorSchedule?: (doctorId: string, targetSessionTime?: string) => void;
   className?: string;
 }
 
@@ -53,8 +43,6 @@ export function DoctorDailySessions({
   onAddSchedule,
   modalContainerRef,
   readOnly = false,
-  returnContext: _returnContext,
-  onViewDoctorSchedule,
   className
 }: DoctorDailySessionsProps) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
@@ -71,18 +59,8 @@ export function DoctorDailySessions({
     activeSessions,
     handleToday,
     handleSelectDate,
-    handleOpenPatients,
-    handleOpenReschedule,
-    openAddSessionModal,
     handleToggleSessionStatus,
     handleConfirmCloseSession,
-    isRescheduleOpen,
-    selectedSessionForReschedule,
-    handleCloseRescheduleModal,
-    isAddModalOpen,
-    addSessionInitialTime,
-    addSessionInitialEndTime,
-    handleCloseAddModal,
     isPatientsModalOpen,
     selectedSessionForPatients,
     handleClosePatientsModal,
@@ -131,7 +109,6 @@ export function DoctorDailySessions({
           onToday={handleToday}
           isCalendarOpen={isCalendarOpen}
           onToggleCalendar={() => setIsCalendarOpen((prev) => !prev)}
-          onOpenAddSession={() => openAddSessionModal()}
         />
 
         <DoctorCalendarAccordion
@@ -155,20 +132,6 @@ export function DoctorDailySessions({
               icon={Icons.calendar}
               title='Belum ada jadwal sesi'
               description='Dokter belum memiliki sesi praktik yang diatur untuk tanggal ini.'
-              action={
-                !readOnly ? (
-                  <Button
-                    type='button'
-                    variant='outline'
-                    size='sm'
-                    onClick={() => openAddSessionModal()}
-                    className='text-xs'
-                  >
-                    <Icons.add className='size-3.5 mr-1.5' />
-                    Tambah Sesi Praktik
-                  </Button>
-                ) : undefined
-              }
               className='py-12'
             />
           ) : (
@@ -184,11 +147,8 @@ export function DoctorDailySessions({
                       key={session.id}
                       session={session}
                       doctor={doctor}
-                      isPending={
-                        updateSessionMutation.isPending && pendingSessionId === session.id
-                      }
+                      isPending={updateSessionMutation.isPending && pendingSessionId === session.id}
                       onToggleStatus={handleToggleSessionStatus}
-                      onReschedule={handleOpenReschedule}
                       onSelectPatient={(patient, sess) => {
                         setSelectedDetailSessionId(sess.id);
                         handleOpenPatientDetail(patient);
@@ -197,52 +157,10 @@ export function DoctorDailySessions({
                   ))}
                 </Accordion>
               )}
-
-              {!readOnly && (
-                <div className='pt-3.5 pb-1'>
-                  <button
-                    type='button'
-                    onClick={() => openAddSessionModal()}
-                    className='w-full py-2.5 px-3 rounded-xl border border-dashed border-border/70 hover:border-primary/60 bg-muted/5 hover:bg-primary/5 text-muted-foreground hover:text-primary transition-all flex items-center justify-center gap-2 text-xs font-semibold cursor-pointer select-none'
-                  >
-                    <Icons.add className='size-3.5' />
-                    <span>Tambah sesi praktik baru</span>
-                  </button>
-                </div>
-              )}
             </div>
           )}
         </div>
       </div>
-
-      {/* Add Session Modal */}
-      {doctor && isAddModalOpen && (
-        <DoctorAddSessionModal
-          key={`add-session-${formattedTargetDate}-${addSessionInitialTime || 'wizard'}`}
-          doctor={doctor}
-          isOpen={isAddModalOpen}
-          onClose={handleCloseAddModal}
-          onSessionAdded={handleCloseAddModal}
-          portalContainerRef={modalContainerRef}
-          targetDate={formattedTargetDate}
-          initialStartTime={addSessionInitialTime}
-          initialEndTime={addSessionInitialEndTime}
-          onViewDoctorSchedule={onViewDoctorSchedule}
-        />
-      )}
-
-      {/* Reschedule Session Modal */}
-      {doctor && selectedSessionForReschedule && (
-        <DoctorRescheduleSessionModal
-          doctor={doctor}
-          session={selectedSessionForReschedule}
-          isOpen={isRescheduleOpen}
-          onClose={handleCloseRescheduleModal}
-          portalContainerRef={modalContainerRef}
-          initialDate={formattedTargetDate}
-          onViewDoctorSchedule={onViewDoctorSchedule}
-        />
-      )}
 
       {/* Session Patients Modal */}
       {doctor && selectedSessionForPatients && (
@@ -253,7 +171,6 @@ export function DoctorDailySessions({
           isOpen={isPatientsModalOpen}
           onClose={handleClosePatientsModal}
           portalContainerRef={modalContainerRef}
-          onOpenReschedule={handleOpenReschedule}
         />
       )}
 

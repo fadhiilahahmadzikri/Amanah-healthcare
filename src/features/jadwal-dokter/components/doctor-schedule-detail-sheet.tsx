@@ -3,7 +3,6 @@
 import React from 'react';
 import { Icons } from '@/components/icons';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import {
   Sheet,
@@ -12,35 +11,22 @@ import {
   SheetHeader,
   SheetTitle
 } from '@/components/ui/sheet';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule } from '../api/types';
 import { DOCTOR_CARD_STATUS } from '../utils/doctor-schedule-card-utils';
-import { DOCTOR_DETAIL_TAB, type DoctorDetailTab } from '../model/useDoctorDetailDrawerStore';
 import {
   useDoctorScheduleDetailSheet,
   type UseDoctorScheduleDetailSheetProps
 } from '../model/useDoctorScheduleDetailSheet';
-import type { ReturnDoctorContext } from '../model/useDoctorConflictNavigation';
 import { DoctorDailySessions } from './doctor-daily-sessions';
 import {
   DoctorScheduleSheetContentSkeleton,
   DoctorScheduleSheetSkeleton
 } from './doctor-schedule-sheet-skeleton';
-import { DoctorTimelineCalendar } from './doctor-timeline-calendar';
-
-export { DOCTOR_DETAIL_TAB, type DoctorDetailTab };
 
 export interface DoctorScheduleDetailSheetProps extends UseDoctorScheduleDetailSheetProps {
-  onOpenEdit: (doctor: DoctorSchedule) => void;
-  onClearHighlightSlotTime?: () => void;
-  onClearOpenPatients?: () => void;
-  onClearReturnContext?: () => void;
-  onViewDoctorSchedule?: (
-    doctorId: string,
-    targetSlotTime?: string,
-    returnContext?: ReturnDoctorContext
-  ) => void;
+  onOpenEdit?: (doctor: DoctorSchedule) => void;
+  onViewDoctorSchedule?: (doctorId: string, targetSessionTime?: string) => void;
 }
 
 /**
@@ -49,37 +35,15 @@ export interface DoctorScheduleDetailSheetProps extends UseDoctorScheduleDetailS
  * Preserves in-memory visual stability during unmount transitions (zero flicker on close).
  */
 export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps) {
-  const {
-    isOpen,
-    highlightSlotTime,
-    onClearHighlightSlotTime,
-    openPatientsModal,
-    onClearOpenPatients,
-    onReturnToSourceModal,
-    returnContext,
-    onClearReturnContext,
-    onViewDoctorSchedule
-  } = props;
+  const { isOpen, onViewDoctorSchedule } = props;
 
-  const {
-    doctor,
-    isDetailLoading,
-    activeTab,
-    setActiveTab,
-    dateContext,
-    conflict,
-    mutation,
-    meta,
-    handlers
-  } = useDoctorScheduleDetailSheet(props);
+  const { doctor, isDetailLoading, dateContext, meta, handlers } =
+    useDoctorScheduleDetailSheet(props);
 
   // If no doctor has ever been loaded (first deep-link query in flight), render accessible skeleton
   if (!doctor) {
     return (
-      <Sheet
-        open={isOpen}
-        onOpenChange={(open) => !open && !conflict.isConflictReturning && handlers.handleClose()}
-      >
+      <Sheet open={isOpen} onOpenChange={(open) => !open && handlers.handleClose()}>
         <SheetContent
           side='right'
           showCloseButton={false}
@@ -89,7 +53,7 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
             <SheetTitle>Memuat Detail Jadwal Dokter</SheetTitle>
             <SheetDescription>Memuat informasi sesi dan jadwal praktik dokter...</SheetDescription>
           </SheetHeader>
-          <DoctorScheduleSheetSkeleton activeTab={activeTab} />
+          <DoctorScheduleSheetSkeleton />
         </SheetContent>
       </Sheet>
     );
@@ -106,10 +70,7 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
   } = dateContext;
 
   return (
-    <Sheet
-      open={isOpen}
-      onOpenChange={(open) => !open && !conflict.isConflictReturning && handlers.handleClose()}
-    >
+    <Sheet open={isOpen} onOpenChange={(open) => !open && handlers.handleClose()}>
       <SheetContent
         side='right'
         showCloseButton={false}
@@ -120,19 +81,11 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
           <div className='relative w-full h-24 sm:h-28 bg-[linear-gradient(to_bottom,color-mix(in_oklab,var(--primary-bright,var(--primary))_28%,transparent)_0%,color-mix(in_oklab,var(--primary-bright,var(--primary))_10%,transparent)_60%,transparent_100%)] overflow-hidden'>
             <button
               type='button'
-              onClick={
-                conflict.hasReturnTarget ? handlers.handleReturnToSource : handlers.handleClose
-              }
+              onClick={handlers.handleClose}
               className='absolute top-3 left-4 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background/85 hover:bg-background text-foreground/90 hover:text-foreground text-xs font-semibold backdrop-blur-md border border-border/50 shadow-2xs transition-all cursor-pointer select-none'
             >
               <Icons.chevronLeft className='size-3.5' />
-              <span>
-                {conflict.hasReturnTarget
-                  ? conflict.returnDoctorName
-                    ? `Kembali ke Pemilihan Ruang (${conflict.returnDoctorName})`
-                    : 'Kembali ke Pemilihan Ruang'
-                  : 'Kembali'}
-              </span>
+              <span>Kembali</span>
             </button>
           </div>
 
@@ -154,13 +107,7 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
                 <span
                   className={cn(
                     'absolute bottom-1 right-1 size-4 rounded-full ring-2 ring-card shadow-xs',
-                    doctorStatus === DOCTOR_CARD_STATUS.isOnLeave ||
-                      doctorStatus === DOCTOR_CARD_STATUS.TERISI
-                      ? 'bg-sky-500'
-                      : doctorStatus === DOCTOR_CARD_STATUS.BELUM_DIATUR ||
-                          doctorStatus === DOCTOR_CARD_STATUS.TUTUP
-                        ? 'bg-slate-400'
-                        : 'bg-emerald-500'
+                    doctorStatus === DOCTOR_CARD_STATUS.OPEN ? 'bg-emerald-500' : 'bg-slate-400'
                   )}
                 />
               </div>
@@ -202,100 +149,33 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
           </SheetHeader>
         </div>
 
-        {/* Content Body: Adaptive Tabs or Content Skeleton */}
+        {/* Content Body: Doctor Daily Sessions */}
         {isDetailLoading ? (
-          <DoctorScheduleSheetContentSkeleton activeTab={activeTab} />
+          <DoctorScheduleSheetContentSkeleton />
         ) : (
-          <Tabs
-            value={activeTab}
-            onValueChange={(val) => setActiveTab(val as DoctorDetailTab)}
-            className='flex-1 flex flex-col min-h-0 gap-0'
-          >
-            <div className='px-6 pt-3 pb-2 border-b border-border/40 shrink-0 bg-muted/20'>
-              <TabsList className='grid w-full grid-cols-2 h-9'>
-                <TabsTrigger value={DOCTOR_DETAIL_TAB.KALENDER} className='text-xs font-semibold'>
-                  Kalender
-                </TabsTrigger>
-                <TabsTrigger value={DOCTOR_DETAIL_TAB.SESI} className='text-xs font-semibold'>
-                  Jadwal Sesi
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            <div
-              className={cn(
-                'flex-1 overflow-y-auto p-4 sm:p-6 select-none',
-                activeTab === DOCTOR_DETAIL_TAB.KALENDER ? 'flex flex-col min-h-0' : 'space-y-4'
-              )}
-            >
-              <TabsContent
-                value={DOCTOR_DETAIL_TAB.KALENDER}
-                className='m-0 flex-1 flex flex-col min-h-0 outline-none animate-in fade-in-50 duration-200'
-              >
-                <DoctorTimelineCalendar
-                  doctor={doctor}
-                  selectedDay={selectedDay}
-                  onSelectDay={setSelectedDay}
-                  currentMonth={currentMonth}
-                  onMonthChange={setCurrentMonth}
-                  currentYear={currentYear}
-                  onYearChange={setCurrentYear}
-                  pendingDay={mutation.pendingStatusDay}
-                  isUpdatingDay={mutation.isUpdatingDay}
-                  onNavigateToDailyGrid={(day) => {
-                    setSelectedDay(day);
-                    setActiveTab(DOCTOR_DETAIL_TAB.SESI);
-                  }}
-                  onSelectDayStatus={(day, st, notes) =>
-                    mutation.handleDayStatusChange(day, st, notes)
-                  }
-                  className='h-full flex-1'
+          <div className='flex-1 overflow-y-auto p-4 sm:p-6 select-none space-y-4'>
+            {isUnconfigured ? (
+              <div className='flex-1 flex flex-col p-4 sm:p-6 select-none'>
+                <EmptyState
+                  title='Belum ada jadwal praktik'
+                  description='Dokter ini belum memiliki sesi praktik yang diatur.'
+                  className='h-full min-h-[320px]'
                 />
-              </TabsContent>
-
-              <TabsContent
-                value={DOCTOR_DETAIL_TAB.SESI}
-                className='m-0 space-y-3 outline-none animate-in fade-in-50 duration-200'
-              >
-                {isUnconfigured && !conflict.pendingReopen && !returnContext ? (
-                  <div className='flex-1 flex flex-col p-4 sm:p-6 select-none'>
-                    <EmptyState
-                      title='Belum ada jadwal praktik'
-                      description='Dokter ini belum memiliki sesi praktik yang diatur untuk periode yang dipilih.'
-                      action={
-                        <Button
-                          type='button'
-                          variant='outline'
-                          size='sm'
-                          onClick={() => setActiveTab(DOCTOR_DETAIL_TAB.KALENDER)}
-                          className='text-xs gap-1.5 cursor-pointer'
-                        >
-                          <Icons.calendar className='size-3.5' />
-                          <span>Kembali ke Kalender</span>
-                        </Button>
-                      }
-                      className='h-full min-h-[320px]'
-                    />
-                  </div>
-                ) : (
-                  <DoctorDailySessions
-                    key={`sessions-${doctor.id}-${selectedDay}-${currentMonth}-${currentYear}`}
-                    doctor={doctor}
-                    selectedDay={selectedDay}
-                    onSelectDay={setSelectedDay}
-                    currentMonth={currentMonth}
-                    onMonthChange={setCurrentMonth}
-                    currentYear={currentYear}
-                    onYearChange={setCurrentYear}
-                    onReturnToSourceModal={onReturnToSourceModal}
-                    returnDoctorName={conflict.returnDoctorName}
-                    returnContext={returnContext}
-                    onViewDoctorSchedule={onViewDoctorSchedule}
-                  />
-                )}
-              </TabsContent>
-            </div>
-          </Tabs>
+              </div>
+            ) : (
+              <DoctorDailySessions
+                key={`sessions-${doctor.id}-${selectedDay}-${currentMonth}-${currentYear}`}
+                doctor={doctor}
+                selectedDay={selectedDay}
+                onSelectDay={setSelectedDay}
+                currentMonth={currentMonth}
+                onMonthChange={setCurrentMonth}
+                currentYear={currentYear}
+                onYearChange={setCurrentYear}
+                onViewDoctorSchedule={onViewDoctorSchedule}
+              />
+            )}
+          </div>
         )}
       </SheetContent>
     </Sheet>

@@ -133,7 +133,7 @@ export function DoctorCalendarGridSkeleton({ className }: { className?: string }
 
 /**
  * Molecule: DoctorDailyGridSkeleton
- * Renders the 24-hour daily grid skeleton with 4 shift cards and time slots.
+ * Renders the daily grid skeleton with 4 shift cards for daily sessions.
  */
 export function DoctorDailyGridSkeleton({ className }: { className?: string }) {
   return (
@@ -151,7 +151,7 @@ export function DoctorDailyGridSkeleton({ className }: { className?: string }) {
       </div>
 
       {/* 4 Shift Cards Skeleton */}
-      {['Dini Hari', 'Pagi', 'Siang', 'Malam'].map((shiftName, idx) => (
+      {['Dini Hari', 'Pagi', 'Siang', 'Malam'].map((shiftName) => (
         <div
           key={shiftName}
           className='p-4 rounded-2xl border border-border/50 bg-card space-y-3 shadow-2xs'
@@ -166,15 +166,6 @@ export function DoctorDailyGridSkeleton({ className }: { className?: string }) {
             </div>
             <ShimmerSkeleton className='h-6 w-11 rounded-full' />
           </div>
-
-          {/* Expanded slot previews for first 2 shifts */}
-          {idx < 2 && (
-            <div className='pt-2 border-t border-border/30 grid grid-cols-2 sm:grid-cols-4 gap-2'>
-              {Array.from({ length: 4 }).map((_, slotIdx) => (
-                <ShimmerSkeleton key={slotIdx} className='h-8 rounded-lg' />
-              ))}
-            </div>
-          )}
         </div>
       ))}
     </div>
@@ -202,46 +193,36 @@ export function DoctorInfoSkeleton({ className }: { className?: string }) {
 }
 
 export interface DoctorScheduleSheetContentSkeletonProps {
-  activeTab?: 'kalender' | 'sesi';
   className?: string;
 }
 
 /**
  * Organism: DoctorScheduleSheetContentSkeleton
- * Plug-and-play body skeleton that adapts to the active tab or defaults to calendar.
+ * Body skeleton for doctor sessions.
  */
 export function DoctorScheduleSheetContentSkeleton({
-  activeTab = 'kalender',
   className
-}: DoctorScheduleSheetContentSkeletonProps) {
+}: DoctorScheduleSheetContentSkeletonProps = {}) {
   return (
-    <div className={cn('flex-1 flex flex-col min-h-0 gap-0 select-none', className)}>
-      <DoctorTabsListSkeleton />
-      <div className='flex-1 overflow-y-auto p-6 space-y-4'>
-        {activeTab === 'kalender' && <DoctorCalendarGridSkeleton />}
-        {activeTab === 'sesi' && <DoctorDailyGridSkeleton />}
-      </div>
+    <div className={cn('flex-1 overflow-y-auto p-6 space-y-4 select-none', className)}>
+      <DoctorDailyGridSkeleton />
     </div>
   );
 }
 
 export interface DoctorScheduleSheetSkeletonProps {
-  activeTab?: 'kalender' | 'sesi';
   className?: string;
 }
 
 /**
  * Component / Composite: DoctorScheduleSheetSkeleton
- * Complete schedule sheet skeleton with header and adaptive body content.
+ * Complete schedule sheet skeleton with header and sessions body.
  */
-export function DoctorScheduleSheetSkeleton({
-  activeTab = 'kalender',
-  className
-}: DoctorScheduleSheetSkeletonProps) {
+export function DoctorScheduleSheetSkeleton({ className }: DoctorScheduleSheetSkeletonProps = {}) {
   return (
     <div className={cn('flex flex-col h-full w-full', className)}>
       <DoctorProfileHeaderSkeleton />
-      <DoctorScheduleSheetContentSkeleton activeTab={activeTab} />
+      <DoctorScheduleSheetContentSkeleton />
     </div>
   );
 }

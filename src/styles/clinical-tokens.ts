@@ -131,26 +131,12 @@ export const getStatusConfig = (status: string): StatusConfig => {
         ...clinicalTokens.colors.status.confirmed,
         label: normalized === 'HADIR' ? 'Hadir' : 'Buka'
       };
-    case 'isOnLeave':
+    case 'ISONLEAVE':
     case 'LEAVE':
-    case 'CUTI_/_TUTUP':
-    case 'isOnLeave / TUTUP':
+    case 'CUTI':
       return {
         ...clinicalTokens.colors.status.upcoming,
-        label: 'isOnLeave'
-      };
-    case 'TERISI':
-    case 'OCCUPIED':
-      return {
-        ...clinicalTokens.colors.status.upcoming,
-        label: 'Terisi'
-      };
-    case 'PENUH':
-    case 'FULL':
-    case 'SEBAGIAN':
-      return {
-        ...clinicalTokens.colors.status.pending,
-        label: 'Terisi'
+        label: 'Cuti'
       };
     case APPOINTMENT_STATUS.BOOKED:
       return {

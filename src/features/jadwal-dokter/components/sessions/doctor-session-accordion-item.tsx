@@ -3,22 +3,14 @@
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Icons } from '@/components/icons';
-import {
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent
-} from '@/components/ui/accordion';
+import { AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { cn } from '@/lib/utils';
@@ -32,7 +24,6 @@ export interface DoctorSessionAccordionItemProps {
   doctor: DoctorSchedule;
   isPending: boolean;
   onToggleStatus: (session: DoctorDailySession) => void;
-  onReschedule: (session: DoctorDailySession) => void;
   onSelectPatient: (patient: BookedPatientItem, session: DoctorDailySession) => void;
   className?: string;
 }
@@ -47,12 +38,11 @@ export function DoctorSessionAccordionItem({
   doctor,
   isPending,
   onToggleStatus,
-  onReschedule,
   onSelectPatient,
   className
 }: DoctorSessionAccordionItemProps) {
   const doctorId = doctor.id || doctor.practitioner_id || '';
-  const isClosed = session.status_sesi === 'Tutup' || session.status_sesi === 'CLOSED';
+  const isClosed = session.status_sesi === 'CLOSED';
 
   // Fetch registered patients for this session
   const { data: patientsData, isLoading: isLoadingPatients } = useQuery({
@@ -101,7 +91,10 @@ export function DoctorSessionAccordionItem({
                   </span>
                 </span>
               </TooltipTrigger>
-              <TooltipContent side='top' className='text-xs space-y-1 py-1.5 px-2.5 shadow-md font-sans'>
+              <TooltipContent
+                side='top'
+                className='text-xs space-y-1 py-1.5 px-2.5 shadow-md font-sans'
+              >
                 <p className='font-semibold text-primary-foreground'>Info Sesi</p>
                 <div className='flex items-center gap-1.5 text-primary-foreground/90'>
                   <Icons.clock className='size-3 shrink-0' />
@@ -143,13 +136,6 @@ export function DoctorSessionAccordionItem({
                 </span>
               </DropdownMenuTrigger>
               <DropdownMenuContent align='end' className='w-40 text-xs font-sans'>
-                <DropdownMenuItem
-                  onClick={() => onReschedule(session)}
-                  className='cursor-pointer gap-2 text-xs py-2'
-                >
-                  <Icons.calendar className='size-3.5' />
-                  <span>Reschedule</span>
-                </DropdownMenuItem>
                 <DropdownMenuItem
                   disabled={isPending}
                   onClick={() => onToggleStatus(session)}

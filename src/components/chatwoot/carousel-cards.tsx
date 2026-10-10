@@ -70,14 +70,13 @@ function parseSlideContent(slide: string, idx: number) {
       ruang_praktik: room,
       tanggal_praktik: days || undefined,
       avatar: '',
-      slot_tersedia: 0,
-      kapasitas_per_hari: 0,
       jadwal_hari_ini: hours,
       status_jadwal: status,
       bulan_jadwal: '',
       monthly_schedule: [],
       sesi_harian: [],
-      isOnLeave: lower.includes('isOnLeave') || status.toLowerCase().includes('isOnLeave')
+      is_on_leave:
+        lower.includes('cuti') || status.toLowerCase().includes('cuti') || lower.includes('leave')
     };
 
     return {

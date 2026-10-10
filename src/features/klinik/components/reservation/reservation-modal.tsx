@@ -54,7 +54,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
   }, []);
 
   const [dateStr, setDateStr] = React.useState<string>(tomorrow);
-  const [timeSlot, setTimeSlot] = React.useState<string>('PAGI');
+  const [session, setSession] = React.useState<string>('');
   const [_selectedSessionId, setSelectedSessionId] = React.useState<string>('');
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
   const [createdAppointment, setCreatedAppointment] = React.useState<Appointment | null>(null);
@@ -63,6 +63,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
   React.useEffect(() => {
     if (!isOpen) {
       setStep('date');
+      setSession('');
       setCreatedAppointment(null);
       setIsQueueSuccessOpen(false);
       return;
@@ -114,7 +115,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
         poliklinikId: effectivePoliklinikId || '',
         layananId: serviceItem?.id || context.serviceId || '',
         appointmentDate: dateStr,
-        session: timeSlot,
+        session: session,
         visitType: 'Pemeriksaan Baru',
         complaint: context.complaint || 'Pemeriksaan Kesehatan',
         sourceIntakeId: context.sourceIntakeId
@@ -123,7 +124,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
       const startTime = formatTimeString(res.scheduledStartTime);
       const endTime = formatTimeString(res.scheduledEndTime);
       const timeDisplay =
-        startTime && endTime ? `${startTime} - ${endTime}` : res.session || timeSlot;
+        startTime && endTime ? `${startTime} - ${endTime}` : res.session || session;
 
       const uiApt: Appointment = {
         id: res.id,
@@ -177,8 +178,8 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
               <BookingSessionStep
                 selectedService={serviceItem}
                 dateStr={dateStr}
-                timeSlot={timeSlot}
-                setTimeSlot={setTimeSlot}
+                session={session}
+                setSession={setSession}
                 onSelectSessionId={setSelectedSessionId}
                 poliklinikId={effectivePoliklinikId}
               />
@@ -189,7 +190,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
                 selectedService={serviceItem}
                 selectedPatient={patientProfile}
                 dateStr={dateStr}
-                timeSlot={timeSlot}
+                session={session}
                 visitType='Pemeriksaan Baru'
                 complaint={context.complaint || ''}
                 serviceName={context.serviceName || serviceItem?.name}
@@ -249,7 +250,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
                   variant='primary'
                   size='md'
                   shape='pill'
-                  disabled={!timeSlot}
+                  disabled={!session}
                   onClick={() => setStep('confirmation')}
                   withTrailingCircleIcon
                   className='min-w-[140px]'
