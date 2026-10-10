@@ -22,6 +22,7 @@ import { DoctorSessionPatientCard } from './doctor-session-patient-card';
 export interface DoctorSessionAccordionItemProps {
   session: DoctorDailySession;
   doctor: DoctorSchedule;
+  selectedDate?: string;
   isPending: boolean;
   onToggleStatus: (session: DoctorDailySession) => void;
   onSelectPatient: (patient: BookedPatientItem, session: DoctorDailySession) => void;
@@ -36,6 +37,7 @@ export interface DoctorSessionAccordionItemProps {
 export function DoctorSessionAccordionItem({
   session,
   doctor,
+  selectedDate,
   isPending,
   onToggleStatus,
   onSelectPatient,
@@ -43,10 +45,11 @@ export function DoctorSessionAccordionItem({
 }: DoctorSessionAccordionItemProps) {
   const doctorId = doctor.id || doctor.practitioner_id || '';
   const isClosed = session.status_sesi === 'CLOSED';
+  const effectiveDate = session.tanggal || selectedDate;
 
   // Fetch registered patients for this session
   const { data: patientsData, isLoading: isLoadingPatients } = useQuery({
-    ...sessionPatientsQueryOptions(doctorId, session.id),
+    ...sessionPatientsQueryOptions(doctorId, session.id, { date: effectiveDate }),
     enabled: Boolean(doctorId && session.id)
   });
 

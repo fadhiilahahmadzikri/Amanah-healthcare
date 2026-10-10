@@ -144,11 +144,12 @@ export async function getClinicRooms(params?: {
 export async function getSessionPatients(
   doctorId: string,
   sessionId: string,
-  filters: { status?: string; search?: string } = {}
+  filters: { status?: string; search?: string; date?: string } = {}
 ): Promise<AdminSessionPatientsData> {
   const qs = new URLSearchParams();
   if (filters.status) qs.set('status', filters.status);
   if (filters.search) qs.set('search', filters.search);
+  if (filters.date) qs.set('date', filters.date);
   const q = qs.toString();
   const res = await clientFetch<{ data?: AdminSessionPatientsData } | AdminSessionPatientsData>(
     `/api/v1/admin/doctor-schedules/${doctorId}/sessions/${sessionId}/patients${q ? `?${q}` : ''}`

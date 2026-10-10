@@ -20,7 +20,7 @@ import { resolveActiveToken } from './token-resolver';
 export async function fetchAdminSessionPatients(
   doctorId: string,
   sessionId: string,
-  queryFilters?: { status?: string; search?: string }
+  queryFilters?: { status?: string; search?: string; date?: string }
 ): Promise<AdminSessionPatientsResponse> {
   const token = await resolveActiveToken();
   const query: Record<string, unknown> = {
@@ -28,6 +28,9 @@ export async function fetchAdminSessionPatients(
   };
   if (queryFilters?.search) {
     query.search = queryFilters.search;
+  }
+  if (queryFilters?.date) {
+    query.date = queryFilters.date;
   }
 
   const response = await httpClient.request(

@@ -147,6 +147,7 @@ export function DoctorDailySessions({
                       key={session.id}
                       session={session}
                       doctor={doctor}
+                      selectedDate={formattedTargetDate}
                       isPending={updateSessionMutation.isPending && pendingSessionId === session.id}
                       onToggleStatus={handleToggleSessionStatus}
                       onSelectPatient={(patient, sess) => {

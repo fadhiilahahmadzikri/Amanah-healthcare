@@ -11,6 +11,6 @@ export const doctorScheduleKeys = {
   sessionPatients: (
     doctorId: string,
     sessionId: string,
-    filters: { status?: string; search?: string } = {}
+    filters: { status?: string; search?: string; date?: string } = {}
   ) => [...doctorScheduleKeys.all, 'session-patients', doctorId, sessionId, filters] as const
 };

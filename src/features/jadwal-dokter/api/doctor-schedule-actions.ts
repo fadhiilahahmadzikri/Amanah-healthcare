@@ -95,7 +95,7 @@ export async function getClinicRoomsAction(params?: {
 export async function getSessionPatientsAction(
   doctorId: string,
   sessionId: string,
-  queryFilters?: { status?: string; search?: string }
+  queryFilters?: { status?: string; search?: string; date?: string }
 ) {
   return fetchAdminSessionPatients(doctorId, sessionId, queryFilters);
 }

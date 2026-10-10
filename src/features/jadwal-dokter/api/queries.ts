@@ -56,7 +56,7 @@ export const clinicRoomsQueryOptions = (params?: {
 export const sessionPatientsQueryOptions = (
   doctorId: string,
   sessionId: string,
-  filters: { status?: string; search?: string } = {}
+  filters: { status?: string; search?: string; date?: string } = {}
 ) =>
   queryOptions({
     queryKey: doctorScheduleKeys.sessionPatients(doctorId, sessionId, filters),

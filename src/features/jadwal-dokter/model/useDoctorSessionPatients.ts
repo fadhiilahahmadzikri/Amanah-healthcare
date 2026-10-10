@@ -56,6 +56,7 @@ export interface UseDoctorSessionPatientsProps {
 export function useDoctorSessionPatients({
   doctorId,
   sessionId,
+  date,
   isOpen,
   initialCapacity = 0,
   pageSize = 10
@@ -81,9 +82,10 @@ export function useDoctorSessionPatients({
   const queryFilters = useMemo(
     () => ({
       status: selectedStatus !== 'all' ? selectedStatus : undefined,
-      search: debouncedSearch !== '' ? debouncedSearch : undefined
+      search: debouncedSearch !== '' ? debouncedSearch : undefined,
+      date: date || undefined
     }),
-    [selectedStatus, debouncedSearch]
+    [selectedStatus, debouncedSearch, date]
   );
 
   const sessionQuery = useQuery({
