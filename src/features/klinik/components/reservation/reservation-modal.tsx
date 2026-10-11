@@ -16,12 +16,7 @@ import { BookingSessionStep } from '../booking/booking-session-step';
 import { BookingConfirmationStep } from '../booking/booking-confirmation-step';
 import { QueueSuccessModal } from '../queue-success-modal';
 import { APPOINTMENT_STATUS, QUEUE_STATUS, type Appointment } from '../../api/types';
-
-function formatTimeString(t?: string) {
-  if (!t) return '';
-  const match = t.match(/^(\d{1,2}):(\d{2})/);
-  return match ? `${match[1].padStart(2, '0')}.${match[2]}` : t;
-}
+import { formatClinicTime } from '@/lib/date-format';
 
 export type ReservationStep = 'date' | 'session' | 'confirmation';
 
@@ -121,8 +116,8 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
         sourceIntakeId: context.sourceIntakeId
       });
 
-      const startTime = formatTimeString(res.scheduledStartTime);
-      const endTime = formatTimeString(res.scheduledEndTime);
+      const startTime = res.scheduledStartTime ? formatClinicTime(res.scheduledStartTime) : '';
+      const endTime = res.scheduledEndTime ? formatClinicTime(res.scheduledEndTime) : '';
       const timeDisplay =
         startTime && endTime ? `${startTime} - ${endTime}` : res.session || session;
 

@@ -4,7 +4,7 @@ import * as React from 'react';
 import { toast } from 'sonner';
 import type { Patient } from '@/features/data-pasien/api/types';
 import type { Appointment, AppointmentFormData, QueueItem } from '../api/types';
-import { createAppointmentRecordWithQueue, loadStoredAppointments } from '../api/service';
+import { createAppointmentRecordWithQueue } from '../api/service';
 import {
   patientAffiliationService,
   type PatientAffiliationProfile,
@@ -228,8 +228,7 @@ export function useMedicalAppointmentSubmit({
       setIsProcessing(true);
       setIsQueueSuccessOpen(true);
 
-      const existing = loadStoredAppointments();
-      const result = createAppointmentRecordWithQueue(payload, existing);
+      const result = createAppointmentRecordWithQueue(payload, []);
 
       setCreatedAppointment(result.appointment);
       setCreatedQueueItem(result.queueItem);

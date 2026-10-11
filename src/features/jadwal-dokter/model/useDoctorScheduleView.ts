@@ -14,7 +14,6 @@ interface UseDoctorScheduleViewResult {
   selectedDoctorId: string;
   openPatients: boolean;
   isDetailOpen: boolean;
-  isEditOpen: boolean;
   isFetching: boolean;
   isLoading: boolean;
   searchQuery: string;
@@ -30,9 +29,6 @@ interface UseDoctorScheduleViewResult {
     closeDetail: () => void;
     clearOpenPatients: () => void;
     openDoctorScheduleById: (doctorId: string) => void;
-    openEdit: (doctor: DoctorSchedule) => void;
-    closeEdit: () => void;
-    openEditFromDetail: (doctor: DoctorSchedule) => void;
     changeSearch: (value: string) => void;
     changeMonthFilter: (month: string) => void;
     changeDateFilter: (date?: Date) => void;
@@ -113,12 +109,6 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     }
   }, [params.selectedDoctorId, params.dialog, data?.doctors, activeDialog]);
 
-  const openEdit = (doctor: DoctorSchedule) => {
-    setSelectedDoctor(doctor);
-    setActiveDialog(DOCTOR_DIALOG_TYPE.EDIT);
-    setParams({ selectedDoctorId: doctor.id, dialog: DOCTOR_DIALOG_TYPE.EDIT }, { shallow: true });
-  };
-
   const openDoctorScheduleById = (doctorId: string) => {
     setParams(
       {
@@ -144,7 +134,6 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     selectedDoctorId: params.selectedDoctorId,
     openPatients: Boolean(params.openPatients === 'true' || params.openPatients === '1'),
     isDetailOpen: currentDialog === DOCTOR_DIALOG_TYPE.DETAIL_SHEET,
-    isEditOpen: currentDialog === DOCTOR_DIALOG_TYPE.EDIT,
     isFetching,
     isLoading,
     searchQuery: params.search,
@@ -176,13 +165,6 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
       },
       clearOpenPatients: () => setParams({ openPatients: null }, { shallow: true }),
       openDoctorScheduleById,
-      openEdit,
-      closeEdit: () => {
-        setActiveDialog(null);
-        setSelectedDoctor(null);
-        setParams({ selectedDoctorId: null, dialog: null }, { shallow: true });
-      },
-      openEditFromDetail: openEdit,
       changeSearch: (value) => setParams({ search: value || null, page: 1 }, { shallow: true }),
       changeMonthFilter: (month) =>
         setParams({ month: month === 'ALL' ? null : month, page: 1 }, { shallow: true }),

@@ -4,22 +4,7 @@ import { useState, useMemo } from 'react';
 import type { DoctorSchedule, DoctorDailySession } from '../api/types';
 import { useDoctorSessionModals } from './useDoctorSessionModals';
 
-const MONTH_NAMES = [
-  'Januari',
-  'Februari',
-  'Maret',
-  'April',
-  'Mei',
-  'Juni',
-  'Juli',
-  'Agustus',
-  'September',
-  'Oktober',
-  'November',
-  'Desember'
-];
-
-const DAY_NAMES_FULL = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+import { formatClinicDate } from '@/lib/date-format';
 
 export interface UseDoctorDailySessionsProps {
   doctor?: DoctorSchedule;
@@ -74,8 +59,8 @@ export function useDoctorDailySessions({
 
   const totalDaysInMonth = new Date(activeYear, activeMonth + 1, 0).getDate();
   const dateObj = new Date(activeYear, activeMonth, activeDay);
-  const dayName = DAY_NAMES_FULL[dateObj.getDay()] || 'Hari';
-  const formattedSelectedDate = `${dayName}, ${activeDay} ${MONTH_NAMES[activeMonth]} ${activeYear}`;
+  const targetDateStr = `${activeYear}-${String(activeMonth + 1).padStart(2, '0')}-${String(activeDay).padStart(2, '0')}`;
+  const formattedSelectedDate = formatClinicDate(targetDateStr);
 
   const isCurrentDayToday =
     activeDay === realCurrentDay &&

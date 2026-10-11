@@ -32,7 +32,6 @@ export interface DoctorScheduleCardProps {
   date?: string;
   isSelected?: boolean;
   onOpenDetail?: (doctor: DoctorSchedule) => void;
-  onOpenEdit?: (doctor: DoctorSchedule) => void;
   onOpenSettings?: (doctor: DoctorSchedule) => void;
   onCall?: (doctor: DoctorSchedule) => void;
   variant?: 'default' | 'compact' | 'flat' | 'elevated';
@@ -46,7 +45,6 @@ export function DoctorScheduleCard({
   doctor,
   isSelected,
   onOpenDetail,
-  onOpenEdit,
   onOpenSettings,
   variant = 'default',
   showActions = true,

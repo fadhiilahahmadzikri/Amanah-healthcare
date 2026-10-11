@@ -4,8 +4,7 @@
  */
 export const DOCTOR_DIALOG_TYPE = {
   NONE: 'none',
-  DETAIL_SHEET: 'detail',
-  EDIT: 'edit'
+  DETAIL_SHEET: 'detail'
 } as const;
 
 export type DoctorDialogType = (typeof DOCTOR_DIALOG_TYPE)[keyof typeof DOCTOR_DIALOG_TYPE];

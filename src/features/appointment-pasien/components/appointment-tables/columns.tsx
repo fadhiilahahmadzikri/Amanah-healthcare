@@ -13,6 +13,7 @@ import Link from 'next/link';
 import type { AdminAppointment } from '../../api/types';
 import type { FilterOption } from '@/features/klinik';
 import { CellAction } from './cell-action';
+import { formatClinicDate, formatClinicTime } from '@/lib/date-format';
 
 const getInitials = (name: string) => {
   return name
@@ -25,11 +26,7 @@ const getInitials = (name: string) => {
 
 const formatTimeOnly = (isoString?: string | null) => {
   if (!isoString) return '-';
-  const d = new Date(isoString);
-  if (Number.isNaN(d.getTime())) return '-';
-  const hours = String(d.getHours()).padStart(2, '0');
-  const minutes = String(d.getMinutes()).padStart(2, '0');
-  return `${hours}:${minutes}`;
+  return formatClinicTime(isoString);
 };
 
 const getAntreanPillClasses = (noAntrian: string) => {
@@ -142,7 +139,7 @@ export function getAppointmentColumns(
       ),
       cell: ({ row }) => (
         <span className='text-sm text-muted-foreground whitespace-nowrap font-medium'>
-          {row.original.scheduledDate}
+          {formatClinicDate(row.original.scheduledDate)}
         </span>
       ),
       meta: {

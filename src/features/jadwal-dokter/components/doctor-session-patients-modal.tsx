@@ -15,6 +15,7 @@ import {
 } from '../model/useDoctorSessionPatients';
 import { BookedPatientDetailModal } from './booked-patient-detail-modal';
 import { BookedPatientOuterCard } from './booked-patient-outer-card';
+import { formatClinicDate } from '@/lib/date-format';
 
 export interface DoctorSessionPatientsModalProps {
   doctor: DoctorSchedule;
@@ -86,39 +87,7 @@ export function DoctorSessionPatientsModal({
   const formattedDisplayDate = React.useMemo(() => {
     const rawDate = scheduleDate || selectedDate || session.tanggal || doctor.tanggal_praktik || '';
     if (!rawDate) return '';
-    if (
-      rawDate.includes('Januari') ||
-      rawDate.includes('Februari') ||
-      rawDate.includes('Maret') ||
-      rawDate.includes('April') ||
-      rawDate.includes('Mei') ||
-      rawDate.includes('Juni') ||
-      rawDate.includes('Juli') ||
-      rawDate.includes('Agustus') ||
-      rawDate.includes('September') ||
-      rawDate.includes('Oktober') ||
-      rawDate.includes('November') ||
-      rawDate.includes('Desember') ||
-      rawDate.includes('Senin') ||
-      rawDate.includes('Minggu')
-    ) {
-      return rawDate;
-    }
-    const parts = rawDate.split('-');
-    if (parts.length === 3) {
-      const y = parseInt(parts[0], 10);
-      const m = parseInt(parts[1], 10);
-      const d = parseInt(parts[2], 10);
-      if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
-        return new Date(y, m - 1, d).toLocaleDateString('id-ID', {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric'
-        });
-      }
-    }
-    return rawDate;
+    return formatClinicDate(rawDate);
   }, [scheduleDate, selectedDate, session.tanggal, doctor.tanggal_praktik]);
 
   const sessionTimeDisplay = React.useMemo(() => {

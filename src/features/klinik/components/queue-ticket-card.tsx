@@ -10,6 +10,7 @@ import { QueuePixelTexture } from './queue-pixel-texture';
 import { QueueClippathToaster } from './queue-clippath-toaster';
 import { QueueWaitingRoomSvg } from './queue-waiting-room-svg';
 import { cn } from '@/lib/utils';
+import { formatClinicDate } from '@/lib/date-format';
 
 export interface QueueTicketCardProps {
   queueNumber?: string;
@@ -319,7 +320,7 @@ export function QueueTicketCard({
                 Tanggal Reservasi:
               </span>
               <div className='text-[13.5px] font-semibold text-slate-800 tracking-tight flex items-center leading-snug truncate'>
-                <span>{dateStr}</span>
+                <span>{formatClinicDate(dateStr)}</span>
                 <span className='inline-block w-px h-3 bg-slate-300 mx-1.5 shrink-0' />
                 <span style={{ color: 'var(--primary)' }} className='font-mono font-bold'>
                   {displayTime}

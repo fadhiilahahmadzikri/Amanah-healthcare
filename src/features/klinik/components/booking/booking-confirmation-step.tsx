@@ -4,6 +4,7 @@ import React from 'react';
 import { Icons } from '@/components/icons';
 import type { ServiceCatalogItem } from '../../api/catalog.service';
 import type { PatientAffiliationProfile } from '@/features/data-pasien/api/patient-affiliation-service';
+import { formatClinicDate } from '@/lib/date-format';
 
 export interface BookingConfirmationStepProps {
   selectedService: ServiceCatalogItem | null;
@@ -57,7 +58,7 @@ export function BookingConfirmationStep({
 
         <div className='flex items-center justify-between py-2 border-b border-border'>
           <span className='text-muted-foreground font-normal'>Tanggal Reservasi</span>
-          <span className='font-semibold text-primary'>{dateStr}</span>
+          <span className='font-semibold text-primary'>{formatClinicDate(dateStr)}</span>
         </div>
 
         <div className='flex items-center justify-between py-2 border-b border-border'>

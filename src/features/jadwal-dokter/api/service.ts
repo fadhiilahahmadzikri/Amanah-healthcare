@@ -78,16 +78,6 @@ export async function getDoctorScheduleById(
   }
 }
 
-export async function updateDoctorSchedule(
-  id: string,
-  payload: Partial<DoctorSchedule>
-): Promise<DoctorSchedule> {
-  return await clientFetch<DoctorSchedule>(`/api/v1/admin/doctor-schedules/${id}`, {
-    method: 'PATCH',
-    body: JSON.stringify(payload)
-  });
-}
-
 export async function updateDoctorDayStatus(
   doctorId: string,
   date: string,

@@ -1,6 +1,7 @@
 'use client';
 
 import type { PatientRegistrationFormValues } from '../../schemas/patient-registration-schema';
+import { formatClinicDate } from '@/lib/date-format';
 
 type PatientRegistrationSummaryProps = {
   values: PatientRegistrationFormValues;
@@ -65,17 +66,6 @@ function getSummaryValue(
 }
 
 function formatDisplayDate(value: string): string {
-  if (!value) {
-    return '';
-  }
-
-  const [year = 0, month = 1, day = 1] = value.split('-').map(Number);
-
-  return new Date(year, month - 1, day)
-    .toLocaleDateString('id-ID', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    })
-    .toLowerCase();
+  if (!value) return '';
+  return formatClinicDate(value, { style: 'human_medium' });
 }

@@ -12,6 +12,7 @@ import {
   patientAffiliationService,
   type BackendAppointmentItem
 } from '@/features/data-pasien/api/patient-affiliation-service';
+import { formatClinicTime } from '@/lib/date-format';
 import {
   type AppointmentFilterState,
   type AppointmentFormMode,
@@ -79,18 +80,14 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
   const mapBackendToUi = useCallback((apt: BackendAppointmentItem): Appointment => {
     const canonicalStatus: AppointmentStatus = AppointmentStatusDescriptor.from(apt.status).code;
 
-    const formatTime = (t?: string) => {
-      if (!t) return '';
-      const match = t.match(/^(\d{1,2}):(\d{2})/);
-      return match ? `${match[1].padStart(2, '0')}.${match[2]}` : t;
-    };
-
-    const startTimeFormatted = formatTime(apt.scheduledStartTime);
-    const endTimeFormatted = formatTime(apt.scheduledEndTime);
+    const startTimeFormatted = apt.scheduledStartTime
+      ? formatClinicTime(apt.scheduledStartTime)
+      : '';
+    const endTimeFormatted = apt.scheduledEndTime ? formatClinicTime(apt.scheduledEndTime) : '';
     const timeDisplay =
       apt.etaRange ||
       (startTimeFormatted && endTimeFormatted
-        ? `${startTimeFormatted} - ${endTimeFormatted} WIB`
+        ? `${startTimeFormatted} - ${endTimeFormatted}`
         : apt.session || '-');
 
     const rawFlow =

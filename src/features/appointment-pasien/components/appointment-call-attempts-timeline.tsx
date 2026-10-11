@@ -5,6 +5,7 @@ import { Icons } from '@/components/icons';
 import { Badge } from '@/components/ui/badge';
 import { getAppointmentCallAttempts, type AppointmentCallAttempt } from '../api/service';
 import { cn } from '@/lib/utils';
+import { formatClinicTime } from '@/lib/date-format';
 
 export interface AppointmentCallAttemptsTimelineProps {
   appointmentId: string;
@@ -66,17 +67,11 @@ export function AppointmentCallAttemptsTimeline({
           const isResponded = att.status === 'responded';
           const isNoResponse = att.status === 'no_show' || att.status === 'no_response';
           const formattedCallTime = att.calledAt
-            ? new Date(att.calledAt).toLocaleTimeString('id-ID', {
-                hour: '2-digit',
-                minute: '2-digit'
-              }) + ' WIB'
+            ? formatClinicTime(att.calledAt, { withSuffix: true })
             : '-';
 
           const formattedRespTime = att.respondedAt
-            ? new Date(att.respondedAt).toLocaleTimeString('id-ID', {
-                hour: '2-digit',
-                minute: '2-digit'
-              }) + ' WIB'
+            ? formatClinicTime(att.respondedAt, { withSuffix: true })
             : null;
 
           return (

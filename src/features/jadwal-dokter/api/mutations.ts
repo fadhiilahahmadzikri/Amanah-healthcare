@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   updateDoctorDayStatus,
-  updateDoctorSchedule,
   updateDoctorSession,
   cancelAppointment,
   updateAppointmentStatus,
@@ -11,11 +10,7 @@ import {
 } from './service';
 import { doctorScheduleKeys } from './queries';
 import { toast } from 'sonner';
-import type {
-  ScheduleDayStatus,
-  UpdateDoctorSchedulePayload,
-  UpdateDoctorSessionPayload
-} from './types';
+import type { ScheduleDayStatus, UpdateDoctorSessionPayload } from './types';
 import type {
   CancelAppointmentPayload,
   UpdateAppointmentStatusPayload,
@@ -32,27 +27,9 @@ export function syncAllDoctorSchedules(queryClient: ReturnType<typeof useQueryCl
   queryClient.invalidateQueries({ queryKey: ['schedules', 'reference-rooms'] });
   queryClient.invalidateQueries({ queryKey: ['schedules', 'reference-options'] });
   queryClient.invalidateQueries({ queryKey: ['admin-schedule-configuration'] });
+  queryClient.invalidateQueries({ queryKey: ['clinic-time-config'] });
   queryClient.removeQueries({ queryKey: ['doctor-roster-assignments'] });
   queryClient.invalidateQueries({ queryKey: ['doctor-schedule-history'] });
-}
-
-export function useUpdateDoctorScheduleMutation() {
-  return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: UpdateDoctorSchedulePayload }) =>
-      updateDoctorSchedule(id, payload),
-    onSuccess: async (updated) => {
-      const isLeave = Boolean(updated.is_on_leave);
-      toast.success(
-        isLeave
-          ? `Status ${updated.nama_dokter} diset ke Cuti. Seluruh sesi otomatis ditutup.`
-          : `Jadwal ${updated.nama_dokter} berhasil diperbarui.`
-      );
-    },
-    onError: (err: unknown) => {
-      const message = err instanceof Error ? err.message : 'Gagal memperbarui jadwal dokter';
-      toast.error(message);
-    }
-  });
 }
 
 export function useUpdateDoctorDayStatusMutation() {

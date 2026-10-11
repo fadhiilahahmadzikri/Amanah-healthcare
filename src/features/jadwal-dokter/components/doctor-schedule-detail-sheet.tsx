@@ -25,7 +25,6 @@ import {
 } from './doctor-schedule-sheet-skeleton';
 
 export interface DoctorScheduleDetailSheetProps extends UseDoctorScheduleDetailSheetProps {
-  onOpenEdit?: (doctor: DoctorSchedule) => void;
   onViewDoctorSchedule?: (doctorId: string, targetSessionTime?: string) => void;
 }
 

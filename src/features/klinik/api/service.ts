@@ -10,6 +10,7 @@ import {
 } from './types';
 import { getAmanahServiceByName } from '../constants/services';
 import { getClinicalPractitionersAction } from '@/features/jadwal-dokter/api/doctor-schedule-actions';
+import { formatClinicTime } from '@/lib/date-format';
 
 export async function fetchClinicalDoctors(serviceName?: string): Promise<Doctor[]> {
   try {
@@ -120,9 +121,9 @@ function mapBackendQueueItemToFrontend(item: Record<string, unknown>, isUser = f
   const status = normalizeQueueStatus(rawStatus, ticketStatus);
 
   const startTime =
-    typeof item.scheduledStartTime === 'string' ? item.scheduledStartTime.slice(0, 5) : '';
+    typeof item.scheduledStartTime === 'string' ? formatClinicTime(item.scheduledStartTime) : '';
   const endTime =
-    typeof item.scheduledEndTime === 'string' ? item.scheduledEndTime.slice(0, 5) : '';
+    typeof item.scheduledEndTime === 'string' ? formatClinicTime(item.scheduledEndTime) : '';
   const estimatedTime =
     startTime && endTime ? `${startTime} - ${endTime}` : startTime || endTime || '-';
 
@@ -136,12 +137,7 @@ function mapBackendQueueItemToFrontend(item: Record<string, unknown>, isUser = f
     estimated_time: estimatedTime,
     status,
     is_user: isUser,
-    called_time: item.calledAt
-      ? new Date(String(item.calledAt)).toLocaleTimeString('id-ID', {
-          hour: '2-digit',
-          minute: '2-digit'
-        })
-      : undefined,
+    called_time: item.calledAt ? formatClinicTime(String(item.calledAt)) : undefined,
     room: String(item.room || item.roomName || ''),
     call_count: Number(item.callCount ?? item.call_count ?? 0),
     called_at: item.calledAt ? String(item.calledAt) : null,
@@ -244,10 +240,7 @@ export async function getDisplayQueueFromApi(params?: {
         estimated_time: isCurInService ? 'Sedang Diperiksa' : 'Sedang Dipanggil',
         status: isCurInService ? QUEUE_STATUS.IN_SERVICE : QUEUE_STATUS.CALLED,
         called_time: display.currentTicket.calledAt
-          ? new Date(display.currentTicket.calledAt).toLocaleTimeString('id-ID', {
-              hour: '2-digit',
-              minute: '2-digit'
-            })
+          ? formatClinicTime(display.currentTicket.calledAt)
           : undefined,
         room: display.currentTicket.roomName || '',
         called_at: display.currentTicket.calledAt ? String(display.currentTicket.calledAt) : null,
@@ -299,16 +292,6 @@ export async function completePatientQueue(appointmentId: string): Promise<unkno
     method: 'POST'
   });
 }
-
-export const loadStoredAppointments = (): Appointment[] => [];
-
-export const saveAppointmentsToStorage = (_appointments: Appointment[]): void => {};
-
-export const loadStoredQueues = (): QueueItem[] => {
-  return [];
-};
-
-export const saveQueuesToStorage = (_queues: QueueItem[]): void => {};
 
 export const createAppointmentRecord = (
   formData: AppointmentFormData,

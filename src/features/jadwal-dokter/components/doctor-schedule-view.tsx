@@ -31,7 +31,6 @@ export function DoctorScheduleView() {
         doctor={scheduleView.selectedDoctor}
         isOpen={scheduleView.isDetailOpen}
         onClose={scheduleView.actions.closeDetail}
-        onOpenEdit={scheduleView.actions.openEditFromDetail}
         selectedDate={scheduleView.dateFilter ? toDateParam(scheduleView.dateFilter) : undefined}
         onViewDoctorSchedule={scheduleView.actions.openDoctorScheduleById}
       />
@@ -144,7 +143,6 @@ export function DoctorScheduleView() {
                               scheduleView.selectedDoctorId === doctor.practitioner_id)
                           )}
                           onOpenDetail={scheduleView.actions.openDetail}
-                          onOpenEdit={scheduleView.actions.openEdit}
                           onOpenSettings={(doc) => {
                             setSelectedDoctorForAssignment(doc);
                             setIsAssignmentModalOpen(true);

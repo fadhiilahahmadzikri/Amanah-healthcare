@@ -5,6 +5,7 @@ import { Icons } from '@/components/icons';
 import { EmptyState } from '@/components/ui/empty-state';
 import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
 import { cn } from '@/lib/utils';
+import { formatClinicDate, formatClinicTime } from '@/lib/date-format';
 import type { AdminAppointment } from '../api/types';
 
 interface TimelineEvent {
@@ -28,34 +29,12 @@ export function AppointmentHistoryTimeline({
 }: AppointmentHistoryTimelineProps) {
   const formatTime = (isoString?: string | null) => {
     if (!isoString) return null;
-    try {
-      const d = new Date(isoString);
-      if (Number.isNaN(d.getTime())) return null;
-      return (
-        d.toLocaleTimeString('id-ID', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit'
-        }) + ' WIB'
-      );
-    } catch {
-      return null;
-    }
+    return formatClinicTime(isoString, { withSuffix: true, includeSeconds: true });
   };
 
   const formatDate = (isoString?: string | null) => {
     if (!isoString) return null;
-    try {
-      const d = new Date(isoString);
-      if (Number.isNaN(d.getTime())) return null;
-      return d.toLocaleDateString('id-ID', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-      });
-    } catch {
-      return null;
-    }
+    return formatClinicDate(isoString, { style: 'human_short' });
   };
 
   const events: TimelineEvent[] = [];
@@ -65,7 +44,7 @@ export function AppointmentHistoryTimeline({
     title: 'Reservasi Janji Temu Dibuat',
     timeStr: formatTime(appointment.createdAt),
     dateStr: formatDate(appointment.createdAt),
-    description: `Pendaftaran berhasil untuk sesi ${appointment.scheduledDate} ${appointment.scheduledStartTime} di ${appointment.poliklinikName}.`,
+    description: `Pendaftaran berhasil untuk sesi ${formatClinicDate(appointment.scheduledDate, { style: 'human_medium' })} ${formatClinicTime(appointment.scheduledStartTime)} di ${appointment.poliklinikName}.`,
     state: 'completed'
   });
 

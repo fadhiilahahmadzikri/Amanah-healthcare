@@ -6,8 +6,9 @@ import { getStatusConfig } from '@/styles/clinical-tokens';
 import { useUpdateDoctorDayStatusMutation } from '../api/mutations';
 import { doctorScheduleDetailQueryOptions } from '../api/queries';
 import type { DoctorSchedule, ScheduleDayStatus } from '../api/types';
-import { getDoctorCardStatus, parseDateToIso } from '../utils/doctor-schedule-card-utils';
+import { getDoctorCardStatus } from '../utils/doctor-schedule-card-utils';
 import { DOCTOR_DETAIL_TAB, type DoctorDetailTab } from '../constants/doctor-dialog.constants';
+import { formatClinicDate } from '@/lib/date-format';
 
 export function formatMonthParam(year: number, zeroBasedMonth: number): string {
   return `${year}-${String(zeroBasedMonth + 1).padStart(2, '0')}`;
@@ -21,10 +22,12 @@ export function formatDateParam(year: number, zeroBasedMonth: number, day: numbe
 
 function resolveInitialDoctorDate(selectedDate?: string): Date {
   if (selectedDate) {
-    const iso = parseDateToIso(selectedDate);
-    if (iso) {
-      const parsed = new Date(`${iso}T00:00:00`);
-      if (!Number.isNaN(parsed.getTime())) return parsed;
+    const iso = formatClinicDate(selectedDate, { style: 'iso' });
+    if (iso && iso !== '-') {
+      const [y, m, d] = iso.split('-').map(Number);
+      if (!Number.isNaN(y) && !Number.isNaN(m) && !Number.isNaN(d)) {
+        return new Date(y, m - 1, d);
+      }
     }
   }
   return new Date();

@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { useBookingSessions } from '../../model/useBookingSessions';
 import type { BookingOptionShift } from '@/features/data-pasien/api/patient-affiliation-service';
 import { QUEUE_LOAD_STATUS, QUEUE_LOAD_BADGE_STYLES } from '../../constants/queue-load.constants';
+import { formatClinicDate } from '@/lib/date-format';
 
 export interface BookingSessionStepProps {
   selectedService: ServiceCatalogItem | null;
@@ -55,7 +56,7 @@ export function BookingSessionStep({
         </div>
         <div className='flex items-center gap-1.5 text-xs font-semibold text-muted-foreground shrink-0 pt-0.5'>
           <Icons.calendar className='size-3.5 text-muted-foreground' />
-          <span>{dateStr}</span>
+          <span>{formatClinicDate(dateStr)}</span>
         </div>
       </div>
 
@@ -110,8 +111,9 @@ function SessionEmptyState({ dateStr }: { dateStr: string }) {
           Tidak ada sesi dokter tersedia pada tanggal ini
         </p>
         <p className='text-xs text-muted-foreground leading-relaxed'>
-          Dokter spesialis/umum poliklinik tidak membuka jadwal konsultasi pada {dateStr}. Silakan
-          klik &ldquo;Kembali&rdquo; untuk memilih tanggal lain.
+          Dokter spesialis/umum poliklinik tidak membuka jadwal konsultasi pada{' '}
+          {formatClinicDate(dateStr)}. Silakan klik &ldquo;Kembali&rdquo; untuk memilih tanggal
+          lain.
         </p>
       </div>
     </div>

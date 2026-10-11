@@ -4,6 +4,7 @@ import {
 } from '@/constants/appointment-status.constants';
 import type { BookedPatientItem } from '@/server/contracts/schedules/doctor-schedules.dto';
 import type { Appointment, AppointmentStatus } from '../../../api/types';
+import { formatClinicTime } from '@/lib/date-format';
 
 export interface SessionContext {
   doctorName?: string;
@@ -14,16 +15,8 @@ export interface SessionContext {
 
 export function formatTimeString(time?: string): string | null {
   if (!time) return null;
-  if (time.includes('T') || time.endsWith('Z')) {
-    const d = new Date(time);
-    if (!Number.isNaN(d.getTime())) {
-      const hours = String(d.getHours()).padStart(2, '0');
-      const minutes = String(d.getMinutes()).padStart(2, '0');
-      return `${hours}.${minutes}`;
-    }
-  }
-  const match = time.match(/(\d{1,2})[:.](\d{2})/);
-  return match ? `${match[1].padStart(2, '0')}.${match[2]}` : null;
+  const res = formatClinicTime(time);
+  return res && res !== '-' ? res : null;
 }
 
 export function normalizeAppointmentTimes(appointment: Partial<Appointment>): {
