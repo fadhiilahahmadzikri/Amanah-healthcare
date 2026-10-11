@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getBaseApiUrl } from '@/server/api/base-url';
-import { getAccessTokenCookie, getRefreshTokenCookie } from '@/server/auth/token-store';
+import {
+  getAccessTokenCookie,
+  getRefreshTokenCookie,
+  authCookieOptions
+} from '@/server/auth/token-store';
+import { serverEnv } from '@/core/config/env.server';
+import { runtimeConfig } from '@/core/config/runtime.config';
 import { refreshTokenCommand } from '@/server/services/auth/refresh-token.command';
 import {
   formatRequestBox,
@@ -212,12 +218,14 @@ async function handleProxy(
   }
 
   // 6. Silent refresh if 401 Unauthorized
+  let refreshedTokens: { accessToken: string; refreshToken: string } | null = null;
   if (upstreamResponse.status === 401) {
     const refreshToken =
       (await getRefreshTokenCookie()) || request.cookies.get('amanah_refresh_token')?.value;
     if (refreshToken) {
       const refreshResult = await refreshTokenCommand();
       if (refreshResult.ok && refreshResult.value) {
+        refreshedTokens = refreshResult.value;
         accessToken = refreshResult.value.accessToken;
         try {
           upstreamResponse = await fetch(targetUrl, {
@@ -300,10 +308,23 @@ async function handleProxy(
       );
     }
 
-    return new NextResponse(null, {
+    const nextResponse = new NextResponse(null, {
       status: 204,
       headers: responseHeaders
     });
+    if (refreshedTokens) {
+      nextResponse.cookies.set(
+        serverEnv.ACCESS_TOKEN_COOKIE_NAME,
+        refreshedTokens.accessToken,
+        authCookieOptions(runtimeConfig.auth.accessTokenCookieMaxAge)
+      );
+      nextResponse.cookies.set(
+        serverEnv.REFRESH_TOKEN_COOKIE_NAME,
+        refreshedTokens.refreshToken,
+        authCookieOptions(runtimeConfig.auth.refreshTokenCookieMaxAge)
+      );
+    }
+    return nextResponse;
   }
 
   const responseBody = await upstreamResponse.arrayBuffer();
@@ -400,10 +421,25 @@ async function handleProxy(
     });
   }
 
-  return new NextResponse(responseBody, {
+  const finalResponse = new NextResponse(responseBody, {
     status: upstreamResponse.status,
     headers: responseHeaders
   });
+
+  if (refreshedTokens) {
+    finalResponse.cookies.set(
+      serverEnv.ACCESS_TOKEN_COOKIE_NAME,
+      refreshedTokens.accessToken,
+      authCookieOptions(runtimeConfig.auth.accessTokenCookieMaxAge)
+    );
+    finalResponse.cookies.set(
+      serverEnv.REFRESH_TOKEN_COOKIE_NAME,
+      refreshedTokens.refreshToken,
+      authCookieOptions(runtimeConfig.auth.refreshTokenCookieMaxAge)
+    );
+  }
+
+  return finalResponse;
 }
 
 export async function GET(request: NextRequest, context: { params: Promise<{ path?: string[] }> }) {

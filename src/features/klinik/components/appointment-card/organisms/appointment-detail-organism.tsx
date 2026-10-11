@@ -114,6 +114,7 @@ export function AppointmentDetailOrganism({
   const isCheckedIn = Boolean(appointment.checked_in_at || appointment.checkedInAt);
   const canCancel = !isTerminal && !isCheckedIn;
   const canReassign = isAdmin && !isTerminal;
+  const canCall = !appointment.allowedActions || appointment.allowedActions.includes('CALL');
 
   const handleConfirmCancel = async () => {
     if (!onCancel || !appointment) return;
@@ -356,9 +357,19 @@ export function AppointmentDetailOrganism({
                         variant='default'
                         shape='pill'
                         size='default'
-                        disabled={isCallPending}
+                        disabled={isCallPending || !canCall}
                         onClick={() => onCallPatient(appointment)}
-                        className='text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer'
+                        className={cn(
+                          'text-xs font-semibold text-white transition-colors',
+                          canCall
+                            ? 'bg-emerald-600 hover:bg-emerald-700 cursor-pointer'
+                            : 'bg-muted-foreground/40 cursor-not-allowed opacity-60'
+                        )}
+                        title={
+                          canCall
+                            ? 'Panggil Pasien'
+                            : 'Menunggu giliran (antrean sebelumnya masih menunggu)'
+                        }
                         leadingIcon={
                           isCallPending ? (
                             <Icons.spinner className='size-3.5 animate-spin' />

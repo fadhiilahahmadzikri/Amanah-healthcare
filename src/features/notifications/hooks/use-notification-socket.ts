@@ -289,6 +289,11 @@ export function useNotificationSocket(callbacks?: {
 
     const handleAppointmentCalled = (payload: AppointmentCalledPayload) => {
       reconcile();
+      void queryClient.refetchQueries({ queryKey: appointmentKeys.all, type: 'active' });
+      void queryClient.refetchQueries({
+        queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES],
+        type: 'active'
+      });
       callbacksRef.current?.onAppointmentCalled?.(payload);
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('clinic:appointment_updated', { detail: payload }));
@@ -297,6 +302,11 @@ export function useNotificationSocket(callbacks?: {
 
     const handleAppointmentStatusChanged = (payload: unknown) => {
       reconcile();
+      void queryClient.refetchQueries({ queryKey: appointmentKeys.all, type: 'active' });
+      void queryClient.refetchQueries({
+        queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES],
+        type: 'active'
+      });
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('clinic:appointment_updated', { detail: payload }));
       }

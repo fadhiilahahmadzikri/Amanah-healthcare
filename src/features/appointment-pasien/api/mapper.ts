@@ -118,6 +118,7 @@ export function adminAppointmentToAppointment(item: AdminAppointment): Appointme
     status: item.status,
     visit_type: item.visitType || 'Pemeriksaan Baru',
     queue_number: item.queueNumber,
+    allowedActions: item.allowedActions,
     created_at: item.createdAt || new Date().toISOString()
   };
 }

@@ -141,26 +141,34 @@ export function CellAction({ data }: CellActionProps) {
           </Tooltip>
         )}
 
-        {canCall && (
+        {data.status === APPOINTMENT_STATUS.WAITING && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant='ghost'
-                size='icon'
-                disabled={isCalling}
-                className='size-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/30 rounded-md transition-colors'
-                onClick={handleCallPatient}
-              >
-                {isCalling ? (
-                  <Icons.spinner className='size-4 animate-spin' />
-                ) : (
-                  <Icons.phone className='size-4' />
-                )}
-                <span className='sr-only'>Panggil Pasien</span>
-              </Button>
+              <span>
+                <Button
+                  variant='ghost'
+                  size='icon'
+                  disabled={!canCall || isCalling}
+                  className={`size-8 rounded-md transition-colors ${
+                    canCall
+                      ? 'text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/30 cursor-pointer'
+                      : 'text-muted-foreground/30 cursor-not-allowed opacity-40 hover:bg-transparent'
+                  }`}
+                  onClick={canCall ? handleCallPatient : undefined}
+                >
+                  {isCalling ? (
+                    <Icons.spinner className='size-4 animate-spin' />
+                  ) : (
+                    <Icons.phone className='size-4' />
+                  )}
+                  <span className='sr-only'>Panggil Pasien</span>
+                </Button>
+              </span>
             </TooltipTrigger>
             <TooltipContent side='top' className='text-xs'>
-              Panggil Pasien
+              {canCall
+                ? 'Panggil Pasien'
+                : 'Menunggu giliran (antrean sebelumnya masih menunggu)'}
             </TooltipContent>
           </Tooltip>
         )}

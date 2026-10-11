@@ -56,6 +56,7 @@ export interface Appointment {
   medical_intake?: MedicalIntakeRecord;
   eta_range?: string | null;
   ahead_count?: number | null;
+  allowedActions?: string[];
   created_at: string;
   updated_at?: string;
 }
