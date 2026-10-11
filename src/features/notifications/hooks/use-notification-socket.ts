@@ -302,10 +302,23 @@ export function useNotificationSocket(callbacks?: {
       }
     };
 
+    const handleQueueEstimatesUpdated = (payload?: unknown) => {
+      reconcile();
+      void queryClient.refetchQueries({ queryKey: appointmentKeys.all, type: 'active' });
+      void queryClient.refetchQueries({
+        queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES],
+        type: 'active'
+      });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clinic:appointment_updated', { detail: payload }));
+      }
+    };
+
     socket.on('appointment:called', handleAppointmentCalled);
     socket.on('appointment.patient_called', handleAppointmentCalled);
     socket.on('appointment:status_changed', handleAppointmentStatusChanged);
     socket.on('appointment.status_changed', handleAppointmentStatusChanged);
+    socket.on('queue:estimates:updated', handleQueueEstimatesUpdated);
 
     return () => {
       socket.disconnect();
