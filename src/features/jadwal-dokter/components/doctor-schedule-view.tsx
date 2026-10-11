@@ -22,6 +22,7 @@ export function DoctorScheduleView() {
   const settingsCycle = useDoctorScheduleSettingsCycle();
   const [selectedDoctorForAssignment, setSelectedDoctorForAssignment] =
     useState<DoctorSchedule | null>(null);
+  const [assignmentFocusedDow, setAssignmentFocusedDow] = useState<number | undefined>(undefined);
   const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
 
   return (
@@ -32,6 +33,11 @@ export function DoctorScheduleView() {
         onClose={scheduleView.actions.closeDetail}
         selectedDate={scheduleView.dateFilter ? toDateParam(scheduleView.dateFilter) : undefined}
         onViewDoctorSchedule={scheduleView.actions.openDoctorScheduleById}
+        onOpenAssignment={(doc, dow) => {
+          setSelectedDoctorForAssignment(doc);
+          setAssignmentFocusedDow(dow);
+          setIsAssignmentModalOpen(true);
+        }}
       />
 
       <DoctorScheduleSettingsModal cycle={settingsCycle} />
@@ -39,9 +45,11 @@ export function DoctorScheduleView() {
       <DoctorAssignmentModal
         doctor={selectedDoctorForAssignment}
         isOpen={isAssignmentModalOpen}
+        focusedDow={assignmentFocusedDow}
         onClose={() => {
           setIsAssignmentModalOpen(false);
           setSelectedDoctorForAssignment(null);
+          setAssignmentFocusedDow(undefined);
         }}
       />
 
@@ -139,6 +147,7 @@ export function DoctorScheduleView() {
                           onOpenDetail={scheduleView.actions.openDetail}
                           onOpenSettings={(doc) => {
                             setSelectedDoctorForAssignment(doc);
+                            setAssignmentFocusedDow(undefined);
                             setIsAssignmentModalOpen(true);
                           }}
                         />

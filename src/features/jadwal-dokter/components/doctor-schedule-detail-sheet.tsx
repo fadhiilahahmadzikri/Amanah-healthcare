@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Icons } from '@/components/icons';
+import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { EmptyState } from '@/components/ui/empty-state';
 import {
@@ -26,6 +27,7 @@ import {
 
 export interface DoctorScheduleDetailSheetProps extends UseDoctorScheduleDetailSheetProps {
   onViewDoctorSchedule?: (doctorId: string, targetSessionTime?: string) => void;
+  onOpenAssignment?: (doctor: DoctorSchedule, dow: number) => void;
 }
 
 /**
@@ -34,7 +36,7 @@ export interface DoctorScheduleDetailSheetProps extends UseDoctorScheduleDetailS
  * Preserves in-memory visual stability during unmount transitions (zero flicker on close).
  */
 export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps) {
-  const { isOpen, onViewDoctorSchedule } = props;
+  const { isOpen, onViewDoctorSchedule, onOpenAssignment } = props;
 
   const { doctor, isDetailLoading, dateContext, meta, handlers } =
     useDoctorScheduleDetailSheet(props);
@@ -158,6 +160,23 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
                 <EmptyState
                   title='Belum ada jadwal praktik'
                   description='Dokter ini belum memiliki sesi praktik yang diatur.'
+                  action={
+                    onOpenAssignment ? (
+                      <Button
+                        type='button'
+                        variant='outline'
+                        size='sm'
+                        onClick={() => {
+                          const targetDow = new Date(currentYear, currentMonth, selectedDay).getDay();
+                          onOpenAssignment(doctor, targetDow);
+                        }}
+                        className='mt-2 text-xs font-semibold cursor-pointer'
+                      >
+                        <Icons.settings className='size-3.5 mr-1.5' />
+                        Atur Sesi Hari Ini
+                      </Button>
+                    ) : undefined
+                  }
                   className='h-full min-h-[320px]'
                 />
               </div>
@@ -172,6 +191,11 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
                 currentYear={currentYear}
                 onYearChange={setCurrentYear}
                 onViewDoctorSchedule={onViewDoctorSchedule}
+                onAddSchedule={(dow) => {
+                  const computedDow =
+                    dow ?? new Date(currentYear, currentMonth, selectedDay).getDay();
+                  onOpenAssignment?.(doctor, computedDow);
+                }}
               />
             )}
           </div>

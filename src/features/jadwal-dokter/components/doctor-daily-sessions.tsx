@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Icons } from '@/components/icons';
+import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Accordion } from '@/components/ui/accordion';
 import { cn } from '@/lib/utils';
@@ -25,7 +26,7 @@ export interface DoctorDailySessionsProps {
   onMonthChange?: (month: number) => void;
   currentYear?: number;
   onYearChange?: (year: number) => void;
-  onAddSchedule?: () => void;
+  onAddSchedule?: (targetDow?: number) => void;
   modalContainerRef?: React.RefObject<HTMLDivElement | null>;
   readOnly?: boolean;
   onViewDoctorSchedule?: (doctorId: string, targetSessionTime?: string) => void;
@@ -57,6 +58,8 @@ export function DoctorDailySessions({
     isDayClosed,
     dayLeaveReason,
     activeSessions,
+    handlePrevDay,
+    handleNextDay,
     handleToday,
     handleSelectDate,
     handleToggleSessionStatus,
@@ -90,6 +93,11 @@ export function DoctorDailySessions({
 
   const formattedTargetDate = `${activeYear}-${String(activeMonth + 1).padStart(2, '0')}-${String(activeDay).padStart(2, '0')}`;
 
+  const handleOpenAddSchedule = () => {
+    const targetDow = new Date(activeYear, activeMonth, activeDay).getDay();
+    onAddSchedule?.(targetDow);
+  };
+
   return (
     <>
       <div
@@ -107,8 +115,11 @@ export function DoctorDailySessions({
           isCurrentDayToday={isCurrentDayToday}
           readOnly={readOnly}
           onToday={handleToday}
+          onPrevDay={handlePrevDay}
+          onNextDay={handleNextDay}
           isCalendarOpen={isCalendarOpen}
           onToggleCalendar={() => setIsCalendarOpen((prev) => !prev)}
+          onAddSchedule={onAddSchedule && !readOnly ? handleOpenAddSchedule : undefined}
         />
 
         <DoctorCalendarAccordion
@@ -119,48 +130,64 @@ export function DoctorDailySessions({
           onClose={() => setIsCalendarOpen(false)}
         />
 
-        <div className='p-4 space-y-4'>
-          {isDayCuti ? (
+        {isDayCuti ? (
+          <div className='p-4 space-y-4'>
             <DoctorCutiNotice title='Dokter sedang isOnLeave' subtitle={dayLeaveReason} />
-          ) : isDayClosed ? (
+          </div>
+        ) : isDayClosed ? (
+          <div className='p-4 space-y-4'>
             <DoctorCutiNotice
               title='Praktik Ditutup'
               subtitle='Seluruh sesi praktik pada tanggal ini ditutup.'
             />
-          ) : activeSessions.length === 0 ? (
+          </div>
+        ) : activeSessions.length === 0 ? (
+          <div className='p-4 space-y-4'>
             <EmptyState
               icon={Icons.calendar}
               title='Belum ada jadwal sesi'
               description='Dokter belum memiliki sesi praktik yang diatur untuk tanggal ini.'
+              action={
+                onAddSchedule && !readOnly ? (
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='sm'
+                    onClick={handleOpenAddSchedule}
+                    className='mt-2 text-xs font-semibold cursor-pointer'
+                  >
+                    <Icons.settings className='size-3.5 mr-1.5' />
+                    Atur Sesi Hari Ini
+                  </Button>
+                ) : undefined
+              }
               className='py-12'
             />
-          ) : (
-            <div className='space-y-3.5'>
-              {doctor && (
-                <Accordion
-                  type='multiple'
-                  defaultValue={activeSessions.map((s) => s.id)}
-                  className='space-y-3'
-                >
-                  {activeSessions.map((session) => (
-                    <DoctorSessionAccordionItem
-                      key={session.id}
-                      session={session}
-                      doctor={doctor}
-                      selectedDate={formattedTargetDate}
-                      isPending={updateSessionMutation.isPending && pendingSessionId === session.id}
-                      onToggleStatus={handleToggleSessionStatus}
-                      onSelectPatient={(patient, sess) => {
-                        setSelectedDetailSessionId(sess.id);
-                        handleOpenPatientDetail(patient);
-                      }}
-                    />
-                  ))}
-                </Accordion>
-              )}
-            </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          doctor && (
+            <Accordion
+              type='multiple'
+              defaultValue={activeSessions.map((s) => s.id)}
+              className='w-full'
+            >
+              {activeSessions.map((session) => (
+                <DoctorSessionAccordionItem
+                  key={session.id}
+                  session={session}
+                  doctor={doctor}
+                  selectedDate={formattedTargetDate}
+                  isPending={updateSessionMutation.isPending && pendingSessionId === session.id}
+                  onToggleStatus={handleToggleSessionStatus}
+                  onSelectPatient={(patient, sess) => {
+                    setSelectedDetailSessionId(sess.id);
+                    handleOpenPatientDetail(patient);
+                  }}
+                />
+              ))}
+            </Accordion>
+          )
+        )}
       </div>
 
       {/* Session Patients Modal */}

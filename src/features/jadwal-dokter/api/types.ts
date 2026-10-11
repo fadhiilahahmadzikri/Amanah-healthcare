@@ -37,6 +37,14 @@ export interface MonthlyScheduleDay {
   notes?: string | null;
 }
 
+export interface DoctorCardPatientPreview {
+  id: string;
+  patientId: string;
+  name: string;
+  initials: string;
+  avatarUrl?: string | null;
+}
+
 export interface DoctorSchedule {
   id: string;
   practitioner_id?: string;
@@ -58,6 +66,8 @@ export interface DoctorSchedule {
   leave_start?: string | null;
   leave_end?: string | null;
   jadwal_praktik_mendatang?: string;
+  total_pasien?: number;
+  pasien_preview?: DoctorCardPatientPreview[];
 }
 
 export interface DoctorScheduleFilters {

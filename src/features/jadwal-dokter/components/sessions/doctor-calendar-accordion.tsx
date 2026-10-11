@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 export interface DoctorCalendarAccordionProps {
   isOpen: boolean;
   formattedTargetDate: string;
-  activeYear: number;
+  activeYear?: number;
   onSelectDate: (date: Date) => void;
   onClose: () => void;
   className?: string;
@@ -18,7 +18,7 @@ export interface DoctorCalendarAccordionProps {
 export function DoctorCalendarAccordion({
   isOpen,
   formattedTargetDate,
-  activeYear,
+  activeYear: _activeYear,
   onSelectDate,
   onClose,
   className,
@@ -69,36 +69,26 @@ export function DoctorCalendarAccordion({
     }
   }, [isOpen, duration]);
 
-  const selectedDateObj = React.useMemo(() => {
-    const parts = formattedTargetDate.split('-');
-    if (parts.length === 3) {
-      return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-    }
-    return new Date();
-  }, [formattedTargetDate]);
-
   return (
     <div
       ref={containerRef}
       className={cn(
-        'overflow-hidden border-b border-border/40 bg-muted/5 transition-colors',
+        'overflow-hidden border-b border-border/40 bg-muted/10 transition-colors',
         className
       )}
       style={{ display: isOpen ? 'block' : 'none' }}
     >
       <div className='p-3 sm:p-4 w-full'>
-        <div className='w-full rounded-xl border border-border/60 bg-card p-3 sm:p-4 shadow-xs'>
-          <CustomCalendar
-            value={formattedTargetDate}
-            onChange={(_iso, dateObj) => {
-              if (dateObj) {
-                onSelectDate(dateObj);
-                onClose();
-              }
-            }}
-            className='w-full rounded-md'
-          />
-        </div>
+        <CustomCalendar
+          value={formattedTargetDate}
+          onChange={(_iso, dateObj) => {
+            if (dateObj) {
+              onSelectDate(dateObj);
+              onClose();
+            }
+          }}
+          className='w-full'
+        />
       </div>
     </div>
   );

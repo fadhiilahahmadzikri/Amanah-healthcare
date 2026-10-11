@@ -104,6 +104,12 @@ export function useDoctorDailySessions({
       const prevMonthDays = new Date(activeYear, activeMonth, 0).getDate();
       setActiveMonth(activeMonth - 1);
       setActiveDay(prevMonthDays);
+    } else {
+      const prevYear = activeYear - 1;
+      const prevMonthDays = new Date(prevYear, 12, 0).getDate();
+      setActiveYear(prevYear);
+      setActiveMonth(11);
+      setActiveDay(prevMonthDays);
     }
   };
 
@@ -112,6 +118,10 @@ export function useDoctorDailySessions({
       setActiveDay(activeDay + 1);
     } else if (activeMonth < 11) {
       setActiveMonth(activeMonth + 1);
+      setActiveDay(1);
+    } else {
+      setActiveYear(activeYear + 1);
+      setActiveMonth(0);
       setActiveDay(1);
     }
   };

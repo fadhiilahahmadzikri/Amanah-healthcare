@@ -60,13 +60,13 @@ export function DoctorSessionAccordionItem({
     <AccordionItem
       value={session.id}
       className={cn(
-        'rounded-xl border border-border/70 bg-card overflow-hidden shadow-2xs transition-all last:border-b last:border-border/70',
+        'border-b border-border/40 last:border-b-0 bg-card transition-colors rounded-none',
         isClosed && 'bg-muted/10 opacity-80',
         className
       )}
     >
       {/* Accordion Header: Essential info + Time/Room Tooltip */}
-      <AccordionTrigger className='px-4 py-3 hover:no-underline bg-muted/20 border-b border-border/30 data-[state=closed]:border-b-0 transition-colors'>
+      <AccordionTrigger className='px-4 sm:px-5 py-3 hover:no-underline rounded-none bg-muted/15 hover:bg-muted/25 border-b border-border/30 data-[state=closed]:border-b-0 transition-colors'>
         <div className='flex items-center justify-between w-full pr-3 min-w-0'>
           {/* Left: Session Name, Status, Registered Patient Count, Time/Room Tooltip */}
           <div className='flex items-center gap-2 sm:gap-2.5 flex-wrap min-w-0'>
@@ -87,6 +87,11 @@ export function DoctorSessionAccordionItem({
                   className='inline-flex items-center gap-1 text-[11px] font-mono text-muted-foreground hover:text-foreground cursor-help px-1.5 py-0.5 rounded-md bg-muted/40 hover:bg-muted/70 transition-colors'
                   onClick={(e) => e.stopPropagation()}
                   onPointerDown={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.stopPropagation();
+                    }
+                  }}
                 >
                   <Icons.clock className='size-3 text-muted-foreground shrink-0' />
                   <span>
@@ -116,11 +121,7 @@ export function DoctorSessionAccordionItem({
           </div>
 
           {/* Right: More Options Menu */}
-          <div
-            className='flex items-center gap-1 shrink-0'
-            onClick={(e) => e.stopPropagation()}
-            onPointerDown={(e) => e.stopPropagation()}
-          >
+          <div className='flex items-center gap-1 shrink-0'>
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <span
@@ -128,9 +129,12 @@ export function DoctorSessionAccordionItem({
                   tabIndex={0}
                   className='size-7 rounded-lg hover:bg-muted/80 text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer select-none'
                   aria-label={`Opsi untuk sesi ${session.nama_sesi}`}
+                  onClick={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
+                      e.stopPropagation();
                       e.currentTarget.click();
                     }
                   }}
@@ -163,7 +167,7 @@ export function DoctorSessionAccordionItem({
       </AccordionTrigger>
 
       {/* Accordion Content: Compact 5-column patient grid */}
-      <AccordionContent className='p-3 sm:p-3.5 pt-2'>
+      <AccordionContent className='px-4 sm:px-5 py-3.5 sm:py-4'>
         {isLoadingPatients ? (
           <div className='grid grid-cols-2 sm:grid-cols-5 gap-1.5'>
             {Array.from({ length: 5 }).map((_, i) => (

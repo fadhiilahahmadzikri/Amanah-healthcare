@@ -221,6 +221,7 @@ export interface DoctorRosterSessionItem {
   sessionLabel: string;
   timeRange: string;
   isActive: boolean;
+  isTemplateActive?: boolean;
   preferredRoomId: string | null;
   preferredRoomName: string | null;
 }
@@ -241,6 +242,7 @@ export interface DoctorRosterOverview {
   doctorId: string;
   doctorName: string;
   specialization: string;
+  hasAnyOverride?: boolean;
   days: DoctorRosterDayItem[];
 }
 
@@ -288,6 +290,17 @@ export async function updateDoctorRosterAssignments(
     {
       method: 'PUT',
       body: JSON.stringify(payload)
+    }
+  );
+}
+
+export async function resetDoctorRosterAssignments(
+  doctorId: string
+): Promise<DoctorRosterOverview> {
+  return await clientFetch<DoctorRosterOverview>(
+    `/api/v1/admin/doctor-schedules/${doctorId}/assignments`,
+    {
+      method: 'DELETE'
     }
   );
 }

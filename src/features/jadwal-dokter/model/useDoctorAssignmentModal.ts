@@ -9,7 +9,8 @@ import {
   type DoctorScheduleHistoryResult,
   getDoctorRosterAssignments,
   getDoctorScheduleHistory,
-  updateDoctorRosterAssignments
+  updateDoctorRosterAssignments,
+  resetDoctorRosterAssignments
 } from '../api/service';
 import { syncAllDoctorSchedules } from '../api/mutations';
 
@@ -137,9 +138,47 @@ export function useDoctorAssignmentModal({
     }
   });
 
+  const resetMutation = useMutation({
+    mutationFn: async () => {
+      return resetDoctorRosterAssignments(doctorId);
+    },
+    onSuccess: (data) => {
+      toast.success('Roster dokter berhasil dikembalikan ke template mingguan');
+      queryClient.setQueryData(['doctor-roster-assignments', doctorId], data);
+      syncAllDoctorSchedules(queryClient);
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : (err as { message?: string })?.message;
+      toast.error(msg || 'Gagal mereset roster dokter');
+    }
+  });
+
   const handleSave = useCallback(() => {
     mutation.mutate();
   }, [mutation]);
+
+  const handleResetToTemplate = useCallback(() => {
+    resetMutation.mutate();
+  }, [resetMutation]);
+
+  const resetDayToTemplate = useCallback(
+    (dow: number) => {
+      if (!rosterData?.days) return;
+      const targetDay = rosterData.days.find((d) => d.dow === dow);
+      if (!targetDay) return;
+
+      setSelectedAssignments((prev) => {
+        const updated = { ...prev };
+        for (const s of targetDay.sessions) {
+          const key = `${dow}_${s.sessionId}`;
+          updated[key] = Boolean(s.isTemplateActive);
+        }
+        return updated;
+      });
+      toast.info(`Jadwal hari ${targetDay.dayName} disesuaikan ke template mingguan`);
+    },
+    [rosterData]
+  );
 
   return {
     activeTab,
@@ -152,6 +191,9 @@ export function useDoctorAssignmentModal({
     toggleSession,
     toggleDay,
     isSubmitting: mutation.isPending,
-    handleSave
+    isResetting: resetMutation.isPending,
+    handleSave,
+    handleResetToTemplate,
+    resetDayToTemplate
   };
 }

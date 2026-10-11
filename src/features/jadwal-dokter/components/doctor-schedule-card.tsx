@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule } from '../api/types';
@@ -12,6 +11,7 @@ import {
 } from '../utils/doctor-schedule-card-utils';
 import {
   DoctorCardImage,
+  DoctorCardPatientStack,
   DoctorCardSettingsButton,
   DoctorSpecialtyText,
   DoctorStatusBadge
@@ -21,6 +21,7 @@ export type { DoctorCardStatus };
 export {
   DOCTOR_CARD_STATUS,
   DoctorCardImage,
+  DoctorCardPatientStack,
   DoctorCardSettingsButton,
   DoctorSpecialtyText,
   DoctorStatusBadge,
@@ -60,7 +61,6 @@ export function DoctorScheduleCard({
 
   // Derive status strictly from backend contract (Binary: 'Buka' or 'Tutup')
   const statusLabel = getDoctorCardStatus(doctor);
-  const isOpen = statusLabel === DOCTOR_CARD_STATUS.OPEN;
 
   const handleSettings = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -97,7 +97,7 @@ export function DoctorScheduleCard({
         {onOpenSettings && <DoctorCardSettingsButton onClick={handleSettings} />}
       </div>
 
-      {/* 3. Core Identity: Doctor Name & Specialty */}
+      {/* 3. Core Identity: Doctor Name, Specialty & Patient Stack */}
       <div className='flex flex-col relative z-20 mt-3'>
         <h3
           title={doctor.nama_dokter}
@@ -112,7 +112,14 @@ export function DoctorScheduleCard({
           </button>
         </h3>
 
-        <DoctorSpecialtyText specialty={doctor.spesialisasi} className='mt-1 mb-2' />
+        <DoctorSpecialtyText specialty={doctor.spesialisasi} className='mt-2 mb-3' />
+
+        <DoctorCardPatientStack
+          patients={doctor.pasien_preview}
+          totalPatients={doctor.total_pasien}
+          onClick={handleDetail}
+          className='mt-0.5'
+        />
       </div>
 
       {/* 4. Footer Actions: Detail */}

@@ -6,7 +6,9 @@ import { useState } from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import type { DoctorCardPatientPreview } from '../api/types';
 
 export interface DoctorStatusBadgeProps {
   status: string;
@@ -229,5 +231,85 @@ export function DoctorCutiNotice({
         <span className='text-[12px] font-medium text-muted-foreground mt-0.5'>{subtitle}</span>
       </div>
     </div>
+  );
+}
+
+export interface DoctorCardPatientStackProps {
+  patients?: DoctorCardPatientPreview[];
+  totalPatients?: number;
+  onClick?: (e: React.MouseEvent) => void;
+  className?: string;
+}
+
+export function DoctorCardPatientStack({
+  patients = [],
+  totalPatients = 0,
+  onClick,
+  className
+}: DoctorCardPatientStackProps) {
+  const visiblePatients = patients.slice(0, 3);
+  const effectiveTotal = Math.max(totalPatients, patients.length);
+  const overflowCount = effectiveTotal > 3 ? effectiveTotal - 3 : 0;
+
+  if (effectiveTotal === 0) {
+    return (
+      <div
+        className={cn(
+          'text-[11.5px] text-muted-foreground/75 font-normal select-none',
+          className
+        )}
+      >
+        <span>Belum ada antrean terdaftar</span>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type='button'
+      onClick={onClick}
+      title={`Lihat detail ${effectiveTotal} pasien`}
+      className={cn(
+        'group/patient-stack inline-flex items-center gap-2.5 text-left cursor-pointer select-none focus-visible:outline-none transition-transform active:scale-[0.98]',
+        className
+      )}
+    >
+      {/* Overlapping Avatar Stack (WhatsApp-style) */}
+      <div className='flex items-center -space-x-2 sm:-space-x-2.5 rtl:space-x-reverse overflow-hidden py-0.5 pl-0.5'>
+        {visiblePatients.map((patient, index) => (
+          <Avatar
+            key={patient.id || patient.patientId || index}
+            title={patient.name}
+            className='size-7 sm:size-7.5 rounded-full ring-2 ring-card shadow-2xs border border-border/40 shrink-0 transition-transform group-hover/patient-stack:scale-105'
+          >
+            {patient.avatarUrl && (
+              <AvatarImage src={patient.avatarUrl} alt={patient.name} />
+            )}
+            <AvatarFallback className='bg-primary/10 text-primary font-bold text-[10px] sm:text-[10.5px] uppercase tracking-tight'>
+              {patient.initials || 'P'}
+            </AvatarFallback>
+          </Avatar>
+        ))}
+
+        {overflowCount > 0 && (
+          <div
+            title={`${overflowCount} pasien lainnya`}
+            className='size-7 sm:size-7.5 rounded-full ring-2 ring-card bg-muted/90 text-muted-foreground font-bold text-[10px] sm:text-[10.5px] flex items-center justify-center shrink-0 border border-border/50 shadow-2xs group-hover/patient-stack:bg-muted transition-colors'
+          >
+            +{overflowCount}
+          </div>
+        )}
+      </div>
+
+      {/* Aggregate Label */}
+      <div className='flex flex-col min-w-0 leading-tight'>
+        <span className='text-[11.5px] font-semibold text-foreground/90 group-hover/patient-stack:text-primary transition-colors'>
+          {effectiveTotal} Pasien
+        </span>
+        <span className='text-[10px] text-muted-foreground/80 font-normal'>
+          Antrean aktif
+        </span>
+      </div>
+    </button>
   );
 }

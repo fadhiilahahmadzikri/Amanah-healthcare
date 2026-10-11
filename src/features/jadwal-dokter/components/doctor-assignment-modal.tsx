@@ -25,9 +25,23 @@ export interface DoctorAssignmentModalProps {
   doctor: DoctorSchedule | null;
   isOpen: boolean;
   onClose: () => void;
+  focusedDow?: number;
 }
 
-export function DoctorAssignmentModal({ doctor, isOpen, onClose }: DoctorAssignmentModalProps) {
+export function DoctorAssignmentModal({
+  doctor,
+  isOpen,
+  onClose,
+  focusedDow
+}: DoctorAssignmentModalProps) {
+  const [showAllDays, setShowAllDays] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setShowAllDays(false);
+    }
+  }, [isOpen, focusedDow]);
+
   const {
     activeTab,
     setActiveTab,
@@ -39,7 +53,10 @@ export function DoctorAssignmentModal({ doctor, isOpen, onClose }: DoctorAssignm
     toggleSession,
     toggleDay,
     isSubmitting,
-    handleSave
+    isResetting,
+    handleSave,
+    handleResetToTemplate,
+    resetDayToTemplate
   } = useDoctorAssignmentModal({ doctor, isOpen, onClose });
 
   const contentRef = useRef<HTMLDivElement>(null);
@@ -55,14 +72,27 @@ export function DoctorAssignmentModal({ doctor, isOpen, onClose }: DoctorAssignm
 
   if (!doctor) return null;
 
+  const isFocused = focusedDow !== undefined && !showAllDays;
+  const focusedDay = rosterData?.days.find((d) => d.dow === focusedDow);
+  const focusedDayName = focusedDay?.dayName ?? '';
+  const displayDays =
+    isFocused && focusedDay
+      ? [focusedDay]
+      : (rosterData?.days ?? []);
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
         showCloseButton={false}
-        className='max-w-[96vw] sm:max-w-6xl xl:max-w-7xl max-h-[92vh] overflow-hidden flex flex-col p-0 gap-0 rounded-2xl'
+        className={cn(
+          'max-h-[92vh] overflow-hidden flex flex-col p-0 gap-0 rounded-2xl transition-all duration-200 font-sans',
+          isFocused
+            ? 'max-w-[96vw] sm:max-w-lg md:max-w-xl'
+            : 'max-w-[96vw] sm:max-w-6xl xl:max-w-7xl'
+        )}
       >
         <DialogHeader className='p-6 pb-4 border-b border-border/60 bg-muted/20'>
-          <div className='flex items-center justify-between'>
+          <div className='flex items-start justify-between gap-3'>
             <div>
               <DialogTitle className='text-xl font-bold tracking-tight text-foreground'>
                 Pengaturan Jadwal Kerja Dokter
@@ -71,6 +101,18 @@ export function DoctorAssignmentModal({ doctor, isOpen, onClose }: DoctorAssignm
                 {doctor.nama_dokter} &bull; {doctor.spesialisasi}
               </DialogDescription>
             </div>
+
+            {focusedDow !== undefined && rosterData && (
+              <Button
+                type='button'
+                variant='ghost'
+                size='sm'
+                onClick={() => setShowAllDays((prev) => !prev)}
+                className='h-8 px-2.5 text-xs font-semibold text-primary hover:text-primary hover:bg-primary/10 cursor-pointer shrink-0'
+              >
+                {isFocused ? 'Tampilkan Semua Hari' : `Fokus Hari ${focusedDayName}`}
+              </Button>
+            )}
           </div>
 
           <div className='flex items-center gap-2 mt-4'>
@@ -99,29 +141,49 @@ export function DoctorAssignmentModal({ doctor, isOpen, onClose }: DoctorAssignm
           {activeTab === 'roster' ? (
             <div ref={contentRef}>
               {isLoadingRoster ? (
-                <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3'>
-                  {Array.from({ length: 7 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className='p-3.5 rounded-xl border border-border/50 bg-card/60 space-y-3'
-                    >
-                      <div className='flex items-center justify-between pb-2 border-b border-border/40'>
-                        <Skeleton className='h-4 w-16 rounded-md' />
-                        <Skeleton className='h-5 w-9 rounded-full' />
-                      </div>
-                      <div className='space-y-1.5'>
-                        <Skeleton className='h-9 w-full rounded-lg' />
-                        <Skeleton className='h-9 w-full rounded-lg' />
-                        <Skeleton className='h-9 w-full rounded-lg' />
-                        <Skeleton className='h-9 w-full rounded-lg' />
-                      </div>
+                isFocused ? (
+                  <div className='w-full max-w-lg mx-auto p-4 rounded-xl border border-border/50 bg-card/60 space-y-3'>
+                    <div className='flex items-center justify-between pb-2 border-b border-border/40'>
+                      <Skeleton className='h-4 w-24 rounded-md' />
+                      <Skeleton className='h-5 w-9 rounded-full' />
                     </div>
-                  ))}
-                </div>
+                    <div className='space-y-2'>
+                      <Skeleton className='h-10 w-full rounded-lg' />
+                      <Skeleton className='h-10 w-full rounded-lg' />
+                      <Skeleton className='h-10 w-full rounded-lg' />
+                    </div>
+                  </div>
+                ) : (
+                  <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3'>
+                    {Array.from({ length: 7 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className='p-3.5 rounded-xl border border-border/50 bg-card/60 space-y-3'
+                      >
+                        <div className='flex items-center justify-between pb-2 border-b border-border/40'>
+                          <Skeleton className='h-4 w-16 rounded-md' />
+                          <Skeleton className='h-5 w-9 rounded-full' />
+                        </div>
+                        <div className='space-y-1.5'>
+                          <Skeleton className='h-9 w-full rounded-lg' />
+                          <Skeleton className='h-9 w-full rounded-lg' />
+                          <Skeleton className='h-9 w-full rounded-lg' />
+                          <Skeleton className='h-9 w-full rounded-lg' />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )
               ) : (
                 <div className='space-y-6'>
-                  <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3'>
-                    {rosterData?.days.map((day) => {
+                  <div
+                    className={cn(
+                      isFocused
+                        ? 'w-full max-w-lg mx-auto'
+                        : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3'
+                    )}
+                  >
+                    {displayDays.map((day) => {
                       const isDoctorAssignedOnDay = day.sessions.some((s) =>
                         Boolean(selectedAssignments[`${day.dow}_${s.sessionId}`])
                       );
@@ -150,6 +212,20 @@ export function DoctorAssignmentModal({ doctor, isOpen, onClose }: DoctorAssignm
                               )}
                             </div>
                             <div className='flex items-center gap-1.5 shrink-0'>
+                              {day.sessions.some(
+                                (s) =>
+                                  Boolean(selectedAssignments[`${day.dow}_${s.sessionId}`]) !==
+                                  Boolean(s.isTemplateActive)
+                              ) && (
+                                <button
+                                  type='button'
+                                  onClick={() => resetDayToTemplate(day.dow)}
+                                  title={`Sesuaikan jadwal hari ${day.dayName} ke template mingguan`}
+                                  className='size-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors cursor-pointer'
+                                >
+                                  <Icons.refresh className='size-3' />
+                                </button>
+                              )}
                               <span
                                 className={cn(
                                   'text-xs font-semibold',
@@ -282,28 +358,62 @@ export function DoctorAssignmentModal({ doctor, isOpen, onClose }: DoctorAssignm
           )}
         </div>
 
-        <div className='p-4 border-t border-border/60 bg-muted/20 flex items-center justify-end gap-2'>
-          <Button type='button' variant='outline' onClick={onClose}>
-            Tutup
-          </Button>
-          {activeTab === 'roster' && (
-            <Button
-              type='button'
-              variant='default'
-              disabled={isSubmitting || isLoadingRoster}
-              onClick={handleSave}
-              className='font-bold min-w-[120px]'
-            >
-              {isSubmitting ? (
-                <>
-                  <Icons.spinner className='size-4 animate-spin mr-2' />
-                  Menyimpan...
-                </>
-              ) : (
-                'Simpan Jadwal'
-              )}
+        <div className='p-4 border-t border-border/60 bg-muted/20 flex items-center justify-between gap-2'>
+          <div>
+            {activeTab === 'roster' && (
+              <Button
+                type='button'
+                variant='outline'
+                size='sm'
+                disabled={isSubmitting || isResetting || !rosterData?.hasAnyOverride}
+                onClick={handleResetToTemplate}
+                title={
+                  rosterData?.hasAnyOverride
+                    ? 'Kembalikan seluruh jadwal dokter ke template mingguan klinik'
+                    : 'Jadwal dokter sudah mengikuti template mingguan klinik'
+                }
+                className='text-xs font-semibold text-muted-foreground hover:text-foreground h-9 px-3 cursor-pointer'
+              >
+                {isResetting ? (
+                  <>
+                    <Icons.spinner className='size-3.5 animate-spin mr-1.5' />
+                    Mereset ke Template...
+                  </>
+                ) : (
+                  <>
+                    <Icons.refresh className='size-3.5 mr-1.5' />
+                    Reset ke Template
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+
+          <div className='flex items-center gap-2'>
+            <Button type='button' variant='outline' onClick={onClose}>
+              Tutup
             </Button>
-          )}
+            {activeTab === 'roster' && (
+              <Button
+                type='button'
+                variant='default'
+                disabled={isSubmitting || isLoadingRoster || isResetting}
+                onClick={handleSave}
+                className='font-bold min-w-[120px]'
+              >
+                {isSubmitting ? (
+                  <>
+                    <Icons.spinner className='size-4 animate-spin mr-2' />
+                    Menyimpan...
+                  </>
+                ) : isFocused && focusedDayName ? (
+                  `Simpan Jadwal ${focusedDayName}`
+                ) : (
+                  'Simpan Jadwal'
+                )}
+              </Button>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
