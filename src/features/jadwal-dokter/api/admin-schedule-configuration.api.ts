@@ -3,6 +3,7 @@ import { clientFetch } from '@/lib/client-fetch';
 export interface DayInfoConfig {
   dow: number;
   label: string;
+  isActive: boolean;
 }
 
 export interface SessionDefConfig {
@@ -82,10 +83,16 @@ export interface UpdateClinicSettingPayload {
   value: any;
 }
 
+export interface UpdateOperatingDayPayload {
+  dow: number;
+  isActive: boolean;
+}
+
 export interface UpdateScheduleConfigurationPayload {
   sessionDefs?: UpdateSessionDefPayload[];
   weeklyTemplates?: UpdateWeeklyTemplatePayload[];
   clinicSettings?: UpdateClinicSettingPayload[];
+  operatingDays?: UpdateOperatingDayPayload[];
 }
 
 export interface ScheduleConfigurationImpactResult {
@@ -130,6 +137,18 @@ export async function updateScheduleConfiguration(
     {
       method: 'PUT',
       body: JSON.stringify(payload)
+    }
+  );
+}
+
+export async function updateOperatingDaysBatch(
+  days: UpdateOperatingDayPayload[]
+): Promise<{ success: boolean; message: string }> {
+  return await clientFetch<{ success: boolean; message: string }>(
+    '/api/v1/admin/operating-days/batch',
+    {
+      method: 'PUT',
+      body: JSON.stringify({ days })
     }
   );
 }

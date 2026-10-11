@@ -7,6 +7,7 @@ import type { SessionDefConfig } from '../../../api/admin-schedule-configuration
 interface StepSessionDefsProps {
   sessionDefs: SessionDefConfig[];
   onToggleActive: (id: string) => void;
+  onOpenOperatingDays?: () => void;
 }
 
 export function StepSessionDefs({ sessionDefs, onToggleActive }: StepSessionDefsProps) {
@@ -39,7 +40,9 @@ export function StepSessionDefs({ sessionDefs, onToggleActive }: StepSessionDefs
                   </span>
                 </div>
                 {def.timeRange && (
-                  <span className='text-xs text-muted-foreground whitespace-nowrap'>{def.timeRange}</span>
+                  <span className='text-xs text-muted-foreground whitespace-nowrap'>
+                    {def.timeRange}
+                  </span>
                 )}
               </div>
             </div>

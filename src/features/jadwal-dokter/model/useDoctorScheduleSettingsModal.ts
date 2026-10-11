@@ -10,17 +10,13 @@ import {
   type SessionDefConfig,
   type WeeklyTemplateConfig,
   type ClinicSettingConfig,
+  type DayInfoConfig,
   type UpdateScheduleConfigurationPayload,
   type ScheduleConfigurationImpactResult
 } from '../api/admin-schedule-configuration.api';
-import { doctorScheduleKeys } from '../api/queries';
 import { syncAllDoctorSchedules } from '../api/mutations';
-import { SCHEDULE_QUERY_KEYS } from '../constants/schedule-shift.constants';
 
-export type ConfigurationCategory =
-  | 'session_defs'
-  | 'weekly_templates'
-  | 'clinic_settings';
+export type ConfigurationCategory = 'session_defs' | 'weekly_templates' | 'clinic_settings';
 
 export interface UseDoctorScheduleSettingsModalProps {
   isOpen: boolean;
@@ -45,6 +41,7 @@ export function useDoctorScheduleSettingsModal({
   const [draftSessionDefs, setDraftSessionDefs] = useState<SessionDefConfig[]>([]);
   const [draftWeeklyTemplates, setDraftWeeklyTemplates] = useState<WeeklyTemplateConfig[]>([]);
   const [draftClinicSettings, setDraftClinicSettings] = useState<ClinicSettingConfig[]>([]);
+  const [draftOperatingDays, setDraftOperatingDays] = useState<DayInfoConfig[]>([]);
 
   const [impactResult, setImpactResult] = useState<ScheduleConfigurationImpactResult | null>(null);
   const [showImpactDialog, setShowImpactDialog] = useState(false);
@@ -55,6 +52,7 @@ export function useDoctorScheduleSettingsModal({
       setDraftSessionDefs(JSON.parse(JSON.stringify(data.sessionDefs ?? [])));
       setDraftWeeklyTemplates(JSON.parse(JSON.stringify(data.weeklyTemplates ?? [])));
       setDraftClinicSettings(JSON.parse(JSON.stringify(data.clinicSettings ?? [])));
+      setDraftOperatingDays(JSON.parse(JSON.stringify(data.days ?? [])));
     }
   }, [data, isOpen]);
 
@@ -72,7 +70,7 @@ export function useDoctorScheduleSettingsModal({
               return {
                 ...wt,
                 isMasterActive: willBeActive,
-                isActive: willBeActive ? wt.isActive : false,
+                isActive: willBeActive ? wt.isActive : false
               };
             }
             return wt;
@@ -115,6 +113,12 @@ export function useDoctorScheduleSettingsModal({
     []
   );
 
+  const toggleOperatingDayActive = useCallback((dow: number) => {
+    setDraftOperatingDays((prev) =>
+      prev.map((item) => (item.dow === dow ? { ...item, isActive: !item.isActive } : item))
+    );
+  }, []);
+
   const updateClinicSettingValue = useCallback((key: string, value: any) => {
     setDraftClinicSettings((prev) =>
       prev.map((item) => (item.key === key ? { ...item, value } : item))
@@ -131,7 +135,7 @@ export function useDoctorScheduleSettingsModal({
   }, [draftWeeklyTemplates]);
 
   const dirtyChanges = useMemo(() => {
-    if (!data) return { defs: [], templates: [], settings: [], totalCount: 0 };
+    if (!data) return { defs: [], templates: [], settings: [], days: [], totalCount: 0 };
 
     const defs = draftSessionDefs.filter((d) => {
       const orig = data.sessionDefs.find((o) => o.id === d.id);
@@ -139,14 +143,10 @@ export function useDoctorScheduleSettingsModal({
     });
 
     const templates = draftWeeklyTemplates.filter((t) => {
-      const orig = data.weeklyTemplates.find(
-        (o) => o.dow === t.dow && o.sessionId === t.sessionId
-      );
+      const orig = data.weeklyTemplates.find((o) => o.dow === t.dow && o.sessionId === t.sessionId);
       if (!orig) return true;
       return (
-        orig.isActive !== t.isActive ||
-        orig.startsAt !== t.startsAt ||
-        orig.endsAt !== t.endsAt
+        orig.isActive !== t.isActive || orig.startsAt !== t.startsAt || orig.endsAt !== t.endsAt
       );
     });
 
@@ -156,18 +156,24 @@ export function useDoctorScheduleSettingsModal({
       return JSON.stringify(orig.value) !== JSON.stringify(s.value);
     });
 
+    const daysChanges = draftOperatingDays.filter((d) => {
+      const orig = data.days.find((o) => o.dow === d.dow);
+      return orig && orig.isActive !== d.isActive;
+    });
+
     return {
       defs,
       templates,
       settings,
-      totalCount: defs.length + templates.length + settings.length
+      days: daysChanges,
+      totalCount: defs.length + templates.length + settings.length + daysChanges.length
     };
-  }, [data, draftSessionDefs, draftWeeklyTemplates, draftClinicSettings]);
+  }, [data, draftSessionDefs, draftWeeklyTemplates, draftClinicSettings, draftOperatingDays]);
 
   const categoryDirtyCount = useMemo(() => {
     switch (category) {
       case 'session_defs':
-        return dirtyChanges.defs.length;
+        return dirtyChanges.defs.length + dirtyChanges.days.length;
       case 'weekly_templates':
         return dirtyChanges.templates.length;
       case 'clinic_settings':
@@ -180,12 +186,20 @@ export function useDoctorScheduleSettingsModal({
   const buildPayload = useCallback((): UpdateScheduleConfigurationPayload => {
     const payload: UpdateScheduleConfigurationPayload = {};
 
-    if (category === 'session_defs' && dirtyChanges.defs.length > 0) {
-      payload.sessionDefs = dirtyChanges.defs.map((d) => ({
-        id: d.id,
-        isActive: d.isActive,
-        sortOrder: d.sortOrder
-      }));
+    if (category === 'session_defs') {
+      if (dirtyChanges.defs.length > 0) {
+        payload.sessionDefs = dirtyChanges.defs.map((d) => ({
+          id: d.id,
+          isActive: d.isActive,
+          sortOrder: d.sortOrder
+        }));
+      }
+      if (dirtyChanges.days.length > 0) {
+        payload.operatingDays = dirtyChanges.days.map((d) => ({
+          dow: d.dow,
+          isActive: d.isActive
+        }));
+      }
     }
 
     if (category === 'weekly_templates' && dirtyChanges.templates.length > 0) {
@@ -221,8 +235,8 @@ export function useDoctorScheduleSettingsModal({
         category === 'session_defs'
           ? 'Shift operasional berhasil diperbarui.'
           : category === 'weekly_templates'
-          ? 'Template mingguan berhasil diperbarui.'
-          : 'Parameter klinik berhasil diperbarui.';
+            ? 'Template mingguan berhasil diperbarui.'
+            : 'Parameter klinik berhasil diperbarui.';
 
       toast.success(successLabel);
       onClose();
@@ -276,6 +290,7 @@ export function useDoctorScheduleSettingsModal({
       setDraftSessionDefs(JSON.parse(JSON.stringify(data.sessionDefs ?? [])));
       setDraftWeeklyTemplates(JSON.parse(JSON.stringify(data.weeklyTemplates ?? [])));
       setDraftClinicSettings(JSON.parse(JSON.stringify(data.clinicSettings ?? [])));
+      setDraftOperatingDays(JSON.parse(JSON.stringify(data.days ?? [])));
     }
   }, [data]);
 
@@ -287,13 +302,15 @@ export function useDoctorScheduleSettingsModal({
     draftSessionDefs,
     draftWeeklyTemplates,
     draftClinicSettings,
+    draftOperatingDays,
     toggleSessionDef,
+    toggleOperatingDayActive,
     toggleWeeklyTemplateActive,
     updateWeeklyTemplateTime,
     updateClinicSettingValue,
     timeValidationError,
     dirtyCount: categoryDirtyCount,
-    days: data?.days ?? [],
+    days: draftOperatingDays.length > 0 ? draftOperatingDays : (data?.days ?? []),
     isSubmitting: mutation.isPending || isEvaluatingImpact,
     impactResult,
     showImpactDialog,

@@ -1,7 +1,10 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import gsap from 'gsap';
+import { Icons } from '@/components/icons';
 import { Switch } from '@/components/ui/switch';
+import { cn } from '@/lib/utils';
 import {
   Select,
   SelectContent,
@@ -28,11 +31,31 @@ interface StepWeeklyTemplatesProps {
   ) => void;
 }
 
-const BASE_TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
-  const h = String(Math.floor(i / 2)).padStart(2, '0');
-  const m = i % 2 === 0 ? '00' : '30';
-  return `${h}:${m}`;
-});
+const BASE_TIME_OPTIONS = [
+  ...Array.from({ length: 48 }, (_, i) => {
+    const h = String(Math.floor(i / 2)).padStart(2, '0');
+    const m = i % 2 === 0 ? '00' : '30';
+    return `${h}:${m}`;
+  }),
+  '24:00'
+];
+
+function getNearestActiveDow(currentDow: number, daysList: DayInfoConfig[]): number {
+  const activeDays = daysList.filter((d) => d.isActive);
+  if (activeDays.length === 0) return currentDow;
+  if (activeDays.some((d) => d.dow === currentDow)) return currentDow;
+
+  let nearest = activeDays[0];
+  let minDiff = Math.abs(nearest.dow - currentDow);
+  for (const day of activeDays) {
+    const diff = Math.abs(day.dow - currentDow);
+    if (diff < minDiff) {
+      minDiff = diff;
+      nearest = day;
+    }
+  }
+  return nearest.dow;
+}
 
 export function StepWeeklyTemplates({
   days,
@@ -41,7 +64,36 @@ export function StepWeeklyTemplates({
   onToggleShiftActive,
   onUpdateTime
 }: StepWeeklyTemplatesProps) {
-  const [selectedDow, setSelectedDow] = useState<number>(days[0]?.dow ?? 1);
+  const [selectedDow, setSelectedDow] = useState<number>(() => {
+    return getNearestActiveDow(days[0]?.dow ?? 1, days);
+  });
+
+  const gridContainerRef = useRef<HTMLDivElement>(null);
+
+  // Ensure selectedDow is always an active operating day
+  useEffect(() => {
+    if (days.length === 0) return;
+    const currentConfig = days.find((d) => d.dow === selectedDow);
+    if (!currentConfig || !currentConfig.isActive) {
+      const nearest = getNearestActiveDow(selectedDow, days);
+      if (nearest !== selectedDow) {
+        setSelectedDow(nearest);
+      }
+    }
+  }, [days, selectedDow]);
+
+  // GSAP animation on day switch
+  useEffect(() => {
+    if (!gridContainerRef.current) return;
+    gsap.fromTo(
+      gridContainerRef.current,
+      { y: 10, opacity: 0, scale: 0.99 },
+      { y: 0, opacity: 1, scale: 1, duration: 0.22, ease: 'power3.out' }
+    );
+  }, [selectedDow]);
+
+  const selectedDayConfig = days.find((d) => d.dow === selectedDow);
+  const isSelectedDayActive = selectedDayConfig?.isActive ?? true;
 
   // Group templates by session for selected day
   const dayTemplates = weeklyTemplates.filter((t) => t.dow === selectedDow);
@@ -50,11 +102,11 @@ export function StepWeeklyTemplates({
     if (!currentTime || BASE_TIME_OPTIONS.includes(currentTime)) {
       return BASE_TIME_OPTIONS;
     }
-    return [...BASE_TIME_OPTIONS, currentTime].sort();
+    return [...BASE_TIME_OPTIONS, currentTime].toSorted();
   };
 
   return (
-    <div className='flex flex-col gap-3'>
+    <div className='flex flex-col gap-3.5'>
       {/* Day Pills Bar */}
       <div className='flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none'>
         {days.map((d) => {
@@ -69,28 +121,48 @@ export function StepWeeklyTemplates({
             <button
               key={d.dow}
               type='button'
+              disabled={!d.isActive}
               onClick={() => setSelectedDow(d.dow)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0 cursor-pointer ${
-                isSelected
-                  ? 'bg-primary text-primary-foreground shadow-xs'
-                  : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0 ${
+                !d.isActive
+                  ? 'bg-muted/20 text-muted-foreground/40 border border-dashed border-border/40 cursor-not-allowed opacity-60'
+                  : isSelected
+                    ? 'bg-primary text-primary-foreground shadow-xs cursor-pointer'
+                    : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer'
               }`}
             >
               <span>{d.label}</span>
-              <span
-                className={`text-[10px] px-1 rounded-full ${
-                  isSelected ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted-foreground/20'
-                }`}
-              >
-                {activeCount}
-              </span>
+              {!d.isActive ? (
+                <span className='inline-flex items-center gap-0.5 text-[9px] px-1 py-0.2 rounded bg-muted text-muted-foreground/70 font-normal'>
+                  <Icons.lock className='size-2.5' />
+                  Terkunci
+                </span>
+              ) : (
+                <span
+                  className={`text-[10px] px-1 rounded-full ${
+                    isSelected
+                      ? 'bg-primary-foreground/20 text-primary-foreground'
+                      : 'bg-muted-foreground/20'
+                  }`}
+                >
+                  {activeCount}
+                </span>
+              )}
             </button>
           );
         })}
       </div>
 
-      {/* Shifts on selected day - Single Row Hug Layout, Zero Blank Space, Custom UI Select */}
-      <div className='flex flex-col gap-2 max-h-[58vh] overflow-y-auto pr-1'>
+      {!isSelectedDayActive && (
+        <div className='flex items-center justify-between px-3 py-2 rounded-xl border border-border/80 bg-muted/20 text-xs text-muted-foreground'>
+          <span className='font-medium'>
+            Hari {selectedDayConfig?.label} dinonaktifkan di Pengaturan Hari Klinik (Terkunci).
+          </span>
+        </div>
+      )}
+
+      {/* Shifts on selected day - 4 Sessions Horizontal Kanban Grid */}
+      <div ref={gridContainerRef} className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3'>
         {sessionDefs
           .filter((def) => def.isActive)
           .map((def) => {
@@ -106,91 +178,101 @@ export function StepWeeklyTemplates({
             return (
               <div
                 key={def.id}
-                className={`p-3 rounded-xl border space-y-2.5 transition-all ${
+                className={cn(
+                  'p-3.5 rounded-xl border flex flex-col justify-between transition-all min-w-0',
                   isActive
                     ? 'border-border/90 bg-card shadow-2xs'
                     : 'border-border/40 bg-muted/10 opacity-75'
-                }`}
+                )}
               >
-                {/* Row 1: Header (Shift Label on Left, Status Switch on Right) */}
-                <div className='flex items-center justify-between gap-2'>
-                  <div className='flex items-center gap-2 min-w-0'>
+                <div>
+                  {/* Row 1: Header (Shift Label on Left, Status Switch on Right) */}
+                  <div className='flex items-center justify-between pb-2 mb-2.5 border-b border-border/40 gap-1.5'>
                     <span className='font-semibold text-xs sm:text-sm text-foreground truncate'>
                       {shiftLabel}
                     </span>
+
+                    <div className='flex items-center gap-1.5 shrink-0'>
+                      <span className='text-[11px] text-muted-foreground'>
+                        {isActive ? 'Buka' : 'Tutup'}
+                      </span>
+                      <Switch
+                        checked={isActive}
+                        onCheckedChange={() => onToggleShiftActive(selectedDow, def.id)}
+                        aria-label={`Aktifkan shift ${shiftLabel}`}
+                      />
+                    </div>
                   </div>
 
-                  <div className='flex items-center gap-2 shrink-0'>
-                    <span className='text-xs text-muted-foreground'>
-                      {isActive ? 'Buka' : 'Tutup'}
-                    </span>
-                    <Switch
-                      checked={isActive}
-                      onCheckedChange={() => onToggleShiftActive(selectedDow, def.id)}
-                      aria-label={`Aktifkan shift ${shiftLabel}`}
-                    />
-                  </div>
+                  {/* Row 2: Timing Selectors (Stacked inside compact column) */}
+                  {isActive ? (
+                    <div className='space-y-2 pt-1'>
+                      <div className='flex flex-col gap-1'>
+                        <span className='text-[10px] font-medium text-muted-foreground'>
+                          Jam Mulai
+                        </span>
+                        <Select
+                          value={startsAt}
+                          onValueChange={(val) =>
+                            onUpdateTime(selectedDow, def.id, 'startsAt', `${val}:00`)
+                          }
+                        >
+                          <SelectTrigger className='h-8 w-full text-xs font-mono px-2 bg-background shadow-2xs'>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className='max-h-48'>
+                            {getTimeOptions(startsAt).map((t) => (
+                              <SelectItem key={t} value={t} className='text-xs font-mono'>
+                                {t}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className='flex flex-col gap-1'>
+                        <span className='text-[10px] font-medium text-muted-foreground'>
+                          Jam Selesai
+                        </span>
+                        <Select
+                          value={endsAt}
+                          onValueChange={(val) =>
+                            onUpdateTime(selectedDow, def.id, 'endsAt', `${val}:00`)
+                          }
+                        >
+                          <SelectTrigger
+                            className={cn(
+                              'h-8 w-full text-xs font-mono px-2 bg-background shadow-2xs',
+                              isInvalidTime && 'border-destructive text-destructive'
+                            )}
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className='max-h-48'>
+                            {getTimeOptions(endsAt).map((t) => (
+                              <SelectItem key={t} value={t} className='text-xs font-mono'>
+                                {t}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className='py-6 flex flex-col items-center justify-center text-center text-muted-foreground/60 text-xs'>
+                      <span>Shift Libur</span>
+                    </div>
+                  )}
                 </div>
 
-                {/* Row 2: Timing Selectors (Di bawah, 2 kolom setara) */}
-                {isActive && (
-                <div className='grid grid-cols-2 gap-2.5 pt-2 border-t border-border/50'>
-                  <div className='flex flex-col gap-1'>
-                    <span className='text-[10px] font-medium text-muted-foreground'>Jam Mulai</span>
-                    <Select
-                      value={startsAt}
-                      onValueChange={(val) =>
-                        onUpdateTime(selectedDow, def.id, 'startsAt', `${val}:00`)
-                      }
-                    >
-                      <SelectTrigger className='h-8 w-full text-xs font-mono px-2.5 bg-background shadow-2xs'>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className='max-h-48'>
-                        {getTimeOptions(startsAt).map((t) => (
-                          <SelectItem key={t} value={t} className='text-xs font-mono'>
-                            {t}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                {isInvalidTime && (
+                  <div className='text-[10.5px] text-destructive font-medium pt-2'>
+                    Jam selesai harus &gt; jam mulai!
                   </div>
-
-                  <div className='flex flex-col gap-1'>
-                    <span className='text-[10px] font-medium text-muted-foreground'>Jam Selesai</span>
-                    <Select
-                      value={endsAt}
-                      onValueChange={(val) =>
-                        onUpdateTime(selectedDow, def.id, 'endsAt', `${val}:00`)
-                      }
-                    >
-                      <SelectTrigger
-                        className={`h-8 w-full text-xs font-mono px-2.5 bg-background shadow-2xs ${
-                          isInvalidTime ? 'border-destructive text-destructive' : ''
-                        }`}
-                      >
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className='max-h-48'>
-                        {getTimeOptions(endsAt).map((t) => (
-                          <SelectItem key={t} value={t} className='text-xs font-mono'>
-                            {t}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              )}
-
-              {isInvalidTime && (
-                <div className='text-[11px] text-destructive font-medium text-right pr-1'>
-                  Jam selesai harus lebih lambat dari jam mulai!
-                </div>
-              )}
-            </div>
-          );
-        })}
+                )}
+              </div>
+            );
+          })}
       </div>
     </div>
   );

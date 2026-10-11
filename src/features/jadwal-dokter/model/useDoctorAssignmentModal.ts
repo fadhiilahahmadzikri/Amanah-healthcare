@@ -29,7 +29,6 @@ export function useDoctorAssignmentModal({
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<DoctorAssignmentTab>('roster');
   const [selectedAssignments, setSelectedAssignments] = useState<Record<string, boolean>>({});
-  const [reason, setReason] = useState('');
 
   const doctorId = doctor?.id || '';
 
@@ -59,7 +58,6 @@ export function useDoctorAssignmentModal({
         }
       }
       setSelectedAssignments(initial);
-      setReason('');
     }
   }, [rosterData, isOpen]);
 
@@ -68,7 +66,6 @@ export function useDoctorAssignmentModal({
     if (!isOpen) {
       setActiveTab('roster');
       setSelectedAssignments({});
-      setReason('');
     }
   }, [isOpen]);
 
@@ -79,6 +76,28 @@ export function useDoctorAssignmentModal({
       [key]: !prev[key]
     }));
   }, []);
+
+  const toggleDay = useCallback(
+    (dow: number) => {
+      if (!rosterData?.days) return;
+      const targetDay = rosterData.days.find((d) => d.dow === dow);
+      if (!targetDay) return;
+
+      const isCurrentlyActiveOnDay = targetDay.sessions.some((s) =>
+        Boolean(selectedAssignments[`${dow}_${s.sessionId}`])
+      );
+
+      setSelectedAssignments((prev) => {
+        const updated = { ...prev };
+        for (const s of targetDay.sessions) {
+          const key = `${dow}_${s.sessionId}`;
+          updated[key] = !isCurrentlyActiveOnDay;
+        }
+        return updated;
+      });
+    },
+    [rosterData, selectedAssignments]
+  );
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -104,18 +123,17 @@ export function useDoctorAssignmentModal({
       }
 
       return updateDoctorRosterAssignments(doctorId, {
-        assignments: assignmentsList,
-        reason: reason.trim() || undefined
+        assignments: assignmentsList
       });
     },
     onSuccess: () => {
-      toast.success('Roster jadwal dokter berhasil disimpan');
+      toast.success('Jadwal kerja dokter berhasil disimpan');
       syncAllDoctorSchedules(queryClient);
       onClose();
     },
     onError: (err: unknown) => {
       const msg = err instanceof Error ? err.message : (err as { message?: string })?.message;
-      toast.error(msg || 'Gagal menyimpan roster jadwal dokter');
+      toast.error(msg || 'Gagal menyimpan jadwal kerja dokter');
     }
   });
 
@@ -127,13 +145,12 @@ export function useDoctorAssignmentModal({
     activeTab,
     setActiveTab,
     selectedAssignments,
-    reason,
-    setReason,
     rosterData,
     isLoadingRoster,
     historyData,
     isLoadingHistory,
     toggleSession,
+    toggleDay,
     isSubmitting: mutation.isPending,
     handleSave
   };

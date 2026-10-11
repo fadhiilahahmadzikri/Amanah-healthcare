@@ -232,6 +232,8 @@ export interface DoctorRosterDayItem {
   sortOrder: number;
   isWeekend: boolean;
   isOperatingDay: boolean;
+  isDoctorActive?: boolean;
+  hasOverride?: boolean;
   sessions: DoctorRosterSessionItem[];
 }
 
