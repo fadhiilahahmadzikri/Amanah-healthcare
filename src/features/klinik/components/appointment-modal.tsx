@@ -459,5 +459,3 @@ export function AppointmentModal({ isOpen, onClose, onSubmit }: AppointmentModal
     </>
   );
 }
-
-export default AppointmentModal;

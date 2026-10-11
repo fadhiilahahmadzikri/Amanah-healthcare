@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { formatClinicDateTime } from './date-format';
+import { formatClinicDate, formatClinicDateTime } from './date-format';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -37,7 +37,7 @@ export const formatTimeAgo = (date: string | Date): string => {
   if (diffHours < 24) return `${diffHours} jam lalu`;
   if (diffDays < 7) return `${diffDays} hari lalu`;
 
-  return d.toLocaleDateString('id-ID', { month: 'short', day: 'numeric' });
+  return formatClinicDate(d, { style: 'human_short' });
 };
 
 export const formatFullDate = (date: string | Date): string => {

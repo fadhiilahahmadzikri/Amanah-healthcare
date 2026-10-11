@@ -65,5 +65,3 @@ export function PatientCardMaster({
     </button>
   );
 }
-
-export default PatientCardMaster;

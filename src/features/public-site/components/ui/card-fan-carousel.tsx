@@ -857,6 +857,3 @@ export function CardFanCarousel({
     </div>
   );
 }
-
-export { CardFanCarousel as SocialCards };
-export default CardFanCarousel;

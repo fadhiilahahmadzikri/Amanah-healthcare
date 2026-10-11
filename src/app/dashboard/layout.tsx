@@ -6,7 +6,7 @@ import { InfobarProvider } from '@/components/ui/infobar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { ChatwootWidget } from '@/components/chatwoot/chatwoot-widget';
 import { isRouteAuthorized } from '@/lib/rbac/route-manifest';
-import { filterNavGroupsByRole, type SupportedRole } from '@/lib/rbac/navigation';
+import { filterNavGroupsByRole } from '@/lib/rbac/navigation';
 import { AuthorizationProvider } from '@/lib/rbac/auth-context';
 import { navGroups } from '@/config/nav-config';
 import type { Metadata } from 'next';

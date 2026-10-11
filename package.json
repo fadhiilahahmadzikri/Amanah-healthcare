@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "node scripts/postinstall.js 2>/dev/null; next dev",
     "build": "next build",
+    "typecheck": "tsc --noEmit",
     "images:webp": "bun scripts/tools/image-pipeline.ts",
     "start": "next start",
     "lint": "oxlint",

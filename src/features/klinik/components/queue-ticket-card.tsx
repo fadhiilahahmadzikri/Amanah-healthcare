@@ -10,7 +10,7 @@ import { QueuePixelTexture } from './queue-pixel-texture';
 import { QueueClippathToaster } from './queue-clippath-toaster';
 import { QueueWaitingRoomSvg } from './queue-waiting-room-svg';
 import { cn } from '@/lib/utils';
-import { formatClinicDate } from '@/lib/date-format';
+import { formatClinicDate, formatClinicTime } from '@/lib/date-format';
 
 export interface QueueTicketCardProps {
   queueNumber?: string;
@@ -57,7 +57,15 @@ export function QueueTicketCard({
   className,
   style
 }: QueueTicketCardProps) {
-  const displayTime = session || time || '-';
+  const formatSessionOrTime = (val?: string) => {
+    if (!val || val === '-') return '-';
+    if (val.includes(' - ')) {
+      const [start, end] = val.split(' - ');
+      return `${formatClinicTime(start)} - ${formatClinicTime(end)}`;
+    }
+    return formatClinicTime(val);
+  };
+  const displayTime = formatSessionOrTime(session || time);
 
   const cardWrapperRef = useRef<HTMLDivElement>(null);
   const layer1Ref = useRef<HTMLDivElement>(null);

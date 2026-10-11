@@ -448,5 +448,3 @@ export function useAppointmentModal({
     handleFinalSubmit
   };
 }
-
-export default useAppointmentModal;

@@ -202,8 +202,8 @@ export function PatientSearchableSelect({
               {searchQuery.trim()
                 ? 'Data tidak ditemukan'
                 : parentLabel
-                ? `Pilih ${parentLabel.toLowerCase()} terlebih dahulu`
-                : `Belum ada pilihan ${label.toLowerCase()}`}
+                  ? `Pilih ${parentLabel.toLowerCase()} terlebih dahulu`
+                  : `Belum ada pilihan ${label.toLowerCase()}`}
             </div>
           ) : (
             filteredOptions.map((item) => {
@@ -211,8 +211,7 @@ export function PatientSearchableSelect({
                 item.name.charAt(0).toUpperCase() + item.name.slice(1).toLowerCase();
               const isSelected = Boolean(
                 value &&
-                  (value.toLowerCase() === item.name.toLowerCase() ||
-                    (item.id && value === item.id))
+                (value.toLowerCase() === item.name.toLowerCase() || (item.id && value === item.id))
               );
 
               return (
@@ -240,5 +239,3 @@ export function PatientSearchableSelect({
     </div>
   );
 }
-
-export default PatientSearchableSelect;

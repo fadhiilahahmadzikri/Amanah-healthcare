@@ -140,5 +140,3 @@ export function PatientRegionDropdown({
     </div>
   );
 }
-
-export default PatientRegionDropdown;

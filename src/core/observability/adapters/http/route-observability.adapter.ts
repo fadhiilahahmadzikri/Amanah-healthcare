@@ -150,5 +150,3 @@ export function withApiObservability<TParams = Record<string, string | string[]>
     }
   };
 }
-
-export const observeRoute = withApiObservability;

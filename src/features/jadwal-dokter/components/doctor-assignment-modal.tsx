@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { formatClinicDateTime } from '@/lib/date-format';
 import type { DoctorSchedule } from '../api/types';
 import { useDoctorAssignmentModal } from '../model/useDoctorAssignmentModal';
 import { SCHEDULE_STATUS, SCHEDULE_STATUS_LABELS } from '../constants/schedule-shift.constants';
@@ -133,46 +134,46 @@ export function DoctorAssignmentModal({ doctor, isOpen, onClose }: DoctorAssignm
                             </span>
                           </div>
 
-                        <div className='space-y-2'>
-                          {day.sessions.map((s) => {
-                            const key = `${day.dow}_${s.sessionId}`;
-                            const isChecked = Boolean(selectedAssignments[key]);
+                          <div className='space-y-2'>
+                            {day.sessions.map((s) => {
+                              const key = `${day.dow}_${s.sessionId}`;
+                              const isChecked = Boolean(selectedAssignments[key]);
 
-                            return (
-                              <label
-                                key={s.sessionId}
-                                htmlFor={`session-chk-${key}`}
-                                className={cn(
-                                  'flex items-center justify-between p-2 rounded-lg border text-xs cursor-pointer transition-colors',
-                                  isChecked
-                                    ? 'bg-primary/5 border-primary/40 text-foreground font-semibold'
-                                    : 'bg-muted/20 border-border/40 text-muted-foreground hover:bg-muted/40'
-                                )}
-                              >
-                                <div className='flex items-center gap-2.5 min-w-0'>
-                                  <input
-                                    id={`session-chk-${key}`}
-                                    type='checkbox'
-                                    aria-label={`${day.dayName} ${s.sessionLabel}`}
-                                    checked={isChecked}
-                                    onChange={() => toggleSession(day.dow, s.sessionId)}
-                                    className='size-4 rounded border-border text-primary focus:ring-primary/30 accent-primary cursor-pointer'
-                                  />
-                                  <div className='truncate'>
-                                    <div className='truncate font-medium'>{s.sessionLabel}</div>
-                                    <div className='text-[10px] text-muted-foreground font-mono'>
-                                      {s.timeRange}
+                              return (
+                                <label
+                                  key={s.sessionId}
+                                  htmlFor={`session-chk-${key}`}
+                                  className={cn(
+                                    'flex items-center justify-between p-2 rounded-lg border text-xs cursor-pointer transition-colors',
+                                    isChecked
+                                      ? 'bg-primary/5 border-primary/40 text-foreground font-semibold'
+                                      : 'bg-muted/20 border-border/40 text-muted-foreground hover:bg-muted/40'
+                                  )}
+                                >
+                                  <div className='flex items-center gap-2.5 min-w-0'>
+                                    <input
+                                      id={`session-chk-${key}`}
+                                      type='checkbox'
+                                      aria-label={`${day.dayName} ${s.sessionLabel}`}
+                                      checked={isChecked}
+                                      onChange={() => toggleSession(day.dow, s.sessionId)}
+                                      className='size-4 rounded border-border text-primary focus:ring-primary/30 accent-primary cursor-pointer'
+                                    />
+                                    <div className='truncate'>
+                                      <div className='truncate font-medium'>{s.sessionLabel}</div>
+                                      <div className='text-[10px] text-muted-foreground font-mono'>
+                                        {s.timeRange}
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              </label>
-                            );
-                          })}
+                                </label>
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
 
                   <div className='pt-4 border-t border-border/60 space-y-2'>
                     <label
@@ -224,13 +225,7 @@ export function DoctorAssignmentModal({ doctor, isOpen, onClose }: DoctorAssignm
                       {historyData.items.map((row) => (
                         <tr key={row.id} className='hover:bg-muted/20'>
                           <td className='p-3 font-mono text-muted-foreground whitespace-nowrap'>
-                            {new Date(row.createdAt).toLocaleDateString('id-ID', {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
+                            {formatClinicDateTime(row.createdAt, { withSuffix: true })}
                           </td>
                           <td className='p-3 font-medium capitalize'>
                             {row.action.replace('_', ' ')}
@@ -300,5 +295,3 @@ export function DoctorAssignmentModal({ doctor, isOpen, onClose }: DoctorAssignm
     </Dialog>
   );
 }
-
-export default DoctorAssignmentModal;

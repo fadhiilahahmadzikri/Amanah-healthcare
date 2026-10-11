@@ -134,5 +134,3 @@ export function DoctorScheduleCard({
     </div>
   );
 }
-
-export default DoctorScheduleCard;

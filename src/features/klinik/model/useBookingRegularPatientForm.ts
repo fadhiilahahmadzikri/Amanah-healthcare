@@ -420,5 +420,3 @@ export function useBookingRegularPatientForm({
     isEditingFromReview
   };
 }
-
-export default useBookingRegularPatientForm;

@@ -65,5 +65,3 @@ export function BookingPatientSelectionStep({
     </div>
   );
 }
-
-export default BookingPatientSelectionStep;

@@ -9,16 +9,12 @@ import type {
   ReviewImage
 } from './types';
 import rawGoogleReviews from './data/google-reviews.json';
+import { formatClinicDate } from '@/lib/date-format';
 
 const MAX_REVIEW_RATING = 5;
 const MIN_REVIEW_RATING = 0;
 const REVIEW_PHOTO_START_INDEX = 1;
 const INITIALS_PART_LIMIT = 2;
-
-const indonesianDateFormatter = new Intl.DateTimeFormat('id-ID', {
-  dateStyle: 'long',
-  timeZone: 'Asia/Jakarta'
-});
 
 export const googleReviewsDataset = rawGoogleReviews as RawGoogleReviewsDataset;
 
@@ -33,13 +29,7 @@ function parseLocalizedRating(value: string) {
 }
 
 function formatScrapedDate(value: string) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-
-  return indonesianDateFormatter.format(date);
+  return formatClinicDate(value, { style: 'human_medium' });
 }
 
 function createAuthorInitials(name: string) {

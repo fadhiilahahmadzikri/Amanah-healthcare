@@ -36,5 +36,3 @@ export function NewPatientTriggerCard({
     </button>
   );
 }
-
-export default NewPatientTriggerCard;

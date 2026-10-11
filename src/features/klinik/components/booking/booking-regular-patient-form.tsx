@@ -486,5 +486,3 @@ export function BookingRegularPatientForm({
     </div>
   );
 }
-
-export default BookingRegularPatientForm;

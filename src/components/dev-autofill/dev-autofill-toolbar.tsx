@@ -161,5 +161,3 @@ export function DevAutofillToolbar() {
     </div>
   );
 }
-
-export default DevAutofillToolbar;
