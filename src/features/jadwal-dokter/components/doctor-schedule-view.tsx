@@ -14,13 +14,12 @@ import { DoctorExportButton } from './doctor-export-button';
 import { DoctorSchedulePagination } from './doctor-schedule-pagination';
 import { DoctorScheduleSettingsButton, DoctorScheduleSettingsModal } from './settings';
 import { DoctorAssignmentModal } from './doctor-assignment-modal';
-import type { ConfigurationCategory } from '../model/useDoctorScheduleSettingsModal';
+import { useDoctorScheduleSettingsCycle } from '../model/useDoctorScheduleSettingsCycle';
 import type { DoctorSchedule } from '../api/types';
 
 export function DoctorScheduleView() {
   const scheduleView = useDoctorScheduleView();
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [settingsCategory, setSettingsCategory] = useState<ConfigurationCategory>('session_defs');
+  const settingsCycle = useDoctorScheduleSettingsCycle();
   const [selectedDoctorForAssignment, setSelectedDoctorForAssignment] =
     useState<DoctorSchedule | null>(null);
   const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
@@ -35,11 +34,7 @@ export function DoctorScheduleView() {
         onViewDoctorSchedule={scheduleView.actions.openDoctorScheduleById}
       />
 
-      <DoctorScheduleSettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        category={settingsCategory}
-      />
+      <DoctorScheduleSettingsModal cycle={settingsCycle} />
 
       <DoctorAssignmentModal
         doctor={selectedDoctorForAssignment}
@@ -71,9 +66,8 @@ export function DoctorScheduleView() {
             <div className='flex items-center gap-2 shrink-0'>
               <DoctorExportButton data={scheduleView.doctors} />
               <DoctorScheduleSettingsButton
-                onSelectCategory={(category) => {
-                  setSettingsCategory(category);
-                  setIsSettingsOpen(true);
+                onSelectCategory={(category, subView) => {
+                  settingsCycle.openSettings(category, subView);
                 }}
               />
             </div>

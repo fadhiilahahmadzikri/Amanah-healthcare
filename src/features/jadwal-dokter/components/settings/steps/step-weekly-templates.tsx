@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { Icons } from '@/components/icons';
+import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import {
@@ -29,6 +30,9 @@ interface StepWeeklyTemplatesProps {
     field: 'startsAt' | 'endsAt',
     value: string
   ) => void;
+  onToggleDayActive?: (dow: number) => void;
+  onNavigateToOperatingDays?: () => void;
+  onNavigateToSessionDefs?: () => void;
 }
 
 const BASE_TIME_OPTIONS = [
@@ -62,7 +66,10 @@ export function StepWeeklyTemplates({
   sessionDefs,
   weeklyTemplates,
   onToggleShiftActive,
-  onUpdateTime
+  onUpdateTime,
+  onToggleDayActive,
+  onNavigateToOperatingDays,
+  onNavigateToSessionDefs
 }: StepWeeklyTemplatesProps) {
   const [selectedDow, setSelectedDow] = useState<number>(() => {
     return getNearestActiveDow(days[0]?.dow ?? 1, days);
@@ -154,10 +161,37 @@ export function StepWeeklyTemplates({
       </div>
 
       {!isSelectedDayActive && (
-        <div className='flex items-center justify-between px-3 py-2 rounded-xl border border-border/80 bg-muted/20 text-xs text-muted-foreground'>
-          <span className='font-medium'>
-            Hari {selectedDayConfig?.label} dinonaktifkan di Pengaturan Hari Klinik (Terkunci).
-          </span>
+        <div className='flex flex-wrap items-center justify-between px-3.5 py-2.5 rounded-xl border border-border/80 bg-muted/20 text-xs text-muted-foreground gap-2'>
+          <div className='flex items-center gap-2 min-w-0'>
+            <Icons.lock className='size-3.5 text-muted-foreground/70 shrink-0' />
+            <span className='font-medium'>
+              Hari {selectedDayConfig?.label} dinonaktifkan di Pengaturan Hari Klinik (Terkunci).
+            </span>
+          </div>
+          <div className='flex items-center gap-1.5 shrink-0'>
+            {onToggleDayActive && (
+              <Button
+                type='button'
+                variant='outline'
+                size='sm'
+                onClick={() => onToggleDayActive(selectedDow)}
+                className='text-xs h-7.5 px-2.5 font-semibold'
+              >
+                Aktifkan Hari Ini
+              </Button>
+            )}
+            {onNavigateToOperatingDays && (
+              <Button
+                type='button'
+                variant='ghost'
+                size='sm'
+                onClick={onNavigateToOperatingDays}
+                className='text-xs h-7.5 px-2 font-semibold text-primary hover:text-primary'
+              >
+                Atur Hari
+              </Button>
+            )}
+          </div>
         </div>
       )}
 
@@ -274,6 +308,24 @@ export function StepWeeklyTemplates({
             );
           })}
       </div>
+
+      {sessionDefs.some((d) => !d.isActive) && onNavigateToSessionDefs && (
+        <div className='flex flex-wrap items-center justify-between px-3.5 py-2 rounded-xl border border-dashed border-border/60 bg-muted/15 text-xs text-muted-foreground gap-2 mt-0.5'>
+          <div className='flex items-center gap-2 min-w-0'>
+            <Icons.clock className='size-3.5 text-muted-foreground/70 shrink-0' />
+            <span>Terdapat shift yang dinonaktifkan di Master Shift Operasional.</span>
+          </div>
+          <Button
+            type='button'
+            variant='ghost'
+            size='sm'
+            onClick={onNavigateToSessionDefs}
+            className='text-xs h-7 px-2 font-semibold text-primary hover:text-primary'
+          >
+            Atur Shift
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

@@ -119,7 +119,7 @@ export function useDoctorScheduleSettingsModal({
     );
   }, []);
 
-  const updateClinicSettingValue = useCallback((key: string, value: any) => {
+  const updateClinicSettingValue = useCallback((key: string, value: unknown) => {
     setDraftClinicSettings((prev) =>
       prev.map((item) => (item.key === key ? { ...item, value } : item))
     );
@@ -170,39 +170,26 @@ export function useDoctorScheduleSettingsModal({
     };
   }, [data, draftSessionDefs, draftWeeklyTemplates, draftClinicSettings, draftOperatingDays]);
 
-  const categoryDirtyCount = useMemo(() => {
-    switch (category) {
-      case 'session_defs':
-        return dirtyChanges.defs.length + dirtyChanges.days.length;
-      case 'weekly_templates':
-        return dirtyChanges.templates.length;
-      case 'clinic_settings':
-        return dirtyChanges.settings.length;
-      default:
-        return dirtyChanges.totalCount;
-    }
-  }, [category, dirtyChanges]);
+  const dirtyCount = dirtyChanges.totalCount;
 
   const buildPayload = useCallback((): UpdateScheduleConfigurationPayload => {
     const payload: UpdateScheduleConfigurationPayload = {};
 
-    if (category === 'session_defs') {
-      if (dirtyChanges.defs.length > 0) {
-        payload.sessionDefs = dirtyChanges.defs.map((d) => ({
-          id: d.id,
-          isActive: d.isActive,
-          sortOrder: d.sortOrder
-        }));
-      }
-      if (dirtyChanges.days.length > 0) {
-        payload.operatingDays = dirtyChanges.days.map((d) => ({
-          dow: d.dow,
-          isActive: d.isActive
-        }));
-      }
+    if (dirtyChanges.defs.length > 0) {
+      payload.sessionDefs = dirtyChanges.defs.map((d) => ({
+        id: d.id,
+        isActive: d.isActive,
+        sortOrder: d.sortOrder
+      }));
+    }
+    if (dirtyChanges.days.length > 0) {
+      payload.operatingDays = dirtyChanges.days.map((d) => ({
+        dow: d.dow,
+        isActive: d.isActive
+      }));
     }
 
-    if (category === 'weekly_templates' && dirtyChanges.templates.length > 0) {
+    if (dirtyChanges.templates.length > 0) {
       payload.weeklyTemplates = dirtyChanges.templates.map((t) => ({
         id: t.id,
         sessionId: t.sessionId,
@@ -213,7 +200,7 @@ export function useDoctorScheduleSettingsModal({
       }));
     }
 
-    if (category === 'clinic_settings' && dirtyChanges.settings.length > 0) {
+    if (dirtyChanges.settings.length > 0) {
       payload.clinicSettings = dirtyChanges.settings.map((s) => ({
         key: s.key,
         value: s.value
@@ -221,7 +208,7 @@ export function useDoctorScheduleSettingsModal({
     }
 
     return payload;
-  }, [category, dirtyChanges]);
+  }, [dirtyChanges]);
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -230,15 +217,7 @@ export function useDoctorScheduleSettingsModal({
     },
     onSuccess: () => {
       syncAllDoctorSchedules(queryClient);
-
-      const successLabel =
-        category === 'session_defs'
-          ? 'Shift operasional berhasil diperbarui.'
-          : category === 'weekly_templates'
-            ? 'Template mingguan berhasil diperbarui.'
-            : 'Parameter klinik berhasil diperbarui.';
-
-      toast.success(successLabel);
+      toast.success('Pengaturan jadwal klinik berhasil disimpan.');
       onClose();
     },
     onError: (err: unknown) => {
@@ -253,7 +232,7 @@ export function useDoctorScheduleSettingsModal({
       return;
     }
 
-    if (categoryDirtyCount === 0) {
+    if (dirtyCount === 0) {
       toast.info('Tidak ada perubahan yang dilakukan.');
       onClose();
       return;
@@ -276,7 +255,7 @@ export function useDoctorScheduleSettingsModal({
     } finally {
       setIsEvaluatingImpact(false);
     }
-  }, [category, categoryDirtyCount, timeValidationError, buildPayload, mutation, onClose]);
+  }, [category, dirtyCount, timeValidationError, buildPayload, mutation, onClose]);
 
   const handleConfirmSave = useCallback(() => {
     setShowImpactDialog(false);
@@ -309,7 +288,7 @@ export function useDoctorScheduleSettingsModal({
     updateWeeklyTemplateTime,
     updateClinicSettingValue,
     timeValidationError,
-    dirtyCount: categoryDirtyCount,
+    dirtyCount,
     days: draftOperatingDays.length > 0 ? draftOperatingDays : (data?.days ?? []),
     isSubmitting: mutation.isPending || isEvaluatingImpact,
     impactResult,

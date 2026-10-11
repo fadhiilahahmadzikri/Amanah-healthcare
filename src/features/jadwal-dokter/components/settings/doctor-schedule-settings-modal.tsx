@@ -10,6 +10,11 @@ import {
   useDoctorScheduleSettingsModal,
   type ConfigurationCategory
 } from '../../model/useDoctorScheduleSettingsModal';
+import {
+  useDoctorScheduleSettingsCycle,
+  type UseDoctorScheduleSettingsCycleReturn
+} from '../../model/useDoctorScheduleSettingsCycle';
+import { DoctorScheduleSettingsButton } from './doctor-schedule-settings-button';
 import { StepSessionDefs } from './steps/step-session-defs';
 import { StepOperatingDays } from './steps/step-operating-days';
 import { StepWeeklyTemplates } from './steps/step-weekly-templates';
@@ -17,10 +22,11 @@ import { StepClinicSettings } from './steps/step-clinic-settings';
 import { OnDemandImpactDialog } from './confirmation/on-demand-impact-dialog';
 
 export interface DoctorScheduleSettingsModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  category: ConfigurationCategory;
+  isOpen?: boolean;
+  onClose?: () => void;
+  category?: ConfigurationCategory;
   portalContainerRef?: React.RefObject<HTMLElement | null>;
+  cycle?: UseDoctorScheduleSettingsCycleReturn;
 }
 
 const CATEGORY_META: Record<ConfigurationCategory, { title: string; subtitle: string }> = {
@@ -48,18 +54,28 @@ export function DoctorScheduleSettingsModal({
   isOpen,
   onClose,
   category = 'session_defs',
-  portalContainerRef
+  portalContainerRef,
+  cycle
 }: DoctorScheduleSettingsModalProps) {
-  const [sessionDefsSubView, setSessionDefsSubView] = React.useState<'defs' | 'operating_days'>(
-    'defs'
-  );
-  const stepContainerRef = useRef<HTMLDivElement>(null);
+  const fallbackCycle = useDoctorScheduleSettingsCycle(category);
+  const activeCycle = cycle ?? fallbackCycle;
+
+  const modalIsOpen = cycle ? cycle.isOpen : (isOpen ?? false);
+  const handleClose = () => {
+    if (cycle) cycle.closeSettings();
+    onClose?.();
+  };
 
   React.useEffect(() => {
-    if (isOpen) {
-      setSessionDefsSubView('defs');
+    if (!cycle && isOpen) {
+      fallbackCycle.openSettings(category);
     }
-  }, [isOpen, category]);
+  }, [cycle, isOpen, category, fallbackCycle]);
+
+  const activeCategory = activeCycle.category;
+  const activeSubView = activeCycle.subView;
+  const canGoBack = activeCycle.canGoBack;
+  const stepContainerRef = useRef<HTMLDivElement>(null);
 
   // GSAP animation for wizard transitions (identical to regular patient form wizard)
   useEffect(() => {
@@ -75,7 +91,7 @@ export function DoctorScheduleSettingsModal({
         ease: 'power3.inOut'
       }
     );
-  }, [category, sessionDefsSubView]);
+  }, [activeCategory, activeSubView]);
 
   const {
     isLoading,
@@ -98,25 +114,29 @@ export function DoctorScheduleSettingsModal({
     handleRequestSave,
     handleConfirmSave,
     handleCancelImpactDialog
-  } = useDoctorScheduleSettingsModal({ isOpen, onClose, category });
+  } = useDoctorScheduleSettingsModal({
+    isOpen: modalIsOpen,
+    onClose: handleClose,
+    category: activeCategory
+  });
 
   const meta = useMemo(() => {
-    if (category === 'session_defs' && sessionDefsSubView === 'operating_days') {
+    if (activeCategory === 'session_defs' && activeSubView === 'operating_days') {
       return {
         title: 'Hari Operasional Klinik',
         subtitle: 'Atur keaktifan operasional klinik per hari (Senin - Minggu).'
       };
     }
-    return CATEGORY_META[category] ?? CATEGORY_META.session_defs;
-  }, [category, sessionDefsSubView]);
+    return CATEGORY_META[activeCategory] ?? CATEGORY_META.session_defs;
+  }, [activeCategory, activeSubView]);
 
-  const modalMaxWidth = CATEGORY_MAX_WIDTH[category] ?? 'w-full sm:max-w-[620px]';
+  const modalMaxWidth = CATEGORY_MAX_WIDTH[activeCategory] ?? 'w-full sm:max-w-[620px]';
 
   return (
     <>
       <ModalWrapper
-        isOpen={isOpen}
-        onClose={onClose}
+        isOpen={modalIsOpen}
+        onClose={handleClose}
         maxWidth={modalMaxWidth}
         showCloseButton={false}
         portalContainerRef={portalContainerRef}
@@ -131,11 +151,21 @@ export function DoctorScheduleSettingsModal({
               </h3>
               <p className='text-xs text-muted-foreground leading-normal'>{meta.subtitle}</p>
             </div>
-            {dirtyCount > 0 && (
-              <span className='text-xs text-muted-foreground shrink-0 self-start pt-0.5 font-medium'>
-                {dirtyCount} perubahan belum disimpan
-              </span>
-            )}
+            <div className='flex items-center gap-2.5 shrink-0 self-start pt-0.5'>
+              {dirtyCount > 0 && (
+                <span className='text-xs text-muted-foreground font-medium'>
+                  {dirtyCount} perubahan belum disimpan
+                </span>
+              )}
+              <DoctorScheduleSettingsButton
+                activeCategory={activeCategory}
+                activeSubView={activeSubView}
+                onSelectCategory={(cat, sub) => {
+                  activeCycle.navigateTo(cat, sub);
+                }}
+                className='h-7.5 w-7.5 border-border/60 hover:bg-muted/40'
+              />
+            </div>
           </div>
 
           {/* Focused Content Area with Shell Skeleton during loading */}
@@ -167,30 +197,33 @@ export function DoctorScheduleSettingsModal({
             </div>
           ) : (
             <div ref={stepContainerRef} className='w-full'>
-              {category === 'session_defs' && sessionDefsSubView === 'defs' && (
+              {activeCategory === 'session_defs' && activeSubView === 'defs' && (
                 <StepSessionDefs
                   sessionDefs={draftSessionDefs}
                   onToggleActive={toggleSessionDef}
-                  onOpenOperatingDays={() => setSessionDefsSubView('operating_days')}
+                  onOpenOperatingDays={activeCycle.navigateToOperatingDays}
                 />
               )}
-              {category === 'session_defs' && sessionDefsSubView === 'operating_days' && (
+              {activeCategory === 'session_defs' && activeSubView === 'operating_days' && (
                 <StepOperatingDays
                   days={days}
                   onToggleDayActive={toggleOperatingDayActive}
-                  onBackToSessionDefs={() => setSessionDefsSubView('defs')}
+                  onBackToSessionDefs={activeCycle.navigateBack}
                 />
               )}
-              {category === 'weekly_templates' && (
+              {activeCategory === 'weekly_templates' && (
                 <StepWeeklyTemplates
                   days={days}
                   sessionDefs={draftSessionDefs}
                   weeklyTemplates={draftWeeklyTemplates}
                   onToggleShiftActive={toggleWeeklyTemplateActive}
                   onUpdateTime={updateWeeklyTemplateTime}
+                  onToggleDayActive={toggleOperatingDayActive}
+                  onNavigateToOperatingDays={activeCycle.navigateToOperatingDays}
+                  onNavigateToSessionDefs={activeCycle.navigateToSessionDefs}
                 />
               )}
-              {category === 'clinic_settings' && (
+              {activeCategory === 'clinic_settings' && (
                 <StepClinicSettings
                   clinicSettings={draftClinicSettings}
                   onUpdateSetting={updateClinicSettingValue}
@@ -201,13 +234,13 @@ export function DoctorScheduleSettingsModal({
 
           {/* Footer Navigation - Standard Regular Wizard Pattern with Canonical Button Components */}
           <div className='flex items-center justify-between border-t border-border/70 pt-3.5 mt-1 gap-2'>
-            {/* Left: Back button in operating_days subview, or Cancel button */}
+            {/* Left: Back button if canGoBack, or Cancel button */}
             <div>
-              {category === 'session_defs' && sessionDefsSubView === 'operating_days' ? (
+              {canGoBack ? (
                 <Button
                   variant='ghost'
                   size='sm'
-                  onClick={() => setSessionDefsSubView('defs')}
+                  onClick={activeCycle.navigateBack}
                   className='text-xs h-8.5 px-3 font-semibold text-muted-foreground hover:text-foreground gap-1.5'
                 >
                   <Icons.arrowLeft className='size-3.5' />
@@ -217,7 +250,7 @@ export function DoctorScheduleSettingsModal({
                 <Button
                   variant='ghost'
                   size='sm'
-                  onClick={onClose}
+                  onClick={handleClose}
                   disabled={isSubmitting}
                   className='text-xs h-8.5 px-3 text-muted-foreground hover:text-foreground font-semibold'
                 >
@@ -228,16 +261,17 @@ export function DoctorScheduleSettingsModal({
 
             {/* Right: Next Action (Operating Days) + Save Button */}
             <div className='flex items-center gap-2 shrink-0'>
-              {category === 'session_defs' && sessionDefsSubView === 'defs' && (
+              {(activeCategory === 'session_defs' && activeSubView === 'defs') ||
+              activeCategory === 'weekly_templates' ? (
                 <Button
                   variant='link'
                   size='sm'
-                  onClick={() => setSessionDefsSubView('operating_days')}
+                  onClick={activeCycle.navigateToOperatingDays}
                   className='text-xs h-8.5 px-2 font-semibold text-primary hover:underline'
                 >
                   Atur Hari
                 </Button>
-              )}
+              ) : null}
 
               <Button
                 variant='default'
