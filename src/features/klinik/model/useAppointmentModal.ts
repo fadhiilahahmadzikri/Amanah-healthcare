@@ -3,13 +3,15 @@
 import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import gsap from 'gsap';
 import { toast } from 'sonner';
+import { AppError } from '@/core/errors/app-error';
 import type { ServiceCardItem } from '@/features/public-site/pages/services/types';
 import {
   patientAffiliationService,
   type PatientAffiliationProfile,
   type PatientRelationshipType,
   type BackendAppointmentItem,
-  type BookingServiceContextResponse
+  type BookingServiceContextResponse,
+  type ActiveTicketConflictInfo
 } from '@/features/data-pasien/api/patient-affiliation-service';
 import {
   catalogService,
@@ -30,7 +32,8 @@ export type BookingModalStep =
   | 'session'
   | 'visit_type'
   | 'complaint'
-  | 'confirmation';
+  | 'confirmation'
+  | 'ticket_conflict';
 
 export interface UseAppointmentModalProps {
   isOpen: boolean;
@@ -85,6 +88,55 @@ export function useAppointmentModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isQueueSuccessOpen, setIsQueueSuccessOpen] = useState(false);
   const [createdAppointment, setCreatedAppointment] = useState<Appointment | null>(null);
+
+  const [activeTicketConflict, setActiveTicketConflict] =
+    useState<ActiveTicketConflictInfo | null>(null);
+  const [isCheckingActiveTicket, setIsCheckingActiveTicket] = useState(false);
+
+  useEffect(() => {
+    const patientIdToUse = selectedPatientId || (patients[0] ? patients[0].id : '');
+    const resolvedCategoryId =
+      selectedCategoryId ||
+      selectedService?.categoryId ||
+      categories.find((c) => c.services?.some((s) => s.id === selectedService?.id))?.id;
+
+    if (!patientIdToUse || !dateStr) {
+      setActiveTicketConflict(null);
+      return;
+    }
+
+    let isSubscribed = true;
+    setIsCheckingActiveTicket(true);
+    patientAffiliationService
+      .checkActiveTicket({
+        patientId: patientIdToUse,
+        categoryId: resolvedCategoryId,
+        date: dateStr
+      })
+      .then((res) => {
+        if (isSubscribed) {
+          setActiveTicketConflict(res.hasActiveTicket ? res.activeTicket : null);
+        }
+      })
+      .catch(() => {
+        if (isSubscribed) setActiveTicketConflict(null);
+      })
+      .finally(() => {
+        if (isSubscribed) setIsCheckingActiveTicket(false);
+      });
+
+    return () => {
+      isSubscribed = false;
+    };
+  }, [
+    selectedPatientId,
+    patients,
+    selectedCategoryId,
+    selectedService?.id,
+    selectedService?.categoryId,
+    categories,
+    dateStr
+  ]);
 
   const visitTypeDropdownRef = useRef<HTMLDivElement>(null);
   const stepContainerRef = useRef<HTMLDivElement>(null);
@@ -347,12 +399,30 @@ export function useAppointmentModal({
     toast.success('Data profil pasien berhasil didaftarkan');
   };
 
+  const handleSessionContinue = useCallback(() => {
+    if (activeTicketConflict) {
+      toast.info(
+        `Pasien sudah memiliki tiket antrean aktif (${activeTicketConflict.queueNumber}) untuk tanggal ini.`
+      );
+      setStep('ticket_conflict');
+      return;
+    }
+    setStep('visit_type');
+  }, [activeTicketConflict]);
+
   const handleFinalSubmit = async () => {
     const patientIdToUse = selectedPatientId || (patients[0] ? patients[0].id : '');
 
     if (!patientIdToUse) {
       toast.error('Silakan tentukan data pasien terlebih dahulu');
       setStep('patient_new');
+      return;
+    }
+
+    if (activeTicketConflict) {
+      toast.warning(
+        `Pasien sudah memiliki tiket antrean aktif (${activeTicketConflict.queueNumber}) untuk tanggal ini.`
+      );
       return;
     }
 
@@ -391,6 +461,16 @@ export function useAppointmentModal({
 
       toast.success('Janji temu berhasil dibuat beserta tiket antrean resmi');
     } catch (err: unknown) {
+      if (err instanceof AppError && err.status === 409) {
+        const activeTicket = (err.problemDetails as { activeTicket?: ActiveTicketConflictInfo } | undefined)?.activeTicket;
+        if (activeTicket) {
+          setActiveTicketConflict(activeTicket);
+          toast.warning(
+            `Pasien sudah memiliki tiket antrean aktif (${activeTicket.queueNumber}) untuk kategori ini pada tanggal tersebut.`
+          );
+          return;
+        }
+      }
       const msg = err instanceof Error ? err.message : 'Gagal memproses janji temu';
       toast.error(msg);
     } finally {
@@ -438,6 +518,8 @@ export function useAppointmentModal({
     isQueueSuccessOpen,
     setIsQueueSuccessOpen,
     createdAppointment,
+    activeTicketConflict,
+    isCheckingActiveTicket,
     visitTypeDropdownRef,
     stepContainerRef,
     handleSelectServiceItem,
@@ -445,6 +527,7 @@ export function useAppointmentModal({
     handleAddNewPatient,
     handleRelationshipSubmitForMedicalFlow,
     handlePatientContinue,
+    handleSessionContinue,
     handleFinalSubmit
   };
 }

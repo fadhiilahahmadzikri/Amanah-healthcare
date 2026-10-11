@@ -1,4 +1,5 @@
 import { AppError } from '@/core/errors/app-error';
+import type { ProblemDetails } from '@/core/errors/problem-details';
 import { isProtectedRoute } from '@/core/routes';
 
 export interface ClientFetchOptions extends RequestInit {
@@ -98,6 +99,9 @@ export async function clientFetch<T>(
     }
     if (response.status === 404) {
       throw AppError.notFound(message);
+    }
+    if (response.status === 409) {
+      throw AppError.conflict(message, errorBody as ProblemDetails);
     }
     if (response.status === 422) {
       throw AppError.validation(message);

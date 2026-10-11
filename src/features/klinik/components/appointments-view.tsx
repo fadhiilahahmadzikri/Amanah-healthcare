@@ -156,6 +156,10 @@ export function AppointmentsView() {
         isOpen={appointmentsView.isFormModalOpen}
         onClose={appointmentsView.actions.closeFormModal}
         onSubmit={handleFormSubmit}
+        onViewExistingAppointment={(appointmentId) => {
+          appointmentsView.actions.closeFormModal();
+          appointmentsView.actions.openDetailsById(appointmentId);
+        }}
       />
 
       {/* Summary Details Modal */}

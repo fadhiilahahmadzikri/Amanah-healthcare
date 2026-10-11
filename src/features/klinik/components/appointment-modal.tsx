@@ -17,12 +17,20 @@ import { BookingSessionStep } from './booking/booking-session-step';
 import { BookingVisitTypeStep } from './booking/booking-visit-type-step';
 import { BookingComplaintStep } from './booking/booking-complaint-step';
 import { BookingConfirmationStep } from './booking/booking-confirmation-step';
+import { BookingTicketConflictStep } from './booking/booking-ticket-conflict-step';
 import { useAppointmentModal, type UseAppointmentModalProps } from '../model/useAppointmentModal';
 import { type AppointmentFormData, QUEUE_STATUS } from '../api/types';
 
-export type AppointmentModalProps = UseAppointmentModalProps;
+export interface AppointmentModalProps extends UseAppointmentModalProps {
+  onViewExistingAppointment?: (appointmentId: string) => void;
+}
 
-export function AppointmentModal({ isOpen, onClose, onSubmit }: AppointmentModalProps) {
+export function AppointmentModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  onViewExistingAppointment
+}: AppointmentModalProps) {
   const {
     step,
     setStep,
@@ -53,12 +61,14 @@ export function AppointmentModal({ isOpen, onClose, onSubmit }: AppointmentModal
     isQueueSuccessOpen,
     setIsQueueSuccessOpen,
     createdAppointment,
+    activeTicketConflict,
     stepContainerRef,
     handleSelectServiceItem,
     handlePatientCreated,
     handleAddNewPatient,
     handleRelationshipSubmitForMedicalFlow,
     handlePatientContinue,
+    handleSessionContinue,
     handleFinalSubmit
   } = useAppointmentModal({
     isOpen,
@@ -86,7 +96,8 @@ export function AppointmentModal({ isOpen, onClose, onSubmit }: AppointmentModal
     step === 'visit_type' ||
     step === 'complaint' ||
     step === 'patient_new' ||
-    step === 'confirmation';
+    step === 'confirmation' ||
+    step === 'ticket_conflict';
 
   const targetFlow =
     bookingContext?.formType ||
@@ -204,6 +215,13 @@ export function AppointmentModal({ isOpen, onClose, onSubmit }: AppointmentModal
                 patientName={selectedPatient?.fullName || ''}
               />
             )}
+
+            {step === 'ticket_conflict' && (
+              <BookingTicketConflictStep
+                activeTicket={activeTicketConflict}
+                onViewExistingAppointment={onViewExistingAppointment}
+              />
+            )}
           </div>
 
           {step !== 'patient_new' && (
@@ -292,6 +310,17 @@ export function AppointmentModal({ isOpen, onClose, onSubmit }: AppointmentModal
                   >
                     Kembali
                   </Button>
+                ) : step === 'ticket_conflict' ? (
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='md'
+                    shape='pill'
+                    leadingIcon={<Icons.arrowLeft className='size-3.5' />}
+                    onClick={() => setStep('date')}
+                  >
+                    Ganti Tanggal
+                  </Button>
                 ) : null}
               </div>
 
@@ -336,7 +365,7 @@ export function AppointmentModal({ isOpen, onClose, onSubmit }: AppointmentModal
                     size='md'
                     shape='pill'
                     disabled={!session}
-                    onClick={() => setStep('visit_type')}
+                    onClick={handleSessionContinue}
                     withTrailingCircleIcon={true}
                     className='min-w-[140px]'
                     trailingIcon={<Icons.arrowRight className='size-3 stroke-[2.5]' />}
@@ -368,6 +397,19 @@ export function AppointmentModal({ isOpen, onClose, onSubmit }: AppointmentModal
                     trailingIcon={<Icons.arrowRight className='size-3 stroke-[2.5]' />}
                   >
                     Lanjut
+                  </Button>
+                ) : step === 'ticket_conflict' ? (
+                  <Button
+                    type='button'
+                    variant='primary'
+                    size='md'
+                    shape='pill'
+                    onClick={onClose}
+                    withTrailingCircleIcon={true}
+                    className='min-w-[140px]'
+                    trailingIcon={<Icons.check className='size-3 stroke-[2.5]' />}
+                  >
+                    Saya Mengerti
                   </Button>
                 ) : step === 'confirmation' ? (
                   <Button

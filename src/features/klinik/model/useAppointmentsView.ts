@@ -50,6 +50,7 @@ export interface UseAppointmentsViewResult {
     changePageSize: (size: number) => void;
     openCreateModal: () => void;
     openDetailsModal: (appointment: Appointment) => void;
+    openDetailsById: (appointmentId: string) => void;
     closeFormModal: () => void;
     closeDetailsModal: () => void;
     cancelAppointment: (appointmentId: string, reason?: string) => Promise<void>;
@@ -244,6 +245,14 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
     setIsDetailsModalOpen(true);
   };
 
+  const handleOpenDetailsById = (appointmentId: string) => {
+    const found = appointments.find((a) => a.id === appointmentId);
+    if (found) {
+      setSelectedAppointment(found);
+      setIsDetailsModalOpen(true);
+    }
+  };
+
   const handleCancelAppointment = async (appointmentId: string, reason?: string) => {
     try {
       await patientAffiliationService.cancelAppointment(appointmentId, reason);
@@ -293,6 +302,7 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
       changePageSize: setPageSize,
       openCreateModal: handleOpenCreateModal,
       openDetailsModal: handleOpenDetailsModal,
+      openDetailsById: handleOpenDetailsById,
       closeFormModal: () => setIsFormModalOpen(false),
       closeDetailsModal: () => setIsDetailsModalOpen(false),
       cancelAppointment: handleCancelAppointment,

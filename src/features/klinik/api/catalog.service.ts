@@ -9,6 +9,7 @@ export interface ServiceCatalogItem {
   specialtyCode?: string | null;
   medicalFlow?: 'general' | 'pregnancy' | 'immunization' | null;
   displayOrder: number;
+  categoryId?: string;
   poliklinikId: string;
   poliklinikName: string;
   complaints: string[];

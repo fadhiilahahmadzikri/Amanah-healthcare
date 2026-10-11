@@ -207,6 +207,20 @@ export interface BackendAppointmentItem {
   createdAt: string;
 }
 
+export interface ActiveTicketConflictInfo {
+  id: string;
+  appointmentId?: string | null;
+  queueNumber: string;
+  status: string;
+  categoryId?: string | null;
+  sessionId?: string | null;
+  queueDate: string;
+  waitingPosition?: number | null;
+  estimatedCalledAt?: string | null;
+  projectedStart?: string | null;
+  projectedEnd?: string | null;
+}
+
 export const patientAffiliationService = {
   async getMyAffiliations(): Promise<PatientAffiliationProfile[]> {
     try {
@@ -272,6 +286,28 @@ export const patientAffiliationService = {
     } catch (err) {
       console.error('Failed to get booking options:', err);
       return [];
+    }
+  },
+
+  async checkActiveTicket(params: {
+    patientId: string;
+    categoryId?: string;
+    date: string;
+  }): Promise<{ hasActiveTicket: boolean; activeTicket: ActiveTicketConflictInfo | null }> {
+    try {
+      const res = await clientFetch<{
+        hasActiveTicket: boolean;
+        activeTicket: ActiveTicketConflictInfo | null;
+      }>('/api/v1/appointments/active-ticket', {
+        query: {
+          patientId: params.patientId,
+          categoryId: params.categoryId,
+          date: params.date,
+        },
+      });
+      return res;
+    } catch {
+      return { hasActiveTicket: false, activeTicket: null };
     }
   },
 

@@ -8,9 +8,9 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
   const patientName = item.patientName || item.patientProfile?.fullName || 'Pasien Amanah';
   const doctorName = item.doctorName || item.practitioner?.staffProfile?.fullName || null;
   const poliklinikName = item.poliklinikName || item.clinicRoom?.clinicUnit?.name || 'Poli Umum';
-  const queueNumber = item.queueNumber
-    ? String(item.queueNumber)
-    : item.queueTickets?.[0]?.queueNumber || '-';
+  const queueNumber =
+    item.queueTickets?.[0]?.queueNumber ||
+    (item.queueNumber ? String(item.queueNumber) : '-');
   const scheduledDate =
     item.appointmentDate ||
     (item.createdAt ? String(item.createdAt).slice(0, 10) : new Date().toISOString().slice(0, 10));

@@ -79,6 +79,16 @@ export class AppError extends Error {
     });
   }
 
+  static conflict(message = 'Resource conflict', details?: ProblemDetails): AppError {
+    return new AppError({
+      code: details?.code ? (details.code as ErrorCode) : ErrorCodes.CONFLICT,
+      status: 409,
+      expected: true,
+      message,
+      problemDetails: details
+    });
+  }
+
   static rateLimit(
     message = 'Rate limit exceeded',
     retryAfter?: number,
