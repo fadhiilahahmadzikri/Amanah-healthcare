@@ -19,6 +19,8 @@ import {
   type DoctorCandidateItem,
   type ChangeDoctorPayload,
 } from '../api/types';
+import { DoctorAssignmentModal } from '@/features/jadwal-dokter/components/doctor-assignment-modal';
+import type { DoctorSchedule } from '@/features/jadwal-dokter/api/types';
 
 export interface ChangeDoctorModalProps {
   isOpen: boolean;
@@ -51,6 +53,8 @@ export function ChangeDoctorModal({
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [shouldCloseOldSchedule, setShouldCloseOldSchedule] = useState(false);
   const [closeReason, setCloseReason] = useState('');
+  const [rosterDoctor, setRosterDoctor] = useState<DoctorSchedule | null>(null);
+  const [isRosterModalOpen, setIsRosterModalOpen] = useState(false);
 
   const isAssignMode =
     !currentDoctorName || currentDoctorName === '-' || currentDoctorName === 'Belum di-assign';
@@ -92,6 +96,46 @@ export function ChangeDoctorModal({
   }, [groups]);
 
   const selectedDoctor = selectedDoctorId ? allDoctors.get(selectedDoctorId) : null;
+  const isSelectedDoctorAvailable =
+    selectedDoctor?.availability === DOCTOR_AVAILABILITY.AVAILABLE;
+
+  const targetDow = useMemo(() => {
+    const rawDate = candidatesData?.scheduledDate || _appointmentDate;
+    if (!rawDate || rawDate === '-') return undefined;
+    const [y, m, d] = rawDate.split('-').map(Number);
+    if (!y || !m || !d) return undefined;
+    return new Date(y, m - 1, d).getDay();
+  }, [candidatesData?.scheduledDate, _appointmentDate]);
+
+  const handleOpenDoctorRoster = (doc: DoctorCandidateItem) => {
+    setRosterDoctor({
+      id: doc.id,
+      nama_dokter: doc.name,
+      spesialisasi: doc.specialty || activeGroup?.name || 'Dokter Spesialis',
+      practitioner_id: doc.id,
+      status_dokter: 'OPEN',
+      ruang_praktik: '-',
+      tanggal_praktik: candidatesData?.scheduledDate || '',
+      avatar: null,
+      jadwal_hari_ini: '-',
+      jadwal_praktik_mendatang: '-',
+      status_jadwal: 'OPEN',
+      bulan_jadwal: '',
+      is_on_leave: false,
+      total_pasien: 0,
+      sesi_harian: [],
+    } as unknown as DoctorSchedule);
+    setIsRosterModalOpen(true);
+  };
+
+  const handleCloseRosterModal = () => {
+    setIsRosterModalOpen(false);
+    setRosterDoctor(null);
+    const qc = getQueryClient();
+    void qc.invalidateQueries({
+      queryKey: appointmentKeys.doctorCandidates(appointmentId)
+    });
+  };
 
   const mutation = useMutation({
     mutationFn: (payload: ChangeDoctorPayload) =>
@@ -223,12 +267,11 @@ export function ChangeDoctorModal({
               )}
             >
               {groups.map((group) => {
-                const nameLower = group.name.toLowerCase();
-                const isKia =
-                  nameLower.includes('anak') ||
-                  nameLower.includes('ibu') ||
-                  nameLower.includes('kia') ||
-                  nameLower.includes('bidan');
+                const isKia = group.code === 'maternal_child_health';
+                const availableCount = group.doctors.filter(
+                  (d) => d.availability === DOCTOR_AVAILABILITY.AVAILABLE
+                ).length;
+                const scheduleRequiredCount = group.doctors.length - availableCount;
                 return (
                   <button
                     key={group.id}
@@ -244,9 +287,23 @@ export function ChangeDoctorModal({
                           <Icons.stethoscope className='size-4.5 text-primary' />
                         )}
                       </div>
-                      <span className='text-[10.5px] font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground'>
-                        {group.doctors.length} Dokter
-                      </span>
+                      <div className='flex items-center gap-1.5 flex-wrap justify-end'>
+                        {availableCount > 0 && (
+                          <span className='text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'>
+                            {availableCount} Tersedia
+                          </span>
+                        )}
+                        {scheduleRequiredCount > 0 && (
+                          <span className='text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'>
+                            {scheduleRequiredCount} Perlu Jadwal
+                          </span>
+                        )}
+                        {group.doctors.length === 0 && (
+                          <span className='text-[10px] font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground'>
+                            0 Dokter
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className='space-y-1 mb-3'>
                       <h4 className='text-sm font-bold text-foreground group-hover:text-primary transition-colors'>
@@ -305,7 +362,7 @@ export function ChangeDoctorModal({
                             <DoctorAvatar name={doctor.name} size={40} />
                           </div>
                           <div className='min-w-0 flex-1'>
-                            <div className='flex items-center gap-2'>
+                            <div className='flex items-center gap-2 flex-wrap'>
                               <h4 className='text-xs font-bold text-foreground truncate'>
                                 {doctor.name}
                               </h4>
@@ -314,9 +371,30 @@ export function ChangeDoctorModal({
                                   Tersedia
                                 </span>
                               ) : (
-                                <span className='inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0'>
-                                  Perlu Jadwal
-                                </span>
+                                <div className='flex items-center gap-1.5 shrink-0'>
+                                  <span className='inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'>
+                                    Perlu Jadwal
+                                  </span>
+                                  <span
+                                    role='button'
+                                    tabIndex={0}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenDoctorRoster(doctor);
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' || e.key === ' ') {
+                                        e.stopPropagation();
+                                        handleOpenDoctorRoster(doctor);
+                                      }
+                                    }}
+                                    className='inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-colors cursor-pointer select-none'
+                                    title={`Buka atau atur jadwal kerja untuk ${doctor.name}`}
+                                  >
+                                    <Icons.settings className='size-3' />
+                                    <span>Buka Sesi</span>
+                                  </span>
+                                </div>
                               )}
                             </div>
                             <div className='flex items-center gap-1.5 text-[11px] text-muted-foreground truncate mt-0.5'>
@@ -389,38 +467,58 @@ export function ChangeDoctorModal({
           )}
         </div>
 
-        <div className='pt-3 border-t border-border/40 flex items-center justify-end gap-3'>
-          <Button
-            type='button'
-            variant='outline'
-            shape='pill'
-            size='default'
-            onClick={onClose}
-            disabled={mutation.isPending}
-            className='px-6 font-medium'
-          >
-            Batal
-          </Button>
+        <div className='flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-border/40'>
+          <div className='text-xs text-muted-foreground w-full sm:w-auto'>
+            {selectedDoctor && !isSelectedDoctorAvailable && (
+              <span className='text-amber-600 dark:text-amber-400 font-medium inline-flex items-center gap-1.5'>
+                <Icons.alertCircle className='size-3.5 shrink-0' />
+                <span>Dokter belum ada jadwal hari ini. Klik "Buka Sesi" untuk mengaktifkan.</span>
+              </span>
+            )}
+          </div>
 
-          {currentStep === 'doctor' && (
+          <div className='flex items-center gap-3 w-full sm:w-auto justify-end'>
             <Button
-              type='submit'
-              variant='default'
+              type='button'
+              variant='outline'
               shape='pill'
               size='default'
-              disabled={mutation.isPending || !selectedDoctorId}
-              className='px-7 font-semibold'
+              onClick={onClose}
+              disabled={mutation.isPending}
+              className='px-6 font-medium'
             >
-              {mutation.isPending ? (
-                <Icons.spinner className='mr-1.5 size-3.5 animate-spin' />
-              ) : (
-                <Icons.check className='mr-1.5 size-3.5' />
-              )}
-              {isAssignMode ? 'Tugaskan Dokter' : 'Simpan Perubahan'}
+              Batal
             </Button>
-          )}
+
+            {currentStep === 'doctor' && (
+              <Button
+                type='submit'
+                variant='default'
+                shape='pill'
+                size='default'
+                disabled={mutation.isPending || !selectedDoctorId || !isSelectedDoctorAvailable}
+                className='px-7 font-semibold'
+              >
+                {mutation.isPending ? (
+                  <Icons.spinner className='mr-1.5 size-3.5 animate-spin' />
+                ) : (
+                  <Icons.check className='mr-1.5 size-3.5' />
+                )}
+                {isAssignMode ? 'Tugaskan Dokter' : 'Simpan Perubahan'}
+              </Button>
+            )}
+          </div>
         </div>
       </form>
+
+      {isRosterModalOpen && rosterDoctor && (
+        <DoctorAssignmentModal
+          doctor={rosterDoctor}
+          isOpen={isRosterModalOpen}
+          onClose={handleCloseRosterModal}
+          focusedDow={targetDow}
+        />
+      )}
     </ModalWrapper>
   );
 }
