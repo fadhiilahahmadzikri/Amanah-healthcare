@@ -20,6 +20,7 @@ import { DoctorAvatar } from '../../doctor-avatar';
 import { AppointmentStatusPill } from '../atoms/appointment-status-pill';
 import { AppointmentTimeTrajectory } from '../atoms/appointment-time-trajectory';
 import { normalizeAppointmentTimes } from '../utils/appointment-adapter';
+import { formatClinicDate } from '@/lib/date-format';
 import { ChangeDoctorModal } from '@/features/appointment-pasien/components/change-doctor-modal';
 import { ChangeRoomModal } from '@/features/appointment-pasien/components/change-room-modal';
 import {
@@ -248,7 +249,7 @@ export function AppointmentDetailOrganism({
                   <div className='py-2.5 border-b border-border/40 flex items-center justify-between gap-3 text-sm min-w-0'>
                     <div className='flex items-center gap-2 text-foreground font-semibold min-w-0 shrink-0'>
                       <Icons.calendar className='size-4 text-primary shrink-0' strokeWidth={1.8} />
-                      <span className='truncate'>{appointment.date || '-'}</span>
+                      <span className='truncate'>{appointment.date ? formatClinicDate(appointment.date) : '-'}</span>
                     </div>
                     <div className='flex items-center gap-1.5 text-muted-foreground font-medium min-w-0 max-w-[55%] justify-end shrink'>
                       <Icons.mapPin className='size-4 text-primary shrink-0' strokeWidth={1.8} />
@@ -262,6 +263,8 @@ export function AppointmentDetailOrganism({
                     durationText={durationText}
                     visitType={visitType}
                     variant='modal'
+                    startLabel={isBeforeCall || isWaiting ? 'Est. Mulai' : 'Mulai'}
+                    endLabel={isBeforeCall || isWaiting ? 'Est. Selesai' : 'Selesai'}
                   />
 
                   <div className='pt-2 pb-1 grid grid-cols-2 gap-y-3 gap-x-5 min-w-0'>
@@ -395,7 +398,7 @@ export function AppointmentDetailOrganism({
                 patientName={patientName}
                 doctorName={doctor.name}
                 queueNumber={appointment.queue_number || '-'}
-                appointmentDate={appointment.date || '-'}
+                appointmentDate={appointment.date ? formatClinicDate(appointment.date) : '-'}
                 cancelReason={cancelReason}
                 setCancelReason={setCancelReason}
                 isCancelling={isCancelling}
@@ -423,7 +426,7 @@ export function AppointmentDetailOrganism({
         patientId={appointment.patient_id || String(appointment.id)}
         queueNumber={appointment.queue_number || '-'}
         currentDoctorName={doctor.name}
-        appointmentDate={appointment.date || '-'}
+        appointmentDate={appointment.date ? formatClinicDate(appointment.date) : '-'}
         appointmentTime={`${startTime} - ${endTime}`}
         onClose={() => setIsChangeDoctorOpen(false)}
         onSuccess={() => {
@@ -439,7 +442,7 @@ export function AppointmentDetailOrganism({
         patientId={appointment.patient_id || String(appointment.id)}
         queueNumber={appointment.queue_number || '-'}
         currentRoomName={displayLocation}
-        appointmentDate={appointment.date || '-'}
+        appointmentDate={appointment.date ? formatClinicDate(appointment.date) : '-'}
         appointmentTime={`${startTime} - ${endTime}`}
         onClose={() => setIsChangeRoomOpen(false)}
         onSuccess={() => {

@@ -13,6 +13,7 @@ import {
   type BackendAppointmentItem
 } from '@/features/data-pasien/api/patient-affiliation-service';
 import { formatClinicTime } from '@/lib/date-format';
+import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 import {
   type AppointmentFilterState,
   type AppointmentFormMode,
@@ -81,15 +82,27 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
   const mapBackendToUi = useCallback((apt: BackendAppointmentItem): Appointment => {
     const canonicalStatus: AppointmentStatus = AppointmentStatusDescriptor.from(apt.status).code;
 
-    const startTimeFormatted = apt.scheduledStartTime
-      ? formatClinicTime(apt.scheduledStartTime)
-      : '';
-    const endTimeFormatted = apt.scheduledEndTime ? formatClinicTime(apt.scheduledEndTime) : '';
+    const timeSource = apt.etaRange || apt.timeSlot || '';
+    const timeMatches = timeSource.match(/(\d{1,2}[:.]\d{2})/g);
+    const startClock = timeMatches?.[0]
+      ? timeMatches[0].replace('.', ':')
+      : apt.scheduledStartTime
+        ? formatClinicTime(apt.scheduledStartTime)
+        : '';
+    const endClock = timeMatches?.[1]
+      ? timeMatches[1].replace('.', ':')
+      : apt.scheduledEndTime
+        ? formatClinicTime(apt.scheduledEndTime)
+        : '';
+
+    const startTimeFormatted = startClock ? formatClinicTime(startClock) : '';
+    const endTimeFormatted = endClock ? formatClinicTime(endClock) : '';
+    const friendlySession = formatFriendlySessionName(apt.sessionName || apt.session);
     const timeDisplay =
       apt.etaRange ||
       (startTimeFormatted && endTimeFormatted
         ? `${startTimeFormatted} - ${endTimeFormatted}`
-        : apt.session || '-');
+        : friendlySession || apt.session || '-');
 
     const rawFlow =
       apt.medicalFlow ||
@@ -123,7 +136,8 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
       ahead_count: apt.aheadCount ?? null,
       date: apt.appointmentDate,
       time: timeDisplay,
-      session: apt.session || undefined,
+      session: friendlySession || apt.session || undefined,
+      session_name: friendlySession || undefined,
       complaint: apt.complaint || '-',
       status: canonicalStatus,
       visit_type: apt.visitType || '',

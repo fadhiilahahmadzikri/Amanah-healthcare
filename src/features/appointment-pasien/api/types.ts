@@ -49,6 +49,8 @@ export interface AdminAppointment {
   bookingCode?: string | null;
   aheadCount?: number | null;
   etaRange?: string | null;
+  session?: string | null;
+  sessionName?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -199,6 +201,7 @@ export interface BackendAppointmentRecord {
   updatedAt?: string | Date;
   scheduledStartTime?: string;
   session?: string;
+  sessionName?: string | null;
   patientId?: string;
   visitType?: string;
   gender?: string;

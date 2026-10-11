@@ -35,6 +35,20 @@ const DEFAULT_LOCALE = 'id-ID';
 const DEFAULT_DATE_STYLE: ClinicDateFormatStyle = 'human_full';
 const DEFAULT_TIME_STYLE: ClinicTimeFormatStyle = '24h';
 
+let activeClinicLocale: string = DEFAULT_LOCALE;
+let activeClinicDateStyle: ClinicDateFormatStyle = DEFAULT_DATE_STYLE;
+let activeClinicTimeStyle: ClinicTimeFormatStyle = DEFAULT_TIME_STYLE;
+
+export function configureClinicDateTime(config: {
+  dateFormatStyle?: ClinicDateFormatStyle;
+  timeFormatStyle?: ClinicTimeFormatStyle;
+  locale?: string;
+}) {
+  if (config.dateFormatStyle) activeClinicDateStyle = config.dateFormatStyle;
+  if (config.timeFormatStyle) activeClinicTimeStyle = config.timeFormatStyle;
+  if (config.locale) activeClinicLocale = config.locale;
+}
+
 /**
  * Parsing input tanggal menjadi komponen UTC murni tanpa terpengaruh pergeseran jam lokal.
  */
@@ -109,8 +123,8 @@ export function formatClinicDate(
     return typeof date === 'string' ? date : '-';
   }
 
-  const style = options?.style ?? DEFAULT_DATE_STYLE;
-  const locale = options?.locale ?? DEFAULT_LOCALE;
+  const style = options?.style ?? activeClinicDateStyle;
+  const locale = options?.locale ?? activeClinicLocale;
 
   if (style === 'iso') {
     const y = parts.year;
@@ -163,7 +177,7 @@ export function formatClinicTime(
       const h = parseInt(timeMatch[1], 10);
       const m = parseInt(timeMatch[2], 10);
       const s = timeMatch[3] ? parseInt(timeMatch[3], 10) : 0;
-      const style = options?.style ?? DEFAULT_TIME_STYLE;
+      const style = options?.style ?? activeClinicTimeStyle;
       const suffix = options?.suffix ?? (options?.withSuffix ? ' WIB' : '');
       const secStr = options?.includeSeconds ? `:${String(s).padStart(2, '0')}` : '';
 
@@ -180,7 +194,7 @@ export function formatClinicTime(
   const parts = parseDateParts(date);
   if (!parts) return typeof date === 'string' ? date : '-';
 
-  const style = options?.style ?? DEFAULT_TIME_STYLE;
+  const style = options?.style ?? activeClinicTimeStyle;
   const suffix = options?.suffix ?? (options?.withSuffix ? ' WIB' : '');
   const secStr = options?.includeSeconds ? `:${String(parts.seconds).padStart(2, '0')}` : '';
 

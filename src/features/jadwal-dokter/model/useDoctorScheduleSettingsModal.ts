@@ -15,6 +15,7 @@ import {
   type ScheduleConfigurationImpactResult
 } from '../api/admin-schedule-configuration.api';
 import { syncAllDoctorSchedules } from '../api/mutations';
+import { formatFriendlySessionName } from '../constants/schedule-shift.constants';
 
 export type ConfigurationCategory = 'session_defs' | 'weekly_templates' | 'clinic_settings';
 
@@ -128,7 +129,8 @@ export function useDoctorScheduleSettingsModal({
   const timeValidationError = useMemo(() => {
     for (const item of draftWeeklyTemplates) {
       if (item.isActive && item.startsAt >= item.endsAt) {
-        return `Jam selesai pada shift ${item.sessionLabel} (Hari ${item.dow}) harus lebih lambat dari jam mulai`;
+        const friendlyShift = formatFriendlySessionName(item.sessionLabel) || item.sessionLabel;
+        return `Jam selesai pada shift ${friendlyShift} (Hari ${item.dow}) harus lebih lambat dari jam mulai`;
       }
     }
     return null;

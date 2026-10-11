@@ -19,7 +19,11 @@ import { cn } from '@/lib/utils';
 import { formatClinicDateTime } from '@/lib/date-format';
 import type { DoctorSchedule } from '../api/types';
 import { useDoctorAssignmentModal } from '../model/useDoctorAssignmentModal';
-import { SCHEDULE_STATUS, SCHEDULE_STATUS_LABELS } from '../constants/schedule-shift.constants';
+import {
+  SCHEDULE_STATUS,
+  SCHEDULE_STATUS_LABELS,
+  formatFriendlySessionName
+} from '../constants/schedule-shift.constants';
 
 export interface DoctorAssignmentModalProps {
   doctor: DoctorSchedule | null;
@@ -269,7 +273,7 @@ export function DoctorAssignmentModal({
                                     />
                                     <div className='min-w-0 flex-1 flex flex-col'>
                                       <span className='font-semibold text-xs whitespace-nowrap text-foreground'>
-                                        {s.sessionLabel}
+                                        {formatFriendlySessionName(s.sessionLabel) || s.sessionLabel}
                                       </span>
                                       <span className='text-[10.5px] text-muted-foreground font-mono whitespace-nowrap'>
                                         {s.timeRange}
@@ -322,7 +326,9 @@ export function DoctorAssignmentModal({
                           </td>
                           <td className='p-3'>
                             {row.dayName || row.scheduleDate || '-'}
-                            {row.sessionLabel ? ` (${row.sessionLabel})` : ''}
+                            {row.sessionLabel
+                              ? ` (${formatFriendlySessionName(row.sessionLabel) || row.sessionLabel})`
+                              : ''}
                           </td>
                           <td className='p-3'>
                             {row.newStatus ? (

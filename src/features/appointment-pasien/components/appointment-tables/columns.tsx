@@ -14,6 +14,7 @@ import type { AdminAppointment } from '../../api/types';
 import type { FilterOption } from '@/features/klinik';
 import { CellAction } from './cell-action';
 import { formatClinicDate, formatClinicTime } from '@/lib/date-format';
+import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 
 const getInitials = (name: string) => {
   return name
@@ -154,13 +155,26 @@ export function getAppointmentColumns(
       id: 'scheduledStartTime',
       accessorKey: 'scheduledStartTime',
       header: ({ column }: { column: Column<AdminAppointment, unknown> }) => (
-        <DataTableColumnHeader column={column} title='Jam Booking' />
+        <DataTableColumnHeader column={column} title='Sesi & Estimasi' />
       ),
-      cell: ({ row }) => (
-        <span className='text-sm text-muted-foreground font-mono tabular-nums whitespace-nowrap'>
-          {row.original.scheduledStartTime}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const appt = row.original;
+        const etaDisplay = appt.etaRange || appt.scheduledStartTime || '-';
+        const sessionLabel = formatFriendlySessionName(appt.sessionName || appt.session);
+
+        return (
+          <div className='flex flex-col whitespace-nowrap leading-tight'>
+            <span className='text-sm text-foreground font-mono tabular-nums font-medium'>
+              {etaDisplay}
+            </span>
+            {sessionLabel && sessionLabel !== etaDisplay && (
+              <span className='text-[11px] text-muted-foreground font-sans mt-0.5'>
+                {sessionLabel}
+              </span>
+            )}
+          </div>
+        );
+      },
       enableSorting: true,
       enableHiding: true
     },

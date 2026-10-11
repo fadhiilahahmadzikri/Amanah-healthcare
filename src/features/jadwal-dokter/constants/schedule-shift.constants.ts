@@ -101,3 +101,32 @@ export function resolveShiftFromTime(timeStr?: string | null): ScheduleShift {
   if (hour < 18) return SCHEDULE_SHIFT.SIANG;
   return SCHEDULE_SHIFT.MALAM;
 }
+
+export function formatFriendlySessionName(raw?: string | null): string {
+  if (!raw) return '';
+  const trimmed = raw.trim();
+  const cleaned = trimmed.replace(/^Sesi\s+/i, '').trim();
+  if (!cleaned) return '';
+
+  const normalizedKey = cleaned.toUpperCase().replace(/[\s-]+/g, '_');
+  if (normalizedKey in SCHEDULE_SHIFT) {
+    const shift = SCHEDULE_SHIFT[normalizedKey as keyof typeof SCHEDULE_SHIFT];
+    return `Sesi ${SCHEDULE_SHIFT_LABELS[shift]}`;
+  }
+
+  const lower = cleaned.toLowerCase();
+  if (lower in DB_STAFF_SHIFT_MAP) {
+    const shift = DB_STAFF_SHIFT_MAP[lower];
+    return `Sesi ${SCHEDULE_SHIFT_LABELS[shift]}`;
+  }
+
+  // Fallback: Title Case normal (huruf awal kata besar, tidak uppercase / underscore)
+  const titleCased = cleaned
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+
+  return `Sesi ${titleCased}`;
+}

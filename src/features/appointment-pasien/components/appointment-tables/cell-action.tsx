@@ -95,7 +95,7 @@ export function CellAction({ data }: CellActionProps) {
         queueNumber={data.queueNumber}
         currentDoctorName={data.doctorName || undefined}
         appointmentDate={data.scheduledDate}
-        appointmentTime={data.scheduledStartTime}
+        appointmentTime={data.etaRange || data.scheduledStartTime}
         onClose={() => setChangeDoctorOpen(false)}
         onSuccess={() => {
           setChangeDoctorOpen(false);
@@ -110,7 +110,7 @@ export function CellAction({ data }: CellActionProps) {
         queueNumber={data.queueNumber}
         currentRoomName={data.roomName || undefined}
         appointmentDate={data.scheduledDate}
-        appointmentTime={data.scheduledStartTime}
+        appointmentTime={data.etaRange || data.scheduledStartTime}
         onClose={() => setChangeRoomOpen(false)}
         onSuccess={() => {
           setChangeRoomOpen(false);

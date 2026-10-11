@@ -5,6 +5,7 @@ import {
 import type { BookedPatientItem } from '@/server/contracts/schedules/doctor-schedules.dto';
 import type { Appointment, AppointmentStatus } from '../../../api/types';
 import { formatClinicTime } from '@/lib/date-format';
+import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 
 export interface SessionContext {
   doctorName?: string;
@@ -48,24 +49,37 @@ export function normalizeAppointmentTimes(appointment: Partial<Appointment>): {
     };
   }
 
-  const timeStr = appointment.time || '';
+  const timeStr = appointment.eta_range || appointment.time || '';
   const timeRangeMatch = timeStr.match(/(\d{1,2}[:.]\d{2})\s*-\s*(\d{1,2}[:.]\d{2})/);
-  const sessionMatch = timeStr.match(/Sesi\s+[A-Za-z]+/i);
+  const sessionMatch = timeStr.match(/Sesi\s+[A-Za-z\s]+/i);
+
+  // If eta_range provides specific patient arrival/service estimate window, respect it first!
+  const etaStart = timeRangeMatch
+    ? formatTimeString(timeRangeMatch[1].replace('.', ':')) || timeRangeMatch[1]
+    : null;
+  const etaEnd = timeRangeMatch
+    ? formatTimeString(timeRangeMatch[2].replace('.', ':')) || timeRangeMatch[2]
+    : null;
 
   const startTime =
+    etaStart ||
     formatTimeString(appointment.scheduled_start_time) ||
-    (timeRangeMatch ? timeRangeMatch[1].replace(':', '.') : formatTimeString(timeStr) || '-');
+    formatTimeString(timeStr) ||
+    '-';
   const endTime =
+    etaEnd ||
     formatTimeString(appointment.scheduled_end_time) ||
-    (timeRangeMatch ? timeRangeMatch[2].replace(':', '.') : '-');
+    '-';
 
   // Frontend does not calculate minutes. Backend provides duration or session label.
-  const durationText = sessionMatch
-    ? sessionMatch[0]
-    : appointment.consultation_duration_formatted ||
-      (appointment.estimated_duration_minutes
-        ? `~${appointment.estimated_duration_minutes} mnt`
-        : '-');
+  const rawSession = sessionMatch ? sessionMatch[0] : appointment.session_name;
+  const friendlySession = rawSession ? formatFriendlySessionName(rawSession) : null;
+  const durationText =
+    friendlySession ||
+    appointment.consultation_duration_formatted ||
+    (appointment.estimated_duration_minutes
+      ? `~${appointment.estimated_duration_minutes} mnt`
+      : '-');
 
   return { startTime, endTime, durationText };
 }
@@ -74,7 +88,7 @@ export function bookedPatientToAppointment(
   item: BookedPatientItem,
   context?: SessionContext
 ): Appointment {
-  const timeSource = context?.sessionTime || '';
+  const timeSource = item.etaRange || item.timeSlot || context?.sessionTime || '';
   const timeMatches = timeSource.match(/(\d{1,2}[:.]\d{2})/g);
   const startClock = timeMatches?.[0] ? timeMatches[0].replace('.', ':') : '';
   const endClock = timeMatches?.[1] ? timeMatches[1].replace('.', ':') : '';
@@ -94,7 +108,7 @@ export function bookedPatientToAppointment(
     (item as unknown as { layananName?: string }).layananName ||
     'Pemeriksaan Baru';
 
-  const sessionDisplay = item.sessionTitle || context?.sessionTime || '';
+  const sessionDisplay = item.etaRange || item.sessionTitle || context?.sessionTime || '';
 
   return {
     id: item.appointmentId,
@@ -126,6 +140,9 @@ export function bookedPatientToAppointment(
       .consultationDurationFormatted,
     estimated_duration_minutes: (item as unknown as { estimatedDurationMinutes?: number })
       .estimatedDurationMinutes,
+    eta_range: item.etaRange || null,
+    session: item.sessionTitle || undefined,
+    session_name: formatFriendlySessionName(item.sessionTitle) || undefined,
     date,
     time: sessionDisplay,
     complaint: item.chiefComplaint || '',

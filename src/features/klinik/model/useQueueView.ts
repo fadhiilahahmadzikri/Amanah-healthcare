@@ -18,6 +18,7 @@ import {
   buildQueuePoliStats,
   filterWaitingQueues,
   findCurrentCallingQueue,
+  getCurrentQueueCalledTime,
   paginateQueues,
   type QueuePoliStats
 } from './queueViewModel';
@@ -147,10 +148,7 @@ export function useQueueView(): UseQueueViewResult {
               ...(nextQueueStatus === QUEUE_STATUS.CALLED &&
                 !item.called_at && {
                   called_at: new Date().toISOString(),
-                  called_time: new Date().toLocaleTimeString('id-ID', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })
+                  called_time: getCurrentQueueCalledTime()
                 })
             };
           })

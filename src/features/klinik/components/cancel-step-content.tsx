@@ -2,6 +2,8 @@
 
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
+import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
+import { formatClinicDate } from '@/lib/date-format';
 import type { Appointment } from '../api/types';
 
 export interface CancelStepProps {
@@ -29,7 +31,15 @@ export function CancelStepContent({
   onBack,
   onConfirm
 }: CancelStepProps) {
-  const sessionLabel = appointment.time || '-';
+  const formattedDate =
+    appointmentDate && appointmentDate !== '-' ? formatClinicDate(appointmentDate) : '-';
+  const friendlySession = formatFriendlySessionName(
+    appointment.session_name || appointment.session
+  );
+  const sessionLabel =
+    [friendlySession, appointment.eta_range].filter(Boolean).join(' • ') ||
+    appointment.time ||
+    '-';
 
   return (
     <div className='animate-in fade-in-50 slide-in-from-right-4 duration-200'>
@@ -65,7 +75,7 @@ export function CancelStepContent({
           </div>
           <div>
             <span className='text-muted-foreground block mb-0.5'>Tanggal</span>
-            <span className='font-semibold text-foreground'>{appointmentDate}</span>
+            <span className='font-semibold text-foreground'>{formattedDate}</span>
           </div>
           <div className='col-span-2'>
             <span className='text-muted-foreground block mb-0.5'>Sesi / Waktu</span>

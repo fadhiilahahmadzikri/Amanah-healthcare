@@ -16,6 +16,7 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { cn } from '@/lib/utils';
 import type { DoctorDailySession, DoctorSchedule } from '../../api/types';
 import { sessionPatientsQueryOptions } from '../../api/queries';
+import { formatFriendlySessionName } from '../../constants/schedule-shift.constants';
 import type { BookedPatientItem } from '@/server/contracts/schedules/doctor-schedules.dto';
 import { DoctorSessionPatientCard } from './doctor-session-patient-card';
 
@@ -71,7 +72,7 @@ export function DoctorSessionAccordionItem({
           {/* Left: Session Name, Status, Registered Patient Count, Time/Room Tooltip */}
           <div className='flex items-center gap-2 sm:gap-2.5 flex-wrap min-w-0'>
             <h4 className='font-bold text-sm sm:text-base text-foreground tracking-tight'>
-              {session.nama_sesi}
+              {formatFriendlySessionName(session.nama_sesi) || session.nama_sesi}
             </h4>
             <StatusBadge status={isClosed ? 'Tutup' : 'Buka'} variant='pill' size='sm' />
             <span className='text-xs font-medium text-muted-foreground'>

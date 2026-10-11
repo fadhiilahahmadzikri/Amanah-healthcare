@@ -1,5 +1,6 @@
 import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
 import { normalizeToAppointmentStatus } from '../constants/appointment-status.dictionary';
+import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 import type { Appointment } from '@/features/klinik';
 import type { AdminAppointment, AppointmentAction, BackendAppointmentRecord } from './types';
 
@@ -73,12 +74,21 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
     bookingCode: (item.bookingCode as string) || null,
     aheadCount: typeof item.aheadCount === 'number' ? item.aheadCount : null,
     etaRange: (item.etaRange as string) || null,
+    session: item.session || null,
+    sessionName: formatFriendlySessionName(item.sessionName || item.session) || null,
     createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
     updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : new Date().toISOString()
   };
 }
 
 export function adminAppointmentToAppointment(item: AdminAppointment): Appointment {
+  const timeSource = item.etaRange || item.scheduledStartTime || '';
+  const timeMatches = timeSource.match(/(\d{1,2}[:.]\d{2})/g);
+  const startClock = timeMatches?.[0] ? timeMatches[0].replace('.', ':') : item.scheduledStartTime || '';
+  const endClock = timeMatches?.[1]
+    ? timeMatches[1].replace('.', ':')
+    : (item as any).scheduledEndTime || item.estimatedEndAt || '';
+
   return {
     id: item.id,
     booking_code: item.bookingCode || item.id.slice(0, 8).toUpperCase(),
@@ -90,16 +100,18 @@ export function adminAppointmentToAppointment(item: AdminAppointment): Appointme
     poliklinik_name: item.poliklinikName,
     service: item.layananName || '',
     room_name: item.roomName || '',
-    scheduled_start_time: item.scheduledStartTime || '',
-    scheduled_end_time: (item as any).scheduledEndTime || item.estimatedEndAt || '',
+    scheduled_start_time: startClock,
+    scheduled_end_time: endClock,
     actual_started_at: item.actualStartedAt || undefined,
     actual_completed_at: item.actualCompletedAt || undefined,
     consultation_elapsed_seconds: item.consultationElapsedSeconds ?? undefined,
     consultation_duration_formatted: item.consultationDurationFormatted || undefined,
     eta_range: item.etaRange || null,
     ahead_count: item.aheadCount ?? null,
+    session: item.session || undefined,
+    session_name: formatFriendlySessionName(item.sessionName || item.session) || null,
     date: item.scheduledDate,
-    time: item.scheduledStartTime || '',
+    time: item.etaRange || item.scheduledStartTime || '',
     patient_id: item.patientId,
     patient_phone: item.phone,
     complaint: item.complaint || '',

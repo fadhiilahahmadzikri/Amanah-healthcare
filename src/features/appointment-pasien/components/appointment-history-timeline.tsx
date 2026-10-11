@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
 import { cn } from '@/lib/utils';
 import { formatClinicDate, formatClinicTime } from '@/lib/date-format';
+import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 import type { AdminAppointment } from '../api/types';
 
 interface TimelineEvent {
@@ -39,12 +40,20 @@ export function AppointmentHistoryTimeline({
 
   const events: TimelineEvent[] = [];
 
+  const sessionLabel = formatFriendlySessionName(
+    appointment.sessionName || appointment.session
+  );
+  const etaDetail = appointment.etaRange ? `(Est. ${appointment.etaRange})` : '';
+  const timeInfo = [sessionLabel, etaDetail].filter(Boolean).join(' ') ||
+    formatClinicTime(appointment.scheduledStartTime) ||
+    '';
+
   events.push({
     id: 'booked',
     title: 'Reservasi Janji Temu Dibuat',
     timeStr: formatTime(appointment.createdAt),
     dateStr: formatDate(appointment.createdAt),
-    description: `Pendaftaran berhasil untuk sesi ${formatClinicDate(appointment.scheduledDate, { style: 'human_medium' })} ${formatClinicTime(appointment.scheduledStartTime)} di ${appointment.poliklinikName}.`,
+    description: `Pendaftaran berhasil untuk ${formatClinicDate(appointment.scheduledDate, { style: 'human_medium' })}${timeInfo ? ` • ${timeInfo}` : ''} di ${appointment.poliklinikName}.`,
     state: 'completed'
   });
 

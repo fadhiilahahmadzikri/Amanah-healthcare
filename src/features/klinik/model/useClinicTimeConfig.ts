@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { clientFetch } from '@/lib/client-fetch';
 import {
@@ -7,7 +8,8 @@ import {
   type ClinicTimeFormatStyle,
   formatClinicDate,
   formatClinicTime,
-  formatClinicDateTime
+  formatClinicDateTime,
+  configureClinicDateTime
 } from '@/lib/date-format';
 
 export interface ClinicTimeConfigResponse {
@@ -25,7 +27,7 @@ export const CLINIC_TIME_CONFIG_QUERY_KEY = ['clinic-time-config'] as const;
 
 export async function fetchClinicTimeConfig(): Promise<ClinicTimeConfigResponse> {
   const res = await clientFetch<ClinicTimeConfigResponse>('/api/v1/time/current');
-  return {
+  const result: ClinicTimeConfigResponse = {
     clinicTimezone: res?.clinicTimezone ?? 'Asia/Jakarta',
     clinicLocale: res?.clinicLocale ?? 'id-ID',
     dateFormatStyle: (res?.dateFormatStyle as ClinicDateFormatStyle) ?? 'human_full',
@@ -35,6 +37,12 @@ export async function fetchClinicTimeConfig(): Promise<ClinicTimeConfigResponse>
     currentTime: res?.currentTime ?? '08:00',
     operationalHours: res?.operationalHours ?? '06:00 - 24:00'
   };
+  configureClinicDateTime({
+    dateFormatStyle: result.dateFormatStyle,
+    timeFormatStyle: result.timeFormatStyle,
+    locale: result.clinicLocale
+  });
+  return result;
 }
 
 export function useClinicTimeConfig() {
@@ -44,6 +52,16 @@ export function useClinicTimeConfig() {
     staleTime: 5 * 60 * 1000, // 5 menit
     refetchOnWindowFocus: false
   });
+
+  useEffect(() => {
+    if (data) {
+      configureClinicDateTime({
+        dateFormatStyle: data.dateFormatStyle,
+        timeFormatStyle: data.timeFormatStyle,
+        locale: data.clinicLocale
+      });
+    }
+  }, [data]);
 
   const locale = data?.clinicLocale ?? 'id-ID';
   const defaultDateStyle = data?.dateFormatStyle ?? 'human_full';

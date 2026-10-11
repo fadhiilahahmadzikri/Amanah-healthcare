@@ -9,7 +9,10 @@ import { AppointmentTimeTrajectory } from '../atoms/appointment-time-trajectory'
 import { AppointmentCardFooter } from '../molecules/appointment-card-footer';
 import { AppointmentCardHeader } from '../molecules/appointment-card-header';
 import { normalizeAppointmentTimes } from '../utils/appointment-adapter';
-import { isAppointmentBeforeCall } from '@/features/appointment-pasien/constants/options';
+import {
+  isAppointmentBeforeCall,
+  isAppointmentWaiting
+} from '@/features/appointment-pasien/constants/options';
 
 export interface AppointmentCardOrganismProps {
   appointment: Appointment;
@@ -72,6 +75,9 @@ export function AppointmentCardOrganism({
   const showAvatar = isPatientSubject || hasAssignedDoctor;
 
   const isBeforeCall = isAppointmentBeforeCall(appointment.status);
+  const isEstimated = isBeforeCall || isAppointmentWaiting(appointment.status);
+  const startLabel = isEstimated ? 'Est. Mulai' : 'Mulai';
+  const endLabel = isEstimated ? 'Est. Selesai' : 'Selesai';
 
   const displayLocation = isBeforeCall
     ? 'Menunggu panggilan klinik'
@@ -121,6 +127,8 @@ export function AppointmentCardOrganism({
           durationText={durationText}
           visitType={appointment.visit_type || '-'}
           variant='card'
+          startLabel={startLabel}
+          endLabel={endLabel}
         />
       </div>
 

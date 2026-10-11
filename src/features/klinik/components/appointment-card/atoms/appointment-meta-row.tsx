@@ -2,6 +2,7 @@
 
 import { Icons } from "@/components/icons";
 import { cn } from "@/lib/utils";
+import { formatClinicDate } from "@/lib/date-format";
 
 export interface AppointmentMetaRowProps {
 	date: string;
@@ -14,6 +15,8 @@ export function AppointmentMetaRow({
 	location,
 	className,
 }: AppointmentMetaRowProps) {
+	const formattedDate = date && date !== '-' ? formatClinicDate(date) : '-';
+
 	return (
 		<div
 			className={cn(
@@ -26,7 +29,7 @@ export function AppointmentMetaRow({
 					className="size-3.5 text-primary shrink-0"
 					strokeWidth={1.8}
 				/>
-				<span className="truncate">{date || "-"}</span>
+				<span className="truncate">{formattedDate}</span>
 			</div>
 
 			<div className="w-[1px] h-3.5 bg-border/40 shrink-0 mx-1.5" />

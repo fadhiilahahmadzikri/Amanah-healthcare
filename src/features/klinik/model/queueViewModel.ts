@@ -1,4 +1,5 @@
 import { type QueueItem, QUEUE_STATUS, type QueueStatus } from '../api/types';
+import { formatClinicTime } from '@/lib/date-format';
 
 export interface QueuePoliStats {
   totalToday: string;
@@ -60,8 +61,5 @@ export function buildQueuePoliStats(
 }
 
 export function getCurrentQueueCalledTime(): string {
-  return new Date().toLocaleTimeString('id-ID', {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  return formatClinicTime(new Date());
 }

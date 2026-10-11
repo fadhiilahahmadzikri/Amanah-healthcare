@@ -9,6 +9,8 @@ export interface AppointmentTimeTrajectoryProps {
 	visitType?: string;
 	variant?: "card" | "modal";
 	className?: string;
+	startLabel?: string;
+	endLabel?: string;
 }
 
 export function AppointmentTimeTrajectory({
@@ -18,6 +20,8 @@ export function AppointmentTimeTrajectory({
 	visitType,
 	variant = "card",
 	className,
+	startLabel = "Mulai",
+	endLabel = "Selesai",
 }: AppointmentTimeTrajectoryProps) {
 	const isModal = variant === "modal";
 
@@ -46,7 +50,7 @@ export function AppointmentTimeTrajectory({
 						isModal ? "text-xs" : "text-[10.5px]",
 					)}
 				>
-					Mulai
+					{startLabel}
 				</span>
 			</div>
 
@@ -93,7 +97,7 @@ export function AppointmentTimeTrajectory({
 						isModal ? "text-xs" : "text-[10.5px]",
 					)}
 				>
-					Selesai
+					{endLabel}
 				</span>
 			</div>
 		</div>

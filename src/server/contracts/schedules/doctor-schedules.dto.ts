@@ -312,6 +312,10 @@ export const bookedPatientItemSchema = z.object({
     .boolean()
     .nullish()
     .transform((v) => v ?? true),
+  timeSlot: z.string().nullish(),
+  etaRange: z.string().nullish(),
+  estimatedStartAt: z.string().nullish(),
+  estimatedEndAt: z.string().nullish(),
   patient: bookedPatientDemographicsSchema,
   bookingMetadata: bookedPatientBookingMetadataSchema.optional()
 });

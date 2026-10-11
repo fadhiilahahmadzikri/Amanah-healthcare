@@ -35,7 +35,7 @@ export function useAppointmentExport(): UseAppointmentExportResult {
         'No. Telepon',
         'Email',
         'Tanggal Booking',
-        'Jam Booking',
+        'Sesi / Estimasi Jam',
         'Dokter',
         'Layanan Poli',
         'Tipe Kunjungan',
@@ -45,6 +45,7 @@ export function useAppointmentExport(): UseAppointmentExportResult {
 
       const rows = appointments.map((appointment) => {
         const statusLabel = getAppointmentStatusConfig(appointment.status).label;
+        const timeDisplay = appointment.etaRange || appointment.scheduledStartTime;
         return [
           `"${appointment.queueNumber}"`,
           `"${appointment.patientId}"`,
@@ -53,7 +54,7 @@ export function useAppointmentExport(): UseAppointmentExportResult {
           `"${appointment.phone}"`,
           `"${appointment.email}"`,
           `"${appointment.scheduledDate}"`,
-          `"${appointment.scheduledStartTime}"`,
+          `"${timeDisplay}"`,
           `"${(appointment.doctorName || '').replace(/"/g, '""')}"`,
           `"${appointment.poliklinikName.replace(/"/g, '""')}"`,
           `"${appointment.visitType}"`,

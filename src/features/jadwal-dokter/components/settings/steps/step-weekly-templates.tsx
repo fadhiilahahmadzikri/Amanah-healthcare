@@ -18,6 +18,7 @@ import type {
   SessionDefConfig,
   DayInfoConfig
 } from '../../../api/admin-schedule-configuration.api';
+import { formatFriendlySessionName } from '../../../constants/schedule-shift.constants';
 
 interface StepWeeklyTemplatesProps {
   days: DayInfoConfig[];
@@ -207,7 +208,8 @@ export function StepWeeklyTemplates({
             const startsAt = template.startsAt.slice(0, 5);
             const endsAt = template.endsAt.slice(0, 5);
             const isInvalidTime = isActive && startsAt >= endsAt;
-            const shiftLabel = template.sessionLabel;
+            const shiftLabel =
+              formatFriendlySessionName(template.sessionLabel) || template.sessionLabel;
 
             return (
               <div

@@ -5,6 +5,7 @@ import { Icons } from '@/components/icons';
 import type { ServiceCatalogItem } from '../../api/catalog.service';
 import type { PatientAffiliationProfile } from '@/features/data-pasien/api/patient-affiliation-service';
 import { formatClinicDate } from '@/lib/date-format';
+import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 
 export interface BookingConfirmationStepProps {
   selectedService: ServiceCatalogItem | null;
@@ -27,7 +28,7 @@ export function BookingConfirmationStep({
   serviceName,
   patientName
 }: BookingConfirmationStepProps) {
-  const sessionLabel = session || '-';
+  const sessionLabel = formatFriendlySessionName(session) || session || '-';
   const displayServiceName = serviceName || selectedService?.name || 'Poliklinik';
   const displayPatientName = patientName || selectedPatient?.fullName || 'Pasien';
 

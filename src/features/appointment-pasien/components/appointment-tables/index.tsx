@@ -93,7 +93,10 @@ export function AppointmentTable() {
           queueNumber={appointmentTable.selectedAppointment.queueNumber}
           currentDoctorName={appointmentTable.selectedAppointment.doctorName || undefined}
           appointmentDate={appointmentTable.selectedAppointment.scheduledDate}
-          appointmentTime={appointmentTable.selectedAppointment.scheduledStartTime}
+          appointmentTime={
+            appointmentTable.selectedAppointment.etaRange ||
+            appointmentTable.selectedAppointment.scheduledStartTime
+          }
           onClose={appointmentTable.actions.closeChangeDoctor}
           onSuccess={() => {
             appointmentTable.actions.closeChangeDoctor();
@@ -111,7 +114,10 @@ export function AppointmentTable() {
           queueNumber={appointmentTable.selectedAppointment.queueNumber}
           currentRoomName={appointmentTable.selectedAppointment.roomName || undefined}
           appointmentDate={appointmentTable.selectedAppointment.scheduledDate}
-          appointmentTime={appointmentTable.selectedAppointment.scheduledStartTime}
+          appointmentTime={
+            appointmentTable.selectedAppointment.etaRange ||
+            appointmentTable.selectedAppointment.scheduledStartTime
+          }
           onClose={appointmentTable.actions.closeChangeRoom}
           onSuccess={() => {
             appointmentTable.actions.closeChangeRoom();

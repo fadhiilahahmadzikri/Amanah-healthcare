@@ -42,6 +42,7 @@ export interface Appointment {
   patient_id?: string;
   patient_phone?: string;
   session?: string;
+  session_name?: string | null;
   complaint: string;
   status: AppointmentStatus;
   visit_type?: string;
