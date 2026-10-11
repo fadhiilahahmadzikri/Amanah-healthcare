@@ -66,6 +66,7 @@ export function DoctorDailySessions({
     handleConfirmCloseSession,
     isPatientsModalOpen,
     selectedSessionForPatients,
+    handleOpenPatients,
     handleClosePatientsModal,
     selectedPatientForDetail,
     isPatientDetailOpen,
@@ -179,6 +180,7 @@ export function DoctorDailySessions({
                   selectedDate={formattedTargetDate}
                   isPending={updateSessionMutation.isPending && pendingSessionId === session.id}
                   onToggleStatus={handleToggleSessionStatus}
+                  onOpenPatientsModal={handleOpenPatients}
                   onSelectPatient={(patient, sess) => {
                     setSelectedDetailSessionId(sess.id);
                     handleOpenPatientDetail(patient);

@@ -30,6 +30,7 @@ export function BookedPatientOuterCard({
 		<AppointmentCardOrganism
 			appointment={appointment}
 			subjectRole="patient"
+			viewerRole="internal"
 			onViewDetails={() => onSelect(patient)}
 			className={className}
 		/>

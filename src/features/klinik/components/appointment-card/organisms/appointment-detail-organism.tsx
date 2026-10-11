@@ -34,6 +34,7 @@ import { useAuthContext } from '@/lib/rbac/auth-context';
 export interface AppointmentDetailOrganismProps {
   isOpen: boolean;
   appointment: Appointment | null;
+  viewerRole?: 'patient' | 'internal';
   onClose: () => void;
   onCancel?: (appointment: Appointment, reason?: string) => Promise<void> | void;
   onCallPatient?: (appointment: Appointment) => Promise<void> | void;
@@ -48,6 +49,7 @@ type ModalStep = 'details' | 'cancel-confirm';
 export function AppointmentDetailOrganism({
   isOpen,
   appointment,
+  viewerRole = 'internal',
   onClose,
   onCancel,
   onCallPatient,
@@ -92,11 +94,13 @@ export function AppointmentDetailOrganism({
   const isWaiting = isAppointmentWaiting(appointment.status);
   const isBeforeCall = isAppointmentBeforeCall(appointment.status);
 
-  const displayLocation = isBeforeCall
-    ? 'Menunggu panggilan klinik'
-    : appointment.poliklinik_name && appointment.room_name
-      ? `${appointment.poliklinik_name}, ${appointment.room_name}`
-      : appointment.poliklinik_name || appointment.room_name || '-';
+  const isInternalView = viewerRole === 'internal';
+  const displayLocation =
+    !isInternalView && isBeforeCall
+      ? 'Menunggu panggilan klinik'
+      : appointment.poliklinik_name && appointment.room_name
+        ? `${appointment.poliklinik_name}, ${appointment.room_name}`
+        : appointment.room_name || appointment.poliklinik_name || '-';
 
   const doctorSpecialty = appointment.doctor_specialty || doctor.spec || '-';
   const { startTime, endTime, durationText } = normalizeAppointmentTimes(appointment);

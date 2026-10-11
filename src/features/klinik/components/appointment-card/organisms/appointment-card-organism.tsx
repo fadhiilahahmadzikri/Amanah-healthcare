@@ -18,6 +18,7 @@ export interface AppointmentCardOrganismProps {
   appointment: Appointment;
   doctor?: Doctor;
   subjectRole?: 'doctor' | 'patient';
+  viewerRole?: 'patient' | 'internal';
   onViewDetails?: (appointment: Appointment) => void;
   actionsSlot?: React.ReactNode;
   detailButtonLabel?: string;
@@ -28,6 +29,7 @@ export function AppointmentCardOrganism({
   appointment,
   doctor,
   subjectRole = 'doctor',
+  viewerRole,
   onViewDetails,
   actionsSlot,
   detailButtonLabel,
@@ -79,9 +81,11 @@ export function AppointmentCardOrganism({
   const startLabel = isEstimated ? 'Est. Mulai' : 'Mulai';
   const endLabel = isEstimated ? 'Est. Selesai' : 'Selesai';
 
-  const displayLocation = isBeforeCall
-    ? 'Menunggu panggilan klinik'
-    : appointment.room_name || appointment.room_location || appointment.poliklinik_name || '-';
+  const isInternalView = viewerRole === 'internal' || (viewerRole !== 'patient' && isPatientSubject);
+  const displayLocation =
+    !isInternalView && isBeforeCall
+      ? 'Menunggu panggilan klinik'
+      : appointment.room_name || appointment.room_location || appointment.poliklinik_name || '-';
 
   const { startTime, endTime, durationText } = normalizeAppointmentTimes(appointment);
 

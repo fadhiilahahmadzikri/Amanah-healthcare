@@ -51,6 +51,7 @@ export function BookedPatientDetailModal({
     <AppointmentDetailOrganism
       isOpen={isOpen}
       appointment={appointment}
+      viewerRole='internal'
       onClose={onClose}
       onCallPatient={async (apt) => {
         await callMutation.mutateAsync(apt.id);

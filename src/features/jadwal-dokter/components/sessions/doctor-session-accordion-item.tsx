@@ -11,14 +11,15 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { cn } from '@/lib/utils';
+import { formatClinicDate } from '@/lib/date-format';
+import type { SessionContext } from '@/features/klinik/components/appointment-card';
 import type { DoctorDailySession, DoctorSchedule } from '../../api/types';
 import { sessionPatientsQueryOptions } from '../../api/queries';
 import { formatFriendlySessionName } from '../../constants/schedule-shift.constants';
 import type { BookedPatientItem } from '@/server/contracts/schedules/doctor-schedules.dto';
-import { DoctorSessionPatientCard } from './doctor-session-patient-card';
+import { DoctorSessionPatientCarousel } from './doctor-session-patient-carousel';
 
 export interface DoctorSessionAccordionItemProps {
   session: DoctorDailySession;
@@ -27,13 +28,14 @@ export interface DoctorSessionAccordionItemProps {
   isPending: boolean;
   onToggleStatus: (session: DoctorDailySession) => void;
   onSelectPatient: (patient: BookedPatientItem, session: DoctorDailySession) => void;
+  onOpenPatientsModal?: (session: DoctorDailySession) => void;
   className?: string;
 }
 
 /**
  * Clean Single Outer Container for a Session using AccordionItem
  * Header contains: session name, status, patient count, time & room (as tooltip), more options menu.
- * Content displays: compact 5-column responsive grid of patient cards with text ellipsis.
+ * Content displays: responsive horizontal patient carousel using BookedPatientOuterCard.
  */
 export function DoctorSessionAccordionItem({
   session,
@@ -42,6 +44,7 @@ export function DoctorSessionAccordionItem({
   isPending,
   onToggleStatus,
   onSelectPatient,
+  onOpenPatientsModal,
   className
 }: DoctorSessionAccordionItemProps) {
   const doctorId = doctor.id || doctor.practitioner_id || '';
@@ -56,6 +59,25 @@ export function DoctorSessionAccordionItem({
 
   const patientsList: BookedPatientItem[] = patientsData?.patients || [];
   const bookedCount = session.pasien_terdaftar ?? patientsList.length;
+
+  const sessionTimeDisplay = React.useMemo(() => {
+    return `${session.jam_mulai} - ${session.jam_selesai} WIB`;
+  }, [session.jam_mulai, session.jam_selesai]);
+
+  const formattedDisplayDate = React.useMemo(() => {
+    if (!effectiveDate) return '';
+    return formatClinicDate(effectiveDate);
+  }, [effectiveDate]);
+
+  const sessionContext: SessionContext = React.useMemo(
+    () => ({
+      doctorName: doctor.nama_dokter,
+      doctorSpecialty: doctor.spesialisasi,
+      date: formattedDisplayDate,
+      sessionTime: sessionTimeDisplay
+    }),
+    [doctor.nama_dokter, doctor.spesialisasi, formattedDisplayDate, sessionTimeDisplay]
+  );
 
   return (
     <AccordionItem
@@ -143,7 +165,16 @@ export function DoctorSessionAccordionItem({
                   <Icons.moreHorizontal className='size-4' />
                 </span>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align='end' className='w-40 text-xs font-sans'>
+              <DropdownMenuContent align='end' className='w-48 text-xs font-sans'>
+                {onOpenPatientsModal && (
+                  <DropdownMenuItem
+                    onClick={() => onOpenPatientsModal(session)}
+                    className='cursor-pointer gap-2 text-xs py-2'
+                  >
+                    <Icons.user className='size-3.5' />
+                    <span>Daftar Pasien ({bookedCount})</span>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   disabled={isPending}
                   onClick={() => onToggleStatus(session)}
@@ -167,35 +198,14 @@ export function DoctorSessionAccordionItem({
         </div>
       </AccordionTrigger>
 
-      {/* Accordion Content: Compact 5-column patient grid */}
+      {/* Accordion Content: Full-Featured Horizontal Patient Carousel */}
       <AccordionContent className='px-4 sm:px-5 py-3.5 sm:py-4'>
-        {isLoadingPatients ? (
-          <div className='grid grid-cols-2 sm:grid-cols-5 gap-1.5'>
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div
-                key={i}
-                className='h-8 rounded-lg bg-muted/30 animate-pulse border border-border/30'
-              />
-            ))}
-          </div>
-        ) : patientsList.length === 0 ? (
-          <EmptyState
-            title='Belum ada pasien'
-            description='Belum ada pasien yang mendaftar pada sesi ini.'
-            className='min-h-[220px] py-4 bg-transparent border-dashed border-border/60'
-            animationClassName='w-36 h-36 sm:w-44 sm:h-44'
-          />
-        ) : (
-          <div className='grid grid-cols-2 sm:grid-cols-5 gap-1.5'>
-            {patientsList.map((patient) => (
-              <DoctorSessionPatientCard
-                key={patient.appointmentId}
-                patient={patient}
-                onSelect={(p) => onSelectPatient(p, session)}
-              />
-            ))}
-          </div>
-        )}
+        <DoctorSessionPatientCarousel
+          patients={patientsList}
+          isLoading={isLoadingPatients}
+          sessionContext={sessionContext}
+          onSelectPatient={(p) => onSelectPatient(p, session)}
+        />
       </AccordionContent>
     </AccordionItem>
   );

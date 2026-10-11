@@ -10,6 +10,7 @@ import type { Appointment } from '../api/types';
 export interface DetailsModalProps {
   isOpen: boolean;
   appointment: Appointment | null;
+  viewerRole?: 'patient' | 'internal';
   onClose: () => void;
   onCancel?: (appointment: Appointment, reason?: string) => Promise<void> | void;
   portalContainerRef?: React.RefObject<HTMLElement | null>;
