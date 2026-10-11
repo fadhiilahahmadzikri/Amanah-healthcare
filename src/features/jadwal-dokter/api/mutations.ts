@@ -30,6 +30,10 @@ export function syncAllDoctorSchedules(queryClient: ReturnType<typeof useQueryCl
   queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.PRACTITIONERS] });
   queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.APPOINTMENTS] });
   queryClient.invalidateQueries({ queryKey: ['schedules', 'reference-rooms'] });
+  queryClient.invalidateQueries({ queryKey: ['schedules', 'reference-options'] });
+  queryClient.invalidateQueries({ queryKey: ['admin-schedule-configuration'] });
+  queryClient.removeQueries({ queryKey: ['doctor-roster-assignments'] });
+  queryClient.invalidateQueries({ queryKey: ['doctor-schedule-history'] });
 }
 
 export function useUpdateDoctorScheduleMutation() {

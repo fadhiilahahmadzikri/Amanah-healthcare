@@ -1,7 +1,6 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import React, { useState } from 'react';
+import React from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,16 +12,9 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
 import type { DoctorSchedule } from '../api/types';
-import {
-  DoctorRosterOverview,
-  DoctorScheduleHistoryResult,
-  getDoctorRosterAssignments,
-  getDoctorScheduleHistory,
-  updateDoctorRosterAssignments
-} from '../api/service';
-import { doctorScheduleKeys } from '../api/query-keys';
+import { useDoctorAssignmentModal } from '../model/useDoctorAssignmentModal';
+import { SCHEDULE_STATUS, SCHEDULE_STATUS_LABELS } from '../constants/schedule-shift.constants';
 
 export interface DoctorAssignmentModalProps {
   doctor: DoctorSchedule | null;
@@ -31,91 +23,20 @@ export interface DoctorAssignmentModalProps {
 }
 
 export function DoctorAssignmentModal({ doctor, isOpen, onClose }: DoctorAssignmentModalProps) {
-  const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<'roster' | 'history'>('roster');
-  const [selectedAssignments, setSelectedAssignments] = useState<Record<string, boolean>>({});
-  const [reason, setReason] = useState('');
-
-  const doctorId = doctor?.id || '';
-
-  const { data: rosterData, isLoading: isLoadingRoster } = useQuery<DoctorRosterOverview>({
-    queryKey: ['doctor-roster-assignments', doctorId],
-    queryFn: () => getDoctorRosterAssignments(doctorId),
-    enabled: Boolean(isOpen && doctorId)
-  });
-
-  const { data: historyData, isLoading: isLoadingHistory } = useQuery<DoctorScheduleHistoryResult>({
-    queryKey: ['doctor-schedule-history', doctorId],
-    queryFn: () => getDoctorScheduleHistory(doctorId),
-    enabled: Boolean(isOpen && doctorId && activeTab === 'history')
-  });
-
-  React.useEffect(() => {
-    if (rosterData?.days) {
-      const initial: Record<string, boolean> = {};
-      for (const day of rosterData.days) {
-        for (const s of day.sessions) {
-          const key = `${day.dow}_${s.sessionId}`;
-          initial[key] = s.isActive;
-        }
-      }
-      setSelectedAssignments(initial);
-      setReason('');
-    }
-  }, [rosterData]);
-
-  const mutation = useMutation({
-    mutationFn: async () => {
-      if (!rosterData?.days) return;
-      const assignmentsList: {
-        dow: number;
-        sessionId: string;
-        isActive: boolean;
-        preferredRoomId?: string | null;
-      }[] = [];
-
-      for (const day of rosterData.days) {
-        for (const s of day.sessions) {
-          const key = `${day.dow}_${s.sessionId}`;
-          const isAct = Boolean(selectedAssignments[key]);
-          assignmentsList.push({
-            dow: day.dow,
-            sessionId: s.sessionId,
-            isActive: isAct,
-            preferredRoomId: s.preferredRoomId
-          });
-        }
-      }
-
-      return updateDoctorRosterAssignments(doctorId, {
-        assignments: assignmentsList,
-        reason: reason.trim() || undefined
-      });
-    },
-    onSuccess: () => {
-      toast.success('Roster jadwal dokter berhasil disimpan');
-      queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all });
-      queryClient.invalidateQueries({
-        queryKey: ['doctor-roster-assignments', doctorId]
-      });
-      queryClient.invalidateQueries({
-        queryKey: ['doctor-schedule-history', doctorId]
-      });
-      onClose();
-    },
-    onError: (err: unknown) => {
-      const msg = err instanceof Error ? err.message : (err as { message?: string })?.message;
-      toast.error(msg || 'Gagal menyimpan roster jadwal dokter');
-    }
-  });
-
-  const toggleSession = (dow: number, sessionId: string) => {
-    const key = `${dow}_${sessionId}`;
-    setSelectedAssignments((prev) => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
-  };
+  const {
+    activeTab,
+    setActiveTab,
+    selectedAssignments,
+    reason,
+    setReason,
+    rosterData,
+    isLoadingRoster,
+    historyData,
+    isLoadingHistory,
+    toggleSession,
+    isSubmitting,
+    handleSave
+  } = useDoctorAssignmentModal({ doctor, isOpen, onClose });
 
   if (!doctor) return null;
 
@@ -174,29 +95,43 @@ export function DoctorAssignmentModal({ doctor, isOpen, onClose }: DoctorAssignm
               ) : (
                 <div className='space-y-6'>
                   <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-                    {rosterData?.days.map((day) => (
-                      <div
-                        key={day.dow}
-                        className={cn(
-                          'p-4 rounded-xl border transition-colors flex flex-col justify-between',
-                          day.isOperatingDay
-                            ? 'bg-card border-border/80'
-                            : 'bg-muted/30 border-dashed border-border/50 opacity-80'
-                        )}
-                      >
-                        <div className='flex items-center justify-between pb-2 mb-3 border-b border-border/40'>
-                          <span className='font-bold text-sm text-foreground'>{day.dayName}</span>
-                          <span
-                            className={cn(
-                              'text-[10px] font-semibold px-2 py-0.5 rounded-full',
-                              day.isOperatingDay
-                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                                : 'bg-muted text-muted-foreground'
-                            )}
-                          >
-                            {day.isOperatingDay ? 'Klinik Buka' : 'Libur'}
-                          </span>
-                        </div>
+                    {rosterData?.days.map((day) => {
+                      const isDoctorAssignedOnDay = day.sessions.some((s) =>
+                        Boolean(selectedAssignments[`${day.dow}_${s.sessionId}`])
+                      );
+                      const isDayActive = day.isOperatingDay || isDoctorAssignedOnDay;
+
+                      return (
+                        <div
+                          key={day.dow}
+                          className={cn(
+                            'p-4 rounded-xl border transition-colors flex flex-col justify-between',
+                            isDayActive
+                              ? 'bg-card border-border/80'
+                              : 'bg-muted/30 border-dashed border-border/50 opacity-80'
+                          )}
+                        >
+                          <div className='flex items-center justify-between pb-2 mb-3 border-b border-border/40'>
+                            <span className='font-bold text-sm text-foreground'>{day.dayName}</span>
+                            <span
+                              className={cn(
+                                'text-[10px] font-semibold px-2 py-0.5 rounded-full',
+                                isDoctorAssignedOnDay
+                                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                  : day.isOperatingDay
+                                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                    : 'bg-muted text-muted-foreground'
+                              )}
+                            >
+                              {isDoctorAssignedOnDay
+                                ? day.isOperatingDay
+                                  ? 'Klinik Buka'
+                                  : 'Roster Aktif'
+                                : day.isOperatingDay
+                                  ? 'Klinik Buka'
+                                  : 'Libur'}
+                            </span>
+                          </div>
 
                         <div className='space-y-2'>
                           {day.sessions.map((s) => {
@@ -235,8 +170,9 @@ export function DoctorAssignmentModal({ doctor, isOpen, onClose }: DoctorAssignm
                           })}
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })}
+                </div>
 
                   <div className='pt-4 border-t border-border/60 space-y-2'>
                     <label
@@ -308,12 +244,14 @@ export function DoctorAssignmentModal({ doctor, isOpen, onClose }: DoctorAssignm
                               <span
                                 className={cn(
                                   'px-2 py-0.5 rounded-full font-bold text-[10px]',
-                                  row.newStatus === 'OPEN'
+                                  row.newStatus === SCHEDULE_STATUS.OPEN
                                     ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                                     : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
                                 )}
                               >
-                                {row.newStatus === 'OPEN' ? 'Buka' : 'Tutup'}
+                                {row.newStatus === SCHEDULE_STATUS.OPEN
+                                  ? SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.OPEN]
+                                  : SCHEDULE_STATUS_LABELS[SCHEDULE_STATUS.CLOSED]}
                               </span>
                             ) : (
                               '-'
@@ -343,11 +281,11 @@ export function DoctorAssignmentModal({ doctor, isOpen, onClose }: DoctorAssignm
             <Button
               type='button'
               variant='default'
-              disabled={mutation.isPending || isLoadingRoster}
-              onClick={() => mutation.mutate()}
+              disabled={isSubmitting || isLoadingRoster}
+              onClick={handleSave}
               className='font-bold min-w-[120px]'
             >
-              {mutation.isPending ? (
+              {isSubmitting ? (
                 <>
                   <Icons.spinner className='size-4 animate-spin mr-2' />
                   Menyimpan...

@@ -14,6 +14,7 @@ import {
   type ScheduleConfigurationImpactResult
 } from '../api/admin-schedule-configuration.api';
 import { doctorScheduleKeys } from '../api/queries';
+import { syncAllDoctorSchedules } from '../api/mutations';
 import { SCHEDULE_QUERY_KEYS } from '../constants/schedule-shift.constants';
 
 export type ConfigurationCategory =
@@ -214,10 +215,7 @@ export function useDoctorScheduleSettingsModal({
       return updateScheduleConfiguration(payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-schedule-configuration'] });
-      queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all });
-      queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES] });
-      queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.PRACTITIONERS] });
+      syncAllDoctorSchedules(queryClient);
 
       const successLabel =
         category === 'session_defs'

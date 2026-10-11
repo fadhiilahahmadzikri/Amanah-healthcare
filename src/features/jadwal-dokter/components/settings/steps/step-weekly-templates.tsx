@@ -59,9 +59,11 @@ export function StepWeeklyTemplates({
       <div className='flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none'>
         {days.map((d) => {
           const isSelected = selectedDow === d.dow;
-          const activeCount = weeklyTemplates.filter(
-            (t) => t.dow === d.dow && t.isActive
-          ).length;
+          const activeCount = weeklyTemplates.filter((t) => {
+            if (t.dow !== d.dow || !t.isActive) return false;
+            const def = sessionDefs.find((s) => s.id === t.sessionId);
+            return def ? def.isActive && (t.isMasterActive ?? true) : false;
+          }).length;
 
           return (
             <button
@@ -89,56 +91,49 @@ export function StepWeeklyTemplates({
 
       {/* Shifts on selected day - Single Row Hug Layout, Zero Blank Space, Custom UI Select */}
       <div className='flex flex-col gap-2 max-h-[58vh] overflow-y-auto pr-1'>
-        {sessionDefs.map((def) => {
-          const template = dayTemplates.find((t) => t.sessionId === def.id);
-          if (!template) return null;
+        {sessionDefs
+          .filter((def) => def.isActive)
+          .map((def) => {
+            const template = dayTemplates.find((t) => t.sessionId === def.id);
+            if (!template || template.isMasterActive === false) return null;
 
-          const isActive = template.isActive;
-          const isMasterActive = def.isActive && (template.isMasterActive ?? true);
-          const startsAt = template.startsAt.slice(0, 5);
-          const endsAt = template.endsAt.slice(0, 5);
-          const isInvalidTime = isActive && startsAt >= endsAt;
-          const shiftLabel = template.sessionLabel;
+            const isActive = template.isActive;
+            const startsAt = template.startsAt.slice(0, 5);
+            const endsAt = template.endsAt.slice(0, 5);
+            const isInvalidTime = isActive && startsAt >= endsAt;
+            const shiftLabel = template.sessionLabel;
 
-          return (
-            <div
-              key={def.id}
-              className={`p-3 rounded-xl border space-y-2.5 transition-all ${
-                !isMasterActive
-                  ? 'border-border/40 bg-muted/20 opacity-60'
-                  : isActive
-                  ? 'border-border/90 bg-card shadow-2xs'
-                  : 'border-border/40 bg-muted/10 opacity-75'
-              }`}
-            >
-              {/* Row 1: Header (Shift Label on Left, Status Switch on Right) */}
-              <div className='flex items-center justify-between gap-2'>
-                <div className='flex items-center gap-2 min-w-0'>
-                  <span className='font-semibold text-xs sm:text-sm text-foreground truncate'>
-                    {shiftLabel}
-                  </span>
-                  {!isMasterActive && (
-                    <span className='text-[11px] text-muted-foreground italic shrink-0'>
-                      (Master Nonaktif)
+            return (
+              <div
+                key={def.id}
+                className={`p-3 rounded-xl border space-y-2.5 transition-all ${
+                  isActive
+                    ? 'border-border/90 bg-card shadow-2xs'
+                    : 'border-border/40 bg-muted/10 opacity-75'
+                }`}
+              >
+                {/* Row 1: Header (Shift Label on Left, Status Switch on Right) */}
+                <div className='flex items-center justify-between gap-2'>
+                  <div className='flex items-center gap-2 min-w-0'>
+                    <span className='font-semibold text-xs sm:text-sm text-foreground truncate'>
+                      {shiftLabel}
                     </span>
-                  )}
+                  </div>
+
+                  <div className='flex items-center gap-2 shrink-0'>
+                    <span className='text-xs text-muted-foreground'>
+                      {isActive ? 'Buka' : 'Tutup'}
+                    </span>
+                    <Switch
+                      checked={isActive}
+                      onCheckedChange={() => onToggleShiftActive(selectedDow, def.id)}
+                      aria-label={`Aktifkan shift ${shiftLabel}`}
+                    />
+                  </div>
                 </div>
 
-                <div className='flex items-center gap-2 shrink-0'>
-                  <span className='text-xs text-muted-foreground'>
-                    {!isMasterActive ? 'Nonaktif' : isActive ? 'Buka' : 'Tutup'}
-                  </span>
-                  <Switch
-                    checked={isActive}
-                    disabled={!isMasterActive}
-                    onCheckedChange={() => onToggleShiftActive(selectedDow, def.id)}
-                    aria-label={`Aktifkan shift ${shiftLabel}`}
-                  />
-                </div>
-              </div>
-
-              {/* Row 2: Timing Selectors (Di bawah, 2 kolom setara) */}
-              {isActive && isMasterActive && (
+                {/* Row 2: Timing Selectors (Di bawah, 2 kolom setara) */}
+                {isActive && (
                 <div className='grid grid-cols-2 gap-2.5 pt-2 border-t border-border/50'>
                   <div className='flex flex-col gap-1'>
                     <span className='text-[10px] font-medium text-muted-foreground'>Jam Mulai</span>

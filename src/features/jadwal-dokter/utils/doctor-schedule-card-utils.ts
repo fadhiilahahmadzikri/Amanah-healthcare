@@ -1,4 +1,5 @@
 import type { DoctorSchedule } from '../api/types';
+import { SCHEDULE_STATUS } from '../constants/schedule-shift.constants';
 
 export const DOCTOR_CARD_STATUS = {
   OPEN: 'Buka',
@@ -8,7 +9,7 @@ export const DOCTOR_CARD_STATUS = {
 export type DoctorCardStatus = 'Buka' | 'Tutup' | null;
 
 export function isSessionClosed(session: { status_sesi?: string | null }): boolean {
-  return session.status_sesi === 'CLOSED';
+  return session.status_sesi === SCHEDULE_STATUS.CLOSED;
 }
 
 export function hasConfiguredDoctorSchedule(doctor: DoctorSchedule): boolean {
@@ -24,11 +25,11 @@ export function getDoctorCardStatus(doctor: DoctorSchedule): DoctorCardStatus {
     return DOCTOR_CARD_STATUS.CLOSED;
   }
 
-  if (doctor.status_dokter === 'CLOSED' || doctor.status_jadwal === 'CLOSED') {
+  if (doctor.status_dokter === SCHEDULE_STATUS.CLOSED || doctor.status_jadwal === SCHEDULE_STATUS.CLOSED) {
     return DOCTOR_CARD_STATUS.CLOSED;
   }
 
-  if (doctor.status_dokter === 'OPEN' || doctor.status_jadwal === 'OPEN') {
+  if (doctor.status_dokter === SCHEDULE_STATUS.OPEN || doctor.status_jadwal === SCHEDULE_STATUS.OPEN) {
     return DOCTOR_CARD_STATUS.OPEN;
   }
 
