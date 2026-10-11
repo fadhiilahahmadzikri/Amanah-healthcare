@@ -1,45 +1,12 @@
 import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
 import { normalizeToAppointmentStatus } from '../constants/appointment-status.dictionary';
 import type { Appointment } from '@/features/klinik';
-import type {
-  AdminAppointment,
-  AppointmentSummary,
-  AppointmentAction,
-  AppointmentStatus,
-  BackendAppointmentRecord
-} from './types';
-
-export const emptyAppointmentSummary: AppointmentSummary = {
-  total: 0,
-  booked: 0,
-  waiting: 0,
-  inService: 0,
-  completed: 0,
-  cancelled: 0,
-  late: 0
-};
-
-export function computeSummary(records: AdminAppointment[]): AppointmentSummary {
-  if (records.length === 0) return emptyAppointmentSummary;
-
-  const countOf = (st: AppointmentStatus) => records.filter((r) => r.status === st).length;
-
-  return {
-    total: records.length,
-    booked: countOf(APPOINTMENT_STATUS.BOOKED),
-    waiting: countOf(APPOINTMENT_STATUS.WAITING),
-    inService: countOf(APPOINTMENT_STATUS.IN_SERVICE),
-    completed: countOf(APPOINTMENT_STATUS.COMPLETED),
-    cancelled: countOf(APPOINTMENT_STATUS.CANCELLED),
-    late: countOf(APPOINTMENT_STATUS.LATE)
-  };
-}
+import type { AdminAppointment, AppointmentAction, BackendAppointmentRecord } from './types';
 
 export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppointment {
   const status = normalizeToAppointmentStatus(item.status);
   const patientName = item.patientName || item.patientProfile?.fullName || 'Pasien Amanah';
-  const doctorName =
-    item.doctorName || item.practitioner?.staffProfile?.fullName || null;
+  const doctorName = item.doctorName || item.practitioner?.staffProfile?.fullName || null;
   const poliklinikName = item.poliklinikName || item.clinicRoom?.clinicUnit?.name || 'Poli Umum';
   const queueNumber = item.queueNumber
     ? String(item.queueNumber)

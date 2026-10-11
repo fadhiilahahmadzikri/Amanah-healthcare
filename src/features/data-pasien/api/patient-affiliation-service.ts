@@ -149,7 +149,7 @@ export interface BookingPractitioner {
 }
 
 export interface BookingOptionShift {
-  session: 'DINI_HARI' | 'PAGI' | 'SIANG' | 'MALAM' | string;
+  session: string;
   shift: string;
   label: string;
   startTime: string;
@@ -168,7 +168,7 @@ export interface CreateAppointmentPayload {
   layananId: string;
   staffId?: string;
   appointmentDate: string;
-  session: 'DINI_HARI' | 'PAGI' | 'SIANG' | 'MALAM' | string;
+  session: string;
   visitType: string;
   complaint: string;
   sourceIntakeId?: string;
@@ -263,27 +263,12 @@ export const patientAffiliationService = {
       }
       const res = await clientFetch<{
         success?: boolean;
-        data?:
-          | {
-              sessions?: BookingOptionShift[];
-            }
-          | BookingOptionShift[];
+        data?: {
+          sessions?: BookingOptionShift[];
+        };
       }>(`/api/v1/schedules/booking-options?${params.toString()}`);
 
-      if (res && typeof res === 'object') {
-        if ('data' in res && res.data) {
-          if ('sessions' in res.data && Array.isArray(res.data.sessions)) {
-            return res.data.sessions;
-          }
-          if (Array.isArray(res.data)) {
-            return res.data;
-          }
-        }
-        if (Array.isArray(res)) {
-          return res;
-        }
-      }
-      return [];
+      return res?.data?.sessions ?? [];
     } catch (err) {
       console.error('Failed to get booking options:', err);
       return [];

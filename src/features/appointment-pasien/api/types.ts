@@ -129,9 +129,12 @@ export function normalizeFilters(raw: Partial<AppointmentFilters>): NormalizedAp
   const searchTrimmed = raw.search?.trim() || undefined;
   const sortTrimmed = raw.sort?.trim() || undefined;
   const dateTrimmed = typeof raw.date === 'string' && raw.date.trim() ? raw.date.trim() : undefined;
-  const doctorIdTrimmed = typeof raw.doctorId === 'string' && raw.doctorId.trim() ? raw.doctorId.trim() : undefined;
-  const roomIdTrimmed = typeof raw.roomId === 'string' && raw.roomId.trim() ? raw.roomId.trim() : undefined;
-  const sessionTrimmed = typeof raw.session === 'string' && raw.session.trim() ? raw.session.trim() : undefined;
+  const doctorIdTrimmed =
+    typeof raw.doctorId === 'string' && raw.doctorId.trim() ? raw.doctorId.trim() : undefined;
+  const roomIdTrimmed =
+    typeof raw.roomId === 'string' && raw.roomId.trim() ? raw.roomId.trim() : undefined;
+  const sessionTrimmed =
+    typeof raw.session === 'string' && raw.session.trim() ? raw.session.trim() : undefined;
 
   return {
     page,
@@ -157,7 +160,7 @@ export type AppointmentResponse = {
   offset: number;
   limit: number;
   appointments: AdminAppointment[];
-  summary: AppointmentSummary;
+  summary?: AppointmentSummary;
 };
 
 export type AppointmentDetailResponse = {

@@ -1,11 +1,10 @@
 import { clientFetch } from '@/lib/client-fetch';
 import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
-import { computeSummary, mapToAdminAppointment, emptyAppointmentSummary } from './mapper';
+import { mapToAdminAppointment } from './mapper';
 import type {
   AdminAppointment,
   AppointmentFilters,
   AppointmentResponse,
-  AppointmentSummary,
   AppointmentDetailResponse,
   AppointmentStatus,
   BackendAppointmentRecord,
@@ -56,9 +55,7 @@ export async function getAdminAppointments(
   }
 
   if (filters.roomName) {
-    queryParams.roomName = Array.isArray(filters.roomName)
-      ? filters.roomName[0]
-      : filters.roomName;
+    queryParams.roomName = Array.isArray(filters.roomName) ? filters.roomName[0] : filters.roomName;
   }
 
   if (filters.roomId) {
@@ -93,37 +90,14 @@ export async function getAdminAppointments(
       ? response.meta.total
       : appointments.length;
 
-  const summary = computeSummary(appointments);
-
   return {
     success: true,
     time: new Date().toISOString(),
     total_appointments: totalCount,
     offset: (page - 1) * limit,
     limit,
-    appointments,
-    summary
+    appointments
   };
-}
-
-export async function getAdminAppointmentSummary(): Promise<AppointmentSummary> {
-  try {
-    const response = await clientFetch<
-      { data?: BackendAppointmentRecord[] } | BackendAppointmentRecord[]
-    >('/api/v1/appointments', {
-      query: { limit: 200 }
-    });
-
-    const rawList: BackendAppointmentRecord[] = Array.isArray(response)
-      ? response
-      : Array.isArray(response?.data)
-        ? response.data
-        : [];
-
-    return computeSummary(rawList.map(mapToAdminAppointment));
-  } catch {
-    return emptyAppointmentSummary;
-  }
 }
 
 export async function getAdminAppointmentById(

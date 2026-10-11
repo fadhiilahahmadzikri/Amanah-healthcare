@@ -1,7 +1,6 @@
 import { queryOptions } from '@tanstack/react-query';
 import {
   getAdminAppointments,
-  getAdminAppointmentSummary,
   getAdminAppointmentById,
   getDoctorCandidates,
   getRoomCandidates
@@ -18,12 +17,6 @@ export const appointmentQueryOptions = (filters: AppointmentFilters) =>
     queryFn: ({ signal }) => getAdminAppointments(filters, signal),
     staleTime: 30 * 1000,
     placeholderData: (prev) => prev
-  });
-
-export const appointmentSummaryQueryOptions = () =>
-  queryOptions({
-    queryKey: appointmentKeys.summary(),
-    queryFn: () => getAdminAppointmentSummary()
   });
 
 export const appointmentDetailQueryOptions = (id: number | string) =>
