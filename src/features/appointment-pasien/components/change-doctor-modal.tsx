@@ -14,7 +14,11 @@ import { getQueryClient } from '@/lib/query-client';
 import { DoctorAvatar } from '@/features/klinik/components/doctor-avatar';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import type { DoctorCandidateItem, ChangeDoctorPayload } from '../api/types';
+import {
+  DOCTOR_AVAILABILITY,
+  type DoctorCandidateItem,
+  type ChangeDoctorPayload,
+} from '../api/types';
 
 export interface ChangeDoctorModalProps {
   isOpen: boolean;
@@ -249,9 +253,7 @@ export function ChangeDoctorModal({
                         {group.name}
                       </h4>
                       <p className='text-xs text-muted-foreground leading-relaxed line-clamp-2'>
-                        {isKia
-                          ? 'Pelayanan kesehatan ibu, anak, imunisasi, dan kebidanan'
-                          : 'Pelayanan pemeriksaan medis umum dan konsultasi dokter'}
+                        Pelayanan pemeriksaan medis dan konsultasi {group.name}
                       </p>
                     </div>
                     <div className='flex items-center gap-1 text-xs font-semibold text-primary pt-1'>
@@ -264,6 +266,17 @@ export function ChangeDoctorModal({
             </div>
           ) : (
             <div className='space-y-2.5'>
+              {groups.length > 1 && (
+                <button
+                  type='button'
+                  onClick={() => setSelectedGroupId(null)}
+                  className='inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline cursor-pointer mb-1'
+                >
+                  <Icons.arrowLeft className='size-3.5' />
+                  <span>Kategori: {activeGroup?.name} (Ubah)</span>
+                </button>
+              )}
+
               <div className='space-y-2 max-h-[250px] overflow-y-auto pr-1'>
                 {activeGroup?.doctors.length === 0 ? (
                   <p className='text-xs text-muted-foreground text-center py-4'>
@@ -272,6 +285,8 @@ export function ChangeDoctorModal({
                 ) : (
                   activeGroup?.doctors.map((doctor) => {
                     const isSelected = selectedDoctorId === doctor.id;
+                    const isRostered =
+                      doctor.availability === DOCTOR_AVAILABILITY.AVAILABLE;
                     return (
                       <button
                         key={doctor.id}
@@ -290,12 +305,31 @@ export function ChangeDoctorModal({
                             <DoctorAvatar name={doctor.name} size={40} />
                           </div>
                           <div className='min-w-0 flex-1'>
-                            <h4 className='text-xs font-bold text-foreground truncate'>
-                              {doctor.name}
-                            </h4>
-                            <p className='text-[11px] text-muted-foreground truncate'>
-                              {doctor.specialty || activeGroup.name}
-                            </p>
+                            <div className='flex items-center gap-2'>
+                              <h4 className='text-xs font-bold text-foreground truncate'>
+                                {doctor.name}
+                              </h4>
+                              {isRostered ? (
+                                <span className='inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0'>
+                                  Tersedia
+                                </span>
+                              ) : (
+                                <span className='inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0'>
+                                  Perlu Jadwal
+                                </span>
+                              )}
+                            </div>
+                            <div className='flex items-center gap-1.5 text-[11px] text-muted-foreground truncate mt-0.5'>
+                              <span>{doctor.specialty || activeGroup.name}</span>
+                              {typeof doctor.currentQueueCount === 'number' && (
+                                <>
+                                  <span>•</span>
+                                  <span className='font-medium text-foreground/75'>
+                                    {doctor.currentQueueCount} antrean aktif
+                                  </span>
+                                </>
+                              )}
+                            </div>
                           </div>
                         </div>
 

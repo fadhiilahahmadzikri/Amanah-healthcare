@@ -22,7 +22,7 @@ export function mapBackendAppointmentToUi({
   complaint,
   selectedService
 }: MapAppointmentParams): Appointment {
-  const timeSource = res.etaRange || res.timeSlot || '';
+  const timeSource = res.etaRange || '';
   const timeMatches = timeSource.match(/(\d{1,2}[:.]\d{2})/g);
   const startClock = timeMatches?.[0]
     ? timeMatches[0].replace('.', ':')

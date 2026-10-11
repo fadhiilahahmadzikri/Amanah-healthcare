@@ -198,7 +198,6 @@ export interface BackendAppointmentItem {
   consultationDurationFormatted?: string | null;
   session: string;
   sessionName?: string | null;
-  timeSlot?: string | null;
   queueNumber?: string;
   status: string;
   visitType?: string;

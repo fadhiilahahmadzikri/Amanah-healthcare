@@ -65,6 +65,18 @@ export function ChangeRoomModal({
     return rooms.find((r) => r.id === selectedRoomId) || null;
   }, [rooms, selectedRoomId]);
 
+  const sortedRooms = useMemo(() => {
+    return rooms.toSorted((a, b) => {
+      if (a.isAvailable !== b.isAvailable) {
+        return a.isAvailable ? -1 : 1;
+      }
+      if (Boolean(a.isPreferred) !== Boolean(b.isPreferred)) {
+        return a.isPreferred ? -1 : 1;
+      }
+      return a.name.localeCompare(b.name);
+    });
+  }, [rooms]);
+
   const mutation = useMutation({
     mutationFn: (payload: ChangeRoomPayload) =>
       changeAppointmentRoom(payload.appointmentId, payload.roomId),
@@ -173,7 +185,7 @@ export function ChangeRoomModal({
             </div>
           ) : (
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[300px] overflow-y-auto pr-1'>
-              {rooms.map((room: RoomCandidateItem) => {
+              {sortedRooms.map((room: RoomCandidateItem) => {
                 const isSelected = selectedRoomId === room.id;
                 const isAvailable = room.isAvailable;
                 const occupant = room.occupantDetails;
@@ -194,7 +206,7 @@ export function ChangeRoomModal({
                               {room.name}
                             </h4>
                             <p className='text-[11px] text-muted-foreground truncate'>
-                              {room.location || 'Gedung Utama'}
+                              {room.location || (room.code ? `Kode: ${room.code}` : '-')}
                             </p>
                           </div>
                         </div>
@@ -265,7 +277,7 @@ export function ChangeRoomModal({
                             {room.name}
                           </h4>
                           <p className='text-[11px] text-muted-foreground truncate'>
-                            {room.location || 'Gedung Utama'}
+                            {room.location || (room.code ? `Kode: ${room.code}` : '-')}
                           </p>
                         </div>
                       </div>
@@ -282,10 +294,16 @@ export function ChangeRoomModal({
                       </div>
                     </div>
 
-                    <div className='pt-2.5 flex items-center justify-between'>
+                    <div className='pt-2.5 flex items-center justify-between gap-1.5'>
                       <span className='inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'>
                         Tersedia
                       </span>
+                      {room.isPreferred && (
+                        <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20 shrink-0'>
+                          <Icons.check className='size-2.5 stroke-[2.5]' />
+                          <span>Ruang Utama Dokter</span>
+                        </span>
+                      )}
                     </div>
                   </button>
                 );

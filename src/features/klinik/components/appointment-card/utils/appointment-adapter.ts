@@ -90,7 +90,7 @@ export function bookedPatientToAppointment(
   item: BookedPatientItem,
   context?: SessionContext
 ): Appointment {
-  const timeSource = item.etaRange || item.timeSlot || context?.sessionTime || '';
+  const timeSource = item.etaRange || context?.sessionTime || '';
   const timeMatches = timeSource.match(/(\d{1,2}[:.]\d{2})/g);
   const startClock = timeMatches?.[0] ? timeMatches[0].replace('.', ':') : '';
   const endClock = timeMatches?.[1] ? timeMatches[1].replace('.', ':') : '';

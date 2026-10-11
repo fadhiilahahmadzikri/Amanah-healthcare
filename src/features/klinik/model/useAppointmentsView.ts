@@ -82,7 +82,7 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
   const mapBackendToUi = useCallback((apt: BackendAppointmentItem): Appointment => {
     const canonicalStatus: AppointmentStatus = AppointmentStatusDescriptor.from(apt.status).code;
 
-    const timeSource = apt.etaRange || apt.timeSlot || '';
+    const timeSource = apt.etaRange || '';
     const timeMatches = timeSource.match(/(\d{1,2}[:.]\d{2})/g);
     const startClock = timeMatches?.[0]
       ? timeMatches[0].replace('.', ':')

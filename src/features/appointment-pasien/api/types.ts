@@ -227,14 +227,23 @@ export interface BackendAppointmentRecord {
   [key: string]: unknown;
 }
 
+export const DOCTOR_AVAILABILITY = {
+  AVAILABLE: 'AVAILABLE',
+  SCHEDULE_REQUIRED: 'SCHEDULE_REQUIRED',
+} as const;
+
+export type DoctorAvailability =
+  (typeof DOCTOR_AVAILABILITY)[keyof typeof DOCTOR_AVAILABILITY];
+
 export interface DoctorCandidateItem {
   id: string;
   name: string;
   specialty: string;
   staffType: string;
-  availability: 'AVAILABLE' | 'SCHEDULE_REQUIRED';
+  availability: DoctorAvailability;
   existingSessionId: string | null;
   defaultRoomName?: string | null;
+  currentQueueCount?: number;
 }
 
 export interface DoctorCandidateGroup {
@@ -257,6 +266,7 @@ export interface RoomCandidateItem {
   code?: string | null;
   location?: string | null;
   isAvailable: boolean;
+  isPreferred?: boolean;
   occupantDetails?: {
     practitionerId?: string;
     doctorName?: string;
