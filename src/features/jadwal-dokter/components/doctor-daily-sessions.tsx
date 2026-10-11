@@ -215,7 +215,10 @@ export function DoctorDailySessions({
           sessionContext={{
             doctorName: doctor?.nama_dokter,
             doctorSpecialty: doctor?.spesialisasi,
-            date: formattedSelectedDate
+            date: formattedSelectedDate,
+            sessionTime:
+              activeSessions.find((s) => s.id === selectedDetailSessionId)?.waktu ||
+              undefined
           }}
         />
       )}

@@ -71,15 +71,17 @@ export function normalizeAppointmentTimes(appointment: Partial<Appointment>): {
     formatTimeString(appointment.scheduled_end_time) ||
     '-';
 
-  // Frontend does not calculate minutes. Backend provides duration or session label.
   const rawSession = sessionMatch ? sessionMatch[0] : appointment.session_name;
   const friendlySession = rawSession ? formatFriendlySessionName(rawSession) : null;
+
+  // Backend is SSOT for duration: use consultation_duration_formatted or estimated_duration_minutes
   const durationText =
-    friendlySession ||
     appointment.consultation_duration_formatted ||
     (appointment.estimated_duration_minutes
       ? `~${appointment.estimated_duration_minutes} mnt`
-      : '-');
+      : null) ||
+    friendlySession ||
+    '-';
 
   return { startTime, endTime, durationText };
 }
@@ -134,12 +136,9 @@ export function bookedPatientToAppointment(
       (item as unknown as { actualCompletedAt?: string }).actualCompletedAt ||
       item.bookingMetadata?.completedAt ||
       undefined,
-    consultation_elapsed_seconds: (item as unknown as { consultationElapsedSeconds?: number })
-      .consultationElapsedSeconds,
-    consultation_duration_formatted: (item as unknown as { consultationDurationFormatted?: string })
-      .consultationDurationFormatted,
-    estimated_duration_minutes: (item as unknown as { estimatedDurationMinutes?: number })
-      .estimatedDurationMinutes,
+    consultation_elapsed_seconds: item.consultationElapsedSeconds ?? undefined,
+    consultation_duration_formatted: item.consultationDurationFormatted ?? undefined,
+    estimated_duration_minutes: item.estimatedDurationMinutes ?? undefined,
     eta_range: item.etaRange || null,
     session: item.sessionTitle || undefined,
     session_name: formatFriendlySessionName(item.sessionTitle) || undefined,

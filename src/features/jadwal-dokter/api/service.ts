@@ -36,15 +36,27 @@ export async function getDoctorSchedules(
 
   const res = await clientFetch<{
     doctors?: DoctorSchedule[];
-    data?: DoctorSchedule[];
+    data?:
+      | DoctorSchedule[]
+      | {
+          doctors?: DoctorSchedule[];
+          meta?: { total_doctors?: number; total_pages?: number; page?: number; limit?: number };
+        };
     total_doctors?: number;
     meta?: { total_doctors?: number; total_pages?: number; page?: number; limit?: number };
   }>(endpoint);
 
-  const doctors = res.doctors ?? res.data ?? [];
-  const total = res.total_doctors ?? res.meta?.total_doctors ?? doctors.length;
+  const rawDoctors =
+    res.doctors ??
+    (Array.isArray(res.data) ? res.data : res.data?.doctors) ??
+    [];
+  const total =
+    res.total_doctors ??
+    res.meta?.total_doctors ??
+    (!Array.isArray(res.data) ? res.data?.meta?.total_doctors : undefined) ??
+    rawDoctors.length;
   return {
-    doctors,
+    doctors: rawDoctors,
     total_doctors: total,
     meta: {
       page: res.meta?.page ?? filters.page ?? 1,

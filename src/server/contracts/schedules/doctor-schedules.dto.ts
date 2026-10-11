@@ -33,6 +33,15 @@ export const monthlyScheduleDaySchema = z.object({
 });
 export type MonthlyScheduleDay = z.infer<typeof monthlyScheduleDaySchema>;
 
+export const doctorCardPatientPreviewSchema = z.object({
+  id: z.string(),
+  patientId: z.string(),
+  name: z.string(),
+  initials: z.string(),
+  avatarUrl: z.string().nullable().optional()
+});
+export type DoctorCardPatientPreviewItem = z.infer<typeof doctorCardPatientPreviewSchema>;
+
 export const doctorScheduleItemSchema = z.object({
   id: z.string(),
   practitioner_id: z.string().optional(),
@@ -52,7 +61,9 @@ export const doctorScheduleItemSchema = z.object({
   leave_start: z.string().nullable().optional(),
   leave_end: z.string().nullable().optional(),
   sesi_harian: z.array(doctorDailySessionSchema).optional(),
-  jadwal_praktik_mendatang: z.string().optional()
+  jadwal_praktik_mendatang: z.string().optional(),
+  total_pasien: z.number().optional().default(0),
+  pasien_preview: z.array(doctorCardPatientPreviewSchema).optional().default([])
 });
 export type DoctorScheduleItem = z.infer<typeof doctorScheduleItemSchema>;
 
@@ -316,6 +327,9 @@ export const bookedPatientItemSchema = z.object({
   etaRange: z.string().nullish(),
   estimatedStartAt: z.string().nullish(),
   estimatedEndAt: z.string().nullish(),
+  consultationDurationFormatted: z.string().nullish(),
+  estimatedDurationMinutes: z.number().nullish(),
+  consultationElapsedSeconds: z.number().nullish(),
   patient: bookedPatientDemographicsSchema,
   bookingMetadata: bookedPatientBookingMetadataSchema.optional()
 });
