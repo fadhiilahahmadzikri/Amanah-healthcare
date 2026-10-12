@@ -25,11 +25,33 @@ export interface UseAppointmentCheckInQrResult {
   isMissingAssignment: boolean;
   secondsRemaining: number;
   formattedCountdown: string;
+  formattedDeadline: string;
   actions: {
     fetchQr: () => Promise<void>;
     handleCopyCode: () => Promise<void>;
     handleClose: () => void;
   };
+}
+
+function formatDeadlineDateTime(isoString?: string | null): string {
+  if (!isoString) return '';
+  try {
+    const d = new Date(isoString);
+    if (Number.isNaN(d.getTime())) return '';
+    return (
+      new Intl.DateTimeFormat('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        timeZone: 'Asia/Jakarta',
+      }).format(d) + ' WIB'
+    );
+  } catch {
+    return '';
+  }
 }
 
 function formatCountdown(totalSec: number): string {
@@ -85,16 +107,9 @@ export function useAppointmentCheckInQr({
   })();
 
   useEffect(() => {
-    if (qrData) {
-      const deadline = qrData.appointmentEligibilityDeadline || qrData.expiresAt;
-      if (deadline) {
-        const diffMs = new Date(deadline).getTime() - Date.now();
-        setSecondsRemaining(Math.max(0, Math.floor(diffMs / 1000)));
-      } else if (typeof qrData.remainingSeconds === 'number') {
-        setSecondsRemaining(Math.max(0, qrData.remainingSeconds));
-      } else {
-        setSecondsRemaining(0);
-      }
+    if (qrData && typeof qrData.remainingSeconds === 'number') {
+      // Respect Backend SSOT: gunakan remainingSeconds langsung dari server backend
+      setSecondsRemaining(Math.max(0, qrData.remainingSeconds));
     } else {
       setSecondsRemaining(0);
     }
@@ -164,6 +179,9 @@ export function useAppointmentCheckInQr({
 
   const isExpired = Boolean(qrData && secondsRemaining <= 0);
   const formattedCountdown = formatCountdown(secondsRemaining);
+  const formattedDeadline = formatDeadlineDateTime(
+    qrData?.expiresAt || qrData?.appointmentEligibilityDeadline,
+  );
 
   const fetchQr = async () => {
     await refetch();
@@ -178,10 +196,11 @@ export function useAppointmentCheckInQr({
     isMissingAssignment,
     secondsRemaining,
     formattedCountdown,
+    formattedDeadline,
     actions: {
       fetchQr,
       handleCopyCode,
-      handleClose: onClose
-    }
+      handleClose: onClose,
+    },
   };
 }

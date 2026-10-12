@@ -45,6 +45,6 @@ export const checkInQrQueryOptions = (appointmentId: string, enabled = true) =>
     queryKey: appointmentKeys.checkInQr(appointmentId),
     queryFn: () => generateCheckInQr(appointmentId),
     enabled: Boolean(appointmentId && enabled),
-    staleTime: 60 * 1000,
+    staleTime: 0,
     retry: 1
   });

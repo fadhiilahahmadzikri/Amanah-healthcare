@@ -17,12 +17,21 @@ export interface AppointmentCheckInQrModalProps {
 export function AppointmentCheckInQrModal({
   isOpen,
   appointment,
-  onClose
+  onClose,
 }: AppointmentCheckInQrModalProps) {
-  const { qrData, isLoading, isCopied, isAlreadyCheckedIn, isMissingAssignment, formattedCountdown, actions } = useAppointmentCheckInQr({
+  const {
+    qrData,
+    isLoading,
+    isCopied,
+    isAlreadyCheckedIn,
+    isMissingAssignment,
+    formattedCountdown,
+    formattedDeadline,
+    actions,
+  } = useAppointmentCheckInQr({
     isOpen,
     appointment,
-    onClose
+    onClose,
   });
 
   if (!appointment) return null;
@@ -117,9 +126,16 @@ export function AppointmentCheckInQrModal({
                 <ModernStyledQRCode data={qrData.qrPayload} size={190} />
               </div>
 
-              <div className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold'>
-                <Icons.clock className='size-3.5' />
-                <span>Batas Waktu Check-In: {formattedCountdown}</span>
+              <div className='flex flex-col items-center gap-1.5 pt-0.5'>
+                <div className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold'>
+                  <Icons.clock className='size-3.5' />
+                  <span>Sisa Waktu: {formattedCountdown}</span>
+                </div>
+                {formattedDeadline && (
+                  <span className='text-[11px] text-muted-foreground'>
+                    Batas Kedaluwarsa: <span className='font-medium text-foreground'>{formattedDeadline}</span>
+                  </span>
+                )}
               </div>
             </div>
           ) : (
