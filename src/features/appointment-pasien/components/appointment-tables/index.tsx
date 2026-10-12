@@ -12,8 +12,10 @@ import { useClinicFilterOptions, type Appointment } from '@/features/klinik';
 import { AppointmentDetailOrganism } from '@/features/klinik/components/details-modal';
 import { adminAppointmentToAppointment } from '../../api/mapper';
 import { callPatient, completeService, cancelAppointmentAction } from '../../api/service';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { getAppointmentColumns } from './columns';
+import { queueNavigationQueryOptions } from '../../api/queries';
+import { QueueNavigationTabs } from './queue-navigation-tabs';
 import { AppointmentRecordModal } from '../appointment-record-modal';
 import { AppointmentStatusModal } from '../appointment-status-modal';
 import { AppointmentCheckInQrModal } from '../appointment-check-in-qr-modal';
@@ -29,6 +31,16 @@ export function AppointmentTable() {
   );
   const columnIds = useMemo(() => columns.map((c) => c.id).filter(Boolean) as string[], [columns]);
   const appointmentTable = useAppointmentTable({ columns, columnIds });
+
+  const { data: navigationData } = useSuspenseQuery(
+    queueNavigationQueryOptions({ date: appointmentTable.formattedDate })
+  );
+
+  React.useEffect(() => {
+    if (!appointmentTable.currentUnitId && navigationData?.units && navigationData.units.length > 0) {
+      appointmentTable.setUnitId(navigationData.units[0].id);
+    }
+  }, [appointmentTable.currentUnitId, navigationData, appointmentTable.setUnitId]);
 
   const adaptedAppointment = useMemo(
     () =>
@@ -139,6 +151,14 @@ export function AppointmentTable() {
           appointmentTable.isFetching && 'opacity-75 transition-opacity'
         )}
       >
+        <QueueNavigationTabs
+          navigation={navigationData}
+          activeUnitId={appointmentTable.currentUnitId}
+          activeDoctorId={appointmentTable.currentDoctorId}
+          onSelectUnit={(unitId) => appointmentTable.setUnitId(unitId)}
+          onSelectDoctor={(docId) => appointmentTable.setDoctorId(docId)}
+        />
+
         <DataTable
           table={appointmentTable.table}
           onRowClick={appointmentTable.actions.openMilestone}

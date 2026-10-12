@@ -73,11 +73,41 @@ export interface AppointmentSummary {
   late: number;
 }
 
+export interface QueueNavigationDoctor {
+  id: string;
+  name: string;
+  specialty?: string | null;
+  avatarUrl?: string | null;
+  totalAppointments: number;
+  activeQueues: number;
+  waitingCount: number;
+  inServiceCount: number;
+  completedCount: number;
+}
+
+export interface QueueNavigationUnit {
+  id: string;
+  code: string;
+  name: string;
+  queuePrefix?: string | null;
+  totalAppointments: number;
+  activeQueues: number;
+  unassignedCount: number;
+  doctors: QueueNavigationDoctor[];
+}
+
+export interface QueueNavigationResponse {
+  date: string;
+  session?: string | null;
+  units: QueueNavigationUnit[];
+}
+
 export type AppointmentFilters = {
   page?: number;
   limit?: number;
   status?: string | string[];
   poli?: string | string[];
+  poliklinikId?: string;
   service?: string | string[];
   serviceName?: string | string[];
   search?: string;
@@ -96,6 +126,7 @@ export type NormalizedAppointmentFilters = {
   limit: number;
   status?: string[];
   poli?: string[];
+  poliklinikId?: string;
   serviceName?: string[];
   search?: string;
   sort?: string;
@@ -139,6 +170,10 @@ export function normalizeFilters(raw: Partial<AppointmentFilters>): NormalizedAp
   const searchTrimmed = raw.search?.trim() || undefined;
   const sortTrimmed = raw.sort?.trim() || undefined;
   const dateTrimmed = typeof raw.date === 'string' && raw.date.trim() ? raw.date.trim() : undefined;
+  const poliklinikIdTrimmed =
+    typeof raw.poliklinikId === 'string' && raw.poliklinikId.trim()
+      ? raw.poliklinikId.trim()
+      : undefined;
   const doctorIdTrimmed =
     typeof raw.doctorId === 'string' && raw.doctorId.trim() ? raw.doctorId.trim() : undefined;
   const roomIdTrimmed =
@@ -151,6 +186,7 @@ export function normalizeFilters(raw: Partial<AppointmentFilters>): NormalizedAp
     limit,
     ...(statusArray && statusArray.length > 0 && { status: statusArray }),
     ...(poliArray && poliArray.length > 0 && { poli: poliArray }),
+    ...(poliklinikIdTrimmed && { poliklinikId: poliklinikIdTrimmed }),
     ...(serviceArray && serviceArray.length > 0 && { serviceName: serviceArray }),
     ...(doctorArray && doctorArray.length > 0 && { doctorName: doctorArray }),
     ...(roomArray && roomArray.length > 0 && { roomName: roomArray }),

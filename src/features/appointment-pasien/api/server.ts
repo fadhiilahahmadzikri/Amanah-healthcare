@@ -8,7 +8,12 @@ import { paths } from '@/server/api/paths';
 import { getAccessTokenCookie } from '@/server/auth/token-store';
 import { AppError } from '@/core/errors/app-error';
 import { mapToAdminAppointment } from './mapper';
-import type { AppointmentFilters, AppointmentResponse, BackendAppointmentRecord } from './types';
+import type {
+  AppointmentFilters,
+  AppointmentResponse,
+  BackendAppointmentRecord,
+  QueueNavigationResponse
+} from './types';
 
 async function resolveActiveToken(): Promise<string | null> {
   let token = await getAccessTokenCookie();
@@ -47,7 +52,9 @@ export async function getAppointmentsOnServer(
     queryParams.status = Array.isArray(filters.status) ? filters.status[0] : filters.status;
   }
 
-  if (filters.poli) {
+  if (filters.poliklinikId) {
+    queryParams.poliklinikId = filters.poliklinikId;
+  } else if (filters.poli) {
     queryParams.poliklinikName = Array.isArray(filters.poli) ? filters.poli[0] : filters.poli;
   }
 
@@ -116,4 +123,28 @@ export async function getAppointmentsOnServer(
     limit,
     appointments
   };
+}
+
+export async function getQueueNavigationOnServer(
+  params?: { date?: string; session?: string }
+): Promise<QueueNavigationResponse> {
+  const token = await resolveActiveToken();
+  if (!token) {
+    throw AppError.unauthenticated('Sesi admin tidak valid atau telah berakhir');
+  }
+
+  const queryParams: Record<string, unknown> = {};
+  if (params?.date) queryParams.date = params.date;
+  if (params?.session) queryParams.session = params.session;
+
+  return await httpClient.request<QueueNavigationResponse>(
+    '/api/v1/appointments/queue-navigation',
+    z.any(),
+    {
+      method: 'GET',
+      query: queryParams,
+      tokenOverride: token,
+      cache: 'no-store'
+    }
+  );
 }

@@ -12,6 +12,7 @@ import type {
   DoctorCandidatesResult,
   PerformCheckInPayload,
   PerformCheckInResponse,
+  QueueNavigationResponse,
   RoomCandidateItem
 } from './types';
 
@@ -31,7 +32,9 @@ export async function getAdminAppointments(
     queryParams.status = Array.isArray(filters.status) ? filters.status[0] : filters.status;
   }
 
-  if (filters.poli) {
+  if (filters.poliklinikId) {
+    queryParams.poliklinikId = filters.poliklinikId;
+  } else if (filters.poli) {
     queryParams.poliklinikName = Array.isArray(filters.poli) ? filters.poli[0] : filters.poli;
   }
 
@@ -355,6 +358,20 @@ export async function rescheduleAppointmentAction(
   }>(`/api/v1/appointments/${appointmentId}/reschedule`, {
     method: 'POST',
     body: JSON.stringify(payload)
+  });
+}
+
+export async function getQueueNavigation(
+  params?: { date?: string; session?: string },
+  signal?: AbortSignal
+): Promise<QueueNavigationResponse> {
+  const queryParams: Record<string, unknown> = {};
+  if (params?.date) queryParams.date = params.date;
+  if (params?.session) queryParams.session = params.session;
+
+  return await clientFetch<QueueNavigationResponse>('/api/v1/appointments/queue-navigation', {
+    query: queryParams,
+    signal
   });
 }
 

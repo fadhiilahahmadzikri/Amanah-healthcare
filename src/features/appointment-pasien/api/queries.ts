@@ -4,13 +4,21 @@ import {
   getAdminAppointmentById,
   getDoctorCandidates,
   getRoomCandidates,
-  generateCheckInQr
+  generateCheckInQr,
+  getQueueNavigation
 } from './service';
 import { appointmentKeys } from './query-keys';
-import type { AdminAppointment, AppointmentFilters } from './types';
+import type { AdminAppointment, AppointmentFilters, QueueNavigationResponse } from './types';
 
-export type { AdminAppointment };
+export type { AdminAppointment, QueueNavigationResponse };
 export { appointmentKeys };
+
+export const queueNavigationQueryOptions = (params?: { date?: string; session?: string }) =>
+  queryOptions({
+    queryKey: ['appointments', 'queue-navigation', params?.date ?? 'today', params?.session ?? 'all'],
+    queryFn: ({ signal }) => getQueueNavigation(params, signal),
+    staleTime: 30 * 1000
+  });
 
 export const appointmentQueryOptions = (filters: AppointmentFilters) =>
   queryOptions({

@@ -36,6 +36,11 @@ export interface UseAppointmentTableResult {
   isFetching: boolean;
   totalAppointments: number;
   hasFilters: boolean;
+  currentUnitId: string | null;
+  currentDoctorId: string | null;
+  formattedDate?: string;
+  setUnitId: (unitId: string | null) => Promise<unknown>;
+  setDoctorId: (doctorId: string | null) => Promise<unknown>;
   actions: {
     openMilestone: (appointment: AdminAppointment) => void;
     closeMilestone: () => void;
@@ -65,7 +70,7 @@ export function useAppointmentTable({
   const [activeDialog, setActiveDialog] = useState<AppointmentDialogType>(null);
   const [returnToMilestone, setReturnToMilestone] = useState(false);
 
-  const [params] = useQueryStates({
+  const [params, setParams] = useQueryStates({
     page: parseAsInteger.withDefault(1),
     perPage: parseAsInteger.withDefault(10),
     search: parseAsString,
@@ -73,12 +78,14 @@ export function useAppointmentTable({
     status: parseAsArrayOf(parseAsString, ','),
     poli: parseAsArrayOf(parseAsString, ','),
     poliklinikName: parseAsArrayOf(parseAsString, ','),
+    poliklinikId: parseAsString,
     service: parseAsArrayOf(parseAsString, ','),
     serviceName: parseAsArrayOf(parseAsString, ','),
     layanan: parseAsArrayOf(parseAsString, ','),
     layananName: parseAsArrayOf(parseAsString, ','),
     scheduledDate: parseAsString,
     date: parseAsString,
+    doctorId: parseAsString,
     doctorName: parseAsArrayOf(parseAsString, ','),
     roomName: parseAsArrayOf(parseAsString, ','),
     sort: getSortingStateParser<AdminAppointment>(columnIds).withDefault([])
@@ -105,9 +112,11 @@ export function useAppointmentTable({
   const hasFilters = Boolean(
     (querySearch && querySearch.trim().length > 0) ||
     (params.status && params.status.length > 0) ||
+    params.poliklinikId ||
     (queryPoli && queryPoli.length > 0) ||
     (queryService && queryService.length > 0) ||
     formattedDate ||
+    params.doctorId ||
     (params.doctorName && params.doctorName.length > 0) ||
     (params.roomName && params.roomName.length > 0)
   );
@@ -117,9 +126,11 @@ export function useAppointmentTable({
     limit: params.perPage,
     ...(querySearch && { search: querySearch }),
     ...(params.status && params.status.length > 0 && { status: params.status }),
+    ...(params.poliklinikId && { poliklinikId: params.poliklinikId }),
     ...(queryPoli && queryPoli.length > 0 && { poli: queryPoli }),
     ...(queryService && queryService.length > 0 && { serviceName: queryService }),
     ...(formattedDate && { date: formattedDate }),
+    ...(params.doctorId && { doctorId: params.doctorId }),
     ...(params.doctorName && params.doctorName.length > 0 && { doctorName: params.doctorName }),
     ...(params.roomName && params.roomName.length > 0 && { roomName: params.roomName }),
     ...(params.sort.length > 0 && { sort: JSON.stringify(params.sort) })
@@ -267,6 +278,11 @@ export function useAppointmentTable({
     isFetching,
     totalAppointments: data.total_appointments,
     hasFilters,
+    currentUnitId: params.poliklinikId,
+    currentDoctorId: params.doctorId,
+    formattedDate,
+    setUnitId: (unitId: string | null) => setParams({ poliklinikId: unitId, doctorId: null, page: 1 }),
+    setDoctorId: (doctorId: string | null) => setParams({ doctorId, page: 1 }),
     actions: {
       openMilestone,
       closeMilestone,
