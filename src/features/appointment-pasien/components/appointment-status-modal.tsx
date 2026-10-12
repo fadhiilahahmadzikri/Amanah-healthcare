@@ -9,9 +9,11 @@ import { updateAdminLiveStatus } from '../api/service';
 import { appointmentKeys } from '../api/queries';
 import {
   APPOINTMENT_STATUS_OPTIONS,
-  getAppointmentStatusConfig
+  getAppointmentStatusConfig,
+  normalizeToAppointmentStatus
 } from '../constants/appointment-status.dictionary';
 import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
+import { isAppointmentTerminal } from '../constants/options';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { AdminAppointment, AppointmentStatus } from '../api/types';
@@ -20,6 +22,55 @@ export interface AppointmentStatusModalProps {
   isOpen: boolean;
   appointment: AdminAppointment | null;
   onClose: () => void;
+}
+
+function getStatusDisabledReason(
+  targetStatus: AppointmentStatus,
+  currentStatus: AppointmentStatus,
+  hasAssignments: boolean,
+  hasCheckedIn: boolean
+): string | null {
+  if (targetStatus === currentStatus) {
+    return 'Status saat ini';
+  }
+  if (targetStatus === APPOINTMENT_STATUS.BOOKED) {
+    return 'Tidak dapat mengembalikan status ke Terjadwal';
+  }
+  if (targetStatus === APPOINTMENT_STATUS.IN_SERVICE) {
+    if (!hasAssignments) {
+      return 'Dokter dan ruangan harus ditugaskan terlebih dahulu';
+    }
+    if (currentStatus === APPOINTMENT_STATUS.BOOKED || !hasCheckedIn) {
+      return 'Pasien harus check-in terlebih dahulu';
+    }
+    if (currentStatus !== APPOINTMENT_STATUS.WAITING) {
+      return 'Hanya antrean Menunggu yang dapat diperiksa';
+    }
+  }
+  if (targetStatus === APPOINTMENT_STATUS.WAITING) {
+    if (!hasAssignments) {
+      return 'Dokter dan ruangan harus ditugaskan terlebih dahulu';
+    }
+    if (currentStatus !== APPOINTMENT_STATUS.BOOKED) {
+      return 'Pasien sudah melewati status Menunggu';
+    }
+  }
+  if (targetStatus === APPOINTMENT_STATUS.COMPLETED) {
+    if (currentStatus !== APPOINTMENT_STATUS.IN_SERVICE) {
+      return 'Hanya antrean Sedang Diperiksa yang dapat diselesaikan';
+    }
+  }
+  if (targetStatus === APPOINTMENT_STATUS.CANCELLED) {
+    if (isAppointmentTerminal(currentStatus)) {
+      return 'Janji temu sudah selesai atau ditutup';
+    }
+  }
+  if (targetStatus === APPOINTMENT_STATUS.LATE) {
+    if (isAppointmentTerminal(currentStatus) || currentStatus === APPOINTMENT_STATUS.IN_SERVICE) {
+      return 'Tidak dapat menandai terlambat';
+    }
+  }
+  return null;
 }
 
 export function AppointmentStatusModal({
@@ -32,9 +83,18 @@ export function AppointmentStatusModal({
   );
   const queryClient = useQueryClient();
 
+  const currentStatus = normalizeToAppointmentStatus(appointment?.status);
+  const hasAssignments = Boolean(appointment?.doctorName && appointment?.roomName);
+  const hasCheckedIn = Boolean(
+    appointment?.checkedInAt ||
+    currentStatus === APPOINTMENT_STATUS.WAITING ||
+    currentStatus === APPOINTMENT_STATUS.IN_SERVICE ||
+    currentStatus === APPOINTMENT_STATUS.COMPLETED
+  );
+
   useEffect(() => {
     if (appointment) {
-      setSelectedStatus(appointment.status);
+      setSelectedStatus(normalizeToAppointmentStatus(appointment.status));
     }
   }, [appointment]);
 
@@ -54,8 +114,17 @@ export function AppointmentStatusModal({
 
   if (!appointment) return null;
 
+  const selectedDisabledReason = getStatusDisabledReason(
+    selectedStatus,
+    currentStatus,
+    hasAssignments,
+    hasCheckedIn
+  );
+  const canSubmit = !mutation.isPending && selectedStatus !== currentStatus && !selectedDisabledReason;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canSubmit) return;
     await mutation.mutateAsync({
       id: appointment.id,
       status: selectedStatus
@@ -82,6 +151,18 @@ export function AppointmentStatusModal({
           </div>
         </div>
 
+        {!hasAssignments && (
+          <div className='p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-2.5 text-xs text-amber-800 dark:text-amber-300'>
+            <Icons.alertCircle className='size-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400' />
+            <div className='space-y-0.5'>
+              <p className='font-semibold'>Dokter dan Ruangan Belum Ditugaskan</p>
+              <p className='text-[11px] text-amber-700/90 dark:text-amber-400/90'>
+                Tugaskan dokter dan ruangan terlebih dahulu sebelum memperbarui status ke Menunggu atau Sedang Diperiksa.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className='space-y-2'>
           <span className='text-xs font-semibold text-foreground tracking-tight block'>
             Pilih Status Operasional Terkini:
@@ -90,30 +171,42 @@ export function AppointmentStatusModal({
             {APPOINTMENT_STATUS_OPTIONS.map((st) => {
               const isSelected = selectedStatus === st.value;
               const config = getAppointmentStatusConfig(st.value);
+              const disabledReason = getStatusDisabledReason(
+                st.value,
+                currentStatus,
+                hasAssignments,
+                hasCheckedIn
+              );
+              const isDisabled = Boolean(disabledReason);
 
               return (
                 <button
                   key={st.value}
                   type='button'
+                  disabled={isDisabled}
                   aria-label={`Pilih status ${st.label}`}
-                  onClick={() => setSelectedStatus(st.value)}
+                  onClick={() => {
+                    if (!isDisabled) setSelectedStatus(st.value);
+                  }}
                   className={cn(
-                    'w-full text-left p-3 rounded-xl border transition-all flex items-start gap-2.5 cursor-pointer select-none',
-                    isSelected
-                      ? 'border-primary bg-primary/5 shadow-xs ring-1 ring-primary/30'
-                      : 'border-border/60 bg-card hover:border-border hover:bg-accent/40'
+                    'w-full text-left p-3 rounded-xl border transition-all flex items-start gap-2.5 select-none',
+                    isDisabled
+                      ? 'border-border/30 bg-muted/20 opacity-55 cursor-not-allowed'
+                      : isSelected
+                        ? 'border-primary bg-primary/5 shadow-xs ring-1 ring-primary/30 cursor-pointer'
+                        : 'border-border/60 bg-card hover:border-border hover:bg-accent/40 cursor-pointer'
                   )}
                 >
                   <div className='pt-0.5 shrink-0'>
                     <div
                       className={cn(
                         'size-4 rounded-full border flex items-center justify-center transition-colors',
-                        isSelected
+                        isSelected && !isDisabled
                           ? 'border-primary bg-primary text-primary-foreground'
                           : 'border-muted-foreground/40 bg-background'
                       )}
                     >
-                      {isSelected && <Icons.check className='size-2.5 stroke-[3]' />}
+                      {isSelected && !isDisabled && <Icons.check className='size-2.5 stroke-[3]' />}
                     </div>
                   </div>
 
@@ -130,7 +223,13 @@ export function AppointmentStatusModal({
                       </span>
                     </div>
                     <p className='text-[11px] text-muted-foreground line-clamp-1 mt-0.5 leading-tight'>
-                      {st.description}
+                      {disabledReason ? (
+                        <span className='text-amber-600 dark:text-amber-400 font-medium'>
+                          {disabledReason}
+                        </span>
+                      ) : (
+                        st.description
+                      )}
                     </p>
                   </div>
                 </button>
@@ -155,7 +254,7 @@ export function AppointmentStatusModal({
             variant='default'
             shape='pill'
             size='default'
-            disabled={mutation.isPending}
+            disabled={!canSubmit}
             className='px-6 font-semibold text-xs'
           >
             {mutation.isPending ? (
@@ -170,3 +269,4 @@ export function AppointmentStatusModal({
     </ModalWrapper>
   );
 }
+

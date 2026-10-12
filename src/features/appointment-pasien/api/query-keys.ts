@@ -8,5 +8,7 @@ export const appointmentKeys = {
   doctorCandidates: (appointmentId: string) =>
     [...appointmentKeys.all, 'candidates', 'doctors', appointmentId] as const,
   roomCandidates: (appointmentId: string) =>
-    [...appointmentKeys.all, 'candidates', 'rooms', appointmentId] as const
+    [...appointmentKeys.all, 'candidates', 'rooms', appointmentId] as const,
+  checkInQr: (appointmentId: string) =>
+    [...appointmentKeys.all, 'check-in-qr', appointmentId] as const
 };

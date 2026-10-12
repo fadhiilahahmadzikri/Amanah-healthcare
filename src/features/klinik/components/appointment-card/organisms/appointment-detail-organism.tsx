@@ -114,11 +114,10 @@ export function AppointmentDetailOrganism({
   const complaintText = appointment.complaint || '-';
   const isAdmin = role === 'admin' || hasRole('admin');
 
-  const isCheckedIn = Boolean(appointment.checked_in_at || appointment.checkedInAt);
-  const canCancel = !isTerminal && !isCheckedIn;
+  const canCancel = Boolean(appointment.allowedActions?.includes('CANCEL'));
   const canReassign = isAdmin && !isTerminal;
-  const canReschedule = !isTerminal && !isInService && (!isCheckedIn || isAdmin);
-  const canCall = !appointment.allowedActions || appointment.allowedActions.includes('CALL');
+  const canReschedule = Boolean(appointment.allowedActions?.includes('RESCHEDULE'));
+  const canCall = Boolean(appointment.allowedActions?.includes('CALL'));
 
   const handleConfirmCancel = async () => {
     if (!onCancel || !appointment) return;

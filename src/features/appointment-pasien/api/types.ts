@@ -12,7 +12,9 @@ export type AppointmentAction =
   | 'START_SERVICE'
   | 'COMPLETE'
   | 'CANCEL'
-  | 'RESCHEDULE';
+  | 'RESCHEDULE'
+  | 'ASSIGN_DOCTOR'
+  | 'ASSIGN_ROOM';
 
 export type LiveStatus = AppointmentStatus;
 

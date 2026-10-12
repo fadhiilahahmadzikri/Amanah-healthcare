@@ -3,7 +3,8 @@ import {
   getAdminAppointments,
   getAdminAppointmentById,
   getDoctorCandidates,
-  getRoomCandidates
+  getRoomCandidates,
+  generateCheckInQr
 } from './service';
 import { appointmentKeys } from './query-keys';
 import type { AdminAppointment, AppointmentFilters } from './types';
@@ -37,4 +38,13 @@ export const roomCandidatesQueryOptions = (appointmentId: string) =>
     queryKey: appointmentKeys.roomCandidates(appointmentId),
     queryFn: () => getRoomCandidates(appointmentId),
     enabled: Boolean(appointmentId)
+  });
+
+export const checkInQrQueryOptions = (appointmentId: string, enabled = true) =>
+  queryOptions({
+    queryKey: appointmentKeys.checkInQr(appointmentId),
+    queryFn: () => generateCheckInQr(appointmentId),
+    enabled: Boolean(appointmentId && enabled),
+    staleTime: 60 * 1000,
+    retry: 1
   });

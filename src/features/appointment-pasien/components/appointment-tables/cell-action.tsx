@@ -13,12 +13,9 @@ import { Icons } from '@/components/icons';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
-import {
-  isAppointmentTerminal,
-  isAppointmentInService
-} from '../../constants/options';
+import { isAppointmentBooked, isAppointmentTerminal } from '../../constants/options';
 import type { AdminAppointment } from '../../api/types';
-import { callPatient } from '../../api/service';
+import { callPatient, cancelAppointmentAction } from '../../api/service';
 import { appointmentKeys } from '../../api/queries';
 import { AppointmentRecordModal } from '../appointment-record-modal';
 import { AppointmentDetailOrganism } from '@/features/klinik/components/details-modal';
@@ -45,18 +42,14 @@ export function CellAction({ data }: CellActionProps) {
   const [isCalling, setIsCalling] = useState(false);
 
   const isTerminal = isAppointmentTerminal(data.status);
-  const isInService = isAppointmentInService(data.status);
+  const isBooked = isAppointmentBooked(data.status);
+  const hasAssignments = Boolean(data.doctorName && data.roomName);
   const canCall = Boolean(data.allowedActions?.includes('CALL'));
-  const canCheckIn =
-    Boolean(data.doctorName) &&
-    data.status !== APPOINTMENT_STATUS.LATE &&
-    !isTerminal &&
-    Boolean(data.allowedActions?.includes('CHECK_IN'));
+  const canCheckIn = Boolean(data.allowedActions?.includes('CHECK_IN'));
   const canReassign = !isTerminal;
-  const canUpdateStatus = !isTerminal;
-  const canReschedule =
-    Boolean(data.allowedActions?.includes('RESCHEDULE')) ||
-    (!isTerminal && !isInService);
+  const canUpdateStatus = !isTerminal && (!isBooked || hasAssignments);
+  const canReschedule = Boolean(data.allowedActions?.includes('RESCHEDULE'));
+  const canCancel = Boolean(data.allowedActions?.includes('CANCEL'));
 
   const handleCallPatient = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -80,17 +73,45 @@ export function CellAction({ data }: CellActionProps) {
         isOpen={milestoneOpen}
         appointment={data}
         onClose={() => setMilestoneOpen(false)}
-        onViewPatientDetail={() => setDetailOpen(true)}
-        onUpdateStatus={() => setStatusOpen(true)}
-        onChangeDoctor={() => setChangeDoctorOpen(true)}
-        onChangeRoom={() => setChangeRoomOpen(true)}
-        onQrCheckIn={() => setQrOpen(true)}
-        onReschedule={() => setRescheduleOpen(true)}
+        onViewPatientDetail={() => {
+          setMilestoneOpen(false);
+          setDetailOpen(true);
+        }}
+        onUpdateStatus={() => {
+          setMilestoneOpen(false);
+          setStatusOpen(true);
+        }}
+        onChangeDoctor={() => {
+          setMilestoneOpen(false);
+          setChangeDoctorOpen(true);
+        }}
+        onChangeRoom={() => {
+          setMilestoneOpen(false);
+          setChangeRoomOpen(true);
+        }}
+        onQrCheckIn={() => {
+          setMilestoneOpen(false);
+          setQrOpen(true);
+        }}
+        onReschedule={() => {
+          setMilestoneOpen(false);
+          setRescheduleOpen(true);
+        }}
+        onCancel={() => {
+          setMilestoneOpen(false);
+          setDetailOpen(true);
+        }}
       />
       <AppointmentDetailOrganism
         appointment={adminAppointmentToAppointment(data)}
         isOpen={detailOpen}
         onClose={() => setDetailOpen(false)}
+        onCancel={async (_apt, reason) => {
+          await cancelAppointmentAction(data.id, reason);
+          await queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
+          toast.success('Janji temu berhasil dibatalkan');
+          setDetailOpen(false);
+        }}
       />
       <AppointmentStatusModal
         appointment={data}
@@ -270,6 +291,19 @@ export function CellAction({ data }: CellActionProps) {
               >
                 <Icons.calendar className='size-3.5 text-muted-foreground' />
                 <span>Jadwalkan Ulang</span>
+              </DropdownMenuItem>
+            )}
+
+            {canCancel && (
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDetailOpen(true);
+                }}
+                className='cursor-pointer text-xs gap-2 text-destructive focus:text-destructive'
+              >
+                <Icons.trash className='size-3.5 text-destructive' />
+                <span>Batalkan Janji Temu</span>
               </DropdownMenuItem>
             )}
 

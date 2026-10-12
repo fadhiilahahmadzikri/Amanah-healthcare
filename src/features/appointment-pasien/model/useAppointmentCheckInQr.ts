@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useRef } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { AppointmentStatusDescriptor } from '@/constants/appointment-status.constants';
-import { generateCheckInQr } from '../api/service';
 import type { AdminAppointment, CheckInQrData } from '../api/types';
 import { appointmentKeys } from '../api/queries';
+import { checkInQrQueryOptions } from '../api/queries';
+
+import { isAppointmentTerminal } from '../constants/options';
 
 export interface UseAppointmentCheckInQrParams {
   isOpen: boolean;
@@ -19,6 +21,8 @@ export interface UseAppointmentCheckInQrResult {
   isLoading: boolean;
   isCopied: boolean;
   isExpired: boolean;
+  isAlreadyCheckedIn: boolean;
+  isMissingAssignment: boolean;
   secondsRemaining: number;
   formattedCountdown: string;
   actions: {
@@ -45,55 +49,56 @@ export function useAppointmentCheckInQr({
   onClose
 }: UseAppointmentCheckInQrParams): UseAppointmentCheckInQrResult {
   const queryClient = useQueryClient();
-  const [qrData, setQrData] = useState<CheckInQrData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [secondsRemaining, setSecondsRemaining] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const fetchQr = useCallback(async () => {
-    if (!appointment) return;
-    setIsLoading(true);
-    try {
-      const res = await generateCheckInQr(appointment.id);
-      const data: CheckInQrData | null =
-        res && typeof res === 'object' && 'data' in res && res.data
-          ? res.data
-          : res && typeof res === 'object' && 'token' in res
-            ? (res as CheckInQrData)
-            : null;
+  const isTerminal = isAppointmentTerminal(appointment?.status);
+  const isBooked = appointment?.status === 'BOOKED';
+  const hasDoctorAndRoom = Boolean(appointment?.doctorName && appointment?.roomName);
+  const isMissingAssignment = Boolean(isBooked && !hasDoctorAndRoom);
+  const isAlreadyCheckedIn = Boolean(
+    appointment && !isBooked && !appointment.allowedActions?.includes('CHECK_IN')
+  );
 
-      if (data && data.token && data.qrPayload) {
-        setQrData(data);
-        const deadline = data.appointmentEligibilityDeadline || data.expiresAt;
-        if (deadline) {
-          const diffMs = new Date(deadline).getTime() - Date.now();
-          setSecondsRemaining(Math.max(0, Math.floor(diffMs / 1000)));
-        } else if (typeof data.remainingSeconds === 'number') {
-          setSecondsRemaining(Math.max(0, data.remainingSeconds));
-        } else {
-          setSecondsRemaining(0);
-        }
-      } else {
-        const errMsg = (res as { message?: string })?.message || 'Gagal membuat QR Code check-in';
-        toast.error(errMsg);
-      }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      toast.error(`Gagal membuat QR Code: ${msg}`);
-    } finally {
-      setIsLoading(false);
+  const isQueryEnabled = Boolean(
+    isOpen && appointment?.id && !isAlreadyCheckedIn && !isMissingAssignment && !isTerminal
+  );
+
+  const {
+    data: queryResult,
+    isLoading,
+    refetch
+  } = useQuery(
+    checkInQrQueryOptions(appointment?.id ? String(appointment.id) : '', isQueryEnabled)
+  );
+
+  const qrData: CheckInQrData | null = (() => {
+    if (!queryResult) return null;
+    if (typeof queryResult === 'object' && 'data' in queryResult && queryResult.data) {
+      return queryResult.data as CheckInQrData;
     }
-  }, [appointment]);
+    if (typeof queryResult === 'object' && 'token' in queryResult) {
+      return queryResult as CheckInQrData;
+    }
+    return null;
+  })();
 
   useEffect(() => {
-    if (isOpen && appointment) {
-      fetchQr();
+    if (qrData) {
+      const deadline = qrData.appointmentEligibilityDeadline || qrData.expiresAt;
+      if (deadline) {
+        const diffMs = new Date(deadline).getTime() - Date.now();
+        setSecondsRemaining(Math.max(0, Math.floor(diffMs / 1000)));
+      } else if (typeof qrData.remainingSeconds === 'number') {
+        setSecondsRemaining(Math.max(0, qrData.remainingSeconds));
+      } else {
+        setSecondsRemaining(0);
+      }
     } else {
-      setQrData(null);
       setSecondsRemaining(0);
     }
-  }, [isOpen, appointment, fetchQr]);
+  }, [qrData]);
 
   useEffect(() => {
     if (timerRef.current) {
@@ -119,8 +124,10 @@ export function useAppointmentCheckInQr({
     };
   }, [secondsRemaining]);
 
+  // Only close if appointment was BOOKED when modal opened and now transitions to WAITING
   useEffect(() => {
     if (!isOpen || !appointment) return;
+    if (appointment.status !== 'BOOKED') return;
 
     const handleStatusUpdate = (event: Event) => {
       const customEvent = event as CustomEvent;
@@ -158,11 +165,17 @@ export function useAppointmentCheckInQr({
   const isExpired = Boolean(qrData && secondsRemaining <= 0);
   const formattedCountdown = formatCountdown(secondsRemaining);
 
+  const fetchQr = async () => {
+    await refetch();
+  };
+
   return {
     qrData,
     isLoading,
     isCopied,
     isExpired,
+    isAlreadyCheckedIn,
+    isMissingAssignment,
     secondsRemaining,
     formattedCountdown,
     actions: {

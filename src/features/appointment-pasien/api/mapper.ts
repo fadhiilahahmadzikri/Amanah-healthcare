@@ -17,15 +17,7 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
     (item.createdAt ? String(item.createdAt).slice(0, 10) : new Date().toISOString().slice(0, 10));
   const scheduledStartTime = item.scheduledStartTime || item.session || '-';
 
-  const allowedActions =
-    (item.allowedActions as AppointmentAction[]) ||
-    (status === APPOINTMENT_STATUS.BOOKED
-      ? ['CHECK_IN', 'CANCEL']
-      : status === APPOINTMENT_STATUS.WAITING
-        ? ['CALL', 'START_SERVICE', 'CANCEL']
-        : status === APPOINTMENT_STATUS.IN_SERVICE
-          ? ['COMPLETE']
-          : []);
+  const allowedActions = (item.allowedActions as AppointmentAction[]) || [];
 
   return {
     id: String(item.id),

@@ -11,11 +11,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
-import {
-  isAppointmentTerminal,
-  isAppointmentInService
-} from '../constants/options';
+import { isAppointmentBooked, isAppointmentTerminal } from '../constants/options';
 import { getAppointmentStatusConfig } from '../constants/appointment-status.dictionary';
 import { AppointmentHistoryTimeline } from './appointment-history-timeline';
 import type { AdminAppointment } from '../api/types';
@@ -30,6 +26,7 @@ export interface AppointmentRecordModalProps {
   onChangeRoom?: () => void;
   onQrCheckIn?: () => void;
   onReschedule?: () => void;
+  onCancel?: () => void;
 }
 
 export function AppointmentRecordModal({
@@ -41,26 +38,23 @@ export function AppointmentRecordModal({
   onChangeDoctor,
   onChangeRoom,
   onQrCheckIn,
-  onReschedule
+  onReschedule,
+  onCancel
 }: AppointmentRecordModalProps) {
   if (!appointment) return null;
 
   const isTerminal = isAppointmentTerminal(appointment.status);
-  const isInService = isAppointmentInService(appointment.status);
+  const isBooked = isAppointmentBooked(appointment.status);
+  const hasAssignments = Boolean(appointment.doctorName && appointment.roomName);
   const canReassign = !isTerminal;
-  const canUpdateStatus = !isTerminal;
-  const canReschedule =
-    Boolean(appointment.allowedActions?.includes('RESCHEDULE')) ||
-    (!isTerminal && !isInService);
+  const canUpdateStatus = !isTerminal && (!isBooked || hasAssignments);
+  const canReschedule = Boolean(appointment.allowedActions?.includes('RESCHEDULE'));
+  const canCancel = Boolean(appointment.allowedActions?.includes('CANCEL'));
 
   const statusConfig = getAppointmentStatusConfig(appointment.status);
   const serviceName = appointment.layananName || appointment.poliklinikName;
   const subtitle = `Antrean ${appointment.queueNumber} pasien ${appointment.patientName}${serviceName ? ` dengan layanan ${serviceName}` : ''}`;
-  const canCheckIn =
-    Boolean(appointment.doctorName) &&
-    appointment.status !== APPOINTMENT_STATUS.LATE &&
-    !isTerminal &&
-    Boolean(appointment.allowedActions?.includes('CHECK_IN'));
+  const canCheckIn = Boolean(appointment.allowedActions?.includes('CHECK_IN'));
 
   return (
     <ModalWrapper
@@ -174,6 +168,16 @@ export function AppointmentRecordModal({
                     <span>Jadwalkan Ulang</span>
                   </DropdownMenuItem>
                 )}
+
+                {canCancel && onCancel && (
+                  <DropdownMenuItem
+                    onClick={onCancel}
+                    className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-destructive focus:text-destructive transition-colors'
+                  >
+                    <Icons.trash className='size-4 text-destructive shrink-0' />
+                    <span>Batalkan Janji Temu</span>
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -196,17 +200,19 @@ export function AppointmentRecordModal({
           </Button>
 
           <div className='flex items-center gap-2.5'>
-            <Button
-              type='button'
-              variant='outline'
-              shape='pill'
-              size='default'
-              onClick={onUpdateStatus}
-              className='px-4 font-semibold text-xs cursor-pointer'
-              leadingIcon={<Icons.refresh className='size-3.5' />}
-            >
-              Update Status
-            </Button>
+            {canUpdateStatus && (
+              <Button
+                type='button'
+                variant='outline'
+                shape='pill'
+                size='default'
+                onClick={onUpdateStatus}
+                className='px-4 font-semibold text-xs cursor-pointer'
+                leadingIcon={<Icons.refresh className='size-3.5' />}
+              >
+                Update Status
+              </Button>
+            )}
 
             {canCheckIn && onQrCheckIn && (
               <Button

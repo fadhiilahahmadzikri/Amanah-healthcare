@@ -19,7 +19,7 @@ export function AppointmentCheckInQrModal({
   appointment,
   onClose
 }: AppointmentCheckInQrModalProps) {
-  const { qrData, isLoading, isCopied, formattedCountdown, actions } = useAppointmentCheckInQr({
+  const { qrData, isLoading, isCopied, isAlreadyCheckedIn, isMissingAssignment, formattedCountdown, actions } = useAppointmentCheckInQr({
     isOpen,
     appointment,
     onClose
@@ -87,6 +87,30 @@ export function AppointmentCheckInQrModal({
               <Icons.spinner className='size-8 animate-spin text-primary' />
               <span className='text-xs font-medium'>Menghasilkan QR Code...</span>
             </div>
+          ) : isMissingAssignment ? (
+            <div className='flex flex-col items-center justify-center py-10 px-4 gap-3 text-center'>
+              <div className='size-12 rounded-full bg-amber-500/10 text-amber-600 flex items-center justify-center'>
+                <Icons.alertCircle className='size-6' />
+              </div>
+              <div className='space-y-1'>
+                <p className='text-sm font-semibold text-foreground'>Dokter / Ruangan Belum Ditugaskan</p>
+                <p className='text-xs text-muted-foreground max-w-xs'>
+                  Check-in hanya dapat dilakukan setelah dokter dan ruangan pemeriksaan telah ditugaskan.
+                </p>
+              </div>
+            </div>
+          ) : isAlreadyCheckedIn ? (
+            <div className='flex flex-col items-center justify-center py-10 px-4 gap-3 text-center'>
+              <div className='size-12 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center'>
+                <Icons.check className='size-6' />
+              </div>
+              <div className='space-y-1'>
+                <p className='text-sm font-semibold text-foreground'>Pasien Sudah Check-In</p>
+                <p className='text-xs text-muted-foreground max-w-xs'>
+                  Janji temu ini telah melakukan check-in dan saat ini berada di dalam antrean aktif poliklinik.
+                </p>
+              </div>
+            </div>
           ) : qrData ? (
             <div className='w-full flex flex-col items-center space-y-3'>
               <div className='size-[200px] flex items-center justify-center bg-white p-2 rounded-xl border border-border/40 shadow-xs'>
@@ -141,17 +165,19 @@ export function AppointmentCheckInQrModal({
         )}
 
         <div className='pt-2 border-t border-border/40 flex items-center justify-between gap-2'>
-          <Button
-            type='button'
-            variant='ghost'
-            size='sm'
-            onClick={actions.fetchQr}
-            disabled={isLoading}
-            className='text-xs text-muted-foreground hover:text-foreground gap-1.5'
-          >
-            <Icons.refresh className='size-3.5' />
-            <span>Muat Ulang QR</span>
-          </Button>
+          {!isAlreadyCheckedIn ? (
+            <Button
+              type='button'
+              variant='ghost'
+              size='sm'
+              onClick={actions.fetchQr}
+              disabled={isLoading}
+              className='text-xs text-muted-foreground hover:text-foreground gap-1.5'
+            >
+              <Icons.refresh className='size-3.5' />
+              <span>Muat Ulang QR</span>
+            </Button>
+          ) : <div />}
 
           <Button
             type='button'
