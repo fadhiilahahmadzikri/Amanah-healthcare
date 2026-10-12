@@ -76,6 +76,9 @@ export function RescheduleAppointmentModal({
       queryClient.invalidateQueries({ queryKey: ['appointments'] });
       queryClient.invalidateQueries({ queryKey: ['patient-appointments'] });
       queryClient.invalidateQueries({ queryKey: ['schedules'] });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clinic:appointment_updated'));
+      }
       onSuccess?.();
       onClose();
     },

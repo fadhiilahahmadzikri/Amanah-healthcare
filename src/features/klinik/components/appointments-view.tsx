@@ -170,6 +170,9 @@ export function AppointmentsView() {
         onCancel={async (apt, reason) => {
           await appointmentsView.actions.cancelAppointment(apt.id, reason);
         }}
+        onRescheduled={async () => {
+          await appointmentsView.actions.reload();
+        }}
       />
 
       {/* Patient Self/Kiosk Check-In Modal */}

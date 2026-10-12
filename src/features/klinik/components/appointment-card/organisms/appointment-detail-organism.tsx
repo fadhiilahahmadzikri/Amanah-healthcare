@@ -38,6 +38,7 @@ export interface AppointmentDetailOrganismProps {
   viewerRole?: 'patient' | 'internal';
   onClose: () => void;
   onCancel?: (appointment: Appointment, reason?: string) => Promise<void> | void;
+  onRescheduled?: (appointment: Appointment) => Promise<void> | void;
   onCallPatient?: (appointment: Appointment) => Promise<void> | void;
   onCompletePatient?: (appointment: Appointment) => Promise<void> | void;
   isCallPending?: boolean;
@@ -53,6 +54,7 @@ export function AppointmentDetailOrganism({
   viewerRole = 'internal',
   onClose,
   onCancel,
+  onRescheduled,
   onCallPatient,
   onCompletePatient,
   isCallPending = false,
@@ -114,9 +116,17 @@ export function AppointmentDetailOrganism({
   const complaintText = appointment.complaint || '-';
   const isAdmin = role === 'admin' || hasRole('admin');
 
-  const canCancel = Boolean(appointment.allowedActions?.includes('CANCEL'));
+  const canCancel = Boolean(
+    appointment.allowedActions
+      ? appointment.allowedActions.includes('CANCEL')
+      : !isTerminal && !isInService
+  );
   const canReassign = isAdmin && !isTerminal;
-  const canReschedule = Boolean(appointment.allowedActions?.includes('RESCHEDULE'));
+  const canReschedule = Boolean(
+    appointment.allowedActions
+      ? appointment.allowedActions.includes('RESCHEDULE')
+      : !isTerminal && !isInService
+  );
   const canCall = Boolean(appointment.allowedActions?.includes('CALL'));
 
   const handleConfirmCancel = async () => {
@@ -364,6 +374,34 @@ export function AppointmentDetailOrganism({
                   </Button>
 
                   <div className='flex items-center gap-2'>
+                    {canReschedule && !isInService && (
+                      <Button
+                        type='button'
+                        variant='outline'
+                        shape='pill'
+                        size='default'
+                        onClick={() => setIsRescheduleOpen(true)}
+                        className='text-xs font-semibold cursor-pointer gap-1.5'
+                      >
+                        <Icons.calendar className='size-3.5 text-muted-foreground' />
+                        <span>Jadwalkan Ulang</span>
+                      </Button>
+                    )}
+
+                    {canCancel && onCancel && (
+                      <Button
+                        type='button'
+                        variant='destructive'
+                        shape='pill'
+                        size='default'
+                        onClick={() => setModalStep('cancel-confirm')}
+                        className='text-xs font-semibold cursor-pointer gap-1.5'
+                      >
+                        <Icons.close className='size-3.5' />
+                        <span>Batalkan Janji Temu</span>
+                      </Button>
+                    )}
+
                     {onCallPatient && isWaiting && (
                       <Button
                         type='button'
@@ -491,6 +529,7 @@ export function AppointmentDetailOrganism({
         onClose={() => setIsRescheduleOpen(false)}
         onSuccess={() => {
           setIsRescheduleOpen(false);
+          onRescheduled?.(appointment);
           onClose();
         }}
       />

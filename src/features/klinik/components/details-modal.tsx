@@ -13,6 +13,7 @@ export interface DetailsModalProps {
   viewerRole?: 'patient' | 'internal';
   onClose: () => void;
   onCancel?: (appointment: Appointment, reason?: string) => Promise<void> | void;
+  onRescheduled?: (appointment: Appointment) => Promise<void> | void;
   portalContainerRef?: React.RefObject<HTMLElement | null>;
 }
 

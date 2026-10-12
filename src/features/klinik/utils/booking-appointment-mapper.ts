@@ -65,7 +65,8 @@ export function mapBackendAppointmentToUi({
     visit_type: res.visitType || '',
     service: res.layananName || selectedService?.name || '',
     created_at: res.createdAt || new Date().toISOString(),
-    queue_number: res.queueNumber || '-'
+    queue_number: res.queueNumber || '-',
+    allowedActions: (res.allowedActions as string[]) || ['CANCEL', 'RESCHEDULE']
   };
 }
 

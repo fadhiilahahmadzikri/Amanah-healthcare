@@ -148,7 +148,12 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
       doctor_id: apt.staffId,
       staff_id: apt.staffId,
       poliklinik_id: apt.poliklinikId,
-      layanan_id: apt.layananId
+      layanan_id: apt.layananId,
+      allowedActions:
+        apt.allowedActions ||
+        (['BOOKED', 'WAITING', 'LATE'].includes(canonicalStatus)
+          ? ['CANCEL', 'RESCHEDULE']
+          : [])
     };
   }, []);
 

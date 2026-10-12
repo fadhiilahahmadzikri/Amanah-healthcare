@@ -205,6 +205,7 @@ export interface BackendAppointmentItem {
   patientName?: string;
   etaRange?: string | null;
   aheadCount?: number | null;
+  allowedActions?: string[];
   createdAt: string;
 }
 
