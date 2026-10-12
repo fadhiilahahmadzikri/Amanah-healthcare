@@ -337,3 +337,24 @@ export async function performCheckIn(
     body: JSON.stringify(payload)
   });
 }
+
+export interface RescheduleAppointmentPayload {
+  target_session_id?: string;
+  target_date: string;
+  reason?: string;
+}
+
+export async function rescheduleAppointmentAction(
+  appointmentId: string | number,
+  payload: RescheduleAppointmentPayload
+) {
+  return await clientFetch<{
+    success: boolean;
+    message?: string;
+    data?: any;
+  }>(`/api/v1/appointments/${appointmentId}/reschedule`, {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+}
+

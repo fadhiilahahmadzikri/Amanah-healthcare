@@ -13,6 +13,10 @@ import { Icons } from '@/components/icons';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
+import {
+  isAppointmentTerminal,
+  isAppointmentInService
+} from '../../constants/options';
 import type { AdminAppointment } from '../../api/types';
 import { callPatient } from '../../api/service';
 import { appointmentKeys } from '../../api/queries';
@@ -23,6 +27,7 @@ import { AppointmentStatusModal } from '../appointment-status-modal';
 import { AppointmentCheckInQrModal } from '../appointment-check-in-qr-modal';
 import { ChangeDoctorModal } from '../change-doctor-modal';
 import { ChangeRoomModal } from '../change-room-modal';
+import { RescheduleAppointmentModal } from '../reschedule-appointment-modal';
 
 interface CellActionProps {
   data: AdminAppointment;
@@ -36,13 +41,22 @@ export function CellAction({ data }: CellActionProps) {
   const [qrOpen, setQrOpen] = useState(false);
   const [changeDoctorOpen, setChangeDoctorOpen] = useState(false);
   const [changeRoomOpen, setChangeRoomOpen] = useState(false);
+  const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [isCalling, setIsCalling] = useState(false);
 
+  const isTerminal = isAppointmentTerminal(data.status);
+  const isInService = isAppointmentInService(data.status);
   const canCall = Boolean(data.allowedActions?.includes('CALL'));
   const canCheckIn =
     Boolean(data.doctorName) &&
     data.status !== APPOINTMENT_STATUS.LATE &&
+    !isTerminal &&
     Boolean(data.allowedActions?.includes('CHECK_IN'));
+  const canReassign = !isTerminal;
+  const canUpdateStatus = !isTerminal;
+  const canReschedule =
+    Boolean(data.allowedActions?.includes('RESCHEDULE')) ||
+    (!isTerminal && !isInService);
 
   const handleCallPatient = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -71,6 +85,7 @@ export function CellAction({ data }: CellActionProps) {
         onChangeDoctor={() => setChangeDoctorOpen(true)}
         onChangeRoom={() => setChangeRoomOpen(true)}
         onQrCheckIn={() => setQrOpen(true)}
+        onReschedule={() => setRescheduleOpen(true)}
       />
       <AppointmentDetailOrganism
         appointment={adminAppointmentToAppointment(data)}
@@ -206,41 +221,88 @@ export function CellAction({ data }: CellActionProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end' className='w-44 text-xs font-medium'>
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                setChangeDoctorOpen(true);
-              }}
-              className='cursor-pointer text-xs gap-2'
-            >
-              <Icons.userCheck className='size-3.5 text-muted-foreground' />
-              <span>{data.doctorName ? 'Ganti Dokter' : 'Tugaskan Dokter'}</span>
-            </DropdownMenuItem>
+            {canReassign && (
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setChangeDoctorOpen(true);
+                }}
+                className='cursor-pointer text-xs gap-2'
+              >
+                <Icons.userCheck className='size-3.5 text-muted-foreground' />
+                <span>{data.doctorName ? 'Ganti Dokter' : 'Tugaskan Dokter'}</span>
+              </DropdownMenuItem>
+            )}
 
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                setChangeRoomOpen(true);
-              }}
-              className='cursor-pointer text-xs gap-2'
-            >
-              <Icons.mapPin className='size-3.5 text-muted-foreground' />
-              <span>{data.roomName ? 'Ganti Ruangan' : 'Tugaskan Ruangan'}</span>
-            </DropdownMenuItem>
+            {canReassign && (
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setChangeRoomOpen(true);
+                }}
+                className='cursor-pointer text-xs gap-2'
+              >
+                <Icons.mapPin className='size-3.5 text-muted-foreground' />
+                <span>{data.roomName ? 'Ganti Ruangan' : 'Tugaskan Ruangan'}</span>
+              </DropdownMenuItem>
+            )}
 
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                setStatusOpen(true);
-              }}
-              className='cursor-pointer text-xs gap-2'
-            >
-              <Icons.refresh className='size-3.5 text-muted-foreground' />
-              <span>Update Status</span>
-            </DropdownMenuItem>
+            {canUpdateStatus && (
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setStatusOpen(true);
+                }}
+                className='cursor-pointer text-xs gap-2'
+              >
+                <Icons.refresh className='size-3.5 text-muted-foreground' />
+                <span>Update Status</span>
+              </DropdownMenuItem>
+            )}
+
+            {canReschedule && (
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setRescheduleOpen(true);
+                }}
+                className='cursor-pointer text-xs gap-2'
+              >
+                <Icons.calendar className='size-3.5 text-muted-foreground' />
+                <span>Jadwalkan Ulang</span>
+              </DropdownMenuItem>
+            )}
+
+            {isTerminal && (
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setMilestoneOpen(true);
+                }}
+                className='cursor-pointer text-xs gap-2 text-muted-foreground'
+              >
+                <Icons.eye className='size-3.5 text-muted-foreground' />
+                <span>Lihat Riwayat Saja</span>
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <RescheduleAppointmentModal
+        isOpen={rescheduleOpen}
+        appointmentId={String(data.id)}
+        patientName={data.patientName}
+        queueNumber={data.queueNumber}
+        serviceName={data.layananName || data.poliklinikName}
+        poliklinikId={data.layananId || undefined}
+        currentDate={data.scheduledDate}
+        currentSession={data.session || data.sessionName || undefined}
+        onClose={() => setRescheduleOpen(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
+        }}
+      />
     </>
   );
 }

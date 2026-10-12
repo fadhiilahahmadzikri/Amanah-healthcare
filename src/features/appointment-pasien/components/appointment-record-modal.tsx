@@ -12,6 +12,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
+import {
+  isAppointmentTerminal,
+  isAppointmentInService
+} from '../constants/options';
 import { getAppointmentStatusConfig } from '../constants/appointment-status.dictionary';
 import { AppointmentHistoryTimeline } from './appointment-history-timeline';
 import type { AdminAppointment } from '../api/types';
@@ -25,6 +29,7 @@ export interface AppointmentRecordModalProps {
   onChangeDoctor?: () => void;
   onChangeRoom?: () => void;
   onQrCheckIn?: () => void;
+  onReschedule?: () => void;
 }
 
 export function AppointmentRecordModal({
@@ -35,9 +40,18 @@ export function AppointmentRecordModal({
   onUpdateStatus,
   onChangeDoctor,
   onChangeRoom,
-  onQrCheckIn
+  onQrCheckIn,
+  onReschedule
 }: AppointmentRecordModalProps) {
   if (!appointment) return null;
+
+  const isTerminal = isAppointmentTerminal(appointment.status);
+  const isInService = isAppointmentInService(appointment.status);
+  const canReassign = !isTerminal;
+  const canUpdateStatus = !isTerminal;
+  const canReschedule =
+    Boolean(appointment.allowedActions?.includes('RESCHEDULE')) ||
+    (!isTerminal && !isInService);
 
   const statusConfig = getAppointmentStatusConfig(appointment.status);
   const serviceName = appointment.layananName || appointment.poliklinikName;
@@ -45,6 +59,7 @@ export function AppointmentRecordModal({
   const canCheckIn =
     Boolean(appointment.doctorName) &&
     appointment.status !== APPOINTMENT_STATUS.LATE &&
+    !isTerminal &&
     Boolean(appointment.allowedActions?.includes('CHECK_IN'));
 
   return (
@@ -110,15 +125,17 @@ export function AppointmentRecordModal({
                   <span>Lihat Detail Pasien</span>
                 </DropdownMenuItem>
 
-                <DropdownMenuItem
-                  onClick={onUpdateStatus}
-                  className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
-                >
-                  <Icons.refresh className='size-4 text-muted-foreground shrink-0' />
-                  <span>Update Status</span>
-                </DropdownMenuItem>
+                {canUpdateStatus && (
+                  <DropdownMenuItem
+                    onClick={onUpdateStatus}
+                    className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
+                  >
+                    <Icons.refresh className='size-4 text-muted-foreground shrink-0' />
+                    <span>Update Status</span>
+                  </DropdownMenuItem>
+                )}
 
-                {onChangeDoctor && (
+                {canReassign && onChangeDoctor && (
                   <DropdownMenuItem
                     onClick={onChangeDoctor}
                     className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
@@ -128,7 +145,7 @@ export function AppointmentRecordModal({
                   </DropdownMenuItem>
                 )}
 
-                {onChangeRoom && (
+                {canReassign && onChangeRoom && (
                   <DropdownMenuItem
                     onClick={onChangeRoom}
                     className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
@@ -145,6 +162,16 @@ export function AppointmentRecordModal({
                   >
                     <Icons.qrCode className='size-4 text-muted-foreground shrink-0' />
                     <span>QR Check-In</span>
+                  </DropdownMenuItem>
+                )}
+
+                {canReschedule && onReschedule && (
+                  <DropdownMenuItem
+                    onClick={onReschedule}
+                    className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
+                  >
+                    <Icons.calendar className='size-4 text-muted-foreground shrink-0' />
+                    <span>Jadwalkan Ulang</span>
                   </DropdownMenuItem>
                 )}
               </DropdownMenuContent>

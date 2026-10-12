@@ -327,7 +327,13 @@ export const patientAffiliationService = {
     try {
       const res = await clientFetch<
         { success?: boolean; data?: BackendAppointmentItem[] } | BackendAppointmentItem[]
-      >('/api/v1/appointments/me');
+      >('/api/v1/appointments/me', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
+        },
+      });
       if (Array.isArray(res)) return res;
       if (res && 'data' in res && Array.isArray(res.data)) return res.data;
       return [];

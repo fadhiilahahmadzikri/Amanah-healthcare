@@ -6,7 +6,13 @@ import {
 export { APPOINTMENT_STATUS };
 export type AppointmentStatus = CanonicalAppointmentStatus;
 
-export type AppointmentAction = 'CHECK_IN' | 'CALL' | 'START_SERVICE' | 'COMPLETE' | 'CANCEL';
+export type AppointmentAction =
+  | 'CHECK_IN'
+  | 'CALL'
+  | 'START_SERVICE'
+  | 'COMPLETE'
+  | 'CANCEL'
+  | 'RESCHEDULE';
 
 export type LiveStatus = AppointmentStatus;
 

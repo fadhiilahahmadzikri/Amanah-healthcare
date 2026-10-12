@@ -16,3 +16,6 @@ export type {
   UseAppointmentCheckInQrParams,
   UseAppointmentCheckInQrResult
 } from './model/useAppointmentCheckInQr';
+export { RescheduleAppointmentModal } from './components/reschedule-appointment-modal';
+export type { RescheduleAppointmentModalProps } from './components/reschedule-appointment-modal';
+

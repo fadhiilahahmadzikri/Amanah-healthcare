@@ -23,6 +23,7 @@ import { normalizeAppointmentTimes } from '../utils/appointment-adapter';
 import { formatClinicDate } from '@/lib/date-format';
 import { ChangeDoctorModal } from '@/features/appointment-pasien/components/change-doctor-modal';
 import { ChangeRoomModal } from '@/features/appointment-pasien/components/change-room-modal';
+import { RescheduleAppointmentModal } from '@/features/appointment-pasien/components/reschedule-appointment-modal';
 import {
   isAppointmentTerminal,
   isAppointmentInService,
@@ -64,6 +65,7 @@ export function AppointmentDetailOrganism({
   const [isFormExpanded, setIsFormExpanded] = React.useState(false);
   const [isChangeDoctorOpen, setIsChangeDoctorOpen] = React.useState(false);
   const [isChangeRoomOpen, setIsChangeRoomOpen] = React.useState(false);
+  const [isRescheduleOpen, setIsRescheduleOpen] = React.useState(false);
   const { role, hasRole } = useAuthContext();
 
   React.useEffect(() => {
@@ -74,6 +76,7 @@ export function AppointmentDetailOrganism({
       setIsFormExpanded(false);
       setIsChangeDoctorOpen(false);
       setIsChangeRoomOpen(false);
+      setIsRescheduleOpen(false);
     }
   }, [isOpen]);
 
@@ -114,6 +117,7 @@ export function AppointmentDetailOrganism({
   const isCheckedIn = Boolean(appointment.checked_in_at || appointment.checkedInAt);
   const canCancel = !isTerminal && !isCheckedIn;
   const canReassign = isAdmin && !isTerminal;
+  const canReschedule = !isTerminal && !isInService && (!isCheckedIn || isAdmin);
   const canCall = !appointment.allowedActions || appointment.allowedActions.includes('CALL');
 
   const handleConfirmCancel = async () => {
@@ -231,6 +235,16 @@ export function AppointmentDetailOrganism({
                               <span>Ganti Ruangan</span>
                             </DropdownMenuItem>
                           </>
+                        )}
+
+                        {canReschedule && (
+                          <DropdownMenuItem
+                            onClick={() => setIsRescheduleOpen(true)}
+                            className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
+                          >
+                            <Icons.calendar className='size-4 text-muted-foreground shrink-0' />
+                            <span>Jadwalkan Ulang</span>
+                          </DropdownMenuItem>
                         )}
 
                         {canCancel && onCancel && (
@@ -462,6 +476,22 @@ export function AppointmentDetailOrganism({
         onClose={() => setIsChangeRoomOpen(false)}
         onSuccess={() => {
           setIsChangeRoomOpen(false);
+          onClose();
+        }}
+      />
+
+      <RescheduleAppointmentModal
+        isOpen={isRescheduleOpen}
+        appointmentId={String(appointment.id)}
+        patientName={patientName}
+        queueNumber={appointment.queue_number || '-'}
+        serviceName={serviceName}
+        poliklinikId={appointment.poliklinik_id || appointment.layanan_id}
+        currentDate={appointment.date}
+        currentSession={appointment.session || appointment.session_name || undefined}
+        onClose={() => setIsRescheduleOpen(false)}
+        onSuccess={() => {
+          setIsRescheduleOpen(false);
           onClose();
         }}
       />
