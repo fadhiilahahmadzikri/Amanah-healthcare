@@ -4,16 +4,21 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import type { DoctorSchedule } from '../api/types';
 
-interface DoctorExportButtonProps {
+export interface DoctorExportButtonProps {
   data: DoctorSchedule[];
   filename?: string;
+  variant?: 'full' | 'icon';
+  className?: string;
 }
 
 export function DoctorExportButton({
   data,
-  filename = 'jadwal-dokter-amanah-healthcare.csv'
+  filename = 'jadwal-dokter-amanah-healthcare.csv',
+  variant = 'full',
+  className
 }: DoctorExportButtonProps) {
   const [isExporting, setIsExporting] = useState(false);
 
@@ -58,13 +63,39 @@ export function DoctorExportButton({
     }
   };
 
+  if (variant === 'icon') {
+    return (
+      <Button
+        variant='outline'
+        size='icon'
+        onClick={handleExport}
+        disabled={isExporting || data.length === 0}
+        aria-label='Ekspor Jadwal Dokter CSV'
+        title='Ekspor Jadwal Dokter CSV'
+        className={cn(
+          'size-8.5 rounded-xl cursor-pointer text-muted-foreground hover:text-foreground',
+          className
+        )}
+      >
+        {isExporting ? (
+          <Icons.spinner className='size-3.5 animate-spin' />
+        ) : (
+          <Icons.upload className='size-3.5' />
+        )}
+      </Button>
+    );
+  }
+
   return (
     <Button
       variant='outline'
       size='sm'
       onClick={handleExport}
       disabled={isExporting || data.length === 0}
-      className='h-8 text-xs font-medium text-muted-foreground hover:text-foreground border-border/80 gap-1.5'
+      className={cn(
+        'h-8 text-xs font-medium text-muted-foreground hover:text-foreground border-border/80 gap-1.5',
+        className
+      )}
     >
       {isExporting ? (
         <Icons.spinner className='size-3.5 animate-spin' />

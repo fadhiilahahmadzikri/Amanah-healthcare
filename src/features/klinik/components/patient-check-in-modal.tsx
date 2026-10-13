@@ -49,9 +49,10 @@ export function PatientCheckInModal({
       <ModalWrapper
         isOpen={isOpen}
         onClose={actions.handleClose}
-        maxWidth='max-w-md'
+        maxWidth='max-w-none'
+        backdropClassName='p-0'
         showCloseButton={false}
-        className='flex flex-col p-0 overflow-hidden bg-black text-white h-[90vh] sm:h-[620px] max-h-[100dvh] rounded-none sm:rounded-2xl border-0 sm:border sm:border-white/10 shadow-2xl'
+        className='flex flex-col p-0 overflow-hidden bg-black text-white w-screen h-[100dvh] max-h-[100dvh] rounded-none border-0 shadow-none m-0'
       >
         <div className='relative w-full h-full flex flex-col font-sans select-none overflow-hidden'>
           {successResult ? (
@@ -92,17 +93,12 @@ export function PatientCheckInModal({
             /* Full-Screen Camera View */
             <div className='relative w-full h-full flex-1 flex flex-col overflow-hidden bg-black'>
               {/* Floating Top Header Bar */}
-              <div className='absolute top-3.5 inset-x-3.5 z-30 flex items-center justify-between pointer-events-none'>
-                <div className='pointer-events-auto flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-white shadow-lg'>
-                  <span className='size-2 rounded-full bg-emerald-400 animate-pulse' />
-                  <span className='text-xs font-medium tracking-tight'>Pindai QR Check-In</span>
-                </div>
-
+              <div className='absolute top-4 right-4 z-30 flex items-center pointer-events-none'>
                 <button
                   type='button'
                   onClick={actions.handleClose}
                   aria-label='Tutup kamera scanner'
-                  className='pointer-events-auto size-8.5 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/15 text-white flex items-center justify-center transition-colors cursor-pointer shadow-lg'
+                  className='pointer-events-auto size-9 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/15 text-white flex items-center justify-center transition-colors cursor-pointer shadow-lg'
                 >
                   <Icons.close className='size-4' />
                 </button>

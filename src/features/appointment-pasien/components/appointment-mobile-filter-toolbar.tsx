@@ -236,25 +236,28 @@ export function AppointmentMobileFilterToolbar({
                 <span className='absolute -top-1 -right-1 size-2 rounded-full bg-primary-foreground ring-2 ring-primary' />
               )}
             </Button>
-
-            {/* 6. Export Button */}
-            <AppointmentExportButton variant='icon' />
           </div>
 
-          {/* 7. Reset Filter Button (Global on Dock) */}
-          {isFiltered && (
-            <Button
-              type='button'
-              variant='outline'
-              size='icon'
-              onClick={handleReset}
-              aria-label='Reset Semua Filter'
-              className='size-8.5 rounded-xl border-destructive/40 text-destructive bg-destructive/10 hover:bg-destructive/20 cursor-pointer shadow-2xs shrink-0'
-              title='Reset Semua Filter'
-            >
-              <Icons.refresh className='size-3.5' />
-            </Button>
-          )}
+          {/* Right Anchored Actions: Export & Reset on opposite side */}
+          <div className='flex items-center gap-1.5 shrink-0 ml-auto'>
+            {/* 6. Export Button */}
+            <AppointmentExportButton variant='icon' />
+
+            {/* 7. Reset Filter Button (Global on Dock) */}
+            {isFiltered && (
+              <Button
+                type='button'
+                variant='outline'
+                size='icon'
+                onClick={handleReset}
+                aria-label='Reset Semua Filter'
+                className='size-8.5 rounded-xl border-destructive/40 text-destructive bg-destructive/10 hover:bg-destructive/20 cursor-pointer shadow-2xs shrink-0'
+                title='Reset Semua Filter'
+              >
+                <Icons.refresh className='size-3.5' />
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Active Filter Summary Chips Row */}

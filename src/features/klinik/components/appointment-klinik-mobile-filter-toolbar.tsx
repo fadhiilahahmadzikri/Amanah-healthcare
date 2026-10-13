@@ -12,10 +12,10 @@ import {
   DrawerFooter
 } from '@/components/ui/drawer';
 import { CustomCalendar } from '@/components/ui/custom-calendar';
+import { MonthGridCalendar } from '@/components/ui/month-grid-calendar';
 import { STATUS_OPTIONS } from '../config/appointment-filter-options';
 import { useClinicFilterOptions, type FilterOption } from '../hooks/use-clinic-filter-options';
 import {
-  buildMonthOptions,
   isAppointmentFilterActive,
   isSameDay
 } from '../model/appointment-filters.rules';
@@ -118,7 +118,6 @@ export function AppointmentKlinikMobileFilterToolbar({
   const hasStatusesFilter = filters.selectedStatuses.length > 0;
 
   const isFiltered = isAppointmentFilterActive(filters, today);
-  const monthOptions = useMemo(() => buildMonthOptions(), []);
 
   const dateIso = useMemo(() => {
     if (!filters.dateFilter) return '';
@@ -408,31 +407,14 @@ export function AppointmentKlinikMobileFilterToolbar({
             <DrawerTitle>Pilih Bulan Janji Temu</DrawerTitle>
             <DrawerDescription>Tampilkan antrean jadwal pada bulan tertentu</DrawerDescription>
           </DrawerHeader>
-          <div className='flex flex-col gap-1.5 p-4 pt-1 max-h-[50vh] overflow-y-auto'>
-            {monthOptions.map((opt) => {
-              const isSelected =
-                filters.monthFilter === opt.value ||
-                (!filters.monthFilter && opt.value === 'ALL');
-              return (
-                <button
-                  key={opt.value}
-                  type='button'
-                  onClick={() => {
-                    actions.changeMonthFilter(opt.value);
-                    setOpenDrawer(null);
-                  }}
-                  className={cn(
-                    'w-full text-left px-3.5 py-2.5 rounded-xl text-xs font-medium border transition-colors flex items-center justify-between cursor-pointer select-none',
-                    isSelected
-                      ? 'bg-primary/10 text-primary border-primary/40 font-semibold'
-                      : 'bg-card border-border/40 hover:bg-muted/50 text-foreground'
-                  )}
-                >
-                  <span>{opt.label}</span>
-                  {isSelected && <Icons.check className='size-4 text-primary' />}
-                </button>
-              );
-            })}
+          <div className='p-4 pt-1'>
+            <MonthGridCalendar
+              value={filters.monthFilter || 'ALL'}
+              onChange={(val) => {
+                actions.changeMonthFilter(val);
+                setOpenDrawer(null);
+              }}
+            />
           </div>
           <DrawerFooter className='pt-2.5 pb-4 px-4 border-t border-border/40'>
             <Button

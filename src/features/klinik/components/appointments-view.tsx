@@ -82,7 +82,7 @@ export function AppointmentsView() {
       <div className='relative flex flex-1 min-h-0 flex-col overflow-hidden'>
         {appointmentsView.isLoading && appointmentsView.cards.length === 0 ? (
           <div className='absolute inset-0 flex overflow-hidden'>
-            <ScrollArea className='h-full w-full pr-3'>
+            <ScrollArea className='h-full w-full pr-0 md:pr-3'>
               <div className='pb-20 pt-1'>
                 <AppointmentCardsSkeleton />
               </div>
@@ -91,7 +91,7 @@ export function AppointmentsView() {
         ) : appointmentsView.cards.length > 0 ? (
           <>
             <div className='absolute inset-0 flex overflow-hidden'>
-              <ScrollArea className='h-full w-full pr-3'>
+              <ScrollArea className='h-full w-full pr-0 md:pr-3'>
                 <div className='pb-20 pt-1'>
                   <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5'>
                     {appointmentsView.cards.map(({ appointment, doctor }) => (
