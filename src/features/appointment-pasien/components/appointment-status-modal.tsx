@@ -28,7 +28,8 @@ function getStatusDisabledReason(
   targetStatus: AppointmentStatus,
   currentStatus: AppointmentStatus,
   hasAssignments: boolean,
-  hasCheckedIn: boolean
+  hasCheckedIn: boolean,
+  allowedActions?: string[]
 ): string | null {
   if (targetStatus === currentStatus) {
     return 'Status saat ini';
@@ -46,6 +47,9 @@ function getStatusDisabledReason(
     if (currentStatus !== APPOINTMENT_STATUS.WAITING) {
       return 'Hanya antrean Menunggu yang dapat diperiksa';
     }
+    if (allowedActions && !allowedActions.includes('START_SERVICE')) {
+      return 'Menunggu giliran (antrean sebelumnya belum selesai)';
+    }
   }
   if (targetStatus === APPOINTMENT_STATUS.WAITING) {
     if (!hasAssignments) {
@@ -54,15 +58,24 @@ function getStatusDisabledReason(
     if (currentStatus !== APPOINTMENT_STATUS.BOOKED) {
       return 'Pasien sudah melewati status Menunggu';
     }
+    if (allowedActions && !allowedActions.includes('CHECK_IN')) {
+      return 'Belum dapat masuk antrean';
+    }
   }
   if (targetStatus === APPOINTMENT_STATUS.COMPLETED) {
     if (currentStatus !== APPOINTMENT_STATUS.IN_SERVICE) {
+      return 'Hanya antrean Sedang Diperiksa yang dapat diselesaikan';
+    }
+    if (allowedActions && !allowedActions.includes('COMPLETE')) {
       return 'Hanya antrean Sedang Diperiksa yang dapat diselesaikan';
     }
   }
   if (targetStatus === APPOINTMENT_STATUS.CANCELLED) {
     if (isAppointmentTerminal(currentStatus)) {
       return 'Janji temu sudah selesai atau ditutup';
+    }
+    if (allowedActions && !allowedActions.includes('CANCEL')) {
+      return 'Tidak dapat membatalkan janji temu saat ini';
     }
   }
   if (targetStatus === APPOINTMENT_STATUS.LATE) {
@@ -118,7 +131,8 @@ export function AppointmentStatusModal({
     selectedStatus,
     currentStatus,
     hasAssignments,
-    hasCheckedIn
+    hasCheckedIn,
+    appointment.allowedActions
   );
   const canSubmit = !mutation.isPending && selectedStatus !== currentStatus && !selectedDisabledReason;
 
@@ -175,7 +189,8 @@ export function AppointmentStatusModal({
                 st.value,
                 currentStatus,
                 hasAssignments,
-                hasCheckedIn
+                hasCheckedIn,
+                appointment.allowedActions
               );
               const isDisabled = Boolean(disabledReason);
 

@@ -47,7 +47,9 @@ export function AppointmentRecordModal({
   const isBooked = isAppointmentBooked(appointment.status);
   const hasAssignments = Boolean(appointment.doctorName && appointment.roomName);
   const canReassign = !isTerminal;
-  const canUpdateStatus = !isTerminal && (!isBooked || hasAssignments);
+  const canUpdateStatus =
+    Boolean(appointment.allowedActions?.includes('START_SERVICE')) ||
+    Boolean(appointment.allowedActions?.includes('COMPLETE'));
   const canReschedule = Boolean(appointment.allowedActions?.includes('RESCHEDULE'));
   const canCancel = Boolean(appointment.allowedActions?.includes('CANCEL'));
 

@@ -47,7 +47,9 @@ export function CellAction({ data }: CellActionProps) {
   const canCall = Boolean(data.allowedActions?.includes('CALL'));
   const canCheckIn = Boolean(data.allowedActions?.includes('CHECK_IN'));
   const canReassign = !isTerminal;
-  const canUpdateStatus = !isTerminal && (!isBooked || hasAssignments);
+  const canUpdateStatus =
+    Boolean(data.allowedActions?.includes('START_SERVICE')) ||
+    Boolean(data.allowedActions?.includes('COMPLETE'));
   const canReschedule = Boolean(data.allowedActions?.includes('RESCHEDULE'));
   const canCancel = Boolean(data.allowedActions?.includes('CANCEL'));
 
