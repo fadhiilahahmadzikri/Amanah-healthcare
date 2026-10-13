@@ -89,11 +89,11 @@ export const APPOINTMENT_STATUS_REGISTRY: Record<
     isWaiting: false,
     isBooked: true,
     styling: {
-      pillBg: 'bg-primary-subtle',
-      pillBorder: 'border-border-accent',
-      textGradient: 'text-primary font-bold',
-      dotGradient: 'bg-primary',
-      hex: 'var(--primary)'
+      pillBg: 'bg-info-subtle',
+      pillBorder: 'border-info-border',
+      textGradient: 'text-info font-bold',
+      dotGradient: 'bg-info',
+      hex: 'var(--info)'
     }
   }),
   [APPOINTMENT_STATUS.WAITING]: new AppointmentStatusDescriptor({

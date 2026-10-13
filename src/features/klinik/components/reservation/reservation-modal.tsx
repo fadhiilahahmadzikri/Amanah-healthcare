@@ -154,7 +154,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
         }
 
         const appointmentData = res?.data;
-        const resQueue = appointmentData?.queueNumber || context.queueNumber || '-';
+        const resQueue = String(appointmentData?.queueNumber || context.queueNumber || '-');
         const uiApt: Appointment = {
           id: context.appointmentId,
           booking_code:
@@ -167,8 +167,8 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
           poliklinik_name: appointmentData?.poliklinikName || context.serviceName || '',
           room_name: appointmentData?.roomName || '',
           room_location: appointmentData?.roomLocation || '',
-          scheduled_start_time: appointmentData?.scheduledStartTime,
-          scheduled_end_time: appointmentData?.scheduledEndTime,
+          scheduled_start_time: appointmentData?.scheduledStartTime || undefined,
+          scheduled_end_time: appointmentData?.scheduledEndTime || undefined,
           date: dateStr,
           time: session,
           complaint: context.complaint || '',

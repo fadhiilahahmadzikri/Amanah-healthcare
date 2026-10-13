@@ -27,7 +27,7 @@ export default async function Page(props: PageProps) {
       scrollable={false}
       pageTitle='Appointment Pasien'
       pageDescription='Daftar janji temu dan reservasi pasien dengan dokter klinik Amanah.'
-      pageHeaderAction={<AppointmentExportButton />}
+      pageHeaderAction={<AppointmentExportButton className='hidden md:inline-flex' />}
     >
       <Suspense fallback={<AppointmentTableSkeleton />}>
         <AppointmentListingPage />

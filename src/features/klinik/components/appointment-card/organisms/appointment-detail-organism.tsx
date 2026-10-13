@@ -11,7 +11,6 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
-import { cn } from '@/lib/utils';
 import { getDoctorByName } from '../../../api/service';
 import type { Appointment, Doctor } from '../../../api/types';
 import { AppointmentFormInspector } from '../../appointment-form-inspector';
@@ -31,6 +30,7 @@ import {
   isAppointmentBeforeCall
 } from '@/features/appointment-pasien/constants/options';
 import { useAuthContext } from '@/lib/rbac/auth-context';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export interface AppointmentDetailOrganismProps {
   isOpen: boolean;
@@ -44,9 +44,10 @@ export interface AppointmentDetailOrganismProps {
   isCallPending?: boolean;
   isCompletePending?: boolean;
   portalContainerRef?: React.RefObject<HTMLElement | null>;
+  onOpenActionDrawer?: () => void;
 }
 
-type ModalStep = 'details' | 'cancel-confirm';
+type ModalStep = 'details' | 'form' | 'cancel-confirm';
 
 export function AppointmentDetailOrganism({
   isOpen,
@@ -59,12 +60,13 @@ export function AppointmentDetailOrganism({
   onCompletePatient,
   isCallPending = false,
   isCompletePending = false,
-  portalContainerRef
+  portalContainerRef,
+  onOpenActionDrawer
 }: AppointmentDetailOrganismProps) {
+  const isMobile = useIsMobile();
   const [modalStep, setModalStep] = React.useState<ModalStep>('details');
   const [cancelReason, setCancelReason] = React.useState('');
   const [isCancelling, setIsCancelling] = React.useState(false);
-  const [isFormExpanded, setIsFormExpanded] = React.useState(false);
   const [isChangeDoctorOpen, setIsChangeDoctorOpen] = React.useState(false);
   const [isChangeRoomOpen, setIsChangeRoomOpen] = React.useState(false);
   const [isRescheduleOpen, setIsRescheduleOpen] = React.useState(false);
@@ -75,7 +77,6 @@ export function AppointmentDetailOrganism({
       setModalStep('details');
       setCancelReason('');
       setIsCancelling(false);
-      setIsFormExpanded(false);
       setIsChangeDoctorOpen(false);
       setIsChangeRoomOpen(false);
       setIsRescheduleOpen(false);
@@ -147,82 +148,111 @@ export function AppointmentDetailOrganism({
       <ModalWrapper
         isOpen={isOpen}
         onClose={onClose}
-        maxWidth={isFormExpanded ? 'max-w-5xl' : 'max-w-lg'}
+        maxWidth='max-w-lg'
         showCloseButton={false}
         dismissible={!isCancelling}
         portalContainerRef={portalContainerRef}
-        className={cn(
-          'transition-[max-width,height,max-height] duration-300 ease-out flex flex-col overflow-hidden',
-          isFormExpanded ? 'h-[85vh] max-h-[85vh]' : 'max-h-[90vh]'
-        )}
+        className='flex flex-col max-h-[90vh] overflow-hidden'
       >
-        <div
-          className={cn(
-            'w-full flex items-stretch flex-1 min-h-0',
-            isFormExpanded ? 'flex-col md:flex-row' : 'flex-col'
-          )}
-        >
-          <div
-            className={cn(
-              'w-full flex flex-col font-sans select-none justify-between h-full min-h-0 min-w-0 transition-all duration-300 ease-out',
-              isFormExpanded ? 'md:w-[420px] md:shrink-0 md:pr-8' : 'w-full'
-            )}
-          >
-            {modalStep === 'details' && (
-              <div className='flex flex-col h-full min-h-0 w-full justify-between'>
-                <div className='flex items-center justify-between gap-3 pb-3 border-b border-border/40 min-h-[77px] shrink-0'>
-                  <div className='flex items-center gap-3.5 min-w-0 flex-1'>
-                    {doctor.name ? (
-                      <>
-                        <div className='size-14 min-w-[56px] min-h-[56px] rounded-full overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square'>
-                          <DoctorAvatar name={doctor.name} avatarUrl={doctor.avatar} size={56} />
-                        </div>
-                        <div className='flex flex-col items-start min-w-0 flex-1 space-y-0.5'>
-                          <h3 className='text-base sm:text-lg font-bold text-foreground truncate w-full tracking-tight'>
-                            {doctor.name}
-                          </h3>
-                          <p className='text-sm font-medium text-muted-foreground truncate w-full'>
-                            {doctorSpecialty}
-                          </p>
-                        </div>
-                      </>
-                    ) : (
+        <div className='w-full flex flex-col font-sans select-none justify-between h-full min-h-0 min-w-0'>
+          {/* STEP 1: Details View */}
+          {modalStep === 'details' && (
+            <div className='flex flex-col h-full min-h-0 w-full justify-between'>
+              <div className='flex items-center justify-between gap-3 pb-3 border-b border-border/40 min-h-[77px] shrink-0'>
+                <div className='flex items-center gap-3.5 min-w-0 flex-1'>
+                  {doctor.name ? (
+                    <>
+                      <div className='size-14 min-w-[56px] min-h-[56px] rounded-full overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square'>
+                        <DoctorAvatar name={doctor.name} avatarUrl={doctor.avatar} size={56} />
+                      </div>
                       <div className='flex flex-col items-start min-w-0 flex-1 space-y-0.5'>
                         <h3 className='text-base sm:text-lg font-bold text-foreground truncate w-full tracking-tight'>
-                          {serviceName || appointment.poliklinik_name || 'Janji Temu Klinik'}
+                          {doctor.name}
                         </h3>
-                        {appointment.poliklinik_name &&
-                          serviceName !== appointment.poliklinik_name && (
-                            <p className='text-sm font-medium text-muted-foreground truncate w-full'>
-                              {appointment.poliklinik_name}
-                            </p>
-                          )}
+                        <p className='text-sm font-medium text-muted-foreground truncate w-full'>
+                          {doctorSpecialty}
+                        </p>
                       </div>
-                    )}
-                  </div>
+                    </>
+                  ) : (
+                    <div className='flex flex-col items-start min-w-0 flex-1 space-y-0.5'>
+                      <h3 className='text-base sm:text-lg font-bold text-foreground truncate w-full tracking-tight'>
+                        {serviceName || appointment.poliklinik_name || 'Janji Temu Klinik'}
+                      </h3>
+                      {appointment.poliklinik_name &&
+                        serviceName !== appointment.poliklinik_name && (
+                          <p className='text-sm font-medium text-muted-foreground truncate w-full'>
+                            {appointment.poliklinik_name}
+                          </p>
+                        )}
+                    </div>
+                  )}
+                </div>
 
-                  <div className='shrink-0'>
+                <div className='shrink-0'>
+                  {isMobile && onOpenActionDrawer ? (
+                    <Button
+                      type='button'
+                      variant='ghost'
+                      size='icon'
+                      onClick={onOpenActionDrawer}
+                      aria-label='Opsi tindakan janji temu'
+                      className='size-7.5 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-md transition-colors cursor-pointer shrink-0'
+                    >
+                      <Icons.ellipsis className='size-4' />
+                    </Button>
+                  ) : (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <button
+                        <Button
                           type='button'
-                          className='p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors cursor-pointer select-none'
+                          variant='ghost'
+                          size='icon'
                           aria-label='Opsi tindakan janji temu'
+                          className='size-7.5 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-md transition-colors cursor-pointer shrink-0'
                         >
-                          <Icons.ellipsis className='size-5' />
-                        </button>
+                          <Icons.ellipsis className='size-4' />
+                        </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
                         align='end'
                         className='w-48 p-1.5 rounded-xl shadow-lg border border-border/60 bg-card font-sans text-xs'
                       >
-                        {!isFormExpanded && (
+                        <DropdownMenuItem
+                          onClick={() => setModalStep('form')}
+                          className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
+                        >
+                          <Icons.forms className='size-4 text-primary shrink-0' />
+                          <span>Lihat Formulir</span>
+                        </DropdownMenuItem>
+
+                        {onCallPatient && isWaiting && (
                           <DropdownMenuItem
-                            onClick={() => setIsFormExpanded(true)}
-                            className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
+                            onClick={() => onCallPatient(appointment)}
+                            disabled={isCallPending || !canCall}
+                            className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-emerald-600 transition-colors'
                           >
-                            <Icons.forms className='size-4 text-primary shrink-0' />
-                            <span>Lihat Formulir</span>
+                            {isCallPending ? (
+                              <Icons.spinner className='size-4 animate-spin shrink-0' />
+                            ) : (
+                              <Icons.phone className='size-4 shrink-0' />
+                            )}
+                            <span>Panggil Pasien</span>
+                          </DropdownMenuItem>
+                        )}
+
+                        {onCompletePatient && isInService && (
+                          <DropdownMenuItem
+                            onClick={() => onCompletePatient(appointment)}
+                            disabled={isCompletePending}
+                            className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-blue-600 transition-colors'
+                          >
+                            {isCompletePending ? (
+                              <Icons.spinner className='size-4 animate-spin shrink-0' />
+                            ) : (
+                              <Icons.check className='size-4 shrink-0' />
+                            )}
+                            <span>Selesai Periksa</span>
                           </DropdownMenuItem>
                         )}
 
@@ -270,217 +300,175 @@ export function AppointmentDetailOrganism({
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  </div>
-                </div>
-
-                <div className='flex-1 min-h-0 overflow-y-auto pr-1 py-1'>
-                  <div className='py-2.5 border-b border-border/40 flex items-center justify-between gap-3 text-sm min-w-0'>
-                    <div className='flex items-center gap-2 text-foreground font-semibold min-w-0 shrink-0'>
-                      <Icons.calendar className='size-4 text-primary shrink-0' strokeWidth={1.8} />
-                      <span className='truncate'>{appointment.date ? formatClinicDate(appointment.date) : '-'}</span>
-                    </div>
-                    <div className='flex items-center gap-1.5 text-muted-foreground font-medium min-w-0 max-w-[55%] justify-end shrink'>
-                      <Icons.mapPin className='size-4 text-primary shrink-0' strokeWidth={1.8} />
-                      <span className='truncate text-right'>{displayLocation}</span>
-                    </div>
-                  </div>
-
-                  <AppointmentTimeTrajectory
-                    startTime={startTime}
-                    endTime={endTime}
-                    durationText={durationText}
-                    visitType={visitType}
-                    variant='modal'
-                    startLabel={isBeforeCall || isWaiting ? 'Est. Mulai' : 'Mulai'}
-                    endLabel={isBeforeCall || isWaiting ? 'Est. Selesai' : 'Selesai'}
-                  />
-
-                  <div className='pt-2 pb-1 grid grid-cols-2 gap-y-3 gap-x-5 min-w-0'>
-                    <div className='border-b border-border/40 pb-2'>
-                      <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                        Nama Pasien
-                      </span>
-                      <span className='text-sm font-semibold text-foreground block truncate'>
-                        {patientName}
-                      </span>
-                    </div>
-
-                    <div className='border-b border-border/40 pb-2'>
-                      <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                        Status Janji Temu
-                      </span>
-                      <div className='pt-0.5'>
-                        <AppointmentStatusPill status={appointment.status} size='sm' />
-                      </div>
-                    </div>
-
-                    <div className='border-b border-border/40 pb-2'>
-                      <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                        Nomor Antrean
-                      </span>
-                      <span className='text-sm font-bold font-mono text-primary block truncate'>
-                        {appointment.queue_number || '-'}
-                      </span>
-                    </div>
-
-                    <div className='border-b border-border/40 pb-2'>
-                      <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                        Layanan Poliklinik
-                      </span>
-                      <span className='text-sm font-semibold text-foreground block truncate'>
-                        {serviceName}
-                      </span>
-                    </div>
-
-                    <div className='border-b border-border/40 pb-2'>
-                      <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                        Ruang & Lokasi
-                      </span>
-                      <span className='text-sm font-semibold text-foreground block truncate'>
-                        {displayLocation}
-                      </span>
-                    </div>
-
-                    <div className='border-b border-border/40 pb-2'>
-                      <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                        Tipe Kunjungan
-                      </span>
-                      <span className='text-sm font-semibold text-foreground block truncate'>
-                        {visitType}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className='border-b border-border/40 pb-3 pt-2 min-w-0'>
-                    <span className='text-xs font-normal text-muted-foreground block mb-1'>
-                      Keluhan Medis
-                    </span>
-                    <p className='text-sm font-medium text-foreground leading-relaxed break-words'>
-                      {complaintText}
-                    </p>
-                  </div>
-                </div>
-
-                <div className='pt-3 border-t border-border/40 flex items-center justify-between min-w-0 shrink-0 gap-2'>
-                  <Button
-                    type='button'
-                    variant='outline'
-                    shape='pill'
-                    size='default'
-                    onClick={onClose}
-                    className='px-5 font-semibold cursor-pointer text-xs'
-                  >
-                    Tutup
-                  </Button>
-
-                  <div className='flex items-center gap-2'>
-                    {canReschedule && !isInService && (
-                      <Button
-                        type='button'
-                        variant='outline'
-                        shape='pill'
-                        size='default'
-                        onClick={() => setIsRescheduleOpen(true)}
-                        className='text-xs font-semibold cursor-pointer gap-1.5'
-                      >
-                        <Icons.calendar className='size-3.5 text-muted-foreground' />
-                        <span>Jadwalkan Ulang</span>
-                      </Button>
-                    )}
-
-                    {canCancel && onCancel && (
-                      <Button
-                        type='button'
-                        variant='destructive'
-                        shape='pill'
-                        size='default'
-                        onClick={() => setModalStep('cancel-confirm')}
-                        className='text-xs font-semibold cursor-pointer gap-1.5'
-                      >
-                        <Icons.close className='size-3.5' />
-                        <span>Batalkan Janji Temu</span>
-                      </Button>
-                    )}
-
-                    {onCallPatient && isWaiting && (
-                      <Button
-                        type='button'
-                        variant='default'
-                        shape='pill'
-                        size='default'
-                        disabled={isCallPending || !canCall}
-                        onClick={() => onCallPatient(appointment)}
-                        className={cn(
-                          'text-xs font-semibold text-white transition-colors',
-                          canCall
-                            ? 'bg-emerald-600 hover:bg-emerald-700 cursor-pointer'
-                            : 'bg-muted-foreground/40 cursor-not-allowed opacity-60'
-                        )}
-                        title={
-                          canCall
-                            ? 'Panggil Pasien'
-                            : 'Menunggu giliran (antrean sebelumnya masih menunggu)'
-                        }
-                        leadingIcon={
-                          isCallPending ? (
-                            <Icons.spinner className='size-3.5 animate-spin' />
-                          ) : (
-                            <Icons.notification className='size-3.5' />
-                          )
-                        }
-                      >
-                        Panggil Pasien
-                      </Button>
-                    )}
-
-                    {onCompletePatient && isInService && (
-                      <Button
-                        type='button'
-                        variant='default'
-                        shape='pill'
-                        size='default'
-                        disabled={isCompletePending}
-                        onClick={() => onCompletePatient(appointment)}
-                        className='text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer'
-                        leadingIcon={
-                          isCompletePending ? (
-                            <Icons.spinner className='size-3.5 animate-spin' />
-                          ) : (
-                            <Icons.check className='size-3.5' />
-                          )
-                        }
-                      >
-                        Selesai Periksa
-                      </Button>
-                    )}
-                  </div>
+                  )}
                 </div>
               </div>
-            )}
 
-            {modalStep === 'cancel-confirm' && (
-              <CancelStepContent
-                appointment={appointment}
-                patientName={patientName}
-                doctorName={doctor.name}
-                queueNumber={appointment.queue_number || '-'}
-                appointmentDate={appointment.date ? formatClinicDate(appointment.date) : '-'}
-                cancelReason={cancelReason}
-                setCancelReason={setCancelReason}
-                isCancelling={isCancelling}
-                onBack={() => setModalStep('details')}
-                onConfirm={handleConfirmCancel}
-              />
-            )}
-          </div>
+              <div className='flex-1 min-h-0 overflow-y-auto pr-1 py-1'>
+                <div className='py-2.5 border-b border-border/40 flex items-center justify-between gap-3 text-sm min-w-0'>
+                  <div className='flex items-center gap-2 text-foreground font-semibold min-w-0 shrink-0'>
+                    <Icons.calendar className='size-4 text-primary shrink-0' strokeWidth={1.8} />
+                    <span className='truncate'>{appointment.date ? formatClinicDate(appointment.date) : '-'}</span>
+                  </div>
+                  <div className='flex items-center gap-1.5 text-muted-foreground font-medium min-w-0 max-w-[55%] justify-end shrink'>
+                    <Icons.mapPin className='size-4 text-primary shrink-0' strokeWidth={1.8} />
+                    <span className='truncate text-right'>{displayLocation}</span>
+                  </div>
+                </div>
 
-          {isFormExpanded && modalStep === 'details' && (
-            <div className='w-full flex-1 flex flex-col font-sans select-none h-full min-h-0 min-w-0 md:pl-8 md:border-l border-border/40 pt-6 md:pt-0 animate-in fade-in-0 slide-in-from-right-6 duration-300 ease-out'>
-              <AppointmentFormInspector
-                appointment={appointment}
-                onClose={() => setIsFormExpanded(false)}
-              />
+                <AppointmentTimeTrajectory
+                  startTime={startTime}
+                  endTime={endTime}
+                  durationText={durationText}
+                  visitType={visitType}
+                  variant='modal'
+                  startLabel={isBeforeCall || isWaiting ? 'Est. Mulai' : 'Mulai'}
+                  endLabel={isBeforeCall || isWaiting ? 'Est. Selesai' : 'Selesai'}
+                />
+
+                <div className='pt-2 pb-1 grid grid-cols-2 gap-y-3 gap-x-5 min-w-0'>
+                  <div className='border-b border-border/40 pb-2'>
+                    <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+                      Nama Pasien
+                    </span>
+                    <span className='text-sm font-semibold text-foreground block truncate'>
+                      {patientName}
+                    </span>
+                  </div>
+
+                  <div className='border-b border-border/40 pb-2'>
+                    <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+                      Status Janji Temu
+                    </span>
+                    <div className='pt-0.5'>
+                      <AppointmentStatusPill status={appointment.status} size='sm' />
+                    </div>
+                  </div>
+
+                  <div className='border-b border-border/40 pb-2'>
+                    <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+                      Nomor Antrean
+                    </span>
+                    <span className='text-sm font-bold font-mono text-primary block truncate'>
+                      {appointment.queue_number || '-'}
+                    </span>
+                  </div>
+
+                  <div className='border-b border-border/40 pb-2'>
+                    <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+                      Layanan Poliklinik
+                    </span>
+                    <span className='text-sm font-semibold text-foreground block truncate'>
+                      {serviceName}
+                    </span>
+                  </div>
+
+                  <div className='border-b border-border/40 pb-2'>
+                    <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+                      Ruang & Lokasi
+                    </span>
+                    <span className='text-sm font-semibold text-foreground block truncate'>
+                      {displayLocation}
+                    </span>
+                  </div>
+
+                  <div className='border-b border-border/40 pb-2'>
+                    <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+                      Tipe Kunjungan
+                    </span>
+                    <span className='text-sm font-semibold text-foreground block truncate'>
+                      {visitType}
+                    </span>
+                  </div>
+                </div>
+
+                <div className='border-b border-border/40 pb-3 pt-2 min-w-0'>
+                  <span className='text-xs font-normal text-muted-foreground block mb-1'>
+                    Keluhan Medis
+                  </span>
+                  <p className='text-sm font-medium text-foreground leading-relaxed break-words'>
+                    {complaintText}
+                  </p>
+                </div>
+              </div>
+
+              {/* Footer Modal: Hanya Tombol Tutup Sesuai User Request (Mencegah Overflow) */}
+              <div className='pt-3.5 border-t border-border/40 flex items-center justify-end min-w-0 shrink-0'>
+                <Button
+                  type='button'
+                  variant='outline'
+                  shape='pill'
+                  size='card-action'
+                  onClick={onClose}
+                  className='w-full sm:w-auto px-6 font-semibold cursor-pointer text-xs'
+                >
+                  Tutup
+                </Button>
+              </div>
             </div>
+          )}
+
+          {/* STEP 2: Slide-in Step untuk Formulir Pendaftaran Pasien (Wizard Step) */}
+          {modalStep === 'form' && (
+            <div className='animate-in fade-in-50 slide-in-from-right-4 duration-200 flex flex-col h-full min-h-0 select-none font-sans'>
+              <div className='flex items-center gap-2.5 pb-3 border-b border-border/40 shrink-0'>
+                <Button
+                  type='button'
+                  variant='ghost'
+                  size='icon'
+                  onClick={() => setModalStep('details')}
+                  className='size-8 rounded-full cursor-pointer'
+                  aria-label='Kembali ke Detail'
+                >
+                  <Icons.arrowLeft className='size-4' />
+                </Button>
+                <div className='min-w-0 flex-1'>
+                  <h3 className='text-base font-bold text-foreground tracking-tight truncate'>
+                    Formulir Pendaftaran Pasien
+                  </h3>
+                  <p className='text-xs font-medium text-muted-foreground truncate'>
+                    Data intake & kuesioner medis pasien
+                  </p>
+                </div>
+              </div>
+
+              <div className='flex-1 min-h-0 overflow-y-auto py-2.5 pr-1'>
+                <AppointmentFormInspector
+                  appointment={appointment}
+                  hideHeader
+                  onClose={() => setModalStep('details')}
+                />
+              </div>
+
+              <div className='pt-3.5 border-t border-border/40 flex items-center justify-end shrink-0'>
+                <Button
+                  type='button'
+                  variant='outline'
+                  shape='pill'
+                  size='card-action'
+                  onClick={() => setModalStep('details')}
+                  className='w-full sm:w-auto px-6 font-semibold text-xs cursor-pointer'
+                >
+                  Kembali ke Detail
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3: Slide-in Step untuk Konfirmasi Pembatalan */}
+          {modalStep === 'cancel-confirm' && (
+            <CancelStepContent
+              appointment={appointment}
+              patientName={patientName}
+              doctorName={doctor.name}
+              queueNumber={appointment.queue_number || '-'}
+              appointmentDate={appointment.date ? formatClinicDate(appointment.date) : '-'}
+              cancelReason={cancelReason}
+              setCancelReason={setCancelReason}
+              isCancelling={isCancelling}
+              onBack={() => setModalStep('details')}
+              onConfirm={handleConfirmCancel}
+            />
           )}
         </div>
       </ModalWrapper>

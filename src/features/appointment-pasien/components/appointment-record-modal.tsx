@@ -8,55 +8,65 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { isAppointmentBooked, isAppointmentTerminal } from '../constants/options';
-import { getAppointmentStatusConfig } from '../constants/appointment-status.dictionary';
-import { AppointmentHistoryTimeline } from './appointment-history-timeline';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { AppointmentStatusPill } from '@/features/klinik/components/appointment-card';
+import { getAntreanPillClasses } from './appointment-tables/columns';
+import { formatClinicDate, formatClinicTime } from '@/lib/date-format';
+import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 import type { AdminAppointment } from '../api/types';
 
 export interface AppointmentRecordModalProps {
   isOpen: boolean;
   appointment: AdminAppointment | null;
   onClose: () => void;
-  onViewPatientDetail: () => void;
-  onUpdateStatus: () => void;
+  onViewPatientDetail?: () => void;
+  onViewTimeline?: () => void;
+  onUpdateStatus?: () => void;
   onChangeDoctor?: () => void;
   onChangeRoom?: () => void;
   onQrCheckIn?: () => void;
   onReschedule?: () => void;
   onCancel?: () => void;
+  onOpenActionDrawer?: () => void;
 }
+
+const getInitials = (name: string) => {
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase();
+};
 
 export function AppointmentRecordModal({
   isOpen,
   appointment,
   onClose,
   onViewPatientDetail,
+  onViewTimeline,
   onUpdateStatus,
   onChangeDoctor,
   onChangeRoom,
   onQrCheckIn,
   onReschedule,
-  onCancel
+  onCancel,
+  onOpenActionDrawer
 }: AppointmentRecordModalProps) {
+  const isMobile = useIsMobile();
+
   if (!appointment) return null;
 
-  const isTerminal = isAppointmentTerminal(appointment.status);
-  const isBooked = isAppointmentBooked(appointment.status);
-  const hasAssignments = Boolean(appointment.doctorName && appointment.roomName);
-  const canReassign = !isTerminal;
   const canUpdateStatus =
     Boolean(appointment.allowedActions?.includes('START_SERVICE')) ||
     Boolean(appointment.allowedActions?.includes('COMPLETE'));
-  const canReschedule = Boolean(appointment.allowedActions?.includes('RESCHEDULE'));
-  const canCancel = Boolean(appointment.allowedActions?.includes('CANCEL'));
-
-  const statusConfig = getAppointmentStatusConfig(appointment.status);
-  const serviceName = appointment.layananName || appointment.poliklinikName;
-  const subtitle = `Antrean ${appointment.queueNumber} pasien ${appointment.patientName}${serviceName ? ` dengan layanan ${serviceName}` : ''}`;
   const canCheckIn = Boolean(appointment.allowedActions?.includes('CHECK_IN'));
+
+  const sessionLabel = formatFriendlySessionName(appointment.sessionName || appointment.session);
 
   return (
     <ModalWrapper
@@ -67,136 +77,268 @@ export function AppointmentRecordModal({
       className='flex flex-col max-h-[90vh] overflow-hidden'
     >
       <div className='flex flex-col font-sans h-full min-h-0 select-none'>
+        {/* Header Modal: Avatar Pasien, Nama Pasien, Meta Info, dan Status Pills */}
         <div className='flex items-center justify-between gap-3 pb-3.5 border-b border-border/40 shrink-0'>
-          <div className='flex flex-col min-w-0 flex-1 space-y-0.5'>
-            <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight truncate'>
-              Riwayat Operasional Janji Temu
-            </h3>
-            <p className='text-xs font-medium text-muted-foreground truncate'>{subtitle}</p>
+          <div className='flex items-center gap-3 min-w-0 flex-1'>
+            {/* Avatar Langsung di Header */}
+            <div className='size-11 sm:size-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 select-none ring-1 ring-border/40'>
+              {getInitials(appointment.patientName)}
+            </div>
+
+            {/* Nama Pasien, Badges, & Subtitle */}
+            <div className='flex flex-col min-w-0 flex-1 space-y-1'>
+              <div className='flex items-center gap-2 flex-wrap'>
+                <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight truncate'>
+                  {appointment.patientName}
+                </h3>
+                {appointment.isAffiliated && (
+                  <span className='px-1.5 py-0.5 text-[10px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 rounded leading-none shrink-0'>
+                    Afiliasi
+                  </span>
+                )}
+              </div>
+              <div className='flex items-center'>
+                <span
+                  className={cn(
+                    'inline-flex items-center justify-center font-mono text-[11px] font-bold px-2 py-0.5 rounded-[6px] text-white shadow-2xs shrink-0',
+                    getAntreanPillClasses(appointment.queueNumber)
+                  )}
+                >
+                  {appointment.queueNumber || '-'}
+                </span>
+              </div>
+            </div>
           </div>
 
-          <div className='flex items-center gap-2 shrink-0'>
-            <span
-              className={cn(
-                'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] sm:text-[11.5px] font-bold border backdrop-blur-sm select-none shadow-none',
-                statusConfig.pillBg,
-                statusConfig.pillBorder
-              )}
-            >
-              <span
-                className={cn(
-                  'size-2 rounded-full shrink-0 ring-1 ring-white/60 dark:ring-white/20',
-                  statusConfig.dotGradient
-                )}
-              />
-              <span
-                className={cn(
-                  'bg-clip-text text-transparent font-bold tracking-tight',
-                  statusConfig.textGradient
-                )}
+          {/* Sisi Kanan: Tombol Tindakan Morevert Standar Card (Drawer Sheet di Mobile, Pop-up Menu di Desktop) */}
+          <div className='shrink-0'>
+            {isMobile && onOpenActionDrawer ? (
+              <Button
+                type='button'
+                variant='ghost'
+                size='icon'
+                onClick={onOpenActionDrawer}
+                aria-label='Opsi tindakan janji temu'
+                className='size-7.5 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-md transition-colors cursor-pointer shrink-0'
               >
-                {statusConfig.label}
-              </span>
-            </span>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type='button'
-                  className='p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors cursor-pointer select-none'
-                  aria-label='Opsi tindakan janji temu'
+                <Icons.ellipsis className='size-4' />
+              </Button>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='icon'
+                    aria-label='Opsi tindakan janji temu'
+                    className='size-7.5 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-md transition-colors cursor-pointer shrink-0'
+                  >
+                    <Icons.ellipsis className='size-4' />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align='end'
+                  className='w-48 p-1.5 rounded-xl shadow-lg border border-border/60 bg-card font-sans text-xs'
                 >
-                  <Icons.ellipsis className='size-5' />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align='end'
-                className='w-48 p-1.5 rounded-xl shadow-lg border border-border/60 bg-card font-sans text-xs'
-              >
-                <DropdownMenuItem
-                  onClick={onViewPatientDetail}
-                  className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
-                >
-                  <Icons.user className='size-4 text-primary shrink-0' />
-                  <span>Lihat Detail Pasien</span>
-                </DropdownMenuItem>
-
-                {canUpdateStatus && (
-                  <DropdownMenuItem
-                    onClick={onUpdateStatus}
-                    className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
-                  >
-                    <Icons.refresh className='size-4 text-muted-foreground shrink-0' />
-                    <span>Update Status</span>
-                  </DropdownMenuItem>
-                )}
-
-                {canReassign && onChangeDoctor && (
-                  <DropdownMenuItem
-                    onClick={onChangeDoctor}
-                    className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
-                  >
-                    <Icons.userCheck className='size-4 text-muted-foreground shrink-0' />
-                    <span>{appointment.doctorName ? 'Ganti Dokter' : 'Tugaskan Dokter'}</span>
-                  </DropdownMenuItem>
-                )}
-
-                {canReassign && onChangeRoom && (
-                  <DropdownMenuItem
-                    onClick={onChangeRoom}
-                    className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
-                  >
-                    <Icons.mapPin className='size-4 text-muted-foreground shrink-0' />
-                    <span>{appointment.roomName ? 'Ganti Ruangan' : 'Tugaskan Ruangan'}</span>
-                  </DropdownMenuItem>
-                )}
-
-                {canCheckIn && onQrCheckIn && (
-                  <DropdownMenuItem
-                    onClick={onQrCheckIn}
-                    className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
-                  >
-                    <Icons.qrCode className='size-4 text-muted-foreground shrink-0' />
-                    <span>QR Check-In</span>
-                  </DropdownMenuItem>
-                )}
-
-                {canReschedule && onReschedule && (
-                  <DropdownMenuItem
-                    onClick={onReschedule}
-                    className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
-                  >
-                    <Icons.calendar className='size-4 text-muted-foreground shrink-0' />
-                    <span>Jadwalkan Ulang</span>
-                  </DropdownMenuItem>
-                )}
-
-                {canCancel && onCancel && (
-                  <DropdownMenuItem
-                    onClick={onCancel}
-                    className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-destructive focus:text-destructive transition-colors'
-                  >
-                    <Icons.trash className='size-4 text-destructive shrink-0' />
-                    <span>Batalkan Janji Temu</span>
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  {onViewPatientDetail && (
+                    <DropdownMenuItem
+                      onClick={onViewPatientDetail}
+                      className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
+                    >
+                      <Icons.user className='size-4 text-primary shrink-0' />
+                      <span>Lihat Pasien</span>
+                    </DropdownMenuItem>
+                  )}
+                  {onViewTimeline && (
+                    <DropdownMenuItem
+                      onClick={onViewTimeline}
+                      className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
+                    >
+                      <Icons.history className='size-4 text-primary shrink-0' />
+                      <span>Garis Waktu</span>
+                    </DropdownMenuItem>
+                  )}
+                  {onChangeDoctor && (
+                    <DropdownMenuItem
+                      onClick={onChangeDoctor}
+                      className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
+                    >
+                      <Icons.userCheck className='size-4 text-muted-foreground shrink-0' />
+                      <span>{appointment.doctorName ? 'Ganti Dokter' : 'Tugaskan Dokter'}</span>
+                    </DropdownMenuItem>
+                  )}
+                  {onChangeRoom && (
+                    <DropdownMenuItem
+                      onClick={onChangeRoom}
+                      className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
+                    >
+                      <Icons.mapPin className='size-4 text-muted-foreground shrink-0' />
+                      <span>{appointment.roomName ? 'Ganti Ruangan' : 'Tugaskan Ruangan'}</span>
+                    </DropdownMenuItem>
+                  )}
+                  {onReschedule && (
+                    <DropdownMenuItem
+                      onClick={onReschedule}
+                      className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
+                    >
+                      <Icons.calendar className='size-4 text-muted-foreground shrink-0' />
+                      <span>Jadwalkan Ulang</span>
+                    </DropdownMenuItem>
+                  )}
+                  {onCancel && (
+                    <>
+                      <DropdownMenuSeparator className='my-1 border-border/40' />
+                      <DropdownMenuItem
+                        onClick={onCancel}
+                        className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium text-destructive hover:bg-destructive/10 focus:bg-destructive/10 focus:text-destructive transition-colors'
+                      >
+                        <Icons.close className='size-4 text-destructive shrink-0' />
+                        <span>Batalkan Janji Temu</span>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
 
+        {/* Scrollable Body Content: Form-style Render Tanpa Box Wrapper, Sejajar Dinding Kiri */}
         <div className='flex-1 min-h-0 overflow-y-auto py-3.5 pr-1'>
-          <AppointmentHistoryTimeline appointment={appointment} />
+          <div className='grid grid-cols-2 gap-y-3.5 gap-x-5 sm:gap-x-6'>
+            {/* 1. Tanggal Booking */}
+            <div className='border-b border-border/30 pb-2.5'>
+              <span className='text-xs font-medium text-muted-foreground block mb-0.5'>
+                Tanggal Booking
+              </span>
+              <span className='text-sm font-semibold text-foreground block truncate'>
+                {formatClinicDate(appointment.scheduledDate)}
+              </span>
+            </div>
+
+            {/* 2. Sesi & Estimasi */}
+            <div className='border-b border-border/30 pb-2.5'>
+              <span className='text-xs font-medium text-muted-foreground block mb-0.5'>
+                Sesi & Estimasi
+              </span>
+              <span className='text-sm font-bold font-mono text-foreground block'>
+                {appointment.etaRange || appointment.scheduledStartTime || '-'}
+              </span>
+              {sessionLabel && (
+                <span className='text-[11px] text-muted-foreground block truncate mt-0.5'>
+                  {sessionLabel}
+                </span>
+              )}
+            </div>
+
+            {/* 3. Poliklinik */}
+            <div className='border-b border-border/30 pb-2.5'>
+              <span className='text-xs font-medium text-muted-foreground block mb-0.5'>
+                Poliklinik
+              </span>
+              <span className='text-sm font-semibold text-foreground block truncate'>
+                {appointment.poliklinikName || '-'}
+              </span>
+            </div>
+
+            {/* 4. Layanan */}
+            <div className='border-b border-border/30 pb-2.5'>
+              <span className='text-xs font-medium text-muted-foreground block mb-0.5'>
+                Layanan
+              </span>
+              <span className='text-sm font-semibold text-foreground block truncate'>
+                {appointment.layananName || '-'}
+              </span>
+            </div>
+
+            {/* 5. Dokter */}
+            <div className='border-b border-border/30 pb-2.5'>
+              <span className='text-xs font-medium text-muted-foreground block mb-0.5'>
+                Dokter
+              </span>
+              <span
+                className={cn(
+                  'text-sm font-semibold block truncate',
+                  appointment.doctorName
+                    ? 'text-primary'
+                    : 'text-amber-600 dark:text-amber-400 italic'
+                )}
+              >
+                {appointment.doctorName || 'Belum di-assign'}
+              </span>
+            </div>
+
+            {/* 6. Ruangan */}
+            <div className='border-b border-border/30 pb-2.5'>
+              <span className='text-xs font-medium text-muted-foreground block mb-0.5'>
+                Ruangan
+              </span>
+              <span
+                className={cn(
+                  'text-sm font-semibold block truncate',
+                  appointment.roomName
+                    ? 'text-foreground'
+                    : 'text-amber-600 dark:text-amber-400 italic'
+                )}
+              >
+                {appointment.roomName || 'Belum di-assign'}
+                {appointment.roomLocation ? ` (${appointment.roomLocation})` : ''}
+              </span>
+            </div>
+
+            {/* 7. Mulai Pelayanan */}
+            <div className='border-b border-border/30 pb-2.5'>
+              <span className='text-xs font-medium text-muted-foreground block mb-0.5'>
+                Mulai Pelayanan
+              </span>
+              <span className='text-sm font-medium font-mono text-foreground block'>
+                {appointment.actualStartedAt ? formatClinicTime(appointment.actualStartedAt) : '-'}
+              </span>
+            </div>
+
+            {/* 8. Selesai Pelayanan */}
+            <div className='border-b border-border/30 pb-2.5'>
+              <span className='text-xs font-medium text-muted-foreground block mb-0.5'>
+                Selesai Pelayanan
+              </span>
+              <span className='text-sm font-medium font-mono text-foreground block'>
+                {appointment.actualCompletedAt
+                  ? formatClinicTime(appointment.actualCompletedAt)
+                  : '-'}
+              </span>
+            </div>
+
+            {/* 9. Durasi Pelayanan */}
+            <div className='border-b border-border/30 pb-2.5'>
+              <span className='text-xs font-medium text-muted-foreground block mb-0.5'>
+                Durasi Pelayanan
+              </span>
+              <span className='text-sm font-semibold text-foreground block'>
+                {appointment.consultationDurationFormatted || '-'}
+              </span>
+            </div>
+
+            {/* 10. Status Antrean (Sesuai Anotasi Kotak Merah di Samping Durasi Pelayanan) */}
+            <div className='border-b border-border/30 pb-2.5'>
+              <span className='text-xs font-medium text-muted-foreground block mb-0.5'>
+                Status Antrean
+              </span>
+              <div className='pt-0.5'>
+                <AppointmentStatusPill status={appointment.status} size='sm' />
+              </div>
+            </div>
+          </div>
         </div>
 
+        {/* Modal Footer with Consistent size='card-action' and shape='pill' */}
         <div className='pt-3.5 border-t border-border/40 flex items-center justify-between gap-4 shrink-0'>
           <Button
             type='button'
             variant='outline'
             shape='pill'
-            size='default'
+            size='card-action'
             onClick={onClose}
-            className='px-5 font-medium text-xs cursor-pointer'
+            className='px-6 font-semibold text-xs cursor-pointer'
           >
             Tutup
           </Button>
@@ -207,9 +349,9 @@ export function AppointmentRecordModal({
                 type='button'
                 variant='outline'
                 shape='pill'
-                size='default'
+                size='card-action'
                 onClick={onUpdateStatus}
-                className='px-4 font-semibold text-xs cursor-pointer'
+                className='px-5 font-semibold text-xs cursor-pointer'
                 leadingIcon={<Icons.refresh className='size-3.5' />}
               >
                 Update Status
@@ -221,9 +363,9 @@ export function AppointmentRecordModal({
                 type='button'
                 variant='default'
                 shape='pill'
-                size='default'
+                size='card-action'
                 onClick={onQrCheckIn}
-                className='px-5 font-semibold text-xs cursor-pointer shadow-xs'
+                className='px-6 font-semibold text-xs cursor-pointer shadow-xs'
                 leadingIcon={<Icons.qrCode className='size-3.5' />}
               >
                 QR Check-In

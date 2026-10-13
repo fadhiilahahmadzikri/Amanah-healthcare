@@ -12,12 +12,14 @@ export interface AppointmentCheckInQrModalProps {
   isOpen: boolean;
   appointment: AdminAppointment | null;
   onClose: () => void;
+  onViewPatientDetail?: () => void;
 }
 
 export function AppointmentCheckInQrModal({
   isOpen,
   appointment,
   onClose,
+  onViewPatientDetail
 }: AppointmentCheckInQrModalProps) {
   const {
     qrData,
@@ -27,11 +29,11 @@ export function AppointmentCheckInQrModal({
     isMissingAssignment,
     formattedCountdown,
     formattedDeadline,
-    actions,
+    actions
   } = useAppointmentCheckInQr({
     isOpen,
     appointment,
-    onClose,
+    onClose
   });
 
   if (!appointment) return null;
@@ -40,168 +42,150 @@ export function AppointmentCheckInQrModal({
     <ModalWrapper
       isOpen={isOpen}
       onClose={onClose}
-      maxWidth='max-w-[460px]'
+      maxWidth='max-w-[420px]'
       showCloseButton={false}
     >
       <div className='relative font-sans space-y-4 text-center'>
-        <div className='flex items-start justify-between gap-3 pb-3 border-b border-border/40 text-left'>
-          <div className='space-y-0.5 min-w-0 flex-1'>
-            <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
-              Kredensial Check-In Pasien
-            </h3>
-            <p className='text-xs text-muted-foreground'>
-              Pindai QR code ini di kiosk / perangkat pasien atau gunakan kode manual.
-            </p>
-          </div>
-          <button
-            type='button'
-            onClick={onClose}
-            aria-label='Tutup'
-            className='rounded-full p-1 text-muted-foreground hover:bg-muted transition-colors cursor-pointer shrink-0'
-          >
-            <Icons.close className='size-4' />
-          </button>
+        {/* Header: Ringkas, Sejajar Vertikal dengan Dinding Kiri QR */}
+        <div className='pb-3 border-b border-border/40 text-left'>
+          <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
+            QR Check-In Pasien
+          </h3>
+          <p className='text-xs text-muted-foreground mt-0.5'>
+            Pindai kode QR ini di kiosk / perangkat pasien atau gunakan kode manual di bawah ini.
+          </p>
         </div>
 
-        <div className='bg-muted/40 rounded-xl p-3 text-left border border-border/40 grid grid-cols-2 gap-2 text-xs'>
-          <div>
-            <span className='text-[11px] text-muted-foreground block'>Nama Pasien</span>
-            <span className='font-semibold text-foreground truncate block'>
-              {appointment.patientName}
-            </span>
+        {/* Content: QR Code Besar & Sejajar Dinding Kiri-Kanan Modal */}
+        {isLoading ? (
+          <div className='flex flex-col items-center justify-center py-16 gap-2 text-muted-foreground'>
+            <Icons.spinner className='size-8 animate-spin text-primary' />
+            <span className='text-xs font-medium'>Menghasilkan QR Code...</span>
           </div>
-          <div>
-            <span className='text-[11px] text-muted-foreground block'>No. Antrean</span>
-            <span className='font-bold text-primary font-mono block'>
-              {appointment.queueNumber}
-            </span>
-          </div>
-          <div>
-            <span className='text-[11px] text-muted-foreground block'>Poliklinik</span>
-            <span className='font-medium text-foreground truncate block'>
-              {appointment.poliklinikName}
-            </span>
-          </div>
-          <div>
-            <span className='text-[11px] text-muted-foreground block'>Dokter</span>
-            <span className='font-medium text-foreground truncate block'>
-              {appointment.doctorName}
-            </span>
-          </div>
-        </div>
-
-        <div className='relative flex flex-col items-center justify-center p-4 rounded-2xl bg-white dark:bg-card border border-border/60 shadow-xs min-h-[260px]'>
-          {isLoading ? (
-            <div className='flex flex-col items-center justify-center py-12 gap-2 text-muted-foreground'>
-              <Icons.spinner className='size-8 animate-spin text-primary' />
-              <span className='text-xs font-medium'>Menghasilkan QR Code...</span>
+        ) : isMissingAssignment ? (
+          <div className='flex flex-col items-center justify-center py-10 px-4 gap-3 text-center'>
+            <div className='size-12 rounded-full bg-amber-500/10 text-amber-600 flex items-center justify-center'>
+              <Icons.alertCircle className='size-6' />
             </div>
-          ) : isMissingAssignment ? (
-            <div className='flex flex-col items-center justify-center py-10 px-4 gap-3 text-center'>
-              <div className='size-12 rounded-full bg-amber-500/10 text-amber-600 flex items-center justify-center'>
-                <Icons.alertCircle className='size-6' />
-              </div>
-              <div className='space-y-1'>
-                <p className='text-sm font-semibold text-foreground'>Dokter / Ruangan Belum Ditugaskan</p>
-                <p className='text-xs text-muted-foreground max-w-xs'>
-                  Check-in hanya dapat dilakukan setelah dokter dan ruangan pemeriksaan telah ditugaskan.
-                </p>
-              </div>
+            <div className='space-y-1'>
+              <p className='text-sm font-semibold text-foreground'>Dokter / Ruangan Belum Ditugaskan</p>
+              <p className='text-xs text-muted-foreground max-w-xs'>
+                Check-in hanya dapat dilakukan setelah dokter dan ruangan pemeriksaan telah ditugaskan.
+              </p>
             </div>
-          ) : isAlreadyCheckedIn ? (
-            <div className='flex flex-col items-center justify-center py-10 px-4 gap-3 text-center'>
-              <div className='size-12 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center'>
-                <Icons.check className='size-6' />
-              </div>
-              <div className='space-y-1'>
-                <p className='text-sm font-semibold text-foreground'>Pasien Sudah Check-In</p>
-                <p className='text-xs text-muted-foreground max-w-xs'>
-                  Janji temu ini telah melakukan check-in dan saat ini berada di dalam antrean aktif poliklinik.
-                </p>
-              </div>
+          </div>
+        ) : isAlreadyCheckedIn ? (
+          <div className='flex flex-col items-center justify-center py-10 px-4 gap-3 text-center'>
+            <div className='size-12 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center'>
+              <Icons.check className='size-6' />
             </div>
-          ) : qrData ? (
-            <div className='w-full flex flex-col items-center space-y-3'>
-              <div className='size-[200px] flex items-center justify-center bg-white p-2 rounded-xl border border-border/40 shadow-xs'>
-                <ModernStyledQRCode data={qrData.qrPayload} size={190} />
-              </div>
-
-              <div className='flex flex-col items-center gap-1.5 pt-0.5'>
-                <div className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold'>
-                  <Icons.clock className='size-3.5' />
-                  <span>Sisa Waktu: {formattedCountdown}</span>
-                </div>
-                {formattedDeadline && (
-                  <span className='text-[11px] text-muted-foreground'>
-                    Batas Kedaluwarsa: <span className='font-medium text-foreground'>{formattedDeadline}</span>
-                  </span>
+            <div className='space-y-1'>
+              <p className='text-sm font-semibold text-foreground'>Pasien Sudah Check-In</p>
+              <p className='text-xs text-muted-foreground max-w-xs'>
+                Janji temu ini telah melakukan check-in dan saat ini berada di dalam antrean aktif poliklinik.
+              </p>
+            </div>
+          </div>
+        ) : qrData ? (
+          <div className='w-full flex flex-col items-center space-y-3.5'>
+            {/* QR Code Lebar Sejajar Header (Edge-to-Edge) dengan Interaksi Klik untuk Salin */}
+            <div className='relative w-full aspect-square flex items-center justify-center mx-auto overflow-hidden rounded-xl group'>
+              <ModernStyledQRCode
+                data={qrData.qrPayload}
+                size={360}
+                className='w-full h-full cursor-pointer'
+              />
+              {/* Overlay Tap/Hover Feedback */}
+              <button
+                type='button'
+                onClick={actions.handleCopyCode}
+                className='absolute inset-0 bg-background/0 group-hover:bg-background/20 transition-all flex items-center justify-center cursor-pointer'
+                title='Klik untuk menyalin kode manual'
+              >
+                {isCopied && (
+                  <div className='px-4 py-2 rounded-full bg-emerald-600 text-white text-xs font-bold shadow-lg animate-in fade-in-0 zoom-in-95 flex items-center gap-1.5'>
+                    <Icons.check className='size-4' />
+                    <span>Kode Tersalin!</span>
+                  </div>
                 )}
-              </div>
+              </button>
             </div>
-          ) : (
-            <div className='flex flex-col items-center justify-center py-10 gap-2 text-muted-foreground'>
-              <p className='text-xs'>Gagal memuat QR Code.</p>
-              <Button variant='outline' size='sm' onClick={actions.fetchQr} className='text-xs'>
-                Coba Lagi
-              </Button>
-            </div>
-          )}
-        </div>
 
-        {qrData?.manualCode && (
-          <div className='bg-primary/5 border border-primary/20 rounded-xl p-3 flex items-center justify-between gap-3'>
-            <div className='text-left min-w-0'>
-              <span className='text-[10px] uppercase font-bold tracking-wider text-muted-foreground block'>
-                Kode Manual Pasien
+            {/* Kode Manual 100% Pas di Tengah (Tanpa Offset Tombol Samping) */}
+            {qrData.manualCode && (
+              <div className='relative flex flex-col items-center justify-center pt-1 w-full'>
+                <button
+                  type='button'
+                  onClick={actions.handleCopyCode}
+                  className='group relative flex flex-col items-center justify-center cursor-pointer select-none py-1 px-4 rounded-xl hover:bg-muted/50 transition-colors active:scale-98'
+                  title='Klik untuk menyalin kode manual'
+                >
+                  <span className='text-3xl sm:text-4xl font-black font-mono tracking-widest text-foreground text-center'>
+                    {qrData.manualCode}
+                  </span>
+                  <span className='text-[10.5px] font-medium text-muted-foreground group-hover:text-primary transition-colors flex items-center gap-1 mt-0.5'>
+                    <Icons.copy className='size-3' />
+                    <span>Klik untuk menyalin</span>
+                  </span>
+                </button>
+              </div>
+            )}
+
+            {/* Sisa Waktu & Batas Kedaluwarsa: Bersih Tanpa Pills / Emoji */}
+            <div className='flex flex-col items-center gap-0.5 text-xs text-muted-foreground select-none pt-0.5'>
+              <span className='font-medium text-foreground'>
+                Sisa Waktu: {formattedCountdown}
               </span>
-              <span className='text-xl font-black font-mono tracking-widest text-primary'>
-                {qrData.manualCode}
-              </span>
-            </div>
-            <Button
-              type='button'
-              variant='outline'
-              size='sm'
-              onClick={actions.handleCopyCode}
-              className='shrink-0 text-xs gap-1.5 h-8'
-            >
-              {isCopied ? (
-                <>
-                  <Icons.check className='size-3.5 text-emerald-500' />
-                  <span>Tersalin</span>
-                </>
-              ) : (
-                <>
-                  <Icons.copy className='size-3.5' />
-                  <span>Salin</span>
-                </>
+              {formattedDeadline && (
+                <span className='text-[11.5px]'>
+                  Batas Kedaluwarsa: {formattedDeadline}
+                </span>
               )}
+            </div>
+          </div>
+        ) : (
+          <div className='flex flex-col items-center justify-center py-10 gap-2 text-muted-foreground'>
+            <p className='text-xs'>Gagal memuat QR Code.</p>
+            <Button
+              variant='outline'
+              size='card-action'
+              shape='pill'
+              onClick={actions.fetchQr}
+              className='text-xs cursor-pointer'
+            >
+              Coba Lagi
             </Button>
           </div>
         )}
 
-        <div className='pt-2 border-t border-border/40 flex items-center justify-between gap-2'>
-          {!isAlreadyCheckedIn ? (
+        {/* Footer: Tombol Aksi Esensial Berukuran Konsisten size='card-action' and shape='pill' */}
+        <div className='pt-3.5 border-t border-border/40 flex items-center justify-between gap-3'>
+          {onViewPatientDetail ? (
             <Button
               type='button'
-              variant='ghost'
-              size='sm'
-              onClick={actions.fetchQr}
-              disabled={isLoading}
-              className='text-xs text-muted-foreground hover:text-foreground gap-1.5'
+              variant='outline'
+              size='card-action'
+              shape='pill'
+              onClick={() => {
+                onClose();
+                onViewPatientDetail();
+              }}
+              className='text-xs font-semibold gap-1.5 cursor-pointer px-5'
+              leadingIcon={<Icons.user className='size-3.5 text-primary' />}
             >
-              <Icons.refresh className='size-3.5' />
-              <span>Muat Ulang QR</span>
+              <span>Lihat Detail Pasien</span>
             </Button>
-          ) : <div />}
+          ) : (
+            <div />
+          )}
 
           <Button
             type='button'
             variant='default'
             shape='pill'
-            size='sm'
+            size='card-action'
             onClick={onClose}
-            className='px-6 font-semibold text-xs'
+            className='px-6 font-semibold text-xs cursor-pointer'
           >
             Tutup
           </Button>

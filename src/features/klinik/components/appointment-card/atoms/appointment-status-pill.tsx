@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { getStatusConfig } from "@/styles/clinical-tokens";
 
 export interface AppointmentStatusPillProps {
-	status: string;
+	status?: string | null;
 	size?: "sm" | "md" | "lg";
 	className?: string;
 }
@@ -14,7 +14,7 @@ export function AppointmentStatusPill({
 	size = "md",
 	className,
 }: AppointmentStatusPillProps) {
-	const config = getStatusConfig(status);
+	const config = getStatusConfig(status || "");
 
 	const sizeClasses = {
 		sm: "text-[10px] sm:text-[10.5px] px-2 py-0.5 gap-1",

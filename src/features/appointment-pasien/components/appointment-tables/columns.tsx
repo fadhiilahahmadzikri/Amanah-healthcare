@@ -5,13 +5,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
-import {
-  getAppointmentStatusConfig,
-  APPOINTMENT_STATUS_OPTIONS
-} from '../../constants/appointment-status.dictionary';
+import { APPOINTMENT_STATUS_OPTIONS } from '../../constants/appointment-status.dictionary';
+import { AppointmentStatusPill } from '@/features/klinik/components/appointment-card';
 import Link from 'next/link';
 import type { AdminAppointment } from '../../api/types';
-import type { FilterOption } from '@/features/klinik';
+import type { Option } from '@/types/data-table';
 import { CellAction } from './cell-action';
 import { formatClinicDate, formatClinicTime } from '@/lib/date-format';
 import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
@@ -30,7 +28,7 @@ const formatTimeOnly = (isoString?: string | null) => {
   return formatClinicTime(isoString);
 };
 
-const getAntreanPillClasses = (noAntrian: string) => {
+export const getAntreanPillClasses = (noAntrian: string) => {
   if (!noAntrian || noAntrian === '-') {
     return 'bg-gradient-to-b from-slate-400 via-slate-500 to-slate-600 text-white';
   }
@@ -52,10 +50,10 @@ const getAntreanPillClasses = (noAntrian: string) => {
 };
 
 export interface GetAppointmentColumnsOptions {
-  poliOptions?: FilterOption[];
-  serviceOptions?: FilterOption[];
-  doctorOptions?: FilterOption[];
-  roomOptions?: FilterOption[];
+  poliOptions?: Option[];
+  serviceOptions?: Option[];
+  doctorOptions?: Option[];
+  roomOptions?: Option[];
 }
 
 export function getAppointmentColumns(
@@ -184,33 +182,11 @@ export function getAppointmentColumns(
       header: ({ column }: { column: Column<AdminAppointment, unknown> }) => (
         <DataTableColumnHeader column={column} title='Status Antrean' />
       ),
-      cell: ({ row }) => {
-        const statusConfig = getAppointmentStatusConfig(row.original.status);
-        return (
-          <span
-            className={cn(
-              'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] sm:text-[11.5px] font-bold border backdrop-blur-sm select-none shadow-none',
-              statusConfig.pillBg,
-              statusConfig.pillBorder
-            )}
-          >
-            <span
-              className={cn(
-                'size-2 rounded-full shrink-0 ring-1 ring-white/60 dark:ring-white/20',
-                statusConfig.dotGradient
-              )}
-            />
-            <span
-              className={cn(
-                'bg-clip-text text-transparent font-bold tracking-tight',
-                statusConfig.textGradient
-              )}
-            >
-              {statusConfig.label}
-            </span>
-          </span>
-        );
-      },
+      cell: ({ row }) => (
+        <div className='flex items-center'>
+          <AppointmentStatusPill status={row.original.status} size='sm' />
+        </div>
+      ),
       meta: {
         label: 'Status Antrean',
         variant: 'multiSelect' as const,
@@ -252,7 +228,7 @@ export function getAppointmentColumns(
       enableHiding: true
     },
     {
-      id: 'doctorName',
+      id: 'doctorId',
       accessorKey: 'doctorName',
       header: ({ column }: { column: Column<AdminAppointment, unknown> }) => (
         <DataTableColumnHeader column={column} title='Dokter' />
@@ -294,7 +270,7 @@ export function getAppointmentColumns(
       },
       meta: {
         label: 'Dokter',
-        variant: 'multiSelect' as const,
+        variant: 'select' as const,
         options: doctorOptions
       },
       enableColumnFilter: true,
@@ -317,7 +293,7 @@ export function getAppointmentColumns(
         variant: 'multiSelect' as const,
         options: poliOptions
       },
-      enableColumnFilter: true,
+      enableColumnFilter: false,
       enableSorting: true,
       enableHiding: true
     },
@@ -438,7 +414,7 @@ export function getAppointmentColumns(
     {
       id: 'actions',
       header: () => <span className='text-[13px] font-semibold text-foreground px-1'>Aksi</span>,
-      cell: ({ row }) => <CellAction data={row.original} />,
+      cell: ({ row, table }) => <CellAction data={row.original} table={table} />,
       enableSorting: false,
       enableHiding: false,
       size: 130

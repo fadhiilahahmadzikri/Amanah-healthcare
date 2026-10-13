@@ -23,9 +23,14 @@ import { InspectorGenericView } from './inspector/inspector-generic-view';
 export interface AppointmentFormInspectorProps {
   appointment: Appointment;
   onClose?: () => void;
+  hideHeader?: boolean;
 }
 
-export function AppointmentFormInspector({ appointment, onClose }: AppointmentFormInspectorProps) {
+export function AppointmentFormInspector({
+  appointment,
+  onClose,
+  hideHeader = false
+}: AppointmentFormInspectorProps) {
   const { data: serverIntake, isLoading } = useQuery({
     queryKey: klinikKeys.appointmentIntake(appointment.id),
     queryFn: () => kiaIntakeService.getIntakeByAppointmentId(appointment.id),
@@ -153,35 +158,37 @@ export function AppointmentFormInspector({ appointment, onClose }: AppointmentFo
 
   return (
     <div className='w-full flex flex-col font-sans select-none justify-between h-full min-h-0'>
-      <div className='flex items-center justify-between gap-4 pb-3 border-b border-border/40 shrink-0 min-h-[77px]'>
-        <div className='flex flex-col items-start min-w-0 flex-1 space-y-0.5 justify-center'>
-          <h3 className='text-base sm:text-lg font-bold text-foreground truncate w-full tracking-tight'>
-            {isPregnancy
-              ? 'Formulir KIA & Kehamilan'
-              : parsedData.flow === 'immunization'
-                ? 'Formulir Imunisasi Anak'
-                : 'Formulir Pendaftaran Pasien'}
-          </h3>
-          <p className='text-sm font-medium text-muted-foreground truncate w-full'>
-            {isPregnancy
-              ? 'Data skrining klinis, kebiasaan, obstetri & riwayat KB'
-              : parsedData.flow === 'immunization'
-                ? 'Data riwayat vaksinasi dan tumbuh kembang anak'
-                : 'Data rekam medis & profil intake pasien'}
-          </p>
-        </div>
+      {!hideHeader && (
+        <div className='flex items-center justify-between gap-4 pb-3 border-b border-border/40 shrink-0 min-h-[77px]'>
+          <div className='flex flex-col items-start min-w-0 flex-1 space-y-0.5 justify-center'>
+            <h3 className='text-base sm:text-lg font-bold text-foreground truncate w-full tracking-tight'>
+              {isPregnancy
+                ? 'Formulir KIA & Kehamilan'
+                : parsedData.flow === 'immunization'
+                  ? 'Formulir Imunisasi Anak'
+                  : 'Formulir Pendaftaran Pasien'}
+            </h3>
+            <p className='text-sm font-medium text-muted-foreground truncate w-full'>
+              {isPregnancy
+                ? 'Data skrining klinis, kebiasaan, obstetri & riwayat KB'
+                : parsedData.flow === 'immunization'
+                  ? 'Data riwayat vaksinasi dan tumbuh kembang anak'
+                  : 'Data rekam medis & profil intake pasien'}
+            </p>
+          </div>
 
-        {onClose && (
-          <button
-            type='button'
-            onClick={onClose}
-            aria-label='Tutup formulir'
-            className='p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors cursor-pointer shrink-0'
-          >
-            <Icons.chevronRight className='size-5' />
-          </button>
-        )}
-      </div>
+          {onClose && (
+            <button
+              type='button'
+              onClick={onClose}
+              aria-label='Tutup formulir'
+              className='p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors cursor-pointer shrink-0'
+            >
+              <Icons.chevronRight className='size-5' />
+            </button>
+          )}
+        </div>
+      )}
 
       <div className='py-3 flex-1 min-h-0 flex flex-col'>
         {isLoading && !appointment.medical_intake ? (

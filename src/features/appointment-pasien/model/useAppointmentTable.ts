@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React from 'react';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import type { ColumnDef, Table } from '@tanstack/react-table';
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
@@ -8,15 +8,9 @@ import { useDataTable } from '@/hooks/use-data-table';
 import { getSortingStateParser } from '@/lib/parsers';
 import { appointmentQueryOptions } from '../api/queries';
 import { normalizeFilters, type AdminAppointment, type AppointmentFilters } from '../api/types';
+import { useAppointmentDialogs, type AppointmentDialogType, type UseAppointmentDialogsResult } from './useAppointmentDialogs';
 
-export type AppointmentDialogType =
-  | 'milestone'
-  | 'patientDetail'
-  | 'status'
-  | 'changeDoctor'
-  | 'changeRoom'
-  | 'qr'
-  | null;
+export type { AppointmentDialogType };
 
 interface UseAppointmentTableParams {
   columns: ColumnDef<AdminAppointment>[];
@@ -27,12 +21,16 @@ export interface UseAppointmentTableResult {
   table: Table<AdminAppointment>;
   selectedAppointment: AdminAppointment | null;
   activeDialog: AppointmentDialogType;
+  dialogs: UseAppointmentDialogsResult;
+  isRecordDetailOpen: boolean;
+  isTimelineOpen: boolean;
   isMilestoneOpen: boolean;
   isDetailOpen: boolean;
   isStatusOpen: boolean;
   isChangeDoctorOpen: boolean;
   isChangeRoomOpen: boolean;
   isQrOpen: boolean;
+  isRescheduleOpen: boolean;
   isFetching: boolean;
   totalAppointments: number;
   hasFilters: boolean;
@@ -41,7 +39,12 @@ export interface UseAppointmentTableResult {
   formattedDate?: string;
   setUnitId: (unitId: string | null) => Promise<unknown>;
   setDoctorId: (doctorId: string | null) => Promise<unknown>;
+  resetFilters: () => void;
   actions: {
+    openRecordDetail: (appointment: AdminAppointment) => void;
+    closeRecordDetail: () => void;
+    openTimeline: (appointment: AdminAppointment) => void;
+    closeTimeline: () => void;
     openMilestone: (appointment: AdminAppointment) => void;
     closeMilestone: () => void;
     openDetail: (appointment: AdminAppointment) => void;
@@ -54,11 +57,22 @@ export interface UseAppointmentTableResult {
     closeChangeRoom: () => void;
     openQr: (appointment: AdminAppointment) => void;
     closeQr: () => void;
+    openReschedule: (appointment: AdminAppointment) => void;
+    closeReschedule: () => void;
+    openPatientDetailFromRecord: () => void;
+    openTimelineFromRecord: () => void;
     openPatientDetailFromMilestone: () => void;
+    openPatientDetailFromQr: () => void;
+    openStatusFromRecord: () => void;
+    openChangeDoctorFromRecord: () => void;
+    openChangeRoomFromRecord: () => void;
+    openQrFromRecord: () => void;
+    openRescheduleFromRecord: () => void;
     openStatusFromMilestone: () => void;
     openChangeDoctorFromMilestone: () => void;
     openChangeRoomFromMilestone: () => void;
     openQrFromMilestone: () => void;
+    openRescheduleFromMilestone: () => void;
   };
 }
 
@@ -66,9 +80,7 @@ export function useAppointmentTable({
   columns,
   columnIds
 }: UseAppointmentTableParams): UseAppointmentTableResult {
-  const [selectedAppointment, setSelectedAppointment] = useState<AdminAppointment | null>(null);
-  const [activeDialog, setActiveDialog] = useState<AppointmentDialogType>(null);
-  const [returnToMilestone, setReturnToMilestone] = useState(false);
+  const dialogs = useAppointmentDialogs();
 
   const [params, setParams] = useQueryStates({
     page: parseAsInteger.withDefault(1),
@@ -112,7 +124,6 @@ export function useAppointmentTable({
   const hasFilters = Boolean(
     (querySearch && querySearch.trim().length > 0) ||
     (params.status && params.status.length > 0) ||
-    params.poliklinikId ||
     (queryPoli && queryPoli.length > 0) ||
     (queryService && queryService.length > 0) ||
     formattedDate ||
@@ -139,36 +150,6 @@ export function useAppointmentTable({
   const { data, isFetching } = useSuspenseQuery(appointmentQueryOptions(filters));
   const pageCount = Math.ceil(data.total_appointments / params.perPage);
 
-  const openChangeDoctor = (appointment: AdminAppointment) => {
-    setSelectedAppointment(appointment);
-    setReturnToMilestone(false);
-    setActiveDialog('changeDoctor');
-  };
-
-  const closeChangeDoctor = () => {
-    if (returnToMilestone) {
-      setReturnToMilestone(false);
-      setActiveDialog('milestone');
-    } else {
-      setActiveDialog(null);
-    }
-  };
-
-  const openChangeRoom = (appointment: AdminAppointment) => {
-    setSelectedAppointment(appointment);
-    setReturnToMilestone(false);
-    setActiveDialog('changeRoom');
-  };
-
-  const closeChangeRoom = () => {
-    if (returnToMilestone) {
-      setReturnToMilestone(false);
-      setActiveDialog('milestone');
-    } else {
-      setActiveDialog(null);
-    }
-  };
-
   const { table } = useDataTable({
     data: data.appointments,
     columns,
@@ -179,102 +160,53 @@ export function useAppointmentTable({
       columnPinning: { left: ['select'], right: ['actions'] }
     },
     meta: {
-      onAssignDoctor: openChangeDoctor,
-      onAssignRoom: openChangeRoom
+      onAssignDoctor: dialogs.actions.openChangeDoctor,
+      onAssignRoom: dialogs.actions.openChangeRoom,
+      onUpdateStatus: dialogs.actions.openStatus,
+      onQrCheckIn: dialogs.actions.openQr,
+      onReschedule: dialogs.actions.openReschedule,
+      onViewDetail: dialogs.actions.openPatientDetail,
+      onViewRecord: dialogs.actions.openRecordDetail,
+      onViewTimeline: dialogs.actions.openTimeline,
+      onViewMilestone: dialogs.actions.openTimeline
     }
   });
 
-  const openMilestone = (appointment: AdminAppointment) => {
-    setSelectedAppointment(appointment);
-    setReturnToMilestone(false);
-    setActiveDialog('milestone');
-  };
-
-  const closeMilestone = () => {
-    setReturnToMilestone(false);
-    setActiveDialog(null);
-  };
-
-  const openDetail = (appointment: AdminAppointment) => {
-    setSelectedAppointment(appointment);
-    setReturnToMilestone(false);
-    setActiveDialog('patientDetail');
-  };
-
-  const closeDetail = () => {
-    if (returnToMilestone) {
-      setReturnToMilestone(false);
-      setActiveDialog('milestone');
-    } else {
-      setActiveDialog(null);
-    }
-  };
-
-  const openStatus = (appointment: AdminAppointment) => {
-    setSelectedAppointment(appointment);
-    setReturnToMilestone(false);
-    setActiveDialog('status');
-  };
-
-  const closeStatus = () => {
-    if (returnToMilestone) {
-      setReturnToMilestone(false);
-      setActiveDialog('milestone');
-    } else {
-      setActiveDialog(null);
-    }
-  };
-
-  const openQr = (appointment: AdminAppointment) => {
-    setSelectedAppointment(appointment);
-    setReturnToMilestone(false);
-    setActiveDialog('qr');
-  };
-
-  const closeQr = () => {
-    if (returnToMilestone) {
-      setReturnToMilestone(false);
-      setActiveDialog('milestone');
-    } else {
-      setActiveDialog(null);
-    }
-  };
-
-  const openPatientDetailFromMilestone = () => {
-    setReturnToMilestone(true);
-    setActiveDialog('patientDetail');
-  };
-
-  const openStatusFromMilestone = () => {
-    setReturnToMilestone(true);
-    setActiveDialog('status');
-  };
-
-  const openChangeDoctorFromMilestone = () => {
-    setReturnToMilestone(true);
-    setActiveDialog('changeDoctor');
-  };
-
-  const openChangeRoomFromMilestone = () => {
-    setReturnToMilestone(true);
-    setActiveDialog('changeRoom');
-  };
-
-  const openQrFromMilestone = () => {
-    setReturnToMilestone(true);
-    setActiveDialog('qr');
-  };
+  const resetFilters = React.useCallback(() => {
+    table.resetColumnFilters();
+    void setParams({
+      search: null,
+      patientName: null,
+      status: null,
+      poli: null,
+      poliklinikName: null,
+      service: null,
+      serviceName: null,
+      layanan: null,
+      layananName: null,
+      scheduledDate: null,
+      date: null,
+      doctorId: null,
+      doctorName: null,
+      roomName: null,
+      page: 1
+    });
+  }, [table, setParams]);
 
   return {
     table,
-    selectedAppointment,
-    activeDialog,
-    isMilestoneOpen: activeDialog === 'milestone',
-    isDetailOpen: activeDialog === 'patientDetail',
-    isStatusOpen: activeDialog === 'status',
-    isChangeDoctorOpen: activeDialog === 'changeDoctor',
-    isChangeRoomOpen: activeDialog === 'changeRoom',
-    isQrOpen: activeDialog === 'qr',
+    dialogs,
+    selectedAppointment: dialogs.selectedAppointment,
+    activeDialog: dialogs.activeDialog,
+    isRecordDetailOpen: dialogs.isRecordDetailOpen,
+    isTimelineOpen: dialogs.isTimelineOpen,
+    isMilestoneOpen: dialogs.isRecordDetailOpen,
+    isDetailOpen: dialogs.isDetailOpen,
+    isStatusOpen: dialogs.isStatusOpen,
+    isChangeDoctorOpen: dialogs.isChangeDoctorOpen,
+    isChangeRoomOpen: dialogs.isChangeRoomOpen,
+    isQrOpen: dialogs.isQrOpen,
+    isRescheduleOpen: dialogs.isRescheduleOpen,
     isFetching,
     totalAppointments: data.total_appointments,
     hasFilters,
@@ -283,24 +215,40 @@ export function useAppointmentTable({
     formattedDate,
     setUnitId: (unitId: string | null) => setParams({ poliklinikId: unitId, doctorId: null, page: 1 }),
     setDoctorId: (doctorId: string | null) => setParams({ doctorId, page: 1 }),
+    resetFilters,
     actions: {
-      openMilestone,
-      closeMilestone,
-      openDetail,
-      closeDetail,
-      openStatus,
-      closeStatus,
-      openChangeDoctor,
-      closeChangeDoctor,
-      openChangeRoom,
-      closeChangeRoom,
-      openQr,
-      closeQr,
-      openPatientDetailFromMilestone,
-      openStatusFromMilestone,
-      openChangeDoctorFromMilestone,
-      openChangeRoomFromMilestone,
-      openQrFromMilestone
+      openRecordDetail: dialogs.actions.openRecordDetail,
+      closeRecordDetail: dialogs.actions.closeRecordDetail,
+      openTimeline: dialogs.actions.openTimeline,
+      closeTimeline: dialogs.actions.closeTimeline,
+      openMilestone: dialogs.actions.openRecordDetail,
+      closeMilestone: dialogs.actions.closeRecordDetail,
+      openDetail: dialogs.actions.openPatientDetail,
+      closeDetail: dialogs.actions.closePatientDetail,
+      openStatus: dialogs.actions.openStatus,
+      closeStatus: dialogs.actions.closeStatus,
+      openChangeDoctor: dialogs.actions.openChangeDoctor,
+      closeChangeDoctor: dialogs.actions.closeChangeDoctor,
+      openChangeRoom: dialogs.actions.openChangeRoom,
+      closeChangeRoom: dialogs.actions.closeChangeRoom,
+      openQr: dialogs.actions.openQr,
+      closeQr: dialogs.actions.closeQr,
+      openReschedule: dialogs.actions.openReschedule,
+      closeReschedule: dialogs.actions.closeReschedule,
+      openPatientDetailFromRecord: dialogs.actions.openPatientDetailFromRecord,
+      openTimelineFromRecord: dialogs.actions.openTimelineFromRecord,
+      openPatientDetailFromMilestone: dialogs.actions.openPatientDetailFromRecord,
+      openPatientDetailFromQr: dialogs.actions.openPatientDetailFromQr,
+      openStatusFromRecord: dialogs.actions.openStatusFromRecord,
+      openChangeDoctorFromRecord: dialogs.actions.openChangeDoctorFromRecord,
+      openChangeRoomFromRecord: dialogs.actions.openChangeRoomFromRecord,
+      openQrFromRecord: dialogs.actions.openQrFromRecord,
+      openRescheduleFromRecord: dialogs.actions.openRescheduleFromRecord,
+      openStatusFromMilestone: dialogs.actions.openStatusFromRecord,
+      openChangeDoctorFromMilestone: dialogs.actions.openChangeDoctorFromRecord,
+      openChangeRoomFromMilestone: dialogs.actions.openChangeRoomFromRecord,
+      openQrFromMilestone: dialogs.actions.openQrFromRecord,
+      openRescheduleFromMilestone: dialogs.actions.openRescheduleFromRecord
     }
   };
 }

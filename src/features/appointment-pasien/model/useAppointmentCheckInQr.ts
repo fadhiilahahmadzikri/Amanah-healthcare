@@ -152,7 +152,7 @@ export function useAppointmentCheckInQr({
       const targetId = detail.appointmentId || detail.id;
       const isWaitingStatus = AppointmentStatusDescriptor.from(detail.status).isWaiting;
 
-      if (targetId === appointment.id && isWaitingStatus) {
+      if (targetId && String(targetId) === String(appointment.id) && isWaitingStatus) {
         toast.success(`Check-in berhasil! Pasien ${appointment.patientName} kini dalam antrean.`);
         queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
         onClose();

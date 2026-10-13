@@ -70,6 +70,7 @@ export default function PageContainer({
             title={pageTitle ?? ''}
             description={pageDescription ?? ''}
             infoContent={infoContent}
+            className='min-w-0 flex-1'
           />
           {pageHeaderAction && <div className='shrink-0'>{pageHeaderAction}</div>}
         </div>

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import Image from 'next/image';
 import { InfoButton } from '@/components/ui/info-button';
 import type { InfobarContent } from '@/components/ui/infobar';
 import { cn } from '@/lib/utils';
@@ -49,9 +50,12 @@ export function Heading({
         {avatar && (
           <div className='shrink-0'>
             {typeof avatar === 'string' ? (
-              <img
+              <Image
                 src={avatar}
                 alt={title}
+                width={44}
+                height={44}
+                unoptimized
                 className='size-11 rounded-full object-cover ring-1 ring-border'
               />
             ) : (
@@ -74,7 +78,7 @@ export function Heading({
           </div>
 
           {descText && (
-            <p className='text-muted-foreground text-xs font-normal leading-relaxed truncate'>
+            <p className='text-muted-foreground text-xs font-normal leading-relaxed break-words'>
               {descText}
             </p>
           )}

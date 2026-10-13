@@ -115,7 +115,7 @@ export type AppointmentFilters = {
   date?: string;
   scheduledDate?: string | number | (string | number)[];
   doctorName?: string | string[];
-  doctorId?: string;
+  doctorId?: string | string[];
   roomName?: string | string[];
   roomId?: string;
   session?: string;
@@ -174,8 +174,11 @@ export function normalizeFilters(raw: Partial<AppointmentFilters>): NormalizedAp
     typeof raw.poliklinikId === 'string' && raw.poliklinikId.trim()
       ? raw.poliklinikId.trim()
       : undefined;
-  const doctorIdTrimmed =
-    typeof raw.doctorId === 'string' && raw.doctorId.trim() ? raw.doctorId.trim() : undefined;
+  const doctorIdTrimmed = Array.isArray(raw.doctorId)
+    ? raw.doctorId.find((id) => Boolean(id && String(id).trim()))?.trim()
+    : typeof raw.doctorId === 'string' && raw.doctorId.trim()
+      ? raw.doctorId.trim()
+      : undefined;
   const roomIdTrimmed =
     typeof raw.roomId === 'string' && raw.roomId.trim() ? raw.roomId.trim() : undefined;
   const sessionTrimmed =
@@ -244,6 +247,7 @@ export interface BackendAppointmentRecord {
   createdAt?: string | Date;
   updatedAt?: string | Date;
   scheduledStartTime?: string;
+  scheduledEndTime?: string | null;
   session?: string;
   sessionName?: string | null;
   patientId?: string;
@@ -393,3 +397,36 @@ export type PerformCheckInResponse =
     };
 
 export type PerformCheckInResponseDto = PerformCheckInResponse;
+
+export interface ChangeDoctorResponseDto {
+  success: boolean;
+  message: string;
+  data: BackendAppointmentRecord;
+}
+
+export interface ChangeRoomResponseDto {
+  success: boolean;
+  message: string;
+  data: BackendAppointmentRecord;
+}
+
+export interface RescheduleAppointmentDto {
+  session?: string;
+  target_session?: string;
+  target_session_id?: string;
+  newSessionId?: string;
+  target_date?: string;
+  newDate?: string;
+  target_start_time?: string;
+  target_end_time?: string;
+  reason?: string;
+}
+
+export type RescheduleAppointmentPayload = RescheduleAppointmentDto;
+
+export interface RescheduleAppointmentResponseDto {
+  success: boolean;
+  message?: string;
+  timestamp?: string;
+  data: BackendAppointmentRecord;
+}

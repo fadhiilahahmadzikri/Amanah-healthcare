@@ -8,11 +8,15 @@ import type {
   AppointmentDetailResponse,
   AppointmentStatus,
   BackendAppointmentRecord,
+  ChangeDoctorResponseDto,
+  ChangeRoomResponseDto,
   CheckInQrResponse,
   DoctorCandidatesResult,
   PerformCheckInPayload,
   PerformCheckInResponse,
   QueueNavigationResponse,
+  RescheduleAppointmentDto,
+  RescheduleAppointmentResponseDto,
   RoomCandidateItem
 } from './types';
 
@@ -54,7 +58,9 @@ export async function getAdminAppointments(
   }
 
   if (filters.doctorId) {
-    queryParams.doctorId = filters.doctorId;
+    queryParams.doctorId = Array.isArray(filters.doctorId)
+      ? filters.doctorId.find((id) => Boolean(id && String(id).trim()))
+      : filters.doctorId;
   }
 
   if (filters.roomName) {
@@ -245,18 +251,17 @@ export async function changeAppointmentDoctor(
   options?: { closeOldSchedule?: boolean; reason?: string }
 ): Promise<{ success: boolean; message: string; appointment?: AdminAppointment }> {
   try {
-    const response = await clientFetch<{
-      success: boolean;
-      message: string;
-      data: BackendAppointmentRecord;
-    }>(`/api/v1/admin/appointments/${appointmentId}/doctor`, {
-      method: 'PATCH',
-      body: JSON.stringify({
-        doctorId,
-        closeOldSchedule: options?.closeOldSchedule,
-        reason: options?.reason
-      })
-    });
+    const response = await clientFetch<ChangeDoctorResponseDto>(
+      `/api/v1/admin/appointments/${appointmentId}/doctor`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({
+          doctorId,
+          closeOldSchedule: options?.closeOldSchedule,
+          reason: options?.reason
+        })
+      }
+    );
 
     return {
       success: true,
@@ -276,14 +281,13 @@ export async function changeAppointmentRoom(
   roomId: string
 ): Promise<{ success: boolean; message: string; appointment?: AdminAppointment }> {
   try {
-    const response = await clientFetch<{
-      success: boolean;
-      message: string;
-      data: BackendAppointmentRecord;
-    }>(`/api/v1/admin/appointments/${appointmentId}/room`, {
-      method: 'PATCH',
-      body: JSON.stringify({ roomId })
-    });
+    const response = await clientFetch<ChangeRoomResponseDto>(
+      `/api/v1/admin/appointments/${appointmentId}/room`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ roomId })
+      }
+    );
 
     return {
       success: true,
@@ -341,26 +345,17 @@ export async function performCheckIn(
   });
 }
 
-export interface RescheduleAppointmentPayload {
-  target_date: string;
-  session?: string;
-  target_session?: string;
-  target_session_id?: string;
-  reason?: string;
-}
-
 export async function rescheduleAppointmentAction(
   appointmentId: string | number,
-  payload: RescheduleAppointmentPayload
-) {
-  return await clientFetch<{
-    success: boolean;
-    message?: string;
-    data?: any;
-  }>(`/api/v1/appointments/${appointmentId}/reschedule`, {
-    method: 'POST',
-    body: JSON.stringify(payload)
-  });
+  payload: RescheduleAppointmentDto
+): Promise<RescheduleAppointmentResponseDto> {
+  return await clientFetch<RescheduleAppointmentResponseDto>(
+    `/api/v1/appointments/${appointmentId}/reschedule`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }
+  );
 }
 
 export async function getQueueNavigation(

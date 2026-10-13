@@ -32,7 +32,7 @@ export function AppointmentCardFooter({
       <div className='flex items-center gap-2 shrink-0'>
         {actionsSlot}
 
-        {!actionsSlot && onViewDetails && (
+        {onViewDetails && (
           <Button
             type='button'
             variant='default'
