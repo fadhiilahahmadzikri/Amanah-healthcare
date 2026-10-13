@@ -77,7 +77,7 @@ export function PatientQrScanner({ onScan, onError, isSubmitting = false }: Pati
   };
 
   return (
-    <div className='relative w-full h-full overflow-hidden rounded-2xl bg-black flex items-center justify-center'>
+    <div className='relative w-full h-full overflow-hidden rounded-none sm:rounded-2xl bg-black flex items-center justify-center'>
       <Scanner
         ref={scannerHandleRef}
         constraints={{
@@ -96,7 +96,6 @@ export function PatientQrScanner({ onScan, onError, isSubmitting = false }: Pati
           container: {
             width: '100%',
             height: '100%',
-            borderRadius: '1rem',
             overflow: 'hidden'
           },
           video: {
@@ -107,7 +106,7 @@ export function PatientQrScanner({ onScan, onError, isSubmitting = false }: Pati
         }}
       />
 
-      <div className='absolute top-3 right-3 z-30 flex items-center gap-1.5 p-1 bg-black/60 backdrop-blur-md rounded-full border border-white/10 shadow-lg'>
+      <div className='absolute top-3.5 right-14 z-30 flex items-center gap-1.5 p-1 bg-black/60 backdrop-blur-md rounded-full border border-white/10 shadow-lg'>
         {isTorchSupported && (
           <button
             type='button'

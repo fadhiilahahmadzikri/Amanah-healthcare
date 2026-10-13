@@ -22,9 +22,11 @@ export interface UsePatientCheckInResult {
   isSubmitting: boolean;
   cameraError: string | null;
   successResult: PerformCheckInSuccessData | null;
+  isManualDrawerOpen: boolean;
   actions: {
     setActiveTab: (tab: CheckInTabMode) => void;
     setManualCode: (code: string) => void;
+    setIsManualDrawerOpen: (open: boolean) => void;
     handleManualSubmit: (e: React.FormEvent) => Promise<void>;
     handleCheckIn: (payload: { token?: string; manualCode?: string }) => Promise<void>;
     handleScan: (rawDecoded: string) => Promise<void>;
@@ -40,6 +42,7 @@ export function usePatientCheckIn({
 }: UsePatientCheckInParams): UsePatientCheckInResult {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<CheckInTabMode>('scan');
+  const [isManualDrawerOpen, setIsManualDrawerOpen] = useState(false);
   const [manualCode, setManualCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -135,12 +138,14 @@ export function usePatientCheckIn({
       return;
     }
     await handleCheckIn({ manualCode: clean });
+    setIsManualDrawerOpen(false);
   };
 
   const handleClose = () => {
     setManualCode('');
     setSuccessResult(null);
     setCameraError(null);
+    setIsManualDrawerOpen(false);
     onClose();
   };
 
@@ -150,9 +155,11 @@ export function usePatientCheckIn({
     isSubmitting,
     cameraError,
     successResult,
+    isManualDrawerOpen,
     actions: {
       setActiveTab,
       setManualCode,
+      setIsManualDrawerOpen,
       handleManualSubmit,
       handleCheckIn,
       handleScan,

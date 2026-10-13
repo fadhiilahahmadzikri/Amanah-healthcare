@@ -4,6 +4,12 @@ export type {
   AppointmentFiltersProps,
   AppointmentFilterActions
 } from './components/appointment-filters';
+export { AppointmentKlinikMobileFilterToolbar } from './components/appointment-klinik-mobile-filter-toolbar';
+export type { AppointmentKlinikMobileFilterToolbarProps } from './components/appointment-klinik-mobile-filter-toolbar';
+export { PatientAppointmentActionDrawer } from './components/patient-appointment-action-drawer';
+export type { PatientAppointmentActionDrawerProps } from './components/patient-appointment-action-drawer';
+export { PatientCheckInModal } from './components/patient-check-in-modal';
+export type { PatientCheckInModalProps } from './components/patient-check-in-modal';
 export { AppointmentPagination } from './components/appointment-pagination';
 export { GuideView } from './components/guide-view';
 export { QueueView } from './components/queue-view';

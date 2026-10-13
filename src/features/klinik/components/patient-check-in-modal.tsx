@@ -4,7 +4,14 @@ import React from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
-import { cn } from '@/lib/utils';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerFooter
+} from '@/components/ui/drawer';
 import { usePatientCheckIn } from '../model/usePatientCheckIn';
 import { PatientQrScanner } from './patient-qr-scanner';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
@@ -21,222 +28,231 @@ export function PatientCheckInModal({
   onClose,
   onCheckInSuccess
 }: PatientCheckInModalProps) {
-  const { activeTab, manualCode, isSubmitting, cameraError, successResult, actions } =
-    usePatientCheckIn({
-      isOpen,
-      onClose,
-      onCheckInSuccess
-    });
+  const {
+    manualCode,
+    isSubmitting,
+    cameraError,
+    successResult,
+    isManualDrawerOpen,
+    actions
+  } = usePatientCheckIn({
+    isOpen,
+    onClose,
+    onCheckInSuccess
+  });
+
+  if (!isOpen) return null;
 
   return (
-    <ModalWrapper
-      isOpen={isOpen}
-      onClose={actions.handleClose}
-      maxWidth='max-w-[480px]'
-      showCloseButton={false}
-    >
-      <div className='relative font-sans space-y-4'>
-        <div className='flex items-start justify-between gap-3 pb-3 border-b border-border/40'>
-          <div className='space-y-0.5 min-w-0 flex-1'>
-            <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
-              {successResult ? 'Check-In Berhasil' : 'Konfirmasi Kedatangan (Check-In)'}
-            </h3>
-            <p className='text-xs text-muted-foreground'>
-              {successResult
-                ? 'Status janji temu Anda telah aktif di ruang tunggu klinik.'
-                : 'Pindai QR Code dari admin klinik atau masukkan kode manual.'}
-            </p>
-          </div>
-          <button
-            type='button'
-            onClick={actions.handleClose}
-            aria-label='Tutup'
-            className='rounded-full p-1 text-muted-foreground hover:bg-muted transition-colors cursor-pointer shrink-0'
-          >
-            <Icons.close className='size-4' />
-          </button>
-        </div>
-
-        {successResult ? (
-          <div className='py-4 flex flex-col items-center text-center space-y-4'>
-            <div className='size-16 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center ring-8 ring-emerald-500/5'>
-              <Icons.check className='size-8 stroke-[2.5]' />
-            </div>
-
-            <div className='space-y-1.5'>
-              <span className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-warning-subtle text-warning border border-warning-border text-xs font-bold'>
-                <span className='size-2 rounded-full bg-warning' />
-                Menunggu Panggilan
-              </span>
-              <p className='text-sm font-bold text-foreground pt-1'>Nomor Antrean Anda:</p>
-              <div className='text-3xl font-black font-mono tracking-wider text-primary'>
-                {successResult.queueNumber || '-'}
+    <>
+      {/* 1. Main Immersive Full-Screen Scanner Modal */}
+      <ModalWrapper
+        isOpen={isOpen}
+        onClose={actions.handleClose}
+        maxWidth='max-w-md'
+        showCloseButton={false}
+        className='flex flex-col p-0 overflow-hidden bg-black text-white h-[90vh] sm:h-[620px] max-h-[100dvh] rounded-none sm:rounded-2xl border-0 sm:border sm:border-white/10 shadow-2xl'
+      >
+        <div className='relative w-full h-full flex flex-col font-sans select-none overflow-hidden'>
+          {successResult ? (
+            /* Success State */
+            <div className='h-full flex flex-col items-center justify-center p-6 text-center space-y-4 bg-background text-foreground'>
+              <div className='size-16 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center ring-8 ring-emerald-500/5'>
+                <Icons.check className='size-8 stroke-[2.5]' />
               </div>
-            </div>
 
-            <p className='text-xs text-muted-foreground max-w-[320px] leading-relaxed'>
-              Silakan duduk di ruang tunggu klinik. Anda akan menerima notifikasi suara dan push
-              saat nomor antrean dipanggil.
-            </p>
+              <div className='space-y-1.5'>
+                <span className='inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-warning-subtle text-warning border border-warning-border text-xs font-bold'>
+                  <span className='size-2 rounded-full bg-warning' />
+                  Menunggu Panggilan
+                </span>
+                <p className='text-sm font-bold text-foreground pt-1'>Nomor Antrean Anda:</p>
+                <div className='text-3xl font-black font-mono tracking-wider text-primary'>
+                  {successResult.queueNumber || '-'}
+                </div>
+              </div>
 
-            <Button
-              type='button'
-              variant='default'
-              shape='pill'
-              onClick={actions.handleClose}
-              className='w-full font-semibold text-xs py-2 mt-2'
-            >
-              Kembali ke Antrean
-            </Button>
-          </div>
-        ) : (
-          <>
-            <div className='flex p-1 bg-muted/60 rounded-xl gap-1 border border-border/40'>
-              <button
+              <p className='text-xs text-muted-foreground max-w-[320px] leading-relaxed'>
+                Silakan duduk di ruang tunggu klinik. Anda akan menerima notifikasi suara dan layar
+                saat nomor antrean dipanggil.
+              </p>
+
+              <Button
                 type='button'
-                onClick={() => actions.setActiveTab('scan')}
-                className={cn(
-                  'flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer',
-                  activeTab === 'scan'
-                    ? 'bg-card text-foreground shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
+                variant='default'
+                shape='pill'
+                size='card-action'
+                onClick={actions.handleClose}
+                className='w-full font-semibold text-xs mt-2'
               >
-                <Icons.qrCode className='size-3.5' />
-                <span>Pindai QR</span>
-              </button>
-              <button
-                type='button'
-                onClick={() => actions.setActiveTab('manual')}
-                className={cn(
-                  'flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer',
-                  activeTab === 'manual'
-                    ? 'bg-card text-foreground shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                <Icons.edit className='size-3.5' />
-                <span>Kode Manual</span>
-              </button>
+                Kembali ke Antrean
+              </Button>
             </div>
-
-            {activeTab === 'scan' && (
-              <div className='space-y-3'>
-                <div className='relative w-full aspect-square max-w-[320px] mx-auto rounded-2xl overflow-hidden bg-black/90 flex flex-col items-center justify-center border border-border/60 shadow-inner'>
-                  <PatientQrScanner
-                    onScan={actions.handleScan}
-                    onError={actions.handleScannerError}
-                    isSubmitting={isSubmitting}
-                  />
-
-                  {isSubmitting && (
-                    <div className='absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-2 text-white z-20'>
-                      <Icons.spinner className='size-8 animate-spin text-primary' />
-                      <span className='text-xs font-semibold'>Memproses check-in...</span>
-                    </div>
-                  )}
+          ) : (
+            /* Full-Screen Camera View */
+            <div className='relative w-full h-full flex-1 flex flex-col overflow-hidden bg-black'>
+              {/* Floating Top Header Bar */}
+              <div className='absolute top-3.5 inset-x-3.5 z-30 flex items-center justify-between pointer-events-none'>
+                <div className='pointer-events-auto flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-white shadow-lg'>
+                  <span className='size-2 rounded-full bg-emerald-400 animate-pulse' />
+                  <span className='text-xs font-medium tracking-tight'>Pindai QR Check-In</span>
                 </div>
 
-                {cameraError ? (
-                  <div className='bg-destructive/10 text-destructive text-xs p-3 rounded-xl border border-destructive/20 text-center space-y-2'>
-                    <p>{cameraError}</p>
-                    <div className='flex items-center justify-center gap-2 pt-1'>
-                      <Button
-                        type='button'
-                        variant='default'
-                        size='sm'
-                        onClick={actions.clearCameraError}
-                        className='text-xs h-7 gap-1 px-3'
-                      >
-                        <Icons.refresh className='size-3' />
-                        <span>Coba Lagi</span>
-                      </Button>
-                      <Button
-                        type='button'
-                        variant='outline'
-                        size='sm'
-                        onClick={() => actions.setActiveTab('manual')}
-                        className='text-xs h-7 px-3'
-                      >
-                        Beralih ke Input Manual
-                      </Button>
-                    </div>
+                <button
+                  type='button'
+                  onClick={actions.handleClose}
+                  aria-label='Tutup kamera scanner'
+                  className='pointer-events-auto size-8.5 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/15 text-white flex items-center justify-center transition-colors cursor-pointer shadow-lg'
+                >
+                  <Icons.close className='size-4' />
+                </button>
+              </div>
+
+              {/* Full Camera Viewfinder */}
+              <div className='relative w-full h-full flex-1 overflow-hidden bg-black flex items-center justify-center'>
+                <PatientQrScanner
+                  onScan={actions.handleScan}
+                  onError={actions.handleScannerError}
+                  isSubmitting={isSubmitting}
+                />
+
+                {isSubmitting && (
+                  <div className='absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-2 text-white z-20'>
+                    <Icons.spinner className='size-8 animate-spin text-primary' />
+                    <span className='text-xs font-semibold'>Memproses check-in...</span>
                   </div>
-                ) : (
-                  <p className='text-center text-[11px] text-muted-foreground'>
-                    Arahkan kamera ke QR Code yang ditampilkan oleh petugas / admin klinik.
-                  </p>
                 )}
               </div>
-            )}
 
-            {activeTab === 'manual' && (
-              <form onSubmit={actions.handleManualSubmit} className='space-y-4 py-2'>
-                <div className='space-y-3 text-center'>
-                  <label
-                    htmlFor='checkin-manual-code'
-                    className='text-xs font-medium text-foreground block text-center'
-                  >
-                    Kode Manual Check-In (6 Karakter)
-                  </label>
-                  <div className='flex justify-center'>
-                    <InputOTP
-                      id='checkin-manual-code'
-                      aria-label='Kode Manual Check-In'
-                      maxLength={6}
-                      value={manualCode}
-                      onChange={(val) => actions.setManualCode(val.toUpperCase())}
-                      disabled={isSubmitting}
-                      containerClassName='justify-center'
+              {/* Camera Error Message (if any) */}
+              {cameraError && (
+                <div className='absolute top-16 inset-x-4 z-30 bg-destructive/90 text-destructive-foreground backdrop-blur-md text-xs p-3 rounded-xl border border-destructive/30 text-center space-y-2 shadow-xl'>
+                  <p>{cameraError}</p>
+                  <div className='flex items-center justify-center gap-2 pt-1'>
+                    <Button
+                      type='button'
+                      variant='outline'
+                      size='sm'
+                      onClick={actions.clearCameraError}
+                      className='text-xs h-7 px-3 bg-black/40 border-white/20 text-white'
                     >
-                      <InputOTPGroup>
-                        {Array.from({ length: 6 }).map((_, index) => (
-                          <InputOTPSlot
-                            key={index}
-                            index={index}
-                            className='size-11 text-base font-bold font-mono uppercase'
-                          />
-                        ))}
-                      </InputOTPGroup>
-                    </InputOTP>
+                      <Icons.refresh className='size-3 mr-1' />
+                      <span>Coba Lagi</span>
+                    </Button>
+                    <Button
+                      type='button'
+                      variant='secondary'
+                      size='sm'
+                      onClick={() => actions.setIsManualDrawerOpen(true)}
+                      className='text-xs h-7 px-3'
+                    >
+                      Input Manual
+                    </Button>
                   </div>
-                  <p className='text-[11px] text-muted-foreground text-center'>
-                    Masukkan 6 digit kode unik yang tertera pada layar admin klinik.
-                  </p>
                 </div>
+              )}
 
-                <div className='flex items-center justify-end gap-2 pt-2 border-t border-border/40'>
-                  <Button
-                    type='button'
-                    variant='outline'
-                    shape='pill'
-                    size='sm'
-                    onClick={actions.handleClose}
-                    className='text-xs px-5'
-                  >
-                    Batal
-                  </Button>
-                  <Button
-                    type='submit'
-                    variant='default'
-                    shape='pill'
-                    size='sm'
-                    disabled={isSubmitting || !manualCode.trim()}
-                    className='text-xs px-6 font-semibold'
-                  >
-                    {isSubmitting ? (
-                      <Icons.spinner className='size-3.5 mr-1.5 animate-spin' />
-                    ) : (
-                      <Icons.check className='size-3.5 mr-1.5' />
-                    )}
-                    Konfirmasi Check-In
-                  </Button>
-                </div>
-              </form>
-            )}
-          </>
-        )}
-      </div>
-    </ModalWrapper>
+              {/* Floating Action Button (FAB) Manual Code Button */}
+              <div className='absolute bottom-5 inset-x-0 z-30 flex justify-center pointer-events-none'>
+                <Button
+                  type='button'
+                  shape='pill'
+                  variant='secondary'
+                  size='card-action'
+                  onClick={() => actions.setIsManualDrawerOpen(true)}
+                  className='pointer-events-auto bg-card/95 hover:bg-card text-foreground backdrop-blur-md shadow-2xl border border-border/80 px-5 text-xs font-semibold gap-2 cursor-pointer transition-all hover:scale-105 active:scale-95'
+                >
+                  <Icons.edit className='size-3.5 text-primary' />
+                  <span>Masukkan Kode Manual</span>
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </ModalWrapper>
+
+      {/* 2. Manual Code Bottom Drawer Sheet */}
+      <Drawer
+        open={isManualDrawerOpen}
+        onOpenChange={(open) => actions.setIsManualDrawerOpen(open)}
+      >
+        <DrawerContent
+          className='max-h-[85vh] font-sans z-[70]'
+          overlayClassName='z-[70]'
+        >
+          <DrawerHeader className='text-left pb-2.5 border-b border-border/40'>
+            <DrawerTitle className='text-base font-bold text-foreground tracking-tight'>
+              Kode Manual Check-In
+            </DrawerTitle>
+            <DrawerDescription className='text-xs text-muted-foreground'>
+              Masukkan 6 digit kode unik yang tertera pada layar admin klinik.
+            </DrawerDescription>
+          </DrawerHeader>
+
+          <form onSubmit={actions.handleManualSubmit} className='p-4 space-y-4 select-none'>
+            <div className='py-3 flex flex-col items-center space-y-2'>
+              <label
+                htmlFor='checkin-manual-code'
+                className='text-xs font-medium text-foreground block text-center'
+              >
+                Kode Check-In Pasien
+              </label>
+              <div className='flex justify-center'>
+                <InputOTP
+                  id='checkin-manual-code'
+                  aria-label='Kode Manual Check-In'
+                  maxLength={6}
+                  value={manualCode}
+                  onChange={(val) => actions.setManualCode(val.toUpperCase())}
+                  disabled={isSubmitting}
+                  containerClassName='justify-center'
+                >
+                  <InputOTPGroup>
+                    {Array.from({ length: 6 }).map((_, index) => (
+                      <InputOTPSlot
+                        key={index}
+                        index={index}
+                        className='size-11 text-base font-bold font-mono'
+                      />
+                    ))}
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+              <p className='text-[11px] text-muted-foreground text-center'>
+                Pemeriksaan kode akan langsung mengaktifkan antrean Anda.
+              </p>
+            </div>
+
+            <DrawerFooter className='pt-2 border-t border-border/40 px-0 flex-row gap-2'>
+              <Button
+                type='button'
+                variant='outline'
+                shape='pill'
+                size='card-action'
+                onClick={() => actions.setIsManualDrawerOpen(false)}
+                className='flex-1 font-semibold text-xs'
+              >
+                Batal
+              </Button>
+              <Button
+                type='submit'
+                variant='default'
+                shape='pill'
+                size='card-action'
+                disabled={isSubmitting || !manualCode.trim()}
+                className='flex-1 font-semibold text-xs'
+              >
+                {isSubmitting ? (
+                  <Icons.spinner className='size-3.5 mr-1.5 animate-spin' />
+                ) : (
+                  <Icons.check className='size-3.5 mr-1.5' />
+                )}
+                Konfirmasi
+              </Button>
+            </DrawerFooter>
+          </form>
+        </DrawerContent>
+      </Drawer>
+    </>
   );
 }

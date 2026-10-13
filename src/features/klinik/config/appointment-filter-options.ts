@@ -1,19 +1,5 @@
 import { APPOINTMENT_STATUS, type AppointmentStatus } from '../api/types';
 
-export const SERVICE_OPTIONS = [
-  'Penyakit Dalam',
-  'Spesialis Anak',
-  'Kebidanan & Kandungan',
-  'Dokter Gigi',
-  'Ortopedi & Traumatologi',
-  'Dermatologi',
-  'Jantung & Kardiovaskular',
-  'Spesialis Mata',
-  'Spesialis THT',
-  'Kesehatan Jiwa & Psikiatri',
-  'Neurologi / Saraf',
-  'Gizi Klinik'
-] as const;
 
 export interface StatusFilterOption {
   value: AppointmentStatus;

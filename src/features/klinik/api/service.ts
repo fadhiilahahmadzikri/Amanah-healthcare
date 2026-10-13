@@ -1,24 +1,21 @@
 import { clientFetch } from '@/lib/client-fetch';
+import { formatClinicTime } from '@/lib/date-format';
+import { getClinicalPractitionersAction } from '@/features/jadwal-dokter/api/doctor-schedule-actions';
+import type { ClinicalPractitioner } from '@/server/contracts/schedules/doctor-schedules.dto';
 import {
-  Appointment,
   Doctor,
   QueueItem,
-  AppointmentFormData,
   QueueStatus,
-  QUEUE_STATUS,
-  APPOINTMENT_STATUS
+  QUEUE_STATUS
 } from './types';
-import { getAmanahServiceByName } from '../constants/services';
-import { getClinicalPractitionersAction } from '@/features/jadwal-dokter/api/doctor-schedule-actions';
-import { formatClinicTime } from '@/lib/date-format';
 
 export async function fetchClinicalDoctors(serviceName?: string): Promise<Doctor[]> {
   try {
     const list = await getClinicalPractitionersAction({ service: serviceName });
-    return list.map((doc) => ({
+    return (list || []).map((doc: ClinicalPractitioner) => ({
       name: doc.name,
       spec: doc.spec,
-      avatar: doc.avatar || '',
+      avatar: typeof doc.avatar === 'string' ? doc.avatar : '',
       location: doc.location,
       rating: doc.rating || '5.0',
       tags: doc.tags || [doc.spec],
@@ -34,27 +31,12 @@ export const getDoctors = (): Doctor[] => {
   return [];
 };
 
-export const getDoctorByName = (name: string): Doctor | undefined => {
-  return getDoctors().find((doc) => doc.name === name);
+export const getDoctorByName = (_name: string): Doctor | undefined => {
+  return undefined;
 };
 
-export const getDoctorsByService = (serviceName?: string): Doctor[] => {
-  const all = getDoctors();
-  if (!serviceName) return all;
-
-  const srvInfo = getAmanahServiceByName(serviceName);
-  const targetSpec = srvInfo ? srvInfo.shortName.toLowerCase() : serviceName.toLowerCase();
-
-  return all.filter((doc) => {
-    const docSpec = doc.spec.toLowerCase();
-    const docLoc = doc.location.toLowerCase();
-    return (
-      docSpec.includes(targetSpec) ||
-      targetSpec.includes(docSpec) ||
-      docLoc.includes(targetSpec) ||
-      (doc.tags && doc.tags.some((t) => t.toLowerCase().includes(targetSpec)))
-    );
-  });
+export const getDoctorsByService = (_serviceName?: string): Doctor[] => {
+  return [];
 };
 
 export async function fetchPoliListFromApi(): Promise<string[]> {
@@ -262,7 +244,7 @@ export async function getDisplayQueueFromApi(params?: {
           poli: t.poliklinikName || 'Poli',
           estimated_time: 'Menunggu',
           status: QUEUE_STATUS.WAITING,
-          room: (t as any).roomName || '',
+          room: (t as { roomName?: string }).roomName || '',
           actual_started_at: null,
           actual_completed_at: null
         });
@@ -292,54 +274,3 @@ export async function completePatientQueue(appointmentId: string): Promise<unkno
     method: 'POST'
   });
 }
-
-export const createAppointmentRecord = (
-  formData: AppointmentFormData,
-  existingList: Appointment[]
-): Appointment => {
-  const nextNumber = existingList.length + 1;
-  const newId = `apt-${String(nextNumber).padStart(4, '0')}`;
-  const randomCode = Math.random().toString(36).substring(2, 7).toUpperCase();
-  const timestamp = new Date().toISOString();
-
-  return {
-    id: newId,
-    booking_code: `KLINIK-${randomCode}`,
-    patient_name: formData.patientName || '',
-    patient_email: formData.patientEmail || '',
-    patient_avatar: '',
-    doctor_name: formData.doctor,
-    date: formData.dateStr,
-    time: formData.session,
-    session: formData.session,
-    complaint: formData.complaint,
-    status: APPOINTMENT_STATUS.BOOKED,
-    visit_type: formData.visitType,
-    service: formData.service,
-    medical_flow: formData.medicalFlow,
-    medical_intake: formData.medicalIntake,
-    created_at: timestamp,
-    updated_at: timestamp
-  };
-};
-
-export const createAppointmentRecordWithQueue = (
-  formData: AppointmentFormData,
-  existingList: Appointment[]
-): { appointment: Appointment; queueItem: QueueItem } => {
-  const appointment = createAppointmentRecord(formData, existingList);
-  const queueItem: QueueItem = {
-    id: appointment.id,
-    queue_number: appointment.booking_code.replace('KLINIK-', 'A-'),
-    patient_name: appointment.patient_name,
-    patient_avatar: '',
-    doctor_name: appointment.doctor_name || '',
-    poli: formData.service || 'Poli Umum',
-    estimated_time: appointment.time || '-',
-    status: QUEUE_STATUS.WAITING,
-    is_user: true,
-    room: appointment.room_name || ''
-  };
-
-  return { appointment, queueItem };
-};

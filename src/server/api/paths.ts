@@ -53,6 +53,7 @@ export const paths = {
   },
   appointments: {
     list: () => `${getBaseApiUrl()}/api/v1/appointments`,
+    queueNavigation: () => `${getBaseApiUrl()}/api/v1/appointments/queue-navigation`,
     call: (appointmentId: string) => `${getBaseApiUrl()}/api/v1/appointments/${appointmentId}/call`,
     complete: (appointmentId: string) =>
       `${getBaseApiUrl()}/api/v1/appointments/${appointmentId}/complete`,

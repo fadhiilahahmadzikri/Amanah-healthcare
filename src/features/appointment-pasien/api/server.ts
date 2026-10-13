@@ -138,7 +138,7 @@ export async function getQueueNavigationOnServer(
   if (params?.session) queryParams.session = params.session;
 
   return await httpClient.request<QueueNavigationResponse>(
-    '/api/v1/appointments/queue-navigation',
+    paths.appointments.queueNavigation(),
     z.any(),
     {
       method: 'GET',

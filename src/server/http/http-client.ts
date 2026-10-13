@@ -1,6 +1,7 @@
 import 'server-only';
 import { z } from 'zod';
 import { AppError } from '@/core/errors/app-error';
+import { getBaseApiUrl } from '../api/base-url';
 import {
   prepareRequestHeaders,
   logOutboundRequest,
@@ -47,7 +48,8 @@ export class HttpClient {
   ): Promise<T> {
     const method = (options.method ?? 'GET').toUpperCase() as HttpMethod;
     const queryString = serializeQueryParams(options.query);
-    const fullUrl = `${url}${queryString}`;
+    const resolvedUrl = url.startsWith('/') ? `${getBaseApiUrl()}${url}` : url;
+    const fullUrl = `${resolvedUrl}${queryString}`;
 
     const headers = prepareRequestHeaders(options.headers, {
       tokenOverride: options.tokenOverride,

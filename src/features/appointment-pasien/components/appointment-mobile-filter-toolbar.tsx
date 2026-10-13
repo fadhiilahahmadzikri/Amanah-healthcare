@@ -4,7 +4,6 @@ import React, { useState, useMemo } from 'react';
 import type { Table } from '@tanstack/react-table';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Drawer,
   DrawerContent,
@@ -20,6 +19,12 @@ import type { AdminAppointment } from '../api/types';
 import { cn } from '@/lib/utils';
 import { getClinicTodayDateString } from '@/lib/date-format';
 import { AppointmentExportButton } from './appointment-export-button';
+import {
+  useTanStackSearchEngine,
+  SearchEngineTrigger,
+  SearchEngineDialog,
+  type SearchEngineResultItem
+} from '@/components/search-engine';
 
 export interface AppointmentMobileFilterToolbarProps {
   table: Table<AdminAppointment>;
@@ -36,13 +41,58 @@ export function AppointmentMobileFilterToolbar({
 }: AppointmentMobileFilterToolbarProps) {
   const [openDrawer, setOpenDrawer] = useState<DrawerFilterType>(null);
 
+  const indexItems = useMemo<SearchEngineResultItem[]>(() => {
+    const items: SearchEngineResultItem[] = [];
+    const rows = table.getCoreRowModel().rows;
+    const seenPatients = new Set<string>();
+    const seenQueues = new Set<string>();
+
+    rows.forEach((row) => {
+      const apt = row.original;
+      if (apt.patientName && !seenPatients.has(apt.patientName)) {
+        seenPatients.add(apt.patientName);
+        items.push({
+          id: `pat-${apt.id}`,
+          title: apt.patientName,
+          subtitle: `Antrean ${apt.queueNumber || '-'} • ${apt.layananName || apt.poliklinikName || '-'}`,
+          category: 'Pasien',
+          icon: Icons.user,
+          queryValue: apt.patientName
+        });
+      }
+      if (apt.queueNumber && !seenQueues.has(apt.queueNumber)) {
+        seenQueues.add(apt.queueNumber);
+        items.push({
+          id: `q-${apt.id}`,
+          title: `Antrean ${apt.queueNumber}`,
+          subtitle: apt.patientName,
+          category: 'Nomor Antrean',
+          icon: Icons.ticket,
+          queryValue: apt.queueNumber
+        });
+      }
+    });
+
+    return items;
+  }, [table]);
+
+  const searchEngine = useTanStackSearchEngine({
+    table,
+    columnId: 'patientName',
+    id: 'appointment-pasien-admin',
+    title: 'Pencarian Antrean Pasien',
+    description: 'Cari antrean berdasarkan nama pasien atau nomor antrean',
+    placeholder: 'Ketik nama pasien atau no antrean...',
+    indexItems
+  });
+
   const patientCol = table.getColumn('patientName');
   const dateCol = table.getColumn('scheduledDate');
   const statusCol = table.getColumn('status');
   const doctorCol = table.getColumn('doctorId');
   const roomCol = table.getColumn('roomName');
 
-  const searchValue = (patientCol?.getFilterValue() as string) ?? '';
+  const searchValue = searchEngine.query;
   const dateValue = (dateCol?.getFilterValue() as string) ?? '';
   const statusValue = (statusCol?.getFilterValue() as string[]) ?? [];
   const doctorValue = doctorCol?.getFilterValue() as string | string[] | undefined;
@@ -89,6 +139,7 @@ export function AppointmentMobileFilterToolbar({
   };
 
   const handleReset = () => {
+    searchEngine.clearQuery();
     patientCol?.setFilterValue(undefined);
     dateCol?.setFilterValue(undefined);
     statusCol?.setFilterValue(undefined);
@@ -101,32 +152,18 @@ export function AppointmentMobileFilterToolbar({
   return (
     <>
       <div className={cn('flex flex-col gap-2 font-sans select-none', className)}>
-        {/* Compact Search & Action Row */}
-        <div className='flex items-center gap-1.5'>
-          <div className='relative flex-1 min-w-0'>
-            <Icons.search className='absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground' />
-            <Input
-              type='text'
-              placeholder='Cari pasien atau antrean...'
-              value={searchValue}
-              onChange={(e) => patientCol?.setFilterValue(e.target.value || undefined)}
-              className='h-8.5 pl-8 pr-7 text-xs rounded-xl bg-card border-border/60 shadow-none'
+        {/* Minimalist Horizontal Filter Dock */}
+        <div className='flex items-center justify-between gap-1.5 w-full overflow-x-auto scrollbar-none py-0.5'>
+          <div className='flex items-center gap-1.5 flex-1 min-w-0 overflow-x-auto scrollbar-none'>
+            {/* 1. Search Engine Icon Trigger */}
+            <SearchEngineTrigger
+              config={searchEngine.config}
+              isOpen={searchEngine.isOpen}
+              onOpen={searchEngine.open}
+              ariaLabel='Cari antrean pasien'
             />
-            {searchValue && (
-              <button
-                type='button'
-                onClick={() => patientCol?.setFilterValue(undefined)}
-                aria-label='Hapus pencarian'
-                className='absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer'
-              >
-                <Icons.close className='size-3.5' />
-              </button>
-            )}
-          </div>
 
-          {/* Icon Filter Buttons */}
-          <div className='flex items-center gap-1 shrink-0'>
-            {/* 1. Date Filter Icon Button */}
+            {/* 2. Date Filter Icon Button */}
             <Button
               type='button'
               variant={hasDateFilter ? 'primary' : 'outline'}
@@ -134,7 +171,7 @@ export function AppointmentMobileFilterToolbar({
               onClick={() => setOpenDrawer('date')}
               aria-label='Filter Tanggal Booking'
               className={cn(
-                'size-8.5 rounded-xl relative cursor-pointer',
+                'size-8.5 rounded-xl relative cursor-pointer shrink-0',
                 hasDateFilter && 'shadow-2xs font-bold'
               )}
             >
@@ -144,7 +181,7 @@ export function AppointmentMobileFilterToolbar({
               )}
             </Button>
 
-            {/* 2. Status Filter Icon Button */}
+            {/* 3. Status Filter Icon Button */}
             <Button
               type='button'
               variant={hasStatusFilter ? 'primary' : 'outline'}
@@ -152,7 +189,7 @@ export function AppointmentMobileFilterToolbar({
               onClick={() => setOpenDrawer('status')}
               aria-label='Filter Status Antrean'
               className={cn(
-                'size-8.5 rounded-xl relative cursor-pointer',
+                'size-8.5 rounded-xl relative cursor-pointer shrink-0',
                 hasStatusFilter && 'shadow-2xs font-bold'
               )}
             >
@@ -164,7 +201,7 @@ export function AppointmentMobileFilterToolbar({
               )}
             </Button>
 
-            {/* 3. Doctor Filter Icon Button */}
+            {/* 4. Doctor Filter Icon Button */}
             <Button
               type='button'
               variant={hasDoctorFilter ? 'primary' : 'outline'}
@@ -172,7 +209,7 @@ export function AppointmentMobileFilterToolbar({
               onClick={() => setOpenDrawer('doctor')}
               aria-label='Filter Dokter'
               className={cn(
-                'size-8.5 rounded-xl relative cursor-pointer',
+                'size-8.5 rounded-xl relative cursor-pointer shrink-0',
                 hasDoctorFilter && 'shadow-2xs font-bold'
               )}
             >
@@ -182,7 +219,7 @@ export function AppointmentMobileFilterToolbar({
               )}
             </Button>
 
-            {/* 4. Room Filter Icon Button */}
+            {/* 5. Room Filter Icon Button */}
             <Button
               type='button'
               variant={hasRoomFilter ? 'primary' : 'outline'}
@@ -190,7 +227,7 @@ export function AppointmentMobileFilterToolbar({
               onClick={() => setOpenDrawer('room')}
               aria-label='Filter Ruangan'
               className={cn(
-                'size-8.5 rounded-xl relative cursor-pointer',
+                'size-8.5 rounded-xl relative cursor-pointer shrink-0',
                 hasRoomFilter && 'shadow-2xs font-bold'
               )}
             >
@@ -200,26 +237,104 @@ export function AppointmentMobileFilterToolbar({
               )}
             </Button>
 
-            {/* 5. Export Button (Icon-based di Mobile Toolbar) */}
+            {/* 6. Export Button */}
             <AppointmentExportButton variant='icon' />
+          </div>
 
-            {/* 6. Reset Filter Button (Global di Horizontal Dock) */}
-            {isFiltered && (
-              <Button
-                type='button'
-                variant='outline'
-                size='icon'
-                onClick={handleReset}
-                aria-label='Reset Semua Filter'
-                className='size-8.5 rounded-xl border-destructive/40 text-destructive bg-destructive/10 hover:bg-destructive/20 cursor-pointer shadow-2xs shrink-0'
-                title='Reset Semua Filter'
-              >
-                <Icons.refresh className='size-3.5' />
-              </Button>
+          {/* 7. Reset Filter Button (Global on Dock) */}
+          {isFiltered && (
+            <Button
+              type='button'
+              variant='outline'
+              size='icon'
+              onClick={handleReset}
+              aria-label='Reset Semua Filter'
+              className='size-8.5 rounded-xl border-destructive/40 text-destructive bg-destructive/10 hover:bg-destructive/20 cursor-pointer shadow-2xs shrink-0'
+              title='Reset Semua Filter'
+            >
+              <Icons.refresh className='size-3.5' />
+            </Button>
+          )}
+        </div>
+
+        {/* Active Filter Summary Chips Row */}
+        {isFiltered && (
+          <div className='flex items-center gap-1.5 flex-wrap pt-0.5 overflow-x-auto scrollbar-none'>
+            {searchEngine.config.query && (
+              <span className='inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium bg-primary/10 text-primary border border-primary/20 rounded-lg shrink-0'>
+                <span>Cari: &quot;{searchEngine.config.query}&quot;</span>
+                <button
+                  type='button'
+                  onClick={() => searchEngine.clearQuery()}
+                  aria-label='Hapus pencarian'
+                  className='hover:text-destructive cursor-pointer'
+                >
+                  <Icons.close className='size-3' />
+                </button>
+              </span>
+            )}
+            {hasDateFilter && (
+              <span className='inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium bg-primary/10 text-primary border border-primary/20 rounded-lg shrink-0'>
+                <span>Tgl: {dateValue}</span>
+                <button
+                  type='button'
+                  onClick={() => dateCol?.setFilterValue(undefined)}
+                  aria-label='Hapus filter tanggal'
+                  className='hover:text-destructive cursor-pointer'
+                >
+                  <Icons.close className='size-3' />
+                </button>
+              </span>
+            )}
+            {hasStatusFilter && (
+              <span className='inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium bg-primary/10 text-primary border border-primary/20 rounded-lg shrink-0'>
+                <span>Status: {statusValue.length}</span>
+                <button
+                  type='button'
+                  onClick={() => statusCol?.setFilterValue(undefined)}
+                  aria-label='Hapus filter status'
+                  className='hover:text-destructive cursor-pointer'
+                >
+                  <Icons.close className='size-3' />
+                </button>
+              </span>
+            )}
+            {hasDoctorFilter && (
+              <span className='inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium bg-primary/10 text-primary border border-primary/20 rounded-lg shrink-0'>
+                <span>Dokter</span>
+                <button
+                  type='button'
+                  onClick={() => doctorCol?.setFilterValue(undefined)}
+                  aria-label='Hapus filter dokter'
+                  className='hover:text-destructive cursor-pointer'
+                >
+                  <Icons.close className='size-3' />
+                </button>
+              </span>
+            )}
+            {hasRoomFilter && (
+              <span className='inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium bg-primary/10 text-primary border border-primary/20 rounded-lg shrink-0'>
+                <span>Ruangan</span>
+                <button
+                  type='button'
+                  onClick={() => roomCol?.setFilterValue(undefined)}
+                  aria-label='Hapus filter ruangan'
+                  className='hover:text-destructive cursor-pointer'
+                >
+                  <Icons.close className='size-3' />
+                </button>
+              </span>
             )}
           </div>
-        </div>
+        )}
       </div>
+
+      {/* Centralized Search Engine Modal */}
+      <SearchEngineDialog
+        config={searchEngine.config}
+        isOpen={searchEngine.isOpen}
+        onClose={searchEngine.close}
+      />
 
       {/* Drawer 1: Calendar Date Picker (Alur Reservasi Kanonikal) */}
       <Drawer

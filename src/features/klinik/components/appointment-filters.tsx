@@ -7,7 +7,7 @@ import { FacetedFilter } from '@/shared/ui/faceted-filter';
 import { DateFilter } from '@/shared/ui/date-filter';
 import { SearchInput } from '@/shared/ui/search-input';
 import { toggleItem } from '@/shared/lib/array/toggle-item';
-import { SERVICE_OPTIONS } from '../config/appointment-filter-options';
+import { useClinicFilterOptions, type FilterOption } from '../hooks/use-clinic-filter-options';
 import { buildMonthOptions, isAppointmentFilterActive } from '../model/appointment-filters.rules';
 import type { AppointmentStatus } from '../api/types';
 import type { AppointmentFilterState } from '../model/appointmentViewModel';
@@ -38,6 +38,7 @@ export interface AppointmentFiltersProps {
   onSelectedServicesChange?: (services: string[]) => void;
   selectedStatuses?: AppointmentStatus[];
   onSelectedStatusesChange?: (statuses: AppointmentStatus[]) => void;
+  serviceOptions?: FilterOption[];
   onResetAll?: () => void;
   className?: string;
 }
@@ -55,9 +56,13 @@ export function AppointmentFilters({
   onSelectedServicesChange: discreteOnServicesChange,
   selectedStatuses: discreteStatuses,
   onSelectedStatusesChange: discreteOnStatusesChange,
+  serviceOptions: discreteServiceOptions,
   onResetAll: discreteOnResetAll,
   className
 }: AppointmentFiltersProps) {
+  const clinicFilterData = useClinicFilterOptions();
+  const availableServices = discreteServiceOptions ?? clinicFilterData.serviceOptions;
+
   // Resolve effective state & actions (supporting both consolidated and discrete props)
   const currentFilters: AppointmentFilterState = React.useMemo(
     () => ({
@@ -75,8 +80,6 @@ export function AppointmentFilters({
   const handleDateChange = actions?.changeDateFilter ?? discreteOnDateChange ?? (() => {});
   const handleServicesChange =
     actions?.changeSelectedServices ?? discreteOnServicesChange ?? (() => {});
-  const handleStatusesChange =
-    actions?.changeSelectedStatuses ?? discreteOnStatusesChange ?? (() => {});
   const handleReset = actions?.resetFilters ?? discreteOnResetAll ?? (() => {});
 
   const today = React.useMemo(() => new Date(), []);
@@ -84,8 +87,8 @@ export function AppointmentFilters({
   const monthOptions = React.useMemo(() => buildMonthOptions(), []);
 
   const serviceFacetOptions = React.useMemo(
-    () => SERVICE_OPTIONS.map((srv) => ({ value: srv, label: srv })),
-    []
+    () => availableServices.map((srv) => ({ value: srv.value, label: srv.label })),
+    [availableServices]
   );
 
   return (

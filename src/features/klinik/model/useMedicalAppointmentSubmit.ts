@@ -4,7 +4,6 @@ import * as React from 'react';
 import { toast } from 'sonner';
 import type { Patient } from '@/features/data-pasien/api/types';
 import type { Appointment, AppointmentFormData, QueueItem } from '../api/types';
-import { createAppointmentRecordWithQueue } from '../api/service';
 import {
   patientAffiliationService,
   type PatientAffiliationProfile,
@@ -226,43 +225,87 @@ export function useMedicalAppointmentSubmit({
       };
 
       setIsProcessing(true);
-      setIsQueueSuccessOpen(true);
-
-      const result = createAppointmentRecordWithQueue(payload, []);
-
-      setCreatedAppointment(result.appointment);
-      setCreatedQueueItem(result.queueItem);
-      onCreated?.(payload);
-
-      if (patientId) {
-        void (async () => {
-          try {
-            if (definition.flow === FLOW_NAMES.PREGNANCY) {
-              const maternityPayload = buildMaternityIntakePayload(
-                patientId,
-                submittedValues,
-                patientName,
-                complaint
-              );
-              await kiaIntakeService.createMaternityIntake(maternityPayload);
-            } else if (definition.flow === FLOW_NAMES.IMMUNIZATION) {
-              const immunizationPayload = buildChildImmunizationIntakePayload(
-                patientId,
-                submittedValues,
-                patientName,
-                patientContact
-              );
-              await kiaIntakeService.createImmunizationIntake(immunizationPayload);
-            }
-          } catch {
+      void (async () => {
+        try {
+          if (!selectedService?.id || !selectedService?.poliklinikId) {
+            toast.error('Layanan klinik belum dipilih.');
             return;
           }
-        })();
-      }
+          const res = await patientAffiliationService.createAppointment({
+            patientId: patientId || selectedPatient?.id || '',
+            poliklinikId: selectedService.poliklinikId,
+            layananId: selectedService.id,
+            appointmentDate: schedule?.dateStr || '',
+            session: schedule?.session || '',
+            visitType: definition.visitType,
+            complaint: complaint || 'Pemeriksaan klinik'
+          });
 
-      setTimeout(() => {
-        setIsProcessing(false);
-      }, 1200);
+          const uiApt: Appointment = {
+            id: res.id,
+            booking_code: res.bookingCode || res.id.slice(0, 8).toUpperCase(),
+            patient_name: res.patientName || patientName || 'Pasien',
+            patient_email: patientEmail || '',
+            patient_avatar: registeredPatient?.avatar || '',
+            doctor_name: res.doctorName || schedule?.doctor || '',
+            date: res.appointmentDate,
+            time: res.session,
+            session: res.session,
+            complaint: res.complaint || complaint || '-',
+            status: 'BOOKED',
+            visit_type: (res.visitType || definition.visitType) as Appointment['visit_type'],
+            service: res.layananName || definition.serviceName,
+            created_at: res.createdAt
+          };
+
+          const uiQueue: QueueItem = {
+            id: res.id,
+            queue_number: res.queueNumber || '-',
+            patient_name: uiApt.patient_name,
+            patient_avatar: '',
+            doctor_name: uiApt.doctor_name || '',
+            poli: uiApt.service || 'Poli',
+            estimated_time: uiApt.time || '-',
+            status: 'WAITING',
+            is_user: true,
+            room: res.roomName || ''
+          };
+
+          setCreatedAppointment(uiApt);
+          setCreatedQueueItem(uiQueue);
+          setIsQueueSuccessOpen(true);
+          onCreated?.(payload);
+
+          if (patientId) {
+            try {
+              if (definition.flow === FLOW_NAMES.PREGNANCY) {
+                const maternityPayload = buildMaternityIntakePayload(
+                  patientId,
+                  submittedValues,
+                  patientName,
+                  complaint
+                );
+                await kiaIntakeService.createMaternityIntake(maternityPayload);
+              } else if (definition.flow === FLOW_NAMES.IMMUNIZATION) {
+                const immunizationPayload = buildChildImmunizationIntakePayload(
+                  patientId,
+                  submittedValues,
+                  patientName,
+                  patientContact
+                );
+                await kiaIntakeService.createImmunizationIntake(immunizationPayload);
+              }
+            } catch {
+              // Non-blocking intake creation error
+            }
+          }
+        } catch (err: unknown) {
+          const msg = err instanceof Error ? err.message : 'Gagal memproses janji temu';
+          toast.error(msg);
+        } finally {
+          setIsProcessing(false);
+        }
+      })();
     },
     [
       definition,

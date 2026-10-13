@@ -3,7 +3,7 @@ import 'server-only';
 export const serverEnv = {
   NODE_ENV: process.env.NODE_ENV ?? 'development',
   API_BASE_URL:
-    process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001',
+    (process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').trim(),
   ACCESS_TOKEN_COOKIE_NAME: process.env.ACCESS_TOKEN_COOKIE_NAME ?? 'amanah_access_token',
   REFRESH_TOKEN_COOKIE_NAME: process.env.REFRESH_TOKEN_COOKIE_NAME ?? 'amanah_refresh_token',
   SESSION_COOKIE_NAME: process.env.SESSION_COOKIE_NAME ?? 'better-auth.session_token',

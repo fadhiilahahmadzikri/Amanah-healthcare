@@ -6,10 +6,12 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
+import { useClinicFilterOptions } from '../hooks/use-clinic-filter-options';
 import { useAppointmentsView } from '../model/useAppointmentsView';
 import { AppointmentCard } from './appointment-card';
 import { AppointmentCardsSkeleton } from './appointment-cards-skeleton';
 import { AppointmentFilters } from './appointment-filters';
+import { AppointmentKlinikMobileFilterToolbar } from './appointment-klinik-mobile-filter-toolbar';
 import { AppointmentModal } from './appointment-modal';
 import { AppointmentPagination } from './appointment-pagination';
 import { DetailsModal } from './details-modal';
@@ -20,6 +22,7 @@ type AppointmentModalSubmit = ComponentProps<typeof AppointmentModal>['onSubmit'
 export function AppointmentsView() {
   const appointmentsView = useAppointmentsView();
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
+  const { serviceOptions = [] } = useClinicFilterOptions();
 
   const handleFormSubmit: AppointmentModalSubmit = (data, appointmentId) => {
     const result = appointmentsView.actions.submitForm(data, appointmentId);
@@ -32,31 +35,48 @@ export function AppointmentsView() {
     <div className='flex h-full min-h-0 flex-1 flex-col gap-4 select-none font-sans'>
       {/* 1. Filter Toolbar Row with Actions - Only rendered when data exists or filters are active */}
       {(appointmentsView.totalAppointments > 0 || appointmentsView.hasActiveFilters) && (
-        <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0'>
-          <AppointmentFilters
-            filters={appointmentsView.filters}
-            actions={appointmentsView.actions}
-            className='flex-1'
-          />
+        <>
+          {/* Desktop Filter Toolbar Row */}
+          <div className='hidden md:flex items-center justify-between gap-3 shrink-0'>
+            <AppointmentFilters
+              filters={appointmentsView.filters}
+              actions={appointmentsView.actions}
+              serviceOptions={serviceOptions}
+              className='flex-1'
+            />
 
-          <div className='flex items-center gap-2 shrink-0'>
-            <Button
-              variant='outline'
-              onClick={() => setIsCheckInModalOpen(true)}
-              className='text-xs md:text-sm gap-2'
-            >
-              <Icons.qrCode className='h-4 w-4' />
-              <span>Check-In Pasien</span>
-            </Button>
-            <Button
-              onClick={appointmentsView.actions.openCreateModal}
-              className='text-xs md:text-sm'
-            >
-              <Icons.add className='mr-2 h-4 w-4' />
-              <span>Tambah Janji Temu</span>
-            </Button>
+            <div className='flex items-center gap-2 shrink-0'>
+              <Button
+                variant='outline'
+                onClick={() => setIsCheckInModalOpen(true)}
+                className='text-xs md:text-sm gap-2'
+              >
+                <Icons.qrCode className='h-4 w-4' />
+                <span>Check-In Pasien</span>
+              </Button>
+              <Button
+                onClick={appointmentsView.actions.openCreateModal}
+                className='text-xs md:text-sm'
+              >
+                <Icons.add className='mr-2 h-4 w-4' />
+                <span>Tambah Janji Temu</span>
+              </Button>
+            </div>
           </div>
-        </div>
+
+          {/* Mobile Filter Toolbar Dock with Centralized Search Engine */}
+          <div className='block md:hidden shrink-0'>
+            <AppointmentKlinikMobileFilterToolbar
+              filters={appointmentsView.filters}
+              actions={appointmentsView.actions}
+              serviceOptions={serviceOptions}
+              totalAppointments={appointmentsView.totalAppointments}
+              filteredCount={appointmentsView.filteredCount}
+              onOpenCheckIn={() => setIsCheckInModalOpen(true)}
+              onOpenCreate={appointmentsView.actions.openCreateModal}
+            />
+          </div>
+        </>
       )}
 
       <div className='relative flex flex-1 min-h-0 flex-col overflow-hidden'>
@@ -173,6 +193,7 @@ export function AppointmentsView() {
         onRescheduled={async () => {
           await appointmentsView.actions.reload();
         }}
+        onOpenCheckIn={() => setIsCheckInModalOpen(true)}
       />
 
       {/* Patient Self/Kiosk Check-In Modal */}

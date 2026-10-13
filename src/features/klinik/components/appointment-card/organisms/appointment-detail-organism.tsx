@@ -31,6 +31,7 @@ import {
 } from '@/features/appointment-pasien/constants/options';
 import { useAuthContext } from '@/lib/rbac/auth-context';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { PatientAppointmentActionDrawer } from '../../patient-appointment-action-drawer';
 
 export interface AppointmentDetailOrganismProps {
   isOpen: boolean;
@@ -41,6 +42,7 @@ export interface AppointmentDetailOrganismProps {
   onRescheduled?: (appointment: Appointment) => Promise<void> | void;
   onCallPatient?: (appointment: Appointment) => Promise<void> | void;
   onCompletePatient?: (appointment: Appointment) => Promise<void> | void;
+  onOpenCheckIn?: (appointment: Appointment) => void;
   isCallPending?: boolean;
   isCompletePending?: boolean;
   portalContainerRef?: React.RefObject<HTMLElement | null>;
@@ -58,6 +60,7 @@ export function AppointmentDetailOrganism({
   onRescheduled,
   onCallPatient,
   onCompletePatient,
+  onOpenCheckIn,
   isCallPending = false,
   isCompletePending = false,
   portalContainerRef,
@@ -67,6 +70,7 @@ export function AppointmentDetailOrganism({
   const [modalStep, setModalStep] = React.useState<ModalStep>('details');
   const [cancelReason, setCancelReason] = React.useState('');
   const [isCancelling, setIsCancelling] = React.useState(false);
+  const [isActionDrawerOpen, setIsActionDrawerOpen] = React.useState(false);
   const [isChangeDoctorOpen, setIsChangeDoctorOpen] = React.useState(false);
   const [isChangeRoomOpen, setIsChangeRoomOpen] = React.useState(false);
   const [isRescheduleOpen, setIsRescheduleOpen] = React.useState(false);
@@ -190,12 +194,18 @@ export function AppointmentDetailOrganism({
                 </div>
 
                 <div className='shrink-0'>
-                  {isMobile && onOpenActionDrawer ? (
+                  {isMobile ? (
                     <Button
                       type='button'
                       variant='ghost'
                       size='icon'
-                      onClick={onOpenActionDrawer}
+                      onClick={() => {
+                        if (onOpenActionDrawer) {
+                          onOpenActionDrawer();
+                        } else {
+                          setIsActionDrawerOpen(true);
+                        }
+                      }}
                       aria-label='Opsi tindakan janji temu'
                       className='size-7.5 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-md transition-colors cursor-pointer shrink-0'
                     >
@@ -524,6 +534,18 @@ export function AppointmentDetailOrganism({
           onRescheduled?.(appointment);
           onClose();
         }}
+      />
+
+      <PatientAppointmentActionDrawer
+        isOpen={isActionDrawerOpen}
+        appointment={appointment}
+        onClose={() => setIsActionDrawerOpen(false)}
+        onViewForm={() => setModalStep('form')}
+        onCheckIn={onOpenCheckIn ? () => onOpenCheckIn(appointment) : undefined}
+        onReschedule={() => setIsRescheduleOpen(true)}
+        onCancel={() => setModalStep('cancel-confirm')}
+        onCallPatient={onCallPatient ? () => onCallPatient(appointment) : undefined}
+        isCallPending={isCallPending}
       />
     </>
   );
