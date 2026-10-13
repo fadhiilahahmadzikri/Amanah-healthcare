@@ -16,6 +16,7 @@ export interface BookingConfirmationStepProps {
   complaint: string;
   serviceName?: string;
   patientName?: string;
+  mode?: 'create' | 'reschedule';
 }
 
 export function BookingConfirmationStep({
@@ -26,8 +27,10 @@ export function BookingConfirmationStep({
   visitType,
   complaint,
   serviceName,
-  patientName
+  patientName,
+  mode = 'create'
 }: BookingConfirmationStepProps) {
+  const isReschedule = mode === 'reschedule';
   const sessionLabel = formatFriendlySessionName(session) || session || '-';
   const displayServiceName = serviceName || selectedService?.name || 'Poliklinik';
   const displayPatientName = patientName || selectedPatient?.fullName || 'Pasien';
@@ -36,10 +39,14 @@ export function BookingConfirmationStep({
     <div className='space-y-4'>
       <div>
         <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
-          Cek lagi ringkasan janji temu kamu ya ✨
+          {isReschedule
+            ? 'Cek ringkasan jadwal baru janji temu ✨'
+            : 'Cek lagi ringkasan janji temu kamu ya ✨'}
         </h3>
         <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
-          Pastikan semua data sudah sesuai sebelum tiket antrean resmi diterbitkan.
+          {isReschedule
+            ? 'Pastikan tanggal dan sesi baru sudah sesuai sebelum jadwal diperbarui.'
+            : 'Pastikan semua data sudah sesuai sebelum tiket antrean resmi diterbitkan.'}
         </p>
       </div>
 
@@ -58,31 +65,40 @@ export function BookingConfirmationStep({
         </div>
 
         <div className='flex items-center justify-between py-2 border-b border-border'>
-          <span className='text-muted-foreground font-normal'>Tanggal Reservasi</span>
+          <span className='text-muted-foreground font-normal'>
+            {isReschedule ? 'Tanggal Baru' : 'Tanggal Reservasi'}
+          </span>
           <span className='font-semibold text-primary'>{formatClinicDate(dateStr)}</span>
         </div>
 
         <div className='flex items-center justify-between py-2 border-b border-border'>
-          <span className='text-muted-foreground font-normal'>Sesi Konsultasi</span>
+          <span className='text-muted-foreground font-normal'>
+            {isReschedule ? 'Sesi Baru' : 'Sesi Konsultasi'}
+          </span>
           <span className='font-bold text-primary'>{sessionLabel}</span>
         </div>
 
-        <div className='flex items-center justify-between py-2 border-b border-border'>
-          <span className='text-muted-foreground font-normal'>Tipe Kunjungan</span>
-          <span className='font-medium text-foreground'>{visitType}</span>
-        </div>
+        {!isReschedule && (
+          <div className='flex items-center justify-between py-2 border-b border-border'>
+            <span className='text-muted-foreground font-normal'>Tipe Kunjungan</span>
+            <span className='font-medium text-foreground'>{visitType}</span>
+          </div>
+        )}
 
-        <div className='py-2 space-y-1'>
-          <span className='text-muted-foreground font-normal block'>Keluhan Medis</span>
-          <p className='text-foreground font-normal'>{complaint || '-'}</p>
-        </div>
+        {!isReschedule && (
+          <div className='py-2 space-y-1'>
+            <span className='text-muted-foreground font-normal block'>Keluhan Medis</span>
+            <p className='text-foreground font-normal'>{complaint || '-'}</p>
+          </div>
+        )}
       </div>
 
       <div className='flex items-center gap-2 p-2.5 rounded-lg bg-muted/60 text-muted-foreground text-xs'>
         <Icons.check className='size-4 text-emerald-600 shrink-0' />
         <span>
-          Setelah disimpan, tiket nomor antrean resmi klinik akan langsung terbit. Dokter dan
-          ruangan konsultasi ditetapkan saat giliran dipanggil.
+          {isReschedule
+            ? 'Jadwal janji temu dan tiket antrean lama akan diperbarui ke sesi dan tanggal baru secara otomatis.'
+            : 'Setelah disimpan, tiket nomor antrean resmi klinik akan langsung terbit. Dokter dan ruangan konsultasi ditetapkan saat giliran dipanggil.'}
         </span>
       </div>
     </div>

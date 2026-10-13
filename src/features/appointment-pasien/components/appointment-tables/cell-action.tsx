@@ -24,7 +24,7 @@ import { AppointmentStatusModal } from '../appointment-status-modal';
 import { AppointmentCheckInQrModal } from '../appointment-check-in-qr-modal';
 import { ChangeDoctorModal } from '../change-doctor-modal';
 import { ChangeRoomModal } from '../change-room-modal';
-import { RescheduleAppointmentModal } from '../reschedule-appointment-modal';
+import { ReservationModal } from '@/features/klinik/components/reservation/reservation-modal';
 
 interface CellActionProps {
   data: AdminAppointment;
@@ -325,15 +325,19 @@ export function CellAction({ data }: CellActionProps) {
         </DropdownMenu>
       </div>
 
-      <RescheduleAppointmentModal
+      <ReservationModal
         isOpen={rescheduleOpen}
-        appointmentId={String(data.id)}
-        patientName={data.patientName}
-        queueNumber={data.queueNumber}
-        serviceName={data.layananName || data.poliklinikName}
-        poliklinikId={data.layananId || undefined}
-        currentDate={data.scheduledDate}
-        currentSession={data.session || data.sessionName || undefined}
+        context={{
+          patientId: data.patientId || '',
+          patientName: data.patientName,
+          serviceName: data.layananName || data.poliklinikName,
+          poliklinikId: data.layananId || undefined,
+          mode: 'reschedule',
+          appointmentId: String(data.id),
+          currentDate: data.scheduledDate,
+          currentSession: data.session || data.sessionName || undefined,
+          queueNumber: data.queueNumber
+        }}
         onClose={() => setRescheduleOpen(false)}
         onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: appointmentKeys.all });

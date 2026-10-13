@@ -231,3 +231,11 @@ export function formatClinicDateTime(
   const separator = options?.separator ?? ', ';
   return `${dateStr}${separator}${timeStr}`;
 }
+
+/**
+ * Mengembalikan string tanggal hari ini (YYYY-MM-DD) sesuai konvensi SSOT klinik.
+ */
+export function getClinicTodayDateString(): string {
+  return formatClinicDate(new Date(), { style: 'iso' });
+}
+

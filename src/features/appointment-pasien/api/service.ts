@@ -342,8 +342,10 @@ export async function performCheckIn(
 }
 
 export interface RescheduleAppointmentPayload {
-  target_session_id?: string;
   target_date: string;
+  session?: string;
+  target_session?: string;
+  target_session_id?: string;
   reason?: string;
 }
 

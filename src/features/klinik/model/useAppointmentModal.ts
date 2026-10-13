@@ -21,6 +21,7 @@ import {
 import { getServiceImage } from '../constants/appointment-reservation-services';
 import { mapBackendAppointmentToUi } from '../utils/booking-appointment-mapper';
 import { formRequirementGuard } from './form-requirement-guard';
+import { getClinicTodayDateString } from '@/lib/date-format';
 import type { Appointment, AppointmentFormData } from '../api/types';
 
 export type BookingModalStep =
@@ -52,9 +53,7 @@ export function useAppointmentModal({
   const [isLoadingCatalog, setIsLoadingCatalog] = useState<boolean>(false);
   const [selectedService, setSelectedService] = useState<ServiceCatalogItem | null>(null);
 
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const defaultDateStr = tomorrow.toISOString().slice(0, 10);
+  const defaultDateStr = getClinicTodayDateString();
 
   const [dateStr, setDateStr] = useState<string>(defaultDateStr);
   const [session, setSession] = useState<string>('');

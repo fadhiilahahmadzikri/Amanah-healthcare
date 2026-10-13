@@ -23,7 +23,7 @@ import { normalizeAppointmentTimes } from '../utils/appointment-adapter';
 import { formatClinicDate } from '@/lib/date-format';
 import { ChangeDoctorModal } from '@/features/appointment-pasien/components/change-doctor-modal';
 import { ChangeRoomModal } from '@/features/appointment-pasien/components/change-room-modal';
-import { RescheduleAppointmentModal } from '@/features/appointment-pasien/components/reschedule-appointment-modal';
+import { ReservationModal } from '@/features/klinik/components/reservation/reservation-modal';
 import {
   isAppointmentTerminal,
   isAppointmentInService,
@@ -517,15 +517,19 @@ export function AppointmentDetailOrganism({
         }}
       />
 
-      <RescheduleAppointmentModal
+      <ReservationModal
         isOpen={isRescheduleOpen}
-        appointmentId={String(appointment.id)}
-        patientName={patientName}
-        queueNumber={appointment.queue_number || '-'}
-        serviceName={serviceName}
-        poliklinikId={appointment.poliklinik_id || appointment.layanan_id}
-        currentDate={appointment.date}
-        currentSession={appointment.session || appointment.session_name || undefined}
+        context={{
+          patientId: appointment.patient_id || '',
+          patientName,
+          serviceName,
+          poliklinikId: appointment.poliklinik_id || appointment.layanan_id,
+          mode: 'reschedule',
+          appointmentId: String(appointment.id),
+          currentDate: appointment.date,
+          currentSession: appointment.session || appointment.session_name || undefined,
+          queueNumber: appointment.queue_number || '-'
+        }}
         onClose={() => setIsRescheduleOpen(false)}
         onSuccess={() => {
           setIsRescheduleOpen(false);

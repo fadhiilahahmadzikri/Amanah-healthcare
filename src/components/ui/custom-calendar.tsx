@@ -258,6 +258,7 @@ export function CustomCalendar({
 
           const isSelected =
             parsedValue?.year === year && parsedValue?.month === month && parsedValue?.day === day;
+          const isToday = currentDayObj.getTime() === todayStart;
 
           return (
             <button
@@ -281,7 +282,12 @@ export function CustomCalendar({
                         'text-muted-foreground/35 cursor-not-allowed select-none pointer-events-none',
                         disabledDateClassName
                       )
-                    : cn('text-foreground hover:bg-accent cursor-pointer', activeDateClassName)
+                    : isToday
+                      ? cn(
+                          'text-primary font-bold ring-1 ring-primary/40 hover:bg-accent cursor-pointer',
+                          activeDateClassName
+                        )
+                      : cn('text-foreground hover:bg-accent cursor-pointer', activeDateClassName)
               )}
             >
               {day}
