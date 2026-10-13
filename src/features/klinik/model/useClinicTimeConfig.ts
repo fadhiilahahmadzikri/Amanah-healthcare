@@ -34,8 +34,8 @@ export async function fetchClinicTimeConfig(): Promise<ClinicTimeConfigResponse>
     timeFormatStyle: (res?.timeFormatStyle as ClinicTimeFormatStyle) ?? '24h',
     today: res?.today ?? new Date().toISOString().slice(0, 10),
     nowIso: res?.nowIso ?? new Date().toISOString(),
-    currentTime: res?.currentTime ?? '08:00',
-    operationalHours: res?.operationalHours ?? '06:00 - 24:00'
+    currentTime: res?.currentTime ?? '',
+    operationalHours: res?.operationalHours ?? '-'
   };
   configureClinicDateTime({
     dateFormatStyle: result.dateFormatStyle,

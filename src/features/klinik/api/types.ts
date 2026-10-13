@@ -85,6 +85,9 @@ export interface QueueItem {
   id: string;
   queue_number: string;
   appointment_id?: string;
+  patient_id?: string;
+  patient_user_id?: string;
+  parent_user_id?: string;
   patient_name: string;
   patient_avatar?: string;
   doctor_name: string;

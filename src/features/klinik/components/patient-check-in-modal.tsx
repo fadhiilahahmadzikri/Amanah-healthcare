@@ -28,31 +28,25 @@ export function PatientCheckInModal({
   onClose,
   onCheckInSuccess
 }: PatientCheckInModalProps) {
-  const {
-    manualCode,
-    isSubmitting,
-    cameraError,
-    successResult,
-    isManualDrawerOpen,
-    actions
-  } = usePatientCheckIn({
-    isOpen,
-    onClose,
-    onCheckInSuccess
-  });
+  const { manualCode, isSubmitting, cameraError, successResult, isManualDrawerOpen, actions } =
+    usePatientCheckIn({
+      isOpen,
+      onClose,
+      onCheckInSuccess
+    });
 
   if (!isOpen) return null;
 
   return (
     <>
-      {/* 1. Main Immersive Full-Screen Scanner Modal */}
+      {/* 1. Main Immersive Scanner Modal (Full-Screen on Mobile, TikTok-style Compact Vertical on Web) */}
       <ModalWrapper
         isOpen={isOpen}
         onClose={actions.handleClose}
-        maxWidth='max-w-none'
-        backdropClassName='p-0'
+        maxWidth='max-w-none md:max-w-[390px]'
+        backdropClassName='p-0 md:p-6'
         showCloseButton={false}
-        className='flex flex-col p-0 overflow-hidden bg-black text-white w-screen h-[100dvh] max-h-[100dvh] rounded-none border-0 shadow-none m-0'
+        className='flex flex-col p-0 overflow-hidden bg-black text-white w-screen h-[100dvh] max-h-[100dvh] rounded-none border-0 shadow-none m-0 md:w-[390px] md:h-[690px] md:max-h-[90vh] md:rounded-[32px] md:border md:border-white/15 md:shadow-2xl md:ring-1 md:ring-white/10'
       >
         <div className='relative w-full h-full flex flex-col font-sans select-none overflow-hidden'>
           {successResult ? (
@@ -173,7 +167,7 @@ export function PatientCheckInModal({
         onOpenChange={(open) => actions.setIsManualDrawerOpen(open)}
       >
         <DrawerContent
-          className='max-h-[85vh] font-sans z-[70]'
+          className='max-h-[85vh] font-sans z-[70] sm:max-w-md sm:mx-auto sm:rounded-t-2xl'
           overlayClassName='z-[70]'
         >
           <DrawerHeader className='text-left pb-2.5 border-b border-border/40'>

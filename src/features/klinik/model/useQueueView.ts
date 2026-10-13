@@ -55,12 +55,12 @@ export interface UseQueueViewResult {
 }
 
 export function useQueueView(): UseQueueViewResult {
-  const { role } = useAuthContext();
+  const { role, user } = useAuthContext();
   const isPatient = role === 'patient';
 
   const [queues, setQueues] = useState<QueueItem[]>([]);
   const [poliList, setPoliList] = useState<string[]>([]);
-  const [operationalHours, setOperationalHours] = useState('08:00 - 21:00');
+  const [operationalHours, setOperationalHours] = useState('-');
   const [activePoli, setActivePoli] = useState('Poli Umum');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -91,17 +91,37 @@ export function useQueueView(): UseQueueViewResult {
 
   const refreshQueues = useCallback(async () => {
     const fetcher = isPatient ? getMyQueueFromApi : getDailyQueuesFromApi;
-    const items = await fetcher();
-    setQueues(items);
-  }, [isPatient]);
+    const items = await fetcher({ poliklinikId: activePoli });
+    const currentUserId = user?.id;
+    const mapped = items.map((item) => ({
+      ...item,
+      is_user: Boolean(
+        currentUserId &&
+        (item.patient_user_id === currentUserId ||
+          item.parent_user_id === currentUserId ||
+          item.patient_id === currentUserId)
+      )
+    }));
+    setQueues(mapped);
+  }, [isPatient, activePoli, user?.id]);
 
   useEffect(() => {
     let isMounted = true;
     const fetcher = isPatient ? getMyQueueFromApi : getDailyQueuesFromApi;
-    fetcher()
+    fetcher({ poliklinikId: activePoli })
       .then((items) => {
         if (isMounted) {
-          setQueues(items);
+          const currentUserId = user?.id;
+          const mapped = items.map((item) => ({
+            ...item,
+            is_user: Boolean(
+              currentUserId &&
+              (item.patient_user_id === currentUserId ||
+                item.parent_user_id === currentUserId ||
+                item.patient_id === currentUserId)
+            )
+          }));
+          setQueues(mapped);
         }
       })
       .finally(() => {
@@ -112,7 +132,7 @@ export function useQueueView(): UseQueueViewResult {
     return () => {
       isMounted = false;
     };
-  }, [isPatient, activePoli]);
+  }, [isPatient, activePoli, user?.id]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

@@ -2,12 +2,7 @@ import { clientFetch } from '@/lib/client-fetch';
 import { formatClinicTime } from '@/lib/date-format';
 import { getClinicalPractitionersAction } from '@/features/jadwal-dokter/api/doctor-schedule-actions';
 import type { ClinicalPractitioner } from '@/server/contracts/schedules/doctor-schedules.dto';
-import {
-  Doctor,
-  QueueItem,
-  QueueStatus,
-  QUEUE_STATUS
-} from './types';
+import { Doctor, QueueItem, QueueStatus, QUEUE_STATUS } from './types';
 
 export async function fetchClinicalDoctors(serviceName?: string): Promise<Doctor[]> {
   try {
@@ -55,10 +50,10 @@ export async function fetchPoliListFromApi(): Promise<string[]> {
 export async function fetchClinicOperationalHoursFromApi(): Promise<string> {
   try {
     const res = await clientFetch<{ operationalHours?: string }>('/api/v1/time/current');
-    return res?.operationalHours || '08:00 - 21:00';
+    return res?.operationalHours || '-';
   } catch (err) {
     console.error('Failed to fetch clinic operational hours from backend:', err);
-    return '08:00 - 21:00';
+    return '-';
   }
 }
 
@@ -83,18 +78,35 @@ export function normalizeQueueStatus(
 ): QueueStatus {
   const normApt = (rawStatus || '').toUpperCase();
   const normTicket = (ticketStatus || '').toUpperCase();
-  const candidate = normApt || normTicket;
 
-  if (candidate === QUEUE_STATUS.IN_SERVICE) return QUEUE_STATUS.IN_SERVICE;
-  if (candidate === QUEUE_STATUS.CALLED) return QUEUE_STATUS.CALLED;
-  if (candidate === QUEUE_STATUS.COMPLETED) return QUEUE_STATUS.COMPLETED;
-  if (candidate === QUEUE_STATUS.CANCELLED) return QUEUE_STATUS.CANCELLED;
-  if (candidate === QUEUE_STATUS.NO_SHOW || candidate === 'SKIPPED' || candidate === 'LATE') {
+  if (normApt === QUEUE_STATUS.IN_SERVICE || normTicket === QUEUE_STATUS.IN_SERVICE) {
+    return QUEUE_STATUS.IN_SERVICE;
+  }
+  if (normApt === QUEUE_STATUS.CALLED || normTicket === QUEUE_STATUS.CALLED) {
+    return QUEUE_STATUS.CALLED;
+  }
+  if (normApt === QUEUE_STATUS.COMPLETED || normTicket === QUEUE_STATUS.COMPLETED) {
+    return QUEUE_STATUS.COMPLETED;
+  }
+  if (normApt === QUEUE_STATUS.CANCELLED || normTicket === QUEUE_STATUS.CANCELLED) {
+    return QUEUE_STATUS.CANCELLED;
+  }
+  if (
+    normApt === QUEUE_STATUS.NO_SHOW ||
+    normTicket === QUEUE_STATUS.NO_SHOW ||
+    normApt === 'SKIPPED' ||
+    normApt === 'LATE'
+  ) {
     return QUEUE_STATUS.NO_SHOW;
   }
-  if (candidate === QUEUE_STATUS.WAITING) return QUEUE_STATUS.WAITING;
+  if (normApt === QUEUE_STATUS.WAITING || normTicket === QUEUE_STATUS.WAITING) {
+    if (normApt === 'BOOKED' && normTicket !== QUEUE_STATUS.WAITING) {
+      return 'BOOKED';
+    }
+    return QUEUE_STATUS.WAITING;
+  }
 
-  return candidate as QueueStatus;
+  return (normApt || normTicket) as QueueStatus;
 }
 
 function mapBackendQueueItemToFrontend(item: Record<string, unknown>, isUser = false): QueueItem {
@@ -112,8 +124,12 @@ function mapBackendQueueItemToFrontend(item: Record<string, unknown>, isUser = f
   return {
     id: String(item.id),
     queue_number: String(item.queueNumber || '-'),
+    appointment_id: item.appointmentId ? String(item.appointmentId) : undefined,
+    patient_id: item.patientId ? String(item.patientId) : undefined,
+    patient_user_id: item.patientUserId ? String(item.patientUserId) : undefined,
+    parent_user_id: item.parentUserId ? String(item.parentUserId) : undefined,
     patient_name: String(item.patientName || 'Pasien'),
-    patient_avatar: '',
+    patient_avatar: typeof item.patientAvatarUrl === 'string' ? item.patientAvatarUrl : '',
     doctor_name: String(item.doctorName || '-'),
     poli: String(item.poliklinikName || 'Poli Umum'),
     estimated_time: estimatedTime,
@@ -172,7 +188,7 @@ export async function getMyQueueFromApi(params?: { poliklinikId?: string }): Pro
       Record<string, unknown>[] | { items?: Record<string, unknown>[] }
     >(endpoint);
     const list = Array.isArray(res) ? res : res?.items || [];
-    return list.map((item) => mapBackendQueueItemToFrontend(item, true));
+    return list.map((item) => mapBackendQueueItemToFrontend(item, false));
   } catch (err: unknown) {
     console.error('Failed to fetch patient queue from backend:', err);
     return [];

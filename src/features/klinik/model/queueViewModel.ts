@@ -15,7 +15,13 @@ export function findCurrentCallingQueue(
   queues: QueueItem[],
   activePoli: string
 ): QueueItem | undefined {
-  return queues.find((queue) => queue.poli === activePoli && isQueueActive(queue.status));
+  const poliQueues = queues.filter(
+    (queue) => (queue.poli || '').toLowerCase() === activePoli.toLowerCase()
+  );
+  return (
+    poliQueues.find((queue) => queue.status === QUEUE_STATUS.IN_SERVICE) ||
+    poliQueues.find((queue) => queue.status === QUEUE_STATUS.CALLED)
+  );
 }
 
 export function filterWaitingQueues(
@@ -26,13 +32,16 @@ export function filterWaitingQueues(
   const query = searchQuery.trim().toLowerCase();
 
   return queues.filter((item) => {
+    const matchesPoli = (item.poli || '').toLowerCase() === activePoli.toLowerCase();
+    if (!matchesPoli) return false;
+
     const matchesSearch =
       !query ||
       item.patient_name.toLowerCase().includes(query) ||
       item.queue_number.toLowerCase().includes(query) ||
       item.doctor_name.toLowerCase().includes(query);
 
-    return item.status === QUEUE_STATUS.WAITING && item.poli === activePoli && matchesSearch;
+    return item.status === QUEUE_STATUS.WAITING && matchesSearch;
   });
 }
 
@@ -49,9 +58,11 @@ export function buildQueuePoliStats(
   queues: QueueItem[],
   activePoli: string,
   waitingCount: number,
-  operationalHours = '08:00 - 21:00'
+  operationalHours = '-'
 ): QueuePoliStats {
-  const allInPoli = queues.filter((queue) => queue.poli === activePoli);
+  const allInPoli = queues.filter(
+    (queue) => (queue.poli || '').toLowerCase() === activePoli.toLowerCase()
+  );
 
   return {
     totalToday: `${allInPoli.length} Pasien`,
