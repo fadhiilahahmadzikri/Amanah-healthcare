@@ -70,10 +70,11 @@ export function QueueView() {
               callingItem={queueView.currentCalling}
               nextItem={queueView.waitingList[0]}
               afterNextItem={queueView.waitingList[1]}
-              bookingTime={
+              estimatedTime={
+                queueView.currentCalling?.eta_range ||
                 queueView.currentCalling?.estimated_time ||
                 queueView.currentCalling?.called_time ||
-                ''
+                '-'
               }
               className='flex-1 h-full'
             />

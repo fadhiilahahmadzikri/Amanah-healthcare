@@ -105,6 +105,11 @@ export interface QueueItem {
   consultation_elapsed_seconds?: number | null;
   consultation_duration_formatted?: string | null;
   estimated_duration_minutes?: number;
+  eta_range?: string | null;
+  estimated_start_at?: string | null;
+  estimated_end_at?: string | null;
+  scheduled_start_time?: string | null;
+  scheduled_end_time?: string | null;
   created_at?: string;
   service?: string;
 }

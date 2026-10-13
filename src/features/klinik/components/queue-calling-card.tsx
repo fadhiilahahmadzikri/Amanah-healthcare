@@ -13,6 +13,7 @@ export interface QueueCallingCardProps {
   nextItem?: QueueItem;
   afterNextItem?: QueueItem;
   clinicRoomName?: string;
+  estimatedTime?: string;
   bookingTime?: string;
   className?: string;
 }
@@ -22,6 +23,7 @@ export function QueueCallingCard({
   nextItem,
   afterNextItem,
   clinicRoomName,
+  estimatedTime,
   bookingTime,
   className
 }: QueueCallingCardProps) {
@@ -84,7 +86,12 @@ export function QueueCallingCard({
   const queueNumber = callingItem.queue_number || '-';
   const calledTime = callingItem.called_time || callingItem.estimated_time || '-';
   const roomName = callingItem.room || clinicRoomName || '-';
-  const patientBookingTime = bookingTime || callingItem.estimated_time || calledTime || '-';
+  const patientEstimatedTime =
+    estimatedTime ||
+    callingItem.eta_range ||
+    callingItem.estimated_time ||
+    bookingTime ||
+    '-';
 
   return (
     <div
@@ -273,10 +280,10 @@ export function QueueCallingCard({
             <Icons.calendar className='size-6 sm:size-7 text-primary shrink-0 stroke-[1.8]' />
             <div className='min-w-0 space-y-0.5'>
               <span className='text-[11px] font-medium text-muted-foreground block whitespace-nowrap'>
-                Jam Booking
+                Estimasi
               </span>
               <span className='text-sm sm:text-base font-bold text-foreground block whitespace-nowrap'>
-                {isFinished ? '-' : patientBookingTime}
+                {isFinished ? '-' : patientEstimatedTime}
               </span>
             </div>
           </div>

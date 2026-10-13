@@ -114,12 +114,33 @@ function mapBackendQueueItemToFrontend(item: Record<string, unknown>, isUser = f
   const ticketStatus = typeof item.ticketStatus === 'string' ? item.ticketStatus : '';
   const status = normalizeQueueStatus(rawStatus, ticketStatus);
 
+  const rawEtaRange =
+    typeof item.etaRange === 'string'
+      ? item.etaRange
+      : typeof item.eta_range === 'string'
+        ? item.eta_range
+        : null;
+
+  let computedEta = rawEtaRange || '';
+  if (!computedEta && item.estimatedStartAt) {
+    const estStart = formatClinicTime(String(item.estimatedStartAt));
+    if (item.estimatedEndAt) {
+      const estEnd = formatClinicTime(String(item.estimatedEndAt));
+      computedEta = `${estStart} - ${estEnd}`;
+    } else {
+      computedEta = `~${estStart}`;
+    }
+  }
+
   const startTime =
     typeof item.scheduledStartTime === 'string' ? formatClinicTime(item.scheduledStartTime) : '';
   const endTime =
     typeof item.scheduledEndTime === 'string' ? formatClinicTime(item.scheduledEndTime) : '';
-  const estimatedTime =
+  const fallbackSchedule =
     startTime && endTime ? `${startTime} - ${endTime}` : startTime || endTime || '-';
+
+  // Samakan paradigma estimasi dengan halaman appointment pasien / admin:
+  const estimatedTime = computedEta || fallbackSchedule;
 
   return {
     id: String(item.id),
@@ -133,6 +154,11 @@ function mapBackendQueueItemToFrontend(item: Record<string, unknown>, isUser = f
     doctor_name: String(item.doctorName || '-'),
     poli: String(item.poliklinikName || 'Poli Umum'),
     estimated_time: estimatedTime,
+    eta_range: rawEtaRange || (computedEta || null),
+    estimated_start_at: item.estimatedStartAt ? String(item.estimatedStartAt) : null,
+    estimated_end_at: item.estimatedEndAt ? String(item.estimatedEndAt) : null,
+    scheduled_start_time: typeof item.scheduledStartTime === 'string' ? item.scheduledStartTime : null,
+    scheduled_end_time: typeof item.scheduledEndTime === 'string' ? item.scheduledEndTime : null,
     status,
     is_user: isUser,
     called_time: item.calledAt ? formatClinicTime(String(item.calledAt)) : undefined,
@@ -216,11 +242,17 @@ export async function getDisplayQueueFromApi(params?: {
         startedAt?: string;
         consultationElapsedSeconds?: number;
         consultationDurationFormatted?: string;
+        etaRange?: string;
+        estimatedStartAt?: string;
+        estimatedEndAt?: string;
       } | null;
       nextTickets?: Array<{
         queueNumber?: string;
         patientName?: string;
         poliklinikName?: string;
+        etaRange?: string;
+        estimatedStartAt?: string;
+        estimatedEndAt?: string;
       }>;
     }>(endpoint);
 
@@ -229,13 +261,19 @@ export async function getDisplayQueueFromApi(params?: {
       const isCurInService =
         display.currentTicket.status === QUEUE_STATUS.IN_SERVICE ||
         Boolean(display.currentTicket.startedAt);
+      const estTime =
+        display.currentTicket.etaRange ||
+        (isCurInService ? 'Sedang Diperiksa' : 'Sedang Dipanggil');
       items.push({
         id: 'display-current',
         queue_number: display.currentTicket.queueNumber || '-',
         patient_name: display.currentTicket.patientName || 'Pasien',
         doctor_name: display.currentTicket.doctorName || '-',
         poli: display.currentTicket.roomName || 'Poli',
-        estimated_time: isCurInService ? 'Sedang Diperiksa' : 'Sedang Dipanggil',
+        estimated_time: estTime,
+        eta_range: display.currentTicket.etaRange || null,
+        estimated_start_at: display.currentTicket.estimatedStartAt || null,
+        estimated_end_at: display.currentTicket.estimatedEndAt || null,
         status: isCurInService ? QUEUE_STATUS.IN_SERVICE : QUEUE_STATUS.CALLED,
         called_time: display.currentTicket.calledAt
           ? formatClinicTime(display.currentTicket.calledAt)
@@ -258,7 +296,10 @@ export async function getDisplayQueueFromApi(params?: {
           patient_name: t.patientName || 'Pasien',
           doctor_name: '-',
           poli: t.poliklinikName || 'Poli',
-          estimated_time: 'Menunggu',
+          estimated_time: t.etaRange || 'Menunggu',
+          eta_range: t.etaRange || null,
+          estimated_start_at: t.estimatedStartAt || null,
+          estimated_end_at: t.estimatedEndAt || null,
           status: QUEUE_STATUS.WAITING,
           room: (t as { roomName?: string }).roomName || '',
           actual_started_at: null,
