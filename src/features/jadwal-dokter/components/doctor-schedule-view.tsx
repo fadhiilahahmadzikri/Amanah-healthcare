@@ -1,10 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { InviteDoctorModal } from '@/features/staff-management';
 import { useDoctorSchedulePresenter } from '../model/useDoctorSchedulePresenter';
 import { DoctorScheduleFilters } from './doctor-schedule-filters';
 import { DoctorScheduleMobileFilterToolbar } from './doctor-schedule-mobile-filter-toolbar';
@@ -18,6 +20,7 @@ import { DoctorAssignmentModal } from './doctor-assignment-modal';
 export function DoctorScheduleView() {
   const { scheduleView, settingsCycle, assignmentModal, selectedDateParam, actions } =
     useDoctorSchedulePresenter();
+  const [isInviteDoctorOpen, setIsInviteDoctorOpen] = useState(false);
 
   return (
     <>
@@ -37,6 +40,16 @@ export function DoctorScheduleView() {
         isOpen={assignmentModal.isOpen}
         focusedDow={assignmentModal.focusedDow}
         onClose={assignmentModal.close}
+      />
+
+      <InviteDoctorModal
+        isOpen={isInviteDoctorOpen}
+        onClose={() => setIsInviteDoctorOpen(false)}
+        onSuccess={() => {
+          if (typeof window !== 'undefined') {
+            window.location.reload();
+          }
+        }}
       />
 
       <div className='flex h-full min-h-0 flex-1 flex-col gap-4 select-none'>
@@ -60,10 +73,16 @@ export function DoctorScheduleView() {
               />
 
               <div className='flex items-center gap-2 shrink-0'>
+                <Button
+                  onClick={() => setIsInviteDoctorOpen(true)}
+                  size='sm'
+                  className='h-9 gap-1.5'
+                >
+                  <Icons.userPlus className='h-4 w-4' />
+                  Tambah Dokter
+                </Button>
                 <DoctorExportButton data={scheduleView.doctors} />
-                <DoctorScheduleSettingsButton
-                  onSelectCategory={actions.openConfiguration}
-                />
+                <DoctorScheduleSettingsButton onSelectCategory={actions.openConfiguration} />
               </div>
             </div>
 

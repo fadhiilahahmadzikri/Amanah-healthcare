@@ -40,6 +40,13 @@ export const navGroups: NavGroup[] = [
             access: { role: 'admin' }
           },
           {
+            title: 'Manajemen Staf',
+            url: '/dashboard/staff',
+            icon: 'teams',
+            shortcut: ['m', 's'],
+            access: { role: 'admin' }
+          },
+          {
             title: 'Chat Pasien',
             url: '/dashboard/chat',
             icon: 'chat',

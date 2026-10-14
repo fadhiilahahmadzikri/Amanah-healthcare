@@ -96,6 +96,7 @@ import {
   IconUserCheck,
   IconUserCircle,
   IconUserEdit,
+  IconUserPlus,
   IconUserX,
   IconUsers,
   IconVideo,
@@ -210,6 +211,7 @@ export const Icons = {
   employee: IconUserX,
   userX: IconUserX,
   userPen: IconUserEdit,
+  userPlus: IconUserPlus,
   teams: IconUsers,
   users: IconUsers,
 
