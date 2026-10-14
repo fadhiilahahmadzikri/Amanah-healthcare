@@ -157,43 +157,82 @@ export function PatientTable() {
 
 export function PatientTableSkeleton() {
   return (
-    <div className='flex flex-1 flex-col space-y-4'>
-      {/* Toolbar Skeleton */}
-      <div className='flex w-full items-center justify-between gap-2 overflow-auto p-1'>
-        <div className='flex flex-1 items-center gap-2'>
-          <Skeleton className='h-8 w-56 rounded-md' />
-          <Skeleton className='h-8 w-24 border-dashed rounded-md' />
-          <Skeleton className='h-8 w-24 border-dashed rounded-md' />
+    <div className='flex flex-1 flex-col'>
+      {/* Desktop Skeleton */}
+      <div className='hidden md:flex flex-1 flex-col space-y-4'>
+        {/* Toolbar Skeleton */}
+        <div className='flex w-full items-center justify-between gap-2 overflow-auto p-1'>
+          <div className='flex flex-1 items-center gap-2'>
+            <Skeleton className='h-8 w-56 rounded-md' />
+            <Skeleton className='h-8 w-24 border-dashed rounded-md' />
+            <Skeleton className='h-8 w-24 border-dashed rounded-md' />
+          </div>
+          <Skeleton className='h-8 w-20 rounded-md' />
         </div>
-        <Skeleton className='h-8 w-20 rounded-md' />
+
+        {/* Clean Borderless Table Skeleton */}
+        <div className='flex-1 overflow-hidden'>
+          <div className='border-b border-border/60 px-4 py-3 flex items-center justify-between gap-6'>
+            <Skeleton className='size-4 rounded-[4px]' />
+            <Skeleton className='h-4 w-20 rounded-md' />
+            <Skeleton className='h-4 w-32 rounded-md' />
+            <Skeleton className='h-4 w-16 rounded-md' />
+            <Skeleton className='h-4 w-16 rounded-md' />
+            <Skeleton className='h-4 w-24 rounded-md' />
+            <Skeleton className='h-4 w-24 rounded-md' />
+            <Skeleton className='h-4 w-16 rounded-md' />
+          </div>
+          <div className='divide-y divide-border/40'>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className='px-4 py-3.5 flex items-center justify-between gap-6'>
+                <Skeleton className='size-4 rounded-[4px]' />
+                <Skeleton className='h-4 w-16 rounded-full bg-muted/40' />
+                <Skeleton className='h-4 w-36 rounded-full bg-muted/40' />
+                <Skeleton className='h-4 w-14 rounded-full bg-muted/40' />
+                <Skeleton className='h-4 w-12 rounded-full bg-muted/40' />
+                <Skeleton className='h-4 w-20 rounded-full bg-muted/40' />
+                <Skeleton className='h-4 w-20 rounded-full bg-muted/40' />
+                <Skeleton className='h-4 w-16 rounded-full bg-muted/40' />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* Clean Borderless Table Skeleton */}
-      <div className='flex-1 overflow-hidden'>
-        <div className='border-b border-border/60 px-4 py-3 flex items-center justify-between gap-6'>
-          <Skeleton className='size-4 rounded-[4px]' />
-          <Skeleton className='h-4 w-20 rounded-md' />
-          <Skeleton className='h-4 w-32 rounded-md' />
-          <Skeleton className='h-4 w-16 rounded-md' />
-          <Skeleton className='h-4 w-16 rounded-md' />
-          <Skeleton className='h-4 w-24 rounded-md' />
-          <Skeleton className='h-4 w-24 rounded-md' />
-          <Skeleton className='h-4 w-16 rounded-md' />
+      {/* Mobile Skeleton */}
+      <div className='block md:hidden flex-1 space-y-3 pt-1'>
+        {/* Mobile Filter Toolbar Skeleton */}
+        <div className='flex items-center justify-between gap-2 mb-3'>
+          <Skeleton className='h-9 w-full rounded-full' />
+          <Skeleton className='size-9 rounded-full shrink-0' />
         </div>
-        <div className='divide-y divide-border/40'>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className='px-4 py-3.5 flex items-center justify-between gap-6'>
-              <Skeleton className='size-4 rounded-[4px]' />
-              <Skeleton className='h-4 w-16 rounded-full bg-muted/40' />
-              <Skeleton className='h-4 w-36 rounded-full bg-muted/40' />
-              <Skeleton className='h-4 w-14 rounded-full bg-muted/40' />
-              <Skeleton className='h-4 w-12 rounded-full bg-muted/40' />
-              <Skeleton className='h-4 w-20 rounded-full bg-muted/40' />
-              <Skeleton className='h-4 w-20 rounded-full bg-muted/40' />
-              <Skeleton className='h-4 w-16 rounded-full bg-muted/40' />
+
+        {/* Mobile Cards Skeleton */}
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div
+            key={i}
+            className='w-full rounded-[22px] border border-border/60 bg-card p-4 space-y-3 shadow-2xs'
+          >
+            <div className='flex items-start justify-between gap-3'>
+              <div className='flex items-center gap-3 flex-1'>
+                <Skeleton className='size-11 rounded-full shrink-0' />
+                <div className='space-y-1.5 flex-1'>
+                  <Skeleton className='h-4 w-36 rounded-md' />
+                  <Skeleton className='h-3 w-20 rounded-md' />
+                </div>
+              </div>
+              <Skeleton className='h-5 w-14 rounded-full' />
             </div>
-          ))}
-        </div>
+            <Skeleton className='h-8 w-full rounded-xl' />
+            <div className='flex items-center justify-between pt-2 border-t border-border/40'>
+              <Skeleton className='h-3 w-28 rounded-md' />
+              <div className='flex items-center gap-1.5'>
+                <Skeleton className='size-8 rounded-md' />
+                <Skeleton className='h-8 w-16 rounded-full' />
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
