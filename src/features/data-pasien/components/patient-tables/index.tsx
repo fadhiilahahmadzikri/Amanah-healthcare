@@ -42,6 +42,10 @@ export function PatientTable() {
   const hasFilters =
     patientTable.table.getState().columnFilters.length > 0 || patientTable.isInfiniteSearch;
 
+  if (patientTable.isLoading) {
+    return <PatientTableSkeleton />;
+  }
+
   return (
     <>
       {/* 1. Modal Pasien Terpadu (Detail & Edit dengan Unlock Button) */}

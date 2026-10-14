@@ -17,6 +17,11 @@ export interface DemographicSlotItem {
 }
 
 export interface UsePatientMobileCardsResult {
+  // Affiliation Deck state
+  expandedDeckIds: Record<string, boolean>;
+  isDeckExpanded: (patientId: string) => boolean;
+  toggleDeck: (patientId: string) => void;
+
   // Action Drawer state
   selectedActionPatient: Patient | null;
   openActionDrawer: (patient: Patient) => void;
@@ -34,7 +39,20 @@ export interface UsePatientMobileCardsResult {
  * Follows SSOT and Agnostic presentation guidelines.
  */
 export function usePatientMobileCards(): UsePatientMobileCardsResult {
+  const [expandedDeckIds, setExpandedDeckIds] = useState<Record<string, boolean>>({});
   const [selectedActionPatient, setSelectedActionPatient] = useState<Patient | null>(null);
+
+  const toggleDeck = useCallback((patientId: string) => {
+    setExpandedDeckIds((prev) => ({
+      ...prev,
+      [patientId]: !prev[patientId]
+    }));
+  }, []);
+
+  const isDeckExpanded = useCallback(
+    (patientId: string) => Boolean(expandedDeckIds[patientId]),
+    [expandedDeckIds]
+  );
 
   const openActionDrawer = useCallback((patient: Patient) => {
     setSelectedActionPatient(patient);
@@ -96,6 +114,9 @@ export function usePatientMobileCards(): UsePatientMobileCardsResult {
 
   return useMemo(
     () => ({
+      expandedDeckIds,
+      isDeckExpanded,
+      toggleDeck,
       selectedActionPatient,
       openActionDrawer,
       closeActionDrawer,
@@ -105,6 +126,9 @@ export function usePatientMobileCards(): UsePatientMobileCardsResult {
       formatVisitDate
     }),
     [
+      expandedDeckIds,
+      isDeckExpanded,
+      toggleDeck,
       selectedActionPatient,
       openActionDrawer,
       closeActionDrawer,

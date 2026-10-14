@@ -32,6 +32,8 @@ export interface UsePatientTableResult {
   isDeleteOpen: boolean;
   isBulkDeleteOpen: boolean;
   isInfiniteSearch: boolean;
+  hasActiveFilters: boolean;
+  isLoading: boolean;
   hidePagination: boolean;
   sentinelRef: React.RefObject<HTMLDivElement | null>;
   isFetchingNextPage: boolean;
@@ -86,6 +88,14 @@ export function usePatientTable({
       : null;
 
   const isInfiniteSearch = Boolean(querySearch && querySearch.trim().length > 0);
+  const hasActiveFilters = Boolean(
+    querySearch ||
+    queryGender ||
+    queryStatus ||
+    queryBloodType ||
+    queryProfileType ||
+    (params.sort && params.sort.length > 0)
+  );
 
   // Unified Infinite Query (Continuous Scroll Feed like YouTube / Social Media)
   const filters: PatientFilters = {
@@ -139,10 +149,20 @@ export function usePatientTable({
     return () => observer.disconnect();
   }, [handleObserver, infiniteQuery.hasNextPage]);
 
-  // Reactive flat derivation of selected patient
+  // Recursive search in case tree hierarchy is present in activePatients
   const selectedPatient = useMemo(() => {
     if (!selectedPatientId) return null;
-    return activePatients.find((p) => p.id === selectedPatientId) ?? null;
+    const findInTree = (list: Patient[]): Patient | null => {
+      for (const p of list) {
+        if (p.id === selectedPatientId) return p;
+        if (p.affiliates && p.affiliates.length > 0) {
+          const found = findInTree(p.affiliates);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+    return findInTree(activePatients);
   }, [activePatients, selectedPatientId]);
 
   const openDetail = (patient: Patient) => {
@@ -213,8 +233,12 @@ export function usePatientTable({
     meta,
     manualFiltering: true,
     manualSorting: false,
+    getSubRows: hasActiveFilters
+      ? undefined
+      : (row) => (row.affiliates && row.affiliates.length > 0 ? row.affiliates : undefined),
     initialState: {
-      columnPinning: { left: ['select'], right: ['actions'] }
+      columnPinning: { left: ['select'], right: ['actions'] },
+      expanded: true
     }
   });
 
@@ -245,6 +269,8 @@ export function usePatientTable({
     isDeleteOpen: activeDialog === 'delete',
     isBulkDeleteOpen: activeDialog === 'bulkDelete',
     isInfiniteSearch,
+    hasActiveFilters,
+    isLoading: infiniteQuery.isLoading,
     hidePagination: true,
     sentinelRef,
     isFetchingNextPage: infiniteQuery.isFetchingNextPage,

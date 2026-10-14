@@ -80,11 +80,18 @@ export function getPatientColumns(options?: PatientColumnsOptions): ColumnDef<Pa
       header: ({ column }: { column: Column<Patient, unknown> }) => (
         <DataTableColumnHeader column={column} title='No. RM' />
       ),
-      cell: ({ row }) => (
-        <span className='font-mono text-xs font-semibold text-foreground'>
-          {row.original.patient_id}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const isSubRow = row.depth > 0;
+        return (
+          <div
+            className={cn('flex items-center gap-1.5', isSubRow && 'pl-2 text-muted-foreground')}
+          >
+            <span className='font-mono text-xs font-semibold text-foreground'>
+              {row.original.patient_id}
+            </span>
+          </div>
+        );
+      },
       meta: {
         label: 'No. Rekam Medis',
         placeholder: 'Cari no. RM...',
@@ -143,8 +150,13 @@ export function getPatientColumns(options?: PatientColumnsOptions): ColumnDef<Pa
         <DataTableColumnHeader column={column} title='Jml Afiliasi' />
       ),
       cell: ({ row }) => {
+        const isSubRow = row.depth > 0;
         const count = row.original.affiliate_count ?? 0;
-        return <span className='font-mono text-xs text-foreground'>{count > 0 ? count : '-'}</span>;
+        return (
+          <span className='font-mono text-xs text-foreground'>
+            {!isSubRow && count > 0 ? count : '-'}
+          </span>
+        );
       },
       meta: {
         label: 'Jml Afiliasi',

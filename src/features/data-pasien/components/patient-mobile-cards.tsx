@@ -40,6 +40,8 @@ export function PatientMobileCards({
   hasNextPage
 }: PatientMobileCardsProps) {
   const {
+    isDeckExpanded,
+    toggleDeck,
     selectedActionPatient,
     openActionDrawer,
     closeActionDrawer,
@@ -92,10 +94,14 @@ export function PatientMobileCards({
           const statusAccount = patient.account_status || 'active';
           const relLabel = getCleanRelationLabel(patient.relationship_type, patient.relation_label);
           const relStatusKey = getRelationStatusKey(patient.relationship_type);
+          const hasAffiliates = Boolean(
+            !hasFilters && patient.affiliates && patient.affiliates.length > 0
+          );
+          const isExpanded = hasAffiliates && isDeckExpanded(patient.id);
 
           return (
             <div key={patient.id} className='flex flex-col w-full'>
-              {/* KARTU PASIEN FLAT & AGNOSTIK */}
+              {/* KARTU PASIEN UTAMA */}
               <div
                 onClick={() => onRowClick(patient)}
                 className={cn(
@@ -121,22 +127,32 @@ export function PatientMobileCards({
                         {patient.name}
                       </h3>
 
-                      {/* Subtitle: Badge Profil / Hubungan Tanpa Prefix */}
-                      <div className='flex items-center gap-1.5 flex-wrap'>
-                        {isMaster ? (
-                          <StatusBadge
-                            status='AKUN_UTAMA'
-                            label='Akun Utama'
-                            icon={
-                              <Icons.crown className='size-2.5 shrink-0 text-amber-600 dark:text-amber-400' />
-                            }
-                            size='sm'
-                          />
-                        ) : (
-                          <StatusBadge status={relStatusKey} label={relLabel} size='sm' />
-                        )}
-                        {patient.has_own_account && !isMaster && (
-                          <StatusBadge status='PUNYA_AKUN' label='Punya Akun' size='sm' />
+                      {/* Subtitle: Badge Profil / Hubungan */}
+                      <div className='flex flex-col gap-1'>
+                        <div className='flex items-center gap-1.5 flex-wrap'>
+                          {isMaster ? (
+                            <StatusBadge
+                              status='AKUN_UTAMA'
+                              label='Akun Utama'
+                              icon={
+                                <Icons.crown className='size-2.5 shrink-0 text-amber-600 dark:text-amber-400' />
+                              }
+                              size='sm'
+                            />
+                          ) : (
+                            <StatusBadge status={relStatusKey} label={relLabel} size='sm' />
+                          )}
+                          {patient.has_own_account && !isMaster && (
+                            <StatusBadge status='PUNYA_AKUN' label='Punya Akun' size='sm' />
+                          )}
+                        </div>
+                        {patient.master_patient_name && !isMaster && (
+                          <span className='text-[11px] text-muted-foreground/80 truncate'>
+                            Afiliasi dari{' '}
+                            <strong className='text-foreground/90 font-medium'>
+                              {patient.master_patient_name}
+                            </strong>
+                          </span>
                         )}
                       </div>
                     </div>
@@ -213,6 +229,158 @@ export function PatientMobileCards({
                   </div>
                 </div>
               </div>
+
+              {/* Accordion Toggle Cabang Afiliasi */}
+              {hasAffiliates && (
+                <div className='mt-2'>
+                  <button
+                    type='button'
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleDeck(patient.id);
+                    }}
+                    className='w-full py-2 px-3.5 flex items-center justify-between text-xs font-semibold text-primary bg-primary/5 hover:bg-primary/10 rounded-xl border border-primary/20 transition-all cursor-pointer'
+                  >
+                    <div className='flex items-center gap-2'>
+                      <Icons.users className='size-3.5' />
+                      <span>
+                        {isExpanded
+                          ? 'Tutup Cabang Afiliasi'
+                          : `Lihat ${patient.affiliates?.length} Anggota Keluarga / Afiliasi`}
+                      </span>
+                    </div>
+                    <Icons.chevronDown
+                      className={cn(
+                        'size-4 transition-transform duration-200',
+                        isExpanded && 'rotate-180'
+                      )}
+                    />
+                  </button>
+
+                  {/* Nested Affiliate Cards */}
+                  {isExpanded && (
+                    <div className='relative ml-4 pl-3 sm:ml-5 sm:pl-4 border-l-2 border-primary/30 mt-2.5 flex flex-col gap-2.5'>
+                      {patient.affiliates?.map((affiliate) => {
+                        const affSlots = getDemographicSlots(affiliate);
+                        const affRelLabel = getCleanRelationLabel(
+                          affiliate.relationship_type,
+                          affiliate.relation_label
+                        );
+                        const affRelKey = getRelationStatusKey(affiliate.relationship_type);
+
+                        return (
+                          <div
+                            key={affiliate.id}
+                            onClick={() => onRowClick(affiliate)}
+                            className='group/aff relative w-full bg-card/95 hover:bg-card text-card-foreground border border-border/80 rounded-[18px] p-3 sm:p-3.5 flex flex-col justify-between gap-2.5 transition-all duration-150 cursor-pointer shadow-2xs hover:border-primary/40 box-border min-w-0'
+                          >
+                            {/* Horizontal connector arm from vertical tree line */}
+                            <span className='absolute -left-3 sm:-left-4 top-6 w-3 sm:w-4 h-[1.5px] bg-primary/30 pointer-events-none' />
+
+                            {/* Header Afiliasi */}
+                            <div className='flex items-start justify-between gap-2 min-w-0'>
+                              <div className='flex items-center gap-2.5 min-w-0 flex-1'>
+                                <div className='size-9 rounded-full overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square flex items-center justify-center'>
+                                  <Avatar className='h-full w-full'>
+                                    <AvatarFallback className='text-[10px] font-bold bg-muted text-muted-foreground'>
+                                      {getInitials(affiliate.name)}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                </div>
+
+                                <div className='min-w-0 flex-1 space-y-0.5'>
+                                  <h4
+                                    className='text-xs sm:text-[13px] font-bold text-foreground truncate'
+                                    title={affiliate.name}
+                                  >
+                                    {affiliate.name}
+                                  </h4>
+                                  <div className='flex items-center gap-1.5'>
+                                    <StatusBadge status={affRelKey} label={affRelLabel} size='sm' />
+                                    {affiliate.has_own_account && (
+                                      <StatusBadge
+                                        status='PUNYA_AKUN'
+                                        label='Punya Akun'
+                                        size='sm'
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <StatusBadge
+                                status={affiliate.account_status || 'active'}
+                                size='sm'
+                              />
+                            </div>
+
+                            {/* Slot Demografis Afiliasi */}
+                            <div className='flex items-center text-[11px] px-2.5 py-1.5 rounded-lg bg-muted/40 border border-border/30 text-muted-foreground gap-2'>
+                              {affSlots.map((s, idx) => (
+                                <React.Fragment key={s.id}>
+                                  {idx > 0 && (
+                                    <span className='text-border/90 font-light select-none'>|</span>
+                                  )}
+                                  <span
+                                    className={cn(
+                                      'text-foreground font-medium',
+                                      s.isMono && 'font-mono'
+                                    )}
+                                  >
+                                    {s.label}
+                                  </span>
+                                </React.Fragment>
+                              ))}
+                            </div>
+
+                            {/* Footer Afiliasi */}
+                            <div className='w-full flex items-center justify-between gap-2 pt-2 border-t border-border/30 min-w-0'>
+                              <div className='flex flex-col min-w-0 flex-1'>
+                                <span className='text-[10px] text-muted-foreground'>
+                                  Kunjungan terakhir
+                                </span>
+                                <span className='text-[11px] font-medium font-mono text-foreground truncate'>
+                                  {formatVisitDate(affiliate.last_visit_date)}
+                                </span>
+                              </div>
+
+                              <div className='flex items-center gap-1 shrink-0'>
+                                <Button
+                                  type='button'
+                                  variant='ghost'
+                                  size='icon'
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openActionDrawer(affiliate);
+                                  }}
+                                  aria-label={`Aksi untuk pasien ${affiliate.name}`}
+                                  className='size-7 text-muted-foreground hover:text-foreground rounded-md'
+                                >
+                                  <Icons.ellipsis className='size-3.5' />
+                                </Button>
+
+                                <Button
+                                  type='button'
+                                  variant='outline'
+                                  shape='pill'
+                                  size='card-action'
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onViewDetail(affiliate);
+                                  }}
+                                  className='text-xs font-semibold cursor-pointer'
+                                >
+                                  Detail
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}
