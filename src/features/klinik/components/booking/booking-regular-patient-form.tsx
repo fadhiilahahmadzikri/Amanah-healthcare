@@ -21,6 +21,7 @@ export interface BookingRegularPatientFormProps {
   allowedRelationships?: { value: string; label: string; description?: string }[];
   targetFlow?: 'pregnancy' | 'immunization' | 'regular';
   onRelationshipSubmit?: (relationship: PatientRelationshipType) => void;
+  hasExistingSelf?: boolean;
 }
 
 export function BookingRegularPatientForm({
@@ -28,7 +29,8 @@ export function BookingRegularPatientForm({
   onCancel,
   allowedRelationships,
   targetFlow,
-  onRelationshipSubmit
+  onRelationshipSubmit,
+  hasExistingSelf = false
 }: BookingRegularPatientFormProps) {
   const {
     currentStep,
@@ -61,6 +63,7 @@ export function BookingRegularPatientForm({
     setOccupationCode,
 
     references,
+    relationshipOptions,
 
     handleBack,
     handleNext,
@@ -70,15 +73,10 @@ export function BookingRegularPatientForm({
     onSuccess,
     onCancel,
     targetFlow,
-    onRelationshipSubmit
+    onRelationshipSubmit,
+    allowedRelationships,
+    hasExistingSelf
   });
-
-  const relationshipOptions = React.useMemo(() => {
-    if (allowedRelationships && allowedRelationships.length > 0) {
-      return allowedRelationships;
-    }
-    return references.relationships;
-  }, [allowedRelationships, references.relationships]);
 
   const activeRelationshipLabel = React.useMemo(() => {
     const found = relationshipOptions.find((r) => r.value === relationship);

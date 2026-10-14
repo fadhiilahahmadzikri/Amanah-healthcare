@@ -12,6 +12,7 @@ export interface StatusBadgeProps {
 	size?: "sm" | "md" | "lg" | "full";
 	className?: string;
 	label?: string;
+	icon?: React.ReactNode;
 }
 
 export function StatusBadge({
@@ -20,6 +21,7 @@ export function StatusBadge({
 	size = "md",
 	className = "",
 	label,
+	icon,
 }: StatusBadgeProps) {
 	const clipId = useId();
 	const config = getStatusConfig(status);
@@ -347,13 +349,17 @@ export function StatusBadge({
 				className,
 			)}
 		>
-			<span
-				className={cn(
-					"rounded-full shrink-0 ring-1 ring-white/60 dark:ring-white/20",
-					dotSizes[size] || dotSizes.md,
-					config.dotGradient,
-				)}
-			/>
+			{icon ? (
+				<span className="shrink-0 flex items-center">{icon}</span>
+			) : (
+				<span
+					className={cn(
+						"rounded-full shrink-0 ring-1 ring-white/60 dark:ring-white/20",
+						dotSizes[size] || dotSizes.md,
+						config.dotGradient,
+					)}
+				/>
+			)}
 			<span
 				className={cn(
 					"bg-clip-text text-transparent font-bold font-sans",

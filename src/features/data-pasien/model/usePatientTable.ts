@@ -1,13 +1,20 @@
 'use client';
 
-import { useState } from 'react';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import type { ColumnDef, Table } from '@tanstack/react-table';
-import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
-import { useDataTable } from '@/hooks/use-data-table';
-import { getSortingStateParser } from '@/lib/parsers';
+import { useState, useMemo, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import type {
+  ColumnDef,
+  PaginationState,
+  SortingState,
+  Table,
+  Updater,
+} from '@tanstack/react-table';
+import { useControlledDataTable } from '@/hooks/use-controlled-data-table';
 import { patientsQueryOptions } from '../api/queries';
 import type { Patient, PatientFilters } from '../api/types';
+import { usePatientInfiniteSearch } from './usePatientInfiniteSearch';
+import { usePatientFilters, type UsePatientFiltersResult } from './usePatientFilters';
+import type { ExtendedColumnSort } from '@/types/data-table';
 
 export interface PatientTableMeta {
   onViewDetail?: (patient: Patient) => void;
@@ -23,6 +30,7 @@ interface UsePatientTableParams {
 
 export interface UsePatientTableResult {
   table: Table<Patient>;
+  activePatients: Patient[];
   selectedPatient: Patient | null;
   selectedPatients: Patient[];
   isDetailOpen: boolean;
@@ -30,6 +38,14 @@ export interface UsePatientTableResult {
   isHistoryOpen: boolean;
   isDeleteOpen: boolean;
   isBulkDeleteOpen: boolean;
+  isInfiniteSearch: boolean;
+  hidePagination: boolean;
+  sentinelRef: React.RefObject<HTMLDivElement | null>;
+  isFetchingNextPage: boolean;
+  hasNextPage: boolean;
+  totalPatients: number;
+  resetFilters: () => void;
+  patientFilters: UsePatientFiltersResult;
   actions: {
     openDetail: (patient: Patient) => void;
     closeDetail: () => void;
@@ -47,42 +63,94 @@ export interface UsePatientTableResult {
 
 export function usePatientTable({
   columns,
-  columnIds
 }: UsePatientTableParams): UsePatientTableResult {
-  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [selectedPatients, setSelectedPatients] = useState<Patient[]>([]);
   const [activeDialog, setActiveDialog] = useState<
     'detail' | 'edit' | 'history' | 'delete' | 'bulkDelete' | null
   >(null);
 
-  const [params] = useQueryStates({
-    page: parseAsInteger.withDefault(1),
-    perPage: parseAsInteger.withDefault(10),
-    patient: parseAsString,
-    name: parseAsString,
-    search: parseAsString,
-    gender: parseAsArrayOf(parseAsString, ','),
-    account_status: parseAsArrayOf(parseAsString, ','),
-    status: parseAsArrayOf(parseAsString, ','),
-    sort: getSortingStateParser<Patient>(columnIds).withDefault([])
-  });
+  // SSOT: Centralized filters management facade
+  const patientFilters = usePatientFilters();
+  const { params, setParams } = patientFilters;
 
-  const querySearch = params.patient || params.name || params.search;
-  const queryStatus = params.account_status || params.status;
+  const querySearch = params.patient || params.name || params.search || '';
+  const queryGender = params.gender?.[0] || null;
+  const queryStatus = params.account_status?.[0] || params.status?.[0] || null;
+  const queryBloodType = params.blood_type?.[0] || null;
+  const queryProfileType = params.profile_type?.[0] || null;
+  const querySort =
+    params.sort && params.sort.length > 0
+      ? `${params.sort[0].id}:${params.sort[0].desc ? 'desc' : 'asc'}`
+      : null;
+
+  const isInfiniteSearch = Boolean(querySearch && querySearch.trim().length > 0);
+
+  // 1. Paginated Query (Active when not in global search mode)
   const filters: PatientFilters = {
     page: params.page,
     limit: params.perPage,
     ...(querySearch && { search: querySearch }),
-    ...(params.gender && params.gender.length > 0 && { gender: params.gender }),
-    ...(queryStatus && queryStatus.length > 0 && { status: queryStatus }),
-    ...(params.sort.length > 0 && { sort: JSON.stringify(params.sort) })
+    ...(queryGender && { gender: queryGender }),
+    ...(queryStatus && { status: queryStatus }),
+    ...(queryBloodType && { bloodType: queryBloodType }),
+    ...(queryProfileType && { profileType: queryProfileType }),
+    ...(querySort && { sort: querySort }),
   };
 
-  const { data } = useSuspenseQuery(patientsQueryOptions(filters));
-  const pageCount = Math.ceil(data.total_patients / params.perPage);
+  const paginatedQuery = useQuery({
+    ...patientsQueryOptions(filters),
+    enabled: !isInfiniteSearch,
+  });
+
+  // 2. Infinite Query (Active when global toolbar search is active)
+  const infiniteSearch = usePatientInfiniteSearch({
+    searchQuery: querySearch,
+    gender: queryGender,
+    status: queryStatus,
+    bloodType: queryBloodType,
+    profileType: queryProfileType,
+    sort: querySort,
+    enabled: isInfiniteSearch,
+  });
+
+  const activePatients = useMemo(() => {
+    if (isInfiniteSearch) {
+      return infiniteSearch.patients;
+    }
+    return paginatedQuery.data?.patients || [];
+  }, [isInfiniteSearch, infiniteSearch.patients, paginatedQuery.data?.patients]);
+
+  const totalPatients = useMemo(() => {
+    if (isInfiniteSearch) {
+      return infiniteSearch.totalPatients;
+    }
+    return paginatedQuery.data?.total_patients ?? 0;
+  }, [isInfiniteSearch, infiniteSearch.totalPatients, paginatedQuery.data?.total_patients]);
+
+  const pageCount = useMemo(() => {
+    if (isInfiniteSearch) return -1;
+    return Math.ceil((paginatedQuery.data?.total_patients ?? 0) / params.perPage);
+  }, [isInfiniteSearch, paginatedQuery.data?.total_patients, params.perPage]);
+
+  // Reactive derivation of selected patient
+  const selectedPatient = useMemo(() => {
+    if (!selectedPatientId) return null;
+    const findInTree = (list: Patient[]): Patient | null => {
+      for (const p of list) {
+        if (p.id === selectedPatientId) return p;
+        if (p.affiliates && p.affiliates.length > 0) {
+          const found = findInTree(p.affiliates);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+    return findInTree(activePatients);
+  }, [activePatients, selectedPatientId]);
 
   const openDetail = (patient: Patient) => {
-    setSelectedPatient(patient);
+    setSelectedPatientId(patient.id);
     setActiveDialog('detail');
   };
 
@@ -91,7 +159,7 @@ export function usePatientTable({
   };
 
   const openEdit = (patient: Patient) => {
-    setSelectedPatient(patient);
+    setSelectedPatientId(patient.id);
     setActiveDialog('edit');
   };
 
@@ -100,12 +168,12 @@ export function usePatientTable({
   };
 
   const openEditFromDetail = (patient: Patient) => {
-    setSelectedPatient(patient);
+    setSelectedPatientId(patient.id);
     setActiveDialog('edit');
   };
 
   const openHistory = (patient: Patient) => {
-    setSelectedPatient(patient);
+    setSelectedPatientId(patient.id);
     setActiveDialog('history');
   };
 
@@ -114,7 +182,7 @@ export function usePatientTable({
   };
 
   const openDelete = (patient: Patient) => {
-    setSelectedPatient(patient);
+    setSelectedPatientId(patient.id);
     setActiveDialog('delete');
   };
 
@@ -137,25 +205,69 @@ export function usePatientTable({
     onViewDetail: openDetail,
     onViewHistory: openHistory,
     onEdit: openEdit,
-    onDelete: openDelete
+    onDelete: openDelete,
   };
 
-  const { table } = useDataTable({
-    data: data.patients,
+  // Controlled Pagination & Sorting
+  const pagination: PaginationState = useMemo(
+    () => ({
+      pageIndex: params.page - 1,
+      pageSize: params.perPage,
+    }),
+    [params.page, params.perPage]
+  );
+
+  const onPaginationChange = useCallback(
+    (updaterOrValue: Updater<PaginationState>) => {
+      if (typeof updaterOrValue === 'function') {
+        const next = updaterOrValue(pagination);
+        void setParams({ page: next.pageIndex + 1, perPage: next.pageSize });
+      } else {
+        void setParams({ page: updaterOrValue.pageIndex + 1, perPage: updaterOrValue.pageSize });
+      }
+    },
+    [pagination, setParams]
+  );
+
+  const onSortingChange = useCallback(
+    (updaterOrValue: Updater<SortingState>) => {
+      const next =
+        typeof updaterOrValue === 'function' ? updaterOrValue(params.sort) : updaterOrValue;
+      void setParams({ sort: next as ExtendedColumnSort<Patient>[] });
+    },
+    [params.sort, setParams]
+  );
+
+  // Pure controlled TanStack table
+  const { table } = useControlledDataTable({
+    data: activePatients,
     columns,
     pageCount,
-    shallow: true,
-    debounceMs: 300,
+    pagination,
+    onPaginationChange,
+    sorting: params.sort,
+    onSortingChange,
+    columnFilters: patientFilters.columnFilters,
+    onColumnFiltersChange: patientFilters.onColumnFiltersChange,
     meta,
+    manualFiltering: true,
+    manualSorting: false,
+    filterFromLeafRows: true,
     getSubRows: (row) => row.affiliates,
     initialState: {
       columnPinning: { left: ['select'], right: ['actions'] },
-      expanded: true
-    }
+      expanded: true,
+    },
   });
+
+  const resetFilters = useCallback(() => {
+    table.resetSorting();
+    patientFilters.reset();
+  }, [patientFilters, table]);
 
   return {
     table,
+    activePatients,
     selectedPatient,
     selectedPatients,
     isDetailOpen: activeDialog === 'detail',
@@ -163,6 +275,14 @@ export function usePatientTable({
     isHistoryOpen: activeDialog === 'history',
     isDeleteOpen: activeDialog === 'delete',
     isBulkDeleteOpen: activeDialog === 'bulkDelete',
+    isInfiniteSearch,
+    hidePagination: isInfiniteSearch,
+    sentinelRef: infiniteSearch.sentinelRef,
+    isFetchingNextPage: infiniteSearch.isFetchingNextPage,
+    hasNextPage: infiniteSearch.hasNextPage,
+    totalPatients,
+    resetFilters,
+    patientFilters,
     actions: {
       openDetail,
       closeDetail,
@@ -174,7 +294,7 @@ export function usePatientTable({
       openDelete,
       closeDelete,
       openBulkDelete,
-      closeBulkDelete
-    }
+      closeBulkDelete,
+    },
   };
 }

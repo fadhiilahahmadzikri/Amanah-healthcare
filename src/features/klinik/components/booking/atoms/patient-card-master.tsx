@@ -24,16 +24,27 @@ export function PatientCardMaster({
   const isSelf = patient.relationship === 'self';
   const relationshipLabel =
     patient.relationshipLabel || (isSelf ? 'Diri Sendiri' : patient.relationship);
+  const isInactive =
+    patient.status === 'inactive' ||
+    patient.status === 'Nonaktif' ||
+    patient.isActive === false;
 
   return (
     <button
       type='button'
-      onClick={() => onSelect?.(patient)}
+      disabled={isInactive}
+      onClick={() => {
+        if (!isInactive) {
+          onSelect?.(patient);
+        }
+      }}
       className={cn(
-        'group relative w-full p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 select-none text-left min-h-[72px]',
-        isSelected
-          ? 'border-primary bg-primary/5 ring-2 ring-primary/30 shadow-xs'
-          : 'border-border/70 bg-card hover:border-primary/40 hover:bg-muted/10',
+        'group relative w-full p-4 rounded-2xl border transition-all flex items-center justify-between gap-3 select-none text-left min-h-[72px]',
+        isInactive
+          ? 'opacity-50 cursor-not-allowed bg-muted/30 border-border/40 pointer-events-none'
+          : isSelected
+            ? 'border-primary bg-primary/5 ring-2 ring-primary/30 shadow-xs cursor-pointer'
+            : 'border-border/70 bg-card hover:border-primary/40 hover:bg-muted/10 cursor-pointer',
         className
       )}
     >
@@ -49,7 +60,15 @@ export function PatientCardMaster({
         {children}
       </div>
 
-      <div className='shrink-0'>
+      <div className='shrink-0 flex items-center gap-1.5'>
+        {isInactive && (
+          <Badge
+            variant='outline'
+            className='text-[10px] font-semibold px-2 py-0.5 rounded-md border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0'
+          >
+            Nonaktif
+          </Badge>
+        )}
         <Badge
           variant='secondary'
           className={cn(

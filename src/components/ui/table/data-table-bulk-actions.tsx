@@ -30,7 +30,7 @@ export function DataTableBulkActions<TData>({
   const selectedCount =
     customSelectedCount !== undefined
       ? customSelectedCount
-      : table?.getFilteredSelectedRowModel().rows.length || 0;
+      : table?.getFilteredSelectedRowModel().flatRows.length || 0;
 
   const toolbarRef = useRef<HTMLDivElement>(null);
   const [announcement, setAnnouncement] = useState('');

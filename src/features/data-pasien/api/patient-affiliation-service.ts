@@ -18,6 +18,8 @@ export interface PatientAffiliationProfile {
   occupationName?: string | null;
   phoneNumber?: string | null;
   email?: string | null;
+  status?: string;
+  isActive?: boolean;
   isSelf?: boolean;
   hasExistingIntake?: boolean;
   latestIntakeId?: string | null;
@@ -34,6 +36,8 @@ export interface BookingContextPatient {
   relationship: string;
   relationshipLabel: string;
   occupationName: string | null;
+  status?: string;
+  isActive?: boolean;
   hasExistingIntake: boolean;
   latestIntakeId: string | null;
   latestIntakeDate: string | null;
@@ -132,6 +136,8 @@ function mapAffiliationEntityToProfile(entity: any): PatientAffiliationProfile {
     occupationName: patient?.pekerjaan ?? null,
     phoneNumber: patient?.phoneNumber ?? null,
     email: patient?.email ?? null,
+    status: patient?.status ?? 'active',
+    isActive: (patient?.status ?? 'active') === 'active',
     isSelf: entity.relationshipType === 'self' || Boolean(entity.isPrimary)
   };
 }

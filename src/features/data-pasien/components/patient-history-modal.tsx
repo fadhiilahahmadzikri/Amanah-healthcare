@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { formatClinicDate, formatClinicTime } from '@/lib/date-format';
-import { getStatusConfig } from '@/styles/clinical-tokens';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { BookedPatientKiaIntake } from '@/features/jadwal-dokter/components/booked-patient-kia-intake';
 import { patientHistoryQueryOptions } from '../api/queries';
 import type { Patient } from '../api/types';
@@ -140,7 +140,6 @@ export function PatientHistoryModal({
           ) : (
             <div className='relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-border/60'>
               {timelineItems.map((item) => {
-                const statusConfig = getStatusConfig(item.status);
                 const isFormExpanded = expandedFormId === item.id;
                 const isCompleted = item.status === 'completed';
                 const isCancelled = item.status === 'cancelled';
@@ -185,18 +184,7 @@ export function PatientHistoryModal({
                         </div>
 
                         {/* Status Pill */}
-                        <span
-                          className={cn(
-                            'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border shrink-0',
-                            statusConfig.pillBg,
-                            statusConfig.pillBorder
-                          )}
-                        >
-                          <span className={cn('size-1.5 rounded-full shrink-0', statusConfig.dotGradient)} />
-                          <span className={cn('bg-clip-text text-transparent font-bold', statusConfig.textGradient)}>
-                            {statusConfig.label}
-                          </span>
-                        </span>
+                        <StatusBadge status={item.status} size='sm' />
                       </div>
 
                       {/* Time & Date */}

@@ -79,15 +79,22 @@ function DataTableToolbarFilter<TData>({ column }: DataTableToolbarFilterProps<T
       if (!columnMeta?.variant) return null;
 
       switch (columnMeta.variant) {
-        case 'text':
+        case 'text': {
+          const Icon = columnMeta.icon;
           return (
-            <Input
-              placeholder={columnMeta.placeholder ?? columnMeta.label}
-              value={(column.getFilterValue() as string) ?? ''}
-              onChange={(event) => column.setFilterValue(event.target.value)}
-              className='h-8 w-40 lg:w-56'
-            />
+            <div className='relative flex items-center'>
+              {Icon && (
+                <Icon className='size-3.5 text-muted-foreground absolute left-2.5 pointer-events-none' />
+              )}
+              <Input
+                placeholder={columnMeta.placeholder ?? columnMeta.label}
+                value={(column.getFilterValue() as string) ?? ''}
+                onChange={(event) => column.setFilterValue(event.target.value)}
+                className={cn('h-8 w-40 lg:w-60 text-xs', Icon && 'pl-8')}
+              />
+            </div>
           );
+        }
 
         case 'number':
           return (

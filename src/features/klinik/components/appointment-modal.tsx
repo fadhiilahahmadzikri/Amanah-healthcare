@@ -178,6 +178,7 @@ export function AppointmentModal({
                 onSuccess={handlePatientCreated}
                 onCancel={() => (patients.length > 0 ? setStep('patient') : setStep('service'))}
                 allowedRelationships={bookingContext?.allowedRelationships}
+                hasExistingSelf={patients.some((p) => p.relationship === 'self' || p.isSelf)}
                 targetFlow={targetFlow}
                 onRelationshipSubmit={handleRelationshipSubmitForMedicalFlow}
               />

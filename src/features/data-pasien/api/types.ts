@@ -1,4 +1,4 @@
-export type PatientGender = 'Laki-laki' | 'Perempuan';
+export type PatientGender = 'male' | 'female' | 'Laki-laki' | 'Perempuan';
 
 export type PatientBloodType =
   | 'A+'
@@ -20,13 +20,7 @@ export type PatientBloodType =
   | 'o'
   | 'unknown';
 
-export type PatientAccountStatus =
-  | 'Aktif'
-  | 'Nonaktif'
-  | 'AKTIF'
-  | 'NONAKTIF'
-  | 'active'
-  | 'inactive';
+export type PatientAccountStatus = 'active' | 'inactive';
 
 export interface Patient {
   id: string; // UUID from database
@@ -119,6 +113,8 @@ export type PatientFilters = {
   status?: string | string[];
   search?: string;
   sort?: string;
+  bloodType?: string | string[];
+  profileType?: string | string[];
 };
 
 export type PatientsResponse = {

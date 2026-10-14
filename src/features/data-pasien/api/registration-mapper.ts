@@ -90,7 +90,7 @@ export function buildPatientMutationPayload({
     allergies: [],
     emergency_contact: '',
     medical_history: '',
-    account_status: 'Aktif',
+    account_status: 'active',
     tanggal_registrasi_akun: formatDateForPatient(registrationDateParts),
     login_pertama_kali: formatWibDateTime(registrationDateParts),
     kunjungan_terakhir: DEFAULT_VISIT_LABEL,

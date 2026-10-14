@@ -4,4 +4,8 @@ export { PatientRegistrationModal } from './components/registration/patient-regi
 export { PatientModal, PatientFormModal } from './components/patient-modal';
 export { PatientHistoryModal } from './components/patient-history-modal';
 export { PatientDeleteDialog } from './components/patient-delete-dialog';
+export { PatientMobileFilterToolbar } from './components/patient-mobile-filter-toolbar';
+export { PatientMobileCards } from './components/patient-mobile-cards';
+export { PatientActionDrawer } from './components/patient-action-drawer';
+export { usePatientMobileCards } from './model/usePatientMobileCards';
 export type { Patient, PatientFilters, PatientTimelineItem } from './api/types';

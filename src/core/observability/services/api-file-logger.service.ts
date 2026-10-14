@@ -2,25 +2,31 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { ApiLogTransaction } from '../models/api-log-record';
 
-const LOG_SUBDIR = 'logs/http-api';
 const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024; // 20 MB rotation threshold
 
 export class ApiFileLoggerService {
-  private logDir: string;
+  private logDir: string | null = null;
   private currentStream: fs.WriteStream | null = null;
   private currentFilePath: string = '';
   private currentDateStr: string = '';
   private currentVersion: number = 1;
 
-  constructor() {
-    this.logDir = path.resolve(process.cwd(), LOG_SUBDIR);
-    this.ensureLogDir();
+  private getLogDirectoryPath(): string {
+    if (!this.logDir) {
+      const getRuntimeRoot = () => (typeof process !== 'undefined' && typeof process['cwd'] === 'function' ? process['cwd']() : '.');
+      const customDir = process.env.API_LOG_DIR;
+      this.logDir = customDir
+        ? path.resolve(customDir)
+        : path.resolve(getRuntimeRoot(), 'logs', 'http-api');
+    }
+    return this.logDir;
   }
 
   private ensureLogDir(): void {
     try {
-      if (!fs.existsSync(this.logDir)) {
-        fs.mkdirSync(this.logDir, { recursive: true });
+      const targetDir = this.getLogDirectoryPath();
+      if (!fs.existsSync(targetDir)) {
+        fs.mkdirSync(targetDir, { recursive: true });
       }
     } catch {
       // Degrade gracefully if filesystem has permission restrictions
@@ -43,8 +49,9 @@ export class ApiFileLoggerService {
       this.currentVersion = 1;
     }
 
+    const dir = this.getLogDirectoryPath();
     let fileName = `api-${this.currentDateStr}.log`;
-    let candidatePath = path.join(this.logDir, fileName);
+    let candidatePath = path.join(dir, fileName);
 
     // If file exists and exceeds max size, find next version
     while (fs.existsSync(candidatePath)) {
@@ -53,7 +60,7 @@ export class ApiFileLoggerService {
         if (stats.size >= MAX_FILE_SIZE_BYTES) {
           this.currentVersion++;
           fileName = `api-${this.currentDateStr}.v${this.currentVersion}.log`;
-          candidatePath = path.join(this.logDir, fileName);
+          candidatePath = path.join(dir, fileName);
         } else {
           break;
         }
@@ -111,7 +118,7 @@ export class ApiFileLoggerService {
   }
 
   getLogDirectory(): string {
-    return this.logDir;
+    return this.getLogDirectoryPath();
   }
 
   getActiveLogFilePath(): string {
@@ -120,9 +127,10 @@ export class ApiFileLoggerService {
 
   getAvailableLogFiles(): string[] {
     try {
-      if (!fs.existsSync(this.logDir)) return [];
+      const dir = this.getLogDirectoryPath();
+      if (!fs.existsSync(dir)) return [];
       return fs
-        .readdirSync(this.logDir)
+        .readdirSync(dir)
         .filter((file) => file.endsWith('.log'))
         .sort()
         .reverse();

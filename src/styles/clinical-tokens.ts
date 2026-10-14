@@ -124,12 +124,112 @@ export const getStatusConfig = (status: string): StatusConfig => {
   switch (normalized) {
     case 'BUKA':
     case 'OPEN':
+      return {
+        ...clinicalTokens.colors.status.confirmed,
+        label: 'Buka'
+      };
     case 'AKTIF':
     case 'ACTIVE':
+      return {
+        ...clinicalTokens.colors.status.confirmed,
+        label: 'Aktif'
+      };
     case 'HADIR':
       return {
         ...clinicalTokens.colors.status.confirmed,
-        label: normalized === 'HADIR' ? 'Hadir' : 'Buka'
+        label: 'Hadir'
+      };
+    case 'AKUN_UTAMA':
+    case 'MASTER':
+      return {
+        pillBg: 'bg-amber-500/10 dark:bg-amber-500/20',
+        pillBorder: 'border-amber-500/20 dark:border-amber-500/30',
+        pillShadow: 'shadow-none',
+        textGradient: 'text-amber-600 dark:text-amber-400 font-bold',
+        dotGradient: 'bg-amber-500',
+        hex: '#F59E0B',
+        label: 'Akun Utama'
+      };
+    case 'MANDIRI':
+      return {
+        pillBg: 'bg-muted/50 dark:bg-muted/40',
+        pillBorder: 'border-border/60',
+        pillShadow: 'shadow-none',
+        textGradient: 'text-muted-foreground font-bold',
+        dotGradient: 'bg-muted-foreground/60',
+        hex: '#94A3B8',
+        label: 'Mandiri'
+      };
+    case 'INDUK':
+      return {
+        pillBg: 'bg-muted/50 dark:bg-muted/40',
+        pillBorder: 'border-border/60',
+        pillShadow: 'shadow-none',
+        textGradient: 'text-muted-foreground font-bold',
+        dotGradient: 'bg-muted-foreground/60',
+        hex: '#94A3B8',
+        label: 'Induk'
+      };
+    case 'AFILIASI_ANAK':
+      return {
+        pillBg: 'bg-sky-500/10 dark:bg-sky-500/20',
+        pillBorder: 'border-sky-500/20 dark:border-sky-500/30',
+        pillShadow: 'shadow-none',
+        textGradient: 'text-sky-600 dark:text-sky-400 font-bold',
+        dotGradient: 'bg-sky-500',
+        hex: '#0EA5E9',
+        label: 'Anak'
+      };
+    case 'AFILIASI_PASANGAN':
+      return {
+        pillBg: 'bg-rose-500/10 dark:bg-rose-500/20',
+        pillBorder: 'border-rose-500/20 dark:border-rose-500/30',
+        pillShadow: 'shadow-none',
+        textGradient: 'text-rose-600 dark:text-rose-400 font-bold',
+        dotGradient: 'bg-rose-500',
+        hex: '#F43F5E',
+        label: 'Pasangan'
+      };
+    case 'AFILIASI_ORANG_TUA':
+      return {
+        pillBg: 'bg-amber-500/10 dark:bg-amber-500/20',
+        pillBorder: 'border-amber-500/20 dark:border-amber-500/30',
+        pillShadow: 'shadow-none',
+        textGradient: 'text-amber-600 dark:text-amber-400 font-bold',
+        dotGradient: 'bg-amber-500',
+        hex: '#F59E0B',
+        label: 'Orang Tua'
+      };
+    case 'AFILIASI_KERABAT':
+      return {
+        pillBg: 'bg-purple-500/10 dark:bg-purple-500/20',
+        pillBorder: 'border-purple-500/20 dark:border-purple-500/30',
+        pillShadow: 'shadow-none',
+        textGradient: 'text-purple-600 dark:text-purple-400 font-bold',
+        dotGradient: 'bg-purple-500',
+        hex: '#A855F7',
+        label: 'Kerabat'
+      };
+    case 'AFILIASI':
+    case 'AFILIASI_KELUARGA':
+      return {
+        pillBg: 'bg-sky-500/10 dark:bg-sky-500/20',
+        pillBorder: 'border-sky-500/20 dark:border-sky-500/30',
+        pillShadow: 'shadow-none',
+        textGradient: 'text-sky-600 dark:text-sky-400 font-bold',
+        dotGradient: 'bg-sky-500',
+        hex: '#0EA5E9',
+        label: 'Keluarga'
+      };
+    case 'PUNYA_AKUN':
+      return {
+        pillBg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
+        pillBorder: 'border-emerald-500/20 dark:border-emerald-500/30',
+        pillShadow: 'shadow-none',
+        textGradient: 'text-emerald-600 dark:text-emerald-400 font-bold',
+        dotGradient: 'bg-emerald-500',
+        hex: '#10B981',
+        label: 'Punya Akun'
       };
     case 'ISONLEAVE':
     case 'LEAVE':
@@ -212,10 +312,11 @@ export const getStatusConfig = (status: string): StatusConfig => {
         label: 'Libur'
       };
     case 'NONAKTIF':
+    case 'NON_AKTIF':
     case 'INACTIVE':
       return {
         ...clinicalTokens.colors.status.cancelled,
-        label: 'Nonaktif'
+        label: 'Non-Aktif'
       };
     default:
       return {

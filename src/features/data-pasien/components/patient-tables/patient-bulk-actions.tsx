@@ -12,7 +12,7 @@ export interface PatientBulkActionsProps {
 }
 
 export function PatientBulkActions({ table, onBulkDelete }: PatientBulkActionsProps) {
-  const selectedRows = table.getFilteredSelectedRowModel().rows;
+  const selectedRows = table.getFilteredSelectedRowModel().flatRows;
   const selectedPatients = selectedRows.map((r) => r.original);
 
   if (selectedRows.length === 0) return null;

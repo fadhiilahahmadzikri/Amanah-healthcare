@@ -1,0 +1,423 @@
+'use client';
+
+import * as React from 'react';
+import { Icons } from '@/components/icons';
+import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
+import { StatusBadge } from '@/components/ui/status-badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
+import { PatientActionDrawer } from './patient-action-drawer';
+import { getInitials } from './patient-tables/columns-helpers';
+import { usePatientMobileCards } from '../model/usePatientMobileCards';
+import type { Patient } from '../api/types';
+
+export interface PatientMobileCardsProps {
+  patients: Patient[];
+  hasFilters: boolean;
+  onReset?: () => void;
+  onRowClick: (patient: Patient) => void;
+  onViewDetail: (patient: Patient) => void;
+  onEdit: (patient: Patient) => void;
+  onViewHistory: (patient: Patient) => void;
+  onDelete: (patient: Patient) => void;
+  sentinelRef?: React.RefObject<HTMLDivElement | null>;
+  isFetchingNextPage?: boolean;
+  hasNextPage?: boolean;
+}
+
+export function PatientMobileCards({
+  patients,
+  hasFilters,
+  onReset,
+  onRowClick,
+  onViewDetail,
+  onEdit,
+  onViewHistory,
+  onDelete,
+  sentinelRef,
+  isFetchingNextPage,
+  hasNextPage,
+}: PatientMobileCardsProps) {
+  const {
+    isDeckExpanded,
+    toggleDeck,
+    selectedActionPatient,
+    openActionDrawer,
+    closeActionDrawer,
+    getCleanRelationLabel,
+    getRelationStatusKey,
+    getDemographicSlots,
+    formatVisitDate,
+  } = usePatientMobileCards();
+
+  if (patients.length === 0) {
+    return (
+      <div className='flex flex-1 min-h-[300px] flex-col items-center justify-center p-4'>
+        {hasFilters ? (
+          <div className='flex flex-col items-center gap-3 w-full max-w-xs text-center'>
+            <EmptyState
+              title='Tidak ada pasien yang cocok'
+              description='Tidak ditemukan data pasien dengan filter atau kata kunci pencarian yang dipilih.'
+            />
+            {onReset && (
+              <Button
+                type='button'
+                variant='outline'
+                shape='pill'
+                size='sm'
+                onClick={onReset}
+                className='font-semibold text-xs cursor-pointer'
+              >
+                Reset Semua Filter
+              </Button>
+            )}
+          </div>
+        ) : (
+          <EmptyState
+            title='Belum ada data pasien'
+            description='Data pasien akan ditampilkan di sini setelah didaftarkan ke sistem klinik.'
+          />
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {/* Container dengan gutter vertikal proporsional */}
+      <div className='flex flex-col gap-5 pb-28 pt-1 select-none'>
+        {patients.map((patient) => {
+          const isMaster = patient.is_master ?? (!patient.master_patient_id && !patient.relationship_type);
+          const affiliates = patient.affiliates || [];
+          const hasAffiliates = affiliates.length > 0;
+          const isExpanded = isDeckExpanded(patient.id);
+          const slots = getDemographicSlots(patient);
+          const statusAccount = patient.account_status || 'active';
+          const relLabel = getCleanRelationLabel(patient.relationship_type, patient.relation_label);
+          const relStatusKey = getRelationStatusKey(patient.relationship_type);
+
+          return (
+            <div key={patient.id} className='flex flex-col w-full'>
+              {/* KARTU UTAMA */}
+              <div
+                onClick={() => onRowClick(patient)}
+                className={cn(
+                  'group relative w-full bg-gradient-to-t from-primary/[0.04] via-card to-card text-card-foreground border border-border rounded-[22px] p-4 sm:p-4.5 flex flex-col justify-between gap-3 select-none transition-all duration-200 cursor-pointer shadow-2xs hover:border-primary/50 hover:shadow-xs z-10'
+                )}
+              >
+                {/* 1. Header: Avatar + Nama + Subtitle (Badge Status/Hubungan) + Status Akun */}
+                <div className='flex items-start justify-between gap-2.5 min-w-0'>
+                  <div className='flex items-center gap-3 min-w-0 flex-1'>
+                    <div className='size-11 sm:size-12 rounded-full overflow-hidden shrink-0 ring-1 ring-border/50 bg-muted aspect-square shadow-2xs flex items-center justify-center'>
+                      <Avatar className='h-full w-full'>
+                        <AvatarFallback className='text-xs font-bold bg-primary/10 text-primary'>
+                          {getInitials(patient.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+
+                    <div className='min-w-0 flex-1 space-y-1'>
+                      <h3
+                        className='text-sm sm:text-[15px] font-bold tracking-tight text-foreground truncate'
+                        title={patient.name}
+                      >
+                        {patient.name}
+                      </h3>
+
+                      {/* Subtitle: Badge Profil / Hubungan Tanpa Prefix */}
+                      <div className='flex items-center gap-1.5 flex-wrap'>
+                        {isMaster ? (
+                          <StatusBadge
+                            status='AKUN_UTAMA'
+                            label='Akun Utama'
+                            icon={<Icons.crown className='size-2.5 shrink-0 text-amber-600 dark:text-amber-400' />}
+                            size='sm'
+                          />
+                        ) : (
+                          <StatusBadge
+                            status={relStatusKey}
+                            label={relLabel}
+                            size='sm'
+                          />
+                        )}
+                        {patient.has_own_account && !isMaster && (
+                          <StatusBadge status='PUNYA_AKUN' label='Punya Akun' size='sm' />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Status Akun di Pojok Kanan Atas */}
+                  <div className='shrink-0 self-start pt-0.5'>
+                    <StatusBadge status={statusAccount} size='sm' />
+                  </div>
+                </div>
+
+                {/* 2. Slot Demografis dengan Separator Pipa (|) */}
+                <div className='flex items-center justify-between text-xs px-3 py-2 rounded-xl bg-muted/40 border border-border/40 text-muted-foreground'>
+                  <div className='flex items-center gap-2 flex-wrap'>
+                    {slots.map((s, idx) => (
+                      <React.Fragment key={s.id}>
+                        {idx > 0 && <span className='text-border/90 font-light select-none'>|</span>}
+                        <span className={cn('text-foreground font-medium', s.isMono && 'font-mono')}>
+                          {s.label}
+                        </span>
+                      </React.Fragment>
+                    ))}
+                  </div>
+
+                  {hasAffiliates && (
+                    <span className='inline-flex items-center gap-1 text-[11px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full'>
+                      <Icons.users className='size-3 shrink-0' />
+                      <span>{affiliates.length} Afiliasi</span>
+                    </span>
+                  )}
+                </div>
+
+                {/* 3. Footer: Kunjungan Terakhir + Ellipsis Action + Detail Button */}
+                <div className='w-full flex items-center justify-between gap-3 pt-2.5 border-t border-border/40 min-w-0'>
+                  <div className='flex flex-col min-w-0'>
+                    <span className='text-[11px] text-muted-foreground'>
+                      Kunjungan terakhir
+                    </span>
+                    <span className='text-xs font-semibold font-mono text-foreground truncate'>
+                      {formatVisitDate(patient.last_visit_date)}
+                    </span>
+                  </div>
+
+                  <div className='flex items-center gap-1.5 shrink-0'>
+                    <Button
+                      type='button'
+                      variant='ghost'
+                      size='icon'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openActionDrawer(patient);
+                      }}
+                      aria-label={`Aksi untuk pasien ${patient.name}`}
+                      className='size-8 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-md transition-colors cursor-pointer shrink-0'
+                    >
+                      <Icons.ellipsis className='size-4' />
+                    </Button>
+
+                    <Button
+                      type='button'
+                      variant='default'
+                      shape='pill'
+                      size='card-action'
+                      withTrailingCircleIcon
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onViewDetail(patient);
+                      }}
+                      className='font-bold shadow-2xs cursor-pointer'
+                    >
+                      Detail
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* TUMPUKAN LEMBARAN AFILIASI (STACKED DECK - SESUAI SKETSA EXCALIDRAW) */}
+              {hasAffiliates && (
+                <div className='w-full flex flex-col mt-[-4px] relative z-0'>
+                  {!isExpanded ? (
+                    /* A. COLLAPSED: Tumpukan kartu mengintip di bawah kartu utama */
+                    <div
+                      onClick={() => toggleDeck(patient.id)}
+                      className='w-full flex flex-col items-center cursor-pointer group'
+                    >
+                      {/* Tab Mengintip 1 */}
+                      <div className='w-[96%] bg-card/90 hover:bg-card border-x border-b border-border/80 rounded-b-xl px-3.5 py-1.5 shadow-2xs flex items-center justify-between text-xs text-muted-foreground transition-all duration-150'>
+                        <span className='font-semibold text-foreground truncate'>
+                          {affiliates[0]?.name}
+                        </span>
+                        <span className='text-[11px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full capitalize'>
+                          {getCleanRelationLabel(
+                            affiliates[0]?.relationship_type,
+                            affiliates[0]?.relation_label
+                          )}
+                        </span>
+                      </div>
+
+                      {/* Tab Mengintip 2 (Jika ada 2 atau lebih afiliasi) */}
+                      {affiliates.length > 1 && (
+                        <div className='w-[92%] bg-muted/60 hover:bg-muted/80 border-x border-b border-border/70 rounded-b-xl px-3.5 py-1.5 shadow-2xs flex items-center justify-between text-xs text-muted-foreground -mt-0.5 transition-all duration-150'>
+                          <span className='font-semibold text-foreground truncate'>
+                            {affiliates[1]?.name}
+                          </span>
+                          <span className='text-[11px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full capitalize'>
+                            {getCleanRelationLabel(
+                              affiliates[1]?.relationship_type,
+                              affiliates[1]?.relation_label
+                            )}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Tombol / Trigger Pembuka Tumpukan */}
+                      <div className='mt-1 flex items-center gap-1.5 text-[11px] font-medium text-primary group-hover:text-primary/80 transition-colors py-1'>
+                        <Icons.chevronDown className='size-3.5 transition-transform duration-200 group-hover:translate-y-0.5' />
+                        <span>Buka {affiliates.length} Kartu Afiliasi</span>
+                      </div>
+                    </div>
+                  ) : (
+                    /* B. EXPANDED: Daftar kartu penuh afiliasi dengan konektor dahan pohon (Responsive, No Overflow) */
+                    <div className='self-stretch flex flex-col gap-3 pt-3 pl-3 sm:pl-4 border-l-2 border-primary/30 ml-3 sm:ml-4 mt-1 min-w-0 box-border'>
+                      {affiliates.map((affiliate) => {
+                        const affSlots = getDemographicSlots(affiliate);
+                        const affRelLabel = getCleanRelationLabel(
+                          affiliate.relationship_type,
+                          affiliate.relation_label
+                        );
+                        const affRelKey = getRelationStatusKey(affiliate.relationship_type);
+
+                        return (
+                          <div
+                            key={affiliate.id}
+                            onClick={() => onRowClick(affiliate)}
+                            className='group/aff relative w-full bg-card/95 hover:bg-card text-card-foreground border border-border/80 rounded-[18px] p-3 sm:p-3.5 flex flex-col justify-between gap-2.5 transition-all duration-150 cursor-pointer shadow-2xs hover:border-primary/40 box-border min-w-0'
+                          >
+                            {/* Horizontal connector arm from vertical tree line */}
+                            <span className='absolute -left-3 sm:-left-4 top-6 w-3 sm:w-4 h-[1.5px] bg-primary/30 pointer-events-none' />
+                            {/* Header Afiliasi: Avatar + Nama + Subtitle (Badge Hubungan) + Status */}
+                            <div className='flex items-start justify-between gap-2 min-w-0'>
+                              <div className='flex items-center gap-2.5 min-w-0 flex-1'>
+                                <div className='size-9 rounded-full overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square flex items-center justify-center'>
+                                  <Avatar className='h-full w-full'>
+                                    <AvatarFallback className='text-[10px] font-bold bg-muted text-muted-foreground'>
+                                      {getInitials(affiliate.name)}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                </div>
+
+                                <div className='min-w-0 flex-1 space-y-0.5'>
+                                  <h4
+                                    className='text-xs sm:text-[13px] font-bold text-foreground truncate'
+                                    title={affiliate.name}
+                                  >
+                                    {affiliate.name}
+                                  </h4>
+                                  <div className='flex items-center gap-1.5'>
+                                    <StatusBadge
+                                      status={affRelKey}
+                                      label={affRelLabel}
+                                      size='sm'
+                                    />
+                                    {affiliate.has_own_account && (
+                                      <StatusBadge status='PUNYA_AKUN' label='Punya Akun' size='sm' />
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <StatusBadge
+                                status={affiliate.account_status || 'active'}
+                                size='sm'
+                              />
+                            </div>
+
+                            {/* Slot Demografis Afiliasi dengan Separator Pipa (|) */}
+                            <div className='flex items-center text-[11px] px-2.5 py-1.5 rounded-lg bg-muted/40 border border-border/30 text-muted-foreground gap-2'>
+                              {affSlots.map((s, idx) => (
+                                <React.Fragment key={s.id}>
+                                  {idx > 0 && <span className='text-border/90 font-light select-none'>|</span>}
+                                  <span className={cn('text-foreground font-medium', s.isMono && 'font-mono')}>
+                                    {s.label}
+                                  </span>
+                                </React.Fragment>
+                              ))}
+                            </div>
+
+                            {/* Footer Afiliasi: Kunjungan + Tombol Aksi */}
+                            <div className='w-full flex items-center justify-between gap-2 pt-2 border-t border-border/30 min-w-0'>
+                              <div className='flex flex-col min-w-0 flex-1'>
+                                <span className='text-[10px] text-muted-foreground'>
+                                  Kunjungan terakhir
+                                </span>
+                                <span className='text-[11px] font-medium font-mono text-foreground truncate'>
+                                  {formatVisitDate(affiliate.last_visit_date)}
+                                </span>
+                              </div>
+
+                              <div className='flex items-center gap-1 shrink-0'>
+                                <Button
+                                  type='button'
+                                  variant='ghost'
+                                  size='icon'
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openActionDrawer(affiliate);
+                                  }}
+                                  aria-label={`Aksi untuk pasien ${affiliate.name}`}
+                                  className='size-7 text-muted-foreground hover:text-foreground rounded-md'
+                                >
+                                  <Icons.ellipsis className='size-3.5' />
+                                </Button>
+
+                                <Button
+                                  type='button'
+                                  variant='outline'
+                                  shape='pill'
+                                  size='card-action'
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onViewDetail(affiliate);
+                                  }}
+                                  className='text-xs font-semibold cursor-pointer'
+                                >
+                                  Detail
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {/* Tombol Tutup Tumpukan */}
+                      <button
+                        type='button'
+                        onClick={() => toggleDeck(patient.id)}
+                        className='self-center py-1.5 px-3 flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer'
+                      >
+                        <Icons.chevronUp className='size-3.5' />
+                        <span>Tutup Cabang Afiliasi</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Sentinel Infinite Scroll */}
+        {sentinelRef && (
+          <div ref={sentinelRef} className='py-3 flex flex-col items-center justify-center text-xs text-muted-foreground'>
+            {isFetchingNextPage && (
+              <div className='flex items-center gap-2 text-primary font-medium'>
+                <Icons.spinner className='size-4 animate-spin' />
+                <span>Memuat pasien berikutnya...</span>
+              </div>
+            )}
+            {!hasNextPage && patients.length > 0 && (
+              <span className='text-muted-foreground/60 text-[11px]'>Semua hasil pencarian telah dimuat</span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Centralized Action Drawer */}
+      <PatientActionDrawer
+        isOpen={Boolean(selectedActionPatient)}
+        patient={selectedActionPatient}
+        onClose={closeActionDrawer}
+        onViewDetail={onViewDetail}
+        onEdit={onEdit}
+        onViewHistory={onViewHistory}
+        onDelete={onDelete}
+      />
+    </>
+  );
+}

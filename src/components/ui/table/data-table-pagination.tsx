@@ -32,13 +32,13 @@ export function DataTablePagination<TData>({
       {...props}
     >
       <div className='text-muted-foreground text-sm whitespace-nowrap'>
-        {table.getFilteredSelectedRowModel().rows.length > 0 ? (
+        {table.getFilteredSelectedRowModel().flatRows.length > 0 ? (
           <>
-            {table.getFilteredSelectedRowModel().rows.length} of{' '}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
+            {table.getFilteredSelectedRowModel().flatRows.length} of{' '}
+            {table.getFilteredRowModel().flatRows.length} row(s) selected.
           </>
         ) : (
-          <>{table.getFilteredRowModel().rows.length} row(s) total.</>
+          <>{table.getFilteredRowModel().flatRows.length} row(s) total.</>
         )}
       </div>
       <div className='flex items-center gap-2 sm:gap-6 lg:gap-8'>

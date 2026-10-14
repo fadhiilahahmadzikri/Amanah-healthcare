@@ -20,6 +20,7 @@ export interface UseTanStackSearchEngineOptions<TData> {
   suggestions?: SearchEngineSuggestion[];
   quickFilters?: SearchEngineQuickFilter[];
   recentSearchesKey?: string;
+  realtimeSync?: boolean;
 }
 
 export function useTanStackSearchEngine<TData>({
@@ -32,13 +33,18 @@ export function useTanStackSearchEngine<TData>({
   indexItems,
   suggestions,
   quickFilters,
-  recentSearchesKey
+  recentSearchesKey,
+  realtimeSync = true
 }: UseTanStackSearchEngineOptions<TData>) {
   const [isOpen, setIsOpen] = useState(false);
 
   const column = table.getColumn(columnId);
   const rawQuery = column?.getFilterValue();
-  const query = typeof rawQuery === 'string' ? rawQuery : '';
+  const query = Array.isArray(rawQuery)
+    ? String(rawQuery[0] ?? '')
+    : typeof rawQuery === 'string'
+      ? rawQuery
+      : '';
 
   const handleQueryChange = useCallback(
     (newQuery: string) => {
@@ -63,7 +69,8 @@ export function useTanStackSearchEngine<TData>({
       indexItems,
       suggestions,
       quickFilters,
-      recentSearchesKey: recentSearchesKey || `clinic_recent_search_${id}`
+      recentSearchesKey: recentSearchesKey || `clinic_recent_search_${id}`,
+      realtimeSync
     }),
     [
       id,
@@ -76,7 +83,8 @@ export function useTanStackSearchEngine<TData>({
       indexItems,
       suggestions,
       quickFilters,
-      recentSearchesKey
+      recentSearchesKey,
+      realtimeSync
     ]
   );
 

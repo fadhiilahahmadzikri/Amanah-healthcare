@@ -45,6 +45,7 @@ export interface SearchEngineConfig {
   emptyText?: string;
   isLoading?: boolean;
   totalResultsCount?: number;
+  realtimeSync?: boolean;
 }
 
 export interface SearchEngineTriggerProps {

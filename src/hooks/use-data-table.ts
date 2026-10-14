@@ -64,6 +64,8 @@ interface UseDataTableProps<TData>
   clearOnDefault?: boolean;
   enableAdvancedFilter?: boolean;
   manualPagination?: boolean;
+  manualFiltering?: boolean;
+  manualSorting?: boolean;
   scroll?: boolean;
   shallow?: boolean;
   startTransition?: React.TransitionStartFunction;
@@ -80,6 +82,8 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     clearOnDefault = false,
     enableAdvancedFilter = false,
     manualPagination = true,
+    manualFiltering = true,
+    manualSorting = true,
     scroll = false,
     shallow = true,
     startTransition,
@@ -202,12 +206,16 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     if (enableAdvancedFilter) return [];
 
     return Object.entries(filterValues).reduce<ColumnFiltersState>((filters, [key, value]) => {
-      if (value !== null) {
-        const processedValue = Array.isArray(value)
-          ? value
-          : typeof value === 'string'
-            ? [value]
-            : [value];
+      if (value !== null && value !== undefined && value !== '') {
+        const colDef = filterableColumns.find((c) => c.id === key);
+        const isArrayCol = Boolean(colDef?.meta?.options);
+        const processedValue = isArrayCol
+          ? Array.isArray(value)
+            ? value
+            : [value]
+          : Array.isArray(value)
+            ? value[0]
+            : value;
 
         filters.push({
           id: key,
@@ -216,10 +224,20 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
       }
       return filters;
     }, []);
-  }, [filterValues, enableAdvancedFilter]);
+  }, [filterValues, filterableColumns, enableAdvancedFilter]);
 
   const [columnFilters, setColumnFilters] =
     React.useState<ColumnFiltersState>(initialColumnFilters);
+
+  // Hanya sinkronkan state jika isi filter URL benar-benar berubah secara nilai (deep-value hash check)
+  const prevFilterHashRef = React.useRef(JSON.stringify(initialColumnFilters));
+  React.useEffect(() => {
+    const nextHash = JSON.stringify(initialColumnFilters);
+    if (prevFilterHashRef.current !== nextHash) {
+      prevFilterHashRef.current = nextHash;
+      setColumnFilters(initialColumnFilters);
+    }
+  }, [initialColumnFilters]);
 
   const onColumnFiltersChange = React.useCallback(
     (updaterOrValue: Updater<ColumnFiltersState>) => {
@@ -230,8 +248,27 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
 
         const filterUpdates = next.reduce<Record<string, string | string[] | null>>(
           (acc, filter) => {
-            if (filterableColumns.find((column) => column.id === filter.id)) {
-              acc[filter.id] = filter.value as string | string[];
+            const colDef = filterableColumns.find((column) => column.id === filter.id);
+            if (colDef) {
+              const isArrayCol = Boolean(colDef.meta?.options);
+              if (isArrayCol) {
+                if (filter.value === undefined || filter.value === null || filter.value === '') {
+                  acc[filter.id] = null;
+                } else if (Array.isArray(filter.value)) {
+                  const cleaned = filter.value.filter(Boolean).map(String);
+                  acc[filter.id] = cleaned.length > 0 ? cleaned : null;
+                } else {
+                  acc[filter.id] = [String(filter.value)];
+                }
+              } else {
+                if (filter.value === undefined || filter.value === null || filter.value === '') {
+                  acc[filter.id] = null;
+                } else if (Array.isArray(filter.value)) {
+                  acc[filter.id] = filter.value[0] != null ? String(filter.value[0]) : null;
+                } else {
+                  acc[filter.id] = String(filter.value);
+                }
+              }
             }
             return acc;
           },
@@ -244,11 +281,16 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
           }
         }
 
-        debouncedSetFilterValues(filterUpdates);
+        if (next.length === 0) {
+          void setPage(1);
+          void setFilterValues(filterUpdates);
+        } else {
+          debouncedSetFilterValues(filterUpdates);
+        }
         return next;
       });
     },
-    [debouncedSetFilterValues, filterableColumns, enableAdvancedFilter]
+    [debouncedSetFilterValues, setFilterValues, setPage, filterableColumns, enableAdvancedFilter]
   );
 
   const table = useReactTable({
@@ -266,8 +308,8 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
       expanded
     },
     defaultColumn: {
-      ...tableProps.defaultColumn,
-      enableColumnFilter: false
+      enableColumnFilter: false,
+      ...tableProps.defaultColumn
     },
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
@@ -286,8 +328,8 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
     manualPagination,
-    manualSorting: true,
-    manualFiltering: true
+    manualSorting,
+    manualFiltering
   });
 
   return { table, shallow, debounceMs, throttleMs };

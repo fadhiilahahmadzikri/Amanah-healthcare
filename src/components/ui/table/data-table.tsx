@@ -27,6 +27,8 @@ interface DataTableProps<TData> extends React.ComponentProps<'div'> {
   bulkActions?: React.ReactNode;
   emptyState?: React.ReactNode;
   isLoading?: boolean;
+  hidePagination?: boolean;
+  footerSlot?: React.ReactNode;
 }
 
 const interactiveRowSelector = [
@@ -50,7 +52,9 @@ export function DataTable<TData>({
   entityName,
   bulkActions,
   emptyState,
-  isLoading
+  isLoading,
+  hidePagination = false,
+  footerSlot
 }: DataTableProps<TData>) {
   const handleRowClick = (event: React.MouseEvent<HTMLTableRowElement>, row: TData) => {
     if (!onRowClick || event.defaultPrevented || isInteractiveElement(event.target)) return;
@@ -167,11 +171,15 @@ export function DataTable<TData>({
         {table.getFilteredRowModel().rows.length > 0 ? (
           <div className='absolute bottom-0 inset-x-0 z-20 pointer-events-none flex justify-center'>
             <div className='pointer-events-auto flex w-full flex-col gap-2.5'>
-              <DataTablePagination
-                table={table}
-                className='border-t border-border/50 bg-background/80 px-4 py-3 shadow-md backdrop-blur-xl supports-[backdrop-filter]:bg-background/70 dark:bg-card/80 dark:supports-[backdrop-filter]:bg-card/70 sm:gap-6'
-              />
-              {actionBar && table.getFilteredSelectedRowModel().rows.length > 0 && actionBar}
+              {!hidePagination ? (
+                <DataTablePagination
+                  table={table}
+                  className='border-t border-border/50 bg-background/80 px-4 py-3 shadow-md backdrop-blur-xl supports-[backdrop-filter]:bg-background/70 dark:bg-card/80 dark:supports-[backdrop-filter]:bg-card/70 sm:gap-6'
+                />
+              ) : (
+                footerSlot
+              )}
+              {actionBar && table.getFilteredSelectedRowModel().flatRows.length > 0 && actionBar}
               {bulkActions && (
                 <DataTableBulkActions table={table} entityName={entityName || 'row'}>
                   {bulkActions}

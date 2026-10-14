@@ -20,13 +20,17 @@ export interface UseBookingRegularPatientFormOptions {
   onCancel: () => void;
   targetFlow?: 'pregnancy' | 'immunization' | 'regular';
   onRelationshipSubmit?: (relationship: PatientRelationshipType) => void;
+  allowedRelationships?: { value: string; label: string; description?: string }[];
+  hasExistingSelf?: boolean;
 }
 
 export function useBookingRegularPatientForm({
   onSuccess,
   onCancel,
   targetFlow,
-  onRelationshipSubmit
+  onRelationshipSubmit,
+  allowedRelationships,
+  hasExistingSelf = false
 }: UseBookingRegularPatientFormOptions) {
   const references = usePatientFormReferences();
 
@@ -40,7 +44,40 @@ export function useBookingRegularPatientForm({
     setCurrentStep(stepNumber);
   }, []);
 
-  const [relationship, setRelationship] = React.useState<PatientRelationshipType>('self');
+  const relationshipOptions = React.useMemo(() => {
+    let opts =
+      allowedRelationships && allowedRelationships.length > 0
+        ? allowedRelationships
+        : references.relationships;
+    if (hasExistingSelf) {
+      opts = opts.filter((o) => o.value !== 'self');
+    }
+    return opts;
+  }, [allowedRelationships, references.relationships, hasExistingSelf]);
+
+  const initialRelationship: PatientRelationshipType = React.useMemo(() => {
+    if (relationshipOptions.length > 0) {
+      return (relationshipOptions[0].value as PatientRelationshipType) || 'spouse';
+    }
+    if (hasExistingSelf) {
+      return 'spouse';
+    }
+    return 'self';
+  }, [relationshipOptions, hasExistingSelf]);
+
+  const [relationship, setRelationship] = React.useState<PatientRelationshipType>(initialRelationship);
+
+  React.useEffect(() => {
+    if (relationshipOptions.length > 0) {
+      const exists = relationshipOptions.some((r) => r.value === relationship);
+      if (!exists) {
+        setRelationship(relationshipOptions[0].value as PatientRelationshipType);
+      }
+    } else if (hasExistingSelf && relationship === 'self') {
+      setRelationship('spouse');
+    }
+  }, [relationshipOptions, hasExistingSelf, relationship]);
+
   const [fullName, setFullName] = React.useState('');
   const [nik, setNik] = React.useState('');
   const [motherName, setMotherName] = React.useState('');
@@ -397,6 +434,7 @@ export function useBookingRegularPatientForm({
     setOccupationCode,
 
     references,
+    relationshipOptions,
 
     handleBack,
     handleNext,

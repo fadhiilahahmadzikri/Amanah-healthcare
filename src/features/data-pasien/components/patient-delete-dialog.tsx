@@ -11,9 +11,11 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
-import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { deletePatientMutation, bulkDeletePatientsMutation } from '../api/mutations';
+import {
+  useDeletePatientMutation,
+  useBulkDeletePatientsMutation,
+} from '../model/usePatientMutations';
 import type { Patient } from '../api/types';
 
 export interface PatientDeleteDialogProps {
@@ -34,37 +36,26 @@ export function PatientDeleteDialog({
   const isBulk = Boolean(patientIds && patientIds.length > 0 && !patient);
   const count = patientIds?.length ?? 0;
 
-  const singleDelete = useMutation({
-    ...deletePatientMutation,
-    onSuccess: () => {
-      toast.success('Data pasien berhasil dinonaktifkan');
-      onSuccess?.();
-      onClose();
-    },
-    onError: (err: any) => {
-      toast.error(err?.message || 'Gagal menonaktifkan data pasien');
-    },
-  });
-
-  const bulkDelete = useMutation({
-    ...bulkDeletePatientsMutation,
-    onSuccess: (data) => {
-      toast.success(data?.message || `${count} pasien berhasil dinonaktifkan`);
-      onSuccess?.();
-      onClose();
-    },
-    onError: (err: any) => {
-      toast.error(err?.message || 'Gagal menonaktifkan data pasien terpilih');
-    },
-  });
+  const singleDelete = useDeletePatientMutation();
+  const bulkDelete = useBulkDeletePatientsMutation();
 
   const isPending = singleDelete.isPending || bulkDelete.isPending;
 
   const handleConfirm = async () => {
-    if (isBulk && patientIds && patientIds.length > 0) {
-      await bulkDelete.mutateAsync(patientIds);
-    } else if (patient?.id) {
-      await singleDelete.mutateAsync(patient.id);
+    try {
+      if (isBulk && patientIds && patientIds.length > 0) {
+        const res = await bulkDelete.mutateAsync(patientIds);
+        toast.success(res?.message || `${count} pasien berhasil dinonaktifkan`);
+        onSuccess?.();
+        onClose();
+      } else if (patient?.id) {
+        await singleDelete.mutateAsync(patient.id);
+        toast.success('Data pasien berhasil dinonaktifkan');
+        onSuccess?.();
+        onClose();
+      }
+    } catch (err: any) {
+      toast.error(err?.message || 'Gagal menonaktifkan data pasien');
     }
   };
 

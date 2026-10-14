@@ -21,7 +21,6 @@ export function SearchEngineDialog({
 
   const storageKey = config.recentSearchesKey || `clinic_recent_search_${config.id}`;
 
-  // Sync internal state when external query or dialog opening changes
   useEffect(() => {
     if (isOpen) {
       setInternalQuery(config.query);
@@ -45,6 +44,17 @@ export function SearchEngineDialog({
       }, 50);
     }
   }, [isOpen, config.query, storageKey]);
+
+  // Real-time sync: apapun yang diketik di search wizard langsung merefleksikan konten utama di belakangnya
+  useEffect(() => {
+    if (!isOpen || config.realtimeSync === false) return;
+    const timer = setTimeout(() => {
+      if (internalQuery !== config.query) {
+        config.onQueryChange(internalQuery);
+      }
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [internalQuery, isOpen, config]);
 
   const saveRecentSearch = (term: string) => {
     const trimmed = term.trim();

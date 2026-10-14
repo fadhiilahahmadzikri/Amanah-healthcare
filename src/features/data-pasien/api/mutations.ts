@@ -42,3 +42,10 @@ export const bulkDeletePatientsMutation = mutationOptions({
     getQueryClient().invalidateQueries({ queryKey: patientKeys.all });
   },
 });
+
+export {
+  useUpdatePatientMutation,
+  useCreatePatientMutation,
+  useDeletePatientMutation,
+  useBulkDeletePatientsMutation,
+} from '../model/usePatientMutations';
