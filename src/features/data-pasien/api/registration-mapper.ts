@@ -1,4 +1,4 @@
-import type { PatientMutationPayload } from './types';
+import type { PatientMutationPayload, PatientBloodType } from './types';
 import type { PatientRegistrationFormValues } from '../schemas/patient-registration-schema';
 
 export const PATIENT_REGISTRATION_COMPLETED_COOKIE = 'patient_registration_completed';
@@ -84,7 +84,7 @@ export function buildPatientMutationPayload({
     age: calculateAgeFromBirthDate(values.birth_date, now),
     birth_date: values.birth_date,
     tanggal_lahir: formatIsoDateForPatient(values.birth_date),
-    blood_type: values.blood_type,
+    blood_type: values.blood_type as PatientBloodType,
     address,
     avatar: user.imageUrl || DEFAULT_PATIENT_AVATAR,
     allergies: [],

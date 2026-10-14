@@ -35,6 +35,7 @@ import {
   getPatientProfileAction,
   updatePatientProfileAction
 } from '@/features/data-pasien/api/patient-profile-actions';
+import { usePatientFormReferences } from '@/features/data-pasien/model/usePatientFormReferences';
 
 const DEFAULT_PATIENT_PROFILE = {
   name: 'Pasien Amanah',
@@ -47,6 +48,7 @@ const DEFAULT_PATIENT_PROFILE = {
 
 export function ClinicProfileView() {
   const { user } = useAuthContext();
+  const { bloodTypes } = usePatientFormReferences();
   const [patientData, setPatientData] = useState<PatientProfileDto | null>(null);
   const [isLoadingPatient, setIsLoadingPatient] = useState(true);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -67,7 +69,7 @@ export function ClinicProfileView() {
     emergencyContactName: '',
     emergencyContactPhone: '',
     emergencyContactRelationship: '',
-    bloodType: 'Belum Tahu' as 'A' | 'B' | 'AB' | 'O' | 'Belum Tahu',
+    bloodType: '',
     allergies: '',
     medicalHistory: ''
   });
@@ -123,9 +125,7 @@ export function ClinicProfileView() {
         patientData?.emergencyContactRelationship ||
         patientData?.emergencyContactDetail?.relationship ||
         '',
-      bloodType: (['A', 'B', 'AB', 'O', 'Belum Tahu'].includes(patientData?.bloodType || '')
-        ? patientData?.bloodType
-        : 'Belum Tahu') as 'A' | 'B' | 'AB' | 'O' | 'Belum Tahu',
+      bloodType: patientData?.bloodType || '',
       allergies: allergiesStr,
       medicalHistory: patientData?.medicalHistory || ''
     });
@@ -953,7 +953,7 @@ export function ClinicProfileView() {
                   </Label>
                   <Select
                     value={editForm.bloodType}
-                    onValueChange={(val: 'A' | 'B' | 'AB' | 'O' | 'Belum Tahu') =>
+                    onValueChange={(val: string) =>
                       setEditForm((prev) => ({ ...prev, bloodType: val }))
                     }
                   >
@@ -965,11 +965,11 @@ export function ClinicProfileView() {
                       <SelectValue placeholder='Pilih Golongan Darah' />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='A'>A</SelectItem>
-                      <SelectItem value='B'>B</SelectItem>
-                      <SelectItem value='AB'>AB</SelectItem>
-                      <SelectItem value='O'>O</SelectItem>
-                      <SelectItem value='Belum Tahu'>Belum Tahu</SelectItem>
+                      {bloodTypes.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.label}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

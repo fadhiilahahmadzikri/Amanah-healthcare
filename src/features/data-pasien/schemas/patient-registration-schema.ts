@@ -12,9 +12,7 @@ export const patientRegistrationSchema = z.object({
   gender: z.enum(['Laki-laki', 'Perempuan'], {
     message: 'Pilih jenis kelamin'
   }),
-  blood_type: z.enum(['A', 'B', 'AB', 'O', 'Belum Tahu'], {
-    message: 'Pilih golongan darah'
-  }),
+  blood_type: z.string().trim().min(1, 'Pilih golongan darah'),
   provinsi: z.string().trim().min(1, 'Pilih provinsi'),
   provinsi_id: z.string().trim().min(1, 'Pilih provinsi'),
   kabupaten: z.string().trim().min(1, 'Pilih kota atau kabupaten'),

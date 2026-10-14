@@ -211,6 +211,7 @@ export const Icons = {
   userX: IconUserX,
   userPen: IconUserEdit,
   teams: IconUsers,
+  users: IconUsers,
 
   github: IconBrandGithub,
   twitter: IconBrandTwitter,
@@ -263,6 +264,7 @@ export const Icons = {
   catalog: IconBuildingStore,
   box: IconBox,
   pro: IconCrown,
+  crown: IconCrown,
   exclusive: IconStar,
   receipt: IconReceipt,
   sparkles: IconSparkles,

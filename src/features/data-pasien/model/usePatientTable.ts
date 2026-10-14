@@ -9,6 +9,13 @@ import { getSortingStateParser } from '@/lib/parsers';
 import { patientsQueryOptions } from '../api/queries';
 import type { Patient, PatientFilters } from '../api/types';
 
+export interface PatientTableMeta {
+  onViewDetail?: (patient: Patient) => void;
+  onViewHistory?: (patient: Patient) => void;
+  onEdit?: (patient: Patient) => void;
+  onDelete?: (patient: Patient) => void;
+}
+
 interface UsePatientTableParams {
   columns: ColumnDef<Patient>[];
   columnIds: string[];
@@ -17,14 +24,24 @@ interface UsePatientTableParams {
 export interface UsePatientTableResult {
   table: Table<Patient>;
   selectedPatient: Patient | null;
+  selectedPatients: Patient[];
   isDetailOpen: boolean;
   isEditOpen: boolean;
+  isHistoryOpen: boolean;
+  isDeleteOpen: boolean;
+  isBulkDeleteOpen: boolean;
   actions: {
     openDetail: (patient: Patient) => void;
     closeDetail: () => void;
     openEdit: (patient: Patient) => void;
     closeEdit: () => void;
     openEditFromDetail: (patient: Patient) => void;
+    openHistory: (patient: Patient) => void;
+    closeHistory: () => void;
+    openDelete: (patient: Patient) => void;
+    closeDelete: () => void;
+    openBulkDelete: (patients?: Patient[]) => void;
+    closeBulkDelete: () => void;
   };
 }
 
@@ -33,7 +50,10 @@ export function usePatientTable({
   columnIds
 }: UsePatientTableParams): UsePatientTableResult {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-  const [activeDialog, setActiveDialog] = useState<'detail' | 'edit' | null>(null);
+  const [selectedPatients, setSelectedPatients] = useState<Patient[]>([]);
+  const [activeDialog, setActiveDialog] = useState<
+    'detail' | 'edit' | 'history' | 'delete' | 'bulkDelete' | null
+  >(null);
 
   const [params] = useQueryStates({
     page: parseAsInteger.withDefault(1),
@@ -61,17 +81,6 @@ export function usePatientTable({
   const { data } = useSuspenseQuery(patientsQueryOptions(filters));
   const pageCount = Math.ceil(data.total_patients / params.perPage);
 
-  const { table } = useDataTable({
-    data: data.patients,
-    columns,
-    pageCount,
-    shallow: true,
-    debounceMs: 300,
-    initialState: {
-      columnPinning: { left: ['select'], right: ['actions'] }
-    }
-  });
-
   const openDetail = (patient: Patient) => {
     setSelectedPatient(patient);
     setActiveDialog('detail');
@@ -95,17 +104,77 @@ export function usePatientTable({
     setActiveDialog('edit');
   };
 
+  const openHistory = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setActiveDialog('history');
+  };
+
+  const closeHistory = () => {
+    setActiveDialog(null);
+  };
+
+  const openDelete = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setActiveDialog('delete');
+  };
+
+  const closeDelete = () => {
+    setActiveDialog(null);
+  };
+
+  const openBulkDelete = (patients?: Patient[]) => {
+    if (patients && patients.length > 0) {
+      setSelectedPatients(patients);
+    }
+    setActiveDialog('bulkDelete');
+  };
+
+  const closeBulkDelete = () => {
+    setActiveDialog(null);
+  };
+
+  const meta: PatientTableMeta = {
+    onViewDetail: openDetail,
+    onViewHistory: openHistory,
+    onEdit: openEdit,
+    onDelete: openDelete
+  };
+
+  const { table } = useDataTable({
+    data: data.patients,
+    columns,
+    pageCount,
+    shallow: true,
+    debounceMs: 300,
+    meta,
+    getSubRows: (row) => row.affiliates,
+    initialState: {
+      columnPinning: { left: ['select'], right: ['actions'] },
+      expanded: true
+    }
+  });
+
   return {
     table,
     selectedPatient,
+    selectedPatients,
     isDetailOpen: activeDialog === 'detail',
     isEditOpen: activeDialog === 'edit',
+    isHistoryOpen: activeDialog === 'history',
+    isDeleteOpen: activeDialog === 'delete',
+    isBulkDeleteOpen: activeDialog === 'bulkDelete',
     actions: {
       openDetail,
       closeDetail,
       openEdit,
       closeEdit,
-      openEditFromDetail
+      openEditFromDetail,
+      openHistory,
+      closeHistory,
+      openDelete,
+      closeDelete,
+      openBulkDelete,
+      closeBulkDelete
     }
   };
 }

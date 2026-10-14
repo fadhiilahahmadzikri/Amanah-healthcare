@@ -1,32 +1,67 @@
 'use client';
-
+import React, { useMemo } from 'react';
 import { DataTable } from '@/components/ui/table/data-table';
 import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
-import { DefaultBulkActions } from '@/components/ui/table/default-bulk-actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePatientTable } from '../../model/usePatientTable';
-import { columns } from './columns';
-import { PatientDetailsModal } from '../patient-details-modal';
-import { PatientFormModal } from '../patient-form-modal';
-
-const columnIds = columns.map((c) => c.id).filter(Boolean) as string[];
+import { getPatientColumns } from './columns';
+import { usePatientFormReferences } from '../../model/usePatientFormReferences';
+import { PatientModal } from '../patient-modal';
+import { PatientHistoryModal } from '../patient-history-modal';
+import { PatientDeleteDialog } from '../patient-delete-dialog';
+import { PatientBulkActions } from './patient-bulk-actions';
 
 export function PatientTable() {
-  const patientTable = usePatientTable({ columns, columnIds });
+  const { genders, statuses } = usePatientFormReferences();
+  const tableColumns = useMemo(
+    () => getPatientColumns({ genders, statuses }),
+    [genders, statuses]
+  );
+  const columnIds = useMemo(
+    () => tableColumns.map((c) => c.id).filter(Boolean) as string[],
+    [tableColumns]
+  );
+
+  const patientTable = usePatientTable({ columns: tableColumns, columnIds });
+
+  const selectedRowIds = patientTable.table
+    .getFilteredSelectedRowModel()
+    .rows.map((r) => r.original.id);
 
   return (
     <>
-      <PatientDetailsModal
+      {/* 1. Modal Pasien Terpadu (Detail & Edit dengan Unlock Button) */}
+      <PatientModal
+        key={patientTable.selectedPatient?.id || 'new'}
         patient={patientTable.selectedPatient}
-        isOpen={patientTable.isDetailOpen}
-        onClose={patientTable.actions.closeDetail}
-        onEdit={patientTable.actions.openEditFromDetail}
+        isOpen={patientTable.isDetailOpen || patientTable.isEditOpen}
+        initialMode={patientTable.isEditOpen ? 'edit' : 'view'}
+        onClose={() => {
+          if (patientTable.isDetailOpen) patientTable.actions.closeDetail();
+          if (patientTable.isEditOpen) patientTable.actions.closeEdit();
+        }}
       />
 
-      <PatientFormModal
+      {/* 3. Modal Garis Waktu Riwayat Janji Temu & Form Klinis Terkait */}
+      <PatientHistoryModal
         patient={patientTable.selectedPatient}
-        isOpen={patientTable.isEditOpen}
-        onClose={patientTable.actions.closeEdit}
+        isOpen={patientTable.isHistoryOpen}
+        onClose={patientTable.actions.closeHistory}
+      />
+
+      {/* 4. Dialog Konfirmasi Hapus Pasien Tunggal */}
+      <PatientDeleteDialog
+        patient={patientTable.selectedPatient}
+        isOpen={patientTable.isDeleteOpen}
+        onClose={patientTable.actions.closeDelete}
+      />
+
+      {/* 5. Dialog Konfirmasi Hapus Pasien Massal (Bulk) */}
+      <PatientDeleteDialog
+        isOpen={patientTable.isBulkDeleteOpen}
+        patientIds={selectedRowIds}
+        onClose={patientTable.actions.closeBulkDelete}
+        onSuccess={() => patientTable.table.resetRowSelection()}
       />
 
       <div className='flex h-full flex-1 flex-col gap-4'>
@@ -34,7 +69,12 @@ export function PatientTable() {
           table={patientTable.table}
           onRowClick={patientTable.actions.openDetail}
           entityName='pasien'
-          bulkActions={<DefaultBulkActions />}
+          bulkActions={
+            <PatientBulkActions
+              table={patientTable.table}
+              onBulkDelete={patientTable.actions.openBulkDelete}
+            />
+          }
         >
           <DataTableToolbar table={patientTable.table} />
         </DataTable>

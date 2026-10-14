@@ -19,8 +19,6 @@ import {
   STEP_DESCRIPTOR_TYPES
 } from '../constants/kia-constants';
 
-const VALID_BLOOD_TYPES = new Set(['A', 'B', 'AB', 'O']);
-
 export function normalizeBirthDate(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) {
@@ -61,8 +59,7 @@ export function normalizeBirthDate(value: string): string {
 }
 
 export function normalizeBloodType(value: string): string {
-  const clean = value.replace('+', '').replace('-', '').trim();
-  return VALID_BLOOD_TYPES.has(clean) ? clean : '';
+  return value ? value.trim() : '';
 }
 
 export function pruneEmptyValues(values: MedicalAppointmentValues): MedicalAppointmentValues {

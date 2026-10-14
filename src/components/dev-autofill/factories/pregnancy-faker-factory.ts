@@ -58,7 +58,21 @@ export class PregnancyFakerFactory {
       'Guru / Dosen'
     ];
     const educationOptions = ['SMA/SMK', 'D1-D3', 'S1', 'S2/S3'];
-    const bloodTypes = ['A', 'B', 'AB', 'O'];
+    const bloodTypes = [
+      'A+',
+      'A-',
+      'B+',
+      'B-',
+      'AB+',
+      'AB-',
+      'O+',
+      'O-',
+      'A',
+      'B',
+      'AB',
+      'O',
+      'Belum Tahu'
+    ];
 
     const motherJob = jobOptions[Math.floor(Math.random() * jobOptions.length)];
     const partnerJob = partnerJobOptions[Math.floor(Math.random() * partnerJobOptions.length)];

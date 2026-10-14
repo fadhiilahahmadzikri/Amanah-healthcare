@@ -11,7 +11,7 @@ export const patientRegistrationRequestDtoSchema = z.object({
   tempat_lahir: z.string().trim().min(2),
   birth_date: z.string().trim().min(1),
   gender: z.enum(['Laki-laki', 'Perempuan']),
-  blood_type: z.enum(['A', 'B', 'AB', 'O', 'Belum Tahu']),
+  blood_type: z.string().trim().min(1),
   provinsi: z.string().trim().min(1),
   provinsi_id: z.string().trim().min(1),
   kabupaten: z.string().trim().min(1),

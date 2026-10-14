@@ -20,6 +20,7 @@ export interface RegionReferenceItem {
 export interface PatientFormReferenceData {
   bloodTypes: ReferenceOptionItem[];
   genders: ReferenceOptionItem[];
+  statuses: ReferenceOptionItem[];
   relationships: ReferenceOptionItem[];
   provinces?: RegionReferenceItem[];
   regions?: RegistrationProvince[];

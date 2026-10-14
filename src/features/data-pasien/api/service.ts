@@ -1,204 +1,324 @@
+import { clientFetch } from '@/lib/client-fetch';
 import type {
+  Patient,
+  PatientDetailResponse,
   PatientFilters,
+  PatientMutationPayload,
   PatientsResponse,
   PatientSummary,
-  PatientMutationPayload,
-  PatientDetailResponse,
-  Patient
+  PatientTimelineItem,
 } from './types';
 
-const patientRecords: Patient[] = [];
+export function mapBackendPatient(r: any): Patient {
+  const genderMap: Record<string, 'Laki-laki' | 'Perempuan'> = {
+    male: 'Laki-laki',
+    female: 'Perempuan',
+  };
+  const statusMap: Record<string, 'Aktif' | 'Nonaktif'> = {
+    active: 'Aktif',
+    inactive: 'Nonaktif',
+    archived: 'Nonaktif',
+  };
 
-const emptyPatientSummary: PatientSummary = {
-  total: 0,
-  active: 0,
-  inactive: 0
-};
+  const rawAffiliates = Array.isArray(r.affiliates) ? r.affiliates : [];
+  const mappedAffiliates = rawAffiliates.map(mapBackendPatient);
 
-export async function getPatients(filters: PatientFilters): Promise<PatientsResponse> {
+  return {
+    id: r.id,
+    patient_id: r.medicalRecordNumber || r.medical_record_number || r.patient_id,
+    name: r.fullName || r.full_name || r.name,
+    masked_nik:
+      r.maskedNik ||
+      r.masked_nik ||
+      (r.nik ? `${r.nik.slice(0, 4)}********${r.nik.slice(-4)}` : '****************'),
+    nik: r.nik || r.nationalIdHash || r.nationalIdEncrypted,
+    nik_ktp: r.nik || r.nationalIdHash || r.nationalIdEncrypted,
+    nama_ibu_kandung: r.motherName || r.namaIbuKandung || r.nama_ibu_kandung,
+    tempat_lahir: r.birthPlace || r.birth_place || r.tempat_lahir,
+    tanggal_lahir: r.birthDate || r.birth_date || r.tanggal_lahir,
+    pekerjaan: r.occupation || r.pekerjaan,
+    domisili: r.fullAddress || r.address || r.domisili,
+    nomor_telepon_wa: r.phoneNumber || r.phone || r.nomor_telepon_wa,
+    email_pasien: r.email || r.email_pasien,
+    phone: r.phoneNumber || r.phone || '-',
+    email: r.email || r.email_pasien || '-',
+    gender:
+      genderMap[r.gender] ||
+      (r.gender === 'female' || r.gender === 'Perempuan' ? 'Perempuan' : 'Laki-laki'),
+    age: Number(r.age ?? 0),
+    birth_date: r.birthDate || r.birth_date,
+    blood_type: (r.bloodType || r.blood_type || 'unknown') as any,
+    address: r.fullAddress || r.address || '-',
+    provinsi: r.provinsi || r.addressDetail?.provinceName || null,
+    provinsi_id: r.provinsiId || r.addressDetail?.provinceCode || null,
+    kabupaten: r.kabupaten || r.addressDetail?.regencyName || null,
+    kabupaten_id: r.kabupatenId || r.addressDetail?.regencyCode || null,
+    kecamatan: r.kecamatan || r.addressDetail?.districtName || null,
+    kecamatan_id: r.kecamatanId || r.addressDetail?.districtCode || null,
+    kelurahan: r.kelurahan || r.addressDetail?.villageName || null,
+    kelurahan_id: r.kelurahanId || r.addressDetail?.villageCode || null,
+    alamat_detail: r.alamatDetail || r.addressDetail?.line1 || null,
+    emergency_contact: r.emergencyContactPhone
+      ? `${r.emergencyContactName || ''} (${r.emergencyContactPhone})`
+      : r.emergency_contact || '-',
+    allergies: Array.isArray(r.allergies) ? r.allergies : [],
+    medical_history:
+      r.medicalHistorySummary || r.medicalHistory || r.medical_history || '',
+    account_status: statusMap[r.status] || (r.status === 'inactive' ? 'Nonaktif' : 'Aktif'),
+    tanggal_registrasi_akun: r.registeredAt || r.registered_at || r.createdAt || r.created_at,
+    login_pertama_kali: r.firstLoginAt || r.first_login_at || r.lastLoginAt || r.last_login_at,
+    kunjungan_terakhir: r.lastVisitDate || r.last_visit_date,
+
+    // Affiliation Paradigm Fields
+    is_master: r.isMaster ?? r.is_master ?? true,
+    has_own_account: r.hasOwnAccount ?? r.has_own_account ?? false,
+    affiliate_count: Number(r.affiliateCount ?? r.affiliate_count ?? mappedAffiliates.length),
+    relationship_type: r.relationshipType ?? r.relationship_type ?? null,
+    relation_label: r.relationLabel ?? r.relation_label ?? null,
+    master_patient_id: r.masterPatientId ?? r.master_patient_id ?? null,
+    master_patient_name: r.masterPatientName ?? r.master_patient_name ?? null,
+    affiliates: mappedAffiliates.length > 0 ? mappedAffiliates : undefined,
+
+    total_appointments: Number(r.totalAppointments ?? r.total_appointments ?? 0),
+    completed_visits: Number(r.completedVisits ?? r.completed_visits ?? 0),
+    missed_appointments: Number(r.missedAppointments ?? r.missed_appointments ?? 0),
+    cancelled_appointments: Number(r.cancelledAppointments ?? r.cancelled_appointments ?? 0),
+    last_visit_date: r.lastVisitDate ?? r.last_visit_date ?? null,
+    created_at: r.registeredAt || r.createdAt || r.created_at,
+    updated_at: r.updatedAt || r.updated_at,
+  };
+}
+
+export async function getPatients(
+  filters: PatientFilters,
+  signal?: AbortSignal,
+): Promise<PatientsResponse> {
   const limit = filters.limit ?? 10;
   const page = filters.page ?? 1;
-  const filteredPatients = sortPatients(filterPatients(patientRecords, filters), filters.sort);
-  const offset = (page - 1) * limit;
-  const patients = filteredPatients.slice(offset, offset + limit);
+
+  const queryParams: Record<string, unknown> = {
+    page,
+    limit,
+  };
+
+  if (filters.search && filters.search.trim()) {
+    queryParams.search = filters.search.trim();
+  }
+
+  if (filters.gender) {
+    const rawGender = Array.isArray(filters.gender)
+      ? filters.gender[0]
+      : filters.gender;
+    if (rawGender === 'Laki-laki' || rawGender === 'male') {
+      queryParams.gender = 'male';
+    } else if (rawGender === 'Perempuan' || rawGender === 'female') {
+      queryParams.gender = 'female';
+    }
+  }
+
+  if (filters.status) {
+    const rawStatus = Array.isArray(filters.status)
+      ? filters.status[0]
+      : filters.status;
+    if (rawStatus === 'Aktif' || rawStatus === 'active') {
+      queryParams.status = 'active';
+    } else if (rawStatus === 'Nonaktif' || rawStatus === 'inactive') {
+      queryParams.status = 'inactive';
+    }
+  }
+
+  const response = await clientFetch<{
+    data: any[];
+    meta: { total: number; page: number; limit: number; totalPages: number };
+    summary: {
+      totalPatients: number;
+      totalAppointments: number;
+      totalCompletedVisits: number;
+      totalMissedOrCancelled: number;
+    };
+  }>('/api/v1/patients/directory', {
+    query: queryParams,
+    signal,
+  });
+
+  const rawList = Array.isArray(response?.data) ? response.data : [];
+  const patients = rawList.map(mapBackendPatient);
+
+  const summary: PatientSummary = {
+    total: response?.summary?.totalPatients ?? response?.meta?.total ?? patients.length,
+    active: response?.summary?.totalPatients ?? patients.length,
+    inactive: 0,
+    total_appointments: response?.summary?.totalAppointments ?? 0,
+    completed_visits: response?.summary?.totalCompletedVisits ?? 0,
+    missed_or_cancelled: response?.summary?.totalMissedOrCancelled ?? 0,
+  };
 
   return {
     success: true,
     time: new Date().toISOString(),
-    total_patients: filteredPatients.length,
-    offset,
+    total_patients: response?.meta?.total ?? patients.length,
+    offset: (page - 1) * limit,
     limit,
     patients,
-    summary: getPatientSummaryFromRecords()
+    summary,
   };
 }
 
 export async function getPatientSummary(): Promise<PatientSummary> {
-  return getPatientSummaryFromRecords();
+  const res = await getPatients({ limit: 1 });
+  return res.summary;
 }
 
-export async function getPatientById(id: number): Promise<PatientDetailResponse> {
-  const patient = patientRecords.find((record) => record.id === id) ?? null;
+export async function getPatientById(id: string): Promise<PatientDetailResponse> {
+  try {
+    const record = await clientFetch<any>(`/api/v1/patients/${id}`);
+    if (!record) {
+      return {
+        success: false,
+        patient: null,
+        message: `Pasien dengan ID ${id} tidak ditemukan`,
+      };
+    }
+    return {
+      success: true,
+      patient: mapBackendPatient(record),
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      patient: null,
+      message: error?.message || `Gagal mengambil data pasien`,
+    };
+  }
+}
+
+export async function getPatientHistory(
+  patientId: string,
+): Promise<{ data: PatientTimelineItem[]; total: number }> {
+  const response = await clientFetch<{
+    data: any[];
+    total: number;
+    page: number;
+    limit: number;
+  }>(`/api/v1/appointments/history/patient/${patientId}`);
+
+  const rawList = Array.isArray(response?.data) ? response.data : [];
+  const data: PatientTimelineItem[] = rawList.map((item) => ({
+    id: item.id,
+    booking_code: item.bookingCode,
+    status: item.status,
+    scheduled_date: item.scheduledDate,
+    scheduled_start_time: item.scheduledStartTime,
+    scheduled_end_time: item.scheduledEndTime,
+    poliklinik_name: item.poliklinikName,
+    doctor_name: item.doctorName,
+    complaint: item.complaint,
+    completed_at: item.completedAt,
+    cancelled_at: item.cancelledAt,
+    cancel_reason: item.cancelReason,
+    has_associated_form: Boolean(item.hasAssociatedForm),
+    associated_form_type: item.associatedFormType ?? null,
+  }));
 
   return {
-    success: Boolean(patient),
-    patient,
-    ...(patient ? {} : { message: `Pasien dengan ID ${id} tidak ditemukan` })
+    data,
+    total: response?.total ?? data.length,
   };
 }
 
 export async function createPatient(data: PatientMutationPayload) {
-  const newPatient: Patient = {
-    ...data,
-    id: getNextPatientId(),
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+  const payload: Record<string, any> = {
+    fullName: data.name,
+    nik: data.nik || data.nik_ktp,
+    gender: data.gender === 'Perempuan' ? 'female' : 'male',
+    birthDate: data.birth_date || data.tanggal_lahir,
+    birthPlace: data.tempat_lahir || '',
+    bloodType: (data.blood_type || 'unknown').toLowerCase(),
+    namaIbuKandung: data.nama_ibu_kandung || '',
+    pekerjaan: data.pekerjaan || '',
+    phoneNumber: data.phone || data.nomor_telepon_wa || '',
+    address: data.address || data.domisili || '',
+    medicalHistory: data.medical_history || '',
   };
 
-  patientRecords.unshift(newPatient);
+  const record = await clientFetch<any>('/api/v1/patients', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 
   return {
     success: true,
     message: 'Data pasien berhasil ditambahkan',
-    patient: newPatient
+    patient: mapBackendPatient(record),
   };
 }
 
-export async function updatePatient(id: number, data: Partial<PatientMutationPayload>) {
-  const index = patientRecords.findIndex((record) => record.id === id);
+export async function updatePatient(
+  id: string,
+  data: Partial<PatientMutationPayload>,
+) {
+  const payload: Record<string, any> = {};
 
-  if (index === -1) {
-    return {
-      success: false,
-      message: `Pasien dengan ID ${id} tidak ditemukan`
-    };
+  if (data.name !== undefined) payload.fullName = data.name;
+  if (data.phone !== undefined) payload.phoneNumber = data.phone;
+  if (data.address !== undefined) payload.address = data.address;
+  if (data.pekerjaan !== undefined) payload.pekerjaan = data.pekerjaan;
+  if (data.nama_ibu_kandung !== undefined) payload.namaIbuKandung = data.nama_ibu_kandung;
+  if (data.tempat_lahir !== undefined) payload.birthPlace = data.tempat_lahir;
+  if (data.birth_date !== undefined) payload.birthDate = data.birth_date;
+  if (data.gender !== undefined) payload.gender = data.gender;
+  if (data.blood_type !== undefined) payload.bloodType = data.blood_type;
+  if (data.provinsi !== undefined) payload.provinsi = data.provinsi;
+  if (data.provinsi_id !== undefined) payload.provinsiId = data.provinsi_id;
+  if (data.kabupaten !== undefined) payload.kabupaten = data.kabupaten;
+  if (data.kabupaten_id !== undefined) payload.kabupatenId = data.kabupaten_id;
+  if (data.kecamatan !== undefined) payload.kecamatan = data.kecamatan;
+  if (data.kecamatan_id !== undefined) payload.kecamatanId = data.kecamatan_id;
+  if (data.kelurahan !== undefined) payload.kelurahan = data.kelurahan;
+  if (data.kelurahan_id !== undefined) payload.kelurahanId = data.kelurahan_id;
+  if (data.alamat_detail !== undefined) payload.alamatDetail = data.alamat_detail;
+  if (data.account_status !== undefined) {
+    payload.status =
+      data.account_status === 'Nonaktif' || data.account_status === 'NONAKTIF'
+        ? 'inactive'
+        : 'active';
   }
 
-  const updatedPatient = {
-    ...patientRecords[index],
-    ...data,
-    updated_at: new Date().toISOString()
-  };
-
-  patientRecords[index] = updatedPatient;
+  const updatedRecord = await clientFetch<any>(`/api/v1/patients/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
 
   return {
     success: true,
     message: 'Data pasien berhasil diperbarui',
-    patient: updatedPatient
+    patient: mapBackendPatient(updatedRecord),
   };
 }
 
-export async function deletePatient(id: number) {
-  const index = patientRecords.findIndex((record) => record.id === id);
-
-  if (index === -1) {
-    return {
-      success: false,
-      message: `Pasien dengan ID ${id} tidak ditemukan`
-    };
-  }
-
-  patientRecords.splice(index, 1);
+export async function deletePatient(id: string) {
+  await clientFetch<void>(`/api/v1/patients/${id}`, {
+    method: 'DELETE',
+  });
 
   return {
     success: true,
-    message: 'Data pasien berhasil dihapus'
+    message: 'Data pasien berhasil dinonaktifkan',
   };
 }
 
-function getPatientSummaryFromRecords(): PatientSummary {
-  if (patientRecords.length === 0) {
-    return emptyPatientSummary;
-  }
-
-  const active = patientRecords.filter((record) => isActivePatient(record.account_status)).length;
+export async function bulkDeletePatients(ids: string[]) {
+  const res = await clientFetch<{ count: number }>(
+    '/api/v1/patients/bulk-delete',
+    {
+      method: 'POST',
+      body: JSON.stringify({ ids }),
+    },
+  );
 
   return {
-    total: patientRecords.length,
-    active,
-    inactive: patientRecords.length - active
+    success: true,
+    count: res.count,
+    message: `${res.count} pasien berhasil dinonaktifkan`,
   };
-}
-
-function filterPatients(records: Patient[], filters: PatientFilters): Patient[] {
-  return records.filter((record) => {
-    if (filters.gender && !includesFilter(filters.gender, record.gender)) return false;
-    if (filters.status && !includesFilter(filters.status, record.account_status)) return false;
-    if (filters.search && !matchesPatientSearch(record, filters.search)) return false;
-
-    return true;
-  });
-}
-
-function sortPatients(records: Patient[], sort?: string): Patient[] {
-  if (!sort) return [...records];
-
-  try {
-    const sortItems = JSON.parse(sort) as { id: string; desc: boolean }[];
-    const firstSort = sortItems[0];
-
-    if (!firstSort) return [...records];
-
-    return [...records].sort((left, right) => {
-      const leftValue = getPatientSortValue(left, firstSort.id);
-      const rightValue = getPatientSortValue(right, firstSort.id);
-
-      return firstSort.desc
-        ? rightValue.localeCompare(leftValue)
-        : leftValue.localeCompare(rightValue);
-    });
-  } catch {
-    return [...records];
-  }
-}
-
-function getPatientSortValue(patient: Patient, id: string): string {
-  if (id === 'patient' || id === 'name') return patient.name;
-  if (id === 'created_at' || id === 'dibuat_pada') return patient.created_at;
-
-  return String((patient as unknown as Record<string, unknown>)[id] ?? '');
-}
-
-function matchesPatientSearch(patient: Patient, search: string): boolean {
-  const query = search.trim().toLowerCase();
-
-  if (!query) return true;
-
-  const searchableFields = [
-    patient.name,
-    patient.patient_id,
-    patient.nik,
-    patient.nik_ktp,
-    patient.phone,
-    patient.nomor_telepon_wa,
-    patient.email,
-    patient.email_pasien,
-    patient.pekerjaan,
-    patient.domisili,
-    patient.address,
-    patient.nama_ibu_kandung,
-    patient.tempat_lahir,
-    patient.gender,
-    patient.blood_type,
-    patient.medical_history,
-    patient.emergency_contact
-  ];
-
-  return searchableFields.filter(Boolean).join(' ').toLowerCase().includes(query);
-}
-
-function includesFilter(filter: string | string[], value: string): boolean {
-  const filters = Array.isArray(filter) ? filter : [filter];
-  return filters.some((item) => item.toLowerCase() === value.toLowerCase());
-}
-
-function isActivePatient(status: string): boolean {
-  return status.toUpperCase() === 'AKTIF' || status.toUpperCase() === 'ACTIVE';
-}
-
-function getNextPatientId(): number {
-  if (patientRecords.length === 0) return 1;
-
-  return Math.max(...patientRecords.map((record) => record.id)) + 1;
 }

@@ -1,10 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import {
-  patientReferenceService,
-  type RegionReferenceItem
-} from '../api/patient-reference-service';
+import { patientReferenceService } from '../api/patient-reference-service';
 import type { PatientRegionValues } from '../components/registration/molecules/patient-region-dropdown';
 
 export interface RegionItem {

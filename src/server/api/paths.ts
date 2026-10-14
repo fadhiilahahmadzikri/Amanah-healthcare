@@ -30,6 +30,11 @@ export const paths = {
     list: () => `${getBaseApiUrl()}/api/v1/users`
   },
   patients: {
+    directory: () => `${getBaseApiUrl()}/api/v1/patients/directory`,
+    detail: (id: string) => `${getBaseApiUrl()}/api/v1/patients/${id}`,
+    history: (id: string) =>
+      `${getBaseApiUrl()}/api/v1/appointments/history/patient/${id}`,
+    bulkDelete: () => `${getBaseApiUrl()}/api/v1/patients/bulk-delete`,
     registration: () => `${getBaseApiUrl()}/api/v1/patients/registration`,
     me: () => `${getBaseApiUrl()}/api/v1/patients/me`
   },

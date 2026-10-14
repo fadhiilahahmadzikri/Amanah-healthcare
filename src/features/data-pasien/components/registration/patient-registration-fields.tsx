@@ -5,10 +5,7 @@ import type { PatientRegistrationFormValues } from '../../schemas/patient-regist
 import { PatientLineInput } from './atoms/patient-line-input';
 import { PatientBirthdatePicker } from './molecules/patient-birthdate-picker';
 import { PatientGenderSelector } from './molecules/patient-gender-selector';
-import {
-  PatientBloodTypeSelector,
-  type BloodTypeValue
-} from './molecules/patient-blood-type-selector';
+import { PatientBloodTypeSelector } from './molecules/patient-blood-type-selector';
 import {
   PatientRegionDropdown,
   type PatientRegionValues
@@ -192,6 +189,10 @@ export function PatientRegistrationStepFields({ controller }: PatientRegistratio
             : undefined;
           return (
             <PatientBloodTypeSelector
+              id='registration_blood_type'
+              label='Golongan Darah'
+              required
+              placeholder='Pilih golongan darah...'
               value={field.state.value}
               onChange={(val) => {
                 field.handleChange(val as PatientRegistrationFormValues['blood_type']);

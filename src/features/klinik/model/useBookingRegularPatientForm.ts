@@ -120,9 +120,7 @@ export function useBookingRegularPatientForm({
       case 6:
         return Boolean(gender);
       case 7:
-        if (knowsBloodType === null) return false;
-        if (knowsBloodType === false) return bloodType === 'Belum Tahu';
-        return Boolean(bloodType && bloodType !== 'Belum Tahu');
+        return Boolean(bloodType && bloodType.trim().length > 0);
       case 8:
         return Boolean(region.alamatDetail.trim());
       case 9:
@@ -141,7 +139,6 @@ export function useBookingRegularPatientForm({
     placeOfBirth,
     dateOfBirth,
     gender,
-    knowsBloodType,
     bloodType,
     region.alamatDetail,
     occupationCode,
@@ -149,12 +146,6 @@ export function useBookingRegularPatientForm({
   ]);
 
   const handleBack = () => {
-    if (currentStep === 7 && knowsBloodType === true) {
-      setKnowsBloodType(null);
-      setBloodType('');
-      return;
-    }
-
     if (isEditingFromReview) {
       setIsEditingFromReview(false);
       setCurrentStep(10);
@@ -342,15 +333,9 @@ export function useBookingRegularPatientForm({
           description: 'Pilih jenis kelamin sesuai identitas resmi'
         };
       case 7:
-        if (knowsBloodType === true) {
-          return {
-            title: 'Pilih golongan darah',
-            description: 'Pilih tipe golongan darah sesuai hasil pemeriksaan laboratorium'
-          };
-        }
         return {
           title: 'Golongan darah pasien',
-          description: 'Tentukan apakah sudah mengetahui golongan darah atau belum'
+          description: 'Pilih jenis golongan darah pasien atau pilih Belum Tahu jika belum diperiksa'
         };
       case 8:
         return {

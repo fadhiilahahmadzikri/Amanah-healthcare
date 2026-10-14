@@ -59,7 +59,7 @@ export function usePatientExport(): UsePatientExportResult {
         `"${(patient.allergies || []).join(', ')}"`,
         `"${(patient.medical_history || '').replace(/"/g, '""')}"`,
         `"${patient.account_status}"`,
-        `"${new Date(patient.created_at).toLocaleDateString('id-ID')}"`
+        `"${patient.created_at ? new Date(patient.created_at).toLocaleDateString('id-ID') : '-'}"`
       ]);
 
       downloadCsv(

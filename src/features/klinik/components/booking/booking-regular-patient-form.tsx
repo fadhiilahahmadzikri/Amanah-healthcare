@@ -10,6 +10,7 @@ import type {
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
 import { PatientBirthdatePicker } from '@/features/data-pasien/components/registration/molecules/patient-birthdate-picker';
 import { PatientGenderSelector } from '@/features/data-pasien/components/registration/molecules/patient-gender-selector';
+import { PatientBloodTypeSelector } from '@/features/data-pasien/components/registration/molecules/patient-blood-type-selector';
 import { PatientRegionDropdown } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import { PatientSearchableSelect } from '@/features/data-pasien/components/registration/molecules/patient-searchable-select';
 import { useBookingRegularPatientForm } from '../../model/useBookingRegularPatientForm';
@@ -52,9 +53,6 @@ export function BookingRegularPatientForm({
     setGender,
     bloodType,
     setBloodType,
-    knowsBloodType,
-    handleSelectTahu,
-    handleSelectBelumTahu,
     region,
     setRegion,
     relationship,
@@ -301,67 +299,16 @@ export function BookingRegularPatientForm({
         )}
 
         {currentStep === 7 && (
-          <div className='space-y-2.5'>
-            {knowsBloodType !== true && (
-              <div className='flex items-center gap-2 w-full'>
-                <button
-                  type='button'
-                  onClick={handleSelectTahu}
-                  className='flex-1 py-3 px-3.5 rounded-2xl border text-center transition-all cursor-pointer select-none flex items-center justify-center gap-2 border-border/80 bg-card text-foreground hover:border-primary/50 hover:bg-muted/15'
-                >
-                  <Icons.check className='size-4 text-primary shrink-0' />
-                  <span className='text-xs font-semibold whitespace-nowrap leading-none'>
-                    Tahu golongan darah
-                  </span>
-                </button>
-
-                <button
-                  type='button'
-                  onClick={handleSelectBelumTahu}
-                  className='flex-1 py-3 px-3.5 rounded-2xl border text-center transition-all cursor-pointer select-none flex items-center justify-center gap-2 border-border/80 bg-card text-foreground hover:border-primary/50 hover:bg-muted/15'
-                >
-                  <Icons.help className='size-4 text-muted-foreground shrink-0' />
-                  <span className='text-xs font-semibold whitespace-nowrap leading-none'>
-                    Belum tahu
-                  </span>
-                </button>
-              </div>
-            )}
-
-            {knowsBloodType === true && (
-              <div className='space-y-3 pt-0.5'>
-                <div className='grid grid-cols-4 gap-2'>
-                  {(['A', 'B', 'AB', 'O'] as const).map((type) => {
-                    const isSelected = bloodType === type;
-                    return (
-                      <button
-                        key={type}
-                        type='button'
-                        onClick={() => setBloodType(type)}
-                        className={cn(
-                          'py-3 px-3 rounded-xl border text-center text-sm font-bold transition-all cursor-pointer select-none leading-none',
-                          isSelected
-                            ? 'border-primary bg-primary text-primary-foreground shadow-xs'
-                            : 'border-border/80 bg-card text-foreground hover:border-primary/50 hover:bg-muted/20'
-                        )}
-                      >
-                        {type}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className='flex justify-center pt-0.5'>
-                  <button
-                    type='button'
-                    onClick={handleSelectBelumTahu}
-                    className='text-[11px] text-muted-foreground hover:text-foreground transition underline underline-offset-2 cursor-pointer'
-                  >
-                    Ternyata belum tahu golongan darah?
-                  </button>
-                </div>
-              </div>
-            )}
+          <div className='pt-2'>
+            <PatientBloodTypeSelector
+              id='booking_blood_type'
+              label='Golongan Darah'
+              required
+              placeholder='Pilih golongan darah...'
+              value={bloodType}
+              onChange={(val) => setBloodType(val as any)}
+              options={references.bloodTypes}
+            />
           </div>
         )}
 

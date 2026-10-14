@@ -10,7 +10,9 @@ import {
   type TableState,
   type Updater,
   type VisibilityState,
+  type ExpandedState,
   getCoreRowModel,
+  getExpandedRowModel,
   getFacetedMinMaxValues,
   getFacetedRowModel,
   getFacetedUniqueValues,
@@ -105,6 +107,9 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
   );
   const [columnPinning, setColumnPinning] = React.useState<ColumnPinningState>(
     initialState?.columnPinning ?? {}
+  );
+  const [expanded, setExpanded] = React.useState<ExpandedState>(
+    initialState?.expanded ?? {}
   );
 
   const [page, setPage] = useQueryState(
@@ -257,7 +262,8 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
       columnVisibility,
       columnPinning,
       rowSelection,
-      columnFilters
+      columnFilters,
+      expanded
     },
     defaultColumn: {
       ...tableProps.defaultColumn,
@@ -270,7 +276,9 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     onColumnFiltersChange,
     onColumnVisibilityChange: setColumnVisibility,
     onColumnPinningChange: setColumnPinning,
+    onExpandedChange: tableProps.onExpandedChange ?? setExpanded,
     getCoreRowModel: getCoreRowModel(),
+    getExpandedRowModel: tableProps.getExpandedRowModel ?? getExpandedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),

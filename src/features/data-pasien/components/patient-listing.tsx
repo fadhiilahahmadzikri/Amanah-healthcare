@@ -2,6 +2,7 @@ import { HydrationBoundary, dehydrate } from '@tanstack/react-query';
 import { getQueryClient } from '@/lib/query-client';
 import { searchParamsCache } from '@/lib/searchparams';
 import { patientsQueryOptions } from '../api/queries';
+import { getPatientsOnServer } from '../api/server';
 import { PatientTable, PatientTableSkeleton } from './patient-tables';
 import { Suspense } from 'react';
 
@@ -23,7 +24,14 @@ export default async function PatientListingPage() {
   };
 
   const queryClient = getQueryClient();
-  void queryClient.prefetchQuery(patientsQueryOptions(filters));
+  await queryClient
+    .prefetchQuery({
+      ...patientsQueryOptions(filters),
+      queryFn: () => getPatientsOnServer(filters)
+    })
+    .catch(() => {
+      // Graceful fallback to client fetching
+    });
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
