@@ -111,6 +111,11 @@ export function resolveNotificationRoute(
         return `/dashboard/jadwal-dokter${qs ? `?${qs}` : ''}`;
       }
 
+      case 'view_chat': {
+        const convId = semanticParams.conversationId;
+        return convId ? `/dashboard/chat?conversationId=${convId}` : '/dashboard/chat';
+      }
+
       default:
         break;
     }

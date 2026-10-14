@@ -1,92 +1,106 @@
 import { create } from 'zustand';
-// import { persist } from 'zustand/middleware';
-import type { Attachment, Conversation, Message } from './types';
+import type { ChatMessage, Conversation, ConversationStatus } from './types';
 
-type ReplyCursorState = Record<string, number>;
-
-type ChatState = {
+interface ChatState {
   conversations: Conversation[];
   selectedConversationId: string;
-  draft: string;
-  replyCursor: ReplyCursorState;
+  activeMessages: Record<string, ChatMessage[]>;
+  adminOnline: boolean;
+  isLoading: boolean;
+  error: string | null;
 
+  setConversations: (conversations: Conversation[]) => void;
   selectConversation: (id: string) => void;
-  setDraft: (text: string) => void;
-  sendMessage: (text: string, attachments?: Attachment[]) => void;
-  addIncomingMessage: (conversationId: string, message: Message) => void;
-  advanceReplyCursor: (conversationId: string) => void;
+  setMessages: (conversationId: string, messages: ChatMessage[]) => void;
+  appendMessage: (conversationId: string, message: ChatMessage) => void;
+  setAdminOnline: (online: boolean) => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: string | null) => void;
+  updateConversationStatus: (id: string, status: ConversationStatus) => void;
   getActiveConversation: () => Conversation | undefined;
-};
+  getActiveMessages: () => ChatMessage[];
+}
 
-export const useChatStore = create<ChatState>()(
-  // To enable persistence across refreshes, uncomment the persist wrapper below:
-  // persist(
-  (set, get) => ({
-    conversations: [],
-    selectedConversationId: '',
-    draft: '',
-    replyCursor: {},
+export const useChatStore = create<ChatState>()((set, get) => ({
+  conversations: [],
+  selectedConversationId: '',
+  activeMessages: {},
+  adminOnline: false,
+  isLoading: false,
+  error: null,
 
-    selectConversation: (id) =>
-      set((state) => ({
-        selectedConversationId: id,
-        conversations: state.conversations.map((c) => (c.id === id ? { ...c, unread: 0 } : c))
-      })),
+  setConversations: (conversations) => {
+    const currentSelected = get().selectedConversationId;
+    const exists = conversations.some((c) => c.id === currentSelected);
+    set({
+      conversations,
+      selectedConversationId: exists
+        ? currentSelected
+        : conversations.length > 0
+          ? conversations[0].id
+          : ''
+    });
+  },
 
-    setDraft: (text) => set({ draft: text }),
+  selectConversation: (id) =>
+    set((state) => ({
+      selectedConversationId: id,
+      conversations: state.conversations.map((c) => (c.id === id ? { ...c, unreadCount: 0 } : c))
+    })),
 
-    sendMessage: (text, attachments) => {
-      const state = get();
-      const timestamp = new Date().toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit'
+  setMessages: (conversationId, messages) =>
+    set((state) => ({
+      activeMessages: {
+        ...state.activeMessages,
+        [conversationId]: messages
+      }
+    })),
+
+  appendMessage: (conversationId, message) =>
+    set((state) => {
+      const existing = state.activeMessages[conversationId] || [];
+      const alreadyHas = existing.some((m) => m.id === message.id);
+      const updatedMessages = alreadyHas ? existing : [...existing, message];
+
+      const updatedConversations = state.conversations.map((c) => {
+        if (c.id !== conversationId) return c;
+        const isActive = state.selectedConversationId === conversationId;
+        return {
+          ...c,
+          lastMessageAt: message.createdAt,
+          lastMessagePreview: message.body,
+          awaitingReply: message.senderRole === 'customer',
+          unreadCount: isActive ? 0 : (c.unreadCount || 0) + 1
+        };
       });
-      const outgoing: Message = {
-        id: 'outgoing-' + Date.now().toString(),
-        sender: 'user',
-        author: 'You',
-        text: text.trim(),
-        timestamp,
-        attachments: attachments?.length ? attachments : undefined
+
+      return {
+        activeMessages: {
+          ...state.activeMessages,
+          [conversationId]: updatedMessages
+        },
+        conversations: updatedConversations
       };
+    }),
 
-      set({
-        draft: '',
-        conversations: state.conversations.map((c) =>
-          c.id === state.selectedConversationId
-            ? { ...c, messages: [...c.messages, outgoing], unread: 0 }
-            : c
-        )
-      });
-    },
+  setAdminOnline: (adminOnline) => set({ adminOnline }),
 
-    addIncomingMessage: (conversationId, message) =>
-      set((state) => ({
-        conversations: state.conversations.map((c) => {
-          if (c.id !== conversationId) return c;
-          const isActive = state.selectedConversationId === conversationId;
-          return {
-            ...c,
-            messages: [...c.messages, message],
-            unread: isActive ? 0 : c.unread + 1
-          };
-        })
-      })),
+  setLoading: (isLoading) => set({ isLoading }),
 
-    advanceReplyCursor: (conversationId) =>
-      set((state) => ({
-        replyCursor: {
-          ...state.replyCursor,
-          [conversationId]: (state.replyCursor[conversationId] ?? 0) + 1
-        }
-      })),
+  setError: (error) => set({ error }),
 
-    getActiveConversation: () => {
-      const state = get();
-      return state.conversations.find((c) => c.id === state.selectedConversationId);
-    }
-  })
-  //   ,
-  //   { name: 'chat' }
-  // )
-);
+  updateConversationStatus: (id, status) =>
+    set((state) => ({
+      conversations: state.conversations.map((c) => (c.id === id ? { ...c, status } : c))
+    })),
+
+  getActiveConversation: () => {
+    const state = get();
+    return state.conversations.find((c) => c.id === state.selectedConversationId);
+  },
+
+  getActiveMessages: () => {
+    const state = get();
+    return state.activeMessages[state.selectedConversationId] || [];
+  }
+}));

@@ -324,13 +324,41 @@ export function useNotificationSocket(callbacks?: {
       }
     };
 
+    const handleChatMessage = (payload: unknown) => {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clinic:chat_message', { detail: payload }));
+      }
+    };
+
+    const handleChatTyping = (payload: unknown) => {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clinic:chat_typing', { detail: payload }));
+      }
+    };
+
+    const handleOutgoingSocketEvent = (e: Event) => {
+      const customEvent = e as CustomEvent<{ event: string; data: unknown }>;
+      if (socket && customEvent.detail?.event) {
+        socket.emit(customEvent.detail.event, customEvent.detail.data);
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('clinic:emit_socket', handleOutgoingSocketEvent);
+    }
+
     socket.on('appointment:called', handleAppointmentCalled);
     socket.on('appointment.patient_called', handleAppointmentCalled);
     socket.on('appointment:status_changed', handleAppointmentStatusChanged);
     socket.on('appointment.status_changed', handleAppointmentStatusChanged);
     socket.on('queue:estimates:updated', handleQueueEstimatesUpdated);
+    socket.on('chat:message', handleChatMessage);
+    socket.on('chat:typing', handleChatTyping);
 
     return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('clinic:emit_socket', handleOutgoingSocketEvent);
+      }
       socket.disconnect();
       socketRef.current = null;
     };
@@ -364,4 +392,10 @@ export function useNotificationSocket(callbacks?: {
     connectionStatus,
     reconcile
   };
+}
+
+export function emitAdminSocketEvent(event: string, data: unknown) {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('clinic:emit_socket', { detail: { event, data } }));
+  }
 }

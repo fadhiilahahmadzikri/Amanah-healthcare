@@ -9,7 +9,19 @@ import { PatientCrmSidebar } from './patient-crm-sidebar';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Icons } from '@/components/icons';
 
-export function UnifiedChatWorkspace() {
+interface UnifiedChatWorkspaceProps {
+  isClientTyping?: boolean;
+  onSendMessage?: (text: string) => void;
+  onTyping?: (isTyping: boolean) => void;
+  onCloseConversation?: (conversationId: string) => void;
+}
+
+export function UnifiedChatWorkspace({
+  isClientTyping,
+  onSendMessage,
+  onTyping,
+  onCloseConversation
+}: UnifiedChatWorkspaceProps) {
   const [activeTool, setActiveTool] = useState<ChatRailTool>('inbox');
   const [showMobileProfile, setShowMobileProfile] = useState(false);
 
@@ -17,11 +29,12 @@ export function UnifiedChatWorkspace() {
     conversations,
     selectedConversationId,
     selectConversation,
-    sendMessage,
-    getActiveConversation
+    getActiveConversation,
+    getActiveMessages
   } = useChatStore();
 
   const activeConversation = getActiveConversation();
+  const activeMessages = getActiveMessages();
 
   if (conversations.length === 0) {
     return (
@@ -51,26 +64,36 @@ export function UnifiedChatWorkspace() {
       {/* Column 3: Main Chat Communication Area */}
       <ChatMainArea
         conversation={activeConversation}
-        onSendMessage={(text) => sendMessage(text)}
+        messages={activeMessages}
+        isClientTyping={isClientTyping}
+        onSendMessage={(text) => onSendMessage?.(text)}
+        onTyping={onTyping}
         onToggleProfile={() => setShowMobileProfile(!showMobileProfile)}
       />
 
-      {/* Column 4: Patient CRM Profile & Clinical Stepper Timeline */}
+      {/* Column 4: Patient Info Sidebar */}
       <div className='hidden lg:block'>
-        <PatientCrmSidebar conversation={activeConversation} />
+        <PatientCrmSidebar
+          conversation={activeConversation}
+          onCloseConversation={onCloseConversation}
+        />
       </div>
 
       {/* Mobile / Tablet Profile Drawer */}
       {showMobileProfile && (
         <div className='fixed inset-0 z-50 bg-black/40 flex justify-end lg:hidden'>
-          <div className='w-[310px] h-full bg-card shadow-2xl relative animate-in slide-in-from-right'>
+          <div className='w-[280px] h-full bg-card shadow-2xl relative animate-in slide-in-from-right'>
             <button
+              type='button'
               onClick={() => setShowMobileProfile(false)}
               className='absolute top-3 right-3 z-10 size-6 rounded-md bg-muted text-foreground flex items-center justify-center'
             >
               ✕
             </button>
-            <PatientCrmSidebar conversation={activeConversation} />
+            <PatientCrmSidebar
+              conversation={activeConversation}
+              onCloseConversation={onCloseConversation}
+            />
           </div>
         </div>
       )}

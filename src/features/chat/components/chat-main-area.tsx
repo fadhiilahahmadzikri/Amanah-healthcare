@@ -1,21 +1,43 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Icons } from '@/components/icons';
-import { VoiceMemoBubble } from './voice-memo-bubble';
 import { cn } from '@/lib/utils';
-import type { Conversation } from '../utils/types';
+import type { ChatMessage, Conversation } from '../utils/types';
 
 interface ChatMainAreaProps {
   conversation?: Conversation;
+  messages?: ChatMessage[];
+  isClientTyping?: boolean;
   onSendMessage: (text: string) => void;
+  onTyping?: (isTyping: boolean) => void;
   onToggleProfile?: () => void;
 }
 
-export function ChatMainArea({ conversation, onSendMessage, onToggleProfile }: ChatMainAreaProps) {
+function formatMessageTime(isoString: string): string {
+  try {
+    const d = new Date(isoString);
+    return d.toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+  } catch {
+    return '';
+  }
+}
+
+export function ChatMainArea({
+  conversation,
+  messages = [],
+  isClientTyping = false,
+  onSendMessage,
+  onTyping,
+  onToggleProfile
+}: ChatMainAreaProps) {
   const [inputText, setInputText] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -23,12 +45,18 @@ export function ChatMainArea({ conversation, onSendMessage, onToggleProfile }: C
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [conversation?.messages]);
+  }, [messages.length, isClientTyping]);
 
   const handleSend = () => {
     if (!inputText.trim()) return;
+    onTyping?.(false);
     onSendMessage(inputText);
     setInputText('');
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputText(e.target.value);
+    onTyping?.(true);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -52,17 +80,18 @@ export function ChatMainArea({ conversation, onSendMessage, onToggleProfile }: C
   }
 
   const initials =
-    conversation.name
-      .split(' ')
+    conversation.customerName
+      ?.split(' ')
       .map((n) => n[0])
       .slice(0, 2)
       .join('')
       .toUpperCase() || '-';
-  const messageDateLabel = new Date().toLocaleDateString('id-ID', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  });
+
+  const subtitle = conversation.medicalRecordNumber
+    ? `No. RM: ${conversation.medicalRecordNumber}`
+    : conversation.guestEmail
+      ? `Tamu • ${conversation.guestEmail}`
+      : conversation.customerEmail || 'Pasien';
 
   return (
     <main className='flex-1 flex flex-col bg-background/50 min-w-0 border-r border-border/60 select-none'>
@@ -71,33 +100,34 @@ export function ChatMainArea({ conversation, onSendMessage, onToggleProfile }: C
         <div className='flex items-center gap-2.5 min-w-0'>
           <div className='relative'>
             <Avatar className='size-7 rounded-full ring-1 ring-border/40'>
-              <AvatarImage src={conversation.avatar} alt={conversation.name} />
               <AvatarFallback className='text-[9px] bg-primary/10 text-primary font-bold'>
                 {initials}
               </AvatarFallback>
             </Avatar>
-            <span className='absolute bottom-0 right-0 size-2 bg-emerald-500 rounded-full ring-1.5 ring-background' />
+            <span
+              className={cn(
+                'absolute bottom-0 right-0 size-2 rounded-full ring-1.5 ring-background',
+                conversation.status === 'open' ? 'bg-emerald-500' : 'bg-zinc-400'
+              )}
+            />
           </div>
 
           <div className='flex flex-col min-w-0'>
             <div className='text-xs font-bold text-foreground truncate'>
-              {conversation.name || '-'}
+              {conversation.customerName || 'Pasien'}
             </div>
-            <div className='text-[10px] text-muted-foreground leading-tight'>
-              {conversation.id_pasien || '-'}
+            <div className='text-[10px] text-muted-foreground leading-tight truncate'>
+              {subtitle}
             </div>
           </div>
         </div>
 
         <div className='flex items-center gap-1.5'>
-          <Button
-            variant='outline'
-            size='sm'
-            className='size-7 p-0 rounded-[6px] text-muted-foreground hover:text-foreground shadow-2xs'
-          >
-            <Icons.search className='size-3.5' />
-          </Button>
-
+          {conversation.status === 'closed' && (
+            <span className='text-[10px] font-medium bg-muted text-muted-foreground px-2 py-0.5 rounded-full'>
+              Percakapan Selesai
+            </span>
+          )}
           {onToggleProfile && (
             <Button
               variant='outline'
@@ -112,147 +142,94 @@ export function ChatMainArea({ conversation, onSendMessage, onToggleProfile }: C
       </header>
 
       {/* 2. Messages Stream */}
-      <div ref={scrollRef} className='flex-1 overflow-y-auto p-4 space-y-3.5'>
-        {conversation.messages.length > 0 ? (
-          <>
-            <div className='text-center my-1'>
-              <span className='text-[10px] text-muted-foreground bg-muted/60 px-2.5 py-0.5 rounded-full font-medium'>
-                Hari Ini • {messageDateLabel}
-              </span>
-            </div>
-
-            {conversation.messages.map((m) => {
-              if (m.type === 'status_update') {
-                return (
-                  <div key={m.id} className='flex flex-col items-center justify-center my-3'>
-                    <div className='size-5 rounded-[6px] bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-[10px] mb-1 ring-1 ring-purple-500/20 shadow-2xs'>
-                      <Icons.check className='size-3' />
-                    </div>
-                    <span className='text-[10.5px] font-semibold text-foreground'>{m.text}</span>
-                    <span className='text-[9.5px] text-muted-foreground'>{m.timestamp}</span>
-                  </div>
-                );
-              }
-
-              if (m.type === 'audio') {
-                const isOutbound = m.sender === 'user';
-                return (
-                  <div
-                    key={m.id}
-                    className={cn(
-                      'flex flex-col max-w-[80%]',
-                      isOutbound ? 'items-end self-end' : 'items-start'
-                    )}
-                  >
-                    <VoiceMemoBubble duration={m.audioDuration || '0:00'} isOutbound={isOutbound} />
-                    <span
-                      className={cn(
-                        'text-[9.5px] text-muted-foreground mt-1',
-                        isOutbound ? 'pr-1' : 'pl-1'
-                      )}
-                    >
-                      {m.timestamp}
-                    </span>
-                  </div>
-                );
-              }
-
-              const isOutbound = m.sender === 'user';
-              return (
+      <div ref={scrollRef} className='flex-1 overflow-y-auto p-4 space-y-3'>
+        {messages.length > 0 ? (
+          messages.map((m) => {
+            const isAdmin = m.senderRole === 'admin';
+            return (
+              <div
+                key={m.id}
+                className={cn(
+                  'flex flex-col max-w-[78%]',
+                  isAdmin ? 'items-end self-end ml-auto' : 'items-start mr-auto'
+                )}
+              >
                 <div
-                  key={m.id}
                   className={cn(
-                    'flex flex-col max-w-[78%]',
-                    isOutbound ? 'items-end self-end' : 'items-start'
+                    'rounded-[8px] p-2.5 text-[11px] leading-[1.45] shadow-2xs break-words',
+                    isAdmin
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-card border border-border/70 text-foreground'
                   )}
                 >
-                  <div
-                    className={cn(
-                      'rounded-[8px] p-2.5 text-[11px] leading-[1.45] shadow-2xs break-words',
-                      isOutbound
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-card border border-border/70 text-foreground'
-                    )}
-                  >
-                    {m.text}
-                  </div>
-                  <span
-                    className={cn(
-                      'text-[9.5px] text-muted-foreground mt-1 tabular-nums',
-                      isOutbound ? 'pr-1' : 'pl-1'
-                    )}
-                  >
-                    {m.timestamp}
-                  </span>
+                  {m.body}
                 </div>
-              );
-            })}
-          </>
+                <span
+                  className={cn(
+                    'text-[9px] text-muted-foreground mt-0.5 tabular-nums',
+                    isAdmin ? 'pr-1' : 'pl-1'
+                  )}
+                >
+                  {formatMessageTime(m.createdAt)}
+                </span>
+              </div>
+            );
+          })
         ) : (
           <EmptyState
             icon={Icons.chat}
             title='Belum ada pesan'
-            description='Pesan pasien akan ditampilkan di sini setelah tersedia.'
+            description='Pesan pasien akan ditampilkan di sini setelah dikirim.'
             className='h-full min-h-[320px] border-0 bg-transparent'
           />
         )}
       </div>
 
-      {/* 3. Composer & Quick Replies */}
-      <div className='p-3 pt-1 border-t border-border/60 bg-card/40'>
-        {/* Quick Replies Chips */}
-        {conversation.quickReplies && conversation.quickReplies.length > 0 && (
-          <div className='flex items-center gap-1.5 mb-2 overflow-x-auto pb-1 no-scrollbar'>
-            {conversation.quickReplies.map((chip, idx) => (
-              <button
-                key={idx}
-                onClick={() => setInputText(chip)}
-                className='h-6 px-2.5 border border-border/80 rounded-full text-[10px] font-medium text-muted-foreground bg-background hover:bg-muted hover:text-foreground transition-colors shrink-0 shadow-2xs'
-              >
-                {chip}
-              </button>
-            ))}
+      {/* Typing Indicator */}
+      {isClientTyping && (
+        <div className='px-4 py-1.5 flex items-center gap-1.5 animate-in fade-in duration-200'>
+          <div className='flex items-center gap-1.5 bg-muted/70 px-2.5 py-1 rounded-full border border-border/50 text-[11px] text-muted-foreground'>
+            <span>Pasien sedang mengetik</span>
+            <span className='flex gap-0.5 items-center ml-0.5'>
+              <span className='size-1 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]' />
+              <span className='size-1 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]' />
+              <span className='size-1 rounded-full bg-primary animate-bounce' />
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* 3. Text Composer */}
+      <div className='p-3 border-t border-border/60 bg-card/40'>
+        {conversation.status === 'open' ? (
+          <div className='h-[36px] border border-border/80 rounded-[8px] flex items-center px-2.5 bg-background focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20 shadow-2xs transition-all'>
+            <input
+              type='text'
+              aria-label='Tulis pesan balasan untuk pasien'
+              value={inputText}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              placeholder='Tulis pesan balasan untuk pasien...'
+              className='flex-1 text-[11px] text-foreground placeholder:text-muted-foreground focus:outline-none bg-transparent'
+            />
+
+            <Button
+              size='sm'
+              onClick={handleSend}
+              disabled={!inputText.trim()}
+              className='h-6 px-2.5 rounded-[5px] text-[10px] font-semibold gap-1 ml-1.5 shadow-2xs'
+            >
+              <span>Kirim</span>
+              <Icons.arrowRight className='size-3' />
+            </Button>
+          </div>
+        ) : (
+          <div className='text-center py-1'>
+            <span className='text-[11px] text-muted-foreground'>
+              Percakapan ini telah ditutup. Buka percakapan baru untuk mengirim pesan.
+            </span>
           </div>
         )}
-
-        {/* Input Bar */}
-        <div className='h-[36px] border border-border/80 rounded-[8px] flex items-center px-2.5 bg-background focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20 shadow-2xs transition-all'>
-          <button
-            type='button'
-            className='text-muted-foreground hover:text-foreground mr-1.5 transition-colors'
-            title='Kirim Berkas / Gambar'
-          >
-            <Icons.image className='size-3.5' />
-          </button>
-          <button
-            type='button'
-            className='text-muted-foreground hover:text-foreground mr-2 transition-colors'
-            title='Jadwalkan Janji Temu'
-          >
-            <Icons.calendar className='size-3.5' />
-          </button>
-
-          <div className='w-[1px] h-3.5 bg-border/80 mr-2' />
-
-          <input
-            type='text'
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder='Tulis pesan untuk pasien...'
-            className='flex-1 text-[11px] text-foreground placeholder:text-muted-foreground focus:outline-none bg-transparent'
-          />
-
-          <Button
-            size='sm'
-            onClick={handleSend}
-            disabled={!inputText.trim()}
-            className='h-6 px-2.5 rounded-[5px] text-[10px] font-semibold gap-1 ml-1.5 shadow-2xs'
-          >
-            <span>Kirim</span>
-            <Icons.arrowRight className='size-3' />
-          </Button>
-        </div>
       </div>
     </main>
   );
