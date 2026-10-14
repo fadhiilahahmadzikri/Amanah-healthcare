@@ -50,7 +50,7 @@ export function getRelationshipBadge(type?: string | null, label?: string | null
 
 export const GENDER_LABEL_MAP: Record<string, string> = {
   male: 'Laki-laki',
-  female: 'Perempuan',
+  female: 'Perempuan'
 };
 
 export function getGenderLabel(gender?: string | null): string {
@@ -60,29 +60,21 @@ export function getGenderLabel(gender?: string | null): string {
 
 export const PROFILE_TYPE_OPTIONS = [
   { label: 'Akun Utama', value: 'master' },
-  { label: 'Afiliasi', value: 'affiliate' },
-];
-
-export const BLOOD_TYPE_OPTIONS = [
-  { label: 'A', value: 'A' },
-  { label: 'B', value: 'B' },
-  { label: 'AB', value: 'AB' },
-  { label: 'O', value: 'O' },
-  { label: 'Belum Tahu', value: 'Belum Tahu' },
+  { label: 'Afiliasi', value: 'affiliate' }
 ];
 
 export const profileTypeFilterFn = (
-  row: { depth: number; subRows?: any[] },
+  row: { original: { is_master?: boolean; master_patient_id?: string | null } },
   _columnId: string,
   filterValue: string | string[]
 ): boolean => {
   const selected = Array.isArray(filterValue) ? filterValue : [filterValue];
   if (selected.length === 0) return true;
-  const isSubRow = row.depth > 0;
+  const isMaster = Boolean(row.original.is_master);
 
   return selected.some((val) => {
-    if (val === 'master') return !isSubRow;
-    if (val === 'affiliate') return isSubRow || Boolean(row.subRows && row.subRows.length > 0);
+    if (val === 'master') return isMaster;
+    if (val === 'affiliate') return !isMaster;
     return false;
   });
 };
@@ -90,7 +82,6 @@ export const profileTypeFilterFn = (
 export const genderFilterFn = (
   row: {
     original: { gender?: string | null };
-    subRows?: Array<{ original: { gender?: string | null } }>;
   },
   _columnId: string,
   filterValue: string | string[]
@@ -98,16 +89,7 @@ export const genderFilterFn = (
   const selected = Array.isArray(filterValue) ? filterValue : [filterValue];
   if (selected.length === 0) return true;
   const target = row.original.gender;
-  if (target && selected.includes(target)) {
-    return true;
-  }
-  if (row.subRows && row.subRows.length > 0) {
-    return row.subRows.some((sub) => {
-      const subG = sub.original.gender;
-      return Boolean(subG && selected.includes(subG));
-    });
-  }
-  return false;
+  return Boolean(target && selected.includes(target));
 };
 
 export const nikFilterFn = (
@@ -134,16 +116,6 @@ export const patientGlobalFilterFn = (
       email?: string | null;
       phone_number?: string | null;
     };
-    subRows?: Array<{
-      original: {
-        name?: string | null;
-        patient_id?: string | null;
-        masked_nik?: string | null;
-        nik?: string | null;
-        email?: string | null;
-        phone_number?: string | null;
-      };
-    }>;
   },
   _columnId: string,
   filterValue: unknown
@@ -153,27 +125,13 @@ export const patientGlobalFilterFn = (
   if (!str) return true;
   const q = str.toLowerCase();
 
-  const matchItem = (item: {
-    name?: string | null;
-    patient_id?: string | null;
-    masked_nik?: string | null;
-    nik?: string | null;
-    email?: string | null;
-    phone_number?: string | null;
-  }) =>
-    Boolean(
-      item.name?.toLowerCase().includes(q) ||
-      item.patient_id?.toLowerCase().includes(q) ||
-      item.masked_nik?.toLowerCase().includes(q) ||
-      item.nik?.toLowerCase().includes(q) ||
-      item.email?.toLowerCase().includes(q) ||
-      item.phone_number?.toLowerCase().includes(q)
-    );
-
-  if (matchItem(row.original)) return true;
-  if (row.subRows && row.subRows.length > 0) {
-    return row.subRows.some((sub) => matchItem(sub.original));
-  }
-  return false;
+  const item = row.original;
+  return Boolean(
+    item.name?.toLowerCase().includes(q) ||
+    item.patient_id?.toLowerCase().includes(q) ||
+    item.masked_nik?.toLowerCase().includes(q) ||
+    item.nik?.toLowerCase().includes(q) ||
+    item.email?.toLowerCase().includes(q) ||
+    item.phone_number?.toLowerCase().includes(q)
+  );
 };
-

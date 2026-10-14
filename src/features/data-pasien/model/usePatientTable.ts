@@ -1,20 +1,13 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import type {
-  ColumnDef,
-  PaginationState,
-  SortingState,
-  Table,
-  Updater,
-} from '@tanstack/react-table';
-import { useControlledDataTable } from '@/hooks/use-controlled-data-table';
-import { patientsQueryOptions } from '../api/queries';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import type { ColumnDef, Table } from '@tanstack/react-table';
+import { parseAsArrayOf, parseAsString, useQueryStates } from 'nuqs';
+import { useDataTable } from '@/hooks/use-data-table';
+import { getSortingStateParser } from '@/lib/parsers';
+import { patientInfiniteQueryOptions } from '../api/queries';
 import type { Patient, PatientFilters } from '../api/types';
-import { usePatientInfiniteSearch } from './usePatientInfiniteSearch';
-import { usePatientFilters, type UsePatientFiltersResult } from './usePatientFilters';
-import type { ExtendedColumnSort } from '@/types/data-table';
 
 export interface PatientTableMeta {
   onViewDetail?: (patient: Patient) => void;
@@ -45,7 +38,6 @@ export interface UsePatientTableResult {
   hasNextPage: boolean;
   totalPatients: number;
   resetFilters: () => void;
-  patientFilters: UsePatientFiltersResult;
   actions: {
     openDetail: (patient: Patient) => void;
     closeDetail: () => void;
@@ -63,6 +55,7 @@ export interface UsePatientTableResult {
 
 export function usePatientTable({
   columns,
+  columnIds
 }: UsePatientTableParams): UsePatientTableResult {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [selectedPatients, setSelectedPatients] = useState<Patient[]>([]);
@@ -70,9 +63,17 @@ export function usePatientTable({
     'detail' | 'edit' | 'history' | 'delete' | 'bulkDelete' | null
   >(null);
 
-  // SSOT: Centralized filters management facade
-  const patientFilters = usePatientFilters();
-  const { params, setParams } = patientFilters;
+  const [params, setParams] = useQueryStates({
+    patient: parseAsString,
+    name: parseAsString,
+    search: parseAsString,
+    gender: parseAsArrayOf(parseAsString, ','),
+    account_status: parseAsArrayOf(parseAsString, ','),
+    status: parseAsArrayOf(parseAsString, ','),
+    blood_type: parseAsArrayOf(parseAsString, ','),
+    profile_type: parseAsArrayOf(parseAsString, ','),
+    sort: getSortingStateParser<Patient>(columnIds).withDefault([])
+  });
 
   const querySearch = params.patient || params.name || params.search || '';
   const queryGender = params.gender?.[0] || null;
@@ -86,67 +87,62 @@ export function usePatientTable({
 
   const isInfiniteSearch = Boolean(querySearch && querySearch.trim().length > 0);
 
-  // 1. Paginated Query (Active when not in global search mode)
+  // Unified Infinite Query (Continuous Scroll Feed like YouTube / Social Media)
   const filters: PatientFilters = {
-    page: params.page,
-    limit: params.perPage,
+    limit: 30,
     ...(querySearch && { search: querySearch }),
     ...(queryGender && { gender: queryGender }),
     ...(queryStatus && { status: queryStatus }),
     ...(queryBloodType && { bloodType: queryBloodType }),
     ...(queryProfileType && { profileType: queryProfileType }),
-    ...(querySort && { sort: querySort }),
+    ...(querySort && { sort: querySort })
   };
 
-  const paginatedQuery = useQuery({
-    ...patientsQueryOptions(filters),
-    enabled: !isInfiniteSearch,
-  });
-
-  // 2. Infinite Query (Active when global toolbar search is active)
-  const infiniteSearch = usePatientInfiniteSearch({
-    searchQuery: querySearch,
-    gender: queryGender,
-    status: queryStatus,
-    bloodType: queryBloodType,
-    profileType: queryProfileType,
-    sort: querySort,
-    enabled: isInfiniteSearch,
-  });
+  const infiniteQuery = useInfiniteQuery(patientInfiniteQueryOptions(filters));
 
   const activePatients = useMemo(() => {
-    if (isInfiniteSearch) {
-      return infiniteSearch.patients;
-    }
-    return paginatedQuery.data?.patients || [];
-  }, [isInfiniteSearch, infiniteSearch.patients, paginatedQuery.data?.patients]);
+    if (!infiniteQuery.data?.pages) return [];
+    return infiniteQuery.data.pages.flatMap((page) => page.patients || []);
+  }, [infiniteQuery.data?.pages]);
 
   const totalPatients = useMemo(() => {
-    if (isInfiniteSearch) {
-      return infiniteSearch.totalPatients;
-    }
-    return paginatedQuery.data?.total_patients ?? 0;
-  }, [isInfiniteSearch, infiniteSearch.totalPatients, paginatedQuery.data?.total_patients]);
+    return infiniteQuery.data?.pages[0]?.total_patients ?? activePatients.length;
+  }, [infiniteQuery.data?.pages, activePatients.length]);
 
-  const pageCount = useMemo(() => {
-    if (isInfiniteSearch) return -1;
-    return Math.ceil((paginatedQuery.data?.total_patients ?? 0) / params.perPage);
-  }, [isInfiniteSearch, paginatedQuery.data?.total_patients, params.perPage]);
+  // Sentinel intersection observer for continuous scrolling
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
-  // Reactive derivation of selected patient
+  const handleObserver = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      const [target] = entries;
+      if (
+        target?.isIntersecting &&
+        infiniteQuery.hasNextPage &&
+        !infiniteQuery.isFetchingNextPage
+      ) {
+        void infiniteQuery.fetchNextPage();
+      }
+    },
+    [infiniteQuery]
+  );
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !infiniteQuery.hasNextPage) return;
+
+    const observer = new IntersectionObserver(handleObserver, {
+      rootMargin: '200px',
+      threshold: 0.1
+    });
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [handleObserver, infiniteQuery.hasNextPage]);
+
+  // Reactive flat derivation of selected patient
   const selectedPatient = useMemo(() => {
     if (!selectedPatientId) return null;
-    const findInTree = (list: Patient[]): Patient | null => {
-      for (const p of list) {
-        if (p.id === selectedPatientId) return p;
-        if (p.affiliates && p.affiliates.length > 0) {
-          const found = findInTree(p.affiliates);
-          if (found) return found;
-        }
-      }
-      return null;
-    };
-    return findInTree(activePatients);
+    return activePatients.find((p) => p.id === selectedPatientId) ?? null;
   }, [activePatients, selectedPatientId]);
 
   const openDetail = (patient: Patient) => {
@@ -205,65 +201,38 @@ export function usePatientTable({
     onViewDetail: openDetail,
     onViewHistory: openHistory,
     onEdit: openEdit,
-    onDelete: openDelete,
+    onDelete: openDelete
   };
 
-  // Controlled Pagination & Sorting
-  const pagination: PaginationState = useMemo(
-    () => ({
-      pageIndex: params.page - 1,
-      pageSize: params.perPage,
-    }),
-    [params.page, params.perPage]
-  );
-
-  const onPaginationChange = useCallback(
-    (updaterOrValue: Updater<PaginationState>) => {
-      if (typeof updaterOrValue === 'function') {
-        const next = updaterOrValue(pagination);
-        void setParams({ page: next.pageIndex + 1, perPage: next.pageSize });
-      } else {
-        void setParams({ page: updaterOrValue.pageIndex + 1, perPage: updaterOrValue.pageSize });
-      }
-    },
-    [pagination, setParams]
-  );
-
-  const onSortingChange = useCallback(
-    (updaterOrValue: Updater<SortingState>) => {
-      const next =
-        typeof updaterOrValue === 'function' ? updaterOrValue(params.sort) : updaterOrValue;
-      void setParams({ sort: next as ExtendedColumnSort<Patient>[] });
-    },
-    [params.sort, setParams]
-  );
-
-  // Pure controlled TanStack table
-  const { table } = useControlledDataTable({
+  const { table } = useDataTable({
     data: activePatients,
     columns,
-    pageCount,
-    pagination,
-    onPaginationChange,
-    sorting: params.sort,
-    onSortingChange,
-    columnFilters: patientFilters.columnFilters,
-    onColumnFiltersChange: patientFilters.onColumnFiltersChange,
+    pageCount: -1,
+    shallow: true,
+    debounceMs: 300,
     meta,
     manualFiltering: true,
     manualSorting: false,
-    filterFromLeafRows: true,
-    getSubRows: (row) => row.affiliates,
     initialState: {
-      columnPinning: { left: ['select'], right: ['actions'] },
-      expanded: true,
-    },
+      columnPinning: { left: ['select'], right: ['actions'] }
+    }
   });
 
   const resetFilters = useCallback(() => {
+    table.resetColumnFilters();
     table.resetSorting();
-    patientFilters.reset();
-  }, [patientFilters, table]);
+    void setParams({
+      search: null,
+      patient: null,
+      name: null,
+      gender: null,
+      account_status: null,
+      status: null,
+      blood_type: null,
+      profile_type: null,
+      sort: []
+    });
+  }, [setParams, table]);
 
   return {
     table,
@@ -276,13 +245,12 @@ export function usePatientTable({
     isDeleteOpen: activeDialog === 'delete',
     isBulkDeleteOpen: activeDialog === 'bulkDelete',
     isInfiniteSearch,
-    hidePagination: isInfiniteSearch,
-    sentinelRef: infiniteSearch.sentinelRef,
-    isFetchingNextPage: infiniteSearch.isFetchingNextPage,
-    hasNextPage: infiniteSearch.hasNextPage,
+    hidePagination: true,
+    sentinelRef,
+    isFetchingNextPage: infiniteQuery.isFetchingNextPage,
+    hasNextPage: Boolean(infiniteQuery.hasNextPage),
     totalPatients,
     resetFilters,
-    patientFilters,
     actions: {
       openDetail,
       closeDetail,
@@ -294,7 +262,7 @@ export function usePatientTable({
       openDelete,
       closeDelete,
       openBulkDelete,
-      closeBulkDelete,
-    },
+      closeBulkDelete
+    }
   };
 }

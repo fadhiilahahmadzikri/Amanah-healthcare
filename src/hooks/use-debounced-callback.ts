@@ -16,7 +16,11 @@ export function useDebouncedCallback<T extends (...args: never[]) => unknown>(
       debounceTimerRef.current = window.setTimeout(() => handleCallback(...args), delay);
     },
     [handleCallback, delay]
-  );
+  ) as T & { cancel: () => void };
+
+  setValue.cancel = React.useCallback(() => {
+    window.clearTimeout(debounceTimerRef.current);
+  }, []);
 
   return setValue;
 }

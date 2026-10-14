@@ -112,9 +112,7 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
   const [columnPinning, setColumnPinning] = React.useState<ColumnPinningState>(
     initialState?.columnPinning ?? {}
   );
-  const [expanded, setExpanded] = React.useState<ExpandedState>(
-    initialState?.expanded ?? {}
-  );
+  const [expanded, setExpanded] = React.useState<ExpandedState>(initialState?.expanded ?? {});
 
   const [page, setPage] = useQueryState(
     PAGE_KEY,
@@ -282,8 +280,13 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
         }
 
         if (next.length === 0) {
+          debouncedSetFilterValues.cancel();
+          const allReset = filterableColumns.reduce<Record<string, null>>((acc, col) => {
+            if (col.id) acc[col.id] = null;
+            return acc;
+          }, {});
           void setPage(1);
-          void setFilterValues(filterUpdates);
+          void setFilterValues(allReset);
         } else {
           debouncedSetFilterValues(filterUpdates);
         }

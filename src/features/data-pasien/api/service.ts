@@ -7,7 +7,7 @@ import type {
   PatientMutationPayload,
   PatientsResponse,
   PatientSummary,
-  PatientTimelineItem,
+  PatientTimelineItem
 } from './types';
 
 export function mapBackendPatient(r: any): Patient {
@@ -51,8 +51,7 @@ export function mapBackendPatient(r: any): Patient {
       ? `${r.emergencyContactName || ''} (${r.emergencyContactPhone})`
       : r.emergency_contact || '',
     allergies: Array.isArray(r.allergies) ? r.allergies : [],
-    medical_history:
-      r.medicalHistorySummary || r.medicalHistory || r.medical_history || '',
+    medical_history: r.medicalHistorySummary || r.medicalHistory || r.medical_history || '',
     account_status: (r.status === 'inactive' ? 'inactive' : 'active') as PatientAccountStatus,
     tanggal_registrasi_akun: r.registeredAt || r.registered_at || r.createdAt || r.created_at,
     login_pertama_kali: r.firstLoginAt || r.first_login_at || r.lastLoginAt || r.last_login_at,
@@ -74,20 +73,20 @@ export function mapBackendPatient(r: any): Patient {
     cancelled_appointments: Number(r.cancelledAppointments ?? r.cancelled_appointments ?? 0),
     last_visit_date: r.lastVisitDate ?? r.last_visit_date ?? null,
     created_at: r.registeredAt || r.createdAt || r.created_at,
-    updated_at: r.updatedAt || r.updated_at,
+    updated_at: r.updatedAt || r.updated_at
   };
 }
 
 export async function getPatients(
   filters: PatientFilters,
-  signal?: AbortSignal,
+  signal?: AbortSignal
 ): Promise<PatientsResponse> {
   const limit = filters.limit ?? 10;
   const page = filters.page ?? 1;
 
   const queryParams: Record<string, unknown> = {
     page,
-    limit,
+    limit
   };
 
   if (filters.search && filters.search.trim()) {
@@ -95,9 +94,7 @@ export async function getPatients(
   }
 
   if (filters.gender) {
-    const rawGender = Array.isArray(filters.gender)
-      ? filters.gender[0]
-      : filters.gender;
+    const rawGender = Array.isArray(filters.gender) ? filters.gender[0] : filters.gender;
     if (rawGender === 'Laki-laki' || rawGender === 'male') {
       queryParams.gender = 'male';
     } else if (rawGender === 'Perempuan' || rawGender === 'female') {
@@ -106,9 +103,7 @@ export async function getPatients(
   }
 
   if (filters.status) {
-    const rawStatus = Array.isArray(filters.status)
-      ? filters.status[0]
-      : filters.status;
+    const rawStatus = Array.isArray(filters.status) ? filters.status[0] : filters.status;
     if (rawStatus === 'Aktif' || rawStatus === 'active') {
       queryParams.status = 'active';
     } else if (rawStatus === 'Nonaktif' || rawStatus === 'inactive' || rawStatus === 'Non-Aktif') {
@@ -117,11 +112,9 @@ export async function getPatients(
   }
 
   if (filters.bloodType) {
-    const rawBlood = Array.isArray(filters.bloodType)
-      ? filters.bloodType[0]
-      : filters.bloodType;
+    const rawBlood = Array.isArray(filters.bloodType) ? filters.bloodType[0] : filters.bloodType;
     if (rawBlood && rawBlood !== 'all') {
-      queryParams.bloodType = rawBlood;
+      queryParams.bloodType = rawBlood === 'Belum Tahu' ? 'unknown' : rawBlood;
     }
   }
 
@@ -149,7 +142,7 @@ export async function getPatients(
     };
   }>('/api/v1/patients/directory', {
     query: queryParams,
-    signal,
+    signal
   });
 
   const rawList = Array.isArray(response?.data) ? response.data : [];
@@ -161,7 +154,7 @@ export async function getPatients(
     inactive: 0,
     total_appointments: response?.summary?.totalAppointments ?? 0,
     completed_visits: response?.summary?.totalCompletedVisits ?? 0,
-    missed_or_cancelled: response?.summary?.totalMissedOrCancelled ?? 0,
+    missed_or_cancelled: response?.summary?.totalMissedOrCancelled ?? 0
   };
 
   return {
@@ -171,58 +164,7 @@ export async function getPatients(
     offset: (page - 1) * limit,
     limit,
     patients,
-    summary,
-  };
-}
-
-export async function searchPatientsCatalog(
-  params: {
-    q?: string;
-    page?: number;
-    limit?: number;
-    sort?: string;
-    gender?: string;
-    status?: string;
-    bloodType?: string;
-    birthDateFrom?: string;
-    birthDateTo?: string;
-  },
-  signal?: AbortSignal,
-): Promise<PatientsResponse> {
-  const page = params.page ?? 1;
-  const limit = params.limit ?? 30;
-
-  const response = await clientFetch<{
-    success: boolean;
-    data: any[];
-    meta: { total: number; page: number; limit: number; totalPages: number };
-  }>('/api/v1/search/patients', {
-    query: {
-      ...params,
-      page,
-      limit,
-    },
-    signal,
-  });
-
-  const rawList = Array.isArray(response?.data) ? response.data : [];
-  const patients = rawList.map(mapBackendPatient);
-
-  return {
-    success: true,
-    time: new Date().toISOString(),
-    total_patients: response?.meta?.total ?? patients.length,
-    offset: (page - 1) * limit,
-    limit,
-    patients,
-    summary: {
-      total: response?.meta?.total ?? patients.length,
-      active: response?.meta?.total ?? patients.length,
-      inactive: 0,
-      total_appointments: 0,
-      completed_visits: 0,
-      missed_or_cancelled: 0,
-    },
+    summary
   };
 }
 
@@ -238,24 +180,24 @@ export async function getPatientById(id: string): Promise<PatientDetailResponse>
       return {
         success: false,
         patient: null,
-        message: `Pasien dengan ID ${id} tidak ditemukan`,
+        message: `Pasien dengan ID ${id} tidak ditemukan`
       };
     }
     return {
       success: true,
-      patient: mapBackendPatient(record),
+      patient: mapBackendPatient(record)
     };
   } catch (error: any) {
     return {
       success: false,
       patient: null,
-      message: error?.message || `Gagal mengambil data pasien`,
+      message: error?.message || `Gagal mengambil data pasien`
     };
   }
 }
 
 export async function getPatientHistory(
-  patientId: string,
+  patientId: string
 ): Promise<{ data: PatientTimelineItem[]; total: number }> {
   const response = await clientFetch<{
     data: any[];
@@ -279,12 +221,12 @@ export async function getPatientHistory(
     cancelled_at: item.cancelledAt,
     cancel_reason: item.cancelReason,
     has_associated_form: Boolean(item.hasAssociatedForm),
-    associated_form_type: item.associatedFormType ?? null,
+    associated_form_type: item.associatedFormType ?? null
   }));
 
   return {
     data,
-    total: response?.total ?? data.length,
+    total: response?.total ?? data.length
   };
 }
 
@@ -300,25 +242,22 @@ export async function createPatient(data: PatientMutationPayload) {
     pekerjaan: data.pekerjaan || '',
     phoneNumber: data.phone || data.nomor_telepon_wa || '',
     address: data.address || data.domisili || '',
-    medicalHistory: data.medical_history || '',
+    medicalHistory: data.medical_history || ''
   };
 
   const record = await clientFetch<any>('/api/v1/patients', {
     method: 'POST',
-    body: JSON.stringify(payload),
+    body: JSON.stringify(payload)
   });
 
   return {
     success: true,
     message: 'Data pasien berhasil ditambahkan',
-    patient: mapBackendPatient(record),
+    patient: mapBackendPatient(record)
   };
 }
 
-export async function updatePatient(
-  id: string,
-  data: Partial<PatientMutationPayload>,
-) {
+export async function updatePatient(id: string, data: Partial<PatientMutationPayload>) {
   const payload: Record<string, any> = {};
 
   if (data.name !== undefined) payload.fullName = data.name;
@@ -351,39 +290,36 @@ export async function updatePatient(
 
   const updatedRecord = await clientFetch<any>(`/api/v1/patients/${id}`, {
     method: 'PATCH',
-    body: JSON.stringify(payload),
+    body: JSON.stringify(payload)
   });
 
   return {
     success: true,
     message: 'Data pasien berhasil diperbarui',
-    patient: mapBackendPatient(updatedRecord),
+    patient: mapBackendPatient(updatedRecord)
   };
 }
 
 export async function deletePatient(id: string) {
   await clientFetch<void>(`/api/v1/patients/${id}`, {
-    method: 'DELETE',
+    method: 'DELETE'
   });
 
   return {
     success: true,
-    message: 'Data pasien berhasil dinonaktifkan',
+    message: 'Data pasien berhasil dinonaktifkan'
   };
 }
 
 export async function bulkDeletePatients(ids: string[]) {
-  const res = await clientFetch<{ count: number }>(
-    '/api/v1/patients/bulk-delete',
-    {
-      method: 'POST',
-      body: JSON.stringify({ ids }),
-    },
-  );
+  const res = await clientFetch<{ count: number }>('/api/v1/patients/bulk-delete', {
+    method: 'POST',
+    body: JSON.stringify({ ids })
+  });
 
   return {
     success: true,
     count: res.count,
-    message: `${res.count} pasien berhasil dinonaktifkan`,
+    message: `${res.count} pasien berhasil dinonaktifkan`
   };
 }

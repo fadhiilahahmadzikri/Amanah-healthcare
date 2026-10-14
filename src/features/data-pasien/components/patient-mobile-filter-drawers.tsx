@@ -9,22 +9,20 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerDescription,
-  DrawerFooter,
+  DrawerFooter
 } from '@/components/ui/drawer';
 import { cn } from '@/lib/utils';
-import {
-  PROFILE_TYPE_OPTIONS,
-  BLOOD_TYPE_OPTIONS,
-} from './patient-tables/columns-helpers';
+import { PROFILE_TYPE_OPTIONS } from './patient-tables/columns-helpers';
+import type { ReferenceOptionItem } from '../api/patient-reference-service';
 
-export const GENDER_OPTIONS = [
+export const GENDER_OPTIONS: ReferenceOptionItem[] = [
   { label: 'Laki-laki', value: 'male' },
-  { label: 'Perempuan', value: 'female' },
+  { label: 'Perempuan', value: 'female' }
 ];
 
-export const STATUS_OPTIONS = [
+export const STATUS_OPTIONS: ReferenceOptionItem[] = [
   { label: 'Aktif', value: 'active' },
-  { label: 'Non-Aktif', value: 'inactive' },
+  { label: 'Non-Aktif', value: 'inactive' }
 ];
 
 export type DrawerFilterType = 'profile' | 'gender' | 'status' | 'blood' | null;
@@ -36,6 +34,9 @@ export interface PatientMobileFilterDrawersProps {
   genderValue: string;
   statusValue: string[];
   bloodValue: string;
+  bloodTypeOptions?: ReferenceOptionItem[];
+  genderOptions?: ReferenceOptionItem[];
+  statusOptions?: ReferenceOptionItem[];
   onToggleProfile: (val: string) => void;
   onSelectGender: (val?: string) => void;
   onToggleStatus: (val: string) => void;
@@ -49,11 +50,20 @@ export function PatientMobileFilterDrawers({
   genderValue,
   statusValue,
   bloodValue,
+  bloodTypeOptions,
+  genderOptions,
+  statusOptions,
   onToggleProfile,
   onSelectGender,
   onToggleStatus,
-  onSelectBlood,
+  onSelectBlood
 }: PatientMobileFilterDrawersProps) {
+  const availableGenders =
+    genderOptions && genderOptions.length > 0 ? genderOptions : GENDER_OPTIONS;
+  const availableStatuses =
+    statusOptions && statusOptions.length > 0 ? statusOptions : STATUS_OPTIONS;
+  const availableBloodTypes = bloodTypeOptions ?? [];
+
   return (
     <>
       {/* Drawer 1: Profile Type Filter */}
@@ -123,7 +133,7 @@ export function PatientMobileFilterDrawers({
               <span>Semua Jenis Kelamin</span>
               {!genderValue && <Icons.check className='size-4 text-primary' />}
             </button>
-            {GENDER_OPTIONS.map((g) => {
+            {availableGenders.map((g) => {
               const isSelected = genderValue === g.value;
               return (
                 <button
@@ -169,7 +179,7 @@ export function PatientMobileFilterDrawers({
             <DrawerDescription>Pilih satu atau beberapa status akun</DrawerDescription>
           </DrawerHeader>
           <div className='flex flex-wrap gap-2 p-4 pt-1'>
-            {STATUS_OPTIONS.map((opt) => {
+            {availableStatuses.map((opt) => {
               const isSelected = statusValue.includes(opt.value);
               return (
                 <button
@@ -211,8 +221,8 @@ export function PatientMobileFilterDrawers({
             <DrawerTitle>Pilih Golongan Darah</DrawerTitle>
             <DrawerDescription>Tampilkan pasien berdasarkan golongan darah</DrawerDescription>
           </DrawerHeader>
-          <div className='grid grid-cols-2 gap-2 p-4 pt-1'>
-            {BLOOD_TYPE_OPTIONS.map((b) => {
+          <div className='grid grid-cols-2 sm:grid-cols-3 gap-2 p-4 pt-1 max-h-[60vh] overflow-y-auto'>
+            {availableBloodTypes.map((b) => {
               const isSelected = bloodValue === b.value;
               return (
                 <button
@@ -223,13 +233,13 @@ export function PatientMobileFilterDrawers({
                     onClose();
                   }}
                   className={cn(
-                    'px-4 py-3 rounded-xl text-xs font-bold border transition-colors flex items-center justify-between cursor-pointer select-none',
+                    'px-3.5 py-2.5 rounded-xl text-xs font-bold border transition-colors flex items-center justify-between cursor-pointer select-none',
                     isSelected
                       ? 'bg-primary text-primary-foreground border-primary'
                       : 'bg-card border-border/40 hover:bg-muted/50 text-foreground'
                   )}
                 >
-                  <span>Golongan {b.label}</span>
+                  <span>{b.label}</span>
                   {isSelected && <Icons.check className='size-4' />}
                 </button>
               );

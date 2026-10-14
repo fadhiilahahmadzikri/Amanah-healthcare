@@ -17,13 +17,6 @@ export interface DemographicSlotItem {
 }
 
 export interface UsePatientMobileCardsResult {
-  // Affiliation Deck state
-  expandedDeckIds: Record<string, boolean>;
-  isDeckExpanded: (patientId: string) => boolean;
-  toggleDeck: (patientId: string) => void;
-  expandAllDecks: (patientIds: string[]) => void;
-  collapseAllDecks: () => void;
-
   // Action Drawer state
   selectedActionPatient: Patient | null;
   openActionDrawer: (patient: Patient) => void;
@@ -37,37 +30,11 @@ export interface UsePatientMobileCardsResult {
 }
 
 /**
- * Custom hook dedicated to mobile card interactions and affiliation deck behaviors.
+ * Custom hook dedicated to mobile card interactions and actions.
  * Follows SSOT and Agnostic presentation guidelines.
  */
 export function usePatientMobileCards(): UsePatientMobileCardsResult {
-  const [expandedDeckIds, setExpandedDeckIds] = useState<Record<string, boolean>>({});
   const [selectedActionPatient, setSelectedActionPatient] = useState<Patient | null>(null);
-
-  const toggleDeck = useCallback((patientId: string) => {
-    setExpandedDeckIds((prev) => ({
-      ...prev,
-      [patientId]: !prev[patientId],
-    }));
-  }, []);
-
-  const isDeckExpanded = useCallback(
-    (patientId: string) => Boolean(expandedDeckIds[patientId]),
-    [expandedDeckIds]
-  );
-
-  const expandAllDecks = useCallback((patientIds: string[]) => {
-    setExpandedDeckIds(
-      patientIds.reduce<Record<string, boolean>>((acc, id) => {
-        acc[id] = true;
-        return acc;
-      }, {})
-    );
-  }, []);
-
-  const collapseAllDecks = useCallback(() => {
-    setExpandedDeckIds({});
-  }, []);
 
   const openActionDrawer = useCallback((patient: Patient) => {
     setSelectedActionPatient(patient);
@@ -95,7 +62,7 @@ export function usePatientMobileCards(): UsePatientMobileCardsResult {
     if (patient.gender) {
       slots.push({
         id: 'gender',
-        label: getGenderLabel(patient.gender),
+        label: getGenderLabel(patient.gender)
       });
     }
 
@@ -104,7 +71,7 @@ export function usePatientMobileCards(): UsePatientMobileCardsResult {
       slots.push({
         id: 'age',
         label: `${patient.age} th`,
-        isMono: true,
+        isMono: true
       });
     }
 
@@ -115,7 +82,7 @@ export function usePatientMobileCards(): UsePatientMobileCardsResult {
       slots.push({
         id: 'blood-type',
         label: `Gol. ${blood}`,
-        isMono: true,
+        isMono: true
       });
     }
 
@@ -129,32 +96,22 @@ export function usePatientMobileCards(): UsePatientMobileCardsResult {
 
   return useMemo(
     () => ({
-      expandedDeckIds,
-      isDeckExpanded,
-      toggleDeck,
-      expandAllDecks,
-      collapseAllDecks,
       selectedActionPatient,
       openActionDrawer,
       closeActionDrawer,
       getCleanRelationLabel,
       getRelationStatusKey,
       getDemographicSlots,
-      formatVisitDate,
+      formatVisitDate
     }),
     [
-      expandedDeckIds,
-      isDeckExpanded,
-      toggleDeck,
-      expandAllDecks,
-      collapseAllDecks,
       selectedActionPatient,
       openActionDrawer,
       closeActionDrawer,
       getCleanRelationLabel,
       getRelationStatusKey,
       getDemographicSlots,
-      formatVisitDate,
+      formatVisitDate
     ]
   );
 }
