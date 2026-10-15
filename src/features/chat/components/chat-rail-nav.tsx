@@ -5,7 +5,7 @@ import { Icons } from '@/components/icons';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
-export type ChatRailTool = 'inbox' | 'calendar' | 'patients' | 'stats' | 'settings';
+export type ChatRailTool = 'inbox' | 'settings';
 
 interface ChatRailNavProps {
   activeTool: ChatRailTool;
@@ -14,10 +14,7 @@ interface ChatRailNavProps {
 
 export function ChatRailNav({ activeTool, onSelectTool }: ChatRailNavProps) {
   const tools: { id: ChatRailTool; label: string; icon: React.ReactNode }[] = [
-    { id: 'inbox', label: 'Pesan Masuk (Inbox)', icon: <Icons.inbox className='size-4' /> },
-    { id: 'calendar', label: 'Jadwal Janji Temu', icon: <Icons.calendar className='size-4' /> },
-    { id: 'patients', label: 'Data & Kontak Pasien', icon: <Icons.teams className='size-4' /> },
-    { id: 'stats', label: 'Statistik Layanan', icon: <Icons.dashboard className='size-4' /> }
+    { id: 'inbox', label: 'Pesan Masuk (Inbox)', icon: <Icons.inbox className='size-4' /> }
   ];
 
   return (

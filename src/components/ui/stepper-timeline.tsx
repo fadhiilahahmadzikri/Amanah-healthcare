@@ -5,7 +5,27 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
-import type { StepperIconType, StepperTimelineItem } from '@/features/chat/utils/types';
+export type StepperIconType =
+  | 'lead'
+  | 'contact'
+  | 'qualified'
+  | 'booked'
+  | 'completed'
+  | 'payment'
+  | 'prescription'
+  | 'doctor';
+
+export type StepperTimelineItem = {
+  id: string | number;
+  title: string;
+  subtitle: string;
+  date: string;
+  iconType: StepperIconType;
+  hasUserAvatar?: boolean;
+  userAvatar?: string;
+  hasAction?: boolean;
+  actionLabel?: string;
+};
 
 export function StepperNodeIcon({ iconType }: { iconType: StepperIconType }) {
   const baseClasses =

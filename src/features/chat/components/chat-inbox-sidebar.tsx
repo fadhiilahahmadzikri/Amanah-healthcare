@@ -1,11 +1,9 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Icons } from '@/components/icons';
-import { getStatusConfig } from '@/styles/clinical-tokens';
 import { cn } from '@/lib/utils';
 import type { Conversation } from '../utils/types';
 
@@ -15,70 +13,81 @@ interface ChatInboxSidebarProps {
   onSelect: (id: string) => void;
 }
 
+function formatConversationTime(isoString?: string): string {
+  if (!isoString) return '';
+  try {
+    const d = new Date(isoString);
+    return d.toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+  } catch {
+    return '';
+  }
+}
+
 export function ChatInboxSidebar({ conversations, selectedId, onSelect }: ChatInboxSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<'all' | 'todo' | 'unread'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'awaiting' | 'closed'>('all');
 
   const filteredConversations = useMemo(() => {
     return conversations.filter((c) => {
+      const q = searchQuery.toLowerCase().trim();
       const matchSearch =
-        c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.id_pasien.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        c.messages.some((m) => m.text.toLowerCase().includes(searchQuery.toLowerCase()));
+        !q ||
+        (c.customerName && c.customerName.toLowerCase().includes(q)) ||
+        (c.customerEmail && c.customerEmail.toLowerCase().includes(q)) ||
+        (c.medicalRecordNumber && c.medicalRecordNumber.toLowerCase().includes(q)) ||
+        (c.lastMessagePreview && c.lastMessagePreview.toLowerCase().includes(q));
 
       if (!matchSearch) return false;
 
-      if (activeTab === 'unread') return c.unread > 0;
-      if (activeTab === 'todo') return c.status === 'SUDAH DATANG' || c.status === 'MENUNGGU';
-
+      if (activeTab === 'awaiting') return c.status === 'open' && c.awaitingReply;
+      if (activeTab === 'closed') return c.status === 'closed';
       return true;
     });
   }, [conversations, searchQuery, activeTab]);
 
   const totalCount = conversations.length;
+  const awaitingCount = conversations.filter((c) => c.status === 'open' && c.awaitingReply).length;
 
   return (
     <aside className='w-[270px] border-r border-border/60 bg-card flex flex-col min-w-0 shrink-0 select-none'>
       {/* 1. Header */}
       <div className='p-3 pb-2 border-b border-border/40'>
         <div className='flex items-center justify-between'>
-          <h2 className='text-xs font-bold text-foreground'>Inbox Pasien</h2>
+          <h2 className='text-xs font-bold text-foreground'>Inbox Percakapan</h2>
           <span className='text-[10px] font-medium text-muted-foreground'>
-            {filteredConversations.length} percakapan
+            {filteredConversations.length} aktif
           </span>
         </div>
         <p className='text-[10px] text-muted-foreground mt-0.5'>
-          Pusat komunikasi & konsultasi pasien
+          Pusat komunikasi pasien & staf klinik
         </p>
       </div>
 
-      {/* 2. Search & Filter Bar */}
-      <div className='p-2.5 pb-2 flex items-center gap-1.5'>
-        <div className='relative flex-1 flex items-center'>
+      {/* 2. Search Bar */}
+      <div className='p-2.5 pb-2'>
+        <div className='relative flex items-center'>
           <span className='absolute left-2 flex items-center pointer-events-none text-muted-foreground'>
             <Icons.search className='size-3.5' />
           </span>
           <input
             type='text'
+            aria-label='Cari pasien atau pesan'
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder='Cari pesan atau pasien...'
+            placeholder='Cari pasien atau pesan...'
             className='w-full h-[28px] pl-7 pr-2 bg-background border border-border/80 rounded-[6px] text-[11px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors shadow-2xs'
           />
         </div>
-        <Button
-          variant='outline'
-          size='sm'
-          className='h-[28px] px-2 text-[10px] text-muted-foreground font-medium flex items-center gap-1 bg-background shadow-2xs'
-        >
-          <Icons.horizontalSliders className='size-3 text-muted-foreground' />
-          <span>Filter</span>
-        </Button>
       </div>
 
       {/* 3. Category Filter Tabs */}
-      <div className='px-3 flex items-center border-b border-border/40 text-[11px] font-medium'>
+      <div className='px-3 flex items-center border-b border-border/40 text-[11px] font-medium gap-3'>
         <button
+          type='button'
           onClick={() => setActiveTab('all')}
           className={cn(
             'pb-1.5 transition-colors border-b-2 font-medium',
@@ -87,30 +96,34 @@ export function ChatInboxSidebar({ conversations, selectedId, onSelect }: ChatIn
               : 'text-muted-foreground border-transparent hover:text-foreground'
           )}
         >
-          Semua{' '}
-          <span className='text-[10px] text-muted-foreground font-normal'>[{totalCount}]</span>
+          Semua <span className='text-[9.5px] opacity-70'>[{totalCount}]</span>
         </button>
         <button
-          onClick={() => setActiveTab('todo')}
+          type='button'
+          onClick={() => setActiveTab('awaiting')}
           className={cn(
-            'ml-4 pb-1.5 transition-colors border-b-2 font-medium',
-            activeTab === 'todo'
+            'pb-1.5 transition-colors border-b-2 font-medium',
+            activeTab === 'awaiting'
               ? 'text-foreground border-primary'
               : 'text-muted-foreground border-transparent hover:text-foreground'
           )}
         >
-          Tindakan
+          Perlu Dibalas{' '}
+          {awaitingCount > 0 && (
+            <span className='text-[9.5px] text-amber-600 font-bold'>[{awaitingCount}]</span>
+          )}
         </button>
         <button
-          onClick={() => setActiveTab('unread')}
+          type='button'
+          onClick={() => setActiveTab('closed')}
           className={cn(
-            'ml-4 pb-1.5 transition-colors border-b-2 font-medium',
-            activeTab === 'unread'
+            'pb-1.5 transition-colors border-b-2 font-medium',
+            activeTab === 'closed'
               ? 'text-foreground border-primary'
               : 'text-muted-foreground border-transparent hover:text-foreground'
           )}
         >
-          Belum Dibaca
+          Selesai
         </button>
       </div>
 
@@ -120,42 +133,39 @@ export function ChatInboxSidebar({ conversations, selectedId, onSelect }: ChatIn
           <EmptyState
             icon={Icons.chat}
             title='Belum ada percakapan'
-            description='Percakapan pasien akan ditampilkan di sini setelah tersedia.'
-            className='min-h-[280px] border-0 bg-transparent px-4'
+            description='Percakapan pasien akan ditampilkan di sini.'
+            className='min-h-[240px] border-0 bg-transparent px-3'
           />
         ) : (
           filteredConversations.map((c) => {
             const isSelected = selectedId === c.id;
-            const lastMessage = c.messages[c.messages.length - 1];
-            const statusConfig = getStatusConfig(c.status);
-
             const initials =
-              c.name
-                .split(' ')
+              c.customerName
+                ?.split(' ')
                 .map((n) => n[0])
                 .slice(0, 2)
                 .join('')
                 .toUpperCase() || '-';
 
             return (
-              <div
+              <button
+                type='button'
                 key={c.id}
                 onClick={() => onSelect(c.id)}
                 className={cn(
-                  'p-2.5 px-3 cursor-pointer flex items-start gap-2.5 transition-colors',
+                  'w-full text-left p-2.5 px-3 cursor-pointer flex items-start gap-2.5 transition-colors border-0 bg-transparent',
                   isSelected ? 'bg-muted/70' : 'hover:bg-muted/30'
                 )}
               >
                 <div className='relative shrink-0 mt-0.5'>
                   <Avatar className='size-7 rounded-full ring-1 ring-border/40'>
-                    <AvatarImage src={c.avatar} alt={c.name} />
                     <AvatarFallback className='text-[9px] bg-primary/10 text-primary font-bold'>
                       {initials}
                     </AvatarFallback>
                   </Avatar>
-                  {c.unread > 0 && (
+                  {(c.unreadCount || 0) > 0 && (
                     <span className='absolute -top-1 -right-1 size-3.5 bg-primary text-primary-foreground rounded-full text-[8.5px] font-bold flex items-center justify-center border border-background shadow-xs'>
-                      {c.unread}
+                      {c.unreadCount}
                     </span>
                   )}
                 </div>
@@ -163,42 +173,34 @@ export function ChatInboxSidebar({ conversations, selectedId, onSelect }: ChatIn
                 <div className='flex-1 min-w-0'>
                   <div className='flex items-center justify-between'>
                     <span className='text-[11.5px] font-semibold text-foreground truncate'>
-                      {c.name}
+                      {c.customerName || 'Pasien'}
                     </span>
-                    <span className='text-[10px] text-muted-foreground tabular-nums'>{c.time}</span>
+                    <span className='text-[9.5px] text-muted-foreground tabular-nums'>
+                      {formatConversationTime(c.lastMessageAt)}
+                    </span>
                   </div>
 
                   <p className='text-[10.5px] text-muted-foreground truncate mt-0.5'>
-                    {lastMessage ? lastMessage.text : 'Belum ada pesan'}
+                    {c.lastMessagePreview || 'Belum ada pesan'}
                   </p>
 
-                  {/* Status Pill Badge with Clinical Tokens */}
-                  <div className='mt-1.5 flex items-center'>
-                    <span
-                      className={cn(
-                        'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold border backdrop-blur-xs select-none',
-                        statusConfig.pillBg,
-                        statusConfig.pillBorder
-                      )}
-                    >
-                      <span
-                        className={cn(
-                          'size-1.5 rounded-full shrink-0 ring-1 ring-white/60 dark:ring-white/20',
-                          statusConfig.dotGradient
-                        )}
-                      />
-                      <span
-                        className={cn(
-                          'bg-clip-text text-transparent font-bold tracking-tight',
-                          statusConfig.textGradient
-                        )}
-                      >
-                        {statusConfig.label}
+                  <div className='mt-1 flex items-center gap-1.5'>
+                    {c.status === 'closed' ? (
+                      <span className='inline-flex items-center px-1.5 py-0.2 rounded-full text-[8.5px] font-medium bg-zinc-500/10 text-zinc-500 border border-zinc-500/20'>
+                        Selesai
                       </span>
-                    </span>
+                    ) : c.awaitingReply ? (
+                      <span className='inline-flex items-center px-1.5 py-0.2 rounded-full text-[8.5px] font-medium bg-amber-500/10 text-amber-600 border border-amber-500/20'>
+                        Menunggu Balasan
+                      </span>
+                    ) : (
+                      <span className='inline-flex items-center px-1.5 py-0.2 rounded-full text-[8.5px] font-medium bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'>
+                        Terjawab
+                      </span>
+                    )}
                   </div>
                 </div>
-              </div>
+              </button>
             );
           })
         )}
