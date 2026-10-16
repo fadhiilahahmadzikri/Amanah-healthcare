@@ -10,7 +10,7 @@ export interface PatientLineInputProps extends Omit<
   label: React.ReactNode;
   id: string;
   value: string;
-  onChange: (value: string) => void;
+  onChange?: (value: string) => void;
   error?: string;
   invalid?: boolean;
   isMonospace?: boolean;
@@ -68,7 +68,7 @@ export const PatientLineInput = React.forwardRef<HTMLInputElement, PatientLineIn
               setIsFocused(false);
               onBlur?.(e);
             }}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => onChange?.(e.target.value)}
             placeholder={isFloating ? placeholder : ''}
             aria-invalid={isInvalid}
             className={cn(

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Badge } from '@/components/ui/badge';
+import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
 import type { InspectorTabProps } from './types';
 
 export function InspectorObstetricTab({ data }: InspectorTabProps) {
@@ -70,168 +70,171 @@ export function InspectorObstetricTab({ data }: InspectorTabProps) {
   }
 
   return (
-    <div className='flex flex-col gap-3.5'>
-      <div className='rounded-lg border border-border/60 bg-card p-3'>
-        <div className='flex items-center justify-between mb-2.5 pb-2 border-b border-border/40'>
-          <span className='text-xs font-bold text-foreground'>
-            Status Obstetri (GPA)
+    <div className='grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 pt-1 pointer-events-none select-text'>
+      {/* Kolom 1: Status Obstetri & Riwayat Persalinan */}
+      <div className='space-y-4'>
+        <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
+          Status Obstetri (GPA)
+        </span>
+
+        <PatientLineInput
+          id='obstetric-gpa-summary'
+          label='Ringkasan Status Obstetri'
+          value={gpaCode}
+          isMonospace
+          readOnly
+        />
+
+        <div className='grid grid-cols-2 gap-4'>
+          <PatientLineInput
+            id='obstetric-gravida'
+            label='Gravida (Kehamilan Ke)'
+            value={String(gravida)}
+            readOnly
+          />
+          <PatientLineInput
+            id='obstetric-partus'
+            label='Partus (Jumlah Persalinan)'
+            value={String(partus)}
+            readOnly
+          />
+        </div>
+
+        <div className='grid grid-cols-2 gap-4'>
+          <PatientLineInput
+            id='obstetric-abortus'
+            label='Abortus (Keguguran)'
+            value={String(abortus)}
+            readOnly
+          />
+          <PatientLineInput
+            id='obstetric-living'
+            label='Anak Hidup (Ah)'
+            value={String(living)}
+            readOnly
+          />
+        </div>
+
+        <div className='pt-2 space-y-4'>
+          <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
+            Riwayat Persalinan Sebelumnya ({prevPregnancies.length} Tercatat)
           </span>
-          <Badge variant='outline' className='font-mono font-bold text-xs'>
-            {gpaCode}
-          </Badge>
-        </div>
 
-        <div className='grid grid-cols-4 gap-2 text-center'>
-          <div className='p-2 rounded-md bg-muted/20 border border-border/40'>
-            <span className='text-[10.5px] text-muted-foreground block'>Gravida (G)</span>
-            <span className='font-bold text-foreground text-sm font-mono mt-0.5 block'>
-              {gravida}
-            </span>
-          </div>
-          <div className='p-2 rounded-md bg-muted/20 border border-border/40'>
-            <span className='text-[10.5px] text-muted-foreground block'>Partus (P)</span>
-            <span className='font-bold text-foreground text-sm font-mono mt-0.5 block'>
-              {partus}
-            </span>
-          </div>
-          <div className='p-2 rounded-md bg-muted/20 border border-border/40'>
-            <span className='text-[10.5px] text-muted-foreground block'>Abortus (A)</span>
-            <span className='font-bold text-foreground text-sm font-mono mt-0.5 block'>
-              {abortus}
-            </span>
-          </div>
-          <div className='p-2 rounded-md bg-muted/20 border border-border/40'>
-            <span className='text-[10.5px] text-muted-foreground block'>Anak Hidup (Ah)</span>
-            <span className='font-bold text-foreground text-sm font-mono mt-0.5 block'>
-              {living}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div className='rounded-lg border border-border/60 bg-card p-3'>
-        <div className='flex items-center justify-between mb-2.5 pb-2 border-b border-border/40'>
-          <span className='text-xs font-bold text-foreground'>
-            Riwayat Persalinan Sebelumnya
-          </span>
-          <Badge variant='secondary' className='text-[10.5px]'>
-            {prevPregnancies.length} Kehamilan
-          </Badge>
-        </div>
-
-        {prevPregnancies.length === 0 ? (
-          <div className='rounded-md border border-dashed border-border/60 p-4 bg-muted/10 text-center'>
-            <p className='text-xs text-muted-foreground font-medium'>
-              Tidak ada riwayat persalinan sebelumnya (Kehamilan Pertama / Primigravida).
-            </p>
-          </div>
-        ) : (
-          <div className='divide-y divide-border/40'>
-            {prevPregnancies.map((p, idx) => (
-              <div key={idx} className='py-2.5 text-xs space-y-1.5'>
-                <div className='flex items-center justify-between font-semibold text-foreground'>
-                  <span>
-                    Anak Ke-{p.orderNumber || idx + 1} ({p.birthYear || '-'})
-                  </span>
-                  <div className='flex items-center gap-1.5'>
-                    {p.childSex && (
-                      <Badge variant='outline' className='text-[10px] h-5 px-1.5'>
-                        {p.childSex}
-                      </Badge>
-                    )}
-                    {(p.birthWeightGrams || p.birthLengthCm) && (
-                      <span className='text-[10.5px] text-muted-foreground font-mono'>
-                        {p.birthWeightGrams ? `${p.birthWeightGrams} g` : ''}
-                        {p.birthLengthCm ? ` / ${p.birthLengthCm} cm` : ''}
-                      </span>
-                    )}
-                  </div>
+          {prevPregnancies.length === 0 ? (
+            <PatientLineInput
+              id='obstetric-no-history'
+              label='Riwayat Persalinan'
+              value='Kehamilan Pertama / Primigravida (Tidak ada riwayat persalinan lalu)'
+              readOnly
+            />
+          ) : (
+            prevPregnancies.map((p, idx) => (
+              <div
+                key={idx}
+                className='space-y-3 pt-1 border-b border-border/20 pb-3 last:border-b-0'
+              >
+                <div className='grid grid-cols-2 gap-4'>
+                  <PatientLineInput
+                    id={`obstetric-prev-child-${idx}`}
+                    label={`Anak Ke-${p.orderNumber || idx + 1}`}
+                    value={`Tahun ${p.birthYear || '-'} • ${p.childSex || 'Jenis kelamin -'}`}
+                    readOnly
+                  />
+                  <PatientLineInput
+                    id={`obstetric-prev-weight-${idx}`}
+                    label='BB / TB Lahir'
+                    value={`${p.birthWeightGrams ? `${p.birthWeightGrams} g` : '-'} / ${p.birthLengthCm ? `${p.birthLengthCm} cm` : '-'}`}
+                    readOnly
+                  />
                 </div>
-
-                <div className='grid grid-cols-2 gap-x-2 gap-y-1 text-muted-foreground text-[11px]'>
-                  <div>
-                    <span className='text-foreground font-medium'>Cara: </span>
-                    {p.deliveryMethod || '-'}
-                  </div>
-                  <div>
-                    <span className='text-foreground font-medium'>Penolong: </span>
-                    {p.birthAttendant || '-'}
-                  </div>
-                  <div>
-                    <span className='text-foreground font-medium'>Tempat: </span>
-                    {p.deliveryPlace || '-'}
-                  </div>
-                  <div>
-                    <span className='text-foreground font-medium'>Usia Lahir: </span>
-                    {p.gestationalAgeAtBirth || '-'}
-                  </div>
+                <div className='grid grid-cols-2 gap-4'>
+                  <PatientLineInput
+                    id={`obstetric-prev-method-${idx}`}
+                    label='Cara & Penolong Persalinan'
+                    value={`${p.deliveryMethod || '-'} / ${p.birthAttendant || '-'}`}
+                    readOnly
+                  />
+                  <PatientLineInput
+                    id={`obstetric-prev-place-${idx}`}
+                    label='Tempat & Komplikasi'
+                    value={`${p.deliveryPlace || '-'} (${p.complications || 'Tanpa komplikasi'})`}
+                    readOnly
+                  />
                 </div>
-
-                {p.complications && p.complications !== 'Tidak ada' && (
-                  <div className='text-destructive text-[10.5px] pt-1 font-medium'>
-                    Komplikasi: {p.complications}
-                  </div>
-                )}
               </div>
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
       </div>
 
-      <div className='rounded-lg border border-border/60 bg-card p-3'>
-        <div className='flex items-center justify-between mb-2.5 pb-2 border-b border-border/40'>
-          <span className='text-xs font-bold text-foreground'>
-            Riwayat KB & Kontrasepsi
+      {/* Kolom 2: Riwayat KB & Kontrasepsi */}
+      <div className='space-y-4'>
+        <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
+          Riwayat KB & Perencanaan Kontrasepsi
+        </span>
+
+        <div className='grid grid-cols-2 gap-4'>
+          <PatientLineInput
+            id='obstetric-ever-kb'
+            label='Pernah Menggunakan KB'
+            value={everUsedKb}
+            readOnly
+          />
+          <PatientLineInput
+            id='obstetric-postpartum-kb'
+            label='Rencana KB Pasca Salin'
+            value={postPartumKb}
+            readOnly
+          />
+        </div>
+
+        <div className='pt-2 space-y-4'>
+          <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
+            Daftar Pemakaian Kontrasepsi ({kbList.length} Metode)
           </span>
-          <Badge
-            variant={everUsedKb === 'Pernah' ? 'default' : 'secondary'}
-            className='text-[10.5px]'
-          >
-            {everUsedKb}
-          </Badge>
-        </div>
 
-        <div className='grid grid-cols-2 gap-y-2 gap-x-4 mb-3'>
-          <div>
-            <span className='text-[10.5px] text-muted-foreground block mb-0.5'>
-              Riwayat Pemakaian KB
-            </span>
-            <span className='text-xs font-semibold text-foreground'>{everUsedKb}</span>
-          </div>
-          <div>
-            <span className='text-[10.5px] text-muted-foreground block mb-0.5'>
-              Rencana KB Pasca Salin
-            </span>
-            <span className='text-xs font-semibold text-foreground'>{postPartumKb}</span>
-          </div>
-        </div>
-
-        {kbList.length === 0 ? (
-          <div className='rounded-md border border-dashed border-border/60 p-4 bg-muted/10 text-center'>
-            <p className='text-xs text-muted-foreground font-medium'>
-              Belum pernah menggunakan alat atau metode kontrasepsi sebelumnya.
-            </p>
-          </div>
-        ) : (
-          <div className='divide-y divide-border/40'>
-            {kbList.map((c, idx) => (
-              <div key={idx} className='py-2 text-xs space-y-0.5'>
-                <div className='flex items-center justify-between font-semibold text-foreground'>
-                  <span>{c.contraceptiveType}</span>
-                  <span className='text-muted-foreground text-[10.5px] font-normal'>
-                    {c.durationText ||
-                      (c.startDate ? `${c.startDate} s/d ${c.stopDate || 'Sekarang'}` : '-')}
-                  </span>
+          {kbList.length === 0 ? (
+            <PatientLineInput
+              id='obstetric-no-kb'
+              label='Riwayat Kontrasepsi'
+              value='Belum pernah menggunakan alat atau metode kontrasepsi sebelumnya'
+              readOnly
+            />
+          ) : (
+            kbList.map((c, idx) => (
+              <div
+                key={idx}
+                className='space-y-3 pt-1 border-b border-border/20 pb-3 last:border-b-0'
+              >
+                <div className='grid grid-cols-2 gap-4'>
+                  <PatientLineInput
+                    id={`kb-type-${idx}`}
+                    label={`Metode KB #${idx + 1}`}
+                    value={c.contraceptiveType || '-'}
+                    readOnly
+                  />
+                  <PatientLineInput
+                    id={`kb-duration-${idx}`}
+                    label='Durasi / Periode'
+                    value={
+                      c.durationText ||
+                      (c.startDate ? `${c.startDate} s/d ${c.stopDate || 'Sekarang'}` : '-')
+                    }
+                    readOnly
+                  />
                 </div>
                 {(c.problems || c.sideEffects) && (
-                  <p className='text-muted-foreground text-[10.5px]'>
-                    Efek/Keluhan: {c.problems || c.sideEffects}
-                  </p>
+                  <PatientLineInput
+                    id={`kb-issues-${idx}`}
+                    label='Efek Samping / Keluhan'
+                    value={c.problems || c.sideEffects || '-'}
+                    readOnly
+                  />
                 )}
               </div>
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

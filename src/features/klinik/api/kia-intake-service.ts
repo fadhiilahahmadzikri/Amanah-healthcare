@@ -3,8 +3,13 @@ import {
   type FlowName,
   type IntakeType,
   KIA_API_ENDPOINTS,
-  type VaccineCatalogItem,
+  type VaccineCatalogItem
 } from '../constants/kia-constants';
+import type {
+  MaternalHistoryItem,
+  ImmunizationHistoryItem,
+  PaginatedHistoryResponse
+} from './history-queries';
 
 export type { VaccineCatalogItem };
 
@@ -217,7 +222,11 @@ export interface ChildImmunizationResponse extends CreateChildImmunizationPayloa
   intakeSubmissionId: string;
   createdAt: string;
   updatedAt: string;
-  entries?: (ChildImmunizationEntryPayload & { id: string; createdAt: string; updatedAt: string })[];
+  entries?: (ChildImmunizationEntryPayload & {
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+  })[];
   answers?: Record<string, unknown>;
   automatic?: Record<string, unknown>;
 }
@@ -393,6 +402,86 @@ class KiaIntakeService {
     );
     return res?.data ?? [];
   }
+
+  async getMaternalHistory(params?: {
+    page?: number;
+    limit?: number;
+    patientId?: string;
+    search?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<PaginatedHistoryResponse<MaternalHistoryItem>> {
+    const q = new URLSearchParams();
+    if (params?.page) q.set('page', String(params.page));
+    if (params?.limit) q.set('limit', String(params.limit));
+    if (params?.patientId) q.set('patientId', params.patientId);
+    if (params?.search) q.set('search', params.search);
+    if (params?.startDate) q.set('startDate', params.startDate);
+    if (params?.endDate) q.set('endDate', params.endDate);
+
+    const qs = q.toString() ? `?${q.toString()}` : '';
+    const res = await clientFetch<
+      | { success?: boolean; data?: PaginatedHistoryResponse<MaternalHistoryItem> }
+      | PaginatedHistoryResponse<MaternalHistoryItem>
+    >(`${KIA_API_ENDPOINTS.MATERNITY_HISTORY}${qs}`);
+
+    if (res && typeof res === 'object' && 'data' in res && res.data && 'total' in res) {
+      return res as PaginatedHistoryResponse<MaternalHistoryItem>;
+    }
+    if (
+      res &&
+      typeof res === 'object' &&
+      'data' in res &&
+      res.data &&
+      'totalPages' in (res.data as any)
+    ) {
+      return res.data as PaginatedHistoryResponse<MaternalHistoryItem>;
+    }
+    return res as PaginatedHistoryResponse<MaternalHistoryItem>;
+  }
+
+  async getImmunizationHistory(params?: {
+    page?: number;
+    limit?: number;
+    patientId?: string;
+    search?: string;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<PaginatedHistoryResponse<ImmunizationHistoryItem>> {
+    const q = new URLSearchParams();
+    if (params?.page) q.set('page', String(params.page));
+    if (params?.limit) q.set('limit', String(params.limit));
+    if (params?.patientId) q.set('patientId', params.patientId);
+    if (params?.search) q.set('search', params.search);
+    if (params?.startDate) q.set('startDate', params.startDate);
+    if (params?.endDate) q.set('endDate', params.endDate);
+
+    const qs = q.toString() ? `?${q.toString()}` : '';
+    const res = await clientFetch<
+      | { success?: boolean; data?: PaginatedHistoryResponse<ImmunizationHistoryItem> }
+      | PaginatedHistoryResponse<ImmunizationHistoryItem>
+    >(`${KIA_API_ENDPOINTS.IMMUNIZATION_HISTORY}${qs}`);
+
+    if (res && typeof res === 'object' && 'data' in res && res.data && 'total' in res) {
+      return res as PaginatedHistoryResponse<ImmunizationHistoryItem>;
+    }
+    if (
+      res &&
+      typeof res === 'object' &&
+      'data' in res &&
+      res.data &&
+      'totalPages' in (res.data as any)
+    ) {
+      return res.data as PaginatedHistoryResponse<ImmunizationHistoryItem>;
+    }
+    return res as PaginatedHistoryResponse<ImmunizationHistoryItem>;
+  }
 }
+
+export type {
+  MaternalHistoryItem,
+  ImmunizationHistoryItem,
+  PaginatedHistoryResponse
+} from './history-queries';
 
 export const kiaIntakeService = new KiaIntakeService();

@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
 import { useVaccineCatalog } from '../../model/useVaccineCatalog';
 import { calculateChildAge } from '../../utils/medical-appointment';
 import type { InspectorTabProps } from './types';
@@ -78,88 +79,88 @@ export function InspectorImmunizationTab({ appointment, data }: InspectorTabProp
 
       <div className='flex-1 overflow-y-auto min-h-0 pr-1'>
         <TabsContent value='identitas' className='m-0 outline-none'>
-          <div className='grid grid-cols-2 gap-y-3 gap-x-5'>
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                Nama Lengkap Anak
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 pt-1 pointer-events-none select-text'>
+            <div className='space-y-4'>
+              <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
+                Identitas Anak
               </span>
-              <span className='text-sm font-semibold text-foreground block truncate'>
-                {childName}
-              </span>
+              <PatientLineInput
+                id='child-name'
+                label='Nama Lengkap Anak'
+                value={childName}
+                readOnly
+              />
+              <div className='grid grid-cols-2 gap-4'>
+                <PatientLineInput
+                  id='child-nik'
+                  label='NIK Anak'
+                  value={childNik}
+                  isMonospace
+                  readOnly
+                />
+                <PatientLineInput id='child-sex' label='Jenis Kelamin' value={childSex} readOnly />
+              </div>
             </div>
 
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                NIK Anak
+            <div className='space-y-4'>
+              <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
+                Kelahiran & Kontak Wali
               </span>
-              <span className='text-sm font-semibold font-mono text-foreground block truncate'>
-                {childNik}
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                Tanggal Lahir Anak
-              </span>
-              <span className='text-sm font-semibold text-foreground block truncate'>
-                {birthDate}
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                Jenis Kelamin Anak
-              </span>
-              <span className='text-sm font-semibold text-foreground block truncate'>
-                {childSex}
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                Usia Saat Pendaftaran
-              </span>
-              <span className='text-sm font-bold font-mono text-primary block truncate'>
-                {childAge}
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                Nomor HP Orang Tua/Wali
-              </span>
-              <span className='text-sm font-semibold text-foreground block truncate'>
-                {parentPhone}
-              </span>
+              <div className='grid grid-cols-2 gap-4'>
+                <PatientLineInput
+                  id='child-birthdate'
+                  label='Tanggal Lahir Anak'
+                  value={birthDate}
+                  isMonospace
+                  readOnly
+                />
+                <PatientLineInput
+                  id='child-age'
+                  label='Usia Saat Pendaftaran'
+                  value={childAge}
+                  readOnly
+                />
+              </div>
+              <PatientLineInput
+                id='child-parent-phone'
+                label='Nomor HP Orang Tua/Wali'
+                value={parentPhone}
+                readOnly
+              />
             </div>
           </div>
         </TabsContent>
 
         <TabsContent value='orang-tua' className='m-0 outline-none'>
-          <div className='grid grid-cols-2 gap-y-3 gap-x-5'>
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                Nama Ayah
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 pt-1 pointer-events-none select-text'>
+            <div className='space-y-4'>
+              <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
+                Data Orang Tua / Wali
               </span>
-              <span className='text-sm font-semibold text-foreground block truncate'>
-                {fatherName}
-              </span>
+              <PatientLineInput
+                id='child-father-name'
+                label='Nama Ayah'
+                value={fatherName}
+                readOnly
+              />
+              <PatientLineInput
+                id='child-mother-name'
+                label='Nama Ibu'
+                value={motherName}
+                readOnly
+              />
             </div>
 
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                Nama Ibu
+            <div className='space-y-4'>
+              <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
+                Alamat Tinggal Keluarga
               </span>
-              <span className='text-sm font-semibold text-foreground block truncate'>
-                {motherName}
-              </span>
-            </div>
-
-            <div className='col-span-2 border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                Alamat Tempat Tinggal
-              </span>
-              <p className='text-sm font-medium text-foreground leading-relaxed'>{address}</p>
+              <PatientLineInput
+                id='child-address'
+                label='Alamat Tempat Tinggal'
+                value={address}
+                readOnly
+              />
             </div>
           </div>
         </TabsContent>
@@ -256,7 +257,10 @@ export function InspectorImmunizationTab({ appointment, data }: InspectorTabProp
                           : '';
 
                       return (
-                        <div key={entry.id || code} className='flex items-center justify-between py-2 text-xs'>
+                        <div
+                          key={entry.id || code}
+                          className='flex items-center justify-between py-2 text-xs'
+                        >
                           <div className='flex items-center gap-2 min-w-0 pr-2'>
                             <span className='font-semibold text-foreground truncate'>{code}</span>
                           </div>

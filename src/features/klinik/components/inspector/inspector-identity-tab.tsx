@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
 import type { InspectorTabProps } from './types';
 
 export function InspectorIdentityTab({ appointment, data }: InspectorTabProps) {
@@ -13,16 +14,11 @@ export function InspectorIdentityTab({ appointment, data }: InspectorTabProps) {
     appointment.patient_name ||
     '-';
 
-  const motherNik =
-    maternal?.motherNik ||
-    answers.motherNik ||
-    patient?.nik ||
-    '-';
+  const motherNik = maternal?.motherNik || answers.motherNik || patient?.nik || '-';
 
-  const birthPlace = answers.motherBirthPlace || patient?.birthPlace || '';
-  const birthDate = maternal?.motherBirthDate || answers.motherBirthDate || patient?.birthDate || '';
-  const motherBirth =
-    birthPlace && birthDate ? `${birthPlace}, ${birthDate}` : birthPlace || birthDate || '-';
+  const birthPlace = answers.motherBirthPlace || patient?.birthPlace || '-';
+  const birthDate =
+    maternal?.motherBirthDate || answers.motherBirthDate || patient?.birthDate || '-';
   const motherAge = maternal?.motherAge
     ? `${maternal.motherAge} Tahun`
     : answers.motherAge
@@ -30,10 +26,7 @@ export function InspectorIdentityTab({ appointment, data }: InspectorTabProps) {
       : '-';
 
   const motherBloodType =
-    maternal?.motherBloodType ||
-    answers.motherBloodType ||
-    patient?.bloodType ||
-    '-';
+    maternal?.motherBloodType || answers.motherBloodType || patient?.bloodType || '-';
 
   const tetanusStatus = maternal?.tetanusStatus || answers.tetanusStatus || '-';
 
@@ -45,10 +38,7 @@ export function InspectorIdentityTab({ appointment, data }: InspectorTabProps) {
 
   const hpht = maternal?.hpht || answers.hpht || '-';
   const hpl =
-    maternal?.estimatedDueDate ||
-    automatic.estimatedDueDate ||
-    answers.estimatedDueDate ||
-    '-';
+    maternal?.estimatedDueDate || automatic.estimatedDueDate || answers.estimatedDueDate || '-';
 
   const height = maternal?.heightCm
     ? `${maternal.heightCm} cm`
@@ -68,114 +58,139 @@ export function InspectorIdentityTab({ appointment, data }: InspectorTabProps) {
       ? `${answers.upperArmCircumferenceCm} cm`
       : '-';
 
-  const bmi =
-    maternal?.initialBmi ||
-    automatic.imtAtSubmit ||
-    answers.initialBmi ||
-    '-';
+  const bmi = maternal?.initialBmi || automatic.imtAtSubmit || answers.initialBmi || '-';
 
   const hasHealthInsurance = answers.hasHealthInsurance || '-';
   const healthInsuranceNumber = answers.healthInsuranceNumber || '-';
+  const bpjsDisplay =
+    healthInsuranceNumber !== '-'
+      ? `${hasHealthInsurance} (No: ${healthInsuranceNumber})`
+      : hasHealthInsurance;
 
   return (
-    <div className='grid grid-cols-2 gap-y-3 gap-x-5'>
-      <div className='border-b border-border/40 pb-2'>
-        <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-          Nama Lengkap Ibu
+    <div className='grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 pt-1 pointer-events-none select-text'>
+      {/* Kolom 1: Identitas & Biodata Ibu */}
+      <div className='space-y-4'>
+        <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
+          Identitas & Biodata Ibu
         </span>
-        <span className='text-sm font-semibold text-foreground block truncate'>
-          {motherName}
-        </span>
+
+        <PatientLineInput
+          id='identity-mother-name'
+          label='Nama Lengkap Ibu'
+          value={motherName}
+          readOnly
+        />
+
+        <div className='grid grid-cols-2 gap-4'>
+          <PatientLineInput
+            id='identity-mother-nik'
+            label='NIK Ibu Hamil'
+            value={motherNik}
+            isMonospace
+            readOnly
+          />
+          <PatientLineInput
+            id='identity-mother-blood'
+            label='Golongan Darah'
+            value={motherBloodType}
+            readOnly
+          />
+        </div>
+
+        <div className='grid grid-cols-2 gap-4'>
+          <PatientLineInput
+            id='identity-mother-birthplace'
+            label='Tempat Lahir'
+            value={birthPlace}
+            readOnly
+          />
+          <PatientLineInput
+            id='identity-mother-birthdate'
+            label='Tanggal Lahir'
+            value={birthDate}
+            isMonospace
+            readOnly
+          />
+        </div>
+
+        <div className='grid grid-cols-2 gap-4'>
+          <PatientLineInput id='identity-mother-age' label='Usia Ibu' value={motherAge} readOnly />
+          <PatientLineInput
+            id='identity-mother-tetanus'
+            label='Status Imunisasi TT'
+            value={tetanusStatus}
+            readOnly
+          />
+        </div>
+
+        <PatientLineInput
+          id='identity-mother-bpjs'
+          label='Jaminan Kesehatan / BPJS'
+          value={bpjsDisplay}
+          readOnly
+        />
       </div>
 
-      <div className='border-b border-border/40 pb-2'>
-        <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-          NIK Ibu Hamil
+      {/* Kolom 2: Parameter Klinis & Masa Kehamilan */}
+      <div className='space-y-4'>
+        <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
+          Parameter Klinis & Masa Kehamilan
         </span>
-        <span className='text-sm font-semibold font-mono text-foreground block truncate'>
-          {motherNik}
-        </span>
-      </div>
 
-      <div className='border-b border-border/40 pb-2'>
-        <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-          Tempat, Tanggal Lahir / Usia
-        </span>
-        <span className='text-sm font-semibold text-foreground block truncate'>
-          {motherBirth} ({motherAge})
-        </span>
-      </div>
+        <div className='grid grid-cols-2 gap-4'>
+          <PatientLineInput
+            id='identity-gestational-age'
+            label='Usia Kehamilan'
+            value={gestationalAge}
+            readOnly
+          />
+          <PatientLineInput
+            id='identity-initial-bmi'
+            label='IMT Awal Kehamilan'
+            value={String(bmi)}
+            readOnly
+          />
+        </div>
 
-      <div className='border-b border-border/40 pb-2'>
-        <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-          Golongan Darah / Status TT
-        </span>
-        <span className='text-sm font-semibold text-foreground block truncate'>
-          {motherBloodType} / {tetanusStatus}
-        </span>
-      </div>
+        <div className='grid grid-cols-2 gap-4'>
+          <PatientLineInput
+            id='identity-hpht'
+            label='HPHT (Haid Terakhir)'
+            value={hpht}
+            isMonospace
+            readOnly
+          />
+          <PatientLineInput
+            id='identity-hpl'
+            label='HPL (Taksiran Persalinan)'
+            value={hpl}
+            isMonospace
+            readOnly
+          />
+        </div>
 
-      <div className='border-b border-border/40 pb-2'>
-        <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-          Usia Kehamilan
-        </span>
-        <span className='text-sm font-bold font-mono text-primary block truncate'>
-          {gestationalAge}
-        </span>
-      </div>
+        <div className='grid grid-cols-2 gap-4'>
+          <PatientLineInput
+            id='identity-mother-height'
+            label='Tinggi Badan (TB)'
+            value={height}
+            readOnly
+          />
+          <PatientLineInput
+            id='identity-mother-weight'
+            label='Berat Badan Pra-Hamil'
+            value={weight}
+            readOnly
+          />
+        </div>
 
-      <div className='border-b border-border/40 pb-2'>
-        <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-          Indeks Massa Tubuh (IMT) Awal
-        </span>
-        <span className='text-sm font-bold font-mono text-primary block truncate'>
-          {bmi}
-        </span>
-      </div>
-
-      <div className='border-b border-border/40 pb-2'>
-        <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-          HPHT (Haid Terakhir)
-        </span>
-        <span className='text-sm font-semibold font-mono text-foreground block truncate'>
-          {hpht}
-        </span>
-      </div>
-
-      <div className='border-b border-border/40 pb-2'>
-        <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-          HPL (Taksiran Persalinan)
-        </span>
-        <span className='text-sm font-semibold font-mono text-foreground block truncate'>
-          {hpl}
-        </span>
-      </div>
-
-      <div className='border-b border-border/40 pb-2'>
-        <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-          Tinggi / Berat Badan Awal
-        </span>
-        <span className='text-sm font-semibold text-foreground block truncate'>
-          {height} / {weight}
-        </span>
-      </div>
-
-      <div className='border-b border-border/40 pb-2'>
-        <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-          Lingkar Lengan Atas (LiLA)
-        </span>
-        <span className='text-sm font-semibold text-foreground block truncate'>
-          {arm}
-        </span>
-      </div>
-
-      <div className='col-span-2 border-b border-border/40 pb-2'>
-        <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-          Jaminan Kesehatan
-        </span>
-        <span className='text-sm font-semibold text-foreground block truncate'>
-          {hasHealthInsurance} {healthInsuranceNumber !== '-' ? `(No: ${healthInsuranceNumber})` : ''}
-        </span>
+        <PatientLineInput
+          id='identity-mother-lila'
+          label='Lingkar Lengan Atas (LiLA)'
+          value={arm}
+          readOnly
+        />
       </div>
     </div>
   );

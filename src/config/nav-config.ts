@@ -91,6 +91,13 @@ export const navGroups: NavGroup[] = [
             access: { role: 'patient' }
           },
           {
+            title: 'Riwayat Medis',
+            url: '/dashboard/klinik/history',
+            icon: 'history',
+            shortcut: ['r', 'm'],
+            access: { role: 'patient' }
+          },
+          {
             title: 'Chat Konsultasi',
             url: '/dashboard/klinik/chat',
             icon: 'chat',

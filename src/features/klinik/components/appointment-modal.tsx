@@ -12,6 +12,7 @@ import { BookingCategoryStep } from './booking/booking-category-step';
 import { BookingServiceStep } from './booking/booking-service-step';
 import { BookingPatientSelectionStep } from './booking/booking-patient-selection-step';
 import { BookingRegularPatientForm } from './booking/booking-regular-patient-form';
+import { BookingRegularPatientEditModal } from './booking/booking-regular-patient-edit-modal';
 import { BookingDateStep } from './booking/booking-date-step';
 import { BookingSessionStep } from './booking/booking-session-step';
 import { BookingVisitTypeStep } from './booking/booking-visit-type-step';
@@ -20,6 +21,7 @@ import { BookingConfirmationStep } from './booking/booking-confirmation-step';
 import { BookingTicketConflictStep } from './booking/booking-ticket-conflict-step';
 import { useAppointmentModal, type UseAppointmentModalProps } from '../model/useAppointmentModal';
 import { type AppointmentFormData, QUEUE_STATUS } from '../api/types';
+import type { PatientAffiliationProfile } from '@/features/data-pasien/api/patient-affiliation-service';
 
 export interface AppointmentModalProps extends UseAppointmentModalProps {
   onViewExistingAppointment?: (appointmentId: string) => void;
@@ -65,6 +67,7 @@ export function AppointmentModal({
     stepContainerRef,
     handleSelectServiceItem,
     handlePatientCreated,
+    handlePatientUpdated,
     handleAddNewPatient,
     handleRelationshipSubmitForMedicalFlow,
     handlePatientContinue,
@@ -76,6 +79,9 @@ export function AppointmentModal({
     onSubmit
   });
 
+  const [editingPatient, setEditingPatient] = React.useState<PatientAffiliationProfile | null>(
+    null
+  );
   const [reservationContext, setReservationContext] = React.useState<ReservationContext | null>(
     null
   );
@@ -83,6 +89,7 @@ export function AppointmentModal({
 
   React.useEffect(() => {
     if (!isOpen) {
+      setEditingPatient(null);
       setReservationContext(null);
       setIsCompleted(false);
     }
@@ -111,7 +118,12 @@ export function AppointmentModal({
     <>
       <ModalWrapper
         isOpen={
-          isOpen && !activeMedicalFlow && !isQueueSuccessOpen && !reservationContext && !isCompleted
+          isOpen &&
+          !activeMedicalFlow &&
+          !isQueueSuccessOpen &&
+          !reservationContext &&
+          !isCompleted &&
+          !editingPatient
         }
         onClose={onClose}
         maxWidth={
@@ -169,6 +181,7 @@ export function AppointmentModal({
                 selectedPatientId={selectedPatientId}
                 onSelectPatient={(p) => setSelectedPatientId(p.id)}
                 onAddNewPatient={handleAddNewPatient}
+                onEditPatient={(p) => setEditingPatient(p)}
                 onContinue={handlePatientContinue}
               />
             )}
@@ -232,29 +245,7 @@ export function AppointmentModal({
                   <Button type='button' variant='ghost' size='md' shape='pill' onClick={onClose}>
                     Batal
                   </Button>
-                ) : step === 'service' ? (
-                  <Button
-                    type='button'
-                    variant='ghost'
-                    size='md'
-                    shape='pill'
-                    leadingIcon={<Icons.arrowLeft className='size-3.5' />}
-                    onClick={() => setStep('category')}
-                  >
-                    Kembali
-                  </Button>
-                ) : step === 'patient' ? (
-                  <Button
-                    type='button'
-                    variant='ghost'
-                    size='md'
-                    shape='pill'
-                    leadingIcon={<Icons.arrowLeft className='size-3.5' />}
-                    onClick={() => setStep('service')}
-                  >
-                    Kembali
-                  </Button>
-                ) : step === 'date' ? (
+                ) : (
                   <Button
                     type='button'
                     variant='ghost'
@@ -262,67 +253,20 @@ export function AppointmentModal({
                     shape='pill'
                     leadingIcon={<Icons.arrowLeft className='size-3.5' />}
                     onClick={() => {
-                      setStep(patients.length > 0 ? 'patient' : 'service');
+                      if (step === 'service') setStep('category');
+                      else if (step === 'patient') setStep('service');
+                      else if (step === 'date')
+                        setStep(patients.length > 0 ? 'patient' : 'service');
+                      else if (step === 'session') setStep('date');
+                      else if (step === 'visit_type') setStep('session');
+                      else if (step === 'complaint') setStep('visit_type');
+                      else if (step === 'confirmation') setStep('complaint');
+                      else if (step === 'ticket_conflict') setStep('date');
                     }}
                   >
-                    Kembali
+                    {step === 'ticket_conflict' ? 'Ganti Tanggal' : 'Kembali'}
                   </Button>
-                ) : step === 'session' ? (
-                  <Button
-                    type='button'
-                    variant='ghost'
-                    size='md'
-                    shape='pill'
-                    leadingIcon={<Icons.arrowLeft className='size-3.5' />}
-                    onClick={() => setStep('date')}
-                  >
-                    Kembali
-                  </Button>
-                ) : step === 'visit_type' ? (
-                  <Button
-                    type='button'
-                    variant='ghost'
-                    size='md'
-                    shape='pill'
-                    leadingIcon={<Icons.arrowLeft className='size-3.5' />}
-                    onClick={() => setStep('session')}
-                  >
-                    Kembali
-                  </Button>
-                ) : step === 'complaint' ? (
-                  <Button
-                    type='button'
-                    variant='ghost'
-                    size='md'
-                    shape='pill'
-                    leadingIcon={<Icons.arrowLeft className='size-3.5' />}
-                    onClick={() => setStep('visit_type')}
-                  >
-                    Kembali
-                  </Button>
-                ) : step === 'confirmation' ? (
-                  <Button
-                    type='button'
-                    variant='ghost'
-                    size='md'
-                    shape='pill'
-                    leadingIcon={<Icons.arrowLeft className='size-3.5' />}
-                    onClick={() => setStep('complaint')}
-                  >
-                    Kembali
-                  </Button>
-                ) : step === 'ticket_conflict' ? (
-                  <Button
-                    type='button'
-                    variant='ghost'
-                    size='md'
-                    shape='pill'
-                    leadingIcon={<Icons.arrowLeft className='size-3.5' />}
-                    onClick={() => setStep('date')}
-                  >
-                    Ganti Tanggal
-                  </Button>
-                ) : null}
+                )}
               </div>
 
               <div>
@@ -499,6 +443,17 @@ export function AppointmentModal({
           }}
         />
       ) : null}
+
+      <BookingRegularPatientEditModal
+        isOpen={Boolean(editingPatient)}
+        patient={editingPatient}
+        onClose={() => setEditingPatient(null)}
+        onSuccess={(updated) => {
+          handlePatientUpdated(updated);
+          setEditingPatient(null);
+        }}
+        allowedRelationships={bookingContext?.allowedRelationships}
+      />
     </>
   );
 }

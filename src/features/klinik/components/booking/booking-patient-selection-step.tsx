@@ -13,6 +13,7 @@ export interface BookingPatientSelectionStepProps {
   selectedPatientId: string | null;
   onSelectPatient: (patient: PatientAffiliationProfile) => void;
   onAddNewPatient: () => void;
+  onEditPatient?: (patient: PatientAffiliationProfile) => void;
   onContinue?: () => void;
 }
 
@@ -22,6 +23,7 @@ export function BookingPatientSelectionStep({
   selectedPatientId,
   onSelectPatient,
   onAddNewPatient,
+  onEditPatient,
   onContinue: _onContinue
 }: BookingPatientSelectionStepProps) {
   const patientList = affiliations ?? patients ?? [];
@@ -57,6 +59,7 @@ export function BookingPatientSelectionStep({
             patient={patient}
             isSelected={selectedPatientId === patient.id}
             onSelect={onSelectPatient}
+            onEdit={onEditPatient}
           />
         ))}
 

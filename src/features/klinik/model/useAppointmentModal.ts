@@ -88,8 +88,9 @@ export function useAppointmentModal({
   const [isQueueSuccessOpen, setIsQueueSuccessOpen] = useState(false);
   const [createdAppointment, setCreatedAppointment] = useState<Appointment | null>(null);
 
-  const [activeTicketConflict, setActiveTicketConflict] =
-    useState<ActiveTicketConflictInfo | null>(null);
+  const [activeTicketConflict, setActiveTicketConflict] = useState<ActiveTicketConflictInfo | null>(
+    null
+  );
   const [isCheckingActiveTicket, setIsCheckingActiveTicket] = useState(false);
 
   useEffect(() => {
@@ -398,6 +399,12 @@ export function useAppointmentModal({
     toast.success('Data profil pasien berhasil didaftarkan');
   };
 
+  const handlePatientUpdated = useCallback((updatedPatient: PatientAffiliationProfile) => {
+    setPatients((prev) =>
+      prev.map((p) => (p.id === updatedPatient.id ? { ...p, ...updatedPatient } : p))
+    );
+  }, []);
+
   const handleSessionContinue = useCallback(() => {
     if (activeTicketConflict) {
       toast.info(
@@ -461,7 +468,9 @@ export function useAppointmentModal({
       toast.success('Janji temu berhasil dibuat beserta tiket antrean resmi');
     } catch (err: unknown) {
       if (err instanceof AppError && err.status === 409) {
-        const activeTicket = (err.problemDetails as { activeTicket?: ActiveTicketConflictInfo } | undefined)?.activeTicket;
+        const activeTicket = (
+          err.problemDetails as { activeTicket?: ActiveTicketConflictInfo } | undefined
+        )?.activeTicket;
         if (activeTicket) {
           setActiveTicketConflict(activeTicket);
           toast.warning(
@@ -523,6 +532,7 @@ export function useAppointmentModal({
     stepContainerRef,
     handleSelectServiceItem,
     handlePatientCreated,
+    handlePatientUpdated,
     handleAddNewPatient,
     handleRelationshipSubmitForMedicalFlow,
     handlePatientContinue,

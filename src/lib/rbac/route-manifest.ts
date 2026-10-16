@@ -113,6 +113,13 @@ export const routeManifest: RouteRule[] = [
 
   // 5. Patient-Only Protected Routes
   {
+    pattern: '/dashboard/klinik/history',
+    match: 'prefix',
+    visibility: 'protected',
+    allowedRoles: ['patient'],
+    description: 'Riwayat Formulir Medis Pasien (Imunisasi & Persalinan)'
+  },
+  {
     pattern: '/dashboard/klinik',
     match: 'prefix',
     visibility: 'protected',

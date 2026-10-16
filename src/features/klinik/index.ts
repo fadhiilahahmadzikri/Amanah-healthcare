@@ -13,6 +13,13 @@ export type { PatientCheckInModalProps } from './components/patient-check-in-mod
 export { AppointmentPagination } from './components/appointment-pagination';
 export { GuideView } from './components/guide-view';
 export { QueueView } from './components/queue-view';
+export {
+  ClinicalHistoryTables,
+  ClinicalHistoryTableSkeleton,
+  ClinicalHistoryTables as ClinicalHistoryView
+} from './components/history/history-tables';
+export { useClinicalHistoryTable } from './model/useClinicalHistoryTable';
+export { useClinicalHistoryDialogs } from './model/useClinicalHistoryDialogs';
 export { useAppointmentsView } from './model/useAppointmentsView';
 export { useQueueView } from './model/useQueueView';
 export { useConsultationTimer } from './hooks/useConsultationTimer';

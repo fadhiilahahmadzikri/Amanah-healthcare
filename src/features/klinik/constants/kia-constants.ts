@@ -125,7 +125,10 @@ export type IntakeType = (typeof INTAKE_TYPES)[keyof typeof INTAKE_TYPES];
 
 export const KIA_API_ENDPOINTS = {
   MATERNITY_INTAKE: '/api/v1/medical-records/intakes/maternity',
+  MATERNITY_HISTORY: '/api/v1/medical-records/intakes/maternity/history',
   IMMUNIZATION_INTAKE: '/api/v1/medical-records/intakes/immunization',
+  IMMUNIZATION_HISTORY: '/api/v1/medical-records/intakes/immunization/history',
+  FORM_REQUIREMENT: '/api/v1/medical-records/intakes/form-requirement',
   INTAKE_BY_APPOINTMENT: '/api/v1/medical-records/intakes/by-appointment',
   MATERNAL_QUESTIONS: '/api/v1/medical-records/maternal/catalogs/questions',
   MATERNAL_CONDITIONS: '/api/v1/medical-records/maternal/catalogs/conditions',

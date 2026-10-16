@@ -13,6 +13,15 @@ export interface PatientAffiliationProfile {
   gender: 'L' | 'P' | 'LAKI_LAKI' | 'PEREMPUAN' | string;
   bloodType?: 'A' | 'B' | 'AB' | 'O' | string | null;
   address?: string | null;
+  alamatDetail?: string | null;
+  provinsi?: string | null;
+  provinsiId?: string | null;
+  kabupaten?: string | null;
+  kabupatenId?: string | null;
+  kecamatan?: string | null;
+  kecamatanId?: string | null;
+  kelurahan?: string | null;
+  kelurahanId?: string | null;
   relationship: 'self' | 'spouse' | 'child' | 'parent' | 'sibling' | 'relative' | 'other' | string;
   relationshipLabel?: string;
   occupationCode?: string | null;
@@ -34,9 +43,25 @@ export interface BookingContextPatient {
   nik: string;
   gender: string;
   bloodType: string | null;
+  motherName?: string | null;
+  birthPlace?: string | null;
+  birthDate?: string | null;
+  address?: string | null;
+  alamatDetail?: string | null;
+  provinsi?: string | null;
+  provinsiId?: string | null;
+  kabupaten?: string | null;
+  kabupatenId?: string | null;
+  kecamatan?: string | null;
+  kecamatanId?: string | null;
+  kelurahan?: string | null;
+  kelurahanId?: string | null;
+  phoneNumber?: string | null;
+  email?: string | null;
   relationship: string;
   relationshipLabel: string;
   occupationName: string | null;
+  occupationCode?: string | null;
   status?: string;
   isActive?: boolean;
   hasExistingIntake: boolean;
@@ -120,12 +145,21 @@ function mapAffiliationEntityToProfile(entity: any): PatientAffiliationProfile {
     affiliationId: entity.id,
     fullName: patient?.fullName ?? '',
     nik: patient?.nik ?? '',
-    motherName: patient?.namaIbuKandung ?? null,
+    motherName: patient?.namaIbuKandung ?? patient?.motherName ?? null,
     placeOfBirth: patient?.birthPlace ?? null,
     dateOfBirth: patient?.birthDate ?? null,
     gender: normalizeGender(patient?.gender) === 'female' ? 'P' : 'L',
     bloodType: (patient?.bloodType as PatientBloodType) ?? null,
     address: primaryAddress?.fullAddress ?? primaryAddress?.line1 ?? patient?.address ?? null,
+    alamatDetail: primaryAddress?.line1 ?? patient?.alamatDetail ?? null,
+    provinsi: primaryAddress?.provinceName ?? patient?.provinsi ?? null,
+    provinsiId: primaryAddress?.provinceCode ?? patient?.provinsiId ?? null,
+    kabupaten: primaryAddress?.regencyName ?? patient?.kabupaten ?? null,
+    kabupatenId: primaryAddress?.regencyCode ?? patient?.kabupatenId ?? null,
+    kecamatan: primaryAddress?.districtName ?? patient?.kecamatan ?? null,
+    kecamatanId: primaryAddress?.districtCode ?? patient?.kecamatanId ?? null,
+    kelurahan: primaryAddress?.villageName ?? patient?.kelurahan ?? null,
+    kelurahanId: primaryAddress?.villageCode ?? patient?.kelurahanId ?? null,
     relationship: entity.relationshipType,
     relationshipLabel:
       entity.relationLabel ??

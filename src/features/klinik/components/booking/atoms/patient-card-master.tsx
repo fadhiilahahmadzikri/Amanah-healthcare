@@ -10,6 +10,7 @@ export interface PatientCardMasterProps {
   patient: PatientAffiliationProfile;
   isSelected?: boolean;
   onSelect?: (patient: PatientAffiliationProfile) => void;
+  onEdit?: (patient: PatientAffiliationProfile) => void;
   className?: string;
   children?: React.ReactNode;
 }
@@ -18,6 +19,7 @@ export function PatientCardMaster({
   patient,
   isSelected = false,
   onSelect,
+  onEdit,
   className,
   children
 }: PatientCardMasterProps) {
@@ -25,16 +27,21 @@ export function PatientCardMaster({
   const relationshipLabel =
     patient.relationshipLabel || (isSelf ? 'Diri Sendiri' : patient.relationship);
   const isInactive =
-    patient.status === 'inactive' ||
-    patient.status === 'Nonaktif' ||
-    patient.isActive === false;
+    patient.status === 'inactive' || patient.status === 'Nonaktif' || patient.isActive === false;
 
   return (
-    <button
-      type='button'
-      disabled={isInactive}
+    <div
+      role='button'
+      tabIndex={isInactive ? -1 : 0}
+      aria-disabled={isInactive}
       onClick={() => {
         if (!isInactive) {
+          onSelect?.(patient);
+        }
+      }}
+      onKeyDown={(e) => {
+        if (!isInactive && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
           onSelect?.(patient);
         }
       }}
@@ -61,6 +68,20 @@ export function PatientCardMaster({
       </div>
 
       <div className='shrink-0 flex items-center gap-1.5'>
+        {onEdit && !isInactive && (
+          <button
+            type='button'
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(patient);
+            }}
+            className='size-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 flex items-center justify-center transition shrink-0'
+            title='Edit data pasien'
+            aria-label={`Edit data ${patient.fullName}`}
+          >
+            <Icons.edit className='size-3.5' />
+          </button>
+        )}
         {isInactive && (
           <Badge
             variant='outline'
@@ -81,6 +102,6 @@ export function PatientCardMaster({
           {relationshipLabel}
         </Badge>
       </div>
-    </button>
+    </div>
   );
 }
