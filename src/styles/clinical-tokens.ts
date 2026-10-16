@@ -238,6 +238,11 @@ export const getStatusConfig = (status: string): StatusConfig => {
         ...clinicalTokens.colors.status.upcoming,
         label: 'Cuti'
       };
+    case 'PENDING':
+      return {
+        ...clinicalTokens.colors.status.pending,
+        label: 'Menunggu Verifikasi'
+      };
     case APPOINTMENT_STATUS.BOOKED:
       return {
         ...clinicalTokens.colors.status.upcoming,

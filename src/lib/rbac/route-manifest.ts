@@ -69,6 +69,13 @@ export const routeManifest: RouteRule[] = [
     description: 'Pengaturan Jadwal dan Shift Dokter'
   },
   {
+    pattern: '/dashboard/staff',
+    match: 'prefix',
+    visibility: 'protected',
+    allowedRoles: ['admin'],
+    description: 'Manajemen Staf Operasional & Roster Kerja Klinik'
+  },
+  {
     pattern: '/dashboard/kehadiran-pegawai',
     match: 'prefix',
     visibility: 'protected',

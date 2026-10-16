@@ -1,7 +1,5 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
-import { toast } from 'sonner';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,12 +9,23 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
-import { StaffMember, staffManagementApi } from '../api/staff-management.api';
+import type { StaffMember } from '../api/staff-management.api';
+import { useStaffRosterModal } from '../model/useStaffRosterModal';
 
 export interface StaffRosterModalProps {
   staff: StaffMember | null;
@@ -25,188 +34,9 @@ export interface StaffRosterModalProps {
   onSuccess?: () => void;
 }
 
-export function StaffRosterModal({ staff, isOpen, onClose, onSuccess }: StaffRosterModalProps) {
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [isOverride, setIsOverride] = useState(false);
-  const [days, setDays] = useState<Array<{ dow: number; label: string; isActive: boolean }>>([]);
-  const [sessionDefs, setSessionDefs] = useState<
-    Array<{ id: string; code: string; label: string; timeRange?: string; isActive: boolean }>
-  >([]);
-  const [selectedAssignments, setSelectedAssignments] = useState<Record<string, boolean>>({});
-  const [templateAssignments, setTemplateAssignments] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    if (!isOpen || !staff) return;
-    let cancelled = false;
-
-    setLoading(true);
-
-    Promise.all([
-      staffManagementApi.getScheduleSessions(),
-      staffManagementApi.getStaffRoster(staff.id)
-    ])
-      .then(([config, currentRosters]) => {
-        if (cancelled) return;
-
-        const activeSessions = (config.sessionDefs || []).filter((s) => s.isActive);
-        setSessionDefs(activeSessions);
-
-        const configDays =
-          config.days && config.days.length > 0
-            ? config.days
-            : [
-                { dow: 1, label: 'Senin', isActive: true },
-                { dow: 2, label: 'Selasa', isActive: true },
-                { dow: 3, label: 'Rabu', isActive: true },
-                { dow: 4, label: 'Kamis', isActive: true },
-                { dow: 5, label: 'Jumat', isActive: true },
-                { dow: 6, label: 'Sabtu', isActive: true },
-                { dow: 0, label: 'Minggu', isActive: false }
-              ];
-        setDays(configDays);
-
-        // Compute template assignments from weeklyTemplates
-        const tplMap: Record<string, boolean> = {};
-        if (config.weeklyTemplates) {
-          for (const t of config.weeklyTemplates) {
-            if (t.isActive) {
-              tplMap[`${t.dow}_${t.sessionId}`] = true;
-            }
-          }
-        }
-        setTemplateAssignments(tplMap);
-
-        const hasOverride = currentRosters.some((r) => r.isOverride === true);
-        setIsOverride(hasOverride);
-
-        const currentMap: Record<string, boolean> = {};
-        for (const r of currentRosters) {
-          if (r.isActive !== false) {
-            currentMap[`${r.dow}_${r.sessionId}`] = true;
-          }
-        }
-        setSelectedAssignments(currentMap);
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) {
-          const msg =
-            err instanceof Error ? err.message : 'Gagal memuat konfigurasi jadwal shift staf.';
-          toast.error(msg);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isOpen, staff]);
-
-  const toggleSession = useCallback((dow: number, sessionId: string) => {
-    const key = `${dow}_${sessionId}`;
-    setSelectedAssignments((prev) => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
-  }, []);
-
-  const toggleDay = useCallback(
-    (dow: number) => {
-      const isCurrentlyActiveOnDay = sessionDefs.some((s) =>
-        Boolean(selectedAssignments[`${dow}_${s.id}`])
-      );
-
-      setSelectedAssignments((prev) => {
-        const next = { ...prev };
-        for (const s of sessionDefs) {
-          const key = `${dow}_${s.id}`;
-          next[key] = !isCurrentlyActiveOnDay;
-        }
-        return next;
-      });
-    },
-    [sessionDefs, selectedAssignments]
-  );
-
-  const resetDayToTemplate = useCallback(
-    (dow: number) => {
-      setSelectedAssignments((prev) => {
-        const next = { ...prev };
-        for (const s of sessionDefs) {
-          const key = `${dow}_${s.id}`;
-          next[key] = Boolean(templateAssignments[key]);
-        }
-        return next;
-      });
-      const dayObj = days.find((d) => d.dow === dow);
-      toast.info(`Jadwal hari ${dayObj?.label || dow} disesuaikan ke template mingguan klinik`);
-    },
-    [days, sessionDefs, templateAssignments]
-  );
-
-  const handleResetToTemplate = async () => {
-    if (!staff) return;
-    if (
-      !confirm(
-        `Reset jadwal shift roster ${staff.fullName} ke template mingguan klinik? Seluruh override khusus akan dihapus.`
-      )
-    ) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-      await staffManagementApi.resetStaffRoster(staff.id);
-      setIsOverride(false);
-      setSelectedAssignments({ ...templateAssignments });
-      toast.success(
-        `Roster ${staff.fullName} berhasil dikembalikan ke template master mingguan klinik.`
-      );
-      onSuccess?.();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Gagal mereset roster staf.';
-      toast.error(msg);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSave = async () => {
-    if (!staff) return;
-
-    try {
-      setSaving(true);
-      const activeRosters: Array<{ sessionId: string; dow: number }> = [];
-
-      for (const day of days) {
-        for (const s of sessionDefs) {
-          const key = `${day.dow}_${s.id}`;
-          if (selectedAssignments[key]) {
-            activeRosters.push({
-              dow: day.dow,
-              sessionId: s.id
-            });
-          }
-        }
-      }
-
-      await staffManagementApi.updateStaffRoster(staff.id, {
-        rosters: activeRosters
-      });
-
-      setIsOverride(true);
-      toast.success(`Jadwal shift roster untuk ${staff.fullName} berhasil disimpan!`);
-      onSuccess?.();
-      onClose();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Gagal menyimpan roster staf.';
-      toast.error(msg);
-    } finally {
-      setSaving(false);
-    }
-  };
+export function StaffRosterModal(props: StaffRosterModalProps) {
+  const { staff, isOpen, onClose } = props;
+  const roster = useStaffRosterModal(props);
 
   if (!staff) return null;
 
@@ -230,18 +60,29 @@ export function StaffRosterModal({ staff, isOpen, onClose, onSuccess }: StaffRos
               </DialogDescription>
             </div>
 
-            <Badge variant={isOverride ? 'default' : 'outline'} className='text-[11px] shrink-0'>
-              {isOverride ? 'Override Khusus' : 'Template Master Klinik'}
+            <Badge
+              variant={roster.isOverride ? 'default' : 'outline'}
+              className='text-[11px] shrink-0'
+            >
+              {roster.isOverride ? 'Override Khusus' : 'Template Master Klinik'}
             </Badge>
           </div>
         </DialogHeader>
 
         <div className='flex-1 overflow-y-auto p-6'>
-          {loading ? (
+          {roster.loading ? (
             <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3'>
-              {Array.from({ length: 7 }).map((_, i) => (
+              {[
+                'sk-rost-1',
+                'sk-rost-2',
+                'sk-rost-3',
+                'sk-rost-4',
+                'sk-rost-5',
+                'sk-rost-6',
+                'sk-rost-7'
+              ].map((skKey) => (
                 <div
-                  key={i}
+                  key={skKey}
                   className='p-3.5 rounded-xl border border-border/50 bg-card/60 space-y-3'
                 >
                   <div className='flex items-center justify-between pb-2 border-b border-border/40'>
@@ -258,15 +99,15 @@ export function StaffRosterModal({ staff, isOpen, onClose, onSuccess }: StaffRos
             </div>
           ) : (
             <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3'>
-              {days.map((day) => {
-                const isStaffAssignedOnDay = sessionDefs.some((s) =>
-                  Boolean(selectedAssignments[`${day.dow}_${s.id}`])
+              {roster.days.map((day) => {
+                const isStaffAssignedOnDay = roster.sessionDefs.some((s) =>
+                  Boolean(roster.selectedAssignments[`${day.dow}_${s.id}`])
                 );
 
-                const hasDayDiffFromTemplate = sessionDefs.some(
+                const hasDayDiffFromTemplate = roster.sessionDefs.some(
                   (s) =>
-                    Boolean(selectedAssignments[`${day.dow}_${s.id}`]) !==
-                    Boolean(templateAssignments[`${day.dow}_${s.id}`])
+                    Boolean(roster.selectedAssignments[`${day.dow}_${s.id}`]) !==
+                    Boolean(roster.templateAssignments[`${day.dow}_${s.id}`])
                 );
 
                 return (
@@ -296,7 +137,7 @@ export function StaffRosterModal({ staff, isOpen, onClose, onSuccess }: StaffRos
                         {hasDayDiffFromTemplate && (
                           <button
                             type='button'
-                            onClick={() => resetDayToTemplate(day.dow)}
+                            onClick={() => roster.resetDayToTemplate(day.dow)}
                             title={`Sesuaikan jadwal hari ${day.label} ke template mingguan`}
                             className='size-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors cursor-pointer'
                           >
@@ -313,16 +154,16 @@ export function StaffRosterModal({ staff, isOpen, onClose, onSuccess }: StaffRos
                         </span>
                         <Switch
                           checked={isStaffAssignedOnDay}
-                          onCheckedChange={() => toggleDay(day.dow)}
+                          onCheckedChange={() => roster.toggleDay(day.dow)}
                           aria-label={`Aktifkan jadwal staf hari ${day.label}`}
                         />
                       </div>
                     </div>
 
                     <div className='space-y-1.5'>
-                      {sessionDefs.map((s) => {
+                      {roster.sessionDefs.map((s) => {
                         const key = `${day.dow}_${s.id}`;
-                        const isChecked = Boolean(selectedAssignments[key]);
+                        const isChecked = Boolean(roster.selectedAssignments[key]);
 
                         return (
                           <label
@@ -341,7 +182,7 @@ export function StaffRosterModal({ staff, isOpen, onClose, onSuccess }: StaffRos
                                 type='checkbox'
                                 aria-label={`${day.label} ${s.label}`}
                                 checked={isChecked}
-                                onChange={() => toggleSession(day.dow, s.id)}
+                                onChange={() => roster.toggleSession(day.dow, s.id)}
                                 className='size-4 rounded border-border text-primary focus:ring-primary/30 accent-primary cursor-pointer shrink-0'
                               />
                               <div className='min-w-0 flex-1 flex flex-col'>
@@ -372,10 +213,10 @@ export function StaffRosterModal({ staff, isOpen, onClose, onSuccess }: StaffRos
               type='button'
               variant='outline'
               size='sm'
-              disabled={loading || saving || !isOverride}
-              onClick={handleResetToTemplate}
+              disabled={roster.loading || roster.saving || !roster.isOverride}
+              onClick={roster.openResetConfirm}
               title={
-                isOverride
+                roster.isOverride
                   ? 'Kembalikan seluruh jadwal staf ke template mingguan klinik'
                   : 'Jadwal staf sudah mengikuti template mingguan klinik'
               }
@@ -387,17 +228,17 @@ export function StaffRosterModal({ staff, isOpen, onClose, onSuccess }: StaffRos
           </div>
 
           <div className='flex items-center gap-2'>
-            <Button type='button' variant='outline' onClick={onClose} disabled={saving}>
+            <Button type='button' variant='outline' onClick={onClose} disabled={roster.saving}>
               Tutup
             </Button>
             <Button
               type='button'
               variant='default'
-              disabled={loading || saving}
-              onClick={handleSave}
+              disabled={roster.loading || roster.saving}
+              onClick={roster.handleSave}
               className='font-bold min-w-[120px]'
             >
-              {saving ? (
+              {roster.saving ? (
                 <>
                   <Icons.spinner className='size-4 animate-spin mr-2' />
                   Menyimpan...
@@ -409,6 +250,28 @@ export function StaffRosterModal({ staff, isOpen, onClose, onSuccess }: StaffRos
           </div>
         </div>
       </DialogContent>
+
+      <AlertDialog open={roster.isResetConfirmOpen} onOpenChange={roster.closeResetConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset Jadwal Shift ke Template?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Seluruh penyesuaian jadwal roster khusus untuk{' '}
+              <span className='font-semibold text-foreground'>{staff.fullName}</span> akan dihapus
+              dan dikembalikan mengikuti konfigurasi template master mingguan klinik.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={roster.closeResetConfirm}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={roster.handleConfirmResetToTemplate}
+              className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
+            >
+              Ya, Reset ke Template
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }

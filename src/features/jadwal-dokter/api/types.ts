@@ -13,8 +13,8 @@ export type { ShiftOperationalStatus } from '../constants/schedule-shift.constan
 
 import type { UpdateAdminDoctorSessionPayload } from '@/server/contracts/schedules/doctor-schedules.dto';
 
-export type ScheduleDayStatus = 'OPEN' | 'CLOSED';
-export type SessionStatus = 'OPEN' | 'CLOSED';
+export type ScheduleDayStatus = 'OPEN' | 'CLOSED' | 'PENDING';
+export type SessionStatus = 'OPEN' | 'CLOSED' | 'PENDING';
 
 export interface DoctorDailySession {
   id: string;
@@ -48,16 +48,18 @@ export interface DoctorCardPatientPreview {
 export interface DoctorSchedule {
   id: string;
   practitioner_id?: string;
+  staff_profile_id?: string | null;
+  staff_id?: string | null;
   nama_dokter: string;
   spesialisasi: string;
-  status_dokter: 'OPEN' | 'CLOSED' | string;
+  status_dokter: 'OPEN' | 'CLOSED' | 'PENDING' | string;
   email?: string | null;
   nomor_telepon?: string | null;
   ruang_praktik: string;
   tanggal_praktik?: string;
   avatar?: string;
   jadwal_hari_ini: string;
-  status_jadwal: 'OPEN' | 'CLOSED' | string;
+  status_jadwal: 'OPEN' | 'CLOSED' | 'PENDING' | string;
   bulan_jadwal?: string;
   monthly_schedule?: MonthlyScheduleDay[];
   sesi_harian?: DoctorDailySession[];
@@ -68,6 +70,7 @@ export interface DoctorSchedule {
   jadwal_praktik_mendatang?: string;
   total_pasien?: number;
   pasien_preview?: DoctorCardPatientPreview[];
+  is_accepting_appointments?: boolean;
 }
 
 export interface DoctorScheduleFilters {

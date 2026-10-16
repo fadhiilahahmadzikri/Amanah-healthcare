@@ -5,6 +5,8 @@ export const ROUTES = {
   verifyOtp: '/verify-otp',
   dashboard: '/dashboard',
   dashboardAdmin: '/dashboard/admin',
+  dashboardStaff: '/dashboard/staff',
+  dashboardDoctorSchedules: '/dashboard/jadwal-dokter',
   dashboardPatient: '/dashboard/klinik/antrean',
   sessionExpired: '/api/auth/session-expired'
 } as const;

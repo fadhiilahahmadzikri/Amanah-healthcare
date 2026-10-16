@@ -1,29 +1,43 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
 import { InviteDoctorModal } from '@/features/staff-management';
+import { cn } from '@/lib/utils';
+import { doctorScheduleKeys } from '../api/query-keys';
 import { useDoctorSchedulePresenter } from '../model/useDoctorSchedulePresenter';
-import { DoctorScheduleFilters } from './doctor-schedule-filters';
-import { DoctorScheduleMobileFilterToolbar } from './doctor-schedule-mobile-filter-toolbar';
+import { DoctorAssignmentModal } from './doctor-assignment-modal';
+import { DoctorExportButton } from './doctor-export-button';
+import { DoctorDetailEditModal } from './doctor-detail-edit-modal';
 import { DoctorScheduleCard } from './doctor-schedule-card';
 import { DoctorScheduleDetailSheet } from './doctor-schedule-detail-sheet';
-import { DoctorExportButton } from './doctor-export-button';
+import { DoctorScheduleFilters } from './doctor-schedule-filters';
+import { DoctorScheduleMobileFilterToolbar } from './doctor-schedule-mobile-filter-toolbar';
 import { DoctorSchedulePagination } from './doctor-schedule-pagination';
 import { DoctorScheduleSettingsButton, DoctorScheduleSettingsModal } from './settings';
-import { DoctorAssignmentModal } from './doctor-assignment-modal';
+import type { DoctorSchedule } from '../api/types';
 
 export function DoctorScheduleView() {
+  const queryClient = useQueryClient();
   const { scheduleView, settingsCycle, assignmentModal, selectedDateParam, actions } =
     useDoctorSchedulePresenter();
   const [isInviteDoctorOpen, setIsInviteDoctorOpen] = useState(false);
+  const [selectedDoctorForModal, setSelectedDoctorForModal] = useState<DoctorSchedule | null>(null);
 
   return (
     <>
+      <DoctorDetailEditModal
+        doctor={selectedDoctorForModal}
+        isOpen={Boolean(selectedDoctorForModal)}
+        onClose={() => setSelectedDoctorForModal(null)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all });
+        }}
+      />
       <DoctorScheduleDetailSheet
         doctor={scheduleView.selectedDoctor}
         isOpen={scheduleView.isDetailOpen}
@@ -46,9 +60,7 @@ export function DoctorScheduleView() {
         isOpen={isInviteDoctorOpen}
         onClose={() => setIsInviteDoctorOpen(false)}
         onSuccess={() => {
-          if (typeof window !== 'undefined') {
-            window.location.reload();
-          }
+          queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all });
         }}
       />
 
@@ -79,7 +91,7 @@ export function DoctorScheduleView() {
                   className='h-9 gap-1.5'
                 >
                   <Icons.userPlus className='h-4 w-4' />
-                  Tambah Dokter
+                  Undang Praktisi
                 </Button>
                 <DoctorExportButton data={scheduleView.doctors} />
                 <DoctorScheduleSettingsButton onSelectCategory={actions.openConfiguration} />
@@ -102,9 +114,9 @@ export function DoctorScheduleView() {
               <ScrollArea className='h-full w-full pr-0 md:pr-3'>
                 <div className='pb-20 pt-1'>
                   <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5'>
-                    {Array.from({ length: 6 }).map((_, i) => (
+                    {['sk-1', 'sk-2', 'sk-3', 'sk-4', 'sk-5', 'sk-6'].map((skId) => (
                       <div
-                        key={i}
+                        key={skId}
                         className='h-[340px] rounded-[24px] bg-muted/20 animate-pulse border border-border/40'
                       />
                     ))}
@@ -154,6 +166,7 @@ export function DoctorScheduleView() {
                             (scheduleView.selectedDoctorId === doctor.id ||
                               scheduleView.selectedDoctorId === doctor.practitioner_id)
                           )}
+                          onCardClick={(doc) => setSelectedDoctorForModal(doc)}
                           onOpenDetail={scheduleView.actions.openDetail}
                           onOpenSettings={actions.openSettingsForDoctor}
                         />

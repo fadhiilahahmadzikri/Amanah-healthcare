@@ -1,4 +1,5 @@
 import { clientFetch } from '@/lib/client-fetch';
+import { normalizeGender } from '@/constants/gender.constants';
 import type { QueueLoadStatus } from '@/features/klinik/constants/queue-load.constants';
 
 export interface PatientAffiliationProfile {
@@ -122,10 +123,7 @@ function mapAffiliationEntityToProfile(entity: any): PatientAffiliationProfile {
     motherName: patient?.namaIbuKandung ?? null,
     placeOfBirth: patient?.birthPlace ?? null,
     dateOfBirth: patient?.birthDate ?? null,
-    gender:
-      patient?.gender === 'female' || patient?.gender === 'Perempuan' || patient?.gender === 'P'
-        ? 'P'
-        : 'L',
+    gender: normalizeGender(patient?.gender) === 'female' ? 'P' : 'L',
     bloodType: (patient?.bloodType as PatientBloodType) ?? null,
     address: primaryAddress?.fullAddress ?? primaryAddress?.line1 ?? patient?.address ?? null,
     relationship: entity.relationshipType,
@@ -310,8 +308,8 @@ export const patientAffiliationService = {
         query: {
           patientId: params.patientId,
           categoryId: params.categoryId,
-          date: params.date,
-        },
+          date: params.date
+        }
       });
       return res;
     } catch {
@@ -338,8 +336,8 @@ export const patientAffiliationService = {
         cache: 'no-store',
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate',
-          Pragma: 'no-cache',
-        },
+          Pragma: 'no-cache'
+        }
       });
       if (Array.isArray(res)) return res;
       if (res && 'data' in res && Array.isArray(res.data)) return res.data;

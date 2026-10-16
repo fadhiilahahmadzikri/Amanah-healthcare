@@ -1,4 +1,5 @@
 import { clientFetch } from '@/lib/client-fetch';
+import type { StaffInvitationStatus, StaffRoleCode, StaffType } from '../constants/staff.constants';
 
 export interface PolyclinicUnit {
   id: string;
@@ -29,8 +30,9 @@ export interface StaffMember {
   poliklinikId: string;
   fullName: string;
   profession: string;
-  staffType: 'doctor' | 'midwife' | 'worker';
+  staffType: StaffType;
   idCardNumber: string;
+  licenseNumber?: string | null;
   birthPlace?: string | null;
   birthDate?: string | null;
   gender?: 'male' | 'female' | null;
@@ -47,9 +49,9 @@ export interface StaffMember {
 export interface StaffInvitation {
   id: string;
   email: string;
-  roleCode: string;
-  staffType: 'doctor' | 'midwife' | 'worker';
-  status: 'pending' | 'accepted' | 'expired' | 'revoked';
+  roleCode: StaffRoleCode | string;
+  staffType: StaffType;
+  status: StaffInvitationStatus;
   expiresAt: string;
   acceptedAt?: string | null;
   createdAt: string;
@@ -78,16 +80,28 @@ export interface StaffRosterItem {
   };
 }
 
+export interface PractitionerRoleOption {
+  code: string;
+  name: string;
+  description?: string | null;
+}
+
+export interface InvitationOptionsResponse {
+  practitionerRoles: PractitionerRoleOption[];
+  polyclinics: PolyclinicUnit[];
+}
+
 export interface InviteDoctorPayload {
   email: string;
   poliklinikId: string;
   fullName?: string;
+  roleCode?: string;
 }
 
 export interface InviteStaffPayload {
   email: string;
   fullName?: string;
-  roleCode?: 'staff_worker' | 'staff_midwife';
+  roleCode?: StaffRoleCode | string;
 }
 
 export interface BulkReplaceRosterPayload {
@@ -99,6 +113,9 @@ export interface BulkReplaceRosterPayload {
 }
 
 export const staffManagementApi = {
+  getInvitationOptions: () =>
+    clientFetch<InvitationOptionsResponse>('/api/v1/admin/invitations/options'),
+
   getPolyclinics: () => clientFetch<PolyclinicUnit[]>('/api/v1/clinics/poliklinik'),
 
   getAllStaffs: () => clientFetch<StaffMember[]>('/api/v1/staffs'),

@@ -26,10 +26,8 @@ export interface PatientColumnsOptions {
   bloodTypes?: ReferenceOptionItem[];
 }
 
-export const DEFAULT_GENDER_OPTIONS: ReferenceOptionItem[] = [
-  { label: 'Laki-laki', value: 'male' },
-  { label: 'Perempuan', value: 'female' }
-];
+import { DEFAULT_GENDER_OPTIONS } from '@/constants/gender.constants';
+export { DEFAULT_GENDER_OPTIONS };
 
 export const DEFAULT_STATUS_OPTIONS: ReferenceOptionItem[] = [
   { label: 'Aktif', value: 'active' },

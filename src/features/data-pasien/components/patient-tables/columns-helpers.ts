@@ -48,15 +48,7 @@ export function getRelationshipBadge(type?: string | null, label?: string | null
   return { label: displayLabel, statusKey };
 }
 
-export const GENDER_LABEL_MAP: Record<string, string> = {
-  male: 'Laki-laki',
-  female: 'Perempuan'
-};
-
-export function getGenderLabel(gender?: string | null): string {
-  if (!gender) return '-';
-  return GENDER_LABEL_MAP[gender] || gender;
-}
+export { GENDER_LABEL_MAP, getGenderLabel } from '@/constants/gender.constants';
 
 export const PROFILE_TYPE_OPTIONS = [
   { label: 'Akun Utama', value: 'master' },

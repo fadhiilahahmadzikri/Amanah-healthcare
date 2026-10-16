@@ -8,6 +8,7 @@ import { paths } from '@/server/api/paths';
 import { getAccessTokenCookie } from '@/server/auth/token-store';
 import { AppError } from '@/core/errors/app-error';
 import { mapBackendPatient } from './service';
+import { normalizeGender } from '@/constants/gender.constants';
 import type { PatientFilters, PatientsResponse, PatientSummary } from './types';
 
 async function resolveActiveToken(): Promise<string | null> {
@@ -27,9 +28,7 @@ async function resolveActiveToken(): Promise<string | null> {
   return token;
 }
 
-export async function getPatientsOnServer(
-  filters: PatientFilters
-): Promise<PatientsResponse> {
+export async function getPatientsOnServer(filters: PatientFilters): Promise<PatientsResponse> {
   const token = await resolveActiveToken();
   if (!token) {
     throw AppError.unauthenticated('Sesi admin tidak valid atau telah berakhir');
@@ -49,10 +48,9 @@ export async function getPatientsOnServer(
 
   if (filters.gender) {
     const rawGender = Array.isArray(filters.gender) ? filters.gender[0] : filters.gender;
-    if (rawGender === 'Laki-laki' || rawGender === 'male') {
-      queryParams.gender = 'male';
-    } else if (rawGender === 'Perempuan' || rawGender === 'female') {
-      queryParams.gender = 'female';
+    const normalized = normalizeGender(rawGender);
+    if (normalized) {
+      queryParams.gender = normalized;
     }
   }
 

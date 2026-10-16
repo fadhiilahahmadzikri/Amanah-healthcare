@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { getGenderLabel } from '@/features/data-pasien/components/patient-tables/columns-helpers';
 import type { InspectorTabProps } from './types';
 
 export function InspectorGenericView({ appointment, data }: InspectorTabProps) {
@@ -99,7 +100,10 @@ export function InspectorGenericView({ appointment, data }: InspectorTabProps) {
   const relationship = patient?.relationLabel || patient?.relationshipType || 'Diri Sendiri';
 
   const isChild = React.useMemo(() => {
-    if (patient?.relationshipType === 'child' || String(relationship).toLowerCase().includes('anak')) {
+    if (
+      patient?.relationshipType === 'child' ||
+      String(relationship).toLowerCase().includes('anak')
+    ) {
       return true;
     }
     const bDate = patient?.birthDate || answers.birthDate;
@@ -120,12 +124,7 @@ export function InspectorGenericView({ appointment, data }: InspectorTabProps) {
     : answers.birthDate
       ? `${answers.birthPlace ? answers.birthPlace + ', ' : ''}${answers.birthDate}`
       : '-';
-  const gender =
-    patient?.gender === 'female' || patient?.gender === 'P' || patient?.gender === 'PEREMPUAN'
-      ? 'Perempuan'
-      : patient?.gender === 'male' || patient?.gender === 'L' || patient?.gender === 'LAKI_LAKI'
-        ? 'Laki-laki'
-        : patient?.gender || '-';
+  const gender = getGenderLabel(patient?.gender);
 
   const rawBlood = patient?.bloodType || answers.bloodType || answers.golonganDarah;
   const bloodType =
@@ -214,9 +213,7 @@ export function InspectorGenericView({ appointment, data }: InspectorTabProps) {
       </div>
 
       <div className='border-b border-border/40 pb-2'>
-        <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-          No. Telepon
-        </span>
+        <span className='text-xs font-normal text-muted-foreground block mb-0.5'>No. Telepon</span>
         <span className='text-sm font-semibold text-foreground block truncate'>{phone}</span>
       </div>
 

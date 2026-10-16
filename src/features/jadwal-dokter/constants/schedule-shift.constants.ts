@@ -31,7 +31,8 @@ export const DB_STAFF_SHIFT_MAP: Record<string, ScheduleShift> = {
 export const SCHEDULE_STATUS = {
   OPEN: 'OPEN',
   CLOSED: 'CLOSED',
-  isOnLeave: 'isOnLeave'
+  isOnLeave: 'isOnLeave',
+  PENDING: 'PENDING'
 } as const;
 
 export type ScheduleStatus = (typeof SCHEDULE_STATUS)[keyof typeof SCHEDULE_STATUS];
@@ -39,7 +40,8 @@ export type ScheduleStatus = (typeof SCHEDULE_STATUS)[keyof typeof SCHEDULE_STAT
 export const SCHEDULE_STATUS_LABELS: Record<ScheduleStatus, string> = {
   [SCHEDULE_STATUS.OPEN]: 'Buka',
   [SCHEDULE_STATUS.CLOSED]: 'Tutup',
-  [SCHEDULE_STATUS.isOnLeave]: 'Cuti'
+  [SCHEDULE_STATUS.isOnLeave]: 'Cuti',
+  [SCHEDULE_STATUS.PENDING]: 'Menunggu Verifikasi'
 } as const;
 
 export const SHIFT_OPERATIONAL_STATUS = {
@@ -79,7 +81,15 @@ export const CANONICAL_TO_API_SHIFT: Record<ScheduleShift, string> = {
 } as const;
 
 export function normalizeScheduleStatus(raw?: string | null): ScheduleStatus {
-  return raw?.trim().toUpperCase() === SCHEDULE_STATUS.CLOSED
+  const upper = raw?.trim().toUpperCase();
+  if (
+    upper === SCHEDULE_STATUS.PENDING ||
+    upper === 'MENUNGGU' ||
+    upper === 'MENUNGGU VERIFIKASI'
+  ) {
+    return SCHEDULE_STATUS.PENDING;
+  }
+  return upper === SCHEDULE_STATUS.CLOSED || upper === 'TUTUP'
     ? SCHEDULE_STATUS.CLOSED
     : SCHEDULE_STATUS.OPEN;
 }

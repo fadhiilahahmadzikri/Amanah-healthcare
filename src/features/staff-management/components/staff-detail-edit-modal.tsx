@@ -1,7 +1,5 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { toast } from 'sonner';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -10,11 +8,9 @@ import { Icons } from '@/components/icons';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
 import { PatientBirthdatePicker } from '@/features/data-pasien/components/registration/molecules/patient-birthdate-picker';
 import { PatientGenderSelector } from '@/features/data-pasien/components/registration/molecules/patient-gender-selector';
-import {
-  PatientRegionDropdown,
-  type PatientRegionValues
-} from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
-import { StaffMember, staffManagementApi } from '../api/staff-management.api';
+import { PatientRegionDropdown } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
+import type { StaffMember } from '../api/staff-management.api';
+import { useStaffDetailEditModal } from '../model/useStaffDetailEditModal';
 
 export interface StaffDetailEditModalProps {
   staff: StaffMember | null;
@@ -23,127 +19,9 @@ export interface StaffDetailEditModalProps {
   onSuccess?: () => void;
 }
 
-export function StaffDetailEditModal({
-  staff,
-  isOpen,
-  onClose,
-  onSuccess
-}: StaffDetailEditModalProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Form Core State
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phoneNumber: '',
-    profession: '',
-    birthPlace: '',
-    birthDate: '',
-    gender: 'male' as 'male' | 'female',
-    nationalId: '',
-    isActive: true
-  });
-
-  // Region / Domisili State
-  const [regionValues, setRegionValues] = useState<PatientRegionValues>({
-    provinsi: '',
-    provinsiId: '',
-    kabupaten: '',
-    kabupatenId: '',
-    kecamatan: '',
-    kecamatanId: '',
-    kelurahan: '',
-    kelurahanId: '',
-    alamatDetail: ''
-  });
-
-  useEffect(() => {
-    if (staff) {
-      setFormData({
-        fullName: staff.fullName || '',
-        email: staff.email || '',
-        phoneNumber: staff.phoneNumber || '',
-        profession: staff.profession || '',
-        birthPlace: staff.birthPlace || '',
-        birthDate: staff.birthDate ? String(staff.birthDate).slice(0, 10) : '',
-        gender: staff.gender === 'female' ? 'female' : 'male',
-        nationalId: staff.nationalId || '',
-        isActive: staff.isActive ?? true
-      });
-
-      setRegionValues({
-        provinsi: staff.address?.provinceName || '',
-        provinsiId: staff.address?.provinceCode || '',
-        kabupaten: staff.address?.regencyName || '',
-        kabupatenId: staff.address?.regencyCode || '',
-        kecamatan: staff.address?.districtName || '',
-        kecamatanId: staff.address?.districtCode || '',
-        kelurahan: staff.address?.villageName || '',
-        kelurahanId: staff.address?.villageCode || '',
-        alamatDetail: staff.address?.line1 || staff.address?.fullAddress || ''
-      });
-    }
-  }, [staff]);
-
-  const handleChange = (field: string, value: unknown) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!staff) return;
-
-    if (!formData.fullName.trim()) {
-      toast.error('Nama lengkap wajib diisi');
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      const fullAddress = [
-        regionValues.alamatDetail,
-        regionValues.kelurahan ? `Kel. ${regionValues.kelurahan}` : null,
-        regionValues.kecamatan ? `Kec. ${regionValues.kecamatan}` : null,
-        regionValues.kabupaten,
-        regionValues.provinsi
-      ]
-        .filter(Boolean)
-        .join(', ');
-
-      await staffManagementApi.updateStaff(staff.id, {
-        fullName: formData.fullName.trim(),
-        email: formData.email.trim() || undefined,
-        phoneNumber: formData.phoneNumber.trim(),
-        profession: formData.profession.trim() || 'Staf Operasional',
-        birthPlace: formData.birthPlace.trim() || undefined,
-        birthDate: formData.birthDate || undefined,
-        gender: formData.gender,
-        nationalId: formData.nationalId.trim() || undefined,
-        isActive: formData.isActive,
-        address: {
-          provinceCode: regionValues.provinsiId || undefined,
-          provinceName: regionValues.provinsi || undefined,
-          regencyCode: regionValues.kabupatenId || undefined,
-          regencyName: regionValues.kabupaten || undefined,
-          districtCode: regionValues.kecamatanId || undefined,
-          districtName: regionValues.kecamatan || undefined,
-          villageCode: regionValues.kelurahanId || undefined,
-          villageName: regionValues.kelurahan || undefined,
-          line1: regionValues.alamatDetail || undefined,
-          fullAddress: fullAddress || undefined
-        }
-      });
-
-      toast.success(`Data staf ${formData.fullName} berhasil diperbarui.`);
-      onSuccess?.();
-      onClose();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Gagal memperbarui data staf.';
-      toast.error(msg);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+export function StaffDetailEditModal(props: StaffDetailEditModalProps) {
+  const { staff, isOpen, onClose } = props;
+  const form = useStaffDetailEditModal(props);
 
   if (!staff) return null;
 
@@ -161,7 +39,7 @@ export function StaffDetailEditModal({
           <div className='space-y-0.5 min-w-0 flex-1'>
             <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight flex items-center gap-2'>
               <Icons.user className='size-4 text-primary shrink-0' />
-              <span className='truncate'>{formData.fullName || 'Detail Staf'}</span>
+              <span className='truncate'>{form.formData.fullName || 'Detail Staf'}</span>
             </h3>
             <p className='text-xs text-muted-foreground truncate font-medium'>
               Lihat dan perbarui informasi profil, identitas, dan domisili staf operasional klinik.
@@ -170,8 +48,8 @@ export function StaffDetailEditModal({
 
           <div className='flex items-center gap-2 shrink-0'>
             <StatusBadge
-              status={formData.isActive ? 'active' : 'inactive'}
-              label={formData.isActive ? 'Aktif' : 'Non-Aktif'}
+              status={form.formData.isActive ? 'active' : 'inactive'}
+              label={form.formData.isActive ? 'Aktif' : 'Non-Aktif'}
               size='sm'
             />
             <button
@@ -186,7 +64,7 @@ export function StaffDetailEditModal({
 
         {/* Scrollable Body - Form Reguler 2 Columns */}
         <div className='flex-1 min-h-0 overflow-y-auto py-4 pr-1'>
-          <form id='staff-detail-form' onSubmit={handleSubmit} className='p-0 space-y-0'>
+          <form id='staff-detail-form' onSubmit={form.handleSubmit} className='p-0 space-y-0'>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 pt-1'>
               {/* Kolom 1: Identitas & Kelahiran */}
               <div className='space-y-4'>
@@ -198,10 +76,10 @@ export function StaffDetailEditModal({
                   id='staff_nationalId'
                   label='NIK KTP (16 Digit)'
                   placeholder='3201xxxxxxxxxxxx'
-                  value={formData.nationalId}
+                  value={form.formData.nationalId}
                   onChange={(val) => {
                     const numericOnly = val.replace(/\D/g, '').slice(0, 16);
-                    handleChange('nationalId', numericOnly);
+                    form.handleChange('nationalId', numericOnly);
                   }}
                   maxLength={16}
                   inputMode='numeric'
@@ -213,8 +91,8 @@ export function StaffDetailEditModal({
                   id='staff_fullName'
                   label='Nama Lengkap Staf *'
                   placeholder='Nama lengkap staf operasional'
-                  value={formData.fullName}
-                  onChange={(val) => handleChange('fullName', val)}
+                  value={form.formData.fullName}
+                  onChange={(val) => form.handleChange('fullName', val)}
                   required
                   autoComplete='name'
                 />
@@ -224,16 +102,16 @@ export function StaffDetailEditModal({
                     id='staff_birthPlace'
                     label='Tempat Lahir'
                     placeholder='Kota kelahiran'
-                    value={formData.birthPlace}
-                    onChange={(val) => handleChange('birthPlace', val)}
+                    value={form.formData.birthPlace}
+                    onChange={(val) => form.handleChange('birthPlace', val)}
                   />
 
                   <PatientBirthdatePicker
                     id='staff_birthDate'
                     label='Tanggal Lahir'
                     placeholder='Pilih tanggal...'
-                    value={formData.birthDate}
-                    onChange={(val) => handleChange('birthDate', val)}
+                    value={form.formData.birthDate}
+                    onChange={(val) => form.handleChange('birthDate', val)}
                   />
                 </div>
 
@@ -241,11 +119,10 @@ export function StaffDetailEditModal({
                   id='staff_gender'
                   label='Jenis Kelamin'
                   variant='dropdown'
-                  value={formData.gender === 'female' ? 'Perempuan' : 'Laki-laki'}
-                  onChange={(val) => {
-                    const isFemale = val === 'Perempuan' || val === 'female' || val === 'P';
-                    handleChange('gender', isFemale ? 'female' : 'male');
-                  }}
+                  value={form.formData.gender}
+                  onChange={(val) =>
+                    form.handleChange('gender', val === 'female' ? 'female' : 'male')
+                  }
                 />
               </div>
 
@@ -259,8 +136,8 @@ export function StaffDetailEditModal({
                   id='staff_profession'
                   label='Jabatan / Posisi Kerja'
                   placeholder='Staf IT, Front Desk, CS, dll.'
-                  value={formData.profession}
-                  onChange={(val) => handleChange('profession', val)}
+                  value={form.formData.profession}
+                  onChange={(val) => form.handleChange('profession', val)}
                 />
 
                 <div className='grid grid-cols-2 gap-4'>
@@ -269,8 +146,8 @@ export function StaffDetailEditModal({
                     label='No. Telepon / WhatsApp'
                     type='tel'
                     placeholder='0812-3456-7890'
-                    value={formData.phoneNumber}
-                    onChange={(val) => handleChange('phoneNumber', val)}
+                    value={form.formData.phoneNumber}
+                    onChange={(val) => form.handleChange('phoneNumber', val)}
                     autoComplete='tel'
                   />
 
@@ -279,8 +156,8 @@ export function StaffDetailEditModal({
                     label='Email Staf'
                     type='email'
                     placeholder='staf@amanah.clinic'
-                    value={formData.email}
-                    onChange={(val) => handleChange('email', val)}
+                    value={form.formData.email}
+                    onChange={(val) => form.handleChange('email', val)}
                     autoComplete='email'
                   />
                 </div>
@@ -291,10 +168,55 @@ export function StaffDetailEditModal({
                     Domisili & Alamat
                   </span>
                   <PatientRegionDropdown
-                    values={regionValues}
-                    onChange={(updates) => setRegionValues((prev) => ({ ...prev, ...updates }))}
+                    values={form.regionValues}
+                    onChange={form.handleRegionChange}
                   />
                 </div>
+
+                {/* Kredensial Medis & Poliklinik (Hanya untuk Dokter & Bidan) */}
+                {form.isClinical && (
+                  <div className='space-y-4 pt-2 border-t border-border/40'>
+                    <span className='text-xs font-semibold text-muted-foreground block pb-1'>
+                      Kredensial Medis & Penugasan Klinis
+                    </span>
+
+                    <div className='space-y-1.5'>
+                      <label
+                        htmlFor='staff_poliklinik'
+                        className='text-xs font-medium text-foreground block'
+                      >
+                        Unit Poliklinik Penugasan
+                      </label>
+                      {form.isLoadingPolyclinics ? (
+                        <p className='text-xs text-muted-foreground'>
+                          Memuat daftar unit poliklinik...
+                        </p>
+                      ) : (
+                        <select
+                          id='staff_poliklinik'
+                          value={form.formData.poliklinikId}
+                          onChange={(e) => form.handleChange('poliklinikId', e.target.value)}
+                          className='w-full text-xs rounded-md border border-input bg-background px-3 py-2 text-foreground focus:outline-none focus:ring-1 focus:ring-primary'
+                        >
+                          <option value=''>Pilih unit poliklinik...</option>
+                          {form.polyclinics.map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.namaPoli || p.name || p.code || p.kodePoli || p.id}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+
+                    <PatientLineInput
+                      id='staff_licenseNumber'
+                      label='Nomor Izin Praktik (SIP / STR)'
+                      placeholder='SIP.446/123/DISKES/2026'
+                      value={form.formData.licenseNumber}
+                      onChange={(val) => form.handleChange('licenseNumber', val)}
+                    />
+                  </div>
+                )}
 
                 {/* Status Operasional Staf (Switcher dengan StatusBadge) */}
                 <div className='flex items-center justify-between pt-2 select-none border-t border-border/40'>
@@ -305,21 +227,21 @@ export function StaffDetailEditModal({
                     >
                       <span>Status Operasional Staf</span>
                       <StatusBadge
-                        status={formData.isActive ? 'active' : 'inactive'}
-                        label={formData.isActive ? 'Aktif' : 'Non-Aktif'}
+                        status={form.formData.isActive ? 'active' : 'inactive'}
+                        label={form.formData.isActive ? 'Aktif' : 'Non-Aktif'}
                         size='sm'
                       />
                     </label>
                     <p className='text-[11px] text-muted-foreground'>
-                      {formData.isActive
+                      {form.formData.isActive
                         ? 'Staf aktif dalam operasional dan penugasan roster klinik.'
                         : 'Staf dinonaktifkan sementara dari sistem klinik.'}
                     </p>
                   </div>
                   <Switch
                     id='staff_active_switch'
-                    checked={formData.isActive}
-                    onCheckedChange={(checked) => handleChange('isActive', checked)}
+                    checked={form.formData.isActive}
+                    onCheckedChange={(checked) => form.handleChange('isActive', checked)}
                     aria-label='Status Operasional Staf'
                   />
                 </div>
@@ -336,7 +258,7 @@ export function StaffDetailEditModal({
             size='sm'
             shape='pill'
             onClick={onClose}
-            disabled={isSubmitting}
+            disabled={form.isSubmitting}
             className='px-5 text-xs font-semibold'
           >
             Batal
@@ -346,10 +268,10 @@ export function StaffDetailEditModal({
             form='staff-detail-form'
             size='sm'
             shape='pill'
-            disabled={isSubmitting}
+            disabled={form.isSubmitting}
             className='px-6 text-xs font-semibold'
           >
-            {isSubmitting ? (
+            {form.isSubmitting ? (
               <>
                 <Icons.spinner className='size-3.5 mr-1.5 animate-spin' />
                 Menyimpan...

@@ -1,4 +1,5 @@
 import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
+import { getGenderLabel } from '@/constants/gender.constants';
 import { normalizeToAppointmentStatus } from '../constants/appointment-status.dictionary';
 import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 import type { Appointment } from '@/features/klinik';
@@ -10,8 +11,7 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
   const doctorName = item.doctorName || item.practitioner?.staffProfile?.fullName || null;
   const poliklinikName = item.poliklinikName || item.clinicRoom?.clinicUnit?.name || 'Poli Umum';
   const queueNumber =
-    item.queueTickets?.[0]?.queueNumber ||
-    (item.queueNumber ? String(item.queueNumber) : '-');
+    item.queueTickets?.[0]?.queueNumber || (item.queueNumber ? String(item.queueNumber) : '-');
   const scheduledDate =
     item.appointmentDate ||
     (item.createdAt ? String(item.createdAt).slice(0, 10) : new Date().toISOString().slice(0, 10));
@@ -24,7 +24,7 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
     queueNumber,
     patientId: item.patientId || String(item.id),
     patientName,
-    gender: item.gender === 'female' ? 'Perempuan' : 'Laki-laki',
+    gender: getGenderLabel(item.gender),
     phone: item.phone || '-',
     email: item.email || '-',
     scheduledDate,
@@ -76,7 +76,9 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
 export function adminAppointmentToAppointment(item: AdminAppointment): Appointment {
   const timeSource = item.etaRange || item.scheduledStartTime || '';
   const timeMatches = timeSource.match(/(\d{1,2}[:.]\d{2})/g);
-  const startClock = timeMatches?.[0] ? timeMatches[0].replace('.', ':') : item.scheduledStartTime || '';
+  const startClock = timeMatches?.[0]
+    ? timeMatches[0].replace('.', ':')
+    : item.scheduledStartTime || '';
   const endClock = timeMatches?.[1]
     ? timeMatches[1].replace('.', ':')
     : (item as any).scheduledEndTime || item.estimatedEndAt || '';

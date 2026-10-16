@@ -12,6 +12,7 @@ import type {
   AdminSessionPatientsData,
   ScheduleReferenceOptionsData
 } from '@/server/contracts/schedules/doctor-schedules.dto';
+import type { StaffMember } from '@/features/staff-management';
 
 /** Minimal shape returned by endpoints that include a human-readable message in their body. */
 export interface ApiMessageResponse {
@@ -46,10 +47,7 @@ export async function getDoctorSchedules(
     meta?: { total_doctors?: number; total_pages?: number; page?: number; limit?: number };
   }>(endpoint);
 
-  const rawDoctors =
-    res.doctors ??
-    (Array.isArray(res.data) ? res.data : res.data?.doctors) ??
-    [];
+  const rawDoctors = res.doctors ?? (Array.isArray(res.data) ? res.data : res.data?.doctors) ?? [];
   const total =
     res.total_doctors ??
     res.meta?.total_doctors ??
@@ -325,4 +323,18 @@ export async function getDoctorScheduleHistory(
   return await clientFetch<DoctorScheduleHistoryResult>(
     `/api/v1/admin/doctor-schedules/${doctorId}/history?limit=${limit}&offset=${offset}`
   );
+}
+
+export async function getDoctorProfile(doctorId: string): Promise<StaffMember> {
+  return await clientFetch<StaffMember>(`/api/v1/admin/doctor-schedules/${doctorId}/profile`);
+}
+
+export async function updateDoctorProfile(
+  doctorId: string,
+  payload: Partial<StaffMember>
+): Promise<StaffMember> {
+  return await clientFetch<StaffMember>(`/api/v1/admin/doctor-schedules/${doctorId}/profile`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload)
+  });
 }

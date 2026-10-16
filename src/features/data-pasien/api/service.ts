@@ -1,4 +1,5 @@
 import { clientFetch } from '@/lib/client-fetch';
+import { normalizeGender } from '@/constants/gender.constants';
 import type {
   Patient,
   PatientAccountStatus,
@@ -33,7 +34,7 @@ export function mapBackendPatient(r: any): Patient {
     email_pasien: r.email || r.email_pasien,
     phone: r.phoneNumber || r.phone || '',
     email: r.email || r.email_pasien || '',
-    gender: r.gender === 'female' || r.gender === 'Perempuan' ? 'female' : 'male',
+    gender: (normalizeGender(r.gender) ?? 'male') as any,
     age: Number(r.age ?? 0),
     birth_date: r.birthDate || r.birth_date,
     blood_type: (r.bloodType || r.blood_type || 'unknown') as any,
@@ -95,10 +96,9 @@ export async function getPatients(
 
   if (filters.gender) {
     const rawGender = Array.isArray(filters.gender) ? filters.gender[0] : filters.gender;
-    if (rawGender === 'Laki-laki' || rawGender === 'male') {
-      queryParams.gender = 'male';
-    } else if (rawGender === 'Perempuan' || rawGender === 'female') {
-      queryParams.gender = 'female';
+    const normalized = normalizeGender(rawGender);
+    if (normalized) {
+      queryParams.gender = normalized;
     }
   }
 
@@ -234,7 +234,7 @@ export async function createPatient(data: PatientMutationPayload) {
   const payload: Record<string, any> = {
     fullName: data.name,
     nik: data.nik || data.nik_ktp,
-    gender: data.gender === 'Perempuan' ? 'female' : 'male',
+    gender: (normalizeGender(data.gender) ?? 'male') as any,
     birthDate: data.birth_date || data.tanggal_lahir,
     birthPlace: data.tempat_lahir || '',
     bloodType: (data.blood_type || 'unknown').toLowerCase(),

@@ -23,7 +23,7 @@ export interface AdminAppointment {
   queueNumber: string;
   patientId: string;
   patientName: string;
-  gender: 'Laki-laki' | 'Perempuan';
+  gender: string;
   phone: string;
   email: string;
   scheduledDate: string;
@@ -277,11 +277,10 @@ export interface BackendAppointmentRecord {
 
 export const DOCTOR_AVAILABILITY = {
   AVAILABLE: 'AVAILABLE',
-  SCHEDULE_REQUIRED: 'SCHEDULE_REQUIRED',
+  SCHEDULE_REQUIRED: 'SCHEDULE_REQUIRED'
 } as const;
 
-export type DoctorAvailability =
-  (typeof DOCTOR_AVAILABILITY)[keyof typeof DOCTOR_AVAILABILITY];
+export type DoctorAvailability = (typeof DOCTOR_AVAILABILITY)[keyof typeof DOCTOR_AVAILABILITY];
 
 export interface DoctorCandidateItem {
   id: string;

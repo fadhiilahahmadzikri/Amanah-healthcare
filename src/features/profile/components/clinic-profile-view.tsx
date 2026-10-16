@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { getGenderLabel, normalizeGender } from '@/constants/gender.constants';
 import Image from 'next/image';
 import PageContainer from '@/components/layout/page-container';
 import { Icons } from '@/components/icons';
@@ -107,7 +108,7 @@ export function ClinicProfileView() {
 
     setEditForm({
       fullName: patientData?.fullName || user?.name || '',
-      gender: patientData?.gender === 'Perempuan' ? 'Perempuan' : 'Laki-laki',
+      gender: normalizeGender(patientData?.gender) === 'female' ? 'Perempuan' : 'Laki-laki',
       birthPlace: patientData?.birthPlace || '',
       birthDate: patientData?.birthDate || '',
       pekerjaan: patientData?.pekerjaan || '',

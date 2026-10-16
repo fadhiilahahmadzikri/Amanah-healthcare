@@ -1,15 +1,24 @@
 import type { DoctorSchedule } from '../api/types';
-import { SCHEDULE_STATUS } from '../constants/schedule-shift.constants';
+import { SCHEDULE_STATUS, type ScheduleStatus } from '../constants/schedule-shift.constants';
 
 export const DOCTOR_CARD_STATUS = {
-  OPEN: 'Buka',
-  CLOSED: 'Tutup'
+  OPEN: SCHEDULE_STATUS.OPEN,
+  CLOSED: SCHEDULE_STATUS.CLOSED,
+  PENDING: SCHEDULE_STATUS.PENDING
 } as const;
 
-export type DoctorCardStatus = 'Buka' | 'Tutup' | null;
+export type DoctorCardStatus = ScheduleStatus;
 
 export function isSessionClosed(session: { status_sesi?: string | null }): boolean {
   return session.status_sesi === SCHEDULE_STATUS.CLOSED;
+}
+
+export function isDoctorPendingVerification(doctor: DoctorSchedule): boolean {
+  return (
+    doctor.status_dokter === SCHEDULE_STATUS.PENDING ||
+    doctor.status_jadwal === SCHEDULE_STATUS.PENDING ||
+    doctor.is_accepting_appointments === false
+  );
 }
 
 export function hasConfiguredDoctorSchedule(doctor: DoctorSchedule): boolean {
@@ -21,6 +30,10 @@ export function hasConfiguredDoctorSchedule(doctor: DoctorSchedule): boolean {
 }
 
 export function getDoctorCardStatus(doctor: DoctorSchedule): DoctorCardStatus {
+  if (isDoctorPendingVerification(doctor)) {
+    return DOCTOR_CARD_STATUS.PENDING;
+  }
+
   if (doctor.is_on_leave) {
     return DOCTOR_CARD_STATUS.CLOSED;
   }

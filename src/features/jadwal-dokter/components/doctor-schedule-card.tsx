@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule } from '../api/types';
@@ -32,6 +33,7 @@ export interface DoctorScheduleCardProps {
   doctor: DoctorSchedule;
   date?: string;
   isSelected?: boolean;
+  onCardClick?: (doctor: DoctorSchedule) => void;
   onOpenDetail?: (doctor: DoctorSchedule) => void;
   onOpenSettings?: (doctor: DoctorSchedule) => void;
   onCall?: (doctor: DoctorSchedule) => void;
@@ -45,6 +47,7 @@ export interface DoctorScheduleCardProps {
 export function DoctorScheduleCard({
   doctor,
   isSelected,
+  onCardClick,
   onOpenDetail,
   onOpenSettings,
   variant = 'default',
@@ -59,28 +62,52 @@ export function DoctorScheduleCard({
     }
   }, [isSelected]);
 
-  // Derive status strictly from backend contract (Binary: 'Buka' or 'Tutup')
-  const statusLabel = getDoctorCardStatus(doctor);
+  // Derive operational status strictly from backend contract
+  const cardStatus = getDoctorCardStatus(doctor);
+  const isPending = cardStatus === DOCTOR_CARD_STATUS.PENDING;
+
+  const handleContainerClick = () => {
+    if (onCardClick) {
+      onCardClick(doctor);
+    } else {
+      onOpenDetail?.(doctor);
+    }
+  };
 
   const handleSettings = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isPending) return;
     onOpenSettings?.(doctor);
   };
 
   const handleDetail = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isPending) return;
     onOpenDetail?.(doctor);
   };
 
   return (
+    // biome-ignore lint/a11y/useSemanticElements: card container contains interactive action buttons
     <div
       ref={cardRef}
+      role='button'
+      tabIndex={0}
+      onClick={handleContainerClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleContainerClick();
+        }
+      }}
       style={{
         background:
           'radial-gradient(ellipse 80% 60% at 100% 0%, color-mix(in oklab, var(--primary) 18%, transparent) 0%, color-mix(in oklab, var(--primary) 5%, transparent) 45%, transparent 80%), var(--card)'
       }}
       className={cn(
-        'group relative overflow-hidden rounded-[24px] border border-border font-sans flex flex-col justify-between select-none transition-all duration-200 hover:border-primary/60 hover:shadow-md p-5 sm:p-6 min-h-[220px] text-card-foreground',
+        'group relative overflow-hidden rounded-[24px] border border-border font-sans flex flex-col justify-between select-none transition-all duration-200 p-5 sm:p-6 min-h-[220px] text-card-foreground cursor-pointer',
+        isPending
+          ? 'opacity-65 border-dashed bg-muted/20'
+          : 'hover:border-primary/60 hover:shadow-md',
         isSelected &&
           'ring-2 ring-primary/40 ring-offset-2 ring-offset-background border-primary/50 shadow-md',
         variant === 'elevated' && 'shadow-sm',
@@ -91,10 +118,29 @@ export function DoctorScheduleCard({
       {/* 1. Doctor Avatar Background */}
       <DoctorCardImage src={doctor.avatar} alt={doctor.nama_dokter} />
 
-      {/* 2. Header: Status Badge (Buka / Tutup) and Settings Action */}
+      {/* 2. Header: Status Badge (Buka / Tutup / Menunggu Verifikasi) and Settings Action */}
       <div className='flex items-center justify-between gap-3 relative z-20'>
-        <DoctorStatusBadge status={statusLabel || 'Tutup'} />
-        {onOpenSettings && <DoctorCardSettingsButton onClick={handleSettings} />}
+        <DoctorStatusBadge status={cardStatus} />
+        <div className='flex items-center gap-1.5'>
+          {onCardClick && (
+            <Button
+              type='button'
+              variant='outline'
+              size='icon'
+              shape='pill'
+              onClick={(e) => {
+                e.stopPropagation();
+                onCardClick(doctor);
+              }}
+              title='Lihat & Edit Profil Dokter'
+              aria-label='Lihat & Edit Profil Dokter'
+              className='size-8 shadow-2xs z-20 shrink-0 text-muted-foreground hover:text-foreground hover:bg-accent/80'
+            >
+              <Icons.user className='size-3.5' />
+            </Button>
+          )}
+          {onOpenSettings && !isPending && <DoctorCardSettingsButton onClick={handleSettings} />}
+        </div>
       </div>
 
       {/* 3. Core Identity: Doctor Name, Specialty & Patient Stack */}
@@ -105,8 +151,20 @@ export function DoctorScheduleCard({
         >
           <button
             type='button'
-            onClick={handleDetail}
-            className='text-left hover:text-primary transition-colors cursor-pointer focus-visible:outline-none focus-visible:underline'
+            onClick={
+              isPending
+                ? (e) => {
+                    e.stopPropagation();
+                    onCardClick?.(doctor);
+                  }
+                : handleDetail
+            }
+            className={cn(
+              'text-left transition-colors focus-visible:outline-none cursor-pointer',
+              isPending
+                ? 'opacity-90 hover:text-primary'
+                : 'hover:text-primary focus-visible:underline'
+            )}
           >
             {doctor.nama_dokter}
           </button>
@@ -117,7 +175,7 @@ export function DoctorScheduleCard({
         <DoctorCardPatientStack
           patients={doctor.pasien_preview}
           totalPatients={doctor.total_pasien}
-          onClick={handleDetail}
+          onClick={isPending ? undefined : handleDetail}
           className='mt-0.5'
         />
       </div>
@@ -125,17 +183,34 @@ export function DoctorScheduleCard({
       {/* 4. Footer Actions: Detail */}
       {showActions && (
         <div className='flex items-center justify-end gap-2 pt-3 mt-auto border-t border-border/40 relative z-20'>
-          <Button
-            type='button'
-            variant='default'
-            size='card-action'
-            shape='pill'
-            withTrailingCircleIcon
-            onClick={handleDetail}
-            className='font-bold'
-          >
-            Detail
-          </Button>
+          {isPending ? (
+            <Button
+              type='button'
+              variant='outline'
+              size='card-action'
+              shape='pill'
+              onClick={(e) => {
+                e.stopPropagation();
+                onCardClick?.(doctor);
+              }}
+              className='font-bold text-xs'
+            >
+              <Icons.user className='size-3 mr-1' />
+              Profil Medis
+            </Button>
+          ) : (
+            <Button
+              type='button'
+              variant='default'
+              size='card-action'
+              shape='pill'
+              withTrailingCircleIcon
+              onClick={handleDetail}
+              className='font-bold'
+            >
+              Detail
+            </Button>
+          )}
         </div>
       )}
     </div>

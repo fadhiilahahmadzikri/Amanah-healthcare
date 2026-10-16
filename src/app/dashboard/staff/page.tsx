@@ -1,13 +1,25 @@
+import { Suspense } from 'react';
 import PageContainer from '@/components/layout/page-container';
 import { requireAdmin } from '@/lib/guard';
-import { StaffManagementView } from '@/features/staff-management';
+import { searchParamsCache } from '@/lib/searchparams';
+import type { SearchParams } from 'nuqs/server';
+import {
+  StaffManagementListingPage,
+  StaffScheduleCardsSkeleton
+} from '@/features/staff-management';
 
 export const metadata = {
   title: 'Dashboard: Manajemen Staf'
 };
 
-export default async function StaffManagementPage() {
+type PageProps = {
+  searchParams: Promise<SearchParams>;
+};
+
+export default async function StaffManagementPage(props: PageProps) {
   await requireAdmin();
+  const searchParams = await props.searchParams;
+  searchParamsCache.parse(searchParams);
 
   return (
     <PageContainer
@@ -15,7 +27,9 @@ export default async function StaffManagementPage() {
       pageTitle='Manajemen Staf'
       pageDescription='Kelola data profil staf operasional dan jadwal shift kerja klinik.'
     >
-      <StaffManagementView />
+      <Suspense fallback={<StaffScheduleCardsSkeleton />}>
+        <StaffManagementListingPage />
+      </Suspense>
     </PageContainer>
   );
 }
