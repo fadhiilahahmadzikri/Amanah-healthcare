@@ -1,3 +1,5 @@
+import { serverEnv } from './env.server';
+
 export const runtimeConfig = {
   http: {
     defaultTimeoutMs: 15_000,
@@ -8,9 +10,9 @@ export const runtimeConfig = {
     retryMaxDelayMs: 3_000
   },
   auth: {
-    accessTokenCookieMaxAge: 60 * 60 * 24, // 1 day in seconds
-    refreshTokenCookieMaxAge: 60 * 60 * 24 * 7, // 7 days in seconds
-    sessionCookieMaxAge: 60 * 60 * 24 * 7 // 7 days in seconds
+    accessTokenCookieMaxAge: serverEnv.ACCESS_TOKEN_COOKIE_MAX_AGE,
+    refreshTokenCookieMaxAge: serverEnv.REFRESH_TOKEN_COOKIE_MAX_AGE,
+    sessionCookieMaxAge: serverEnv.SESSION_COOKIE_MAX_AGE
   },
   pagination: {
     defaultLimit: 10,
