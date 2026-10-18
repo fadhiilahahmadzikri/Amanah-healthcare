@@ -10,6 +10,8 @@ import { appointmentKeys } from '@/features/appointment-pasien/api/query-keys';
 import { klinikKeys } from '@/features/klinik/api/query-keys';
 import { doctorScheduleKeys } from '@/features/jadwal-dokter/api/query-keys';
 import { SCHEDULE_QUERY_KEYS } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
+import { leaveManagementKeys } from '@/features/manajemen-perizinan/api/query-keys';
+import { attendanceKeys } from '@/features/kehadiran-pegawai/api/queries';
 import { clientFetch } from '@/lib/client-fetch';
 import { useViewer } from './use-viewer';
 import type { BackendNotification } from '../api/notification-api-service';
@@ -114,6 +116,8 @@ export function useNotificationSocket(callbacks?: {
     queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all });
     queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES] });
     queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.APPOINTMENTS] });
+    queryClient.invalidateQueries({ queryKey: leaveManagementKeys.all });
+    queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
   }, [queryClient]);
 
   // Main WebSocket Connection Lifecycle
@@ -347,11 +351,91 @@ export function useNotificationSocket(callbacks?: {
       window.addEventListener('clinic:emit_socket', handleOutgoingSocketEvent);
     }
 
+    const handleLeaveUpdated = (payload: unknown) => {
+      reconcile();
+      void queryClient.refetchQueries({ queryKey: leaveManagementKeys.all, type: 'active' });
+      void queryClient.refetchQueries({
+        queryKey: leaveManagementKeys.replacements(),
+        type: 'active'
+      });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clinic:leave_updated', { detail: payload }));
+      }
+      if (payload && typeof payload === 'object') {
+        const lv = payload as {
+          staffName?: string;
+          status?: string;
+          leaveRequestId?: string;
+          id?: string;
+        };
+        if (lv.staffName && lv.status === 'pending') {
+          const targetId = lv.leaveRequestId || lv.id || '';
+          toast.info(`Pengajuan Izin Baru: ${lv.staffName}`, {
+            description: 'Staf klinik telah mengajukan permohonan izin/cuti baru.',
+            action: {
+              label: 'Lihat Detail',
+              onClick: () => {
+                router.push(
+                  targetId
+                    ? `/dashboard/manajemen-perizinan?leaveId=${targetId}`
+                    : '/dashboard/manajemen-perizinan'
+                );
+              }
+            },
+            duration: 7000
+          });
+        }
+      }
+    };
+
+    const handleAttendanceUpdated = (payload: unknown) => {
+      reconcile();
+      void queryClient.refetchQueries({ queryKey: attendanceKeys.all, type: 'active' });
+      void queryClient.refetchQueries({ queryKey: ['kehadiran-pegawai'], type: 'active' });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clinic:attendance_updated', { detail: payload }));
+      }
+      if (payload && typeof payload === 'object') {
+        const att = payload as {
+          attendanceId?: string;
+          id?: string;
+          staffName?: string;
+          action?: string;
+          status?: string;
+        };
+        if (att.staffName) {
+          const actionText = att.action === 'check_out' ? 'pulang' : 'masuk';
+          const statusText = att.status === 'late' ? ' (Terlambat)' : '';
+          const targetId = att.attendanceId || att.id || '';
+          toast.success(`Presensi ${actionText}: ${att.staffName}${statusText}`, {
+            action: {
+              label: 'Lihat Detail',
+              onClick: () => {
+                router.push(
+                  targetId
+                    ? `/dashboard/kehadiran-pegawai?highlight=${targetId}`
+                    : '/dashboard/kehadiran-pegawai'
+                );
+              }
+            },
+            duration: 6000
+          });
+        }
+      }
+    };
+
     socket.on('appointment:called', handleAppointmentCalled);
     socket.on('appointment.patient_called', handleAppointmentCalled);
     socket.on('appointment:status_changed', handleAppointmentStatusChanged);
     socket.on('appointment.status_changed', handleAppointmentStatusChanged);
     socket.on('queue:estimates:updated', handleQueueEstimatesUpdated);
+    socket.on('leave:updated', handleLeaveUpdated);
+    socket.on('attendance:recorded', handleAttendanceUpdated);
+    socket.on('attendance:check_in', handleAttendanceUpdated);
+    socket.on('attendance:manual_check_in', handleAttendanceUpdated);
+    socket.on('attendance:check_out', handleAttendanceUpdated);
+    socket.on('attendance:checkout', handleAttendanceUpdated);
+    socket.on('attendance:refresh', handleAttendanceUpdated);
     socket.on('chat:message', handleChatMessage);
     socket.on('chat:typing', handleChatTyping);
 

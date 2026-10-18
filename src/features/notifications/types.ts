@@ -4,7 +4,8 @@ export type ClinicNotificationCategory =
   | 'Hasil Lab'
   | 'Antrean'
   | 'Farmasi'
-  | 'Telemedisin';
+  | 'Telemedisin'
+  | 'Shift & Kehadiran';
 
 export type ClinicNotificationStatus = 'unread' | 'read';
 

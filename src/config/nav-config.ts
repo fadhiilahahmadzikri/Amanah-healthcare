@@ -61,6 +61,20 @@ export const navGroups: NavGroup[] = [
             access: { role: 'admin' }
           },
           {
+            title: 'Manajemen Perizinan',
+            url: '/dashboard/manajemen-perizinan',
+            icon: 'calendar',
+            shortcut: ['m', 'p'],
+            access: { role: 'admin' }
+          },
+          {
+            title: 'Manajemen Payroll',
+            url: '/dashboard/payroll',
+            icon: 'receipt',
+            shortcut: ['m', 'y'],
+            access: { role: 'admin' }
+          },
+          {
             title: 'Notifikasi',
             url: '/dashboard/notifications',
             icon: 'notification',

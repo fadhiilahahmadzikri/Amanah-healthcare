@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils';
 import {
   DOCTOR_AVAILABILITY,
   type DoctorCandidateItem,
-  type ChangeDoctorPayload,
+  type ChangeDoctorPayload
 } from '../api/types';
 import { DoctorAssignmentModal } from '@/features/jadwal-dokter/components/doctor-assignment-modal';
 import type { DoctorSchedule } from '@/features/jadwal-dokter/api/types';
@@ -97,7 +97,7 @@ export function ChangeDoctorModal({
 
   const selectedDoctor = selectedDoctorId ? allDoctors.get(selectedDoctorId) : null;
   const isSelectedDoctorAvailable =
-    selectedDoctor?.availability === DOCTOR_AVAILABILITY.AVAILABLE;
+    selectedDoctor?.availability === DOCTOR_AVAILABILITY.AVAILABLE && !selectedDoctor?.isOnLeave;
 
   const targetDow = useMemo(() => {
     const rawDate = candidatesData?.scheduledDate || _appointmentDate;
@@ -123,7 +123,7 @@ export function ChangeDoctorModal({
       bulan_jadwal: '',
       is_on_leave: false,
       total_pasien: 0,
-      sesi_harian: [],
+      sesi_harian: []
     } as unknown as DoctorSchedule);
     setIsRosterModalOpen(true);
   };
@@ -342,8 +342,7 @@ export function ChangeDoctorModal({
                 ) : (
                   activeGroup?.doctors.map((doctor) => {
                     const isSelected = selectedDoctorId === doctor.id;
-                    const isRostered =
-                      doctor.availability === DOCTOR_AVAILABILITY.AVAILABLE;
+                    const isRostered = doctor.availability === DOCTOR_AVAILABILITY.AVAILABLE;
                     return (
                       <button
                         key={doctor.id}
@@ -366,7 +365,14 @@ export function ChangeDoctorModal({
                               <h4 className='text-xs font-bold text-foreground truncate'>
                                 {doctor.name}
                               </h4>
-                              {isRostered ? (
+                              {doctor.isOnLeave ? (
+                                <span
+                                  className='inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 shrink-0'
+                                  title={doctor.leaveReason || 'Sedang Cuti'}
+                                >
+                                  Cuti
+                                </span>
+                              ) : isRostered ? (
                                 <span className='inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0'>
                                   Tersedia
                                 </span>
@@ -395,6 +401,27 @@ export function ChangeDoctorModal({
                                     <span>Buka Sesi</span>
                                   </span>
                                 </div>
+                              )}
+                              {doctor.isReplacement && (
+                                <span
+                                  className='inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 shrink-0'
+                                  title={
+                                    doctor.replacingDoctorName
+                                      ? `Menggantikan ${doctor.replacingDoctorName}`
+                                      : 'Dokter Pengganti'
+                                  }
+                                >
+                                  Pengganti
+                                </span>
+                              )}
+                              {doctor.attendanceWarning && !doctor.isOnLeave && (
+                                <span
+                                  className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 shrink-0'
+                                  title={doctor.attendanceWarning}
+                                >
+                                  <Icons.alertCircle className='size-3 text-amber-600 dark:text-amber-400' />
+                                  <span>Belum Presensi</span>
+                                </span>
                               )}
                             </div>
                             <div className='flex items-center gap-1.5 text-[11px] text-muted-foreground truncate mt-0.5'>

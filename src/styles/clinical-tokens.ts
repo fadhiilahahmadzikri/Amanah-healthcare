@@ -231,6 +231,7 @@ export const getStatusConfig = (status: string): StatusConfig => {
         hex: '#10B981',
         label: 'Punya Akun'
       };
+    case 'ON_LEAVE':
     case 'ISONLEAVE':
     case 'LEAVE':
     case 'CUTI':

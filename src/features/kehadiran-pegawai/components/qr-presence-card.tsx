@@ -53,11 +53,9 @@ export function QRPresenceCard({
     if (isAnimatingRef.current) return;
     isAnimatingRef.current = true;
 
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let newCode = '';
-    for (let i = 0; i < 6; i++) {
-      newCode += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
+    // Trigger backend QR rotation mutation
+    onGenerateNewToken?.();
+    setTimeLeft(rotationInterval);
 
     if (qrVisualRef.current && tokenRef.current) {
       const tl = gsap.timeline({
@@ -72,13 +70,7 @@ export function QRPresenceCard({
         filter: 'blur(10px)',
         opacity: 0.35,
         duration: 0.28,
-        ease: 'power2.inOut',
-        onComplete: () => {
-          // Swap token and reset time at peak blur moment
-          setToken(newCode);
-          setTimeLeft(rotationInterval);
-          onGenerateNewToken?.();
-        }
+        ease: 'power2.inOut'
       })
         // 2. Phase 2: Unblur, spring scale up with clean bounce
         .to([qrVisualRef.current, tokenRef.current], {
@@ -106,9 +98,6 @@ export function QRPresenceCard({
         );
       }
     } else {
-      setToken(newCode);
-      setTimeLeft(rotationInterval);
-      onGenerateNewToken?.();
       isAnimatingRef.current = false;
     }
   }, [rotationInterval, onGenerateNewToken]);

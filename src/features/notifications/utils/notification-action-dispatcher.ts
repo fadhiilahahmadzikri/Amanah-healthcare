@@ -26,6 +26,7 @@ const CLINIC_ROUTE_ALLOWLIST = [
   '/dashboard/data-pasien',
   '/dashboard/jadwal-dokter',
   '/dashboard/kehadiran-pegawai',
+  '/dashboard/manajemen-perizinan',
   '/dashboard/chat',
   '/dashboard/workspaces',
   '/dashboard/billing',
@@ -116,6 +117,22 @@ export function resolveNotificationRoute(
         return convId ? `/dashboard/chat?conversationId=${convId}` : '/dashboard/chat';
       }
 
+      case 'view_leave': {
+        if (isPatient) return '/dashboard/klinik/antrean';
+        const leaveId = semanticParams.leaveId || semanticParams.leaveRequestId || '';
+        return leaveId
+          ? `/dashboard/manajemen-perizinan?leaveId=${leaveId}`
+          : '/dashboard/manajemen-perizinan';
+      }
+
+      case 'view_attendance': {
+        if (isPatient) return '/dashboard/klinik/antrean';
+        const attendanceId = semanticParams.attendanceId || semanticParams.id || '';
+        return attendanceId
+          ? `/dashboard/kehadiran-pegawai?highlight=${attendanceId}`
+          : '/dashboard/kehadiran-pegawai';
+      }
+
       default:
         break;
     }
@@ -133,6 +150,22 @@ export function resolveNotificationRoute(
     (context?.targetDate as string) ||
     (context?.appointmentDate as string) ||
     '';
+
+  if (action.actionKey === 'view_leave') {
+    if (isPatient) return '/dashboard/klinik/antrean';
+    const leaveId = (context?.leaveId as string) || (context?.leaveRequestId as string) || '';
+    return leaveId
+      ? `/dashboard/manajemen-perizinan?leaveId=${leaveId}`
+      : '/dashboard/manajemen-perizinan';
+  }
+
+  if (action.actionKey === 'view_attendance') {
+    if (isPatient) return '/dashboard/klinik/antrean';
+    const attId = (context?.attendanceId as string) || (context?.id as string) || '';
+    return attId
+      ? `/dashboard/kehadiran-pegawai?highlight=${attId}`
+      : '/dashboard/kehadiran-pegawai';
+  }
 
   if (action.actionKey === 'view_patient') {
     if (isPatient) return '/dashboard/klinik/antrean';

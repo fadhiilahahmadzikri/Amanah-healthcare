@@ -7,6 +7,8 @@ export const ROUTES = {
   dashboardAdmin: '/dashboard/admin',
   dashboardStaff: '/dashboard/staff',
   dashboardDoctorSchedules: '/dashboard/jadwal-dokter',
+  dashboardLeaveManagement: '/dashboard/manajemen-perizinan',
+  dashboardPayroll: '/dashboard/payroll',
   dashboardPatient: '/dashboard/klinik/antrean',
   sessionExpired: '/api/auth/session-expired'
 } as const;

@@ -4,6 +4,7 @@ import { SCHEDULE_STATUS, type ScheduleStatus } from '../constants/schedule-shif
 export const DOCTOR_CARD_STATUS = {
   OPEN: SCHEDULE_STATUS.OPEN,
   CLOSED: SCHEDULE_STATUS.CLOSED,
+  ON_LEAVE: SCHEDULE_STATUS.ON_LEAVE,
   PENDING: SCHEDULE_STATUS.PENDING
 } as const;
 
@@ -34,8 +35,12 @@ export function getDoctorCardStatus(doctor: DoctorSchedule): DoctorCardStatus {
     return DOCTOR_CARD_STATUS.PENDING;
   }
 
-  if (doctor.is_on_leave) {
-    return DOCTOR_CARD_STATUS.CLOSED;
+  if (
+    doctor.status_dokter === SCHEDULE_STATUS.ON_LEAVE ||
+    doctor.status_jadwal === SCHEDULE_STATUS.ON_LEAVE ||
+    doctor.is_on_leave
+  ) {
+    return DOCTOR_CARD_STATUS.ON_LEAVE;
   }
 
   if (

@@ -207,29 +207,50 @@ export function DoctorInfoRow({ icon, text, className }: DoctorInfoRowProps) {
 export interface DoctorCutiNoticeProps {
   title?: string;
   subtitle?: string;
+  leaveType?: string | null;
+  substituteDoctorName?: string | null;
   className?: string;
 }
 
 export function DoctorCutiNotice({
   title = 'Dokter sedang Cuti',
   subtitle = 'Tidak ada jadwal praktik',
+  leaveType,
+  substituteDoctorName,
   className
 }: DoctorCutiNoticeProps) {
   return (
-    <div className={cn('flex items-center gap-3.5 pt-3.5 mt-3.5 relative z-20', className)}>
-      <div
-        className='size-12 rounded-2xl flex items-center justify-center shrink-0 border border-white/40 dark:border-white/20 shadow-[inset_0_1.5px_1px_0_rgba(255,255,255,0.7),0_3px_8px_-1px_var(--pill-3d-shadow),0_1px_2px_0_rgba(0,0,0,0.1)]'
-        style={{
-          background: 'var(--pill-3d-gradient)',
-          borderColor: 'var(--pill-3d-border)'
-        }}
-      >
-        <Icons.calendar className='size-6 text-white drop-shadow-[0_1px_1.5px_rgba(0,0,0,0.3)] stroke-[2.2]' />
+    <div className={cn('flex flex-col gap-2.5 pt-3.5 mt-3.5 relative z-20', className)}>
+      <div className='flex items-center gap-3.5'>
+        <div
+          className='size-12 rounded-2xl flex items-center justify-center shrink-0 border border-white/40 dark:border-white/20 shadow-[inset_0_1.5px_1px_0_rgba(255,255,255,0.7),0_3px_8px_-1px_var(--pill-3d-shadow),0_1px_2px_0_rgba(0,0,0,0.1)]'
+          style={{
+            background: 'var(--pill-3d-gradient)',
+            borderColor: 'var(--pill-3d-border)'
+          }}
+        >
+          <Icons.calendar className='size-6 text-white drop-shadow-[0_1px_1.5px_rgba(0,0,0,0.3)] stroke-[2.2]' />
+        </div>
+        <div className='flex flex-col'>
+          <div className='flex items-center gap-2'>
+            <span className='text-[14px] font-bold text-foreground leading-tight'>{title}</span>
+            {leaveType && (
+              <span className='inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20'>
+                {leaveType}
+              </span>
+            )}
+          </div>
+          <span className='text-[12px] font-medium text-muted-foreground mt-0.5'>{subtitle}</span>
+        </div>
       </div>
-      <div className='flex flex-col'>
-        <span className='text-[14px] font-bold text-foreground leading-tight'>{title}</span>
-        <span className='text-[12px] font-medium text-muted-foreground mt-0.5'>{subtitle}</span>
-      </div>
+      {substituteDoctorName && (
+        <div className='flex items-center gap-2 px-3 py-1.5 rounded-xl bg-muted/40 border border-border/50 text-[11.5px] font-medium text-muted-foreground'>
+          <Icons.userCheck className='size-3.5 text-primary shrink-0' />
+          <span>
+            Dokter Pengganti: <strong className='text-foreground'>{substituteDoctorName}</strong>
+          </span>
+        </div>
+      )}
     </div>
   );
 }
@@ -254,10 +275,7 @@ export function DoctorCardPatientStack({
   if (effectiveTotal === 0) {
     return (
       <div
-        className={cn(
-          'text-[11.5px] text-muted-foreground/75 font-normal select-none',
-          className
-        )}
+        className={cn('text-[11.5px] text-muted-foreground/75 font-normal select-none', className)}
       >
         <span>Belum ada antrean terdaftar</span>
       </div>
@@ -282,9 +300,7 @@ export function DoctorCardPatientStack({
             title={patient.name}
             className='size-7 sm:size-7.5 rounded-full ring-2 ring-card shadow-2xs border border-border/40 shrink-0 transition-transform group-hover/patient-stack:scale-105'
           >
-            {patient.avatarUrl && (
-              <AvatarImage src={patient.avatarUrl} alt={patient.name} />
-            )}
+            {patient.avatarUrl && <AvatarImage src={patient.avatarUrl} alt={patient.name} />}
             <AvatarFallback className='bg-primary/10 text-primary font-bold text-[10px] sm:text-[10.5px] uppercase tracking-tight'>
               {patient.initials || 'P'}
             </AvatarFallback>
@@ -306,9 +322,7 @@ export function DoctorCardPatientStack({
         <span className='text-[11.5px] font-semibold text-foreground/90 group-hover/patient-stack:text-primary transition-colors'>
           {effectiveTotal} Pasien
         </span>
-        <span className='text-[10px] text-muted-foreground/80 font-normal'>
-          Antrean aktif
-        </span>
+        <span className='text-[10px] text-muted-foreground/80 font-normal'>Antrean aktif</span>
       </div>
     </button>
   );

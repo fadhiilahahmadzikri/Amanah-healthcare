@@ -14,7 +14,10 @@ const CATEGORY_MAP: Record<string, ClinicNotificationCategory> = {
   pharmacy: 'Farmasi',
   telemedicine: 'Telemedisin',
   clinical: 'Janji Temu',
-  shift: 'Janji Temu',
+  shift: 'Shift & Kehadiran',
+  attendance: 'Shift & Kehadiran',
+  leave: 'Shift & Kehadiran',
+  replacement: 'Shift & Kehadiran',
   system: 'Antrean'
 };
 
@@ -34,7 +37,9 @@ function normalizeString(value?: string | null): string {
 
 export function mapBackendToClinicNotification(backend: BackendNotification): ClinicNotification {
   const categoryKey = (backend.category || '').toLowerCase();
-  const category: ClinicNotificationCategory = CATEGORY_MAP[categoryKey] ?? 'Janji Temu';
+  const sourceKey = (backend.sourceType || '').toLowerCase();
+  const category: ClinicNotificationCategory =
+    CATEGORY_MAP[sourceKey] ?? CATEGORY_MAP[categoryKey] ?? 'Janji Temu';
 
   const rawTitle = normalizeString(backend.title);
   const senderClean = normalizeString(backend.senderName);

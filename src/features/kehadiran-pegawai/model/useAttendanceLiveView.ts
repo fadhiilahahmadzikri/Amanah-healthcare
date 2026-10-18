@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { attendanceKeys, attendanceQueries } from '../api/queries';
 import type { AttendanceFilterParams, AttendanceListResponse } from '../api/types';
+import { useAttendanceRealtimeSync } from '../hooks/useAttendanceRealtimeSync';
 import { createDefaultAttendanceFilters } from './attendanceFilters';
 
 export interface UseAttendanceLiveViewResult {
@@ -33,6 +34,9 @@ export function useAttendanceLiveView(): UseAttendanceLiveViewResult {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isManualAttendanceModalOpen, setIsManualAttendanceModalOpen] = useState(false);
   const { data, refetch } = useQuery(attendanceQueries.list(params));
+
+  // Domain-level realtime synchronization hook (agnostic & decoupled from UI)
+  useAttendanceRealtimeSync({ refetch });
 
   const handleFilterChange = (newParams: Partial<AttendanceFilterParams>) => {
     setParams((prev) => ({ ...prev, ...newParams }));

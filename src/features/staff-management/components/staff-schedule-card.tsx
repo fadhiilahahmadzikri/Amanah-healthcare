@@ -7,6 +7,8 @@ import type { StaffMember } from '../api/staff-management.api';
 import {
   StaffRoleBadge,
   StaffStatusBadgeItem,
+  StaffLeaveBadge,
+  StaffAttendanceBadge,
   StaffIdentitySection,
   StaffQuickRosterButton
 } from './staff-card-atoms';
@@ -58,9 +60,11 @@ export function StaffScheduleCard({
     >
       {/* 1. Header: Role Badge, Status Badge & Quick Shift Roster Button */}
       <div className='flex items-center justify-between gap-3 relative z-20'>
-        <div className='flex items-center gap-2'>
+        <div className='flex items-center gap-2 flex-wrap'>
           <StaffRoleBadge staffType={staff.staffType} />
           <StaffStatusBadgeItem isActive={staff.isActive} />
+          {staff.leaveInfo?.isOnLeave && <StaffLeaveBadge leaveInfo={staff.leaveInfo} />}
+          {staff.todayAttendance && <StaffAttendanceBadge attendance={staff.todayAttendance} />}
         </div>
 
         {onOpenRoster && (

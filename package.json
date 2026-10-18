@@ -24,6 +24,7 @@
     "deadcode:fix": "knip --fix",
     "test": "bun test --preload ./tests/setup.ts",
     "test:unit": "bun test --preload ./tests/setup.ts tests/unit",
+    "test:contracts": "powershell -ExecutionPolicy Bypass -File tests/test-nextjs-admin-contracts.ps1",
     "log:interface": "bun scripts/tools/log-interface.ts",
     "prepare": "husky"
   },

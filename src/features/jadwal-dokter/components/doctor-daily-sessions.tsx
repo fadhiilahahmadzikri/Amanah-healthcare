@@ -133,7 +133,12 @@ export function DoctorDailySessions({
 
         {isDayCuti ? (
           <div className='p-4 space-y-4'>
-            <DoctorCutiNotice title='Dokter sedang isOnLeave' subtitle={dayLeaveReason} />
+            <DoctorCutiNotice
+              title='Dokter Sedang Cuti'
+              subtitle={dayLeaveReason}
+              leaveType={doctor?.leave_type}
+              substituteDoctorName={doctor?.substitute_doctor_name}
+            />
           </div>
         ) : isDayClosed ? (
           <div className='p-4 space-y-4'>
@@ -217,8 +222,7 @@ export function DoctorDailySessions({
             doctorSpecialty: doctor?.spesialisasi,
             date: formattedSelectedDate,
             sessionTime:
-              activeSessions.find((s) => s.id === selectedDetailSessionId)?.waktu ||
-              undefined
+              activeSessions.find((s) => s.id === selectedDetailSessionId)?.waktu || undefined
           }}
         />
       )}

@@ -24,6 +24,23 @@ export interface StaffAddressData {
   fullAddress?: string | null;
 }
 
+export interface StaffLeaveInfo {
+  isOnLeave: boolean;
+  requestType?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  reason?: string | null;
+  substituteName?: string | null;
+  replacementStatus?: string | null;
+}
+
+export interface StaffTodayAttendance {
+  status: 'present' | 'late' | 'missed' | 'leave' | 'absent' | 'not_checked_in';
+  checkInAt?: string | null;
+  checkOutAt?: string | null;
+  shift?: string | null;
+}
+
 export interface StaffMember {
   id: string;
   userId: string;
@@ -42,6 +59,8 @@ export interface StaffMember {
   photoUrl?: string | null;
   isActive: boolean;
   address?: StaffAddressData | null;
+  leaveInfo?: StaffLeaveInfo | null;
+  todayAttendance?: StaffTodayAttendance | null;
   createdAt: string;
   updatedAt: string;
 }

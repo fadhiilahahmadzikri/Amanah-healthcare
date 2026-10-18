@@ -7,6 +7,7 @@ export interface BackendNotification {
   body: string;
   category: string;
   priority?: string;
+  sourceType?: string | null;
   senderName?: string | null;
   senderRole?: string | null;
   badgeIcon?: string | null;

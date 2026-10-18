@@ -28,6 +28,7 @@ import { toast } from 'sonner';
 const CATEGORY_OPTIONS: { value: string; label: string }[] = [
   { value: 'ALL', label: 'Semua Kategori' },
   { value: 'Janji Temu', label: '📅 Janji Temu' },
+  { value: 'Shift & Kehadiran', label: '🕒 Shift & Kehadiran' },
   { value: 'Promo', label: '🎁 Promo Klinik' },
   { value: 'Hasil Lab', label: '🧪 Hasil Lab' },
   { value: 'Antrean', label: '🔢 Nomor Antrean' },

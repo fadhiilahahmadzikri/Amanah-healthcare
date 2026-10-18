@@ -13,6 +13,10 @@ export interface StaffAttendance {
   waktu: string;
   status: AttendanceStatus;
   shift: WorkShift;
+  rawStatus?: string;
+  rawShift?: string;
+  validatedDurationHours?: number;
+  isReplacement?: boolean;
 }
 
 export interface MetricSparklinePoint {

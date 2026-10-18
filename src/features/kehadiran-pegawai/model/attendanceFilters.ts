@@ -1,10 +1,8 @@
 import type { AttendanceFilterParams } from '../api/types';
 
 export function getCurrentAttendanceFilterDate(): string {
-  return new Date().toLocaleDateString('id-ID', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
+  return new Date().toLocaleDateString('en-CA', {
+    timeZone: 'Asia/Jakarta'
   });
 }
 

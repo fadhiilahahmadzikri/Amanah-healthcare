@@ -31,7 +31,7 @@ export const DB_STAFF_SHIFT_MAP: Record<string, ScheduleShift> = {
 export const SCHEDULE_STATUS = {
   OPEN: 'OPEN',
   CLOSED: 'CLOSED',
-  isOnLeave: 'isOnLeave',
+  ON_LEAVE: 'ON_LEAVE',
   PENDING: 'PENDING'
 } as const;
 
@@ -40,7 +40,7 @@ export type ScheduleStatus = (typeof SCHEDULE_STATUS)[keyof typeof SCHEDULE_STAT
 export const SCHEDULE_STATUS_LABELS: Record<ScheduleStatus, string> = {
   [SCHEDULE_STATUS.OPEN]: 'Buka',
   [SCHEDULE_STATUS.CLOSED]: 'Tutup',
-  [SCHEDULE_STATUS.isOnLeave]: 'Cuti',
+  [SCHEDULE_STATUS.ON_LEAVE]: 'Cuti',
   [SCHEDULE_STATUS.PENDING]: 'Menunggu Verifikasi'
 } as const;
 
@@ -48,7 +48,7 @@ export const SHIFT_OPERATIONAL_STATUS = {
   ACTIVE: 'ACTIVE',
   NO_PRACTICE: 'NO_PRACTICE',
   CLOSED: 'CLOSED',
-  isOnLeave: 'isOnLeave'
+  ON_LEAVE: 'ON_LEAVE'
 } as const;
 
 export type ShiftOperationalStatus =
@@ -58,7 +58,7 @@ export const SHIFT_OPERATIONAL_LABELS: Record<ShiftOperationalStatus, string> = 
   [SHIFT_OPERATIONAL_STATUS.ACTIVE]: 'Aktif',
   [SHIFT_OPERATIONAL_STATUS.NO_PRACTICE]: 'Tidak Ada Praktik',
   [SHIFT_OPERATIONAL_STATUS.CLOSED]: 'Praktik Ditutup',
-  [SHIFT_OPERATIONAL_STATUS.isOnLeave]: 'isOnLeave Dokter'
+  [SHIFT_OPERATIONAL_STATUS.ON_LEAVE]: 'Cuti Dokter'
 } as const;
 
 export const SCHEDULE_MUTATION_NOTES = {
@@ -81,17 +81,16 @@ export const CANONICAL_TO_API_SHIFT: Record<ScheduleShift, string> = {
 } as const;
 
 export function normalizeScheduleStatus(raw?: string | null): ScheduleStatus {
-  const upper = raw?.trim().toUpperCase();
-  if (
-    upper === SCHEDULE_STATUS.PENDING ||
-    upper === 'MENUNGGU' ||
-    upper === 'MENUNGGU VERIFIKASI'
-  ) {
+  if (raw === SCHEDULE_STATUS.ON_LEAVE) {
+    return SCHEDULE_STATUS.ON_LEAVE;
+  }
+  if (raw === SCHEDULE_STATUS.CLOSED) {
+    return SCHEDULE_STATUS.CLOSED;
+  }
+  if (raw === SCHEDULE_STATUS.PENDING) {
     return SCHEDULE_STATUS.PENDING;
   }
-  return upper === SCHEDULE_STATUS.CLOSED || upper === 'TUTUP'
-    ? SCHEDULE_STATUS.CLOSED
-    : SCHEDULE_STATUS.OPEN;
+  return SCHEDULE_STATUS.OPEN;
 }
 
 export function normalizeScheduleShift(raw?: string | null): ScheduleShift {

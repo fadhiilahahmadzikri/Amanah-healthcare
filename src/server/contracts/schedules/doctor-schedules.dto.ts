@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const scheduleDayStatusSchema = z.enum(['OPEN', 'CLOSED']);
+export const scheduleDayStatusSchema = z.enum(['OPEN', 'CLOSED', 'ON_LEAVE']);
 export type ScheduleDayStatus = z.infer<typeof scheduleDayStatusSchema>;
 
 const avatarSchema = z
@@ -8,7 +8,7 @@ const avatarSchema = z
   .nullish()
   .transform((value) => value ?? '');
 
-export const sessionStatusSchema = z.enum(['OPEN', 'CLOSED']);
+export const sessionStatusSchema = z.enum(['OPEN', 'CLOSED', 'ON_LEAVE']);
 export type SessionStatus = z.infer<typeof sessionStatusSchema>;
 
 export const doctorDailySessionSchema = z.object({
@@ -60,6 +60,9 @@ export const doctorScheduleItemSchema = z.object({
   leave_reason: z.string().nullable().optional(),
   leave_start: z.string().nullable().optional(),
   leave_end: z.string().nullable().optional(),
+  leave_type: z.string().nullable().optional(),
+  substitute_doctor_name: z.string().nullable().optional(),
+  replacement_status: z.string().nullable().optional(),
   sesi_harian: z.array(doctorDailySessionSchema).optional(),
   jadwal_praktik_mendatang: z.string().optional(),
   total_pasien: z.number().optional().default(0),
@@ -94,6 +97,7 @@ export const shiftOperationalStatusSchema = z.enum([
   'ACTIVE',
   'NO_PRACTICE',
   'CLOSED',
+  'ON_LEAVE',
   'isOnLeave'
 ]);
 export type ShiftOperationalStatus = z.infer<typeof shiftOperationalStatusSchema>;
@@ -139,7 +143,16 @@ export const clinicalPractitionerSchema = z.object({
   rating: z.string().optional(),
   tags: z.array(z.string()).optional(),
   schedule: z.string(),
-  is_available: z.boolean()
+  is_available: z.boolean(),
+  is_on_leave: z.boolean().optional(),
+  leave_reason: z.string().nullable().optional(),
+  is_replacement: z.boolean().optional(),
+  replacing_practitioner_name: z.string().nullable().optional(),
+  attendance_status: z
+    .enum(['checked_in', 'not_checked_in', 'late', 'on_leave', 'absent'])
+    .optional(),
+  check_in_at: z.string().nullable().optional(),
+  attendance_warning: z.string().nullable().optional()
 });
 export type ClinicalPractitioner = z.infer<typeof clinicalPractitionerSchema>;
 

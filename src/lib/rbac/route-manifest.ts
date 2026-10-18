@@ -83,6 +83,20 @@ export const routeManifest: RouteRule[] = [
     description: 'Rekap Kehadiran dan Presensi Pegawai'
   },
   {
+    pattern: '/dashboard/manajemen-perizinan',
+    match: 'prefix',
+    visibility: 'protected',
+    allowedRoles: ['admin'],
+    description: 'Manajemen Perizinan, Cuti, & Kompensasi Staf'
+  },
+  {
+    pattern: '/dashboard/payroll',
+    match: 'prefix',
+    visibility: 'protected',
+    allowedRoles: ['admin'],
+    description: 'Manajemen Rekapitulasi Penggajian & Slip Gaji Staf'
+  },
+  {
     pattern: '/dashboard/chat',
     match: 'prefix',
     visibility: 'protected',

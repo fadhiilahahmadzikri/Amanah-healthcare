@@ -126,10 +126,16 @@ export function AttendanceTableCard({
             )}
           </div>
 
-          {/* Tanggal Filter (Auto-width menyesuaikan konten) */}
-          <div className='flex items-center h-8 px-3 bg-background border border-dashed border-border/70 rounded-md shadow-2xs gap-1.5 w-auto text-xs text-foreground shrink-0 cursor-default'>
+          {/* Tanggal Filter (Interactive Date Picker for Historical Inspection) */}
+          <div className='flex items-center h-8 px-2.5 bg-background border border-dashed border-border/70 rounded-md shadow-2xs gap-1.5 w-auto text-xs text-foreground shrink-0'>
             <Icons.calendar className='size-3.5 text-muted-foreground shrink-0' />
-            <span className='whitespace-nowrap'>{params.date || '-'}</span>
+            <input
+              type='date'
+              value={params.date || ''}
+              onChange={(e) => onFilterChange({ date: e.target.value, page: 1 })}
+              className='bg-transparent text-xs text-foreground border-none outline-hidden cursor-pointer font-sans'
+              aria-label='Filter tanggal presensi'
+            />
           </div>
 
           {/* Shift Filter (Auto-width menyesuaikan isi) */}

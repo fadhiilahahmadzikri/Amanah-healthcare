@@ -11,6 +11,7 @@ import { PatientGenderSelector } from '@/features/data-pasien/components/registr
 import { PatientRegionDropdown } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import type { StaffMember } from '../api/staff-management.api';
 import { useStaffDetailEditModal } from '../model/useStaffDetailEditModal';
+import { StaffLeaveBanner } from './staff-card-atoms';
 
 export interface StaffDetailEditModalProps {
   staff: StaffMember | null;
@@ -65,6 +66,9 @@ export function StaffDetailEditModal(props: StaffDetailEditModalProps) {
         {/* Scrollable Body - Form Reguler 2 Columns */}
         <div className='flex-1 min-h-0 overflow-y-auto py-4 pr-1'>
           <form id='staff-detail-form' onSubmit={form.handleSubmit} className='p-0 space-y-0'>
+            {staff.leaveInfo?.isOnLeave && (
+              <StaffLeaveBanner leaveInfo={staff.leaveInfo} className='mb-4' />
+            )}
             <div className='grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 pt-1'>
               {/* Kolom 1: Identitas & Kelahiran */}
               <div className='space-y-4'>
