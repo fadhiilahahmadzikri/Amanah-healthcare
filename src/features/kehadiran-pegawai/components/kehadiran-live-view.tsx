@@ -66,6 +66,7 @@ export function KehadiranLiveView() {
             params={attendanceLive.params}
             onFilterChange={attendanceLive.actions.changeFilter}
             onResetFilter={handleResetFilter}
+            availableFilters={data.availableFilters}
             headerExtra={
               <div className='flex items-center gap-1.5'>
                 {/* 1. Icon-base Sync Button with Tooltip */}

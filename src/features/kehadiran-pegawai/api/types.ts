@@ -1,6 +1,17 @@
-export type StaffCategory = 'Staf' | 'Dokter';
-export type AttendanceStatus = 'Hadir' | 'Tidak Hadir';
-export type WorkShift = 'Pagi' | 'Siang' | 'Malam';
+export type StaffCategory = string;
+export type AttendanceStatus = string;
+export type WorkShift = string;
+
+export interface FilterOption {
+  label: string;
+  value: string;
+}
+
+export interface AvailableAttendanceFilters {
+  shifts: FilterOption[];
+  statuses: FilterOption[];
+  categories: FilterOption[];
+}
 
 export interface StaffAttendance {
   id: string;
@@ -11,10 +22,13 @@ export interface StaffAttendance {
   tanggal_presensi: string;
   waktu_presensi: string;
   waktu: string;
+  checkInAt?: string | null;
+  checkOutAt?: string | null;
   status: AttendanceStatus;
   shift: WorkShift;
   rawStatus?: string;
   rawShift?: string;
+  rawCategory?: string;
   validatedDurationHours?: number;
   isReplacement?: boolean;
 }
@@ -45,6 +59,8 @@ export interface QRPresenceConfig {
   qr_context: string;
   qr_validity: string;
   rotation_seconds: number;
+  validUntil?: string;
+  valid_until?: string;
 }
 
 export interface AttendanceFilterParams {
@@ -65,4 +81,5 @@ export interface AttendanceListResponse {
   totalPages: number;
   summary: AttendanceMetrics;
   qrConfig: QRPresenceConfig;
+  availableFilters?: AvailableAttendanceFilters;
 }

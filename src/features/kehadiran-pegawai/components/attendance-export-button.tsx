@@ -223,7 +223,6 @@ export function AttendanceExportDropdown({
 }
 
 export interface AttendanceHeaderActionsProps {
-  activeTab?: string;
   data: StaffAttendance[];
   onOpenGenerateQR?: () => void;
   onOpenManualAttendance?: () => void;
@@ -232,7 +231,6 @@ export interface AttendanceHeaderActionsProps {
 }
 
 export function AttendanceHeaderActions({
-  activeTab = 'operational',
   data,
   onOpenGenerateQR,
   onOpenManualAttendance,
@@ -241,37 +239,32 @@ export function AttendanceHeaderActions({
 }: AttendanceHeaderActionsProps) {
   return (
     <div className='flex flex-wrap items-center gap-2.5'>
-      {/* Jika berada di Tab Operasional, tampilkan aksi operasional */}
-      {activeTab === 'operational' && (
-        <>
-          {/* 1. Presensi Manual Button (Outline styling harmonis) */}
-          {onOpenManualAttendance && (
-            <Button
-              type='button'
-              variant='outline'
-              size='sm'
-              onClick={onOpenManualAttendance}
-              className='h-9 text-xs font-medium px-3.5 bg-card border-border/70 text-foreground hover:bg-muted/40 shadow-2xs gap-1.5'
-            >
-              <Icons.user className='size-3.5' />
-              <span>Presensi Manual</span>
-            </Button>
-          )}
+      {/* 1. Presensi Manual Button (Outline styling harmonis) */}
+      {onOpenManualAttendance && (
+        <Button
+          type='button'
+          variant='outline'
+          size='sm'
+          onClick={onOpenManualAttendance}
+          className='h-9 text-xs font-medium px-3.5 bg-card border-border/70 text-foreground hover:bg-muted/40 shadow-2xs gap-1.5'
+        >
+          <Icons.user className='size-3.5' />
+          <span>Presensi Manual</span>
+        </Button>
+      )}
 
-          {/* 2. Generate QR Presensi Button (Outline styling sama dengan Presensi Manual, teks tetap Generate QR Presensi) */}
-          {onOpenGenerateQR && (
-            <Button
-              type='button'
-              variant='outline'
-              size='sm'
-              onClick={onOpenGenerateQR}
-              className='h-9 text-xs font-medium px-3.5 bg-card border-border/70 text-foreground hover:bg-muted/40 shadow-2xs gap-1.5'
-            >
-              <Icons.qrCode className='size-3.5' />
-              <span>Generate QR Presensi</span>
-            </Button>
-          )}
-        </>
+      {/* 2. Terminal Presensi QR Button */}
+      {onOpenGenerateQR && (
+        <Button
+          type='button'
+          variant='outline'
+          size='sm'
+          onClick={onOpenGenerateQR}
+          className='h-9 text-xs font-medium px-3.5 bg-card border-border/70 text-foreground hover:bg-muted/40 shadow-2xs gap-1.5'
+        >
+          <Icons.qrCode className='size-3.5' />
+          <span>{isQRVisible ? 'Terminal Presensi QR' : 'Tampilkan QR Presensi'}</span>
+        </Button>
       )}
 
       {/* Ekspor Data Dropdown (Tampil di kedua tab dengan primary fill default seperti Data Pasien) */}

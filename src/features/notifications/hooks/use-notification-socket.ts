@@ -12,6 +12,7 @@ import { doctorScheduleKeys } from '@/features/jadwal-dokter/api/query-keys';
 import { SCHEDULE_QUERY_KEYS } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 import { leaveManagementKeys } from '@/features/manajemen-perizinan/api/query-keys';
 import { attendanceKeys } from '@/features/kehadiran-pegawai/api/queries';
+import type { StaffAttendance } from '@/features/kehadiran-pegawai/api/types';
 import { clientFetch } from '@/lib/client-fetch';
 import { useViewer } from './use-viewer';
 import type { BackendNotification } from '../api/notification-api-service';
@@ -389,39 +390,28 @@ export function useNotificationSocket(callbacks?: {
     };
 
     const handleAttendanceUpdated = (payload: unknown) => {
-      reconcile();
-      void queryClient.refetchQueries({ queryKey: attendanceKeys.all, type: 'active' });
-      void queryClient.refetchQueries({ queryKey: ['kehadiran-pegawai'], type: 'active' });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'me'] });
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.all, refetchType: 'none' });
+
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('clinic:attendance_updated', { detail: payload }));
       }
-      if (payload && typeof payload === 'object') {
-        const att = payload as {
-          attendanceId?: string;
-          id?: string;
-          staffName?: string;
-          action?: string;
-          status?: string;
-        };
-        if (att.staffName) {
-          const actionText = att.action === 'check_out' ? 'pulang' : 'masuk';
-          const statusText = att.status === 'late' ? ' (Terlambat)' : '';
-          const targetId = att.attendanceId || att.id || '';
-          toast.success(`Presensi ${actionText}: ${att.staffName}${statusText}`, {
-            action: {
-              label: 'Lihat Detail',
-              onClick: () => {
-                router.push(
-                  targetId
-                    ? `/dashboard/kehadiran-pegawai?highlight=${targetId}`
-                    : '/dashboard/kehadiran-pegawai'
-                );
-              }
-            },
-            duration: 6000
-          });
-        }
-      }
+
+      const item = payload as
+        | (StaffAttendance & { action: 'check_in' | 'manual_check_in' | 'check_out' })
+        | undefined;
+      if (!item?.nama_staf) return;
+
+      const actionText = item.action === 'check_out' ? 'pulang' : 'masuk';
+      const statusText = item.status === 'Terlambat' ? ' (Terlambat)' : '';
+      toast.success(`Presensi ${actionText}: ${item.nama_staf}${statusText}`, {
+        action: {
+          label: 'Lihat Detail',
+          onClick: () => router.push(`/dashboard/kehadiran-pegawai?highlight=${item.id}`)
+        },
+        duration: 6000
+      });
     };
 
     socket.on('appointment:called', handleAppointmentCalled);

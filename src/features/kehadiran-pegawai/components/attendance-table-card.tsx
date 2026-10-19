@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -25,21 +24,17 @@ import {
 } from '@/components/ui/table';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
 import { AttendanceDigitalClock } from './attendance-digital-clock';
-import { AttendanceEditModal } from './attendance-edit-modal';
-import { AttendanceDeleteModal } from './attendance-delete-modal';
+import { useCheckoutAttendanceMutation } from '../api/mutations';
 import { DataTableBulkActions } from '@/components/ui/table/data-table-bulk-actions';
 import { Icons } from '@/components/icons';
-import { SHIFT_OPTIONS, STATUS_OPTIONS, CATEGORY_OPTIONS } from '../constants/options';
 import { cn } from '@/lib/utils';
-import type { StaffAttendance, AttendanceFilterParams } from '../api/types';
+import type {
+  StaffAttendance,
+  AttendanceFilterParams,
+  AvailableAttendanceFilters,
+  FilterOption
+} from '../api/types';
 
 interface AttendanceTableCardProps {
   records: StaffAttendance[];
@@ -50,9 +45,12 @@ interface AttendanceTableCardProps {
   params: AttendanceFilterParams;
   onFilterChange: (newParams: Partial<AttendanceFilterParams>) => void;
   onResetFilter: () => void;
+  availableFilters?: AvailableAttendanceFilters;
   headerExtra?: React.ReactNode;
   className?: string;
 }
+
+type TabFilter = 'all' | 'active' | 'completed';
 
 export function AttendanceTableCard({
   records,
@@ -63,14 +61,13 @@ export function AttendanceTableCard({
   params,
   onFilterChange,
   onResetFilter,
+  availableFilters,
   headerExtra,
   className
 }: AttendanceTableCardProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [selectedEditRecord, setSelectedEditRecord] = useState<StaffAttendance | null>(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedDeleteRecord, setSelectedDeleteRecord] = useState<StaffAttendance | null>(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabFilter>('all');
+  const checkoutMutation = useCheckoutAttendanceMutation();
 
   const isFiltered = Boolean(
     params.search ||
@@ -79,14 +76,53 @@ export function AttendanceTableCard({
     (params.category && params.category !== 'all')
   );
 
-  const isAllSelected = records.length > 0 && records.every((r) => selectedIds.includes(r.id));
+  // Dynamic filter options from DB SSOT
+  const shiftOptions: FilterOption[] = useMemo(() => {
+    if (availableFilters?.shifts?.length) return availableFilters.shifts;
+    const unique = Array.from(new Set(records.map((r) => r.shift).filter(Boolean)));
+    return [{ label: 'Semua Shift', value: 'all' }, ...unique.map((s) => ({ label: s, value: s }))];
+  }, [availableFilters?.shifts, records]);
+
+  const statusOptions: FilterOption[] = useMemo(() => {
+    if (availableFilters?.statuses?.length) return availableFilters.statuses;
+    const unique = Array.from(new Set(records.map((r) => r.status).filter(Boolean)));
+    return [
+      { label: 'Semua Status', value: 'all' },
+      ...unique.map((st) => ({ label: st, value: st }))
+    ];
+  }, [availableFilters?.statuses, records]);
+
+  const categoryOptions: FilterOption[] = useMemo(() => {
+    if (availableFilters?.categories?.length) return availableFilters.categories;
+    const unique = Array.from(new Set(records.map((r) => r.kategori).filter(Boolean)));
+    return [
+      { label: 'Semua Kategori', value: 'all' },
+      ...unique.map((c) => ({ label: c, value: c }))
+    ];
+  }, [availableFilters?.categories, records]);
+
+  // Tab-filtered records
+  const displayedRecords = useMemo(() => {
+    if (activeTab === 'active') return records.filter((r) => !r.checkOutAt);
+    if (activeTab === 'completed') return records.filter((r) => Boolean(r.checkOutAt));
+    return records;
+  }, [records, activeTab]);
+
+  const counts = useMemo(() => {
+    const active = records.filter((r) => !r.checkOutAt).length;
+    const completed = records.filter((r) => Boolean(r.checkOutAt)).length;
+    return { all: records.length, active, completed };
+  }, [records]);
+
+  const isAllSelected =
+    displayedRecords.length > 0 && displayedRecords.every((r) => selectedIds.includes(r.id));
   const isSomeSelected = selectedIds.length > 0 && !isAllSelected;
 
   const toggleSelectAll = () => {
     if (isAllSelected) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(records.map((r) => r.id));
+      setSelectedIds(displayedRecords.map((r) => r.id));
     }
   };
 
@@ -103,17 +139,68 @@ export function AttendanceTableCard({
         className
       )}
     >
-      {/* 1. Harmonized Toolbar (Dilepas langsung seperti Halaman Data Pasien) */}
+      {/* 1. Harmonized Toolbar & Tab Navigation */}
       <div className='shrink-0 flex flex-wrap items-center justify-between gap-2.5'>
         <div className='flex flex-1 flex-wrap items-center gap-2'>
-          {/* Search Input dengan Icon */}
-          <div className='relative flex-1 min-w-[180px] max-w-[240px]'>
+          {/* 3 Status Filter Tabs */}
+          <div className='inline-flex items-center p-0.5 rounded-lg bg-muted/60 border border-border/50 text-xs font-medium'>
+            <button
+              type='button'
+              onClick={() => setActiveTab('all')}
+              className={cn(
+                'px-2.5 py-1 rounded-md transition-all flex items-center gap-1.5 cursor-pointer text-xs',
+                activeTab === 'all'
+                  ? 'bg-background text-foreground shadow-2xs font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <span>Semua</span>
+              <span className='px-1.5 py-0.2 rounded-full text-[10px] bg-muted text-muted-foreground font-mono'>
+                {counts.all}
+              </span>
+            </button>
+            <button
+              type='button'
+              onClick={() => setActiveTab('active')}
+              className={cn(
+                'px-2.5 py-1 rounded-md transition-all flex items-center gap-1.5 cursor-pointer text-xs',
+                activeTab === 'active'
+                  ? 'bg-background text-foreground shadow-2xs font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <span className='size-1.5 rounded-full bg-amber-500 animate-pulse' />
+              <span>Sedang Dinas</span>
+              <span className='px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500/10 text-amber-700 dark:text-amber-300 font-mono'>
+                {counts.active}
+              </span>
+            </button>
+            <button
+              type='button'
+              onClick={() => setActiveTab('completed')}
+              className={cn(
+                'px-2.5 py-1 rounded-md transition-all flex items-center gap-1.5 cursor-pointer text-xs',
+                activeTab === 'completed'
+                  ? 'bg-background text-foreground shadow-2xs font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <span className='size-1.5 rounded-full bg-emerald-500' />
+              <span>Selesai Dinas</span>
+              <span className='px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-mono'>
+                {counts.completed}
+              </span>
+            </button>
+          </div>
+
+          {/* Search Input */}
+          <div className='relative flex-1 min-w-[160px] max-w-[220px]'>
             <Icons.search className='absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none' />
             <Input
               value={params.search || ''}
               onChange={(e) => onFilterChange({ search: e.target.value, page: 1 })}
               placeholder='Cari nama / ID staf...'
-              className='h-8 pl-8 pr-7 text-xs bg-background border-border/70 rounded-md shadow-2xs text-foreground placeholder:text-muted-foreground'
+              className='h-8 pl-8 pr-7 text-xs bg-background border-border/70 rounded-md shadow-2xs'
             />
             {params.search && (
               <button
@@ -126,8 +213,8 @@ export function AttendanceTableCard({
             )}
           </div>
 
-          {/* Tanggal Filter (Interactive Date Picker for Historical Inspection) */}
-          <div className='flex items-center h-8 px-2.5 bg-background border border-dashed border-border/70 rounded-md shadow-2xs gap-1.5 w-auto text-xs text-foreground shrink-0'>
+          {/* Date Picker */}
+          <div className='flex items-center h-8 px-2.5 bg-background border border-dashed border-border/70 rounded-md shadow-2xs gap-1.5 text-xs text-foreground shrink-0'>
             <Icons.calendar className='size-3.5 text-muted-foreground shrink-0' />
             <input
               type='date'
@@ -138,16 +225,16 @@ export function AttendanceTableCard({
             />
           </div>
 
-          {/* Shift Filter (Auto-width menyesuaikan isi) */}
+          {/* Shift Filter */}
           <Select
             value={params.shift || 'all'}
             onValueChange={(val) => onFilterChange({ shift: val === 'all' ? null : val, page: 1 })}
           >
-            <SelectTrigger className='h-8 text-xs w-auto min-w-[120px] px-3 gap-2 bg-background border-border/70 border-dashed rounded-md shadow-2xs text-foreground whitespace-nowrap'>
+            <SelectTrigger className='h-8 text-xs w-auto min-w-[115px] px-2.5 gap-1.5 bg-background border-border/70 border-dashed rounded-md shadow-2xs'>
               <SelectValue placeholder='Shift' />
             </SelectTrigger>
             <SelectContent>
-              {SHIFT_OPTIONS.map((s) => (
+              {shiftOptions.map((s) => (
                 <SelectItem key={s.value} value={s.value} className='text-xs'>
                   {s.label}
                 </SelectItem>
@@ -155,35 +242,18 @@ export function AttendanceTableCard({
             </SelectContent>
           </Select>
 
-          {/* Status Filter (Auto-width menyesuaikan isi) */}
-          <Select
-            value={params.status || 'all'}
-            onValueChange={(val) => onFilterChange({ status: val === 'all' ? null : val, page: 1 })}
-          >
-            <SelectTrigger className='h-8 text-xs w-auto min-w-[125px] px-3 gap-2 bg-background border-border/70 border-dashed rounded-md shadow-2xs text-foreground whitespace-nowrap'>
-              <SelectValue placeholder='Status' />
-            </SelectTrigger>
-            <SelectContent>
-              {STATUS_OPTIONS.map((st) => (
-                <SelectItem key={st.value} value={st.value} className='text-xs'>
-                  {st.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Kategori Filter (Auto-width menyesuaikan isi) */}
+          {/* Kategori Filter */}
           <Select
             value={params.category || 'all'}
             onValueChange={(val) =>
               onFilterChange({ category: val === 'all' ? null : val, page: 1 })
             }
           >
-            <SelectTrigger className='h-8 text-xs w-auto min-w-[135px] px-3 gap-2 bg-background border-border/70 border-dashed rounded-md shadow-2xs text-foreground whitespace-nowrap'>
+            <SelectTrigger className='h-8 text-xs w-auto min-w-[125px] px-2.5 gap-1.5 bg-background border-border/70 border-dashed rounded-md shadow-2xs'>
               <SelectValue placeholder='Kategori' />
             </SelectTrigger>
             <SelectContent>
-              {CATEGORY_OPTIONS.map((c) => (
+              {categoryOptions.map((c) => (
                 <SelectItem key={c.value} value={c.value} className='text-xs'>
                   {c.label}
                 </SelectItem>
@@ -206,43 +276,46 @@ export function AttendanceTableCard({
           )}
         </div>
 
-        {/* Right Toolbar Extra Actions & Master Digital Clock */}
+        {/* Right Toolbar Extra Actions & Digital Clock */}
         <div className='flex items-center gap-1.5 shrink-0'>
           <AttendanceDigitalClock />
           {headerExtra}
         </div>
       </div>
 
-      {/* 2. Harmonized Data Table with Internal ScrollArea (Identical to Data Pasien) */}
+      {/* 2. Structured Data Table with Explicit Check-In and Check-Out Columns */}
       <div className='relative flex flex-1 min-h-0'>
         <div className='absolute inset-0 flex overflow-hidden rounded-xl border border-border/40 bg-card shadow-xs'>
           <ScrollArea className='h-full w-full'>
             <Table>
               <TableHeader className='bg-muted/40 sticky top-0 z-20 border-b border-border/40 backdrop-blur-xs'>
                 <TableRow className='hover:bg-transparent border-b border-border/40'>
-                  <TableHead className='h-10 w-12 px-3 text-center'>
+                  <TableHead className='h-10 w-10 px-2.5 text-center'>
                     <Checkbox
                       checked={isAllSelected || (isSomeSelected && 'indeterminate')}
                       onCheckedChange={toggleSelectAll}
                       aria-label='Pilih semua'
                     />
                   </TableHead>
-                  <TableHead className='h-10 px-4 text-xs font-semibold text-muted-foreground min-w-[180px]'>
+                  <TableHead className='h-10 px-3 text-xs font-semibold text-muted-foreground min-w-[170px]'>
                     Nama Staf
                   </TableHead>
-                  <TableHead className='h-10 px-4 text-xs font-semibold text-muted-foreground min-w-[100px]'>
+                  <TableHead className='h-10 px-3 text-xs font-semibold text-muted-foreground min-w-[95px]'>
                     Kategori
                   </TableHead>
-                  <TableHead className='h-10 px-4 text-xs font-semibold text-muted-foreground min-w-[150px]'>
-                    Waktu Presensi
+                  <TableHead className='h-10 px-3 text-xs font-semibold text-muted-foreground min-w-[100px]'>
+                    Jam Masuk
                   </TableHead>
-                  <TableHead className='h-10 px-4 text-xs font-semibold text-muted-foreground min-w-[100px]'>
-                    Waktu
+                  <TableHead className='h-10 px-3 text-xs font-semibold text-muted-foreground min-w-[110px]'>
+                    Jam Pulang
                   </TableHead>
-                  <TableHead className='h-10 px-4 text-xs font-semibold text-muted-foreground min-w-[120px]'>
+                  <TableHead className='h-10 px-3 text-xs font-semibold text-muted-foreground min-w-[90px]'>
+                    Durasi
+                  </TableHead>
+                  <TableHead className='h-10 px-3 text-xs font-semibold text-muted-foreground min-w-[110px]'>
                     Status
                   </TableHead>
-                  <TableHead className='h-10 px-4 text-xs font-semibold text-muted-foreground min-w-[90px]'>
+                  <TableHead className='h-10 px-3 text-xs font-semibold text-muted-foreground min-w-[85px]'>
                     Shift
                   </TableHead>
                   <TableHead className='h-10 w-12 px-3 text-right'>
@@ -251,19 +324,19 @@ export function AttendanceTableCard({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {records.length === 0 ? (
+                {displayedRecords.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className='h-[360px] p-6 text-center'>
+                    <TableCell colSpan={9} className='h-[340px] p-6 text-center'>
                       <EmptyState
                         icon={Icons.inbox}
                         title='Belum ada data presensi'
-                        description='Data presensi pegawai akan ditampilkan di sini setelah tersedia.'
-                        className='min-h-[320px] border-0 bg-transparent'
+                        description='Data presensi pegawai akan ditampilkan di sini setelah scan atau input tercatat.'
+                        className='min-h-[300px] border-0 bg-transparent'
                       />
                     </TableCell>
                   </TableRow>
                 ) : (
-                  records.map((row) => {
+                  displayedRecords.map((row) => {
                     const initials = row.nama_staf
                       .replace('dr. ', '')
                       .split(' ')
@@ -273,8 +346,30 @@ export function AttendanceTableCard({
                       .toUpperCase();
 
                     const isDoctor = row.kategori === 'Dokter';
-                    const isHadir = row.status === 'Hadir';
                     const isSelected = selectedIds.includes(row.id);
+                    const isLate = row.rawStatus === 'late' || row.status === 'Terlambat';
+                    const isPresent = row.rawStatus === 'present' || row.status === 'Hadir';
+
+                    // Parse formatted check-in & check-out times
+                    const jamMasuk = row.checkInAt
+                      ? new Date(row.checkInAt).toLocaleTimeString('id-ID', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })
+                      : row.waktu_presensi || row.waktu || '-';
+
+                    const jamPulang = row.checkOutAt
+                      ? new Date(row.checkOutAt).toLocaleTimeString('id-ID', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })
+                      : null;
+
+                    const durasiStr = row.validatedDurationHours
+                      ? `${row.validatedDurationHours} jam`
+                      : row.checkOutAt
+                        ? '-'
+                        : 'Sedang dinas';
 
                     return (
                       <TableRow
@@ -286,9 +381,9 @@ export function AttendanceTableCard({
                         )}
                         onClick={() => toggleSelectRow(row.id)}
                       >
-                        {/* Checkbox Select */}
+                        {/* Checkbox */}
                         <TableCell
-                          className='px-3 text-center'
+                          className='px-2.5 text-center'
                           onClick={(e) => e.stopPropagation()}
                         >
                           <Checkbox
@@ -299,19 +394,19 @@ export function AttendanceTableCard({
                         </TableCell>
 
                         {/* Nama Staf */}
-                        <TableCell className='px-4 py-3 font-medium text-foreground'>
-                          <div className='flex items-center gap-3'>
-                            <Avatar className='size-8 rounded-md ring-1 ring-border/40 shrink-0'>
+                        <TableCell className='px-3 py-2.5 font-medium text-foreground'>
+                          <div className='flex items-center gap-2.5'>
+                            <Avatar className='size-7 rounded-md ring-1 ring-border/40 shrink-0'>
                               {row.avatar && <AvatarImage src={row.avatar} alt={row.nama_staf} />}
-                              <AvatarFallback className='bg-primary/10 text-primary font-bold text-xs rounded-md'>
+                              <AvatarFallback className='bg-primary/10 text-primary font-bold text-[11px] rounded-md'>
                                 {initials}
                               </AvatarFallback>
                             </Avatar>
                             <div className='min-w-0'>
-                              <span className='truncate font-semibold block text-xs sm:text-sm'>
+                              <span className='truncate font-semibold block text-xs'>
                                 {row.nama_staf}
                               </span>
-                              <span className='text-[10.5px] text-muted-foreground font-mono'>
+                              <span className='text-[10px] text-muted-foreground font-mono'>
                                 {row.id_staf}
                               </span>
                             </div>
@@ -319,10 +414,10 @@ export function AttendanceTableCard({
                         </TableCell>
 
                         {/* Kategori */}
-                        <TableCell className='px-4 py-3'>
+                        <TableCell className='px-3 py-2.5'>
                           <span
                             className={cn(
-                              'inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-semibold leading-none border',
+                              'inline-flex items-center px-2 py-0.5 rounded text-[10.5px] font-semibold border',
                               isDoctor
                                 ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20'
                                 : 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20'
@@ -332,80 +427,101 @@ export function AttendanceTableCard({
                           </span>
                         </TableCell>
 
-                        {/* Waktu Presensi */}
-                        <TableCell className='px-4 py-3 text-muted-foreground font-medium text-xs'>
-                          {row.waktu_presensi}
+                        {/* Jam Masuk */}
+                        <TableCell className='px-3 py-2.5 font-mono text-xs font-semibold text-foreground'>
+                          {jamMasuk}
                         </TableCell>
 
-                        {/* Waktu */}
-                        <TableCell className='px-4 py-3 font-mono font-medium text-foreground text-xs'>
-                          {row.waktu}
+                        {/* Jam Pulang */}
+                        <TableCell className='px-3 py-2.5'>
+                          {jamPulang ? (
+                            <span className='font-mono text-xs font-semibold text-foreground'>
+                              {jamPulang}
+                            </span>
+                          ) : (
+                            <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20'>
+                              <span className='size-1.5 rounded-full bg-amber-500 animate-pulse' />
+                              <span>Sedang Dinas</span>
+                            </span>
+                          )}
                         </TableCell>
 
-                        {/* Status */}
-                        <TableCell className='px-4 py-3'>
-                          <span
-                            className={cn(
-                              'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border',
-                              isHadir
-                                ? 'bg-success-subtle text-success border-success-border'
-                                : 'bg-destructive-subtle text-destructive border-destructive-border'
-                            )}
-                          >
-                            <span
-                              className={cn(
-                                'size-1.5 rounded-full shrink-0',
-                                isHadir ? 'bg-success' : 'bg-destructive'
-                              )}
-                            />
-                            <span>{row.status}</span>
-                          </span>
+                        {/* Durasi */}
+                        <TableCell className='px-3 py-2.5 text-xs text-muted-foreground font-medium'>
+                          {durasiStr}
+                        </TableCell>
+
+                        {/* Status Presensi with Clear Semantic Tooltip */}
+                        <TableCell className='px-3 py-2.5'>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span
+                                className={cn(
+                                  'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10.5px] font-bold border cursor-help',
+                                  isLate
+                                    ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20'
+                                    : isPresent
+                                      ? 'bg-success-subtle text-success border-success-border'
+                                      : 'bg-muted text-muted-foreground border-border/50'
+                                )}
+                              >
+                                <span
+                                  className={cn(
+                                    'size-1.5 rounded-full shrink-0',
+                                    isLate
+                                      ? 'bg-amber-500'
+                                      : isPresent
+                                        ? 'bg-success'
+                                        : 'bg-muted-foreground'
+                                  )}
+                                />
+                                <span>{row.status}</span>
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent side='top' className='text-xs max-w-xs'>
+                              {isLate
+                                ? 'Presensi masuk melewati toleransi keterlambatan shift yang ditentukan klinik.'
+                                : isPresent
+                                  ? 'Presensi masuk tepat waktu dalam jendela kehadiran shift.'
+                                  : `Status presensi: ${row.status}`}
+                            </TooltipContent>
+                          </Tooltip>
                         </TableCell>
 
                         {/* Shift */}
-                        <TableCell className='px-4 py-3 font-semibold text-primary-bright text-xs'>
+                        <TableCell className='px-3 py-2.5 font-semibold text-primary-bright text-xs'>
                           {row.shift}
                         </TableCell>
 
-                        {/* Aksi MoreVert Menu */}
-                        <TableCell className='px-3 text-right' onClick={(e) => e.stopPropagation()}>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                type='button'
-                                variant='ghost'
-                                size='icon'
-                                className='size-7 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-md cursor-pointer'
-                              >
-                                <Icons.ellipsis className='size-3.5' />
-                                <span className='sr-only'>Aksi Data Presensi</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align='end' className='w-44 text-xs font-sans'>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setSelectedEditRecord(row);
-                                  setIsEditModalOpen(true);
-                                }}
-                                className='gap-2 py-1.5 cursor-pointer font-medium'
-                              >
-                                <Icons.edit className='size-3.5 text-primary' />
-                                <span>Ubah Presensi</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setSelectedDeleteRecord(row);
-                                  setIsDeleteModalOpen(true);
-                                }}
-                                variant='destructive'
-                                className='gap-2 py-1.5 cursor-pointer font-medium'
-                              >
-                                <Icons.trash className='size-3.5' />
-                                <span>Hapus Presensi</span>
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                        {/* Aksi Checkout */}
+                        <TableCell
+                          className='px-2.5 text-right'
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {row.checkOutAt ? (
+                            <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-muted text-muted-foreground border border-border/50'>
+                              <Icons.check className='size-2.5 text-emerald-500' />
+                              <span>Selesai</span>
+                            </span>
+                          ) : (
+                            <Button
+                              type='button'
+                              variant='outline'
+                              size='sm'
+                              disabled={checkoutMutation.isPending}
+                              onClick={() =>
+                                checkoutMutation.mutate({
+                                  staffId: row.id_staf,
+                                  staffName: row.nama_staf
+                                })
+                              }
+                              className='h-6.5 text-[11px] font-semibold px-2 rounded-md border-border/70 hover:bg-primary/10 hover:text-primary gap-1 cursor-pointer'
+                              title={`Catat presensi pulang untuk ${row.nama_staf}`}
+                            >
+                              <Icons.logout className='size-3 text-primary' />
+                              <span>Checkout</span>
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     );
@@ -418,10 +534,9 @@ export function AttendanceTableCard({
         </div>
       </div>
 
-      {/* 3. Harmonized DataTablePagination (Standar Data Pasien) */}
-      {total > 0 ? (
-        <div className='flex flex-wrap items-center justify-between gap-2.5 pt-2 text-xs text-muted-foreground'>
-          {/* Left: Row Selection / Total Count */}
+      {/* 3. Pagination */}
+      {total > 0 && (
+        <div className='flex flex-wrap items-center justify-between gap-2 pt-1 text-xs text-muted-foreground'>
           <div className='text-xs text-muted-foreground whitespace-nowrap'>
             {selectedIds.length > 0 ? (
               <>
@@ -429,58 +544,40 @@ export function AttendanceTableCard({
                 {total} baris dipilih.
               </>
             ) : (
-              <>{total} baris total.</>
+              <>{total} data presensi tercatat.</>
             )}
           </div>
 
-          {/* Right: Rows per page, Page info, & Navigation Controls */}
-          <div className='flex items-center gap-2 sm:gap-6'>
-            {/* Rows per page */}
-            <div className='hidden items-center space-x-2 sm:flex'>
-              <p className='text-xs font-medium whitespace-nowrap text-muted-foreground'>
-                Baris per halaman
-              </p>
+          <div className='flex items-center gap-2 sm:gap-4'>
+            <div className='hidden items-center space-x-1.5 sm:flex'>
+              <p className='text-xs font-medium text-muted-foreground'>Baris:</p>
               <Select
                 value={`${limit}`}
                 onValueChange={(val) => onFilterChange({ limit: Number(val), page: 1 })}
               >
-                <SelectTrigger className='h-8 w-16 text-xs bg-background border-border/70 text-foreground'>
+                <SelectTrigger className='h-7 w-14 text-xs bg-background border-border/70 text-foreground'>
                   <SelectValue placeholder={limit} />
                 </SelectTrigger>
                 <SelectContent side='top'>
-                  {[8, 16, 24, 32].map((pageSize) => (
-                    <SelectItem key={pageSize} value={`${pageSize}`} className='text-xs'>
-                      {pageSize}
+                  {[8, 16, 24, 32].map((s) => (
+                    <SelectItem key={s} value={`${s}`} className='text-xs'>
+                      {s}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Page info */}
-            <div className='flex items-center justify-center text-xs font-medium whitespace-nowrap text-foreground'>
+            <div className='text-xs font-medium text-foreground whitespace-nowrap'>
               Halaman {page} dari {totalPages || 1}
             </div>
 
-            {/* Navigation Controls */}
             <div className='flex items-center space-x-1'>
               <Button
                 type='button'
-                aria-label='Halaman pertama'
                 variant='outline'
                 size='icon'
-                className='hidden size-8 lg:flex'
-                onClick={() => onFilterChange({ page: 1 })}
-                disabled={page <= 1}
-              >
-                <Icons.chevronsLeft className='size-3.5' />
-              </Button>
-              <Button
-                type='button'
-                aria-label='Halaman sebelumnya'
-                variant='outline'
-                size='icon'
-                className='size-8'
+                className='size-7'
                 onClick={() => onFilterChange({ page: Math.max(1, page - 1) })}
                 disabled={page <= 1}
               >
@@ -488,190 +585,49 @@ export function AttendanceTableCard({
               </Button>
               <Button
                 type='button'
-                aria-label='Halaman selanjutnya'
                 variant='outline'
                 size='icon'
-                className='size-8'
+                className='size-7'
                 onClick={() => onFilterChange({ page: Math.min(totalPages, page + 1) })}
                 disabled={page >= totalPages}
               >
                 <Icons.chevronRight className='size-3.5' />
               </Button>
-              <Button
-                type='button'
-                aria-label='Halaman terakhir'
-                variant='outline'
-                size='icon'
-                className='hidden size-8 lg:flex'
-                onClick={() => onFilterChange({ page: totalPages })}
-                disabled={page >= totalPages}
-              >
-                <Icons.chevronsRight className='size-3.5' />
-              </Button>
             </div>
           </div>
         </div>
-      ) : null}
+      )}
 
-      {/* 4. Floating Bulk Actions Toolbar via Unified Master Component */}
+      {/* 4. Bulk Actions */}
       <DataTableBulkActions
         selectedCount={selectedIds.length}
         onClearSelection={() => setSelectedIds([])}
         entityName='staf'
       >
-        {/* Action 1: Ubah / Edit Presensi */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type='button'
-              variant='outline'
-              size='sm'
-              onClick={() => {
-                const firstSelected = records.find((r) => selectedIds.includes(r.id));
-                if (firstSelected) {
-                  setSelectedEditRecord(firstSelected);
-                  setIsEditModalOpen(true);
-                }
-              }}
-              className='h-8 text-xs font-semibold px-3 gap-1.5 rounded-xl border-border/70 shadow-2xs hover:bg-muted/80'
-            >
-              <Icons.edit className='size-3.5 text-primary' />
-              <span>Ubah</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side='top' className='text-xs'>
-            {selectedIds.length === 1 ? 'Ubah Data Presensi' : 'Ubah Presensi Terpilih'}
-          </TooltipContent>
-        </Tooltip>
-
-        {/* Action 2: Set Status Dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type='button'
-              variant='outline'
-              size='sm'
-              className='h-8 text-xs font-semibold px-3 gap-1.5 rounded-xl border-border/70 shadow-2xs hover:bg-muted/80'
-            >
-              <Icons.badgeCheck className='size-3.5 text-emerald-600 dark:text-emerald-400' />
-              <span>Set Status</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align='center' side='top' className='w-40 text-xs font-sans'>
-            <DropdownMenuItem
-              onClick={() => {
-                toast.success(`Status ${selectedIds.length} pegawai diubah menjadi Hadir.`);
-                setSelectedIds([]);
-              }}
-              className='gap-2 py-1.5 cursor-pointer font-medium'
-            >
-              <span className='size-2 rounded-full bg-emerald-500' />
-              <span>Set Hadir</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                toast.info(`Status ${selectedIds.length} pegawai diubah menjadi Izin.`);
-                setSelectedIds([]);
-              }}
-              className='gap-2 py-1.5 cursor-pointer font-medium'
-            >
-              <span className='size-2 rounded-full bg-blue-500' />
-              <span>Set Izin</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                toast.info(`Status ${selectedIds.length} pegawai diubah menjadi Sakit.`);
-                setSelectedIds([]);
-              }}
-              className='gap-2 py-1.5 cursor-pointer font-medium'
-            >
-              <span className='size-2 rounded-full bg-amber-500' />
-              <span>Set Sakit</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                toast.error(`Status ${selectedIds.length} pegawai diubah menjadi Alpha.`);
-                setSelectedIds([]);
-              }}
-              className='gap-2 py-1.5 cursor-pointer font-medium'
-            >
-              <span className='size-2 rounded-full bg-rose-500' />
-              <span>Set Alpha</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Action 3: Ekspor Data Terpilih */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type='button'
-              variant='outline'
-              size='sm'
-              onClick={() => {
-                toast.success(`Mengekspor ${selectedIds.length} data presensi pegawai terpilih.`);
-              }}
-              className='h-8 text-xs font-semibold px-3 gap-1.5 rounded-xl border-border/70 shadow-2xs hover:bg-muted/80'
-            >
-              <Icons.download className='size-3.5' />
-              <span className='hidden sm:inline'>Ekspor</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side='top' className='text-xs'>
-            Ekspor data presensi terpilih
-          </TooltipContent>
-        </Tooltip>
-
-        {/* Action 4: Hapus Data Presensi (Destructive) */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type='button'
-              variant='destructive'
-              size='sm'
-              onClick={() => {
-                setSelectedDeleteRecord(null); // Triggers bulk deletion modal
-                setIsDeleteModalOpen(true);
-              }}
-              className='h-8 text-xs font-semibold px-3 gap-1.5 rounded-xl shadow-2xs'
-            >
-              <Icons.trash className='size-3.5' />
-              <span>Hapus</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side='top' className='text-xs'>
-            Hapus {selectedIds.length} data presensi terpilih
-          </TooltipContent>
-        </Tooltip>
+        <Button
+          type='button'
+          variant='outline'
+          size='sm'
+          disabled={checkoutMutation.isPending}
+          onClick={async () => {
+            const targets = displayedRecords.filter(
+              (r) => selectedIds.includes(r.id) && !r.checkOutAt
+            );
+            if (targets.length === 0) {
+              toast.info('Semua staf terpilih sudah checkout dinas.');
+              return;
+            }
+            for (const t of targets) {
+              await checkoutMutation.mutateAsync({ staffId: t.id_staf, staffName: t.nama_staf });
+            }
+            setSelectedIds([]);
+          }}
+          className='h-7 text-xs font-semibold px-2.5 gap-1.5 rounded-lg'
+        >
+          <Icons.logout className='size-3 text-primary' />
+          <span>Checkout Terpilih</span>
+        </Button>
       </DataTableBulkActions>
-
-      {/* Edit & Detail Presensi Modal */}
-      <AttendanceEditModal
-        isOpen={isEditModalOpen}
-        attendance={selectedEditRecord}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setSelectedEditRecord(null);
-        }}
-      />
-
-      {/* Hapus Presensi Confirmation Modal (Supports Single or Bulk Delete) */}
-      <AttendanceDeleteModal
-        isOpen={isDeleteModalOpen}
-        attendance={selectedDeleteRecord}
-        attendances={
-          selectedDeleteRecord
-            ? [selectedDeleteRecord]
-            : records.filter((r) => selectedIds.includes(r.id))
-        }
-        onClose={() => {
-          setIsDeleteModalOpen(false);
-          setSelectedDeleteRecord(null);
-        }}
-        onSuccess={() => {
-          setSelectedIds([]);
-        }}
-      />
     </div>
   );
 }

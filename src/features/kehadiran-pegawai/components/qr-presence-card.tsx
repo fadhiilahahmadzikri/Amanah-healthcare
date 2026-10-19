@@ -29,9 +29,21 @@ export function QRPresenceCard({
   onOpenManualAttendance,
   className
 }: QRPresenceCardProps) {
-  // Global store subscriber for rotation interval (default 30s)
-  const rotationInterval = useQRStyleStore((s) => s.rotationSeconds) || 30;
-  const [timeLeft, setTimeLeft] = useState(rotationInterval);
+  // Dynamic rotation interval from backend config
+  const rotationInterval = config.rotation_seconds || 30;
+
+  // Calculate remaining seconds from backend validUntil timestamp (persists across page refresh)
+  const computeRemainingSeconds = useCallback(() => {
+    const validUntilIso = config.validUntil || config.valid_until;
+    if (validUntilIso) {
+      const targetTime = new Date(validUntilIso).getTime();
+      const diffSec = Math.max(0, Math.round((targetTime - Date.now()) / 1000));
+      return diffSec;
+    }
+    return rotationInterval;
+  }, [config.validUntil, config.valid_until, rotationInterval]);
+
+  const [timeLeft, setTimeLeft] = useState(computeRemainingSeconds);
   const [token, setToken] = useState(config.qr_code_identifier || '');
 
   const qrVisualRef = useRef<HTMLDivElement | null>(null);
@@ -39,10 +51,10 @@ export function QRPresenceCard({
   const indicatorDotRef = useRef<HTMLSpanElement | null>(null);
   const isAnimatingRef = useRef(false);
 
-  // Sync timeLeft when rotationInterval is updated in settings
+  // Sync timeLeft when config (e.g. validUntil or rotation_seconds) changes
   useEffect(() => {
-    setTimeLeft(rotationInterval);
-  }, [rotationInterval]);
+    setTimeLeft(computeRemainingSeconds());
+  }, [computeRemainingSeconds]);
 
   useEffect(() => {
     setToken(config.qr_code_identifier || '');
@@ -140,14 +152,10 @@ export function QRPresenceCard({
     toast.success('Panel presensi dibuka di window independen.');
   };
 
-  // Pure stable payload that only changes when token/shift changes (ZERO 1s flickering!)
+  // Pure stable payload that directly encodes the token code (ZERO 1s flickering!)
   const qrPayload = React.useMemo(() => {
-    return JSON.stringify({
-      clinic: 'Amanah Healthcare',
-      shift: config.qr_context || '',
-      token: token
-    });
-  }, [config.qr_context, token]);
+    return token || '';
+  }, [token]);
 
   return (
     <Card

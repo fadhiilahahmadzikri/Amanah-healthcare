@@ -3,8 +3,7 @@ import type {
   StaffAttendance,
   AttendanceFilterParams,
   AttendanceListResponse,
-  QRPresenceConfig,
-  AttendanceStatus
+  QRPresenceConfig
 } from './types';
 
 class AttendanceService {
@@ -63,7 +62,9 @@ class AttendanceService {
       qr_code_identifier: res.qrCodeIdentifier,
       qr_context: res.context || 'Terminal Utama Presensi',
       qr_validity: res.validUntil ? new Date(res.validUntil).toLocaleTimeString('id-ID') : '',
-      rotation_seconds: res.rotationSeconds || 30
+      rotation_seconds: res.rotationSeconds,
+      validUntil: res.validUntil,
+      valid_until: res.validUntil
     };
   }
 
@@ -85,30 +86,14 @@ class AttendanceService {
       qr_code_identifier: res.qrCodeIdentifier,
       qr_context: res.context || 'Terminal Utama Presensi',
       qr_validity: res.validUntil ? new Date(res.validUntil).toLocaleTimeString('id-ID') : '',
-      rotation_seconds: res.rotationSeconds || 30
+      rotation_seconds: res.rotationSeconds,
+      validUntil: res.validUntil,
+      valid_until: res.validUntil
     };
   }
 
-  async updateQRConfig(payload: Partial<QRPresenceConfig>): Promise<QRPresenceConfig> {
-    return this.generateNewQRToken(payload.qr_context);
-  }
-
-  // Compatibility stubs for legacy edit/delete modal interactions
-  async updateStaffAttendance(
-    id: string,
-    payload: Partial<StaffAttendance>
-  ): Promise<StaffAttendance> {
-    return this.recordManualAttendance(payload.id_staf || id, payload.waktu);
-  }
-
-  async deleteStaffAttendance(id: string): Promise<boolean> {
-    return true;
-  }
-
-  async createStaffAttendance(
-    payload: Omit<StaffAttendance, 'id'> & { id?: string }
-  ): Promise<StaffAttendance> {
-    return this.recordManualAttendance(payload.id_staf, payload.waktu);
+  async updateQRConfig(payload?: Partial<QRPresenceConfig>): Promise<QRPresenceConfig> {
+    return this.generateNewQRToken(payload?.qr_context);
   }
 }
 

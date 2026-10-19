@@ -8,7 +8,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from '@/components/ui/select';
 import type { ClinicSettingConfig } from '../../../api/admin-schedule-configuration.api';
 
@@ -23,12 +23,10 @@ const CATEGORIES: Array<{ id: string; label: string }> = [
   { id: 'duration', label: 'Durasi Pelayanan' },
   { id: 'queue', label: 'Aturan Antrean' },
   { id: 'notification', label: 'Notifikasi & Layar' },
+  { id: 'attendance', label: 'Presensi & Shift' }
 ];
 
-export function StepClinicSettings({
-  clinicSettings,
-  onUpdateSetting,
-}: StepClinicSettingsProps) {
+export function StepClinicSettings({ clinicSettings, onUpdateSetting }: StepClinicSettingsProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   const visibleSettings = useMemo(
@@ -85,8 +83,8 @@ export function StepClinicSettings({
             (typeof setting.value === 'boolean'
               ? 'boolean'
               : typeof setting.value === 'number'
-              ? 'number'
-              : 'text');
+                ? 'number'
+                : 'text');
 
           return (
             <div
@@ -106,14 +104,10 @@ export function StepClinicSettings({
                 {controlType === 'boolean' ? (
                   <Switch
                     checked={Boolean(setting.value)}
-                    onCheckedChange={(checked) =>
-                      onUpdateSetting(setting.key, checked)
-                    }
+                    onCheckedChange={(checked) => onUpdateSetting(setting.key, checked)}
                     aria-label={setting.label}
                   />
-                ) : controlType === 'select' &&
-                  setting.options &&
-                  setting.options.length > 0 ? (
+                ) : controlType === 'select' && setting.options && setting.options.length > 0 ? (
                   <Select
                     value={String(setting.value)}
                     onValueChange={(val) => onUpdateSetting(setting.key, val)}
@@ -123,11 +117,7 @@ export function StepClinicSettings({
                     </SelectTrigger>
                     <SelectContent>
                       {setting.options.map((opt) => (
-                        <SelectItem
-                          key={opt.value}
-                          value={opt.value}
-                          className='text-xs'
-                        >
+                        <SelectItem key={opt.value} value={opt.value} className='text-xs'>
                           <div className='flex items-center gap-2'>
                             {opt.flagCode && (
                               <img
@@ -151,9 +141,7 @@ export function StepClinicSettings({
                       min={setting.min}
                       max={setting.max}
                       step={setting.step ?? 1}
-                      onChange={(e) =>
-                        onUpdateSetting(setting.key, Number(e.target.value))
-                      }
+                      onChange={(e) => onUpdateSetting(setting.key, Number(e.target.value))}
                       className={`h-full text-center font-mono font-medium text-xs bg-transparent border-0 outline-none px-2 text-foreground [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
                         setting.unit ? 'w-16' : 'w-20'
                       }`}
@@ -168,9 +156,7 @@ export function StepClinicSettings({
                   <Input
                     type='text'
                     value={String(setting.value)}
-                    onChange={(e) =>
-                      onUpdateSetting(setting.key, e.target.value)
-                    }
+                    onChange={(e) => onUpdateSetting(setting.key, e.target.value)}
                     className='h-8.5 w-36 sm:w-44 text-xs'
                   />
                 )}

@@ -1,17 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
 import { Icons } from '@/components/icons';
+import { toast } from 'sonner';
 import { useUpdateQRConfigMutation } from '../api/mutations';
 import type { QRPresenceConfig } from '../api/types';
 
@@ -22,47 +15,33 @@ export interface GenerateQRModalProps {
   onActivated?: () => void;
 }
 
-function getEditableStatusPresensi(config: QRPresenceConfig): string {
-  return config.status_presensi === 'Tidak aktif' ? '' : config.status_presensi || '';
-}
-
 export function GenerateQRModal({ isOpen, onClose, config, onActivated }: GenerateQRModalProps) {
   const updateConfigMutation = useUpdateQRConfigMutation();
 
-  const [shift, setShift] = useState(config.qr_context || '');
-  const [statusPresensi, setStatusPresensi] = useState(getEditableStatusPresensi(config));
-
-  useEffect(() => {
-    if (!isOpen) return;
-    setShift(config.qr_context || '');
-    setStatusPresensi(getEditableStatusPresensi(config));
-  }, [config.qr_context, config.status_presensi, isOpen]);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Auto-generate fresh token code
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let newIdentifier = '';
-    for (let i = 0; i < 6; i++) {
-      newIdentifier += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-
-    updateConfigMutation.mutate(
-      {
-        qr_context: shift,
-        status_presensi: statusPresensi,
-        qr_code_identifier: newIdentifier,
-        qr_validity: 'QR Code aktif untuk sesi presensi berjalan.'
-      },
-      {
-        onSuccess: () => {
-          onActivated?.();
-          onClose();
-        }
-      }
+  const handleLaunchKiosk = () => {
+    const width = 1400;
+    const height = 860;
+    const left = Math.max(0, Math.round((window.screen.width - width) / 2));
+    const top = Math.max(0, Math.round((window.screen.height - height) / 2));
+    window.open(
+      '/kehadiran-live',
+      'AmanahLiveAttendance',
+      `width=${width},height=${height},top=${top},left=${left},menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes`
     );
+    toast.success('Terminal presensi kiosk dibuka di window independen.');
+    onClose();
   };
+
+  const handleActivateDock = () => {
+    onActivated?.();
+    onClose();
+  };
+
+  const handleRotateToken = () => {
+    updateConfigMutation.mutate({});
+  };
+
+  const isTerminalActive = config.status_presensi !== 'Tidak aktif';
 
   return (
     <ModalWrapper
@@ -71,79 +50,113 @@ export function GenerateQRModal({ isOpen, onClose, config, onActivated }: Genera
       maxWidth='max-w-[480px]'
       showCloseButton={false}
     >
-      <form onSubmit={handleSubmit} className='relative font-sans space-y-4'>
+      <div className='relative font-sans space-y-4'>
         {/* Header */}
         <div className='pb-3 border-b border-border/40'>
-          <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
-            Generate QR Presensi Pegawai
-          </h3>
-          <p className='text-xs text-muted-foreground mt-0.5'>
-            Konfigurasi shift dan batas waktu untuk mengaktifkan sesi presensi kehadiran.
+          <div className='flex items-center gap-2'>
+            <div className='size-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0'>
+              <Icons.qrCode className='size-4' />
+            </div>
+            <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
+              Terminal Presensi QR Staf
+            </h3>
+          </div>
+          <p className='text-xs text-muted-foreground mt-1'>
+            Terminal berjalan otomatis 24 jam. Staf dan dokter yang melakukan presensi akan
+            divalidasi jadwal dinasnya secara langsung.
           </p>
         </div>
 
-        {/* Form Fields (Identifier Token dihapus sesuai instruksi) */}
-        <div className='space-y-3.5 py-1'>
-          {/* Shift */}
-          <div>
-            <span className='text-xs font-normal text-muted-foreground/80 block mb-1.5'>
-              Shift Kerja
-            </span>
-            <Select value={shift} onValueChange={setShift}>
-              <SelectTrigger className='h-9 text-xs'>
-                <SelectValue placeholder='Pilih shift' />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='Shift Pagi'>Shift Pagi (08:00 - 16:00 WIB)</SelectItem>
-                <SelectItem value='Shift Siang'>Shift Siang (14:00 - 21:00 WIB)</SelectItem>
-                <SelectItem value='Shift Malam'>Shift Malam (21:00 - 08:00 WIB)</SelectItem>
-              </SelectContent>
-            </Select>
+        {/* Dynamic Terminal Information Cards */}
+        <div className='space-y-3 py-1'>
+          {/* Status & Active Shift Info */}
+          <div className='grid grid-cols-2 gap-2.5'>
+            <div className='p-2.5 rounded-xl bg-muted/40 border border-border/50'>
+              <span className='text-[10px] uppercase font-semibold text-muted-foreground tracking-wider block mb-1'>
+                Status Terminal
+              </span>
+              <div className='flex items-center gap-1.5'>
+                <span
+                  className={`size-2 rounded-full ${
+                    isTerminalActive ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'
+                  }`}
+                />
+                <span className='text-xs font-bold text-foreground'>
+                  {isTerminalActive ? 'Aktif Berjalan' : 'Tidak Aktif'}
+                </span>
+              </div>
+            </div>
+
+            <div className='p-2.5 rounded-xl bg-muted/40 border border-border/50'>
+              <span className='text-[10px] uppercase font-semibold text-muted-foreground tracking-wider block mb-1'>
+                Sesi Operasional
+              </span>
+              <div className='flex items-center gap-1.5'>
+                <Icons.clock className='size-3.5 text-primary shrink-0' />
+                <span className='text-xs font-semibold text-foreground truncate'>
+                  {config.qr_context || 'Shift Otomatis'}
+                </span>
+              </div>
+            </div>
           </div>
 
-          {/* Status Presensi */}
-          <div>
-            <span className='text-xs font-normal text-muted-foreground/80 block mb-1.5'>
-              Status & Batas Waktu Presensi
+          {/* Active Token Preview & Security Note */}
+          <div className='p-3.5 rounded-xl bg-primary/5 border border-primary/20 text-center space-y-1.5'>
+            <span className='text-[10.5px] font-semibold text-primary block'>
+              Token Presensi Aktif Saat Ini
             </span>
-            <Input
-              value={statusPresensi}
-              onChange={(e) => setStatusPresensi(e.target.value)}
-              placeholder='Contoh: Aktif hingga 16:00 WIB'
-              className='h-9 text-xs'
-            />
+            <div className='text-3xl font-black tracking-widest text-foreground font-mono leading-none py-1 select-all'>
+              {config.qr_code_identifier || '-'}
+            </div>
+            <p className='text-[11px] text-muted-foreground'>
+              Berotasi otomatis setiap {config.rotation_seconds || 30} detik untuk proteksi
+              anti-kecurangan.
+            </p>
           </div>
         </div>
 
-        {/* Footer Actions */}
-        <div className='pt-3 border-t border-border/40 flex items-center justify-end gap-3'>
+        {/* Action Controls */}
+        <div className='pt-3 border-t border-border/40 flex flex-col sm:flex-row items-center justify-between gap-2.5'>
           <Button
             type='button'
             variant='outline'
-            shape='pill'
-            size='default'
-            onClick={onClose}
-            className='px-6 font-medium text-xs sm:text-sm'
+            size='sm'
+            onClick={handleRotateToken}
+            disabled={updateConfigMutation.isPending}
+            className='h-9 w-full sm:w-auto text-xs font-medium px-3 text-muted-foreground hover:text-foreground gap-1.5'
+            title='Rotasi token QR sekarang'
           >
-            Batal
+            <Icons.refresh
+              className={`size-3.5 ${updateConfigMutation.isPending ? 'animate-spin' : ''}`}
+            />
+            <span>Rotasi Token Baru</span>
           </Button>
-          <Button
-            type='submit'
-            variant='default'
-            shape='pill'
-            size='default'
-            disabled={updateConfigMutation.isPending || !shift || !statusPresensi.trim()}
-            className='px-7 font-semibold text-xs sm:text-sm'
-          >
-            {updateConfigMutation.isPending ? (
-              <Icons.spinner className='mr-1.5 size-3.5 animate-spin' />
-            ) : (
-              <Icons.check className='mr-1.5 size-3.5' />
-            )}
-            Simpan & Aktifkan QR
-          </Button>
+
+          <div className='flex items-center gap-2 w-full sm:w-auto justify-end'>
+            <Button
+              type='button'
+              variant='outline'
+              size='sm'
+              onClick={handleLaunchKiosk}
+              className='h-9 text-xs font-medium px-3 text-foreground gap-1.5'
+              title='Buka mode layar penuh untuk monitor lobi klinik'
+            >
+              <Icons.externalLink className='size-3.5' />
+              <span>Buka Kiosk</span>
+            </Button>
+            <Button
+              type='button'
+              variant='default'
+              size='sm'
+              onClick={handleActivateDock}
+              className='h-9 text-xs font-semibold px-4 gap-1.5'
+            >
+              <Icons.check className='size-3.5' />
+              <span>Tampilkan di Dashboard</span>
+            </Button>
+          </div>
         </div>
-      </form>
+      </div>
     </ModalWrapper>
   );
 }
