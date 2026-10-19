@@ -107,6 +107,7 @@ export function DoctorScheduleSettingsModal({
     updateWeeklyTemplateTime,
     updateClinicSettingValue,
     timeValidationError,
+    conflictingDefIds,
     dirtyCount,
     days,
     isSubmitting,
@@ -114,7 +115,9 @@ export function DoctorScheduleSettingsModal({
     showImpactDialog,
     handleRequestSave,
     handleConfirmSave,
-    handleCancelImpactDialog
+    handleCancelImpactDialog,
+    resetDraftChanges,
+    resetToCanonicalDefaults
   } = useDoctorScheduleSettingsModal({
     isOpen: modalIsOpen,
     onClose: handleClose,
@@ -154,9 +157,21 @@ export function DoctorScheduleSettingsModal({
             </div>
             <div className='flex items-center gap-2.5 shrink-0 self-start pt-0.5'>
               {dirtyCount > 0 && (
-                <span className='text-xs text-muted-foreground font-medium'>
-                  {dirtyCount} perubahan belum disimpan
-                </span>
+                <div className='flex items-center gap-2'>
+                  <span className='text-xs text-muted-foreground font-medium hidden sm:inline'>
+                    {dirtyCount} perubahan
+                  </span>
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='sm'
+                    onClick={resetDraftChanges}
+                    className='h-6 px-2 text-[11px] text-destructive hover:bg-destructive/10 hover:text-destructive'
+                    title='Kembalikan ke data yang tersimpan'
+                  >
+                    Batal Perubahan
+                  </Button>
+                </div>
               )}
               <DoctorScheduleSettingsButton
                 activeCategory={activeCategory}
@@ -201,9 +216,11 @@ export function DoctorScheduleSettingsModal({
               {activeCategory === 'session_defs' && activeSubView === 'defs' && (
                 <StepSessionDefs
                   sessionDefs={draftSessionDefs}
+                  conflictingDefIds={conflictingDefIds}
                   onToggleActive={toggleSessionDef}
                   onUpdateTime={updateSessionDefTime}
                   onOpenOperatingDays={activeCycle.navigateToOperatingDays}
+                  onResetDefaults={resetToCanonicalDefaults}
                 />
               )}
               {activeCategory === 'session_defs' && activeSubView === 'operating_days' && (
@@ -231,6 +248,14 @@ export function DoctorScheduleSettingsModal({
                   onUpdateSetting={updateClinicSettingValue}
                 />
               )}
+            </div>
+          )}
+
+          {/* Banner Peringatan Waktu jika terdapat tabrakan atau jam tidak valid */}
+          {timeValidationError && (
+            <div className='flex items-center gap-2 p-2.5 rounded-xl border border-destructive/30 bg-destructive/10 text-xs text-destructive font-medium'>
+              <Icons.warning className='size-4 shrink-0' />
+              <span>{timeValidationError}</span>
             </div>
           )}
 

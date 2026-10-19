@@ -16,6 +16,12 @@ import {
 } from '../api/admin-schedule-configuration.api';
 import { syncAllDoctorSchedules } from '../api/mutations';
 import { formatFriendlySessionName } from '../constants/schedule-shift.constants';
+import {
+  detectSessionDefsOverlaps,
+  parseTimeToMinutes,
+  parseTimeEndToMinutes,
+  minutesToTimeString
+} from '../utils/shift-time-validator';
 
 export type ConfigurationCategory = 'session_defs' | 'weekly_templates' | 'clinic_settings';
 
@@ -116,28 +122,93 @@ export function useDoctorScheduleSettingsModal({
 
   const updateSessionDefTime = useCallback(
     (id: string, field: 'defaultStartsAt' | 'defaultEndsAt', value: string) => {
-      setDraftSessionDefs((prev) =>
-        prev.map((item) => {
+      setDraftSessionDefs((prev) => {
+        let nextDefs = prev.map((item) => {
           if (item.id !== id) return item;
           const updated = { ...item, [field]: value };
           const s = field === 'defaultStartsAt' ? value : updated.defaultStartsAt;
           const e = field === 'defaultEndsAt' ? value : updated.defaultEndsAt;
           updated.timeRange = `${s.slice(0, 5)} - ${e.slice(0, 5)}`;
           return updated;
-        })
-      );
-      setDraftWeeklyTemplates((prev) =>
-        prev.map((wt) => {
-          if (wt.sessionId === id) {
+        });
+
+        const targetIndex = nextDefs.findIndex((d) => d.id === id);
+        if (targetIndex !== -1) {
+          if (field === 'defaultEndsAt') {
+            const endMin = parseTimeEndToMinutes(value);
+            // Cari shift aktif berikutnya dalam urutan sortOrder
+            const nextActive = nextDefs.slice(targetIndex + 1).find((d) => d.isActive);
+            if (nextActive) {
+              const nextStartMin = parseTimeToMinutes(nextActive.defaultStartsAt);
+              // HANYA JIKA TERJADI TABRAKAN: newEndsAt > nextStartsAt
+              if (endMin > nextStartMin) {
+                const newNextStart = value;
+                const nextEndMin = parseTimeEndToMinutes(nextActive.defaultEndsAt, endMin);
+                let newNextEnd = nextActive.defaultEndsAt;
+                if (endMin >= nextEndMin) {
+                  // Jika jam selesai shift berikutnya juga tertabrak, dorong minimal 1 jam ke depan
+                  const pushedEndMin = Math.min(1440, endMin + 60);
+                  newNextEnd = `${minutesToTimeString(pushedEndMin)}:00`;
+                }
+                nextDefs = nextDefs.map((d) =>
+                  d.id === nextActive.id
+                    ? {
+                        ...d,
+                        defaultStartsAt: newNextStart,
+                        defaultEndsAt: newNextEnd,
+                        timeRange: `${newNextStart.slice(0, 5)} - ${newNextEnd.slice(0, 5)}`
+                      }
+                    : d
+                );
+                toast.info(
+                  `Jam mulai Shift ${nextActive.label || nextActive.code} otomatis disesuaikan ke ${value.slice(0, 5)} agar tidak bertabrakan.`
+                );
+              }
+              // JIKA TIDAK TABRAKAN (endMin <= nextStartMin), JEDA KLINIK TETAP DIPERTAHANKAN!
+            }
+          } else if (field === 'defaultStartsAt') {
+            const startMin = parseTimeToMinutes(value);
+            // Cari shift aktif sebelumnya
+            const prevActive = [...nextDefs.slice(0, targetIndex)]
+              .reverse()
+              .find((d) => d.isActive);
+            if (prevActive) {
+              const prevEndMin = parseTimeEndToMinutes(prevActive.defaultEndsAt);
+              // HANYA JIKA TERJADI TABRAKAN: newStartsAt < prevEndsAt
+              if (startMin < prevEndMin) {
+                const newPrevEnd = value;
+                nextDefs = nextDefs.map((d) =>
+                  d.id === prevActive.id
+                    ? {
+                        ...d,
+                        defaultEndsAt: newPrevEnd,
+                        timeRange: `${d.defaultStartsAt.slice(0, 5)} - ${newPrevEnd.slice(0, 5)}`
+                      }
+                    : d
+                );
+                toast.info(
+                  `Jam selesai Shift ${prevActive.label || prevActive.code} disesuaikan ke ${value.slice(0, 5)} agar tidak bertabrakan.`
+                );
+              }
+            }
+          }
+        }
+
+        // Sinkronisasi perubahan master ke seluruh template jadwal mingguan
+        setDraftWeeklyTemplates((prevTemplates) =>
+          prevTemplates.map((wt) => {
+            const matchedDef = nextDefs.find((d) => d.id === wt.sessionId);
+            if (!matchedDef) return wt;
             return {
               ...wt,
-              startsAt: field === 'defaultStartsAt' ? value : wt.startsAt,
-              endsAt: field === 'defaultEndsAt' ? value : wt.endsAt
+              startsAt: matchedDef.defaultStartsAt,
+              endsAt: matchedDef.defaultEndsAt
             };
-          }
-          return wt;
-        })
-      );
+          })
+        );
+
+        return nextDefs;
+      });
     },
     []
   );
@@ -154,15 +225,29 @@ export function useDoctorScheduleSettingsModal({
     );
   }, []);
 
-  const timeValidationError = useMemo(() => {
-    for (const item of draftWeeklyTemplates) {
-      if (item.isActive && item.startsAt >= item.endsAt) {
-        const friendlyShift = formatFriendlySessionName(item.sessionLabel) || item.sessionLabel;
-        return `Jam selesai pada shift ${friendlyShift} (Hari ${item.dow}) harus lebih lambat dari jam mulai`;
+  const { timeValidationError, conflictingDefIds } = useMemo(() => {
+    if (category === 'session_defs') {
+      const result = detectSessionDefsOverlaps(draftSessionDefs);
+      return {
+        timeValidationError: result.errorMessage,
+        conflictingDefIds: result.conflictingIds
+      };
+    }
+
+    if (category === 'weekly_templates') {
+      for (const item of draftWeeklyTemplates) {
+        if (item.isActive && item.startsAt >= item.endsAt) {
+          const friendlyShift = formatFriendlySessionName(item.sessionLabel) || item.sessionLabel;
+          return {
+            timeValidationError: `Jam selesai pada shift ${friendlyShift} (Hari ${item.dow}) harus lebih lambat dari jam mulai`,
+            conflictingDefIds: [item.sessionId]
+          };
+        }
       }
     }
-    return null;
-  }, [draftWeeklyTemplates]);
+
+    return { timeValidationError: null, conflictingDefIds: [] };
+  }, [category, draftSessionDefs, draftWeeklyTemplates]);
 
   const dirtyChanges = useMemo(() => {
     if (!data) return { defs: [], templates: [], settings: [], days: [], totalCount: 0 };
@@ -264,7 +349,7 @@ export function useDoctorScheduleSettingsModal({
   });
 
   const handleRequestSave = useCallback(async () => {
-    if (category === 'weekly_templates' && timeValidationError) {
+    if (timeValidationError) {
       toast.error(timeValidationError);
       return;
     }
@@ -299,6 +384,46 @@ export function useDoctorScheduleSettingsModal({
     mutation.mutate();
   }, [mutation]);
 
+  const resetDraftChanges = useCallback(() => {
+    if (data) {
+      setDraftSessionDefs(JSON.parse(JSON.stringify(data.sessionDefs ?? [])));
+      setDraftWeeklyTemplates(JSON.parse(JSON.stringify(data.weeklyTemplates ?? [])));
+      setDraftClinicSettings(JSON.parse(JSON.stringify(data.clinicSettings ?? [])));
+      setDraftOperatingDays(JSON.parse(JSON.stringify(data.days ?? [])));
+      toast.info('Perubahan dibatalkan. Mengembalikan ke data tersimpan.');
+    }
+  }, [data]);
+
+  const resetToCanonicalDefaults = useCallback(() => {
+    setDraftSessionDefs((prev) => {
+      const restored = prev.map((item) => {
+        const canonicalStart = item.canonicalStartsAt || item.defaultStartsAt;
+        const canonicalEnd = item.canonicalEndsAt || item.defaultEndsAt;
+        return {
+          ...item,
+          defaultStartsAt: canonicalStart,
+          defaultEndsAt: canonicalEnd,
+          timeRange: `${canonicalStart.slice(0, 5)} - ${canonicalEnd.slice(0, 5)}`
+        };
+      });
+
+      setDraftWeeklyTemplates((prevTemplates) =>
+        prevTemplates.map((wt) => {
+          const matchedDef = restored.find((d) => d.id === wt.sessionId);
+          if (!matchedDef) return wt;
+          return {
+            ...wt,
+            startsAt: matchedDef.defaultStartsAt,
+            endsAt: matchedDef.defaultEndsAt
+          };
+        })
+      );
+
+      toast.success('Jam operasional shift dikembalikan ke standar baku klinik.');
+      return restored;
+    });
+  }, []);
+
   const handleCancelImpactDialog = useCallback(() => {
     setShowImpactDialog(false);
     setImpactResult(null);
@@ -326,6 +451,7 @@ export function useDoctorScheduleSettingsModal({
     updateWeeklyTemplateTime,
     updateClinicSettingValue,
     timeValidationError,
+    conflictingDefIds,
     dirtyCount,
     days: draftOperatingDays.length > 0 ? draftOperatingDays : (data?.days ?? []),
     isSubmitting: mutation.isPending || isEvaluatingImpact,
@@ -333,6 +459,8 @@ export function useDoctorScheduleSettingsModal({
     showImpactDialog,
     handleRequestSave,
     handleConfirmSave,
-    handleCancelImpactDialog
+    handleCancelImpactDialog,
+    resetDraftChanges,
+    resetToCanonicalDefaults
   };
 }

@@ -52,7 +52,7 @@ export function StaffScheduleCard({
           'radial-gradient(ellipse 80% 60% at 100% 0%, color-mix(in oklab, var(--primary) 18%, transparent) 0%, color-mix(in oklab, var(--primary) 5%, transparent) 45%, transparent 80%), var(--card)'
       }}
       className={cn(
-        'group relative overflow-hidden rounded-[24px] border border-border font-sans flex flex-col justify-between select-none transition-all duration-200 hover:border-primary/60 hover:shadow-md p-5 sm:p-6 min-h-[190px] text-card-foreground cursor-pointer',
+        'group relative overflow-hidden rounded-[22px] border border-border font-sans flex flex-col justify-between select-none transition-all duration-200 hover:border-primary/60 hover:shadow-md p-4 sm:p-5 min-h-[168px] sm:min-h-[175px] text-card-foreground cursor-pointer',
         isSelected &&
           'ring-2 ring-primary/40 ring-offset-2 ring-offset-background border-primary/50 shadow-md',
         className
@@ -77,11 +77,16 @@ export function StaffScheduleCard({
         )}
       </div>
 
-      {/* 2. Core Identity: Name & Email strictly */}
-      <StaffIdentitySection fullName={staff.fullName} email={staff.email} />
+      {/* 2. Core Identity: Inline Avatar Beside Name & Contact */}
+      <StaffIdentitySection
+        fullName={staff.fullName}
+        email={staff.email}
+        photoUrl={staff.photoUrl}
+        profession={staff.profession}
+      />
 
       {/* 3. Footer Action: Detail Staf Modal trigger */}
-      <div className='flex items-center justify-end gap-2 pt-3 mt-4 border-t border-border/40 relative z-20'>
+      <div className='flex items-center justify-end gap-2 pt-2.5 mt-auto border-t border-border/40 relative z-20'>
         <Button
           type='button'
           variant='default'

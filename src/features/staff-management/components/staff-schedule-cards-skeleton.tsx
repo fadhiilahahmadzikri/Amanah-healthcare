@@ -17,7 +17,7 @@ export function StaffScheduleCardsSkeleton() {
       {/* Cards Grid Skeleton */}
       <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5 pt-1'>
         {['sk-st-1', 'sk-st-2', 'sk-st-3', 'sk-st-4', 'sk-st-5', 'sk-st-6'].map((id) => (
-          <Skeleton key={id} className='h-[200px] rounded-[24px] border border-border/40' />
+          <Skeleton key={id} className='h-[175px] rounded-[22px] border border-border/40' />
         ))}
       </div>
     </div>

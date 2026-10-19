@@ -2,6 +2,7 @@ import type React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import {
@@ -164,24 +165,45 @@ export function StaffLeaveBanner({
 
 export function StaffIdentitySection({
   fullName,
-  email
+  email,
+  photoUrl,
+  profession
 }: {
   fullName: string;
   email?: string | null;
+  photoUrl?: string | null;
+  profession?: string | null;
 }) {
-  return (
-    <div className='flex flex-col relative z-20 mt-3'>
-      <h3
-        title={fullName}
-        className='text-[17px] sm:text-[18px] font-bold text-card-foreground tracking-tight leading-snug line-clamp-1'
-      >
-        {fullName}
-      </h3>
+  const initials = (() => {
+    const parts = (fullName || '').trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    }
+    return (parts[0]?.[0] || 'S').toUpperCase();
+  })();
 
-      <p className='text-xs sm:text-[13px] font-medium text-muted-foreground tracking-tight line-clamp-1 mt-1 flex items-center gap-1.5'>
-        <Icons.mail className='size-3 shrink-0 text-muted-foreground/70' />
-        <span>{email || '-'}</span>
-      </p>
+  return (
+    <div className='flex items-start gap-3 min-w-0 relative z-20 mt-2.5'>
+      <Avatar className='size-10 sm:size-11 rounded-full ring-2 ring-primary/20 shrink-0 shadow-2xs'>
+        {photoUrl ? <AvatarImage src={photoUrl} alt={fullName} className='object-cover' /> : null}
+        <AvatarFallback className='bg-primary/10 text-primary font-bold text-xs uppercase'>
+          {initials}
+        </AvatarFallback>
+      </Avatar>
+
+      <div className='flex flex-col min-w-0 flex-1 justify-center'>
+        <h3
+          title={fullName}
+          className='text-[15px] sm:text-[16.5px] font-bold text-card-foreground tracking-tight leading-snug line-clamp-1 hover:text-primary transition-colors'
+        >
+          {fullName}
+        </h3>
+
+        <p className='text-xs font-medium text-muted-foreground tracking-tight line-clamp-1 mt-0.5 flex items-center gap-1.5'>
+          <Icons.mail className='size-3 shrink-0 text-muted-foreground/70' />
+          <span>{email || profession || '-'}</span>
+        </p>
+      </div>
     </div>
   );
 }
