@@ -67,6 +67,8 @@ export interface UpdateSessionDefPayload {
   id: string;
   isActive?: boolean;
   sortOrder?: number;
+  defaultStartsAt?: string;
+  defaultEndsAt?: string;
 }
 
 export interface UpdateWeeklyTemplatePayload {

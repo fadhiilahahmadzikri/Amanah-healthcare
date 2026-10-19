@@ -101,6 +101,7 @@ export function DoctorScheduleSettingsModal({
     draftWeeklyTemplates,
     draftClinicSettings,
     toggleSessionDef,
+    updateSessionDefTime,
     toggleOperatingDayActive,
     toggleWeeklyTemplateActive,
     updateWeeklyTemplateTime,
@@ -201,6 +202,7 @@ export function DoctorScheduleSettingsModal({
                 <StepSessionDefs
                   sessionDefs={draftSessionDefs}
                   onToggleActive={toggleSessionDef}
+                  onUpdateTime={updateSessionDefTime}
                   onOpenOperatingDays={activeCycle.navigateToOperatingDays}
                 />
               )}

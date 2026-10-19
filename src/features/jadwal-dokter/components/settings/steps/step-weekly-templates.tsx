@@ -240,58 +240,14 @@ export function StepWeeklyTemplates({
                     </div>
                   </div>
 
-                  {/* Row 2: Timing Selectors (Stacked inside compact column) */}
+                  {/* Row 2: Master Operating Hours Badge */}
                   {isActive ? (
-                    <div className='space-y-2 pt-1'>
-                      <div className='flex flex-col gap-1'>
-                        <span className='text-[10px] font-medium text-muted-foreground'>
-                          Jam Mulai
-                        </span>
-                        <Select
-                          value={startsAt}
-                          onValueChange={(val) =>
-                            onUpdateTime(selectedDow, def.id, 'startsAt', `${val}:00`)
-                          }
-                        >
-                          <SelectTrigger className='h-8 w-full text-xs font-mono px-2 bg-background shadow-2xs'>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className='max-h-48'>
-                            {getTimeOptions(startsAt).map((t) => (
-                              <SelectItem key={t} value={t} className='text-xs font-mono'>
-                                {t}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className='flex flex-col gap-1'>
-                        <span className='text-[10px] font-medium text-muted-foreground'>
-                          Jam Selesai
-                        </span>
-                        <Select
-                          value={endsAt}
-                          onValueChange={(val) =>
-                            onUpdateTime(selectedDow, def.id, 'endsAt', `${val}:00`)
-                          }
-                        >
-                          <SelectTrigger
-                            className={cn(
-                              'h-8 w-full text-xs font-mono px-2 bg-background shadow-2xs',
-                              isInvalidTime && 'border-destructive text-destructive'
-                            )}
-                          >
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className='max-h-48'>
-                            {getTimeOptions(endsAt).map((t) => (
-                              <SelectItem key={t} value={t} className='text-xs font-mono'>
-                                {t}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                    <div className='py-4 flex flex-col items-center justify-center gap-1.5'>
+                      <span className='text-[10px] uppercase tracking-wider font-semibold text-muted-foreground'>
+                        Jam Operasional Master
+                      </span>
+                      <div className='px-2.5 py-1 rounded-md bg-muted/60 border border-border/50 font-mono text-xs font-semibold text-foreground'>
+                        {startsAt} - {endsAt}
                       </div>
                     </div>
                   ) : (
@@ -300,12 +256,6 @@ export function StepWeeklyTemplates({
                     </div>
                   )}
                 </div>
-
-                {isInvalidTime && (
-                  <div className='text-[10.5px] text-destructive font-medium pt-2'>
-                    Jam selesai harus &gt; jam mulai!
-                  </div>
-                )}
               </div>
             );
           })}

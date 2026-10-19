@@ -114,6 +114,34 @@ export function useDoctorScheduleSettingsModal({
     []
   );
 
+  const updateSessionDefTime = useCallback(
+    (id: string, field: 'defaultStartsAt' | 'defaultEndsAt', value: string) => {
+      setDraftSessionDefs((prev) =>
+        prev.map((item) => {
+          if (item.id !== id) return item;
+          const updated = { ...item, [field]: value };
+          const s = field === 'defaultStartsAt' ? value : updated.defaultStartsAt;
+          const e = field === 'defaultEndsAt' ? value : updated.defaultEndsAt;
+          updated.timeRange = `${s.slice(0, 5)} - ${e.slice(0, 5)}`;
+          return updated;
+        })
+      );
+      setDraftWeeklyTemplates((prev) =>
+        prev.map((wt) => {
+          if (wt.sessionId === id) {
+            return {
+              ...wt,
+              startsAt: field === 'defaultStartsAt' ? value : wt.startsAt,
+              endsAt: field === 'defaultEndsAt' ? value : wt.endsAt
+            };
+          }
+          return wt;
+        })
+      );
+    },
+    []
+  );
+
   const toggleOperatingDayActive = useCallback((dow: number) => {
     setDraftOperatingDays((prev) =>
       prev.map((item) => (item.dow === dow ? { ...item, isActive: !item.isActive } : item))
@@ -141,7 +169,12 @@ export function useDoctorScheduleSettingsModal({
 
     const defs = draftSessionDefs.filter((d) => {
       const orig = data.sessionDefs.find((o) => o.id === d.id);
-      return orig && orig.isActive !== d.isActive;
+      return (
+        orig &&
+        (orig.isActive !== d.isActive ||
+          orig.defaultStartsAt !== d.defaultStartsAt ||
+          orig.defaultEndsAt !== d.defaultEndsAt)
+      );
     });
 
     const templates = draftWeeklyTemplates.filter((t) => {
@@ -181,7 +214,9 @@ export function useDoctorScheduleSettingsModal({
       payload.sessionDefs = dirtyChanges.defs.map((d) => ({
         id: d.id,
         isActive: d.isActive,
-        sortOrder: d.sortOrder
+        sortOrder: d.sortOrder,
+        defaultStartsAt: d.defaultStartsAt,
+        defaultEndsAt: d.defaultEndsAt
       }));
     }
     if (dirtyChanges.days.length > 0) {
@@ -285,6 +320,7 @@ export function useDoctorScheduleSettingsModal({
     draftClinicSettings,
     draftOperatingDays,
     toggleSessionDef,
+    updateSessionDefTime,
     toggleOperatingDayActive,
     toggleWeeklyTemplateActive,
     updateWeeklyTemplateTime,
