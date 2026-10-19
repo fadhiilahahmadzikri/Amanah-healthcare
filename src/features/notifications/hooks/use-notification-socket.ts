@@ -399,9 +399,25 @@ export function useNotificationSocket(callbacks?: {
       }
 
       const item = payload as
-        | (StaffAttendance & { action: 'check_in' | 'manual_check_in' | 'check_out' })
+        | (StaffAttendance & {
+            action: 'check_in' | 'manual_check_in' | 'check_out';
+            isEarlyDeparture?: boolean;
+            notes?: string;
+          })
         | undefined;
       if (!item?.nama_staf) return;
+
+      if (item.isEarlyDeparture) {
+        toast.warning(`Presensi Pulang Cepat: ${item.nama_staf}`, {
+          description: item.notes ? `Alasan: ${item.notes}` : 'Dicatat pulang lebih awal.',
+          action: {
+            label: 'Lihat Detail',
+            onClick: () => router.push(`/dashboard/kehadiran-pegawai?highlight=${item.id}`)
+          },
+          duration: 8000
+        });
+        return;
+      }
 
       const actionText = item.action === 'check_out' ? 'pulang' : 'masuk';
       const statusText = item.status === 'Terlambat' ? ' (Terlambat)' : '';
@@ -425,6 +441,7 @@ export function useNotificationSocket(callbacks?: {
     socket.on('attendance:manual_check_in', handleAttendanceUpdated);
     socket.on('attendance:check_out', handleAttendanceUpdated);
     socket.on('attendance:checkout', handleAttendanceUpdated);
+    socket.on('attendance:early_departure', handleAttendanceUpdated);
     socket.on('attendance:refresh', handleAttendanceUpdated);
     socket.on('chat:message', handleChatMessage);
     socket.on('chat:typing', handleChatTyping);

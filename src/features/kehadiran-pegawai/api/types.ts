@@ -31,6 +31,8 @@ export interface StaffAttendance {
   rawCategory?: string;
   validatedDurationHours?: number;
   isReplacement?: boolean;
+  isEarlyDeparture?: boolean;
+  notes?: string | null;
 }
 
 export interface MetricSparklinePoint {

@@ -435,9 +435,31 @@ export function AttendanceTableCard({
                         {/* Jam Pulang */}
                         <TableCell className='px-3 py-2.5'>
                           {jamPulang ? (
-                            <span className='font-mono text-xs font-semibold text-foreground'>
-                              {jamPulang}
-                            </span>
+                            <div className='flex items-center gap-1.5'>
+                              <span className='font-mono text-xs font-semibold text-foreground'>
+                                {jamPulang}
+                              </span>
+                              {row.isEarlyDeparture && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 cursor-help'>
+                                      <Icons.alertCircle className='size-2.5 shrink-0 text-amber-600 dark:text-amber-400' />
+                                      <span>Pulang Cepat</span>
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent side='top' className='text-xs max-w-xs'>
+                                    <p className='font-semibold'>
+                                      Pulang Lebih Awal (Early Departure)
+                                    </p>
+                                    <p className='text-muted-foreground mt-0.5'>
+                                      {row.notes
+                                        ? `Alasan: ${row.notes}`
+                                        : 'Dicatat sebelum jendela kepulangan dinas.'}
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
+                            </div>
                           ) : (
                             <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20'>
                               <span className='size-1.5 rounded-full bg-amber-500 animate-pulse' />
