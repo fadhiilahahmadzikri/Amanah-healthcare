@@ -72,6 +72,47 @@ export function DoctorScheduleCard({
   const statusConfig = getStatusConfig(cardStatus);
   const isPending = cardStatus === DOCTOR_CARD_STATUS.PENDING;
 
+  // Dedicated status lip (bibir tiket atas) styling: soft-tinted in light mode, deep dark hue in dark mode
+  const lipStyle = React.useMemo(() => {
+    switch (cardStatus) {
+      case DOCTOR_CARD_STATUS.OPEN:
+        return {
+          bg: 'bg-emerald-500/10 dark:bg-emerald-950/80',
+          text: 'text-emerald-700 dark:text-emerald-400 font-bold',
+          border: 'border-b border-emerald-500/20 dark:border-emerald-900/50',
+          hex: 'var(--success)'
+        };
+      case DOCTOR_CARD_STATUS.CLOSED:
+        return {
+          bg: 'bg-muted/60 dark:bg-zinc-900/85',
+          text: 'text-muted-foreground dark:text-zinc-400 font-bold',
+          border: 'border-b border-border/40 dark:border-zinc-800/60',
+          hex: 'var(--muted-foreground)'
+        };
+      case DOCTOR_CARD_STATUS.ON_LEAVE:
+        return {
+          bg: 'bg-sky-500/10 dark:bg-sky-950/80',
+          text: 'text-sky-700 dark:text-sky-400 font-bold',
+          border: 'border-b border-sky-500/20 dark:border-sky-900/50',
+          hex: 'var(--info)'
+        };
+      case DOCTOR_CARD_STATUS.PENDING:
+        return {
+          bg: 'bg-amber-500/10 dark:bg-amber-950/80',
+          text: 'text-amber-700 dark:text-amber-400 font-bold',
+          border: 'border-b border-amber-500/20 dark:border-amber-900/50',
+          hex: 'var(--warning)'
+        };
+      default:
+        return {
+          bg: 'bg-muted/60 dark:bg-zinc-900/85',
+          text: 'text-muted-foreground dark:text-zinc-400 font-bold',
+          border: 'border-b border-border/40 dark:border-zinc-800/60',
+          hex: 'var(--muted-foreground)'
+        };
+    }
+  }, [cardStatus]);
+
   const initials = React.useMemo(() => {
     const raw = (doctor.nama_dokter || '').replace(/^dr\.\s*/i, '').trim();
     const parts = raw.split(/\s+/);
@@ -124,46 +165,47 @@ export function DoctorScheduleCard({
         className
       )}
     >
-      {/* 1. TOP STATUS HEADER BAND (Dijadikan satu, rapi mengikuti kontur rounded terluar tanpa patahan) */}
+      {/* 1. TOP STATUS LIP (Bibir Status Atas - Terbalik dari Tiket Pasien, deep dark pada mode gelap) */}
       <div
         className={cn(
-          'relative w-full h-8 sm:h-8.5 px-3 flex items-center justify-center overflow-hidden border-b border-border/40 select-none transition-colors',
-          statusConfig.pillBg
+          'relative w-full h-8.5 sm:h-9 px-3 flex items-center justify-center overflow-hidden select-none transition-colors',
+          lipStyle.bg,
+          lipStyle.border
         )}
       >
-        {/* Left Pixel Texture (Fades in from left to center, high contrast respect theme) */}
+        {/* Left Pixel Texture (Fades in from left to center) */}
         <div className='absolute left-0 top-0 bottom-0 w-28 sm:w-32 overflow-hidden pointer-events-none'>
           <PixelTexture
             colorMode='primary'
-            primaryColor={statusConfig.hex}
+            primaryColor={lipStyle.hex}
             maskGradient='linear-gradient(to right, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%)'
             pixelSize={3.2}
             gap={1.2}
             opacity={0.65}
-            className='opacity-60 dark:opacity-85'
+            className='opacity-55 dark:opacity-85'
           />
         </div>
 
-        {/* Center Status Text (Natural casing from clinical tokens, no forced uppercase) */}
+        {/* Center Status Text (Natural casing, kontras tinggi di mode terang maupun gelap) */}
         <span
           className={cn(
-            'text-[11.5px] sm:text-xs font-bold tracking-tight relative z-10 select-none drop-shadow-[0_0.5px_1px_rgba(0,0,0,0.05)]',
-            statusConfig.textGradient
+            'text-[11.5px] sm:text-xs tracking-tight relative z-10 select-none drop-shadow-[0_0.5px_1px_rgba(0,0,0,0.05)]',
+            lipStyle.text
           )}
         >
           {statusConfig.label}
         </span>
 
-        {/* Right Pixel Texture (Fades in from right to center, high contrast respect theme) */}
+        {/* Right Pixel Texture (Fades in from right to center) */}
         <div className='absolute right-0 top-0 bottom-0 w-28 sm:w-32 overflow-hidden pointer-events-none'>
           <PixelTexture
             colorMode='primary'
-            primaryColor={statusConfig.hex}
+            primaryColor={lipStyle.hex}
             maskGradient='linear-gradient(to left, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0) 100%)'
             pixelSize={3.2}
             gap={1.2}
             opacity={0.65}
-            className='opacity-60 dark:opacity-85'
+            className='opacity-55 dark:opacity-85'
           />
         </div>
       </div>
@@ -174,7 +216,7 @@ export function DoctorScheduleCard({
         {showTrailingAvatar && <DoctorCardImage src={doctor.avatar} alt={doctor.nama_dokter} />}
 
         {/* Inner Dashed Stitch Frame (Motif Jahitan seperti di Flutter AmanahPermissionCard) */}
-        <div className='rounded-[15px] sm:rounded-[13px] border border-dashed border-border/80 p-3.5 sm:p-4 flex flex-col justify-between flex-1 min-h-[162px] sm:min-h-[158px] bg-card transition-colors'>
+        <div className='rounded-[15px] sm:rounded-[13px] border border-dashed border-border/80 dark:border-white/10 p-3.5 sm:p-4 flex flex-col justify-between flex-1 min-h-[162px] sm:min-h-[158px] bg-card dark:bg-card/40 transition-colors'>
           {/* Section 1: Avatar + Nama Dokter & Spesialisasi */}
           <div className='flex items-center gap-3 sm:gap-2.5 relative z-20 min-w-0'>
             <Avatar className='size-11 sm:size-10 xl:size-9 rounded-full ring-2 ring-primary/20 shrink-0 shadow-2xs overflow-hidden'>
