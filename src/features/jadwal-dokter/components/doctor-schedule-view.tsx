@@ -129,7 +129,7 @@ export function DoctorScheduleView() {
                     ].map((skId) => (
                       <div
                         key={skId}
-                        className='h-[160px] sm:h-[162px] rounded-[18px] sm:rounded-[20px] bg-muted/20 animate-pulse border border-border/40'
+                        className='h-[195px] sm:h-[188px] xl:h-[180px] rounded-[20px] bg-muted/20 animate-pulse border border-border/40'
                       />
                     ))}
                   </div>

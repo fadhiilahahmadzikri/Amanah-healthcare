@@ -293,7 +293,7 @@ export const getStatusConfig = (status: string): StatusConfig => {
         pillShadow: 'shadow-none',
         textGradient: 'text-muted-foreground font-bold',
         dotGradient: 'bg-muted-foreground/40',
-        hex: '#94A3B8',
+        hex: 'var(--muted-foreground)',
         label: 'Tutup'
       };
     case 'BELUM_DIATUR':
@@ -304,7 +304,7 @@ export const getStatusConfig = (status: string): StatusConfig => {
         pillShadow: 'shadow-none',
         textGradient: 'text-muted-foreground font-bold',
         dotGradient: 'bg-muted-foreground/40',
-        hex: '#94A3B8',
+        hex: 'var(--muted-foreground)',
         label: 'Belum Diatur'
       };
     case 'LIBUR':
