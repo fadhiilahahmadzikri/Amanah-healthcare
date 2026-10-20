@@ -68,12 +68,27 @@ export interface ReplacementOpportunityItem {
   id: string;
   leaveRequestId: string;
   sessionId: string;
+  sessionCode?: string;
+  sessionLabel?: string;
+  startTime?: string | null;
+  endTime?: string | null;
   workDate: string;
   originalStaffProfileId: string;
+  originalPractitionerId?: string | null;
+  originalStaffName?: string;
+  originalStaffRole?: string | null;
+  originalStaffAvatarUrl?: string | null;
+  leaveReason?: string | null;
   claimedByStaffProfileId?: string | null;
-  status: 'open' | 'claimed' | 'cancelled';
+  claimedByPractitionerId?: string | null;
+  claimedByName?: string | null;
+  claimedByRole?: string | null;
+  claimedByAvatarUrl?: string | null;
+  status: 'open' | 'claimed' | 'completed' | 'cancelled';
   claimedAt?: string | null;
+  notes?: string | null;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface PayrollEntryItem {
