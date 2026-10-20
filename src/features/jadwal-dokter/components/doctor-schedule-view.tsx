@@ -6,6 +6,7 @@ import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { EntityCardGrid, EntityCardGridSkeleton } from '@/components/cards/master-entity-card';
 import { InviteDoctorModal } from '@/features/staff-management';
 import { cn } from '@/lib/utils';
 import { doctorScheduleKeys } from '../api/query-keys';
@@ -114,25 +115,7 @@ export function DoctorScheduleView() {
             <div className='absolute inset-0 flex overflow-hidden'>
               <ScrollArea className='h-full w-full pr-0 md:pr-3'>
                 <div className='pb-20 pt-1'>
-                  <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-3.5'>
-                    {[
-                      'sk-1',
-                      'sk-2',
-                      'sk-3',
-                      'sk-4',
-                      'sk-5',
-                      'sk-6',
-                      'sk-7',
-                      'sk-8',
-                      'sk-9',
-                      'sk-10'
-                    ].map((skId) => (
-                      <div
-                        key={skId}
-                        className='h-[195px] sm:h-[188px] xl:h-[180px] rounded-[20px] bg-muted/20 animate-pulse border border-border/40'
-                      />
-                    ))}
-                  </div>
+                  <EntityCardGridSkeleton count={10} />
                 </div>
               </ScrollArea>
             </div>
@@ -166,7 +149,7 @@ export function DoctorScheduleView() {
                     scheduleView.isFetching && 'opacity-75'
                   )}
                 >
-                  <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-3.5'>
+                  <EntityCardGrid>
                     {scheduleView.doctors.map((doctor) => (
                       <DoctorScheduleCard
                         key={doctor.id}
@@ -182,7 +165,7 @@ export function DoctorScheduleView() {
                         onOpenSettings={actions.openSettingsForDoctor}
                       />
                     ))}
-                  </div>
+                  </EntityCardGrid>
 
                   {/* Infinite scroll sentinel */}
                   <div ref={scheduleView.sentinelRef} className='h-4 w-full' />

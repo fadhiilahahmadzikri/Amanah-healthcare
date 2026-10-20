@@ -23,6 +23,7 @@ import {
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
 import { Icons } from '@/components/icons';
+import { EntityCardGrid, EntityCardGridSkeleton } from '@/components/cards/master-entity-card';
 import { STAFF_INVITATION_STATUS } from '../constants/staff.constants';
 import { useStaffManagementPresenter } from '../model/useStaffManagementPresenter';
 import { StaffManagementToolbar } from './staff-management-toolbar';
@@ -51,7 +52,7 @@ export function StaffManagementView() {
           onInviteStaff={inviteModal.open}
         />
 
-        {/* Tab 1: Daftar Staf (Clean Cards Grid in ScrollArea) */}
+        {/* Tab 1: Daftar Staf (Clean 5-Column Responsive Cards Grid in ScrollArea) */}
         <TabsContent
           value='members'
           className='relative flex flex-1 min-h-0 flex-col overflow-hidden m-0'
@@ -60,16 +61,7 @@ export function StaffManagementView() {
             <div className='absolute inset-0 flex overflow-hidden'>
               <ScrollArea className='h-full w-full pr-0 md:pr-3'>
                 <div className='pb-20 pt-1'>
-                  <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5'>
-                    {['sk-st-1', 'sk-st-2', 'sk-st-3', 'sk-st-4', 'sk-st-5', 'sk-st-6'].map(
-                      (skKey) => (
-                        <div
-                          key={skKey}
-                          className='h-[200px] rounded-[24px] bg-muted/20 animate-pulse border border-border/40'
-                        />
-                      )
-                    )}
-                  </div>
+                  <EntityCardGridSkeleton count={10} />
                 </div>
               </ScrollArea>
             </div>
@@ -107,7 +99,7 @@ export function StaffManagementView() {
             <div className='absolute inset-0 flex overflow-hidden'>
               <ScrollArea className='h-full w-full pr-0 md:pr-3'>
                 <div className='pb-20 pt-1'>
-                  <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5'>
+                  <EntityCardGrid>
                     {view.filteredStaffs.map((staff) => (
                       <StaffScheduleCard
                         key={staff.id}
@@ -116,7 +108,7 @@ export function StaffManagementView() {
                         onOpenDetail={detailModal.open}
                       />
                     ))}
-                  </div>
+                  </EntityCardGrid>
                 </div>
               </ScrollArea>
             </div>

@@ -1,4 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton';
+import { EntityCardGridSkeleton } from '@/components/cards/master-entity-card';
 
 export function StaffScheduleCardsSkeleton() {
   return (
@@ -14,11 +15,9 @@ export function StaffScheduleCardsSkeleton() {
         </div>
       </div>
 
-      {/* Cards Grid Skeleton */}
-      <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5 pt-1'>
-        {['sk-st-1', 'sk-st-2', 'sk-st-3', 'sk-st-4', 'sk-st-5', 'sk-st-6'].map((id) => (
-          <Skeleton key={id} className='h-[175px] rounded-[22px] border border-border/40' />
-        ))}
+      {/* Cards Grid Skeleton (Identical 5-column responsive layout) */}
+      <div className='pt-1'>
+        <EntityCardGridSkeleton count={10} />
       </div>
     </div>
   );
