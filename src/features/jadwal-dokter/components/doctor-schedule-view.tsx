@@ -114,11 +114,22 @@ export function DoctorScheduleView() {
             <div className='absolute inset-0 flex overflow-hidden'>
               <ScrollArea className='h-full w-full pr-0 md:pr-3'>
                 <div className='pb-20 pt-1'>
-                  <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5'>
-                    {['sk-1', 'sk-2', 'sk-3', 'sk-4', 'sk-5', 'sk-6'].map((skId) => (
+                  <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-3.5'>
+                    {[
+                      'sk-1',
+                      'sk-2',
+                      'sk-3',
+                      'sk-4',
+                      'sk-5',
+                      'sk-6',
+                      'sk-7',
+                      'sk-8',
+                      'sk-9',
+                      'sk-10'
+                    ].map((skId) => (
                       <div
                         key={skId}
-                        className='h-[340px] rounded-[24px] bg-muted/20 animate-pulse border border-border/40'
+                        className='h-[160px] sm:h-[162px] rounded-[18px] sm:rounded-[20px] bg-muted/20 animate-pulse border border-border/40'
                       />
                     ))}
                   </div>
@@ -155,7 +166,7 @@ export function DoctorScheduleView() {
                     scheduleView.isFetching && 'opacity-75'
                   )}
                 >
-                  <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5'>
+                  <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-3.5'>
                     {scheduleView.doctors.map((doctor) => (
                       <DoctorScheduleCard
                         key={doctor.id}

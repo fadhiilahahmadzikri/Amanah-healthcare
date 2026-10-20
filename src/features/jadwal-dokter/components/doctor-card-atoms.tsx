@@ -14,14 +14,20 @@ export interface DoctorStatusBadgeProps {
   status: string;
   className?: string;
   customLabel?: string;
+  size?: 'sm' | 'md' | 'lg' | 'full';
 }
 
-export function DoctorStatusBadge({ status, className, customLabel }: DoctorStatusBadgeProps) {
+export function DoctorStatusBadge({
+  status,
+  className,
+  customLabel,
+  size = 'sm'
+}: DoctorStatusBadgeProps) {
   return (
     <StatusBadge
       status={status}
       variant='pill'
-      size='md'
+      size={size}
       label={customLabel}
       className={className}
     />
@@ -37,7 +43,7 @@ export function DoctorSpecialtyText({ specialty, className }: DoctorSpecialtyTex
   return (
     <p
       className={cn(
-        'text-xs sm:text-[12.5px] font-medium text-muted-foreground tracking-tight line-clamp-1',
+        'text-[12px] sm:text-[11.5px] xl:text-[11px] font-medium text-muted-foreground tracking-tight line-clamp-1',
         className
       )}
     >
@@ -275,9 +281,12 @@ export function DoctorCardPatientStack({
   if (effectiveTotal === 0) {
     return (
       <div
-        className={cn('text-[11.5px] text-muted-foreground/75 font-normal select-none', className)}
+        className={cn(
+          'text-[11px] sm:text-[10.5px] xl:text-[10px] text-muted-foreground/75 font-normal select-none truncate',
+          className
+        )}
       >
-        <span>Belum ada antrean terdaftar</span>
+        <span>Belum ada antrean</span>
       </div>
     );
   }
@@ -288,20 +297,20 @@ export function DoctorCardPatientStack({
       onClick={onClick}
       title={`Lihat detail ${effectiveTotal} pasien`}
       className={cn(
-        'group/patient-stack inline-flex items-center gap-2.5 text-left cursor-pointer select-none focus-visible:outline-none transition-transform active:scale-[0.98]',
+        'group/patient-stack inline-flex items-center gap-2 sm:gap-1.5 xl:gap-1.5 text-left cursor-pointer select-none focus-visible:outline-none transition-transform active:scale-[0.98] min-w-0',
         className
       )}
     >
       {/* Overlapping Avatar Stack (WhatsApp-style) */}
-      <div className='flex items-center -space-x-2 sm:-space-x-2.5 rtl:space-x-reverse overflow-hidden py-0.5 pl-0.5'>
+      <div className='flex items-center -space-x-1.5 sm:-space-x-1.5 rtl:space-x-reverse overflow-hidden py-0.5 pl-0.5 shrink-0'>
         {visiblePatients.map((patient, index) => (
           <Avatar
             key={patient.id || patient.patientId || index}
             title={patient.name}
-            className='size-7 sm:size-7.5 rounded-full ring-2 ring-card shadow-2xs border border-border/40 shrink-0 transition-transform group-hover/patient-stack:scale-105'
+            className='size-6 sm:size-5.5 xl:size-5 rounded-full ring-1.5 ring-card shadow-2xs border border-border/40 shrink-0 transition-transform group-hover/patient-stack:scale-105'
           >
             {patient.avatarUrl && <AvatarImage src={patient.avatarUrl} alt={patient.name} />}
-            <AvatarFallback className='bg-primary/10 text-primary font-bold text-[10px] sm:text-[10.5px] uppercase tracking-tight'>
+            <AvatarFallback className='bg-primary/10 text-primary font-bold text-[9px] sm:text-[8.5px] xl:text-[8px] uppercase tracking-tight'>
               {patient.initials || 'P'}
             </AvatarFallback>
           </Avatar>
@@ -310,7 +319,7 @@ export function DoctorCardPatientStack({
         {overflowCount > 0 && (
           <div
             title={`${overflowCount} pasien lainnya`}
-            className='size-7 sm:size-7.5 rounded-full ring-2 ring-card bg-muted/90 text-muted-foreground font-bold text-[10px] sm:text-[10.5px] flex items-center justify-center shrink-0 border border-border/50 shadow-2xs group-hover/patient-stack:bg-muted transition-colors'
+            className='size-6 sm:size-5.5 xl:size-5 rounded-full ring-1.5 ring-card bg-muted/90 text-muted-foreground font-bold text-[9px] sm:text-[8.5px] xl:text-[8px] flex items-center justify-center shrink-0 border border-border/50 shadow-2xs group-hover/patient-stack:bg-muted transition-colors'
           >
             +{overflowCount}
           </div>
@@ -319,10 +328,12 @@ export function DoctorCardPatientStack({
 
       {/* Aggregate Label */}
       <div className='flex flex-col min-w-0 leading-tight'>
-        <span className='text-[11.5px] font-semibold text-foreground/90 group-hover/patient-stack:text-primary transition-colors'>
+        <span className='text-xs sm:text-[11px] xl:text-[10.5px] font-semibold text-foreground/90 group-hover/patient-stack:text-primary transition-colors truncate'>
           {effectiveTotal} Pasien
         </span>
-        <span className='text-[10px] text-muted-foreground/80 font-normal'>Antrean aktif</span>
+        <span className='text-[10px] sm:text-[9.5px] xl:text-[9px] text-muted-foreground/80 font-normal truncate'>
+          Antrean aktif
+        </span>
       </div>
     </button>
   );

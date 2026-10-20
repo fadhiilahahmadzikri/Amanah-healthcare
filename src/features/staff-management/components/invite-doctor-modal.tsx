@@ -169,7 +169,6 @@ export function InviteDoctorModal({ isOpen, onClose, onSuccess }: InviteDoctorMo
       <DialogContent className='max-w-md max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
           <DialogTitle className='flex items-center gap-2 text-xl'>
-            <Icons.userPlus className='h-5 w-5 text-primary' />
             Undang Praktisi Medis (Dokter / Bidan)
           </DialogTitle>
           <DialogDescription>

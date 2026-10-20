@@ -94,16 +94,19 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
             <div className='flex items-end gap-3.5 sm:gap-4 -mt-10 sm:-mt-11'>
               <div className='relative shrink-0 size-20 sm:size-22'>
                 <Avatar className='size-20 sm:size-22 rounded-full ring-4 ring-card shadow-lg bg-card overflow-hidden shrink-0 aspect-square'>
-                  {doctor.avatar && (
-                    <AvatarImage
+                  {doctor.avatar ? (
+                    // biome-ignore lint/a11y/useAltText: doctor avatar image
+                    <img
                       src={doctor.avatar}
                       alt={doctor.nama_dokter}
                       className='size-full object-cover object-top aspect-square'
+                      referrerPolicy='no-referrer'
                     />
+                  ) : (
+                    <AvatarFallback className='bg-primary/10 text-primary font-bold text-xl'>
+                      {initials}
+                    </AvatarFallback>
                   )}
-                  <AvatarFallback className='bg-primary/10 text-primary font-bold text-xl'>
-                    {initials}
-                  </AvatarFallback>
                 </Avatar>
                 <span
                   className={cn(
@@ -167,7 +170,11 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
                         variant='outline'
                         size='sm'
                         onClick={() => {
-                          const targetDow = new Date(currentYear, currentMonth, selectedDay).getDay();
+                          const targetDow = new Date(
+                            currentYear,
+                            currentMonth,
+                            selectedDay
+                          ).getDay();
                           onOpenAssignment(doctor, targetDow);
                         }}
                         className='mt-2 text-xs font-semibold cursor-pointer'

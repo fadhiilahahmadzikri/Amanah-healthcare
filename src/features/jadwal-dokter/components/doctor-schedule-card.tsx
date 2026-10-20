@@ -3,7 +3,7 @@
 import React from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import type { DoctorSchedule } from '../api/types';
 import {
@@ -116,7 +116,7 @@ export function DoctorScheduleCard({
           'radial-gradient(ellipse 80% 60% at 100% 0%, color-mix(in oklab, var(--primary) 18%, transparent) 0%, color-mix(in oklab, var(--primary) 5%, transparent) 45%, transparent 80%), var(--card)'
       }}
       className={cn(
-        'group relative overflow-hidden rounded-[22px] border border-border font-sans flex flex-col justify-between select-none transition-all duration-200 p-4 sm:p-5 min-h-[168px] sm:min-h-[175px] text-card-foreground cursor-pointer',
+        'group relative overflow-hidden rounded-[20px] sm:rounded-[18px] border border-border font-sans flex flex-col justify-between select-none transition-all duration-200 p-4 sm:p-3.5 xl:p-3 min-h-[175px] sm:min-h-[162px] xl:min-h-[155px] text-card-foreground cursor-pointer',
         isPending
           ? 'opacity-65 border-dashed bg-muted/20'
           : 'hover:border-primary/60 hover:shadow-md',
@@ -130,125 +130,132 @@ export function DoctorScheduleCard({
       {/* 1. Optional Doctor Trailing Avatar Background (if explicitly enabled) */}
       {showTrailingAvatar && <DoctorCardImage src={doctor.avatar} alt={doctor.nama_dokter} />}
 
-      {/* 2. Header: Status Badge and Quick Actions */}
-      <div className='flex items-center justify-between gap-3 relative z-20'>
-        <DoctorStatusBadge status={cardStatus} />
-        <div className='flex items-center gap-1.5'>
-          {onCardClick && (
-            <Button
-              type='button'
-              variant='outline'
-              size='icon'
-              shape='pill'
-              onClick={(e) => {
-                e.stopPropagation();
-                onCardClick(doctor);
-              }}
-              title='Lihat & Edit Profil Dokter'
-              aria-label='Lihat & Edit Profil Dokter'
-              className='size-8 shadow-2xs z-20 shrink-0 text-muted-foreground hover:text-foreground hover:bg-accent/80'
-            >
-              <Icons.user className='size-3.5' />
-            </Button>
+      {/* 2. Section 1 (Paling Atas): Status Badge tersendiri di atas - Rata Kanan */}
+      <div className='flex items-center justify-end w-full relative z-20 min-w-0'>
+        <DoctorStatusBadge status={cardStatus} size='sm' />
+      </div>
+
+      {/* 3. Section 2 (Bawah Status): Avatar + Nama Dokter & Spesialisasi (Full Width) */}
+      <div className='flex items-center gap-3 sm:gap-2.5 relative z-20 mt-2 min-w-0'>
+        <Avatar className='size-11 sm:size-10 xl:size-9 rounded-full ring-2 ring-primary/20 shrink-0 shadow-2xs overflow-hidden'>
+          {doctor.avatar ? (
+            // biome-ignore lint/a11y/useAltText: doctor avatar image
+            <img
+              src={doctor.avatar}
+              alt={doctor.nama_dokter}
+              className='size-full object-cover aspect-square rounded-full'
+              referrerPolicy='no-referrer'
+            />
+          ) : (
+            <AvatarFallback className='bg-primary/10 text-primary font-bold text-xs sm:text-[11px] uppercase'>
+              {initials}
+            </AvatarFallback>
           )}
-          {onOpenSettings && !isPending && <DoctorCardSettingsButton onClick={handleSettings} />}
+        </Avatar>
+
+        <div className='flex flex-col min-w-0 flex-1 justify-center'>
+          <h3
+            title={doctor.nama_dokter}
+            className='text-[14.5px] sm:text-[13.5px] xl:text-[13px] font-bold text-card-foreground tracking-tight leading-snug truncate'
+          >
+            <button
+              type='button'
+              onClick={
+                isPending
+                  ? (e) => {
+                      e.stopPropagation();
+                      onCardClick?.(doctor);
+                    }
+                  : handleDetail
+              }
+              className={cn(
+                'text-left transition-colors focus-visible:outline-none cursor-pointer truncate w-full block',
+                isPending
+                  ? 'opacity-90 hover:text-primary'
+                  : 'hover:text-primary focus-visible:underline'
+              )}
+            >
+              {doctor.nama_dokter}
+            </button>
+          </h3>
+
+          <DoctorSpecialtyText
+            specialty={doctor.spesialisasi}
+            className='text-[12px] sm:text-[11.5px] xl:text-[11px] truncate mt-0.5'
+          />
         </div>
       </div>
 
-      {/* 3. Core Identity: Inline Avatar Beside Name, Specialty & Patient Stack */}
-      <div className='flex flex-col relative z-20 mt-2.5 min-w-0'>
-        <div className='flex items-start gap-3 min-w-0'>
-          <Avatar className='size-10 sm:size-11 rounded-full ring-2 ring-primary/20 shrink-0 shadow-2xs'>
-            {doctor.avatar ? (
-              <AvatarImage src={doctor.avatar} alt={doctor.nama_dokter} className='object-cover' />
-            ) : null}
-            <AvatarFallback className='bg-primary/10 text-primary font-bold text-xs uppercase'>
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-
-          <div className='flex flex-col min-w-0 flex-1 justify-center'>
-            <h3
-              title={doctor.nama_dokter}
-              className='text-[15px] sm:text-[16.5px] font-bold text-card-foreground tracking-tight leading-snug line-clamp-1'
-            >
-              <button
-                type='button'
-                onClick={
-                  isPending
-                    ? (e) => {
-                        e.stopPropagation();
-                        onCardClick?.(doctor);
-                      }
-                    : handleDetail
-                }
-                className={cn(
-                  'text-left transition-colors focus-visible:outline-none cursor-pointer',
-                  isPending
-                    ? 'opacity-90 hover:text-primary'
-                    : 'hover:text-primary focus-visible:underline'
-                )}
-              >
-                {doctor.nama_dokter}
-              </button>
-            </h3>
-
-            <DoctorSpecialtyText specialty={doctor.spesialisasi} className='mt-0.5' />
-          </div>
-        </div>
-
-        {/* Patient queue stack or Cuti notice */}
+      {/* 4. Section 3: Antrean Pasien */}
+      <div className='mt-2.5 sm:mt-2 relative z-20 min-w-0'>
         {doctor.is_on_leave ? (
-          <div className='mt-2'>
-            <span className='inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20'>
-              <Icons.calendar className='size-3 text-sky-500' />
-              <span>Sedang Cuti</span>
-              {doctor.substitute_doctor_name && (
-                <span className='text-muted-foreground font-normal'>
-                  (Ganti: {doctor.substitute_doctor_name})
-                </span>
-              )}
-            </span>
-          </div>
+          <span className='inline-flex items-center gap-1.5 px-2.5 sm:px-2 py-0.5 rounded-full text-[11px] sm:text-[10.5px] xl:text-[10px] font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 truncate'>
+            <Icons.calendar className='size-3 sm:size-2.5 text-sky-500 shrink-0' />
+            <span>Sedang Cuti</span>
+            {doctor.substitute_doctor_name && (
+              <span className='text-muted-foreground font-normal truncate'>
+                (Ganti: {doctor.substitute_doctor_name})
+              </span>
+            )}
+          </span>
         ) : (
           <DoctorCardPatientStack
             patients={doctor.pasien_preview}
             totalPatients={doctor.total_pasien}
             onClick={isPending ? undefined : handleDetail}
-            className='mt-2'
           />
         )}
       </div>
 
-      {/* 4. Footer Actions: Detail */}
+      {/* 5. Section 4: Footer Actions (Rata Kanan) */}
       {showActions && (
-        <div className='flex items-center justify-end gap-2 pt-2.5 mt-auto border-t border-border/40 relative z-20'>
+        <div className='flex items-center justify-end gap-2 sm:gap-1.5 pt-2.5 sm:pt-2 mt-auto border-t border-border/40 relative z-20'>
+          {onOpenSettings && !isPending && (
+            <Button
+              type='button'
+              variant='outline'
+              shape='pill'
+              onClick={handleSettings}
+              title='Lihat Jadwal Dokter'
+              aria-label='Lihat Jadwal Dokter'
+              className='h-8.5 sm:h-8 xl:h-7.5 px-3 sm:px-2.5 xl:px-2 text-xs sm:text-[11.5px] xl:text-[11px] font-semibold text-muted-foreground hover:text-foreground shrink-0 gap-1.5'
+            >
+              <Icons.calendar className='size-3.5 sm:size-3.5 xl:size-3 text-muted-foreground shrink-0' />
+              <span className='inline xl:hidden'>Lihat Jadwal</span>
+              <span className='hidden xl:inline'>Jadwal</span>
+            </Button>
+          )}
+
           {isPending ? (
             <Button
               type='button'
               variant='outline'
-              size='card-action'
               shape='pill'
               onClick={(e) => {
                 e.stopPropagation();
                 onCardClick?.(doctor);
               }}
-              className='font-bold text-xs'
+              title='Profil Medis Dokter'
+              aria-label='Profil Medis Dokter'
+              className='h-8.5 sm:h-8 xl:h-7.5 px-3 sm:px-2.5 xl:px-2 text-xs sm:text-[11px] xl:text-[10.5px] font-bold shrink-0 gap-1.5'
             >
-              <Icons.user className='size-3 mr-1' />
-              Profil Medis
+              <Icons.user className='size-3.5 sm:size-3.5 xl:size-3 text-muted-foreground shrink-0' />
+              <span>Profil Medis</span>
             </Button>
           ) : (
             <Button
               type='button'
               variant='default'
-              size='card-action'
               shape='pill'
-              withTrailingCircleIcon
               onClick={handleDetail}
-              className='font-bold'
+              title='Lihat Pasien'
+              aria-label='Lihat Pasien'
+              className='h-8.5 sm:h-8 xl:h-7.5 pl-3.5 pr-2 sm:pl-3 sm:pr-1.5 xl:pl-2.5 xl:pr-1.5 text-xs sm:text-[11.5px] xl:text-[11px] font-bold shrink-0 gap-2 sm:gap-1.5 shadow-xs'
             >
-              Detail
+              <span>Lihat Pasien</span>
+              <span className='size-5.5 sm:size-5 xl:size-4.5 rounded-full bg-primary-foreground text-primary flex items-center justify-center shrink-0 shadow-2xs'>
+                <Icons.arrowUpRight className='size-3.5 sm:size-3 xl:size-2.5 stroke-[2.5]' />
+              </span>
             </Button>
           )}
         </div>
