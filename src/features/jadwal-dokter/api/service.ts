@@ -25,11 +25,13 @@ export async function getDoctorSchedules(
 ): Promise<DoctorScheduleListResponse> {
   const query = new URLSearchParams();
   if (filters.page) query.set('page', String(filters.page));
-  if (filters.limit) query.set('limit', String(filters.limit));
+  query.set('limit', String(filters.limit ?? 20));
   if (filters.search) query.set('search', filters.search);
   if (filters.date) query.set('date', filters.date);
   if (filters.month && filters.month !== 'ALL') query.set('month', filters.month);
   if (filters.poli && filters.poli.length > 0) query.set('poli', filters.poli.join(','));
+  if (filters.session && filters.session.length > 0)
+    query.set('session', filters.session.join(','));
   if (filters.status && filters.status.length > 0) query.set('status', filters.status.join(','));
 
   const qs = query.toString();
@@ -58,7 +60,7 @@ export async function getDoctorSchedules(
     total_doctors: total,
     meta: {
       page: res.meta?.page ?? filters.page ?? 1,
-      limit: res.meta?.limit ?? filters.limit ?? 6,
+      limit: res.meta?.limit ?? filters.limit ?? 20,
       total_doctors: total,
       total_pages: res.meta?.total_pages ?? 1
     }

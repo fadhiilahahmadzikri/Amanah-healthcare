@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
-import { doctorScheduleQueryOptions } from '../api/queries';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { parseAsString, useQueryStates } from 'nuqs';
+import { doctorScheduleInfiniteQueryOptions } from '../api/queries';
 import type { DoctorSchedule, DoctorScheduleFilters } from '../api/types';
 import { DOCTOR_DIALOG_TYPE, type DoctorDialogType } from '../constants/doctor-dialog.constants';
 
-interface UseDoctorScheduleViewResult {
+export interface UseDoctorScheduleViewResult {
   doctors: DoctorSchedule[];
   totalDoctors: number;
   selectedDoctor: DoctorSchedule | null;
@@ -16,14 +16,16 @@ interface UseDoctorScheduleViewResult {
   isDetailOpen: boolean;
   isFetching: boolean;
   isLoading: boolean;
+  isFetchingNextPage: boolean;
+  hasNextPage: boolean;
+  sentinelRef: React.RefObject<HTMLDivElement | null>;
   searchQuery: string;
   monthFilter: string;
   dateFilter?: Date;
   selectedPoli: string[];
+  selectedSessions: string[];
   selectedStatuses: string[];
   hasActiveFilters: boolean;
-  page: number;
-  pageSize: number;
   actions: {
     openDetail: (doctor: DoctorSchedule) => void;
     closeDetail: () => void;
@@ -33,10 +35,9 @@ interface UseDoctorScheduleViewResult {
     changeMonthFilter: (month: string) => void;
     changeDateFilter: (date?: Date) => void;
     changeSelectedPoli: (poliList: string[]) => void;
+    changeSelectedSessions: (sessionList: string[]) => void;
     changeSelectedStatuses: (statusList: string[]) => void;
     resetFilters: () => void;
-    changePage: (page: number) => void;
-    changePageSize: (pageSize: number) => void;
   };
 }
 
@@ -45,12 +46,11 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
   const [activeDialog, setActiveDialog] = useState<DoctorDialogType | null>(null);
   const [params, setParams] = useQueryStates(
     {
-      page: parseAsInteger.withDefault(1),
-      perPage: parseAsInteger.withDefault(6),
       search: parseAsString.withDefault(''),
       month: parseAsString.withDefault('ALL'),
       date: parseAsString.withDefault(''),
       poli: parseAsString.withDefault(''),
+      session: parseAsString.withDefault(''),
       status: parseAsString.withDefault(''),
       selectedDoctorId: parseAsString.withDefault(''),
       dialog: parseAsString.withDefault(''),
@@ -62,32 +62,62 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
   const todayStr = useMemo(() => getTodayDateParam(), []);
   const effectiveDate = params.date || todayStr;
   const selectedPoli = useMemo(() => toList(params.poli), [params.poli]);
+  const selectedSessions = useMemo(() => toList(params.session), [params.session]);
   const selectedStatuses = useMemo(() => toList(params.status), [params.status]);
   const dateFilter = useMemo(() => parseDateParam(effectiveDate), [effectiveDate]);
+
   const filters = useMemo<DoctorScheduleFilters>(
     () => ({
-      page: params.page,
-      limit: params.perPage,
+      limit: 20,
       ...(params.search ? { search: params.search } : {}),
       ...(params.month && params.month !== 'ALL' ? { month: params.month } : {}),
       date: effectiveDate,
-      ...(params.poli ? { poliklinik: selectedPoli } : {}),
-      ...(params.status ? { status: selectedStatuses } : {})
+      ...(selectedPoli.length > 0 ? { poli: selectedPoli } : {}),
+      ...(selectedSessions.length > 0 ? { session: selectedSessions } : {}),
+      ...(selectedStatuses.length > 0 ? { status: selectedStatuses } : {})
     }),
-    [
-      effectiveDate,
-      params.month,
-      params.page,
-      params.perPage,
-      params.poli,
-      params.search,
-      params.status,
-      selectedPoli,
-      selectedStatuses
-    ]
+    [effectiveDate, params.month, params.search, selectedPoli, selectedSessions, selectedStatuses]
   );
 
-  const { data, isFetching, isLoading } = useQuery(doctorScheduleQueryOptions(filters));
+  const infiniteQuery = useInfiniteQuery(doctorScheduleInfiniteQueryOptions(filters));
+
+  const doctors = useMemo(() => {
+    if (!infiniteQuery.data?.pages) return [];
+    return infiniteQuery.data.pages.flatMap((page) => page.doctors || []);
+  }, [infiniteQuery.data?.pages]);
+
+  const totalDoctors = useMemo(() => {
+    return infiniteQuery.data?.pages[0]?.total_doctors ?? doctors.length;
+  }, [infiniteQuery.data?.pages, doctors.length]);
+
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  const handleObserver = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      const [target] = entries;
+      if (
+        target?.isIntersecting &&
+        infiniteQuery.hasNextPage &&
+        !infiniteQuery.isFetchingNextPage
+      ) {
+        void infiniteQuery.fetchNextPage();
+      }
+    },
+    [infiniteQuery]
+  );
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !infiniteQuery.hasNextPage) return;
+
+    const observer = new IntersectionObserver(handleObserver, {
+      rootMargin: '200px',
+      threshold: 0.1
+    });
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [handleObserver, infiniteQuery.hasNextPage]);
 
   useEffect(() => {
     if (!params.selectedDoctorId) {
@@ -98,7 +128,7 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     }
 
     const targetId = params.selectedDoctorId;
-    const found = data?.doctors?.find((d) => d.id === targetId || d.practitioner_id === targetId);
+    const found = doctors.find((d) => d.id === targetId || d.practitioner_id === targetId);
 
     if (found) {
       setSelectedDoctor(found);
@@ -107,7 +137,7 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     if (params.dialog) {
       setActiveDialog(params.dialog as DoctorDialogType);
     }
-  }, [params.selectedDoctorId, params.dialog, data?.doctors, activeDialog]);
+  }, [params.selectedDoctorId, params.dialog, doctors, activeDialog]);
 
   const openDoctorScheduleById = (doctorId: string) => {
     setParams(
@@ -117,7 +147,7 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
       },
       { shallow: true }
     );
-    const found = data?.doctors?.find((d) => d.id === doctorId || d.practitioner_id === doctorId);
+    const found = doctors.find((d) => d.id === doctorId || d.practitioner_id === doctorId);
     if (found) {
       setSelectedDoctor(found);
     }
@@ -128,28 +158,31 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     activeDialog !== null ? activeDialog : (params.dialog as DoctorDialogType) || null;
 
   return {
-    doctors: data?.doctors ?? [],
-    totalDoctors: data?.total_doctors ?? 0,
+    doctors,
+    totalDoctors,
     selectedDoctor,
     selectedDoctorId: params.selectedDoctorId,
     openPatients: Boolean(params.openPatients === 'true' || params.openPatients === '1'),
     isDetailOpen: currentDialog === DOCTOR_DIALOG_TYPE.DETAIL_SHEET,
-    isFetching,
-    isLoading,
+    isFetching: infiniteQuery.isFetching,
+    isLoading: infiniteQuery.isLoading,
+    isFetchingNextPage: infiniteQuery.isFetchingNextPage,
+    hasNextPage: Boolean(infiniteQuery.hasNextPage),
+    sentinelRef,
     searchQuery: params.search,
     monthFilter: params.month || 'ALL',
     dateFilter,
     selectedPoli,
+    selectedSessions,
     selectedStatuses,
     hasActiveFilters: Boolean(
       params.search ||
       (params.month && params.month !== 'ALL') ||
       (params.date && params.date !== todayStr) ||
       params.poli ||
+      params.session ||
       params.status
     ),
-    page: params.page,
-    pageSize: params.perPage,
     actions: {
       openDetail: (doctor) => {
         setSelectedDoctor(doctor);
@@ -165,21 +198,20 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
       },
       clearOpenPatients: () => setParams({ openPatients: null }, { shallow: true }),
       openDoctorScheduleById,
-      changeSearch: (value) => setParams({ search: value || null, page: 1 }, { shallow: true }),
+      changeSearch: (value) => setParams({ search: value || null }, { shallow: true }),
       changeMonthFilter: (month) =>
-        setParams({ month: month === 'ALL' ? null : month, page: 1 }, { shallow: true }),
-      changeDateFilter: (date) => setParams({ date: date ? toDateParam(date) : null, page: 1 }),
-      changeSelectedPoli: (poliList) =>
-        setParams({ poli: toParam(poliList), page: 1 }, { shallow: true }),
+        setParams({ month: month === 'ALL' ? null : month }, { shallow: true }),
+      changeDateFilter: (date) => setParams({ date: date ? toDateParam(date) : null }),
+      changeSelectedPoli: (poliList) => setParams({ poli: toParam(poliList) }, { shallow: true }),
+      changeSelectedSessions: (sessionList) =>
+        setParams({ session: toParam(sessionList) }, { shallow: true }),
       changeSelectedStatuses: (statusList) =>
-        setParams({ status: toParam(statusList), page: 1 }, { shallow: true }),
+        setParams({ status: toParam(statusList) }, { shallow: true }),
       resetFilters: () =>
         setParams(
-          { search: null, month: null, date: null, poli: null, status: null, page: 1 },
+          { search: null, month: null, date: null, poli: null, session: null, status: null },
           { shallow: true }
-        ),
-      changePage: (page) => setParams({ page }, { shallow: true }),
-      changePageSize: (perPage) => setParams({ perPage, page: 1 }, { shallow: true })
+        )
     }
   };
 }

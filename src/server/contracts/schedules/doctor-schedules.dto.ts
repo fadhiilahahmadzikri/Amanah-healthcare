@@ -220,7 +220,19 @@ export const adminDoctorScheduleFilterOptionsSchema = z.object({
         id: z.string(),
         label: z.string()
       })
-    )
+    ),
+    sessions: z
+      .array(
+        z.object({
+          id: z.string(),
+          code: z.string(),
+          name: z.string(),
+          label: z.string(),
+          startsAt: z.string().optional().nullable(),
+          endsAt: z.string().optional().nullable()
+        })
+      )
+      .optional()
   })
 });
 export type AdminDoctorScheduleFilterOptionsResponse = z.infer<

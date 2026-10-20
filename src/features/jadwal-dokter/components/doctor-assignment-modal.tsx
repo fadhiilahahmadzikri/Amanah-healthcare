@@ -79,10 +79,7 @@ export function DoctorAssignmentModal({
   const isFocused = focusedDow !== undefined && !showAllDays;
   const focusedDay = rosterData?.days.find((d) => d.dow === focusedDow);
   const focusedDayName = focusedDay?.dayName ?? '';
-  const displayDays =
-    isFocused && focusedDay
-      ? [focusedDay]
-      : (rosterData?.days ?? []);
+  const displayDays = isFocused && focusedDay ? [focusedDay] : (rosterData?.days ?? []);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -191,6 +188,7 @@ export function DoctorAssignmentModal({
                       const isDoctorAssignedOnDay = day.sessions.some((s) =>
                         Boolean(selectedAssignments[`${day.dow}_${s.sessionId}`])
                       );
+                      const isToday = day.dow === new Date().getDay();
 
                       return (
                         <div
@@ -201,7 +199,8 @@ export function DoctorAssignmentModal({
                               ? 'bg-card border-border/80 shadow-2xs'
                               : !day.isOperatingDay
                                 ? 'bg-muted/20 border-dashed border-border/40 opacity-75'
-                                : 'bg-muted/30 border-border/60'
+                                : 'bg-muted/30 border-border/60',
+                            isToday && 'ring-2 ring-primary border-primary bg-primary/[0.04]'
                           )}
                         >
                           <div className='flex items-center justify-between pb-2 mb-2.5 border-b border-border/40 gap-1.5'>
@@ -209,6 +208,11 @@ export function DoctorAssignmentModal({
                               <span className='font-bold text-sm text-foreground whitespace-nowrap'>
                                 {day.dayName}
                               </span>
+                              {isToday && (
+                                <span className='text-[10px] px-1.5 py-0.5 rounded bg-primary/15 text-primary font-bold shrink-0'>
+                                  Hari Ini
+                                </span>
+                              )}
                               {!day.isOperatingDay && (
                                 <span className='text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold shrink-0'>
                                   Klinik Tutup
@@ -273,7 +277,8 @@ export function DoctorAssignmentModal({
                                     />
                                     <div className='min-w-0 flex-1 flex flex-col'>
                                       <span className='font-semibold text-xs whitespace-nowrap text-foreground'>
-                                        {formatFriendlySessionName(s.sessionLabel) || s.sessionLabel}
+                                        {formatFriendlySessionName(s.sessionLabel) ||
+                                          s.sessionLabel}
                                       </span>
                                       <span className='text-[10.5px] text-muted-foreground font-mono whitespace-nowrap'>
                                         {s.timeRange}

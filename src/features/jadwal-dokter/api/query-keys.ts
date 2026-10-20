@@ -4,6 +4,9 @@ export const doctorScheduleKeys = {
   all: ['doctor-schedules'] as const,
   lists: () => [...doctorScheduleKeys.all, 'list'] as const,
   list: (filters: DoctorScheduleFilters) => [...doctorScheduleKeys.lists(), filters] as const,
+  infiniteLists: () => [...doctorScheduleKeys.all, 'infinite-list'] as const,
+  infiniteList: (filters: DoctorScheduleFilters) =>
+    [...doctorScheduleKeys.infiniteLists(), filters] as const,
   details: () => [...doctorScheduleKeys.all, 'detail'] as const,
   detail: (id: string, params: DoctorScheduleDetailParams = {}) =>
     [...doctorScheduleKeys.details(), id, params] as const,

@@ -1,4 +1,4 @@
-import { keepPreviousData, queryOptions } from '@tanstack/react-query';
+import { infiniteQueryOptions, keepPreviousData, queryOptions } from '@tanstack/react-query';
 import {
   getDoctorScheduleById,
   getDoctorSchedules,
@@ -9,6 +9,23 @@ import {
 } from './service';
 import { doctorScheduleKeys } from './query-keys';
 import type { DoctorScheduleDetailParams, DoctorScheduleFilters } from './types';
+
+export const doctorScheduleInfiniteQueryOptions = (filters: DoctorScheduleFilters = {}) =>
+  infiniteQueryOptions({
+    queryKey: doctorScheduleKeys.infiniteList(filters),
+    queryFn: ({ pageParam = 1 }) =>
+      getDoctorSchedules({ ...filters, page: pageParam as number, limit: filters.limit ?? 20 }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      const limit = filters.limit ?? 20;
+      if (!lastPage?.doctors || lastPage.doctors.length < limit) {
+        return undefined;
+      }
+      return allPages.length + 1;
+    },
+    staleTime: 30 * 1000,
+    gcTime: 5 * 60 * 1000
+  });
 
 export const doctorScheduleQueryOptions = (filters: DoctorScheduleFilters = {}) =>
   queryOptions({

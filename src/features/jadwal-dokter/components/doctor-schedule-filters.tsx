@@ -21,6 +21,8 @@ export interface DoctorScheduleFiltersProps {
   onDateFilterChange: (date: Date | undefined) => void;
   selectedPoli: string[];
   onSelectedPoliChange: (poli: string[]) => void;
+  selectedSessions: string[];
+  onSelectedSessionsChange: (sessions: string[]) => void;
   selectedStatuses: string[];
   onSelectedStatusesChange: (statuses: string[]) => void;
   onResetAll: () => void;
@@ -36,8 +38,10 @@ export function DoctorScheduleFilters({
   onDateFilterChange,
   selectedPoli,
   onSelectedPoliChange,
+  selectedSessions,
+  onSelectedSessionsChange,
   selectedStatuses,
-  onSelectedStatusesChange: _onSelectedStatusesChange,
+  onSelectedStatusesChange,
   onResetAll,
   className
 }: DoctorScheduleFiltersProps) {
@@ -66,12 +70,27 @@ export function DoctorScheduleFilters({
     (monthFilter !== 'ALL' && monthFilter !== '') ||
     Boolean(dateFilter && !isToday(dateFilter)) ||
     selectedPoli.length > 0 ||
+    selectedSessions.length > 0 ||
     selectedStatuses.length > 0;
 
   const monthOptions = React.useMemo(() => buildMonthOptions(), []);
 
   const poliFacetOptions = React.useMemo(() => {
     return (filterOptionsData?.poliklinik ?? []).map((p) => ({ value: p.name, label: p.name }));
+  }, [filterOptionsData]);
+
+  const sessionFacetOptions = React.useMemo(() => {
+    return (filterOptionsData?.sessions ?? []).map((s) => ({
+      value: s.code,
+      label: s.label
+    }));
+  }, [filterOptionsData]);
+
+  const statusFacetOptions = React.useMemo(() => {
+    return (filterOptionsData?.statuses ?? []).map((st) => ({
+      value: st.id,
+      label: st.label
+    }));
   }, [filterOptionsData]);
 
   return (
@@ -119,7 +138,33 @@ export function DoctorScheduleFilters({
         popoverWidth='w-56'
       />
 
-      {/* 6. Reset Filters Button */}
+      {/* 5. Sesi Filter */}
+      <FacetedFilter<string>
+        title='Sesi'
+        icon={Icons.clock}
+        mode='multi'
+        options={sessionFacetOptions}
+        selectedValues={selectedSessions}
+        onSelect={(sesi) => onSelectedSessionsChange(toggleItem(selectedSessions, sesi))}
+        onReset={() => onSelectedSessionsChange([])}
+        resetLabel='Reset Sesi'
+        popoverWidth='w-48'
+      />
+
+      {/* 6. Status Filter */}
+      <FacetedFilter<string>
+        title='Status'
+        icon={Icons.activity}
+        mode='multi'
+        options={statusFacetOptions}
+        selectedValues={selectedStatuses}
+        onSelect={(status) => onSelectedStatusesChange(toggleItem(selectedStatuses, status))}
+        onReset={() => onSelectedStatusesChange([])}
+        resetLabel='Reset Status'
+        popoverWidth='w-52'
+      />
+
+      {/* 7. Reset Filters Button */}
       {isFiltered && (
         <Button
           variant='ghost'

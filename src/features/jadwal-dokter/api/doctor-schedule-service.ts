@@ -45,21 +45,16 @@ export async function fetchAdminDoctorSchedules(
 
   const query: Record<string, unknown> = {
     page: filters.page ?? 1,
-    limit: filters.limit ?? 6
+    limit: filters.limit ?? 20
   };
 
   if (filters.search) query.search = filters.search;
   if (filters.month && filters.month !== 'ALL') query.month = filters.month;
   if (filters.date) query.date = filters.date;
   if (filters.poli && filters.poli.length > 0) query.poli = filters.poli.join(',');
+  if (filters.session && filters.session.length > 0) query.session = filters.session.join(',');
   if (filters.status && filters.status.length > 0) {
-    const validStatuses = filters.status
-      .map((st) => st.trim().toUpperCase())
-      .filter((st): st is 'OPEN' | 'CLOSED' => st === 'OPEN' || st === 'CLOSED');
-
-    if (validStatuses.length > 0) {
-      query.status = validStatuses.join(',');
-    }
+    query.status = filters.status.join(',');
   }
 
   const response = await httpClient.request(

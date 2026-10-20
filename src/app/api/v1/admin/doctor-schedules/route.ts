@@ -24,11 +24,12 @@ export const GET = withApiObservability(async function GET(request: NextRequest)
   // 2. Parse query parameters
   const { searchParams } = request.nextUrl;
   const page = searchParams.get('page') ? Number(searchParams.get('page')) : 1;
-  const limit = searchParams.get('limit') ? Number(searchParams.get('limit')) : 6;
+  const limit = searchParams.get('limit') ? Number(searchParams.get('limit')) : 20;
   const search = searchParams.get('search') || undefined;
   const month = searchParams.get('month') || undefined;
   const date = searchParams.get('date') || undefined;
   const poli = searchParams.get('poli')?.split(',').filter(Boolean);
+  const sessionFilter = searchParams.get('session')?.split(',').filter(Boolean);
   const status = searchParams.get('status')?.split(',').filter(Boolean);
 
   try {
@@ -39,6 +40,7 @@ export const GET = withApiObservability(async function GET(request: NextRequest)
       month,
       date,
       poli,
+      session: sessionFilter,
       status
     });
 

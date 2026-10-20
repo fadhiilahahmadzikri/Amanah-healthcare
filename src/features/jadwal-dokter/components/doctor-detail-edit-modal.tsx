@@ -252,8 +252,7 @@ export function DoctorDetailEditModal({
 
           <div className='flex items-center gap-2 shrink-0'>
             <StatusBadge
-              status={formData.isActive ? 'active' : 'inactive'}
-              label={formData.isActive ? 'Praktik Aktif' : 'Non-Aktif'}
+              status={doctor.status_dokter || (formData.isActive ? 'OPEN' : 'CLOSED')}
               size='sm'
             />
             <button

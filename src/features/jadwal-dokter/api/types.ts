@@ -81,6 +81,7 @@ export interface DoctorScheduleFilters {
   limit?: number;
   search?: string;
   poli?: string[];
+  session?: string[];
   status?: string[];
   month?: string;
   date?: string;
@@ -142,8 +143,18 @@ export interface ScheduleStatusOption {
   label: string;
 }
 
+export interface ScheduleSessionOption {
+  id: string;
+  code: string;
+  name: string;
+  label: string;
+  startsAt?: string | null;
+  endsAt?: string | null;
+}
+
 export interface DoctorScheduleFilterOptions {
   poliklinik: ClinicUnitOption[];
   spesialisasi: MedicalSpecialtyOption[];
   statuses: ScheduleStatusOption[];
+  sessions?: ScheduleSessionOption[];
 }

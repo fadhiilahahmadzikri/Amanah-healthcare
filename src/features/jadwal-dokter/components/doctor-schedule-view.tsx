@@ -17,7 +17,6 @@ import { DoctorScheduleCard } from './doctor-schedule-card';
 import { DoctorScheduleDetailSheet } from './doctor-schedule-detail-sheet';
 import { DoctorScheduleFilters } from './doctor-schedule-filters';
 import { DoctorScheduleMobileFilterToolbar } from './doctor-schedule-mobile-filter-toolbar';
-import { DoctorSchedulePagination } from './doctor-schedule-pagination';
 import { DoctorScheduleSettingsButton, DoctorScheduleSettingsModal } from './settings';
 import type { DoctorSchedule } from '../api/types';
 
@@ -78,6 +77,8 @@ export function DoctorScheduleView() {
                 onDateFilterChange={scheduleView.actions.changeDateFilter}
                 selectedPoli={scheduleView.selectedPoli}
                 onSelectedPoliChange={scheduleView.actions.changeSelectedPoli}
+                selectedSessions={scheduleView.selectedSessions}
+                onSelectedSessionsChange={scheduleView.actions.changeSelectedSessions}
                 selectedStatuses={scheduleView.selectedStatuses}
                 onSelectedStatusesChange={scheduleView.actions.changeSelectedStatuses}
                 onResetAll={scheduleView.actions.resetFilters}
@@ -146,51 +147,42 @@ export function DoctorScheduleView() {
               />
             </div>
           ) : (
-            <>
-              <div className='absolute inset-0 flex overflow-hidden'>
-                <ScrollArea className='h-full w-full pr-0 md:pr-3'>
-                  <div
-                    className={cn(
-                      'transition-opacity duration-150 pb-20 pt-1',
-                      scheduleView.isFetching && 'opacity-75'
-                    )}
-                  >
-                    <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5'>
-                      {scheduleView.doctors.map((doctor) => (
-                        <DoctorScheduleCard
-                          key={doctor.id}
-                          doctor={doctor}
-                          date={selectedDateParam}
-                          isSelected={Boolean(
-                            scheduleView.selectedDoctorId &&
-                            (scheduleView.selectedDoctorId === doctor.id ||
-                              scheduleView.selectedDoctorId === doctor.practitioner_id)
-                          )}
-                          onCardClick={(doc) => setSelectedDoctorForModal(doc)}
-                          onOpenDetail={scheduleView.actions.openDetail}
-                          onOpenSettings={actions.openSettingsForDoctor}
-                        />
-                      ))}
-                    </div>
+            <div className='absolute inset-0 flex overflow-hidden'>
+              <ScrollArea className='h-full w-full pr-0 md:pr-3'>
+                <div
+                  className={cn(
+                    'transition-opacity duration-150 pb-20 pt-1',
+                    scheduleView.isFetching && 'opacity-75'
+                  )}
+                >
+                  <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4.5'>
+                    {scheduleView.doctors.map((doctor) => (
+                      <DoctorScheduleCard
+                        key={doctor.id}
+                        doctor={doctor}
+                        date={selectedDateParam}
+                        isSelected={Boolean(
+                          scheduleView.selectedDoctorId &&
+                          (scheduleView.selectedDoctorId === doctor.id ||
+                            scheduleView.selectedDoctorId === doctor.practitioner_id)
+                        )}
+                        onCardClick={(doc) => setSelectedDoctorForModal(doc)}
+                        onOpenDetail={scheduleView.actions.openDetail}
+                        onOpenSettings={actions.openSettingsForDoctor}
+                      />
+                    ))}
                   </div>
-                </ScrollArea>
-              </div>
 
-              {scheduleView.totalDoctors > 0 ? (
-                <div className='absolute bottom-0 inset-x-0 z-20 pointer-events-none flex justify-center'>
-                  <div className='pointer-events-auto w-full'>
-                    <DoctorSchedulePagination
-                      currentPage={scheduleView.page}
-                      pageSize={scheduleView.pageSize}
-                      totalItems={scheduleView.totalDoctors}
-                      onPageChange={scheduleView.actions.changePage}
-                      onPageSizeChange={scheduleView.actions.changePageSize}
-                      pageSizeOptions={[6, 12, 18, 24, 30]}
-                    />
-                  </div>
+                  {/* Infinite scroll sentinel */}
+                  <div ref={scheduleView.sentinelRef} className='h-4 w-full' />
+                  {scheduleView.isFetchingNextPage && (
+                    <div className='flex items-center justify-center py-6'>
+                      <Icons.spinner className='size-6 animate-spin text-primary' />
+                    </div>
+                  )}
                 </div>
-              ) : null}
-            </>
+              </ScrollArea>
+            </div>
           )}
         </div>
       </div>

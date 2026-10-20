@@ -15,6 +15,7 @@ export const searchParams = {
   role: parseAsString,
   status: parseAsString,
   poli: parseAsString,
+  session: parseAsString,
   poliklinikId: parseAsString,
   doctorId: parseAsString,
   search: parseAsString,

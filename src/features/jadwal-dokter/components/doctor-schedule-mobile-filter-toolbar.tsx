@@ -36,7 +36,7 @@ export interface DoctorScheduleMobileFilterToolbarProps {
   className?: string;
 }
 
-type DrawerFilterType = 'date' | 'month' | 'poli' | null;
+type DrawerFilterType = 'date' | 'month' | 'poli' | 'session' | 'status' | null;
 
 export function DoctorScheduleMobileFilterToolbar({
   scheduleView,
@@ -89,6 +89,8 @@ export function DoctorScheduleMobileFilterToolbar({
   const hasDateFilter = Boolean(scheduleView.dateFilter && !isToday(scheduleView.dateFilter));
   const hasMonthFilter = Boolean(scheduleView.monthFilter && scheduleView.monthFilter !== 'ALL');
   const hasPoliFilter = scheduleView.selectedPoli.length > 0;
+  const hasSessionFilter = scheduleView.selectedSessions.length > 0;
+  const hasStatusFilter = scheduleView.selectedStatuses.length > 0;
 
   const dateIso = useMemo(() => {
     if (!scheduleView.dateFilter) return '';
@@ -105,6 +107,20 @@ export function DoctorScheduleMobileFilterToolbar({
 
   const poliOptions = useMemo(() => {
     return (filterOptionsData?.poliklinik ?? []).map((p) => p.name);
+  }, [filterOptionsData]);
+
+  const sessionOptions = useMemo(() => {
+    return (filterOptionsData?.sessions ?? []).map((s) => ({
+      code: s.code,
+      label: s.label
+    }));
+  }, [filterOptionsData]);
+
+  const statusOptions = useMemo(() => {
+    return (filterOptionsData?.statuses ?? []).map((st) => ({
+      id: st.id,
+      label: st.label
+    }));
   }, [filterOptionsData]);
 
   return (
@@ -177,14 +193,54 @@ export function DoctorScheduleMobileFilterToolbar({
                 </span>
               )}
             </Button>
+
+            {/* 5. Session Filter Button */}
+            <Button
+              type='button'
+              variant={hasSessionFilter ? 'primary' : 'outline'}
+              size='icon'
+              onClick={() => setOpenDrawer('session')}
+              aria-label='Filter Sesi Shift'
+              className={cn(
+                'size-8.5 rounded-xl relative cursor-pointer shrink-0',
+                hasSessionFilter && 'shadow-2xs font-bold'
+              )}
+            >
+              <Icons.clock className='size-4' />
+              {hasSessionFilter && (
+                <span className='absolute -top-1 -right-1 px-1 min-w-[14px] h-3.5 rounded-full bg-destructive text-destructive-foreground text-[9px] font-mono font-bold flex items-center justify-center leading-none ring-1 ring-card'>
+                  {scheduleView.selectedSessions.length}
+                </span>
+              )}
+            </Button>
+
+            {/* 6. Status Filter Button */}
+            <Button
+              type='button'
+              variant={hasStatusFilter ? 'primary' : 'outline'}
+              size='icon'
+              onClick={() => setOpenDrawer('status')}
+              aria-label='Filter Status Operasional'
+              className={cn(
+                'size-8.5 rounded-xl relative cursor-pointer shrink-0',
+                hasStatusFilter && 'shadow-2xs font-bold'
+              )}
+            >
+              <Icons.activity className='size-4' />
+              {hasStatusFilter && (
+                <span className='absolute -top-1 -right-1 px-1 min-w-[14px] h-3.5 rounded-full bg-destructive text-destructive-foreground text-[9px] font-mono font-bold flex items-center justify-center leading-none ring-1 ring-card'>
+                  {scheduleView.selectedStatuses.length}
+                </span>
+              )}
+            </Button>
           </div>
 
           {/* Right: Settings, Export & Reset on opposite side */}
           <div className='flex items-center gap-1.5 shrink-0 ml-auto'>
-            {/* 5. Export Button */}
+            {/* 7. Export Button */}
             <DoctorExportButton data={scheduleView.doctors} variant='icon' />
 
-            {/* 6. Settings Button (Drawer Sheet on mobile) */}
+            {/* 8. Settings Button (Drawer Sheet on mobile) */}
             {onOpenSettings && (
               <DoctorScheduleSettingsButton
                 onSelectCategory={onOpenSettings}
@@ -193,7 +249,7 @@ export function DoctorScheduleMobileFilterToolbar({
               />
             )}
 
-            {/* 7. Reset Filter Button (Global on Dock) */}
+            {/* 9. Reset Filter Button (Global on Dock) */}
             {scheduleView.hasActiveFilters && (
               <Button
                 type='button'
@@ -228,7 +284,9 @@ export function DoctorScheduleMobileFilterToolbar({
             )}
             {hasDateFilter && scheduleView.dateFilter && (
               <span className='inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium bg-primary/10 text-primary border border-primary/20 rounded-lg shrink-0'>
-                <span>Tgl: {formatClinicDate(scheduleView.dateFilter, { style: 'human_short' })}</span>
+                <span>
+                  Tgl: {formatClinicDate(scheduleView.dateFilter, { style: 'human_short' })}
+                </span>
                 <button
                   type='button'
                   onClick={() => scheduleView.actions.changeDateFilter(new Date())}
@@ -265,6 +323,32 @@ export function DoctorScheduleMobileFilterToolbar({
                 </button>
               </span>
             )}
+            {hasSessionFilter && (
+              <span className='inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium bg-primary/10 text-primary border border-primary/20 rounded-lg shrink-0'>
+                <span>Sesi: {scheduleView.selectedSessions.length}</span>
+                <button
+                  type='button'
+                  onClick={() => scheduleView.actions.changeSelectedSessions([])}
+                  aria-label='Hapus filter sesi'
+                  className='hover:text-destructive cursor-pointer'
+                >
+                  <Icons.close className='size-3' />
+                </button>
+              </span>
+            )}
+            {hasStatusFilter && (
+              <span className='inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium bg-primary/10 text-primary border border-primary/20 rounded-lg shrink-0'>
+                <span>Status: {scheduleView.selectedStatuses.length}</span>
+                <button
+                  type='button'
+                  onClick={() => scheduleView.actions.changeSelectedStatuses([])}
+                  aria-label='Hapus filter status'
+                  className='hover:text-destructive cursor-pointer'
+                >
+                  <Icons.close className='size-3' />
+                </button>
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -284,7 +368,9 @@ export function DoctorScheduleMobileFilterToolbar({
         <DrawerContent className='max-h-[85vh]'>
           <DrawerHeader className='text-left pb-2'>
             <DrawerTitle>Pilih Tanggal Praktik</DrawerTitle>
-            <DrawerDescription>Tampilkan jadwal praktik dokter pada tanggal yang dipilih</DrawerDescription>
+            <DrawerDescription>
+              Tampilkan jadwal praktik dokter pada tanggal yang dipilih
+            </DrawerDescription>
           </DrawerHeader>
           <div className='p-4 pt-1'>
             <CustomCalendar
@@ -331,7 +417,9 @@ export function DoctorScheduleMobileFilterToolbar({
         <DrawerContent className='max-h-[85vh]'>
           <DrawerHeader className='text-left pb-2'>
             <DrawerTitle>Pilih Bulan Praktik</DrawerTitle>
-            <DrawerDescription>Tampilkan jadwal praktik dokter pada bulan tertentu</DrawerDescription>
+            <DrawerDescription>
+              Tampilkan jadwal praktik dokter pada bulan tertentu
+            </DrawerDescription>
           </DrawerHeader>
           <div className='p-4 pt-1'>
             <MonthGridCalendar
@@ -365,7 +453,9 @@ export function DoctorScheduleMobileFilterToolbar({
         <DrawerContent className='max-h-[85vh]'>
           <DrawerHeader className='text-left pb-2'>
             <DrawerTitle>Filter Unit Poliklinik</DrawerTitle>
-            <DrawerDescription>Pilih satu atau beberapa unit poliklinik untuk ditampilkan</DrawerDescription>
+            <DrawerDescription>
+              Pilih satu atau beberapa unit poliklinik untuk ditampilkan
+            </DrawerDescription>
           </DrawerHeader>
           <div className='flex flex-wrap gap-2 p-4 pt-1 max-h-[50vh] overflow-y-auto'>
             {poliOptions.map((poliName) => {
@@ -387,6 +477,108 @@ export function DoctorScheduleMobileFilterToolbar({
                   )}
                 >
                   <span>{poliName}</span>
+                  {isSelected && <Icons.check className='size-3 stroke-[2.5]' />}
+                </button>
+              );
+            })}
+          </div>
+          <DrawerFooter className='pt-2.5 pb-4 px-4 border-t border-border/40'>
+            <Button
+              type='button'
+              variant='primary'
+              size='card-action'
+              shape='pill'
+              onClick={() => setOpenDrawer(null)}
+              className='w-full font-semibold text-xs cursor-pointer'
+            >
+              Selesai
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+
+      {/* Drawer 4: Sesi Multi-Select Filter */}
+      <Drawer
+        open={openDrawer === 'session'}
+        onOpenChange={(isOpen) => !isOpen && setOpenDrawer(null)}
+      >
+        <DrawerContent className='max-h-[85vh]'>
+          <DrawerHeader className='text-left pb-2'>
+            <DrawerTitle>Filter Sesi Shift</DrawerTitle>
+            <DrawerDescription>Pilih satu atau beberapa sesi shift operasional</DrawerDescription>
+          </DrawerHeader>
+          <div className='flex flex-wrap gap-2 p-4 pt-1 max-h-[50vh] overflow-y-auto'>
+            {sessionOptions.map((sesi) => {
+              const isSelected = scheduleView.selectedSessions.includes(sesi.code);
+              return (
+                <button
+                  key={sesi.code}
+                  type='button'
+                  onClick={() =>
+                    scheduleView.actions.changeSelectedSessions(
+                      toggleItem(scheduleView.selectedSessions, sesi.code)
+                    )
+                  }
+                  className={cn(
+                    'px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer select-none flex items-center gap-1.5',
+                    isSelected
+                      ? 'bg-primary text-primary-foreground border-primary shadow-xs'
+                      : 'bg-muted/40 text-foreground border-border/60 hover:bg-muted'
+                  )}
+                >
+                  <span>{sesi.label}</span>
+                  {isSelected && <Icons.check className='size-3 stroke-[2.5]' />}
+                </button>
+              );
+            })}
+          </div>
+          <DrawerFooter className='pt-2.5 pb-4 px-4 border-t border-border/40'>
+            <Button
+              type='button'
+              variant='primary'
+              size='card-action'
+              shape='pill'
+              onClick={() => setOpenDrawer(null)}
+              className='w-full font-semibold text-xs cursor-pointer'
+            >
+              Selesai
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+
+      {/* Drawer 5: Status Multi-Select Filter */}
+      <Drawer
+        open={openDrawer === 'status'}
+        onOpenChange={(isOpen) => !isOpen && setOpenDrawer(null)}
+      >
+        <DrawerContent className='max-h-[85vh]'>
+          <DrawerHeader className='text-left pb-2'>
+            <DrawerTitle>Filter Status Praktik</DrawerTitle>
+            <DrawerDescription>
+              Pilih satu atau beberapa status operasional dokter
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className='flex flex-wrap gap-2 p-4 pt-1 max-h-[50vh] overflow-y-auto'>
+            {statusOptions.map((st) => {
+              const isSelected = scheduleView.selectedStatuses.includes(st.id);
+              return (
+                <button
+                  key={st.id}
+                  type='button'
+                  onClick={() =>
+                    scheduleView.actions.changeSelectedStatuses(
+                      toggleItem(scheduleView.selectedStatuses, st.id)
+                    )
+                  }
+                  className={cn(
+                    'px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer select-none flex items-center gap-1.5',
+                    isSelected
+                      ? 'bg-primary text-primary-foreground border-primary shadow-xs'
+                      : 'bg-muted/40 text-foreground border-border/60 hover:bg-muted'
+                  )}
+                >
+                  <span>{st.label}</span>
                   {isSelected && <Icons.check className='size-3 stroke-[2.5]' />}
                 </button>
               );

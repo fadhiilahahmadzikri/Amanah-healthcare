@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query';
 import { getQueryClient } from '@/lib/query-client';
 import { searchParamsCache } from '@/lib/searchparams';
-import { doctorScheduleQueryOptions } from '../api/queries';
+import { doctorScheduleInfiniteQueryOptions } from '../api/queries';
 import { fetchAdminDoctorSchedules } from '../api/doctor-schedule-service';
 import type { DoctorScheduleFilters } from '../api/types';
 import { DoctorScheduleView } from './doctor-schedule-view';
@@ -14,18 +14,25 @@ export default async function DoctorScheduleListingPage() {
   const page = searchParamsCache.get('page');
   const search = searchParamsCache.get('search');
   const perPage = searchParamsCache.get('perPage');
+  const poli = searchParamsCache.get('poli');
+  const session = searchParamsCache.get('session');
+  const status = searchParamsCache.get('status');
 
   const filters: DoctorScheduleFilters = {
     page: page || 1,
-    limit: perPage || 6,
-    ...(search && { search })
+    limit: perPage || 20,
+    ...(search && { search }),
+    ...(poli && { poli: poli.split(',').filter(Boolean) }),
+    ...(session && { session: session.split(',').filter(Boolean) }),
+    ...(status && { status: status.split(',').filter(Boolean) })
   };
 
   const queryClient = getQueryClient();
-  await queryClient.prefetchQuery({
-    ...doctorScheduleQueryOptions(filters),
-    queryFn: async () => {
-      const data = await fetchAdminDoctorSchedules(filters);
+  await queryClient.prefetchInfiniteQuery({
+    ...doctorScheduleInfiniteQueryOptions(filters),
+    initialPageParam: 1,
+    queryFn: async ({ pageParam = 1 }) => {
+      const data = await fetchAdminDoctorSchedules({ ...filters, page: pageParam as number });
       return {
         doctors: data.doctors,
         total_doctors: data.meta.total_doctors,
