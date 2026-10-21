@@ -1,17 +1,39 @@
+'use client';
+
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
-import { LeaveStatusBadge } from './leave-status-badge';
+import { MasterEntityCard, EntityCardPrimaryAction } from '@/components/cards/master-entity-card';
 import type { LeaveRequestItem } from '../api/types';
 
-interface LeaveCardProps {
+export interface LeaveCardProps {
   leave: LeaveRequestItem;
   onSelect: (leave: LeaveRequestItem) => void;
+  isSelected?: boolean;
+  className?: string;
 }
 
-export function LeaveCard({ leave, onSelect }: LeaveCardProps) {
+const LEAVE_STATUS_MAP: Record<
+  string,
+  { key: string; label: string; variant: 'amber' | 'lime' | 'red' | 'blue' }
+> = {
+  pending: { key: 'PENDING', label: 'Menunggu', variant: 'amber' },
+  approved: { key: 'AKTIF', label: 'Disetujui', variant: 'lime' },
+  rejected: { key: 'CANCELLED', label: 'Ditolak', variant: 'red' },
+  cancelled: { key: 'CANCELLED', label: 'Dibatalkan', variant: 'red' }
+};
+
+const LEAVE_TYPE_MAP: Record<string, string> = {
+  annual_leave: 'Cuti Tahunan',
+  sick_leave: 'Izin Sakit',
+  seminar_symposium: 'Seminar / Simposium',
+  family_matter: 'Keperluan Keluarga',
+  external_assignment: 'Tugas Luar',
+  other: 'Izin / Cuti'
+};
+
+export function LeaveCard({ leave, onSelect, isSelected, className }: LeaveCardProps) {
   const staff = leave.staff;
+
   const staffTypeLabel =
     staff?.staffType === 'doctor'
       ? 'Dokter'
@@ -19,80 +41,89 @@ export function LeaveCard({ leave, onSelect }: LeaveCardProps) {
         ? 'Bidan'
         : 'Staf Operasional';
 
-  const typeLabelMap: Record<string, string> = {
-    annual_leave: 'Cuti Tahunan',
-    sick_leave: 'Izin Sakit',
-    seminar_symposium: 'Seminar / Simposium',
-    family_matter: 'Keperluan Keluarga',
-    external_assignment: 'Tugas Luar',
-    other: 'Izin / Cuti Lainnya'
+  const leaveTypeLabel = LEAVE_TYPE_MAP[leave.type] || leave.type;
+  const statusMeta = LEAVE_STATUS_MAP[leave.status] || {
+    key: 'PENDING',
+    label: leave.status,
+    variant: 'amber' as const
   };
-  const leaveTypeLabel = typeLabelMap[leave.type] || leave.type;
+
+  const initials = React.useMemo(() => {
+    const raw = (staff?.fullName || '').replace(/^(dr|drg|prof)\.\s*/i, '').trim();
+    const parts = raw.split(/\s+/);
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    }
+    return (parts[0]?.[0] || 'S').toUpperCase();
+  }, [staff?.fullName]);
+
+  const handleContainerClick = () => {
+    onSelect(leave);
+  };
+
+  const primaryAction = (
+    <EntityCardPrimaryAction
+      label='Lihat Detail'
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect(leave);
+      }}
+      title='Lihat Detail Permohonan Izin / Cuti'
+    />
+  );
 
   return (
-    <Card
-      onClick={() => onSelect(leave)}
-      className='group relative cursor-pointer border border-border/60 hover:border-primary/50 transition-all duration-200 hover:shadow-md bg-card rounded-2xl overflow-hidden'
-    >
-      <CardContent className='p-5 flex flex-col gap-4'>
-        {/* Header: Staff Info & Status */}
-        <div className='flex items-start justify-between gap-3'>
-          <div className='flex items-center gap-3 min-w-0'>
-            <div className='size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-sm shrink-0'>
-              {staff?.fullName ? staff.fullName.charAt(0).toUpperCase() : 'S'}
-            </div>
-            <div className='min-w-0'>
-              <h4 className='font-semibold text-sm text-foreground truncate group-hover:text-primary transition-colors'>
-                {staff?.fullName || 'Staf Klinik'}
-              </h4>
-              <p className='text-xs text-muted-foreground truncate'>
-                {staffTypeLabel} {staff?.profession ? `• ${staff.profession}` : ''}
-              </p>
-            </div>
-          </div>
-          <LeaveStatusBadge status={leave.status} />
-        </div>
-
-        {/* Details: Date, Scope, Sessions */}
-        <div className='bg-muted/40 rounded-xl p-3 flex flex-col gap-2 text-xs'>
-          <div className='flex items-center gap-2 text-foreground font-medium'>
-            <Icons.calendar className='size-3.5 text-muted-foreground shrink-0' />
-            <span>
+    <MasterEntityCard
+      status={statusMeta.key}
+      statusLabel={statusMeta.label}
+      statusVariant={statusMeta.variant}
+      isSelected={isSelected}
+      name={staff?.fullName || 'Staf Klinik'}
+      subtitle={
+        <p className='text-[12px] sm:text-[11.5px] xl:text-[11px] font-medium text-muted-foreground tracking-tight line-clamp-1 mt-0.5 truncate'>
+          {staffTypeLabel} {staff?.profession ? `• ${staff.profession}` : ''}
+        </p>
+      }
+      avatarUrl={staff?.avatarUrl}
+      initials={initials}
+      contentSlot={
+        <div className='flex flex-col gap-1.5 min-w-0'>
+          {/* Rentang tanggal & durasi */}
+          <div className='flex items-center gap-1.5 text-xs text-foreground font-medium truncate'>
+            <Icons.calendar className='size-3.5 text-primary shrink-0' />
+            <span className='truncate'>
               {leave.startDate}
               {leave.endDate !== leave.startDate ? ` s.d ${leave.endDate}` : ''}
             </span>
-            <span className='text-muted-foreground font-normal'>({leave.durationDays} hari)</span>
-          </div>
-
-          <div className='flex items-center gap-2 text-muted-foreground'>
-            <Icons.clock className='size-3.5 shrink-0' />
-            <span>
-              {leave.scope === 'session' && leave.sessions && leave.sessions.length > 0
-                ? `Sesi: ${leave.sessions.map((s) => s.sessionCode || s.sessionLabel || s.sessionId).join(', ')}`
-                : '1 Hari Penuh'}
+            <span className='text-[11px] text-muted-foreground font-normal shrink-0'>
+              ({leave.durationDays} hari)
             </span>
-            <span className='text-primary/80 font-medium ml-auto'>{leaveTypeLabel}</span>
+          </div>
+
+          {/* Badge tipe permohonan & lingkup */}
+          <div className='flex items-center gap-1.5 flex-wrap min-w-0'>
+            <span className='inline-flex items-center px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-primary/10 text-primary border border-primary/20 truncate'>
+              {leaveTypeLabel}
+            </span>
+            <span className='inline-flex items-center gap-1 text-[11px] text-muted-foreground font-normal truncate'>
+              <Icons.clock className='size-3 shrink-0' />
+              <span>
+                {leave.scope === 'session' && leave.sessions && leave.sessions.length > 0
+                  ? `${leave.sessions.length} Sesi Terjadwal`
+                  : '1 Hari Penuh'}
+              </span>
+            </span>
           </div>
         </div>
-
-        {/* Reason snippet */}
-        <div className='text-xs text-muted-foreground line-clamp-2 italic'>
-          &ldquo;{leave.reason}&rdquo;
-        </div>
-
-        {/* Footer: Date submitted & Action */}
-        <div className='flex items-center justify-between pt-2 border-t border-border/40 text-xs'>
-          <span className='text-muted-foreground'>Diajukan: {leave.createdAt.split('T')[0]}</span>
-          <Button
-            variant='ghost'
-            size='sm'
-            className='h-7 text-xs text-primary group-hover:bg-primary/10 gap-1 px-2'
-          >
-            Lihat Detail
-            <Icons.chevronRight className='size-3.5' />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+      }
+      primaryAction={primaryAction}
+      showActions={true}
+      onCardClick={handleContainerClick}
+      onTitleClick={(e) => {
+        e.stopPropagation();
+        onSelect(leave);
+      }}
+      className={className}
+    />
   );
 }

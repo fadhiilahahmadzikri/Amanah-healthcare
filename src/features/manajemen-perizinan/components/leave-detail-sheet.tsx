@@ -1,31 +1,47 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
-  SheetTitle,
-  SheetFooter
+  SheetTitle
 } from '@/components/ui/sheet';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Icons } from '@/components/icons';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { LeaveStatusBadge } from './leave-status-badge';
-import { useReviewLeaveMutation } from '../api/mutations';
+import { useLeaveDetailSheet } from '../model/useLeaveDetailSheet';
 import type { LeaveRequestItem } from '../api/types';
 
-interface LeaveDetailSheetProps {
+export interface LeaveDetailSheetProps {
   leave: LeaveRequestItem | null;
   isOpen: boolean;
   onClose: () => void;
 }
 
+const LEAVE_TYPE_MAP: Record<string, string> = {
+  annual_leave: 'Cuti Tahunan',
+  sick_leave: 'Izin Sakit',
+  seminar_symposium: 'Seminar / Simposium',
+  family_matter: 'Keperluan Keluarga',
+  external_assignment: 'Tugas Luar',
+  other: 'Izin / Cuti Lainnya'
+};
+
 export function LeaveDetailSheet({ leave, isOpen, onClose }: LeaveDetailSheetProps) {
-  const [approvalNotes, setApprovalNotes] = useState('');
-  const reviewMutation = useReviewLeaveMutation();
+  const {
+    approvalNotes,
+    setApprovalNotes,
+    handleReview,
+    handleClose,
+    initials,
+    isPending,
+    isSubmitting
+  } = useLeaveDetailSheet({ leave, onClose });
 
   if (!leave) return null;
 
@@ -37,194 +53,217 @@ export function LeaveDetailSheet({ leave, isOpen, onClose }: LeaveDetailSheetPro
         ? 'Bidan'
         : 'Staf Operasional';
 
-  const typeLabelMap: Record<string, string> = {
-    annual_leave: 'Cuti Tahunan',
-    sick_leave: 'Izin Sakit',
-    seminar_symposium: 'Seminar / Simposium',
-    family_matter: 'Keperluan Keluarga',
-    external_assignment: 'Tugas Luar',
-    other: 'Izin / Cuti Lainnya'
-  };
-  const leaveTypeLabel = typeLabelMap[leave.type] || leave.type;
-
-  const handleReview = async (status: 'approved' | 'rejected') => {
-    try {
-      await reviewMutation.mutateAsync({
-        id: leave.id,
-        status,
-        approvalNotes: approvalNotes.trim() || undefined
-      });
-      setApprovalNotes('');
-      onClose();
-    } catch {
-      // Error handled in mutation toast
-    }
-  };
-
-  const isPending = leave.status === 'pending';
+  const leaveTypeLabel = LEAVE_TYPE_MAP[leave.type] || leave.type;
 
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Sheet open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <SheetContent
         side='right'
-        className='w-full sm:max-w-md md:max-w-lg flex flex-col gap-0 p-0 overflow-hidden'
+        showCloseButton={false}
+        className='w-full sm:max-w-[680px] lg:max-w-[760px] p-0 flex flex-col gap-0 overflow-hidden border-l border-border/50 bg-card text-card-foreground shadow-2xl font-sans'
       >
-        <SheetHeader className='p-6 border-b border-border/60'>
-          <div className='flex items-center justify-between gap-3'>
-            <SheetTitle className='text-lg font-bold'>Detail Permohonan Izin / Cuti</SheetTitle>
-            <LeaveStatusBadge status={leave.status} />
+        {/* Profile Header Shell with Gradient Banner */}
+        <div className='relative w-full shrink-0 border-b border-border/40 bg-card'>
+          <div className='relative w-full h-24 sm:h-28 bg-[linear-gradient(to_bottom,color-mix(in_oklab,var(--primary-bright,var(--primary))_28%,transparent)_0%,color-mix(in_oklab,var(--primary-bright,var(--primary))_10%,transparent)_60%,transparent_100%)] overflow-hidden'>
+            <button
+              type='button'
+              onClick={handleClose}
+              className='absolute top-3 left-4 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background/85 hover:bg-background text-foreground/90 hover:text-foreground text-xs font-semibold backdrop-blur-md border border-border/50 shadow-2xs transition-all cursor-pointer select-none'
+            >
+              <Icons.chevronLeft className='size-3.5' />
+              <span>Kembali</span>
+            </button>
           </div>
-          <SheetDescription className='text-xs text-muted-foreground'>
-            ID Permohonan: {leave.id}
-          </SheetDescription>
-        </SheetHeader>
 
-        <div className='flex-1 overflow-y-auto p-6 flex flex-col gap-6'>
-          {/* Section 1: Staff Info */}
-          <div className='flex items-center gap-4 bg-muted/30 p-4 rounded-2xl border border-border/40'>
-            <div className='size-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-base shrink-0'>
-              {staff?.fullName ? staff.fullName.charAt(0).toUpperCase() : 'S'}
+          <SheetHeader className='px-6 pb-4 pt-0 space-y-0 text-left'>
+            <div className='flex items-end gap-3.5 sm:gap-4 -mt-10 sm:-mt-11'>
+              <div className='relative shrink-0 size-20 sm:size-22'>
+                <Avatar className='size-20 sm:size-22 rounded-full ring-4 ring-card shadow-lg bg-card overflow-hidden shrink-0 aspect-square'>
+                  <AvatarImage
+                    src={staff?.avatarUrl || ''}
+                    alt={staff?.fullName || 'Staf'}
+                    referrerPolicy='no-referrer'
+                    className='size-full object-cover object-top aspect-square'
+                  />
+                  <AvatarFallback className='bg-primary/10 text-primary font-bold text-xl'>
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+
+              <div className='flex-1 min-w-0 pb-1 space-y-1'>
+                <div className='flex items-center gap-2 flex-wrap'>
+                  <SheetTitle className='text-base sm:text-lg font-bold text-foreground truncate'>
+                    {staff?.fullName || 'Staf Klinik'}
+                  </SheetTitle>
+                  <LeaveStatusBadge status={leave.status} />
+                </div>
+                <SheetDescription className='text-xs text-muted-foreground'>
+                  {staffTypeLabel} {staff?.profession ? `• ${staff.profession}` : ''}
+                  {staff?.idCardNumber ? ` • ID: ${staff.idCardNumber}` : ''}
+                </SheetDescription>
+              </div>
             </div>
-            <div className='min-w-0'>
-              <h4 className='font-semibold text-base text-foreground truncate'>
-                {staff?.fullName || 'Staf Klinik'}
+          </SheetHeader>
+        </div>
+
+        {/* Scrollable Content Body */}
+        <ScrollArea className='flex-1 w-full'>
+          <div className='p-6 flex flex-col gap-6 pb-20'>
+            {/* Section 1: Jadwal & Lingkup Izin */}
+            <div className='flex flex-col gap-3'>
+              <h4 className='text-xs font-bold uppercase tracking-wider text-muted-foreground'>
+                Jadwal &amp; Lingkup Izin
               </h4>
-              <p className='text-xs text-muted-foreground'>
-                {staffTypeLabel} {staff?.profession ? `• ${staff.profession}` : ''}
-              </p>
-              {staff?.idCardNumber && (
-                <p className='text-xs text-muted-foreground/80 mt-0.5'>
-                  ID Karyawan / SIP: {staff.idCardNumber}
-                </p>
+              <div className='grid grid-cols-2 gap-3 text-xs'>
+                <div className='bg-muted/30 border border-border/50 p-3.5 rounded-xl'>
+                  <span className='text-muted-foreground block mb-1 text-[11px]'>
+                    Tanggal Mulai:
+                  </span>
+                  <span className='font-semibold text-foreground text-sm'>{leave.startDate}</span>
+                </div>
+                <div className='bg-muted/30 border border-border/50 p-3.5 rounded-xl'>
+                  <span className='text-muted-foreground block mb-1 text-[11px]'>
+                    Tanggal Selesai:
+                  </span>
+                  <span className='font-semibold text-foreground text-sm'>{leave.endDate}</span>
+                </div>
+              </div>
+
+              <div className='bg-muted/30 border border-border/50 p-3.5 rounded-xl text-xs flex flex-col gap-2.5'>
+                <div className='flex items-center justify-between'>
+                  <span className='text-muted-foreground'>Total Durasi:</span>
+                  <span className='font-semibold text-foreground'>{leave.durationDays} Hari</span>
+                </div>
+                <div className='flex items-center justify-between'>
+                  <span className='text-muted-foreground'>Jenis Permohonan:</span>
+                  <span className='font-semibold text-primary'>{leaveTypeLabel}</span>
+                </div>
+                <div className='flex items-center justify-between'>
+                  <span className='text-muted-foreground'>Lingkup Izin:</span>
+                  <span className='font-semibold text-foreground'>
+                    {leave.scope === 'session' ? 'Per Sesi Tertentu' : '1 Hari Penuh'}
+                  </span>
+                </div>
+                <div className='flex items-center justify-between'>
+                  <span className='text-muted-foreground'>Diajukan Pada:</span>
+                  <span className='font-medium text-foreground'>
+                    {leave.createdAt.split('T')[0]}
+                  </span>
+                </div>
+              </div>
+
+              {/* Sesi Dinas jika ada */}
+              {leave.sessions && leave.sessions.length > 0 && (
+                <div className='bg-muted/20 border border-border/40 p-3.5 rounded-xl flex flex-col gap-2'>
+                  <span className='text-xs font-semibold text-foreground'>Sesi Dinas Terkait:</span>
+                  <div className='flex flex-wrap gap-1.5'>
+                    {leave.sessions.map((s) => (
+                      <span
+                        key={s.id}
+                        className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-xs font-medium'
+                      >
+                        <Icons.clock className='size-3 text-primary shrink-0' />
+                        <span>
+                          {s.sessionCode || s.sessionLabel || s.sessionId} ({s.workDate})
+                        </span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
-          </div>
 
-          {/* Section 2: Time & Schedule Scope */}
-          <div className='flex flex-col gap-3'>
-            <h5 className='text-xs font-semibold uppercase tracking-wider text-muted-foreground'>
-              Jadwal & Lingkup Izin
-            </h5>
-            <div className='grid grid-cols-2 gap-3 text-xs'>
-              <div className='bg-background border border-border/60 p-3 rounded-xl'>
-                <span className='text-muted-foreground block mb-1'>Tanggal Mulai:</span>
-                <span className='font-semibold text-foreground'>{leave.startDate}</span>
-              </div>
-              <div className='bg-background border border-border/60 p-3 rounded-xl'>
-                <span className='text-muted-foreground block mb-1'>Tanggal Selesai:</span>
-                <span className='font-semibold text-foreground'>{leave.endDate}</span>
+            {/* Section 2: Alasan Permohonan */}
+            <div className='flex flex-col gap-2'>
+              <h4 className='text-xs font-bold uppercase tracking-wider text-muted-foreground'>
+                Alasan Pengajuan
+              </h4>
+              <div className='bg-muted/30 border border-border/50 p-4 rounded-xl text-xs text-foreground italic leading-relaxed'>
+                &ldquo;{leave.reason}&rdquo;
               </div>
             </div>
 
-            <div className='bg-background border border-border/60 p-3 rounded-xl text-xs flex flex-col gap-2'>
-              <div className='flex items-center justify-between'>
-                <span className='text-muted-foreground'>Total Durasi:</span>
-                <span className='font-semibold text-foreground'>{leave.durationDays} Hari</span>
+            {/* Section 3: Riwayat Peninjauan jika ada */}
+            {(leave.status === 'approved' || leave.status === 'rejected') && (
+              <div className='flex flex-col gap-2'>
+                <h4 className='text-xs font-bold uppercase tracking-wider text-muted-foreground'>
+                  Informasi Peninjauan
+                </h4>
+                <div className='bg-muted/30 border border-border/50 p-4 rounded-xl text-xs flex flex-col gap-2'>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-muted-foreground'>Status:</span>
+                    <LeaveStatusBadge status={leave.status} />
+                  </div>
+                  {leave.approvalNotes && (
+                    <div className='flex flex-col gap-1 pt-1 border-t border-border/40'>
+                      <span className='text-muted-foreground text-[11px]'>Catatan Peninjau:</span>
+                      <span className='text-foreground font-medium'>{leave.approvalNotes}</span>
+                    </div>
+                  )}
+                  {leave.updatedAt && (
+                    <div className='flex items-center justify-between text-muted-foreground text-[11px] pt-1'>
+                      <span>Waktu Peninjauan:</span>
+                      <span>{leave.updatedAt.replace('T', ' ').slice(0, 19)}</span>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className='flex items-center justify-between'>
-                <span className='text-muted-foreground'>Jenis Permohonan:</span>
-                <span className='font-semibold text-primary'>{leaveTypeLabel}</span>
-              </div>
-              <div className='flex items-center justify-between'>
-                <span className='text-muted-foreground'>Lingkup Izin:</span>
-                <span className='font-semibold text-foreground'>
-                  {leave.scope === 'session' ? 'Per Sesi Tertentu' : '1 Hari Penuh'}
-                </span>
-              </div>
-            </div>
+            )}
 
-            {/* If sessions exist */}
-            {leave.sessions && leave.sessions.length > 0 && (
-              <div className='bg-muted/20 border border-border/40 p-3 rounded-xl flex flex-col gap-1.5'>
-                <span className='text-xs font-medium text-foreground'>Sesi Dinas Terkait:</span>
-                <div className='flex flex-wrap gap-1.5 mt-1'>
-                  {leave.sessions.map((s) => (
-                    <span
-                      key={s.id}
-                      className='inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-xs font-medium'
-                    >
-                      <Icons.clock className='size-3' />
-                      {s.sessionCode || s.sessionLabel || s.sessionId} ({s.workDate})
-                    </span>
-                  ))}
+            {/* Section 4: Aksi Peninjauan Khusus Admin jika Pending */}
+            {isPending && (
+              <div className='flex flex-col gap-3 p-4 bg-muted/40 border border-border/60 rounded-2xl'>
+                <div>
+                  <h4 className='text-xs font-bold text-foreground'>
+                    Tindakan Persetujuan Manajemen
+                  </h4>
+                  <p className='text-xs text-muted-foreground mt-0.5'>
+                    Tinjau permohonan ini. Menyetujui izin akan secara otomatis membuka slot dinas
+                    pengganti bagi staf lain.
+                  </p>
+                </div>
+
+                <div className='flex flex-col gap-1.5'>
+                  <label htmlFor='approval-notes' className='text-xs font-medium text-foreground'>
+                    Catatan Peninjauan (Opsional)
+                  </label>
+                  <Textarea
+                    id='approval-notes'
+                    placeholder='Tuliskan catatan persetujuan atau alasan penolakan...'
+                    value={approvalNotes}
+                    onChange={(e) => setApprovalNotes(e.target.value)}
+                    rows={2}
+                    className='text-xs'
+                  />
+                </div>
+
+                <div className='flex items-center justify-end gap-2 pt-2'>
+                  <Button
+                    variant='outline'
+                    size='sm'
+                    disabled={isSubmitting}
+                    onClick={() => handleReview('rejected')}
+                    className='h-9 text-xs gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive'
+                  >
+                    <Icons.close className='size-3.5' />
+                    <span>Tolak Permohonan</span>
+                  </Button>
+
+                  <Button
+                    size='sm'
+                    disabled={isSubmitting}
+                    onClick={() => handleReview('approved')}
+                    className='h-9 text-xs gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-600 dark:hover:bg-emerald-700'
+                  >
+                    <Icons.check className='size-3.5' />
+                    <span>Setujui Permohonan</span>
+                  </Button>
                 </div>
               </div>
             )}
           </div>
-
-          {/* Section 3: Reason */}
-          <div className='flex flex-col gap-2'>
-            <h5 className='text-xs font-semibold uppercase tracking-wider text-muted-foreground'>
-              Alasan Pengajuan
-            </h5>
-            <div className='bg-muted/30 border border-border/40 p-4 rounded-xl text-xs text-foreground whitespace-pre-wrap leading-relaxed'>
-              {leave.reason}
-            </div>
-          </div>
-
-          {/* Section 4: Decision Source & Existing Review */}
-          <div className='flex flex-col gap-2 text-xs'>
-            <div className='flex items-center justify-between py-1 border-b border-border/40'>
-              <span className='text-muted-foreground'>Mekanisme Keputusan:</span>
-              <span className='font-medium text-foreground'>
-                {leave.decisionSource === 'auto'
-                  ? 'Otomatis oleh Kebijakan Sistem'
-                  : 'Ditinjau oleh Admin / SDM'}
-              </span>
-            </div>
-            {leave.approvalNotes && (
-              <div className='mt-2 bg-muted/20 border border-border/40 p-3 rounded-xl'>
-                <span className='text-muted-foreground block mb-1'>Catatan Peninjau:</span>
-                <span className='text-foreground'>{leave.approvalNotes}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Section 5: Review Action Inputs if Pending */}
-          {isPending && (
-            <div className='flex flex-col gap-3 pt-2 border-t border-border/60'>
-              <Label htmlFor='review-notes' className='text-xs font-semibold'>
-                Catatan Persetujuan / Penolakan (Opsional)
-              </Label>
-              <Textarea
-                id='review-notes'
-                placeholder='Tuliskan catatan atau alasan jika menolak permohonan ini...'
-                value={approvalNotes}
-                onChange={(e) => setApprovalNotes(e.target.value)}
-                className='text-xs min-h-[70px] resize-none'
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Footer Actions */}
-        <SheetFooter className='p-4 border-t border-border/60 bg-muted/10 gap-2 sm:gap-0'>
-          {isPending ? (
-            <div className='grid grid-cols-2 gap-3 w-full'>
-              <Button
-                variant='outline'
-                className='border-rose-300 text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-950/40 text-xs h-9'
-                onClick={() => handleReview('rejected')}
-                disabled={reviewMutation.isPending}
-              >
-                <Icons.close className='size-3.5 mr-1.5' />
-                Tolak Izin
-              </Button>
-              <Button
-                className='bg-emerald-600 hover:bg-emerald-700 text-white text-xs h-9'
-                onClick={() => handleReview('approved')}
-                disabled={reviewMutation.isPending}
-              >
-                <Icons.check className='size-3.5 mr-1.5' />
-                Setujui Izin
-              </Button>
-            </div>
-          ) : (
-            <Button variant='outline' className='w-full text-xs h-9' onClick={onClose}>
-              Tutup
-            </Button>
-          )}
-        </SheetFooter>
+        </ScrollArea>
       </SheetContent>
     </Sheet>
   );

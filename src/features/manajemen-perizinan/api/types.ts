@@ -17,6 +17,7 @@ export interface LeaveStaffProfile {
   profession?: string;
   idCardNumber?: string;
   staffType: StaffCategory;
+  avatarUrl?: string | null;
 }
 
 export interface LeaveRequestItem {
