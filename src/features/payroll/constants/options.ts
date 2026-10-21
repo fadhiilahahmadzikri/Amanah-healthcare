@@ -15,22 +15,28 @@ export const PERIOD_STATUS_CONFIG: Record<
   { label: string; badgeVariant: 'warning' | 'primary' | 'success'; className: string }
 > = {
   draft: {
-    label: 'DRAFT',
+    label: 'Draf',
     badgeVariant: 'warning',
     className:
       'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300/40'
   },
   calculated: {
-    label: 'TERKALKULASI',
+    label: 'Terkalkulasi',
     badgeVariant: 'primary',
     className: 'bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 border-sky-300/40'
   },
   finalized: {
-    label: 'FINAL',
+    label: 'Ditutup buku',
     badgeVariant: 'success',
     className:
       'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300/40'
   }
+};
+
+export const SOURCE_TYPE_LABELS: Record<string, string> = {
+  roster: 'Jadwal dinas',
+  leave_request: 'Izin / Cuti',
+  attendance: 'Presensi harian'
 };
 
 export const ENTRY_TYPE_CONFIG: Record<

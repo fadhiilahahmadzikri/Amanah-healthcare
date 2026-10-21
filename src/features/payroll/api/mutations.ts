@@ -1,7 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { payrollKeys } from './query-keys';
-import { calculatePayroll, finalizePayrollPeriod, updateCompensationRates } from './payroll.api';
+import {
+  calculatePayroll,
+  finalizePayrollPeriod,
+  reconcileDailyLeave,
+  updateCompensationRates
+} from './payroll.api';
 import type { CalculatePayrollPayload, UpdateCompensationRatesPayload } from './types';
 
 export function useCalculatePayrollMutation() {
@@ -48,6 +53,23 @@ export function useFinalizePayrollPeriodMutation() {
     },
     onError: (err: Error) => {
       toast.error(err.message || 'Gagal menutup buku periode payroll');
+    }
+  });
+}
+
+export function useReconcileDailyLeaveMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (targetDate?: string | void) => reconcileDailyLeave(targetDate || undefined),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: payrollKeys.all });
+      toast.success(
+        `Rekap cuti harian (${data.targetDate}) berhasil. ${data.processedCount} staf diproses.`
+      );
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Gagal memproses rekap cuti harian');
     }
   });
 }

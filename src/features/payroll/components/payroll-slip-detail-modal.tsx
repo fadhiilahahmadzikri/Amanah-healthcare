@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
-import { ENTRY_TYPE_CONFIG } from '../constants/options';
+import { ENTRY_TYPE_CONFIG, SOURCE_TYPE_LABELS } from '../constants/options';
 import { formatCurrency } from '../utils/currency';
 import type { PayrollPeriodItem, PayrollSummaryItem } from '../api/types';
 
@@ -45,7 +45,7 @@ export function PayrollSlipDetailModal({
             <div>
               <DialogTitle className='text-base font-bold flex items-center gap-2'>
                 <span>{staffSummary.fullName}</span>
-                <span className='text-[10px] font-bold px-2 py-0.5 rounded-full bg-muted border border-border/60 text-muted-foreground uppercase'>
+                <span className='text-[10px] font-semibold px-2 py-0.5 rounded-full bg-muted border border-border/60 text-muted-foreground capitalize'>
                   {staffSummary.staffType}
                 </span>
               </DialogTitle>
@@ -121,7 +121,7 @@ export function PayrollSlipDetailModal({
                         <div className='flex items-center gap-2'>
                           <span className='font-semibold text-foreground'>{config.label}</span>
                           <span className='text-[10px] text-muted-foreground px-1.5 py-0.5 rounded bg-muted'>
-                            Sumber: {entry.sourceType}
+                            Sumber: {SOURCE_TYPE_LABELS[entry.sourceType] ?? entry.sourceType}
                           </span>
                         </div>
                         {entry.description && (

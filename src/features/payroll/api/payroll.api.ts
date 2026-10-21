@@ -65,3 +65,23 @@ export async function fetchStaffPayroll(
     query
   });
 }
+
+export async function reconcileDailyLeave(targetDate?: string): Promise<{
+  targetDate: string;
+  processedCount: number;
+  totalDeductionsAmount: number;
+  staffProcessed: string[];
+}> {
+  const query: Record<string, unknown> = {};
+  if (targetDate) query.targetDate = targetDate;
+
+  return clientFetch<{
+    targetDate: string;
+    processedCount: number;
+    totalDeductionsAmount: number;
+    staffProcessed: string[];
+  }>('/api/v1/payroll/reconcile-leave', {
+    method: 'POST',
+    query
+  });
+}

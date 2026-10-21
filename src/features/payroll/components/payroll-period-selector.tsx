@@ -31,7 +31,9 @@ interface PayrollPeriodSelectorProps {
   onOpenCalculateModal: () => void;
   onOpenRatesModal: () => void;
   onFinalizePeriod?: (id: string) => void;
+  onReconcileDailyLeave?: () => void;
   isFinalizing?: boolean;
+  isReconciling?: boolean;
   isLoading?: boolean;
 }
 
@@ -42,7 +44,9 @@ export function PayrollPeriodSelector({
   onOpenCalculateModal,
   onOpenRatesModal,
   onFinalizePeriod,
+  onReconcileDailyLeave,
   isFinalizing,
+  isReconciling,
   isLoading
 }: PayrollPeriodSelectorProps) {
   const [isConfirmFinalizeOpen, setIsConfirmFinalizeOpen] = useState(false);
@@ -175,6 +179,20 @@ export function PayrollPeriodSelector({
           >
             <Icons.settings className='size-3.5 text-muted-foreground' />
             Konfigurasi Tarif
+          </Button>
+
+          {/* Action Sinkronisasi Cuti Harian On-Demand */}
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={onReconcileDailyLeave}
+            disabled={isLoading || isReconciling}
+            className='h-9 text-xs rounded-xl gap-1.5 px-3'
+          >
+            <Icons.refresh
+              className={`size-3.5 text-muted-foreground ${isReconciling ? 'animate-spin' : ''}`}
+            />
+            Rekap Cuti
           </Button>
 
           {/* Trigger Calculation Modal */}

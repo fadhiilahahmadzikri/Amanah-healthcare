@@ -8,12 +8,13 @@ import { PayrollSlipDetailModal } from './payroll-slip-detail-modal';
 import { PayrollCalculateModal } from './payroll-calculate-modal';
 import { PayrollRatesConfigModal } from './payroll-rates-config-modal';
 import { usePayrollPeriodsQuery, usePayrollPeriodDetailQuery } from '../api/queries';
-import { useFinalizePayrollPeriodMutation } from '../api/mutations';
+import { useFinalizePayrollPeriodMutation, useReconcileDailyLeaveMutation } from '../api/mutations';
 import type { PayrollFilterState, PayrollSummaryItem } from '../api/types';
 
 export function PayrollManagementView() {
   const { data: periods = [], isLoading: isPeriodsLoading } = usePayrollPeriodsQuery();
   const finalizeMutation = useFinalizePayrollPeriodMutation();
+  const reconcileMutation = useReconcileDailyLeaveMutation();
 
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(null);
 
@@ -93,7 +94,9 @@ export function PayrollManagementView() {
           onOpenCalculateModal={() => setIsCalculateModalOpen(true)}
           onOpenRatesModal={() => setIsRatesModalOpen(true)}
           onFinalizePeriod={(id) => finalizeMutation.mutate(id)}
+          onReconcileDailyLeave={() => reconcileMutation.mutate()}
           isFinalizing={finalizeMutation.isPending}
+          isReconciling={reconcileMutation.isPending}
           isLoading={isPeriodsLoading || isDetailLoading}
         />
 

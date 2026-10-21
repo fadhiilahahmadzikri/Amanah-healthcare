@@ -23,12 +23,23 @@ export interface PayrollEntryItem {
 
 export interface PayrollSummaryItem {
   staffId: string;
+  staffCode?: string;
   fullName: string;
   staffType: StaffCategory;
   positionTitle?: string;
+  departmentName?: string;
   practitionerId?: string | null;
+  periodId?: string;
+  periodName?: string;
+  periodStart?: string;
+  periodEnd?: string;
+  periodStatus?: string;
+  calculatedAt?: string | null;
   baseHours: number;
+  deductionHours?: number;
+  additionHours?: number;
   baseEarnings: number;
+  grossEarnings?: number;
   leaveDeductions: number;
   replacementAdditions: number;
   netPayroll: number;
