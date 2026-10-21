@@ -10,7 +10,6 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Icons } from '@/components/icons';
 import { ENTRY_TYPE_CONFIG, SOURCE_TYPE_LABELS } from '../constants/options';
 import { formatCurrency } from '../utils/currency';
 import type { PayrollPeriodItem, PayrollSummaryItem } from '../api/types';

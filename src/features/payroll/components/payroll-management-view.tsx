@@ -1,15 +1,19 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { PayrollPeriodSelector } from './payroll-period-selector';
 import { PayrollOverviewStats } from './payroll-overview-stats';
-import { PayrollTable } from './payroll-table';
+import { PayrollFilters } from './payroll-filters';
+import { PayrollTable } from './payroll-tables';
+import { PayrollMobileCards } from './payroll-mobile-cards';
 import { PayrollSlipDetailModal } from './payroll-slip-detail-modal';
 import { PayrollCalculateModal } from './payroll-calculate-modal';
 import { PayrollRatesConfigModal } from './payroll-rates-config-modal';
+import { PayrollAuditMutationModal } from './payroll-audit-mutation-modal';
 import { usePayrollPeriodsQuery, usePayrollPeriodDetailQuery } from '../api/queries';
 import { useFinalizePayrollPeriodMutation, useReconcileDailyLeaveMutation } from '../api/mutations';
-import type { PayrollFilterState, PayrollSummaryItem } from '../api/types';
+import { usePayrollTable } from '../model/usePayrollTable';
+import { getPayrollColumns } from './payroll-tables/columns';
 
 export function PayrollManagementView() {
   const { data: periods = [], isLoading: isPeriodsLoading } = usePayrollPeriodsQuery();
@@ -28,71 +32,68 @@ export function PayrollManagementView() {
   const { data: periodDetail, isLoading: isDetailLoading } =
     usePayrollPeriodDetailQuery(selectedPeriodId);
 
-  // Filter state
-  const [filterState, setFilterState] = useState<PayrollFilterState>({
-    category: 'all',
-    search: ''
-  });
-
-  const handleFilterChange = (newFilter: Partial<PayrollFilterState>) => {
-    setFilterState((prev) => ({ ...prev, ...newFilter }));
-  };
-
-  const handleResetFilter = () => {
-    setFilterState({ category: 'all', search: '' });
-  };
-
-  // Modals state
-  const [selectedStaffForDetail, setSelectedStaffForDetail] = useState<PayrollSummaryItem | null>(
-    null
-  );
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [isCalculateModalOpen, setIsCalculateModalOpen] = useState(false);
-  const [isRatesModalOpen, setIsRatesModalOpen] = useState(false);
-
-  const handleSelectStaff = (summary: PayrollSummaryItem) => {
-    setSelectedStaffForDetail(summary);
-    setIsDetailModalOpen(true);
-  };
-
   const currentPeriod = periodDetail?.period || periods.find((p) => p.id === selectedPeriodId);
   const summaries = periodDetail?.summaries || [];
 
+  // TanStack columns
+  const columns = useMemo(() => getPayrollColumns(), []);
+
+  // Integrated Payroll Table Hook
+  const {
+    table,
+    filteredSummaries,
+    selectedStaff,
+    isDetailOpen,
+    isCalculateOpen,
+    isRatesOpen,
+    isAuditOpen,
+    searchQuery,
+    categoryFilter,
+    hasFilters,
+    actions
+  } = usePayrollTable({
+    data: summaries,
+    columns
+  });
+
   return (
     <>
-      {/* 1. Modal Detail Slip Gaji */}
+      {/* 1. Modal Detail Slip Gaji Staf */}
       <PayrollSlipDetailModal
-        isOpen={isDetailModalOpen}
-        onClose={() => {
-          setIsDetailModalOpen(false);
-          setSelectedStaffForDetail(null);
-        }}
-        staffSummary={selectedStaffForDetail}
+        isOpen={isDetailOpen}
+        onClose={actions.closeDetail}
+        staffSummary={selectedStaff}
         period={currentPeriod}
       />
 
-      {/* 2. Modal Kalkulasi Payroll Baru */}
+      {/* 2. Modal Kalkulasi Payroll Periode Baru */}
       <PayrollCalculateModal
-        isOpen={isCalculateModalOpen}
-        onClose={() => setIsCalculateModalOpen(false)}
+        isOpen={isCalculateOpen}
+        onClose={actions.closeCalculate}
         onSuccess={(newId) => setSelectedPeriodId(newId)}
       />
 
-      {/* 3. Modal Konfigurasi Standar Tarif Payroll (Dedicated & Modular) */}
-      <PayrollRatesConfigModal
-        isOpen={isRatesModalOpen}
-        onClose={() => setIsRatesModalOpen(false)}
+      {/* 3. Modal Konfigurasi Standar Tarif Payroll */}
+      <PayrollRatesConfigModal isOpen={isRatesOpen} onClose={actions.closeRates} />
+
+      {/* 4. Modal Audit Mutasi Periode */}
+      <PayrollAuditMutationModal
+        isOpen={isAuditOpen}
+        onClose={actions.closeAudit}
+        period={currentPeriod}
+        summaries={summaries}
       />
 
       {/* Main View Shell */}
       <div className='flex h-full min-h-0 flex-1 flex-col gap-3.5 select-none'>
-        {/* Top: Period Selector & Action */}
+        {/* Top: Period Selector & Consolidated Action Context Menu */}
         <PayrollPeriodSelector
           periods={periods}
           selectedPeriodId={selectedPeriodId}
           onSelectPeriod={(id) => setSelectedPeriodId(id)}
-          onOpenCalculateModal={() => setIsCalculateModalOpen(true)}
-          onOpenRatesModal={() => setIsRatesModalOpen(true)}
+          onOpenCalculateModal={actions.openCalculate}
+          onOpenRatesModal={actions.openRates}
+          onOpenAuditModal={actions.openAudit}
           onFinalizePeriod={(id) => finalizeMutation.mutate(id)}
           onReconcileDailyLeave={() => reconcileMutation.mutate()}
           isFinalizing={finalizeMutation.isPending}
@@ -100,18 +101,39 @@ export function PayrollManagementView() {
           isLoading={isPeriodsLoading || isDetailLoading}
         />
 
-        {/* Overview Stats */}
+        {/* Overview Stats: Signature MetricChartCard with Real Sparklines */}
         <PayrollOverviewStats period={currentPeriod} summaries={summaries} />
 
-        {/* Data Table */}
-        <PayrollTable
-          summaries={summaries}
-          isLoading={isDetailLoading}
-          onSelectStaff={handleSelectStaff}
-          filterState={filterState}
-          onFilterChange={handleFilterChange}
-          onResetFilter={handleResetFilter}
+        {/* Filter Bar: Debounced Search & Backend-Driven Category Facet */}
+        <PayrollFilters
+          searchQuery={searchQuery}
+          onSearchChange={actions.setSearch}
+          selectedCategory={categoryFilter}
+          onCategoryChange={actions.setCategory}
+          onResetAll={actions.resetFilters}
+          totalFiltered={filteredSummaries.length}
+          totalCount={summaries.length}
         />
+
+        {/* Desktop View: Signature TanStack DataTable (hidePagination=true) */}
+        <div className='hidden md:flex min-h-0 flex-1 flex-col overflow-hidden'>
+          <PayrollTable
+            table={table}
+            isLoading={isDetailLoading}
+            hasFilters={hasFilters}
+            onSelectStaff={actions.openDetail}
+          />
+        </div>
+
+        {/* Mobile View: Minimalist Surface Cards */}
+        <div className='block md:hidden flex-1 overflow-y-auto min-h-0'>
+          <PayrollMobileCards
+            summaries={filteredSummaries}
+            hasFilters={hasFilters}
+            onSelectStaff={actions.openDetail}
+            isLoading={isDetailLoading}
+          />
+        </div>
       </div>
     </>
   );

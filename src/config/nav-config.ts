@@ -68,7 +68,7 @@ export const navGroups: NavGroup[] = [
             access: { role: 'admin' }
           },
           {
-            title: 'Manajemen Payroll',
+            title: 'Manajemen Penggajian',
             url: '/dashboard/payroll',
             icon: 'receipt',
             shortcut: ['m', 'y'],

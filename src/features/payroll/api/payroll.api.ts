@@ -2,11 +2,18 @@ import { clientFetch } from '@/lib/client-fetch';
 import type {
   CalculatePayrollPayload,
   CompensationRateItem,
+  PayrollFilterOptionsResponse,
   PayrollPeriodDetailResponse,
   PayrollPeriodItem,
   PayrollSummaryItem,
   UpdateCompensationRatesPayload
 } from './types';
+
+export async function fetchPayrollFilterOptions(): Promise<PayrollFilterOptionsResponse> {
+  return clientFetch<PayrollFilterOptionsResponse>('/api/v1/payroll/filter-options', {
+    method: 'GET'
+  });
+}
 
 export async function fetchPayrollPeriods(): Promise<PayrollPeriodItem[]> {
   return clientFetch<PayrollPeriodItem[]>('/api/v1/payroll/periods', {

@@ -77,6 +77,18 @@ export interface PayrollFilterState {
   search: string;
 }
 
+export interface PayrollFilterOptionsResponse {
+  categories: Array<{ id: string; label: string }>;
+  periods: Array<{
+    id: string;
+    name: string;
+    status: PayrollPeriodStatus;
+    periodStart: string;
+    periodEnd: string;
+  }>;
+  statuses: Array<{ id: string; label: string }>;
+}
+
 export interface CompensationRateItem {
   id?: string;
   category: StaffCategory;

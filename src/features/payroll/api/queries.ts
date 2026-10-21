@@ -1,11 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
 import { payrollKeys } from './query-keys';
 import {
+  fetchPayrollFilterOptions,
   fetchPayrollPeriods,
   fetchPayrollPeriodDetail,
   fetchStaffPayroll,
   fetchCompensationRates
 } from './payroll.api';
+
+export function usePayrollFilterOptionsQuery() {
+  return useQuery({
+    queryKey: payrollKeys.filterOptions(),
+    queryFn: () => fetchPayrollFilterOptions()
+  });
+}
 
 export function usePayrollPeriodsQuery() {
   return useQuery({

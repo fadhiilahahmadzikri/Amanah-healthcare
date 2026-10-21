@@ -4,7 +4,7 @@ import { requireAdmin } from '@/lib/guard';
 import { PayrollManagementView } from '@/features/payroll';
 
 export const metadata = {
-  title: 'Dashboard: Manajemen Payroll & Penggajian'
+  title: 'Dashboard: Manajemen Penggajian'
 };
 
 export default async function Page() {
@@ -13,7 +13,7 @@ export default async function Page() {
   return (
     <PageContainer
       scrollable={false}
-      pageTitle='Manajemen Payroll & Penggajian'
+      pageTitle='Manajemen Penggajian'
       pageDescription='Rekapitulasi gaji pokok, pemotongan izin/cuti, dan insentif dinas pengganti dokter, bidan, dan staf operasional.'
     >
       <Suspense
