@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import type { StaffMember } from '../api/staff-management.api';
+import type { StaffMember, StaffRosterItem } from '../api/staff-management.api';
 import { scheduleSessionsQueryOptions, staffRosterQueryOptions } from '../api/queries';
 import { useResetStaffRosterMutation, useUpdateStaffRosterMutation } from '../api/mutations';
 
@@ -46,6 +46,18 @@ export interface UseStaffRosterModalResult {
   handleConfirmResetToTemplate: () => Promise<void>;
 }
 
+const DEFAULT_DAYS: DayDef[] = [
+  { dow: 1, label: 'Senin', isActive: true },
+  { dow: 2, label: 'Selasa', isActive: true },
+  { dow: 3, label: 'Rabu', isActive: true },
+  { dow: 4, label: 'Kamis', isActive: true },
+  { dow: 5, label: 'Jumat', isActive: true },
+  { dow: 6, label: 'Sabtu', isActive: true },
+  { dow: 0, label: 'Minggu', isActive: false }
+];
+
+const EMPTY_ROSTERS: StaffRosterItem[] = [];
+
 export function useStaffRosterModal({
   staff,
   isOpen,
@@ -53,11 +65,9 @@ export function useStaffRosterModal({
   onSuccess
 }: UseStaffRosterModalProps): UseStaffRosterModalResult {
   const [isOverride, setIsOverride] = useState(false);
-  const [days, setDays] = useState<DayDef[]>([]);
-  const [sessionDefs, setSessionDefs] = useState<SessionDef[]>([]);
   const [selectedAssignments, setSelectedAssignments] = useState<Record<string, boolean>>({});
-  const [templateAssignments, setTemplateAssignments] = useState<Record<string, boolean>>({});
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+  const lastLoadedSignatureRef = useRef<string>('');
 
   const staffId = staff?.id || '';
 
@@ -66,7 +76,7 @@ export function useStaffRosterModal({
     enabled: Boolean(isOpen && staffId)
   });
 
-  const { data: currentRosters = [], isLoading: isLoadingRosters } = useQuery({
+  const { data: currentRosters = EMPTY_ROSTERS, isLoading: isLoadingRosters } = useQuery({
     ...staffRosterQueryOptions(staffId),
     enabled: Boolean(isOpen && staffId)
   });
@@ -74,47 +84,59 @@ export function useStaffRosterModal({
   const updateMutation = useUpdateStaffRosterMutation();
   const resetMutation = useResetStaffRosterMutation();
 
-  useEffect(() => {
-    if (!isOpen || !config) return;
+  // Pure derived state for sessions to eliminate redundant setState renders
+  const sessionDefs = useMemo<SessionDef[]>(() => {
+    return (config?.sessionDefs || []).filter((s) => s.isActive);
+  }, [config?.sessionDefs]);
 
-    const activeSessions = (config.sessionDefs || []).filter((s) => s.isActive);
-    setSessionDefs(activeSessions);
+  // Pure derived state for operational days
+  const days = useMemo<DayDef[]>(() => {
+    if (config?.days && config.days.length > 0) return config.days;
+    return DEFAULT_DAYS;
+  }, [config?.days]);
 
-    const configDays: DayDef[] =
-      config.days && config.days.length > 0
-        ? config.days
-        : [
-            { dow: 1, label: 'Senin', isActive: true },
-            { dow: 2, label: 'Selasa', isActive: true },
-            { dow: 3, label: 'Rabu', isActive: true },
-            { dow: 4, label: 'Kamis', isActive: true },
-            { dow: 5, label: 'Jumat', isActive: true },
-            { dow: 6, label: 'Sabtu', isActive: true },
-            { dow: 0, label: 'Minggu', isActive: false }
-          ];
-    setDays(configDays);
-
+  // Pure derived state for template assignments mapping
+  const templateAssignments = useMemo<Record<string, boolean>>(() => {
     const tplMap: Record<string, boolean> = {};
-    if (config.weeklyTemplates) {
+    if (config?.weeklyTemplates) {
       for (const t of config.weeklyTemplates) {
         if (t.isActive) {
           tplMap[`${t.dow}_${t.sessionId}`] = true;
         }
       }
     }
-    setTemplateAssignments(tplMap);
+    return tplMap;
+  }, [config?.weeklyTemplates]);
 
-    const hasOverride = currentRosters.some((r) => r.isOverride === true);
+  // Reset signature on modal close to allow clean re-initialization on next open
+  useEffect(() => {
+    if (!isOpen) {
+      lastLoadedSignatureRef.current = '';
+    }
+  }, [isOpen]);
+
+  // Synchronize initial assignments strictly when data actually changes (prevent infinite loops)
+  useEffect(() => {
+    if (!isOpen || !staffId || !config) return;
+
+    const signature = `${staffId}:${(currentRosters || [])
+      .map((r) => `${r.dow}_${r.sessionId}_${r.isActive}_${r.isOverride}`)
+      .join('|')}`;
+
+    if (lastLoadedSignatureRef.current === signature) return;
+    lastLoadedSignatureRef.current = signature;
+
+    const hasOverride = (currentRosters || []).some((r) => r.isOverride === true);
     setIsOverride(hasOverride);
 
     const currentMap: Record<string, boolean> = {};
-    for (const r of currentRosters) {
+    for (const r of currentRosters || []) {
       if (r.isActive !== false) {
         currentMap[`${r.dow}_${r.sessionId}`] = true;
       }
     }
     setSelectedAssignments(currentMap);
-  }, [isOpen, config, currentRosters]);
+  }, [isOpen, staffId, config, currentRosters]);
 
   const toggleSession = useCallback((dow: number, sessionId: string) => {
     const key = `${dow}_${sessionId}`;
