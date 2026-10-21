@@ -1,33 +1,54 @@
 'use client';
 
 import React from 'react';
-import { EntityCardStatusLip } from './atoms/entity-card-status-lip';
-import { EntityCardFrame, EntityCardInnerStitchFrame } from './atoms/entity-card-frame';
+import { useTheme } from 'next-themes';
+import { resolveCardTheme, CARD_THEME_TOKENS } from './theme-tokens';
+import { StackedCardShelter } from './atoms/stacked-card-shelter';
+import { SurfaceCoreOrganism } from './atoms/surface-core-organism';
+import { AccentBannerLip } from './atoms/accent-banner-lip';
 import { EntityCardIdentity } from './atoms/entity-card-identity';
 import { EntityCardFooter } from './atoms/entity-card-footer';
+import { getStatusConfig } from '@/styles/clinical-tokens';
 import type { MasterEntityCardProps } from './types';
 
+/**
+ * MasterEntityCard
+ * Agnostic master card component based on card-stack-v2 (Bottom Lip Variant).
+ * Shared across Doctor Management, Staff Management, and extensible for any
+ * other entity card across Amanah Healthcare web applications.
+ */
 export function MasterEntityCard({
-  status,
+  status = 'OPEN',
   statusLabel,
   statusVariant,
+  themeTokenOverride,
   isSelected,
   isPending,
-  variant = 'default',
-  name,
+  variant: _variant = 'default',
+  name = '',
   subtitle,
   avatarUrl,
   initials,
   trailingImage,
+  headerSlot,
+  identitySlot,
   contentSlot,
+  bottomLipSlot,
   secondaryAction,
   primaryAction,
   showActions = true,
   onCardClick,
   onTitleClick,
+  children,
   className
 }: MasterEntityCardProps) {
   const cardRef = React.useRef<HTMLDivElement>(null);
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   React.useEffect(() => {
     if (isSelected && cardRef.current) {
@@ -35,6 +56,27 @@ export function MasterEntityCard({
     }
   }, [isSelected]);
 
+  // Resolve theme token (Priority: Direct override -> Named variant -> Status resolver)
+  const effectiveThemeToken = React.useMemo(() => {
+    if (themeTokenOverride) return themeTokenOverride;
+    if (statusVariant && CARD_THEME_TOKENS[statusVariant]) {
+      return CARD_THEME_TOKENS[statusVariant];
+    }
+    return resolveCardTheme(status);
+  }, [status, statusVariant, themeTokenOverride]);
+
+  // Dual mode visual resolution (SSR-safe, default to dark for consistency with card-stack-v2)
+  const isDark = mounted ? resolvedTheme === 'dark' : true;
+  const currentVisuals = isDark ? effectiveThemeToken.dark : effectiveThemeToken.light;
+
+  // Resolve label from statusLabel prop or centralized clinical config
+  const displayLabel = React.useMemo(() => {
+    if (statusLabel) return statusLabel;
+    const config = getStatusConfig(status);
+    return config.label;
+  }, [status, statusLabel]);
+
+  // Derive initials from name if not explicitly provided
   const effectiveInitials = React.useMemo(() => {
     if (initials) return initials;
     const raw = (name || '').replace(/^(dr|drg|prof)\.\s*/i, '').trim();
@@ -58,44 +100,65 @@ export function MasterEntityCard({
     }
   };
 
+  const isLeave = status.toUpperCase().includes('CUTI') || status.toUpperCase().includes('LEAVE');
+
   return (
-    <EntityCardFrame
+    <StackedCardShelter
       cardRef={cardRef}
+      visuals={currentVisuals}
       isSelected={isSelected}
       isPending={isPending}
-      variant={variant}
-      onCardClick={handleContainerClick}
+      onClick={handleContainerClick}
       className={className}
-    >
-      {/* 1. TOP STATUS LIP (Bibir Status Atas dengan PixelTexture) */}
-      <EntityCardStatusLip status={status} label={statusLabel} variant={statusVariant} />
+      mainBodySlot={
+        <SurfaceCoreOrganism>
+          {trailingImage}
 
-      {/* 2. MAIN CARD BODY */}
-      <div className='p-1.5 sm:p-2 flex flex-col flex-1'>
-        {/* Optional Trailing Avatar / Watermark */}
-        {trailingImage}
+          {/* Upper Body Stack (Identity + Content) */}
+          <div className='flex-1 flex flex-col min-w-0'>
+            {/* Optional Header Slot */}
+            {headerSlot}
 
-        {/* Inner Dashed Stitch Frame (Motif Jahitan Klinis) */}
-        <EntityCardInnerStitchFrame>
-          {/* Section 1: Identity (Avatar + Name & Subtitle) */}
-          <EntityCardIdentity
-            name={name}
-            subtitle={subtitle}
-            avatarUrl={avatarUrl}
-            initials={effectiveInitials}
-            onNameClick={handleTitleClick}
-            isPending={isPending}
-          />
+            {/* Identity Section (Custom slot or standard Identity Atom) */}
+            {identitySlot ? (
+              identitySlot
+            ) : name ? (
+              <EntityCardIdentity
+                name={name}
+                subtitle={subtitle}
+                avatarUrl={avatarUrl}
+                initials={effectiveInitials}
+                onNameClick={handleTitleClick}
+                isPending={isPending}
+              />
+            ) : null}
 
-          {/* Section 2: Middle Content Slot (Antrean, Status Cuti, Kehadiran, Kontak, dll.) */}
-          {contentSlot && <div className='mt-2.5 sm:mt-2 relative z-20 min-w-0'>{contentSlot}</div>}
+            {/* Middle Content Slot */}
+            {contentSlot && (
+              <div className='mt-2.5 sm:mt-2 relative z-20 min-w-0'>{contentSlot}</div>
+            )}
 
-          {/* Section 3: Footer Actions (Rata kanan dengan tombol sekunder & tombol utama) */}
-          {showActions && (
+            {/* Arbitrary children if provided */}
+            {children}
+          </div>
+
+          {/* Action Buttons Footer with comfortable gutter */}
+          {showActions && (secondaryAction || primaryAction) && (
             <EntityCardFooter secondaryAction={secondaryAction} primaryAction={primaryAction} />
           )}
-        </EntityCardInnerStitchFrame>
-      </div>
-    </EntityCardFrame>
+        </SurfaceCoreOrganism>
+      }
+      bottomLipSlot={
+        bottomLipSlot ? (
+          bottomLipSlot
+        ) : (
+          <AccentBannerLip
+            label={displayLabel}
+            visuals={currentVisuals}
+            iconName={isLeave ? 'calendar' : 'none'}
+          />
+        )
+      }
+    />
   );
 }

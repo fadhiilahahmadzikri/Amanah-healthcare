@@ -18,7 +18,7 @@ export function EntityCardFooter({
   return (
     <div
       className={cn(
-        'flex items-center justify-end gap-2 sm:gap-1.5 pt-2.5 sm:pt-2 mt-auto border-t border-border/40 relative z-20',
+        'flex items-center justify-end gap-2 sm:gap-1.5 mt-3 sm:mt-2.5 relative z-20',
         className
       )}
     >
@@ -45,17 +45,18 @@ export function EntityCardPrimaryAction({
     <Button
       type='button'
       variant='default'
+      size='sm'
       onClick={onClick}
       title={title || label}
       aria-label={title || label}
       className={cn(
-        'h-10 sm:h-8.5 xl:h-8 pl-3.5 pr-1.5 sm:pl-3 sm:pr-1.5 xl:pl-2.5 xl:pr-1 rounded-lg sm:rounded-md text-xs sm:text-[11.5px] xl:text-[11px] font-bold shrink-0 gap-2 sm:gap-1.5 shadow-xs',
+        'h-8 sm:h-8.5 py-0 pl-3 pr-1.5 rounded-lg sm:rounded-md text-xs sm:text-[11.5px] font-bold shrink-0 inline-flex items-center gap-1.5 shadow-xs',
         className
       )}
     >
       <span>{label}</span>
-      <span className='size-6 sm:size-5.5 xl:size-5 rounded-[6px] sm:rounded-[5px] bg-primary-foreground text-primary flex items-center justify-center shrink-0 shadow-2xs'>
-        {icon || <Icons.arrowUpRight className='size-3.5 sm:size-3 xl:size-2.5 stroke-[2.5]' />}
+      <span className='size-5 rounded-[5px] bg-primary-foreground text-primary flex items-center justify-center shrink-0 shadow-2xs'>
+        {icon || <Icons.arrowUpRight className='size-3 stroke-[2.5]' />}
       </span>
     </Button>
   );
@@ -80,17 +81,16 @@ export function EntityCardSecondaryAction({
     <Button
       type='button'
       variant='outline'
+      size='sm'
       onClick={onClick}
       title={title || label}
       aria-label={title || label}
       className={cn(
-        'h-10 sm:h-8.5 xl:h-8 px-3.5 sm:px-2.5 xl:px-2 rounded-lg sm:rounded-md text-xs sm:text-[11.5px] xl:text-[11px] font-semibold text-muted-foreground hover:text-foreground shrink-0 gap-1.5 shadow-2xs',
+        'h-8 sm:h-8.5 py-0 px-3 rounded-lg sm:rounded-md text-xs sm:text-[11.5px] font-semibold text-muted-foreground hover:text-foreground shrink-0 inline-flex items-center gap-1.5 shadow-2xs',
         className
       )}
     >
-      {icon || (
-        <Icons.calendar className='size-3.5 sm:size-3.5 xl:size-3 text-muted-foreground shrink-0' />
-      )}
+      {icon || <Icons.calendar className='size-3.5 text-muted-foreground shrink-0' />}
       <span className='inline xl:hidden'>{label}</span>
       <span className='hidden xl:inline'>{shortLabel || label}</span>
     </Button>

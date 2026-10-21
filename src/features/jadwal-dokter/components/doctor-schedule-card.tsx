@@ -115,7 +115,8 @@ export function DoctorScheduleCard({
       }}
       title='Profil Medis Dokter'
       aria-label='Profil Medis Dokter'
-      className='h-10 sm:h-8.5 xl:h-8 px-3.5 sm:px-2.5 xl:px-2 rounded-lg sm:rounded-md text-xs sm:text-[11px] xl:text-[10.5px] font-bold shrink-0 gap-1.5 shadow-2xs'
+      size='sm'
+      className='h-8 sm:h-8.5 py-0 px-3 rounded-lg sm:rounded-md text-xs sm:text-[11.5px] font-bold shrink-0 inline-flex items-center gap-1.5 shadow-2xs'
     >
       <Icons.user className='size-3.5 sm:size-3.5 xl:size-3 text-muted-foreground shrink-0' />
       <span>Profil Medis</span>
