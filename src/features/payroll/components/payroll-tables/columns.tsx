@@ -4,6 +4,7 @@ import React from 'react';
 import type { Column, ColumnDef } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
+import { StaffRoleBadge } from '@/features/staff-management';
 import { formatCurrency } from '../../utils/currency';
 import { CellAction } from './cell-action';
 import type { PayrollSummaryItem } from '../../api/types';
@@ -15,17 +16,6 @@ const getInitials = (name: string) => {
     .slice(0, 2)
     .join('')
     .toUpperCase();
-};
-
-const getRoleBadgeClass = (role: string) => {
-  switch (role) {
-    case 'doctor':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 border-blue-300/40';
-    case 'midwife':
-      return 'bg-pink-100 text-pink-800 dark:bg-pink-950 dark:text-pink-300 border-pink-300/40';
-    default:
-      return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-300/40';
-  }
 };
 
 export function getPayrollColumns(): ColumnDef<PayrollSummaryItem>[] {
@@ -55,7 +45,7 @@ export function getPayrollColumns(): ColumnDef<PayrollSummaryItem>[] {
       ),
       enableSorting: false,
       enableHiding: false,
-      size: 44
+      size: 40
     },
     {
       id: 'fullName',
@@ -65,35 +55,61 @@ export function getPayrollColumns(): ColumnDef<PayrollSummaryItem>[] {
       ),
       cell: ({ row }) => {
         const staff = row.original;
-        const roleBadgeClass = getRoleBadgeClass(staff.staffType);
-
         return (
           <div className='flex items-center gap-2.5 py-0.5'>
-            <div className='size-8 rounded-lg bg-primary/10 text-primary font-bold text-xs flex items-center justify-center shrink-0 select-none'>
+            <div className='size-8 rounded-lg bg-muted text-foreground font-semibold text-xs flex items-center justify-center shrink-0 select-none'>
               {getInitials(staff.fullName)}
             </div>
-            <div className='min-w-0'>
-              <span className='font-semibold text-xs text-foreground block truncate'>
-                {staff.fullName}
-              </span>
-              <div className='flex items-center gap-1.5 mt-0.5'>
-                <span
-                  className={`text-[9px] font-bold px-1.5 py-0.2 rounded border uppercase ${roleBadgeClass}`}
-                >
-                  {staff.staffType}
-                </span>
-                {staff.positionTitle && (
-                  <span className='text-[10px] text-muted-foreground truncate'>
-                    • {staff.positionTitle}
-                  </span>
-                )}
-              </div>
-            </div>
+            <span className='font-semibold text-xs text-foreground block truncate'>
+              {staff.fullName}
+            </span>
           </div>
         );
       },
       enableSorting: true,
       enableHiding: false
+    },
+    {
+      id: 'staffCode',
+      accessorKey: 'staffCode',
+      header: ({ column }: { column: Column<PayrollSummaryItem, unknown> }) => (
+        <DataTableColumnHeader column={column} title='NIP / Kode' />
+      ),
+      cell: ({ row }) => (
+        <span className='text-xs text-muted-foreground font-mono tabular-nums'>
+          {row.original.staffCode || '-'}
+        </span>
+      ),
+      enableSorting: true,
+      enableHiding: true
+    },
+    {
+      id: 'staffType',
+      accessorKey: 'staffType',
+      header: ({ column }: { column: Column<PayrollSummaryItem, unknown> }) => (
+        <DataTableColumnHeader column={column} title='Kategori' />
+      ),
+      cell: ({ row }) => (
+        <div className='flex items-center'>
+          <StaffRoleBadge roleCode={row.original.staffType} staffType={row.original.staffType} />
+        </div>
+      ),
+      enableSorting: true,
+      enableHiding: true
+    },
+    {
+      id: 'positionTitle',
+      accessorKey: 'positionTitle',
+      header: ({ column }: { column: Column<PayrollSummaryItem, unknown> }) => (
+        <DataTableColumnHeader column={column} title='Jabatan / Posisi' />
+      ),
+      cell: ({ row }) => (
+        <span className='text-xs text-muted-foreground truncate block max-w-[140px]'>
+          {row.original.positionTitle || '-'}
+        </span>
+      ),
+      enableSorting: true,
+      enableHiding: true
     },
     {
       id: 'baseHours',
@@ -172,7 +188,7 @@ export function getPayrollColumns(): ColumnDef<PayrollSummaryItem>[] {
         <DataTableColumnHeader column={column} title='Gaji Bersih (THP)' className='justify-end' />
       ),
       cell: ({ row }) => (
-        <div className='text-right text-xs font-bold text-primary tabular-nums'>
+        <div className='text-right text-xs font-bold text-foreground tabular-nums'>
           {formatCurrency(row.original.netPayroll)}
         </div>
       ),
@@ -187,7 +203,7 @@ export function getPayrollColumns(): ColumnDef<PayrollSummaryItem>[] {
       cell: ({ row, table }) => <CellAction data={row.original} table={table} />,
       enableSorting: false,
       enableHiding: false,
-      size: 90
+      size: 110
     }
   ];
 }

@@ -1,14 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter
-} from '@/components/ui/dialog';
+import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,7 +11,7 @@ import { useUpdateCompensationRatesMutation } from '../api/mutations';
 import { formatCurrency } from '../utils/currency';
 import type { StaffCategory } from '../api/types';
 
-interface PayrollRatesConfigModalProps {
+export interface PayrollRatesConfigModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
@@ -32,42 +25,31 @@ const CATEGORY_CARDS: Array<{
   category: StaffCategory;
   label: string;
   badge: string;
-  badgeColor: string;
   description: string;
-  icon: keyof typeof Icons;
   defaultHourly: number;
   defaultOvertime: number;
 }> = [
   {
     category: 'doctor',
     label: 'Dokter',
-    badge: 'Tenaga Medis Utama',
-    badgeColor:
-      'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border-blue-200/50',
+    badge: 'Tenaga Medis',
     description: 'Tarif sesi praktik konsultasi dan insentif pengganti dokter jaga.',
-    icon: 'userCheck',
     defaultHourly: 20000,
     defaultOvertime: 30000
   },
   {
     category: 'midwife',
     label: 'Bidan',
-    badge: 'Tenaga Kebidanan',
-    badgeColor:
-      'bg-pink-100 text-pink-800 dark:bg-pink-950/60 dark:text-pink-300 border-pink-200/50',
+    badge: 'Kebidanan',
     description: 'Tarif dinas shift kebidanan dan lembur pengganti jadwal persalinan/jaga.',
-    icon: 'heart',
     defaultHourly: 15000,
     defaultOvertime: 22500
   },
   {
     category: 'worker',
     label: 'Staf Operasional',
-    badge: 'Umum & Administrasi',
-    badgeColor:
-      'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200/50',
+    badge: 'Administrasi & Umum',
     description: 'Tarif jam kerja staf administrasi, kasir, farmasi, dan operasional klinik.',
-    icon: 'users',
     defaultHourly: 12000,
     defaultOvertime: 18000
   }
@@ -134,45 +116,50 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className='max-w-xl p-0 overflow-hidden rounded-2xl max-h-[90vh] flex flex-col'>
-        {/* Header */}
-        <DialogHeader className='p-5 border-b border-border/60 shrink-0'>
-          <div className='flex items-center gap-2.5'>
-            <div className='size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0'>
-              <Icons.settings className='size-5' />
-            </div>
-            <div>
-              <DialogTitle className='text-base font-bold'>
-                Konfigurasi Standar Tarif Payroll
-              </DialogTitle>
-              <DialogDescription className='text-xs text-muted-foreground mt-0.5'>
-                Atur tarif dasar jam kerja dan insentif lembur/pengganti per kategori staf.
-              </DialogDescription>
-            </div>
+    <ModalWrapper
+      isOpen={isOpen}
+      onClose={onClose}
+      maxWidth='w-full sm:max-w-4xl lg:max-w-5xl'
+      className='max-h-[90vh] flex flex-col p-4 sm:p-6 overflow-hidden'
+      showCloseButton={false}
+      dismissible={!updateRatesMutation.isPending}
+    >
+      <div className='flex flex-col h-full min-h-0 flex-1 font-sans select-none'>
+        {/* Pinned Header */}
+        <div className='shrink-0 pb-3.5 border-b border-border/50 flex items-start justify-between gap-3'>
+          <div className='space-y-0.5 min-w-0 flex-1'>
+            <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight flex items-center gap-2'>
+              <Icons.settings className='size-5 text-muted-foreground shrink-0' />
+              <span>Konfigurasi Standar Tarif Penggajian</span>
+              {isLoading && (
+                <Icons.spinner className='size-3.5 animate-spin text-primary shrink-0' />
+              )}
+            </h3>
+            <p className='text-xs text-muted-foreground font-medium'>
+              Atur tarif dasar jam kerja dan insentif lembur/pengganti per kategori staf klinik.
+            </p>
           </div>
-        </DialogHeader>
+        </div>
 
         {/* Scrollable Body */}
-        <div className='p-5 space-y-4 overflow-y-auto'>
-          {/* Closed-Book Accounting Governance Notice */}
-          <div className='p-3.5 bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/50 rounded-xl space-y-1.5 text-xs'>
-            <div className='flex items-center gap-1.5 font-bold text-sky-900 dark:text-sky-300'>
-              <Icons.lock className='size-4 text-sky-600 dark:text-sky-400 shrink-0' />
+        <div className='flex-1 min-h-0 overflow-y-auto py-4 space-y-4 pr-1'>
+          {/* Accounting Governance Banner */}
+          <div className='p-3.5 bg-muted/30 border border-border/50 rounded-xl space-y-1.5 text-xs'>
+            <div className='flex items-center gap-1.5 font-semibold text-foreground'>
+              <Icons.lock className='size-4 text-muted-foreground shrink-0' />
               <span>Prinsip Tata Kelola Tutup Buku (Accounting Governance)</span>
             </div>
-            <p className='text-sky-800/90 dark:text-sky-300/80 leading-relaxed text-[11px]'>
+            <p className='text-muted-foreground leading-relaxed text-[11px]'>
               Perubahan tarif akan berlaku untuk kalkulasi <strong>periode baru</strong> atau
-              periode berstatus <strong>TERKALKULASI</strong> saat dihitung ulang. Periode yang
-              telah <strong>DITUTUP BUKU (FINAL)</strong> bersifat permanen dan tidak akan mengalami
-              perubahan nilai.
+              periode berstatus <strong>terkalkulasi</strong> saat dihitung ulang. Periode yang
+              telah <strong>ditutup buku (final)</strong> bersifat permanen dan tidak akan mengalami
+              perubahan nilai historis.
             </p>
           </div>
 
-          {/* Category Input Cards */}
-          <div className='space-y-3'>
+          {/* 3-Column Wide Cards Layout */}
+          <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
             {CATEGORY_CARDS.map((cat) => {
-              const IconComponent = Icons[cat.icon] || Icons.user;
               const values = formRates[cat.category] || {
                 hourlyRate: cat.defaultHourly,
                 overtimeHourlyRate: cat.defaultOvertime
@@ -181,33 +168,31 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
               return (
                 <div
                   key={cat.category}
-                  className='bg-card border border-border/60 rounded-xl p-3.5 space-y-3 shadow-xs'
+                  className='bg-card border border-border/60 rounded-xl p-4 flex flex-col justify-between gap-4 shadow-xs hover:border-border transition-colors'
                 >
-                  <div className='flex items-center justify-between'>
-                    <div className='flex items-center gap-2'>
-                      <div className='size-7 rounded-lg bg-muted flex items-center justify-center text-foreground shrink-0'>
-                        <IconComponent className='size-4' />
-                      </div>
-                      <div>
-                        <h4 className='text-xs font-bold text-foreground'>{cat.label}</h4>
-                        <p className='text-[10px] text-muted-foreground'>{cat.description}</p>
-                      </div>
+                  <div className='space-y-2.5'>
+                    <div>
+                      <h4 className='text-sm font-bold text-foreground leading-tight'>
+                        {cat.label}
+                      </h4>
+                      <span className='text-[10px] font-medium text-muted-foreground'>
+                        {cat.badge}
+                      </span>
                     </div>
-                    <span
-                      className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${cat.badgeColor}`}
-                    >
-                      {cat.badge}
-                    </span>
+
+                    <p className='text-[11px] text-muted-foreground leading-relaxed line-clamp-2'>
+                      {cat.description}
+                    </p>
                   </div>
 
-                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1'>
+                  <div className='space-y-3 pt-2 border-t border-border/40'>
                     {/* Hourly Rate */}
                     <div className='space-y-1'>
                       <Label
                         htmlFor={`rate-base-${cat.category}`}
                         className='text-[11px] font-medium text-muted-foreground'
                       >
-                        Tarif Dasar per Jam
+                        Tarif dasar per jam
                       </Label>
                       <Input
                         id={`rate-base-${cat.category}`}
@@ -217,7 +202,7 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
                         onChange={(e) =>
                           handleRateChange(cat.category, 'hourlyRate', e.target.value)
                         }
-                        className='h-8 text-xs font-mono rounded-lg'
+                        className='h-8.5 text-xs font-mono rounded-lg'
                         placeholder='0'
                         disabled={isLoading}
                       />
@@ -232,7 +217,7 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
                         htmlFor={`rate-ot-${cat.category}`}
                         className='text-[11px] font-medium text-muted-foreground'
                       >
-                        Tarif Lembur / Pengganti per Jam
+                        Tarif lembur / pengganti per jam
                       </Label>
                       <Input
                         id={`rate-ot-${cat.category}`}
@@ -242,7 +227,7 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
                         onChange={(e) =>
                           handleRateChange(cat.category, 'overtimeHourlyRate', e.target.value)
                         }
-                        className='h-8 text-xs font-mono rounded-lg'
+                        className='h-8.5 text-xs font-mono rounded-lg'
                         placeholder='0'
                         disabled={isLoading}
                       />
@@ -257,37 +242,40 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
           </div>
         </div>
 
-        {/* Footer */}
-        <DialogFooter className='p-4 border-t border-border/60 bg-muted/10 gap-2 shrink-0'>
+        {/* Pinned Footer */}
+        <div className='shrink-0 pt-3.5 border-t border-border/50 flex items-center justify-end gap-2.5'>
           <Button
+            type='button'
             variant='outline'
             size='sm'
             onClick={onClose}
             disabled={updateRatesMutation.isPending}
-            className='text-xs h-8 rounded-xl'
+            className='px-4 font-semibold cursor-pointer text-xs h-8.5 text-muted-foreground hover:text-foreground'
           >
             Batal
           </Button>
           <Button
+            type='button'
+            variant='default'
             size='sm'
             onClick={handleSave}
             disabled={updateRatesMutation.isPending || isLoading}
-            className='text-xs h-8 rounded-xl gap-1.5'
+            className='px-5 font-semibold cursor-pointer text-xs h-8.5 gap-1.5'
           >
             {updateRatesMutation.isPending ? (
               <>
-                <Icons.clock className='size-3.5 animate-spin' />
+                <Icons.spinner className='size-3.5 animate-spin mr-1' />
                 <span>Menyimpan...</span>
               </>
             ) : (
               <>
-                <Icons.check className='size-3.5' />
+                <Icons.check className='size-3.5 mr-1' />
                 <span>Simpan Perubahan Tarif</span>
               </>
             )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </div>
+    </ModalWrapper>
   );
 }

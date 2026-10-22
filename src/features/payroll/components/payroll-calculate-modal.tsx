@@ -1,21 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter
-} from '@/components/ui/dialog';
+import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Icons } from '@/components/icons';
 import { useCalculatePayrollMutation } from '../api/mutations';
 
-interface PayrollCalculateModalProps {
+export interface PayrollCalculateModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: (newPeriodId: string) => void;
@@ -47,26 +40,37 @@ export function PayrollCalculateModal({ isOpen, onClose, onSuccess }: PayrollCal
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className='max-w-md p-0 overflow-hidden rounded-2xl'>
-        <DialogHeader className='p-5 border-b border-border/60'>
-          <div className='flex items-center gap-2.5'>
-            <div className='size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0'>
-              <Icons.calendar className='size-5' />
+    <ModalWrapper
+      isOpen={isOpen}
+      onClose={onClose}
+      maxWidth='w-full sm:max-w-xl'
+      className='max-h-[90vh] flex flex-col p-4 sm:p-6 overflow-hidden'
+      showCloseButton={false}
+      dismissible={!calculateMutation.isPending}
+    >
+      <div className='flex flex-col h-full min-h-0 flex-1 font-sans select-none'>
+        {/* Pinned Header */}
+        <div className='shrink-0 pb-3.5 border-b border-border/50 flex items-start justify-between gap-3'>
+          <div className='flex items-center gap-2.5 min-w-0'>
+            <div className='size-9 rounded-xl bg-muted text-foreground flex items-center justify-center shrink-0 border border-border/50'>
+              <Icons.calendar className='size-5 text-muted-foreground' />
             </div>
-            <div>
-              <DialogTitle className='text-base font-bold'>Kalkulasi Payroll Baru</DialogTitle>
-              <DialogDescription className='text-xs text-muted-foreground mt-0.5'>
+            <div className='min-w-0'>
+              <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
+                Kalkulasi Payroll Baru
+              </h3>
+              <p className='text-xs text-muted-foreground mt-0.5'>
                 Hitung gaji pokok, potongan cuti, dan insentif pengganti staf.
-              </DialogDescription>
+              </p>
             </div>
           </div>
-        </DialogHeader>
+        </div>
 
-        <div className='p-5 space-y-4'>
+        {/* Scrollable Body */}
+        <div className='flex-1 min-h-0 overflow-y-auto py-4 space-y-4 pr-1'>
           <div className='space-y-1.5'>
             <Label htmlFor='calc-period-name' className='text-xs font-medium'>
-              Nama Periode Penggajian
+              Nama periode penggajian
             </Label>
             <Input
               id='calc-period-name'
@@ -74,71 +78,83 @@ export function PayrollCalculateModal({ isOpen, onClose, onSuccess }: PayrollCal
               value={periodName}
               onChange={(e) => setPeriodName(e.target.value)}
               placeholder='Contoh: Periode Gaji Maret 2026'
-              className='text-xs h-9 rounded-xl'
+              className='text-xs h-8.5 rounded-lg'
             />
           </div>
 
           <div className='grid grid-cols-2 gap-3'>
             <div className='space-y-1.5'>
               <Label htmlFor='calc-period-start' className='text-xs font-medium'>
-                Tanggal Mulai
+                Tanggal mulai
               </Label>
               <Input
                 id='calc-period-start'
                 type='date'
                 value={periodStart}
                 onChange={(e) => setPeriodStart(e.target.value)}
-                className='text-xs h-9 rounded-xl'
+                className='text-xs h-8.5 rounded-lg'
               />
             </div>
 
             <div className='space-y-1.5'>
               <Label htmlFor='calc-period-end' className='text-xs font-medium'>
-                Tanggal Selesai
+                Tanggal selesai
               </Label>
               <Input
                 id='calc-period-end'
                 type='date'
                 value={periodEnd}
                 onChange={(e) => setPeriodEnd(e.target.value)}
-                className='text-xs h-9 rounded-xl'
+                className='text-xs h-8.5 rounded-lg'
               />
             </div>
           </div>
 
-          <div className='p-3 bg-muted/30 border border-border/50 rounded-xl text-[11px] text-muted-foreground space-y-1'>
-            <div className='flex items-center gap-1.5 font-medium text-foreground'>
-              <Icons.info className='size-3.5 text-primary' />
+          <div className='p-3.5 bg-muted/30 border border-border/50 rounded-xl text-[11px] text-muted-foreground space-y-1.5 leading-relaxed'>
+            <div className='flex items-center gap-1.5 font-semibold text-foreground'>
+              <Icons.info className='size-3.5 text-muted-foreground' />
               <span>Ketentuan Kalkulasi</span>
             </div>
             <p>
               Engine akan mengevaluasi seluruh roster dinas dokter, bidan, dan staf operasional
-              serta memproses pemotongan izin yang telah disetujui admin.
+              serta memproses pemotongan izin yang telah disetujui admin secara otomatis.
             </p>
           </div>
         </div>
 
-        <DialogFooter className='p-4 border-t border-border/60 bg-muted/10 gap-2'>
+        {/* Pinned Footer */}
+        <div className='shrink-0 pt-3.5 border-t border-border/50 flex items-center justify-end gap-2.5'>
           <Button
+            type='button'
             variant='outline'
             size='sm'
             onClick={onClose}
             disabled={calculateMutation.isPending}
-            className='text-xs h-8 rounded-xl'
+            className='px-4 font-semibold cursor-pointer text-xs h-8.5 text-muted-foreground hover:text-foreground'
           >
             Batal
           </Button>
           <Button
+            type='button'
             size='sm'
             onClick={handleCalculate}
             disabled={calculateMutation.isPending || !periodName || !periodStart || !periodEnd}
-            className='text-xs h-8 rounded-xl gap-1.5'
+            className='px-5 font-semibold cursor-pointer text-xs h-8.5 gap-1.5'
           >
-            <Icons.clock className='size-3.5' />
-            {calculateMutation.isPending ? 'Mengkalkulasi...' : 'Jalankan Kalkulasi'}
+            {calculateMutation.isPending ? (
+              <>
+                <Icons.spinner className='size-3.5 animate-spin mr-1' />
+                <span>Mengkalkulasi...</span>
+              </>
+            ) : (
+              <>
+                <Icons.clock className='size-3.5 mr-1' />
+                <span>Jalankan Kalkulasi</span>
+              </>
+            )}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </div>
+    </ModalWrapper>
   );
 }

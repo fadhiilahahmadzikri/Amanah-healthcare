@@ -18,6 +18,10 @@ export interface PayrollEntryItem {
   hourlyRate: number;
   amount: number;
   description?: string | null;
+  checkInAt?: string | null;
+  checkOutAt?: string | null;
+  isEarlyDeparture?: boolean;
+  notes?: string | null;
   createdAt: string;
 }
 
@@ -104,4 +108,11 @@ export interface UpdateCompensationRatesPayload {
     overtimeHourlyRate: number;
     notes?: string;
   }[];
+}
+
+export interface ReconcileLeaveResult {
+  targetDate: string;
+  processedCount: number;
+  totalDeductionsAmount: number;
+  staffProcessed: string[];
 }
