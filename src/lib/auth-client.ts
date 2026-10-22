@@ -4,10 +4,7 @@ import { isProtectedRoute } from '@/core/routes';
 import { ac, admin, patient, user } from './permissions';
 
 export const authClient = createAuthClient({
-  baseURL:
-    process.env.NEXT_PUBLIC_BETTER_AUTH_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    'http://localhost:3001',
+  baseURL: typeof window !== 'undefined' ? window.location.origin : undefined,
   basePath: '/api/auth',
   plugins: [
     organizationClient(),

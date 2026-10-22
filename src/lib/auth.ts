@@ -1,4 +1,5 @@
 import 'server-only';
+import { getServerUpstream } from '@/core/config/endpoints';
 import { serverEnv } from '@/core/config/env.server';
 import { logger } from '@/core/logging/logger';
 
@@ -30,11 +31,7 @@ export async function getServerSession(options?: {
   headers?: Headers;
 }): Promise<BetterAuthSession | null> {
   try {
-    const baseUrl = (
-      serverEnv.BETTER_AUTH_URL ||
-      serverEnv.API_BASE_URL ||
-      'http://localhost:3001'
-    ).replace(/\/+$/, '');
+    const baseUrl = getServerUpstream();
 
     const cookieHeader = options?.headers?.get('cookie') ?? '';
 

@@ -207,8 +207,7 @@ export function AuthFlowView() {
     dispatch({ type: 'clearMessages' });
 
     try {
-      const origin =
-        typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
       const targetUrl = redirectTo.startsWith('http')
         ? redirectTo
         : `${origin}${redirectTo.startsWith('/') ? '' : '/'}${redirectTo}`;

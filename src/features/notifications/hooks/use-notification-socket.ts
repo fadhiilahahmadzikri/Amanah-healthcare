@@ -136,10 +136,7 @@ export function useNotificationSocket(callbacks?: {
 
     const baseUrl =
       process.env.NEXT_PUBLIC_SOCKET_URL ||
-      process.env.NEXT_PUBLIC_API_URL ||
-      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:3001'
-        : '');
+      (typeof window !== 'undefined' ? window.location.origin : '');
 
     if (!baseUrl) {
       console.error(
