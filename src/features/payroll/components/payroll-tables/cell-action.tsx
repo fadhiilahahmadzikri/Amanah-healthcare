@@ -8,20 +8,28 @@ import type { PayrollSummaryItem } from '../../api/types';
 
 export interface PayrollTableMeta {
   onSelectStaff?: (staff: PayrollSummaryItem) => void;
+  onExportStaff?: (staff: PayrollSummaryItem) => void;
 }
 
 export interface CellActionProps {
   data: PayrollSummaryItem;
   table?: Table<PayrollSummaryItem>;
   onSelectStaff?: (staff: PayrollSummaryItem) => void;
+  onExportStaff?: (staff: PayrollSummaryItem) => void;
 }
 
-export function CellAction({ data, table, onSelectStaff: propOnSelect }: CellActionProps) {
+export function CellAction({
+  data,
+  table,
+  onSelectStaff: propOnSelect,
+  onExportStaff: propOnExport
+}: CellActionProps) {
   const meta = table?.options.meta as PayrollTableMeta | undefined;
   const onSelect = propOnSelect ?? meta?.onSelectStaff;
+  const onExport = propOnExport ?? meta?.onExportStaff;
 
   return (
-    <div className='flex items-center justify-center'>
+    <div className='flex items-center justify-center gap-1'>
       <Button
         variant='ghost'
         size='sm'
@@ -29,11 +37,27 @@ export function CellAction({ data, table, onSelectStaff: propOnSelect }: CellAct
           e.stopPropagation();
           onSelect?.(data);
         }}
-        className='h-7 text-xs px-2.5 rounded-lg text-primary hover:text-primary hover:bg-primary/10 gap-1.5 font-medium'
+        className='h-7 text-xs px-2 rounded-lg text-primary hover:text-primary hover:bg-primary/10 gap-1.5 font-medium'
       >
         <Icons.receipt className='size-3.5' />
         <span>Rincian</span>
       </Button>
+
+      {onExport && (
+        <Button
+          variant='ghost'
+          size='sm'
+          onClick={(e) => {
+            e.stopPropagation();
+            onExport(data);
+          }}
+          title={`Unduh Laporan Slip Gaji ${data.fullName}`}
+          className='h-7 text-xs px-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 gap-1 font-medium'
+        >
+          <Icons.download className='size-3.5' />
+          <span>Unduh</span>
+        </Button>
+      )}
     </div>
   );
 }

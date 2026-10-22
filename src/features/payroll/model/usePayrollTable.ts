@@ -15,12 +15,14 @@ export interface UsePayrollTableResult {
   table: Table<PayrollSummaryItem>;
   filteredSummaries: PayrollSummaryItem[];
   selectedStaff: PayrollSummaryItem | null;
+  exportStaffTarget: PayrollSummaryItem | null;
   // Modal states
   isDetailOpen: boolean;
   isCalculateOpen: boolean;
   isRatesOpen: boolean;
   isAuditOpen: boolean;
   isConfirmFinalizeOpen: boolean;
+  isExportPeriodOpen: boolean;
   // Filter states
   searchQuery: string;
   categoryFilter: string;
@@ -29,6 +31,10 @@ export interface UsePayrollTableResult {
   actions: {
     openDetail: (staff: PayrollSummaryItem) => void;
     closeDetail: () => void;
+    openExportStaff: (staff: PayrollSummaryItem) => void;
+    closeExportStaff: () => void;
+    openExportPeriod: () => void;
+    closeExportPeriod: () => void;
     openCalculate: () => void;
     closeCalculate: () => void;
     openRates: () => void;
@@ -52,11 +58,13 @@ export function usePayrollTable({ data, columns }: UsePayrollTableParams): UsePa
 
   // 2. Modals state
   const [selectedStaff, setSelectedStaff] = useState<PayrollSummaryItem | null>(null);
+  const [exportStaffTarget, setExportStaffTarget] = useState<PayrollSummaryItem | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isCalculateOpen, setIsCalculateOpen] = useState(false);
   const [isRatesOpen, setIsRatesOpen] = useState(false);
   const [isAuditOpen, setIsAuditOpen] = useState(false);
   const [isConfirmFinalizeOpen, setIsConfirmFinalizeOpen] = useState(false);
+  const [isExportPeriodOpen, setIsExportPeriodOpen] = useState(false);
 
   // 3. Filtered Data
   const filteredSummaries = useMemo(() => {
@@ -85,6 +93,22 @@ export function usePayrollTable({ data, columns }: UsePayrollTableParams): UsePa
   const closeDetail = useCallback(() => {
     setIsDetailOpen(false);
     setSelectedStaff(null);
+  }, []);
+
+  const openExportStaff = useCallback((staff: PayrollSummaryItem) => {
+    setExportStaffTarget(staff);
+  }, []);
+
+  const closeExportStaff = useCallback(() => {
+    setExportStaffTarget(null);
+  }, []);
+
+  const openExportPeriod = useCallback(() => {
+    setIsExportPeriodOpen(true);
+  }, []);
+
+  const closeExportPeriod = useCallback(() => {
+    setIsExportPeriodOpen(false);
   }, []);
 
   const openCalculate = useCallback(() => setIsCalculateOpen(true), []);
@@ -128,7 +152,8 @@ export function usePayrollTable({ data, columns }: UsePayrollTableParams): UsePa
       columnPinning: { left: ['select'], right: ['actions'] }
     },
     meta: {
-      onSelectStaff: openDetail
+      onSelectStaff: openDetail,
+      onExportStaff: openExportStaff
     }
   });
 
@@ -136,17 +161,23 @@ export function usePayrollTable({ data, columns }: UsePayrollTableParams): UsePa
     table,
     filteredSummaries,
     selectedStaff,
+    exportStaffTarget,
     isDetailOpen,
     isCalculateOpen,
     isRatesOpen,
     isAuditOpen,
     isConfirmFinalizeOpen,
+    isExportPeriodOpen,
     searchQuery: params.search,
     categoryFilter: params.category,
     hasFilters,
     actions: {
       openDetail,
       closeDetail,
+      openExportStaff,
+      closeExportStaff,
+      openExportPeriod,
+      closeExportPeriod,
       openCalculate,
       closeCalculate,
       openRates,

@@ -4,7 +4,7 @@ import { requireAdmin } from '@/lib/guard';
 import { LeaveManagementView } from '@/features/manajemen-perizinan';
 
 export const metadata = {
-  title: 'Dashboard: Manajemen Perizinan & Cuti'
+  title: 'Dashboard: Manajemen Perizinan'
 };
 
 export default async function Page() {
@@ -13,8 +13,8 @@ export default async function Page() {
   return (
     <PageContainer
       scrollable={false}
-      pageTitle='Manajemen Perizinan & Cuti'
-      pageDescription='Kelola permohonan cuti staf, peluang dinas pengganti, dan rekapitulasi penggajian.'
+      pageTitle='Manajemen Perizinan'
+      pageDescription='Kelola permohonan izin staf dan peluang dinas pengganti klinik.'
     >
       <Suspense
         fallback={

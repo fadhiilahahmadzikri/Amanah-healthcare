@@ -10,6 +10,7 @@ import { PayrollSlipDetailModal } from './payroll-slip-detail-modal';
 import { PayrollCalculateModal } from './payroll-calculate-modal';
 import { PayrollRatesConfigModal } from './payroll-rates-config-modal';
 import { PayrollAuditMutationModal } from './payroll-audit-mutation-modal';
+import { ExportDialog } from '@/features/export';
 import { usePayrollPeriodsQuery, usePayrollPeriodDetailQuery } from '../api/queries';
 import { useFinalizePayrollPeriodMutation, useReconcileDailyLeaveMutation } from '../api/mutations';
 import { usePayrollTable } from '../model/usePayrollTable';
@@ -43,10 +44,12 @@ export function PayrollManagementView() {
     table,
     filteredSummaries,
     selectedStaff,
+    exportStaffTarget,
     isDetailOpen,
     isCalculateOpen,
     isRatesOpen,
     isAuditOpen,
+    isExportPeriodOpen,
     searchQuery,
     categoryFilter,
     hasFilters,
@@ -84,6 +87,35 @@ export function PayrollManagementView() {
         summaries={summaries}
       />
 
+      {/* 5. Modal Unduh Laporan Slip Gaji Individu (Per-Record) */}
+      <ExportDialog
+        open={Boolean(exportStaffTarget)}
+        onOpenChange={(open) => !open && actions.closeExportStaff()}
+        exportType='payroll'
+        entityName={exportStaffTarget?.fullName}
+        parameters={{
+          periodId: exportStaffTarget?.periodId || currentPeriod?.id,
+          staffProfileId: exportStaffTarget?.staffId
+        }}
+        availablePeriods={periods}
+        selectedPeriodId={exportStaffTarget?.periodId || currentPeriod?.id}
+      />
+
+      {/* 6. Modal Unduh Rekapitulasi Gaji Seluruh Periode (Toolbar Header) */}
+      <ExportDialog
+        open={isExportPeriodOpen}
+        onOpenChange={(open) => !open && actions.closeExportPeriod()}
+        exportType='payroll'
+        title='Unduh Rekapitulasi Penggajian Periode'
+        subtitle={`Rekap gaji seluruh staf untuk ${currentPeriod?.periodName || 'periode terpilih'}`}
+        parameters={{
+          periodId: currentPeriod?.id,
+          periodName: currentPeriod?.periodName
+        }}
+        availablePeriods={periods}
+        selectedPeriodId={currentPeriod?.id}
+      />
+
       {/* Main View Shell */}
       <div className='flex h-full min-h-0 flex-1 flex-col gap-3.5 select-none'>
         {/* Top: Period Selector & Consolidated Action Context Menu */}
@@ -94,6 +126,7 @@ export function PayrollManagementView() {
           onOpenCalculateModal={actions.openCalculate}
           onOpenRatesModal={actions.openRates}
           onOpenAuditModal={actions.openAudit}
+          onOpenExportModal={actions.openExportPeriod}
           onFinalizePeriod={(id) => finalizeMutation.mutate(id)}
           onReconcileDailyLeave={() => reconcileMutation.mutate()}
           isFinalizing={finalizeMutation.isPending}

@@ -16,6 +16,7 @@ export interface AvailableAttendanceFilters {
 export interface StaffAttendance {
   id: string;
   id_staf: string;
+  staffProfileId?: string;
   nama_staf: string;
   avatar?: string;
   kategori: StaffCategory;

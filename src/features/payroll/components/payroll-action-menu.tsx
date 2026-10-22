@@ -28,6 +28,7 @@ export interface PayrollActionMenuProps {
   onOpenRates: () => void;
   onReconcileDailyLeave: () => void;
   onOpenAudit: () => void;
+  onOpenExport?: () => void;
   canFinalize: boolean;
   isFinalizing?: boolean;
   isReconciling?: boolean;
@@ -41,6 +42,7 @@ export function PayrollActionMenu({
   onOpenRates,
   onReconcileDailyLeave,
   onOpenAudit,
+  onOpenExport,
   canFinalize,
   isFinalizing = false,
   isReconciling = false,
@@ -81,12 +83,34 @@ export function PayrollActionMenu({
                 Menu Aksi Penggajian
               </DrawerTitle>
               <DrawerDescription className='text-xs text-muted-foreground'>
-                Kelola kalkulasi, tata kelola tutup buku, dan audit mutasi periode
+                Kelola kalkulasi, unduh rekap, dan tata kelola tutup buku periode
               </DrawerDescription>
             </DrawerHeader>
 
             <div className='flex flex-col gap-2 p-4 pt-1'>
-              {/* 1. Kalkulasi Baru */}
+              {/* 1. Unduh Rekap Laporan */}
+              {onOpenExport && (
+                <button
+                  type='button'
+                  onClick={() => {
+                    setIsDrawerOpen(false);
+                    onOpenExport();
+                  }}
+                  className='w-full text-left p-2.5 rounded-xl border border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors flex items-center gap-3 cursor-pointer'
+                >
+                  <div className='size-8 rounded-lg bg-primary/15 text-primary flex items-center justify-center shrink-0'>
+                    <Icons.download className='size-4' />
+                  </div>
+                  <div>
+                    <p className='text-xs font-semibold text-primary'>Unduh Rekap Laporan</p>
+                    <p className='text-[11px] text-muted-foreground'>
+                      Ekspor dokumen rekapitulasi gaji periode (PDF / Excel / CSV)
+                    </p>
+                  </div>
+                </button>
+              )}
+
+              {/* 2. Kalkulasi Baru */}
               <button
                 type='button'
                 onClick={() => {
@@ -106,7 +130,7 @@ export function PayrollActionMenu({
                 </div>
               </button>
 
-              {/* 2. Tutup Buku */}
+              {/* 3. Tutup Buku */}
               <button
                 type='button'
                 onClick={() => {
@@ -132,7 +156,7 @@ export function PayrollActionMenu({
                 </div>
               </button>
 
-              {/* 3. Konfigurasi Tarif */}
+              {/* 4. Konfigurasi Tarif */}
               <button
                 type='button'
                 onClick={() => {
@@ -152,7 +176,7 @@ export function PayrollActionMenu({
                 </div>
               </button>
 
-              {/* 4. Rekap Cuti Harian */}
+              {/* 5. Rekap Cuti Harian */}
               <button
                 type='button'
                 onClick={() => {
@@ -173,7 +197,7 @@ export function PayrollActionMenu({
                 </div>
               </button>
 
-              {/* 5. Audit Mutasi */}
+              {/* 6. Audit Mutasi */}
               <button
                 type='button'
                 onClick={() => {
@@ -219,6 +243,19 @@ export function PayrollActionMenu({
         <DropdownMenuLabel className='text-[11px] font-semibold text-muted-foreground px-2 py-1'>
           Aksi Penggajian
         </DropdownMenuLabel>
+
+        {onOpenExport && (
+          <>
+            <DropdownMenuItem
+              onClick={onOpenExport}
+              className='cursor-pointer text-xs py-2 px-2.5 rounded-lg flex items-center gap-2.5 font-medium text-primary hover:text-primary'
+            >
+              <Icons.download className='size-3.5 text-primary shrink-0' />
+              <span>Unduh Rekap Laporan</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className='my-1' />
+          </>
+        )}
 
         <DropdownMenuItem
           onClick={onOpenCalculate}
