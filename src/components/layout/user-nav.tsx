@@ -17,7 +17,7 @@ import { useAuthContext } from '@/lib/rbac/auth-context';
 import { useRouter } from 'next/navigation';
 
 export function UserNav() {
-  const { user, role, isReady } = useAuthContext();
+  const { user, isReady } = useAuthContext();
   const router = useRouter();
 
   if (!isReady || !user) return null;
@@ -60,11 +60,6 @@ export function UserNav() {
           <DropdownMenuItem onClick={() => router.push('/dashboard/profile')}>
             Profile
           </DropdownMenuItem>
-          {role === 'admin' && (
-            <DropdownMenuItem onClick={() => router.push('/dashboard/billing')}>
-              Billing
-            </DropdownMenuItem>
-          )}
           <DropdownMenuItem onClick={() => router.push('/dashboard/settings')}>
             Settings
           </DropdownMenuItem>
