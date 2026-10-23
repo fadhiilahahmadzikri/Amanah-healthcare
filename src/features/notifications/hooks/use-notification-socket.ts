@@ -13,6 +13,7 @@ import { SCHEDULE_QUERY_KEYS } from '@/features/jadwal-dokter/constants/schedule
 import { leaveManagementKeys } from '@/features/manajemen-perizinan/api/query-keys';
 import { attendanceKeys } from '@/features/kehadiran-pegawai/api/queries';
 import type { StaffAttendance } from '@/features/kehadiran-pegawai/api/types';
+import { getClientSocketUrl } from '@/core/config/env.client';
 import { clientFetch } from '@/lib/client-fetch';
 import { useViewer } from './use-viewer';
 import type { BackendNotification } from '../api/notification-api-service';
@@ -134,13 +135,11 @@ export function useNotificationSocket(callbacks?: {
       return;
     }
 
-    const baseUrl =
-      process.env.NEXT_PUBLIC_SOCKET_URL ||
-      (typeof window !== 'undefined' ? window.location.origin : '');
+    const baseUrl = getClientSocketUrl();
 
     if (!baseUrl) {
       console.error(
-        '[RealtimeTransport] Configuration error: NEXT_PUBLIC_SOCKET_URL is missing in production'
+        '[RealtimeTransport] Configuration error: NEXT_PUBLIC_SOCKET_URL is missing in environment'
       );
       setConnectionStatus('failed_auth');
       return;

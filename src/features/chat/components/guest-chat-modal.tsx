@@ -5,6 +5,7 @@ import { io, type Socket } from 'socket.io-client';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { getClientSocketUrl } from '@/core/config/env.client';
 import { chatApiService } from '../api/chat-api-service';
 import type { ChatMessage, Conversation } from '../utils/types';
 import { cn } from '@/lib/utils';
@@ -121,9 +122,7 @@ export function GuestChatModal({ isOpen, onClose }: GuestChatModalProps) {
       return;
     }
 
-    const baseUrl =
-      process.env.NEXT_PUBLIC_SOCKET_URL ||
-      (typeof window !== 'undefined' ? window.location.origin : '');
+    const baseUrl = getClientSocketUrl();
 
     if (!baseUrl) return;
 
