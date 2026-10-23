@@ -36,7 +36,6 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
       (item.doctorSpecialty as string) ||
       (item.practitioner?.medicalSpecialty?.name as string) ||
       null,
-    doctorAvatarUrl: (item.doctorAvatarUrl as string) || null,
     staffId: item.staffId ? String(item.staffId) : item.doctorId ? String(item.doctorId) : null,
     doctorId: item.doctorId ? String(item.doctorId) : item.staffId ? String(item.staffId) : null,
     poliklinikName,

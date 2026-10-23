@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { io, Socket } from 'socket.io-client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Icons } from '@/components/icons';
 import { appointmentKeys } from '@/features/appointment-pasien/api/query-keys';
 import { klinikKeys } from '@/features/klinik/api/query-keys';
@@ -270,9 +271,32 @@ export function useNotificationSocket(callbacks?: {
             }
           : undefined;
 
+        const rawAvatar =
+          envelope.visualKey ||
+          (typeof envelope.metadata?.avatarUrl === 'string' ? envelope.metadata.avatarUrl : null) ||
+          ('avatarUrl' in envelope && typeof (envelope as any).avatarUrl === 'string'
+            ? (envelope as any).avatarUrl
+            : null);
+
+        const toastIcon = rawAvatar
+          ? React.createElement(
+              Avatar,
+              { className: 'size-7 shrink-0 rounded-full border border-border/50' },
+              React.createElement(AvatarImage, {
+                src: rawAvatar,
+                alt: envelope.senderName || 'Avatar'
+              }),
+              React.createElement(
+                AvatarFallback,
+                { className: 'text-[10px]' },
+                envelope.senderName?.[0] || 'D'
+              )
+            )
+          : renderBackendIcon(envelope.badgeIcon);
+
         toast(envelope.title, {
           description: envelope.body || undefined,
-          icon: renderBackendIcon(envelope.badgeIcon),
+          icon: toastIcon,
           action: toastAction,
           duration: 6000
         });

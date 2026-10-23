@@ -6,7 +6,7 @@ interface UserAvatarProfileProps {
   className?: string;
   showInfo?: boolean;
   user: {
-    imageUrl?: string;
+    avatarUrl?: string | null;
     image?: string | null;
     fullName?: string | null;
     name?: string | null;
@@ -18,7 +18,7 @@ interface UserAvatarProfileProps {
 export function UserAvatarProfile({ className, showInfo = false, user }: UserAvatarProfileProps) {
   const displayName = user?.name || user?.fullName || 'User';
   const displayEmail = user?.email || user?.emailAddresses?.[0]?.emailAddress || '';
-  const displayImage = user?.image || user?.imageUrl || '';
+  const displayImage = user?.avatarUrl || user?.image || '';
 
   return (
     <div className='flex items-center gap-2'>

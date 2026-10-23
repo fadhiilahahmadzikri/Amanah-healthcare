@@ -31,7 +31,6 @@ export interface AdminAppointment {
   scheduledStartTime: string;
   doctorName: string | null;
   doctorSpecialty?: string | null;
-  doctorAvatarUrl?: string | null;
   staffId?: string | null;
   doctorId?: string | null;
   poliklinikName: string;
@@ -231,7 +230,6 @@ export interface BackendAppointmentRecord {
   patientProfile?: { fullName?: string };
   doctorName?: string;
   doctorSpecialty?: string;
-  doctorAvatarUrl?: string;
   staffId?: string;
   doctorId?: string;
   practitioner?: { staffProfile?: { fullName?: string }; medicalSpecialty?: { name?: string } };

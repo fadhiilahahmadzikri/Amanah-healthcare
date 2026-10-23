@@ -25,7 +25,7 @@ const INDONESIAN_MONTHS = [
 
 type RegistrationUserDefaults = {
   email?: string | null;
-  imageUrl?: string | null;
+  avatarUrl?: string | null;
   phone?: string | null;
 };
 
@@ -86,8 +86,8 @@ export function buildPatientMutationPayload({
     tanggal_lahir: formatIsoDateForPatient(values.birth_date),
     blood_type: values.blood_type as PatientBloodType,
     address,
-    avatar: user.imageUrl || DEFAULT_AVATAR_PATH,
-    avatarUrl: user.imageUrl || DEFAULT_AVATAR_PATH,
+    avatar: user.avatarUrl || DEFAULT_AVATAR_PATH,
+    avatarUrl: user.avatarUrl || DEFAULT_AVATAR_PATH,
     allergies: [],
     emergency_contact: '',
     medical_history: '',
