@@ -40,7 +40,7 @@ import { OrgSwitcher } from '../org-switcher';
 export default function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, role, navGroups, status, isReady } = useAuthContext();
+  const { user, navGroups, status, isReady } = useAuthContext();
   const { isMobile, openMobile, setOpenMobile } = useSidebar();
 
   // Idempotent state management: close mobile sidebar when navigating or clicking active link
@@ -177,17 +177,6 @@ export default function AppSidebar() {
                     <Icons.account className='mr-2 h-4 w-4' />
                     Profile
                   </DropdownMenuItem>
-                  {role === 'admin' && (
-                    <DropdownMenuItem
-                      onClick={() => {
-                        handleNavClick();
-                        router.push('/dashboard/billing');
-                      }}
-                    >
-                      <Icons.creditCard className='mr-2 h-4 w-4' />
-                      Billing
-                    </DropdownMenuItem>
-                  )}
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

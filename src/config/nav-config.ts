@@ -2,22 +2,22 @@ import { NavGroup } from '@/types';
 
 export const navGroups: NavGroup[] = [
   {
-    label: 'Manage',
+    label: 'Amanah Admin',
     items: [
       {
-        title: 'Amanah Admin',
+        title: 'Dashboard',
+        url: '/dashboard/admin',
+        icon: 'dashboard',
+        shortcut: ['a', 'd'],
+        access: { role: 'admin' }
+      },
+      {
+        title: 'Pelayanan Pasien',
         url: '#',
         icon: 'stethoscope',
         isActive: true,
         access: { role: 'admin' },
         items: [
-          {
-            title: 'Dashboard',
-            url: '/dashboard/admin',
-            icon: 'dashboard',
-            shortcut: ['a', 'd'],
-            access: { role: 'admin' }
-          },
           {
             title: 'Appointment Pasien',
             url: '/dashboard/appointment-pasien',
@@ -33,6 +33,22 @@ export const navGroups: NavGroup[] = [
             access: { role: 'admin' }
           },
           {
+            title: 'Chat Pasien',
+            url: '/dashboard/chat',
+            icon: 'chat',
+            shortcut: ['c', 'p'],
+            access: { role: 'admin' }
+          }
+        ]
+      },
+      {
+        title: 'Manajemen SDM',
+        url: '#',
+        icon: 'userPen',
+        isActive: true,
+        access: { role: 'admin' },
+        items: [
+          {
             title: 'Jadwal Dokter',
             url: '/dashboard/jadwal-dokter',
             icon: 'clock',
@@ -44,13 +60,6 @@ export const navGroups: NavGroup[] = [
             url: '/dashboard/staff',
             icon: 'teams',
             shortcut: ['m', 's'],
-            access: { role: 'admin' }
-          },
-          {
-            title: 'Chat Pasien',
-            url: '/dashboard/chat',
-            icon: 'chat',
-            shortcut: ['c', 'p'],
             access: { role: 'admin' }
           },
           {
@@ -66,23 +75,37 @@ export const navGroups: NavGroup[] = [
             icon: 'calendar',
             shortcut: ['m', 'p'],
             access: { role: 'admin' }
-          },
+          }
+        ]
+      },
+      {
+        title: 'Keuangan & Penggajian',
+        url: '#',
+        icon: 'receipt',
+        isActive: true,
+        access: { role: 'admin' },
+        items: [
           {
             title: 'Manajemen Penggajian',
             url: '/dashboard/payroll',
             icon: 'receipt',
             shortcut: ['m', 'y'],
             access: { role: 'admin' }
-          },
-          {
-            title: 'Notifikasi',
-            url: '/dashboard/notifications',
-            icon: 'notification',
-            shortcut: ['n', 'a'],
-            access: { role: 'admin' }
           }
         ]
       },
+      {
+        title: 'Notifikasi',
+        url: '/dashboard/notifications',
+        icon: 'notification',
+        shortcut: ['n', 'a'],
+        access: { role: 'admin' }
+      }
+    ]
+  },
+  {
+    label: 'Klinik',
+    items: [
       {
         title: 'Klinik',
         url: '#',
@@ -153,12 +176,6 @@ export const navGroups: NavGroup[] = [
         isActive: true,
         items: [
           {
-            title: 'Workspaces',
-            url: '/dashboard/workspaces',
-            icon: 'workspace',
-            access: { role: 'admin' }
-          },
-          {
             title: 'Profile',
             url: '/dashboard/profile',
             icon: 'profile',
@@ -169,13 +186,6 @@ export const navGroups: NavGroup[] = [
             url: '/dashboard/settings',
             icon: 'settings',
             shortcut: ['s', 's'],
-            access: { role: 'admin' }
-          },
-          {
-            title: 'Billing',
-            url: '/dashboard/billing',
-            icon: 'billing',
-            shortcut: ['b', 'b'],
             access: { role: 'admin' }
           }
         ]

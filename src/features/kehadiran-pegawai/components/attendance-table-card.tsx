@@ -29,6 +29,7 @@ import { useCheckoutAttendanceMutation } from '../api/mutations';
 import { DataTableBulkActions } from '@/components/ui/table/data-table-bulk-actions';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
+import { ExportDialog } from '@/features/export';
 import type {
   StaffAttendance,
   AttendanceFilterParams,
@@ -67,6 +68,7 @@ export function AttendanceTableCard({
 }: AttendanceTableCardProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<TabFilter>('all');
+  const [exportRow, setExportRow] = useState<StaffAttendance | null>(null);
   const checkoutMutation = useCheckoutAttendanceMutation();
 
   const isFiltered = Boolean(
@@ -318,7 +320,7 @@ export function AttendanceTableCard({
                   <TableHead className='h-10 px-3 text-xs font-semibold text-muted-foreground min-w-[85px]'>
                     Shift
                   </TableHead>
-                  <TableHead className='h-10 w-12 px-3 text-right'>
+                  <TableHead className='h-10 w-24 px-3 text-right'>
                     <span className='sr-only'>Aksi</span>
                   </TableHead>
                 </TableRow>
@@ -515,35 +517,48 @@ export function AttendanceTableCard({
                           {row.shift}
                         </TableCell>
 
-                        {/* Aksi Checkout */}
+                        {/* Aksi Checkout & Unduh Laporan */}
                         <TableCell
                           className='px-2.5 text-right'
                           onClick={(e) => e.stopPropagation()}
                         >
-                          {row.checkOutAt ? (
-                            <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-muted text-muted-foreground border border-border/50'>
-                              <Icons.check className='size-2.5 text-emerald-500' />
-                              <span>Selesai</span>
-                            </span>
-                          ) : (
+                          <div className='flex items-center justify-end gap-1'>
                             <Button
                               type='button'
-                              variant='outline'
-                              size='sm'
-                              disabled={checkoutMutation.isPending}
-                              onClick={() =>
-                                checkoutMutation.mutate({
-                                  staffId: row.id_staf,
-                                  staffName: row.nama_staf
-                                })
-                              }
-                              className='h-6.5 text-[11px] font-semibold px-2 rounded-md border-border/70 hover:bg-primary/10 hover:text-primary gap-1 cursor-pointer'
-                              title={`Catat presensi pulang untuk ${row.nama_staf}`}
+                              variant='ghost'
+                              size='icon'
+                              onClick={() => setExportRow(row)}
+                              title={`Unduh Laporan Riwayat Presensi ${row.nama_staf}`}
+                              className='size-7 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10'
                             >
-                              <Icons.logout className='size-3 text-primary' />
-                              <span>Checkout</span>
+                              <Icons.download className='size-3.5' />
                             </Button>
-                          )}
+
+                            {row.checkOutAt ? (
+                              <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-muted text-muted-foreground border border-border/50'>
+                                <Icons.check className='size-2.5 text-emerald-500' />
+                                <span>Selesai</span>
+                              </span>
+                            ) : (
+                              <Button
+                                type='button'
+                                variant='outline'
+                                size='sm'
+                                disabled={checkoutMutation.isPending}
+                                onClick={() =>
+                                  checkoutMutation.mutate({
+                                    staffId: row.id_staf,
+                                    staffName: row.nama_staf
+                                  })
+                                }
+                                className='h-6.5 text-[11px] font-semibold px-2 rounded-md border-border/70 hover:bg-primary/10 hover:text-primary gap-1 cursor-pointer'
+                                title={`Catat presensi pulang untuk ${row.nama_staf}`}
+                              >
+                                <Icons.logout className='size-3 text-primary' />
+                                <span>Checkout</span>
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -650,6 +665,18 @@ export function AttendanceTableCard({
           <span>Checkout Terpilih</span>
         </Button>
       </DataTableBulkActions>
+
+      {/* 5. Modal Unduh Laporan Riwayat Presensi Staf Individu (Per-Record) */}
+      <ExportDialog
+        open={Boolean(exportRow)}
+        onOpenChange={(open) => !open && setExportRow(null)}
+        exportType='attendance'
+        entityName={exportRow?.nama_staf}
+        parameters={{
+          staffProfileId: exportRow?.staffProfileId || exportRow?.id_staf
+        }}
+        enableMonthPicker={true}
+      />
     </div>
   );
 }

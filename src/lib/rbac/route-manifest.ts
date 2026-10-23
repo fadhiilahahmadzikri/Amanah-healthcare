@@ -111,13 +111,6 @@ export const routeManifest: RouteRule[] = [
     description: 'Unit Layanan & Tim Klinik'
   },
   {
-    pattern: '/dashboard/billing',
-    match: 'prefix',
-    visibility: 'protected',
-    allowedRoles: ['admin'],
-    description: 'Langganan & Billing Lisensi Klinik'
-  },
-  {
     pattern: '/dashboard/settings',
     match: 'prefix',
     visibility: 'protected',

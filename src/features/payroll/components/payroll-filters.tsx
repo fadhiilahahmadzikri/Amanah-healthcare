@@ -1,43 +1,50 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import * as React from 'react';
 import { SearchInput } from '@/shared/ui/search-input';
 import { FacetedFilter } from '@/shared/ui/faceted-filter';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
-import { usePayrollFilterOptionsQuery } from '../api/queries';
 import { cn } from '@/lib/utils';
+import type { PayrollPeriodItem, PayrollFilterOptionsResponse } from '../api/types';
 
 export interface PayrollFiltersProps {
   searchQuery: string;
   onSearchChange: (val: string) => void;
+  selectedPeriodId: string | null;
+  onPeriodChange: (id: string) => void;
+  periods: PayrollPeriodItem[];
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
+  selectedStatus: string;
+  onStatusChange: (status: string) => void;
   onResetAll: () => void;
-  totalFiltered: number;
-  totalCount: number;
+  filterOptions?: PayrollFilterOptionsResponse;
   className?: string;
 }
 
 export function PayrollFilters({
   searchQuery,
   onSearchChange,
+  selectedPeriodId,
+  onPeriodChange,
+  periods,
   selectedCategory,
   onCategoryChange,
+  selectedStatus,
+  onStatusChange,
   onResetAll,
-  totalFiltered,
-  totalCount,
+  filterOptions,
   className
 }: PayrollFiltersProps) {
-  const [localSearch, setLocalSearch] = useState(searchQuery || '');
-  const { data: filterOptions } = usePayrollFilterOptionsQuery();
+  const [localSearch, setLocalSearch] = React.useState(searchQuery || '');
 
-  useEffect(() => {
+  React.useEffect(() => {
     setLocalSearch(searchQuery || '');
   }, [searchQuery]);
 
   // Debounced search query (250ms)
-  useEffect(() => {
+  React.useEffect(() => {
     const timer = setTimeout(() => {
       if (localSearch !== searchQuery) {
         onSearchChange(localSearch);
@@ -46,9 +53,30 @@ export function PayrollFilters({
     return () => clearTimeout(timer);
   }, [localSearch, onSearchChange, searchQuery]);
 
-  const isFiltered = Boolean(searchQuery.trim()) || selectedCategory !== 'all';
+  const isFiltered =
+    Boolean(searchQuery.trim()) ||
+    Boolean(localSearch.trim()) ||
+    (selectedCategory !== 'all' && Boolean(selectedCategory)) ||
+    (selectedStatus !== 'all' && Boolean(selectedStatus));
 
-  const categoryOptions = useMemo(() => {
+  // 1. Period Options
+  const periodOptions = React.useMemo(() => {
+    return periods.map((p) => {
+      const statusLabel =
+        p.status === 'calculated'
+          ? 'Terkalkulasi'
+          : p.status === 'finalized'
+            ? 'Ditutup buku'
+            : 'Draf';
+      return {
+        value: p.id,
+        label: `${p.periodName} (${statusLabel})`
+      };
+    });
+  }, [periods]);
+
+  // 2. Category Options (Backend SSOT)
+  const categoryOptions = React.useMemo(() => {
     const list = [{ label: 'Semua Kategori', value: 'all' }];
     if (filterOptions?.categories) {
       for (const cat of filterOptions.categories) {
@@ -62,57 +90,88 @@ export function PayrollFilters({
       );
     }
     return list;
-  }, [filterOptions]);
+  }, [filterOptions?.categories]);
+
+  // 3. Status Options (Backend SSOT)
+  const statusOptions = React.useMemo(() => {
+    const list = [{ label: 'Semua Status', value: 'all' }];
+    if (filterOptions?.statuses) {
+      for (const st of filterOptions.statuses) {
+        list.push({ label: st.label, value: st.id });
+      }
+    } else {
+      list.push(
+        { label: 'Draf', value: 'draft' },
+        { label: 'Terkalkulasi', value: 'calculated' },
+        { label: 'Ditutup Buku', value: 'finalized' }
+      );
+    }
+    return list;
+  }, [filterOptions?.statuses]);
 
   return (
-    <div
-      className={cn(
-        'flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-muted/15 border border-border/60 rounded-xl select-none',
-        className
-      )}
-    >
-      <div className='flex flex-wrap items-center gap-2 flex-1'>
-        {/* 1. Debounced Search Input */}
-        <SearchInput
-          value={localSearch}
-          onChange={setLocalSearch}
-          placeholder='Cari staf atau posisi...'
-          ariaLabel='Pencarian Karyawan Penggajian'
-          className='w-full sm:w-64'
-        />
+    <div className={cn('flex flex-wrap items-center gap-2 font-sans select-none', className)}>
+      {/* 1. Global Search Input */}
+      <SearchInput
+        value={localSearch}
+        onChange={setLocalSearch}
+        placeholder='Pencarian Karyawan...'
+        ariaLabel='Pencarian Karyawan'
+      />
 
-        {/* 2. Faceted Filter for Category (Backend-driven) */}
+      {/* 2. Period Filter */}
+      {periodOptions.length > 0 && (
         <FacetedFilter<string>
-          title='Kategori Staf'
-          icon={Icons.teams}
+          title='Periode'
+          icon={Icons.calendar}
           mode='single'
-          options={categoryOptions}
-          selectedValues={selectedCategory && selectedCategory !== 'all' ? [selectedCategory] : []}
-          onSelect={(val) => onCategoryChange(val)}
-          onReset={() => onCategoryChange('all')}
-          resetLabel='Semua Kategori'
-          popoverWidth='w-48'
+          options={periodOptions}
+          selectedValues={selectedPeriodId ? [selectedPeriodId] : []}
+          onSelect={(val) => onPeriodChange(val)}
+          onReset={() => onPeriodChange(periods[0]?.id || '')}
+          resetLabel='Periode Terbaru'
+          popoverWidth='w-64'
         />
+      )}
 
-        {/* 3. Reset Button */}
-        {isFiltered && (
-          <Button
-            variant='ghost'
-            size='sm'
-            onClick={onResetAll}
-            className='h-8 px-2.5 text-xs text-muted-foreground hover:text-foreground border border-dashed border-border/80'
-          >
-            <Icons.close className='size-3.5 mr-1' />
-            Reset
-          </Button>
-        )}
-      </div>
+      {/* 3. Category Filter */}
+      <FacetedFilter<string>
+        title='Kategori'
+        icon={Icons.teams}
+        mode='single'
+        options={categoryOptions}
+        selectedValues={selectedCategory && selectedCategory !== 'all' ? [selectedCategory] : []}
+        onSelect={(val) => onCategoryChange(val)}
+        onReset={() => onCategoryChange('all')}
+        resetLabel='Semua Kategori'
+        popoverWidth='w-48'
+      />
 
-      {/* Count Indicator */}
-      <div className='text-xs text-muted-foreground font-medium shrink-0'>
-        Menampilkan <span className='text-foreground font-bold'>{totalFiltered}</span> dari{' '}
-        {totalCount} Staf
-      </div>
+      {/* 4. Status Filter */}
+      <FacetedFilter<string>
+        title='Status'
+        icon={Icons.activity}
+        mode='single'
+        options={statusOptions}
+        selectedValues={selectedStatus && selectedStatus !== 'all' ? [selectedStatus] : []}
+        onSelect={(val) => onStatusChange(val)}
+        onReset={() => onStatusChange('all')}
+        resetLabel='Semua Status'
+        popoverWidth='w-48'
+      />
+
+      {/* 5. Reset Filters Button */}
+      {isFiltered && (
+        <Button
+          variant='ghost'
+          size='sm'
+          onClick={onResetAll}
+          className='h-8 px-2.5 text-xs border border-dashed border-border'
+        >
+          <Icons.close className='size-3.5 mr-1' />
+          Reset
+        </Button>
+      )}
     </div>
   );
 }

@@ -29,7 +29,6 @@ const CLINIC_ROUTE_ALLOWLIST = [
   '/dashboard/manajemen-perizinan',
   '/dashboard/chat',
   '/dashboard/workspaces',
-  '/dashboard/billing',
   '/dashboard/settings',
   '/dashboard/notifications',
   '/dashboard/profile'

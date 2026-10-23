@@ -6,6 +6,7 @@ import type {
   PayrollPeriodDetailResponse,
   PayrollPeriodItem,
   PayrollSummaryItem,
+  ReconcileLeaveResult,
   UpdateCompensationRatesPayload
 } from './types';
 
@@ -73,22 +74,63 @@ export async function fetchStaffPayroll(
   });
 }
 
-export async function reconcileDailyLeave(targetDate?: string): Promise<{
-  targetDate: string;
-  processedCount: number;
-  totalDeductionsAmount: number;
-  staffProcessed: string[];
-}> {
+export async function reconcileDailyLeave(targetDate?: string): Promise<ReconcileLeaveResult> {
   const query: Record<string, unknown> = {};
   if (targetDate) query.targetDate = targetDate;
 
-  return clientFetch<{
-    targetDate: string;
-    processedCount: number;
-    totalDeductionsAmount: number;
-    staffProcessed: string[];
-  }>('/api/v1/payroll/reconcile-leave', {
+  return clientFetch<ReconcileLeaveResult>('/api/v1/payroll/reconcile-leave', {
     method: 'POST',
     query
+  });
+}
+
+export interface PayrollExportRequestPayload {
+  periodId: string;
+  staffProfileId?: string;
+  format?: 'pdf' | 'xlsx' | 'csv';
+}
+
+export interface PayrollExportJobResponse {
+  jobId: string;
+  status: 'queued' | 'processing' | 'completed' | 'failed';
+  statusUrl: string;
+}
+
+export interface PayrollExportStatusResponse {
+  jobId: string;
+  status: 'queued' | 'processing' | 'completed' | 'failed';
+  exportType: string;
+  format: string;
+  totalRows?: number;
+  processedRows?: number;
+  percent: number;
+  phase: string;
+  errorMessage?: string | null;
+  downloadUrl: string | null;
+}
+
+export async function requestPayrollExport(
+  payload: PayrollExportRequestPayload
+): Promise<PayrollExportJobResponse> {
+  const parameters: Record<string, unknown> = {
+    periodId: payload.periodId
+  };
+  if (payload.staffProfileId) {
+    parameters.staffProfileId = payload.staffProfileId;
+  }
+
+  return clientFetch<PayrollExportJobResponse>('/api/v1/exports', {
+    method: 'POST',
+    body: JSON.stringify({
+      exportType: 'payroll',
+      format: payload.format ?? 'pdf',
+      parameters
+    })
+  });
+}
+
+export async function fetchExportJobStatus(jobId: string): Promise<PayrollExportStatusResponse> {
+  return clientFetch<PayrollExportStatusResponse>(`/api/v1/exports/${jobId}`, {
+    method: 'GET'
   });
 }

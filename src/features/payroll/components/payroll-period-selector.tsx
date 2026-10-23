@@ -29,6 +29,7 @@ interface PayrollPeriodSelectorProps {
   onOpenCalculateModal: () => void;
   onOpenRatesModal: () => void;
   onOpenAuditModal: () => void;
+  onOpenExportModal?: () => void;
   onFinalizePeriod?: (id: string) => void;
   onReconcileDailyLeave?: () => void;
   isFinalizing?: boolean;
@@ -43,6 +44,7 @@ export function PayrollPeriodSelector({
   onOpenCalculateModal,
   onOpenRatesModal,
   onOpenAuditModal,
+  onOpenExportModal,
   onFinalizePeriod,
   onReconcileDailyLeave,
   isFinalizing,
@@ -131,6 +133,7 @@ export function PayrollPeriodSelector({
           onOpenRates={onOpenRatesModal}
           onReconcileDailyLeave={onReconcileDailyLeave ?? (() => {})}
           onOpenAudit={onOpenAuditModal}
+          onOpenExport={onOpenExportModal}
           canFinalize={isCalculated}
           isFinalizing={isFinalizing}
           isReconciling={isReconciling}

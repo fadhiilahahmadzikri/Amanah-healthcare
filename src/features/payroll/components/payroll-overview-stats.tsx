@@ -4,14 +4,22 @@ import React, { useMemo } from 'react';
 import { MetricChartCard, type MetricChartPoint } from '@/components/charts/metric-chart-card';
 import { Icons } from '@/components/icons';
 import { formatCurrency } from '../utils/currency';
+import { cn } from '@/lib/utils';
 import type { PayrollPeriodItem, PayrollSummaryItem } from '../api/types';
 
-interface PayrollOverviewStatsProps {
+export interface PayrollOverviewStatsProps {
   period?: PayrollPeriodItem | null;
   summaries: PayrollSummaryItem[];
+  layout?: 'horizontal' | 'vertical';
+  className?: string;
 }
 
-export function PayrollOverviewStats({ period, summaries }: PayrollOverviewStatsProps) {
+export function PayrollOverviewStats({
+  period,
+  summaries,
+  layout = 'horizontal',
+  className
+}: PayrollOverviewStatsProps) {
   const totalPayout = period?.totalPayout ?? summaries.reduce((acc, s) => acc + s.netPayroll, 0);
   const totalBaseHours = summaries.reduce((acc, s) => acc + s.baseHours, 0);
   const totalLeaveDeductions = summaries.reduce((acc, s) => acc + s.leaveDeductions, 0);
@@ -50,46 +58,51 @@ export function PayrollOverviewStats({ period, summaries }: PayrollOverviewStats
     }));
   }, [summaries, totalReplacementAdditions]);
 
+  const containerClass =
+    layout === 'vertical'
+      ? 'flex flex-col gap-3.5 w-full select-none'
+      : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 select-none';
+
   return (
-    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5'>
-      {/* 1. Total Pengeluaran Gaji */}
+    <div className={cn(containerClass, className)}>
+      {/* 1. Total pengeluaran gaji */}
       <MetricChartCard
-        title='Total Pengeluaran Gaji'
+        title='Total pengeluaran gaji'
         value={formatCurrency(totalPayout)}
         description={`${summaries.length} staf terdaftar`}
         data={sparklinePayout}
         tone='primary'
-        icon={<Icons.receipt className='size-5 text-primary' />}
+        icon={<Icons.receipt className='size-5 text-muted-foreground' />}
       />
 
-      {/* 2. Total Jam Pelayanan */}
+      {/* 2. Total jam pelayanan */}
       <MetricChartCard
-        title='Total Jam Pelayanan'
+        title='Total jam pelayanan'
         value={`${totalBaseHours.toLocaleString('id-ID')} jam`}
         description='Akumulasi jam dinas terjadwal'
         data={sparklineHours}
-        tone='info'
-        icon={<Icons.clock className='size-5 text-sky-600 dark:text-sky-400' />}
+        tone='primary'
+        icon={<Icons.clock className='size-5 text-muted-foreground' />}
       />
 
-      {/* 3. Total Potongan Cuti / Izin */}
+      {/* 3. Total potongan cuti / izin */}
       <MetricChartCard
-        title='Total Potongan Cuti / Izin'
+        title='Total potongan cuti / izin'
         value={`-${formatCurrency(totalLeaveDeductions)}`}
         description='Pengurangan ketidakhadiran'
         data={sparklineDeductions}
-        tone='danger'
-        icon={<Icons.alertCircle className='size-5 text-rose-600 dark:text-rose-400' />}
+        tone='primary'
+        icon={<Icons.alertCircle className='size-5 text-muted-foreground' />}
       />
 
-      {/* 4. Insentif Dinas Pengganti */}
+      {/* 4. Insentif dinas pengganti */}
       <MetricChartCard
-        title='Insentif Dinas Pengganti'
+        title='Insentif dinas pengganti'
         value={`+${formatCurrency(totalReplacementAdditions)}`}
         description='Kompensasi dinas & lembur'
         data={sparklineAdditions}
-        tone='success'
-        icon={<Icons.sparkles className='size-5 text-emerald-600 dark:text-emerald-400' />}
+        tone='primary'
+        icon={<Icons.sparkles className='size-5 text-muted-foreground' />}
       />
     </div>
   );

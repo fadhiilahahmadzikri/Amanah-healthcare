@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -32,9 +33,12 @@ import { StaffRoleBadge, StaffInvitationStatusBadge } from './staff-card-atoms';
 import { InviteStaffModal } from './invite-staff-modal';
 import { StaffRosterModal } from './staff-roster-modal';
 import { StaffDetailEditModal } from './staff-detail-edit-modal';
+import { ExportDialog } from '@/features/export';
+import type { StaffMember } from '../api/staff-management.api';
 
 export function StaffManagementView() {
   const { view, revoke, rosterModal, detailModal, inviteModal } = useStaffManagementPresenter();
+  const [exportStaff, setExportStaff] = useState<StaffMember | null>(null);
 
   return (
     <div className='flex h-full min-h-0 flex-1 flex-col gap-4 select-none'>
@@ -106,6 +110,7 @@ export function StaffManagementView() {
                         staff={staff}
                         onOpenRoster={rosterModal.open}
                         onOpenDetail={detailModal.open}
+                        onExport={(st) => setExportStaff(st)}
                       />
                     ))}
                   </EntityCardGrid>
@@ -213,6 +218,16 @@ export function StaffManagementView() {
         staff={detailModal.staff}
         isOpen={detailModal.isOpen}
         onClose={detailModal.close}
+      />
+
+      {/* Export Dialog Per Record */}
+      <ExportDialog
+        open={Boolean(exportStaff)}
+        onOpenChange={(open) => !open && setExportStaff(null)}
+        exportType='attendance'
+        entityName={exportStaff?.fullName}
+        parameters={{ staffProfileId: exportStaff?.id }}
+        enableMonthPicker={true}
       />
 
       <AlertDialog

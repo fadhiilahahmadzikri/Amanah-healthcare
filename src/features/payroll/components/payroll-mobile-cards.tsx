@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Icons } from '@/components/icons';
@@ -12,6 +12,9 @@ export interface PayrollMobileCardsProps {
   summaries: PayrollSummaryItem[];
   hasFilters: boolean;
   onSelectStaff: (staff: PayrollSummaryItem) => void;
+  onGenerateReport?: (staff: PayrollSummaryItem) => void;
+  isCalculatedOrFinalized?: boolean;
+  exportingStaffId?: string | null;
   isLoading?: boolean;
 }
 
@@ -24,30 +27,22 @@ const getInitials = (name: string) => {
     .toUpperCase();
 };
 
-const getRoleBadgeClass = (role: string) => {
-  switch (role) {
-    case 'doctor':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 border-blue-300/40';
-    case 'midwife':
-      return 'bg-pink-100 text-pink-800 dark:bg-pink-950 dark:text-pink-300 border-pink-300/40';
-    default:
-      return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-300/40';
-  }
-};
-
 export function PayrollMobileCards({
   summaries,
   hasFilters,
   onSelectStaff,
+  onGenerateReport,
+  isCalculatedOrFinalized,
+  exportingStaffId,
   isLoading
 }: PayrollMobileCardsProps) {
   if (isLoading) {
     return (
-      <div className='flex flex-col gap-3 p-1'>
+      <div className='flex flex-col gap-2.5 p-1'>
         {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className='h-24 rounded-2xl bg-muted/20 animate-pulse border border-border/40'
+            className='h-16 rounded-xl bg-muted/20 animate-pulse border border-border/40'
           />
         ))}
       </div>
@@ -75,58 +70,65 @@ export function PayrollMobileCards({
   }
 
   return (
-    <div className='flex flex-col gap-2.5 pb-20'>
+    <div className='flex flex-col gap-2 pb-20'>
       {summaries.map((staff) => {
-        const roleBadge = getRoleBadgeClass(staff.staffType);
+        const canGenerate =
+          isCalculatedOrFinalized ||
+          staff.periodStatus === 'calculated' ||
+          staff.periodStatus === 'finalized';
+        const isExportingThis = exportingStaffId === staff.staffId;
 
         return (
           <Card
             key={staff.staffId}
             onClick={() => onSelectStaff(staff)}
-            className='border-border/60 shadow-xs hover:border-primary/30 transition-all cursor-pointer bg-card active:scale-[0.99]'
+            className='border-border/60 shadow-2xs hover:border-border transition-all cursor-pointer bg-card active:scale-[0.99] p-3'
           >
-            <CardContent className='p-3.5 flex items-center justify-between gap-3'>
+            <div className='flex items-center justify-between gap-3'>
               {/* Left: Essential Staff Identity */}
-              <div className='flex items-center gap-3 min-w-0'>
-                <div className='size-9 rounded-xl bg-primary/10 text-primary font-bold text-xs flex items-center justify-center shrink-0 select-none'>
+              <div className='flex items-center gap-2.5 min-w-0'>
+                <div className='size-8 rounded-lg bg-muted text-foreground font-semibold text-xs flex items-center justify-center shrink-0 select-none'>
                   {getInitials(staff.fullName)}
                 </div>
                 <div className='min-w-0'>
-                  <span className='font-semibold text-xs text-foreground block truncate'>
-                    {staff.fullName}
-                  </span>
-                  <div className='flex items-center gap-1.5 mt-0.5'>
-                    <span
-                      className={`text-[9px] font-bold px-1.5 py-0.2 rounded border uppercase ${roleBadge}`}
-                    >
-                      {staff.staffType}
-                    </span>
-                    <span className='text-[11px] text-muted-foreground font-mono'>
-                      • {staff.baseHours} jam
-                    </span>
-                  </div>
+                  <p className='font-semibold text-xs text-foreground truncate'>{staff.fullName}</p>
+                  <p className='text-[11px] text-muted-foreground capitalize mt-0.5 truncate'>
+                    {staff.staffType} {staff.staffCode ? `• ${staff.staffCode}` : ''}
+                  </p>
                 </div>
               </div>
 
-              {/* Right: Net THP & Compact Detail Action */}
-              <div className='text-right shrink-0 flex flex-col items-end gap-1'>
-                <span className='text-xs font-bold text-primary tabular-nums'>
-                  {formatCurrency(staff.netPayroll)}
-                </span>
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSelectStaff(staff);
-                  }}
-                  className='h-6 text-[11px] px-2 text-primary hover:bg-primary/10 rounded-md gap-1'
-                >
-                  <Icons.receipt className='size-3' />
-                  <span>Rincian</span>
-                </Button>
+              {/* Right: Net THP + Quick Action */}
+              <div className='flex items-center gap-2 shrink-0'>
+                <div className='text-right'>
+                  <span className='text-xs font-bold text-foreground tabular-nums block'>
+                    {formatCurrency(staff.netPayroll)}
+                  </span>
+                  <span className='text-[10px] text-muted-foreground'>{staff.baseHours} jam</span>
+                </div>
+
+                {canGenerate && (
+                  <Button
+                    variant='outline'
+                    size='icon'
+                    disabled={isExportingThis}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onGenerateReport?.(staff);
+                    }}
+                    aria-label={`Generate laporan ${staff.fullName}`}
+                    title='Generate laporan slip gaji'
+                    className='size-7 rounded-lg text-muted-foreground hover:text-foreground border-border/70'
+                  >
+                    {isExportingThis ? (
+                      <Icons.spinner className='size-3.5 animate-spin' />
+                    ) : (
+                      <Icons.fileTypePdf className='size-3.5 text-primary' />
+                    )}
+                  </Button>
+                )}
               </div>
-            </CardContent>
+            </div>
           </Card>
         );
       })}

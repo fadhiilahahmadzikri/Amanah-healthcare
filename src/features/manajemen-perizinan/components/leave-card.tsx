@@ -3,6 +3,7 @@
 import React from 'react';
 import { Icons } from '@/components/icons';
 import { MasterEntityCard, EntityCardPrimaryAction } from '@/components/cards/master-entity-card';
+import { formatClinicDate } from '@/lib/date-format';
 import type { LeaveRequestItem } from '../api/types';
 
 export interface LeaveCardProps {
@@ -22,15 +23,6 @@ const LEAVE_STATUS_MAP: Record<
   cancelled: { key: 'CANCELLED', label: 'Dibatalkan', variant: 'red' }
 };
 
-const LEAVE_TYPE_MAP: Record<string, string> = {
-  annual_leave: 'Cuti Tahunan',
-  sick_leave: 'Izin Sakit',
-  seminar_symposium: 'Seminar / Simposium',
-  family_matter: 'Keperluan Keluarga',
-  external_assignment: 'Tugas Luar',
-  other: 'Izin / Cuti'
-};
-
 export function LeaveCard({ leave, onSelect, isSelected, className }: LeaveCardProps) {
   const staff = leave.staff;
 
@@ -41,7 +33,6 @@ export function LeaveCard({ leave, onSelect, isSelected, className }: LeaveCardP
         ? 'Bidan'
         : 'Staf Operasional';
 
-  const leaveTypeLabel = LEAVE_TYPE_MAP[leave.type] || leave.type;
   const statusMeta = LEAVE_STATUS_MAP[leave.status] || {
     key: 'PENDING',
     label: leave.status,
@@ -81,7 +72,7 @@ export function LeaveCard({ leave, onSelect, isSelected, className }: LeaveCardP
       name={staff?.fullName || 'Staf Klinik'}
       subtitle={
         <p className='text-[12px] sm:text-[11.5px] xl:text-[11px] font-medium text-muted-foreground tracking-tight line-clamp-1 mt-0.5 truncate'>
-          {staffTypeLabel} {staff?.profession ? `• ${staff.profession}` : ''}
+          {staff?.profession || staffTypeLabel}
         </p>
       }
       avatarUrl={staff?.avatarUrl}
@@ -92,26 +83,23 @@ export function LeaveCard({ leave, onSelect, isSelected, className }: LeaveCardP
           <div className='flex items-center gap-1.5 text-xs text-foreground font-medium truncate'>
             <Icons.calendar className='size-3.5 text-primary shrink-0' />
             <span className='truncate'>
-              {leave.startDate}
-              {leave.endDate !== leave.startDate ? ` s.d ${leave.endDate}` : ''}
+              {formatClinicDate(leave.startDate, { style: 'human_medium' })}
+              {leave.endDate !== leave.startDate
+                ? ` s.d ${formatClinicDate(leave.endDate, { style: 'human_medium' })}`
+                : ''}
             </span>
             <span className='text-[11px] text-muted-foreground font-normal shrink-0'>
               ({leave.durationDays} hari)
             </span>
           </div>
 
-          {/* Badge tipe permohonan & lingkup */}
-          <div className='flex items-center gap-1.5 flex-wrap min-w-0'>
-            <span className='inline-flex items-center px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-primary/10 text-primary border border-primary/20 truncate'>
-              {leaveTypeLabel}
-            </span>
-            <span className='inline-flex items-center gap-1 text-[11px] text-muted-foreground font-normal truncate'>
-              <Icons.clock className='size-3 shrink-0' />
-              <span>
-                {leave.scope === 'session' && leave.sessions && leave.sessions.length > 0
-                  ? `${leave.sessions.length} Sesi Terjadwal`
-                  : '1 Hari Penuh'}
-              </span>
+          {/* Lingkup jadwal */}
+          <div className='flex items-center gap-1 text-[11px] text-muted-foreground font-normal truncate'>
+            <Icons.clock className='size-3 shrink-0' />
+            <span>
+              {leave.scope === 'session' && leave.sessions && leave.sessions.length > 0
+                ? `${leave.sessions.length} Sesi Terjadwal`
+                : '1 Hari Penuh'}
             </span>
           </div>
         </div>

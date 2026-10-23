@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Icons } from '@/components/icons';
+import { Button } from '@/components/ui/button';
 import {
   MasterEntityCard,
   EntityCardPrimaryAction,
@@ -15,6 +16,7 @@ export interface StaffScheduleCardProps {
   staff: StaffMember;
   onOpenRoster?: (staff: StaffMember) => void;
   onOpenDetail?: (staff: StaffMember) => void;
+  onExport?: (staff: StaffMember) => void;
   isSelected?: boolean;
   className?: string;
 }
@@ -23,6 +25,7 @@ export function StaffScheduleCard({
   staff,
   onOpenRoster,
   onOpenDetail,
+  onExport,
   isSelected,
   className
 }: StaffScheduleCardProps) {
@@ -67,6 +70,25 @@ export function StaffScheduleCard({
     />
   );
 
+  const headerSlot = onExport ? (
+    <div className='flex items-center justify-end -mt-0.5 -mr-0.5 mb-1 relative z-30'>
+      <Button
+        type='button'
+        variant='ghost'
+        size='sm'
+        onClick={(e) => {
+          e.stopPropagation();
+          onExport(staff);
+        }}
+        title={`Unduh Laporan ${staff.fullName}`}
+        className='h-6.5 px-2 rounded-md text-[11px] font-medium text-muted-foreground hover:text-primary hover:bg-primary/10 gap-1.5'
+      >
+        <Icons.download className='size-3' />
+        <span>Unduh Laporan</span>
+      </Button>
+    </div>
+  ) : null;
+
   return (
     <MasterEntityCard
       status={statusKey}
@@ -80,6 +102,7 @@ export function StaffScheduleCard({
       }
       avatarUrl={staff.photoUrl}
       initials={initials}
+      headerSlot={headerSlot}
       contentSlot={
         staff.leaveInfo?.isOnLeave ? (
           <span className='inline-flex items-center gap-1.5 px-2.5 sm:px-2 py-0.5 rounded-md text-[11px] sm:text-[10.5px] xl:text-[10px] font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 truncate'>
