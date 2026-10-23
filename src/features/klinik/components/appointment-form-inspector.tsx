@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Icons } from '@/components/icons';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { klinikKeys } from '../api/query-keys';
 import {
@@ -20,14 +21,14 @@ import { InspectorObstetricTab } from './inspector/inspector-obstetric-tab';
 import { InspectorImmunizationTab } from './inspector/inspector-immunization-tab';
 import { InspectorGenericView } from './inspector/inspector-generic-view';
 import {
-  ClinicalDocumentViewerModal,
+  ClinicalDocumentFullscreenReader,
   adaptToPmbFormData,
   adaptToImunisasiFormData,
   adaptToRegulerFormData,
   exportPmbDocx,
   exportImunisasiDocx,
   exportRegulerDocx,
-  type ClinicalFormFlow,
+  type ClinicalFormFlow
 } from './clinical-document';
 
 export interface AppointmentFormInspectorProps {
@@ -68,10 +69,13 @@ export function AppointmentFormInspector({
 
   const parsedData = React.useMemo<UnifiedInspectorData>(() => {
     const rawData =
-      serverIntake && typeof serverIntake === 'object' && 'data' in serverIntake && serverIntake.data
-        ? (typeof serverIntake.data === 'object' && 'data' in serverIntake.data
-            ? (serverIntake.data as any).data
-            : serverIntake.data)
+      serverIntake &&
+      typeof serverIntake === 'object' &&
+      'data' in serverIntake &&
+      serverIntake.data
+        ? typeof serverIntake.data === 'object' && 'data' in serverIntake.data
+          ? (serverIntake.data as any).data
+          : serverIntake.data
         : serverIntake;
 
     const flow =
@@ -99,12 +103,22 @@ export function AppointmentFormInspector({
     if (rawData) {
       if (type === 'maternal' || flow === 'pregnancy') {
         maternal = rawData as MaternalIntakeResponse;
-        answers = (maternal.answers as Record<string, any>) || (rawData.answers as Record<string, any>) || {};
-        automatic = (maternal.automatic as Record<string, any>) || (rawData.automatic as Record<string, any>) || {};
+        answers =
+          (maternal.answers as Record<string, any>) ||
+          (rawData.answers as Record<string, any>) ||
+          {};
+        automatic =
+          (maternal.automatic as Record<string, any>) ||
+          (rawData.automatic as Record<string, any>) ||
+          {};
       } else if (type === 'immunization' || flow === 'immunization') {
         child = rawData as ChildImmunizationResponse;
-        answers = (child.answers as Record<string, any>) || (rawData.answers as Record<string, any>) || {};
-        automatic = (child.automatic as Record<string, any>) || (rawData.automatic as Record<string, any>) || {};
+        answers =
+          (child.answers as Record<string, any>) || (rawData.answers as Record<string, any>) || {};
+        automatic =
+          (child.automatic as Record<string, any>) ||
+          (rawData.automatic as Record<string, any>) ||
+          {};
       } else {
         answers = (rawData.answers as Record<string, any>) || {};
         automatic = (rawData.automatic as Record<string, any>) || {};
@@ -166,7 +180,7 @@ export function AppointmentFormInspector({
   const isPregnancy = parsedData.flow === 'pregnancy';
   const isImmunization = parsedData.flow === 'immunization' || Boolean(parsedData.child);
 
-  const [isLargeModalOpen, setIsLargeModalOpen] = React.useState(false);
+  const [isReaderOpen, setIsReaderOpen] = React.useState(false);
   const [isExporting, setIsExporting] = React.useState(false);
 
   const pmbFormData = React.useMemo(() => {
@@ -198,10 +212,16 @@ export function AppointmentFormInspector({
         await exportPmbDocx(pmbFormData, `Formulir_ANC_${patientName.replace(/\s+/g, '_')}.docx`);
       } else if (parsedData.flow === 'immunization' || Boolean(parsedData.child)) {
         const childName = appointment.patient_name || 'Anak';
-        await exportImunisasiDocx(imunisasiFormData, `Formulir_Imunisasi_${childName.replace(/\s+/g, '_')}.docx`);
+        await exportImunisasiDocx(
+          imunisasiFormData,
+          `Formulir_Imunisasi_${childName.replace(/\s+/g, '_')}.docx`
+        );
       } else {
         const patientName = appointment.patient_name || 'Pasien';
-        await exportRegulerDocx(regulerFormData, `Formulir_Rawat_Jalan_${patientName.replace(/\s+/g, '_')}.docx`);
+        await exportRegulerDocx(
+          regulerFormData,
+          `Formulir_Rawat_Jalan_${patientName.replace(/\s+/g, '_')}.docx`
+        );
       }
     } catch (err) {
       console.error('Failed to export DOCX:', err);
@@ -232,60 +252,85 @@ export function AppointmentFormInspector({
           </div>
 
           <div className='flex items-center gap-2 shrink-0'>
-            <button
+            <Button
               type='button'
-              onClick={() => setIsLargeModalOpen(true)}
-              className='inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground bg-secondary/60 hover:bg-secondary rounded-lg border border-border/50 transition-colors cursor-pointer shadow-2xs'
-              title='Lihat Formulir Ukuran Penuh (A4 Canvas)'
+              variant='secondary'
+              size='sm'
+              shape='rounded'
+              onClick={() => setIsReaderOpen(true)}
+              leadingIcon={<Icons.maximize className='size-3.5 text-muted-foreground' />}
+              title='Buka Formulir Fullscreen PDF Reader (Ukuran Penuh)'
             >
-              <Icons.maximize className='size-3.5 text-muted-foreground' />
-              <span className='hidden sm:inline'>Ukuran Penuh</span>
-            </button>
+              <span className='hidden sm:inline'>Ukuran Penuh (PDF Reader)</span>
+            </Button>
 
-            <button
+            <Button
               type='button'
+              variant='outline'
+              size='sm'
+              shape='rounded'
               onClick={handleDirectDownload}
               disabled={isExporting}
-              className='inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300 hover:text-emerald-900 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-lg border border-emerald-300/80 dark:border-emerald-700/60 transition-colors cursor-pointer shadow-2xs disabled:opacity-50'
+              isLoading={isExporting}
+              leadingIcon={
+                !isExporting && (
+                  <Icons.download className='size-3.5 text-emerald-600 dark:text-emerald-400' />
+                )
+              }
+              className='border-emerald-300/80 dark:border-emerald-700/60 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300 shadow-2xs'
               title='Unduh Dokumen Word (.docx)'
             >
-              <Icons.download className='size-3.5 text-emerald-600 dark:text-emerald-400' />
-              <span className='hidden sm:inline'>{isExporting ? 'Mengunduh...' : 'Unduh Word'}</span>
-            </button>
+              <span className='hidden sm:inline'>
+                {isExporting ? 'Mengunduh...' : 'Unduh Word'}
+              </span>
+            </Button>
 
             {onClose && (
-              <button
+              <Button
                 type='button'
+                variant='ghost'
+                size='icon-sm'
+                shape='pill'
                 onClick={onClose}
                 aria-label='Tutup formulir'
-                className='p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors cursor-pointer'
+                className='text-muted-foreground hover:text-foreground hover:bg-muted/70'
               >
                 <Icons.chevronRight className='size-5' />
-              </button>
+              </Button>
             )}
           </div>
         </div>
       ) : (
         <div className='flex items-center justify-end gap-2 pb-2 mb-2 border-b border-border/30 shrink-0'>
-          <button
+          <Button
             type='button'
-            onClick={() => setIsLargeModalOpen(true)}
-            className='inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground bg-muted/60 hover:bg-muted rounded-md transition-colors cursor-pointer border border-border/50'
-            title='Lihat Formulir Ukuran Penuh (A4 Canvas)'
+            variant='secondary'
+            size='compact'
+            shape='rounded'
+            onClick={() => setIsReaderOpen(true)}
+            leadingIcon={<Icons.maximize className='size-3.5' />}
+            title='Buka Formulir Fullscreen PDF Reader (Ukuran Penuh)'
           >
-            <Icons.maximize className='size-3.5' />
-            <span>Ukuran Penuh</span>
-          </button>
-          <button
+            <span>Ukuran Penuh (PDF)</span>
+          </Button>
+          <Button
             type='button'
+            variant='outline'
+            size='compact'
+            shape='rounded'
             onClick={handleDirectDownload}
             disabled={isExporting}
-            className='inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 rounded-md transition-colors cursor-pointer border border-emerald-200 dark:border-emerald-800/60 disabled:opacity-50'
+            isLoading={isExporting}
+            leadingIcon={
+              !isExporting && (
+                <Icons.download className='size-3.5 text-emerald-700 dark:text-emerald-400' />
+              )
+            }
+            className='border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-400'
             title='Unduh Dokumen Word (.docx)'
           >
-            <Icons.download className='size-3.5' />
             <span>{isExporting ? 'Mengunduh...' : 'Unduh Word'}</span>
-          </button>
+          </Button>
         </div>
       )}
 
@@ -339,9 +384,9 @@ export function AppointmentFormInspector({
         )}
       </div>
 
-      <ClinicalDocumentViewerModal
-        isOpen={isLargeModalOpen}
-        onClose={() => setIsLargeModalOpen(false)}
+      <ClinicalDocumentFullscreenReader
+        isOpen={isReaderOpen}
+        onClose={() => setIsReaderOpen(false)}
         flow={parsedData.flow as ClinicalFormFlow}
         pmbData={pmbFormData}
         imunisasiData={imunisasiFormData}

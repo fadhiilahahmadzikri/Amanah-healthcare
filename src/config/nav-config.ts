@@ -5,13 +5,6 @@ export const navGroups: NavGroup[] = [
     label: 'Amanah Admin',
     items: [
       {
-        title: 'Dashboard',
-        url: '/dashboard/admin',
-        icon: 'dashboard',
-        shortcut: ['a', 'd'],
-        access: { role: 'admin' }
-      },
-      {
         title: 'Pelayanan Pasien',
         url: '#',
         icon: 'stethoscope',

@@ -141,6 +141,9 @@ import {
   IconFileSpreadsheet,
   IconArrowsMaximize,
   IconArrowsMinimize,
+  IconPrinter,
+  IconZoomIn,
+  IconZoomOut,
   IconHistory
 } from '@tabler/icons-react';
 import { Spinner } from '@/components/ui/spinner';
@@ -158,6 +161,9 @@ export const Icons = {
   play: IconPlayerPlay,
   maximize: IconArrowsMaximize,
   minimize: IconArrowsMinimize,
+  printer: IconPrinter,
+  zoomIn: IconZoomIn,
+  zoomOut: IconZoomOut,
   image: IconPhoto,
   view: IconEye,
   horizontalSliders: IconAdjustmentsHorizontal,

@@ -7,3 +7,4 @@ export * from './templates/PmbFormTemplate';
 export * from './templates/ImunisasiFormTemplate';
 export * from './templates/RegulerFormTemplate';
 export * from './ClinicalDocumentViewerModal';
+export * from './ClinicalDocumentFullscreenReader';
