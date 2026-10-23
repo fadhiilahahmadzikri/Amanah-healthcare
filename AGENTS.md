@@ -1563,3 +1563,16 @@ See "Theming System" section above or `docs/themes.md`.
 - **Component Reusability**: Do not introduce new UI components if existing ones (e.g. from shadcn) can fulfill the requirement. Re-use existing components to maintain styling consistency. If a new shadcn component is truly needed, install it via the standard CLI.
 - **Respect Existing Architecture**: Conform strictly to the existing design patterns, folder structure, and styling paradigms present in the boilerplate. Maximize the use of the existing theme/styling system.
 - **Parallel Execution**: Implement tasks in parallel across multiple subagents whenever possible, coordinated by the main orchestrator agent.
+
+---
+
+## Searching Code with Ripgrep (rg)
+
+- ALWAYS pass an explicit path to rg. Never run `rg pattern` without a path.
+- This is a monorepo. Search the owning package first (`frontend-web/src`). Widen to dependent packages only if there are zero hits. Search the monorepo root only as a last resort.
+- A root-wide search MUST use a type/glob filter (`-t ts`, `-g '*.tsx'`), `-l` or a tight output cap, `--max-filesize 2M`, and `timeout 30`.
+- Use `-F` for literals and `-w` for identifiers. Use `-n --no-heading --color never`.
+- Cap output: `-l` first, then `| head -n 50`; use `--max-columns 200` for minified files.
+- Do not use `-u`, `-uu`, `-uuu`, `--no-ignore`, `--hidden`, or `-L` by default. Use them only on a narrow path, and only after a normal search came back empty.
+- Do not use `grep -r` or `find | xargs grep` instead of rg.
+- Respect the repo's `.ignore` / `.rgignore`. Do not edit them to make a search work without asking.
