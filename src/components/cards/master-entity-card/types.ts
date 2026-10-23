@@ -102,4 +102,8 @@ export interface MasterEntityCardProps {
   children?: React.ReactNode;
   /** Extra CSS classes */
   className?: string;
+  /** Disable outer elevation shadow */
+  noShadow?: boolean;
+  /** Disable hover translation and shadow jump animation */
+  disableHoverAnimate?: boolean;
 }

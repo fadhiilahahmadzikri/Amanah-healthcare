@@ -17,6 +17,8 @@ export interface StackedCardShelterProps {
   cardRef?: React.Ref<HTMLDivElement>;
   className?: string;
   interactiveClass?: string;
+  noShadow?: boolean;
+  disableHoverAnimate?: boolean;
 }
 
 /**
@@ -37,7 +39,9 @@ export function StackedCardShelter({
   onClick,
   cardRef,
   className,
-  interactiveClass
+  interactiveClass,
+  noShadow,
+  disableHoverAnimate
 }: StackedCardShelterProps) {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -47,8 +51,9 @@ export function StackedCardShelter({
   };
 
   // Clean neutral elevation shadows (zero neon glow as requested)
-  const outerBoxShadow =
-    glowPosition === 'top'
+  const outerBoxShadow = noShadow
+    ? 'none'
+    : glowPosition === 'top'
       ? '0 16px 32px -12px rgba(0, 0, 0, 0.22), 0 2px 8px -2px rgba(0, 0, 0, 0.06)'
       : '0 12px 28px -10px rgba(0, 0, 0, 0.18), 0 2px 6px -1px rgba(0, 0, 0, 0.06)';
 
@@ -62,7 +67,8 @@ export function StackedCardShelter({
       onKeyDown={handleKeyDown}
       className={cn(
         'group relative font-sans flex flex-col w-full rounded-[22px] select-none cursor-pointer transition-all duration-300',
-        'hover:-translate-y-1 hover:shadow-xl active:translate-y-0 active:scale-[0.99]',
+        !disableHoverAnimate &&
+          'hover:-translate-y-1 hover:shadow-xl active:translate-y-0 active:scale-[0.99]',
         isPending && 'opacity-80',
         isSelected && 'ring-2 ring-primary ring-offset-2 ring-offset-background',
         interactiveClass,

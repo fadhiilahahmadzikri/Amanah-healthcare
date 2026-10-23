@@ -11,6 +11,8 @@ export interface LeaveCardProps {
   onSelect: (leave: LeaveRequestItem) => void;
   isSelected?: boolean;
   className?: string;
+  noShadow?: boolean;
+  disableHoverAnimate?: boolean;
 }
 
 const LEAVE_STATUS_MAP: Record<
@@ -23,7 +25,14 @@ const LEAVE_STATUS_MAP: Record<
   cancelled: { key: 'CANCELLED', label: 'Dibatalkan', variant: 'red' }
 };
 
-export function LeaveCard({ leave, onSelect, isSelected, className }: LeaveCardProps) {
+export function LeaveCard({
+  leave,
+  onSelect,
+  isSelected,
+  className,
+  noShadow = true,
+  disableHoverAnimate = true
+}: LeaveCardProps) {
   const staff = leave.staff;
 
   const staffTypeLabel =
@@ -112,6 +121,8 @@ export function LeaveCard({ leave, onSelect, isSelected, className }: LeaveCardP
         onSelect(leave);
       }}
       className={className}
+      noShadow={noShadow}
+      disableHoverAnimate={disableHoverAnimate}
     />
   );
 }

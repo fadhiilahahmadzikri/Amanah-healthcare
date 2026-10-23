@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useAllLeavesQuery } from '../api/queries';
+import { useReviewLeaveMutation } from '../api/mutations';
 import { useLeaveRealtimeSync } from '../hooks/useLeaveRealtimeSync';
 import { useLeaveFilters } from './useLeaveFilters';
 import type { LeaveRequestItem } from '../api/types';
@@ -13,6 +14,7 @@ export function useLeaveManagementPresenter() {
   const leaveIdParam = searchParams.get('leaveId');
 
   const { data: leaves = [], isLoading, refetch: refetchLeaves } = useAllLeavesQuery();
+  const reviewMutation = useReviewLeaveMutation();
 
   // Architectural decoupled real-time synchronization
   useLeaveRealtimeSync({
@@ -22,6 +24,9 @@ export function useLeaveManagementPresenter() {
   });
 
   const filters = useLeaveFilters({ leaves });
+
+  // View mode preference (Kanban vs List)
+  const [viewPreference, setViewPreference] = useState<'kanban' | 'list'>('kanban');
 
   // Modal / Sheet visibility states
   const [selectedLeave, setSelectedLeave] = useState<LeaveRequestItem | null>(null);
@@ -60,10 +65,26 @@ export function useLeaveManagementPresenter() {
   const openReplacementOpportunities = () => setIsReplacementOpportunitiesOpen(true);
   const closeReplacementOpportunities = () => setIsReplacementOpportunitiesOpen(false);
 
+  const handleReviewLeave = useCallback(
+    (id: string, status: 'approved' | 'rejected', approvalNotes?: string) => {
+      reviewMutation.mutate({ id, status, approvalNotes });
+    },
+    [reviewMutation]
+  );
+
+  const isFlattenMode = filters.hasActiveFilters || viewPreference === 'list';
+
   return {
     filters,
     leaves,
     isLoading,
+    viewMode: {
+      preference: viewPreference,
+      setPreference: setViewPreference,
+      isFlattenMode
+    },
+    reviewLeave: handleReviewLeave,
+    isReviewing: reviewMutation.isPending,
     detailModal: {
       selectedLeave,
       isOpen: isDetailOpen,

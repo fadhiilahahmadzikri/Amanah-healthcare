@@ -13,6 +13,7 @@ export * from './components/leave-settings-button';
 export * from './components/leave-mobile-filter-toolbar';
 export * from './components/leave-management-filters';
 export * from './components/leave-management-view';
+export * from './components/kanban';
 export * from './components/replacement-detail-modal';
 export * from './components/replacement-opportunities-modal';
 export * from './hooks/useLeaveRealtimeSync';

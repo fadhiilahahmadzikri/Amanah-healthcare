@@ -40,7 +40,9 @@ export function MasterEntityCard({
   onCardClick,
   onTitleClick,
   children,
-  className
+  className,
+  noShadow,
+  disableHoverAnimate
 }: MasterEntityCardProps) {
   const cardRef = React.useRef<HTMLDivElement>(null);
   const { resolvedTheme } = useTheme();
@@ -110,6 +112,8 @@ export function MasterEntityCard({
       isPending={isPending}
       onClick={handleContainerClick}
       className={className}
+      noShadow={noShadow}
+      disableHoverAnimate={disableHoverAnimate}
       mainBodySlot={
         <SurfaceCoreOrganism>
           {trailingImage}
