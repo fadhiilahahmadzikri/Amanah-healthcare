@@ -11,6 +11,7 @@ export function EntityCardIdentity({
   name,
   subtitle,
   avatarUrl,
+  showAvatar = true,
   initials: _initials,
   onNameClick,
   isPending,
@@ -18,23 +19,25 @@ export function EntityCardIdentity({
 }: EntityCardIdentityProps) {
   return (
     <div className={cn('flex items-center gap-3 sm:gap-2.5 relative z-20 min-w-0', className)}>
-      <Avatar className='size-11 sm:size-10 xl:size-9 rounded-full ring-2 ring-primary/20 shrink-0 shadow-2xs overflow-hidden'>
-        <AvatarImage
-          src={avatarUrl || DEFAULT_AVATAR_PATH}
-          alt={name}
-          className='size-full object-cover aspect-square rounded-full'
-        />
-        <AvatarFallback className='p-0 bg-transparent'>
-          <Image
-            src={DEFAULT_AVATAR_PATH}
+      {showAvatar && (
+        <Avatar className='size-11 sm:size-10 xl:size-9 rounded-full ring-2 ring-primary/20 shrink-0 shadow-2xs overflow-hidden'>
+          <AvatarImage
+            src={avatarUrl || DEFAULT_AVATAR_PATH}
             alt={name}
-            width={64}
-            height={64}
-            unoptimized
             className='size-full object-cover aspect-square rounded-full'
           />
-        </AvatarFallback>
-      </Avatar>
+          <AvatarFallback className='p-0 bg-transparent'>
+            <Image
+              src={DEFAULT_AVATAR_PATH}
+              alt={name}
+              width={64}
+              height={64}
+              unoptimized
+              className='size-full object-cover aspect-square rounded-full'
+            />
+          </AvatarFallback>
+        </Avatar>
+      )}
 
       <div className='flex flex-col min-w-0 flex-1 justify-center'>
         <h3

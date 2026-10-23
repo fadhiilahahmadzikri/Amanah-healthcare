@@ -111,31 +111,31 @@ export function resolveShiftFromTime(timeStr?: string | null): ScheduleShift {
   return SCHEDULE_SHIFT.MALAM;
 }
 
+export const FRIENDLY_SESSION_NAME_MAP: Record<string, string> = {
+  early_morning: 'Sesi Dini Hari',
+  morning: 'Sesi Pagi',
+  afternoon: 'Sesi Siang',
+  night: 'Sesi Malam',
+  DINI_HARI: 'Sesi Dini Hari',
+  PAGI: 'Sesi Pagi',
+  SIANG: 'Sesi Siang',
+  MALAM: 'Sesi Malam',
+  dini_hari: 'Sesi Dini Hari',
+  pagi: 'Sesi Pagi',
+  siang: 'Sesi Siang',
+  malam: 'Sesi Malam'
+};
+
 export function formatFriendlySessionName(raw?: string | null): string {
   if (!raw) return '';
   const trimmed = raw.trim();
-  const cleaned = trimmed.replace(/^Sesi\s+/i, '').trim();
-  if (!cleaned) return '';
+  if (!trimmed) return '';
 
-  const normalizedKey = cleaned.toUpperCase().replace(/[\s-]+/g, '_');
-  if (normalizedKey in SCHEDULE_SHIFT) {
-    const shift = SCHEDULE_SHIFT[normalizedKey as keyof typeof SCHEDULE_SHIFT];
-    return `Sesi ${SCHEDULE_SHIFT_LABELS[shift]}`;
+  if (trimmed in FRIENDLY_SESSION_NAME_MAP) {
+    return FRIENDLY_SESSION_NAME_MAP[trimmed];
   }
-
-  const lower = cleaned.toLowerCase();
-  if (lower in DB_STAFF_SHIFT_MAP) {
-    const shift = DB_STAFF_SHIFT_MAP[lower];
-    return `Sesi ${SCHEDULE_SHIFT_LABELS[shift]}`;
+  if (trimmed.startsWith('Sesi ')) {
+    return trimmed;
   }
-
-  // Fallback: Title Case normal (huruf awal kata besar, tidak uppercase / underscore)
-  const titleCased = cleaned
-    .replace(/_/g, ' ')
-    .toLowerCase()
-    .split(/\s+/)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-
-  return `Sesi ${titleCased}`;
+  return `Sesi ${trimmed}`;
 }

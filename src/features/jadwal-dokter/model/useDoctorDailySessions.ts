@@ -87,16 +87,6 @@ export function useDoctorDailySessions({
     onAddSchedule
   });
 
-  const initials = doctor?.nama_dokter
-    ? doctor.nama_dokter
-        .replace(/^(dr\.\s*|drg\.\s*|prof\.\s*)/g, '')
-        .split(' ')
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase()
-    : 'DR';
-
   const handlePrevDay = () => {
     if (activeDay > 1) {
       setActiveDay(activeDay - 1);
@@ -151,7 +141,6 @@ export function useDoctorDailySessions({
     isDayClosed,
     dayLeaveReason,
     activeSessions,
-    initials,
     handlePrevDay,
     handleNextDay,
     handleToday,

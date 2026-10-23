@@ -33,16 +33,6 @@ export function useLeaveDetailSheet({ leave, onClose }: UseLeaveDetailSheetProps
     onClose();
   };
 
-  const initials = (() => {
-    if (!leave?.staff?.fullName) return 'S';
-    const raw = leave.staff.fullName.replace(/^(dr|drg|prof)\.\s*/i, '').trim();
-    const parts = raw.split(/\s+/);
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return (parts[0]?.[0] || 'S').toUpperCase();
-  })();
-
   const isPending = leave?.status === 'pending';
   const isSubmitting = reviewMutation.isPending;
 
@@ -51,7 +41,6 @@ export function useLeaveDetailSheet({ leave, onClose }: UseLeaveDetailSheetProps
     setApprovalNotes,
     handleReview,
     handleClose,
-    initials,
     isPending,
     isSubmitting
   };

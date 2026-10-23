@@ -34,15 +34,6 @@ export function StaffScheduleCard({
 
   const statusLabel = staff.leaveInfo?.isOnLeave ? 'Cuti' : staff.isActive ? 'Aktif' : 'Non-Aktif';
 
-  const initials = React.useMemo(() => {
-    const raw = (staff.fullName || '').replace(/^(dr|drg|prof)\.\s*/i, '').trim();
-    const parts = raw.split(/\s+/);
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return (parts[0]?.[0] || 'S').toUpperCase();
-  }, [staff.fullName]);
-
   const handleContainerClick = () => {
     onOpenDetail?.(staff);
   };
@@ -97,11 +88,10 @@ export function StaffScheduleCard({
       name={staff.fullName}
       subtitle={
         <p className='text-[12px] sm:text-[11.5px] xl:text-[11px] font-medium text-muted-foreground tracking-tight line-clamp-1 mt-0.5 truncate'>
-          {staff.profession || STAFF_ROLE_LABELS[staff.staffType] || 'Staf Klinik'}
+          {staff.profession || STAFF_ROLE_LABELS[staff.staffType] || ''}
         </p>
       }
       avatarUrl={staff.photoUrl}
-      initials={initials}
       headerSlot={headerSlot}
       contentSlot={
         staff.leaveInfo?.isOnLeave ? (

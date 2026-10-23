@@ -14,7 +14,7 @@ export default async function Page() {
     <PageContainer
       scrollable={false}
       pageTitle='Manajemen Perizinan'
-      pageDescription='Kelola permohonan izin staf dan peluang dinas pengganti klinik.'
+      pageDescription='Kelola pengajuan dan persetujuan permohonan izin serta cuti staf klinik.'
     >
       <Suspense
         fallback={

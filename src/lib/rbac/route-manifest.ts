@@ -90,6 +90,13 @@ export const routeManifest: RouteRule[] = [
     description: 'Manajemen Perizinan, Cuti, & Kompensasi Staf'
   },
   {
+    pattern: '/dashboard/peluang-pengganti',
+    match: 'prefix',
+    visibility: 'protected',
+    allowedRoles: ['admin'],
+    description: 'Manajemen Peluang Pengganti Dinas Staf Antar-Sesi'
+  },
+  {
     pattern: '/dashboard/payroll',
     match: 'prefix',
     visibility: 'protected',

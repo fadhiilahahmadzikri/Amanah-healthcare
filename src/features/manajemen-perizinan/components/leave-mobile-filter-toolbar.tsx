@@ -32,7 +32,6 @@ export interface LeaveMobileFilterToolbarProps {
   selectedLeaveTypes: string[];
   onSelectedLeaveTypesChange: (types: string[]) => void;
   onResetAll: () => void;
-  onOpenReplacementModal?: () => void;
   onOpenSettingsModal?: () => void;
   className?: string;
 }
@@ -72,7 +71,6 @@ export function LeaveMobileFilterToolbar({
   selectedLeaveTypes,
   onSelectedLeaveTypesChange,
   onResetAll,
-  onOpenReplacementModal,
   onOpenSettingsModal,
   className
 }: LeaveMobileFilterToolbarProps) {
@@ -198,21 +196,6 @@ export function LeaveMobileFilterToolbar({
 
           {/* Right: Actions & Reset */}
           <div className='flex items-center gap-1.5 shrink-0 ml-auto'>
-            {/* Peluang Pengganti Button */}
-            {onOpenReplacementModal && (
-              <Button
-                type='button'
-                variant='outline'
-                size='icon'
-                onClick={onOpenReplacementModal}
-                aria-label='Peluang Pengganti'
-                title='Peluang Pengganti'
-                className='size-8.5 rounded-xl cursor-pointer shrink-0'
-              >
-                <Icons.clock className='size-4 text-primary' />
-              </Button>
-            )}
-
             {/* Pengaturan Kebijakan Button */}
             {onOpenSettingsModal && (
               <Button

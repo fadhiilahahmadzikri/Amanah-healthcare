@@ -28,6 +28,7 @@ export function MasterEntityCard({
   name = '',
   subtitle,
   avatarUrl,
+  showAvatar,
   initials,
   trailingImage,
   headerSlot,
@@ -78,16 +79,7 @@ export function MasterEntityCard({
     return config.label;
   }, [status, statusLabel]);
 
-  // Derive initials from name if not explicitly provided
-  const effectiveInitials = React.useMemo(() => {
-    if (initials) return initials;
-    const raw = (name || '').replace(/^(dr|drg|prof)\.\s*/i, '').trim();
-    const parts = raw.split(/\s+/);
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return (parts[0]?.[0] || 'U').toUpperCase();
-  }, [name, initials]);
+  const effectiveInitials = initials || '';
 
   const handleContainerClick = () => {
     onCardClick?.();
@@ -131,6 +123,7 @@ export function MasterEntityCard({
                 name={name}
                 subtitle={subtitle}
                 avatarUrl={avatarUrl}
+                showAvatar={showAvatar}
                 initials={effectiveInitials}
                 onNameClick={handleTitleClick}
                 isPending={isPending}

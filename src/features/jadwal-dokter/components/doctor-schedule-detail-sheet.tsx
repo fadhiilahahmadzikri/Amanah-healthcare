@@ -62,7 +62,7 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
     );
   }
 
-  const { initials, doctorStatus, isUnconfigured } = meta;
+  const { doctorStatus, isUnconfigured } = meta;
   const {
     selectedDay,
     currentMonth,

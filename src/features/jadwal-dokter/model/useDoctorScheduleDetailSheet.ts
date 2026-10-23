@@ -118,16 +118,6 @@ export function useDoctorScheduleDetailSheet({
   const doctorStatusConfig = doctorStatus ? getStatusConfig(doctorStatus) : null;
   const isUnconfigured = !doctor?.sesi_harian || doctor.sesi_harian.length === 0;
 
-  const initials = doctor?.nama_dokter
-    ? doctor.nama_dokter
-        .replace('dr. ', '')
-        .split(' ')
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase()
-    : '';
-
   const handleDayStatusChange = React.useCallback(
     (day: number, status: ScheduleDayStatus, notes?: string) => {
       if (!doctor?.id) return;
@@ -169,7 +159,6 @@ export function useDoctorScheduleDetailSheet({
       handleDayStatusChange
     },
     meta: {
-      initials,
       doctorStatus,
       doctorStatusConfig,
       isUnconfigured

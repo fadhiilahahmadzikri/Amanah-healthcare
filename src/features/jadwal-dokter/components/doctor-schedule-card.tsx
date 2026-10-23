@@ -66,15 +66,6 @@ export function DoctorScheduleCard({
   const statusConfig = getStatusConfig(cardStatus);
   const isPending = cardStatus === DOCTOR_CARD_STATUS.PENDING;
 
-  const initials = React.useMemo(() => {
-    const raw = (doctor.nama_dokter || '').replace(/^dr\.\s*/i, '').trim();
-    const parts = raw.split(/\s+/);
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return (parts[0]?.[0] || 'D').toUpperCase();
-  }, [doctor.nama_dokter]);
-
   const handleContainerClick = () => {
     if (onCardClick) {
       onCardClick(doctor);
@@ -140,7 +131,6 @@ export function DoctorScheduleCard({
         />
       }
       avatarUrl={doctor.avatar}
-      initials={initials}
       trailingImage={
         showTrailingAvatar ? <DoctorCardImage src={doctor.avatar} alt={doctor.nama_dokter} /> : null
       }

@@ -39,13 +39,6 @@ export function LeaveDetailModal({
   if (!leave) return null;
 
   const staff = leave.staff;
-  const staffTypeLabel =
-    staff?.staffType === 'doctor'
-      ? 'Dokter'
-      : staff?.staffType === 'midwife'
-        ? 'Bidan'
-        : 'Staf Operasional';
-
   const leaveTypeLabel = LEAVE_TYPE_MAP[leave.type] || leave.type;
 
   return (
@@ -63,10 +56,10 @@ export function LeaveDetailModal({
           <div className='space-y-0.5 min-w-0 flex-1'>
             <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight flex items-center gap-2'>
               <Icons.calendar className='size-4 text-primary shrink-0' />
-              <span className='truncate'>{staff?.fullName || 'Detail Permohonan Izin'}</span>
+              <span className='truncate'>{staff?.fullName || ''}</span>
             </h3>
             <p className='text-xs text-muted-foreground truncate font-medium'>
-              {staff?.profession || staffTypeLabel}
+              {staff?.profession || ''}
               {staff?.idCardNumber ? ` • ID: ${staff.idCardNumber}` : ''}
             </p>
           </div>

@@ -33,7 +33,6 @@ export function useLeaveManagementPresenter() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsCategory, setSettingsCategory] = useState<LeaveConfigurationCategory>('policy');
-  const [isReplacementOpportunitiesOpen, setIsReplacementOpportunitiesOpen] = useState(false);
 
   // Auto-open detail sheet when leaveId query param matches a leave request
   useEffect(() => {
@@ -61,9 +60,6 @@ export function useLeaveManagementPresenter() {
     setIsSettingsOpen(true);
   };
   const closeSettings = () => setIsSettingsOpen(false);
-
-  const openReplacementOpportunities = () => setIsReplacementOpportunitiesOpen(true);
-  const closeReplacementOpportunities = () => setIsReplacementOpportunitiesOpen(false);
 
   const handleReviewLeave = useCallback(
     (id: string, status: 'approved' | 'rejected', approvalNotes?: string) => {
@@ -96,11 +92,6 @@ export function useLeaveManagementPresenter() {
       category: settingsCategory,
       open: openSettings,
       close: closeSettings
-    },
-    replacementOpportunitiesModal: {
-      isOpen: isReplacementOpportunitiesOpen,
-      open: openReplacementOpportunities,
-      close: closeReplacementOpportunities
     }
   };
 }

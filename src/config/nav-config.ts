@@ -75,6 +75,13 @@ export const navGroups: NavGroup[] = [
             icon: 'calendar',
             shortcut: ['m', 'p'],
             access: { role: 'admin' }
+          },
+          {
+            title: 'Peluang Pengganti',
+            url: '/dashboard/peluang-pengganti',
+            icon: 'userCheck',
+            shortcut: ['p', 'p'],
+            access: { role: 'admin' }
           }
         ]
       },

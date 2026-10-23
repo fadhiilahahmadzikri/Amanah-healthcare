@@ -33,6 +33,7 @@ export interface EntityCardIdentityProps {
   name: string;
   subtitle?: React.ReactNode;
   avatarUrl?: string | null;
+  showAvatar?: boolean;
   initials: string;
   onNameClick?: (e: React.MouseEvent) => void;
   isPending?: boolean;
@@ -76,6 +77,8 @@ export interface MasterEntityCardProps {
   subtitle?: React.ReactNode;
   /** Avatar image URL */
   avatarUrl?: string | null;
+  /** Whether to show the avatar icon/image (defaults to true) */
+  showAvatar?: boolean;
   /** Fallback initials when avatar URL is unavailable */
   initials?: string;
   /** Optional background trailing watermark or illustration */

@@ -13,20 +13,11 @@ import { LeaveSettingsModal } from './leave-settings-modal';
 import { LeaveSettingsButton } from './leave-settings-button';
 import { LeaveManagementFilters } from './leave-management-filters';
 import { LeaveMobileFilterToolbar } from './leave-mobile-filter-toolbar';
-import { ReplacementOpportunitiesModal } from './replacement-opportunities-modal';
 import { useLeaveManagementPresenter } from '../model';
 
 export function LeaveManagementView() {
-  const {
-    filters,
-    leaves,
-    isLoading,
-    viewMode,
-    reviewLeave,
-    detailModal,
-    settingsModal,
-    replacementOpportunitiesModal
-  } = useLeaveManagementPresenter();
+  const { filters, leaves, isLoading, viewMode, reviewLeave, detailModal, settingsModal } =
+    useLeaveManagementPresenter();
 
   return (
     <>
@@ -40,11 +31,6 @@ export function LeaveManagementView() {
         isOpen={settingsModal.isOpen}
         category={settingsModal.category}
         onClose={settingsModal.close}
-      />
-
-      <ReplacementOpportunitiesModal
-        isOpen={replacementOpportunitiesModal.isOpen}
-        onClose={replacementOpportunitiesModal.close}
       />
 
       <div className='flex h-full min-h-0 flex-1 flex-col gap-3.5 select-none'>
@@ -86,15 +72,6 @@ export function LeaveManagementView() {
               </Button>
             </div>
 
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={replacementOpportunitiesModal.open}
-              className='h-8 text-xs gap-1.5'
-            >
-              <Icons.clock className='size-3.5 text-primary' />
-              <span>Peluang Pengganti</span>
-            </Button>
             <LeaveSettingsButton
               onSelectCategory={settingsModal.open}
               activeCategory={settingsModal.category}
@@ -115,7 +92,6 @@ export function LeaveManagementView() {
             selectedLeaveTypes={filters.leaveTypeFilter}
             onSelectedLeaveTypesChange={filters.actions.changeLeaveTypeFilter}
             onResetAll={filters.actions.resetFilters}
-            onOpenReplacementModal={replacementOpportunitiesModal.open}
             onOpenSettingsModal={settingsModal.open}
           />
         </div>

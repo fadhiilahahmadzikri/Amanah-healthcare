@@ -8,6 +8,7 @@ export const ROUTES = {
   dashboardStaff: '/dashboard/staff',
   dashboardDoctorSchedules: '/dashboard/jadwal-dokter',
   dashboardLeaveManagement: '/dashboard/manajemen-perizinan',
+  dashboardReplacementOpportunities: '/dashboard/peluang-pengganti',
   dashboardPayroll: '/dashboard/payroll',
   dashboardPatient: '/dashboard/klinik/antrean',
   sessionExpired: '/api/auth/session-expired'

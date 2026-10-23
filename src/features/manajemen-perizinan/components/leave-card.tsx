@@ -34,27 +34,11 @@ export function LeaveCard({
 }: LeaveCardProps) {
   const staff = leave.staff;
 
-  const staffTypeLabel =
-    staff?.staffType === 'doctor'
-      ? 'Dokter'
-      : staff?.staffType === 'midwife'
-        ? 'Bidan'
-        : 'Staf Operasional';
-
   const statusMeta = LEAVE_STATUS_MAP[leave.status] || {
     key: 'PENDING',
     label: leave.status,
     variant: 'amber' as const
   };
-
-  const initials = React.useMemo(() => {
-    const raw = (staff?.fullName || '').replace(/^(dr|drg|prof)\.\s*/i, '').trim();
-    const parts = raw.split(/\s+/);
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return (parts[0]?.[0] || 'S').toUpperCase();
-  }, [staff?.fullName]);
 
   const handleContainerClick = () => {
     onSelect(leave);
@@ -77,14 +61,13 @@ export function LeaveCard({
       statusLabel={statusMeta.label}
       statusVariant={statusMeta.variant}
       isSelected={isSelected}
-      name={staff?.fullName || 'Staf Klinik'}
+      name={staff?.fullName || ''}
       subtitle={
         <p className='text-[12px] sm:text-[11.5px] xl:text-[11px] font-medium text-muted-foreground tracking-tight line-clamp-1 mt-0.5 truncate'>
-          {staff?.profession || staffTypeLabel}
+          {staff?.profession || ''}
         </p>
       }
       avatarUrl={staff?.avatarUrl}
-      initials={initials}
       contentSlot={<LeaveBookingDateRoute leave={leave} />}
       primaryAction={primaryAction}
       showActions={true}

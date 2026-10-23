@@ -67,7 +67,9 @@ export function usePayrollPresenter(): UsePayrollPresenterResult {
       items.push({
         id: `staff-${staff.staffId}`,
         title: staff.fullName,
-        subtitle: `${staff.staffType.toUpperCase()} • ${staff.positionTitle || 'Staf Operasional'}`,
+        subtitle: staff.positionTitle
+          ? `${staff.staffType.toUpperCase()} • ${staff.positionTitle}`
+          : staff.staffType.toUpperCase(),
         category: 'Karyawan',
         icon: Icons.user,
         queryValue: staff.fullName
