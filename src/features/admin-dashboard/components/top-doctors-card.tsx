@@ -2,8 +2,10 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Icons } from '@/components/icons';
 import type { OperationalSummary } from '../types';
@@ -37,22 +39,20 @@ export function TopDoctorsCard({ doctors }: TopDoctorsCardProps) {
               {/* List of Doctors */}
               <div className='divide-y divide-border/30'>
                 {doctors.map((doc) => {
-                  const initials =
-                    doc.name
-                      .replace('dr. ', '')
-                      .split(' ')
-                      .map((n) => n[0])
-                      .slice(0, 2)
-                      .join('')
-                      .toUpperCase() || '-';
-
                   return (
                     <div key={doc.id} className='py-2 flex items-center justify-between gap-3'>
                       <div className='flex items-center gap-2.5 min-w-0'>
                         <Avatar className='size-8 rounded-full ring-1 ring-border/40 shrink-0'>
-                          <AvatarImage src={doc.avatar} alt={doc.name} />
-                          <AvatarFallback className='text-[10px] bg-primary/10 text-primary font-bold'>
-                            {initials}
+                          <AvatarImage src={doc.avatar || DEFAULT_AVATAR_PATH} alt={doc.name} />
+                          <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
+                            <Image
+                              src={DEFAULT_AVATAR_PATH}
+                              alt={doc.name}
+                              width={32}
+                              height={32}
+                              unoptimized
+                              className='size-full rounded-full object-cover'
+                            />
                           </AvatarFallback>
                         </Avatar>
                         <div className='flex flex-col min-w-0'>

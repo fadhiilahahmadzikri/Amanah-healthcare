@@ -19,6 +19,8 @@ export function mapBackendPatient(r: any): Patient {
     id: r.id,
     patient_id: r.medicalRecordNumber || r.medical_record_number || r.patient_id,
     name: r.fullName || r.full_name || r.name,
+    avatar: r.avatarUrl || r.avatar_url || r.avatar || undefined,
+    avatarUrl: r.avatarUrl || r.avatar_url || r.avatar || undefined,
     masked_nik:
       r.maskedNik ||
       r.masked_nik ||

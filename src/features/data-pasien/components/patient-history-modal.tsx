@@ -1,14 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { formatClinicDate, formatClinicTime } from '@/lib/date-format';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { BookedPatientKiaIntake } from '@/features/jadwal-dokter/components/booked-patient-kia-intake';
@@ -21,27 +23,15 @@ export interface PatientHistoryModalProps {
   onClose: () => void;
 }
 
-export function PatientHistoryModal({
-  isOpen,
-  patient,
-  onClose,
-}: PatientHistoryModalProps) {
+export function PatientHistoryModal({ isOpen, patient, onClose }: PatientHistoryModalProps) {
   const [expandedFormId, setExpandedFormId] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
     ...patientHistoryQueryOptions(patient?.id || ''),
-    enabled: Boolean(isOpen && patient?.id),
+    enabled: Boolean(isOpen && patient?.id)
   });
 
   if (!patient) return null;
-
-  const initials = patient.name
-    .split(' ')
-    .map((n) => n[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
 
   const timelineItems = data?.data ?? [];
 
@@ -60,9 +50,21 @@ export function PatientHistoryModal({
         {/* 1. Header with Patient Identity & Aggregated Badges */}
         <div className='flex items-start justify-between gap-4 pb-3.5 border-b border-border/40'>
           <div className='flex items-center gap-3.5 min-w-0 flex-1'>
-            <Avatar className='size-12 rounded-xl shrink-0 border border-border/40'>
-              <AvatarFallback className='rounded-xl text-sm bg-primary/10 text-primary font-bold'>
-                {initials}
+            <Avatar className='size-12 rounded-xl shrink-0 border border-border/40 overflow-hidden'>
+              <AvatarImage
+                src={patient.avatarUrl || patient.avatar || DEFAULT_AVATAR_PATH}
+                alt={patient.name}
+                className='size-full object-cover aspect-square'
+              />
+              <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
+                <Image
+                  src={DEFAULT_AVATAR_PATH}
+                  alt={patient.name}
+                  width={48}
+                  height={48}
+                  unoptimized
+                  className='size-full object-cover rounded-xl aspect-square'
+                />
               </AvatarFallback>
             </Avatar>
 
@@ -121,7 +123,10 @@ export function PatientHistoryModal({
           {isLoading ? (
             <div className='space-y-3 py-2'>
               {[1, 2, 3].map((i) => (
-                <div key={i} className='flex gap-3 items-start p-3 rounded-xl border border-border/40 bg-muted/20'>
+                <div
+                  key={i}
+                  className='flex gap-3 items-start p-3 rounded-xl border border-border/40 bg-muted/20'
+                >
                   <Skeleton className='size-8 rounded-full shrink-0' />
                   <div className='flex-1 space-y-2'>
                     <Skeleton className='h-4 w-44 rounded-md' />
@@ -152,8 +157,12 @@ export function PatientHistoryModal({
                         'absolute -left-6 top-1 size-4 rounded-full ring-2 ring-background border flex items-center justify-center transition-colors',
                         isCompleted && 'bg-emerald-500 border-emerald-600 text-white',
                         isCancelled && 'bg-rose-500 border-rose-600 text-white',
-                        item.status === 'in_service' && 'bg-primary border-primary text-white animate-pulse',
-                        !isCompleted && !isCancelled && item.status !== 'in_service' && 'bg-muted border-border text-muted-foreground'
+                        item.status === 'in_service' &&
+                          'bg-primary border-primary text-white animate-pulse',
+                        !isCompleted &&
+                          !isCancelled &&
+                          item.status !== 'in_service' &&
+                          'bg-muted border-border text-muted-foreground'
                       )}
                     >
                       {isCompleted ? (
@@ -179,7 +188,10 @@ export function PatientHistoryModal({
                             </span>
                           </div>
                           <p className='text-xs text-muted-foreground font-medium'>
-                            Dokter: <span className='text-foreground'>{item.doctor_name || 'Belum Ditugaskan'}</span>
+                            Dokter:{' '}
+                            <span className='text-foreground'>
+                              {item.doctor_name || 'Belum Ditugaskan'}
+                            </span>
                           </p>
                         </div>
 
@@ -190,7 +202,9 @@ export function PatientHistoryModal({
                       {/* Time & Date */}
                       <div className='flex items-center gap-2 text-xs text-muted-foreground font-mono'>
                         <Icons.calendar className='size-3 text-muted-foreground shrink-0' />
-                        <span>{formatClinicDate(item.scheduled_date, { style: 'human_medium' })}</span>
+                        <span>
+                          {formatClinicDate(item.scheduled_date, { style: 'human_medium' })}
+                        </span>
                         <span>•</span>
                         <Icons.clock className='size-3 text-muted-foreground shrink-0' />
                         <span>{formatClinicTime(item.scheduled_start_time)}</span>

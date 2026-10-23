@@ -23,7 +23,9 @@ import {
   TableCell
 } from '@/components/ui/table';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { AttendanceDigitalClock } from './attendance-digital-clock';
 import { useCheckoutAttendanceMutation } from '../api/mutations';
 import { DataTableBulkActions } from '@/components/ui/table/data-table-bulk-actions';
@@ -339,14 +341,6 @@ export function AttendanceTableCard({
                   </TableRow>
                 ) : (
                   displayedRecords.map((row) => {
-                    const initials = row.nama_staf
-                      .replace('dr. ', '')
-                      .split(' ')
-                      .map((n) => n[0])
-                      .slice(0, 2)
-                      .join('')
-                      .toUpperCase();
-
                     const isDoctor = row.kategori === 'Dokter';
                     const isSelected = selectedIds.includes(row.id);
                     const isLate = row.rawStatus === 'late' || row.status === 'Terlambat';
@@ -399,9 +393,20 @@ export function AttendanceTableCard({
                         <TableCell className='px-3 py-2.5 font-medium text-foreground'>
                           <div className='flex items-center gap-2.5'>
                             <Avatar className='size-7 rounded-md ring-1 ring-border/40 shrink-0'>
-                              {row.avatar && <AvatarImage src={row.avatar} alt={row.nama_staf} />}
-                              <AvatarFallback className='bg-primary/10 text-primary font-bold text-[11px] rounded-md'>
-                                {initials}
+                              <AvatarImage
+                                src={row.avatar || DEFAULT_AVATAR_PATH}
+                                alt={row.nama_staf}
+                                className='rounded-md object-cover'
+                              />
+                              <AvatarFallback className='rounded-md p-0 bg-transparent overflow-hidden'>
+                                <Image
+                                  src={DEFAULT_AVATAR_PATH}
+                                  alt={row.nama_staf}
+                                  width={28}
+                                  height={28}
+                                  unoptimized
+                                  className='size-full rounded-md object-cover'
+                                />
                               </AvatarFallback>
                             </Avatar>
                             <div className='min-w-0'>

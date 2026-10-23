@@ -1,13 +1,15 @@
 'use client';
 
 import * as React from 'react';
+import Image from 'next/image';
 import type { Row } from '@tanstack/react-table';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Icons } from '@/components/icons';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { cn } from '@/lib/utils';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import type { Patient } from '../../api/types';
-import { getInitials, getRelationshipStatusKey, getRelationshipLabel } from './columns-helpers';
+import { getRelationshipStatusKey, getRelationshipLabel } from './columns-helpers';
 
 export function PatientNameCell({ row }: { row: Row<Patient> }) {
   const patient = row.original;
@@ -54,19 +56,24 @@ export function PatientNameCell({ row }: { row: Row<Patient> }) {
       {/* Avatar */}
       <Avatar
         className={cn(
-          'shrink-0 border border-border/40 transition-all',
+          'shrink-0 border border-border/40 transition-all overflow-hidden',
           isSubRow ? 'h-7 w-7 rounded-md' : 'h-8 w-8 rounded-lg'
         )}
       >
-        <AvatarFallback
-          className={cn(
-            'font-bold',
-            isSubRow
-              ? 'rounded-md text-[10px] bg-muted text-muted-foreground'
-              : 'rounded-lg text-xs bg-primary/10 text-primary'
-          )}
-        >
-          {getInitials(patient.name)}
+        <AvatarImage
+          src={patient.avatarUrl || patient.avatar || DEFAULT_AVATAR_PATH}
+          alt={patient.name}
+          className='size-full object-cover aspect-square'
+        />
+        <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
+          <Image
+            src={DEFAULT_AVATAR_PATH}
+            alt={patient.name}
+            width={32}
+            height={32}
+            unoptimized
+            className='size-full object-cover aspect-square'
+          />
         </AvatarFallback>
       </Avatar>
 

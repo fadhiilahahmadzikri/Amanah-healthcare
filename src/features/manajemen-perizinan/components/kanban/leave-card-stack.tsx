@@ -122,6 +122,18 @@ export function LeaveCardStack({
             );
           })}
         </div>
+
+        {/* Bottom Centered Collapse Pill */}
+        <div className='flex justify-center pt-0.5 select-none'>
+          <button
+            type='button'
+            onClick={() => setIsExpanded(false)}
+            className='inline-flex items-center px-3 py-0.5 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80 text-[10.5px] font-medium transition-colors cursor-pointer select-none'
+            title='Ciutkan kartu tumpukan'
+          >
+            Ciutkan
+          </button>
+        </div>
       </div>
     );
   }
@@ -169,7 +181,7 @@ export function LeaveCardStack({
           />
 
           {/* Floating Stacking Pill Badge */}
-          <div className='absolute -top-2.5 right-3 z-30'>
+          <div className='absolute -top-2.5 left-1/2 -translate-x-1/2 z-30 select-none'>
             <button
               type='button'
               onClick={(e) => {
@@ -177,12 +189,10 @@ export function LeaveCardStack({
                 setIsExpanded(true);
               }}
               onPointerDown={(e) => e.stopPropagation()}
-              className='inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-background/95 backdrop-blur-md border border-primary/30 text-primary hover:bg-primary/10 text-[10.5px] font-semibold transition-colors cursor-pointer'
-              title='Klik untuk membuka seluruh tumpukan permohonan staf ini'
+              className='inline-flex items-center px-3 py-0.5 rounded-full bg-secondary text-secondary-foreground hover:bg-secondary/80 text-[10.5px] font-medium transition-colors cursor-pointer whitespace-nowrap'
+              title={`Lihat ${itemCount - 1} lainnya`}
             >
-              <Icons.layers className='size-3 text-primary' />
-              <span>+{itemCount - 1} Lainnya • Buka</span>
-              <Icons.chevronDown className='size-3 text-primary' />
+              Lihat {itemCount - 1} lainnya
             </button>
           </div>
         </div>

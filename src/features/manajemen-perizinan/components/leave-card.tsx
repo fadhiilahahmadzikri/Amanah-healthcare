@@ -1,9 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Icons } from '@/components/icons';
 import { MasterEntityCard, EntityCardPrimaryAction } from '@/components/cards/master-entity-card';
-import { formatClinicDate } from '@/lib/date-format';
+import { LeaveBookingDateRoute } from './leave-booking-date-route';
 import type { LeaveRequestItem } from '../api/types';
 
 export interface LeaveCardProps {
@@ -86,33 +85,7 @@ export function LeaveCard({
       }
       avatarUrl={staff?.avatarUrl}
       initials={initials}
-      contentSlot={
-        <div className='flex flex-col gap-1.5 min-w-0'>
-          {/* Rentang tanggal & durasi */}
-          <div className='flex items-center gap-1.5 text-xs text-foreground font-medium truncate'>
-            <Icons.calendar className='size-3.5 text-primary shrink-0' />
-            <span className='truncate'>
-              {formatClinicDate(leave.startDate, { style: 'human_medium' })}
-              {leave.endDate !== leave.startDate
-                ? ` s.d ${formatClinicDate(leave.endDate, { style: 'human_medium' })}`
-                : ''}
-            </span>
-            <span className='text-[11px] text-muted-foreground font-normal shrink-0'>
-              ({leave.durationDays} hari)
-            </span>
-          </div>
-
-          {/* Lingkup jadwal */}
-          <div className='flex items-center gap-1 text-[11px] text-muted-foreground font-normal truncate'>
-            <Icons.clock className='size-3 shrink-0' />
-            <span>
-              {leave.scope === 'session' && leave.sessions && leave.sessions.length > 0
-                ? `${leave.sessions.length} Sesi Terjadwal`
-                : '1 Hari Penuh'}
-            </span>
-          </div>
-        </div>
-      }
+      contentSlot={<LeaveBookingDateRoute leave={leave} />}
       primaryAction={primaryAction}
       showActions={true}
       onCardClick={handleContainerClick}

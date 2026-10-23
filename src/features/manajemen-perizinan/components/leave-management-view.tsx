@@ -120,9 +120,9 @@ export function LeaveManagementView() {
           />
         </div>
 
-        {/* Active Filter Mode Alert Banner */}
+        {/* Active Filter Mode Alert Banner (Desktop Only) */}
         {filters.hasActiveFilters && (
-          <div className='flex items-center justify-between px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-xs shrink-0 animate-in fade-in duration-200'>
+          <div className='hidden md:flex items-center justify-between px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-xs shrink-0 animate-in fade-in duration-200'>
             <div className='flex items-center gap-1.5'>
               <Icons.info className='size-3.5 shrink-0 text-amber-600 dark:text-amber-400' />
               <span>
@@ -141,15 +141,28 @@ export function LeaveManagementView() {
           </div>
         )}
 
-        {/* Main Content Area: Kanban Board vs Flatten Card Grid */}
+        {/* Main Content Area: Responsive Mobile Feed vs Desktop Kanban/Grid */}
         <div className='relative flex flex-1 min-h-0 flex-col overflow-hidden'>
           {isLoading && leaves.length === 0 ? (
             <div className='absolute inset-0 flex overflow-hidden'>
-              <ScrollArea className='h-full w-full pr-0 md:pr-3'>
-                <div className='pb-20 pt-1'>
-                  <EntityCardGridSkeleton count={6} />
-                </div>
-              </ScrollArea>
+              {/* Mobile Skeleton Feed */}
+              <div className='block md:hidden w-full px-1 pb-20 pt-1 space-y-3'>
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className='h-[188px] rounded-[22px] bg-muted/20 animate-pulse border border-border/40'
+                  />
+                ))}
+              </div>
+
+              {/* Desktop Skeleton Grid */}
+              <div className='hidden md:block w-full'>
+                <ScrollArea className='h-full w-full pr-3'>
+                  <div className='pb-20 pt-1'>
+                    <EntityCardGridSkeleton count={6} />
+                  </div>
+                </ScrollArea>
+              </div>
             </div>
           ) : filters.filteredLeaves.length === 0 ? (
             <div className='flex flex-1 min-h-0 h-full w-full flex-col'>
@@ -176,12 +189,12 @@ export function LeaveManagementView() {
                 className='h-full w-full flex-1'
               />
             </div>
-          ) : viewMode.isFlattenMode ? (
-            /* Flatten List/Grid Mode (Used when filters are active or user prefers list) */
-            <div className='absolute inset-0 flex overflow-hidden'>
-              <ScrollArea className='h-full w-full pr-0 md:pr-3'>
-                <div className='pb-20 pt-1'>
-                  <EntityCardGrid>
+          ) : (
+            <>
+              {/* Mobile View: Pure Vertical Card Feed (NO KANBAN) */}
+              <div className='block md:hidden absolute inset-0 overflow-hidden'>
+                <ScrollArea className='h-full w-full'>
+                  <div className='flex flex-col gap-3 pb-24 pt-1 px-1'>
                     {filters.filteredLeaves.map((leave) => (
                       <LeaveCard
                         key={leave.id}
@@ -190,20 +203,37 @@ export function LeaveManagementView() {
                         isSelected={detailModal.selectedLeave?.id === leave.id}
                       />
                     ))}
-                  </EntityCardGrid>
-                </div>
-              </ScrollArea>
-            </div>
-          ) : (
-            /* Standard Kanban Board Mode with User Stacking & Drag-and-Drop */
-            <div className='absolute inset-0 flex overflow-hidden'>
-              <LeaveKanbanBoard
-                leaves={leaves}
-                onSelectLeave={detailModal.open}
-                selectedLeaveId={detailModal.selectedLeave?.id}
-                onReviewLeave={reviewLeave}
-              />
-            </div>
+                  </div>
+                </ScrollArea>
+              </div>
+
+              {/* Desktop View: Kanban Board vs Multi-Column Grid */}
+              <div className='hidden md:flex absolute inset-0 overflow-hidden'>
+                {viewMode.isFlattenMode ? (
+                  <ScrollArea className='h-full w-full pr-3'>
+                    <div className='pb-20 pt-1'>
+                      <EntityCardGrid>
+                        {filters.filteredLeaves.map((leave) => (
+                          <LeaveCard
+                            key={leave.id}
+                            leave={leave}
+                            onSelect={detailModal.open}
+                            isSelected={detailModal.selectedLeave?.id === leave.id}
+                          />
+                        ))}
+                      </EntityCardGrid>
+                    </div>
+                  </ScrollArea>
+                ) : (
+                  <LeaveKanbanBoard
+                    leaves={leaves}
+                    onSelectLeave={detailModal.open}
+                    selectedLeaveId={detailModal.selectedLeave?.id}
+                    onReviewLeave={reviewLeave}
+                  />
+                )}
+              </div>
+            </>
           )}
         </div>
       </div>

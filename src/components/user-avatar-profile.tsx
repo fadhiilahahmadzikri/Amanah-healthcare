@@ -1,4 +1,6 @@
+import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 
 interface UserAvatarProfileProps {
   className?: string;
@@ -17,13 +19,21 @@ export function UserAvatarProfile({ className, showInfo = false, user }: UserAva
   const displayName = user?.name || user?.fullName || 'User';
   const displayEmail = user?.email || user?.emailAddresses?.[0]?.emailAddress || '';
   const displayImage = user?.image || user?.imageUrl || '';
-  const initials = displayName.slice(0, 2).toUpperCase() || 'U';
 
   return (
     <div className='flex items-center gap-2'>
       <Avatar className={className}>
-        <AvatarImage src={displayImage} alt={displayName} />
-        <AvatarFallback className='rounded-lg'>{initials}</AvatarFallback>
+        <AvatarImage src={displayImage || DEFAULT_AVATAR_PATH} alt={displayName} />
+        <AvatarFallback className='rounded-lg p-0 bg-transparent overflow-hidden'>
+          <Image
+            src={DEFAULT_AVATAR_PATH}
+            alt={displayName}
+            width={40}
+            height={40}
+            unoptimized
+            className='size-full object-cover rounded-lg aspect-square'
+          />
+        </AvatarFallback>
       </Avatar>
 
       {showInfo && (

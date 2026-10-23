@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ClinicNotification } from '../types';
@@ -74,15 +76,20 @@ export function NotificationsListTable({
                   <td className='py-3 px-3' aria-label={`Notifikasi dari ${item.sender}`}>
                     <div className='flex items-center gap-2.5'>
                       <Avatar className='size-8 shrink-0 ring-1 ring-border bg-muted'>
-                        {item.avatar ? (
-                          <AvatarImage
-                            src={item.avatar}
+                        <AvatarImage
+                          src={item.avatar || DEFAULT_AVATAR_PATH}
+                          alt={item.sender}
+                          className='object-cover'
+                        />
+                        <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
+                          <Image
+                            src={DEFAULT_AVATAR_PATH}
                             alt={item.sender}
-                            className='object-cover'
+                            width={32}
+                            height={32}
+                            unoptimized
+                            className='size-full rounded-full object-cover'
                           />
-                        ) : null}
-                        <AvatarFallback className='bg-primary/10 text-primary font-bold text-[10px]'>
-                          {item.sender.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className='min-w-0'>

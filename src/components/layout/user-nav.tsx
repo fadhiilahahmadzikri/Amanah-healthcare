@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -11,6 +12,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { signOut } from '@/lib/auth-client';
 import { logoutAction } from '@/server/actions/auth.actions';
 import { useAuthContext } from '@/lib/rbac/auth-context';
@@ -21,8 +23,6 @@ export function UserNav() {
   const router = useRouter();
 
   if (!isReady || !user) return null;
-
-  const initials = (user.name || user.email || 'U').slice(0, 2).toUpperCase();
 
   async function handleSignOut() {
     try {
@@ -43,8 +43,17 @@ export function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button variant='ghost' className='relative h-8 w-8 rounded-full'>
           <Avatar className='h-8 w-8'>
-            <AvatarImage src={user.image || ''} alt={user.name || ''} />
-            <AvatarFallback>{initials}</AvatarFallback>
+            <AvatarImage src={user.image || DEFAULT_AVATAR_PATH} alt={user.name || ''} />
+            <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
+              <Image
+                src={DEFAULT_AVATAR_PATH}
+                alt={user.name || 'User'}
+                width={32}
+                height={32}
+                unoptimized
+                className='size-full object-cover rounded-full aspect-square'
+              />
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>

@@ -1,12 +1,14 @@
 'use client';
 
 import React from 'react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import Image from 'next/image';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Icons } from '@/components/icons';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import type { Conversation } from '../utils/types';
 
 interface PatientCrmSidebarProps {
@@ -33,14 +35,6 @@ export function PatientCrmSidebar({ conversation, onCloseConversation }: Patient
     );
   }
 
-  const initials =
-    conversation.customerName
-      ?.split(' ')
-      .map((n) => n[0])
-      .slice(0, 2)
-      .join('')
-      .toUpperCase() || '-';
-
   const isGuest = !conversation.userId && Boolean(conversation.guestId);
   const isOpen = conversation.status === 'open';
 
@@ -48,9 +42,25 @@ export function PatientCrmSidebar({ conversation, onCloseConversation }: Patient
     <aside className='w-[280px] bg-card flex flex-col justify-between overflow-y-auto p-4 shrink-0 select-none border-l border-border/60'>
       <div className='flex flex-col items-center text-center'>
         {/* Avatar & Name */}
-        <Avatar className='size-[56px] rounded-full ring-2 ring-primary/20 shadow-xs mt-2'>
-          <AvatarFallback className='text-sm font-bold bg-primary/10 text-primary'>
-            {initials}
+        <Avatar className='size-[56px] rounded-full ring-2 ring-primary/20 shadow-xs mt-2 overflow-hidden'>
+          <AvatarImage
+            src={
+              conversation.userId
+                ? `/api/v1/users/${conversation.userId}/avatar`
+                : DEFAULT_AVATAR_PATH
+            }
+            alt={conversation.customerName || 'Pasien'}
+            className='size-full object-cover aspect-square rounded-full'
+          />
+          <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
+            <Image
+              src={DEFAULT_AVATAR_PATH}
+              alt={conversation.customerName || 'Pasien'}
+              width={56}
+              height={56}
+              unoptimized
+              className='size-full object-cover rounded-full aspect-square'
+            />
           </AvatarFallback>
         </Avatar>
 

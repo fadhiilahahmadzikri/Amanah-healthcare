@@ -1,9 +1,12 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { ENTRY_TYPE_CONFIG, SOURCE_TYPE_LABELS } from '../constants/options';
 import { formatCurrency } from '../utils/currency';
 import { useStaffPayrollReport } from '../model/useStaffPayrollReport';
@@ -56,13 +59,23 @@ export function PayrollSlipDetailModal({
         {/* Pinned Header */}
         <div className='shrink-0 pb-3.5 border-b border-border/50 flex items-start justify-between gap-3'>
           <div className='flex items-center gap-3 min-w-0'>
-            <div className='size-11 rounded-xl bg-muted text-foreground flex items-center justify-center font-bold text-sm shrink-0 border border-border/50'>
-              {staffSummary.fullName
-                .split(' ')
-                .map((n) => n[0])
-                .slice(0, 2)
-                .join('')}
-            </div>
+            <Avatar className='size-11 rounded-xl shrink-0 border border-border/50'>
+              <AvatarImage
+                src={staffSummary.avatarUrl || DEFAULT_AVATAR_PATH}
+                alt={staffSummary.fullName}
+                className='rounded-xl object-cover'
+              />
+              <AvatarFallback className='rounded-xl p-0 bg-transparent overflow-hidden'>
+                <Image
+                  src={DEFAULT_AVATAR_PATH}
+                  alt={staffSummary.fullName}
+                  width={44}
+                  height={44}
+                  unoptimized
+                  className='size-full rounded-xl object-cover'
+                />
+              </AvatarFallback>
+            </Avatar>
             <div className='min-w-0'>
               <div className='flex items-center gap-2 flex-wrap'>
                 <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight truncate'>

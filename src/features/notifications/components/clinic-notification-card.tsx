@@ -1,9 +1,11 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Icons } from '@/components/icons';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { ClinicNotification, NotificationActionItem } from '../types';
@@ -112,10 +114,7 @@ export function ClinicNotificationCard({
       case 'user-plus':
       case 'user':
         return (
-          <Icons.user
-            className='size-2.5 sm:size-3 text-primary-foreground'
-            strokeWidth={2.5}
-          />
+          <Icons.user className='size-2.5 sm:size-3 text-primary-foreground' strokeWidth={2.5} />
         );
       case 'bell':
         return (
@@ -126,18 +125,12 @@ export function ClinicNotificationCard({
         );
       case 'clock':
         return (
-          <Icons.clock
-            className='size-2.5 sm:size-3 text-primary-foreground'
-            strokeWidth={2.5}
-          />
+          <Icons.clock className='size-2.5 sm:size-3 text-primary-foreground' strokeWidth={2.5} />
         );
       case 'check-circle':
       case 'check':
         return (
-          <Icons.check
-            className='size-2.5 sm:size-3 text-primary-foreground'
-            strokeWidth={2.5}
-          />
+          <Icons.check className='size-2.5 sm:size-3 text-primary-foreground' strokeWidth={2.5} />
         );
       case 'alert-circle':
         return (
@@ -262,15 +255,20 @@ export function ClinicNotificationCard({
 
           <div className='relative shrink-0'>
             <Avatar className='size-10 sm:size-11 ring-1 ring-border/60 bg-muted'>
-              {notification.avatar ? (
-                <AvatarImage
-                  src={notification.avatar}
+              <AvatarImage
+                src={notification.avatar || DEFAULT_AVATAR_PATH}
+                alt={notification.sender}
+                className='object-cover object-center'
+              />
+              <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
+                <Image
+                  src={DEFAULT_AVATAR_PATH}
                   alt={notification.sender}
-                  className='object-cover object-center'
+                  width={44}
+                  height={44}
+                  unoptimized
+                  className='size-full rounded-full object-cover'
                 />
-              ) : null}
-              <AvatarFallback className='bg-primary/10 text-primary font-bold text-xs sm:text-sm'>
-                {notification.sender.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             {notification.badgeIcon && (

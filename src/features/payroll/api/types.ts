@@ -29,6 +29,7 @@ export interface PayrollSummaryItem {
   staffId: string;
   staffCode?: string;
   fullName: string;
+  avatarUrl?: string | null;
   staffType: StaffCategory;
   positionTitle?: string;
   departmentName?: string;

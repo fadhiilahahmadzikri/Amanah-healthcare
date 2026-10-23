@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import Image from 'next/image';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import type { ChatMessage, Conversation } from '../utils/types';
 
 interface ChatMainAreaProps {
@@ -79,14 +81,6 @@ export function ChatMainArea({
     );
   }
 
-  const initials =
-    conversation.customerName
-      ?.split(' ')
-      .map((n) => n[0])
-      .slice(0, 2)
-      .join('')
-      .toUpperCase() || '-';
-
   const subtitle = conversation.medicalRecordNumber
     ? `No. RM: ${conversation.medicalRecordNumber}`
     : conversation.guestEmail
@@ -99,9 +93,25 @@ export function ChatMainArea({
       <header className='h-[48px] px-4 border-b border-border/60 bg-card/60 flex items-center justify-between shrink-0'>
         <div className='flex items-center gap-2.5 min-w-0'>
           <div className='relative'>
-            <Avatar className='size-7 rounded-full ring-1 ring-border/40'>
-              <AvatarFallback className='text-[9px] bg-primary/10 text-primary font-bold'>
-                {initials}
+            <Avatar className='size-7 rounded-full ring-1 ring-border/40 overflow-hidden'>
+              <AvatarImage
+                src={
+                  conversation.userId
+                    ? `/api/v1/users/${conversation.userId}/avatar`
+                    : DEFAULT_AVATAR_PATH
+                }
+                alt={conversation.customerName || 'Pasien'}
+                className='size-full object-cover aspect-square rounded-full'
+              />
+              <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
+                <Image
+                  src={DEFAULT_AVATAR_PATH}
+                  alt={conversation.customerName || 'Pasien'}
+                  width={28}
+                  height={28}
+                  unoptimized
+                  className='size-full object-cover rounded-full aspect-square'
+                />
               </AvatarFallback>
             </Avatar>
             <span

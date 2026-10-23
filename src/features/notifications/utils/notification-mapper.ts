@@ -58,8 +58,6 @@ export function mapBackendToClinicNotification(backend: BackendNotification): Cl
     icon: undefined
   }));
 
-  const metaPatientAvatar =
-    typeof backend.metadata?.patientAvatarUrl === 'string' ? backend.metadata.patientAvatarUrl : '';
   const metaAvatar =
     typeof backend.metadata?.avatarUrl === 'string' ? backend.metadata.avatarUrl : '';
   const metaPatientUserId =
@@ -67,7 +65,6 @@ export function mapBackendToClinicNotification(backend: BackendNotification): Cl
 
   const rawAvatar =
     backend.visualKey ||
-    metaPatientAvatar ||
     metaAvatar ||
     (metaPatientUserId ? `/api/v1/users/${metaPatientUserId}/avatar` : '') ||
     '';

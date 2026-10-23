@@ -1,10 +1,10 @@
 import type { PatientMutationPayload, PatientBloodType } from './types';
 import type { PatientRegistrationFormValues } from '../schemas/patient-registration-schema';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 
 export const PATIENT_REGISTRATION_COMPLETED_COOKIE = 'patient_registration_completed';
 export const PATIENT_REGISTRATION_COMPLETED_METADATA_KEY = 'patientRegistrationCompleted';
 
-const DEFAULT_PATIENT_AVATAR = '/logo-symbol-only.png';
 const DEFAULT_VISIT_LABEL = 'Belum ada kunjungan';
 const MEDICAL_RECORD_PADDING = 4;
 const CLINIC_TIME_ZONE = process.env.NEXT_PUBLIC_CLINIC_TIMEZONE || 'Asia/Jakarta';
@@ -86,7 +86,8 @@ export function buildPatientMutationPayload({
     tanggal_lahir: formatIsoDateForPatient(values.birth_date),
     blood_type: values.blood_type as PatientBloodType,
     address,
-    avatar: user.imageUrl || DEFAULT_PATIENT_AVATAR,
+    avatar: user.imageUrl || DEFAULT_AVATAR_PATH,
+    avatarUrl: user.imageUrl || DEFAULT_AVATAR_PATH,
     allergies: [],
     emergency_contact: '',
     medical_history: '',

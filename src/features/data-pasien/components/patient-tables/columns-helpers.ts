@@ -1,13 +1,3 @@
-export const getInitials = (name: string) => {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .filter(Boolean)
-    .join('')
-    .substring(0, 2)
-    .toUpperCase();
-};
-
 export function getRelationshipStatusKey(type?: string | null): string {
   const normType = (type || '').toLowerCase();
   switch (normType) {

@@ -1,9 +1,11 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { QueueItem } from '../api/types';
 import { cn } from '@/lib/utils';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 
 export interface QueueSeatCardProps {
   item: QueueItem;
@@ -13,16 +15,6 @@ export interface QueueSeatCardProps {
 }
 
 export function QueueSeatCard({ item, isNext = false, className, onClick }: QueueSeatCardProps) {
-  const cleanName = item.patient_name
-    .replace(/^drg?\.?\s*/i, '')
-    .split(',')[0]
-    .trim();
-  const nameParts = cleanName.split(' ').filter(Boolean);
-  const initials =
-    nameParts.length >= 2
-      ? `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase()
-      : cleanName.slice(0, 2).toUpperCase() || '-';
-
   return (
     <div
       id={`seat-card-${item.queue_number}`}
@@ -77,8 +69,15 @@ export function QueueSeatCard({ item, isNext = false, className, onClick }: Queu
               : 'border-border/60 bg-muted/20'
           )}
         >
-          <div className='w-full h-full rounded-[9px] overflow-hidden bg-primary/10 text-primary flex items-center justify-center font-bold text-[10px] select-none'>
-            <span>{initials}</span>
+          <div className='w-full h-full rounded-[9px] overflow-hidden bg-muted flex items-center justify-center font-bold text-[10px] select-none'>
+            <Image
+              src={item.patient_avatar || DEFAULT_AVATAR_PATH}
+              alt={item.patient_name || 'Pasien'}
+              width={40}
+              height={40}
+              unoptimized
+              className='size-full object-cover rounded-[9px]'
+            />
           </div>
         </div>
       </div>

@@ -1,8 +1,10 @@
 import type React from 'react';
+import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import {
@@ -174,20 +176,23 @@ export function StaffIdentitySection({
   photoUrl?: string | null;
   profession?: string | null;
 }) {
-  const initials = (() => {
-    const parts = (fullName || '').trim().split(/\s+/);
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return (parts[0]?.[0] || 'S').toUpperCase();
-  })();
-
   return (
     <div className='flex items-start gap-3 min-w-0 relative z-20 mt-2.5'>
-      <Avatar className='size-10 sm:size-11 rounded-full ring-2 ring-primary/20 shrink-0 shadow-2xs'>
-        {photoUrl ? <AvatarImage src={photoUrl} alt={fullName} className='object-cover' /> : null}
-        <AvatarFallback className='bg-primary/10 text-primary font-bold text-xs uppercase'>
-          {initials}
+      <Avatar className='size-10 sm:size-11 rounded-full ring-2 ring-primary/20 shrink-0 shadow-2xs overflow-hidden'>
+        <AvatarImage
+          src={photoUrl || DEFAULT_AVATAR_PATH}
+          alt={fullName}
+          className='object-cover size-full aspect-square'
+        />
+        <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
+          <Image
+            src={DEFAULT_AVATAR_PATH}
+            alt={fullName}
+            width={44}
+            height={44}
+            unoptimized
+            className='size-full object-cover rounded-full aspect-square'
+          />
         </AvatarFallback>
       </Avatar>
 

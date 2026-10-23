@@ -1,8 +1,11 @@
 'use client';
 
+import Image from 'next/image';
 import { Column, ColumnDef } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { APPOINTMENT_STATUS_OPTIONS } from '../../constants/appointment-status.dictionary';
@@ -13,15 +16,6 @@ import type { Option } from '@/types/data-table';
 import { CellAction } from './cell-action';
 import { formatClinicDate, formatClinicTime } from '@/lib/date-format';
 import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
-
-const getInitials = (name: string) => {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .substring(0, 2)
-    .toUpperCase();
-};
 
 const formatTimeOnly = (isoString?: string | null) => {
   if (!isoString) return '-';
@@ -100,11 +94,26 @@ export function getAppointmentColumns(
       ),
       cell: ({ row }) => {
         const appt = row.original;
+        const avatar = appt.avatarUrl || DEFAULT_AVATAR_PATH;
         return (
           <div className='flex items-center gap-3'>
-            <div className='h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 select-none'>
-              {getInitials(appt.patientName)}
-            </div>
+            <Avatar className='h-8 w-8 rounded-lg shrink-0'>
+              <AvatarImage
+                src={avatar}
+                alt={appt.patientName}
+                className='rounded-lg object-cover'
+              />
+              <AvatarFallback className='rounded-lg p-0 bg-transparent overflow-hidden'>
+                <Image
+                  src={DEFAULT_AVATAR_PATH}
+                  alt={appt.patientName}
+                  width={32}
+                  height={32}
+                  unoptimized
+                  className='size-full rounded-lg object-cover'
+                />
+              </AvatarFallback>
+            </Avatar>
             <div className='flex flex-col'>
               <div className='flex items-center gap-1.5'>
                 <span className='font-semibold leading-none text-sm text-foreground'>

@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import Image from 'next/image';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { EmptyState } from '@/components/ui/empty-state';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { useViewer } from '@/features/notifications/hooks/use-viewer';
 import { emitAdminSocketEvent } from '@/features/notifications/hooks/use-notification-socket';
 import { chatApiService } from '../api/chat-api-service';
@@ -259,13 +261,25 @@ export function PatientChatView() {
   const patientName = viewer?.viewer?.name || 'Pasien';
 
   return (
-    <div className='w-full h-[calc(100vh-140px)] min-h-[580px] bg-card border border-border/80 rounded-[10px] overflow-hidden shadow-xs flex flex-col select-none'>
+    <div className='w-full h-full flex-1 min-h-0 bg-card border border-border/80 rounded-[10px] overflow-hidden shadow-xs flex flex-col select-none'>
       {/* 1. Top Header */}
       <header className='h-[56px] px-4 sm:px-6 border-b border-border/60 bg-card/80 flex items-center justify-between shrink-0'>
         <div className='flex items-center gap-3'>
-          <Avatar className='size-9 rounded-full ring-1 ring-primary/20 bg-primary/10 text-primary'>
-            <AvatarFallback className='text-xs font-bold bg-transparent text-primary'>
-              AH
+          <Avatar className='size-9 rounded-full ring-1 ring-primary/20 overflow-hidden'>
+            <AvatarImage
+              src={DEFAULT_AVATAR_PATH}
+              alt='Konsultasi & Layanan Amanah'
+              className='size-full object-cover aspect-square rounded-full'
+            />
+            <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
+              <Image
+                src={DEFAULT_AVATAR_PATH}
+                alt='Konsultasi & Layanan Amanah'
+                width={36}
+                height={36}
+                unoptimized
+                className='size-full object-cover rounded-full aspect-square'
+              />
             </AvatarFallback>
           </Avatar>
           <div className='flex flex-col'>

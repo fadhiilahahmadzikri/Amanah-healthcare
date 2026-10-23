@@ -239,3 +239,39 @@ export function getClinicTodayDateString(): string {
   return formatClinicDate(new Date(), { style: 'iso' });
 }
 
+export interface ClinicDateTokens {
+  day: string;
+  monthShort: string;
+  monthUpper: string;
+  monthFull: string;
+  weekday: string;
+  year: string;
+}
+
+/**
+ * Menguraikan tanggal menjadi komponen terstruktur (hari, bulan, tahun, hari dalam minggu)
+ * dengan garansi bebas timezone drift dan mengikuti locale aktif klinik (SSOT).
+ */
+export function getClinicDateTokens(
+  date: string | Date | number | null | undefined,
+  locale = activeClinicLocale
+): ClinicDateTokens | null {
+  const parts = parseDateParts(date);
+  if (!parts) return null;
+
+  const day = String(parts.day);
+  const year = String(parts.year);
+
+  const monthShort = new Intl.DateTimeFormat(locale, { month: 'short', timeZone: 'UTC' }).format(
+    parts.dateObj
+  );
+  const monthUpper = monthShort.toUpperCase().replace('.', '');
+  const monthFull = new Intl.DateTimeFormat(locale, { month: 'long', timeZone: 'UTC' }).format(
+    parts.dateObj
+  );
+  const weekday = new Intl.DateTimeFormat(locale, { weekday: 'long', timeZone: 'UTC' }).format(
+    parts.dateObj
+  );
+
+  return { day, monthShort, monthUpper, monthFull, weekday, year };
+}

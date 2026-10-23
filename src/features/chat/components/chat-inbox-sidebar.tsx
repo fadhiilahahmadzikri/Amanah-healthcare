@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import Image from 'next/image';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import type { Conversation } from '../utils/types';
 
 interface ChatInboxSidebarProps {
@@ -139,13 +141,6 @@ export function ChatInboxSidebar({ conversations, selectedId, onSelect }: ChatIn
         ) : (
           filteredConversations.map((c) => {
             const isSelected = selectedId === c.id;
-            const initials =
-              c.customerName
-                ?.split(' ')
-                .map((n) => n[0])
-                .slice(0, 2)
-                .join('')
-                .toUpperCase() || '-';
 
             return (
               <button
@@ -158,9 +153,21 @@ export function ChatInboxSidebar({ conversations, selectedId, onSelect }: ChatIn
                 )}
               >
                 <div className='relative shrink-0 mt-0.5'>
-                  <Avatar className='size-7 rounded-full ring-1 ring-border/40'>
-                    <AvatarFallback className='text-[9px] bg-primary/10 text-primary font-bold'>
-                      {initials}
+                  <Avatar className='size-7 rounded-full ring-1 ring-border/40 overflow-hidden'>
+                    <AvatarImage
+                      src={c.userId ? `/api/v1/users/${c.userId}/avatar` : DEFAULT_AVATAR_PATH}
+                      alt={c.customerName || 'Pasien'}
+                      className='size-full object-cover aspect-square rounded-full'
+                    />
+                    <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
+                      <Image
+                        src={DEFAULT_AVATAR_PATH}
+                        alt={c.customerName || 'Pasien'}
+                        width={28}
+                        height={28}
+                        unoptimized
+                        className='size-full object-cover rounded-full aspect-square'
+                      />
                     </AvatarFallback>
                   </Avatar>
                   {(c.unreadCount || 0) > 0 && (

@@ -27,6 +27,7 @@ export interface Patient {
   patient_id: string; // Medical Record Number (e.g. RM-202610-0004)
   name: string;
   avatar?: string;
+  avatarUrl?: string;
   masked_nik: string;
   nik?: string;
   nik_ktp?: string;

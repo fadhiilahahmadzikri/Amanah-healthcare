@@ -1,10 +1,13 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Icons } from '@/components/icons';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { formatCurrency } from '../utils/currency';
 import type { PayrollSummaryItem } from '../api/types';
 
@@ -17,15 +20,6 @@ export interface PayrollMobileCardsProps {
   exportingStaffId?: string | null;
   isLoading?: boolean;
 }
-
-const getInitials = (name: string) => {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-};
 
 export function PayrollMobileCards({
   summaries,
@@ -87,9 +81,23 @@ export function PayrollMobileCards({
             <div className='flex items-center justify-between gap-3'>
               {/* Left: Essential Staff Identity */}
               <div className='flex items-center gap-2.5 min-w-0'>
-                <div className='size-8 rounded-lg bg-muted text-foreground font-semibold text-xs flex items-center justify-center shrink-0 select-none'>
-                  {getInitials(staff.fullName)}
-                </div>
+                <Avatar className='size-8 rounded-lg shrink-0'>
+                  <AvatarImage
+                    src={staff.avatarUrl || DEFAULT_AVATAR_PATH}
+                    alt={staff.fullName}
+                    className='rounded-lg object-cover'
+                  />
+                  <AvatarFallback className='rounded-lg p-0 bg-transparent overflow-hidden'>
+                    <Image
+                      src={DEFAULT_AVATAR_PATH}
+                      alt={staff.fullName}
+                      width={32}
+                      height={32}
+                      unoptimized
+                      className='size-full rounded-lg object-cover'
+                    />
+                  </AvatarFallback>
+                </Avatar>
                 <div className='min-w-0'>
                   <p className='font-semibold text-xs text-foreground truncate'>{staff.fullName}</p>
                   <p className='text-[11px] text-muted-foreground capitalize mt-0.5 truncate'>

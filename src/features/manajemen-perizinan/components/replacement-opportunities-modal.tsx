@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Icons } from '@/components/icons';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { formatClinicDate } from '@/lib/date-format';
 import { cn } from '@/lib/utils';
 import { useReplacementsQuery } from '../api/queries';
@@ -223,11 +225,19 @@ export function ReplacementOpportunitiesModal({
                           <div className='flex items-center gap-2 min-w-0'>
                             <Avatar className='size-7 rounded-lg border border-border/50 shrink-0'>
                               <AvatarImage
-                                src={item.originalStaffAvatarUrl || ''}
+                                src={item.originalStaffAvatarUrl || DEFAULT_AVATAR_PATH}
                                 alt={item.originalStaffName || 'Staf'}
+                                className='rounded-lg object-cover'
                               />
-                              <AvatarFallback className='rounded-lg text-[10px] font-semibold bg-primary/10 text-primary'>
-                                {(item.originalStaffName || 'S').charAt(0).toUpperCase()}
+                              <AvatarFallback className='rounded-lg p-0 bg-transparent overflow-hidden'>
+                                <Image
+                                  src={DEFAULT_AVATAR_PATH}
+                                  alt={item.originalStaffName || 'Staf'}
+                                  width={28}
+                                  height={28}
+                                  unoptimized
+                                  className='size-full rounded-lg object-cover'
+                                />
                               </AvatarFallback>
                             </Avatar>
                             <div className='min-w-0 flex-1'>
@@ -257,11 +267,19 @@ export function ReplacementOpportunitiesModal({
                             <div className='flex items-center gap-2 min-w-0'>
                               <Avatar className='size-7 rounded-lg border border-border/50 shrink-0'>
                                 <AvatarImage
-                                  src={item.claimedByAvatarUrl || ''}
+                                  src={item.claimedByAvatarUrl || DEFAULT_AVATAR_PATH}
                                   alt={item.claimedByName || 'Pengganti'}
+                                  className='rounded-lg object-cover'
                                 />
-                                <AvatarFallback className='rounded-lg text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'>
-                                  {(item.claimedByName || 'P').charAt(0).toUpperCase()}
+                                <AvatarFallback className='rounded-lg p-0 bg-transparent overflow-hidden'>
+                                  <Image
+                                    src={DEFAULT_AVATAR_PATH}
+                                    alt={item.claimedByName || 'Pengganti'}
+                                    width={28}
+                                    height={28}
+                                    unoptimized
+                                    className='size-full rounded-lg object-cover'
+                                  />
                                 </AvatarFallback>
                               </Avatar>
                               <div className='min-w-0 flex-1'>

@@ -116,7 +116,7 @@ export function ChangeDoctorModal({
       status_dokter: 'OPEN',
       ruang_praktik: '-',
       tanggal_praktik: candidatesData?.scheduledDate || '',
-      avatar: null,
+      avatar: doc.avatarUrl || null,
       jadwal_hari_ini: '-',
       jadwal_praktik_mendatang: '-',
       status_jadwal: 'OPEN',
@@ -358,7 +358,11 @@ export function ChangeDoctorModal({
                       >
                         <div className='flex items-center gap-3 min-w-0 flex-1'>
                           <div className='size-10 min-w-10 rounded-full overflow-hidden shrink-0 ring-1 ring-border/40'>
-                            <DoctorAvatar name={doctor.name} size={40} />
+                            <DoctorAvatar
+                              name={doctor.name}
+                              avatarUrl={doctor.avatarUrl || undefined}
+                              size={40}
+                            />
                           </div>
                           <div className='min-w-0 flex-1'>
                             <div className='flex items-center gap-2 flex-wrap'>

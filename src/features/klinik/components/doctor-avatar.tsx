@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 
 export interface DoctorAvatarProps {
   name: string;
@@ -23,28 +24,16 @@ export function DoctorAvatar({
 
   const radiusClass = roundedClassName !== undefined ? roundedClassName : 'rounded-full';
 
-  // Extract initials (e.g. "dr. Maya Indah, Sp.OG" -> "MI" or "SP")
-  const cleanName = name
-    .replace(/^drg?\.?\s*/i, '')
-    .split(',')[0]
-    .trim();
-  const nameParts = cleanName.split(' ').filter(Boolean);
-  const initials =
-    nameParts.length >= 2
-      ? `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase()
-      : cleanName.slice(0, 2).toUpperCase() || 'DR';
-
   if (!avatarUrl || hasError) {
     return (
-      <div
-        className={cn(
-          'w-full h-full bg-primary/10 text-primary flex items-center justify-center font-bold select-none text-xs sm:text-sm tracking-wider ring-1 ring-border/40',
-          radiusClass,
-          className
-        )}
-      >
-        <span>{initials}</span>
-      </div>
+      <Image
+        src={DEFAULT_AVATAR_PATH}
+        alt={name || 'Avatar'}
+        width={size}
+        height={size}
+        unoptimized
+        className={cn('w-full h-full object-cover object-center', radiusClass, className)}
+      />
     );
   }
 

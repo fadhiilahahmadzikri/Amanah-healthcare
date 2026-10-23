@@ -33,7 +33,7 @@ export default function ChatViewPage() {
       <Suspense fallback={null}>
         <ChatParamSync />
       </Suspense>
-      <div className='flex-1 h-full min-h-0 flex flex-col pb-4'>
+      <div className='flex-1 h-full min-h-0 flex flex-col'>
         <UnifiedChatWorkspace
           isClientTyping={isClientTyping}
           onSendMessage={sendMessage}

@@ -23,6 +23,7 @@ export interface AdminAppointment {
   queueNumber: string;
   patientId: string;
   patientName: string;
+  avatarUrl?: string | null;
   gender: string;
   phone: string;
   email: string;
@@ -285,6 +286,7 @@ export type DoctorAvailability = (typeof DOCTOR_AVAILABILITY)[keyof typeof DOCTO
 export interface DoctorCandidateItem {
   id: string;
   name: string;
+  avatarUrl?: string | null;
   specialty: string;
   staffType: string;
   availability: DoctorAvailability;

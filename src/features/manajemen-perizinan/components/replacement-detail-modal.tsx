@@ -1,10 +1,12 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { Icons } from '@/components/icons';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { formatClinicDate, formatClinicDateTime } from '@/lib/date-format';
 import type { ReplacementOpportunityItem } from '../api/types';
 
@@ -115,11 +117,19 @@ export function ReplacementDetailModal({
           <div className='flex items-center gap-2.5 text-foreground font-medium'>
             <Avatar className='size-8 rounded-lg border border-border/50 shrink-0'>
               <AvatarImage
-                src={replacement.originalStaffAvatarUrl || ''}
+                src={replacement.originalStaffAvatarUrl || DEFAULT_AVATAR_PATH}
                 alt={replacement.originalStaffName || 'Staf'}
+                className='rounded-lg object-cover'
               />
-              <AvatarFallback className='rounded-lg text-xs font-semibold bg-primary/10 text-primary'>
-                {(replacement.originalStaffName || 'S').charAt(0).toUpperCase()}
+              <AvatarFallback className='rounded-lg p-0 bg-transparent overflow-hidden'>
+                <Image
+                  src={DEFAULT_AVATAR_PATH}
+                  alt={replacement.originalStaffName || 'Staf'}
+                  width={32}
+                  height={32}
+                  unoptimized
+                  className='size-full rounded-lg object-cover'
+                />
               </AvatarFallback>
             </Avatar>
             <div className='min-w-0 flex-1'>
@@ -151,11 +161,19 @@ export function ReplacementDetailModal({
               <div className='flex items-center gap-2.5 text-foreground font-medium'>
                 <Avatar className='size-8 rounded-lg border border-border/50 shrink-0'>
                   <AvatarImage
-                    src={replacement.claimedByAvatarUrl || ''}
+                    src={replacement.claimedByAvatarUrl || DEFAULT_AVATAR_PATH}
                     alt={replacement.claimedByName || 'Pengganti'}
+                    className='rounded-lg object-cover'
                   />
-                  <AvatarFallback className='rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'>
-                    {(replacement.claimedByName || 'P').charAt(0).toUpperCase()}
+                  <AvatarFallback className='rounded-lg p-0 bg-transparent overflow-hidden'>
+                    <Image
+                      src={DEFAULT_AVATAR_PATH}
+                      alt={replacement.claimedByName || 'Pengganti'}
+                      width={32}
+                      height={32}
+                      unoptimized
+                      className='size-full rounded-lg object-cover'
+                    />
                   </AvatarFallback>
                 </Avatar>
                 <div className='min-w-0 flex-1'>

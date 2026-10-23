@@ -18,12 +18,14 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
   const scheduledStartTime = item.scheduledStartTime || item.session || '-';
 
   const allowedActions = (item.allowedActions as AppointmentAction[]) || [];
+  const avatarUrl = (item as any).avatarUrl || (item.patientProfile as any)?.avatarUrl || null;
 
   return {
     id: String(item.id),
     queueNumber,
     patientId: item.patientId || String(item.id),
     patientName,
+    avatarUrl,
     gender: getGenderLabel(item.gender),
     phone: item.phone || '-',
     email: item.email || '-',
@@ -88,7 +90,7 @@ export function adminAppointmentToAppointment(item: AdminAppointment): Appointme
     booking_code: item.bookingCode || item.id.slice(0, 8).toUpperCase(),
     patient_name: item.patientName,
     patient_email: item.email || '',
-    patient_avatar: (item as any).patientAvatar || '',
+    patient_avatar: item.avatarUrl || '',
     doctor_name: item.doctorName || '',
     doctor_specialty: item.doctorSpecialty || '',
     poliklinik_name: item.poliklinikName,

@@ -1,10 +1,12 @@
 'use client';
 
+import Image from 'next/image';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ClinicNotification } from '../../types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { formatTimeAgo, formatFullDate, cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -44,8 +46,20 @@ export const columns: ColumnDef<ClinicNotification>[] = [
         <div className='flex items-center gap-3 py-1.5'>
           <div className='relative size-9 rounded-full overflow-hidden shrink-0 ring-1 ring-border/50 bg-muted'>
             <Avatar className='size-9'>
-              <AvatarImage src={notification.avatar} alt={notification.sender} />
-              <AvatarFallback>{notification.sender.charAt(0)}</AvatarFallback>
+              <AvatarImage
+                src={notification.avatar || DEFAULT_AVATAR_PATH}
+                alt={notification.sender}
+              />
+              <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
+                <Image
+                  src={DEFAULT_AVATAR_PATH}
+                  alt={notification.sender}
+                  width={36}
+                  height={36}
+                  unoptimized
+                  className='size-full rounded-full object-cover'
+                />
+              </AvatarFallback>
             </Avatar>
           </div>
 

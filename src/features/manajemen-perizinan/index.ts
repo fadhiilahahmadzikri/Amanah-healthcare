@@ -6,6 +6,7 @@ export * from './api/query-keys';
 export * from './model';
 export * from './components/leave-status-badge';
 export * from './components/leave-card';
+export * from './components/leave-booking-date-route';
 export * from './components/leave-detail-sheet';
 export * from './components/leave-detail-modal';
 export * from './components/leave-settings-modal';

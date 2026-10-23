@@ -50,7 +50,7 @@ export function UnifiedChatWorkspace({
   }
 
   return (
-    <div className='w-full h-[calc(100vh-140px)] min-h-[620px] bg-card border border-border/80 rounded-[8px] overflow-hidden shadow-xs flex select-none'>
+    <div className='w-full h-full flex-1 min-h-0 bg-card border border-border/80 rounded-[8px] overflow-hidden shadow-xs flex select-none'>
       {/* Column 1: Slim Activity Tool Rail */}
       <ChatRailNav activeTool={activeTool} onSelectTool={(tool) => setActiveTool(tool)} />
 

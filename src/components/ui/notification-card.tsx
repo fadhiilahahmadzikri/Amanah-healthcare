@@ -1,9 +1,11 @@
 'use client';
 
 import type { FC, ReactNode } from 'react';
+import Image from 'next/image';
 import { Icons } from '@/components/icons';
 import { cn, formatTimeAgo, formatFullDate } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from './avatar';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { Button } from './button';
 
 export type NotificationStatus = 'unread' | 'read' | 'archived';
@@ -58,8 +60,17 @@ export const NotificationCard: FC<NotificationCardProps> = ({
         {user && (
           <div className='relative mt-1'>
             <Avatar className='h-10 w-10 border border-border/50 shadow-sm'>
-              <AvatarImage src={user.avatar} alt={user.name} />
-              <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+              <AvatarImage src={user.avatar || DEFAULT_AVATAR_PATH} alt={user.name} />
+              <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
+                <Image
+                  src={DEFAULT_AVATAR_PATH}
+                  alt={user.name}
+                  width={40}
+                  height={40}
+                  unoptimized
+                  className='size-full rounded-full object-cover'
+                />
+              </AvatarFallback>
             </Avatar>
             {user.badge === 'heart' && (
               <div className='absolute -bottom-1 -right-1 bg-background rounded-full p-[2px]'>

@@ -1,22 +1,16 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import type { Column, ColumnDef } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { StaffRoleBadge } from '@/features/staff-management';
 import { formatCurrency } from '../../utils/currency';
 import { CellAction } from './cell-action';
 import type { PayrollSummaryItem } from '../../api/types';
-
-const getInitials = (name: string) => {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-};
 
 export function getPayrollColumns(): ColumnDef<PayrollSummaryItem>[] {
   return [
@@ -57,9 +51,23 @@ export function getPayrollColumns(): ColumnDef<PayrollSummaryItem>[] {
         const staff = row.original;
         return (
           <div className='flex items-center gap-2.5 py-0.5'>
-            <div className='size-8 rounded-lg bg-muted text-foreground font-semibold text-xs flex items-center justify-center shrink-0 select-none'>
-              {getInitials(staff.fullName)}
-            </div>
+            <Avatar className='size-8 rounded-lg shrink-0'>
+              <AvatarImage
+                src={staff.avatarUrl || DEFAULT_AVATAR_PATH}
+                alt={staff.fullName}
+                className='rounded-lg object-cover'
+              />
+              <AvatarFallback className='rounded-lg p-0 bg-transparent overflow-hidden'>
+                <Image
+                  src={DEFAULT_AVATAR_PATH}
+                  alt={staff.fullName}
+                  width={32}
+                  height={32}
+                  unoptimized
+                  className='size-full rounded-lg object-cover'
+                />
+              </AvatarFallback>
+            </Avatar>
             <span className='font-semibold text-xs text-foreground block truncate'>
               {staff.fullName}
             </span>

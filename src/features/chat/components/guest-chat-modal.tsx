@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { io, type Socket } from 'socket.io-client';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { getClientSocketUrl } from '@/core/config/env.client';
 import { chatApiService } from '../api/chat-api-service';
 import type { ChatMessage, Conversation } from '../utils/types';
@@ -313,9 +315,21 @@ export function GuestChatModal({ isOpen, onClose }: GuestChatModalProps) {
         {/* Header */}
         <div className='p-3.5 bg-primary text-primary-foreground flex items-center justify-between shrink-0'>
           <div className='flex items-center gap-2.5'>
-            <Avatar className='size-8 border border-white/20 bg-white/10'>
-              <AvatarFallback className='text-xs font-bold text-white bg-transparent'>
-                AH
+            <Avatar className='size-8 border border-white/20 bg-white/10 overflow-hidden'>
+              <AvatarImage
+                src={DEFAULT_AVATAR_PATH}
+                alt='Amanah Live Chat'
+                className='size-full object-cover aspect-square rounded-full'
+              />
+              <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
+                <Image
+                  src={DEFAULT_AVATAR_PATH}
+                  alt='Amanah Live Chat'
+                  width={32}
+                  height={32}
+                  unoptimized
+                  className='size-full object-cover rounded-full aspect-square'
+                />
               </AvatarFallback>
             </Avatar>
             <div>

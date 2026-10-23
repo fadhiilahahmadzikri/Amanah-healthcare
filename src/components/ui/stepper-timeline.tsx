@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
@@ -142,11 +144,18 @@ export function StepperTimeline({ items, onActionClick, className }: StepperTime
               </div>
 
               <div className='flex items-center gap-1.5 mt-0.5'>
-                {item.hasUserAvatar && item.userAvatar && (
+                {item.hasUserAvatar && (
                   <Avatar className='size-3.5 rounded-full shrink-0'>
-                    <AvatarImage src={item.userAvatar} alt='' />
-                    <AvatarFallback className='text-[7px]'>
-                      {item.subtitle.slice(0, 2).toUpperCase()}
+                    <AvatarImage src={item.userAvatar || DEFAULT_AVATAR_PATH} alt='' />
+                    <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
+                      <Image
+                        src={DEFAULT_AVATAR_PATH}
+                        alt=''
+                        width={14}
+                        height={14}
+                        unoptimized
+                        className='size-full rounded-full object-cover'
+                      />
                     </AvatarFallback>
                   </Avatar>
                 )}

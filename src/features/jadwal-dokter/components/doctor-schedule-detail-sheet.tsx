@@ -1,9 +1,11 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { EmptyState } from '@/components/ui/empty-state';
 import {
   Sheet,
@@ -94,19 +96,21 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
             <div className='flex items-end gap-3.5 sm:gap-4 -mt-10 sm:-mt-11'>
               <div className='relative shrink-0 size-20 sm:size-22'>
                 <Avatar className='size-20 sm:size-22 rounded-full ring-4 ring-card shadow-lg bg-card overflow-hidden shrink-0 aspect-square'>
-                  {doctor.avatar ? (
-                    // biome-ignore lint/a11y/useAltText: doctor avatar image
-                    <img
-                      src={doctor.avatar}
+                  <AvatarImage
+                    src={doctor.avatar || DEFAULT_AVATAR_PATH}
+                    alt={doctor.nama_dokter}
+                    className='size-full object-cover object-top aspect-square'
+                  />
+                  <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
+                    <Image
+                      src={DEFAULT_AVATAR_PATH}
                       alt={doctor.nama_dokter}
+                      width={88}
+                      height={88}
+                      unoptimized
                       className='size-full object-cover object-top aspect-square'
-                      referrerPolicy='no-referrer'
                     />
-                  ) : (
-                    <AvatarFallback className='bg-primary/10 text-primary font-bold text-xl'>
-                      {initials}
-                    </AvatarFallback>
-                  )}
+                  </AvatarFallback>
                 </Avatar>
                 <span
                   className={cn(

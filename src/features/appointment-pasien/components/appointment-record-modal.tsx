@@ -1,9 +1,12 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,15 +36,6 @@ export interface AppointmentRecordModalProps {
   onCancel?: () => void;
   onOpenActionDrawer?: () => void;
 }
-
-const getInitials = (name: string) => {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .substring(0, 2)
-    .toUpperCase();
-};
 
 export function AppointmentRecordModal({
   isOpen,
@@ -81,9 +75,23 @@ export function AppointmentRecordModal({
         <div className='flex items-center justify-between gap-3 pb-3.5 border-b border-border/40 shrink-0'>
           <div className='flex items-center gap-3 min-w-0 flex-1'>
             {/* Avatar Langsung di Header */}
-            <div className='size-11 sm:size-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 select-none ring-1 ring-border/40'>
-              {getInitials(appointment.patientName)}
-            </div>
+            <Avatar className='size-11 sm:size-12 rounded-full shrink-0 select-none ring-1 ring-border/40'>
+              <AvatarImage
+                src={appointment.avatarUrl || DEFAULT_AVATAR_PATH}
+                alt={appointment.patientName}
+                className='size-full object-cover rounded-full'
+              />
+              <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
+                <Image
+                  src={DEFAULT_AVATAR_PATH}
+                  alt={appointment.patientName}
+                  width={48}
+                  height={48}
+                  unoptimized
+                  className='size-full object-cover rounded-full'
+                />
+              </AvatarFallback>
+            </Avatar>
 
             {/* Nama Pasien, Badges, & Subtitle */}
             <div className='flex flex-col min-w-0 flex-1 space-y-1'>
@@ -253,9 +261,7 @@ export function AppointmentRecordModal({
 
             {/* 5. Dokter */}
             <div className='border-b border-border/30 pb-2.5'>
-              <span className='text-xs font-medium text-muted-foreground block mb-0.5'>
-                Dokter
-              </span>
+              <span className='text-xs font-medium text-muted-foreground block mb-0.5'>Dokter</span>
               <span
                 className={cn(
                   'text-sm font-semibold block truncate',

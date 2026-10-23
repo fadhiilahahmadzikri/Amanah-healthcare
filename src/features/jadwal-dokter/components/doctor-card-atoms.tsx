@@ -7,6 +7,7 @@ import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { cn } from '@/lib/utils';
 import type { DoctorCardPatientPreview } from '../api/types';
 
@@ -309,9 +310,20 @@ export function DoctorCardPatientStack({
             title={patient.name}
             className='size-6 sm:size-5.5 xl:size-5 rounded-full ring-1.5 ring-card shadow-2xs border border-border/40 shrink-0 transition-transform group-hover/patient-stack:scale-105'
           >
-            {patient.avatarUrl && <AvatarImage src={patient.avatarUrl} alt={patient.name} />}
-            <AvatarFallback className='bg-primary/10 text-primary font-bold text-[9px] sm:text-[8.5px] xl:text-[8px] uppercase tracking-tight'>
-              {patient.initials || 'P'}
+            <AvatarImage
+              src={patient.avatarUrl || DEFAULT_AVATAR_PATH}
+              alt={patient.name}
+              className='size-full object-cover rounded-full'
+            />
+            <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
+              <Image
+                src={DEFAULT_AVATAR_PATH}
+                alt={patient.name}
+                width={24}
+                height={24}
+                unoptimized
+                className='size-full object-cover rounded-full'
+              />
             </AvatarFallback>
           </Avatar>
         ))}
