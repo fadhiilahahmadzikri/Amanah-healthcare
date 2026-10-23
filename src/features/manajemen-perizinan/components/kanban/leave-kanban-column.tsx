@@ -33,7 +33,7 @@ export function LeaveKanbanColumn({
     <section
       data-column-id={column.id}
       className={cn(
-        'flex flex-col flex-1 min-w-[250px] rounded-[22px] p-3 transition-colors duration-150 select-none border border-border/70 min-h-[480px] h-full bg-muted/25',
+        'flex flex-col w-full min-w-0 rounded-[22px] p-3 transition-colors duration-150 select-none border border-border/70 min-h-[460px] h-full bg-muted/25',
         isTargetColumn && isValidDropTarget && 'bg-primary/10 ring-2 ring-primary border-primary',
         isTargetColumn &&
           !isValidDropTarget &&

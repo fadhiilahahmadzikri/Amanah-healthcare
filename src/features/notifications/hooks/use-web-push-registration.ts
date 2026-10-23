@@ -14,6 +14,64 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return outputArray;
 }
 
+/**
+ * Autonomous helper to request and register Web Push notification implicitly in the background.
+ * Triggers browser permission natively and saves subscription without requiring UI banners.
+ */
+export async function requestImplicitWebPushRegistration(): Promise<boolean> {
+  if (
+    typeof window === 'undefined' ||
+    !('serviceWorker' in navigator) ||
+    !('PushManager' in window) ||
+    !('Notification' in window)
+  ) {
+    return false;
+  }
+
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      return false;
+    }
+
+    const { publicKey } = await notificationApiService.getVapidPublicKey();
+    if (!publicKey) {
+      return false;
+    }
+
+    const reg = await navigator.serviceWorker.register('/sw.js');
+    await navigator.serviceWorker.ready;
+
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      const convertedKey = urlBase64ToUint8Array(publicKey);
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: convertedKey
+      });
+    }
+
+    const jsonSub = sub.toJSON();
+    if (!jsonSub.endpoint || !jsonSub.keys?.p256dh || !jsonSub.keys?.auth) {
+      return false;
+    }
+
+    await notificationApiService.subscribePush({
+      endpoint: jsonSub.endpoint,
+      keys: {
+        p256dh: jsonSub.keys.p256dh,
+        auth: jsonSub.keys.auth
+      },
+      platform: 'web',
+      userAgent: navigator.userAgent
+    });
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function useWebPushRegistration() {
   const [isSupported, setIsSupported] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -42,55 +100,10 @@ export function useWebPushRegistration() {
   const subscribePush = useCallback(async (): Promise<boolean> => {
     if (!isSupported) return false;
     setIsLoading(true);
-
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        setIsLoading(false);
-        return false;
-      }
-
-      const { publicKey } = await notificationApiService.getVapidPublicKey();
-      if (!publicKey) {
-        setIsLoading(false);
-        return false;
-      }
-
-      const reg = await navigator.serviceWorker.register('/sw.js');
-      await navigator.serviceWorker.ready;
-
-      let sub = await reg.pushManager.getSubscription();
-      if (!sub) {
-        const convertedKey = urlBase64ToUint8Array(publicKey);
-        sub = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: convertedKey
-        });
-      }
-
-      const jsonSub = sub.toJSON();
-      if (!jsonSub.endpoint || !jsonSub.keys?.p256dh || !jsonSub.keys?.auth) {
-        setIsLoading(false);
-        return false;
-      }
-
-      await notificationApiService.subscribePush({
-        endpoint: jsonSub.endpoint,
-        keys: {
-          p256dh: jsonSub.keys.p256dh,
-          auth: jsonSub.keys.auth
-        },
-        platform: 'web',
-        userAgent: navigator.userAgent
-      });
-
-      setIsSubscribed(true);
-      setIsLoading(false);
-      return true;
-    } catch {
-      setIsLoading(false);
-      return false;
-    }
+    const ok = await requestImplicitWebPushRegistration();
+    setIsSubscribed(ok);
+    setIsLoading(false);
+    return ok;
   }, [isSupported]);
 
   const unsubscribePush = useCallback(async (): Promise<boolean> => {

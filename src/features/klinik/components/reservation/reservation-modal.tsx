@@ -21,6 +21,7 @@ import { QueueSuccessModal } from '../queue-success-modal';
 import { APPOINTMENT_STATUS, QUEUE_STATUS, type Appointment } from '../../api/types';
 import { formatClinicTime, getClinicTodayDateString } from '@/lib/date-format';
 import { useClinicTimeConfig } from '@/features/klinik/model/useClinicTimeConfig';
+import { requestImplicitWebPushRegistration } from '@/features/notifications';
 
 export type ReservationStep = 'date' | 'session' | 'confirmation';
 
@@ -194,6 +195,8 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
         complaint: context.complaint || 'Pemeriksaan Kesehatan',
         sourceIntakeId: context.sourceIntakeId
       });
+
+      void requestImplicitWebPushRegistration();
 
       const startTime = res.scheduledStartTime ? formatClinicTime(res.scheduledStartTime) : '';
       const endTime = res.scheduledEndTime ? formatClinicTime(res.scheduledEndTime) : '';

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
 import { QueueItem, QUEUE_STATUS } from '../api/types';
 import { useConsultationTimer } from '../hooks/useConsultationTimer';
+import { DoctorAvatar } from './doctor-avatar';
 import { cn } from '@/lib/utils';
 
 export interface QueueCallingCardProps {
@@ -86,12 +87,9 @@ export function QueueCallingCard({
   const queueNumber = callingItem.queue_number || '-';
   const calledTime = callingItem.called_time || callingItem.estimated_time || '-';
   const roomName = callingItem.room || clinicRoomName || '-';
+  const patientAvatar = callingItem.patient_avatar || '';
   const patientEstimatedTime =
-    estimatedTime ||
-    callingItem.eta_range ||
-    callingItem.estimated_time ||
-    bookingTime ||
-    '-';
+    estimatedTime || callingItem.eta_range || callingItem.estimated_time || bookingTime || '-';
 
   return (
     <div
@@ -168,30 +166,27 @@ export function QueueCallingCard({
             />
           </div>
 
-          <Badge
-            variant='secondary'
-            className='text-xs font-medium px-2.5 py-0.5 gap-1.5 border border-border/40'
-          >
-            <Icons.clock className='size-3 stroke-[2]' />
-            <span>
-              {isFinished
-                ? 'Semua Dilayani'
-                : isInService
-                  ? 'Dalam Pemeriksaan'
-                  : `Dipanggil ${calledTime}`}
-            </span>
-          </Badge>
+          {!isFinished && !isInService && calledTime && calledTime !== '-' && (
+            <Badge
+              variant='secondary'
+              className='text-xs font-medium px-2.5 py-0.5 gap-1.5 border border-border/40'
+            >
+              <Icons.clock className='size-3 stroke-[2]' />
+              <span>Dipanggil {calledTime}</span>
+            </Badge>
+          )}
         </div>
 
         {!isFinished ? (
           <div className='relative z-10 flex flex-col sm:flex-row items-center sm:items-center gap-6 sm:gap-8 my-auto py-2'>
-            <div className='size-36 sm:size-44 lg:size-48 xl:size-52 min-w-[144px] sm:min-w-[176px] lg:min-w-[192px] xl:min-w-[208px] rounded-3xl overflow-hidden shrink-0 ring-4 sm:ring-8 ring-primary/10 bg-primary/5 border border-primary/20 flex flex-col items-center justify-center aspect-square shadow-inner'>
-              <div className='size-14 sm:size-16 rounded-2xl bg-primary/15 text-primary flex items-center justify-center mb-2.5'>
-                <Icons.notification className='size-7 sm:size-8 animate-pulse' />
-              </div>
-              <span className='text-[11px] sm:text-xs font-bold uppercase tracking-wider text-primary/80'>
-                Panggilan Pasien
-              </span>
+            <div className='size-36 sm:size-44 lg:size-48 xl:size-52 min-w-[144px] sm:min-w-[176px] lg:min-w-[192px] xl:min-w-[208px] rounded-3xl overflow-hidden shrink-0 ring-4 sm:ring-8 ring-primary/10 bg-muted/20 border border-primary/20 aspect-square shadow-inner relative flex items-center justify-center'>
+              <DoctorAvatar
+                name={patientName}
+                avatarUrl={patientAvatar}
+                size={208}
+                roundedClassName='rounded-3xl'
+                className='w-full h-full object-cover object-center'
+              />
             </div>
 
             <div className='flex-1 min-w-0 text-center sm:text-left space-y-1.5'>
@@ -208,11 +203,9 @@ export function QueueCallingCard({
                 <span>{callingItem.doctor_name || '-'}</span>
               </div>
 
-              <div className='pt-3 flex items-center justify-center sm:justify-start'>
-                <span className='inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-primary bg-primary/10 border border-primary/20 px-3.5 py-1.5 rounded-full'>
-                  <Icons.check className='size-4' />
-                  Harap segera menuju ke ruang periksa dokter
-                </span>
+              <div className='pt-2 flex items-center justify-center sm:justify-start gap-1.5 text-xs sm:text-sm font-medium text-muted-foreground'>
+                <Icons.check className='size-4 text-primary shrink-0' />
+                <span>Harap segera menuju ke ruang periksa dokter</span>
               </div>
             </div>
           </div>
@@ -233,20 +226,20 @@ export function QueueCallingCard({
 
         <div className='relative z-10 border-t border-border/40 shrink-0' />
 
-        <div className='relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 text-left shrink-0'>
-          <div className='flex items-center gap-3'>
+        <div className='relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 lg:gap-8 xl:gap-10 text-left shrink-0'>
+          <div className='flex items-center gap-3 shrink-0'>
             <Icons.mapPin className='size-6 sm:size-7 text-primary shrink-0 stroke-[1.8]' />
             <div className='min-w-0 space-y-0.5'>
               <span className='text-[11px] font-medium text-muted-foreground block whitespace-nowrap'>
                 Room
               </span>
-              <span className='text-sm sm:text-base font-bold text-foreground block whitespace-nowrap truncate'>
+              <span className='text-sm sm:text-base font-bold text-foreground block whitespace-nowrap truncate max-w-[140px]'>
                 {roomName}
               </span>
             </div>
           </div>
 
-          <div className='flex items-center gap-3'>
+          <div className='flex items-center gap-3 shrink-0'>
             <Icons.clock
               className={cn(
                 'size-6 sm:size-7 shrink-0 stroke-[1.8]',
@@ -257,7 +250,7 @@ export function QueueCallingCard({
               <span className='text-[11px] font-medium text-muted-foreground block whitespace-nowrap'>
                 Waktu Konsultasi
               </span>
-              <div className='flex items-center gap-1.5'>
+              <div className='flex items-center gap-2'>
                 <span
                   id='time-remaining-value'
                   className={cn(
@@ -268,7 +261,10 @@ export function QueueCallingCard({
                   {timer.formattedDuration}
                 </span>
                 {timer.isOvertime && callingItem.estimated_duration_minutes && (
-                  <Badge variant='destructive' className='text-[9.5px] px-1.5 py-0 h-4 font-bold'>
+                  <Badge
+                    variant='destructive'
+                    className='text-[9.5px] px-1.5 py-0 h-4 font-bold whitespace-nowrap'
+                  >
                     Lewat {callingItem.estimated_duration_minutes} Mnt
                   </Badge>
                 )}
@@ -276,7 +272,7 @@ export function QueueCallingCard({
             </div>
           </div>
 
-          <div className='flex items-center gap-3'>
+          <div className='flex items-center gap-3 shrink-0'>
             <Icons.calendar className='size-6 sm:size-7 text-primary shrink-0 stroke-[1.8]' />
             <div className='min-w-0 space-y-0.5'>
               <span className='text-[11px] font-medium text-muted-foreground block whitespace-nowrap'>

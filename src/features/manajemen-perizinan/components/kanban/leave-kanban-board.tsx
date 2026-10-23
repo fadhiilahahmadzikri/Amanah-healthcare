@@ -168,21 +168,25 @@ export function LeaveKanbanBoard({
         setRotation(2.5);
       }, 90);
 
-      // Collision detection with column elements
+      // Collision detection with column elements (2D responsive grid aware)
       const centerX = nextX + dragRef.current.width / 2;
       const centerY = nextY + dragRef.current.height / 2;
+      const pointerX = e.clientX;
+      const pointerY = e.clientY;
 
       const columnElements = document.querySelectorAll('[data-column-id]');
       let detectedColumnId: KanbanColumnId | null = null;
 
       columnElements.forEach((colEl) => {
         const rect = colEl.getBoundingClientRect();
-        if (
-          centerX >= rect.left &&
-          centerX <= rect.right &&
-          centerY >= rect.top - 60 &&
-          centerY <= rect.bottom + 60
-        ) {
+        const isInX =
+          (centerX >= rect.left && centerX <= rect.right) ||
+          (pointerX >= rect.left && pointerX <= rect.right);
+        const isInY =
+          (centerY >= rect.top && centerY <= rect.bottom) ||
+          (pointerY >= rect.top && pointerY <= rect.bottom);
+
+        if (isInX && isInY) {
           detectedColumnId = colEl.getAttribute('data-column-id') as KanbanColumnId;
         }
       });
@@ -235,8 +239,8 @@ export function LeaveKanbanBoard({
   }, [dragState, onReviewLeave]);
 
   return (
-    <div className='relative flex-1 min-h-0 h-full w-full overflow-x-auto overflow-y-hidden select-none pb-2'>
-      <div className='flex items-stretch gap-3.5 h-full w-full min-w-[1020px] px-0.5'>
+    <div className='relative flex-1 min-h-0 h-full w-full overflow-y-auto overflow-x-hidden select-none pb-4 pr-1'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 w-full h-auto xl:h-full min-h-full px-0.5 items-stretch'>
         {KANBAN_COLUMNS.map((col) => {
           const data = columnData.get(col.id) || { groups: [], total: 0 };
           const isTarget = dragState?.currentColumnId === col.id;
