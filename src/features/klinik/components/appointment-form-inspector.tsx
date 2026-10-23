@@ -19,6 +19,16 @@ import { InspectorClinicalTab } from './inspector/inspector-clinical-tab';
 import { InspectorObstetricTab } from './inspector/inspector-obstetric-tab';
 import { InspectorImmunizationTab } from './inspector/inspector-immunization-tab';
 import { InspectorGenericView } from './inspector/inspector-generic-view';
+import {
+  ClinicalDocumentViewerModal,
+  adaptToPmbFormData,
+  adaptToImunisasiFormData,
+  adaptToRegulerFormData,
+  exportPmbDocx,
+  exportImunisasiDocx,
+  exportRegulerDocx,
+  type ClinicalFormFlow,
+} from './clinical-document';
 
 export interface AppointmentFormInspectorProps {
   appointment: Appointment;
@@ -156,9 +166,53 @@ export function AppointmentFormInspector({
   const isPregnancy = parsedData.flow === 'pregnancy';
   const isImmunization = parsedData.flow === 'immunization' || Boolean(parsedData.child);
 
+  const [isLargeModalOpen, setIsLargeModalOpen] = React.useState(false);
+  const [isExporting, setIsExporting] = React.useState(false);
+
+  const pmbFormData = React.useMemo(() => {
+    if (parsedData.flow === 'pregnancy') {
+      return adaptToPmbFormData(parsedData);
+    }
+    return null;
+  }, [parsedData]);
+
+  const imunisasiFormData = React.useMemo(() => {
+    if (parsedData.flow === 'immunization' || Boolean(parsedData.child)) {
+      return adaptToImunisasiFormData(parsedData);
+    }
+    return null;
+  }, [parsedData]);
+
+  const regulerFormData = React.useMemo(() => {
+    if (parsedData.flow === 'regular') {
+      return adaptToRegulerFormData(parsedData, appointment);
+    }
+    return null;
+  }, [parsedData, appointment]);
+
+  const handleDirectDownload = async () => {
+    try {
+      setIsExporting(true);
+      if (parsedData.flow === 'pregnancy') {
+        const patientName = appointment.patient_name || 'Pasien';
+        await exportPmbDocx(pmbFormData, `Formulir_ANC_${patientName.replace(/\s+/g, '_')}.docx`);
+      } else if (parsedData.flow === 'immunization' || Boolean(parsedData.child)) {
+        const childName = appointment.patient_name || 'Anak';
+        await exportImunisasiDocx(imunisasiFormData, `Formulir_Imunisasi_${childName.replace(/\s+/g, '_')}.docx`);
+      } else {
+        const patientName = appointment.patient_name || 'Pasien';
+        await exportRegulerDocx(regulerFormData, `Formulir_Rawat_Jalan_${patientName.replace(/\s+/g, '_')}.docx`);
+      }
+    } catch (err) {
+      console.error('Failed to export DOCX:', err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className='w-full flex flex-col font-sans select-none justify-between h-full min-h-0'>
-      {!hideHeader && (
+      {!hideHeader ? (
         <div className='flex items-center justify-between gap-4 pb-3 border-b border-border/40 shrink-0 min-h-[77px]'>
           <div className='flex flex-col items-start min-w-0 flex-1 space-y-0.5 justify-center'>
             <h3 className='text-base sm:text-lg font-bold text-foreground truncate w-full tracking-tight'>
@@ -177,16 +231,61 @@ export function AppointmentFormInspector({
             </p>
           </div>
 
-          {onClose && (
+          <div className='flex items-center gap-2 shrink-0'>
             <button
               type='button'
-              onClick={onClose}
-              aria-label='Tutup formulir'
-              className='p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors cursor-pointer shrink-0'
+              onClick={() => setIsLargeModalOpen(true)}
+              className='inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground bg-secondary/60 hover:bg-secondary rounded-lg border border-border/50 transition-colors cursor-pointer shadow-2xs'
+              title='Lihat Formulir Ukuran Penuh (A4 Canvas)'
             >
-              <Icons.chevronRight className='size-5' />
+              <Icons.maximize className='size-3.5 text-muted-foreground' />
+              <span className='hidden sm:inline'>Ukuran Penuh</span>
             </button>
-          )}
+
+            <button
+              type='button'
+              onClick={handleDirectDownload}
+              disabled={isExporting}
+              className='inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300 hover:text-emerald-900 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-lg border border-emerald-300/80 dark:border-emerald-700/60 transition-colors cursor-pointer shadow-2xs disabled:opacity-50'
+              title='Unduh Dokumen Word (.docx)'
+            >
+              <Icons.download className='size-3.5 text-emerald-600 dark:text-emerald-400' />
+              <span className='hidden sm:inline'>{isExporting ? 'Mengunduh...' : 'Unduh Word'}</span>
+            </button>
+
+            {onClose && (
+              <button
+                type='button'
+                onClick={onClose}
+                aria-label='Tutup formulir'
+                className='p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors cursor-pointer'
+              >
+                <Icons.chevronRight className='size-5' />
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className='flex items-center justify-end gap-2 pb-2 mb-2 border-b border-border/30 shrink-0'>
+          <button
+            type='button'
+            onClick={() => setIsLargeModalOpen(true)}
+            className='inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground bg-muted/60 hover:bg-muted rounded-md transition-colors cursor-pointer border border-border/50'
+            title='Lihat Formulir Ukuran Penuh (A4 Canvas)'
+          >
+            <Icons.maximize className='size-3.5' />
+            <span>Ukuran Penuh</span>
+          </button>
+          <button
+            type='button'
+            onClick={handleDirectDownload}
+            disabled={isExporting}
+            className='inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 rounded-md transition-colors cursor-pointer border border-emerald-200 dark:border-emerald-800/60 disabled:opacity-50'
+            title='Unduh Dokumen Word (.docx)'
+          >
+            <Icons.download className='size-3.5' />
+            <span>{isExporting ? 'Mengunduh...' : 'Unduh Word'}</span>
+          </button>
         </div>
       )}
 
@@ -239,6 +338,15 @@ export function AppointmentFormInspector({
           </div>
         )}
       </div>
+
+      <ClinicalDocumentViewerModal
+        isOpen={isLargeModalOpen}
+        onClose={() => setIsLargeModalOpen(false)}
+        flow={parsedData.flow as ClinicalFormFlow}
+        pmbData={pmbFormData}
+        imunisasiData={imunisasiFormData}
+        regulerData={regulerFormData}
+      />
     </div>
   );
 }

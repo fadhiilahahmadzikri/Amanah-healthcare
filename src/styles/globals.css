@@ -688,3 +688,39 @@ html:not(.dark) .cl-logoImage {
   animation: hazard-blink 0.55s ease-in-out infinite;
 }
 
+/* Clinical Document A4 Manifestation & Print Styles */
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@media print {
+  body {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .document-page-wrapper {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+  }
+
+  .document-a4-page {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    max-height: 297mm !important;
+    padding: 7.41mm 9.17mm !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}
