@@ -21,6 +21,7 @@ import {
 import { getServiceImage } from '../constants/appointment-reservation-services';
 import { mapBackendAppointmentToUi } from '../utils/booking-appointment-mapper';
 import { formRequirementGuard } from './form-requirement-guard';
+import { requestImplicitWebPushRegistration } from '@/features/notifications';
 import { getClinicTodayDateString } from '@/lib/date-format';
 import type { Appointment, AppointmentFormData } from '../api/types';
 
@@ -443,6 +444,8 @@ export function useAppointmentModal({
         visitType,
         complaint: complaint.trim() || 'Konsultasi dan pemeriksaan kesehatan'
       });
+
+      void requestImplicitWebPushRegistration();
 
       const currentPatient = patients.find((p) => p.id === patientIdToUse);
       const uiApt = mapBackendAppointmentToUi({

@@ -65,7 +65,7 @@ export function SurfaceCoreOrganism({
   return (
     <div
       className={cn(
-        'w-full rounded-[22px] p-3.5 sm:p-4 flex flex-col justify-between flex-1 relative z-10 transition-colors duration-300',
+        'w-full rounded-[22px] p-3.5 sm:p-4 flex flex-col justify-between flex-1 relative z-10 transition-colors duration-300 overflow-hidden',
         'bg-card text-card-foreground',
         className
       )}
