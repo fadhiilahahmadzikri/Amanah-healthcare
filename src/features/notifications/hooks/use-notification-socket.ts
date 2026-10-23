@@ -273,9 +273,8 @@ export function useNotificationSocket(callbacks?: {
 
         const rawAvatar =
           envelope.visualKey ||
-          (typeof envelope.metadata?.avatarUrl === 'string' ? envelope.metadata.avatarUrl : null) ||
-          ('avatarUrl' in envelope && typeof (envelope as any).avatarUrl === 'string'
-            ? (envelope as any).avatarUrl
+          ('metadata' in envelope && typeof (envelope as any).metadata?.avatarUrl === 'string'
+            ? (envelope as any).metadata.avatarUrl
             : null);
 
         const toastIcon = rawAvatar
