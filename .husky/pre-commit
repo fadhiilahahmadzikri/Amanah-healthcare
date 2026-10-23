@@ -1,1 +1,2 @@
+bun ./scripts/tools/pre-commit-guard.ts
 bunx lint-staged
