@@ -4,12 +4,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { attendanceService } from './service';
 import { attendanceKeys } from './queries';
 import { toast } from 'sonner';
+import { presentAttendanceModal } from '@/components/feedback/choreographed-modal';
 
 export function useCheckoutAttendanceMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ staffId, staffName }: { staffId: string; staffName?: string }) => {
+    mutationFn: async ({ staffId }: { staffId: string; staffName?: string }) => {
       return attendanceService.checkoutStaffAttendance(staffId);
     },
     onSuccess: (_, variables) => {
@@ -33,9 +34,17 @@ export function useRecordManualAttendanceMutation() {
     },
     onSuccess: (record) => {
       queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
-      toast.success(
-        `Presensi manual berhasil dicatat untuk ${record.nama_staf} (${record.waktu}).`
-      );
+      presentAttendanceModal({
+        id: record.id,
+        nama_staf: record.nama_staf,
+        avatar: record.avatar,
+        kategori: record.kategori,
+        waktu_presensi: record.waktu_presensi,
+        waktu: record.waktu,
+        status: record.status,
+        shift: record.shift,
+        action: 'manual_check_in'
+      });
     },
     onError: (err: Error) => {
       toast.error(err.message || 'Gagal mencatat presensi manual.');

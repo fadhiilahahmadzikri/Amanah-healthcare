@@ -14,6 +14,7 @@ import { SCHEDULE_QUERY_KEYS } from '@/features/jadwal-dokter/constants/schedule
 import { leaveManagementKeys } from '@/features/manajemen-perizinan/api/query-keys';
 import { attendanceKeys } from '@/features/kehadiran-pegawai/api/queries';
 import type { StaffAttendance } from '@/features/kehadiran-pegawai/api/types';
+import { presentAttendanceModal } from '@/components/feedback/choreographed-modal';
 import { getClientSocketUrl } from '@/core/config/env.client';
 import { clientFetch } from '@/lib/client-fetch';
 import { useViewer } from './use-viewer';
@@ -426,26 +427,23 @@ export function useNotificationSocket(callbacks?: {
         | undefined;
       if (!item?.nama_staf) return;
 
-      if (item.isEarlyDeparture) {
-        toast.warning(`Presensi Pulang Cepat: ${item.nama_staf}`, {
-          description: item.notes ? `Alasan: ${item.notes}` : 'Dicatat pulang lebih awal.',
-          action: {
-            label: 'Lihat Detail',
-            onClick: () => router.push(`/dashboard/kehadiran-pegawai?highlight=${item.id}`)
-          },
-          duration: 8000
-        });
-        return;
-      }
-
-      const actionText = item.action === 'check_out' ? 'pulang' : 'masuk';
-      const statusText = item.status === 'Terlambat' ? ' (Terlambat)' : '';
-      toast.success(`Presensi ${actionText}: ${item.nama_staf}${statusText}`, {
-        action: {
-          label: 'Lihat Detail',
-          onClick: () => router.push(`/dashboard/kehadiran-pegawai?highlight=${item.id}`)
-        },
-        duration: 6000
+      presentAttendanceModal({
+        id: item.id,
+        nama_staf: item.nama_staf,
+        avatar: item.avatar,
+        kategori: item.kategori,
+        waktu_presensi: item.waktu_presensi,
+        waktu: item.waktu,
+        status: item.status,
+        shift: item.shift,
+        action: item.action,
+        isEarlyDeparture: item.isEarlyDeparture,
+        notes: item.notes,
+        onNavigateDetail: (id) => {
+          router.push(
+            id ? `/dashboard/kehadiran-pegawai?highlight=${id}` : '/dashboard/kehadiran-pegawai'
+          );
+        }
       });
     };
 
