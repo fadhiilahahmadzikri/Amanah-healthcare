@@ -27,6 +27,7 @@ import {
 } from '../utils/kia-intake-payload-builder';
 import { FLOW_NAMES } from '../constants/kia-constants';
 import type { ReservationContext } from '../components/reservation/reservation-modal';
+import { requestImplicitWebPushRegistration } from '@/features/notifications';
 
 interface UseMedicalAppointmentSubmitParams {
   definition: MedicalFlowDefinition;
@@ -240,6 +241,8 @@ export function useMedicalAppointmentSubmit({
             visitType: definition.visitType,
             complaint: complaint || 'Pemeriksaan klinik'
           });
+
+          void requestImplicitWebPushRegistration();
 
           const uiApt: Appointment = {
             id: res.id,

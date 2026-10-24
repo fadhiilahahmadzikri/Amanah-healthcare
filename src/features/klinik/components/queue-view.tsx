@@ -17,7 +17,6 @@ import { QueueCallingCard } from './queue-calling-card';
 import { QueueSeatCard } from './queue-seat-card';
 import { QueueViewSkeleton } from './queue-view-skeleton';
 import { useQueueView } from '../model/useQueueView';
-import { DevicePushToggle } from '@/features/notifications';
 import { cn } from '@/lib/utils';
 
 export function QueueView() {
@@ -49,8 +48,6 @@ export function QueueView() {
         }
         className='shrink-0'
       />
-
-      <DevicePushToggle />
 
       {queueView.isLoading && queueView.totalItems === 0 && !queueView.currentCalling ? (
         <QueueViewSkeleton />

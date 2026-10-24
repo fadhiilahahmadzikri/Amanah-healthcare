@@ -11,7 +11,7 @@ import { OtpVerificationForm } from './otp-verification-form';
 import { ResetPasswordForm } from './reset-password-form';
 import { SignInForm } from './sign-in-form';
 import { SignUpForm } from './sign-up-form-custom';
-import { safeRedirect } from '@/lib/safe-redirect';
+import { safeRedirect, getRoleLandingPath } from '@/lib/safe-redirect';
 import { authClient, useSession } from '@/lib/auth-client';
 import {
   loginAction,
@@ -240,13 +240,12 @@ export function AuthFlowView() {
       if (res.success) {
         toast.success('Berhasil masuk!');
         const user = res.data;
+        const role = user?.systemRole?.toLowerCase() === 'admin' ? 'admin' : 'patient';
         const targetUrl =
           !searchParams?.get('redirect') ||
           redirectTo === '/dashboard' ||
           redirectTo === '/dashboard/admin'
-            ? user?.systemRole === 'ADMIN'
-              ? '/dashboard/admin'
-              : '/dashboard/klinik/antrean'
+            ? getRoleLandingPath(role)
             : redirectTo;
         window.location.href = targetUrl;
         return;
@@ -266,9 +265,7 @@ export function AuthFlowView() {
           !searchParams?.get('redirect') ||
           redirectTo === '/dashboard' ||
           redirectTo === '/dashboard/admin'
-            ? role === 'admin'
-              ? '/dashboard/admin'
-              : '/dashboard/klinik/antrean'
+            ? getRoleLandingPath(role)
             : redirectTo;
         window.location.href = targetUrl;
         return;

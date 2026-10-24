@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { auth } from './auth';
 import { isRouteAuthorized } from './rbac/route-manifest';
 import { getRoleLandingPath, ROUTES } from '@/core/routes';
-import { getSession, requireSession as dalRequireSession, type SessionUser } from '@/server/auth/session.dal';
+import { getSession, requireSession as dalRequireSession } from '@/server/auth/session.dal';
 
 export type SessionType = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;
 
@@ -90,7 +90,7 @@ export async function requireAdmin(): Promise<SessionType> {
 export async function requirePatient(): Promise<SessionType> {
   const session = await requireSession();
   if (session.user.role === 'admin') {
-    redirect(ROUTES.dashboardAdmin);
+    redirect(ROUTES.dashboardAppointmentPasien);
   }
   return session;
 }

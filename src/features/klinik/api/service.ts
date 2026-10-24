@@ -236,6 +236,7 @@ export async function getDisplayQueueFromApi(params?: {
       currentTicket?: {
         queueNumber?: string;
         patientName?: string;
+        avatarUrl?: string;
         roomName?: string;
         doctorName?: string;
         status?: string;
@@ -250,6 +251,7 @@ export async function getDisplayQueueFromApi(params?: {
       nextTickets?: Array<{
         queueNumber?: string;
         patientName?: string;
+        avatarUrl?: string;
         poliklinikName?: string;
         etaRange?: string;
         estimatedStartAt?: string;
@@ -269,6 +271,7 @@ export async function getDisplayQueueFromApi(params?: {
         id: 'display-current',
         queue_number: display.currentTicket.queueNumber || '-',
         patient_name: display.currentTicket.patientName || 'Pasien',
+        patient_avatar: display.currentTicket.avatarUrl || '',
         doctor_name: display.currentTicket.doctorName || '-',
         poli: display.currentTicket.roomName || 'Poli',
         estimated_time: estTime,
@@ -295,6 +298,7 @@ export async function getDisplayQueueFromApi(params?: {
           id: `display-next-${idx}`,
           queue_number: t.queueNumber || '-',
           patient_name: t.patientName || 'Pasien',
+          patient_avatar: t.avatarUrl || '',
           doctor_name: '-',
           poli: t.poliklinikName || 'Poli',
           estimated_time: t.etaRange || 'Menunggu',
