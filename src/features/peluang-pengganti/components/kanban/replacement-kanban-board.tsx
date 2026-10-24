@@ -241,7 +241,7 @@ export function ReplacementKanbanBoard({
 
   return (
     <div className='relative flex-1 min-h-0 h-full w-full overflow-x-auto overflow-y-hidden select-none pb-2'>
-      <div className='flex items-stretch gap-3.5 h-full w-full min-w-[1080px] px-0.5'>
+      <div className='flex items-stretch gap-3.5 h-full w-max min-w-full px-0.5'>
         {KANBAN_COLUMNS.map((col) => {
           const data = columnData.get(col.id) || { groups: [], total: 0 };
           const isTarget = dragState?.currentColumnId === col.id;

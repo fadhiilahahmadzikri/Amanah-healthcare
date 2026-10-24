@@ -114,7 +114,7 @@ export function AssignReplacementModal({
 
         {/* Info Cuti */}
         <div className='bg-muted/30 p-3 rounded-xl space-y-1.5 text-xs border border-border/40'>
-          <span className='text-[10px] font-bold uppercase tracking-wider text-muted-foreground block'>
+          <span className='text-[11px] font-semibold text-muted-foreground block'>
             Menggantikan Staf
           </span>
           <div className='font-semibold text-foreground text-xs'>

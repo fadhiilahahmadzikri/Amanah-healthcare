@@ -1,14 +1,13 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
-import { Icons } from '@/components/icons';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
-import { formatClinicDate, formatClinicDateTime } from '@/lib/date-format';
-import { REPLACEMENT_STATUS_CONFIG, getSessionTitle } from '../constants/replacement.constants';
+import { cn } from '@/lib/utils';
+import { useReplacementDetailModal } from '../model';
+import { ReplacementDetailTimeSection } from './detail/replacement-detail-time-section';
+import { ReplacementDetailLeaveStaffSection } from './detail/replacement-detail-leave-staff-section';
+import { ReplacementDetailStatusSection } from './detail/replacement-detail-status-section';
 import type { ReplacementOpportunityItem } from '../api/types';
 
 export interface ReplacementDetailModalProps {
@@ -18,247 +17,139 @@ export interface ReplacementDetailModalProps {
   onOpenAssign?: (item: ReplacementOpportunityItem) => void;
   onCancelOpportunity?: (id: string) => void;
   isCancelling?: boolean;
+  portalContainerRef?: React.RefObject<HTMLElement | null>;
 }
 
+/**
+ * Presentational Shell untuk modal detail peluang dinas pengganti.
+ * Mengonsumsi hook useReplacementDetailModal dan meniru tata letak modal PatientModal.
+ */
 export function ReplacementDetailModal({
   replacement,
   isOpen,
   onClose,
   onOpenAssign,
   onCancelOpportunity,
-  isCancelling = false
+  isCancelling = false,
+  portalContainerRef
 }: ReplacementDetailModalProps) {
-  if (!replacement) return null;
-
-  const isClaimed = replacement.status === 'claimed';
-  const isCompleted = replacement.status === 'completed';
-  const isOpenStatus = replacement.status === 'open';
-
-  const sessionName = getSessionTitle(replacement.sessionCode);
-
-  const timeDisplay =
-    replacement.startTime && replacement.endTime
-      ? `${replacement.startTime.slice(0, 5)} - ${replacement.endTime.slice(0, 5)} WIB`
-      : 'Waktu dinas mengikuti roster';
-
-  const formattedDate = formatClinicDate(replacement.workDate, {
-    style: 'human_full'
+  const {
+    sessionName,
+    title,
+    timeDisplay,
+    statusMeta,
+    isClaimed,
+    isCompleted,
+    isOpenStatus,
+    claimedAtFormatted,
+    handleCancel,
+    handleOpenAssign
+  } = useReplacementDetailModal({
+    replacement,
+    onOpenAssign,
+    onCancelOpportunity
   });
 
-  const statusMeta = REPLACEMENT_STATUS_CONFIG[replacement.status] || {
-    label: replacement.status,
-    badgeBg: 'bg-muted',
-    badgeText: 'text-muted-foreground'
-  };
-
-  const handleCancel = () => {
-    if (window.confirm('Apakah Anda yakin ingin membatalkan peluang dinas pengganti ini?')) {
-      onCancelOpportunity?.(replacement.id);
-    }
-  };
+  if (!replacement) return null;
 
   return (
     <ModalWrapper
       isOpen={isOpen}
       onClose={onClose}
       maxWidth='w-full sm:max-w-[560px]'
+      portalContainerRef={portalContainerRef}
       showCloseButton={false}
     >
-      <div className='relative font-sans space-y-4 text-left p-1'>
-        {/* Header */}
-        <div className='flex items-start justify-between gap-4 border-b border-border/60 pb-3'>
-          <div className='space-y-1 min-w-0 flex-1'>
-            <div className='flex items-center gap-1.5 text-primary'>
-              <Icons.calendar className='size-4 shrink-0' />
-              <span className='text-xs font-bold tracking-tight'>Peluang Dinas Pengganti</span>
-            </div>
-            <h3 className='text-base font-bold text-foreground leading-snug'>{sessionName}</h3>
-            <p className='text-xs text-muted-foreground'>{formattedDate}</p>
+      <div className='relative font-sans flex flex-col min-h-0 flex-1 space-y-4 p-1'>
+        {/* 1. Modal Header (Pinned) - To the point, no trailing icon, no close 'X' */}
+        <div className='shrink-0 pb-3 border-b border-border/40 flex items-start justify-between gap-3 min-w-0'>
+          <div className='space-y-0.5 min-w-0 flex-1'>
+            <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight truncate'>
+              {title}
+            </h3>
+            <p className='text-xs text-muted-foreground font-medium'>
+              Detail peluang dinas pengganti
+            </p>
           </div>
 
-          <div className='flex items-center gap-2'>
+          <div className='shrink-0 pt-0.5'>
             <span
-              className={`px-2.5 py-1 rounded-full text-[11px] font-semibold ${statusMeta.badgeBg} ${statusMeta.badgeText}`}
+              className={cn(
+                'px-2.5 py-1 rounded-full text-[11px] font-semibold inline-flex items-center',
+                statusMeta.badgeBg,
+                statusMeta.badgeText
+              )}
             >
               {statusMeta.label}
             </span>
-            <button
+          </div>
+        </div>
+
+        {/* 2. Modal Body / Content */}
+        <div className='space-y-3.5'>
+          {/* Waktu & Sesi Pelayanan */}
+          <ReplacementDetailTimeSection sessionName={sessionName} timeDisplay={timeDisplay} />
+
+          {/* Staf yang Berhalangan Cuti */}
+          <ReplacementDetailLeaveStaffSection
+            staffName={replacement.originalStaffName}
+            staffRole={replacement.originalStaffRole}
+            staffAvatarUrl={replacement.originalStaffAvatarUrl}
+            leaveReason={replacement.leaveReason}
+          />
+
+          {/* Status Penugasan Pengganti */}
+          <ReplacementDetailStatusSection
+            isClaimed={isClaimed}
+            isCompleted={isCompleted}
+            isOpenStatus={isOpenStatus}
+            claimedByName={replacement.claimedByName}
+            claimedByRole={replacement.claimedByRole}
+            claimedByAvatarUrl={replacement.claimedByAvatarUrl}
+            claimedAtFormatted={claimedAtFormatted}
+            notes={replacement.notes}
+          />
+        </div>
+
+        {/* 3. Modal Footer (Pinned at Bottom) - All buttons aligned to the right */}
+        <div className='shrink-0 pt-3 border-t border-border/40 flex items-center justify-end gap-2.5'>
+          {(isOpenStatus || isClaimed) && onCancelOpportunity && (
+            <Button
               type='button'
-              onClick={onClose}
-              className='text-muted-foreground hover:text-foreground p-1 rounded-lg transition-colors'
+              variant='outline'
+              size='md'
+              shape='pill'
+              onClick={handleCancel}
+              disabled={isCancelling}
+              className='px-5 text-xs font-semibold text-destructive hover:bg-destructive/10 border-destructive/30 cursor-pointer'
             >
-              <Icons.close className='size-4' />
-            </button>
-          </div>
-        </div>
-
-        {/* Section 1: Sesi & Jam Kerja */}
-        <div className='bg-muted/30 p-3 rounded-xl space-y-2 text-xs'>
-          <div className='text-[11px] font-semibold text-muted-foreground uppercase tracking-wider'>
-            Waktu & Sesi Pelayanan
-          </div>
-          <div className='grid grid-cols-2 gap-2'>
-            <div>
-              <span className='text-muted-foreground block text-[11px]'>Sesi Dinas</span>
-              <span className='font-medium text-foreground'>{sessionName}</span>
-            </div>
-            <div>
-              <span className='text-muted-foreground block text-[11px]'>Jam Operasional</span>
-              <span className='font-medium text-foreground'>{timeDisplay}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Section 2: Staf yang Digantikan (Yang Cuti) */}
-        <div className='bg-muted/30 p-3 rounded-xl space-y-2 text-xs'>
-          <div className='text-[11px] font-semibold text-muted-foreground uppercase tracking-wider'>
-            Staf yang Berhalangan (Cuti)
-          </div>
-          <div className='flex items-center gap-2.5 text-foreground font-medium'>
-            <Avatar className='size-8 rounded-lg border border-border/50 shrink-0'>
-              <AvatarImage
-                src={replacement.originalStaffAvatarUrl || DEFAULT_AVATAR_PATH}
-                alt={replacement.originalStaffName || 'Staf'}
-                className='rounded-lg object-cover'
-              />
-              <AvatarFallback className='rounded-lg p-0 bg-transparent overflow-hidden'>
-                <Image
-                  src={DEFAULT_AVATAR_PATH}
-                  alt={replacement.originalStaffName || 'Staf'}
-                  width={32}
-                  height={32}
-                  unoptimized
-                  className='size-full rounded-lg object-cover'
-                />
-              </AvatarFallback>
-            </Avatar>
-            <div className='min-w-0 flex-1'>
-              <div className='font-semibold text-foreground text-xs leading-tight'>
-                {replacement.originalStaffName}
-              </div>
-              {replacement.originalStaffRole && (
-                <div className='text-muted-foreground text-[11px] font-normal leading-tight mt-0.5'>
-                  {replacement.originalStaffRole}
-                </div>
-              )}
-            </div>
-          </div>
-          {replacement.leaveReason && (
-            <div className='mt-1 pt-1.5 border-t border-border/40 text-muted-foreground text-[11px]'>
-              <span className='font-medium text-foreground'>Alasan Izin: </span>
-              {replacement.leaveReason}
-            </div>
-          )}
-        </div>
-
-        {/* Section 3: Status Pengganti */}
-        <div className='bg-muted/30 p-3 rounded-xl space-y-2 text-xs'>
-          <div className='text-[11px] font-semibold text-muted-foreground uppercase tracking-wider'>
-            Status Penugasan Pengganti
-          </div>
-          {isClaimed || isCompleted ? (
-            <div className='space-y-1.5'>
-              <div className='flex items-center gap-2.5 text-foreground font-medium'>
-                <Avatar className='size-8 rounded-lg border border-border/50 shrink-0'>
-                  <AvatarImage
-                    src={replacement.claimedByAvatarUrl || DEFAULT_AVATAR_PATH}
-                    alt={replacement.claimedByName || ''}
-                    className='rounded-lg object-cover'
-                  />
-                  <AvatarFallback className='rounded-lg p-0 bg-transparent overflow-hidden'>
-                    <Image
-                      src={DEFAULT_AVATAR_PATH}
-                      alt={replacement.claimedByName || ''}
-                      width={32}
-                      height={32}
-                      unoptimized
-                      className='size-full rounded-lg object-cover'
-                    />
-                  </AvatarFallback>
-                </Avatar>
-                <div className='min-w-0 flex-1'>
-                  <div className='font-semibold text-foreground text-xs leading-tight'>
-                    Diambil oleh:{' '}
-                    <strong className='text-primary'>{replacement.claimedByName}</strong>
-                  </div>
-                  {replacement.claimedByRole && (
-                    <div className='text-muted-foreground text-[11px] font-normal leading-tight mt-0.5'>
-                      {replacement.claimedByRole}
-                    </div>
-                  )}
-                </div>
-              </div>
-              {replacement.claimedAt && (
-                <div className='text-[11px] text-muted-foreground'>
-                  Waktu Klaim: {formatClinicDateTime(replacement.claimedAt)}
-                </div>
-              )}
-              {isClaimed && (
-                <p className='text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-medium'>
-                  ✓ Staf pengganti sah untuk scan QR presensi masuk pada tanggal dinas.
-                </p>
-              )}
-              {isCompleted && (
-                <p className='text-[11px] text-blue-600 dark:text-blue-400 mt-1 font-medium'>
-                  ✓ Dinas pengganti telah selesai dijalankan dan diperhitungkan ke payroll.
-                </p>
-              )}
-            </div>
-          ) : isOpenStatus ? (
-            <div className='space-y-1 text-muted-foreground text-xs'>
-              <p className='text-emerald-600 dark:text-emerald-400 font-medium'>
-                ● Terbuka untuk diklaim rekan sejawat melalui aplikasi mobile atau ditugaskan
-                langsung oleh admin.
-              </p>
-              <p className='text-[11px]'>
-                Saat staf mengklaim peluang ini di mobile, jadwal langsung terdaftar dan eligible
-                untuk check-in presensi.
-              </p>
-            </div>
-          ) : (
-            <div className='text-muted-foreground text-xs'>
-              <p className='text-rose-600 font-medium'>Peluang dinas pengganti dibatalkan.</p>
-              {replacement.notes && (
-                <p className='text-[11px] mt-0.5 text-muted-foreground'>
-                  Catatan: {replacement.notes}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Footer Actions */}
-        <div className='flex items-center justify-between pt-2 border-t border-border/60'>
-          <div className='flex items-center gap-2'>
-            {(isOpenStatus || isClaimed) && onCancelOpportunity && (
-              <Button
-                variant='outline'
-                size='sm'
-                onClick={handleCancel}
-                disabled={isCancelling}
-                className='text-xs text-destructive hover:bg-destructive/10 border-destructive/30 h-8 px-2.5'
-              >
-                {isCancelling ? 'Membatalkan...' : 'Batalkan Peluang'}
-              </Button>
-            )}
-          </div>
-
-          <div className='flex items-center gap-2'>
-            {isOpenStatus && onOpenAssign && (
-              <Button
-                variant='primary'
-                size='sm'
-                onClick={() => onOpenAssign(replacement)}
-                className='text-xs h-8 px-3 font-semibold gap-1'
-              >
-                <Icons.userCheck className='size-3.5' />
-                <span>Tugaskan Pengganti</span>
-              </Button>
-            )}
-            <Button variant='outline' size='sm' onClick={onClose} className='text-xs h-8 px-3'>
-              Tutup
+              {isCancelling ? 'Membatalkan...' : 'Batalkan Peluang'}
             </Button>
-          </div>
+          )}
+
+          <Button
+            type='button'
+            variant='outline'
+            size='md'
+            shape='pill'
+            onClick={onClose}
+            className='px-6 text-xs font-semibold cursor-pointer'
+          >
+            Tutup
+          </Button>
+
+          {isOpenStatus && onOpenAssign && (
+            <Button
+              type='button'
+              variant='default'
+              size='md'
+              shape='pill'
+              onClick={handleOpenAssign}
+              className='px-6 text-xs font-semibold cursor-pointer'
+            >
+              Tugaskan Pengganti
+            </Button>
+          )}
         </div>
       </div>
     </ModalWrapper>

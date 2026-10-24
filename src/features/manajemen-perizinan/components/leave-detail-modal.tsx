@@ -54,26 +54,13 @@ export function LeaveDetailModal({
         {/* Pinned Header */}
         <div className='shrink-0 pb-3 border-b border-border/40 flex items-start justify-between gap-3 min-w-0'>
           <div className='space-y-0.5 min-w-0 flex-1'>
-            <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight flex items-center gap-2'>
-              <Icons.calendar className='size-4 text-primary shrink-0' />
-              <span className='truncate'>{staff?.fullName || ''}</span>
+            <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight truncate'>
+              {staff?.fullName || 'Detail Permohonan Izin'}
             </h3>
             <p className='text-xs text-muted-foreground truncate font-medium'>
               {staff?.profession || ''}
               {staff?.idCardNumber ? ` • ID: ${staff.idCardNumber}` : ''}
             </p>
-          </div>
-
-          <div className='flex items-center gap-2 shrink-0'>
-            <LeaveStatusBadge status={leave.status} />
-            <button
-              type='button'
-              onClick={handleClose}
-              className='rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors'
-              aria-label='Tutup'
-            >
-              <Icons.close className='size-4' />
-            </button>
           </div>
         </div>
 
@@ -239,56 +226,53 @@ export function LeaveDetailModal({
           </div>
         </div>
 
-        {/* Pinned Footer Matching StaffDetailEditModal */}
+        {/* Pinned Footer */}
         <div className='shrink-0 pt-3.5 border-t border-border/40 flex items-center justify-end gap-2.5'>
+          {isPending && (
+            <Button
+              type='button'
+              variant='outline'
+              size='md'
+              shape='pill'
+              disabled={isSubmitting}
+              onClick={() => handleReview('rejected')}
+              className='px-6 text-xs font-semibold text-destructive hover:bg-destructive/10 border-destructive/30 cursor-pointer'
+            >
+              Tolak Permohonan
+            </Button>
+          )}
+
           <Button
             type='button'
             variant='outline'
-            size='sm'
+            size='md'
             shape='pill'
             onClick={handleClose}
             disabled={isSubmitting}
-            className='px-5 text-xs font-semibold'
+            className='px-6 text-xs font-semibold cursor-pointer'
           >
             Tutup
           </Button>
 
           {isPending && (
-            <>
-              <Button
-                type='button'
-                variant='outline'
-                size='sm'
-                shape='pill'
-                disabled={isSubmitting}
-                onClick={() => handleReview('rejected')}
-                className='px-5 text-xs font-semibold text-destructive hover:bg-destructive/10 hover:text-destructive'
-              >
-                <Icons.close className='size-3.5 mr-1.5' />
-                Tolak Permohonan
-              </Button>
-
-              <Button
-                type='button'
-                size='sm'
-                shape='pill'
-                disabled={isSubmitting}
-                onClick={() => handleReview('approved')}
-                className='px-6 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-600 dark:hover:bg-emerald-700'
-              >
-                {isSubmitting ? (
-                  <>
-                    <Icons.spinner className='size-3.5 mr-1.5 animate-spin' />
-                    Menyimpan...
-                  </>
-                ) : (
-                  <>
-                    <Icons.check className='size-3.5 mr-1.5' />
-                    Setujui Permohonan
-                  </>
-                )}
-              </Button>
-            </>
+            <Button
+              type='button'
+              variant='default'
+              size='md'
+              shape='pill'
+              disabled={isSubmitting}
+              onClick={() => handleReview('approved')}
+              className='px-7 text-xs font-semibold cursor-pointer'
+            >
+              {isSubmitting ? (
+                <>
+                  <Icons.spinner className='size-3.5 mr-1.5 animate-spin' />
+                  Menyimpan...
+                </>
+              ) : (
+                'Setujui Permohonan'
+              )}
+            </Button>
           )}
         </div>
       </div>

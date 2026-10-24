@@ -239,8 +239,8 @@ export function LeaveKanbanBoard({
   }, [dragState, onReviewLeave]);
 
   return (
-    <div className='relative flex-1 min-h-0 h-full w-full overflow-y-auto overflow-x-hidden select-none pb-4 pr-1'>
-      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 w-full h-auto xl:h-full min-h-full px-0.5 items-stretch'>
+    <div className='relative flex-1 min-h-0 h-full w-full overflow-x-auto overflow-y-hidden select-none pb-2'>
+      <div className='flex items-stretch gap-3.5 h-full w-max min-w-full px-0.5'>
         {KANBAN_COLUMNS.map((col) => {
           const data = columnData.get(col.id) || { groups: [], total: 0 };
           const isTarget = dragState?.currentColumnId === col.id;

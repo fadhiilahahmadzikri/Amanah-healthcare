@@ -3,7 +3,7 @@
 import React from 'react';
 import { MasterEntityCard, EntityCardPrimaryAction } from '@/components/cards/master-entity-card';
 import { formatClinicDate } from '@/lib/date-format';
-import { REPLACEMENT_STATUS_CONFIG, getSessionTitle } from '../constants/replacement.constants';
+import { REPLACEMENT_STATUS_CONFIG } from '../constants/replacement.constants';
 import { ReplacementRouteBlock } from './replacement-route-block';
 import type { ReplacementOpportunityItem } from '../api/types';
 
@@ -30,7 +30,6 @@ export function ReplacementCard({
   };
 
   const formattedDate = formatClinicDate(opportunity.workDate, { style: 'human_full' });
-  const sessionName = getSessionTitle(opportunity.sessionCode);
 
   const handleContainerClick = () => {
     onSelect(opportunity);

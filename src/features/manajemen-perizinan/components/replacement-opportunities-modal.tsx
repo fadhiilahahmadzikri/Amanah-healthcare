@@ -30,6 +30,37 @@ const FILTER_TABS: { key: ReplacementStatusTab; label: string }[] = [
   { key: 'completed', label: 'Selesai' }
 ];
 
+const renderStatusPill = (status: ReplacementOpportunityItem['status']) => {
+  switch (status) {
+    case 'open':
+      return (
+        <span className='bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 px-2.5 py-0.5 rounded-full text-[11px] font-semibold'>
+          Terbuka
+        </span>
+      );
+    case 'claimed':
+      return (
+        <span className='bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 px-2.5 py-0.5 rounded-full text-[11px] font-semibold'>
+          Diklaim
+        </span>
+      );
+    case 'completed':
+      return (
+        <span className='bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full text-[11px] font-semibold'>
+          Selesai
+        </span>
+      );
+    case 'cancelled':
+      return (
+        <span className='bg-destructive/10 text-destructive px-2.5 py-0.5 rounded-full text-[11px] font-semibold'>
+          Dibatalkan
+        </span>
+      );
+    default:
+      return null;
+  }
+};
+
 export function ReplacementOpportunitiesModal({
   isOpen,
   onClose,
@@ -42,37 +73,6 @@ export function ReplacementOpportunitiesModal({
 
   const queryParam = statusTab === 'all' ? undefined : statusTab;
   const { data: replacements = [], isLoading } = useReplacementsQuery(queryParam);
-
-  const renderStatusPill = (status: ReplacementOpportunityItem['status']) => {
-    switch (status) {
-      case 'open':
-        return (
-          <span className='bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 px-2.5 py-0.5 rounded-full text-[11px] font-semibold'>
-            Terbuka
-          </span>
-        );
-      case 'claimed':
-        return (
-          <span className='bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 px-2.5 py-0.5 rounded-full text-[11px] font-semibold'>
-            Diklaim
-          </span>
-        );
-      case 'completed':
-        return (
-          <span className='bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full text-[11px] font-semibold'>
-            Selesai
-          </span>
-        );
-      case 'cancelled':
-        return (
-          <span className='bg-destructive/10 text-destructive px-2.5 py-0.5 rounded-full text-[11px] font-semibold'>
-            Dibatalkan
-          </span>
-        );
-      default:
-        return null;
-    }
-  };
 
   return (
     <>
@@ -87,27 +87,14 @@ export function ReplacementOpportunitiesModal({
         <div className='flex flex-col font-sans select-none gap-4 max-h-[85vh]'>
           {/* Header */}
           <div className='flex items-start justify-between gap-4 border-b border-border/60 pb-3 shrink-0'>
-            <div className='flex items-start gap-3 min-w-0 flex-1'>
-              <div className='p-2 rounded-xl bg-primary/10 text-primary shrink-0 mt-0.5'>
-                <Icons.calendar className='size-5' />
-              </div>
-              <div className='space-y-0.5 min-w-0 flex-1 text-left'>
-                <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
-                  Peluang Pengganti Dinas
-                </h3>
-                <p className='text-xs text-muted-foreground leading-normal'>
-                  Daftar permohonan dinas pengganti yang terbuka atau telah diklaim rekan sejawat
-                </p>
-              </div>
+            <div className='space-y-0.5 min-w-0 flex-1 text-left'>
+              <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
+                Peluang Pengganti Dinas
+              </h3>
+              <p className='text-xs text-muted-foreground leading-normal'>
+                Daftar permohonan dinas pengganti yang terbuka atau telah diklaim rekan sejawat
+              </p>
             </div>
-            <button
-              type='button'
-              onClick={onClose}
-              className='text-muted-foreground hover:text-foreground p-1.5 rounded-lg hover:bg-muted/60 transition-colors shrink-0'
-              aria-label='Tutup'
-            >
-              <Icons.close className='size-4' />
-            </button>
           </div>
 
           {/* Filter Pills */}
@@ -192,7 +179,15 @@ export function ReplacementOpportunitiesModal({
                   return (
                     <div
                       key={item.id}
+                      role='button'
+                      tabIndex={0}
                       onClick={() => setSelectedReplacement(item)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setSelectedReplacement(item);
+                        }
+                      }}
                       className='bg-card border border-border/70 hover:border-border p-4 rounded-xl flex flex-col gap-3 shadow-2xs hover:shadow-md cursor-pointer transition-all text-left'
                     >
                       {/* Header */}
@@ -219,7 +214,7 @@ export function ReplacementOpportunitiesModal({
                       <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-xl bg-muted/20 border border-border/40 text-xs'>
                         {/* Left: Staf Berhalangan */}
                         <div className='space-y-1.5'>
-                          <span className='text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block'>
+                          <span className='text-[11px] font-semibold text-muted-foreground block'>
                             Staf Berhalangan
                           </span>
                           <div className='flex items-center gap-2 min-w-0'>
@@ -260,7 +255,7 @@ export function ReplacementOpportunitiesModal({
 
                         {/* Right: Staf Pengganti */}
                         <div className='space-y-1.5 sm:border-l sm:border-border/40 sm:pl-3'>
-                          <span className='text-[10px] font-semibold uppercase tracking-wider text-muted-foreground block'>
+                          <span className='text-[11px] font-semibold text-muted-foreground block'>
                             Staf Pengganti
                           </span>
                           {item.claimedByName ? (
@@ -341,9 +336,10 @@ export function ReplacementOpportunitiesModal({
             <Button
               type='button'
               variant='outline'
-              size='sm'
+              size='md'
+              shape='pill'
               onClick={onClose}
-              className='text-xs h-8.5 px-4 text-muted-foreground hover:text-foreground font-medium'
+              className='px-6 text-xs font-semibold cursor-pointer'
             >
               Tutup
             </Button>

@@ -33,7 +33,7 @@ function EndpointBlock({
         isRight ? 'items-end text-right' : 'items-start text-left'
       }`}
     >
-      <span className='text-[9px] sm:text-[9.5px] font-bold text-muted-foreground/80 tracking-wider uppercase leading-none mb-1 truncate max-w-full block'>
+      <span className='text-[10px] font-semibold text-muted-foreground/80 leading-none mb-1 truncate max-w-full block whitespace-nowrap'>
         {label}
       </span>
       <div
@@ -44,7 +44,7 @@ function EndpointBlock({
         <span className='text-[19px] sm:text-[21px] xl:text-[23px] font-bold text-foreground leading-none tracking-tight font-sans shrink-0'>
           {dayNumber}
         </span>
-        <span className='text-[11px] sm:text-[12px] font-extrabold text-primary tracking-wide uppercase leading-none truncate max-w-[50px] sm:max-w-[65px]'>
+        <span className='text-[11px] sm:text-[12px] font-bold text-primary tracking-wide leading-none truncate max-w-[50px] sm:max-w-[65px]'>
           {monthCode}
         </span>
       </div>
@@ -64,7 +64,7 @@ export function LeaveBookingDateRoute({ leave, className }: LeaveBookingDateRout
   const startTokens = getClinicDateTokens(leave.startDate);
   const endTokens = getClinicDateTokens(leave.endDate);
 
-  const startMonth = startTokens?.monthUpper || 'OKT';
+  const startMonth = startTokens?.monthUpper || 'Okt';
   const startDay = startTokens?.day || '01';
   const startSub = startTokens ? `${startTokens.weekday}, ${startTokens.year}` : '-';
 
@@ -72,7 +72,7 @@ export function LeaveBookingDateRoute({ leave, className }: LeaveBookingDateRout
   const endDay = endTokens?.day || startDay;
   const endSub = endTokens ? `${endTokens.weekday}, ${endTokens.year}` : '-';
 
-  const durationLabel = `${leave.durationDays} HARI`;
+  const durationLabel = `${leave.durationDays} hari`;
 
   const scopeLabel =
     leave.scope === 'session' && leave.sessions && leave.sessions.length > 0
@@ -87,7 +87,7 @@ export function LeaveBookingDateRoute({ leave, className }: LeaveBookingDateRout
       <div className='flex items-center justify-between gap-1 sm:gap-1.5 w-full min-w-0'>
         {/* Origin / Start Date */}
         <EndpointBlock
-          label='MULAI'
+          label='Mulai'
           monthCode={startMonth}
           dayNumber={startDay}
           subtext={startSub}
@@ -98,7 +98,7 @@ export function LeaveBookingDateRoute({ leave, className }: LeaveBookingDateRout
         <div className='flex-shrink min-w-[32px] max-w-[90px] sm:max-w-[100px] flex items-center justify-center px-0.5 sm:px-1'>
           <div className='flex items-center w-full justify-center gap-0.5 sm:gap-1 text-muted-foreground/60 min-w-0'>
             <div className='flex-1 min-w-[3px] h-[1.5px] border-t border-dashed border-border' />
-            <span className='inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-muted/60 border border-border/80 text-[9px] sm:text-[9.5px] font-bold text-foreground/80 tracking-wider whitespace-nowrap shadow-2xs shrink-0'>
+            <span className='inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-muted/60 border border-border/80 text-[9.5px] font-semibold text-foreground/80 whitespace-nowrap shadow-2xs shrink-0'>
               {durationLabel}
             </span>
             <div className='flex-1 min-w-[3px] h-[1.5px] border-t border-dashed border-border' />
@@ -109,7 +109,7 @@ export function LeaveBookingDateRoute({ leave, className }: LeaveBookingDateRout
         {/* Destination / End Date or Scope */}
         {isRange ? (
           <EndpointBlock
-            label='SELESAI'
+            label='Selesai'
             monthCode={endMonth}
             dayNumber={endDay}
             subtext={endSub}
@@ -117,8 +117,8 @@ export function LeaveBookingDateRoute({ leave, className }: LeaveBookingDateRout
           />
         ) : (
           <EndpointBlock
-            label='LINGKUP'
-            monthCode={leave.scope === 'session' ? 'SESI' : 'PENUH'}
+            label='Lingkup'
+            monthCode={leave.scope === 'session' ? 'Sesi' : 'Penuh'}
             dayNumber='1D'
             subtext={scopeLabel}
             align='right'
