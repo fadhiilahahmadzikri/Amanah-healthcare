@@ -1,5 +1,6 @@
 'use client';
 
+import { toast } from 'sonner';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -142,6 +143,36 @@ export function StaffDetailEditModal(props: StaffDetailEditModalProps) {
                   placeholder='Staf IT, Front Desk, CS, dll.'
                   value={form.formData.profession}
                   onChange={(val) => form.handleChange('profession', val)}
+                />
+
+                <PatientLineInput
+                  id='staff_code'
+                  label='Kode staf'
+                  placeholder='STF-xxx'
+                  value={staff.idCardNumber || staff.staffCode || '-'}
+                  readOnly
+                  isMonospace
+                  trailingIcon={
+                    staff.idCardNumber || staff.staffCode ? (
+                      <button
+                        type='button'
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const code = staff.idCardNumber || staff.staffCode || '';
+                          if (code && code !== '-') {
+                            await navigator.clipboard.writeText(code);
+                            toast.success(`Kode staf ${code} disalin ke clipboard`);
+                          }
+                        }}
+                        title='Salin kode staf'
+                        aria-label='Salin kode staf'
+                        className='p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer'
+                      >
+                        <Icons.copy className='size-3.5' />
+                      </button>
+                    ) : null
+                  }
                 />
 
                 <div className='grid grid-cols-2 gap-4'>

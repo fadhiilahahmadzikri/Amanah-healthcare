@@ -49,6 +49,7 @@ export interface StaffMember {
   profession: string;
   staffType: StaffType;
   idCardNumber: string;
+  staffCode?: string | null;
   licenseNumber?: string | null;
   birthPlace?: string | null;
   birthDate?: string | null;

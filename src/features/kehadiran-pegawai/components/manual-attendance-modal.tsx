@@ -62,7 +62,7 @@ export function ManualAttendanceModal({ isOpen, onClose }: ManualAttendanceModal
           </p>
         </div>
 
-        {/* 2. Input ID Staf (Tanpa label text di atasnya) */}
+        {/* 2. Input ID Staf */}
         <div className='space-y-3 py-0.5'>
           <div className='relative'>
             <Icons.user className='absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none' />

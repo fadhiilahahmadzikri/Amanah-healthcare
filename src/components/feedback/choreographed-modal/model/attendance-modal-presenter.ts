@@ -1,5 +1,6 @@
 import { openNotificationModal } from './notification-modal-store';
 import type { ModalVariantKey, ChoreographyType } from '../types';
+import { ATTENDANCE_ACTIONS, type AttendanceAction } from '@/features/kehadiran-pegawai/api/types';
 
 export interface PresentAttendanceModalParams {
   id?: string;
@@ -8,9 +9,11 @@ export interface PresentAttendanceModalParams {
   kategori?: string | null;
   waktu_presensi?: string | null;
   waktu?: string | null;
+  checkInAt?: string | null;
+  checkOutAt?: string | null;
   status?: string | null;
   shift?: string | null;
-  action?: 'check_in' | 'manual_check_in' | 'check_out';
+  action?: AttendanceAction;
   isEarlyDeparture?: boolean;
   notes?: string;
   onNavigateDetail?: (id?: string) => void;
@@ -21,10 +24,20 @@ export interface PresentAttendanceModalParams {
  * choreographed notification modal, avoiding code duplication across socket & mutations.
  */
 export function presentAttendanceModal(params: PresentAttendanceModalParams) {
-  const isEarly = params.isEarlyDeparture;
-  const isCheckOut = params.action === 'check_out';
+  const isEarly = Boolean(params.isEarlyDeparture);
+  const isCheckOut = params.action === ATTENDANCE_ACTIONS.CHECK_OUT;
   const isLate = params.status === 'Terlambat';
-  const time = params.waktu_presensi || params.waktu || 'hari ini';
+  let time = params.waktu_presensi || params.waktu || 'hari ini';
+  if ((isCheckOut || isEarly) && params.checkOutAt) {
+    try {
+      const d = new Date(params.checkOutAt);
+      if (!Number.isNaN(d.getTime())) {
+        time = `${d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} WIB`;
+      }
+    } catch {
+      // Retain time from upstream waktu_presensi
+    }
+  }
   const shiftText = params.shift ? `Shift ${params.shift}` : undefined;
 
   let variant: ModalVariantKey = 'success';

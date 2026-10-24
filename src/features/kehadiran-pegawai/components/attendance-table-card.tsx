@@ -28,6 +28,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { AttendanceDigitalClock } from './attendance-digital-clock';
 import { useCheckoutAttendanceMutation } from '../api/mutations';
+import { EarlyCheckoutModal } from './early-checkout-modal';
 import { DataTableBulkActions } from '@/components/ui/table/data-table-bulk-actions';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
@@ -71,7 +72,26 @@ export function AttendanceTableCard({
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<TabFilter>('all');
   const [exportRow, setExportRow] = useState<StaffAttendance | null>(null);
+  const [earlyCheckoutTarget, setEarlyCheckoutTarget] = useState<{
+    staffId: string;
+    staffName: string;
+  } | null>(null);
   const checkoutMutation = useCheckoutAttendanceMutation();
+
+  const handleTriggerCheckout = async (staffId: string, staffName: string, notes?: string) => {
+    try {
+      await checkoutMutation.mutateAsync({ staffId, staffName, notes });
+      setEarlyCheckoutTarget(null);
+    } catch (err: unknown) {
+      const errObj = err as
+        | { code?: string; problemDetails?: { code?: string; requiresNotes?: boolean } }
+        | undefined;
+      const errCode = errObj?.code || errObj?.problemDetails?.code;
+      if (errCode === 'EARLY_DEPARTURE_NOTES_REQUIRED' || errObj?.problemDetails?.requiresNotes) {
+        setEarlyCheckoutTarget({ staffId, staffName });
+      }
+    }
+  };
 
   const isFiltered = Boolean(
     params.search ||
@@ -86,15 +106,6 @@ export function AttendanceTableCard({
     const unique = Array.from(new Set(records.map((r) => r.shift).filter(Boolean)));
     return [{ label: 'Semua Shift', value: 'all' }, ...unique.map((s) => ({ label: s, value: s }))];
   }, [availableFilters?.shifts, records]);
-
-  const statusOptions: FilterOption[] = useMemo(() => {
-    if (availableFilters?.statuses?.length) return availableFilters.statuses;
-    const unique = Array.from(new Set(records.map((r) => r.status).filter(Boolean)));
-    return [
-      { label: 'Semua Status', value: 'all' },
-      ...unique.map((st) => ({ label: st, value: st }))
-    ];
-  }, [availableFilters?.statuses, records]);
 
   const categoryOptions: FilterOption[] = useMemo(() => {
     if (availableFilters?.categories?.length) return availableFilters.categories;
@@ -551,10 +562,10 @@ export function AttendanceTableCard({
                                 size='sm'
                                 disabled={checkoutMutation.isPending}
                                 onClick={() =>
-                                  checkoutMutation.mutate({
-                                    staffId: row.id_staf,
-                                    staffName: row.nama_staf
-                                  })
+                                  handleTriggerCheckout(
+                                    row.staffProfileId || row.id_staf,
+                                    row.nama_staf
+                                  )
                                 }
                                 className='h-6.5 text-[11px] font-semibold px-2 rounded-md border-border/70 hover:bg-primary/10 hover:text-primary gap-1 cursor-pointer'
                                 title={`Catat presensi pulang untuk ${row.nama_staf}`}
@@ -660,7 +671,7 @@ export function AttendanceTableCard({
               return;
             }
             for (const t of targets) {
-              await checkoutMutation.mutateAsync({ staffId: t.id_staf, staffName: t.nama_staf });
+              await handleTriggerCheckout(t.staffProfileId || t.id_staf, t.nama_staf);
             }
             setSelectedIds([]);
           }}
@@ -681,6 +692,24 @@ export function AttendanceTableCard({
           staffProfileId: exportRow?.staffProfileId || exportRow?.id_staf
         }}
         enableMonthPicker={true}
+      />
+
+      {/* 6. Modal Presensi Pulang Lebih Awal */}
+      <EarlyCheckoutModal
+        isOpen={Boolean(earlyCheckoutTarget)}
+        onClose={() => setEarlyCheckoutTarget(null)}
+        staffId={earlyCheckoutTarget?.staffId || ''}
+        staffName={earlyCheckoutTarget?.staffName || ''}
+        isLoading={checkoutMutation.isPending}
+        onConfirm={async (notes) => {
+          if (earlyCheckoutTarget) {
+            await handleTriggerCheckout(
+              earlyCheckoutTarget.staffId,
+              earlyCheckoutTarget.staffName,
+              notes
+            );
+          }
+        }}
       />
     </div>
   );

@@ -19,6 +19,8 @@ export interface UseDoctorDetailEditModalProps {
 }
 
 export interface DoctorDetailFormData {
+  staffId: string;
+  staffCode: string;
   fullName: string;
   email: string;
   phoneNumber: string;
@@ -51,6 +53,8 @@ export interface UseDoctorDetailEditModalResult {
 }
 
 const INITIAL_FORM_DATA: DoctorDetailFormData = {
+  staffId: '',
+  staffCode: '',
   fullName: '',
   email: '',
   phoneNumber: '',
@@ -144,6 +148,8 @@ export function useDoctorDetailEditModal({
     setIsLoadingProfile(true);
 
     const baseForm: DoctorDetailFormData = {
+      staffId: doctor.staff_id || doctor.staff_profile_id || '',
+      staffCode: doctor.staff_code || '',
       fullName: doctor.nama_dokter || '',
       email: doctor.email || '',
       phoneNumber: doctor.nomor_telepon || '',
@@ -169,6 +175,8 @@ export function useDoctorDetailEditModal({
           if (cancelled || !profile) return;
 
           const loadedForm: DoctorDetailFormData = {
+            staffId: profile.id || doctor.staff_id || doctor.staff_profile_id || '',
+            staffCode: profile.staffCode || profile.idCardNumber || doctor.staff_code || '',
             fullName: profile.fullName || doctor.nama_dokter || '',
             email: profile.email || doctor.email || '',
             phoneNumber: profile.phoneNumber || doctor.nomor_telepon || '',

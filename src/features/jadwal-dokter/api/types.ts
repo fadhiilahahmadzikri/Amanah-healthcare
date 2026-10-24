@@ -50,6 +50,7 @@ export interface DoctorSchedule {
   practitioner_id?: string;
   staff_profile_id?: string | null;
   staff_id?: string | null;
+  staff_code?: string | null;
   nama_dokter: string;
   spesialisasi: string;
   status_dokter: 'OPEN' | 'CLOSED' | 'ON_LEAVE' | 'PENDING' | string;

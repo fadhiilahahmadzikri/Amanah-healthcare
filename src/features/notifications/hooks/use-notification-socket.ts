@@ -13,7 +13,7 @@ import { doctorScheduleKeys } from '@/features/jadwal-dokter/api/query-keys';
 import { SCHEDULE_QUERY_KEYS } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 import { leaveManagementKeys } from '@/features/manajemen-perizinan/api/query-keys';
 import { attendanceKeys } from '@/features/kehadiran-pegawai/api/queries';
-import type { StaffAttendance } from '@/features/kehadiran-pegawai/api/types';
+import type { AttendanceAction, StaffAttendance } from '@/features/kehadiran-pegawai/api/types';
 import { presentAttendanceModal } from '@/components/feedback/choreographed-modal';
 import { getClientSocketUrl } from '@/core/config/env.client';
 import { clientFetch } from '@/lib/client-fetch';
@@ -418,9 +418,14 @@ export function useNotificationSocket(callbacks?: {
         window.dispatchEvent(new CustomEvent('clinic:attendance_updated', { detail: payload }));
       }
 
+      // Audience isolation: Only internal clinic staff may receive or display staff attendance modals
+      if (viewerAudience !== 'clinic') {
+        return;
+      }
+
       const item = payload as
         | (StaffAttendance & {
-            action: 'check_in' | 'manual_check_in' | 'check_out';
+            action: AttendanceAction;
             isEarlyDeparture?: boolean;
             notes?: string;
           })
@@ -434,6 +439,8 @@ export function useNotificationSocket(callbacks?: {
         kategori: item.kategori,
         waktu_presensi: item.waktu_presensi,
         waktu: item.waktu,
+        checkInAt: item.checkInAt,
+        checkOutAt: item.checkOutAt,
         status: item.status,
         shift: item.shift,
         action: item.action,

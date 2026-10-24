@@ -36,10 +36,13 @@ class AttendanceService {
     });
   }
 
-  async checkoutStaffAttendance(staffId: string): Promise<StaffAttendance> {
+  async checkoutStaffAttendance(staffId: string, notes?: string): Promise<StaffAttendance> {
     return clientFetch<StaffAttendance>('/api/v1/attendance/checkout', {
       method: 'POST',
-      body: JSON.stringify({ staffId })
+      body: JSON.stringify({
+        staffId,
+        notes: notes || undefined
+      })
     });
   }
 

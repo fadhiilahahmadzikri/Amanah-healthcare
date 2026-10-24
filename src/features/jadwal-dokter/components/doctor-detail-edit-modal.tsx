@@ -1,5 +1,6 @@
 'use client';
 
+import { toast } from 'sonner';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -213,6 +214,36 @@ export function DoctorDetailEditModal(props: DoctorDetailEditModalProps) {
                     value={form.formData.profession}
                     onChange={(val) => form.handleChange('profession', val)}
                     disabled={!form.isEditing}
+                  />
+
+                  <PatientLineInput
+                    id='doctor_staff_code'
+                    label='Kode staf'
+                    placeholder='STF-DOK-xxxx'
+                    value={form.formData.staffCode || doctor.staff_code || '-'}
+                    readOnly
+                    isMonospace
+                    trailingIcon={
+                      form.formData.staffCode || doctor.staff_code ? (
+                        <button
+                          type='button'
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const code = form.formData.staffCode || doctor.staff_code || '';
+                            if (code && code !== '-') {
+                              await navigator.clipboard.writeText(code);
+                              toast.success(`Kode staf ${code} disalin ke clipboard`);
+                            }
+                          }}
+                          title='Salin kode staf'
+                          aria-label='Salin kode staf'
+                          className='p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer'
+                        >
+                          <Icons.copy className='size-3.5' />
+                        </button>
+                      ) : null
+                    }
                   />
 
                   {/* Unit Poliklinik Penugasan (Radix UI Select) */}

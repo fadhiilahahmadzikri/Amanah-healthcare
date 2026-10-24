@@ -1,4 +1,5 @@
 import { AppError } from '@/core/errors/app-error';
+import { ErrorCodes } from '@/core/errors/error-codes';
 import type { ProblemDetails } from '@/core/errors/problem-details';
 import { isProtectedRoute } from '@/core/routes';
 
@@ -82,6 +83,17 @@ export async function clientFetch<T>(
       (errorBody as { message?: string; error?: string })?.error ||
       `HTTP ${response.status} ${response.statusText}`;
 
+    if (response.status === 400) {
+      const pDetails = errorBody as ProblemDetails | undefined;
+      const fallbackCode = (errorBody as { error?: string })?.error || ErrorCodes.VALIDATION_FAILED;
+      throw new AppError({
+        code: (pDetails?.code || fallbackCode) as (typeof ErrorCodes)[keyof typeof ErrorCodes],
+        status: 400,
+        expected: true,
+        message,
+        problemDetails: pDetails
+      });
+    }
     if (response.status === 401) {
       if (typeof window !== 'undefined' && isProtectedRoute(window.location.pathname)) {
         const lastRedirect = sessionStorage.getItem('last_auth_redirect');

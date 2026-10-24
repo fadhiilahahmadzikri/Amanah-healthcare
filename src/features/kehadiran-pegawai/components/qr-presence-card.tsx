@@ -31,6 +31,7 @@ export function QRPresenceCard({
 }: QRPresenceCardProps) {
   // Dynamic rotation interval from backend config
   const rotationInterval = config.rotation_seconds || 30;
+  const maxSessionSeconds = rotationInterval + 15;
 
   // Calculate remaining seconds from backend validUntil timestamp (persists across page refresh)
   const computeRemainingSeconds = useCallback(() => {
@@ -38,10 +39,10 @@ export function QRPresenceCard({
     if (validUntilIso) {
       const targetTime = new Date(validUntilIso).getTime();
       const diffSec = Math.max(0, Math.round((targetTime - Date.now()) / 1000));
-      return diffSec;
+      return Math.min(diffSec, maxSessionSeconds);
     }
     return rotationInterval;
-  }, [config.validUntil, config.valid_until, rotationInterval]);
+  }, [config.validUntil, config.valid_until, rotationInterval, maxSessionSeconds]);
 
   const [timeLeft, setTimeLeft] = useState(computeRemainingSeconds);
   const [token, setToken] = useState(config.qr_code_identifier || '');
