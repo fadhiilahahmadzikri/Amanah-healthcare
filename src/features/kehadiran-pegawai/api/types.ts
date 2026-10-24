@@ -80,17 +80,34 @@ export interface AttendanceFilterParams {
   status?: string | null;
   category?: string | null;
   search?: string | null;
-  page: number;
-  limit: number;
 }
 
 export interface AttendanceListResponse {
   records: StaffAttendance[];
   total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
   summary: AttendanceMetrics;
   qrConfig: QRPresenceConfig;
   availableFilters?: AvailableAttendanceFilters;
+}
+
+import type { StaffType } from '@/features/staff-management/constants/staff.constants';
+
+export interface AttendanceExportCandidate {
+  id: string;
+  staffCode: string;
+  fullName: string;
+  avatarUrl?: string | null;
+  staffType: StaffType;
+  positionTitle?: string | null;
+  specialtyName?: string | null;
+  totalAttendance: number;
+}
+
+export interface AttendanceExportCandidatesResponse {
+  candidates: AttendanceExportCandidate[];
+  period: {
+    month: string;
+    startDate: string;
+    endDate: string;
+  };
 }

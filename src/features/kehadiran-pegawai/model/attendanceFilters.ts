@@ -6,14 +6,12 @@ export function getCurrentAttendanceFilterDate(): string {
   });
 }
 
-export function createDefaultAttendanceFilters(limit: number): AttendanceFilterParams {
+export function createDefaultAttendanceFilters(): AttendanceFilterParams {
   return {
     date: getCurrentAttendanceFilterDate(),
     shift: 'all',
     status: 'all',
     category: 'all',
-    search: '',
-    page: 1,
-    limit
+    search: ''
   };
 }

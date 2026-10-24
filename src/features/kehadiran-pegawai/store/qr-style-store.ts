@@ -40,8 +40,8 @@ export const DEFAULT_QR_STYLE = {
   dotType: 'rounded' as QRDotType,
   cornerSquareType: 'extra-rounded' as QRCornerSquareType,
   cornerDotType: 'dot' as QRCornerDotType,
-  fgColor: '#0f172a',
-  bgColor: '#ffffff',
+  fgColor: 'currentColor',
+  bgColor: 'transparent',
   rotationSeconds: 30,
   showCenterLogo: true,
   errorCorrection: 'M' as QRErrorCorrection
@@ -63,7 +63,16 @@ export const useQRStyleStore = create<QRStyleState>()(
       resetDefaults: () => set({ ...DEFAULT_QR_STYLE })
     }),
     {
-      name: 'amanah-qr-style-settings'
+      name: 'amanah-qr-style-settings',
+      version: 2,
+      migrate: (persistedState: unknown) => {
+        const state = (persistedState || {}) as Record<string, unknown>;
+        return {
+          ...state,
+          bgColor: 'transparent',
+          fgColor: 'currentColor'
+        } as unknown as QRStyleState;
+      }
     }
   )
 );

@@ -373,7 +373,7 @@ export function QRConfigSettings() {
 
           {/* QR Canvas Display */}
           <div className='flex flex-col items-center justify-center pt-4 pb-2'>
-            <div className='w-full max-w-[260px] aspect-square flex items-center justify-center bg-white p-2.5 rounded-xl border border-border/40 shadow-xs'>
+            <div className='w-full max-w-[260px] aspect-square flex items-center justify-center bg-muted/30 p-2.5 rounded-xl border border-border/60 shadow-xs'>
               <ModernStyledQRCode data={previewPayload} size={240} className='w-full h-full' />
             </div>
 

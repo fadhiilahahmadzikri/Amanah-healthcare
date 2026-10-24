@@ -1,18 +1,41 @@
 'use client';
 
+import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import PageContainer from '@/components/layout/page-container';
+import { useMediaQuery } from '@/hooks/use-media-query';
+import { useSidebar } from '@/components/ui/sidebar';
+import { Icons } from '@/components/icons';
+import { FacetSidebarSheet } from '@/shared/ui/responsive-facet-toolbox';
 import { QRPresenceCard } from './qr-presence-card';
 import { AttendanceTableCard } from './attendance-table-card';
 import { AttendanceHeaderActions } from './attendance-export-button';
-import { GenerateQRModal } from './generate-qr-modal';
+import { AttendanceQrMobileModal } from './attendance-qr-mobile-modal';
 import { ManualAttendanceModal } from './manual-attendance-modal';
-import { Icons } from '@/components/icons';
 import { useAttendanceDashboard } from '../model/useAttendanceDashboard';
 
 export default function KehadiranPegawaiView() {
   const attendanceDashboard = useAttendanceDashboard();
-  const { data } = attendanceDashboard;
+  const { data, qrController, filterState, dynamicOptions, searchEngine, actions } =
+    attendanceDashboard;
+  const [isFacetSheetOpen, setIsFacetSheetOpen] = useState(false);
+
+  const { state: sidebarState } = useSidebar();
+  const isSidebarExpanded = sidebarState === 'expanded';
+
+  const { isOpen: isMobile } = useMediaQuery('(max-width: 768px)');
+  const { isOpen: isUnder1024 } = useMediaQuery('(max-width: 1024px)');
+  const { isOpen: isUnder1280 } = useMediaQuery('(max-width: 1280px)');
+
+  const isDesktopQRVisible = !isMobile && qrController.isQRVisible;
+
+  // Responsively triggers facet sidebar mode (Sheet on right):
+  // 1. Mobile & tablet viewports (<= 1024px)
+  // 2. When QR terminal dock is open (isDesktopQRVisible)
+  // 3. When app sidebar is expanded on standard desktop viewports <= 1280px (isSidebarExpanded)
+  // 4. Combo mode (both QR terminal dock & expanded sidebar active)
+  const isCompact =
+    isMobile || isUnder1024 || isDesktopQRVisible || (isUnder1280 && isSidebarExpanded);
 
   if (!data) {
     return (
@@ -31,17 +54,9 @@ export default function KehadiranPegawaiView() {
         <div className='shrink-0 select-none pt-0.5'>
           <div className='flex flex-wrap items-start justify-between gap-4'>
             <div>
-              <div className='flex items-center gap-2'>
-                <h1 className='text-xl sm:text-2xl font-bold tracking-tight text-foreground'>
-                  Kehadiran Pegawai
-                </h1>
-                {attendanceDashboard.isQRVisible && (
-                  <span className='inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20'>
-                    <span className='size-1.5 rounded-full bg-emerald-500 animate-pulse' />
-                    <span>Sesi QR Aktif</span>
-                  </span>
-                )}
-              </div>
+              <h1 className='text-xl sm:text-2xl font-bold tracking-tight text-foreground'>
+                Kehadiran Pegawai
+              </h1>
               <p className='text-xs sm:text-sm text-muted-foreground mt-0.5'>
                 Kelola dan pantau presensi kehadiran dokter dan staf secara real-time.
               </p>
@@ -50,34 +65,40 @@ export default function KehadiranPegawaiView() {
             <div className='flex items-center gap-2 flex-wrap'>
               <AttendanceHeaderActions
                 data={data.records}
-                onOpenGenerateQR={attendanceDashboard.actions.openGenerateQR}
-                onOpenManualAttendance={attendanceDashboard.actions.openManualAttendance}
-                onRefresh={attendanceDashboard.actions.refreshData}
-                isQRVisible={attendanceDashboard.isQRVisible}
+                onToggleQR={() => qrController.toggleQR(isMobile)}
+                onOpenManualAttendance={actions.openManualAttendance}
+                onRefresh={actions.refreshData}
+                isQRVisible={isMobile ? qrController.isMobileModalOpen : qrController.isQRVisible}
+                isCompact={isCompact}
+                onOpenSearch={searchEngine.open}
+                isSearchActive={Boolean(filterState.params.search)}
+                onOpenFilter={() => setIsFacetSheetOpen(true)}
+                onResetFilter={filterState.resetFilter}
+                activeFilterCount={filterState.activeFilterCount}
               />
             </div>
           </div>
         </div>
 
-        {/* Main Unified Workspace Grid: QR Presensi Terminal Dock + Attendance Table */}
+        {/* Main Workspace Grid: QR Presensi Terminal Dock + Attendance Table */}
         <div className='grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch flex-1 min-h-0 h-full overflow-hidden'>
-          {/* Left Column: QR Presensi Dock */}
+          {/* Left Column: QR Presensi Dock (Desktop only when visible) */}
           <AnimatePresence mode='popLayout'>
-            {attendanceDashboard.isQRVisible && (
+            {isDesktopQRVisible && (
               <motion.div
                 key='qr-presence-sidebar'
-                initial={{ opacity: 0, x: -40, scale: 0.96 }}
+                initial={{ opacity: 0, x: -30, scale: 0.98 }}
                 animate={{ opacity: 1, x: 0, scale: 1 }}
-                exit={{ opacity: 0, x: -40, scale: 0.96 }}
-                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                exit={{ opacity: 0, x: -30, scale: 0.98 }}
+                transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
                 className='lg:col-span-4 xl:col-span-4 w-full h-full flex flex-col min-h-0 overflow-hidden'
               >
                 <QRPresenceCard
                   config={data.qrConfig}
-                  onGenerateNewToken={attendanceDashboard.actions.rotateQR}
-                  onOpenManualAttendance={attendanceDashboard.actions.openManualAttendance}
-                  onCloseCard={attendanceDashboard.actions.hideQR}
-                  className='h-full overflow-y-auto'
+                  onGenerateNewToken={qrController.rotateQR}
+                  onOpenManualAttendance={actions.openManualAttendance}
+                  onCloseCard={() => qrController.closeQR(false)}
+                  className='h-full'
                 />
               </motion.div>
             )}
@@ -86,7 +107,7 @@ export default function KehadiranPegawaiView() {
           {/* Right Column: Attendance Records Table */}
           <div
             className={
-              attendanceDashboard.isQRVisible
+              isDesktopQRVisible
                 ? 'lg:col-span-8 xl:col-span-8 w-full h-full flex flex-col min-h-0 overflow-hidden transition-all duration-300'
                 : 'lg:col-span-12 xl:col-span-12 w-full h-full flex flex-col min-h-0 overflow-hidden transition-all duration-300'
             }
@@ -94,31 +115,45 @@ export default function KehadiranPegawaiView() {
             <AttendanceTableCard
               records={data.records}
               total={data.total}
-              page={data.page}
-              limit={data.limit}
-              totalPages={data.totalPages}
-              params={attendanceDashboard.params}
-              onFilterChange={attendanceDashboard.actions.changeFilter}
-              onResetFilter={attendanceDashboard.actions.resetFilter}
-              availableFilters={data.availableFilters}
+              filterState={filterState}
+              dynamicOptions={dynamicOptions}
+              searchEngine={searchEngine}
+              isCompact={isCompact}
               className='h-full'
             />
           </div>
         </div>
       </div>
 
-      {/* Generate QR Modal (Terminal Presensi Hub) */}
-      <GenerateQRModal
-        isOpen={attendanceDashboard.isGenerateQRModalOpen}
-        onClose={attendanceDashboard.actions.closeGenerateQR}
+      {/* Mobile QR Presence Modal (Full-Screen on Mobile) */}
+      <AttendanceQrMobileModal
+        isOpen={qrController.isMobileModalOpen}
+        onClose={() => qrController.closeQR(true)}
         config={data.qrConfig}
-        onActivated={attendanceDashboard.actions.activateQR}
+        onGenerateNewToken={qrController.rotateQR}
+        onOpenManualAttendance={actions.openManualAttendance}
+      />
+
+      {/* Facet Sidebar Sheet (Dibuka dari Tombol Filter Header di Mode Compact) */}
+      <FacetSidebarSheet
+        isOpen={isFacetSheetOpen}
+        onClose={() => setIsFacetSheetOpen(false)}
+        dateFilter={{
+          label: 'Tanggal',
+          selectedDate: filterState.dateFilterObj,
+          onSelectDate: filterState.setDateFilterObj,
+          resetLabel: 'Hari Ini'
+        }}
+        facets={dynamicOptions.facetGroups}
+        isFiltered={filterState.isFiltered}
+        onResetAll={filterState.resetFilter}
+        activeCount={filterState.activeFilterCount}
       />
 
       {/* Manual Attendance Modal */}
       <ManualAttendanceModal
         isOpen={attendanceDashboard.isManualAttendanceModalOpen}
-        onClose={attendanceDashboard.actions.closeManualAttendance}
+        onClose={actions.closeManualAttendance}
       />
     </PageContainer>
   );

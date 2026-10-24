@@ -3,6 +3,7 @@ import type {
   StaffAttendance,
   AttendanceFilterParams,
   AttendanceListResponse,
+  AttendanceExportCandidatesResponse,
   QRPresenceConfig
 } from './types';
 
@@ -14,8 +15,6 @@ class AttendanceService {
     if (params.status && params.status !== 'all') query.set('status', params.status);
     if (params.category && params.category !== 'all') query.set('category', params.category);
     if (params.search) query.set('search', params.search);
-    if (params.page) query.set('page', String(params.page));
-    if (params.limit) query.set('limit', String(params.limit));
 
     const endpoint = `/api/v1/attendance/daily?${query.toString()}`;
     return clientFetch<AttendanceListResponse>(endpoint, {
@@ -97,6 +96,16 @@ class AttendanceService {
 
   async updateQRConfig(payload?: Partial<QRPresenceConfig>): Promise<QRPresenceConfig> {
     return this.generateNewQRToken(payload?.qr_context);
+  }
+
+  async getExportCandidates(month?: string): Promise<AttendanceExportCandidatesResponse> {
+    const query = month ? `?month=${encodeURIComponent(month)}` : '';
+    return clientFetch<AttendanceExportCandidatesResponse>(
+      `/api/v1/attendance/export-candidates${query}`,
+      {
+        method: 'GET'
+      }
+    );
   }
 }
 

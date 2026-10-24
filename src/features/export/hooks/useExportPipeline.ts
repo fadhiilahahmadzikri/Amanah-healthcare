@@ -8,7 +8,7 @@ import { ExportFormat, ExportJob, ExportType, mapPhaseText } from '../types';
 export interface StartExportParams {
   exportType: ExportType;
   format: ExportFormat;
-  parameters?: Record<string, any>;
+  parameters?: Record<string, unknown>;
   fileNamePrefix?: string;
 }
 
@@ -33,7 +33,7 @@ export function useExportPipeline() {
   }, []);
 
   const checkAvailability = useCallback(
-    async (exportType: ExportType, parameters?: Record<string, any>): Promise<boolean> => {
+    async (exportType: ExportType, parameters?: Record<string, unknown>): Promise<boolean> => {
       setIsChecking(true);
       setErrorMessage(null);
       try {
@@ -44,7 +44,7 @@ export function useExportPipeline() {
           setIsChecking(false);
         }
         return res.available;
-      } catch (err: any) {
+      } catch {
         if (isMountedRef.current) {
           setHasData(true); // Graceful fallback
           setIsChecking(false);
@@ -91,12 +91,12 @@ export function useExportPipeline() {
             if (!isMountedRef.current) return;
             setJob(statusJob);
 
-            const pct = statusJob.percent > 0 ? statusJob.percent : Math.min(20 + attempts * 5, 85);
-            setProgressPercent(pct);
+            const realPct = typeof statusJob.percent === 'number' ? statusJob.percent : 0;
+            setProgressPercent(realPct);
             setCurrentPhase(mapPhaseText(statusJob.phase));
 
             if (statusJob.status === 'completed') {
-              setProgressPercent(90);
+              setProgressPercent(100);
               setCurrentPhase('Mengunduh berkas laporan...');
               setIsDownloading(true);
 
@@ -120,25 +120,26 @@ export function useExportPipeline() {
             }
 
             if (statusJob.status === 'failed' || statusJob.status === 'cancelled') {
-              throw new Error(statusJob.errorMessage || 'Proses pembuatan laporan gagal di server');
+              const failureMessage =
+                statusJob.errorMessage || 'Proses pembuatan laporan gagal di server';
+              setErrorMessage(failureMessage);
+              setIsExporting(false);
+              setIsDownloading(false);
+              toast.error(failureMessage);
+              return;
             }
-          } catch (pollErr: any) {
-            // If it's the explicit terminal failure from server, rethrow
-            if (
-              pollErr.message &&
-              (pollErr.message.includes('gagal di server') ||
-                pollErr.message.includes('tidak ditemukan'))
-            ) {
+          } catch (pollErr: unknown) {
+            // Transient network retry until maxAttempts
+            if (attempts >= maxAttempts) {
               throw pollErr;
             }
-            // Otherwise transient network error while polling, keep trying until maxAttempts
           }
         }
 
         throw new Error('Batas waktu tunggu ekspor terlampaui. Silakan coba kembali.');
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (!isMountedRef.current) return;
-        const msg = err.message || 'Gagal memproses ekspor laporan';
+        const msg = err instanceof Error ? err.message : 'Gagal memproses ekspor laporan';
         setErrorMessage(msg);
         setIsExporting(false);
         setIsDownloading(false);

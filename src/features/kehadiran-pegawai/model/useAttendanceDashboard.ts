@@ -1,97 +1,111 @@
 'use client';
 
-import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState, useMemo, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { Icons } from '@/components/icons';
 import { attendanceQueries } from '../api/queries';
-import { attendanceService } from '../api/service';
 import { useAttendanceRealtimeSync } from '../hooks/useAttendanceRealtimeSync';
-import type { AttendanceFilterParams, AttendanceListResponse } from '../api/types';
-import { createDefaultAttendanceFilters } from './attendanceFilters';
+import { useAttendanceFilterState } from './useAttendanceFilterState';
+import { useAttendanceDynamicOptions } from './useAttendanceDynamicOptions';
+import { useQrTerminalController } from './useQrTerminalController';
+import { useStateSearchEngine, type SearchEngineResultItem } from '@/components/search-engine';
 
-interface UseAttendanceDashboardResult {
-  data: AttendanceListResponse | undefined;
-  params: AttendanceFilterParams;
-  isQRVisible: boolean;
-  isGenerateQRModalOpen: boolean;
-  isManualAttendanceModalOpen: boolean;
-  actions: {
-    changeFilter: (params: Partial<AttendanceFilterParams>) => void;
-    resetFilter: () => void;
-    refreshData: () => void;
-    rotateQR: () => Promise<void>;
-    openGenerateQR: () => void;
-    closeGenerateQR: () => void;
-    activateQR: () => void;
-    hideQR: () => void;
-    openManualAttendance: () => void;
-    closeManualAttendance: () => void;
-  };
-}
-
-export function useAttendanceDashboard(): UseAttendanceDashboardResult {
-  const queryClient = useQueryClient();
-  const [params, setParams] = useState<AttendanceFilterParams>(() =>
-    createDefaultAttendanceFilters(8)
-  );
-  const [isQRVisible, setIsQRVisible] = useState(true);
-  const [isGenerateQRModalOpen, setIsGenerateQRModalOpen] = useState(false);
+export function useAttendanceDashboard() {
   const [isManualAttendanceModalOpen, setIsManualAttendanceModalOpen] = useState(false);
 
-  const { data, refetch } = useQuery(attendanceQueries.list(params));
+  // 1. Filter State (Unified, unpaginated)
+  const filterState = useAttendanceFilterState([]);
 
-  // Authoritative real-time sync with backend WebSocket / RabbitMQ events
+  // 2. Query Authoritative Attendance Data
+  const { data, refetch, isLoading, isFetching } = useQuery(
+    attendanceQueries.list(filterState.params)
+  );
+
+  // 3. Realtime Sync via WebSocket / RabbitMQ events
   useAttendanceRealtimeSync({ refetch });
 
-  const resetFilter = () => {
-    setParams(createDefaultAttendanceFilters(8));
-    toast.info('Filter presensi telah direset.');
-  };
+  // 4. Authoritative records
+  const records = useMemo(() => data?.records ?? [], [data?.records]);
 
-  const refreshData = () => {
+  // 5. Computed displayed records & counts from single state of truth
+  const activeTab = filterState.activeTab;
+  const displayedRecords = useMemo(() => {
+    if (activeTab === 'active') return records.filter((r) => !r.checkOutAt);
+    if (activeTab === 'completed') return records.filter((r) => Boolean(r.checkOutAt));
+    return records;
+  }, [records, activeTab]);
+
+  const counts = useMemo(() => {
+    const active = records.filter((r) => !r.checkOutAt).length;
+    const completed = records.filter((r) => Boolean(r.checkOutAt)).length;
+    return { all: records.length, active, completed };
+  }, [records]);
+
+  // Keep filter reset toast notification
+  const resetFilter = useCallback(() => {
+    filterState.resetFilter();
+    toast.info('Filter presensi telah direset.');
+  }, [filterState]);
+
+  // 6. Dynamic Options from DB SSOT (with Dinas facet included)
+  const dynamicOptions = useAttendanceDynamicOptions({
+    availableFilters: data?.availableFilters,
+    records,
+    params: filterState.params,
+    onFilterChange: filterState.changeFilter,
+    activeTab: filterState.activeTab,
+    onTabChange: filterState.setActiveTab,
+    counts
+  });
+
+  // 7. QR Terminal Controller
+  const qrController = useQrTerminalController({ params: filterState.params });
+
+  // 8. Search Engine Integration (Standardized across clinic modules)
+  const searchIndexItems = useMemo<SearchEngineResultItem[]>(() => {
+    return records.map((r) => ({
+      id: `staff-${r.id}`,
+      title: r.nama_staf,
+      subtitle: `${r.id_staf} • ${r.kategori} • ${r.shift}`,
+      category: r.kategori || 'Pegawai',
+      icon: Icons.user,
+      queryValue: r.nama_staf
+    }));
+  }, [records]);
+
+  const searchEngine = useStateSearchEngine({
+    query: filterState.params.search || '',
+    onQueryChange: (q) => filterState.changeFilter({ search: q }),
+    id: 'attendance-search-engine',
+    title: 'Pencarian Presensi Pegawai',
+    description: 'Cari riwayat kehadiran berdasarkan nama, ID staf, kategori, atau shift',
+    placeholder: 'Ketik nama staf atau ID pegawai...',
+    indexItems: searchIndexItems
+  });
+
+  const refreshData = useCallback(() => {
     void refetch();
     toast.success('Data presensi berhasil diperbarui.');
-  };
-
-  const rotateQR = async () => {
-    try {
-      const newConfig = await attendanceService.generateNewQRToken();
-      queryClient.setQueryData<AttendanceListResponse>(
-        attendanceQueries.list(params).queryKey,
-        (old) => {
-          if (!old) return old;
-          return {
-            ...old,
-            qrConfig: newConfig
-          };
-        }
-      );
-    } catch {
-      // Silent error or fallback
-    }
-  };
+  }, [refetch]);
 
   return {
     data,
-    params,
-    isQRVisible,
-    isGenerateQRModalOpen,
+    records,
+    isLoading,
+    isFetching,
+    filterState: {
+      ...filterState,
+      displayedRecords,
+      counts,
+      resetFilter
+    },
+    dynamicOptions,
+    qrController,
+    searchEngine,
     isManualAttendanceModalOpen,
     actions: {
-      changeFilter: (nextParams) => setParams((prev) => ({ ...prev, ...nextParams })),
-      resetFilter,
       refreshData,
-      rotateQR,
-      openGenerateQR: () => setIsGenerateQRModalOpen(true),
-      closeGenerateQR: () => setIsGenerateQRModalOpen(false),
-      activateQR: () => {
-        setIsQRVisible(true);
-        toast.success('Terminal presensi QR aktif di dashboard.');
-      },
-      hideQR: () => {
-        setIsQRVisible(false);
-        toast.info('Terminal presensi QR disembunyikan.');
-      },
       openManualAttendance: () => setIsManualAttendanceModalOpen(true),
       closeManualAttendance: () => setIsManualAttendanceModalOpen(false)
     }

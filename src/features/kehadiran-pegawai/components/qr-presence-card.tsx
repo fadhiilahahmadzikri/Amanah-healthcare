@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import gsap from 'gsap';
 import { ModernStyledQRCode } from './modern-styled-qr-code';
-import { useQRStyleStore } from '../store/qr-style-store';
+import { AttendanceDigitalClock } from './attendance-digital-clock';
 import { Card } from '@/components/ui/card';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -49,7 +49,6 @@ export function QRPresenceCard({
 
   const qrVisualRef = useRef<HTMLDivElement | null>(null);
   const tokenRef = useRef<HTMLDivElement | null>(null);
-  const indicatorDotRef = useRef<HTMLSpanElement | null>(null);
   const isAnimatingRef = useRef(false);
 
   // Sync timeLeft when config (e.g. validUntil or rotation_seconds) changes
@@ -94,22 +93,6 @@ export function QRPresenceCard({
           ease: 'back.out(1.4)',
           clearProps: 'filter,transform'
         });
-
-      // 3. Pulse indicator ring animation
-      if (indicatorDotRef.current) {
-        tl.fromTo(
-          indicatorDotRef.current,
-          { scale: 1, boxShadow: '0 0 0 0 rgba(16, 185, 129, 0.8)' },
-          {
-            scale: 1.3,
-            boxShadow: '0 0 0 10px rgba(16, 185, 129, 0)',
-            duration: 0.6,
-            ease: 'power2.out',
-            clearProps: 'scale,boxShadow'
-          },
-          '<0.1'
-        );
-      }
     } else {
       isAnimatingRef.current = false;
     }
@@ -161,29 +144,19 @@ export function QRPresenceCard({
   return (
     <Card
       className={cn(
-        'p-2.5 sm:p-3 gap-0 bg-card text-card-foreground border border-border/60 shadow-xs flex flex-col font-sans select-none rounded-[20px] h-full justify-start relative',
+        'p-2.5 sm:p-3 gap-0 bg-card text-card-foreground border border-border/60 shadow-xs flex flex-col font-sans select-none rounded-[var(--radius)] h-full overflow-hidden justify-start relative',
         className
       )}
     >
-      {/* 1. Header Minimalis: Status Aktif, Pill Shift, dan Tombol Presensi Manual/Refresh/Popout/Close */}
+      {/* 1. Header Minimalis: Jam Digital Realtime dan Tombol Presensi Manual/Refresh/Popout/Close (Fixed / Non-Scrolling) */}
       <div className='flex items-center justify-between gap-1.5 pb-2 border-b border-border/40 shrink-0 w-full min-w-0'>
-        {/* Status Aktif */}
+        {/* Real-time Clock (Menggantikan indikator status aktif) */}
         <div className='flex items-center gap-1.5 min-w-0 shrink'>
-          <span
-            ref={indicatorDotRef}
-            className='size-2 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20 shrink-0'
-          />
-          <span className='text-xs font-semibold text-foreground truncate'>
-            {config.status_presensi || 'Tidak aktif'}
-          </span>
+          <AttendanceDigitalClock className='h-7 px-2 text-[11px] bg-muted/50 border-border/50' />
         </div>
 
-        {/* Shift Pill & Aksi Toolbars */}
+        {/* Aksi Toolbars */}
         <div className='flex items-center gap-1 shrink-0'>
-          <span className='inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20 shrink-0'>
-            {config.qr_context || '-'}
-          </span>
-
           {/* Tombol Presensi Manual dengan Tooltip */}
           {onOpenManualAttendance && (
             <Tooltip>
@@ -195,7 +168,7 @@ export function QRPresenceCard({
                   onClick={onOpenManualAttendance}
                   className='size-7 p-0 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors shrink-0'
                 >
-                  <Icons.userCheck className='size-3.5' />
+                  <Icons.fingerprint className='size-3.5' />
                   <span className='sr-only'>Presensi Manual Pegawai</span>
                 </Button>
               </TooltipTrigger>
@@ -205,7 +178,7 @@ export function QRPresenceCard({
             </Tooltip>
           )}
 
-          {/* Tombol Keluarkan Panel (Popout Independent Window) dengan Tooltip */}
+          {/* Tombol Keluarkan Panel (Popout Independent Window) dengan Tooltip - Hidden on Mobile */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -213,7 +186,7 @@ export function QRPresenceCard({
                 variant='ghost'
                 size='sm'
                 onClick={handlePopout}
-                className='size-7 p-0 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors shrink-0'
+                className='size-7 p-0 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors shrink-0 hidden sm:inline-flex'
               >
                 <Icons.externalLink className='size-3.5' />
                 <span className='sr-only'>Keluarkan Panel (Window Baru)</span>
@@ -269,30 +242,25 @@ export function QRPresenceCard({
         </div>
       </div>
 
-      {/* 2. Direct Large Edge-to-Edge QR Code */}
-      <div className='flex-1 flex flex-col items-center justify-start w-full pt-2 pb-2'>
+      {/* 2. Direct Large Edge-to-Edge QR Code with Inner Scroll Support (Hanya konten ini yang scroll jika overflow) */}
+      <div className='flex-1 flex flex-col items-center justify-start w-full min-h-0 overflow-y-auto py-2'>
         <div
           ref={qrVisualRef}
-          className='w-full max-w-full aspect-square flex items-center justify-center will-change-transform'
+          className='w-full max-w-full aspect-square flex items-center justify-center will-change-transform shrink-0'
         >
           <ModernStyledQRCode data={qrPayload} size={520} className='w-full h-full' />
         </div>
 
-        {/* 3. Section Code Manual & Countdown Rotasi (Increased spacious gap from QR) */}
-        <div className='w-full text-center mt-5 sm:mt-6 space-y-1.5 px-2'>
-          <div className='flex items-center justify-center gap-1.5 text-xs font-medium text-muted-foreground'>
-            <Icons.clock className='size-3.5 text-primary' />
-            <span>Rotasi otomatis:</span>
-            <span className='font-mono font-bold text-foreground tabular-nums'>{timeLeft}s</span>
-          </div>
-
-          <div ref={tokenRef} className='pt-1 will-change-transform'>
+        {/* 3. Section Code Random (Atas) & Countdown Rotasi (Bawah) */}
+        <div className='w-full text-center mt-3 sm:mt-4 space-y-1 px-2 shrink-0'>
+          <div ref={tokenRef} className='will-change-transform'>
             <div className='text-3xl sm:text-4xl font-black tracking-widest text-foreground font-mono leading-none'>
               {token || '-'}
             </div>
-            <p className='text-[10.5px] text-muted-foreground mt-1.5'>
-              {config.qr_validity || '-'}
-            </p>
+          </div>
+
+          <div className='text-xs font-mono font-bold text-muted-foreground tabular-nums pt-1'>
+            {timeLeft}s
           </div>
         </div>
       </div>

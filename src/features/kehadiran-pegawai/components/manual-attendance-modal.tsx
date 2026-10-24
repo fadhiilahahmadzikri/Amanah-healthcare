@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { isUUID } from 'class-validator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
@@ -11,6 +12,22 @@ import { toast } from 'sonner';
 export interface ManualAttendanceModalProps {
   isOpen: boolean;
   onClose: () => void;
+}
+
+function formatStaffCode(value: string): string {
+  // If user pastes a valid full UUID, preserve it
+  if (isUUID(value.trim())) {
+    return value.trim();
+  }
+
+  const raw = value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  if (raw.length <= 3) {
+    return raw;
+  }
+  if (raw.length <= 6) {
+    return `${raw.slice(0, 3)}-${raw.slice(3)}`;
+  }
+  return `${raw.slice(0, 3)}-${raw.slice(3, 6)}-${raw.slice(6, 10)}`;
 }
 
 export function ManualAttendanceModal({ isOpen, onClose }: ManualAttendanceModalProps) {
@@ -69,9 +86,9 @@ export function ManualAttendanceModal({ isOpen, onClose }: ManualAttendanceModal
             <Input
               ref={staffIdInputRef}
               value={staffId}
-              onChange={(e) => setStaffId(e.target.value.toUpperCase())}
-              placeholder='Masukkan ID staf...'
-              className='pl-9 h-10 text-xs font-mono font-semibold'
+              onChange={(e) => setStaffId(formatStaffCode(e.target.value))}
+              placeholder='Contoh: STF-DOK-001...'
+              className='pl-9 h-10 text-xs font-mono font-semibold tracking-wider'
             />
           </div>
         </div>

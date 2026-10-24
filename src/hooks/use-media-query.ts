@@ -1,10 +1,14 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 
-export function useMediaQuery() {
+export function useMediaQuery(query = '(max-width: 768px)') {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia('(max-width: 768px)');
+    if (typeof window === 'undefined') return;
+
+    const mediaQuery = window.matchMedia(query);
     setIsOpen(mediaQuery.matches);
 
     const handler = (e: MediaQueryListEvent) => {
@@ -13,7 +17,7 @@ export function useMediaQuery() {
 
     mediaQuery.addEventListener('change', handler);
     return () => mediaQuery.removeEventListener('change', handler);
-  }, []);
+  }, [query]);
 
   return { isOpen };
 }

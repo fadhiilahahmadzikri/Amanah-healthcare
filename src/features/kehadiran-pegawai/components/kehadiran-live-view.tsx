@@ -20,11 +20,6 @@ export function KehadiranLiveView() {
   const attendanceLive = useAttendanceLiveView();
   const { data } = attendanceLive;
 
-  const handleResetFilter = () => {
-    attendanceLive.actions.resetFilter();
-    toast.info('Filter presensi telah direset.');
-  };
-
   const handleRefreshData = () => {
     attendanceLive.actions.refreshData();
     toast.success('Sinkronisasi data presensi real-time berhasil.');
@@ -60,13 +55,9 @@ export function KehadiranLiveView() {
           <AttendanceTableCard
             records={data.records}
             total={data.total}
-            page={data.page}
-            limit={data.limit}
-            totalPages={data.totalPages}
-            params={attendanceLive.params}
-            onFilterChange={attendanceLive.actions.changeFilter}
-            onResetFilter={handleResetFilter}
-            availableFilters={data.availableFilters}
+            filterState={attendanceLive.filterState}
+            dynamicOptions={attendanceLive.dynamicOptions}
+            searchEngine={attendanceLive.searchEngine}
             headerExtra={
               <div className='flex items-center gap-1.5'>
                 {/* 1. Icon-base Sync Button with Tooltip */}

@@ -47,6 +47,7 @@ import {
   IconFileTypeDoc,
   IconFileTypeXls,
   IconFileZip,
+  IconFingerprint,
   IconFolder,
   IconGripVertical,
   IconHelpCircle,
@@ -211,6 +212,7 @@ export const Icons = {
 
   user: IconUser,
   userCheck: IconUserCheck,
+  fingerprint: IconFingerprint,
   user2: IconUserCircle,
   account: IconUserCircle,
   profile: IconUser,
