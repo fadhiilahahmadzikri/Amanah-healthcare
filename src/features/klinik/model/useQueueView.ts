@@ -26,6 +26,7 @@ import { useAuthContext } from '@/lib/rbac/auth-context';
 
 export interface UseQueueViewResult {
   activePoli: string;
+  isFiltered: boolean;
   searchQuery: string;
   currentPage: number;
   pageSize: number;
@@ -51,6 +52,7 @@ export interface UseQueueViewResult {
     noShowPatient: (appointmentId: string) => Promise<void>;
     completePatient: (appointmentId: string) => Promise<void>;
     refreshQueues: () => Promise<void>;
+    resetFilter: () => void;
   };
 }
 
@@ -62,6 +64,7 @@ export function useQueueView(): UseQueueViewResult {
   const [poliList, setPoliList] = useState<string[]>([]);
   const [operationalHours, setOperationalHours] = useState('-');
   const [activePoli, setActivePoli] = useState('Poli Umum');
+  const [initialPoli, setInitialPoli] = useState('Poli Umum');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -74,8 +77,10 @@ export function useQueueView(): UseQueueViewResult {
       .then(([polis, hours]) => {
         if (!isMounted) return;
         if (polis.length > 0) {
+          const initial = polis.includes('Poli Umum') ? 'Poli Umum' : polis[0];
           setPoliList(polis);
-          setActivePoli((prev) => (polis.includes(prev) ? prev : polis[0]));
+          setInitialPoli(initial);
+          setActivePoli((prev) => (polis.includes(prev) ? prev : initial));
         }
         if (hours) {
           setOperationalHours(hours);
@@ -301,8 +306,17 @@ export function useQueueView(): UseQueueViewResult {
     [queues, activePoli, waitingList.length, operationalHours]
   );
 
+  const isFiltered = Boolean(searchQuery) || (initialPoli !== '' && activePoli !== initialPoli);
+
+  const resetFilter = useCallback(() => {
+    setActivePoli(initialPoli);
+    setSearchQuery('');
+    setCurrentPage(1);
+  }, [initialPoli]);
+
   return {
     activePoli,
+    isFiltered,
     searchQuery,
     currentPage,
     pageSize,
@@ -337,7 +351,8 @@ export function useQueueView(): UseQueueViewResult {
       respondPatient,
       noShowPatient,
       completePatient,
-      refreshQueues
+      refreshQueues,
+      resetFilter
     }
   };
 }

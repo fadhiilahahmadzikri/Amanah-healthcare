@@ -6,13 +6,17 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Icons } from '@/components/icons';
 import { EntityCardGrid, EntityCardGridSkeleton } from '@/components/cards/master-entity-card';
+import { ResponsiveFacetToolbox } from '@/shared/ui/responsive-facet-toolbox';
+import { SearchEngineDialog } from '@/components/search-engine';
+import { useSidebar } from '@/components/ui/sidebar';
+import { useMediaQuery } from '@/hooks/use-media-query';
+import { cn } from '@/lib/utils';
 import { ReplacementCard } from './replacement-card';
 import { ReplacementKanbanBoard } from './kanban';
-import { ReplacementFilters } from './replacement-filters';
-import { ReplacementMobileFilterToolbar } from './replacement-mobile-filter-toolbar';
 import { ReplacementDetailModal } from './replacement-detail-modal';
 import { AssignReplacementModal } from './assign-replacement-modal';
-import { useReplacementManagementPresenter } from '../model';
+import { useReplacementManagementPresenter } from '../model/useReplacementManagementPresenter';
+import { useReplacementDynamicOptions } from '../model/useReplacementDynamicOptions';
 
 export function ReplacementManagementView() {
   const {
@@ -26,8 +30,31 @@ export function ReplacementManagementView() {
     actions
   } = useReplacementManagementPresenter();
 
+  const { state: sidebarState } = useSidebar();
+  const isSidebarExpanded = sidebarState === 'expanded';
+
+  const { isOpen: isMobile } = useMediaQuery('(max-width: 768px)');
+  const { isOpen: isUnder1024 } = useMediaQuery('(max-width: 1024px)');
+  const { isOpen: isUnder1280 } = useMediaQuery('(max-width: 1280px)');
+
+  // Canonical responsive breakpoint formula from Kehadiran Pegawai:
+  // 1. Mobile & tablet viewports (<= 1024px)
+  // 2. Expanded sidebar collisions on standard viewports (<= 1280px)
+  const isCompact = isMobile || isUnder1024 || (isUnder1280 && isSidebarExpanded);
+
+  const { facetGroups, activeFilterCount, searchEngine } = useReplacementDynamicOptions({
+    filters,
+    opportunities
+  });
+
   return (
     <>
+      <SearchEngineDialog
+        config={searchEngine.config}
+        isOpen={searchEngine.isOpen}
+        onClose={searchEngine.close}
+      />
+
       {/* Inspection Detail Modal */}
       <ReplacementDetailModal
         replacement={detailModal.selectedOpportunity}
@@ -48,74 +75,65 @@ export function ReplacementManagementView() {
       />
 
       <div className='flex h-full min-h-0 flex-1 flex-col gap-3.5 select-none'>
-        {/* Desktop Toolbar */}
-        <div className='hidden md:flex items-center justify-between gap-3 shrink-0'>
-          <ReplacementFilters
-            searchQuery={filters.searchQuery}
-            onSearchChange={filters.actions.changeSearch}
-            selectedStatuses={filters.statusFilter}
-            onSelectedStatusesChange={filters.actions.changeStatusFilter}
-            selectedSessions={filters.sessionFilter}
-            onSelectedSessionsChange={filters.actions.changeSessionFilter}
-            onResetAll={filters.actions.resetFilters}
-          />
+        {/* Unified Master Responsive Facet Toolbox (Desktop Inline & Mobile Drawer Sheet) */}
+        <ResponsiveFacetToolbox
+          searchQuery={filters.searchQuery}
+          onSearchChange={filters.actions.changeSearch}
+          searchPlaceholder='Cari staf cuti / pengganti...'
+          onOpenSearchDialog={searchEngine.open}
+          facets={facetGroups}
+          isFiltered={filters.hasActiveFilters}
+          onResetAll={() => {
+            searchEngine.clearQuery();
+            filters.actions.resetFilters();
+          }}
+          activeFilterCount={activeFilterCount}
+          isCompact={isCompact}
+          extraRightSlot={
+            <div className='flex items-center gap-1.5 sm:gap-2 shrink-0'>
+              {/* View Mode Toggle: Kanban vs List */}
+              <div className='flex items-center rounded-lg border border-border/80 p-0.5 bg-muted/30'>
+                <Button
+                  variant={!viewMode.isFlattenMode ? 'secondary' : 'ghost'}
+                  size={isCompact ? 'icon' : 'sm'}
+                  onClick={() => viewMode.setPreference('kanban')}
+                  className={cn(isCompact ? 'size-7' : 'h-7 px-2 text-xs gap-1.5')}
+                  title='Tampilan Papan Kanban'
+                >
+                  <Icons.kanban className='size-3.5' />
+                  {!isCompact && <span>Papan</span>}
+                </Button>
+                <Button
+                  variant={viewMode.isFlattenMode ? 'secondary' : 'ghost'}
+                  size={isCompact ? 'icon' : 'sm'}
+                  onClick={() => viewMode.setPreference('list')}
+                  className={cn(isCompact ? 'size-7' : 'h-7 px-2 text-xs gap-1.5')}
+                  title='Tampilan Daftar / Grid'
+                >
+                  <Icons.layoutList className='size-3.5' />
+                  {!isCompact && <span>Daftar</span>}
+                </Button>
+              </div>
 
-          <div className='flex items-center gap-2 shrink-0'>
-            {/* View Mode Toggle */}
-            <div className='flex items-center rounded-lg border border-border/80 p-0.5 bg-muted/30'>
+              {/* Refresh Button */}
               <Button
-                variant={!viewMode.isFlattenMode ? 'secondary' : 'ghost'}
-                size='sm'
-                onClick={() => viewMode.setPreference('kanban')}
-                className='h-7 px-2 text-xs gap-1.5'
-                title='Tampilan Papan Kanban'
+                variant='outline'
+                size={isCompact ? 'icon' : 'sm'}
+                onClick={() => void refetch()}
+                className={cn(isCompact ? 'size-8 rounded-md' : 'h-8 text-xs gap-1.5')}
+                title='Muat ulang data'
+                aria-label='Muat ulang data'
               >
-                <Icons.kanban className='size-3.5' />
-                <span>Papan</span>
-              </Button>
-              <Button
-                variant={viewMode.isFlattenMode ? 'secondary' : 'ghost'}
-                size='sm'
-                onClick={() => viewMode.setPreference('list')}
-                className='h-7 px-2 text-xs gap-1.5'
-                title='Tampilan Daftar / Grid'
-              >
-                <Icons.layoutList className='size-3.5' />
-                <span>Daftar</span>
+                <Icons.refresh className='size-3.5 text-primary' />
+                {!isCompact && <span>Segarkan</span>}
               </Button>
             </div>
-
-            {/* Refresh Button */}
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={() => void refetch()}
-              className='h-8 text-xs gap-1.5'
-              title='Muat ulang data'
-            >
-              <Icons.refresh className='size-3.5 text-primary' />
-              <span>Segarkan</span>
-            </Button>
-          </div>
-        </div>
-
-        {/* Mobile Toolbar Dock */}
-        <div className='block md:hidden shrink-0'>
-          <ReplacementMobileFilterToolbar
-            opportunities={opportunities}
-            searchQuery={filters.searchQuery}
-            onSearchChange={filters.actions.changeSearch}
-            selectedStatuses={filters.statusFilter}
-            onSelectedStatusesChange={filters.actions.changeStatusFilter}
-            selectedSessions={filters.sessionFilter}
-            onSelectedSessionsChange={filters.actions.changeSessionFilter}
-            onResetAll={filters.actions.resetFilters}
-          />
-        </div>
+          }
+        />
 
         {/* Active Filter Mode Alert Banner (Desktop Only) */}
-        {filters.hasActiveFilters && (
-          <div className='hidden md:flex items-center justify-between px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-xs shrink-0 animate-in fade-in duration-200'>
+        {filters.hasActiveFilters && !isCompact && (
+          <div className='flex items-center justify-between px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-xs shrink-0 animate-in fade-in duration-200'>
             <div className='flex items-center gap-1.5'>
               <Icons.info className='size-3.5 shrink-0 text-amber-600 dark:text-amber-400' />
               <span>
@@ -137,9 +155,9 @@ export function ReplacementManagementView() {
         {/* Main Content Area */}
         <div className='relative flex flex-1 min-h-0 flex-col overflow-hidden'>
           {isLoading && opportunities.length === 0 ? (
-            <div className='absolute inset-0 flex overflow-hidden'>
+            <div className='flex flex-1 min-h-0 overflow-hidden'>
               {/* Mobile Skeleton Feed */}
-              <div className='block md:hidden w-full px-1 pb-20 pt-1 space-y-3'>
+              <div className='block md:hidden flex-1 overflow-y-auto w-full px-1 pb-20 pt-1 space-y-3'>
                 {[1, 2, 3].map((i) => (
                   <div
                     key={i}
@@ -185,19 +203,18 @@ export function ReplacementManagementView() {
           ) : (
             <>
               {/* Mobile View: Pure Vertical Card Feed */}
-              <div className='block md:hidden absolute inset-0 overflow-hidden'>
-                <ScrollArea className='h-full w-full'>
-                  <div className='flex flex-col gap-3 pb-24 pt-1 px-1'>
-                    {filters.filteredOpportunities.map((item) => (
-                      <ReplacementCard
-                        key={item.id}
-                        opportunity={item}
-                        onSelect={detailModal.open}
-                        isSelected={detailModal.selectedOpportunity?.id === item.id}
-                      />
-                    ))}
-                  </div>
-                </ScrollArea>
+              <div className='block md:hidden flex-1 overflow-y-auto overflow-x-hidden min-h-0 w-full'>
+                <div className='flex flex-col gap-3 pb-24 pt-1 px-1 w-full max-w-full'>
+                  {filters.filteredOpportunities.map((item) => (
+                    <ReplacementCard
+                      key={item.id}
+                      opportunity={item}
+                      onSelect={detailModal.open}
+                      isSelected={detailModal.selectedOpportunity?.id === item.id}
+                      className='w-full max-w-full'
+                    />
+                  ))}
+                </div>
               </div>
 
               {/* Desktop View: Kanban Board vs Multi-Column Grid */}

@@ -97,7 +97,7 @@ export function AttendanceHeaderActions({
   activeFilterCount = 0
 }: AttendanceHeaderActionsProps) {
   return (
-    <div className='flex items-center gap-1.5 flex-wrap'>
+    <div className='flex items-center gap-1.5 flex-wrap w-full sm:w-auto'>
       {/* 1. Mode Compact: Tombol Search & Filter bergeser ke deretan header atas */}
       {isCompact && onOpenSearch && (
         <Tooltip>
@@ -221,33 +221,34 @@ export function AttendanceHeaderActions({
         </Tooltip>
       )}
 
-      {/* 4. Ekspor Data Button (Konsisten Varian Outline) */}
-      <AttendanceExportDropdown
-        data={data}
-        buttonVariant='outline'
-        variant={isCompact ? 'icon' : 'full'}
-      />
+      {/* 4. Ekspor Data & 5. Segarkan Data (Anchored to Far Right) */}
+      <div className='flex items-center gap-1.5 ml-auto shrink-0'>
+        <AttendanceExportDropdown
+          data={data}
+          buttonVariant='outline'
+          variant={isCompact ? 'icon' : 'full'}
+        />
 
-      {/* 5. Segarkan Data Icon Button (Konsisten Varian Outline) */}
-      {onRefresh && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type='button'
-              variant='outline'
-              size='icon'
-              onClick={onRefresh}
-              aria-label='Segarkan data presensi'
-              className='size-8 rounded-md bg-card border-border/70 text-foreground hover:bg-muted/40 shadow-2xs shrink-0 cursor-pointer'
-            >
-              <Icons.refresh className='size-3.5' />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side='bottom' className='text-xs'>
-            Segarkan data
-          </TooltipContent>
-        </Tooltip>
-      )}
+        {onRefresh && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type='button'
+                variant='outline'
+                size='icon'
+                onClick={onRefresh}
+                aria-label='Segarkan data presensi'
+                className='size-8 rounded-md bg-card border-border/70 text-foreground hover:bg-muted/40 shadow-2xs shrink-0 cursor-pointer'
+              >
+                <Icons.refresh className='size-3.5' />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side='bottom' className='text-xs'>
+              Segarkan data
+            </TooltipContent>
+          </Tooltip>
+        )}
+      </div>
     </div>
   );
 }

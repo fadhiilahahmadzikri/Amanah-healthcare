@@ -13,13 +13,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
+import { cn } from '@/lib/utils';
+import { useSidebar } from '@/components/ui/sidebar';
+import { useMediaQuery } from '@/hooks/use-media-query';
+import { ResponsiveFacetToolbox } from '@/shared/ui/responsive-facet-toolbox';
+import { SearchEngineDialog } from '@/components/search-engine';
 import { usePayrollPresenter } from '../model/usePayrollPresenter';
 import { usePayrollTable } from '../model/usePayrollTable';
+import { usePayrollDynamicOptions } from '../model/usePayrollDynamicOptions';
 import { getPayrollColumns } from './payroll-tables/columns';
-import { PayrollFilters } from './payroll-filters';
 import { PayrollExportButton } from './payroll-export-button';
 import { PayrollSettingsButton } from './payroll-settings-button';
-import { PayrollMobileFilterToolbar } from './payroll-mobile-filter-toolbar';
 import { PayrollTable } from './payroll-tables';
 import { PayrollMobileCards } from './payroll-mobile-cards';
 import { PayrollOverviewStats } from './payroll-overview-stats';
@@ -37,6 +41,22 @@ export function PayrollManagementView() {
   const isFinalized = payrollView.currentPeriod?.status === 'finalized';
   const isCalculatedOrFinalized = isCalculated || isFinalized;
 
+  const { state: sidebarState } = useSidebar();
+  const isSidebarExpanded = sidebarState === 'expanded';
+
+  const { isOpen: isMobile } = useMediaQuery('(max-width: 768px)');
+  const { isOpen: isUnder1024 } = useMediaQuery('(max-width: 1024px)');
+  const { isOpen: isUnder1280 } = useMediaQuery('(max-width: 1280px)');
+
+  // Canonical responsive breakpoint formula from Kehadiran Pegawai:
+  // 1. Mobile & tablet viewports (<= 1024px)
+  // 2. Expanded sidebar collisions on standard viewports (<= 1280px)
+  const isCompact = isMobile || isUnder1024 || (isUnder1280 && isSidebarExpanded);
+
+  const { facetGroups, activeFilterCount, searchEngine } = usePayrollDynamicOptions({
+    payrollView
+  });
+
   // Memoized TanStack Columns
   const columns = useMemo(() => getPayrollColumns(), []);
 
@@ -52,6 +72,13 @@ export function PayrollManagementView() {
 
   return (
     <>
+      {/* Centralized Search Engine Modal */}
+      <SearchEngineDialog
+        config={searchEngine.config}
+        isOpen={searchEngine.isOpen}
+        onClose={searchEngine.close}
+      />
+
       {/* 1. Modal Detail Slip Gaji Staf (Wide ModalWrapper max-w-5xl) */}
       <PayrollSlipDetailModal
         isOpen={payrollView.isDetailOpen}
@@ -131,54 +158,62 @@ export function PayrollManagementView() {
 
       {/* Main View Shell */}
       <div className='flex h-full min-h-0 flex-1 flex-col gap-3.5 select-none'>
-        {/* ROW 1 (Toolbox Bar): Desktop Toolbar Row */}
-        <div className='hidden md:flex items-center justify-between gap-3 shrink-0'>
-          <PayrollFilters
-            searchQuery={payrollView.searchQuery}
-            onSearchChange={payrollView.actions.changeSearch}
-            selectedPeriodId={payrollView.selectedPeriodId}
-            onPeriodChange={payrollView.actions.changePeriod}
-            periods={payrollView.periods}
-            selectedCategory={payrollView.selectedCategory}
-            onCategoryChange={payrollView.actions.changeCategory}
-            selectedStatus={payrollView.selectedStatus}
-            onStatusChange={payrollView.actions.changeStatus}
-            onResetAll={payrollView.actions.resetFilters}
-            filterOptions={payrollView.filterOptions}
-            className='flex-1'
-          />
-
-          <div className='flex items-center gap-2 shrink-0'>
-            {/* Primary Action: Kalkulasi Periode */}
-            <Button onClick={actions.openCalculate} size='sm' className='h-9 gap-1.5'>
-              <Icons.plus className='h-4 w-4' />
-              Kalkulasi Baru
+        {/* ROW 1 (Toolbox Bar): Unified Master Responsive Facet Toolbox */}
+        <ResponsiveFacetToolbox
+          searchQuery={payrollView.searchQuery}
+          onSearchChange={payrollView.actions.changeSearch}
+          searchPlaceholder='Pencarian Karyawan...'
+          onOpenSearchDialog={searchEngine.open}
+          facets={facetGroups}
+          isFiltered={payrollView.hasActiveFilters}
+          onResetAll={() => {
+            searchEngine.clearQuery();
+            payrollView.actions.resetFilters();
+          }}
+          activeFilterCount={activeFilterCount}
+          isCompact={isCompact}
+          actionsSlot={
+            <Button
+              onClick={actions.openCalculate}
+              size={isCompact ? 'icon' : 'sm'}
+              className={cn(
+                isCompact
+                  ? 'size-8 rounded-md shrink-0 cursor-pointer'
+                  : 'h-8 text-xs font-medium gap-1.5 shrink-0 cursor-pointer'
+              )}
+              title='Kalkulasi Periode Baru'
+              aria-label='Kalkulasi Baru'
+            >
+              <Icons.plus className={cn(isCompact ? 'size-3.5' : 'size-3.5 mr-0.5')} />
+              {!isCompact && <span>Kalkulasi Baru</span>}
             </Button>
+          }
+          extraRightSlot={
+            <div className='flex items-center gap-1.5 shrink-0'>
+              {/* Morphed Settings Button placed immediately to the left of Export */}
+              <PayrollSettingsButton
+                onOpenRates={actions.openRates}
+                onReconcileDailyLeave={actions.openReconcile}
+                onOpenAudit={actions.openAudit}
+                onOpenConfirmFinalize={actions.openConfirmFinalize}
+                canFinalize={isCalculated}
+                isFinalizing={mutations.isFinalizing}
+                isReconciling={mutations.isReconciling}
+                disabled={payrollView.isLoading}
+                forceMode={isCompact ? 'drawer' : undefined}
+                className={isCompact ? 'size-8 rounded-md' : 'size-8'}
+              />
 
-            {/* Export Action (Rekap CSV) */}
-            <PayrollExportButton
-              data={payrollView.filteredSummaries}
-              periodName={payrollView.currentPeriod?.periodName}
-            />
-
-            {/* Morphed Settings Button (Dropdown on desktop, Drawer on mobile) */}
-            <PayrollSettingsButton
-              onOpenRates={actions.openRates}
-              onReconcileDailyLeave={actions.openReconcile}
-              onOpenAudit={actions.openAudit}
-              onOpenConfirmFinalize={actions.openConfirmFinalize}
-              canFinalize={isCalculated}
-              isFinalizing={mutations.isFinalizing}
-              isReconciling={mutations.isReconciling}
-              disabled={payrollView.isLoading}
-            />
-          </div>
-        </div>
-
-        {/* ROW 1 (Toolbox Bar): Mobile Filter Toolbar Dock */}
-        <div className='block md:hidden shrink-0'>
-          <PayrollMobileFilterToolbar presenter={presenter} />
-        </div>
+              {/* Export Button anchored to the far right */}
+              <PayrollExportButton
+                data={payrollView.filteredSummaries}
+                periodName={payrollView.currentPeriod?.periodName}
+                variant={isCompact ? 'icon' : 'full'}
+                className={isCompact ? 'size-8 rounded-md' : undefined}
+              />
+            </div>
+          }
+        />
 
         {/* ROW 2 (Main Content Split): Table di Kiri & KPI Vertikal di Kanan */}
         <div className='flex flex-1 min-h-0 gap-4 overflow-hidden'>

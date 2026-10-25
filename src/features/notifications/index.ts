@@ -5,6 +5,7 @@ export { NotificationCenterList } from './components/notification-center-list';
 export { NotificationCenterFooter } from './components/notification-center-footer';
 export { useNotificationPresenter } from './model/useNotificationPresenter';
 export { default as NotificationsPage } from './components/notifications-page';
+export { useNotificationDynamicOptions } from './model/useNotificationDynamicOptions';
 export type { ClinicNotification } from './types';
 export { useNotificationSocket } from './hooks/use-notification-socket';
 export {

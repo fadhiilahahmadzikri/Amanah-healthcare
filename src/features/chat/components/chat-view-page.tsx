@@ -25,11 +25,7 @@ export default function ChatViewPage() {
   const { sendMessage, closeConversation, isClientTyping, sendTyping } = useAdminChat();
 
   return (
-    <PageContainer
-      scrollable={false}
-      pageTitle='Chat Pasien'
-      pageDescription='Ruang percakapan dan konsultasi terpadu pasien bersama tim medis & administrasi.'
-    >
+    <PageContainer scrollable={false}>
       <Suspense fallback={null}>
         <ChatParamSync />
       </Suspense>

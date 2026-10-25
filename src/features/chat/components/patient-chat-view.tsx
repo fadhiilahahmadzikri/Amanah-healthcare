@@ -264,17 +264,17 @@ export function PatientChatView() {
     <div className='w-full h-full flex-1 min-h-0 bg-card border border-border/80 rounded-[10px] overflow-hidden shadow-xs flex flex-col select-none'>
       {/* 1. Top Header */}
       <header className='h-[56px] px-4 sm:px-6 border-b border-border/60 bg-card/80 flex items-center justify-between shrink-0'>
-        <div className='flex items-center gap-3'>
-          <Avatar className='size-9 rounded-full ring-1 ring-primary/20 overflow-hidden'>
+        <div className='flex items-center gap-3 min-w-0'>
+          <Avatar className='size-9 rounded-full ring-1 ring-primary/20 overflow-hidden shrink-0'>
             <AvatarImage
               src={DEFAULT_AVATAR_PATH}
-              alt='Konsultasi & Layanan Amanah'
+              alt='Amanah Healthcare'
               className='size-full object-cover aspect-square rounded-full'
             />
             <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
               <Image
                 src={DEFAULT_AVATAR_PATH}
-                alt='Konsultasi & Layanan Amanah'
+                alt='Amanah Healthcare'
                 width={36}
                 height={36}
                 unoptimized
@@ -282,37 +282,27 @@ export function PatientChatView() {
               />
             </AvatarFallback>
           </Avatar>
-          <div className='flex flex-col'>
-            <div className='flex items-center gap-2'>
-              <span className='text-xs sm:text-sm font-bold text-foreground leading-tight'>
-                Konsultasi & Layanan Amanah
-              </span>
+          <div className='flex flex-col min-w-0'>
+            <span className='text-xs sm:text-sm font-bold text-foreground leading-tight truncate'>
+              Amanah Healthcare
+            </span>
+            <div className='flex items-center gap-1.5 mt-0.5'>
               <span
                 className={cn(
-                  'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border',
-                  adminOnline
-                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-                    : 'bg-muted text-muted-foreground border-border/60'
+                  'size-1.5 rounded-full shrink-0',
+                  adminOnline ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-400'
+                )}
+              />
+              <span
+                className={cn(
+                  'text-[11px] font-medium leading-tight',
+                  adminOnline ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
                 )}
               >
-                <span
-                  className={cn(
-                    'size-1.5 rounded-full',
-                    adminOnline ? 'bg-emerald-500 animate-pulse' : 'bg-muted-foreground'
-                  )}
-                />
                 {adminOnline ? 'Admin Online' : 'Offline'}
               </span>
             </div>
-            <span className='text-[11px] text-muted-foreground leading-tight mt-0.5'>
-              Terhubung dengan tim administrasi & medis klinik
-            </span>
           </div>
-        </div>
-
-        <div className='hidden sm:flex items-center gap-2 text-xs text-muted-foreground'>
-          <Icons.lock className='size-3.5 text-primary' />
-          <span>Privasi & Rekam Medis Terjaga</span>
         </div>
       </header>
 
@@ -381,14 +371,14 @@ export function PatientChatView() {
         </div>
       )}
 
-      {/* 4. Text Composer */}
+      {/* 4. Text Composer (Standardized height & touch targets) */}
       <div className='p-3 sm:p-4 border-t border-border/60 bg-card/80 shrink-0'>
         {conversation?.status === 'closed' ? (
-          <div className='text-center py-1.5 text-xs text-muted-foreground'>
+          <div className='text-center py-2 text-xs text-muted-foreground'>
             Percakapan ini telah selesai. Anda dapat membuat konsultasi baru jika diperlukan.
           </div>
         ) : (
-          <div className='h-[42px] border border-border/80 rounded-[8px] flex items-center px-3 bg-background focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20 shadow-2xs transition-all'>
+          <div className='min-h-[44px] border border-border/80 rounded-xl flex items-center px-3 bg-background focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 shadow-2xs transition-all gap-2'>
             <input
               type='text'
               aria-label='Tulis pesan konsultasi'
@@ -396,13 +386,14 @@ export function PatientChatView() {
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               placeholder='Tulis pesan konsultasi Anda di sini...'
-              className='flex-1 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none bg-transparent'
+              className='flex-1 h-9 text-xs sm:text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none bg-transparent'
             />
             <Button
+              type='button'
               size='sm'
               onClick={() => void handleSendMessage()}
               disabled={!inputText.trim() || isSending}
-              className='h-7 px-3 rounded-[6px] text-xs font-semibold gap-1 ml-2 shadow-2xs'
+              className='h-8 px-3 rounded-lg text-xs font-semibold gap-1.5 shadow-2xs shrink-0 cursor-pointer'
             >
               <span>Kirim</span>
               <Icons.arrowRight className='size-3.5' />

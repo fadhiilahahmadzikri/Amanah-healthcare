@@ -1,13 +1,21 @@
 import * as React from 'react';
 import { Icons, type Icon } from '@/components/icons';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { EmptyBoxAnimation } from './empty-box-animation';
+
+export interface EmptyStateResetAction {
+  label?: string;
+  onReset: () => void;
+  icon?: Icon;
+}
 
 export interface EmptyStateProps extends React.ComponentProps<'div'> {
   icon?: Icon;
   title: string;
   description?: string;
   action?: React.ReactNode;
+  resetAction?: EmptyStateResetAction;
   /**
    * Whether to display the animated 3D empty box (default: true).
    * If false, falls back to the static icon.
@@ -24,6 +32,7 @@ export function EmptyState({
   title,
   description,
   action,
+  resetAction,
   animated = true,
   animationClassName,
   className,
@@ -55,7 +64,27 @@ export function EmptyState({
           <p className='mx-auto text-xs leading-relaxed text-muted-foreground'>{description}</p>
         ) : null}
       </div>
-      {action ? <div className='mt-4'>{action}</div> : null}
+      {action || resetAction ? (
+        <div className='mt-4 flex flex-wrap items-center justify-center gap-2'>
+          {action}
+          {resetAction && (
+            <Button
+              type='button'
+              variant='outline'
+              size='sm'
+              onClick={resetAction.onReset}
+              className='h-8 px-4 text-xs font-medium border-border/70 bg-card hover:bg-muted text-foreground gap-1.5 shadow-2xs cursor-pointer rounded-lg'
+            >
+              {resetAction.icon ? (
+                <resetAction.icon className='size-3.5' />
+              ) : (
+                <Icons.refresh className='size-3.5' />
+              )}
+              <span>{resetAction.label || 'Reset'}</span>
+            </Button>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }

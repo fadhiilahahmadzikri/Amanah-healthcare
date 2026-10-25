@@ -27,6 +27,20 @@ export function ResponsiveFacetToolbox({
   className
 }: ResponsiveFacetToolboxProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [localSearch, setLocalSearch] = useState(searchQuery || '');
+
+  React.useEffect(() => {
+    setLocalSearch(searchQuery || '');
+  }, [searchQuery]);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearch !== (searchQuery || '')) {
+        onSearchChange?.(localSearch);
+      }
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [localSearch, onSearchChange, searchQuery]);
 
   // 1. Compact View (<= 50% viewport or mobile)
   if (isCompact) {
@@ -62,8 +76,8 @@ export function ResponsiveFacetToolbox({
             ) : onSearchChange ? (
               <div className='relative w-36 sm:w-44 shrink-0'>
                 <SearchInput
-                  value={searchQuery || ''}
-                  onChange={onSearchChange}
+                  value={localSearch}
+                  onChange={setLocalSearch}
                   placeholder={searchPlaceholder}
                   className='h-8 text-xs'
                 />
@@ -130,8 +144,8 @@ export function ResponsiveFacetToolbox({
           {onSearchChange && (
             <div className='relative min-w-[160px] max-w-[220px]'>
               <SearchInput
-                value={searchQuery || ''}
-                onChange={onSearchChange}
+                value={localSearch}
+                onChange={setLocalSearch}
                 placeholder={searchPlaceholder}
                 className='h-8 text-xs'
               />
@@ -160,6 +174,7 @@ export function ResponsiveFacetToolbox({
               selectedValues={facet.selectedValues}
               onSelect={facet.onSelect}
               onReset={facet.onReset}
+              resetLabel={facet.resetLabel}
               popoverWidth={facet.popoverWidth || 'w-52'}
             />
           ))}

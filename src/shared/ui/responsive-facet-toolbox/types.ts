@@ -20,6 +20,7 @@ export interface FacetGroupDefinition {
   onSelect: (value: string) => void;
   onReset?: () => void;
   popoverWidth?: string;
+  resetLabel?: string;
 }
 
 export interface DateFilterConfig {

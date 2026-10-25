@@ -3,8 +3,15 @@
 import React, { useMemo, useState } from 'react';
 import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Icons } from '@/components/icons';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import type { Conversation } from '../utils/types';
@@ -13,6 +20,9 @@ interface ChatInboxSidebarProps {
   conversations: Conversation[];
   selectedId: string;
   onSelect: (id: string) => void;
+  className?: string;
+  onNewMessage?: () => void;
+  onOpenSettings?: () => void;
 }
 
 function formatConversationTime(isoString?: string): string {
@@ -29,7 +39,14 @@ function formatConversationTime(isoString?: string): string {
   }
 }
 
-export function ChatInboxSidebar({ conversations, selectedId, onSelect }: ChatInboxSidebarProps) {
+export function ChatInboxSidebar({
+  conversations,
+  selectedId,
+  onSelect,
+  className,
+  onNewMessage,
+  onOpenSettings
+}: ChatInboxSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'awaiting' | 'closed'>('all');
 
@@ -55,25 +72,17 @@ export function ChatInboxSidebar({ conversations, selectedId, onSelect }: ChatIn
   const awaitingCount = conversations.filter((c) => c.status === 'open' && c.awaitingReply).length;
 
   return (
-    <aside className='w-[270px] border-r border-border/60 bg-card flex flex-col min-w-0 shrink-0 select-none'>
-      {/* 1. Header */}
-      <div className='p-3 pb-2 border-b border-border/40'>
-        <div className='flex items-center justify-between'>
-          <h2 className='text-xs font-bold text-foreground'>Inbox Percakapan</h2>
-          <span className='text-[10px] font-medium text-muted-foreground'>
-            {filteredConversations.length} aktif
-          </span>
-        </div>
-        <p className='text-[10px] text-muted-foreground mt-0.5'>
-          Pusat komunikasi pasien & staf klinik
-        </p>
-      </div>
-
-      {/* 2. Search Bar */}
-      <div className='p-2.5 pb-2'>
-        <div className='relative flex items-center'>
-          <span className='absolute left-2 flex items-center pointer-events-none text-muted-foreground'>
-            <Icons.search className='size-3.5' />
+    <aside
+      className={cn(
+        'w-full md:w-[270px] lg:w-[290px] border-r border-border/60 bg-card flex flex-col min-w-0 shrink-0 select-none',
+        className
+      )}
+    >
+      {/* 1. Top Search Bar & Mobile Actions (Standardized rounded-lg radius) */}
+      <div className='p-3 pb-2 flex items-center gap-2 shrink-0'>
+        <div className='relative flex-1 min-w-0'>
+          <span className='absolute left-3 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-muted-foreground'>
+            <Icons.search className='size-4' />
           </span>
           <input
             type='text'
@@ -81,51 +90,119 @@ export function ChatInboxSidebar({ conversations, selectedId, onSelect }: ChatIn
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder='Cari pasien atau pesan...'
-            className='w-full h-[28px] pl-7 pr-2 bg-background border border-border/80 rounded-[6px] text-[11px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors shadow-2xs'
+            className='w-full h-9 pl-9 pr-8 bg-muted/40 hover:bg-muted/60 focus:bg-background border border-border/70 rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all shadow-2xs'
           />
+          {searchQuery && (
+            <button
+              type='button'
+              onClick={() => setSearchQuery('')}
+              className='absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center text-muted-foreground hover:text-foreground cursor-pointer p-0.5 rounded-md hover:bg-muted transition-colors'
+              title='Hapus pencarian'
+              aria-label='Hapus pencarian'
+            >
+              <Icons.close className='size-3.5' />
+            </button>
+          )}
+        </div>
+
+        {/* Mobile Context Menu (Standardized size-9 rounded-lg button matching search bar) */}
+        <div className='block md:hidden shrink-0'>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type='button'
+                variant='ghost'
+                size='icon'
+                className='size-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/70 cursor-pointer'
+                aria-label='Menu Opsi Percakapan'
+              >
+                <Icons.ellipsis className='size-4' />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align='end' className='w-44'>
+              <DropdownMenuItem
+                onClick={() => onNewMessage?.()}
+                className='text-xs cursor-pointer gap-2'
+              >
+                <Icons.add className='size-3.5' />
+                <span>Pesan Baru</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onOpenSettings?.()}
+                className='text-xs cursor-pointer gap-2'
+              >
+                <Icons.settings className='size-3.5' />
+                <span>Pengaturan Chat</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
-      {/* 3. Category Filter Tabs */}
-      <div className='px-3 flex items-center border-b border-border/40 text-[11px] font-medium gap-3'>
+      {/* 2. Category Filters: Native Filled, Borderless with unified rounded-lg radius */}
+      <div className='px-3 pb-2.5 flex items-center gap-1.5 overflow-x-auto scrollbar-none shrink-0'>
+        {/* Filter: Semua */}
         <button
           type='button'
           onClick={() => setActiveTab('all')}
           className={cn(
-            'pb-1.5 transition-colors border-b-2 font-medium',
+            'h-7.5 px-3 rounded-lg text-xs transition-all shrink-0 flex items-center gap-1.5 border-0 outline-none cursor-pointer',
             activeTab === 'all'
-              ? 'text-foreground border-primary'
-              : 'text-muted-foreground border-transparent hover:text-foreground'
+              ? 'bg-primary text-primary-foreground font-semibold shadow-2xs'
+              : 'bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground font-medium'
           )}
         >
-          Semua <span className='text-[9.5px] opacity-70'>[{totalCount}]</span>
+          <span>Semua</span>
+          {totalCount > 0 && (
+            <span
+              className={cn(
+                'text-[10px] font-normal leading-none',
+                activeTab === 'all' ? 'text-primary-foreground/90' : 'text-muted-foreground'
+              )}
+            >
+              {totalCount}
+            </span>
+          )}
         </button>
+
+        {/* Filter: Perlu Dibalas */}
         <button
           type='button'
           onClick={() => setActiveTab('awaiting')}
           className={cn(
-            'pb-1.5 transition-colors border-b-2 font-medium',
+            'h-7.5 px-3 rounded-lg text-xs transition-all shrink-0 flex items-center gap-1.5 border-0 outline-none cursor-pointer',
             activeTab === 'awaiting'
-              ? 'text-foreground border-primary'
-              : 'text-muted-foreground border-transparent hover:text-foreground'
+              ? 'bg-primary text-primary-foreground font-semibold shadow-2xs'
+              : 'bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground font-medium'
           )}
         >
-          Perlu Dibalas{' '}
+          <span>Perlu Dibalas</span>
           {awaitingCount > 0 && (
-            <span className='text-[9.5px] text-amber-600 font-bold'>[{awaitingCount}]</span>
+            <span
+              className={cn(
+                'size-4 rounded-md text-[10px] font-bold flex items-center justify-center leading-none',
+                activeTab === 'awaiting'
+                  ? 'bg-primary-foreground/25 text-primary-foreground'
+                  : 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
+              )}
+            >
+              {awaitingCount}
+            </span>
           )}
         </button>
+
+        {/* Filter: Selesai */}
         <button
           type='button'
           onClick={() => setActiveTab('closed')}
           className={cn(
-            'pb-1.5 transition-colors border-b-2 font-medium',
+            'h-7.5 px-3 rounded-lg text-xs transition-all shrink-0 flex items-center gap-1.5 border-0 outline-none cursor-pointer',
             activeTab === 'closed'
-              ? 'text-foreground border-primary'
-              : 'text-muted-foreground border-transparent hover:text-foreground'
+              ? 'bg-primary text-primary-foreground font-semibold shadow-2xs'
+              : 'bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground font-medium'
           )}
         >
-          Selesai
+          <span>Selesai</span>
         </button>
       </div>
 
@@ -153,7 +230,7 @@ export function ChatInboxSidebar({ conversations, selectedId, onSelect }: ChatIn
                 )}
               >
                 <div className='relative shrink-0 mt-0.5'>
-                  <Avatar className='size-7 rounded-full ring-1 ring-border/40 overflow-hidden'>
+                  <Avatar className='size-8 rounded-full ring-1 ring-border/40 overflow-hidden'>
                     <AvatarImage
                       src={c.userId ? `/api/v1/users/${c.userId}/avatar` : DEFAULT_AVATAR_PATH}
                       alt={c.customerName || 'Pasien'}
@@ -163,8 +240,8 @@ export function ChatInboxSidebar({ conversations, selectedId, onSelect }: ChatIn
                       <Image
                         src={DEFAULT_AVATAR_PATH}
                         alt={c.customerName || 'Pasien'}
-                        width={28}
-                        height={28}
+                        width={32}
+                        height={32}
                         unoptimized
                         className='size-full object-cover rounded-full aspect-square'
                       />
@@ -179,7 +256,7 @@ export function ChatInboxSidebar({ conversations, selectedId, onSelect }: ChatIn
 
                 <div className='flex-1 min-w-0'>
                   <div className='flex items-center justify-between'>
-                    <span className='text-[11.5px] font-semibold text-foreground truncate'>
+                    <span className='text-xs font-semibold text-foreground truncate'>
                       {c.customerName || 'Pasien'}
                     </span>
                     <span className='text-[9.5px] text-muted-foreground tabular-nums'>

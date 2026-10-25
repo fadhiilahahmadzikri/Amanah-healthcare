@@ -8,4 +8,6 @@ export { PatientMobileFilterToolbar } from './components/patient-mobile-filter-t
 export { PatientMobileCards } from './components/patient-mobile-cards';
 export { PatientActionDrawer } from './components/patient-action-drawer';
 export { usePatientMobileCards } from './model/usePatientMobileCards';
+export { usePatientDynamicOptions } from './model/usePatientDynamicOptions';
+export type { UsePatientDynamicOptionsProps } from './model/usePatientDynamicOptions';
 export type { Patient, PatientFilters, PatientTimelineItem } from './api/types';

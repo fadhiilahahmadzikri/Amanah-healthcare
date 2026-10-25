@@ -1,23 +1,26 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { EntityCardGrid, EntityCardGridSkeleton } from '@/components/cards/master-entity-card';
 import { InviteDoctorModal } from '@/features/staff-management';
+import { ResponsiveFacetToolbox } from '@/shared/ui/responsive-facet-toolbox';
+import { SearchEngineDialog } from '@/components/search-engine';
+import { useSidebar } from '@/components/ui/sidebar';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { cn } from '@/lib/utils';
 import { doctorScheduleKeys } from '../api/query-keys';
 import { useDoctorSchedulePresenter } from '../model/useDoctorSchedulePresenter';
+import { useDoctorScheduleDynamicOptions } from '../model/useDoctorScheduleDynamicOptions';
 import { DoctorAssignmentModal } from './doctor-assignment-modal';
 import { DoctorExportButton } from './doctor-export-button';
 import { DoctorDetailEditModal } from './doctor-detail-edit-modal';
 import { DoctorScheduleCard } from './doctor-schedule-card';
 import { DoctorScheduleDetailSheet } from './doctor-schedule-detail-sheet';
-import { DoctorScheduleFilters } from './doctor-schedule-filters';
-import { DoctorScheduleMobileFilterToolbar } from './doctor-schedule-mobile-filter-toolbar';
 import { DoctorScheduleSettingsButton, DoctorScheduleSettingsModal } from './settings';
 import type { DoctorSchedule } from '../api/types';
 
@@ -28,8 +31,32 @@ export function DoctorScheduleView() {
   const [isInviteDoctorOpen, setIsInviteDoctorOpen] = useState(false);
   const [selectedDoctorForModal, setSelectedDoctorForModal] = useState<DoctorSchedule | null>(null);
 
+  const { state: sidebarState } = useSidebar();
+  const isSidebarExpanded = sidebarState === 'expanded';
+
+  const { isOpen: isMobile } = useMediaQuery('(max-width: 768px)');
+  const { isOpen: isUnder1024 } = useMediaQuery('(max-width: 1024px)');
+  const { isOpen: isUnder1280 } = useMediaQuery('(max-width: 1280px)');
+
+  // Responsively triggers facet sidebar mode (Sheet on right):
+  // 1. Mobile & tablet viewports (<= 1024px)
+  // 2. When app sidebar is expanded on standard desktop viewports <= 1280px
+  const isCompact = isMobile || isUnder1024 || (isUnder1280 && isSidebarExpanded);
+
+  const today = useMemo(() => new Date(), []);
+
+  const { facetGroups, activeFilterCount, searchEngine } = useDoctorScheduleDynamicOptions({
+    scheduleView
+  });
+
   return (
     <>
+      <SearchEngineDialog
+        config={searchEngine.config}
+        isOpen={searchEngine.isOpen}
+        onClose={searchEngine.close}
+      />
+
       <DoctorDetailEditModal
         doctor={selectedDoctorForModal}
         isOpen={Boolean(selectedDoctorForModal)}
@@ -66,48 +93,58 @@ export function DoctorScheduleView() {
 
       <div className='flex h-full min-h-0 flex-1 flex-col gap-4 select-none'>
         {(scheduleView.totalDoctors > 0 || scheduleView.hasActiveFilters) && (
-          <>
-            {/* Desktop Filter Toolbar Row */}
-            <div className='hidden md:flex items-center justify-between gap-3 shrink-0'>
-              <DoctorScheduleFilters
-                searchQuery={scheduleView.searchQuery}
-                onSearchChange={scheduleView.actions.changeSearch}
-                monthFilter={scheduleView.monthFilter}
-                onMonthFilterChange={scheduleView.actions.changeMonthFilter}
-                dateFilter={scheduleView.dateFilter}
-                onDateFilterChange={scheduleView.actions.changeDateFilter}
-                selectedPoli={scheduleView.selectedPoli}
-                onSelectedPoliChange={scheduleView.actions.changeSelectedPoli}
-                selectedSessions={scheduleView.selectedSessions}
-                onSelectedSessionsChange={scheduleView.actions.changeSelectedSessions}
-                selectedStatuses={scheduleView.selectedStatuses}
-                onSelectedStatusesChange={scheduleView.actions.changeSelectedStatuses}
-                onResetAll={scheduleView.actions.resetFilters}
-                className='flex-1'
-              />
-
-              <div className='flex items-center gap-2 shrink-0'>
-                <Button
-                  onClick={() => setIsInviteDoctorOpen(true)}
-                  size='sm'
-                  className='h-9 gap-1.5'
-                >
-                  <Icons.userPlus className='h-4 w-4' />
-                  Undang Praktisi
-                </Button>
-                <DoctorExportButton data={scheduleView.doctors} />
-                <DoctorScheduleSettingsButton onSelectCategory={actions.openConfiguration} />
+          <ResponsiveFacetToolbox
+            searchQuery={scheduleView.searchQuery}
+            onSearchChange={scheduleView.actions.changeSearch}
+            searchPlaceholder='Pencarian Dokter...'
+            onOpenSearchDialog={searchEngine.open}
+            dateFilter={{
+              label: 'Tanggal',
+              selectedDate: scheduleView.dateFilter,
+              onSelectDate: scheduleView.actions.changeDateFilter,
+              defaultDate: today,
+              resetLabel: 'Kembali ke Hari Ini'
+            }}
+            facets={facetGroups}
+            isFiltered={scheduleView.hasActiveFilters}
+            onResetAll={() => {
+              searchEngine.clearQuery();
+              scheduleView.actions.resetFilters();
+            }}
+            activeFilterCount={activeFilterCount}
+            isCompact={isCompact}
+            actionsSlot={
+              <Button
+                type='button'
+                onClick={() => setIsInviteDoctorOpen(true)}
+                size={isCompact ? 'icon' : 'sm'}
+                className={cn(
+                  isCompact
+                    ? 'size-8 rounded-md shrink-0 cursor-pointer'
+                    : 'h-8 text-xs font-medium gap-1.5 shrink-0 cursor-pointer'
+                )}
+                title='Undang Praktisi'
+                aria-label='Undang Praktisi'
+              >
+                <Icons.userPlus className={cn(isCompact ? 'size-3.5' : 'size-3.5 mr-0.5')} />
+                {!isCompact && <span>Undang Praktisi</span>}
+              </Button>
+            }
+            extraRightSlot={
+              <div className='flex items-center gap-1.5 sm:gap-2 shrink-0'>
+                <DoctorScheduleSettingsButton
+                  onSelectCategory={actions.openConfiguration}
+                  forceMode={isCompact ? 'drawer' : undefined}
+                  className={isCompact ? 'size-8 rounded-md' : 'h-8 w-8'}
+                />
+                <DoctorExportButton
+                  data={scheduleView.doctors}
+                  variant={isCompact ? 'icon' : 'full'}
+                  className={isCompact ? 'size-8 rounded-md' : undefined}
+                />
               </div>
-            </div>
-
-            {/* Mobile Filter Toolbar Dock */}
-            <div className='block md:hidden shrink-0'>
-              <DoctorScheduleMobileFilterToolbar
-                scheduleView={scheduleView}
-                onOpenSettings={actions.openConfiguration}
-              />
-            </div>
-          </>
+            }
+          />
         )}
 
         <div className='relative flex flex-1 min-h-0 flex-col overflow-hidden'>

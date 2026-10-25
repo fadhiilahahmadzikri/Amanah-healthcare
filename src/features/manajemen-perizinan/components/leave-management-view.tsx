@@ -6,21 +6,48 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Icons } from '@/components/icons';
 import { EntityCardGrid, EntityCardGridSkeleton } from '@/components/cards/master-entity-card';
+import { ResponsiveFacetToolbox } from '@/shared/ui/responsive-facet-toolbox';
+import { SearchEngineDialog } from '@/components/search-engine';
+import { useSidebar } from '@/components/ui/sidebar';
+import { useMediaQuery } from '@/hooks/use-media-query';
+import { cn } from '@/lib/utils';
 import { LeaveCard } from './leave-card';
 import { LeaveKanbanBoard } from './kanban';
 import { LeaveDetailModal } from './leave-detail-modal';
 import { LeaveSettingsModal } from './leave-settings-modal';
 import { LeaveSettingsButton } from './leave-settings-button';
-import { LeaveManagementFilters } from './leave-management-filters';
-import { LeaveMobileFilterToolbar } from './leave-mobile-filter-toolbar';
-import { useLeaveManagementPresenter } from '../model';
+import { useLeaveManagementPresenter } from '../model/useLeaveManagementPresenter';
+import { useLeaveDynamicOptions } from '../model/useLeaveDynamicOptions';
 
 export function LeaveManagementView() {
   const { filters, leaves, isLoading, viewMode, reviewLeave, detailModal, settingsModal } =
     useLeaveManagementPresenter();
 
+  const { state: sidebarState } = useSidebar();
+  const isSidebarExpanded = sidebarState === 'expanded';
+
+  const { isOpen: isMobile } = useMediaQuery('(max-width: 768px)');
+  const { isOpen: isUnder1024 } = useMediaQuery('(max-width: 1024px)');
+  const { isOpen: isUnder1280 } = useMediaQuery('(max-width: 1280px)');
+
+  // Canonical responsive breakpoint formula from Kehadiran Pegawai:
+  // 1. Mobile & tablet viewports (<= 1024px)
+  // 2. Expanded sidebar collisions on standard viewports (<= 1280px)
+  const isCompact = isMobile || isUnder1024 || (isUnder1280 && isSidebarExpanded);
+
+  const { facetGroups, activeFilterCount, searchEngine } = useLeaveDynamicOptions({
+    filters,
+    leaves
+  });
+
   return (
     <>
+      <SearchEngineDialog
+        config={searchEngine.config}
+        isOpen={searchEngine.isOpen}
+        onClose={searchEngine.close}
+      />
+
       <LeaveDetailModal
         leave={detailModal.selectedLeave}
         isOpen={detailModal.isOpen}
@@ -34,71 +61,59 @@ export function LeaveManagementView() {
       />
 
       <div className='flex h-full min-h-0 flex-1 flex-col gap-3.5 select-none'>
-        {/* Desktop Toolbar: Filters on the left, View Toggle & Action buttons on the right */}
-        <div className='hidden md:flex items-center justify-between gap-3 shrink-0'>
-          <LeaveManagementFilters
-            searchQuery={filters.searchQuery}
-            onSearchChange={filters.actions.changeSearch}
-            selectedStatuses={filters.statusFilter}
-            onSelectedStatusesChange={filters.actions.changeStatusFilter}
-            selectedStaffTypes={filters.staffTypeFilter}
-            onSelectedStaffTypesChange={filters.actions.changeStaffTypeFilter}
-            selectedLeaveTypes={filters.leaveTypeFilter}
-            onSelectedLeaveTypesChange={filters.actions.changeLeaveTypeFilter}
-            onResetAll={filters.actions.resetFilters}
-          />
-          <div className='flex items-center gap-2 shrink-0'>
-            {/* View Mode Toggle */}
-            <div className='flex items-center rounded-lg border border-border/80 p-0.5 bg-muted/30'>
-              <Button
-                variant={!viewMode.isFlattenMode ? 'secondary' : 'ghost'}
-                size='sm'
-                onClick={() => viewMode.setPreference('kanban')}
-                className='h-7 px-2 text-xs gap-1.5'
-                title='Tampilan Papan Kanban'
-              >
-                <Icons.kanban className='size-3.5' />
-                <span>Papan</span>
-              </Button>
-              <Button
-                variant={viewMode.isFlattenMode ? 'secondary' : 'ghost'}
-                size='sm'
-                onClick={() => viewMode.setPreference('list')}
-                className='h-7 px-2 text-xs gap-1.5'
-                title='Tampilan Daftar / Grid'
-              >
-                <Icons.layoutList className='size-3.5' />
-                <span>Daftar</span>
-              </Button>
+        {/* Unified Master Responsive Facet Toolbox (Desktop Inline & Mobile Drawer Sheet) */}
+        <ResponsiveFacetToolbox
+          searchQuery={filters.searchQuery}
+          onSearchChange={filters.actions.changeSearch}
+          searchPlaceholder='Pencarian permohonan izin...'
+          onOpenSearchDialog={searchEngine.open}
+          facets={facetGroups}
+          isFiltered={filters.hasActiveFilters}
+          onResetAll={() => {
+            searchEngine.clearQuery();
+            filters.actions.resetFilters();
+          }}
+          activeFilterCount={activeFilterCount}
+          isCompact={isCompact}
+          extraRightSlot={
+            <div className='flex items-center gap-1.5 sm:gap-2 shrink-0'>
+              {/* View Mode Toggle: Kanban vs List */}
+              <div className='flex items-center rounded-lg border border-border/80 p-0.5 bg-muted/30'>
+                <Button
+                  variant={!viewMode.isFlattenMode ? 'secondary' : 'ghost'}
+                  size={isCompact ? 'icon' : 'sm'}
+                  onClick={() => viewMode.setPreference('kanban')}
+                  className={cn(isCompact ? 'size-7' : 'h-7 px-2 text-xs gap-1.5')}
+                  title='Tampilan Papan Kanban'
+                >
+                  <Icons.kanban className='size-3.5' />
+                  {!isCompact && <span>Papan</span>}
+                </Button>
+                <Button
+                  variant={viewMode.isFlattenMode ? 'secondary' : 'ghost'}
+                  size={isCompact ? 'icon' : 'sm'}
+                  onClick={() => viewMode.setPreference('list')}
+                  className={cn(isCompact ? 'size-7' : 'h-7 px-2 text-xs gap-1.5')}
+                  title='Tampilan Daftar / Grid'
+                >
+                  <Icons.layoutList className='size-3.5' />
+                  {!isCompact && <span>Daftar</span>}
+                </Button>
+              </div>
+
+              <LeaveSettingsButton
+                onSelectCategory={settingsModal.open}
+                activeCategory={settingsModal.category}
+                forceMode={isCompact ? 'drawer' : undefined}
+                className={isCompact ? 'size-8 rounded-md' : 'size-8'}
+              />
             </div>
-
-            <LeaveSettingsButton
-              onSelectCategory={settingsModal.open}
-              activeCategory={settingsModal.category}
-            />
-          </div>
-        </div>
-
-        {/* Mobile Toolbar Dock */}
-        <div className='block md:hidden shrink-0'>
-          <LeaveMobileFilterToolbar
-            leaves={leaves}
-            searchQuery={filters.searchQuery}
-            onSearchChange={filters.actions.changeSearch}
-            selectedStatuses={filters.statusFilter}
-            onSelectedStatusesChange={filters.actions.changeStatusFilter}
-            selectedStaffTypes={filters.staffTypeFilter}
-            onSelectedStaffTypesChange={filters.actions.changeStaffTypeFilter}
-            selectedLeaveTypes={filters.leaveTypeFilter}
-            onSelectedLeaveTypesChange={filters.actions.changeLeaveTypeFilter}
-            onResetAll={filters.actions.resetFilters}
-            onOpenSettingsModal={settingsModal.open}
-          />
-        </div>
+          }
+        />
 
         {/* Active Filter Mode Alert Banner (Desktop Only) */}
-        {filters.hasActiveFilters && (
-          <div className='hidden md:flex items-center justify-between px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-xs shrink-0 animate-in fade-in duration-200'>
+        {filters.hasActiveFilters && !isCompact && (
+          <div className='flex items-center justify-between px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-xs shrink-0 animate-in fade-in duration-200'>
             <div className='flex items-center gap-1.5'>
               <Icons.info className='size-3.5 shrink-0 text-amber-600 dark:text-amber-400' />
               <span>

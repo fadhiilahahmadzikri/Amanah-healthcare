@@ -17,6 +17,8 @@ interface ChatMainAreaProps {
   onSendMessage: (text: string) => void;
   onTyping?: (isTyping: boolean) => void;
   onToggleProfile?: () => void;
+  onBackToInbox?: () => void;
+  className?: string;
 }
 
 function formatMessageTime(isoString: string): string {
@@ -38,7 +40,9 @@ export function ChatMainArea({
   isClientTyping = false,
   onSendMessage,
   onTyping,
-  onToggleProfile
+  onToggleProfile,
+  onBackToInbox,
+  className
 }: ChatMainAreaProps) {
   const [inputText, setInputText] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -70,7 +74,12 @@ export function ChatMainArea({
 
   if (!conversation) {
     return (
-      <main className='flex-1 flex flex-col bg-background/50 border-r border-border/60 p-6'>
+      <main
+        className={cn(
+          'flex-1 flex flex-col bg-background/50 border-r border-border/60 p-6',
+          className
+        )}
+      >
         <EmptyState
           icon={Icons.chat}
           title='Belum ada percakapan dipilih'
@@ -88,12 +97,32 @@ export function ChatMainArea({
       : conversation.customerEmail || 'Pasien';
 
   return (
-    <main className='flex-1 flex flex-col bg-background/50 min-w-0 border-r border-border/60 select-none'>
-      {/* 1. Header */}
-      <header className='h-[48px] px-4 border-b border-border/60 bg-card/60 flex items-center justify-between shrink-0'>
-        <div className='flex items-center gap-2.5 min-w-0'>
-          <div className='relative'>
-            <Avatar className='size-7 rounded-full ring-1 ring-border/40 overflow-hidden'>
+    <main
+      className={cn(
+        'flex-1 flex flex-col bg-background/50 min-w-0 border-r border-border/60 select-none',
+        className
+      )}
+    >
+      {/* 1. Header with WhatsApp-like Back Button on Mobile */}
+      <header className='h-[52px] px-3 sm:px-4 border-b border-border/60 bg-card/60 flex items-center justify-between shrink-0'>
+        <div className='flex items-center gap-2 sm:gap-2.5 min-w-0'>
+          {/* Back button for mobile navigation */}
+          {onBackToInbox && (
+            <Button
+              type='button'
+              variant='ghost'
+              size='icon'
+              onClick={onBackToInbox}
+              className='size-8.5 p-0 rounded-lg text-muted-foreground hover:text-foreground md:hidden shrink-0 -ml-1 mr-0.5 cursor-pointer'
+              title='Kembali ke Inbox'
+              aria-label='Kembali ke Inbox'
+            >
+              <Icons.chevronLeft className='size-4.5' />
+            </Button>
+          )}
+
+          <div className='relative shrink-0'>
+            <Avatar className='size-8 rounded-full ring-1 ring-border/40 overflow-hidden'>
               <AvatarImage
                 src={
                   conversation.userId
@@ -107,8 +136,8 @@ export function ChatMainArea({
                 <Image
                   src={DEFAULT_AVATAR_PATH}
                   alt={conversation.customerName || 'Pasien'}
-                  width={28}
-                  height={28}
+                  width={32}
+                  height={32}
                   unoptimized
                   className='size-full object-cover rounded-full aspect-square'
                 />
@@ -132,7 +161,7 @@ export function ChatMainArea({
           </div>
         </div>
 
-        <div className='flex items-center gap-1.5'>
+        <div className='flex items-center gap-1.5 shrink-0'>
           {conversation.status === 'closed' && (
             <span className='text-[10px] font-medium bg-muted text-muted-foreground px-2 py-0.5 rounded-full'>
               Percakapan Selesai
@@ -143,9 +172,11 @@ export function ChatMainArea({
               variant='outline'
               size='sm'
               onClick={onToggleProfile}
-              className='size-7 p-0 rounded-[6px] text-muted-foreground hover:text-foreground shadow-2xs lg:hidden'
+              className='size-8.5 p-0 rounded-lg text-muted-foreground hover:text-foreground shadow-2xs lg:hidden cursor-pointer'
+              title='Lihat Profil Pasien'
+              aria-label='Lihat Profil Pasien'
             >
-              <Icons.user className='size-3.5' />
+              <Icons.user className='size-4' />
             </Button>
           )}
         </div>
@@ -160,7 +191,7 @@ export function ChatMainArea({
               <div
                 key={m.id}
                 className={cn(
-                  'flex flex-col max-w-[78%]',
+                  'flex flex-col max-w-[85%] sm:max-w-[78%]',
                   isAdmin ? 'items-end self-end ml-auto' : 'items-start mr-auto'
                 )}
               >
@@ -209,10 +240,10 @@ export function ChatMainArea({
         </div>
       )}
 
-      {/* 3. Text Composer */}
+      {/* 3. Text Composer (Standardized height & touch targets) */}
       <div className='p-3 border-t border-border/60 bg-card/40'>
         {conversation.status === 'open' ? (
-          <div className='h-[36px] border border-border/80 rounded-[8px] flex items-center px-2.5 bg-background focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20 shadow-2xs transition-all'>
+          <div className='min-h-[44px] border border-border/80 rounded-xl flex items-center px-3 bg-background focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 shadow-2xs transition-all gap-2'>
             <input
               type='text'
               aria-label='Tulis pesan balasan untuk pasien'
@@ -220,22 +251,23 @@ export function ChatMainArea({
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               placeholder='Tulis pesan balasan untuk pasien...'
-              className='flex-1 text-[11px] text-foreground placeholder:text-muted-foreground focus:outline-none bg-transparent'
+              className='flex-1 h-9 text-xs sm:text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none bg-transparent'
             />
 
             <Button
+              type='button'
               size='sm'
               onClick={handleSend}
               disabled={!inputText.trim()}
-              className='h-6 px-2.5 rounded-[5px] text-[10px] font-semibold gap-1 ml-1.5 shadow-2xs'
+              className='h-8 px-3 rounded-lg text-xs font-semibold gap-1.5 shadow-2xs shrink-0 cursor-pointer'
             >
               <span>Kirim</span>
-              <Icons.arrowRight className='size-3' />
+              <Icons.arrowRight className='size-3.5' />
             </Button>
           </div>
         ) : (
-          <div className='text-center py-1'>
-            <span className='text-[11px] text-muted-foreground'>
+          <div className='text-center py-2'>
+            <span className='text-xs text-muted-foreground'>
               Percakapan ini telah ditutup. Buka percakapan baru untuk mengirim pesan.
             </span>
           </div>

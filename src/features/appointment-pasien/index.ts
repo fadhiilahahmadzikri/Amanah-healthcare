@@ -28,3 +28,8 @@ export type {
   AppointmentDialogType,
   UseAppointmentDialogsResult
 } from './model/useAppointmentDialogs';
+export {
+  useAppointmentDynamicOptions,
+  STATUS_DOT_COLORS
+} from './model/useAppointmentDynamicOptions';
+export type { UseAppointmentDynamicOptionsProps } from './model/useAppointmentDynamicOptions';

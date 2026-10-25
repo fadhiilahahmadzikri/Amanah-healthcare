@@ -13,6 +13,7 @@ export type { PatientCheckInModalProps } from './components/patient-check-in-mod
 export { AppointmentPagination } from './components/appointment-pagination';
 export { GuideView } from './components/guide-view';
 export { QueueView } from './components/queue-view';
+export { QueueViewSkeleton } from './components/queue-view-skeleton';
 export {
   ClinicalHistoryTables,
   ClinicalHistoryTableSkeleton,

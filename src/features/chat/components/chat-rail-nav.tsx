@@ -18,7 +18,7 @@ export function ChatRailNav({ activeTool, onSelectTool }: ChatRailNavProps) {
   ];
 
   return (
-    <aside className='w-[46px] border-r border-border/60 bg-card/60 flex flex-col items-center justify-between py-3 shrink-0 select-none'>
+    <aside className='hidden md:flex w-[46px] border-r border-border/60 bg-card/60 flex-col items-center justify-between py-3 shrink-0 select-none'>
       <TooltipProvider delayDuration={150}>
         <div className='flex flex-col items-center gap-3'>
           {/* Clinic Brand Indicator */}
@@ -28,7 +28,11 @@ export function ChatRailNav({ activeTool, onSelectTool }: ChatRailNavProps) {
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <button className='size-6 rounded-full border border-border/80 flex items-center justify-center hover:bg-muted text-muted-foreground transition-colors'>
+              <button
+                type='button'
+                className='size-6 rounded-full border border-border/80 flex items-center justify-center hover:bg-muted text-muted-foreground transition-colors'
+                aria-label='Buat Pesan Baru'
+              >
                 <Icons.add className='size-3.5' />
               </button>
             </TooltipTrigger>
@@ -45,6 +49,7 @@ export function ChatRailNav({ activeTool, onSelectTool }: ChatRailNavProps) {
                 <Tooltip key={item.id}>
                   <TooltipTrigger asChild>
                     <button
+                      type='button'
                       onClick={() => onSelectTool(item.id)}
                       className={cn(
                         'size-7 rounded-md flex items-center justify-center transition-all',
@@ -52,6 +57,7 @@ export function ChatRailNav({ activeTool, onSelectTool }: ChatRailNavProps) {
                           ? 'bg-primary text-primary-foreground shadow-xs'
                           : 'hover:bg-muted hover:text-foreground'
                       )}
+                      aria-label={item.label}
                     >
                       {item.icon}
                     </button>
@@ -68,11 +74,13 @@ export function ChatRailNav({ activeTool, onSelectTool }: ChatRailNavProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <button
+                type='button'
                 onClick={() => onSelectTool('settings')}
                 className={cn(
                   'size-6 flex items-center justify-center hover:text-foreground transition-colors',
                   activeTool === 'settings' && 'text-primary font-bold'
                 )}
+                aria-label='Pengaturan Chat'
               >
                 <Icons.settings className='size-4' />
               </button>

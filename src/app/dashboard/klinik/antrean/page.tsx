@@ -1,5 +1,6 @@
+import { Suspense } from 'react';
 import PageContainer from '@/components/layout/page-container';
-import { QueueView } from '@/features/klinik';
+import { QueueView, QueueViewSkeleton } from '@/features/klinik';
 import { requirePatient } from '@/lib/guard';
 
 export const metadata = {
@@ -11,7 +12,9 @@ export default async function AntreanPage() {
 
   return (
     <PageContainer>
-      <QueueView />
+      <Suspense fallback={<QueueViewSkeleton />}>
+        <QueueView />
+      </Suspense>
     </PageContainer>
   );
 }

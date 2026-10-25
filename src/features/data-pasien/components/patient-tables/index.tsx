@@ -2,10 +2,15 @@
 
 import React, { useMemo } from 'react';
 import { DataTable } from '@/components/ui/table/data-table';
-import { DataTableToolbar } from '@/components/ui/table/data-table-toolbar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Icons } from '@/components/icons';
+import { useSidebar } from '@/components/ui/sidebar';
+import { useMediaQuery } from '@/hooks/use-media-query';
+import { ResponsiveFacetToolbox } from '@/shared/ui/responsive-facet-toolbox';
+import { SearchEngineDialog } from '@/components/search-engine';
+import { DataTableViewOptions } from '@/components/ui/table/data-table-view-options';
 import { usePatientTable } from '../../model/usePatientTable';
+import { usePatientDynamicOptions } from '../../model/usePatientDynamicOptions';
 import { getPatientColumns } from './columns';
 import { usePatientFormReferences } from '../../model/usePatientFormReferences';
 import { PatientModal } from '../patient-modal';
@@ -13,11 +18,23 @@ import { PatientHistoryModal } from '../patient-history-modal';
 import { PatientDeleteDialog } from '../patient-delete-dialog';
 import { PatientBulkActions } from './patient-bulk-actions';
 import { PatientExportButton } from '../patient-export-button';
-import { PatientMobileFilterToolbar } from '../patient-mobile-filter-toolbar';
 import { PatientMobileCards } from '../patient-mobile-cards';
 
 export function PatientTable() {
   const references = usePatientFormReferences();
+
+  const { state: sidebarState } = useSidebar();
+  const isSidebarExpanded = sidebarState === 'expanded';
+
+  const { isOpen: isMobile } = useMediaQuery('(max-width: 768px)');
+  const { isOpen: isUnder1024 } = useMediaQuery('(max-width: 1024px)');
+  const { isOpen: isUnder1280 } = useMediaQuery('(max-width: 1280px)');
+
+  // Canonical responsive breakpoint formula from Kehadiran Pegawai:
+  // 1. Mobile & tablet viewports (<= 1024px)
+  // 2. Expanded sidebar collisions on standard viewports (<= 1280px)
+  const isCompact = isMobile || isUnder1024 || (isUnder1280 && isSidebarExpanded);
+
   const tableColumns = useMemo(
     () =>
       getPatientColumns({
@@ -39,8 +56,22 @@ export function PatientTable() {
     .flatRows.map((r) => r.original.id);
 
   const rows = patientTable.table.getRowModel().rows.map((r) => r.original);
-  const hasFilters =
-    patientTable.table.getState().columnFilters.length > 0 || patientTable.isInfiniteSearch;
+
+  const {
+    searchQuery,
+    handleSearchChange,
+    facetGroups,
+    activeFilterCount,
+    isFiltered,
+    resetAllFilters,
+    searchEngine
+  } = usePatientDynamicOptions({
+    table: patientTable.table,
+    genders: references.genders,
+    statuses: references.statuses,
+    bloodTypes: references.bloodTypes,
+    onReset: patientTable.resetFilters
+  });
 
   if (patientTable.isLoading) {
     return <PatientTableSkeleton />;
@@ -48,6 +79,13 @@ export function PatientTable() {
 
   return (
     <>
+      {/* Centralized Search Engine Modal */}
+      <SearchEngineDialog
+        config={searchEngine.config}
+        isOpen={searchEngine.isOpen}
+        onClose={searchEngine.close}
+      />
+
       {/* 1. Modal Pasien Terpadu (Detail & Edit dengan Unlock Button) */}
       <PatientModal
         key={patientTable.selectedPatient?.id || 'new'}
@@ -83,7 +121,29 @@ export function PatientTable() {
       />
 
       <div className='flex h-full min-h-0 flex-1 flex-col gap-3.5'>
-        {/* Desktop View: TanStack Table dengan Global Toolbar & Infinite Scroll Support */}
+        {/* Unified Master Responsive Facet Toolbox (Desktop Inline & Mobile Drawer Sheet) */}
+        <ResponsiveFacetToolbox
+          searchQuery={searchQuery}
+          onSearchChange={handleSearchChange}
+          searchPlaceholder='Cari nama, no. RM, NIK pasien...'
+          onOpenSearchDialog={searchEngine.open}
+          facets={facetGroups}
+          isFiltered={isFiltered}
+          onResetAll={resetAllFilters}
+          activeFilterCount={activeFilterCount}
+          isCompact={isCompact}
+          extraRightSlot={
+            <div className='flex items-center gap-1.5 sm:gap-2 shrink-0'>
+              {!isCompact && <DataTableViewOptions table={patientTable.table} />}
+              <PatientExportButton
+                variant={isCompact ? 'icon' : 'default'}
+                className={isCompact ? 'size-8 rounded-md shrink-0' : undefined}
+              />
+            </div>
+          }
+        />
+
+        {/* Desktop View: TanStack Table dengan Infinite Scroll Support */}
         <div className='hidden md:flex min-h-0 flex-1 flex-col'>
           <DataTable
             table={patientTable.table}
@@ -122,24 +182,15 @@ export function PatientTable() {
                 onBulkDelete={patientTable.actions.openBulkDelete}
               />
             }
-          >
-            <DataTableToolbar table={patientTable.table} onReset={patientTable.resetFilters}>
-              <PatientExportButton />
-            </DataTableToolbar>
-          </DataTable>
+          />
         </div>
 
-        {/* Mobile View: Docked Filter Toolbar, Single-Tone Cards, & Action Drawer */}
+        {/* Mobile View: Single-Tone Cards & Action Drawer */}
         <div className='block md:hidden flex-1 overflow-y-auto min-h-0'>
-          <PatientMobileFilterToolbar
-            table={patientTable.table}
-            onReset={patientTable.resetFilters}
-            className='mb-3'
-          />
           <PatientMobileCards
             patients={patientTable.activePatients}
-            hasFilters={hasFilters}
-            onReset={patientTable.resetFilters}
+            hasFilters={isFiltered}
+            onReset={resetAllFilters}
             onRowClick={patientTable.actions.openDetail}
             onViewDetail={patientTable.actions.openDetail}
             onEdit={patientTable.actions.openEdit}

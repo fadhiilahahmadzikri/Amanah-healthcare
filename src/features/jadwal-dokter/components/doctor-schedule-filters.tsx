@@ -3,14 +3,13 @@
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Icons } from '@/components/icons';
-import { Button } from '@/components/ui/button';
-import { FacetedFilter } from '@/shared/ui/faceted-filter';
-import { DateFilter } from '@/shared/ui/date-filter';
-import { SearchInput } from '@/shared/ui/search-input';
+import {
+  ResponsiveFacetToolbox,
+  type FacetGroupDefinition
+} from '@/shared/ui/responsive-facet-toolbox';
 import { toggleItem } from '@/shared/lib/array/toggle-item';
 import { buildMonthOptions, isToday } from '@/features/klinik/model/appointment-filters.rules';
 import { doctorScheduleFilterOptionsQueryOptions } from '../api/queries';
-import { cn } from '@/lib/utils';
 
 export interface DoctorScheduleFiltersProps {
   searchQuery: string;
@@ -45,137 +44,105 @@ export function DoctorScheduleFilters({
   onResetAll,
   className
 }: DoctorScheduleFiltersProps) {
-  const [localSearch, setLocalSearch] = React.useState(searchQuery || '');
   const today = React.useMemo(() => new Date(), []);
-
   const { data: filterOptionsData } = useQuery(doctorScheduleFilterOptionsQueryOptions());
-
-  React.useEffect(() => {
-    setLocalSearch(searchQuery || '');
-  }, [searchQuery]);
-
-  // Debounced query dispatch (250ms) for smooth typing
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      if (localSearch !== searchQuery) {
-        onSearchChange(localSearch);
-      }
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [localSearch, onSearchChange, searchQuery]);
+  const monthOptions = React.useMemo(() => buildMonthOptions(), []);
 
   const isFiltered =
     Boolean(searchQuery.trim()) ||
-    Boolean(localSearch.trim()) ||
     (monthFilter !== 'ALL' && monthFilter !== '') ||
     Boolean(dateFilter && !isToday(dateFilter)) ||
     selectedPoli.length > 0 ||
     selectedSessions.length > 0 ||
     selectedStatuses.length > 0;
 
-  const monthOptions = React.useMemo(() => buildMonthOptions(), []);
+  const facetGroups = React.useMemo<FacetGroupDefinition[]>(() => {
+    const poliklinik = filterOptionsData?.poliklinik ?? [];
+    const sessions = filterOptionsData?.sessions ?? [];
+    const statuses = filterOptionsData?.statuses ?? [];
 
-  const poliFacetOptions = React.useMemo(() => {
-    return (filterOptionsData?.poliklinik ?? []).map((p) => ({ value: p.name, label: p.name }));
-  }, [filterOptionsData]);
-
-  const sessionFacetOptions = React.useMemo(() => {
-    return (filterOptionsData?.sessions ?? []).map((s) => ({
-      value: s.code,
-      label: s.label
-    }));
-  }, [filterOptionsData]);
-
-  const statusFacetOptions = React.useMemo(() => {
-    return (filterOptionsData?.statuses ?? []).map((st) => ({
-      value: st.id,
-      label: st.label
-    }));
-  }, [filterOptionsData]);
+    return [
+      {
+        id: 'month',
+        title: 'Bulan',
+        icon: Icons.calendar,
+        mode: 'single',
+        options: monthOptions
+          .filter((m) => m.value !== 'ALL')
+          .map((m) => ({ label: m.label, value: m.value })),
+        selectedValues: monthFilter && monthFilter !== 'ALL' ? [monthFilter] : [],
+        onSelect: (val) => onMonthFilterChange(val === monthFilter ? 'ALL' : val),
+        onReset: () => onMonthFilterChange('ALL'),
+        popoverWidth: 'w-48',
+        resetLabel: 'Semua Bulan'
+      },
+      {
+        id: 'poli',
+        title: 'Poli',
+        icon: Icons.plusCircle,
+        mode: 'multi',
+        options: poliklinik.map((p) => ({ label: p.name, value: p.name })),
+        selectedValues: selectedPoli,
+        onSelect: (poli) => onSelectedPoliChange(toggleItem(selectedPoli, poli)),
+        onReset: () => onSelectedPoliChange([]),
+        popoverWidth: 'w-56',
+        resetLabel: 'Reset Poli'
+      },
+      {
+        id: 'session',
+        title: 'Sesi',
+        icon: Icons.clock,
+        mode: 'multi',
+        options: sessions.map((s) => ({ label: s.label, value: s.code })),
+        selectedValues: selectedSessions,
+        onSelect: (sesi) => onSelectedSessionsChange(toggleItem(selectedSessions, sesi)),
+        onReset: () => onSelectedSessionsChange([]),
+        popoverWidth: 'w-48',
+        resetLabel: 'Reset Sesi'
+      },
+      {
+        id: 'status',
+        title: 'Status',
+        icon: Icons.activity,
+        mode: 'multi',
+        options: statuses.map((st) => ({ label: st.label, value: st.id })),
+        selectedValues: selectedStatuses,
+        onSelect: (status) => onSelectedStatusesChange(toggleItem(selectedStatuses, status)),
+        onReset: () => onSelectedStatusesChange([]),
+        popoverWidth: 'w-52',
+        resetLabel: 'Reset Status'
+      }
+    ];
+  }, [
+    filterOptionsData,
+    monthOptions,
+    monthFilter,
+    selectedPoli,
+    selectedSessions,
+    selectedStatuses,
+    onMonthFilterChange,
+    onSelectedPoliChange,
+    onSelectedSessionsChange,
+    onSelectedStatusesChange
+  ]);
 
   return (
-    <div className={cn('flex flex-wrap items-center gap-2 font-sans select-none', className)}>
-      {/* 1. Global Search Input */}
-      <SearchInput
-        value={localSearch}
-        onChange={setLocalSearch}
-        placeholder='Pencarian Dokter...'
-        ariaLabel='Pencarian Dokter'
-      />
-
-      {/* 2. Month Filter */}
-      <FacetedFilter<string>
-        title='Bulan'
-        icon={Icons.calendar}
-        mode='single'
-        options={monthOptions}
-        selectedValues={monthFilter && monthFilter !== 'ALL' ? [monthFilter] : []}
-        onSelect={(val) => onMonthFilterChange(val)}
-        onReset={() => onMonthFilterChange('ALL')}
-        resetLabel='Reset Bulan'
-        popoverWidth='w-48'
-      />
-
-      {/* 3. Date Filter */}
-      <DateFilter
-        label='Tanggal'
-        selectedDate={dateFilter}
-        onSelectDate={onDateFilterChange}
-        defaultDate={today}
-        resetLabel='Kembali ke Hari Ini'
-      />
-
-      {/* 4. Poli Filter */}
-      <FacetedFilter<string>
-        title='Poli'
-        icon={Icons.plusCircle}
-        mode='multi'
-        options={poliFacetOptions}
-        selectedValues={selectedPoli}
-        onSelect={(poli) => onSelectedPoliChange(toggleItem(selectedPoli, poli))}
-        onReset={() => onSelectedPoliChange([])}
-        resetLabel='Reset Poli'
-        popoverWidth='w-56'
-      />
-
-      {/* 5. Sesi Filter */}
-      <FacetedFilter<string>
-        title='Sesi'
-        icon={Icons.clock}
-        mode='multi'
-        options={sessionFacetOptions}
-        selectedValues={selectedSessions}
-        onSelect={(sesi) => onSelectedSessionsChange(toggleItem(selectedSessions, sesi))}
-        onReset={() => onSelectedSessionsChange([])}
-        resetLabel='Reset Sesi'
-        popoverWidth='w-48'
-      />
-
-      {/* 6. Status Filter */}
-      <FacetedFilter<string>
-        title='Status'
-        icon={Icons.activity}
-        mode='multi'
-        options={statusFacetOptions}
-        selectedValues={selectedStatuses}
-        onSelect={(status) => onSelectedStatusesChange(toggleItem(selectedStatuses, status))}
-        onReset={() => onSelectedStatusesChange([])}
-        resetLabel='Reset Status'
-        popoverWidth='w-52'
-      />
-
-      {/* 7. Reset Filters Button */}
-      {isFiltered && (
-        <Button
-          variant='ghost'
-          size='sm'
-          onClick={onResetAll}
-          className='h-8 px-2.5 text-xs border border-dashed border-border'
-        >
-          <Icons.close className='size-3.5 mr-1' />
-          Reset
-        </Button>
-      )}
-    </div>
+    <ResponsiveFacetToolbox
+      searchQuery={searchQuery}
+      onSearchChange={onSearchChange}
+      searchPlaceholder='Pencarian Dokter...'
+      dateFilter={{
+        label: 'Tanggal',
+        selectedDate: dateFilter,
+        onSelectDate: onDateFilterChange,
+        defaultDate: today,
+        resetLabel: 'Kembali ke Hari Ini'
+      }}
+      facets={facetGroups}
+      isFiltered={isFiltered}
+      onResetAll={onResetAll}
+      isCompact={false}
+      className={className}
+    />
   );
 }

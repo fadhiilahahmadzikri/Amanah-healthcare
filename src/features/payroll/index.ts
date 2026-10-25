@@ -6,6 +6,7 @@ export * from './api/mutations';
 export * from './constants/options';
 export * from './utils/currency';
 export * from './model/usePayrollView';
+export * from './model/usePayrollDynamicOptions';
 export * from './model/usePayrollPresenter';
 export * from './model/usePayrollTable';
 export * from './model/useStaffPayrollReport';

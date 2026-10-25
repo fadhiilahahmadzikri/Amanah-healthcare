@@ -62,7 +62,7 @@ export default function KehadiranPegawaiView() {
               </p>
             </div>
 
-            <div className='flex items-center gap-2 flex-wrap'>
+            <div className='flex items-center gap-2 flex-wrap w-full sm:w-auto'>
               <AttendanceHeaderActions
                 data={data.records}
                 onToggleQR={() => qrController.toggleQR(isMobile)}
