@@ -72,6 +72,13 @@ export function DoctorAssignmentModal({
 
   const contentRef = useRef<HTMLDivElement>(null);
 
+  const handleToggleDayFocus = React.useCallback(() => {
+    setShowAllDays((prev) => !prev);
+    if (activeTab !== 'roster') {
+      setActiveTab('roster');
+    }
+  }, [activeTab, setActiveTab]);
+
   useEffect(() => {
     if (!contentRef.current) return;
     gsap.fromTo(
@@ -87,13 +94,6 @@ export function DoctorAssignmentModal({
   const focusedDay = rosterData?.days.find((d) => d.dow === focusedDow);
   const focusedDayName = focusedDay?.dayName ?? '';
   const displayDays = isFocused && focusedDay ? [focusedDay] : (rosterData?.days ?? []);
-
-  const handleToggleDayFocus = React.useCallback(() => {
-    setShowAllDays((prev) => !prev);
-    if (activeTab !== 'roster') {
-      setActiveTab('roster');
-    }
-  }, [activeTab, setActiveTab]);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
