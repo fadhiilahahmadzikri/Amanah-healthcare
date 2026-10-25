@@ -100,13 +100,6 @@ export const navGroups: NavGroup[] = [
         icon: 'notification',
         shortcut: ['n', 'a'],
         access: { role: 'admin' }
-      },
-      {
-        title: 'Pengaturan Sistem',
-        url: '/dashboard/settings',
-        icon: 'settings',
-        shortcut: ['s', 's'],
-        access: { role: 'admin' }
       }
     ]
   },
