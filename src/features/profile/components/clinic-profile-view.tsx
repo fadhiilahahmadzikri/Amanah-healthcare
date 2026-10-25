@@ -651,7 +651,7 @@ export function ClinicProfileView() {
 
       {/* Edit Profile Dialog Modal */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className='sm:max-w-[620px] rounded-2xl max-h-[90vh] flex flex-col p-6'>
+        <DialogContent className='sm:max-w-[620px] rounded-2xl max-h-[90vh] flex flex-col p-4 sm:p-6'>
           <DialogHeader>
             <DialogTitle className='text-base sm:text-lg font-bold'>Edit Profil Pasien</DialogTitle>
             <DialogDescription className='text-xs text-muted-foreground'>
@@ -664,15 +664,24 @@ export function ClinicProfileView() {
             defaultValue='demografi'
             className='w-full flex-1 overflow-hidden flex flex-col pt-2'
           >
-            <TabsList className='grid grid-cols-3 w-full mb-3'>
-              <TabsTrigger value='demografi' className='text-xs'>
-                Demografi
+            <TabsList className='grid grid-cols-3 gap-1 sm:gap-1.5 w-full mb-3 h-auto p-1 bg-muted/80 rounded-xl'>
+              <TabsTrigger
+                value='demografi'
+                className='text-[11px] sm:text-xs font-medium px-1 sm:px-2 py-1.5 h-8 rounded-lg min-w-0 transition-all cursor-pointer'
+              >
+                <span className='truncate'>Demografi</span>
               </TabsTrigger>
-              <TabsTrigger value='domisili' className='text-xs'>
-                Alamat Domisili
+              <TabsTrigger
+                value='domisili'
+                className='text-[11px] sm:text-xs font-medium px-1 sm:px-2 py-1.5 h-8 rounded-lg min-w-0 transition-all cursor-pointer'
+              >
+                <span className='truncate'>Alamat Domisili</span>
               </TabsTrigger>
-              <TabsTrigger value='medis' className='text-xs'>
-                Kontak & Medis
+              <TabsTrigger
+                value='medis'
+                className='text-[11px] sm:text-xs font-medium px-1 sm:px-2 py-1.5 h-8 rounded-lg min-w-0 transition-all cursor-pointer'
+              >
+                <span className='truncate'>Kontak & Medis</span>
               </TabsTrigger>
             </TabsList>
 
