@@ -161,7 +161,9 @@ export function ExportDialog({
         fileNamePrefix ||
         (exportType === 'attendance'
           ? `Presensi_${entitySlug}_${effectiveParameters.periodLabel ? effectiveParameters.periodLabel.replace(/\s+/g, '_') : 'rekap'}`
-          : `Gaji_${entitySlug}_${effectiveParameters.periodName ? effectiveParameters.periodName.replace(/\s+/g, '_') : 'rekap'}`);
+          : exportType === 'payroll'
+            ? `Gaji_${entitySlug}_${effectiveParameters.periodName ? effectiveParameters.periodName.replace(/\s+/g, '_') : 'rekap'}`
+            : `Formulir_${entitySlug}`);
 
       startExport({
         exportType,
@@ -179,9 +181,13 @@ export function ExportDialog({
       ? entityName
         ? `Laporan Presensi: ${entityName}`
         : 'Unduh Rekapitulasi Presensi'
-      : entityName
-        ? `Slip Gaji: ${entityName}`
-        : 'Unduh Rekapitulasi Penggajian');
+      : exportType === 'payroll'
+        ? entityName
+          ? `Slip Gaji: ${entityName}`
+          : 'Unduh Rekapitulasi Penggajian'
+        : entityName
+          ? `Formulir Rekam Medis: ${entityName}`
+          : 'Unduh Formulir Pasien');
 
   const displaySubtitle =
     subtitle ||

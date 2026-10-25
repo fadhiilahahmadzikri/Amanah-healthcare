@@ -296,19 +296,10 @@ export function useAppointmentModal({
       const relevantPatients = ctx?.patients ?? [];
       setPatients(relevantPatients as unknown as PatientAffiliationProfile[]);
 
-      if (relevantPatients.length > 0) {
-        setSelectedPatientId('');
-        setStep('patient');
-      } else {
-        setStep('patient_new');
-      }
+      setStep('patient_new');
     } catch (err) {
       console.error('Failed to resolve booking context:', err);
-      if (patients.length === 0) {
-        setStep('patient_new');
-      } else {
-        setStep('patient');
-      }
+      setStep('patient_new');
     } finally {
       setIsLoadingBookingContext(false);
     }

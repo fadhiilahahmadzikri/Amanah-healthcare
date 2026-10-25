@@ -25,11 +25,9 @@ import {
   adaptToPmbFormData,
   adaptToImunisasiFormData,
   adaptToRegulerFormData,
-  exportPmbDocx,
-  exportImunisasiDocx,
-  exportRegulerDocx,
   type ClinicalFormFlow
 } from './clinical-document';
+import { ExportDialog } from '@/features/export';
 
 export interface AppointmentFormInspectorProps {
   appointment: Appointment;
@@ -181,7 +179,7 @@ export function AppointmentFormInspector({
   const isImmunization = parsedData.flow === 'immunization' || Boolean(parsedData.child);
 
   const [isReaderOpen, setIsReaderOpen] = React.useState(false);
-  const [isExporting, setIsExporting] = React.useState(false);
+  const [isExportDialogOpen, setIsExportDialogOpen] = React.useState(false);
 
   const pmbFormData = React.useMemo(() => {
     if (parsedData.flow === 'pregnancy') {
@@ -203,32 +201,6 @@ export function AppointmentFormInspector({
     }
     return null;
   }, [parsedData, appointment]);
-
-  const handleDirectDownload = async () => {
-    try {
-      setIsExporting(true);
-      if (parsedData.flow === 'pregnancy') {
-        const patientName = appointment.patient_name || 'Pasien';
-        await exportPmbDocx(pmbFormData, `Formulir_ANC_${patientName.replace(/\s+/g, '_')}.docx`);
-      } else if (parsedData.flow === 'immunization' || Boolean(parsedData.child)) {
-        const childName = appointment.patient_name || 'Anak';
-        await exportImunisasiDocx(
-          imunisasiFormData,
-          `Formulir_Imunisasi_${childName.replace(/\s+/g, '_')}.docx`
-        );
-      } else {
-        const patientName = appointment.patient_name || 'Pasien';
-        await exportRegulerDocx(
-          regulerFormData,
-          `Formulir_Rawat_Jalan_${patientName.replace(/\s+/g, '_')}.docx`
-        );
-      }
-    } catch (err) {
-      console.error('Failed to export DOCX:', err);
-    } finally {
-      setIsExporting(false);
-    }
-  };
 
   return (
     <div className='w-full flex flex-col font-sans select-none justify-between h-full min-h-0'>
@@ -255,34 +227,26 @@ export function AppointmentFormInspector({
             <Button
               type='button'
               variant='secondary'
-              size='sm'
+              size='icon-sm'
               shape='rounded'
               onClick={() => setIsReaderOpen(true)}
-              leadingIcon={<Icons.maximize className='size-3.5 text-muted-foreground' />}
+              aria-label='Buka Formulir Fullscreen PDF Reader (Ukuran Penuh)'
               title='Buka Formulir Fullscreen PDF Reader (Ukuran Penuh)'
             >
-              <span className='hidden sm:inline'>Ukuran Penuh (PDF Reader)</span>
+              <Icons.maximize className='size-3.5 text-muted-foreground' />
             </Button>
 
             <Button
               type='button'
               variant='outline'
-              size='sm'
+              size='icon-sm'
               shape='rounded'
-              onClick={handleDirectDownload}
-              disabled={isExporting}
-              isLoading={isExporting}
-              leadingIcon={
-                !isExporting && (
-                  <Icons.download className='size-3.5 text-emerald-600 dark:text-emerald-400' />
-                )
-              }
+              onClick={() => setIsExportDialogOpen(true)}
+              aria-label='Unduh Formulir Pasien (PDF, Word, Excel, CSV)'
+              title='Unduh Formulir Pasien (PDF, Word, Excel, CSV)'
               className='border-emerald-300/80 dark:border-emerald-700/60 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-800 dark:text-emerald-300 shadow-2xs'
-              title='Unduh Dokumen Word (.docx)'
             >
-              <span className='hidden sm:inline'>
-                {isExporting ? 'Mengunduh...' : 'Unduh Word'}
-              </span>
+              <Icons.download className='size-3.5 text-emerald-600 dark:text-emerald-400' />
             </Button>
 
             {onClose && (
@@ -305,31 +269,25 @@ export function AppointmentFormInspector({
           <Button
             type='button'
             variant='secondary'
-            size='compact'
+            size='icon-sm'
             shape='rounded'
             onClick={() => setIsReaderOpen(true)}
-            leadingIcon={<Icons.maximize className='size-3.5' />}
+            aria-label='Buka Formulir Fullscreen PDF Reader (Ukuran Penuh)'
             title='Buka Formulir Fullscreen PDF Reader (Ukuran Penuh)'
           >
-            <span>Ukuran Penuh (PDF)</span>
+            <Icons.maximize className='size-3.5 text-muted-foreground' />
           </Button>
           <Button
             type='button'
             variant='outline'
-            size='compact'
+            size='icon-sm'
             shape='rounded'
-            onClick={handleDirectDownload}
-            disabled={isExporting}
-            isLoading={isExporting}
-            leadingIcon={
-              !isExporting && (
-                <Icons.download className='size-3.5 text-emerald-700 dark:text-emerald-400' />
-              )
-            }
+            onClick={() => setIsExportDialogOpen(true)}
+            aria-label='Unduh Formulir Pasien (PDF, Word, Excel, CSV)'
+            title='Unduh Formulir Pasien (PDF, Word, Excel, CSV)'
             className='border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-400'
-            title='Unduh Dokumen Word (.docx)'
           >
-            <span>{isExporting ? 'Mengunduh...' : 'Unduh Word'}</span>
+            <Icons.download className='size-3.5 text-emerald-700 dark:text-emerald-400' />
           </Button>
         </div>
       )}
@@ -391,6 +349,32 @@ export function AppointmentFormInspector({
         pmbData={pmbFormData}
         imunisasiData={imunisasiFormData}
         regulerData={regulerFormData}
+      />
+
+      <ExportDialog
+        open={isExportDialogOpen}
+        onOpenChange={setIsExportDialogOpen}
+        exportType='patient_record'
+        title={
+          isPregnancy
+            ? 'Formulir KIA & Kehamilan'
+            : parsedData.flow === 'immunization'
+              ? 'Formulir Imunisasi Anak'
+              : 'Formulir Pendaftaran Pasien'
+        }
+        subtitle='Pilih format berkas resmi rekam medis pasien'
+        entityName={appointment.patient_name || 'Pasien'}
+        parameters={{
+          appointmentId: appointment.id,
+          flow: parsedData.flow
+        }}
+        fileNamePrefix={
+          isPregnancy
+            ? `Formulir_ANC_${(appointment.patient_name || 'Pasien').replace(/\s+/g, '_')}`
+            : parsedData.flow === 'immunization'
+              ? `Formulir_Imunisasi_${(appointment.patient_name || 'Anak').replace(/\s+/g, '_')}`
+              : `Formulir_Rawat_Jalan_${(appointment.patient_name || 'Pasien').replace(/\s+/g, '_')}`
+        }
       />
     </div>
   );

@@ -189,7 +189,7 @@ export function AppointmentModal({
             {step === 'patient_new' && (
               <BookingRegularPatientForm
                 onSuccess={handlePatientCreated}
-                onCancel={() => (patients.length > 0 ? setStep('patient') : setStep('service'))}
+                onCancel={() => setStep('service')}
                 allowedRelationships={bookingContext?.allowedRelationships}
                 hasExistingSelf={patients.some((p) => p.relationship === 'self' || p.isSelf)}
                 targetFlow={targetFlow}
@@ -255,8 +255,7 @@ export function AppointmentModal({
                     onClick={() => {
                       if (step === 'service') setStep('category');
                       else if (step === 'patient') setStep('service');
-                      else if (step === 'date')
-                        setStep(patients.length > 0 ? 'patient' : 'service');
+                      else if (step === 'date') setStep('patient_new');
                       else if (step === 'session') setStep('date');
                       else if (step === 'visit_type') setStep('session');
                       else if (step === 'complaint') setStep('visit_type');
@@ -412,7 +411,7 @@ export function AppointmentModal({
           newPatientRelationship={selectedRelationship}
           onBackToService={() => {
             setActiveMedicalFlow(null);
-            setStep('patient');
+            setStep('patient_new');
           }}
           onClose={() => {
             setActiveMedicalFlow(null);

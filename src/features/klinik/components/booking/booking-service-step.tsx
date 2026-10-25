@@ -22,7 +22,7 @@ export function BookingServiceStep({
       <div className='flex items-center justify-between'>
         <div>
           <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
-            Pilih Layanan Pemeriksaan 🩺
+            Pilih Layanan Pemeriksaan
           </h3>
           <p className='text-xs text-muted-foreground mt-0.5'>
             Pilih layanan medis yang sesuai dengan kebutuhan Anda.
@@ -49,9 +49,7 @@ export function BookingServiceStep({
           />
         ) : (
           <div className='p-8 rounded-2xl border border-dashed border-border flex flex-col items-center justify-center text-center'>
-            <p className='text-xs text-muted-foreground'>
-              Memuat daftar layanan poliklinik...
-            </p>
+            <p className='text-xs text-muted-foreground'>Memuat daftar layanan poliklinik...</p>
           </div>
         )}
       </div>

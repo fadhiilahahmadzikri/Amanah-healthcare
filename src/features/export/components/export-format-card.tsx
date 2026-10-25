@@ -16,10 +16,12 @@ export function ExportFormatCard({ meta, disabled, onSelect }: ExportFormatCardP
     switch (meta.format) {
       case 'pdf':
         return <Icons.fileTypePdf className='size-6 text-rose-600 dark:text-rose-400' />;
+      case 'docx':
+        return <Icons.fileTypeDoc className='size-6 text-blue-600 dark:text-blue-400' />;
       case 'xlsx':
         return <Icons.fileSpreadsheet className='size-6 text-emerald-600 dark:text-emerald-400' />;
       case 'csv':
-        return <Icons.fileTypeDoc className='size-6 text-sky-600 dark:text-sky-400' />;
+        return <Icons.post className='size-6 text-sky-600 dark:text-sky-400' />;
     }
   };
 

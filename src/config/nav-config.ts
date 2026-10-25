@@ -100,6 +100,13 @@ export const navGroups: NavGroup[] = [
         icon: 'notification',
         shortcut: ['n', 'a'],
         access: { role: 'admin' }
+      },
+      {
+        title: 'Pengaturan Sistem',
+        url: '/dashboard/settings',
+        icon: 'settings',
+        shortcut: ['s', 's'],
+        access: { role: 'admin' }
       }
     ]
   },
@@ -149,44 +156,11 @@ export const navGroups: NavGroup[] = [
             access: { role: 'patient' }
           },
           {
-            title: 'Profil Pasien',
-            url: '/dashboard/klinik/profile',
-            icon: 'profile',
-            shortcut: ['p', 'k'],
-            access: { role: 'patient' }
-          },
-          {
             title: 'Panduan Penggunaan',
             url: '/dashboard/klinik/panduan',
             icon: 'help',
             shortcut: ['p', 'd'],
             access: { role: 'patient' }
-          }
-        ]
-      }
-    ]
-  },
-  {
-    label: 'Account',
-    items: [
-      {
-        title: 'Account',
-        url: '#',
-        icon: 'account',
-        isActive: true,
-        items: [
-          {
-            title: 'Profile',
-            url: '/dashboard/profile',
-            icon: 'profile',
-            shortcut: ['m', 'm']
-          },
-          {
-            title: 'Settings',
-            url: '/dashboard/settings',
-            icon: 'settings',
-            shortcut: ['s', 's'],
-            access: { role: 'admin' }
           }
         ]
       }

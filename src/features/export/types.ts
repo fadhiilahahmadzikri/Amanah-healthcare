@@ -1,6 +1,6 @@
-export type ExportType = 'attendance' | 'payroll';
+export type ExportType = 'attendance' | 'payroll' | 'patient_record';
 
-export type ExportFormat = 'pdf' | 'xlsx' | 'csv';
+export type ExportFormat = 'pdf' | 'docx' | 'xlsx' | 'csv';
 
 export type ExportJobStatus = 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
 
@@ -30,6 +30,19 @@ export const EXPORT_FORMAT_OPTIONS: ExportFormatMeta[] = [
       text: 'text-rose-600 dark:text-rose-400',
       border: 'hover:border-rose-500/40 focus:border-rose-500/60',
       badge: 'border-rose-500/20 bg-rose-500/10 text-rose-600 dark:text-rose-400'
+    }
+  },
+  {
+    format: 'docx',
+    label: 'Dokumen Word (.docx)',
+    shortLabel: 'Word',
+    description: 'Format dokumen Microsoft Word yang dapat disunting',
+    extension: 'docx',
+    accentColorClass: {
+      bg: 'bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400',
+      text: 'text-blue-600 dark:text-blue-400',
+      border: 'hover:border-blue-500/40 focus:border-blue-500/60',
+      badge: 'border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400'
     }
   },
   {
