@@ -11,23 +11,22 @@ export const patientDisplayHelper = {
    */
   getNikDisplay(patient: Patient, isLoading?: boolean): string {
     if (isLoading) return 'Memuat NIK resmi...';
-    return patient.nik || patient.nik_ktp || patient.masked_nik || '-';
+    return patient.nik || patient.masked_nik || '-';
   },
 
   /**
    * Format tempat, tanggal lahir dan usia pasien
    */
   getBirthDateDisplay(patient: Patient): string {
-    const rawBirthDate = patient.birth_date || patient.tanggal_lahir;
-    if (!rawBirthDate) return '-';
-    return formatClinicDate(rawBirthDate, { style: 'human_medium' });
+    if (!patient.birth_date) return '-';
+    return formatClinicDate(patient.birth_date, { style: 'human_medium' });
   },
 
   /**
    * Format nomor telepon / WhatsApp pasien
    */
   getPhoneDisplay(patient: Patient): { text: string; isPlaceholder: boolean } {
-    const raw = patient.nomor_telepon_wa || patient.phone;
+    const raw = patient.phone;
     if (raw && raw !== '-' && raw.trim() !== '') {
       return { text: raw.trim(), isPlaceholder: false };
     }
@@ -38,7 +37,7 @@ export const patientDisplayHelper = {
    * Format alamat email pasien
    */
   getEmailDisplay(patient: Patient): string {
-    const raw = patient.email_pasien || patient.email;
+    const raw = patient.email;
     if (raw && raw !== '-' && raw.trim() !== '') {
       return raw.trim();
     }
@@ -49,13 +48,13 @@ export const patientDisplayHelper = {
    * Format tanggal registrasi akun pasien
    */
   getRegistrationDateDisplay(patient: Patient): string {
-    const raw = patient.tanggal_registrasi_akun || patient.created_at;
+    const raw = patient.registered_at || patient.created_at;
     if (!raw) return '-';
     return formatClinicDateTime(raw, {
       dateStyle: 'human_medium',
       timeStyle: '24h',
       withSuffix: true,
-      suffix: 'WIB',
+      suffix: 'WIB'
     });
   },
 
@@ -63,13 +62,13 @@ export const patientDisplayHelper = {
    * Format waktu login pertama kali pasien
    */
   getFirstLoginDisplay(patient: Patient): string {
-    const raw = patient.login_pertama_kali;
+    const raw = patient.first_login_at;
     if (raw) {
       return formatClinicDateTime(raw, {
         dateStyle: 'human_medium',
         timeStyle: '24h',
         withSuffix: true,
-        suffix: 'WIB',
+        suffix: 'WIB'
       });
     }
 
@@ -84,7 +83,7 @@ export const patientDisplayHelper = {
    * Format tanggal kunjungan / janji temu terakhir pasien
    */
   getLastVisitDisplay(patient: Patient): string {
-    const raw = patient.last_visit_date || patient.kunjungan_terakhir;
+    const raw = patient.last_visit_date;
     if (raw && raw !== '-') {
       return formatClinicDate(raw, { style: 'human_medium' });
     }
@@ -95,11 +94,11 @@ export const patientDisplayHelper = {
    * Format ringkasan jumlah janji temu & kunjungan selesai
    */
   getVisitStatsDisplay(patient: Patient): string {
-    const total = patient.total_appointments ?? patient.total_kunjungan ?? 0;
+    const total = patient.total_appointments ?? 0;
     const completed = patient.completed_visits ?? 0;
     if (total > 0) {
       return `${total} janji temu (${completed} selesai)`;
     }
     return '0 janji temu';
-  },
+  }
 };

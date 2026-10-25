@@ -57,8 +57,8 @@ export function usePatientExport(): UsePatientExportResult {
         `"${patient.address.replace(/"/g, '""')}"`,
         `"${(patient.emergency_contact || '').replace(/"/g, '""')}"`,
         `"${(patient.allergies || []).join(', ')}"`,
-        `"${(patient.medical_history || '').replace(/"/g, '""')}"`,
-        `"${patient.account_status === 'active' ? 'Aktif' : 'Non-Aktif'}"`,
+        `"${patient.medical_history || ''}"`,
+        `"${patient.status === 'active' ? 'Aktif' : 'Non-Aktif'}"`,
         `"${patient.created_at ? new Date(patient.created_at).toLocaleDateString('id-ID') : '-'}"`
       ]);
 

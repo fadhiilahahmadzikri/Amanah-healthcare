@@ -1,6 +1,8 @@
 import { clientFetch } from '@/lib/client-fetch';
-import { normalizeGender } from '@/constants/gender.constants';
+import type { Gender } from '@/constants/gender.constants';
+import type { PatientBloodType } from '@/constants/blood-type.constants';
 import type { QueueLoadStatus } from '@/features/klinik/constants/queue-load.constants';
+export { UNKNOWN_BLOOD_TYPE, type PatientBloodType } from '@/constants/blood-type.constants';
 
 export interface PatientAffiliationProfile {
   id: string;
@@ -8,20 +10,20 @@ export interface PatientAffiliationProfile {
   fullName: string;
   nik: string;
   motherName?: string | null;
-  placeOfBirth?: string | null;
-  dateOfBirth?: string | null;
-  gender: 'L' | 'P' | 'LAKI_LAKI' | 'PEREMPUAN' | string;
-  bloodType?: 'A' | 'B' | 'AB' | 'O' | string | null;
+  birthPlace?: string | null;
+  birthDate?: string | null;
+  gender: Gender;
+  bloodType?: PatientBloodType | null;
   address?: string | null;
-  alamatDetail?: string | null;
-  provinsi?: string | null;
-  provinsiId?: string | null;
-  kabupaten?: string | null;
-  kabupatenId?: string | null;
-  kecamatan?: string | null;
-  kecamatanId?: string | null;
-  kelurahan?: string | null;
-  kelurahanId?: string | null;
+  line1?: string | null;
+  provinceName?: string | null;
+  provinceCode?: string | null;
+  regencyName?: string | null;
+  regencyCode?: string | null;
+  districtName?: string | null;
+  districtCode?: string | null;
+  villageName?: string | null;
+  villageCode?: string | null;
   relationship: 'self' | 'spouse' | 'child' | 'parent' | 'sibling' | 'relative' | 'other' | string;
   relationshipLabel?: string;
   occupationCode?: string | null;
@@ -41,21 +43,21 @@ export interface BookingContextPatient {
   affiliationId: string;
   fullName: string;
   nik: string;
-  gender: string;
+  gender: Gender;
   bloodType: string | null;
   motherName?: string | null;
   birthPlace?: string | null;
   birthDate?: string | null;
   address?: string | null;
-  alamatDetail?: string | null;
-  provinsi?: string | null;
-  provinsiId?: string | null;
-  kabupaten?: string | null;
-  kabupatenId?: string | null;
-  kecamatan?: string | null;
-  kecamatanId?: string | null;
-  kelurahan?: string | null;
-  kelurahanId?: string | null;
+  line1?: string | null;
+  provinceName?: string | null;
+  provinceCode?: string | null;
+  regencyName?: string | null;
+  regencyCode?: string | null;
+  districtName?: string | null;
+  districtCode?: string | null;
+  villageName?: string | null;
+  villageCode?: string | null;
   phoneNumber?: string | null;
   email?: string | null;
   relationship: string;
@@ -102,34 +104,32 @@ export type PatientRelationshipType =
   | 'friend'
   | 'other';
 
-export type PatientGender = 'Laki-laki' | 'Perempuan';
-
-export type PatientBloodType = 'A' | 'B' | 'AB' | 'O' | 'Belum Tahu';
+export type PatientGender = Gender;
 
 export interface CreatePatientAffiliationDto {
-  patient_id?: string;
-  relationship_type: PatientRelationshipType;
-  relation_label?: string;
-  is_primary?: boolean;
+  patientId?: string;
+  relationshipType: PatientRelationshipType;
+  relationLabel?: string;
+  isPrimary?: boolean;
   name: string;
   nik: string;
-  tempat_lahir: string;
-  birth_date: string;
-  gender: PatientGender;
-  blood_type: PatientBloodType;
-  nama_ibu_kandung: string;
-  occupation_id?: string;
-  pekerjaan?: string;
+  birthPlace?: string;
+  birthDate?: string;
+  gender: Gender;
+  bloodType?: PatientBloodType;
+  motherName?: string;
+  occupationId?: string;
+  occupation?: string;
   phone?: string;
-  provinsi?: string;
-  provinsi_id?: string;
-  kabupaten?: string;
-  kabupaten_id?: string;
-  kecamatan?: string;
-  kecamatan_id?: string;
-  kelurahan?: string;
-  kelurahan_id?: string;
-  alamat_detail?: string;
+  line1?: string;
+  provinceName?: string;
+  provinceCode?: string;
+  regencyName?: string;
+  regencyCode?: string;
+  districtName?: string;
+  districtCode?: string;
+  villageName?: string;
+  villageCode?: string;
   email?: string;
 }
 
@@ -137,39 +137,36 @@ export type CreateAffiliationPayload = CreatePatientAffiliationDto;
 
 function mapAffiliationEntityToProfile(entity: any): PatientAffiliationProfile {
   const patient = entity?.patient;
-  const addresses = Array.isArray(patient?.patientAddresses) ? patient.patientAddresses : [];
-  const primaryAddress = addresses.find((a: any) => a.isPrimary) || addresses[0];
 
   return {
     id: entity.patientId,
     affiliationId: entity.id,
     fullName: patient?.fullName ?? '',
     nik: patient?.nik ?? '',
-    motherName: patient?.namaIbuKandung ?? patient?.motherName ?? null,
-    placeOfBirth: patient?.birthPlace ?? null,
-    dateOfBirth: patient?.birthDate ?? null,
-    gender: normalizeGender(patient?.gender) === 'female' ? 'P' : 'L',
+    motherName: patient?.motherName ?? null,
+    birthPlace: patient?.birthPlace ?? null,
+    birthDate: patient?.birthDate ?? null,
+    gender: patient?.gender,
     bloodType: (patient?.bloodType as PatientBloodType) ?? null,
-    address: primaryAddress?.fullAddress ?? primaryAddress?.line1 ?? patient?.address ?? null,
-    alamatDetail: primaryAddress?.line1 ?? patient?.alamatDetail ?? null,
-    provinsi: primaryAddress?.provinceName ?? patient?.provinsi ?? null,
-    provinsiId: primaryAddress?.provinceCode ?? patient?.provinsiId ?? null,
-    kabupaten: primaryAddress?.regencyName ?? patient?.kabupaten ?? null,
-    kabupatenId: primaryAddress?.regencyCode ?? patient?.kabupatenId ?? null,
-    kecamatan: primaryAddress?.districtName ?? patient?.kecamatan ?? null,
-    kecamatanId: primaryAddress?.districtCode ?? patient?.kecamatanId ?? null,
-    kelurahan: primaryAddress?.villageName ?? patient?.kelurahan ?? null,
-    kelurahanId: primaryAddress?.villageCode ?? patient?.kelurahanId ?? null,
+    address: patient?.address ?? null,
+    line1: patient?.line1 ?? null,
+    provinceName: patient?.provinceName ?? null,
+    provinceCode: patient?.provinceCode ?? null,
+    regencyName: patient?.regencyName ?? null,
+    regencyCode: patient?.regencyCode ?? null,
+    districtName: patient?.districtName ?? null,
+    districtCode: patient?.districtCode ?? null,
+    villageName: patient?.villageName ?? null,
+    villageCode: patient?.villageCode ?? null,
     relationship: entity.relationshipType,
     relationshipLabel:
       entity.relationLabel ??
       (entity.relationshipType === 'self' ? 'Diri Sendiri' : entity.relationshipType),
     occupationCode: null,
-    occupationName: patient?.pekerjaan ?? null,
+    occupationName: patient?.occupation ?? null,
     phoneNumber: patient?.phoneNumber ?? null,
     email: patient?.email ?? null,
     status: patient?.status ?? 'active',
-    isActive: (patient?.status ?? 'active') === 'active',
     isSelf: entity.relationshipType === 'self' || Boolean(entity.isPrimary)
   };
 }

@@ -5,6 +5,7 @@ import {
   patientReferenceService,
   type PatientFormReferenceData
 } from '../api/patient-reference-service';
+import { GENDER_LABEL_MAP, GENDER_OPTIONS, type Gender } from '@/constants/gender.constants';
 
 export function usePatientFormReferences() {
   const [data, setData] = useState<PatientFormReferenceData | null>(null);
@@ -35,9 +36,17 @@ export function usePatientFormReferences() {
     };
   }, []);
 
+  const mappedGenders =
+    data?.genders && data.genders.length > 0
+      ? data.genders.map((g) => ({
+          ...g,
+          label: GENDER_LABEL_MAP[g.value as Gender]
+        }))
+      : GENDER_OPTIONS;
+
   return {
     bloodTypes: data?.bloodTypes ?? [],
-    genders: data?.genders ?? [],
+    genders: mappedGenders,
     statuses: data?.statuses ?? [],
     relationships: data?.relationships ?? [],
     provinces: data?.provinces ?? [],

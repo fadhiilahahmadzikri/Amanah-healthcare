@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Icons } from '@/components/icons';
+import { getGenderLabel } from '@/constants/gender.constants';
 import { formatClinicDate } from '@/lib/date-format';
 import type {
   MaternalHistoryItem,
@@ -132,12 +133,7 @@ export function ClinicalHistoryMobileCards({
             );
           })
         : immunizationRecords.map((item) => {
-            const genderLabel =
-              item.childSex === 'L' || item.childSex === 'Laki-laki'
-                ? 'Laki-laki'
-                : item.childSex === 'P' || item.childSex === 'Perempuan'
-                  ? 'Perempuan'
-                  : item.childSex || '-';
+            const genderLabel = getGenderLabel(item.childSex);
 
             return (
               <div

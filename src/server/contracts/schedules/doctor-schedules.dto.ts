@@ -290,7 +290,7 @@ export const bookedPatientDemographicsSchema = z.object({
   gender: z
     .string()
     .nullish()
-    .transform((v) => v || 'Laki-laki'),
+    .transform((v) => v || ''),
   birthDate: z
     .string()
     .nullish()

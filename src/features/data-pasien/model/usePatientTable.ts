@@ -66,20 +66,18 @@ export function usePatientTable({
   >(null);
 
   const [params, setParams] = useQueryStates({
-    patient: parseAsString,
     name: parseAsString,
     search: parseAsString,
     gender: parseAsArrayOf(parseAsString, ','),
-    account_status: parseAsArrayOf(parseAsString, ','),
     status: parseAsArrayOf(parseAsString, ','),
     blood_type: parseAsArrayOf(parseAsString, ','),
     profile_type: parseAsArrayOf(parseAsString, ','),
     sort: getSortingStateParser<Patient>(columnIds).withDefault([])
   });
 
-  const querySearch = params.patient || params.name || params.search || '';
+  const querySearch = params.name || params.search || '';
   const queryGender = params.gender?.[0] || null;
-  const queryStatus = params.account_status?.[0] || params.status?.[0] || null;
+  const queryStatus = params.status?.[0] || null;
   const queryBloodType = params.blood_type?.[0] || null;
   const queryProfileType = params.profile_type?.[0] || null;
   const querySort =
@@ -246,11 +244,9 @@ export function usePatientTable({
     table.resetColumnFilters();
     table.resetSorting();
     void setParams({
-      search: null,
-      patient: null,
       name: null,
+      search: null,
       gender: null,
-      account_status: null,
       status: null,
       blood_type: null,
       profile_type: null,

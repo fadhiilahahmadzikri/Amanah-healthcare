@@ -61,7 +61,7 @@ export function PatientNameCell({ row }: { row: Row<Patient> }) {
         )}
       >
         <AvatarImage
-          src={patient.avatarUrl || patient.avatar || DEFAULT_AVATAR_PATH}
+          src={patient.avatarUrl || DEFAULT_AVATAR_PATH}
           alt={patient.name}
           className='size-full object-cover aspect-square'
         />

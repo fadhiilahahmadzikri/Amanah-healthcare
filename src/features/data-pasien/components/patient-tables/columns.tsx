@@ -26,8 +26,8 @@ export interface PatientColumnsOptions {
   bloodTypes?: ReferenceOptionItem[];
 }
 
-import { DEFAULT_GENDER_OPTIONS } from '@/constants/gender.constants';
-export { DEFAULT_GENDER_OPTIONS };
+import { GENDER_OPTIONS } from '@/constants/gender.constants';
+export { GENDER_OPTIONS };
 
 export const DEFAULT_STATUS_OPTIONS: ReferenceOptionItem[] = [
   { label: 'Aktif', value: 'active' },
@@ -36,7 +36,7 @@ export const DEFAULT_STATUS_OPTIONS: ReferenceOptionItem[] = [
 
 export function getPatientColumns(options?: PatientColumnsOptions): ColumnDef<Patient>[] {
   const genderOptions =
-    options?.genders && options.genders.length > 0 ? options.genders : DEFAULT_GENDER_OPTIONS;
+    options?.genders && options.genders.length > 0 ? options.genders : GENDER_OPTIONS;
   const statusOptions =
     options?.statuses && options.statuses.length > 0 ? options.statuses : DEFAULT_STATUS_OPTIONS;
   const bloodTypeOptions = options?.bloodTypes ?? [];
@@ -383,12 +383,12 @@ export function getPatientColumns(options?: PatientColumnsOptions): ColumnDef<Pa
 
     // 14. Status Akun
     {
-      id: 'account_status',
-      accessorKey: 'account_status',
+      id: 'status',
+      accessorKey: 'status',
       header: ({ column }: { column: Column<Patient, unknown> }) => (
         <DataTableColumnHeader column={column} title='Status Akun' />
       ),
-      cell: ({ row }) => <StatusBadge status={row.original.account_status || 'active'} size='sm' />,
+      cell: ({ row }) => <StatusBadge status={row.original.status || 'active'} size='sm' />,
       meta: {
         label: 'Status Akun',
         variant: 'multiSelect' as const,

@@ -25,7 +25,6 @@ export const patientSchema = z.object({
   birth_date: z.string().min(1, 'Tanggal lahir harus diisi'),
   blood_type: z.string().min(1, 'Golongan darah harus dipilih'),
   address: z.string().optional().or(z.literal('')),
-  domisili: z.string().optional().or(z.literal('')),
   nama_ibu_kandung: z.string().optional().or(z.literal('')),
   tempat_lahir: z.string().optional().or(z.literal('')),
   pekerjaan: z.string().optional().or(z.literal('')),

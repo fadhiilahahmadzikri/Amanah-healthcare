@@ -125,9 +125,7 @@ export function StaffDetailEditModal(props: StaffDetailEditModalProps) {
                   label='Jenis Kelamin'
                   variant='dropdown'
                   value={form.formData.gender}
-                  onChange={(val) =>
-                    form.handleChange('gender', val === 'female' ? 'female' : 'male')
-                  }
+                  onChange={(val) => form.handleChange('gender', val)}
                 />
               </div>
 

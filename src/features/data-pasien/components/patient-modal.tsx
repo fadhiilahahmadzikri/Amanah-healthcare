@@ -27,7 +27,7 @@ export function PatientModal({
   patient,
   isOpen,
   onClose,
-  initialMode = 'view',
+  initialMode = 'view'
 }: PatientModalProps) {
   const {
     form,
@@ -40,12 +40,12 @@ export function PatientModal({
     bloodTypes,
     occupationOptions,
     handleUnlockEdit,
-    handleCancelEdit,
+    handleCancelEdit
   } = usePatientModalForm({
     patient,
     isOpen,
     onClose,
-    initialMode,
+    initialMode
   });
 
   const subtitleText = (() => {
@@ -53,7 +53,10 @@ export function PatientModal({
       return isEdit ? 'Perbarui data rekam medis pasien' : 'Pendaftaran rekam medis baru';
     }
     if (activePatient?.master_patient_name) {
-      const rel = getRelationshipLabel(activePatient.relationship_type, activePatient.relation_label);
+      const rel = getRelationshipLabel(
+        activePatient.relationship_type,
+        activePatient.relation_label
+      );
       return `${rel} dari ${activePatient.master_patient_name}`;
     }
     if ((activePatient?.affiliate_count ?? 0) > 0) {
@@ -76,21 +79,19 @@ export function PatientModal({
           <div className='space-y-0.5 min-w-0 flex-1'>
             <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight flex items-center gap-2'>
               <span className='truncate'>
-                {!patient ? 'Tambah Pasien Baru' : (activePatient?.name || 'Data Pasien')}
+                {!patient ? 'Tambah Pasien Baru' : activePatient?.name || 'Data Pasien'}
               </span>
               {isFetchingDetail && (
                 <Icons.spinner className='size-3.5 animate-spin text-primary shrink-0' />
               )}
             </h3>
-            <p className='text-xs text-muted-foreground truncate font-medium'>
-              {subtitleText}
-            </p>
+            <p className='text-xs text-muted-foreground truncate font-medium'>{subtitleText}</p>
           </div>
 
           {/* Status Akun Ringkas di Pojok Kanan Atas */}
-          {activePatient?.account_status && (
+          {activePatient?.status && (
             <div className='shrink-0 pt-0.5'>
-              <StatusBadge status={activePatient.account_status} size='sm' />
+              <StatusBadge status={activePatient.status} size='sm' />
             </div>
           )}
         </div>
@@ -106,17 +107,10 @@ export function PatientModal({
                 )}
               >
                 {/* Kolom 1: Identitas & Kelahiran */}
-                <PatientModalIdentityFields
-                  form={form}
-                  genders={genders}
-                  bloodTypes={bloodTypes}
-                />
+                <PatientModalIdentityFields form={form} genders={genders} bloodTypes={bloodTypes} />
 
                 {/* Kolom 2: Pekerjaan, Domisili & Kontak */}
-                <PatientModalContactFields
-                  form={form}
-                  occupationOptions={occupationOptions}
-                />
+                <PatientModalContactFields form={form} occupationOptions={occupationOptions} />
               </div>
             </form.Form>
           </form.AppForm>

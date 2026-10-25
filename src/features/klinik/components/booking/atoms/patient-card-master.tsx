@@ -26,8 +26,7 @@ export function PatientCardMaster({
   const isSelf = patient.relationship === 'self';
   const relationshipLabel =
     patient.relationshipLabel || (isSelf ? 'Diri Sendiri' : patient.relationship);
-  const isInactive =
-    patient.status === 'inactive' || patient.status === 'Nonaktif' || patient.isActive === false;
+  const isInactive = patient.status === 'inactive';
 
   return (
     <div

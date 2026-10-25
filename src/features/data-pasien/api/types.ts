@@ -1,24 +1,8 @@
-export type PatientGender = 'male' | 'female' | 'Laki-laki' | 'Perempuan';
+import type { Gender } from '@/constants/gender.constants';
+import type { PatientBloodType } from '@/constants/blood-type.constants';
+export { UNKNOWN_BLOOD_TYPE, type PatientBloodType } from '@/constants/blood-type.constants';
 
-export type PatientBloodType =
-  | 'A+'
-  | 'A-'
-  | 'B+'
-  | 'B-'
-  | 'AB+'
-  | 'AB-'
-  | 'O+'
-  | 'O-'
-  | 'A'
-  | 'B'
-  | 'AB'
-  | 'O'
-  | 'Belum Tahu'
-  | 'a'
-  | 'b'
-  | 'ab'
-  | 'o'
-  | 'unknown';
+export type PatientGender = Gender;
 
 export type PatientAccountStatus = 'active' | 'inactive';
 
@@ -26,18 +10,12 @@ export interface Patient {
   id: string; // UUID from database
   patient_id: string; // Medical Record Number (e.g. RM-202610-0004)
   name: string;
-  avatar?: string;
   avatarUrl?: string;
   masked_nik: string;
   nik?: string;
-  nik_ktp?: string;
-  nama_ibu_kandung?: string;
-  tempat_lahir?: string;
-  tanggal_lahir?: string;
-  pekerjaan?: string;
-  domisili?: string;
-  nomor_telepon_wa?: string;
-  email_pasien?: string;
+  mother_name?: string;
+  birth_place?: string;
+  occupation?: string;
   phone?: string;
   email?: string;
   gender: PatientGender;
@@ -45,23 +23,21 @@ export interface Patient {
   birth_date: string;
   blood_type: PatientBloodType;
   address: string;
-  provinsi?: string | null;
-  provinsi_id?: string | null;
-  kabupaten?: string | null;
-  kabupaten_id?: string | null;
-  kecamatan?: string | null;
-  kecamatan_id?: string | null;
-  kelurahan?: string | null;
-  kelurahan_id?: string | null;
-  alamat_detail?: string | null;
+  line1?: string | null;
+  province_name?: string | null;
+  province_code?: string | null;
+  regency_name?: string | null;
+  regency_code?: string | null;
+  district_name?: string | null;
+  district_code?: string | null;
+  village_name?: string | null;
+  village_code?: string | null;
   emergency_contact?: string;
   allergies?: string[];
   medical_history?: string;
-  account_status: PatientAccountStatus;
-  tanggal_registrasi_akun?: string | null;
-  login_pertama_kali?: string | null;
-  kunjungan_terakhir?: string | null;
-  total_kunjungan?: number;
+  status: PatientAccountStatus;
+  registered_at?: string | null;
+  first_login_at?: string | null;
   // Affiliation Paradigm Fields
   is_master?: boolean;
   has_own_account?: boolean;

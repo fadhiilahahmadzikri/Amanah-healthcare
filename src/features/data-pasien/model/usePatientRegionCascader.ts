@@ -14,10 +14,7 @@ export interface UsePatientRegionCascaderProps {
   onChange: (updates: Partial<PatientRegionValues>) => void;
 }
 
-export function usePatientRegionCascader({
-  values,
-  onChange
-}: UsePatientRegionCascaderProps) {
+export function usePatientRegionCascader({ values, onChange }: UsePatientRegionCascaderProps) {
   // 1. Synchronously initialize provinces from memory cache if already fetched
   const [provinces, setProvinces] = React.useState<RegionItem[]>(() => {
     const cached = patientReferenceService.getCachedProvinces();
@@ -25,20 +22,20 @@ export function usePatientRegionCascader({
   });
 
   const [regencies, setRegencies] = React.useState<RegionItem[]>(() => {
-    if (!values.provinsiId) return [];
-    const cached = patientReferenceService.getCachedRegencies(values.provinsiId);
+    if (!values.provinceCode) return [];
+    const cached = patientReferenceService.getCachedRegencies(values.provinceCode);
     return cached ? cached.map((r) => ({ id: r.id, name: r.name })) : [];
   });
 
   const [districts, setDistricts] = React.useState<RegionItem[]>(() => {
-    if (!values.kabupatenId) return [];
-    const cached = patientReferenceService.getCachedDistricts(values.kabupatenId);
+    if (!values.regencyCode) return [];
+    const cached = patientReferenceService.getCachedDistricts(values.regencyCode);
     return cached ? cached.map((d) => ({ id: d.id, name: d.name })) : [];
   });
 
   const [villages, setVillages] = React.useState<RegionItem[]>(() => {
-    if (!values.kecamatanId) return [];
-    const cached = patientReferenceService.getCachedVillages(values.kecamatanId);
+    if (!values.districtCode) return [];
+    const cached = patientReferenceService.getCachedVillages(values.districtCode);
     return cached ? cached.map((v) => ({ id: v.id, name: v.name })) : [];
   });
 
@@ -80,14 +77,14 @@ export function usePatientRegionCascader({
       });
   }, [provinces.length]);
 
-  // 2. Load regencies when provinsiId changes (external or initial)
+  // 2. Load regencies when provinceCode changes (external or initial)
   React.useEffect(() => {
-    if (!values.provinsiId) {
+    if (!values.provinceCode) {
       setRegencies([]);
       return;
     }
 
-    const cached = patientReferenceService.getCachedRegencies(values.provinsiId);
+    const cached = patientReferenceService.getCachedRegencies(values.provinceCode);
     if (cached && cached.length > 0) {
       setRegencies(cached.map((r) => ({ id: r.id, name: r.name })));
       setLoading((prev) => ({ ...prev, regencies: false }));
@@ -96,7 +93,7 @@ export function usePatientRegionCascader({
 
     setLoading((prev) => ({ ...prev, regencies: true }));
     patientReferenceService
-      .getRegencies(values.provinsiId)
+      .getRegencies(values.provinceCode)
       .then((items) => {
         if (isMountedRef.current) {
           setRegencies(items.map((r) => ({ id: r.id, name: r.name })));
@@ -109,16 +106,16 @@ export function usePatientRegionCascader({
           setLoading((prev) => ({ ...prev, regencies: false }));
         }
       });
-  }, [values.provinsiId]);
+  }, [values.provinceCode]);
 
-  // 3. Load districts when kabupatenId changes (external or initial)
+  // 3. Load districts when regencyCode changes (external or initial)
   React.useEffect(() => {
-    if (!values.kabupatenId) {
+    if (!values.regencyCode) {
       setDistricts([]);
       return;
     }
 
-    const cached = patientReferenceService.getCachedDistricts(values.kabupatenId);
+    const cached = patientReferenceService.getCachedDistricts(values.regencyCode);
     if (cached && cached.length > 0) {
       setDistricts(cached.map((d) => ({ id: d.id, name: d.name })));
       setLoading((prev) => ({ ...prev, districts: false }));
@@ -127,7 +124,7 @@ export function usePatientRegionCascader({
 
     setLoading((prev) => ({ ...prev, districts: true }));
     patientReferenceService
-      .getDistricts(values.kabupatenId)
+      .getDistricts(values.regencyCode)
       .then((items) => {
         if (isMountedRef.current) {
           setDistricts(items.map((d) => ({ id: d.id, name: d.name })));
@@ -140,16 +137,16 @@ export function usePatientRegionCascader({
           setLoading((prev) => ({ ...prev, districts: false }));
         }
       });
-  }, [values.kabupatenId]);
+  }, [values.regencyCode]);
 
-  // 4. Load villages when kecamatanId changes (external or initial)
+  // 4. Load villages when districtCode changes (external or initial)
   React.useEffect(() => {
-    if (!values.kecamatanId) {
+    if (!values.districtCode) {
       setVillages([]);
       return;
     }
 
-    const cached = patientReferenceService.getCachedVillages(values.kecamatanId);
+    const cached = patientReferenceService.getCachedVillages(values.districtCode);
     if (cached && cached.length > 0) {
       setVillages(cached.map((v) => ({ id: v.id, name: v.name })));
       setLoading((prev) => ({ ...prev, villages: false }));
@@ -158,7 +155,7 @@ export function usePatientRegionCascader({
 
     setLoading((prev) => ({ ...prev, villages: true }));
     patientReferenceService
-      .getVillages(values.kecamatanId)
+      .getVillages(values.districtCode)
       .then((items) => {
         if (isMountedRef.current) {
           setVillages(items.map((v) => ({ id: v.id, name: v.name })));
@@ -171,20 +168,20 @@ export function usePatientRegionCascader({
           setLoading((prev) => ({ ...prev, villages: false }));
         }
       });
-  }, [values.kecamatanId]);
+  }, [values.districtCode]);
 
   // Direct selection handlers with immediate preloading
   const selectProvince = React.useCallback(
     (item: RegionItem) => {
       onChange({
-        provinsi: item.name,
-        provinsiId: item.id,
-        kabupaten: '',
-        kabupatenId: '',
-        kecamatan: '',
-        kecamatanId: '',
-        kelurahan: '',
-        kelurahanId: ''
+        provinceName: item.name,
+        provinceCode: item.id,
+        regencyName: '',
+        regencyCode: '',
+        districtName: '',
+        districtCode: '',
+        villageName: '',
+        villageCode: ''
       });
 
       // Eagerly prefetch or set cached regencies
@@ -209,12 +206,12 @@ export function usePatientRegionCascader({
   const selectRegency = React.useCallback(
     (item: RegionItem) => {
       onChange({
-        kabupaten: item.name,
-        kabupatenId: item.id,
-        kecamatan: '',
-        kecamatanId: '',
-        kelurahan: '',
-        kelurahanId: ''
+        regencyName: item.name,
+        regencyCode: item.id,
+        districtName: '',
+        districtCode: '',
+        villageName: '',
+        villageCode: ''
       });
 
       // Eagerly prefetch or set cached districts
@@ -239,10 +236,10 @@ export function usePatientRegionCascader({
   const selectDistrict = React.useCallback(
     (item: RegionItem) => {
       onChange({
-        kecamatan: item.name,
-        kecamatanId: item.id,
-        kelurahan: '',
-        kelurahanId: ''
+        districtName: item.name,
+        districtCode: item.id,
+        villageName: '',
+        villageCode: ''
       });
 
       // Eagerly prefetch or set cached villages
@@ -267,8 +264,8 @@ export function usePatientRegionCascader({
   const selectVillage = React.useCallback(
     (item: RegionItem) => {
       onChange({
-        kelurahan: item.name,
-        kelurahanId: item.id
+        villageName: item.name,
+        villageCode: item.id
       });
     },
     [onChange]

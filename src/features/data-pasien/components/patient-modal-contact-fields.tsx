@@ -7,11 +7,11 @@ import { Switch } from '@/components/ui/switch';
 import { StatusBadge } from '@/components/ui/status-badge';
 import {
   PatientRegionDropdown,
-  type PatientRegionValues,
+  type PatientRegionValues
 } from './registration/molecules/patient-region-dropdown';
 import {
   PatientSearchableSelect,
-  type PatientSearchableSelectOption,
+  type PatientSearchableSelectOption
 } from './registration/molecules/patient-searchable-select';
 
 export interface PatientModalContactFieldsProps {
@@ -31,7 +31,7 @@ function getErrorMessage(errors: unknown[]): string | undefined {
 
 export function PatientModalContactFields({
   form,
-  occupationOptions,
+  occupationOptions
 }: PatientModalContactFieldsProps) {
   return (
     <div className='space-y-4'>
@@ -65,47 +65,44 @@ export function PatientModalContactFields({
 
       {/* Domisili / Regional Cascader */}
       <div className='space-y-2 pt-1'>
-        <span className='text-xs font-medium text-foreground block'>
-          Domisili & Alamat
-        </span>
+        <span className='text-xs font-medium text-foreground block'>Domisili & Alamat</span>
         <form.Subscribe selector={(state: any) => state.values}>
           {(values: any) => {
             const regionValues: PatientRegionValues = {
-              provinsi: values.provinsi ?? '',
-              provinsiId: values.provinsi_id ?? '',
-              kabupaten: values.kabupaten ?? '',
-              kabupatenId: values.kabupaten_id ?? '',
-              kecamatan: values.kecamatan ?? '',
-              kecamatanId: values.kecamatan_id ?? '',
-              kelurahan: values.kelurahan ?? '',
-              kelurahanId: values.kelurahan_id ?? '',
-              alamatDetail: values.alamat_detail ?? '',
+              provinceName: values.provinsi ?? '',
+              provinceCode: values.provinsi_id ?? '',
+              regencyName: values.kabupaten ?? '',
+              regencyCode: values.kabupaten_id ?? '',
+              districtName: values.kecamatan ?? '',
+              districtCode: values.kecamatan_id ?? '',
+              villageName: values.kelurahan ?? '',
+              villageCode: values.kelurahan_id ?? '',
+              line1: values.alamat_detail ?? ''
             };
 
             return (
               <PatientRegionDropdown
                 values={regionValues}
                 onChange={(updates) => {
-                  if (updates.provinsi !== undefined)
-                    form.setFieldValue('provinsi', updates.provinsi);
-                  if (updates.provinsiId !== undefined)
-                    form.setFieldValue('provinsi_id', updates.provinsiId);
-                  if (updates.kabupaten !== undefined)
-                    form.setFieldValue('kabupaten', updates.kabupaten);
-                  if (updates.kabupatenId !== undefined)
-                    form.setFieldValue('kabupaten_id', updates.kabupatenId);
-                  if (updates.kecamatan !== undefined)
-                    form.setFieldValue('kecamatan', updates.kecamatan);
-                  if (updates.kecamatanId !== undefined)
-                    form.setFieldValue('kecamatan_id', updates.kecamatanId);
-                  if (updates.kelurahan !== undefined)
-                    form.setFieldValue('kelurahan', updates.kelurahan);
-                  if (updates.kelurahanId !== undefined)
-                    form.setFieldValue('kelurahan_id', updates.kelurahanId);
-                  if (updates.alamatDetail !== undefined) {
-                    form.setFieldValue('alamat_detail', updates.alamatDetail);
-                    form.setFieldValue('address', updates.alamatDetail);
-                    form.setFieldValue('domisili', updates.alamatDetail);
+                  if (updates.provinceName !== undefined)
+                    form.setFieldValue('provinsi', updates.provinceName);
+                  if (updates.provinceCode !== undefined)
+                    form.setFieldValue('provinsi_id', updates.provinceCode);
+                  if (updates.regencyName !== undefined)
+                    form.setFieldValue('kabupaten', updates.regencyName);
+                  if (updates.regencyCode !== undefined)
+                    form.setFieldValue('kabupaten_id', updates.regencyCode);
+                  if (updates.districtName !== undefined)
+                    form.setFieldValue('kecamatan', updates.districtName);
+                  if (updates.districtCode !== undefined)
+                    form.setFieldValue('kecamatan_id', updates.districtCode);
+                  if (updates.villageName !== undefined)
+                    form.setFieldValue('kelurahan', updates.villageName);
+                  if (updates.villageCode !== undefined)
+                    form.setFieldValue('kelurahan_id', updates.villageCode);
+                  if (updates.line1 !== undefined) {
+                    form.setFieldValue('alamat_detail', updates.line1);
+                    form.setFieldValue('address', updates.line1);
                   }
                 }}
               />
@@ -191,10 +188,7 @@ export function PatientModalContactFields({
                   className='text-xs font-medium text-foreground flex items-center gap-2 cursor-pointer'
                 >
                   <span>Status Akun Pasien</span>
-                  <StatusBadge
-                    status={isActive ? 'active' : 'inactive'}
-                    size='sm'
-                  />
+                  <StatusBadge status={isActive ? 'active' : 'inactive'} size='sm' />
                 </label>
                 <p className='text-[11px] text-muted-foreground'>
                   {isActive
@@ -205,9 +199,7 @@ export function PatientModalContactFields({
               <Switch
                 id='account_status_switch'
                 checked={isActive}
-                onCheckedChange={(checked) =>
-                  field.handleChange(checked ? 'active' : 'inactive')
-                }
+                onCheckedChange={(checked) => field.handleChange(checked ? 'active' : 'inactive')}
                 aria-label='Status Akun Pasien'
               />
             </div>

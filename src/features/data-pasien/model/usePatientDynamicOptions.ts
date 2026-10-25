@@ -6,7 +6,7 @@ import { Icons } from '@/components/icons';
 import { toggleItem } from '@/shared/lib/array/toggle-item';
 import type { FacetGroupDefinition, FacetOption } from '@/shared/ui/responsive-facet-toolbox';
 import { useStateSearchEngine, type SearchEngineResultItem } from '@/components/search-engine';
-import { DEFAULT_GENDER_OPTIONS } from '@/constants/gender.constants';
+import { GENDER_OPTIONS } from '@/constants/gender.constants';
 import { DEFAULT_STATUS_OPTIONS } from '../components/patient-tables/columns';
 import type { Patient } from '../api/types';
 import type { ReferenceOptionItem } from '../api/patient-reference-service';
@@ -30,7 +30,7 @@ export function usePatientDynamicOptions({
   const nameCol = table.getColumn('name');
   const profileCol = table.getColumn('profile_type');
   const genderCol = table.getColumn('gender');
-  const statusCol = table.getColumn('account_status');
+  const statusCol = table.getColumn('status');
   const bloodCol = table.getColumn('blood_type');
 
   // 1. Search Query & Engine
@@ -157,8 +157,7 @@ export function usePatientDynamicOptions({
       return explicitGenders;
     }
     return (
-      (genderCol?.columnDef.meta as { options?: Option[] } | undefined)?.options ??
-      DEFAULT_GENDER_OPTIONS
+      (genderCol?.columnDef.meta as { options?: Option[] } | undefined)?.options ?? GENDER_OPTIONS
     );
   }, [explicitGenders, genderCol]);
 
@@ -222,7 +221,7 @@ export function usePatientDynamicOptions({
   const statusCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     table.getCoreRowModel().rows.forEach((row) => {
-      const s = row.original.account_status;
+      const s = row.original.status;
       if (s) {
         counts[s] = (counts[s] || 0) + 1;
       }
@@ -281,7 +280,7 @@ export function usePatientDynamicOptions({
     return bloodOptions.map((b) => ({
       label: b.label,
       value: b.value,
-      count: bloodCounts[b.value] || 0
+      count: bloodCounts[b.label] || 0
     }));
   }, [bloodOptions, bloodCounts]);
 

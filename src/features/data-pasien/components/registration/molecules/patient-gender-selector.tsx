@@ -6,14 +6,20 @@ import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { PatientOptionCard } from '../atoms/patient-option-card';
 
+import {
+  GENDER_LABEL_MAP,
+  GENDER_OPTIONS,
+  getGenderLabel,
+  type Gender
+} from '@/constants/gender.constants';
 import type { ReferenceOptionItem } from '@/features/data-pasien/api/patient-reference-service';
 import { usePatientFormReferences } from '@/features/data-pasien/model/usePatientFormReferences';
 
 export interface PatientGenderSelectorProps {
   id?: string;
   label?: React.ReactNode;
-  value: string;
-  onChange: (value: 'Laki-laki' | 'Perempuan' | 'L' | 'P' | string) => void;
+  value?: string;
+  onChange: (value: Gender) => void;
   error?: string;
   invalid?: boolean;
   disabled?: boolean;
@@ -43,7 +49,15 @@ export function PatientGenderSelector({
   variant = 'cards'
 }: PatientGenderSelectorProps) {
   const references = usePatientFormReferences();
-  const availableOptions: ReferenceOptionItem[] = options ?? references.genders;
+  const rawOptions: ReferenceOptionItem[] =
+    options ?? (references.genders.length > 0 ? references.genders : GENDER_OPTIONS);
+
+  const availableOptions: ReferenceOptionItem[] = React.useMemo(() => {
+    return rawOptions.map((item) => ({
+      ...item,
+      label: GENDER_LABEL_MAP[item.value as Gender]
+    }));
+  }, [rawOptions]);
 
   // Dropdown state & refs
   const containerRef = React.useRef<HTMLDivElement>(null);
@@ -52,19 +66,10 @@ export function PatientGenderSelector({
 
   const selectedOption = React.useMemo(() => {
     if (!value) return null;
-    const valLower = String(value).trim().toLowerCase();
-    return (
-      availableOptions.find(
-        (opt) =>
-          opt.value.toLowerCase() === valLower ||
-          opt.label.toLowerCase() === valLower ||
-          (valLower === 'l' && (opt.value === 'Laki-laki' || opt.label.includes('Laki'))) ||
-          (valLower === 'p' && (opt.value === 'Perempuan' || opt.label.includes('Perempuan')))
-      ) ?? null
-    );
+    return availableOptions.find((opt) => opt.value === value) ?? null;
   }, [availableOptions, value]);
 
-  const displayLabel = selectedOption ? selectedOption.label : value ? String(value) : '';
+  const displayLabel = selectedOption ? selectedOption.label : value ? getGenderLabel(value) : '';
 
   const animateOpen = React.useCallback(() => {
     if (!popupRef.current) return;
@@ -195,19 +200,14 @@ export function PatientGenderSelector({
         >
           <div className='grid grid-cols-2 gap-2 sm:gap-2.5'>
             {availableOptions.map((item) => {
-              const isSelected =
-                String(value).toLowerCase() === item.value.toLowerCase() ||
-                String(value).toLowerCase() === item.label.toLowerCase() ||
-                (String(value).toLowerCase() === 'l' && item.value === 'Laki-laki') ||
-                (String(value).toLowerCase() === 'p' && item.value === 'Perempuan');
-              const isLaki = item.label.toLowerCase().includes('laki') || item.value === 'L';
+              const isSelected = selectedOption?.value === item.value;
 
               return (
                 <button
                   key={item.value}
                   type='button'
                   onClick={() => {
-                    onChange(item.value);
+                    onChange(item.value as Gender);
                     animateClose(() => setIsOpen(false));
                   }}
                   className={cn(
@@ -217,11 +217,7 @@ export function PatientGenderSelector({
                       : 'border-border/80 bg-card text-foreground hover:border-primary/50 hover:bg-muted/20'
                   )}
                 >
-                  {isLaki ? (
-                    <Icons.user className='size-3.5 shrink-0' />
-                  ) : (
-                    <Icons.userCheck className='size-3.5 shrink-0' />
-                  )}
+                  <Icons.user className='size-3.5 shrink-0' />
                   <span>{item.label}</span>
                 </button>
               );
@@ -236,22 +232,17 @@ export function PatientGenderSelector({
     <div data-slot='patient-gender-selector' className={cn('space-y-3', className)}>
       <div className='grid grid-cols-2 gap-3'>
         {availableOptions.map((item) => {
-          const isLaki = item.label.toLowerCase().includes('laki') || item.value === 'L';
-          const isSelected = value === item.value || value === item.label;
+          const isSelected = selectedOption?.value === item.value;
 
           return (
             <PatientOptionCard
               key={item.value}
               isSelected={isSelected}
-              onClick={() => onChange(item.value)}
+              onClick={() => onChange(item.value as Gender)}
               className='min-h-[80px] flex-col gap-2 p-4 text-xs font-medium'
             >
-              {isLaki ? (
-                <Icons.user className='size-5' />
-              ) : (
-                <Icons.userCheck className='size-5' />
-              )}
-              <span>{item.label.toLowerCase()}</span>
+              <Icons.user className='size-5' />
+              <span>{item.label}</span>
             </PatientOptionCard>
           );
         })}

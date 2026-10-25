@@ -7,15 +7,15 @@ import { PatientSearchableSelect } from './patient-searchable-select';
 import { usePatientRegionCascader } from '@/features/data-pasien/model/usePatientRegionCascader';
 
 export interface PatientRegionValues {
-  provinsi: string;
-  provinsiId: string;
-  kabupaten: string;
-  kabupatenId: string;
-  kecamatan: string;
-  kecamatanId: string;
-  kelurahan: string;
-  kelurahanId: string;
-  alamatDetail: string;
+  provinceName: string;
+  provinceCode: string;
+  regencyName: string;
+  regencyCode: string;
+  districtName: string;
+  districtCode: string;
+  villageName: string;
+  villageCode: string;
+  line1: string;
 }
 
 export interface PatientRegionDropdownProps {
@@ -64,13 +64,13 @@ export function PatientRegionDropdown({
 
       {/* PROVINSI */}
       <PatientSearchableSelect
-        id='provinsi'
+        id='province'
         label='Provinsi'
-        value={values.provinsi}
+        value={values.provinceName}
         placeholder='Pilih provinsi...'
         options={provinces}
         isLoading={loading.provinces}
-        error={errors?.provinsi}
+        error={errors?.provinceName}
         onSelect={selectProvince}
         searchPlaceholder='Cari provinsi...'
         required
@@ -78,17 +78,17 @@ export function PatientRegionDropdown({
 
       {/* KOTA / KABUPATEN */}
       <PatientSearchableSelect
-        id='kabupaten'
+        id='regency'
         label='Kota / kabupaten'
-        value={values.kabupaten}
+        value={values.regencyName}
         placeholder={
-          values.provinsiId ? 'Pilih kota / kabupaten...' : 'Pilih provinsi terlebih dahulu...'
+          values.provinceCode ? 'Pilih kota / kabupaten...' : 'Pilih provinsi terlebih dahulu...'
         }
-        disabled={!values.provinsiId}
+        disabled={!values.provinceCode}
         options={regencies}
         isLoading={loading.regencies}
         parentLabel='Provinsi'
-        error={errors?.kabupaten}
+        error={errors?.regencyName}
         onSelect={selectRegency}
         searchPlaceholder='Cari kota / kabupaten...'
         required
@@ -97,30 +97,30 @@ export function PatientRegionDropdown({
       {/* KECAMATAN & KELURAHAN (2 columns) */}
       <div className='grid grid-cols-2 gap-3'>
         <PatientSearchableSelect
-          id='kecamatan'
+          id='district'
           label='Kecamatan'
-          value={values.kecamatan}
-          placeholder={values.kabupatenId ? 'Pilih kecamatan...' : 'Pilih kota...'}
-          disabled={!values.kabupatenId}
+          value={values.districtName}
+          placeholder={values.regencyCode ? 'Pilih kecamatan...' : 'Pilih kota...'}
+          disabled={!values.regencyCode}
           options={districts}
           isLoading={loading.districts}
           parentLabel='Kota / kabupaten'
-          error={errors?.kecamatan}
+          error={errors?.districtName}
           onSelect={selectDistrict}
           searchPlaceholder='Cari kecamatan...'
           required
         />
 
         <PatientSearchableSelect
-          id='kelurahan'
+          id='village'
           label='Kelurahan / desa'
-          value={values.kelurahan}
-          placeholder={values.kecamatanId ? 'Pilih kelurahan...' : 'Pilih kecamatan...'}
-          disabled={!values.kecamatanId}
+          value={values.villageName}
+          placeholder={values.districtCode ? 'Pilih kelurahan...' : 'Pilih kecamatan...'}
+          disabled={!values.districtCode}
           options={villages}
           isLoading={loading.villages}
           parentLabel='Kecamatan'
-          error={errors?.kelurahan}
+          error={errors?.villageName}
           onSelect={selectVillage}
           searchPlaceholder='Cari kelurahan...'
           required
@@ -129,13 +129,13 @@ export function PatientRegionDropdown({
 
       {/* ALAMAT DETAIL */}
       <PatientLineInput
-        id='alamatDetail'
+        id='line1'
         label='Alamat detail (jalan, RT/RW, no. rumah)'
-        value={values.alamatDetail}
+        value={values.line1}
         placeholder='contoh: jl. mawar no. 12 rt 04/rw 02'
-        error={errors?.alamatDetail}
+        error={errors?.line1}
         autoComplete='street-address'
-        onChange={(val) => onChange({ alamatDetail: val })}
+        onChange={(val) => onChange({ line1: val })}
       />
     </div>
   );

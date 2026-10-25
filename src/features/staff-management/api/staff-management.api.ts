@@ -1,4 +1,5 @@
 import { clientFetch } from '@/lib/client-fetch';
+import type { Gender } from '@/constants/gender.constants';
 import type { StaffInvitationStatus, StaffRoleCode, StaffType } from '../constants/staff.constants';
 
 export interface PolyclinicUnit {
@@ -53,7 +54,7 @@ export interface StaffMember {
   licenseNumber?: string | null;
   birthPlace?: string | null;
   birthDate?: string | null;
-  gender?: 'male' | 'female' | null;
+  gender?: Gender;
   nationalId?: string | null;
   email?: string | null;
   phoneNumber: string;

@@ -64,8 +64,8 @@ function findExactPatient(
   return patients.find((patient) => {
     return (
       matches(patient.patient_id, lookup.patientRecordId) ||
-      matches(patient.email_pasien || patient.email, lookup.email) ||
-      matches(patient.nomor_telepon_wa || patient.phone, lookup.phone) ||
+      matches(patient.email, lookup.email) ||
+      matches(patient.phone, lookup.phone) ||
       matches(patient.name, lookup.fullName)
     );
   });

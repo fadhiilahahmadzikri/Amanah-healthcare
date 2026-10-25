@@ -38,7 +38,7 @@ export function getRelationshipBadge(type?: string | null, label?: string | null
   return { label: displayLabel, statusKey };
 }
 
-export { GENDER_LABEL_MAP, getGenderLabel } from '@/constants/gender.constants';
+export { getGenderLabel } from '@/constants/gender.constants';
 
 export const PROFILE_TYPE_OPTIONS = [
   { label: 'Akun Utama', value: 'master' },

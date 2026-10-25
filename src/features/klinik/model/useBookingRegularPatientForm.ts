@@ -9,7 +9,8 @@ import {
   type PatientRelationshipType,
   type PatientGender,
   type PatientBloodType,
-  type PatientAffiliationProfile
+  type PatientAffiliationProfile,
+  UNKNOWN_BLOOD_TYPE
 } from '@/features/data-pasien/api/patient-affiliation-service';
 import type { PatientRegistrationStep } from '@/features/data-pasien/constants/registration-options';
 import { usePatientFormReferences } from '@/features/data-pasien/model/usePatientFormReferences';
@@ -65,7 +66,8 @@ export function useBookingRegularPatientForm({
     return 'self';
   }, [relationshipOptions, hasExistingSelf]);
 
-  const [relationship, setRelationship] = React.useState<PatientRelationshipType>(initialRelationship);
+  const [relationship, setRelationship] =
+    React.useState<PatientRelationshipType>(initialRelationship);
 
   React.useEffect(() => {
     if (relationshipOptions.length > 0) {
@@ -87,15 +89,15 @@ export function useBookingRegularPatientForm({
   const [bloodType, setBloodType] = React.useState<PatientBloodType | ''>('');
   const [knowsBloodType, setKnowsBloodType] = React.useState<boolean | null>(null);
   const [region, setRegion] = React.useState<PatientRegionValues>({
-    provinsi: '',
-    provinsiId: '',
-    kabupaten: '',
-    kabupatenId: '',
-    kecamatan: '',
-    kecamatanId: '',
-    kelurahan: '',
-    kelurahanId: '',
-    alamatDetail: ''
+    provinceName: '',
+    provinceCode: '',
+    regencyName: '',
+    regencyCode: '',
+    districtName: '',
+    districtCode: '',
+    villageName: '',
+    villageCode: '',
+    line1: ''
   });
   const [occupationCode, setOccupationCode] = React.useState('');
 
@@ -113,7 +115,7 @@ export function useBookingRegularPatientForm({
 
   const handleSelectBelumTahu = React.useCallback(() => {
     setKnowsBloodType(false);
-    setBloodType('Belum Tahu');
+    setBloodType(UNKNOWN_BLOOD_TYPE);
     setTimeout(() => {
       if (isEditingFromReview) {
         setIsEditingFromReview(false);
@@ -159,7 +161,7 @@ export function useBookingRegularPatientForm({
       case 7:
         return Boolean(bloodType && bloodType.trim().length > 0);
       case 8:
-        return Boolean(region.alamatDetail.trim());
+        return Boolean(region.line1.trim());
       case 9:
         return Boolean(occupationCode);
       case 10:
@@ -177,7 +179,7 @@ export function useBookingRegularPatientForm({
     dateOfBirth,
     gender,
     bloodType,
-    region.alamatDetail,
+    region.line1,
     occupationCode,
     references.isLoading
   ]);
@@ -202,40 +204,39 @@ export function useBookingRegularPatientForm({
     setErrorMessage(null);
 
     const fullAddress = [
-      region.alamatDetail.trim(),
-      region.kelurahan,
-      region.kecamatan,
-      region.kabupaten,
-      region.provinsi
+      region.line1.trim(),
+      region.villageName,
+      region.districtName,
+      region.regencyName,
+      region.provinceName
     ]
       .filter(Boolean)
       .join(', ');
 
     const selectedOccupation = references.occupations.find((o) => o.code === occupationCode);
-    const resolvedGender: PatientGender = gender === 'Perempuan' ? 'Perempuan' : 'Laki-laki';
-    const resolvedBloodType: PatientBloodType = (bloodType || 'Belum Tahu') as PatientBloodType;
+    const resolvedBloodType: PatientBloodType = bloodType;
 
     const dto: CreatePatientAffiliationDto = {
-      relationship_type: relationship,
+      relationshipType: relationship,
       name: fullName.trim(),
       nik: nik.trim(),
-      tempat_lahir: placeOfBirth.trim(),
-      birth_date: dateOfBirth,
-      gender: resolvedGender,
-      blood_type: resolvedBloodType,
-      nama_ibu_kandung: motherName.trim(),
-      alamat_detail: region.alamatDetail.trim() || fullAddress,
-      is_primary: relationship === 'self',
-      occupation_id: selectedOccupation?.id,
-      pekerjaan: selectedOccupation?.name,
-      provinsi: region.provinsi || undefined,
-      provinsi_id: region.provinsiId || undefined,
-      kabupaten: region.kabupaten || undefined,
-      kabupaten_id: region.kabupatenId || undefined,
-      kecamatan: region.kecamatan || undefined,
-      kecamatan_id: region.kecamatanId || undefined,
-      kelurahan: region.kelurahan || undefined,
-      kelurahan_id: region.kelurahanId || undefined
+      birthPlace: placeOfBirth.trim(),
+      birthDate: dateOfBirth,
+      gender: gender as PatientGender,
+      bloodType: resolvedBloodType,
+      motherName: motherName.trim(),
+      line1: region.line1.trim(),
+      isPrimary: relationship === 'self',
+      occupationId: selectedOccupation?.id,
+      occupation: selectedOccupation?.name,
+      provinceName: region.provinceName || undefined,
+      provinceCode: region.provinceCode || undefined,
+      regencyName: region.regencyName || undefined,
+      regencyCode: region.regencyCode || undefined,
+      districtName: region.districtName || undefined,
+      districtCode: region.districtCode || undefined,
+      villageName: region.villageName || undefined,
+      villageCode: region.villageCode || undefined
     };
 
     try {
@@ -372,7 +373,8 @@ export function useBookingRegularPatientForm({
       case 7:
         return {
           title: 'Golongan darah pasien',
-          description: 'Pilih jenis golongan darah pasien atau pilih Belum Tahu jika belum diperiksa'
+          description:
+            'Pilih jenis golongan darah pasien atau pilih Belum Tahu jika belum diperiksa'
         };
       case 8:
         return {

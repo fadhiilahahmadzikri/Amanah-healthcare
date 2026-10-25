@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { getGenderLabel, normalizeGender } from '@/constants/gender.constants';
+import { getGenderLabel, type Gender } from '@/constants/gender.constants';
 import Image from 'next/image';
 import PageContainer from '@/components/layout/page-container';
 import { Icons } from '@/components/icons';
@@ -55,12 +55,30 @@ export function ClinicProfileView() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  const [editForm, setEditForm] = useState({
+  const [editForm, setEditForm] = useState<{
+    fullName: string;
+    gender: Gender | '';
+    birthPlace: string;
+    birthDate: string;
+    occupation: string;
+    phoneNumber: string;
+    alamatDetail: string;
+    kelurahan: string;
+    kecamatan: string;
+    kabupaten: string;
+    provinsi: string;
+    emergencyContactName: string;
+    emergencyContactPhone: string;
+    emergencyContactRelationship: string;
+    bloodType: string;
+    allergies: string;
+    medicalHistory: string;
+  }>({
     fullName: '',
-    gender: 'Laki-laki' as 'Laki-laki' | 'Perempuan',
+    gender: '',
     birthPlace: '',
     birthDate: '',
-    pekerjaan: '',
+    occupation: '',
     phoneNumber: '',
     alamatDetail: '',
     kelurahan: '',
@@ -108,24 +126,19 @@ export function ClinicProfileView() {
 
     setEditForm({
       fullName: patientData?.fullName || user?.name || '',
-      gender: normalizeGender(patientData?.gender) === 'female' ? 'Perempuan' : 'Laki-laki',
+      gender: (patientData?.gender as Gender) || '',
       birthPlace: patientData?.birthPlace || '',
       birthDate: patientData?.birthDate || '',
-      pekerjaan: patientData?.pekerjaan || '',
+      occupation: patientData?.occupation || '',
       phoneNumber: patientData?.phoneNumber || '',
       alamatDetail: patientData?.alamatDetail || patientData?.address || '',
-      kelurahan: patientData?.kelurahan || patientData?.addressDetail?.villageName || '',
-      kecamatan: patientData?.kecamatan || patientData?.addressDetail?.districtName || '',
-      kabupaten: patientData?.kabupaten || patientData?.addressDetail?.regencyName || '',
-      provinsi: patientData?.provinsi || patientData?.addressDetail?.provinceName || '',
-      emergencyContactName:
-        patientData?.emergencyContactName || patientData?.emergencyContactDetail?.name || '',
-      emergencyContactPhone:
-        patientData?.emergencyContactPhone || patientData?.emergencyContactDetail?.phone || '',
-      emergencyContactRelationship:
-        patientData?.emergencyContactRelationship ||
-        patientData?.emergencyContactDetail?.relationship ||
-        '',
+      kelurahan: patientData?.kelurahan || '',
+      kecamatan: patientData?.kecamatan || '',
+      kabupaten: patientData?.kabupaten || '',
+      provinsi: patientData?.provinsi || '',
+      emergencyContactName: patientData?.emergencyContactName || '',
+      emergencyContactPhone: patientData?.emergencyContactPhone || '',
+      emergencyContactRelationship: patientData?.emergencyContactRelationship || '',
       bloodType: patientData?.bloodType || '',
       allergies: allergiesStr,
       medicalHistory: patientData?.medicalHistory || ''
@@ -143,10 +156,10 @@ export function ClinicProfileView() {
 
       const result = await updatePatientProfileAction({
         fullName: editForm.fullName.trim() || undefined,
-        gender: editForm.gender,
+        gender: editForm.gender ? editForm.gender : undefined,
         birthPlace: editForm.birthPlace.trim() || undefined,
         birthDate: editForm.birthDate.trim() || undefined,
-        pekerjaan: editForm.pekerjaan.trim() || undefined,
+        occupation: editForm.occupation.trim() || undefined,
         phoneNumber: editForm.phoneNumber.trim() || undefined,
         alamatDetail: editForm.alamatDetail.trim() || undefined,
         kelurahan: editForm.kelurahan.trim() || undefined,
@@ -201,30 +214,24 @@ export function ClinicProfileView() {
   const displayAvatar = patientData?.avatarUrl || user?.image || DEFAULT_PATIENT_PROFILE.avatar;
   const displayMrn = patientData?.medicalRecordNumber || 'RM-Belum Terbit';
   const displayNik = patientData?.nik || '-';
-  const displayGender = patientData?.gender || '-';
+  const displayGender = getGenderLabel(patientData?.gender);
   const displayBirth =
     patientData?.birthPlace || patientData?.birthDate
       ? `${patientData?.birthPlace || '-'}, ${patientData?.birthDate || '-'}`
       : '-';
-  const displayIbu = patientData?.namaIbuKandung || '-';
-  const displayPekerjaan = patientData?.pekerjaan || '-';
+  const displayIbu = patientData?.motherName || '-';
+  const displayPekerjaan = patientData?.occupation || '-';
   const displayPhone = patientData?.phoneNumber || '-';
 
   const displayAlamat = patientData?.alamatDetail || patientData?.address || '-';
-  const displayKelurahan = patientData?.kelurahan || patientData?.addressDetail?.villageName || '-';
-  const displayKecamatan =
-    patientData?.kecamatan || patientData?.addressDetail?.districtName || '-';
-  const displayKabupaten = patientData?.kabupaten || patientData?.addressDetail?.regencyName || '-';
-  const displayProvinsi = patientData?.provinsi || patientData?.addressDetail?.provinceName || '-';
+  const displayKelurahan = patientData?.kelurahan || '-';
+  const displayKecamatan = patientData?.kecamatan || '-';
+  const displayKabupaten = patientData?.kabupaten || '-';
+  const displayProvinsi = patientData?.provinsi || '-';
 
-  const displayEmName =
-    patientData?.emergencyContactName || patientData?.emergencyContactDetail?.name || '-';
-  const displayEmPhone =
-    patientData?.emergencyContactPhone || patientData?.emergencyContactDetail?.phone || '-';
-  const displayEmRel =
-    patientData?.emergencyContactRelationship ||
-    patientData?.emergencyContactDetail?.relationship ||
-    '-';
+  const displayEmName = patientData?.emergencyContactName || '-';
+  const displayEmPhone = patientData?.emergencyContactPhone || '-';
+  const displayEmRel = patientData?.emergencyContactRelationship || '-';
   const displayBlood = patientData?.bloodType || '-';
   const displayAllergies = Array.isArray(patientData?.allergies)
     ? patientData.allergies.join(', ') || 'Tidak ada riwayat alergi'
@@ -702,8 +709,8 @@ export function ClinicProfileView() {
                     Jenis Kelamin
                   </Label>
                   <Select
-                    value={editForm.gender}
-                    onValueChange={(val: 'Laki-laki' | 'Perempuan') =>
+                    value={editForm.gender || undefined}
+                    onValueChange={(val: Gender) =>
                       setEditForm((prev) => ({ ...prev, gender: val }))
                     }
                   >
@@ -715,8 +722,8 @@ export function ClinicProfileView() {
                       <SelectValue placeholder='Pilih Jenis Kelamin' />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='Laki-laki'>Laki-laki</SelectItem>
-                      <SelectItem value='Perempuan'>Perempuan</SelectItem>
+                      <SelectItem value='male'>Laki-laki</SelectItem>
+                      <SelectItem value='female'>Perempuan</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -768,9 +775,9 @@ export function ClinicProfileView() {
                     </Label>
                     <Input
                       id='edit-profile-pekerjaan'
-                      value={editForm.pekerjaan}
+                      value={editForm.occupation}
                       onChange={(e) =>
-                        setEditForm((prev) => ({ ...prev, pekerjaan: e.target.value }))
+                        setEditForm((prev) => ({ ...prev, occupation: e.target.value }))
                       }
                       className='h-9 text-xs rounded-lg'
                     />

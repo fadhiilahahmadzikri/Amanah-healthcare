@@ -5,19 +5,16 @@ import type {
   ImunisasiFormData,
   RegulerFormData,
   VaccineRowData,
-  DiseaseRecord,
+  DiseaseRecord
 } from '../types';
+import { getGenderLabel } from '@/constants/gender.constants';
 import { formatClinicDate } from '@/lib/date-format';
 
 /**
  * Maps raw gender string to formal presentation label
  */
 function formatGender(gender?: string): string {
-  if (!gender) return '-';
-  const g = gender.toLowerCase();
-  if (g === 'male' || g === 'l' || g === 'laki-laki') return 'Laki-laki';
-  if (g === 'female' || g === 'p' || g === 'perempuan') return 'Perempuan';
-  return gender;
+  return getGenderLabel(gender);
 }
 
 /**
@@ -25,7 +22,7 @@ function formatGender(gender?: string): string {
  */
 export function adaptToPmbFormData(
   data: UnifiedInspectorData,
-  appointment?: Appointment,
+  appointment?: Appointment
 ): PmbFormData {
   const m = data.maternal;
   const p = data.patient;
@@ -69,13 +66,13 @@ export function adaptToPmbFormData(
     m?.religion || answers.religion || 'Islam',
     m?.domicileAddress || p?.address || '-',
     m?.identityCardAddress || p?.address || '-',
-    m?.phoneNumber || p?.phone || appointment?.patient_phone || '-',
+    m?.phoneNumber || p?.phone || appointment?.patient_phone || '-'
   ];
 
   const locationValues = [
     m?.dasawisma || answers.dasawisma || '-',
     m?.posyandu || answers.posyandu || '-',
-    m?.puskesmas || answers.puskesmas || '-',
+    m?.puskesmas || answers.puskesmas || '-'
   ];
 
   const motherBlood = (m?.motherBloodType || p?.bloodType || '-').toUpperCase();
@@ -88,7 +85,7 @@ export function adaptToPmbFormData(
 
   const measurementValues = [
     [tb, lila, tetanus, motherBlood],
-    [bbAwal, imt, '', partnerBlood],
+    [bbAwal, imt, '', partnerBlood]
   ];
 
   // Anamnesa prompts
@@ -96,7 +93,9 @@ export function adaptToPmbFormData(
   const hpl = m?.estimatedDueDate
     ? formatClinicDate(m.estimatedDueDate, { style: 'human_full' })
     : '-';
-  const uk = m?.gestationalAgeFormatted || (m?.gestationalAgeWeeks ? `${m.gestationalAgeWeeks} minggu` : '-');
+  const uk =
+    m?.gestationalAgeFormatted ||
+    (m?.gestationalAgeWeeks ? `${m.gestationalAgeWeeks} minggu` : '-');
   const keluhan = m?.currentComplaints || appointment?.complaint || data.complaint || '-';
 
   const riskChecked: Record<string, boolean> = {
@@ -105,7 +104,7 @@ export function adaptToPmbFormData(
     'Aktivitas fisik berkurang': Boolean(m?.reducedPhysicalActivityBeforePregnancy),
     Alkohol: Boolean(m?.alcoholBeforePregnancy),
     'Obat Teratogenik': Boolean(m?.unprescribedMedicationBeforePregnancy),
-    'Kosmetik dengan zat berbahaya': Boolean(m?.concerningCosmeticUseBeforePregnancy),
+    'Kosmetik dengan zat berbahaya': Boolean(m?.concerningCosmeticUseBeforePregnancy)
   };
 
   // Disease history mapping
@@ -115,7 +114,7 @@ export function adaptToPmbFormData(
       if (typeof val === 'object' && val !== null) {
         diseaseHistory[key] = {
           status: (val as any).status || ((val as any).hasCondition ? 'ya' : 'tidak'),
-          year: (val as any).year ? String((val as any).year) : undefined,
+          year: (val as any).year ? String((val as any).year) : undefined
         };
       } else if (typeof val === 'boolean') {
         diseaseHistory[key] = { status: val ? 'ya' : 'tidak' };
@@ -140,7 +139,7 @@ export function adaptToPmbFormData(
         row.birthAttendant || '-',
         row.deliveryMethod || '-',
         row.deliveryPlace || '-',
-        row.complications || 'Tidak ada',
+        row.complications || 'Tidak ada'
       ]);
     });
   }
@@ -156,7 +155,7 @@ export function adaptToPmbFormData(
         row.durationText || '-',
         row.stopDate ? formatClinicDate(row.stopDate, { style: 'human_short' }) : '-',
         row.problems || '-',
-        row.sideEffects || '-',
+        row.sideEffects || '-'
       ]);
     });
   }
@@ -164,7 +163,7 @@ export function adaptToPmbFormData(
   return {
     header: {
       allergy: m?.allergyInfo || answers.allergy || 'Tidak ada riwayat alergi',
-      rmAncCode: p?.medicalRecordNumber || '-',
+      rmAncCode: p?.medicalRecordNumber || '-'
     },
     identity: {
       topRowValues: [
@@ -172,27 +171,27 @@ export function adaptToPmbFormData(
         [motherNik, motherBirthDate, motherJob],
         [partnerName, partnerAge, motherEducation],
         [partnerNik, partnerBirthDate, partnerJob],
-        ['', partnerAge, partnerEducation],
+        ['', partnerAge, partnerEducation]
       ],
       fullRowValues: fullRows,
       locationValues,
-      measurementValues,
+      measurementValues
     },
     anamnesa: {
       promptValues: [hpht, hpl, uk, keluhan],
       riskChecked,
       environment: m?.concerningEnvironmentNotes || '-',
       otherLines: [m?.otherNotes || '', '', ''],
-      diseaseHistory,
+      diseaseHistory
     },
     pregnancyFields: {
       G: m?.gravidaCount !== undefined ? String(m.gravidaCount) : '1',
       P: m?.parityCount !== undefined ? String(m.parityCount) : '0',
       Ab: m?.abortionCount !== undefined ? String(m.abortionCount) : '0',
-      Ah: m?.livingChildrenCount !== undefined ? String(m.livingChildrenCount) : '0',
+      Ah: m?.livingChildrenCount !== undefined ? String(m.livingChildrenCount) : '0'
     },
     obstetriRows,
-    kbRows,
+    kbRows
   };
 }
 
@@ -201,7 +200,7 @@ export function adaptToPmbFormData(
  */
 export function adaptToImunisasiFormData(
   data: UnifiedInspectorData,
-  appointment?: Appointment,
+  appointment?: Appointment
 ): ImunisasiFormData {
   const c = data.child;
   const p = data.patient;
@@ -215,7 +214,7 @@ export function adaptToImunisasiFormData(
   const childName = c?.childName || p?.fullName || appointment?.patient_name || '-';
   const childNik = c?.childNik || p?.nik || answers.childNik || '-';
   const childBirthDate = c?.childBirthDate
-    ? `${formatClinicDate(c.childBirthDate, { style: 'human_full' })} ( ${c.childSex?.startsWith('L') ? 'L' : 'P'} )`
+    ? formatClinicDate(c.childBirthDate, { style: 'human_full' })
     : '-';
   const phone = c?.parentPhone || p?.phone || appointment?.patient_phone || '-';
 
@@ -233,7 +232,7 @@ export function adaptToImunisasiFormData(
         age: entry.ageEstimateMonths !== undefined ? `${entry.ageEstimateMonths} bln` : '-',
         subjective: ['-', '-', '-'],
         objective: ['-', '-'],
-        planning: entry.notes || entry.vaccineCode || '-',
+        planning: entry.notes || entry.vaccineCode || '-'
       });
     });
   }
@@ -241,17 +240,17 @@ export function adaptToImunisasiFormData(
   return {
     header: {
       topCode: 'RM-01',
-      recordDigits,
+      recordDigits
     },
     identity: {
       leftValues: [childName, childNik, childBirthDate, phone],
-      rightValues: [fatherName, motherName, address, ''],
+      rightValues: [fatherName, motherName, address, '']
     },
     preTable: {
       previousVaccines: c?.previousVaccineHistory || 'Belum pernah imunisasi sebelumnya',
-      allergy: c?.childAllergyHistory || 'Tidak ada riwayat alergi',
+      allergy: c?.childAllergyHistory || 'Tidak ada riwayat alergi'
     },
-    vaccineRows,
+    vaccineRows
   };
 }
 
@@ -260,15 +259,13 @@ export function adaptToImunisasiFormData(
  */
 export function adaptToRegulerFormData(
   data: UnifiedInspectorData,
-  appointment?: Appointment,
+  appointment?: Appointment
 ): RegulerFormData {
   const p = data.patient;
   const answers = data.answers || {};
 
   const bDate = p?.birthDate || answers.birthDate;
-  const age = bDate
-    ? `${new Date().getFullYear() - new Date(bDate).getFullYear()} Tahun`
-    : '-';
+  const age = bDate ? `${new Date().getFullYear() - new Date(bDate).getFullYear()} Tahun` : '-';
 
   return {
     medicalRecordNumber: p?.medicalRecordNumber || '-',
@@ -278,7 +275,10 @@ export function adaptToRegulerFormData(
     bookingCode: data.bookingCode || appointment?.booking_code || '-',
     queueNumber: appointment?.queue_number || '-',
     serviceName: data.serviceName || appointment?.service || 'Poliklinik Umum',
-    doctorName: (appointment as any)?.doctor_name || (appointment as any)?.doctor?.name || 'Dokter Jaga Poliklinik',
+    doctorName:
+      (appointment as any)?.doctor_name ||
+      (appointment as any)?.doctor?.name ||
+      'Dokter Jaga Poliklinik',
     scheduledTime: `${data.scheduledStartTime || appointment?.time || '-'} WIB`,
     identity: {
       nik: p?.nik || answers.nik || '-',
@@ -294,12 +294,12 @@ export function adaptToRegulerFormData(
       phoneNumber: p?.phone || appointment?.patient_phone || '-',
       email: p?.email || appointment?.patient_email || '-',
       address: p?.address || answers.address || '-',
-      relationship: p?.relationLabel || p?.relationshipType || 'Diri Sendiri',
+      relationship: p?.relationLabel || p?.relationshipType || 'Diri Sendiri'
     },
     emergencyContact: {
       name: p?.emergencyContactName || answers.emergencyContactName || '-',
       relationship: p?.emergencyContactRelationship || answers.emergencyContactRelationship || '-',
-      phoneNumber: p?.emergencyContactPhone || answers.emergencyContactPhone || '-',
+      phoneNumber: p?.emergencyContactPhone || answers.emergencyContactPhone || '-'
     },
     clinical: {
       chiefComplaint: data.complaint || appointment?.complaint || answers.complaint || '-',
@@ -307,7 +307,7 @@ export function adaptToRegulerFormData(
       vitalHeightCm: answers.height ? `${answers.height} cm` : '-',
       vitalWeightKg: answers.weight ? `${answers.weight} kg` : '-',
       vitalBloodPressure: answers.bloodPressure || '-',
-      additionalNotes: answers.notes || '-',
-    },
+      additionalNotes: answers.notes || '-'
+    }
   };
 }

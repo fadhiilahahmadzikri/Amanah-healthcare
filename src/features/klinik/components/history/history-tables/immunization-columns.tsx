@@ -3,6 +3,7 @@
 import type { ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
 import { Badge } from '@/components/ui/badge';
+import { getGenderLabel } from '@/constants/gender.constants';
 import { formatClinicDate } from '@/lib/date-format';
 import type { ImmunizationHistoryItem } from '../../../api/history-queries';
 import { ClinicalHistoryCellAction } from './clinical-history-cell-action';
@@ -45,12 +46,7 @@ export function getImmunizationColumns({
       header: ({ column }) => <DataTableColumnHeader column={column} title='Tgl Lahir / Gender' />,
       cell: ({ row }) => {
         const item = row.original;
-        const genderLabel =
-          item.childSex === 'L' || item.childSex === 'Laki-laki'
-            ? 'Laki-laki'
-            : item.childSex === 'P' || item.childSex === 'Perempuan'
-              ? 'Perempuan'
-              : item.childSex || '-';
+        const genderLabel = getGenderLabel(item.childSex);
         return (
           <div className='flex flex-col whitespace-nowrap'>
             <span className='text-foreground'>{item.childBirthDate || '-'}</span>

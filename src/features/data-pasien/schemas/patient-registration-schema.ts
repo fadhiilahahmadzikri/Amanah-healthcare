@@ -9,7 +9,7 @@ export const patientRegistrationSchema = z.object({
   nama_ibu_kandung: z.string().trim().min(3, 'Nama ibu kandung minimal 3 karakter'),
   tempat_lahir: z.string().trim().min(2, 'Tempat lahir harus diisi'),
   birth_date: z.string().trim().min(1, 'Tanggal lahir harus diisi'),
-  gender: z.enum(['Laki-laki', 'Perempuan'], {
+  gender: z.enum(['male', 'female'], {
     message: 'Pilih jenis kelamin'
   }),
   blood_type: z.string().trim().min(1, 'Pilih golongan darah'),

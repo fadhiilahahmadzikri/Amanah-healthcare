@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, type FormEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type { PatientRegionValues } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
+import type { Gender } from '@/constants/gender.constants';
 import type { PolyclinicUnit, StaffMember } from '../api/staff-management.api';
 import { polyclinicsQueryOptions } from '../api/queries';
 import { useUpdateStaffProfileMutation } from '../api/mutations';
@@ -22,7 +23,7 @@ export interface StaffDetailFormData {
   profession: string;
   birthPlace: string;
   birthDate: string;
-  gender: 'male' | 'female';
+  gender?: Gender;
   nationalId: string;
   poliklinikId: string;
   licenseNumber: string;
@@ -63,7 +64,7 @@ export function useStaffDetailEditModal({
     profession: '',
     birthPlace: '',
     birthDate: '',
-    gender: 'male',
+    gender: staff?.gender,
     nationalId: '',
     poliklinikId: '',
     licenseNumber: '',
@@ -71,15 +72,15 @@ export function useStaffDetailEditModal({
   });
 
   const [regionValues, setRegionValues] = useState<PatientRegionValues>({
-    provinsi: '',
-    provinsiId: '',
-    kabupaten: '',
-    kabupatenId: '',
-    kecamatan: '',
-    kecamatanId: '',
-    kelurahan: '',
-    kelurahanId: '',
-    alamatDetail: ''
+    provinceName: '',
+    provinceCode: '',
+    regencyName: '',
+    regencyCode: '',
+    districtName: '',
+    districtCode: '',
+    villageName: '',
+    villageCode: '',
+    line1: ''
   });
 
   useEffect(() => {
@@ -91,7 +92,7 @@ export function useStaffDetailEditModal({
         profession: staff.profession || '',
         birthPlace: staff.birthPlace || '',
         birthDate: staff.birthDate ? String(staff.birthDate).slice(0, 10) : '',
-        gender: staff.gender === 'female' ? 'female' : 'male',
+        gender: staff.gender,
         nationalId: staff.nationalId || '',
         poliklinikId: staff.poliklinikId || '',
         licenseNumber: staff.licenseNumber || '',
@@ -99,15 +100,15 @@ export function useStaffDetailEditModal({
       });
 
       setRegionValues({
-        provinsi: staff.address?.provinceName || '',
-        provinsiId: staff.address?.provinceCode || '',
-        kabupaten: staff.address?.regencyName || '',
-        kabupatenId: staff.address?.regencyCode || '',
-        kecamatan: staff.address?.districtName || '',
-        kecamatanId: staff.address?.districtCode || '',
-        kelurahan: staff.address?.villageName || '',
-        kelurahanId: staff.address?.villageCode || '',
-        alamatDetail: staff.address?.line1 || staff.address?.fullAddress || ''
+        provinceName: staff.address?.provinceName || '',
+        provinceCode: staff.address?.provinceCode || '',
+        regencyName: staff.address?.regencyName || '',
+        regencyCode: staff.address?.regencyCode || '',
+        districtName: staff.address?.districtName || '',
+        districtCode: staff.address?.districtCode || '',
+        villageName: staff.address?.villageName || '',
+        villageCode: staff.address?.villageCode || '',
+        line1: staff.address?.line1 || staff.address?.fullAddress || ''
       });
     }
   }, [staff]);
@@ -131,11 +132,11 @@ export function useStaffDetailEditModal({
       }
 
       const fullAddress = [
-        regionValues.alamatDetail,
-        regionValues.kelurahan ? `Kel. ${regionValues.kelurahan}` : null,
-        regionValues.kecamatan ? `Kec. ${regionValues.kecamatan}` : null,
-        regionValues.kabupaten,
-        regionValues.provinsi
+        regionValues.line1,
+        regionValues.villageName ? `Kel. ${regionValues.villageName}` : null,
+        regionValues.districtName ? `Kec. ${regionValues.districtName}` : null,
+        regionValues.regencyName,
+        regionValues.provinceName
       ]
         .filter(Boolean)
         .join(', ');
@@ -156,15 +157,15 @@ export function useStaffDetailEditModal({
             poliklinikId: isClinical ? formData.poliklinikId || undefined : undefined,
             licenseNumber: isClinical ? formData.licenseNumber.trim() || undefined : undefined,
             address: {
-              provinceCode: regionValues.provinsiId || undefined,
-              provinceName: regionValues.provinsi || undefined,
-              regencyCode: regionValues.kabupatenId || undefined,
-              regencyName: regionValues.kabupaten || undefined,
-              districtCode: regionValues.kecamatanId || undefined,
-              districtName: regionValues.kecamatan || undefined,
-              villageCode: regionValues.kelurahanId || undefined,
-              villageName: regionValues.kelurahan || undefined,
-              line1: regionValues.alamatDetail || undefined,
+              provinceCode: regionValues.provinceCode || undefined,
+              provinceName: regionValues.provinceName || undefined,
+              regencyCode: regionValues.regencyCode || undefined,
+              regencyName: regionValues.regencyName || undefined,
+              districtCode: regionValues.districtCode || undefined,
+              districtName: regionValues.districtName || undefined,
+              villageCode: regionValues.villageCode || undefined,
+              villageName: regionValues.villageName || undefined,
+              line1: regionValues.line1 || undefined,
               fullAddress: fullAddress || undefined
             }
           }

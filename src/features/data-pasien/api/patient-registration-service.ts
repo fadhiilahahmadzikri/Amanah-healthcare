@@ -101,21 +101,21 @@ export async function completePatientRegistration({
   const payload: PatientRegistrationRequestDto = {
     name: values.name,
     nik: values.nik,
-    nama_ibu_kandung: values.nama_ibu_kandung,
-    tempat_lahir: values.tempat_lahir,
-    birth_date: values.birth_date,
+    motherName: values.nama_ibu_kandung,
+    birthPlace: values.tempat_lahir,
+    birthDate: values.birth_date,
     gender: values.gender,
-    blood_type: values.blood_type,
-    provinsi: values.provinsi,
-    provinsi_id: values.provinsi_id,
-    kabupaten: values.kabupaten,
-    kabupaten_id: values.kabupaten_id,
-    kecamatan: values.kecamatan,
-    kecamatan_id: values.kecamatan_id,
-    kelurahan: values.kelurahan,
-    kelurahan_id: values.kelurahan_id,
-    alamat_detail: values.alamat_detail,
-    pekerjaan: values.pekerjaan
+    bloodType: values.blood_type,
+    provinceName: values.provinsi,
+    provinceCode: values.provinsi_id,
+    regencyName: values.kabupaten,
+    regencyCode: values.kabupaten_id,
+    districtName: values.kecamatan,
+    districtCode: values.kecamatan_id,
+    villageName: values.kelurahan,
+    villageCode: values.kelurahan_id,
+    line1: values.alamat_detail,
+    occupation: values.pekerjaan
   };
 
   try {

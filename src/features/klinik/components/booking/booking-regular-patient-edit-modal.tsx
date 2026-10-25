@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
+import type { Gender } from '@/constants/gender.constants';
 import {
   type PatientAffiliationProfile,
   type PatientRelationshipType,
@@ -48,18 +49,18 @@ export function BookingRegularPatientEditModal({
   const [motherName, setMotherName] = React.useState('');
   const [placeOfBirth, setPlaceOfBirth] = React.useState('');
   const [dateOfBirth, setDateOfBirth] = React.useState('');
-  const [gender, setGender] = React.useState<'male' | 'female'>('male');
-  const [bloodType, setBloodType] = React.useState<PatientBloodType>('Belum Tahu');
+  const [gender, setGender] = React.useState<Gender>('male');
+  const [bloodType, setBloodType] = React.useState<PatientBloodType>('');
   const [region, setRegion] = React.useState<PatientRegionValues>({
-    provinsi: '',
-    provinsiId: '',
-    kabupaten: '',
-    kabupatenId: '',
-    kecamatan: '',
-    kecamatanId: '',
-    kelurahan: '',
-    kelurahanId: '',
-    alamatDetail: ''
+    provinceName: '',
+    provinceCode: '',
+    regencyName: '',
+    regencyCode: '',
+    districtName: '',
+    districtCode: '',
+    villageName: '',
+    villageCode: '',
+    line1: ''
   });
   const [occupationCode, setOccupationCode] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -72,27 +73,22 @@ export function BookingRegularPatientEditModal({
       setRelationship(currentRel);
       setFullName(patient.fullName || '');
       setNik(patient.nik || '');
-      setMotherName(patient.motherName || (patient as any).namaIbuKandung || '');
-      setPlaceOfBirth(patient.placeOfBirth || (patient as any).birthPlace || '');
-      const rawDate = patient.dateOfBirth || (patient as any).birthDate || '';
+      setMotherName(patient.motherName || '');
+      setPlaceOfBirth(patient.birthPlace || '');
+      const rawDate = patient.birthDate || '';
       setDateOfBirth(rawDate ? rawDate.split('T')[0] : '');
-      const isFemale =
-        patient.gender === 'female' ||
-        patient.gender === 'P' ||
-        patient.gender === 'PEREMPUAN' ||
-        patient.gender === 'Perempuan';
-      setGender(isFemale ? 'female' : 'male');
-      setBloodType((patient.bloodType as PatientBloodType) || 'Belum Tahu');
+      setGender(patient.gender);
+      setBloodType((patient.bloodType as PatientBloodType) || '');
       setRegion({
-        provinsi: patient.provinsi || '',
-        provinsiId: patient.provinsiId || '',
-        kabupaten: patient.kabupaten || '',
-        kabupatenId: patient.kabupatenId || '',
-        kecamatan: patient.kecamatan || '',
-        kecamatanId: patient.kecamatanId || '',
-        kelurahan: patient.kelurahan || '',
-        kelurahanId: patient.kelurahanId || '',
-        alamatDetail: patient.alamatDetail || patient.address || ''
+        provinceName: patient.provinceName || '',
+        provinceCode: patient.provinceCode || '',
+        regencyName: patient.regencyName || '',
+        regencyCode: patient.regencyCode || '',
+        districtName: patient.districtName || '',
+        districtCode: patient.districtCode || '',
+        villageName: patient.villageName || '',
+        villageCode: patient.villageCode || '',
+        line1: patient.line1 || ''
       });
       if (patient.occupationCode) {
         setOccupationCode(patient.occupationCode);
@@ -151,7 +147,7 @@ export function BookingRegularPatientEditModal({
       Boolean(dateOfBirth) &&
       Boolean(gender) &&
       Boolean(bloodType) &&
-      Boolean(region.alamatDetail.trim() || region.provinsi)
+      Boolean(region.line1.trim() || region.provinceName)
     );
   }, [
     fullName,
@@ -161,8 +157,8 @@ export function BookingRegularPatientEditModal({
     dateOfBirth,
     gender,
     bloodType,
-    region.alamatDetail,
-    region.provinsi
+    region.line1,
+    region.provinceName
   ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -172,37 +168,26 @@ export function BookingRegularPatientEditModal({
     setErrorMessage(null);
     setIsSubmitting(true);
 
-    const fullAddress = [
-      region.alamatDetail.trim(),
-      region.kelurahan,
-      region.kecamatan,
-      region.kabupaten,
-      region.provinsi
-    ]
-      .filter(Boolean)
-      .join(', ');
-
     const selectedOccupation = references.occupations.find((o) => o.code === occupationCode);
 
     const payload = {
       name: fullName.trim(),
       nik: nik.trim(),
-      tempat_lahir: placeOfBirth.trim(),
+      birth_place: placeOfBirth.trim(),
       birth_date: dateOfBirth,
       gender: gender,
       blood_type: bloodType,
-      nama_ibu_kandung: motherName.trim(),
-      alamat_detail: region.alamatDetail.trim() || fullAddress,
-      address: fullAddress || region.alamatDetail.trim(),
-      pekerjaan: selectedOccupation?.name || patient.occupationName || undefined,
-      provinsi: region.provinsi || undefined,
-      provinsi_id: region.provinsiId || undefined,
-      kabupaten: region.kabupaten || undefined,
-      kabupaten_id: region.kabupatenId || undefined,
-      kecamatan: region.kecamatan || undefined,
-      kecamatan_id: region.kecamatanId || undefined,
-      kelurahan: region.kelurahan || undefined,
-      kelurahan_id: region.kelurahanId || undefined
+      mother_name: motherName.trim(),
+      line1: region.line1.trim(),
+      occupation: selectedOccupation?.name || patient.occupationName || undefined,
+      province_name: region.provinceName || undefined,
+      province_code: region.provinceCode || undefined,
+      regency_name: region.regencyName || undefined,
+      regency_code: region.regencyCode || undefined,
+      district_name: region.districtName || undefined,
+      district_code: region.districtCode || undefined,
+      village_name: region.villageName || undefined,
+      village_code: region.villageCode || undefined
     };
 
     try {
@@ -216,20 +201,19 @@ export function BookingRegularPatientEditModal({
           fullName: fullName.trim(),
           nik: nik.trim(),
           motherName: motherName.trim(),
-          placeOfBirth: placeOfBirth.trim(),
-          dateOfBirth: dateOfBirth,
-          gender: gender === 'female' ? 'P' : 'L',
+          birthPlace: placeOfBirth.trim(),
+          birthDate: dateOfBirth,
+          gender: gender,
           bloodType: bloodType,
-          address: fullAddress || region.alamatDetail.trim(),
-          alamatDetail: region.alamatDetail.trim(),
-          provinsi: region.provinsi || null,
-          provinsiId: region.provinsiId || null,
-          kabupaten: region.kabupaten || null,
-          kabupatenId: region.kabupatenId || null,
-          kecamatan: region.kecamatan || null,
-          kecamatanId: region.kecamatanId || null,
-          kelurahan: region.kelurahan || null,
-          kelurahanId: region.kelurahanId || null,
+          line1: region.line1.trim(),
+          provinceName: region.provinceName || null,
+          provinceCode: region.provinceCode || null,
+          regencyName: region.regencyName || null,
+          regencyCode: region.regencyCode || null,
+          districtName: region.districtName || null,
+          districtCode: region.districtCode || null,
+          villageName: region.villageName || null,
+          villageCode: region.villageCode || null,
           occupationName: selectedOccupation?.name || patient.occupationName || null
         };
         onSuccess(updatedProfile);
@@ -296,9 +280,9 @@ export function BookingRegularPatientEditModal({
 
                 {/* Hubungan dengan Akun */}
                 <div className='space-y-1.5'>
-                  <label className='text-xs font-medium text-foreground block'>
+                  <span className='text-xs font-medium text-foreground block'>
                     Hubungan dengan Akun
-                  </label>
+                  </span>
                   <div className='grid grid-cols-2 sm:grid-cols-3 gap-2'>
                     {relationshipOptions.map((opt) => {
                       const isSelected = relationship === opt.value;
@@ -381,7 +365,7 @@ export function BookingRegularPatientEditModal({
                   label='Jenis Kelamin'
                   variant='dropdown'
                   value={gender}
-                  onChange={(val) => setGender(val === 'female' ? 'female' : 'male')}
+                  onChange={setGender}
                 />
 
                 <PatientLineInput

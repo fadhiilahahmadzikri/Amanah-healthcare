@@ -146,10 +146,8 @@ export function DoctorDetailEditModal(props: DoctorDetailEditModalProps) {
                     id='doctor_gender'
                     label='Jenis Kelamin'
                     variant='dropdown'
-                    value={form.formData.gender}
-                    onChange={(val) =>
-                      form.handleChange('gender', val === 'female' ? 'female' : 'male')
-                    }
+                    value={form.formData.gender || ''}
+                    onChange={(val) => form.handleChange('gender', val)}
                     disabled={!form.isEditing}
                   />
                 </div>

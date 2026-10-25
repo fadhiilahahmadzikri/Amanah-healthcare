@@ -65,7 +65,9 @@ export interface AttendanceMetrics {
 }
 
 export interface QRPresenceConfig {
-  status_presensi: string;
+  status: string;
+  isActive: boolean;
+  status_presensi?: string;
   qr_code_identifier: string;
   qr_context: string;
   qr_validity: string;

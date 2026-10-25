@@ -5,11 +5,14 @@ import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import type {
   PatientAffiliationProfile,
-  PatientRelationshipType
+  PatientRelationshipType,
+  PatientBloodType
 } from '@/features/data-pasien/api/patient-affiliation-service';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
 import { PatientBirthdatePicker } from '@/features/data-pasien/components/registration/molecules/patient-birthdate-picker';
 import { PatientGenderSelector } from '@/features/data-pasien/components/registration/molecules/patient-gender-selector';
+import { getGenderLabel } from '@/constants/gender.constants';
+import { formatBloodTypeDisplay } from '@/constants/blood-type.constants';
 import { PatientBloodTypeSelector } from '@/features/data-pasien/components/registration/molecules/patient-blood-type-selector';
 import { PatientRegionDropdown } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import { PatientSearchableSelect } from '@/features/data-pasien/components/registration/molecules/patient-searchable-select';
@@ -116,27 +119,39 @@ export function BookingRegularPatientForm({
       },
       {
         step: 5,
-        label: 'Tempat, tanggal lahir',
-        value: placeOfBirth || dateOfBirth ? `${placeOfBirth || '-'}, ${dateOfBirth || '-'}` : '-',
+        label: 'Tempat lahir',
+        value: placeOfBirth || '-',
+        valueClass: 'font-semibold text-foreground'
+      },
+      {
+        step: 5,
+        label: 'Tanggal lahir',
+        value: dateOfBirth || '-',
         valueClass: 'font-semibold text-foreground'
       },
       {
         step: 6,
-        label: 'Jenis kelamin / golongan darah',
-        value: `${gender || '-'} / ${bloodType || '-'}`,
+        label: 'Jenis kelamin',
+        value: gender ? getGenderLabel(gender) : '-',
         valueClass: 'font-semibold text-foreground'
+      },
+      {
+        step: 7,
+        label: 'Golongan darah',
+        value: formatBloodTypeDisplay(bloodType),
+        valueClass: 'font-semibold text-foreground'
+      },
+      {
+        step: 8,
+        label: 'Alamat',
+        value: region.line1 || '-',
+        valueClass: 'font-semibold text-foreground truncate max-w-[170px] sm:max-w-[210px]'
       },
       {
         step: 9,
         label: 'Pekerjaan',
         value: activeOccupationName || '-',
         valueClass: 'font-semibold text-foreground'
-      },
-      {
-        step: 8,
-        label: 'Alamat',
-        value: region.alamatDetail || '-',
-        valueClass: 'font-semibold text-foreground truncate max-w-[170px] sm:max-w-[210px]'
       }
     ],
     [
@@ -148,8 +163,8 @@ export function BookingRegularPatientForm({
       dateOfBirth,
       gender,
       bloodType,
-      activeOccupationName,
-      region.alamatDetail
+      region.line1,
+      activeOccupationName
     ]
   );
 
@@ -289,9 +304,7 @@ export function BookingRegularPatientForm({
             <PatientGenderSelector
               value={gender}
               options={references.genders}
-              onChange={(val) =>
-                setGender(val === 'Perempuan' || val === 'P' ? 'Perempuan' : 'Laki-laki')
-              }
+              onChange={(val) => setGender(val)}
             />
           </div>
         )}
@@ -304,7 +317,7 @@ export function BookingRegularPatientForm({
               required
               placeholder='Pilih golongan darah...'
               value={bloodType}
-              onChange={(val) => setBloodType(val as any)}
+              onChange={(val) => setBloodType(val as PatientBloodType)}
               options={references.bloodTypes}
             />
           </div>

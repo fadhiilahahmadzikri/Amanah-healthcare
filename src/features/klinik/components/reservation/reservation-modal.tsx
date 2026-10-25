@@ -125,7 +125,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
     id: context.patientId || '',
     fullName: context.patientName || 'Pasien',
     nik: '',
-    gender: 'P',
+    gender: 'female',
     relationship: 'self'
   };
 

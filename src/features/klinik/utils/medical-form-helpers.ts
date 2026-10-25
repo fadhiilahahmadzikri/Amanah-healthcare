@@ -76,11 +76,11 @@ export function buildRegistrationPrefill(
     return {};
   }
 
-  const birthDate = normalizeBirthDate(patient.birth_date || patient.tanggal_lahir || '');
+  const birthDate = normalizeBirthDate(patient.birth_date || '');
   const bloodType = normalizeBloodType(patient.blood_type || '');
-  const phone = patient.nomor_telepon_wa || patient.phone || '';
-  const address = patient.domisili || patient.address || '';
-  const nik = patient.nik_ktp || patient.nik || '';
+  const phone = patient.phone || '';
+  const address = patient.address || '';
+  const nik = patient.nik || '';
 
   if (flow === FLOW_NAMES.PREGNANCY) {
     return pruneEmptyValues({
@@ -88,7 +88,7 @@ export function buildRegistrationPrefill(
       motherNik: nik,
       motherBirthDate: birthDate,
       motherAge: patient.age ? `${patient.age} tahun` : '',
-      motherJob: patient.pekerjaan || '',
+      motherJob: patient.occupation || '',
       phoneNumber: phone,
       domicileAddress: address,
       identityCardAddress: patient.address || address,
@@ -102,7 +102,7 @@ export function buildRegistrationPrefill(
     childBirthDate: birthDate,
     childSex: patient.gender,
     parentPhone: phone,
-    motherName: patient.nama_ibu_kandung || '',
+    motherName: patient.mother_name || '',
     childAddress: address
   });
 }

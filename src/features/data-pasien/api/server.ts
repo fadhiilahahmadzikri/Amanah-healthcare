@@ -8,7 +8,6 @@ import { paths } from '@/server/api/paths';
 import { getAccessTokenCookie } from '@/server/auth/token-store';
 import { AppError } from '@/core/errors/app-error';
 import { mapBackendPatient } from './service';
-import { normalizeGender } from '@/constants/gender.constants';
 import type { PatientFilters, PatientsResponse, PatientSummary } from './types';
 
 async function resolveActiveToken(): Promise<string | null> {
@@ -48,18 +47,15 @@ export async function getPatientsOnServer(filters: PatientFilters): Promise<Pati
 
   if (filters.gender) {
     const rawGender = Array.isArray(filters.gender) ? filters.gender[0] : filters.gender;
-    const normalized = normalizeGender(rawGender);
-    if (normalized) {
-      queryParams.gender = normalized;
+    if (rawGender) {
+      queryParams.gender = rawGender;
     }
   }
 
   if (filters.status) {
     const rawStatus = Array.isArray(filters.status) ? filters.status[0] : filters.status;
-    if (rawStatus === 'Aktif' || rawStatus === 'active') {
-      queryParams.status = 'active';
-    } else if (rawStatus === 'Nonaktif' || rawStatus === 'inactive') {
-      queryParams.status = 'inactive';
+    if (rawStatus === 'active' || rawStatus === 'inactive') {
+      queryParams.status = rawStatus;
     }
   }
 
@@ -83,7 +79,7 @@ export async function getPatientsOnServer(filters: PatientFilters): Promise<Pati
   const patients = rawList.map(mapBackendPatient);
 
   const summary: PatientSummary = {
-    total: response?.summary?.totalPatients ?? response?.meta?.total ?? patients.length,
+    total: response?.meta?.total ?? patients.length,
     active: response?.summary?.totalPatients ?? patients.length,
     inactive: 0,
     total_appointments: response?.summary?.totalAppointments ?? 0,

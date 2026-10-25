@@ -4,10 +4,11 @@ import * as React from 'react';
 import gsap from 'gsap';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
+import { UNKNOWN_BLOOD_TYPE } from '@/constants/blood-type.constants';
 import type { ReferenceOptionItem } from '@/features/data-pasien/api/patient-reference-service';
 import { usePatientFormReferences } from '@/features/data-pasien/model/usePatientFormReferences';
 
-export type BloodTypeValue = 'A' | 'B' | 'AB' | 'O' | 'Belum Tahu' | string;
+export type BloodTypeValue = string;
 
 export interface PatientBloodTypeSelectorProps {
   id?: string;
@@ -48,11 +49,11 @@ export function PatientBloodTypeSelector({
   const [isOpen, setIsOpen] = React.useState(false);
 
   const mainBloodTypes = React.useMemo(
-    () => availableOptions.filter((opt) => opt.value !== 'unknown'),
+    () => availableOptions.filter((opt) => opt.value !== UNKNOWN_BLOOD_TYPE),
     [availableOptions]
   );
   const unknownOption = React.useMemo(
-    () => availableOptions.find((opt) => opt.value === 'unknown'),
+    () => availableOptions.find((opt) => opt.value === UNKNOWN_BLOOD_TYPE),
     [availableOptions]
   );
 
@@ -237,7 +238,7 @@ export function PatientBloodTypeSelector({
               )}
             >
               <Icons.help className='size-3.5 shrink-0' />
-              <span>{unknownOption.label} / Belum Periksa</span>
+              <span>{unknownOption.label}</span>
             </button>
           </div>
         )}

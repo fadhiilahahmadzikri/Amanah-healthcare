@@ -92,7 +92,7 @@ export function PatientMobileCards({
           const isMaster =
             patient.is_master ?? (!patient.master_patient_id && !patient.relationship_type);
           const slots = getDemographicSlots(patient);
-          const statusAccount = patient.account_status || 'active';
+          const statusAccount = patient.status || 'active';
           const relLabel = getCleanRelationLabel(patient.relationship_type, patient.relation_label);
           const relStatusKey = getRelationStatusKey(patient.relationship_type);
           const hasAffiliates = Boolean(
@@ -115,7 +115,7 @@ export function PatientMobileCards({
                     <div className='size-11 sm:size-12 rounded-full overflow-hidden shrink-0 ring-1 ring-border/50 bg-muted aspect-square shadow-2xs flex items-center justify-center'>
                       <Avatar className='h-full w-full overflow-hidden'>
                         <AvatarImage
-                          src={patient.avatarUrl || patient.avatar || DEFAULT_AVATAR_PATH}
+                          src={patient.avatarUrl || DEFAULT_AVATAR_PATH}
                           alt={patient.name}
                           className='size-full object-cover'
                         />
@@ -284,11 +284,7 @@ export function PatientMobileCards({
                                 <div className='size-5.5 rounded-full overflow-hidden shrink-0 ring-1 ring-border/50 bg-muted aspect-square flex items-center justify-center'>
                                   <Avatar className='h-full w-full overflow-hidden'>
                                     <AvatarImage
-                                      src={
-                                        affiliates[0].avatarUrl ||
-                                        affiliates[0].avatar ||
-                                        DEFAULT_AVATAR_PATH
-                                      }
+                                      src={affiliates[0].avatarUrl || DEFAULT_AVATAR_PATH}
                                       alt={affiliates[0].name}
                                       className='size-full object-cover'
                                     />
@@ -338,11 +334,7 @@ export function PatientMobileCards({
                                 <div className='size-5.5 rounded-full overflow-hidden shrink-0 ring-1 ring-border/50 bg-muted aspect-square flex items-center justify-center'>
                                   <Avatar className='h-full w-full overflow-hidden'>
                                     <AvatarImage
-                                      src={
-                                        affiliates[1].avatarUrl ||
-                                        affiliates[1].avatar ||
-                                        DEFAULT_AVATAR_PATH
-                                      }
+                                      src={affiliates[1].avatarUrl || DEFAULT_AVATAR_PATH}
                                       alt={affiliates[1].name}
                                       className='size-full object-cover'
                                     />
@@ -392,11 +384,7 @@ export function PatientMobileCards({
                                 <div className='size-5.5 rounded-full overflow-hidden shrink-0 ring-1 ring-border/50 bg-muted aspect-square flex items-center justify-center'>
                                   <Avatar className='h-full w-full overflow-hidden'>
                                     <AvatarImage
-                                      src={
-                                        affiliates[2].avatarUrl ||
-                                        affiliates[2].avatar ||
-                                        DEFAULT_AVATAR_PATH
-                                      }
+                                      src={affiliates[2].avatarUrl || DEFAULT_AVATAR_PATH}
                                       alt={affiliates[2].name}
                                       className='size-full object-cover'
                                     />
@@ -480,11 +468,7 @@ export function PatientMobileCards({
                                       <div className='size-9 rounded-full overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square flex items-center justify-center'>
                                         <Avatar className='h-full w-full overflow-hidden'>
                                           <AvatarImage
-                                            src={
-                                              affiliate.avatarUrl ||
-                                              affiliate.avatar ||
-                                              DEFAULT_AVATAR_PATH
-                                            }
+                                            src={affiliate.avatarUrl || DEFAULT_AVATAR_PATH}
                                             alt={affiliate.name}
                                             className='size-full object-cover'
                                           />
@@ -525,10 +509,7 @@ export function PatientMobileCards({
                                       </div>
                                     </div>
 
-                                    <StatusBadge
-                                      status={affiliate.account_status || 'active'}
-                                      size='sm'
-                                    />
+                                    <StatusBadge status={affiliate.status || 'active'} size='sm' />
                                   </div>
 
                                   {/* Slot Demografis Afiliasi */}

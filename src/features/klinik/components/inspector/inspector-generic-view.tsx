@@ -118,7 +118,7 @@ export function InspectorGenericView({ appointment, data }: InspectorTabProps) {
   }, [patient, relationship, answers.birthDate]);
 
   const mrn = patient?.medicalRecordNumber || '-';
-  const nik = patient?.nik || answers.nik || answers.nik_ktp || '-';
+  const nik = patient?.nik || answers.nik || '-';
   const birthInfo = patient?.birthDate
     ? `${patient.birthPlace ? patient.birthPlace + ', ' : ''}${patient.birthDate}`
     : answers.birthDate
@@ -126,28 +126,16 @@ export function InspectorGenericView({ appointment, data }: InspectorTabProps) {
       : '-';
   const gender = getGenderLabel(patient?.gender);
 
-  const rawBlood = patient?.bloodType || answers.bloodType || answers.golonganDarah;
-  const bloodType =
-    rawBlood && rawBlood !== 'unknown'
-      ? rawBlood === 'Belum Tahu'
-        ? 'Belum Tahu'
-        : rawBlood.toUpperCase()
-      : 'Belum Tahu';
+  const bloodType = patient?.bloodType || answers.bloodType || '-';
 
-  const motherName = patient?.motherName || answers.motherName || answers.ibuKandung || '-';
-  const rawOccupation = patient?.occupation || answers.occupation || answers.pekerjaan;
+  const motherName = patient?.motherName || answers.motherName || '-';
+  const rawOccupation = patient?.occupation || answers.occupation;
   const occupation = isChild && !rawOccupation ? 'Belum Bekerja' : rawOccupation || '-';
 
   const phone = patient?.phone || appointment.patient_phone || answers.phone || '-';
   const email = patient?.email || answers.email || appointment.patient_email || '-';
 
-  const address =
-    patient?.address ||
-    [patient?.villageName, patient?.districtName, patient?.regencyName, patient?.provinceName]
-      .filter(Boolean)
-      .join(', ') ||
-    answers.address ||
-    '-';
+  const address = patient?.address || answers.address || '-';
   const emergency = patient?.emergencyContactName
     ? `${patient.emergencyContactName} (${patient.emergencyContactRelationship || 'Kontak'}) - ${patient.emergencyContactPhone || ''}`
     : null;

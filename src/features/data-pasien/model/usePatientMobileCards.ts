@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import type { Patient } from '../api/types';
+import { UNKNOWN_BLOOD_TYPE } from '@/constants/blood-type.constants';
 import { formatClinicDate } from '@/lib/date-format';
 import {
   getRelationshipLabel,
@@ -95,7 +96,7 @@ export function usePatientMobileCards(): UsePatientMobileCardsResult {
 
     // 3. Blood type (e.g. Gol. A)
     const blood = patient.blood_type;
-    const isUnknownBlood = !blood || blood === 'unknown' || blood === 'Belum Tahu';
+    const isUnknownBlood = !blood || blood === UNKNOWN_BLOOD_TYPE;
     if (!isUnknownBlood) {
       slots.push({
         id: 'blood-type',

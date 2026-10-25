@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
 import type { PatientRegionValues } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
+import type { Gender } from '@/constants/gender.constants';
 import {
   type PolyclinicUnit,
   type StaffMember,
@@ -27,7 +28,7 @@ export interface DoctorDetailFormData {
   profession: string;
   birthPlace: string;
   birthDate: string;
-  gender: 'male' | 'female';
+  gender?: Gender;
   nationalId: string;
   poliklinikId: string;
   licenseNumber: string;
@@ -61,7 +62,7 @@ const INITIAL_FORM_DATA: DoctorDetailFormData = {
   profession: '',
   birthPlace: '',
   birthDate: '',
-  gender: 'male',
+  gender: undefined,
   nationalId: '',
   poliklinikId: '',
   licenseNumber: '',
@@ -69,15 +70,15 @@ const INITIAL_FORM_DATA: DoctorDetailFormData = {
 };
 
 const INITIAL_REGION_VALUES: PatientRegionValues = {
-  provinsi: '',
-  provinsiId: '',
-  kabupaten: '',
-  kabupatenId: '',
-  kecamatan: '',
-  kecamatanId: '',
-  kelurahan: '',
-  kelurahanId: '',
-  alamatDetail: ''
+  provinceName: '',
+  provinceCode: '',
+  regencyName: '',
+  regencyCode: '',
+  districtName: '',
+  districtCode: '',
+  villageName: '',
+  villageCode: '',
+  line1: ''
 };
 
 export function useDoctorDetailEditModal({
@@ -156,7 +157,7 @@ export function useDoctorDetailEditModal({
       profession: doctor.spesialisasi || '',
       birthPlace: '',
       birthDate: '',
-      gender: 'male',
+      gender: undefined,
       nationalId: '',
       poliklinikId: '',
       licenseNumber: '',
@@ -183,7 +184,7 @@ export function useDoctorDetailEditModal({
             profession: profile.profession || doctor.spesialisasi || '',
             birthPlace: profile.birthPlace || '',
             birthDate: profile.birthDate ? String(profile.birthDate).slice(0, 10) : '',
-            gender: profile.gender === 'female' ? 'female' : 'male',
+            gender: profile.gender,
             nationalId: profile.nationalId || '',
             poliklinikId: profile.poliklinikId || '',
             licenseNumber: profile.licenseNumber || '',
@@ -192,15 +193,15 @@ export function useDoctorDetailEditModal({
 
           const loadedRegion: PatientRegionValues = profile.address
             ? {
-                provinsi: profile.address.provinceName || '',
-                provinsiId: profile.address.provinceCode || '',
-                kabupaten: profile.address.regencyName || '',
-                kabupatenId: profile.address.regencyCode || '',
-                kecamatan: profile.address.districtName || '',
-                kecamatanId: profile.address.districtCode || '',
-                kelurahan: profile.address.villageName || '',
-                kelurahanId: profile.address.villageCode || '',
-                alamatDetail: profile.address.line1 || profile.address.fullAddress || ''
+                provinceName: profile.address.provinceName || '',
+                provinceCode: profile.address.provinceCode || '',
+                regencyName: profile.address.regencyName || '',
+                regencyCode: profile.address.regencyCode || '',
+                districtName: profile.address.districtName || '',
+                districtCode: profile.address.districtCode || '',
+                villageName: profile.address.villageName || '',
+                villageCode: profile.address.villageCode || '',
+                line1: profile.address.line1 || profile.address.fullAddress || ''
               }
             : INITIAL_REGION_VALUES;
 
@@ -278,11 +279,11 @@ export function useDoctorDetailEditModal({
       try {
         setIsSubmitting(true);
         const fullAddress = [
-          regionValues.alamatDetail,
-          regionValues.kelurahan ? `Kel. ${regionValues.kelurahan}` : null,
-          regionValues.kecamatan ? `Kec. ${regionValues.kecamatan}` : null,
-          regionValues.kabupaten,
-          regionValues.provinsi
+          regionValues.line1,
+          regionValues.villageName ? `Kel. ${regionValues.villageName}` : null,
+          regionValues.districtName ? `Kec. ${regionValues.districtName}` : null,
+          regionValues.regencyName,
+          regionValues.provinceName
         ]
           .filter(Boolean)
           .join(', ');
@@ -301,15 +302,15 @@ export function useDoctorDetailEditModal({
           poliklinikId: formData.poliklinikId || undefined,
           licenseNumber: formData.licenseNumber.trim() || undefined,
           address: {
-            provinceCode: regionValues.provinsiId || undefined,
-            provinceName: regionValues.provinsi || undefined,
-            regencyCode: regionValues.kabupatenId || undefined,
-            regencyName: regionValues.kabupaten || undefined,
-            districtCode: regionValues.kecamatanId || undefined,
-            districtName: regionValues.kecamatan || undefined,
-            villageCode: regionValues.kelurahanId || undefined,
-            villageName: regionValues.kelurahan || undefined,
-            line1: regionValues.alamatDetail || undefined,
+            provinceCode: regionValues.provinceCode || undefined,
+            provinceName: regionValues.provinceName || undefined,
+            regencyCode: regionValues.regencyCode || undefined,
+            regencyName: regionValues.regencyName || undefined,
+            districtCode: regionValues.districtCode || undefined,
+            districtName: regionValues.districtName || undefined,
+            villageCode: regionValues.villageCode || undefined,
+            villageName: regionValues.villageName || undefined,
+            line1: regionValues.line1 || undefined,
             fullAddress: fullAddress || undefined
           }
         });

@@ -52,7 +52,7 @@ export function PatientHistoryModal({ isOpen, patient, onClose }: PatientHistory
           <div className='flex items-center gap-3.5 min-w-0 flex-1'>
             <Avatar className='size-12 rounded-xl shrink-0 border border-border/40 overflow-hidden'>
               <AvatarImage
-                src={patient.avatarUrl || patient.avatar || DEFAULT_AVATAR_PATH}
+                src={patient.avatarUrl || DEFAULT_AVATAR_PATH}
                 alt={patient.name}
                 className='size-full object-cover aspect-square'
               />
