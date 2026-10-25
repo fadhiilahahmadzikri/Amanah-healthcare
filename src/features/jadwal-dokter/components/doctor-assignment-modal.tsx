@@ -88,6 +88,13 @@ export function DoctorAssignmentModal({
   const focusedDayName = focusedDay?.dayName ?? '';
   const displayDays = isFocused && focusedDay ? [focusedDay] : (rosterData?.days ?? []);
 
+  const handleToggleDayFocus = React.useCallback(() => {
+    setShowAllDays((prev) => !prev);
+    if (activeTab !== 'roster') {
+      setActiveTab('roster');
+    }
+  }, [activeTab, setActiveTab]);
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
@@ -99,13 +106,13 @@ export function DoctorAssignmentModal({
             : 'max-w-[96vw] sm:max-w-6xl xl:max-w-7xl'
         )}
       >
-        <DialogHeader className='p-4 sm:p-6 pb-3 sm:pb-4 border-b border-border/60 bg-muted/20'>
-          <div className='flex items-start justify-between gap-2 sm:gap-3'>
-            <div className='min-w-0 flex-1'>
-              <DialogTitle className='text-base sm:text-xl font-bold tracking-tight text-foreground truncate'>
+        <DialogHeader className='p-4 sm:p-6 pb-3 sm:pb-4 border-b border-border/60 bg-muted/20 text-left'>
+          <div className='flex items-start justify-between gap-2 sm:gap-3 text-left'>
+            <div className='min-w-0 flex-1 text-left'>
+              <DialogTitle className='text-base sm:text-xl font-bold tracking-tight text-foreground truncate text-left'>
                 Pengaturan Jadwal Kerja Dokter
               </DialogTitle>
-              <DialogDescription className='text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 truncate'>
+              <DialogDescription className='text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 truncate text-left'>
                 {doctor.nama_dokter} &bull; {doctor.spesialisasi}
               </DialogDescription>
             </div>
@@ -116,7 +123,7 @@ export function DoctorAssignmentModal({
                 type='button'
                 variant='ghost'
                 size='sm'
-                onClick={() => setShowAllDays((prev) => !prev)}
+                onClick={handleToggleDayFocus}
                 className='hidden sm:inline-flex h-8 px-2.5 text-xs font-semibold text-primary hover:text-primary hover:bg-primary/10 cursor-pointer shrink-0'
               >
                 {isFocused ? 'Tampilkan Semua Hari' : `Fokus Hari ${focusedDayName}`}
@@ -166,7 +173,7 @@ export function DoctorAssignmentModal({
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
-                        onClick={() => setShowAllDays((prev) => !prev)}
+                        onClick={handleToggleDayFocus}
                         className='text-xs cursor-pointer gap-2 font-semibold text-primary'
                       >
                         <Icons.eye className='size-3.5' />
