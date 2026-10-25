@@ -14,7 +14,7 @@ export function ReplacementDetailTimeSection({
   return (
     <div className='bg-muted/30 p-3 rounded-xl space-y-2 text-xs'>
       <div className='text-xs font-semibold text-foreground'>Waktu & sesi pelayanan</div>
-      <div className='grid grid-cols-2 gap-2'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
         <div>
           <span className='text-muted-foreground block text-[11px]'>Sesi dinas</span>
           <span className='font-medium text-foreground'>{sessionName}</span>

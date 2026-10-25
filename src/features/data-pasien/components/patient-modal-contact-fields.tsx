@@ -7,11 +7,11 @@ import { Switch } from '@/components/ui/switch';
 import { StatusBadge } from '@/components/ui/status-badge';
 import {
   PatientRegionDropdown,
-  type PatientRegionValues,
+  type PatientRegionValues
 } from './registration/molecules/patient-region-dropdown';
 import {
   PatientSearchableSelect,
-  type PatientSearchableSelectOption,
+  type PatientSearchableSelectOption
 } from './registration/molecules/patient-searchable-select';
 
 export interface PatientModalContactFieldsProps {
@@ -31,7 +31,7 @@ function getErrorMessage(errors: unknown[]): string | undefined {
 
 export function PatientModalContactFields({
   form,
-  occupationOptions,
+  occupationOptions
 }: PatientModalContactFieldsProps) {
   return (
     <div className='space-y-4'>
@@ -65,9 +65,7 @@ export function PatientModalContactFields({
 
       {/* Domisili / Regional Cascader */}
       <div className='space-y-2 pt-1'>
-        <span className='text-xs font-medium text-foreground block'>
-          Domisili & Alamat
-        </span>
+        <span className='text-xs font-medium text-foreground block'>Domisili & Alamat</span>
         <form.Subscribe selector={(state: any) => state.values}>
           {(values: any) => {
             const regionValues: PatientRegionValues = {
@@ -79,7 +77,7 @@ export function PatientModalContactFields({
               kecamatanId: values.kecamatan_id ?? '',
               kelurahan: values.kelurahan ?? '',
               kelurahanId: values.kelurahan_id ?? '',
-              alamatDetail: values.alamat_detail ?? '',
+              alamatDetail: values.alamat_detail ?? ''
             };
 
             return (
@@ -115,7 +113,7 @@ export function PatientModalContactFields({
       </div>
 
       {/* Kontak: Telepon & Email */}
-      <div className='grid grid-cols-2 gap-4'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4'>
         <form.AppField name='phone'>
           {(field: any) => {
             const error = field.state.meta.isTouched
@@ -191,10 +189,7 @@ export function PatientModalContactFields({
                   className='text-xs font-medium text-foreground flex items-center gap-2 cursor-pointer'
                 >
                   <span>Status Akun Pasien</span>
-                  <StatusBadge
-                    status={isActive ? 'active' : 'inactive'}
-                    size='sm'
-                  />
+                  <StatusBadge status={isActive ? 'active' : 'inactive'} size='sm' />
                 </label>
                 <p className='text-[11px] text-muted-foreground'>
                   {isActive
@@ -205,9 +200,7 @@ export function PatientModalContactFields({
               <Switch
                 id='account_status_switch'
                 checked={isActive}
-                onCheckedChange={(checked) =>
-                  field.handleChange(checked ? 'active' : 'inactive')
-                }
+                onCheckedChange={(checked) => field.handleChange(checked ? 'active' : 'inactive')}
                 aria-label='Status Akun Pasien'
               />
             </div>

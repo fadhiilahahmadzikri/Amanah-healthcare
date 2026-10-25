@@ -211,9 +211,9 @@ export function AppointmentRecordModal({
           </div>
         </div>
 
-        {/* Scrollable Body Content: Form-style Render Tanpa Box Wrapper, Sejajar Dinding Kiri */}
+        {/* Scrollable Body Content: Vertical 1-Column on Mobile, 2-Column on Desktop */}
         <div className='flex-1 min-h-0 overflow-y-auto py-3.5 pr-1'>
-          <div className='grid grid-cols-2 gap-y-3.5 gap-x-5 sm:gap-x-6'>
+          <div className='grid grid-cols-1 sm:grid-cols-2 gap-y-3 sm:gap-y-3.5 gap-x-5 sm:gap-x-6'>
             {/* 1. Tanggal Booking */}
             <div className='border-b border-border/30 pb-2.5'>
               <span className='text-xs font-medium text-muted-foreground block mb-0.5'>

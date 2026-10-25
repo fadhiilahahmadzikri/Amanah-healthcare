@@ -102,7 +102,7 @@ export function StaffDetailEditModal(props: StaffDetailEditModalProps) {
                   autoComplete='name'
                 />
 
-                <div className='grid grid-cols-2 gap-4'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4'>
                   <PatientLineInput
                     id='staff_birthPlace'
                     label='Tempat Lahir'
@@ -175,7 +175,7 @@ export function StaffDetailEditModal(props: StaffDetailEditModalProps) {
                   }
                 />
 
-                <div className='grid grid-cols-2 gap-4'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4'>
                   <PatientLineInput
                     id='staff_phoneNumber'
                     label='No. Telepon / WhatsApp'

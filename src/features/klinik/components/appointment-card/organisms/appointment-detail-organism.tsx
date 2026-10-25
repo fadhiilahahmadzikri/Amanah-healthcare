@@ -365,7 +365,7 @@ export function AppointmentDetailOrganism({
                     endLabel={isBeforeCall || isWaiting ? 'Est. Selesai' : 'Selesai'}
                   />
 
-                  <div className='pt-2 pb-1 grid grid-cols-2 gap-y-3 gap-x-5 min-w-0'>
+                  <div className='pt-2 pb-1 grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-5 min-w-0'>
                     <div className='border-b border-border/40 pb-2'>
                       <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
                         Nama Pasien

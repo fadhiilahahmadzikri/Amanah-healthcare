@@ -26,7 +26,7 @@ function getErrorMessage(errors: unknown[]): string | undefined {
 export function PatientModalIdentityFields({
   form,
   genders,
-  bloodTypes,
+  bloodTypes
 }: PatientModalIdentityFieldsProps) {
   return (
     <div className='space-y-4'>
@@ -34,7 +34,7 @@ export function PatientModalIdentityFields({
         Identitas & Kelahiran
       </span>
 
-      <div className='grid grid-cols-2 gap-4'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4'>
         <form.AppField name='patient_id'>
           {(field: any) => (
             <PatientLineInput
@@ -96,7 +96,7 @@ export function PatientModalIdentityFields({
         }}
       </form.AppField>
 
-      <div className='grid grid-cols-2 gap-4'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4'>
         <form.AppField name='nama_ibu_kandung'>
           {(field: any) => {
             const error = field.state.meta.isTouched
@@ -138,7 +138,7 @@ export function PatientModalIdentityFields({
         </form.AppField>
       </div>
 
-      <div className='grid grid-cols-2 gap-4'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4'>
         <form.AppField name='birth_date'>
           {(field: any) => {
             const error = field.state.meta.isTouched
@@ -158,10 +158,7 @@ export function PatientModalIdentityFields({
                     const now = new Date();
                     let calculatedAge = now.getFullYear() - birth.getFullYear();
                     const monthDiff = now.getMonth() - birth.getMonth();
-                    if (
-                      monthDiff < 0 ||
-                      (monthDiff === 0 && now.getDate() < birth.getDate())
-                    ) {
+                    if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate())) {
                       calculatedAge--;
                     }
                     if (!isNaN(calculatedAge) && calculatedAge >= 0) {
@@ -190,7 +187,7 @@ export function PatientModalIdentityFields({
       </div>
 
       {/* Jenis Kelamin & Golongan Darah (Sejajar 2 Kolom) */}
-      <div className='grid grid-cols-2 gap-4'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4'>
         <form.AppField name='gender'>
           {(field: any) => {
             const error = field.state.meta.isTouched
