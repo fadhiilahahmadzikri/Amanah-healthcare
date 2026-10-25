@@ -38,41 +38,44 @@ export function StaffManagementToolbar({
       />
 
       <div className='flex items-center justify-between gap-2 sm:gap-3 shrink-0 w-full'>
-        {/* Mobile: Search Button (Pojok Kiri, Sejajar Staf) */}
-        <Button
-          type='button'
-          variant={searchQuery ? 'default' : 'outline'}
-          size='icon'
-          onClick={searchEngine.open}
-          aria-label='Buka dialog pencarian staf'
-          title={searchQuery ? `Pencarian aktif: "${searchQuery}"` : 'Cari staf...'}
-          className='size-9 rounded-lg shrink-0 sm:hidden cursor-pointer'
-        >
-          <Icons.search className='size-4' />
-        </Button>
+        {/* Left Group: Search Button/Input + Hugging TabsList */}
+        <div className='flex items-center gap-2 min-w-0'>
+          {/* Mobile: Search Button (Pojok Kiri, Sejajar Staf) */}
+          <Button
+            type='button'
+            variant={searchQuery ? 'default' : 'outline'}
+            size='icon'
+            onClick={searchEngine.open}
+            aria-label='Buka dialog pencarian staf'
+            title={searchQuery ? `Pencarian aktif: "${searchQuery}"` : 'Cari staf...'}
+            className='size-9 rounded-lg shrink-0 sm:hidden cursor-pointer'
+          >
+            <Icons.search className='size-4' />
+          </Button>
 
-        {/* Desktop: Full Search Input */}
-        <div className='relative hidden sm:block sm:w-72 shrink-0'>
-          <Icons.search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
-          <Input
-            placeholder='Cari nama atau email staf...'
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className='pl-8 h-9 text-xs'
-          />
+          {/* Desktop: Full Search Input */}
+          <div className='relative hidden sm:block sm:w-72 shrink-0'>
+            <Icons.search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
+            <Input
+              placeholder='Cari nama atau email staf...'
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className='pl-8 h-9 text-xs'
+            />
+          </div>
+
+          {/* Tabs List (Hugging Content) */}
+          <TabsList className='inline-flex h-9 w-fit shrink-0'>
+            <TabsTrigger value='members' className='text-xs gap-1.5 px-2.5 sm:px-3'>
+              <Icons.users className='h-3.5 w-3.5' />
+              <span>Staf ({staffsCount})</span>
+            </TabsTrigger>
+            <TabsTrigger value='invitations' className='text-xs gap-1.5 px-2.5 sm:px-3'>
+              <Icons.mail className='h-3.5 w-3.5' />
+              <span>Undangan ({invitationsCount})</span>
+            </TabsTrigger>
+          </TabsList>
         </div>
-
-        {/* Center: Tabs List (Staf & Undangan) */}
-        <TabsList className='grid grid-cols-2 h-9 flex-1 sm:flex-initial'>
-          <TabsTrigger value='members' className='text-xs gap-1.5 px-2.5 sm:px-3'>
-            <Icons.users className='h-3.5 w-3.5' />
-            <span className='truncate'>Staf ({staffsCount})</span>
-          </TabsTrigger>
-          <TabsTrigger value='invitations' className='text-xs gap-1.5 px-2.5 sm:px-3'>
-            <Icons.mail className='h-3.5 w-3.5' />
-            <span className='truncate'>Undangan ({invitationsCount})</span>
-          </TabsTrigger>
-        </TabsList>
 
         {/* Right: Undang Staf Button (Mobile: Icon-Only, Desktop: Icon + Text) */}
         <div className='flex items-center gap-2 shrink-0 justify-end'>

@@ -206,13 +206,12 @@ export function PayrollSettingsButton({
               </button>
             </div>
 
-            <DrawerFooter className='pt-2.5 pb-4 px-4 border-t border-border/40'>
+            <DrawerFooter className='pt-2.5 pb-4 px-4 border-t border-border/40 flex flex-row justify-end'>
               <Button
                 type='button'
-                variant='outline'
                 size='sm'
                 onClick={() => setIsDrawerOpen(false)}
-                className='w-full font-semibold text-xs h-8.5 cursor-pointer text-muted-foreground hover:text-foreground'
+                className='h-8 text-xs font-medium px-4 ml-auto cursor-pointer'
               >
                 Tutup
               </Button>

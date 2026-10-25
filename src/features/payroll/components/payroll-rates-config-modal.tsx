@@ -129,7 +129,6 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
         <div className='shrink-0 pb-3.5 border-b border-border/50 flex items-start justify-between gap-3'>
           <div className='space-y-0.5 min-w-0 flex-1'>
             <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight flex items-center gap-2'>
-              <Icons.settings className='size-5 text-muted-foreground shrink-0' />
               <span>Konfigurasi Standar Tarif Penggajian</span>
               {isLoading && (
                 <Icons.spinner className='size-3.5 animate-spin text-primary shrink-0' />
@@ -145,8 +144,7 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
         <div className='flex-1 min-h-0 overflow-y-auto py-4 space-y-4 pr-1'>
           {/* Accounting Governance Banner */}
           <div className='p-3.5 bg-muted/30 border border-border/50 rounded-xl space-y-1.5 text-xs'>
-            <div className='flex items-center gap-1.5 font-semibold text-foreground'>
-              <Icons.lock className='size-4 text-muted-foreground shrink-0' />
+            <div className='font-semibold text-foreground'>
               <span>Prinsip Tata Kelola Tutup Buku (Accounting Governance)</span>
             </div>
             <p className='text-muted-foreground leading-relaxed text-[11px]'>
@@ -268,10 +266,7 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
                 <span>Menyimpan...</span>
               </>
             ) : (
-              <>
-                <Icons.check className='size-3.5 mr-1' />
-                <span>Simpan Perubahan Tarif</span>
-              </>
+              <span>Simpan Perubahan Tarif</span>
             )}
           </Button>
         </div>

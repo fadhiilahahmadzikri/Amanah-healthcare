@@ -121,14 +121,9 @@ export function PayrollManagementView() {
       >
         <AlertDialogContent className='max-w-md rounded-2xl'>
           <AlertDialogHeader>
-            <div className='flex items-center gap-2.5'>
-              <div className='size-9 rounded-xl bg-muted text-foreground flex items-center justify-center shrink-0'>
-                <Icons.lock className='size-5' />
-              </div>
-              <AlertDialogTitle className='text-base font-bold'>
-                Tutup Buku Periode Penggajian?
-              </AlertDialogTitle>
-            </div>
+            <AlertDialogTitle className='text-base font-bold'>
+              Tutup Buku Periode Penggajian?
+            </AlertDialogTitle>
             <AlertDialogDescription className='text-xs text-muted-foreground mt-2 leading-relaxed'>
               Setelah periode <strong>&quot;{payrollView.currentPeriod?.periodName}&quot;</strong>{' '}
               resmi ditutup buku (<strong>FINALIZED</strong>), seluruh nominal mutasi, jam kerja,
@@ -147,9 +142,8 @@ export function PayrollManagementView() {
             <AlertDialogAction
               onClick={actions.confirmFinalizePeriod}
               disabled={mutations.isFinalizing}
-              className='text-xs h-8.5 px-3.5 font-medium gap-1.5'
+              className='text-xs h-8.5 px-3.5 font-medium'
             >
-              <Icons.checks className='size-3.5' />
               {mutations.isFinalizing ? 'Memproses...' : 'Konfirmasi Tutup Buku'}
             </AlertDialogAction>
           </AlertDialogFooter>

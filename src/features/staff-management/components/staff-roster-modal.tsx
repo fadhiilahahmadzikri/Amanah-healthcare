@@ -205,10 +205,10 @@ export function StaffRosterModal(props: StaffRosterModalProps) {
               type='button'
               variant='outline'
               size='sm'
-              disabled={roster.loading || roster.saving || !roster.isOverride}
-              onClick={roster.openResetConfirm}
+              disabled={roster.loading || roster.saving || !roster.canReset}
+              onClick={roster.handleReset}
               title={
-                roster.isOverride
+                roster.canReset
                   ? 'Kembalikan seluruh jadwal staf ke template mingguan klinik'
                   : 'Jadwal staf sudah mengikuti template mingguan klinik'
               }
