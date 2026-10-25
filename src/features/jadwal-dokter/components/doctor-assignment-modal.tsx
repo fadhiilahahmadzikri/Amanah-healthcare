@@ -11,6 +11,13 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -92,31 +99,90 @@ export function DoctorAssignmentModal({
             : 'max-w-[96vw] sm:max-w-6xl xl:max-w-7xl'
         )}
       >
-        <DialogHeader className='p-6 pb-4 border-b border-border/60 bg-muted/20'>
-          <div className='flex items-start justify-between gap-3'>
-            <div>
-              <DialogTitle className='text-xl font-bold tracking-tight text-foreground'>
+        <DialogHeader className='p-4 sm:p-6 pb-3 sm:pb-4 border-b border-border/60 bg-muted/20'>
+          <div className='flex items-start justify-between gap-2 sm:gap-3'>
+            <div className='min-w-0 flex-1'>
+              <DialogTitle className='text-base sm:text-xl font-bold tracking-tight text-foreground truncate'>
                 Pengaturan Jadwal Kerja Dokter
               </DialogTitle>
-              <DialogDescription className='text-sm text-muted-foreground mt-1'>
+              <DialogDescription className='text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 truncate'>
                 {doctor.nama_dokter} &bull; {doctor.spesialisasi}
               </DialogDescription>
             </div>
 
+            {/* Desktop Toggle Button */}
             {focusedDow !== undefined && rosterData && (
               <Button
                 type='button'
                 variant='ghost'
                 size='sm'
                 onClick={() => setShowAllDays((prev) => !prev)}
-                className='h-8 px-2.5 text-xs font-semibold text-primary hover:text-primary hover:bg-primary/10 cursor-pointer shrink-0'
+                className='hidden sm:inline-flex h-8 px-2.5 text-xs font-semibold text-primary hover:text-primary hover:bg-primary/10 cursor-pointer shrink-0'
               >
                 {isFocused ? 'Tampilkan Semua Hari' : `Fokus Hari ${focusedDayName}`}
               </Button>
             )}
+
+            {/* Mobile Context Menu (Morvert) */}
+            <div className='flex sm:hidden items-center shrink-0'>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='icon'
+                    className='size-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/70 cursor-pointer'
+                    aria-label='Opsi Menu Jadwal'
+                  >
+                    <Icons.ellipsis className='size-4' />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align='end' className='w-56 font-sans'>
+                  <DropdownMenuItem
+                    onClick={() => setActiveTab('roster')}
+                    className={cn(
+                      'text-xs cursor-pointer gap-2 font-medium',
+                      activeTab === 'roster' && 'bg-primary/10 text-primary font-bold'
+                    )}
+                  >
+                    <Icons.calendar className='size-3.5' />
+                    <span className='flex-1'>Jadwal Kerja Mingguan</span>
+                    {activeTab === 'roster' && <Icons.check className='size-3.5 stroke-[3]' />}
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onClick={() => setActiveTab('history')}
+                    className={cn(
+                      'text-xs cursor-pointer gap-2 font-medium',
+                      activeTab === 'history' && 'bg-primary/10 text-primary font-bold'
+                    )}
+                  >
+                    <Icons.history className='size-3.5' />
+                    <span className='flex-1'>Riwayat Perubahan</span>
+                    {activeTab === 'history' && <Icons.check className='size-3.5 stroke-[3]' />}
+                  </DropdownMenuItem>
+
+                  {focusedDow !== undefined && rosterData && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => setShowAllDays((prev) => !prev)}
+                        className='text-xs cursor-pointer gap-2 font-semibold text-primary'
+                      >
+                        <Icons.eye className='size-3.5' />
+                        <span>
+                          {isFocused ? 'Tampilkan Semua Hari' : `Fokus Hari ${focusedDayName}`}
+                        </span>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
 
-          <div className='flex items-center gap-2 mt-4'>
+          {/* Desktop Tab Filter Buttons */}
+          <div className='hidden sm:flex items-center gap-2 mt-4'>
             <Button
               type='button'
               variant={activeTab === 'roster' ? 'default' : 'ghost'}
@@ -369,7 +435,7 @@ export function DoctorAssignmentModal({
           )}
         </div>
 
-        <div className='p-4 border-t border-border/60 bg-muted/20 flex items-center justify-between gap-2'>
+        <div className='p-3 sm:p-4 border-t border-border/60 bg-muted/20 flex items-center justify-between gap-2'>
           <div>
             {activeTab === 'roster' && (
               <Button
@@ -383,17 +449,18 @@ export function DoctorAssignmentModal({
                     ? 'Kembalikan seluruh jadwal dokter ke template mingguan klinik'
                     : 'Jadwal dokter sudah mengikuti template mingguan klinik'
                 }
-                className='text-xs font-semibold text-muted-foreground hover:text-foreground h-9 px-3 cursor-pointer'
+                aria-label='Reset ke Template'
+                className='text-xs font-semibold text-muted-foreground hover:text-foreground h-9 px-2.5 sm:px-3 cursor-pointer'
               >
                 {isResetting ? (
                   <>
-                    <Icons.spinner className='size-3.5 animate-spin mr-1.5' />
-                    Mereset ke Template...
+                    <Icons.spinner className='size-3.5 animate-spin sm:mr-1.5' />
+                    <span className='hidden sm:inline'>Mereset ke Template...</span>
                   </>
                 ) : (
                   <>
-                    <Icons.refresh className='size-3.5 mr-1.5' />
-                    Reset ke Template
+                    <Icons.refresh className='size-3.5 sm:mr-1.5' />
+                    <span className='hidden sm:inline'>Reset ke Template</span>
                   </>
                 )}
               </Button>
@@ -401,26 +468,31 @@ export function DoctorAssignmentModal({
           </div>
 
           <div className='flex items-center gap-2'>
-            <Button type='button' variant='outline' onClick={onClose}>
+            <Button
+              type='button'
+              variant='outline'
+              size='sm'
+              onClick={onClose}
+              className='h-9 text-xs sm:text-sm'
+            >
               Tutup
             </Button>
             {activeTab === 'roster' && (
               <Button
                 type='button'
                 variant='default'
+                size='sm'
                 disabled={isSubmitting || isLoadingRoster || isResetting}
                 onClick={handleSave}
-                className='font-bold min-w-[120px]'
+                className='font-bold h-9 px-4 text-xs sm:text-sm min-w-[80px] sm:min-w-[100px]'
               >
                 {isSubmitting ? (
                   <>
-                    <Icons.spinner className='size-4 animate-spin mr-2' />
-                    Menyimpan...
+                    <Icons.spinner className='size-3.5 sm:size-4 animate-spin mr-1.5' />
+                    <span>Menyimpan...</span>
                   </>
-                ) : isFocused && focusedDayName ? (
-                  `Simpan Jadwal ${focusedDayName}`
                 ) : (
-                  'Simpan Jadwal'
+                  <span>Simpan</span>
                 )}
               </Button>
             )}
