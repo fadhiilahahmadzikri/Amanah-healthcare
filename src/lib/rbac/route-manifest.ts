@@ -41,13 +41,6 @@ export const routeManifest: RouteRule[] = [
 
   // 4. Admin-Only Protected Routes
   {
-    pattern: '/dashboard/admin',
-    match: 'prefix',
-    visibility: 'protected',
-    allowedRoles: ['admin'],
-    description: 'Laporan Operasional & Statistik Klinik'
-  },
-  {
     pattern: '/dashboard/appointment-pasien',
     match: 'prefix',
     visibility: 'protected',
@@ -168,10 +161,10 @@ export function resolveRouteRule(pathname: string): RouteRule | null {
   );
   if (exactMatch) return exactMatch;
 
-  // 2. Check prefix matches (sorted by longest prefix first so /dashboard/admin wins over /dashboard)
+  // 2. Check prefix matches (sorted by longest prefix first)
   const prefixMatches = routeManifest
     .filter((rule) => rule.match === 'prefix' && pathname.startsWith(rule.pattern))
-    .sort((a, b) => b.pattern.length - a.pattern.length);
+    .toSorted((a, b) => b.pattern.length - a.pattern.length);
 
   if (prefixMatches.length > 0) {
     return prefixMatches[0];

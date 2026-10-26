@@ -21,7 +21,6 @@ const PATIENT_ROUTE_ALLOWLIST = [
 ];
 
 const CLINIC_ROUTE_ALLOWLIST = [
-  '/dashboard/admin',
   '/dashboard/appointment-pasien',
   '/dashboard/data-pasien',
   '/dashboard/jadwal-dokter',

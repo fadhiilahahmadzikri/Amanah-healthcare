@@ -27,7 +27,7 @@ export default async function WorkspacesPage() {
                 <CardDescription>Klinik Utama & Apotek Terintegrasi</CardDescription>
               </div>
               <Button size='sm' asChild>
-                <Link href='/dashboard/admin'>Kelola Layanan</Link>
+                <Link href='/dashboard/appointment-pasien'>Kelola Layanan</Link>
               </Button>
             </div>
           </CardHeader>

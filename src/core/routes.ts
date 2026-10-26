@@ -4,7 +4,6 @@ export const ROUTES = {
   signUp: '/auth/sign-up',
   verifyOtp: '/verify-otp',
   dashboard: '/dashboard',
-  dashboardAdmin: '/dashboard/admin',
   dashboardAppointmentPasien: '/dashboard/appointment-pasien',
   dashboardStaff: '/dashboard/staff',
   dashboardDoctorSchedules: '/dashboard/jadwal-dokter',
