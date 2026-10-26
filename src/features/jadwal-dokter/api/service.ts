@@ -43,26 +43,27 @@ export async function getDoctorSchedules(
       | DoctorSchedule[]
       | {
           doctors?: DoctorSchedule[];
-          meta?: { total_doctors?: number; total_pages?: number; page?: number; limit?: number };
+          totalDoctors?: number;
+          meta?: { totalDoctors?: number; totalPages?: number; page?: number; limit?: number };
         };
-    total_doctors?: number;
-    meta?: { total_doctors?: number; total_pages?: number; page?: number; limit?: number };
+    totalDoctors?: number;
+    meta?: { totalDoctors?: number; totalPages?: number; page?: number; limit?: number };
   }>(endpoint);
 
   const rawDoctors = res.doctors ?? (Array.isArray(res.data) ? res.data : res.data?.doctors) ?? [];
   const total =
-    res.total_doctors ??
-    res.meta?.total_doctors ??
-    (!Array.isArray(res.data) ? res.data?.meta?.total_doctors : undefined) ??
+    res.totalDoctors ??
+    res.meta?.totalDoctors ??
+    (!Array.isArray(res.data) ? res.data?.totalDoctors ?? res.data?.meta?.totalDoctors : undefined) ??
     rawDoctors.length;
   return {
     doctors: rawDoctors,
-    total_doctors: total,
+    totalDoctors: total,
     meta: {
       page: res.meta?.page ?? filters.page ?? 1,
       limit: res.meta?.limit ?? filters.limit ?? 20,
-      total_doctors: total,
-      total_pages: res.meta?.total_pages ?? 1
+      totalDoctors: total,
+      totalPages: res.meta?.totalPages ?? 1
     }
   };
 }
