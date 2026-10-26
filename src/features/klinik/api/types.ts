@@ -32,8 +32,8 @@ export interface Appointment {
   scheduled_end_time?: string;
   checked_in_at?: string | null;
   checkedInAt?: string | null;
-  actual_started_at?: string;
-  actual_completed_at?: string;
+  actual_started_at?: string | null;
+  actual_completed_at?: string | null;
   consultation_elapsed_seconds?: number | null;
   consultation_duration_formatted?: string | null;
   estimated_duration_minutes?: number;

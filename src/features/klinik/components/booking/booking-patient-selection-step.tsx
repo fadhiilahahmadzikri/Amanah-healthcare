@@ -8,8 +8,7 @@ import { PatientCardMaster } from './atoms/patient-card-master';
 import { NewPatientTriggerCard } from './atoms/new-patient-trigger-card';
 
 export interface BookingPatientSelectionStepProps {
-  affiliations?: PatientAffiliationProfile[];
-  patients?: PatientAffiliationProfile[];
+  patients: PatientAffiliationProfile[];
   selectedPatientId: string | null;
   onSelectPatient: (patient: PatientAffiliationProfile) => void;
   onAddNewPatient: () => void;
@@ -18,7 +17,6 @@ export interface BookingPatientSelectionStepProps {
 }
 
 export function BookingPatientSelectionStep({
-  affiliations,
   patients,
   selectedPatientId,
   onSelectPatient,
@@ -26,7 +24,7 @@ export function BookingPatientSelectionStep({
   onEditPatient,
   onContinue: _onContinue
 }: BookingPatientSelectionStepProps) {
-  const patientList = affiliations ?? patients ?? [];
+  const patientList = patients;
 
   return (
     <div className='space-y-4 font-sans select-none'>

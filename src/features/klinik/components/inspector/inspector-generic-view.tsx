@@ -128,8 +128,8 @@ export function InspectorGenericView({ appointment, data }: InspectorTabProps) {
   const rawOccupation = patient?.occupation;
   const occupation = isChild && !rawOccupation ? 'Belum Bekerja' : rawOccupation || '-';
 
-  const phone = patient?.phone || appointment.patient_phone || '-';
-  const email = patient?.email || appointment.patient_email || '-';
+  const phone = patient?.phone || '-';
+  const email = patient?.email || '-';
 
   const address = patient?.address || '-';
   const emergency = patient?.emergencyContactName

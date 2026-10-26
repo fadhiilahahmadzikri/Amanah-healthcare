@@ -33,8 +33,7 @@ export function CancelStepContent({
   const formattedDate =
     appointmentDate && appointmentDate !== '-' ? formatClinicDate(appointmentDate) : '-';
   const friendlySession = appointment.session_name || '';
-  const sessionLabel =
-    [friendlySession, appointment.eta_range].filter(Boolean).join(' • ') || appointment.time || '-';
+  const sessionLabel = [friendlySession, appointment.eta_range].filter(Boolean).join(' • ') || '-';
 
   return (
     <div className='animate-in fade-in-50 slide-in-from-right-4 duration-200'>

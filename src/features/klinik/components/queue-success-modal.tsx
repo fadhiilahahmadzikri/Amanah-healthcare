@@ -29,7 +29,7 @@ export function QueueSuccessModal({
 
   const handleDownload = () => {
     toast.success('Mencetak e-tiket antrean pasien...', {
-      description: `Nomor Antrean: ${queueItem?.queue_number || appointment?.booking_code || '-'}`
+      description: `Nomor Antrean: ${appointment?.queue_number ?? ''}`
     });
     if (typeof window !== 'undefined') {
       window.print();
@@ -43,7 +43,7 @@ export function QueueSuccessModal({
 
   const handleToasterClick = () => {
     toast.info('Antrean Anda telah tercatat pada sistem RS Amanah.', {
-      description: `Poli: ${appointment?.service || queueItem?.poli || '-'}`
+      description: `Poli: ${appointment?.service ?? ''}`
     });
   };
 

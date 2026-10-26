@@ -10,9 +10,21 @@ import { cn } from '@/lib/utils';
 
 import type { MedicalFormField } from '../../constants/medical-appointment-schemas';
 import {
+  getMedicalFieldFormat,
   getMedicalFieldValidationSchema,
   normalizeMedicalFieldInput
 } from '../../schemas/medical-appointment-validation';
+
+const fieldFormatConfig: Record<
+  'nik' | 'phone' | 'count' | 'year' | 'text',
+  { inputMode?: 'numeric' | 'tel'; maxLength?: number }
+> = {
+  nik: { inputMode: 'numeric', maxLength: 16 },
+  phone: { inputMode: 'tel', maxLength: 15 },
+  count: { inputMode: 'numeric', maxLength: 2 },
+  year: { inputMode: 'numeric', maxLength: 4 },
+  text: {}
+};
 
 export function MedicalSchemaField({
   fieldApi,
@@ -215,18 +227,9 @@ export function MedicalSchemaField({
     );
   }
 
-  const isNik = schemaField.id.toLowerCase().includes('nik');
-  const isPhone =
-    schemaField.id.toLowerCase().includes('phone') ||
-    schemaField.id.toLowerCase().includes('telepon');
-  const isCount =
-    schemaField.id.toLowerCase().includes('count') ||
-    schemaField.id.toLowerCase().includes('order') ||
-    schemaField.id === 'marriageOrder';
-  const isYear = schemaField.id.endsWith('Year');
-
-  const inputMode = isNik || isCount || isYear ? 'numeric' : isPhone ? 'tel' : undefined;
-  const maxLength = isNik ? 16 : isPhone ? 15 : isYear ? 4 : isCount ? 2 : undefined;
+  const format = getMedicalFieldFormat(schemaField);
+  const isNik = format === 'nik';
+  const formatProps = fieldFormatConfig[format];
 
   return (
     <PatientLineInput
@@ -248,8 +251,8 @@ export function MedicalSchemaField({
       disabled={schemaField.disabled}
       containerClassName={colSpanClass}
       isMonospace={isNik}
-      inputMode={inputMode}
-      maxLength={maxLength}
+      inputMode={formatProps.inputMode}
+      maxLength={formatProps.maxLength}
     />
   );
 }

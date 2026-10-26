@@ -55,8 +55,8 @@ export function useClinicServiceCatalog(
   }, [fetchCatalog]);
 
   const selectedCategory = useMemo(() => {
-    if (!selectedCategoryCode) return categories[0] || null;
-    return categories.find((cat) => cat.code === selectedCategoryCode) || categories[0] || null;
+    if (!selectedCategoryCode) return categories[0] ?? null;
+    return categories.find((cat) => cat.code === selectedCategoryCode) ?? null;
   }, [categories, selectedCategoryCode]);
 
   const selectCategory = useCallback(

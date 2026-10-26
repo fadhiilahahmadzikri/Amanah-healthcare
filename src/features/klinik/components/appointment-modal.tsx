@@ -225,8 +225,6 @@ export function AppointmentModal({
                 session={session}
                 visitType={visitType}
                 complaint={complaint}
-                serviceName={selectedService?.name || ''}
-                patientName={selectedPatient?.fullName || ''}
               />
             )}
 
@@ -387,13 +385,13 @@ export function AppointmentModal({
             ? {
                 id: createdAppointment.id,
                 appointment_id: createdAppointment.id,
-                queue_number: createdAppointment.queue_number || '-',
+                queue_number: createdAppointment.queue_number ?? '',
                 service: createdAppointment.service || '',
-                doctor_name: createdAppointment.doctor_name || '',
+                doctor_name: createdAppointment.doctor_name ?? '',
                 patient_name: createdAppointment.patient_name,
                 status: QUEUE_STATUS.WAITING,
                 called_at: null,
-                created_at: createdAppointment.created_at || new Date().toISOString()
+                created_at: createdAppointment.created_at
               }
             : null
         }

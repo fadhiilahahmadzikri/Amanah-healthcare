@@ -246,7 +246,7 @@ export function buildMaternityIntakePayload(
   return {
     patientId,
     motherNik: submittedValues.motherNik || '',
-    motherName: submittedValues.motherName || patientName || '',
+    motherName: submittedValues.motherName ? submittedValues.motherName : (patientName ?? ''),
     motherBirthDate: submittedValues.motherBirthDate || null,
     motherAge: parsePureInteger(submittedValues.motherAge),
     marriageOrder: parsePureInteger(submittedValues.marriageOrder) || 1,
@@ -392,12 +392,12 @@ export function buildChildImmunizationIntakePayload(
 
   return {
     patientId,
-    childName: submittedValues.childName || patientName || '',
+    childName: submittedValues.childName ? submittedValues.childName : (patientName ?? ''),
     childNik: submittedValues.childNik || '',
     childBirthDate: submittedValues.childBirthDate || '',
     childSex: submittedValues.childSex || '',
     childAgeFormatted: submittedValues.childAgeFormatted || null,
-    parentPhone: submittedValues.parentPhone || patientContact || '',
+    parentPhone: submittedValues.parentPhone ? submittedValues.parentPhone : (patientContact ?? ''),
     fatherName: submittedValues.fatherName || null,
     motherName: submittedValues.motherName || null,
     childAddress: submittedValues.childAddress || null,

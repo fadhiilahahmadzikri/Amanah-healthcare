@@ -82,43 +82,17 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
   const mapBackendToUi = useCallback((apt: BackendAppointmentItem): Appointment => {
     const canonicalStatus: AppointmentStatus = AppointmentStatusDescriptor.from(apt.status).code;
 
-    const timeSource = apt.etaRange || '';
-    const timeMatches = timeSource.match(/(\d{1,2}[:.]\d{2})/g);
-    const startClock = timeMatches?.[0]
-      ? timeMatches[0].replace('.', ':')
-      : apt.scheduledStartTime
-        ? formatClinicTime(apt.scheduledStartTime)
-        : '';
-    const endClock = timeMatches?.[1]
-      ? timeMatches[1].replace('.', ':')
-      : apt.scheduledEndTime
-        ? formatClinicTime(apt.scheduledEndTime)
-        : '';
-
-    const startTimeFormatted = startClock ? formatClinicTime(startClock) : '';
-    const endTimeFormatted = endClock ? formatClinicTime(endClock) : '';
-    const rawSession = apt.sessionName ? apt.sessionName : apt.session;
-    const friendlySession = formatFriendlySessionName(rawSession);
-    const timeDisplay =
-      apt.etaRange ||
-      (startTimeFormatted && endTimeFormatted
-        ? `${startTimeFormatted} - ${endTimeFormatted}`
-        : friendlySession || apt.session || '-');
-
-    const rawFlow =
-      apt.medicalFlow ||
-      (apt.layananName?.toLowerCase().includes('imunisasi')
-        ? 'immunization'
-        : apt.layananName?.toLowerCase().includes('kebidanan') ||
-            apt.layananName?.toLowerCase().includes('persalinan')
-          ? 'pregnancy'
-          : undefined);
+    const scheduledStart = apt.scheduledStartTime
+      ? formatClinicTime(apt.scheduledStartTime)
+      : undefined;
+    const scheduledEnd = apt.scheduledEndTime ? formatClinicTime(apt.scheduledEndTime) : undefined;
+    const sessionName = formatFriendlySessionName(apt.session);
 
     return {
       id: apt.id,
       patient_id: apt.patientId,
       booking_code: apt.bookingCode || apt.id.slice(0, 8).toUpperCase(),
-      patient_name: apt.patientName || 'Pasien',
+      patient_name: apt.patientName || '',
       patient_email: '',
       patient_avatar: '',
       doctor_name: apt.doctorName || '',
@@ -126,26 +100,26 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
       poliklinik_name: apt.poliklinikName || '',
       room_name: apt.roomName || '',
       room_location: apt.roomLocation || '',
-      scheduled_start_time: startTimeFormatted || undefined,
-      scheduled_end_time: endTimeFormatted || undefined,
-      actual_started_at: apt.actualStartedAt ? String(apt.actualStartedAt) : undefined,
-      actual_completed_at: apt.actualCompletedAt ? String(apt.actualCompletedAt) : undefined,
-      consultation_elapsed_seconds: apt.consultationElapsedSeconds ?? undefined,
-      consultation_duration_formatted: apt.consultationDurationFormatted || undefined,
+      scheduled_start_time: scheduledStart,
+      scheduled_end_time: scheduledEnd,
+      actual_started_at: apt.actualStartedAt,
+      actual_completed_at: apt.actualCompletedAt,
+      consultation_elapsed_seconds: apt.consultationElapsedSeconds,
+      consultation_duration_formatted: apt.consultationDurationFormatted,
       estimated_duration_minutes: apt.estimatedDurationMinutes,
       eta_range: apt.etaRange || null,
       ahead_count: apt.aheadCount ?? null,
       date: apt.appointmentDate,
-      time: timeDisplay,
-      session: friendlySession || apt.session || undefined,
-      session_name: friendlySession || undefined,
-      complaint: apt.complaint || '-',
+      time: apt.etaRange ?? '',
+      session: apt.session || undefined,
+      session_name: sessionName || undefined,
+      complaint: apt.complaint || '',
       status: canonicalStatus,
       visit_type: apt.visitType || '',
       service: apt.layananName || '',
-      medical_flow: rawFlow as Appointment['medical_flow'],
+      medical_flow: apt.medicalFlow as Appointment['medical_flow'],
       created_at: apt.createdAt,
-      queue_number: apt.queueNumber || '-',
+      queue_number: apt.queueNumber,
       doctor_id: apt.staffId,
       staff_id: apt.staffId,
       poliklinik_id: apt.poliklinikId,

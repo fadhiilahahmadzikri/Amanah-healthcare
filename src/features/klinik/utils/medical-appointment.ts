@@ -258,7 +258,7 @@ function buildPregnancyAutomaticRecord(
   values: MedicalAppointmentValues,
   submittedAt: Date
 ): Record<string, string> {
-  const bmi = calculateBmi(values.prePregnancyWeightKg, values.heightCm) || values.initialBmi || '';
+  const bmi = calculateBmi(values.prePregnancyWeightKg, values.heightCm) || values.initialBmi;
   const result: Record<string, string> = {
     imtAtSubmit: bmi ? `${bmi} kg/m²` : ''
   };

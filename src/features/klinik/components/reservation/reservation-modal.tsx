@@ -155,29 +155,29 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
         }
 
         const appointmentData = res?.data;
-        const resQueue = String(appointmentData?.queueNumber || context.queueNumber || '-');
         const uiApt: Appointment = {
           id: context.appointmentId,
-          booking_code:
-            appointmentData?.bookingCode || context.appointmentId.slice(0, 8).toUpperCase(),
-          patient_name: context.patientName || 'Pasien',
+          booking_code: appointmentData?.bookingCode ?? '',
+          patient_name: appointmentData?.patientName ?? '',
           patient_email: '',
           patient_avatar: '',
           doctor_name: appointmentData?.doctorName || '',
           doctor_specialty: appointmentData?.doctorSpecialty || '',
-          poliklinik_name: appointmentData?.poliklinikName || context.serviceName || '',
+          poliklinik_name: appointmentData?.poliklinikName || '',
           room_name: appointmentData?.roomName || '',
           room_location: appointmentData?.roomLocation || '',
           scheduled_start_time: appointmentData?.scheduledStartTime || undefined,
           scheduled_end_time: appointmentData?.scheduledEndTime || undefined,
-          date: dateStr,
+          date: appointmentData?.appointmentDate ?? '',
           time: session,
-          complaint: context.complaint || '',
+          complaint: appointmentData?.complaint || '',
           status: APPOINTMENT_STATUS.BOOKED,
           visit_type: 'Pemeriksaan Baru',
-          service: context.serviceName || serviceItem?.name || '',
-          created_at: new Date().toISOString(),
-          queue_number: resQueue
+          service: appointmentData?.layananName || '',
+          created_at: appointmentData?.createdAt ? String(appointmentData.createdAt) : '',
+          queue_number: appointmentData?.queueNumber
+            ? String(appointmentData.queueNumber)
+            : undefined
         };
 
         onSuccess?.(uiApt);
@@ -185,10 +185,11 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
         return;
       }
 
+      const effectiveLayananId = serviceItem?.id ? serviceItem.id : context.serviceId || '';
       const res: BackendAppointmentItem = await patientAffiliationService.createAppointment({
         patientId: context.patientId || '',
         poliklinikId: effectivePoliklinikId || '',
-        layananId: serviceItem?.id || context.serviceId || '',
+        layananId: effectiveLayananId,
         appointmentDate: dateStr,
         session: session,
         visitType: 'Pemeriksaan Baru',
@@ -205,8 +206,8 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
 
       const uiApt: Appointment = {
         id: res.id,
-        booking_code: res.id.slice(0, 8).toUpperCase(),
-        patient_name: res.patientName || context.patientName || 'Pasien',
+        booking_code: res.bookingCode || res.id.slice(0, 8).toUpperCase(),
+        patient_name: res.patientName || '',
         patient_email: '',
         patient_avatar: '',
         doctor_name: res.doctorName || '',
@@ -216,14 +217,14 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
         room_location: res.roomLocation || '',
         scheduled_start_time: startTime || undefined,
         scheduled_end_time: endTime || undefined,
-        date: res.appointmentDate || dateStr,
+        date: res.appointmentDate,
         time: timeDisplay,
-        complaint: res.complaint || context.complaint || '',
+        complaint: res.complaint || '',
         status: APPOINTMENT_STATUS.BOOKED,
-        visit_type: res.visitType || 'Pemeriksaan Baru',
-        service: res.layananName || context.serviceName || '',
-        created_at: res.createdAt || new Date().toISOString(),
-        queue_number: res.queueNumber || '-'
+        visit_type: res.visitType || '',
+        service: res.layananName || '',
+        created_at: String(res.createdAt),
+        queue_number: res.queueNumber
       };
 
       setCreatedAppointment(uiApt);
@@ -290,8 +291,6 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
                 session={session}
                 visitType='Pemeriksaan Baru'
                 complaint={context.complaint || ''}
-                serviceName={context.serviceName || serviceItem?.name}
-                patientName={context.patientName}
                 mode={context.mode || 'create'}
               />
             )}
@@ -398,15 +397,15 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
             ? {
                 id: createdAppointment.id,
                 appointment_id: createdAppointment.id,
-                queue_number: createdAppointment.queue_number || '-',
+                queue_number: createdAppointment.queue_number ?? '',
                 service: createdAppointment.service || '',
-                poli: createdAppointment.service || '',
-                doctor_name: createdAppointment.doctor_name || '',
+                poli: createdAppointment.poliklinik_name || '',
+                doctor_name: createdAppointment.doctor_name ?? '',
                 patient_name: createdAppointment.patient_name,
-                room: createdAppointment.room_name || '-',
+                room: createdAppointment.room_name || '',
                 status: QUEUE_STATUS.WAITING,
                 called_at: null,
-                created_at: createdAppointment.created_at || new Date().toISOString()
+                created_at: createdAppointment.created_at
               }
             : null
         }

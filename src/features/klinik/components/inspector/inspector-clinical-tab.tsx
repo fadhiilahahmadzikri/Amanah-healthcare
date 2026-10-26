@@ -96,18 +96,22 @@ export function InspectorClinicalTab({ data }: InspectorTabProps) {
   }
 
   const positiveDiseases = DISEASES.map((d) => {
-    const rawVal = answers[d.id];
     const fromMap =
       conditionsMap.get(d.id.toLowerCase()) || conditionsMap.get(d.label.toLowerCase());
 
-    const has = fromMap
-      ? fromMap.has
-      : rawVal === true || (typeof rawVal === 'string' && rawVal.toLowerCase() === 'ya');
-    const year =
-      fromMap?.year ||
-      (d.yearId ? answers[d.yearId] : undefined) ||
-      (d.notesId ? answers[d.notesId] : undefined);
-    const notes = fromMap?.notes || (d.notesId && d.yearId ? answers[d.notesId] : undefined);
+    if (fromMap) {
+      return {
+        ...d,
+        has: fromMap.has,
+        year: fromMap.year,
+        notes: fromMap.notes
+      };
+    }
+
+    const rawVal = answers[d.id];
+    const has = rawVal === true || (typeof rawVal === 'string' && rawVal.toLowerCase() === 'ya');
+    const year = d.yearId ? answers[d.yearId] : answers[d.notesId || ''];
+    const notes = d.yearId ? answers[d.notesId || ''] : undefined;
 
     return { ...d, has, year, notes };
   }).filter((d) => d.has);

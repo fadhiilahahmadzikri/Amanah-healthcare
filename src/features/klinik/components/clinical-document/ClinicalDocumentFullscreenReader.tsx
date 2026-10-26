@@ -143,20 +143,19 @@ export const ClinicalDocumentFullscreenReader: React.FC<ClinicalDocumentFullscre
     try {
       setIsExporting(true);
       if (flow === 'pregnancy') {
-        const patientName = pmbData?.identity?.topRowValues?.[0]?.[0] || 'Pasien';
-        await exportPmbDocx(pmbData, `Formulir_ANC_${patientName.replace(/\s+/g, '_')}.docx`);
+        const topRowValues = pmbData?.identity?.topRowValues;
+        const firstRow = topRowValues ? topRowValues[0] : undefined;
+        const patientName = firstRow ? firstRow[0] : undefined;
+        const suffix = patientName ? `_${patientName.replace(/\s+/g, '_')}` : '';
+        await exportPmbDocx(pmbData, `Formulir_ANC${suffix}.docx`);
       } else if (flow === 'immunization') {
-        const childName = imunisasiData?.identity?.leftValues?.[0] || 'Anak';
-        await exportImunisasiDocx(
-          imunisasiData,
-          `Formulir_Imunisasi_${childName.replace(/\s+/g, '_')}.docx`
-        );
+        const childName = imunisasiData?.identity?.leftValues?.[0];
+        const suffix = childName ? `_${childName.replace(/\s+/g, '_')}` : '';
+        await exportImunisasiDocx(imunisasiData, `Formulir_Imunisasi${suffix}.docx`);
       } else {
-        const patientName = regulerData?.identity?.fullName || 'Pasien';
-        await exportRegulerDocx(
-          regulerData,
-          `Formulir_Rawat_Jalan_${patientName.replace(/\s+/g, '_')}.docx`
-        );
+        const patientName = regulerData?.identity?.fullName;
+        const suffix = patientName ? `_${patientName.replace(/\s+/g, '_')}` : '';
+        await exportRegulerDocx(regulerData, `Formulir_Rawat_Jalan${suffix}.docx`);
       }
       setDownloadSuccess(true);
       setTimeout(() => setDownloadSuccess(false), 2500);

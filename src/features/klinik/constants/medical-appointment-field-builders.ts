@@ -39,6 +39,7 @@ export function field(
       | 'placeholder'
       | 'disabled'
       | 'visibleIf'
+      | 'format'
     >
   >
 ): MedicalFormField {
@@ -56,7 +57,8 @@ export function field(
     yearFieldId: options?.yearFieldId,
     notesFieldId: options?.notesFieldId,
     disabled: options?.disabled,
-    visibleIf: options?.visibleIf
+    visibleIf: options?.visibleIf,
+    format: options?.format
   };
 }
 
@@ -77,6 +79,7 @@ export function optionalField(
       | 'placeholder'
       | 'disabled'
       | 'visibleIf'
+      | 'format'
     >
   >
 ): MedicalFormField {

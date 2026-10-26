@@ -15,6 +15,24 @@ const countFieldIds = new Set([
   'abortionCount',
   'livingChildrenCount'
 ]);
+const yearFieldIds = new Set([
+  'previousPregnancy1BirthYear',
+  'previousPregnancy2BirthYear',
+  'previousPregnancy3BirthYear',
+  'previousPregnancy4BirthYear',
+  'otherDiseaseHistoryYear'
+]);
+
+export function getMedicalFieldFormat(
+  field: MedicalFormField
+): 'nik' | 'phone' | 'count' | 'year' | 'text' {
+  if (field.format) return field.format;
+  if (nikFieldIds.has(field.id)) return 'nik';
+  if (phoneFieldIds.has(field.id)) return 'phone';
+  if (countFieldIds.has(field.id)) return 'count';
+  if (yearFieldIds.has(field.id)) return 'year';
+  return 'text';
+}
 
 export function getMedicalFieldValidationSchema(field: MedicalFormField) {
   return z.string().superRefine((value, context) => {
@@ -30,7 +48,9 @@ export function getMedicalFieldValidationSchema(field: MedicalFormField) {
       return;
     }
 
-    if (nikFieldIds.has(field.id) && !/^\d{16}$/.test(trimmedValue)) {
+    const format = getMedicalFieldFormat(field);
+
+    if (format === 'nik' && !/^\d{16}$/.test(trimmedValue)) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'NIK harus 16 digit angka'
@@ -38,7 +58,7 @@ export function getMedicalFieldValidationSchema(field: MedicalFormField) {
       return;
     }
 
-    if (phoneFieldIds.has(field.id)) {
+    if (format === 'phone') {
       const digits = trimmedValue.replace(/\D/g, '');
 
       if (digits.length < 8 || digits.length > 15) {
@@ -50,12 +70,23 @@ export function getMedicalFieldValidationSchema(field: MedicalFormField) {
       }
     }
 
-    if (countFieldIds.has(field.id) && !/^\d+$/.test(trimmedValue)) {
+    if (format === 'count' && !/^\d+$/.test(trimmedValue)) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Isi dengan angka'
       });
       return;
+    }
+
+    if (format === 'year') {
+      const year = Number(trimmedValue);
+      if (!/^\d{4}$/.test(trimmedValue) || year < 1900 || year > 2100) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Tahun harus 4 digit angka (1900-2100)'
+        });
+        return;
+      }
     }
 
     if (field.type === 'DATE' && !isValidIsoDate(trimmedValue)) {
@@ -118,27 +149,19 @@ export function isMedicalSectionValid(
 }
 
 export function normalizeMedicalFieldInput(field: MedicalFormField, value: string): string {
-  if (nikFieldIds.has(field.id)) {
-    return value.replace(/\D/g, '').slice(0, 16);
+  const format = getMedicalFieldFormat(field);
+  switch (format) {
+    case 'nik':
+      return value.replace(/\D/g, '').slice(0, 16);
+    case 'phone':
+      return value.replace(/\D/g, '').slice(0, 15);
+    case 'count':
+      return value.replace(/\D/g, '').slice(0, 2);
+    case 'year':
+      return value.replace(/\D/g, '').slice(0, 4);
+    default:
+      return value;
   }
-
-  if (phoneFieldIds.has(field.id)) {
-    return value.replace(/\D/g, '').slice(0, 15);
-  }
-
-  if (countFieldIds.has(field.id)) {
-    return value.replace(/\D/g, '').slice(0, 2);
-  }
-
-  if (
-    field.id.endsWith('BirthYear') ||
-    field.id.endsWith('HistoryYear') ||
-    field.id.endsWith('Year')
-  ) {
-    return value.replace(/\D/g, '').slice(0, 4);
-  }
-
-  return value;
 }
 
 function isValidIsoDate(value: string): boolean {

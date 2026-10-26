@@ -18,7 +18,6 @@ import {
   type ServiceCatalogItem,
   type ServiceCategoryCatalog
 } from '../api/catalog.service';
-import { getServiceImage } from '../constants/appointment-reservation-services';
 import { mapBackendAppointmentToUi } from '../utils/booking-appointment-mapper';
 import { formRequirementGuard } from './form-requirement-guard';
 import { requestImplicitWebPushRegistration } from '@/features/notifications';
@@ -96,10 +95,6 @@ export function useAppointmentModal({
 
   useEffect(() => {
     const patientIdToUse = selectedPatientId || (patients[0] ? patients[0].id : '');
-    const resolvedCategoryId =
-      selectedCategoryId ||
-      selectedService?.categoryId ||
-      categories.find((c) => c.services?.some((s) => s.id === selectedService?.id))?.id;
 
     if (!patientIdToUse || !dateStr) {
       setActiveTicketConflict(null);
@@ -111,7 +106,7 @@ export function useAppointmentModal({
     patientAffiliationService
       .checkActiveTicket({
         patientId: patientIdToUse,
-        categoryId: resolvedCategoryId,
+        categoryId: selectedCategoryId,
         date: dateStr
       })
       .then((res) => {
@@ -129,15 +124,7 @@ export function useAppointmentModal({
     return () => {
       isSubscribed = false;
     };
-  }, [
-    selectedPatientId,
-    patients,
-    selectedCategoryId,
-    selectedService?.id,
-    selectedService?.categoryId,
-    categories,
-    dateStr
-  ]);
+  }, [selectedPatientId, patients, selectedCategoryId, dateStr]);
 
   const visitTypeDropdownRef = useRef<HTMLDivElement>(null);
   const stepContainerRef = useRef<HTMLDivElement>(null);
@@ -270,12 +257,14 @@ export function useAppointmentModal({
 
   const serviceBentoItems = useMemo<ServiceCardItem[]>(() => {
     return activeCategoryServices.map((srv) => {
-      const img = getServiceImage(srv.name);
       return {
         id: srv.id,
         title: srv.name,
         description: srv.description || '',
-        image: img,
+        image: {
+          src: srv.imageUrl ?? '',
+          alt: srv.name
+        },
         colSpanClass: 'col-span-12 sm:col-span-6 md:col-span-6',
         heightClass: 'min-h-[118px] sm:min-h-[132px]'
       };

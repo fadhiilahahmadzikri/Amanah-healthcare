@@ -14,8 +14,6 @@ export interface BookingConfirmationStepProps {
   session?: string;
   visitType: string;
   complaint: string;
-  serviceName?: string;
-  patientName?: string;
   mode?: 'create' | 'reschedule';
 }
 
@@ -26,14 +24,12 @@ export function BookingConfirmationStep({
   session,
   visitType,
   complaint,
-  serviceName,
-  patientName,
   mode = 'create'
 }: BookingConfirmationStepProps) {
   const isReschedule = mode === 'reschedule';
-  const sessionLabel = formatFriendlySessionName(session) || session || '-';
-  const displayServiceName = serviceName || selectedService?.name || 'Poliklinik';
-  const displayPatientName = patientName || selectedPatient?.fullName || 'Pasien';
+  const sessionLabel = formatFriendlySessionName(session);
+  const displayServiceName = selectedService?.name ?? '';
+  const displayPatientName = selectedPatient?.fullName ?? '';
 
   return (
     <div className='space-y-4'>

@@ -121,26 +121,13 @@ function mapBackendQueueItemToFrontend(item: Record<string, unknown>, isUser = f
         ? item.eta_range
         : null;
 
-  let computedEta = rawEtaRange || '';
-  if (!computedEta && item.estimatedStartAt) {
-    const estStart = formatClinicTime(String(item.estimatedStartAt));
-    if (item.estimatedEndAt) {
-      const estEnd = formatClinicTime(String(item.estimatedEndAt));
-      computedEta = `${estStart} - ${estEnd}`;
-    } else {
-      computedEta = `~${estStart}`;
-    }
-  }
-
   const startTime =
     typeof item.scheduledStartTime === 'string' ? formatClinicTime(item.scheduledStartTime) : '';
   const endTime =
     typeof item.scheduledEndTime === 'string' ? formatClinicTime(item.scheduledEndTime) : '';
-  const fallbackSchedule =
-    startTime && endTime ? `${startTime} - ${endTime}` : startTime || endTime || '-';
+  const fallbackSchedule = startTime && endTime ? `${startTime} - ${endTime}` : startTime || '-';
 
-  // Samakan paradigma estimasi dengan halaman appointment pasien / admin:
-  const estimatedTime = computedEta || fallbackSchedule;
+  const estimatedTime = rawEtaRange || fallbackSchedule;
 
   return {
     id: String(item.id),
@@ -149,14 +136,14 @@ function mapBackendQueueItemToFrontend(item: Record<string, unknown>, isUser = f
     patient_id: item.patientId ? String(item.patientId) : undefined,
     patient_user_id: item.patientUserId ? String(item.patientUserId) : undefined,
     parent_user_id: item.parentUserId ? String(item.parentUserId) : undefined,
-    patient_name: String(item.patientName || 'Pasien'),
+    patient_name: String(item.patientName || ''),
     patient_avatar: typeof item.avatarUrl === 'string' ? item.avatarUrl : '',
-    doctor_name: String(item.doctorName || '-'),
-    poli: String(item.poliklinikName || 'Poli Umum'),
+    doctor_name: String(item.doctorName || ''),
+    poli: String(item.poliklinikName || ''),
     estimated_time: estimatedTime,
-    eta_range: rawEtaRange || computedEta || null,
-    estimated_start_at: item.estimatedStartAt ? String(item.estimatedStartAt) : null,
-    estimated_end_at: item.estimatedEndAt ? String(item.estimatedEndAt) : null,
+    eta_range: rawEtaRange,
+    estimated_start_at: (item.estimatedStartAt as string) || null,
+    estimated_end_at: (item.estimatedEndAt as string) || null,
     scheduled_start_time:
       typeof item.scheduledStartTime === 'string' ? item.scheduledStartTime : null,
     scheduled_end_time: typeof item.scheduledEndTime === 'string' ? item.scheduledEndTime : null,
@@ -270,10 +257,10 @@ export async function getDisplayQueueFromApi(params?: {
       items.push({
         id: 'display-current',
         queue_number: display.currentTicket.queueNumber || '-',
-        patient_name: display.currentTicket.patientName || 'Pasien',
+        patient_name: display.currentTicket.patientName || '',
         patient_avatar: display.currentTicket.avatarUrl || '',
-        doctor_name: display.currentTicket.doctorName || '-',
-        poli: display.currentTicket.roomName || 'Poli',
+        doctor_name: display.currentTicket.doctorName || '',
+        poli: display.currentTicket.roomName || '',
         estimated_time: estTime,
         eta_range: display.currentTicket.etaRange || null,
         estimated_start_at: display.currentTicket.estimatedStartAt || null,
@@ -297,10 +284,10 @@ export async function getDisplayQueueFromApi(params?: {
         items.push({
           id: `display-next-${idx}`,
           queue_number: t.queueNumber || '-',
-          patient_name: t.patientName || 'Pasien',
+          patient_name: t.patientName || '',
           patient_avatar: t.avatarUrl || '',
-          doctor_name: '-',
-          poli: t.poliklinikName || 'Poli',
+          doctor_name: '',
+          poli: t.poliklinikName || '',
           estimated_time: t.etaRange || 'Menunggu',
           eta_range: t.etaRange || null,
           estimated_start_at: t.estimatedStartAt || null,

@@ -17,6 +17,7 @@ export interface MedicalFormField {
   notesFieldId?: string;
   disabled?: boolean;
   visibleIf?: (values: Record<string, string>) => boolean;
+  format?: 'nik' | 'phone' | 'count' | 'year' | 'text';
 }
 
 export interface MedicalFormSection {

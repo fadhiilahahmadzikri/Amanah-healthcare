@@ -163,12 +163,15 @@ export function BookingRegularPatientEditModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!patient || !isValid || isSubmitting) return;
+    if (!patient) return;
+    if (!isValid) return;
+    if (isSubmitting) return;
 
     setErrorMessage(null);
     setIsSubmitting(true);
 
     const selectedOccupation = references.occupations.find((o) => o.code === occupationCode);
+    const resolvedOccupationName = selectedOccupation?.name ?? patient.occupationName;
 
     const payload = {
       name: fullName.trim(),
@@ -179,7 +182,7 @@ export function BookingRegularPatientEditModal({
       blood_type: bloodType,
       mother_name: motherName.trim(),
       line1: region.line1.trim(),
-      occupation: selectedOccupation?.name || patient.occupationName || undefined,
+      occupation: resolvedOccupationName || undefined,
       province_name: region.provinceName || undefined,
       province_code: region.provinceCode || undefined,
       regency_name: region.regencyName || undefined,
@@ -214,7 +217,7 @@ export function BookingRegularPatientEditModal({
           districtCode: region.districtCode || null,
           villageName: region.villageName || null,
           villageCode: region.villageCode || null,
-          occupationName: selectedOccupation?.name || patient.occupationName || null
+          occupationName: resolvedOccupationName || null
         };
         onSuccess(updatedProfile);
         onClose();
@@ -230,6 +233,8 @@ export function BookingRegularPatientEditModal({
 
   if (!isOpen || !patient) return null;
 
+  const titleName = fullName.trim() || patient.fullName;
+
   return (
     <ModalWrapper
       isOpen={isOpen}
@@ -244,9 +249,7 @@ export function BookingRegularPatientEditModal({
           <div className='space-y-0.5 min-w-0 flex-1'>
             <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight flex items-center gap-2'>
               <Icons.user className='size-4 text-primary shrink-0' />
-              <span className='truncate'>
-                {fullName || patient.fullName || 'Edit Profil Pasien'}
-              </span>
+              <span className='truncate'>{titleName || 'Edit Profil Pasien'}</span>
             </h3>
             <p className='text-xs text-muted-foreground truncate font-medium'>
               Lihat dan perbarui informasi profil, identitas, kelahiran, dan domisili pasien.

@@ -60,7 +60,9 @@ export function useClinicFilterOptions(): UseClinicFilterOptionsResult {
       const res = await clientFetch<
         Array<{ id: string; name: string }> | { data?: Array<{ id: string; name: string }> }
       >('/api/v1/schedules/reference/rooms');
-      const list = Array.isArray(res) ? res : (res as { data?: Array<{ id: string; name: string }> })?.data || [];
+      const list = Array.isArray(res)
+        ? res
+        : (res as { data?: Array<{ id: string; name: string }> })?.data || [];
       return list;
     },
     staleTime: 5 * 60 * 1000,
@@ -132,7 +134,7 @@ export function useClinicFilterOptions(): UseClinicFilterOptionsResult {
     roomOptions,
     categories,
     getServicesByPoli,
-    isLoading: isLoadingCategories || isLoadingDoctors || isLoadingRooms,
+    isLoading: [isLoadingCategories, isLoadingDoctors, isLoadingRooms].some(Boolean),
     isSuccess: isSuccessCategories && isSuccessDoctors && isSuccessRooms
   };
 }
