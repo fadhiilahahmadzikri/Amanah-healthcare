@@ -50,13 +50,8 @@ export async function getDoctorSchedules(
     };
   }>(endpoint);
 
-  const doctors = res.data?.doctors ?? [];
-  const meta = res.data?.meta ?? {
-    page: filters.page ?? 1,
-    limit: filters.limit ?? 20,
-    totalDoctors: doctors.length,
-    totalPages: 1
-  };
+  const doctors = res.data.doctors;
+  const meta = res.data.meta;
 
   return {
     doctors,

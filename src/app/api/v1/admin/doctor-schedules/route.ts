@@ -45,9 +45,11 @@ export const GET = withApiObservability(async function GET(request: NextRequest)
     });
 
     return NextResponse.json({
-      doctors: data.doctors,
-      totalDoctors: data.meta.totalDoctors,
-      meta: data.meta
+      success: true,
+      data: {
+        doctors: data.doctors,
+        meta: data.meta
+      }
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Internal Server Error';

@@ -19,7 +19,9 @@ export const searchParams = {
   poliklinikId: parseAsString,
   doctorId: parseAsString,
   search: parseAsString,
-  sort: parseAsString
+  sort: parseAsString,
+  date: parseAsString,
+  month: parseAsString
 };
 
 export const searchParamsCache = createSearchParamsCache(searchParams);
