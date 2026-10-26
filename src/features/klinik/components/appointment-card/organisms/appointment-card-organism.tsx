@@ -56,7 +56,7 @@ export function AppointmentCardOrganism({
     ? appointment.patient_name || 'Pasien'
     : hasAssignedDoctor
       ? appointment.doctor_name || docInfo.name
-      : appointment.service || 'Layanan Poliklinik';
+      : appointment.service || '-';
 
   const displaySubtitle = isPatientSubject
     ? appointment.service || '-'

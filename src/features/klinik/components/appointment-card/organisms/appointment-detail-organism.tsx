@@ -116,7 +116,7 @@ export function AppointmentDetailOrganism({
 
   const visitType = appointment.visit_type || '-';
   const patientName = appointment.patient_name || '-';
-  const serviceName = appointment.service || doctor.spec || '-';
+  const serviceName = appointment.service || '-';
   const complaintText = appointment.complaint || '-';
   const isAdmin = role === 'admin' || hasRole('admin');
 
@@ -194,14 +194,13 @@ export function AppointmentDetailOrganism({
                     ) : (
                       <div className='flex flex-col items-start min-w-0 flex-1 space-y-0.5'>
                         <h3 className='text-base sm:text-lg font-bold text-foreground truncate w-full tracking-tight'>
-                          {serviceName !== '-' ? serviceName : 'Janji Temu Klinik'}
+                          {serviceName}
                         </h3>
-                        {appointment.poliklinik_name &&
-                          serviceName !== appointment.poliklinik_name && (
-                            <p className='text-sm font-medium text-muted-foreground truncate w-full'>
-                              {appointment.poliklinik_name}
-                            </p>
-                          )}
+                        {appointment.poliklinik_name && (
+                          <p className='text-sm font-medium text-muted-foreground truncate w-full'>
+                            {appointment.poliklinik_name}
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
