@@ -7,6 +7,16 @@ import { getPatients } from '@/features/data-pasien/api/service';
 import type { Patient } from '@/features/data-pasien/api/types';
 import { withApiObservability } from '@/core/observability/adapters/http/route-observability.adapter';
 
+function resolveUserDisplayName(user: {
+  staff?: { fullName: string } | null;
+  patient?: { fullName: string } | null;
+  email: string;
+}): string {
+  if (user.staff?.fullName) return user.staff.fullName;
+  if (user.patient?.fullName) return user.patient.fullName;
+  return user.email;
+}
+
 export const GET = withApiObservability(async function GET() {
   const reqHeaders = await headers();
   let user: { id: string; email?: string | null; name?: string | null } | null = null;
@@ -19,7 +29,7 @@ export const GET = withApiObservability(async function GET() {
       user = {
         id: currentUser.id,
         email: currentUser.email,
-        name: currentUser.staff?.fullName || currentUser.patient?.fullName || currentUser.email
+        name: resolveUserDisplayName(currentUser)
       };
     }
   }
@@ -28,11 +38,9 @@ export const GET = withApiObservability(async function GET() {
     return NextResponse.json({ patient: null }, { status: 401 });
   }
 
-  const patientRecordId = '';
   const email = user.email ?? '';
-  const phone = '';
   const fullName = user.name ?? '';
-  const searchKey = patientRecordId || email || phone || fullName;
+  const searchKey = email ? email : fullName;
 
   if (!searchKey) {
     return NextResponse.json({ patient: null });
@@ -44,10 +52,8 @@ export const GET = withApiObservability(async function GET() {
     search: searchKey
   });
 
-  const patient =
-    findExactPatient(response.patients, { patientRecordId, email, phone, fullName }) ??
-    response.patients[0] ??
-    null;
+  const exactMatch = findExactPatient(response.patients, { email, fullName });
+  const patient = exactMatch ?? (response.patients.length > 0 ? response.patients[0] : null);
 
   return NextResponse.json({ patient });
 });
@@ -55,19 +61,14 @@ export const GET = withApiObservability(async function GET() {
 function findExactPatient(
   patients: Patient[],
   lookup: {
-    patientRecordId: string;
     email: string;
-    phone: string;
     fullName: string;
   }
 ): Patient | undefined {
   return patients.find((patient) => {
-    return (
-      matches(patient.patient_id, lookup.patientRecordId) ||
-      matches(patient.email, lookup.email) ||
-      matches(patient.phone, lookup.phone) ||
-      matches(patient.name, lookup.fullName)
-    );
+    if (matches(patient.email, lookup.email)) return true;
+    if (matches(patient.name, lookup.fullName)) return true;
+    return false;
   });
 }
 

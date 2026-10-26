@@ -57,7 +57,9 @@ export function DataTable<TData>({
   footerSlot
 }: DataTableProps<TData>) {
   const handleRowClick = (event: React.MouseEvent<HTMLTableRowElement>, row: TData) => {
-    if (!onRowClick || event.defaultPrevented || isInteractiveElement(event.target)) return;
+    if (!onRowClick) return;
+    if (event.defaultPrevented) return;
+    if (isInteractiveElement(event.target)) return;
 
     onRowClick(row);
   };
@@ -128,7 +130,8 @@ export function DataTable<TData>({
                         onClick={(event) => handleRowClick(event, row.original)}
                         className={cn(
                           onRowClick && 'cursor-pointer hover:bg-muted/50',
-                          row.depth > 0 && 'bg-muted/15 dark:bg-muted/20 hover:bg-muted/30 transition-colors',
+                          row.depth > 0 &&
+                            'bg-muted/15 dark:bg-muted/20 hover:bg-muted/30 transition-colors',
                           getRowClassName?.(row)
                         )}
                       >

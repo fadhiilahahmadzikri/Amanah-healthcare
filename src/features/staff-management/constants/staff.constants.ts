@@ -2,13 +2,17 @@ export {
   STAFF_TYPES,
   type StaffType,
   STAFF_TYPE_LABELS,
+  CANONICAL_ROLES,
+  type CanonicalRole,
+  SYSTEM_ROLES,
+  type SystemRole
 } from '@/constants/staff-types.constant';
-import { STAFF_TYPES } from '@/constants/staff-types.constant';
+import { CANONICAL_ROLES, STAFF_TYPES } from '@/constants/staff-types.constant';
 
 export const STAFF_ROLE_CODES = {
-  DOCTOR: 'staff_doctor',
-  MIDWIFE: 'staff_midwife',
-  WORKER: 'staff_worker'
+  DOCTOR: CANONICAL_ROLES.STAFF_DOCTOR,
+  MIDWIFE: CANONICAL_ROLES.STAFF_MIDWIFE,
+  WORKER: CANONICAL_ROLES.STAFF_WORKER
 } as const;
 
 export type StaffRoleCode = (typeof STAFF_ROLE_CODES)[keyof typeof STAFF_ROLE_CODES];

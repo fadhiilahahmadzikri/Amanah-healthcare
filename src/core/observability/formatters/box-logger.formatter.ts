@@ -84,16 +84,13 @@ function formatBox(title: string, fields: Record<string, unknown>): string {
 export function formatRequestBox(event: HttpRequestEvent): string {
   const title = `${ANSI.cyan}${ANSI.bold}🌐 [HTTP REQUEST] ${event.http.method} ${event.http.path}${ANSI.reset}`;
 
-  let clientDesc: string | undefined = undefined;
-  if (event.client.type || event.client.deviceModel || event.client.platform) {
-    const parts = [
-      event.client.type,
-      event.client.platform
-        ? `(${event.client.platform}${event.client.deviceModel ? ` / ${event.client.deviceModel}` : ''})`
-        : ''
-    ].filter(Boolean);
-    clientDesc = parts.join(' ');
-  }
+  const parts = [
+    event.client.type,
+    event.client.platform
+      ? `(${event.client.platform}${event.client.deviceModel ? ` / ${event.client.deviceModel}` : ''})`
+      : ''
+  ].filter(Boolean);
+  const clientDesc = parts.length > 0 ? parts.join(' ') : undefined;
 
   return formatBox(title, {
     'Request ID': event.requestId,
@@ -131,7 +128,8 @@ export function formatResponseBox(event: HttpResponseEvent): string {
 }
 
 export function formatErrorBox(event: HttpErrorEvent): string {
-  const status = event.error.statusCode || event.http.statusCode || 500;
+  const explicitStatus = event.error.statusCode ?? event.http.statusCode;
+  const status = explicitStatus !== undefined && explicitStatus > 0 ? explicitStatus : 500;
   const duration = event.http.durationMs !== undefined ? `(${event.http.durationMs}ms)` : '';
 
   const title = `${ANSI.red}${ANSI.bold}❌ [HTTP ERROR] ${status} ${duration} ${event.http.method} ${event.http.path}${ANSI.reset}`;

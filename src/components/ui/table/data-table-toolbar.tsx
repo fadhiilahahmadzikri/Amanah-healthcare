@@ -67,6 +67,15 @@ export function DataTableToolbar<TData>({
     </div>
   );
 }
+function getFilterInputPlaceholder(meta?: {
+  placeholder?: string;
+  label?: string;
+}): string | undefined {
+  if (meta?.placeholder) return meta.placeholder;
+  if (meta?.label) return meta.label;
+  return undefined;
+}
+
 interface DataTableToolbarFilterProps<TData> {
   column: Column<TData>;
 }
@@ -87,7 +96,7 @@ function DataTableToolbarFilter<TData>({ column }: DataTableToolbarFilterProps<T
                 <Icon className='size-3.5 text-muted-foreground absolute left-2.5 pointer-events-none' />
               )}
               <Input
-                placeholder={columnMeta.placeholder ?? columnMeta.label}
+                placeholder={getFilterInputPlaceholder(columnMeta)}
                 value={(column.getFilterValue() as string) ?? ''}
                 onChange={(event) => column.setFilterValue(event.target.value)}
                 className={cn('h-8 w-40 lg:w-60 text-xs', Icon && 'pl-8')}
@@ -102,7 +111,7 @@ function DataTableToolbarFilter<TData>({ column }: DataTableToolbarFilterProps<T
               <Input
                 type='number'
                 inputMode='numeric'
-                placeholder={columnMeta.placeholder ?? columnMeta.label}
+                placeholder={getFilterInputPlaceholder(columnMeta)}
                 value={(column.getFilterValue() as string) ?? ''}
                 onChange={(event) => column.setFilterValue(event.target.value)}
                 className={cn('h-8 w-[120px]', columnMeta.unit && 'pr-8')}

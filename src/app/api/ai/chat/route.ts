@@ -5,6 +5,17 @@ import { withApiObservability } from '@/core/observability/adapters/http/route-o
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+function extractChoiceContent(parsed: unknown): string {
+  if (typeof parsed !== 'object' || parsed === null) return '';
+  const choices = (parsed as { choices?: Array<{ delta?: { content?: string }; text?: string }> })
+    .choices;
+  if (!Array.isArray(choices) || choices.length === 0) return '';
+  const firstChoice = choices[0];
+  if (typeof firstChoice?.delta?.content === 'string') return firstChoice.delta.content;
+  if (typeof firstChoice?.text === 'string') return firstChoice.text;
+  return '';
+}
+
 export const POST = withApiObservability(async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -68,8 +79,7 @@ export const POST = withApiObservability(async function POST(req: NextRequest) {
                 try {
                   const jsonStr = trimmed.slice(6);
                   const parsed = JSON.parse(jsonStr);
-                  const deltaContent =
-                    parsed.choices?.[0]?.delta?.content ?? parsed.choices?.[0]?.text ?? '';
+                  const deltaContent = extractChoiceContent(parsed);
 
                   if (deltaContent) {
                     controller.enqueue(

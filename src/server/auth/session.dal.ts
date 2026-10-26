@@ -22,6 +22,16 @@ export type SessionResult =
   | { status: 'anonymous' }
   | { status: 'rejected' };
 
+function resolveUserDisplayName(user: {
+  staff?: { fullName: string } | null;
+  patient?: { fullName: string } | null;
+  email: string;
+}): string {
+  if (user.staff?.fullName) return user.staff.fullName;
+  if (user.patient?.fullName) return user.patient.fullName;
+  return user.email;
+}
+
 export const getSession = cache(async (): Promise<SessionResult> => {
   const cookieStore = await cookies();
   const hasAnyAuthCookie = ALL_AUTH_COOKIE_NAMES.some((name) => cookieStore.has(name));
@@ -52,7 +62,7 @@ export const getSession = cache(async (): Promise<SessionResult> => {
   if (userResult.ok && userResult.value) {
     const currentUser = userResult.value;
     const role: 'admin' | 'patient' = currentUser.systemRole === 'ADMIN' ? 'admin' : 'patient';
-    const name = currentUser.staff?.fullName || currentUser.patient?.fullName || currentUser.email;
+    const name = resolveUserDisplayName(currentUser);
 
     return {
       status: 'authenticated',

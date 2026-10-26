@@ -45,15 +45,21 @@ export function getDefaultFilterOperator(filterVariant: FilterVariant) {
   return operators[0]?.value ?? (filterVariant === 'text' ? 'iLike' : 'eq');
 }
 
+const UNARY_FILTER_OPERATORS = new Set<FilterOperator>(['isEmpty', 'isNotEmpty']);
+
 export function getValidFilters<TData>(
   filters: ExtendedColumnFilter<TData>[]
 ): ExtendedColumnFilter<TData>[] {
-  return filters.filter(
-    (filter) =>
-      filter.operator === 'isEmpty' ||
-      filter.operator === 'isNotEmpty' ||
-      (Array.isArray(filter.value)
-        ? filter.value.length > 0
-        : filter.value !== '' && filter.value !== null && filter.value !== undefined)
-  );
+  return filters.filter((filter) => {
+    if (UNARY_FILTER_OPERATORS.has(filter.operator)) {
+      return true;
+    }
+    if (Array.isArray(filter.value)) {
+      return filter.value.length > 0;
+    }
+    if (typeof filter.value === 'string') {
+      return filter.value.trim().length > 0;
+    }
+    return filter.value !== null && filter.value !== undefined;
+  });
 }

@@ -42,10 +42,7 @@ export class EdgeHttpObservabilityAdapter extends BaseHttpObservabilityAdapter {
   }
 
   logRequestEvent(event: HttpRequestEvent): void {
-    const isHealthEndpoint =
-      event.http.path === '/health' ||
-      event.http.path === '/healthz' ||
-      event.http.path.startsWith('/api/health');
+    const isHealthEndpoint = event.http.path.startsWith('/health');
 
     if (isHealthEndpoint) {
       this.logger.debug('HTTP REQUEST (health)', event as unknown as Record<string, unknown>);
@@ -56,10 +53,7 @@ export class EdgeHttpObservabilityAdapter extends BaseHttpObservabilityAdapter {
 
   logResponseEvent(event: HttpResponseEvent): void {
     const status = event.http.statusCode ?? 200;
-    const isHealthEndpoint =
-      event.http.path === '/health' ||
-      event.http.path === '/healthz' ||
-      event.http.path.startsWith('/api/health');
+    const isHealthEndpoint = event.http.path.startsWith('/health');
 
     if (isHealthEndpoint) {
       this.logger.debug('HTTP RESPONSE (health)', event as unknown as Record<string, unknown>);

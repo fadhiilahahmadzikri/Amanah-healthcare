@@ -30,10 +30,7 @@ export class NodeHttpObservabilityAdapter extends BaseHttpObservabilityAdapter {
   }
 
   logRequestEvent(event: HttpRequestEvent): void {
-    const isHealthEndpoint =
-      event.http.path === '/health' ||
-      event.http.path === '/healthz' ||
-      event.http.path.startsWith('/api/health');
+    const isHealthEndpoint = event.http.path.startsWith('/health');
 
     if (process.env.NODE_ENV !== 'production') {
       if (!isHealthEndpoint) {
@@ -50,10 +47,7 @@ export class NodeHttpObservabilityAdapter extends BaseHttpObservabilityAdapter {
 
   logResponseEvent(event: HttpResponseEvent): void {
     const status = event.http.statusCode ?? 200;
-    const isHealthEndpoint =
-      event.http.path === '/health' ||
-      event.http.path === '/healthz' ||
-      event.http.path.startsWith('/api/health');
+    const isHealthEndpoint = event.http.path.startsWith('/health');
 
     if (process.env.NODE_ENV !== 'production') {
       if (!isHealthEndpoint) {

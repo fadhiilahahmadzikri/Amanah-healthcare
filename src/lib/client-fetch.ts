@@ -15,6 +15,35 @@ export interface ClientFetchOptions extends RequestInit {
  * - Enforces idempotency key on non-GET calls (POST, PUT, PATCH, DELETE).
  * - Deterministic error throwing (AppError).
  */
+function resolveIdempotencyKey(optionsKey?: string, headers?: Headers): string | undefined {
+  if (optionsKey) return optionsKey;
+  const headerKey = headers?.get('x-idempotency-key') ?? headers?.get('idempotency-key');
+  if (headerKey) return headerKey;
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return undefined;
+}
+
+function extractErrorMessage(errorBody: unknown, defaultMessage: string): string {
+  if (typeof errorBody === 'object' && errorBody !== null) {
+    const err = errorBody as Record<string, unknown>;
+    if (typeof err.message === 'string' && err.message.trim().length > 0) {
+      return err.message;
+    }
+    if (Array.isArray(err.message) && err.message.length > 0) {
+      return String(err.message[0]);
+    }
+    if (typeof err.detail === 'string' && err.detail.trim().length > 0) {
+      return err.detail;
+    }
+    if (typeof err.error === 'string' && err.error.trim().length > 0) {
+      return err.error;
+    }
+  }
+  return defaultMessage;
+}
+
 export async function clientFetch<T>(
   endpoint: string,
   options: ClientFetchOptions = {}
@@ -31,11 +60,7 @@ export async function clientFetch<T>(
 
   // Enforce idempotency on non-GET calls
   if (method !== 'GET' && method !== 'HEAD') {
-    const key =
-      options.idempotencyKey ||
-      headers.get('x-idempotency-key') ||
-      headers.get('Idempotency-Key') ||
-      (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : undefined);
+    const key = resolveIdempotencyKey(options.idempotencyKey, headers);
 
     if (key) {
       if (!headers.has('x-idempotency-key')) headers.set('x-idempotency-key', key);
@@ -78,16 +103,21 @@ export async function clientFetch<T>(
       errorBody = null;
     }
 
-    const message =
-      (errorBody as { message?: string; error?: string })?.message ||
-      (errorBody as { message?: string; error?: string })?.error ||
-      `HTTP ${response.status} ${response.statusText}`;
+    const defaultMsg = `HTTP ${response.status} ${response.statusText}`;
+    const message = extractErrorMessage(errorBody, defaultMsg);
 
     if (response.status === 400) {
       const pDetails = errorBody as ProblemDetails | undefined;
-      const fallbackCode = (errorBody as { error?: string })?.error || ErrorCodes.VALIDATION_FAILED;
+      const errorObj =
+        typeof errorBody === 'object' && errorBody !== null
+          ? (errorBody as Record<string, unknown>)
+          : undefined;
+      const rawCode =
+        pDetails?.code ??
+        (typeof errorObj?.error === 'string' ? errorObj.error : ErrorCodes.VALIDATION_FAILED);
+      const code = rawCode as (typeof ErrorCodes)[keyof typeof ErrorCodes];
       throw new AppError({
-        code: (pDetails?.code || fallbackCode) as (typeof ErrorCodes)[keyof typeof ErrorCodes],
+        code,
         status: 400,
         expected: true,
         message,

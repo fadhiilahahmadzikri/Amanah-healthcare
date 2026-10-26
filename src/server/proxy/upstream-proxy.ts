@@ -17,6 +17,22 @@ export interface ProxyOptions {
   authToken?: string | null;
 }
 
+function resolveForwardedHost(request: NextRequest): string {
+  const forwarded = request.headers.get('x-forwarded-host');
+  if (forwarded) return forwarded;
+  const direct = request.headers.get('host');
+  if (direct) return direct;
+  return request.nextUrl.host;
+}
+
+function resolveClientIp(request: NextRequest): string {
+  const forwarded = request.headers.get('x-forwarded-for');
+  if (forwarded) return forwarded;
+  const realIp = request.headers.get('x-real-ip');
+  if (realIp) return realIp;
+  return '127.0.0.1';
+}
+
 /**
  * Shared Upstream Proxy Core:
  * Meneruskan request dari browser ke backend upstream NestJS server-to-server.
@@ -67,15 +83,13 @@ export async function proxyToUpstream(
   }
 
   // Set header X-Forwarded-* untuk backward propagation
-  const host =
-    request.headers.get('x-forwarded-host') || request.headers.get('host') || request.nextUrl.host;
+  const host = resolveForwardedHost(request);
   const proto =
     request.headers.get('x-forwarded-proto') || request.nextUrl.protocol.replace(':', '');
   upstreamHeaders.set('x-forwarded-host', host);
   upstreamHeaders.set('x-forwarded-proto', proto);
 
-  const clientIp =
-    request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '127.0.0.1';
+  const clientIp = resolveClientIp(request);
   upstreamHeaders.set('x-forwarded-for', clientIp);
 
   // 2. Siapkan request body untuk method yang membawa payload

@@ -87,20 +87,22 @@ export function DataTableBulkActions<TData>({
         buttons[buttons.length - 1]?.focus();
         break;
       case 'Escape': {
-        const target = event.target as HTMLElement;
-        const activeElement = document.activeElement as HTMLElement;
+        const target = event.target as HTMLElement | null;
+        const activeElement = document.activeElement as HTMLElement | null;
 
-        const isFromDropdownTrigger =
-          target?.getAttribute('data-slot') === 'dropdown-menu-trigger' ||
-          activeElement?.getAttribute('data-slot') === 'dropdown-menu-trigger' ||
-          target?.closest('[data-slot="dropdown-menu-trigger"]') ||
-          activeElement?.closest('[data-slot="dropdown-menu-trigger"]');
+        const isFromDropdown =
+          Boolean(
+            target?.closest(
+              '[data-slot="dropdown-menu-trigger"], [data-slot="dropdown-menu-content"]'
+            )
+          ) ||
+          Boolean(
+            activeElement?.closest(
+              '[data-slot="dropdown-menu-trigger"], [data-slot="dropdown-menu-content"]'
+            )
+          );
 
-        const isFromDropdownContent =
-          activeElement?.closest('[data-slot="dropdown-menu-content"]') ||
-          target?.closest('[data-slot="dropdown-menu-content"]');
-
-        if (isFromDropdownTrigger || isFromDropdownContent) {
+        if (isFromDropdown) {
           return;
         }
 

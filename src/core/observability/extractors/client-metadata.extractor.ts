@@ -1,5 +1,8 @@
 import type { ClientMetadata } from '../models/client-metadata.types';
 
+const API_CLIENT_SNIFFERS = ['postman', 'insomnia', 'curl'];
+const BROWSER_SNIFFERS = ['mozilla', 'chrome', 'safari'];
+
 export function extractHeadersMap(
   headers: Headers | Record<string, string | string[] | undefined>
 ): Record<string, string> {
@@ -59,9 +62,9 @@ export function extractClientMetadata(
     const ua = client.userAgent.toLowerCase();
     if (ua.includes('dart') || ua.includes('flutter')) {
       client.type = 'mobile/flutter';
-    } else if (ua.includes('postman') || ua.includes('insomnia') || ua.includes('curl')) {
+    } else if (API_CLIENT_SNIFFERS.some((s) => ua.includes(s))) {
       client.type = 'api-client';
-    } else if (ua.includes('mozilla') || ua.includes('chrome') || ua.includes('safari')) {
+    } else if (BROWSER_SNIFFERS.some((s) => ua.includes(s))) {
       client.type = 'browser';
     }
   }
