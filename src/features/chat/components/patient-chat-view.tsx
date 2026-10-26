@@ -72,7 +72,7 @@ export function PatientChatView() {
 
         const res = await chatApiService.getPatientMessages(conv.id);
         if (!active) return;
-        setMessages(res.data || res.items || []);
+        setMessages(res.data ?? []);
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Koneksi error';
         toast.error(`Gagal memuat percakapan: ${msg}`);
@@ -213,8 +213,9 @@ export function PatientChatView() {
 
   // 8. Send patient message
   const handleSendMessage = useCallback(async () => {
-    if (!inputText.trim() || !conversation?.id || isSending) return;
+    if (isSending || !conversation?.id) return;
     const textToSend = inputText.trim();
+    if (!textToSend) return;
     setInputText('');
     setIsSending(true);
 

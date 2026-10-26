@@ -34,7 +34,7 @@ export function useAdminChat() {
     queryKey: ['admin', 'chat', 'conversations'],
     queryFn: async () => {
       const res = await chatApiService.getAdminConversations();
-      return res.data || res.items || [];
+      return res.data ?? [];
     }
   });
 
@@ -161,7 +161,7 @@ export function useAdminChat() {
     queryFn: async () => {
       if (!selectedConversationId) return [];
       const res = await chatApiService.getAdminConversationMessages(selectedConversationId);
-      return res.data || res.items || [];
+      return res.data ?? [];
     },
     enabled: Boolean(selectedConversationId)
   });

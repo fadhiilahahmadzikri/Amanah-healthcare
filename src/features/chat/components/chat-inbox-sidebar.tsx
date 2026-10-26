@@ -53,14 +53,18 @@ export function ChatInboxSidebar({
   const filteredConversations = useMemo(() => {
     return conversations.filter((c) => {
       const q = searchQuery.toLowerCase().trim();
-      const matchSearch =
-        !q ||
-        (c.customerName && c.customerName.toLowerCase().includes(q)) ||
-        (c.customerEmail && c.customerEmail.toLowerCase().includes(q)) ||
-        (c.medicalRecordNumber && c.medicalRecordNumber.toLowerCase().includes(q)) ||
-        (c.lastMessagePreview && c.lastMessagePreview.toLowerCase().includes(q));
-
-      if (!matchSearch) return false;
+      if (q) {
+        const searchableFields = [
+          c.customerName,
+          c.customerEmail,
+          c.medicalRecordNumber,
+          c.lastMessagePreview
+        ];
+        const matchSearch = searchableFields.some(
+          (field) => typeof field === 'string' && field.toLowerCase().includes(q)
+        );
+        if (!matchSearch) return false;
+      }
 
       if (activeTab === 'awaiting') return c.status === 'open' && c.awaitingReply;
       if (activeTab === 'closed') return c.status === 'closed';

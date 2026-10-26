@@ -99,7 +99,7 @@ export function GuestChatModal({ isOpen, onClose }: GuestChatModalProps) {
           guestId: guestInfo.guestId
         });
         if (!active) return;
-        setMessages(msgs.data || msgs.items || []);
+        setMessages(msgs.data ?? []);
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Koneksi error';
         toast.error(`Gagal memuat percakapan: ${msg}`);
@@ -258,8 +258,10 @@ export function GuestChatModal({ isOpen, onClose }: GuestChatModalProps) {
   };
 
   const handleSendMessage = async () => {
-    if (!inputText.trim() || !conversation || !guestInfo || isSending) return;
+    if (isSending) return;
+    if (!conversation || !guestInfo) return;
     const textToSend = inputText.trim();
+    if (!textToSend) return;
     setInputText('');
     setIsSending(true);
 

@@ -114,15 +114,11 @@ export function PatientCrmSidebar({ conversation, onCloseConversation }: Patient
           <div className='p-2 rounded-[6px] bg-background border border-border/60'>
             <div className='text-[9.5px] text-muted-foreground'>Email</div>
             <div className='text-[11px] font-medium text-foreground flex items-center justify-between mt-0.5 truncate'>
-              <span className='truncate mr-1'>
-                {conversation.customerEmail || conversation.guestEmail || '-'}
-              </span>
-              {(conversation.customerEmail || conversation.guestEmail) && (
+              <span className='truncate mr-1'>{conversation.customerEmail || '-'}</span>
+              {Boolean(conversation.customerEmail) && (
                 <button
                   type='button'
-                  onClick={() =>
-                    copyToClipboard(conversation.customerEmail || conversation.guestEmail!, 'Email')
-                  }
+                  onClick={() => copyToClipboard(conversation.customerEmail, 'Email')}
                   className='text-muted-foreground hover:text-foreground shrink-0'
                   title='Salin Email'
                 >
