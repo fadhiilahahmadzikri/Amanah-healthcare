@@ -87,7 +87,7 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
   }, [infiniteQuery.data?.pages]);
 
   const totalDoctors = useMemo(() => {
-    return infiniteQuery.data?.pages[0]?.total_doctors ?? doctors.length;
+    return infiniteQuery.data?.pages[0]?.totalDoctors ?? doctors.length;
   }, [infiniteQuery.data?.pages, doctors.length]);
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -128,7 +128,7 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     }
 
     const targetId = params.selectedDoctorId;
-    const found = doctors.find((d) => d.id === targetId || d.practitioner_id === targetId);
+    const found = doctors.find((d) => d.id === targetId || d.practitionerId === targetId);
 
     if (found) {
       setSelectedDoctor(found);
@@ -147,7 +147,7 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
       },
       { shallow: true }
     );
-    const found = doctors.find((d) => d.id === doctorId || d.practitioner_id === doctorId);
+    const found = doctors.find((d) => d.id === doctorId || d.practitionerId === doctorId);
     if (found) {
       setSelectedDoctor(found);
     }

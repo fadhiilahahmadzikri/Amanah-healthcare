@@ -101,7 +101,9 @@ export function InspectorClinicalTab({ data }: InspectorTabProps) {
     const fromMap =
       conditionsMap.get(d.id.toLowerCase()) || conditionsMap.get(d.label.toLowerCase());
 
-    const has = fromMap ? fromMap.has : rawVal === 'Ya' || rawVal === 'ya' || rawVal === true;
+    const has = fromMap
+      ? fromMap.has
+      : rawVal === true || (typeof rawVal === 'string' && rawVal.toLowerCase() === 'ya');
     const year =
       fromMap?.year ||
       (d.yearId ? answers[d.yearId] : undefined) ||

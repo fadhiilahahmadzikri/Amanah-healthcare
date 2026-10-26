@@ -110,20 +110,20 @@ export function ChangeDoctorModal({
   const handleOpenDoctorRoster = (doc: DoctorCandidateItem) => {
     setRosterDoctor({
       id: doc.id,
-      nama_dokter: doc.name,
-      spesialisasi: doc.specialty || activeGroup?.name || 'Dokter Spesialis',
-      practitioner_id: doc.id,
-      status_dokter: 'OPEN',
-      ruang_praktik: '-',
-      tanggal_praktik: candidatesData?.scheduledDate || '',
-      avatar: doc.avatarUrl || null,
-      jadwal_hari_ini: '-',
-      jadwal_praktik_mendatang: '-',
-      status_jadwal: 'OPEN',
-      bulan_jadwal: '',
-      is_on_leave: false,
-      total_pasien: 0,
-      sesi_harian: []
+      fullName: doc.name,
+      specialty: doc.specialty || activeGroup?.name || '',
+      practitionerId: doc.id,
+      doctorStatus: 'OPEN',
+      practiceRoom: '',
+      practiceDate: candidatesData?.scheduledDate || '',
+      avatar: doc.avatarUrl || '',
+      todaySchedule: '',
+      upcomingSchedule: '',
+      scheduleStatus: 'OPEN',
+      scheduleMonth: '',
+      isOnLeave: false,
+      totalPatients: 0,
+      dailySessions: []
     } as unknown as DoctorSchedule);
     setIsRosterModalOpen(true);
   };

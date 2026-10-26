@@ -36,12 +36,12 @@ export function DoctorExportButton({
       ];
 
       const rows = data.map((doc) => [
-        `"${doc.nama_dokter.replace(/"/g, '""')}"`,
-        `"${doc.spesialisasi.replace(/"/g, '""')}"`,
-        `"${doc.status_dokter}"`,
-        `"${doc.status_jadwal}"`,
+        `"${doc.fullName.replace(/"/g, '""')}"`,
+        `"${doc.specialty.replace(/"/g, '""')}"`,
+        `"${doc.doctorStatus}"`,
+        `"${doc.scheduleStatus}"`,
         `"${doc.email || ''}"`,
-        `"${doc.nomor_telepon || ''}"`
+        `"${doc.phone || ''}"`
       ]);
 
       const csvContent = [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');

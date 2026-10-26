@@ -54,7 +54,7 @@ export function DoctorDetailEditModal(props: DoctorDetailEditModalProps) {
         <div className='shrink-0 pb-3 border-b border-border/40 flex items-start justify-between gap-3 min-w-0'>
           <div className='space-y-0.5 min-w-0 flex-1'>
             <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight flex items-center gap-2'>
-              <span className='truncate'>{form.formData.fullName || doctor.nama_dokter}</span>
+              <span className='truncate'>{form.formData.fullName}</span>
             </h3>
             <p className='text-xs text-muted-foreground truncate font-medium'>
               Lihat dan kelola profil, identitas, domisili, kredensial, serta status operasional{' '}
@@ -218,18 +218,18 @@ export function DoctorDetailEditModal(props: DoctorDetailEditModalProps) {
                     id='doctor_staff_code'
                     label='Kode staf'
                     placeholder='STF-DOK-xxxx'
-                    value={form.formData.staffCode || doctor.staff_code || '-'}
+                    value={form.formData.staffCode}
                     readOnly
                     isMonospace
                     trailingIcon={
-                      form.formData.staffCode || doctor.staff_code ? (
+                      form.formData.staffCode ? (
                         <button
                           type='button'
                           onClick={async (e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            const code = form.formData.staffCode || doctor.staff_code || '';
-                            if (code && code !== '-') {
+                            const code = form.formData.staffCode;
+                            if (code) {
                               await navigator.clipboard.writeText(code);
                               toast.success(`Kode staf ${code} disalin ke clipboard`);
                             }
@@ -272,7 +272,7 @@ export function DoctorDetailEditModal(props: DoctorDetailEditModalProps) {
                         <SelectContent>
                           {form.polyclinics.map((p) => (
                             <SelectItem key={p.id} value={p.id} className='text-xs'>
-                              {p.namaPoli || p.name || p.code || p.kodePoli || p.id}
+                              {p.name}
                             </SelectItem>
                           ))}
                         </SelectContent>

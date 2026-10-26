@@ -849,7 +849,7 @@ This file provides essential information for AI coding agents working on this pr
 - **Language**: TypeScript 5.7
 - **Styling**: Tailwind CSS v4
 - **UI Components**: shadcn/ui (New York style)
-- **Authentication**: Clerk (with Organizations/Billing support)
+- **Authentication**: Better Auth (with NestJS Backend API & Server-First RBAC)
 - **Error Tracking**: Sentry
 - **Charts**: Recharts
 - **Containerization**: Docker (Node.js & Bun Dockerfiles)
@@ -890,10 +890,10 @@ The project follows a feature-based folder structure designed for scalability in
 
 ### Authentication & Authorization
 
-- Clerk for authentication and user management
-- Clerk Organizations for multi-tenant workspaces
-- Clerk Billing for subscription management (B2B)
-- Client-side RBAC for navigation visibility
+- Better Auth for authentication and session management
+- Server-First Authoritative RBAC (`src/lib/rbac/auth-context.tsx`)
+- Server-side permission guards (`src/lib/guard.ts`)
+- Client-side zero-flicker navigation filtering based on server session
 
 ### Data & APIs
 
@@ -988,8 +988,6 @@ The project follows a feature-based folder structure designed for scalability in
     └── themes/            # Individual theme files
 
 /docs                      # Documentation
-│   ├── clerk_setup.md     # Clerk configuration guide
-│   ├── nav-rbac.md        # Navigation RBAC documentation
 │   └── themes.md          # Theme customization guide
 
 /scripts                   # Dev tooling
@@ -1023,18 +1021,13 @@ bun run prepare      ```
 
 Copy `env.example.txt` to `.env.local` and configure:
 
-### Required for Authentication (Clerk)
+### Required for Authentication (Better Auth)
 
 ```env
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_...
-CLERK_SECRET_KEY=sk_...
-
-# Redirect URLs
-NEXT_PUBLIC_CLERK_SIGN_IN_URL="/auth/sign-in"
-NEXT_PUBLIC_CLERK_SIGN_UP_URL="/auth/sign-up"
-NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL="/dashboard/overview"
-NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL="/dashboard/overview"
-````
+BETTER_AUTH_SECRET=your-32-char-secret
+API_BASE_URL=http://localhost:3001
+BETTER_AUTH_URL=http://localhost:3001
+```
 
 ### Optional for Error Tracking (Sentry)
 
@@ -1045,8 +1038,6 @@ NEXT_PUBLIC_SENTRY_PROJECT=your-project
 SENTRY_AUTH_TOKEN=sntrys_...
 NEXT_PUBLIC_SENTRY_DISABLED="false"  # Set to "true" to disable in dev
 ```
-
-**Note**: Clerk supports "keyless mode" - the app works without API keys for initial development.
 
 ---
 
@@ -1158,7 +1149,7 @@ export const navGroups: NavGroup[] = [
 
 ### Client-Side Filtering
 
-The `useFilteredNavItems()` hook in `src/hooks/use-nav.ts` filters navigation client-side using Clerk's `useOrganization()` and `useUser()` hooks. This is for UX only - actual security checks must happen server-side.
+The `useFilteredNavItems()` hook in `src/hooks/use-nav.ts` filters navigation client-side using `useAuthContext()` from `@/lib/rbac/auth-context`. This ensures zero hydration flicker and instant first paint.
 
 ---
 
@@ -1166,37 +1157,26 @@ The `useFilteredNavItems()` hook in `src/hooks/use-nav.ts` filters navigation cl
 
 ### Protected Routes
 
-Dashboard routes use Clerk's middleware pattern. Pages that require organization:
+Server-rendered pages use server-side authorization guards from `@/lib/guard`:
 
 ```tsx
-import { auth } from '@clerk/nextjs';
-import { redirect } from 'next/navigation';
+import { requireAdmin } from '@/lib/guard';
 
 export default async function Page() {
-  const { orgId } = await auth();
-  if (!orgId) redirect('/dashboard/workspaces');
+  await requireAdmin();
+  // render protected admin view
 }
 ```
 
-### Plan/Feature Protection
+### Client-Side Permission Checks
 
-Use Clerk's `<Protect>` component for client-side:
-
-```tsx
-import { Protect } from '@clerk/nextjs';
-
-<Protect plan='pro' fallback={<UpgradePrompt />}>
-  <PremiumContent />
-</Protect>;
-```
-
-Use `has()` function for server-side checks:
+Use `can(permission)` or `hasRole(role)` from `useAuthContext()`:
 
 ```tsx
-import { auth } from '@clerk/nextjs';
-
-const { has } = await auth();
-const hasFeature = has({ feature: 'premium_access' });
+const { can, hasRole } = useAuthContext();
+if (can('appointment.create')) {
+  // show appointment action
+}
 ```
 
 ---
@@ -1371,24 +1351,19 @@ Recommended test locations:
 
 Ensure these are set in your deployment platform:
 
-- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
-- `CLERK_SECRET_KEY`
+- `BETTER_AUTH_SECRET`
+- `API_BASE_URL`
+- `BETTER_AUTH_URL`
 - All `NEXT_PUBLIC_*` variables for client-side access
 - `SENTRY_*` variables if using error tracking
 
 ### Docker
 
-Production-ready Dockerfiles are included:
-
-- `Dockerfile` — Node.js-based
-- `Dockerfile.bun` — Bun-based
-
-Both use `output: 'standalone'` in `next.config.ts`. Pass `NEXT_PUBLIC_*` vars as `--build-arg` at build time, and runtime secrets via `-e` at run time.
+Standalone output mode is supported in `next.config.ts`.
 
 ### Build Considerations
 
 - Output: `standalone` (optimized for Docker/self-hosting)
-- Images: Configured for `api.slingacademy.com`, `img.clerk.com`, `clerk.com`
 - Sentry source maps uploaded automatically in CI
 
 ---
@@ -1400,7 +1375,7 @@ A single `scripts/cleanup.js` file handles removal of optional features:
 ```bash
 node scripts/cleanup.js --interactive
 
-node scripts/cleanup.js clerk           node scripts/cleanup.js kanban          node scripts/cleanup.js chat            node scripts/cleanup.js notifications   node scripts/cleanup.js themes          node scripts/cleanup.js sentry
+node scripts/cleanup.js kanban          node scripts/cleanup.js chat            node scripts/cleanup.js notifications   node scripts/cleanup.js themes          node scripts/cleanup.js sentry
 node scripts/cleanup.js kanban chat notifications
 
 node scripts/cleanup.js --dry-run kanban
@@ -1513,11 +1488,6 @@ See "Theming System" section above or `docs/themes.md`.
 - Ensure using Tailwind CSS v4 syntax (`@import 'tailwindcss'`)
 - Check `postcss.config.js` uses `@tailwindcss/postcss`
 
-**Clerk keyless mode popup**
-
-- Normal in development without API keys
-- Click popup to claim application or set env variables
-
 **Theme not applying**
 
 - Check theme name matches in CSS `[data-theme]` and `theme.config.ts`
@@ -1533,7 +1503,7 @@ See "Theming System" section above or `docs/themes.md`.
 ## External Documentation
 
 - [Next.js App Router](https://nextjs.org/docs/app)
-- [Clerk Next.js SDK](https://clerk.com/docs/references/nextjs)
+- [Better Auth Documentation](https://www.better-auth.com/docs)
 - [shadcn/ui](https://ui.shadcn.com/docs)
 - [Tailwind CSS v4](https://tailwindcss.com/docs)
 - [TanStack Table](https://tanstack.com/table/latest)

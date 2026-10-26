@@ -123,32 +123,32 @@ export function DoctorScheduleCard({
       isSelected={isSelected}
       isPending={isPending}
       variant={variant}
-      name={doctor.nama_dokter}
+      name={doctor.fullName}
       subtitle={
         <DoctorSpecialtyText
-          specialty={doctor.spesialisasi}
+          specialty={doctor.specialty}
           className='text-[12px] sm:text-[11.5px] xl:text-[11px] truncate mt-0.5'
         />
       }
       avatarUrl={doctor.avatar}
       trailingImage={
-        showTrailingAvatar ? <DoctorCardImage src={doctor.avatar} alt={doctor.nama_dokter} /> : null
+        showTrailingAvatar ? <DoctorCardImage src={doctor.avatar} alt={doctor.fullName} /> : null
       }
       contentSlot={
-        doctor.is_on_leave ? (
+        doctor.isOnLeave ? (
           <span className='inline-flex items-center gap-1.5 px-2.5 sm:px-2 py-0.5 rounded-md text-[11px] sm:text-[10.5px] xl:text-[10px] font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 truncate'>
             <Icons.calendar className='size-3 sm:size-2.5 text-sky-500 shrink-0' />
             <span>Sedang Cuti</span>
-            {doctor.substitute_doctor_name && (
+            {doctor.substituteDoctorName && (
               <span className='text-muted-foreground font-normal truncate'>
-                (Ganti: {doctor.substitute_doctor_name})
+                (Ganti: {doctor.substituteDoctorName})
               </span>
             )}
           </span>
         ) : (
           <DoctorCardPatientStack
-            patients={doctor.pasien_preview}
-            totalPatients={doctor.total_pasien}
+            patients={doctor.patientPreviews}
+            totalPatients={doctor.totalPatients}
             onClick={isPending ? undefined : handleDetail}
           />
         )

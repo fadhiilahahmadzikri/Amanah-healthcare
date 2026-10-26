@@ -106,9 +106,9 @@ export function useUpdateDoctorSessionMutation() {
     },
     onSuccess: async (_data, variables) => {
       syncAllDoctorSchedules(queryClient);
-      if (variables.payload.status === SCHEDULE_STATUS.CLOSED) {
+      if (variables.payload.sessionStatus === SCHEDULE_STATUS.CLOSED) {
         toast.success('Jadwal sesi berhasil ditutup');
-      } else if (variables.payload.status === SCHEDULE_STATUS.OPEN) {
+      } else if (variables.payload.sessionStatus === SCHEDULE_STATUS.OPEN) {
         toast.success('Jadwal sesi berhasil dibuka kembali');
       } else {
         toast.success('Sesi praktik berhasil diperbarui');

@@ -92,7 +92,7 @@ export const ClinicalDocumentFullscreenReader: React.FC<ClinicalDocumentFullscre
         e.preventDefault();
         setZoom(1.0);
       }
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
         e.preventDefault();
         handlePrint();
       }

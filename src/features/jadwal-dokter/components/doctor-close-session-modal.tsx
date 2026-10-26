@@ -60,10 +60,10 @@ export function DoctorCloseSessionModal({
           <div className='rounded-xl border border-border/60 bg-muted/20 p-3 space-y-1.5 text-xs'>
             <div className='flex items-center justify-between font-semibold'>
               <span className='text-foreground'>
-                {formatFriendlySessionName(closingSession.nama_sesi) || closingSession.nama_sesi}
+                {formatFriendlySessionName(closingSession.sessionName) || closingSession.sessionName}
               </span>
               <span className='font-mono text-muted-foreground'>
-                {closingSession.jam_mulai} - {closingSession.jam_selesai}
+                {closingSession.startTime} - {closingSession.endTime}
               </span>
             </div>
             <p className='text-[11.5px] text-muted-foreground leading-relaxed'>

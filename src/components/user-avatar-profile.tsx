@@ -1,29 +1,23 @@
 import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
+import type { AuthUser } from '@/lib/rbac/auth-context';
 
 interface UserAvatarProfileProps {
   className?: string;
   showInfo?: boolean;
-  user: {
-    avatarUrl?: string | null;
-    image?: string | null;
-    fullName?: string | null;
-    name?: string | null;
-    email?: string | null;
-    emailAddresses?: Array<{ emailAddress: string }>;
-  } | null;
+  user: Pick<AuthUser, 'name' | 'email' | 'image'> | null;
 }
 
 export function UserAvatarProfile({ className, showInfo = false, user }: UserAvatarProfileProps) {
-  const displayName = user?.name || user?.fullName || 'User';
-  const displayEmail = user?.email || user?.emailAddresses?.[0]?.emailAddress || '';
-  const displayImage = user?.avatarUrl || user?.image || '';
+  const displayName = user?.name || 'User';
+  const displayEmail = user?.email || '';
+  const displayImage = user?.image || DEFAULT_AVATAR_PATH;
 
   return (
     <div className='flex items-center gap-2'>
       <Avatar className={className}>
-        <AvatarImage src={displayImage || DEFAULT_AVATAR_PATH} alt={displayName} />
+        <AvatarImage src={displayImage} alt={displayName} />
         <AvatarFallback className='rounded-lg p-0 bg-transparent overflow-hidden'>
           <Image
             src={DEFAULT_AVATAR_PATH}

@@ -67,7 +67,7 @@ export function BookedPatientDetailModal({
         await cancelMutation.mutateAsync({
           appointmentId: apt.id,
           payload: {
-            cancellationReason: reason || 'Dibatalkan oleh pihak klinik',
+            reason: reason,
             notifyPatient: true
           }
         });

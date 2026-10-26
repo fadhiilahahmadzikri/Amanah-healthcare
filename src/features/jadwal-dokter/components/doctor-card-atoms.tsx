@@ -306,7 +306,7 @@ export function DoctorCardPatientStack({
       <div className='flex items-center -space-x-1.5 sm:-space-x-1.5 rtl:space-x-reverse overflow-hidden py-0.5 pl-0.5 shrink-0'>
         {visiblePatients.map((patient, index) => (
           <Avatar
-            key={patient.id || patient.patientId || index}
+            key={patient.id}
             title={patient.name}
             className='size-6 sm:size-5.5 xl:size-5 rounded-full ring-1.5 ring-card shadow-2xs border border-border/40 shrink-0 transition-transform group-hover/patient-stack:scale-105'
           >

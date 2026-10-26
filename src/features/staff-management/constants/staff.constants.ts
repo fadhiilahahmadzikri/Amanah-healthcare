@@ -1,3 +1,10 @@
+export {
+  STAFF_TYPES,
+  type StaffType,
+  STAFF_TYPE_LABELS,
+} from '@/constants/staff-types.constant';
+import { STAFF_TYPES } from '@/constants/staff-types.constant';
+
 export const STAFF_ROLE_CODES = {
   DOCTOR: 'staff_doctor',
   MIDWIFE: 'staff_midwife',
@@ -5,14 +12,6 @@ export const STAFF_ROLE_CODES = {
 } as const;
 
 export type StaffRoleCode = (typeof STAFF_ROLE_CODES)[keyof typeof STAFF_ROLE_CODES];
-
-export const STAFF_TYPES = {
-  DOCTOR: 'doctor',
-  MIDWIFE: 'midwife',
-  WORKER: 'worker'
-} as const;
-
-export type StaffType = (typeof STAFF_TYPES)[keyof typeof STAFF_TYPES];
 
 export const STAFF_INVITATION_STATUS = {
   PENDING: 'pending',

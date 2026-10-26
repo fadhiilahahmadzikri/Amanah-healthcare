@@ -140,17 +140,17 @@ export function StaffDetailEditModal(props: StaffDetailEditModalProps) {
                   id='staff_code'
                   label='Kode staf'
                   placeholder='STF-xxx'
-                  value={staff.idCardNumber || staff.staffCode || '-'}
+                  value={staff.staffCode || '-'}
                   readOnly
                   isMonospace
                   trailingIcon={
-                    staff.idCardNumber || staff.staffCode ? (
+                    staff.staffCode ? (
                       <button
                         type='button'
                         onClick={async (e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          const code = staff.idCardNumber || staff.staffCode || '';
+                          const code = staff.staffCode || '';
                           if (code && code !== '-') {
                             await navigator.clipboard.writeText(code);
                             toast.success(`Kode staf ${code} disalin ke clipboard`);
@@ -227,7 +227,7 @@ export function StaffDetailEditModal(props: StaffDetailEditModalProps) {
                           <option value=''>Pilih unit poliklinik...</option>
                           {form.polyclinics.map((p) => (
                             <option key={p.id} value={p.id}>
-                              {p.namaPoli || p.name || p.code || p.kodePoli || p.id}
+                              {p.name}
                             </option>
                           ))}
                         </select>

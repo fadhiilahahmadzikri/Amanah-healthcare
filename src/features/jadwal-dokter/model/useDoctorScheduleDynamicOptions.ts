@@ -131,11 +131,11 @@ export function useDoctorScheduleDynamicOptions({
     scheduleView.doctors.forEach((doc) => {
       items.push({
         id: `doc-${doc.id}`,
-        title: doc.nama_dokter,
-        subtitle: `${doc.spesialisasi} • ${doc.status_dokter}`,
+        title: doc.fullName,
+        subtitle: `${doc.specialty} • ${doc.doctorStatus}`,
         category: 'Dokter',
         icon: Icons.stethoscope,
-        queryValue: doc.nama_dokter
+        queryValue: doc.fullName
       });
     });
 

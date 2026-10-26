@@ -113,7 +113,7 @@ export function DoctorAssignmentModal({
                 Pengaturan Jadwal Kerja Dokter
               </DialogTitle>
               <DialogDescription className='text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 truncate text-left'>
-                {doctor.nama_dokter} &bull; {doctor.spesialisasi}
+                {doctor.fullName} &bull; {doctor.specialty}
               </DialogDescription>
             </div>
 
@@ -403,7 +403,7 @@ export function DoctorAssignmentModal({
                             {row.action.replace('_', ' ')}
                           </td>
                           <td className='p-3'>
-                            {row.dayName || row.scheduleDate || '-'}
+                            {row.dayName ?? row.scheduleDate}
                             {row.sessionLabel
                               ? ` (${formatFriendlySessionName(row.sessionLabel) || row.sessionLabel})`
                               : ''}

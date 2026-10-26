@@ -35,7 +35,7 @@ export default async function DoctorScheduleListingPage() {
       const data = await fetchAdminDoctorSchedules({ ...filters, page: pageParam as number });
       return {
         doctors: data.doctors,
-        total_doctors: data.meta.total_doctors,
+        totalDoctors: data.meta.totalDoctors,
         meta: data.meta
       };
     }

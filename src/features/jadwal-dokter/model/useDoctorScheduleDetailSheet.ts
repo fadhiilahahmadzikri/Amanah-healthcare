@@ -95,28 +95,28 @@ export function useDoctorScheduleDetailSheet({
   const lastDoctorRef = React.useRef<DoctorSchedule | null>(null);
 
   React.useEffect(() => {
-    if (detailQuery.data?.nama_dokter) {
+    if (detailQuery.data?.fullName) {
       lastDoctorRef.current = detailQuery.data;
     }
   }, [detailQuery.data]);
 
   React.useEffect(() => {
-    if (propDoctor?.nama_dokter) {
+    if (propDoctor?.fullName) {
       lastDoctorRef.current = propDoctor;
     }
   }, [propDoctor]);
 
   // 100% Real Data: No dummy stubs, completely persistent across unmount transitions
   const doctor =
-    (detailQuery.data?.nama_dokter ? detailQuery.data : null) ??
-    (propDoctor?.nama_dokter ? propDoctor : null) ??
+    (detailQuery.data?.fullName ? detailQuery.data : null) ??
+    (propDoctor?.fullName ? propDoctor : null) ??
     lastDoctorRef.current;
 
   const isDetailLoading = detailQuery.isLoading && !detailQuery.data && !doctor;
 
   const doctorStatus = doctor ? getDoctorCardStatus(doctor) : null;
   const doctorStatusConfig = doctorStatus ? getStatusConfig(doctorStatus) : null;
-  const isUnconfigured = !doctor?.sesi_harian || doctor.sesi_harian.length === 0;
+  const isUnconfigured = !doctor?.dailySessions || doctor.dailySessions.length === 0;
 
   const handleDayStatusChange = React.useCallback(
     (day: number, status: ScheduleDayStatus, notes?: string) => {

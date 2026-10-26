@@ -610,6 +610,35 @@ export class AgnosticSpeculativeScanner {
             'Sederhanakan menjadi representasi kanonik tunggal. Pastikan layer batas (adapter/schema) menjamin ketersediaan nilai.'
           );
         }
+
+        // POLA 1D: FABRICATED_FALLBACK_LITERAL (obj.time ?? '00:00' atau obj.status ?? 'UNKNOWN')
+        // Mendeteksi koalesing fallback ke nilai literal buatan (jam fiktif, sentinel placeholder)
+        for (let i = 0; i < chain.length - 1; i++) {
+          const leftNode = chain[i];
+          const rightNode = chain[i + 1];
+          if (ts.isStringLiteral(rightNode) || ts.isNoSubstitutionTemplateLiteral(rightNode)) {
+            const literalText = rightNode.text.trim();
+            const pa = extractPropertyAccess(leftNode, sourceFile);
+            if (pa && pa.receiver !== 'process.env') {
+              const isTimeLiteral = /^\d{1,2}:\d{2}(:\d{2})?$/.test(literalText);
+              const isSentinelPlaceholder =
+                /^(unknown|n\/a|none|default|dummy|test|null|undefined)$/i.test(literalText);
+              if (isTimeLiteral || isSentinelPlaceholder) {
+                const reason = isTimeLiteral ? 'jam/waktu fiktif' : 'sentinel placeholder fiktif';
+                this.addViolation(
+                  sourceFile,
+                  relativePath,
+                  rightNode,
+                  'HIGH',
+                  'SPECULATIVE',
+                  'FABRICATED_FALLBACK_LITERAL',
+                  `Koalesing ke nilai ${reason} '${literalText}' pada properti "${pa.receiver}.${pa.property}". Menyamarkan data hilang atau korupsi state upstream.`,
+                  'Hapus fallback fiktif. Biarkan nilai null/undefined atau perbaiki kontrak upstream agar nilai terjamin pasti.'
+                );
+              }
+            }
+          }
+        }
       }
     }
 
@@ -1063,6 +1092,20 @@ export class AgnosticSpeculativeScanner {
     }
   }
 
+  public scanPath(targetPath: string): void {
+    if (!fs.existsSync(targetPath)) {
+      return;
+    }
+    const stat = fs.statSync(targetPath);
+    if (stat.isFile()) {
+      if (/\.(ts|tsx)$/.test(targetPath) && !targetPath.endsWith('.d.ts')) {
+        this.scanFile(targetPath);
+      }
+    } else if (stat.isDirectory()) {
+      this.scanDirectory(targetPath);
+    }
+  }
+
   public scanDirectory(dir: string): void {
     if (!fs.existsSync(dir)) {
       return;
@@ -1199,7 +1242,7 @@ export function runCli(): void {
   options.modeLabel = parsedMode.label;
 
   const scanner = new AgnosticSpeculativeScanner(options.modes);
-  scanner.scanDirectory(options.targetDir);
+  scanner.scanPath(options.targetDir);
 
   const violations = scanner.getViolations(options.minSeverity);
 

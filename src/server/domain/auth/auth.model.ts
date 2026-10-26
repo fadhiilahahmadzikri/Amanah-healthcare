@@ -1,6 +1,7 @@
 import 'server-only';
 import type { UserId, TokenString, EmailAddress } from '@/core/types/branded';
-import type { SystemRole } from '@/server/auth/policies';
+
+export type SystemRole = 'ADMIN' | 'STAF' | 'PATIENT';
 
 export interface MedicalStaffProfile {
   readonly id: string;
@@ -31,6 +32,7 @@ export interface PatientProfile {
 
 export interface UserRole {
   readonly id: string | number;
+  readonly code?: string;
   readonly name: string;
 }
 

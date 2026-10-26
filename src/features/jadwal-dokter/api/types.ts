@@ -3,6 +3,8 @@ export type {
   ClinicRoomOccupantDetails,
   ClosureMetadata
 } from '@/server/contracts/schedules/doctor-schedules.dto';
+import { STAFF_TYPES, type StaffType } from '@/constants/staff-types.constant';
+export { STAFF_TYPES, type StaffType };
 
 export {
   SHIFT_OPERATIONAL_STATUS,
@@ -18,16 +20,18 @@ export type SessionStatus = 'OPEN' | 'CLOSED' | 'ON_LEAVE' | 'PENDING';
 
 export interface DoctorDailySession {
   id: string;
-  nama_sesi: string;
-  jam_mulai: string;
-  jam_selesai: string;
-  waktu?: string;
-  pasien_terdaftar?: number;
-  status_sesi: SessionStatus;
-  ruang?: string;
-  roomId?: string;
-  ruang_id?: string;
-  tanggal?: string;
+  sessionName: string;
+  startTime: string;
+  endTime: string;
+  timeRange?: string;
+  bookedPatients?: number;
+  sessionStatus: SessionStatus;
+  closureReason?: string | null;
+  roomName?: string;
+  roomId?: string | null;
+  isRescheduleEligible?: boolean;
+  rescheduleIneligibilityReason?: string | null;
+  date?: string;
 }
 
 export interface MonthlyScheduleDay {
@@ -47,34 +51,35 @@ export interface DoctorCardPatientPreview {
 
 export interface DoctorSchedule {
   id: string;
-  practitioner_id?: string;
-  staff_profile_id?: string | null;
-  staff_id?: string | null;
-  staff_code?: string | null;
-  nama_dokter: string;
-  spesialisasi: string;
-  status_dokter: 'OPEN' | 'CLOSED' | 'ON_LEAVE' | 'PENDING' | string;
+  practitionerId?: string;
+  staffProfileId?: string | null;
+  staffId?: string | null;
+  staffCode?: string | null;
+  staffType?: StaffType;
+  fullName: string;
+  specialty: string;
+  doctorStatus: 'OPEN' | 'CLOSED' | 'ON_LEAVE' | 'PENDING' | string;
   email?: string | null;
-  nomor_telepon?: string | null;
-  ruang_praktik: string;
-  tanggal_praktik?: string;
+  phone?: string | null;
+  practiceRoom: string;
+  practiceDate?: string;
   avatar?: string;
-  jadwal_hari_ini: string;
-  status_jadwal: 'OPEN' | 'CLOSED' | 'ON_LEAVE' | 'PENDING' | string;
-  bulan_jadwal?: string;
-  monthly_schedule?: MonthlyScheduleDay[];
-  sesi_harian?: DoctorDailySession[];
-  is_on_leave?: boolean;
-  leave_reason?: string | null;
-  leave_start?: string | null;
-  leave_end?: string | null;
-  leave_type?: string | null;
-  substitute_doctor_name?: string | null;
-  replacement_status?: string | null;
-  jadwal_praktik_mendatang?: string;
-  total_pasien?: number;
-  pasien_preview?: DoctorCardPatientPreview[];
-  is_accepting_appointments?: boolean;
+  todaySchedule: string;
+  upcomingSchedule?: string;
+  scheduleStatus: 'OPEN' | 'CLOSED' | 'ON_LEAVE' | 'PENDING' | string;
+  scheduleMonth?: string;
+  monthlySchedule?: MonthlyScheduleDay[];
+  dailySessions?: DoctorDailySession[];
+  isOnLeave?: boolean;
+  leaveReason?: string | null;
+  leaveStart?: string | null;
+  leaveEnd?: string | null;
+  leaveType?: string | null;
+  substituteDoctorName?: string | null;
+  replacementStatus?: string | null;
+  totalPatients?: number;
+  patientPreviews?: DoctorCardPatientPreview[];
+  isAcceptingAppointments?: boolean;
 }
 
 export interface DoctorScheduleFilters {
@@ -97,27 +102,28 @@ export interface DoctorScheduleDetailParams {
 
 export interface DoctorScheduleListResponse {
   doctors: DoctorSchedule[];
-  total_doctors: number;
+  totalDoctors: number;
   meta?: {
     page: number;
     limit: number;
-    total_doctors: number;
-    total_pages: number;
+    totalDoctors: number;
+    totalPages: number;
   };
 }
 
 export interface UpdateDoctorSchedulePayload {
-  is_on_leave?: boolean;
-  leave_reason?: string | null;
-  leave_start?: string | null;
-  leave_end?: string | null;
-  status_dokter?: string;
-  status_jadwal?: string;
-  jadwal_hari_ini?: string;
-  ruang_praktik?: string;
+  isOnLeave?: boolean;
+  leaveReason?: string | null;
+  leaveStart?: string | null;
+  leaveEnd?: string | null;
+  doctorStatus?: string;
+  scheduleStatus?: string;
+  todaySchedule?: string;
+  practiceRoom?: string;
+  roomId?: string;
   date?: string;
-  monthly_schedule?: MonthlyScheduleDay[];
-  sesi_harian?: DoctorDailySession[];
+  monthlySchedule?: MonthlyScheduleDay[];
+  dailySessions?: DoctorDailySession[];
 }
 
 export type UpdateDoctorSessionPayload = UpdateAdminDoctorSessionPayload;

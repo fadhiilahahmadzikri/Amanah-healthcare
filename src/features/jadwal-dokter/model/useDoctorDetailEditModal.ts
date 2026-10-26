@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { toast } from 'sonner';
 import type { PatientRegionValues } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import type { Gender } from '@/constants/gender.constants';
+import { STAFF_TYPES, type StaffType } from '@/constants/staff-types.constant';
 import {
   type PolyclinicUnit,
   type StaffMember,
@@ -22,6 +23,7 @@ export interface UseDoctorDetailEditModalProps {
 export interface DoctorDetailFormData {
   staffId: string;
   staffCode: string;
+  staffType?: StaffType;
   fullName: string;
   email: string;
   phoneNumber: string;
@@ -56,6 +58,7 @@ export interface UseDoctorDetailEditModalResult {
 const INITIAL_FORM_DATA: DoctorDetailFormData = {
   staffId: '',
   staffCode: '',
+  staffType: undefined,
   fullName: '',
   email: '',
   phoneNumber: '',
@@ -107,7 +110,7 @@ export function useDoctorDetailEditModal({
 
   // Stable IDs to prevent infinite re-render loops (Maximum update depth exceeded)
   const doctorId = doctor?.id;
-  const staffId = doctor?.staff_id || doctor?.practitioner_id || doctor?.id;
+  const staffId = doctor?.staffId;
 
   // Load Polyclinics dynamically when opened
   useEffect(() => {
@@ -149,19 +152,20 @@ export function useDoctorDetailEditModal({
     setIsLoadingProfile(true);
 
     const baseForm: DoctorDetailFormData = {
-      staffId: doctor.staff_id || doctor.staff_profile_id || '',
-      staffCode: doctor.staff_code || '',
-      fullName: doctor.nama_dokter || '',
+      staffId: doctor.staffId || '',
+      staffCode: doctor.staffCode || '',
+      staffType: doctor.staffType,
+      fullName: doctor.fullName,
       email: doctor.email || '',
-      phoneNumber: doctor.nomor_telepon || '',
-      profession: doctor.spesialisasi || '',
+      phoneNumber: doctor.phone || '',
+      profession: doctor.specialty || '',
       birthPlace: '',
       birthDate: '',
       gender: undefined,
       nationalId: '',
       poliklinikId: '',
       licenseNumber: '',
-      isActive: doctor.status_dokter !== 'PENDING' && (doctor.is_accepting_appointments ?? true)
+      isActive: doctor.doctorStatus !== 'PENDING' && (doctor.isAcceptingAppointments ?? true)
     };
 
     setFormData(baseForm);
@@ -176,19 +180,20 @@ export function useDoctorDetailEditModal({
           if (cancelled || !profile) return;
 
           const loadedForm: DoctorDetailFormData = {
-            staffId: profile.id || doctor.staff_id || doctor.staff_profile_id || '',
-            staffCode: profile.staffCode || profile.idCardNumber || doctor.staff_code || '',
-            fullName: profile.fullName || doctor.nama_dokter || '',
-            email: profile.email || doctor.email || '',
-            phoneNumber: profile.phoneNumber || doctor.nomor_telepon || '',
-            profession: profile.profession || doctor.spesialisasi || '',
+            staffId: profile.id,
+            staffCode: profile.staffCode,
+            staffType: profile.staffType,
+            fullName: profile.fullName,
+            email: profile.email || '',
+            phoneNumber: profile.phoneNumber,
+            profession: profile.profession,
             birthPlace: profile.birthPlace || '',
             birthDate: profile.birthDate ? String(profile.birthDate).slice(0, 10) : '',
             gender: profile.gender,
             nationalId: profile.nationalId || '',
             poliklinikId: profile.poliklinikId || '',
             licenseNumber: profile.licenseNumber || '',
-            isActive: profile.isActive ?? doctor.status_dokter !== 'PENDING'
+            isActive: profile.isActive
           };
 
           const loadedRegion: PatientRegionValues = profile.address
@@ -201,7 +206,7 @@ export function useDoctorDetailEditModal({
                 districtCode: profile.address.districtCode || '',
                 villageName: profile.address.villageName || '',
                 villageCode: profile.address.villageCode || '',
-                line1: profile.address.line1 || profile.address.fullAddress || ''
+                line1: profile.address.line1 || ''
               }
             : INITIAL_REGION_VALUES;
 
@@ -329,11 +334,7 @@ export function useDoctorDetailEditModal({
     [doctor, hasChanges, formData, regionValues, staffId, doctorId, onSuccess, onClose]
   );
 
-  const isBidan = Boolean(
-    doctor?.spesialisasi?.toLowerCase().includes('bidan') ||
-    doctor?.nama_dokter?.toLowerCase().startsWith('bdn.') ||
-    formData.profession?.toLowerCase().includes('bidan')
-  );
+  const isBidan = formData.staffType === STAFF_TYPES.MIDWIFE;
 
   return {
     isEditing,

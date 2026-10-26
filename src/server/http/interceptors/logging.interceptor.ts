@@ -24,7 +24,7 @@ export function logOutboundRequest(
     process.stdout.write(
       formatRequestBox({
         event: 'http.request',
-        requestId: context.requestId || context.correlationId,
+        requestId: context.requestId,
         correlationId: context.correlationId,
         timestamp: new Date().toISOString(),
         http: {
@@ -61,7 +61,7 @@ export function logOutboundResponse(
     process.stdout.write(
       formatResponseBox({
         event: 'http.response',
-        requestId: context.requestId || context.correlationId,
+        requestId: context.requestId,
         correlationId: context.correlationId,
         timestamp: new Date().toISOString(),
         http: {
@@ -108,7 +108,7 @@ export function logOutboundError(
     process.stderr.write(
       formatErrorBox({
         event: 'http.error',
-        requestId: context.requestId || context.correlationId,
+        requestId: context.requestId,
         correlationId: context.correlationId,
         timestamp: new Date().toISOString(),
         http: {
@@ -133,13 +133,13 @@ export function logOutboundError(
     if (error.status === 403) {
       logger.warn('http_request_forbidden', {
         ...logContext,
-        code: error.code || error.name,
+        code: error.code,
         status: error.status
       });
     } else {
       logger.info('http_request_expected_failure', {
         ...logContext,
-        code: error.code || error.name,
+        code: error.code,
         status: error.status,
         message: error.message
       });

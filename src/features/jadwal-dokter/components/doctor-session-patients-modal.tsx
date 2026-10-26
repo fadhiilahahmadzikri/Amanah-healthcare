@@ -41,7 +41,7 @@ export function DoctorSessionPatientsModal({
   onClose,
   portalContainerRef
 }: DoctorSessionPatientsModalProps) {
-  const doctorId = doctor.id !== '' ? doctor.id : (doctor.practitioner_id ?? '');
+  const doctorId = doctor.id !== '' ? doctor.id : (doctor.practitionerId ?? '');
   const sessionId = session.id;
   const effectiveShift = sessionShift;
 
@@ -72,7 +72,7 @@ export function DoctorSessionPatientsModal({
     date: selectedDate,
     sessionShift: effectiveShift,
     isOpen,
-    initialCapacity: session.pasien_terdaftar ?? 0
+    initialCapacity: session.bookedPatients ?? 0
   });
 
   const statusFacetOptions = React.useMemo(
@@ -86,26 +86,26 @@ export function DoctorSessionPatientsModal({
   );
 
   const formattedDisplayDate = React.useMemo(() => {
-    const rawDate = scheduleDate || selectedDate || session.tanggal || doctor.tanggal_praktik || '';
+    const rawDate = scheduleDate || selectedDate || session.date || doctor.practiceDate || '';
     if (!rawDate) return '';
     return formatClinicDate(rawDate);
-  }, [scheduleDate, selectedDate, session.tanggal, doctor.tanggal_praktik]);
+  }, [scheduleDate, selectedDate, session.date, doctor.practiceDate]);
 
   const sessionTimeDisplay = React.useMemo(() => {
     if (shiftTimeRange) {
       return shiftTimeRange.includes('WIB') ? shiftTimeRange : `${shiftTimeRange} WIB`;
     }
-    return `${session.jam_mulai} - ${session.jam_selesai} WIB`;
-  }, [shiftTimeRange, session.jam_mulai, session.jam_selesai]);
+    return `${session.startTime} - ${session.endTime} WIB`;
+  }, [shiftTimeRange, session.startTime, session.endTime]);
 
   const sessionContext = React.useMemo(
     () => ({
-      doctorName: doctor.nama_dokter,
-      doctorSpecialty: doctor.spesialisasi,
+      doctorName: doctor.fullName,
+      doctorSpecialty: doctor.specialty,
       date: formattedDisplayDate,
       sessionTime: sessionTimeDisplay
     }),
-    [doctor.nama_dokter, doctor.spesialisasi, formattedDisplayDate, sessionTimeDisplay]
+    [doctor.fullName, doctor.specialty, formattedDisplayDate, sessionTimeDisplay]
   );
 
   return (
@@ -122,11 +122,11 @@ export function DoctorSessionPatientsModal({
           <div className='flex items-start justify-between gap-4 pb-3 border-b border-border/40 shrink-0'>
             <div className='min-w-0 flex-1 space-y-0.5'>
               <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight truncate'>
-                {doctor.nama_dokter}
+                {doctor.fullName}
               </h3>
               <div className='text-xs text-muted-foreground flex items-center gap-2 flex-wrap pt-0.5'>
                 <span className='font-semibold text-foreground'>
-                  {formatFriendlySessionName(shiftLabel || session.nama_sesi) || session.nama_sesi}
+                  {formatFriendlySessionName(shiftLabel || session.sessionName) || session.sessionName}
                 </span>
                 <span className='text-border/80'>•</span>
                 <span className='font-mono font-medium text-foreground'>{sessionTimeDisplay}</span>
@@ -136,11 +136,11 @@ export function DoctorSessionPatientsModal({
                     <span className='font-medium text-foreground'>{formattedDisplayDate}</span>
                   </>
                 )}
-                {(session.ruang !== '' ? session.ruang : doctor.ruang_praktik) && (
+                {(session.roomName || doctor.practiceRoom) && (
                   <>
                     <span className='text-border/80'>•</span>
                     <span className='font-medium text-muted-foreground'>
-                      {session.ruang !== '' ? session.ruang : doctor.ruang_praktik}
+                      {session.roomName || doctor.practiceRoom}
                     </span>
                   </>
                 )}

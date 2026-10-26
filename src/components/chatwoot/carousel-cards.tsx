@@ -62,20 +62,20 @@ function parseSlideContent(slide: string, idx: number) {
 
     const finalDoctor: DoctorSchedule = {
       id: `doc-ai-${idx}`,
-      nama_dokter: rawName || 'Belum tersedia',
-      spesialisasi: specialty,
-      status_dokter: status,
+      fullName: rawName,
+      specialty: specialty,
+      doctorStatus: status,
       email: '',
-      nomor_telepon: '',
-      ruang_praktik: room,
-      tanggal_praktik: days || undefined,
+      phone: '',
+      practiceRoom: room,
+      practiceDate: days || undefined,
       avatar: '',
-      jadwal_hari_ini: hours,
-      status_jadwal: status,
-      bulan_jadwal: '',
-      monthly_schedule: [],
-      sesi_harian: [],
-      is_on_leave:
+      todaySchedule: hours,
+      scheduleStatus: status,
+      scheduleMonth: '',
+      monthlySchedule: [],
+      dailySessions: [],
+      isOnLeave:
         lower.includes('cuti') || status.toLowerCase().includes('cuti') || lower.includes('leave')
     };
 

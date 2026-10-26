@@ -136,8 +136,8 @@ export function DoctorDailySessions({
             <DoctorCutiNotice
               title='Dokter Sedang Cuti'
               subtitle={dayLeaveReason}
-              leaveType={doctor?.leave_type}
-              substituteDoctorName={doctor?.substitute_doctor_name}
+              leaveType={doctor?.leaveType}
+              substituteDoctorName={doctor?.substituteDoctorName}
             />
           </div>
         ) : isDayClosed ? (
@@ -213,16 +213,16 @@ export function DoctorDailySessions({
       {selectedPatientForDetail && (
         <BookedPatientDetailModal
           patient={selectedPatientForDetail}
-          doctorId={doctor?.id || doctor?.practitioner_id || ''}
+          doctorId={doctor?.id || ''}
           sessionId={selectedDetailSessionId || ''}
           isOpen={isPatientDetailOpen}
           onClose={handleClosePatientDetail}
           sessionContext={{
-            doctorName: doctor?.nama_dokter,
-            doctorSpecialty: doctor?.spesialisasi,
+            doctorName: doctor?.fullName,
+            doctorSpecialty: doctor?.specialty,
             date: formattedSelectedDate,
             sessionTime:
-              activeSessions.find((s) => s.id === selectedDetailSessionId)?.waktu || undefined
+              activeSessions.find((s) => s.id === selectedDetailSessionId)?.timeRange || undefined
           }}
         />
       )}

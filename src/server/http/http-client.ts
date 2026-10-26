@@ -41,11 +41,11 @@ export interface HttpRequestOptions {
 }
 
 export class HttpClient {
-  async request<T>(
+  async request<TOutput>(
     url: string,
-    schema: z.ZodType<T>,
+    schema: z.ZodType<TOutput, any, any>,
     options: HttpRequestOptions = {}
-  ): Promise<T> {
+  ): Promise<TOutput> {
     const method = (options.method ?? 'GET').toUpperCase() as HttpMethod;
     const queryString = serializeQueryParams(options.query);
     const resolvedUrl = url.startsWith('/') ? `${getBaseApiUrl()}${url}` : url;
@@ -112,7 +112,7 @@ export class HttpClient {
             return parsed.data;
           }
           // Allow void/null schemas or return as undefined cast
-          return undefined as unknown as T;
+          return undefined as unknown as TOutput;
         }
 
         const rawData = await response.json();

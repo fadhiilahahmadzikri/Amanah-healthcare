@@ -46,7 +46,7 @@ export const GET = withApiObservability(async function GET(request: NextRequest)
 
     return NextResponse.json({
       doctors: data.doctors,
-      total_doctors: data.meta.total_doctors,
+      totalDoctors: data.meta.totalDoctors,
       meta: data.meta
     });
   } catch (err: unknown) {

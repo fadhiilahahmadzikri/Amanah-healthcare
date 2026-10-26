@@ -113,17 +113,6 @@ export function InviteDoctorModal({
 
         const initialRole = roles.length > 0 ? roles[0].code : 'staff_doctor';
         setRoleCode((prev) => prev || initialRole);
-
-        if (polis.length > 0) {
-          setPoliklinikId((prev) => {
-            if (prev) return prev;
-            const defaultPoli =
-              initialRole === 'staff_midwife'
-                ? polis.find((p) => p.code?.toLowerCase().includes('kia')) || polis[0]
-                : polis.find((p) => p.code?.toLowerCase().includes('umum')) || polis[0];
-            return defaultPoli.id;
-          });
-        }
       })
       .catch(() => {
         if (!cancelled) {
@@ -141,23 +130,6 @@ export function InviteDoctorModal({
 
   const handleRoleChange = (selectedRole: string) => {
     setRoleCode(selectedRole);
-    if (selectedRole === 'staff_midwife') {
-      const kiaPoli = polyclinics.find(
-        (p) =>
-          p.code?.toLowerCase().includes('kia') ||
-          p.namaPoli?.toLowerCase().includes('kia') ||
-          p.name?.toLowerCase().includes('kia')
-      );
-      if (kiaPoli) setPoliklinikId(kiaPoli.id);
-    } else if (selectedRole === 'staff_doctor') {
-      const umumPoli = polyclinics.find(
-        (p) =>
-          p.code?.toLowerCase().includes('umum') ||
-          p.namaPoli?.toLowerCase().includes('umum') ||
-          p.name?.toLowerCase().includes('umum')
-      );
-      if (umumPoli) setPoliklinikId(umumPoli.id);
-    }
   };
 
   const isEmailValid = useMemo(() => {
@@ -395,9 +367,7 @@ export function InviteDoctorModal({
                       Unit Poliklinik Terpilih
                     </span>
                     <span className='text-sm font-bold text-foreground truncate block mt-0.5'>
-                      {selectedPoliklinik?.name ||
-                        selectedPoliklinik?.namaPoli ||
-                        'Pilih Poliklinik...'}
+                      {selectedPoliklinik?.name || 'Pilih Poliklinik...'}
                     </span>
                   </div>
                   <span className='text-xs font-semibold text-primary ml-2 shrink-0'>
@@ -429,7 +399,7 @@ export function InviteDoctorModal({
                               : 'text-foreground hover:bg-muted/50 font-medium'
                           )}
                         >
-                          <span className='truncate'>{p.name || p.namaPoli}</span>
+                          <span className='truncate'>{p.name}</span>
                           {isSelected && (
                             <span className='text-[11px] font-semibold text-primary'>Terpilih</span>
                           )}
@@ -470,7 +440,7 @@ export function InviteDoctorModal({
                   <div className='flex items-center justify-between text-xs pt-2 border-t border-border/40'>
                     <span className='text-muted-foreground'>Unit Poliklinik</span>
                     <span className='font-semibold text-foreground truncate max-w-[260px]'>
-                      {selectedPoliklinik?.name || selectedPoliklinik?.namaPoli || '-'}
+                      {selectedPoliklinik?.name || '-'}
                     </span>
                   </div>
                 )}

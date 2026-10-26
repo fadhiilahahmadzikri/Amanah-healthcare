@@ -108,7 +108,7 @@ export function useStaffDetailEditModal({
         districtCode: staff.address?.districtCode || '',
         villageName: staff.address?.villageName || '',
         villageCode: staff.address?.villageCode || '',
-        line1: staff.address?.line1 || staff.address?.fullAddress || ''
+        line1: staff.address?.line1 || ''
       });
     }
   }, [staff]);

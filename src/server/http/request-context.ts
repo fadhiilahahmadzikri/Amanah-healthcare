@@ -4,7 +4,7 @@ import { generateCorrelationId } from '@/core/telemetry/tracer';
 
 export interface RequestContext {
   readonly correlationId: string;
-  readonly requestId?: string;
+  readonly requestId: string;
   readonly authToken?: string;
   readonly tenantId?: string;
   readonly clientIp?: string;

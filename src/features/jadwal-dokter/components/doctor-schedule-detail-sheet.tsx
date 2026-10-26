@@ -98,13 +98,13 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
                 <Avatar className='size-20 sm:size-22 rounded-full ring-4 ring-card shadow-lg bg-card overflow-hidden shrink-0 aspect-square'>
                   <AvatarImage
                     src={doctor.avatar || DEFAULT_AVATAR_PATH}
-                    alt={doctor.nama_dokter}
+                    alt={doctor.fullName}
                     className='size-full object-cover object-top aspect-square'
                   />
                   <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
                     <Image
                       src={DEFAULT_AVATAR_PATH}
-                      alt={doctor.nama_dokter}
+                      alt={doctor.fullName}
                       width={88}
                       height={88}
                       unoptimized
@@ -123,7 +123,7 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
               <div className='flex-1 min-w-0 pb-1 space-y-1.5'>
                 <div className='flex items-center gap-2 flex-wrap'>
                   <SheetTitle className='text-lg sm:text-xl font-bold text-foreground tracking-tight truncate'>
-                    {doctor.nama_dokter}
+                    {doctor.fullName}
                   </SheetTitle>
 
                   <span
@@ -144,13 +144,13 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
                   >
                     <Icons.pro className='size-3.5 stroke-[2.5] text-white' />
                     <span className='tracking-wide drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]'>
-                      {doctor.spesialisasi}
+                      {doctor.specialty}
                     </span>
                   </span>
                 </div>
 
                 <SheetDescription className='sr-only'>
-                  Detail jadwal dan sesi praktik {doctor.nama_dokter}
+                  Detail jadwal dan sesi praktik {doctor.fullName}
                 </SheetDescription>
               </div>
             </div>

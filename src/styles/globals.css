@@ -488,11 +488,6 @@
   }
 }
 
-/* Invert Clerk Logo in Light Mode (since SVG is white) */
-html:not(.dark) .cl-logoImage {
-  filter: invert(1);
-}
-
 /* Aesthetic Diagonal Gradient Textures for Status Badges */
 .status-texture-confirmed {
   background: linear-gradient(

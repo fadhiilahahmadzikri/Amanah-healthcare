@@ -4,11 +4,9 @@ import type { StaffInvitationStatus, StaffRoleCode, StaffType } from '../constan
 
 export interface PolyclinicUnit {
   id: string;
-  name?: string;
-  namaPoli?: string;
-  code?: string;
-  kodePoli?: string;
-  unitType?: string;
+  code: string;
+  name: string;
+  location?: string | null;
   isActive?: boolean;
 }
 
@@ -49,8 +47,7 @@ export interface StaffMember {
   fullName: string;
   profession: string;
   staffType: StaffType;
-  idCardNumber: string;
-  staffCode?: string | null;
+  staffCode: string;
   licenseNumber?: string | null;
   birthPlace?: string | null;
   birthDate?: string | null;

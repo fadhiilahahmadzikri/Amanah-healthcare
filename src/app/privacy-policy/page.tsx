@@ -89,7 +89,7 @@ export default function PrivacyPolicyPage() {
             <PrivacyList
               items={[
                 'Kontak publik: ketika pengunjung memilih tautan email, telepon, WhatsApp, Google Maps, atau media sosial, interaksi berikutnya diproses oleh aplikasi atau layanan tujuan.',
-                'Autentikasi: area masuk menggunakan Clerk untuk proses sign-in, sign-up, sesi pengguna, dan data profil akun yang tersedia dari penyedia autentikasi.',
+                'Autentikasi: area masuk menggunakan layanan autentikasi internal Amanah Healthcare untuk proses sign-in, sign-up, sesi pengguna, dan data profil akun.',
                 'Pendaftaran pasien: area aplikasi dapat meminta nama, NIK, nama ibu kandung, tempat dan tanggal lahir, jenis kelamin, golongan darah, domisili, dan pekerjaan.',
                 'Data pasien dan operasional: dashboard dapat menampilkan atau mengelola data pasien, janji temu, jadwal dokter, antrean, presensi, dan catatan administratif sesuai fitur yang digunakan.',
                 'Asisten AI dashboard: pesan yang dikirim ke asisten AI diproses melalui endpoint aplikasi dan dapat diteruskan ke layanan model AI yang dikonfigurasi.'
@@ -108,7 +108,7 @@ export default function PrivacyPolicyPage() {
                 'Cookie active_theme dan localStorage theme atau amanah-theme menyimpan pilihan tampilan terang atau gelap.',
                 'Cookie sidebar_state menyimpan preferensi tampilan sidebar di dashboard.',
                 'Cookie patient_registration_completed menandai bahwa pengguna terautentikasi sudah menyelesaikan pendaftaran pasien.',
-                'Clerk dapat menggunakan cookie atau storage yang diperlukan untuk autentikasi, keamanan sesi, dan manajemen akun.',
+                'Cookie dan storage sesi digunakan untuk autentikasi terpusat, verifikasi izin akses, dan keamanan sesi.',
                 'LocalStorage pada fitur dashboard dapat menyimpan preferensi lokal seperti notifikasi, devtools, atau data mock operasional selama pengembangan.'
               ]}
             />
@@ -117,7 +117,7 @@ export default function PrivacyPolicyPage() {
           <PrivacySection title='Layanan Pihak Ketiga'>
             <PrivacyList
               items={[
-                'Clerk digunakan untuk autentikasi dan manajemen akun pada area masuk aplikasi.',
+                'Layanan autentikasi internal digunakan untuk manajemen akun dan sesi pada area masuk aplikasi.',
                 'Sentry dapat digunakan untuk pemantauan error jika dikonfigurasi melalui environment variable. Konfigurasi aplikasi tidak mengirim PII secara default.',
                 'YouTube no-cookie digunakan untuk beberapa video testimoni. Iframe video dimuat secara lazy agar permintaan pihak ketiga tidak terjadi lebih awal dari kebutuhan tampilan.',
                 'Google Maps, Instagram, TikTok, Facebook, dan WhatsApp hanya dibuka ketika pengguna memilih tautan terkait.',

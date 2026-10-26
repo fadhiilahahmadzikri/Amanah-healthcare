@@ -47,9 +47,9 @@ export function DoctorSessionAccordionItem({
   onOpenPatientsModal,
   className
 }: DoctorSessionAccordionItemProps) {
-  const doctorId = doctor.id || doctor.practitioner_id || '';
-  const isClosed = session.status_sesi === 'CLOSED';
-  const effectiveDate = session.tanggal || selectedDate;
+  const doctorId = doctor.id || '';
+  const isClosed = session.sessionStatus === 'CLOSED';
+  const effectiveDate = session.date || selectedDate;
 
   // Fetch registered patients for this session
   const { data: patientsData, isLoading: isLoadingPatients } = useQuery({
@@ -58,11 +58,11 @@ export function DoctorSessionAccordionItem({
   });
 
   const patientsList: BookedPatientItem[] = patientsData?.patients || [];
-  const bookedCount = session.pasien_terdaftar ?? patientsList.length;
+  const bookedCount = session.bookedPatients ?? patientsList.length;
 
   const sessionTimeDisplay = React.useMemo(() => {
-    return `${session.jam_mulai} - ${session.jam_selesai} WIB`;
-  }, [session.jam_mulai, session.jam_selesai]);
+    return `${session.startTime} - ${session.endTime} WIB`;
+  }, [session.startTime, session.endTime]);
 
   const formattedDisplayDate = React.useMemo(() => {
     if (!effectiveDate) return '';
@@ -71,12 +71,12 @@ export function DoctorSessionAccordionItem({
 
   const sessionContext: SessionContext = React.useMemo(
     () => ({
-      doctorName: doctor.nama_dokter,
-      doctorSpecialty: doctor.spesialisasi,
+      doctorName: doctor.fullName,
+      doctorSpecialty: doctor.specialty,
       date: formattedDisplayDate,
       sessionTime: sessionTimeDisplay
     }),
-    [doctor.nama_dokter, doctor.spesialisasi, formattedDisplayDate, sessionTimeDisplay]
+    [doctor.fullName, doctor.specialty, formattedDisplayDate, sessionTimeDisplay]
   );
 
   return (
@@ -94,7 +94,7 @@ export function DoctorSessionAccordionItem({
           {/* Left: Session Name, Status, Registered Patient Count, Time/Room Tooltip */}
           <div className='flex items-center gap-2 sm:gap-2.5 flex-wrap min-w-0'>
             <h4 className='font-bold text-sm sm:text-base text-foreground tracking-tight'>
-              {formatFriendlySessionName(session.nama_sesi) || session.nama_sesi}
+              {formatFriendlySessionName(session.sessionName) || session.sessionName}
             </h4>
             <StatusBadge status={isClosed ? 'Tutup' : 'Buka'} variant='pill' size='sm' />
             <span className='text-xs font-medium text-muted-foreground'>
@@ -118,7 +118,7 @@ export function DoctorSessionAccordionItem({
                 >
                   <Icons.clock className='size-3 text-muted-foreground shrink-0' />
                   <span>
-                    {session.jam_mulai}–{session.jam_selesai}
+                    {session.startTime}–{session.endTime}
                   </span>
                 </span>
               </TooltipTrigger>
@@ -130,13 +130,13 @@ export function DoctorSessionAccordionItem({
                 <div className='flex items-center gap-1.5 text-primary-foreground/90'>
                   <Icons.clock className='size-3 shrink-0' />
                   <span>
-                    {session.jam_mulai} – {session.jam_selesai} WIB
+                    {session.startTime} – {session.endTime} WIB
                   </span>
                 </div>
-                {session.ruang && (
+                {session.roomName && (
                   <div className='flex items-center gap-1.5 text-primary-foreground/90'>
                     <Icons.mapPin className='size-3 shrink-0' />
-                    <span>Ruangan: {session.ruang}</span>
+                    <span>Ruangan: {session.roomName}</span>
                   </div>
                 )}
               </TooltipContent>
@@ -151,7 +151,7 @@ export function DoctorSessionAccordionItem({
                   role='button'
                   tabIndex={0}
                   className='size-7 rounded-lg hover:bg-muted/80 text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer select-none'
-                  aria-label={`Opsi untuk sesi ${session.nama_sesi}`}
+                  aria-label={`Opsi untuk sesi ${session.sessionName}`}
                   onClick={(e) => e.stopPropagation()}
                   onPointerDown={(e) => e.stopPropagation()}
                   onKeyDown={(e) => {

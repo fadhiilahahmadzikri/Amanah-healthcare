@@ -195,7 +195,7 @@ export function DoctorScheduleView() {
                         isSelected={Boolean(
                           scheduleView.selectedDoctorId &&
                           (scheduleView.selectedDoctorId === doctor.id ||
-                            scheduleView.selectedDoctorId === doctor.practitioner_id)
+                            scheduleView.selectedDoctorId === doctor.practitionerId)
                         )}
                         onCardClick={(doc) => setSelectedDoctorForModal(doc)}
                         onOpenDetail={scheduleView.actions.openDetail}

@@ -6,47 +6,32 @@ export const workspacesInfoContent: InfobarContent = {
     {
       title: 'Overview',
       description:
-        'The Workspaces page allows you to manage your workspaces and switch between them. This feature is powered by Clerk Organizations, which enables multi-tenant workspace management. You can view all available workspaces, create new ones, and switch your active workspace.',
-      links: [
-        {
-          title: 'Clerk Organizations Documentation',
-          url: 'https://clerk.com/docs/organizations/overview'
-        }
-      ]
+        'Halaman Unit Layanan memungkinkan pengelola untuk melihat dan mengatur unit layanan klinik operasional. Anda dapat meninjau unit yang tersedia dan mengelola konteks unit aktif.',
+      links: []
     },
     {
       title: 'Creating Workspaces',
       description:
-        'To create a new workspace, click the "Create Organization" button. You will be prompted to enter a workspace name and configure initial settings. Once created, you can switch to the new workspace and start managing it.',
-      links: [
-        {
-          title: 'Multi-tenant Authentication Guide',
-          url: 'https://clerk.com/blog/how-to-build-multitenant-authentication-with-clerk'
-        }
-      ]
+        'Konfigurasi unit layanan baru dan cabang operasional dikelola secara terpusat oleh administrator sistem klinik sesuai izin operasional fasilitas kesehatan.',
+      links: []
     },
     {
       title: 'Switching Workspaces',
       description:
-        'You can switch between workspaces by clicking on a workspace in the list. The selected workspace becomes your active organization context, and all organization-specific features will use this workspace.',
+        'Anda dapat berpindah antar unit layanan untuk menyesuaikan cakupan operasional, data pasien, dan antrean yang dikelola.',
       links: []
     },
     {
       title: 'Workspace Features',
       description:
-        'Each workspace operates independently with its own team members, roles, permissions, and billing. This allows you to manage multiple projects or teams within a single account while keeping their data and settings separate.',
+        'Setiap unit layanan beroperasi secara terintegrasi dengan data rekam medis, antrean, dan jadwal dokter yang terpusat.',
       links: []
     },
     {
       title: 'Server-Side Permission Checks',
       description:
-        "This application follows Clerk's recommended patterns for multi-tenant authentication. Server-side permission checks ensure that users can only access resources for their active organization.",
-      links: [
-        {
-          title: 'Clerk Organizations Documentation',
-          url: 'https://clerk.com/docs/organizations/overview'
-        }
-      ]
+        'Aplikasi menerapkan otorisasi Server-First RBAC. Pemeriksaan izin dilakukan di tingkat server untuk menjamin keamanan akses data medis.',
+      links: []
     }
   ]
 };
@@ -57,47 +42,37 @@ export const teamInfoContent: InfobarContent = {
     {
       title: 'Overview',
       description:
-        "The Team Management page allows you to manage your workspace team, including members, roles, security settings, and more. This page provides comprehensive organization management through Clerk's OrganizationProfile component.",
-      links: [
-        {
-          title: 'Clerk Organizations Documentation',
-          url: 'https://clerk.com/docs/organizations/overview'
-        }
-      ]
+        'Halaman Manajemen Tim memungkinkan administrator mengelola staf klinik, dokter, perawat, tenaga medis, dan peran operasional fasilitas kesehatan.',
+      links: []
     },
     {
       title: 'Managing Team Members',
       description:
-        'You can add, remove, and manage team members from this page. Invite new members by email, assign roles, and control their access levels. Each member can have different permissions based on their role.',
+        'Anda dapat menambah, memperbarui, dan mengelola staf medis serta mengatur hak akses operasional sesuai tugas dan spesialisasi masing-masing.',
       links: []
     },
     {
       title: 'Roles and Permissions',
       description:
-        'Configure default roles and permissions in the Clerk Dashboard under Organizations settings. Roles define what actions team members can perform within the workspace. Common roles include admin, member, and custom roles you define.',
-      links: [
-        {
-          title: 'Clerk Organizations Documentation',
-          url: 'https://clerk.com/docs/organizations/overview'
-        }
-      ]
+        'Peran dan hak akses dikelola secara terpusat melalui sistem RBAC Amanah Healthcare, mencakup peran Administrator, Staf Medis, Bidan, dan Tenaga Pendukung.',
+      links: []
     },
     {
       title: 'Security Settings',
       description:
-        "Manage security settings for your workspace, including authentication requirements, session management, and access controls. These settings help protect your organization's data and resources.",
+        'Pengaturan keamanan akun, sesi login terpusat, dan kontrol akses staf untuk melindungi kerahasiaan data rekam medis pasien.',
       links: []
     },
     {
       title: 'Organization Settings',
       description:
-        'Configure general organization settings such as name, logo, and other workspace preferences. These settings apply to the entire workspace and affect all team members.',
+        'Konfigurasi identitas klinik, informasi kontak fasilitas kesehatan, dan preferensi operasional tim.',
       links: []
     },
     {
       title: 'Navigation RBAC System',
       description:
-        'The application includes a fully client-side navigation filtering system using the `useNav` hook. It supports `requireOrg`, `permission`, and `role` checks for instant access control. Navigation items are configured in `src/config/nav-config.ts` with `access` properties.',
+        'Navigasi dashboard disaring secara otomatis berdasarkan peran akun terverifikasi dari server dengan zero hydration flicker.',
       links: []
     }
   ]

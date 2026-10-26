@@ -31,8 +31,7 @@ export async function handleHttpErrorResponse(
   }
 
   const message =
-    problemDetails?.message ||
-    problemDetails?.detail ||
+    problemDetails?.detail ??
     (typeof rawBody === 'object' &&
     rawBody !== null &&
     'message' in rawBody &&

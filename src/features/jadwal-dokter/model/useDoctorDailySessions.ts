@@ -71,13 +71,13 @@ export function useDoctorDailySessions({
   const currentMinute = new Date().getMinutes();
   const currentTimeString = `${String(currentHour).padStart(2, '0')}:${String(currentMinute).padStart(2, '0')}`;
 
-  const isDayCuti = Boolean(doctor?.is_on_leave);
-  const isDayClosed = doctor?.status_dokter === 'CLOSED' || doctor?.status_jadwal === 'CLOSED';
-  const dayLeaveReason = doctor?.leave_reason || 'Cuti Dokter';
+  const isDayCuti = Boolean(doctor?.isOnLeave);
+  const isDayClosed = doctor?.doctorStatus === 'CLOSED' || doctor?.scheduleStatus === 'CLOSED';
+  const dayLeaveReason = doctor?.leaveReason || 'Cuti Dokter';
 
   const activeSessions: DoctorDailySession[] = useMemo(
-    () => doctor?.sesi_harian || [],
-    [doctor?.sesi_harian]
+    () => doctor?.dailySessions || [],
+    [doctor?.dailySessions]
   );
 
   const modals = useDoctorSessionModals({

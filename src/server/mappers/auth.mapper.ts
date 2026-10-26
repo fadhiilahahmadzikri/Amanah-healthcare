@@ -9,11 +9,14 @@ import type {
 } from '../contracts/auth/auth.dto';
 import type {
   User,
+  UserRole,
   MedicalStaffProfile,
   PatientProfile,
   AuthTokens,
   AuthSession
 } from '../domain/auth/auth.model';
+
+const STAFF_ROLE_CODES = new Set(['staff_doctor', 'staff_midwife', 'staff_worker']);
 
 export function toStaffProfileDomain(dto?: StaffProfileDto | null): MedicalStaffProfile | null {
   if (!dto) return null;
@@ -49,9 +52,13 @@ export function toPatientProfileDomain(dto?: PatientProfileDto | null): PatientP
 }
 
 export function toUserDomain(dto: AuthenticatedUserDto): User {
-  let systemRole: 'ADMIN' | 'STAF' | 'PATIENT' = dto.systemRole || 'PATIENT';
-  let primaryRole = dto.role
-    ? { id: dto.role.id, name: dto.role.name || dto.role.code || String(dto.role.id) }
+  let systemRole: 'ADMIN' | 'STAF' | 'PATIENT' = dto.systemRole ?? 'PATIENT';
+  let primaryRole: UserRole | undefined = dto.role
+    ? {
+        id: dto.role.id,
+        code: dto.role.code,
+        name: dto.role.name ?? 'Patient'
+      }
     : undefined;
 
   if (!dto.systemRole && dto.userRoles_userId && dto.userRoles_userId.length > 0) {
@@ -59,15 +66,14 @@ export function toUserDomain(dto: AuthenticatedUserDto): User {
     if (firstRole) {
       primaryRole = {
         id: firstRole.id,
-        name: firstRole.name || firstRole.code || 'PATIENT'
+        code: firstRole.code,
+        name: firstRole.name ?? 'Patient'
       };
       if (firstRole.code === 'admin') {
         systemRole = 'ADMIN';
       } else if (
-        firstRole.code === 'staff_doctor' ||
-        firstRole.code === 'staff_midwife' ||
-        firstRole.code === 'staff_worker' ||
-        (dto.staffProfiles && dto.staffProfiles.length > 0)
+        (firstRole.code && STAFF_ROLE_CODES.has(firstRole.code)) ||
+        Boolean(dto.staffProfiles && dto.staffProfiles.length > 0)
       ) {
         systemRole = 'STAF';
       }

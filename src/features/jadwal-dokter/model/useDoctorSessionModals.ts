@@ -44,9 +44,7 @@ export function useDoctorSessionModals({ doctor }: UseDoctorSessionModalsProps) 
         doctorId: doctor.id,
         sessionId: closingSession.id,
         payload: {
-          status: SCHEDULE_STATUS.CLOSED,
-          status_sesi: SCHEDULE_STATUS.CLOSED,
-          notes: SCHEDULE_MUTATION_NOTES.CLOSE_SESSION
+          sessionStatus: SCHEDULE_STATUS.CLOSED
         }
       },
       {
@@ -63,7 +61,7 @@ export function useDoctorSessionModals({ doctor }: UseDoctorSessionModalsProps) 
 
   const handleToggleSessionStatus = (session: DoctorDailySession) => {
     if (!doctor?.id || !session?.id) return;
-    const isSessionClosed = session.status_sesi === SCHEDULE_STATUS.CLOSED;
+    const isSessionClosed = session.sessionStatus === SCHEDULE_STATUS.CLOSED;
 
     if (!isSessionClosed) {
       handleRequestCloseSession(session);
@@ -76,9 +74,7 @@ export function useDoctorSessionModals({ doctor }: UseDoctorSessionModalsProps) 
         doctorId: doctor.id,
         sessionId: session.id,
         payload: {
-          status: SCHEDULE_STATUS.OPEN,
-          status_sesi: SCHEDULE_STATUS.OPEN,
-          notes: SCHEDULE_MUTATION_NOTES.OPEN_SESSION
+          sessionStatus: SCHEDULE_STATUS.OPEN
         }
       },
       {
