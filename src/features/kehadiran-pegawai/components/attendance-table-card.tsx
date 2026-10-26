@@ -206,9 +206,9 @@ export function AttendanceTableCard({
                           hour: '2-digit',
                           minute: '2-digit'
                         })
-                      : row.waktu_presensi || row.waktu || '-';
+                      : (row.waktu_presensi ?? '-');
 
-                    const jamPulang = row.checkOutAt
+                    const outTime = row.checkOutAt
                       ? new Date(row.checkOutAt).toLocaleTimeString('id-ID', {
                           hour: '2-digit',
                           minute: '2-digit'
@@ -298,10 +298,10 @@ export function AttendanceTableCard({
 
                         {/* Jam Pulang */}
                         <TableCell className='px-3 py-2.5'>
-                          {jamPulang ? (
+                          {outTime ? (
                             <div className='flex items-center gap-1.5'>
                               <span className='font-mono text-xs font-semibold text-foreground'>
-                                {jamPulang}
+                                {outTime}
                               </span>
                               {row.isEarlyDeparture && (
                                 <Tooltip>
@@ -400,10 +400,7 @@ export function AttendanceTableCard({
                                 size='sm'
                                 disabled={checkoutMutation.isPending}
                                 onClick={() =>
-                                  handleTriggerCheckout(
-                                    row.staffProfileId || row.id_staf,
-                                    row.nama_staf
-                                  )
+                                  handleTriggerCheckout(row.staffProfileId ?? '', row.nama_staf)
                                 }
                                 className='h-6.5 text-[11px] font-semibold px-2 rounded-md border-border/70 hover:bg-primary/10 hover:text-primary gap-1 cursor-pointer'
                                 title={`Catat presensi pulang untuk ${row.nama_staf}`}
@@ -453,7 +450,7 @@ export function AttendanceTableCard({
               return;
             }
             for (const t of targets) {
-              await handleTriggerCheckout(t.staffProfileId || t.id_staf, t.nama_staf);
+              await handleTriggerCheckout(t.staffProfileId ?? '', t.nama_staf);
             }
             setSelectedIds([]);
           }}
@@ -471,7 +468,7 @@ export function AttendanceTableCard({
         exportType='attendance'
         entityName={exportRow?.nama_staf}
         parameters={{
-          staffProfileId: exportRow?.staffProfileId || exportRow?.id_staf
+          staffProfileId: exportRow?.staffProfileId
         }}
         enableMonthPicker={true}
       />

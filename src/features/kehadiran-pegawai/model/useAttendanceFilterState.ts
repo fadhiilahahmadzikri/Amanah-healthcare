@@ -34,17 +34,6 @@ export function useAttendanceFilterState(records: StaffAttendance[] = []) {
     return Boolean(dateFilterObj && !isToday(dateFilterObj));
   }, [dateFilterObj]);
 
-  const isFiltered = useMemo(() => {
-    return Boolean(
-      (params.search && params.search.trim().length > 0) ||
-      (params.shift && params.shift !== 'all') ||
-      (params.status && params.status !== 'all') ||
-      (params.category && params.category !== 'all') ||
-      activeTab !== 'all' ||
-      hasDateFilter
-    );
-  }, [params, activeTab, hasDateFilter]);
-
   const activeFilterCount = useMemo(() => {
     let count = 0;
     if (params.search && params.search.trim().length > 0) count++;
@@ -55,6 +44,8 @@ export function useAttendanceFilterState(records: StaffAttendance[] = []) {
     if (hasDateFilter) count++;
     return count;
   }, [params, activeTab, hasDateFilter]);
+
+  const isFiltered = activeFilterCount > 0;
 
   // Tab-filtered records
   const displayedRecords = useMemo(() => {

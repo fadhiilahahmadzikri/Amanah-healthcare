@@ -47,7 +47,7 @@ export function AttendanceDetailSheet({
         hour: '2-digit',
         minute: '2-digit'
       }) + ' WIB'
-    : record.waktu_presensi || record.waktu || '-';
+    : (record.waktu_presensi ?? '-');
 
   const jamPulang = record.checkOutAt
     ? new Date(record.checkOutAt).toLocaleTimeString('id-ID', {
@@ -243,9 +243,7 @@ export function AttendanceDetailSheet({
                 type='button'
                 size='sm'
                 disabled={isCheckoutPending}
-                onClick={() =>
-                  onCheckout(record.staffProfileId || record.id_staf, record.nama_staf)
-                }
+                onClick={() => onCheckout(record.staffProfileId ?? '', record.nama_staf)}
                 className='h-8.5 text-xs font-semibold gap-1.5 rounded-md'
               >
                 <Icons.logout className='size-3.5' />
@@ -263,7 +261,7 @@ export function AttendanceDetailSheet({
         exportType='attendance'
         entityName={record.nama_staf}
         parameters={{
-          staffProfileId: record.staffProfileId || record.id_staf
+          staffProfileId: record.staffProfileId
         }}
         enableMonthPicker={true}
       />

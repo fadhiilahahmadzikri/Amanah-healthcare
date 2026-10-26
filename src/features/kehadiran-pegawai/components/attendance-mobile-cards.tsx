@@ -47,9 +47,9 @@ export function AttendanceMobileCards({
                 hour: '2-digit',
                 minute: '2-digit'
               })
-            : r.waktu_presensi || r.waktu || '-';
+            : (r.waktu_presensi ?? '-');
 
-          const jamPulang = r.checkOutAt
+          const outTime = r.checkOutAt
             ? new Date(r.checkOutAt).toLocaleTimeString('id-ID', {
                 hour: '2-digit',
                 minute: '2-digit'
@@ -75,7 +75,7 @@ export function AttendanceMobileCards({
                   <div className='flex items-center gap-1'>
                     <span className='font-semibold text-foreground'>{jamMasuk}</span>
                     <span>-</span>
-                    <span>{jamPulang || '...'}</span>
+                    <span>{outTime || '...'}</span>
                   </div>
                 </div>
               }
@@ -96,7 +96,7 @@ export function AttendanceMobileCards({
                     label='Checkout'
                     onClick={(e) => {
                       e.stopPropagation();
-                      onTriggerCheckout(r.staffProfileId || r.id_staf, r.nama_staf);
+                      onTriggerCheckout(r.staffProfileId ?? '', r.nama_staf);
                     }}
                     title={`Catat pulang dinas untuk ${r.nama_staf}`}
                     icon={<Icons.logout className='size-3.5' />}

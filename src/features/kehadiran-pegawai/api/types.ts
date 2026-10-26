@@ -30,7 +30,6 @@ export interface StaffAttendance {
   kategori: StaffCategory;
   tanggal_presensi: string;
   waktu_presensi: string;
-  waktu: string;
   checkInAt?: string | null;
   checkOutAt?: string | null;
   status: AttendanceStatus;
@@ -73,7 +72,6 @@ export interface QRPresenceConfig {
   qr_validity: string;
   rotation_seconds: number;
   validUntil?: string;
-  valid_until?: string;
 }
 
 export interface AttendanceFilterParams {

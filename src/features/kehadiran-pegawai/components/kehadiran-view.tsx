@@ -34,8 +34,12 @@ export default function KehadiranPegawaiView() {
   // 2. When QR terminal dock is open (isDesktopQRVisible)
   // 3. When app sidebar is expanded on standard desktop viewports <= 1280px (isSidebarExpanded)
   // 4. Combo mode (both QR terminal dock & expanded sidebar active)
-  const isCompact =
-    isMobile || isUnder1024 || isDesktopQRVisible || (isUnder1280 && isSidebarExpanded);
+  const isCompact = [
+    isMobile,
+    isUnder1024,
+    isDesktopQRVisible,
+    isUnder1280 && isSidebarExpanded
+  ].some(Boolean);
 
   if (!data) {
     return (

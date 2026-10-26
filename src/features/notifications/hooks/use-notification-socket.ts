@@ -438,7 +438,6 @@ export function useNotificationSocket(callbacks?: {
         avatar: item.avatar,
         kategori: item.kategori,
         waktu_presensi: item.waktu_presensi,
-        waktu: item.waktu,
         checkInAt: item.checkInAt,
         checkOutAt: item.checkOutAt,
         status: item.status,

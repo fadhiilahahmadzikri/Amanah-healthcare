@@ -8,7 +8,6 @@ export interface PresentAttendanceModalParams {
   avatar?: string | null;
   kategori?: string | null;
   waktu_presensi?: string | null;
-  waktu?: string | null;
   checkInAt?: string | null;
   checkOutAt?: string | null;
   status?: string | null;
@@ -27,7 +26,7 @@ export function presentAttendanceModal(params: PresentAttendanceModalParams) {
   const isEarly = Boolean(params.isEarlyDeparture);
   const isCheckOut = params.action === ATTENDANCE_ACTIONS.CHECK_OUT;
   const isLate = params.status === 'Terlambat';
-  let time = params.waktu_presensi || params.waktu || 'hari ini';
+  let time = params.waktu_presensi ?? 'hari ini';
   if ((isCheckOut || isEarly) && params.checkOutAt) {
     try {
       const d = new Date(params.checkOutAt);

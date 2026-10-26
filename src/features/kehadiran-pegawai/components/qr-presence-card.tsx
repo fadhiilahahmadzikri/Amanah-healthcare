@@ -35,14 +35,14 @@ export function QRPresenceCard({
 
   // Calculate remaining seconds from backend validUntil timestamp (persists across page refresh)
   const computeRemainingSeconds = useCallback(() => {
-    const validUntilIso = config.validUntil || config.valid_until;
+    const validUntilIso = config.validUntil;
     if (validUntilIso) {
       const targetTime = new Date(validUntilIso).getTime();
       const diffSec = Math.max(0, Math.round((targetTime - Date.now()) / 1000));
       return Math.min(diffSec, maxSessionSeconds);
     }
     return rotationInterval;
-  }, [config.validUntil, config.valid_until, rotationInterval, maxSessionSeconds]);
+  }, [config.validUntil, rotationInterval, maxSessionSeconds]);
 
   const [timeLeft, setTimeLeft] = useState(computeRemainingSeconds);
   const [token, setToken] = useState(config.qr_code_identifier || '');

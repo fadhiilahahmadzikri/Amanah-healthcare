@@ -135,11 +135,13 @@ export function AttendanceExportWizardModal({ isOpen, onClose }: AttendanceExpor
     return candidates.filter((c) => {
       if (c.staffType !== activeTab) return false;
       if (!q) return true;
-      const matchName = c.fullName.toLowerCase().includes(q);
-      const matchCode = c.staffCode.toLowerCase().includes(q);
-      const matchSpecialty = c.specialtyName?.toLowerCase().includes(q);
-      const matchPosition = c.positionTitle?.toLowerCase().includes(q);
-      return matchName || matchCode || matchSpecialty || matchPosition;
+      const queryMatches = [
+        c.fullName.toLowerCase().includes(q),
+        c.staffCode.toLowerCase().includes(q),
+        Boolean(c.specialtyName?.toLowerCase().includes(q)),
+        Boolean(c.positionTitle?.toLowerCase().includes(q))
+      ];
+      return queryMatches.some(Boolean);
     });
   }, [candidates, activeTab, searchQuery]);
 
@@ -468,8 +470,7 @@ export function AttendanceExportWizardModal({ isOpen, onClose }: AttendanceExpor
                 <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5'>
                   {filteredCandidates.map((candidate) => {
                     const isSelected = selectedStaff?.id === candidate.id;
-                    const subtitle =
-                      candidate.specialtyName || candidate.positionTitle || 'Staf Klinik';
+                    const subtitle = candidate.positionTitle ?? '';
 
                     return (
                       <button
@@ -600,7 +601,7 @@ export function AttendanceExportWizardModal({ isOpen, onClose }: AttendanceExpor
                       <p className='text-[11px] text-muted-foreground truncate'>
                         {exportMode === 'all'
                           ? 'Semua Dokter, Bidan, dan Staf'
-                          : selectedStaff?.specialtyName || selectedStaff?.positionTitle || 'Staf'}
+                          : (selectedStaff?.positionTitle ?? '')}
                       </p>
                     </div>
                   </div>

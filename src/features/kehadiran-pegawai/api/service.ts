@@ -63,11 +63,10 @@ class AttendanceService {
       status: res.isActive ? 'active' : 'inactive',
       isActive: res.isActive,
       qr_code_identifier: res.qrCodeIdentifier,
-      qr_context: res.context || 'Terminal Utama Presensi',
+      qr_context: res.context || '',
       qr_validity: res.validUntil ? new Date(res.validUntil).toLocaleTimeString('id-ID') : '',
       rotation_seconds: res.rotationSeconds,
-      validUntil: res.validUntil,
-      valid_until: res.validUntil
+      validUntil: res.validUntil
     };
   }
 
@@ -88,11 +87,10 @@ class AttendanceService {
       status: res.isActive ? 'active' : 'inactive',
       isActive: res.isActive,
       qr_code_identifier: res.qrCodeIdentifier,
-      qr_context: res.context || 'Terminal Utama Presensi',
+      qr_context: res.context || '',
       qr_validity: res.validUntil ? new Date(res.validUntil).toLocaleTimeString('id-ID') : '',
       rotation_seconds: res.rotationSeconds,
-      validUntil: res.validUntil,
-      valid_until: res.validUntil
+      validUntil: res.validUntil
     };
   }
 
