@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
+import { getRelationshipLabel } from '@/constants/relationship.constants';
 import type { PatientAffiliationProfile } from '@/features/data-pasien/api/patient-affiliation-service';
 
 export interface PatientCardMasterProps {
@@ -24,8 +25,7 @@ export function PatientCardMaster({
   children
 }: PatientCardMasterProps) {
   const isSelf = patient.relationship === 'self';
-  const relationshipLabel =
-    patient.relationshipLabel || (isSelf ? 'Diri Sendiri' : patient.relationship);
+  const relationshipLabel = getRelationshipLabel(patient.relationship, patient.relationshipLabel);
   const isInactive = patient.status === 'inactive';
 
   return (

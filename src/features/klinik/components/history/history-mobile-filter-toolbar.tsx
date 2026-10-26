@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select';
 import { SearchInput } from '@/shared/ui/search-input';
 import { cn } from '@/lib/utils';
+import { getRelationshipLabel } from '@/constants/relationship.constants';
 import type { ClinicalHistoryTabType } from '../../api/history-queries';
 
 export interface ClinicalHistoryMobileFilterToolbarProps {
@@ -76,7 +77,7 @@ export function ClinicalHistoryMobileFilterToolbar({
                 </SelectItem>
                 {familyMembers.map((member) => (
                   <SelectItem key={member.id} value={member.id} className='text-xs'>
-                    {member.fullName} ({member.relationshipLabel || member.relationship})
+                    {member.fullName} ({getRelationshipLabel(member.relationship)})
                   </SelectItem>
                 ))}
               </SelectContent>

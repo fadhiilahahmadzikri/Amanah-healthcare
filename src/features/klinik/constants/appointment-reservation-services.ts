@@ -240,8 +240,11 @@ export function getReservationServiceByTitle(title?: string) {
   return APPOINTMENT_RESERVATION_SERVICES.find((service) => service.title === title);
 }
 
-export function getReservationDoctorServiceName(service: AppointmentReservationService) {
-  return service.doctorServiceName || service.title;
+export function getReservationDoctorServiceName(service: AppointmentReservationService): string {
+  if (service.doctorServiceName) {
+    return service.doctorServiceName;
+  }
+  return service.title;
 }
 
 export function getReservationMedicalFlow(service: AppointmentReservationService) {

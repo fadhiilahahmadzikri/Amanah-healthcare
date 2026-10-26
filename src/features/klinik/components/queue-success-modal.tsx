@@ -86,14 +86,15 @@ export function QueueSuccessModal({
       ) : (
         <div className='w-full flex justify-center py-1'>
           <QueueTicketCard
-            queueNumber={queueItem?.queue_number || appointment?.queue_number || '-'}
-            serviceName={appointment?.service || queueItem?.poli || '-'}
-            doctorName={appointment?.doctor_name || queueItem?.doctor_name || ''}
+            queueNumber={appointment?.queue_number || '-'}
+            serviceName={appointment?.service || '-'}
+            doctorName={appointment?.doctor_name || '-'}
             dateStr={appointment?.date || '-'}
-            session={appointment?.session || appointment?.time}
-            bookingCode={appointment?.booking_code || ''}
+            session={appointment?.session}
+            time={appointment?.time}
+            bookingCode={appointment?.booking_code || '-'}
             patientName={appointment?.patient_name || '-'}
-            roomName={appointment?.room_name || queueItem?.room || ''}
+            roomName={appointment?.room_name || '-'}
             illustrationSrc='/assets/klinik/waiting-room.svg'
             onClose={onClose}
             onDownload={handleDownload}

@@ -145,10 +145,12 @@ export function useQueueView(): UseQueueViewResult {
     const handleUpdate = (e?: Event) => {
       const customEvt = e as CustomEvent<Record<string, unknown>> | undefined;
       const detail = customEvt?.detail;
+      if (!detail) return;
 
-      if (detail && (detail.appointmentId || detail.queueNumber)) {
-        const aptId = String(detail.appointmentId || '');
-        const qNum = String(detail.queueNumber || '');
+      const aptId = detail.appointmentId ? String(detail.appointmentId) : '';
+      const qNum = detail.queueNumber ? String(detail.queueNumber) : '';
+
+      if (aptId || qNum) {
         const rawStatus = detail.status ? String(detail.status) : undefined;
         const actualStartedAt = detail.actualStartedAt ? String(detail.actualStartedAt) : undefined;
         const actualCompletedAt = detail.actualCompletedAt

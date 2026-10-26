@@ -66,7 +66,7 @@ export function QuestionnaireMobileItem({
   const mobileYearInputId = `${item.id}-mobile-year`;
 
   const [viewMode, setViewMode] = React.useState<'options' | 'year'>(() =>
-    isYes && (item.yearFieldId || item.notesFieldId) ? 'year' : 'options'
+    isYes && Boolean(item.yearFieldId) ? 'year' : 'options'
   );
 
   const morphContainerRef = React.useRef<HTMLDivElement>(null);

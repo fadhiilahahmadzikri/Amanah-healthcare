@@ -20,10 +20,7 @@ export function MedicalQuestionnaireGrid({
 }: MedicalQuestionnaireGridProps) {
   const answeredCount = items.filter((item) => Boolean(values[item.id])).length;
   const totalCount = items.length;
-  const hasAnyYear = React.useMemo(
-    () => items.some((item) => Boolean(item.yearFieldId || item.notesFieldId)),
-    [items]
-  );
+  const hasAnyYear = React.useMemo(() => items.some((item) => Boolean(item.yearFieldId)), [items]);
 
   return (
     <div data-slot='medical-questionnaire-grid' className={cn('w-full flex flex-col', className)}>

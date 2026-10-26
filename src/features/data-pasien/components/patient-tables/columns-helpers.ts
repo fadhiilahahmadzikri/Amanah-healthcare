@@ -14,22 +14,8 @@ export function getRelationshipStatusKey(type?: string | null): string {
   }
 }
 
-export function getRelationshipLabel(type?: string | null, label?: string | null): string {
-  if (label) return label;
-  const normType = (type || '').toLowerCase();
-  switch (normType) {
-    case 'child':
-      return 'Anak';
-    case 'spouse':
-      return 'Pasangan';
-    case 'parent':
-      return 'Orang Tua';
-    case 'relative':
-      return 'Kerabat';
-    default:
-      return 'Keluarga';
-  }
-}
+import { getRelationshipLabel } from '@/constants/relationship.constants';
+export { getRelationshipLabel };
 
 // Deprecated alias for backwards compatibility
 export function getRelationshipBadge(type?: string | null, label?: string | null) {

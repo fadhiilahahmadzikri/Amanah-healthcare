@@ -65,8 +65,8 @@ export function PatientAppointmentActionDrawer({
 
   const canCall = Boolean(appointment.allowedActions?.includes('CALL'));
 
-  const serviceName = appointment.service || appointment.poliklinik_name || 'Layanan Klinik';
-  const patientDisplayName = appointment.patient_name || 'Pasien';
+  const serviceName = appointment.service || '-';
+  const patientDisplayName = appointment.patient_name || '-';
 
   const executeAction = (actionFn?: () => void) => {
     onClose();
@@ -89,7 +89,7 @@ export function PatientAppointmentActionDrawer({
               <span className='font-mono font-bold text-primary'>
                 {appointment.queue_number || '-'}
               </span>
-              {serviceName ? ` • ${serviceName}` : ''}
+              {serviceName !== '-' ? ` • ${serviceName}` : ''}
             </DrawerDescription>
           </div>
         </DrawerHeader>

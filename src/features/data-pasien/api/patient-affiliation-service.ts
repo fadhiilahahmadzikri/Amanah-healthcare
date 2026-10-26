@@ -1,6 +1,7 @@
 import { clientFetch } from '@/lib/client-fetch';
 import type { Gender } from '@/constants/gender.constants';
 import type { PatientBloodType } from '@/constants/blood-type.constants';
+import { getRelationshipLabel } from '@/constants/relationship.constants';
 import type { QueueLoadStatus } from '@/features/klinik/constants/queue-load.constants';
 export { UNKNOWN_BLOOD_TYPE, type PatientBloodType } from '@/constants/blood-type.constants';
 
@@ -159,9 +160,7 @@ function mapAffiliationEntityToProfile(entity: any): PatientAffiliationProfile {
     villageName: patient?.villageName ?? null,
     villageCode: patient?.villageCode ?? null,
     relationship: entity.relationshipType,
-    relationshipLabel:
-      entity.relationLabel ??
-      (entity.relationshipType === 'self' ? 'Diri Sendiri' : entity.relationshipType),
+    relationshipLabel: getRelationshipLabel(entity.relationshipType, entity.relationLabel),
     occupationCode: null,
     occupationName: patient?.occupation ?? null,
     phoneNumber: patient?.phoneNumber ?? null,

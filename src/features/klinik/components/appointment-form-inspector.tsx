@@ -167,13 +167,12 @@ export function AppointmentFormInspector({
       maternal,
       child,
       patient,
-      appointmentId: rawData?.appointmentId || appointment.id,
-      bookingCode: rawData?.bookingCode || appointment.booking_code,
-      scheduledDate: rawData?.scheduledDate || appointment.date,
-      scheduledStartTime:
-        rawData?.scheduledStartTime || appointment.scheduled_start_time || appointment.time,
-      complaint: rawData?.complaint || appointment.complaint,
-      serviceName: rawData?.serviceName || appointment.service
+      appointmentId: appointment.id,
+      bookingCode: appointment.booking_code,
+      scheduledDate: appointment.date,
+      scheduledStartTime: appointment.scheduled_start_time || '-',
+      complaint: appointment.complaint || '-',
+      serviceName: appointment.service || '-'
     };
   }, [serverIntake, appointment, matchingAffiliation]);
 

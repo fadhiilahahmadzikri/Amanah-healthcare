@@ -8,6 +8,7 @@ import type {
   DiseaseRecord
 } from '../types';
 import { getGenderLabel } from '@/constants/gender.constants';
+import { getRelationshipLabel } from '@/constants/relationship.constants';
 import { formatClinicDate } from '@/lib/date-format';
 
 /**
@@ -232,7 +233,7 @@ export function adaptToImunisasiFormData(
         age: entry.ageEstimateMonths !== undefined ? `${entry.ageEstimateMonths} bln` : '-',
         subjective: ['-', '-', '-'],
         objective: ['-', '-'],
-        planning: entry.notes || entry.vaccineCode || '-'
+        planning: entry.notes || '-'
       });
     });
   }
@@ -294,7 +295,7 @@ export function adaptToRegulerFormData(
       phoneNumber: p?.phone || appointment?.patient_phone || '-',
       email: p?.email || appointment?.patient_email || '-',
       address: p?.address || answers.address || '-',
-      relationship: p?.relationLabel || p?.relationshipType || 'Diri Sendiri'
+      relationship: getRelationshipLabel(p?.relationshipType)
     },
     emergencyContact: {
       name: p?.emergencyContactName || answers.emergencyContactName || '-',

@@ -97,7 +97,8 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
 
     const startTimeFormatted = startClock ? formatClinicTime(startClock) : '';
     const endTimeFormatted = endClock ? formatClinicTime(endClock) : '';
-    const friendlySession = formatFriendlySessionName(apt.sessionName || apt.session);
+    const rawSession = apt.sessionName ? apt.sessionName : apt.session;
+    const friendlySession = formatFriendlySessionName(rawSession);
     const timeDisplay =
       apt.etaRange ||
       (startTimeFormatted && endTimeFormatted
@@ -151,9 +152,7 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
       layanan_id: apt.layananId,
       allowedActions:
         apt.allowedActions ||
-        (['BOOKED', 'WAITING', 'LATE'].includes(canonicalStatus)
-          ? ['CANCEL', 'RESCHEDULE']
-          : [])
+        (['BOOKED', 'WAITING', 'LATE'].includes(canonicalStatus) ? ['CANCEL', 'RESCHEDULE'] : [])
     };
   }, []);
 

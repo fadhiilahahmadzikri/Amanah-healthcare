@@ -1,18 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { getGenderLabel } from '@/features/data-pasien/components/patient-tables/columns-helpers';
+import { getGenderLabel } from '@/constants/gender.constants';
+import { getRelationshipLabel } from '@/constants/relationship.constants';
 import type { InspectorTabProps } from './types';
-
-const RELATIONSHIP_LABELS: Record<string, string> = {
-  self: 'Diri Sendiri',
-  child: 'Anak',
-  spouse: 'Pasangan',
-  parent: 'Orang Tua',
-  relative: 'Kerabat',
-  friend: 'Teman',
-  other: 'Lainnya'
-};
 
 export function InspectorGenericView({ appointment, data }: InspectorTabProps) {
   const { flow, answers, automatic, child, patient } = data;
@@ -107,9 +98,7 @@ export function InspectorGenericView({ appointment, data }: InspectorTabProps) {
     ([, val]) => val && String(val).trim().length > 0
   );
 
-  const relationship = patient?.relationshipType
-    ? (RELATIONSHIP_LABELS[patient.relationshipType] ?? '-')
-    : '-';
+  const relationship = getRelationshipLabel(patient?.relationshipType);
 
   const isChild = React.useMemo(() => {
     if (

@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import { SearchInput } from '@/shared/ui/search-input';
 import { cn } from '@/lib/utils';
+import { getRelationshipLabel } from '@/constants/relationship.constants';
 import { useClinicalHistoryTable } from '../../../model/useClinicalHistoryTable';
 import { useClinicalHistoryDialogs } from '../../../model/useClinicalHistoryDialogs';
 import { getMaternityColumns } from './maternity-columns';
@@ -144,7 +145,7 @@ export function ClinicalHistoryTables() {
                             relationship: string;
                           }) => (
                             <SelectItem key={m.id} value={m.id} className='text-xs'>
-                              {m.fullName} ({m.relationshipLabel || m.relationship})
+                              {m.fullName} ({getRelationshipLabel(m.relationship)})
                             </SelectItem>
                           )
                         )}

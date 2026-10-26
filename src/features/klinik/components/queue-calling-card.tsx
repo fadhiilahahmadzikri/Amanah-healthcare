@@ -14,9 +14,6 @@ export interface QueueCallingCardProps {
   callingItem?: QueueItem;
   nextItem?: QueueItem;
   afterNextItem?: QueueItem;
-  clinicRoomName?: string;
-  estimatedTime?: string;
-  bookingTime?: string;
   className?: string;
   onOpenFacet?: () => void;
   isFiltered?: boolean;
@@ -27,9 +24,6 @@ export function QueueCallingCard({
   callingItem,
   nextItem,
   afterNextItem,
-  clinicRoomName,
-  estimatedTime,
-  bookingTime,
   className,
   onOpenFacet,
   isFiltered,
@@ -120,11 +114,10 @@ export function QueueCallingCard({
   const isInService = callingItem.status === QUEUE_STATUS.IN_SERVICE;
   const patientName = callingItem.patient_name || '-';
   const queueNumber = callingItem.queue_number || '-';
-  const calledTime = callingItem.called_time || callingItem.estimated_time || '-';
-  const roomName = callingItem.room || clinicRoomName || '-';
+  const calledTime = callingItem.called_time || '-';
+  const roomName = callingItem.room || '-';
   const patientAvatar = callingItem.patient_avatar || '';
-  const patientEstimatedTime =
-    estimatedTime || callingItem.eta_range || callingItem.estimated_time || bookingTime || '-';
+  const patientEstimatedTime = callingItem.eta_range || '-';
 
   return (
     <div

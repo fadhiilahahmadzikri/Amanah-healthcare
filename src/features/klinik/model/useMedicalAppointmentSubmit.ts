@@ -162,7 +162,7 @@ export function useMedicalAppointmentSubmit({
                 complaint
               );
               const intakeRes = await kiaIntakeService.createMaternityIntake(maternityPayload);
-              sourceIntakeId = intakeRes?.id || intakeRes?.intakeSubmissionId;
+              sourceIntakeId = intakeRes?.id;
             } else if (definition.flow === FLOW_NAMES.IMMUNIZATION) {
               const immunizationPayload = buildChildImmunizationIntakePayload(
                 resolvedPatientId,
@@ -172,7 +172,7 @@ export function useMedicalAppointmentSubmit({
               );
               const intakeRes =
                 await kiaIntakeService.createImmunizationIntake(immunizationPayload);
-              sourceIntakeId = intakeRes?.id || intakeRes?.intakeSubmissionId;
+              sourceIntakeId = intakeRes?.id;
             }
 
             const reservationCtx: ReservationContext = {

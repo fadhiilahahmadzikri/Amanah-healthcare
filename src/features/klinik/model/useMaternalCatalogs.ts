@@ -40,12 +40,12 @@ export function useMaternalCatalogs(enabled = true) {
       religionChoices: refOptions?.religions?.map((item) => item.label),
       bloodTypeChoices: refOptions?.bloodTypes?.map((item) => item.label),
       tetanusChoices: refOptions?.tetanusStatuses?.map((item) => item.label),
-      occupationChoices: (refOptions?.occupations ?? occupations)?.map(
-        (item: any) => item.label || item.name
-      ),
+      occupationChoices: refOptions?.occupations
+        ? refOptions.occupations.map((item) => item.label)
+        : occupations?.map((item) => item.name),
       deliveryMethodChoices: refOptions?.deliveryMethods?.map((item) => item.label),
       deliveryPlaceChoices: refOptions?.deliveryPlaces?.map((item) => item.label),
-      childSexChoices: (refOptions?.childSexes ?? refOptions?.genders)?.map((item) => item.label),
+      childSexChoices: refOptions?.childSexes?.map((item) => item.label),
       birthAttendantChoices: refOptions?.birthAttendants?.map((item) => item.label),
       contraceptiveTypeChoices: refOptions?.contraceptiveTypes?.map((item) => item.label)
     };

@@ -61,9 +61,7 @@ export function usePatientCheckIn({
               ? response
               : null;
 
-        const appointmentId =
-          (rawData as { appointmentId?: string; id?: string })?.appointmentId ||
-          (rawData as { appointmentId?: string; id?: string })?.id;
+        const appointmentId = (rawData as { appointmentId?: string })?.appointmentId;
 
         if (rawData && appointmentId) {
           const successData: PerformCheckInSuccessData = {

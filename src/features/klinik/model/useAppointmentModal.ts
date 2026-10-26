@@ -151,7 +151,7 @@ export function useAppointmentModal({
       const data = await catalogService.getServiceCatalog();
       if (Array.isArray(data) && data.length > 0) {
         setCategories(data);
-        setSelectedCategoryId((prev) => prev || data[0].id || data[0].code);
+        setSelectedCategoryId((prev) => prev || data[0].id);
       }
     } catch (err) {
       console.error('Failed to load clinic catalog:', err);

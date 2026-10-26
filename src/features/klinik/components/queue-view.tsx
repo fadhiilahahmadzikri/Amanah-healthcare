@@ -82,12 +82,6 @@ export function QueueView() {
               callingItem={queueView.currentCalling}
               nextItem={queueView.waitingList[0]}
               afterNextItem={queueView.waitingList[1]}
-              estimatedTime={
-                queueView.currentCalling?.eta_range ||
-                queueView.currentCalling?.estimated_time ||
-                queueView.currentCalling?.called_time ||
-                '-'
-              }
               onOpenFacet={() => setIsFacetOpen(true)}
               isFiltered={queueView.isFiltered}
               onResetFilter={queueView.actions.resetFilter}

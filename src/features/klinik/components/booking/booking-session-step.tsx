@@ -136,11 +136,13 @@ function SessionList({ sessions, session, onSelectSession }: SessionListProps) {
       >
         {sessions.map((sess) => {
           const isSelected = session === sess.session;
-          const isDisabled = Boolean(sess.isDisabled || sess.isPast);
+          const isDisabled = Boolean(sess.isDisabled);
           const SessionIcon = getSessionIcon(sess.session);
           const primaryPractitioner = sess.practitioners?.[0];
-          const loadStatus = sess.loadStatus || QUEUE_LOAD_STATUS.NORMAL;
-          const badgeStyle = QUEUE_LOAD_BADGE_STYLES[loadStatus];
+          const loadStatus = sess.loadStatus;
+          const badgeStyle = loadStatus
+            ? QUEUE_LOAD_BADGE_STYLES[loadStatus]
+            : QUEUE_LOAD_BADGE_STYLES[QUEUE_LOAD_STATUS.NORMAL];
 
           return (
             <div

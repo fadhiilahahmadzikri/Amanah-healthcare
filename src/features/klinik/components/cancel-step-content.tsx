@@ -2,7 +2,6 @@
 
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 import { formatClinicDate } from '@/lib/date-format';
 import type { Appointment } from '../api/types';
 
@@ -33,13 +32,9 @@ export function CancelStepContent({
 }: CancelStepProps) {
   const formattedDate =
     appointmentDate && appointmentDate !== '-' ? formatClinicDate(appointmentDate) : '-';
-  const friendlySession = formatFriendlySessionName(
-    appointment.session_name || appointment.session
-  );
+  const friendlySession = appointment.session_name || '';
   const sessionLabel =
-    [friendlySession, appointment.eta_range].filter(Boolean).join(' • ') ||
-    appointment.time ||
-    '-';
+    [friendlySession, appointment.eta_range].filter(Boolean).join(' • ') || appointment.time || '-';
 
   return (
     <div className='animate-in fade-in-50 slide-in-from-right-4 duration-200'>
