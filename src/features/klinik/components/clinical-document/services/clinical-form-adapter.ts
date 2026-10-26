@@ -37,47 +37,31 @@ export function adaptToPmbFormData(
   const motherNik = m?.motherNik || '-';
   const motherBirthDate = m?.motherBirthDate
     ? formatClinicDate(m.motherBirthDate, { style: 'human_full' })
-    : p?.birthDate
-      ? formatClinicDate(p.birthDate, { style: 'human_full' })
-      : '-';
-  const motherAge = m?.motherAge
-    ? `${m.motherAge} tahun`
-    : p?.birthDate
-      ? `${new Date().getFullYear() - new Date(p.birthDate).getFullYear()} tahun`
-      : '-';
+    : '-';
+  const motherAge = m?.motherAge ? `${m.motherAge} tahun` : '-';
   const motherJob = m?.motherJob || '-';
   const motherEducation = m?.motherEducation || '-';
 
-  const partnerName = m?.partnerName || m?.husband?.fullName || '-';
-  const partnerAge = m?.partnerAge
-    ? `${m.partnerAge} tahun`
-    : m?.husband?.age
-      ? `${m.husband.age} tahun`
-      : '-';
-  const partnerNik = m?.partnerNik || m?.husband?.nik || '-';
+  const partnerName = m?.partnerName || '-';
+  const partnerAge = m?.partnerAge ? `${m.partnerAge} tahun` : '-';
+  const partnerNik = m?.partnerNik || '-';
   const partnerBirthDate = m?.partnerBirthDate
     ? formatClinicDate(m.partnerBirthDate, { style: 'human_full' })
-    : m?.husband?.birthDate
-      ? formatClinicDate(m.husband.birthDate, { style: 'human_full' })
-      : '-';
-  const partnerJob = m?.partnerJob || m?.husband?.job || '-';
-  const partnerEducation = m?.partnerEducation || m?.husband?.education || '-';
+    : '-';
+  const partnerJob = m?.partnerJob || '-';
+  const partnerEducation = m?.partnerEducation || '-';
 
   const fullRows = [
-    m?.religion || answers.religion || 'Islam',
+    m?.religion || 'Islam',
     m?.domicileAddress || '-',
     m?.identityCardAddress || '-',
     m?.phoneNumber || '-'
   ];
 
-  const locationValues = [
-    m?.dasawisma || answers.dasawisma || '-',
-    m?.posyandu || answers.posyandu || '-',
-    m?.puskesmas || answers.puskesmas || '-'
-  ];
+  const locationValues = [m?.dasawisma || '-', m?.posyandu || '-', m?.puskesmas || '-'];
 
-  const motherBlood = (m?.motherBloodType || p?.bloodType || '-').toUpperCase();
-  const partnerBlood = (m?.partnerBloodType || m?.husband?.bloodType || '-').toUpperCase();
+  const motherBlood = (m?.motherBloodType || '-').toUpperCase();
+  const partnerBlood = (m?.partnerBloodType || '-').toUpperCase();
   const tb = m?.heightCm ? `${m.heightCm} cm` : '-';
   const bbAwal = m?.prePregnancyWeightKg ? `${m.prePregnancyWeightKg} kg` : '-';
   const lila = m?.upperArmCircumferenceCm ? `${m.upperArmCircumferenceCm} cm` : '-';
@@ -97,7 +81,7 @@ export function adaptToPmbFormData(
   const uk =
     m?.gestationalAgeFormatted ||
     (m?.gestationalAgeWeeks ? `${m.gestationalAgeWeeks} minggu` : '-');
-  const keluhan = m?.currentComplaints || appointment?.complaint || '-';
+  const keluhan = m?.currentComplaints || '-';
 
   const riskChecked: Record<string, boolean> = {
     Merokok: Boolean(m?.smokedBeforePregnancy && m.smokedBeforePregnancy !== 'no'),
@@ -163,7 +147,7 @@ export function adaptToPmbFormData(
 
   return {
     header: {
-      allergy: m?.allergyInfo || answers.allergy || 'Tidak ada riwayat alergi',
+      allergy: m?.allergyInfo || '-',
       rmAncCode: p?.medicalRecordNumber || '-'
     },
     identity: {
@@ -248,8 +232,8 @@ export function adaptToImunisasiFormData(
       rightValues: [fatherName, motherName, address, '']
     },
     preTable: {
-      previousVaccines: c?.previousVaccineHistory || 'Belum pernah imunisasi sebelumnya',
-      allergy: c?.childAllergyHistory || 'Tidak ada riwayat alergi'
+      previousVaccines: c?.previousVaccineHistory || '-',
+      allergy: c?.childAllergyHistory || '-'
     },
     vaccineRows
   };
@@ -265,7 +249,7 @@ export function adaptToRegulerFormData(
   const p = data.patient;
   const answers = data.answers || {};
 
-  const bDate = p?.birthDate || answers.birthDate;
+  const bDate = p?.birthDate;
   const age = bDate ? `${new Date().getFullYear() - new Date(bDate).getFullYear()} Tahun` : '-';
 
   return {
@@ -273,34 +257,31 @@ export function adaptToRegulerFormData(
     registrationDate: data.scheduledDate
       ? formatClinicDate(data.scheduledDate, { style: 'human_full' })
       : formatClinicDate(new Date().toISOString(), { style: 'human_full' }),
-    bookingCode: data.bookingCode || appointment?.booking_code || '-',
+    bookingCode: appointment?.booking_code || '-',
     queueNumber: appointment?.queue_number || '-',
-    serviceName: data.serviceName || appointment?.service || 'Poliklinik Umum',
-    doctorName:
-      (appointment as any)?.doctor_name ||
-      (appointment as any)?.doctor?.name ||
-      'Dokter Jaga Poliklinik',
-    scheduledTime: `${data.scheduledStartTime || appointment?.time || '-'} WIB`,
+    serviceName: appointment?.service || '-',
+    doctorName: appointment?.doctor_name || '-',
+    scheduledTime: `${appointment?.scheduled_start_time || '-'} WIB`,
     identity: {
-      nik: p?.nik || answers.nik || '-',
-      fullName: p?.fullName || appointment?.patient_name || '-',
+      nik: p?.nik || '-',
+      fullName: p?.fullName || '-',
       gender: formatGender(p?.gender),
       birthDate: bDate ? formatClinicDate(bDate, { style: 'human_full' }) : '-',
-      birthPlace: p?.birthPlace || answers.birthPlace || '-',
+      birthPlace: p?.birthPlace || '-',
       age,
-      bloodType: (p?.bloodType || answers.bloodType || '-').toUpperCase(),
-      motherName: p?.motherName || answers.motherName || '-',
-      occupation: p?.occupation || answers.occupation || '-',
-      religion: answers.religion || 'Islam',
-      phoneNumber: p?.phone || appointment?.patient_phone || '-',
-      email: p?.email || appointment?.patient_email || '-',
-      address: p?.address || answers.address || '-',
+      bloodType: (p?.bloodType || '-').toUpperCase(),
+      motherName: p?.motherName || '-',
+      occupation: p?.occupation || '-',
+      religion: 'Islam',
+      phoneNumber: p?.phone || '-',
+      email: p?.email || '-',
+      address: p?.address || '-',
       relationship: getRelationshipLabel(p?.relationshipType)
     },
     emergencyContact: {
-      name: p?.emergencyContactName || answers.emergencyContactName || '-',
-      relationship: p?.emergencyContactRelationship || answers.emergencyContactRelationship || '-',
-      phoneNumber: p?.emergencyContactPhone || answers.emergencyContactPhone || '-'
+      name: p?.emergencyContactName || '-',
+      relationship: p?.emergencyContactRelationship || '-',
+      phoneNumber: p?.emergencyContactPhone || '-'
     },
     clinical: {
       chiefComplaint: appointment?.complaint || '-',
