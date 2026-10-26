@@ -30,8 +30,7 @@ export interface UnifiedInspectorPatient {
 }
 
 export interface UnifiedInspectorData {
-  flow: string;
-  type: string;
+  flow?: string;
   answers: Record<string, any>;
   automatic: Record<string, any>;
   maternal?: MaternalIntakeResponse;

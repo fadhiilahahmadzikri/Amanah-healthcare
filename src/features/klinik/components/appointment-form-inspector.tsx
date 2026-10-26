@@ -6,6 +6,7 @@ import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { klinikKeys } from '../api/query-keys';
+import { FLOW_NAMES } from '../constants/kia-constants';
 import {
   kiaIntakeService,
   type MaternalIntakeResponse,
@@ -58,14 +59,8 @@ export function AppointmentFormInspector({
 
   const matchingAffiliation = React.useMemo(() => {
     if (!affiliations?.length) return null;
-    return (
-      affiliations.find((a) => a.id === appointment.patient_id) ||
-      affiliations.find(
-        (a) => a.fullName.toLowerCase() === (appointment.patient_name || '').toLowerCase()
-      ) ||
-      null
-    );
-  }, [affiliations, appointment]);
+    return affiliations.find((a) => a.id === appointment.patient_id) || null;
+  }, [affiliations, appointment.patient_id]);
 
   const parsedData = React.useMemo<UnifiedInspectorData>(() => {
     const rawData =
@@ -78,12 +73,7 @@ export function AppointmentFormInspector({
           : serverIntake.data
         : serverIntake;
 
-    const flow = serverIntake?.flow || appointment.medical_flow || 'regular';
-
-    const type =
-      serverIntake?.type ||
-      (serverIntake as any)?.data?.type ||
-      (flow === 'pregnancy' ? 'maternal' : flow === 'immunization' ? 'immunization' : 'generic');
+    const flow = serverIntake?.flow ?? appointment.medical_flow;
 
     let answers: Record<string, any> = {};
     let automatic: Record<string, any> = {};
@@ -91,24 +81,14 @@ export function AppointmentFormInspector({
     let child: ChildImmunizationResponse | undefined = undefined;
 
     if (rawData) {
-      if (type === 'maternal' || flow === 'pregnancy') {
+      if (flow === FLOW_NAMES.PREGNANCY) {
         maternal = rawData as MaternalIntakeResponse;
-        answers =
-          (maternal.answers as Record<string, any>) ||
-          (rawData.answers as Record<string, any>) ||
-          {};
-        automatic =
-          (maternal.automatic as Record<string, any>) ||
-          (rawData.automatic as Record<string, any>) ||
-          {};
-      } else if (type === 'immunization' || flow === 'immunization') {
+        answers = (maternal.answers as Record<string, any>) || {};
+        automatic = (maternal.automatic as Record<string, any>) || {};
+      } else if (flow === FLOW_NAMES.IMMUNIZATION) {
         child = rawData as ChildImmunizationResponse;
-        answers =
-          (child.answers as Record<string, any>) || (rawData.answers as Record<string, any>) || {};
-        automatic =
-          (child.automatic as Record<string, any>) ||
-          (rawData.automatic as Record<string, any>) ||
-          {};
+        answers = (child.answers as Record<string, any>) || {};
+        automatic = (child.automatic as Record<string, any>) || {};
       } else {
         answers = (rawData.answers as Record<string, any>) || {};
         automatic = (rawData.automatic as Record<string, any>) || {};
@@ -137,7 +117,7 @@ export function AppointmentFormInspector({
             gender: matchingAffiliation.gender,
             bloodType: matchingAffiliation.bloodType || undefined,
             occupation: matchingAffiliation.occupationName || undefined,
-            phone: matchingAffiliation.phoneNumber || appointment.patient_phone || undefined,
+            phone: matchingAffiliation.phoneNumber || undefined,
             address: matchingAffiliation.address || undefined,
             relationshipType: matchingAffiliation.relationship,
             relationLabel: matchingAffiliation.relationshipLabel
@@ -151,7 +131,6 @@ export function AppointmentFormInspector({
 
     return {
       flow,
-      type,
       answers,
       automatic,
       maternal,
@@ -166,40 +145,40 @@ export function AppointmentFormInspector({
     };
   }, [serverIntake, appointment, matchingAffiliation]);
 
-  const isPregnancy = parsedData.flow === 'pregnancy';
-  const isImmunization = parsedData.flow === 'immunization' || Boolean(parsedData.child);
+  const isPregnancy = parsedData.flow === FLOW_NAMES.PREGNANCY;
+  const isImmunization = parsedData.flow === FLOW_NAMES.IMMUNIZATION || Boolean(parsedData.child);
 
   const [isReaderOpen, setIsReaderOpen] = React.useState(false);
   const [isExporting, setIsExporting] = React.useState(false);
 
   const pmbFormData = React.useMemo(() => {
-    if (parsedData.flow === 'pregnancy') {
+    if (parsedData.flow === FLOW_NAMES.PREGNANCY) {
       return adaptToPmbFormData(parsedData);
     }
     return null;
   }, [parsedData]);
 
   const imunisasiFormData = React.useMemo(() => {
-    if (parsedData.flow === 'immunization' || Boolean(parsedData.child)) {
+    if (parsedData.flow === FLOW_NAMES.IMMUNIZATION || Boolean(parsedData.child)) {
       return adaptToImunisasiFormData(parsedData);
     }
     return null;
   }, [parsedData]);
 
   const regulerFormData = React.useMemo(() => {
-    if (parsedData.flow === 'regular') {
+    if (!isPregnancy && !isImmunization) {
       return adaptToRegulerFormData(parsedData, appointment);
     }
     return null;
-  }, [parsedData, appointment]);
+  }, [parsedData, appointment, isPregnancy, isImmunization]);
 
   const handleDirectDownload = async () => {
     try {
       setIsExporting(true);
-      if (parsedData.flow === 'pregnancy') {
+      if (parsedData.flow === FLOW_NAMES.PREGNANCY) {
         const patientName = appointment.patient_name || 'Pasien';
         await exportPmbDocx(pmbFormData, `Formulir_ANC_${patientName.replace(/\s+/g, '_')}.docx`);
-      } else if (parsedData.flow === 'immunization' || Boolean(parsedData.child)) {
+      } else if (parsedData.flow === FLOW_NAMES.IMMUNIZATION || Boolean(parsedData.child)) {
         const childName = appointment.patient_name || 'Anak';
         await exportImunisasiDocx(
           imunisasiFormData,
@@ -227,14 +206,14 @@ export function AppointmentFormInspector({
             <h3 className='text-base sm:text-lg font-bold text-foreground truncate w-full tracking-tight'>
               {isPregnancy
                 ? 'Formulir KIA & Kehamilan'
-                : parsedData.flow === 'immunization'
+                : isImmunization
                   ? 'Formulir Imunisasi Anak'
                   : 'Formulir Pendaftaran Pasien'}
             </h3>
             <p className='text-sm font-medium text-muted-foreground truncate w-full'>
               {isPregnancy
                 ? 'Data skrining klinis, kebiasaan, obstetri & riwayat KB'
-                : parsedData.flow === 'immunization'
+                : isImmunization
                   ? 'Data riwayat vaksinasi dan tumbuh kembang anak'
                   : 'Data rekam medis & profil intake pasien'}
             </p>

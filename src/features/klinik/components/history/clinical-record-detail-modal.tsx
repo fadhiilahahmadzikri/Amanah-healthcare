@@ -6,6 +6,7 @@ import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { FLOW_NAMES } from '../../constants/kia-constants';
 import {
   kiaIntakeService,
   type MaternalIntakeResponse,
@@ -83,8 +84,7 @@ export function ClinicalRecordDetailModal({
   const inspectorData: UnifiedInspectorData = React.useMemo(() => {
     if (isImmunization && childRecord) {
       return {
-        flow: 'immunization',
-        type: 'immunization',
+        flow: FLOW_NAMES.IMMUNIZATION,
         answers: childRecord.answers || {},
         automatic: {},
         child: childRecord,
@@ -100,8 +100,7 @@ export function ClinicalRecordDetailModal({
     }
     if (!isImmunization && maternalRecord) {
       return {
-        flow: 'pregnancy',
-        type: 'pregnancy',
+        flow: FLOW_NAMES.PREGNANCY,
         answers: maternalRecord.answers || {},
         automatic: {},
         maternal: maternalRecord,
@@ -115,8 +114,7 @@ export function ClinicalRecordDetailModal({
       };
     }
     return {
-      flow: isImmunization ? 'immunization' : 'pregnancy',
-      type: isImmunization ? 'immunization' : 'pregnancy',
+      flow: isImmunization ? FLOW_NAMES.IMMUNIZATION : FLOW_NAMES.PREGNANCY,
       answers: {},
       automatic: {}
     };
