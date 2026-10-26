@@ -69,10 +69,8 @@ export function useMedicalAppointmentSubmit({
       const complaint = buildComplaintText(definition.complaintFieldId, submittedValues);
       const patientName = submittedValues[definition.patientNameFieldId] || undefined;
       const patientContact = submittedValues[definition.patientContactFieldId] || undefined;
-      const patientEmail = registeredPatient?.email || patientContact || undefined;
-      const patientId =
-        registeredPatient?.patient_id ||
-        (registeredPatient?.id ? String(registeredPatient.id) : '');
+      const patientEmail = registeredPatient?.email || undefined;
+      const patientId = registeredPatient?.id ? String(registeredPatient.id) : '';
 
       if (onCompleteIntake) {
         if (!selectedService?.id || !selectedService?.poliklinikId) {
@@ -83,14 +81,14 @@ export function useMedicalAppointmentSubmit({
         setIsProcessing(true);
         void (async () => {
           try {
-            let resolvedPatientId = selectedPatient?.id || '';
-            let resolvedPatientName = selectedPatient?.fullName || patientName || '';
+            let resolvedPatientId = selectedPatient ? selectedPatient.id : '';
+            let resolvedPatientName = selectedPatient
+              ? selectedPatient.fullName
+              : patientName || '';
 
             if (!resolvedPatientId) {
               const isImmunization = definition.flow === FLOW_NAMES.IMMUNIZATION;
-              const targetName = isImmunization
-                ? (submittedValues.childName || patientName || '').trim()
-                : (submittedValues.motherName || patientName || '').trim();
+              const targetName = (patientName || '').trim();
 
               const targetNik = isImmunization
                 ? (submittedValues.childNik || '').trim()
@@ -113,8 +111,8 @@ export function useMedicalAppointmentSubmit({
                 : submittedValues.motherBloodType || UNKNOWN_BLOOD_TYPE;
 
               const targetPhone = isImmunization
-                ? submittedValues.parentPhone || patientContact || ''
-                : submittedValues.phoneNumber || patientContact || '';
+                ? submittedValues.parentPhone || ''
+                : submittedValues.phoneNumber || '';
 
               const targetAddress = isImmunization
                 ? submittedValues.childAddress || ''
@@ -212,12 +210,7 @@ export function useMedicalAppointmentSubmit({
           (definition.flow === FLOW_NAMES.IMMUNIZATION
             ? 'Imunisasi Anak'
             : 'Pemeriksaan Persalinan'),
-        patientName:
-          patientName ||
-          (definition.flow === FLOW_NAMES.IMMUNIZATION
-            ? submittedValues.childName
-            : submittedValues.motherName) ||
-          '',
+        patientName: patientName || '',
         patientEmail,
         patientAvatar: registeredPatient?.avatarUrl,
         medicalFlow: definition.flow,
@@ -232,7 +225,7 @@ export function useMedicalAppointmentSubmit({
             return;
           }
           const res = await patientAffiliationService.createAppointment({
-            patientId: patientId || selectedPatient?.id || '',
+            patientId: selectedPatient ? selectedPatient.id : patientId,
             poliklinikId: selectedService.poliklinikId,
             layananId: selectedService.id,
             appointmentDate: schedule?.dateStr || '',
@@ -246,14 +239,14 @@ export function useMedicalAppointmentSubmit({
           const uiApt: Appointment = {
             id: res.id,
             booking_code: res.bookingCode || res.id.slice(0, 8).toUpperCase(),
-            patient_name: res.patientName || patientName || 'Pasien',
+            patient_name: res.patientName || '',
             patient_email: patientEmail || '',
             patient_avatar: registeredPatient?.avatarUrl || '',
-            doctor_name: res.doctorName || schedule?.doctor || '',
+            doctor_name: res.doctorName || '',
             date: res.appointmentDate,
             time: res.session,
             session: res.session,
-            complaint: res.complaint || complaint || '-',
+            complaint: res.complaint || '',
             status: 'BOOKED',
             visit_type: (res.visitType || definition.visitType) as Appointment['visit_type'],
             service: res.layananName || definition.serviceName,

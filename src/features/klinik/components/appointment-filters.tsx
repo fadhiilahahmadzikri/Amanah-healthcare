@@ -23,67 +23,23 @@ export interface AppointmentFilterActions {
 }
 
 export interface AppointmentFiltersProps {
-  // Consolidated contract
-  filters?: AppointmentFilterState;
-  actions?: AppointmentFilterActions;
-
-  // Backwards-compatible discrete props
-  searchQuery?: string;
-  onSearchChange?: (val: string) => void;
-  monthFilter?: string;
-  onMonthFilterChange?: (month: string) => void;
-  dateFilter?: Date | undefined;
-  onDateFilterChange?: (date: Date | undefined) => void;
-  selectedServices?: string[];
-  onSelectedServicesChange?: (services: string[]) => void;
-  selectedStatuses?: AppointmentStatus[];
-  onSelectedStatusesChange?: (statuses: AppointmentStatus[]) => void;
+  filters: AppointmentFilterState;
+  actions: AppointmentFilterActions;
   serviceOptions?: FilterOption[];
-  onResetAll?: () => void;
   className?: string;
 }
 
 export function AppointmentFilters({
   filters,
   actions,
-  searchQuery: discreteQuery,
-  onSearchChange: discreteOnSearchChange,
-  monthFilter: discreteMonth,
-  onMonthFilterChange: discreteOnMonthChange,
-  dateFilter: discreteDate,
-  onDateFilterChange: discreteOnDateChange,
-  selectedServices: discreteServices,
-  onSelectedServicesChange: discreteOnServicesChange,
-  selectedStatuses: discreteStatuses,
-  onSelectedStatusesChange: discreteOnStatusesChange,
-  serviceOptions: discreteServiceOptions,
-  onResetAll: discreteOnResetAll,
+  serviceOptions,
   className
 }: AppointmentFiltersProps) {
   const clinicFilterData = useClinicFilterOptions();
-  const availableServices = discreteServiceOptions ?? clinicFilterData.serviceOptions;
-
-  // Resolve effective state & actions (supporting both consolidated and discrete props)
-  const currentFilters: AppointmentFilterState = React.useMemo(
-    () => ({
-      searchQuery: filters?.searchQuery ?? discreteQuery ?? '',
-      monthFilter: filters?.monthFilter ?? discreteMonth ?? 'ALL',
-      dateFilter: filters?.dateFilter ?? discreteDate,
-      selectedServices: filters?.selectedServices ?? discreteServices ?? [],
-      selectedStatuses: filters?.selectedStatuses ?? discreteStatuses ?? []
-    }),
-    [filters, discreteQuery, discreteMonth, discreteDate, discreteServices, discreteStatuses]
-  );
-
-  const handleSearchChange = actions?.changeSearch ?? discreteOnSearchChange ?? (() => {});
-  const handleMonthChange = actions?.changeMonthFilter ?? discreteOnMonthChange ?? (() => {});
-  const handleDateChange = actions?.changeDateFilter ?? discreteOnDateChange ?? (() => {});
-  const handleServicesChange =
-    actions?.changeSelectedServices ?? discreteOnServicesChange ?? (() => {});
-  const handleReset = actions?.resetFilters ?? discreteOnResetAll ?? (() => {});
+  const availableServices = serviceOptions ?? clinicFilterData.serviceOptions;
 
   const today = React.useMemo(() => new Date(), []);
-  const isFiltered = isAppointmentFilterActive(currentFilters, today);
+  const isFiltered = isAppointmentFilterActive(filters, today);
   const monthOptions = React.useMemo(() => buildMonthOptions(), []);
 
   const serviceFacetOptions = React.useMemo(
@@ -95,8 +51,8 @@ export function AppointmentFilters({
     <div className={cn('flex flex-wrap items-center gap-2 font-sans select-none', className)}>
       {/* 1. Global Search Input */}
       <SearchInput
-        value={currentFilters.searchQuery}
-        onChange={handleSearchChange}
+        value={filters.searchQuery}
+        onChange={actions.changeSearch}
         placeholder='Pencarian Global...'
         ariaLabel='Pencarian Global'
       />
@@ -108,12 +64,10 @@ export function AppointmentFilters({
         mode='single'
         options={monthOptions}
         selectedValues={
-          currentFilters.monthFilter && currentFilters.monthFilter !== 'ALL'
-            ? [currentFilters.monthFilter]
-            : []
+          filters.monthFilter && filters.monthFilter !== 'ALL' ? [filters.monthFilter] : []
         }
-        onSelect={(val) => handleMonthChange(val)}
-        onReset={() => handleMonthChange('ALL')}
+        onSelect={(val) => actions.changeMonthFilter(val)}
+        onReset={() => actions.changeMonthFilter('ALL')}
         resetLabel='Reset Bulan'
         popoverWidth='w-48'
       />
@@ -121,8 +75,8 @@ export function AppointmentFilters({
       {/* 3. Date Filter */}
       <DateFilter
         label='Tanggal'
-        selectedDate={currentFilters.dateFilter}
-        onSelectDate={handleDateChange}
+        selectedDate={filters.dateFilter}
+        onSelectDate={actions.changeDateFilter}
         defaultDate={today}
         resetLabel='Kembali ke Hari Ini'
       />
@@ -133,11 +87,11 @@ export function AppointmentFilters({
         icon={Icons.plusCircle}
         mode='multi'
         options={serviceFacetOptions}
-        selectedValues={currentFilters.selectedServices}
+        selectedValues={filters.selectedServices}
         onSelect={(service) =>
-          handleServicesChange(toggleItem(currentFilters.selectedServices, service))
+          actions.changeSelectedServices(toggleItem(filters.selectedServices, service))
         }
-        onReset={() => handleServicesChange([])}
+        onReset={() => actions.changeSelectedServices([])}
         resetLabel='Reset Layanan'
         popoverWidth='w-56'
       />
@@ -147,7 +101,7 @@ export function AppointmentFilters({
         <Button
           variant='ghost'
           size='sm'
-          onClick={handleReset}
+          onClick={actions.resetFilters}
           className='h-8 px-2.5 text-xs border border-dashed border-border'
         >
           <Icons.close className='size-3.5 mr-1' />
