@@ -1,5 +1,6 @@
+import type { PayrollPeriodStatus } from '../constants/options';
+
 export type StaffCategory = 'doctor' | 'midwife' | 'worker';
-export type PayrollPeriodStatus = 'draft' | 'calculated' | 'finalized';
 export type PayrollEntryType =
   | 'base_scheduled'
   | 'leave_deduction'
@@ -38,7 +39,7 @@ export interface PayrollSummaryItem {
   periodName?: string;
   periodStart?: string;
   periodEnd?: string;
-  periodStatus?: string;
+  periodStatus?: PayrollPeriodStatus;
   calculatedAt?: string | null;
   baseHours: number;
   deductionHours?: number;
@@ -83,7 +84,7 @@ export interface PayrollFilterState {
 }
 
 export interface PayrollFilterOptionsResponse {
-  categories: Array<{ id: string; label: string }>;
+  categories: StaffCategory[];
   periods: Array<{
     id: string;
     name: string;
@@ -91,7 +92,7 @@ export interface PayrollFilterOptionsResponse {
     periodStart: string;
     periodEnd: string;
   }>;
-  statuses: Array<{ id: string; label: string }>;
+  statuses: PayrollPeriodStatus[];
 }
 
 export interface CompensationRateItem {

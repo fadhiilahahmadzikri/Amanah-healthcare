@@ -109,29 +109,31 @@ export function usePayrollView(): UsePayrollViewResult {
   const filteredSummaries = useMemo(() => {
     return summaries.filter((item) => {
       const q = params.search.trim().toLowerCase();
+      const searchableFields = [item.fullName, item.staffCode, item.positionTitle];
       const matchesSearch =
         !q ||
-        item.fullName.toLowerCase().includes(q) ||
-        (item.staffCode && item.staffCode.toLowerCase().includes(q)) ||
-        (item.positionTitle && item.positionTitle.toLowerCase().includes(q));
+        searchableFields.some(
+          (field) => typeof field === 'string' && field.toLowerCase().includes(q)
+        );
 
       const matchesCategory =
         params.category === 'all' || item.staffType === (params.category as StaffCategory);
 
+      const effectiveStatus = item.periodStatus ?? currentPeriod?.status;
       const matchesStatus =
         params.status === 'all' ||
-        (item.periodStatus && item.periodStatus.toLowerCase() === params.status.toLowerCase()) ||
-        (currentPeriod?.status &&
-          currentPeriod.status.toLowerCase() === params.status.toLowerCase());
+        (Boolean(effectiveStatus) &&
+          effectiveStatus?.toLowerCase() === params.status.toLowerCase());
 
       return matchesSearch && matchesCategory && matchesStatus;
     });
   }, [summaries, params.search, params.category, params.status, currentPeriod?.status]);
 
-  const hasActiveFilters =
-    Boolean(params.search.trim()) ||
-    (params.category !== 'all' && Boolean(params.category)) ||
-    (params.status !== 'all' && Boolean(params.status));
+  const hasActiveFilters = [
+    Boolean(params.search.trim()),
+    params.category !== 'all' && Boolean(params.category),
+    params.status !== 'all' && Boolean(params.status)
+  ].some(Boolean);
 
   // 4. Resolve selected staff detail dialog
   const selectedStaff = useMemo(() => {
@@ -255,7 +257,7 @@ export function usePayrollView(): UsePayrollViewResult {
     selectedStatus: params.status || 'all',
     isDetailOpen,
     hasActiveFilters,
-    isLoading: isPeriodsLoading || isDetailLoading || isFilterOptionsLoading,
+    isLoading: [isPeriodsLoading, isDetailLoading, isFilterOptionsLoading].some(Boolean),
     isFetching: isPeriodsFetching || isDetailFetching,
     filterOptions,
     kpiStats,

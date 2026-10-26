@@ -6,6 +6,11 @@ import { FacetedFilter } from '@/shared/ui/faceted-filter';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
+import {
+  CATEGORY_FILTER_OPTIONS,
+  PERIOD_STATUS_CONFIG,
+  STATUS_FILTER_OPTIONS
+} from '../constants/options';
 import type { PayrollPeriodItem, PayrollFilterOptionsResponse } from '../api/types';
 
 export interface PayrollFiltersProps {
@@ -53,21 +58,15 @@ export function PayrollFilters({
     return () => clearTimeout(timer);
   }, [localSearch, onSearchChange, searchQuery]);
 
-  const isFiltered =
-    Boolean(searchQuery.trim()) ||
-    Boolean(localSearch.trim()) ||
-    (selectedCategory !== 'all' && Boolean(selectedCategory)) ||
-    (selectedStatus !== 'all' && Boolean(selectedStatus));
+  const hasSearch = Boolean(searchQuery.trim() || localSearch.trim());
+  const hasCategoryFilter = selectedCategory !== 'all' && Boolean(selectedCategory);
+  const hasStatusFilter = selectedStatus !== 'all' && Boolean(selectedStatus);
+  const isFiltered = [hasSearch, hasCategoryFilter, hasStatusFilter].some(Boolean);
 
   // 1. Period Options
   const periodOptions = React.useMemo(() => {
     return periods.map((p) => {
-      const statusLabel =
-        p.status === 'calculated'
-          ? 'Terkalkulasi'
-          : p.status === 'finalized'
-            ? 'Ditutup buku'
-            : 'Draf';
+      const statusLabel = PERIOD_STATUS_CONFIG[p.status]?.label ?? p.status;
       return {
         value: p.id,
         label: `${p.periodName} (${statusLabel})`
@@ -75,39 +74,11 @@ export function PayrollFilters({
     });
   }, [periods]);
 
-  // 2. Category Options (Backend SSOT)
-  const categoryOptions = React.useMemo(() => {
-    const list = [{ label: 'Semua Kategori', value: 'all' }];
-    if (filterOptions?.categories) {
-      for (const cat of filterOptions.categories) {
-        list.push({ label: cat.label, value: cat.id });
-      }
-    } else {
-      list.push(
-        { label: 'Dokter', value: 'doctor' },
-        { label: 'Bidan', value: 'midwife' },
-        { label: 'Staf Operasional', value: 'worker' }
-      );
-    }
-    return list;
-  }, [filterOptions?.categories]);
+  // 2. Category Options (Presentation SSOT)
+  const categoryOptions = CATEGORY_FILTER_OPTIONS;
 
-  // 3. Status Options (Backend SSOT)
-  const statusOptions = React.useMemo(() => {
-    const list = [{ label: 'Semua Status', value: 'all' }];
-    if (filterOptions?.statuses) {
-      for (const st of filterOptions.statuses) {
-        list.push({ label: st.label, value: st.id });
-      }
-    } else {
-      list.push(
-        { label: 'Draf', value: 'draft' },
-        { label: 'Terkalkulasi', value: 'calculated' },
-        { label: 'Ditutup Buku', value: 'finalized' }
-      );
-    }
-    return list;
-  }, [filterOptions?.statuses]);
+  // 3. Status Options (Presentation SSOT)
+  const statusOptions = STATUS_FILTER_OPTIONS;
 
   return (
     <div className={cn('flex flex-wrap items-center gap-2 font-sans select-none', className)}>

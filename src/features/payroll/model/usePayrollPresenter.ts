@@ -6,6 +6,7 @@ import { useFinalizePayrollPeriodMutation, useReconcileDailyLeaveMutation } from
 import { useStaffPayrollReport } from './useStaffPayrollReport';
 import { useStateSearchEngine, type SearchEngineResultItem } from '@/components/search-engine';
 import { Icons } from '@/components/icons';
+import { CATEGORY_FACET_OPTIONS } from '../constants/options';
 import type { PayrollSummaryItem, ReconcileLeaveResult } from '../api/types';
 
 export interface UsePayrollPresenterResult {
@@ -89,21 +90,19 @@ export function usePayrollPresenter(): UsePayrollPresenterResult {
     });
 
     // 3. Category Facets
-    if (payrollView.filterOptions?.categories) {
-      payrollView.filterOptions.categories.forEach((cat) => {
-        items.push({
-          id: `cat-${cat.id}`,
-          title: cat.label,
-          subtitle: 'Kategori Staf',
-          category: 'Kategori',
-          icon: Icons.teams,
-          queryValue: cat.label
-        });
+    CATEGORY_FACET_OPTIONS.forEach((cat) => {
+      items.push({
+        id: `cat-${cat.value}`,
+        title: cat.label,
+        subtitle: 'Kategori Staf',
+        category: 'Kategori',
+        icon: Icons.teams,
+        queryValue: cat.label
       });
-    }
+    });
 
     return items;
-  }, [payrollView.summaries, payrollView.periods, payrollView.filterOptions?.categories]);
+  }, [payrollView.summaries, payrollView.periods]);
 
   // Centralized search engine hook
   const searchEngine = useStateSearchEngine({

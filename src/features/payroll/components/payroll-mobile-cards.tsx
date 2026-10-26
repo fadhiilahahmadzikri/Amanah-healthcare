@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Icons } from '@/components/icons';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
+import { isPayrollCalculatedOrFinalized } from '../constants/options';
 import { formatCurrency } from '../utils/currency';
 import type { PayrollSummaryItem } from '../api/types';
 
@@ -66,10 +67,8 @@ export function PayrollMobileCards({
   return (
     <div className='flex flex-col gap-2 pb-20'>
       {summaries.map((staff) => {
-        const canGenerate =
-          isCalculatedOrFinalized ||
-          staff.periodStatus === 'calculated' ||
-          staff.periodStatus === 'finalized';
+        const isStaffCalculated = isPayrollCalculatedOrFinalized(staff.periodStatus);
+        const canGenerate = Boolean(isCalculatedOrFinalized || isStaffCalculated);
         const isExportingThis = exportingStaffId === staff.staffId;
 
         return (

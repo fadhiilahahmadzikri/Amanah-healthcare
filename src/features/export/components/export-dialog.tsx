@@ -93,9 +93,8 @@ export function ExportDialog({
   const [selectedMonthIndex, setSelectedMonthIndex] = useState<number>(now.getMonth());
 
   // Period State for Payroll
-  const [activePeriodId, setActivePeriodId] = useState<string>(
-    initialPeriodId || availablePeriods?.[0]?.id || ''
-  );
+  const fallbackPeriodId = availablePeriods?.[0]?.id ?? '';
+  const [activePeriodId, setActivePeriodId] = useState<string>(initialPeriodId || fallbackPeriodId);
 
   useEffect(() => {
     if (initialPeriodId) {

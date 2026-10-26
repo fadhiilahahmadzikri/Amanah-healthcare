@@ -4,6 +4,7 @@ import React from 'react';
 import type { Table } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
+import { isPayrollCalculatedOrFinalized } from '../../constants/options';
 import type { PayrollSummaryItem } from '../../api/types';
 
 export interface PayrollTableMeta {
@@ -29,10 +30,8 @@ export function CellAction({
   const meta = table?.options.meta as PayrollTableMeta | undefined;
   const onSelect = propOnSelect ?? meta?.onSelectStaff;
   const onGenerate = propOnGenerate ?? meta?.onGenerateReport;
-  const canGenerate =
-    meta?.isCalculatedOrFinalized ||
-    data.periodStatus === 'calculated' ||
-    data.periodStatus === 'finalized';
+  const isStaffCalculated = isPayrollCalculatedOrFinalized(data.periodStatus);
+  const canGenerate = Boolean(meta?.isCalculatedOrFinalized || isStaffCalculated);
   const isExportingThisStaff = meta?.exportingStaffId === data.staffId;
 
   return (

@@ -4,6 +4,11 @@ import { useMemo } from 'react';
 import { Icons } from '@/components/icons';
 import type { FacetGroupDefinition } from '@/shared/ui/responsive-facet-toolbox';
 import { useStateSearchEngine, type SearchEngineResultItem } from '@/components/search-engine';
+import {
+  CATEGORY_FACET_OPTIONS,
+  STATUS_FACET_OPTIONS,
+  PERIOD_STATUS_CONFIG
+} from '../constants/options';
 import type { UsePayrollViewResult } from './usePayrollView';
 
 export interface UsePayrollDynamicOptionsProps {
@@ -24,49 +29,17 @@ export function usePayrollDynamicOptions({ payrollView }: UsePayrollDynamicOptio
 
   // 1. Period Options
   const periodFacetOptions = useMemo(() => {
-    return periods.map((p) => {
-      const statusLabel =
-        p.status === 'calculated'
-          ? 'Terkalkulasi'
-          : p.status === 'finalized'
-            ? 'Ditutup buku'
-            : 'Draf';
-      return {
-        value: p.id,
-        label: `${p.periodName} (${statusLabel})`
-      };
-    });
+    return periods.map((p) => ({
+      value: p.id,
+      label: `${p.periodName} (${PERIOD_STATUS_CONFIG[p.status].label})`
+    }));
   }, [periods]);
 
-  // 2. Category Options (Backend SSOT)
-  const categoryFacetOptions = useMemo(() => {
-    if (filterOptions?.categories && filterOptions.categories.length > 0) {
-      return filterOptions.categories.map((c) => ({
-        value: c.id,
-        label: c.label
-      }));
-    }
-    return [
-      { label: 'Dokter', value: 'doctor' },
-      { label: 'Bidan', value: 'midwife' },
-      { label: 'Staf Operasional', value: 'worker' }
-    ];
-  }, [filterOptions?.categories]);
+  // 2. Category Options (Presentation SSOT)
+  const categoryFacetOptions = CATEGORY_FACET_OPTIONS;
 
-  // 3. Status Options (Backend SSOT)
-  const statusFacetOptions = useMemo(() => {
-    if (filterOptions?.statuses && filterOptions.statuses.length > 0) {
-      return filterOptions.statuses.map((s) => ({
-        value: s.id,
-        label: s.label
-      }));
-    }
-    return [
-      { label: 'Draf', value: 'draft' },
-      { label: 'Terkalkulasi', value: 'calculated' },
-      { label: 'Ditutup Buku', value: 'finalized' }
-    ];
-  }, [filterOptions?.statuses]);
+  // 3. Status Options (Presentation SSOT)
+  const statusFacetOptions = STATUS_FACET_OPTIONS;
 
   // 4. Facet Groups for Agnostic ResponsiveFacetToolbox & FacetSidebarSheet
   const facetGroups = useMemo<FacetGroupDefinition[]>(() => {
@@ -163,9 +136,9 @@ export function usePayrollDynamicOptions({ payrollView }: UsePayrollDynamicOptio
       });
     });
 
-    (filterOptions?.categories ?? []).forEach((cat) => {
+    CATEGORY_FACET_OPTIONS.forEach((cat) => {
       items.push({
-        id: `cat-${cat.id}`,
+        id: `cat-${cat.value}`,
         title: cat.label,
         subtitle: 'Kategori Staf',
         category: 'Kategori',
@@ -175,7 +148,7 @@ export function usePayrollDynamicOptions({ payrollView }: UsePayrollDynamicOptio
     });
 
     return items;
-  }, [summaries, periods, filterOptions?.categories]);
+  }, [summaries, periods]);
 
   const searchEngine = useStateSearchEngine({
     query: searchQuery,

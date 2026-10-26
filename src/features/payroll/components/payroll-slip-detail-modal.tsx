@@ -7,7 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
-import { ENTRY_TYPE_CONFIG, SOURCE_TYPE_LABELS } from '../constants/options';
+import { cn } from '@/lib/utils';
+import {
+  ENTRY_TYPE_CONFIG,
+  SOURCE_TYPE_LABELS,
+  PERIOD_STATUS_CONFIG,
+  isPayrollCalculatedOrFinalized
+} from '../constants/options';
 import { formatCurrency } from '../utils/currency';
 import { useStaffPayrollReport } from '../model/useStaffPayrollReport';
 import type { PayrollPeriodItem, PayrollSummaryItem } from '../api/types';
@@ -27,21 +33,16 @@ export function PayrollSlipDetailModal({
 }: PayrollSlipDetailModalProps) {
   const { isExporting, generateStaffReport } = useStaffPayrollReport();
 
-  if (!staffSummary) return null;
+  if (!staffSummary || !period) return null;
 
-  const isPeriodCalculatedOrFinalized =
-    period?.status === 'calculated' ||
-    period?.status === 'finalized' ||
-    staffSummary.periodStatus === 'calculated' ||
-    staffSummary.periodStatus === 'finalized';
+  const isPeriodCalculatedOrFinalized = isPayrollCalculatedOrFinalized(period.status);
 
   const handleDownloadReport = async (format: 'pdf' | 'xlsx' = 'pdf') => {
-    if (!period?.id && !staffSummary.periodId) return;
     await generateStaffReport({
-      periodId: period?.id || staffSummary.periodId || '',
+      periodId: period.id,
       staffId: staffSummary.staffId,
       staffName: staffSummary.fullName,
-      periodName: period?.periodName || staffSummary.periodName,
+      periodName: period.periodName,
       format
     });
   };
@@ -91,16 +92,20 @@ export function PayrollSlipDetailModal({
                 )}
               </div>
               <p className='text-xs text-muted-foreground mt-0.5 truncate'>
-                {period?.periodName ?? staffSummary.periodName ?? 'Periode Penggajian'} •{' '}
-                {staffSummary.positionTitle ?? 'Staf Operasional Klinik'}
+                {period.periodName} • {staffSummary.positionTitle}
               </p>
             </div>
           </div>
 
           {/* Status Badge */}
           <div className='shrink-0 pt-0.5'>
-            <span className='text-[11px] font-semibold px-2.5 py-1 rounded-lg border border-border/60 bg-muted/40 text-foreground capitalize'>
-              {period?.status ?? staffSummary.periodStatus ?? 'draft'}
+            <span
+              className={cn(
+                'text-[11px] font-semibold px-2.5 py-1 rounded-lg border',
+                PERIOD_STATUS_CONFIG[period.status].className
+              )}
+            >
+              {PERIOD_STATUS_CONFIG[period.status].label}
             </span>
           </div>
         </div>

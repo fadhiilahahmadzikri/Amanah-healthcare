@@ -39,6 +39,8 @@ export function PayrollCalculateModal({ isOpen, onClose, onSuccess }: PayrollCal
     }
   };
 
+  const hasRequiredFields = Boolean(periodName.trim() && periodStart && periodEnd);
+
   return (
     <ModalWrapper
       isOpen={isOpen}
@@ -132,7 +134,7 @@ export function PayrollCalculateModal({ isOpen, onClose, onSuccess }: PayrollCal
             type='button'
             size='sm'
             onClick={handleCalculate}
-            disabled={calculateMutation.isPending || !periodName || !periodStart || !periodEnd}
+            disabled={calculateMutation.isPending || !hasRequiredFields}
             className='px-5 font-semibold cursor-pointer text-xs h-8.5 gap-1.5'
           >
             {calculateMutation.isPending ? (
