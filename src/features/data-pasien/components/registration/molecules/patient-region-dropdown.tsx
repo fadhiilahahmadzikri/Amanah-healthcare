@@ -94,8 +94,8 @@ export function PatientRegionDropdown({
         required
       />
 
-      {/* KECAMATAN & KELURAHAN (2 columns) */}
-      <div className='grid grid-cols-2 gap-3'>
+      {/* KECAMATAN & KELURAHAN (Vertical on Mobile, 2 columns on Desktop) */}
+      <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
         <PatientSearchableSelect
           id='district'
           label='Kecamatan'

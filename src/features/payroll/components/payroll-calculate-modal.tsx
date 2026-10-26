@@ -51,18 +51,13 @@ export function PayrollCalculateModal({ isOpen, onClose, onSuccess }: PayrollCal
       <div className='flex flex-col h-full min-h-0 flex-1 font-sans select-none'>
         {/* Pinned Header */}
         <div className='shrink-0 pb-3.5 border-b border-border/50 flex items-start justify-between gap-3'>
-          <div className='flex items-center gap-2.5 min-w-0'>
-            <div className='size-9 rounded-xl bg-muted text-foreground flex items-center justify-center shrink-0 border border-border/50'>
-              <Icons.calendar className='size-5 text-muted-foreground' />
-            </div>
-            <div className='min-w-0'>
-              <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
-                Kalkulasi Payroll Baru
-              </h3>
-              <p className='text-xs text-muted-foreground mt-0.5'>
-                Hitung gaji pokok, potongan cuti, dan insentif pengganti staf.
-              </p>
-            </div>
+          <div className='space-y-0.5 min-w-0 flex-1'>
+            <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
+              Kalkulasi Payroll Baru
+            </h3>
+            <p className='text-xs text-muted-foreground mt-0.5'>
+              Hitung gaji pokok, potongan cuti, dan insentif pengganti staf.
+            </p>
           </div>
         </div>
 
@@ -111,8 +106,7 @@ export function PayrollCalculateModal({ isOpen, onClose, onSuccess }: PayrollCal
           </div>
 
           <div className='p-3.5 bg-muted/30 border border-border/50 rounded-xl text-[11px] text-muted-foreground space-y-1.5 leading-relaxed'>
-            <div className='flex items-center gap-1.5 font-semibold text-foreground'>
-              <Icons.info className='size-3.5 text-muted-foreground' />
+            <div className='font-semibold text-foreground'>
               <span>Ketentuan Kalkulasi</span>
             </div>
             <p>
@@ -147,10 +141,7 @@ export function PayrollCalculateModal({ isOpen, onClose, onSuccess }: PayrollCal
                 <span>Mengkalkulasi...</span>
               </>
             ) : (
-              <>
-                <Icons.clock className='size-3.5 mr-1' />
-                <span>Jalankan Kalkulasi</span>
-              </>
+              <span>Jalankan Kalkulasi</span>
             )}
           </Button>
         </div>

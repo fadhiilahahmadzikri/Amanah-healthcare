@@ -69,14 +69,9 @@ export function PayrollPeriodSelector({
       <AlertDialog open={isConfirmFinalizeOpen} onOpenChange={setIsConfirmFinalizeOpen}>
         <AlertDialogContent className='max-w-md rounded-2xl'>
           <AlertDialogHeader>
-            <div className='flex items-center gap-2.5'>
-              <div className='size-9 rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 flex items-center justify-center shrink-0'>
-                <Icons.lock className='size-5' />
-              </div>
-              <AlertDialogTitle className='text-base font-bold'>
-                Tutup Buku Periode Penggajian?
-              </AlertDialogTitle>
-            </div>
+            <AlertDialogTitle className='text-base font-bold'>
+              Tutup Buku Periode Penggajian?
+            </AlertDialogTitle>
             <AlertDialogDescription className='text-xs text-muted-foreground mt-2 leading-relaxed'>
               Setelah periode <strong>&quot;{currentPeriod?.periodName}&quot;</strong> resmi ditutup
               buku (<strong>FINALIZED</strong>), seluruh nominal mutasi, jam kerja, dan slip gaji
@@ -93,9 +88,8 @@ export function PayrollPeriodSelector({
             <AlertDialogAction
               onClick={handleConfirmFinalize}
               disabled={isFinalizing}
-              className='text-xs h-8 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5'
+              className='text-xs h-8 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white'
             >
-              <Icons.checks className='size-3.5' />
               {isFinalizing ? 'Memproses...' : 'Konfirmasi Tutup Buku'}
             </AlertDialogAction>
           </AlertDialogFooter>

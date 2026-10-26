@@ -20,7 +20,6 @@ import {
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
@@ -49,23 +48,16 @@ export function StaffRosterModal(props: StaffRosterModalProps) {
           'max-w-[96vw] sm:max-w-6xl xl:max-w-7xl'
         )}
       >
-        <DialogHeader className='p-4 sm:p-6 pb-3 sm:pb-4 border-b border-border/60 bg-muted/20'>
-          <div className='flex items-start justify-between gap-3'>
-            <div className='min-w-0 flex-1'>
-              <DialogTitle className='text-base sm:text-xl font-bold tracking-tight text-foreground truncate'>
+        <DialogHeader className='p-4 sm:p-6 pb-3 sm:pb-4 border-b border-border/60 bg-muted/20 text-left'>
+          <div className='flex items-start justify-between gap-3 text-left'>
+            <div className='min-w-0 flex-1 text-left'>
+              <DialogTitle className='text-base sm:text-xl font-bold tracking-tight text-foreground truncate text-left'>
                 Pengaturan Jadwal Shift Kerja Staf
               </DialogTitle>
-              <DialogDescription className='text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 truncate'>
+              <DialogDescription className='text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 truncate text-left'>
                 {staff.fullName} &bull; {staff.profession || 'Staf Operasional'}
               </DialogDescription>
             </div>
-
-            <Badge
-              variant={roster.isOverride ? 'default' : 'outline'}
-              className='text-[10.5px] sm:text-[11px] shrink-0'
-            >
-              {roster.isOverride ? 'Override Khusus' : 'Template Master Klinik'}
-            </Badge>
           </div>
         </DialogHeader>
 
@@ -207,50 +199,52 @@ export function StaffRosterModal(props: StaffRosterModalProps) {
           )}
         </div>
 
-        <div className='p-3.5 sm:p-4 border-t border-border/60 bg-muted/20 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5'>
-          <div>
+        <div className='p-3 sm:p-4 border-t border-border/60 bg-muted/20 flex items-center justify-between gap-2'>
+          <div className='flex items-center gap-1.5'>
             <Button
               type='button'
               variant='outline'
               size='sm'
-              disabled={roster.loading || roster.saving || !roster.isOverride}
-              onClick={roster.openResetConfirm}
+              disabled={roster.loading || roster.saving || !roster.canReset}
+              onClick={roster.handleReset}
               title={
-                roster.isOverride
+                roster.canReset
                   ? 'Kembalikan seluruh jadwal staf ke template mingguan klinik'
                   : 'Jadwal staf sudah mengikuti template mingguan klinik'
               }
-              className='text-xs font-semibold text-muted-foreground hover:text-foreground h-9 px-3 cursor-pointer w-full sm:w-auto'
+              className='text-xs font-semibold text-muted-foreground hover:text-foreground h-9 px-2.5 sm:px-3 cursor-pointer'
             >
-              <Icons.refresh className='size-3.5 mr-1.5' />
-              Reset ke Template
+              <Icons.refresh className='size-3.5 sm:mr-1.5' />
+              <span className='hidden sm:inline'>Reset ke Template</span>
             </Button>
           </div>
 
-          <div className='flex items-center gap-2 justify-end'>
+          <div className='flex items-center gap-2'>
             <Button
               type='button'
               variant='outline'
+              size='sm'
               onClick={onClose}
               disabled={roster.saving}
-              className='flex-1 sm:flex-none'
+              className='h-9 text-xs sm:text-sm'
             >
               Tutup
             </Button>
             <Button
               type='button'
               variant='default'
+              size='sm'
               disabled={roster.loading || roster.saving}
               onClick={roster.handleSave}
-              className='font-bold min-w-[120px] flex-1 sm:flex-none'
+              className='font-bold h-9 px-4 text-xs sm:text-sm min-w-[80px] sm:min-w-[100px]'
             >
               {roster.saving ? (
                 <>
-                  <Icons.spinner className='size-4 animate-spin mr-2' />
-                  Menyimpan...
+                  <Icons.spinner className='size-3.5 sm:size-4 animate-spin mr-1.5' />
+                  <span>Menyimpan...</span>
                 </>
               ) : (
-                'Simpan Jadwal'
+                <span>Simpan</span>
               )}
             </Button>
           </div>

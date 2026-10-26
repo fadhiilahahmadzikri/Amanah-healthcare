@@ -137,7 +137,7 @@ export function StepSessionDefs({
 
               {def.isActive && onUpdateTime && (
                 <div className='mt-2 pt-2 border-t border-border/40 flex flex-col gap-2'>
-                  <div className='grid grid-cols-2 gap-2'>
+                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
                     <div className='flex flex-col gap-1'>
                       <span className='text-[10px] font-medium text-muted-foreground'>
                         Jam Mulai

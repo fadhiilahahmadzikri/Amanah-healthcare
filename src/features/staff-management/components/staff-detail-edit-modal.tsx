@@ -33,14 +33,13 @@ export function StaffDetailEditModal(props: StaffDetailEditModalProps) {
       onClose={onClose}
       maxWidth='max-w-4xl w-[95vw]'
       showCloseButton={false}
-      className='max-h-[90vh] flex flex-col p-5 sm:p-6 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl'
+      className='max-h-[90vh] flex flex-col p-4 sm:p-6 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl'
     >
       <div className='flex flex-col font-sans h-full min-h-0 flex-1'>
         {/* Pinned Header */}
         <div className='shrink-0 pb-3 border-b border-border/40 flex items-start justify-between gap-3 min-w-0'>
           <div className='space-y-0.5 min-w-0 flex-1'>
             <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight flex items-center gap-2'>
-              <Icons.user className='size-4 text-primary shrink-0' />
               <span className='truncate'>{form.formData.fullName || 'Detail Staf'}</span>
             </h3>
             <p className='text-xs text-muted-foreground truncate font-medium'>
@@ -48,19 +47,13 @@ export function StaffDetailEditModal(props: StaffDetailEditModalProps) {
             </p>
           </div>
 
-          <div className='flex items-center gap-2 shrink-0'>
+          {/* Status Akun Ringkas di Pojok Kanan Atas */}
+          <div className='shrink-0 pt-0.5'>
             <StatusBadge
               status={form.formData.isActive ? 'active' : 'inactive'}
               label={form.formData.isActive ? 'Aktif' : 'Non-Aktif'}
               size='sm'
             />
-            <button
-              type='button'
-              onClick={onClose}
-              className='rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors'
-            >
-              <Icons.close className='size-4' />
-            </button>
           </div>
         </div>
 
@@ -102,7 +95,7 @@ export function StaffDetailEditModal(props: StaffDetailEditModalProps) {
                   autoComplete='name'
                 />
 
-                <div className='grid grid-cols-2 gap-4'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4'>
                   <PatientLineInput
                     id='staff_birthPlace'
                     label='Tempat Lahir'
@@ -173,7 +166,7 @@ export function StaffDetailEditModal(props: StaffDetailEditModalProps) {
                   }
                 />
 
-                <div className='grid grid-cols-2 gap-4'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4'>
                   <PatientLineInput
                     id='staff_phoneNumber'
                     label='No. Telepon / WhatsApp'
@@ -292,7 +285,7 @@ export function StaffDetailEditModal(props: StaffDetailEditModalProps) {
             shape='pill'
             onClick={onClose}
             disabled={form.isSubmitting}
-            className='px-5 text-xs font-semibold'
+            className='px-5 text-xs font-semibold cursor-pointer'
           >
             Batal
           </Button>
@@ -302,7 +295,7 @@ export function StaffDetailEditModal(props: StaffDetailEditModalProps) {
             size='sm'
             shape='pill'
             disabled={form.isSubmitting}
-            className='px-6 text-xs font-semibold'
+            className='px-6 text-xs font-semibold cursor-pointer'
           >
             {form.isSubmitting ? (
               <>

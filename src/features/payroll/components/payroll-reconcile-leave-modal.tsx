@@ -58,19 +58,14 @@ export function PayrollReconcileLeaveModal({
       <div className='flex flex-col h-full min-h-0 flex-1 font-sans select-none'>
         {/* Pinned Header */}
         <div className='shrink-0 pb-3.5 border-b border-border/50 flex items-start justify-between gap-3'>
-          <div className='flex items-center gap-2.5 min-w-0'>
-            <div className='size-9 rounded-xl bg-muted text-foreground flex items-center justify-center shrink-0 border border-border/50'>
-              <Icons.refresh className='size-5 text-muted-foreground' />
-            </div>
-            <div className='min-w-0'>
-              <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
-                Rekonsiliasi Cuti Harian Staf
-              </h3>
-              <p className='text-xs text-muted-foreground mt-0.5 truncate'>
-                {period?.periodName ?? 'Periode Penggajian'} • Sinkronisasi potongan izin/cuti yang
-                disetujui.
-              </p>
-            </div>
+          <div className='space-y-0.5 min-w-0 flex-1'>
+            <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
+              Rekonsiliasi Cuti Harian Staf
+            </h3>
+            <p className='text-xs text-muted-foreground mt-0.5 truncate'>
+              {period?.periodName ?? 'Periode Penggajian'} • Sinkronisasi potongan izin/cuti yang
+              disetujui.
+            </p>
           </div>
         </div>
 
@@ -80,8 +75,7 @@ export function PayrollReconcileLeaveModal({
             <>
               {/* Policy Banner */}
               <div className='p-3.5 bg-muted/30 border border-border/50 rounded-xl text-xs space-y-1.5 leading-relaxed'>
-                <div className='flex items-center gap-1.5 font-semibold text-foreground'>
-                  <Icons.info className='size-3.5 text-muted-foreground' />
+                <div className='font-semibold text-foreground'>
                   <span>Ketentuan Rekonsiliasi Cuti</span>
                 </div>
                 <p className='text-muted-foreground text-[11px]'>
@@ -129,8 +123,7 @@ export function PayrollReconcileLeaveModal({
             /* Result View */
             <div className='space-y-4'>
               <div className='p-4 bg-muted/30 border border-border/50 rounded-xl space-y-2'>
-                <div className='flex items-center gap-2 text-foreground font-bold text-sm'>
-                  <Icons.check className='size-4 text-emerald-600 dark:text-emerald-400' />
+                <div className='text-foreground font-bold text-sm'>
                   <span>Rekonsiliasi Cuti Selesai</span>
                 </div>
                 <p className='text-xs text-muted-foreground'>
@@ -203,10 +196,7 @@ export function PayrollReconcileLeaveModal({
                     <span>Memproses...</span>
                   </>
                 ) : (
-                  <>
-                    <Icons.refresh className='size-3.5 mr-1' />
-                    <span>Jalankan Rekonsiliasi</span>
-                  </>
+                  <span>Jalankan Rekonsiliasi</span>
                 )}
               </Button>
             </>

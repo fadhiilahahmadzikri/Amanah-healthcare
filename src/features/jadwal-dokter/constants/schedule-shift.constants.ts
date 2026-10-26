@@ -126,6 +126,15 @@ export const FRIENDLY_SESSION_NAME_MAP: Record<string, string> = {
   malam: 'Sesi Malam'
 };
 
+export function toTitleCase(str: string): string {
+  return str
+    .toLowerCase()
+    .split(' ')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 export function formatFriendlySessionName(raw?: string | null): string {
   if (!raw) return '';
   const trimmed = raw.trim();
@@ -134,8 +143,8 @@ export function formatFriendlySessionName(raw?: string | null): string {
   if (trimmed in FRIENDLY_SESSION_NAME_MAP) {
     return FRIENDLY_SESSION_NAME_MAP[trimmed];
   }
-  if (trimmed.startsWith('Sesi ')) {
-    return trimmed;
+  if (trimmed.toLowerCase().startsWith('sesi ')) {
+    return toTitleCase(trimmed);
   }
-  return `Sesi ${trimmed}`;
+  return `Sesi ${toTitleCase(trimmed)}`;
 }

@@ -32,6 +32,7 @@ export interface UseStaffRosterModalResult {
   loading: boolean;
   saving: boolean;
   isOverride: boolean;
+  canReset: boolean;
   days: DayDef[];
   sessionDefs: SessionDef[];
   selectedAssignments: Record<string, boolean>;
@@ -42,6 +43,7 @@ export interface UseStaffRosterModalResult {
   toggleSession: (dow: number, sessionId: string) => void;
   toggleDay: (dow: number) => void;
   resetDayToTemplate: (dow: number) => void;
+  handleReset: () => void;
   handleSave: () => Promise<void>;
   handleConfirmResetToTemplate: () => Promise<void>;
 }
@@ -180,6 +182,29 @@ export function useStaffRosterModal({
     [days, sessionDefs, templateAssignments]
   );
 
+  const hasDiffFromTemplate = useMemo(() => {
+    for (const day of days) {
+      for (const s of sessionDefs) {
+        const key = `${day.dow}_${s.id}`;
+        if (Boolean(selectedAssignments[key]) !== Boolean(templateAssignments[key])) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }, [days, sessionDefs, selectedAssignments, templateAssignments]);
+
+  const canReset = isOverride || hasDiffFromTemplate;
+
+  const handleReset = useCallback(() => {
+    if (isOverride) {
+      setIsResetConfirmOpen(true);
+    } else {
+      setSelectedAssignments({ ...templateAssignments });
+      toast.info('Jadwal dikembalikan ke template mingguan klinik');
+    }
+  }, [isOverride, templateAssignments]);
+
   const handleConfirmResetToTemplate = useCallback(async () => {
     if (!staff) return;
     try {
@@ -226,6 +251,7 @@ export function useStaffRosterModal({
     loading: isLoadingConfig || isLoadingRosters,
     saving: updateMutation.isPending || resetMutation.isPending,
     isOverride,
+    canReset,
     days,
     sessionDefs,
     selectedAssignments,
@@ -236,6 +262,7 @@ export function useStaffRosterModal({
     toggleSession,
     toggleDay,
     resetDayToTemplate,
+    handleReset,
     handleSave,
     handleConfirmResetToTemplate
   };

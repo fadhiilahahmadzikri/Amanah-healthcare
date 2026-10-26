@@ -95,19 +95,14 @@ export function PayrollAuditMutationModal({
       <div className='flex flex-col h-full min-h-0 flex-1 font-sans select-none'>
         {/* Pinned Header */}
         <div className='shrink-0 pb-3.5 border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3'>
-          <div className='flex items-center gap-2.5 min-w-0'>
-            <div className='size-9 rounded-xl bg-muted text-foreground flex items-center justify-center shrink-0 border border-border/50'>
-              <Icons.receipt className='size-5 text-muted-foreground' />
-            </div>
-            <div className='min-w-0'>
-              <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight truncate'>
-                Audit Mutasi Komponen Penggajian
-              </h3>
-              <p className='text-xs text-muted-foreground mt-0.5 truncate'>
-                {period?.periodName ?? 'Periode Penggajian'} • {filteredMutations.length} total
-                mutasi tercatat
-              </p>
-            </div>
+          <div className='space-y-0.5 min-w-0 flex-1'>
+            <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight truncate'>
+              Audit Mutasi Komponen Penggajian
+            </h3>
+            <p className='text-xs text-muted-foreground mt-0.5 truncate'>
+              {period?.periodName ?? 'Periode Penggajian'} • {filteredMutations.length} total mutasi
+              tercatat
+            </p>
           </div>
 
           {/* Filter by entry type */}
