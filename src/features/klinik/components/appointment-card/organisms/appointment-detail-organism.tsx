@@ -109,11 +109,7 @@ export function AppointmentDetailOrganism({
 
   const isInternalView = viewerRole === 'internal';
   const displayLocation =
-    !isInternalView && isBeforeCall
-      ? 'Menunggu panggilan klinik'
-      : appointment.poliklinik_name && appointment.room_name
-        ? `${appointment.poliklinik_name}, ${appointment.room_name}`
-        : appointment.room_name || appointment.poliklinik_name || '-';
+    !isInternalView && isBeforeCall ? 'Menunggu panggilan klinik' : appointment.room_name || '-';
 
   const doctorSpecialty = appointment.doctor_specialty || doctor.spec || '-';
   const { startTime, endTime, durationText } = normalizeAppointmentTimes(appointment);
@@ -198,7 +194,7 @@ export function AppointmentDetailOrganism({
                     ) : (
                       <div className='flex flex-col items-start min-w-0 flex-1 space-y-0.5'>
                         <h3 className='text-base sm:text-lg font-bold text-foreground truncate w-full tracking-tight'>
-                          {serviceName || appointment.poliklinik_name || 'Janji Temu Klinik'}
+                          {serviceName !== '-' ? serviceName : 'Janji Temu Klinik'}
                         </h3>
                         {appointment.poliklinik_name &&
                           serviceName !== appointment.poliklinik_name && (
@@ -545,7 +541,7 @@ export function AppointmentDetailOrganism({
         patientName={patientName}
         patientId={appointment.patient_id || String(appointment.id)}
         queueNumber={appointment.queue_number || '-'}
-        currentRoomName={displayLocation}
+        currentRoomName={appointment.room_name || '-'}
         appointmentDate={appointment.date ? formatClinicDate(appointment.date) : '-'}
         appointmentTime={`${startTime} - ${endTime}`}
         onClose={() => setIsChangeRoomOpen(false)}
@@ -561,11 +557,11 @@ export function AppointmentDetailOrganism({
           patientId: appointment.patient_id || '',
           patientName,
           serviceName,
-          poliklinikId: appointment.poliklinik_id || appointment.layanan_id,
+          poliklinikId: appointment.poliklinik_id || '',
           mode: 'reschedule',
           appointmentId: String(appointment.id),
           currentDate: appointment.date,
-          currentSession: appointment.session || appointment.session_name || undefined,
+          currentSession: appointment.session || undefined,
           queueNumber: appointment.queue_number || '-'
         }}
         onClose={() => setIsRescheduleOpen(false)}

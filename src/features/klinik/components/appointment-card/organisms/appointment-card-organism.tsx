@@ -56,17 +56,13 @@ export function AppointmentCardOrganism({
     ? appointment.patient_name || 'Pasien'
     : hasAssignedDoctor
       ? appointment.doctor_name || docInfo.name
-      : appointment.service || appointment.poliklinik_name || 'Layanan Poliklinik';
+      : appointment.service || 'Layanan Poliklinik';
 
   const displaySubtitle = isPatientSubject
-    ? appointment.service || appointment.poliklinik_name || appointment.doctor_specialty || '-'
+    ? appointment.service || '-'
     : hasAssignedDoctor
       ? appointment.doctor_specialty || docInfo.spec || '-'
-      : appointment.service &&
-          appointment.poliklinik_name &&
-          appointment.service !== appointment.poliklinik_name
-        ? appointment.poliklinik_name
-        : undefined;
+      : appointment.poliklinik_name;
 
   const displayAvatar = isPatientSubject
     ? appointment.patient_avatar || ''
@@ -81,11 +77,10 @@ export function AppointmentCardOrganism({
   const startLabel = isEstimated ? 'Est. Mulai' : 'Mulai';
   const endLabel = isEstimated ? 'Est. Selesai' : 'Selesai';
 
-  const isInternalView = viewerRole === 'internal' || (viewerRole !== 'patient' && isPatientSubject);
+  const isInternalView =
+    viewerRole === 'internal' || (viewerRole !== 'patient' && isPatientSubject);
   const displayLocation =
-    !isInternalView && isBeforeCall
-      ? 'Menunggu panggilan klinik'
-      : appointment.room_name || appointment.room_location || appointment.poliklinik_name || '-';
+    !isInternalView && isBeforeCall ? 'Menunggu panggilan klinik' : appointment.room_name || '-';
 
   const { startTime, endTime, durationText } = normalizeAppointmentTimes(appointment);
 

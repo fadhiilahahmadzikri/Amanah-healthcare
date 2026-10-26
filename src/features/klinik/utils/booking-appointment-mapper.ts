@@ -37,10 +37,9 @@ export function mapBackendAppointmentToUi({
 
   const startFmt = startClock ? formatClinicTime(startClock) : '';
   const endFmt = endClock ? formatClinicTime(endClock) : '';
-  const friendlySession = formatFriendlySessionName(res.sessionName || res.session);
+  const friendlySession = formatFriendlySessionName(res.session);
   const timeDisplay =
-    res.etaRange ||
-    (startFmt && endFmt ? `${startFmt} - ${endFmt}` : friendlySession || res.session || '-');
+    res.etaRange || (startFmt && endFmt ? `${startFmt} - ${endFmt}` : friendlySession || '-');
 
   return {
     id: res.id,
@@ -57,7 +56,7 @@ export function mapBackendAppointmentToUi({
     scheduled_end_time: endFmt || undefined,
     eta_range: res.etaRange || null,
     session_name: friendlySession || undefined,
-    session: friendlySession || res.session || undefined,
+    session: friendlySession || undefined,
     date: res.appointmentDate || dateStr,
     time: timeDisplay,
     complaint: res.complaint || complaint,
@@ -69,4 +68,3 @@ export function mapBackendAppointmentToUi({
     allowedActions: (res.allowedActions as string[]) || ['CANCEL', 'RESCHEDULE']
   };
 }
-

@@ -49,7 +49,7 @@ export function normalizeAppointmentTimes(appointment: Partial<Appointment>): {
     };
   }
 
-  const timeStr = appointment.eta_range || appointment.time || '';
+  const timeStr = appointment.eta_range || '';
   const timeRangeMatch = timeStr.match(/(\d{1,2}[:.]\d{2})\s*-\s*(\d{1,2}[:.]\d{2})/);
   const sessionMatch = timeStr.match(/Sesi\s+[A-Za-z\s]+/i);
 
@@ -61,15 +61,8 @@ export function normalizeAppointmentTimes(appointment: Partial<Appointment>): {
     ? formatTimeString(timeRangeMatch[2].replace('.', ':')) || timeRangeMatch[2]
     : null;
 
-  const startTime =
-    etaStart ||
-    formatTimeString(appointment.scheduled_start_time) ||
-    formatTimeString(timeStr) ||
-    '-';
-  const endTime =
-    etaEnd ||
-    formatTimeString(appointment.scheduled_end_time) ||
-    '-';
+  const startTime = etaStart || formatTimeString(appointment.scheduled_start_time) || '-';
+  const endTime = etaEnd || formatTimeString(appointment.scheduled_end_time) || '-';
 
   const rawSession = sessionMatch ? sessionMatch[0] : appointment.session_name;
   const friendlySession = rawSession ? formatFriendlySessionName(rawSession) : null;
@@ -95,22 +88,18 @@ export function bookedPatientToAppointment(
   const startClock = timeMatches?.[0] ? timeMatches[0].replace('.', ':') : '';
   const endClock = timeMatches?.[1] ? timeMatches[1].replace('.', ':') : '';
 
-  const descriptor = AppointmentStatusDescriptor.from(item.statusBadge || item.status);
+  const descriptor = AppointmentStatusDescriptor.from(item.status);
   const canonicalStatus: AppointmentStatus = descriptor.code;
 
   const poliklinik_name = item.poliklinikName || '';
   const service = item.serviceName || '';
-  const room_name = item.roomName || item.clinicRoomName || '';
+  const room_name = item.roomName || '';
   const room_location = item.roomLocation || '';
   const date = item.appointmentDate || context?.date || '';
 
-  const rawVisitType =
-    item.visitType ||
-    (item as unknown as { visit_type?: string }).visit_type ||
-    (item as unknown as { layananName?: string }).layananName ||
-    'Pemeriksaan Baru';
+  const rawVisitType = item.visitType || 'Pemeriksaan Baru';
 
-  const sessionDisplay = item.etaRange || item.sessionTitle || context?.sessionTime || '';
+  const sessionDisplay = item.sessionTitle || context?.sessionTime || '';
 
   return {
     id: item.appointmentId,
@@ -128,14 +117,8 @@ export function bookedPatientToAppointment(
     room_location,
     scheduled_start_time: startClock,
     scheduled_end_time: endClock,
-    actual_started_at:
-      (item as unknown as { actualStartedAt?: string }).actualStartedAt ||
-      item.bookingMetadata?.startedAt ||
-      undefined,
-    actual_completed_at:
-      (item as unknown as { actualCompletedAt?: string }).actualCompletedAt ||
-      item.bookingMetadata?.completedAt ||
-      undefined,
+    actual_started_at: item.bookingMetadata?.startedAt ?? undefined,
+    actual_completed_at: item.bookingMetadata?.completedAt ?? undefined,
     consultation_elapsed_seconds: item.consultationElapsedSeconds ?? undefined,
     consultation_duration_formatted: item.consultationDurationFormatted ?? undefined,
     estimated_duration_minutes: item.estimatedDurationMinutes ?? undefined,

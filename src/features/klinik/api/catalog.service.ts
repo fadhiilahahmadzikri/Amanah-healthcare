@@ -46,18 +46,11 @@ class CatalogService {
 
     this.cachePromise = (async () => {
       try {
-        const res = await clientFetch<ServiceCatalogResponse | { data: ServiceCatalogResponse }>(
-          '/api/v1/clinics/services/catalog',
-          { method: 'GET' }
-        );
+        const res = await clientFetch<ServiceCatalogResponse>('/api/v1/clinics/services/catalog', {
+          method: 'GET'
+        });
 
-        let rawList: ServiceCategoryCatalog[] = [];
-        const candidate =
-          (res as any)?.data?.categories || (res as any)?.categories || (res as any)?.data || res;
-        if (Array.isArray(candidate)) {
-          rawList = candidate;
-        }
-
+        const rawList = res.categories ?? [];
         const validCategories = rawList.filter(
           (c) => Array.isArray(c.services) && c.services.length > 0
         );

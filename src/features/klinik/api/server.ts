@@ -16,17 +16,7 @@ export async function getClinicCatalogOnServer(): Promise<ServiceCategoryCatalog
     }
   );
 
-  let rawList: ServiceCategoryCatalog[] = [];
-  const candidate =
-    (response as any)?.data?.categories ||
-    (response as any)?.categories ||
-    (response as any)?.data ||
-    response;
-
-  if (Array.isArray(candidate)) {
-    rawList = candidate;
-  }
-
+  const rawList = response.categories ?? [];
   return rawList.filter((c) => Array.isArray(c.services) && c.services.length > 0);
 }
 
