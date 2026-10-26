@@ -3,7 +3,6 @@
 import * as React from 'react';
 import Image from 'next/image';
 import { Icons } from '@/components/icons';
-import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/lib/rbac/auth-context';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -12,7 +11,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import {
@@ -24,7 +22,6 @@ import {
 
 export function OrgSwitcher() {
   const { isMobile, state, setOpenMobile } = useSidebar();
-  const router = useRouter();
   const { role, isReady } = useAuthContext();
 
   const handleCloseMobile = React.useCallback(() => {
@@ -103,23 +100,6 @@ export function OrgSwitcher() {
               {organization.name}
               <Icons.check className='ml-auto size-4' />
             </DropdownMenuItem>
-            {isAdmin && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className='gap-2 p-2'
-                  onClick={() => {
-                    handleCloseMobile();
-                    router.push('/dashboard/workspaces');
-                  }}
-                >
-                  <div className='flex size-6 items-center justify-center rounded-md border bg-transparent'>
-                    <Icons.add className='size-4' />
-                  </div>
-                  <div className='text-muted-foreground font-medium'>Kelola Layanan</div>
-                </DropdownMenuItem>
-              </>
-            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

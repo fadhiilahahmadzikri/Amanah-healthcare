@@ -27,7 +27,6 @@ const CLINIC_ROUTE_ALLOWLIST = [
   '/dashboard/kehadiran-pegawai',
   '/dashboard/manajemen-perizinan',
   '/dashboard/chat',
-  '/dashboard/workspaces',
   '/dashboard/settings',
   '/dashboard/notifications',
   '/dashboard/profile'

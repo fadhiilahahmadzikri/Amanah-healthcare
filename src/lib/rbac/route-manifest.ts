@@ -104,13 +104,6 @@ export const routeManifest: RouteRule[] = [
     description: 'Chat Pasien (Admin Staf)'
   },
   {
-    pattern: '/dashboard/workspaces',
-    match: 'prefix',
-    visibility: 'protected',
-    allowedRoles: ['admin'],
-    description: 'Unit Layanan & Tim Klinik'
-  },
-  {
     pattern: '/dashboard/settings',
     match: 'prefix',
     visibility: 'protected',
