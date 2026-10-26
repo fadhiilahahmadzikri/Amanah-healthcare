@@ -119,11 +119,8 @@ export function ReplacementKanbanBoard({
       if (e.button !== 0 && e.pointerType === 'mouse') return;
 
       const target = e.target as HTMLElement;
-      if (target.closest('button') || target.closest('a') || target.closest('[role="button"]')) {
-        if (
-          !target.classList.contains('group') &&
-          (target.tagName === 'BUTTON' || target.closest('button'))
-        ) {
+      if (target.closest('button, a, [role="button"]')) {
+        if (!target.classList.contains('group') && target.closest('button')) {
           return;
         }
       }

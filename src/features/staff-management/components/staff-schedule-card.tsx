@@ -9,7 +9,6 @@ import {
   EntityCardSecondaryAction
 } from '@/components/cards/master-entity-card';
 import type { StaffMember } from '../api/staff-management.api';
-import { STAFF_ROLE_LABELS } from '../constants/staff.constants';
 import { StaffRoleBadge, StaffAttendanceBadge } from './staff-card-atoms';
 
 export interface StaffScheduleCardProps {
@@ -88,7 +87,7 @@ export function StaffScheduleCard({
       name={staff.fullName}
       subtitle={
         <p className='text-[12px] sm:text-[11.5px] xl:text-[11px] font-medium text-muted-foreground tracking-tight line-clamp-1 mt-0.5 truncate'>
-          {staff.profession || STAFF_ROLE_LABELS[staff.staffType] || ''}
+          {staff.profession}
         </p>
       }
       avatarUrl={staff.photoUrl}

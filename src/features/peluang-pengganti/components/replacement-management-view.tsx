@@ -33,14 +33,13 @@ export function ReplacementManagementView() {
   const { state: sidebarState } = useSidebar();
   const isSidebarExpanded = sidebarState === 'expanded';
 
-  const { isOpen: isMobile } = useMediaQuery('(max-width: 768px)');
   const { isOpen: isUnder1024 } = useMediaQuery('(max-width: 1024px)');
   const { isOpen: isUnder1280 } = useMediaQuery('(max-width: 1280px)');
 
   // Canonical responsive breakpoint formula from Kehadiran Pegawai:
   // 1. Mobile & tablet viewports (<= 1024px)
   // 2. Expanded sidebar collisions on standard viewports (<= 1280px)
-  const isCompact = isMobile || isUnder1024 || (isUnder1280 && isSidebarExpanded);
+  const isCompact = isUnder1024 || (isUnder1280 && isSidebarExpanded);
 
   const { facetGroups, activeFilterCount, searchEngine } = useReplacementDynamicOptions({
     filters,

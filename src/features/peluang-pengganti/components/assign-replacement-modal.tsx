@@ -56,9 +56,9 @@ export function AssignReplacementModal({
       .filter((s) => s.id !== opportunity.originalStaffProfileId)
       .filter((s) => {
         if (!query) return true;
-        const name = (s.fullName || '').toLowerCase();
-        const role = (s.profession || s.staffType || '').toLowerCase();
-        return name.includes(query) || role.includes(query);
+        const name = s.fullName.toLowerCase();
+        const profession = s.profession.toLowerCase();
+        return name.includes(query) || profession.includes(query);
       });
   }, [staffs, opportunity, searchStaff]);
 
@@ -197,7 +197,7 @@ export function AssignReplacementModal({
                           {staff.fullName}
                         </div>
                         <div className='text-[10.5px] text-muted-foreground truncate leading-tight'>
-                          {staff.profession || staff.staffType}
+                          {staff.profession}
                         </div>
                       </div>
                     </div>

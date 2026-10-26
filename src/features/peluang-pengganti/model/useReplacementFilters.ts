@@ -44,9 +44,11 @@ export function useReplacementFilters(
   const statusFilter = useMemo(() => toList(params.status), [params.status]);
   const sessionFilter = useMemo(() => toList(params.session), [params.session]);
 
-  const hasActiveFilters = Boolean(
-    params.search?.trim() || statusFilter.length > 0 || sessionFilter.length > 0
-  );
+  const hasActiveFilters = [
+    Boolean(params.search?.trim()),
+    statusFilter.length > 0,
+    sessionFilter.length > 0
+  ].some(Boolean);
 
   const filteredOpportunities = useMemo(() => {
     const query = (params.search || '').trim().toLowerCase();
@@ -67,22 +69,19 @@ export function useReplacementFilters(
 
       // 3. Search query filter (matches original staff, claimed staff, role, leave reason, notes)
       if (query) {
-        const origName = item.originalStaffName?.toLowerCase() || '';
-        const origRole = item.originalStaffRole?.toLowerCase() || '';
-        const claimedName = item.claimedByName?.toLowerCase() || '';
-        const claimedRole = item.claimedByRole?.toLowerCase() || '';
-        const reason = item.leaveReason?.toLowerCase() || '';
-        const notes = item.notes?.toLowerCase() || '';
-        const sessionCode = item.sessionCode?.toLowerCase() || '';
+        const searchableFields = [
+          item.originalStaffName,
+          item.originalStaffRole,
+          item.claimedByName,
+          item.claimedByRole,
+          item.leaveReason,
+          item.notes,
+          item.sessionCode
+        ];
 
-        const match =
-          origName.includes(query) ||
-          origRole.includes(query) ||
-          claimedName.includes(query) ||
-          claimedRole.includes(query) ||
-          reason.includes(query) ||
-          notes.includes(query) ||
-          sessionCode.includes(query);
+        const match = searchableFields.some(
+          (field) => typeof field === 'string' && field.toLowerCase().includes(query)
+        );
 
         if (!match) {
           return false;

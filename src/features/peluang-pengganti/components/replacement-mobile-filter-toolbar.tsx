@@ -42,9 +42,11 @@ export function ReplacementMobileFilterToolbar({
       statusFilter: selectedStatuses,
       sessionFilter: selectedSessions,
       filteredOpportunities: opportunities,
-      hasActiveFilters: Boolean(
-        searchQuery.trim() || selectedStatuses.length > 0 || selectedSessions.length > 0
-      ),
+      hasActiveFilters: [
+        Boolean(searchQuery.trim()),
+        selectedStatuses.length > 0,
+        selectedSessions.length > 0
+      ].some(Boolean),
       counts: {
         all: opportunities.length,
         open: opportunities.filter((o) => o.status === 'open').length,

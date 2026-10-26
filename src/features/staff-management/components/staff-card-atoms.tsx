@@ -206,7 +206,7 @@ export function StaffIdentitySection({
 
         <p className='text-xs font-medium text-muted-foreground tracking-tight line-clamp-1 mt-0.5 flex items-center gap-1.5'>
           <Icons.mail className='size-3 shrink-0 text-muted-foreground/70' />
-          <span>{email || profession || '-'}</span>
+          <span>{email || '-'}</span>
         </p>
       </div>
     </div>

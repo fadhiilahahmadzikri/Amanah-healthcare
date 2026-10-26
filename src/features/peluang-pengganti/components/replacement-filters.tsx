@@ -32,8 +32,11 @@ export function ReplacementFilters({
   onResetAll,
   className
 }: ReplacementFiltersProps) {
-  const isFiltered =
-    Boolean(searchQuery.trim()) || selectedStatuses.length > 0 || selectedSessions.length > 0;
+  const isFiltered = [
+    Boolean(searchQuery.trim()),
+    selectedStatuses.length > 0,
+    selectedSessions.length > 0
+  ].some(Boolean);
 
   const mockFilters = React.useMemo<UseReplacementFiltersResult>(
     () => ({

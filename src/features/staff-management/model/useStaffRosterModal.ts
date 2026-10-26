@@ -31,6 +31,7 @@ export interface SessionDef {
 export interface UseStaffRosterModalResult {
   loading: boolean;
   saving: boolean;
+  isBusy: boolean;
   isOverride: boolean;
   canReset: boolean;
   days: DayDef[];
@@ -247,9 +248,13 @@ export function useStaffRosterModal({
     }
   }, [staff, days, sessionDefs, selectedAssignments, updateMutation, onSuccess, onClose]);
 
+  const loading = isLoadingConfig || isLoadingRosters;
+  const saving = updateMutation.isPending || resetMutation.isPending;
+
   return {
-    loading: isLoadingConfig || isLoadingRosters,
-    saving: updateMutation.isPending || resetMutation.isPending,
+    loading,
+    saving,
+    isBusy: loading || saving,
     isOverride,
     canReset,
     days,

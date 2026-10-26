@@ -205,7 +205,7 @@ export function StaffRosterModal(props: StaffRosterModalProps) {
               type='button'
               variant='outline'
               size='sm'
-              disabled={roster.loading || roster.saving || !roster.canReset}
+              disabled={roster.isBusy || !roster.canReset}
               onClick={roster.handleReset}
               title={
                 roster.canReset
@@ -234,7 +234,7 @@ export function StaffRosterModal(props: StaffRosterModalProps) {
               type='button'
               variant='default'
               size='sm'
-              disabled={roster.loading || roster.saving}
+              disabled={roster.isBusy}
               onClick={roster.handleSave}
               className='font-bold h-9 px-4 text-xs sm:text-sm min-w-[80px] sm:min-w-[100px]'
             >
