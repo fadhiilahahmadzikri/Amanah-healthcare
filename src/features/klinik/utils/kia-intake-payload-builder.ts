@@ -320,12 +320,7 @@ export function buildChildImmunizationIntakePayload(
     (k) => k.startsWith('vaccine_') && k.endsWith('_status') && Boolean(submittedValues[k])
   );
 
-  if (
-    submittedValues.hasVaccineHistory === VACCINE_GATEWAY_CHOICE.YES ||
-    submittedValues.hasVaccineHistory === 'Ya' ||
-    submittedValues.hasVaccineHistory === 'Ya, pernah' ||
-    hasVaccineEntries
-  ) {
+  if (submittedValues.hasVaccineHistory === VACCINE_GATEWAY_CHOICE.YES || hasVaccineEntries) {
     const knownCodes = new Set<string>();
 
     if (Array.isArray(vaccineCatalog) && vaccineCatalog.length > 0) {
@@ -346,11 +341,7 @@ export function buildChildImmunizationIntakePayload(
       const date = submittedValues[`vaccine_${code}_date`];
       if (statusRaw) {
         const status: 'GIVEN' | 'NOT_GIVEN' | 'UNKNOWN' =
-          statusRaw === 'Sudah'
-            ? 'GIVEN'
-            : statusRaw === 'Belum'
-              ? 'NOT_GIVEN'
-              : 'UNKNOWN';
+          statusRaw === 'Sudah' ? 'GIVEN' : statusRaw === 'Belum' ? 'NOT_GIVEN' : 'UNKNOWN';
 
         const givenDate = status === 'GIVEN' && date ? date : null;
         const datePrecision = date ? 'EXACT' : 'NONE';
@@ -397,8 +388,7 @@ export function buildChildImmunizationIntakePayload(
   }
 
   const resolvedHasVaccineHistory =
-    submittedValues.hasVaccineHistory ||
-    (entries.length > 0 ? VACCINE_GATEWAY_CHOICE.YES : null);
+    submittedValues.hasVaccineHistory || (entries.length > 0 ? VACCINE_GATEWAY_CHOICE.YES : null);
 
   return {
     patientId,

@@ -35,13 +35,13 @@ export function filterWaitingQueues(
     const matchesPoli = (item.poli || '').toLowerCase() === activePoli.toLowerCase();
     if (!matchesPoli) return false;
 
-    const matchesSearch =
-      !query ||
-      item.patient_name.toLowerCase().includes(query) ||
-      item.queue_number.toLowerCase().includes(query) ||
-      item.doctor_name.toLowerCase().includes(query);
+    if (query) {
+      const searchTargets = [item.patient_name, item.queue_number, item.doctor_name];
+      const matchesSearch = searchTargets.some((text) => text.toLowerCase().includes(query));
+      if (!matchesSearch) return false;
+    }
 
-    return item.status === QUEUE_STATUS.WAITING && matchesSearch;
+    return item.status === QUEUE_STATUS.WAITING;
   });
 }
 

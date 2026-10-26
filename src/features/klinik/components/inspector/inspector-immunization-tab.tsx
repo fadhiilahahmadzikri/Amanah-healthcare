@@ -8,16 +8,15 @@ import { useVaccineCatalog } from '../../model/useVaccineCatalog';
 import { calculateChildAge } from '../../utils/medical-appointment';
 import type { InspectorTabProps } from './types';
 
-export function InspectorImmunizationTab({ appointment, data }: InspectorTabProps) {
-  const { child, answers, automatic } = data;
+export function InspectorImmunizationTab({ data }: InspectorTabProps) {
+  const { child } = data;
   const { vaccines } = useVaccineCatalog();
 
-  const childName = child?.childName || answers.childName || appointment.patient_name || '-';
-  const childNik = child?.childNik || answers.childNik || '-';
-  const birthDate = child?.childBirthDate || answers.childBirthDate || '-';
-  const childSex = child?.childSex || answers.childSex || '-';
-  let childAge =
-    child?.childAgeFormatted || answers.childAgeFormatted || automatic.childAgeAtSubmit;
+  const childName = child?.childName || '-';
+  const childNik = child?.childNik || '-';
+  const birthDate = child?.childBirthDate || '-';
+  const childSex = child?.childSex || '-';
+  let childAge = child?.childAgeFormatted;
   if (!childAge && birthDate && birthDate !== '-') {
     try {
       childAge = calculateChildAge(birthDate);
@@ -26,15 +25,14 @@ export function InspectorImmunizationTab({ appointment, data }: InspectorTabProp
     }
   }
   if (!childAge) childAge = '-';
-  const parentPhone = child?.parentPhone || answers.parentPhone || appointment.patient_phone || '-';
-  const fatherName = child?.fatherName || answers.fatherName || '-';
-  const motherName = child?.motherName || answers.motherName || '-';
-  const address = child?.childAddress || answers.childAddress || '-';
+  const parentPhone = child?.parentPhone || '-';
+  const fatherName = child?.fatherName || '-';
+  const motherName = child?.motherName || '-';
+  const address = child?.childAddress || '-';
 
-  const relationalEntries: any[] = child?.entries || answers?.entries || [];
+  const relationalEntries: any[] = child?.entries || [];
 
   const hasVaccineHistory =
-    answers.hasVaccineHistory ||
     child?.hasVaccineHistory ||
     (relationalEntries.length > 0
       ? 'Ya, pernah'
@@ -43,19 +41,15 @@ export function InspectorImmunizationTab({ appointment, data }: InspectorTabProp
         ? 'Ya, pernah'
         : 'Belum pernah sama sekali');
   const previousVaccineHistory =
-    child?.previousVaccineHistory ||
-    answers.previousVaccineHistory ||
-    'Belum ada catatan ringkasan vaksinasi.';
+    child?.previousVaccineHistory || 'Belum ada catatan ringkasan vaksinasi.';
 
   const hasAllergyHistory =
-    answers.hasAllergyHistory ||
     child?.hasAllergyHistory ||
     (child?.childAllergyHistory && child.childAllergyHistory !== 'Tidak ada riwayat alergi.'
       ? 'Ada riwayat alergi'
       : 'Tidak ada alergi');
   const childAllergyHistory =
     child?.childAllergyHistory ||
-    answers.childAllergyHistory ||
     (hasAllergyHistory === 'Ada riwayat alergi'
       ? 'Riwayat alergi tercatat.'
       : 'Tidak ada riwayat alergi.');
@@ -191,10 +185,8 @@ export function InspectorImmunizationTab({ appointment, data }: InspectorTabProp
                         : relationalEntry.status === 'NOT_GIVEN'
                           ? 'Belum'
                           : 'Tidak tahu'
-                      : answers[`vaccine_${code}_status`];
-                    const date = relationalEntry
-                      ? relationalEntry.givenDate
-                      : answers[`vaccine_${code}_date`];
+                      : undefined;
+                    const date = relationalEntry ? relationalEntry.givenDate : undefined;
 
                     return (
                       <div

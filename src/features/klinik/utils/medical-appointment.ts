@@ -189,7 +189,10 @@ export function calculateBmi(weightStr?: string, heightStr?: string): string {
   const weight = parseFloat(cleanWeightMatch[1]);
   let height = parseFloat(cleanHeightMatch[1]);
 
-  if (isNaN(weight) || isNaN(height) || weight <= 0 || height <= 0) {
+  if (!Number.isFinite(weight) || weight <= 0) {
+    return '';
+  }
+  if (!Number.isFinite(height) || height <= 0) {
     return '';
   }
 

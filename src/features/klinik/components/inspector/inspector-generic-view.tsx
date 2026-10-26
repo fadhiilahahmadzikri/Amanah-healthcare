@@ -9,20 +9,17 @@ export function InspectorGenericView({ appointment, data }: InspectorTabProps) {
   const { flow, answers, automatic, child, patient } = data;
 
   if (flow === 'immunization' || child) {
-    const childNik = child?.childNik || answers.childNik || '-';
-    const birthDate = child?.childBirthDate || answers.childBirthDate || '-';
-    const childSex = child?.childSex || answers.childSex || '-';
-    const childAge =
-      child?.childAgeFormatted || answers.childAgeFormatted || automatic.childAgeAtSubmit || '-';
-    const parentPhone = child?.parentPhone || answers.parentPhone || '-';
-    const fatherName = child?.fatherName || answers.fatherName || '-';
-    const motherName = child?.motherName || answers.motherName || '-';
-    const address = child?.childAddress || answers.childAddress || '-';
+    const childNik = child?.childNik || '-';
+    const birthDate = child?.childBirthDate || '-';
+    const childSex = child?.childSex || '-';
+    const childAge = child?.childAgeFormatted || '-';
+    const parentPhone = child?.parentPhone || '-';
+    const fatherName = child?.fatherName || '-';
+    const motherName = child?.motherName || '-';
+    const address = child?.childAddress || '-';
     const vaccineHistory =
-      child?.previousVaccineHistory ||
-      answers.previousVaccineHistory ||
-      'Belum ada catatan vaksinasi sebelumnya.';
-    const allergyHistory = child?.childAllergyHistory || answers.childAllergyHistory || '-';
+      child?.previousVaccineHistory || 'Belum ada catatan vaksinasi sebelumnya.';
+    const allergyHistory = child?.childAllergyHistory || '-';
 
     return (
       <div className='grid grid-cols-2 gap-y-3 gap-x-5'>
@@ -119,24 +116,22 @@ export function InspectorGenericView({ appointment, data }: InspectorTabProps) {
   }, [patient, relationship, answers.birthDate]);
 
   const mrn = patient?.medicalRecordNumber || '-';
-  const nik = patient?.nik || answers.nik || '-';
+  const nik = patient?.nik || '-';
   const birthInfo = patient?.birthDate
     ? `${patient.birthPlace ? patient.birthPlace + ', ' : ''}${patient.birthDate}`
-    : answers.birthDate
-      ? `${answers.birthPlace ? answers.birthPlace + ', ' : ''}${answers.birthDate}`
-      : '-';
+    : '-';
   const gender = getGenderLabel(patient?.gender);
 
-  const bloodType = patient?.bloodType || answers.bloodType || '-';
+  const bloodType = patient?.bloodType || '-';
 
-  const motherName = patient?.motherName || answers.motherName || '-';
-  const rawOccupation = patient?.occupation || answers.occupation;
+  const motherName = patient?.motherName || '-';
+  const rawOccupation = patient?.occupation;
   const occupation = isChild && !rawOccupation ? 'Belum Bekerja' : rawOccupation || '-';
 
-  const phone = patient?.phone || appointment.patient_phone || answers.phone || '-';
-  const email = patient?.email || answers.email || appointment.patient_email || '-';
+  const phone = patient?.phone || appointment.patient_phone || '-';
+  const email = patient?.email || appointment.patient_email || '-';
 
-  const address = patient?.address || answers.address || '-';
+  const address = patient?.address || '-';
   const emergency = patient?.emergencyContactName
     ? `${patient.emergencyContactName} (${patient.emergencyContactRelationship || 'Kontak'}) - ${patient.emergencyContactPhone || ''}`
     : null;

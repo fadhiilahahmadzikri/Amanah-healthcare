@@ -77,10 +77,9 @@ export function InspectorClinicalTab({ data }: InspectorTabProps) {
     answers.smokeExposureBeforePregnancy ||
     (maternal?.smokeExposureBeforePregnancy ? 'Ya' : 'Tidak');
 
-  const envNotes =
-    answers.concerningEnvironmentNotes || maternal?.concerningEnvironmentNotes || '-';
-  const allergy = answers.allergyInfo || maternal?.allergyInfo || '-';
-  const otherNotes = answers.otherNotes || maternal?.otherNotes || '-';
+  const envNotes = maternal?.concerningEnvironmentNotes || '-';
+  const allergy = maternal?.allergyInfo || '-';
+  const otherNotes = maternal?.otherNotes || '-';
 
   const conditionsMap = new Map<string, { has: boolean; year?: string; notes?: string }>();
   if (maternal?.healthConditions && Array.isArray(maternal.healthConditions)) {

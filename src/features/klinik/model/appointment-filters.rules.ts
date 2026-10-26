@@ -62,17 +62,14 @@ export function isAppointmentFilterActive(
   filters: AppointmentFilterState,
   defaultDate?: Date
 ): boolean {
-  const isDateActive = Boolean(
-    filters.dateFilter && (defaultDate ? !isSameDay(filters.dateFilter, defaultDate) : true)
-  );
-
-  return (
-    Boolean(filters.searchQuery.trim()) ||
-    (filters.monthFilter !== 'ALL' && Boolean(filters.monthFilter)) ||
-    isDateActive ||
-    filters.selectedServices.length > 0 ||
-    filters.selectedStatuses.length > 0
-  );
+  if (filters.searchQuery.trim().length > 0) return true;
+  if (filters.monthFilter && filters.monthFilter !== 'ALL') return true;
+  if (filters.dateFilter) {
+    if (!defaultDate || !isSameDay(filters.dateFilter, defaultDate)) return true;
+  }
+  if (filters.selectedServices.length > 0) return true;
+  if (filters.selectedStatuses.length > 0) return true;
+  return false;
 }
 
 /**

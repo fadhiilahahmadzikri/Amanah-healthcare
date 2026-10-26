@@ -4,37 +4,26 @@ import * as React from 'react';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
 import type { InspectorTabProps } from './types';
 
-export function InspectorPartnerTab({ appointment, data }: InspectorTabProps) {
-  const { answers, maternal, patient } = data;
+export function InspectorPartnerTab({ data }: InspectorTabProps) {
+  const { maternal } = data;
 
-  const partnerName = maternal?.husband?.fullName || answers.partnerName || '-';
-  const partnerNik = maternal?.husband?.nik || answers.partnerNik || '-';
-  const partnerAge = maternal?.husband?.age
-    ? `${maternal.husband.age} Tahun`
-    : answers.partnerAge
-      ? `${answers.partnerAge} Tahun`
-      : '-';
-  const partnerJob = maternal?.husband?.job || answers.partnerJob || '-';
-  const partnerEducation = maternal?.husband?.education || answers.partnerEducation || '-';
-  const partnerBlood = maternal?.husband?.bloodType || answers.partnerBloodType || '-';
-  const partnerPhone = maternal?.husband?.phoneNumber || answers.partnerPhoneNumber || '-';
+  const partnerName = maternal?.partnerName || '-';
+  const partnerNik = maternal?.partnerNik || '-';
+  const partnerAge = maternal?.partnerAge ? `${maternal.partnerAge} Tahun` : '-';
+  const partnerJob = maternal?.partnerJob || '-';
+  const partnerEducation = maternal?.partnerEducation || '-';
+  const partnerBlood = maternal?.partnerBloodType || '-';
+  const partnerPhone = maternal?.husband?.phoneNumber || '-';
 
-  const motherPhone =
-    maternal?.phoneNumber ||
-    answers.phoneNumber ||
-    patient?.phone ||
-    appointment.patient_phone ||
-    '-';
+  const motherPhone = maternal?.phoneNumber || '-';
+  const motherJob = maternal?.motherJob || '-';
+  const motherEducation = maternal?.motherEducation || '-';
 
-  const motherJob = answers.motherJob || patient?.occupation || '-';
-  const motherEducation = answers.motherEducation || '-';
+  const puskesmas = maternal?.puskesmas || '-';
+  const posyandu = maternal?.posyandu || '-';
+  const dasawisma = maternal?.dasawisma || '-';
 
-  const puskesmas = maternal?.puskesmas || answers.puskesmas || '-';
-  const posyandu = maternal?.posyandu || answers.posyandu || '-';
-  const dasawisma = maternal?.dasawisma || answers.dasawisma || '-';
-
-  const domicileAddress =
-    maternal?.domicileAddress || answers.domicileAddress || patient?.address || '-';
+  const domicileAddress = maternal?.domicileAddress || '-';
 
   return (
     <div className='grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 pt-1 pointer-events-none select-text'>

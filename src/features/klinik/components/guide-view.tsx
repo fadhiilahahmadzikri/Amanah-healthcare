@@ -224,14 +224,15 @@ export function GuideView() {
     return GUIDE_DATA.filter((item) => {
       const matchTab = activeTab === 'Semua Panduan' || item.category === activeTab;
       const q = searchQuery.toLowerCase().trim();
-      const matchSearch =
-        !q ||
-        item.title.toLowerCase().includes(q) ||
-        item.subtitle.toLowerCase().includes(q) ||
-        item.description.toLowerCase().includes(q) ||
-        item.points.some(
-          (p) => p.label.toLowerCase().includes(q) || p.text.toLowerCase().includes(q)
-        );
+      if (!q) return matchTab;
+
+      const searchableTexts = [
+        item.title,
+        item.subtitle,
+        item.description,
+        ...item.points.flatMap((p) => [p.label, p.text])
+      ];
+      const matchSearch = searchableTexts.some((text) => text.toLowerCase().includes(q));
 
       return matchTab && matchSearch;
     });

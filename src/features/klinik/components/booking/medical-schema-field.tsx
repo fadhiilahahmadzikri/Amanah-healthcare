@@ -14,109 +14,6 @@ import {
   normalizeMedicalFieldInput
 } from '../../schemas/medical-appointment-validation';
 
-export const SPECIFIC_FIELD_PLACEHOLDERS: Record<string, string> = {
-  motherName: 'Masukkan nama lengkap...',
-  motherNik: '16 digit NIK sesuai KTP / KK',
-  motherBirthDate: 'Pilih tanggal lahir...',
-  motherAge: 'Contoh: 31 tahun',
-  marriageOrder: 'Contoh: 1',
-  marriageDate: 'Pilih tanggal menikah...',
-  motherJob: 'Contoh: Karyawan swasta, Wiraswasta',
-  motherEducation: 'Pilih pendidikan terakhir...',
-  religion: 'Pilih agama...',
-  phoneNumber: 'Contoh: 081234567890',
-  domicileAddress: 'Tuliskan alamat domisili saat ini...',
-  identityCardAddress: 'Tuliskan alamat sesuai KTP...',
-  dasawisma: 'Nama kelompok Dasawisma...',
-  posyandu: 'Nama Posyandu...',
-  puskesmas: 'Nama Puskesmas...',
-  partnerName: 'Masukkan nama lengkap suami/pasangan...',
-  partnerNik: '16 digit NIK sesuai KTP / KK',
-  partnerBirthDate: 'Pilih tanggal lahir suami/pasangan...',
-  partnerAge: 'Contoh: 31 tahun',
-  partnerJob: 'Contoh: Karyawan swasta, Wiraswasta',
-  partnerEducation: 'Pilih pendidikan terakhir suami/pasangan...',
-  heightCm: 'Contoh: 156 cm',
-  prePregnancyWeightKg: 'Contoh: 52 kg',
-  upperArmCircumferenceCm: 'Contoh: 23.5 cm',
-  initialBmi: 'Contoh: 21.5',
-  tetanusStatus: 'Pilih status imunisasi TT/Td...',
-  motherBloodType: 'Pilih golongan darah...',
-  partnerBloodType: 'Pilih golongan darah suami...',
-  hpht: 'Pilih tanggal HPHT...',
-  estimatedDueDate: 'Otomatis terhitung setelah HPHT dipilih',
-  gestationalAge: 'Otomatis terhitung setelah HPHT dipilih',
-  currentComplaints: 'Contoh: Mual, pusing, atau Tidak ada',
-  contraception1Type: 'Pilih jenis KB...',
-  contraception1StartDate: 'Pilih tanggal mulai...',
-  contraception1StopDate: 'Pilih tanggal berhenti...',
-  pregnancy1Outcome: 'Pilih hasil kehamilan...',
-  pregnancy1BirthYear: 'Contoh: 2020',
-  otherDiseaseHistoryNotes: 'Tuliskan riwayat penyakit lainnya...',
-  childName: 'Masukkan nama lengkap anak...',
-  childNik: '16 digit NIK sesuai KK / KIA',
-  childBirthDate: 'Pilih tanggal lahir anak...',
-  childSex: 'Pilih jenis kelamin anak...',
-  parentPhone: 'Contoh: 081234567890',
-  fatherName: 'Masukkan nama lengkap ayah...',
-  childAddress: 'Tuliskan alamat domisili anak saat ini...',
-  previousVaccineHistory: 'Contoh: HB 0, BCG, Polio 1 (sesuai buku KIA)',
-  childAllergyHistory: 'Tuliskan jika ada alergi, atau Tidak ada',
-  gravidaCount: 'Contoh: 1',
-  parityCount: 'Contoh: 0',
-  abortionCount: 'Contoh: 0',
-  livingChildrenCount: 'Contoh: 1'
-};
-
-export function getFieldPlaceholder(schemaField: MedicalFormField): string {
-  if (schemaField.placeholder) {
-    return schemaField.placeholder;
-  }
-  if (SPECIFIC_FIELD_PLACEHOLDERS[schemaField.id]) {
-    return SPECIFIC_FIELD_PLACEHOLDERS[schemaField.id];
-  }
-
-  const id = schemaField.id.toLowerCase();
-  if (id.includes('count') || id.includes('jumlah')) {
-    return 'Contoh: 1';
-  }
-  if (id.includes('name') || id.includes('nama')) {
-    return 'Masukkan nama lengkap...';
-  }
-  if (id.includes('phone') || id.includes('telepon') || id.includes('hp') || id.includes('wa')) {
-    return 'Contoh: 081234567890';
-  }
-  if (id.includes('job') || id.includes('pekerjaan')) {
-    return 'Contoh: Karyawan swasta, Wiraswasta';
-  }
-  if (id.includes('address') || id.includes('alamat') || id.includes('domisili')) {
-    return 'Tuliskan alamat lengkap...';
-  }
-  if (id.includes('nik')) {
-    return '16 digit NIK sesuai KTP / KK';
-  }
-  if (id.includes('age') || id.includes('umur') || id.includes('usia')) {
-    return 'Contoh: 31 tahun';
-  }
-  if (id.includes('weight') || id.includes('berat')) {
-    return 'Contoh: 50 kg';
-  }
-  if (id.includes('height') || id.includes('tinggi')) {
-    return 'Contoh: 155 cm';
-  }
-  if (schemaField.type === 'DATE') {
-    return 'Pilih tanggal...';
-  }
-  if (schemaField.type === 'LIST') {
-    return 'Pilih opsi...';
-  }
-  if (schemaField.type === 'PARAGRAPH') {
-    return 'Tuliskan keterangan jika ada...';
-  }
-
-  return 'Contoh: 1';
-}
-
 export function MedicalSchemaField({
   fieldApi,
   schemaField
@@ -128,6 +25,7 @@ export function MedicalSchemaField({
   const isInvalid = fieldApi.state.meta.isTouched && Boolean(rawError);
   const displayError = isInvalid && rawError && rawError !== 'Wajib diisi' ? rawError : undefined;
   const value = String(fieldApi.state.value ?? '');
+  const placeholder = schemaField.placeholder || '';
 
   const isColSpanFull =
     schemaField.colSpan === 'full' ||
@@ -208,8 +106,6 @@ export function MedicalSchemaField({
   }
 
   if (schemaField.type === 'LIST') {
-    const placeholder = getFieldPlaceholder(schemaField);
-
     return (
       <PatientLineSelect
         id={schemaField.id}
@@ -235,8 +131,6 @@ export function MedicalSchemaField({
   }
 
   if (schemaField.type === 'PARAGRAPH') {
-    const placeholder = getFieldPlaceholder(schemaField);
-
     return (
       <PatientLineTextarea
         id={schemaField.id}
@@ -259,8 +153,6 @@ export function MedicalSchemaField({
   }
 
   if (schemaField.type === 'DATE') {
-    const placeholder = getFieldPlaceholder(schemaField);
-
     return (
       <PatientBirthdatePicker
         id={schemaField.id}
@@ -292,8 +184,6 @@ export function MedicalSchemaField({
     schemaField.id === 'estimatedDueDate' ||
     schemaField.id === 'gestationalAge'
   ) {
-    const placeholder = getFieldPlaceholder(schemaField);
-
     return (
       <PatientLineInput
         id={schemaField.id}
@@ -325,7 +215,6 @@ export function MedicalSchemaField({
     );
   }
 
-  const placeholder = getFieldPlaceholder(schemaField);
   const isNik = schemaField.id.toLowerCase().includes('nik');
   const isPhone =
     schemaField.id.toLowerCase().includes('phone') ||

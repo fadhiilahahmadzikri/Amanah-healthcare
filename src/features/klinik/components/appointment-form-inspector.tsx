@@ -78,17 +78,7 @@ export function AppointmentFormInspector({
           : serverIntake.data
         : serverIntake;
 
-    const flow =
-      serverIntake?.flow ||
-      (serverIntake as any)?.data?.flow ||
-      appointment.medical_flow ||
-      appointment.medical_intake?.flow ||
-      (appointment.service?.toLowerCase().includes('imunisasi') ? 'immunization' : undefined) ||
-      (appointment.service?.toLowerCase().includes('kebidanan') ||
-      appointment.service?.toLowerCase().includes('persalinan')
-        ? 'pregnancy'
-        : undefined) ||
-      'regular';
+    const flow = serverIntake?.flow || appointment.medical_flow || 'regular';
 
     const type =
       serverIntake?.type ||

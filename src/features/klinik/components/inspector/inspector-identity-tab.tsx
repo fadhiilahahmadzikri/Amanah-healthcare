@@ -7,58 +7,24 @@ import type { InspectorTabProps } from './types';
 export function InspectorIdentityTab({ appointment, data }: InspectorTabProps) {
   const { answers, automatic, maternal, patient } = data;
 
-  const motherName =
-    maternal?.motherName ||
-    answers.motherName ||
-    patient?.fullName ||
-    appointment.patient_name ||
-    '-';
+  const motherName = maternal?.motherName || '-';
+  const motherNik = maternal?.motherNik || '-';
 
-  const motherNik = maternal?.motherNik || answers.motherNik || patient?.nik || '-';
+  const birthPlace = patient?.birthPlace || '-';
+  const birthDate = maternal?.motherBirthDate || '-';
+  const motherAge = maternal?.motherAge ? `${maternal.motherAge} Tahun` : '-';
 
-  const birthPlace = answers.motherBirthPlace || patient?.birthPlace || '-';
-  const birthDate =
-    maternal?.motherBirthDate || answers.motherBirthDate || patient?.birthDate || '-';
-  const motherAge = maternal?.motherAge
-    ? `${maternal.motherAge} Tahun`
-    : answers.motherAge
-      ? `${answers.motherAge} Tahun`
-      : '-';
+  const motherBloodType = maternal?.motherBloodType || '-';
+  const tetanusStatus = maternal?.tetanusStatus || '-';
 
-  const motherBloodType =
-    maternal?.motherBloodType || answers.motherBloodType || patient?.bloodType || '-';
+  const gestationalAge = maternal?.gestationalAgeFormatted || '-';
+  const hpht = maternal?.hpht || '-';
+  const hpl = maternal?.estimatedDueDate || '-';
 
-  const tetanusStatus = maternal?.tetanusStatus || answers.tetanusStatus || '-';
-
-  const gestationalAge =
-    maternal?.gestationalAgeFormatted ||
-    automatic.gestationalAgeAtSubmit ||
-    answers.gestationalAge ||
-    '-';
-
-  const hpht = maternal?.hpht || answers.hpht || '-';
-  const hpl =
-    maternal?.estimatedDueDate || automatic.estimatedDueDate || answers.estimatedDueDate || '-';
-
-  const height = maternal?.heightCm
-    ? `${maternal.heightCm} cm`
-    : answers.heightCm
-      ? `${answers.heightCm} cm`
-      : '-';
-
-  const weight = maternal?.prePregnancyWeightKg
-    ? `${maternal.prePregnancyWeightKg} kg`
-    : answers.prePregnancyWeightKg
-      ? `${answers.prePregnancyWeightKg} kg`
-      : '-';
-
-  const arm = maternal?.upperArmCircumferenceCm
-    ? `${maternal.upperArmCircumferenceCm} cm`
-    : answers.upperArmCircumferenceCm
-      ? `${answers.upperArmCircumferenceCm} cm`
-      : '-';
-
-  const bmi = maternal?.initialBmi || automatic.imtAtSubmit || answers.initialBmi || '-';
+  const height = maternal?.heightCm ? `${maternal.heightCm} cm` : '-';
+  const weight = maternal?.prePregnancyWeightKg ? `${maternal.prePregnancyWeightKg} kg` : '-';
+  const arm = maternal?.upperArmCircumferenceCm ? `${maternal.upperArmCircumferenceCm} cm` : '-';
+  const bmi = maternal?.initialBmi ? String(maternal.initialBmi) : '-';
 
   const hasHealthInsurance = answers.hasHealthInsurance || '-';
   const healthInsuranceNumber = answers.healthInsuranceNumber || '-';

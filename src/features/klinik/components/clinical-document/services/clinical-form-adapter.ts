@@ -29,12 +29,12 @@ export function adaptToPmbFormData(
   const p = data.patient;
   const answers = data.answers || {};
 
-  const motherName = m?.motherName || p?.fullName || appointment?.patient_name || '-';
+  const motherName = m?.motherName || '-';
   const marriageOrder = m?.marriageOrder ? String(m.marriageOrder) : '1';
   const marriageDate = m?.marriageDate
     ? formatClinicDate(m.marriageDate, { style: 'human_full' })
     : '-';
-  const motherNik = m?.motherNik || p?.nik || answers.motherNik || '-';
+  const motherNik = m?.motherNik || '-';
   const motherBirthDate = m?.motherBirthDate
     ? formatClinicDate(m.motherBirthDate, { style: 'human_full' })
     : p?.birthDate
@@ -45,7 +45,7 @@ export function adaptToPmbFormData(
     : p?.birthDate
       ? `${new Date().getFullYear() - new Date(p.birthDate).getFullYear()} tahun`
       : '-';
-  const motherJob = m?.motherJob || p?.occupation || '-';
+  const motherJob = m?.motherJob || '-';
   const motherEducation = m?.motherEducation || '-';
 
   const partnerName = m?.partnerName || m?.husband?.fullName || '-';
@@ -65,9 +65,9 @@ export function adaptToPmbFormData(
 
   const fullRows = [
     m?.religion || answers.religion || 'Islam',
-    m?.domicileAddress || p?.address || '-',
-    m?.identityCardAddress || p?.address || '-',
-    m?.phoneNumber || p?.phone || appointment?.patient_phone || '-'
+    m?.domicileAddress || '-',
+    m?.identityCardAddress || '-',
+    m?.phoneNumber || '-'
   ];
 
   const locationValues = [
@@ -97,7 +97,7 @@ export function adaptToPmbFormData(
   const uk =
     m?.gestationalAgeFormatted ||
     (m?.gestationalAgeWeeks ? `${m.gestationalAgeWeeks} minggu` : '-');
-  const keluhan = m?.currentComplaints || appointment?.complaint || data.complaint || '-';
+  const keluhan = m?.currentComplaints || appointment?.complaint || '-';
 
   const riskChecked: Record<string, boolean> = {
     Merokok: Boolean(m?.smokedBeforePregnancy && m.smokedBeforePregnancy !== 'no'),
@@ -212,16 +212,16 @@ export function adaptToImunisasiFormData(
   const cleanDigits = mrn.replace(/\D/g, '').padStart(10, '0').slice(-10);
   const recordDigits = cleanDigits.split('');
 
-  const childName = c?.childName || p?.fullName || appointment?.patient_name || '-';
-  const childNik = c?.childNik || p?.nik || answers.childNik || '-';
+  const childName = c?.childName || '-';
+  const childNik = c?.childNik || '-';
   const childBirthDate = c?.childBirthDate
     ? formatClinicDate(c.childBirthDate, { style: 'human_full' })
     : '-';
-  const phone = c?.parentPhone || p?.phone || appointment?.patient_phone || '-';
+  const phone = c?.parentPhone || '-';
 
-  const fatherName = c?.fatherName || answers.fatherName || '-';
-  const motherName = c?.motherName || p?.motherName || answers.motherName || '-';
-  const address = c?.childAddress || p?.address || '-';
+  const fatherName = c?.fatherName || '-';
+  const motherName = c?.motherName || '-';
+  const address = c?.childAddress || '-';
 
   const vaccineRows: VaccineRowData[] = [];
   if (Array.isArray(c?.entries) && c.entries.length > 0) {
@@ -303,7 +303,7 @@ export function adaptToRegulerFormData(
       phoneNumber: p?.emergencyContactPhone || answers.emergencyContactPhone || '-'
     },
     clinical: {
-      chiefComplaint: data.complaint || appointment?.complaint || answers.complaint || '-',
+      chiefComplaint: appointment?.complaint || '-',
       allergyHistory: answers.allergy || 'Tidak ada riwayat alergi obat maupun makanan.',
       vitalHeightCm: answers.height ? `${answers.height} cm` : '-',
       vitalWeightKg: answers.weight ? `${answers.weight} kg` : '-',
