@@ -16,9 +16,7 @@ export function isSessionClosed(session: { sessionStatus?: string | null }): boo
 
 export function isDoctorPendingVerification(doctor: DoctorSchedule): boolean {
   return (
-    doctor.doctorStatus === SCHEDULE_STATUS.PENDING ||
-    doctor.scheduleStatus === SCHEDULE_STATUS.PENDING ||
-    doctor.isAcceptingAppointments === false
+    doctor.scheduleStatus === SCHEDULE_STATUS.PENDING || doctor.isAcceptingAppointments === false
   );
 }
 
@@ -35,25 +33,15 @@ export function getDoctorCardStatus(doctor: DoctorSchedule): DoctorCardStatus {
     return DOCTOR_CARD_STATUS.PENDING;
   }
 
-  if (
-    doctor.doctorStatus === SCHEDULE_STATUS.ON_LEAVE ||
-    doctor.scheduleStatus === SCHEDULE_STATUS.ON_LEAVE ||
-    doctor.isOnLeave
-  ) {
+  if (doctor.scheduleStatus === SCHEDULE_STATUS.ON_LEAVE) {
     return DOCTOR_CARD_STATUS.ON_LEAVE;
   }
 
-  if (
-    doctor.doctorStatus === SCHEDULE_STATUS.CLOSED ||
-    doctor.scheduleStatus === SCHEDULE_STATUS.CLOSED
-  ) {
+  if (doctor.scheduleStatus === SCHEDULE_STATUS.CLOSED) {
     return DOCTOR_CARD_STATUS.CLOSED;
   }
 
-  if (
-    doctor.doctorStatus === SCHEDULE_STATUS.OPEN ||
-    doctor.scheduleStatus === SCHEDULE_STATUS.OPEN
-  ) {
+  if (doctor.scheduleStatus === SCHEDULE_STATUS.OPEN) {
     return DOCTOR_CARD_STATUS.OPEN;
   }
 

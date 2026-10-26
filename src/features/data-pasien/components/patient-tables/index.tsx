@@ -26,14 +26,13 @@ export function PatientTable() {
   const { state: sidebarState } = useSidebar();
   const isSidebarExpanded = sidebarState === 'expanded';
 
-  const { isOpen: isMobile } = useMediaQuery('(max-width: 768px)');
   const { isOpen: isUnder1024 } = useMediaQuery('(max-width: 1024px)');
   const { isOpen: isUnder1280 } = useMediaQuery('(max-width: 1280px)');
 
   // Canonical responsive breakpoint formula from Kehadiran Pegawai:
   // 1. Mobile & tablet viewports (<= 1024px)
   // 2. Expanded sidebar collisions on standard viewports (<= 1280px)
-  const isCompact = isMobile || isUnder1024 || (isUnder1280 && isSidebarExpanded);
+  const isCompact = isUnder1024 || (isUnder1280 && isSidebarExpanded);
 
   const tableColumns = useMemo(
     () =>
@@ -90,12 +89,9 @@ export function PatientTable() {
       <PatientModal
         key={patientTable.selectedPatient?.id || 'new'}
         patient={patientTable.selectedPatient}
-        isOpen={patientTable.isDetailOpen || patientTable.isEditOpen}
+        isOpen={patientTable.isModalOpen}
         initialMode={patientTable.isEditOpen ? 'edit' : 'view'}
-        onClose={() => {
-          if (patientTable.isDetailOpen) patientTable.actions.closeDetail();
-          if (patientTable.isEditOpen) patientTable.actions.closeEdit();
-        }}
+        onClose={patientTable.actions.closeModal}
       />
 
       {/* 2. Modal Garis Waktu Riwayat Janji Temu & Form Klinis Terkait */}

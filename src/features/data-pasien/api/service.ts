@@ -14,9 +14,9 @@ export function mapBackendPatient(r: any): Patient {
   const rawAffiliates = Array.isArray(r.affiliates) ? r.affiliates : [];
   const mappedAffiliates = rawAffiliates.map(mapBackendPatient);
 
-  const phone = r.phone ?? r.phoneNumber ?? '';
+  const phone = r.phone ?? '';
   const email = r.email ?? '';
-  const fullAddress = r.fullAddress ?? r.address ?? '';
+  const fullAddress = r.fullAddress ?? '';
   const motherName = r.motherName ?? '';
   const occupation = r.occupation ?? '';
   const birthPlace = r.birthPlace ?? '';
@@ -39,15 +39,15 @@ export function mapBackendPatient(r: any): Patient {
     birth_date: birthDate,
     blood_type: r.bloodType ?? '',
     address: fullAddress,
-    line1: r.addressDetail?.line1 || r.line1 || null,
-    province_name: r.addressDetail?.provinceName || r.provinceName || null,
-    province_code: r.addressDetail?.provinceCode || r.provinceCode || null,
-    regency_name: r.addressDetail?.regencyName || r.regencyName || null,
-    regency_code: r.addressDetail?.regencyCode || r.regencyCode || null,
-    district_name: r.addressDetail?.districtName || r.districtName || null,
-    district_code: r.addressDetail?.districtCode || r.districtCode || null,
-    village_name: r.addressDetail?.villageName || r.villageName || null,
-    village_code: r.addressDetail?.villageCode || r.villageCode || null,
+    line1: r.line1 ?? null,
+    province_name: r.provinceName ?? null,
+    province_code: r.provinceCode ?? null,
+    regency_name: r.regencyName ?? null,
+    regency_code: r.regencyCode ?? null,
+    district_name: r.districtName ?? null,
+    district_code: r.districtCode ?? null,
+    village_name: r.villageName ?? null,
+    village_code: r.villageCode ?? null,
     emergency_contact: r.emergencyContactPhone
       ? `${r.emergencyContactName || ''} (${r.emergencyContactPhone})`
       : '',
@@ -227,18 +227,27 @@ export async function getPatientHistory(
 }
 
 export async function createPatient(data: PatientMutationPayload) {
+  const line1 = data.line1 ?? '';
   const payload: Record<string, any> = {
     fullName: data.name,
     nik: data.nik,
     gender: data.gender,
     birthDate: data.birth_date,
-    birthPlace: data.birth_place || '',
+    birthPlace: data.birth_place ?? '',
     bloodType: data.blood_type,
-    motherName: data.mother_name || '',
-    occupation: data.occupation || '',
-    phoneNumber: data.phone || '',
-    address: data.address || '',
-    medicalHistory: data.medical_history || ''
+    motherName: data.mother_name ?? '',
+    occupation: data.occupation ?? '',
+    phone: data.phone ?? '',
+    line1,
+    provinceName: data.province_name,
+    provinceCode: data.province_code,
+    regencyName: data.regency_name,
+    regencyCode: data.regency_code,
+    districtName: data.district_name,
+    districtCode: data.district_code,
+    villageName: data.village_name,
+    villageCode: data.village_code,
+    medicalHistory: data.medical_history ?? ''
   };
 
   const record = await clientFetch<any>('/api/v1/patients', {
@@ -260,18 +269,17 @@ export async function updatePatient(id: string, data: Partial<PatientMutationPay
   if (data.nik !== undefined && data.nik.trim() !== '') {
     payload.nik = data.nik.trim();
   }
-  if (data.phone !== undefined) payload.phoneNumber = data.phone;
+  if (data.phone !== undefined) payload.phone = data.phone;
   if (data.emergency_contact !== undefined && data.emergency_contact.trim() !== '') {
     payload.emergencyContactPhone = data.emergency_contact.trim();
   }
-  if (data.address !== undefined) payload.address = data.address;
+  if (data.line1 !== undefined) payload.line1 = data.line1;
   if (data.occupation !== undefined) payload.occupation = data.occupation;
   if (data.mother_name !== undefined) payload.motherName = data.mother_name;
   if (data.birth_place !== undefined) payload.birthPlace = data.birth_place;
   if (data.birth_date !== undefined) payload.birthDate = data.birth_date;
   if (data.gender !== undefined) payload.gender = data.gender;
   if (data.blood_type !== undefined) payload.bloodType = data.blood_type;
-  if (data.line1 !== undefined) payload.line1 = data.line1;
   if (data.province_name !== undefined) payload.provinceName = data.province_name;
   if (data.province_code !== undefined) payload.provinceCode = data.province_code;
   if (data.regency_name !== undefined) payload.regencyName = data.regency_name;

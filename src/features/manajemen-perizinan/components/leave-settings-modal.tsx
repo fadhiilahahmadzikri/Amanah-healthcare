@@ -245,6 +245,7 @@ export function LeaveSettingsModal({
                       <div className='flex items-center rounded-lg border border-border/80 bg-background shadow-2xs overflow-hidden h-8.5 focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px] transition-[color,box-shadow]'>
                         <input
                           type='number'
+                          aria-label='Maksimal Pengajuan per Bulan'
                           value={monthlyLimit}
                           min={1}
                           max={30}
@@ -273,6 +274,7 @@ export function LeaveSettingsModal({
                     <div className='flex items-center rounded-lg border border-border/80 bg-background shadow-2xs overflow-hidden h-8.5 focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px] transition-[color,box-shadow]'>
                       <input
                         type='number'
+                        aria-label='Minimal Hari Pengajuan di Muka'
                         value={noticeDaysRequired}
                         min={0}
                         max={30}
@@ -313,6 +315,7 @@ export function LeaveSettingsModal({
                         </span>
                         <input
                           type='number'
+                          aria-label='Tarif Dasar Pokok Dokter'
                           step={5000}
                           value={doctorHourly}
                           onChange={(e) => setDoctorHourly(Number(e.target.value) || 0)}
@@ -335,6 +338,7 @@ export function LeaveSettingsModal({
                         </span>
                         <input
                           type='number'
+                          aria-label='Tarif Pengganti atau Lembur Dokter'
                           step={5000}
                           value={doctorOvertime}
                           onChange={(e) => setDoctorOvertime(Number(e.target.value) || 0)}
@@ -371,6 +375,7 @@ export function LeaveSettingsModal({
                         </span>
                         <input
                           type='number'
+                          aria-label='Tarif Dasar Pokok Bidan'
                           step={5000}
                           value={midwifeHourly}
                           onChange={(e) => setMidwifeHourly(Number(e.target.value) || 0)}
@@ -393,6 +398,7 @@ export function LeaveSettingsModal({
                         </span>
                         <input
                           type='number'
+                          aria-label='Tarif Pengganti atau Lembur Bidan'
                           step={5000}
                           value={midwifeOvertime}
                           onChange={(e) => setMidwifeOvertime(Number(e.target.value) || 0)}
@@ -429,6 +435,7 @@ export function LeaveSettingsModal({
                         </span>
                         <input
                           type='number'
+                          aria-label='Tarif Dasar Pokok Staf Operasional'
                           step={5000}
                           value={workerHourly}
                           onChange={(e) => setWorkerHourly(Number(e.target.value) || 0)}
@@ -451,6 +458,7 @@ export function LeaveSettingsModal({
                         </span>
                         <input
                           type='number'
+                          aria-label='Tarif Pengganti atau Lembur Staf Operasional'
                           step={5000}
                           value={workerOvertime}
                           onChange={(e) => setWorkerOvertime(Number(e.target.value) || 0)}

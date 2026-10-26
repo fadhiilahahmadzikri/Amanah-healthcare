@@ -23,12 +23,13 @@ export function filterNotifications(
   return notifications.filter((item) => {
     const matchCat = filters.categoryFilter === 'ALL' || item.category === filters.categoryFilter;
     const matchStatus = filters.statusFilter === 'ALL' || item.status === filters.statusFilter;
-    const matchSearch =
-      !query ||
-      item.sender.toLowerCase().includes(query) ||
-      item.body.toLowerCase().includes(query) ||
-      item.category.toLowerCase().includes(query) ||
-      item.roleSubtitle.toLowerCase().includes(query);
+
+    if (!query) {
+      return matchCat && matchStatus;
+    }
+
+    const searchableFields = [item.sender, item.body, item.category, item.roleSubtitle];
+    const matchSearch = searchableFields.some((field) => field.toLowerCase().includes(query));
 
     return matchCat && matchStatus && matchSearch;
   });
@@ -44,11 +45,9 @@ export function paginateNotifications(
 }
 
 export function getIsFiltered(filters: NotificationFilterState): boolean {
-  return (
-    Boolean(filters.searchQuery.trim()) ||
-    filters.categoryFilter !== 'ALL' ||
-    filters.statusFilter !== 'ALL'
-  );
+  if (filters.searchQuery.trim().length > 0) return true;
+  if (filters.categoryFilter !== 'ALL') return true;
+  return filters.statusFilter !== 'ALL';
 }
 
 export function getIsAllSelected(

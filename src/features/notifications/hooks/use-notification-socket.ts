@@ -258,10 +258,7 @@ export function useNotificationSocket(callbacks?: {
 
       // Rule E: Present Toast with Semantic Action
       if (envelope?.title) {
-        const primaryAction =
-          ('action' in envelope && envelope.action) ||
-          ('actions' in envelope && envelope.actions?.[0]) ||
-          undefined;
+        const primaryAction = 'action' in envelope ? envelope.action : undefined;
 
         const toastAction = primaryAction
           ? {
@@ -307,8 +304,8 @@ export function useNotificationSocket(callbacks?: {
       reconcile();
     });
 
-    socket.on('notification:unread_count', (data: { count?: number; unreadCount?: number }) => {
-      const count = data.unreadCount ?? data.count ?? 0;
+    socket.on('notification:unread_count', (data: { unreadCount: number }) => {
+      const count = data?.unreadCount ?? 0;
       queryClient.setQueryData(['notifications', 'unread-count'], { unreadCount: count });
     });
 
@@ -387,10 +384,9 @@ export function useNotificationSocket(callbacks?: {
           staffName?: string;
           status?: string;
           leaveRequestId?: string;
-          id?: string;
         };
         if (lv.staffName && lv.status === 'pending') {
-          const targetId = lv.leaveRequestId || lv.id || '';
+          const targetId = lv.leaveRequestId ?? '';
           toast.info(`Pengajuan Izin Baru: ${lv.staffName}`, {
             description: 'Staf klinik telah mengajukan permohonan izin/cuti baru.',
             action: {

@@ -5,18 +5,18 @@ export const patientSchema = z.object({
   patient_id: z.string().min(3, 'Nomor Rekam Medis / ID Pasien harus diisi'),
   nik: z
     .string()
-    .refine(
-      (val) => !val || val.trim().length === 0 || /^\d{16}$/.test(val.trim()),
-      'NIK harus berupa 16 digit angka'
-    )
+    .refine((val) => {
+      const trimmed = val ? val.trim() : '';
+      return trimmed.length === 0 || /^\d{16}$/.test(trimmed);
+    }, 'NIK harus berupa 16 digit angka')
     .optional()
     .or(z.literal('')),
   phone: z
     .string()
-    .refine(
-      (val) => !val || val.trim().length === 0 || val.trim().length >= 8,
-      'Nomor telepon minimal 8 digit'
-    )
+    .refine((val) => {
+      const trimmed = val ? val.trim() : '';
+      return trimmed.length === 0 || trimmed.length >= 8;
+    }, 'Nomor telepon minimal 8 digit')
     .optional()
     .or(z.literal('')),
   email: z.string().email('Format email tidak valid').optional().or(z.literal('')),

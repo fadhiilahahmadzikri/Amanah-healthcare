@@ -71,8 +71,8 @@ export function StepSessionDefs({
       )}
       <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
         {sessionDefs.map((def) => {
-          const startsAt = (def.defaultStartsAt || '06:00').slice(0, 5);
-          const endsAt = (def.defaultEndsAt || '12:00').slice(0, 5);
+          const startsAt = def.defaultStartsAt.slice(0, 5);
+          const endsAt = def.defaultEndsAt.slice(0, 5);
           const isConflicted = conflictingDefIds.includes(def.id);
           const durationHours = calculateShiftDurationHours(startsAt, endsAt);
           const gapInfo = getAdjacentShiftGapMinutes(def, sessionDefs);

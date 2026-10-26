@@ -80,8 +80,8 @@ export function LeaveKanbanBoard({
       const userGroupsMap = new Map<string, UserLeaveGroup>();
 
       for (const leave of colLeaves) {
-        const staffKey = leave.staffId || leave.staff?.id || leave.practitionerId || leave.id;
-        const staffName = leave.staff?.fullName || 'Staf Klinik';
+        const staffKey = leave.staffId;
+        const staffName = leave.staff?.fullName ?? '-';
         const staffRole = leave.staff?.profession;
         const avatarUrl = leave.staff?.avatarUrl;
 
@@ -114,7 +114,8 @@ export function LeaveKanbanBoard({
 
       // Disallow drag from interactive child elements (buttons, links)
       const target = e.target as HTMLElement;
-      if (target.closest('button') || target.closest('a') || target.closest('[role="button"]')) {
+      const interactiveEl = target.closest('button, a, [role="button"]');
+      if (interactiveEl) {
         // If the target is the main card container, allow it; if it's an action button inside, ignore
         if (
           !target.classList.contains('group') &&

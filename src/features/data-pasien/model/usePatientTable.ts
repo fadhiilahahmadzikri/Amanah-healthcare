@@ -26,6 +26,7 @@ export interface UsePatientTableResult {
   activePatients: Patient[];
   selectedPatient: Patient | null;
   selectedPatients: Patient[];
+  isModalOpen: boolean;
   isDetailOpen: boolean;
   isEditOpen: boolean;
   isHistoryOpen: boolean;
@@ -41,6 +42,7 @@ export interface UsePatientTableResult {
   totalPatients: number;
   resetFilters: () => void;
   actions: {
+    closeModal: () => void;
     openDetail: (patient: Patient) => void;
     closeDetail: () => void;
     openEdit: (patient: Patient) => void;
@@ -67,7 +69,6 @@ export function usePatientTable({
 
   const [params, setParams] = useQueryStates({
     name: parseAsString,
-    search: parseAsString,
     gender: parseAsArrayOf(parseAsString, ','),
     status: parseAsArrayOf(parseAsString, ','),
     blood_type: parseAsArrayOf(parseAsString, ','),
@@ -75,7 +76,7 @@ export function usePatientTable({
     sort: getSortingStateParser<Patient>(columnIds).withDefault([])
   });
 
-  const querySearch = params.name || params.search || '';
+  const querySearch = params.name ?? '';
   const queryGender = params.gender?.[0] || null;
   const queryStatus = params.status?.[0] || null;
   const queryBloodType = params.blood_type?.[0] || null;
@@ -86,14 +87,15 @@ export function usePatientTable({
       : null;
 
   const isInfiniteSearch = Boolean(querySearch && querySearch.trim().length > 0);
-  const hasActiveFilters = Boolean(
-    querySearch ||
-    queryGender ||
-    queryStatus ||
-    queryBloodType ||
-    queryProfileType ||
-    (params.sort && params.sort.length > 0)
-  );
+  const activeFilters = [
+    querySearch,
+    queryGender,
+    queryStatus,
+    queryBloodType,
+    queryProfileType,
+    querySort
+  ].filter(Boolean);
+  const hasActiveFilters = activeFilters.length > 0;
 
   // Unified Infinite Query (Continuous Scroll Feed like YouTube / Social Media)
   const filters: PatientFilters = {
@@ -245,7 +247,6 @@ export function usePatientTable({
     table.resetSorting();
     void setParams({
       name: null,
-      search: null,
       gender: null,
       status: null,
       blood_type: null,
@@ -259,6 +260,7 @@ export function usePatientTable({
     activePatients,
     selectedPatient,
     selectedPatients,
+    isModalOpen: activeDialog === 'detail' || activeDialog === 'edit',
     isDetailOpen: activeDialog === 'detail',
     isEditOpen: activeDialog === 'edit',
     isHistoryOpen: activeDialog === 'history',
@@ -274,6 +276,7 @@ export function usePatientTable({
     totalPatients,
     resetFilters,
     actions: {
+      closeModal: () => setActiveDialog(null),
       openDetail,
       closeDetail,
       openEdit,

@@ -17,8 +17,6 @@ export interface SessionDefConfig {
   isActive: boolean;
   defaultStartsAt: string;
   defaultEndsAt: string;
-  canonicalStartsAt?: string;
-  canonicalEndsAt?: string;
 }
 
 export interface WeeklyTemplateConfig {

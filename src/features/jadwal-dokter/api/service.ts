@@ -38,33 +38,30 @@ export async function getDoctorSchedules(
   const endpoint = `/api/v1/admin/doctor-schedules${qs ? `?${qs}` : ''}`;
 
   const res = await clientFetch<{
-    doctors?: DoctorSchedule[];
-    data?:
-      | DoctorSchedule[]
-      | {
-          doctors?: DoctorSchedule[];
-          totalDoctors?: number;
-          meta?: { totalDoctors?: number; totalPages?: number; page?: number; limit?: number };
-        };
-    totalDoctors?: number;
-    meta?: { totalDoctors?: number; totalPages?: number; page?: number; limit?: number };
+    success: boolean;
+    data: {
+      doctors: DoctorSchedule[];
+      meta: {
+        page: number;
+        limit: number;
+        totalDoctors: number;
+        totalPages: number;
+      };
+    };
   }>(endpoint);
 
-  const rawDoctors = res.doctors ?? (Array.isArray(res.data) ? res.data : res.data?.doctors) ?? [];
-  const total =
-    res.totalDoctors ??
-    res.meta?.totalDoctors ??
-    (!Array.isArray(res.data) ? res.data?.totalDoctors ?? res.data?.meta?.totalDoctors : undefined) ??
-    rawDoctors.length;
+  const doctors = res.data?.doctors ?? [];
+  const meta = res.data?.meta ?? {
+    page: filters.page ?? 1,
+    limit: filters.limit ?? 20,
+    totalDoctors: doctors.length,
+    totalPages: 1
+  };
+
   return {
-    doctors: rawDoctors,
-    totalDoctors: total,
-    meta: {
-      page: res.meta?.page ?? filters.page ?? 1,
-      limit: res.meta?.limit ?? filters.limit ?? 20,
-      totalDoctors: total,
-      totalPages: res.meta?.totalPages ?? 1
-    }
+    doctors,
+    totalDoctors: meta.totalDoctors,
+    meta
   };
 }
 
@@ -80,11 +77,8 @@ export async function getDoctorScheduleById(
   const endpoint = `/api/v1/admin/doctor-schedules/${id}${qs ? `?${qs}` : ''}`;
 
   try {
-    const res = await clientFetch<{ data?: DoctorSchedule } | DoctorSchedule>(endpoint);
-    if ('data' in res && res.data) {
-      return res.data;
-    }
-    return (res as DoctorSchedule) ?? null;
+    const res = await clientFetch<{ data: DoctorSchedule }>(endpoint);
+    return res.data ?? null;
   } catch (err) {
     console.error(`Error fetching doctor schedule ${id}:`, err);
     return null;

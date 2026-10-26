@@ -49,12 +49,12 @@ export function useLeaveFilters(
   const staffTypeFilter = useMemo(() => toList(params.staffType), [params.staffType]);
   const leaveTypeFilter = useMemo(() => toList(params.leaveType), [params.leaveType]);
 
-  const hasActiveFilters = Boolean(
-    params.search?.trim() ||
-    statusFilter.length > 0 ||
-    staffTypeFilter.length > 0 ||
+  const hasActiveFilters = [
+    Boolean(params.search?.trim()),
+    statusFilter.length > 0,
+    staffTypeFilter.length > 0,
     leaveTypeFilter.length > 0
-  );
+  ].some(Boolean);
 
   const filteredLeaves = useMemo(() => {
     const query = (params.search || '').trim().toLowerCase();
@@ -86,12 +86,8 @@ export function useLeaveFilters(
         const reason = leave.reason?.toLowerCase() || '';
         const leaveId = leave.id?.toLowerCase() || '';
 
-        const match =
-          staffName.includes(query) ||
-          staffProfession.includes(query) ||
-          staffIdCardNumber.includes(query) ||
-          reason.includes(query) ||
-          leaveId.includes(query);
+        const searchTargets = [staffName, staffProfession, staffIdCardNumber, reason, leaveId];
+        const match = searchTargets.some((target) => target.includes(query));
 
         if (!match) {
           return false;

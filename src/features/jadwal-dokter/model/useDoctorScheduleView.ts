@@ -83,7 +83,7 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
 
   const doctors = useMemo(() => {
     if (!infiniteQuery.data?.pages) return [];
-    return infiniteQuery.data.pages.flatMap((page) => page.doctors || []);
+    return infiniteQuery.data.pages.flatMap((page) => page.doctors ?? []);
   }, [infiniteQuery.data?.pages]);
 
   const totalDoctors = useMemo(() => {
@@ -128,7 +128,7 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     }
 
     const targetId = params.selectedDoctorId;
-    const found = doctors.find((d) => d.id === targetId || d.practitionerId === targetId);
+    const found = doctors.find((d) => d.id === targetId);
 
     if (found) {
       setSelectedDoctor(found);
@@ -147,7 +147,7 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
       },
       { shallow: true }
     );
-    const found = doctors.find((d) => d.id === doctorId || d.practitionerId === doctorId);
+    const found = doctors.find((d) => d.id === doctorId);
     if (found) {
       setSelectedDoctor(found);
     }
@@ -175,14 +175,14 @@ export function useDoctorScheduleView(): UseDoctorScheduleViewResult {
     selectedPoli,
     selectedSessions,
     selectedStatuses,
-    hasActiveFilters: Boolean(
-      params.search ||
-      (params.month && params.month !== 'ALL') ||
-      (params.date && params.date !== todayStr) ||
-      params.poli ||
-      params.session ||
-      params.status
-    ),
+    hasActiveFilters: [
+      Boolean(params.search.trim()),
+      Boolean(params.month && params.month !== 'ALL'),
+      Boolean(params.date && params.date !== todayStr),
+      selectedPoli.length > 0,
+      selectedSessions.length > 0,
+      selectedStatuses.length > 0
+    ].some(Boolean),
     actions: {
       openDetail: (doctor) => {
         setSelectedDoctor(doctor);

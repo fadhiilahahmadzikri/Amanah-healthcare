@@ -44,28 +44,23 @@ export async function getCurrentPatientRegistrationContext(
 ): Promise<CurrentRegistrationContext> {
   const currentUser = await loadCurrentUser();
 
-  if (currentUser) {
-    const isComplete = Boolean(currentUser.patient);
-    const initialName =
-      currentUser.patient?.fullName || currentUser.staff?.fullName || currentUser.email || '';
-
+  if (currentUser?.patient) {
     return {
-      isComplete,
-      initialName
+      isComplete: true,
+      initialName: currentUser.patient.fullName
     };
   }
 
-  // Fallback for Better Auth session if canonical user not resolved
   try {
     const session = await auth.api.getSession({ headers: await headers() });
     if (session?.user && session.user.id === userId) {
       return {
         isComplete: false,
-        initialName: session.user.name || session.user.email || ''
+        initialName: session.user.name ?? ''
       };
     }
   } catch {
-    // Ignore fallback error
+    // Ignore session error
   }
 
   return {
@@ -143,13 +138,12 @@ export async function completePatientRegistration({
   } catch (error: unknown) {
     if (error instanceof AppError) {
       const code = error.problemDetails?.code;
-      let message = error.problemDetails?.message || error.problemDetails?.detail || error.message;
+      let message = error.message;
 
       if (error.status === 401 || code === 'UNAUTHORIZED' || code === 'UNAUTHENTICATED') {
         message = 'Sesi masuk Anda telah berakhir. Silakan masuk kembali.';
       } else if (code === 'PATIENT_ALREADY_REGISTERED') {
-        message =
-          error.problemDetails?.message || 'Akun Anda sudah memiliki profil pasien terdaftar.';
+        message = 'Akun Anda sudah memiliki profil pasien terdaftar.';
         try {
           revalidatePath('/dashboard', 'layout');
         } catch {
@@ -157,7 +151,6 @@ export async function completePatientRegistration({
         }
       } else if (code === 'DUPLICATE_NIK') {
         message =
-          error.problemDetails?.message ||
           'NIK ini sudah terdaftar pada rekam medis pasien lain. Periksa kembali NIK KTP Anda.';
       } else if (code === 'VALIDATION_FAILED' && error.invalidParams?.length) {
         message = error.invalidParams.map((p) => p.reason).join(', ');

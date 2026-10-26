@@ -21,7 +21,7 @@ export function BookedPatientKiaIntake({ appointmentId }: BookedPatientKiaIntake
     staleTime: 60_000
   });
 
-  if (isLoading || !intake || !intake.data) {
+  if (isLoading || !intake?.data) {
     return null;
   }
 
@@ -174,7 +174,7 @@ export function BookedPatientKiaIntake({ appointmentId }: BookedPatientKiaIntake
             Skrining Imunisasi & Tumbuh Kembang Anak
           </span>
           <span className='font-mono font-bold text-[11px] px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'>
-            {child.childAgeFormatted || child.childSex}
+            {child.childAgeFormatted ?? '-'}
           </span>
         </div>
 

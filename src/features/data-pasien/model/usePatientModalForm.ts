@@ -37,7 +37,9 @@ export function usePatientModalForm({
     enabled: Boolean(isOpen && patient?.id)
   });
 
-  const activePatient: Patient | null = detailData?.patient ?? patient ?? null;
+  const activePatient: Patient | null = detailData?.patient
+    ? detailData.patient
+    : (patient ?? null);
 
   const prevOpenRef = React.useRef(isOpen);
   const prevPatientIdRef = React.useRef(patient?.id);
@@ -195,7 +197,7 @@ export function usePatientModalForm({
           : 'active') as PatientAccountStatus
       });
     }
-  }, [activePatient, isOpen]);
+  }, [activePatient, isOpen, form]);
 
   const handleUnlockEdit = (e: React.MouseEvent) => {
     e.preventDefault();

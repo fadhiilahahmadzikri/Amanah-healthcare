@@ -19,9 +19,11 @@ export function useLeaveManagementView({
   const [statusFilter, setStatusFilter] = useState('all');
   const [staffTypeFilter, setStaffTypeFilter] = useState('all');
 
-  const hasActiveFilters = Boolean(
-    searchQuery.trim() || statusFilter !== 'all' || staffTypeFilter !== 'all'
-  );
+  const hasActiveFilters = [
+    Boolean(searchQuery.trim()),
+    statusFilter !== 'all',
+    staffTypeFilter !== 'all'
+  ].some(Boolean);
 
   const resetFilters = () => {
     setSearchQuery('');
@@ -57,11 +59,8 @@ export function useLeaveManagementView({
         const reason = (leave.reason || '').toLowerCase();
         const leaveType = (leave.type || '').toLowerCase();
 
-        const match =
-          staffName.includes(query) ||
-          staffCode.includes(query) ||
-          reason.includes(query) ||
-          leaveType.includes(query);
+        const searchTargets = [staffName, staffCode, reason, leaveType];
+        const match = searchTargets.some((target) => target.includes(query));
 
         if (!match) return false;
       }

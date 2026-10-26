@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import Image from 'next/image';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import {
@@ -120,11 +121,13 @@ export function StepClinicSettings({ clinicSettings, onUpdateSetting }: StepClin
                         <SelectItem key={opt.value} value={opt.value} className='text-xs'>
                           <div className='flex items-center gap-2'>
                             {opt.flagCode && (
-                              <img
+                              <Image
                                 src={`https://flagcdn.com/w40/${opt.flagCode.toLowerCase()}.png`}
                                 alt={opt.label}
+                                width={16}
+                                height={12}
+                                unoptimized
                                 className='w-4 h-3 object-cover rounded-2xs border border-border/50 shrink-0'
-                                loading='lazy'
                               />
                             )}
                             <span className='truncate'>{opt.label}</span>
@@ -137,6 +140,7 @@ export function StepClinicSettings({ clinicSettings, onUpdateSetting }: StepClin
                   <div className='flex items-center rounded-lg border border-border/80 bg-background shadow-2xs overflow-hidden h-8.5 focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px] transition-[color,box-shadow]'>
                     <input
                       type='number'
+                      aria-label={setting.label}
                       value={setting.value}
                       min={setting.min}
                       max={setting.max}

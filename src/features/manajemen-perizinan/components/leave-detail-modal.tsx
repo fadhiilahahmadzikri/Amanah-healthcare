@@ -139,7 +139,7 @@ export function LeaveDetailModal({
                       >
                         <Icons.clock className='size-3 text-primary shrink-0' />
                         <span>
-                          {s.sessionCode || s.sessionLabel || s.sessionId} (
+                          {s.sessionLabel} (
                           {formatClinicDate(s.workDate, { style: 'human_medium' })})
                         </span>
                       </span>

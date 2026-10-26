@@ -88,6 +88,10 @@ export function DoctorAssignmentModal({
     );
   }, [activeTab]);
 
+  const isBusy = isSubmitting || isResetting;
+  const cannotReset = isBusy || !rosterData?.hasAnyOverride;
+  const cannotSave = isBusy || isLoadingRoster;
+
   if (!doctor) return null;
 
   const isFocused = focusedDow !== undefined && !showAllDays;
@@ -350,8 +354,7 @@ export function DoctorAssignmentModal({
                                     />
                                     <div className='min-w-0 flex-1 flex flex-col'>
                                       <span className='font-semibold text-xs whitespace-nowrap text-foreground'>
-                                        {formatFriendlySessionName(s.sessionLabel) ||
-                                          s.sessionLabel}
+                                        {formatFriendlySessionName(s.sessionLabel)}
                                       </span>
                                       <span className='text-[10.5px] text-muted-foreground font-mono whitespace-nowrap'>
                                         {s.timeRange}
@@ -403,9 +406,9 @@ export function DoctorAssignmentModal({
                             {row.action.replace('_', ' ')}
                           </td>
                           <td className='p-3'>
-                            {row.dayName ?? row.scheduleDate}
+                            {row.scheduleDate ? row.scheduleDate : (row.dayName ?? '-')}
                             {row.sessionLabel
-                              ? ` (${formatFriendlySessionName(row.sessionLabel) || row.sessionLabel})`
+                              ? ` (${formatFriendlySessionName(row.sessionLabel)})`
                               : ''}
                           </td>
                           <td className='p-3'>
@@ -449,7 +452,7 @@ export function DoctorAssignmentModal({
                 type='button'
                 variant='outline'
                 size='sm'
-                disabled={isSubmitting || isResetting || !rosterData?.hasAnyOverride}
+                disabled={cannotReset}
                 onClick={handleResetToTemplate}
                 title={
                   rosterData?.hasAnyOverride
@@ -489,7 +492,7 @@ export function DoctorAssignmentModal({
                 type='button'
                 variant='default'
                 size='sm'
-                disabled={isSubmitting || isLoadingRoster || isResetting}
+                disabled={cannotSave}
                 onClick={handleSave}
                 className='font-bold h-9 px-4 text-xs sm:text-sm min-w-[80px] sm:min-w-[100px]'
               >

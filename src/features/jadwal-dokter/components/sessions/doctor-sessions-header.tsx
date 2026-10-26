@@ -34,6 +34,9 @@ export function DoctorSessionsHeader({
   onToggleCalendar,
   onAddSchedule
 }: DoctorSessionsHeaderProps) {
+  const hasNoActiveSessions = activeSessions.length === 0;
+  const showNotice = isDayCuti || hasNoActiveSessions;
+
   return (
     <div className='p-3.5 sm:p-4 border-b border-border/40 flex items-center justify-between gap-3 bg-muted/10 font-sans'>
       {/* Left: Clear Typographic Hierarchy (Date + Operational Context) */}
@@ -41,15 +44,13 @@ export function DoctorSessionsHeader({
         <h2 className='text-sm sm:text-base font-bold text-foreground tracking-tight truncate'>
           {formattedSelectedDate}
         </h2>
-        {(isDayCuti ||
-          (isDayClosed && activeSessions.length === 0) ||
-          activeSessions.length === 0) && (
+        {showNotice && (
           <div className='text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5 font-normal'>
             {isDayCuti ? (
               <span className='text-sky-600 dark:text-sky-400 font-semibold'>
                 Praktik Ditutup (Cuti)
               </span>
-            ) : isDayClosed && activeSessions.length === 0 ? (
+            ) : isDayClosed ? (
               <span className='text-destructive dark:text-destructive font-semibold'>
                 Praktik Ditutup pada tanggal ini
               </span>

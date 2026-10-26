@@ -22,30 +22,18 @@ const CATEGORY_MAP: Record<string, ClinicNotificationCategory> = {
 };
 
 function normalizeString(value?: string | null): string {
-  if (!value) return '';
-  const trimmed = value.trim();
-  if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-    try {
-      const parsed = JSON.parse(trimmed);
-      return String(parsed.name || parsed.role || parsed.roleCode || '').trim();
-    } catch {
-      return '';
-    }
-  }
-  return trimmed;
+  return value ? value.trim() : '';
 }
 
 export function mapBackendToClinicNotification(backend: BackendNotification): ClinicNotification {
-  const categoryKey = (backend.category || '').toLowerCase();
-  const sourceKey = (backend.sourceType || '').toLowerCase();
-  const category: ClinicNotificationCategory =
-    CATEGORY_MAP[sourceKey] ?? CATEGORY_MAP[categoryKey] ?? 'Janji Temu';
+  const categoryKey = (backend.category ?? '').toLowerCase();
+  const category: ClinicNotificationCategory = CATEGORY_MAP[categoryKey] ?? 'Janji Temu';
 
   const rawTitle = normalizeString(backend.title);
   const senderClean = normalizeString(backend.senderName);
   const roleClean = normalizeString(backend.senderRole);
 
-  const title = rawTitle || senderClean || category;
+  const title = rawTitle || 'Notifikasi';
   const sender = senderClean || 'Klinik Amanah';
   const roleSubtitle = roleClean || 'Informasi';
 
@@ -63,11 +51,12 @@ export function mapBackendToClinicNotification(backend: BackendNotification): Cl
   const metaPatientUserId =
     typeof backend.metadata?.patientUserId === 'string' ? backend.metadata.patientUserId : '';
 
-  const rawAvatar =
-    backend.visualKey ||
-    metaAvatar ||
-    (metaPatientUserId ? `/api/v1/users/${metaPatientUserId}/avatar` : '') ||
-    '';
+  let rawAvatar = backend.visualKey ?? '';
+  if (!rawAvatar && metaAvatar) {
+    rawAvatar = metaAvatar;
+  } else if (!rawAvatar && metaPatientUserId) {
+    rawAvatar = `/api/v1/users/${metaPatientUserId}/avatar`;
+  }
 
   return {
     id: backend.id,

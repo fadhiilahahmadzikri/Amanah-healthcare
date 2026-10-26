@@ -41,7 +41,7 @@ export function DoctorScheduleView() {
   // Responsively triggers facet sidebar mode (Sheet on right):
   // 1. Mobile & tablet viewports (<= 1024px)
   // 2. When app sidebar is expanded on standard desktop viewports <= 1280px
-  const isCompact = isMobile || isUnder1024 || (isUnder1280 && isSidebarExpanded);
+  const isCompact = isUnder1024 || (isUnder1280 && isSidebarExpanded);
 
   const today = useMemo(() => new Date(), []);
 

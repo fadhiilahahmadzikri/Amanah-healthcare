@@ -52,12 +52,12 @@ export function LeaveMobileFilterToolbar({
       staffTypeFilter: selectedStaffTypes,
       leaveTypeFilter: selectedLeaveTypes,
       filteredLeaves: leaves,
-      hasActiveFilters: Boolean(
-        searchQuery.trim() ||
-        selectedStatuses.length > 0 ||
-        selectedStaffTypes.length > 0 ||
+      hasActiveFilters: [
+        Boolean(searchQuery.trim()),
+        selectedStatuses.length > 0,
+        selectedStaffTypes.length > 0,
         selectedLeaveTypes.length > 0
-      ),
+      ].some(Boolean),
       counts: {
         all: leaves.length,
         pending: leaves.filter((l) => l.status === 'pending').length,

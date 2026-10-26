@@ -108,9 +108,8 @@ export function useDoctorDetailEditModal({
   const [snapshotRegionValues, setSnapshotRegionValues] =
     useState<PatientRegionValues>(INITIAL_REGION_VALUES);
 
-  // Stable IDs to prevent infinite re-render loops (Maximum update depth exceeded)
+  // Stable ID to prevent infinite re-render loops (Maximum update depth exceeded)
   const doctorId = doctor?.id;
-  const staffId = doctor?.staffId;
 
   // Load Polyclinics dynamically when opened
   useEffect(() => {
@@ -173,9 +172,8 @@ export function useDoctorDetailEditModal({
     setRegionValues(INITIAL_REGION_VALUES);
     setSnapshotRegionValues(INITIAL_REGION_VALUES);
 
-    const targetProfileId = staffId || doctorId;
-    if (targetProfileId) {
-      getDoctorProfile(targetProfileId)
+    if (doctorId) {
+      getDoctorProfile(doctorId)
         .then((profile: StaffMember) => {
           if (cancelled || !profile) return;
 
@@ -229,7 +227,7 @@ export function useDoctorDetailEditModal({
     return () => {
       cancelled = true;
     };
-  }, [isOpen, doctorId, staffId]);
+  }, [isOpen, doctorId]);
 
   // Compute whether user actually changed anything
   const hasChanges = useMemo(() => {
@@ -293,8 +291,7 @@ export function useDoctorDetailEditModal({
           .filter(Boolean)
           .join(', ');
 
-        const targetProfileId = staffId || doctorId || doctor.id;
-        await updateDoctorProfile(targetProfileId, {
+        await updateDoctorProfile(doctor.id, {
           fullName: formData.fullName.trim(),
           email: formData.email.trim() || undefined,
           phoneNumber: formData.phoneNumber.trim(),
@@ -331,7 +328,7 @@ export function useDoctorDetailEditModal({
         setIsSubmitting(false);
       }
     },
-    [doctor, hasChanges, formData, regionValues, staffId, doctorId, onSuccess, onClose]
+    [doctor, hasChanges, formData, regionValues, onSuccess, onClose]
   );
 
   const isBidan = formData.staffType === STAFF_TYPES.MIDWIFE;

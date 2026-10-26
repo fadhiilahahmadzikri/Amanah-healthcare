@@ -135,6 +135,8 @@ export function DoctorScheduleSettingsModal({
   }, [activeCategory, activeSubView]);
 
   const modalMaxWidth = CATEGORY_MAX_WIDTH[activeCategory] ?? 'w-full sm:max-w-[620px]';
+  const isInvalid = dirtyCount === 0 || Boolean(timeValidationError);
+  const cannotSave = isSubmitting || isInvalid;
 
   return (
     <>
@@ -304,7 +306,7 @@ export function DoctorScheduleSettingsModal({
                 variant='default'
                 size='sm'
                 onClick={handleRequestSave}
-                disabled={isSubmitting || dirtyCount === 0 || Boolean(timeValidationError)}
+                disabled={cannotSave}
                 className='text-xs h-8.5 px-3.5 font-medium'
               >
                 {isSubmitting ? (

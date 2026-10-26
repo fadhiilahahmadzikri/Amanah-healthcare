@@ -106,11 +106,9 @@ export function useDoctorScheduleDetailSheet({
     }
   }, [propDoctor]);
 
-  // 100% Real Data: No dummy stubs, completely persistent across unmount transitions
-  const doctor =
-    (detailQuery.data?.fullName ? detailQuery.data : null) ??
-    (propDoctor?.fullName ? propDoctor : null) ??
-    lastDoctorRef.current;
+  // Real Data: persistent across unmount transitions
+  const currentDoctor = detailQuery.data ?? propDoctor;
+  const doctor = currentDoctor ?? lastDoctorRef.current;
 
   const isDetailLoading = detailQuery.isLoading && !detailQuery.data && !doctor;
 

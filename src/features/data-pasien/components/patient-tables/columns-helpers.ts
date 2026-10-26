@@ -82,7 +82,7 @@ export const patientGlobalFilterFn = (
       masked_nik?: string | null;
       nik?: string | null;
       email?: string | null;
-      phone_number?: string | null;
+      phone?: string | null;
     };
   },
   _columnId: string,
@@ -94,12 +94,14 @@ export const patientGlobalFilterFn = (
   const q = str.toLowerCase();
 
   const item = row.original;
-  return Boolean(
-    item.name?.toLowerCase().includes(q) ||
-    item.patient_id?.toLowerCase().includes(q) ||
-    item.masked_nik?.toLowerCase().includes(q) ||
-    item.nik?.toLowerCase().includes(q) ||
-    item.email?.toLowerCase().includes(q) ||
-    item.phone_number?.toLowerCase().includes(q)
-  );
+  const searchableFields = [
+    item.name,
+    item.patient_id,
+    item.masked_nik,
+    item.nik,
+    item.email,
+    item.phone
+  ];
+
+  return searchableFields.some((field) => Boolean(field?.toLowerCase().includes(q)));
 };

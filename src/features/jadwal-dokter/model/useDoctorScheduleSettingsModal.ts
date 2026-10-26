@@ -93,7 +93,7 @@ export function useDoctorScheduleSettingsModal({
       const masterDef = draftSessionDefs.find((d) => d.id === sessionId);
       if (masterDef && !masterDef.isActive) {
         toast.error(
-          `Shift ${masterDef.label || masterDef.code} sedang dinonaktifkan di Master Shift Operasional. Aktifkan master terlebih dahulu.`
+          `Shift ${masterDef.label} sedang dinonaktifkan di Master Shift Operasional. Aktifkan master terlebih dahulu.`
         );
         return;
       }
@@ -161,7 +161,7 @@ export function useDoctorScheduleSettingsModal({
                     : d
                 );
                 toast.info(
-                  `Jam mulai Shift ${nextActive.label || nextActive.code} otomatis disesuaikan ke ${value.slice(0, 5)} agar tidak bertabrakan.`
+                  `Jam mulai Shift ${nextActive.label} otomatis disesuaikan ke ${value.slice(0, 5)} agar tidak bertabrakan.`
                 );
               }
               // JIKA TIDAK TABRAKAN (endMin <= nextStartMin), JEDA KLINIK TETAP DIPERTAHANKAN!
@@ -169,8 +169,9 @@ export function useDoctorScheduleSettingsModal({
           } else if (field === 'defaultStartsAt') {
             const startMin = parseTimeToMinutes(value);
             // Cari shift aktif sebelumnya
-            const prevActive = [...nextDefs.slice(0, targetIndex)]
-              .reverse()
+            const prevActive = nextDefs
+              .slice(0, targetIndex)
+              .toReversed()
               .find((d) => d.isActive);
             if (prevActive) {
               const prevEndMin = parseTimeEndToMinutes(prevActive.defaultEndsAt);
@@ -187,7 +188,7 @@ export function useDoctorScheduleSettingsModal({
                     : d
                 );
                 toast.info(
-                  `Jam selesai Shift ${prevActive.label || prevActive.code} disesuaikan ke ${value.slice(0, 5)} agar tidak bertabrakan.`
+                  `Jam selesai Shift ${prevActive.label} disesuaikan ke ${value.slice(0, 5)} agar tidak bertabrakan.`
                 );
               }
             }
@@ -237,7 +238,7 @@ export function useDoctorScheduleSettingsModal({
     if (category === 'weekly_templates') {
       for (const item of draftWeeklyTemplates) {
         if (item.isActive && item.startsAt >= item.endsAt) {
-          const friendlyShift = formatFriendlySessionName(item.sessionLabel) || item.sessionLabel;
+          const friendlyShift = formatFriendlySessionName(item.sessionLabel);
           return {
             timeValidationError: `Jam selesai pada shift ${friendlyShift} (Hari ${item.dow}) harus lebih lambat dari jam mulai`,
             conflictingDefIds: [item.sessionId]
@@ -397,8 +398,8 @@ export function useDoctorScheduleSettingsModal({
   const resetToCanonicalDefaults = useCallback(() => {
     setDraftSessionDefs((prev) => {
       const restored = prev.map((item) => {
-        const canonicalStart = item.canonicalStartsAt || item.defaultStartsAt;
-        const canonicalEnd = item.canonicalEndsAt || item.defaultEndsAt;
+        const canonicalStart = item.defaultStartsAt;
+        const canonicalEnd = item.defaultEndsAt;
         return {
           ...item,
           defaultStartsAt: canonicalStart,

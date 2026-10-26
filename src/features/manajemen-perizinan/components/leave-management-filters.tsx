@@ -37,11 +37,12 @@ export function LeaveManagementFilters({
   onResetAll,
   className
 }: LeaveManagementFiltersProps) {
-  const isFiltered =
-    Boolean(searchQuery.trim()) ||
-    selectedStatuses.length > 0 ||
-    selectedStaffTypes.length > 0 ||
-    selectedLeaveTypes.length > 0;
+  const isFiltered = [
+    Boolean(searchQuery.trim()),
+    selectedStatuses.length > 0,
+    selectedStaffTypes.length > 0,
+    selectedLeaveTypes.length > 0
+  ].some(Boolean);
 
   const mockFilters = React.useMemo<UseLeaveFiltersResult>(
     () => ({

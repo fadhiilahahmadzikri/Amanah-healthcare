@@ -108,7 +108,7 @@ export async function updatePatientProfileMe(
     };
   } catch (error: unknown) {
     if (error instanceof AppError) {
-      let message = error.problemDetails?.message || error.problemDetails?.detail || error.message;
+      let message = error.message;
 
       if (error.status === 401) {
         message = 'Sesi masuk Anda telah berakhir. Silakan masuk kembali.';

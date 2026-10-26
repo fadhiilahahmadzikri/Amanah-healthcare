@@ -72,7 +72,7 @@ export function detectSessionDefsOverlaps(defs: SessionDefConfig[]): ShiftValida
   for (const def of activeDefs) {
     const startMin = parseTimeToMinutes(def.defaultStartsAt);
     const endMin = parseTimeEndToMinutes(def.defaultEndsAt, startMin);
-    const label = def.label || def.code;
+    const label = def.label;
 
     if (startMin >= endMin) {
       return {
@@ -99,8 +99,8 @@ export function detectSessionDefsOverlaps(defs: SessionDefConfig[]): ShiftValida
       const overlapEnd = Math.min(aEnd, bEnd);
 
       if (overlapStart < overlapEnd) {
-        const labelA = a.label || a.code;
-        const labelB = b.label || b.code;
+        const labelA = a.label;
+        const labelB = b.label;
         const timeA = `${(a.defaultStartsAt || '').slice(0, 5)} - ${(a.defaultEndsAt || '').slice(0, 5)}`;
         const timeB = `${(b.defaultStartsAt || '').slice(0, 5)} - ${(b.defaultEndsAt || '').slice(0, 5)}`;
 
@@ -140,7 +140,7 @@ export function getAdjacentShiftGapMinutes(
   if (nextStartMin > currentEndMin) {
     return {
       gapMinutes: nextStartMin - currentEndMin,
-      nextDefLabel: nextDef.label || nextDef.code
+      nextDefLabel: nextDef.label
     };
   }
 

@@ -48,13 +48,14 @@ export function DoctorScheduleFilters({
   const { data: filterOptionsData } = useQuery(doctorScheduleFilterOptionsQueryOptions());
   const monthOptions = React.useMemo(() => buildMonthOptions(), []);
 
-  const isFiltered =
-    Boolean(searchQuery.trim()) ||
-    (monthFilter !== 'ALL' && monthFilter !== '') ||
-    Boolean(dateFilter && !isToday(dateFilter)) ||
-    selectedPoli.length > 0 ||
-    selectedSessions.length > 0 ||
-    selectedStatuses.length > 0;
+  const isFiltered = [
+    Boolean(searchQuery.trim()),
+    monthFilter !== 'ALL' && monthFilter !== '',
+    Boolean(dateFilter && !isToday(dateFilter)),
+    selectedPoli.length > 0,
+    selectedSessions.length > 0,
+    selectedStatuses.length > 0
+  ].some(Boolean);
 
   const facetGroups = React.useMemo<FacetGroupDefinition[]>(() => {
     const poliklinik = filterOptionsData?.poliklinik ?? [];

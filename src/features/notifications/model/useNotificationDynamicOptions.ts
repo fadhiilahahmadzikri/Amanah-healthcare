@@ -123,7 +123,7 @@ export function useNotificationDynamicOptions({
         items.push({
           id: `sender-${n.id}`,
           title: n.sender,
-          subtitle: n.roleSubtitle || n.category,
+          subtitle: n.roleSubtitle,
           category: 'Pengirim',
           icon: Icons.user,
           queryValue: n.sender

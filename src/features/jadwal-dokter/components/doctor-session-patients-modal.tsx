@@ -41,7 +41,7 @@ export function DoctorSessionPatientsModal({
   onClose,
   portalContainerRef
 }: DoctorSessionPatientsModalProps) {
-  const doctorId = doctor.id !== '' ? doctor.id : (doctor.practitionerId ?? '');
+  const doctorId = doctor.id;
   const sessionId = session.id;
   const effectiveShift = sessionShift;
 
@@ -86,10 +86,10 @@ export function DoctorSessionPatientsModal({
   );
 
   const formattedDisplayDate = React.useMemo(() => {
-    const rawDate = scheduleDate || selectedDate || session.date || doctor.practiceDate || '';
+    const rawDate = scheduleDate ?? selectedDate;
     if (!rawDate) return '';
     return formatClinicDate(rawDate);
-  }, [scheduleDate, selectedDate, session.date, doctor.practiceDate]);
+  }, [scheduleDate, selectedDate]);
 
   const sessionTimeDisplay = React.useMemo(() => {
     if (shiftTimeRange) {
@@ -126,7 +126,7 @@ export function DoctorSessionPatientsModal({
               </h3>
               <div className='text-xs text-muted-foreground flex items-center gap-2 flex-wrap pt-0.5'>
                 <span className='font-semibold text-foreground'>
-                  {formatFriendlySessionName(shiftLabel || session.sessionName) || session.sessionName}
+                  {formatFriendlySessionName(shiftLabel ?? session.sessionName)}
                 </span>
                 <span className='text-border/80'>•</span>
                 <span className='font-mono font-medium text-foreground'>{sessionTimeDisplay}</span>

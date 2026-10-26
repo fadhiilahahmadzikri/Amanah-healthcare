@@ -195,7 +195,7 @@ export function ReplacementOpportunitiesModal({
                         <div className='space-y-0.5 min-w-0 flex-1'>
                           <div className='flex items-center gap-2 flex-wrap'>
                             <h4 className='font-semibold text-foreground text-xs sm:text-sm leading-snug'>
-                              {item.sessionLabel || item.sessionCode || 'Sesi Dinas'}
+                              {item.sessionLabel ?? '-'}
                             </h4>
                             <span className='text-muted-foreground text-xs'>•</span>
                             <span className='text-xs text-muted-foreground font-medium'>
@@ -237,7 +237,7 @@ export function ReplacementOpportunitiesModal({
                             </Avatar>
                             <div className='min-w-0 flex-1'>
                               <div className='font-semibold text-foreground text-xs truncate leading-tight'>
-                                {item.originalStaffName || 'Staf Klinik'}
+                                {item.originalStaffName ?? '-'}
                               </div>
                               {item.originalStaffRole && (
                                 <div className='text-muted-foreground text-[11px] truncate leading-tight mt-0.5'>

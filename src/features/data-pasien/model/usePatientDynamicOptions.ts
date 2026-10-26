@@ -53,7 +53,7 @@ export function usePatientDynamicOptions({
       const p = row.original;
       if (p.name && !seenPatients.has(p.name)) {
         seenPatients.add(p.name);
-        const sub = `No. RM: ${p.patient_id || '-'} • NIK: ${p.masked_nik || p.nik || '-'}`;
+        const sub = `No. RM: ${p.patient_id || '-'} • NIK: ${p.masked_nik || '-'}`;
         items.push({
           id: `pat-${p.id}`,
           title: p.name,
@@ -79,7 +79,7 @@ export function usePatientDynamicOptions({
         seenNik.add(p.nik);
         items.push({
           id: `nik-${p.id}`,
-          title: `NIK: ${p.masked_nik || p.nik}`,
+          title: `NIK: ${p.masked_nik}`,
           subtitle: p.name,
           category: 'Nomor Identitas (NIK)',
           icon: Icons.text,

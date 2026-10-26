@@ -36,12 +36,14 @@ const CLINIC_ROUTE_ALLOWLIST = [
 
 function isRouteAllowedForRole(route: string, role?: string | null): boolean {
   // Reject external, protocol-relative, or dangerous URLs
-  if (
-    !route.startsWith('/') ||
-    route.startsWith('//') ||
-    route.includes('javascript:') ||
+  const isUnsafe = [
+    !route.startsWith('/'),
+    route.startsWith('//'),
+    route.includes('javascript:'),
     route.includes('data:')
-  ) {
+  ].some(Boolean);
+
+  if (isUnsafe) {
     return false;
   }
 
@@ -74,8 +76,9 @@ export function resolveNotificationRoute(
 
   // 1. Semantic action type mapping (Envelope v2 SSOT)
   const semanticType = action.type || (context?.semanticAction as NotificationSemanticAction)?.type;
-  const semanticParams =
-    action.params || (context?.semanticAction as NotificationSemanticAction)?.params || {};
+  const actionParams =
+    action.params ?? (context?.semanticAction as NotificationSemanticAction)?.params;
+  const semanticParams = actionParams ?? {};
 
   if (semanticType) {
     switch (semanticType) {
@@ -85,7 +88,7 @@ export function resolveNotificationRoute(
 
       case 'view_patient': {
         if (isPatient) return '/dashboard/klinik/antrean';
-        const docId = semanticParams.staffId || semanticParams.doctorId || '';
+        const docId = semanticParams.doctorId ?? '';
         const params = new URLSearchParams();
         if (docId) {
           params.set('selectedDoctorId', docId);
@@ -100,7 +103,7 @@ export function resolveNotificationRoute(
       case 'view_schedule':
       case 'view_schedule_detail': {
         if (isPatient) return '/dashboard/klinik/antrean';
-        const docId = semanticParams.doctorId || semanticParams.staffId || '';
+        const docId = semanticParams.doctorId ?? '';
         const params = new URLSearchParams();
         if (docId) {
           params.set('selectedDoctorId', docId);
@@ -118,7 +121,7 @@ export function resolveNotificationRoute(
 
       case 'view_leave': {
         if (isPatient) return '/dashboard/klinik/antrean';
-        const leaveId = semanticParams.leaveId || semanticParams.leaveRequestId || '';
+        const leaveId = semanticParams.leaveId ?? '';
         return leaveId
           ? `/dashboard/manajemen-perizinan?leaveId=${leaveId}`
           : '/dashboard/manajemen-perizinan';
@@ -126,7 +129,7 @@ export function resolveNotificationRoute(
 
       case 'view_attendance': {
         if (isPatient) return '/dashboard/klinik/antrean';
-        const attendanceId = semanticParams.attendanceId || semanticParams.id || '';
+        const attendanceId = semanticParams.attendanceId ?? '';
         return attendanceId
           ? `/dashboard/kehadiran-pegawai?highlight=${attendanceId}`
           : '/dashboard/kehadiran-pegawai';
@@ -138,21 +141,12 @@ export function resolveNotificationRoute(
   }
 
   // 2. Legacy actionKey mapping
-  const doctorId =
-    (context?.selectedDoctorId as string) ||
-    (context?.doctorId as string) ||
-    (context?.practitionerId as string) ||
-    (context?.staffId as string) ||
-    '';
-  const date =
-    (context?.date as string) ||
-    (context?.targetDate as string) ||
-    (context?.appointmentDate as string) ||
-    '';
+  const doctorId = (context?.doctorId as string) ?? '';
+  const date = (context?.date as string) ?? '';
 
   if (action.actionKey === 'view_leave') {
     if (isPatient) return '/dashboard/klinik/antrean';
-    const leaveId = (context?.leaveId as string) || (context?.leaveRequestId as string) || '';
+    const leaveId = (context?.leaveId as string) ?? '';
     return leaveId
       ? `/dashboard/manajemen-perizinan?leaveId=${leaveId}`
       : '/dashboard/manajemen-perizinan';
@@ -160,7 +154,7 @@ export function resolveNotificationRoute(
 
   if (action.actionKey === 'view_attendance') {
     if (isPatient) return '/dashboard/klinik/antrean';
-    const attId = (context?.attendanceId as string) || (context?.id as string) || '';
+    const attId = (context?.attendanceId as string) ?? '';
     return attId
       ? `/dashboard/kehadiran-pegawai?highlight=${attId}`
       : '/dashboard/kehadiran-pegawai';

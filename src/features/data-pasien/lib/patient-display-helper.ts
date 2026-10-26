@@ -11,7 +11,8 @@ export const patientDisplayHelper = {
    */
   getNikDisplay(patient: Patient, isLoading?: boolean): string {
     if (isLoading) return 'Memuat NIK resmi...';
-    return patient.nik || patient.masked_nik || '-';
+    if (patient.nik) return patient.nik;
+    return patient.masked_nik ?? '-';
   },
 
   /**
@@ -48,7 +49,7 @@ export const patientDisplayHelper = {
    * Format tanggal registrasi akun pasien
    */
   getRegistrationDateDisplay(patient: Patient): string {
-    const raw = patient.registered_at || patient.created_at;
+    const raw = patient.registered_at;
     if (!raw) return '-';
     return formatClinicDateTime(raw, {
       dateStyle: 'human_medium',

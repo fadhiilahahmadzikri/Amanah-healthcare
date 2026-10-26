@@ -9,7 +9,7 @@ import {
   DrawerDescription,
   DrawerFooter,
   DrawerHeader,
-  DrawerTitle,
+  DrawerTitle
 } from '@/components/ui/drawer';
 import { StatusBadge } from '@/components/ui/status-badge';
 import type { Patient } from '../api/types';
@@ -31,7 +31,7 @@ export function PatientActionDrawer({
   onViewDetail,
   onEdit,
   onViewHistory,
-  onDelete,
+  onDelete
 }: PatientActionDrawerProps) {
   if (!patient) return null;
 
@@ -52,14 +52,12 @@ export function PatientActionDrawer({
                 {patient.name}
               </DrawerTitle>
               <DrawerDescription className='text-xs text-muted-foreground truncate'>
-                No. RM: <span className='font-mono font-medium text-foreground'>{patient.patient_id}</span>
-                {patient.nik ? ` • NIK: ${patient.masked_nik || patient.nik}` : ''}
+                No. RM:{' '}
+                <span className='font-mono font-medium text-foreground'>{patient.patient_id}</span>
+                {patient.nik ? ` • NIK: ${patient.masked_nik}` : ''}
               </DrawerDescription>
             </div>
-            <StatusBadge
-              status={patient.is_master ? 'Akun Utama' : 'Afiliasi'}
-              size='sm'
-            />
+            <StatusBadge status={patient.is_master ? 'Akun Utama' : 'Afiliasi'} size='sm' />
           </div>
         </DrawerHeader>
 

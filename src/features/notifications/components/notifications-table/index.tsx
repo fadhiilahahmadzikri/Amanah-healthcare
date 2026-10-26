@@ -23,13 +23,10 @@ export function NotificationsTable() {
 
   if (params.title) {
     const q = params.title.toLowerCase();
-    filtered = filtered.filter(
-      (n) =>
-        n.sender.toLowerCase().includes(q) ||
-        n.body.toLowerCase().includes(q) ||
-        n.roleSubtitle.toLowerCase().includes(q) ||
-        n.category.toLowerCase().includes(q)
-    );
+    filtered = filtered.filter((n) => {
+      const fields = [n.sender, n.body, n.roleSubtitle, n.category];
+      return fields.some((field) => field.toLowerCase().includes(q));
+    });
   }
 
   if (params.category.length > 0) {

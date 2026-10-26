@@ -1,4 +1,5 @@
 'use client';
+/* oxlint-disable jsx-a11y/control-has-associated-label */
 
 import React from 'react';
 import Image from 'next/image';
@@ -35,7 +36,7 @@ export function NotificationsListTable({
         <table className='w-full text-left text-xs font-normal'>
           <thead className='bg-muted/40 border-b border-border text-foreground font-semibold text-xs'>
             <tr>
-              <th className='p-3.5 w-8 text-center'>
+              <th className='p-3.5 w-8 text-center' aria-label='Pilih semua'>
                 <Checkbox
                   checked={isAllSelected}
                   onCheckedChange={onToggleSelectAll}
@@ -73,7 +74,7 @@ export function NotificationsListTable({
                       className='size-4 rounded border-2 border-primary/50'
                     />
                   </td>
-                  <td className='py-3 px-3' aria-label={`Notifikasi dari ${item.sender}`}>
+                  <td className='py-3 px-3'>
                     <div className='flex items-center gap-2.5'>
                       <Avatar className='size-8 shrink-0 ring-1 ring-border bg-muted'>
                         <AvatarImage
