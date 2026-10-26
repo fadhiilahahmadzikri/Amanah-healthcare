@@ -183,10 +183,8 @@ export function InspectorImmunizationTab({ appointment, data }: InspectorTabProp
                 </span>
                 <div className='divide-y divide-border/40'>
                   {vaccines.map((vaccine) => {
-                    const code = vaccine.code || vaccine.id;
-                    const relationalEntry = relationalEntries.find(
-                      (e) => (e.vaccineCode || e.vaccine_code) === code
-                    );
+                    const code = vaccine.code;
+                    const relationalEntry = relationalEntries.find((e) => e.vaccineCode === code);
                     const status = relationalEntry
                       ? relationalEntry.status === 'GIVEN'
                         ? 'Sudah'
@@ -195,7 +193,7 @@ export function InspectorImmunizationTab({ appointment, data }: InspectorTabProp
                           : 'Tidak tahu'
                       : answers[`vaccine_${code}_status`];
                     const date = relationalEntry
-                      ? relationalEntry.givenDate || relationalEntry.given_date
+                      ? relationalEntry.givenDate
                       : answers[`vaccine_${code}_date`];
 
                     return (
@@ -241,20 +239,12 @@ export function InspectorImmunizationTab({ appointment, data }: InspectorTabProp
                     );
                   })}
                   {relationalEntries
-                    .filter(
-                      (entry) =>
-                        !vaccines.some(
-                          (v) => (v.code || v.id) === (entry.vaccineCode || entry.vaccine_code)
-                        )
-                    )
+                    .filter((entry) => !vaccines.some((v) => v.code === entry.vaccineCode))
                     .map((entry) => {
-                      const code = entry.vaccineCode || entry.vaccine_code;
+                      const code = entry.vaccineCode;
                       const isGiven = entry.status === 'GIVEN';
                       const isNotGiven = entry.status === 'NOT_GIVEN';
-                      const dateDisplay =
-                        entry.givenDate || entry.given_date
-                          ? `(${entry.givenDate || entry.given_date})`
-                          : '';
+                      const dateDisplay = entry.givenDate ? `(${entry.givenDate})` : '';
 
                       return (
                         <div

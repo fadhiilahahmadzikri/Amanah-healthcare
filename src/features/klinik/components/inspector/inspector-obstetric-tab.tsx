@@ -223,11 +223,19 @@ export function InspectorObstetricTab({ data }: InspectorTabProps) {
                     readOnly
                   />
                 </div>
-                {(c.problems || c.sideEffects) && (
+                {c.problems && (
                   <PatientLineInput
-                    id={`kb-issues-${idx}`}
-                    label='Efek Samping / Keluhan'
-                    value={c.problems || c.sideEffects || '-'}
+                    id={`kb-problems-${idx}`}
+                    label='Masalah / Keluhan'
+                    value={c.problems}
+                    readOnly
+                  />
+                )}
+                {c.sideEffects && (
+                  <PatientLineInput
+                    id={`kb-side-effects-${idx}`}
+                    label='Efek Samping'
+                    value={c.sideEffects}
                     readOnly
                   />
                 )}
