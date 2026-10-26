@@ -61,20 +61,22 @@ export function normalizeAppointmentTimes(appointment: Partial<Appointment>): {
     ? formatTimeString(timeRangeMatch[2].replace('.', ':')) || timeRangeMatch[2]
     : null;
 
-  const startTime = etaStart || formatTimeString(appointment.scheduled_start_time) || '-';
-  const endTime = etaEnd || formatTimeString(appointment.scheduled_end_time) || '-';
+  let startTime = etaStart;
+  if (!startTime) {
+    startTime = formatTimeString(appointment.scheduled_start_time) ?? '-';
+  }
 
-  const rawSession = sessionMatch ? sessionMatch[0] : appointment.session_name;
-  const friendlySession = rawSession ? formatFriendlySessionName(rawSession) : null;
+  let endTime = etaEnd;
+  if (!endTime) {
+    endTime = formatTimeString(appointment.scheduled_end_time) ?? '-';
+  }
 
   // Backend is SSOT for duration: use consultation_duration_formatted or estimated_duration_minutes
   const durationText =
-    appointment.consultation_duration_formatted ||
+    appointment.consultation_duration_formatted ??
     (appointment.estimated_duration_minutes
       ? `~${appointment.estimated_duration_minutes} mnt`
-      : null) ||
-    friendlySession ||
-    '-';
+      : '-');
 
   return { startTime, endTime, durationText };
 }
@@ -83,7 +85,7 @@ export function bookedPatientToAppointment(
   item: BookedPatientItem,
   context?: SessionContext
 ): Appointment {
-  const timeSource = item.etaRange || context?.sessionTime || '';
+  const timeSource = item.etaRange ? item.etaRange : (context?.sessionTime ?? '');
   const timeMatches = timeSource.match(/(\d{1,2}[:.]\d{2})/g);
   const startClock = timeMatches?.[0] ? timeMatches[0].replace('.', ':') : '';
   const endClock = timeMatches?.[1] ? timeMatches[1].replace('.', ':') : '';
@@ -95,11 +97,11 @@ export function bookedPatientToAppointment(
   const service = item.serviceName || '';
   const room_name = item.roomName || '';
   const room_location = item.roomLocation || '';
-  const date = item.appointmentDate || context?.date || '';
+  const date = item.appointmentDate ? item.appointmentDate : (context?.date ?? '');
 
   const rawVisitType = item.visitType || 'Pemeriksaan Baru';
 
-  const sessionDisplay = item.sessionTitle || context?.sessionTime || '';
+  const sessionDisplay = item.sessionTitle ? item.sessionTitle : (context?.sessionTime ?? '');
 
   return {
     id: item.appointmentId,

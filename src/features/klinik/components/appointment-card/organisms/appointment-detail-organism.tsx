@@ -12,8 +12,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
-import { getDoctorByName } from '../../../api/service';
-import type { Appointment, Doctor } from '../../../api/types';
+import type { Appointment } from '../../../api/types';
 import { AppointmentFormInspector } from '../../appointment-form-inspector';
 import { CancelStepContent } from '../../cancel-step-content';
 import { DoctorAvatar } from '../../doctor-avatar';
@@ -92,16 +91,6 @@ export function AppointmentDetailOrganism({
 
   if (!appointment) return null;
 
-  const doctor: Doctor = getDoctorByName(appointment.doctor_name || '') || {
-    name: appointment.doctor_name || '',
-    spec: appointment.doctor_specialty || '',
-    avatar: '',
-    location: '',
-    rating: '',
-    tags: [],
-    schedule: ''
-  };
-
   const isTerminal = isAppointmentTerminal(appointment.status);
   const isInService = isAppointmentInService(appointment.status);
   const isWaiting = isAppointmentWaiting(appointment.status);
@@ -111,7 +100,7 @@ export function AppointmentDetailOrganism({
   const displayLocation =
     !isInternalView && isBeforeCall ? 'Menunggu panggilan klinik' : appointment.room_name || '-';
 
-  const doctorSpecialty = appointment.doctor_specialty || doctor.spec || '-';
+  const doctorSpecialty = appointment.doctor_specialty || '-';
   const { startTime, endTime, durationText } = normalizeAppointmentTimes(appointment);
 
   const visitType = appointment.visit_type || '-';
@@ -177,14 +166,14 @@ export function AppointmentDetailOrganism({
               <div className='flex flex-col h-full min-h-0 w-full justify-between'>
                 <div className='flex items-center justify-between gap-3 pb-3 border-b border-border/40 min-h-[77px] shrink-0'>
                   <div className='flex items-center gap-3.5 min-w-0 flex-1'>
-                    {doctor.name ? (
+                    {appointment.doctor_name ? (
                       <>
                         <div className='size-14 min-w-[56px] min-h-[56px] rounded-full overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square'>
-                          <DoctorAvatar name={doctor.name} avatarUrl={doctor.avatar} size={56} />
+                          <DoctorAvatar name={appointment.doctor_name} avatarUrl='' size={56} />
                         </div>
                         <div className='flex flex-col items-start min-w-0 flex-1 space-y-0.5'>
                           <h3 className='text-base sm:text-lg font-bold text-foreground truncate w-full tracking-tight'>
-                            {doctor.name}
+                            {appointment.doctor_name}
                           </h3>
                           <p className='text-sm font-medium text-muted-foreground truncate w-full'>
                             {doctorSpecialty}
@@ -494,7 +483,7 @@ export function AppointmentDetailOrganism({
               <CancelStepContent
                 appointment={appointment}
                 patientName={patientName}
-                doctorName={doctor.name}
+                doctorName={appointment.doctor_name || '-'}
                 queueNumber={appointment.queue_number || '-'}
                 appointmentDate={appointment.date ? formatClinicDate(appointment.date) : '-'}
                 cancelReason={cancelReason}
@@ -524,7 +513,7 @@ export function AppointmentDetailOrganism({
         patientName={patientName}
         patientId={appointment.patient_id || String(appointment.id)}
         queueNumber={appointment.queue_number || '-'}
-        currentDoctorName={doctor.name}
+        currentDoctorName={appointment.doctor_name || '-'}
         appointmentDate={appointment.date ? formatClinicDate(appointment.date) : '-'}
         appointmentTime={`${startTime} - ${endTime}`}
         onClose={() => setIsChangeDoctorOpen(false)}

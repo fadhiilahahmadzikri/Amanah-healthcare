@@ -36,38 +36,25 @@ export function AppointmentCardOrganism({
   className
 }: AppointmentCardOrganismProps) {
   const isPatientSubject = subjectRole === 'patient';
-
-  const docInfo: Doctor = doctor || {
-    name: appointment.doctor_name || '',
-    spec: appointment.doctor_specialty || '',
-    avatar: '',
-    location: '',
-    rating: '',
-    tags: [],
-    schedule: ''
-  };
-
-  const hasAssignedDoctor = Boolean(
-    (appointment.doctor_name && appointment.doctor_name.trim().length > 0) ||
-    (docInfo.name && docInfo.name.trim().length > 0)
-  );
+  const assignedDoctorName = appointment.doctor_name?.trim();
+  const hasAssignedDoctor = Boolean(assignedDoctorName);
 
   const displayName = isPatientSubject
     ? appointment.patient_name || 'Pasien'
-    : hasAssignedDoctor
-      ? appointment.doctor_name || docInfo.name
+    : assignedDoctorName
+      ? assignedDoctorName
       : appointment.service || '-';
 
   const displaySubtitle = isPatientSubject
     ? appointment.service || '-'
     : hasAssignedDoctor
-      ? appointment.doctor_specialty || docInfo.spec || '-'
+      ? appointment.doctor_specialty || '-'
       : appointment.poliklinik_name;
 
   const displayAvatar = isPatientSubject
     ? appointment.patient_avatar || ''
     : hasAssignedDoctor
-      ? docInfo.avatar || ''
+      ? doctor?.avatar || ''
       : undefined;
 
   const showAvatar = isPatientSubject || hasAssignedDoctor;
