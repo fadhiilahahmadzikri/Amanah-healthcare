@@ -16,7 +16,7 @@ import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
 import { isAppointmentTerminal } from '../constants/options';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import type { AdminAppointment, AppointmentStatus } from '../api/types';
+import type { AdminAppointment, AppointmentCapabilities, AppointmentStatus } from '../api/types';
 
 export interface AppointmentStatusModalProps {
   isOpen: boolean;
@@ -29,7 +29,7 @@ function getStatusDisabledReason(
   currentStatus: AppointmentStatus,
   hasAssignments: boolean,
   hasCheckedIn: boolean,
-  allowedActions?: string[]
+  capabilities?: AppointmentCapabilities
 ): string | null {
   if (targetStatus === currentStatus) {
     return 'Status saat ini';
@@ -47,7 +47,7 @@ function getStatusDisabledReason(
     if (currentStatus !== APPOINTMENT_STATUS.WAITING) {
       return 'Hanya antrean Menunggu yang dapat diperiksa';
     }
-    if (allowedActions && !allowedActions.includes('START_SERVICE')) {
+    if (capabilities && !capabilities.canStartService) {
       return 'Menunggu giliran (antrean sebelumnya belum selesai)';
     }
   }
@@ -58,7 +58,7 @@ function getStatusDisabledReason(
     if (currentStatus !== APPOINTMENT_STATUS.BOOKED) {
       return 'Pasien sudah melewati status Menunggu';
     }
-    if (allowedActions && !allowedActions.includes('CHECK_IN')) {
+    if (capabilities && !capabilities.canCheckIn) {
       return 'Belum dapat masuk antrean';
     }
   }
@@ -66,7 +66,7 @@ function getStatusDisabledReason(
     if (currentStatus !== APPOINTMENT_STATUS.IN_SERVICE) {
       return 'Hanya antrean Sedang Diperiksa yang dapat diselesaikan';
     }
-    if (allowedActions && !allowedActions.includes('COMPLETE')) {
+    if (capabilities && !capabilities.canComplete) {
       return 'Hanya antrean Sedang Diperiksa yang dapat diselesaikan';
     }
   }
@@ -74,7 +74,7 @@ function getStatusDisabledReason(
     if (isAppointmentTerminal(currentStatus)) {
       return 'Janji temu sudah selesai atau ditutup';
     }
-    if (allowedActions && !allowedActions.includes('CANCEL')) {
+    if (capabilities && !capabilities.canCancel) {
       return 'Tidak dapat membatalkan janji temu saat ini';
     }
   }
@@ -98,12 +98,11 @@ export function AppointmentStatusModal({
 
   const currentStatus = normalizeToAppointmentStatus(appointment?.status);
   const hasAssignments = Boolean(appointment?.doctorName && appointment?.roomName);
-  const hasCheckedIn = Boolean(
-    appointment?.checkedInAt ||
+  const isPostCheckInStatus =
     currentStatus === APPOINTMENT_STATUS.WAITING ||
     currentStatus === APPOINTMENT_STATUS.IN_SERVICE ||
-    currentStatus === APPOINTMENT_STATUS.COMPLETED
-  );
+    currentStatus === APPOINTMENT_STATUS.COMPLETED;
+  const hasCheckedIn = Boolean(appointment?.checkedInAt) || isPostCheckInStatus;
 
   useEffect(() => {
     if (appointment) {
@@ -132,9 +131,10 @@ export function AppointmentStatusModal({
     currentStatus,
     hasAssignments,
     hasCheckedIn,
-    appointment.allowedActions
+    appointment.capabilities
   );
-  const canSubmit = !mutation.isPending && selectedStatus !== currentStatus && !selectedDisabledReason;
+  const canSubmit =
+    !mutation.isPending && selectedStatus !== currentStatus && !selectedDisabledReason;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,7 +171,8 @@ export function AppointmentStatusModal({
             <div className='space-y-0.5'>
               <p className='font-semibold'>Dokter dan Ruangan Belum Ditugaskan</p>
               <p className='text-[11px] text-amber-700/90 dark:text-amber-400/90'>
-                Tugaskan dokter dan ruangan terlebih dahulu sebelum memperbarui status ke Menunggu atau Sedang Diperiksa.
+                Tugaskan dokter dan ruangan terlebih dahulu sebelum memperbarui status ke Menunggu
+                atau Sedang Diperiksa.
               </p>
             </div>
           </div>
@@ -190,7 +191,7 @@ export function AppointmentStatusModal({
                 currentStatus,
                 hasAssignments,
                 hasCheckedIn,
-                appointment.allowedActions
+                appointment.capabilities
               );
               const isDisabled = Boolean(disabledReason);
 
@@ -284,4 +285,3 @@ export function AppointmentStatusModal({
     </ModalWrapper>
   );
 }
-

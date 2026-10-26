@@ -74,7 +74,7 @@ export function useAppointmentDynamicOptions({
         items.push({
           id: `pat-${apt.id}`,
           title: apt.patientName,
-          subtitle: `Antrean ${apt.queueNumber || '-'} • ${apt.layananName || apt.poliklinikName || '-'}`,
+          subtitle: `Antrean ${apt.queueNumber || '-'} • ${apt.poliklinikName || '-'}`,
           category: 'Pasien',
           icon: Icons.user,
           queryValue: apt.patientName
@@ -96,7 +96,7 @@ export function useAppointmentDynamicOptions({
         items.push({
           id: `doc-${apt.id}`,
           title: apt.doctorName,
-          subtitle: apt.layananName || apt.poliklinikName || 'Dokter',
+          subtitle: apt.doctorSpecialty ?? 'Dokter',
           category: 'Dokter',
           icon: Icons.stethoscope,
           queryValue: apt.doctorName

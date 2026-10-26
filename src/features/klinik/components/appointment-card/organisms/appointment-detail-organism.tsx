@@ -511,7 +511,7 @@ export function AppointmentDetailOrganism({
         isOpen={isChangeDoctorOpen}
         appointmentId={String(appointment.id)}
         patientName={patientName}
-        patientId={appointment.patient_id || String(appointment.id)}
+        patientId={appointment.patient_id ?? ''}
         queueNumber={appointment.queue_number || '-'}
         currentDoctorName={appointment.doctor_name || '-'}
         appointmentDate={appointment.date ? formatClinicDate(appointment.date) : '-'}
@@ -527,7 +527,7 @@ export function AppointmentDetailOrganism({
         isOpen={isChangeRoomOpen}
         appointmentId={String(appointment.id)}
         patientName={patientName}
-        patientId={appointment.patient_id || String(appointment.id)}
+        patientId={appointment.patient_id ?? ''}
         queueNumber={appointment.queue_number || '-'}
         currentRoomName={appointment.room_name || '-'}
         appointmentDate={appointment.date ? formatClinicDate(appointment.date) : '-'}

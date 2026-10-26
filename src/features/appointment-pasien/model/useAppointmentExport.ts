@@ -45,7 +45,7 @@ export function useAppointmentExport(): UseAppointmentExportResult {
 
       const rows = appointments.map((appointment) => {
         const statusLabel = getAppointmentStatusConfig(appointment.status).label;
-        const timeDisplay = appointment.etaRange || appointment.scheduledStartTime;
+        const timeDisplay = appointment.scheduledStartTime;
         return [
           `"${appointment.queueNumber}"`,
           `"${appointment.patientId}"`,

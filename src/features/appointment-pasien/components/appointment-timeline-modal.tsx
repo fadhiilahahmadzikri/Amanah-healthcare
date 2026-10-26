@@ -25,13 +25,8 @@ export function AppointmentTimelineModal({
 }: AppointmentTimelineModalProps) {
   if (!appointment) return null;
 
-  const canUpdateStatus =
-    Boolean(appointment.allowedActions?.includes('START_SERVICE')) ||
-    Boolean(appointment.allowedActions?.includes('COMPLETE'));
-  const canCheckIn = Boolean(appointment.allowedActions?.includes('CHECK_IN'));
-
-  const serviceName = appointment.layananName || appointment.poliklinikName;
-  const subtitle = `Antrean ${appointment.queueNumber} dengan pasien ${appointment.patientName}${serviceName ? ` pada layanan ${serviceName}` : ''}`;
+  const { canUpdateStatus, canCheckIn } = appointment.capabilities;
+  const subtitle = `Antrean ${appointment.queueNumber} dengan pasien ${appointment.patientName}${appointment.poliklinikName ? ` di ${appointment.poliklinikName}` : ''}${appointment.layananName ? ` • ${appointment.layananName}` : ''}`;
 
   return (
     <ModalWrapper

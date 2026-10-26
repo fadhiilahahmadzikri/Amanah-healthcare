@@ -44,14 +44,13 @@ export function AppointmentTable() {
   const { state: sidebarState } = useSidebar();
   const isSidebarExpanded = sidebarState === 'expanded';
 
-  const { isOpen: isMobile } = useMediaQuery('(max-width: 768px)');
   const { isOpen: isUnder1024 } = useMediaQuery('(max-width: 1024px)');
   const { isOpen: isUnder1280 } = useMediaQuery('(max-width: 1280px)');
 
   // Canonical responsive breakpoint formula from Kehadiran Pegawai:
   // 1. Mobile & tablet viewports (<= 1024px)
   // 2. Expanded sidebar collisions on standard viewports (<= 1280px)
-  const isCompact = isMobile || isUnder1024 || (isUnder1280 && isSidebarExpanded);
+  const isCompact = isUnder1024 || (isUnder1280 && isSidebarExpanded);
 
   const [dateParam] = React.useState<string | undefined>(undefined);
   const [actionDrawerAppointment, setActionDrawerAppointment] =
@@ -253,10 +252,7 @@ export function AppointmentTable() {
           queueNumber={appointmentTable.selectedAppointment.queueNumber}
           currentDoctorName={appointmentTable.selectedAppointment.doctorName || undefined}
           appointmentDate={appointmentTable.selectedAppointment.scheduledDate}
-          appointmentTime={
-            appointmentTable.selectedAppointment.etaRange ||
-            appointmentTable.selectedAppointment.scheduledStartTime
-          }
+          appointmentTime={appointmentTable.selectedAppointment.scheduledStartTime}
           onClose={appointmentTable.actions.closeChangeDoctor}
           onSuccess={() => {
             appointmentTable.actions.closeChangeDoctor();
@@ -274,10 +270,7 @@ export function AppointmentTable() {
           queueNumber={appointmentTable.selectedAppointment.queueNumber}
           currentRoomName={appointmentTable.selectedAppointment.roomName || undefined}
           appointmentDate={appointmentTable.selectedAppointment.scheduledDate}
-          appointmentTime={
-            appointmentTable.selectedAppointment.etaRange ||
-            appointmentTable.selectedAppointment.scheduledStartTime
-          }
+          appointmentTime={appointmentTable.selectedAppointment.scheduledStartTime}
           onClose={appointmentTable.actions.closeChangeRoom}
           onSuccess={() => {
             appointmentTable.actions.closeChangeRoom();
@@ -299,17 +292,12 @@ export function AppointmentTable() {
           context={{
             patientId: appointmentTable.selectedAppointment.patientId || '',
             patientName: appointmentTable.selectedAppointment.patientName,
-            serviceName:
-              appointmentTable.selectedAppointment.layananName ||
-              appointmentTable.selectedAppointment.poliklinikName,
-            poliklinikId: appointmentTable.selectedAppointment.layananId || undefined,
+            serviceName: appointmentTable.selectedAppointment.layananName ?? undefined,
+            poliklinikId: appointmentTable.selectedAppointment.poliklinikId ?? undefined,
             mode: 'reschedule',
             appointmentId: String(appointmentTable.selectedAppointment.id),
             currentDate: appointmentTable.selectedAppointment.scheduledDate,
-            currentSession:
-              appointmentTable.selectedAppointment.session ||
-              appointmentTable.selectedAppointment.sessionName ||
-              undefined,
+            currentSession: appointmentTable.selectedAppointment.session ?? undefined,
             queueNumber: appointmentTable.selectedAppointment.queueNumber
           }}
           onClose={appointmentTable.actions.closeReschedule}

@@ -15,7 +15,6 @@ import type { AdminAppointment } from '../../api/types';
 import type { Option } from '@/types/data-table';
 import { CellAction } from './cell-action';
 import { formatClinicDate, formatClinicTime } from '@/lib/date-format';
-import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 
 const formatTimeOnly = (isoString?: string | null) => {
   if (!isoString) return '-';
@@ -166,8 +165,8 @@ export function getAppointmentColumns(
       ),
       cell: ({ row }) => {
         const appt = row.original;
-        const etaDisplay = appt.etaRange || appt.scheduledStartTime || '-';
-        const sessionLabel = formatFriendlySessionName(appt.sessionName || appt.session);
+        const etaDisplay = appt.scheduledStartTime ?? '-';
+        const sessionLabel = appt.sessionName ?? '';
 
         return (
           <div className='flex flex-col whitespace-nowrap leading-tight'>
@@ -262,7 +261,7 @@ export function getAppointmentColumns(
             </button>
           );
         }
-        const targetDoctorId = appt.staffId || appt.doctorId;
+        const targetDoctorId = appt.doctorId;
         const href = targetDoctorId
           ? `/dashboard/jadwal-dokter?selectedDoctorId=${encodeURIComponent(targetDoctorId)}&dialog=detail`
           : `/dashboard/jadwal-dokter?search=${encodeURIComponent(appt.doctorName)}`;

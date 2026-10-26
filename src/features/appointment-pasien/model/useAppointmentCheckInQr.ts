@@ -46,7 +46,7 @@ function formatDeadlineDateTime(isoString?: string | null): string {
         hour: '2-digit',
         minute: '2-digit',
         hour12: false,
-        timeZone: 'Asia/Jakarta',
+        timeZone: 'Asia/Jakarta'
       }).format(d) + ' WIB'
     );
   } catch {
@@ -80,7 +80,7 @@ export function useAppointmentCheckInQr({
   const hasDoctorAndRoom = Boolean(appointment?.doctorName && appointment?.roomName);
   const isMissingAssignment = Boolean(isBooked && !hasDoctorAndRoom);
   const isAlreadyCheckedIn = Boolean(
-    appointment && !isBooked && !appointment.allowedActions?.includes('CHECK_IN')
+    appointment && !isBooked && !appointment.capabilities.canCheckIn
   );
 
   const isQueryEnabled = Boolean(
@@ -149,7 +149,7 @@ export function useAppointmentCheckInQr({
       const detail = customEvent.detail;
       if (!detail) return;
 
-      const targetId = detail.appointmentId || detail.id;
+      const targetId = (detail as { appointmentId?: string })?.appointmentId;
       const isWaitingStatus = AppointmentStatusDescriptor.from(detail.status).isWaiting;
 
       if (targetId && String(targetId) === String(appointment.id) && isWaitingStatus) {
@@ -179,9 +179,7 @@ export function useAppointmentCheckInQr({
 
   const isExpired = Boolean(qrData && secondsRemaining <= 0);
   const formattedCountdown = formatCountdown(secondsRemaining);
-  const formattedDeadline = formatDeadlineDateTime(
-    qrData?.expiresAt || qrData?.appointmentEligibilityDeadline,
-  );
+  const formattedDeadline = formatDeadlineDateTime(qrData?.expiresAt);
 
   const fetchQr = async () => {
     await refetch();
@@ -200,7 +198,7 @@ export function useAppointmentCheckInQr({
     actions: {
       fetchQr,
       handleCopyCode,
-      handleClose: onClose,
-    },
+      handleClose: onClose
+    }
   };
 }

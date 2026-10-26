@@ -1,52 +1,53 @@
-import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
 import { getGenderLabel } from '@/constants/gender.constants';
 import { normalizeToAppointmentStatus } from '../constants/appointment-status.dictionary';
 import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 import type { Appointment } from '@/features/klinik';
+import { resolveAppointmentCapabilities } from './capabilities';
 import type { AdminAppointment, AppointmentAction, BackendAppointmentRecord } from './types';
 
 export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppointment {
   const status = normalizeToAppointmentStatus(item.status);
-  const patientName = item.patientName || item.patientProfile?.fullName || 'Pasien Amanah';
-  const doctorName = item.doctorName || item.practitioner?.staffProfile?.fullName || null;
-  const poliklinikName = item.poliklinikName || item.clinicRoom?.clinicUnit?.name || 'Poli Umum';
+  const patientName = item.patientName ?? '';
+  const doctorName = item.doctorName ?? null;
+  const poliklinikName = item.poliklinikName ?? '';
   const queueNumber =
-    item.queueTickets?.[0]?.queueNumber || (item.queueNumber ? String(item.queueNumber) : '-');
+    item.queueTickets?.[0]?.queueNumber ?? (item.queueNumber ? String(item.queueNumber) : '-');
   const scheduledDate =
-    item.appointmentDate ||
+    item.appointmentDate ??
     (item.createdAt ? String(item.createdAt).slice(0, 10) : new Date().toISOString().slice(0, 10));
-  const scheduledStartTime = item.scheduledStartTime || item.session || '-';
+  const scheduledStartTime = item.scheduledStartTime ?? '-';
 
-  const allowedActions = (item.allowedActions as AppointmentAction[]) || [];
-  const avatarUrl = (item as any).avatarUrl || (item.patientProfile as any)?.avatarUrl || null;
+  const allowedActions = (item.allowedActions as AppointmentAction[]) ?? [];
+  const capabilities = resolveAppointmentCapabilities(allowedActions);
+  const avatarUrl = (item.avatarUrl as string | undefined) ?? null;
 
   return {
     id: String(item.id),
     queueNumber,
-    patientId: item.patientId || String(item.id),
+    patientId: item.patientId ? String(item.patientId) : '',
     patientName,
     avatarUrl,
     gender: getGenderLabel(item.gender),
-    phone: item.phone || '-',
-    email: item.email || '-',
+    phone: item.phone ?? '-',
+    email: item.email ?? '-',
     scheduledDate,
     scheduledStartTime,
+    scheduledEndTime: item.scheduledEndTime ?? null,
     doctorName,
-    doctorSpecialty:
-      (item.doctorSpecialty as string) ||
-      (item.practitioner?.medicalSpecialty?.name as string) ||
-      null,
+    doctorSpecialty: (item.doctorSpecialty as string | undefined) ?? null,
     staffId: item.staffId ? String(item.staffId) : item.doctorId ? String(item.doctorId) : null,
     doctorId: item.doctorId ? String(item.doctorId) : item.staffId ? String(item.staffId) : null,
+    poliklinikId: item.poliklinikId ? String(item.poliklinikId) : null,
     poliklinikName,
-    roomName: (item.roomName as string) || (item.clinicRoom as any)?.name || null,
-    roomLocation: (item.roomLocation as string) || (item.clinicRoom as any)?.location || null,
-    layananId: (item.layananId as string) || null,
-    layananName: (item.layananName as string) || item.clinicService?.name || null,
-    visitType: item.visitType || 'Pemeriksaan Baru',
-    complaint: item.complaint || '-',
+    roomName: (item.roomName as string | undefined) ?? null,
+    roomLocation: (item.roomLocation as string | undefined) ?? null,
+    layananId: item.layananId ? String(item.layananId) : null,
+    layananName: (item.layananName as string | undefined) ?? null,
+    visitType: item.visitType ?? 'Pemeriksaan Baru',
+    complaint: item.complaint ?? '-',
     status,
     allowedActions,
+    capabilities,
     lastCalledAt: item.lastCalledAt ? String(item.lastCalledAt) : null,
     actualStartedAt: item.actualStartedAt ? String(item.actualStartedAt) : null,
     actualCompletedAt: item.actualCompletedAt ? String(item.actualCompletedAt) : null,
@@ -64,56 +65,62 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
     consultationDurationFormatted: item.consultationDurationFormatted
       ? String(item.consultationDurationFormatted)
       : null,
-    bookingCode: (item.bookingCode as string) || null,
+    bookingCode: (item.bookingCode as string | undefined) ?? null,
     aheadCount: typeof item.aheadCount === 'number' ? item.aheadCount : null,
-    etaRange: (item.etaRange as string) || null,
-    session: item.session || null,
-    sessionName: formatFriendlySessionName(item.sessionName || item.session) || null,
+    etaRange: (item.etaRange as string | undefined) ?? null,
+    session: item.session ?? null,
+    sessionName: item.sessionName
+      ? formatFriendlySessionName(item.sessionName)
+      : item.session
+        ? formatFriendlySessionName(item.session)
+        : null,
     createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
     updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : new Date().toISOString()
   };
 }
 
 export function adminAppointmentToAppointment(item: AdminAppointment): Appointment {
-  const timeSource = item.etaRange || item.scheduledStartTime || '';
+  const timeSource = item.scheduledStartTime ?? '';
   const timeMatches = timeSource.match(/(\d{1,2}[:.]\d{2})/g);
   const startClock = timeMatches?.[0]
     ? timeMatches[0].replace('.', ':')
-    : item.scheduledStartTime || '';
-  const endClock = timeMatches?.[1]
-    ? timeMatches[1].replace('.', ':')
-    : (item as any).scheduledEndTime || item.estimatedEndAt || '';
+    : (item.scheduledStartTime ?? '');
+  const endClock = item.scheduledEndTime ?? '';
 
   return {
     id: item.id,
-    booking_code: item.bookingCode || item.id.slice(0, 8).toUpperCase(),
+    booking_code: item.bookingCode ?? '',
     patient_name: item.patientName,
-    patient_email: item.email || '',
-    patient_avatar: item.avatarUrl || '',
-    doctor_name: item.doctorName || '',
-    doctor_specialty: item.doctorSpecialty || '',
+    patient_email: item.email ?? '',
+    patient_avatar: item.avatarUrl ?? '',
+    doctor_name: item.doctorName ?? '',
+    doctor_specialty: item.doctorSpecialty ?? '',
     poliklinik_name: item.poliklinikName,
-    service: item.layananName || '',
-    room_name: item.roomName || '',
+    service: item.layananName ?? '',
+    room_name: item.roomName ?? '',
     scheduled_start_time: startClock,
     scheduled_end_time: endClock,
-    actual_started_at: item.actualStartedAt || undefined,
-    actual_completed_at: item.actualCompletedAt || undefined,
+    actual_started_at: item.actualStartedAt ?? undefined,
+    actual_completed_at: item.actualCompletedAt ?? undefined,
     consultation_elapsed_seconds: item.consultationElapsedSeconds ?? undefined,
-    consultation_duration_formatted: item.consultationDurationFormatted || undefined,
-    eta_range: item.etaRange || null,
+    consultation_duration_formatted: item.consultationDurationFormatted ?? undefined,
+    eta_range: item.etaRange ?? null,
     ahead_count: item.aheadCount ?? null,
-    session: item.session || undefined,
-    session_name: formatFriendlySessionName(item.sessionName || item.session) || null,
+    session: item.session ?? undefined,
+    session_name: item.sessionName
+      ? formatFriendlySessionName(item.sessionName)
+      : item.session
+        ? formatFriendlySessionName(item.session)
+        : null,
     date: item.scheduledDate,
-    time: item.etaRange || item.scheduledStartTime || '',
+    time: item.scheduledStartTime ?? '',
     patient_id: item.patientId,
     patient_phone: item.phone,
-    complaint: item.complaint || '',
+    complaint: item.complaint ?? '',
     status: item.status,
-    visit_type: item.visitType || 'Pemeriksaan Baru',
+    visit_type: item.visitType ?? 'Pemeriksaan Baru',
     queue_number: item.queueNumber,
     allowedActions: item.allowedActions,
-    created_at: item.createdAt || new Date().toISOString()
+    created_at: item.createdAt ?? new Date().toISOString()
   };
 }

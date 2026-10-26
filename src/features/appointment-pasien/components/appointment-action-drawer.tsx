@@ -53,15 +53,9 @@ export function AppointmentActionDrawer({
   if (!appointment) return null;
 
   const isTerminal = isAppointmentTerminal(appointment.status);
-  const canCall = Boolean(appointment.allowedActions?.includes('CALL'));
-  const canCheckIn = Boolean(appointment.allowedActions?.includes('CHECK_IN'));
+  const { canCall, canCheckIn, canUpdateStatus, canReschedule, canCancel } =
+    appointment.capabilities;
   const canReassign = !isTerminal;
-  const canUpdateStatus =
-    Boolean(appointment.allowedActions?.includes('START_SERVICE')) ||
-    Boolean(appointment.allowedActions?.includes('COMPLETE'));
-  const canReschedule = Boolean(appointment.allowedActions?.includes('RESCHEDULE'));
-  const canCancel = Boolean(appointment.allowedActions?.includes('CANCEL'));
-  const serviceName = appointment.layananName || appointment.poliklinikName;
 
   const handleCall = async () => {
     if (isCalling) return;
@@ -96,8 +90,10 @@ export function AppointmentActionDrawer({
               {appointment.patientName}
             </DrawerTitle>
             <DrawerDescription className='text-xs text-muted-foreground truncate'>
-              Antrean <span className='font-mono font-bold text-primary'>{appointment.queueNumber}</span>
-              {serviceName ? ` dengan layanan ${serviceName}` : ''}
+              Antrean{' '}
+              <span className='font-mono font-bold text-primary'>{appointment.queueNumber}</span>
+              {appointment.poliklinikName ? ` di ${appointment.poliklinikName}` : ''}
+              {appointment.layananName ? ` • ${appointment.layananName}` : ''}
             </DrawerDescription>
           </div>
         </DrawerHeader>

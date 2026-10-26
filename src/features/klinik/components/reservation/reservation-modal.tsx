@@ -206,7 +206,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
 
       const uiApt: Appointment = {
         id: res.id,
-        booking_code: res.bookingCode || res.id.slice(0, 8).toUpperCase(),
+        booking_code: res.bookingCode ?? '',
         patient_name: res.patientName || '',
         patient_email: '',
         patient_avatar: '',

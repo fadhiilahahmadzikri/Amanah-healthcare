@@ -8,7 +8,11 @@ import { useDataTable } from '@/hooks/use-data-table';
 import { getSortingStateParser } from '@/lib/parsers';
 import { appointmentQueryOptions } from '../api/queries';
 import { normalizeFilters, type AdminAppointment, type AppointmentFilters } from '../api/types';
-import { useAppointmentDialogs, type AppointmentDialogType, type UseAppointmentDialogsResult } from './useAppointmentDialogs';
+import {
+  useAppointmentDialogs,
+  type AppointmentDialogType,
+  type UseAppointmentDialogsResult
+} from './useAppointmentDialogs';
 
 export type { AppointmentDialogType };
 
@@ -86,16 +90,10 @@ export function useAppointmentTable({
     page: parseAsInteger.withDefault(1),
     perPage: parseAsInteger.withDefault(10),
     search: parseAsString,
-    patientName: parseAsString,
     status: parseAsArrayOf(parseAsString, ','),
-    poli: parseAsArrayOf(parseAsString, ','),
-    poliklinikName: parseAsArrayOf(parseAsString, ','),
     poliklinikId: parseAsString,
-    service: parseAsArrayOf(parseAsString, ','),
+    poliklinikName: parseAsArrayOf(parseAsString, ','),
     serviceName: parseAsArrayOf(parseAsString, ','),
-    layanan: parseAsArrayOf(parseAsString, ','),
-    layananName: parseAsArrayOf(parseAsString, ','),
-    scheduledDate: parseAsString,
     date: parseAsString,
     doctorId: parseAsString,
     doctorName: parseAsArrayOf(parseAsString, ','),
@@ -103,10 +101,10 @@ export function useAppointmentTable({
     sort: getSortingStateParser<AdminAppointment>(columnIds).withDefault([])
   });
 
-  const querySearch = params.search || params.patientName;
-  const queryPoli = params.poli || params.poliklinikName;
-  const queryService = params.service || params.serviceName || params.layanan || params.layananName;
-  const rawDate = params.date || params.scheduledDate;
+  const querySearch = params.search?.trim();
+  const queryPoli = params.poliklinikName;
+  const queryService = params.serviceName;
+  const rawDate = params.date;
   let formattedDate: string | undefined;
   if (rawDate) {
     const num = Number(rawDate);
@@ -121,16 +119,17 @@ export function useAppointmentTable({
     }
   }
 
-  const hasFilters = Boolean(
-    (querySearch && querySearch.trim().length > 0) ||
-    (params.status && params.status.length > 0) ||
-    (queryPoli && queryPoli.length > 0) ||
-    (queryService && queryService.length > 0) ||
-    formattedDate ||
-    params.doctorId ||
-    (params.doctorName && params.doctorName.length > 0) ||
-    (params.roomName && params.roomName.length > 0)
-  );
+  const hasFilters = [
+    querySearch && querySearch.length > 0,
+    params.status && params.status.length > 0,
+    params.poliklinikId,
+    queryPoli && queryPoli.length > 0,
+    queryService && queryService.length > 0,
+    formattedDate,
+    params.doctorId,
+    params.doctorName && params.doctorName.length > 0,
+    params.roomName && params.roomName.length > 0
+  ].some(Boolean);
 
   const filters: AppointmentFilters = normalizeFilters({
     page: params.page,
@@ -138,7 +137,7 @@ export function useAppointmentTable({
     ...(querySearch && { search: querySearch }),
     ...(params.status && params.status.length > 0 && { status: params.status }),
     ...(params.poliklinikId && { poliklinikId: params.poliklinikId }),
-    ...(queryPoli && queryPoli.length > 0 && { poli: queryPoli }),
+    ...(queryPoli && queryPoli.length > 0 && { poliklinikName: queryPoli }),
     ...(queryService && queryService.length > 0 && { serviceName: queryService }),
     ...(formattedDate && { date: formattedDate }),
     ...(params.doctorId && { doctorId: params.doctorId }),
@@ -176,15 +175,10 @@ export function useAppointmentTable({
     table.resetColumnFilters();
     void setParams({
       search: null,
-      patientName: null,
       status: null,
-      poli: null,
+      poliklinikId: null,
       poliklinikName: null,
-      service: null,
       serviceName: null,
-      layanan: null,
-      layananName: null,
-      scheduledDate: null,
       date: null,
       doctorId: null,
       doctorName: null,
@@ -213,7 +207,8 @@ export function useAppointmentTable({
     currentUnitId: params.poliklinikId,
     currentDoctorId: params.doctorId,
     formattedDate,
-    setUnitId: (unitId: string | null) => setParams({ poliklinikId: unitId, doctorId: null, page: 1 }),
+    setUnitId: (unitId: string | null) =>
+      setParams({ poliklinikId: unitId, doctorId: null, page: 1 }),
     setDoctorId: (doctorId: string | null) => setParams({ doctorId, page: 1 }),
     resetFilters,
     actions: {

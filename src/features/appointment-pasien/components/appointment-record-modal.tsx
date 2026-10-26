@@ -19,7 +19,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { AppointmentStatusPill } from '@/features/klinik/components/appointment-card';
 import { getAntreanPillClasses } from './appointment-tables/columns';
 import { formatClinicDate, formatClinicTime } from '@/lib/date-format';
-import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 import type { AdminAppointment } from '../api/types';
 
 export interface AppointmentRecordModalProps {
@@ -55,12 +54,8 @@ export function AppointmentRecordModal({
 
   if (!appointment) return null;
 
-  const canUpdateStatus =
-    Boolean(appointment.allowedActions?.includes('START_SERVICE')) ||
-    Boolean(appointment.allowedActions?.includes('COMPLETE'));
-  const canCheckIn = Boolean(appointment.allowedActions?.includes('CHECK_IN'));
-
-  const sessionLabel = formatFriendlySessionName(appointment.sessionName || appointment.session);
+  const { canUpdateStatus, canCheckIn } = appointment.capabilities;
+  const sessionLabel = appointment.sessionName ?? '';
 
   return (
     <ModalWrapper
@@ -230,7 +225,7 @@ export function AppointmentRecordModal({
                 Sesi & Estimasi
               </span>
               <span className='text-sm font-bold font-mono text-foreground block'>
-                {appointment.etaRange || appointment.scheduledStartTime || '-'}
+                {appointment.scheduledStartTime ?? '-'}
               </span>
               {sessionLabel && (
                 <span className='text-[11px] text-muted-foreground block truncate mt-0.5'>

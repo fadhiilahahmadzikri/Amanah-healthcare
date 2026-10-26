@@ -91,7 +91,7 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
     return {
       id: apt.id,
       patient_id: apt.patientId,
-      booking_code: apt.bookingCode || apt.id.slice(0, 8).toUpperCase(),
+      booking_code: apt.bookingCode ?? '',
       patient_name: apt.patientName || '',
       patient_email: '',
       patient_avatar: '',

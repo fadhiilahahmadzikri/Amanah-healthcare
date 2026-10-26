@@ -66,14 +66,8 @@ export function CellAction({
   const onViewMilestone = propOnViewMilestone ?? meta?.onViewMilestone;
 
   const isTerminal = isAppointmentTerminal(data.status);
-  const canCall = Boolean(data.allowedActions?.includes('CALL'));
-  const canCheckIn = Boolean(data.allowedActions?.includes('CHECK_IN'));
+  const { canCall, canCheckIn, canUpdateStatus, canReschedule, canCancel } = data.capabilities;
   const canReassign = !isTerminal;
-  const canUpdateStatus =
-    Boolean(data.allowedActions?.includes('START_SERVICE')) ||
-    Boolean(data.allowedActions?.includes('COMPLETE'));
-  const canReschedule = Boolean(data.allowedActions?.includes('RESCHEDULE'));
-  const canCancel = Boolean(data.allowedActions?.includes('CANCEL'));
 
   const handleCallPatient = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -140,9 +134,7 @@ export function CellAction({
             </span>
           </TooltipTrigger>
           <TooltipContent side='top' className='text-xs'>
-            {canCall
-              ? 'Panggil Pasien'
-              : 'Menunggu giliran (antrean sebelumnya masih menunggu)'}
+            {canCall ? 'Panggil Pasien' : 'Menunggu giliran (antrean sebelumnya masih menunggu)'}
           </TooltipContent>
         </Tooltip>
       )}

@@ -1,4 +1,5 @@
 import { clientFetch } from '@/lib/client-fetch';
+import { AppError } from '@/core/errors/app-error';
 import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
 import { mapToAdminAppointment } from './mapper';
 import type {
@@ -38,11 +39,13 @@ export async function getAdminAppointments(
 
   if (filters.poliklinikId) {
     queryParams.poliklinikId = filters.poliklinikId;
-  } else if (filters.poli) {
-    queryParams.poliklinikName = Array.isArray(filters.poli) ? filters.poli[0] : filters.poli;
+  } else if (filters.poliklinikName) {
+    queryParams.poliklinikName = Array.isArray(filters.poliklinikName)
+      ? filters.poliklinikName[0]
+      : filters.poliklinikName;
   }
 
-  const sName = filters.serviceName || filters.service;
+  const sName = filters.serviceName;
   if (sName) {
     queryParams.serviceName = Array.isArray(sName) ? sName[0] : sName;
   }
@@ -174,15 +177,12 @@ export async function updateAdminLiveStatus(id: number | string, status: Appoint
       appointment: rawUpdated ? mapToAdminAppointment(rawUpdated) : undefined
     };
   } catch (error: unknown) {
-    const err = error as { status?: number; statusCode?: number; message?: string };
-    const isConflict =
-      err?.status === 409 ||
-      err?.statusCode === 409 ||
-      String(err?.message).includes('409') ||
-      String(err).includes('Conflict');
+    const isConflict = error instanceof AppError && error.status === 409;
     const errorMsg = isConflict
       ? 'Status janji temu telah diperbarui oleh pengguna lain (409 Conflict). Silakan muat ulang halaman.'
-      : err?.message || String(error);
+      : error instanceof Error
+        ? error.message
+        : String(error);
     throw new Error(errorMsg, { cause: error });
   }
 }
@@ -371,4 +371,3 @@ export async function getQueueNavigation(
     signal
   });
 }
-

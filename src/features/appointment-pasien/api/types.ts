@@ -2,9 +2,12 @@ import {
   APPOINTMENT_STATUS,
   type CanonicalAppointmentStatus
 } from '@/constants/appointment-status.constants';
+import type { AppointmentCapabilities } from './capabilities';
 
 export { APPOINTMENT_STATUS };
 export type AppointmentStatus = CanonicalAppointmentStatus;
+export type { AppointmentCapabilities };
+export { resolveAppointmentCapabilities } from './capabilities';
 
 export type AppointmentAction =
   | 'CHECK_IN'
@@ -14,7 +17,8 @@ export type AppointmentAction =
   | 'CANCEL'
   | 'RESCHEDULE'
   | 'ASSIGN_DOCTOR'
-  | 'ASSIGN_ROOM';
+  | 'ASSIGN_ROOM'
+  | 'NO_SHOW';
 
 export type LiveStatus = AppointmentStatus;
 
@@ -29,10 +33,12 @@ export interface AdminAppointment {
   email: string;
   scheduledDate: string;
   scheduledStartTime: string;
+  scheduledEndTime?: string | null;
   doctorName: string | null;
   doctorSpecialty?: string | null;
   staffId?: string | null;
   doctorId?: string | null;
+  poliklinikId?: string | null;
   poliklinikName: string;
   roomName?: string | null;
   roomLocation?: string | null;
@@ -42,6 +48,7 @@ export interface AdminAppointment {
   complaint: string;
   status: AppointmentStatus;
   allowedActions: AppointmentAction[];
+  capabilities: AppointmentCapabilities;
   lastCalledAt: string | null;
   actualStartedAt: string | null;
   actualCompletedAt: string | null;
@@ -106,14 +113,12 @@ export type AppointmentFilters = {
   page?: number;
   limit?: number;
   status?: string | string[];
-  poli?: string | string[];
   poliklinikId?: string;
-  service?: string | string[];
+  poliklinikName?: string | string[];
   serviceName?: string | string[];
   search?: string;
   sort?: string;
   date?: string;
-  scheduledDate?: string | number | (string | number)[];
   doctorName?: string | string[];
   doctorId?: string | string[];
   roomName?: string | string[];
@@ -125,8 +130,8 @@ export type NormalizedAppointmentFilters = {
   page: number;
   limit: number;
   status?: string[];
-  poli?: string[];
   poliklinikId?: string;
+  poliklinikName?: string[];
   serviceName?: string[];
   search?: string;
   sort?: string;
@@ -146,12 +151,13 @@ export function normalizeFilters(raw: Partial<AppointmentFilters>): NormalizedAp
     : typeof raw.status === 'string' && raw.status.trim()
       ? [raw.status.trim()]
       : undefined;
-  const poliArray = Array.isArray(raw.poli)
-    ? [...raw.poli].filter(Boolean).toSorted()
-    : typeof raw.poli === 'string' && raw.poli.trim()
-      ? [raw.poli.trim()]
+  const poliRaw = raw.poliklinikName;
+  const poliArray = Array.isArray(poliRaw)
+    ? [...poliRaw].filter(Boolean).toSorted()
+    : typeof poliRaw === 'string' && poliRaw.trim()
+      ? [poliRaw.trim()]
       : undefined;
-  const serviceRaw = raw.serviceName || raw.service;
+  const serviceRaw = raw.serviceName;
   const serviceArray = Array.isArray(serviceRaw)
     ? [...serviceRaw].filter(Boolean).toSorted()
     : typeof serviceRaw === 'string' && serviceRaw.trim()
@@ -188,7 +194,7 @@ export function normalizeFilters(raw: Partial<AppointmentFilters>): NormalizedAp
     page,
     limit,
     ...(statusArray && statusArray.length > 0 && { status: statusArray }),
-    ...(poliArray && poliArray.length > 0 && { poli: poliArray }),
+    ...(poliArray && poliArray.length > 0 && { poliklinikName: poliArray }),
     ...(poliklinikIdTrimmed && { poliklinikId: poliklinikIdTrimmed }),
     ...(serviceArray && serviceArray.length > 0 && { serviceName: serviceArray }),
     ...(doctorArray && doctorArray.length > 0 && { doctorName: doctorArray }),
@@ -227,7 +233,7 @@ export interface BackendAppointmentRecord {
   id: string | number;
   status?: string;
   patientName?: string;
-  patientProfile?: { fullName?: string };
+  patientProfile?: { fullName?: string; avatarUrl?: string | null };
   doctorName?: string;
   doctorSpecialty?: string;
   staffId?: string;
@@ -236,7 +242,7 @@ export interface BackendAppointmentRecord {
   poliklinikName?: string;
   roomName?: string;
   roomLocation?: string;
-  clinicRoom?: { clinicUnit?: { name?: string } };
+  clinicRoom?: { name?: string; location?: string; clinicUnit?: { name?: string } };
   layananId?: string;
   layananName?: string;
   clinicService?: { name?: string };

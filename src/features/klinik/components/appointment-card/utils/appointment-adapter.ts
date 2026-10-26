@@ -105,8 +105,8 @@ export function bookedPatientToAppointment(
 
   return {
     id: item.appointmentId,
-    booking_code: item.appointmentId.slice(0, 8).toUpperCase(),
-    patient_id: item.patient.id || item.appointmentId,
+    booking_code: (item as { bookingCode?: string }).bookingCode ?? '',
+    patient_id: item.patient.id ?? '',
     patient_name: item.patient.fullName,
     patient_email: item.patient.email || '',
     patient_avatar: item.patient.avatarUrl || '',

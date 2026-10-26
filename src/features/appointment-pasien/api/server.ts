@@ -54,11 +54,13 @@ export async function getAppointmentsOnServer(
 
   if (filters.poliklinikId) {
     queryParams.poliklinikId = filters.poliklinikId;
-  } else if (filters.poli) {
-    queryParams.poliklinikName = Array.isArray(filters.poli) ? filters.poli[0] : filters.poli;
+  } else if (filters.poliklinikName) {
+    queryParams.poliklinikName = Array.isArray(filters.poliklinikName)
+      ? filters.poliklinikName[0]
+      : filters.poliklinikName;
   }
 
-  const sName = filters.serviceName || filters.service;
+  const sName = filters.serviceName;
   if (sName) {
     queryParams.serviceName = Array.isArray(sName) ? sName[0] : sName;
   }
@@ -125,9 +127,10 @@ export async function getAppointmentsOnServer(
   };
 }
 
-export async function getQueueNavigationOnServer(
-  params?: { date?: string; session?: string }
-): Promise<QueueNavigationResponse> {
+export async function getQueueNavigationOnServer(params?: {
+  date?: string;
+  session?: string;
+}): Promise<QueueNavigationResponse> {
   const token = await resolveActiveToken();
   if (!token) {
     throw AppError.unauthenticated('Sesi admin tidak valid atau telah berakhir');

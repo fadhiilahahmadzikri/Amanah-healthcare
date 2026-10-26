@@ -24,7 +24,7 @@ export function mapBackendAppointmentToUi({ res }: MapAppointmentParams): Appoin
 
   return {
     id: res.id,
-    booking_code: res.bookingCode || res.id.slice(0, 8).toUpperCase(),
+    booking_code: res.bookingCode ?? '',
     patient_name: res.patientName || '',
     patient_email: '',
     patient_avatar: '',

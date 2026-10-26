@@ -6,7 +6,6 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
 import { cn } from '@/lib/utils';
 import { formatClinicDate, formatClinicTime } from '@/lib/date-format';
-import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 import type { AdminAppointment } from '../api/types';
 
 interface TimelineEvent {
@@ -19,6 +18,16 @@ interface TimelineEvent {
   badgeLabel?: string;
 }
 
+function formatTime(isoString?: string | null) {
+  if (!isoString) return null;
+  return formatClinicTime(isoString, { withSuffix: true, includeSeconds: true });
+}
+
+function formatDate(isoString?: string | null) {
+  if (!isoString) return null;
+  return formatClinicDate(isoString, { style: 'human_short' });
+}
+
 export interface AppointmentHistoryTimelineProps {
   appointment: AdminAppointment;
   className?: string;
@@ -28,25 +37,11 @@ export function AppointmentHistoryTimeline({
   appointment,
   className
 }: AppointmentHistoryTimelineProps) {
-  const formatTime = (isoString?: string | null) => {
-    if (!isoString) return null;
-    return formatClinicTime(isoString, { withSuffix: true, includeSeconds: true });
-  };
-
-  const formatDate = (isoString?: string | null) => {
-    if (!isoString) return null;
-    return formatClinicDate(isoString, { style: 'human_short' });
-  };
-
   const events: TimelineEvent[] = [];
 
-  const sessionLabel = formatFriendlySessionName(
-    appointment.sessionName || appointment.session
-  );
-  const etaDetail = appointment.etaRange ? `(Est. ${appointment.etaRange})` : '';
-  const timeInfo = [sessionLabel, etaDetail].filter(Boolean).join(' ') ||
-    formatClinicTime(appointment.scheduledStartTime) ||
-    '';
+  const sessionLabel = appointment.sessionName ?? '';
+  const formattedTime = formatClinicTime(appointment.scheduledStartTime);
+  const timeInfo = [sessionLabel, formattedTime].filter(Boolean).join(' • ');
 
   events.push({
     id: 'booked',

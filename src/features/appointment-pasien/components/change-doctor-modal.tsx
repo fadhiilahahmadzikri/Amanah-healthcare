@@ -111,7 +111,7 @@ export function ChangeDoctorModal({
     setRosterDoctor({
       id: doc.id,
       fullName: doc.name,
-      specialty: doc.specialty || activeGroup?.name || '',
+      specialty: doc.specialty ?? '',
       practitionerId: doc.id,
       doctorStatus: 'OPEN',
       practiceRoom: '',
@@ -169,6 +169,10 @@ export function ChangeDoctorModal({
       toast.error(err.message || 'Gagal mengubah dokter');
     }
   });
+
+  const canSubmitDoctor = Boolean(
+    selectedDoctorId && isSelectedDoctorAvailable && !mutation.isPending
+  );
 
   if (!isOpen) return null;
 
@@ -527,7 +531,7 @@ export function ChangeDoctorModal({
                 variant='default'
                 shape='pill'
                 size='default'
-                disabled={mutation.isPending || !selectedDoctorId || !isSelectedDoctorAvailable}
+                disabled={!canSubmitDoctor}
                 className='px-7 font-semibold'
               >
                 {mutation.isPending ? (
