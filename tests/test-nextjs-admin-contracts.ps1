@@ -44,9 +44,9 @@ function Flush-NextJsContractTestData {
         $staffId = $staffId.Trim()
         $today = (Get-Date).ToString("yyyy-MM-dd")
         if ($staffId -and $staffId -ne "") {
-            $flushSql = "DELETE FROM replacement_opportunities WHERE original_staff_profile_id = '$staffId' AND work_date = '$today'; DELETE FROM leave_request_sessions WHERE leave_request_id IN (SELECT id FROM staff_leave_requests WHERE staff_profile_id = '$staffId' AND (start_date = '$today' OR end_date = '$today')); DELETE FROM staff_leave_requests WHERE staff_profile_id = '$staffId' AND (start_date = '$today' OR end_date = '$today' OR reason LIKE 'Permohonan Izin E2E%');"
+            $flushSql = "DELETE FROM staff_attendance_records WHERE attendance_date = '$today' AND (staff_profile_id = '$staffId' OR staff_profile_id IN (SELECT id FROM staff_profiles WHERE staff_code = 'STF-WRK-001')); DELETE FROM replacement_opportunities WHERE original_staff_profile_id = '$staffId' AND work_date = '$today'; DELETE FROM leave_request_sessions WHERE leave_request_id IN (SELECT id FROM staff_leave_requests WHERE staff_profile_id = '$staffId' AND (start_date = '$today' OR end_date = '$today')); DELETE FROM staff_leave_requests WHERE staff_profile_id = '$staffId' AND (start_date = '$today' OR end_date = '$today' OR reason LIKE 'Permohonan Izin E2E%');"
             docker exec -i backend-postgres-1 psql -U amanah -d amanah_healthcare -c "$flushSql" | Out-Null
-            Write-Host "  Test leave data flushed for $staffId." -ForegroundColor Green
+            Write-Host "  Test leave and attendance data flushed for $staffId." -ForegroundColor Green
         }
     } catch {
         Write-Host "  Flush notice: $($_.Exception.Message)" -ForegroundColor Gray
@@ -154,11 +154,13 @@ try {
 }
 
 # 1.4 QR Rotation
+$rotatedQrToken = $null
 try {
     $url = "$BaseUrl/api/v1/attendance/qr/rotate"
     $body = @{ context = "Terminal Utama Presensi" } | ConvertTo-Json
     $res = Invoke-RestMethod -Uri $url -Method Post -Headers $adminHeaders -Body $body
     $rotated = ($null -ne $res.qrCodeIdentifier) -and ($res.isActive -eq $true)
+    $rotatedQrToken = $res.qrCodeIdentifier
     Report-Result "POST /api/v1/attendance/qr/rotate" $rotated "New Rotated QR: $($res.qrCodeIdentifier), Shift: $($res.shift)"
 } catch {
     Report-Result "POST /api/v1/attendance/qr/rotate" $false $_.Exception.Message
@@ -180,7 +182,7 @@ try {
     Report-Result "POST /api/v1/attendance/manual" $false $_.Exception.Message
 }
 
-# 1.6 Doctor Self-Checkout (Check in first, then checkout)
+# 1.6 Doctor Self-Checkout (Check in first, then checkout with QR proximity)
 try {
     # Step A: Stage check-in for Doctor Zikri for today
     $checkInDoctorBody = @{
@@ -189,9 +191,13 @@ try {
     } | ConvertTo-Json
     $null = Invoke-RestMethod -Uri "$BaseUrl/api/v1/attendance/manual" -Method Post -Headers $adminHeaders -Body $checkInDoctorBody
 
-    # Step B: Perform Doctor Checkout
+    # Step B: Perform Doctor Checkout with valid QR token
     $url = "$BaseUrl/api/v1/attendance/checkout"
-    $res = Invoke-RestMethod -Uri $url -Method Post -Headers $doctorHeaders -Body "{}"
+    $checkoutDoctorBody = @{
+        qrToken = $rotatedQrToken
+        notes = "Selesai dinas dokter"
+    } | ConvertTo-Json
+    $res = Invoke-RestMethod -Uri $url -Method Post -Headers $doctorHeaders -Body $checkoutDoctorBody
     $checkedOut = ($null -ne $res.checkOutAt) -and ([double]$res.validatedDurationHours -ge 0.5)
     Report-Result "POST /api/v1/attendance/checkout (Doctor Self-Checkout)" $checkedOut "Checkout Time: $($res.checkOutAt), Validated Hours: $($res.validatedDurationHours)"
 } catch {
