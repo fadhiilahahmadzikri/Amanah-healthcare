@@ -1,14 +1,31 @@
 'use client';
 
 import * as React from 'react';
+import { Icons } from '@/components/icons';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
+import { cn } from '@/lib/utils';
 import { useVaccineCatalog } from '../../model/useVaccineCatalog';
 import { calculateChildAge } from '../../utils/medical-appointment';
 import type { InspectorTabProps } from './types';
 
+const IMMUNIZATION_TABS = [
+  { value: 'identitas', label: 'Identitas Anak' },
+  { value: 'orang-tua', label: 'Orang Tua & Alamat' },
+  { value: 'vaksin', label: 'Riwayat Vaksin' },
+  { value: 'alergi', label: 'Riwayat Alergi' }
+] as const;
+
 export function InspectorImmunizationTab({ data }: InspectorTabProps) {
+  const [activeTab, setActiveTab] = React.useState<string>('identitas');
   const { child } = data;
   const { vaccines } = useVaccineCatalog();
 
@@ -55,20 +72,57 @@ export function InspectorImmunizationTab({ data }: InspectorTabProps) {
       : 'Tidak ada riwayat alergi.');
 
   return (
-    <Tabs defaultValue='identitas' className='w-full flex flex-col h-full'>
-      <TabsList className='grid grid-cols-4 w-full h-9 mb-3 shrink-0'>
-        <TabsTrigger value='identitas' className='text-xs font-semibold cursor-pointer'>
-          Identitas Anak
-        </TabsTrigger>
-        <TabsTrigger value='orang-tua' className='text-xs font-semibold cursor-pointer'>
-          Orang Tua & Alamat
-        </TabsTrigger>
-        <TabsTrigger value='vaksin' className='text-xs font-semibold cursor-pointer'>
-          Riwayat Vaksin
-        </TabsTrigger>
-        <TabsTrigger value='alergi' className='text-xs font-semibold cursor-pointer'>
-          Riwayat Alergi
-        </TabsTrigger>
+    <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full flex flex-col h-full'>
+      {/* Mobile Morevert Dropdown Navigation */}
+      <div className='flex sm:hidden items-center justify-between p-2 mb-2.5 rounded-lg border border-border/60 bg-muted/30 shrink-0'>
+        <div className='flex items-center gap-2 min-w-0'>
+          <span className='text-xs font-bold text-foreground truncate'>
+            {IMMUNIZATION_TABS.find((t) => t.value === activeTab)?.label || 'Identitas Anak'}
+          </span>
+        </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              type='button'
+              variant='outline'
+              size='icon-sm'
+              shape='pill'
+              className='size-7 shrink-0 text-foreground hover:bg-muted'
+              aria-label='Pilih bagian formulir'
+            >
+              <Icons.ellipsis className='size-4' />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align='end' className='w-48'>
+            {IMMUNIZATION_TABS.map((tab) => (
+              <DropdownMenuItem
+                key={tab.value}
+                onClick={() => setActiveTab(tab.value)}
+                className={cn(
+                  'flex items-center justify-between text-xs cursor-pointer',
+                  activeTab === tab.value && 'font-bold text-primary bg-primary/10'
+                )}
+              >
+                <span>{tab.label}</span>
+                {activeTab === tab.value && <Icons.check className='size-3.5 text-primary' />}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Desktop Horizontal Tabs */}
+      <TabsList className='hidden sm:grid grid-cols-4 w-full h-9 mb-3 shrink-0'>
+        {IMMUNIZATION_TABS.map((tab) => (
+          <TabsTrigger
+            key={tab.value}
+            value={tab.value}
+            className='text-xs font-semibold cursor-pointer'
+          >
+            {tab.label}
+          </TabsTrigger>
+        ))}
       </TabsList>
 
       <div className='flex-1 overflow-y-auto min-h-0 pr-1'>
@@ -84,7 +138,7 @@ export function InspectorImmunizationTab({ data }: InspectorTabProps) {
                 value={childName}
                 readOnly
               />
-              <div className='grid grid-cols-2 gap-4'>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                 <PatientLineInput
                   id='child-nik'
                   label='NIK Anak'
@@ -100,7 +154,7 @@ export function InspectorImmunizationTab({ data }: InspectorTabProps) {
               <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
                 Kelahiran & Kontak Wali
               </span>
-              <div className='grid grid-cols-2 gap-4'>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                 <PatientLineInput
                   id='child-birthdate'
                   label='Tanggal Lahir Anak'

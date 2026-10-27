@@ -152,7 +152,7 @@ export function MedicalAppointmentModal({
         showCloseButton={false}
         className='flex h-auto max-h-[88dvh] flex-col overflow-hidden p-5 sm:p-6 shadow-2xl transition-[max-width,width,max-height,height] duration-300'
       >
-        <div className='flex shrink-0 items-start justify-between gap-4 pb-2 mb-3 sm:pb-3 sm:mb-4'>
+        <div className='flex shrink-0 flex-col gap-2 pb-2 mb-3 border-b border-border/40 sm:pb-3 sm:mb-4'>
           <div className='min-w-0 flex-1 space-y-1 sm:space-y-1.5'>
             <h3 className='text-base font-bold tracking-tight text-foreground sm:text-lg'>
               {stepTitle}
@@ -161,6 +161,28 @@ export function MedicalAppointmentModal({
               {stepDescription}
             </p>
           </div>
+
+          {/* Sub-header action: Button + Tambah Kehamilan / + Tambah KB positioned under header text on the right side */}
+          {isHistoryCatalogStep &&
+          historyCounts[currentDescriptor.historyKey] <
+            historyGroups[currentDescriptor.historyKey].maxRecords ? (
+            <div className='flex items-center justify-end pt-1'>
+              <Button
+                type='button'
+                variant='outline'
+                size='sm'
+                onClick={() => actions.addHistoryFromCatalog(currentDescriptor.historyKey)}
+                className='border-dashed text-xs font-medium hover:border-primary hover:bg-primary/5'
+              >
+                <Icons.add className='mr-1 size-3.5 shrink-0' />
+                <span>
+                  {currentDescriptor.historyKey === REPEATABLE_GROUP_KEYS.PREGNANCY
+                    ? 'Tambah Kehamilan'
+                    : 'Tambah KB'}
+                </span>
+              </Button>
+            </div>
+          ) : null}
         </div>
 
         <form.AppForm>
@@ -218,48 +240,23 @@ export function MedicalAppointmentModal({
               <Button type='button' variant='ghost' shape='pill' onClick={actions.prevStep}>
                 {currentStep === 1 && !onBackToService ? 'Batal' : 'Kembali'}
               </Button>
-              <div className='flex items-center gap-2.5'>
-                {currentDescriptor?.type === STEP_DESCRIPTOR_TYPES.HISTORY_CATALOG &&
-                historyCounts[currentDescriptor.historyKey] <
-                  historyGroups[currentDescriptor.historyKey].maxRecords ? (
-                  <Button
-                    type='button'
-                    variant='outline'
-                    shape='pill'
-                    onClick={() => actions.addHistoryFromCatalog(currentDescriptor.historyKey)}
-                    className='border-dashed text-xs font-medium hover:border-primary hover:bg-primary/5 sm:text-sm'
-                  >
-                    <Icons.add className='mr-1 size-3.5 shrink-0' />
-                    <span className='hidden sm:inline'>
-                      {currentDescriptor.historyKey === REPEATABLE_GROUP_KEYS.PREGNANCY
-                        ? 'Tambah Riwayat Kehamilan Baru'
-                        : 'Tambah Riwayat KB Baru'}
-                    </span>
-                    <span className='sm:hidden'>
-                      {currentDescriptor.historyKey === REPEATABLE_GROUP_KEYS.PREGNANCY
-                        ? 'Tambah Kehamilan'
-                        : 'Tambah KB'}
-                    </span>
-                  </Button>
-                ) : null}
-                <Button
-                  type='button'
-                  variant='primary'
-                  shape='pill'
-                  hug
-                  disabled={!isCurrentStepValid || isProcessing}
-                  isLoading={isProcessing}
-                  onClick={actions.nextStep}
-                  withTrailingCircleIcon
-                  trailingIcon={<Icons.arrowUpRight />}
-                >
-                  {isLastStep
-                    ? isProcessing
-                      ? 'Menyimpan data...'
-                      : 'Lanjutkan ke Reservasi'
-                    : 'Lanjutkan'}
-                </Button>
-              </div>
+              <Button
+                type='button'
+                variant='primary'
+                shape='pill'
+                hug
+                disabled={!isCurrentStepValid || isProcessing}
+                isLoading={isProcessing}
+                onClick={actions.nextStep}
+                withTrailingCircleIcon
+                trailingIcon={<Icons.arrowUpRight />}
+              >
+                {isLastStep
+                  ? isProcessing
+                    ? 'Menyimpan data...'
+                    : 'Lanjutkan ke Reservasi'
+                  : 'Lanjutkan'}
+              </Button>
             </div>
           </form.Form>
         </form.AppForm>

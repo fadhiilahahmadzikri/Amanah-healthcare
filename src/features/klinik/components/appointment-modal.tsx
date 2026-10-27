@@ -65,6 +65,7 @@ export function AppointmentModal({
     createdAppointment,
     activeTicketConflict,
     stepContainerRef,
+    isMobile,
     handleSelectServiceItem,
     handlePatientCreated,
     handlePatientUpdated,
@@ -87,6 +88,19 @@ export function AppointmentModal({
   );
   const [isCompleted, setIsCompleted] = React.useState(false);
 
+  const targetFlow =
+    bookingContext?.formType ||
+    (selectedService?.medicalFlow === 'pregnancy'
+      ? 'pregnancy'
+      : selectedService?.medicalFlow === 'immunization'
+        ? 'immunization'
+        : 'regular');
+
+  const isKebidanan =
+    targetFlow === 'pregnancy' ||
+    activeMedicalFlow === 'pregnancy' ||
+    selectedService?.medicalFlow === 'pregnancy';
+
   React.useEffect(() => {
     if (!isOpen) {
       setEditingPatient(null);
@@ -94,6 +108,12 @@ export function AppointmentModal({
       setIsCompleted(false);
     }
   }, [isOpen]);
+
+  React.useEffect(() => {
+    if (isMobile && isKebidanan && step === 'patient') {
+      setStep('patient_new');
+    }
+  }, [isMobile, isKebidanan, step, setStep]);
 
   if (!isOpen) return null;
 
@@ -105,14 +125,6 @@ export function AppointmentModal({
     step === 'patient_new' ||
     step === 'confirmation' ||
     step === 'ticket_conflict';
-
-  const targetFlow =
-    bookingContext?.formType ||
-    (selectedService?.medicalFlow === 'pregnancy'
-      ? 'pregnancy'
-      : selectedService?.medicalFlow === 'immunization'
-        ? 'immunization'
-        : 'regular');
 
   return (
     <>
@@ -175,7 +187,7 @@ export function AppointmentModal({
               />
             )}
 
-            {step === 'patient' && (
+            {step === 'patient' && !(isMobile && isKebidanan) && (
               <BookingPatientSelectionStep
                 patients={patients}
                 selectedPatientId={selectedPatientId}
@@ -188,8 +200,15 @@ export function AppointmentModal({
 
             {step === 'patient_new' && (
               <BookingRegularPatientForm
+                initialRelationship={selectedRelationship}
                 onSuccess={handlePatientCreated}
-                onCancel={() => (patients.length > 0 ? setStep('patient') : setStep('service'))}
+                onCancel={() =>
+                  isMobile && isKebidanan
+                    ? setStep('service')
+                    : patients.length > 0
+                      ? setStep('patient')
+                      : setStep('service')
+                }
                 allowedRelationships={bookingContext?.allowedRelationships}
                 hasExistingSelf={patients.some((p) => p.relationship === 'self' || p.isSelf)}
                 targetFlow={targetFlow}
@@ -254,7 +273,13 @@ export function AppointmentModal({
                       if (step === 'service') setStep('category');
                       else if (step === 'patient') setStep('service');
                       else if (step === 'date')
-                        setStep(patients.length > 0 ? 'patient' : 'service');
+                        setStep(
+                          patients.length > 0
+                            ? isMobile && isKebidanan
+                              ? 'patient_new'
+                              : 'patient'
+                            : 'service'
+                        );
                       else if (step === 'session') setStep('date');
                       else if (step === 'visit_type') setStep('session');
                       else if (step === 'complaint') setStep('visit_type');
@@ -410,7 +435,11 @@ export function AppointmentModal({
           newPatientRelationship={selectedRelationship}
           onBackToService={() => {
             setActiveMedicalFlow(null);
-            setStep('patient');
+            if (isMobile && isKebidanan) {
+              setStep('patient_new');
+            } else {
+              setStep('patient');
+            }
           }}
           onClose={() => {
             setActiveMedicalFlow(null);

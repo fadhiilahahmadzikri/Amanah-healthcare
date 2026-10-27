@@ -25,6 +25,7 @@ export interface BookingRegularPatientFormProps {
   targetFlow?: 'pregnancy' | 'immunization' | 'regular';
   onRelationshipSubmit?: (relationship: PatientRelationshipType) => void;
   hasExistingSelf?: boolean;
+  initialRelationship?: PatientRelationshipType | string;
 }
 
 export function BookingRegularPatientForm({
@@ -33,7 +34,8 @@ export function BookingRegularPatientForm({
   allowedRelationships,
   targetFlow,
   onRelationshipSubmit,
-  hasExistingSelf = false
+  hasExistingSelf = false,
+  initialRelationship
 }: BookingRegularPatientFormProps) {
   const {
     currentStep,
@@ -78,7 +80,8 @@ export function BookingRegularPatientForm({
     targetFlow,
     onRelationshipSubmit,
     allowedRelationships,
-    hasExistingSelf
+    hasExistingSelf,
+    initialRelationship
   });
 
   const activeRelationshipLabel = React.useMemo(() => {
@@ -145,13 +148,14 @@ export function BookingRegularPatientForm({
         step: 8,
         label: 'Alamat',
         value: region.line1 || '-',
-        valueClass: 'font-semibold text-foreground truncate max-w-[170px] sm:max-w-[210px]'
+        valueClass: 'font-semibold text-foreground truncate max-w-[160px] sm:max-w-[210px]'
       },
       {
         step: 9,
         label: 'Pekerjaan',
         value: activeOccupationName || '-',
-        valueClass: 'font-semibold text-foreground'
+        valueClass:
+          'font-semibold text-foreground break-words max-w-[160px] sm:max-w-[210px] leading-snug whitespace-normal'
       }
     ],
     [
@@ -365,24 +369,24 @@ export function BookingRegularPatientForm({
                   }
                 }}
                 className={cn(
-                  'group/item relative flex items-center justify-between py-2 px-2.5 rounded-xl transition-colors cursor-pointer select-none border border-transparent',
+                  'group/item relative flex items-start justify-between py-2 px-2.5 rounded-xl transition-colors cursor-pointer select-none border border-transparent',
                   'hover:bg-card hover:border-border/60 hover:shadow-xs active:scale-[0.995]',
                   idx < reviewItems.length - 1 && 'border-b-border/40'
                 )}
               >
-                <span className='text-muted-foreground text-[11px] sm:text-xs shrink-0 group-hover/item:text-foreground transition-colors'>
+                <span className='text-muted-foreground text-[11px] sm:text-xs shrink-0 group-hover/item:text-foreground transition-colors pt-0.5'>
                   {item.label}
                 </span>
 
-                <div className='flex items-center gap-2 shrink-0 ml-auto pl-2'>
-                  <div className='flex items-center gap-1 text-[11px] font-semibold text-primary shrink-0 opacity-0 sm:group-hover/item:opacity-100 transition-opacity duration-150 pointer-events-none'>
+                <div className='flex items-start gap-2 shrink-0 ml-auto pl-2'>
+                  <div className='flex items-center gap-1 text-[11px] font-semibold text-primary shrink-0 opacity-0 sm:group-hover/item:opacity-100 transition-opacity duration-150 pointer-events-none pt-0.5'>
                     <Icons.arrowRight className='size-3 stroke-[2.5]' />
                     <span className='text-[10.5px] whitespace-nowrap'>Edit data ini</span>
                   </div>
 
                   <span
                     className={cn(
-                      'text-xs truncate text-right max-w-[170px] sm:max-w-[210px]',
+                      'text-xs text-right max-w-[160px] sm:max-w-[210px] break-words leading-snug',
                       item.valueClass
                     )}
                   >

@@ -182,6 +182,7 @@ export default function NotificationsPage() {
                               key={item.id}
                               notification={item}
                               isSelected={notificationsPage.selectedIds.has(item.id)}
+                              isSelectionMode={notificationsPage.selectedIds.size > 0}
                               onToggleSelect={notificationsPage.actions.toggleSelect}
                               onMarkAsRead={notificationsPage.actions.markAsRead}
                             />
@@ -229,51 +230,58 @@ export default function NotificationsPage() {
             )}
           </div>
 
-          {/* Floating Batch Actions Toolbar */}
-          <div
-            ref={notificationsPage.bulkBarRef}
-            style={{
-              display: 'none',
-              transform: 'translate(-50%, 80px)',
-              opacity: 0
-            }}
-            className='fixed bottom-6 left-1/2 bg-primary text-primary-foreground px-4 py-2.5 rounded-2xl shadow-2xl items-center gap-3 z-50 border border-primary/20 backdrop-blur-md'
-          >
-            <div className='flex items-center gap-2 text-xs font-semibold border-r border-primary-foreground/20 pr-3'>
-              <span className='px-2 py-0.5 bg-primary-foreground/20 rounded-md font-bold text-xs'>
-                {notificationsPage.selectedIds.size}
-              </span>
-              <span>notifikasi dipilih</span>
-            </div>
+          {/* Floating Batch Actions Toolbar — Flexbox-centered on all viewports without GSAP transform collisions */}
+          <div className='fixed bottom-6 inset-x-0 z-50 pointer-events-none flex justify-center px-4'>
+            <div
+              ref={notificationsPage.bulkBarRef}
+              style={{
+                display: 'none',
+                transform: 'translateY(80px)',
+                opacity: 0
+              }}
+              className='pointer-events-auto bg-primary text-primary-foreground px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-2xl shadow-2xl flex items-center gap-2 sm:gap-3 border border-primary/20 backdrop-blur-md max-w-[calc(100vw-2rem)] w-auto'
+            >
+              <div className='flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-semibold border-r border-primary-foreground/20 pr-2 sm:pr-3 shrink-0'>
+                <span className='px-1.5 sm:px-2 py-0.5 bg-primary-foreground/20 rounded-md font-bold text-[11px] sm:text-xs'>
+                  {notificationsPage.selectedIds.size}
+                </span>
+                <span className='whitespace-nowrap'>
+                  <span className='hidden xs:inline'>notifikasi </span>dipilih
+                </span>
+              </div>
 
-            <div className='flex items-center gap-2'>
-              <Button
-                size='sm'
-                variant='secondary'
-                onClick={handleBulkMarkAsRead}
-                className='h-7.5 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer bg-primary-foreground/15 hover:bg-primary-foreground/25 text-primary-foreground'
-              >
-                <Icons.checks className='size-3.5' />
-                <span>Tandai Dibaca</span>
-              </Button>
+              <div className='flex items-center gap-1.5 sm:gap-2 shrink-0'>
+                <Button
+                  size='sm'
+                  variant='secondary'
+                  onClick={handleBulkMarkAsRead}
+                  className='h-7 sm:h-7.5 px-2.5 sm:px-3 rounded-lg text-[11px] sm:text-xs font-semibold flex items-center gap-1 sm:gap-1.5 cursor-pointer bg-primary-foreground/15 hover:bg-primary-foreground/25 text-primary-foreground'
+                >
+                  <Icons.checks className='size-3 sm:size-3.5' />
+                  <span className='hidden sm:inline'>Tandai Dibaca</span>
+                  <span className='inline sm:hidden'>Dibaca</span>
+                </Button>
 
-              <Button
-                size='sm'
-                variant='destructive'
-                onClick={handleBulkDelete}
-                className='h-7.5 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer'
-              >
-                <Icons.trash className='size-3.5' />
-                <span>Hapus</span>
-              </Button>
+                <Button
+                  size='sm'
+                  variant='destructive'
+                  onClick={handleBulkDelete}
+                  className='h-7 sm:h-7.5 px-2.5 sm:px-3 rounded-lg text-[11px] sm:text-xs font-semibold flex items-center gap-1 sm:gap-1.5 cursor-pointer'
+                >
+                  <Icons.trash className='size-3 sm:size-3.5' />
+                  <span>Hapus</span>
+                </Button>
 
-              <button
-                type='button'
-                onClick={notificationsPage.actions.clearSelection}
-                className='p-1 rounded-lg hover:bg-primary-foreground/10 text-primary-foreground/80 hover:text-primary-foreground transition cursor-pointer ml-0.5'
-              >
-                <Icons.close className='size-4' />
-              </button>
+                <button
+                  type='button'
+                  onClick={notificationsPage.actions.clearSelection}
+                  className='p-1 rounded-lg hover:bg-primary-foreground/10 text-primary-foreground/80 hover:text-primary-foreground transition cursor-pointer ml-0.5'
+                  title='Batalkan pilihan'
+                  aria-label='Batalkan pilihan'
+                >
+                  <Icons.close className='size-3.5 sm:size-4' />
+                </button>
+              </div>
             </div>
           </div>
         </div>

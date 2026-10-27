@@ -48,7 +48,7 @@ export function InspectorIdentityTab({ appointment, data }: InspectorTabProps) {
           readOnly
         />
 
-        <div className='grid grid-cols-2 gap-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
           <PatientLineInput
             id='identity-mother-nik'
             label='NIK Ibu Hamil'
@@ -64,7 +64,7 @@ export function InspectorIdentityTab({ appointment, data }: InspectorTabProps) {
           />
         </div>
 
-        <div className='grid grid-cols-2 gap-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
           <PatientLineInput
             id='identity-mother-birthplace'
             label='Tempat Lahir'
@@ -80,7 +80,7 @@ export function InspectorIdentityTab({ appointment, data }: InspectorTabProps) {
           />
         </div>
 
-        <div className='grid grid-cols-2 gap-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
           <PatientLineInput id='identity-mother-age' label='Usia Ibu' value={motherAge} readOnly />
           <PatientLineInput
             id='identity-mother-tetanus'
@@ -104,7 +104,7 @@ export function InspectorIdentityTab({ appointment, data }: InspectorTabProps) {
           Parameter Klinis & Masa Kehamilan
         </span>
 
-        <div className='grid grid-cols-2 gap-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
           <PatientLineInput
             id='identity-gestational-age'
             label='Usia Kehamilan'
@@ -119,7 +119,7 @@ export function InspectorIdentityTab({ appointment, data }: InspectorTabProps) {
           />
         </div>
 
-        <div className='grid grid-cols-2 gap-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
           <PatientLineInput
             id='identity-hpht'
             label='HPHT (Haid Terakhir)'
@@ -136,7 +136,7 @@ export function InspectorIdentityTab({ appointment, data }: InspectorTabProps) {
           />
         </div>
 
-        <div className='grid grid-cols-2 gap-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
           <PatientLineInput
             id='identity-mother-height'
             label='Tinggi Badan (TB)'

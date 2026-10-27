@@ -40,7 +40,7 @@ export function InspectorPartnerTab({ data }: InspectorTabProps) {
           readOnly
         />
 
-        <div className='grid grid-cols-2 gap-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
           <PatientLineInput
             id='partner-nik'
             label='NIK Suami'
@@ -56,7 +56,7 @@ export function InspectorPartnerTab({ data }: InspectorTabProps) {
           />
         </div>
 
-        <div className='grid grid-cols-2 gap-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
           <PatientLineInput id='partner-age' label='Usia Suami' value={partnerAge} readOnly />
           <PatientLineInput
             id='partner-blood'
@@ -66,7 +66,7 @@ export function InspectorPartnerTab({ data }: InspectorTabProps) {
           />
         </div>
 
-        <div className='grid grid-cols-2 gap-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
           <PatientLineInput id='partner-job' label='Pekerjaan Suami' value={partnerJob} readOnly />
           <PatientLineInput
             id='partner-education'
@@ -83,7 +83,7 @@ export function InspectorPartnerTab({ data }: InspectorTabProps) {
           Kontak Ibu & Wilayah Domisili
         </span>
 
-        <div className='grid grid-cols-2 gap-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
           <PatientLineInput
             id='mother-phone'
             label='Nomor HP / WhatsApp Ibu'
@@ -93,7 +93,7 @@ export function InspectorPartnerTab({ data }: InspectorTabProps) {
           <PatientLineInput id='mother-job' label='Pekerjaan Ibu' value={motherJob} readOnly />
         </div>
 
-        <div className='grid grid-cols-2 gap-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
           <PatientLineInput
             id='mother-education'
             label='Pendidikan Terakhir Ibu'
@@ -108,7 +108,7 @@ export function InspectorPartnerTab({ data }: InspectorTabProps) {
           />
         </div>
 
-        <div className='grid grid-cols-2 gap-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
           <PatientLineInput id='partner-posyandu' label='Posyandu' value={posyandu} readOnly />
           <PatientLineInput id='partner-dasawisma' label='Dasawisma' value={dasawisma} readOnly />
         </div>

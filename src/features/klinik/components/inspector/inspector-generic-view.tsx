@@ -22,7 +22,7 @@ export function InspectorGenericView({ appointment, data }: InspectorTabProps) {
     const allergyHistory = child?.childAllergyHistory || '-';
 
     return (
-      <div className='grid grid-cols-2 gap-y-3 gap-x-5'>
+      <div className='grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-5'>
         <div className='border-b border-border/40 pb-2'>
           <span className='text-xs font-normal text-muted-foreground block mb-0.5'>NIK Anak</span>
           <span className='text-sm font-semibold font-mono text-foreground block truncate'>
@@ -57,7 +57,7 @@ export function InspectorGenericView({ appointment, data }: InspectorTabProps) {
           </span>
         </div>
 
-        <div className='col-span-2 border-b border-border/40 pb-2'>
+        <div className='col-span-1 sm:col-span-2 border-b border-border/40 pb-2'>
           <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
             Nama Orang Tua (Ayah / Ibu)
           </span>
@@ -66,21 +66,21 @@ export function InspectorGenericView({ appointment, data }: InspectorTabProps) {
           </span>
         </div>
 
-        <div className='col-span-2 border-b border-border/40 pb-2'>
+        <div className='col-span-1 sm:col-span-2 border-b border-border/40 pb-2'>
           <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
             Alamat Tempat Tinggal
           </span>
           <p className='text-sm font-medium text-foreground leading-relaxed'>{address}</p>
         </div>
 
-        <div className='col-span-2 border-b border-border/40 pb-2'>
+        <div className='col-span-1 sm:col-span-2 border-b border-border/40 pb-2'>
           <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
             Riwayat Vaksinasi Sebelumnya
           </span>
           <p className='text-sm font-medium text-foreground leading-relaxed'>{vaccineHistory}</p>
         </div>
 
-        <div className='col-span-2 border-b border-border/40 pb-2'>
+        <div className='col-span-1 sm:col-span-2 border-b border-border/40 pb-2'>
           <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
             Riwayat Alergi Anak
           </span>
@@ -137,7 +137,7 @@ export function InspectorGenericView({ appointment, data }: InspectorTabProps) {
     : null;
 
   return (
-    <div className='grid grid-cols-2 gap-y-3 gap-x-5'>
+    <div className='grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-5'>
       {mrn !== '-' && (
         <div className='border-b border-border/40 pb-2'>
           <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
@@ -206,7 +206,7 @@ export function InspectorGenericView({ appointment, data }: InspectorTabProps) {
         <span className='text-sm font-semibold text-foreground block truncate'>{email}</span>
       </div>
 
-      <div className='col-span-2 border-b border-border/40 pb-2'>
+      <div className='col-span-1 sm:col-span-2 border-b border-border/40 pb-2'>
         <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
           Alamat Domisili
         </span>
@@ -214,7 +214,7 @@ export function InspectorGenericView({ appointment, data }: InspectorTabProps) {
       </div>
 
       {emergency && (
-        <div className='col-span-2 border-b border-border/40 pb-2'>
+        <div className='col-span-1 sm:col-span-2 border-b border-border/40 pb-2'>
           <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
             Kontak Darurat
           </span>
@@ -223,11 +223,11 @@ export function InspectorGenericView({ appointment, data }: InspectorTabProps) {
       )}
 
       {autoEntries.length > 0 && (
-        <div className='col-span-2 pt-2'>
+        <div className='col-span-1 sm:col-span-2 pt-2'>
           <span className='text-xs font-bold text-foreground block mb-2'>
             Kalkulasi Klinis Otomatis
           </span>
-          <div className='grid grid-cols-2 gap-y-3 gap-x-5'>
+          <div className='grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-5'>
             {autoEntries.map(([key, val]) => (
               <div key={key} className='border-b border-border/40 pb-2'>
                 <span className='text-xs font-normal text-muted-foreground block mb-0.5 truncate'>
@@ -243,11 +243,11 @@ export function InspectorGenericView({ appointment, data }: InspectorTabProps) {
       )}
 
       {entries.length > 0 && (
-        <div className='col-span-2 pt-2'>
+        <div className='col-span-1 sm:col-span-2 pt-2'>
           <span className='text-xs font-bold text-foreground block mb-2'>
             Jawaban Formulir Tambahan
           </span>
-          <div className='grid grid-cols-2 gap-y-3 gap-x-5'>
+          <div className='grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-5'>
             {entries.map(([key, val]) => (
               <div key={key} className='border-b border-border/40 pb-2'>
                 <span className='text-xs font-normal text-muted-foreground block mb-0.5 truncate'>

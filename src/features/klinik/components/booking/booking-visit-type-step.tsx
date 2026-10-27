@@ -29,15 +29,12 @@ const VISIT_TYPE_OPTIONS = [
   }
 ];
 
-export function BookingVisitTypeStep({
-  visitType,
-  setVisitType
-}: BookingVisitTypeStepProps) {
+export function BookingVisitTypeStep({ visitType, setVisitType }: BookingVisitTypeStepProps) {
   return (
     <div className='space-y-4'>
       <div>
         <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
-          Ini kunjungan keberapa kamu? 🩺
+          Ini kunjungan keberapa kamu?
         </h3>
         <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
           Beri tahu kami apakah ini pemeriksaan keluhan baru atau kontrol lanjutan.
@@ -76,9 +73,7 @@ export function BookingVisitTypeStep({
                 <span className='text-sm font-bold text-foreground group-hover:text-primary transition-colors block'>
                   {opt.title}
                 </span>
-                <p className='text-xs text-muted-foreground leading-relaxed'>
-                  {opt.description}
-                </p>
+                <p className='text-xs text-muted-foreground leading-relaxed'>{opt.description}</p>
               </div>
 
               <div className='shrink-0 self-center pl-1'>

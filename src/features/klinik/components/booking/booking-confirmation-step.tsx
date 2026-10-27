@@ -6,10 +6,7 @@ import type { ServiceCatalogItem } from '../../api/catalog.service';
 import type { PatientAffiliationProfile } from '@/features/data-pasien/api/patient-affiliation-service';
 import { formatClinicDate } from '@/lib/date-format';
 import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
-import {
-  formatFriendlyVisitType,
-  type CanonicalVisitType
-} from '@/constants/visit-type.constants';
+import { formatFriendlyVisitType, type CanonicalVisitType } from '@/constants/visit-type.constants';
 
 export interface BookingConfirmationStepProps {
   selectedService: ServiceCatalogItem | null;
@@ -40,8 +37,8 @@ export function BookingConfirmationStep({
       <div>
         <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
           {isReschedule
-            ? 'Cek ringkasan jadwal baru janji temu ✨'
-            : 'Cek lagi ringkasan janji temu kamu ya ✨'}
+            ? 'Cek ringkasan jadwal baru janji temu'
+            : 'Cek lagi ringkasan janji temu kamu ya'}
         </h3>
         <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
           {isReschedule

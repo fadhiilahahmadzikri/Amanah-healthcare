@@ -85,7 +85,7 @@ export function InspectorObstetricTab({ data }: InspectorTabProps) {
           readOnly
         />
 
-        <div className='grid grid-cols-2 gap-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
           <PatientLineInput
             id='obstetric-gravida'
             label='Gravida (Kehamilan Ke)'
@@ -100,7 +100,7 @@ export function InspectorObstetricTab({ data }: InspectorTabProps) {
           />
         </div>
 
-        <div className='grid grid-cols-2 gap-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
           <PatientLineInput
             id='obstetric-abortus'
             label='Abortus (Keguguran)'
@@ -133,7 +133,7 @@ export function InspectorObstetricTab({ data }: InspectorTabProps) {
                 key={idx}
                 className='space-y-3 pt-1 border-b border-border/20 pb-3 last:border-b-0'
               >
-                <div className='grid grid-cols-2 gap-4'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                   <PatientLineInput
                     id={`obstetric-prev-child-${idx}`}
                     label={`Anak Ke-${p.orderNumber || idx + 1}`}
@@ -147,7 +147,7 @@ export function InspectorObstetricTab({ data }: InspectorTabProps) {
                     readOnly
                   />
                 </div>
-                <div className='grid grid-cols-2 gap-4'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                   <PatientLineInput
                     id={`obstetric-prev-method-${idx}`}
                     label='Cara & Penolong Persalinan'
@@ -173,7 +173,7 @@ export function InspectorObstetricTab({ data }: InspectorTabProps) {
           Riwayat KB & Perencanaan Kontrasepsi
         </span>
 
-        <div className='grid grid-cols-2 gap-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
           <PatientLineInput
             id='obstetric-ever-kb'
             label='Pernah Menggunakan KB'
@@ -206,7 +206,7 @@ export function InspectorObstetricTab({ data }: InspectorTabProps) {
                 key={idx}
                 className='space-y-3 pt-1 border-b border-border/20 pb-3 last:border-b-0'
               >
-                <div className='grid grid-cols-2 gap-4'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                   <PatientLineInput
                     id={`kb-type-${idx}`}
                     label={`Metode KB #${idx + 1}`}

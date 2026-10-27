@@ -16,6 +16,7 @@ import { executeNotificationAction } from '../utils/notification-action-dispatch
 export interface ClinicNotificationCardProps {
   notification: ClinicNotification;
   isSelected?: boolean;
+  isSelectionMode?: boolean;
   onToggleSelect?: (id: string) => void;
   onMarkAsRead?: (id: string) => void;
   className?: string;
@@ -85,6 +86,7 @@ export function getCategoryTagConfig(category: string) {
 export function ClinicNotificationCard({
   notification,
   isSelected = false,
+  isSelectionMode = false,
   onToggleSelect,
   onMarkAsRead,
   className
@@ -92,6 +94,91 @@ export function ClinicNotificationCard({
   const router = useRouter();
   const isUnread = notification.status === 'unread';
   const categoryConfig = getCategoryTagConfig(notification.category);
+
+  // Hold / Long-press detection to trigger selection mode on mobile
+  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const startPosRef = React.useRef<{ x: number; y: number } | null>(null);
+  const isLongPressTriggeredRef = React.useRef(false);
+
+  const clearLongPressTimer = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    startPosRef.current = null;
+  };
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLElement>) => {
+    // Only respond to primary touch/click
+    if (e.button !== 0) return;
+    // Don't trigger hold selection when clicking interactive elements inside the card
+    if ((e.target as HTMLElement).closest('button, a, input, [role="button"], [role="checkbox"]')) {
+      return;
+    }
+
+    isLongPressTriggeredRef.current = false;
+    startPosRef.current = { x: e.clientX, y: e.clientY };
+
+    clearLongPressTimer();
+    timerRef.current = setTimeout(() => {
+      isLongPressTriggeredRef.current = true;
+      if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+        try {
+          navigator.vibrate?.(50);
+        } catch {
+          // ignore error if vibration not allowed
+        }
+      }
+      onToggleSelect?.(notification.id);
+    }, 500); // 500ms canonical hold duration
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLElement>) => {
+    if (!startPosRef.current || !timerRef.current) return;
+    const dx = Math.abs(e.clientX - startPosRef.current.x);
+    const dy = Math.abs(e.clientY - startPosRef.current.y);
+    // Cancel hold timer if finger moves more than 10px (user is scrolling)
+    if (dx > 10 || dy > 10) {
+      clearLongPressTimer();
+    }
+  };
+
+  const handlePointerUp = () => {
+    clearLongPressTimer();
+  };
+
+  const handlePointerCancel = () => {
+    clearLongPressTimer();
+  };
+
+  const handleContextMenu = (e: React.MouseEvent<HTMLElement>) => {
+    // Suppress native mobile context menu when long press was triggered
+    if (isLongPressTriggeredRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+
+  const handleCardClick = (e: React.MouseEvent<HTMLElement>) => {
+    // If long press just fired, prevent synthetic click
+    if (isLongPressTriggeredRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      isLongPressTriggeredRef.current = false;
+      return;
+    }
+
+    // In selection mode, tapping anywhere on the card toggles its selection
+    if (isSelectionMode) {
+      if (
+        (e.target as HTMLElement).closest('button, a, input, [role="button"], [role="checkbox"]')
+      ) {
+        return;
+      }
+      e.preventDefault();
+      onToggleSelect?.(notification.id);
+    }
+  };
 
   // Sub-badge icon selector: strictly backend-driven, null if omitted
   const renderBadgeIcon = (iconName?: string | null) => {
@@ -201,8 +288,16 @@ export function ClinicNotificationCard({
   return (
     <article
       id={`notif-card-${notification.id}`}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
+      onPointerLeave={handlePointerCancel}
+      onContextMenu={handleContextMenu}
+      onClick={handleCardClick}
       className={cn(
-        'notif-item-card group relative rounded-xl p-4 sm:p-5 border transition-all duration-200 bg-card text-card-foreground shadow-none',
+        'notif-item-card group relative rounded-xl p-4 sm:p-5 border transition-all duration-200 bg-card text-card-foreground select-none touch-manipulation shadow-none',
+        isSelectionMode && 'cursor-pointer',
         isUnread ? 'border-primary/40 bg-card shadow-xs' : 'border-border/60 hover:border-border',
         isSelected && 'ring-2 ring-primary/40 bg-primary/[0.03] border-primary/50',
         className
@@ -244,14 +339,18 @@ export function ClinicNotificationCard({
 
       {/* 2. Optical Left-Aligned Layout Grid */}
       <div className='flex items-start gap-3.5 sm:gap-4'>
-        {/* Column 1: Visible Checkbox + Avatar + Sub-badge */}
+        {/* Column 1: Checkbox (visible when held / in selection mode) + Avatar + Sub-badge */}
         <div className='flex items-center gap-3 shrink-0 pt-0.5'>
-          <Checkbox
-            checked={isSelected}
-            onCheckedChange={() => onToggleSelect?.(notification.id)}
-            aria-label={`Pilih notifikasi ${notification.sender}`}
-            className='size-4.5 rounded border-2 border-primary/50 bg-background data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground transition-all cursor-pointer shadow-2xs'
-          />
+          {(isSelectionMode || isSelected) && (
+            <div className='animate-in fade-in zoom-in-90 duration-150'>
+              <Checkbox
+                checked={isSelected}
+                onCheckedChange={() => onToggleSelect?.(notification.id)}
+                aria-label={`Pilih notifikasi ${notification.sender}`}
+                className='size-4.5 rounded border-2 border-primary/50 bg-background data-[state=checked]:bg-primary data-[state=checked]:border-primary data-[state=checked]:text-primary-foreground transition-all cursor-pointer shadow-2xs'
+              />
+            </div>
+          )}
 
           <div className='relative shrink-0'>
             <Avatar className='size-10 sm:size-11 ring-1 ring-border/60 bg-muted'>

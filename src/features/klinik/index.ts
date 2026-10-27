@@ -21,7 +21,11 @@ export {
 } from './components/history/history-tables';
 export { useClinicalHistoryTable } from './model/useClinicalHistoryTable';
 export { useClinicalHistoryDialogs } from './model/useClinicalHistoryDialogs';
+export { useClinicalHistoryDynamicOptions } from './model/useClinicalHistoryDynamicOptions';
+export type { UseClinicalHistoryDynamicOptionsProps } from './model/useClinicalHistoryDynamicOptions';
 export { useAppointmentsView } from './model/useAppointmentsView';
+export { useAppointmentDynamicOptions } from './model/useAppointmentDynamicOptions';
+export type { UseAppointmentDynamicOptionsProps } from './model/useAppointmentDynamicOptions';
 export { useQueueView } from './model/useQueueView';
 export { useConsultationTimer } from './hooks/useConsultationTimer';
 export { useMedicalAppointmentForm } from './model/useMedicalAppointmentForm';

@@ -124,7 +124,7 @@ export function InspectorClinicalTab({ data }: InspectorTabProps) {
           Kebiasaan 1 Bulan Sebelum Hamil
         </span>
 
-        <div className='grid grid-cols-2 gap-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
           <PatientLineInput id='habit-smoking' label='Merokok Pra-Hamil' value={smoking} readOnly />
           <PatientLineInput
             id='habit-alcohol'
@@ -134,7 +134,7 @@ export function InspectorClinicalTab({ data }: InspectorTabProps) {
           />
         </div>
 
-        <div className='grid grid-cols-2 gap-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
           <PatientLineInput id='habit-diet' label='Pola Makan Tak Teratur' value={diet} readOnly />
           <PatientLineInput
             id='habit-activity'
@@ -144,7 +144,7 @@ export function InspectorClinicalTab({ data }: InspectorTabProps) {
           />
         </div>
 
-        <div className='grid grid-cols-2 gap-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
           <PatientLineInput
             id='habit-meds'
             label='Minum Obat Tanpa Resep'
@@ -159,7 +159,7 @@ export function InspectorClinicalTab({ data }: InspectorTabProps) {
           />
         </div>
 
-        <div className='grid grid-cols-2 gap-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
           <PatientLineInput
             id='habit-pesticide'
             label='Paparan Pestisida Tanaman'
