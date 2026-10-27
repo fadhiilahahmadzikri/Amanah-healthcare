@@ -12,12 +12,12 @@ export interface PmbObstetriSectionProps {
 export const PmbObstetriSection: React.FC<PmbObstetriSectionProps> = ({
   config,
   data = [],
-  pregnancyFields,
+  pregnancyFields
 }) => {
-  const colWidths = [4.79, 14.26, 13.8, 5.15, 5.71, 11.41, 15.83, 17.95, 11.1];
+  const colWidths = [4.5, 9.5, 13.0, 5.0, 9.0, 11.0, 14.0, 17.0, 17.0];
 
   return (
-    <div className="w-full mb-1">
+    <div className='w-full mb-1'>
       <ObstetriHeader
         title={config.title}
         pregnancyFields={config.pregnancyFields}
@@ -26,20 +26,20 @@ export const PmbObstetriSection: React.FC<PmbObstetriSectionProps> = ({
         fieldPt={7.2}
       />
 
-      <table className="w-full border-collapse border border-black table-fixed bg-white">
+      <table className='w-full border-collapse border border-black table-fixed bg-white'>
         <colgroup>
           {colWidths.map((w, i) => (
             <col key={i} style={{ width: `${w}%` }} />
           ))}
         </colgroup>
         <thead>
-          <tr className="h-[18px] bg-white border-b border-black">
+          <tr className='h-[18px] bg-white border-b border-black'>
             {config.headers.map((header, idx) => (
               <th
                 key={idx}
-                className="border border-black px-[2px] py-[1px] text-center align-middle"
+                className='border border-black px-[2px] py-[1px] text-center align-middle'
               >
-                <FormText customPt={6.8} bold align="center">
+                <FormText customPt={6.5} bold align='center'>
                   {header}
                 </FormText>
               </th>
@@ -50,7 +50,7 @@ export const PmbObstetriSection: React.FC<PmbObstetriSectionProps> = ({
           {Array.from({ length: config.blankRows }).map((_, rowIdx) => {
             const rowData = data[rowIdx] || [];
             return (
-              <tr key={rowIdx} className="h-[20px]">
+              <tr key={rowIdx} className='h-[20px]'>
                 {colWidths.map((_, colIdx) => (
                   <td
                     key={colIdx}
@@ -58,7 +58,7 @@ export const PmbObstetriSection: React.FC<PmbObstetriSectionProps> = ({
                       colIdx === 0 || colIdx === 3 ? 'text-center' : 'text-left'
                     }`}
                   >
-                    <FormText customPt={6.8}>
+                    <FormText customPt={6.3} className='leading-tight'>
                       {colIdx === 0 && !rowData[colIdx] ? `${rowIdx + 1}.` : rowData[colIdx] || ''}
                     </FormText>
                   </td>

@@ -17,13 +17,13 @@ export interface PmbIdentitySectionProps {
 }
 
 export const PmbIdentitySection: React.FC<PmbIdentitySectionProps> = ({ config, data }) => {
-  const colWidths = [11.5, 26.69, 14.26, 10.12, 14.73, 22.7];
+  const colWidths = [11.0, 25.0, 14.0, 18.0, 13.0, 19.0];
 
   return (
-    <div className="w-full mb-1">
-      <SectionHeader title="IDENTITAS" beforeGapPx={2} afterGapPx={2} />
+    <div className='w-full mb-1'>
+      <SectionHeader title='IDENTITAS' beforeGapPx={2} afterGapPx={2} />
 
-      <table className="w-full border-collapse border border-black table-fixed bg-white">
+      <table className='w-full border-collapse border border-black table-fixed bg-white'>
         <colgroup>
           {colWidths.map((w, i) => (
             <col key={i} style={{ width: `${w}%` }} />
@@ -32,7 +32,7 @@ export const PmbIdentitySection: React.FC<PmbIdentitySectionProps> = ({ config, 
         <tbody>
           {/* Top 5 Rows */}
           {config.topRows.map((rowItems, rowIdx) => (
-            <tr key={rowIdx} className="h-[17px]">
+            <tr key={rowIdx} className='h-[17px]'>
               {rowItems.map((item, colIdx) => {
                 const isLabel = colIdx % 2 === 0;
                 const valueIdx = (colIdx - 1) / 2;
@@ -41,12 +41,12 @@ export const PmbIdentitySection: React.FC<PmbIdentitySectionProps> = ({ config, 
                 return (
                   <td
                     key={colIdx}
-                    className="border border-black px-[2px] py-[0.5px] align-middle overflow-hidden"
+                    className='border border-black px-[2px] py-[0.5px] align-middle overflow-hidden'
                   >
                     {isLabel ? (
                       <FormText customPt={6.6}>{item}</FormText>
                     ) : (
-                      <DottedLine value={value} customPt={6.6} minHeight="13px" />
+                      <DottedLine value={value} customPt={6.6} minHeight='13px' />
                     )}
                   </td>
                 );
@@ -56,16 +56,12 @@ export const PmbIdentitySection: React.FC<PmbIdentitySectionProps> = ({ config, 
 
           {/* Full Rows (Agama, Domisili, Alamat KTP, No. Telp) */}
           {config.fullRows.map((label, rowIdx) => (
-            <tr key={rowIdx} className="h-[17px]">
-              <td className="border border-black px-[2px] py-[0.5px] align-middle">
+            <tr key={rowIdx} className='h-[17px]'>
+              <td className='border border-black px-[2px] py-[0.5px] align-middle'>
                 <FormText customPt={6.6}>{label}</FormText>
               </td>
-              <td colSpan={5} className="border border-black px-[2px] py-[0.5px] align-middle">
-                <DottedLine
-                  value={data?.fullRowValues?.[rowIdx]}
-                  customPt={6.6}
-                  minHeight="13px"
-                />
+              <td colSpan={5} className='border border-black px-[2px] py-[0.5px] align-middle'>
+                <DottedLine value={data?.fullRowValues?.[rowIdx]} customPt={6.6} minHeight='13px' />
               </td>
             </tr>
           ))}

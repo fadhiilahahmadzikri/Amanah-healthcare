@@ -18,7 +18,7 @@ export const DottedLine: React.FC<DottedLineProps> = ({
   boldLabel = false,
   boldValue = false,
   className = '',
-  minHeight = '15px',
+  minHeight = '15px'
 }) => {
   return (
     <div
@@ -26,13 +26,13 @@ export const DottedLine: React.FC<DottedLineProps> = ({
       className={`w-full flex items-baseline border-b border-dotted border-[#777777] overflow-hidden ${className}`}
     >
       {label && (
-        <span className="shrink-0 mr-1">
+        <span className='shrink-0 mr-1'>
           <FormText customPt={customPt} bold={boldLabel}>
             {label}
           </FormText>
         </span>
       )}
-      <span className="grow overflow-hidden text-ellipsis whitespace-nowrap">
+      <span className='grow min-w-0 overflow-hidden text-ellipsis whitespace-nowrap'>
         <FormText customPt={customPt} bold={boldValue}>
           {value || '\u00A0'}
         </FormText>

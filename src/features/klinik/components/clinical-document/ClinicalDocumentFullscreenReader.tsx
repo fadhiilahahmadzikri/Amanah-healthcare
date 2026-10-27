@@ -8,11 +8,22 @@ import { PmbFormTemplate } from './templates/PmbFormTemplate';
 import { ImunisasiFormTemplate } from './templates/ImunisasiFormTemplate';
 import { RegulerFormTemplate } from './templates/RegulerFormTemplate';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import {
   exportPmbDocx,
   exportImunisasiDocx,
   exportRegulerDocx
 } from './services/docxExportService';
-import { printDocument } from './services/printService';
+import {
+  exportPmbExcel,
+  exportImunisasiExcel,
+  exportRegulerExcel
+} from './services/excelExportService';
+import { printDocument, downloadPdfFromElement } from './services/printService';
 import type { PmbFormData, ImunisasiFormData, RegulerFormData, ClinicalFormFlow } from './types';
 
 export interface ClinicalDocumentFullscreenReaderProps {
@@ -45,7 +56,8 @@ export const ClinicalDocumentFullscreenReader: React.FC<ClinicalDocumentFullscre
 
   const handlePrint = useCallback(() => {
     const title = `Formulir-Klinis-${flow.toUpperCase()}`;
-    printDocument(title);
+    const targetEl = canvasRef.current?.querySelector('.document-a4-page') as HTMLElement | null;
+    printDocument(title, targetEl);
   }, [flow]);
 
   // Lock body scroll while reader is active
@@ -139,28 +151,48 @@ export const ClinicalDocumentFullscreenReader: React.FC<ClinicalDocumentFullscre
     }
   };
 
-  const handleDownloadDocx = async () => {
+  const handleDownload = async (format: 'docx' | 'pdf' | 'xlsx') => {
     try {
       setIsExporting(true);
+      const targetEl = canvasRef.current?.querySelector('.document-a4-page') as HTMLElement | null;
+
       if (flow === 'pregnancy') {
         const topRowValues = pmbData?.identity?.topRowValues;
         const firstRow = topRowValues ? topRowValues[0] : undefined;
         const patientName = firstRow ? firstRow[0] : undefined;
         const suffix = patientName ? `_${patientName.replace(/\s+/g, '_')}` : '';
-        await exportPmbDocx(pmbData, `Formulir_ANC${suffix}.docx`);
+        if (format === 'docx') {
+          await exportPmbDocx(pmbData, `Formulir_ANC${suffix}.docx`);
+        } else if (format === 'pdf') {
+          await downloadPdfFromElement(targetEl, `Formulir_ANC${suffix}.pdf`);
+        } else {
+          await exportPmbExcel(pmbData, `Formulir_ANC${suffix}.xlsx`);
+        }
       } else if (flow === 'immunization') {
         const childName = imunisasiData?.identity?.leftValues?.[0];
         const suffix = childName ? `_${childName.replace(/\s+/g, '_')}` : '';
-        await exportImunisasiDocx(imunisasiData, `Formulir_Imunisasi${suffix}.docx`);
+        if (format === 'docx') {
+          await exportImunisasiDocx(imunisasiData, `Formulir_Imunisasi${suffix}.docx`);
+        } else if (format === 'pdf') {
+          await downloadPdfFromElement(targetEl, `Formulir_Imunisasi${suffix}.pdf`);
+        } else {
+          await exportImunisasiExcel(imunisasiData, `Formulir_Imunisasi${suffix}.xlsx`);
+        }
       } else {
         const patientName = regulerData?.identity?.fullName;
         const suffix = patientName ? `_${patientName.replace(/\s+/g, '_')}` : '';
-        await exportRegulerDocx(regulerData, `Formulir_Rawat_Jalan${suffix}.docx`);
+        if (format === 'docx') {
+          await exportRegulerDocx(regulerData, `Formulir_Rawat_Jalan${suffix}.docx`);
+        } else if (format === 'pdf') {
+          await downloadPdfFromElement(targetEl, `Formulir_Rawat_Jalan${suffix}.pdf`);
+        } else {
+          await exportRegulerExcel(regulerData, `Formulir_Rawat_Jalan${suffix}.xlsx`);
+        }
       }
       setDownloadSuccess(true);
       setTimeout(() => setDownloadSuccess(false), 2500);
     } catch (err) {
-      console.error('Error generating docx file:', err);
+      console.error('Error downloading file:', err);
     } finally {
       setIsExporting(false);
     }
@@ -274,26 +306,56 @@ export const ClinicalDocumentFullscreenReader: React.FC<ClinicalDocumentFullscre
             <Icons.printer className='size-4 text-slate-300' />
           </Button>
 
-          {/* Download DOCX Button */}
-          <Button
-            type='button'
-            variant='default'
-            size='icon-sm'
-            shape='rounded'
-            onClick={handleDownloadDocx}
-            disabled={isExporting}
-            className='bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-500/40 shadow-xs size-8'
-            title={downloadSuccess ? 'Tersimpan!' : 'Download Dokumen Word (.docx)'}
-            aria-label='Download Word'
-          >
-            {isExporting ? (
-              <Icons.spinner className='size-4 text-white animate-spin' />
-            ) : downloadSuccess ? (
-              <Icons.check className='size-4 text-white' />
-            ) : (
-              <Icons.download className='size-4 text-white' />
-            )}
-          </Button>
+          {/* Multi-Format Download Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type='button'
+                variant='outline'
+                size='icon-sm'
+                shape='rounded'
+                disabled={isExporting}
+                className='border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white size-8'
+                title={downloadSuccess ? 'Tersimpan!' : 'Unduh Dokumen (Multi-Format)'}
+                aria-label='Unduh Dokumen'
+              >
+                {isExporting ? (
+                  <Icons.spinner className='size-4 text-white animate-spin' />
+                ) : downloadSuccess ? (
+                  <Icons.check className='size-4 text-emerald-400' />
+                ) : (
+                  <Icons.download className='size-4 text-slate-300' />
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align='end'
+              style={{ zIndex: 100005 }}
+              className='w-48 text-xs font-medium bg-slate-900 border-slate-800 text-slate-200 z-[100005]'
+            >
+              <DropdownMenuItem
+                onClick={() => handleDownload('docx')}
+                className='gap-2 cursor-pointer hover:bg-slate-800 focus:bg-slate-800 focus:text-white'
+              >
+                <Icons.fileTypeDoc className='size-3.5 text-blue-400' />
+                <span>Dokumen Word (.docx)</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleDownload('pdf')}
+                className='gap-2 cursor-pointer hover:bg-slate-800 focus:bg-slate-800 focus:text-white'
+              >
+                <Icons.fileTypePdf className='size-3.5 text-rose-400' />
+                <span>Dokumen PDF (.pdf)</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleDownload('xlsx')}
+                className='gap-2 cursor-pointer hover:bg-slate-800 focus:bg-slate-800 focus:text-white'
+              >
+                <Icons.fileTypeXls className='size-3.5 text-emerald-400' />
+                <span>Spreadsheet Excel (.xlsx)</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <div className='w-[1px] h-5 bg-slate-800 mx-1' />
 

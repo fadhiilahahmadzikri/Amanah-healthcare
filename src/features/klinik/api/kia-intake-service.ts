@@ -356,6 +356,22 @@ class KiaIntakeService {
     return res as MaternalIntakeResponse;
   }
 
+  async updateMaternityIntake(
+    id: string,
+    payload: Partial<CreateMaternityIntakePayload>
+  ): Promise<MaternalIntakeResponse> {
+    const res = await clientFetch<
+      { success?: boolean; data?: MaternalIntakeResponse } | MaternalIntakeResponse
+    >(`${KIA_API_ENDPOINTS.MATERNITY_INTAKE}/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    });
+    if (res && typeof res === 'object' && 'data' in res && res.data) {
+      return res.data as MaternalIntakeResponse;
+    }
+    return res as MaternalIntakeResponse;
+  }
+
   async getImmunizationIntakeById(id: string): Promise<ChildImmunizationResponse> {
     const res = await clientFetch<
       { success?: boolean; data?: ChildImmunizationResponse } | ChildImmunizationResponse
@@ -366,6 +382,36 @@ class KiaIntakeService {
       return res.data as ChildImmunizationResponse;
     }
     return res as ChildImmunizationResponse;
+  }
+
+  async updateImmunizationIntake(
+    id: string,
+    payload: Partial<CreateChildImmunizationPayload>
+  ): Promise<ChildImmunizationResponse> {
+    const res = await clientFetch<
+      { success?: boolean; data?: ChildImmunizationResponse } | ChildImmunizationResponse
+    >(`${KIA_API_ENDPOINTS.IMMUNIZATION_INTAKE}/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    });
+    if (res && typeof res === 'object' && 'data' in res && res.data) {
+      return res.data as ChildImmunizationResponse;
+    }
+    return res as ChildImmunizationResponse;
+  }
+
+  async updateGenericIntake(id: string, answers: Record<string, any>): Promise<any> {
+    const res = await clientFetch<{ success?: boolean; data?: any } | any>(
+      `/api/v1/medical-records/intakes/${id}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ answers })
+      }
+    );
+    if (res && typeof res === 'object' && 'data' in res && res.data) {
+      return res.data;
+    }
+    return res;
   }
 
   async getMaternalQuestions(): Promise<MaternalQuestion[]> {

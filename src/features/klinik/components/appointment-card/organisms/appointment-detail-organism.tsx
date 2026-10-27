@@ -23,10 +23,7 @@ import { formatClinicDate } from '@/lib/date-format';
 import { ChangeDoctorModal } from '@/features/appointment-pasien/components/change-doctor-modal';
 import { ChangeRoomModal } from '@/features/appointment-pasien/components/change-room-modal';
 import { ReservationModal } from '@/features/klinik/components/reservation/reservation-modal';
-import {
-  formatFriendlyVisitType,
-  type CanonicalVisitType
-} from '@/constants/visit-type.constants';
+import { formatFriendlyVisitType, type CanonicalVisitType } from '@/constants/visit-type.constants';
 import {
   isAppointmentTerminal,
   isAppointmentInService,
@@ -144,13 +141,13 @@ export function AppointmentDetailOrganism({
       <ModalWrapper
         isOpen={isOpen}
         onClose={onClose}
-        maxWidth={!isMobile && isFormExpanded ? 'max-w-5xl' : 'max-w-lg'}
+        maxWidth={!isMobile && isFormExpanded ? 'max-w-[94vw]' : 'max-w-lg'}
         showCloseButton={false}
         dismissible={!isCancelling}
         portalContainerRef={portalContainerRef}
         className={cn(
-          'transition-[max-width,height,max-height] duration-300 ease-out flex flex-col overflow-hidden',
-          !isMobile && isFormExpanded ? 'h-[85vh] max-h-[85vh]' : 'max-h-[90vh]'
+          'transition-[max-width,width,height,max-height] duration-300 ease-out flex flex-col overflow-hidden',
+          !isMobile && isFormExpanded ? 'w-[94vw] h-[94vh] max-h-[94vh] p-5 sm:p-6' : 'max-h-[90vh]'
         )}
       >
         <div
@@ -162,7 +159,7 @@ export function AppointmentDetailOrganism({
           <div
             className={cn(
               'w-full flex flex-col font-sans select-none justify-between h-full min-h-0 min-w-0 transition-all duration-300 ease-out',
-              !isMobile && isFormExpanded ? 'md:w-[420px] md:shrink-0 md:pr-8' : 'w-full'
+              !isMobile && isFormExpanded ? 'md:w-[380px] md:shrink-0 md:pr-6' : 'w-full'
             )}
           >
             {/* STEP 1: Details View */}
@@ -501,7 +498,7 @@ export function AppointmentDetailOrganism({
 
           {/* Web Expandable Side-by-Side Panel Sesuai Commit c72f09a */}
           {!isMobile && isFormExpanded && modalStep === 'details' && (
-            <div className='w-full flex-1 flex flex-col font-sans select-none h-full min-h-0 min-w-0 md:pl-8 md:border-l border-border/40 pt-6 md:pt-0 animate-in fade-in-0 slide-in-from-right-6 duration-300 ease-out'>
+            <div className='w-full flex-1 flex flex-col font-sans select-none h-full min-h-0 min-w-0 md:pl-6 md:border-l border-border/40 pt-6 md:pt-0 animate-in fade-in-0 slide-in-from-right-6 duration-300 ease-out'>
               <AppointmentFormInspector
                 appointment={appointment}
                 onClose={() => setIsFormExpanded(false)}

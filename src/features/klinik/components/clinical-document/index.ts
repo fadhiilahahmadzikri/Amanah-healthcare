@@ -1,6 +1,7 @@
 export * from './types';
 export * from './services/clinical-form-adapter';
 export * from './services/docxExportService';
+export * from './services/excelExportService';
 export * from './services/printService';
 export * from './templates/DocumentPage';
 export * from './templates/PmbFormTemplate';
