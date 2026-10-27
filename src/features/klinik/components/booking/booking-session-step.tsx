@@ -11,6 +11,7 @@ import { useBookingSessions } from '../../model/useBookingSessions';
 import type { BookingOptionShift } from '@/features/data-pasien/api/patient-affiliation-service';
 import { QUEUE_LOAD_STATUS, QUEUE_LOAD_BADGE_STYLES } from '../../constants/queue-load.constants';
 import { formatClinicDate } from '@/lib/date-format';
+import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 
 export interface BookingSessionStepProps {
   selectedService: ServiceCatalogItem | null;
@@ -185,7 +186,7 @@ function SessionList({ sessions, session, onSelectSession }: SessionListProps) {
 
                 <div className='min-w-0 flex-1 space-y-1'>
                   <div className='text-xs sm:text-sm font-semibold text-foreground truncate'>
-                    {sess.label}
+                    {formatFriendlySessionName(sess.session)}
                   </div>
 
                   <div>

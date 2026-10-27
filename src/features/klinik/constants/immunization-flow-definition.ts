@@ -1,4 +1,5 @@
 import type { MedicalFlowDefinition } from './medical-appointment-types';
+import { VISIT_TYPE } from '@/constants/visit-type.constants';
 import {
   DATE,
   LIST,
@@ -16,7 +17,7 @@ export const immunizationFlowDefinition: MedicalFlowDefinition = {
   formDescription:
     'Form pendaftaran ini diisi oleh orang tua/wali sebelum kunjungan imunisasi anak.',
   serviceName: 'Spesialis Anak',
-  visitType: 'Imunisasi Anak',
+  visitType: VISIT_TYPE.NEW_VISIT,
   patientNameFieldId: 'childName',
   patientContactFieldId: 'parentPhone',
   complaintFieldId: 'previousVaccineHistory',

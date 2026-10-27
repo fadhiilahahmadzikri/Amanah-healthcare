@@ -13,6 +13,10 @@ import {
   isAppointmentBeforeCall,
   isAppointmentWaiting
 } from '@/features/appointment-pasien/constants/options';
+import {
+  formatFriendlyVisitType,
+  type CanonicalVisitType
+} from '@/constants/visit-type.constants';
 
 export interface AppointmentCardOrganismProps {
   appointment: Appointment;
@@ -111,7 +115,7 @@ export function AppointmentCardOrganism({
           startTime={startTime}
           endTime={endTime}
           durationText={durationText}
-          visitType={appointment.visit_type || '-'}
+          visitType={formatFriendlyVisitType(appointment.visit_type as CanonicalVisitType)}
           variant='card'
           startLabel={startLabel}
           endLabel={endLabel}

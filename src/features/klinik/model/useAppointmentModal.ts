@@ -22,6 +22,7 @@ import { mapBackendAppointmentToUi } from '../utils/booking-appointment-mapper';
 import { formRequirementGuard } from './form-requirement-guard';
 import { requestImplicitWebPushRegistration } from '@/features/notifications';
 import { getClinicTodayDateString } from '@/lib/date-format';
+import { VISIT_TYPE, type CanonicalVisitType } from '@/constants/visit-type.constants';
 import type { Appointment, AppointmentFormData } from '../api/types';
 
 export type BookingModalStep =
@@ -57,8 +58,8 @@ export function useAppointmentModal({
 
   const [dateStr, setDateStr] = useState<string>(defaultDateStr);
   const [session, setSession] = useState<string>('');
-  const [visitType, setVisitType] = useState<'Pemeriksaan Baru' | 'Kontrol Ulang'>(
-    'Pemeriksaan Baru'
+  const [visitType, setVisitType] = useState<CanonicalVisitType>(
+    VISIT_TYPE.NEW_VISIT
   );
   const [complaint, setComplaint] = useState<string>('');
   const [isVisitTypeOpen, setIsVisitTypeOpen] = useState(false);
@@ -130,7 +131,7 @@ export function useAppointmentModal({
   const stepContainerRef = useRef<HTMLDivElement>(null);
   const prevIsOpenRef = useRef(false);
 
-  const visitTypeOptions = ['Pemeriksaan Baru', 'Kontrol Ulang'] as const;
+  const visitTypeOptions = [VISIT_TYPE.NEW_VISIT, VISIT_TYPE.FOLLOW_UP] as const;
 
   const loadCatalog = useCallback(async () => {
     try {

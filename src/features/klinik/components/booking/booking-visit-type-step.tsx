@@ -3,22 +3,27 @@
 import React from 'react';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
+import {
+  VISIT_TYPE,
+  VISIT_TYPE_LABELS,
+  type CanonicalVisitType
+} from '@/constants/visit-type.constants';
 
 export interface BookingVisitTypeStepProps {
-  visitType: 'Pemeriksaan Baru' | 'Kontrol Ulang';
-  setVisitType: (type: 'Pemeriksaan Baru' | 'Kontrol Ulang') => void;
+  visitType: CanonicalVisitType;
+  setVisitType: (type: CanonicalVisitType) => void;
 }
 
 const VISIT_TYPE_OPTIONS = [
   {
-    value: 'Pemeriksaan Baru' as const,
-    title: 'Pemeriksaan Baru',
+    value: VISIT_TYPE.NEW_VISIT,
+    title: VISIT_TYPE_LABELS[VISIT_TYPE.NEW_VISIT],
     description: 'Pertama kali berkonsultasi atau periksa untuk keluhan ini.',
     icon: Icons.billing
   },
   {
-    value: 'Kontrol Ulang' as const,
-    title: 'Kontrol Ulang',
+    value: VISIT_TYPE.FOLLOW_UP,
+    title: VISIT_TYPE_LABELS[VISIT_TYPE.FOLLOW_UP],
     description: 'Lanjutan pengobatan atau kontrol evaluasi dari dokter sebelumnya.',
     icon: Icons.check
   }

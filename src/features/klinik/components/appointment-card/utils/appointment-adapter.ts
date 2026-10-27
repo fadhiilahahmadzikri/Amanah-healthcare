@@ -6,6 +6,10 @@ import type { BookedPatientItem } from '@/server/contracts/schedules/doctor-sche
 import type { Appointment, AppointmentStatus } from '../../../api/types';
 import { formatClinicTime } from '@/lib/date-format';
 import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
+import {
+  formatFriendlyVisitType,
+  type CanonicalVisitType
+} from '@/constants/visit-type.constants';
 
 export interface SessionContext {
   doctorName?: string;
@@ -99,7 +103,7 @@ export function bookedPatientToAppointment(
   const room_location = item.roomLocation || '';
   const date = item.appointmentDate ? item.appointmentDate : (context?.date ?? '');
 
-  const rawVisitType = item.visitType || 'Pemeriksaan Baru';
+  const rawVisitType = formatFriendlyVisitType(item.visitType as CanonicalVisitType);
 
   const sessionDisplay = item.sessionTitle ? item.sessionTitle : (context?.sessionTime ?? '');
 

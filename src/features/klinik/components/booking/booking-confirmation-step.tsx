@@ -6,13 +6,17 @@ import type { ServiceCatalogItem } from '../../api/catalog.service';
 import type { PatientAffiliationProfile } from '@/features/data-pasien/api/patient-affiliation-service';
 import { formatClinicDate } from '@/lib/date-format';
 import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
+import {
+  formatFriendlyVisitType,
+  type CanonicalVisitType
+} from '@/constants/visit-type.constants';
 
 export interface BookingConfirmationStepProps {
   selectedService: ServiceCatalogItem | null;
   selectedPatient: PatientAffiliationProfile | null;
   dateStr: string;
   session?: string;
-  visitType: string;
+  visitType: CanonicalVisitType | string;
   complaint: string;
   mode?: 'create' | 'reschedule';
 }
@@ -77,7 +81,9 @@ export function BookingConfirmationStep({
         {!isReschedule && (
           <div className='flex items-center justify-between py-2 border-b border-border'>
             <span className='text-muted-foreground font-normal'>Tipe Kunjungan</span>
-            <span className='font-medium text-foreground'>{visitType}</span>
+            <span className='font-medium text-foreground'>
+              {formatFriendlyVisitType(visitType as CanonicalVisitType)}
+            </span>
           </div>
         )}
 

@@ -19,6 +19,7 @@ import { BookingSessionStep } from '../booking/booking-session-step';
 import { BookingConfirmationStep } from '../booking/booking-confirmation-step';
 import { QueueSuccessModal } from '../queue-success-modal';
 import { APPOINTMENT_STATUS, QUEUE_STATUS, type Appointment } from '../../api/types';
+import { VISIT_TYPE } from '@/constants/visit-type.constants';
 import { formatClinicTime, getClinicTodayDateString } from '@/lib/date-format';
 import { useClinicTimeConfig } from '@/features/klinik/model/useClinicTimeConfig';
 import { requestImplicitWebPushRegistration } from '@/features/notifications';
@@ -172,7 +173,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
           time: session,
           complaint: appointmentData?.complaint || '',
           status: APPOINTMENT_STATUS.BOOKED,
-          visit_type: 'Pemeriksaan Baru',
+          visit_type: VISIT_TYPE.NEW_VISIT,
           service: appointmentData?.layananName || '',
           created_at: appointmentData?.createdAt ? String(appointmentData.createdAt) : '',
           queue_number: appointmentData?.queueNumber
@@ -192,7 +193,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
         layananId: effectiveLayananId,
         appointmentDate: dateStr,
         session: session,
-        visitType: 'Pemeriksaan Baru',
+        visitType: VISIT_TYPE.NEW_VISIT,
         complaint: context.complaint || 'Pemeriksaan Kesehatan',
         sourceIntakeId: context.sourceIntakeId
       });
@@ -289,7 +290,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
                 selectedPatient={patientProfile}
                 dateStr={dateStr}
                 session={session}
-                visitType='Pemeriksaan Baru'
+                visitType={VISIT_TYPE.NEW_VISIT}
                 complaint={context.complaint || ''}
                 mode={context.mode || 'create'}
               />

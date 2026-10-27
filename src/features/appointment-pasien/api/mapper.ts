@@ -1,4 +1,5 @@
 import { getGenderLabel } from '@/constants/gender.constants';
+import { VISIT_TYPE } from '@/constants/visit-type.constants';
 import { normalizeToAppointmentStatus } from '../constants/appointment-status.dictionary';
 import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 import type { Appointment } from '@/features/klinik';
@@ -43,7 +44,7 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
     roomLocation: (item.roomLocation as string | undefined) ?? null,
     layananId: item.layananId ? String(item.layananId) : null,
     layananName: (item.layananName as string | undefined) ?? null,
-    visitType: item.visitType ?? 'Pemeriksaan Baru',
+    visitType: item.visitType ?? VISIT_TYPE.NEW_VISIT,
     complaint: item.complaint ?? '-',
     status,
     allowedActions,
@@ -118,7 +119,7 @@ export function adminAppointmentToAppointment(item: AdminAppointment): Appointme
     patient_phone: item.phone,
     complaint: item.complaint ?? '',
     status: item.status,
-    visit_type: item.visitType ?? 'Pemeriksaan Baru',
+    visit_type: item.visitType ?? VISIT_TYPE.NEW_VISIT,
     queue_number: item.queueNumber,
     allowedActions: item.allowedActions,
     created_at: item.createdAt ?? new Date().toISOString()

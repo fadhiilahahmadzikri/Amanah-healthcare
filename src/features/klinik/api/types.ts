@@ -2,6 +2,7 @@ import {
   APPOINTMENT_STATUS,
   type CanonicalAppointmentStatus
 } from '@/constants/appointment-status.constants';
+import type { CanonicalVisitType } from '@/constants/visit-type.constants';
 
 export { APPOINTMENT_STATUS };
 export type AppointmentStatus = CanonicalAppointmentStatus;
@@ -115,7 +116,7 @@ export interface QueueItem {
 }
 
 export interface AppointmentFormData {
-  visitType: 'Pemeriksaan Baru' | 'Kontrol Ulang' | string;
+  visitType: CanonicalVisitType | string;
   service: string;
   doctor: string;
   dateStr: string;

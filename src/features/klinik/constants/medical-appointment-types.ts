@@ -1,4 +1,5 @@
 import type { MedicalAppointmentFlow } from '../api/types';
+import type { CanonicalVisitType } from '@/constants/visit-type.constants';
 
 export type MedicalFieldType = 'TEXT' | 'PARAGRAPH' | 'DATE' | 'MULTIPLE_CHOICE' | 'LIST';
 
@@ -33,7 +34,7 @@ export interface MedicalFlowDefinition {
   formTitle: string;
   formDescription: string;
   serviceName: string;
-  visitType: string;
+  visitType: CanonicalVisitType;
   patientNameFieldId: string;
   patientContactFieldId: string;
   complaintFieldId: string;

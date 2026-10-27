@@ -1,4 +1,5 @@
 import type { MedicalFlowDefinition } from './medical-appointment-types';
+import { VISIT_TYPE } from '@/constants/visit-type.constants';
 import {
   domicileHealthCoverageSection,
   motherIdentitySection,
@@ -27,7 +28,7 @@ export const pregnancyFlowDefinition: MedicalFlowDefinition = {
   formDescription:
     'Form ini membantu bidan menyiapkan data awal pemeriksaan. Isi sesuai data dan kondisi Anda.',
   serviceName: 'Kebidanan & Kandungan',
-  visitType: 'Pemeriksaan Kehamilan',
+  visitType: VISIT_TYPE.NEW_VISIT,
   patientNameFieldId: 'motherName',
   patientContactFieldId: 'phoneNumber',
   complaintFieldId: 'currentComplaints',

@@ -2,6 +2,7 @@ import { clientFetch } from '@/lib/client-fetch';
 import type { Gender } from '@/constants/gender.constants';
 import type { PatientBloodType } from '@/constants/blood-type.constants';
 import { getRelationshipLabel } from '@/constants/relationship.constants';
+import type { CanonicalVisitType } from '@/constants/visit-type.constants';
 import type { QueueLoadStatus } from '@/features/klinik/constants/queue-load.constants';
 export { UNKNOWN_BLOOD_TYPE, type PatientBloodType } from '@/constants/blood-type.constants';
 
@@ -203,7 +204,7 @@ export interface CreateAppointmentPayload {
   staffId?: string;
   appointmentDate: string;
   session: string;
-  visitType: string;
+  visitType: CanonicalVisitType;
   complaint: string;
   sourceIntakeId?: string;
 }

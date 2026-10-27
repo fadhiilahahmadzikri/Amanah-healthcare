@@ -24,6 +24,10 @@ import { ChangeDoctorModal } from '@/features/appointment-pasien/components/chan
 import { ChangeRoomModal } from '@/features/appointment-pasien/components/change-room-modal';
 import { ReservationModal } from '@/features/klinik/components/reservation/reservation-modal';
 import {
+  formatFriendlyVisitType,
+  type CanonicalVisitType
+} from '@/constants/visit-type.constants';
+import {
   isAppointmentTerminal,
   isAppointmentInService,
   isAppointmentWaiting,
@@ -103,7 +107,7 @@ export function AppointmentDetailOrganism({
   const doctorSpecialty = appointment.doctor_specialty || '-';
   const { startTime, endTime, durationText } = normalizeAppointmentTimes(appointment);
 
-  const visitType = appointment.visit_type || '-';
+  const visitType = formatFriendlyVisitType(appointment.visit_type as CanonicalVisitType);
   const patientName = appointment.patient_name || '-';
   const serviceName = appointment.service || '-';
   const complaintText = appointment.complaint || '-';
