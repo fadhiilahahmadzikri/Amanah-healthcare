@@ -17,19 +17,6 @@ export const ATTENDANCE_STATUS_LABELS: Record<string, string> = {
   [CANONICAL_ATTENDANCE_STATUS.MISSED]: 'Tidak Hadir',
 };
 
-export const CANONICAL_ATTENDANCE_SHIFTS = {
-  EARLY_MORNING: 'early_morning',
-  MORNING: 'morning',
-  AFTERNOON: 'afternoon',
-  NIGHT: 'night',
-} as const;
+export type CanonicalAttendanceShift = string;
 
-export type CanonicalAttendanceShift =
-  (typeof CANONICAL_ATTENDANCE_SHIFTS)[keyof typeof CANONICAL_ATTENDANCE_SHIFTS];
 
-export const ATTENDANCE_SHIFT_LABELS: Record<string, string> = {
-  [CANONICAL_ATTENDANCE_SHIFTS.EARLY_MORNING]: 'Dini Hari',
-  [CANONICAL_ATTENDANCE_SHIFTS.MORNING]: 'Pagi',
-  [CANONICAL_ATTENDANCE_SHIFTS.AFTERNOON]: 'Siang',
-  [CANONICAL_ATTENDANCE_SHIFTS.NIGHT]: 'Malam',
-};

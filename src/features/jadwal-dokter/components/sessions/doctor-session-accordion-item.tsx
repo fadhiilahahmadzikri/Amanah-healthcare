@@ -17,7 +17,6 @@ import { formatClinicDate } from '@/lib/date-format';
 import type { SessionContext } from '@/features/klinik/components/appointment-card';
 import type { DoctorDailySession, DoctorSchedule } from '../../api/types';
 import { sessionPatientsQueryOptions } from '../../api/queries';
-import { formatFriendlySessionName } from '../../constants/schedule-shift.constants';
 import type { BookedPatientItem } from '@/server/contracts/schedules/doctor-schedules.dto';
 import { DoctorSessionPatientCarousel } from './doctor-session-patient-carousel';
 
@@ -94,7 +93,7 @@ export function DoctorSessionAccordionItem({
           {/* Left: Session Name, Status, Registered Patient Count, Time/Room Tooltip */}
           <div className='flex items-center gap-2 sm:gap-2.5 flex-wrap min-w-0'>
             <h4 className='font-bold text-sm sm:text-base text-foreground tracking-tight'>
-              {formatFriendlySessionName(session.sessionName) || session.sessionName}
+              {session.sessionName}
             </h4>
             <StatusBadge status={isClosed ? 'Tutup' : 'Buka'} variant='pill' size='sm' />
             <span className='text-xs font-medium text-muted-foreground'>

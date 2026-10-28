@@ -5,7 +5,6 @@ import { Icons } from '@/components/icons';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
-import { formatFriendlySessionName } from '../constants/schedule-shift.constants';
 import type { DoctorDailySession } from '../api/types';
 
 export interface DoctorCloseSessionModalProps {
@@ -60,7 +59,7 @@ export function DoctorCloseSessionModal({
           <div className='rounded-xl border border-border/60 bg-muted/20 p-3 space-y-1.5 text-xs'>
             <div className='flex items-center justify-between font-semibold'>
               <span className='text-foreground'>
-                {formatFriendlySessionName(closingSession.sessionName) || closingSession.sessionName}
+                {closingSession.sessionName}
               </span>
               <span className='font-mono text-muted-foreground'>
                 {closingSession.startTime} - {closingSession.endTime}

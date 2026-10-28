@@ -16,7 +16,6 @@ import {
 import { BookedPatientDetailModal } from './booked-patient-detail-modal';
 import { BookedPatientOuterCard } from './booked-patient-outer-card';
 import { formatClinicDate } from '@/lib/date-format';
-import { formatFriendlySessionName } from '../constants/schedule-shift.constants';
 
 export interface DoctorSessionPatientsModalProps {
   doctor: DoctorSchedule;
@@ -126,7 +125,7 @@ export function DoctorSessionPatientsModal({
               </h3>
               <div className='text-xs text-muted-foreground flex items-center gap-2 flex-wrap pt-0.5'>
                 <span className='font-semibold text-foreground'>
-                  {formatFriendlySessionName(shiftLabel ?? session.sessionName)}
+                  {shiftLabel ?? session.sessionName}
                 </span>
                 <span className='text-border/80'>•</span>
                 <span className='font-mono font-medium text-foreground'>{sessionTimeDisplay}</span>

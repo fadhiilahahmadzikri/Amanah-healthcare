@@ -20,8 +20,7 @@ import { cn } from '@/lib/utils';
 import { STAFF_TYPES, STAFF_TYPE_LABELS, type StaffType } from '@/constants/staff-types.constant';
 import {
   CANONICAL_ATTENDANCE_STATUS,
-  ATTENDANCE_STATUS_LABELS,
-  ATTENDANCE_SHIFT_LABELS
+  ATTENDANCE_STATUS_LABELS
 } from '../constants/attendance-status.constants';
 import {
   formatWorkDuration,
@@ -54,7 +53,7 @@ export function AttendanceDetailSheet({
   const isDoctor = record.kategori === STAFF_TYPES.DOCTOR;
   const categoryLabel = STAFF_TYPE_LABELS[record.kategori as StaffType] || record.kategori;
   const statusLabel = ATTENDANCE_STATUS_LABELS[record.status] || record.status;
-  const shiftLabel = ATTENDANCE_SHIFT_LABELS[record.shift] || record.shift;
+  const shiftLabel = record.shift || '-';
   const lateLabel = formatLateMinutes(record.lateMinutes);
 
   const jamMasuk = record.checkInAt

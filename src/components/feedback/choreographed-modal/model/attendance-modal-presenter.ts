@@ -2,7 +2,6 @@ import { openNotificationModal } from './notification-modal-store';
 import type { ModalVariantKey, ChoreographyType } from '../types';
 import { ATTENDANCE_ACTIONS, type AttendanceAction } from '@/features/kehadiran-pegawai/api/types';
 import {
-  ATTENDANCE_SHIFT_LABELS,
   CANONICAL_ATTENDANCE_STATUS
 } from '@/features/kehadiran-pegawai/constants/attendance-status.constants';
 
@@ -49,8 +48,7 @@ export function presentAttendanceModal(params: PresentAttendanceModalParams) {
   }
 
   const rawShift = params.shift ?? '';
-  const localizedShift =
-    ATTENDANCE_SHIFT_LABELS[rawShift as keyof typeof ATTENDANCE_SHIFT_LABELS] || rawShift;
+  const localizedShift = rawShift;
   const shiftText = localizedShift ? `Shift ${localizedShift}` : undefined;
 
   let variant: ModalVariantKey = 'success';

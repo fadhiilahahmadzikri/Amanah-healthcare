@@ -28,8 +28,7 @@ import type { DoctorSchedule } from '../api/types';
 import { useDoctorAssignmentModal } from '../model/useDoctorAssignmentModal';
 import {
   SCHEDULE_STATUS,
-  SCHEDULE_STATUS_LABELS,
-  formatFriendlySessionName
+  SCHEDULE_STATUS_LABELS
 } from '../constants/schedule-shift.constants';
 
 export interface DoctorAssignmentModalProps {
@@ -354,7 +353,7 @@ export function DoctorAssignmentModal({
                                     />
                                     <div className='min-w-0 flex-1 flex flex-col'>
                                       <span className='font-semibold text-xs whitespace-nowrap text-foreground'>
-                                        {formatFriendlySessionName(s.sessionLabel)}
+                                        {s.sessionLabel}
                                       </span>
                                       <span className='text-[10.5px] text-muted-foreground font-mono whitespace-nowrap'>
                                         {s.timeRange}
@@ -408,7 +407,7 @@ export function DoctorAssignmentModal({
                           <td className='p-3'>
                             {row.scheduleDate ? row.scheduleDate : (row.dayName ?? '-')}
                             {row.sessionLabel
-                              ? ` (${formatFriendlySessionName(row.sessionLabel)})`
+                              ? ` (${row.sessionLabel})`
                               : ''}
                           </td>
                           <td className='p-3'>

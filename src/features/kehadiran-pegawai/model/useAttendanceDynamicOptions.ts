@@ -4,7 +4,6 @@ import { useMemo } from 'react';
 import { Icons } from '@/components/icons';
 import { STAFF_TYPE_LABELS, type StaffType } from '@/constants/staff-types.constant';
 import {
-  ATTENDANCE_SHIFT_LABELS,
   ATTENDANCE_STATUS_LABELS
 } from '../constants/attendance-status.constants';
 import type {
@@ -89,7 +88,7 @@ export function useAttendanceDynamicOptions({
         icon: Icons.clock,
         mode: 'single',
         options: shiftOptions.map((s) => ({
-          label: ATTENDANCE_SHIFT_LABELS[s.value] || s.label,
+          label: s.label || s.value,
           value: s.value
         })),
         selectedValues: params.shift && params.shift !== 'all' ? [params.shift] : [],

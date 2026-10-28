@@ -26,8 +26,7 @@ import { SearchEngineDialog, type useStateSearchEngine } from '@/components/sear
 import { STAFF_TYPES, STAFF_TYPE_LABELS, type StaffType } from '@/constants/staff-types.constant';
 import {
   CANONICAL_ATTENDANCE_STATUS,
-  ATTENDANCE_STATUS_LABELS,
-  ATTENDANCE_SHIFT_LABELS
+  ATTENDANCE_STATUS_LABELS
 } from '../constants/attendance-status.constants';
 import { formatWorkDuration, formatPresenceTimestamp } from '../utils/duration-format';
 import { useCheckoutAttendanceMutation } from '../api/mutations';
@@ -223,7 +222,7 @@ export function AttendanceTableCard({
                     const categoryLabel =
                       STAFF_TYPE_LABELS[row.kategori as StaffType] || row.kategori;
                     const statusLabel = ATTENDANCE_STATUS_LABELS[row.status] || row.status;
-                    const shiftLabel = ATTENDANCE_SHIFT_LABELS[row.shift] || row.shift;
+                    const shiftLabel = row.shift || '-';
 
                     const jamMasuk = row.checkInAt
                       ? formatPresenceTimestamp(row.checkInAt, true)

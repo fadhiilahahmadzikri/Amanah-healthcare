@@ -7,15 +7,19 @@ import {
   fetchScheduleConfiguration,
   updateScheduleConfiguration,
   evaluateScheduleImpact,
+  createSessionDef,
+  updateSingleSessionDef,
+  deleteSessionDef,
   type SessionDefConfig,
   type WeeklyTemplateConfig,
   type ClinicSettingConfig,
   type DayInfoConfig,
   type UpdateScheduleConfigurationPayload,
-  type ScheduleConfigurationImpactResult
+  type ScheduleConfigurationImpactResult,
+  type CreateSessionDefPayload,
+  type UpdateSingleSessionDefPayload
 } from '../api/admin-schedule-configuration.api';
 import { syncAllDoctorSchedules } from '../api/mutations';
-import { formatFriendlySessionName } from '../constants/schedule-shift.constants';
 import {
   detectSessionDefsOverlaps,
   parseTimeToMinutes,
@@ -93,7 +97,7 @@ export function useDoctorScheduleSettingsModal({
       const masterDef = draftSessionDefs.find((d) => d.id === sessionId);
       if (masterDef && !masterDef.isActive) {
         toast.error(
-          `Shift ${formatFriendlySessionName(masterDef.label)} sedang dinonaktifkan di Master Shift Operasional. Aktifkan master terlebih dahulu.`
+          `Shift ${masterDef.label} sedang dinonaktifkan di Master Shift Operasional. Aktifkan master terlebih dahulu.`
         );
         return;
       }
@@ -238,7 +242,7 @@ export function useDoctorScheduleSettingsModal({
     if (category === 'weekly_templates') {
       for (const item of draftWeeklyTemplates) {
         if (item.isActive && item.startsAt >= item.endsAt) {
-          const friendlyShift = formatFriendlySessionName(item.sessionLabel);
+          const friendlyShift = item.sessionLabel;
           return {
             timeValidationError: `Jam selesai pada shift ${friendlyShift} (Hari ${item.dow}) harus lebih lambat dari jam mulai`,
             conflictingDefIds: [item.sessionId]
@@ -436,6 +440,36 @@ export function useDoctorScheduleSettingsModal({
     }
   }, [data]);
 
+  const handleAddSessionDef = useCallback(
+    async (payload: CreateSessionDefPayload) => {
+      await createSessionDef(payload);
+      toast.success(`Shift ${payload.label} berhasil ditambahkan.`);
+      void refetch();
+      syncAllDoctorSchedules(queryClient);
+    },
+    [queryClient, refetch]
+  );
+
+  const handleEditSessionDef = useCallback(
+    async (id: string, payload: UpdateSingleSessionDefPayload) => {
+      await updateSingleSessionDef(id, payload);
+      toast.success('Shift berhasil diperbarui.');
+      void refetch();
+      syncAllDoctorSchedules(queryClient);
+    },
+    [queryClient, refetch]
+  );
+
+  const handleDeleteSessionDef = useCallback(
+    async (id: string) => {
+      await deleteSessionDef(id);
+      toast.success('Shift berhasil dihapus.');
+      void refetch();
+      syncAllDoctorSchedules(queryClient);
+    },
+    [queryClient, refetch]
+  );
+
   return {
     category,
     isLoading,
@@ -447,6 +481,9 @@ export function useDoctorScheduleSettingsModal({
     draftOperatingDays,
     toggleSessionDef,
     updateSessionDefTime,
+    handleAddSessionDef,
+    handleEditSessionDef,
+    handleDeleteSessionDef,
     toggleOperatingDayActive,
     toggleWeeklyTemplateActive,
     updateWeeklyTemplateTime,

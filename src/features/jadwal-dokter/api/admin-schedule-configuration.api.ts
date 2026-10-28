@@ -154,3 +154,67 @@ export async function updateOperatingDaysBatch(
     }
   );
 }
+
+export interface CreateSessionDefPayload {
+  label: string;
+  codePrefix?: string;
+  defaultStartsAt: string;
+  defaultEndsAt: string;
+  isActive?: boolean;
+}
+
+export interface UpdateSingleSessionDefPayload {
+  label?: string;
+  codePrefix?: string;
+  defaultStartsAt?: string;
+  defaultEndsAt?: string;
+  isActive?: boolean;
+}
+
+export async function createSessionDef(
+  payload: CreateSessionDefPayload
+): Promise<{ success: boolean; data: SessionDefConfig }> {
+  return await clientFetch<{ success: boolean; data: SessionDefConfig }>(
+    '/api/v1/admin/schedule-configuration/session-defs',
+    {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }
+  );
+}
+
+export async function updateSingleSessionDef(
+  id: string,
+  payload: UpdateSingleSessionDefPayload
+): Promise<{ success: boolean; message: string }> {
+  return await clientFetch<{ success: boolean; message: string }>(
+    `/api/v1/admin/schedule-configuration/session-defs/${id}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    }
+  );
+}
+
+export async function deleteSessionDef(
+  id: string
+): Promise<{ success: boolean; message: string }> {
+  return await clientFetch<{ success: boolean; message: string }>(
+    `/api/v1/admin/schedule-configuration/session-defs/${id}`,
+    {
+      method: 'DELETE'
+    }
+  );
+}
+
+export async function applySchedulePreset(
+  preset: '2-shifts' | '3-shifts' | '4-shifts' | 'custom'
+): Promise<{ success: boolean; message: string; appliedCount: number }> {
+  return await clientFetch<{ success: boolean; message: string; appliedCount: number }>(
+    '/api/v1/admin/schedule-configuration/presets',
+    {
+      method: 'POST',
+      body: JSON.stringify({ preset })
+    }
+  );
+}

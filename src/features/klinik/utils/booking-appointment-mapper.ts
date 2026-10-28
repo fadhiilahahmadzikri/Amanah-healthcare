@@ -5,7 +5,6 @@ import type {
 import type { ServiceCatalogItem } from '../api/catalog.service';
 import { APPOINTMENT_STATUS, type Appointment } from '../api/types';
 import { formatClinicTime } from '@/lib/date-format';
-import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 
 export interface MapAppointmentParams {
   res: BackendAppointmentItem;
@@ -20,7 +19,7 @@ export function mapBackendAppointmentToUi({ res }: MapAppointmentParams): Appoin
     ? formatClinicTime(res.scheduledStartTime)
     : undefined;
   const scheduledEnd = res.scheduledEndTime ? formatClinicTime(res.scheduledEndTime) : undefined;
-  const sessionName = formatFriendlySessionName(res.session);
+  const sessionName = res.session ?? '';
 
   return {
     id: res.id,

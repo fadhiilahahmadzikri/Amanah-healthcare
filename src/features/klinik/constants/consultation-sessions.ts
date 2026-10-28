@@ -6,13 +6,9 @@ export interface ConsultationSessionItem {
   timeRange: string;
   value: string;
   desc?: string;
-  icon?: typeof Icons.sun;
+  icon?: typeof Icons.clock;
 }
 
-export function getSessionIcon(sessionName?: string): typeof Icons.sun {
-  const norm = (sessionName || '').toLowerCase();
-  if (norm.includes('pagi') || norm.includes('morning')) return Icons.sun;
-  if (norm.includes('dini') || norm.includes('early')) return Icons.moon;
-  if (norm.includes('malam') || norm.includes('night')) return Icons.moon;
+export function getSessionIcon(_sessionName?: string): typeof Icons.clock {
   return Icons.clock;
 }

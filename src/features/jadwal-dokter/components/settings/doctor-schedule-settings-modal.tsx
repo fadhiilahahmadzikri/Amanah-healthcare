@@ -76,6 +76,7 @@ export function DoctorScheduleSettingsModal({
   const activeSubView = activeCycle.subView;
   const canGoBack = activeCycle.canGoBack;
   const stepContainerRef = useRef<HTMLDivElement>(null);
+  const [isAddShiftOpen, setIsAddShiftOpen] = React.useState(false);
 
   // GSAP animation for wizard transitions (identical to regular patient form wizard)
   useEffect(() => {
@@ -102,6 +103,9 @@ export function DoctorScheduleSettingsModal({
     draftClinicSettings,
     toggleSessionDef,
     updateSessionDefTime,
+    handleAddSessionDef,
+    handleEditSessionDef,
+    handleDeleteSessionDef,
     toggleOperatingDayActive,
     toggleWeeklyTemplateActive,
     updateWeeklyTemplateTime,
@@ -175,6 +179,19 @@ export function DoctorScheduleSettingsModal({
                   </Button>
                 </div>
               )}
+              {activeCategory === 'session_defs' && activeSubView === 'defs' && (
+                <Button
+                  type='button'
+                  variant='outline'
+                  size='icon'
+                  onClick={() => setIsAddShiftOpen(true)}
+                  className='h-7.5 w-7.5 border-border/60 hover:bg-muted/40 cursor-pointer rounded-lg'
+                  title='Tambah Shift Baru'
+                  aria-label='Tambah Shift Baru'
+                >
+                  <Icons.add className='size-3.5' />
+                </Button>
+              )}
               <DoctorScheduleSettingsButton
                 activeCategory={activeCategory}
                 activeSubView={activeSubView}
@@ -221,8 +238,14 @@ export function DoctorScheduleSettingsModal({
                   conflictingDefIds={conflictingDefIds}
                   onToggleActive={toggleSessionDef}
                   onUpdateTime={updateSessionDefTime}
-                  onOpenOperatingDays={activeCycle.navigateToOperatingDays}
                   onResetDefaults={resetToCanonicalDefaults}
+                  onAddSessionDef={handleAddSessionDef}
+                  onEditSessionDef={handleEditSessionDef}
+                  onDeleteSessionDef={handleDeleteSessionDef}
+                  isAddDialogOpen={isAddShiftOpen}
+                  onOpenAddDialog={() => setIsAddShiftOpen(true)}
+                  onCloseAddDialog={() => setIsAddShiftOpen(false)}
+                  portalContainerRef={portalContainerRef}
                 />
               )}
               {activeCategory === 'session_defs' && activeSubView === 'operating_days' && (

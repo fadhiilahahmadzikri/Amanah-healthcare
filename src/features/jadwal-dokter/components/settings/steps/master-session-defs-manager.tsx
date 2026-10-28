@@ -1,0 +1,413 @@
+'use client';
+
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog';
+import { Icons } from '@/components/icons';
+import { EmptyState } from '@/components/ui/empty-state';
+import type { SessionDefConfig } from '../../../api/admin-schedule-configuration.api';
+import {
+  calculateShiftDurationHours,
+  getAdjacentShiftGapMinutes
+} from '../../../utils/shift-time-validator';
+import { SessionDefFormDialog } from '../modals/session-def-form-dialog';
+import { cn } from '@/lib/utils';
+
+export interface MasterSessionDefsManagerProps {
+  sessionDefs: SessionDefConfig[];
+  conflictingDefIds?: string[];
+  onToggleActive: (id: string) => void;
+  onUpdateTime?: (id: string, field: 'defaultStartsAt' | 'defaultEndsAt', value: string) => void;
+  onResetDefaults?: () => void;
+  onAddSessionDef?: (payload: {
+    label: string;
+    codePrefix?: string;
+    defaultStartsAt: string;
+    defaultEndsAt: string;
+  }) => Promise<void>;
+  onEditSessionDef?: (
+    id: string,
+    payload: {
+      label?: string;
+      codePrefix?: string;
+      defaultStartsAt?: string;
+      defaultEndsAt?: string;
+    }
+  ) => Promise<void>;
+  onDeleteSessionDef?: (id: string) => Promise<void>;
+  isAddDialogOpen?: boolean;
+  onOpenAddDialog?: () => void;
+  onCloseAddDialog?: () => void;
+  portalContainerRef?: React.RefObject<HTMLElement | null>;
+  className?: string;
+  showSubheader?: boolean;
+}
+
+const BASE_TIME_OPTIONS = [
+  ...Array.from({ length: 48 }, (_, i) => {
+    const h = String(Math.floor(i / 2)).padStart(2, '0');
+    const m = i % 2 === 0 ? '00' : '30';
+    return `${h}:${m}`;
+  }),
+  '24:00'
+];
+
+export function MasterSessionDefsManager({
+  sessionDefs,
+  conflictingDefIds = [],
+  onToggleActive,
+  onUpdateTime,
+  onResetDefaults,
+  onAddSessionDef,
+  onEditSessionDef,
+  onDeleteSessionDef,
+  isAddDialogOpen,
+  onOpenAddDialog,
+  onCloseAddDialog,
+  portalContainerRef,
+  className,
+  showSubheader = true
+}: MasterSessionDefsManagerProps) {
+  const [internalDialogOpen, setInternalDialogOpen] = useState(false);
+  const [editingDef, setEditingDef] = useState<SessionDefConfig | null>(null);
+  const [defToDelete, setDefToDelete] = useState<SessionDefConfig | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const isFormOpen = isAddDialogOpen !== undefined ? isAddDialogOpen || Boolean(editingDef) : internalDialogOpen;
+
+  const getTimeOptions = (currentTime: string) => {
+    if (!currentTime || BASE_TIME_OPTIONS.includes(currentTime)) {
+      return BASE_TIME_OPTIONS;
+    }
+    return [...BASE_TIME_OPTIONS, currentTime].toSorted();
+  };
+
+  const handleOpenAdd = () => {
+    setEditingDef(null);
+    if (onOpenAddDialog) {
+      onOpenAddDialog();
+    } else {
+      setInternalDialogOpen(true);
+    }
+  };
+
+  const handleOpenEdit = (def: SessionDefConfig) => {
+    setEditingDef(def);
+    if (!onOpenAddDialog) {
+      setInternalDialogOpen(true);
+    }
+  };
+
+  const handleCloseForm = () => {
+    setEditingDef(null);
+    if (onCloseAddDialog) {
+      onCloseAddDialog();
+    }
+    setInternalDialogOpen(false);
+  };
+
+  const handleFormSubmit = async (formData: {
+    label: string;
+    codePrefix?: string;
+    defaultStartsAt: string;
+    defaultEndsAt: string;
+  }) => {
+    if (editingDef && onEditSessionDef) {
+      await onEditSessionDef(editingDef.id, formData);
+    } else if (onAddSessionDef) {
+      await onAddSessionDef(formData);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!defToDelete || !onDeleteSessionDef) return;
+    try {
+      setIsDeleting(true);
+      await onDeleteSessionDef(defToDelete.id);
+      setDefToDelete(null);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <div className={cn('flex flex-col gap-3.5', className)}>
+      {/* Subheader when items exist */}
+      {showSubheader && sessionDefs.length > 0 && (
+        <div className='flex items-center justify-between pb-0.5 px-0.5'>
+          <p className='text-xs text-muted-foreground'>
+            Kelola master shift operasional klinik, konfigurasi jam, dan status aktif.
+          </p>
+          {onResetDefaults && (
+            <Button
+              type='button'
+              variant='ghost'
+              size='sm'
+              onClick={onResetDefaults}
+              className='h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground gap-1.5 cursor-pointer'
+              title='Kembalikan seluruh jam shift ke standar baku klinik'
+            >
+              <Icons.refresh className='size-3 text-muted-foreground' />
+              Reset Jam Baku
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* Empty State using existing EmptyState with 3D EmptyBoxAnimation */}
+      {sessionDefs.length === 0 && (
+        <EmptyState
+          icon={Icons.clock}
+          title='Belum Ada Shift Operasional'
+          description='Klinik belum memiliki master shift yang terdaftar. Gunakan tombol tambah di atas untuk membuat shift baru.'
+          action={
+            onAddSessionDef ? (
+              <Button
+                type='button'
+                size='sm'
+                onClick={handleOpenAdd}
+                className='h-8 text-xs gap-1.5 cursor-pointer'
+              >
+                <Icons.add className='size-3.5' />
+                Tambah Shift Pertama
+              </Button>
+            ) : undefined
+          }
+        />
+      )}
+
+      {/* Grid of Dynamic Shift Cards */}
+      {sessionDefs.length > 0 && (
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+          {sessionDefs.map((def) => {
+            const startsAt = def.defaultStartsAt?.slice(0, 5) || '00:00';
+            const endsAt = def.defaultEndsAt?.slice(0, 5) || '24:00';
+            const isConflicted = conflictingDefIds.includes(def.id);
+            const durationHours = calculateShiftDurationHours(startsAt, endsAt);
+            const gapInfo = getAdjacentShiftGapMinutes(def, sessionDefs);
+            const displayLabel = def.label;
+
+            return (
+              <div
+                key={def.id}
+                className={cn(
+                  'flex flex-col justify-between p-3.5 rounded-xl border transition-all duration-150',
+                  isConflicted
+                    ? 'border-destructive/80 bg-destructive/5 shadow-xs'
+                    : def.isActive
+                      ? 'border-border/90 bg-card shadow-xs'
+                      : 'border-border/40 bg-muted/15 opacity-75'
+                )}
+              >
+                <div className='flex items-center justify-between pb-2 gap-2'>
+                  <div className='flex items-center gap-3 min-w-0'>
+                    <div
+                      className={cn(
+                        'size-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0',
+                        isConflicted
+                          ? 'bg-destructive/15 text-destructive border border-destructive/30'
+                          : def.isActive
+                            ? 'bg-primary/10 text-primary border border-primary/20'
+                            : 'bg-muted text-muted-foreground border border-border/50'
+                      )}
+                    >
+                      {def.codePrefix}
+                    </div>
+                    <div className='flex flex-col min-w-0'>
+                      <div className='flex items-center gap-1.5'>
+                        <span className='font-semibold text-sm text-foreground whitespace-nowrap truncate'>
+                          {displayLabel}
+                        </span>
+                        {isConflicted && (
+                          <span className='inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[10px] font-semibold bg-destructive/15 text-destructive border border-destructive/25'>
+                            <Icons.warning className='size-2.5 shrink-0' />
+                            Tabrakan
+                          </span>
+                        )}
+                      </div>
+                      <div className='flex items-center gap-1.5 text-xs text-muted-foreground font-mono'>
+                        <span>
+                          {startsAt} - {endsAt}
+                        </span>
+                        {def.isActive && (
+                          <span className='text-[10px] text-muted-foreground/80 font-sans'>
+                            ({durationHours} Jam)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions: Morevert Context Menu + Switch */}
+                  <div className='flex items-center gap-1.5 shrink-0 ml-2'>
+                    {(onEditSessionDef || onDeleteSessionDef) && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            type='button'
+                            variant='ghost'
+                            size='icon'
+                            className='size-7 text-muted-foreground hover:text-foreground hover:bg-muted/70 cursor-pointer rounded-lg'
+                            aria-label={`Menu Opsi Shift ${displayLabel}`}
+                          >
+                            <Icons.ellipsis className='size-3.5' />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align='end' className='w-36 font-sans'>
+                          {onEditSessionDef && (
+                            <DropdownMenuItem
+                              onClick={() => handleOpenEdit(def)}
+                              className='text-xs cursor-pointer gap-2'
+                            >
+                              <Icons.edit className='size-3.5 text-muted-foreground' />
+                              <span>Edit Shift</span>
+                            </DropdownMenuItem>
+                          )}
+                          {onDeleteSessionDef && (
+                            <DropdownMenuItem
+                              onClick={() => setDefToDelete(def)}
+                              className='text-xs cursor-pointer gap-2 text-destructive focus:text-destructive focus:bg-destructive/10'
+                            >
+                              <Icons.trash className='size-3.5' />
+                              <span>Hapus Shift</span>
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+
+                    <Switch
+                      checked={def.isActive}
+                      onCheckedChange={() => onToggleActive(def.id)}
+                      aria-label={`Aktifkan shift ${displayLabel}`}
+                    />
+                  </div>
+                </div>
+
+                {def.isActive && onUpdateTime && (
+                  <div className='mt-2 pt-2 border-t border-border/40 flex flex-col gap-2'>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
+                      <div className='flex flex-col gap-1'>
+                        <span className='text-[10px] font-medium text-muted-foreground'>
+                          Jam Mulai
+                        </span>
+                        <Select
+                          value={startsAt}
+                          onValueChange={(val) =>
+                            onUpdateTime(def.id, 'defaultStartsAt', `${val}:00`)
+                          }
+                        >
+                          <SelectTrigger className='h-8 w-full text-xs font-mono px-2 bg-background shadow-2xs'>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className='max-h-48'>
+                            {getTimeOptions(startsAt).map((t) => (
+                              <SelectItem key={t} value={t} className='text-xs font-mono'>
+                                {t}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className='flex flex-col gap-1'>
+                        <span className='text-[10px] font-medium text-muted-foreground'>
+                          Jam Selesai
+                        </span>
+                        <Select
+                          value={endsAt}
+                          onValueChange={(val) =>
+                            onUpdateTime(def.id, 'defaultEndsAt', `${val}:00`)
+                          }
+                        >
+                          <SelectTrigger className='h-8 w-full text-xs font-mono px-2 bg-background shadow-2xs'>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className='max-h-48'>
+                            {getTimeOptions(endsAt).map((t) => (
+                              <SelectItem key={t} value={t} className='text-xs font-mono'>
+                                {t}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Indikator jeda operasional sah ke shift berikutnya */}
+                    {gapInfo && (
+                      <div className='flex items-center gap-1.5 px-2 py-1 rounded bg-muted/40 border border-border/40 text-[11px] text-muted-foreground'>
+                        <Icons.clock className='size-3 text-muted-foreground/70 shrink-0' />
+                        <span>
+                          Jeda operasional klinik:{' '}
+                          {gapInfo.gapMinutes >= 60
+                            ? `${(gapInfo.gapMinutes / 60).toFixed(1)} Jam`
+                            : `${gapInfo.gapMinutes} Menit`}{' '}
+                          sebelum {gapInfo.nextDefLabel}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Radix Alert Dialog for Delete Confirmation */}
+      <AlertDialog open={Boolean(defToDelete)} onOpenChange={(open) => !open && setDefToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Shift Operasional?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menghapus shift &quot;{defToDelete?.label}&quot;? Shift ini akan dihapus dari template mingguan dan jadwal klinik.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
+              className='bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer'
+            >
+              {isDeleting ? 'Menghapus...' : 'Hapus Shift'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dialog Form for Create / Edit */}
+      <SessionDefFormDialog
+        isOpen={isFormOpen}
+        onClose={handleCloseForm}
+        initialData={editingDef}
+        onSubmit={handleFormSubmit}
+        portalContainerRef={portalContainerRef}
+      />
+    </div>
+  );
+}

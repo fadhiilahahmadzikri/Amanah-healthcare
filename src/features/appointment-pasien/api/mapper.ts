@@ -1,7 +1,6 @@
 import { getGenderLabel } from '@/constants/gender.constants';
 import { VISIT_TYPE } from '@/constants/visit-type.constants';
 import { normalizeToAppointmentStatus } from '../constants/appointment-status.dictionary';
-import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 import type { Appointment } from '@/features/klinik';
 import { resolveAppointmentCapabilities } from './capabilities';
 import type { AdminAppointment, AppointmentAction, BackendAppointmentRecord } from './types';
@@ -70,11 +69,7 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
     aheadCount: typeof item.aheadCount === 'number' ? item.aheadCount : null,
     etaRange: (item.etaRange as string | undefined) ?? null,
     session: item.session ?? null,
-    sessionName: item.sessionName
-      ? formatFriendlySessionName(item.sessionName)
-      : item.session
-        ? formatFriendlySessionName(item.session)
-        : null,
+    sessionName: item.sessionName ?? item.session ?? null,
     createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
     updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : new Date().toISOString()
   };
@@ -108,11 +103,7 @@ export function adminAppointmentToAppointment(item: AdminAppointment): Appointme
     eta_range: item.etaRange ?? null,
     ahead_count: item.aheadCount ?? null,
     session: item.session ?? undefined,
-    session_name: item.sessionName
-      ? formatFriendlySessionName(item.sessionName)
-      : item.session
-        ? formatFriendlySessionName(item.session)
-        : null,
+    session_name: item.sessionName ?? item.session ?? null,
     date: item.scheduledDate,
     time: item.scheduledStartTime ?? '',
     patient_id: item.patientId,

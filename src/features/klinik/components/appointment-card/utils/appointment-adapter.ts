@@ -5,7 +5,6 @@ import {
 import type { BookedPatientItem } from '@/server/contracts/schedules/doctor-schedules.dto';
 import type { Appointment, AppointmentStatus } from '../../../api/types';
 import { formatClinicTime } from '@/lib/date-format';
-import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 import {
   formatFriendlyVisitType,
   type CanonicalVisitType
@@ -130,7 +129,7 @@ export function bookedPatientToAppointment(
     estimated_duration_minutes: item.estimatedDurationMinutes ?? undefined,
     eta_range: item.etaRange || null,
     session: item.sessionTitle || undefined,
-    session_name: formatFriendlySessionName(item.sessionTitle) || undefined,
+    session_name: item.sessionTitle || undefined,
     date,
     time: sessionDisplay,
     complaint: item.chiefComplaint || '',

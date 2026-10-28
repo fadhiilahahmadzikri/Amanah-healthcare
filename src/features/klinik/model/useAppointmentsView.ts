@@ -13,7 +13,6 @@ import {
   type BackendAppointmentItem
 } from '@/features/data-pasien/api/patient-affiliation-service';
 import { formatClinicTime } from '@/lib/date-format';
-import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 import {
   type AppointmentFilterState,
   type AppointmentFormMode,
@@ -86,7 +85,7 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
       ? formatClinicTime(apt.scheduledStartTime)
       : undefined;
     const scheduledEnd = apt.scheduledEndTime ? formatClinicTime(apt.scheduledEndTime) : undefined;
-    const sessionName = formatFriendlySessionName(apt.session);
+    const sessionName = apt.session ?? '';
 
     return {
       id: apt.id,

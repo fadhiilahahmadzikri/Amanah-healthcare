@@ -10,7 +10,6 @@ import {
   EntityCardSecondaryAction
 } from '@/components/cards/master-entity-card';
 import { STAFF_TYPE_LABELS, type StaffType } from '@/constants/staff-types.constant';
-import { ATTENDANCE_SHIFT_LABELS } from '../constants/attendance-status.constants';
 import { formatPresenceTimestamp } from '../utils/duration-format';
 import { AttendanceDetailSheet } from './attendance-detail-sheet';
 import type { StaffAttendance } from '../api/types';
@@ -54,7 +53,7 @@ export function AttendanceMobileCards({
             : null;
 
           const categoryLabel = STAFF_TYPE_LABELS[r.kategori as StaffType] || r.kategori;
-          const shiftLabel = ATTENDANCE_SHIFT_LABELS[r.shift] || r.shift;
+          const shiftLabel = r.shift || '-';
           const subtitleText = `${r.id_staf} • ${categoryLabel}${r.isReplacement ? ' • Pengganti' : ''}`;
 
           return (

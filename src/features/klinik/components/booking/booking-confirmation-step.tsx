@@ -5,7 +5,6 @@ import { Icons } from '@/components/icons';
 import type { ServiceCatalogItem } from '../../api/catalog.service';
 import type { PatientAffiliationProfile } from '@/features/data-pasien/api/patient-affiliation-service';
 import { formatClinicDate } from '@/lib/date-format';
-import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 import {
   formatFriendlyVisitType,
   type CanonicalVisitType
@@ -31,7 +30,7 @@ export function BookingConfirmationStep({
   mode = 'create'
 }: BookingConfirmationStepProps) {
   const isReschedule = mode === 'reschedule';
-  const sessionLabel = formatFriendlySessionName(session);
+  const sessionLabel = session ?? '';
   const displayServiceName = selectedService?.name ?? '';
   const displayPatientName = selectedPatient?.fullName ?? '';
 

@@ -22,7 +22,6 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-import { formatFriendlySessionName } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 import type { StaffMember } from '../api/staff-management.api';
 import { useStaffRosterModal } from '../model/useStaffRosterModal';
 
@@ -179,7 +178,7 @@ export function StaffRosterModal(props: StaffRosterModalProps) {
                               />
                               <div className='min-w-0 flex-1 flex flex-col'>
                                 <span className='font-semibold text-xs whitespace-nowrap text-foreground'>
-                                  {formatFriendlySessionName(s.label) || s.label}
+                                  {s.label}
                                 </span>
                                 {s.timeRange && (
                                   <span className='text-[10.5px] text-muted-foreground font-mono whitespace-nowrap'>
