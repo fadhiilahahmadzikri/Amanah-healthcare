@@ -87,6 +87,7 @@ export function AppointmentModal({
     null
   );
   const [isCompleted, setIsCompleted] = React.useState(false);
+  const [sessionLabel, setSessionLabel] = React.useState<string>('');
 
   const targetFlow =
     bookingContext?.formType ||
@@ -225,6 +226,7 @@ export function AppointmentModal({
                 session={session}
                 setSession={setSession}
                 onSelectSessionId={setSelectedSessionId}
+                onSelectSessionLabel={setSessionLabel}
               />
             )}
 
@@ -242,6 +244,7 @@ export function AppointmentModal({
                 selectedPatient={selectedPatient}
                 dateStr={dateStr}
                 session={session}
+                sessionLabel={sessionLabel}
                 visitType={visitType}
                 complaint={complaint}
               />

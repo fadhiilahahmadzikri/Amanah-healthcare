@@ -5,16 +5,14 @@ import { Icons } from '@/components/icons';
 import type { ServiceCatalogItem } from '../../api/catalog.service';
 import type { PatientAffiliationProfile } from '@/features/data-pasien/api/patient-affiliation-service';
 import { formatClinicDate } from '@/lib/date-format';
-import {
-  formatFriendlyVisitType,
-  type CanonicalVisitType
-} from '@/constants/visit-type.constants';
+import { formatFriendlyVisitType, type CanonicalVisitType } from '@/constants/visit-type.constants';
 
 export interface BookingConfirmationStepProps {
   selectedService: ServiceCatalogItem | null;
   selectedPatient: PatientAffiliationProfile | null;
   dateStr: string;
   session?: string;
+  sessionLabel?: string;
   visitType: CanonicalVisitType | string;
   complaint: string;
   mode?: 'create' | 'reschedule';
@@ -25,12 +23,13 @@ export function BookingConfirmationStep({
   selectedPatient,
   dateStr,
   session,
+  sessionLabel,
   visitType,
   complaint,
   mode = 'create'
 }: BookingConfirmationStepProps) {
   const isReschedule = mode === 'reschedule';
-  const sessionLabel = session ?? '';
+  const displaySession = sessionLabel || session || '';
   const displayServiceName = selectedService?.name ?? '';
   const displayPatientName = selectedPatient?.fullName ?? '';
 
@@ -74,7 +73,7 @@ export function BookingConfirmationStep({
           <span className='text-muted-foreground font-normal'>
             {isReschedule ? 'Sesi Baru' : 'Sesi Konsultasi'}
           </span>
-          <span className='font-bold text-primary'>{sessionLabel}</span>
+          <span className='font-bold text-primary'>{displaySession}</span>
         </div>
 
         {!isReschedule && (

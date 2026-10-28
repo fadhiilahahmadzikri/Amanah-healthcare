@@ -18,6 +18,7 @@ export interface BookingSessionStepProps {
   session?: string;
   setSession?: (session: string) => void;
   onSelectSessionId?: (sessionId: string) => void;
+  onSelectSessionLabel?: (label: string) => void;
   staffId?: string;
   poliklinikId?: string;
 }
@@ -28,19 +29,27 @@ export function BookingSessionStep({
   session,
   setSession,
   onSelectSessionId,
+  onSelectSessionLabel,
   staffId,
   poliklinikId
 }: BookingSessionStepProps) {
   const effectivePoliklinikId = poliklinikId || selectedService?.poliklinikId;
   const currentSession = session ?? '';
 
-  const handleSessionChange = (newSession: string) => {
+  const handleSessionChange = (newSession: string, newLabel?: string) => {
     setSession?.(newSession);
+    if (newLabel) {
+      onSelectSessionLabel?.(newLabel);
+    }
   };
 
   const { sessions: bookingSessions, isLoading: isLoadingSessions } = useBookingSessions(
     { dateStr, poliklinikId: effectivePoliklinikId, staffId, currentSession },
-    { onSessionChange: handleSessionChange, onSessionIdChange: onSelectSessionId }
+    {
+      onSessionChange: (s) => handleSessionChange(s),
+      onSessionIdChange: onSelectSessionId,
+      onSessionLabelChange: onSelectSessionLabel
+    }
   );
 
   return (
@@ -68,8 +77,8 @@ export function BookingSessionStep({
         <SessionList
           sessions={bookingSessions}
           session={currentSession}
-          onSelectSession={(sess, sessionId) => {
-            handleSessionChange(sess);
+          onSelectSession={(sess, sessionId, sessionLabel) => {
+            handleSessionChange(sess, sessionLabel);
             if (sessionId) onSelectSessionId?.(sessionId);
           }}
         />
@@ -123,7 +132,7 @@ function SessionEmptyState({ dateStr }: { dateStr: string }) {
 interface SessionListProps {
   sessions: BookingOptionShift[];
   session: string;
-  onSelectSession: (session: string, sessionId?: string) => void;
+  onSelectSession: (session: string, sessionId?: string, sessionLabel?: string) => void;
 }
 
 function SessionList({ sessions, session, onSelectSession }: SessionListProps) {
@@ -131,7 +140,10 @@ function SessionList({ sessions, session, onSelectSession }: SessionListProps) {
     <div className='pt-0.5'>
       <RadioGroup
         value={session}
-        onValueChange={(val) => onSelectSession(val)}
+        onValueChange={(val) => {
+          const matched = sessions.find((s) => s.session === val);
+          onSelectSession(val, matched?.practitioners?.[0]?.sessionId, matched?.label);
+        }}
         className='grid grid-cols-2 gap-2 sm:gap-2.5'
       >
         {sessions.map((sess) => {
@@ -152,12 +164,12 @@ function SessionList({ sessions, session, onSelectSession }: SessionListProps) {
               onKeyDown={(e) => {
                 if (!isDisabled && (e.key === 'Enter' || e.key === ' ')) {
                   e.preventDefault();
-                  onSelectSession(sess.session, primaryPractitioner?.sessionId);
+                  onSelectSession(sess.session, primaryPractitioner?.sessionId, sess.label);
                 }
               }}
               onClick={() => {
                 if (!isDisabled) {
-                  onSelectSession(sess.session, primaryPractitioner?.sessionId);
+                  onSelectSession(sess.session, primaryPractitioner?.sessionId, sess.label);
                 }
               }}
               className={cn(
@@ -185,7 +197,7 @@ function SessionList({ sessions, session, onSelectSession }: SessionListProps) {
 
                 <div className='min-w-0 flex-1 space-y-1'>
                   <div className='text-xs sm:text-sm font-semibold text-foreground truncate'>
-                    {sess.session}
+                    {sess.label}
                   </div>
 
                   <div>

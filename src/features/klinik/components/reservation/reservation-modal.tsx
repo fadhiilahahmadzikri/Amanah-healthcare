@@ -61,6 +61,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
 
   const [dateStr, setDateStr] = React.useState<string>(clinicTodayStr);
   const [session, setSession] = React.useState<string>('');
+  const [sessionLabel, setSessionLabel] = React.useState<string>('');
   const [selectedSessionId, setSelectedSessionId] = React.useState<string>('');
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
   const [createdAppointment, setCreatedAppointment] = React.useState<Appointment | null>(null);
@@ -280,6 +281,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
                 session={session}
                 setSession={setSession}
                 onSelectSessionId={setSelectedSessionId}
+                onSelectSessionLabel={setSessionLabel}
                 poliklinikId={effectivePoliklinikId}
               />
             )}
@@ -290,6 +292,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
                 selectedPatient={patientProfile}
                 dateStr={dateStr}
                 session={session}
+                sessionLabel={sessionLabel}
                 visitType={VISIT_TYPE.NEW_VISIT}
                 complaint={context.complaint || ''}
                 mode={context.mode || 'create'}

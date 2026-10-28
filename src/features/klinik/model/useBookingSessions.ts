@@ -16,6 +16,7 @@ export interface UseBookingSessionsParams {
 export interface UseBookingSessionsOptions {
   onSessionChange?: (session: string) => void;
   onSessionIdChange?: (id: string) => void;
+  onSessionLabelChange?: (label: string) => void;
 }
 
 /**
@@ -29,7 +30,7 @@ export interface UseBookingSessionsOptions {
  */
 export function useBookingSessions(
   { dateStr, poliklinikId, staffId, currentSession }: UseBookingSessionsParams,
-  { onSessionChange, onSessionIdChange }: UseBookingSessionsOptions
+  { onSessionChange, onSessionIdChange, onSessionLabelChange }: UseBookingSessionsOptions
 ): { sessions: BookingOptionShift[]; isLoading: boolean } {
   const [sessions, setSessions] = useState<BookingOptionShift[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -43,6 +44,9 @@ export function useBookingSessions(
 
   const onSessionIdChangeRef = useRef(onSessionIdChange);
   onSessionIdChangeRef.current = onSessionIdChange;
+
+  const onSessionLabelChangeRef = useRef(onSessionLabelChange);
+  onSessionLabelChangeRef.current = onSessionLabelChange;
 
   useEffect(() => {
     let cancelled = false;
@@ -66,15 +70,20 @@ export function useBookingSessions(
           const firstAvailable = result.find((s) => !s.isDisabled);
           if (firstAvailable) {
             onSessionChangeRef.current?.(firstAvailable.session);
+            onSessionLabelChangeRef.current?.(firstAvailable.label);
             if (firstAvailable.practitioners[0]?.sessionId) {
               onSessionIdChangeRef.current?.(firstAvailable.practitioners[0].sessionId);
             }
           } else {
             onSessionChangeRef.current?.('');
+            onSessionLabelChangeRef.current?.('');
             onSessionIdChangeRef.current?.('');
           }
-        } else if (current.practitioners[0]?.sessionId) {
-          onSessionIdChangeRef.current?.(current.practitioners[0].sessionId);
+        } else {
+          onSessionLabelChangeRef.current?.(current.label);
+          if (current.practitioners[0]?.sessionId) {
+            onSessionIdChangeRef.current?.(current.practitioners[0].sessionId);
+          }
         }
       } catch (err) {
         console.error('[useBookingSessions] Failed to load booking options:', err);
