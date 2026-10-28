@@ -2,6 +2,11 @@
 
 import { useMemo } from 'react';
 import { Icons } from '@/components/icons';
+import { STAFF_TYPE_LABELS, type StaffType } from '@/constants/staff-types.constant';
+import {
+  ATTENDANCE_SHIFT_LABELS,
+  ATTENDANCE_STATUS_LABELS
+} from '../constants/attendance-status.constants';
 import type {
   AvailableAttendanceFilters,
   FilterOption,
@@ -83,7 +88,10 @@ export function useAttendanceDynamicOptions({
         title: 'Shift',
         icon: Icons.clock,
         mode: 'single',
-        options: shiftOptions.map((s) => ({ label: s.label, value: s.value })),
+        options: shiftOptions.map((s) => ({
+          label: ATTENDANCE_SHIFT_LABELS[s.value] || s.label,
+          value: s.value
+        })),
         selectedValues: params.shift && params.shift !== 'all' ? [params.shift] : [],
         onSelect: (val) =>
           onFilterChange({ shift: val === 'all' || val === params.shift ? null : val }),
@@ -95,7 +103,10 @@ export function useAttendanceDynamicOptions({
         title: 'Kategori',
         icon: Icons.users,
         mode: 'single',
-        options: categoryOptions.map((c) => ({ label: c.label, value: c.value })),
+        options: categoryOptions.map((c) => ({
+          label: STAFF_TYPE_LABELS[c.value as StaffType] || c.label,
+          value: c.value
+        })),
         selectedValues: params.category && params.category !== 'all' ? [params.category] : [],
         onSelect: (val) =>
           onFilterChange({ category: val === 'all' || val === params.category ? null : val }),
@@ -107,7 +118,10 @@ export function useAttendanceDynamicOptions({
         title: 'Status',
         icon: Icons.activity,
         mode: 'single',
-        options: statusOptions.map((st) => ({ label: st.label, value: st.value })),
+        options: statusOptions.map((st) => ({
+          label: ATTENDANCE_STATUS_LABELS[st.value] || st.label,
+          value: st.value
+        })),
         selectedValues: params.status && params.status !== 'all' ? [params.status] : [],
         onSelect: (val) =>
           onFilterChange({ status: val === 'all' || val === params.status ? null : val }),

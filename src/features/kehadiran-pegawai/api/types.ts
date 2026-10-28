@@ -1,6 +1,12 @@
-export type StaffCategory = string;
-export type AttendanceStatus = string;
-export type WorkShift = string;
+import type { StaffType } from '@/constants/staff-types.constant';
+import type {
+  CanonicalAttendanceStatus,
+  CanonicalAttendanceShift
+} from '../constants/attendance-status.constants';
+
+export type StaffCategory = StaffType | (string & {});
+export type AttendanceStatus = CanonicalAttendanceStatus | (string & {});
+export type WorkShift = CanonicalAttendanceShift | (string & {});
 
 export const ATTENDANCE_ACTIONS = {
   CHECK_IN: 'check_in',
@@ -34,9 +40,6 @@ export interface StaffAttendance {
   checkOutAt?: string | null;
   status: AttendanceStatus;
   shift: WorkShift;
-  rawStatus?: string;
-  rawShift?: string;
-  rawCategory?: string;
   validatedDurationHours?: number;
   isReplacement?: boolean;
   isEarlyDeparture?: boolean;
@@ -89,8 +92,6 @@ export interface AttendanceListResponse {
   qrConfig: QRPresenceConfig;
   availableFilters?: AvailableAttendanceFilters;
 }
-
-import type { StaffType } from '@/features/staff-management/constants/staff.constants';
 
 export interface AttendanceExportCandidate {
   id: string;

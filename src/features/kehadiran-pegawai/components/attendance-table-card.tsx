@@ -23,6 +23,12 @@ import { cn } from '@/lib/utils';
 import { ExportDialog } from '@/features/export';
 import { ResponsiveFacetToolbox } from '@/shared/ui/responsive-facet-toolbox';
 import { SearchEngineDialog, type useStateSearchEngine } from '@/components/search-engine';
+import { STAFF_TYPES, STAFF_TYPE_LABELS, type StaffType } from '@/constants/staff-types.constant';
+import {
+  CANONICAL_ATTENDANCE_STATUS,
+  ATTENDANCE_STATUS_LABELS,
+  ATTENDANCE_SHIFT_LABELS
+} from '../constants/attendance-status.constants';
 import { useCheckoutAttendanceMutation } from '../api/mutations';
 import { EarlyCheckoutModal } from './early-checkout-modal';
 import { AttendanceMobileCards } from './attendance-mobile-cards';
@@ -196,10 +202,14 @@ export function AttendanceTableCard({
                   </TableRow>
                 ) : (
                   displayedRecords.map((row) => {
-                    const isDoctor = row.kategori === 'Dokter';
+                    const isDoctor = row.kategori === STAFF_TYPES.DOCTOR;
                     const isSelected = selectedIds.includes(row.id);
-                    const isLate = row.rawStatus === 'late' || row.status === 'Terlambat';
-                    const isPresent = row.rawStatus === 'present' || row.status === 'Hadir';
+                    const isLate = row.status === CANONICAL_ATTENDANCE_STATUS.LATE;
+                    const isPresent = row.status === CANONICAL_ATTENDANCE_STATUS.PRESENT;
+                    const categoryLabel =
+                      STAFF_TYPE_LABELS[row.kategori as StaffType] || row.kategori;
+                    const statusLabel = ATTENDANCE_STATUS_LABELS[row.status] || row.status;
+                    const shiftLabel = ATTENDANCE_SHIFT_LABELS[row.shift] || row.shift;
 
                     const jamMasuk = row.checkInAt
                       ? new Date(row.checkInAt).toLocaleTimeString('id-ID', {
@@ -287,7 +297,7 @@ export function AttendanceTableCard({
                                 : 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20'
                             )}
                           >
-                            {row.kategori}
+                            {categoryLabel}
                           </span>
                         </TableCell>
 
@@ -359,13 +369,13 @@ export function AttendanceTableCard({
                                     : 'bg-muted-foreground'
                               )}
                             />
-                            <span>{row.status}</span>
+                            <span>{statusLabel}</span>
                           </span>
                         </TableCell>
 
                         {/* Shift */}
                         <TableCell className='px-3 py-2.5 font-semibold text-primary text-xs'>
-                          {row.shift}
+                          {shiftLabel}
                         </TableCell>
 
                         {/* Sticky Right Action Column (100% Solid Opacity - Zero See-Through) */}

@@ -17,6 +17,12 @@ import {
   SheetFooter
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
+import { STAFF_TYPES, STAFF_TYPE_LABELS, type StaffType } from '@/constants/staff-types.constant';
+import {
+  CANONICAL_ATTENDANCE_STATUS,
+  ATTENDANCE_STATUS_LABELS,
+  ATTENDANCE_SHIFT_LABELS
+} from '../constants/attendance-status.constants';
 import type { StaffAttendance } from '../api/types';
 
 export interface AttendanceDetailSheetProps {
@@ -38,9 +44,12 @@ export function AttendanceDetailSheet({
 
   if (!record) return null;
 
-  const isLate = record.rawStatus === 'late' || record.status === 'Terlambat';
-  const isPresent = record.rawStatus === 'present' || record.status === 'Hadir';
-  const isDoctor = record.kategori === 'Dokter';
+  const isLate = record.status === CANONICAL_ATTENDANCE_STATUS.LATE;
+  const isPresent = record.status === CANONICAL_ATTENDANCE_STATUS.PRESENT;
+  const isDoctor = record.kategori === STAFF_TYPES.DOCTOR;
+  const categoryLabel = STAFF_TYPE_LABELS[record.kategori as StaffType] || record.kategori;
+  const statusLabel = ATTENDANCE_STATUS_LABELS[record.status] || record.status;
+  const shiftLabel = ATTENDANCE_SHIFT_LABELS[record.shift] || record.shift;
 
   const jamMasuk = record.checkInAt
     ? new Date(record.checkInAt).toLocaleTimeString('id-ID', {
@@ -114,7 +123,7 @@ export function AttendanceDetailSheet({
                           : 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20'
                       )}
                     >
-                      {record.kategori}
+                      {categoryLabel}
                     </Badge>
                   </div>
                   <SheetTitle className='text-base font-bold text-foreground truncate mt-1'>
@@ -152,12 +161,12 @@ export function AttendanceDetailSheet({
                       isLate ? 'bg-amber-500' : isPresent ? 'bg-emerald-500' : 'bg-muted-foreground'
                     )}
                   />
-                  <span>{record.status}</span>
+                  <span>{statusLabel}</span>
                 </span>
 
                 <span className='inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20'>
                   <Icons.clock className='size-3' />
-                  <span>Shift {record.shift}</span>
+                  <span>Shift {shiftLabel}</span>
                 </span>
 
                 {record.isEarlyDeparture && (

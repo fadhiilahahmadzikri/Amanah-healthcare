@@ -9,6 +9,8 @@ import {
   EntityCardPrimaryAction,
   EntityCardSecondaryAction
 } from '@/components/cards/master-entity-card';
+import { STAFF_TYPE_LABELS, type StaffType } from '@/constants/staff-types.constant';
+import { ATTENDANCE_SHIFT_LABELS } from '../constants/attendance-status.constants';
 import { AttendanceDetailSheet } from './attendance-detail-sheet';
 import type { StaffAttendance } from '../api/types';
 
@@ -56,11 +58,14 @@ export function AttendanceMobileCards({
               })
             : null;
 
+          const categoryLabel = STAFF_TYPE_LABELS[r.kategori as StaffType] || r.kategori;
+          const shiftLabel = ATTENDANCE_SHIFT_LABELS[r.shift] || r.shift;
+
           return (
             <MasterEntityCard
               key={r.id}
               name={r.nama_staf}
-              subtitle={`${r.id_staf} • ${r.kategori}`}
+              subtitle={`${r.id_staf} • ${categoryLabel}`}
               avatarUrl={r.avatar}
               status={isCompleted ? 'COMPLETED' : 'ACTIVE'}
               statusLabel={isCompleted ? 'Selesai Dinas' : 'Sedang Dinas'}
@@ -70,7 +75,7 @@ export function AttendanceMobileCards({
                 <div className='flex items-center justify-between text-xs font-mono text-muted-foreground pt-1'>
                   <div className='flex items-center gap-1.5'>
                     <Icons.clock className='size-3 text-primary' />
-                    <span>Shift {r.shift}</span>
+                    <span>Shift {shiftLabel}</span>
                   </div>
                   <div className='flex items-center gap-1'>
                     <span className='font-semibold text-foreground'>{jamMasuk}</span>
