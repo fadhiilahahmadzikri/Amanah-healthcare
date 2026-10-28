@@ -10,6 +10,7 @@ import {
   createSessionDef,
   updateSingleSessionDef,
   deleteSessionDef,
+  type DeleteSessionDefOptions,
   type SessionDefConfig,
   type WeeklyTemplateConfig,
   type ClinicSettingConfig,
@@ -399,36 +400,6 @@ export function useDoctorScheduleSettingsModal({
     }
   }, [data]);
 
-  const resetToCanonicalDefaults = useCallback(() => {
-    setDraftSessionDefs((prev) => {
-      const restored = prev.map((item) => {
-        const canonicalStart = item.defaultStartsAt;
-        const canonicalEnd = item.defaultEndsAt;
-        return {
-          ...item,
-          defaultStartsAt: canonicalStart,
-          defaultEndsAt: canonicalEnd,
-          timeRange: `${canonicalStart.slice(0, 5)} - ${canonicalEnd.slice(0, 5)}`
-        };
-      });
-
-      setDraftWeeklyTemplates((prevTemplates) =>
-        prevTemplates.map((wt) => {
-          const matchedDef = restored.find((d) => d.id === wt.sessionId);
-          if (!matchedDef) return wt;
-          return {
-            ...wt,
-            startsAt: matchedDef.defaultStartsAt,
-            endsAt: matchedDef.defaultEndsAt
-          };
-        })
-      );
-
-      toast.success('Jam operasional shift dikembalikan ke standar baku klinik.');
-      return restored;
-    });
-  }, []);
-
   const handleCancelImpactDialog = useCallback(() => {
     setShowImpactDialog(false);
     setImpactResult(null);
@@ -461,8 +432,8 @@ export function useDoctorScheduleSettingsModal({
   );
 
   const handleDeleteSessionDef = useCallback(
-    async (id: string) => {
-      await deleteSessionDef(id);
+    async (id: string, options?: DeleteSessionDefOptions) => {
+      await deleteSessionDef(id, options);
       toast.success('Shift berhasil dihapus.');
       void refetch();
       syncAllDoctorSchedules(queryClient);
@@ -498,7 +469,6 @@ export function useDoctorScheduleSettingsModal({
     handleRequestSave,
     handleConfirmSave,
     handleCancelImpactDialog,
-    resetDraftChanges,
-    resetToCanonicalDefaults
+    resetDraftChanges
   };
 }

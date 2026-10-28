@@ -65,7 +65,7 @@ export function useAttendanceDashboard() {
   // 8. Search Engine Integration (Standardized across clinic modules)
   const searchIndexItems = useMemo<SearchEngineResultItem[]>(() => {
     return records.map((r) => {
-      const shiftLabel = r.shift || '-';
+      const shiftLabel = r.shiftLabel || '-';
       const categoryLabel = r.kategori || 'Pegawai';
       return {
         id: `staff-${r.id}`,

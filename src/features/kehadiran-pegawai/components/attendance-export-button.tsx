@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { AttendanceExportWizardModal } from './attendance-export-wizard-modal';
+import { DoctorScheduleSettingsButton } from '@/features/jadwal-dokter/components/settings';
+import type { ConfigurationCategory } from '@/features/jadwal-dokter/model/useDoctorScheduleSettingsModal';
 import { cn } from '@/lib/utils';
 import type { StaffAttendance } from '../api/types';
 
@@ -74,8 +76,10 @@ export interface AttendanceHeaderActionsProps {
   onToggleQR?: () => void;
   onOpenManualAttendance?: () => void;
   onRefresh?: () => void;
+  onOpenSettings?: (category?: ConfigurationCategory, subView?: 'defs' | 'operating_days') => void;
   isQRVisible?: boolean;
   isCompact?: boolean;
+  isMobile?: boolean;
   onOpenSearch?: () => void;
   isSearchActive?: boolean;
   onOpenFilter?: () => void;
@@ -88,8 +92,10 @@ export function AttendanceHeaderActions({
   onToggleQR,
   onOpenManualAttendance,
   onRefresh,
+  onOpenSettings,
   isQRVisible = false,
   isCompact = false,
+  isMobile = false,
   onOpenSearch,
   isSearchActive = false,
   onOpenFilter,
@@ -221,8 +227,16 @@ export function AttendanceHeaderActions({
         </Tooltip>
       )}
 
-      {/* 4. Ekspor Data & 5. Segarkan Data (Anchored to Far Right) */}
+      {/* 4. Pengaturan & 5. Ekspor Data & 6. Segarkan Data (Anchored to Far Right) */}
       <div className='flex items-center gap-1.5 ml-auto shrink-0'>
+        {onOpenSettings && (
+          <DoctorScheduleSettingsButton
+            onSelectCategory={onOpenSettings}
+            forceMode={isMobile ? 'drawer' : 'dropdown'}
+            className='size-8 rounded-md bg-card border-border/70 text-foreground hover:bg-muted/40 shadow-2xs shrink-0 cursor-pointer'
+          />
+        )}
+
         <AttendanceExportDropdown
           data={data}
           buttonVariant='outline'

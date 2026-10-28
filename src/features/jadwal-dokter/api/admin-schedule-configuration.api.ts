@@ -196,25 +196,76 @@ export async function updateSingleSessionDef(
   );
 }
 
-export async function deleteSessionDef(
-  id: string
-): Promise<{ success: boolean; message: string }> {
-  return await clientFetch<{ success: boolean; message: string }>(
-    `/api/v1/admin/schedule-configuration/session-defs/${id}`,
-    {
-      method: 'DELETE'
-    }
-  );
+export interface DeleteSessionDefOptions {
+  cascade?: boolean;
+  confirmText?: string;
 }
 
-export async function applySchedulePreset(
-  preset: '2-shifts' | '3-shifts' | '4-shifts' | 'custom'
-): Promise<{ success: boolean; message: string; appliedCount: number }> {
-  return await clientFetch<{ success: boolean; message: string; appliedCount: number }>(
-    '/api/v1/admin/schedule-configuration/presets',
+export interface SessionDefImpactDoctorDay {
+  dow: number;
+  dayName: string;
+  roomName?: string | null;
+}
+
+export interface SessionDefImpactDoctor {
+  id: string;
+  displayName: string;
+  specialty?: string | null;
+  activeDays: SessionDefImpactDoctorDay[];
+}
+
+export interface SessionDefImpactResult {
+  shiftId: string;
+  shiftLabel: string;
+  shiftCode: string;
+  totalAssignmentsCount: number;
+  affectedDoctorsCount: number;
+  affectedDoctors: SessionDefImpactDoctor[];
+  weeklyTemplatesCount: number;
+  hasActiveTickets: boolean;
+  activeTicketsCount: number;
+}
+
+export async function getSessionDefById(id: string): Promise<SessionDefConfig> {
+  const res = await clientFetch<SessionDefConfig | { data: SessionDefConfig }>(
+    `/api/v1/admin/schedule-configuration/session-defs/${id}`
+  );
+
+  if (res && 'data' in res && res.data) {
+    return res.data;
+  }
+  return res as SessionDefConfig;
+}
+
+export async function getSessionDefImpact(id: string): Promise<SessionDefImpactResult> {
+  const res = await clientFetch<SessionDefImpactResult | { data: SessionDefImpactResult }>(
+    `/api/v1/admin/schedule-configuration/session-defs/${id}/impact`
+  );
+
+  if (res && 'data' in res && res.data) {
+    return res.data;
+  }
+  return res as SessionDefImpactResult;
+}
+
+export async function deleteSessionDef(
+  id: string,
+  options?: DeleteSessionDefOptions
+): Promise<{ success: boolean; message: string }> {
+  const params = new URLSearchParams();
+  if (options?.cascade) {
+    params.set('cascade', 'true');
+  }
+  if (options?.confirmText) {
+    params.set('confirmText', options.confirmText);
+  }
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+
+  return await clientFetch<{ success: boolean; message: string }>(
+    `/api/v1/admin/schedule-configuration/session-defs/${id}${queryString}`,
     {
-      method: 'POST',
-      body: JSON.stringify({ preset })
+      method: 'DELETE',
+      body: options ? JSON.stringify(options) : undefined
     }
   );
 }

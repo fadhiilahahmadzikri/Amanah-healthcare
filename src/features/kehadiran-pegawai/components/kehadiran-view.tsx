@@ -12,12 +12,15 @@ import { AttendanceTableCard } from './attendance-table-card';
 import { AttendanceHeaderActions } from './attendance-export-button';
 import { AttendanceQrMobileModal } from './attendance-qr-mobile-modal';
 import { ManualAttendanceModal } from './manual-attendance-modal';
+import { DoctorScheduleSettingsModal } from '@/features/jadwal-dokter/components/settings';
+import { useDoctorScheduleSettingsCycle } from '@/features/jadwal-dokter/model/useDoctorScheduleSettingsCycle';
 import { useAttendanceDashboard } from '../model/useAttendanceDashboard';
 
 export default function KehadiranPegawaiView() {
   const attendanceDashboard = useAttendanceDashboard();
   const { data, qrController, filterState, dynamicOptions, searchEngine, actions } =
     attendanceDashboard;
+  const settingsCycle = useDoctorScheduleSettingsCycle();
   const [isFacetSheetOpen, setIsFacetSheetOpen] = useState(false);
 
   const { state: sidebarState } = useSidebar();
@@ -72,8 +75,12 @@ export default function KehadiranPegawaiView() {
                 onToggleQR={() => qrController.toggleQR(isMobile)}
                 onOpenManualAttendance={actions.openManualAttendance}
                 onRefresh={actions.refreshData}
+                onOpenSettings={(category, subView) =>
+                  settingsCycle.openSettings(category, subView)
+                }
                 isQRVisible={isMobile ? qrController.isMobileModalOpen : qrController.isQRVisible}
                 isCompact={isCompact}
+                isMobile={isMobile}
                 onOpenSearch={searchEngine.open}
                 isSearchActive={Boolean(filterState.params.search)}
                 onOpenFilter={() => setIsFacetSheetOpen(true)}
@@ -100,6 +107,7 @@ export default function KehadiranPegawaiView() {
                 <QRPresenceCard
                   config={data.qrConfig}
                   onGenerateNewToken={qrController.rotateQR}
+                  onRefreshSession={actions.refreshData}
                   onOpenManualAttendance={actions.openManualAttendance}
                   onCloseCard={() => qrController.closeQR(false)}
                   className='h-full'
@@ -135,6 +143,7 @@ export default function KehadiranPegawaiView() {
         onClose={() => qrController.closeQR(true)}
         config={data.qrConfig}
         onGenerateNewToken={qrController.rotateQR}
+        onRefreshSession={actions.refreshData}
         onOpenManualAttendance={actions.openManualAttendance}
       />
 
@@ -159,6 +168,9 @@ export default function KehadiranPegawaiView() {
         isOpen={attendanceDashboard.isManualAttendanceModalOpen}
         onClose={actions.closeManualAttendance}
       />
+
+      {/* Doctor Schedule & Shift Settings Modal */}
+      <DoctorScheduleSettingsModal cycle={settingsCycle} onClose={actions.refreshData} />
     </PageContainer>
   );
 }

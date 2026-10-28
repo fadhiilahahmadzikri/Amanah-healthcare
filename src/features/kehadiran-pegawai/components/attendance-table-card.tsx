@@ -222,7 +222,7 @@ export function AttendanceTableCard({
                     const categoryLabel =
                       STAFF_TYPE_LABELS[row.kategori as StaffType] || row.kategori;
                     const statusLabel = ATTENDANCE_STATUS_LABELS[row.status] || row.status;
-                    const shiftLabel = row.shift || '-';
+                    const shiftLabel = row.shiftLabel || '-';
 
                     const jamMasuk = row.checkInAt
                       ? formatPresenceTimestamp(row.checkInAt, true)

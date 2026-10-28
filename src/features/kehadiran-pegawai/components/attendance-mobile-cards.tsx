@@ -48,12 +48,10 @@ export function AttendanceMobileCards({
             ? formatPresenceTimestamp(r.checkInAt, true)
             : (r.waktu_presensi ?? '-');
 
-          const outTime = r.checkOutAt
-            ? formatPresenceTimestamp(r.checkOutAt, true)
-            : null;
+          const outTime = r.checkOutAt ? formatPresenceTimestamp(r.checkOutAt, true) : null;
 
           const categoryLabel = STAFF_TYPE_LABELS[r.kategori as StaffType] || r.kategori;
-          const shiftLabel = r.shift || '-';
+          const shiftLabel = r.shiftLabel || '-';
           const subtitleText = `${r.id_staf} • ${categoryLabel}${r.isReplacement ? ' • Pengganti' : ''}`;
 
           return (

@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { StaffRoleBadge } from '@/features/staff-management';
 import { formatCurrency } from '../../utils/currency';
+import { formatPracticeHours } from '@/lib/duration-format';
 import { CellAction } from './cell-action';
 import type { PayrollSummaryItem } from '../../api/types';
 
@@ -127,7 +128,7 @@ export function getPayrollColumns(): ColumnDef<PayrollSummaryItem>[] {
       ),
       cell: ({ row }) => (
         <div className='text-center text-xs text-muted-foreground tabular-nums font-mono'>
-          {row.original.baseHours} jam
+          {formatPracticeHours(row.original.baseHours)}
         </div>
       ),
       enableSorting: true,

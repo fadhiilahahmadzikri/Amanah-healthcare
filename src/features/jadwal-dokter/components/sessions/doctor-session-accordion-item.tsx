@@ -95,7 +95,7 @@ export function DoctorSessionAccordionItem({
             <h4 className='font-bold text-sm sm:text-base text-foreground tracking-tight'>
               {session.sessionName}
             </h4>
-            <StatusBadge status={isClosed ? 'Tutup' : 'Buka'} variant='pill' size='sm' />
+            <StatusBadge status={session.sessionStatus} variant='pill' size='sm' />
             <span className='text-xs font-medium text-muted-foreground'>
               ({bookedCount} Pasien)
             </span>

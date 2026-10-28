@@ -120,8 +120,7 @@ export function DoctorScheduleSettingsModal({
     handleRequestSave,
     handleConfirmSave,
     handleCancelImpactDialog,
-    resetDraftChanges,
-    resetToCanonicalDefaults
+    resetDraftChanges
   } = useDoctorScheduleSettingsModal({
     isOpen: modalIsOpen,
     onClose: handleClose,
@@ -238,7 +237,6 @@ export function DoctorScheduleSettingsModal({
                   conflictingDefIds={conflictingDefIds}
                   onToggleActive={toggleSessionDef}
                   onUpdateTime={updateSessionDefTime}
-                  onResetDefaults={resetToCanonicalDefaults}
                   onAddSessionDef={handleAddSessionDef}
                   onEditSessionDef={handleEditSessionDef}
                   onDeleteSessionDef={handleDeleteSessionDef}

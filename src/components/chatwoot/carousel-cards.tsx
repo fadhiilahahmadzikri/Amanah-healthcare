@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { DoctorScheduleCard } from '@/features/jadwal-dokter/components/doctor-schedule-card';
 import type { DoctorSchedule } from '@/features/jadwal-dokter/api/types';
+import { normalizeScheduleStatus } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 
 interface CarouselCardsProps {
   slides: string[];
@@ -54,7 +55,7 @@ function parseSlideContent(slide: string, idx: number) {
 
     const statusMatch =
       slide.match(/\*\*Status:\*\*\s*([^\n\r]+)/i) || slide.match(/Status:\s*([^\n\r]+)/i);
-    const status = statusMatch ? statusMatch[1].trim() : 'Belum tersedia';
+    const status = normalizeScheduleStatus(statusMatch?.[1]?.trim());
     const roomMatch =
       slide.match(/\*\*(?:Ruang|Poli):\*\*\s*([^\n\r]+)/i) ||
       slide.match(/(?:Ruang|Poli):\s*([^\n\r]+)/i);
@@ -75,8 +76,7 @@ function parseSlideContent(slide: string, idx: number) {
       scheduleMonth: '',
       monthlySchedule: [],
       dailySessions: [],
-      isOnLeave:
-        lower.includes('cuti') || status.toLowerCase().includes('cuti') || lower.includes('leave')
+      isOnLeave: status === 'ON_LEAVE'
     };
 
     return {

@@ -45,6 +45,7 @@ export function KehadiranLiveView() {
           <QRPresenceCard
             config={data.qrConfig}
             onGenerateNewToken={attendanceLive.actions.generateNewToken}
+            onRefreshSession={attendanceLive.actions.refreshData}
             onOpenManualAttendance={attendanceLive.actions.openManualAttendance}
             className='h-full'
           />

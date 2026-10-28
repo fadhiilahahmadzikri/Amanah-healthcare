@@ -4,6 +4,7 @@ import React, { useMemo } from 'react';
 import { MetricChartCard, type MetricChartPoint } from '@/components/charts/metric-chart-card';
 import { Icons } from '@/components/icons';
 import { formatCurrency } from '../utils/currency';
+import { formatPracticeHours } from '@/lib/duration-format';
 import { cn } from '@/lib/utils';
 import type { PayrollPeriodItem, PayrollSummaryItem } from '../api/types';
 
@@ -78,7 +79,7 @@ export function PayrollOverviewStats({
       {/* 2. Total jam pelayanan */}
       <MetricChartCard
         title='Total jam pelayanan'
-        value={`${totalBaseHours.toLocaleString('id-ID')} jam`}
+        value={formatPracticeHours(totalBaseHours)}
         description='Akumulasi jam dinas terjadwal'
         data={sparklineHours}
         tone='primary'

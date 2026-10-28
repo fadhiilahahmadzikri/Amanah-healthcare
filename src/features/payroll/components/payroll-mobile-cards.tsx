@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { isPayrollCalculatedOrFinalized } from '../constants/options';
 import { formatCurrency } from '../utils/currency';
+import { formatPracticeHours } from '@/lib/duration-format';
 import type { PayrollSummaryItem } from '../api/types';
 
 export interface PayrollMobileCardsProps {
@@ -111,7 +112,9 @@ export function PayrollMobileCards({
                   <span className='text-xs font-bold text-foreground tabular-nums block'>
                     {formatCurrency(staff.netPayroll)}
                   </span>
-                  <span className='text-[10px] text-muted-foreground'>{staff.baseHours} jam</span>
+                  <span className='text-[10px] text-muted-foreground'>
+                    {formatPracticeHours(staff.baseHours)}
+                  </span>
                 </div>
 
                 {canGenerate && (

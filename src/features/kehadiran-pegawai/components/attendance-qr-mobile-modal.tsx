@@ -18,6 +18,7 @@ export interface AttendanceQrMobileModalProps {
   onClose: () => void;
   config: QRPresenceConfig;
   onGenerateNewToken?: () => void;
+  onRefreshSession?: () => void;
   onOpenManualAttendance?: () => void;
 }
 
@@ -26,6 +27,7 @@ export function AttendanceQrMobileModal({
   onClose,
   config,
   onGenerateNewToken,
+  onRefreshSession,
   onOpenManualAttendance
 }: AttendanceQrMobileModalProps) {
   return (
@@ -66,6 +68,7 @@ export function AttendanceQrMobileModal({
           <QRPresenceCard
             config={config}
             onGenerateNewToken={onGenerateNewToken}
+            onRefreshSession={onRefreshSession}
             onOpenManualAttendance={onOpenManualAttendance}
             onCloseCard={onClose}
             className='h-full border-0 shadow-none'

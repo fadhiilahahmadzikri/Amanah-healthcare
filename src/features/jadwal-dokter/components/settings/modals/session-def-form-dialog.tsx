@@ -15,11 +15,17 @@ import {
 import { Icons } from '@/components/icons';
 import { toast } from 'sonner';
 import type { SessionDefConfig } from '../../../api/admin-schedule-configuration.api';
+import {
+  parseTimeToMinutes,
+  parseTimeEndToMinutes,
+  minutesToTimeString
+} from '../../../utils/shift-time-validator';
 
 export interface SessionDefFormDialogProps {
   isOpen: boolean;
   onClose: () => void;
   initialData?: SessionDefConfig | null;
+  existingDefs?: SessionDefConfig[];
   onSubmit: (data: {
     label: string;
     codePrefix?: string;
@@ -42,6 +48,7 @@ export function SessionDefFormDialog({
   isOpen,
   onClose,
   initialData,
+  existingDefs,
   onSubmit,
   portalContainerRef
 }: SessionDefFormDialogProps) {
@@ -60,10 +67,33 @@ export function SessionDefFormDialog({
     } else {
       setLabel('');
       setCodePrefix('');
-      setStartsAt('08:00');
-      setEndsAt('12:00');
+
+      if (existingDefs && existingDefs.length > 0) {
+        const sorted = [...existingDefs].sort(
+          (a, b) => parseTimeEndToMinutes(b.defaultEndsAt) - parseTimeEndToMinutes(a.defaultEndsAt)
+        );
+        const latestEndStr = sorted[0].defaultEndsAt?.slice(0, 5) || '08:00';
+        const startMin = parseTimeToMinutes(latestEndStr);
+        const endMin = Math.min(1440, startMin + 120);
+
+        setStartsAt(latestEndStr);
+        setEndsAt(minutesToTimeString(endMin > startMin ? endMin : Math.min(1440, startMin + 30)));
+      } else {
+        setStartsAt('08:00');
+        setEndsAt('12:00');
+      }
     }
-  }, [initialData, isOpen]);
+  }, [initialData, existingDefs, isOpen]);
+
+  const handleStartsAtChange = (newStart: string) => {
+    setStartsAt(newStart);
+    const startMin = parseTimeToMinutes(newStart);
+    const endMin = parseTimeEndToMinutes(endsAt, startMin);
+    if (endMin <= startMin) {
+      const nextEnd = Math.min(1440, startMin + 120);
+      setEndsAt(minutesToTimeString(nextEnd > startMin ? nextEnd : Math.min(1440, startMin + 30)));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,7 +188,7 @@ export function SessionDefFormDialog({
           <div className='grid grid-cols-2 gap-3'>
             <div className='space-y-1.5'>
               <Label className='text-xs font-semibold text-foreground'>Jam Mulai</Label>
-              <Select value={startsAt} onValueChange={setStartsAt}>
+              <Select value={startsAt} onValueChange={handleStartsAtChange}>
                 <SelectTrigger className='h-9 text-xs font-mono rounded-lg border-border/80 bg-background'>
                   <SelectValue />
                 </SelectTrigger>

@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { EmptyState } from '@/components/ui/empty-state';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { QRPresenceConfig } from '../api/types';
@@ -15,6 +16,7 @@ import type { QRPresenceConfig } from '../api/types';
 interface QRPresenceCardProps {
   config: QRPresenceConfig;
   onGenerateNewToken?: () => void;
+  onRefreshSession?: () => void;
   onCloseCard?: () => void;
   onPopoutWindow?: () => void;
   onOpenManualAttendance?: () => void;
@@ -24,17 +26,27 @@ interface QRPresenceCardProps {
 export function QRPresenceCard({
   config,
   onGenerateNewToken,
+  onRefreshSession,
   onCloseCard,
   onPopoutWindow,
   onOpenManualAttendance,
   className
 }: QRPresenceCardProps) {
-  // Dynamic rotation interval from backend config
-  const rotationInterval = config.rotation_seconds || 30;
+  // Authoritative session active check directly from backend SSOT
+  const hasActiveSession = Boolean(
+    config.isActive &&
+    config.status === 'active' &&
+    config.qr_code_identifier &&
+    config.qr_code_identifier.trim().length > 0
+  );
+
+  // Dynamic rotation interval from backend config (only relevant when session active)
+  const rotationInterval = config.rotation_seconds > 0 ? config.rotation_seconds : 30;
   const maxSessionSeconds = rotationInterval + 15;
 
   // Calculate remaining seconds from backend validUntil timestamp (persists across page refresh)
   const computeRemainingSeconds = useCallback(() => {
+    if (!hasActiveSession) return 0;
     const validUntilIso = config.validUntil;
     if (validUntilIso) {
       const targetTime = new Date(validUntilIso).getTime();
@@ -42,7 +54,7 @@ export function QRPresenceCard({
       return Math.min(diffSec, maxSessionSeconds);
     }
     return rotationInterval;
-  }, [config.validUntil, rotationInterval, maxSessionSeconds]);
+  }, [hasActiveSession, config.validUntil, rotationInterval, maxSessionSeconds]);
 
   const [timeLeft, setTimeLeft] = useState(computeRemainingSeconds);
   const [token, setToken] = useState(config.qr_code_identifier || '');
@@ -62,7 +74,7 @@ export function QRPresenceCard({
 
   // GSAP-powered smooth blur-pulse rotation transition
   const rotateQRCodeWithGSAP = useCallback(() => {
-    if (isAnimatingRef.current) return;
+    if (!hasActiveSession || isAnimatingRef.current) return;
     isAnimatingRef.current = true;
 
     // Trigger backend QR rotation mutation
@@ -96,10 +108,15 @@ export function QRPresenceCard({
     } else {
       isAnimatingRef.current = false;
     }
-  }, [rotationInterval, onGenerateNewToken]);
+  }, [hasActiveSession, rotationInterval, onGenerateNewToken]);
 
-  // Robust, pure 1-second countdown interval (no side-effects inside state updater)
+  // Robust countdown interval: ONLY running if active session exists
   useEffect(() => {
+    if (!hasActiveSession) {
+      setTimeLeft(0);
+      return;
+    }
+
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -110,14 +127,14 @@ export function QRPresenceCard({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [hasActiveSession]);
 
-  // When countdown hits 0, trigger GSAP rotation smoothly
+  // When countdown hits 0, trigger GSAP rotation smoothly ONLY if session is active
   useEffect(() => {
-    if (timeLeft === 0) {
+    if (hasActiveSession && timeLeft === 0) {
       rotateQRCodeWithGSAP();
     }
-  }, [timeLeft, rotateQRCodeWithGSAP]);
+  }, [hasActiveSession, timeLeft, rotateQRCodeWithGSAP]);
 
   const handlePopout = () => {
     if (onPopoutWindow) {
@@ -197,7 +214,7 @@ export function QRPresenceCard({
             </TooltipContent>
           </Tooltip>
 
-          {/* Tombol Segarkan QR dengan Tooltip */}
+          {/* Tombol Segarkan QR / Periksa Sesi dengan Tooltip */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -205,17 +222,22 @@ export function QRPresenceCard({
                 variant='ghost'
                 size='sm'
                 onClick={() => {
-                  rotateQRCodeWithGSAP();
-                  toast.info('QR Code diperbarui.');
+                  if (hasActiveSession) {
+                    rotateQRCodeWithGSAP();
+                    toast.info('QR Code diperbarui.');
+                  } else {
+                    onRefreshSession?.();
+                    toast.info('Memeriksa ketersediaan sesi aktif...');
+                  }
                 }}
                 className='size-7 p-0 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors shrink-0'
               >
                 <Icons.refresh className='size-3' />
-                <span className='sr-only'>Segarkan QR</span>
+                <span className='sr-only'>{hasActiveSession ? 'Segarkan QR' : 'Periksa Sesi'}</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent side='top' className='text-xs font-medium'>
-              Segarkan QR Code
+              {hasActiveSession ? 'Segarkan QR Code' : 'Periksa Ketersediaan Sesi Aktif'}
             </TooltipContent>
           </Tooltip>
 
@@ -242,27 +264,78 @@ export function QRPresenceCard({
         </div>
       </div>
 
-      {/* 2. Direct Large Edge-to-Edge QR Code with Inner Scroll Support (Hanya konten ini yang scroll jika overflow) */}
-      <div className='flex-1 flex flex-col items-center justify-start w-full min-h-0 overflow-y-auto py-2'>
-        <div
-          ref={qrVisualRef}
-          className='w-full max-w-full aspect-square flex items-center justify-center will-change-transform shrink-0'
-        >
-          <ModernStyledQRCode data={qrPayload} size={520} className='w-full h-full' />
-        </div>
-
-        {/* 3. Section Code Random (Atas) & Countdown Rotasi (Bawah) */}
-        <div className='w-full text-center mt-3 sm:mt-4 space-y-1 px-2 shrink-0'>
-          <div ref={tokenRef} className='will-change-transform'>
-            <div className='text-3xl sm:text-4xl font-black tracking-widest text-foreground font-mono leading-none'>
-              {token || '-'}
+      {/* 2. Direct Large Edge-to-Edge QR Code with Inner Scroll Support (Top-aligned when active, Centered for Empty State) */}
+      <div
+        className={cn(
+          'flex-1 flex flex-col items-center w-full min-h-0 overflow-y-auto py-2',
+          !hasActiveSession ? 'justify-center' : 'justify-start'
+        )}
+      >
+        {!hasActiveSession ? (
+          <EmptyState
+            animated={true}
+            animationClassName='w-36 h-36 sm:w-44 sm:h-44'
+            title='Tidak Ada Sesi Operasional Aktif'
+            description={
+              config.qr_context ||
+              'Sesi praktik atau jadwal kerja klinik saat ini sedang dinonaktifkan atau di luar jam operasional.'
+            }
+            className='border-0 bg-transparent p-2 sm:p-3 min-h-0'
+            action={
+              <div className='flex flex-wrap items-center justify-center gap-2 mt-1'>
+                {onOpenManualAttendance && (
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='sm'
+                    onClick={onOpenManualAttendance}
+                    className='h-8 px-3 text-xs font-medium gap-1.5 rounded-lg'
+                  >
+                    <Icons.fingerprint className='size-3.5' />
+                    <span>Presensi Manual</span>
+                  </Button>
+                )}
+                {onRefreshSession && (
+                  <Button
+                    type='button'
+                    variant='default'
+                    size='sm'
+                    onClick={() => {
+                      onRefreshSession();
+                      toast.info('Memeriksa ketersediaan sesi aktif...');
+                    }}
+                    className='h-8 px-3 text-xs font-medium gap-1.5 rounded-lg'
+                  >
+                    <Icons.refresh className='size-3.5' />
+                    <span>Periksa Sesi Aktif</span>
+                  </Button>
+                )}
+              </div>
+            }
+          />
+        ) : (
+          <>
+            <div
+              ref={qrVisualRef}
+              className='w-full max-w-full aspect-square flex items-center justify-center will-change-transform shrink-0'
+            >
+              <ModernStyledQRCode data={qrPayload} size={520} className='w-full h-full' />
             </div>
-          </div>
 
-          <div className='text-xs font-mono font-bold text-muted-foreground tabular-nums pt-1'>
-            {timeLeft}s
-          </div>
-        </div>
+            {/* 3. Section Code Random (Atas) & Countdown Rotasi (Bawah) */}
+            <div className='w-full text-center mt-3 sm:mt-4 space-y-1 px-2 shrink-0'>
+              <div ref={tokenRef} className='will-change-transform'>
+                <div className='text-3xl sm:text-4xl font-black tracking-widest text-foreground font-mono leading-none'>
+                  {token || '-'}
+                </div>
+              </div>
+
+              <div className='text-xs font-mono font-bold text-muted-foreground tabular-nums pt-1'>
+                {timeLeft}s
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </Card>
   );

@@ -40,6 +40,8 @@ export interface StaffAttendance {
   checkOutAt?: string | null;
   status: AttendanceStatus;
   shift: WorkShift;
+  shiftLabel?: string;
+  sessionName?: string;
   validatedDurationHours?: number;
   lateMinutes?: number | null;
   isReplacement?: boolean;

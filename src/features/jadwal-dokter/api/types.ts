@@ -1,7 +1,9 @@
 export type {
   ClinicRoom,
   ClinicRoomOccupantDetails,
-  ClosureMetadata
+  ClosureMetadata,
+  ScheduleOperationalStatus,
+  ScheduleClosureReason
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 import { STAFF_TYPES, type StaffType } from '@/constants/staff-types.constant';
 export { STAFF_TYPES, type StaffType };
@@ -13,10 +15,14 @@ export {
 
 export type { ShiftOperationalStatus } from '../constants/schedule-shift.constants';
 
-import type { UpdateAdminDoctorSessionPayload } from '@/server/contracts/schedules/doctor-schedules.dto';
+import type {
+  UpdateAdminDoctorSessionPayload,
+  ScheduleOperationalStatus,
+  ScheduleClosureReason
+} from '@/server/contracts/schedules/doctor-schedules.dto';
 
 export type ScheduleDayStatus = 'OPEN' | 'CLOSED' | 'ON_LEAVE' | 'PENDING';
-export type SessionStatus = 'OPEN' | 'CLOSED' | 'ON_LEAVE' | 'PENDING';
+export type SessionStatus = 'OPEN' | 'CLOSED';
 
 export interface DoctorDailySession {
   id: string;
@@ -26,7 +32,7 @@ export interface DoctorDailySession {
   timeRange?: string;
   bookedPatients?: number;
   sessionStatus: SessionStatus;
-  closureReason?: string | null;
+  closureReason?: ScheduleClosureReason | null;
   roomName?: string;
   roomId?: string | null;
   isRescheduleEligible?: boolean;
@@ -58,15 +64,15 @@ export interface DoctorSchedule {
   staffType?: StaffType;
   fullName: string;
   specialty: string;
-  doctorStatus: 'OPEN' | 'CLOSED' | 'ON_LEAVE' | 'PENDING' | string;
+  doctorStatus: ScheduleOperationalStatus;
   email?: string | null;
   phone?: string | null;
   practiceRoom: string;
   practiceDate?: string;
   avatar?: string;
-  todaySchedule: string;
-  upcomingSchedule?: string;
-  scheduleStatus: 'OPEN' | 'CLOSED' | 'ON_LEAVE' | 'PENDING' | string;
+  todaySchedule?: string | null;
+  upcomingSchedule?: string | null;
+  scheduleStatus: ScheduleOperationalStatus;
   scheduleMonth?: string;
   monthlySchedule?: MonthlyScheduleDay[];
   dailySessions?: DoctorDailySession[];

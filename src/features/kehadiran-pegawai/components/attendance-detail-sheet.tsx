@@ -53,16 +53,14 @@ export function AttendanceDetailSheet({
   const isDoctor = record.kategori === STAFF_TYPES.DOCTOR;
   const categoryLabel = STAFF_TYPE_LABELS[record.kategori as StaffType] || record.kategori;
   const statusLabel = ATTENDANCE_STATUS_LABELS[record.status] || record.status;
-  const shiftLabel = record.shift || '-';
+  const shiftLabel = record.shiftLabel || '-';
   const lateLabel = formatLateMinutes(record.lateMinutes);
 
   const jamMasuk = record.checkInAt
     ? formatPresenceTimestamp(record.checkInAt, true)
     : (record.waktu_presensi ?? '-');
 
-  const jamPulang = record.checkOutAt
-    ? formatPresenceTimestamp(record.checkOutAt, true)
-    : null;
+  const jamPulang = record.checkOutAt ? formatPresenceTimestamp(record.checkOutAt, true) : null;
 
   const durasiStr = formatWorkDuration({
     checkInAt: record.checkInAt,

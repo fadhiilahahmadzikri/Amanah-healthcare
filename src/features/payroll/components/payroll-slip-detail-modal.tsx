@@ -15,6 +15,7 @@ import {
   isPayrollCalculatedOrFinalized
 } from '../constants/options';
 import { formatCurrency } from '../utils/currency';
+import { formatPracticeHours } from '@/lib/duration-format';
 import { useStaffPayrollReport } from '../model/useStaffPayrollReport';
 import type { PayrollPeriodItem, PayrollSummaryItem } from '../api/types';
 
@@ -129,7 +130,7 @@ export function PayrollSlipDetailModal({
             {/* Gaji Pokok & Jam */}
             <div className='bg-card border border-border/60 rounded-xl p-3.5 flex flex-col justify-between'>
               <span className='text-[11px] font-medium text-muted-foreground block'>
-                Gaji Pokok ({staffSummary.baseHours} jam)
+                Gaji Pokok ({formatPracticeHours(staffSummary.baseHours)})
               </span>
               <div className='mt-1'>
                 <span className='text-base font-bold text-foreground tabular-nums'>
@@ -214,7 +215,7 @@ export function PayrollSlipDetailModal({
                         )}
 
                         <div className='flex items-center gap-2 text-[10px] text-muted-foreground/80 font-mono'>
-                          <span>{entry.quantityHours} jam</span>
+                          <span>{formatPracticeHours(entry.quantityHours)}</span>
                           <span>•</span>
                           <span>@ {formatCurrency(entry.hourlyRate)} / jam</span>
                           {entry.notes && (

@@ -28,12 +28,18 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Icons } from '@/components/icons';
 import { EmptyState } from '@/components/ui/empty-state';
-import type { SessionDefConfig } from '../../../api/admin-schedule-configuration.api';
+import {
+  getSessionDefImpact,
+  type DeleteSessionDefOptions,
+  type SessionDefConfig,
+  type SessionDefImpactResult
+} from '../../../api/admin-schedule-configuration.api';
 import {
   calculateShiftDurationHours,
   getAdjacentShiftGapMinutes
 } from '../../../utils/shift-time-validator';
 import { SessionDefFormDialog } from '../modals/session-def-form-dialog';
+import { ShiftDeletionImpactDialog } from '../modals/shift-deletion-impact-dialog';
 import { cn } from '@/lib/utils';
 
 export interface MasterSessionDefsManagerProps {
@@ -41,7 +47,6 @@ export interface MasterSessionDefsManagerProps {
   conflictingDefIds?: string[];
   onToggleActive: (id: string) => void;
   onUpdateTime?: (id: string, field: 'defaultStartsAt' | 'defaultEndsAt', value: string) => void;
-  onResetDefaults?: () => void;
   onAddSessionDef?: (payload: {
     label: string;
     codePrefix?: string;
@@ -57,7 +62,7 @@ export interface MasterSessionDefsManagerProps {
       defaultEndsAt?: string;
     }
   ) => Promise<void>;
-  onDeleteSessionDef?: (id: string) => Promise<void>;
+  onDeleteSessionDef?: (id: string, options?: DeleteSessionDefOptions) => Promise<void>;
   isAddDialogOpen?: boolean;
   onOpenAddDialog?: () => void;
   onCloseAddDialog?: () => void;
@@ -80,7 +85,6 @@ export function MasterSessionDefsManager({
   conflictingDefIds = [],
   onToggleActive,
   onUpdateTime,
-  onResetDefaults,
   onAddSessionDef,
   onEditSessionDef,
   onDeleteSessionDef,
@@ -95,8 +99,13 @@ export function MasterSessionDefsManager({
   const [editingDef, setEditingDef] = useState<SessionDefConfig | null>(null);
   const [defToDelete, setDefToDelete] = useState<SessionDefConfig | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [impactShift, setImpactShift] = useState<SessionDefConfig | null>(null);
+  const [impactData, setImpactData] = useState<SessionDefImpactResult | null>(null);
+  const [loadingImpactId, setLoadingImpactId] = useState<string | null>(null);
+  const [isCascadeDeleting, setIsCascadeDeleting] = useState(false);
 
-  const isFormOpen = isAddDialogOpen !== undefined ? isAddDialogOpen || Boolean(editingDef) : internalDialogOpen;
+  const isFormOpen =
+    isAddDialogOpen !== undefined ? isAddDialogOpen || Boolean(editingDef) : internalDialogOpen;
 
   const getTimeOptions = (currentTime: string) => {
     if (!currentTime || BASE_TIME_OPTIONS.includes(currentTime)) {
@@ -142,6 +151,24 @@ export function MasterSessionDefsManager({
     }
   };
 
+  const handleInitiateDelete = async (def: SessionDefConfig) => {
+    try {
+      setLoadingImpactId(def.id);
+      const impact = await getSessionDefImpact(def.id);
+      if (impact.affectedDoctorsCount > 0) {
+        setImpactShift(def);
+        setImpactData(impact);
+      } else {
+        setDefToDelete(def);
+      }
+    } catch {
+      // Jika terjadi gangguan jaringan saat cek impact, fallback ke konfirmasi biasa
+      setDefToDelete(def);
+    } finally {
+      setLoadingImpactId(null);
+    }
+  };
+
   const handleConfirmDelete = async () => {
     if (!defToDelete || !onDeleteSessionDef) return;
     try {
@@ -153,30 +180,29 @@ export function MasterSessionDefsManager({
     }
   };
 
+  const handleConfirmCascadeDelete = async (confirmText: string) => {
+    if (!impactShift || !onDeleteSessionDef) return;
+    try {
+      setIsCascadeDeleting(true);
+      await onDeleteSessionDef(impactShift.id, {
+        cascade: true,
+        confirmText
+      });
+      setImpactShift(null);
+      setImpactData(null);
+    } finally {
+      setIsCascadeDeleting(false);
+    }
+  };
+
+  const handleSoftDeactivate = async (shiftId: string) => {
+    onToggleActive(shiftId);
+    setImpactShift(null);
+    setImpactData(null);
+  };
+
   return (
     <div className={cn('flex flex-col gap-3.5', className)}>
-      {/* Subheader when items exist */}
-      {showSubheader && sessionDefs.length > 0 && (
-        <div className='flex items-center justify-between pb-0.5 px-0.5'>
-          <p className='text-xs text-muted-foreground'>
-            Kelola master shift operasional klinik, konfigurasi jam, dan status aktif.
-          </p>
-          {onResetDefaults && (
-            <Button
-              type='button'
-              variant='ghost'
-              size='sm'
-              onClick={onResetDefaults}
-              className='h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground gap-1.5 cursor-pointer'
-              title='Kembalikan seluruh jam shift ke standar baku klinik'
-            >
-              <Icons.refresh className='size-3 text-muted-foreground' />
-              Reset Jam Baku
-            </Button>
-          )}
-        </div>
-      )}
-
       {/* Empty State using existing EmptyState with 3D EmptyBoxAnimation */}
       {sessionDefs.length === 0 && (
         <EmptyState
@@ -248,15 +274,8 @@ export function MasterSessionDefsManager({
                           </span>
                         )}
                       </div>
-                      <div className='flex items-center gap-1.5 text-xs text-muted-foreground font-mono'>
-                        <span>
-                          {startsAt} - {endsAt}
-                        </span>
-                        {def.isActive && (
-                          <span className='text-[10px] text-muted-foreground/80 font-sans'>
-                            ({durationHours} Jam)
-                          </span>
-                        )}
+                      <div className='flex items-center gap-1.5 text-xs text-muted-foreground'>
+                        <span>{durationHours} Jam</span>
                       </div>
                     </div>
                   </div>
@@ -288,10 +307,15 @@ export function MasterSessionDefsManager({
                           )}
                           {onDeleteSessionDef && (
                             <DropdownMenuItem
-                              onClick={() => setDefToDelete(def)}
+                              onClick={() => handleInitiateDelete(def)}
+                              disabled={loadingImpactId === def.id}
                               className='text-xs cursor-pointer gap-2 text-destructive focus:text-destructive focus:bg-destructive/10'
                             >
-                              <Icons.trash className='size-3.5' />
+                              {loadingImpactId === def.id ? (
+                                <Icons.spinner className='size-3.5 animate-spin' />
+                              ) : (
+                                <Icons.trash className='size-3.5' />
+                              )}
                               <span>Hapus Shift</span>
                             </DropdownMenuItem>
                           )}
@@ -378,13 +402,17 @@ export function MasterSessionDefsManager({
         </div>
       )}
 
-      {/* Radix Alert Dialog for Delete Confirmation */}
-      <AlertDialog open={Boolean(defToDelete)} onOpenChange={(open) => !open && setDefToDelete(null)}>
+      {/* Radix Alert Dialog for Delete Confirmation (Clean shift, 0 doctors) */}
+      <AlertDialog
+        open={Boolean(defToDelete)}
+        onOpenChange={(open) => !open && setDefToDelete(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Hapus Shift Operasional?</AlertDialogTitle>
             <AlertDialogDescription>
-              Apakah Anda yakin ingin menghapus shift &quot;{defToDelete?.label}&quot;? Shift ini akan dihapus dari template mingguan dan jadwal klinik.
+              Apakah Anda yakin ingin menghapus shift &quot;{defToDelete?.label}&quot;? Shift ini
+              akan dihapus dari template mingguan dan jadwal klinik.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -400,11 +428,27 @@ export function MasterSessionDefsManager({
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* GitHub-Style High-Impact Deletion Dialog (Shift in use by doctors) */}
+      <ShiftDeletionImpactDialog
+        isOpen={Boolean(impactShift && impactData)}
+        onClose={() => {
+          setImpactShift(null);
+          setImpactData(null);
+        }}
+        shift={impactShift}
+        impact={impactData}
+        isDeleting={isCascadeDeleting}
+        onConfirmCascadeDelete={handleConfirmCascadeDelete}
+        onSoftDeactivate={handleSoftDeactivate}
+        portalContainerRef={portalContainerRef}
+      />
+
       {/* Dialog Form for Create / Edit */}
       <SessionDefFormDialog
         isOpen={isFormOpen}
         onClose={handleCloseForm}
         initialData={editingDef}
+        existingDefs={sessionDefs}
         onSubmit={handleFormSubmit}
         portalContainerRef={portalContainerRef}
       />

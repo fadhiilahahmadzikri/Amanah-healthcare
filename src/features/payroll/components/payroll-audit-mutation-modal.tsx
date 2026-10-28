@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/table';
 import { Icons } from '@/components/icons';
 import { formatCurrency } from '../utils/currency';
+import { formatPracticeHours } from '@/lib/duration-format';
 import { ENTRY_TYPE_CONFIG, SOURCE_TYPE_LABELS } from '../constants/options';
 import type { PayrollEntryType, PayrollPeriodItem, PayrollSummaryItem } from '../api/types';
 
@@ -193,7 +194,7 @@ export function PayrollAuditMutationModal({
                           </span>
                         </TableCell>
                         <TableCell className='py-2.5 text-center text-xs tabular-nums text-muted-foreground font-mono'>
-                          {m.quantityHours} jam
+                          {formatPracticeHours(m.quantityHours)}
                         </TableCell>
                         <TableCell className='py-2.5 text-right pr-4 text-xs font-bold tabular-nums'>
                           <span className={isPositive ? 'text-foreground' : 'text-destructive'}>

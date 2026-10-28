@@ -41,6 +41,16 @@ export function useQrTerminalController({ params }: UseQrTerminalControllerProps
   }, []);
 
   const rotateQR = useCallback(async () => {
+    const currentData = queryClient.getQueryData<AttendanceListResponse>(
+      attendanceKeys.list(params)
+    );
+    if (currentData?.qrConfig && !currentData.qrConfig.isActive) {
+      toast.info(
+        'Sesi operasional sedang inaktif. Silakan periksa atau aktifkan sesi terlebih dahulu.'
+      );
+      return;
+    }
+
     try {
       const newConfig = await attendanceService.generateNewQRToken();
       queryClient.setQueryData<AttendanceListResponse>(attendanceKeys.list(params), (old) => {

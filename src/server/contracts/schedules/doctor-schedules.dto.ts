@@ -1,6 +1,18 @@
 import { z } from 'zod';
 import { STAFF_TYPES, type StaffType } from '@/constants/staff-types.constant';
 
+export const scheduleOperationalStatusSchema = z.enum(['OPEN', 'CLOSED', 'PENDING', 'ON_LEAVE']);
+export type ScheduleOperationalStatus = z.infer<typeof scheduleOperationalStatusSchema>;
+
+export const scheduleClosureReasonSchema = z.enum([
+  'CLINIC_CLOSED',
+  'NOT_ROSTERED',
+  'DOCTOR_LEAVE',
+  'ADMIN_OVERRIDE',
+  'SHIFT_ENDED'
+]);
+export type ScheduleClosureReason = z.infer<typeof scheduleClosureReasonSchema>;
+
 export const scheduleDayStatusSchema = z.enum(['OPEN', 'CLOSED', 'ON_LEAVE']);
 export type ScheduleDayStatus = z.infer<typeof scheduleDayStatusSchema>;
 
@@ -16,8 +28,8 @@ export const doctorDailySessionSchema = z.object({
   endTime: z.string(),
   timeRange: z.string().optional(),
   bookedPatients: z.number().optional().default(0),
-  sessionStatus: sessionStatusSchema,
-  closureReason: z.string().nullable().optional(),
+  sessionStatus: z.enum(['OPEN', 'CLOSED']),
+  closureReason: scheduleClosureReasonSchema.nullable().optional(),
   roomName: z.string().optional(),
   roomId: z.string().nullable().optional(),
   isRescheduleEligible: z.boolean().optional(),
@@ -52,15 +64,15 @@ export const doctorScheduleItemSchema = z.object({
   staffType: z.enum([STAFF_TYPES.DOCTOR, STAFF_TYPES.MIDWIFE, STAFF_TYPES.WORKER]).optional(),
   fullName: z.string(),
   specialty: z.string(),
-  doctorStatus: z.string(),
+  doctorStatus: scheduleOperationalStatusSchema,
   email: z.string().nullable().optional(),
   phone: z.string().nullable().optional(),
   practiceRoom: z.string(),
   practiceDate: z.string().optional(),
   avatar: avatarSchema,
-  todaySchedule: z.string(),
-  upcomingSchedule: z.string().optional(),
-  scheduleStatus: z.string(),
+  todaySchedule: z.string().nullable().optional(),
+  upcomingSchedule: z.string().nullable().optional(),
+  scheduleStatus: scheduleOperationalStatusSchema,
   scheduleMonth: z.string().optional(),
   isOnLeave: z.boolean().optional(),
   leaveReason: z.string().nullable().optional(),
@@ -72,7 +84,8 @@ export const doctorScheduleItemSchema = z.object({
   dailySessions: z.array(doctorDailySessionSchema).optional(),
   totalPatients: z.number().optional(),
   patientPreviews: z.array(doctorCardPatientPreviewSchema).optional(),
-  isAcceptingAppointments: z.boolean().optional()
+  isAcceptingAppointments: z.boolean().optional(),
+  createdAt: z.string().nullable().optional()
 });
 export type DoctorScheduleItem = z.infer<typeof doctorScheduleItemSchema>;
 
@@ -129,9 +142,9 @@ export const updateAdminDoctorSchedulePayloadSchema = z.object({
   leaveReason: z.string().nullable().optional(),
   leaveStart: z.string().nullable().optional(),
   leaveEnd: z.string().nullable().optional(),
-  doctorStatus: z.string().optional(),
-  scheduleStatus: z.string().optional(),
-  todaySchedule: z.string().optional(),
+  doctorStatus: scheduleOperationalStatusSchema.optional(),
+  scheduleStatus: scheduleOperationalStatusSchema.optional(),
+  todaySchedule: z.string().nullable().optional(),
   practiceRoom: z.string().optional(),
   roomId: z.string().optional(),
   date: z.string().optional()
@@ -179,7 +192,7 @@ export const updateAdminDoctorSessionPayloadSchema = z.object({
   sessionName: z.string().optional(),
   startTime: z.string().optional(),
   endTime: z.string().optional(),
-  sessionStatus: z.string().optional(),
+  sessionStatus: z.enum(['OPEN', 'CLOSED']).optional(),
   roomName: z.string().optional(),
   roomId: z.string().optional()
 });
