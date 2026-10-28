@@ -93,7 +93,7 @@ export function useDoctorScheduleSettingsModal({
       const masterDef = draftSessionDefs.find((d) => d.id === sessionId);
       if (masterDef && !masterDef.isActive) {
         toast.error(
-          `Shift ${masterDef.label} sedang dinonaktifkan di Master Shift Operasional. Aktifkan master terlebih dahulu.`
+          `Shift ${formatFriendlySessionName(masterDef.label)} sedang dinonaktifkan di Master Shift Operasional. Aktifkan master terlebih dahulu.`
         );
         return;
       }

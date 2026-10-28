@@ -1,6 +1,10 @@
 import { openNotificationModal } from './notification-modal-store';
 import type { ModalVariantKey, ChoreographyType } from '../types';
 import { ATTENDANCE_ACTIONS, type AttendanceAction } from '@/features/kehadiran-pegawai/api/types';
+import {
+  ATTENDANCE_SHIFT_LABELS,
+  CANONICAL_ATTENDANCE_STATUS
+} from '@/features/kehadiran-pegawai/constants/attendance-status.constants';
 
 export interface PresentAttendanceModalParams {
   id?: string;
@@ -14,6 +18,7 @@ export interface PresentAttendanceModalParams {
   shift?: string | null;
   action?: AttendanceAction;
   isEarlyDeparture?: boolean;
+  isReplacement?: boolean;
   notes?: string;
   onNavigateDetail?: (id?: string) => void;
 }
@@ -25,7 +30,12 @@ export interface PresentAttendanceModalParams {
 export function presentAttendanceModal(params: PresentAttendanceModalParams) {
   const isEarly = Boolean(params.isEarlyDeparture);
   const isCheckOut = params.action === ATTENDANCE_ACTIONS.CHECK_OUT;
-  const isLate = params.status === 'Terlambat';
+  const isLate =
+    params.status === CANONICAL_ATTENDANCE_STATUS.LATE ||
+    params.status === 'late' ||
+    params.status === 'Terlambat';
+  const isReplacement = Boolean(params.isReplacement);
+
   let time = params.waktu_presensi ?? 'hari ini';
   if ((isCheckOut || isEarly) && params.checkOutAt) {
     try {
@@ -37,12 +47,20 @@ export function presentAttendanceModal(params: PresentAttendanceModalParams) {
       // Retain time from upstream waktu_presensi
     }
   }
-  const shiftText = params.shift ? `Shift ${params.shift}` : undefined;
+
+  const rawShift = params.shift ?? '';
+  const localizedShift =
+    ATTENDANCE_SHIFT_LABELS[rawShift as keyof typeof ATTENDANCE_SHIFT_LABELS] || rawShift;
+  const shiftText = localizedShift ? `Shift ${localizedShift}` : undefined;
 
   let variant: ModalVariantKey = 'success';
   let choreography: ChoreographyType = 'pulse';
-  let statusText = 'Presensi Masuk • Tepat Waktu';
-  let title = 'Presensi Masuk Berhasil!\nSelamat Bertugas Melayani Pasien';
+  let statusText = isReplacement
+    ? 'Presensi Masuk • Shift Pengganti'
+    : 'Presensi Masuk • Tepat Waktu';
+  let title = isReplacement
+    ? 'Presensi Masuk Berhasil!\nSelamat Bertugas sebagai Pengganti'
+    : 'Presensi Masuk Berhasil!\nSelamat Bertugas Melayani Pasien';
   let subtitle = `Tercatat pada ${time}${shiftText ? ` • ${shiftText}` : ''}`;
 
   if (isEarly) {

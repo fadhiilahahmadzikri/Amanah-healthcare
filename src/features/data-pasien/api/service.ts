@@ -265,6 +265,11 @@ export async function createPatient(data: PatientMutationPayload) {
 export async function updatePatient(id: string, data: Partial<PatientMutationPayload>) {
   const payload: Record<string, any> = {};
 
+  if (data.medical_record_number !== undefined && data.medical_record_number.trim() !== '') {
+    payload.medicalRecordNumber = data.medical_record_number.trim();
+  } else if ((data as any).medicalRecordNumber !== undefined && (data as any).medicalRecordNumber.trim() !== '') {
+    payload.medicalRecordNumber = (data as any).medicalRecordNumber.trim();
+  }
   if (data.name !== undefined) payload.fullName = data.name;
   if (data.nik !== undefined && data.nik.trim() !== '') {
     payload.nik = data.nik.trim();

@@ -41,7 +41,11 @@ export interface StaffAttendance {
   status: AttendanceStatus;
   shift: WorkShift;
   validatedDurationHours?: number;
+  lateMinutes?: number | null;
   isReplacement?: boolean;
+  replacementOpportunityId?: string | null;
+  replacedStaffName?: string | null;
+  replacedStaffCode?: string | null;
   isEarlyDeparture?: boolean;
   notes?: string | null;
 }

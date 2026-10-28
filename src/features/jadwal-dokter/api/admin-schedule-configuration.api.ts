@@ -44,7 +44,7 @@ export interface ClinicSettingConfig {
   key: string;
   scopeType: string;
   value: any;
-  category: 'duration' | 'queue' | 'notification' | 'general';
+  category: 'duration' | 'queue' | 'notification' | 'general' | 'attendance';
   label: string;
   description: string;
   controlType?: 'text' | 'number' | 'boolean' | 'select';

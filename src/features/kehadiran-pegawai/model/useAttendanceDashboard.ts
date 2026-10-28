@@ -4,6 +4,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Icons } from '@/components/icons';
+import { ATTENDANCE_SHIFT_LABELS } from '../constants/attendance-status.constants';
 import { attendanceQueries } from '../api/queries';
 import { useAttendanceRealtimeSync } from '../hooks/useAttendanceRealtimeSync';
 import { useAttendanceFilterState } from './useAttendanceFilterState';
@@ -64,14 +65,18 @@ export function useAttendanceDashboard() {
 
   // 8. Search Engine Integration (Standardized across clinic modules)
   const searchIndexItems = useMemo<SearchEngineResultItem[]>(() => {
-    return records.map((r) => ({
-      id: `staff-${r.id}`,
-      title: r.nama_staf,
-      subtitle: `${r.id_staf} • ${r.kategori} • ${r.shift}`,
-      category: r.kategori || 'Pegawai',
-      icon: Icons.user,
-      queryValue: r.nama_staf
-    }));
+    return records.map((r) => {
+      const shiftLabel = ATTENDANCE_SHIFT_LABELS[r.shift] || r.shift;
+      const categoryLabel = r.kategori || 'Pegawai';
+      return {
+        id: `staff-${r.id}`,
+        title: r.nama_staf,
+        subtitle: `${r.id_staf} • ${categoryLabel} • Shift ${shiftLabel}`,
+        category: categoryLabel,
+        icon: Icons.user,
+        queryValue: r.nama_staf
+      };
+    });
   }, [records]);
 
   const searchEngine = useStateSearchEngine({

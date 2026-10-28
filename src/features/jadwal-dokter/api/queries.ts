@@ -43,7 +43,8 @@ export const doctorScheduleDetailQueryOptions = (
   queryOptions({
     queryKey: doctorScheduleKeys.detail(id, params),
     queryFn: () => getDoctorScheduleById(id, params),
-    staleTime: 5 * 1000,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     enabled: !!id
   });
 
@@ -78,7 +79,8 @@ export const sessionPatientsQueryOptions = (
   queryOptions({
     queryKey: doctorScheduleKeys.sessionPatients(doctorId, sessionId, filters),
     queryFn: () => getSessionPatients(doctorId, sessionId, filters),
-    staleTime: 5 * 1000,
+    staleTime: 60 * 1000,
+    gcTime: 5 * 60 * 1000,
     enabled: Boolean(doctorId && sessionId)
   });
 

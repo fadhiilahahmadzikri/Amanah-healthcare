@@ -6,8 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Icons } from '@/components/icons';
-import { useCompensationRatesQuery } from '../api/queries';
-import { useUpdateCompensationRatesMutation } from '../api/mutations';
+import { useWorkPoliciesCurrentQuery } from '../api/queries';
+import {
+  useUpdateAttendanceTimingMutation,
+  useUpdateCompensationRatesMutation
+} from '../api/mutations';
 import { formatCurrency } from '../utils/currency';
 import type { StaffCategory } from '../api/types';
 
@@ -56,8 +59,9 @@ const CATEGORY_CARDS: Array<{
 ];
 
 export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigModalProps) {
-  const { data: rates = [], isLoading } = useCompensationRatesQuery();
+  const { data: workPolicies, isLoading } = useWorkPoliciesCurrentQuery();
   const updateRatesMutation = useUpdateCompensationRatesMutation();
+  const updateTimingMutation = useUpdateAttendanceTimingMutation();
 
   const [formRates, setFormRates] = useState<Record<StaffCategory, CategoryRateForm>>({
     doctor: { hourlyRate: 20000, overtimeHourlyRate: 30000 },
@@ -65,24 +69,33 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
     worker: { hourlyRate: 12000, overtimeHourlyRate: 18000 }
   });
 
-  // Populate from fetched rates
+  const [minBillableShiftMinutes, setMinBillableShiftMinutes] = useState(30);
+  const [roundingIncrementMinutes, setRoundingIncrementMinutes] = useState(15);
+
+  // Populate from fetched rates and timing config
   useEffect(() => {
-    if (rates.length > 0) {
-      setFormRates((prev) => {
-        const next = { ...prev };
-        for (const item of rates) {
-          if (item.category && next[item.category]) {
-            next[item.category] = {
-              hourlyRate: Number(item.hourlyRate) || next[item.category].hourlyRate,
-              overtimeHourlyRate:
-                Number(item.overtimeHourlyRate) || next[item.category].overtimeHourlyRate
-            };
+    if (workPolicies) {
+      if (workPolicies.rates && workPolicies.rates.length > 0) {
+        setFormRates((prev) => {
+          const next = { ...prev };
+          for (const item of workPolicies.rates) {
+            if (item.category && next[item.category]) {
+              next[item.category] = {
+                hourlyRate: Number(item.hourlyRate) || next[item.category].hourlyRate,
+                overtimeHourlyRate:
+                  Number(item.overtimeHourlyRate) || next[item.category].overtimeHourlyRate
+              };
+            }
           }
-        }
-        return next;
-      });
+          return next;
+        });
+      }
+      if (workPolicies.timing) {
+        setMinBillableShiftMinutes(workPolicies.timing.minBillableShiftMinutes ?? 30);
+        setRoundingIncrementMinutes(workPolicies.timing.roundingIncrementMinutes ?? 15);
+      }
     }
-  }, [rates]);
+  }, [workPolicies]);
 
   const handleRateChange = (
     category: StaffCategory,
@@ -99,6 +112,8 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
     }));
   };
 
+  const isSaving = updateRatesMutation.isPending || updateTimingMutation.isPending;
+
   const handleSave = async () => {
     const payloadRates = Object.entries(formRates).map(([category, val]) => ({
       category: category as StaffCategory,
@@ -108,7 +123,13 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
     }));
 
     try {
-      await updateRatesMutation.mutateAsync({ rates: payloadRates });
+      await Promise.all([
+        updateRatesMutation.mutateAsync({ rates: payloadRates }),
+        updateTimingMutation.mutateAsync({
+          minBillableShiftMinutes,
+          roundingIncrementMinutes
+        })
+      ]);
       onClose();
     } catch {
       // Error handled by mutation toast
@@ -238,6 +259,78 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
               );
             })}
           </div>
+
+          {/* Attendance Timing & Billing Policy */}
+          <div className='p-4 bg-card border border-border/70 rounded-xl space-y-3.5 shadow-2xs'>
+            <div>
+              <h4 className='text-xs sm:text-sm font-bold text-foreground flex items-center gap-2'>
+                <span>Standar Durasi Kerja Berbayar & Pembulatan Jam Dinas</span>
+              </h4>
+              <p className='text-[11px] text-muted-foreground leading-relaxed mt-0.5'>
+                Konfigurasi batas minimal dan interval pembulatan menit presensi untuk kalkulasi upah harian.
+              </p>
+            </div>
+
+            <div className='grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2 border-t border-border/40'>
+              {/* Min Billable Shift Minutes */}
+              <div className='p-3 rounded-lg border border-border/60 bg-muted/10 space-y-2'>
+                <div className='space-y-0.5'>
+                  <Label htmlFor='min-billable-minutes' className='text-xs font-semibold text-foreground'>
+                    Batas Minimum Durasi Berbayar
+                  </Label>
+                  <p className='text-[10px] text-muted-foreground leading-tight'>
+                    Durasi kerja di bawah ambang ini dianggap 0 jam berbayar (mencegah kalkulasi upah 1 menit).
+                  </p>
+                </div>
+                <div className='flex items-center rounded-lg border border-border/80 bg-background shadow-2xs overflow-hidden h-8.5 focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px] transition-[color,box-shadow]'>
+                  <input
+                    id='min-billable-minutes'
+                    type='number'
+                    aria-label='Batas Minimum Durasi Berbayar'
+                    value={minBillableShiftMinutes}
+                    min={0}
+                    max={120}
+                    step={5}
+                    onChange={(e) => setMinBillableShiftMinutes(Number(e.target.value) || 0)}
+                    disabled={isLoading || isSaving}
+                    className='h-full text-center font-mono font-medium text-xs bg-transparent border-0 outline-none px-2 text-foreground [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none w-20'
+                  />
+                  <span className='px-2.5 h-full flex items-center text-[11px] font-medium text-muted-foreground bg-muted/40 border-l border-border/50 select-none'>
+                    menit
+                  </span>
+                </div>
+              </div>
+
+              {/* Rounding Increment Minutes */}
+              <div className='p-3 rounded-lg border border-border/60 bg-muted/10 space-y-2'>
+                <div className='space-y-0.5'>
+                  <Label htmlFor='rounding-increment-minutes' className='text-xs font-semibold text-foreground'>
+                    Interval Pembulatan Jam Kerja
+                  </Label>
+                  <p className='text-[10px] text-muted-foreground leading-tight'>
+                    Faktor pembulatan durasi kerja ke kelipatan interval menit terdekat (contoh 15 menit = 0.25 jam).
+                  </p>
+                </div>
+                <div className='flex items-center rounded-lg border border-border/80 bg-background shadow-2xs overflow-hidden h-8.5 focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px] transition-[color,box-shadow]'>
+                  <input
+                    id='rounding-increment-minutes'
+                    type='number'
+                    aria-label='Interval Pembulatan Jam Kerja'
+                    value={roundingIncrementMinutes}
+                    min={1}
+                    max={60}
+                    step={5}
+                    onChange={(e) => setRoundingIncrementMinutes(Number(e.target.value) || 1)}
+                    disabled={isLoading || isSaving}
+                    className='h-full text-center font-mono font-medium text-xs bg-transparent border-0 outline-none px-2 text-foreground [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none w-20'
+                  />
+                  <span className='px-2.5 h-full flex items-center text-[11px] font-medium text-muted-foreground bg-muted/40 border-l border-border/50 select-none'>
+                    menit
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Pinned Footer */}
@@ -247,7 +340,7 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
             variant='outline'
             size='sm'
             onClick={onClose}
-            disabled={updateRatesMutation.isPending}
+            disabled={isSaving}
             className='px-4 font-semibold cursor-pointer text-xs h-8.5 text-muted-foreground hover:text-foreground'
           >
             Batal
@@ -257,16 +350,16 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
             variant='default'
             size='sm'
             onClick={handleSave}
-            disabled={updateRatesMutation.isPending || isLoading}
+            disabled={isSaving || isLoading}
             className='px-5 font-semibold cursor-pointer text-xs h-8.5 gap-1.5'
           >
-            {updateRatesMutation.isPending ? (
+            {isSaving ? (
               <>
                 <Icons.spinner className='size-3.5 animate-spin mr-1' />
                 <span>Menyimpan...</span>
               </>
             ) : (
-              <span>Simpan Perubahan Tarif</span>
+              <span>Simpan Perubahan Standar</span>
             )}
           </Button>
         </div>

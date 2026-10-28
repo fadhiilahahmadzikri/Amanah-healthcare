@@ -23,6 +23,11 @@ import {
   ATTENDANCE_STATUS_LABELS,
   ATTENDANCE_SHIFT_LABELS
 } from '../constants/attendance-status.constants';
+import {
+  formatWorkDuration,
+  formatPresenceTimestamp,
+  formatLateMinutes
+} from '../utils/duration-format';
 import type { StaffAttendance } from '../api/types';
 
 export interface AttendanceDetailSheetProps {
@@ -50,26 +55,21 @@ export function AttendanceDetailSheet({
   const categoryLabel = STAFF_TYPE_LABELS[record.kategori as StaffType] || record.kategori;
   const statusLabel = ATTENDANCE_STATUS_LABELS[record.status] || record.status;
   const shiftLabel = ATTENDANCE_SHIFT_LABELS[record.shift] || record.shift;
+  const lateLabel = formatLateMinutes(record.lateMinutes);
 
   const jamMasuk = record.checkInAt
-    ? new Date(record.checkInAt).toLocaleTimeString('id-ID', {
-        hour: '2-digit',
-        minute: '2-digit'
-      }) + ' WIB'
+    ? formatPresenceTimestamp(record.checkInAt, true)
     : (record.waktu_presensi ?? '-');
 
   const jamPulang = record.checkOutAt
-    ? new Date(record.checkOutAt).toLocaleTimeString('id-ID', {
-        hour: '2-digit',
-        minute: '2-digit'
-      }) + ' WIB'
+    ? formatPresenceTimestamp(record.checkOutAt, true)
     : null;
 
-  const durasiStr = record.validatedDurationHours
-    ? `${record.validatedDurationHours} jam`
-    : record.checkOutAt
-      ? '-'
-      : 'Sedang berdinas';
+  const durasiStr = formatWorkDuration({
+    checkInAt: record.checkInAt,
+    checkOutAt: record.checkOutAt,
+    validatedHours: record.validatedDurationHours
+  });
 
   return (
     <>
@@ -169,6 +169,13 @@ export function AttendanceDetailSheet({
                   <span>Shift {shiftLabel}</span>
                 </span>
 
+                {isLate && lateLabel && (
+                  <span className='inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'>
+                    <Icons.alertCircle className='size-3 text-amber-600 dark:text-amber-400' />
+                    <span>{lateLabel}</span>
+                  </span>
+                )}
+
                 {record.isEarlyDeparture && (
                   <span className='inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'>
                     <Icons.alertCircle className='size-3 text-amber-600 dark:text-amber-400' />
@@ -177,6 +184,23 @@ export function AttendanceDetailSheet({
                 )}
               </div>
             </div>
+
+            {/* Replacement Banner (if any) */}
+            {record.isReplacement && (
+              <div className='p-3.5 rounded-xl bg-purple-500/10 border border-purple-500/20 space-y-1'>
+                <div className='flex items-center gap-1.5 text-purple-700 dark:text-purple-300 font-bold text-xs'>
+                  <Icons.userCheck className='size-3.5' />
+                  <span>Shift Pengganti (Replacement)</span>
+                </div>
+                <p className='text-xs text-muted-foreground'>
+                  Bertugas menggantikan jadwal dinas{' '}
+                  <span className='font-semibold text-foreground'>
+                    {record.replacedStaffName || 'Dokter/Staf Lain'}
+                  </span>
+                  {record.replacedStaffCode ? ` (${record.replacedStaffCode})` : ''}.
+                </p>
+              </div>
+            )}
 
             {/* Check-In & Check-Out Timestamps Grid */}
             <div className='grid grid-cols-2 gap-3'>

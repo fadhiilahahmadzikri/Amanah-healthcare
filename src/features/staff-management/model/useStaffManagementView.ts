@@ -48,15 +48,36 @@ export function useStaffManagementView(): UseStaffManagementViewResult {
   const q = params.search.trim().toLowerCase();
 
   const filteredStaffs = useMemo(() => {
-    if (!q) return allStaffs;
-    return allStaffs.filter(
-      (s) => s.fullName.toLowerCase().includes(q) || Boolean(s.email?.toLowerCase().includes(q))
-    );
+    const list = q
+      ? allStaffs.filter(
+          (s) => s.fullName.toLowerCase().includes(q) || Boolean(s.email?.toLowerCase().includes(q))
+        )
+      : allStaffs;
+
+    return [...list].sort((a, b) => {
+      const activeA = a.isActive ? 1 : 0;
+      const activeB = b.isActive ? 1 : 0;
+      if (activeA !== activeB) return activeB - activeA;
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      if (timeA !== timeB) return timeB - timeA;
+      return a.fullName.localeCompare(b.fullName);
+    });
   }, [allStaffs, q]);
 
   const filteredInvitations = useMemo(() => {
-    if (!q) return allInvitations;
-    return allInvitations.filter((inv) => inv.email.toLowerCase().includes(q));
+    const list = q
+      ? allInvitations.filter((inv) => inv.email.toLowerCase().includes(q))
+      : allInvitations;
+
+    return [...list].sort((a, b) => {
+      const isPendingA = a.status === 'pending' ? 1 : 0;
+      const isPendingB = b.status === 'pending' ? 1 : 0;
+      if (isPendingA !== isPendingB) return isPendingB - isPendingA;
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return timeB - timeA;
+    });
   }, [allInvitations, q]);
 
   const changeTab = useCallback(

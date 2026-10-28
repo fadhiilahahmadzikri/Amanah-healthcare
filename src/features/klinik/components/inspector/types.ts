@@ -101,6 +101,8 @@ export interface DiseaseHistoryMap {
 }
 
 export interface EditableMaternalData {
+  medicalRecordNumber?: string;
+  birthPlace?: string;
   motherName: string;
   motherNik: string;
   motherBirthDate: string;
@@ -166,6 +168,8 @@ export interface EditableMaternalData {
 }
 
 export interface EditableImmunizationData {
+  medicalRecordNumber?: string;
+  birthPlace?: string;
   childName: string;
   childNik: string;
   childBirthDate: string;
@@ -190,6 +194,22 @@ export interface EditableRegularData {
   bloodPressure: string;
   notes: string;
   answers: Record<string, any>;
+
+  // Patient Identity & Demographic (Full Editability)
+  medicalRecordNumber?: string;
+  nik?: string;
+  fullName?: string;
+  motherName?: string;
+  birthPlace?: string;
+  birthDate?: string;
+  gender?: string;
+  bloodType?: string;
+  occupation?: string;
+  phone?: string;
+  address?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  emergencyContactRelationship?: string;
 }
 
 export interface InspectorTabProps {

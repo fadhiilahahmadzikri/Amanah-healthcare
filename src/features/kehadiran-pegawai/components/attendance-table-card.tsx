@@ -29,6 +29,7 @@ import {
   ATTENDANCE_STATUS_LABELS,
   ATTENDANCE_SHIFT_LABELS
 } from '../constants/attendance-status.constants';
+import { formatWorkDuration, formatPresenceTimestamp } from '../utils/duration-format';
 import { useCheckoutAttendanceMutation } from '../api/mutations';
 import { EarlyCheckoutModal } from './early-checkout-modal';
 import { AttendanceMobileCards } from './attendance-mobile-cards';
@@ -72,12 +73,25 @@ export function AttendanceTableCard({
     try {
       await checkoutMutation.mutateAsync({ staffId, staffName, notes });
       setEarlyCheckoutTarget(null);
+      setDetailRow(null);
     } catch (err: unknown) {
       const errObj = err as
-        | { code?: string; problemDetails?: { code?: string; requiresNotes?: boolean } }
+        | {
+            code?: string;
+            problemDetails?: {
+              code?: string;
+              requiresNotes?: boolean;
+              details?: { requiresNotes?: boolean };
+            };
+          }
         | undefined;
       const errCode = errObj?.code || errObj?.problemDetails?.code;
-      if (errCode === 'EARLY_DEPARTURE_NOTES_REQUIRED' || errObj?.problemDetails?.requiresNotes) {
+      if (
+        errCode === 'EARLY_DEPARTURE_NOTES_REQUIRED' ||
+        errObj?.problemDetails?.requiresNotes ||
+        errObj?.problemDetails?.details?.requiresNotes
+      ) {
+        setDetailRow(null);
         setEarlyCheckoutTarget({ staffId, staffName });
       }
     }
@@ -212,24 +226,18 @@ export function AttendanceTableCard({
                     const shiftLabel = ATTENDANCE_SHIFT_LABELS[row.shift] || row.shift;
 
                     const jamMasuk = row.checkInAt
-                      ? new Date(row.checkInAt).toLocaleTimeString('id-ID', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })
+                      ? formatPresenceTimestamp(row.checkInAt, true)
                       : (row.waktu_presensi ?? '-');
 
                     const outTime = row.checkOutAt
-                      ? new Date(row.checkOutAt).toLocaleTimeString('id-ID', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })
+                      ? formatPresenceTimestamp(row.checkOutAt, true)
                       : null;
 
-                    const durasiStr = row.validatedDurationHours
-                      ? `${row.validatedDurationHours} jam`
-                      : row.checkOutAt
-                        ? '-'
-                        : 'Sedang dinas';
+                    const durasiStr = formatWorkDuration({
+                      checkInAt: row.checkInAt,
+                      checkOutAt: row.checkOutAt,
+                      validatedHours: row.validatedDurationHours
+                    });
 
                     return (
                       <TableRow
@@ -277,9 +285,23 @@ export function AttendanceTableCard({
                               </AvatarFallback>
                             </Avatar>
                             <div className='min-w-0'>
-                              <span className='truncate font-semibold block text-xs'>
-                                {row.nama_staf}
-                              </span>
+                              <div className='flex items-center gap-1.5'>
+                                <span className='truncate font-semibold block text-xs'>
+                                  {row.nama_staf}
+                                </span>
+                                {row.isReplacement && (
+                                  <span
+                                    title={
+                                      row.replacedStaffName
+                                        ? `Menggantikan ${row.replacedStaffName}`
+                                        : 'Shift Pengganti'
+                                    }
+                                    className='inline-flex items-center px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/25 shrink-0'
+                                  >
+                                    Pengganti
+                                  </span>
+                                )}
+                              </div>
                               <span className='text-[10px] text-muted-foreground font-mono'>
                                 {row.id_staf}
                               </span>

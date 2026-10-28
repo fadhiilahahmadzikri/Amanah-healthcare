@@ -9,6 +9,7 @@ export type PatientAccountStatus = 'active' | 'inactive';
 export interface Patient {
   id: string; // UUID from database
   patient_id: string; // Medical Record Number (e.g. RM-202610-0004)
+  medical_record_number?: string;
   name: string;
   avatarUrl?: string;
   masked_nik: string;
@@ -113,6 +114,7 @@ export type PatientDetailResponse = {
 export type PatientMutationPayload = Partial<Patient> & {
   name: string;
   patient_id?: string;
+  medical_record_number?: string;
   nik?: string;
   gender?: PatientGender;
   birth_date?: string;

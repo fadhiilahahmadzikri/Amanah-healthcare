@@ -5,9 +5,14 @@ import {
   calculatePayroll,
   finalizePayrollPeriod,
   reconcileDailyLeave,
+  updateAttendanceTiming,
   updateCompensationRates
 } from './payroll.api';
-import type { CalculatePayrollPayload, UpdateCompensationRatesPayload } from './types';
+import type {
+  AttendanceTimingConfig,
+  CalculatePayrollPayload,
+  UpdateCompensationRatesPayload
+} from './types';
 
 export function useCalculatePayrollMutation() {
   const queryClient = useQueryClient();
@@ -70,6 +75,23 @@ export function useReconcileDailyLeaveMutation() {
     },
     onError: (err: Error) => {
       toast.error(err.message || 'Gagal memproses rekap cuti harian');
+    }
+  });
+}
+
+export function useUpdateAttendanceTimingMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: AttendanceTimingConfig) => updateAttendanceTiming(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['work-policies', 'current'] });
+      queryClient.invalidateQueries({ queryKey: payrollKeys.rates() });
+      queryClient.invalidateQueries({ queryKey: payrollKeys.all });
+      toast.success('Batas waktu dan pembulatan jam kerja presensi berhasil diperbarui.');
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Gagal memperbarui batas waktu presensi');
     }
   });
 }

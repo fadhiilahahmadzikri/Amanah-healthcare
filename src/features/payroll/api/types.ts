@@ -118,3 +118,8 @@ export interface ReconcileLeaveResult {
   totalDeductionsAmount: number;
   staffProcessed: string[];
 }
+
+export interface AttendanceTimingConfig {
+  minBillableShiftMinutes: number;
+  roundingIncrementMinutes: number;
+}

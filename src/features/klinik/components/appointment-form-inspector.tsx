@@ -13,6 +13,7 @@ import {
   type MaternalIntakeResponse,
   type ChildImmunizationResponse
 } from '../api/kia-intake-service';
+import { updatePatient } from '@/features/data-pasien/api/service';
 import { patientAffiliationService } from '@/features/data-pasien/api/patient-affiliation-service';
 import { calculateChildAge } from '../utils/medical-appointment';
 import type { Appointment } from '../api/types';
@@ -135,6 +136,8 @@ function buildInitialFormData(parsedData: UnifiedInspectorData): EditableMaterna
   }
 
   return {
+    medicalRecordNumber: parsedData.patient?.medicalRecordNumber || '',
+    birthPlace: parsedData.patient?.birthPlace || '',
     motherName: m?.motherName ?? a.motherName ?? '',
     motherNik: m?.motherNik ?? a.motherNik ?? '',
     motherBirthDate: m?.motherBirthDate ?? a.motherBirthDate ?? '',
@@ -296,6 +299,8 @@ function buildInitialImmunizationData(parsedData: UnifiedInspectorData): Editabl
     (hasAllergyHistory === 'Ada riwayat alergi' ? 'Riwayat alergi tercatat.' : '');
 
   return {
+    medicalRecordNumber: parsedData.patient?.medicalRecordNumber || '',
+    birthPlace: parsedData.patient?.birthPlace || '',
     childName: c?.childName || a.childName || parsedData.patient?.fullName || '',
     childNik: c?.childNik || a.childNik || parsedData.patient?.nik || '',
     childBirthDate: birthDate,
@@ -318,6 +323,7 @@ function buildInitialRegularData(
   appointment: Appointment
 ): EditableRegularData {
   const a = parsedData.answers || {};
+  const p = parsedData.patient;
   return {
     complaint: a.complaint || a.keluhanUtama || appointment.complaint || parsedData.complaint || '',
     allergyHistory: a.allergy || a.allergyHistory || a.riwayatAlergi || '',
@@ -325,7 +331,23 @@ function buildInitialRegularData(
     weightKg: a.weight || a.weightKg || a.vitalWeightKg || '',
     bloodPressure: a.bloodPressure || a.vitalBloodPressure || '',
     notes: a.notes || a.additionalNotes || '',
-    answers: { ...a }
+    answers: { ...a },
+
+    // Demographic fields
+    medicalRecordNumber: p?.medicalRecordNumber || '',
+    nik: p?.nik || '',
+    fullName: p?.fullName || appointment.patient_name || '',
+    motherName: p?.motherName || '',
+    birthPlace: p?.birthPlace || '',
+    birthDate: p?.birthDate || '',
+    gender: p?.gender || '',
+    bloodType: p?.bloodType || '',
+    occupation: p?.occupation || '',
+    phone: p?.phone || appointment.patient_phone || '',
+    address: p?.address || '',
+    emergencyContactName: p?.emergencyContactName || '',
+    emergencyContactPhone: p?.emergencyContactPhone || '',
+    emergencyContactRelationship: p?.emergencyContactRelationship || ''
   };
 }
 
@@ -715,10 +737,34 @@ export function AppointmentFormInspector({
           }
         };
 
+        const patientId = parsedData.patient?.id || appointment.patient_id;
+        if (patientId) {
+          try {
+            await updatePatient(patientId, {
+              name: formData.motherName || undefined,
+              nik: formData.motherNik || undefined,
+              medical_record_number: formData.medicalRecordNumber || undefined,
+              birth_place: formData.birthPlace || undefined,
+              birth_date: formData.motherBirthDate || undefined,
+              blood_type: (formData.motherBloodType as any) || undefined,
+              occupation: formData.motherJob || undefined,
+              phone: formData.phoneNumber || undefined,
+              line1: formData.domicileAddress || undefined
+            });
+          } catch (patErr) {
+            console.error('Failed to update patient demographic:', patErr);
+          }
+        }
+
         await kiaIntakeService.updateMaternityIntake(targetId, payload);
         await queryClient.invalidateQueries({
           queryKey: klinikKeys.appointmentIntake(appointment.id)
         });
+        await queryClient.invalidateQueries({ queryKey: ['patients'] });
+        await queryClient.invalidateQueries({ queryKey: ['patient-affiliations'] });
+        if (patientId) {
+          await queryClient.invalidateQueries({ queryKey: ['patient', patientId] });
+        }
         toast.success('Perubahan formulir KIA & Kehamilan berhasil disimpan!');
         setIsEditing(false);
         return;
@@ -770,10 +816,34 @@ export function AppointmentFormInspector({
           entries
         };
 
+        const patientId = parsedData.patient?.id || appointment.patient_id;
+        if (patientId) {
+          try {
+            await updatePatient(patientId, {
+              name: immunizationFormData.childName || undefined,
+              nik: immunizationFormData.childNik || undefined,
+              medical_record_number: immunizationFormData.medicalRecordNumber || undefined,
+              birth_place: immunizationFormData.birthPlace || undefined,
+              birth_date: immunizationFormData.childBirthDate || undefined,
+              gender: immunizationFormData.childSex === 'Perempuan' ? 'female' : 'male',
+              mother_name: immunizationFormData.motherName || undefined,
+              phone: immunizationFormData.parentPhone || undefined,
+              line1: immunizationFormData.childAddress || undefined
+            });
+          } catch (patErr) {
+            console.error('Failed to update child demographic:', patErr);
+          }
+        }
+
         await kiaIntakeService.updateImmunizationIntake(targetId, payload);
         await queryClient.invalidateQueries({
           queryKey: klinikKeys.appointmentIntake(appointment.id)
         });
+        await queryClient.invalidateQueries({ queryKey: ['patients'] });
+        await queryClient.invalidateQueries({ queryKey: ['patient-affiliations'] });
+        if (patientId) {
+          await queryClient.invalidateQueries({ queryKey: ['patient', patientId] });
+        }
         toast.success('Perubahan formulir imunisasi anak berhasil disimpan!');
         setIsEditing(false);
         return;
@@ -796,10 +866,37 @@ export function AppointmentFormInspector({
         notes: regularFormData.notes
       };
 
+      const patientId = parsedData.patient?.id || appointment.patient_id;
+      if (patientId) {
+        try {
+          await updatePatient(patientId, {
+            name: regularFormData.fullName || undefined,
+            nik: regularFormData.nik || undefined,
+            medical_record_number: regularFormData.medicalRecordNumber || undefined,
+            birth_place: regularFormData.birthPlace || undefined,
+            birth_date: regularFormData.birthDate || undefined,
+            gender: (regularFormData.gender as any) || undefined,
+            blood_type: (regularFormData.bloodType as any) || undefined,
+            mother_name: regularFormData.motherName || undefined,
+            occupation: regularFormData.occupation || undefined,
+            phone: regularFormData.phone || undefined,
+            line1: regularFormData.address || undefined,
+            emergency_contact: regularFormData.emergencyContactPhone || undefined
+          });
+        } catch (patErr) {
+          console.error('Failed to update regular patient demographic:', patErr);
+        }
+      }
+
       await kiaIntakeService.updateGenericIntake(targetId, answersPayload);
       await queryClient.invalidateQueries({
         queryKey: klinikKeys.appointmentIntake(appointment.id)
       });
+      await queryClient.invalidateQueries({ queryKey: ['patients'] });
+      await queryClient.invalidateQueries({ queryKey: ['patient-affiliations'] });
+      if (patientId) {
+        await queryClient.invalidateQueries({ queryKey: ['patient', patientId] });
+      }
       toast.success('Perubahan formulir intake pasien berhasil disimpan!');
       setIsEditing(false);
     } catch (err: any) {

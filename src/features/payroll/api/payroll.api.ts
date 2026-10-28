@@ -1,5 +1,6 @@
 import { clientFetch } from '@/lib/client-fetch';
 import type {
+  AttendanceTimingConfig,
   CalculatePayrollPayload,
   CompensationRateItem,
   PayrollFilterOptionsResponse,
@@ -52,10 +53,35 @@ export async function fetchCompensationRates(): Promise<CompensationRateItem[]> 
   return res.rates || [];
 }
 
+export async function fetchWorkPoliciesCurrent(): Promise<{
+  rates: CompensationRateItem[];
+  timing: AttendanceTimingConfig;
+}> {
+  const res = await clientFetch<{
+    rates: CompensationRateItem[];
+    timing: AttendanceTimingConfig;
+  }>('/api/v1/work-policies/current', {
+    method: 'GET'
+  });
+  return {
+    rates: res.rates || [],
+    timing: res.timing || { minBillableShiftMinutes: 30, roundingIncrementMinutes: 15 }
+  };
+}
+
 export async function updateCompensationRates(
   payload: UpdateCompensationRatesPayload
 ): Promise<CompensationRateItem[]> {
   return clientFetch<CompensationRateItem[]>('/api/v1/work-policies/compensation-rates', {
+    method: 'PUT',
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function updateAttendanceTiming(
+  payload: AttendanceTimingConfig
+): Promise<AttendanceTimingConfig> {
+  return clientFetch<AttendanceTimingConfig>('/api/v1/work-policies/attendance-timing', {
     method: 'PUT',
     body: JSON.stringify(payload)
   });

@@ -312,6 +312,34 @@ export function InspectorIdentityTab({
           Edit Identitas & Biodata Ibu
         </span>
 
+        <div className='grid grid-cols-2 gap-4'>
+          <div className='space-y-1.5'>
+            <Label htmlFor='edit-mother-mrn' className='text-xs font-medium text-foreground'>
+              No. Rekam Medis (RM)
+            </Label>
+            <Input
+              id='edit-mother-mrn'
+              value={formData?.medicalRecordNumber ?? (patient?.medicalRecordNumber || '')}
+              onChange={(e) => onFieldChange?.('medicalRecordNumber', e.target.value)}
+              placeholder='RM-XXXX-XXXX'
+              className='h-8.5 text-xs font-mono font-semibold text-primary'
+            />
+          </div>
+
+          <div className='space-y-1.5'>
+            <Label htmlFor='edit-mother-birthplace' className='text-xs font-medium text-foreground'>
+              Tempat Lahir
+            </Label>
+            <Input
+              id='edit-mother-birthplace'
+              value={formData?.birthPlace ?? (patient?.birthPlace || '')}
+              onChange={(e) => onFieldChange?.('birthPlace', e.target.value)}
+              placeholder='Kota tempat lahir'
+              className='h-8.5 text-xs'
+            />
+          </div>
+        </div>
+
         <div className='space-y-1.5'>
           <Label htmlFor='edit-mother-name' className='text-xs font-medium text-foreground'>
             Nama Lengkap Ibu

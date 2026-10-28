@@ -108,6 +108,23 @@ export function InspectorImmunizationTab({
                   Identitas Anak
                 </span>
                 <div className='space-y-1.5'>
+                  <Label htmlFor='child-mrn-input' className='text-xs font-medium text-foreground'>
+                    Nomor Rekam Medis (RM)
+                  </Label>
+                  <Input
+                    id='child-mrn-input'
+                    value={
+                      immunizationFormData.medicalRecordNumber ??
+                      (data.patient?.medicalRecordNumber || '')
+                    }
+                    onChange={(e) =>
+                      onImmunizationFieldChange('medicalRecordNumber', e.target.value)
+                    }
+                    placeholder='RM-XXXX-XXXX'
+                    className='h-8 text-xs font-mono font-semibold text-primary'
+                  />
+                </div>
+                <div className='space-y-1.5'>
                   <Label htmlFor='child-name-input' className='text-xs font-medium text-foreground'>
                     Nama Lengkap Anak <span className='text-destructive'>*</span>
                   </Label>
@@ -214,6 +231,15 @@ export function InspectorImmunizationTab({
                 <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
                   Identitas Anak
                 </span>
+                {data.patient?.medicalRecordNumber && (
+                  <PatientLineInput
+                    id='child-mrn'
+                    label='Nomor Rekam Medis (RM)'
+                    value={data.patient.medicalRecordNumber}
+                    isMonospace
+                    readOnly
+                  />
+                )}
                 <PatientLineInput
                   id='child-name'
                   label='Nama Lengkap Anak'

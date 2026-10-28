@@ -37,15 +37,16 @@ export function useDoctorAssignmentModal({
     queryKey: ['doctor-roster-assignments', doctorId],
     queryFn: () => getDoctorRosterAssignments(doctorId),
     enabled: Boolean(isOpen && doctorId),
-    staleTime: 0,
-    gcTime: 0
+    staleTime: 60 * 1000,
+    gcTime: 5 * 60 * 1000
   });
 
   const { data: historyData, isLoading: isLoadingHistory } = useQuery<DoctorScheduleHistoryResult>({
     queryKey: ['doctor-schedule-history', doctorId],
     queryFn: () => getDoctorScheduleHistory(doctorId),
     enabled: Boolean(isOpen && doctorId && activeTab === 'history'),
-    staleTime: 0
+    staleTime: 60 * 1000,
+    gcTime: 5 * 60 * 1000
   });
 
   // Synchronize local checkboxes whenever fresh server data arrives

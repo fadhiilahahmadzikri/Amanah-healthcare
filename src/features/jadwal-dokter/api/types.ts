@@ -80,6 +80,7 @@ export interface DoctorSchedule {
   totalPatients?: number;
   patientPreviews?: DoctorCardPatientPreview[];
   isAcceptingAppointments?: boolean;
+  createdAt?: string | null;
 }
 
 export interface DoctorScheduleFilters {

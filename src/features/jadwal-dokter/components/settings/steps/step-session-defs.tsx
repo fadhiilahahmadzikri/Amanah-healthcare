@@ -16,6 +16,7 @@ import {
   calculateShiftDurationHours,
   getAdjacentShiftGapMinutes
 } from '../../../utils/shift-time-validator';
+import { formatFriendlySessionName } from '../../../constants/schedule-shift.constants';
 
 interface StepSessionDefsProps {
   sessionDefs: SessionDefConfig[];
@@ -104,7 +105,7 @@ export function StepSessionDefs({
                   <div className='flex flex-col min-w-0'>
                     <div className='flex items-center gap-1.5'>
                       <span className='font-semibold text-sm text-foreground whitespace-nowrap truncate'>
-                        {def.label}
+                        {formatFriendlySessionName(def.label) || def.label}
                       </span>
                       {isConflicted && (
                         <span className='inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[10px] font-semibold bg-destructive/15 text-destructive border border-destructive/25'>
@@ -130,7 +131,7 @@ export function StepSessionDefs({
                   <Switch
                     checked={def.isActive}
                     onCheckedChange={() => onToggleActive(def.id)}
-                    aria-label={`Aktifkan shift ${def.label}`}
+                    aria-label={`Aktifkan shift ${formatFriendlySessionName(def.label) || def.label}`}
                   />
                 </div>
               </div>
@@ -192,7 +193,7 @@ export function StepSessionDefs({
                         {gapInfo.gapMinutes >= 60
                           ? `${(gapInfo.gapMinutes / 60).toFixed(1)} Jam`
                           : `${gapInfo.gapMinutes} Menit`}{' '}
-                        sebelum {gapInfo.nextDefLabel}
+                        sebelum {formatFriendlySessionName(gapInfo.nextDefLabel) || gapInfo.nextDefLabel}
                       </span>
                     </div>
                   )}

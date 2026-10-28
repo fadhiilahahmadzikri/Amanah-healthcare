@@ -11,6 +11,7 @@ import {
 } from '@/components/cards/master-entity-card';
 import { STAFF_TYPE_LABELS, type StaffType } from '@/constants/staff-types.constant';
 import { ATTENDANCE_SHIFT_LABELS } from '../constants/attendance-status.constants';
+import { formatPresenceTimestamp } from '../utils/duration-format';
 import { AttendanceDetailSheet } from './attendance-detail-sheet';
 import type { StaffAttendance } from '../api/types';
 
@@ -45,27 +46,22 @@ export function AttendanceMobileCards({
           const isCompleted = Boolean(r.checkOutAt);
 
           const jamMasuk = r.checkInAt
-            ? new Date(r.checkInAt).toLocaleTimeString('id-ID', {
-                hour: '2-digit',
-                minute: '2-digit'
-              })
+            ? formatPresenceTimestamp(r.checkInAt, true)
             : (r.waktu_presensi ?? '-');
 
           const outTime = r.checkOutAt
-            ? new Date(r.checkOutAt).toLocaleTimeString('id-ID', {
-                hour: '2-digit',
-                minute: '2-digit'
-              })
+            ? formatPresenceTimestamp(r.checkOutAt, true)
             : null;
 
           const categoryLabel = STAFF_TYPE_LABELS[r.kategori as StaffType] || r.kategori;
           const shiftLabel = ATTENDANCE_SHIFT_LABELS[r.shift] || r.shift;
+          const subtitleText = `${r.id_staf} • ${categoryLabel}${r.isReplacement ? ' • Pengganti' : ''}`;
 
           return (
             <MasterEntityCard
               key={r.id}
               name={r.nama_staf}
-              subtitle={`${r.id_staf} • ${categoryLabel}`}
+              subtitle={subtitleText}
               avatarUrl={r.avatar}
               status={isCompleted ? 'COMPLETED' : 'ACTIVE'}
               statusLabel={isCompleted ? 'Selesai Dinas' : 'Sedang Dinas'}

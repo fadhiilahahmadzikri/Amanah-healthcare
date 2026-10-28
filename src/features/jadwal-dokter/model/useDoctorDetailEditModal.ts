@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type { PatientRegionValues } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import type { Gender } from '@/constants/gender.constants';
@@ -90,14 +91,39 @@ export function useDoctorDetailEditModal({
   onClose,
   onSuccess
 }: UseDoctorDetailEditModalProps): UseDoctorDetailEditModalResult {
+  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
-  // Poliklinik reference state
-  const [polyclinics, setPolyclinics] = useState<PolyclinicUnit[]>([]);
-  const [isLoadingPolyclinics, setIsLoadingPolyclinics] = useState(false);
-  const [polyclinicError, setPolyclinicError] = useState<string | null>(null);
+  // Stable ID to prevent infinite re-render loops
+  const doctorId = doctor?.id;
+
+  // Poliklinik reference state backed by TanStack Query
+  const {
+    data: polyclinics = [],
+    isLoading: isLoadingPolyclinics,
+    error: polyclinicErrorObj
+  } = useQuery<PolyclinicUnit[]>({
+    queryKey: ['polyclinics'],
+    queryFn: () => staffManagementApi.getPolyclinics(),
+    enabled: isOpen,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000
+  });
+
+  const polyclinicError = polyclinicErrorObj instanceof Error ? polyclinicErrorObj.message : null;
+
+  // Doctor Profile backed by TanStack Query & Redis
+  const {
+    data: profile,
+    isLoading: isLoadingProfile
+  } = useQuery<StaffMember>({
+    queryKey: ['doctor-profile', doctorId],
+    queryFn: () => getDoctorProfile(doctorId!),
+    enabled: Boolean(isOpen && doctorId),
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000
+  });
 
   // Form core & region states
   const [formData, setFormData] = useState<DoctorDetailFormData>(INITIAL_FORM_DATA);
@@ -108,126 +134,73 @@ export function useDoctorDetailEditModal({
   const [snapshotRegionValues, setSnapshotRegionValues] =
     useState<PatientRegionValues>(INITIAL_REGION_VALUES);
 
-  // Stable ID to prevent infinite re-render loops (Maximum update depth exceeded)
-  const doctorId = doctor?.id;
-
-  // Load Polyclinics dynamically when opened
-  useEffect(() => {
-    if (!isOpen) return;
-
-    let cancelled = false;
-    setIsLoadingPolyclinics(true);
-    setPolyclinicError(null);
-
-    staffManagementApi
-      .getPolyclinics()
-      .then((units) => {
-        if (cancelled) return;
-        setPolyclinics(units);
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        const msg = err instanceof Error ? err.message : 'Gagal memuat poliklinik dari server.';
-        setPolyclinicError(msg);
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoadingPolyclinics(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isOpen]);
-
-  // Load Doctor Profile on open & reset view mode
+  // Synchronize form whenever doctor or cached profile updates
   useEffect(() => {
     if (!isOpen || !doctor) {
       setIsEditing(false);
       return;
     }
 
-    let cancelled = false;
-    setIsEditing(false);
-    setIsLoadingProfile(true);
+    if (profile) {
+      const loadedForm: DoctorDetailFormData = {
+        staffId: profile.id,
+        staffCode: profile.staffCode,
+        staffType: profile.staffType,
+        fullName: profile.fullName,
+        email: profile.email || '',
+        phoneNumber: profile.phoneNumber,
+        profession: profile.profession,
+        birthPlace: profile.birthPlace || '',
+        birthDate: profile.birthDate ? String(profile.birthDate).slice(0, 10) : '',
+        gender: profile.gender,
+        nationalId: profile.nationalId || '',
+        poliklinikId: profile.poliklinikId || '',
+        licenseNumber: profile.licenseNumber || '',
+        isActive: profile.isActive
+      };
 
-    const baseForm: DoctorDetailFormData = {
-      staffId: doctor.staffId || '',
-      staffCode: doctor.staffCode || '',
-      staffType: doctor.staffType,
-      fullName: doctor.fullName,
-      email: doctor.email || '',
-      phoneNumber: doctor.phone || '',
-      profession: doctor.specialty || '',
-      birthPlace: '',
-      birthDate: '',
-      gender: undefined,
-      nationalId: '',
-      poliklinikId: '',
-      licenseNumber: '',
-      isActive: doctor.doctorStatus !== 'PENDING' && (doctor.isAcceptingAppointments ?? true)
-    };
+      const loadedRegion: PatientRegionValues = profile.address
+        ? {
+            provinceName: profile.address.provinceName || '',
+            provinceCode: profile.address.provinceCode || '',
+            regencyName: profile.address.regencyName || '',
+            regencyCode: profile.address.regencyCode || '',
+            districtName: profile.address.districtName || '',
+            districtCode: profile.address.districtCode || '',
+            villageName: profile.address.villageName || '',
+            villageCode: profile.address.villageCode || '',
+            line1: profile.address.line1 || ''
+          }
+        : INITIAL_REGION_VALUES;
 
-    setFormData(baseForm);
-    setSnapshotFormData(baseForm);
-    setRegionValues(INITIAL_REGION_VALUES);
-    setSnapshotRegionValues(INITIAL_REGION_VALUES);
-
-    if (doctorId) {
-      getDoctorProfile(doctorId)
-        .then((profile: StaffMember) => {
-          if (cancelled || !profile) return;
-
-          const loadedForm: DoctorDetailFormData = {
-            staffId: profile.id,
-            staffCode: profile.staffCode,
-            staffType: profile.staffType,
-            fullName: profile.fullName,
-            email: profile.email || '',
-            phoneNumber: profile.phoneNumber,
-            profession: profile.profession,
-            birthPlace: profile.birthPlace || '',
-            birthDate: profile.birthDate ? String(profile.birthDate).slice(0, 10) : '',
-            gender: profile.gender,
-            nationalId: profile.nationalId || '',
-            poliklinikId: profile.poliklinikId || '',
-            licenseNumber: profile.licenseNumber || '',
-            isActive: profile.isActive
-          };
-
-          const loadedRegion: PatientRegionValues = profile.address
-            ? {
-                provinceName: profile.address.provinceName || '',
-                provinceCode: profile.address.provinceCode || '',
-                regencyName: profile.address.regencyName || '',
-                regencyCode: profile.address.regencyCode || '',
-                districtName: profile.address.districtName || '',
-                districtCode: profile.address.districtCode || '',
-                villageName: profile.address.villageName || '',
-                villageCode: profile.address.villageCode || '',
-                line1: profile.address.line1 || ''
-              }
-            : INITIAL_REGION_VALUES;
-
-          setFormData(loadedForm);
-          setSnapshotFormData(loadedForm);
-          setRegionValues(loadedRegion);
-          setSnapshotRegionValues(loadedRegion);
-        })
-        .catch((err: unknown) => {
-          if (cancelled) return;
-          console.warn('Could not load full profile from server, using card data:', err);
-        })
-        .finally(() => {
-          if (!cancelled) setIsLoadingProfile(false);
-        });
+      setFormData(loadedForm);
+      setSnapshotFormData(loadedForm);
+      setRegionValues(loadedRegion);
+      setSnapshotRegionValues(loadedRegion);
     } else {
-      setIsLoadingProfile(false);
-    }
+      const baseForm: DoctorDetailFormData = {
+        staffId: doctor.staffId || '',
+        staffCode: doctor.staffCode || '',
+        staffType: doctor.staffType,
+        fullName: doctor.fullName,
+        email: doctor.email || '',
+        phoneNumber: doctor.phone || '',
+        profession: doctor.specialty || '',
+        birthPlace: '',
+        birthDate: '',
+        gender: undefined,
+        nationalId: '',
+        poliklinikId: '',
+        licenseNumber: '',
+        isActive: doctor.doctorStatus !== 'PENDING' && (doctor.isAcceptingAppointments ?? true)
+      };
 
-    return () => {
-      cancelled = true;
-    };
-  }, [isOpen, doctorId]);
+      setFormData(baseForm);
+      setSnapshotFormData(baseForm);
+      setRegionValues(INITIAL_REGION_VALUES);
+      setSnapshotRegionValues(INITIAL_REGION_VALUES);
+    }
+  }, [isOpen, doctor, profile]);
 
   // Compute whether user actually changed anything
   const hasChanges = useMemo(() => {
@@ -318,6 +291,8 @@ export function useDoctorDetailEditModal({
         });
 
         toast.success(`Data dokter ${formData.fullName} berhasil diperbarui.`);
+        await queryClient.invalidateQueries({ queryKey: ['doctor-profile', doctor.id] });
+        await queryClient.invalidateQueries({ queryKey: ['doctor-schedules'] });
         setIsEditing(false);
         onSuccess?.();
         onClose();
@@ -328,7 +303,7 @@ export function useDoctorDetailEditModal({
         setIsSubmitting(false);
       }
     },
-    [doctor, hasChanges, formData, regionValues, onSuccess, onClose]
+    [doctor, hasChanges, formData, regionValues, onSuccess, onClose, queryClient]
   );
 
   const isBidan = formData.staffType === STAFF_TYPES.MIDWIFE;

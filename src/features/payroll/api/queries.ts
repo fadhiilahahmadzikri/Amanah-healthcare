@@ -5,7 +5,8 @@ import {
   fetchPayrollPeriods,
   fetchPayrollPeriodDetail,
   fetchStaffPayroll,
-  fetchCompensationRates
+  fetchCompensationRates,
+  fetchWorkPoliciesCurrent
 } from './payroll.api';
 
 export function usePayrollFilterOptionsQuery() {
@@ -42,5 +43,12 @@ export function useStaffPayrollQuery(staffId: string, periodId?: string) {
     queryKey: payrollKeys.staff(staffId, periodId),
     queryFn: () => fetchStaffPayroll(staffId, periodId),
     enabled: Boolean(staffId)
+  });
+}
+
+export function useWorkPoliciesCurrentQuery() {
+  return useQuery({
+    queryKey: ['work-policies', 'current'],
+    queryFn: () => fetchWorkPoliciesCurrent()
   });
 }
