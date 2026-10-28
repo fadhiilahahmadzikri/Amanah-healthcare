@@ -101,238 +101,90 @@ export function MedicalHistoryCatalog({
         <div className='grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1'>
           {records.map((order) => {
             if (isPregnancy) {
-              const birthYear = values[`previousPregnancy${order}BirthYear`] || '—';
-              const deliveryMethod = values[`previousPregnancy${order}DeliveryMethod`] || '—';
-              const childSex = values[`previousPregnancy${order}ChildSex`] || '—';
-              const birthWeight = values[`previousPregnancy${order}BirthWeight`]?.trim() || '';
-              const birthLength = values[`previousPregnancy${order}BirthLength`]?.trim() || '';
-              const gestationalAge =
-                values[`previousPregnancy${order}GestationalAgeAtBirth`] || '—';
-              const complications = values[`previousPregnancy${order}Complications`] || 'Tidak ada';
-
-              const weightLengthText =
-                birthWeight && birthLength
-                  ? `${birthWeight} / ${birthLength}`
-                  : birthWeight
-                    ? birthWeight
-                    : birthLength
-                      ? birthLength
-                      : '—';
-
               return (
                 <div
                   key={`pregnancy-${order}`}
-                  className='group relative flex flex-col justify-between rounded-xl border border-border bg-card p-4 text-card-foreground shadow-2xs transition-all duration-200 hover:border-primary/50 hover:shadow-xs'
+                  className='group relative flex items-center justify-between rounded-xl border border-border bg-card p-3.5 text-card-foreground shadow-2xs transition-all duration-200 hover:border-primary/50 hover:shadow-xs'
                 >
-                  <div>
-                    {/* Card Header with Badges & Actions */}
-                    <div className='flex items-center justify-between gap-2 pb-2.5 border-b border-border/50'>
-                      <div className='flex items-center gap-2'>
-                        <div className='flex size-6 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary'>
-                          <Icons.forms className='size-3.5' />
-                        </div>
-                        <span className='text-xs font-semibold text-foreground tracking-tight'>
-                          Kartu Riwayat Kehamilan {order}
-                        </span>
-                      </div>
-
-                      {/* Action buttons (always visible on mobile, interactive on desktop) */}
-                      <div className='flex items-center gap-1.5 opacity-90 transition-opacity sm:opacity-75 sm:group-hover:opacity-100'>
-                        <Button
-                          type='button'
-                          variant='ghost'
-                          size='sm'
-                          shape='pill'
-                          onClick={() => onEditRecord(order)}
-                          className='h-7 px-2.5 text-xs text-muted-foreground hover:bg-primary/10 hover:text-primary'
-                          aria-label={`Edit riwayat kehamilan ke-${order}`}
-                        >
-                          <Icons.edit className='size-3 mr-1' />
-                          Edit
-                        </Button>
-                        <Button
-                          type='button'
-                          variant='ghost'
-                          size='sm'
-                          shape='pill'
-                          onClick={() => onRemoveRecord(order)}
-                          className='h-7 px-2 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive'
-                          aria-label={`Hapus riwayat kehamilan ke-${order}`}
-                        >
-                          <Icons.trash className='size-3' />
-                        </Button>
-                      </div>
+                  <div className='flex items-center gap-2.5 min-w-0'>
+                    <div className='flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary'>
+                      <Icons.forms className='size-4' />
                     </div>
+                    <span className='text-xs sm:text-sm font-semibold text-foreground tracking-tight truncate'>
+                      Kartu Riwayat Kehamilan {order}
+                    </span>
+                  </div>
 
-                    {/* Strictly Aligned 2-Column Summary Grid */}
-                    <div className='grid grid-cols-2 gap-x-4 gap-y-2.5 pt-3 text-xs text-muted-foreground'>
-                      <div className='min-w-0'>
-                        <span className='block text-[11px] text-muted-foreground truncate'>
-                          Tahun Lahir / Berakhir
-                        </span>
-                        <span className='font-medium text-muted-foreground truncate block mt-0.5'>
-                          {birthYear}
-                        </span>
-                      </div>
-                      <div className='min-w-0'>
-                        <span className='block text-[11px] text-muted-foreground truncate'>
-                          Cara Persalinan
-                        </span>
-                        <span className='font-medium text-muted-foreground truncate block mt-0.5'>
-                          {deliveryMethod}
-                        </span>
-                      </div>
-                      <div className='min-w-0'>
-                        <span className='block text-[11px] text-muted-foreground truncate'>
-                          Jenis Kelamin
-                        </span>
-                        <span className='font-medium text-muted-foreground truncate block mt-0.5'>
-                          {childSex}
-                        </span>
-                      </div>
-                      <div className='min-w-0'>
-                        <span className='block text-[11px] text-muted-foreground truncate'>
-                          Usia Kehamilan
-                        </span>
-                        <span className='font-medium text-muted-foreground truncate block mt-0.5'>
-                          {gestationalAge}
-                        </span>
-                      </div>
-                      <div className='min-w-0'>
-                        <span className='block text-[11px] text-muted-foreground truncate'>
-                          Berat / Panjang Lahir
-                        </span>
-                        <span className='font-medium text-muted-foreground truncate block mt-0.5'>
-                          {weightLengthText}
-                        </span>
-                      </div>
-                      <div className='min-w-0'>
-                        <span className='block text-[11px] text-muted-foreground truncate'>
-                          Komplikasi / Masalah
-                        </span>
-                        <span
-                          className='font-medium text-muted-foreground truncate block mt-0.5'
-                          title={complications}
-                        >
-                          {complications}
-                        </span>
-                      </div>
-                    </div>
+                  {/* Action buttons */}
+                  <div className='flex items-center gap-1.5 shrink-0'>
+                    <Button
+                      type='button'
+                      variant='ghost'
+                      size='sm'
+                      shape='pill'
+                      onClick={() => onEditRecord(order)}
+                      className='h-7 px-2.5 text-xs text-muted-foreground hover:bg-primary/10 hover:text-primary cursor-pointer'
+                      aria-label={`Edit riwayat kehamilan ke-${order}`}
+                    >
+                      <Icons.edit className='size-3 mr-1' />
+                      Edit
+                    </Button>
+                    <Button
+                      type='button'
+                      variant='ghost'
+                      size='sm'
+                      shape='pill'
+                      onClick={() => onRemoveRecord(order)}
+                      className='h-7 px-2 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive cursor-pointer'
+                      aria-label={`Hapus riwayat kehamilan ke-${order}`}
+                    >
+                      <Icons.trash className='size-3' />
+                    </Button>
                   </div>
                 </div>
               );
             }
 
             // Contraception History Card
-            const kbType = values[`contraception${order}Type`] || '—';
-            const startDate = values[`contraception${order}StartDate`] || '—';
-            const stopDate = values[`contraception${order}StopDate`] || '—';
-            const duration = values[`contraception${order}Duration`] || '—';
-            const problems = values[`contraception${order}Problems`] || 'Tidak ada';
-            const sideEffects = values[`contraception${order}SideEffects`] || 'Tidak ada';
-
             return (
               <div
                 key={`contraception-${order}`}
-                className='group relative flex flex-col justify-between rounded-xl border border-border bg-card p-4 text-card-foreground shadow-2xs transition-all duration-200 hover:border-primary/50 hover:shadow-xs'
+                className='group relative flex items-center justify-between rounded-xl border border-border bg-card p-3.5 text-card-foreground shadow-2xs transition-all duration-200 hover:border-primary/50 hover:shadow-xs'
               >
-                <div>
-                  {/* Card Header with Badges & Actions */}
-                  <div className='flex items-center justify-between gap-2 pb-2.5 border-b border-border/50'>
-                    <div className='flex items-center gap-2'>
-                      <div className='flex size-6 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary'>
-                        <Icons.badgeCheck className='size-3.5' />
-                      </div>
-                      <span className='text-xs font-semibold text-foreground tracking-tight'>
-                        Kartu Riwayat KB {order}
-                      </span>
-                    </div>
-
-                    {/* Action buttons */}
-                    <div className='flex items-center gap-1.5 opacity-90 transition-opacity sm:opacity-75 sm:group-hover:opacity-100'>
-                      <Button
-                        type='button'
-                        variant='ghost'
-                        size='sm'
-                        shape='pill'
-                        onClick={() => onEditRecord(order)}
-                        className='h-7 px-2.5 text-xs text-muted-foreground hover:bg-primary/10 hover:text-primary'
-                        aria-label={`Edit riwayat KB ke-${order}`}
-                      >
-                        <Icons.edit className='size-3 mr-1' />
-                        Edit
-                      </Button>
-                      <Button
-                        type='button'
-                        variant='ghost'
-                        size='sm'
-                        shape='pill'
-                        onClick={() => onRemoveRecord(order)}
-                        className='h-7 px-2 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive'
-                        aria-label={`Hapus riwayat KB ke-${order}`}
-                      >
-                        <Icons.trash className='size-3' />
-                      </Button>
-                    </div>
+                <div className='flex items-center gap-2.5 min-w-0'>
+                  <div className='flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary'>
+                    <Icons.badgeCheck className='size-4' />
                   </div>
+                  <span className='text-xs sm:text-sm font-semibold text-foreground tracking-tight truncate'>
+                    Kartu Riwayat KB {order}
+                  </span>
+                </div>
 
-                  {/* Strictly Aligned 2-Column Summary Grid */}
-                  <div className='grid grid-cols-2 gap-x-4 gap-y-2.5 pt-3 text-xs text-muted-foreground'>
-                    <div className='min-w-0'>
-                      <span className='block text-[11px] text-muted-foreground truncate'>
-                        Jenis KB
-                      </span>
-                      <span className='font-medium text-muted-foreground truncate block mt-0.5'>
-                        {kbType}
-                      </span>
-                    </div>
-                    <div className='min-w-0'>
-                      <span className='block text-[11px] text-muted-foreground truncate'>
-                        Lama Pemakaian
-                      </span>
-                      <span className='font-medium text-muted-foreground truncate block mt-0.5'>
-                        {duration}
-                      </span>
-                    </div>
-                    <div className='min-w-0'>
-                      <span className='block text-[11px] text-muted-foreground truncate'>
-                        Mulai Pakai
-                      </span>
-                      <span className='font-medium text-muted-foreground truncate block mt-0.5'>
-                        {startDate}
-                      </span>
-                    </div>
-                    <div className='min-w-0'>
-                      <span className='block text-[11px] text-muted-foreground truncate'>
-                        Selesai / Lepas
-                      </span>
-                      <span className='font-medium text-muted-foreground truncate block mt-0.5'>
-                        {stopDate}
-                      </span>
-                    </div>
-                    <div className='min-w-0'>
-                      <span className='block text-[11px] text-muted-foreground truncate'>
-                        Masalah / Keluhan
-                      </span>
-                      <span
-                        className='font-medium text-muted-foreground truncate block mt-0.5'
-                        title={problems}
-                      >
-                        {problems}
-                      </span>
-                    </div>
-                    <div className='min-w-0'>
-                      <span className='block text-[11px] text-muted-foreground truncate'>
-                        Efek Samping
-                      </span>
-                      <span
-                        className='font-medium text-muted-foreground truncate block mt-0.5'
-                        title={sideEffects}
-                      >
-                        {sideEffects}
-                      </span>
-                    </div>
-                  </div>
+                {/* Action buttons */}
+                <div className='flex items-center gap-1.5 shrink-0'>
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='sm'
+                    shape='pill'
+                    onClick={() => onEditRecord(order)}
+                    className='h-7 px-2.5 text-xs text-muted-foreground hover:bg-primary/10 hover:text-primary cursor-pointer'
+                    aria-label={`Edit riwayat KB ke-${order}`}
+                  >
+                    <Icons.edit className='size-3 mr-1' />
+                    Edit
+                  </Button>
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='sm'
+                    shape='pill'
+                    onClick={() => onRemoveRecord(order)}
+                    className='h-7 px-2 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive cursor-pointer'
+                    aria-label={`Hapus riwayat KB ke-${order}`}
+                  >
+                    <Icons.trash className='size-3' />
+                  </Button>
                 </div>
               </div>
             );

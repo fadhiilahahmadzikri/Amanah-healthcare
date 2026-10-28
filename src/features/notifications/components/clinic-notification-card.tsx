@@ -12,6 +12,7 @@ import type { ClinicNotification, NotificationActionItem } from '../types';
 import { clinicalTokens } from '@/styles/clinical-tokens';
 import { cn } from '@/lib/utils';
 import { executeNotificationAction } from '../utils/notification-action-dispatcher';
+import { useViewer } from '../hooks/use-viewer';
 
 export interface ClinicNotificationCardProps {
   notification: ClinicNotification;
@@ -72,6 +73,14 @@ export function getCategoryTagConfig(category: string) {
         dotGradient: clinicalTokens.colors.status.checkedIn.dotGradient,
         label: 'Telemedisin'
       };
+    case 'Chat Pasien':
+      return {
+        pillBg: clinicalTokens.colors.status.checkedIn.pillBg,
+        pillBorder: clinicalTokens.colors.status.checkedIn.pillBorder,
+        textGradient: clinicalTokens.colors.status.checkedIn.textGradient,
+        dotGradient: clinicalTokens.colors.status.checkedIn.dotGradient,
+        label: 'Chat Pasien'
+      };
     default:
       return {
         pillBg: 'bg-muted/60',
@@ -92,6 +101,7 @@ export function ClinicNotificationCard({
   className
 }: ClinicNotificationCardProps) {
   const router = useRouter();
+  const { role: userRole } = useViewer();
   const isUnread = notification.status === 'unread';
   const categoryConfig = getCategoryTagConfig(notification.category);
 
@@ -249,6 +259,11 @@ export function ClinicNotificationCard({
         return (
           <Icons.video className='size-2.5 sm:size-3 text-primary-foreground' strokeWidth={2.5} />
         );
+      case 'chat':
+      case 'message':
+        return (
+          <Icons.chat className='size-2.5 sm:size-3 text-primary-foreground' strokeWidth={2.5} />
+        );
       default:
         return null;
     }
@@ -272,6 +287,9 @@ export function ClinicNotificationCard({
         return <Icons.video className='size-3.5 shrink-0 text-primary' />;
       case 'clock':
         return <Icons.clock className='size-3.5 shrink-0 text-primary' />;
+      case 'chat':
+      case 'message':
+        return <Icons.chat className='size-3.5 shrink-0 text-primary' />;
       default:
         return null;
     }
@@ -282,7 +300,7 @@ export function ClinicNotificationCard({
     if (onMarkAsRead) {
       onMarkAsRead(notification.id);
     }
-    executeNotificationAction(router, action, notification);
+    executeNotificationAction(router, action, notification, userRole);
   };
 
   return (
@@ -421,7 +439,11 @@ export function ClinicNotificationCard({
                       onClick={() => handleActionClick(act)}
                       className='h-8 px-3.5 rounded-lg text-xs font-semibold shadow-xs flex items-center gap-1.5'
                     >
-                      <Icons.check className='size-3.5' />
+                      {act.actionKey === 'view_chat' ? (
+                        <Icons.chat className='size-3.5' />
+                      ) : (
+                        <Icons.check className='size-3.5' />
+                      )}
                       <span>{act.label}</span>
                     </Button>
                   );

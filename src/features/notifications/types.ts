@@ -5,7 +5,8 @@ export type ClinicNotificationCategory =
   | 'Antrean'
   | 'Farmasi'
   | 'Telemedisin'
-  | 'Shift & Kehadiran';
+  | 'Shift & Kehadiran'
+  | 'Chat Pasien';
 
 export type ClinicNotificationStatus = 'unread' | 'read';
 
@@ -29,6 +30,7 @@ export interface ClinicNotification {
   dateFull: string;
   body: string;
   category: ClinicNotificationCategory;
+  audience?: 'patient' | 'clinic' | string;
   status: ClinicNotificationStatus;
   metaIcon?: string | null;
   createdAt: string;

@@ -11,6 +11,7 @@ export interface DetailsModalProps {
   isOpen: boolean;
   appointment: Appointment | null;
   viewerRole?: 'patient' | 'internal';
+  isHistoryMode?: boolean;
   onClose: () => void;
   onCancel?: (appointment: Appointment, reason?: string) => Promise<void> | void;
   onRescheduled?: (appointment: Appointment) => Promise<void> | void;

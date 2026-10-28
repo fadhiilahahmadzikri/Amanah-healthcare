@@ -24,6 +24,8 @@ import {
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
 import { Icons } from '@/components/icons';
+import { useSidebar } from '@/components/ui/sidebar';
+import { cn } from '@/lib/utils';
 import { EntityCardGrid, EntityCardGridSkeleton } from '@/components/cards/master-entity-card';
 import { STAFF_INVITATION_STATUS } from '../constants/staff.constants';
 import { useStaffManagementPresenter } from '../model/useStaffManagementPresenter';
@@ -32,13 +34,16 @@ import { StaffScheduleCard } from './staff-schedule-card';
 import { StaffRoleBadge, StaffInvitationStatusBadge } from './staff-card-atoms';
 import { InviteStaffModal } from './invite-staff-modal';
 import { StaffRosterModal } from './staff-roster-modal';
-import { StaffDetailEditModal } from './staff-detail-edit-modal';
+import { StaffProfileModal } from './staff-profile-modal';
 import { ExportDialog } from '@/features/export';
 import type { StaffMember } from '../api/staff-management.api';
 
 export function StaffManagementView() {
   const { view, revoke, rosterModal, detailModal, inviteModal } = useStaffManagementPresenter();
   const [exportStaff, setExportStaff] = useState<StaffMember | null>(null);
+
+  const { state: sidebarState } = useSidebar();
+  const isSidebarExpanded = sidebarState === 'expanded';
 
   return (
     <div className='flex h-full min-h-0 flex-1 flex-col gap-4 select-none'>
@@ -65,7 +70,10 @@ export function StaffManagementView() {
             <div className='absolute inset-0 flex overflow-hidden'>
               <ScrollArea className='h-full w-full pr-0 md:pr-3'>
                 <div className='pb-20 pt-1'>
-                  <EntityCardGridSkeleton count={10} />
+                  <EntityCardGridSkeleton
+                    count={8}
+                    className={cn(isSidebarExpanded && '2xl:grid-cols-4')}
+                  />
                 </div>
               </ScrollArea>
             </div>
@@ -103,14 +111,13 @@ export function StaffManagementView() {
             <div className='absolute inset-0 flex overflow-hidden'>
               <ScrollArea className='h-full w-full pr-0 md:pr-3'>
                 <div className='pb-20 pt-1'>
-                  <EntityCardGrid>
+                  <EntityCardGrid className={cn(isSidebarExpanded && '2xl:grid-cols-4')}>
                     {view.filteredStaffs.map((staff) => (
                       <StaffScheduleCard
                         key={staff.id}
                         staff={staff}
                         onOpenRoster={rosterModal.open}
                         onOpenDetail={detailModal.open}
-                        onExport={(st) => setExportStaff(st)}
                       />
                     ))}
                   </EntityCardGrid>
@@ -214,10 +221,11 @@ export function StaffManagementView() {
         onClose={rosterModal.close}
       />
 
-      <StaffDetailEditModal
+      <StaffProfileModal
         staff={detailModal.staff}
         isOpen={detailModal.isOpen}
         onClose={detailModal.close}
+        onExport={(st) => setExportStaff(st)}
       />
 
       {/* Export Dialog Per Record */}

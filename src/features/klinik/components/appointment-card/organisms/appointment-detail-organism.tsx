@@ -38,6 +38,7 @@ export interface AppointmentDetailOrganismProps {
   isOpen: boolean;
   appointment: Appointment | null;
   viewerRole?: 'patient' | 'internal';
+  isHistoryMode?: boolean;
   onClose: () => void;
   onCancel?: (appointment: Appointment, reason?: string) => Promise<void> | void;
   onRescheduled?: (appointment: Appointment) => Promise<void> | void;
@@ -56,6 +57,7 @@ export function AppointmentDetailOrganism({
   isOpen,
   appointment,
   viewerRole = 'internal',
+  isHistoryMode = false,
   onClose,
   onCancel,
   onRescheduled,
@@ -87,8 +89,10 @@ export function AppointmentDetailOrganism({
       setIsChangeDoctorOpen(false);
       setIsChangeRoomOpen(false);
       setIsRescheduleOpen(false);
+    } else if (isHistoryMode && !isMobile) {
+      setIsFormExpanded(true);
     }
-  }, [isOpen]);
+  }, [isOpen, isHistoryMode, isMobile]);
 
   if (!appointment) return null;
 
@@ -110,18 +114,22 @@ export function AppointmentDetailOrganism({
   const complaintText = appointment.complaint || '-';
   const isAdmin = role === 'admin' || hasRole('admin');
 
-  const canCancel = Boolean(
-    appointment.allowedActions
-      ? appointment.allowedActions.includes('CANCEL')
-      : !isTerminal && !isInService
-  );
-  const canReassign = isAdmin && !isTerminal;
-  const canReschedule = Boolean(
-    appointment.allowedActions
-      ? appointment.allowedActions.includes('RESCHEDULE')
-      : !isTerminal && !isInService
-  );
-  const canCall = Boolean(appointment.allowedActions?.includes('CALL'));
+  const canCancel =
+    !isHistoryMode &&
+    Boolean(
+      appointment.allowedActions
+        ? appointment.allowedActions.includes('CANCEL')
+        : !isTerminal && !isInService
+    );
+  const canReassign = !isHistoryMode && isAdmin && !isTerminal;
+  const canReschedule =
+    !isHistoryMode &&
+    Boolean(
+      appointment.allowedActions
+        ? appointment.allowedActions.includes('RESCHEDULE')
+        : !isTerminal && !isInService
+    );
+  const canCall = !isHistoryMode && Boolean(appointment.allowedActions?.includes('CALL'));
 
   const handleConfirmCancel = async () => {
     if (!onCancel || !appointment) return;
@@ -460,6 +468,7 @@ export function AppointmentDetailOrganism({
                   <AppointmentFormInspector
                     appointment={appointment}
                     hideHeader
+                    readOnly={isHistoryMode}
                     onClose={() => setModalStep('details')}
                   />
                 </div>
@@ -501,6 +510,7 @@ export function AppointmentDetailOrganism({
             <div className='w-full flex-1 flex flex-col font-sans select-none h-full min-h-0 min-w-0 md:pl-6 md:border-l border-border/40 pt-6 md:pt-0 animate-in fade-in-0 slide-in-from-right-6 duration-300 ease-out'>
               <AppointmentFormInspector
                 appointment={appointment}
+                readOnly={isHistoryMode}
                 onClose={() => setIsFormExpanded(false)}
               />
             </div>
@@ -566,10 +576,12 @@ export function AppointmentDetailOrganism({
         appointment={appointment}
         onClose={() => setIsActionDrawerOpen(false)}
         onViewForm={() => setModalStep('form')}
-        onCheckIn={onOpenCheckIn ? () => onOpenCheckIn(appointment) : undefined}
-        onReschedule={() => setIsRescheduleOpen(true)}
-        onCancel={() => setModalStep('cancel-confirm')}
-        onCallPatient={onCallPatient ? () => onCallPatient(appointment) : undefined}
+        onCheckIn={!isHistoryMode && onOpenCheckIn ? () => onOpenCheckIn(appointment) : undefined}
+        onReschedule={!isHistoryMode ? () => setIsRescheduleOpen(true) : undefined}
+        onCancel={!isHistoryMode ? () => setModalStep('cancel-confirm') : undefined}
+        onCallPatient={
+          !isHistoryMode && onCallPatient ? () => onCallPatient(appointment) : undefined
+        }
         isCallPending={isCallPending}
       />
     </>

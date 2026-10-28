@@ -31,6 +31,13 @@ export const navGroups: NavGroup[] = [
             icon: 'chat',
             shortcut: ['c', 'p'],
             access: { role: 'admin' }
+          },
+          {
+            title: 'Riwayat Medis',
+            url: '/dashboard/riwayat-medis',
+            icon: 'history',
+            shortcut: ['r', 'm'],
+            access: { role: 'admin' }
           }
         ]
       },

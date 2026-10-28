@@ -18,7 +18,9 @@ const CATEGORY_MAP: Record<string, ClinicNotificationCategory> = {
   attendance: 'Shift & Kehadiran',
   leave: 'Shift & Kehadiran',
   replacement: 'Shift & Kehadiran',
-  system: 'Antrean'
+  system: 'Antrean',
+  chat: 'Chat Pasien',
+  support: 'Chat Pasien'
 };
 
 function normalizeString(value?: string | null): string {
@@ -37,14 +39,60 @@ export function mapBackendToClinicNotification(backend: BackendNotification): Cl
   const sender = senderClean || 'Klinik Amanah';
   const roleSubtitle = roleClean || 'Informasi';
 
-  const actions: NotificationActionItem[] = (backend.actions || []).map((action, index) => ({
-    id: action.id || `act-${backend.id}-${index}`,
-    label: action.label,
-    type: (action.actionType as any) || 'primary',
-    actionKey: action.actionKey,
-    url: action.url,
-    icon: undefined
-  }));
+  const rawMetadata = backend.metadata as Record<string, unknown> | null | undefined;
+  const semanticAction = rawMetadata?.semanticAction as
+    | { params?: Record<string, unknown> }
+    | undefined;
+  const semanticConvId =
+    typeof semanticAction?.params?.conversationId === 'string'
+      ? (semanticAction.params.conversationId as string)
+      : '';
+  const metaConvId =
+    typeof rawMetadata?.conversationId === 'string' ? rawMetadata.conversationId : '';
+  const conversationId = metaConvId || semanticConvId || '';
+
+  const isPatientAudience =
+    backend.audience === 'patient' ||
+    (rawMetadata?.audience as string) === 'patient' ||
+    backend.senderRole === 'Klinik Amanah' ||
+    backend.senderRole === 'Admin Klinik';
+
+  const actions: NotificationActionItem[] = (backend.actions || []).map((action, index) => {
+    let url = action.url;
+    if (isPatientAudience && url?.startsWith('/dashboard/chat')) {
+      url = '/dashboard/klinik/chat';
+    }
+    return {
+      id: action.id || `act-${backend.id}-${index}`,
+      label: action.label,
+      type: (action.actionType as NotificationActionItem['type']) || 'primary',
+      actionKey: action.actionKey,
+      url,
+      icon: undefined
+    };
+  });
+
+  const isChatNotification =
+    category === 'Chat Pasien' ||
+    backend.category === 'chat' ||
+    backend.category === 'support' ||
+    backend.sourceType === 'chat' ||
+    Boolean(conversationId);
+
+  if (isChatNotification && !actions.some((a) => a.actionKey === 'view_chat')) {
+    actions.push({
+      id: `act-reply-${backend.id}`,
+      label: 'Balas',
+      type: 'primary',
+      actionKey: 'view_chat',
+      url: isPatientAudience
+        ? '/dashboard/klinik/chat'
+        : conversationId
+          ? `/dashboard/chat?conversationId=${conversationId}`
+          : '/dashboard/chat',
+      icon: undefined
+    });
+  }
 
   const metaAvatar =
     typeof backend.metadata?.avatarUrl === 'string' ? backend.metadata.avatarUrl : '';
@@ -69,6 +117,7 @@ export function mapBackendToClinicNotification(backend: BackendNotification): Cl
     dateFull: formatFullDate(backend.createdAt),
     body: backend.body?.trim() || '',
     category,
+    audience: backend.audience,
     status: backend.isRead || backend.readAt != null ? 'read' : 'unread',
     metaIcon: backend.metaIcon || null,
     createdAt: backend.createdAt,

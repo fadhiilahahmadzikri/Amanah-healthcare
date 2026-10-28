@@ -1,15 +1,14 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { getGenderLabel, type Gender } from '@/constants/gender.constants';
 import Image from 'next/image';
 import PageContainer from '@/components/layout/page-container';
-import { Icons } from '@/components/icons';
+import { useAuthContext } from '@/lib/rbac/auth-context';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -26,8 +25,8 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Icons } from '@/components/icons';
 import { toast } from 'sonner';
-import { useAuthContext } from '@/lib/rbac/auth-context';
 import { signOut } from '@/lib/auth-client';
 import { logoutAction } from '@/server/actions/auth.actions';
 import { DeleteAccountDialog } from './delete-account-dialog';
@@ -46,6 +45,32 @@ const DEFAULT_PATIENT_PROFILE = {
   coverImage:
     'https://images.unsplash.com/photo-1500651230702-0e2d8a49d4ad?auto=format&fit=crop&w=1600&q=80'
 };
+
+type Gender = 'male' | 'female';
+
+function getGenderLabel(gender?: string | null): string {
+  if (!gender) return '-';
+  const g = gender.toLowerCase();
+  if (g === 'male' || g === 'l' || g === 'laki-laki') return 'Laki-laki';
+  if (g === 'female' || g === 'p' || g === 'perempuan') return 'Perempuan';
+  return gender;
+}
+
+function ProfileStaticField({ id, label, value }: { id: string; label: string; value: string }) {
+  return (
+    <div className='space-y-1.5'>
+      <Label htmlFor={id} className='text-xs font-semibold text-muted-foreground'>
+        {label}
+      </Label>
+      <div
+        id={id}
+        className='w-full rounded-xl bg-muted/15 border border-border/50 px-3 py-2 text-xs sm:text-sm text-foreground select-text cursor-default flex items-center min-h-[40px]'
+      >
+        <span className='truncate'>{value}</span>
+      </div>
+    </div>
+  );
+}
 
 export function ClinicProfileView() {
   const { user } = useAuthContext();
@@ -130,15 +155,25 @@ export function ClinicProfileView() {
       birthPlace: patientData?.birthPlace || '',
       birthDate: patientData?.birthDate || '',
       occupation: patientData?.occupation || '',
-      phoneNumber: patientData?.phoneNumber || '',
-      alamatDetail: patientData?.alamatDetail || patientData?.address || '',
-      kelurahan: patientData?.kelurahan || '',
-      kecamatan: patientData?.kecamatan || '',
-      kabupaten: patientData?.kabupaten || '',
-      provinsi: patientData?.provinsi || '',
-      emergencyContactName: patientData?.emergencyContactName || '',
-      emergencyContactPhone: patientData?.emergencyContactPhone || '',
-      emergencyContactRelationship: patientData?.emergencyContactRelationship || '',
+      phoneNumber: patientData?.phone || patientData?.phoneNumber || '',
+      alamatDetail:
+        patientData?.line1 ||
+        patientData?.fullAddress ||
+        patientData?.alamatDetail ||
+        patientData?.address ||
+        '',
+      kelurahan: patientData?.villageName || patientData?.kelurahan || '',
+      kecamatan: patientData?.districtName || patientData?.kecamatan || '',
+      kabupaten: patientData?.regencyName || patientData?.kabupaten || '',
+      provinsi: patientData?.provinceName || patientData?.provinsi || '',
+      emergencyContactName:
+        patientData?.emergencyContactName || patientData?.emergencyContactDetail?.name || '',
+      emergencyContactPhone:
+        patientData?.emergencyContactPhone || patientData?.emergencyContactDetail?.phone || '',
+      emergencyContactRelationship:
+        patientData?.emergencyContactRelationship ||
+        patientData?.emergencyContactDetail?.relationship ||
+        '',
       bloodType: patientData?.bloodType || '',
       allergies: allergiesStr,
       medicalHistory: patientData?.medicalHistory || ''
@@ -160,11 +195,18 @@ export function ClinicProfileView() {
         birthPlace: editForm.birthPlace.trim() || undefined,
         birthDate: editForm.birthDate.trim() || undefined,
         occupation: editForm.occupation.trim() || undefined,
+        phone: editForm.phoneNumber.trim() || undefined,
         phoneNumber: editForm.phoneNumber.trim() || undefined,
+        line1: editForm.alamatDetail.trim() || undefined,
+        fullAddress: editForm.alamatDetail.trim() || undefined,
         alamatDetail: editForm.alamatDetail.trim() || undefined,
+        villageName: editForm.kelurahan.trim() || undefined,
         kelurahan: editForm.kelurahan.trim() || undefined,
+        districtName: editForm.kecamatan.trim() || undefined,
         kecamatan: editForm.kecamatan.trim() || undefined,
+        regencyName: editForm.kabupaten.trim() || undefined,
         kabupaten: editForm.kabupaten.trim() || undefined,
+        provinceName: editForm.provinsi.trim() || undefined,
         provinsi: editForm.provinsi.trim() || undefined,
         emergencyContactName: editForm.emergencyContactName.trim() || undefined,
         emergencyContactPhone: editForm.emergencyContactPhone.trim() || undefined,
@@ -185,9 +227,9 @@ export function ClinicProfileView() {
           description: result.message || 'Terjadi kesalahan saat menyimpan data profil pasien.'
         });
       }
-    } catch (err: unknown) {
-      toast.error('Gagal Menyimpan Perubahan', {
-        description: err instanceof Error ? err.message : 'Terjadi kesalahan sistem.'
+    } catch {
+      toast.error('Gagal Menyimpan', {
+        description: 'Terjadi kegagalan jaringan saat mengirim data profil.'
       });
     } finally {
       setIsSaving(false);
@@ -208,7 +250,7 @@ export function ClinicProfileView() {
     window.location.href = '/auth/sign-in';
   }, []);
 
-  // Display attributes with safe fallbacks
+  // Display attributes with canonical backend fields & safe fallbacks
   const displayName = patientData?.fullName || user?.name || DEFAULT_PATIENT_PROFILE.name;
   const displayEmail = user?.email || DEFAULT_PATIENT_PROFILE.email;
   const displayAvatar = patientData?.avatarUrl || user?.image || DEFAULT_PATIENT_PROFILE.avatar;
@@ -221,17 +263,27 @@ export function ClinicProfileView() {
       : '-';
   const displayIbu = patientData?.motherName || '-';
   const displayPekerjaan = patientData?.occupation || '-';
-  const displayPhone = patientData?.phoneNumber || '-';
+  const displayPhone = patientData?.phone || patientData?.phoneNumber || '-';
 
-  const displayAlamat = patientData?.alamatDetail || patientData?.address || '-';
-  const displayKelurahan = patientData?.kelurahan || '-';
-  const displayKecamatan = patientData?.kecamatan || '-';
-  const displayKabupaten = patientData?.kabupaten || '-';
-  const displayProvinsi = patientData?.provinsi || '-';
+  const displayAlamat =
+    patientData?.line1 ||
+    patientData?.fullAddress ||
+    patientData?.alamatDetail ||
+    patientData?.address ||
+    '-';
+  const displayKelurahan = patientData?.villageName || patientData?.kelurahan || '-';
+  const displayKecamatan = patientData?.districtName || patientData?.kecamatan || '-';
+  const displayKabupaten = patientData?.regencyName || patientData?.kabupaten || '-';
+  const displayProvinsi = patientData?.provinceName || patientData?.provinsi || '-';
 
-  const displayEmName = patientData?.emergencyContactName || '-';
-  const displayEmPhone = patientData?.emergencyContactPhone || '-';
-  const displayEmRel = patientData?.emergencyContactRelationship || '-';
+  const displayEmName =
+    patientData?.emergencyContactName || patientData?.emergencyContactDetail?.name || '-';
+  const displayEmPhone =
+    patientData?.emergencyContactPhone || patientData?.emergencyContactDetail?.phone || '-';
+  const displayEmRel =
+    patientData?.emergencyContactRelationship ||
+    patientData?.emergencyContactDetail?.relationship ||
+    '-';
   const displayBlood = patientData?.bloodType || '-';
   const displayAllergies = Array.isArray(patientData?.allergies)
     ? patientData.allergies.join(', ') || 'Tidak ada riwayat alergi'
@@ -336,169 +388,70 @@ export function ClinicProfileView() {
               </div>
             </div>
 
-            {/* 4. Section 1: Demografi & Kependudukan */}
+            {/* 4. Section 1: Demografi Pasien */}
             <div className='grid grid-cols-1 lg:grid-cols-12 gap-6 pb-8 border-b border-border/50'>
               <div className='lg:col-span-4 space-y-1'>
-                <h3 className='text-sm sm:text-base font-bold text-foreground'>
-                  Demografi & Kependudukan
-                </h3>
-                <p className='text-xs sm:text-sm text-muted-foreground leading-relaxed'>
-                  Informasi resmi kependudukan dan status sosial pasien yang tercatat pada rekam
-                  medis.
-                </p>
+                <h3 className='text-sm sm:text-base font-bold text-foreground'>Demografi Pasien</h3>
               </div>
 
               <div className='lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl'>
-                <div className='space-y-1.5'>
-                  <Label
-                    htmlFor='view-demografi-name'
-                    className='text-xs font-semibold text-muted-foreground'
-                  >
-                    Nama Lengkap Pasien
-                  </Label>
-                  <Input
-                    id='view-demografi-name'
-                    value={displayName}
-                    readOnly
-                    className='bg-muted/15 border-border/60 rounded-xl text-xs sm:text-sm h-10 select-all'
-                  />
-                </div>
-
-                <div className='space-y-1.5'>
-                  <Label
-                    htmlFor='view-demografi-ibu'
-                    className='text-xs font-semibold text-muted-foreground'
-                  >
-                    Nama Ibu Kandung
-                  </Label>
-                  <Input
-                    id='view-demografi-ibu'
-                    value={displayIbu}
-                    readOnly
-                    className='bg-muted/15 border-border/60 rounded-xl text-xs sm:text-sm h-10 select-all'
-                  />
-                </div>
-
-                <div className='space-y-1.5'>
-                  <Label
-                    htmlFor='view-demografi-pekerjaan'
-                    className='text-xs font-semibold text-muted-foreground'
-                  >
-                    Pekerjaan / Profesi
-                  </Label>
-                  <Input
-                    id='view-demografi-pekerjaan'
-                    value={displayPekerjaan}
-                    readOnly
-                    className='bg-muted/15 border-border/60 rounded-xl text-xs sm:text-sm h-10 select-all'
-                  />
-                </div>
-
-                <div className='space-y-1.5'>
-                  <Label
-                    htmlFor='view-demografi-phone'
-                    className='text-xs font-semibold text-muted-foreground'
-                  >
-                    Nomor Telepon / WhatsApp
-                  </Label>
-                  <Input
-                    id='view-demografi-phone'
-                    value={displayPhone}
-                    readOnly
-                    className='bg-muted/15 border-border/60 rounded-xl text-xs sm:text-sm h-10 select-all'
-                  />
-                </div>
+                <ProfileStaticField
+                  id='view-demografi-name'
+                  label='Nama Lengkap Pasien'
+                  value={displayName}
+                />
+                <ProfileStaticField
+                  id='view-demografi-ibu'
+                  label='Nama Ibu Kandung'
+                  value={displayIbu}
+                />
+                <ProfileStaticField
+                  id='view-demografi-pekerjaan'
+                  label='Pekerjaan / Profesi'
+                  value={displayPekerjaan}
+                />
+                <ProfileStaticField
+                  id='view-demografi-phone'
+                  label='Nomor Telepon / WhatsApp'
+                  value={displayPhone}
+                />
               </div>
             </div>
 
-            {/* 5. Section 2: Alamat Domisili Terstruktur */}
+            {/* 5. Section 2: Alamat Domisili */}
             <div className='grid grid-cols-1 lg:grid-cols-12 gap-6 py-8 border-b border-border/50'>
               <div className='lg:col-span-4 space-y-1'>
-                <h3 className='text-sm sm:text-base font-bold text-foreground'>
-                  Alamat Domisili Terstruktur
-                </h3>
-                <p className='text-xs sm:text-sm text-muted-foreground leading-relaxed'>
-                  Alamat tempat tinggal pasien yang terdaftar untuk keperluan rujukan dan
-                  administrasi klinik.
-                </p>
+                <h3 className='text-sm sm:text-base font-bold text-foreground'>Alamat Domisili</h3>
               </div>
 
               <div className='lg:col-span-8 space-y-4 max-w-2xl'>
-                <div className='space-y-1.5'>
-                  <Label
-                    htmlFor='view-domisili-detail'
-                    className='text-xs font-semibold text-muted-foreground'
-                  >
-                    Alamat Lengkap / Jalan
-                  </Label>
-                  <Input
-                    id='view-domisili-detail'
-                    value={displayAlamat}
-                    readOnly
-                    className='bg-muted/15 border-border/60 rounded-xl text-xs sm:text-sm h-10 select-all'
-                  />
-                </div>
+                <ProfileStaticField
+                  id='view-domisili-detail'
+                  label='Alamat Lengkap / Jalan'
+                  value={displayAlamat}
+                />
 
                 <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                  <div className='space-y-1.5'>
-                    <Label
-                      htmlFor='view-domisili-kelurahan'
-                      className='text-xs font-semibold text-muted-foreground'
-                    >
-                      Kelurahan / Desa
-                    </Label>
-                    <Input
-                      id='view-domisili-kelurahan'
-                      value={displayKelurahan}
-                      readOnly
-                      className='bg-muted/15 border-border/60 rounded-xl text-xs sm:text-sm h-10 select-all'
-                    />
-                  </div>
-
-                  <div className='space-y-1.5'>
-                    <Label
-                      htmlFor='view-domisili-kecamatan'
-                      className='text-xs font-semibold text-muted-foreground'
-                    >
-                      Kecamatan
-                    </Label>
-                    <Input
-                      id='view-domisili-kecamatan'
-                      value={displayKecamatan}
-                      readOnly
-                      className='bg-muted/15 border-border/60 rounded-xl text-xs sm:text-sm h-10 select-all'
-                    />
-                  </div>
-
-                  <div className='space-y-1.5'>
-                    <Label
-                      htmlFor='view-domisili-kabupaten'
-                      className='text-xs font-semibold text-muted-foreground'
-                    >
-                      Kabupaten / Kota
-                    </Label>
-                    <Input
-                      id='view-domisili-kabupaten'
-                      value={displayKabupaten}
-                      readOnly
-                      className='bg-muted/15 border-border/60 rounded-xl text-xs sm:text-sm h-10 select-all'
-                    />
-                  </div>
-
-                  <div className='space-y-1.5'>
-                    <Label
-                      htmlFor='view-domisili-provinsi'
-                      className='text-xs font-semibold text-muted-foreground'
-                    >
-                      Provinsi
-                    </Label>
-                    <Input
-                      id='view-domisili-provinsi'
-                      value={displayProvinsi}
-                      readOnly
-                      className='bg-muted/15 border-border/60 rounded-xl text-xs sm:text-sm h-10 select-all'
-                    />
-                  </div>
+                  <ProfileStaticField
+                    id='view-domisili-kelurahan'
+                    label='Kelurahan / Desa'
+                    value={displayKelurahan}
+                  />
+                  <ProfileStaticField
+                    id='view-domisili-kecamatan'
+                    label='Kecamatan'
+                    value={displayKecamatan}
+                  />
+                  <ProfileStaticField
+                    id='view-domisili-kabupaten'
+                    label='Kabupaten / Kota'
+                    value={displayKabupaten}
+                  />
+                  <ProfileStaticField
+                    id='view-domisili-provinsi'
+                    label='Provinsi'
+                    value={displayProvinsi}
+                  />
                 </div>
               </div>
             </div>
@@ -509,105 +462,45 @@ export function ClinicProfileView() {
                 <h3 className='text-sm sm:text-base font-bold text-foreground'>
                   Kontak Darurat & Catatan Medis
                 </h3>
-                <p className='text-xs sm:text-sm text-muted-foreground leading-relaxed'>
-                  Informasi kontak keluarga darurat dan catatan penting untuk rujukan medis dokter.
-                </p>
               </div>
 
               <div className='lg:col-span-8 space-y-4 max-w-2xl'>
                 <div className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
-                  <div className='space-y-1.5'>
-                    <Label
-                      htmlFor='view-medis-em-name'
-                      className='text-xs font-semibold text-muted-foreground'
-                    >
-                      Nama Kontak Darurat
-                    </Label>
-                    <Input
-                      id='view-medis-em-name'
-                      value={displayEmName}
-                      readOnly
-                      className='bg-muted/15 border-border/60 rounded-xl text-xs sm:text-sm h-10 select-all'
-                    />
-                  </div>
-
-                  <div className='space-y-1.5'>
-                    <Label
-                      htmlFor='view-medis-em-phone'
-                      className='text-xs font-semibold text-muted-foreground'
-                    >
-                      Nomor Telepon Kontak
-                    </Label>
-                    <Input
-                      id='view-medis-em-phone'
-                      value={displayEmPhone}
-                      readOnly
-                      className='bg-muted/15 border-border/60 rounded-xl text-xs sm:text-sm h-10 select-all'
-                    />
-                  </div>
-
-                  <div className='space-y-1.5'>
-                    <Label
-                      htmlFor='view-medis-em-rel'
-                      className='text-xs font-semibold text-muted-foreground'
-                    >
-                      Hubungan
-                    </Label>
-                    <Input
-                      id='view-medis-em-rel'
-                      value={displayEmRel}
-                      readOnly
-                      className='bg-muted/15 border-border/60 rounded-xl text-xs sm:text-sm h-10 select-all'
-                    />
-                  </div>
+                  <ProfileStaticField
+                    id='view-medis-em-name'
+                    label='Nama Kontak Darurat'
+                    value={displayEmName}
+                  />
+                  <ProfileStaticField
+                    id='view-medis-em-phone'
+                    label='Nomor Telepon Kontak'
+                    value={displayEmPhone}
+                  />
+                  <ProfileStaticField
+                    id='view-medis-em-rel'
+                    label='Hubungan'
+                    value={displayEmRel}
+                  />
                 </div>
 
                 <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                  <div className='space-y-1.5'>
-                    <Label
-                      htmlFor='view-medis-blood'
-                      className='text-xs font-semibold text-muted-foreground'
-                    >
-                      Golongan Darah
-                    </Label>
-                    <Input
-                      id='view-medis-blood'
-                      value={displayBlood}
-                      readOnly
-                      className='bg-muted/15 border-border/60 rounded-xl text-xs sm:text-sm h-10 select-all'
-                    />
-                  </div>
-
-                  <div className='space-y-1.5'>
-                    <Label
-                      htmlFor='view-medis-allergies'
-                      className='text-xs font-semibold text-muted-foreground'
-                    >
-                      Alergi Obat / Makanan
-                    </Label>
-                    <Input
-                      id='view-medis-allergies'
-                      value={displayAllergies}
-                      readOnly
-                      className='bg-muted/15 border-border/60 rounded-xl text-xs sm:text-sm h-10 select-all'
-                    />
-                  </div>
-                </div>
-
-                <div className='space-y-1.5'>
-                  <Label
-                    htmlFor='view-medis-history'
-                    className='text-xs font-semibold text-muted-foreground'
-                  >
-                    Riwayat Penyakit / Catatan Tambahan
-                  </Label>
-                  <Input
-                    id='view-medis-history'
-                    value={displayHistory}
-                    readOnly
-                    className='bg-muted/15 border-border/60 rounded-xl text-xs sm:text-sm h-10 select-all'
+                  <ProfileStaticField
+                    id='view-medis-blood'
+                    label='Golongan Darah'
+                    value={displayBlood}
+                  />
+                  <ProfileStaticField
+                    id='view-medis-allergies'
+                    label='Alergi Obat / Makanan'
+                    value={displayAllergies}
                   />
                 </div>
+
+                <ProfileStaticField
+                  id='view-medis-history'
+                  label='Riwayat Penyakit / Catatan Tambahan'
+                  value={displayHistory}
+                />
               </div>
             </div>
 
@@ -617,9 +510,6 @@ export function ClinicProfileView() {
                 <h3 className='text-sm sm:text-base font-bold text-foreground'>
                   Keluar dari semua perangkat
                 </h3>
-                <p className='text-xs sm:text-sm text-muted-foreground leading-relaxed'>
-                  Keluarkan akun ini dari seluruh sesi aktif di perangkat lain.
-                </p>
               </div>
 
               <div className='lg:col-span-4 flex items-center justify-start lg:justify-end'>
@@ -641,11 +531,6 @@ export function ClinicProfileView() {
                   <Icons.warning className='size-4' />
                   <span>Hapus Akun Permanen (Zona Bahaya)</span>
                 </h3>
-                <p className='text-xs sm:text-sm text-muted-foreground leading-relaxed'>
-                  Sesuai hak privasi data (GDPR Right to Erasure), tindakan ini akan menghapus akun,
-                  profil pasien, nomor rekam medis, riwayat antrean, dan seluruh data Anda secara
-                  permanen (*hard-purge*).
-                </p>
               </div>
 
               <div className='lg:col-span-4 flex items-center justify-start lg:justify-end'>

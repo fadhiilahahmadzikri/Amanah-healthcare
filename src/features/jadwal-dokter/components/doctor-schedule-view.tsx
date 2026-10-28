@@ -18,7 +18,7 @@ import { useDoctorSchedulePresenter } from '../model/useDoctorSchedulePresenter'
 import { useDoctorScheduleDynamicOptions } from '../model/useDoctorScheduleDynamicOptions';
 import { DoctorAssignmentModal } from './doctor-assignment-modal';
 import { DoctorExportButton } from './doctor-export-button';
-import { DoctorDetailEditModal } from './doctor-detail-edit-modal';
+import { StaffProfileModal } from '@/features/staff-management';
 import { DoctorScheduleCard } from './doctor-schedule-card';
 import { DoctorScheduleDetailSheet } from './doctor-schedule-detail-sheet';
 import { DoctorScheduleSettingsButton, DoctorScheduleSettingsModal } from './settings';
@@ -34,7 +34,7 @@ export function DoctorScheduleView() {
   const { state: sidebarState } = useSidebar();
   const isSidebarExpanded = sidebarState === 'expanded';
 
-  const { isOpen: isMobile } = useMediaQuery('(max-width: 768px)');
+  const { isOpen: _isMobile } = useMediaQuery('(max-width: 768px)');
   const { isOpen: isUnder1024 } = useMediaQuery('(max-width: 1024px)');
   const { isOpen: isUnder1280 } = useMediaQuery('(max-width: 1280px)');
 
@@ -57,7 +57,7 @@ export function DoctorScheduleView() {
         onClose={searchEngine.close}
       />
 
-      <DoctorDetailEditModal
+      <StaffProfileModal
         doctor={selectedDoctorForModal}
         isOpen={Boolean(selectedDoctorForModal)}
         onClose={() => setSelectedDoctorForModal(null)}

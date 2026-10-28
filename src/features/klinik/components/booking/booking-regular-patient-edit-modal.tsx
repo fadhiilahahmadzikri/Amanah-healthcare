@@ -234,14 +234,17 @@ export function BookingRegularPatientEditModal({
   if (!isOpen || !patient) return null;
 
   const titleName = fullName.trim() || patient.fullName;
+  const currentRelationshipLabel =
+    relationshipOptions.find((opt) => opt.value === relationship)?.label ||
+    (relationship === 'self' ? 'Diri Sendiri' : 'Anggota Keluarga');
 
   return (
     <ModalWrapper
       isOpen={isOpen}
       onClose={onClose}
-      maxWidth='max-w-4xl w-[95vw]'
+      maxWidth='max-w-[95vw] w-[95vw]'
       showCloseButton={false}
-      className='max-h-[90vh] flex flex-col p-5 sm:p-6 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl'
+      className='max-h-[90vh] h-[90vh] flex flex-col p-4 sm:p-6 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl'
     >
       <div className='flex flex-col font-sans h-full min-h-0 flex-1'>
         {/* Pinned Header */}
@@ -281,42 +284,21 @@ export function BookingRegularPatientEditModal({
                   Identitas & Kelahiran
                 </span>
 
-                {/* Hubungan dengan Akun */}
+                {/* Hubungan dengan Akun (Terkunci / Committed dari awal registrasi) */}
                 <div className='space-y-1.5'>
-                  <span className='text-xs font-medium text-foreground block'>
+                  <span className='text-xs font-semibold text-muted-foreground block'>
                     Hubungan dengan Akun
                   </span>
-                  <div className='grid grid-cols-2 sm:grid-cols-3 gap-2'>
-                    {relationshipOptions.map((opt) => {
-                      const isSelected = relationship === opt.value;
-                      return (
-                        <button
-                          key={opt.value}
-                          type='button'
-                          onClick={() => setRelationship(opt.value as PatientRelationshipType)}
-                          className={cn(
-                            'p-2 rounded-xl border text-left text-xs transition-all cursor-pointer select-none flex flex-col justify-between gap-1',
-                            isSelected
-                              ? 'border-primary bg-primary/10 text-primary font-bold shadow-2xs ring-1 ring-primary/40'
-                              : 'border-border/80 bg-background text-foreground hover:border-primary/40 hover:bg-muted/15'
-                          )}
-                        >
-                          <div className='flex items-center justify-between w-full'>
-                            <span className='font-semibold text-xs truncate'>{opt.label}</span>
-                            {isSelected && (
-                              <div className='size-3.5 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0'>
-                                <Icons.check className='size-2 stroke-[3]' />
-                              </div>
-                            )}
-                          </div>
-                          {opt.description && (
-                            <span className='text-[10px] text-muted-foreground line-clamp-1 font-normal'>
-                              {opt.description}
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
+                  <div className='flex items-center gap-2.5 p-2.5 rounded-xl bg-muted/20 border border-border/50 text-xs text-foreground cursor-default'>
+                    <div className='size-5 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0'>
+                      <Icons.user className='size-3' />
+                    </div>
+                    <span className='font-semibold text-xs text-foreground'>
+                      {currentRelationshipLabel}
+                    </span>
+                    <span className='text-[11px] text-muted-foreground ml-auto'>
+                      (Telah terikat pada janji temu)
+                    </span>
                   </div>
                 </div>
 
