@@ -6,23 +6,16 @@ import { DataTablePagination } from '@/components/ui/table/data-table-pagination
 import { EmptyState } from '@/components/ui/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Icons } from '@/components/icons';
-import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import { SearchInput } from '@/shared/ui/search-input';
+import { useSidebar } from '@/components/ui/sidebar';
+import { useMediaQuery } from '@/hooks/use-media-query';
+import { ResponsiveFacetToolbox } from '@/shared/ui/responsive-facet-toolbox';
+import { SearchEngineDialog } from '@/components/search-engine';
 import { cn } from '@/lib/utils';
-import { getRelationshipLabel } from '@/constants/relationship.constants';
 import { useClinicalHistoryTable } from '../../../model/useClinicalHistoryTable';
 import { useClinicalHistoryDialogs } from '../../../model/useClinicalHistoryDialogs';
+import { useClinicalHistoryDynamicOptions } from '../../../model/useClinicalHistoryDynamicOptions';
 import { getMaternityColumns } from './maternity-columns';
 import { getImmunizationColumns } from './immunization-columns';
-import { ClinicalHistoryCategoryTabs } from '../history-category-tabs';
-import { ClinicalHistoryMobileFilterToolbar } from '../history-mobile-filter-toolbar';
 import { ClinicalHistoryMobileCards } from '../history-mobile-cards';
 import { ClinicalRecordDetailModal } from '../clinical-record-detail-modal';
 import { CLINICAL_HISTORY_TAB } from '../../../api/history-queries';
@@ -52,24 +45,66 @@ export function ClinicalHistoryTables() {
     dialogs
   });
 
+  const { state: sidebarState } = useSidebar();
+  const isSidebarExpanded = sidebarState === 'expanded';
+
+  const { isOpen: isUnder1024 } = useMediaQuery('(max-width: 1024px)');
+  const { isOpen: isUnder1280 } = useMediaQuery('(max-width: 1280px)');
+
+  // Canonical responsive breakpoint formula from Kehadiran Pegawai:
+  // 1. Mobile & tablet viewports (<= 1024px)
+  // 2. Expanded sidebar collisions on standard viewports (<= 1280px)
+  const isCompact = isUnder1024 || (isUnder1280 && isSidebarExpanded);
+
+  const dynamicOptions = useClinicalHistoryDynamicOptions({
+    activeTab: tableState.activeTab,
+    setActiveTab: tableState.setActiveTab,
+    totalMaternal: tableState.totalMaternal,
+    totalImmunization: tableState.totalImmunization,
+    familyMembers: tableState.familyMembers,
+    patientId: tableState.patientId,
+    setPatientId: tableState.setPatientId,
+    search: tableState.search,
+    setSearch: tableState.setSearch,
+    maternalRows: tableState.maternalRows,
+    immunizationRows: tableState.immunizationRows,
+    onReset: tableState.resetFilters
+  });
+
   return (
     <>
+      {/* Search Engine Command Dialog (Shared with Kehadiran Pegawai, Jadwal Dokter, Data Pasien) */}
+      <SearchEngineDialog
+        config={dynamicOptions.searchEngine.config}
+        isOpen={dynamicOptions.searchEngine.isOpen}
+        onClose={dynamicOptions.searchEngine.close}
+      />
+
       <div
         aria-busy={tableState.isFetching}
         className={cn(
-          'flex h-full min-h-0 flex-1 flex-col gap-3.5 select-none font-sans',
+          'flex h-full min-h-0 flex-1 flex-col gap-3 select-none font-sans',
           tableState.isFetching && 'opacity-80 transition-opacity'
         )}
       >
-        {/* Category Tabs: Kehamilan & Persalinan vs Imunisasi Anak */}
-        <ClinicalHistoryCategoryTabs
-          activeTab={tableState.activeTab}
-          onSelectTab={tableState.setActiveTab}
-          totalMaternal={tableState.totalMaternal}
-          totalImmunization={tableState.totalImmunization}
+        {/* Master Responsive Facet Toolbox (Desktop Inline & Mobile Drawer Sheet) */}
+        <ResponsiveFacetToolbox
+          searchQuery={tableState.search}
+          onSearchChange={tableState.setSearch}
+          searchPlaceholder={
+            tableState.activeTab === CLINICAL_HISTORY_TAB.MATERNITY
+              ? 'Cari nama ibu atau NIK...'
+              : 'Cari nama anak atau NIK...'
+          }
+          onOpenSearchDialog={dynamicOptions.searchEngine.open}
+          facets={dynamicOptions.facetGroups}
+          isFiltered={dynamicOptions.isFiltered}
+          onResetAll={dynamicOptions.resetAllFilters}
+          activeFilterCount={dynamicOptions.activeFilterCount}
+          isCompact={isCompact}
         />
 
-        {/* Desktop View: TanStack DataTable with Integrated Custom Toolbar */}
+        {/* Desktop View: TanStack DataTable */}
         <div className='hidden md:flex min-h-0 flex-1 flex-col'>
           <DataTable
             table={tableState.activeTable as any}
@@ -82,7 +117,7 @@ export function ClinicalHistoryTables() {
                 : 'riwayat imunisasi'
             }
             emptyState={
-              tableState.hasFilters ? (
+              dynamicOptions.isFiltered ? (
                 <EmptyState
                   icon={Icons.search}
                   title='Tidak ada riwayat yang cocok'
@@ -100,95 +135,16 @@ export function ClinicalHistoryTables() {
                 />
               )
             }
-          >
-            {/* Custom Toolbar with SearchInput & Radix Family Member Select */}
-            <div className='flex items-center justify-between gap-2.5 pb-1'>
-              <div className='flex flex-1 items-center gap-2'>
-                <SearchInput
-                  value={tableState.search}
-                  onChange={tableState.setSearch}
-                  placeholder={
-                    tableState.activeTab === CLINICAL_HISTORY_TAB.MATERNITY
-                      ? 'Cari nama ibu atau NIK...'
-                      : 'Cari nama anak atau NIK...'
-                  }
-                  ariaLabel={
-                    tableState.activeTab === CLINICAL_HISTORY_TAB.MATERNITY
-                      ? 'Cari nama ibu atau NIK'
-                      : 'Cari nama anak atau NIK'
-                  }
-                  className='min-w-[220px] max-w-[300px]'
-                />
-
-                {tableState.familyMembers.length > 0 && (
-                  <div className='min-w-[190px] max-w-[240px]'>
-                    <Select
-                      value={tableState.patientId || 'ALL'}
-                      onValueChange={(val) => tableState.setPatientId(val === 'ALL' ? '' : val)}
-                    >
-                      <SelectTrigger
-                        size='sm'
-                        className='h-8 text-xs bg-card border-border shadow-2xs'
-                        aria-label='Filter Anggota Keluarga'
-                      >
-                        <SelectValue placeholder='Semua Anggota Keluarga' />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value='ALL' className='text-xs'>
-                          Semua Anggota Keluarga
-                        </SelectItem>
-                        {tableState.familyMembers.map(
-                          (m: {
-                            id: string;
-                            fullName: string;
-                            relationshipLabel?: string;
-                            relationship: string;
-                          }) => (
-                            <SelectItem key={m.id} value={m.id} className='text-xs'>
-                              {m.fullName} ({getRelationshipLabel(m.relationship)})
-                            </SelectItem>
-                          )
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
-                {tableState.hasFilters && (
-                  <Button
-                    type='button'
-                    variant='outline'
-                    size='sm'
-                    onClick={tableState.resetFilters}
-                    className='h-8 text-xs border-dashed text-muted-foreground hover:text-foreground'
-                  >
-                    <Icons.close className='size-3 mr-1.5' />
-                    Reset
-                  </Button>
-                )}
-              </div>
-            </div>
-          </DataTable>
+          />
         </div>
 
-        {/* Mobile View: Cards Layout matching appointment-pasien */}
+        {/* Mobile View: Cards Layout matching Kehadiran Pegawai & Data Pasien */}
         <div className='block md:hidden flex-1 overflow-y-auto min-h-0'>
-          <ClinicalHistoryMobileFilterToolbar
-            activeTab={tableState.activeTab}
-            search={tableState.search}
-            onSearchChange={tableState.setSearch}
-            patientId={tableState.patientId}
-            onPatientChange={tableState.setPatientId}
-            familyMembers={tableState.familyMembers}
-            hasFilters={tableState.hasFilters}
-            onReset={tableState.resetFilters}
-            className='mb-3'
-          />
           <ClinicalHistoryMobileCards
             activeTab={tableState.activeTab}
             maternalRecords={tableState.maternalRows}
             immunizationRecords={tableState.immunizationRows}
-            hasFilters={tableState.hasFilters}
+            hasFilters={dynamicOptions.isFiltered}
             onViewDetail={(type, id) => tableState.dialogs.actions.openDetail(type, id)}
           />
           {tableState.totalActive > 0 && (
@@ -213,12 +169,6 @@ export function ClinicalHistoryTables() {
 export function ClinicalHistoryTableSkeleton() {
   return (
     <div className='flex flex-1 flex-col space-y-4'>
-      {/* Category Tabs Skeleton */}
-      <div className='flex items-center gap-2'>
-        <Skeleton className='h-9 w-48 rounded-xl' />
-        <Skeleton className='h-9 w-36 rounded-xl' />
-      </div>
-
       {/* Desktop Toolbar Skeleton */}
       <div className='hidden md:flex items-center justify-between gap-2 p-1'>
         <div className='flex items-center gap-2 flex-1'>

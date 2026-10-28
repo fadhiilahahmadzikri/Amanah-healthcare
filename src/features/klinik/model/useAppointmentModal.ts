@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import gsap from 'gsap';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { AppError } from '@/core/errors/app-error';
 import type { ServiceCardItem } from '@/features/public-site/pages/services/types';
 import {
@@ -48,6 +49,7 @@ export function useAppointmentModal({
   onClose: _onClose,
   onSubmit
 }: UseAppointmentModalProps) {
+  const isMobile = useIsMobile();
   const [step, setStep] = useState<BookingModalStep>('category');
   const [categories, setCategories] = useState<ServiceCategoryCatalog[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
@@ -58,9 +60,7 @@ export function useAppointmentModal({
 
   const [dateStr, setDateStr] = useState<string>(defaultDateStr);
   const [session, setSession] = useState<string>('');
-  const [visitType, setVisitType] = useState<CanonicalVisitType>(
-    VISIT_TYPE.NEW_VISIT
-  );
+  const [visitType, setVisitType] = useState<CanonicalVisitType>(VISIT_TYPE.NEW_VISIT);
   const [complaint, setComplaint] = useState<string>('');
   const [isVisitTypeOpen, setIsVisitTypeOpen] = useState(false);
 
@@ -286,7 +286,12 @@ export function useAppointmentModal({
       const relevantPatients = ctx?.patients ?? [];
       setPatients(relevantPatients as unknown as PatientAffiliationProfile[]);
 
-      if (relevantPatients.length > 0) {
+      const isPregnancy = srv.medicalFlow === 'pregnancy' || ctx?.formType === 'pregnancy';
+
+      if (isMobile && isPregnancy) {
+        setSelectedPatientId('');
+        setStep('patient_new');
+      } else if (relevantPatients.length > 0) {
         setSelectedPatientId('');
         setStep('patient');
       } else {
@@ -294,7 +299,10 @@ export function useAppointmentModal({
       }
     } catch (err) {
       console.error('Failed to resolve booking context:', err);
-      if (patients.length === 0) {
+      const isPregnancy = srv.medicalFlow === 'pregnancy';
+      if (isMobile && isPregnancy) {
+        setStep('patient_new');
+      } else if (patients.length === 0) {
         setStep('patient_new');
       } else {
         setStep('patient');
@@ -523,6 +531,7 @@ export function useAppointmentModal({
     isCheckingActiveTicket,
     visitTypeDropdownRef,
     stepContainerRef,
+    isMobile,
     handleSelectServiceItem,
     handlePatientCreated,
     handlePatientUpdated,

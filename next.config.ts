@@ -73,7 +73,12 @@ const baseConfig: NextConfig = {
     ];
   },
   async rewrites() {
-    return [];
+    return [
+      {
+        source: '/assets/images/:path*',
+        destination: '/healthcare/assets/images/:path*'
+      }
+    ];
   }
 };
 

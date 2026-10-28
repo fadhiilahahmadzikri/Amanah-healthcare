@@ -7,15 +7,12 @@ export interface BookingComplaintStepProps {
   setComplaint: (complaint: string) => void;
 }
 
-export function BookingComplaintStep({
-  complaint,
-  setComplaint
-}: BookingComplaintStepProps) {
+export function BookingComplaintStep({ complaint, setComplaint }: BookingComplaintStepProps) {
   return (
     <div className='space-y-4'>
       <div>
         <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
-          Ada keluhan apa yang kamu rasakan? 💬
+          Ada keluhan apa yang kamu rasakan?
         </h3>
         <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
           Ceritakan sedikit gejala atau alasan kunjunganmu agar dokter jaga dapat bersiap.

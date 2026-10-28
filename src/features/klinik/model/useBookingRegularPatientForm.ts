@@ -23,6 +23,7 @@ export interface UseBookingRegularPatientFormOptions {
   onRelationshipSubmit?: (relationship: PatientRelationshipType) => void;
   allowedRelationships?: { value: string; label: string; description?: string }[];
   hasExistingSelf?: boolean;
+  initialRelationship?: PatientRelationshipType | string;
 }
 
 export function useBookingRegularPatientForm({
@@ -31,7 +32,8 @@ export function useBookingRegularPatientForm({
   targetFlow,
   onRelationshipSubmit,
   allowedRelationships,
-  hasExistingSelf = false
+  hasExistingSelf = false,
+  initialRelationship
 }: UseBookingRegularPatientFormOptions) {
   const references = usePatientFormReferences();
 
@@ -56,7 +58,10 @@ export function useBookingRegularPatientForm({
     return opts;
   }, [allowedRelationships, references.relationships, hasExistingSelf]);
 
-  const initialRelationship: PatientRelationshipType = React.useMemo(() => {
+  const initialRelationshipValue: PatientRelationshipType = React.useMemo(() => {
+    if (initialRelationship && relationshipOptions.some((r) => r.value === initialRelationship)) {
+      return initialRelationship as PatientRelationshipType;
+    }
     if (relationshipOptions.length > 0) {
       return (relationshipOptions[0].value as PatientRelationshipType) || 'spouse';
     }
@@ -64,10 +69,10 @@ export function useBookingRegularPatientForm({
       return 'spouse';
     }
     return 'self';
-  }, [relationshipOptions, hasExistingSelf]);
+  }, [initialRelationship, relationshipOptions, hasExistingSelf]);
 
   const [relationship, setRelationship] =
-    React.useState<PatientRelationshipType>(initialRelationship);
+    React.useState<PatientRelationshipType>(initialRelationshipValue);
 
   React.useEffect(() => {
     if (relationshipOptions.length > 0) {

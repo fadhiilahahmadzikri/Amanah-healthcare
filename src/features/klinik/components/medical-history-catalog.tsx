@@ -46,14 +46,30 @@ export function MedicalHistoryCatalog({
       className={cn('flex flex-col gap-4 w-full h-full flex-1 min-h-0', className)}
     >
       {showHeader ? (
-        <div className='flex shrink-0 items-start justify-between gap-3 border-b border-border/70 pb-3.5'>
-          <div>
-            <h3 className='text-base font-semibold tracking-tight text-foreground'>{title}</h3>
-            <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>{description}</p>
+        <div className='flex shrink-0 flex-col gap-2 border-b border-border/70 pb-3.5'>
+          <div className='flex items-start justify-between gap-3'>
+            <div>
+              <h3 className='text-base font-semibold tracking-tight text-foreground'>{title}</h3>
+              <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>{description}</p>
+            </div>
+            <span className='shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary'>
+              {recordsCount} Riwayat
+            </span>
           </div>
-          <span className='shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary'>
-            {recordsCount} Riwayat
-          </span>
+          {recordsCount < maxRecords && (
+            <div className='flex items-center justify-end pt-1'>
+              <Button
+                type='button'
+                variant='outline'
+                size='sm'
+                onClick={onAddRecord}
+                className='border-dashed text-xs font-medium hover:border-primary hover:bg-primary/5'
+              >
+                <Icons.add className='mr-1 size-3.5 shrink-0' />
+                <span>{isPregnancy ? 'Tambah Kehamilan' : 'Tambah KB'}</span>
+              </Button>
+            </div>
+          )}
         </div>
       ) : null}
 
@@ -71,7 +87,6 @@ export function MedicalHistoryCatalog({
               <Button
                 type='button'
                 variant='outline'
-                shape='pill'
                 onClick={onAddRecord}
                 className='text-xs font-medium border-dashed hover:border-primary hover:bg-primary/5'
               >

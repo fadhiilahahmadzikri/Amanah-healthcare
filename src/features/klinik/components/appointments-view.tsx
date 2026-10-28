@@ -1,17 +1,21 @@
 'use client';
 
-import { useState, type ComponentProps } from 'react';
+import { useState, useMemo, type ComponentProps } from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
+import { useMediaQuery } from '@/hooks/use-media-query';
+import { useSidebar } from '@/components/ui/sidebar';
+import { ResponsiveFacetToolbox } from '@/shared/ui/responsive-facet-toolbox';
+import { SearchEngineDialog } from '@/components/search-engine';
+import { cn } from '@/lib/utils';
 import { useClinicFilterOptions } from '../hooks/use-clinic-filter-options';
 import { useAppointmentsView } from '../model/useAppointmentsView';
+import { useAppointmentDynamicOptions } from '../model/useAppointmentDynamicOptions';
 import { AppointmentCard } from './appointment-card';
 import { AppointmentCardsSkeleton } from './appointment-cards-skeleton';
-import { AppointmentFilters } from './appointment-filters';
-import { AppointmentKlinikMobileFilterToolbar } from './appointment-klinik-mobile-filter-toolbar';
 import { AppointmentModal } from './appointment-modal';
 import { AppointmentPagination } from './appointment-pagination';
 import { DetailsModal } from './details-modal';
@@ -24,6 +28,25 @@ export function AppointmentsView() {
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
   const { serviceOptions = [] } = useClinicFilterOptions();
 
+  const { state: sidebarState } = useSidebar();
+  const isSidebarExpanded = sidebarState === 'expanded';
+
+  const { isOpen: isUnder1024 } = useMediaQuery('(max-width: 1024px)');
+  const { isOpen: isUnder1280 } = useMediaQuery('(max-width: 1280px)');
+
+  // Canonical responsive breakpoint formula:
+  // 1. Mobile & tablet viewports (<= 1024px)
+  // 2. Expanded sidebar collisions on standard viewports (<= 1280px)
+  const isCompact = isUnder1024 || (isUnder1280 && isSidebarExpanded);
+
+  const today = useMemo(() => new Date(), []);
+
+  const { facetGroups, activeFilterCount, searchEngine } = useAppointmentDynamicOptions({
+    filters: appointmentsView.filters,
+    actions: appointmentsView.actions,
+    serviceOptions
+  });
+
   const handleFormSubmit: AppointmentModalSubmit = (data, appointmentId) => {
     const result = appointmentsView.actions.submitForm(data, appointmentId);
     if (result.type === 'edit') {
@@ -33,50 +56,61 @@ export function AppointmentsView() {
 
   return (
     <div className='flex h-full min-h-0 flex-1 flex-col gap-4 select-none font-sans'>
-      {/* 1. Filter Toolbar Row with Actions - Only rendered when data exists or filters are active */}
-      {(appointmentsView.totalAppointments > 0 || appointmentsView.hasActiveFilters) && (
-        <>
-          {/* Desktop Filter Toolbar Row */}
-          <div className='hidden md:flex items-center justify-between gap-3 shrink-0'>
-            <AppointmentFilters
-              filters={appointmentsView.filters}
-              actions={appointmentsView.actions}
-              serviceOptions={serviceOptions}
-              className='flex-1'
-            />
+      {/* Centralized Search Engine Dialog */}
+      <SearchEngineDialog
+        config={searchEngine.config}
+        isOpen={searchEngine.isOpen}
+        onClose={searchEngine.close}
+      />
 
-            <div className='flex items-center gap-2 shrink-0'>
+      {/* 1. Master Responsive Facet Toolbox (Desktop Inline & Mobile Drawer Sheet) */}
+      {(appointmentsView.totalAppointments > 0 || appointmentsView.hasActiveFilters) && (
+        <ResponsiveFacetToolbox
+          searchQuery={appointmentsView.filters.searchQuery}
+          onSearchChange={appointmentsView.actions.changeSearch}
+          searchPlaceholder='Pencarian Janji Temu...'
+          onOpenSearchDialog={searchEngine.open}
+          dateFilter={{
+            label: 'Tanggal',
+            selectedDate: appointmentsView.filters.dateFilter,
+            onSelectDate: appointmentsView.actions.changeDateFilter,
+            defaultDate: today,
+            resetLabel: 'Kembali ke Hari Ini'
+          }}
+          facets={facetGroups}
+          isFiltered={appointmentsView.hasActiveFilters}
+          onResetAll={() => {
+            searchEngine.clearQuery();
+            appointmentsView.actions.resetFilters();
+          }}
+          activeFilterCount={activeFilterCount}
+          isCompact={isCompact}
+          extraRightSlot={
+            <div className='flex items-center gap-1.5 sm:gap-2 shrink-0'>
               <Button
                 variant='outline'
+                size={isCompact ? 'icon' : 'sm'}
                 onClick={() => setIsCheckInModalOpen(true)}
-                className='text-xs md:text-sm gap-2'
+                className={cn(isCompact ? 'size-8 rounded-md' : 'text-xs md:text-sm gap-2')}
+                title='Check-In Pasien'
+                aria-label='Check-In Pasien'
               >
-                <Icons.qrCode className='h-4 w-4' />
-                <span>Check-In Pasien</span>
+                <Icons.qrCode className='size-4' />
+                {!isCompact && <span>Check-In Pasien</span>}
               </Button>
               <Button
+                size={isCompact ? 'icon' : 'sm'}
                 onClick={appointmentsView.actions.openCreateModal}
-                className='text-xs md:text-sm'
+                className={cn(isCompact ? 'size-8 rounded-md shadow-2xs' : 'text-xs md:text-sm')}
+                title='Tambah Janji Temu'
+                aria-label='Tambah Janji Temu'
               >
-                <Icons.add className='mr-2 h-4 w-4' />
-                <span>Tambah Janji Temu</span>
+                <Icons.add className={cn(isCompact ? 'size-4' : 'mr-2 size-4')} />
+                {!isCompact && <span>Tambah Janji Temu</span>}
               </Button>
             </div>
-          </div>
-
-          {/* Mobile Filter Toolbar Dock with Centralized Search Engine */}
-          <div className='block md:hidden shrink-0'>
-            <AppointmentKlinikMobileFilterToolbar
-              filters={appointmentsView.filters}
-              actions={appointmentsView.actions}
-              serviceOptions={serviceOptions}
-              totalAppointments={appointmentsView.totalAppointments}
-              filteredCount={appointmentsView.filteredCount}
-              onOpenCheckIn={() => setIsCheckInModalOpen(true)}
-              onOpenCreate={appointmentsView.actions.openCreateModal}
-            />
-          </div>
-        </>
+          }
+        />
       )}
 
       <div className='relative flex flex-1 min-h-0 flex-col overflow-hidden'>

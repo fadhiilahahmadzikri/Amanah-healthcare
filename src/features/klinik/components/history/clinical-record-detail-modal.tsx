@@ -6,6 +6,13 @@ import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
 import { FLOW_NAMES } from '../../constants/kia-constants';
 import {
   kiaIntakeService,
@@ -49,12 +56,21 @@ const emptyAppointment: Appointment = {
   created_at: ''
 };
 
+const MATERNITY_TABS = [
+  { value: 'identitas', label: 'Identitas Ibu' },
+  { value: 'suami', label: 'Suami & Domisili' },
+  { value: 'obstetrik', label: 'Riwayat Obstetrik' },
+  { value: 'klinis', label: 'Riwayat Klinis' }
+] as const;
+
 export function ClinicalRecordDetailModal({
   isOpen,
   onClose,
   recordType,
   recordId
 }: ClinicalRecordDetailModalProps) {
+  const [maternityTab, setMaternityTab] = React.useState<string>('identitas');
+
   const {
     data: record,
     isLoading,
@@ -176,20 +192,64 @@ export function ClinicalRecordDetailModal({
             isImmunization ? (
               <InspectorImmunizationTab appointment={emptyAppointment} data={inspectorData} />
             ) : (
-              <Tabs defaultValue='identitas' className='w-full flex flex-col h-full'>
-                <TabsList className='grid grid-cols-4 w-full h-9 mb-4 shrink-0'>
-                  <TabsTrigger value='identitas' className='text-xs font-semibold cursor-pointer'>
-                    Identitas Ibu
-                  </TabsTrigger>
-                  <TabsTrigger value='suami' className='text-xs font-semibold cursor-pointer'>
-                    Suami & Domisili
-                  </TabsTrigger>
-                  <TabsTrigger value='obstetrik' className='text-xs font-semibold cursor-pointer'>
-                    Riwayat Obstetrik
-                  </TabsTrigger>
-                  <TabsTrigger value='klinis' className='text-xs font-semibold cursor-pointer'>
-                    Riwayat Klinis
-                  </TabsTrigger>
+              <Tabs
+                value={maternityTab}
+                onValueChange={setMaternityTab}
+                className='w-full flex flex-col h-full min-h-0'
+              >
+                {/* Mobile Morevert Dropdown Navigation: Clean, un-cramped, zero text truncation */}
+                <div className='flex sm:hidden items-center justify-between p-2 mb-2.5 rounded-lg border border-border/60 bg-muted/30 shrink-0'>
+                  <div className='flex items-center gap-2 min-w-0'>
+                    <span className='text-xs font-bold text-foreground truncate'>
+                      {MATERNITY_TABS.find((t) => t.value === maternityTab)?.label ||
+                        'Identitas Ibu'}
+                    </span>
+                  </div>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type='button'
+                        variant='outline'
+                        size='icon-sm'
+                        shape='pill'
+                        className='size-7 shrink-0 text-foreground hover:bg-muted'
+                        aria-label='Pilih bagian rekam medis'
+                      >
+                        <Icons.ellipsis className='size-4' />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align='end' className='w-48'>
+                      {MATERNITY_TABS.map((tab) => (
+                        <DropdownMenuItem
+                          key={tab.value}
+                          onClick={() => setMaternityTab(tab.value)}
+                          className={cn(
+                            'flex items-center justify-between text-xs cursor-pointer',
+                            maternityTab === tab.value && 'font-bold text-primary bg-primary/10'
+                          )}
+                        >
+                          <span>{tab.label}</span>
+                          {maternityTab === tab.value && (
+                            <Icons.check className='size-3.5 text-primary' />
+                          )}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {/* Desktop Horizontal Tabs */}
+                <TabsList className='hidden sm:grid grid-cols-4 w-full h-9 mb-4 shrink-0'>
+                  {MATERNITY_TABS.map((tab) => (
+                    <TabsTrigger
+                      key={tab.value}
+                      value={tab.value}
+                      className='text-xs font-semibold cursor-pointer'
+                    >
+                      {tab.label}
+                    </TabsTrigger>
+                  ))}
                 </TabsList>
 
                 <div className='flex-1 overflow-y-auto min-h-0 pr-1'>

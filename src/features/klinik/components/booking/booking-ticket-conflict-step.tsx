@@ -21,7 +21,7 @@ export function BookingTicketConflictStep({
     <div className='space-y-4'>
       <div>
         <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
-          Kamu Sudah Memiliki Tiket Antrean 🎫
+          Kamu Sudah Memiliki Tiket Antrean
         </h3>
         <p className='text-xs text-muted-foreground mt-1 leading-relaxed'>
           Pasien sudah memiliki tiket antrean aktif (
@@ -31,9 +31,9 @@ export function BookingTicketConflictStep({
       </div>
 
       <p className='text-xs text-muted-foreground leading-relaxed'>
-        Demi ketertiban bersama di klinik, satu pasien hanya dapat memiliki satu tiket aktif per hari
-        untuk kategori layanan yang sama. Kamu dapat menggunakan tiket yang sudah ada atau memilih
-        tanggal lain.
+        Demi ketertiban bersama di klinik, satu pasien hanya dapat memiliki satu tiket aktif per
+        hari untuk kategori layanan yang sama. Kamu dapat menggunakan tiket yang sudah ada atau
+        memilih tanggal lain.
       </p>
 
       {appointmentId && onViewExistingAppointment ? (

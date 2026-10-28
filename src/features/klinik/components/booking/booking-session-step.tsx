@@ -45,7 +45,7 @@ export function BookingSessionStep({
 
   return (
     <div className='space-y-4'>
-      <div className='flex items-start justify-between gap-2'>
+      <div className='space-y-1.5'>
         <div>
           <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
             Pilih sesi praktik dokter jaga
@@ -54,7 +54,7 @@ export function BookingSessionStep({
             Tentukan shift konsultasi yang paling pas untuk pemeriksaanmu.
           </p>
         </div>
-        <div className='flex items-center gap-1.5 text-xs font-semibold text-muted-foreground shrink-0 pt-0.5'>
+        <div className='flex items-center gap-1.5 text-xs font-semibold text-muted-foreground pt-0.5'>
           <Icons.calendar className='size-3.5 text-muted-foreground' />
           <span>{formatClinicDate(dateStr)}</span>
         </div>
