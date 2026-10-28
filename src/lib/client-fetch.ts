@@ -28,6 +28,20 @@ function resolveIdempotencyKey(optionsKey?: string, headers?: Headers): string |
 function extractErrorMessage(errorBody: unknown, defaultMessage: string): string {
   if (typeof errorBody === 'object' && errorBody !== null) {
     const err = errorBody as Record<string, unknown>;
+
+    if (Array.isArray(err.invalidParams) && err.invalidParams.length > 0) {
+      const details = err.invalidParams
+        .map((p: any) => `${p.name || 'field'}: ${p.reason || 'invalid'}`)
+        .join(', ');
+      const baseMsg =
+        typeof err.detail === 'string' && err.detail.trim().length > 0
+          ? err.detail
+          : typeof err.message === 'string' && err.message.trim().length > 0
+            ? err.message
+            : defaultMessage;
+      return `${baseMsg} (${details})`;
+    }
+
     if (typeof err.message === 'string' && err.message.trim().length > 0) {
       return err.message;
     }

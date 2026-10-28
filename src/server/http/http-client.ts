@@ -43,7 +43,7 @@ export interface HttpRequestOptions {
 export class HttpClient {
   async request<TOutput>(
     url: string,
-    schema: z.ZodType<TOutput, any, any>,
+    schema: z.ZodType<TOutput, any>,
     options: HttpRequestOptions = {}
   ): Promise<TOutput> {
     const method = (options.method ?? 'GET').toUpperCase() as HttpMethod;

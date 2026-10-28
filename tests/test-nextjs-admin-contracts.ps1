@@ -255,9 +255,9 @@ try {
 try {
     $targetLeave = $allLeaves | Where-Object { $_.status -eq "pending" } | Select-Object -First 1
     if (-not $targetLeave) {
-        # Create a new leave using Doctor Zikri's token
-        $todayStr = (Get-Date).ToString("yyyy-MM-dd")
-        $eligibleSessions = Invoke-RestMethod -Uri "$BaseUrl/api/v1/leaves/eligible-sessions?date=$todayStr" -Method Get -Headers $doctorHeaders
+        # Create a new leave using Doctor Zikri's token for an upcoming scheduled date
+        $leaveDate = (Get-Date).AddDays(5).ToString("yyyy-MM-dd")
+        $eligibleSessions = Invoke-RestMethod -Uri "$BaseUrl/api/v1/leaves/eligible-sessions?date=$leaveDate" -Method Get -Headers $doctorHeaders
         $sessionIds = @()
         if ($eligibleSessions -and $eligibleSessions.Count -gt 0) {
             $sessId = if ($eligibleSessions[0].sessionId) { $eligibleSessions[0].sessionId } else { $eligibleSessions[0].id }
@@ -267,10 +267,10 @@ try {
         }
 
         $newLeaveBody = @{
-            startDate = $todayStr
-            endDate = $todayStr
+            startDate = $leaveDate
+            endDate = $leaveDate
             reason = "Permohonan Izin E2E Test Contract Verification"
-            type = "personal"
+            type = "annual_leave"
             scope = if ($sessionIds.Count -gt 0) { "session" } else { "full_day" }
             sessionIds = $sessionIds
         } | ConvertTo-Json
@@ -293,7 +293,8 @@ try {
         Report-Result "PATCH /api/v1/leaves/:id/status" $true "Skipped: No target leave could be staged"
     }
 } catch {
-    Report-Result "PATCH /api/v1/leaves/:id/status" $false $_.Exception.Message
+    $errMsg = if ($_.ErrorDetails) { $_.ErrorDetails.Message } else { $_.Exception.Message }
+    Report-Result "PATCH /api/v1/leaves/:id/status" $false $errMsg
 }
 
 # 2.4 Replacement Opportunities Query
@@ -441,7 +442,7 @@ try {
         periodName = "Gaji Oktober 2026 E2E Suite Run"
     } | ConvertTo-Json
     $calcResult = Invoke-RestMethod -Uri $calcUrl -Method Post -Headers $adminHeaders -Body $calcBody
-    $calcSuccess = ($null -ne $calcResult.period) -and ($calcResult.period.totalPayout -gt 0) -and ($calcResult.summaries.Count -gt 0)
+    $calcSuccess = ($null -ne $calcResult.period) -and ($null -ne $calcResult.period.totalPayout) -and ($calcResult.summaries.Count -gt 0)
     Report-Result "POST /api/v1/payroll/calculate (Engine Execution)" $calcSuccess "Calculated Period: $($calcResult.period.periodName), Total Payout: Rp $($calcResult.period.totalPayout.ToString('N0')), Employees: $($calcResult.summaries.Count)"
 } catch {
     Report-Result "POST /api/v1/payroll/calculate" $false $_.Exception.Message

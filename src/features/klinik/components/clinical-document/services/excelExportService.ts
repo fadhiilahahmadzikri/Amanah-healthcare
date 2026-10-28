@@ -243,7 +243,14 @@ export async function exportPmbExcel(
 
   fourFieldRows.forEach((rowPair) => {
     currentLine += 1;
-    addFourFieldRow(ws, currentLine, rowPair[0], rowPair[1], rowPair[2], rowPair[3]);
+    addFourFieldRow(
+      ws,
+      currentLine,
+      String(rowPair[0]),
+      rowPair[1],
+      String(rowPair[2]),
+      rowPair[3]
+    );
   });
 
   const fullFieldRows = [
