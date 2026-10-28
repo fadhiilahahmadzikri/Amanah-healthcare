@@ -70,7 +70,11 @@ export function resolveNotificationRoute(
 ): string | null {
   if (!action) return null;
 
-  const isPatient = userRole === 'patient' || userRole === 'user';
+  const isPatient =
+    userRole === 'patient' ||
+    userRole === 'user' ||
+    (context?.audience as string) === 'patient' ||
+    ((context?.metadata as Record<string, unknown>)?.audience as string) === 'patient';
 
   // 1. Semantic action type mapping (Envelope v2 SSOT)
   const semanticType = action.type || (context?.semanticAction as NotificationSemanticAction)?.type;
@@ -113,7 +117,14 @@ export function resolveNotificationRoute(
       }
 
       case 'view_chat': {
-        const convId = semanticParams.conversationId;
+        if (isPatient) {
+          return '/dashboard/klinik/chat';
+        }
+        const convId =
+          semanticParams.conversationId ||
+          (action.params?.conversationId as string) ||
+          (context?.conversationId as string) ||
+          '';
         return convId ? `/dashboard/chat?conversationId=${convId}` : '/dashboard/chat';
       }
 
@@ -141,6 +152,19 @@ export function resolveNotificationRoute(
   // 2. Legacy actionKey mapping
   const doctorId = (context?.doctorId as string) ?? '';
   const date = (context?.date as string) ?? '';
+
+  if (action.actionKey === 'view_chat') {
+    if (isPatient) {
+      return '/dashboard/klinik/chat';
+    }
+    const semanticAction = context?.semanticAction as NotificationSemanticAction | undefined;
+    const convId =
+      (action.params?.conversationId as string) ||
+      (context?.conversationId as string) ||
+      (semanticAction?.params?.conversationId as string) ||
+      '';
+    return convId ? `/dashboard/chat?conversationId=${convId}` : '/dashboard/chat';
+  }
 
   if (action.actionKey === 'view_leave') {
     if (isPatient) return '/dashboard/klinik/antrean';
@@ -188,8 +212,13 @@ export function resolveNotificationRoute(
   }
 
   // 3. Fallback to explicit URL only if allowed by role allowlist
-  if (action.url && isRouteAllowedForRole(action.url, userRole)) {
-    return action.url;
+  if (action.url) {
+    if (isPatient && action.url.startsWith('/dashboard/chat')) {
+      return '/dashboard/klinik/chat';
+    }
+    if (isRouteAllowedForRole(action.url, userRole)) {
+      return action.url;
+    }
   }
 
   return null;
@@ -209,13 +238,18 @@ export function executeNotificationAction(
   },
   notification?: {
     id?: string;
+    audience?: 'patient' | 'clinic' | string;
     metadata?: Record<string, unknown> | null;
     actionUrl?: string | null;
   },
   userRole?: string | null,
   onComplete?: () => void
 ): void {
-  const targetRoute = resolveNotificationRoute(action, notification?.metadata, userRole);
+  const context: Record<string, unknown> = {
+    ...notification?.metadata,
+    audience: notification?.audience || (notification?.metadata?.audience as string)
+  };
+  const targetRoute = resolveNotificationRoute(action, context, userRole);
   if (targetRoute) {
     router.push(targetRoute);
   } else if (notification?.actionUrl && isRouteAllowedForRole(notification.actionUrl, userRole)) {

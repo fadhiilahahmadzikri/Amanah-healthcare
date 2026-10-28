@@ -1,15 +1,54 @@
 'use client';
 
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ClinicNotification } from '../../types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
-import { formatTimeAgo, formatFullDate, cn } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { executeNotificationAction } from '../../utils/notification-action-dispatcher';
+import { useViewer } from '../../hooks/use-viewer';
+
+function NotificationTableRowAction({ item }: { item: ClinicNotification }) {
+  const router = useRouter();
+  const { role: userRole } = useViewer();
+  const primaryAction = item.actions?.[0];
+
+  if (primaryAction) {
+    return (
+      <Button
+        variant={primaryAction.type === 'primary' ? 'default' : 'outline'}
+        size='sm'
+        onClick={() => {
+          executeNotificationAction(router, primaryAction, item, userRole);
+        }}
+        className='text-xs h-7.5 px-3 rounded-lg'
+      >
+        {primaryAction.label}
+      </Button>
+    );
+  }
+
+  return (
+    <Button
+      variant='outline'
+      size='sm'
+      onClick={() => {
+        toast.info(`Detail notifikasi ${item.sender}`, {
+          description: item.body
+        });
+      }}
+      className='text-xs h-7.5 px-3 rounded-lg border-border/60'
+    >
+      Detail
+    </Button>
+  );
+}
 
 export const columns: ColumnDef<ClinicNotification>[] = [
   {
@@ -105,7 +144,9 @@ export const columns: ColumnDef<ClinicNotification>[] = [
         { label: 'Hasil Lab', value: 'Hasil Lab' },
         { label: 'Antrean', value: 'Antrean' },
         { label: 'Farmasi', value: 'Farmasi' },
-        { label: 'Telemedisin', value: 'Telemedisin' }
+        { label: 'Telemedisin', value: 'Telemedisin' },
+        { label: 'Shift & Kehadiran', value: 'Shift & Kehadiran' },
+        { label: 'Chat Pasien', value: 'Chat Pasien' }
       ]
     },
     enableColumnFilter: true
@@ -159,22 +200,6 @@ export const columns: ColumnDef<ClinicNotification>[] = [
   {
     id: 'actions',
     header: 'Aksi',
-    cell: ({ row }) => {
-      const item = row.original;
-      return (
-        <Button
-          variant='outline'
-          size='sm'
-          onClick={() => {
-            toast.info(`Detail notifikasi ${item.sender}`, {
-              description: item.body
-            });
-          }}
-          className='text-xs h-7.5 px-3 rounded-lg border-border/60'
-        >
-          Detail
-        </Button>
-      );
-    }
+    cell: ({ row }) => <NotificationTableRowAction item={row.original} />
   }
 ];

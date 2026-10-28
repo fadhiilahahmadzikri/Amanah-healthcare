@@ -2,7 +2,6 @@
 
 import React, { useMemo } from 'react';
 import { DataTable } from '@/components/ui/table/data-table';
-import { DataTablePagination } from '@/components/ui/table/data-table-pagination';
 import { DefaultBulkActions } from '@/components/ui/table/default-bulk-actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -23,7 +22,6 @@ import { callPatient, completeService, cancelAppointmentAction } from '../../api
 import { appointmentKeys, queueNavigationQueryOptions } from '../../api/queries';
 import { useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { getAppointmentColumns } from './columns';
-import { ClinicCategoryTabs } from '../clinic-category-tabs';
 import { AppointmentRecordModal } from '../appointment-record-modal';
 import { AppointmentTimelineModal } from '../appointment-timeline-modal';
 import { AppointmentStatusModal } from '../appointment-status-modal';
@@ -315,16 +313,7 @@ export function AppointmentTable() {
           appointmentTable.isFetching && 'opacity-80 transition-opacity'
         )}
       >
-        {/* Level 1: Tab Kategori Poli Dinamis (Desktop Only, di mobile dipindahkan ke Facet Sidebar) */}
-        <div className='hidden md:block shrink-0'>
-          <ClinicCategoryTabs
-            navigation={navigationData}
-            activeUnitId={appointmentTable.currentUnitId}
-            onSelectUnit={(unitId) => appointmentTable.setUnitId(unitId)}
-          />
-        </div>
-
-        {/* Level 2: Unified Master Responsive Facet Toolbox (Desktop Inline & Mobile Drawer Sheet) */}
+        {/* Unified Master Responsive Facet Toolbox (Desktop Inline & Mobile Drawer Sheet) */}
         <ResponsiveFacetToolbox
           searchQuery={searchQuery}
           onSearchChange={handleSearchChange}
@@ -348,11 +337,12 @@ export function AppointmentTable() {
         />
 
         {/* Level 3 Desktop View: TanStack Table */}
-        <div className='hidden md:flex min-h-0 flex-1 flex-col'>
+        <div className='hidden md:flex min-h-0 flex-1 flex-col overflow-y-auto'>
           <DataTable
             table={appointmentTable.table}
             onRowClick={appointmentTable.actions.openRecordDetail}
             entityName='appointment'
+            hidePagination
             bulkActions={<DefaultBulkActions />}
             emptyState={
               isFiltered ? (
@@ -368,6 +358,15 @@ export function AppointmentTable() {
               )
             }
           />
+          <div ref={appointmentTable.sentinelRef} className='h-4 w-full shrink-0' />
+          {appointmentTable.isFetchingNextPage && (
+            <div className='flex items-center justify-center p-3'>
+              <Icons.spinner className='size-4 animate-spin text-primary' />
+              <span className='ml-2 text-xs text-muted-foreground'>
+                Memuat antrean berikutnya...
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Level 3 Mobile View: Card-Based Layout Mengikuti Janji Temu Pasien */}
@@ -385,9 +384,13 @@ export function AppointmentTable() {
             onViewTimeline={appointmentTable.actions.openTimeline}
             onOpenActionDrawer={setActionDrawerAppointment}
           />
-          {appointmentTable.table.getFilteredRowModel().rows.length > 0 && (
-            <div className='sticky bottom-0 bg-background pt-2 pb-1 border-t border-border/80 shadow-md z-10'>
-              <DataTablePagination table={appointmentTable.table} />
+          <div ref={appointmentTable.sentinelRef} className='h-4 w-full shrink-0' />
+          {appointmentTable.isFetchingNextPage && (
+            <div className='flex items-center justify-center p-3'>
+              <Icons.spinner className='size-4 animate-spin text-primary' />
+              <span className='ml-2 text-xs text-muted-foreground'>
+                Memuat antrean berikutnya...
+              </span>
             </div>
           )}
         </div>

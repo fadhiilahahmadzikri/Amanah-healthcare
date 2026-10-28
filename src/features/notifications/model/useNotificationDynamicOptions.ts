@@ -14,7 +14,8 @@ export const NOTIFICATION_CATEGORY_OPTIONS = [
   { value: 'Hasil Lab', label: 'Hasil Lab' },
   { value: 'Antrean', label: 'Nomor Antrean' },
   { value: 'Farmasi', label: 'Farmasi & Obat' },
-  { value: 'Telemedisin', label: 'Telemedisin' }
+  { value: 'Telemedisin', label: 'Telemedisin' },
+  { value: 'Chat Pasien', label: 'Chat Pasien' }
 ] as const;
 
 export const NOTIFICATION_STATUS_OPTIONS = [

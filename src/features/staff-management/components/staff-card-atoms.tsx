@@ -70,31 +70,48 @@ export function StaffLeaveBadge({
 }
 
 export function StaffAttendanceBadge({
-  attendance
+  attendance,
+  className
 }: {
   attendance?: { status: string; checkInAt?: string | null } | null;
+  className?: string;
 }) {
   if (!attendance) return null;
   if (attendance.status === 'present' || attendance.status === 'checked_in') {
     return (
-      <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'>
-        <span className='size-1.5 rounded-full bg-emerald-500' />
+      <span
+        className={cn(
+          'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] sm:text-[9.5px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0 leading-none select-none',
+          className
+        )}
+      >
+        <span className='size-1.5 rounded-full bg-emerald-500 shrink-0' />
         <span>Hadir</span>
       </span>
     );
   }
   if (attendance.status === 'late') {
     return (
-      <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'>
-        <span className='size-1.5 rounded-full bg-amber-500' />
+      <span
+        className={cn(
+          'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] sm:text-[9.5px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0 leading-none select-none',
+          className
+        )}
+      >
+        <span className='size-1.5 rounded-full bg-amber-500 shrink-0' />
         <span>Terlambat</span>
       </span>
     );
   }
   if (attendance.status === 'leave') {
     return (
-      <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20'>
-        <span className='size-1.5 rounded-full bg-sky-500' />
+      <span
+        className={cn(
+          'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] sm:text-[9.5px] font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 shrink-0 leading-none select-none',
+          className
+        )}
+      >
+        <span className='size-1.5 rounded-full bg-sky-500 shrink-0' />
         <span>Cuti</span>
       </span>
     );
@@ -169,7 +186,7 @@ export function StaffIdentitySection({
   fullName,
   email,
   photoUrl,
-  profession
+  profession: _profession
 }: {
   fullName: string;
   email?: string | null;

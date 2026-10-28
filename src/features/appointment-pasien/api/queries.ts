@@ -1,4 +1,4 @@
-import { queryOptions } from '@tanstack/react-query';
+import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
 import {
   getAdminAppointments,
   getAdminAppointmentById,
@@ -15,7 +15,12 @@ export { appointmentKeys };
 
 export const queueNavigationQueryOptions = (params?: { date?: string; session?: string }) =>
   queryOptions({
-    queryKey: ['appointments', 'queue-navigation', params?.date ?? 'today', params?.session ?? 'all'],
+    queryKey: [
+      'appointments',
+      'queue-navigation',
+      params?.date ?? 'today',
+      params?.session ?? 'all'
+    ],
     queryFn: ({ signal }) => getQueueNavigation(params, signal),
     staleTime: 30 * 1000
   });
@@ -26,6 +31,25 @@ export const appointmentQueryOptions = (filters: AppointmentFilters) =>
     queryFn: ({ signal }) => getAdminAppointments(filters, signal),
     staleTime: 30 * 1000,
     placeholderData: (prev) => prev
+  });
+
+export const appointmentInfiniteQueryOptions = (filters: AppointmentFilters) =>
+  infiniteQueryOptions({
+    queryKey: appointmentKeys.infiniteList(filters),
+    queryFn: ({ pageParam = 1, signal }) =>
+      getAdminAppointments(
+        { ...filters, page: pageParam as number, limit: filters.limit ?? 20 },
+        signal
+      ),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      const limit = filters.limit ?? 20;
+      if (!lastPage?.appointments || lastPage.appointments.length < limit) {
+        return undefined;
+      }
+      return allPages.length + 1;
+    },
+    staleTime: 30 * 1000
   });
 
 export const appointmentDetailQueryOptions = (id: number | string) =>

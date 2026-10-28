@@ -1,10 +1,6 @@
 import { Suspense } from 'react';
 import PageContainer from '@/components/layout/page-container';
-import {
-  AppointmentExportButton,
-  AppointmentListingPage,
-  AppointmentTableSkeleton
-} from '@/features/appointment-pasien';
+import { AppointmentListingPage, AppointmentTableSkeleton } from '@/features/appointment-pasien';
 import { searchParamsCache } from '@/lib/searchparams';
 import { SearchParams } from 'nuqs/server';
 import { requireAdmin } from '@/lib/guard';
@@ -27,7 +23,6 @@ export default async function Page(props: PageProps) {
       scrollable={false}
       pageTitle='Appointment Pasien'
       pageDescription='Daftar janji temu dan reservasi pasien dengan dokter klinik Amanah.'
-      pageHeaderAction={<AppointmentExportButton className='hidden md:inline-flex' />}
     >
       <Suspense fallback={<AppointmentTableSkeleton />}>
         <AppointmentListingPage />

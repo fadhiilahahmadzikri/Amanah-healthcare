@@ -1,12 +1,12 @@
 'use client';
 
-import React from 'react';
-import { useSuspenseQuery } from '@tanstack/react-query';
+import React, { useMemo, useCallback, useRef, useEffect } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import type { ColumnDef, Table } from '@tanstack/react-table';
 import { parseAsArrayOf, parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useDataTable } from '@/hooks/use-data-table';
 import { getSortingStateParser } from '@/lib/parsers';
-import { appointmentQueryOptions } from '../api/queries';
+import { appointmentInfiniteQueryOptions } from '../api/queries';
 import { normalizeFilters, type AdminAppointment, type AppointmentFilters } from '../api/types';
 import {
   useAppointmentDialogs,
@@ -36,6 +36,9 @@ export interface UseAppointmentTableResult {
   isQrOpen: boolean;
   isRescheduleOpen: boolean;
   isFetching: boolean;
+  isFetchingNextPage: boolean;
+  hasNextPage: boolean;
+  sentinelRef: React.RefObject<HTMLDivElement | null>;
   totalAppointments: number;
   hasFilters: boolean;
   currentUnitId: string | null;
@@ -88,7 +91,7 @@ export function useAppointmentTable({
 
   const [params, setParams] = useQueryStates({
     page: parseAsInteger.withDefault(1),
-    perPage: parseAsInteger.withDefault(10),
+    perPage: parseAsInteger.withDefault(20),
     search: parseAsString,
     status: parseAsArrayOf(parseAsString, ','),
     poliklinikId: parseAsString,
@@ -132,8 +135,8 @@ export function useAppointmentTable({
   ].some(Boolean);
 
   const filters: AppointmentFilters = normalizeFilters({
-    page: params.page,
-    limit: params.perPage,
+    page: 1,
+    limit: 20,
     ...(querySearch && { search: querySearch }),
     ...(params.status && params.status.length > 0 && { status: params.status }),
     ...(params.poliklinikId && { poliklinikId: params.poliklinikId }),
@@ -146,13 +149,51 @@ export function useAppointmentTable({
     ...(params.sort.length > 0 && { sort: JSON.stringify(params.sort) })
   });
 
-  const { data, isFetching } = useSuspenseQuery(appointmentQueryOptions(filters));
-  const pageCount = Math.ceil(data.total_appointments / params.perPage);
+  const infiniteQuery = useInfiniteQuery(appointmentInfiniteQueryOptions(filters));
+
+  const appointments = useMemo(() => {
+    if (!infiniteQuery.data?.pages) return [];
+    return infiniteQuery.data.pages.flatMap((page) => page.appointments || []);
+  }, [infiniteQuery.data?.pages]);
+
+  const totalAppointments = useMemo(() => {
+    return infiniteQuery.data?.pages[0]?.total_appointments ?? appointments.length;
+  }, [infiniteQuery.data?.pages, appointments.length]);
+
+  // Sentinel intersection observer for continuous infinite scrolling
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  const handleObserver = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      const [target] = entries;
+      if (
+        target?.isIntersecting &&
+        infiniteQuery.hasNextPage &&
+        !infiniteQuery.isFetchingNextPage
+      ) {
+        void infiniteQuery.fetchNextPage();
+      }
+    },
+    [infiniteQuery]
+  );
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !infiniteQuery.hasNextPage) return;
+
+    const observer = new IntersectionObserver(handleObserver, {
+      rootMargin: '200px',
+      threshold: 0.1
+    });
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [handleObserver, infiniteQuery.hasNextPage]);
 
   const { table } = useDataTable({
-    data: data.appointments,
+    data: appointments,
     columns,
-    pageCount,
+    pageCount: 1,
     shallow: true,
     debounceMs: 300,
     initialState: {
@@ -171,7 +212,7 @@ export function useAppointmentTable({
     }
   });
 
-  const resetFilters = React.useCallback(() => {
+  const resetFilters = useCallback(() => {
     table.resetColumnFilters();
     void setParams({
       search: null,
@@ -201,8 +242,11 @@ export function useAppointmentTable({
     isChangeRoomOpen: dialogs.isChangeRoomOpen,
     isQrOpen: dialogs.isQrOpen,
     isRescheduleOpen: dialogs.isRescheduleOpen,
-    isFetching,
-    totalAppointments: data.total_appointments,
+    isFetching: infiniteQuery.isFetching,
+    isFetchingNextPage: infiniteQuery.isFetchingNextPage,
+    hasNextPage: Boolean(infiniteQuery.hasNextPage),
+    sentinelRef,
+    totalAppointments,
     hasFilters,
     currentUnitId: params.poliklinikId,
     currentDoctorId: params.doctorId,

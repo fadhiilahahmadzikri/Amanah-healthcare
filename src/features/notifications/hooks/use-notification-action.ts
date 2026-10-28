@@ -4,9 +4,11 @@ import { useNotificationStore } from '../utils/store';
 import type { ActionType } from '@/components/ui/notification-card';
 import { executeNotificationAction } from '../utils/notification-action-dispatcher';
 import type { ClinicNotification, NotificationActionItem } from '../types';
+import { useViewer } from './use-viewer';
 
 export function useNotificationAction() {
   const router = useRouter();
+  const { role: userRole } = useViewer();
   const { markAsRead } = useNotificationStore();
   const [loadingActionId, setLoadingActionId] = useState<string>();
 
@@ -26,7 +28,7 @@ export function useNotificationAction() {
       );
 
       if (actionItem) {
-        executeNotificationAction(router, actionItem, notification);
+        executeNotificationAction(router, actionItem, notification, userRole);
       } else if (notification?.actionUrl) {
         router.push(notification.actionUrl);
       }

@@ -5,6 +5,7 @@ export * from './api/mutations';
 export * from './model/useStaffManagementPresenter';
 export * from './model/useStaffManagementView';
 export * from './model/useStaffRosterModal';
+export * from './model/useStaffProfileModal';
 export * from './model/useStaffDetailEditModal';
 export * from './model/useInviteStaffModal';
 export * from './model/useRevokeStaffInvitation';
@@ -15,6 +16,7 @@ export { default as StaffManagementListingPage } from './components/staff-manage
 export * from './components/invite-doctor-modal';
 export * from './components/invite-staff-modal';
 export * from './components/staff-roster-modal';
+export * from './components/staff-profile-modal';
 export * from './components/staff-detail-edit-modal';
 export * from './components/staff-schedule-card';
 export * from './components/staff-management-view';

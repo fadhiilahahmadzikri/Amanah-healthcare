@@ -3,6 +3,7 @@ import { clientFetch } from '@/lib/client-fetch';
 export interface BackendNotification {
   id: string;
   userId?: string;
+  audience?: 'patient' | 'clinic' | string;
   title?: string | null;
   body: string;
   category: string;

@@ -59,6 +59,7 @@ export interface AppointmentFormInspectorProps {
   appointment: Appointment;
   onClose?: () => void;
   hideHeader?: boolean;
+  readOnly?: boolean;
 }
 
 function buildInitialFormData(parsedData: UnifiedInspectorData): EditableMaternalData {
@@ -354,8 +355,15 @@ function buildInitialRegularData(
 export function AppointmentFormInspector({
   appointment,
   onClose,
-  hideHeader = false
+  hideHeader = false,
+  readOnly
 }: AppointmentFormInspectorProps) {
+  const isReadOnly =
+    readOnly ??
+    ((appointment.status as string) === 'COMPLETED' ||
+      (appointment.status as string) === 'completed' ||
+      (appointment.status as string) === 'SELESAI');
+
   const queryClient = useQueryClient();
 
   const { data: serverIntake, isLoading } = useQuery({
@@ -1009,7 +1017,7 @@ export function AppointmentFormInspector({
           </div>
 
           <div className='flex items-center gap-1.5 shrink-0'>
-            {!isEditing && (
+            {!isEditing && !isReadOnly && (
               <Button
                 type='button'
                 variant='outline'
@@ -1097,7 +1105,7 @@ export function AppointmentFormInspector({
           <div className='flex items-center gap-2'>
             {isEditing ? (
               <span className='text-xs font-semibold text-primary'>Mode Edit Aktif</span>
-            ) : (
+            ) : !isReadOnly ? (
               <Button
                 type='button'
                 variant='outline'
@@ -1107,7 +1115,7 @@ export function AppointmentFormInspector({
               >
                 <Icons.edit className='size-3.5 text-primary' /> Edit Data
               </Button>
-            )}
+            ) : null}
           </div>
 
           <div className='flex items-center gap-1.5 ml-auto'>
