@@ -25,13 +25,16 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Icons } from '@/components/icons';
 import { useSidebar } from '@/components/ui/sidebar';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { cn } from '@/lib/utils';
+import { SearchEngineDialog } from '@/components/search-engine';
 import { EntityCardGrid, EntityCardGridSkeleton } from '@/components/cards/master-entity-card';
 import { STAFF_INVITATION_STATUS } from '../constants/staff.constants';
 import { useStaffManagementPresenter } from '../model/useStaffManagementPresenter';
 import { StaffManagementToolbar } from './staff-management-toolbar';
 import { StaffScheduleCard } from './staff-schedule-card';
 import { StaffRoleBadge, StaffInvitationStatusBadge } from './staff-card-atoms';
+import { StaffKanbanBoard } from './kanban';
 import { InviteStaffModal } from './invite-staff-modal';
 import { StaffRosterModal } from './staff-roster-modal';
 import { StaffProfileModal } from './staff-profile-modal';
@@ -39,29 +42,53 @@ import { ExportDialog } from '@/features/export';
 import type { StaffMember } from '../api/staff-management.api';
 
 export function StaffManagementView() {
-  const { view, revoke, rosterModal, detailModal, inviteModal } = useStaffManagementPresenter();
+  const { view, dynamicOptions, revoke, rosterModal, detailModal, inviteModal } =
+    useStaffManagementPresenter();
   const [exportStaff, setExportStaff] = useState<StaffMember | null>(null);
 
   const { state: sidebarState } = useSidebar();
   const isSidebarExpanded = sidebarState === 'expanded';
 
+  const { isOpen: isUnder1024 } = useMediaQuery('(max-width: 1024px)');
+  const { isOpen: isUnder1280 } = useMediaQuery('(max-width: 1280px)');
+  const isCompact = isUnder1024 || (isUnder1280 && isSidebarExpanded);
+
   return (
     <div className='flex h-full min-h-0 flex-1 flex-col gap-4 select-none'>
+      {/* Centralized Search Engine Dialog */}
+      <SearchEngineDialog
+        config={dynamicOptions.searchEngine.config}
+        isOpen={dynamicOptions.searchEngine.isOpen}
+        onClose={dynamicOptions.searchEngine.close}
+      />
+
       <Tabs
         value={view.activeTab}
         onValueChange={(v) => view.actions.changeTab(v as 'members' | 'invitations')}
         className='flex flex-1 min-h-0 flex-col gap-4'
       >
-        {/* Modular Presentation Toolbar */}
+        {/* Dynamic Responsive Facet Toolbar with Dual View Mode (Kanban vs Grid) */}
         <StaffManagementToolbar
           searchQuery={view.searchQuery}
           onSearchChange={view.actions.changeSearch}
+          onOpenSearchDialog={dynamicOptions.searchEngine.open}
+          facets={dynamicOptions.facetGroups}
+          isFiltered={view.hasActiveFilters}
+          onResetAll={() => {
+            dynamicOptions.searchEngine.clearQuery();
+            view.actions.resetFilters();
+          }}
+          activeFilterCount={dynamicOptions.activeFilterCount}
+          isCompact={isCompact}
           staffsCount={view.allStaffs.length}
           invitationsCount={view.allInvitations.length}
+          viewMode={view.viewMode}
+          onViewModeChange={view.actions.changeViewMode}
           onInviteStaff={inviteModal.open}
+          onRefresh={() => void view.refetch()}
         />
 
-        {/* Tab 1: Daftar Staf (Clean 5-Column Responsive Cards Grid in ScrollArea) */}
+        {/* Tab 1: Daftar Staf (Dual Mode: Kanban Board vs Responsive Grid) */}
         <TabsContent
           value='members'
           className='relative flex flex-1 min-h-0 flex-col overflow-hidden m-0'
@@ -81,21 +108,24 @@ export function StaffManagementView() {
             <div className='flex flex-1 min-h-0 h-full w-full flex-col'>
               <EmptyState
                 icon={Icons.users}
-                title='Tidak ada staf operasional ditemukan'
+                title='Tidak ada staf ditemukan'
                 description={
-                  view.searchQuery
-                    ? `Tidak ada staf yang sesuai dengan kata kunci "${view.searchQuery}".`
-                    : 'Belum ada staf operasional yang terdaftar di klinik.'
+                  view.hasActiveFilters
+                    ? `Tidak ada profil staf yang cocok dengan kriteria filter atau kata kunci yang dipilih.`
+                    : 'Belum ada data staf terdaftar di klinik.'
                 }
                 action={
-                  view.searchQuery ? (
+                  view.hasActiveFilters ? (
                     <Button
                       variant='outline'
                       size='sm'
-                      onClick={view.actions.resetSearch}
+                      onClick={() => {
+                        dynamicOptions.searchEngine.clearQuery();
+                        view.actions.resetFilters();
+                      }}
                       className='text-xs'
                     >
-                      Reset Pencarian
+                      Reset Semua Filter
                     </Button>
                   ) : (
                     <Button size='sm' onClick={inviteModal.open} className='text-xs gap-1.5'>
@@ -107,7 +137,18 @@ export function StaffManagementView() {
                 className='h-full w-full flex-1'
               />
             </div>
+          ) : view.viewMode === 'kanban' ? (
+            /* Kanban Board View grouped by Roles (Dokter, Bidan, Staf Operasional) */
+            <div className='absolute inset-0 flex overflow-hidden pt-1 pb-2'>
+              <StaffKanbanBoard
+                staffs={view.filteredStaffs}
+                onOpenRoster={rosterModal.open}
+                onOpenDetail={detailModal.open}
+                selectedStaffId={detailModal.staff?.id}
+              />
+            </div>
           ) : (
+            /* Responsive Grid / Listing View */
             <div className='absolute inset-0 flex overflow-hidden'>
               <ScrollArea className='h-full w-full pr-0 md:pr-3'>
                 <div className='pb-20 pt-1'>
@@ -127,7 +168,7 @@ export function StaffManagementView() {
           )}
         </TabsContent>
 
-        {/* Tab 2: Riwayat Undangan */}
+        {/* Tab 2: Riwayat Undangan Calon Staf */}
         <TabsContent
           value='invitations'
           className='relative flex flex-1 min-h-0 flex-col overflow-hidden m-0'
@@ -212,7 +253,7 @@ export function StaffManagementView() {
         </TabsContent>
       </Tabs>
 
-      {/* Modals */}
+      {/* Modals & Dialogs */}
       <InviteStaffModal isOpen={inviteModal.isOpen} onClose={inviteModal.close} />
 
       <StaffRosterModal

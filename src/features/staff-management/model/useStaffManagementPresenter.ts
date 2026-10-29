@@ -2,11 +2,13 @@
 
 import { useState, useCallback } from 'react';
 import { useStaffManagementView } from './useStaffManagementView';
+import { useStaffManagementDynamicOptions } from './useStaffManagementDynamicOptions';
 import { useRevokeStaffInvitation } from './useRevokeStaffInvitation';
 import type { StaffMember } from '../api/staff-management.api';
 
 export interface UseStaffManagementPresenterResult {
   view: ReturnType<typeof useStaffManagementView>;
+  dynamicOptions: ReturnType<typeof useStaffManagementDynamicOptions>;
   revoke: ReturnType<typeof useRevokeStaffInvitation>;
   rosterModal: {
     isOpen: boolean;
@@ -29,6 +31,7 @@ export interface UseStaffManagementPresenterResult {
 
 export function useStaffManagementPresenter(): UseStaffManagementPresenterResult {
   const view = useStaffManagementView();
+  const dynamicOptions = useStaffManagementDynamicOptions({ view });
   const revoke = useRevokeStaffInvitation();
 
   const [selectedStaffForRoster, setSelectedStaffForRoster] = useState<StaffMember | null>(null);
@@ -61,6 +64,7 @@ export function useStaffManagementPresenter(): UseStaffManagementPresenterResult
 
   return {
     view,
+    dynamicOptions,
     revoke,
     rosterModal: {
       isOpen: Boolean(selectedStaffForRoster),

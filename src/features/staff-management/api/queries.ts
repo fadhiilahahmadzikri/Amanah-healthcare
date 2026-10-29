@@ -1,11 +1,11 @@
 import { keepPreviousData, queryOptions } from '@tanstack/react-query';
-import { staffManagementApi } from './staff-management.api';
+import { staffManagementApi, type StaffFilters } from './staff-management.api';
 import { staffManagementKeys } from './query-keys';
 
-export const staffsQueryOptions = () =>
+export const staffsQueryOptions = (filters?: StaffFilters) =>
   queryOptions({
-    queryKey: staffManagementKeys.staffs(),
-    queryFn: () => staffManagementApi.getAllStaffs(),
+    queryKey: staffManagementKeys.staffs(filters),
+    queryFn: () => staffManagementApi.getAllStaffs(filters),
     placeholderData: keepPreviousData,
     staleTime: 30 * 1000,
     gcTime: 5 * 60 * 1000

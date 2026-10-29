@@ -2,94 +2,133 @@
 
 import React from 'react';
 import { Icons } from '@/components/icons';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { SearchEngineDialog, useStateSearchEngine } from '@/components/search-engine';
+import { ResponsiveFacetToolbox } from '@/shared/ui/responsive-facet-toolbox';
+import type { FacetGroupDefinition } from '@/shared/ui/responsive-facet-toolbox';
+import { cn } from '@/lib/utils';
+import type { StaffViewMode } from '../model/useStaffManagementView';
 
 export interface StaffManagementToolbarProps {
   searchQuery: string;
   onSearchChange: (value: string) => void;
+  onOpenSearchDialog: () => void;
+  facets: FacetGroupDefinition[];
+  isFiltered: boolean;
+  onResetAll: () => void;
+  activeFilterCount: number;
+  isCompact?: boolean;
   staffsCount: number;
   invitationsCount: number;
+  viewMode: StaffViewMode;
+  onViewModeChange: (mode: StaffViewMode) => void;
   onInviteStaff: () => void;
+  onRefresh?: () => void;
 }
 
 export function StaffManagementToolbar({
   searchQuery,
   onSearchChange,
+  onOpenSearchDialog,
+  facets,
+  isFiltered,
+  onResetAll,
+  activeFilterCount,
+  isCompact = false,
   staffsCount,
   invitationsCount,
-  onInviteStaff
+  viewMode,
+  onViewModeChange,
+  onInviteStaff,
+  onRefresh
 }: StaffManagementToolbarProps) {
-  const searchEngine = useStateSearchEngine({
-    query: searchQuery,
-    onQueryChange: onSearchChange,
-    id: 'staff-management-search',
-    placeholder: 'Cari nama atau email staf...'
-  });
-
   return (
-    <>
-      <SearchEngineDialog
-        config={searchEngine.config}
-        isOpen={searchEngine.isOpen}
-        onClose={searchEngine.close}
-      />
+    <div className='flex flex-col gap-2.5 w-full shrink-0 select-none'>
+      <ResponsiveFacetToolbox
+        searchQuery={searchQuery}
+        onSearchChange={onSearchChange}
+        searchPlaceholder='Cari nama staf, peran, email, atau poliklinik...'
+        onOpenSearchDialog={onOpenSearchDialog}
+        facets={facets}
+        isFiltered={isFiltered}
+        onResetAll={onResetAll}
+        activeFilterCount={activeFilterCount}
+        isCompact={isCompact}
+        actionsSlot={
+          <div className='flex items-center gap-2 shrink-0'>
+            {/* Tabs List (Staf vs Undangan) */}
+            <TabsList className='inline-flex h-9 w-fit shrink-0 p-1 bg-muted/60'>
+              <TabsTrigger value='members' className='text-xs gap-1.5 px-2.5 sm:px-3'>
+                <Icons.users className='h-3.5 w-3.5' />
+                <span>Staf ({staffsCount})</span>
+              </TabsTrigger>
+              <TabsTrigger value='invitations' className='text-xs gap-1.5 px-2.5 sm:px-3'>
+                <Icons.mail className='h-3.5 w-3.5' />
+                <span>Undangan ({invitationsCount})</span>
+              </TabsTrigger>
+            </TabsList>
 
-      <div className='flex items-center justify-between gap-2 sm:gap-3 shrink-0 w-full'>
-        {/* Left Group: Search Button/Input + Hugging TabsList */}
-        <div className='flex items-center gap-2 min-w-0'>
-          {/* Mobile: Search Button (Pojok Kiri, Sejajar Staf) */}
-          <Button
-            type='button'
-            variant={searchQuery ? 'default' : 'outline'}
-            size='icon'
-            onClick={searchEngine.open}
-            aria-label='Buka dialog pencarian staf'
-            title={searchQuery ? `Pencarian aktif: "${searchQuery}"` : 'Cari staf...'}
-            className='size-9 rounded-lg shrink-0 sm:hidden cursor-pointer'
-          >
-            <Icons.search className='size-4' />
-          </Button>
-
-          {/* Desktop: Full Search Input */}
-          <div className='relative hidden sm:block sm:w-72 shrink-0'>
-            <Icons.search className='absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground' />
-            <Input
-              placeholder='Cari nama atau email staf...'
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className='pl-8 h-9 text-xs'
-            />
+            {/* Invite Staff Button */}
+            <Button
+              type='button'
+              onClick={onInviteStaff}
+              size='sm'
+              className='h-9 px-2.5 sm:px-3 gap-1.5 shrink-0 cursor-pointer'
+              title='Kirim Undangan Calon Staf Baru'
+            >
+              <Icons.userPlus className='h-3.5 w-3.5' />
+              <span className='hidden sm:inline'>Undang Staf</span>
+            </Button>
           </div>
+        }
+        extraRightSlot={
+          <div className='flex items-center gap-1.5 sm:gap-2 shrink-0'>
+            {/* View Mode Toggle: Kanban vs Grid */}
+            <div className='flex items-center rounded-lg border border-border/80 p-0.5 bg-muted/30'>
+              <Button
+                type='button'
+                variant={viewMode === 'kanban' ? 'secondary' : 'ghost'}
+                size={isCompact ? 'icon' : 'sm'}
+                onClick={() => onViewModeChange('kanban')}
+                className={cn(isCompact ? 'size-7' : 'h-7 px-2 text-xs gap-1.5 cursor-pointer')}
+                title='Tampilan Papan Kanban Berbasis Peran'
+              >
+                <Icons.kanban className='size-3.5' />
+                {!isCompact && <span>Papan</span>}
+              </Button>
+              <Button
+                type='button'
+                variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                size={isCompact ? 'icon' : 'sm'}
+                onClick={() => onViewModeChange('grid')}
+                className={cn(isCompact ? 'size-7' : 'h-7 px-2 text-xs gap-1.5 cursor-pointer')}
+                title='Tampilan Daftar / Grid'
+              >
+                <Icons.layoutList className='size-3.5' />
+                {!isCompact && <span>Daftar</span>}
+              </Button>
+            </div>
 
-          {/* Tabs List (Hugging Content) */}
-          <TabsList className='inline-flex h-9 w-fit shrink-0'>
-            <TabsTrigger value='members' className='text-xs gap-1.5 px-2.5 sm:px-3'>
-              <Icons.users className='h-3.5 w-3.5' />
-              <span>Staf ({staffsCount})</span>
-            </TabsTrigger>
-            <TabsTrigger value='invitations' className='text-xs gap-1.5 px-2.5 sm:px-3'>
-              <Icons.mail className='h-3.5 w-3.5' />
-              <span>Undangan ({invitationsCount})</span>
-            </TabsTrigger>
-          </TabsList>
-        </div>
-
-        {/* Right: Undang Staf Button (Mobile: Icon-Only, Desktop: Icon + Text) */}
-        <div className='flex items-center gap-2 shrink-0 justify-end'>
-          <Button
-            onClick={onInviteStaff}
-            size='sm'
-            aria-label='Undang Staf'
-            className='h-9 px-2.5 sm:px-3 sm:gap-1.5 cursor-pointer shrink-0'
-          >
-            <Icons.userPlus className='h-4 w-4' />
-            <span className='hidden sm:inline'>Undang Staf</span>
-          </Button>
-        </div>
-      </div>
-    </>
+            {/* Refresh Button */}
+            {onRefresh && (
+              <Button
+                type='button'
+                variant='outline'
+                size={isCompact ? 'icon' : 'sm'}
+                onClick={onRefresh}
+                className={cn(
+                  isCompact ? 'size-8 rounded-md' : 'h-8 px-2 text-xs gap-1.5 cursor-pointer'
+                )}
+                title='Muat ulang data staf'
+                aria-label='Muat ulang data'
+              >
+                <Icons.refresh className='size-3.5' />
+                {!isCompact && <span>Segarkan</span>}
+              </Button>
+            )}
+          </div>
+        }
+      />
+    </div>
   );
 }

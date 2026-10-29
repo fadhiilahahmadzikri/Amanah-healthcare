@@ -42,7 +42,7 @@ export function AssignReplacementModal({
 
   const { data: staffs = [], isLoading: isLoadingStaffs } = useQuery({
     queryKey: ['staffs', 'all'],
-    queryFn: staffManagementApi.getAllStaffs,
+    queryFn: () => staffManagementApi.getAllStaffs(),
     enabled: isOpen
   });
 

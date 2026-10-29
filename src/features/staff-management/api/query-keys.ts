@@ -1,6 +1,9 @@
+import type { StaffFilters } from './staff-management.api';
+
 export const staffManagementKeys = {
   all: ['staff-management'] as const,
-  staffs: () => [...staffManagementKeys.all, 'staffs'] as const,
+  staffs: (filters?: StaffFilters) =>
+    [...staffManagementKeys.all, 'staffs', filters || {}] as const,
   staffDetail: (id: string) => [...staffManagementKeys.all, 'staff', id] as const,
   invitations: (status?: string) =>
     [...staffManagementKeys.all, 'invitations', status || 'all'] as const,
