@@ -18,6 +18,7 @@ export {
   APPOINTMENT_STATUS_OPTIONS,
   getAppointmentStatusConfig
 } from './constants/appointment-status.dictionary';
+export { DEFAULT_APPOINTMENT_PAGE_LIMIT } from './constants/options';
 export { useAppointmentCheckInQr } from './model/useAppointmentCheckInQr';
 export type {
   UseAppointmentCheckInQrParams,

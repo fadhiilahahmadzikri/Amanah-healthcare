@@ -5,21 +5,16 @@ import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
 import { Icons } from '@/components/icons';
 import { toast } from 'sonner';
 import type { SessionDefConfig } from '../../../api/admin-schedule-configuration.api';
 import {
   parseTimeToMinutes,
   parseTimeEndToMinutes,
-  minutesToTimeString
+  minutesToTimeString,
+  formatTimeToHHmm
 } from '../../../utils/shift-time-validator';
+import { ShiftTimeSelect } from '../atoms/shift-time-select';
 
 export interface SessionDefFormDialogProps {
   isOpen: boolean;
@@ -34,15 +29,6 @@ export interface SessionDefFormDialogProps {
   }) => Promise<void>;
   portalContainerRef?: React.RefObject<HTMLElement | null>;
 }
-
-const TIME_OPTIONS = [
-  ...Array.from({ length: 48 }, (_, i) => {
-    const h = String(Math.floor(i / 2)).padStart(2, '0');
-    const m = i % 2 === 0 ? '00' : '30';
-    return `${h}:${m}`;
-  }),
-  '24:00'
-];
 
 export function SessionDefFormDialog({
   isOpen,
@@ -62,17 +48,17 @@ export function SessionDefFormDialog({
     if (initialData) {
       setLabel(initialData.label || '');
       setCodePrefix(initialData.codePrefix || '');
-      setStartsAt(initialData.defaultStartsAt?.slice(0, 5) || '08:00');
-      setEndsAt(initialData.defaultEndsAt?.slice(0, 5) || '12:00');
+      setStartsAt(formatTimeToHHmm(initialData.defaultStartsAt, '08:00'));
+      setEndsAt(formatTimeToHHmm(initialData.defaultEndsAt, '12:00'));
     } else {
       setLabel('');
       setCodePrefix('');
 
       if (existingDefs && existingDefs.length > 0) {
-        const sorted = [...existingDefs].sort(
+        const sorted = [...existingDefs].toSorted(
           (a, b) => parseTimeEndToMinutes(b.defaultEndsAt) - parseTimeEndToMinutes(a.defaultEndsAt)
         );
-        const latestEndStr = sorted[0].defaultEndsAt?.slice(0, 5) || '08:00';
+        const latestEndStr = formatTimeToHHmm(sorted[0].defaultEndsAt, '08:00');
         const startMin = parseTimeToMinutes(latestEndStr);
         const endMin = Math.min(1440, startMin + 120);
 
@@ -167,7 +153,6 @@ export function SessionDefFormDialog({
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               className='h-9 text-xs rounded-lg border-border/80 bg-background'
-              autoFocus
             />
           </div>
 
@@ -188,34 +173,22 @@ export function SessionDefFormDialog({
           <div className='grid grid-cols-2 gap-3'>
             <div className='space-y-1.5'>
               <Label className='text-xs font-semibold text-foreground'>Jam Mulai</Label>
-              <Select value={startsAt} onValueChange={handleStartsAtChange}>
-                <SelectTrigger className='h-9 text-xs font-mono rounded-lg border-border/80 bg-background'>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className='max-h-48'>
-                  {TIME_OPTIONS.map((t) => (
-                    <SelectItem key={t} value={t} className='text-xs font-mono'>
-                      {t}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <ShiftTimeSelect
+                value={startsAt}
+                onChange={handleStartsAtChange}
+                portalContainerRef={portalContainerRef}
+                ariaLabel='Pilih atau ketik jam mulai shift'
+              />
             </div>
 
             <div className='space-y-1.5'>
               <Label className='text-xs font-semibold text-foreground'>Jam Selesai</Label>
-              <Select value={endsAt} onValueChange={setEndsAt}>
-                <SelectTrigger className='h-9 text-xs font-mono rounded-lg border-border/80 bg-background'>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className='max-h-48'>
-                  {TIME_OPTIONS.map((t) => (
-                    <SelectItem key={t} value={t} className='text-xs font-mono'>
-                      {t}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <ShiftTimeSelect
+                value={endsAt}
+                onChange={setEndsAt}
+                portalContainerRef={portalContainerRef}
+                ariaLabel='Pilih atau ketik jam selesai shift'
+              />
             </div>
           </div>
 

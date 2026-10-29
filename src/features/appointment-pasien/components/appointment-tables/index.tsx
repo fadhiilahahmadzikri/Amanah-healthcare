@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
+import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/table/data-table';
 import { DefaultBulkActions } from '@/components/ui/table/default-bulk-actions';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -99,7 +100,6 @@ export function AppointmentTable() {
   );
   const columnIds = useMemo(() => columns.map((c) => c.id).filter(Boolean) as string[], [columns]);
   const appointmentTable = useAppointmentTable({ columns, columnIds });
-  const { currentUnitId, setUnitId } = appointmentTable;
 
   const {
     searchQuery,
@@ -148,6 +148,40 @@ export function AppointmentTable() {
     await queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
     appointmentTable.actions.closeDetail();
   };
+
+  // 1. Initial Loading State: Render existing skeleton UI until upstream resolves
+  if (appointmentTable.isLoading) {
+    return <AppointmentTableSkeleton />;
+  }
+
+  // 2. Error State: Distinct from empty state, provides retry mechanism
+  if (appointmentTable.isError) {
+    return (
+      <div className='flex h-full min-h-[320px] flex-1 flex-col items-center justify-center p-4'>
+        <EmptyState
+          icon={Icons.warning}
+          animated={false}
+          title='Gagal Memuat Antrean Janji Temu'
+          description={
+            appointmentTable.error?.message ||
+            'Terjadi kesalahan saat memuat data janji temu. Silakan periksa koneksi Anda dan coba kembali.'
+          }
+          action={
+            <Button
+              type='button'
+              variant='outline'
+              size='sm'
+              onClick={() => void appointmentTable.refetch()}
+              className='h-8 px-4 text-xs font-semibold gap-1.5 cursor-pointer rounded-lg border-border/80 hover:bg-muted'
+            >
+              <Icons.refresh className='size-3.5' />
+              <span>Coba Lagi</span>
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
 
   const rows = appointmentTable.table.getRowModel().rows.map((r) => r.original);
 
@@ -328,6 +362,7 @@ export function AppointmentTable() {
         <div className='hidden md:flex min-h-0 flex-1 flex-col overflow-y-auto'>
           <DataTable
             table={appointmentTable.table}
+            isLoading={appointmentTable.isLoading}
             onRowClick={appointmentTable.actions.openRecordDetail}
             entityName='appointment'
             hidePagination
@@ -362,6 +397,7 @@ export function AppointmentTable() {
           <AppointmentMobileCards
             appointments={rows}
             hasFilters={isFiltered}
+            isLoading={appointmentTable.isLoading}
             onRowClick={appointmentTable.actions.openRecordDetail}
             onAssignDoctor={appointmentTable.actions.openChangeDoctor}
             onAssignRoom={appointmentTable.actions.openChangeRoom}

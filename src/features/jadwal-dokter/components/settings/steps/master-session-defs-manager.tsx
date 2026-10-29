@@ -4,13 +4,6 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -36,8 +29,10 @@ import {
 } from '../../../api/admin-schedule-configuration.api';
 import {
   calculateShiftDurationHours,
-  getAdjacentShiftGapMinutes
+  getAdjacentShiftGapMinutes,
+  formatTimeToHHmm
 } from '../../../utils/shift-time-validator';
+import { ShiftTimeSelect } from '../atoms/shift-time-select';
 import { SessionDefFormDialog } from '../modals/session-def-form-dialog';
 import { ShiftDeletionImpactDialog } from '../modals/shift-deletion-impact-dialog';
 import { cn } from '@/lib/utils';
@@ -71,15 +66,6 @@ export interface MasterSessionDefsManagerProps {
   showSubheader?: boolean;
 }
 
-const BASE_TIME_OPTIONS = [
-  ...Array.from({ length: 48 }, (_, i) => {
-    const h = String(Math.floor(i / 2)).padStart(2, '0');
-    const m = i % 2 === 0 ? '00' : '30';
-    return `${h}:${m}`;
-  }),
-  '24:00'
-];
-
 export function MasterSessionDefsManager({
   sessionDefs,
   conflictingDefIds = [],
@@ -93,7 +79,7 @@ export function MasterSessionDefsManager({
   onCloseAddDialog,
   portalContainerRef,
   className,
-  showSubheader = true
+  showSubheader: _showSubheader = true
 }: MasterSessionDefsManagerProps) {
   const [internalDialogOpen, setInternalDialogOpen] = useState(false);
   const [editingDef, setEditingDef] = useState<SessionDefConfig | null>(null);
@@ -106,13 +92,6 @@ export function MasterSessionDefsManager({
 
   const isFormOpen =
     isAddDialogOpen !== undefined ? isAddDialogOpen || Boolean(editingDef) : internalDialogOpen;
-
-  const getTimeOptions = (currentTime: string) => {
-    if (!currentTime || BASE_TIME_OPTIONS.includes(currentTime)) {
-      return BASE_TIME_OPTIONS;
-    }
-    return [...BASE_TIME_OPTIONS, currentTime].toSorted();
-  };
 
   const handleOpenAdd = () => {
     setEditingDef(null);
@@ -229,8 +208,8 @@ export function MasterSessionDefsManager({
       {sessionDefs.length > 0 && (
         <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
           {sessionDefs.map((def) => {
-            const startsAt = def.defaultStartsAt?.slice(0, 5) || '00:00';
-            const endsAt = def.defaultEndsAt?.slice(0, 5) || '24:00';
+            const startsAt = formatTimeToHHmm(def.defaultStartsAt, '00:00');
+            const endsAt = formatTimeToHHmm(def.defaultEndsAt, '24:00');
             const isConflicted = conflictingDefIds.includes(def.id);
             const durationHours = calculateShiftDurationHours(startsAt, endsAt);
             const gapInfo = getAdjacentShiftGapMinutes(def, sessionDefs);
@@ -338,46 +317,26 @@ export function MasterSessionDefsManager({
                         <span className='text-[10px] font-medium text-muted-foreground'>
                           Jam Mulai
                         </span>
-                        <Select
+                        <ShiftTimeSelect
                           value={startsAt}
-                          onValueChange={(val) =>
-                            onUpdateTime(def.id, 'defaultStartsAt', `${val}:00`)
-                          }
-                        >
-                          <SelectTrigger className='h-8 w-full text-xs font-mono px-2 bg-background shadow-2xs'>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className='max-h-48'>
-                            {getTimeOptions(startsAt).map((t) => (
-                              <SelectItem key={t} value={t} className='text-xs font-mono'>
-                                {t}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          onChange={(val) => onUpdateTime(def.id, 'defaultStartsAt', `${val}:00`)}
+                          portalContainerRef={portalContainerRef}
+                          className='h-8 text-xs'
+                          ariaLabel={`Jam mulai shift ${displayLabel}`}
+                        />
                       </div>
 
                       <div className='flex flex-col gap-1'>
                         <span className='text-[10px] font-medium text-muted-foreground'>
                           Jam Selesai
                         </span>
-                        <Select
+                        <ShiftTimeSelect
                           value={endsAt}
-                          onValueChange={(val) =>
-                            onUpdateTime(def.id, 'defaultEndsAt', `${val}:00`)
-                          }
-                        >
-                          <SelectTrigger className='h-8 w-full text-xs font-mono px-2 bg-background shadow-2xs'>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className='max-h-48'>
-                            {getTimeOptions(endsAt).map((t) => (
-                              <SelectItem key={t} value={t} className='text-xs font-mono'>
-                                {t}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          onChange={(val) => onUpdateTime(def.id, 'defaultEndsAt', `${val}:00`)}
+                          portalContainerRef={portalContainerRef}
+                          className='h-8 text-xs'
+                          ariaLabel={`Jam selesai shift ${displayLabel}`}
+                        />
                       </div>
                     </div>
 

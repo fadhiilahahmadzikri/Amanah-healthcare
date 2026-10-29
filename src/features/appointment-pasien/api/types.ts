@@ -2,6 +2,7 @@ import {
   APPOINTMENT_STATUS,
   type CanonicalAppointmentStatus
 } from '@/constants/appointment-status.constants';
+import { DEFAULT_APPOINTMENT_PAGE_LIMIT } from '../constants/options';
 import type { AppointmentCapabilities } from './capabilities';
 
 export { APPOINTMENT_STATUS };
@@ -145,7 +146,7 @@ export type NormalizedAppointmentFilters = {
 
 export function normalizeFilters(raw: Partial<AppointmentFilters>): NormalizedAppointmentFilters {
   const page = raw.page && raw.page > 0 ? Number(raw.page) : 1;
-  const limit = raw.limit && raw.limit > 0 ? Number(raw.limit) : 10;
+  const limit = raw.limit && raw.limit > 0 ? Number(raw.limit) : DEFAULT_APPOINTMENT_PAGE_LIMIT;
   const statusArray = Array.isArray(raw.status)
     ? [...raw.status].filter(Boolean).toSorted()
     : typeof raw.status === 'string' && raw.status.trim()

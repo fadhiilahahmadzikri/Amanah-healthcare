@@ -4,6 +4,7 @@ import { searchParamsCache } from '@/lib/searchparams';
 import { appointmentInfiniteQueryOptions, queueNavigationQueryOptions } from '../api/queries';
 import { getAppointmentsOnServer, getQueueNavigationOnServer } from '../api/server';
 import { normalizeFilters } from '../api/types';
+import { DEFAULT_APPOINTMENT_PAGE_LIMIT } from '../constants/options';
 import { prefetchClinicCatalog } from '@/features/klinik/api/server';
 import { AppointmentTable, AppointmentTableSkeleton } from './appointment-tables';
 import { Suspense } from 'react';
@@ -18,9 +19,11 @@ export default async function AppointmentListingPage() {
   const doctorId = searchParamsCache.get('doctorId');
   const poli = searchParamsCache.get('poli');
 
+  const effectiveLimit = pageLimit && pageLimit !== 10 ? pageLimit : DEFAULT_APPOINTMENT_PAGE_LIMIT;
+
   const filters = normalizeFilters({
     page,
-    limit: pageLimit,
+    limit: effectiveLimit,
     ...(search && { search }),
     ...(status && { status }),
     ...(poliklinikId && { poliklinikId }),
@@ -30,7 +33,7 @@ export default async function AppointmentListingPage() {
   });
 
   const queryClient = getQueryClient();
-  await Promise.all([
+  await Promise.allSettled([
     queryClient.prefetchInfiniteQuery({
       ...appointmentInfiniteQueryOptions(filters),
       queryFn: () => getAppointmentsOnServer(filters),

@@ -8,6 +8,7 @@ import { useDataTable } from '@/hooks/use-data-table';
 import { getSortingStateParser } from '@/lib/parsers';
 import { appointmentInfiniteQueryOptions } from '../api/queries';
 import { normalizeFilters, type AdminAppointment, type AppointmentFilters } from '../api/types';
+import { DEFAULT_APPOINTMENT_PAGE_LIMIT } from '../constants/options';
 import {
   useAppointmentDialogs,
   type AppointmentDialogType,
@@ -35,6 +36,11 @@ export interface UseAppointmentTableResult {
   isChangeRoomOpen: boolean;
   isQrOpen: boolean;
   isRescheduleOpen: boolean;
+  isLoading: boolean;
+  isPending: boolean;
+  isError: boolean;
+  error: Error | null;
+  refetch: () => Promise<unknown>;
   isFetching: boolean;
   isFetchingNextPage: boolean;
   hasNextPage: boolean;
@@ -93,7 +99,7 @@ export function useAppointmentTable({
 
   const [params, setParams] = useQueryStates({
     page: parseAsInteger.withDefault(1),
-    perPage: parseAsInteger.withDefault(20),
+    perPage: parseAsInteger.withDefault(DEFAULT_APPOINTMENT_PAGE_LIMIT),
     search: parseAsString,
     status: parseAsArrayOf(parseAsString, ','),
     poliklinikId: parseAsString,
@@ -138,7 +144,7 @@ export function useAppointmentTable({
 
   const filters: AppointmentFilters = normalizeFilters({
     page: 1,
-    limit: 20,
+    limit: DEFAULT_APPOINTMENT_PAGE_LIMIT,
     ...(querySearch && { search: querySearch }),
     ...(params.status && params.status.length > 0 && { status: params.status }),
     ...(params.poliklinikId && { poliklinikId: params.poliklinikId }),
@@ -244,6 +250,11 @@ export function useAppointmentTable({
     isChangeRoomOpen: dialogs.isChangeRoomOpen,
     isQrOpen: dialogs.isQrOpen,
     isRescheduleOpen: dialogs.isRescheduleOpen,
+    isLoading: infiniteQuery.isLoading,
+    isPending: infiniteQuery.isPending,
+    isError: infiniteQuery.isError,
+    error: infiniteQuery.error as Error | null,
+    refetch: infiniteQuery.refetch,
     isFetching: infiniteQuery.isFetching,
     isFetchingNextPage: infiniteQuery.isFetchingNextPage,
     hasNextPage: Boolean(infiniteQuery.hasNextPage),

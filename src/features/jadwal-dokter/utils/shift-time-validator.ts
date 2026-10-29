@@ -1,5 +1,60 @@
 import type { SessionDefConfig } from '../api/admin-schedule-configuration.api';
 
+export const TIME_REGEX = /^(?:[01]\d|2[0-3]):[0-5]\d$|^24:00$/;
+
+/**
+ * Memvalidasi apakah string waktu memiliki format HH:mm yang sah (00:00 - 24:00).
+ */
+export function isValidTimeString(timeStr?: string | null): boolean {
+  if (!timeStr) return false;
+  return TIME_REGEX.test(timeStr.trim());
+}
+
+/**
+ * Mengekstrak string 'HH:mm' bersih dari format 'HH:mm:ss' atau 'HH:mm'.
+ */
+export function formatTimeToHHmm(timeStr?: string | null, fallback = '00:00'): string {
+  if (!timeStr) return fallback;
+  const trimmed = timeStr.trim();
+  const match = trimmed.match(/^([01]\d|2[0-3]|24):([0-5]\d)/);
+  if (match) {
+    return `${match[1]}:${match[2]}`;
+  }
+  return fallback;
+}
+
+/**
+ * Menghasilkan daftar opsi jam standar berdasarkan interval menit (default 30 menit).
+ */
+export function generateBaseTimeOptions(intervalMinutes = 30): string[] {
+  const count = Math.floor(1440 / intervalMinutes);
+  const options: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const totalMin = i * intervalMinutes;
+    const h = String(Math.floor(totalMin / 60)).padStart(2, '0');
+    const m = String(totalMin % 60).padStart(2, '0');
+    options.push(`${h}:${m}`);
+  }
+  options.push('24:00');
+  return options;
+}
+
+/**
+ * Menggabungkan opsi jam standar dengan waktu kustom aktif agar selalu tersedia di pilihan.
+ */
+export function getEffectiveTimeOptions(
+  currentTime?: string | null,
+  intervalMinutes = 30
+): string[] {
+  const base = generateBaseTimeOptions(intervalMinutes);
+  if (!currentTime) return base;
+  const formatted = formatTimeToHHmm(currentTime, '');
+  if (!formatted || base.includes(formatted)) return base;
+  return [...base, formatted].toSorted(
+    (a, b) => parseTimeEndToMinutes(a) - parseTimeEndToMinutes(b)
+  );
+}
+
 /**
  * Mengonversi string waktu 'HH:mm' atau 'HH:mm:ss' ke menit sejak 00:00.
  */
@@ -66,7 +121,7 @@ export interface ShiftValidationResult {
 export function detectSessionDefsOverlaps(defs: SessionDefConfig[]): ShiftValidationResult {
   const activeDefs = defs
     .filter((d) => d.isActive)
-    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    .toSorted((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 
   // 1. Validasi internal masing-masing shift
   for (const def of activeDefs) {
@@ -128,7 +183,7 @@ export function getAdjacentShiftGapMinutes(
 
   const activeDefs = allDefs
     .filter((d) => d.isActive)
-    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    .toSorted((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 
   const currentIndex = activeDefs.findIndex((d) => d.id === currentDef.id);
   if (currentIndex === -1 || currentIndex === activeDefs.length - 1) return null;

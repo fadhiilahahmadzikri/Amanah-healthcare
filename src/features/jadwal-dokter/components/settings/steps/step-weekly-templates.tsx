@@ -6,13 +6,6 @@ import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
 import type {
   WeeklyTemplateConfig,
   SessionDefConfig,
@@ -34,15 +27,6 @@ interface StepWeeklyTemplatesProps {
   onNavigateToOperatingDays?: () => void;
   onNavigateToSessionDefs?: () => void;
 }
-
-const BASE_TIME_OPTIONS = [
-  ...Array.from({ length: 48 }, (_, i) => {
-    const h = String(Math.floor(i / 2)).padStart(2, '0');
-    const m = i % 2 === 0 ? '00' : '30';
-    return `${h}:${m}`;
-  }),
-  '24:00'
-];
 
 function getNearestActiveDow(currentDow: number, daysList: DayInfoConfig[]): number {
   const activeDays = daysList.filter((d) => d.isActive);
@@ -66,7 +50,7 @@ export function StepWeeklyTemplates({
   sessionDefs,
   weeklyTemplates,
   onToggleShiftActive,
-  onUpdateTime,
+  onUpdateTime: _onUpdateTime,
   onToggleDayActive,
   onNavigateToOperatingDays,
   onNavigateToSessionDefs
@@ -104,13 +88,6 @@ export function StepWeeklyTemplates({
 
   // Group templates by session for selected day
   const dayTemplates = weeklyTemplates.filter((t) => t.dow === selectedDow);
-
-  const getTimeOptions = (currentTime: string) => {
-    if (!currentTime || BASE_TIME_OPTIONS.includes(currentTime)) {
-      return BASE_TIME_OPTIONS;
-    }
-    return [...BASE_TIME_OPTIONS, currentTime].toSorted();
-  };
 
   return (
     <div className='flex flex-col gap-3.5'>
@@ -206,7 +183,6 @@ export function StepWeeklyTemplates({
             const isActive = template.isActive;
             const startsAt = template.startsAt.slice(0, 5);
             const endsAt = template.endsAt.slice(0, 5);
-            const isInvalidTime = isActive && startsAt >= endsAt;
             const shiftLabel = template.sessionLabel;
 
             return (

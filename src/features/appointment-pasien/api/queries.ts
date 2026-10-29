@@ -1,4 +1,4 @@
-import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
+import { infiniteQueryOptions, keepPreviousData, queryOptions } from '@tanstack/react-query';
 import {
   getAdminAppointments,
   getAdminAppointmentById,
@@ -8,6 +8,7 @@ import {
   getQueueNavigation
 } from './service';
 import { appointmentKeys } from './query-keys';
+import { DEFAULT_APPOINTMENT_PAGE_LIMIT } from '../constants/options';
 import type { AdminAppointment, AppointmentFilters, QueueNavigationResponse } from './types';
 
 export type { AdminAppointment, QueueNavigationResponse };
@@ -38,17 +39,22 @@ export const appointmentInfiniteQueryOptions = (filters: AppointmentFilters) =>
     queryKey: appointmentKeys.infiniteList(filters),
     queryFn: ({ pageParam = 1, signal }) =>
       getAdminAppointments(
-        { ...filters, page: pageParam as number, limit: filters.limit ?? 20 },
+        {
+          ...filters,
+          page: pageParam as number,
+          limit: filters.limit ?? DEFAULT_APPOINTMENT_PAGE_LIMIT
+        },
         signal
       ),
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
-      const limit = filters.limit ?? 20;
+      const limit = filters.limit ?? DEFAULT_APPOINTMENT_PAGE_LIMIT;
       if (!lastPage?.appointments || lastPage.appointments.length < limit) {
         return undefined;
       }
       return allPages.length + 1;
     },
+    placeholderData: keepPreviousData,
     staleTime: 30 * 1000
   });
 

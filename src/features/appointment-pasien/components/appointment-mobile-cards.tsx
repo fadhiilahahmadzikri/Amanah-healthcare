@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import type { AdminAppointment } from '../api/types';
 import { adminAppointmentToAppointment } from '../api/mapper';
 import { AppointmentCardOrganism } from '@/features/klinik/components/appointment-card';
+import { AppointmentCardsSkeleton } from '@/features/klinik/components/appointment-cards-skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
@@ -21,6 +22,7 @@ export interface AppointmentMobileCardsProps {
   onViewTimeline?: (appointment: AdminAppointment) => void;
   onOpenActionDrawer?: (appointment: AdminAppointment) => void;
   hasFilters: boolean;
+  isLoading?: boolean;
 }
 
 export function AppointmentMobileCards({
@@ -34,10 +36,15 @@ export function AppointmentMobileCards({
   onViewDetail,
   onViewTimeline,
   onOpenActionDrawer,
-  hasFilters
+  hasFilters,
+  isLoading = false
 }: AppointmentMobileCardsProps) {
   const [selectedActionAppointment, setSelectedActionAppointment] =
     useState<AdminAppointment | null>(null);
+
+  if (isLoading) {
+    return <AppointmentCardsSkeleton count={4} className='grid grid-cols-1 gap-3.5' />;
+  }
 
   if (appointments.length === 0) {
     return (

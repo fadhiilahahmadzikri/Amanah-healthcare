@@ -7,6 +7,7 @@ import type { AppointmentStatus } from '../api/types';
 
 export { APPOINTMENT_STATUS_OPTIONS };
 export const LIVE_STATUS_OPTIONS = APPOINTMENT_STATUS_OPTIONS;
+export const DEFAULT_APPOINTMENT_PAGE_LIMIT = 20;
 
 export const TERMINAL_STATUSES: AppointmentStatus[] = [
   APPOINTMENT_STATUS.COMPLETED,
