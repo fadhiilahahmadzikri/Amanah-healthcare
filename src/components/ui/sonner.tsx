@@ -45,18 +45,20 @@ const Toaster = ({ ...props }: ToasterProps) => {
         },
         classNames: {
           toast:
-            'group toast group-[.toaster]:bg-popover group-[.toaster]:text-popover-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg',
+            'group toast group-[.toaster]:bg-popover group-[.toaster]:text-popover-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg data-[custom=true]:bg-transparent data-[custom=true]:border-none data-[custom=true]:p-0 data-[custom=true]:shadow-none',
           title: 'group-[.toast]:text-foreground group-[.toast]:font-medium',
-          description: 'group-[.toast]:text-muted-foreground',
+          description: 'group-[.toast]:text-muted-foreground whitespace-pre-line',
+          icon: 'group-[.toast]:size-auto group-[.toast]:self-center group-[.toast]:mr-3.5',
+          content:
+            'group-[.toast]:flex group-[.toast]:flex-col group-[.toast]:gap-0.5 group-[.toast]:flex-1',
           actionButton:
-            'group-[.toast]:bg-primary group-[.toast]:text-primary-foreground group-[.toast]:hover:bg-primary/90',
+            'group-[.toast]:bg-primary group-[.toast]:text-primary-foreground group-[.toast]:hover:bg-primary/90 text-xs font-medium px-2.5 py-1.5 rounded-md group-[.toast]:self-center',
           cancelButton:
             'group-[.toast]:bg-muted group-[.toast]:text-foreground group-[.toast]:hover:bg-muted/80',
           ...toastOptions?.classNames
         }
       }}
       position='top-center'
-      invert={true}
       {...toasterProps}
     />
   );

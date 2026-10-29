@@ -17,16 +17,16 @@ try {
     Write-Host "Authenticated as Patient: $($patientLoginRes.user.name) (ID: $patientUserId, Role: $($patientLoginRes.user.role))" -ForegroundColor Green
 
     Write-Host "`n=== 2. RETRIEVE CLINIC & PATIENT METADATA ===" -ForegroundColor Cyan
-    $patientProfileId = (docker exec -i amanah-healthcare-backend-postgres-1 psql -U amanah -d amanah_healthcare -t -A -c "SELECT id FROM patient_profiles WHERE user_id = '$patientUserId' LIMIT 1;").Trim()
+    $patientProfileId = (docker exec -i backend-postgres-1 psql -U amanah -d amanah_healthcare -t -A -c "SELECT id FROM patient_profiles WHERE user_id = '$patientUserId' LIMIT 1;").Trim()
     if (-not $patientProfileId) {
         Write-Error "No patient profile found for patient user id $patientUserId"
         exit 1
     }
     Write-Host "Patient Profile ID: $patientProfileId"
 
-    $poliId = (docker exec -i amanah-healthcare-backend-postgres-1 psql -U amanah -d amanah_healthcare -t -A -c "SELECT id FROM clinic_units WHERE name = 'Poli Umum' LIMIT 1;").Trim()
-    $serviceId = (docker exec -i amanah-healthcare-backend-postgres-1 psql -U amanah -d amanah_healthcare -t -A -c "SELECT id FROM clinic_services LIMIT 1;").Trim()
-    $doctorProfile = (docker exec -i amanah-healthcare-backend-postgres-1 psql -U amanah -d amanah_healthcare -t -A -c "SELECT id, user_id FROM staff_profiles WHERE staff_type = 'doctor' LIMIT 1;").Trim()
+    $poliId = (docker exec -i backend-postgres-1 psql -U amanah -d amanah_healthcare -t -A -c "SELECT id FROM clinic_units WHERE name = 'Poli Umum' LIMIT 1;").Trim()
+    $serviceId = (docker exec -i backend-postgres-1 psql -U amanah -d amanah_healthcare -t -A -c "SELECT id FROM clinic_services LIMIT 1;").Trim()
+    $doctorProfile = (docker exec -i backend-postgres-1 psql -U amanah -d amanah_healthcare -t -A -c "SELECT id, user_id FROM staff_profiles WHERE staff_type = 'doctor' LIMIT 1;").Trim()
     $doctorParts = $doctorProfile.Split('|')
     $doctorStaffId = $doctorParts[0]
     $doctorUserId = $doctorParts[1]
@@ -38,8 +38,8 @@ try {
         poliklinikId = $poliId
         layananId = $serviceId
         appointmentDate = "2026-10-15"
-        session = "PAGI"
-        visitType = "Pemeriksaan Baru"
+        session = "pagi"
+        visitType = "new_visit"
         complaint = "Pemeriksaan Rutin Kesehatan (RBAC Notification Verification)"
         staffId = $doctorStaffId
     } | ConvertTo-Json
@@ -61,12 +61,12 @@ try {
     Write-Host "`n=== 4. VERIFY DATABASE NOTIFICATIONS (RBAC, AUDIENCE, TOAST POLICY) ===" -ForegroundColor Cyan
 
     $query = "SELECT n.id, nr.user_id, n.audience, n.title, n.is_urgent, n.metadata FROM notifications n JOIN notification_recipients nr ON n.id = nr.notification_id WHERE n.source_id = '$createdApptId' OR n.metadata->>'appointmentId' = '$createdApptId' ORDER BY n.created_at DESC;"
-    $notificationsRaw = docker exec -i amanah-healthcare-backend-postgres-1 psql -U amanah -d amanah_healthcare -t -A -F "`t" -c "$query"
+    $notificationsRaw = docker exec -i backend-postgres-1 psql -U amanah -d amanah_healthcare -t -A -F "`t" -c "$query"
 
     if (-not $notificationsRaw) {
         # Check without sourceId filter
         $queryFallback = "SELECT n.id, nr.user_id, n.audience, n.title, n.is_urgent, n.metadata FROM notifications n JOIN notification_recipients nr ON n.id = nr.notification_id ORDER BY n.created_at DESC LIMIT 5;"
-        $notificationsRaw = docker exec -i amanah-healthcare-backend-postgres-1 psql -U amanah -d amanah_healthcare -t -A -F "`t" -c "$queryFallback"
+        $notificationsRaw = docker exec -i backend-postgres-1 psql -U amanah -d amanah_healthcare -t -A -F "`t" -c "$queryFallback"
     }
 
     Write-Host "Notifications found in DB:"
@@ -148,8 +148,8 @@ try {
 } finally {
     Write-Host "=== CLEANUP TEST DATA ===" -ForegroundColor DarkGray
     if ($createdApptId) {
-        docker exec -i amanah-healthcare-backend-postgres-1 psql -U amanah -d amanah_healthcare -c "DELETE FROM appointments WHERE id = '$createdApptId';" | Out-Null
-        docker exec -i amanah-healthcare-backend-postgres-1 psql -U amanah -d amanah_healthcare -c "DELETE FROM notifications WHERE metadata->>'appointmentId' = '$createdApptId' OR metadata->>'sourceId' = '$createdApptId';" | Out-Null
+        docker exec -i backend-postgres-1 psql -U amanah -d amanah_healthcare -c "DELETE FROM appointments WHERE id = '$createdApptId';" | Out-Null
+        docker exec -i backend-postgres-1 psql -U amanah -d amanah_healthcare -c "DELETE FROM notifications WHERE metadata->>'appointmentId' = '$createdApptId' OR metadata->>'sourceId' = '$createdApptId';" | Out-Null
         Write-Host "Flushed test appointment $createdApptId and related notifications." -ForegroundColor DarkGray
     }
 }

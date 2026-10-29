@@ -44,6 +44,7 @@ export interface StaffMember {
   id: string;
   userId: string;
   poliklinikId: string;
+  poliklinikName?: string | null;
   fullName: string;
   profession: string;
   staffType: StaffType;
@@ -57,11 +58,22 @@ export interface StaffMember {
   phoneNumber: string;
   photoUrl?: string | null;
   isActive: boolean;
+  status: 'active' | 'inactive' | 'on_leave' | 'pending';
+  isPendingVerification?: boolean;
+  invitationId?: string | null;
   address?: StaffAddressData | null;
   leaveInfo?: StaffLeaveInfo | null;
   todayAttendance?: StaffTodayAttendance | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface StaffFilters {
+  status?: string;
+  staffType?: string;
+  profession?: string;
+  poliklinikId?: string;
+  search?: string;
 }
 
 export interface StaffInvitation {
@@ -136,7 +148,16 @@ export const staffManagementApi = {
 
   getPolyclinics: () => clientFetch<PolyclinicUnit[]>('/api/v1/clinics/poliklinik'),
 
-  getAllStaffs: () => clientFetch<StaffMember[]>('/api/v1/staffs'),
+  getAllStaffs: (filters?: StaffFilters) => {
+    const params = new URLSearchParams();
+    if (filters?.status && filters.status !== 'all') params.set('status', filters.status);
+    if (filters?.staffType) params.set('staffType', filters.staffType);
+    if (filters?.profession) params.set('profession', filters.profession);
+    if (filters?.poliklinikId) params.set('poliklinikId', filters.poliklinikId);
+    if (filters?.search?.trim()) params.set('search', filters.search.trim());
+    const queryStr = params.toString();
+    return clientFetch<StaffMember[]>(`/api/v1/staffs${queryStr ? `?${queryStr}` : ''}`);
+  },
 
   getStaffById: (id: string) => clientFetch<StaffMember>(`/api/v1/staffs/${id}`),
 

@@ -28,10 +28,20 @@ export function StaffScheduleCard({
   isSelected,
   className
 }: StaffScheduleCardProps) {
-  // Derive operational account status strictly from backend contract (No Dummy Data)
-  const statusKey = staff.leaveInfo?.isOnLeave ? 'CUTI' : staff.isActive ? 'AKTIF' : 'NONAKTIF';
+  // Derive operational account status strictly from backend contract (Truthful SSOT)
+  let statusKey = 'AKTIF';
+  let statusLabel = 'Aktif';
 
-  const statusLabel = staff.leaveInfo?.isOnLeave ? 'Cuti' : staff.isActive ? 'Aktif' : 'Non-Aktif';
+  if (staff.status === 'pending' || staff.isPendingVerification) {
+    statusKey = 'MENUNGGU_VERIFIKASI';
+    statusLabel = 'Menunggu Verifikasi';
+  } else if (staff.status === 'on_leave' || staff.leaveInfo?.isOnLeave) {
+    statusKey = 'CUTI';
+    statusLabel = 'Sedang Cuti';
+  } else if (staff.status === 'inactive' || !staff.isActive) {
+    statusKey = 'NONAKTIF';
+    statusLabel = 'Non-Aktif';
+  }
 
   const handleContainerClick = () => {
     onOpenDetail?.(staff);
@@ -67,12 +77,25 @@ export function StaffScheduleCard({
       isSelected={isSelected}
       name={staff.fullName}
       subtitle={
-        <span
-          title={staff.profession || 'Staf Medis'}
-          className='text-[12px] sm:text-[11.5px] xl:text-[11px] font-medium text-muted-foreground tracking-tight truncate block mt-0.5'
-        >
-          {staff.profession || 'Staf Medis'}
-        </span>
+        <div className='flex items-center gap-1.5 min-w-0 mt-0.5 truncate'>
+          <span
+            title={staff.profession || 'Staf Medis'}
+            className='text-[12px] sm:text-[11.5px] xl:text-[11px] font-medium text-muted-foreground tracking-tight truncate'
+          >
+            {staff.profession || 'Staf Medis'}
+          </span>
+          {staff.poliklinikName && (
+            <>
+              <span className='text-muted-foreground/40 text-[11px]'>•</span>
+              <span
+                title={staff.poliklinikName}
+                className='text-[11px] text-muted-foreground/80 truncate'
+              >
+                {staff.poliklinikName}
+              </span>
+            </>
+          )}
+        </div>
       }
       avatarUrl={staff.photoUrl}
       contentSlot={

@@ -49,6 +49,40 @@ export function StaffStatusBadgeItem({ isActive }: { isActive: boolean }) {
   );
 }
 
+export function StaffOperationalStatusBadge({
+  status
+}: {
+  status: 'active' | 'inactive' | 'on_leave' | 'pending' | string;
+}) {
+  switch (status) {
+    case 'active':
+      return (
+        <Badge className='bg-emerald-600/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 font-medium'>
+          Aktif
+        </Badge>
+      );
+    case 'pending':
+      return (
+        <Badge className='bg-amber-600/15 text-amber-700 dark:text-amber-400 border-amber-500/30 font-medium'>
+          Menunggu Verifikasi
+        </Badge>
+      );
+    case 'on_leave':
+      return (
+        <Badge className='bg-sky-600/15 text-sky-700 dark:text-sky-400 border-sky-500/30 font-medium'>
+          Sedang Cuti
+        </Badge>
+      );
+    case 'inactive':
+    default:
+      return (
+        <Badge variant='outline' className='text-muted-foreground font-medium'>
+          Non-Aktif
+        </Badge>
+      );
+  }
+}
+
 export function StaffLeaveBadge({
   leaveInfo
 }: {

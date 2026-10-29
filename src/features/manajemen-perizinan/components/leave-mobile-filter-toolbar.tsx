@@ -117,8 +117,7 @@ export function LeaveMobileFilterToolbar({
           onOpenSettingsModal && (
             <div className='flex items-center gap-1.5 shrink-0'>
               <LeaveSettingsButton
-                onSelectCategory={onOpenSettingsModal}
-                forceMode='drawer'
+                onOpenSettings={onOpenSettingsModal}
                 className='size-8 rounded-md'
               />
             </div>

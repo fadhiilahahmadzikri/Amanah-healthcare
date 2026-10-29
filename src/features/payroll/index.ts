@@ -24,6 +24,7 @@ export * from './components/payroll-mobile-cards';
 export * from './components/payroll-slip-detail-modal';
 export * from './components/payroll-calculate-modal';
 export * from './components/payroll-rates-config-modal';
+export * from './components/payroll-timing-config-modal';
 export * from './components/payroll-audit-mutation-modal';
 export * from './components/payroll-reconcile-leave-modal';
 export * from './components/payroll-skeleton';
