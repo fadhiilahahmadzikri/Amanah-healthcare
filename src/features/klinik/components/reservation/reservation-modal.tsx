@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { isUUID } from 'class-validator';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Icons } from '@/components/icons';
@@ -140,11 +141,16 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
           throw new Error('ID Janji temu tidak ditemukan untuk penjadwalan ulang');
         }
 
+        const validSessionId =
+          selectedSessionId && isUUID(selectedSessionId.trim())
+            ? selectedSessionId.trim()
+            : undefined;
+
         const res = await rescheduleAppointmentAction(context.appointmentId, {
           target_date: dateStr,
           session: session,
           target_session: session,
-          target_session_id: selectedSessionId || undefined
+          target_session_id: validSessionId
         });
 
         toast.success(res?.message || 'Janji temu berhasil dijadwalkan ulang');
