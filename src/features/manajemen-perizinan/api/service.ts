@@ -50,7 +50,8 @@ export async function updateLeavePolicy(data: Partial<LeavePolicyItem>): Promise
       approvalRequired: data.approvalRequired,
       limitMode: data.limitMode,
       monthlyLimit: data.monthlyLimit,
-      quotaCountingPolicy: data.quotaCountingPolicy
+      quotaCountingPolicy: data.quotaCountingPolicy,
+      periodPolicy: data.periodPolicy
     })
   });
 }

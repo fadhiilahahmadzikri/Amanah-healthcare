@@ -190,6 +190,7 @@ export interface BookingOptionShift {
   startTime: string;
   endTime: string;
   capacity: number;
+  icon?: string | null;
   isPast?: boolean;
   isDisabled: boolean;
   disabledReason: string | null;

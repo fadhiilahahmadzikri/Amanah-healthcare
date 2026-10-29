@@ -75,6 +75,9 @@ export function LeaveSettingsModal({
   const [limitMode, setLimitMode] = useState<'unlimited' | 'monthly_limit'>('monthly_limit');
   const [monthlyLimit, setMonthlyLimit] = useState(2);
   const [noticeDaysRequired, setNoticeDaysRequired] = useState(2);
+  const [periodPolicy, setPeriodPolicy] = useState<
+    'non_overlapping' | 'previous_period_must_finish'
+  >('non_overlapping');
 
   // Rate states
   const [doctorHourly, setDoctorHourly] = useState(150000);
@@ -93,6 +96,7 @@ export function LeaveSettingsModal({
       setLimitMode(activePolicy.limitMode);
       setMonthlyLimit(activePolicy.monthlyLimit);
       setNoticeDaysRequired(activePolicy.noticeDaysRequired ?? 2);
+      setPeriodPolicy(activePolicy.periodPolicy ?? 'non_overlapping');
     }
   }, [policies]);
 
@@ -120,7 +124,8 @@ export function LeaveSettingsModal({
         approvalRequired,
         limitMode,
         monthlyLimit,
-        noticeDaysRequired
+        noticeDaysRequired,
+        periodPolicy
       });
     } else {
       await updateRateMutation.mutateAsync({
@@ -285,6 +290,66 @@ export function LeaveSettingsModal({
                         hari di muka
                       </span>
                     </div>
+                  </div>
+                </div>
+
+                {/* 4. Kebijakan Periode Izin */}
+                <div className='p-3.5 rounded-xl border border-border/80 bg-card flex flex-col gap-3 shadow-2xs hover:border-border transition-colors'>
+                  <div className='flex flex-col gap-0.5'>
+                    <span className='font-semibold text-xs sm:text-sm text-foreground'>
+                      Kebijakan Validasi Periode Pengajuan Izin
+                    </span>
+                    <p className='text-xs text-muted-foreground leading-relaxed'>
+                      Tentukan apakah staf dapat mengajukan izin di masa depan yang tidak
+                      bertabrakan, atau wajib menyelesaikan periode izin sebelumnya terlebih dahulu.
+                    </p>
+                  </div>
+                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-border/40'>
+                    <button
+                      type='button'
+                      onClick={() => setPeriodPolicy('non_overlapping')}
+                      className={`flex flex-col p-3 rounded-lg border text-left transition-all cursor-pointer ${
+                        periodPolicy === 'non_overlapping'
+                          ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                          : 'border-border/70 bg-background hover:border-border'
+                      }`}
+                    >
+                      <div className='flex items-center justify-between w-full mb-1'>
+                        <span className='text-xs font-semibold text-foreground'>
+                          Fleksibel (Non-Overlapping)
+                        </span>
+                        {periodPolicy === 'non_overlapping' && (
+                          <span className='h-2 w-2 rounded-full bg-primary' />
+                        )}
+                      </div>
+                      <p className='text-[11px] text-muted-foreground leading-normal'>
+                        Izin periode mendatang diizinkan selama tanggal/sesi tidak bertabrakan
+                        dengan izin pending atau disetujui.
+                      </p>
+                    </button>
+
+                    <button
+                      type='button'
+                      onClick={() => setPeriodPolicy('previous_period_must_finish')}
+                      className={`flex flex-col p-3 rounded-lg border text-left transition-all cursor-pointer ${
+                        periodPolicy === 'previous_period_must_finish'
+                          ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                          : 'border-border/70 bg-background hover:border-border'
+                      }`}
+                    >
+                      <div className='flex items-center justify-between w-full mb-1'>
+                        <span className='text-xs font-semibold text-foreground'>
+                          Ketat (Periode Harus Selesai)
+                        </span>
+                        {periodPolicy === 'previous_period_must_finish' && (
+                          <span className='h-2 w-2 rounded-full bg-primary' />
+                        )}
+                      </div>
+                      <p className='text-[11px] text-muted-foreground leading-normal'>
+                        Staf harus menyelesaikan masa cuti aktif/pending sebelumnya sebelum dapat
+                        mengajukan permohonan baru.
+                      </p>
+                    </button>
                   </div>
                 </div>
               </div>

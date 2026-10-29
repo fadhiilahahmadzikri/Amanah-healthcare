@@ -4,11 +4,11 @@ import React from 'react';
 import { Icons } from '@/components/icons';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getSessionIcon } from '../../constants/consultation-sessions';
 import type { ServiceCatalogItem } from '../../api/catalog.service';
 import { cn } from '@/lib/utils';
 import { useBookingSessions } from '../../model/useBookingSessions';
 import type { BookingOptionShift } from '@/features/data-pasien/api/patient-affiliation-service';
+import { ShiftIconDisplay } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-display';
 import { QUEUE_LOAD_STATUS, QUEUE_LOAD_BADGE_STYLES } from '../../constants/queue-load.constants';
 import { formatClinicDate } from '@/lib/date-format';
 
@@ -149,7 +149,6 @@ function SessionList({ sessions, session, onSelectSession }: SessionListProps) {
         {sessions.map((sess) => {
           const isSelected = session === sess.session;
           const isDisabled = Boolean(sess.isDisabled);
-          const SessionIcon = getSessionIcon(sess.session);
           const primaryPractitioner = sess.practitioners?.[0];
           const loadStatus = sess.loadStatus;
           const badgeStyle = loadStatus
@@ -182,18 +181,19 @@ function SessionList({ sessions, session, onSelectSession }: SessionListProps) {
               )}
             >
               <div className='flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1'>
-                <div
+                <ShiftIconDisplay
+                  icon={sess.icon}
+                  fallback={sess.shift || sess.session}
+                  size='sm'
                   className={cn(
-                    'size-8 sm:size-9 rounded-full flex items-center justify-center shrink-0 transition-colors',
+                    'rounded-full shrink-0',
                     isDisabled
-                      ? 'bg-muted text-muted-foreground'
+                      ? 'bg-muted text-muted-foreground opacity-60'
                       : isSelected
                         ? 'bg-primary text-primary-foreground shadow-xs'
                         : 'bg-muted text-muted-foreground'
                   )}
-                >
-                  <SessionIcon className='size-3.5 sm:size-4' />
-                </div>
+                />
 
                 <div className='min-w-0 flex-1 space-y-1'>
                   <div className='text-xs sm:text-sm font-semibold text-foreground truncate'>

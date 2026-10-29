@@ -8,7 +8,9 @@ import {
   parseTimeEndToMinutes,
   minutesToTimeString,
   calculateShiftDurationHours,
-  detectSessionDefsOverlaps
+  detectSessionDefsOverlaps,
+  compareSessionChronology,
+  sortSessionsChronologically
 } from '../../src/features/jadwal-dokter/utils/shift-time-validator';
 import type { SessionDefConfig } from '../../src/features/jadwal-dokter/api/admin-schedule-configuration.api';
 
@@ -98,14 +100,45 @@ describe('shift-time-validator', () => {
     });
   });
 
+  describe('compareSessionChronology and sortSessionsChronologically', () => {
+    it('sorts shifts chronologically by start time, then end time, regardless of creation or sortOrder', () => {
+      const shifts = [
+        { id: '1', label: 'Siang', defaultStartsAt: '14:00', defaultEndsAt: '17:00', sortOrder: 1 },
+        {
+          id: '2',
+          label: 'Dini Hari',
+          defaultStartsAt: '00:00',
+          defaultEndsAt: '03:00',
+          sortOrder: 2
+        },
+        { id: '3', label: 'Pagi', defaultStartsAt: '07:00', defaultEndsAt: '12:00', sortOrder: 3 }
+      ];
+
+      const sorted = sortSessionsChronologically(shifts);
+      expect(sorted.map((s) => s.label)).toEqual(['Dini Hari', 'Pagi', 'Siang']);
+    });
+
+    it('correctly uses end time as tie breaker when start times are identical', () => {
+      const shifts = [
+        { id: '1', label: 'Shift Panjang', defaultStartsAt: '08:00', defaultEndsAt: '16:00' },
+        { id: '2', label: 'Shift Pendek', defaultStartsAt: '08:00', defaultEndsAt: '12:00' }
+      ];
+
+      const sorted = sortSessionsChronologically(shifts);
+      expect(sorted[0].label).toBe('Shift Pendek');
+      expect(sorted[1].label).toBe('Shift Panjang');
+    });
+  });
+
   describe('detectSessionDefsOverlaps', () => {
     it('detects inverted start/end times', () => {
       const defs: SessionDefConfig[] = [
         {
           id: 'def-1',
-          clinicId: 'clinic-1',
-          name: 'Pagi',
+          code: 'pagi',
+          labelKey: 'pagi',
           label: 'Pagi',
+          timeRange: '12:00 - 08:00',
           codePrefix: 'P',
           sortOrder: 1,
           defaultStartsAt: '12:00:00',
@@ -123,9 +156,10 @@ describe('shift-time-validator', () => {
       const defs: SessionDefConfig[] = [
         {
           id: 'def-1',
-          clinicId: 'clinic-1',
-          name: 'Pagi',
+          code: 'pagi',
+          labelKey: 'pagi',
           label: 'Pagi',
+          timeRange: '08:00 - 12:00',
           codePrefix: 'P',
           sortOrder: 1,
           defaultStartsAt: '08:00:00',
@@ -134,9 +168,10 @@ describe('shift-time-validator', () => {
         },
         {
           id: 'def-2',
-          clinicId: 'clinic-1',
-          name: 'Siang',
+          code: 'siang',
+          labelKey: 'siang',
           label: 'Siang',
+          timeRange: '11:00 - 15:00',
           codePrefix: 'S',
           sortOrder: 2,
           defaultStartsAt: '11:00:00',
@@ -154,9 +189,10 @@ describe('shift-time-validator', () => {
       const defs: SessionDefConfig[] = [
         {
           id: 'def-1',
-          clinicId: 'clinic-1',
-          name: 'Pagi',
+          code: 'pagi',
+          labelKey: 'pagi',
           label: 'Pagi',
+          timeRange: '08:00 - 12:00',
           codePrefix: 'P',
           sortOrder: 1,
           defaultStartsAt: '08:00:00',
@@ -165,9 +201,10 @@ describe('shift-time-validator', () => {
         },
         {
           id: 'def-2',
-          clinicId: 'clinic-1',
-          name: 'Siang',
+          code: 'siang',
+          labelKey: 'siang',
           label: 'Siang',
+          timeRange: '13:00 - 17:00',
           codePrefix: 'S',
           sortOrder: 2,
           defaultStartsAt: '13:00:00',

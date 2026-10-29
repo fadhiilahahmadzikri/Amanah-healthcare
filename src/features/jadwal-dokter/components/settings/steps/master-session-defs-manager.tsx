@@ -30,9 +30,13 @@ import {
 import {
   calculateShiftDurationHours,
   getAdjacentShiftGapMinutes,
-  formatTimeToHHmm
+  formatTimeToHHmm,
+  sortSessionsChronologically,
+  parseTimeToMinutes,
+  parseTimeEndToMinutes
 } from '../../../utils/shift-time-validator';
 import { ShiftTimeSelect } from '../atoms/shift-time-select';
+import { ShiftIconDisplay } from '../atoms/shift-icon-display';
 import { SessionDefFormDialog } from '../modals/session-def-form-dialog';
 import { ShiftDeletionImpactDialog } from '../modals/shift-deletion-impact-dialog';
 import { cn } from '@/lib/utils';
@@ -41,10 +45,16 @@ export interface MasterSessionDefsManagerProps {
   sessionDefs: SessionDefConfig[];
   conflictingDefIds?: string[];
   onToggleActive: (id: string) => void;
-  onUpdateTime?: (id: string, field: 'defaultStartsAt' | 'defaultEndsAt', value: string) => void;
+  onUpdateTime?: (
+    id: string,
+    field: 'defaultStartsAt' | 'defaultEndsAt',
+    value: string,
+    shouldAutoAdjust?: boolean
+  ) => void;
   onAddSessionDef?: (payload: {
     label: string;
     codePrefix?: string;
+    icon?: string;
     defaultStartsAt: string;
     defaultEndsAt: string;
   }) => Promise<void>;
@@ -53,6 +63,7 @@ export interface MasterSessionDefsManagerProps {
     payload: {
       label?: string;
       codePrefix?: string;
+      icon?: string;
       defaultStartsAt?: string;
       defaultEndsAt?: string;
     }
@@ -89,6 +100,70 @@ export function MasterSessionDefsManager({
   const [impactData, setImpactData] = useState<SessionDefImpactResult | null>(null);
   const [loadingImpactId, setLoadingImpactId] = useState<string | null>(null);
   const [isCascadeDeleting, setIsCascadeDeleting] = useState(false);
+  const [pendingAdjustment, setPendingAdjustment] = useState<{
+    id: string;
+    field: 'defaultStartsAt' | 'defaultEndsAt';
+    value: string;
+    currentShiftLabel: string;
+    adjacentShiftLabel: string;
+  } | null>(null);
+
+  const handleTimeChange = (
+    id: string,
+    field: 'defaultStartsAt' | 'defaultEndsAt',
+    value: string
+  ) => {
+    if (!onUpdateTime) return;
+
+    // Check if this time change causes a collision with adjacent active shift
+    const sorted = sortSessionsChronologically(sessionDefs);
+    const targetIndex = sorted.findIndex((d) => d.id === id);
+    const currentShift = sorted[targetIndex];
+
+    if (targetIndex !== -1 && currentShift) {
+      if (field === 'defaultEndsAt') {
+        const endMin = parseTimeEndToMinutes(value);
+        const nextActive = sorted.slice(targetIndex + 1).find((d) => d.isActive);
+        if (nextActive) {
+          const nextStartMin = parseTimeToMinutes(nextActive.defaultStartsAt);
+          if (endMin > nextStartMin) {
+            // Collision detected with next shift! Open AlertDialog on-demand
+            setPendingAdjustment({
+              id,
+              field,
+              value,
+              currentShiftLabel: currentShift.label,
+              adjacentShiftLabel: nextActive.label
+            });
+            return;
+          }
+        }
+      } else if (field === 'defaultStartsAt') {
+        const startMin = parseTimeToMinutes(value);
+        const prevActive = sorted
+          .slice(0, targetIndex)
+          .toReversed()
+          .find((d) => d.isActive);
+        if (prevActive) {
+          const prevEndMin = parseTimeEndToMinutes(prevActive.defaultEndsAt);
+          if (startMin < prevEndMin) {
+            // Collision detected with previous shift! Open AlertDialog on-demand
+            setPendingAdjustment({
+              id,
+              field,
+              value,
+              currentShiftLabel: currentShift.label,
+              adjacentShiftLabel: prevActive.label
+            });
+            return;
+          }
+        }
+      }
+    }
+
+    // No collision: update normally without any popup
+    onUpdateTime(id, field, value, false);
+  };
 
   const isFormOpen =
     isAddDialogOpen !== undefined ? isAddDialogOpen || Boolean(editingDef) : internalDialogOpen;
@@ -120,6 +195,7 @@ export function MasterSessionDefsManager({
   const handleFormSubmit = async (formData: {
     label: string;
     codePrefix?: string;
+    icon?: string;
     defaultStartsAt: string;
     defaultEndsAt: string;
   }) => {
@@ -228,19 +304,17 @@ export function MasterSessionDefsManager({
                 )}
               >
                 <div className='flex items-center justify-between pb-2 gap-2'>
-                  <div className='flex items-center gap-3 min-w-0'>
-                    <div
+                  <div className='flex items-center gap-2.5 min-w-0'>
+                    <ShiftIconDisplay
+                      icon={def.icon}
+                      fallback={def.codePrefix}
+                      size='md'
                       className={cn(
-                        'size-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0',
-                        isConflicted
-                          ? 'bg-destructive/15 text-destructive border border-destructive/30'
-                          : def.isActive
-                            ? 'bg-primary/10 text-primary border border-primary/20'
-                            : 'bg-muted text-muted-foreground border border-border/50'
+                        isConflicted &&
+                          'bg-destructive/15 text-destructive border border-destructive/30',
+                        !def.isActive && 'bg-muted text-muted-foreground opacity-60'
                       )}
-                    >
-                      {def.codePrefix}
-                    </div>
+                    />
                     <div className='flex flex-col min-w-0'>
                       <div className='flex items-center gap-1.5'>
                         <span className='font-semibold text-sm text-foreground whitespace-nowrap truncate'>
@@ -319,7 +393,9 @@ export function MasterSessionDefsManager({
                         </span>
                         <ShiftTimeSelect
                           value={startsAt}
-                          onChange={(val) => onUpdateTime(def.id, 'defaultStartsAt', `${val}:00`)}
+                          onChange={(val) =>
+                            handleTimeChange(def.id, 'defaultStartsAt', `${val}:00`)
+                          }
                           portalContainerRef={portalContainerRef}
                           className='h-8 text-xs'
                           ariaLabel={`Jam mulai shift ${displayLabel}`}
@@ -332,7 +408,7 @@ export function MasterSessionDefsManager({
                         </span>
                         <ShiftTimeSelect
                           value={endsAt}
-                          onChange={(val) => onUpdateTime(def.id, 'defaultEndsAt', `${val}:00`)}
+                          onChange={(val) => handleTimeChange(def.id, 'defaultEndsAt', `${val}:00`)}
                           portalContainerRef={portalContainerRef}
                           className='h-8 text-xs'
                           ariaLabel={`Jam selesai shift ${displayLabel}`}
@@ -360,6 +436,67 @@ export function MasterSessionDefsManager({
           })}
         </div>
       )}
+
+      {/* On-Demand Family-Friendly Auto-Adjustment Alert Dialog */}
+      <AlertDialog
+        open={Boolean(pendingAdjustment)}
+        onOpenChange={(open) => !open && setPendingAdjustment(null)}
+      >
+        <AlertDialogContent className='rounded-2xl max-w-sm sm:max-w-md'>
+          <AlertDialogHeader>
+            <AlertDialogTitle className='text-base font-bold'>
+              Sesuaikan Jam Shift Otomatis?
+            </AlertDialogTitle>
+            <AlertDialogDescription className='text-xs leading-relaxed'>
+              Perubahan jam pada shift{' '}
+              <strong className='text-foreground'>{pendingAdjustment?.currentShiftLabel}</strong>{' '}
+              bertabrakan dengan shift{' '}
+              <strong className='text-foreground'>{pendingAdjustment?.adjacentShiftLabel}</strong>.
+              <br />
+              <br />
+              Apakah Anda ingin menyesuaikan batas jam shift{' '}
+              <strong className='text-foreground'>
+                {pendingAdjustment?.adjacentShiftLabel}
+              </strong>{' '}
+              secara otomatis agar tidak tumpang tindih?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className='gap-2 sm:gap-0 pt-2'>
+            <AlertDialogCancel
+              onClick={() => {
+                if (pendingAdjustment && onUpdateTime) {
+                  onUpdateTime(
+                    pendingAdjustment.id,
+                    pendingAdjustment.field,
+                    pendingAdjustment.value,
+                    false
+                  );
+                }
+                setPendingAdjustment(null);
+              }}
+              className='cursor-pointer text-xs h-8'
+            >
+              Tidak, Biarkan Saja
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingAdjustment && onUpdateTime) {
+                  onUpdateTime(
+                    pendingAdjustment.id,
+                    pendingAdjustment.field,
+                    pendingAdjustment.value,
+                    true
+                  );
+                }
+                setPendingAdjustment(null);
+              }}
+              className='cursor-pointer text-xs font-semibold h-8'
+            >
+              Ya, Sesuaikan Otomatis
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Radix Alert Dialog for Delete Confirmation (Clean shift, 0 doctors) */}
       <AlertDialog

@@ -104,6 +104,56 @@ export function calculateShiftDurationHours(startsAt: string, endsAt: string): n
   return Number((diff / 60).toFixed(1));
 }
 
+export interface ChronologicalShiftCandidate {
+  id?: string;
+  defaultStartsAt?: string | null;
+  defaultEndsAt?: string | null;
+  startsAt?: string | null;
+  endsAt?: string | null;
+  label?: string | null;
+  code?: string | null;
+  sortOrder?: number | null;
+}
+
+/**
+ * Pembanding kronologis deterministik murni untuk dua shift.
+ * 1. Jam mulai paling awal
+ * 2. Jam selesai paling cepat
+ * 3. Label/kode alfabetis
+ */
+export function compareSessionChronology(
+  a: ChronologicalShiftCandidate,
+  b: ChronologicalShiftCandidate
+): number {
+  const aStartRaw = a.defaultStartsAt || a.startsAt || '';
+  const bStartRaw = b.defaultStartsAt || b.startsAt || '';
+  const aStartMin = parseTimeToMinutes(aStartRaw);
+  const bStartMin = parseTimeToMinutes(bStartRaw);
+
+  if (aStartMin !== bStartMin) {
+    return aStartMin - bStartMin;
+  }
+
+  const aEndRaw = a.defaultEndsAt || a.endsAt || '';
+  const bEndRaw = b.defaultEndsAt || b.endsAt || '';
+  const aEndMin = parseTimeEndToMinutes(aEndRaw, aStartMin);
+  const bEndMin = parseTimeEndToMinutes(bEndRaw, bStartMin);
+
+  if (aEndMin !== bEndMin) {
+    return aEndMin - bEndMin;
+  }
+
+  const aId = (a.label || a.code || '').toLowerCase();
+  const bId = (b.label || b.code || '').toLowerCase();
+  return aId.localeCompare(bId);
+}
+
+export function sortSessionsChronologically<T extends ChronologicalShiftCandidate>(
+  sessions: T[]
+): T[] {
+  return [...sessions].toSorted(compareSessionChronology);
+}
+
 export interface ShiftValidationResult {
   isValid: boolean;
   errorMessage: string | null;
@@ -119,9 +169,7 @@ export interface ShiftValidationResult {
  * 3. Jeda/Gap operasional klinik (endA <= startB) sepenuhnya SAH dan diizinkan.
  */
 export function detectSessionDefsOverlaps(defs: SessionDefConfig[]): ShiftValidationResult {
-  const activeDefs = defs
-    .filter((d) => d.isActive)
-    .toSorted((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  const activeDefs = sortSessionsChronologically(defs.filter((d) => d.isActive));
 
   // 1. Validasi internal masing-masing shift
   for (const def of activeDefs) {
@@ -181,9 +229,7 @@ export function getAdjacentShiftGapMinutes(
 ): { gapMinutes: number; nextDefLabel: string } | null {
   if (!currentDef.isActive) return null;
 
-  const activeDefs = allDefs
-    .filter((d) => d.isActive)
-    .toSorted((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  const activeDefs = sortSessionsChronologically(allDefs.filter((d) => d.isActive));
 
   const currentIndex = activeDefs.findIndex((d) => d.id === currentDef.id);
   if (currentIndex === -1 || currentIndex === activeDefs.length - 1) return null;

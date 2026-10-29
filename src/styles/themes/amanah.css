@@ -1,298 +1,473 @@
-[data-theme='amanah'] {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.24 0.12 278);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.24 0.12 278);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.24 0.12 278);
-  --primary: oklch(0.24 0.12 278);
-  --primary-foreground: oklch(1 0 0);
-  --primary-bright: oklch(0.58 0.23 255);
-  --primary-subtle: oklch(0.96 0.03 255);
-  --secondary: oklch(0.95 0.015 278);
-  --secondary-foreground: oklch(0.24 0.12 278);
-  --muted: oklch(0.96 0.008 278);
-  --muted-foreground: oklch(0.55 0.03 270);
-  --accent: oklch(0.94 0.025 278);
-  --accent-foreground: oklch(0.24 0.12 278);
-  --destructive: oklch(0.58 0.22 15);
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.93 0.006 270);
-  --input: oklch(0.93 0.006 270);
-  --ring: oklch(0.24 0.12 278);
-  --chart-1: oklch(0.24 0.12 278);
-  --chart-2: oklch(0.65 0.18 160);
-  --chart-3: oklch(0.75 0.16 75);
-  --chart-4: oklch(0.55 0.22 280);
-  --chart-5: oklch(0.62 0.22 15);
-  --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.24 0.12 278);
-  --sidebar-primary: oklch(0.24 0.12 278);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.95 0.015 278);
-  --sidebar-accent-foreground: oklch(0.24 0.12 278);
-  --sidebar-border: oklch(0.94 0.005 270);
-  --sidebar-ring: oklch(0.24 0.12 278);
-  --font-sans: 'Plus Jakarta Sans', sans-serif;
-  --font-serif: Georgia, serif;
-  --font-mono: 'JetBrains Mono', monospace;
-  --radius: 0.75rem;
-  --shadow-x: 0px;
-  --shadow-y: 1px;
-  --shadow-blur: 2px;
-  --shadow-spread: 0px;
-  --shadow-opacity: 0.06;
-  --shadow-color: hsl(240 60% 10%);
-  --shadow-2xs: 0px 0px 0px 0px transparent;
-  --shadow-xs: 0px 0px 0px 0px transparent;
-  --shadow-sm: 0px 0px 0px 0px transparent;
-  --shadow: 0px 0px 0px 0px transparent;
-  --shadow-md: 0px 2px 4px -1px hsl(240 60% 10% / 0.04);
-  --shadow-lg: 0px 6px 10px -2px hsl(240 60% 10% / 0.05);
-  --shadow-xl: 0px 10px 15px -3px hsl(240 60% 10% / 0.06);
-  --shadow-2xl: 0px 15px 25px -5px hsl(240 60% 10% / 0.1);
-  --tracking-normal: 0em;
-  --spacing: 0.25rem;
-  --cover-gradient: linear-gradient(
-    to bottom,
-    rgba(56, 189, 248, 0.35),
-    rgba(186, 230, 253, 0.18),
-    transparent
-  );
-  --pill-3d-gradient: linear-gradient(to bottom, #38bdf8 0%, #3b82f6 50%, #2563eb 100%);
-  --pill-3d-border: rgba(125, 211, 252, 0.6);
-  --pill-3d-shadow: rgba(37, 99, 235, 0.4);
-  --primary-deep: oklch(0.24 0.12 278);
-  --primary-deep-foreground: oklch(1 0 0);
-  --success: oklch(0.62 0.18 155);
-  --success-foreground: oklch(1 0 0);
-  --success-subtle: oklch(0.96 0.03 155);
-  --success-border: oklch(0.88 0.08 155);
-  --warning: oklch(0.75 0.16 75);
-  --warning-foreground: oklch(0.2 0.05 75);
-  --warning-subtle: oklch(0.96 0.03 75);
-  --warning-border: oklch(0.88 0.08 75);
-  --info: oklch(0.68 0.16 230);
-  --info-foreground: oklch(1 0 0);
-  --info-subtle: oklch(0.96 0.03 230);
-  --info-border: oklch(0.88 0.08 230);
-  --destructive-subtle: oklch(0.96 0.03 15);
-  --destructive-border: oklch(0.88 0.08 15);
-  --status-completed: oklch(0.6 0.22 300);
-  --status-completed-foreground: oklch(1 0 0);
-  --status-completed-subtle: oklch(0.96 0.03 300);
-  --status-completed-border: oklch(0.88 0.08 300);
-  --rating-gold: oklch(0.82 0.18 85);
-  --rating-gold-subtle: oklch(0.96 0.04 85);
-  --border-subtle: oklch(0.96 0.004 270);
-  --border-accent: oklch(0.88 0.04 255);
-  --surface-subtle: oklch(0.985 0.004 270);
+/* ==========================================================================
+   AMANAH THEME (LOCKED)
+
+   Tujuan: tema ini menang walaupun ada CSS lain di codebase yang mencoba
+   menimpa token shadcn (--primary, --background, dst).
+
+   Tiga lapis pengaman:
+   1. NAMESPACE   Nilai asli disimpan di --amanah-* (nama yang tidak dipakai
+                  library/komponen lain). Tailwind utility (bg-primary, dll)
+                  membaca --amanah-* langsung, jadi walaupun ada anak yang
+                  mendeklarasikan ulang --primary, utility tetap aman.
+   2. !IMPORTANT  Semua deklarasi memakai !important.
+   3. @LAYER      Dideklarasikan di layer PALING AWAL. Untuk !important,
+                  urutan layer terbalik: layer paling awal menang, bahkan
+                  atas !important tanpa layer atau di layer Tailwind
+                  (termasuk utility seperti "!bg-red-500").
+
+   WAJIB: import file ini SEBELUM tailwindcss, supaya layer "amanah"
+   terdaftar paling awal:
+
+       @import './amanah-theme.css';
+       @import 'tailwindcss';
+
+   Pakai: <html data-theme="amanah"> atau <html data-theme="amanah" class="dark">
+   Palet: satu keluarga navy/biru (hue 258-263), netral ikut hue yang sama.
+   ========================================================================== */
+
+@layer amanah, theme, base, components, utilities;
+
+@layer amanah {
+  /* ------------------------------------------------------------------------
+     MASTER TOKENS: LIGHT (juga memuat nilai statis yang sama untuk dark)
+     ------------------------------------------------------------------------ */
+  [data-theme='amanah'] {
+    /* Surface */
+    --amanah-background: oklch(1 0 0) !important;
+    --amanah-foreground: oklch(0.16 0.03 262) !important;
+    --amanah-card: oklch(1 0 0) !important;
+    --amanah-card-foreground: oklch(0.16 0.03 262) !important;
+    --amanah-popover: oklch(1 0 0) !important;
+    --amanah-popover-foreground: oklch(0.16 0.03 262) !important;
+
+    /* Brand */
+    --amanah-primary: oklch(0.25 0.1 263) !important;
+    --amanah-primary-foreground: oklch(1 0 0) !important;
+    --amanah-primary-bright: oklch(0.58 0.21 258) !important;
+    --amanah-primary-subtle: oklch(0.97 0.015 255) !important;
+    --amanah-primary-deep: oklch(0.25 0.1 263) !important;
+    --amanah-primary-deep-foreground: oklch(1 0 0) !important;
+
+    /* Neutral + accent (turunan hue primary) */
+    --amanah-secondary: oklch(0.97 0.004 262) !important;
+    --amanah-secondary-foreground: oklch(0.25 0.1 263) !important;
+    --amanah-muted: oklch(0.97 0.004 262) !important;
+    --amanah-muted-foreground: oklch(0.55 0.02 262) !important;
+    --amanah-accent: oklch(0.96 0.018 258) !important;
+    --amanah-accent-foreground: oklch(0.25 0.1 263) !important;
+
+    /* Feedback */
+    --amanah-destructive: oklch(0.58 0.22 15) !important;
+    --amanah-destructive-foreground: oklch(1 0 0) !important;
+    --amanah-destructive-subtle: oklch(0.97 0.025 15) !important;
+    --amanah-destructive-border: oklch(0.89 0.07 15) !important;
+
+    --amanah-success: oklch(0.62 0.18 155) !important;
+    --amanah-success-foreground: oklch(1 0 0) !important;
+    --amanah-success-subtle: oklch(0.97 0.025 155) !important;
+    --amanah-success-border: oklch(0.89 0.07 155) !important;
+
+    --amanah-warning: oklch(0.75 0.16 75) !important;
+    --amanah-warning-foreground: oklch(0.2 0.05 75) !important;
+    --amanah-warning-subtle: oklch(0.97 0.025 75) !important;
+    --amanah-warning-border: oklch(0.89 0.07 75) !important;
+
+    --amanah-info: oklch(0.68 0.16 230) !important;
+    --amanah-info-foreground: oklch(1 0 0) !important;
+    --amanah-info-subtle: oklch(0.97 0.025 230) !important;
+    --amanah-info-border: oklch(0.89 0.07 230) !important;
+
+    --amanah-status-completed: oklch(0.5 0.17 262) !important;
+    --amanah-status-completed-foreground: oklch(1 0 0) !important;
+    --amanah-status-completed-subtle: oklch(0.97 0.02 262) !important;
+    --amanah-status-completed-border: oklch(0.89 0.06 262) !important;
+
+    --amanah-rating-gold: oklch(0.82 0.18 85) !important;
+    --amanah-rating-gold-subtle: oklch(0.97 0.035 85) !important;
+
+    /* Border & input */
+    --amanah-border: oklch(0.925 0.006 262) !important;
+    --amanah-input: oklch(0.915 0.006 262) !important;
+    --amanah-ring: oklch(0.65 0.16 258) !important;
+    --amanah-border-subtle: oklch(0.96 0.003 262) !important;
+    --amanah-border-accent: oklch(0.9 0.04 258) !important;
+    --amanah-surface-subtle: oklch(0.985 0.003 262) !important;
+
+    /* Chart: analogous (biru, sky, teal) */
+    --amanah-chart-1: oklch(0.58 0.2 258) !important;
+    --amanah-chart-2: oklch(0.72 0.14 225) !important;
+    --amanah-chart-3: oklch(0.65 0.13 185) !important;
+    --amanah-chart-4: oklch(0.42 0.14 262) !important;
+    --amanah-chart-5: oklch(0.82 0.09 240) !important;
+
+    /* Sidebar */
+    --amanah-sidebar: oklch(0.985 0.003 262) !important;
+    --amanah-sidebar-foreground: oklch(0.16 0.03 262) !important;
+    --amanah-sidebar-primary: oklch(0.25 0.1 263) !important;
+    --amanah-sidebar-primary-foreground: oklch(1 0 0) !important;
+    --amanah-sidebar-accent: oklch(0.96 0.018 258) !important;
+    --amanah-sidebar-accent-foreground: oklch(0.25 0.1 263) !important;
+    --amanah-sidebar-border: oklch(0.925 0.006 262) !important;
+    --amanah-sidebar-ring: oklch(0.65 0.16 258) !important;
+
+    /* Shape */
+    --amanah-radius: 0.75rem !important;
+
+    /* Shadow */
+    --amanah-shadow-opacity: 0.06 !important;
+    --amanah-shadow-color: hsl(230 50% 10%) !important;
+    --amanah-shadow-2xs: 0px 0px 0px 0px transparent !important;
+    --amanah-shadow-xs: 0px 0px 0px 0px transparent !important;
+    --amanah-shadow-sm: 0px 0px 0px 0px transparent !important;
+    --amanah-shadow: 0px 0px 0px 0px transparent !important;
+    --amanah-shadow-md: 0px 2px 4px -1px hsl(230 50% 10% / 0.04) !important;
+    --amanah-shadow-lg: 0px 6px 10px -2px hsl(230 50% 10% / 0.05) !important;
+    --amanah-shadow-xl: 0px 10px 15px -3px hsl(230 50% 10% / 0.06) !important;
+    --amanah-shadow-2xl: 0px 15px 25px -5px hsl(230 50% 10% / 0.1) !important;
+
+    /* Dekoratif */
+    --amanah-cover-gradient: linear-gradient(
+      to bottom,
+      rgba(56, 189, 248, 0.3),
+      rgba(186, 230, 253, 0.14),
+      transparent
+    ) !important;
+    --amanah-pill-3d-gradient: linear-gradient(
+      to bottom,
+      #38bdf8 0%,
+      #3b82f6 50%,
+      #2563eb 100%
+    ) !important;
+    --amanah-pill-3d-border: rgba(125, 211, 252, 0.6) !important;
+    --amanah-pill-3d-shadow: rgba(37, 99, 235, 0.4) !important;
+  }
+
+  /* ------------------------------------------------------------------------
+     MASTER TOKENS: DARK (hanya yang berbeda dari light)
+     Mendukung .dark di elemen yang sama atau di leluhur.
+     ------------------------------------------------------------------------ */
+  [data-theme='amanah'].dark,
+  .dark [data-theme='amanah'] {
+    /* Surface */
+    --amanah-background: oklch(0.095 0.018 262) !important;
+    --amanah-foreground: oklch(0.97 0.005 262) !important;
+    --amanah-card: oklch(0.13 0.022 262) !important;
+    --amanah-card-foreground: oklch(0.97 0.005 262) !important;
+    --amanah-popover: oklch(0.14 0.024 262) !important;
+    --amanah-popover-foreground: oklch(0.97 0.005 262) !important;
+
+    /* Brand */
+    --amanah-primary: oklch(0.6 0.2 260) !important;
+    --amanah-primary-foreground: oklch(1 0 0) !important;
+    --amanah-primary-bright: oklch(0.7 0.17 252) !important;
+    --amanah-primary-subtle: oklch(0.2 0.05 258) !important;
+    --amanah-primary-deep: oklch(0.6 0.2 260) !important;
+    --amanah-primary-deep-foreground: oklch(1 0 0) !important;
+
+    /* Neutral + accent */
+    --amanah-secondary: oklch(0.17 0.025 262) !important;
+    --amanah-secondary-foreground: oklch(0.97 0.005 262) !important;
+    --amanah-muted: oklch(0.16 0.02 262) !important;
+    --amanah-muted-foreground: oklch(0.68 0.02 262) !important;
+    --amanah-accent: oklch(0.2 0.04 260) !important;
+    --amanah-accent-foreground: oklch(0.97 0.005 262) !important;
+
+    /* Feedback */
+    --amanah-destructive: oklch(0.65 0.22 18) !important;
+    --amanah-destructive-foreground: oklch(1 0 0) !important;
+    --amanah-destructive-subtle: oklch(0.2 0.04 18) !important;
+    --amanah-destructive-border: oklch(0.32 0.08 18) !important;
+
+    --amanah-success: oklch(0.72 0.16 160) !important;
+    --amanah-success-foreground: oklch(0.1 0.05 160) !important;
+    --amanah-success-subtle: oklch(0.2 0.04 160) !important;
+    --amanah-success-border: oklch(0.32 0.07 160) !important;
+
+    --amanah-warning: oklch(0.8 0.15 75) !important;
+    --amanah-warning-foreground: oklch(0.15 0.05 75) !important;
+    --amanah-warning-subtle: oklch(0.22 0.04 75) !important;
+    --amanah-warning-border: oklch(0.35 0.07 75) !important;
+
+    --amanah-info: oklch(0.72 0.15 230) !important;
+    --amanah-info-foreground: oklch(0.1 0.05 230) !important;
+    --amanah-info-subtle: oklch(0.2 0.04 230) !important;
+    --amanah-info-border: oklch(0.32 0.07 230) !important;
+
+    --amanah-status-completed: oklch(0.68 0.16 262) !important;
+    --amanah-status-completed-foreground: oklch(0.1 0.03 262) !important;
+    --amanah-status-completed-subtle: oklch(0.2 0.045 262) !important;
+    --amanah-status-completed-border: oklch(0.32 0.08 262) !important;
+
+    --amanah-rating-gold: oklch(0.85 0.16 85) !important;
+    --amanah-rating-gold-subtle: oklch(0.22 0.04 85) !important;
+
+    /* Border & input */
+    --amanah-border: oklch(0.2 0.02 262) !important;
+    --amanah-input: oklch(0.22 0.022 262) !important;
+    --amanah-ring: oklch(0.6 0.2 260) !important;
+    --amanah-border-subtle: oklch(0.17 0.015 262) !important;
+    --amanah-border-accent: oklch(0.3 0.05 258) !important;
+    --amanah-surface-subtle: oklch(0.115 0.02 262) !important;
+
+    /* Chart */
+    --amanah-chart-1: oklch(0.68 0.17 258) !important;
+    --amanah-chart-2: oklch(0.75 0.13 225) !important;
+    --amanah-chart-3: oklch(0.72 0.12 185) !important;
+    --amanah-chart-4: oklch(0.55 0.18 262) !important;
+    --amanah-chart-5: oklch(0.82 0.09 240) !important;
+
+    /* Sidebar */
+    --amanah-sidebar: oklch(0.075 0.018 262) !important;
+    --amanah-sidebar-foreground: oklch(0.97 0.005 262) !important;
+    --amanah-sidebar-primary: oklch(0.6 0.2 260) !important;
+    --amanah-sidebar-primary-foreground: oklch(1 0 0) !important;
+    --amanah-sidebar-accent: oklch(0.17 0.03 262) !important;
+    --amanah-sidebar-accent-foreground: oklch(0.97 0.005 262) !important;
+    --amanah-sidebar-border: oklch(0.17 0.02 262) !important;
+    --amanah-sidebar-ring: oklch(0.6 0.2 260) !important;
+
+    /* Shadow */
+    --amanah-shadow-opacity: 0.4 !important;
+    --amanah-shadow-color: hsl(0 0% 0%) !important;
+    --amanah-shadow-md: 0px 4px 6px -1px hsl(0 0% 0% / 0.3) !important;
+    --amanah-shadow-lg: 0px 8px 12px -2px hsl(0 0% 0% / 0.35) !important;
+    --amanah-shadow-xl: 0px 14px 20px -3px hsl(0 0% 0% / 0.4) !important;
+    --amanah-shadow-2xl: 0px 20px 30px -5px hsl(0 0% 0% / 0.5) !important;
+
+    /* Dekoratif */
+    --amanah-cover-gradient: linear-gradient(
+      to bottom,
+      rgba(3, 105, 161, 0.3),
+      rgba(12, 74, 110, 0.14),
+      transparent
+    ) !important;
+    --amanah-pill-3d-gradient: linear-gradient(
+      to bottom,
+      #38bdf8 0%,
+      #2563eb 50%,
+      #1d4ed8 100%
+    ) !important;
+    --amanah-pill-3d-border: rgba(56, 189, 248, 0.5) !important;
+    --amanah-pill-3d-shadow: rgba(29, 78, 216, 0.45) !important;
+  }
+
+  /* ------------------------------------------------------------------------
+     TOKEN PUBLIK (alias)
+     Nama standar shadcn tetap ada supaya kode lama yang memakai
+     var(--primary) dst. tetap jalan. Nilainya selalu menunjuk ke master.
+     Cukup ditulis sekali: otomatis ikut light/dark.
+     ------------------------------------------------------------------------ */
+  [data-theme='amanah'] {
+    --background: var(--amanah-background) !important;
+    --foreground: var(--amanah-foreground) !important;
+    --card: var(--amanah-card) !important;
+    --card-foreground: var(--amanah-card-foreground) !important;
+    --popover: var(--amanah-popover) !important;
+    --popover-foreground: var(--amanah-popover-foreground) !important;
+
+    --primary: var(--amanah-primary) !important;
+    --primary-foreground: var(--amanah-primary-foreground) !important;
+    --primary-bright: var(--amanah-primary-bright) !important;
+    --primary-subtle: var(--amanah-primary-subtle) !important;
+    --primary-deep: var(--amanah-primary-deep) !important;
+    --primary-deep-foreground: var(--amanah-primary-deep-foreground) !important;
+
+    --secondary: var(--amanah-secondary) !important;
+    --secondary-foreground: var(--amanah-secondary-foreground) !important;
+    --muted: var(--amanah-muted) !important;
+    --muted-foreground: var(--amanah-muted-foreground) !important;
+    --accent: var(--amanah-accent) !important;
+    --accent-foreground: var(--amanah-accent-foreground) !important;
+
+    --destructive: var(--amanah-destructive) !important;
+    --destructive-foreground: var(--amanah-destructive-foreground) !important;
+    --destructive-subtle: var(--amanah-destructive-subtle) !important;
+    --destructive-border: var(--amanah-destructive-border) !important;
+
+    --success: var(--amanah-success) !important;
+    --success-foreground: var(--amanah-success-foreground) !important;
+    --success-subtle: var(--amanah-success-subtle) !important;
+    --success-border: var(--amanah-success-border) !important;
+
+    --warning: var(--amanah-warning) !important;
+    --warning-foreground: var(--amanah-warning-foreground) !important;
+    --warning-subtle: var(--amanah-warning-subtle) !important;
+    --warning-border: var(--amanah-warning-border) !important;
+
+    --info: var(--amanah-info) !important;
+    --info-foreground: var(--amanah-info-foreground) !important;
+    --info-subtle: var(--amanah-info-subtle) !important;
+    --info-border: var(--amanah-info-border) !important;
+
+    --status-completed: var(--amanah-status-completed) !important;
+    --status-completed-foreground: var(--amanah-status-completed-foreground) !important;
+    --status-completed-subtle: var(--amanah-status-completed-subtle) !important;
+    --status-completed-border: var(--amanah-status-completed-border) !important;
+
+    --rating-gold: var(--amanah-rating-gold) !important;
+    --rating-gold-subtle: var(--amanah-rating-gold-subtle) !important;
+
+    --border: var(--amanah-border) !important;
+    --input: var(--amanah-input) !important;
+    --ring: var(--amanah-ring) !important;
+    --border-subtle: var(--amanah-border-subtle) !important;
+    --border-accent: var(--amanah-border-accent) !important;
+    --surface-subtle: var(--amanah-surface-subtle) !important;
+
+    --chart-1: var(--amanah-chart-1) !important;
+    --chart-2: var(--amanah-chart-2) !important;
+    --chart-3: var(--amanah-chart-3) !important;
+    --chart-4: var(--amanah-chart-4) !important;
+    --chart-5: var(--amanah-chart-5) !important;
+
+    --sidebar: var(--amanah-sidebar) !important;
+    --sidebar-foreground: var(--amanah-sidebar-foreground) !important;
+    --sidebar-primary: var(--amanah-sidebar-primary) !important;
+    --sidebar-primary-foreground: var(--amanah-sidebar-primary-foreground) !important;
+    --sidebar-accent: var(--amanah-sidebar-accent) !important;
+    --sidebar-accent-foreground: var(--amanah-sidebar-accent-foreground) !important;
+    --sidebar-border: var(--amanah-sidebar-border) !important;
+    --sidebar-ring: var(--amanah-sidebar-ring) !important;
+
+    --radius: var(--amanah-radius) !important;
+
+    --shadow-x: 0px !important;
+    --shadow-y: 1px !important;
+    --shadow-blur: 2px !important;
+    --shadow-spread: 0px !important;
+    --shadow-opacity: var(--amanah-shadow-opacity) !important;
+    --shadow-color: var(--amanah-shadow-color) !important;
+    --shadow-2xs: var(--amanah-shadow-2xs) !important;
+    --shadow-xs: var(--amanah-shadow-xs) !important;
+    --shadow-sm: var(--amanah-shadow-sm) !important;
+    --shadow: var(--amanah-shadow) !important;
+    --shadow-md: var(--amanah-shadow-md) !important;
+    --shadow-lg: var(--amanah-shadow-lg) !important;
+    --shadow-xl: var(--amanah-shadow-xl) !important;
+    --shadow-2xl: var(--amanah-shadow-2xl) !important;
+
+    --cover-gradient: var(--amanah-cover-gradient) !important;
+    --pill-3d-gradient: var(--amanah-pill-3d-gradient) !important;
+    --pill-3d-border: var(--amanah-pill-3d-border) !important;
+    --pill-3d-shadow: var(--amanah-pill-3d-shadow) !important;
+
+    --font-sans: 'Plus Jakarta Sans', sans-serif !important;
+    --font-serif: Georgia, serif !important;
+    --font-mono: 'JetBrains Mono', monospace !important;
+    --tracking-normal: 0em !important;
+    --spacing: 0.25rem !important;
+  }
+
+  /* ------------------------------------------------------------------------
+     FONT
+     (Token warna tidak dideklarasikan di selector "*", supaya nilai dark
+     tidak tertimpa nilai light pada elemen anak.)
+     ------------------------------------------------------------------------ */
+  [data-theme='amanah'],
+  [data-theme='amanah'] body,
+  [data-theme='amanah'] * {
+    font-family:
+      'Plus Jakarta Sans',
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      Roboto,
+      sans-serif !important;
+  }
+
+  [data-theme='amanah'] code,
+  [data-theme='amanah'] pre,
+  [data-theme='amanah'] kbd,
+  [data-theme='amanah'] samp {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace !important;
+  }
 }
 
-[data-theme='amanah'].dark {
-  --cover-gradient: linear-gradient(
-    to bottom,
-    rgba(3, 105, 161, 0.45),
-    rgba(12, 74, 110, 0.2),
-    transparent
-  );
-  --pill-3d-gradient: linear-gradient(to bottom, #38bdf8 0%, #2563eb 50%, #1d4ed8 100%);
-  --pill-3d-border: rgba(56, 189, 248, 0.5);
-  --pill-3d-shadow: rgba(29, 78, 216, 0.45);
-  --background: oklch(0.12 0.025 265);
-  --foreground: oklch(0.96 0.005 265);
-  --card: oklch(0.16 0.03 265);
-  --card-foreground: oklch(0.96 0.005 265);
-  --popover: oklch(0.16 0.03 265);
-  --popover-foreground: oklch(0.96 0.005 265);
-  --primary: oklch(0.68 0.19 275);
-  --primary-foreground: oklch(1 0 0);
-  --primary-bright: oklch(0.68 0.2 255);
-  --primary-subtle: oklch(0.22 0.05 255);
-  --secondary: oklch(0.22 0.035 265);
-  --secondary-foreground: oklch(0.96 0.005 265);
-  --muted: oklch(0.2 0.025 265);
-  --muted-foreground: oklch(0.7 0.02 265);
-  --accent: oklch(0.25 0.04 275);
-  --accent-foreground: oklch(0.96 0.005 265);
-  --destructive: oklch(0.65 0.22 18);
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.22 0.02 265);
-  --input: oklch(0.22 0.02 265);
-  --ring: oklch(0.68 0.19 275);
-  --chart-1: oklch(0.68 0.19 275);
-  --chart-2: oklch(0.72 0.16 160);
-  --chart-3: oklch(0.8 0.15 75);
-  --chart-4: oklch(0.65 0.2 300);
-  --chart-5: oklch(0.68 0.2 18);
-  --sidebar: oklch(0.14 0.025 265);
-  --sidebar-foreground: oklch(0.96 0.005 265);
-  --sidebar-primary: oklch(0.68 0.19 275);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.22 0.035 265);
-  --sidebar-accent-foreground: oklch(0.96 0.005 265);
-  --sidebar-border: oklch(0.2 0.02 265);
-  --sidebar-ring: oklch(0.68 0.19 275);
-  --font-sans: 'Plus Jakarta Sans', sans-serif;
-  --font-serif: Georgia, serif;
-  --font-mono: 'JetBrains Mono', monospace;
-  --radius: 0.75rem;
-  --shadow-x: 0px;
-  --shadow-y: 1px;
-  --shadow-blur: 2px;
-  --shadow-spread: 0px;
-  --shadow-opacity: 0.25;
-  --shadow-color: hsl(0 0% 0%);
-  --shadow-2xs: 0px 0px 0px 0px transparent;
-  --shadow-xs: 0px 0px 0px 0px transparent;
-  --shadow-sm: 0px 0px 0px 0px transparent;
-  --shadow: 0px 0px 0px 0px transparent;
-  --shadow-md: 0px 4px 6px -1px hsl(0 0% 0% / 0.15);
-  --shadow-lg: 0px 8px 12px -2px hsl(0 0% 0% / 0.2);
-  --shadow-xl: 0px 14px 20px -3px hsl(0 0% 0% / 0.25);
-  --shadow-2xl: 0px 20px 30px -5px hsl(0 0% 0% / 0.35);
-  --primary-deep: oklch(0.68 0.19 275);
-  --primary-deep-foreground: oklch(1 0 0);
-  --success: oklch(0.72 0.16 160);
-  --success-foreground: oklch(0.1 0.05 160);
-  --success-subtle: oklch(0.22 0.04 160);
-  --success-border: oklch(0.35 0.08 160);
-  --warning: oklch(0.8 0.15 75);
-  --warning-foreground: oklch(0.15 0.05 75);
-  --warning-subtle: oklch(0.25 0.04 75);
-  --warning-border: oklch(0.38 0.08 75);
-  --info: oklch(0.72 0.15 230);
-  --info-foreground: oklch(0.1 0.05 230);
-  --info-subtle: oklch(0.22 0.04 230);
-  --info-border: oklch(0.35 0.08 230);
-  --destructive-subtle: oklch(0.22 0.04 18);
-  --destructive-border: oklch(0.35 0.08 18);
-  --status-completed: oklch(0.68 0.2 300);
-  --status-completed-foreground: oklch(1 0 0);
-  --status-completed-subtle: oklch(0.24 0.05 300);
-  --status-completed-border: oklch(0.38 0.09 300);
-  --rating-gold: oklch(0.85 0.16 85);
-  --rating-gold-subtle: oklch(0.24 0.04 85);
-  --border-subtle: oklch(0.2 0.015 265);
-  --border-accent: oklch(0.32 0.05 255);
-  --surface-subtle: oklch(0.14 0.025 265);
-}
-
-[data-theme='amanah'],
-[data-theme='amanah'] body,
-[data-theme='amanah'] * {
-  --pill-3d-gradient: linear-gradient(to bottom, #38bdf8 0%, #3b82f6 50%, #2563eb 100%);
-  --pill-3d-border: rgba(125, 211, 252, 0.6);
-  --pill-3d-shadow: rgba(37, 99, 235, 0.4);
-  font-family:
-    'Plus Jakarta Sans',
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    sans-serif !important;
-  --primary-deep: oklch(0.24 0.12 278);
-  --primary-deep-foreground: oklch(1 0 0);
-  --success: oklch(0.62 0.18 155);
-  --success-foreground: oklch(1 0 0);
-  --success-subtle: oklch(0.96 0.03 155);
-  --success-border: oklch(0.88 0.08 155);
-  --warning: oklch(0.75 0.16 75);
-  --warning-foreground: oklch(0.2 0.05 75);
-  --warning-subtle: oklch(0.96 0.03 75);
-  --warning-border: oklch(0.88 0.08 75);
-  --info: oklch(0.68 0.16 230);
-  --info-foreground: oklch(1 0 0);
-  --info-subtle: oklch(0.96 0.03 230);
-  --info-border: oklch(0.88 0.08 230);
-  --destructive-subtle: oklch(0.96 0.03 15);
-  --destructive-border: oklch(0.88 0.08 15);
-  --status-completed: oklch(0.6 0.22 300);
-  --status-completed-foreground: oklch(1 0 0);
-  --status-completed-subtle: oklch(0.96 0.03 300);
-  --status-completed-border: oklch(0.88 0.08 300);
-  --rating-gold: oklch(0.82 0.18 85);
-  --rating-gold-subtle: oklch(0.96 0.04 85);
-  --border-subtle: oklch(0.96 0.004 270);
-  --border-accent: oklch(0.88 0.04 255);
-  --surface-subtle: oklch(0.985 0.004 270);
-}
-
+/* ==========================================================================
+   TAILWIND TOKEN MAPPING
+   Semua utility (bg-primary, text-muted-foreground, border-border, ...)
+   dipetakan LANGSUNG ke --amanah-*, bukan ke --primary dkk. Jadi walaupun
+   ada kode yang mendeklarasikan ulang --primary di komponen anak, utility
+   Tailwind tidak ikut berubah.
+   ========================================================================== */
 [data-theme='amanah'] {
   @theme inline {
-    --color-background: var(--background);
-    --color-foreground: var(--foreground);
-    --color-card: var(--card);
-    --color-card-foreground: var(--card-foreground);
-    --color-popover: var(--popover);
-    --color-popover-foreground: var(--popover-foreground);
-    --color-primary: var(--primary);
-    --color-primary-foreground: var(--primary-foreground);
-    --color-primary-bright: var(--primary-bright);
-    --color-primary-subtle: var(--primary-subtle);
-    --color-secondary: var(--secondary);
-    --color-secondary-foreground: var(--secondary-foreground);
-    --color-muted: var(--muted);
-    --color-muted-foreground: var(--muted-foreground);
-    --color-accent: var(--accent);
-    --color-accent-foreground: var(--accent-foreground);
-    --color-destructive: var(--destructive);
-    --color-destructive-foreground: var(--destructive-foreground);
-    --color-border: var(--border);
-    --color-input: var(--input);
-    --color-ring: var(--ring);
-    --color-chart-1: var(--chart-1);
-    --color-chart-2: var(--chart-2);
-    --color-chart-3: var(--chart-3);
-    --color-chart-4: var(--chart-4);
-    --color-chart-5: var(--chart-5);
-    --color-sidebar: var(--sidebar);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-ring: var(--sidebar-ring);
+    --color-background: var(--amanah-background);
+    --color-foreground: var(--amanah-foreground);
+    --color-card: var(--amanah-card);
+    --color-card-foreground: var(--amanah-card-foreground);
+    --color-popover: var(--amanah-popover);
+    --color-popover-foreground: var(--amanah-popover-foreground);
+    --color-primary: var(--amanah-primary);
+    --color-primary-foreground: var(--amanah-primary-foreground);
+    --color-primary-bright: var(--amanah-primary-bright);
+    --color-primary-subtle: var(--amanah-primary-subtle);
+    --color-primary-deep: var(--amanah-primary-deep);
+    --color-primary-deep-foreground: var(--amanah-primary-deep-foreground);
+    --color-secondary: var(--amanah-secondary);
+    --color-secondary-foreground: var(--amanah-secondary-foreground);
+    --color-muted: var(--amanah-muted);
+    --color-muted-foreground: var(--amanah-muted-foreground);
+    --color-accent: var(--amanah-accent);
+    --color-accent-foreground: var(--amanah-accent-foreground);
+    --color-destructive: var(--amanah-destructive);
+    --color-destructive-foreground: var(--amanah-destructive-foreground);
+    --color-destructive-subtle: var(--amanah-destructive-subtle);
+    --color-destructive-border: var(--amanah-destructive-border);
+    --color-success: var(--amanah-success);
+    --color-success-foreground: var(--amanah-success-foreground);
+    --color-success-subtle: var(--amanah-success-subtle);
+    --color-success-border: var(--amanah-success-border);
+    --color-warning: var(--amanah-warning);
+    --color-warning-foreground: var(--amanah-warning-foreground);
+    --color-warning-subtle: var(--amanah-warning-subtle);
+    --color-warning-border: var(--amanah-warning-border);
+    --color-info: var(--amanah-info);
+    --color-info-foreground: var(--amanah-info-foreground);
+    --color-info-subtle: var(--amanah-info-subtle);
+    --color-info-border: var(--amanah-info-border);
+    --color-status-completed: var(--amanah-status-completed);
+    --color-status-completed-foreground: var(--amanah-status-completed-foreground);
+    --color-status-completed-subtle: var(--amanah-status-completed-subtle);
+    --color-status-completed-border: var(--amanah-status-completed-border);
+    --color-rating-gold: var(--amanah-rating-gold);
+    --color-rating-gold-subtle: var(--amanah-rating-gold-subtle);
+    --color-border: var(--amanah-border);
+    --color-input: var(--amanah-input);
+    --color-ring: var(--amanah-ring);
+    --color-border-subtle: var(--amanah-border-subtle);
+    --color-border-accent: var(--amanah-border-accent);
+    --color-surface-subtle: var(--amanah-surface-subtle);
+    --color-chart-1: var(--amanah-chart-1);
+    --color-chart-2: var(--amanah-chart-2);
+    --color-chart-3: var(--amanah-chart-3);
+    --color-chart-4: var(--amanah-chart-4);
+    --color-chart-5: var(--amanah-chart-5);
+    --color-sidebar: var(--amanah-sidebar);
+    --color-sidebar-foreground: var(--amanah-sidebar-foreground);
+    --color-sidebar-primary: var(--amanah-sidebar-primary);
+    --color-sidebar-primary-foreground: var(--amanah-sidebar-primary-foreground);
+    --color-sidebar-accent: var(--amanah-sidebar-accent);
+    --color-sidebar-accent-foreground: var(--amanah-sidebar-accent-foreground);
+    --color-sidebar-border: var(--amanah-sidebar-border);
+    --color-sidebar-ring: var(--amanah-sidebar-ring);
+
     --font-sans: 'Plus Jakarta Sans', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
     --font-serif: Georgia, serif;
-    --radius-sm: calc(var(--radius) - 4px);
-    --radius-md: calc(var(--radius) - 2px);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) + 4px);
-    --shadow-2xs: var(--shadow-2xs);
-    --shadow-xs: var(--shadow-xs);
-    --shadow-sm: var(--shadow-sm);
-    --shadow: var(--shadow);
-    --shadow-md: var(--shadow-md);
-    --shadow-lg: var(--shadow-lg);
-    --shadow-xl: var(--shadow-xl);
-    --shadow-2xl: var(--shadow-2xl);
-    --color-primary-deep: var(--primary-deep);
-    --color-primary-deep-foreground: var(--primary-deep-foreground);
-    --color-success: var(--success);
-    --color-success-foreground: var(--success-foreground);
-    --color-success-subtle: var(--success-subtle);
-    --color-success-border: var(--success-border);
-    --color-warning: var(--warning);
-    --color-warning-foreground: var(--warning-foreground);
-    --color-warning-subtle: var(--warning-subtle);
-    --color-warning-border: var(--warning-border);
-    --color-info: var(--info);
-    --color-info-foreground: var(--info-foreground);
-    --color-info-subtle: var(--info-subtle);
-    --color-info-border: var(--info-border);
-    --color-destructive-subtle: var(--destructive-subtle);
-    --color-destructive-border: var(--destructive-border);
-    --color-status-completed: var(--status-completed);
-    --color-status-completed-foreground: var(--status-completed-foreground);
-    --color-status-completed-subtle: var(--status-completed-subtle);
-    --color-status-completed-border: var(--status-completed-border);
-    --color-rating-gold: var(--rating-gold);
-    --color-rating-gold-subtle: var(--rating-gold-subtle);
-    --color-border-subtle: var(--border-subtle);
-    --color-border-accent: var(--border-accent);
-    --color-surface-subtle: var(--surface-subtle);
+
+    --radius-sm: calc(var(--amanah-radius) - 4px);
+    --radius-md: calc(var(--amanah-radius) - 2px);
+    --radius-lg: var(--amanah-radius);
+    --radius-xl: calc(var(--amanah-radius) + 4px);
+
+    --shadow-2xs: var(--amanah-shadow-2xs);
+    --shadow-xs: var(--amanah-shadow-xs);
+    --shadow-sm: var(--amanah-shadow-sm);
+    --shadow: var(--amanah-shadow);
+    --shadow-md: var(--amanah-shadow-md);
+    --shadow-lg: var(--amanah-shadow-lg);
+    --shadow-xl: var(--amanah-shadow-xl);
+    --shadow-2xl: var(--amanah-shadow-2xl);
   }
 }

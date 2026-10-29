@@ -25,7 +25,8 @@ import {
   detectSessionDefsOverlaps,
   parseTimeToMinutes,
   parseTimeEndToMinutes,
-  minutesToTimeString
+  minutesToTimeString,
+  sortSessionsChronologically
 } from '../utils/shift-time-validator';
 
 export type ConfigurationCategory = 'session_defs' | 'weekly_templates' | 'clinic_settings';
@@ -61,7 +62,9 @@ export function useDoctorScheduleSettingsModal({
 
   useEffect(() => {
     if (data && isOpen) {
-      setDraftSessionDefs(JSON.parse(JSON.stringify(data.sessionDefs ?? [])));
+      setDraftSessionDefs(
+        sortSessionsChronologically(JSON.parse(JSON.stringify(data.sessionDefs ?? [])))
+      );
       setDraftWeeklyTemplates(JSON.parse(JSON.stringify(data.weeklyTemplates ?? [])));
       setDraftClinicSettings(JSON.parse(JSON.stringify(data.clinicSettings ?? [])));
       setDraftOperatingDays(JSON.parse(JSON.stringify(data.days ?? [])));
@@ -126,7 +129,12 @@ export function useDoctorScheduleSettingsModal({
   );
 
   const updateSessionDefTime = useCallback(
-    (id: string, field: 'defaultStartsAt' | 'defaultEndsAt', value: string) => {
+    (
+      id: string,
+      field: 'defaultStartsAt' | 'defaultEndsAt',
+      value: string,
+      shouldAutoAdjust = false
+    ) => {
       setDraftSessionDefs((prev) => {
         let nextDefs = prev.map((item) => {
           if (item.id !== id) return item;
@@ -137,73 +145,73 @@ export function useDoctorScheduleSettingsModal({
           return updated;
         });
 
-        const targetIndex = nextDefs.findIndex((d) => d.id === id);
-        if (targetIndex !== -1) {
-          if (field === 'defaultEndsAt') {
-            const endMin = parseTimeEndToMinutes(value);
-            // Cari shift aktif berikutnya dalam urutan sortOrder
-            const nextActive = nextDefs.slice(targetIndex + 1).find((d) => d.isActive);
-            if (nextActive) {
-              const nextStartMin = parseTimeToMinutes(nextActive.defaultStartsAt);
-              // HANYA JIKA TERJADI TABRAKAN: newEndsAt > nextStartsAt
-              if (endMin > nextStartMin) {
-                const newNextStart = value;
-                const nextEndMin = parseTimeEndToMinutes(nextActive.defaultEndsAt, endMin);
-                let newNextEnd = nextActive.defaultEndsAt;
-                if (endMin >= nextEndMin) {
-                  // Jika jam selesai shift berikutnya juga tertabrak, dorong minimal 1 jam ke depan
-                  const pushedEndMin = Math.min(1440, endMin + 60);
-                  newNextEnd = `${minutesToTimeString(pushedEndMin)}:00`;
+        // On-demand automatic adjustment of adjacent session boundaries
+        if (shouldAutoAdjust) {
+          const sorted = sortSessionsChronologically(nextDefs);
+          const targetIndex = sorted.findIndex((d) => d.id === id);
+          if (targetIndex !== -1) {
+            if (field === 'defaultEndsAt') {
+              const endMin = parseTimeEndToMinutes(value);
+              const nextActive = sorted.slice(targetIndex + 1).find((d) => d.isActive);
+              if (nextActive) {
+                const nextStartMin = parseTimeToMinutes(nextActive.defaultStartsAt);
+                if (endMin > nextStartMin) {
+                  const newNextStart = value;
+                  const nextEndMin = parseTimeEndToMinutes(nextActive.defaultEndsAt, endMin);
+                  let newNextEnd = nextActive.defaultEndsAt;
+                  if (endMin >= nextEndMin) {
+                    const pushedEndMin = Math.min(1440, endMin + 60);
+                    newNextEnd = `${minutesToTimeString(pushedEndMin)}:00`;
+                  }
+                  nextDefs = nextDefs.map((d) =>
+                    d.id === nextActive.id
+                      ? {
+                          ...d,
+                          defaultStartsAt: newNextStart,
+                          defaultEndsAt: newNextEnd,
+                          timeRange: `${newNextStart.slice(0, 5)} - ${newNextEnd.slice(0, 5)}`
+                        }
+                      : d
+                  );
+                  toast.success(
+                    `Jam shift ${nextActive.label} berhasil disesuaikan otomatis agar tidak bertabrakan.`
+                  );
                 }
-                nextDefs = nextDefs.map((d) =>
-                  d.id === nextActive.id
-                    ? {
-                        ...d,
-                        defaultStartsAt: newNextStart,
-                        defaultEndsAt: newNextEnd,
-                        timeRange: `${newNextStart.slice(0, 5)} - ${newNextEnd.slice(0, 5)}`
-                      }
-                    : d
-                );
-                toast.info(
-                  `Jam mulai Shift ${nextActive.label} otomatis disesuaikan ke ${value.slice(0, 5)} agar tidak bertabrakan.`
-                );
               }
-              // JIKA TIDAK TABRAKAN (endMin <= nextStartMin), JEDA KLINIK TETAP DIPERTAHANKAN!
-            }
-          } else if (field === 'defaultStartsAt') {
-            const startMin = parseTimeToMinutes(value);
-            // Cari shift aktif sebelumnya
-            const prevActive = nextDefs
-              .slice(0, targetIndex)
-              .toReversed()
-              .find((d) => d.isActive);
-            if (prevActive) {
-              const prevEndMin = parseTimeEndToMinutes(prevActive.defaultEndsAt);
-              // HANYA JIKA TERJADI TABRAKAN: newStartsAt < prevEndsAt
-              if (startMin < prevEndMin) {
-                const newPrevEnd = value;
-                nextDefs = nextDefs.map((d) =>
-                  d.id === prevActive.id
-                    ? {
-                        ...d,
-                        defaultEndsAt: newPrevEnd,
-                        timeRange: `${d.defaultStartsAt.slice(0, 5)} - ${newPrevEnd.slice(0, 5)}`
-                      }
-                    : d
-                );
-                toast.info(
-                  `Jam selesai Shift ${prevActive.label} disesuaikan ke ${value.slice(0, 5)} agar tidak bertabrakan.`
-                );
+            } else if (field === 'defaultStartsAt') {
+              const startMin = parseTimeToMinutes(value);
+              const prevActive = sorted
+                .slice(0, targetIndex)
+                .toReversed()
+                .find((d) => d.isActive);
+              if (prevActive) {
+                const prevEndMin = parseTimeEndToMinutes(prevActive.defaultEndsAt);
+                if (startMin < prevEndMin) {
+                  const newPrevEnd = value;
+                  nextDefs = nextDefs.map((d) =>
+                    d.id === prevActive.id
+                      ? {
+                          ...d,
+                          defaultEndsAt: newPrevEnd,
+                          timeRange: `${d.defaultStartsAt.slice(0, 5)} - ${newPrevEnd.slice(0, 5)}`
+                        }
+                      : d
+                  );
+                  toast.success(
+                    `Jam shift ${prevActive.label} berhasil disesuaikan otomatis agar tidak bertabrakan.`
+                  );
+                }
               }
             }
           }
         }
 
+        const sortedResult = sortSessionsChronologically(nextDefs);
+
         // Sinkronisasi perubahan master ke seluruh template jadwal mingguan
         setDraftWeeklyTemplates((prevTemplates) =>
           prevTemplates.map((wt) => {
-            const matchedDef = nextDefs.find((d) => d.id === wt.sessionId);
+            const matchedDef = sortedResult.find((d) => d.id === wt.sessionId);
             if (!matchedDef) return wt;
             return {
               ...wt,
@@ -213,7 +221,7 @@ export function useDoctorScheduleSettingsModal({
           })
         );
 
-        return nextDefs;
+        return sortedResult;
       });
     },
     []
@@ -383,7 +391,7 @@ export function useDoctorScheduleSettingsModal({
     } finally {
       setIsEvaluatingImpact(false);
     }
-  }, [category, dirtyCount, timeValidationError, buildPayload, mutation, onClose]);
+  }, [dirtyCount, timeValidationError, buildPayload, mutation, onClose]);
 
   const handleConfirmSave = useCallback(() => {
     setShowImpactDialog(false);

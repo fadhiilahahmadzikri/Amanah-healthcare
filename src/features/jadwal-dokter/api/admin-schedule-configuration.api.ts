@@ -17,6 +17,7 @@ export interface SessionDefConfig {
   isActive: boolean;
   defaultStartsAt: string;
   defaultEndsAt: string;
+  icon?: string | null;
 }
 
 export interface WeeklyTemplateConfig {
@@ -67,6 +68,9 @@ export interface UpdateSessionDefPayload {
   id: string;
   isActive?: boolean;
   sortOrder?: number;
+  label?: string;
+  codePrefix?: string;
+  icon?: string | null;
   defaultStartsAt?: string;
   defaultEndsAt?: string;
 }
@@ -161,6 +165,7 @@ export interface CreateSessionDefPayload {
   defaultStartsAt: string;
   defaultEndsAt: string;
   isActive?: boolean;
+  icon?: string;
 }
 
 export interface UpdateSingleSessionDefPayload {
@@ -169,6 +174,7 @@ export interface UpdateSingleSessionDefPayload {
   defaultStartsAt?: string;
   defaultEndsAt?: string;
   isActive?: boolean;
+  icon?: string | null;
 }
 
 export async function createSessionDef(

@@ -15,6 +15,7 @@ import {
   formatTimeToHHmm
 } from '../../../utils/shift-time-validator';
 import { ShiftTimeSelect } from '../atoms/shift-time-select';
+import { ShiftIconPickerPopover } from '../atoms/shift-icon-picker-popover';
 
 export interface SessionDefFormDialogProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ export interface SessionDefFormDialogProps {
   onSubmit: (data: {
     label: string;
     codePrefix?: string;
+    icon?: string;
     defaultStartsAt: string;
     defaultEndsAt: string;
   }) => Promise<void>;
@@ -40,6 +42,7 @@ export function SessionDefFormDialog({
 }: SessionDefFormDialogProps) {
   const [label, setLabel] = useState('');
   const [codePrefix, setCodePrefix] = useState('');
+  const [icon, setIcon] = useState('');
   const [startsAt, setStartsAt] = useState('08:00');
   const [endsAt, setEndsAt] = useState('12:00');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,11 +51,13 @@ export function SessionDefFormDialog({
     if (initialData) {
       setLabel(initialData.label || '');
       setCodePrefix(initialData.codePrefix || '');
+      setIcon(initialData.icon || '');
       setStartsAt(formatTimeToHHmm(initialData.defaultStartsAt, '08:00'));
       setEndsAt(formatTimeToHHmm(initialData.defaultEndsAt, '12:00'));
     } else {
       setLabel('');
       setCodePrefix('');
+      setIcon('');
 
       if (existingDefs && existingDefs.length > 0) {
         const sorted = [...existingDefs].toSorted(
@@ -98,6 +103,7 @@ export function SessionDefFormDialog({
       await onSubmit({
         label: cleanLabel,
         codePrefix: codePrefix.trim().toUpperCase() || cleanLabel.charAt(0).toUpperCase(),
+        icon: icon ? icon.trim() : undefined,
         defaultStartsAt: `${startsAt}:00`,
         defaultEndsAt: `${endsAt}:00`
       });
@@ -156,18 +162,30 @@ export function SessionDefFormDialog({
             />
           </div>
 
-          <div className='space-y-1.5'>
-            <Label htmlFor='shift-prefix' className='text-xs font-semibold text-foreground'>
-              Singkatan / Kode Huruf
-            </Label>
-            <Input
-              id='shift-prefix'
-              placeholder='Contoh: P, S, M, PB (Maks 3 huruf)'
-              maxLength={3}
-              value={codePrefix}
-              onChange={(e) => setCodePrefix(e.target.value.toUpperCase())}
-              className='h-9 text-xs font-mono uppercase rounded-lg border-border/80 bg-background'
-            />
+          <div className='flex items-center gap-3'>
+            <div className='space-y-1.5 flex-1 min-w-0'>
+              <Label htmlFor='shift-prefix' className='text-xs font-semibold text-foreground'>
+                Singkatan / Kode Huruf
+              </Label>
+              <Input
+                id='shift-prefix'
+                placeholder='Contoh: P, S, M, PE'
+                maxLength={3}
+                value={codePrefix}
+                onChange={(e) => setCodePrefix(e.target.value.toUpperCase())}
+                className='h-9 text-xs font-mono uppercase rounded-lg border-border/80 bg-background'
+              />
+            </div>
+
+            <div className='space-y-1.5 shrink-0'>
+              <Label className='text-xs font-semibold text-foreground'>Visual</Label>
+              <ShiftIconPickerPopover
+                value={icon}
+                onChange={setIcon}
+                fallback={codePrefix || label.charAt(0)}
+                portalContainerRef={portalContainerRef}
+              />
+            </div>
           </div>
 
           <div className='grid grid-cols-2 gap-3'>
