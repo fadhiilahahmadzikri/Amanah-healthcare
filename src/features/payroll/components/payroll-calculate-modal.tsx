@@ -20,10 +20,12 @@ export function PayrollCalculateModal({ isOpen, onClose, onSuccess }: PayrollCal
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
+  const monthName = now.toLocaleString('id-ID', { month: 'long' });
+  const defaultPeriodName = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
 
   const [periodStart, setPeriodStart] = useState(`${year}-${month}-01`);
   const [periodEnd, setPeriodEnd] = useState(`${year}-${month}-30`);
-  const [periodName, setPeriodName] = useState(`Periode Gaji ${month}/${year}`);
+  const [periodName, setPeriodName] = useState(defaultPeriodName);
 
   const handleCalculate = async () => {
     try {

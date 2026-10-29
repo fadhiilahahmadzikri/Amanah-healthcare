@@ -20,6 +20,7 @@ export interface UsePayrollPresenterResult {
   modals: {
     isCalculateOpen: boolean;
     isRatesOpen: boolean;
+    isTimingOpen: boolean;
     isAuditOpen: boolean;
     isReconcileOpen: boolean;
     isConfirmFinalizeOpen: boolean;
@@ -33,6 +34,8 @@ export interface UsePayrollPresenterResult {
     closeCalculate: () => void;
     openRates: () => void;
     closeRates: () => void;
+    openTiming: () => void;
+    closeTiming: () => void;
     openAudit: () => void;
     closeAudit: () => void;
     openReconcile: () => void;
@@ -55,6 +58,7 @@ export function usePayrollPresenter(): UsePayrollPresenterResult {
   // Local Modal States
   const [isCalculateOpen, setIsCalculateOpen] = useState(false);
   const [isRatesOpen, setIsRatesOpen] = useState(false);
+  const [isTimingOpen, setIsTimingOpen] = useState(false);
   const [isAuditOpen, setIsAuditOpen] = useState(false);
   const [isReconcileOpen, setIsReconcileOpen] = useState(false);
   const [isConfirmFinalizeOpen, setIsConfirmFinalizeOpen] = useState(false);
@@ -122,6 +126,9 @@ export function usePayrollPresenter(): UsePayrollPresenterResult {
   const openRates = useCallback(() => setIsRatesOpen(true), []);
   const closeRates = useCallback(() => setIsRatesOpen(false), []);
 
+  const openTiming = useCallback(() => setIsTimingOpen(true), []);
+  const closeTiming = useCallback(() => setIsTimingOpen(false), []);
+
   const openAudit = useCallback(() => setIsAuditOpen(true), []);
   const closeAudit = useCallback(() => setIsAuditOpen(false), []);
 
@@ -183,6 +190,7 @@ export function usePayrollPresenter(): UsePayrollPresenterResult {
     modals: {
       isCalculateOpen,
       isRatesOpen,
+      isTimingOpen,
       isAuditOpen,
       isReconcileOpen,
       isConfirmFinalizeOpen
@@ -196,6 +204,8 @@ export function usePayrollPresenter(): UsePayrollPresenterResult {
       closeCalculate,
       openRates,
       closeRates,
+      openTiming,
+      closeTiming,
       openAudit,
       closeAudit,
       openReconcile,

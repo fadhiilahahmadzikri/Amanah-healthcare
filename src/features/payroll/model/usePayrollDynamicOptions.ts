@@ -4,15 +4,24 @@ import { useMemo } from 'react';
 import { Icons } from '@/components/icons';
 import type { FacetGroupDefinition } from '@/shared/ui/responsive-facet-toolbox';
 import { useStateSearchEngine, type SearchEngineResultItem } from '@/components/search-engine';
-import {
-  CATEGORY_FACET_OPTIONS,
-  STATUS_FACET_OPTIONS,
-  PERIOD_STATUS_CONFIG
-} from '../constants/options';
+import { CATEGORY_FACET_OPTIONS, STATUS_FACET_OPTIONS } from '../constants/options';
 import type { UsePayrollViewResult } from './usePayrollView';
 
 export interface UsePayrollDynamicOptionsProps {
   payrollView: UsePayrollViewResult;
+}
+
+/**
+ * Helper untuk membersihkan label periode agar hanya menampilkan periode waktu (bulan & tahun),
+ * mengeliminasi awalan berulang seperti "Payroll Periode " atau "Periode Gaji ".
+ */
+export function formatPeriodDisplay(periodName: string): string {
+  if (!periodName) return '';
+  return periodName
+    .replace(/^payroll\s+periode\s+/i, '')
+    .replace(/^periode\s+gaji\s+/i, '')
+    .replace(/^periode\s+/i, '')
+    .trim();
 }
 
 export function usePayrollDynamicOptions({ payrollView }: UsePayrollDynamicOptionsProps) {
@@ -21,17 +30,17 @@ export function usePayrollDynamicOptions({ payrollView }: UsePayrollDynamicOptio
     selectedPeriodId,
     selectedCategory,
     selectedStatus,
-    filterOptions,
     summaries,
     searchQuery,
     actions
   } = payrollView;
 
-  // 1. Period Options
+  // 1. Period Options (Hanya menampilkan waktu periode agar ringkas pada tab filter)
   const periodFacetOptions = useMemo(() => {
     return periods.map((p) => ({
       value: p.id,
-      label: `${p.periodName} (${PERIOD_STATUS_CONFIG[p.status].label})`
+      label: formatPeriodDisplay(p.periodName),
+      dotColor: p.status === 'finalized' ? 'bg-emerald-500' : 'bg-sky-500'
     }));
   }, [periods]);
 

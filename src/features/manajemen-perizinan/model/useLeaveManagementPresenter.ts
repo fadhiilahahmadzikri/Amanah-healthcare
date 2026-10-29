@@ -7,7 +7,6 @@ import { useReviewLeaveMutation } from '../api/mutations';
 import { useLeaveRealtimeSync } from '../hooks/useLeaveRealtimeSync';
 import { useLeaveFilters } from './useLeaveFilters';
 import type { LeaveRequestItem } from '../api/types';
-import type { LeaveConfigurationCategory } from '../components/leave-settings-button';
 
 export function useLeaveManagementPresenter() {
   const searchParams = useSearchParams();
@@ -32,7 +31,6 @@ export function useLeaveManagementPresenter() {
   const [selectedLeave, setSelectedLeave] = useState<LeaveRequestItem | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [settingsCategory, setSettingsCategory] = useState<LeaveConfigurationCategory>('policy');
 
   // Auto-open detail sheet when leaveId query param matches a leave request
   useEffect(() => {
@@ -55,8 +53,7 @@ export function useLeaveManagementPresenter() {
     setSelectedLeave(null);
   };
 
-  const openSettings = (category: LeaveConfigurationCategory = 'policy') => {
-    setSettingsCategory(category);
+  const openSettings = () => {
     setIsSettingsOpen(true);
   };
   const closeSettings = () => setIsSettingsOpen(false);
@@ -89,7 +86,6 @@ export function useLeaveManagementPresenter() {
     },
     settingsModal: {
       isOpen: isSettingsOpen,
-      category: settingsCategory,
       open: openSettings,
       close: closeSettings
     }

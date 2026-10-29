@@ -49,6 +49,7 @@ export function PayrollMobileFilterToolbar({
             {/* Morphed Settings Button placed immediately to the left of Export */}
             <PayrollSettingsButton
               onOpenRates={actions.openRates}
+              onOpenTiming={actions.openTiming}
               onReconcileDailyLeave={actions.reconcileDailyLeave}
               onOpenAudit={actions.openAudit}
               onOpenConfirmFinalize={actions.openConfirmFinalize}

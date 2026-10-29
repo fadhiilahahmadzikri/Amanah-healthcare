@@ -31,6 +31,7 @@ import { PayrollOverviewStats } from './payroll-overview-stats';
 import { PayrollSlipDetailModal } from './payroll-slip-detail-modal';
 import { PayrollCalculateModal } from './payroll-calculate-modal';
 import { PayrollRatesConfigModal } from './payroll-rates-config-modal';
+import { PayrollTimingConfigModal } from './payroll-timing-config-modal';
 import { PayrollAuditMutationModal } from './payroll-audit-mutation-modal';
 import { PayrollReconcileLeaveModal } from './payroll-reconcile-leave-modal';
 
@@ -39,7 +40,6 @@ export function PayrollManagementView() {
   const { payrollView, modals, mutations, actions, report } = presenter;
 
   const isCalculated = payrollView.currentPeriod?.status === PAYROLL_PERIOD_STATUS.CALCULATED;
-  const isFinalized = payrollView.currentPeriod?.status === PAYROLL_PERIOD_STATUS.FINALIZED;
   const isCalculatedOrFinalized = isPayrollCalculatedOrFinalized(payrollView.currentPeriod?.status);
 
   const { state: sidebarState } = useSidebar();
@@ -94,8 +94,11 @@ export function PayrollManagementView() {
         onSuccess={actions.onCalculateSuccess}
       />
 
-      {/* 3. Modal Konfigurasi Standar Tarif Payroll (Wide ModalWrapper max-w-5xl) */}
+      {/* 3. Modal Konfigurasi Standar Tarif Payroll (Wide ModalWrapper max-w-4xl) */}
       <PayrollRatesConfigModal isOpen={modals.isRatesOpen} onClose={actions.closeRates} />
+
+      {/* 3b. Modal Konfigurasi Jam Kerja & Pembulatan Presensi */}
+      <PayrollTimingConfigModal isOpen={modals.isTimingOpen} onClose={actions.closeTiming} />
 
       {/* 4. Modal Audit Mutasi Periode (Wide ModalWrapper max-w-6xl) */}
       <PayrollAuditMutationModal
@@ -187,6 +190,7 @@ export function PayrollManagementView() {
               {/* Morphed Settings Button placed immediately to the left of Export */}
               <PayrollSettingsButton
                 onOpenRates={actions.openRates}
+                onOpenTiming={actions.openTiming}
                 onReconcileDailyLeave={actions.openReconcile}
                 onOpenAudit={actions.openAudit}
                 onOpenConfirmFinalize={actions.openConfirmFinalize}

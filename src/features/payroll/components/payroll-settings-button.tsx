@@ -23,6 +23,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 
 export interface PayrollSettingsButtonProps {
   onOpenRates: () => void;
+  onOpenTiming: () => void;
   onReconcileDailyLeave: () => void;
   onOpenAudit: () => void;
   onOpenConfirmFinalize: () => void;
@@ -37,6 +38,7 @@ export interface PayrollSettingsButtonProps {
 
 export function PayrollSettingsButton({
   onOpenRates,
+  onOpenTiming,
   onReconcileDailyLeave,
   onOpenAudit,
   onOpenConfirmFinalize,
@@ -108,6 +110,31 @@ export function PayrollSettingsButton({
                     </p>
                     <p className='text-[11px] text-muted-foreground'>
                       Konfigurasi tarif dasar dan lembur dokter, bidan, dan staf
+                    </p>
+                  </div>
+                </div>
+              </button>
+
+              {/* 2. Standar Jam Kerja & Pembulatan Dinas */}
+              <button
+                type='button'
+                onClick={() => {
+                  setIsDrawerOpen(false);
+                  onOpenTiming();
+                }}
+                aria-label='Standar jam kerja dan pembulatan dinas'
+                className='w-full text-left p-3 rounded-xl border border-border/60 hover:bg-muted/50 transition-colors flex items-center justify-between cursor-pointer group'
+              >
+                <div className='flex items-center gap-3'>
+                  <div className='size-9 rounded-lg bg-muted text-foreground flex items-center justify-center shrink-0'>
+                    <Icons.clock className='size-4 text-muted-foreground' />
+                  </div>
+                  <div>
+                    <p className='text-xs font-semibold text-foreground group-hover:text-primary transition-colors'>
+                      Standar jam kerja & pembulatan dinas
+                    </p>
+                    <p className='text-[11px] text-muted-foreground'>
+                      Batas minimum durasi berbayar dan interval pembulatan presensi
                     </p>
                   </div>
                 </div>
@@ -234,6 +261,16 @@ export function PayrollSettingsButton({
           <div className='flex items-center gap-2'>
             <Icons.settings className='size-3.5 text-muted-foreground shrink-0' />
             <span>Standar tarif</span>
+          </div>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          onClick={onOpenTiming}
+          className='cursor-pointer text-xs py-2 flex items-center justify-between'
+        >
+          <div className='flex items-center gap-2'>
+            <Icons.clock className='size-3.5 text-muted-foreground shrink-0' />
+            <span>Aturan kerja & pembulatan</span>
           </div>
         </DropdownMenuItem>
 

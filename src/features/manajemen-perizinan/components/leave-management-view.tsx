@@ -26,7 +26,6 @@ export function LeaveManagementView() {
   const { state: sidebarState } = useSidebar();
   const isSidebarExpanded = sidebarState === 'expanded';
 
-  const { isOpen: isMobile } = useMediaQuery('(max-width: 768px)');
   const { isOpen: isUnder1024 } = useMediaQuery('(max-width: 1024px)');
   const { isOpen: isUnder1280 } = useMediaQuery('(max-width: 1280px)');
 
@@ -54,11 +53,7 @@ export function LeaveManagementView() {
         onClose={detailModal.close}
       />
 
-      <LeaveSettingsModal
-        isOpen={settingsModal.isOpen}
-        category={settingsModal.category}
-        onClose={settingsModal.close}
-      />
+      <LeaveSettingsModal isOpen={settingsModal.isOpen} onClose={settingsModal.close} />
 
       <div className='flex h-full min-h-0 flex-1 flex-col gap-3.5 select-none'>
         {/* Unified Master Responsive Facet Toolbox (Desktop Inline & Mobile Drawer Sheet) */}
@@ -102,9 +97,7 @@ export function LeaveManagementView() {
               </div>
 
               <LeaveSettingsButton
-                onSelectCategory={settingsModal.open}
-                activeCategory={settingsModal.category}
-                forceMode={isCompact ? 'drawer' : undefined}
+                onOpenSettings={settingsModal.open}
                 className={isCompact ? 'size-8 rounded-md' : 'size-8'}
               />
             </div>
