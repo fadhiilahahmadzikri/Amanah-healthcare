@@ -25,17 +25,21 @@ export const STATUS_DOT_COLORS: Record<string, string> = {
 
 export interface UseAppointmentDynamicOptionsProps {
   table: Table<AdminAppointment>;
+  searchQuery?: string;
+  onSearchChange?: (q: string | null) => void;
   doctorOptions?: Option[];
   roomOptions?: Option[];
   serviceOptions?: Option[];
   units?: QueueNavigationResponse['units'];
   currentUnitId?: string | null;
-  onSelectUnit?: (unitId: string) => void;
+  onSelectUnit?: (unitId: string | null) => void;
   onReset?: () => void;
 }
 
 export function useAppointmentDynamicOptions({
   table,
+  searchQuery: propSearchQuery,
+  onSearchChange: propOnSearchChange,
   doctorOptions: explicitDoctorOptions,
   roomOptions: explicitRoomOptions,
   serviceOptions: explicitServiceOptions,
@@ -52,12 +56,16 @@ export function useAppointmentDynamicOptions({
   const serviceCol = table.getColumn('layananName');
 
   // 1. Search Query & Engine
-  const searchQuery = (patientCol?.getFilterValue() as string) ?? '';
+  const searchQuery = propSearchQuery ?? (patientCol?.getFilterValue() as string) ?? '';
   const handleSearchChange = useCallback(
     (q: string) => {
-      patientCol?.setFilterValue(q ? q : undefined);
+      if (propOnSearchChange) {
+        propOnSearchChange(q ? q : null);
+      } else {
+        patientCol?.setFilterValue(q ? q : undefined);
+      }
     },
-    [patientCol]
+    [propOnSearchChange, patientCol]
   );
 
   const indexItems = useMemo<SearchEngineResultItem[]>(() => {
@@ -304,27 +312,34 @@ export function useAppointmentDynamicOptions({
 
     // Optional Unit / Poliklinik Facet (di mobile menggantikan ClinicCategoryTabs)
     if (units && units.length > 0) {
+      const allCount = units.reduce((acc, u) => acc + (u.totalAppointments || 0), 0);
+
       groups.push({
         id: 'unit',
         title: 'Poliklinik',
         icon: Icons.plusCircle,
         mode: 'single',
-        options: units.map((u) => ({
-          label: u.name,
-          value: u.id,
-          count: u.totalAppointments
-        })),
-        selectedValues: currentUnitId ? [currentUnitId] : [units[0]?.id || ''],
+        options: [
+          {
+            label: 'Semua Poliklinik',
+            value: 'all',
+            count: allCount
+          },
+          ...units.map((u) => ({
+            label: u.name,
+            value: u.id,
+            count: u.totalAppointments
+          }))
+        ],
+        selectedValues: currentUnitId ? [currentUnitId] : ['all'],
         onSelect: (val: string) => {
-          onSelectUnit?.(val);
+          onSelectUnit?.(val === 'all' ? null : val);
         },
         onReset: () => {
-          if (units[0]?.id) {
-            onSelectUnit?.(units[0].id);
-          }
+          onSelectUnit?.(null);
         },
         popoverWidth: 'w-52',
-        resetLabel: units[0]?.name || 'Poli Utama'
+        resetLabel: 'Semua Poliklinik'
       });
     }
 
@@ -410,9 +425,7 @@ export function useAppointmentDynamicOptions({
   ]);
 
   // 8. Filter Counts & State
-  const hasUnitFilter = Boolean(
-    units && units.length > 0 && currentUnitId && currentUnitId !== units[0]?.id
-  );
+  const hasUnitFilter = Boolean(units && units.length > 0 && currentUnitId);
   const hasDateFilter = Boolean(dateValue && String(dateValue).trim().length > 0);
   const hasStatusFilter = statusValue.length > 0;
   const hasDoctorFilter = selectedDoctorValues.length > 0;
@@ -451,6 +464,9 @@ export function useAppointmentDynamicOptions({
   // 9. Reset All Filters
   const resetAllFilters = useCallback(() => {
     searchEngine.clearQuery();
+    if (propOnSearchChange) {
+      propOnSearchChange(null);
+    }
     patientCol?.setFilterValue(undefined);
     dateCol?.setFilterValue(undefined);
     statusCol?.setFilterValue(undefined);
@@ -458,12 +474,11 @@ export function useAppointmentDynamicOptions({
     roomCol?.setFilterValue(undefined);
     serviceCol?.setFilterValue(undefined);
     table.resetColumnFilters();
-    if (units && units.length > 0 && units[0]?.id) {
-      onSelectUnit?.(units[0].id);
-    }
+    onSelectUnit?.(null);
     onReset?.();
   }, [
     searchEngine,
+    propOnSearchChange,
     patientCol,
     dateCol,
     statusCol,
@@ -471,7 +486,6 @@ export function useAppointmentDynamicOptions({
     roomCol,
     serviceCol,
     table,
-    units,
     onSelectUnit,
     onReset
   ]);

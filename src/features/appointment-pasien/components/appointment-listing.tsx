@@ -1,7 +1,7 @@
 import { HydrationBoundary, dehydrate } from '@tanstack/react-query';
 import { getQueryClient } from '@/lib/query-client';
 import { searchParamsCache } from '@/lib/searchparams';
-import { appointmentQueryOptions, queueNavigationQueryOptions } from '../api/queries';
+import { appointmentInfiniteQueryOptions, queueNavigationQueryOptions } from '../api/queries';
 import { getAppointmentsOnServer, getQueueNavigationOnServer } from '../api/server';
 import { normalizeFilters } from '../api/types';
 import { prefetchClinicCatalog } from '@/features/klinik/api/server';
@@ -31,9 +31,10 @@ export default async function AppointmentListingPage() {
 
   const queryClient = getQueryClient();
   await Promise.all([
-    queryClient.prefetchQuery({
-      ...appointmentQueryOptions(filters),
-      queryFn: () => getAppointmentsOnServer(filters)
+    queryClient.prefetchInfiniteQuery({
+      ...appointmentInfiniteQueryOptions(filters),
+      queryFn: () => getAppointmentsOnServer(filters),
+      initialPageParam: 1
     }),
     queryClient.prefetchQuery({
       ...queueNavigationQueryOptions(),

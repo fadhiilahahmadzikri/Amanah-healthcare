@@ -44,6 +44,8 @@ export interface UseAppointmentTableResult {
   currentUnitId: string | null;
   currentDoctorId: string | null;
   formattedDate?: string;
+  searchQuery: string;
+  setSearch: (search: string | null) => Promise<unknown>;
   setUnitId: (unitId: string | null) => Promise<unknown>;
   setDoctorId: (doctorId: string | null) => Promise<unknown>;
   resetFilters: () => void;
@@ -251,6 +253,9 @@ export function useAppointmentTable({
     currentUnitId: params.poliklinikId,
     currentDoctorId: params.doctorId,
     formattedDate,
+    searchQuery: params.search ?? '',
+    setSearch: (search: string | null) =>
+      setParams({ search: search && search.trim().length > 0 ? search.trim() : null, page: 1 }),
     setUnitId: (unitId: string | null) =>
       setParams({ poliklinikId: unitId, doctorId: null, page: 1 }),
     setDoctorId: (doctorId: string | null) => setParams({ doctorId, page: 1 }),

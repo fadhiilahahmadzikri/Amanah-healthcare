@@ -57,8 +57,6 @@ export function AppointmentTable() {
     queueNavigationQueryOptions({ date: dateParam })
   );
 
-  const [initialUnitAssigned, setInitialUnitAssigned] = React.useState(false);
-
   // Dynamic doctor options based on active unit, including 'unassigned' option with badge count
   const dynamicDoctorOptions = useMemo<Option[]>(() => {
     if (!navigationData?.units || navigationData.units.length === 0) return doctorOptions;
@@ -103,18 +101,6 @@ export function AppointmentTable() {
   const appointmentTable = useAppointmentTable({ columns, columnIds });
   const { currentUnitId, setUnitId } = appointmentTable;
 
-  React.useEffect(() => {
-    if (
-      !initialUnitAssigned &&
-      !currentUnitId &&
-      navigationData?.units &&
-      navigationData.units.length > 0
-    ) {
-      setInitialUnitAssigned(true);
-      void setUnitId(navigationData.units[0].id);
-    }
-  }, [initialUnitAssigned, currentUnitId, navigationData, setUnitId]);
-
   const {
     searchQuery,
     handleSearchChange,
@@ -126,6 +112,8 @@ export function AppointmentTable() {
     searchEngine
   } = useAppointmentDynamicOptions({
     table: appointmentTable.table,
+    searchQuery: appointmentTable.searchQuery,
+    onSearchChange: (q) => void appointmentTable.setSearch(q),
     doctorOptions: dynamicDoctorOptions,
     roomOptions,
     serviceOptions,
