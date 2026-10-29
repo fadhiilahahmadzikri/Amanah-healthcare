@@ -11,7 +11,7 @@ import { OtpVerificationForm } from './otp-verification-form';
 import { ResetPasswordForm } from './reset-password-form';
 import { SignInForm } from './sign-in-form';
 import { SignUpForm } from './sign-up-form-custom';
-import { safeRedirect, getRoleLandingPath } from '@/lib/safe-redirect';
+import { safeRedirect, getRoleLandingPath, ROUTES } from '@/lib/safe-redirect';
 import { authClient, useSession } from '@/lib/auth-client';
 import {
   loginAction,
@@ -42,8 +42,6 @@ type FlowAction =
   | { type: 'setError'; error: string | null }
   | { type: 'clearMessages' };
 
-const AUTH_REDIRECT_FALLBACK = '/dashboard';
-
 const SCREEN_PATHS: Record<AuthScreen, string> = {
   'sign-in': '/auth/sign-in',
   'sign-up': '/auth/sign-up',
@@ -67,7 +65,7 @@ const SCREEN_COPY: Record<
   },
   'sign-up': {
     title: 'Buat akun baru',
-    description: 'Daftar untuk mengakses layanan kesehatan dan dashboard klinik.',
+    description: 'Daftar untuk mengakses layanan kesehatan dan portal klinik.',
     footer: <AuthLegalCopy />
   },
   'forgot-password': {
@@ -128,8 +126,7 @@ export function AuthFlowView() {
 
   const [screen, setScreen] = useState<AuthScreen>(() => getScreenFromPath(pathname, searchParams));
 
-  const redirectParam = searchParams.get('redirect_url') || searchParams.get('redirect');
-  const redirectTo = safeRedirect(redirectParam, AUTH_REDIRECT_FALLBACK);
+  const redirectParam = searchParams.get('redirect');
 
   const emailParam = searchParams.get('email');
   const [state, dispatch] = useReducer(flowReducer, {
@@ -164,10 +161,13 @@ export function AuthFlowView() {
           router.replace(`/verify-otp?email=${encodeURIComponent(session.user.email)}`);
         }
       } else {
-        router.replace(redirectTo);
+        const targetUrl = redirectParam
+          ? safeRedirect(redirectParam, getRoleLandingPath(session.user.role))
+          : getRoleLandingPath(session.user.role);
+        router.replace(targetUrl as any);
       }
     }
-  }, [isSessionLoading, session, redirectTo, router, screen]);
+  }, [isSessionLoading, session, redirectParam, router, screen]);
 
   // Synchronize screen state if browser navigation occurs
   useEffect(() => {
@@ -186,7 +186,7 @@ export function AuthFlowView() {
 
   function buildPath(target: AuthScreen) {
     const params = new URLSearchParams();
-    if (redirectParam) params.set('redirect', redirectTo);
+    if (redirectParam) params.set('redirect', redirectParam);
     const query = params.toString();
     return `${SCREEN_PATHS[target]}${query ? `?${query}` : ''}`;
   }
@@ -208,9 +208,10 @@ export function AuthFlowView() {
 
     try {
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      const targetUrl = redirectTo.startsWith('http')
-        ? redirectTo
-        : `${origin}${redirectTo.startsWith('/') ? '' : '/'}${redirectTo}`;
+      const fallbackUrl = `${origin}${ROUTES.adminAppointmentPasien}`;
+      const targetUrl = redirectParam
+        ? `${origin}${safeRedirect(redirectParam, ROUTES.adminAppointmentPasien)}`
+        : fallbackUrl;
 
       await authClient.signIn.social({
         provider: 'google',
@@ -241,12 +242,9 @@ export function AuthFlowView() {
         toast.success('Berhasil masuk!');
         const user = res.data;
         const role = user?.systemRole?.toLowerCase() === 'admin' ? 'admin' : 'patient';
-        const targetUrl =
-          !searchParams?.get('redirect') ||
-          redirectTo === '/dashboard' ||
-          redirectTo === '/dashboard/admin'
-            ? getRoleLandingPath(role)
-            : redirectTo;
+        const targetUrl = redirectParam
+          ? safeRedirect(redirectParam, getRoleLandingPath(role))
+          : getRoleLandingPath(role);
         window.location.href = targetUrl;
         return;
       }
@@ -255,18 +253,17 @@ export function AuthFlowView() {
       const betterAuthRes = await authClient.signIn.email({
         email: values.email,
         password: values.password,
-        callbackURL: redirectTo
+        callbackURL: redirectParam
+          ? safeRedirect(redirectParam, ROUTES.adminAppointmentPasien)
+          : undefined
       });
 
       if (!betterAuthRes.error) {
         toast.success('Berhasil masuk!');
         const role = (betterAuthRes.data?.user as { role?: string } | undefined)?.role;
-        const targetUrl =
-          !searchParams?.get('redirect') ||
-          redirectTo === '/dashboard' ||
-          redirectTo === '/dashboard/admin'
-            ? getRoleLandingPath(role)
-            : redirectTo;
+        const targetUrl = redirectParam
+          ? safeRedirect(redirectParam, getRoleLandingPath(role))
+          : getRoleLandingPath(role);
         window.location.href = targetUrl;
         return;
       }
@@ -355,8 +352,8 @@ export function AuthFlowView() {
         return;
       }
 
-      toast.success('Email berhasil diverifikasi! Mengalihkan ke dashboard...');
-      window.location.href = '/dashboard';
+      toast.success('Email berhasil diverifikasi! Mengalihkan...');
+      window.location.href = getRoleLandingPath();
     } catch {
       dispatch({
         type: 'setError',

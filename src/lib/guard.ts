@@ -79,7 +79,7 @@ export async function requireRouteAccess(pathname: string): Promise<SessionType>
 export async function requireAdmin(): Promise<SessionType> {
   const session = await requireSession();
   if (session.user.role !== 'admin') {
-    redirect(ROUTES.dashboardPatient);
+    redirect(ROUTES.clinicQueue);
   }
   return session;
 }
@@ -90,7 +90,7 @@ export async function requireAdmin(): Promise<SessionType> {
 export async function requirePatient(): Promise<SessionType> {
   const session = await requireSession();
   if (session.user.role === 'admin') {
-    redirect(ROUTES.dashboardAppointmentPasien);
+    redirect(ROUTES.adminAppointmentPasien);
   }
   return session;
 }
@@ -112,11 +112,11 @@ export async function requirePermission(
     });
 
     if (!success) {
-      redirect(ROUTES.dashboardPatient);
+      redirect(ROUTES.clinicQueue);
     }
   } catch {
     if (session.user.role !== 'admin') {
-      redirect(ROUTES.dashboardPatient);
+      redirect(ROUTES.clinicQueue);
     }
   }
 

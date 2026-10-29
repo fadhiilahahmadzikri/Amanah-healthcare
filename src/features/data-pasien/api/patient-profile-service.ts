@@ -94,9 +94,10 @@ export async function updatePatientProfileMe(
     });
 
     try {
-      revalidatePath('/dashboard/profile', 'layout');
-      revalidatePath('/dashboard/klinik/profile', 'layout');
-      revalidatePath('/dashboard', 'layout');
+      revalidatePath('/admin/profile', 'layout');
+      revalidatePath('/klinik/profile', 'layout');
+      revalidatePath('/admin', 'layout');
+      revalidatePath('/klinik', 'layout');
     } catch {
       // Ignore revalidation errors outside request context
     }

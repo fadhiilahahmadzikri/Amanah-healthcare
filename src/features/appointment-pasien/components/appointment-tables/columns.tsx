@@ -263,8 +263,8 @@ export function getAppointmentColumns(
         }
         const targetDoctorId = appt.doctorId;
         const href = targetDoctorId
-          ? `/dashboard/jadwal-dokter?selectedDoctorId=${encodeURIComponent(targetDoctorId)}&dialog=detail`
-          : `/dashboard/jadwal-dokter?search=${encodeURIComponent(appt.doctorName)}`;
+          ? `/admin/jadwal-dokter?selectedDoctorId=${encodeURIComponent(targetDoctorId)}&dialog=detail`
+          : `/admin/jadwal-dokter?search=${encodeURIComponent(appt.doctorName)}`;
         return (
           <Link
             href={href}

@@ -171,7 +171,7 @@ export default function AppSidebar() {
                   <DropdownMenuItem
                     onClick={() => {
                       handleNavClick();
-                      router.push('/dashboard/profile');
+                      router.push(role === 'admin' ? '/admin/profile' : '/klinik/profile');
                     }}
                   >
                     <Icons.account className='mr-2 h-4 w-4' />
@@ -181,7 +181,7 @@ export default function AppSidebar() {
                     <DropdownMenuItem
                       onClick={() => {
                         handleNavClick();
-                        router.push('/dashboard/settings');
+                        router.push('/admin/settings');
                       }}
                     >
                       <Icons.settings className='mr-2 h-4 w-4' />

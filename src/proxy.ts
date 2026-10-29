@@ -62,14 +62,16 @@ export default async function proxy(request: NextRequest) {
     return response;
   }
 
-  // 2. Protected routes check (presence check only, deny-only)
+  // 3. Protected routes check (presence check only, deny-only)
   const isProtected = isProtectedRoute(pathname);
-
   const hasAnyAuthCookie = ALL_AUTH_COOKIE_NAMES.some((name) => request.cookies.has(name));
 
   if (isProtected && !hasAnyAuthCookie) {
     const signInUrl = new URL(ROUTES.signIn, request.url);
-    signInUrl.searchParams.set('redirect', safeRedirect(pathname + search, ROUTES.dashboard));
+    signInUrl.searchParams.set(
+      'redirect',
+      safeRedirect(pathname + search, ROUTES.adminAppointmentPasien)
+    );
     const response = NextResponse.redirect(signInUrl);
     response.headers.set('Cache-Control', 'no-store, max-age=0');
     if (obsContext) {
@@ -81,7 +83,7 @@ export default async function proxy(request: NextRequest) {
     return response;
   }
 
-  // 3. Forward request with injected x-pathname and correlation headers
+  // 4. Forward request with injected x-pathname and correlation headers
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-pathname', pathname);
 
@@ -102,7 +104,7 @@ export default async function proxy(request: NextRequest) {
     }
   });
 
-  // 4. Enforce anti-caching on protected routes
+  // 5. Enforce anti-caching on protected routes
   if (isProtected) {
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     response.headers.set('Pragma', 'no-cache');

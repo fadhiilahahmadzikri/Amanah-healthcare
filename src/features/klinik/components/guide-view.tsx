@@ -47,7 +47,7 @@ const GUIDE_DATA: GuideStepItem[] = [
       }
     ],
     note: 'Simpan alamat email dan kata sandi Anda di tempat yang aman agar tidak terlupa saat kunjungan berikutnya.',
-    actionUrl: '/dashboard/klinik/profile',
+    actionUrl: '/klinik/profile',
     actionLabel: 'Lihat Data Profil Akun'
   },
   {
@@ -77,7 +77,7 @@ const GUIDE_DATA: GuideStepItem[] = [
       }
     ],
     note: 'Disarankan hadir 15 menit sebelum jam pemeriksaan yang tertera pada jadwal janji temu Anda.',
-    actionUrl: '/dashboard/klinik/janji-temu',
+    actionUrl: '/klinik/janji-temu',
     actionLabel: 'Buka Halaman Janji Temu'
   },
   {
@@ -103,7 +103,7 @@ const GUIDE_DATA: GuideStepItem[] = [
       }
     ],
     note: 'Saat nomor Anda muncul pada kotak Sedang Dipanggil, segera melangkah menuju pintu poliklinik yang dituju.',
-    actionUrl: '/dashboard/klinik/antrean',
+    actionUrl: '/klinik/antrean',
     actionLabel: 'Buka Layar Cek Antrean'
   },
   {
@@ -129,7 +129,7 @@ const GUIDE_DATA: GuideStepItem[] = [
       }
     ],
     note: 'Tekan tombol Tandai Semua Sudah Dibaca di sudut kanan atas untuk merapikan daftar pesan Anda.',
-    actionUrl: '/dashboard/notifications',
+    actionUrl: '/klinik/notifications',
     actionLabel: 'Buka Halaman Notifikasi'
   },
   {
@@ -155,7 +155,7 @@ const GUIDE_DATA: GuideStepItem[] = [
       }
     ],
     note: 'Tekan tombol Edit profil jika terdapat perubahan nomor telepon atau alamat tempat tinggal.',
-    actionUrl: '/dashboard/klinik/profile',
+    actionUrl: '/klinik/profile',
     actionLabel: 'Buka Profil Pasien'
   },
   {

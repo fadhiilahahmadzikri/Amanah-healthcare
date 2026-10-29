@@ -394,8 +394,8 @@ export function useNotificationSocket(callbacks?: {
               onClick: () => {
                 router.push(
                   targetId
-                    ? `/dashboard/manajemen-perizinan?leaveId=${targetId}`
-                    : '/dashboard/manajemen-perizinan'
+                    ? `/admin/manajemen-perizinan?leaveId=${targetId}`
+                    : '/admin/manajemen-perizinan'
                 );
               }
             },
@@ -442,9 +442,7 @@ export function useNotificationSocket(callbacks?: {
         isEarlyDeparture: item.isEarlyDeparture,
         notes: item.notes,
         onNavigateDetail: (id) => {
-          router.push(
-            id ? `/dashboard/kehadiran-pegawai?highlight=${id}` : '/dashboard/kehadiran-pegawai'
-          );
+          router.push(id ? `/admin/kehadiran-pegawai?highlight=${id}` : '/admin/kehadiran-pegawai');
         }
       });
     };

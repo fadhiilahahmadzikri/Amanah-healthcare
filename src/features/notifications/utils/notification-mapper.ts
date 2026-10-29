@@ -58,16 +58,12 @@ export function mapBackendToClinicNotification(backend: BackendNotification): Cl
     backend.senderRole === 'Admin Klinik';
 
   const actions: NotificationActionItem[] = (backend.actions || []).map((action, index) => {
-    let url = action.url;
-    if (isPatientAudience && url?.startsWith('/dashboard/chat')) {
-      url = '/dashboard/klinik/chat';
-    }
     return {
       id: action.id || `act-${backend.id}-${index}`,
       label: action.label,
       type: (action.actionType as NotificationActionItem['type']) || 'primary',
       actionKey: action.actionKey,
-      url,
+      url: action.url,
       icon: undefined
     };
   });
@@ -86,10 +82,10 @@ export function mapBackendToClinicNotification(backend: BackendNotification): Cl
       type: 'primary',
       actionKey: 'view_chat',
       url: isPatientAudience
-        ? '/dashboard/klinik/chat'
+        ? '/klinik/chat'
         : conversationId
-          ? `/dashboard/chat?conversationId=${conversationId}`
-          : '/dashboard/chat',
+          ? `/admin/chat?conversationId=${conversationId}`
+          : '/admin/chat',
       icon: undefined
     });
   }

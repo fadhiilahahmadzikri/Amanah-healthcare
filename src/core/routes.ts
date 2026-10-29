@@ -3,19 +3,33 @@ export const ROUTES = {
   signIn: '/auth/sign-in',
   signUp: '/auth/sign-up',
   verifyOtp: '/verify-otp',
-  dashboard: '/dashboard',
-  dashboardAppointmentPasien: '/dashboard/appointment-pasien',
-  dashboardStaff: '/dashboard/staff',
-  dashboardDoctorSchedules: '/dashboard/jadwal-dokter',
-  dashboardLeaveManagement: '/dashboard/manajemen-perizinan',
-  dashboardReplacementOpportunities: '/dashboard/peluang-pengganti',
-  dashboardPayroll: '/dashboard/payroll',
-  dashboardPatient: '/dashboard/klinik/antrean',
+  admin: '/admin',
+  adminAppointmentPasien: '/admin/appointment-pasien',
+  adminStaff: '/admin/staff',
+  adminDoctorSchedules: '/admin/jadwal-dokter',
+  adminLeaveManagement: '/admin/manajemen-perizinan',
+  adminReplacementOpportunities: '/admin/peluang-pengganti',
+  adminPayroll: '/admin/payroll',
+  adminPatientData: '/admin/data-pasien',
+  adminMedicalRecords: '/admin/riwayat-medis',
+  adminAttendance: '/admin/kehadiran-pegawai',
+  adminChat: '/admin/chat',
+  adminNotifications: '/admin/notifications',
+  adminSettings: '/admin/settings',
+  adminProfile: '/admin/profile',
+  // Clinic / Patient Portal
+  clinicQueue: '/klinik/antrean',
+  clinicAppointments: '/klinik/janji-temu',
+  clinicHistory: '/klinik/history',
+  clinicChat: '/klinik/chat',
+  clinicGuide: '/klinik/panduan',
+  clinicProfile: '/klinik/profile',
+  clinicNotifications: '/klinik/notifications',
   sessionExpired: '/api/auth/session-expired'
 } as const;
 
 export const REDIRECT_PARAM = 'redirect';
-export const PROTECTED_PREFIXES = ['/dashboard', '/patient-registration'] as const;
+export const PROTECTED_PREFIXES = ['/admin', '/klinik', '/patient-registration'] as const;
 
 export function isProtectedRoute(pathname: string): boolean {
   return PROTECTED_PREFIXES.some(
@@ -23,7 +37,10 @@ export function isProtectedRoute(pathname: string): boolean {
   );
 }
 
-export function safeRedirect(path: string | null | undefined, fallback = ROUTES.dashboard): string {
+export function safeRedirect(
+  path: string | null | undefined,
+  fallback: string = ROUTES.adminAppointmentPasien
+): string {
   if (!path) return fallback;
   if (path.startsWith('/') && !path.startsWith('//') && !path.startsWith('/\\')) {
     return path;
@@ -32,8 +49,8 @@ export function safeRedirect(path: string | null | undefined, fallback = ROUTES.
 }
 
 export function getRoleLandingPath(role?: string | null): string {
-  if (role === 'admin') {
-    return ROUTES.dashboardAppointmentPasien;
+  if (role === 'patient') {
+    return ROUTES.clinicQueue;
   }
-  return ROUTES.dashboardPatient;
+  return ROUTES.adminAppointmentPasien;
 }

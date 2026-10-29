@@ -29,10 +29,10 @@ export function useAttendanceLiveView() {
       if (window.opener) {
         window.close();
       } else {
-        router.push('/dashboard/kehadiran-pegawai');
+        router.push('/admin/kehadiran-pegawai');
       }
     } catch {
-      router.push('/dashboard/kehadiran-pegawai');
+      router.push('/admin/kehadiran-pegawai');
     }
   };
 

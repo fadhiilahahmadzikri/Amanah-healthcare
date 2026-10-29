@@ -113,7 +113,7 @@ $doctorHeaders = @{
 }
 
 # ------------------------------------------------------------------------------
-# PHASE 1: Kehadiran Pegawai (/dashboard/kehadiran-pegawai)
+# PHASE 1: Kehadiran Pegawai (/admin/kehadiran-pegawai)
 # ------------------------------------------------------------------------------
 Write-Section "PHASE 1: Kehadiran Pegawai Contract Verification"
 
@@ -220,7 +220,7 @@ try {
 }
 
 # ------------------------------------------------------------------------------
-# PHASE 2: Manajemen Perizinan & Replacement (/dashboard/manajemen-perizinan)
+# PHASE 2: Manajemen Perizinan & Replacement (/admin/manajemen-perizinan)
 # ------------------------------------------------------------------------------
 Write-Section "PHASE 2: Manajemen Perizinan & Replacement Contract Verification"
 
@@ -390,7 +390,7 @@ if ($baselineConfig) {
 }
 
 # ------------------------------------------------------------------------------
-# PHASE 4: Payroll Management (/dashboard/payroll)
+# PHASE 4: Payroll Management (/admin/payroll)
 # ------------------------------------------------------------------------------
 Write-Section "PHASE 4: Payroll Management Contract Verification"
 

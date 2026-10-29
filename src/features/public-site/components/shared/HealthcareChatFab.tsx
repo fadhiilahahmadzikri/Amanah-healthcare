@@ -14,10 +14,10 @@ export function HealthcareChatFab() {
   const handleClick = () => {
     if (viewer?.userId) {
       if (viewer.role === 'admin') {
-        router.push('/dashboard/chat');
+        router.push('/admin/chat');
         return;
       }
-      router.push('/dashboard/klinik/chat');
+      router.push('/klinik/chat');
       return;
     }
     setIsOpen((prev) => !prev);

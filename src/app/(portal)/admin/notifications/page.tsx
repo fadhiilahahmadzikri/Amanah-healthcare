@@ -2,10 +2,10 @@ import { NotificationsPage } from '@/features/notifications';
 import { requireRouteAccess } from '@/lib/guard';
 
 export const metadata = {
-  title: 'Dashboard: Notifications'
+  title: 'Admin: Notifikasi'
 };
 
 export default async function Page() {
-  await requireRouteAccess('/dashboard/notifications');
+  await requireRouteAccess('/admin/notifications');
   return <NotificationsPage />;
 }

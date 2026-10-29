@@ -134,9 +134,9 @@ export function getPatientRegistrationRedirectPath({
     return '/auth/sign-in';
   }
 
-  // Treat patient registration as a modal barrier on dashboard; clean up direct route hits
+  // Treat patient registration as a modal barrier on admin portal; clean up direct route hits
   if (pathname.startsWith('/patient-registration')) {
-    return '/dashboard/appointment-pasien';
+    return '/admin/appointment-pasien';
   }
 
   return null;

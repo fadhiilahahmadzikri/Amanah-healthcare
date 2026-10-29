@@ -38,7 +38,7 @@ export function QueueSuccessModal({
 
   const handleGoToLiveQueue = () => {
     onClose();
-    router.push('/dashboard/klinik/antrean');
+    router.push('/klinik/antrean');
   };
 
   const handleToasterClick = () => {

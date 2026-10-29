@@ -54,7 +54,8 @@ export async function completePatientRegistrationAction(
   }
 
   try {
-    revalidatePath('/dashboard', 'layout');
+    revalidatePath('/admin', 'layout');
+    revalidatePath('/klinik', 'layout');
   } catch {
     // Ignore in non-request contexts
   }

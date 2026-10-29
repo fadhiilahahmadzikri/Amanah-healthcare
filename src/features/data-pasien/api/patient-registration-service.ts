@@ -126,7 +126,8 @@ export async function completePatientRegistration({
     );
 
     try {
-      revalidatePath('/dashboard', 'layout');
+      revalidatePath('/admin', 'layout');
+      revalidatePath('/klinik', 'layout');
     } catch {
       // Ignore in environments where revalidation is no-op
     }
@@ -145,7 +146,8 @@ export async function completePatientRegistration({
       } else if (code === 'PATIENT_ALREADY_REGISTERED') {
         message = 'Akun Anda sudah memiliki profil pasien terdaftar.';
         try {
-          revalidatePath('/dashboard', 'layout');
+          revalidatePath('/admin', 'layout');
+          revalidatePath('/klinik', 'layout');
         } catch {
           // Ignore
         }

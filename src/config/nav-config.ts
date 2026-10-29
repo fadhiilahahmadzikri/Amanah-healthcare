@@ -13,28 +13,28 @@ export const navGroups: NavGroup[] = [
         items: [
           {
             title: 'Appointment Pasien',
-            url: '/dashboard/appointment-pasien',
+            url: '/admin/appointment-pasien',
             icon: 'calendar',
             shortcut: ['a', 'p'],
             access: { role: 'admin' }
           },
           {
             title: 'Data Pasien',
-            url: '/dashboard/data-pasien',
+            url: '/admin/data-pasien',
             icon: 'teams',
             shortcut: ['d', 'p'],
             access: { role: 'admin' }
           },
           {
             title: 'Chat Pasien',
-            url: '/dashboard/chat',
+            url: '/admin/chat',
             icon: 'chat',
             shortcut: ['c', 'p'],
             access: { role: 'admin' }
           },
           {
             title: 'Riwayat Medis',
-            url: '/dashboard/riwayat-medis',
+            url: '/admin/riwayat-medis',
             icon: 'history',
             shortcut: ['r', 'm'],
             access: { role: 'admin' }
@@ -50,35 +50,35 @@ export const navGroups: NavGroup[] = [
         items: [
           {
             title: 'Jadwal Dokter',
-            url: '/dashboard/jadwal-dokter',
+            url: '/admin/jadwal-dokter',
             icon: 'clock',
             shortcut: ['j', 'd'],
             access: { role: 'admin' }
           },
           {
             title: 'Manajemen Staf',
-            url: '/dashboard/staff',
+            url: '/admin/staff',
             icon: 'teams',
             shortcut: ['m', 's'],
             access: { role: 'admin' }
           },
           {
             title: 'Kehadiran Pegawai',
-            url: '/dashboard/kehadiran-pegawai',
+            url: '/admin/kehadiran-pegawai',
             icon: 'badgeCheck',
             shortcut: ['k', 'p'],
             access: { role: 'admin' }
           },
           {
             title: 'Manajemen Perizinan',
-            url: '/dashboard/manajemen-perizinan',
+            url: '/admin/manajemen-perizinan',
             icon: 'calendar',
             shortcut: ['m', 'p'],
             access: { role: 'admin' }
           },
           {
             title: 'Peluang Pengganti',
-            url: '/dashboard/peluang-pengganti',
+            url: '/admin/peluang-pengganti',
             icon: 'userCheck',
             shortcut: ['p', 'p'],
             access: { role: 'admin' }
@@ -94,7 +94,7 @@ export const navGroups: NavGroup[] = [
         items: [
           {
             title: 'Manajemen Penggajian',
-            url: '/dashboard/payroll',
+            url: '/admin/payroll',
             icon: 'receipt',
             shortcut: ['m', 'y'],
             access: { role: 'admin' }
@@ -103,7 +103,7 @@ export const navGroups: NavGroup[] = [
       },
       {
         title: 'Notifikasi',
-        url: '/dashboard/notifications',
+        url: '/admin/notifications',
         icon: 'notification',
         shortcut: ['n', 'a'],
         access: { role: 'admin' }
@@ -122,42 +122,42 @@ export const navGroups: NavGroup[] = [
         items: [
           {
             title: 'Cek Antrean',
-            url: '/dashboard/klinik/antrean',
+            url: '/klinik/antrean',
             icon: 'listOrdered',
             shortcut: ['c', 'a'],
             access: { role: 'patient' }
           },
           {
             title: 'Janji Temu',
-            url: '/dashboard/klinik/janji-temu',
+            url: '/klinik/janji-temu',
             icon: 'calendar',
             shortcut: ['j', 't'],
             access: { role: 'patient' }
           },
           {
             title: 'Riwayat Medis',
-            url: '/dashboard/klinik/history',
+            url: '/klinik/history',
             icon: 'history',
             shortcut: ['r', 'm'],
             access: { role: 'patient' }
           },
           {
             title: 'Chat Konsultasi',
-            url: '/dashboard/klinik/chat',
+            url: '/klinik/chat',
             icon: 'chat',
             shortcut: ['c', 'k'],
             access: { role: 'patient' }
           },
           {
             title: 'Notifikasi',
-            url: '/dashboard/notifications',
+            url: '/klinik/notifications',
             icon: 'notification',
             shortcut: ['n', 'k'],
             access: { role: 'patient' }
           },
           {
             title: 'Panduan Penggunaan',
-            url: '/dashboard/klinik/panduan',
+            url: '/klinik/panduan',
             icon: 'help',
             shortcut: ['p', 'd'],
             access: { role: 'patient' }

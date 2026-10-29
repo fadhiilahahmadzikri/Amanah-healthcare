@@ -1,4 +1,5 @@
 'use client';
+
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -18,21 +19,33 @@ export function Breadcrumbs() {
   return (
     <Breadcrumb>
       <BreadcrumbList>
-        {items.map((item, index) => (
-          <Fragment key={item.title}>
-            {index !== items.length - 1 && (
-              <BreadcrumbItem className='hidden md:block'>
-                <BreadcrumbLink href={item.link}>{item.title}</BreadcrumbLink>
-              </BreadcrumbItem>
-            )}
-            {index < items.length - 1 && (
-              <BreadcrumbSeparator className='hidden md:block'>
-                <Icons.slash />
-              </BreadcrumbSeparator>
-            )}
-            {index === items.length - 1 && <BreadcrumbPage>{item.title}</BreadcrumbPage>}
-          </Fragment>
-        ))}
+        {items.map((item, index) => {
+          const isLast = index === items.length - 1;
+          const hasLink = item.link && item.link !== '#';
+
+          return (
+            <Fragment key={`${item.title}-${index}`}>
+              {!isLast ? (
+                <BreadcrumbItem className='hidden md:block'>
+                  {hasLink ? (
+                    <BreadcrumbLink href={item.link}>{item.title}</BreadcrumbLink>
+                  ) : (
+                    <span className='font-normal text-muted-foreground select-none'>
+                      {item.title}
+                    </span>
+                  )}
+                </BreadcrumbItem>
+              ) : (
+                <BreadcrumbPage>{item.title}</BreadcrumbPage>
+              )}
+              {!isLast && (
+                <BreadcrumbSeparator className='hidden md:block'>
+                  <Icons.slash />
+                </BreadcrumbSeparator>
+              )}
+            </Fragment>
+          );
+        })}
       </BreadcrumbList>
     </Breadcrumb>
   );

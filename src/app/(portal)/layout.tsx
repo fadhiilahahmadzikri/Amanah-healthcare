@@ -16,18 +16,18 @@ import { requireSession } from '@/server/auth/session.dal';
 import { getRoleLandingPath } from '@/core/routes';
 
 export const metadata: Metadata = {
-  title: 'Next Shadcn Dashboard Starter',
-  description: 'Basic dashboard with Next.js and Shadcn',
+  title: 'Amanah Healthcare Portal',
+  description: 'Sistem Informasi Manajemen Rumah Sakit Amanah Healthcare',
   robots: {
     index: false,
     follow: false
   }
 };
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   const reqHeaders = await headers();
   const { user, role: userRole } = await requireSession();
-  const pathname = reqHeaders.get('x-pathname') || '/dashboard';
+  const pathname = reqHeaders.get('x-pathname') || getRoleLandingPath(userRole);
 
   // Enforce Route Manifest RBAC at Layout Boundary
   const authResult = isRouteAuthorized(pathname, userRole);

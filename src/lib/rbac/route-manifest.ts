@@ -36,102 +36,117 @@ export const routeManifest: RouteRule[] = [
   { pattern: '/auth', match: 'exact', visibility: 'auth-only' },
 
   // 3. Authenticated Generic Routes (accessible by any authenticated user)
-  { pattern: '/dashboard', match: 'exact', visibility: 'authenticated' },
-  { pattern: '/dashboard/profile', match: 'prefix', visibility: 'authenticated' },
+  { pattern: '/admin', match: 'exact', visibility: 'authenticated' },
+  { pattern: '/admin/profile', match: 'prefix', visibility: 'authenticated' },
+  { pattern: '/klinik/profile', match: 'prefix', visibility: 'authenticated' },
 
   // 4. Admin-Only Protected Routes
   {
-    pattern: '/dashboard/appointment-pasien',
+    pattern: '/admin/appointment-pasien',
     match: 'prefix',
     visibility: 'protected',
     allowedRoles: ['admin'],
     description: 'Manajemen Janji Temu Pasien oleh Staf/Admin'
   },
   {
-    pattern: '/dashboard/data-pasien',
+    pattern: '/admin/data-pasien',
     match: 'prefix',
     visibility: 'protected',
     allowedRoles: ['admin'],
     description: 'Data Rekam Medis & Profil Pasien Klinik'
   },
   {
-    pattern: '/dashboard/jadwal-dokter',
+    pattern: '/admin/riwayat-medis',
+    match: 'prefix',
+    visibility: 'protected',
+    allowedRoles: ['admin'],
+    description: 'Riwayat Rekam Medis Pasien'
+  },
+  {
+    pattern: '/admin/jadwal-dokter',
     match: 'prefix',
     visibility: 'protected',
     allowedRoles: ['admin'],
     description: 'Pengaturan Jadwal dan Shift Dokter'
   },
   {
-    pattern: '/dashboard/staff',
+    pattern: '/admin/staff',
     match: 'prefix',
     visibility: 'protected',
     allowedRoles: ['admin'],
     description: 'Manajemen Staf Operasional & Roster Kerja Klinik'
   },
   {
-    pattern: '/dashboard/kehadiran-pegawai',
+    pattern: '/admin/kehadiran-pegawai',
     match: 'prefix',
     visibility: 'protected',
     allowedRoles: ['admin'],
     description: 'Rekap Kehadiran dan Presensi Pegawai'
   },
   {
-    pattern: '/dashboard/manajemen-perizinan',
+    pattern: '/admin/manajemen-perizinan',
     match: 'prefix',
     visibility: 'protected',
     allowedRoles: ['admin'],
     description: 'Manajemen Perizinan, Cuti, & Kompensasi Staf'
   },
   {
-    pattern: '/dashboard/peluang-pengganti',
+    pattern: '/admin/peluang-pengganti',
     match: 'prefix',
     visibility: 'protected',
     allowedRoles: ['admin'],
     description: 'Manajemen Peluang Pengganti Dinas Staf Antar-Sesi'
   },
   {
-    pattern: '/dashboard/payroll',
+    pattern: '/admin/payroll',
     match: 'prefix',
     visibility: 'protected',
     allowedRoles: ['admin'],
     description: 'Manajemen Rekapitulasi Penggajian & Slip Gaji Staf'
   },
   {
-    pattern: '/dashboard/chat',
+    pattern: '/admin/chat',
     match: 'prefix',
     visibility: 'protected',
     allowedRoles: ['admin'],
     description: 'Chat Pasien (Admin Staf)'
   },
   {
-    pattern: '/dashboard/settings',
+    pattern: '/admin/settings',
     match: 'prefix',
     visibility: 'protected',
     allowedRoles: ['admin'],
     description: 'Pengaturan Sistem & Konfigurasi QR Presensi'
   },
+  {
+    pattern: '/admin/notifications',
+    match: 'prefix',
+    visibility: 'protected',
+    allowedRoles: ['admin'],
+    description: 'Notifikasi Admin & Staf'
+  },
 
   // 5. Patient-Only Protected Routes
   {
-    pattern: '/dashboard/klinik/history',
+    pattern: '/klinik/history',
     match: 'prefix',
     visibility: 'protected',
     allowedRoles: ['patient'],
     description: 'Riwayat Formulir Medis Pasien (Imunisasi & Persalinan)'
   },
   {
-    pattern: '/dashboard/klinik',
+    pattern: '/klinik/notifications',
+    match: 'prefix',
+    visibility: 'protected',
+    allowedRoles: ['patient'],
+    description: 'Notifikasi Pasien'
+  },
+  {
+    pattern: '/klinik',
     match: 'prefix',
     visibility: 'protected',
     allowedRoles: ['patient'],
     description: 'Portal Pasien (Antrean, Janji Temu, Profil, Panduan)'
-  },
-  {
-    pattern: '/dashboard/notifications',
-    match: 'prefix',
-    visibility: 'protected',
-    allowedRoles: ['admin', 'patient'],
-    description: 'Notifikasi Pengguna & Pasien'
   },
   {
     pattern: '/patient-registration',
@@ -178,7 +193,11 @@ export function isRouteAuthorized(
 
   if (!rule) {
     // Fail-Closed: unknown route inside protected zone is denied
-    if (pathname.startsWith('/dashboard') || pathname.startsWith('/patient-registration')) {
+    if (
+      pathname.startsWith('/admin') ||
+      pathname.startsWith('/klinik') ||
+      pathname.startsWith('/patient-registration')
+    ) {
       return { allowed: false, reason: 'forbidden' };
     }
     return { allowed: true };
@@ -205,8 +224,10 @@ export function isRouteAuthorized(
   }
 
   if (rule.visibility === 'protected' && rule.allowedRoles) {
-    // Normalize role: 'user' maps to 'patient'
-    const normalizedRole = userRole === 'admin' ? 'admin' : 'patient';
+    // Normalize role: canonical backend roles 'admin', 'staff_doctor', 'staff_midwife', 'staff_worker' map to 'admin' portal
+    // 'patient' and 'user' map to 'patient' portal
+    const normalizedRole =
+      userRole === 'admin' || userRole?.startsWith('staff_') ? 'admin' : 'patient';
     if (rule.allowedRoles.includes(normalizedRole)) {
       return { allowed: true };
     }
