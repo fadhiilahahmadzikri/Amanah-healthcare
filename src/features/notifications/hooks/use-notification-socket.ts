@@ -21,6 +21,12 @@ import { useViewer } from './use-viewer';
 import type { BackendNotification } from '../api/notification-api-service';
 import type { NotificationEnvelopeV2 } from '../types';
 import { executeNotificationAction } from '../utils/notification-action-dispatcher';
+import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
+import {
+  mapNotificationToToastModel,
+  type NotificationToastModel
+} from '../presentation/notification-toast-mapper';
+import { UnifiedNotificationToast } from '../components/unified-notification-toast';
 
 export interface AppointmentCalledPayload {
   appointmentId: string;
@@ -94,6 +100,39 @@ async function fetchRealtimeTicket(): Promise<string | null> {
     console.warn('[RealtimeTransport] Ticket issuance via BFF failed:', err);
     return null;
   }
+}
+
+/**
+ * Preload image into browser memory to eliminate visual avatar flicker / glitch upon toast mount.
+ */
+function preloadImage(url?: string | null, timeoutMs = 500): Promise<boolean> {
+  if (typeof window === 'undefined' || !url) return Promise.resolve(false);
+  return new Promise((resolve) => {
+    const img = new Image();
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        resolve(false);
+      }
+    }, timeoutMs);
+
+    img.onload = () => {
+      if (!settled) {
+        settled = true;
+        clearTimeout(timer);
+        resolve(true);
+      }
+    };
+    img.onerror = () => {
+      if (!settled) {
+        settled = true;
+        clearTimeout(timer);
+        resolve(false);
+      }
+    };
+    img.src = url;
+  });
 }
 
 export function useNotificationSocket(callbacks?: {
@@ -199,106 +238,92 @@ export function useNotificationSocket(callbacks?: {
       console.log(`[RealtimeTransport] Disconnected: ${reason}`);
     });
 
-    socket.on('notification:new', (envelope: NotificationEnvelopeV2 | BackendNotification) => {
-      // 1. Data Store Synchronization (always process for inbox & counters)
-      reconcile();
-      void queryClient.refetchQueries({ queryKey: doctorScheduleKeys.all, type: 'active' });
-      void queryClient.refetchQueries({
-        queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES],
-        type: 'active'
-      });
-      void queryClient.refetchQueries({ queryKey: appointmentKeys.all, type: 'active' });
+    socket.on(
+      'notification:new',
+      async (envelope: NotificationEnvelopeV2 | BackendNotification) => {
+        // 1. Data Store Synchronization (always process for inbox & counters)
+        reconcile();
+        void queryClient.refetchQueries({ queryKey: doctorScheduleKeys.all, type: 'active' });
+        void queryClient.refetchQueries({
+          queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES],
+          type: 'active'
+        });
+        void queryClient.refetchQueries({ queryKey: appointmentKeys.all, type: 'active' });
 
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('clinic:notification_received', { detail: envelope }));
-      }
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('clinic:notification_received', { detail: envelope })
+          );
+        }
 
-      // Notify subscribers
-      callbacksRef.current?.onNewNotification?.(envelope);
+        // Notify subscribers
+        callbacksRef.current?.onNewNotification?.(envelope);
 
-      // 2. Fail-Closed Presenter Rules for Toaster
-      const envelopeRecipient =
-        'recipientUserId' in envelope ? envelope.recipientUserId : envelope.userId;
-      const envelopeAudience = 'audience' in envelope ? envelope.audience : undefined;
-      const presentationToast = 'presentation' in envelope ? envelope.presentation?.toast : true;
+        // 2. Fail-Closed Presenter Rules for Toaster
+        const envelopeRecipient =
+          'recipientUserId' in envelope ? envelope.recipientUserId : envelope.userId;
+        const envelopeAudience = 'audience' in envelope ? envelope.audience : undefined;
+        const presentationToast = 'presentation' in envelope ? envelope.presentation?.toast : true;
 
-      // Rule A: Recipient mismatch tripwire
-      if (envelopeRecipient && envelopeRecipient !== currentUserId) {
-        console.warn(
-          `[NotificationPresenter] Tripwire: recipientUserId mismatch. Dropped toast. (envelope=${envelopeRecipient}, session=${currentUserId})`
-        );
-        return;
-      }
-
-      // Rule B: Audience mismatch tripwire
-      if (envelopeAudience && envelopeAudience !== viewerAudience) {
-        console.warn(
-          `[NotificationPresenter] Tripwire: audience mismatch. Dropped toast. (envelopeAudience=${envelopeAudience}, viewerAudience=${viewerAudience})`
-        );
-        return;
-      }
-
-      // Rule C: Toast suppressed (e.g. actor performed the action, local mutation toast already shown)
-      if (presentationToast === false) {
-        return;
-      }
-
-      // Rule D: Deduplication check (prevents double toasts from socket replay or duplicate events)
-      if (envelope.id) {
-        if (presentedToastIdsRef.current.has(envelope.id)) {
+        // Rule A: Recipient mismatch tripwire
+        if (envelopeRecipient && envelopeRecipient !== currentUserId) {
+          console.warn(
+            `[NotificationPresenter] Tripwire: recipientUserId mismatch. Dropped toast. (envelope=${envelopeRecipient}, session=${currentUserId})`
+          );
           return;
         }
-        presentedToastIdsRef.current.add(envelope.id);
-        // Keep LRU size bounded to 100 entries
-        if (presentedToastIdsRef.current.size > 100) {
-          const firstItem = presentedToastIdsRef.current.values().next().value;
-          if (firstItem) presentedToastIdsRef.current.delete(firstItem);
+
+        // Rule B: Audience mismatch tripwire
+        if (envelopeAudience && envelopeAudience !== viewerAudience) {
+          console.warn(
+            `[NotificationPresenter] Tripwire: audience mismatch. Dropped toast. (envelopeAudience=${envelopeAudience}, viewerAudience=${viewerAudience})`
+          );
+          return;
+        }
+
+        // Rule C: Toast suppressed (e.g. actor performed the action, local mutation toast already shown)
+        if (presentationToast === false) {
+          return;
+        }
+
+        // Rule D: Deduplication check (prevents double toasts from socket replay or duplicate events)
+        if (envelope.id) {
+          if (presentedToastIdsRef.current.has(envelope.id)) {
+            return;
+          }
+          presentedToastIdsRef.current.add(envelope.id);
+          // Keep LRU size bounded to 100 entries
+          if (presentedToastIdsRef.current.size > 100) {
+            const firstItem = presentedToastIdsRef.current.values().next().value;
+            if (firstItem) presentedToastIdsRef.current.delete(firstItem);
+          }
+        }
+
+        // Rule E: Present Unified Friendly Notification Toast
+        if (envelope?.title || ('type' in envelope && envelope.type)) {
+          const toastModel = mapNotificationToToastModel(envelope, router, userRole);
+
+          // Preload avatar if available so frame-0 render is instant and never leaks to fallback
+          if (toastModel.avatarUrl) {
+            const imageReady = await preloadImage(toastModel.avatarUrl, 500);
+            if (!imageReady) {
+              toastModel.avatarUrl = DEFAULT_AVATAR_PATH;
+            }
+          }
+
+          toast.custom(
+            (t) =>
+              React.createElement(UnifiedNotificationToast, {
+                toastId: t,
+                model: toastModel
+              }),
+            {
+              duration: toastModel.duration || 6000
+            }
+          );
         }
       }
-
-      // Rule E: Present Toast with Semantic Action
-      if (envelope?.title) {
-        const primaryAction = 'action' in envelope ? envelope.action : undefined;
-
-        const toastAction = primaryAction
-          ? {
-              label: primaryAction.label || 'Lihat',
-              onClick: () => {
-                executeNotificationAction(router, primaryAction, envelope as any, userRole);
-              }
-            }
-          : undefined;
-
-        const rawAvatar =
-          envelope.visualKey ||
-          ('metadata' in envelope && typeof (envelope as any).metadata?.avatarUrl === 'string'
-            ? (envelope as any).metadata.avatarUrl
-            : null);
-
-        const toastIcon = rawAvatar
-          ? React.createElement(
-              Avatar,
-              { className: 'size-7 shrink-0 rounded-full border border-border/50' },
-              React.createElement(AvatarImage, {
-                src: rawAvatar,
-                alt: envelope.senderName || 'Avatar'
-              }),
-              React.createElement(
-                AvatarFallback,
-                { className: 'text-[10px]' },
-                envelope.senderName?.[0] || 'D'
-              )
-            )
-          : renderBackendIcon(envelope.badgeIcon);
-
-        toast(envelope.title, {
-          description: envelope.body || undefined,
-          icon: toastIcon,
-          action: toastAction,
-          duration: 6000
-        });
-      }
-    });
+    );
 
     socket.on('notification:read', (_data?: { id?: string; all?: boolean }) => {
       reconcile();
@@ -369,7 +394,7 @@ export function useNotificationSocket(callbacks?: {
       window.addEventListener('clinic:emit_socket', handleOutgoingSocketEvent);
     }
 
-    const handleLeaveUpdated = (payload: unknown) => {
+    const handleLeaveUpdated = async (payload: unknown) => {
       reconcile();
       void queryClient.refetchQueries({ queryKey: leaveManagementKeys.all, type: 'active' });
       void queryClient.refetchQueries({
@@ -384,13 +409,19 @@ export function useNotificationSocket(callbacks?: {
           staffName?: string;
           status?: string;
           leaveRequestId?: string;
+          avatar?: string;
         };
         if (lv.staffName && lv.status === 'pending') {
           const targetId = lv.leaveRequestId ?? '';
-          toast.info(`Pengajuan Izin Baru: ${lv.staffName}`, {
-            description: 'Staf klinik telah mengajukan permohonan izin/cuti baru.',
+          const toastModel: NotificationToastModel = {
+            id: `leave-${targetId}-${Date.now()}`,
+            headline: 'Pengajuan izin baru',
+            emoji: '📋',
+            entityName: lv.staffName,
+            avatarUrl: lv.avatar || null,
+            isPerson: true,
             action: {
-              label: 'Lihat Detail',
+              label: 'Lihat',
               onClick: () => {
                 router.push(
                   targetId
@@ -400,7 +431,25 @@ export function useNotificationSocket(callbacks?: {
               }
             },
             duration: 7000
-          });
+          };
+
+          if (toastModel.avatarUrl) {
+            const imageReady = await preloadImage(toastModel.avatarUrl, 500);
+            if (!imageReady) {
+              toastModel.avatarUrl = DEFAULT_AVATAR_PATH;
+            }
+          }
+
+          toast.custom(
+            (t) =>
+              React.createElement(UnifiedNotificationToast, {
+                toastId: t,
+                model: toastModel
+              }),
+            {
+              duration: 7000
+            }
+          );
         }
       }
     };
