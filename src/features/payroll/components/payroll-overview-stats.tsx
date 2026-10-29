@@ -26,38 +26,40 @@ export function PayrollOverviewStats({
   const totalLeaveDeductions = summaries.reduce((acc, s) => acc + s.leaveDeductions, 0);
   const totalReplacementAdditions = summaries.reduce((acc, s) => acc + s.replacementAdditions, 0);
 
-  // Sparkline data points from real summary data
-  const sparklinePayout = useMemo<MetricChartPoint[]>(() => {
-    if (summaries.length === 0) return [{ label: 'Periode', value: totalPayout }];
+  // Only generate sparkline data points when there are at least 2 staff summaries to form a valid distribution
+  const hasCompatibleData = summaries.length >= 2;
+
+  const sparklinePayout = useMemo<MetricChartPoint[] | undefined>(() => {
+    if (!hasCompatibleData) return undefined;
     return summaries.map((s, idx) => ({
       label: s.fullName.split(' ')[0] || `Staf ${idx + 1}`,
       value: s.netPayroll
     }));
-  }, [summaries, totalPayout]);
+  }, [hasCompatibleData, summaries]);
 
-  const sparklineHours = useMemo<MetricChartPoint[]>(() => {
-    if (summaries.length === 0) return [{ label: 'Periode', value: totalBaseHours }];
+  const sparklineHours = useMemo<MetricChartPoint[] | undefined>(() => {
+    if (!hasCompatibleData) return undefined;
     return summaries.map((s, idx) => ({
       label: s.fullName.split(' ')[0] || `Staf ${idx + 1}`,
       value: s.baseHours
     }));
-  }, [summaries, totalBaseHours]);
+  }, [hasCompatibleData, summaries]);
 
-  const sparklineDeductions = useMemo<MetricChartPoint[]>(() => {
-    if (summaries.length === 0) return [{ label: 'Periode', value: totalLeaveDeductions }];
+  const sparklineDeductions = useMemo<MetricChartPoint[] | undefined>(() => {
+    if (!hasCompatibleData) return undefined;
     return summaries.map((s, idx) => ({
       label: s.fullName.split(' ')[0] || `Staf ${idx + 1}`,
       value: s.leaveDeductions
     }));
-  }, [summaries, totalLeaveDeductions]);
+  }, [hasCompatibleData, summaries]);
 
-  const sparklineAdditions = useMemo<MetricChartPoint[]>(() => {
-    if (summaries.length === 0) return [{ label: 'Periode', value: totalReplacementAdditions }];
+  const sparklineAdditions = useMemo<MetricChartPoint[] | undefined>(() => {
+    if (!hasCompatibleData) return undefined;
     return summaries.map((s, idx) => ({
       label: s.fullName.split(' ')[0] || `Staf ${idx + 1}`,
       value: s.replacementAdditions
     }));
-  }, [summaries, totalReplacementAdditions]);
+  }, [hasCompatibleData, summaries]);
 
   const containerClass =
     layout === 'vertical'
