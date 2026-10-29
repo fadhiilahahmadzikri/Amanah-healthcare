@@ -12,7 +12,9 @@ import { klinikKeys } from '@/features/klinik/api/query-keys';
 import { doctorScheduleKeys } from '@/features/jadwal-dokter/api/query-keys';
 import { SCHEDULE_QUERY_KEYS } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 import { leaveManagementKeys } from '@/features/manajemen-perizinan/api/query-keys';
+import { replacementKeys } from '@/features/peluang-pengganti/api/query-keys';
 import { attendanceKeys } from '@/features/kehadiran-pegawai/api/queries';
+import { staffManagementKeys } from '@/features/staff-management/api/query-keys';
 import type { AttendanceAction, StaffAttendance } from '@/features/kehadiran-pegawai/api/types';
 import { presentAttendanceModal } from '@/components/feedback/choreographed-modal';
 import { getClientSocketUrl } from '@/core/config/env.client';
@@ -160,6 +162,7 @@ export function useNotificationSocket(callbacks?: {
     queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES] });
     queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.APPOINTMENTS] });
     queryClient.invalidateQueries({ queryKey: leaveManagementKeys.all });
+    queryClient.invalidateQueries({ queryKey: replacementKeys.all });
     queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
   }, [queryClient]);
 
@@ -249,6 +252,7 @@ export function useNotificationSocket(callbacks?: {
           type: 'active'
         });
         void queryClient.refetchQueries({ queryKey: appointmentKeys.all, type: 'active' });
+        void queryClient.refetchQueries({ queryKey: staffManagementKeys.all, type: 'active' });
 
         if (typeof window !== 'undefined') {
           window.dispatchEvent(
@@ -496,12 +500,76 @@ export function useNotificationSocket(callbacks?: {
       });
     };
 
+    const handleReplacementUpdated = (payload: unknown) => {
+      reconcile();
+      void queryClient.refetchQueries({ queryKey: replacementKeys.all, type: 'active' });
+      void queryClient.refetchQueries({ queryKey: doctorScheduleKeys.all, type: 'active' });
+      void queryClient.refetchQueries({
+        queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES],
+        type: 'active'
+      });
+      void queryClient.refetchQueries({ queryKey: leaveManagementKeys.all, type: 'active' });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clinic:replacement_updated', { detail: payload }));
+      }
+    };
+
+    const handleDoctorScheduleRefresh = (payload: unknown) => {
+      void queryClient.refetchQueries({ queryKey: doctorScheduleKeys.all, type: 'active' });
+      void queryClient.refetchQueries({
+        queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES],
+        type: 'active'
+      });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('clinic:doctor_schedule_refresh', { detail: payload })
+        );
+      }
+    };
+
+    const handleStaffInvited = (payload: unknown) => {
+      reconcile();
+      void queryClient.refetchQueries({ queryKey: staffManagementKeys.all, type: 'active' });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clinic:staff_updated', { detail: payload }));
+      }
+    };
+
+    const handleStaffOnboarded = (payload: any) => {
+      reconcile();
+      void queryClient.refetchQueries({ queryKey: staffManagementKeys.all, type: 'active' });
+      void queryClient.refetchQueries({ queryKey: doctorScheduleKeys.all, type: 'active' });
+      void queryClient.refetchQueries({
+        queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES],
+        type: 'active'
+      });
+      if (userRole === 'admin') {
+        const staffName = payload?.fullName || 'Staf Baru';
+        toast.success(
+          `Selamat bergabung! ${staffName} telah berhasil menyelesaikan onboarding dan akunnya telah aktif.`
+        );
+      }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clinic:staff_updated', { detail: payload }));
+      }
+    };
+
+    const handleStaffUpdated = (payload: unknown) => {
+      reconcile();
+      void queryClient.refetchQueries({ queryKey: staffManagementKeys.all, type: 'active' });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clinic:staff_updated', { detail: payload }));
+      }
+    };
+
     socket.on('appointment:called', handleAppointmentCalled);
     socket.on('appointment.patient_called', handleAppointmentCalled);
     socket.on('appointment:status_changed', handleAppointmentStatusChanged);
     socket.on('appointment.status_changed', handleAppointmentStatusChanged);
     socket.on('queue:estimates:updated', handleQueueEstimatesUpdated);
     socket.on('leave:updated', handleLeaveUpdated);
+    socket.on('replacement:updated', handleReplacementUpdated);
+    socket.on('doctor_schedule:refresh', handleDoctorScheduleRefresh);
     socket.on('attendance:recorded', handleAttendanceUpdated);
     socket.on('attendance:check_in', handleAttendanceUpdated);
     socket.on('attendance:manual_check_in', handleAttendanceUpdated);
@@ -511,11 +579,19 @@ export function useNotificationSocket(callbacks?: {
     socket.on('attendance:refresh', handleAttendanceUpdated);
     socket.on('chat:message', handleChatMessage);
     socket.on('chat:typing', handleChatTyping);
+    socket.on('staff:invited', handleStaffInvited);
+    socket.on('staff:invitation_revoked', handleStaffUpdated);
+    socket.on('staff:onboarded', handleStaffOnboarded);
+    socket.on('staff:updated', handleStaffUpdated);
 
     return () => {
       if (typeof window !== 'undefined') {
         window.removeEventListener('clinic:emit_socket', handleOutgoingSocketEvent);
       }
+      socket.off('staff:invited', handleStaffInvited);
+      socket.off('staff:invitation_revoked', handleStaffUpdated);
+      socket.off('staff:onboarded', handleStaffOnboarded);
+      socket.off('staff:updated', handleStaffUpdated);
       socket.disconnect();
       socketRef.current = null;
     };

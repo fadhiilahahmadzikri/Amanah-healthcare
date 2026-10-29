@@ -5,7 +5,8 @@ export const DOCTOR_CARD_STATUS = {
   OPEN: SCHEDULE_STATUS.OPEN,
   CLOSED: SCHEDULE_STATUS.CLOSED,
   ON_LEAVE: SCHEDULE_STATUS.ON_LEAVE,
-  PENDING: SCHEDULE_STATUS.PENDING
+  PENDING: SCHEDULE_STATUS.PENDING,
+  REPLACEMENT: SCHEDULE_STATUS.REPLACEMENT
 } as const;
 
 export type DoctorCardStatus = ScheduleStatus;
@@ -31,6 +32,10 @@ export function hasConfiguredDoctorSchedule(doctor: DoctorSchedule): boolean {
 export function getDoctorCardStatus(doctor: DoctorSchedule): DoctorCardStatus {
   if (isDoctorPendingVerification(doctor)) {
     return DOCTOR_CARD_STATUS.PENDING;
+  }
+
+  if (doctor.scheduleStatus === SCHEDULE_STATUS.REPLACEMENT) {
+    return DOCTOR_CARD_STATUS.REPLACEMENT;
   }
 
   if (doctor.scheduleStatus === SCHEDULE_STATUS.ON_LEAVE) {

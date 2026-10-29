@@ -21,8 +21,8 @@ import type {
   ScheduleClosureReason
 } from '@/server/contracts/schedules/doctor-schedules.dto';
 
-export type ScheduleDayStatus = 'OPEN' | 'CLOSED' | 'ON_LEAVE' | 'PENDING';
-export type SessionStatus = 'OPEN' | 'CLOSED';
+export type ScheduleDayStatus = 'OPEN' | 'CLOSED' | 'ON_LEAVE' | 'PENDING' | 'REPLACEMENT';
+export type SessionStatus = 'OPEN' | 'CLOSED' | 'REPLACEMENT';
 
 export interface DoctorDailySession {
   id: string;
@@ -37,6 +37,8 @@ export interface DoctorDailySession {
   roomId?: string | null;
   isRescheduleEligible?: boolean;
   rescheduleIneligibilityReason?: string | null;
+  isReplacement?: boolean;
+  replacedStaffName?: string | null;
   date?: string;
 }
 

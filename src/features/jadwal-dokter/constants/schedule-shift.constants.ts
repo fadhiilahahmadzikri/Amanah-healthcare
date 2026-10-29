@@ -2,7 +2,8 @@ export const SCHEDULE_STATUS = {
   OPEN: 'OPEN',
   CLOSED: 'CLOSED',
   ON_LEAVE: 'ON_LEAVE',
-  PENDING: 'PENDING'
+  PENDING: 'PENDING',
+  REPLACEMENT: 'REPLACEMENT'
 } as const;
 
 export type ScheduleStatus = (typeof SCHEDULE_STATUS)[keyof typeof SCHEDULE_STATUS];
@@ -11,7 +12,8 @@ export const SCHEDULE_STATUS_LABELS: Record<ScheduleStatus, string> = {
   [SCHEDULE_STATUS.OPEN]: 'Buka',
   [SCHEDULE_STATUS.CLOSED]: 'Tutup',
   [SCHEDULE_STATUS.ON_LEAVE]: 'Cuti',
-  [SCHEDULE_STATUS.PENDING]: 'Menunggu Verifikasi'
+  [SCHEDULE_STATUS.PENDING]: 'Menunggu Verifikasi',
+  [SCHEDULE_STATUS.REPLACEMENT]: 'Pengganti'
 } as const;
 
 export const SHIFT_OPERATIONAL_STATUS = {
@@ -44,6 +46,9 @@ export const SCHEDULE_QUERY_KEYS = {
 } as const;
 
 export function normalizeScheduleStatus(raw?: string | null): ScheduleStatus {
+  if (raw === SCHEDULE_STATUS.REPLACEMENT) {
+    return SCHEDULE_STATUS.REPLACEMENT;
+  }
   if (raw === SCHEDULE_STATUS.ON_LEAVE) {
     return SCHEDULE_STATUS.ON_LEAVE;
   }
@@ -55,4 +60,3 @@ export function normalizeScheduleStatus(raw?: string | null): ScheduleStatus {
   }
   return SCHEDULE_STATUS.OPEN;
 }
-

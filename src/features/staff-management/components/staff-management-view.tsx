@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -52,6 +52,19 @@ export function StaffManagementView() {
   const { isOpen: isUnder1024 } = useMediaQuery('(max-width: 1024px)');
   const { isOpen: isUnder1280 } = useMediaQuery('(max-width: 1280px)');
   const isCompact = isUnder1024 || (isUnder1280 && isSidebarExpanded);
+
+  // Real-time synchronization catch-up: Automatically refetch lists on incoming staff events
+  useEffect(() => {
+    const handleStaffUpdated = () => {
+      void view.refetch();
+    };
+    if (typeof window !== 'undefined') {
+      window.addEventListener('clinic:staff_updated', handleStaffUpdated);
+      return () => {
+        window.removeEventListener('clinic:staff_updated', handleStaffUpdated);
+      };
+    }
+  }, [view]);
 
   return (
     <div className='flex h-full min-h-0 flex-1 flex-col gap-4 select-none'>
@@ -254,7 +267,11 @@ export function StaffManagementView() {
       </Tabs>
 
       {/* Modals & Dialogs */}
-      <InviteStaffModal isOpen={inviteModal.isOpen} onClose={inviteModal.close} />
+      <InviteStaffModal
+        isOpen={inviteModal.isOpen}
+        onClose={inviteModal.close}
+        onSuccess={() => void view.refetch()}
+      />
 
       <StaffRosterModal
         staff={rosterModal.staff}

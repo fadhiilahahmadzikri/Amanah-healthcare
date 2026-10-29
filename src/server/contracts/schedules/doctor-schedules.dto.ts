@@ -1,7 +1,13 @@
 import { z } from 'zod';
 import { STAFF_TYPES, type StaffType } from '@/constants/staff-types.constant';
 
-export const scheduleOperationalStatusSchema = z.enum(['OPEN', 'CLOSED', 'PENDING', 'ON_LEAVE']);
+export const scheduleOperationalStatusSchema = z.enum([
+  'OPEN',
+  'CLOSED',
+  'PENDING',
+  'ON_LEAVE',
+  'REPLACEMENT'
+]);
 export type ScheduleOperationalStatus = z.infer<typeof scheduleOperationalStatusSchema>;
 
 export const scheduleClosureReasonSchema = z.enum([
@@ -13,12 +19,12 @@ export const scheduleClosureReasonSchema = z.enum([
 ]);
 export type ScheduleClosureReason = z.infer<typeof scheduleClosureReasonSchema>;
 
-export const scheduleDayStatusSchema = z.enum(['OPEN', 'CLOSED', 'ON_LEAVE']);
+export const scheduleDayStatusSchema = z.enum(['OPEN', 'CLOSED', 'ON_LEAVE', 'REPLACEMENT']);
 export type ScheduleDayStatus = z.infer<typeof scheduleDayStatusSchema>;
 
 const avatarSchema = z.string().optional();
 
-export const sessionStatusSchema = z.enum(['OPEN', 'CLOSED', 'ON_LEAVE']);
+export const sessionStatusSchema = z.enum(['OPEN', 'CLOSED', 'ON_LEAVE', 'REPLACEMENT']);
 export type SessionStatus = z.infer<typeof sessionStatusSchema>;
 
 export const doctorDailySessionSchema = z.object({
@@ -28,12 +34,14 @@ export const doctorDailySessionSchema = z.object({
   endTime: z.string(),
   timeRange: z.string().optional(),
   bookedPatients: z.number().optional().default(0),
-  sessionStatus: z.enum(['OPEN', 'CLOSED']),
+  sessionStatus: z.enum(['OPEN', 'CLOSED', 'REPLACEMENT']),
   closureReason: scheduleClosureReasonSchema.nullable().optional(),
   roomName: z.string().optional(),
   roomId: z.string().nullable().optional(),
   isRescheduleEligible: z.boolean().optional(),
   rescheduleIneligibilityReason: z.string().nullable().optional(),
+  isReplacement: z.boolean().optional(),
+  replacedStaffName: z.string().nullable().optional(),
   date: z.string().optional()
 });
 export type DoctorDailySession = z.infer<typeof doctorDailySessionSchema>;

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
@@ -12,6 +13,7 @@ import {
   type PractitionerRoleOption,
   staffManagementApi
 } from '../api/staff-management.api';
+import { syncAllStaffQueries } from '../api/mutations';
 
 export type InviteWizardStep = 'email' | 'role' | 'poliklinik' | 'confirmation' | 'result';
 
@@ -28,6 +30,7 @@ export function InviteDoctorModal({
   onSuccess,
   mode = 'practitioner'
 }: InviteDoctorModalProps) {
+  const queryClient = useQueryClient();
   const [step, setStep] = useState<InviteWizardStep>('email');
   const [loading, setLoading] = useState(false);
   const [fetchingOptions, setFetchingOptions] = useState(false);
@@ -184,6 +187,7 @@ export function InviteDoctorModal({
         });
       }
       setStep('result');
+      syncAllStaffQueries(queryClient);
       onSuccess?.();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Gagal mengirim undangan.';
@@ -194,6 +198,7 @@ export function InviteDoctorModal({
   };
 
   const handleFinish = () => {
+    syncAllStaffQueries(queryClient);
     setStep('email');
     setCredentialResult(null);
     setEmail('');

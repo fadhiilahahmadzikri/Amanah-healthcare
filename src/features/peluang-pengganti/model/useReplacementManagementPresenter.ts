@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { useReplacementsQuery } from '../api/queries';
 import { useAssignReplacementMutation, useCancelReplacementMutation } from '../api/mutations';
 import { useReplacementFilters } from './useReplacementFilters';
+import { useReplacementRealtimeSync } from '../hooks/useReplacementRealtimeSync';
 import type { ReplacementOpportunityItem } from '../api/types';
 
 export function useReplacementManagementPresenter() {
@@ -15,6 +16,8 @@ export function useReplacementManagementPresenter() {
     status: 'all',
     date: 'all'
   });
+
+  useReplacementRealtimeSync({ refetch });
 
   const assignMutation = useAssignReplacementMutation();
   const cancelMutation = useCancelReplacementMutation();

@@ -239,6 +239,17 @@ export const getStatusConfig = (status: string): StatusConfig => {
         ...clinicalTokens.colors.status.upcoming,
         label: 'Cuti'
       };
+    case 'REPLACEMENT':
+    case 'PENGGANTI':
+      return {
+        pillBg: 'bg-purple-500/10 dark:bg-purple-500/20',
+        pillBorder: 'border-purple-500/20 dark:border-purple-500/30',
+        pillShadow: 'shadow-none',
+        textGradient: 'text-purple-600 dark:text-purple-400 font-bold',
+        dotGradient: 'bg-purple-500',
+        hex: '#A855F7',
+        label: 'Pengganti'
+      };
     case 'PENDING':
       return {
         ...clinicalTokens.colors.status.pending,
