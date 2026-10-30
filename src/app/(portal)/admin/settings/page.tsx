@@ -1,6 +1,7 @@
 import React from 'react';
 import PageContainer from '@/components/layout/page-container';
 import { QRConfigSettings } from '@/features/settings/components/qr-config-settings';
+import { AccountSecuritySettings } from '@/features/settings/components/account-security-settings';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Icons } from '@/components/icons';
 import { DeleteAccountDialog } from '@/features/profile/components/delete-account-dialog';
@@ -30,6 +31,11 @@ export default async function SettingsPage() {
         {/* QR Code Config & Styling */}
         <div className='pt-2'>
           <QRConfigSettings />
+        </div>
+
+        {/* Account Security & Sign-in Methods */}
+        <div className='pt-2'>
+          <AccountSecuritySettings />
         </div>
 
         {/* Account Privacy / Danger Zone */}
