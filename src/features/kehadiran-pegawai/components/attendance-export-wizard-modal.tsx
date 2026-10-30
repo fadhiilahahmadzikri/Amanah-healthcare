@@ -16,11 +16,6 @@ import {
   useExportPipeline,
   type ExportFormat
 } from '@/features/export';
-import {
-  STAFF_TYPES,
-  STAFF_ROLE_LABELS,
-  type StaffType
-} from '@/features/staff-management/constants/staff.constants';
 import { attendanceQueries } from '../api/queries';
 import type { AttendanceExportCandidate } from '../api/types';
 
@@ -66,7 +61,7 @@ export function AttendanceExportWizardModal({ isOpen, onClose }: AttendanceExpor
   const [selectedMonth, setSelectedMonth] = React.useState<string>(getInitialMonthString);
   const [exportMode, setExportMode] = React.useState<ExportScopeMode>('all');
   const [selectedStaff, setSelectedStaff] = React.useState<AttendanceExportCandidate | null>(null);
-  const [activeTab, setActiveTab] = React.useState<StaffType>(STAFF_TYPES.DOCTOR);
+  const [activeTab, setActiveTab] = React.useState<string>('all');
   const [searchQuery, setSearchQuery] = React.useState<string>('');
 
   const {
@@ -115,25 +110,31 @@ export function AttendanceExportWizardModal({ isOpen, onClose }: AttendanceExpor
     return candidatesQuery.data?.candidates || [];
   }, [candidatesQuery.data?.candidates]);
 
-  // Tab counts
-  const doctorCount = React.useMemo(
-    () => candidates.filter((c) => c.staffType === STAFF_TYPES.DOCTOR).length,
-    [candidates]
-  );
-  const midwifeCount = React.useMemo(
-    () => candidates.filter((c) => c.staffType === STAFF_TYPES.MIDWIFE).length,
-    [candidates]
-  );
-  const workerCount = React.useMemo(
-    () => candidates.filter((c) => c.staffType === STAFF_TYPES.WORKER).length,
-    [candidates]
-  );
+  // Dynamic Role Tabs from candidates
+  const roleTabs = React.useMemo(() => {
+    const map = new Map<string, { label: string; count: number }>();
+    map.set('all', { label: 'Semua Staf', count: candidates.length });
+    for (const c of candidates) {
+      const key = c.roleId || c.roleCode || 'staf';
+      const label = c.roleName || c.positionTitle || c.roleCode || 'Staf';
+      if (!map.has(key)) {
+        map.set(key, { label, count: 0 });
+      }
+      map.get(key)!.count += 1;
+    }
+    return Array.from(map.entries()).map(([id, info]) => ({
+      id,
+      label: info.label,
+      count: info.count
+    }));
+  }, [candidates]);
 
   // Filtered candidates for Step 3
   const filteredCandidates = React.useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return candidates.filter((c) => {
-      if (c.staffType !== activeTab) return false;
+      const roleKey = c.roleId || c.roleCode || 'staf';
+      if (activeTab !== 'all' && roleKey !== activeTab) return false;
       if (!q) return true;
       const queryMatches = [
         c.fullName.toLowerCase().includes(q),
@@ -362,55 +363,26 @@ export function AttendanceExportWizardModal({ isOpen, onClose }: AttendanceExpor
 
             {/* Filter Tabs & Search Bar */}
             <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5'>
-              {/* Canonical StaffType Tabs */}
-              <div className='flex items-center gap-1.5 p-1 rounded-xl bg-muted/50 border border-border/60 self-start sm:self-auto'>
-                <button
-                  type='button'
-                  onClick={() => setActiveTab(STAFF_TYPES.DOCTOR)}
-                  className={cn(
-                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer',
-                    activeTab === STAFF_TYPES.DOCTOR
-                      ? 'bg-card text-foreground font-semibold shadow-xs border border-border/60'
-                      : 'text-muted-foreground hover:text-foreground'
-                  )}
-                >
-                  <span>{STAFF_ROLE_LABELS[STAFF_TYPES.DOCTOR]}</span>
-                  <span className='size-4 rounded-full flex items-center justify-center text-[10px] bg-muted text-muted-foreground font-mono'>
-                    {doctorCount}
-                  </span>
-                </button>
-
-                <button
-                  type='button'
-                  onClick={() => setActiveTab(STAFF_TYPES.MIDWIFE)}
-                  className={cn(
-                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer',
-                    activeTab === STAFF_TYPES.MIDWIFE
-                      ? 'bg-card text-foreground font-semibold shadow-xs border border-border/60'
-                      : 'text-muted-foreground hover:text-foreground'
-                  )}
-                >
-                  <span>{STAFF_ROLE_LABELS[STAFF_TYPES.MIDWIFE]}</span>
-                  <span className='size-4 rounded-full flex items-center justify-center text-[10px] bg-muted text-muted-foreground font-mono'>
-                    {midwifeCount}
-                  </span>
-                </button>
-
-                <button
-                  type='button'
-                  onClick={() => setActiveTab(STAFF_TYPES.WORKER)}
-                  className={cn(
-                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer',
-                    activeTab === STAFF_TYPES.WORKER
-                      ? 'bg-card text-foreground font-semibold shadow-xs border border-border/60'
-                      : 'text-muted-foreground hover:text-foreground'
-                  )}
-                >
-                  <span>Staf</span>
-                  <span className='size-4 rounded-full flex items-center justify-center text-[10px] bg-muted text-muted-foreground font-mono'>
-                    {workerCount}
-                  </span>
-                </button>
+              {/* Dynamic Role Tabs */}
+              <div className='flex items-center gap-1.5 p-1 rounded-xl bg-muted/50 border border-border/60 self-start sm:self-auto overflow-x-auto max-w-full'>
+                {roleTabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type='button'
+                    onClick={() => setActiveTab(tab.id)}
+                    className={cn(
+                      'px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer shrink-0',
+                      activeTab === tab.id
+                        ? 'bg-card text-foreground font-semibold shadow-xs border border-border/60'
+                        : 'text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    <span>{tab.label}</span>
+                    <span className='size-4 rounded-full flex items-center justify-center text-[10px] bg-muted text-muted-foreground font-mono'>
+                      {tab.count}
+                    </span>
+                  </button>
+                ))}
               </div>
 
               {/* Search input */}

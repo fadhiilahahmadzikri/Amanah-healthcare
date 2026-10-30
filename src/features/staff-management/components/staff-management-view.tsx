@@ -222,7 +222,7 @@ export function StaffManagementView() {
                           <TableRow key={inv.id} className='hover:bg-muted/20'>
                             <TableCell className='font-medium text-xs'>{inv.email}</TableCell>
                             <TableCell>
-                              <StaffRoleBadge roleCode={inv.roleCode} staffType={inv.staffType} />
+                              <StaffRoleBadge roleCode={inv.roleCode} />
                             </TableCell>
                             <TableCell>
                               <StaffInvitationStatusBadge status={inv.status} />

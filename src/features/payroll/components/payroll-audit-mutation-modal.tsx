@@ -18,7 +18,6 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table';
-import { Icons } from '@/components/icons';
 import { formatCurrency } from '../utils/currency';
 import { formatPracticeHours } from '@/lib/duration-format';
 import { ENTRY_TYPE_CONFIG, SOURCE_TYPE_LABELS } from '../constants/options';
@@ -44,7 +43,7 @@ export function PayrollAuditMutationModal({
     const list: Array<{
       id: string;
       staffName: string;
-      staffType: string;
+      roleName?: string;
       entryType: PayrollEntryType;
       sourceType: string;
       quantityHours: number;
@@ -59,7 +58,7 @@ export function PayrollAuditMutationModal({
         list.push({
           id: e.id,
           staffName: s.fullName,
-          staffType: s.staffType,
+          roleName: s.roleName,
           entryType: e.entryType,
           sourceType: e.sourceType,
           quantityHours: e.quantityHours,
@@ -177,7 +176,7 @@ export function PayrollAuditMutationModal({
                             {m.staffName}
                           </span>
                           <span className='text-[10px] text-muted-foreground capitalize'>
-                            {m.staffType}
+                            {m.roleName}
                           </span>
                         </TableCell>
                         <TableCell className='py-2.5 text-xs font-medium'>

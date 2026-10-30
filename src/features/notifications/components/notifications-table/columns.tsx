@@ -16,7 +16,7 @@ import { useViewer } from '../../hooks/use-viewer';
 
 function NotificationTableRowAction({ item }: { item: ClinicNotification }) {
   const router = useRouter();
-  const { role: userRole } = useViewer();
+  const { roleCode: userRole } = useViewer();
   const primaryAction = item.actions?.[0];
 
   if (primaryAction) {

@@ -67,7 +67,7 @@ export async function fetchCompensationRates(): Promise<CompensationRateItem[]> 
 }
 
 export async function updateCompensationRate(
-  category: string,
+  roleId: string,
   hourlyRate: number,
   overtimeHourlyRate: number
 ): Promise<CompensationRateItem> {
@@ -76,11 +76,11 @@ export async function updateCompensationRate(
     {
       method: 'PUT',
       body: JSON.stringify({
-        rates: [{ category, hourlyRate, overtimeHourlyRate }]
+        rates: [{ roleId, hourlyRate, overtimeHourlyRate }]
       })
     }
   );
-  return res.find((r) => r.category === category) || res[0];
+  return res.find((r) => r.roleId === roleId) || res[0];
 }
 
 export async function fetchReplacements(status?: string): Promise<ReplacementOpportunityItem[]> {

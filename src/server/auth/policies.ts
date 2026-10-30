@@ -1,51 +1,39 @@
-import 'server-only';
-import {
-  CANONICAL_ROLES,
-  CLINICAL_PRACTITIONER_ROLES_SET,
-  SYSTEM_ROLES,
-  type CanonicalRole,
-  type SystemRole
-} from '@/constants/staff-types.constant';
-
-export type { SystemRole, CanonicalRole as ClinicalRole };
+'server-only';
 
 export interface AuthUserDescriptor {
-  readonly systemRole?: SystemRole;
   readonly role?: string;
+  readonly isClinical?: boolean;
+  readonly permissions?: string[];
+  readonly [key: string]: unknown;
 }
-
-const MEDICAL_ROLES_SET = new Set<string>([
-  CANONICAL_ROLES.ADMIN,
-  CANONICAL_ROLES.STAFF_DOCTOR,
-  CANONICAL_ROLES.STAFF_MIDWIFE
-]);
 
 export const AuthPolicies = {
   isAdmin(user: AuthUserDescriptor): boolean {
-    return user.systemRole === SYSTEM_ROLES.ADMIN || user.role === CANONICAL_ROLES.ADMIN;
+    return user.role === 'admin' || (user.permissions?.includes('roles:manage') ?? false);
   },
 
   isMedicalStaff(user: AuthUserDescriptor): boolean {
-    if (user.systemRole === SYSTEM_ROLES.ADMIN) return true;
-    return Boolean(user.role && MEDICAL_ROLES_SET.has(user.role));
+    if (AuthPolicies.isAdmin(user)) return true;
+    return Boolean(user.isClinical);
   },
 
   isStaff(user: AuthUserDescriptor): boolean {
-    return user.systemRole === SYSTEM_ROLES.ADMIN || user.systemRole === SYSTEM_ROLES.STAF;
+    if (AuthPolicies.isAdmin(user)) return true;
+    return Boolean(user.permissions && user.permissions.length > 0);
   },
 
   isPatient(user: AuthUserDescriptor): boolean {
-    return user.systemRole === SYSTEM_ROLES.PATIENT || user.role === CANONICAL_ROLES.PATIENT;
+    return user.role === 'patient';
   },
 
   canCallQueue(user: AuthUserDescriptor): boolean {
     if (AuthPolicies.isAdmin(user)) return true;
-    return Boolean(user.role && CLINICAL_PRACTITIONER_ROLES_SET.has(user.role));
+    return Boolean(user.permissions?.includes('queue:call') || user.isClinical);
   },
 
   canEditMedicalRecords(user: AuthUserDescriptor): boolean {
     if (AuthPolicies.isAdmin(user)) return true;
-    return Boolean(user.role && CLINICAL_PRACTITIONER_ROLES_SET.has(user.role));
+    return Boolean(user.permissions?.includes('records:write') || user.isClinical);
   },
 
   canAccessBackoffice(user: AuthUserDescriptor): boolean {

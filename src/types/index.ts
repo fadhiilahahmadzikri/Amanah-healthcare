@@ -2,6 +2,7 @@ import { Icons } from '@/components/icons';
 
 export interface PermissionCheck {
   permission?: string;
+  audience?: 'internal' | 'external';
   plan?: string;
   feature?: string;
   role?: string;

@@ -17,7 +17,6 @@ import {
   SheetFooter
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
-import { STAFF_TYPES, STAFF_TYPE_LABELS, type StaffType } from '@/constants/staff-types.constant';
 import {
   CANONICAL_ATTENDANCE_STATUS,
   ATTENDANCE_STATUS_LABELS
@@ -50,8 +49,8 @@ export function AttendanceDetailSheet({
 
   const isLate = record.status === CANONICAL_ATTENDANCE_STATUS.LATE;
   const isPresent = record.status === CANONICAL_ATTENDANCE_STATUS.PRESENT;
-  const isDoctor = record.kategori === STAFF_TYPES.DOCTOR;
-  const categoryLabel = STAFF_TYPE_LABELS[record.kategori as StaffType] || record.kategori;
+  const isClinical = Boolean(record.isClinical);
+  const roleName = record.roleName || '-';
   const statusLabel = ATTENDANCE_STATUS_LABELS[record.status] || record.status;
   const shiftLabel = record.shiftLabel || '-';
   const lateLabel = formatLateMinutes(record.lateMinutes);
@@ -115,12 +114,12 @@ export function AttendanceDetailSheet({
                       variant='outline'
                       className={cn(
                         'text-[10px] font-semibold px-2 py-0.2 border',
-                        isDoctor
-                          ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20'
-                          : 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20'
+                        isClinical
+                          ? 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/20'
+                          : 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20'
                       )}
                     >
-                      {categoryLabel}
+                      {roleName}
                     </Badge>
                   </div>
                   <SheetTitle className='text-base font-bold text-foreground truncate mt-1'>

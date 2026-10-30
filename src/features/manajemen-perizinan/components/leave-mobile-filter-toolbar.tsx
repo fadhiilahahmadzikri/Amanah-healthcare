@@ -7,14 +7,13 @@ import { LeaveSettingsButton } from './leave-settings-button';
 import {
   useLeaveDynamicOptions,
   LEAVE_STATUS_OPTIONS,
-  LEAVE_STAFF_TYPE_OPTIONS,
   LEAVE_TYPE_OPTIONS
 } from '../model/useLeaveDynamicOptions';
 import type { LeaveRequestItem } from '../api/types';
 import type { UseLeaveFiltersResult } from '../model/useLeaveFilters';
 import type { LeaveConfigurationCategory } from './leave-settings-button';
 
-export { LEAVE_STATUS_OPTIONS, LEAVE_STAFF_TYPE_OPTIONS, LEAVE_TYPE_OPTIONS };
+export { LEAVE_STATUS_OPTIONS, LEAVE_TYPE_OPTIONS };
 
 export interface LeaveMobileFilterToolbarProps {
   leaves: LeaveRequestItem[];

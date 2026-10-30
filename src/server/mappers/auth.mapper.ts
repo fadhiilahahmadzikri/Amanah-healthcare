@@ -16,8 +16,6 @@ import type {
   AuthSession
 } from '../domain/auth/auth.model';
 
-const STAFF_ROLE_CODES = new Set(['staff_doctor', 'staff_midwife', 'staff_worker']);
-
 export function toStaffProfileDomain(dto?: StaffProfileDto | null): MedicalStaffProfile | null {
   if (!dto) return null;
   return {
@@ -71,10 +69,7 @@ export function toUserDomain(dto: AuthenticatedUserDto): User {
       };
       if (firstRole.code === 'admin') {
         systemRole = 'ADMIN';
-      } else if (
-        (firstRole.code && STAFF_ROLE_CODES.has(firstRole.code)) ||
-        Boolean(dto.staffProfiles && dto.staffProfiles.length > 0)
-      ) {
+      } else if (Boolean(dto.staff) || Boolean(dto.staffProfiles && dto.staffProfiles.length > 0)) {
         systemRole = 'STAF';
       }
     }

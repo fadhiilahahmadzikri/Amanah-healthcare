@@ -65,10 +65,10 @@ export function useLeaveFilters(
         return false;
       }
 
-      // 2. Staff category filter
+      // 2. Staff role filter
       if (staffTypeFilter.length > 0) {
-        const staffType = leave.staff?.staffType;
-        if (!staffType || !staffTypeFilter.includes(staffType)) {
+        const roleKey = leave.staff?.roleId || leave.staff?.roleCode;
+        if (!roleKey || !staffTypeFilter.includes(roleKey)) {
           return false;
         }
       }

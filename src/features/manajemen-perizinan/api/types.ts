@@ -1,7 +1,6 @@
 export type LeaveStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
 export type LeaveScope = 'session' | 'full_day';
 export type LeaveDecisionSource = 'admin' | 'auto';
-export type StaffCategory = 'doctor' | 'midwife' | 'worker';
 
 export interface LeaveRequestSession {
   id: string;
@@ -16,7 +15,10 @@ export interface LeaveStaffProfile {
   fullName: string;
   profession?: string;
   idCardNumber?: string;
-  staffType: StaffCategory;
+  roleId?: string;
+  roleCode?: string;
+  roleName?: string;
+  isClinical?: boolean;
   avatarUrl?: string | null;
 }
 
@@ -58,7 +60,9 @@ export interface LeavePolicyItem {
 
 export interface CompensationRateItem {
   id: string;
-  category: StaffCategory;
+  roleId: string;
+  roleCode?: string;
+  roleName?: string;
   hourlyRate: number;
   overtimeHourlyRate: number;
   currency?: string;
@@ -108,7 +112,10 @@ export interface PayrollEntryItem {
 export interface PayrollSummaryItem {
   staffId: string;
   fullName: string;
-  staffType: string;
+  roleId?: string;
+  roleCode?: string;
+  roleName?: string;
+  isClinical?: boolean;
   positionTitle?: string;
   practitionerId?: string | null;
   baseHours: number;

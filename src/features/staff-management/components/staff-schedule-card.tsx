@@ -100,7 +100,11 @@ export function StaffScheduleCard({
       avatarUrl={staff.photoUrl}
       contentSlot={
         <div className='flex items-center gap-1.5 flex-wrap min-w-0'>
-          <StaffRoleBadge staffType={staff.staffType} />
+          <StaffRoleBadge
+            roleCode={staff.roleCode}
+            roleName={staff.roleName}
+            isClinical={staff.isClinical}
+          />
           {staff.todayAttendance && <StaffAttendanceBadge attendance={staff.todayAttendance} />}
           {staff.leaveInfo?.isOnLeave && (
             <span className='inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10.5px] font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 truncate'>

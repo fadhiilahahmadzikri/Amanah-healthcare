@@ -2,8 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
   type BulkReplaceRosterPayload,
-  type InviteDoctorPayload,
-  type InviteStaffPayload,
+  type InviteStaffUniversalPayload,
   type StaffMember,
   staffManagementApi
 } from './staff-management.api';
@@ -16,35 +15,20 @@ export function syncAllStaffQueries(queryClient: ReturnType<typeof useQueryClien
   queryClient.invalidateQueries({ queryKey: ['admin-schedule-configuration'] });
 }
 
-export function useInviteStaffMutation() {
+export function useInviteStaffUniversalMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: InviteStaffPayload) => staffManagementApi.inviteStaff(payload),
+    mutationFn: (payload: InviteStaffUniversalPayload) =>
+      staffManagementApi.inviteStaffUniversal(payload),
     onSuccess: (_data, variables) => {
       syncAllStaffQueries(queryClient);
       toast.success(
-        `Undangan staf berhasil dikirim ke ${variables.email}! Kredensial sementara telah dikirim via email.`
+        `Undangan staf berhasil dikirim ke ${variables.email}! Kredensial sementara telah dibuat.`
       );
     },
     onError: (err: unknown) => {
       const msg = err instanceof Error ? err.message : 'Gagal mengirim undangan staf.';
-      toast.error(msg);
-    }
-  });
-}
-
-export function useInviteDoctorMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (payload: InviteDoctorPayload) => staffManagementApi.inviteDoctor(payload),
-    onSuccess: (_data, variables) => {
-      syncAllStaffQueries(queryClient);
-      toast.success(`Undangan dokter/bidan berhasil dikirim ke ${variables.email}!`);
-    },
-    onError: (err: unknown) => {
-      const msg = err instanceof Error ? err.message : 'Gagal mengirim undangan dokter/bidan.';
       toast.error(msg);
     }
   });

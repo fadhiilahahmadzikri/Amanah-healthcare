@@ -293,7 +293,9 @@ export interface DoctorCandidateItem {
   name: string;
   avatarUrl?: string | null;
   specialty: string;
-  staffType: string;
+  roleName?: string;
+  roleCode?: string;
+  isClinical?: boolean;
   availability: DoctorAvailability;
   existingSessionId: string | null;
   defaultRoomName?: string | null;

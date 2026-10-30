@@ -5,7 +5,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type { PatientRegionValues } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import type { Gender } from '@/constants/gender.constants';
-import { STAFF_TYPES, type StaffType } from '@/constants/staff-types.constant';
 import {
   type PolyclinicUnit,
   type StaffMember,
@@ -24,7 +23,7 @@ export interface UseDoctorDetailEditModalProps {
 export interface DoctorDetailFormData {
   staffId: string;
   staffCode: string;
-  staffType?: StaffType;
+  roleId?: string;
   fullName: string;
   email: string;
   phoneNumber: string;
@@ -50,7 +49,6 @@ export interface UseDoctorDetailEditModalResult {
   polyclinicError: string | null;
   isLoadingProfile: boolean;
   isSubmitting: boolean;
-  isBidan: boolean;
   handleChange: (field: keyof DoctorDetailFormData, value: unknown) => void;
   handleRegionChange: (updates: Partial<PatientRegionValues>) => void;
   handleSubmit: (e?: FormEvent) => Promise<void>;
@@ -59,7 +57,6 @@ export interface UseDoctorDetailEditModalResult {
 const INITIAL_FORM_DATA: DoctorDetailFormData = {
   staffId: '',
   staffCode: '',
-  staffType: undefined,
   fullName: '',
   email: '',
   phoneNumber: '',
@@ -114,10 +111,7 @@ export function useDoctorDetailEditModal({
   const polyclinicError = polyclinicErrorObj instanceof Error ? polyclinicErrorObj.message : null;
 
   // Doctor Profile backed by TanStack Query & Redis
-  const {
-    data: profile,
-    isLoading: isLoadingProfile
-  } = useQuery<StaffMember>({
+  const { data: profile, isLoading: isLoadingProfile } = useQuery<StaffMember>({
     queryKey: ['doctor-profile', doctorId],
     queryFn: () => getDoctorProfile(doctorId!),
     enabled: Boolean(isOpen && doctorId),
@@ -145,7 +139,6 @@ export function useDoctorDetailEditModal({
       const loadedForm: DoctorDetailFormData = {
         staffId: profile.id,
         staffCode: profile.staffCode,
-        staffType: profile.staffType,
         fullName: profile.fullName,
         email: profile.email || '',
         phoneNumber: profile.phoneNumber,
@@ -181,7 +174,6 @@ export function useDoctorDetailEditModal({
       const baseForm: DoctorDetailFormData = {
         staffId: doctor.staffId || '',
         staffCode: doctor.staffCode || '',
-        staffType: doctor.staffType,
         fullName: doctor.fullName,
         email: doctor.email || '',
         phoneNumber: doctor.phone || '',
@@ -306,8 +298,6 @@ export function useDoctorDetailEditModal({
     [doctor, hasChanges, formData, regionValues, onSuccess, onClose, queryClient]
   );
 
-  const isBidan = formData.staffType === STAFF_TYPES.MIDWIFE;
-
   return {
     isEditing,
     hasChanges,
@@ -320,7 +310,6 @@ export function useDoctorDetailEditModal({
     polyclinicError,
     isLoadingProfile,
     isSubmitting,
-    isBidan,
     handleChange,
     handleRegionChange,
     handleSubmit

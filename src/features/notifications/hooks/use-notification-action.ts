@@ -8,7 +8,7 @@ import { useViewer } from './use-viewer';
 
 export function useNotificationAction() {
   const router = useRouter();
-  const { role: userRole } = useViewer();
+  const { roleCode: userRole } = useViewer();
   const { markAsRead } = useNotificationStore();
   const [loadingActionId, setLoadingActionId] = useState<string>();
 

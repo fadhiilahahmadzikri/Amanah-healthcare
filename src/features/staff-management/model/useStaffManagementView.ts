@@ -96,9 +96,12 @@ export function useStaffManagementView(): UseStaffManagementViewResult {
       );
     }
 
-    // Role / Staff Type filter
+    // Dynamic Role filter
     if (selectedRoles.length > 0) {
-      list = list.filter((s) => selectedRoles.includes(s.staffType));
+      list = list.filter((s) => {
+        const key = s.roleId || s.roleCode;
+        return key && selectedRoles.includes(key);
+      });
     }
 
     // Operational Status filter

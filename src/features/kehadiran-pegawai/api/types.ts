@@ -1,10 +1,9 @@
-import type { StaffType } from '@/constants/staff-types.constant';
 import type {
   CanonicalAttendanceStatus,
   CanonicalAttendanceShift
 } from '../constants/attendance-status.constants';
 
-export type StaffCategory = StaffType | (string & {});
+export type StaffCategory = string;
 export type AttendanceStatus = CanonicalAttendanceStatus | (string & {});
 export type WorkShift = CanonicalAttendanceShift | (string & {});
 
@@ -34,6 +33,10 @@ export interface StaffAttendance {
   nama_staf: string;
   avatar?: string;
   kategori: StaffCategory;
+  roleId?: string;
+  roleCode?: string;
+  roleName?: string;
+  isClinical?: boolean;
   tanggal_presensi: string;
   waktu_presensi: string;
   checkInAt?: string | null;
@@ -104,7 +107,11 @@ export interface AttendanceExportCandidate {
   staffCode: string;
   fullName: string;
   avatarUrl?: string | null;
-  staffType: StaffType;
+  roleId?: string;
+  roleCode?: string;
+  roleName?: string;
+  isClinical?: boolean;
+  staffType?: string;
   positionTitle?: string | null;
   specialtyName?: string | null;
   totalAttendance: number;

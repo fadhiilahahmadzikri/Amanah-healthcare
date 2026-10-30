@@ -5,8 +5,6 @@ export type {
   ScheduleOperationalStatus,
   ScheduleClosureReason
 } from '@/server/contracts/schedules/doctor-schedules.dto';
-import { STAFF_TYPES, type StaffType } from '@/constants/staff-types.constant';
-export { STAFF_TYPES, type StaffType };
 
 export {
   SHIFT_OPERATIONAL_STATUS,
@@ -63,7 +61,10 @@ export interface DoctorSchedule {
   staffProfileId?: string | null;
   staffId?: string | null;
   staffCode?: string | null;
-  staffType?: StaffType;
+  roleId?: string | null;
+  roleCode?: string | null;
+  roleName?: string | null;
+  isClinical?: boolean;
   fullName: string;
   specialty: string;
   doctorStatus: ScheduleOperationalStatus;

@@ -2,10 +2,7 @@
 
 import { useMemo } from 'react';
 import { Icons } from '@/components/icons';
-import { STAFF_TYPE_LABELS, type StaffType } from '@/constants/staff-types.constant';
-import {
-  ATTENDANCE_STATUS_LABELS
-} from '../constants/attendance-status.constants';
+import { ATTENDANCE_STATUS_LABELS } from '../constants/attendance-status.constants';
 import type {
   AvailableAttendanceFilters,
   FilterOption,
@@ -103,7 +100,7 @@ export function useAttendanceDynamicOptions({
         icon: Icons.users,
         mode: 'single',
         options: categoryOptions.map((c) => ({
-          label: STAFF_TYPE_LABELS[c.value as StaffType] || c.label,
+          label: c.label || c.value,
           value: c.value
         })),
         selectedValues: params.category && params.category !== 'all' ? [params.category] : [],

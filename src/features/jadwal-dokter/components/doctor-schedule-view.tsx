@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { EntityCardGrid, EntityCardGridSkeleton } from '@/components/cards/master-entity-card';
-import { InviteDoctorModal } from '@/features/staff-management';
 import { ResponsiveFacetToolbox } from '@/shared/ui/responsive-facet-toolbox';
 import { SearchEngineDialog } from '@/components/search-engine';
 import { useSidebar } from '@/components/ui/sidebar';
@@ -28,7 +27,6 @@ export function DoctorScheduleView() {
   const queryClient = useQueryClient();
   const { scheduleView, settingsCycle, assignmentModal, selectedDateParam, actions } =
     useDoctorSchedulePresenter();
-  const [isInviteDoctorOpen, setIsInviteDoctorOpen] = useState(false);
   const [selectedDoctorForModal, setSelectedDoctorForModal] = useState<DoctorSchedule | null>(null);
 
   const { state: sidebarState } = useSidebar();
@@ -83,14 +81,6 @@ export function DoctorScheduleView() {
         onClose={assignmentModal.close}
       />
 
-      <InviteDoctorModal
-        isOpen={isInviteDoctorOpen}
-        onClose={() => setIsInviteDoctorOpen(false)}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all });
-        }}
-      />
-
       <div className='flex h-full min-h-0 flex-1 flex-col gap-4 select-none'>
         {(scheduleView.totalDoctors > 0 || scheduleView.hasActiveFilters) && (
           <ResponsiveFacetToolbox
@@ -113,23 +103,6 @@ export function DoctorScheduleView() {
             }}
             activeFilterCount={activeFilterCount}
             isCompact={isCompact}
-            actionsSlot={
-              <Button
-                type='button'
-                onClick={() => setIsInviteDoctorOpen(true)}
-                size={isCompact ? 'icon' : 'sm'}
-                className={cn(
-                  isCompact
-                    ? 'size-8 rounded-md shrink-0 cursor-pointer'
-                    : 'h-8 text-xs font-medium gap-1.5 shrink-0 cursor-pointer'
-                )}
-                title='Undang Praktisi'
-                aria-label='Undang Praktisi'
-              >
-                <Icons.userPlus className={cn(isCompact ? 'size-3.5' : 'size-3.5 mr-0.5')} />
-                {!isCompact && <span>Undang Praktisi</span>}
-              </Button>
-            }
             extraRightSlot={
               <div className='flex items-center gap-1.5 sm:gap-2 shrink-0'>
                 <DoctorScheduleSettingsButton

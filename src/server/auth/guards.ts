@@ -1,7 +1,7 @@
 import 'server-only';
 import { AppError } from '@/core/errors/app-error';
 import { getAccessTokenCookie } from './token-store';
-import { AuthPolicies, type SystemRole, type AuthUserDescriptor } from './policies';
+import { AuthPolicies, type AuthUserDescriptor } from './policies';
 
 export async function requireAuthToken(): Promise<string> {
   const token = await getAccessTokenCookie();
@@ -11,8 +11,8 @@ export async function requireAuthToken(): Promise<string> {
   return token;
 }
 
-export function assertRole(user: AuthUserDescriptor, requiredRole: SystemRole): void {
-  if (user.systemRole !== requiredRole && user.systemRole !== 'ADMIN') {
+export function assertRole(user: AuthUserDescriptor, requiredRole: string): void {
+  if (user.role !== requiredRole && !AuthPolicies.isAdmin(user)) {
     throw AppError.forbidden(`Access restricted to ${requiredRole}.`);
   }
 }

@@ -15,12 +15,6 @@ export const LEAVE_STATUS_OPTIONS = [
   { value: 'cancelled', label: 'Dibatalkan', dotColor: 'bg-slate-400' }
 ] as const;
 
-export const LEAVE_STAFF_TYPE_OPTIONS = [
-  { value: 'doctor', label: 'Dokter' },
-  { value: 'midwife', label: 'Bidan' },
-  { value: 'worker', label: 'Staf Operasional' }
-] as const;
-
 export const LEAVE_TYPE_OPTIONS = [
   { value: 'annual_leave', label: 'Cuti Tahunan' },
   { value: 'sick_leave', label: 'Izin Sakit' },
@@ -38,6 +32,23 @@ export interface UseLeaveDynamicOptionsProps {
 export function useLeaveDynamicOptions({ filters, leaves }: UseLeaveDynamicOptionsProps) {
   // 1. Facet Groups for Agnostic ResponsiveFacetToolbox & FacetSidebarSheet
   const facetGroups = useMemo<FacetGroupDefinition[]>(() => {
+    const roleMap = new Map<string, { label: string; count: number }>();
+    for (const l of leaves) {
+      if (l.staff?.roleId && l.staff?.roleName) {
+        const key = l.staff.roleId;
+        const label = l.staff.roleName;
+        if (!roleMap.has(key)) {
+          roleMap.set(key, { label, count: 0 });
+        }
+        roleMap.get(key)!.count += 1;
+      }
+    }
+    const roleOptions = Array.from(roleMap.entries()).map(([value, info]) => ({
+      label: info.label,
+      value,
+      count: info.count
+    }));
+
     return [
       {
         id: 'status',
@@ -60,19 +71,16 @@ export function useLeaveDynamicOptions({ filters, leaves }: UseLeaveDynamicOptio
       },
       {
         id: 'staffType',
-        title: 'Kategori',
+        title: 'Peran',
         icon: Icons.users,
         mode: 'multi',
-        options: LEAVE_STAFF_TYPE_OPTIONS.map((st) => ({
-          label: st.label,
-          value: st.value
-        })),
+        options: roleOptions,
         selectedValues: filters.staffTypeFilter,
         onSelect: (val: string) => {
           filters.actions.changeStaffTypeFilter(toggleItem(filters.staffTypeFilter, val));
         },
         onReset: () => filters.actions.changeStaffTypeFilter([]),
-        resetLabel: 'Reset Kategori',
+        resetLabel: 'Reset Peran',
         popoverWidth: 'w-52'
       },
       {
@@ -98,7 +106,8 @@ export function useLeaveDynamicOptions({ filters, leaves }: UseLeaveDynamicOptio
     filters.statusFilter,
     filters.staffTypeFilter,
     filters.leaveTypeFilter,
-    filters.actions
+    filters.actions,
+    leaves
   ]);
 
   // 2. Accurate Active Filter Count for Trigger Badge

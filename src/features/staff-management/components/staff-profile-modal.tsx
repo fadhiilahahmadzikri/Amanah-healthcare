@@ -136,11 +136,9 @@ export function StaffProfileModal(props: StaffProfileModalProps) {
                     id='staff_fullName'
                     label='Nama Lengkap & Gelar *'
                     placeholder={
-                      form.isBidan
-                        ? 'Bdn. Siti Rahma, S.Tr.Keb'
-                        : form.isDoctor
-                          ? 'dr. Budi Santoso, Sp.A'
-                          : 'Nama lengkap staf'
+                      form.isClinical
+                        ? 'dr. / Bdn. / Ns. Nama Lengkap & Gelar'
+                        : 'Nama lengkap staf operasional'
                     }
                     value={form.formData.fullName}
                     onChange={(val) => form.handleChange('fullName', val)}

@@ -1,6 +1,6 @@
 import { clientFetch } from '@/lib/client-fetch';
 import type { Gender } from '@/constants/gender.constants';
-import type { StaffInvitationStatus, StaffRoleCode, StaffType } from '../constants/staff.constants';
+import type { StaffInvitationStatus } from '../constants/staff.constants';
 
 export interface PolyclinicUnit {
   id: string;
@@ -47,7 +47,10 @@ export interface StaffMember {
   poliklinikName?: string | null;
   fullName: string;
   profession: string;
-  staffType: StaffType;
+  roleId?: string;
+  roleCode?: string | null;
+  roleName?: string | null;
+  isClinical?: boolean;
   staffCode: string;
   licenseNumber?: string | null;
   birthPlace?: string | null;
@@ -70,7 +73,8 @@ export interface StaffMember {
 
 export interface StaffFilters {
   status?: string;
-  staffType?: string;
+  roleId?: string;
+  roleCode?: string;
   profession?: string;
   poliklinikId?: string;
   search?: string;
@@ -79,8 +83,9 @@ export interface StaffFilters {
 export interface StaffInvitation {
   id: string;
   email: string;
-  roleCode: StaffRoleCode | string;
-  staffType: StaffType;
+  roleId?: string;
+  roleCode?: string;
+  roleName?: string;
   status: StaffInvitationStatus;
   expiresAt: string;
   acceptedAt?: string | null;
@@ -110,28 +115,37 @@ export interface StaffRosterItem {
   };
 }
 
-export interface PractitionerRoleOption {
+export interface RoleOption {
+  id: string;
   code: string;
   name: string;
+  tier: string;
+  isClinical: boolean;
   description?: string | null;
 }
 
 export interface InvitationOptionsResponse {
-  practitionerRoles: PractitionerRoleOption[];
+  roles: RoleOption[];
+  practitionerRoles: Array<{
+    id: string;
+    code: string;
+    name: string;
+    description?: string | null;
+  }>;
   polyclinics: PolyclinicUnit[];
 }
 
-export interface InviteDoctorPayload {
+export interface InviteStaffUniversalPayload {
   email: string;
-  poliklinikId: string;
+  roleId: string;
+  poliklinikId?: string | null;
   fullName?: string;
-  roleCode?: string;
 }
 
-export interface InviteStaffPayload {
-  email: string;
-  fullName?: string;
-  roleCode?: StaffRoleCode | string;
+export interface InviteStaffUniversalResponse {
+  invitation: StaffInvitation;
+  temporaryPassword: string;
+  loginUrl: string;
 }
 
 export interface BulkReplaceRosterPayload {
@@ -151,7 +165,8 @@ export const staffManagementApi = {
   getAllStaffs: (filters?: StaffFilters) => {
     const params = new URLSearchParams();
     if (filters?.status && filters.status !== 'all') params.set('status', filters.status);
-    if (filters?.staffType) params.set('staffType', filters.staffType);
+    if (filters?.roleId) params.set('roleId', filters.roleId);
+    if (filters?.roleCode) params.set('roleCode', filters.roleCode);
     if (filters?.profession) params.set('profession', filters.profession);
     if (filters?.poliklinikId) params.set('poliklinikId', filters.poliklinikId);
     if (filters?.search?.trim()) params.set('search', filters.search.trim());
@@ -189,22 +204,8 @@ export const staffManagementApi = {
   getInvitations: (status?: string) =>
     clientFetch<StaffInvitation[]>(`/api/v1/admin/invitations${status ? `?status=${status}` : ''}`),
 
-  inviteDoctor: (payload: InviteDoctorPayload) =>
-    clientFetch<{
-      invitation: StaffInvitation;
-      temporaryPassword: string;
-      loginUrl: string;
-    }>('/api/v1/admin/invitations/doctor', {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    }),
-
-  inviteStaff: (payload: InviteStaffPayload) =>
-    clientFetch<{
-      invitation: StaffInvitation;
-      temporaryPassword: string;
-      loginUrl: string;
-    }>('/api/v1/admin/invitations/staff', {
+  inviteStaffUniversal: (payload: InviteStaffUniversalPayload) =>
+    clientFetch<InviteStaffUniversalResponse>('/api/v1/admin/invitations', {
       method: 'POST',
       body: JSON.stringify(payload)
     }),

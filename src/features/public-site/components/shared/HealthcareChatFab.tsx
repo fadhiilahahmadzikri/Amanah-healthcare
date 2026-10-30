@@ -13,7 +13,7 @@ export function HealthcareChatFab() {
 
   const handleClick = () => {
     if (viewer?.userId) {
-      if (viewer.role === 'admin') {
+      if (viewer.audience === 'clinic') {
         router.push('/admin/chat');
         return;
       }

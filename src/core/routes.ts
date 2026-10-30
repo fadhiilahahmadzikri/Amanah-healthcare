@@ -6,6 +6,8 @@ export const ROUTES = {
   admin: '/admin',
   adminAppointmentPasien: '/admin/appointment-pasien',
   adminStaff: '/admin/staff',
+  adminRoleManagement: '/admin/management-role',
+  adminClinicEssentials: '/admin/clinic-essentials',
   adminDoctorSchedules: '/admin/jadwal-dokter',
   adminLeaveManagement: '/admin/manajemen-perizinan',
   adminReplacementOpportunities: '/admin/peluang-pengganti',

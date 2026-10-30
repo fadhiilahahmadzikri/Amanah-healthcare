@@ -9,31 +9,37 @@ import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import {
   STAFF_INVITATION_STATUS,
-  STAFF_INVITATION_STATUS_LABELS,
-  STAFF_ROLE_CODES,
-  STAFF_ROLE_LABELS,
-  STAFF_TYPES
+  STAFF_INVITATION_STATUS_LABELS
 } from '../constants/staff.constants';
 
-export function StaffRoleBadge({ roleCode, staffType }: { roleCode?: string; staffType?: string }) {
-  const effective = roleCode || staffType;
-  if (effective === STAFF_ROLE_CODES.DOCTOR || effective === STAFF_TYPES.DOCTOR) {
-    return (
-      <Badge className='bg-blue-600/15 text-blue-700 dark:text-blue-400 border-blue-500/30 font-medium'>
-        {STAFF_ROLE_LABELS[STAFF_ROLE_CODES.DOCTOR]}
-      </Badge>
-    );
-  }
-  if (effective === STAFF_ROLE_CODES.MIDWIFE || effective === STAFF_TYPES.MIDWIFE) {
+export function StaffRoleBadge({
+  roleCode,
+  roleName,
+  isClinical
+}: {
+  roleCode?: string | null;
+  roleName?: string | null;
+  isClinical?: boolean | null;
+}) {
+  const label = roleName || roleCode;
+  if (!label) return null;
+
+  const formatted = label
+    .split('_')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ');
+
+  if (isClinical) {
     return (
       <Badge className='bg-teal-600/15 text-teal-700 dark:text-teal-400 border-teal-500/30 font-medium'>
-        {STAFF_ROLE_LABELS[STAFF_ROLE_CODES.MIDWIFE]}
+        {formatted}
       </Badge>
     );
   }
+
   return (
-    <Badge className='bg-amber-600/15 text-amber-700 dark:text-amber-400 border-amber-500/30 font-medium'>
-      {STAFF_ROLE_LABELS[STAFF_ROLE_CODES.WORKER]}
+    <Badge variant='outline' className='font-medium text-xs'>
+      {formatted}
     </Badge>
   );
 }

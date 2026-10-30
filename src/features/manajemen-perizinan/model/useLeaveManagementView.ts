@@ -33,12 +33,11 @@ export function useLeaveManagementView({
 
   const filteredLeaves = useMemo(() => {
     return leaves.filter((leave) => {
-      // 1. Tab-based partition
+      // 1. Tab-based partition (Clinical vs Non-Clinical)
       if (activeTab === 'practitioners') {
-        const type = leave.staff?.staffType;
-        if (type !== 'doctor' && type !== 'midwife') return false;
+        if (!leave.staff?.isClinical) return false;
       } else if (activeTab === 'workers') {
-        if (leave.staff?.staffType !== 'worker') return false;
+        if (leave.staff?.isClinical) return false;
       }
 
       // 2. Status filter
@@ -46,9 +45,10 @@ export function useLeaveManagementView({
         return false;
       }
 
-      // 3. Staff category filter (from dropdown)
-      if (staffTypeFilter !== 'all' && leave.staff?.staffType !== staffTypeFilter) {
-        return false;
+      // 3. Staff role filter
+      if (staffTypeFilter !== 'all') {
+        const roleKey = leave.staff?.roleId || leave.staff?.roleCode;
+        if (roleKey !== staffTypeFilter) return false;
       }
 
       // 4. Search query filter
@@ -70,10 +70,8 @@ export function useLeaveManagementView({
   }, [leaves, activeTab, statusFilter, staffTypeFilter, searchQuery]);
 
   const counts = useMemo(() => {
-    const practitionerCount = leaves.filter(
-      (l) => l.staff?.staffType === 'doctor' || l.staff?.staffType === 'midwife'
-    ).length;
-    const workerCount = leaves.filter((l) => l.staff?.staffType === 'worker').length;
+    const practitionerCount = leaves.filter((l) => Boolean(l.staff?.isClinical)).length;
+    const workerCount = leaves.filter((l) => !l.staff?.isClinical).length;
 
     return {
       all: leaves.length,

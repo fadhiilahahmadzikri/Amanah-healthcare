@@ -84,7 +84,7 @@ export function PayrollSlipDetailModal({
                   {staffSummary.fullName}
                 </h3>
                 <span className='text-[10px] font-semibold px-2 py-0.5 rounded-md bg-muted border border-border/60 text-muted-foreground capitalize'>
-                  {staffSummary.staffType}
+                  {staffSummary.roleName}
                 </span>
                 {staffSummary.staffCode && (
                   <span className='text-[10px] font-mono text-muted-foreground px-1.5 py-0.5 rounded bg-muted/60'>

@@ -5,12 +5,11 @@ import { ResponsiveFacetToolbox } from '@/shared/ui/responsive-facet-toolbox';
 import {
   useLeaveDynamicOptions,
   LEAVE_STATUS_OPTIONS,
-  LEAVE_STAFF_TYPE_OPTIONS,
   LEAVE_TYPE_OPTIONS
 } from '../model/useLeaveDynamicOptions';
 import type { UseLeaveFiltersResult } from '../model/useLeaveFilters';
 
-export { LEAVE_STATUS_OPTIONS, LEAVE_STAFF_TYPE_OPTIONS, LEAVE_TYPE_OPTIONS };
+export { LEAVE_STATUS_OPTIONS, LEAVE_TYPE_OPTIONS };
 
 export interface LeaveManagementFiltersProps {
   searchQuery: string;

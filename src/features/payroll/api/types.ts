@@ -1,6 +1,6 @@
 import type { PayrollPeriodStatus } from '../constants/options';
 
-export type StaffCategory = 'doctor' | 'midwife' | 'worker';
+export type StaffCategory = string;
 export type PayrollEntryType =
   | 'base_scheduled'
   | 'leave_deduction'
@@ -31,7 +31,11 @@ export interface PayrollSummaryItem {
   staffCode?: string;
   fullName: string;
   avatarUrl?: string | null;
-  staffType: StaffCategory;
+  roleId?: string;
+  roleCode?: string;
+  roleName?: string;
+  isClinical?: boolean;
+  staffType?: string;
   positionTitle?: string;
   departmentName?: string;
   practitionerId?: string | null;

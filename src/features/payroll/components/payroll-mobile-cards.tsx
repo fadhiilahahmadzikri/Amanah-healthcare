@@ -101,7 +101,7 @@ export function PayrollMobileCards({
                 <div className='min-w-0'>
                   <p className='font-semibold text-xs text-foreground truncate'>{staff.fullName}</p>
                   <p className='text-[11px] text-muted-foreground capitalize mt-0.5 truncate'>
-                    {staff.staffType} {staff.staffCode ? `• ${staff.staffCode}` : ''}
+                    {staff.roleName} {staff.staffCode ? `• ${staff.staffCode}` : ''}
                   </p>
                 </div>
               </div>

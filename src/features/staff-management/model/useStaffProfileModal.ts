@@ -5,7 +5,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type { PatientRegionValues } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import type { Gender } from '@/constants/gender.constants';
-import { STAFF_TYPES, STAFF_TYPE_LABELS, type StaffType } from '@/constants/staff-types.constant';
 import {
   type PolyclinicUnit,
   type StaffMember,
@@ -27,7 +26,10 @@ export interface UseStaffProfileModalProps {
 export interface StaffProfileFormData {
   staffId: string;
   staffCode: string;
-  staffType?: StaffType;
+  roleId?: string | null;
+  roleCode?: string | null;
+  roleName?: string | null;
+  isClinical?: boolean;
   fullName: string;
   email: string;
   phoneNumber: string;
@@ -54,8 +56,6 @@ export interface UseStaffProfileModalResult {
   isLoadingProfile: boolean;
   isSubmitting: boolean;
   isClinical: boolean;
-  isDoctor: boolean;
-  isBidan: boolean;
   workerCategoryLabel: string;
   subtitleDescription: string;
   licenseNumberLabel: string;
@@ -70,7 +70,10 @@ export interface UseStaffProfileModalResult {
 const INITIAL_FORM_DATA: StaffProfileFormData = {
   staffId: '',
   staffCode: '',
-  staffType: undefined,
+  roleId: undefined,
+  roleCode: undefined,
+  roleName: undefined,
+  isClinical: false,
   fullName: '',
   email: '',
   phoneNumber: '',
@@ -157,7 +160,10 @@ export function useStaffProfileModal({
       const loadedForm: StaffProfileFormData = {
         staffId: profile.id,
         staffCode: profile.staffCode || '',
-        staffType: profile.staffType,
+        roleId: profile.roleId,
+        roleCode: profile.roleCode,
+        roleName: profile.roleName,
+        isClinical: profile.isClinical ?? false,
         fullName: profile.fullName || '',
         email: profile.email || '',
         phoneNumber: profile.phoneNumber || '',
@@ -193,7 +199,10 @@ export function useStaffProfileModal({
       const baseForm: StaffProfileFormData = {
         staffId: doctor.id,
         staffCode: doctor.staffCode || '',
-        staffType: doctor.staffType,
+        roleId: doctor.roleId,
+        roleCode: doctor.roleCode,
+        roleName: doctor.roleName,
+        isClinical: doctor.isClinical ?? true,
         fullName: doctor.fullName,
         email: doctor.email || '',
         phoneNumber: doctor.phone || '',
@@ -243,35 +252,24 @@ export function useStaffProfileModal({
     setRegionValues((prev) => ({ ...prev, ...updates }));
   }, []);
 
-  // Worker Category & Clinical Role derivation
-  const effectiveStaffType = formData.staffType || profile?.staffType || doctor?.staffType;
-  const isDoctor = effectiveStaffType === STAFF_TYPES.DOCTOR;
-  const isBidan = effectiveStaffType === STAFF_TYPES.MIDWIFE;
-  const isClinical = isDoctor || isBidan;
+  // Clinical flag and role representation strictly from DB SSOT (is_clinical boolean)
+  const isClinical = Boolean(formData.isClinical || profile?.isClinical || doctor?.isClinical);
+  const currentRoleName =
+    formData.roleName || profile?.roleName || doctor?.roleName || formData.profession || 'Staf';
 
-  const workerCategoryLabel = isBidan
-    ? STAFF_TYPE_LABELS[STAFF_TYPES.MIDWIFE]
-    : isDoctor
-      ? STAFF_TYPE_LABELS[STAFF_TYPES.DOCTOR]
-      : STAFF_TYPE_LABELS[STAFF_TYPES.WORKER];
+  const workerCategoryLabel = currentRoleName;
 
-  const subtitleDescription = isBidan
-    ? 'Lihat dan kelola profil, identitas, domisili, kredensial, serta status operasional bidan.'
-    : isDoctor
-      ? 'Lihat dan kelola profil, identitas, domisili, kredensial, serta status operasional dokter.'
-      : 'Lihat dan kelola profil, identitas, domisili, serta status operasional staf klinik.';
+  const subtitleDescription = isClinical
+    ? 'Lihat dan kelola profil, identitas, domisili, kredensial, serta status operasional praktisi medis.'
+    : 'Lihat dan kelola profil, identitas, domisili, serta status operasional staf klinik.';
 
-  const licenseNumberLabel = isBidan
-    ? 'Nomor Izin Praktik Bidan (SIPB / STR)'
-    : isDoctor
-      ? 'Nomor Izin Praktik Dokter (SIP / STR)'
-      : 'Nomor Izin Praktik / STR';
+  const licenseNumberLabel = isClinical
+    ? 'Nomor Surat Izin Praktik / STR (SIP / STR)'
+    : 'Nomor Identitas Kredensial / Sertifikat';
 
-  const professionPlaceholder = isBidan
-    ? 'Bidan Praktik Mandiri / KIA'
-    : isDoctor
-      ? 'dr. Budi Santoso, Sp.A / Dokter Umum'
-      : 'Staf IT, Front Desk, CS, dll.';
+  const professionPlaceholder = isClinical
+    ? 'Praktisi Medis / Tenaga Klinis'
+    : 'Staf Operasional / Administrasi';
 
   const leaveInfo =
     profile?.leaveInfo ||
@@ -296,7 +294,10 @@ export function useStaffProfileModal({
           poliklinikId: formData.poliklinikId,
           fullName: formData.fullName,
           profession: formData.profession,
-          staffType: (effectiveStaffType as StaffType) || 'doctor',
+          roleId: formData.roleId,
+          roleCode: formData.roleCode,
+          roleName: formData.roleName,
+          isClinical: formData.isClinical,
           staffCode: formData.staffCode,
           email: formData.email,
           phoneNumber: formData.phoneNumber,
@@ -364,9 +365,7 @@ export function useStaffProfileModal({
 
         await staffManagementApi.updateStaff(profileId, payload);
 
-        toast.success(
-          `Data ${workerCategoryLabel.toLowerCase()} ${formData.fullName} berhasil diperbarui.`
-        );
+        toast.success(`Data staf ${formData.fullName} berhasil diperbarui.`);
         syncAllStaffQueries(queryClient);
         await queryClient.invalidateQueries({ queryKey: ['staff-profile', profileId] });
         await queryClient.invalidateQueries({ queryKey: ['doctor-profile', profileId] });
@@ -383,17 +382,7 @@ export function useStaffProfileModal({
         setIsSubmitting(false);
       }
     },
-    [
-      profileId,
-      hasChanges,
-      formData,
-      regionValues,
-      isClinical,
-      workerCategoryLabel,
-      onSuccess,
-      onClose,
-      queryClient
-    ]
+    [profileId, hasChanges, formData, regionValues, isClinical, onSuccess, onClose, queryClient]
   );
 
   return {
@@ -409,8 +398,6 @@ export function useStaffProfileModal({
     isLoadingProfile,
     isSubmitting,
     isClinical,
-    isDoctor,
-    isBidan,
     workerCategoryLabel,
     subtitleDescription,
     licenseNumberLabel,

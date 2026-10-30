@@ -1,26 +1,24 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { CANONICAL_ROLES, SYSTEM_ROLES, type SystemRole } from '@/constants/staff-types.constant';
 import { useSession } from '@/lib/auth-client';
 import { clientFetch } from '@/lib/client-fetch';
 
 export interface ViewerRole {
-  readonly id?: string | number;
+  readonly id?: string;
   readonly code: string;
-  readonly name?: string;
+  readonly name: string;
+  readonly tier?: 'macro' | 'micro';
+  readonly audience?: 'internal' | 'external';
+  readonly isClinical?: boolean;
 }
 
 export interface ViewerProfile {
   id: string;
   email?: string | null;
   name?: string | null;
-  firstName?: string | null;
-  lastName?: string | null;
-  systemRole?: SystemRole | null;
   role?: ViewerRole | null;
-  roleCode?: string | null;
-  roles?: string[];
+  permissions?: string[];
   [key: string]: unknown;
 }
 
@@ -63,27 +61,27 @@ export function useViewer() {
           id: betterAuthSession.user.id,
           email: betterAuthSession.user.email,
           name: betterAuthSession.user.name,
-          systemRole: (betterAuthSession.user.role as SystemRole) ?? SYSTEM_ROLES.PATIENT,
           role: {
-            code: (betterAuthSession.user.role as string) ?? CANONICAL_ROLES.PATIENT,
-            name: (betterAuthSession.user.role as string) ?? CANONICAL_ROLES.PATIENT
-          }
+            code: (betterAuthSession.user.role as string) || 'patient',
+            name: (betterAuthSession.user.role as string) || 'patient',
+            audience: 'external' as const
+          },
+          permissions: []
         }
       : null);
 
-  const isStaff =
-    resolvedUser?.systemRole === SYSTEM_ROLES.ADMIN ||
-    resolvedUser?.systemRole === SYSTEM_ROLES.STAF;
-
-  const audience: 'clinic' | 'patient' = isStaff ? 'clinic' : 'patient';
-  const roleCode = resolvedUser?.role?.code ?? CANONICAL_ROLES.PATIENT;
+  const role = resolvedUser?.role;
+  const isInternal = role?.audience === 'internal';
+  const audience: 'clinic' | 'patient' = isInternal ? 'clinic' : 'patient';
+  const permissions = resolvedUser?.permissions || [];
 
   return {
     viewer: resolvedUser,
     userId: resolvedUser?.id,
-    role: roleCode,
-    normalizedRole: roleCode.toLowerCase(),
-    systemRole: resolvedUser?.systemRole ?? null,
+    role,
+    roleCode: role?.code || '',
+    permissions,
+    hasPermission: (perm: string) => permissions.includes(perm),
     audience,
     isLoading: isMeLoading && isBetterAuthPending && !resolvedUser
   };

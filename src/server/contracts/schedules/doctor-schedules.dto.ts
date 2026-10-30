@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { STAFF_TYPES, type StaffType } from '@/constants/staff-types.constant';
 
 export const scheduleOperationalStatusSchema = z.enum([
   'OPEN',
@@ -69,7 +68,10 @@ export const doctorScheduleItemSchema = z.object({
   staffProfileId: z.string().nullable().optional(),
   staffId: z.string().nullable().optional(),
   staffCode: z.string().nullable().optional(),
-  staffType: z.enum([STAFF_TYPES.DOCTOR, STAFF_TYPES.MIDWIFE, STAFF_TYPES.WORKER]).optional(),
+  roleId: z.string().nullable().optional(),
+  roleCode: z.string().nullable().optional(),
+  roleName: z.string().nullable().optional(),
+  isClinical: z.boolean().optional(),
   fullName: z.string(),
   specialty: z.string(),
   doctorStatus: scheduleOperationalStatusSchema,

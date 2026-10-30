@@ -14,7 +14,6 @@ export * from './components/staff-card-atoms';
 export * from './components/staff-management-toolbar';
 export * from './components/staff-schedule-cards-skeleton';
 export { default as StaffManagementListingPage } from './components/staff-management-listing';
-export * from './components/invite-doctor-modal';
 export * from './components/invite-staff-modal';
 export * from './components/staff-roster-modal';
 export * from './components/staff-profile-modal';

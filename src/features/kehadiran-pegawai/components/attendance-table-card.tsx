@@ -23,7 +23,6 @@ import { cn } from '@/lib/utils';
 import { ExportDialog } from '@/features/export';
 import { ResponsiveFacetToolbox } from '@/shared/ui/responsive-facet-toolbox';
 import { SearchEngineDialog, type useStateSearchEngine } from '@/components/search-engine';
-import { STAFF_TYPES, STAFF_TYPE_LABELS, type StaffType } from '@/constants/staff-types.constant';
 import {
   CANONICAL_ATTENDANCE_STATUS,
   ATTENDANCE_STATUS_LABELS
@@ -215,12 +214,10 @@ export function AttendanceTableCard({
                   </TableRow>
                 ) : (
                   displayedRecords.map((row) => {
-                    const isDoctor = row.kategori === STAFF_TYPES.DOCTOR;
                     const isSelected = selectedIds.includes(row.id);
                     const isLate = row.status === CANONICAL_ATTENDANCE_STATUS.LATE;
                     const isPresent = row.status === CANONICAL_ATTENDANCE_STATUS.PRESENT;
-                    const categoryLabel =
-                      STAFF_TYPE_LABELS[row.kategori as StaffType] || row.kategori;
+                    const roleName = row.roleName || row.kategori;
                     const statusLabel = ATTENDANCE_STATUS_LABELS[row.status] || row.status;
                     const shiftLabel = row.shiftLabel || '-';
 
@@ -308,17 +305,17 @@ export function AttendanceTableCard({
                           </div>
                         </TableCell>
 
-                        {/* Kategori */}
+                        {/* Kategori / Peran */}
                         <TableCell className='px-3 py-2.5'>
                           <span
                             className={cn(
                               'inline-flex items-center px-2 py-0.5 rounded text-[10.5px] font-semibold border',
-                              isDoctor
-                                ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20'
-                                : 'bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/20'
+                              row.isClinical
+                                ? 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/20'
+                                : 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20'
                             )}
                           >
-                            {categoryLabel}
+                            {roleName}
                           </span>
                         </TableCell>
 

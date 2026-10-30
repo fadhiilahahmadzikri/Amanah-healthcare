@@ -29,7 +29,7 @@ export function PayrollExportButton({
       const headers = [
         'Nama Karyawan',
         'NIP / Kode Staf',
-        'Kategori',
+        'Peran',
         'Jabatan / Posisi',
         'Jam Pokok',
         'Gaji Pokok (IDR)',
@@ -41,7 +41,7 @@ export function PayrollExportButton({
       const rows = data.map((staff) => [
         `"${staff.fullName.replace(/"/g, '""')}"`,
         `"${staff.staffCode || ''}"`,
-        `"${staff.staffType}"`,
+        `"${staff.roleName || ''}"`,
         `"${(staff.positionTitle || '').replace(/"/g, '""')}"`,
         staff.baseHours,
         staff.baseEarnings,

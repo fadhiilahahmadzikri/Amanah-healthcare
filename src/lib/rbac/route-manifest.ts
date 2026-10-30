@@ -77,6 +77,20 @@ export const routeManifest: RouteRule[] = [
     description: 'Manajemen Staf Operasional & Roster Kerja Klinik'
   },
   {
+    pattern: '/admin/management-role',
+    match: 'prefix',
+    visibility: 'protected',
+    allowedRoles: ['admin'],
+    description: 'Manajemen Role & Perizinan (Role Studio)'
+  },
+  {
+    pattern: '/admin/clinic-essentials',
+    match: 'prefix',
+    visibility: 'protected',
+    allowedRoles: ['admin'],
+    description: 'Clinic Essentials (Fasilitas, Unit, Ruangan, Layanan, & Formulir)'
+  },
+  {
     pattern: '/admin/kehadiran-pegawai',
     match: 'prefix',
     visibility: 'protected',

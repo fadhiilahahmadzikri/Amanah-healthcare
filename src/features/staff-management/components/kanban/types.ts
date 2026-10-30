@@ -1,14 +1,13 @@
 import type { StaffMember } from '../../api/staff-management.api';
-import type { StaffType, StaffRoleCode } from '../../constants/staff.constants';
 
 export interface StaffKanbanColumnDef {
-  id: StaffType;
+  id: string;
   title: string;
-  roleCode: StaffRoleCode;
-  dotColor: string;
-  badgeBg: string;
-  badgeText: string;
-  description: string;
+  roleCode?: string;
+  dotColor?: string;
+  badgeBg?: string;
+  badgeText?: string;
+  description?: string;
 }
 
 export interface StaffKanbanBoardProps {

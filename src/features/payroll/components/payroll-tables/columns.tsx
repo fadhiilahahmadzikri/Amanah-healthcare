@@ -100,7 +100,11 @@ export function getPayrollColumns(): ColumnDef<PayrollSummaryItem>[] {
       ),
       cell: ({ row }) => (
         <div className='flex items-center'>
-          <StaffRoleBadge roleCode={row.original.staffType} staffType={row.original.staffType} />
+          <StaffRoleBadge
+            roleCode={row.original.roleCode || row.original.staffType}
+            roleName={row.original.roleName}
+            isClinical={row.original.isClinical}
+          />
         </div>
       ),
       enableSorting: true,

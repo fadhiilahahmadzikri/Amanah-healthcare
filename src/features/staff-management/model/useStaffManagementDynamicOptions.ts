@@ -8,7 +8,6 @@ import type { FacetGroupDefinition } from '@/shared/ui/responsive-facet-toolbox'
 import { useStateSearchEngine, type SearchEngineResultItem } from '@/components/search-engine';
 import { polyclinicsQueryOptions } from '../api/queries';
 import {
-  STAFF_ROLE_KANBAN_COLUMNS,
   STAFF_OPERATIONAL_STATUS_CONFIG,
   STAFF_OPERATIONAL_STATUS
 } from '../constants/staff.constants';
@@ -23,16 +22,27 @@ export function useStaffManagementDynamicOptions({ view }: UseStaffManagementDyn
 
   // 1. Facet Groups for ResponsiveFacetToolbox & Mobile FacetSidebarSheet
   const facetGroups = useMemo<FacetGroupDefinition[]>(() => {
-    // Role / Staff Type options
-    const roleOptions = STAFF_ROLE_KANBAN_COLUMNS.map((col) => {
-      const count = view.allStaffs.filter((s) => s.staffType === col.id).length;
-      return {
-        label: col.title,
-        value: col.id,
-        count,
-        dotColor: col.dotColor
-      };
-    });
+    // Dynamic Role options derived from staffs
+    const roleMap = new Map<string, { label: string; count: number; dotColor: string }>();
+    for (const s of view.allStaffs) {
+      const key = s.roleId || s.roleCode || 'staf';
+      const label = s.roleName || s.profession || s.roleCode || 'Staf';
+      if (!roleMap.has(key)) {
+        roleMap.set(key, {
+          label,
+          count: 0,
+          dotColor: s.isClinical ? '#0D9488' : '#3B82F6'
+        });
+      }
+      roleMap.get(key)!.count += 1;
+    }
+
+    const roleOptions = Array.from(roleMap.entries()).map(([value, info]) => ({
+      label: info.label,
+      value,
+      count: info.count,
+      dotColor: info.dotColor
+    }));
 
     // Operational Status options
     const statusOptions = (
@@ -141,7 +151,7 @@ export function useStaffManagementDynamicOptions({ view }: UseStaffManagementDyn
       items.push({
         id: `staff-${staff.id}`,
         title: staff.fullName,
-        subtitle: `${staff.profession || 'Staf'} • ${staff.email || staff.staffCode || ''}`,
+        subtitle: `${staff.roleName || staff.profession || 'Staf'} • ${staff.email || staff.staffCode || ''}`,
         category: 'Staf',
         icon: Icons.users,
         queryValue: staff.fullName

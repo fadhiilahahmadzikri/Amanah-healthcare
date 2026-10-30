@@ -5,8 +5,6 @@ import { useRouter } from 'next/navigation';
 import { io, Socket } from 'socket.io-client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Icons } from '@/components/icons';
 import { appointmentKeys } from '@/features/appointment-pasien/api/query-keys';
 import { klinikKeys } from '@/features/klinik/api/query-keys';
 import { doctorScheduleKeys } from '@/features/jadwal-dokter/api/query-keys';
@@ -22,7 +20,6 @@ import { clientFetch } from '@/lib/client-fetch';
 import { useViewer } from './use-viewer';
 import type { BackendNotification } from '../api/notification-api-service';
 import type { NotificationEnvelopeV2 } from '../types';
-import { executeNotificationAction } from '../utils/notification-action-dispatcher';
 import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import {
   mapNotificationToToastModel,
@@ -47,45 +44,6 @@ export type RealtimeConnectionStatus =
   | 'connected'
   | 'disconnected'
   | 'failed_auth';
-
-/**
- * Returns icon element for backend badgeIcon string.
- * Strictly no fallback: returns undefined if backend did not supply badgeIcon.
- */
-function renderBackendIcon(badgeIcon?: string | null): React.ReactNode {
-  if (!badgeIcon) return undefined;
-  switch (badgeIcon) {
-    case 'calendar':
-    case 'calendar-check':
-      return React.createElement(Icons.calendar, { className: 'size-4 text-primary' });
-    case 'user-plus':
-    case 'user':
-      return React.createElement(Icons.user, { className: 'size-4 text-primary' });
-    case 'stethoscope':
-      return React.createElement(Icons.stethoscope, { className: 'size-4 text-primary' });
-    case 'bell':
-      return React.createElement(Icons.notification, { className: 'size-4 text-primary' });
-    case 'clock':
-      return React.createElement(Icons.clock, { className: 'size-4 text-primary' });
-    case 'check-circle':
-    case 'check':
-      return React.createElement(Icons.check, { className: 'size-4 text-primary' });
-    case 'alert-circle':
-      return React.createElement(Icons.alertCircle, { className: 'size-4 text-destructive' });
-    case 'gift':
-      return React.createElement(Icons.gift, { className: 'size-4 text-primary' });
-    case 'flask':
-      return React.createElement(Icons.flask, { className: 'size-4 text-primary' });
-    case 'activity':
-      return React.createElement(Icons.activity, { className: 'size-4 text-primary' });
-    case 'pill':
-      return React.createElement(Icons.pill, { className: 'size-4 text-primary' });
-    case 'video':
-      return React.createElement(Icons.video, { className: 'size-4 text-primary' });
-    default:
-      return undefined;
-  }
-}
 
 /**
  * Request a short-lived single-use ticket via BFF for WebSocket handshake.
@@ -143,7 +101,7 @@ export function useNotificationSocket(callbacks?: {
 }) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { userId: currentUserId, role: userRole, audience: viewerAudience } = useViewer();
+  const { userId: currentUserId, roleCode: userRole, audience: viewerAudience } = useViewer();
   const socketRef = useRef<Socket | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<RealtimeConnectionStatus>('idle');
   const callbacksRef = useRef(callbacks);

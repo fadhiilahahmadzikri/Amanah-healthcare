@@ -101,7 +101,7 @@ export function ClinicNotificationCard({
   className
 }: ClinicNotificationCardProps) {
   const router = useRouter();
-  const { role: userRole } = useViewer();
+  const { roleCode: userRole } = useViewer();
   const isUnread = notification.status === 'unread';
   const categoryConfig = getCategoryTagConfig(notification.category);
 

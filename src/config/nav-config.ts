@@ -63,6 +63,20 @@ export const navGroups: NavGroup[] = [
             access: { role: 'admin' }
           },
           {
+            title: 'Management Role',
+            url: '/admin/management-role',
+            icon: 'lock',
+            shortcut: ['m', 'r'],
+            access: { role: 'admin' }
+          },
+          {
+            title: 'Clinic Essentials',
+            url: '/admin/clinic-essentials',
+            icon: 'workspace',
+            shortcut: ['c', 'e'],
+            access: { role: 'admin' }
+          },
+          {
             title: 'Kehadiran Pegawai',
             url: '/admin/kehadiran-pegawai',
             icon: 'badgeCheck',
