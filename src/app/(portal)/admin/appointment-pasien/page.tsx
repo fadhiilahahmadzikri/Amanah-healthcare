@@ -3,7 +3,7 @@ import PageContainer from '@/components/layout/page-container';
 import { AppointmentListingPage, AppointmentTableSkeleton } from '@/features/appointment-pasien';
 import { searchParamsCache } from '@/lib/searchparams';
 import { SearchParams } from 'nuqs/server';
-import { requireAdmin } from '@/lib/guard';
+import { requireRouteAccess } from '@/lib/guard';
 
 export const metadata = {
   title: 'Dashboard: Appointment Pasien'
@@ -14,7 +14,7 @@ type PageProps = {
 };
 
 export default async function Page(props: PageProps) {
-  await requireAdmin();
+  await requireRouteAccess('/admin/appointment-pasien');
   const searchParams = await props.searchParams;
   searchParamsCache.parse(searchParams);
 

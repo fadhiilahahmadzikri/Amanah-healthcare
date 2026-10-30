@@ -1,12 +1,13 @@
-export type RouteVisibility = 'public' | 'auth-only' | 'authenticated' | 'protected';
+import { PERMISSIONS, AUDIENCE, type AudienceType } from '@/core/auth/permissions.constants';
 
-export type UserRole = 'admin' | 'patient';
+export type RouteVisibility = 'public' | 'auth-only' | 'authenticated' | 'protected';
 
 export interface RouteRule {
   pattern: string;
   match: 'exact' | 'prefix';
   visibility: RouteVisibility;
-  allowedRoles?: UserRole[];
+  audience?: AudienceType;
+  requiredPermission?: string;
   redirectTo?: string;
   description?: string;
 }
@@ -36,137 +37,202 @@ export const routeManifest: RouteRule[] = [
   { pattern: '/auth', match: 'exact', visibility: 'auth-only' },
 
   // 3. Authenticated Generic Routes (accessible by any authenticated user)
-  { pattern: '/admin', match: 'exact', visibility: 'authenticated' },
-  { pattern: '/admin/profile', match: 'prefix', visibility: 'authenticated' },
-  { pattern: '/klinik/profile', match: 'prefix', visibility: 'authenticated' },
+  {
+    pattern: '/admin',
+    match: 'exact',
+    visibility: 'authenticated',
+    requiredPermission: PERMISSIONS.APP.ACCESS
+  },
+  {
+    pattern: '/admin/profile',
+    match: 'prefix',
+    visibility: 'authenticated',
+    requiredPermission: PERMISSIONS.PROFILE.READ
+  },
+  {
+    pattern: '/klinik/profile',
+    match: 'prefix',
+    visibility: 'authenticated',
+    requiredPermission: PERMISSIONS.PROFILE.READ
+  },
 
-  // 4. Admin-Only Protected Routes
+  // 4. Internal Workplace Routes (Staff & Administration)
   {
     pattern: '/admin/appointment-pasien',
     match: 'prefix',
     visibility: 'protected',
-    allowedRoles: ['admin'],
-    description: 'Manajemen Janji Temu Pasien oleh Staf/Admin'
+    audience: AUDIENCE.INTERNAL,
+    requiredPermission: PERMISSIONS.APPOINTMENTS.READ,
+    description: 'Manajemen Janji Temu Pasien oleh Staf'
   },
   {
     pattern: '/admin/data-pasien',
     match: 'prefix',
     visibility: 'protected',
-    allowedRoles: ['admin'],
+    audience: AUDIENCE.INTERNAL,
+    requiredPermission: PERMISSIONS.PATIENTS.READ,
     description: 'Data Rekam Medis & Profil Pasien Klinik'
   },
   {
     pattern: '/admin/riwayat-medis',
     match: 'prefix',
     visibility: 'protected',
-    allowedRoles: ['admin'],
+    audience: AUDIENCE.INTERNAL,
+    requiredPermission: PERMISSIONS.RECORDS.READ,
     description: 'Riwayat Rekam Medis Pasien'
   },
   {
     pattern: '/admin/jadwal-dokter',
     match: 'prefix',
     visibility: 'protected',
-    allowedRoles: ['admin'],
+    audience: AUDIENCE.INTERNAL,
+    requiredPermission: PERMISSIONS.SCHEDULES.READ,
     description: 'Pengaturan Jadwal dan Shift Dokter'
   },
   {
     pattern: '/admin/staff',
     match: 'prefix',
     visibility: 'protected',
-    allowedRoles: ['admin'],
+    audience: AUDIENCE.INTERNAL,
+    requiredPermission: PERMISSIONS.STAFF.READ,
     description: 'Manajemen Staf Operasional & Roster Kerja Klinik'
   },
   {
     pattern: '/admin/management-role',
     match: 'prefix',
     visibility: 'protected',
-    allowedRoles: ['admin'],
+    audience: AUDIENCE.INTERNAL,
+    requiredPermission: PERMISSIONS.ROLES.READ,
     description: 'Manajemen Role & Perizinan (Role Studio)'
   },
   {
     pattern: '/admin/clinic-essentials',
     match: 'prefix',
     visibility: 'protected',
-    allowedRoles: ['admin'],
+    audience: AUDIENCE.INTERNAL,
+    requiredPermission: PERMISSIONS.CLINICS.MANAGE,
     description: 'Clinic Essentials (Fasilitas, Unit, Ruangan, Layanan, & Formulir)'
   },
   {
     pattern: '/admin/kehadiran-pegawai',
     match: 'prefix',
     visibility: 'protected',
-    allowedRoles: ['admin'],
+    audience: AUDIENCE.INTERNAL,
+    requiredPermission: PERMISSIONS.ATTENDANCE.REVIEW,
     description: 'Rekap Kehadiran dan Presensi Pegawai'
   },
   {
     pattern: '/admin/manajemen-perizinan',
     match: 'prefix',
     visibility: 'protected',
-    allowedRoles: ['admin'],
+    audience: AUDIENCE.INTERNAL,
+    requiredPermission: PERMISSIONS.ATTENDANCE.APPROVE,
     description: 'Manajemen Perizinan, Cuti, & Kompensasi Staf'
   },
   {
     pattern: '/admin/peluang-pengganti',
     match: 'prefix',
     visibility: 'protected',
-    allowedRoles: ['admin'],
+    audience: AUDIENCE.INTERNAL,
+    requiredPermission: PERMISSIONS.ATTENDANCE.MANAGE,
     description: 'Manajemen Peluang Pengganti Dinas Staf Antar-Sesi'
   },
   {
     pattern: '/admin/payroll',
     match: 'prefix',
     visibility: 'protected',
-    allowedRoles: ['admin'],
+    audience: AUDIENCE.INTERNAL,
+    requiredPermission: PERMISSIONS.PAYROLL.READ,
     description: 'Manajemen Rekapitulasi Penggajian & Slip Gaji Staf'
   },
   {
     pattern: '/admin/chat',
     match: 'prefix',
     visibility: 'protected',
-    allowedRoles: ['admin'],
+    audience: AUDIENCE.INTERNAL,
+    requiredPermission: PERMISSIONS.APP.ACCESS,
     description: 'Chat Pasien (Admin Staf)'
   },
   {
     pattern: '/admin/settings',
     match: 'prefix',
     visibility: 'protected',
-    allowedRoles: ['admin'],
+    audience: AUDIENCE.INTERNAL,
+    requiredPermission: PERMISSIONS.CLINICS.MANAGE,
     description: 'Pengaturan Sistem & Konfigurasi QR Presensi'
   },
   {
     pattern: '/admin/notifications',
     match: 'prefix',
     visibility: 'protected',
-    allowedRoles: ['admin'],
+    audience: AUDIENCE.INTERNAL,
+    requiredPermission: PERMISSIONS.NOTIFICATIONS.READ,
     description: 'Notifikasi Admin & Staf'
   },
 
-  // 5. Patient-Only Protected Routes
+  // 5. External Portal Routes (Patients & Public)
+  {
+    pattern: '/klinik/antrean',
+    match: 'prefix',
+    visibility: 'protected',
+    audience: AUDIENCE.EXTERNAL,
+    requiredPermission: PERMISSIONS.QUEUE.READ,
+    description: 'Monitor Antrean Pasien'
+  },
+  {
+    pattern: '/klinik/janji-temu',
+    match: 'prefix',
+    visibility: 'protected',
+    audience: AUDIENCE.EXTERNAL,
+    requiredPermission: PERMISSIONS.APPOINTMENTS.BOOK,
+    description: 'Janji Temu Pasien'
+  },
   {
     pattern: '/klinik/history',
     match: 'prefix',
     visibility: 'protected',
-    allowedRoles: ['patient'],
+    audience: AUDIENCE.EXTERNAL,
+    requiredPermission: PERMISSIONS.RECORDS.READ,
     description: 'Riwayat Formulir Medis Pasien (Imunisasi & Persalinan)'
+  },
+  {
+    pattern: '/klinik/chat',
+    match: 'prefix',
+    visibility: 'protected',
+    audience: AUDIENCE.EXTERNAL,
+    requiredPermission: PERMISSIONS.APP.ACCESS,
+    description: 'Chat Konsultasi Online Pasien'
   },
   {
     pattern: '/klinik/notifications',
     match: 'prefix',
     visibility: 'protected',
-    allowedRoles: ['patient'],
+    audience: AUDIENCE.EXTERNAL,
+    requiredPermission: PERMISSIONS.NOTIFICATIONS.READ,
     description: 'Notifikasi Pasien'
+  },
+  {
+    pattern: '/klinik/panduan',
+    match: 'prefix',
+    visibility: 'protected',
+    audience: AUDIENCE.EXTERNAL,
+    requiredPermission: PERMISSIONS.APP.ACCESS,
+    description: 'Panduan Pasien Klinik'
   },
   {
     pattern: '/klinik',
     match: 'prefix',
     visibility: 'protected',
-    allowedRoles: ['patient'],
+    audience: AUDIENCE.EXTERNAL,
+    requiredPermission: PERMISSIONS.APP.ACCESS,
     description: 'Portal Pasien (Antrean, Janji Temu, Profil, Panduan)'
   },
   {
     pattern: '/patient-registration',
     match: 'prefix',
     visibility: 'protected',
-    allowedRoles: ['patient'],
+    audience: AUDIENCE.EXTERNAL,
+    requiredPermission: PERMISSIONS.PATIENTS.REGISTER,
     description: 'Pendaftaran Pasien Baru'
   }
 ];
@@ -196,12 +262,19 @@ export function resolveRouteRule(pathname: string): RouteRule | null {
   return null;
 }
 
+export interface RouteAuthContext {
+  audience?: AudienceType | null;
+  permissions?: string[];
+  role?: string | null;
+}
+
 /**
- * Evaluates whether a role is authorized for a given pathname.
+ * Evaluates whether a principal is authorized for a given pathname.
+ * Purely driven by Audience ('internal' vs 'external') and Granular Permissions.
  */
 export function isRouteAuthorized(
   pathname: string,
-  userRole?: string | null
+  context?: RouteAuthContext | null
 ): { allowed: boolean; reason?: 'unauthenticated' | 'forbidden' | 'unknown_route' | 'auth_only' } {
   const rule = resolveRouteRule(pathname);
 
@@ -221,15 +294,18 @@ export function isRouteAuthorized(
     return { allowed: true };
   }
 
+  const audience = context?.audience ?? null;
+  const permissions = context?.permissions ?? [];
+
   if (rule.visibility === 'auth-only') {
-    if (userRole) {
+    if (audience) {
       return { allowed: false, reason: 'auth_only' };
     }
     return { allowed: true };
   }
 
-  // If requires authentication but no role is present
-  if (!userRole) {
+  // If requires authentication but no audience is resolved
+  if (!audience) {
     return { allowed: false, reason: 'unauthenticated' };
   }
 
@@ -237,15 +313,21 @@ export function isRouteAuthorized(
     return { allowed: true };
   }
 
-  if (rule.visibility === 'protected' && rule.allowedRoles) {
-    // Normalize role: canonical backend roles 'admin', 'staff_doctor', 'staff_midwife', 'staff_worker' map to 'admin' portal
-    // 'patient' and 'user' map to 'patient' portal
-    const normalizedRole =
-      userRole === 'admin' || userRole?.startsWith('staff_') ? 'admin' : 'patient';
-    if (rule.allowedRoles.includes(normalizedRole)) {
-      return { allowed: true };
+  if (rule.visibility === 'protected') {
+    // 1. Audience verification
+    if (rule.audience && rule.audience !== audience) {
+      return { allowed: false, reason: 'forbidden' };
     }
-    return { allowed: false, reason: 'forbidden' };
+
+    // 2. Granular permission verification
+    if (rule.requiredPermission) {
+      const hasWildcard = permissions.includes('*');
+      if (!hasWildcard && !permissions.includes(rule.requiredPermission)) {
+        return { allowed: false, reason: 'forbidden' };
+      }
+    }
+
+    return { allowed: true };
   }
 
   return { allowed: true };

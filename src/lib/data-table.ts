@@ -11,8 +11,6 @@ export function getCommonPinningStyles<TData>({
   isHeader?: boolean;
 }): React.CSSProperties {
   const isPinned = column.getIsPinned();
-  const isLastLeftPinnedColumn = isPinned === 'left' && column.getIsLastColumn('left');
-  const isFirstRightPinnedColumn = isPinned === 'right' && column.getIsFirstColumn('right');
 
   return {
     left: isPinned === 'left' ? `${column.getStart('left')}px` : undefined,

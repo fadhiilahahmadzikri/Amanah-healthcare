@@ -1,5 +1,5 @@
 import PageContainer from '@/components/layout/page-container';
-import { requirePatient } from '@/lib/guard';
+import { requireRouteAccess } from '@/lib/guard';
 import { PatientChatView } from '@/features/chat/components/patient-chat-view';
 
 export const metadata = {
@@ -7,7 +7,7 @@ export const metadata = {
 };
 
 export default async function PatientChatPage() {
-  await requirePatient();
+  await requireRouteAccess('/klinik/chat');
 
   return (
     <PageContainer scrollable={false}>

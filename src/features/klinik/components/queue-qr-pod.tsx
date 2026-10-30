@@ -12,7 +12,7 @@ export interface QueueQrPodProps {
 
 export function QueueQrPod({
   size = 78,
-  code,
+  code: _code,
   className,
   title = 'Scan di Loket'
 }: QueueQrPodProps) {

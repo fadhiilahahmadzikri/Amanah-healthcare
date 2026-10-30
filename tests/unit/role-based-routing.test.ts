@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import { isProtectedRoute, getRoleLandingPath, ROUTES, safeRedirect } from '@/core/routes';
 import { isRouteAuthorized, resolveRouteRule } from '@/lib/rbac/route-manifest';
+import { AUDIENCE } from '@/core/auth/permissions.constants';
 import { navGroups } from '@/config/nav-config';
 
 describe('Role-Based Portal Routing & RBAC Architecture', () => {
@@ -38,11 +39,9 @@ describe('Role-Based Portal Routing & RBAC Architecture', () => {
       expect(isProtectedRoute('/dashboard')).toBe(false);
     });
 
-    it('resolves deterministic role landing destinations', () => {
-      expect(getRoleLandingPath('admin')).toBe('/admin/appointment-pasien');
-      expect(getRoleLandingPath('staff_doctor')).toBe('/admin/appointment-pasien');
-      expect(getRoleLandingPath('staff_midwife')).toBe('/admin/appointment-pasien');
-      expect(getRoleLandingPath('patient')).toBe('/klinik/antrean');
+    it('resolves deterministic role landing destinations based on audience', () => {
+      expect(getRoleLandingPath(AUDIENCE.INTERNAL)).toBe('/admin/appointment-pasien');
+      expect(getRoleLandingPath(AUDIENCE.EXTERNAL)).toBe('/klinik/antrean');
       expect(getRoleLandingPath(null)).toBe('/admin/appointment-pasien');
     });
 
@@ -70,11 +69,15 @@ describe('Role-Based Portal Routing & RBAC Architecture', () => {
     it('restricts auth-only routes to unauthenticated visitors', () => {
       expect(isRouteAuthorized('/auth/sign-in', null).allowed).toBe(true);
       expect(isRouteAuthorized('/auth/sign-up', null).allowed).toBe(true);
-      expect(isRouteAuthorized('/auth/sign-in', 'admin').allowed).toBe(false);
-      expect(isRouteAuthorized('/auth/sign-in', 'patient').allowed).toBe(false);
+      expect(isRouteAuthorized('/auth/sign-in', { audience: AUDIENCE.INTERNAL }).allowed).toBe(
+        false
+      );
+      expect(isRouteAuthorized('/auth/sign-in', { audience: AUDIENCE.EXTERNAL }).allowed).toBe(
+        false
+      );
     });
 
-    it('enforces admin-only access on administrative routes', () => {
+    it('enforces internal access on administrative routes', () => {
       const adminRoutes = [
         '/admin/appointment-pasien',
         '/admin/data-pasien',
@@ -90,19 +93,19 @@ describe('Role-Based Portal Routing & RBAC Architecture', () => {
       ];
 
       for (const route of adminRoutes) {
-        // Admin and medical staff are allowed
-        expect(isRouteAuthorized(route, 'admin').allowed).toBe(true);
-        expect(isRouteAuthorized(route, 'staff_doctor').allowed).toBe(true);
-        expect(isRouteAuthorized(route, 'staff_midwife').allowed).toBe(true);
+        // Internal users with permissions or superadmin wildcard are allowed
+        expect(
+          isRouteAuthorized(route, { audience: AUDIENCE.INTERNAL, permissions: ['*'] }).allowed
+        ).toBe(true);
 
-        // Patients are rejected
-        expect(isRouteAuthorized(route, 'patient').allowed).toBe(false);
+        // External audience users are rejected from internal routes
+        expect(isRouteAuthorized(route, { audience: AUDIENCE.EXTERNAL }).allowed).toBe(false);
         // Unauthenticated users are rejected
         expect(isRouteAuthorized(route, null).allowed).toBe(false);
       }
     });
 
-    it('enforces patient-only access on clinic portal routes', () => {
+    it('enforces external audience access on clinic portal routes', () => {
       const clinicRoutes = [
         '/klinik/antrean',
         '/klinik/janji-temu',
@@ -113,15 +116,21 @@ describe('Role-Based Portal Routing & RBAC Architecture', () => {
       ];
 
       for (const route of clinicRoutes) {
-        expect(isRouteAuthorized(route, 'patient').allowed).toBe(true);
-        expect(isRouteAuthorized(route, 'admin').allowed).toBe(false);
+        expect(
+          isRouteAuthorized(route, { audience: AUDIENCE.EXTERNAL, permissions: ['*'] }).allowed
+        ).toBe(true);
+        expect(isRouteAuthorized(route, { audience: AUDIENCE.INTERNAL }).allowed).toBe(false);
         expect(isRouteAuthorized(route, null).allowed).toBe(false);
       }
     });
 
     it('fails closed on unknown routes in protected zones', () => {
-      expect(isRouteAuthorized('/admin/unknown-secret-page', 'patient').allowed).toBe(false);
-      expect(isRouteAuthorized('/klinik/unknown-page', 'admin').allowed).toBe(false);
+      expect(
+        isRouteAuthorized('/admin/unknown-secret-page', { audience: AUDIENCE.EXTERNAL }).allowed
+      ).toBe(false);
+      expect(
+        isRouteAuthorized('/klinik/unknown-page', { audience: AUDIENCE.INTERNAL }).allowed
+      ).toBe(false);
     });
   });
 
@@ -142,7 +151,9 @@ describe('Role-Based Portal Routing & RBAC Architecture', () => {
       const hrm = adminGroup?.items.find((i) => i.title === 'Manajemen SDM');
       expect(hrm).toBeDefined();
 
-      const scheduleItem = hrm?.items?.find((i) => i.title === 'Jadwal Dokter');
+      const scheduleItem = hrm?.items?.find(
+        (i) => i.title === 'Jadwal Praktisi' || i.url === '/admin/jadwal-dokter'
+      );
       expect(scheduleItem?.url).toBe('/admin/jadwal-dokter');
     });
 

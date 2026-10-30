@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { ROUTES } from '@/core/routes';
 import { ALL_AUTH_COOKIE_NAMES } from '@/core/auth/auth.constants';
+import { AUDIENCE, type AudienceType } from '@/core/auth/permissions.constants';
 import { getCurrentUserQuery } from '@/server/services/auth/get-current-user.query';
 
 export interface SessionUser {
@@ -12,13 +13,15 @@ export interface SessionUser {
   email: string;
   name?: string | null;
   image?: string | null;
-  role: 'admin' | 'patient';
+  role?: string | null;
   banned?: boolean | null;
   emailVerified?: boolean;
+  permissions?: string[];
+  audience?: AudienceType;
 }
 
 export type SessionResult =
-  | { status: 'authenticated'; user: SessionUser; role: 'admin' | 'patient' }
+  | { status: 'authenticated'; user: SessionUser; role: string; audience: AudienceType }
   | { status: 'anonymous' }
   | { status: 'rejected' };
 
@@ -41,7 +44,9 @@ export const getSession = cache(async (): Promise<SessionResult> => {
   const rawSession = await auth.api.getSession({ headers: reqHeaders });
 
   if (rawSession?.user && rawSession.user.id) {
-    const role: 'admin' | 'patient' = rawSession.user.role === 'admin' ? 'admin' : 'patient';
+    const sessionRoleCode = rawSession.user.role ?? '';
+    const rawAudience: AudienceType =
+      (rawSession.user as { audience?: AudienceType }).audience ?? AUDIENCE.INTERNAL;
     return {
       status: 'authenticated',
       user: {
@@ -49,11 +54,14 @@ export const getSession = cache(async (): Promise<SessionResult> => {
         email: rawSession.user.email,
         name: rawSession.user.name || null,
         image: rawSession.user.image || null,
-        role,
+        role: sessionRoleCode,
         banned: rawSession.user.banned || false,
-        emailVerified: rawSession.user.emailVerified ?? true
+        emailVerified: rawSession.user.emailVerified ?? true,
+        audience: rawAudience,
+        permissions: (rawSession.user as { permissions?: string[] }).permissions ?? []
       },
-      role
+      role: sessionRoleCode,
+      audience: rawAudience
     };
   }
 
@@ -61,8 +69,9 @@ export const getSession = cache(async (): Promise<SessionResult> => {
   const userResult = await getCurrentUserQuery();
   if (userResult.ok && userResult.value) {
     const currentUser = userResult.value;
-    const role: 'admin' | 'patient' = currentUser.systemRole === 'ADMIN' ? 'admin' : 'patient';
+    const audience: AudienceType = currentUser.audience ?? AUDIENCE.INTERNAL;
     const name = resolveUserDisplayName(currentUser);
+    const role = currentUser.role?.code ?? '';
 
     return {
       status: 'authenticated',
@@ -73,9 +82,12 @@ export const getSession = cache(async (): Promise<SessionResult> => {
         image: currentUser.staff?.photoUrl || null,
         role,
         banned: false,
-        emailVerified: true
+        emailVerified: true,
+        permissions: currentUser.permissions ?? [],
+        audience
       },
-      role
+      role,
+      audience
     };
   }
 
@@ -88,7 +100,11 @@ export const getSession = cache(async (): Promise<SessionResult> => {
   return { status: 'anonymous' };
 });
 
-export async function requireSession(): Promise<{ user: SessionUser; role: 'admin' | 'patient' }> {
+export async function requireSession(): Promise<{
+  user: SessionUser;
+  role: string;
+  audience: AudienceType;
+}> {
   const session = await getSession();
 
   switch (session.status) {
@@ -99,7 +115,7 @@ export async function requireSession(): Promise<{ user: SessionUser; role: 'admi
       if (session.user.emailVerified === false && session.user.email) {
         redirect(`${ROUTES.verifyOtp}?email=${encodeURIComponent(session.user.email)}`);
       }
-      return { user: session.user, role: session.role };
+      return { user: session.user, role: session.role, audience: session.audience };
     case 'rejected':
       redirect(ROUTES.sessionExpired);
     case 'anonymous':

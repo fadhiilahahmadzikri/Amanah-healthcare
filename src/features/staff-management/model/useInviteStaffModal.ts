@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useInviteStaffUniversalMutation } from '../api/mutations';
 import { invitationOptionsQueryOptions } from '../api/queries';
-import type { PolyclinicUnit, RoleOption } from '../api/staff-management.api';
+import type { ClinicUnitOption, PolyclinicUnit, RoleOption } from '../api/staff-management.api';
 
 export interface UseInviteStaffModalProps {
   isOpen: boolean;
@@ -22,8 +22,11 @@ export interface UseInviteStaffModalResult {
   setSelectedRoleId: (roleId: string) => void;
   selectedPoliklinikId: string;
   setSelectedPoliklinikId: (poliId: string) => void;
+  selectedUnitId: string;
+  setSelectedUnitId: (unitId: string) => void;
   roles: RoleOption[];
   polyclinics: PolyclinicUnit[];
+  clinicUnits: ClinicUnitOption[];
   selectedRole?: RoleOption;
   isClinical: boolean;
   isLoading: boolean;
@@ -49,6 +52,7 @@ export function useInviteStaffModal({
   const [fullName, setFullName] = useState('');
   const [selectedRoleId, setSelectedRoleId] = useState('');
   const [selectedPoliklinikId, setSelectedPoliklinikId] = useState('');
+  const [selectedUnitId, setSelectedUnitId] = useState('');
   const [copied, setCopied] = useState(false);
   const [credentialResult, setCredentialResult] = useState<{
     temporaryPassword: string;
@@ -64,6 +68,7 @@ export function useInviteStaffModal({
 
   const roles = optionsData?.roles || [];
   const polyclinics = optionsData?.polyclinics || [];
+  const clinicUnits = optionsData?.clinicUnits || [];
 
   const effectiveRoleId = selectedRoleId || (roles.length > 0 ? roles[0].id : '');
   const selectedRole = roles.find((r) => r.id === effectiveRoleId);
@@ -105,7 +110,8 @@ export function useInviteStaffModal({
           email: trimmedEmail,
           fullName: fullName.trim() || undefined,
           roleId: effectiveRoleId,
-          poliklinikId: isClinical ? selectedPoliklinikId : null
+          poliklinikId: isClinical ? selectedPoliklinikId : null,
+          unitId: isClinical ? selectedPoliklinikId : selectedUnitId || null
         });
 
         setCredentialResult({
@@ -125,6 +131,7 @@ export function useInviteStaffModal({
       effectiveRoleId,
       isClinical,
       selectedPoliklinikId,
+      selectedUnitId,
       inviteMutation,
       selectedRole?.name,
       onSuccess
@@ -137,6 +144,7 @@ export function useInviteStaffModal({
     setFullName('');
     setSelectedRoleId('');
     setSelectedPoliklinikId('');
+    setSelectedUnitId('');
     setCopied(false);
     onClose();
   }, [onClose]);
@@ -150,8 +158,11 @@ export function useInviteStaffModal({
     setSelectedRoleId,
     selectedPoliklinikId,
     setSelectedPoliklinikId,
+    selectedUnitId,
+    setSelectedUnitId,
     roles,
     polyclinics,
+    clinicUnits,
     selectedRole,
     isClinical,
     isLoading: inviteMutation.isPending,

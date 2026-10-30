@@ -49,9 +49,12 @@ export function AttendanceMobileCards({
 
           const outTime = r.checkOutAt ? formatPresenceTimestamp(r.checkOutAt, true) : null;
 
-          const roleName = r.roleName || r.kategori;
+          const roleName = r.roleName;
           const shiftLabel = r.shiftLabel || '-';
-          const subtitleText = `${r.id_staf} • ${roleName}${r.isReplacement ? ' • Pengganti' : ''}`;
+          const subtitleParts = [r.id_staf];
+          if (roleName) subtitleParts.push(roleName);
+          if (r.isReplacement) subtitleParts.push('Pengganti');
+          const subtitleText = subtitleParts.join(' • ');
 
           return (
             <MasterEntityCard

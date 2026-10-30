@@ -86,7 +86,7 @@ export function DoctorScheduleView() {
           <ResponsiveFacetToolbox
             searchQuery={scheduleView.searchQuery}
             onSearchChange={scheduleView.actions.changeSearch}
-            searchPlaceholder='Pencarian Dokter...'
+            searchPlaceholder='Pencarian Praktisi...'
             onOpenSearchDialog={searchEngine.open}
             dateFilter={{
               label: 'Tanggal',
@@ -133,8 +133,8 @@ export function DoctorScheduleView() {
             <div className='flex flex-1 min-h-0 h-full w-full flex-col'>
               <EmptyState
                 icon={Icons.calendar}
-                title='Tidak ada jadwal dokter ditemukan'
-                description='Belum ada jadwal dokter yang tersedia atau silakan sesuaikan kata kunci pencarian dan filter aktif Anda.'
+                title='Tidak ada jadwal praktisi ditemukan'
+                description='Belum ada jadwal praktisi yang tersedia atau silakan sesuaikan kata kunci pencarian dan filter aktif Anda.'
                 action={
                   scheduleView.hasActiveFilters ? (
                     <Button

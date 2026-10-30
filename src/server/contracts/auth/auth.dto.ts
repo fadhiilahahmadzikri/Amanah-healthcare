@@ -38,7 +38,9 @@ export const authenticatedUserDtoSchema = z.object({
   id: z.string(),
   email: z.string(),
   name: z.string().nullable().optional(),
-  systemRole: z.enum(['ADMIN', 'STAF', 'PATIENT']).optional(),
+  roleCode: z.string().optional(),
+  audience: z.enum(['internal', 'external']).optional(),
+  permissions: z.array(z.string()).optional(),
   role: roleDtoSchema.optional(),
   userRoles_userId: z
     .array(

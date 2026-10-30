@@ -47,7 +47,6 @@ import {
   exportPmbExcel,
   exportImunisasiExcel,
   exportRegulerExcel,
-  printDocument,
   downloadPdfFromElement,
   PmbFormTemplate,
   ImunisasiFormTemplate,

@@ -6,7 +6,6 @@ import { useFinalizePayrollPeriodMutation, useReconcileDailyLeaveMutation } from
 import { useStaffPayrollReport } from './useStaffPayrollReport';
 import { useStateSearchEngine, type SearchEngineResultItem } from '@/components/search-engine';
 import { Icons } from '@/components/icons';
-import { CATEGORY_FACET_OPTIONS } from '../constants/options';
 import type { PayrollSummaryItem, ReconcileLeaveResult } from '../api/types';
 
 export interface UsePayrollPresenterResult {
@@ -91,15 +90,22 @@ export function usePayrollPresenter(): UsePayrollPresenterResult {
       });
     });
 
-    // 3. Category Facets
-    CATEGORY_FACET_OPTIONS.forEach((cat) => {
+    // 3. Dynamic Roles from Staff Summaries
+    const roleMap = new Map<string, string>();
+    payrollView.summaries.forEach((staff) => {
+      if (staff.roleCode && staff.roleName && !roleMap.has(staff.roleCode)) {
+        roleMap.set(staff.roleCode, staff.roleName);
+      }
+    });
+
+    roleMap.forEach((roleName, roleCode) => {
       items.push({
-        id: `cat-${cat.value}`,
-        title: cat.label,
-        subtitle: 'Kategori Staf',
-        category: 'Kategori',
-        icon: Icons.teams,
-        queryValue: cat.label
+        id: `role-${roleCode}`,
+        title: roleName,
+        subtitle: 'Peran Pegawai',
+        category: 'Peran',
+        icon: Icons.users,
+        queryValue: roleName
       });
     });
 

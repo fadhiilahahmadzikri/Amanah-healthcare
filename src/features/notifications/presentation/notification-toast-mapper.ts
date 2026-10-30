@@ -1,7 +1,6 @@
 import type { BackendNotification } from '../api/notification-api-service';
 import type { NotificationEnvelopeV2, NotificationSemanticAction } from '../types';
 import { executeNotificationAction } from '../utils/notification-action-dispatcher';
-import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 
 export interface NotificationToastModel {
   id: string;
@@ -134,136 +133,33 @@ export function mapNotificationToToastModel(
   const rawTitle = (
     'title' in envelope && typeof envelope.title === 'string' ? envelope.title : ''
   ).trim();
-  const rawType = (
-    'type' in envelope && typeof envelope.type === 'string' ? envelope.type : ''
-  ).trim();
   const rawBadge = (
     'badgeIcon' in envelope && typeof envelope.badgeIcon === 'string' ? envelope.badgeIcon : ''
   ).trim();
-  const audience = (
-    'audience' in envelope && typeof envelope.audience === 'string' ? envelope.audience : 'clinic'
-  ) as 'patient' | 'clinic';
 
-  const isPatientAudience = audience === 'patient';
   const personName = resolveToastPersonName(envelope);
   const rawAvatarUrl = resolveToastAvatarUrl(envelope);
 
-  let headline = 'Ada kabar baru';
-  let emoji = '👋';
-  let isPerson = true;
-  let systemIconType: string | null = rawBadge || 'bell';
+  // Directly trust upstream backend title and metadata (Single Source of Truth)
+  const headline = rawTitle || 'Notifikasi Baru';
+  const isPerson = Boolean(rawAvatarUrl || personName);
+  const systemIconType: string | null = rawBadge || 'bell';
 
-  // Primary event mapping
-  const titleLower = rawTitle.toLowerCase();
-  const typeLower = rawType.toLowerCase();
-
-  if (titleLower.includes('pasien baru') || typeLower.includes('appointment.created')) {
-    headline = 'Ada pasien baru nih';
-    emoji = '👋';
-    isPerson = true;
-  } else if (titleLower.includes('dibatalkan') || typeLower.includes('appointment.cancelled')) {
-    headline = 'Janji temu dibatalkan';
-    emoji = '📅';
-    isPerson = true;
-  } else if (
-    titleLower.includes('dipanggil') ||
-    typeLower.includes('appointment.patient_called') ||
-    typeLower.includes('ticket.called')
-  ) {
-    headline = isPatientAudience ? 'Giliran Anda dipanggil' : 'Pasien sedang dipanggil';
-    emoji = isPatientAudience ? '🩺' : '📢';
-    isPerson = true;
-  } else if (
-    titleLower.includes('merespons') ||
-    typeLower.includes('appointment.patient_responded')
-  ) {
-    headline = 'Pasien siap masuk';
-    emoji = '🚪';
-    isPerson = true;
-  } else if (
-    titleLower.includes('dipanggil ulang') ||
-    typeLower.includes('appointment.patient_requeued')
-  ) {
-    headline = 'Antrean dipanggil ulang';
-    emoji = '🔄';
-    isPerson = true;
-  } else if (
-    titleLower.includes('tidak hadir') ||
-    titleLower.includes('no show') ||
-    typeLower.includes('appointment.no_show')
-  ) {
-    headline = isPatientAudience ? 'Panggilan terlewat' : 'Pasien tidak hadir';
-    emoji = '⚠️';
-    isPerson = true;
-  } else if (titleLower.includes('selesai') || typeLower.includes('appointment.completed')) {
-    headline = 'Pemeriksaan selesai';
-    emoji = '✨';
-    isPerson = true;
-  } else if (
-    titleLower.includes('jadwal') &&
-    (titleLower.includes('diubah') ||
-      titleLower.includes('dijadwalkan ulang') ||
-      typeLower.includes('appointment.rescheduled'))
-  ) {
-    headline = isPatientAudience ? 'Jadwal janji temu diubah' : 'Jadwal pasien diubah';
-    emoji = '🗓️';
-    isPerson = true;
-  } else if (
-    titleLower.includes('dokter') &&
-    (titleLower.includes('ditugaskan') ||
-      titleLower.includes('diperbarui') ||
-      typeLower.includes('appointment.assignment_updated'))
-  ) {
-    headline = isPatientAudience ? 'Dokter sudah ditugaskan' : 'Penugasan dokter diperbarui';
-    emoji = '🩺';
-    isPerson = true;
-  } else if (titleLower.includes('check-in') || typeLower.includes('appointment.checked_in')) {
-    headline = isPatientAudience ? 'Check-in berhasil' : 'Pasien sudah check-in';
-    emoji = '✅';
-    isPerson = true;
-  } else if (
-    titleLower.includes('chat') ||
-    titleLower.includes('pesan') ||
-    typeLower.includes('chat.message')
-  ) {
-    headline = isPatientAudience ? 'Pesan dari Klinik Amanah' : 'Pesan baru masuk';
-    emoji = '💬';
-    isPerson = true;
-  } else if (
-    titleLower.includes('izin') ||
-    titleLower.includes('cuti') ||
-    typeLower.includes('leave')
-  ) {
-    headline = 'Pengajuan izin baru';
-    emoji = '📋';
-    isPerson = true;
-  } else if (
-    titleLower.includes('presensi') ||
-    titleLower.includes('kehadiran') ||
-    typeLower.includes('attendance')
-  ) {
-    if (titleLower.includes('awal') || titleLower.includes('peringatan')) {
-      headline = 'Pulang lebih awal';
-      emoji = '⚠️';
-    } else {
-      headline = 'Presensi dinas tercatat';
-      emoji = '⏰';
-    }
-    isPerson = true;
-  } else if (
-    titleLower.includes('upah') ||
-    titleLower.includes('gaji') ||
-    typeLower.includes('payroll')
-  ) {
-    headline = 'Upah dinas tercatat';
-    emoji = '💰';
-    isPerson = true;
-  } else {
-    // Generic system fallback
-    headline = rawTitle || 'Notifikasi Baru';
-    emoji = '🔔';
-    isPerson = Boolean(rawAvatarUrl || personName);
-  }
+  // Map contextual announcement emoji directly from backend badgeIcon metadata
+  const emoji =
+    rawBadge === 'message-square'
+      ? '💬'
+      : rawBadge === 'calendar' || rawBadge === 'calendar-check'
+        ? '📅'
+        : rawBadge === 'clock'
+          ? '⏰'
+          : rawBadge === 'alert-circle'
+            ? '⚠️'
+            : rawBadge === 'stethoscope'
+              ? '🩺'
+              : rawBadge === 'check' || rawBadge === 'check-circle'
+                ? '✅'
+                : '🔔';
 
   // Trailing action resolution
   const primaryAction =

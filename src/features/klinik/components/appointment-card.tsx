@@ -6,12 +6,14 @@ import {
   type AppointmentCardOrganismProps
 } from './appointment-card/organisms/appointment-card-organism';
 import type { Appointment, Doctor } from '../api/types';
+import type { AudienceType } from '@/core/auth/permissions.constants';
 
 export type { AppointmentCardOrganismProps };
 
 export interface AppointmentCardProps {
   appointment: Appointment;
   doctor?: Doctor;
+  viewerAudience?: AudienceType;
   onViewDetails: (appointment: Appointment) => void;
   className?: string;
 }
@@ -19,6 +21,7 @@ export interface AppointmentCardProps {
 export function AppointmentCard({
   appointment,
   doctor,
+  viewerAudience,
   onViewDetails,
   className
 }: AppointmentCardProps) {
@@ -26,7 +29,7 @@ export function AppointmentCard({
     <AppointmentCardOrganism
       appointment={appointment}
       doctor={doctor}
-      subjectRole='doctor'
+      viewerAudience={viewerAudience}
       onViewDetails={onViewDetails}
       className={className}
     />

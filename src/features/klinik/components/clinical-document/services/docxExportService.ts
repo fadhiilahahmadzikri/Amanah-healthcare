@@ -1217,7 +1217,7 @@ export async function exportImunisasiDocx(
 }
 
 /**
- * Ported 1:1 for Reguler (Rawat Jalan / Poli Umum)
+ * Ported 1:1 for Reguler (Rawat Jalan / General Intake)
  */
 export async function exportRegulerDocx(
   data?: RegulerFormData | null,

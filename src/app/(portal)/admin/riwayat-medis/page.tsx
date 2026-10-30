@@ -1,14 +1,14 @@
 import { Suspense } from 'react';
 import PageContainer from '@/components/layout/page-container';
 import { MedicalHistoryListing, MedicalHistoryListingSkeleton } from '@/features/riwayat-medis';
-import { requireAdmin } from '@/lib/guard';
+import { requireRouteAccess } from '@/lib/guard';
 
 export const metadata = {
   title: 'Dashboard: Riwayat Medis Pasien'
 };
 
 export default async function MedicalHistoryPage() {
-  await requireAdmin();
+  await requireRouteAccess('/admin/riwayat-medis');
 
   return (
     <PageContainer

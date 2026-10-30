@@ -1,8 +1,9 @@
 import { Icons } from '@/components/icons';
+import type { AudienceType } from '@/core/auth/permissions.constants';
 
 export interface PermissionCheck {
   permission?: string;
-  audience?: 'internal' | 'external';
+  audience?: AudienceType;
   plan?: string;
   feature?: string;
   role?: string;

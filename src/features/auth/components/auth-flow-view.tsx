@@ -161,9 +161,10 @@ export function AuthFlowView() {
           router.replace(`/verify-otp?email=${encodeURIComponent(session.user.email)}`);
         }
       } else {
+        const audience = (session.user as { audience?: string })?.audience;
         const targetUrl = redirectParam
-          ? safeRedirect(redirectParam, getRoleLandingPath(session.user.role))
-          : getRoleLandingPath(session.user.role);
+          ? safeRedirect(redirectParam, getRoleLandingPath(audience))
+          : getRoleLandingPath(audience);
         router.replace(targetUrl as any);
       }
     }
@@ -241,10 +242,9 @@ export function AuthFlowView() {
       if (res.success) {
         toast.success('Berhasil masuk!');
         const user = res.data;
-        const role = user?.systemRole?.toLowerCase() === 'admin' ? 'admin' : 'patient';
         const targetUrl = redirectParam
-          ? safeRedirect(redirectParam, getRoleLandingPath(role))
-          : getRoleLandingPath(role);
+          ? safeRedirect(redirectParam, getRoleLandingPath(user?.audience))
+          : getRoleLandingPath(user?.audience);
         window.location.href = targetUrl;
         return;
       }
@@ -260,10 +260,10 @@ export function AuthFlowView() {
 
       if (!betterAuthRes.error) {
         toast.success('Berhasil masuk!');
-        const role = (betterAuthRes.data?.user as { role?: string } | undefined)?.role;
+        const audience = (betterAuthRes.data?.user as { audience?: string } | undefined)?.audience;
         const targetUrl = redirectParam
-          ? safeRedirect(redirectParam, getRoleLandingPath(role))
-          : getRoleLandingPath(role);
+          ? safeRedirect(redirectParam, getRoleLandingPath(audience))
+          : getRoleLandingPath(audience);
         window.location.href = targetUrl;
         return;
       }

@@ -32,8 +32,8 @@ export interface CreateUnitDialogProps {
 
 const COMMON_ICONS = [
   { value: 'building-2', label: 'Building (Gedung/Unit)' },
-  { value: 'stethoscope', label: 'Stethoscope (Poli Umum/Dokter)' },
-  { value: 'baby', label: 'Baby (Poli KIA/Anak)' },
+  { value: 'stethoscope', label: 'Stethoscope (Konsultasi Dokter / Klinis)' },
+  { value: 'baby', label: 'Baby (Kesehatan Ibu & Anak)' },
   { value: 'heart-pulse', label: 'Heart Pulse (Kardiologi/Tindakan)' },
   { value: 'activity', label: 'Activity (Klinis/Gawat Darurat)' },
   { value: 'shield', label: 'Shield (Pelayanan Umum)' }
@@ -129,7 +129,7 @@ export function CreateUnitDialog({ open, onOpenChange }: CreateUnitDialogProps) 
               </Label>
               <Input
                 id='unit-name'
-                placeholder='Contoh: Poli Umum'
+                placeholder='Contoh: Poliklinik Rawat Jalan'
                 value={name}
                 onChange={(e) => handleNameChange(e.target.value)}
                 disabled={createMutation.isPending}
@@ -144,7 +144,7 @@ export function CreateUnitDialog({ open, onOpenChange }: CreateUnitDialogProps) 
                 </Label>
                 <Input
                   id='unit-code'
-                  placeholder='poli_umum'
+                  placeholder='rawat_jalan'
                   value={code}
                   onChange={(e) =>
                     setCode(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))

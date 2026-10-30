@@ -7,22 +7,14 @@ import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { DoctorScheduleCard } from '@/features/jadwal-dokter/components/doctor-schedule-card';
-import type { DoctorSchedule } from '@/features/jadwal-dokter/api/types';
-import { normalizeScheduleStatus } from '@/features/jadwal-dokter/constants/schedule-shift.constants';
 
 interface CarouselCardsProps {
   slides: string[];
   className?: string;
 }
 
-function parseSlideContent(slide: string, idx: number) {
+function parseSlideContent(slide: string) {
   const lower = slide.toLowerCase();
-  const isDoctor =
-    lower.includes('dr.') ||
-    lower.includes('dr ') ||
-    lower.includes('spesialis') ||
-    lower.includes('jadwal praktik');
 
   // Extract badges
   const isUsgOn =
@@ -30,62 +22,7 @@ function parseSlideContent(slide: string, idx: number) {
   const isBpjs = lower.includes('bpjs');
   const is24Hours = lower.includes('24 jam');
 
-  if (isDoctor) {
-    // Extract Doctor Name
-    const nameMatch = slide.match(/###?\s*([^\n\r]+)/) || slide.match(/\*\*([^\*]+)\*\*/);
-    const rawName = nameMatch ? nameMatch[1].replace(/[\*#]/g, '').trim() : '';
-
-    // Extract Specialty
-    const specMatch =
-      slide.match(/\*\*Spesialisasi:\*\*\s*([^\n\r]+)/i) ||
-      slide.match(/Spesialisasi:\s*([^\n\r]+)/i);
-    const specialty = specMatch ? specMatch[1].trim() : 'Belum tersedia';
-
-    // Extract Hari Praktik
-    const daysMatch =
-      slide.match(/\*\*(?:Hari Praktik|Hari):\*\*\s*([^\n\r]+)/i) ||
-      slide.match(/(?:Hari Praktik|Hari):\s*([^\n\r]+)/i);
-    const days = daysMatch ? daysMatch[1].trim() : '';
-
-    // Extract Jam Praktik
-    const hoursMatch =
-      slide.match(/\*\*(?:Jam Praktik|Jam|Waktu):\*\*\s*([^\n\r]+)/i) ||
-      slide.match(/(?:Jam Praktik|Jam|Waktu):\s*([^\n\r]+)/i);
-    const hours = hoursMatch ? hoursMatch[1].trim() : 'Belum tersedia';
-
-    const statusMatch =
-      slide.match(/\*\*Status:\*\*\s*([^\n\r]+)/i) || slide.match(/Status:\s*([^\n\r]+)/i);
-    const status = normalizeScheduleStatus(statusMatch?.[1]?.trim());
-    const roomMatch =
-      slide.match(/\*\*(?:Ruang|Poli):\*\*\s*([^\n\r]+)/i) ||
-      slide.match(/(?:Ruang|Poli):\s*([^\n\r]+)/i);
-    const room = roomMatch ? roomMatch[1].trim() : 'Belum tersedia';
-
-    const finalDoctor: DoctorSchedule = {
-      id: `doc-ai-${idx}`,
-      fullName: rawName,
-      specialty: specialty,
-      doctorStatus: status,
-      email: '',
-      phone: '',
-      practiceRoom: room,
-      practiceDate: days || undefined,
-      avatar: '',
-      todaySchedule: hours,
-      scheduleStatus: status,
-      scheduleMonth: '',
-      monthlySchedule: [],
-      dailySessions: [],
-      isOnLeave: status === 'ON_LEAVE'
-    };
-
-    return {
-      type: 'doctor' as const,
-      doctor: finalDoctor
-    };
-  }
-
-  // Extract General/Service/Facility Card
+  // Extract Card Title
   const titleMatch = slide.match(/###?\s*([^\n\r]+)/) || slide.match(/\*\*([^\*]+)\*\*/);
   const title = titleMatch ? titleMatch[1].replace(/[\*#]/g, '').trim() : 'Informasi';
 
@@ -117,7 +54,6 @@ function parseSlideContent(slide: string, idx: number) {
     .filter(Boolean);
 
   return {
-    type: 'general' as const,
     title,
     categoryPill,
     items,
@@ -292,28 +228,8 @@ export function CarouselCards({ slides, className }: CarouselCardsProps) {
         className='flex gap-3.5 overflow-x-auto snap-x snap-mandatory no-scrollbar scroll-smooth overscroll-x-contain pb-3 pt-1 px-1 cursor-grab active:cursor-grabbing select-none'
       >
         {slides.map((slideContent, idx) => {
-          const parsed = parseSlideContent(slideContent, idx);
+          const parsed = parseSlideContent(slideContent);
 
-          // Render Type 1: 100% IDENTICAL DoctorScheduleCard from the Jadwal Dokter Page
-          if (parsed.type === 'doctor') {
-            return (
-              <div
-                key={idx}
-                className='snap-start shrink-0 w-[300px] sm:w-[340px] max-w-[88vw] flex flex-col'
-              >
-                <DoctorScheduleCard
-                  doctor={parsed.doctor}
-                  showActions={true}
-                  showCallButton={true}
-                  showStats={true}
-                  variant='elevated'
-                  className='h-full min-h-[350px]'
-                />
-              </div>
-            );
-          }
-
-          // Render Type 2: General Service & Facility Card (With Beautiful Ribbon & Clean Item Badges)
           return (
             <div
               key={idx}

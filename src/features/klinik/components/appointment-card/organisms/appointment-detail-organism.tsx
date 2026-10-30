@@ -31,13 +31,14 @@ import {
   isAppointmentBeforeCall
 } from '@/features/appointment-pasien/constants/options';
 import { useAuthContext } from '@/lib/rbac/auth-context';
+import { PERMISSIONS, AUDIENCE, type AudienceType } from '@/core/auth/permissions.constants';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { PatientAppointmentActionDrawer } from '../../patient-appointment-action-drawer';
 
 export interface AppointmentDetailOrganismProps {
   isOpen: boolean;
   appointment: Appointment | null;
-  viewerRole?: 'patient' | 'internal';
+  viewerAudience?: AudienceType;
   isHistoryMode?: boolean;
   onClose: () => void;
   onCancel?: (appointment: Appointment, reason?: string) => Promise<void> | void;
@@ -56,7 +57,7 @@ type ModalStep = 'details' | 'form' | 'cancel-confirm';
 export function AppointmentDetailOrganism({
   isOpen,
   appointment,
-  viewerRole = 'internal',
+  viewerAudience,
   isHistoryMode = false,
   onClose,
   onCancel,
@@ -78,7 +79,7 @@ export function AppointmentDetailOrganism({
   const [isChangeDoctorOpen, setIsChangeDoctorOpen] = React.useState(false);
   const [isChangeRoomOpen, setIsChangeRoomOpen] = React.useState(false);
   const [isRescheduleOpen, setIsRescheduleOpen] = React.useState(false);
-  const { role, hasRole } = useAuthContext();
+  const { audience: contextAudience, can } = useAuthContext();
 
   React.useEffect(() => {
     if (!isOpen) {
@@ -101,7 +102,8 @@ export function AppointmentDetailOrganism({
   const isWaiting = isAppointmentWaiting(appointment.status);
   const isBeforeCall = isAppointmentBeforeCall(appointment.status);
 
-  const isInternalView = viewerRole === 'internal';
+  const effectiveAudience = viewerAudience ?? contextAudience ?? AUDIENCE.INTERNAL;
+  const isInternalView = effectiveAudience === AUDIENCE.INTERNAL;
   const displayLocation =
     !isInternalView && isBeforeCall ? 'Menunggu panggilan klinik' : appointment.room_name || '-';
 
@@ -112,7 +114,7 @@ export function AppointmentDetailOrganism({
   const patientName = appointment.patient_name || '-';
   const serviceName = appointment.service || '-';
   const complaintText = appointment.complaint || '-';
-  const isAdmin = role === 'admin' || hasRole('admin');
+  const canManageAppointments = can(PERMISSIONS.APPOINTMENTS.MANAGE);
 
   const canCancel =
     !isHistoryMode &&
@@ -121,7 +123,7 @@ export function AppointmentDetailOrganism({
         ? appointment.allowedActions.includes('CANCEL')
         : !isTerminal && !isInService
     );
-  const canReassign = !isHistoryMode && isAdmin && !isTerminal;
+  const canReassign = !isHistoryMode && canManageAppointments && !isTerminal;
   const canReschedule =
     !isHistoryMode &&
     Boolean(

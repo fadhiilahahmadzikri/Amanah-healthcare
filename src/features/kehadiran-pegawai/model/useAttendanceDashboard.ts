@@ -66,12 +66,16 @@ export function useAttendanceDashboard() {
   const searchIndexItems = useMemo<SearchEngineResultItem[]>(() => {
     return records.map((r) => {
       const shiftLabel = r.shiftLabel || '-';
-      const categoryLabel = r.kategori || 'Pegawai';
+      const roleLabel = r.roleName ?? '';
+      const subtitleParts = [r.id_staf];
+      if (roleLabel) subtitleParts.push(roleLabel);
+      subtitleParts.push(`Shift ${shiftLabel}`);
+
       return {
         id: `staff-${r.id}`,
         title: r.nama_staf,
-        subtitle: `${r.id_staf} • ${categoryLabel} • Shift ${shiftLabel}`,
-        category: categoryLabel,
+        subtitle: subtitleParts.join(' • '),
+        category: roleLabel,
         icon: Icons.user,
         queryValue: r.nama_staf
       };
@@ -83,7 +87,7 @@ export function useAttendanceDashboard() {
     onQueryChange: (q) => filterState.changeFilter({ search: q }),
     id: 'attendance-search-engine',
     title: 'Pencarian Presensi Pegawai',
-    description: 'Cari riwayat kehadiran berdasarkan nama, ID staf, kategori, atau shift',
+    description: 'Cari riwayat kehadiran berdasarkan nama, ID staf, peran, atau shift',
     placeholder: 'Ketik nama staf atau ID pegawai...',
     indexItems: searchIndexItems
   });

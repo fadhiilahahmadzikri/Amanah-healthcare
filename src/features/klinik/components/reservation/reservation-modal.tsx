@@ -105,7 +105,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
         name: context.serviceName || 'Layanan Pemeriksaan',
         prefix: 'A',
         poliklinikId: context.poliklinikId || '',
-        poliklinikName: context.serviceName || 'Poli KIA',
+        poliklinikName: context.serviceName || '',
         displayOrder: 1,
         complaints: []
       });

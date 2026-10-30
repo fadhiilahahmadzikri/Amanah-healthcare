@@ -63,9 +63,19 @@ export function LeaveCard({
       isSelected={isSelected}
       name={staff?.fullName || ''}
       subtitle={
-        <p className='text-[12px] sm:text-[11.5px] xl:text-[11px] font-medium text-muted-foreground tracking-tight line-clamp-1 mt-0.5 truncate'>
-          {staff?.profession || ''}
-        </p>
+        <div className='flex items-center gap-1.5 truncate mt-0.5'>
+          {staff?.roleName && (
+            <span className='text-[11px] font-semibold text-primary/80 shrink-0'>
+              {staff.roleName}
+            </span>
+          )}
+          {staff?.roleName && staff?.profession && (
+            <span className='text-[10px] text-muted-foreground/60'>•</span>
+          )}
+          <p className='text-[12px] sm:text-[11.5px] xl:text-[11px] font-medium text-muted-foreground tracking-tight line-clamp-1 truncate'>
+            {staff?.profession || ''}
+          </p>
+        </div>
       }
       avatarUrl={staff?.avatarUrl}
       contentSlot={<LeaveBookingDateRoute leave={leave} />}

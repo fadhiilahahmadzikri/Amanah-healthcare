@@ -1,3 +1,12 @@
+import {
+  AUDIENCE,
+  ROLE_TIER,
+  type AudienceType,
+  type RoleTierType
+} from '@/core/auth/permissions.constants';
+
+export { AUDIENCE, ROLE_TIER };
+
 export interface Permission {
   id: string;
   code: string;
@@ -6,8 +15,10 @@ export interface Permission {
   updatedAt?: string;
 }
 
-export type RoleTier = 'macro' | 'micro';
-export type RoleAudience = 'internal' | 'external';
+export type RoleTier = RoleTierType;
+export type RoleAudience = AudienceType;
+
+export const NO_PARENT_ROLE_SENTINEL = 'none';
 
 export interface Role {
   id: string;

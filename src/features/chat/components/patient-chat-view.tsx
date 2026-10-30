@@ -12,7 +12,7 @@ import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { useViewer } from '@/features/notifications/hooks/use-viewer';
 import { emitAdminSocketEvent } from '@/features/notifications/hooks/use-notification-socket';
 import { chatApiService } from '../api/chat-api-service';
-import type { ChatMessage, Conversation } from '../utils/types';
+import { CHAT_SENDER_ROLE, type ChatMessage, type Conversation } from '../utils/types';
 
 function formatMessageTime(isoString: string): string {
   try {
@@ -155,7 +155,7 @@ export function PatientChatView() {
       if (!detail || !conversation?.id || detail.conversationId !== conversation.id) {
         return;
       }
-      if (detail.senderRole === 'customer') return;
+      if (detail.senderRole === CHAT_SENDER_ROLE.EXTERNAL) return;
 
       if (detail.isTyping) {
         setIsAdminTyping(true);
@@ -323,7 +323,7 @@ export function PatientChatView() {
           />
         ) : (
           messages.map((m) => {
-            const isMe = m.senderRole === 'customer';
+            const isMe = m.senderRole === CHAT_SENDER_ROLE.EXTERNAL;
             return (
               <div
                 key={m.id}

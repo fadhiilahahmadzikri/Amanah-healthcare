@@ -22,7 +22,7 @@ export interface StaffManagementToolbarProps {
   invitationsCount: number;
   viewMode: StaffViewMode;
   onViewModeChange: (mode: StaffViewMode) => void;
-  onInviteStaff: () => void;
+  onInviteStaff?: () => void;
   onRefresh?: () => void;
 }
 
@@ -69,16 +69,18 @@ export function StaffManagementToolbar({
             </TabsList>
 
             {/* Invite Staff Button */}
-            <Button
-              type='button'
-              onClick={onInviteStaff}
-              size='sm'
-              className='h-9 px-2.5 sm:px-3 gap-1.5 shrink-0 cursor-pointer'
-              title='Kirim Undangan Calon Staf Baru'
-            >
-              <Icons.userPlus className='h-3.5 w-3.5' />
-              <span className='hidden sm:inline'>Undang Staf</span>
-            </Button>
+            {onInviteStaff && (
+              <Button
+                type='button'
+                onClick={onInviteStaff}
+                size='sm'
+                className='h-9 px-2.5 sm:px-3 gap-1.5 shrink-0 cursor-pointer'
+                title='Kirim Undangan Calon Staf Baru'
+              >
+                <Icons.userPlus className='h-3.5 w-3.5' />
+                <span className='hidden sm:inline'>Undang Staf</span>
+              </Button>
+            )}
           </div>
         }
         extraRightSlot={

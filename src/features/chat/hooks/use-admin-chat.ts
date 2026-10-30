@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { chatApiService } from '../api/chat-api-service';
 import { useChatStore } from '../utils/store';
-import type { ChatMessage } from '../utils/types';
+import { CHAT_SENDER_ROLE, type ChatMessage } from '../utils/types';
 import { emitAdminSocketEvent } from '@/features/notifications/hooks/use-notification-socket';
 
 export function useAdminChat() {
@@ -102,7 +102,7 @@ export function useAdminChat() {
     ) => {
       const detail = event.detail;
       if (!detail || detail.conversationId !== selectedConversationId) return;
-      if (detail.senderRole === 'admin') return;
+      if (detail.senderRole === CHAT_SENDER_ROLE.INTERNAL) return;
 
       if (detail.isTyping) {
         setIsClientTyping(true);

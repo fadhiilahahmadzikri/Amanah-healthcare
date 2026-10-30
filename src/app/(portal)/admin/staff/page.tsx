@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import PageContainer from '@/components/layout/page-container';
-import { requireAdmin } from '@/lib/guard';
+import { requireRouteAccess } from '@/lib/guard';
 import { searchParamsCache } from '@/lib/searchparams';
 import type { SearchParams } from 'nuqs/server';
 import {
@@ -17,7 +17,7 @@ type PageProps = {
 };
 
 export default async function StaffManagementPage(props: PageProps) {
-  await requireAdmin();
+  await requireRouteAccess('/admin/staff');
   const searchParams = await props.searchParams;
   searchParamsCache.parse(searchParams);
 

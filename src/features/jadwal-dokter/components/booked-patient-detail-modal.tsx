@@ -6,6 +6,7 @@ import {
   bookedPatientToAppointment,
   type SessionContext
 } from '@/features/klinik/components/appointment-card';
+import { AUDIENCE } from '@/core/auth/permissions.constants';
 import type { BookedPatientItem } from '@/server/contracts/schedules/doctor-schedules.dto';
 import {
   useCallPatientAppointmentMutation,
@@ -51,7 +52,7 @@ export function BookedPatientDetailModal({
     <AppointmentDetailOrganism
       isOpen={isOpen}
       appointment={appointment}
-      viewerRole='internal'
+      viewerAudience={AUDIENCE.INTERNAL}
       onClose={onClose}
       onCallPatient={async (apt) => {
         await callMutation.mutateAsync(apt.id);

@@ -1,36 +1,55 @@
 import type { NavGroup, NavItem } from '@/types';
-
-export type SupportedRole = 'admin' | 'patient';
+import type { AudienceType } from '@/core/auth/permissions.constants';
 
 /**
- * Pure synchronous navigation filter based on principal role.
- * Fail-Closed: If role is not provided or unknown, returns empty array.
+ * Pure synchronous navigation filter based on principal access context.
+ * Fail-Closed: If audience is not provided or empty, returns empty array.
  */
-export function filterNavGroupsByRole(groups: NavGroup[], rawRole?: string | null): NavGroup[] {
-  if (!rawRole) return [];
-
-  const role: SupportedRole = rawRole === 'admin' ? 'admin' : 'patient';
+export function filterNavGroupsByAccess(
+  groups: NavGroup[],
+  audience?: AudienceType | null,
+  permissions?: string[]
+): NavGroup[] {
+  if (!audience) return [];
 
   return groups
     .map((group) => {
-      const items = filterNavItemsByRole(group.items, role);
+      const items = filterNavItemsByAccess(group.items, audience, permissions);
       return { ...group, items };
     })
     .filter((group) => group.items.length > 0);
 }
 
 /**
- * Pure recursive filter for NavItem array based on role access rules.
+ * Pure recursive filter for NavItem array based on audience and granular permissions.
  */
-export function filterNavItemsByRole(items: NavItem[], role: SupportedRole): NavItem[] {
+export function filterNavItemsByAccess(
+  items: NavItem[],
+  audience: AudienceType,
+  permissions?: string[]
+): NavItem[] {
+  const userPerms = permissions ?? [];
+  const hasWildcard = userPerms.includes('*');
+
   return items
     .filter((item) => {
-      if (!item.access?.role) return true;
-      return item.access.role === role;
+      // 1. Audience verification
+      if (item.access?.audience && item.access.audience !== audience) {
+        return false;
+      }
+
+      // 2. Granular permission verification
+      if (item.access?.permission) {
+        if (!hasWildcard && !userPerms.includes(item.access.permission)) {
+          return false;
+        }
+      }
+
+      return true;
     })
     .map((item) => {
       if (item.items && item.items.length > 0) {
-        const children = filterNavItemsByRole(item.items, role);
+        const children = filterNavItemsByAccess(item.items, audience, permissions);
         return { ...item, items: children };
       }
       return item;

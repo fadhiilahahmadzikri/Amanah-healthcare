@@ -1,4 +1,5 @@
 import { formatFullDate, formatTimeAgo } from '@/lib/utils';
+import { AUDIENCE } from '@/core/auth/permissions.constants';
 import type { BackendNotification } from '../api/notification-api-service';
 import type {
   ClinicNotification,
@@ -52,10 +53,8 @@ export function mapBackendToClinicNotification(backend: BackendNotification): Cl
   const conversationId = metaConvId || semanticConvId || '';
 
   const isPatientAudience =
-    backend.audience === 'patient' ||
-    (rawMetadata?.audience as string) === 'patient' ||
-    backend.senderRole === 'Klinik Amanah' ||
-    backend.senderRole === 'Admin Klinik';
+    backend.audience === AUDIENCE.EXTERNAL ||
+    (rawMetadata?.audience as string) === AUDIENCE.EXTERNAL;
 
   const actions: NotificationActionItem[] = (backend.actions || []).map((action, index) => {
     return {

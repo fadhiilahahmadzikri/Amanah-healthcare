@@ -1,6 +1,6 @@
 import React from 'react';
 import PageContainer from '@/components/layout/page-container';
-import { requireAdmin } from '@/lib/guard';
+import { requireRouteAccess } from '@/lib/guard';
 import { ClinicEssentialsView } from '@/features/clinic-essentials';
 
 export const metadata = {
@@ -10,7 +10,7 @@ export const metadata = {
 };
 
 export default async function ClinicEssentialsPage() {
-  await requireAdmin();
+  await requireRouteAccess('/admin/clinic-essentials');
 
   return (
     <PageContainer

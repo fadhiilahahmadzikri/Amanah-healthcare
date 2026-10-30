@@ -3,13 +3,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from '@/lib/auth-client';
 import { clientFetch } from '@/lib/client-fetch';
+import { AUDIENCE, type AudienceType } from '@/core/auth/permissions.constants';
 
 export interface ViewerRole {
   readonly id?: string;
   readonly code: string;
   readonly name: string;
   readonly tier?: 'macro' | 'micro';
-  readonly audience?: 'internal' | 'external';
+  readonly audience?: AudienceType;
   readonly isClinical?: boolean;
 }
 
@@ -64,15 +65,15 @@ export function useViewer() {
           role: {
             code: (betterAuthSession.user.role as string) || 'patient',
             name: (betterAuthSession.user.role as string) || 'patient',
-            audience: 'external' as const
+            audience: AUDIENCE.EXTERNAL
           },
           permissions: []
         }
       : null);
 
   const role = resolvedUser?.role;
-  const isInternal = role?.audience === 'internal';
-  const audience: 'clinic' | 'patient' = isInternal ? 'clinic' : 'patient';
+  const isInternal = role?.audience === AUDIENCE.INTERNAL;
+  const audience: AudienceType = isInternal ? AUDIENCE.INTERNAL : AUDIENCE.EXTERNAL;
   const permissions = resolvedUser?.permissions || [];
 
   return {

@@ -5,15 +5,17 @@ import { IconStethoscope, IconBriefcase, IconEdit, IconTrash } from '@tabler/ico
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { AUDIENCE } from '@/core/auth/permissions.constants';
 import type { Role } from '../types/role.types';
 
 export interface RoleCardProps {
   role: Role;
   onEdit: (role: Role) => void;
   onDelete: (role: Role) => void;
+  canManage?: boolean;
 }
 
-export function RoleCard({ role, onEdit, onDelete }: RoleCardProps) {
+export function RoleCard({ role, onEdit, onDelete, canManage = true }: RoleCardProps) {
   const directPermsCount = (role.permissions || []).length;
   const effectivePermsCount = (role.effectivePermissionCodes || []).length;
 
@@ -28,7 +30,7 @@ export function RoleCard({ role, onEdit, onDelete }: RoleCardProps) {
 
           <div className='flex flex-col items-end gap-1'>
             <div className='flex items-center gap-1'>
-              {role.audience === 'external' ? (
+              {role.audience === AUDIENCE.EXTERNAL ? (
                 <Badge
                   variant='outline'
                   className='text-[10px] px-1.5 py-0 border-amber-500/40 text-amber-700 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-300'
@@ -90,6 +92,11 @@ export function RoleCard({ role, onEdit, onDelete }: RoleCardProps) {
           </span>
         </div>
 
+        <div className='flex items-center justify-between text-xs'>
+          <span className='text-muted-foreground'>Jumlah Staf:</span>
+          <span className='font-medium text-foreground'>{role.staffCount ?? 0} pegawai</span>
+        </div>
+
         {role.parentRole && (
           <div className='flex items-center justify-between text-xs'>
             <span className='text-muted-foreground'>Peran Induk:</span>
@@ -104,6 +111,7 @@ export function RoleCard({ role, onEdit, onDelete }: RoleCardProps) {
         <Button
           variant='outline'
           size='sm'
+          disabled={!canManage}
           className='h-8 text-xs flex-1 gap-1.5'
           onClick={() => onEdit(role)}
         >
@@ -111,7 +119,7 @@ export function RoleCard({ role, onEdit, onDelete }: RoleCardProps) {
           Atur Izin & Edit
         </Button>
 
-        {!role.isSystem && (
+        {!role.isSystem && canManage && (
           <Button
             variant='ghost'
             size='icon'

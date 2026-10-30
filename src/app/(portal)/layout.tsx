@@ -6,7 +6,7 @@ import { InfobarProvider } from '@/components/ui/infobar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { ChatwootWidget } from '@/components/chatwoot/chatwoot-widget';
 import { isRouteAuthorized } from '@/lib/rbac/route-manifest';
-import { filterNavGroupsByRole } from '@/lib/rbac/navigation';
+import { filterNavGroupsByAccess } from '@/lib/rbac/navigation';
 import { AuthorizationProvider } from '@/lib/rbac/auth-context';
 import { navGroups } from '@/config/nav-config';
 import type { Metadata } from 'next';
@@ -26,15 +26,19 @@ export const metadata: Metadata = {
 
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   const reqHeaders = await headers();
-  const { user, role: userRole } = await requireSession();
-  const pathname = reqHeaders.get('x-pathname') || getRoleLandingPath(userRole);
+  const { user, role: userRole, audience } = await requireSession();
+  const pathname = reqHeaders.get('x-pathname') || getRoleLandingPath(audience);
 
   // Enforce Route Manifest RBAC at Layout Boundary
-  const authResult = isRouteAuthorized(pathname, userRole);
+  const authResult = isRouteAuthorized(pathname, {
+    audience,
+    permissions: user.permissions ?? [],
+    role: userRole
+  });
 
   if (!authResult.allowed) {
     if (authResult.reason === 'forbidden') {
-      const destination = getRoleLandingPath(userRole);
+      const destination = getRoleLandingPath(audience);
       if (pathname !== destination) {
         redirect(destination);
       }
@@ -42,7 +46,7 @@ export default async function PortalLayout({ children }: { children: React.React
   }
 
   // Pre-filter navigation groups on the server for Zero-Flicker Hydration
-  const authorizedNavGroups = filterNavGroupsByRole(navGroups, userRole);
+  const authorizedNavGroups = filterNavGroupsByAccess(navGroups, audience, user.permissions);
 
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get('sidebar_state')?.value === 'true';
@@ -51,6 +55,7 @@ export default async function PortalLayout({ children }: { children: React.React
     <AuthorizationProvider
       initialUser={user}
       initialRole={userRole}
+      initialAudience={audience}
       initialNavGroups={authorizedNavGroups}
       allNavGroups={navGroups}
     >

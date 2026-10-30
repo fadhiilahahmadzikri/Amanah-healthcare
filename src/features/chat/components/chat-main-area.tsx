@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
-import type { ChatMessage, Conversation } from '../utils/types';
+import { CHAT_SENDER_ROLE, type ChatMessage, type Conversation } from '../utils/types';
 
 interface ChatMainAreaProps {
   conversation?: Conversation;
@@ -186,19 +186,19 @@ export function ChatMainArea({
       <div ref={scrollRef} className='flex-1 overflow-y-auto p-4 space-y-3'>
         {messages.length > 0 ? (
           messages.map((m) => {
-            const isAdmin = m.senderRole === 'admin';
+            const isInternal = m.senderRole === CHAT_SENDER_ROLE.INTERNAL;
             return (
               <div
                 key={m.id}
                 className={cn(
                   'flex flex-col max-w-[85%] sm:max-w-[78%]',
-                  isAdmin ? 'items-end self-end ml-auto' : 'items-start mr-auto'
+                  isInternal ? 'items-end self-end ml-auto' : 'items-start mr-auto'
                 )}
               >
                 <div
                   className={cn(
                     'rounded-[8px] p-2.5 text-[11px] leading-[1.45] shadow-2xs break-words',
-                    isAdmin
+                    isInternal
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-card border border-border/70 text-foreground'
                   )}
@@ -208,7 +208,7 @@ export function ChatMainArea({
                 <span
                   className={cn(
                     'text-[9px] text-muted-foreground mt-0.5 tabular-nums',
-                    isAdmin ? 'pr-1' : 'pl-1'
+                    isInternal ? 'pr-1' : 'pl-1'
                   )}
                 >
                   {formatMessageTime(m.createdAt)}

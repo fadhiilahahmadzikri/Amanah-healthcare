@@ -36,8 +36,8 @@ export function useAttendanceDynamicOptions({
     return availableFilters?.shifts ?? [];
   }, [availableFilters?.shifts]);
 
-  // 2. Category options strictly derived from DB SSOT
-  const categoryOptions: FilterOption[] = useMemo(() => {
+  // 2. Role options strictly derived from DB SSOT (roles table via availableFilters)
+  const roleOptions: FilterOption[] = useMemo(() => {
     return availableFilters?.categories ?? [];
   }, [availableFilters?.categories]);
 
@@ -95,11 +95,11 @@ export function useAttendanceDynamicOptions({
         popoverWidth: 'w-48'
       },
       {
-        id: 'category',
-        title: 'Kategori',
+        id: 'role',
+        title: 'Peran',
         icon: Icons.users,
         mode: 'single',
-        options: categoryOptions.map((c) => ({
+        options: roleOptions.map((c) => ({
           label: c.label || c.value,
           value: c.value
         })),
@@ -127,7 +127,7 @@ export function useAttendanceDynamicOptions({
     ];
   }, [
     shiftOptions,
-    categoryOptions,
+    roleOptions,
     statusOptions,
     params.shift,
     params.category,
@@ -140,7 +140,7 @@ export function useAttendanceDynamicOptions({
 
   return {
     shiftOptions,
-    categoryOptions,
+    roleOptions,
     statusOptions,
     facetGroups
   };

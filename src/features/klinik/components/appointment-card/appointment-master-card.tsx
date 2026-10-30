@@ -3,6 +3,7 @@
 import * as React from 'react';
 import type { BookedPatientItem } from '@/server/contracts/schedules/doctor-schedules.dto';
 import type { Appointment, Doctor } from '../../api/types';
+import { type AudienceType } from '@/core/auth/permissions.constants';
 import { AppointmentCardOrganism } from './organisms/appointment-card-organism';
 import { AppointmentDetailOrganism } from './organisms/appointment-detail-organism';
 import { bookedPatientToAppointment, type SessionContext } from './utils/appointment-adapter';
@@ -12,7 +13,7 @@ export interface AppointmentMasterCardProps {
   patientItem?: BookedPatientItem;
   sessionContext?: SessionContext;
   doctor?: Doctor;
-  subjectRole?: 'doctor' | 'patient';
+  viewerAudience?: AudienceType;
   onViewDetails?: (appointment: Appointment) => void;
   onCancel?: (appointment: Appointment, reason?: string) => Promise<void> | void;
   onCallPatient?: (appointment: Appointment) => Promise<void> | void;
@@ -30,7 +31,7 @@ export function AppointmentMasterCard({
   patientItem,
   sessionContext,
   doctor,
-  subjectRole,
+  viewerAudience,
   onViewDetails,
   onCancel,
   onCallPatient,
@@ -52,8 +53,6 @@ export function AppointmentMasterCard({
 
   if (!effectiveAppointment) return null;
 
-  const effectiveSubjectRole = subjectRole || (patientItem ? 'patient' : 'doctor');
-
   const handleOpenDetail = (apt: Appointment) => {
     if (onViewDetails) {
       onViewDetails(apt);
@@ -67,7 +66,7 @@ export function AppointmentMasterCard({
       <AppointmentCardOrganism
         appointment={effectiveAppointment}
         doctor={doctor}
-        subjectRole={effectiveSubjectRole}
+        viewerAudience={viewerAudience}
         onViewDetails={handleOpenDetail}
         actionsSlot={actionsSlot}
         detailButtonLabel={detailButtonLabel}
@@ -78,6 +77,7 @@ export function AppointmentMasterCard({
         <AppointmentDetailOrganism
           isOpen={isDetailOpen}
           appointment={effectiveAppointment}
+          viewerAudience={viewerAudience}
           onClose={() => setIsDetailOpen(false)}
           onCancel={onCancel}
           onCallPatient={onCallPatient}

@@ -23,7 +23,6 @@ import {
   type PatientRegionValues
 } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import { PatientSearchableSelect } from '@/features/data-pasien/components/registration/molecules/patient-searchable-select';
-import { cn } from '@/lib/utils';
 
 export interface BookingRegularPatientEditModalProps {
   patient: PatientAffiliationProfile | null;

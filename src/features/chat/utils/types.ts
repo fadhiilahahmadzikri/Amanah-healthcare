@@ -1,4 +1,12 @@
-export type SenderRole = 'customer' | 'admin';
+import { AUDIENCE, type AudienceType } from '@/core/auth/permissions.constants';
+
+export const CHAT_SENDER_ROLE = {
+  INTERNAL: AUDIENCE.INTERNAL,
+  EXTERNAL: AUDIENCE.EXTERNAL
+} as const;
+
+export type SenderRole = AudienceType;
+export type ChatSenderRole = SenderRole;
 export type ConversationStatus = 'open' | 'closed';
 
 export interface ChatMessage {

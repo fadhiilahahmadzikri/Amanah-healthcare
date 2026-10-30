@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default async function Page() {
   const session = await getSession();
   if (session.status === 'authenticated') {
-    redirect(getRoleLandingPath(session.role));
+    redirect(getRoleLandingPath(session.audience));
   }
   return <SignInViewPage />;
 }

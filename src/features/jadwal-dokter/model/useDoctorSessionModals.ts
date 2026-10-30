@@ -4,7 +4,7 @@ import { useState } from 'react';
 import type { DoctorSchedule, DoctorDailySession } from '../api/types';
 import type { BookedPatientItem } from '@/server/contracts/schedules/doctor-schedules.dto';
 import { useUpdateDoctorSessionMutation } from '../api/mutations';
-import { SCHEDULE_STATUS, SCHEDULE_MUTATION_NOTES } from '../constants/schedule-shift.constants';
+import { SCHEDULE_STATUS } from '../constants/schedule-shift.constants';
 
 export interface UseDoctorSessionModalsProps {
   doctor?: DoctorSchedule;

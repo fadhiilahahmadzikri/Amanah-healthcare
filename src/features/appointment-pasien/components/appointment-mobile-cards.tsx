@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import type { AdminAppointment } from '../api/types';
 import { adminAppointmentToAppointment } from '../api/mapper';
 import { AppointmentCardOrganism } from '@/features/klinik/components/appointment-card';
+import { AUDIENCE } from '@/core/auth/permissions.constants';
 import { AppointmentCardsSkeleton } from '@/features/klinik/components/appointment-cards-skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
@@ -74,7 +75,7 @@ export function AppointmentMobileCards({
             <div key={item.id} className='transition-transform'>
               <AppointmentCardOrganism
                 appointment={adapted}
-                subjectRole='patient'
+                viewerAudience={AUDIENCE.INTERNAL}
                 onViewDetails={() => onRowClick(item)}
                 actionsSlot={
                   <Button

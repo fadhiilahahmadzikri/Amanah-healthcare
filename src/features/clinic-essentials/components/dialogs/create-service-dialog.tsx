@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import { ShiftIconPickerPopover } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-picker-popover';
 import { clinicEssentialsApi } from '../../api/clinic-essentials.api';
 import { clinicEssentialsKeys } from '../../api/query-keys';
 import type {
@@ -36,16 +37,6 @@ export interface CreateServiceDialogProps {
   categories: ServiceCategory[];
   forms: ClinicalIntakeForm[];
 }
-
-const SERVICE_ICONS = [
-  { value: 'stethoscope', label: 'Stethoscope (Pemeriksaan Dokter)' },
-  { value: 'baby', label: 'Baby (Kebidanan & Bayi)' },
-  { value: 'syringe', label: 'Syringe (Suntik / Vaksin)' },
-  { value: 'heart-pulse', label: 'Heart Pulse (Kardiologi/Tindakan)' },
-  { value: 'pill', label: 'Pill (Obat / Terapi)' },
-  { value: 'activity', label: 'Activity (Klinis Terpadu)' },
-  { value: 'clipboard-list', label: 'Clipboard (Skrining / Konsultasi)' }
-];
 
 export function CreateServiceDialog({
   open,
@@ -256,25 +247,19 @@ export function CreateServiceDialog({
               </div>
             </div>
 
-            <div className='grid grid-cols-2 gap-3'>
+            <div className='grid grid-cols-2 gap-3 items-center'>
               <div className='space-y-1.5'>
-                <Label htmlFor='service-icon'>Ikon Layanan</Label>
-                <Select
-                  value={iconName}
-                  onValueChange={setIconName}
-                  disabled={createMutation.isPending}
-                >
-                  <SelectTrigger id='service-icon'>
-                    <SelectValue placeholder='Pilih ikon' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SERVICE_ICONS.map((ic) => (
-                      <SelectItem key={ic.value} value={ic.value}>
-                        {ic.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor='service-icon'>Ikon / Emoji Layanan</Label>
+                <div className='flex items-center gap-2'>
+                  <ShiftIconPickerPopover
+                    value={iconName}
+                    onChange={(newVal) => setIconName(newVal || 'stethoscope')}
+                    disabled={createMutation.isPending}
+                  />
+                  <span className='text-xs text-muted-foreground font-mono truncate'>
+                    {iconName || 'stethoscope'}
+                  </span>
+                </div>
               </div>
 
               <div className='space-y-1.5'>

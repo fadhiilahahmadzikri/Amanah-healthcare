@@ -18,6 +18,7 @@ import { presentAttendanceModal } from '@/components/feedback/choreographed-moda
 import { getClientSocketUrl } from '@/core/config/env.client';
 import { clientFetch } from '@/lib/client-fetch';
 import { useViewer } from './use-viewer';
+import { AUDIENCE } from '@/core/auth/permissions.constants';
 import type { BackendNotification } from '../api/notification-api-service';
 import type { NotificationEnvelopeV2 } from '../types';
 import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
@@ -426,7 +427,7 @@ export function useNotificationSocket(callbacks?: {
       }
 
       // Audience isolation: Only internal clinic staff may receive or display staff attendance modals
-      if (viewerAudience !== 'clinic') {
+      if (viewerAudience !== AUDIENCE.INTERNAL) {
         return;
       }
 
@@ -443,7 +444,7 @@ export function useNotificationSocket(callbacks?: {
         id: item.id,
         nama_staf: item.nama_staf,
         avatar: item.avatar,
-        kategori: item.kategori,
+        roleName: item.roleName,
         waktu_presensi: item.waktu_presensi,
         checkInAt: item.checkInAt,
         checkOutAt: item.checkOutAt,
@@ -501,7 +502,7 @@ export function useNotificationSocket(callbacks?: {
         queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES],
         type: 'active'
       });
-      if (userRole === 'admin') {
+      if (viewerAudience === AUDIENCE.INTERNAL) {
         const staffName = payload?.fullName || 'Staf Baru';
         toast.success(
           `Selamat bergabung! ${staffName} telah berhasil menyelesaikan onboarding dan akunnya telah aktif.`

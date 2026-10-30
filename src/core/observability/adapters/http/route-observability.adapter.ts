@@ -8,7 +8,7 @@ type RouteContext<TParams = Record<string, string | string[]>> = {
   params: Promise<TParams>;
 };
 
-type RouteHandler<TParams = Record<string, string | string[]>> = (
+export type RouteHandler<TParams = Record<string, string | string[]>> = (
   req: NextRequest,
   ctx: RouteContext<TParams>
 ) => Promise<Response | NextResponse> | Response | NextResponse;

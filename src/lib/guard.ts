@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { auth } from './auth';
 import { isRouteAuthorized } from './rbac/route-manifest';
 import { getRoleLandingPath, ROUTES } from '@/core/routes';
+import { AUDIENCE, type AudienceType } from '@/core/auth/permissions.constants';
 import { getSession, requireSession as dalRequireSession } from '@/server/auth/session.dal';
 
 export type SessionType = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;
@@ -19,6 +20,8 @@ export async function getUnifiedSession(): Promise<SessionType | null> {
         name: result.user.name,
         image: result.user.image,
         role: result.role,
+        audience: result.audience,
+        permissions: result.user.permissions ?? [],
         banned: result.user.banned ?? false,
         emailVerified: result.user.emailVerified ?? true,
         createdAt: new Date(),
@@ -54,8 +57,15 @@ export async function requireSession(): Promise<SessionType> {
  */
 export async function requireRouteAccess(pathname: string): Promise<SessionType> {
   const session = await getUnifiedSession();
-  const role = session?.user?.role;
-  const authResult = isRouteAuthorized(pathname, role);
+  const audience: AudienceType =
+    (session?.user as { audience?: AudienceType })?.audience ?? AUDIENCE.INTERNAL;
+  const permissions = (session?.user as { permissions?: string[] })?.permissions ?? [];
+
+  const authResult = isRouteAuthorized(pathname, {
+    audience,
+    permissions,
+    role: session?.user?.role
+  });
 
   if (!authResult.allowed) {
     if (authResult.reason === 'unauthenticated' || !session?.user) {
@@ -63,7 +73,7 @@ export async function requireRouteAccess(pathname: string): Promise<SessionType>
     }
 
     if (authResult.reason === 'forbidden') {
-      const destination = getRoleLandingPath(session?.user?.role);
+      const destination = getRoleLandingPath(audience);
       if (pathname !== destination) {
         redirect(destination);
       }
@@ -71,54 +81,4 @@ export async function requireRouteAccess(pathname: string): Promise<SessionType>
   }
 
   return session as SessionType;
-}
-
-/**
- * Server guard: Enforces Admin role.
- */
-export async function requireAdmin(): Promise<SessionType> {
-  const session = await requireSession();
-  if (session.user.role !== 'admin') {
-    redirect(ROUTES.clinicQueue);
-  }
-  return session;
-}
-
-/**
- * Server guard: Enforces Patient role.
- */
-export async function requirePatient(): Promise<SessionType> {
-  const session = await requireSession();
-  if (session.user.role === 'admin') {
-    redirect(ROUTES.adminAppointmentPasien);
-  }
-  return session;
-}
-
-/**
- * Server guard: Enforces specific permissions via Better Auth access controller.
- */
-export async function requirePermission(
-  permissions: Record<string, string[]>
-): Promise<SessionType> {
-  const session = await requireSession();
-  if (session.user.role === 'admin') {
-    return session;
-  }
-
-  try {
-    const { success } = await auth.api.userHasPermission({
-      body: { userId: session.user.id, permissions }
-    });
-
-    if (!success) {
-      redirect(ROUTES.clinicQueue);
-    }
-  } catch {
-    if (session.user.role !== 'admin') {
-      redirect(ROUTES.clinicQueue);
-    }
-  }
-
-  return session;
 }

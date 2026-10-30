@@ -1,22 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUnifiedSession } from '@/lib/guard';
+import { getSession } from '@/server/auth/session.dal';
+import { AUDIENCE, PERMISSIONS } from '@/core/auth/permissions.constants';
 import { fetchAdminDoctorSchedules } from '@/features/jadwal-dokter/api/doctor-schedule-service';
 import { withApiObservability } from '@/core/observability/adapters/http/route-observability.adapter';
 
 export const dynamic = 'force-dynamic';
 
 export const GET = withApiObservability(async function GET(request: NextRequest) {
-  // 1. RBAC Guard: Require Admin
-  const session = await getUnifiedSession();
-  if (!session?.user) {
+  // 1. Dynamic RBAC Guard
+  const sessionResult = await getSession();
+  if (sessionResult.status !== 'authenticated') {
     return NextResponse.json(
       { error: 'Sesi autentikasi tidak valid atau belum masuk' },
       { status: 401 }
     );
   }
-  if (session.user.role !== 'admin') {
+  const isInternal = sessionResult.audience === AUDIENCE.INTERNAL;
+  const userPerms = sessionResult.user.permissions ?? [];
+  const canReadSchedules =
+    userPerms.includes('*') || userPerms.includes(PERMISSIONS.SCHEDULES.READ);
+
+  if (!isInternal || !canReadSchedules) {
     return NextResponse.json(
-      { error: 'Akses ditolak: Hanya administrator yang dapat melihat jadwal dokter' },
+      { error: 'Akses ditolak: Anda tidak memiliki izin untuk melihat jadwal staf' },
       { status: 403 }
     );
   }

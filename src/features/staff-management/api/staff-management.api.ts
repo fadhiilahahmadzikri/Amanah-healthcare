@@ -122,6 +122,15 @@ export interface RoleOption {
   tier: string;
   isClinical: boolean;
   description?: string | null;
+  parentRoleId?: string | null;
+}
+
+export interface ClinicUnitOption {
+  id: string;
+  code: string;
+  name: string;
+  unitType: string;
+  iconName?: string | null;
 }
 
 export interface InvitationOptionsResponse {
@@ -133,12 +142,14 @@ export interface InvitationOptionsResponse {
     description?: string | null;
   }>;
   polyclinics: PolyclinicUnit[];
+  clinicUnits?: ClinicUnitOption[];
 }
 
 export interface InviteStaffUniversalPayload {
   email: string;
   roleId: string;
   poliklinikId?: string | null;
+  unitId?: string | null;
   fullName?: string;
 }
 

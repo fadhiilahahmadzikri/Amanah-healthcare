@@ -20,7 +20,7 @@ export function QueueSuccessModal({
   isOpen,
   isProcessing,
   appointment,
-  queueItem,
+  queueItem: _queueItem,
   onClose
 }: QueueSuccessModalProps) {
   const router = useRouter();

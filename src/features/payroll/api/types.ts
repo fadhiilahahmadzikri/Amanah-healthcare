@@ -1,6 +1,5 @@
 import type { PayrollPeriodStatus } from '../constants/options';
 
-export type StaffCategory = string;
 export type PayrollEntryType =
   | 'base_scheduled'
   | 'leave_deduction'
@@ -35,7 +34,6 @@ export interface PayrollSummaryItem {
   roleCode?: string;
   roleName?: string;
   isClinical?: boolean;
-  staffType?: string;
   positionTitle?: string;
   departmentName?: string;
   practitionerId?: string | null;
@@ -83,12 +81,12 @@ export interface CalculatePayrollPayload {
 }
 
 export interface PayrollFilterState {
-  category: 'all' | StaffCategory;
+  category: string;
   search: string;
 }
 
 export interface PayrollFilterOptionsResponse {
-  categories: StaffCategory[];
+  categories: string[];
   periods: Array<{
     id: string;
     name: string;
@@ -101,15 +99,20 @@ export interface PayrollFilterOptionsResponse {
 
 export interface CompensationRateItem {
   id?: string;
-  category: StaffCategory;
+  roleId: string;
+  roleCode?: string | null;
+  roleName?: string | null;
   hourlyRate: number;
   overtimeHourlyRate: number;
+  effectiveFrom?: string;
+  effectiveTo?: string | null;
+  isActive?: boolean;
   notes?: string | null;
 }
 
 export interface UpdateCompensationRatesPayload {
   rates: {
-    category: StaffCategory;
+    roleId: string;
     hourlyRate: number;
     overtimeHourlyRate: number;
     notes?: string;

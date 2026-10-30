@@ -63,10 +63,6 @@ export function InspectorImmunizationTab({
           ? 'Ya, pernah'
           : 'Belum pernah sama sekali'));
 
-  const previousVaccineHistory =
-    immunizationFormData?.previousVaccineHistory ??
-    (child?.previousVaccineHistory || 'Belum ada catatan ringkasan vaksinasi.');
-
   const hasAllergyHistory =
     immunizationFormData?.hasAllergyHistory ??
     (child?.hasAllergyHistory ||

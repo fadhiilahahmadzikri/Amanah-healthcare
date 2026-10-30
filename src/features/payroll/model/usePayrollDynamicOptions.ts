@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { Icons } from '@/components/icons';
 import type { FacetGroupDefinition } from '@/shared/ui/responsive-facet-toolbox';
 import { useStateSearchEngine, type SearchEngineResultItem } from '@/components/search-engine';
-import { CATEGORY_FACET_OPTIONS, STATUS_FACET_OPTIONS } from '../constants/options';
+import { STATUS_FACET_OPTIONS } from '../constants/options';
 import type { UsePayrollViewResult } from './usePayrollView';
 
 export interface UsePayrollDynamicOptionsProps {
@@ -44,8 +44,25 @@ export function usePayrollDynamicOptions({ payrollView }: UsePayrollDynamicOptio
     }));
   }, [periods]);
 
-  // 2. Category Options (Presentation SSOT)
-  const categoryFacetOptions = CATEGORY_FACET_OPTIONS;
+  // 2. Role Options (Presentation SSOT derived dynamically from active staff summaries)
+  const roleFacetOptions = useMemo(() => {
+    const roleMap = new Map<string, { label: string; count: number }>();
+    for (const s of summaries) {
+      if (s.roleCode && s.roleName) {
+        const key = s.roleCode;
+        const label = s.roleName;
+        if (!roleMap.has(key)) {
+          roleMap.set(key, { label, count: 0 });
+        }
+        roleMap.get(key)!.count += 1;
+      }
+    }
+    return Array.from(roleMap.entries()).map(([value, info]) => ({
+      value,
+      label: info.label,
+      count: info.count
+    }));
+  }, [summaries]);
 
   // 3. Status Options (Presentation SSOT)
   const statusFacetOptions = STATUS_FACET_OPTIONS;
@@ -69,18 +86,20 @@ export function usePayrollDynamicOptions({ payrollView }: UsePayrollDynamicOptio
       });
     }
 
-    groups.push({
-      id: 'category',
-      title: 'Kategori',
-      icon: Icons.teams,
-      mode: 'single',
-      options: categoryFacetOptions,
-      selectedValues: selectedCategory && selectedCategory !== 'all' ? [selectedCategory] : [],
-      onSelect: (val: string) => actions.changeCategory(val),
-      onReset: () => actions.changeCategory('all'),
-      resetLabel: 'Semua Kategori',
-      popoverWidth: 'w-48'
-    });
+    if (roleFacetOptions.length > 0) {
+      groups.push({
+        id: 'role',
+        title: 'Peran',
+        icon: Icons.users,
+        mode: 'single',
+        options: roleFacetOptions,
+        selectedValues: selectedCategory && selectedCategory !== 'all' ? [selectedCategory] : [],
+        onSelect: (val: string) => actions.changeCategory(val),
+        onReset: () => actions.changeCategory('all'),
+        resetLabel: 'Semua Peran',
+        popoverWidth: 'w-48'
+      });
+    }
 
     groups.push({
       id: 'status',
@@ -100,7 +119,7 @@ export function usePayrollDynamicOptions({ payrollView }: UsePayrollDynamicOptio
     periodFacetOptions,
     selectedPeriodId,
     periods,
-    categoryFacetOptions,
+    roleFacetOptions,
     selectedCategory,
     statusFacetOptions,
     selectedStatus,
@@ -143,19 +162,19 @@ export function usePayrollDynamicOptions({ payrollView }: UsePayrollDynamicOptio
       });
     });
 
-    CATEGORY_FACET_OPTIONS.forEach((cat) => {
+    roleFacetOptions.forEach((role) => {
       items.push({
-        id: `cat-${cat.value}`,
-        title: cat.label,
-        subtitle: 'Kategori Staf',
-        category: 'Kategori',
-        icon: Icons.teams,
-        queryValue: cat.label
+        id: `role-${role.value}`,
+        title: role.label,
+        subtitle: 'Peran Pegawai',
+        category: 'Peran',
+        icon: Icons.users,
+        queryValue: role.label
       });
     });
 
     return items;
-  }, [summaries, periods]);
+  }, [summaries, periods, roleFacetOptions]);
 
   const searchEngine = useStateSearchEngine({
     query: searchQuery,

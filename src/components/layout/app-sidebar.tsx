@@ -29,6 +29,7 @@ import {
 import { UserAvatarProfile } from '@/components/user-avatar-profile';
 import { SidebarSkeleton } from '@/components/layout/sidebar-skeleton';
 import { useAuthContext } from '@/lib/rbac/auth-context';
+import { PERMISSIONS, AUDIENCE } from '@/core/auth/permissions.constants';
 import { signOut } from '@/lib/auth-client';
 import { logoutAction } from '@/server/actions/auth.actions';
 import Link from 'next/link';
@@ -40,7 +41,7 @@ import { OrgSwitcher } from '../org-switcher';
 export default function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, role, navGroups, status, isReady } = useAuthContext();
+  const { user, navGroups, status, isReady, can } = useAuthContext();
   const { isMobile, openMobile, setOpenMobile } = useSidebar();
 
   // Idempotent state management: close mobile sidebar when navigating or clicking active link
@@ -171,13 +172,15 @@ export default function AppSidebar() {
                   <DropdownMenuItem
                     onClick={() => {
                       handleNavClick();
-                      router.push(role === 'admin' ? '/admin/profile' : '/klinik/profile');
+                      router.push(
+                        user?.audience === AUDIENCE.INTERNAL ? '/admin/profile' : '/klinik/profile'
+                      );
                     }}
                   >
                     <Icons.account className='mr-2 h-4 w-4' />
                     Profile
                   </DropdownMenuItem>
-                  {role === 'admin' && (
+                  {can(PERMISSIONS.CLINICS.MANAGE) && (
                     <DropdownMenuItem
                       onClick={() => {
                         handleNavClick();

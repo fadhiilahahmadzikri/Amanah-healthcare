@@ -1,14 +1,14 @@
 import { Suspense } from 'react';
 import PageContainer from '@/components/layout/page-container';
 import { ClinicalHistoryTables, ClinicalHistoryTableSkeleton } from '@/features/klinik';
-import { requirePatient } from '@/lib/guard';
+import { requireRouteAccess } from '@/lib/guard';
 
 export const metadata = {
   title: 'Dashboard: Riwayat Medis'
 };
 
 export default async function ClinicalHistoryPage() {
-  await requirePatient();
+  await requireRouteAccess('/klinik/history');
 
   return (
     <PageContainer

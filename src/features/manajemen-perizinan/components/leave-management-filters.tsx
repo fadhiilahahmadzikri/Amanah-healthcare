@@ -47,6 +47,7 @@ export function LeaveManagementFilters({
     () => ({
       searchQuery,
       statusFilter: selectedStatuses,
+      roleFilter: selectedStaffTypes,
       staffTypeFilter: selectedStaffTypes,
       leaveTypeFilter: selectedLeaveTypes,
       filteredLeaves: [],
@@ -60,6 +61,7 @@ export function LeaveManagementFilters({
       actions: {
         changeSearch: onSearchChange,
         changeStatusFilter: onSelectedStatusesChange,
+        changeRoleFilter: onSelectedStaffTypesChange,
         changeStaffTypeFilter: onSelectedStaffTypesChange,
         changeLeaveTypeFilter: onSelectedLeaveTypesChange,
         resetFilters: onResetAll

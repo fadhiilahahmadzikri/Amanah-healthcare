@@ -48,6 +48,7 @@ export function LeaveMobileFilterToolbar({
     () => ({
       searchQuery,
       statusFilter: selectedStatuses,
+      roleFilter: selectedStaffTypes,
       staffTypeFilter: selectedStaffTypes,
       leaveTypeFilter: selectedLeaveTypes,
       filteredLeaves: leaves,
@@ -66,6 +67,7 @@ export function LeaveMobileFilterToolbar({
       actions: {
         changeSearch: onSearchChange,
         changeStatusFilter: onSelectedStatusesChange,
+        changeRoleFilter: onSelectedStaffTypesChange,
         changeStaffTypeFilter: onSelectedStaffTypesChange,
         changeLeaveTypeFilter: onSelectedLeaveTypesChange,
         resetFilters: onResetAll

@@ -10,11 +10,11 @@ import type {
 
 export async function fetchAllLeaves(filters?: {
   status?: string;
-  staffType?: string;
+  roleId?: string;
 }): Promise<LeaveRequestItem[]> {
   const query: Record<string, unknown> = {};
   if (filters?.status) query.status = filters.status;
-  if (filters?.staffType) query.staffType = filters.staffType;
+  if (filters?.roleId) query.roleId = filters.roleId;
 
   return clientFetch<LeaveRequestItem[]>('/api/v1/leaves/all', {
     method: 'GET',

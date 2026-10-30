@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';

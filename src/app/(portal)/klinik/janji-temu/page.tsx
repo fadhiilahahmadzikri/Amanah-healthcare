@@ -1,13 +1,13 @@
 import PageContainer from '@/components/layout/page-container';
 import { AppointmentsView } from '@/features/klinik';
-import { requirePatient } from '@/lib/guard';
+import { requireRouteAccess } from '@/lib/guard';
 
 export const metadata = {
   title: 'Dashboard: Janji Temu'
 };
 
 export default async function JanjiTemuPage() {
-  await requirePatient();
+  await requireRouteAccess('/klinik/janji-temu');
 
   return (
     <PageContainer

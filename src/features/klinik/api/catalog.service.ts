@@ -6,9 +6,12 @@ export interface ServiceCatalogItem {
   name: string;
   prefix: string;
   description?: string | null;
-  imageUrl?: string | null;
+  iconName?: string | null;
   specialtyCode?: string | null;
-  medicalFlow?: 'general' | 'pregnancy' | 'immunization' | null;
+  intakeFormId?: string | null;
+  intakeFormCode?: string | null;
+  intakeFormName?: string | null;
+  medicalFlow?: string | null;
   displayOrder: number;
   categoryId?: string;
   poliklinikId: string;
@@ -21,7 +24,7 @@ export interface ServiceCategoryCatalog {
   code: string;
   name: string;
   description?: string | null;
-  imageUrl?: string | null;
+  iconName?: string | null;
   displayOrder: number;
   poliklinikId: string;
   poliklinikName: string;

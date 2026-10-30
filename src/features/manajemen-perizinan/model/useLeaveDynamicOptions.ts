@@ -70,16 +70,16 @@ export function useLeaveDynamicOptions({ filters, leaves }: UseLeaveDynamicOptio
         popoverWidth: 'w-48'
       },
       {
-        id: 'staffType',
+        id: 'role',
         title: 'Peran',
         icon: Icons.users,
         mode: 'multi',
         options: roleOptions,
-        selectedValues: filters.staffTypeFilter,
+        selectedValues: filters.roleFilter,
         onSelect: (val: string) => {
-          filters.actions.changeStaffTypeFilter(toggleItem(filters.staffTypeFilter, val));
+          filters.actions.changeRoleFilter(toggleItem(filters.roleFilter, val));
         },
-        onReset: () => filters.actions.changeStaffTypeFilter([]),
+        onReset: () => filters.actions.changeRoleFilter([]),
         resetLabel: 'Reset Peran',
         popoverWidth: 'w-52'
       },
@@ -104,7 +104,7 @@ export function useLeaveDynamicOptions({ filters, leaves }: UseLeaveDynamicOptio
   }, [
     filters.counts,
     filters.statusFilter,
-    filters.staffTypeFilter,
+    filters.roleFilter,
     filters.leaveTypeFilter,
     filters.actions,
     leaves
@@ -115,10 +115,10 @@ export function useLeaveDynamicOptions({ filters, leaves }: UseLeaveDynamicOptio
     let count = 0;
     if (filters.searchQuery?.trim()) count++;
     if (filters.statusFilter.length > 0) count += filters.statusFilter.length;
-    if (filters.staffTypeFilter.length > 0) count += filters.staffTypeFilter.length;
+    if (filters.roleFilter.length > 0) count += filters.roleFilter.length;
     if (filters.leaveTypeFilter.length > 0) count += filters.leaveTypeFilter.length;
     return count;
-  }, [filters.searchQuery, filters.statusFilter, filters.staffTypeFilter, filters.leaveTypeFilter]);
+  }, [filters.searchQuery, filters.statusFilter, filters.roleFilter, filters.leaveTypeFilter]);
 
   // 3. Centralized Search Engine Index Items (Staff members from leaves)
   const indexItems = useMemo<SearchEngineResultItem[]>(() => {

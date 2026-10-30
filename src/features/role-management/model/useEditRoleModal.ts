@@ -3,7 +3,15 @@
 import * as React from 'react';
 import { toast } from 'sonner';
 import { roleManagementApi } from '../api/role-management.api';
-import type { Permission, Role, RoleAudience, RoleTier } from '../types/role.types';
+import {
+  AUDIENCE,
+  ROLE_TIER,
+  NO_PARENT_ROLE_SENTINEL,
+  type Permission,
+  type Role,
+  type RoleAudience,
+  type RoleTier
+} from '../types/role.types';
 
 export interface UseEditRoleModalProps {
   role: Role | null;
@@ -23,9 +31,11 @@ export function useEditRoleModal({
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [name, setName] = React.useState(role?.name || '');
   const [description, setDescription] = React.useState(role?.description || '');
-  const [tier, setTier] = React.useState<RoleTier>(role?.tier || 'macro');
-  const [audience, setAudience] = React.useState<RoleAudience>(role?.audience || 'internal');
-  const [parentRoleId, setParentRoleId] = React.useState<string>(role?.parentRoleId || 'none');
+  const [tier, setTier] = React.useState<RoleTier>(role?.tier || ROLE_TIER.MACRO);
+  const [audience, setAudience] = React.useState<RoleAudience>(role?.audience || AUDIENCE.INTERNAL);
+  const [parentRoleId, setParentRoleId] = React.useState<string>(
+    role?.parentRoleId || NO_PARENT_ROLE_SENTINEL
+  );
   const [isClinical, setIsClinical] = React.useState(Boolean(role?.isClinical));
   const [selectedPermissionIds, setSelectedPermissionIds] = React.useState<string[]>(() =>
     (role?.permissions || []).map((p) => p.id)
@@ -72,7 +82,7 @@ export function useEditRoleModal({
         description: description.trim() || null,
         tier,
         audience,
-        parentRoleId: parentRoleId !== 'none' ? parentRoleId : null,
+        parentRoleId: parentRoleId !== NO_PARENT_ROLE_SENTINEL ? parentRoleId : null,
         isClinical
       });
 

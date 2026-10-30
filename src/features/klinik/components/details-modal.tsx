@@ -6,11 +6,12 @@ import {
   type AppointmentDetailOrganismProps
 } from './appointment-card/organisms/appointment-detail-organism';
 import type { Appointment } from '../api/types';
+import type { AudienceType } from '@/core/auth/permissions.constants';
 
 export interface DetailsModalProps {
   isOpen: boolean;
   appointment: Appointment | null;
-  viewerRole?: 'patient' | 'internal';
+  viewerAudience?: AudienceType;
   isHistoryMode?: boolean;
   onClose: () => void;
   onCancel?: (appointment: Appointment, reason?: string) => Promise<void> | void;

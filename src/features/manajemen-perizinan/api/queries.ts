@@ -8,7 +8,7 @@ import {
   fetchReplacements
 } from './service';
 
-export function useAllLeavesQuery(filters?: { status?: string; staffType?: string }) {
+export function useAllLeavesQuery(filters?: { status?: string; roleId?: string }) {
   return useQuery({
     queryKey: leaveManagementKeys.list(filters),
     queryFn: () => fetchAllLeaves(filters)

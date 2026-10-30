@@ -1,6 +1,5 @@
 import 'server-only';
 import { getServerUpstream } from '@/core/config/endpoints';
-import { serverEnv } from '@/core/config/env.server';
 import { logger } from '@/core/logging/logger';
 
 export interface BetterAuthUser {

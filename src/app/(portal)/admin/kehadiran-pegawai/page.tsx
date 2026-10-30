@@ -1,4 +1,4 @@
-import { requireAdmin } from '@/lib/guard';
+import { requireRouteAccess } from '@/lib/guard';
 import { KehadiranPegawaiView } from '@/features/kehadiran-pegawai';
 
 export const metadata = {
@@ -6,6 +6,6 @@ export const metadata = {
 };
 
 export default async function KehadiranPegawaiPage() {
-  await requireAdmin();
+  await requireRouteAccess('/admin/kehadiran-pegawai');
   return <KehadiranPegawaiView />;
 }

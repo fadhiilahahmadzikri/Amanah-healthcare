@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { cn } from '@/lib/utils';
 import { PatientLineInput } from './registration/atoms/patient-line-input';
 import { Switch } from '@/components/ui/switch';
 import { StatusBadge } from '@/components/ui/status-badge';

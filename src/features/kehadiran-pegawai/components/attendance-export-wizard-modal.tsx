@@ -435,7 +435,7 @@ export function AttendanceExportWizardModal({ isOpen, onClose }: AttendanceExpor
                   <p className='text-[11px] text-muted-foreground max-w-xs'>
                     {searchQuery
                       ? 'Tidak ada pegawai yang cocok dengan kata kunci pencarian Anda.'
-                      : 'Belum ada data pegawai terdaftar untuk kategori ini.'}
+                      : 'Belum ada data pegawai terdaftar untuk peran ini.'}
                   </p>
                 </div>
               ) : (

@@ -3,21 +3,21 @@
 import { useMemo } from 'react';
 import type { NavItem, NavGroup } from '@/types';
 import { useAuthContext } from '@/lib/rbac/auth-context';
-import { filterNavGroupsByRole, filterNavItemsByRole } from '@/lib/rbac/navigation';
+import { filterNavGroupsByAccess, filterNavItemsByAccess } from '@/lib/rbac/navigation';
 
 /**
  * Filter navigation items using the authoritative Server-First Authorization Context.
  * Replaces the client-side hydration waterfall with instant zero-flicker projection.
  */
 export function useFilteredNavItems(items: NavItem[]): NavItem[] {
-  const { role, isReady } = useAuthContext();
+  const { user, isReady } = useAuthContext();
 
   return useMemo(() => {
-    if (!isReady || !role) {
+    if (!isReady || !user?.audience) {
       return [];
     }
-    return filterNavItemsByRole(items, role);
-  }, [items, role, isReady]);
+    return filterNavItemsByAccess(items, user.audience, user.permissions);
+  }, [items, user, isReady]);
 }
 
 /**
@@ -25,15 +25,15 @@ export function useFilteredNavItems(items: NavItem[]): NavItem[] {
  * Guarantees zero hydration flicker and instant first paint.
  */
 export function useFilteredNavGroups(groups: NavGroup[]): NavGroup[] {
-  const { navGroups, role, isReady } = useAuthContext();
+  const { navGroups, user, isReady } = useAuthContext();
 
   return useMemo(() => {
     if (isReady && navGroups.length > 0) {
       return navGroups;
     }
-    if (!isReady || !role) {
+    if (!isReady || !user?.audience) {
       return [];
     }
-    return filterNavGroupsByRole(groups, role);
-  }, [groups, navGroups, role, isReady]);
+    return filterNavGroupsByAccess(groups, user.audience, user.permissions);
+  }, [groups, navGroups, user, isReady]);
 }

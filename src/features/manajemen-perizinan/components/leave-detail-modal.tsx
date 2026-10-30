@@ -7,6 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Icons } from '@/components/icons';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
 import { formatClinicDate, formatClinicDateTime } from '@/lib/date-format';
+import { useAuthContext } from '@/lib/rbac/auth-context';
+import { PERMISSIONS } from '@/core/auth/permissions.constants';
 import { LeaveStatusBadge } from './leave-status-badge';
 import { useLeaveDetailSheet } from '../model/useLeaveDetailSheet';
 import type { LeaveRequestItem } from '../api/types';
@@ -35,6 +37,8 @@ export function LeaveDetailModal({
 }: LeaveDetailModalProps) {
   const { approvalNotes, setApprovalNotes, handleReview, handleClose, isPending, isSubmitting } =
     useLeaveDetailSheet({ leave, onClose });
+  const { can } = useAuthContext();
+  const canApprove = can(PERMISSIONS.ATTENDANCE.APPROVE) || can(PERMISSIONS.ATTENDANCE.MANAGE);
 
   if (!leave) return null;
 
@@ -58,7 +62,8 @@ export function LeaveDetailModal({
               {staff?.fullName || 'Detail Permohonan Izin'}
             </h3>
             <p className='text-xs text-muted-foreground truncate font-medium'>
-              {staff?.profession || ''}
+              {staff?.roleName || staff?.profession || ''}
+              {staff?.roleName && staff?.profession ? ` • ${staff.profession}` : ''}
               {staff?.idCardNumber ? ` • ID: ${staff.idCardNumber}` : ''}
             </p>
           </div>
@@ -228,7 +233,7 @@ export function LeaveDetailModal({
 
         {/* Pinned Footer */}
         <div className='shrink-0 pt-3.5 border-t border-border/40 flex items-center justify-end gap-2.5'>
-          {isPending && (
+          {isPending && canApprove && (
             <Button
               type='button'
               variant='outline'
@@ -254,7 +259,7 @@ export function LeaveDetailModal({
             Tutup
           </Button>
 
-          {isPending && (
+          {isPending && canApprove && (
             <Button
               type='button'
               variant='default'

@@ -50,7 +50,7 @@ export const RegulerEncounterSection: React.FC<RegulerEncounterSectionProps> = (
               </FormText>
             </td>
             <td className='px-1.5 py-0.5 border-r border-black'>
-              <FormText customPt={7.2}>{data?.serviceName || 'Poli Umum'}</FormText>
+              <FormText customPt={7.2}>{data?.serviceName || '-'}</FormText>
             </td>
             <td className='px-1.5 py-0.5 bg-gray-50 border-r border-black font-semibold'>
               <FormText customPt={7.2} bold>

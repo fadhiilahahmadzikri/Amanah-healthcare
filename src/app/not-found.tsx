@@ -13,7 +13,8 @@ export default function NotFound() {
   const { data: session } = useSession();
 
   const isAuthenticated = Boolean(session?.user);
-  const destination = isAuthenticated ? getRoleLandingPath(session?.user?.role) : ROUTES.home;
+  const userAudience = (session?.user as { audience?: string })?.audience;
+  const destination = isAuthenticated ? getRoleLandingPath(userAudience) : ROUTES.home;
 
   const destinationLabel = isAuthenticated ? 'Kembali ke Portal' : 'Kembali ke Beranda';
 

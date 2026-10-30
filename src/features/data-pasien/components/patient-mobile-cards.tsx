@@ -247,8 +247,6 @@ export function PatientMobileCards({
               {hasAffiliates &&
                 (() => {
                   const affiliates = patient.affiliates || [];
-                  const previewAffiliates = affiliates.slice(0, 3);
-                  const extraCount = affiliates.length - previewAffiliates.length;
 
                   return (
                     <div className='flex flex-col'>

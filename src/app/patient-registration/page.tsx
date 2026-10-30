@@ -10,5 +10,6 @@ export const metadata: Metadata = {
 
 export default async function PatientRegistrationPage() {
   const session = await requireSession();
-  redirect(getRoleLandingPath(session.user.role));
+  const audience = (session.user as { audience?: string }).audience;
+  redirect(getRoleLandingPath(audience));
 }

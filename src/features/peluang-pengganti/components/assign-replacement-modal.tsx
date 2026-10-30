@@ -196,8 +196,12 @@ export function AssignReplacementModal({
                         <div className='font-semibold text-xs truncate leading-tight'>
                           {staff.fullName}
                         </div>
-                        <div className='text-[10.5px] text-muted-foreground truncate leading-tight'>
-                          {staff.profession}
+                        <div className='text-[10.5px] text-muted-foreground truncate leading-tight flex items-center gap-1'>
+                          {staff.roleName && (
+                            <span className='font-medium text-foreground/80'>{staff.roleName}</span>
+                          )}
+                          {staff.roleName && staff.profession && <span>•</span>}
+                          <span>{staff.profession}</span>
                         </div>
                       </div>
                     </div>

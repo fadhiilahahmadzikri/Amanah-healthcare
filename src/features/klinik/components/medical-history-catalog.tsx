@@ -23,7 +23,7 @@ export function MedicalHistoryCatalog({
   groupKey,
   recordsCount,
   maxRecords,
-  values,
+  values: _values,
   onEditRecord,
   onRemoveRecord,
   onAddRecord,

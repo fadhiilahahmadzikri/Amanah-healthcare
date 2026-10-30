@@ -3,7 +3,8 @@
 import * as React from 'react';
 import type { NavGroup } from '@/types';
 import { useSession } from '@/lib/auth-client';
-import { filterNavGroupsByRole, type SupportedRole } from './navigation';
+import { filterNavGroupsByAccess } from './navigation';
+import { AUDIENCE, type AudienceType } from '@/core/auth/permissions.constants';
 
 export type AuthStatus = 'unknown' | 'allow' | 'deny';
 
@@ -14,32 +15,27 @@ export interface AuthUser {
   image?: string | null;
   role?: string | null;
   banned?: boolean | null;
+  permissions?: string[];
+  audience?: AudienceType;
 }
 
 export interface AuthContextValue {
   status: AuthStatus;
   isReady: boolean;
   user: AuthUser | null;
-  role: SupportedRole | null;
+  role: string | null;
+  audience: AudienceType | null;
   navGroups: NavGroup[];
   can: (permission: string) => boolean;
-  hasRole: (role: SupportedRole) => boolean;
 }
-
-const PATIENT_ALLOWED_PERMISSIONS = new Set([
-  'appointment.create',
-  'appointment.read',
-  'appointment.cancel',
-  'queue.read',
-  'queue.take-ticket'
-]);
 
 const AuthorizationContext = React.createContext<AuthContextValue | null>(null);
 
 export interface AuthorizationProviderProps {
   children: React.ReactNode;
   initialUser: AuthUser | null;
-  initialRole: SupportedRole | null;
+  initialRole?: string | null;
+  initialAudience?: AudienceType | null;
   initialNavGroups: NavGroup[];
   allNavGroups?: NavGroup[];
 }
@@ -53,11 +49,15 @@ export function AuthorizationProvider({
   children,
   initialUser,
   initialRole,
+  initialAudience,
   initialNavGroups,
   allNavGroups
 }: AuthorizationProviderProps) {
   const [user, setUser] = React.useState<AuthUser | null>(initialUser);
-  const [role, setRole] = React.useState<SupportedRole | null>(initialRole);
+  const [role, setRole] = React.useState<string | null>(initialRole ?? initialUser?.role ?? null);
+  const [audience, setAudience] = React.useState<AudienceType | null>(
+    initialAudience ?? initialUser?.audience ?? null
+  );
   const [navGroups, setNavGroups] = React.useState<NavGroup[]>(initialNavGroups);
   const [status, setStatus] = React.useState<AuthStatus>(initialUser ? 'allow' : 'unknown');
 
@@ -68,31 +68,55 @@ export function AuthorizationProvider({
     if (isPending) return;
 
     if (clientSession?.user) {
-      const clientRole: SupportedRole = clientSession.user.role === 'admin' ? 'admin' : 'patient';
+      const clientUser = clientSession.user as {
+        id: string;
+        name?: string | null;
+        email?: string | null;
+        image?: string | null;
+        role?: string | null;
+        banned?: boolean | null;
+        audience?: AudienceType;
+        permissions?: string[];
+      };
+
+      const resolvedAudience: AudienceType = clientUser.audience ?? AUDIENCE.INTERNAL;
+      const permissions = clientUser.permissions ?? [];
 
       setUser((prev) => {
         if (
-          prev?.id === clientSession.user.id &&
-          prev?.role === clientSession.user.role &&
-          prev?.name === clientSession.user.name &&
-          prev?.email === clientSession.user.email &&
-          prev?.image === clientSession.user.image
+          prev?.id === clientUser.id &&
+          prev?.role === clientUser.role &&
+          prev?.name === clientUser.name &&
+          prev?.email === clientUser.email &&
+          prev?.image === clientUser.image &&
+          prev?.audience === resolvedAudience
         ) {
           return prev;
         }
-        return clientSession.user as AuthUser;
+        return {
+          id: clientUser.id,
+          name: clientUser.name,
+          email: clientUser.email,
+          image: clientUser.image,
+          role: clientUser.role,
+          banned: clientUser.banned,
+          audience: resolvedAudience,
+          permissions
+        };
       });
 
-      setRole((prev) => (prev === clientRole ? prev : clientRole));
+      setRole(clientUser.role ?? null);
+      setAudience(resolvedAudience);
       setStatus('allow');
 
       if (allNavGroups && allNavGroups.length > 0) {
-        setNavGroups(filterNavGroupsByRole(allNavGroups, clientRole));
+        setNavGroups(filterNavGroupsByAccess(allNavGroups, resolvedAudience, permissions));
       }
     } else if (clientSession === null && !initialUser) {
       // Explicitly unauthenticated on client
       setUser(null);
       setRole(null);
+      setAudience(null);
       setStatus('deny');
       setNavGroups([]);
     }
@@ -100,18 +124,11 @@ export function AuthorizationProvider({
 
   const can = React.useCallback(
     (permission: string): boolean => {
-      if (status !== 'allow' || !role) return false;
-      if (role === 'admin') return true;
-      return PATIENT_ALLOWED_PERMISSIONS.has(permission);
+      if (status !== 'allow' || !user) return false;
+      const perms = user.permissions ?? [];
+      return perms.includes('*') || perms.includes(permission);
     },
-    [status, role]
-  );
-
-  const hasRole = React.useCallback(
-    (targetRole: SupportedRole): boolean => {
-      return status === 'allow' && role === targetRole;
-    },
-    [status, role]
+    [status, user]
   );
 
   const value = React.useMemo<AuthContextValue>(
@@ -120,11 +137,11 @@ export function AuthorizationProvider({
       isReady: status !== 'unknown',
       user,
       role,
+      audience,
       navGroups,
-      can,
-      hasRole
+      can
     }),
-    [status, user, role, navGroups, can, hasRole]
+    [status, user, role, audience, navGroups, can]
   );
 
   return <AuthorizationContext.Provider value={value}>{children}</AuthorizationContext.Provider>;
@@ -142,9 +159,9 @@ export function useAuthContext(): AuthContextValue {
       isReady: false,
       user: null,
       role: null,
+      audience: null,
       navGroups: [],
-      can: () => false,
-      hasRole: () => false
+      can: () => false
     };
   }
   return context;
@@ -162,8 +179,8 @@ export function useAuthorizedNav(): NavGroup[] {
  * Returns the current authenticated principal and role.
  */
 export function useCurrentUser() {
-  const { user, role, status, isReady } = useAuthContext();
-  return { user, role, status, isReady };
+  const { user, role, audience, status, isReady } = useAuthContext();
+  return { user, role, audience, status, isReady };
 }
 
 /**
@@ -175,9 +192,9 @@ export function useCan(permission: string): boolean {
 }
 
 /**
- * Checks whether the current principal has a specific role.
+ * Returns current audience (internal or external).
  */
-export function useHasRole(role: SupportedRole): boolean {
-  const { hasRole } = useAuthContext();
-  return hasRole(role);
+export function useAudience(): AudienceType | null {
+  const { audience } = useAuthContext();
+  return audience;
 }

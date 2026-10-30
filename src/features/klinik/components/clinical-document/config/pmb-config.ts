@@ -1,18 +1,18 @@
-import type { PmbFormConfig, PmbFormData } from '../types';
+import type { PmbFormConfig } from '../types';
 
 export const defaultPmbConfig: PmbFormConfig = {
   page: {
     size: {
       width: 11906,
-      height: 16838,
+      height: 16838
     },
     margin: {
       top: 420,
       right: 520,
       bottom: 420,
-      left: 520,
+      left: 520
     },
-    contentWidth: 10866,
+    contentWidth: 10866
   },
   typography: {
     font: 'Times New Roman',
@@ -20,12 +20,12 @@ export const defaultPmbConfig: PmbFormConfig = {
     small: 6.8,
     identity: 6.6,
     section: 8.2,
-    title: 10,
+    title: 10
   },
   layout: {
     sectionLabelBefore: 90,
     sectionLabelAfter: 20,
-    obstetriTitleBefore: 90,
+    obstetriTitleBefore: 90
   },
   header: {
     leftBoxWidth: 2100,
@@ -41,11 +41,11 @@ export const defaultPmbConfig: PmbFormConfig = {
       { text: 'NUR HIDAYATUN, S.ST, BDN.', bold: true, size: 10 },
       { text: 'SIPB: 503/000058.05.22/0053/K18/B/2022', size: 6.7 },
       { text: 'Jl. Anyelir I No. 243 Perumnas Condongcatur, Depok Sleman.', size: 6.7 },
-      { text: 'DIY 55283 | WA. 081 392 45 6064', size: 6.7 },
+      { text: 'DIY 55283 | WA. 081 392 45 6064', size: 6.7 }
     ],
     // Doctor instructed: RMANC.2 (row 2) must be left empty!
     rmRows: ['RM ANC :', ''],
-    allergyLabel: 'Alergi :',
+    allergyLabel: 'Alergi :'
   },
   identity: {
     columns: [1250, 2900, 1550, 1100, 1600, 2466],
@@ -54,29 +54,24 @@ export const defaultPmbConfig: PmbFormConfig = {
       ['NIK :', '', 'Tgl Lahir :', '', 'Pekerjaan Ibu :', ''],
       ['Nama Suami :', '', 'Umur :', '', 'Pendidikan Ibu :', ''],
       ['NIK :', '', 'Tgl. Lahir :', '', 'Pekerjaan Suami :', ''],
-      ['', '', 'Umur :', '', 'Pendidikan Suami :', ''],
+      ['', '', 'Umur :', '', 'Pendidikan Suami :', '']
     ],
     fullRows: ['Agama :', 'Domisili :', 'Alamat KTP :', 'No. Telp :'],
     locationLabels: ['Dasawisma :', 'Posyandu :', 'Puskesmas :'],
     measurementRows: [
       ['TB :', 'LILA :', 'Status TT :', 'Gol. Darah Ibu :'],
-      ['BB awal :', 'IMT awal :', '', 'Gol. Darah Suami :'],
-    ],
+      ['BB awal :', 'IMT awal :', '', 'Gol. Darah Suami :']
+    ]
   },
   anamnesa: {
     leftWidth: 5850,
     rightWidth: 5016,
-    prompts: [
-      '1. HPHT (Haid Pertama Haid Terakhir) :',
-      '2. HPL :',
-      '3. UK :',
-      '4. Keluhan :',
-    ],
+    prompts: ['1. HPHT (Haid Pertama Haid Terakhir) :', '2. HPL :', '3. UK :', '4. Keluhan :'],
     riskTitle: 'Riwayat Perilaku Beresiko 1 Bulan Sebelum Hamil',
     riskColumns: [1950, 1950, 1950],
     riskGrid: [
       ['Merokok', 'Pola Makan Beresiko', 'Aktivitas fisik berkurang'],
-      ['Alkohol', 'Obat Teratogenik', 'Kosmetik dengan zat berbahaya'],
+      ['Alkohol', 'Obat Teratogenik', 'Kosmetik dengan zat berbahaya']
     ],
     environmentLabel: 'Lingkungan beresiko : Pestisida/ Lainnya',
     otherLabel: 'Lain-lain :',
@@ -97,8 +92,8 @@ export const defaultPmbConfig: PmbFormConfig = {
       'Riwayat Gemelli',
       'Kista/Miom/Tumor',
       'Operasi',
-      '',
-    ],
+      ''
+    ]
   },
   obstetri: {
     title: 'RIWAYAT OBSTETRI',
@@ -113,9 +108,9 @@ export const defaultPmbConfig: PmbFormConfig = {
       'Penolong',
       'Cara Persalinan',
       'Tempat Persalinan',
-      'Komplikasi',
+      'Komplikasi'
     ],
-    blankRows: 4,
+    blankRows: 4
   },
   kb: {
     title: 'RIWAYAT KB',
@@ -127,75 +122,8 @@ export const defaultPmbConfig: PmbFormConfig = {
       'Masa Pakai',
       'Tanggal Lepas',
       'Masalah',
-      'Efek samping',
+      'Efek samping'
     ],
-    blankRows: 4,
-  },
-};
-
-export const samplePmbData: PmbFormData = {
-  header: {
-    allergy: 'Tidak ada alergi obat/makanan',
-  },
-  identity: {
-    topRowValues: [
-      ['Siti Aminah', '1', '14 Februari 2024'],
-      ['3404075205980003', '12 Mei 1998', 'Ibu rumah tangga'],
-      ['Ahmad Fauzi', '28 tahun', 'SMA'],
-      ['3404070310950002', '3 Oktober 1995', 'Karyawan swasta'],
-      ['', '31 tahun', 'SMK'],
-    ],
-    fullRowValues: [
-      'Islam',
-      'Condongcatur, Depok, Sleman',
-      'Jl. Kaliurang Km 7, Sleman, DIY',
-      '081234567890',
-    ],
-    locationValues: ['Melati 3', 'Anyelir', 'Depok II'],
-    measurementValues: [
-      ['156 cm', '25 cm', 'T5', 'O'],
-      ['52 kg', '21,4', '', 'A'],
-    ],
-  },
-  anamnesa: {
-    promptValues: [
-      '12 Mei 2026',
-      '19 Februari 2027',
-      '16 minggu',
-      'Mual pagi dan mudah lelah',
-    ],
-    riskChecked: {
-      'Pola Makan Beresiko': true,
-      'Aktivitas fisik berkurang': true,
-    },
-    environment: 'Tinggal dekat area persawahan',
-    otherLines: ['Tidak ada keluhan lain yang bermakna', '', ''],
-    diseaseHistory: {
-      Hipertensi: { status: 'tidak' },
-      Jantung: { status: 'tidak' },
-      Tiroid: { status: 'tidak' },
-      Autoimun: { status: 'tidak' },
-      Diabetes: { status: 'tidak' },
-      Asma: { status: 'ya', year: '2018' },
-      TBC: { status: 'tidak' },
-      'Hepatitis B': { status: 'tidak' },
-      'HIV/Sifilis': { status: 'tidak' },
-      Jiwa: { status: 'tidak' },
-      'Riwayat Gemelli': { status: 'tidak' },
-      'Kista/Miom/Tumor': { status: 'tidak' },
-      Operasi: { status: 'ya', year: '2021' },
-    },
-  },
-  pregnancyFields: {
-    G: '2',
-    P: '1',
-    Ab: '0',
-    Ah: '1',
-  },
-  obstetriRows: [
-    ['1', '2024', '3100/49', 'P', '39', 'Bidan', 'Spontan', 'PMB', 'Tidak ada'],
-  ],
-  kbRows: [
-    ['1', '01-08-2024', 'Suntik 3 bulan', '12 bulan', '01-08-2025', 'Haid tidak teratur', 'Tidak ada'],
-  ],
+    blankRows: 4
+  }
 };

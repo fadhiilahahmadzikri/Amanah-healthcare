@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Icons } from '@/components/icons';
 import { DeleteAccountDialog } from '@/features/profile/components/delete-account-dialog';
 
-import { requireAdmin } from '@/lib/guard';
+import { requireRouteAccess } from '@/lib/guard';
 
 export const metadata = {
   title: 'Pengaturan Sistem - Amanah Healthcare',
@@ -13,7 +13,7 @@ export const metadata = {
 };
 
 export default async function SettingsPage() {
-  await requireAdmin();
+  await requireRouteAccess('/admin/settings');
   return (
     <PageContainer scrollable={true}>
       <div className='space-y-6 font-sans pb-12 select-none'>

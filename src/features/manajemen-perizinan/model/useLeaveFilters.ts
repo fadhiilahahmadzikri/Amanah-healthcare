@@ -11,7 +11,7 @@ export interface UseLeaveFiltersProps {
 export interface UseLeaveFiltersResult {
   searchQuery: string;
   statusFilter: string[];
-  staffTypeFilter: string[];
+  roleFilter: string[];
   leaveTypeFilter: string[];
   filteredLeaves: LeaveRequestItem[];
   hasActiveFilters: boolean;
@@ -24,7 +24,7 @@ export interface UseLeaveFiltersResult {
   actions: {
     changeSearch: (value: string) => void;
     changeStatusFilter: (statusList: string[]) => void;
-    changeStaffTypeFilter: (staffTypeList: string[]) => void;
+    changeRoleFilter: (roleList: string[]) => void;
     changeLeaveTypeFilter: (leaveTypeList: string[]) => void;
     resetFilters: () => void;
   };
@@ -39,20 +39,20 @@ export function useLeaveFilters(
     {
       search: parseAsString.withDefault(''),
       status: parseAsString.withDefault(''),
-      staffType: parseAsString.withDefault(''),
+      role: parseAsString.withDefault(''),
       leaveType: parseAsString.withDefault('')
     },
     { shallow: true }
   );
 
   const statusFilter = useMemo(() => toList(params.status), [params.status]);
-  const staffTypeFilter = useMemo(() => toList(params.staffType), [params.staffType]);
+  const roleFilter = useMemo(() => toList(params.role), [params.role]);
   const leaveTypeFilter = useMemo(() => toList(params.leaveType), [params.leaveType]);
 
   const hasActiveFilters = [
     Boolean(params.search?.trim()),
     statusFilter.length > 0,
-    staffTypeFilter.length > 0,
+    roleFilter.length > 0,
     leaveTypeFilter.length > 0
   ].some(Boolean);
 
@@ -65,10 +65,10 @@ export function useLeaveFilters(
         return false;
       }
 
-      // 2. Staff role filter
-      if (staffTypeFilter.length > 0) {
+      // 2. Staff role filter (matches roleId or roleCode from DB roles)
+      if (roleFilter.length > 0) {
         const roleKey = leave.staff?.roleId || leave.staff?.roleCode;
-        if (!roleKey || !staffTypeFilter.includes(roleKey)) {
+        if (!roleKey || !roleFilter.includes(roleKey)) {
           return false;
         }
       }
@@ -96,7 +96,7 @@ export function useLeaveFilters(
 
       return true;
     });
-  }, [leaves, statusFilter, staffTypeFilter, leaveTypeFilter, params.search]);
+  }, [leaves, statusFilter, roleFilter, leaveTypeFilter, params.search]);
 
   const counts = useMemo(() => {
     let pending = 0;
@@ -135,9 +135,9 @@ export function useLeaveFilters(
     [setParams]
   );
 
-  const changeStaffTypeFilter = useCallback(
-    (staffTypeList: string[]) => {
-      setParams({ staffType: toParam(staffTypeList) }, { shallow: true });
+  const changeRoleFilter = useCallback(
+    (roleList: string[]) => {
+      setParams({ role: toParam(roleList) }, { shallow: true });
     },
     [setParams]
   );
@@ -154,7 +154,7 @@ export function useLeaveFilters(
       {
         search: null,
         status: null,
-        staffType: null,
+        role: null,
         leaveType: null
       },
       { shallow: true }
@@ -165,17 +165,17 @@ export function useLeaveFilters(
     () => ({
       changeSearch,
       changeStatusFilter,
-      changeStaffTypeFilter,
+      changeRoleFilter,
       changeLeaveTypeFilter,
       resetFilters
     }),
-    [changeSearch, changeStatusFilter, changeStaffTypeFilter, changeLeaveTypeFilter, resetFilters]
+    [changeSearch, changeStatusFilter, changeRoleFilter, changeLeaveTypeFilter, resetFilters]
   );
 
   return {
     searchQuery: params.search,
     statusFilter,
-    staffTypeFilter,
+    roleFilter,
     leaveTypeFilter,
     filteredLeaves,
     hasActiveFilters,

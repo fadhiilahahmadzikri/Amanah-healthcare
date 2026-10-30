@@ -1160,21 +1160,21 @@ The `useFilteredNavItems()` hook in `src/hooks/use-nav.ts` filters navigation cl
 Server-rendered pages use server-side authorization guards from `@/lib/guard`:
 
 ```tsx
-import { requireAdmin } from '@/lib/guard';
+import { requireRouteAccess } from '@/lib/guard';
 
 export default async function Page() {
-  await requireAdmin();
+  await requireRouteAccess('/admin/appointment-pasien');
   // render protected admin view
 }
 ```
 
 ### Client-Side Permission Checks
 
-Use `can(permission)` or `hasRole(role)` from `useAuthContext()`:
+Use `can(permission)` from `useAuthContext()` or the `useCan()` hook:
 
 ```tsx
-const { can, hasRole } = useAuthContext();
-if (can('appointment.create')) {
+const { can } = useAuthContext();
+if (can('appointments:manage')) {
   // show appointment action
 }
 ```

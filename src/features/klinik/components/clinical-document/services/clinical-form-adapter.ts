@@ -556,7 +556,7 @@ export function adaptToImunisasiFormData(
 }
 
 /**
- * Adapter from upstream UnifiedInspectorData to 1:1 RegulerFormData (Poli Umum)
+ * Adapter from upstream UnifiedInspectorData to 1:1 RegulerFormData (General Intake)
  * Prioritizes live in-flight form data when editing.
  */
 export function adaptToRegulerFormData(

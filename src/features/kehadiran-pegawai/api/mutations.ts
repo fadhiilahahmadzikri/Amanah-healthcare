@@ -52,7 +52,7 @@ export function useRecordManualAttendanceMutation() {
         id: record.id,
         nama_staf: record.nama_staf,
         avatar: record.avatar,
-        kategori: record.kategori,
+        roleName: record.roleName,
         waktu_presensi: record.waktu_presensi,
         checkInAt: record.checkInAt,
         checkOutAt: record.checkOutAt,

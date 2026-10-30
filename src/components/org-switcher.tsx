@@ -4,6 +4,7 @@ import * as React from 'react';
 import Image from 'next/image';
 import { Icons } from '@/components/icons';
 import { useAuthContext } from '@/lib/rbac/auth-context';
+import { AUDIENCE } from '@/core/auth/permissions.constants';
 import { Skeleton } from '@/components/ui/skeleton';
 
 import {
@@ -22,7 +23,7 @@ import {
 
 export function OrgSwitcher() {
   const { isMobile, state, setOpenMobile } = useSidebar();
-  const { role, isReady } = useAuthContext();
+  const { audience, isReady } = useAuthContext();
 
   const handleCloseMobile = React.useCallback(() => {
     if (isMobile) {
@@ -30,12 +31,12 @@ export function OrgSwitcher() {
     }
   }, [isMobile, setOpenMobile]);
 
-  const isAdmin = role === 'admin';
+  const isInternal = audience === AUDIENCE.INTERNAL;
 
   const organization = {
     id: 'amanah-main',
     name: 'Amanah Healthcare',
-    role: isAdmin ? 'Klinik Admin' : 'Portal Pasien'
+    role: isInternal ? 'Klinik Admin' : 'Portal Pasien'
   };
 
   return (

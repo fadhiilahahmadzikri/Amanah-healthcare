@@ -18,7 +18,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
-import { Icons } from '@/components/icons';
 import { PayrollActionMenu } from './payroll-action-menu';
 import type { PayrollPeriodItem } from '../api/types';
 

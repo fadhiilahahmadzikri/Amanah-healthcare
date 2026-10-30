@@ -304,7 +304,7 @@ export function DoctorCardPatientStack({
     >
       {/* Overlapping Avatar Stack (WhatsApp-style) */}
       <div className='flex items-center -space-x-1.5 sm:-space-x-1.5 rtl:space-x-reverse overflow-hidden py-0.5 pl-0.5 shrink-0'>
-        {visiblePatients.map((patient, index) => (
+        {visiblePatients.map((patient) => (
           <Avatar
             key={patient.id}
             title={patient.name}

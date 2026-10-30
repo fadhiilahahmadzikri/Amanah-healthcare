@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
+import { ROLE_TIER } from '@/core/auth/permissions.constants';
 import { useInviteStaffModal, type UseInviteStaffModalProps } from '../model/useInviteStaffModal';
 
 export type InviteStaffModalProps = UseInviteStaffModalProps;
@@ -22,8 +23,11 @@ export function InviteStaffModal(props: InviteStaffModalProps) {
     setSelectedRoleId,
     selectedPoliklinikId,
     setSelectedPoliklinikId,
+    selectedUnitId,
+    setSelectedUnitId,
     roles,
     polyclinics,
+    clinicUnits,
     selectedRole,
     isClinical,
     isLoading,
@@ -189,7 +193,7 @@ export function InviteStaffModal(props: InviteStaffModalProps) {
                   </Label>
                   {selectedRole && (
                     <span className='text-[11px] text-muted-foreground'>
-                      {selectedRole.tier === 'macro' ? 'Tingkat Makro' : 'Tingkat Mikro'}
+                      {selectedRole.tier === ROLE_TIER.MACRO ? 'Tingkat Makro' : 'Tingkat Mikro'}
                     </span>
                   )}
                 </div>
@@ -207,11 +211,35 @@ export function InviteStaffModal(props: InviteStaffModalProps) {
                     disabled={isLoading || roles.length === 0}
                     className='flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-xs shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
                   >
-                    {roles.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.name} {r.isClinical ? '• (Praktisi Klinis)' : '• (Operasional)'}
-                      </option>
-                    ))}
+                    {roles.filter((r) => r.tier === 'macro').length > 0 && (
+                      <optgroup label='Peran Makro (Struktural / Induk)'>
+                        {roles
+                          .filter((r) => r.tier === 'macro')
+                          .map((r) => (
+                            <option key={r.id} value={r.id}>
+                              {r.name} {r.isClinical ? '• (Praktisi Klinis)' : '• (Operasional)'}
+                            </option>
+                          ))}
+                      </optgroup>
+                    )}
+                    {roles.filter((r) => r.tier === 'micro').length > 0 && (
+                      <optgroup label='Peran Mikro (Spesifik / Fungsional)'>
+                        {roles
+                          .filter((r) => r.tier === 'micro')
+                          .map((r) => (
+                            <option key={r.id} value={r.id}>
+                              {r.name} {r.isClinical ? '• (Praktisi Klinis)' : '• (Operasional)'}
+                            </option>
+                          ))}
+                      </optgroup>
+                    )}
+                    {roles
+                      .filter((r) => !['macro', 'micro'].includes(r.tier))
+                      .map((r) => (
+                        <option key={r.id} value={r.id}>
+                          {r.name} {r.isClinical ? '• (Praktisi Klinis)' : '• (Operasional)'}
+                        </option>
+                      ))}
                   </select>
                 )}
                 {selectedRole?.description && (
@@ -219,8 +247,8 @@ export function InviteStaffModal(props: InviteStaffModalProps) {
                 )}
               </div>
 
-              {/* Polyclinic Selection (Only if Role is Clinical) */}
-              {isClinical && (
+              {/* Dynamic Unit Assignment: Clinical vs Operational */}
+              {isClinical ? (
                 <div className='flex flex-col gap-1.5 rounded-xl border border-blue-500/20 bg-blue-500/5 p-3.5 transition-all'>
                   <div className='flex items-center justify-between'>
                     <Label
@@ -255,6 +283,37 @@ export function InviteStaffModal(props: InviteStaffModalProps) {
                   <p className='text-[11px] text-blue-800/80 dark:text-blue-400/80'>
                     Praktisi klinis akan otomatis didaftarkan ke jadwal operasional poliklinik yang
                     dipilih.
+                  </p>
+                </div>
+              ) : (
+                <div className='flex flex-col gap-1.5 rounded-xl border border-border/70 bg-muted/20 p-3.5 transition-all'>
+                  <div className='flex items-center justify-between'>
+                    <Label htmlFor='invite-unit' className='text-xs font-medium text-foreground'>
+                      Unit / Departemen Kerja{' '}
+                      <span className='text-muted-foreground font-normal'>(Opsional)</span>
+                    </Label>
+                    <Badge variant='outline' className='text-[10px] bg-muted text-muted-foreground'>
+                      Staf Operasional
+                    </Badge>
+                  </div>
+
+                  <select
+                    id='invite-unit'
+                    value={selectedUnitId}
+                    onChange={(e) => setSelectedUnitId(e.target.value)}
+                    disabled={isLoading || clinicUnits.length === 0}
+                    className='flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-xs shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
+                  >
+                    <option value=''>-- Tanpa Penempatan Unit Khusus (Umum) --</option>
+                    {clinicUnits.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name} ({u.unitType})
+                      </option>
+                    ))}
+                  </select>
+                  <p className='text-[11px] text-muted-foreground'>
+                    Tugaskan staf operasional ke departemen kerja tertentu atau biarkan kosong untuk
+                    staf umum.
                   </p>
                 </div>
               )}

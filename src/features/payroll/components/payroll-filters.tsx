@@ -6,11 +6,7 @@ import { FacetedFilter } from '@/shared/ui/faceted-filter';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
-import {
-  CATEGORY_FILTER_OPTIONS,
-  PERIOD_STATUS_CONFIG,
-  STATUS_FILTER_OPTIONS
-} from '../constants/options';
+import { PERIOD_STATUS_CONFIG, STATUS_FILTER_OPTIONS } from '../constants/options';
 import type { PayrollPeriodItem, PayrollFilterOptionsResponse } from '../api/types';
 
 export interface PayrollFiltersProps {
@@ -74,8 +70,19 @@ export function PayrollFilters({
     });
   }, [periods]);
 
-  // 2. Category Options (Presentation SSOT)
-  const categoryOptions = CATEGORY_FILTER_OPTIONS;
+  // 2. Role Options (Derived from backend filterOptions)
+  const roleOptions = React.useMemo(() => {
+    const opts = [{ label: 'Semua Peran', value: 'all' }];
+    if (filterOptions?.categories && filterOptions.categories.length > 0) {
+      filterOptions.categories.forEach((code) => {
+        opts.push({
+          label: code.charAt(0).toUpperCase() + code.slice(1).replace(/_/g, ' '),
+          value: code
+        });
+      });
+    }
+    return opts;
+  }, [filterOptions?.categories]);
 
   // 3. Status Options (Presentation SSOT)
   const statusOptions = STATUS_FILTER_OPTIONS;
@@ -105,18 +112,20 @@ export function PayrollFilters({
         />
       )}
 
-      {/* 3. Category Filter */}
-      <FacetedFilter<string>
-        title='Kategori'
-        icon={Icons.teams}
-        mode='single'
-        options={categoryOptions}
-        selectedValues={selectedCategory && selectedCategory !== 'all' ? [selectedCategory] : []}
-        onSelect={(val) => onCategoryChange(val)}
-        onReset={() => onCategoryChange('all')}
-        resetLabel='Semua Kategori'
-        popoverWidth='w-48'
-      />
+      {/* 3. Role Filter */}
+      {roleOptions.length > 1 && (
+        <FacetedFilter<string>
+          title='Peran'
+          icon={Icons.users}
+          mode='single'
+          options={roleOptions}
+          selectedValues={selectedCategory && selectedCategory !== 'all' ? [selectedCategory] : []}
+          onSelect={(val) => onCategoryChange(val)}
+          onReset={() => onCategoryChange('all')}
+          resetLabel='Semua Peran'
+          popoverWidth='w-48'
+        />
+      )}
 
       {/* 4. Status Filter */}
       <FacetedFilter<string>

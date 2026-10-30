@@ -23,6 +23,7 @@ import {
   type QueuePoliStats
 } from './queueViewModel';
 import { useAuthContext } from '@/lib/rbac/auth-context';
+import { AUDIENCE } from '@/core/auth/permissions.constants';
 
 export interface UseQueueViewResult {
   activePoli: string;
@@ -57,14 +58,14 @@ export interface UseQueueViewResult {
 }
 
 export function useQueueView(): UseQueueViewResult {
-  const { role, user } = useAuthContext();
-  const isPatient = role === 'patient';
+  const { user } = useAuthContext();
+  const isExternalAudience = user?.audience === AUDIENCE.EXTERNAL;
 
   const [queues, setQueues] = useState<QueueItem[]>([]);
   const [poliList, setPoliList] = useState<string[]>([]);
   const [operationalHours, setOperationalHours] = useState('-');
-  const [activePoli, setActivePoli] = useState('Poli Umum');
-  const [initialPoli, setInitialPoli] = useState('Poli Umum');
+  const [activePoli, setActivePoli] = useState('');
+  const [initialPoli, setInitialPoli] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -77,10 +78,10 @@ export function useQueueView(): UseQueueViewResult {
       .then(([polis, hours]) => {
         if (!isMounted) return;
         if (polis.length > 0) {
-          const initial = polis.includes('Poli Umum') ? 'Poli Umum' : polis[0];
+          const initial = polis[0];
           setPoliList(polis);
           setInitialPoli(initial);
-          setActivePoli((prev) => (polis.includes(prev) ? prev : initial));
+          setActivePoli((prev) => (prev && polis.includes(prev) ? prev : initial));
         }
         if (hours) {
           setOperationalHours(hours);
@@ -95,7 +96,7 @@ export function useQueueView(): UseQueueViewResult {
   }, []);
 
   const refreshQueues = useCallback(async () => {
-    const fetcher = isPatient ? getMyQueueFromApi : getDailyQueuesFromApi;
+    const fetcher = isExternalAudience ? getMyQueueFromApi : getDailyQueuesFromApi;
     const items = await fetcher({ poliklinikId: activePoli });
     const currentUserId = user?.id;
     const mapped = items.map((item) => ({
@@ -108,11 +109,11 @@ export function useQueueView(): UseQueueViewResult {
       )
     }));
     setQueues(mapped);
-  }, [isPatient, activePoli, user?.id]);
+  }, [isExternalAudience, activePoli, user?.id]);
 
   useEffect(() => {
     let isMounted = true;
-    const fetcher = isPatient ? getMyQueueFromApi : getDailyQueuesFromApi;
+    const fetcher = isExternalAudience ? getMyQueueFromApi : getDailyQueuesFromApi;
     fetcher({ poliklinikId: activePoli })
       .then((items) => {
         if (isMounted) {
@@ -137,7 +138,7 @@ export function useQueueView(): UseQueueViewResult {
     return () => {
       isMounted = false;
     };
-  }, [isPatient, activePoli, user?.id]);
+  }, [isExternalAudience, activePoli, user?.id]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

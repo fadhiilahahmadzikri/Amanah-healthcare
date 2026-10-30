@@ -93,15 +93,15 @@ export function getPayrollColumns(): ColumnDef<PayrollSummaryItem>[] {
       enableHiding: true
     },
     {
-      id: 'staffType',
-      accessorKey: 'staffType',
+      id: 'role',
+      accessorKey: 'roleCode',
       header: ({ column }: { column: Column<PayrollSummaryItem, unknown> }) => (
-        <DataTableColumnHeader column={column} title='Kategori' />
+        <DataTableColumnHeader column={column} title='Peran' />
       ),
       cell: ({ row }) => (
         <div className='flex items-center'>
           <StaffRoleBadge
-            roleCode={row.original.roleCode || row.original.staffType}
+            roleCode={row.original.roleCode}
             roleName={row.original.roleName}
             isClinical={row.original.isClinical}
           />

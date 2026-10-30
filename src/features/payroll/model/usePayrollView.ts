@@ -10,8 +10,7 @@ import {
 import type {
   PayrollPeriodItem,
   PayrollSummaryItem,
-  PayrollFilterOptionsResponse,
-  StaffCategory
+  PayrollFilterOptionsResponse
 } from '../api/types';
 import type { MetricChartPoint } from '@/components/charts/metric-chart-card';
 
@@ -117,7 +116,9 @@ export function usePayrollView(): UsePayrollViewResult {
         );
 
       const matchesCategory =
-        params.category === 'all' || item.staffType === (params.category as StaffCategory);
+        params.category === 'all' ||
+        item.roleCode === params.category ||
+        item.roleId === params.category;
 
       const effectiveStatus = item.periodStatus ?? currentPeriod?.status;
       const matchesStatus =

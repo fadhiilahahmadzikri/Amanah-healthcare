@@ -208,16 +208,6 @@ export function useBookingRegularPatientForm({
   const handleSubmit = async () => {
     setErrorMessage(null);
 
-    const fullAddress = [
-      region.line1.trim(),
-      region.villageName,
-      region.districtName,
-      region.regencyName,
-      region.provinceName
-    ]
-      .filter(Boolean)
-      .join(', ');
-
     const selectedOccupation = references.occupations.find((o) => o.code === occupationCode);
     const resolvedBloodType: PatientBloodType = bloodType;
 

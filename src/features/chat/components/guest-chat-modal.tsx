@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { getClientSocketUrl } from '@/core/config/env.client';
 import { chatApiService } from '../api/chat-api-service';
-import type { ChatMessage, Conversation } from '../utils/types';
+import { CHAT_SENDER_ROLE, type ChatMessage, type Conversation } from '../utils/types';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -175,7 +175,7 @@ export function GuestChatModal({ isOpen, onClose }: GuestChatModalProps) {
       'chat:typing',
       (data: { conversationId: string; senderRole: string; isTyping: boolean }) => {
         if (data?.conversationId !== conversation.id) return;
-        if (data?.senderRole === 'customer') return;
+        if (data?.senderRole === CHAT_SENDER_ROLE.EXTERNAL) return;
 
         if (data?.isTyping) {
           setIsAdminTyping(true);
@@ -435,7 +435,7 @@ export function GuestChatModal({ isOpen, onClose }: GuestChatModalProps) {
                 </div>
               ) : (
                 messages.map((m) => {
-                  const isCustomer = m.senderRole === 'customer';
+                  const isCustomer = m.senderRole === CHAT_SENDER_ROLE.EXTERNAL;
                   return (
                     <div
                       key={m.id}

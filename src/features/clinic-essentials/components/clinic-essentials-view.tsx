@@ -36,6 +36,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { ShiftIconDisplay } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-display';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -46,6 +47,8 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuthContext } from '@/lib/rbac/auth-context';
+import { PERMISSIONS } from '@/core/auth/permissions.constants';
 
 import { clinicEssentialsApi } from '../api/clinic-essentials.api';
 import { clinicEssentialsKeys } from '../api/query-keys';
@@ -63,6 +66,8 @@ interface DeletingState {
 
 export function ClinicEssentialsView() {
   const queryClient = useQueryClient();
+  const { can } = useAuthContext();
+  const canManage = can(PERMISSIONS.CLINICS.MANAGE);
 
   // Dialog visibility states
   const [isCreateUnitOpen, setIsCreateUnitOpen] = React.useState(false);
@@ -193,60 +198,62 @@ export function ClinicEssentialsView() {
           </Button>
 
           {/* Config Context Menu Button */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size='sm' className='gap-1.5 text-xs font-medium shadow-xs'>
-                <Settings2 className='size-3.5' />
-                Config
-                <ChevronDown className='size-3 opacity-60' />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align='end' className='w-56'>
-              <DropdownMenuItem
-                onClick={() => setIsCreateUnitOpen(true)}
-                className='cursor-pointer gap-2'
-              >
-                <Building2 className='size-4 text-primary' />
-                <span>Tambah Unit / Poliklinik</span>
-              </DropdownMenuItem>
+          {canManage && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size='sm' className='gap-1.5 text-xs font-medium shadow-xs'>
+                  <Settings2 className='size-3.5' />
+                  Config
+                  <ChevronDown className='size-3 opacity-60' />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align='end' className='w-56'>
+                <DropdownMenuItem
+                  onClick={() => setIsCreateUnitOpen(true)}
+                  className='cursor-pointer gap-2'
+                >
+                  <Building2 className='size-4 text-primary' />
+                  <span>Tambah Unit / Poliklinik</span>
+                </DropdownMenuItem>
 
-              <DropdownMenuItem
-                onClick={() => setIsCreateRoomOpen(true)}
-                className='cursor-pointer gap-2'
-              >
-                <DoorOpen className='size-4 text-primary' />
-                <span>Tambah Ruang Periksa</span>
-              </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setIsCreateRoomOpen(true)}
+                  className='cursor-pointer gap-2'
+                >
+                  <DoorOpen className='size-4 text-primary' />
+                  <span>Tambah Ruang Periksa</span>
+                </DropdownMenuItem>
 
-              <DropdownMenuSeparator />
+                <DropdownMenuSeparator />
 
-              <DropdownMenuItem
-                onClick={() => setIsCreateCategoryOpen(true)}
-                className='cursor-pointer gap-2'
-              >
-                <Folder className='size-4 text-primary' />
-                <span>Tambah Kategori Layanan</span>
-              </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setIsCreateCategoryOpen(true)}
+                  className='cursor-pointer gap-2'
+                >
+                  <Folder className='size-4 text-primary' />
+                  <span>Tambah Kategori Layanan</span>
+                </DropdownMenuItem>
 
-              <DropdownMenuItem
-                onClick={() => setIsCreateServiceOpen(true)}
-                className='cursor-pointer gap-2'
-              >
-                <Stethoscope className='size-4 text-primary' />
-                <span>Tambah Layanan Medis</span>
-              </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setIsCreateServiceOpen(true)}
+                  className='cursor-pointer gap-2'
+                >
+                  <Stethoscope className='size-4 text-primary' />
+                  <span>Tambah Layanan Medis</span>
+                </DropdownMenuItem>
 
-              <DropdownMenuSeparator />
+                <DropdownMenuSeparator />
 
-              <DropdownMenuItem
-                onClick={() => setIsCreateFormOpen(true)}
-                className='cursor-pointer gap-2'
-              >
-                <ClipboardList className='size-4 text-primary' />
-                <span>Tambah Formulir Intake</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuItem
+                  onClick={() => setIsCreateFormOpen(true)}
+                  className='cursor-pointer gap-2'
+                >
+                  <ClipboardList className='size-4 text-primary' />
+                  <span>Tambah Formulir Intake</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
 
@@ -286,14 +293,16 @@ export function ClinicEssentialsView() {
                     Daftar unit poliklinik atau departemen tempat dilaksanakannya layanan kesehatan.
                   </CardDescription>
                 </div>
-                <Button
-                  size='sm'
-                  variant='outline'
-                  onClick={() => setIsCreateUnitOpen(true)}
-                  className='text-xs gap-1 h-8'
-                >
-                  <Plus className='size-3.5' /> Tambah Unit
-                </Button>
+                {canManage && (
+                  <Button
+                    size='sm'
+                    variant='outline'
+                    onClick={() => setIsCreateUnitOpen(true)}
+                    className='text-xs gap-1 h-8'
+                  >
+                    <Plus className='size-3.5' /> Tambah Unit
+                  </Button>
+                )}
               </div>
             </CardHeader>
             <CardContent>
@@ -308,16 +317,18 @@ export function ClinicEssentialsView() {
                   <Building2 className='size-8 mx-auto text-muted-foreground/50 mb-2' />
                   <p className='text-sm font-medium'>Belum ada unit fasilitas terdaftar</p>
                   <p className='text-xs text-muted-foreground mt-1 mb-4'>
-                    Mulai dengan menambahkan unit poliklinik pertama (misal: Poli Umum atau Poli
-                    KIA).
+                    Mulai dengan menambahkan unit poliklinik pertama (misal: Rawat Jalan atau
+                    Layanan Spesialis).
                   </p>
-                  <Button
-                    size='sm'
-                    onClick={() => setIsCreateUnitOpen(true)}
-                    className='text-xs gap-1'
-                  >
-                    <Plus className='size-3.5' /> Tambah Unit
-                  </Button>
+                  {canManage && (
+                    <Button
+                      size='sm'
+                      onClick={() => setIsCreateUnitOpen(true)}
+                      className='text-xs gap-1'
+                    >
+                      <Plus className='size-3.5' /> Tambah Unit
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <div className='overflow-x-auto rounded-md border'>
@@ -357,7 +368,10 @@ export function ClinicEssentialsView() {
                             {!u.floor && !u.location && '-'}
                           </TableCell>
                           <TableCell className='text-xs font-mono text-muted-foreground'>
-                            {u.iconName || 'building-2'}
+                            <div className='flex items-center gap-1.5'>
+                              <ShiftIconDisplay icon={u.iconName || 'building-2'} size='sm' />
+                              <span className='truncate'>{u.iconName || 'building-2'}</span>
+                            </div>
                           </TableCell>
                           <TableCell className='text-right'>
                             <Button
@@ -392,15 +406,17 @@ export function ClinicEssentialsView() {
                     Ruangan pemeriksaan fisik tempat sesi antrean dokter dan perawat berlangsung.
                   </CardDescription>
                 </div>
-                <Button
-                  size='sm'
-                  variant='outline'
-                  onClick={() => setIsCreateRoomOpen(true)}
-                  disabled={units.length === 0}
-                  className='text-xs gap-1 h-8'
-                >
-                  <Plus className='size-3.5' /> Tambah Ruangan
-                </Button>
+                {canManage && (
+                  <Button
+                    size='sm'
+                    variant='outline'
+                    onClick={() => setIsCreateRoomOpen(true)}
+                    disabled={units.length === 0}
+                    className='text-xs gap-1 h-8'
+                  >
+                    <Plus className='size-3.5' /> Tambah Ruangan
+                  </Button>
+                )}
               </div>
             </CardHeader>
             <CardContent>
@@ -416,14 +432,16 @@ export function ClinicEssentialsView() {
                   <p className='text-xs text-muted-foreground mt-1 mb-4'>
                     Tambahkan ruangan dan hubungkan ke unit poliklinik induk.
                   </p>
-                  <Button
-                    size='sm'
-                    onClick={() => setIsCreateRoomOpen(true)}
-                    disabled={units.length === 0}
-                    className='text-xs gap-1'
-                  >
-                    <Plus className='size-3.5' /> Tambah Ruangan
-                  </Button>
+                  {canManage && (
+                    <Button
+                      size='sm'
+                      onClick={() => setIsCreateRoomOpen(true)}
+                      disabled={units.length === 0}
+                      className='text-xs gap-1'
+                    >
+                      <Plus className='size-3.5' /> Tambah Ruangan
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <div className='overflow-x-auto rounded-md border'>
@@ -493,14 +511,16 @@ export function ClinicEssentialsView() {
                     dokter.
                   </CardDescription>
                 </div>
-                <Button
-                  size='sm'
-                  variant='outline'
-                  onClick={() => setIsCreateCategoryOpen(true)}
-                  className='text-xs gap-1 h-8'
-                >
-                  <Plus className='size-3.5' /> Tambah Kategori
-                </Button>
+                {canManage && (
+                  <Button
+                    size='sm'
+                    variant='outline'
+                    onClick={() => setIsCreateCategoryOpen(true)}
+                    className='text-xs gap-1 h-8'
+                  >
+                    <Plus className='size-3.5' /> Tambah Kategori
+                  </Button>
+                )}
               </div>
             </CardHeader>
             <CardContent>
@@ -514,15 +534,18 @@ export function ClinicEssentialsView() {
                   <Folder className='size-8 mx-auto text-muted-foreground/50 mb-2' />
                   <p className='text-sm font-medium'>Belum ada kategori layanan</p>
                   <p className='text-xs text-muted-foreground mt-1 mb-4'>
-                    Tambahkan kelompok kategori layanan medis (misal: Layanan Umum, Layanan KIA).
+                    Tambahkan kelompok kategori layanan medis (misal: Layanan Rawat Jalan, Layanan
+                    Spesialis).
                   </p>
-                  <Button
-                    size='sm'
-                    onClick={() => setIsCreateCategoryOpen(true)}
-                    className='text-xs gap-1'
-                  >
-                    <Plus className='size-3.5' /> Tambah Kategori
-                  </Button>
+                  {canManage && (
+                    <Button
+                      size='sm'
+                      onClick={() => setIsCreateCategoryOpen(true)}
+                      className='text-xs gap-1'
+                    >
+                      <Plus className='size-3.5' /> Tambah Kategori
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <div className='overflow-x-auto rounded-md border'>
@@ -567,7 +590,10 @@ export function ClinicEssentialsView() {
                               )}
                             </TableCell>
                             <TableCell className='text-xs font-mono text-muted-foreground'>
-                              {c.iconName || 'folder'}
+                              <div className='flex items-center gap-1.5'>
+                                <ShiftIconDisplay icon={c.iconName || 'folder'} size='sm' />
+                                <span className='truncate'>{c.iconName || 'folder'}</span>
+                              </div>
                             </TableCell>
                             <TableCell className='text-right'>
                               <Button
@@ -604,15 +630,17 @@ export function ClinicEssentialsView() {
                     klinis intake.
                   </CardDescription>
                 </div>
-                <Button
-                  size='sm'
-                  variant='outline'
-                  onClick={() => setIsCreateServiceOpen(true)}
-                  disabled={categories.length === 0}
-                  className='text-xs gap-1 h-8'
-                >
-                  <Plus className='size-3.5' /> Tambah Layanan
-                </Button>
+                {canManage && (
+                  <Button
+                    size='sm'
+                    variant='outline'
+                    onClick={() => setIsCreateServiceOpen(true)}
+                    disabled={categories.length === 0}
+                    className='text-xs gap-1 h-8'
+                  >
+                    <Plus className='size-3.5' /> Tambah Layanan
+                  </Button>
+                )}
               </div>
             </CardHeader>
             <CardContent>
@@ -629,14 +657,16 @@ export function ClinicEssentialsView() {
                   <p className='text-xs text-muted-foreground mt-1 mb-4'>
                     Buat tindakan medis dan hubungkan ke formulir intake yang sesuai.
                   </p>
-                  <Button
-                    size='sm'
-                    onClick={() => setIsCreateServiceOpen(true)}
-                    disabled={categories.length === 0}
-                    className='text-xs gap-1'
-                  >
-                    <Plus className='size-3.5' /> Tambah Layanan
-                  </Button>
+                  {canManage && (
+                    <Button
+                      size='sm'
+                      onClick={() => setIsCreateServiceOpen(true)}
+                      disabled={categories.length === 0}
+                      className='text-xs gap-1'
+                    >
+                      <Plus className='size-3.5' /> Tambah Layanan
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <div className='overflow-x-auto rounded-md border'>
@@ -686,7 +716,10 @@ export function ClinicEssentialsView() {
                               )}
                             </TableCell>
                             <TableCell className='text-xs font-mono text-muted-foreground'>
-                              {s.iconName || 'stethoscope'}
+                              <div className='flex items-center gap-1.5'>
+                                <ShiftIconDisplay icon={s.iconName || 'stethoscope'} size='sm' />
+                                <span className='truncate'>{s.iconName || 'stethoscope'}</span>
+                              </div>
                             </TableCell>
                             <TableCell className='text-right'>
                               <Button
@@ -725,14 +758,16 @@ export function ClinicEssentialsView() {
                     yang dapat dihubungkan ke layanan medis secara dinamis.
                   </CardDescription>
                 </div>
-                <Button
-                  size='sm'
-                  variant='outline'
-                  onClick={() => setIsCreateFormOpen(true)}
-                  className='text-xs gap-1 h-8'
-                >
-                  <Plus className='size-3.5' /> Tambah Formulir
-                </Button>
+                {canManage && (
+                  <Button
+                    size='sm'
+                    variant='outline'
+                    onClick={() => setIsCreateFormOpen(true)}
+                    className='text-xs gap-1 h-8'
+                  >
+                    <Plus className='size-3.5' /> Tambah Formulir
+                  </Button>
+                )}
               </div>
             </CardHeader>
             <CardContent>
@@ -749,13 +784,15 @@ export function ClinicEssentialsView() {
                     Daftarkan kode formulir klinis agar layanan dapat dikoneksikan ke lembar
                     anamnesis yang tepat.
                   </p>
-                  <Button
-                    size='sm'
-                    onClick={() => setIsCreateFormOpen(true)}
-                    className='text-xs gap-1'
-                  >
-                    <Plus className='size-3.5' /> Tambah Formulir
-                  </Button>
+                  {canManage && (
+                    <Button
+                      size='sm'
+                      onClick={() => setIsCreateFormOpen(true)}
+                      className='text-xs gap-1'
+                    >
+                      <Plus className='size-3.5' /> Tambah Formulir
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <div className='overflow-x-auto rounded-md border'>
@@ -780,7 +817,10 @@ export function ClinicEssentialsView() {
                             {f.description || '-'}
                           </TableCell>
                           <TableCell className='text-xs font-mono text-muted-foreground'>
-                            {f.iconName || 'clipboard-list'}
+                            <div className='flex items-center gap-1.5'>
+                              <ShiftIconDisplay icon={f.iconName || 'clipboard-list'} size='sm' />
+                              <span className='truncate'>{f.iconName || 'clipboard-list'}</span>
+                            </div>
                           </TableCell>
                           <TableCell className='text-right'>
                             <Button

@@ -1,3 +1,5 @@
+import { AUDIENCE, type AudienceType } from '@/core/auth/permissions.constants';
+
 export const ROUTES = {
   home: '/',
   signIn: '/auth/sign-in',
@@ -50,8 +52,8 @@ export function safeRedirect(
   return fallback;
 }
 
-export function getRoleLandingPath(role?: string | null): string {
-  if (role === 'patient') {
+export function getRoleLandingPath(audience?: AudienceType | string | null): string {
+  if (audience === AUDIENCE.EXTERNAL) {
     return ROUTES.clinicQueue;
   }
   return ROUTES.adminAppointmentPasien;

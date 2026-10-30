@@ -1,15 +1,13 @@
 import { openNotificationModal } from './notification-modal-store';
 import type { ModalVariantKey, ChoreographyType } from '../types';
 import { ATTENDANCE_ACTIONS, type AttendanceAction } from '@/features/kehadiran-pegawai/api/types';
-import {
-  CANONICAL_ATTENDANCE_STATUS
-} from '@/features/kehadiran-pegawai/constants/attendance-status.constants';
+import { CANONICAL_ATTENDANCE_STATUS } from '@/features/kehadiran-pegawai/constants/attendance-status.constants';
 
 export interface PresentAttendanceModalParams {
   id?: string;
   nama_staf: string;
   avatar?: string | null;
-  kategori?: string | null;
+  roleName?: string | null;
   waktu_presensi?: string | null;
   checkInAt?: string | null;
   checkOutAt?: string | null;
@@ -92,7 +90,7 @@ export function presentAttendanceModal(params: PresentAttendanceModalParams) {
     identity: {
       name: params.nama_staf,
       avatarUrl: params.avatar,
-      role: params.kategori,
+      role: params.roleName ?? undefined,
       badgeText: shiftText
     },
     primaryBtnText: 'Selesai',

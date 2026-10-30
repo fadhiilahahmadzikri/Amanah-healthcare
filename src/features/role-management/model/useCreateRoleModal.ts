@@ -3,7 +3,15 @@
 import * as React from 'react';
 import { toast } from 'sonner';
 import { roleManagementApi } from '../api/role-management.api';
-import type { Permission, Role, RoleAudience, RoleTier } from '../types/role.types';
+import {
+  AUDIENCE,
+  ROLE_TIER,
+  NO_PARENT_ROLE_SENTINEL,
+  type Permission,
+  type Role,
+  type RoleAudience,
+  type RoleTier
+} from '../types/role.types';
 
 export interface UseCreateRoleModalProps {
   existingRoles: Role[];
@@ -22,8 +30,8 @@ export function useCreateRoleModal({
   const [code, setCode] = React.useState('');
   const [name, setName] = React.useState('');
   const [description, setDescription] = React.useState('');
-  const [tier, setTier] = React.useState<RoleTier>('macro');
-  const [audience, setAudience] = React.useState<RoleAudience>('internal');
+  const [tier, setTier] = React.useState<RoleTier>(ROLE_TIER.MACRO);
+  const [audience, setAudience] = React.useState<RoleAudience>(AUDIENCE.INTERNAL);
   const [parentRoleId, setParentRoleId] = React.useState<string>('none');
   const [isClinical, setIsClinical] = React.useState(false);
   const [selectedPermissionIds, setSelectedPermissionIds] = React.useState<string[]>([]);
@@ -36,8 +44,8 @@ export function useCreateRoleModal({
     setCode('');
     setName('');
     setDescription('');
-    setTier('macro');
-    setAudience('internal');
+    setTier(ROLE_TIER.MACRO);
+    setAudience(AUDIENCE.INTERNAL);
     setParentRoleId('none');
     setIsClinical(false);
     setSelectedPermissionIds([]);
@@ -81,7 +89,7 @@ export function useCreateRoleModal({
         description: description.trim() || null,
         tier,
         audience,
-        parentRoleId: parentRoleId !== 'none' ? parentRoleId : null,
+        parentRoleId: parentRoleId !== NO_PARENT_ROLE_SENTINEL ? parentRoleId : null,
         isClinical,
         permissionIds: selectedPermissionIds
       });

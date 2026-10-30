@@ -1,5 +1,6 @@
 import 'server-only';
 import { asUserId, asTokenString, asEmailAddress } from '@/core/types/branded';
+import { AUDIENCE, type AudienceType } from '@/core/auth/permissions.constants';
 import type {
   AuthenticatedUserDto,
   StaffProfileDto,
@@ -50,30 +51,19 @@ export function toPatientProfileDomain(dto?: PatientProfileDto | null): PatientP
 }
 
 export function toUserDomain(dto: AuthenticatedUserDto): User {
-  let systemRole: 'ADMIN' | 'STAF' | 'PATIENT' = dto.systemRole ?? 'PATIENT';
-  let primaryRole: UserRole | undefined = dto.role
+  const primaryRole: UserRole | undefined = dto.role
     ? {
         id: dto.role.id,
         code: dto.role.code,
-        name: dto.role.name ?? 'Patient'
+        name: dto.role.name ?? 'Peran'
       }
-    : undefined;
-
-  if (!dto.systemRole && dto.userRoles_userId && dto.userRoles_userId.length > 0) {
-    const firstRole = dto.userRoles_userId[0]?.role;
-    if (firstRole) {
-      primaryRole = {
-        id: firstRole.id,
-        code: firstRole.code,
-        name: firstRole.name ?? 'Patient'
-      };
-      if (firstRole.code === 'admin') {
-        systemRole = 'ADMIN';
-      } else if (Boolean(dto.staff) || Boolean(dto.staffProfiles && dto.staffProfiles.length > 0)) {
-        systemRole = 'STAF';
-      }
-    }
-  }
+    : dto.userRoles_userId?.[0]?.role
+      ? {
+          id: dto.userRoles_userId[0].role.id,
+          code: dto.userRoles_userId[0].role.code,
+          name: dto.userRoles_userId[0].role.name ?? 'Peran'
+        }
+      : undefined;
 
   const staff =
     dto.staff !== undefined
@@ -89,10 +79,15 @@ export function toUserDomain(dto: AuthenticatedUserDto): User {
         ? toPatientProfileDomain(dto.patientProfiles[0])
         : null;
 
+  const audience: AudienceType =
+    dto.audience ?? (Boolean(staff) ? AUDIENCE.INTERNAL : AUDIENCE.EXTERNAL);
+
   return {
     id: asUserId(dto.id),
     email: asEmailAddress(dto.email),
-    systemRole,
+    roleCode: dto.roleCode ?? primaryRole?.code,
+    audience,
+    permissions: dto.permissions ?? [],
     role: primaryRole,
     staff,
     patient

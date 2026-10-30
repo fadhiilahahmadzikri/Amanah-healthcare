@@ -1,8 +1,10 @@
 'use client';
 
 import React from 'react';
+import { Folder } from 'lucide-react';
 import { Icons } from '@/components/icons';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { resolveLucideIcon } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-display';
 
 export interface BookingCategoryStepProps {
   isLoadingCatalog: boolean;
@@ -41,7 +43,7 @@ export function BookingCategoryStep({
       ) : (
         <div className='grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1'>
           {activeCategoryList.map((cat) => {
-            const isKia = cat.code.includes('kia') || cat.code.includes('midwifery');
+            const IconComponent = resolveLucideIcon(cat.icon || 'folder') || Folder;
             return (
               <Card
                 key={cat.id}
@@ -51,11 +53,7 @@ export function BookingCategoryStep({
                 <CardHeader className='p-0 gap-1.5'>
                   <div className='flex items-center justify-between'>
                     <div className='size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center'>
-                      {isKia ? (
-                        <Icons.heart className='size-4.5 text-primary' />
-                      ) : (
-                        <Icons.stethoscope className='size-4.5 text-primary' />
-                      )}
+                      <IconComponent className='size-4.5 text-primary' />
                     </div>
                     <span className='text-[10.5px] font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground'>
                       {cat.servicesCount} Layanan

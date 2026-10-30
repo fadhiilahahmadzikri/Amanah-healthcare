@@ -3,6 +3,8 @@
 import type * as React from 'react';
 import { cn } from '@/lib/utils';
 import type { Appointment, Doctor } from '../../../api/types';
+import { useAuthContext } from '@/lib/rbac/auth-context';
+import { AUDIENCE, type AudienceType } from '@/core/auth/permissions.constants';
 import { PixelTexture } from '../../pixel-texture';
 import { AppointmentMetaRow } from '../atoms/appointment-meta-row';
 import { AppointmentTimeTrajectory } from '../atoms/appointment-time-trajectory';
@@ -13,16 +15,12 @@ import {
   isAppointmentBeforeCall,
   isAppointmentWaiting
 } from '@/features/appointment-pasien/constants/options';
-import {
-  formatFriendlyVisitType,
-  type CanonicalVisitType
-} from '@/constants/visit-type.constants';
+import { formatFriendlyVisitType, type CanonicalVisitType } from '@/constants/visit-type.constants';
 
 export interface AppointmentCardOrganismProps {
   appointment: Appointment;
   doctor?: Doctor;
-  subjectRole?: 'doctor' | 'patient';
-  viewerRole?: 'patient' | 'internal';
+  viewerAudience?: AudienceType;
   onViewDetails?: (appointment: Appointment) => void;
   actionsSlot?: React.ReactNode;
   detailButtonLabel?: string;
@@ -32,46 +30,46 @@ export interface AppointmentCardOrganismProps {
 export function AppointmentCardOrganism({
   appointment,
   doctor,
-  subjectRole = 'doctor',
-  viewerRole,
+  viewerAudience,
   onViewDetails,
   actionsSlot,
   detailButtonLabel,
   className
 }: AppointmentCardOrganismProps) {
-  const isPatientSubject = subjectRole === 'patient';
+  const { audience: contextAudience } = useAuthContext();
+  const effectiveAudience = viewerAudience ?? contextAudience ?? AUDIENCE.INTERNAL;
+  const isInternal = effectiveAudience === AUDIENCE.INTERNAL;
+
   const assignedDoctorName = appointment.doctor_name?.trim();
   const hasAssignedDoctor = Boolean(assignedDoctorName);
 
-  const displayName = isPatientSubject
+  const displayName = isInternal
     ? appointment.patient_name || 'Pasien'
     : assignedDoctorName
       ? assignedDoctorName
       : appointment.service || '-';
 
-  const displaySubtitle = isPatientSubject
-    ? appointment.service || '-'
+  const displaySubtitle = isInternal
+    ? appointment.service || appointment.poliklinik_name || '-'
     : hasAssignedDoctor
-      ? appointment.doctor_specialty || '-'
+      ? appointment.doctor_specialty || appointment.poliklinik_name || '-'
       : appointment.poliklinik_name;
 
-  const displayAvatar = isPatientSubject
+  const displayAvatar = isInternal
     ? appointment.patient_avatar || ''
     : hasAssignedDoctor
       ? doctor?.avatar || ''
       : undefined;
 
-  const showAvatar = isPatientSubject || hasAssignedDoctor;
+  const showAvatar = isInternal || hasAssignedDoctor;
 
   const isBeforeCall = isAppointmentBeforeCall(appointment.status);
   const isEstimated = isBeforeCall || isAppointmentWaiting(appointment.status);
   const startLabel = isEstimated ? 'Est. Mulai' : 'Mulai';
   const endLabel = isEstimated ? 'Est. Selesai' : 'Selesai';
 
-  const isInternalView =
-    viewerRole === 'internal' || (viewerRole !== 'patient' && isPatientSubject);
   const displayLocation =
-    !isInternalView && isBeforeCall ? 'Menunggu panggilan klinik' : appointment.room_name || '-';
+    !isInternal && isBeforeCall ? 'Menunggu panggilan klinik' : appointment.room_name || '-';
 
   const { startTime, endTime, durationText } = normalizeAppointmentTimes(appointment);
 
@@ -97,7 +95,6 @@ export function AppointmentCardOrganism({
 
       <div className='relative z-2 w-full'>
         <AppointmentCardHeader
-          subjectRole={subjectRole}
           name={displayName}
           subtitle={displaySubtitle}
           avatarUrl={displayAvatar}

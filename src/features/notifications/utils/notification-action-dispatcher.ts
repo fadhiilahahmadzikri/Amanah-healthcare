@@ -1,4 +1,5 @@
 import type { NotificationSemanticAction } from '../types';
+import { AUDIENCE, type AudienceType } from '@/core/auth/permissions.constants';
 
 export interface ActionPayloadContext {
   url?: string | null;
@@ -17,7 +18,10 @@ const PATIENT_ROUTE_ALLOWLIST = ['/klinik', '/patient-registration'];
 
 const CLINIC_ROUTE_ALLOWLIST = ['/admin'];
 
-function isRouteAllowedForRole(route: string, role?: string | null): boolean {
+function isRouteAllowedForRole(
+  route: string,
+  userAudienceOrRole?: AudienceType | string | null
+): boolean {
   // Reject external, protocol-relative, or dangerous URLs
   const isUnsafe = [
     !route.startsWith('/'),
@@ -30,8 +34,8 @@ function isRouteAllowedForRole(route: string, role?: string | null): boolean {
     return false;
   }
 
-  const isPatient = role === 'patient' || role === 'user';
-  const allowlist = isPatient ? PATIENT_ROUTE_ALLOWLIST : CLINIC_ROUTE_ALLOWLIST;
+  const isExternal = userAudienceOrRole === AUDIENCE.EXTERNAL;
+  const allowlist = isExternal ? PATIENT_ROUTE_ALLOWLIST : CLINIC_ROUTE_ALLOWLIST;
 
   return allowlist.some((prefix) => route === prefix || route.startsWith(`${prefix}/`));
 }
@@ -48,10 +52,10 @@ export function resolveNotificationRoute(
     params?: Record<string, string>;
   },
   context?: Record<string, unknown>,
-  userRole?: string | null
+  userAudienceOrRole?: AudienceType | string | null
 ): string | null {
-  const isPatient =
-    userRole === 'patient' || userRole === 'user' || context?.audience === 'patient';
+  const isExternal =
+    context?.audience === AUDIENCE.EXTERNAL || userAudienceOrRole === AUDIENCE.EXTERNAL;
 
   // 1. Semantic Action Resolution
   const semanticType = action.type || (context?.semanticAction as NotificationSemanticAction)?.type;
@@ -63,10 +67,10 @@ export function resolveNotificationRoute(
     switch (semanticType) {
       case 'view_queue':
       case 'view_appointment':
-        return isPatient ? '/klinik/antrean' : '/admin/appointment-pasien';
+        return isExternal ? '/klinik/antrean' : '/admin/appointment-pasien';
 
       case 'view_patient': {
-        if (isPatient) return '/klinik/antrean';
+        if (isExternal) return '/klinik/antrean';
         const docId = semanticParams.doctorId ?? '';
         const params = new URLSearchParams();
         if (docId) {
@@ -81,7 +85,7 @@ export function resolveNotificationRoute(
 
       case 'view_schedule':
       case 'view_schedule_detail': {
-        if (isPatient) return '/klinik/antrean';
+        if (isExternal) return '/klinik/antrean';
         const docId = semanticParams.doctorId ?? '';
         const params = new URLSearchParams();
         if (docId) {
@@ -94,7 +98,7 @@ export function resolveNotificationRoute(
       }
 
       case 'view_chat': {
-        if (isPatient) {
+        if (isExternal) {
           return '/klinik/chat';
         }
         const convId =
@@ -106,7 +110,7 @@ export function resolveNotificationRoute(
       }
 
       case 'view_leave': {
-        if (isPatient) return '/klinik/antrean';
+        if (isExternal) return '/klinik/antrean';
         const leaveId = semanticParams.leaveId ?? '';
         return leaveId
           ? `/admin/manajemen-perizinan?leaveId=${leaveId}`
@@ -114,7 +118,7 @@ export function resolveNotificationRoute(
       }
 
       case 'view_attendance': {
-        if (isPatient) return '/klinik/antrean';
+        if (isExternal) return '/klinik/antrean';
         const attendanceId = semanticParams.attendanceId ?? '';
         return attendanceId
           ? `/admin/kehadiran-pegawai?highlight=${attendanceId}`
@@ -131,7 +135,7 @@ export function resolveNotificationRoute(
   const date = (context?.date as string) ?? '';
 
   if (action.actionKey === 'view_chat') {
-    if (isPatient) {
+    if (isExternal) {
       return '/klinik/chat';
     }
     const semanticAction = context?.semanticAction as NotificationSemanticAction | undefined;
@@ -144,19 +148,19 @@ export function resolveNotificationRoute(
   }
 
   if (action.actionKey === 'view_leave') {
-    if (isPatient) return '/klinik/antrean';
+    if (isExternal) return '/klinik/antrean';
     const leaveId = (context?.leaveId as string) ?? '';
     return leaveId ? `/admin/manajemen-perizinan?leaveId=${leaveId}` : '/admin/manajemen-perizinan';
   }
 
   if (action.actionKey === 'view_attendance') {
-    if (isPatient) return '/klinik/antrean';
+    if (isExternal) return '/klinik/antrean';
     const attId = (context?.attendanceId as string) ?? '';
     return attId ? `/admin/kehadiran-pegawai?highlight=${attId}` : '/admin/kehadiran-pegawai';
   }
 
   if (action.actionKey === 'view_patient') {
-    if (isPatient) return '/klinik/antrean';
+    if (isExternal) return '/klinik/antrean';
     const params = new URLSearchParams();
     if (doctorId) {
       params.set('selectedDoctorId', doctorId);
@@ -169,7 +173,7 @@ export function resolveNotificationRoute(
   }
 
   if (action.actionKey === 'view_schedule') {
-    if (isPatient) return '/klinik/antrean';
+    if (isExternal) return '/klinik/antrean';
     const params = new URLSearchParams();
     if (doctorId) {
       params.set('selectedDoctorId', doctorId);
@@ -181,12 +185,12 @@ export function resolveNotificationRoute(
   }
 
   if (action.actionKey === 'view_appointment') {
-    return isPatient ? '/klinik/antrean' : '/admin/appointment-pasien';
+    return isExternal ? '/klinik/antrean' : '/admin/appointment-pasien';
   }
 
   // 3. Fallback to explicit URL only if allowed by role allowlist
   if (action.url) {
-    if (isRouteAllowedForRole(action.url, userRole)) {
+    if (isRouteAllowedForRole(action.url, userAudienceOrRole)) {
       return action.url;
     }
   }
@@ -208,7 +212,7 @@ export function executeNotificationAction(
   },
   notification?: {
     id?: string;
-    audience?: 'patient' | 'clinic' | string;
+    audience?: AudienceType | string;
     metadata?: Record<string, unknown> | null;
     actionUrl?: string | null;
   },

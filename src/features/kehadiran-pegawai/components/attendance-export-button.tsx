@@ -7,6 +7,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { AttendanceExportWizardModal } from './attendance-export-wizard-modal';
 import { DoctorScheduleSettingsButton } from '@/features/jadwal-dokter/components/settings';
 import type { ConfigurationCategory } from '@/features/jadwal-dokter/model/useDoctorScheduleSettingsModal';
+import { useAuthContext } from '@/lib/rbac/auth-context';
+import { PERMISSIONS } from '@/core/auth/permissions.constants';
 import { cn } from '@/lib/utils';
 import type { StaffAttendance } from '../api/types';
 
@@ -102,6 +104,12 @@ export function AttendanceHeaderActions({
   onResetFilter,
   activeFilterCount = 0
 }: AttendanceHeaderActionsProps) {
+  const { can } = useAuthContext();
+  const canManageAttendance = can(PERMISSIONS.ATTENDANCE.MANAGE);
+  const canApproveAttendance = can(PERMISSIONS.ATTENDANCE.APPROVE) || canManageAttendance;
+  const canManageSchedules = can(PERMISSIONS.SCHEDULES.MANAGE) || canManageAttendance;
+  const canReviewAttendance = can(PERMISSIONS.ATTENDANCE.REVIEW) || canManageAttendance;
+
   return (
     <div className='flex items-center gap-1.5 flex-wrap w-full sm:w-auto'>
       {/* 1. Mode Compact: Tombol Search & Filter bergeser ke deretan header atas */}
@@ -183,7 +191,7 @@ export function AttendanceHeaderActions({
       )}
 
       {/* 2. Terminal Presensi QR Icon Button (Konsisten Varian Outline) */}
-      {onToggleQR && (
+      {canManageAttendance && onToggleQR && (
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -207,7 +215,7 @@ export function AttendanceHeaderActions({
       )}
 
       {/* 3. Presensi Manual Icon Button (Konsisten Varian Outline) */}
-      {onOpenManualAttendance && (
+      {canApproveAttendance && onOpenManualAttendance && (
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -229,7 +237,7 @@ export function AttendanceHeaderActions({
 
       {/* 4. Pengaturan & 5. Ekspor Data & 6. Segarkan Data (Anchored to Far Right) */}
       <div className='flex items-center gap-1.5 ml-auto shrink-0'>
-        {onOpenSettings && (
+        {canManageSchedules && onOpenSettings && (
           <DoctorScheduleSettingsButton
             onSelectCategory={onOpenSettings}
             forceMode={isMobile ? 'drawer' : 'dropdown'}
@@ -237,11 +245,13 @@ export function AttendanceHeaderActions({
           />
         )}
 
-        <AttendanceExportDropdown
-          data={data}
-          buttonVariant='outline'
-          variant={isCompact ? 'icon' : 'full'}
-        />
+        {canReviewAttendance && (
+          <AttendanceExportDropdown
+            data={data}
+            buttonVariant='outline'
+            variant={isCompact ? 'icon' : 'full'}
+          />
+        )}
 
         {onRefresh && (
           <Tooltip>

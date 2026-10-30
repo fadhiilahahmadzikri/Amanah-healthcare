@@ -1,4 +1,4 @@
-import type { PayrollEntryType, StaffCategory } from '../api/types';
+import type { PayrollEntryType } from '../api/types';
 
 export const PAYROLL_PERIOD_STATUS = {
   DRAFT: 'draft',
@@ -17,20 +17,6 @@ export const CALCULATED_PAYROLL_STATUSES = new Set<string>([
 export function isPayrollCalculatedOrFinalized(status?: string | null): boolean {
   return Boolean(status && CALCULATED_PAYROLL_STATUSES.has(status));
 }
-
-export const CATEGORY_FACET_OPTIONS: Array<{
-  label: string;
-  value: StaffCategory;
-}> = [
-  { label: 'Dokter', value: 'doctor' },
-  { label: 'Bidan', value: 'midwife' },
-  { label: 'Staf Operasional', value: 'worker' }
-];
-
-export const CATEGORY_FILTER_OPTIONS: Array<{
-  label: string;
-  value: 'all' | StaffCategory;
-}> = [{ label: 'Semua Kategori', value: 'all' }, ...CATEGORY_FACET_OPTIONS];
 
 export const PERIOD_STATUS_CONFIG: Record<
   PayrollPeriodStatus,

@@ -25,7 +25,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { useCreateRoleModal } from '../model/useCreateRoleModal';
-import type { Permission, Role, RoleAudience, RoleTier } from '../types/role.types';
+import {
+  AUDIENCE,
+  ROLE_TIER,
+  type Permission,
+  type Role,
+  type RoleAudience,
+  type RoleTier
+} from '../types/role.types';
 
 export interface CreateRoleDialogProps {
   open: boolean;
@@ -119,8 +126,8 @@ export function CreateRoleDialog({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='macro'>Macro (Induk)</SelectItem>
-                      <SelectItem value='micro'>Micro (Sub-Peran)</SelectItem>
+                      <SelectItem value={ROLE_TIER.MACRO}>Macro (Induk)</SelectItem>
+                      <SelectItem value={ROLE_TIER.MICRO}>Micro (Sub-Peran)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -135,8 +142,8 @@ export function CreateRoleDialog({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='internal'>Internal (Staf/Klinik)</SelectItem>
-                      <SelectItem value='external'>External (Pasien)</SelectItem>
+                      <SelectItem value={AUDIENCE.INTERNAL}>Internal (Staf/Klinik)</SelectItem>
+                      <SelectItem value={AUDIENCE.EXTERNAL}>External (Pasien)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

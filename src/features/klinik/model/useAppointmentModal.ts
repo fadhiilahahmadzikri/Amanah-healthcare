@@ -235,12 +235,8 @@ export function useAppointmentModal({
       id: c.id,
       code: c.code,
       title: c.name,
-      icon: c.code.includes('kia') || c.code.includes('midwifery') ? 'kia' : 'general',
-      description:
-        c.description ||
-        (c.code.includes('kia')
-          ? 'Pemeriksaan kehamilan, persalinan, nifas, KB, dan imunisasi anak.'
-          : 'Pemeriksaan kesehatan umum, cek laboratorium, dan konsultasi dokter.'),
+      icon: c.iconName || 'folder',
+      description: c.description || '',
       servicesCount: c.services?.length || 0,
       services: c.services || []
     }));
@@ -262,10 +258,7 @@ export function useAppointmentModal({
         id: srv.id,
         title: srv.name,
         description: srv.description || '',
-        image: {
-          src: srv.imageUrl ?? '',
-          alt: srv.name
-        },
+        iconName: srv.iconName || 'stethoscope',
         colSpanClass: 'col-span-12 sm:col-span-6 md:col-span-6',
         heightClass: 'min-h-[118px] sm:min-h-[132px]'
       };

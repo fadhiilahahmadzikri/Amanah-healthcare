@@ -4,6 +4,8 @@ import * as React from 'react';
 import { IconShield } from '@tabler/icons-react';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuthContext } from '@/lib/rbac/auth-context';
+import { PERMISSIONS } from '@/core/auth/permissions.constants';
 import { useRoleManagementView } from '../model/useRoleManagementView';
 import { RoleToolbar } from './role-toolbar';
 import { RoleCard } from './role-card';
@@ -19,6 +21,9 @@ export function RoleManagementView() {
     isLoading,
     isRefetching,
     searchQuery,
+    tierFilter,
+    audienceFilter,
+    clinicalFilter,
     isCreateOpen,
     editingRole,
     deletingRole,
@@ -26,15 +31,24 @@ export function RoleManagementView() {
     actions
   } = useRoleManagementView();
 
+  const { can } = useAuthContext();
+  const canManageRoles = can(PERMISSIONS.ROLES.MANAGE);
+
   return (
     <div className='space-y-4 font-sans'>
       {/* Top Action Bar */}
       <RoleToolbar
         searchQuery={searchQuery}
         onSearchChange={actions.setSearchQuery}
+        tierFilter={tierFilter}
+        onTierFilterChange={actions.setTierFilter}
+        audienceFilter={audienceFilter}
+        onAudienceFilterChange={actions.setAudienceFilter}
+        clinicalFilter={clinicalFilter}
+        onClinicalFilterChange={actions.setClinicalFilter}
         onRefresh={actions.handleRefresh}
         isRefetching={isRefetching}
-        onAddClick={() => actions.setIsCreateOpen(true)}
+        onAddClick={canManageRoles ? () => actions.setIsCreateOpen(true) : undefined}
       />
 
       {/* Grid of Simple Role Cards */}
@@ -61,6 +75,7 @@ export function RoleManagementView() {
             <RoleCard
               key={role.id}
               role={role}
+              canManage={canManageRoles}
               onEdit={actions.setEditingRole}
               onDelete={actions.setDeletingRole}
             />

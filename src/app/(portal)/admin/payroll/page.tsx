@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import PageContainer from '@/components/layout/page-container';
-import { requireAdmin } from '@/lib/guard';
+import { requireRouteAccess } from '@/lib/guard';
 import { PayrollManagementView, PayrollSkeleton } from '@/features/payroll';
 
 export const metadata = {
@@ -8,7 +8,7 @@ export const metadata = {
 };
 
 export default async function Page() {
-  await requireAdmin();
+  await requireRouteAccess('/admin/payroll');
 
   return (
     <PageContainer

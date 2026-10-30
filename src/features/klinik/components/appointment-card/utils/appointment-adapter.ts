@@ -5,10 +5,7 @@ import {
 import type { BookedPatientItem } from '@/server/contracts/schedules/doctor-schedules.dto';
 import type { Appointment, AppointmentStatus } from '../../../api/types';
 import { formatClinicTime } from '@/lib/date-format';
-import {
-  formatFriendlyVisitType,
-  type CanonicalVisitType
-} from '@/constants/visit-type.constants';
+import { formatFriendlyVisitType, type CanonicalVisitType } from '@/constants/visit-type.constants';
 
 export interface SessionContext {
   doctorName?: string;
@@ -54,7 +51,6 @@ export function normalizeAppointmentTimes(appointment: Partial<Appointment>): {
 
   const timeStr = appointment.eta_range || '';
   const timeRangeMatch = timeStr.match(/(\d{1,2}[:.]\d{2})\s*-\s*(\d{1,2}[:.]\d{2})/);
-  const sessionMatch = timeStr.match(/Sesi\s+[A-Za-z\s]+/i);
 
   // If eta_range provides specific patient arrival/service estimate window, respect it first!
   const etaStart = timeRangeMatch

@@ -1,74 +1,53 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
+import { roleManagementApi } from '@/features/role-management/api/role-management.api';
+import { AUDIENCE } from '@/core/auth/permissions.constants';
+import { cn } from '@/lib/utils';
 import { useWorkPoliciesCurrentQuery } from '../api/queries';
 import { useUpdateCompensationRatesMutation } from '../api/mutations';
-import type { StaffCategory } from '../api/types';
 
 export interface PayrollRatesConfigModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-interface CategoryRateForm {
+interface RoleRateForm {
   hourlyRate: number;
   overtimeHourlyRate: number;
 }
 
-const CATEGORY_SECTIONS: Array<{
-  category: StaffCategory;
-  title: string;
-  subtitle: string;
-  defaultHourly: number;
-  defaultOvertime: number;
-}> = [
-  {
-    category: 'doctor',
-    title: 'Dokter Spesialis & Umum',
-    subtitle: 'Tarif jam dinas konsultasi dan insentif pengganti dokter jaga',
-    defaultHourly: 20000,
-    defaultOvertime: 30000
-  },
-  {
-    category: 'midwife',
-    title: 'Bidan & Tenaga Kebidanan',
-    subtitle: 'Tarif shift dinas KIA, persalinan, dan insentif jaga pengganti',
-    defaultHourly: 15000,
-    defaultOvertime: 22500
-  },
-  {
-    category: 'worker',
-    title: 'Staf Operasional & Front Office',
-    subtitle: 'Tarif jam kerja staf administrasi, kasir, farmasi, dan perawat',
-    defaultHourly: 12000,
-    defaultOvertime: 18000
-  }
-];
-
 export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigModalProps) {
-  const { data: workPolicies, isLoading } = useWorkPoliciesCurrentQuery();
+  const { data: workPolicies, isLoading: isLoadingPolicies } = useWorkPoliciesCurrentQuery();
   const updateRatesMutation = useUpdateCompensationRatesMutation();
 
-  const [formRates, setFormRates] = useState<Record<StaffCategory, CategoryRateForm>>({
-    doctor: { hourlyRate: 20000, overtimeHourlyRate: 30000 },
-    midwife: { hourlyRate: 15000, overtimeHourlyRate: 22500 },
-    worker: { hourlyRate: 12000, overtimeHourlyRate: 18000 }
+  const { data: allRoles = [], isLoading: isLoadingRoles } = useQuery({
+    queryKey: ['admin', 'roles'],
+    queryFn: roleManagementApi.getAllRoles,
+    enabled: isOpen
   });
 
-  // Populate from fetched rates
+  const internalRoles = useMemo(
+    () => allRoles.filter((r) => r.audience === AUDIENCE.INTERNAL),
+    [allRoles]
+  );
+
+  const [formRates, setFormRates] = useState<Record<string, RoleRateForm>>({});
+
+  // Populate from fetched rates based on roleId
   useEffect(() => {
-    if (workPolicies?.rates && workPolicies.rates.length > 0) {
+    if (workPolicies?.rates && Array.isArray(workPolicies.rates)) {
       setFormRates((prev) => {
         const next = { ...prev };
         for (const item of workPolicies.rates) {
-          if (item.category && next[item.category]) {
-            next[item.category] = {
-              hourlyRate: Number(item.hourlyRate) || next[item.category].hourlyRate,
-              overtimeHourlyRate:
-                Number(item.overtimeHourlyRate) || next[item.category].overtimeHourlyRate
+          if (item.roleId) {
+            next[item.roleId] = {
+              hourlyRate: Number(item.hourlyRate) || 0,
+              overtimeHourlyRate: Number(item.overtimeHourlyRate) || 0
             };
           }
         }
@@ -77,30 +56,31 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
     }
   }, [workPolicies]);
 
-  const handleRateChange = (
-    category: StaffCategory,
-    field: keyof CategoryRateForm,
-    rawValue: string
-  ) => {
+  const handleRateChange = (roleId: string, field: keyof RoleRateForm, rawValue: string) => {
     const parsed = parseInt(rawValue.replace(/\D/g, ''), 10) || 0;
     setFormRates((prev) => ({
       ...prev,
-      [category]: {
-        ...prev[category],
+      [roleId]: {
+        hourlyRate: prev[roleId]?.hourlyRate || 0,
+        overtimeHourlyRate: prev[roleId]?.overtimeHourlyRate || 0,
         [field]: parsed
       }
     }));
   };
 
   const isSaving = updateRatesMutation.isPending;
+  const isLoading = isLoadingPolicies || isLoadingRoles;
 
   const handleSave = async () => {
-    const payloadRates = Object.entries(formRates).map(([category, val]) => ({
-      category: category as StaffCategory,
-      hourlyRate: val.hourlyRate,
-      overtimeHourlyRate: val.overtimeHourlyRate,
-      notes: `Diperbarui via Web Dashboard pada ${new Date().toLocaleDateString('id-ID')}`
-    }));
+    const payloadRates = internalRoles.map((role) => {
+      const values = formRates[role.id] || { hourlyRate: 0, overtimeHourlyRate: 0 };
+      return {
+        roleId: role.id,
+        hourlyRate: values.hourlyRate,
+        overtimeHourlyRate: values.overtimeHourlyRate,
+        notes: `Diperbarui via Web Dashboard pada ${new Date().toLocaleDateString('id-ID')}`
+      };
+    });
 
     try {
       await updateRatesMutation.mutateAsync({ rates: payloadRates });
@@ -130,7 +110,8 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
               )}
             </h3>
             <p className='text-xs text-muted-foreground font-medium'>
-              Kelola tarif dasar pokok dan insentif pengganti dinas per jam kerja.
+              Kelola tarif dasar pokok dan insentif pengganti dinas per jam kerja berdasarkan peran
+              staf.
             </p>
           </div>
         </div>
@@ -150,83 +131,121 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
             </p>
           </div>
 
-          {/* 3 Vertical Stacked Cards (Replicating Leave Settings Rates Design) */}
-          <div className='flex flex-col gap-3.5'>
-            {CATEGORY_SECTIONS.map((cat) => {
-              const values = formRates[cat.category] || {
-                hourlyRate: cat.defaultHourly,
-                overtimeHourlyRate: cat.defaultOvertime
-              };
+          {/* Dynamic Stacked Cards per Internal Role */}
+          {isLoading ? (
+            <div className='flex flex-col gap-3 py-6 items-center justify-center text-center'>
+              <Icons.spinner className='size-6 animate-spin text-primary' />
+              <p className='text-xs text-muted-foreground'>
+                Memuat daftar peran internal dan standar tarif...
+              </p>
+            </div>
+          ) : internalRoles.length === 0 ? (
+            <div className='p-8 rounded-xl border border-dashed border-border flex flex-col items-center justify-center text-center space-y-2'>
+              <Icons.users className='size-8 text-muted-foreground/60' />
+              <p className='text-sm font-semibold text-foreground'>Belum ada peran staf internal</p>
+              <p className='text-xs text-muted-foreground max-w-sm leading-relaxed'>
+                Daftarkan peran staf internal terlebih dahulu di menu Manajemen Peran untuk
+                mengonfigurasi standar tarif per jam kerja.
+              </p>
+            </div>
+          ) : (
+            <div className='flex flex-col gap-3.5'>
+              {internalRoles.map((role) => {
+                const values = formRates[role.id] || {
+                  hourlyRate: 0,
+                  overtimeHourlyRate: 0
+                };
 
-              return (
-                <div
-                  key={cat.category}
-                  className='p-3.5 sm:p-4 rounded-xl border border-border/80 bg-card flex flex-col gap-3 shadow-2xs hover:border-border transition-colors'
-                >
-                  <div className='flex flex-col gap-0.5'>
-                    <span className='font-semibold text-xs sm:text-sm text-foreground'>
-                      {cat.title}
-                    </span>
-                    <p className='text-xs text-muted-foreground leading-relaxed'>{cat.subtitle}</p>
-                  </div>
-
-                  <div className='grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-border/40'>
-                    {/* Tarif Dasar Pokok */}
-                    <div className='flex items-center justify-between gap-3 p-2.5 rounded-lg border border-border/60 bg-muted/20'>
-                      <span className='text-xs font-medium text-foreground whitespace-nowrap'>
-                        Tarif Dasar Pokok
-                      </span>
-                      <div className='flex items-center rounded-lg border border-border/80 bg-background shadow-2xs overflow-hidden h-8.5 shrink-0 focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px] transition-[color,box-shadow]'>
-                        <span className='px-2.5 h-full flex items-center text-[11px] font-semibold text-muted-foreground bg-muted/40 border-r border-border/50 select-none'>
-                          Rp
+                return (
+                  <div
+                    key={role.id}
+                    className='p-3.5 sm:p-4 rounded-xl border border-border/80 bg-card flex flex-col gap-3 shadow-2xs hover:border-border transition-colors'
+                  >
+                    <div className='flex items-center justify-between gap-2'>
+                      <div className='flex items-center gap-2'>
+                        <span className='font-semibold text-xs sm:text-sm text-foreground'>
+                          {role.name}
                         </span>
-                        <input
-                          type='text'
-                          inputMode='numeric'
-                          aria-label={`Tarif Dasar Pokok ${cat.title}`}
-                          value={values.hourlyRate.toLocaleString('id-ID')}
-                          onChange={(e) =>
-                            handleRateChange(cat.category, 'hourlyRate', e.target.value)
-                          }
-                          disabled={isLoading || isSaving}
-                          className='h-full text-right font-mono font-medium text-xs bg-transparent border-0 outline-none px-2.5 text-foreground [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none w-24 sm:w-28'
-                        />
-                        <span className='px-2.5 h-full flex items-center text-[11px] font-medium text-muted-foreground bg-muted/40 border-l border-border/50 select-none whitespace-nowrap'>
-                          / jam
+                        <span className='font-mono text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-muted text-muted-foreground'>
+                          {role.code}
                         </span>
                       </div>
+                      <span
+                        className={cn(
+                          'text-[10.5px] font-semibold px-2 py-0.5 rounded-full border',
+                          role.isClinical
+                            ? 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20'
+                            : 'bg-muted text-muted-foreground border-border/50'
+                        )}
+                      >
+                        {role.isClinical ? 'Tenaga Klinis' : 'Staf Operasional'}
+                      </span>
                     </div>
 
-                    {/* Tarif Pengganti / Lembur */}
-                    <div className='flex items-center justify-between gap-3 p-2.5 rounded-lg border border-border/60 bg-muted/20'>
-                      <span className='text-xs font-medium text-foreground whitespace-nowrap'>
-                        Tarif Pengganti / Lembur
-                      </span>
-                      <div className='flex items-center rounded-lg border border-border/80 bg-background shadow-2xs overflow-hidden h-8.5 shrink-0 focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px] transition-[color,box-shadow]'>
-                        <span className='px-2.5 h-full flex items-center text-[11px] font-semibold text-muted-foreground bg-muted/40 border-r border-border/50 select-none'>
-                          Rp
+                    {role.description && (
+                      <p className='text-xs text-muted-foreground leading-relaxed'>
+                        {role.description}
+                      </p>
+                    )}
+
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-border/40'>
+                      {/* Tarif Dasar Pokok */}
+                      <div className='flex items-center justify-between gap-3 p-2.5 rounded-lg border border-border/60 bg-muted/20'>
+                        <span className='text-xs font-medium text-foreground whitespace-nowrap'>
+                          Tarif Dasar Pokok
                         </span>
-                        <input
-                          type='text'
-                          inputMode='numeric'
-                          aria-label={`Tarif Pengganti atau Lembur ${cat.title}`}
-                          value={values.overtimeHourlyRate.toLocaleString('id-ID')}
-                          onChange={(e) =>
-                            handleRateChange(cat.category, 'overtimeHourlyRate', e.target.value)
-                          }
-                          disabled={isLoading || isSaving}
-                          className='h-full text-right font-mono font-medium text-xs bg-transparent border-0 outline-none px-2.5 text-foreground [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none w-24 sm:w-28'
-                        />
-                        <span className='px-2.5 h-full flex items-center text-[11px] font-medium text-muted-foreground bg-muted/40 border-l border-border/50 select-none whitespace-nowrap'>
-                          / jam
+                        <div className='flex items-center rounded-lg border border-border/80 bg-background shadow-2xs overflow-hidden h-8.5 shrink-0 focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px] transition-[color,box-shadow]'>
+                          <span className='px-2.5 h-full flex items-center text-[11px] font-semibold text-muted-foreground bg-muted/40 border-r border-border/50 select-none'>
+                            Rp
+                          </span>
+                          <input
+                            type='text'
+                            inputMode='numeric'
+                            aria-label={`Tarif Dasar Pokok ${role.name}`}
+                            value={values.hourlyRate.toLocaleString('id-ID')}
+                            onChange={(e) =>
+                              handleRateChange(role.id, 'hourlyRate', e.target.value)
+                            }
+                            disabled={isLoading || isSaving}
+                            className='h-full text-right font-mono font-medium text-xs bg-transparent border-0 outline-none px-2.5 text-foreground [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none w-24 sm:w-28'
+                          />
+                          <span className='px-2.5 h-full flex items-center text-[11px] font-medium text-muted-foreground bg-muted/40 border-l border-border/50 select-none whitespace-nowrap'>
+                            / jam
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Tarif Pengganti / Lembur */}
+                      <div className='flex items-center justify-between gap-3 p-2.5 rounded-lg border border-border/60 bg-muted/20'>
+                        <span className='text-xs font-medium text-foreground whitespace-nowrap'>
+                          Tarif Pengganti / Lembur
                         </span>
+                        <div className='flex items-center rounded-lg border border-border/80 bg-background shadow-2xs overflow-hidden h-8.5 shrink-0 focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px] transition-[color,box-shadow]'>
+                          <span className='px-2.5 h-full flex items-center text-[11px] font-semibold text-muted-foreground bg-muted/40 border-r border-border/50 select-none'>
+                            Rp
+                          </span>
+                          <input
+                            type='text'
+                            inputMode='numeric'
+                            aria-label={`Tarif Pengganti atau Lembur ${role.name}`}
+                            value={values.overtimeHourlyRate.toLocaleString('id-ID')}
+                            onChange={(e) =>
+                              handleRateChange(role.id, 'overtimeHourlyRate', e.target.value)
+                            }
+                            disabled={isLoading || isSaving}
+                            className='h-full text-right font-mono font-medium text-xs bg-transparent border-0 outline-none px-2.5 text-foreground [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none w-24 sm:w-28'
+                          />
+                          <span className='px-2.5 h-full flex items-center text-[11px] font-medium text-muted-foreground bg-muted/40 border-l border-border/50 select-none whitespace-nowrap'>
+                            / jam
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Pinned Footer */}
@@ -246,7 +265,7 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
             variant='default'
             size='sm'
             onClick={handleSave}
-            disabled={isSaving || isLoading}
+            disabled={isSaving || isLoading || internalRoles.length === 0}
             className='px-4 font-semibold cursor-pointer text-xs h-8.5 gap-1.5'
           >
             {isSaving ? (

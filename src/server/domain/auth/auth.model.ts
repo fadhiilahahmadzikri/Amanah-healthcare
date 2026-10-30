@@ -1,7 +1,6 @@
 import 'server-only';
 import type { UserId, TokenString, EmailAddress } from '@/core/types/branded';
-
-export type SystemRole = 'ADMIN' | 'STAF' | 'PATIENT';
+import type { AudienceType, RoleTierType } from '@/core/auth/permissions.constants';
 
 export interface MedicalStaffProfile {
   readonly id: string;
@@ -34,12 +33,17 @@ export interface UserRole {
   readonly id: string | number;
   readonly code?: string;
   readonly name: string;
+  readonly tier?: RoleTierType;
+  readonly audience?: AudienceType;
+  readonly isClinical?: boolean;
 }
 
 export interface User {
   readonly id: UserId;
   readonly email: EmailAddress;
-  readonly systemRole: SystemRole;
+  readonly roleCode?: string;
+  readonly audience: AudienceType;
+  readonly permissions: string[];
   readonly role?: UserRole;
   readonly staff?: MedicalStaffProfile | null;
   readonly patient?: PatientProfile | null;

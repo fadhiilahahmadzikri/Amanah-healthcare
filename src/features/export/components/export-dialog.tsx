@@ -17,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
 import { EXPORT_FORMAT_OPTIONS, type ExportFormat, type ExportType } from '../types';
 import { useExportPipeline } from '../hooks/useExportPipeline';
 import { ExportFormatCard } from './export-format-card';

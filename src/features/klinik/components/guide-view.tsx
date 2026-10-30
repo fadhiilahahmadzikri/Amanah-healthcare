@@ -61,7 +61,7 @@ const GUIDE_DATA: GuideStepItem[] = [
     points: [
       {
         label: 'Memilih Poliklinik dan Dokter',
-        text: 'Pilih layanan poli yang Anda butuhkan (misalnya Poli Umum, Poli Anak, Poli Gigi, atau Spesialis Penyakit Dalam) beserta dokter yang bertugas.'
+        text: 'Pilih layanan klinik yang Anda butuhkan (misalnya layanan rawat jalan umum, layanan anak, atau spesialisasi lainnya) beserta dokter yang bertugas.'
       },
       {
         label: 'Menentukan Hari dan Jam',
@@ -319,7 +319,6 @@ export function GuideView() {
               const isLast = idx === filteredSteps.length - 1;
               const isActive = idx === activeIndex;
               const isPassed = idx < activeIndex;
-              const isFuture = idx > activeIndex;
 
               return (
                 <div

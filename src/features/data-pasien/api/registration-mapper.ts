@@ -5,23 +5,8 @@ import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 export const PATIENT_REGISTRATION_COMPLETED_COOKIE = 'patient_registration_completed';
 export const PATIENT_REGISTRATION_COMPLETED_METADATA_KEY = 'patientRegistrationCompleted';
 
-const DEFAULT_VISIT_LABEL = 'Belum ada kunjungan';
 const MEDICAL_RECORD_PADDING = 4;
 const CLINIC_TIME_ZONE = process.env.NEXT_PUBLIC_CLINIC_TIMEZONE || 'Asia/Jakarta';
-const INDONESIAN_MONTHS = [
-  'Januari',
-  'Februari',
-  'Maret',
-  'April',
-  'Mei',
-  'Juni',
-  'Juli',
-  'Agustus',
-  'September',
-  'Oktober',
-  'November',
-  'Desember'
-] as const;
 
 type RegistrationUserDefaults = {
   email?: string | null;
@@ -156,19 +141,6 @@ function formatDomicile(values: PatientRegistrationFormValues): string {
   ].join(', ');
 }
 
-function formatIsoDateForPatient(date: string): string {
-  const { day, month, year } = parseIsoDate(date);
-  return `${padDateNumber(day)}/${padDateNumber(month)}/${year}`;
-}
-
-function formatDateForPatient(parts: DateParts): string {
-  return `${padDateNumber(parts.day)}/${padDateNumber(parts.month)}/${parts.year}`;
-}
-
-function formatWibDateTime(parts: DateParts): string {
-  return `${parts.day} ${INDONESIAN_MONTHS[parts.month - 1]} ${parts.year}, ${parts.hour}:${parts.minute} WIB`;
-}
-
 function parseIsoDate(date: string) {
   const [year = 0, month = 0, day = 0] = date.split('-').map(Number);
   return { day, month, year };
@@ -195,8 +167,4 @@ function getDatePartsInTimeZone(date: Date): DateParts {
     hour: getPart('hour'),
     minute: getPart('minute')
   };
-}
-
-function padDateNumber(value: number): string {
-  return String(value).padStart(2, '0');
 }

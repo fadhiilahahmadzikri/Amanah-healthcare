@@ -39,12 +39,16 @@ import { InviteStaffModal } from './invite-staff-modal';
 import { StaffRosterModal } from './staff-roster-modal';
 import { StaffProfileModal } from './staff-profile-modal';
 import { ExportDialog } from '@/features/export';
+import { useAuthContext } from '@/lib/rbac/auth-context';
+import { PERMISSIONS } from '@/core/auth/permissions.constants';
 import type { StaffMember } from '../api/staff-management.api';
 
 export function StaffManagementView() {
   const { view, dynamicOptions, revoke, rosterModal, detailModal, inviteModal } =
     useStaffManagementPresenter();
   const [exportStaff, setExportStaff] = useState<StaffMember | null>(null);
+  const { can } = useAuthContext();
+  const canInviteStaff = can(PERMISSIONS.STAFF.INVITE);
 
   const { state: sidebarState } = useSidebar();
   const isSidebarExpanded = sidebarState === 'expanded';
@@ -97,7 +101,7 @@ export function StaffManagementView() {
           invitationsCount={view.allInvitations.length}
           viewMode={view.viewMode}
           onViewModeChange={view.actions.changeViewMode}
-          onInviteStaff={inviteModal.open}
+          onInviteStaff={canInviteStaff ? inviteModal.open : undefined}
           onRefresh={() => void view.refetch()}
         />
 
@@ -140,12 +144,12 @@ export function StaffManagementView() {
                     >
                       Reset Semua Filter
                     </Button>
-                  ) : (
+                  ) : canInviteStaff ? (
                     <Button size='sm' onClick={inviteModal.open} className='text-xs gap-1.5'>
                       <Icons.userPlus className='h-3.5 w-3.5' />
                       Undang Staf Pertama
                     </Button>
-                  )
+                  ) : null
                 }
                 className='h-full w-full flex-1'
               />

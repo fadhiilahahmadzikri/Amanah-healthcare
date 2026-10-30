@@ -20,7 +20,8 @@ export type ServiceCardItem = {
   id: string;
   title: string;
   description: string;
-  image: AssetImage;
+  iconName?: string | null;
+  image?: AssetImage;
   href?: string;
   colSpanClass?: string;
   heightClass?: string;

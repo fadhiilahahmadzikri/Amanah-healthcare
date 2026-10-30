@@ -92,7 +92,7 @@ export function DoctorScheduleCard({
         label='Lihat Jadwal'
         shortLabel='Jadwal'
         onClick={handleSettings}
-        title='Lihat Jadwal Dokter'
+        title='Lihat Jadwal Praktisi'
       />
     ) : null;
 
@@ -104,13 +104,13 @@ export function DoctorScheduleCard({
         e.stopPropagation();
         onCardClick?.(doctor);
       }}
-      title='Profil Medis Dokter'
-      aria-label='Profil Medis Dokter'
+      title='Profil Praktisi'
+      aria-label='Profil Praktisi'
       size='sm'
       className='h-8 sm:h-8.5 py-0 px-3 rounded-lg sm:rounded-md text-xs sm:text-[11.5px] font-bold shrink-0 inline-flex items-center gap-1.5 shadow-2xs'
     >
       <Icons.user className='size-3.5 sm:size-3.5 xl:size-3 text-muted-foreground shrink-0' />
-      <span>Profil Medis</span>
+      <span>Profil Praktisi</span>
     </Button>
   ) : (
     <EntityCardPrimaryAction label='Lihat Pasien' onClick={handleDetail} title='Lihat Pasien' />
@@ -125,10 +125,20 @@ export function DoctorScheduleCard({
       variant={variant}
       name={doctor.fullName}
       subtitle={
-        <DoctorSpecialtyText
-          specialty={doctor.specialty}
-          className='text-[12px] sm:text-[11.5px] xl:text-[11px] truncate mt-0.5'
-        />
+        <div className='flex items-center gap-1.5 truncate mt-0.5'>
+          {doctor.roleName && (
+            <span className='text-[11px] font-semibold text-primary/80 shrink-0'>
+              {doctor.roleName}
+            </span>
+          )}
+          {doctor.roleName && doctor.specialty && (
+            <span className='text-[10px] text-muted-foreground/60'>•</span>
+          )}
+          <DoctorSpecialtyText
+            specialty={doctor.specialty}
+            className='text-[12px] sm:text-[11.5px] xl:text-[11px] truncate'
+          />
+        </div>
       }
       avatarUrl={doctor.avatar}
       trailingImage={

@@ -23,6 +23,8 @@ import { cn } from '@/lib/utils';
 import { ExportDialog } from '@/features/export';
 import { ResponsiveFacetToolbox } from '@/shared/ui/responsive-facet-toolbox';
 import { SearchEngineDialog, type useStateSearchEngine } from '@/components/search-engine';
+import { useAuthContext } from '@/lib/rbac/auth-context';
+import { PERMISSIONS } from '@/core/auth/permissions.constants';
 import {
   CANONICAL_ATTENDANCE_STATUS,
   ATTENDANCE_STATUS_LABELS
@@ -66,6 +68,8 @@ export function AttendanceTableCard({
   } | null>(null);
 
   const checkoutMutation = useCheckoutAttendanceMutation();
+  const { can } = useAuthContext();
+  const canManageAttendance = can(PERMISSIONS.ATTENDANCE.MANAGE);
 
   const handleTriggerCheckout = async (staffId: string, staffName: string, notes?: string) => {
     try {
@@ -169,7 +173,7 @@ export function AttendanceTableCard({
                     Nama Staf
                   </TableHead>
                   <TableHead className='h-10 px-3 text-xs font-semibold text-muted-foreground min-w-[95px]'>
-                    Kategori
+                    Peran
                   </TableHead>
                   <TableHead className='h-10 px-3 text-xs font-semibold text-muted-foreground min-w-[100px]'>
                     Jam Masuk
@@ -217,7 +221,7 @@ export function AttendanceTableCard({
                     const isSelected = selectedIds.includes(row.id);
                     const isLate = row.status === CANONICAL_ATTENDANCE_STATUS.LATE;
                     const isPresent = row.status === CANONICAL_ATTENDANCE_STATUS.PRESENT;
-                    const roleName = row.roleName || row.kategori;
+                    const roleName = row.roleName;
                     const statusLabel = ATTENDANCE_STATUS_LABELS[row.status] || row.status;
                     const shiftLabel = row.shiftLabel || '-';
 
@@ -305,18 +309,22 @@ export function AttendanceTableCard({
                           </div>
                         </TableCell>
 
-                        {/* Kategori / Peran */}
+                        {/* Peran */}
                         <TableCell className='px-3 py-2.5'>
-                          <span
-                            className={cn(
-                              'inline-flex items-center px-2 py-0.5 rounded text-[10.5px] font-semibold border',
-                              row.isClinical
-                                ? 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/20'
-                                : 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20'
-                            )}
-                          >
-                            {roleName}
-                          </span>
+                          {roleName ? (
+                            <span
+                              className={cn(
+                                'inline-flex items-center px-2 py-0.5 rounded text-[10.5px] font-semibold border',
+                                row.isClinical
+                                  ? 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/20'
+                                  : 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20'
+                              )}
+                            >
+                              {roleName}
+                            </span>
+                          ) : (
+                            <span className='text-xs text-muted-foreground/60 font-mono'>-</span>
+                          )}
                         </TableCell>
 
                         {/* Jam Masuk */}
@@ -421,7 +429,7 @@ export function AttendanceTableCard({
                                 <Icons.check className='size-3 text-emerald-500' />
                                 <span>Selesai</span>
                               </span>
-                            ) : (
+                            ) : canManageAttendance ? (
                               <Button
                                 type='button'
                                 variant='outline'
@@ -436,7 +444,7 @@ export function AttendanceTableCard({
                                 <Icons.logout className='size-3 text-primary' />
                                 <span>Checkout</span>
                               </Button>
-                            )}
+                            ) : null}
                           </div>
                         </TableCell>
                       </TableRow>

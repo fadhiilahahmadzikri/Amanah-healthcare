@@ -1,5 +1,10 @@
 import { create } from 'zustand';
-import type { ChatMessage, Conversation, ConversationStatus } from './types';
+import {
+  CHAT_SENDER_ROLE,
+  type ChatMessage,
+  type Conversation,
+  type ConversationStatus
+} from './types';
 
 interface ChatState {
   conversations: Conversation[];
@@ -69,7 +74,7 @@ export const useChatStore = create<ChatState>()((set, get) => ({
           ...c,
           lastMessageAt: message.createdAt,
           lastMessagePreview: message.body,
-          awaitingReply: message.senderRole === 'customer',
+          awaitingReply: message.senderRole === CHAT_SENDER_ROLE.EXTERNAL,
           unreadCount: isActive ? 0 : (c.unreadCount || 0) + 1
         };
       });

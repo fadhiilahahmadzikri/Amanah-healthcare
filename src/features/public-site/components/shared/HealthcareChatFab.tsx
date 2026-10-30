@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { MessageCircleIcon } from 'lucide-react';
 import { GuestChatModal } from '@/features/chat/components/guest-chat-modal';
 import { useViewer } from '@/features/notifications/hooks/use-viewer';
+import { AUDIENCE } from '@/core/auth/permissions.constants';
 
 export function HealthcareChatFab() {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,7 +14,7 @@ export function HealthcareChatFab() {
 
   const handleClick = () => {
     if (viewer?.userId) {
-      if (viewer.audience === 'clinic') {
+      if (viewer.audience === AUDIENCE.INTERNAL) {
         router.push('/admin/chat');
         return;
       }
