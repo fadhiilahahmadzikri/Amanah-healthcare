@@ -1,13 +1,15 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import {
   IconStethoscope,
   IconBriefcase,
   IconEdit,
   IconTrash,
   IconBrowser,
-  IconAlertTriangle
+  IconAlertTriangle,
+  IconArrowUpRight
 } from '@tabler/icons-react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -46,6 +48,7 @@ export function RoleCard({
   isToggling = false,
   canManage = true
 }: RoleCardProps) {
+  const router = useRouter();
   const [showDeactivateConfirm, setShowDeactivateConfirm] = React.useState(false);
   const directPermsCount = (role.permissions || []).length;
   const effectivePermsCount = (role.effectivePermissionCodes || []).length;
@@ -81,7 +84,9 @@ export function RoleCard({
           <div className='flex items-start justify-between gap-2'>
             <div>
               <div className='flex items-center gap-1.5 flex-wrap'>
-                <h3 className='font-semibold text-base text-foreground leading-tight'>{role.name}</h3>
+                <h3 className='font-semibold text-base text-foreground leading-tight'>
+                  {role.name}
+                </h3>
                 {!isActive ? (
                   <Badge
                     variant='outline'
@@ -111,7 +116,10 @@ export function RoleCard({
                     Eksternal
                   </Badge>
                 ) : (
-                  <Badge variant='outline' className='text-[10px] px-1.5 py-0 text-muted-foreground'>
+                  <Badge
+                    variant='outline'
+                    className='text-[10px] px-1.5 py-0 text-muted-foreground'
+                  >
                     Internal
                   </Badge>
                 )}
@@ -187,7 +195,18 @@ export function RoleCard({
 
           <div className='flex items-center justify-between text-xs'>
             <span className='text-muted-foreground'>Jumlah Pengguna:</span>
-            <span className='font-medium text-foreground'>{userCount} pengguna</span>
+            <div className='flex items-center gap-1.5'>
+              <span className='font-medium text-foreground'>{userCount} pengguna</span>
+              <Button
+                variant='ghost'
+                size='icon'
+                className='size-5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-sm cursor-pointer'
+                title={`Lihat ${userCount} pengguna peran ${role.name} di Data User`}
+                onClick={() => router.push(`/admin/data-user?role=${role.id}`)}
+              >
+                <IconArrowUpRight className='size-3.5' />
+              </Button>
+            </div>
           </div>
 
           {role.parentRole && (

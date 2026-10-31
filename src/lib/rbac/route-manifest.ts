@@ -106,6 +106,14 @@ export const routeManifest: RouteRule[] = [
     description: 'Manajemen Role & Perizinan (Role Studio)'
   },
   {
+    pattern: '/admin/data-user',
+    match: 'prefix',
+    visibility: 'protected',
+    audience: AUDIENCE.INTERNAL,
+    requiredPermission: PERMISSIONS.USERS.READ,
+    description: 'Manajemen Data Pengguna & Identitas Sistem'
+  },
+  {
     pattern: '/admin/clinic-essentials',
     match: 'prefix',
     visibility: 'protected',

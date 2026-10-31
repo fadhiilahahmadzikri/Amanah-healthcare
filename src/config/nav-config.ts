@@ -71,6 +71,13 @@ export const navGroups: NavGroup[] = [
             access: { audience: AUDIENCE.INTERNAL, permission: PERMISSIONS.ROLES.READ }
           },
           {
+            title: 'Data User',
+            url: '/admin/data-user',
+            icon: 'userCheck',
+            shortcut: ['d', 'u'],
+            access: { audience: AUDIENCE.INTERNAL, permission: PERMISSIONS.USERS.READ }
+          },
+          {
             title: 'Clinic Essentials',
             url: '/admin/clinic-essentials',
             icon: 'workspace',

@@ -92,14 +92,25 @@ export const PERMISSIONS = {
     MANAGE: 'schedules:manage',
     READ: 'schedules:read'
   },
+  PAGES: {
+    MANAGE: 'pages:manage',
+    READ: 'pages:read'
+  },
+  CHAT: {
+    READ: 'chat:read',
+    SEND: 'chat:send'
+  },
   STAFF: {
     INVITE: 'staff:invite',
     MANAGE: 'staff:manage',
     READ: 'staff:read'
   },
   USERS: {
+    DELETE: 'users:delete',
+    EXPORT: 'users:export',
     MANAGE: 'users:manage',
-    READ: 'users:read'
+    READ: 'users:read',
+    RESTORE: 'users:restore'
   },
   WILDCARD: '*'
 } as const;
@@ -108,8 +119,10 @@ export type PermissionCode =
   | (typeof PERMISSIONS.APP)[keyof typeof PERMISSIONS.APP]
   | (typeof PERMISSIONS.APPOINTMENTS)[keyof typeof PERMISSIONS.APPOINTMENTS]
   | (typeof PERMISSIONS.ATTENDANCE)[keyof typeof PERMISSIONS.ATTENDANCE]
+  | (typeof PERMISSIONS.CHAT)[keyof typeof PERMISSIONS.CHAT]
   | (typeof PERMISSIONS.CLINICS)[keyof typeof PERMISSIONS.CLINICS]
   | (typeof PERMISSIONS.NOTIFICATIONS)[keyof typeof PERMISSIONS.NOTIFICATIONS]
+  | (typeof PERMISSIONS.PAGES)[keyof typeof PERMISSIONS.PAGES]
   | (typeof PERMISSIONS.PATIENTS)[keyof typeof PERMISSIONS.PATIENTS]
   | (typeof PERMISSIONS.PAYROLL)[keyof typeof PERMISSIONS.PAYROLL]
   | (typeof PERMISSIONS.PRESCRIPTIONS)[keyof typeof PERMISSIONS.PRESCRIPTIONS]
