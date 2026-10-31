@@ -23,7 +23,7 @@ export type MetricChartCardProps = {
   title: string;
   value: string;
   description?: string;
-  data: MetricChartPoint[];
+  data?: MetricChartPoint[];
   icon?: ReactNode;
   trendLabel?: string;
   trendDirection?: 'up' | 'down' | 'neutral';
@@ -69,6 +69,7 @@ export function MetricChartCard({
 }: MetricChartCardProps) {
   const gradientId = `metric-gradient-${useId().replace(/:/g, '')}`;
   const activeColor = strokeColor || toneColors[tone];
+  const hasCompatibleChartData = Boolean(data && data.length >= 2);
 
   const chartConfig = {
     value: {
@@ -86,7 +87,7 @@ export function MetricChartCard({
       )}
     >
       {/* 1. Header Metrics Content */}
-      <div className='p-5 pb-0'>
+      <div className={cn('p-5', hasCompatibleChartData && 'pb-0')}>
         <div className='flex items-start justify-between'>
           <div className='space-y-2'>
             <p className='text-xs font-medium text-muted-foreground'>{title}</p>
@@ -130,36 +131,38 @@ export function MetricChartCard({
         </div>
       </div>
 
-      {/* 2. Unwrapped Edge-to-Edge Sparkline Chart */}
-      <div className='w-full'>
-        <ChartContainer config={chartConfig} className='h-14 w-full aspect-auto'>
-          <AreaChart
-            accessibilityLayer
-            data={data}
-            margin={{ left: 0, right: 0, top: 4, bottom: 0 }}
-          >
-            <defs>
-              <linearGradient id={gradientId} x1='0' y1='0' x2='0' y2='1'>
-                <stop offset='0%' stopColor={activeColor} stopOpacity={0.35} />
-                <stop offset='100%' stopColor={activeColor} stopOpacity={0.0} />
-              </linearGradient>
-            </defs>
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel indicator='line' />}
-            />
-            <Area
-              dataKey='value'
-              type='monotone'
-              stroke={activeColor}
-              fill={`url(#${gradientId})`}
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 3, fill: activeColor }}
-            />
-          </AreaChart>
-        </ChartContainer>
-      </div>
+      {/* 2. Unwrapped Edge-to-Edge Sparkline Chart (Only rendered when at least 2 compatible points exist) */}
+      {hasCompatibleChartData && (
+        <div className='w-full'>
+          <ChartContainer config={chartConfig} className='h-14 w-full aspect-auto'>
+            <AreaChart
+              accessibilityLayer
+              data={data}
+              margin={{ left: 0, right: 0, top: 4, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id={gradientId} x1='0' y1='0' x2='0' y2='1'>
+                  <stop offset='0%' stopColor={activeColor} stopOpacity={0.35} />
+                  <stop offset='100%' stopColor={activeColor} stopOpacity={0.0} />
+                </linearGradient>
+              </defs>
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent hideLabel indicator='line' />}
+              />
+              <Area
+                dataKey='value'
+                type='monotone'
+                stroke={activeColor}
+                fill={`url(#${gradientId})`}
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 3, fill: activeColor }}
+              />
+            </AreaChart>
+          </ChartContainer>
+        </div>
+      )}
     </div>
   );
 }

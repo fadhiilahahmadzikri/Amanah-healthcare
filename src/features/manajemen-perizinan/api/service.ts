@@ -50,6 +50,7 @@ export async function updateLeavePolicy(data: Partial<LeavePolicyItem>): Promise
       approvalRequired: data.approvalRequired,
       limitMode: data.limitMode,
       monthlyLimit: data.monthlyLimit,
+      noticeDaysRequired: data.noticeDaysRequired,
       quotaCountingPolicy: data.quotaCountingPolicy,
       periodPolicy: data.periodPolicy
     })
