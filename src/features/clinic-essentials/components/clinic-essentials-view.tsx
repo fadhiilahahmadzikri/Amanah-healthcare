@@ -8,6 +8,7 @@ import {
   ClipboardList,
   DoorOpen,
   Folder,
+  Layers,
   Plus,
   RefreshCw,
   Settings2,
@@ -57,9 +58,10 @@ import { CreateFormDialog } from './dialogs/create-form-dialog';
 import { CreateRoomDialog } from './dialogs/create-room-dialog';
 import { CreateServiceDialog } from './dialogs/create-service-dialog';
 import { CreateUnitDialog } from './dialogs/create-unit-dialog';
+import { CreateUnitTypeDialog } from './dialogs/create-unit-type-dialog';
 
 interface DeletingState {
-  type: 'unit' | 'room' | 'category' | 'service' | 'form';
+  type: 'unit-type' | 'unit' | 'room' | 'category' | 'service' | 'form';
   id: string;
   name: string;
 }
@@ -70,6 +72,7 @@ export function ClinicEssentialsView() {
   const canManage = can(PERMISSIONS.CLINICS.MANAGE);
 
   // Dialog visibility states
+  const [isCreateUnitTypeOpen, setIsCreateUnitTypeOpen] = React.useState(false);
   const [isCreateUnitOpen, setIsCreateUnitOpen] = React.useState(false);
   const [isCreateRoomOpen, setIsCreateRoomOpen] = React.useState(false);
   const [isCreateCategoryOpen, setIsCreateCategoryOpen] = React.useState(false);
@@ -78,6 +81,16 @@ export function ClinicEssentialsView() {
 
   // Deletion confirmation state
   const [deletingItem, setDeletingItem] = React.useState<DeletingState | null>(null);
+
+  // 0. Fetch Unit Types (Master Tipe Unit)
+  const {
+    data: unitTypes = [],
+    isLoading: isLoadingUnitTypes,
+    isRefetching: isRefetchingUnitTypes
+  } = useQuery({
+    queryKey: clinicEssentialsKeys.unitTypes(),
+    queryFn: () => clinicEssentialsApi.getUnitTypes()
+  });
 
   // 1. Fetch Units
   const {
@@ -130,6 +143,7 @@ export function ClinicEssentialsView() {
   });
 
   const isAnyRefetching =
+    isRefetchingUnitTypes ||
     isRefetchingUnits ||
     isRefetchingRooms ||
     isRefetchingCategories ||
@@ -145,6 +159,9 @@ export function ClinicEssentialsView() {
   const deleteMutation = useMutation({
     mutationFn: async (item: DeletingState) => {
       switch (item.type) {
+        case 'unit-type':
+          await clinicEssentialsApi.deleteUnitType(item.id);
+          break;
         case 'unit':
           await clinicEssentialsApi.deleteUnit(item.id);
           break;
@@ -201,6 +218,14 @@ export function ClinicEssentialsView() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align='end' className='w-56'>
                 <DropdownMenuItem
+                  onClick={() => setIsCreateUnitTypeOpen(true)}
+                  className='cursor-pointer gap-2'
+                >
+                  <Layers className='size-4 text-primary' />
+                  <span>Tambah Tipe Unit</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
                   onClick={() => setIsCreateUnitOpen(true)}
                   className='cursor-pointer gap-2'
                 >
@@ -251,7 +276,11 @@ export function ClinicEssentialsView() {
 
       {/* Tabs Layout */}
       <Tabs defaultValue='units' className='w-full space-y-4'>
-        <TabsList className='grid grid-cols-2 sm:grid-cols-5 w-full h-auto p-1 bg-muted/60'>
+        <TabsList className='grid grid-cols-2 sm:grid-cols-6 w-full h-auto p-1 bg-muted/60'>
+          <TabsTrigger value='unit-types' className='text-xs py-1.5 gap-1.5'>
+            <Layers className='size-3.5' />
+            <span>Tipe Unit ({unitTypes.length})</span>
+          </TabsTrigger>
           <TabsTrigger value='units' className='text-xs py-1.5 gap-1.5'>
             <Building2 className='size-3.5' />
             <span>Unit ({units.length})</span>
@@ -273,6 +302,109 @@ export function ClinicEssentialsView() {
             <span>Formulir ({forms.length})</span>
           </TabsTrigger>
         </TabsList>
+
+        {/* 0. Tab Unit Types */}
+        <TabsContent value='unit-types'>
+          <Card>
+            <CardHeader className='pb-3'>
+              <div className='flex items-center justify-between'>
+                <div>
+                  <CardTitle className='text-base font-semibold'>Tipe Unit Fasilitas</CardTitle>
+                  <CardDescription className='text-xs'>
+                    Daftar master klasifikasi tipe unit fasilitas (misal: Poliklinik Rawat Jalan, Ruang Rawat Inap, Departemen Medis).
+                  </CardDescription>
+                </div>
+                {canManage && (
+                  <Button
+                    size='sm'
+                    variant='outline'
+                    onClick={() => setIsCreateUnitTypeOpen(true)}
+                    className='text-xs gap-1 h-8'
+                  >
+                    <Plus className='size-3.5' /> Tambah Tipe Unit
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoadingUnitTypes ? (
+                <div className='space-y-2 py-4'>
+                  <Skeleton className='h-8 w-full' />
+                  <Skeleton className='h-8 w-full' />
+                  <Skeleton className='h-8 w-full' />
+                </div>
+              ) : unitTypes.length === 0 ? (
+                <div className='text-center py-10 border border-dashed rounded-lg bg-muted/20'>
+                  <Layers className='size-8 mx-auto text-muted-foreground/50 mb-2' />
+                  <p className='text-sm font-medium'>Belum ada tipe unit terdaftar</p>
+                  <p className='text-xs text-muted-foreground mt-1 mb-4'>
+                    Daftarkan tipe unit fasilitas pertama (misal: Poliklinik Rawat Jalan, Ruang Rawat Inap, Departemen Medis).
+                  </p>
+                  {canManage && (
+                    <Button
+                      size='sm'
+                      onClick={() => setIsCreateUnitTypeOpen(true)}
+                      className='text-xs gap-1'
+                    >
+                      <Plus className='size-3.5' /> Tambah Tipe Unit
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className='overflow-x-auto rounded-md border'>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Nama Tipe Unit</TableHead>
+                        <TableHead>Kode (SSOT)</TableHead>
+                        <TableHead>Deskripsi</TableHead>
+                        <TableHead>Ikon</TableHead>
+                        <TableHead>Unit Terhubung</TableHead>
+                        <TableHead className='w-[80px] text-right'>Aksi</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {unitTypes.map((t) => (
+                        <TableRow key={t.id}>
+                          <TableCell className='font-medium text-xs sm:text-sm'>{t.name}</TableCell>
+                          <TableCell className='font-mono text-xs font-semibold text-primary'>
+                            {t.code}
+                          </TableCell>
+                          <TableCell className='text-xs text-muted-foreground max-w-xs truncate'>
+                            {t.description || '-'}
+                          </TableCell>
+                          <TableCell className='text-xs font-mono text-muted-foreground'>
+                            <div className='flex items-center gap-1.5'>
+                              <ShiftIconDisplay icon={t.iconName || 'building-2'} size='sm' />
+                              <span className='truncate'>{t.iconName || 'building-2'}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant='secondary' className='text-[10px] font-mono'>
+                              {t.unitCount || 0} unit
+                            </Badge>
+                          </TableCell>
+                          <TableCell className='text-right'>
+                            <Button
+                              variant='ghost'
+                              size='icon'
+                              className='size-7 text-destructive hover:bg-destructive/10'
+                              onClick={() =>
+                                setDeletingItem({ type: 'unit-type', id: t.id, name: t.name })
+                              }
+                            >
+                              <Trash2 className='size-3.5' />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {/* 1. Tab Units */}
         <TabsContent value='units'>
@@ -352,8 +484,8 @@ export function ClinicEssentialsView() {
                               <span className='text-xs text-muted-foreground'>-</span>
                             )}
                           </TableCell>
-                          <TableCell className='text-xs capitalize'>
-                            {u.unitType || 'polyclinic'}
+                          <TableCell className='text-xs'>
+                            {u.unitTypeName || u.unitType?.name || '-'}
                           </TableCell>
                           <TableCell className='text-xs text-muted-foreground'>
                             {u.floor ? `Lt. ${u.floor}` : ''} {u.location ? `(${u.location})` : ''}
@@ -838,6 +970,11 @@ export function ClinicEssentialsView() {
       </Tabs>
 
       {/* Creation Dialogs */}
+      <CreateUnitTypeDialog
+        open={isCreateUnitTypeOpen}
+        onOpenChange={setIsCreateUnitTypeOpen}
+      />
+
       <CreateUnitDialog open={isCreateUnitOpen} onOpenChange={setIsCreateUnitOpen} />
 
       <CreateRoomDialog open={isCreateRoomOpen} onOpenChange={setIsCreateRoomOpen} units={units} />

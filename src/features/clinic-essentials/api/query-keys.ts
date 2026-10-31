@@ -1,5 +1,6 @@
 export const clinicEssentialsKeys = {
   all: ['admin', 'facilities'] as const,
+  unitTypes: () => [...clinicEssentialsKeys.all, 'unit-types'] as const,
   units: () => [...clinicEssentialsKeys.all, 'units'] as const,
   rooms: (unitId?: string) => [...clinicEssentialsKeys.all, 'rooms', unitId] as const,
   categories: (unitId?: string) => [...clinicEssentialsKeys.all, 'categories', unitId] as const,

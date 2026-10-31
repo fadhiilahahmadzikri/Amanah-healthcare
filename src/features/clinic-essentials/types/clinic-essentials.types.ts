@@ -1,13 +1,29 @@
+export interface FacilityUnitType {
+  id: string;
+  code: string;
+  name: string;
+  description?: string | null;
+  iconName?: string | null;
+  isActive: boolean;
+  unitCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface FacilityUnit {
   id: string;
   name: string;
   code: string;
-  unitType?: string;
+  unitTypeId: string;
+  unitType?: FacilityUnitType | null;
+  unitTypeName?: string | null;
   queuePrefix?: string | null;
   iconName?: string | null;
   location?: string | null;
   floor?: string | null;
   isActive: boolean;
+  roomCount?: number;
+  categoryCount?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -72,10 +88,18 @@ export interface ClinicService {
   updatedAt?: string;
 }
 
+export interface CreateUnitTypePayload {
+  name: string;
+  code: string;
+  description?: string;
+  iconName?: string;
+  isActive?: boolean;
+}
+
 export interface CreateUnitPayload {
   name: string;
   code: string;
-  unitType?: 'department' | 'polyclinic' | 'ward' | 'emergency' | 'support' | 'other';
+  unitTypeId: string;
   queuePrefix?: string;
   iconName?: string;
   location?: string;

@@ -138,4 +138,60 @@ describe('Appointment Loading State Machine & Query Key Alignment', () => {
       expect(state).toBe('SUCCESS_WITH_RECORDS');
     });
   });
+
+  describe('Booking Category Step State Machine Semantics', () => {
+    type CategoryStepState =
+      | 'INITIAL_LOADING'
+      | 'REQUEST_FAILURE'
+      | 'EMPTY_DATASET'
+      | 'SUCCESS_WITH_RECORDS';
+
+    function determineCategoryStepState(state: {
+      isLoadingCatalog: boolean;
+      catalogError: Error | null;
+      activeCategoriesCount: number;
+    }): CategoryStepState {
+      if (state.isLoadingCatalog) return 'INITIAL_LOADING';
+      if (state.catalogError !== null) return 'REQUEST_FAILURE';
+      if (state.activeCategoriesCount === 0) return 'EMPTY_DATASET';
+      return 'SUCCESS_WITH_RECORDS';
+    }
+
+    it('displays loading skeleton during initial catalog fetch', () => {
+      const stepState = determineCategoryStepState({
+        isLoadingCatalog: true,
+        catalogError: null,
+        activeCategoriesCount: 0
+      });
+      expect(stepState).toBe('INITIAL_LOADING');
+    });
+
+    it('displays EmptyState when catalog fetch succeeds with empty list (0 categories)', () => {
+      const stepState = determineCategoryStepState({
+        isLoadingCatalog: false,
+        catalogError: null,
+        activeCategoriesCount: 0
+      });
+      expect(stepState).toBe('EMPTY_DATASET');
+    });
+
+    it('displays error EmptyState with retry when catalog fetch fails', () => {
+      const stepState = determineCategoryStepState({
+        isLoadingCatalog: false,
+        catalogError: new Error('Network error'),
+        activeCategoriesCount: 0
+      });
+      expect(stepState).toBe('REQUEST_FAILURE');
+      expect(stepState).not.toBe('EMPTY_DATASET');
+    });
+
+    it('renders category cards when categories are populated', () => {
+      const stepState = determineCategoryStepState({
+        isLoadingCatalog: false,
+        catalogError: null,
+        activeCategoriesCount: 3
+      });
+      expect(stepState).toBe('SUCCESS_WITH_RECORDS');
+    });
+  });
 });

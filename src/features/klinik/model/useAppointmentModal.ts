@@ -54,6 +54,7 @@ export function useAppointmentModal({
   const [categories, setCategories] = useState<ServiceCategoryCatalog[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
   const [isLoadingCatalog, setIsLoadingCatalog] = useState<boolean>(false);
+  const [catalogError, setCatalogError] = useState<Error | null>(null);
   const [selectedService, setSelectedService] = useState<ServiceCatalogItem | null>(null);
 
   const defaultDateStr = getClinicTodayDateString();
@@ -131,15 +132,21 @@ export function useAppointmentModal({
 
   const visitTypeOptions = [VISIT_TYPE.NEW_VISIT, VISIT_TYPE.FOLLOW_UP] as const;
 
-  const loadCatalog = useCallback(async () => {
+  const loadCatalog = useCallback(async (forceRefresh = false) => {
     try {
       setIsLoadingCatalog(true);
-      const data = await catalogService.getServiceCatalog();
-      if (Array.isArray(data) && data.length > 0) {
+      setCatalogError(null);
+      const data = await catalogService.getServiceCatalog(forceRefresh);
+      if (Array.isArray(data)) {
         setCategories(data);
-        setSelectedCategoryId((prev) => prev || data[0].id);
+        if (data.length > 0) {
+          setSelectedCategoryId((prev) => prev || data[0].id);
+        }
       }
     } catch (err) {
+      const errorObj =
+        err instanceof Error ? err : new Error('Gagal memuat katalog layanan klinik');
+      setCatalogError(errorObj);
       console.error('Failed to load clinic catalog:', err);
     } finally {
       setIsLoadingCatalog(false);
@@ -463,6 +470,8 @@ export function useAppointmentModal({
     selectedCategoryId,
     setSelectedCategoryId,
     isLoadingCatalog,
+    catalogError,
+    loadCatalog,
     selectedService,
     activeCategoryList,
     activeCategoryServices,

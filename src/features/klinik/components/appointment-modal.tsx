@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { QueueSuccessModal } from './queue-success-modal';
 import { MedicalAppointmentModal } from './medical-appointment-modal';
 import { ReservationModal, type ReservationContext } from './reservation/reservation-modal';
-import { BookingCategoryStep } from './booking/booking-category-step';
+import { BookingCategoryStep, BookingCategorySkeleton } from './booking/booking-category-step';
 import { BookingServiceStep } from './booking/booking-service-step';
 import { BookingPatientSelectionStep } from './booking/booking-patient-selection-step';
 import { BookingRegularPatientForm } from './booking/booking-regular-patient-form';
@@ -38,6 +38,8 @@ export function AppointmentModal({
     setStep,
     setSelectedCategoryId,
     isLoadingCatalog,
+    catalogError,
+    loadCatalog,
     selectedService,
     activeCategoryList,
     serviceBentoItems,
@@ -153,14 +155,18 @@ export function AppointmentModal({
             )}
           >
             {step === 'category' && (
-              <BookingCategoryStep
-                isLoadingCatalog={isLoadingCatalog}
-                activeCategoryList={activeCategoryList}
-                onSelectCategory={(catId) => {
-                  setSelectedCategoryId(catId);
-                  setStep('service');
-                }}
-              />
+              <React.Suspense fallback={<BookingCategorySkeleton />}>
+                <BookingCategoryStep
+                  isLoadingCatalog={isLoadingCatalog}
+                  catalogError={catalogError}
+                  onRetryCatalog={() => loadCatalog(true)}
+                  activeCategoryList={activeCategoryList}
+                  onSelectCategory={(catId) => {
+                    setSelectedCategoryId(catId);
+                    setStep('service');
+                  }}
+                />
+              </React.Suspense>
             )}
 
             {step === 'service' && (

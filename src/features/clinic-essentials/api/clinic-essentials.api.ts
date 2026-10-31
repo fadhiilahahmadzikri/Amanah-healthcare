@@ -7,12 +7,29 @@ import type {
   CreateRoomPayload,
   CreateServicePayload,
   CreateUnitPayload,
+  CreateUnitTypePayload,
   FacilityRoom,
   FacilityUnit,
+  FacilityUnitType,
   ServiceCategory
 } from '../types/clinic-essentials.types';
 
 export const clinicEssentialsApi = {
+  // Unit Types (Master Tipe Unit)
+  getUnitTypes: (): Promise<FacilityUnitType[]> =>
+    clientFetch<FacilityUnitType[]>('/api/v1/admin/facilities/unit-types'),
+
+  createUnitType: (payload: CreateUnitTypePayload): Promise<FacilityUnitType> =>
+    clientFetch<FacilityUnitType>('/api/v1/admin/facilities/unit-types', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+
+  deleteUnitType: (id: string): Promise<void> =>
+    clientFetch<void>(`/api/v1/admin/facilities/unit-types/${id}`, {
+      method: 'DELETE'
+    }),
+
   // Units (Poliklinik)
   getUnits: (): Promise<FacilityUnit[]> =>
     clientFetch<FacilityUnit[]>('/api/v1/admin/facilities/units'),
