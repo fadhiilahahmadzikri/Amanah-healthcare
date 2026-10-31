@@ -237,7 +237,7 @@ export function useNotificationSocket(callbacks?: {
         }
 
         // Rule B: Audience mismatch tripwire
-        if (envelopeAudience && envelopeAudience !== viewerAudience) {
+        if (envelopeAudience && envelopeAudience !== 'all' && envelopeAudience !== viewerAudience) {
           console.warn(
             `[NotificationPresenter] Tripwire: audience mismatch. Dropped toast. (envelopeAudience=${envelopeAudience}, viewerAudience=${viewerAudience})`
           );
