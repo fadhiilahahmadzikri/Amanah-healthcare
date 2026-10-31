@@ -13,6 +13,7 @@ import { leaveManagementKeys } from '@/features/manajemen-perizinan/api/query-ke
 import { replacementKeys } from '@/features/peluang-pengganti/api/query-keys';
 import { attendanceKeys } from '@/features/kehadiran-pegawai/api/queries';
 import { staffManagementKeys } from '@/features/staff-management/api/query-keys';
+import { roleManagementKeys } from '@/features/role-management/api/query-keys';
 import type { AttendanceAction, StaffAttendance } from '@/features/kehadiran-pegawai/api/types';
 import { presentAttendanceModal } from '@/components/feedback/choreographed-modal';
 import { getClientSocketUrl } from '@/core/config/env.client';
@@ -123,6 +124,7 @@ export function useNotificationSocket(callbacks?: {
     queryClient.invalidateQueries({ queryKey: leaveManagementKeys.all });
     queryClient.invalidateQueries({ queryKey: replacementKeys.all });
     queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
+    queryClient.invalidateQueries({ queryKey: roleManagementKeys.all });
   }, [queryClient]);
 
   // Main WebSocket Connection Lifecycle
@@ -521,6 +523,14 @@ export function useNotificationSocket(callbacks?: {
       }
     };
 
+    const handleRolesUpdated = (payload: unknown) => {
+      reconcile();
+      void queryClient.refetchQueries({ queryKey: roleManagementKeys.all, type: 'active' });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clinic:roles_updated', { detail: payload }));
+      }
+    };
+
     socket.on('appointment:called', handleAppointmentCalled);
     socket.on('appointment.patient_called', handleAppointmentCalled);
     socket.on('appointment:status_changed', handleAppointmentStatusChanged);
@@ -542,6 +552,7 @@ export function useNotificationSocket(callbacks?: {
     socket.on('staff:invitation_revoked', handleStaffUpdated);
     socket.on('staff:onboarded', handleStaffOnboarded);
     socket.on('staff:updated', handleStaffUpdated);
+    socket.on('roles:updated', handleRolesUpdated);
 
     return () => {
       if (typeof window !== 'undefined') {
@@ -551,6 +562,7 @@ export function useNotificationSocket(callbacks?: {
       socket.off('staff:invitation_revoked', handleStaffUpdated);
       socket.off('staff:onboarded', handleStaffOnboarded);
       socket.off('staff:updated', handleStaffUpdated);
+      socket.off('roles:updated', handleRolesUpdated);
       socket.disconnect();
       socketRef.current = null;
     };

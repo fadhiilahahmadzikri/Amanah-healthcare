@@ -53,6 +53,7 @@ export interface Role {
   parentRole?: Role | null;
   permissions?: Permission[];
   effectivePermissionCodes?: string[];
+  userCount?: number;
   staffCount?: number;
   children?: Role[];
 }

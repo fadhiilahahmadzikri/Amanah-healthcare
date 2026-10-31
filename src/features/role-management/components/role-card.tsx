@@ -81,7 +81,7 @@ export function RoleCard({
                 className='text-[10px] px-1.5 py-0 text-muted-foreground gap-0.5'
               >
                 <IconBriefcase className='size-2.5' />
-                Operasional
+                Non clinical
               </Badge>
             )}
           </div>
@@ -106,8 +106,10 @@ export function RoleCard({
         </div>
 
         <div className='flex items-center justify-between text-xs'>
-          <span className='text-muted-foreground'>Jumlah Staf:</span>
-          <span className='font-medium text-foreground'>{role.staffCount ?? 0} pegawai</span>
+          <span className='text-muted-foreground'>Jumlah Pengguna:</span>
+          <span className='font-medium text-foreground'>
+            {role.userCount ?? role.staffCount ?? 0} pengguna
+          </span>
         </div>
 
         {role.parentRole && (
@@ -129,7 +131,7 @@ export function RoleCard({
           onClick={() => onEdit(role)}
         >
           <IconEdit className='size-3.5' />
-          Atur Izin & Edit
+          Atur Izin
         </Button>
 
         {onManagePages && (

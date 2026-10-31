@@ -209,9 +209,9 @@ export function AuthFlowView() {
 
     try {
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      const fallbackUrl = `${origin}${ROUTES.adminAppointmentPasien}`;
+      const fallbackUrl = `${origin}/auth/sso-callback`;
       const targetUrl = redirectParam
-        ? `${origin}${safeRedirect(redirectParam, ROUTES.adminAppointmentPasien)}`
+        ? `${origin}${safeRedirect(redirectParam, '/auth/sso-callback')}`
         : fallbackUrl;
 
       await authClient.signIn.social({
@@ -254,7 +254,7 @@ export function AuthFlowView() {
         email: values.email,
         password: values.password,
         callbackURL: redirectParam
-          ? safeRedirect(redirectParam, ROUTES.adminAppointmentPasien)
+          ? safeRedirect(redirectParam, '/auth/sso-callback')
           : undefined
       });
 

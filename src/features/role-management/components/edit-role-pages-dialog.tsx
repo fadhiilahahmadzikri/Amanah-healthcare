@@ -38,7 +38,12 @@ export function EditRolePagesDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <EditRolePagesForm role={role} onClose={() => onOpenChange(false)} canManage={canManage} />
+      <EditRolePagesForm
+        key={role.id}
+        role={role}
+        onClose={() => onOpenChange(false)}
+        canManage={canManage}
+      />
     </Dialog>
   );
 }
@@ -59,19 +64,19 @@ function EditRolePagesForm({ role, onClose, canManage }: EditRolePagesFormProps)
   });
 
   // 2. Fetch Assigned Page IDs for this role
-  const { data: initialPageIds = [], isLoading: isLoadingAssigned } = useQuery({
+  const { data: rolePagesData, isLoading: isLoadingAssigned } = useQuery({
     queryKey: roleManagementKeys.rolePages(role.id),
     queryFn: () => roleManagementApi.getRolePages(role.id)
   });
 
   const [selectedPageIds, setSelectedPageIds] = React.useState<Set<string>>(new Set());
 
-  // Initialize selected state once query loads
+  // Initialize selected state once query loads without creating new array reference loops
   React.useEffect(() => {
-    if (initialPageIds) {
-      setSelectedPageIds(new Set(initialPageIds));
+    if (rolePagesData) {
+      setSelectedPageIds(new Set(rolePagesData));
     }
-  }, [initialPageIds]);
+  }, [rolePagesData]);
 
   // 3. Mutation: Assign Pages to Role
   const assignPagesMutation = useMutation({

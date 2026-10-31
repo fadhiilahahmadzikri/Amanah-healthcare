@@ -62,11 +62,15 @@ export function PatientChatView() {
 
   // 2. Initialize or fetch patient conversation
   useEffect(() => {
+    if (viewer.isLoading) return;
     let active = true;
     const initPatientChat = async () => {
       setIsLoading(true);
       try {
-        const conv = await chatApiService.getOrCreateConversation();
+        const conv = await chatApiService.getOrCreateConversation({
+          name: viewer.viewer?.name || undefined,
+          email: viewer.viewer?.email || undefined
+        });
         if (!active) return;
         setConversation(conv);
 
@@ -85,7 +89,7 @@ export function PatientChatView() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [viewer.isLoading, viewer.viewer?.id, viewer.viewer?.email, viewer.viewer?.name]);
 
   // 3. Join conversation room on mount and leave on unmount
   useEffect(() => {
