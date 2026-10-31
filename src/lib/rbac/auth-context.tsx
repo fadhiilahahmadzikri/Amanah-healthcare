@@ -79,8 +79,12 @@ export function AuthorizationProvider({
         permissions?: string[];
       };
 
-      const resolvedAudience: AudienceType = clientUser.audience ?? AUDIENCE.INTERNAL;
-      const permissions = clientUser.permissions ?? [];
+      const resolvedAudience: AudienceType =
+        clientUser.audience ?? initialAudience ?? initialUser?.audience ?? (clientUser.role === 'admin' ? AUDIENCE.INTERNAL : AUDIENCE.EXTERNAL);
+      const permissions =
+        clientUser.permissions && clientUser.permissions.length > 0
+          ? clientUser.permissions
+          : initialUser?.permissions ?? [];
 
       setUser((prev) => {
         if (

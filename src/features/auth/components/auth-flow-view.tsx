@@ -353,7 +353,9 @@ export function AuthFlowView() {
       }
 
       toast.success('Email berhasil diverifikasi! Mengalihkan...');
-      window.location.href = getRoleLandingPath();
+      const sessionRes = await authClient.getSession();
+      const userAudience = (sessionRes.data?.user as { audience?: string })?.audience;
+      window.location.href = getRoleLandingPath((userAudience as any) || 'external');
     } catch {
       dispatch({
         type: 'setError',

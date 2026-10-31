@@ -63,3 +63,6 @@ next-env.d.ts
 /logs/
 logs/
 *.log
+
+# e2e reports and artifacts
+e2e-report/

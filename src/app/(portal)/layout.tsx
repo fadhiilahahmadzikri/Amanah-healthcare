@@ -49,7 +49,7 @@ export default async function PortalLayout({ children }: { children: React.React
   const authorizedNavGroups = filterNavGroupsByAccess(navGroups, audience, user.permissions);
 
   const cookieStore = await cookies();
-  const defaultOpen = cookieStore.get('sidebar_state')?.value === 'true';
+  const defaultOpen = cookieStore.get('sidebar_state')?.value !== 'false';
 
   return (
     <AuthorizationProvider

@@ -177,14 +177,6 @@ export function ClinicEssentialsView() {
     <div className='space-y-6'>
       {/* Header Toolbar */}
       <div className='flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 border-b'>
-        <div>
-          <h2 className='text-lg font-semibold tracking-tight'>Audit & Master Fasilitas Klinik</h2>
-          <p className='text-xs text-muted-foreground'>
-            Kelola kanonik unit, ruangan periksa, kategori, layanan medis, dan registri formulir
-            klinis.
-          </p>
-        </div>
-
         <div className='flex items-center gap-2 self-stretch sm:self-auto'>
           <Button
             variant='outline'

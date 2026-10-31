@@ -45,8 +45,23 @@ export const getSession = cache(async (): Promise<SessionResult> => {
 
   if (rawSession?.user && rawSession.user.id) {
     const sessionRoleCode = rawSession.user.role ?? '';
-    const rawAudience: AudienceType =
-      (rawSession.user as { audience?: AudienceType }).audience ?? AUDIENCE.INTERNAL;
+    const canonicalUserResult = await getCurrentUserQuery();
+    const resolvedAudience: AudienceType =
+      canonicalUserResult.ok && canonicalUserResult.value?.audience
+        ? canonicalUserResult.value.audience
+        : (rawSession.user as { audience?: AudienceType }).audience ??
+          (sessionRoleCode === 'admin' ? AUDIENCE.INTERNAL : AUDIENCE.EXTERNAL);
+
+    const resolvedRole =
+      canonicalUserResult.ok && canonicalUserResult.value?.role?.code
+        ? canonicalUserResult.value.role.code
+        : sessionRoleCode;
+
+    const resolvedPermissions =
+      canonicalUserResult.ok && canonicalUserResult.value?.permissions
+        ? canonicalUserResult.value.permissions
+        : (rawSession.user as { permissions?: string[] }).permissions ?? [];
+
     return {
       status: 'authenticated',
       user: {
@@ -54,14 +69,14 @@ export const getSession = cache(async (): Promise<SessionResult> => {
         email: rawSession.user.email,
         name: rawSession.user.name || null,
         image: rawSession.user.image || null,
-        role: sessionRoleCode,
+        role: resolvedRole,
         banned: rawSession.user.banned || false,
         emailVerified: rawSession.user.emailVerified ?? true,
-        audience: rawAudience,
-        permissions: (rawSession.user as { permissions?: string[] }).permissions ?? []
+        audience: resolvedAudience,
+        permissions: resolvedPermissions
       },
-      role: sessionRoleCode,
-      audience: rawAudience
+      role: resolvedRole,
+      audience: resolvedAudience
     };
   }
 
