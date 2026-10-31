@@ -7,6 +7,7 @@ export interface NotificationToastModel {
   headline: string;
   emoji: string;
   entityName?: string | null;
+  subline?: string | null;
   avatarUrl?: string | null;
   isPerson: boolean;
   systemIconType?: string | null;
@@ -149,17 +150,34 @@ export function mapNotificationToToastModel(
   const emoji =
     rawBadge === 'message-square'
       ? '💬'
-      : rawBadge === 'calendar' || rawBadge === 'calendar-check'
-        ? '📅'
-        : rawBadge === 'clock'
-          ? '⏰'
-          : rawBadge === 'alert-circle'
-            ? '⚠️'
-            : rawBadge === 'stethoscope'
-              ? '🩺'
-              : rawBadge === 'check' || rawBadge === 'check-circle'
-                ? '✅'
-                : '🔔';
+      : rawBadge === 'user-plus' || rawBadge === 'user'
+        ? '👤'
+        : rawBadge === 'calendar' || rawBadge === 'calendar-check'
+          ? '📅'
+          : rawBadge === 'clock'
+            ? '⏰'
+            : rawBadge === 'alert-circle'
+              ? '⚠️'
+              : rawBadge === 'stethoscope'
+                ? '🩺'
+                : rawBadge === 'check' || rawBadge === 'check-circle'
+                  ? '✅'
+                  : '🔔';
+
+  // Extract optional subline context (e.g. email · role)
+  let subline: string | null = null;
+  const metadata = ('metadata' in envelope && envelope.metadata ? envelope.metadata : {}) as Record<
+    string,
+    unknown
+  >;
+  if (typeof metadata.email === 'string' && typeof metadata.roleName === 'string') {
+    subline = `${metadata.email} · ${metadata.roleName}`;
+  } else if ('body' in envelope && typeof envelope.body === 'string' && envelope.body.includes('\n')) {
+    const lines = envelope.body.split('\n');
+    if (lines.length > 1) {
+      subline = lines[1].trim();
+    }
+  }
 
   // Trailing action resolution
   const primaryAction =
@@ -196,6 +214,7 @@ export function mapNotificationToToastModel(
     headline,
     emoji,
     entityName: personName,
+    subline,
     avatarUrl: rawAvatarUrl,
     isPerson,
     systemIconType,

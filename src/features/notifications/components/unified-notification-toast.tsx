@@ -77,7 +77,13 @@ export function UnifiedNotificationToast({ toastId, model }: UnifiedNotification
   return (
     <div
       role='alert'
+      tabIndex={hasAction ? 0 : undefined}
       onClick={handleContainerClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          handleContainerClick();
+        }
+      }}
       className={cn(
         'group/toast flex items-center gap-3.5 w-full min-w-[320px] max-w-[420px]',
         'rounded-2xl border border-border/80 bg-popover text-popover-foreground',
@@ -118,6 +124,13 @@ export function UnifiedNotificationToast({ toastId, model }: UnifiedNotification
         {model.entityName && (
           <div className='text-xs text-muted-foreground truncate font-normal mt-0.5 leading-snug'>
             {model.entityName}
+          </div>
+        )}
+
+        {/* Line 3: Subline Context (e.g. email · role) */}
+        {model.subline && (
+          <div className='text-[11px] text-muted-foreground/80 truncate font-normal leading-snug'>
+            {model.subline}
           </div>
         )}
       </div>

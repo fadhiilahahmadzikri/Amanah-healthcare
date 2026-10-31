@@ -23,6 +23,7 @@ export interface UseRoleManagementViewResult {
   managingPagesRole: Role | null;
   deletingRole: Role | null;
   isDeleting: boolean;
+  togglingRoleId: string | null;
   actions: {
     setSearchQuery: (query: string) => void;
     setTierFilter: (filter: 'all' | RoleTierType) => void;
@@ -34,6 +35,7 @@ export interface UseRoleManagementViewResult {
     setDeletingRole: (role: Role | null) => void;
     handleRefresh: () => void;
     handleDeleteRole: () => Promise<void>;
+    handleToggleRoleActive: (role: Role, nextActive: boolean) => Promise<void>;
   };
 }
 
@@ -50,6 +52,7 @@ export function useRoleManagementView(): UseRoleManagementViewResult {
   const [managingPagesRole, setManagingPagesRole] = React.useState<Role | null>(null);
   const [deletingRole, setDeletingRole] = React.useState<Role | null>(null);
   const [isDeleting, setIsDeleting] = React.useState(false);
+  const [togglingRoleId, setTogglingRoleId] = React.useState<string | null>(null);
 
   const {
     data: roles = [],
@@ -86,6 +89,28 @@ export function useRoleManagementView(): UseRoleManagementViewResult {
       setIsDeleting(false);
     }
   }, [deletingRole, queryClient]);
+
+  const handleToggleRoleActive = React.useCallback(
+    async (role: Role, nextActive: boolean) => {
+      try {
+        setTogglingRoleId(role.id);
+        await roleManagementApi.updateRole(role.id, { isActive: nextActive });
+        toast.success(
+          nextActive
+            ? `Peran '${role.name}' berhasil diaktifkan kembali.`
+            : `Peran '${role.name}' berhasil dinonaktifkan.`
+        );
+        queryClient.invalidateQueries({ queryKey: roleManagementKeys.roles() });
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : 'Gagal memperbarui status aktif peran';
+        toast.error(message);
+      } finally {
+        setTogglingRoleId(null);
+      }
+    },
+    [queryClient]
+  );
 
   const filteredRoles = React.useMemo(() => {
     return roles.filter((role) => {
@@ -136,6 +161,7 @@ export function useRoleManagementView(): UseRoleManagementViewResult {
     managingPagesRole,
     deletingRole,
     isDeleting,
+    togglingRoleId,
     actions: {
       setSearchQuery,
       setTierFilter,
@@ -146,7 +172,8 @@ export function useRoleManagementView(): UseRoleManagementViewResult {
       setManagingPagesRole,
       setDeletingRole,
       handleRefresh,
-      handleDeleteRole
+      handleDeleteRole,
+      handleToggleRoleActive
     }
   };
 }

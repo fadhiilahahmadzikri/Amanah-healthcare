@@ -30,6 +30,7 @@ export function RoleManagementView() {
     managingPagesRole,
     deletingRole,
     isDeleting,
+    togglingRoleId,
     actions
   } = useRoleManagementView();
 
@@ -81,6 +82,8 @@ export function RoleManagementView() {
               onEdit={actions.setEditingRole}
               onManagePages={actions.setManagingPagesRole}
               onDelete={actions.setDeletingRole}
+              onToggleActive={actions.handleToggleRoleActive}
+              isToggling={togglingRoleId === role.id}
             />
           ))}
         </div>
