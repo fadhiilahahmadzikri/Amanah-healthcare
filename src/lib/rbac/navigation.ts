@@ -8,28 +8,32 @@ import type { AudienceType } from '@/core/auth/permissions.constants';
 export function filterNavGroupsByAccess(
   groups: NavGroup[],
   audience?: AudienceType | null,
-  permissions?: string[]
+  permissions?: string[],
+  accessibleRoutes?: string[]
 ): NavGroup[] {
   if (!audience) return [];
 
   return groups
     .map((group) => {
-      const items = filterNavItemsByAccess(group.items, audience, permissions);
+      const items = filterNavItemsByAccess(group.items, audience, permissions, accessibleRoutes);
       return { ...group, items };
     })
     .filter((group) => group.items.length > 0);
 }
 
 /**
- * Pure recursive filter for NavItem array based on audience and granular permissions.
+ * Pure recursive filter for NavItem array based on audience, granular permissions,
+ * and dynamic CMS application page availability.
  */
 export function filterNavItemsByAccess(
   items: NavItem[],
   audience: AudienceType,
-  permissions?: string[]
+  permissions?: string[],
+  accessibleRoutes?: string[]
 ): NavItem[] {
   const userPerms = permissions ?? [];
   const hasWildcard = userPerms.includes('*');
+  const allowedRouteSet = accessibleRoutes ? new Set(accessibleRoutes) : null;
 
   return items
     .filter((item) => {
@@ -45,11 +49,23 @@ export function filterNavItemsByAccess(
         }
       }
 
+      // 3. Dynamic CMS Application Page verification
+      if (allowedRouteSet && item.url && item.url !== '#') {
+        if (!allowedRouteSet.has(item.url)) {
+          return false;
+        }
+      }
+
       return true;
     })
     .map((item) => {
       if (item.items && item.items.length > 0) {
-        const children = filterNavItemsByAccess(item.items, audience, permissions);
+        const children = filterNavItemsByAccess(
+          item.items,
+          audience,
+          permissions,
+          accessibleRoutes
+        );
         return { ...item, items: children };
       }
       return item;

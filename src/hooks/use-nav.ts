@@ -16,7 +16,7 @@ export function useFilteredNavItems(items: NavItem[]): NavItem[] {
     if (!isReady || !user?.audience) {
       return [];
     }
-    return filterNavItemsByAccess(items, user.audience, user.permissions);
+    return filterNavItemsByAccess(items, user.audience, user.permissions, user.accessibleRoutes);
   }, [items, user, isReady]);
 }
 
@@ -34,6 +34,6 @@ export function useFilteredNavGroups(groups: NavGroup[]): NavGroup[] {
     if (!isReady || !user?.audience) {
       return [];
     }
-    return filterNavGroupsByAccess(groups, user.audience, user.permissions);
+    return filterNavGroupsByAccess(groups, user.audience, user.permissions, user.accessibleRoutes);
   }, [groups, navGroups, user, isReady]);
 }

@@ -1,5 +1,11 @@
 import { clientFetch } from '@/lib/client-fetch';
-import type { CreateRolePayload, Permission, Role, UpdateRolePayload } from '../types/role.types';
+import type {
+  ApplicationPage,
+  CreateRolePayload,
+  Permission,
+  Role,
+  UpdateRolePayload
+} from '../types/role.types';
 
 export const roleManagementApi = {
   getAllRoles: (): Promise<Role[]> => clientFetch<Role[]>('/api/v1/admin/roles'),
@@ -42,5 +48,25 @@ export const roleManagementApi = {
   removePermission: (roleId: string, permissionId: string): Promise<Role> =>
     clientFetch<Role>(`/api/v1/admin/roles/${roleId}/permissions/${permissionId}`, {
       method: 'DELETE'
+    }),
+
+  getPageTree: (audience?: string): Promise<ApplicationPage[]> =>
+    clientFetch<ApplicationPage[]>(
+      `/api/v1/admin/pages/tree${audience ? `?audience=${audience}` : ''}`
+    ),
+
+  getRolePages: (roleId: string): Promise<string[]> =>
+    clientFetch<string[]>(`/api/v1/admin/roles/${roleId}/pages`),
+
+  assignPages: (roleId: string, pageIds: string[]): Promise<string[]> =>
+    clientFetch<string[]>(`/api/v1/admin/roles/${roleId}/pages`, {
+      method: 'PUT',
+      body: JSON.stringify({ pageIds })
+    }),
+
+  togglePage: (pageId: string, isEnabled: boolean): Promise<ApplicationPage> =>
+    clientFetch<ApplicationPage>(`/api/v1/admin/pages/${pageId}/toggle`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isEnabled })
     })
 };

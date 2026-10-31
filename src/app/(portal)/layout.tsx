@@ -13,7 +13,7 @@ import type { Metadata } from 'next';
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { requireSession } from '@/server/auth/session.dal';
-import { getRoleLandingPath } from '@/core/routes';
+import { ROUTES, getRoleLandingPath } from '@/core/routes';
 
 export const metadata: Metadata = {
   title: 'Amanah Healthcare Portal',
@@ -36,17 +36,35 @@ export default async function PortalLayout({ children }: { children: React.React
     role: userRole
   });
 
+  const landingPath = getRoleLandingPath(audience);
+
   if (!authResult.allowed) {
-    if (authResult.reason === 'forbidden') {
-      const destination = getRoleLandingPath(audience);
-      if (pathname !== destination) {
-        redirect(destination);
-      }
+    if (pathname === landingPath) {
+      redirect(ROUTES.sessionExpired);
     }
+    redirect(landingPath);
+  }
+
+  // Enforce Dynamic Page Registry & CMS Kill-Switch at Layout Boundary
+  const isLandingOrPortalRoot =
+    pathname === landingPath || pathname === '/admin' || pathname === '/klinik';
+
+  const isAllowedByPageRegistry =
+    !user.accessibleRoutes ||
+    isLandingOrPortalRoot ||
+    user.accessibleRoutes.some((route) => pathname === route || pathname.startsWith(route + '/'));
+
+  if (!isAllowedByPageRegistry && pathname !== landingPath) {
+    redirect(landingPath);
   }
 
   // Pre-filter navigation groups on the server for Zero-Flicker Hydration
-  const authorizedNavGroups = filterNavGroupsByAccess(navGroups, audience, user.permissions);
+  const authorizedNavGroups = filterNavGroupsByAccess(
+    navGroups,
+    audience,
+    user.permissions,
+    user.accessibleRoutes
+  );
 
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get('sidebar_state')?.value !== 'false';

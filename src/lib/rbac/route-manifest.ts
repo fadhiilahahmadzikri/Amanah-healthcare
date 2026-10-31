@@ -310,6 +310,12 @@ export function isRouteAuthorized(
   }
 
   if (rule.visibility === 'authenticated') {
+    if (rule.requiredPermission) {
+      const hasWildcard = permissions.includes('*');
+      if (!hasWildcard && !permissions.includes(rule.requiredPermission)) {
+        return { allowed: false, reason: 'forbidden' };
+      }
+    }
     return { allowed: true };
   }
 

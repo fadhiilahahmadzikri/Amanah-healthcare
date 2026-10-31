@@ -3,5 +3,8 @@ export const roleManagementKeys = {
   roles: () => [...roleManagementKeys.all, 'roles'] as const,
   roleTree: () => [...roleManagementKeys.all, 'role-tree'] as const,
   roleDetail: (id: string) => [...roleManagementKeys.all, 'role', id] as const,
-  permissionsGrouped: () => [...roleManagementKeys.all, 'permissions-grouped'] as const
+  permissionsGrouped: () => [...roleManagementKeys.all, 'permissions-grouped'] as const,
+  pageTree: (audience?: string) =>
+    [...roleManagementKeys.all, 'page-tree', audience ?? 'all'] as const,
+  rolePages: (roleId: string) => [...roleManagementKeys.all, 'role-pages', roleId] as const
 };

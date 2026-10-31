@@ -1,7 +1,13 @@
 'use client';
 
 import * as React from 'react';
-import { IconStethoscope, IconBriefcase, IconEdit, IconTrash } from '@tabler/icons-react';
+import {
+  IconStethoscope,
+  IconBriefcase,
+  IconEdit,
+  IconTrash,
+  IconBrowser
+} from '@tabler/icons-react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,10 +18,17 @@ export interface RoleCardProps {
   role: Role;
   onEdit: (role: Role) => void;
   onDelete: (role: Role) => void;
+  onManagePages?: (role: Role) => void;
   canManage?: boolean;
 }
 
-export function RoleCard({ role, onEdit, onDelete, canManage = true }: RoleCardProps) {
+export function RoleCard({
+  role,
+  onEdit,
+  onDelete,
+  onManagePages,
+  canManage = true
+}: RoleCardProps) {
   const directPermsCount = (role.permissions || []).length;
   const effectivePermsCount = (role.effectivePermissionCodes || []).length;
 
@@ -107,23 +120,36 @@ export function RoleCard({ role, onEdit, onDelete, canManage = true }: RoleCardP
         )}
       </CardContent>
 
-      <CardFooter className='px-4 py-3 border-t bg-muted/10 flex items-center justify-between gap-2'>
+      <CardFooter className='px-4 py-3 border-t bg-muted/10 flex items-center justify-between gap-2 flex-wrap'>
         <Button
           variant='outline'
           size='sm'
           disabled={!canManage}
-          className='h-8 text-xs flex-1 gap-1.5'
+          className='h-8 text-xs flex-1 min-w-[105px] gap-1.5'
           onClick={() => onEdit(role)}
         >
           <IconEdit className='size-3.5' />
           Atur Izin & Edit
         </Button>
 
+        {onManagePages && (
+          <Button
+            variant='outline'
+            size='sm'
+            disabled={!canManage}
+            className='h-8 text-xs flex-1 min-w-[110px] gap-1.5'
+            onClick={() => onManagePages(role)}
+          >
+            <IconBrowser className='size-3.5' />
+            Akses Halaman
+          </Button>
+        )}
+
         {!role.isSystem && canManage && (
           <Button
             variant='ghost'
             size='icon'
-            className='size-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10'
+            className='size-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0'
             onClick={() => onDelete(role)}
           >
             <IconTrash className='size-4' />

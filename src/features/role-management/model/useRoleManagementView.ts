@@ -20,6 +20,7 @@ export interface UseRoleManagementViewResult {
   clinicalFilter: 'all' | 'clinical' | 'operational';
   isCreateOpen: boolean;
   editingRole: Role | null;
+  managingPagesRole: Role | null;
   deletingRole: Role | null;
   isDeleting: boolean;
   actions: {
@@ -29,6 +30,7 @@ export interface UseRoleManagementViewResult {
     setClinicalFilter: (filter: 'all' | 'clinical' | 'operational') => void;
     setIsCreateOpen: (open: boolean) => void;
     setEditingRole: (role: Role | null) => void;
+    setManagingPagesRole: (role: Role | null) => void;
     setDeletingRole: (role: Role | null) => void;
     handleRefresh: () => void;
     handleDeleteRole: () => Promise<void>;
@@ -45,6 +47,7 @@ export function useRoleManagementView(): UseRoleManagementViewResult {
   );
   const [isCreateOpen, setIsCreateOpen] = React.useState(false);
   const [editingRole, setEditingRole] = React.useState<Role | null>(null);
+  const [managingPagesRole, setManagingPagesRole] = React.useState<Role | null>(null);
   const [deletingRole, setDeletingRole] = React.useState<Role | null>(null);
   const [isDeleting, setIsDeleting] = React.useState(false);
 
@@ -130,6 +133,7 @@ export function useRoleManagementView(): UseRoleManagementViewResult {
     clinicalFilter,
     isCreateOpen,
     editingRole,
+    managingPagesRole,
     deletingRole,
     isDeleting,
     actions: {
@@ -139,6 +143,7 @@ export function useRoleManagementView(): UseRoleManagementViewResult {
       setClinicalFilter,
       setIsCreateOpen,
       setEditingRole,
+      setManagingPagesRole,
       setDeletingRole,
       handleRefresh,
       handleDeleteRole

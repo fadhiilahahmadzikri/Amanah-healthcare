@@ -17,6 +17,7 @@ export interface SessionUser {
   banned?: boolean | null;
   emailVerified?: boolean;
   permissions?: string[];
+  accessibleRoutes?: string[];
   audience?: AudienceType;
 }
 
@@ -44,23 +45,22 @@ export const getSession = cache(async (): Promise<SessionResult> => {
   const rawSession = await auth.api.getSession({ headers: reqHeaders });
 
   if (rawSession?.user && rawSession.user.id) {
-    const sessionRoleCode = rawSession.user.role ?? '';
     const canonicalUserResult = await getCurrentUserQuery();
-    const resolvedAudience: AudienceType =
-      canonicalUserResult.ok && canonicalUserResult.value?.audience
-        ? canonicalUserResult.value.audience
-        : (rawSession.user as { audience?: AudienceType }).audience ??
-          (sessionRoleCode === 'admin' ? AUDIENCE.INTERNAL : AUDIENCE.EXTERNAL);
+    if (!canonicalUserResult.ok || !canonicalUserResult.value) {
+      // Backend rejected or user profile unavailable (e.g. unassigned role, revoked access)
+      return { status: 'rejected' };
+    }
 
-    const resolvedRole =
-      canonicalUserResult.ok && canonicalUserResult.value?.role?.code
-        ? canonicalUserResult.value.role.code
-        : sessionRoleCode;
+    const canonicalUser = canonicalUserResult.value;
+    const resolvedRole = canonicalUser.role?.code ?? canonicalUser.roleCode ?? '';
+    if (!resolvedRole || resolvedRole.trim() === '') {
+      // Deny-by-default: user without active role cannot enter application portal
+      return { status: 'rejected' };
+    }
 
-    const resolvedPermissions =
-      canonicalUserResult.ok && canonicalUserResult.value?.permissions
-        ? canonicalUserResult.value.permissions
-        : (rawSession.user as { permissions?: string[] }).permissions ?? [];
+    const resolvedAudience: AudienceType = canonicalUser.audience ?? AUDIENCE.EXTERNAL;
+    const resolvedPermissions = canonicalUser.permissions ?? [];
+    const resolvedRoutes = canonicalUser.accessibleRoutes ?? [];
 
     return {
       status: 'authenticated',
@@ -73,7 +73,8 @@ export const getSession = cache(async (): Promise<SessionResult> => {
         banned: rawSession.user.banned || false,
         emailVerified: rawSession.user.emailVerified ?? true,
         audience: resolvedAudience,
-        permissions: resolvedPermissions
+        permissions: resolvedPermissions,
+        accessibleRoutes: resolvedRoutes
       },
       role: resolvedRole,
       audience: resolvedAudience
@@ -84,9 +85,15 @@ export const getSession = cache(async (): Promise<SessionResult> => {
   const userResult = await getCurrentUserQuery();
   if (userResult.ok && userResult.value) {
     const currentUser = userResult.value;
+    const role = currentUser.role?.code ?? currentUser.roleCode ?? '';
+    if (!role || role.trim() === '') {
+      // Deny-by-default: user without active role cannot enter application portal
+      return { status: 'rejected' };
+    }
+
     const audience: AudienceType = currentUser.audience ?? AUDIENCE.INTERNAL;
     const name = resolveUserDisplayName(currentUser);
-    const role = currentUser.role?.code ?? '';
+    const accessibleRoutes = currentUser.accessibleRoutes ?? [];
 
     return {
       status: 'authenticated',
@@ -99,6 +106,7 @@ export const getSession = cache(async (): Promise<SessionResult> => {
         banned: false,
         emailVerified: true,
         permissions: currentUser.permissions ?? [],
+        accessibleRoutes,
         audience
       },
       role,
@@ -124,7 +132,7 @@ export async function requireSession(): Promise<{
 
   switch (session.status) {
     case 'authenticated':
-      if (session.user.banned) {
+      if (session.user.banned || !session.role || session.role.trim() === '') {
         redirect(ROUTES.sessionExpired);
       }
       if (session.user.emailVerified === false && session.user.email) {

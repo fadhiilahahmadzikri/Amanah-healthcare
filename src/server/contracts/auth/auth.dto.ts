@@ -41,6 +41,7 @@ export const authenticatedUserDtoSchema = z.object({
   roleCode: z.string().optional(),
   audience: z.enum(['internal', 'external']).optional(),
   permissions: z.array(z.string()).optional(),
+  accessibleRoutes: z.array(z.string()).optional(),
   role: roleDtoSchema.optional(),
   userRoles_userId: z
     .array(

@@ -20,6 +20,22 @@ export type RoleAudience = AudienceType;
 
 export const NO_PARENT_ROLE_SENTINEL = 'none';
 
+export interface ApplicationPage {
+  id: string;
+  slug: string;
+  name: string;
+  description?: string | null;
+  routePath: string;
+  parentPageId?: string | null;
+  audience: RoleAudience;
+  isEnabled: boolean;
+  icon?: string | null;
+  displayOrder: number;
+  isSystem: boolean;
+  effectiveEnabled?: boolean;
+  children?: ApplicationPage[];
+}
+
 export interface Role {
   id: string;
   code: string;
@@ -30,6 +46,8 @@ export interface Role {
   tier: RoleTier;
   audience: RoleAudience;
   isClinical: boolean;
+  isActive?: boolean;
+  isDefault?: boolean;
   createdAt?: string;
   updatedAt?: string;
   parentRole?: Role | null;
@@ -47,7 +65,10 @@ export interface CreateRolePayload {
   tier?: RoleTier;
   audience?: RoleAudience;
   isClinical?: boolean;
+  isActive?: boolean;
+  isDefault?: boolean;
   permissionIds?: string[];
+  pageIds?: string[];
 }
 
 export interface UpdateRolePayload {
@@ -57,4 +78,6 @@ export interface UpdateRolePayload {
   tier?: RoleTier;
   audience?: RoleAudience;
   isClinical?: boolean;
+  isActive?: boolean;
+  isDefault?: boolean;
 }

@@ -44,6 +44,7 @@ export interface User {
   readonly roleCode?: string;
   readonly audience: AudienceType;
   readonly permissions: string[];
+  readonly accessibleRoutes?: string[];
   readonly role?: UserRole;
   readonly staff?: MedicalStaffProfile | null;
   readonly patient?: PatientProfile | null;

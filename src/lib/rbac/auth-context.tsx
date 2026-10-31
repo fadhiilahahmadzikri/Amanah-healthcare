@@ -16,6 +16,7 @@ export interface AuthUser {
   role?: string | null;
   banned?: boolean | null;
   permissions?: string[];
+  accessibleRoutes?: string[];
   audience?: AudienceType;
 }
 
@@ -80,11 +81,14 @@ export function AuthorizationProvider({
       };
 
       const resolvedAudience: AudienceType =
-        clientUser.audience ?? initialAudience ?? initialUser?.audience ?? (clientUser.role === 'admin' ? AUDIENCE.INTERNAL : AUDIENCE.EXTERNAL);
+        clientUser.audience ??
+        initialAudience ??
+        initialUser?.audience ??
+        (clientUser.role === 'admin' ? AUDIENCE.INTERNAL : AUDIENCE.EXTERNAL);
       const permissions =
         clientUser.permissions && clientUser.permissions.length > 0
           ? clientUser.permissions
-          : initialUser?.permissions ?? [];
+          : (initialUser?.permissions ?? []);
 
       setUser((prev) => {
         if (
@@ -114,7 +118,14 @@ export function AuthorizationProvider({
       setStatus('allow');
 
       if (allNavGroups && allNavGroups.length > 0) {
-        setNavGroups(filterNavGroupsByAccess(allNavGroups, resolvedAudience, permissions));
+        setNavGroups(
+          filterNavGroupsByAccess(
+            allNavGroups,
+            resolvedAudience,
+            permissions,
+            initialUser?.accessibleRoutes
+          )
+        );
       }
     } else if (clientSession === null && !initialUser) {
       // Explicitly unauthenticated on client

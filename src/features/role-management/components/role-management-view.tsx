@@ -11,6 +11,7 @@ import { RoleToolbar } from './role-toolbar';
 import { RoleCard } from './role-card';
 import { CreateRoleDialog } from './create-role-dialog';
 import { EditRolePermissionsDialog } from './edit-role-permissions-dialog';
+import { EditRolePagesDialog } from './edit-role-pages-dialog';
 import { DeleteRoleDialog } from './delete-role-dialog';
 
 export function RoleManagementView() {
@@ -26,6 +27,7 @@ export function RoleManagementView() {
     clinicalFilter,
     isCreateOpen,
     editingRole,
+    managingPagesRole,
     deletingRole,
     isDeleting,
     actions
@@ -77,6 +79,7 @@ export function RoleManagementView() {
               role={role}
               canManage={canManageRoles}
               onEdit={actions.setEditingRole}
+              onManagePages={actions.setManagingPagesRole}
               onDelete={actions.setDeletingRole}
             />
           ))}
@@ -102,6 +105,16 @@ export function RoleManagementView() {
         existingRoles={roles}
         groupedPermissions={groupedPermissions}
         onSuccess={actions.handleRefresh}
+      />
+
+      {/* Edit Role Page Access & CMS Modal */}
+      <EditRolePagesDialog
+        role={managingPagesRole}
+        open={Boolean(managingPagesRole)}
+        onOpenChange={(open) => {
+          if (!open) actions.setManagingPagesRole(null);
+        }}
+        canManage={canManageRoles}
       />
 
       {/* Delete Confirmation Alert */}

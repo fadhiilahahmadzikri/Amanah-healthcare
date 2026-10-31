@@ -88,6 +88,7 @@ export function toUserDomain(dto: AuthenticatedUserDto): User {
     roleCode: dto.roleCode ?? primaryRole?.code,
     audience,
     permissions: dto.permissions ?? [],
+    accessibleRoutes: dto.accessibleRoutes ?? [],
     role: primaryRole,
     staff,
     patient
