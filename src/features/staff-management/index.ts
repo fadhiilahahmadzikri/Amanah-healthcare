@@ -19,6 +19,7 @@ export * from './components/staff-roster-modal';
 export * from './components/staff-profile-modal';
 export * from './components/staff-detail-edit-modal';
 export * from './components/staff-schedule-card';
+export * from './components/staff-invitation-mobile-cards';
 export * from './components/kanban';
 export * from './components/staff-management-view';
 export * from './constants/staff.constants';

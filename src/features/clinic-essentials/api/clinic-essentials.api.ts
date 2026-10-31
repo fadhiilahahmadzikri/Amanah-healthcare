@@ -12,10 +12,22 @@ import type {
   ServiceCategory
 } from '../types/clinic-essentials.types';
 
+export interface FacilityQueryParams {
+  search?: string;
+  status?: string;
+}
+
 export const clinicEssentialsApi = {
   // Units (Poliklinik)
-  getUnits: (): Promise<FacilityUnit[]> =>
-    clientFetch<FacilityUnit[]>('/api/v1/admin/facilities/units'),
+  getUnits: (params?: FacilityQueryParams): Promise<FacilityUnit[]> => {
+    const sp = new URLSearchParams();
+    if (params?.search) sp.append('search', params.search);
+    if (params?.status) sp.append('status', params.status);
+    const qs = sp.toString();
+    return clientFetch<FacilityUnit[]>(
+      qs ? `/api/v1/admin/facilities/units?${qs}` : '/api/v1/admin/facilities/units'
+    );
+  },
 
   createUnit: (payload: CreateUnitPayload): Promise<FacilityUnit> =>
     clientFetch<FacilityUnit>('/api/v1/admin/facilities/units', {
@@ -29,11 +41,15 @@ export const clinicEssentialsApi = {
     }),
 
   // Rooms (Ruang Periksa)
-  getRooms: (unitId?: string): Promise<FacilityRoom[]> => {
-    const url = unitId
-      ? `/api/v1/admin/facilities/rooms?unitId=${encodeURIComponent(unitId)}`
-      : '/api/v1/admin/facilities/rooms';
-    return clientFetch<FacilityRoom[]>(url);
+  getRooms: (unitId?: string, params?: FacilityQueryParams): Promise<FacilityRoom[]> => {
+    const sp = new URLSearchParams();
+    if (unitId) sp.append('unitId', unitId);
+    if (params?.search) sp.append('search', params.search);
+    if (params?.status) sp.append('status', params.status);
+    const qs = sp.toString();
+    return clientFetch<FacilityRoom[]>(
+      qs ? `/api/v1/admin/facilities/rooms?${qs}` : '/api/v1/admin/facilities/rooms'
+    );
   },
 
   createRoom: (payload: CreateRoomPayload): Promise<FacilityRoom> =>
@@ -48,11 +64,15 @@ export const clinicEssentialsApi = {
     }),
 
   // Categories (Kategori Layanan)
-  getCategories: (unitId?: string): Promise<ServiceCategory[]> => {
-    const url = unitId
-      ? `/api/v1/admin/facilities/categories?unitId=${encodeURIComponent(unitId)}`
-      : '/api/v1/admin/facilities/categories';
-    return clientFetch<ServiceCategory[]>(url);
+  getCategories: (unitId?: string, params?: FacilityQueryParams): Promise<ServiceCategory[]> => {
+    const sp = new URLSearchParams();
+    if (unitId) sp.append('unitId', unitId);
+    if (params?.search) sp.append('search', params.search);
+    if (params?.status) sp.append('status', params.status);
+    const qs = sp.toString();
+    return clientFetch<ServiceCategory[]>(
+      qs ? `/api/v1/admin/facilities/categories?${qs}` : '/api/v1/admin/facilities/categories'
+    );
   },
 
   createCategory: (payload: CreateCategoryPayload): Promise<ServiceCategory> =>
@@ -67,15 +87,20 @@ export const clinicEssentialsApi = {
     }),
 
   // Services (Layanan Medis)
-  getServices: (categoryId?: string, unitId?: string): Promise<ClinicService[]> => {
-    const params = new URLSearchParams();
-    if (categoryId) params.append('categoryId', categoryId);
-    if (unitId) params.append('unitId', unitId);
-    const qs = params.toString();
-    const url = qs
-      ? `/api/v1/admin/facilities/services?${qs}`
-      : '/api/v1/admin/facilities/services';
-    return clientFetch<ClinicService[]>(url);
+  getServices: (
+    categoryId?: string,
+    unitId?: string,
+    params?: FacilityQueryParams
+  ): Promise<ClinicService[]> => {
+    const sp = new URLSearchParams();
+    if (categoryId) sp.append('categoryId', categoryId);
+    if (unitId) sp.append('unitId', unitId);
+    if (params?.search) sp.append('search', params.search);
+    if (params?.status) sp.append('status', params.status);
+    const qs = sp.toString();
+    return clientFetch<ClinicService[]>(
+      qs ? `/api/v1/admin/facilities/services?${qs}` : '/api/v1/admin/facilities/services'
+    );
   },
 
   createService: (payload: CreateServicePayload): Promise<ClinicService> =>
@@ -90,8 +115,15 @@ export const clinicEssentialsApi = {
     }),
 
   // Forms (Clinical Intake Forms)
-  getForms: (): Promise<ClinicalIntakeForm[]> =>
-    clientFetch<ClinicalIntakeForm[]>('/api/v1/admin/facilities/forms'),
+  getForms: (params?: FacilityQueryParams): Promise<ClinicalIntakeForm[]> => {
+    const sp = new URLSearchParams();
+    if (params?.search) sp.append('search', params.search);
+    if (params?.status) sp.append('status', params.status);
+    const qs = sp.toString();
+    return clientFetch<ClinicalIntakeForm[]>(
+      qs ? `/api/v1/admin/facilities/forms?${qs}` : '/api/v1/admin/facilities/forms'
+    );
+  },
 
   createForm: (payload: CreateIntakeFormPayload): Promise<ClinicalIntakeForm> =>
     clientFetch<ClinicalIntakeForm>('/api/v1/admin/facilities/forms', {

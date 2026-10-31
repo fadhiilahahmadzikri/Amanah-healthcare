@@ -1,0 +1,124 @@
+'use client';
+
+import * as React from 'react';
+import { DoorOpen, Trash2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { PixelTexture } from '@/features/klinik/components/pixel-texture';
+import { cn } from '@/lib/utils';
+import type { FacilityRoom, FacilityUnit } from '../../types/clinic-essentials.types';
+
+export interface FacilityRoomCardProps {
+  room: FacilityRoom;
+  units: FacilityUnit[];
+  canManage?: boolean;
+  onDelete: (room: FacilityRoom) => void;
+  className?: string;
+}
+
+export function FacilityRoomCard({
+  room,
+  units,
+  canManage = true,
+  onDelete,
+  className
+}: FacilityRoomCardProps) {
+  const isActive = room.isActive !== false;
+  const parentUnit = units.find((u) => u.id === room.unitId);
+
+  return (
+    <div
+      className={cn(
+        'group relative w-full bg-gradient-to-t from-primary/6 via-primary/[0.015] to-card dark:from-primary/12 dark:via-card dark:to-card text-card-foreground border border-border rounded-[20px] shadow-none hover:border-primary/60 hover:shadow-md overflow-hidden font-sans flex flex-col justify-between h-full p-3.5 sm:p-4 gap-2.5 select-none transition-all duration-200',
+        !isActive && 'opacity-75 border-dashed bg-muted/10',
+        className
+      )}
+    >
+      <div className='absolute bottom-0 left-0 right-0 h-[145px] pointer-events-none z-0 overflow-hidden'>
+        <PixelTexture
+          colorMode='theme'
+          maskVariant='curved-convex'
+          invertMask={true}
+          opacity={0.24}
+          density='medium'
+          pixelSize={4.5}
+          gap={1.5}
+          height='100%'
+        />
+      </div>
+
+      {/* Top Header */}
+      <div className='relative z-1 flex items-start justify-between gap-2 w-full'>
+        <div className='flex items-center gap-2.5 min-w-0'>
+          <div className='size-10 rounded-full bg-primary/10 ring-2 ring-primary/20 flex items-center justify-center shrink-0 text-primary'>
+            <DoorOpen className='size-5' />
+          </div>
+          <div className='min-w-0'>
+            <h4
+              className='truncate text-sm font-semibold text-foreground leading-tight'
+              title={room.name}
+            >
+              {room.name}
+            </h4>
+            <p className='font-mono text-xs text-muted-foreground pt-0.5 truncate'>{room.code}</p>
+          </div>
+        </div>
+
+        <Badge
+          variant='outline'
+          className={cn(
+            'shrink-0 text-[10px] px-2 py-0.5 rounded-full font-medium',
+            isActive
+              ? 'border-emerald-500/40 text-emerald-700 bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-300'
+              : 'border-destructive/40 text-destructive bg-destructive/10'
+          )}
+        >
+          {isActive ? 'Aktif' : 'Nonaktif'}
+        </Badge>
+      </div>
+
+      {/* Metadata Strip */}
+      <div className='relative z-1 w-full border-t border-border/40 pt-2 space-y-1.5 text-xs'>
+        <div className='flex items-center justify-between text-muted-foreground'>
+          <span>Unit Induk:</span>
+          <Badge variant='outline' className='text-[10px] font-normal truncate max-w-[140px]'>
+            {parentUnit?.name || room.unitId}
+          </Badge>
+        </div>
+
+        <div className='flex items-center justify-between text-muted-foreground'>
+          <span>Lokasi:</span>
+          <span className='font-medium text-foreground truncate max-w-[140px]'>
+            {room.floor ? `Lt. ${room.floor}` : ''} {room.location ? `(${room.location})` : ''}
+            {!room.floor && !room.location && '-'}
+          </span>
+        </div>
+      </div>
+
+      {/* Footer Actions */}
+      <div className='relative z-1 flex items-center justify-between border-t border-border/40 pt-2 mt-auto w-full'>
+        <div className='flex items-center gap-1.5 min-w-0'>
+          <Badge variant='secondary' className='text-[10px] font-mono px-2 py-0.5 rounded-md'>
+            {room.code}
+          </Badge>
+          <span className='text-[11px] text-muted-foreground truncate'>
+            {parentUnit?.name || 'Ruang Periksa'}
+          </span>
+        </div>
+
+        {canManage && (
+          <Button
+            type='button'
+            variant='ghost'
+            size='icon'
+            onClick={() => onDelete(room)}
+            className='size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md cursor-pointer shrink-0'
+            title={`Hapus / nonaktifkan ${room.name}`}
+          >
+            <Trash2 className='size-3.5' />
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -140,9 +140,9 @@ export function ResponsiveFacetToolbox({
       >
         {/* Left: Search + Date + Inline Facets */}
         <div className='flex flex-1 flex-wrap items-center gap-2 min-w-0'>
-          {/* Search Input */}
-          {onSearchChange && (
-            <div className='relative min-w-[160px] max-w-[220px]'>
+          {/* Desktop Search Bar (Icon-based search button is dedicated for mobile/compact mode) */}
+          {onSearchChange ? (
+            <div className='relative min-w-[180px] max-w-[260px]'>
               <SearchInput
                 value={localSearch}
                 onChange={setLocalSearch}
@@ -150,7 +150,25 @@ export function ResponsiveFacetToolbox({
                 className='h-8 text-xs'
               />
             </div>
-          )}
+          ) : onOpenSearchDialog ? (
+            <Button
+              type='button'
+              variant={searchQuery ? 'primary' : 'outline'}
+              size='icon'
+              onClick={onOpenSearchDialog}
+              aria-label='Pencarian data'
+              title={searchQuery ? `Pencarian aktif: "${searchQuery}"` : 'Buka dialog pencarian'}
+              className={cn(
+                'size-8 rounded-md relative cursor-pointer shrink-0',
+                searchQuery && 'shadow-2xs font-bold'
+              )}
+            >
+              <Icons.search className='size-3.5' />
+              {searchQuery && (
+                <span className='absolute -top-1 -right-1 size-2 rounded-full bg-primary-foreground ring-2 ring-primary animate-pulse' />
+              )}
+            </Button>
+          ) : null}
 
           {/* Date Picker (Calendar Popover) */}
           {dateFilter && (

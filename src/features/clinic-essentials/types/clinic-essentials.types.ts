@@ -15,6 +15,7 @@ export interface FacilityUnit {
 export interface FacilityRoom {
   id: string;
   unitId: string;
+  unitName?: string | null;
   name: string;
   code: string;
   location?: string | null;
@@ -28,6 +29,7 @@ export interface FacilityRoom {
 export interface ServiceCategory {
   id: string;
   unitId?: string | null;
+  unitName?: string | null;
   name: string;
   code: string;
   codePrefix?: string | null;
@@ -54,8 +56,13 @@ export interface ClinicalIntakeForm {
 export interface ClinicService {
   id: string;
   serviceCategoryId: string;
+  categoryName?: string | null;
+  unitId?: string | null;
+  unitName?: string | null;
   specialtyId?: string | null;
   intakeFormId?: string | null;
+  intakeFormCode?: string | null;
+  intakeFormName?: string | null;
   name: string;
   code: string;
   shortName?: string | null;

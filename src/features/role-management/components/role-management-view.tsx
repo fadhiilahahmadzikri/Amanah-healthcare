@@ -1,9 +1,10 @@
 'use client';
 
 import * as React from 'react';
-import { IconShield } from '@tabler/icons-react';
-import { Card } from '@/components/ui/card';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SearchEngineDialog } from '@/components/search-engine';
 import { useAuthContext } from '@/lib/rbac/auth-context';
 import { PERMISSIONS } from '@/core/auth/permissions.constants';
 import { useRoleManagementView } from '../model/useRoleManagementView';
@@ -22,6 +23,7 @@ export function RoleManagementView() {
     isLoading,
     isRefetching,
     searchQuery,
+    searchEngine,
     tierFilter,
     audienceFilter,
     clinicalFilter,
@@ -39,10 +41,18 @@ export function RoleManagementView() {
 
   return (
     <div className='space-y-4 font-sans'>
+      {/* Centralized Search Engine Dialog */}
+      <SearchEngineDialog
+        config={searchEngine.config}
+        isOpen={searchEngine.isOpen}
+        onClose={searchEngine.close}
+      />
+
       {/* Top Action Bar */}
       <RoleToolbar
         searchQuery={searchQuery}
         onSearchChange={actions.setSearchQuery}
+        onOpenSearchDialog={searchEngine.open}
         tierFilter={tierFilter}
         onTierFilterChange={actions.setTierFilter}
         audienceFilter={audienceFilter}
@@ -62,16 +72,24 @@ export function RoleManagementView() {
           <Skeleton className='h-40 rounded-xl' />
         </div>
       ) : filteredRoles.length === 0 ? (
-        <Card className='p-8 text-center border-dashed'>
-          <div className='flex flex-col items-center justify-center space-y-2'>
-            <IconShield className='size-10 text-muted-foreground/40' />
-            <p className='text-sm font-medium text-foreground'>Belum ada peran tambahan</p>
-            <p className='text-xs text-muted-foreground max-w-sm'>
-              Klik tombol &quot;Tambah Peran&quot; di atas untuk membuat peran dan meracik hak akses
-              perizinannya.
-            </p>
-          </div>
-        </Card>
+        <EmptyState
+          title='Belum ada peran terdaftar'
+          description='Klik tombol "Tambah Peran" di atas untuk membuat peran dan meracik hak akses perizinannya.'
+          action={
+            canManageRoles ? (
+              <Button
+                type='button'
+                variant='outline'
+                shape='pill'
+                size='sm'
+                onClick={() => actions.setIsCreateOpen(true)}
+                className='font-semibold cursor-pointer'
+              >
+                Tambah Peran
+              </Button>
+            ) : undefined
+          }
+        />
       ) : (
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
           {filteredRoles.map((role) => (

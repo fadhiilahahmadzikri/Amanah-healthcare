@@ -24,6 +24,8 @@ export interface StaffManagementToolbarProps {
   onViewModeChange: (mode: StaffViewMode) => void;
   onInviteStaff?: () => void;
   onRefresh?: () => void;
+  activeTab?: 'members' | 'invitations';
+  onActiveTabChange?: (tab: 'members' | 'invitations') => void;
 }
 
 export function StaffManagementToolbar({
@@ -40,8 +42,32 @@ export function StaffManagementToolbar({
   viewMode,
   onViewModeChange,
   onInviteStaff,
-  onRefresh
+  onRefresh,
+  activeTab = 'members',
+  onActiveTabChange
 }: StaffManagementToolbarProps) {
+  const effectiveFacets = React.useMemo(() => {
+    if (isCompact) {
+      const categoryFacet: FacetGroupDefinition = {
+        id: 'category',
+        title: 'Kategori',
+        icon: Icons.users,
+        mode: 'single',
+        options: [
+          { label: `Staf (${staffsCount})`, value: 'members' },
+          { label: `Undangan (${invitationsCount})`, value: 'invitations' }
+        ],
+        selectedValues: [activeTab],
+        onSelect: (val) => onActiveTabChange?.(val as 'members' | 'invitations'),
+        onReset: () => onActiveTabChange?.('members'),
+        popoverWidth: 'w-48',
+        resetLabel: 'Staf'
+      };
+      return [categoryFacet, ...facets];
+    }
+    return facets;
+  }, [isCompact, facets, staffsCount, invitationsCount, activeTab, onActiveTabChange]);
+
   return (
     <div className='flex flex-col gap-2.5 w-full shrink-0 select-none'>
       <ResponsiveFacetToolbox
@@ -49,42 +75,57 @@ export function StaffManagementToolbar({
         onSearchChange={onSearchChange}
         searchPlaceholder='Cari nama staf, peran, email, atau poliklinik...'
         onOpenSearchDialog={onOpenSearchDialog}
-        facets={facets}
+        facets={effectiveFacets}
         isFiltered={isFiltered}
         onResetAll={onResetAll}
         activeFilterCount={activeFilterCount}
         isCompact={isCompact}
         actionsSlot={
-          <div className='flex items-center gap-2 shrink-0'>
-            {/* Tabs List (Staf vs Undangan) */}
-            <TabsList className='inline-flex h-9 w-fit shrink-0 p-1 bg-muted/60'>
-              <TabsTrigger value='members' className='text-xs gap-1.5 px-2.5 sm:px-3'>
-                <Icons.users className='h-3.5 w-3.5' />
-                <span>Staf ({staffsCount})</span>
-              </TabsTrigger>
-              <TabsTrigger value='invitations' className='text-xs gap-1.5 px-2.5 sm:px-3'>
-                <Icons.mail className='h-3.5 w-3.5' />
-                <span>Undangan ({invitationsCount})</span>
-              </TabsTrigger>
-            </TabsList>
+          !isCompact ? (
+            <div className='flex items-center gap-2 shrink-0'>
+              {/* Tabs List (Staf vs Undangan) */}
+              <TabsList className='inline-flex h-9 w-fit shrink-0 p-1 bg-muted/60'>
+                <TabsTrigger value='members' className='text-xs gap-1.5 px-2.5 sm:px-3'>
+                  <Icons.users className='h-3.5 w-3.5' />
+                  <span>Staf ({staffsCount})</span>
+                </TabsTrigger>
+                <TabsTrigger value='invitations' className='text-xs gap-1.5 px-2.5 sm:px-3'>
+                  <Icons.mail className='h-3.5 w-3.5' />
+                  <span>Undangan ({invitationsCount})</span>
+                </TabsTrigger>
+              </TabsList>
 
-            {/* Invite Staff Button */}
-            {onInviteStaff && (
-              <Button
-                type='button'
-                onClick={onInviteStaff}
-                size='sm'
-                className='h-9 px-2.5 sm:px-3 gap-1.5 shrink-0 cursor-pointer'
-                title='Kirim Undangan Calon Staf Baru'
-              >
-                <Icons.userPlus className='h-3.5 w-3.5' />
-                <span className='hidden sm:inline'>Undang Staf</span>
-              </Button>
-            )}
-          </div>
+              {/* Invite Staff Button */}
+              {onInviteStaff && (
+                <Button
+                  type='button'
+                  onClick={onInviteStaff}
+                  size='sm'
+                  className='h-9 px-2.5 sm:px-3 gap-1.5 shrink-0 cursor-pointer'
+                  title='Kirim Undangan Calon Staf Baru'
+                >
+                  <Icons.userPlus className='h-3.5 w-3.5' />
+                  <span className='hidden sm:inline'>Undang Staf</span>
+                </Button>
+              )}
+            </div>
+          ) : undefined
         }
         extraRightSlot={
           <div className='flex items-center gap-1.5 sm:gap-2 shrink-0'>
+            {/* Mobile Invite Staff Icon Button */}
+            {onInviteStaff && isCompact && (
+              <Button
+                type='button'
+                onClick={onInviteStaff}
+                size='icon'
+                className='size-8 rounded-md shrink-0 cursor-pointer'
+                title='Kirim Undangan Calon Staf Baru'
+              >
+                <Icons.userPlus className='size-3.5' />
+              </Button>
+            )}
+
             {/* View Mode Toggle: Kanban vs Grid */}
             <div className='flex items-center rounded-lg border border-border/80 p-0.5 bg-muted/30'>
               <Button

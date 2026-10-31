@@ -55,15 +55,12 @@ export function UserExportDialog({ isOpen, onClose, drivers }: UserExportDialogP
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className='max-w-md'>
-        <DialogHeader>
-          <div className='flex items-center gap-2 text-primary'>
-            <Icons.upload className='size-5' />
-            <DialogTitle className='text-base font-semibold'>
-              Ekspor Cadangan Data Pengguna
-            </DialogTitle>
-          </div>
-          <DialogDescription className='text-xs pt-1'>
+      <DialogContent className='max-w-md rounded-2xl border border-border shadow-2xl'>
+        <DialogHeader className='text-left pb-3 border-b border-border/40'>
+          <DialogTitle className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
+            Ekspor Cadangan Data Pengguna
+          </DialogTitle>
+          <DialogDescription className='text-xs text-muted-foreground pt-1'>
             Pilih driver format berkas cadangan pengguna. Seluruh populasi pengguna akan dicadangkan
             tanpa mempedulikan filter tampilan tabel aktif.
           </DialogDescription>
@@ -93,25 +90,35 @@ export function UserExportDialog({ isOpen, onClose, drivers }: UserExportDialogP
           </RadioGroup>
         </div>
 
-        <DialogFooter className='gap-2 sm:gap-0'>
-          <Button variant='outline' onClick={onClose} disabled={isExporting}>
+        <DialogFooter className='shrink-0 pt-3.5 border-t border-border/40 flex flex-row items-center justify-end gap-2.5'>
+          <Button
+            type='button'
+            variant='outline'
+            size='card-action'
+            shape='pill'
+            className='px-5 font-semibold cursor-pointer'
+            onClick={onClose}
+            disabled={isExporting}
+          >
             Batal
           </Button>
           <Button
-            onClick={handleExport}
+            type='button'
+            variant='default'
+            size='card-action'
+            shape='pill'
+            withTrailingCircleIcon
             disabled={isExporting}
-            className='gap-1.5 cursor-pointer shadow-xs'
+            onClick={handleExport}
+            className='font-bold shadow-2xs cursor-pointer'
           >
             {isExporting ? (
-              <>
-                <Icons.spinner className='size-4 animate-spin' />
-                <span>Mengekspor...</span>
-              </>
+              <span className='inline-flex items-center gap-1.5'>
+                <Icons.spinner className='size-3.5 animate-spin' />
+                Mengekspor...
+              </span>
             ) : (
-              <>
-                <Icons.download className='size-4' />
-                <span>Unduh Cadangan</span>
-              </>
+              'Unduh Cadangan'
             )}
           </Button>
         </DialogFooter>

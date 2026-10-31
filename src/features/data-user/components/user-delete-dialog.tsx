@@ -56,17 +56,14 @@ export function UserDeleteDialog({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <AlertDialogContent className='max-w-md'>
-        <AlertDialogHeader>
-          <div className='flex items-center gap-2 text-destructive'>
-            <Icons.warning className='size-5 text-destructive' />
-            <AlertDialogTitle className='text-base font-semibold'>
-              {isBulk
-                ? `Hapus Permanen ${userIds?.length} Pengguna?`
-                : `Hapus Permanen Pengguna "${user?.name}"?`}
-            </AlertDialogTitle>
-          </div>
-          <AlertDialogDescription className='space-y-2 pt-2 text-xs leading-relaxed'>
+      <AlertDialogContent className='max-w-md rounded-2xl border border-border shadow-2xl'>
+        <AlertDialogHeader className='text-left pb-3 border-b border-border/40'>
+          <AlertDialogTitle className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
+            {isBulk
+              ? `Hapus Permanen ${userIds?.length} Pengguna?`
+              : `Hapus Permanen Pengguna "${user?.name}"?`}
+          </AlertDialogTitle>
+          <AlertDialogDescription className='space-y-2 pt-2 text-xs leading-relaxed text-muted-foreground'>
             {isBulk ? (
               <p>
                 Anda akan menghapus secara permanen <strong>{userIds?.length} akun pengguna</strong>{' '}
@@ -87,23 +84,27 @@ export function UserDeleteDialog({
             </p>
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending} onClick={onClose}>
+        <AlertDialogFooter className='shrink-0 pt-3.5 border-t border-border/40 flex flex-row items-center justify-end gap-2.5'>
+          <AlertDialogCancel
+            disabled={isPending}
+            onClick={onClose}
+            className='rounded-full h-10 px-6 text-[13px] font-semibold cursor-pointer border border-input bg-background hover:bg-accent'
+          >
             Batal
           </AlertDialogCancel>
           <AlertDialogAction
             disabled={isPending}
             onClick={handleConfirm}
-            className='bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer font-semibold gap-1.5'
+            className='rounded-full h-10 px-6 text-[13px] bg-destructive text-destructive-foreground hover:bg-destructive/90 cursor-pointer font-bold gap-1.5 shadow-2xs'
           >
             {isPending ? (
               <>
-                <Icons.spinner className='size-4 animate-spin' />
+                <Icons.spinner className='size-3.5 animate-spin' />
                 <span>Memproses...</span>
               </>
             ) : (
               <>
-                <Icons.trash className='size-4' />
+                <Icons.trash className='size-3.5' />
                 <span>Ya, Hapus Permanen</span>
               </>
             )}

@@ -1,5 +1,6 @@
 export { default as UserListingPage } from './components/user-listing';
 export { UserTable, UserTableSkeleton } from './components/user-tables';
+export { UserMobileCards, UserCardsSkeleton } from './components/user-mobile-cards';
 export * from './api/types';
 export * from './api/service';
 export * from './api/queries';
