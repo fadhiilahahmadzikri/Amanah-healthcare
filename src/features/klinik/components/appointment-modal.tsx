@@ -89,18 +89,7 @@ export function AppointmentModal({
   const [isCompleted, setIsCompleted] = React.useState(false);
   const [sessionLabel, setSessionLabel] = React.useState<string>('');
 
-  const targetFlow =
-    bookingContext?.formType ||
-    (selectedService?.medicalFlow === 'pregnancy'
-      ? 'pregnancy'
-      : selectedService?.medicalFlow === 'immunization'
-        ? 'immunization'
-        : 'regular');
-
-  const isKebidanan =
-    targetFlow === 'pregnancy' ||
-    activeMedicalFlow === 'pregnancy' ||
-    selectedService?.medicalFlow === 'pregnancy';
+  const targetFlow = bookingContext?.formType || 'regular';
 
   React.useEffect(() => {
     if (!isOpen) {
@@ -110,12 +99,6 @@ export function AppointmentModal({
     }
   }, [isOpen]);
 
-  React.useEffect(() => {
-    if (isMobile && isKebidanan && step === 'patient') {
-      setStep('patient_new');
-    }
-  }, [isMobile, isKebidanan, step, setStep]);
-
   if (!isOpen) return null;
 
   const isCompactStep =
@@ -123,7 +106,7 @@ export function AppointmentModal({
     step === 'session' ||
     step === 'visit_type' ||
     step === 'complaint' ||
-    step === 'patient_new' ||
+    step === 'create_profile' ||
     step === 'confirmation' ||
     step === 'ticket_conflict';
 
@@ -188,7 +171,7 @@ export function AppointmentModal({
               />
             )}
 
-            {step === 'patient' && !(isMobile && isKebidanan) && (
+            {step === 'select_profile' && (
               <BookingPatientSelectionStep
                 patients={patients}
                 selectedPatientId={selectedPatientId}
@@ -199,16 +182,12 @@ export function AppointmentModal({
               />
             )}
 
-            {step === 'patient_new' && (
+            {step === 'create_profile' && (
               <BookingRegularPatientForm
                 initialRelationship={selectedRelationship}
                 onSuccess={handlePatientCreated}
                 onCancel={() =>
-                  isMobile && isKebidanan
-                    ? setStep('service')
-                    : patients.length > 0
-                      ? setStep('patient')
-                      : setStep('service')
+                  patients.length > 0 ? setStep('select_profile') : setStep('service')
                 }
                 allowedRelationships={bookingContext?.allowedRelationships}
                 hasExistingSelf={patients.some((p) => p.relationship === 'self' || p.isSelf)}
@@ -258,7 +237,7 @@ export function AppointmentModal({
             )}
           </div>
 
-          {step !== 'patient_new' && (
+          {step !== 'create_profile' && (
             <div className='flex items-center justify-between shrink-0 pt-2'>
               <div>
                 {step === 'category' ? (
@@ -274,15 +253,9 @@ export function AppointmentModal({
                     leadingIcon={<Icons.arrowLeft className='size-3.5' />}
                     onClick={() => {
                       if (step === 'service') setStep('category');
-                      else if (step === 'patient') setStep('service');
+                      else if (step === 'select_profile') setStep('service');
                       else if (step === 'date')
-                        setStep(
-                          patients.length > 0
-                            ? isMobile && isKebidanan
-                              ? 'patient_new'
-                              : 'patient'
-                            : 'service'
-                        );
+                        setStep(patients.length > 0 ? 'select_profile' : 'service');
                       else if (step === 'session') setStep('date');
                       else if (step === 'visit_type') setStep('session');
                       else if (step === 'complaint') setStep('visit_type');
@@ -296,7 +269,7 @@ export function AppointmentModal({
               </div>
 
               <div>
-                {step === 'patient' && patients.length > 0 ? (
+                {step === 'select_profile' && patients.length > 0 ? (
                   <Button
                     type='button'
                     variant='primary'
@@ -438,11 +411,7 @@ export function AppointmentModal({
           newPatientRelationship={selectedRelationship}
           onBackToService={() => {
             setActiveMedicalFlow(null);
-            if (isMobile && isKebidanan) {
-              setStep('patient_new');
-            } else {
-              setStep('patient');
-            }
+            setStep(patients.length > 0 ? 'select_profile' : 'create_profile');
           }}
           onClose={() => {
             setActiveMedicalFlow(null);

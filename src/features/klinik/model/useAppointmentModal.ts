@@ -29,8 +29,8 @@ import type { Appointment, AppointmentFormData } from '../api/types';
 export type BookingModalStep =
   | 'category'
   | 'service'
-  | 'patient'
-  | 'patient_new'
+  | 'select_profile'
+  | 'create_profile'
   | 'date'
   | 'session'
   | 'visit_type'
@@ -73,9 +73,7 @@ export function useAppointmentModal({
   const [bookingContext, setBookingContext] = useState<BookingServiceContextResponse | null>(null);
   const [isLoadingBookingContext, setIsLoadingBookingContext] = useState(false);
 
-  const [activeMedicalFlow, setActiveMedicalFlow] = useState<'pregnancy' | 'immunization' | null>(
-    null
-  );
+  const [activeMedicalFlow, setActiveMedicalFlow] = useState<string | null>(null);
   const [isResolvingMedicalFlow, setIsResolvingMedicalFlow] = useState(false);
 
   useEffect(() => {
@@ -279,26 +277,19 @@ export function useAppointmentModal({
       const relevantPatients = ctx?.patients ?? [];
       setPatients(relevantPatients as unknown as PatientAffiliationProfile[]);
 
-      const isPregnancy = srv.medicalFlow === 'pregnancy' || ctx?.formType === 'pregnancy';
-
-      if (isMobile && isPregnancy) {
+      if (relevantPatients.length > 0) {
         setSelectedPatientId('');
-        setStep('patient_new');
-      } else if (relevantPatients.length > 0) {
-        setSelectedPatientId('');
-        setStep('patient');
+        setStep('select_profile');
       } else {
-        setStep('patient_new');
+        setSelectedPatientId('');
+        setStep('create_profile');
       }
     } catch (err) {
       console.error('Failed to resolve booking context:', err);
-      const isPregnancy = srv.medicalFlow === 'pregnancy';
-      if (isMobile && isPregnancy) {
-        setStep('patient_new');
-      } else if (patients.length === 0) {
-        setStep('patient_new');
+      if (patients.length === 0) {
+        setStep('create_profile');
       } else {
-        setStep('patient');
+        setStep('select_profile');
       }
     } finally {
       setIsLoadingBookingContext(false);
@@ -308,21 +299,15 @@ export function useAppointmentModal({
   const handleAddNewPatient = useCallback(() => {
     setSelectedPatientId('');
     setSelectedRelationship('');
-    setStep('patient_new');
+    setStep('create_profile');
   }, []);
 
   const handleRelationshipSubmitForMedicalFlow = useCallback(
     async (relationship: PatientRelationshipType) => {
       setSelectedRelationship(relationship);
-      const currentFlow =
-        bookingContext?.formType ||
-        (selectedService?.medicalFlow === 'pregnancy'
-          ? 'pregnancy'
-          : selectedService?.medicalFlow === 'immunization'
-            ? 'immunization'
-            : null);
+      const currentFlow = bookingContext?.formType || null;
 
-      if (currentFlow === 'pregnancy' || currentFlow === 'immunization') {
+      if (currentFlow && currentFlow !== 'regular') {
         if (selectedService?.id) {
           setIsResolvingMedicalFlow(true);
           try {
@@ -344,15 +329,9 @@ export function useAppointmentModal({
       return;
     }
 
-    const currentFormType =
-      bookingContext?.formType ||
-      (selectedService?.medicalFlow === 'pregnancy'
-        ? 'pregnancy'
-        : selectedService?.medicalFlow === 'immunization'
-          ? 'immunization'
-          : 'regular');
+    const currentFormType = bookingContext?.formType || 'regular';
 
-    if (currentFormType === 'pregnancy' || currentFormType === 'immunization') {
+    if (currentFormType !== 'regular') {
       if (selectedService?.id) {
         setIsResolvingMedicalFlow(true);
         try {
@@ -371,11 +350,8 @@ export function useAppointmentModal({
   const handlePatientCreated = async (newPatient: PatientAffiliationProfile) => {
     setPatients((prev) => [newPatient, ...prev]);
     setSelectedPatientId(newPatient.id);
-    if (
-      selectedService?.medicalFlow === 'pregnancy' ||
-      selectedService?.medicalFlow === 'immunization'
-    ) {
-      const targetFlow = selectedService.medicalFlow;
+    const targetFlow = bookingContext?.formType || null;
+    if (targetFlow && targetFlow !== 'regular') {
       if (selectedService?.id) {
         setIsResolvingMedicalFlow(true);
         try {
@@ -413,7 +389,7 @@ export function useAppointmentModal({
 
     if (!patientIdToUse) {
       toast.error('Silakan tentukan data pasien terlebih dahulu');
-      setStep('patient_new');
+      setStep('create_profile');
       return;
     }
 

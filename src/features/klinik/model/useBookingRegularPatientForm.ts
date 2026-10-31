@@ -19,7 +19,7 @@ import type { PatientRegionValues } from '@/features/data-pasien/components/regi
 export interface UseBookingRegularPatientFormOptions {
   onSuccess: (newPatient: PatientAffiliationProfile) => void;
   onCancel: () => void;
-  targetFlow?: 'pregnancy' | 'immunization' | 'regular';
+  targetFlow?: string;
   onRelationshipSubmit?: (relationship: PatientRelationshipType) => void;
   allowedRelationships?: { value: string; label: string; description?: string }[];
   hasExistingSelf?: boolean;
@@ -250,11 +250,7 @@ export function useBookingRegularPatientForm({
   const handleNext = () => {
     if (!isCurrentStepValid || isAnimatingRef.current) return;
 
-    if (
-      currentStep === 1 &&
-      (targetFlow === 'pregnancy' || targetFlow === 'immunization') &&
-      onRelationshipSubmit
-    ) {
+    if (currentStep === 1 && targetFlow && targetFlow !== 'regular' && onRelationshipSubmit) {
       onRelationshipSubmit(relationship);
       return;
     }

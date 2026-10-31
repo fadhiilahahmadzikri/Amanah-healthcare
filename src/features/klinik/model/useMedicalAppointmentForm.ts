@@ -95,7 +95,13 @@ export function useMedicalAppointmentForm({
   onCompleteIntake,
   onBackToService
 }: UseMedicalAppointmentFormOptions) {
-  const baseDefinition = React.useMemo(() => getMedicalFlowDefinition(flow), [flow]);
+  const baseDefinition = React.useMemo(() => {
+    const def = getMedicalFlowDefinition(flow);
+    if (!def) {
+      throw new Error(`Clinical intake form definition not registered for flow: "${flow}"`);
+    }
+    return def;
+  }, [flow]);
   const { catalogs } = useMaternalCatalogs(isOpen && flow === 'pregnancy');
   const definition = React.useMemo(
     () => enrichMedicalFlowDefinition(baseDefinition, catalogs),

@@ -11,7 +11,6 @@ export interface ServiceCatalogItem {
   intakeFormId?: string | null;
   intakeFormCode?: string | null;
   intakeFormName?: string | null;
-  medicalFlow?: string | null;
   displayOrder: number;
   categoryId?: string;
   poliklinikId: string;

@@ -154,6 +154,9 @@ export function buildAutomaticRecord(
 
 export function getMedicalFieldLabel(flow: MedicalAppointmentFlow, fieldId: string): string {
   const definition = getMedicalFlowDefinition(flow);
+  if (!definition) {
+    return fieldId;
+  }
   const field = findMedicalField(definition, fieldId);
 
   return field?.label || fieldId;

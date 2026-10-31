@@ -81,8 +81,10 @@ export interface BookingContextAllowedRelationship {
 export interface BookingServiceContextResponse {
   serviceId: string;
   serviceName: string;
-  medicalFlow: 'pregnancy' | 'immunization' | 'general';
-  formType: 'pregnancy' | 'immunization' | 'regular';
+  intakeFormId?: string | null;
+  intakeFormCode?: string | null;
+  intakeFormName?: string | null;
+  formType: string;
   allowedRelationships: BookingContextAllowedRelationship[];
   patients: BookingContextPatient[];
   totalPatients: number;

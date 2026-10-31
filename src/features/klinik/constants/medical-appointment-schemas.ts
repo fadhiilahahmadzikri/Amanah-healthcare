@@ -53,11 +53,11 @@ export {
   immunizationFlowDefinition
 };
 
-export const medicalFlowDefinitions: Record<MedicalAppointmentFlow, MedicalFlowDefinition> = {
+export const medicalFlowDefinitions: Record<string, MedicalFlowDefinition> = {
   pregnancy: pregnancyFlowDefinition,
   immunization: immunizationFlowDefinition
 };
 
-export function getMedicalFlowDefinition(flow: MedicalAppointmentFlow): MedicalFlowDefinition {
+export function getMedicalFlowDefinition(flow: string): MedicalFlowDefinition | undefined {
   return medicalFlowDefinitions[flow];
 }

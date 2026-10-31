@@ -13,6 +13,8 @@ const automaticLabels: Record<string, string> = {
 
 export function MedicalIntakeSummary({ intake }: { intake: MedicalIntakeRecord }) {
   const definition = getMedicalFlowDefinition(intake.flow);
+  if (!definition) return null;
+
   const automaticEntries = Object.entries(intake.automatic || {}).filter(([, value]) => value);
 
   const sectionsWithAnswers = definition.sections

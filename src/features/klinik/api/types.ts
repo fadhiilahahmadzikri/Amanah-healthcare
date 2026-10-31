@@ -129,7 +129,7 @@ export interface AppointmentFormData {
   medicalIntake?: MedicalIntakeRecord;
 }
 
-export type MedicalAppointmentFlow = 'pregnancy' | 'immunization';
+export type MedicalAppointmentFlow = 'pregnancy' | 'immunization' | (string & {});
 
 export interface MedicalIntakeRecord {
   flow: MedicalAppointmentFlow;

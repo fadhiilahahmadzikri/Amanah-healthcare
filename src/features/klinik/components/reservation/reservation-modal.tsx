@@ -19,7 +19,12 @@ import { BookingDateStep } from '../booking/booking-date-step';
 import { BookingSessionStep } from '../booking/booking-session-step';
 import { BookingConfirmationStep } from '../booking/booking-confirmation-step';
 import { QueueSuccessModal } from '../queue-success-modal';
-import { APPOINTMENT_STATUS, QUEUE_STATUS, type Appointment } from '../../api/types';
+import {
+  APPOINTMENT_STATUS,
+  QUEUE_STATUS,
+  type Appointment,
+  type MedicalAppointmentFlow
+} from '../../api/types';
 import { VISIT_TYPE } from '@/constants/visit-type.constants';
 import { formatClinicTime, getClinicTodayDateString } from '@/lib/date-format';
 import { useClinicTimeConfig } from '@/features/klinik/model/useClinicTimeConfig';
@@ -35,7 +40,7 @@ export interface ReservationContext {
   poliklinikId?: string;
   complaint?: string;
   sourceIntakeId?: string;
-  medicalFlow?: 'pregnancy' | 'immunization' | 'general';
+  medicalFlow?: MedicalAppointmentFlow;
   mode?: 'create' | 'reschedule';
   appointmentId?: string;
   currentDate?: string;

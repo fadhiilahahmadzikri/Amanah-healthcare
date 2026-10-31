@@ -22,7 +22,7 @@ export interface BookingRegularPatientFormProps {
   onSuccess: (newPatient: PatientAffiliationProfile) => void;
   onCancel: () => void;
   allowedRelationships?: { value: string; label: string; description?: string }[];
-  targetFlow?: 'pregnancy' | 'immunization' | 'regular';
+  targetFlow?: string;
   onRelationshipSubmit?: (relationship: PatientRelationshipType) => void;
   hasExistingSelf?: boolean;
   initialRelationship?: PatientRelationshipType | string;
