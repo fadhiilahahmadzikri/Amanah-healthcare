@@ -67,7 +67,7 @@ export function RoleHierarchyStep({
                   : 'border-border bg-card hover:border-primary/40'
               )}
             >
-              <span className='text-xs font-bold text-foreground'>Macro (Induk)</span>
+              <span className='text-xs font-bold text-foreground'>Makro (Induk)</span>
               <span className='text-[11px] text-muted-foreground mt-0.5'>
                 Peran utama struktural di klinik
               </span>
@@ -84,12 +84,17 @@ export function RoleHierarchyStep({
                   : 'border-border bg-card hover:border-primary/40'
               )}
             >
-              <span className='text-xs font-bold text-foreground'>Micro (Sub-Peran)</span>
+              <span className='text-xs font-bold text-foreground'>Mikro (Sub-Peran)</span>
               <span className='text-[11px] text-muted-foreground mt-0.5'>
                 Spesialisasi atau bagian dari peran induk
               </span>
             </button>
           </div>
+          {disabled && (
+            <p className='text-[11px] text-muted-foreground italic pt-0.5'>
+              Tingkatan peran administrator utama sistem dikunci permanen.
+            </p>
+          )}
         </div>
 
         {/* Audience Selector */}
@@ -143,7 +148,7 @@ export function RoleHierarchyStep({
               <SelectItem value={NO_PARENT_ROLE_SENTINEL}>Tanpa Induk (Mandiri)</SelectItem>
               {macroRoles.map((mr) => (
                 <SelectItem key={mr.id} value={mr.id}>
-                  {mr.name} ({mr.code})
+                  {mr.name}
                 </SelectItem>
               ))}
             </SelectContent>

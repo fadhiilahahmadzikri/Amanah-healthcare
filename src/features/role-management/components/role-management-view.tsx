@@ -40,7 +40,7 @@ export function RoleManagementView() {
   const canManageRoles = can(PERMISSIONS.ROLES.MANAGE);
 
   return (
-    <div className='space-y-4 font-sans'>
+    <div className='flex flex-1 min-h-0 flex-col gap-3.5 font-sans h-full overflow-hidden select-none'>
       {/* Centralized Search Engine Dialog */}
       <SearchEngineDialog
         config={searchEngine.config}
@@ -48,64 +48,68 @@ export function RoleManagementView() {
         onClose={searchEngine.close}
       />
 
-      {/* Top Action Bar */}
-      <RoleToolbar
-        searchQuery={searchQuery}
-        onSearchChange={actions.setSearchQuery}
-        onOpenSearchDialog={searchEngine.open}
-        tierFilter={tierFilter}
-        onTierFilterChange={actions.setTierFilter}
-        audienceFilter={audienceFilter}
-        onAudienceFilterChange={actions.setAudienceFilter}
-        clinicalFilter={clinicalFilter}
-        onClinicalFilterChange={actions.setClinicalFilter}
-        onRefresh={actions.handleRefresh}
-        isRefetching={isRefetching}
-        onAddClick={canManageRoles ? () => actions.setIsCreateOpen(true) : undefined}
-      />
-
-      {/* Grid of Simple Role Cards */}
-      {isLoading ? (
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-          <Skeleton className='h-40 rounded-xl' />
-          <Skeleton className='h-40 rounded-xl' />
-          <Skeleton className='h-40 rounded-xl' />
-        </div>
-      ) : filteredRoles.length === 0 ? (
-        <EmptyState
-          title='Belum ada peran terdaftar'
-          description='Klik tombol "Tambah Peran" di atas untuk membuat peran dan meracik hak akses perizinannya.'
-          action={
-            canManageRoles ? (
-              <Button
-                type='button'
-                variant='outline'
-                shape='pill'
-                size='sm'
-                onClick={() => actions.setIsCreateOpen(true)}
-                className='font-semibold cursor-pointer'
-              >
-                Tambah Peran
-              </Button>
-            ) : undefined
-          }
+      {/* Top Action Bar (Pinned Header Section) */}
+      <div className='shrink-0'>
+        <RoleToolbar
+          searchQuery={searchQuery}
+          onSearchChange={actions.setSearchQuery}
+          onOpenSearchDialog={searchEngine.open}
+          tierFilter={tierFilter}
+          onTierFilterChange={actions.setTierFilter}
+          audienceFilter={audienceFilter}
+          onAudienceFilterChange={actions.setAudienceFilter}
+          clinicalFilter={clinicalFilter}
+          onClinicalFilterChange={actions.setClinicalFilter}
+          onRefresh={actions.handleRefresh}
+          isRefetching={isRefetching}
+          onAddClick={canManageRoles ? () => actions.setIsCreateOpen(true) : undefined}
         />
-      ) : (
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-          {filteredRoles.map((role) => (
-            <RoleCard
-              key={role.id}
-              role={role}
-              canManage={canManageRoles}
-              onEdit={actions.setEditingRole}
-              onManagePages={actions.setManagingPagesRole}
-              onDelete={actions.setDeletingRole}
-              onToggleActive={actions.handleToggleRoleActive}
-              isToggling={togglingRoleId === role.id}
-            />
-          ))}
-        </div>
-      )}
+      </div>
+
+      {/* Grid of Simple Role Cards (Scrollable Content Section) */}
+      <div className='flex-1 min-h-0 overflow-y-auto pr-1 sm:pr-2 pb-20 scrollbar-thin'>
+        {isLoading ? (
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+            <Skeleton className='h-40 rounded-xl' />
+            <Skeleton className='h-40 rounded-xl' />
+            <Skeleton className='h-40 rounded-xl' />
+          </div>
+        ) : filteredRoles.length === 0 ? (
+          <EmptyState
+            title='Belum ada peran terdaftar'
+            description='Klik tombol "Tambah Peran" di atas untuk membuat peran dan meracik hak akses perizinannya.'
+            action={
+              canManageRoles ? (
+                <Button
+                  type='button'
+                  variant='outline'
+                  shape='pill'
+                  size='sm'
+                  onClick={() => actions.setIsCreateOpen(true)}
+                  className='font-semibold cursor-pointer'
+                >
+                  Tambah Peran
+                </Button>
+              ) : undefined
+            }
+          />
+        ) : (
+          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+            {filteredRoles.map((role) => (
+              <RoleCard
+                key={role.id}
+                role={role}
+                canManage={canManageRoles}
+                onEdit={actions.setEditingRole}
+                onManagePages={actions.setManagingPagesRole}
+                onDelete={actions.setDeletingRole}
+                onToggleActive={actions.handleToggleRoleActive}
+                isToggling={togglingRoleId === role.id}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Create Role Modal */}
       <CreateRoleDialog

@@ -14,13 +14,11 @@ export default async function ManagementRolePage() {
 
   return (
     <PageContainer
-      scrollable={true}
+      scrollable={false}
       pageTitle='Management Role'
       pageDescription='Kelola peran dinamis, tingkatan hierarki (macro/micro), dan matriks hak akses sistem klinik.'
     >
-      <div className='pb-8'>
-        <RoleManagementView />
-      </div>
+      <RoleManagementView />
     </PageContainer>
   );
 }

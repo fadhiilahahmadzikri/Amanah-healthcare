@@ -185,9 +185,9 @@ export function useRoleFormModal({
 
         toast.success(`Peran '${name}' dan matriks perizinan berhasil diperbarui`);
       } else {
-        // Create role
+        // Create role - backend CanonicalSlugHelper generates safe snake_case slug automatically
         await roleManagementApi.createRole({
-          code: code.trim() ? code.trim().toLowerCase() : undefined,
+          code: undefined,
           name: name.trim(),
           description: description.trim() || null,
           tier,

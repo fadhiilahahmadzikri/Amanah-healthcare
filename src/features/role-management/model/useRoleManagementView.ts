@@ -154,10 +154,10 @@ export function useRoleManagementView(): UseRoleManagementViewResult {
     return roles.map((role) => ({
       id: `role-${role.id}`,
       title: role.name,
-      subtitle: `${role.code} • ${role.tier} • ${role.audience}`,
+      subtitle: `${role.tier === 'macro' ? 'Makro' : 'Mikro'} • ${role.audience === 'external' ? 'Eksternal' : 'Internal'}${role.isClinical ? ' • Klinis' : ''}`,
       category: 'Peran',
       icon: Icons.users,
-      queryValue: `${role.name} ${role.code}`
+      queryValue: `${role.name} ${role.tier === 'macro' ? 'makro' : 'mikro'} ${role.audience === 'external' ? 'eksternal' : 'internal'}`
     }));
   }, [roles]);
 

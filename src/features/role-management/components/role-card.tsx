@@ -3,8 +3,6 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  IconStethoscope,
-  IconBriefcase,
   IconEdit,
   IconTrash,
   IconBrowser,
@@ -25,7 +23,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
-import { AUDIENCE } from '@/core/auth/permissions.constants';
 import { cn } from '@/lib/utils';
 import type { Role } from '../types/role.types';
 
@@ -80,79 +77,29 @@ export function RoleCard({
           !isActive && 'opacity-85 border-dashed bg-muted/20'
         )}
       >
-        <CardHeader className='pb-3 pt-4 px-4 space-y-2'>
-          <div className='flex items-start justify-between gap-2'>
-            <div>
-              <div className='flex items-center gap-1.5 flex-wrap'>
-                <h3 className='font-semibold text-base text-foreground leading-tight'>
-                  {role.name}
-                </h3>
-                {!isActive ? (
-                  <Badge
-                    variant='outline'
-                    className='text-[10px] px-1.5 py-0 border-destructive/40 text-destructive bg-destructive/10'
-                  >
-                    Nonaktif
-                  </Badge>
-                ) : (
-                  <Badge
-                    variant='outline'
-                    className='text-[10px] px-1.5 py-0 border-emerald-500/40 text-emerald-700 bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-300'
-                  >
-                    Aktif
-                  </Badge>
-                )}
-              </div>
-              <p className='font-mono text-xs text-muted-foreground pt-0.5'>{role.code}</p>
-            </div>
-
-            <div className='flex flex-col items-end gap-1'>
-              <div className='flex items-center gap-1'>
-                {role.audience === AUDIENCE.EXTERNAL ? (
-                  <Badge
-                    variant='outline'
-                    className='text-[10px] px-1.5 py-0 border-amber-500/40 text-amber-700 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-300'
-                  >
-                    Eksternal
-                  </Badge>
-                ) : (
-                  <Badge
-                    variant='outline'
-                    className='text-[10px] px-1.5 py-0 text-muted-foreground'
-                  >
-                    Internal
-                  </Badge>
-                )}
-
-                {role.isSystem ? (
-                  <Badge variant='secondary' className='text-[10px] px-1.5 py-0'>
-                    Sistem
-                  </Badge>
-                ) : (
-                  <Badge variant='outline' className='text-[10px] px-1.5 py-0 capitalize'>
-                    {role.tier}
-                  </Badge>
-                )}
-              </div>
-
-              {role.isClinical ? (
-                <Badge
-                  variant='outline'
-                  className='text-[10px] px-1.5 py-0 border-sky-400 text-sky-700 bg-sky-50 dark:bg-sky-950/30 dark:text-sky-300 gap-0.5'
-                >
-                  <IconStethoscope className='size-2.5' />
-                  Klinis
-                </Badge>
-              ) : (
-                <Badge
-                  variant='outline'
-                  className='text-[10px] px-1.5 py-0 text-muted-foreground gap-0.5'
-                >
-                  <IconBriefcase className='size-2.5' />
-                  Non clinical
-                </Badge>
-              )}
-            </div>
+        <CardHeader className='pb-2 pt-4 px-4'>
+          <div className='flex items-center justify-between gap-3'>
+            <h3
+              className='font-semibold text-base text-foreground leading-tight truncate'
+              title={role.name}
+            >
+              {role.name}
+            </h3>
+            {!isActive ? (
+              <Badge
+                variant='outline'
+                className='text-[10px] px-2 py-0.5 border-destructive/40 text-destructive bg-destructive/10 shrink-0 font-medium'
+              >
+                Nonaktif
+              </Badge>
+            ) : (
+              <Badge
+                variant='outline'
+                className='text-[10px] px-2 py-0.5 border-emerald-500/40 text-emerald-700 bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-300 shrink-0 font-medium'
+              >
+                Aktif
+              </Badge>
+            )}
           </div>
         </CardHeader>
 
@@ -226,9 +173,10 @@ export function RoleCard({
             disabled={!canManage}
             className='h-8 text-xs flex-1 min-w-[105px] gap-1.5'
             onClick={() => onEdit(role)}
+            title={`Ubah informasi dan hak akses peran ${role.name}`}
           >
             <IconEdit className='size-3.5' />
-            Atur Izin
+            Ubah Peran
           </Button>
 
           {onManagePages && (
@@ -238,18 +186,20 @@ export function RoleCard({
               disabled={!canManage}
               className='h-8 text-xs flex-1 min-w-[110px] gap-1.5'
               onClick={() => onManagePages(role)}
+              title={`Atur akses halaman peran ${role.name}`}
             >
               <IconBrowser className='size-3.5' />
               Akses Halaman
             </Button>
           )}
 
-          {!role.isSystem && canManage && (
+          {role.code !== 'admin' && role.code !== 'super_admin' && canManage && (
             <Button
               variant='ghost'
               size='icon'
               className='size-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0'
               onClick={() => onDelete(role)}
+              title={`Hapus peran ${role.name}`}
             >
               <IconTrash className='size-4' />
             </Button>

@@ -62,8 +62,8 @@ export function RoleToolbar({
         icon: Icons.layers,
         mode: 'single',
         options: [
-          { label: 'Macro', value: ROLE_TIER.MACRO },
-          { label: 'Micro', value: ROLE_TIER.MICRO }
+          { label: 'Makro', value: ROLE_TIER.MACRO },
+          { label: 'Mikro', value: ROLE_TIER.MICRO }
         ],
         selectedValues: tierFilter !== 'all' ? [tierFilter] : [],
         onSelect: (val) => onTierFilterChange(val === tierFilter ? 'all' : (val as RoleTierType)),
@@ -73,7 +73,7 @@ export function RoleToolbar({
       },
       {
         id: 'audience',
-        title: 'Audience',
+        title: 'Audiens',
         icon: Icons.users,
         mode: 'single',
         options: [
@@ -85,7 +85,7 @@ export function RoleToolbar({
           onAudienceFilterChange(val === audienceFilter ? 'all' : (val as AudienceType)),
         onReset: () => onAudienceFilterChange('all'),
         popoverWidth: 'w-48',
-        resetLabel: 'Semua Audience'
+        resetLabel: 'Semua Audiens'
       },
       {
         id: 'clinical',
