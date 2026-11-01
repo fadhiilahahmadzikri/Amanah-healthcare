@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, Unlink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -27,6 +27,7 @@ export interface ClinicServiceCardProps {
   onToggleActive?: (newActive: boolean) => void;
   isTogglingActive?: boolean;
   onEdit?: (service: ClinicService) => void;
+  onUnlink?: (service: ClinicService) => void;
   onDelete: (service: ClinicService) => void;
   onCardClick?: (service: ClinicService) => void;
   className?: string;
@@ -43,12 +44,23 @@ export function ClinicServiceCard({
   onToggleActive,
   isTogglingActive = false,
   onEdit,
+  onUnlink,
   onDelete,
   onCardClick,
   className
 }: ClinicServiceCardProps) {
   const isActive = service.isActive !== false;
-  const parentCat = categories.find((c) => c.id === service.serviceCategoryId);
+  const linkedCategories = React.useMemo(() => {
+    const ids =
+      service.categoryIds && service.categoryIds.length > 0
+        ? service.categoryIds
+        : service.serviceCategoryId
+          ? [service.serviceCategoryId]
+          : [];
+    return categories.filter((c) => ids.includes(c.id));
+  }, [categories, service.categoryIds, service.serviceCategoryId]);
+  const categoriesLabel =
+    linkedCategories.length > 0 ? linkedCategories.map((c) => c.name).join(', ') : 'Service Medis';
   const linkedForm = forms.find((f) => f.id === service.intakeFormId);
   const { wrapperRef, containerProps } = useCardBulkingSlide({ selected, isBulkingActive });
 
@@ -123,8 +135,13 @@ export function ClinicServiceCard({
               >
                 {service.name}
               </h4>
-              <p className='text-xs text-muted-foreground pt-0.5 truncate'>
-                {parentCat?.name || 'Service Medis'}
+              <p
+                className='text-xs text-muted-foreground pt-0.5 truncate'
+                title={service.shortName || service.description || service.name}
+              >
+                {service.shortName ||
+                  service.description ||
+                  (service.codePrefix ? `Prefix: ${service.codePrefix}` : '')}
               </p>
             </div>
           </div>
@@ -147,9 +164,23 @@ export function ClinicServiceCard({
       <div className='relative z-1 w-full border-t border-border/40 pt-2 space-y-1.5 text-xs'>
         <div className='flex items-center justify-between text-muted-foreground'>
           <span>Kelompok:</span>
-          <Badge variant='outline' className='text-[10px] font-normal truncate max-w-[140px]'>
-            {parentCat?.name || 'Kelompok Layanan'}
-          </Badge>
+          {linkedCategories.length > 0 ? (
+            linkedCategories.length === 1 ? (
+              <Badge variant='outline' className='text-[10px] font-normal truncate max-w-[150px]'>
+                {linkedCategories[0].name}
+              </Badge>
+            ) : (
+              <Badge
+                variant='outline'
+                className='text-[10px] font-normal truncate max-w-[160px] text-primary border-primary/30 bg-primary/5'
+                title={categoriesLabel}
+              >
+                {linkedCategories[0].name} +{linkedCategories.length - 1} Lainnya
+              </Badge>
+            )
+          ) : (
+            <span className='text-[11px] text-muted-foreground/60 italic'>Belum terhubung</span>
+          )}
         </div>
 
         <div className='flex items-center justify-between text-muted-foreground'>
@@ -167,9 +198,16 @@ export function ClinicServiceCard({
       {/* Footer Actions */}
       <div className='relative z-1 flex items-center justify-between border-t border-border/40 pt-2 mt-auto w-full'>
         <div className='flex items-center gap-1.5 min-w-0'>
-          <span className='text-[11px] font-medium text-muted-foreground truncate'>
-            {parentCat?.name || 'Layanan Medis'}
-          </span>
+          {service.codePrefix && (
+            <span className='text-[10px] font-mono px-1.5 py-0.5 rounded bg-muted/70 text-muted-foreground border border-border/40'>
+              {service.codePrefix}
+            </span>
+          )}
+          {service.complaints && service.complaints.length > 0 && (
+            <span className='text-[11px] text-muted-foreground truncate'>
+              {service.complaints.length} keluhan
+            </span>
+          )}
         </div>
 
         {canManage && (
@@ -206,6 +244,21 @@ export function ClinicServiceCard({
                 title={`Edit ${service.name}`}
               >
                 <Pencil className='size-3.5' />
+              </Button>
+            )}
+            {onUnlink && (
+              <Button
+                type='button'
+                variant='ghost'
+                size='icon'
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUnlink(service);
+                }}
+                className='size-7 text-muted-foreground hover:text-amber-600 hover:bg-amber-500/10 rounded-md cursor-pointer'
+                title={`Lepas ${service.name} dari kelompok ini`}
+              >
+                <Unlink className='size-3.5' />
               </Button>
             )}
             <Button

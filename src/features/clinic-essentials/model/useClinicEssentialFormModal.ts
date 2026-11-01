@@ -97,6 +97,7 @@ export function useClinicEssentialFormModal({
 
   // 3. Category Form State
   const [categoryUnitId, setCategoryUnitId] = React.useState<string>('none');
+  const [categoryUnitIds, setCategoryUnitIds] = React.useState<string[]>([]);
   const [categoryName, setCategoryName] = React.useState('');
   const [categoryCode, setCategoryCode] = React.useState('');
   const [categoryCodePrefix, setCategoryCodePrefix] = React.useState('');
@@ -106,6 +107,7 @@ export function useClinicEssentialFormModal({
 
   // 4. Service Form State
   const [serviceCategoryId, setServiceCategoryId] = React.useState('');
+  const [serviceCategoryIds, setServiceCategoryIds] = React.useState<string[]>([]);
   const [serviceIntakeFormId, setServiceIntakeFormId] = React.useState('none');
   const [serviceName, setServiceName] = React.useState('');
   const [serviceCode, setServiceCode] = React.useState('');
@@ -164,7 +166,10 @@ export function useClinicEssentialFormModal({
           setCategoryName(c.name);
           setCategoryCode(c.code);
           setCategoryCodePrefix(c.codePrefix || '');
-          setCategoryUnitId(c.unitId || 'none');
+          const initialUnitIds =
+            c.unitIds && c.unitIds.length > 0 ? c.unitIds : c.unitId ? [c.unitId] : [];
+          setCategoryUnitIds(initialUnitIds);
+          setCategoryUnitId(c.unitId || initialUnitIds[0] || 'none');
           setCategoryIconName(c.iconName || '');
           setCategoryDescription(c.description || '');
           setCategoryIsActive(c.isActive !== false);
@@ -175,7 +180,14 @@ export function useClinicEssentialFormModal({
           setServiceName(s.name);
           setServiceCode(s.code);
           setServiceCodePrefix(s.codePrefix || '');
-          setServiceCategoryId(s.serviceCategoryId);
+          const initialCategoryIds =
+            s.categoryIds && s.categoryIds.length > 0
+              ? s.categoryIds
+              : s.serviceCategoryId
+                ? [s.serviceCategoryId]
+                : [];
+          setServiceCategoryIds(initialCategoryIds);
+          setServiceCategoryId(s.serviceCategoryId || initialCategoryIds[0] || '');
           setServiceIntakeFormId(s.intakeFormId || 'none');
           setServiceIconName(s.iconName || '');
           setServiceComplaintsRaw((s.complaints || []).join(', '));
@@ -217,6 +229,7 @@ export function useClinicEssentialFormModal({
       setRoomIsActive(true);
 
       setCategoryUnitId('none');
+      setCategoryUnitIds([]);
       setCategoryName('');
       setCategoryCode('');
       setCategoryCodePrefix('');
@@ -224,7 +237,9 @@ export function useClinicEssentialFormModal({
       setCategoryDescription('');
       setCategoryIsActive(true);
 
-      setServiceCategoryId(categories[0]?.id || '');
+      const defaultCatId = categories[0]?.id || '';
+      setServiceCategoryId(defaultCatId);
+      setServiceCategoryIds(defaultCatId ? [defaultCatId] : []);
       setServiceIntakeFormId('none');
       setServiceName('');
       setServiceCode('');
@@ -260,7 +275,7 @@ export function useClinicEssentialFormModal({
         if (currentStage === 1) return Boolean(categoryName.trim());
         return true;
       case 'service':
-        if (currentStage === 1) return Boolean(serviceCategoryId);
+        if (currentStage === 1) return Boolean(serviceCategoryId || serviceCategoryIds.length > 0);
         if (currentStage === 2) return Boolean(serviceName.trim());
         return true;
       case 'form':
@@ -279,6 +294,7 @@ export function useClinicEssentialFormModal({
     roomName,
     categoryName,
     serviceCategoryId,
+    serviceCategoryIds,
     serviceName,
     formName
   ]);
@@ -294,7 +310,9 @@ export function useClinicEssentialFormModal({
       case 'category':
         return Boolean(categoryName.trim());
       case 'service':
-        return Boolean(serviceCategoryId) && Boolean(serviceName.trim());
+        return (
+          Boolean(serviceCategoryId || serviceCategoryIds.length > 0) && Boolean(serviceName.trim())
+        );
       case 'form':
         return Boolean(formName.trim());
       default:
@@ -309,6 +327,7 @@ export function useClinicEssentialFormModal({
     roomName,
     categoryName,
     serviceCategoryId,
+    serviceCategoryIds,
     serviceName,
     formName
   ]);
@@ -353,8 +372,12 @@ export function useClinicEssentialFormModal({
             return await clinicEssentialsApi.updateRoom(editItem.id, payload);
           }
           case 'category': {
+            const finalUnitIds = categoryUnitIds.filter(Boolean);
+            const primaryUnitId =
+              categoryUnitId !== 'none' ? categoryUnitId : finalUnitIds[0] || undefined;
             const payload: UpdateCategoryPayload = {
-              unitId: categoryUnitId === 'none' ? undefined : categoryUnitId,
+              unitId: primaryUnitId,
+              unitIds: finalUnitIds,
               name: categoryName.trim(),
               code: categoryCode.trim() || undefined,
               codePrefix: categoryCodePrefix.trim().toUpperCase() || undefined,
@@ -369,8 +392,16 @@ export function useClinicEssentialFormModal({
               .split(',')
               .map((s) => s.trim())
               .filter(Boolean);
+            const finalCatIds =
+              serviceCategoryIds.length > 0
+                ? serviceCategoryIds
+                : serviceCategoryId
+                  ? [serviceCategoryId]
+                  : [];
+            const primaryCatId = serviceCategoryId || finalCatIds[0] || '';
             const payload: UpdateServicePayload = {
-              serviceCategoryId,
+              serviceCategoryId: primaryCatId,
+              categoryIds: finalCatIds,
               intakeFormId: serviceIntakeFormId === 'none' ? null : serviceIntakeFormId,
               name: serviceName.trim(),
               code: serviceCode.trim() || undefined,
@@ -431,8 +462,12 @@ export function useClinicEssentialFormModal({
             return await clinicEssentialsApi.createRoom(payload);
           }
           case 'category': {
+            const finalUnitIds = categoryUnitIds.filter(Boolean);
+            const primaryUnitId =
+              categoryUnitId !== 'none' ? categoryUnitId : finalUnitIds[0] || undefined;
             const payload: CreateCategoryPayload = {
-              unitId: categoryUnitId === 'none' ? undefined : categoryUnitId,
+              unitId: primaryUnitId,
+              unitIds: finalUnitIds,
               name: categoryName.trim(),
               code: categoryCode.trim() || undefined,
               codePrefix: categoryCodePrefix.trim().toUpperCase() || undefined,
@@ -447,8 +482,16 @@ export function useClinicEssentialFormModal({
               .split(',')
               .map((s) => s.trim())
               .filter(Boolean);
+            const finalCatIds =
+              serviceCategoryIds.length > 0
+                ? serviceCategoryIds
+                : serviceCategoryId
+                  ? [serviceCategoryId]
+                  : [];
+            const primaryCatId = serviceCategoryId || finalCatIds[0] || '';
             const payload: CreateServicePayload = {
-              serviceCategoryId,
+              serviceCategoryId: primaryCatId,
+              categoryIds: finalCatIds,
               intakeFormId: serviceIntakeFormId === 'none' ? null : serviceIntakeFormId,
               name: serviceName.trim(),
               code: serviceCode.trim() || undefined,
@@ -528,6 +571,7 @@ export function useClinicEssentialFormModal({
     setRoomIsActive(true);
     // Category
     setCategoryUnitId('none');
+    setCategoryUnitIds([]);
     setCategoryName('');
     setCategoryCode('');
     setCategoryCodePrefix('');
@@ -535,7 +579,9 @@ export function useClinicEssentialFormModal({
     setCategoryDescription('');
     setCategoryIsActive(true);
     // Service
-    setServiceCategoryId(categories[0]?.id || '');
+    const defaultCatId = categories[0]?.id || '';
+    setServiceCategoryId(defaultCatId);
+    setServiceCategoryIds(defaultCatId ? [defaultCatId] : []);
     setServiceIntakeFormId('none');
     setServiceName('');
     setServiceCode('');
@@ -604,6 +650,7 @@ export function useClinicEssentialFormModal({
       roomIsActive,
       // Category values
       categoryUnitId,
+      categoryUnitIds,
       categoryName,
       categoryCode,
       categoryCodePrefix,
@@ -612,6 +659,7 @@ export function useClinicEssentialFormModal({
       categoryIsActive,
       // Service values
       serviceCategoryId,
+      serviceCategoryIds,
       serviceIntakeFormId,
       serviceName,
       serviceCode,
@@ -656,6 +704,7 @@ export function useClinicEssentialFormModal({
       setRoomIsActive,
       // Category setters
       setCategoryUnitId,
+      setCategoryUnitIds,
       setCategoryName,
       setCategoryCode,
       setCategoryCodePrefix,
@@ -664,6 +713,7 @@ export function useClinicEssentialFormModal({
       setCategoryIsActive,
       // Service setters
       setServiceCategoryId,
+      setServiceCategoryIds,
       setServiceIntakeFormId,
       setServiceName,
       setServiceCode,

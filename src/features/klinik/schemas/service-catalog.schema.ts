@@ -30,6 +30,8 @@ export const ServiceCategoryCatalogSchema = z.object({
   displayOrder: z.number().default(0),
   poliklinikId: z.string(),
   poliklinikName: z.string(),
+  unitIds: z.array(z.string()).optional(),
+  units: z.array(z.object({ id: z.string(), name: z.string() })).optional(),
   services: z.array(ServiceCatalogItemSchema).default([])
 });
 

@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { QueueSuccessModal } from './queue-success-modal';
 import { MedicalAppointmentModal } from './medical-appointment-modal';
 import { ReservationModal, type ReservationContext } from './reservation/reservation-modal';
+import { BookingPoliStep } from './booking/booking-poli-step';
 import { BookingCategoryStep, BookingCategorySkeleton } from './booking/booking-category-step';
 import { BookingServiceStep } from './booking/booking-service-step';
 import { BookingPatientSelectionStep } from './booking/booking-patient-selection-step';
@@ -36,6 +37,8 @@ export function AppointmentModal({
   const {
     step,
     setStep,
+    setSelectedPoliId,
+    activePoliList,
     setSelectedCategoryId,
     isLoadingCatalog,
     catalogError,
@@ -67,7 +70,6 @@ export function AppointmentModal({
     createdAppointment,
     activeTicketConflict,
     stepContainerRef,
-    isMobile,
     handleSelectServiceItem,
     handlePatientCreated,
     handlePatientUpdated,
@@ -125,7 +127,7 @@ export function AppointmentModal({
         }
         onClose={onClose}
         maxWidth={
-          step === 'category' || step === 'service'
+          step === 'poli' || step === 'category' || step === 'service'
             ? 'max-w-3xl'
             : isCompactStep
               ? 'max-w-[500px]'
@@ -154,6 +156,19 @@ export function AppointmentModal({
               isCompactStep ? 'h-auto overflow-visible' : 'flex-auto min-h-0 overflow-y-auto'
             )}
           >
+            {step === 'poli' && (
+              <BookingPoliStep
+                isLoadingCatalog={isLoadingCatalog}
+                catalogError={catalogError}
+                onRetryCatalog={() => loadCatalog(true)}
+                activePoliList={activePoliList}
+                onSelectPoli={(poliId) => {
+                  setSelectedPoliId(poliId);
+                  setStep('category');
+                }}
+              />
+            )}
+
             {step === 'category' && (
               <React.Suspense fallback={<BookingCategorySkeleton />}>
                 <BookingCategoryStep
@@ -220,7 +235,11 @@ export function AppointmentModal({
             )}
 
             {step === 'complaint' && (
-              <BookingComplaintStep complaint={complaint} setComplaint={setComplaint} />
+              <BookingComplaintStep
+                complaint={complaint}
+                setComplaint={setComplaint}
+                complaintSuggestions={selectedService?.complaints || []}
+              />
             )}
 
             {step === 'confirmation' && (
@@ -246,7 +265,7 @@ export function AppointmentModal({
           {step !== 'create_profile' && (
             <div className='flex items-center justify-between shrink-0 pt-2'>
               <div>
-                {step === 'category' ? (
+                {step === 'poli' ? (
                   <Button type='button' variant='ghost' size='md' shape='pill' onClick={onClose}>
                     Batal
                   </Button>
@@ -258,7 +277,8 @@ export function AppointmentModal({
                     shape='pill'
                     leadingIcon={<Icons.arrowLeft className='size-3.5' />}
                     onClick={() => {
-                      if (step === 'service') setStep('category');
+                      if (step === 'category') setStep('poli');
+                      else if (step === 'service') setStep('category');
                       else if (step === 'select_profile') setStep('service');
                       else if (step === 'date')
                         setStep(patients.length > 0 ? 'select_profile' : 'service');

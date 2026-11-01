@@ -77,6 +77,20 @@ export const clinicEssentialsApi = {
       method: 'DELETE'
     }),
 
+  linkCategoriesToUnit: (unitId: string, categoryIds: string[]): Promise<{ linked: number }> =>
+    clientFetch<{ linked: number }>(`/api/v1/admin/facilities/units/${unitId}/categories`, {
+      method: 'POST',
+      body: JSON.stringify({ categoryIds })
+    }),
+
+  unlinkCategoryFromUnit: (unitId: string, categoryId: string): Promise<{ unlinked: boolean }> =>
+    clientFetch<{ unlinked: boolean }>(
+      `/api/v1/admin/facilities/units/${unitId}/categories/${categoryId}`,
+      {
+        method: 'DELETE'
+      }
+    ),
+
   // Rooms (Ruang Periksa)
   getRooms: (unitId?: string, params?: FacilityQueryParams): Promise<FacilityRoom[]> => {
     const sp = new URLSearchParams();
@@ -134,6 +148,23 @@ export const clinicEssentialsApi = {
     clientFetch<void>(`/api/v1/admin/facilities/categories/${id}`, {
       method: 'DELETE'
     }),
+
+  linkServicesToCategory: (categoryId: string, serviceIds: string[]): Promise<{ linked: number }> =>
+    clientFetch<{ linked: number }>(`/api/v1/admin/facilities/categories/${categoryId}/services`, {
+      method: 'POST',
+      body: JSON.stringify({ serviceIds })
+    }),
+
+  unlinkServiceFromCategory: (
+    categoryId: string,
+    serviceId: string
+  ): Promise<{ unlinked: boolean }> =>
+    clientFetch<{ unlinked: boolean }>(
+      `/api/v1/admin/facilities/categories/${categoryId}/services/${serviceId}`,
+      {
+        method: 'DELETE'
+      }
+    ),
 
   // Services (Layanan Medis)
   getServices: (

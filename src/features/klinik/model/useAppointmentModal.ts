@@ -27,6 +27,7 @@ import { VISIT_TYPE, type CanonicalVisitType } from '@/constants/visit-type.cons
 import type { Appointment, AppointmentFormData } from '../api/types';
 
 export type BookingModalStep =
+  | 'poli'
   | 'category'
   | 'service'
   | 'select_profile'
@@ -50,8 +51,9 @@ export function useAppointmentModal({
   onSubmit
 }: UseAppointmentModalProps) {
   const isMobile = useIsMobile();
-  const [step, setStep] = useState<BookingModalStep>('category');
+  const [step, setStep] = useState<BookingModalStep>('poli');
   const [categories, setCategories] = useState<ServiceCategoryCatalog[]>([]);
+  const [selectedPoliId, setSelectedPoliId] = useState<string>('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
   const [isLoadingCatalog, setIsLoadingCatalog] = useState<boolean>(false);
   const [catalogError, setCatalogError] = useState<Error | null>(null);
@@ -184,7 +186,9 @@ export function useAppointmentModal({
     prevIsOpenRef.current = isOpen;
 
     if (isOpen && !wasOpen) {
-      setStep('category');
+      setStep('poli');
+      setSelectedPoliId('');
+      setSelectedCategoryId('');
       setSelectedService(null);
       setComplaint('');
       setDateStr(defaultDateStr);
@@ -235,8 +239,53 @@ export function useAppointmentModal({
     [patients, selectedPatientId]
   );
 
+  const activePoliList = useMemo(() => {
+    const poliMap = new Map<
+      string,
+      { id: string; name: string; categoriesCount: number; servicesCount: number }
+    >();
+
+    for (const cat of categories) {
+      const targetUnits: Array<{ id: string; name: string }> = [];
+      if (Array.isArray(cat.units) && cat.units.length > 0) {
+        for (const u of cat.units) {
+          if (u.id) targetUnits.push(u);
+        }
+      } else if (cat.poliklinikId) {
+        targetUnits.push({ id: cat.poliklinikId, name: cat.poliklinikName || 'Poliklinik' });
+      }
+
+      for (const unit of targetUnits) {
+        const existing = poliMap.get(unit.id);
+        if (!existing) {
+          poliMap.set(unit.id, {
+            id: unit.id,
+            name: unit.name,
+            categoriesCount: 1,
+            servicesCount: cat.services?.length || 0
+          });
+        } else {
+          existing.categoriesCount += 1;
+          existing.servicesCount += cat.services?.length || 0;
+        }
+      }
+    }
+
+    return Array.from(poliMap.values());
+  }, [categories]);
+
   const activeCategoryList = useMemo(() => {
-    return categories.map((c) => ({
+    const filtered = selectedPoliId
+      ? categories.filter(
+          (c) =>
+            Boolean(c.unitIds?.includes(selectedPoliId)) ||
+            Boolean(c.units?.some((u) => u.id === selectedPoliId)) ||
+            c.poliklinikId === selectedPoliId ||
+            !c.poliklinikId
+        )
+      : categories;
+
+    return filtered.map((c) => ({
       id: c.id,
       code: c.code,
       title: c.name,
@@ -245,26 +294,38 @@ export function useAppointmentModal({
       servicesCount: c.services?.length || 0,
       services: c.services || []
     }));
-  }, [categories]);
+  }, [categories, selectedPoliId]);
 
   const activeCategoryServices = useMemo(() => {
+    const filtered = selectedPoliId
+      ? categories.filter(
+          (c) =>
+            Boolean(c.unitIds?.includes(selectedPoliId)) ||
+            Boolean(c.units?.some((u) => u.id === selectedPoliId)) ||
+            c.poliklinikId === selectedPoliId ||
+            !c.poliklinikId
+        )
+      : categories;
+
     const foundCat =
-      categories.find((c) => c.id === selectedCategoryId || c.code === selectedCategoryId) ||
-      categories[0];
+      filtered.find((c) => c.id === selectedCategoryId || c.code === selectedCategoryId) ||
+      filtered[0];
     if (foundCat && Array.isArray(foundCat.services)) {
       return foundCat.services;
     }
     return [];
-  }, [categories, selectedCategoryId]);
+  }, [categories, selectedPoliId, selectedCategoryId]);
 
   const serviceBentoItems = useMemo<ServiceCardItem[]>(() => {
+    const isSingle = activeCategoryServices.length === 1;
     return activeCategoryServices.map((srv) => {
       return {
         id: srv.id,
         title: srv.name,
         description: srv.description || '',
         iconName: srv.iconName || 'stethoscope',
-        colSpanClass: 'col-span-12 sm:col-span-6 md:col-span-6',
+        complaints: srv.complaints || [],
+        colSpanClass: isSingle ? 'col-span-12' : 'col-span-12 sm:col-span-6 md:col-span-6',
         heightClass: 'min-h-[118px] sm:min-h-[132px]'
       };
     });
@@ -436,7 +497,7 @@ export function useAppointmentModal({
       onSubmit({
         service: uiApt.service || '',
         complaint: uiApt.complaint,
-        visitType: visitType as any,
+        visitType: visitType,
         doctor: uiApt.doctor_name || '',
         dateStr: uiApt.date,
         session: session
@@ -467,6 +528,9 @@ export function useAppointmentModal({
     step,
     setStep,
     categories,
+    selectedPoliId,
+    setSelectedPoliId,
+    activePoliList,
     selectedCategoryId,
     setSelectedCategoryId,
     isLoadingCatalog,

@@ -99,13 +99,24 @@ export function BookingCategoryStep({
           className='py-6 rounded-2xl border-dashed border-border/70 bg-muted/10'
         />
       ) : (
-        <div className='grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1'>
+        <div
+          className={
+            activeCategoryList.length === 1
+              ? 'grid grid-cols-1 gap-3.5 pt-1'
+              : 'grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1'
+          }
+        >
           {activeCategoryList.map((cat) => {
             const IconComponent = resolveLucideIcon(cat.icon || 'folder') || Folder;
+            const isSingle = activeCategoryList.length === 1;
             return (
               <Card
                 key={cat.id}
-                className='p-4 border border-border/70 hover:border-primary/60 transition cursor-pointer hover:shadow-xs rounded-2xl flex flex-col justify-between group bg-card'
+                className={
+                  isSingle
+                    ? 'p-5 border border-border/70 hover:border-primary/60 transition cursor-pointer hover:shadow-xs rounded-2xl flex flex-col justify-between group bg-card w-full'
+                    : 'p-4 border border-border/70 hover:border-primary/60 transition cursor-pointer hover:shadow-xs rounded-2xl flex flex-col justify-between group bg-card'
+                }
                 onClick={() => onSelectCategory(cat.id)}
               >
                 <CardHeader className='p-0 gap-1.5'>

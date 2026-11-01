@@ -24,6 +24,14 @@ export interface FacilityUnit {
   isActive: boolean;
   roomCount?: number;
   categoryCount?: number;
+  categoryIds?: string[];
+  categories?: Array<{
+    id: string;
+    name: string;
+    code: string;
+    iconName?: string;
+    isPrimary?: boolean;
+  }>;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -46,6 +54,8 @@ export interface ServiceCategory {
   id: string;
   unitId?: string | null;
   unitName?: string | null;
+  unitIds?: string[];
+  units?: Array<{ id: string; name: string }>;
   name: string;
   code: string;
   codePrefix?: string | null;
@@ -54,6 +64,7 @@ export interface ServiceCategory {
   displayOrder: number;
   isActive: boolean;
   unit?: FacilityUnit;
+  serviceCount?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -72,6 +83,8 @@ export interface ClinicalIntakeForm {
 export interface ClinicService {
   id: string;
   serviceCategoryId: string;
+  categoryIds?: string[];
+  categories?: ServiceCategory[];
   categoryName?: string | null;
   unitId?: string | null;
   unitName?: string | null;
@@ -125,6 +138,7 @@ export interface CreateRoomPayload {
 
 export interface CreateCategoryPayload {
   unitId?: string;
+  unitIds?: string[];
   name: string;
   code?: string;
   codePrefix?: string;
@@ -136,6 +150,7 @@ export interface CreateCategoryPayload {
 
 export interface CreateServicePayload {
   serviceCategoryId: string;
+  categoryIds?: string[];
   intakeFormId?: string | null;
   name: string;
   code?: string;

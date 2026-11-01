@@ -14,30 +14,58 @@ import type { ClinicalIntakeForm, ServiceCategory } from '../../types/clinic-ess
 
 export interface ServiceCategoryStepProps {
   categoryId: string;
+  categoryIds?: string[];
   intakeFormId: string;
   categories: ServiceCategory[];
   forms: ClinicalIntakeForm[];
   onCategoryIdChange: (val: string) => void;
+  onCategoryIdsChange?: (val: string[]) => void;
   onIntakeFormIdChange: (val: string) => void;
   disabled?: boolean;
 }
 
 export function ServiceCategoryStep({
   categoryId,
+  categoryIds = [],
   intakeFormId,
   categories,
   forms,
   onCategoryIdChange,
+  onCategoryIdsChange,
   onIntakeFormIdChange,
   disabled
 }: ServiceCategoryStepProps) {
+  const currentCategoryIds = React.useMemo(() => {
+    if (categoryIds.length > 0) return categoryIds;
+    return categoryId ? [categoryId] : [];
+  }, [categoryIds, categoryId]);
+
+  const handleToggleCategory = (catId: string) => {
+    const isIncluded = currentCategoryIds.includes(catId);
+    const next = isIncluded
+      ? currentCategoryIds.filter((id) => id !== catId)
+      : [...currentCategoryIds, catId];
+
+    onCategoryIdsChange?.(next);
+    if (!next.includes(categoryId)) {
+      onCategoryIdChange(next[0] || '');
+    }
+  };
+
   const categoryOptions = React.useMemo<AccordionSelectionOption[]>(() => {
-    return categories.map((c) => ({
-      id: c.id,
-      name: c.name,
-      subtitle: c.description || undefined,
-      iconName: c.iconName || 'folder'
-    }));
+    return categories.map((c) => {
+      const unitLabel =
+        c.unitName || c.unit?.name
+          ? `Poli: ${c.unitName || c.unit?.name}`
+          : 'Umum (Semua Poliklinik)';
+      const subtitle = c.description ? `${unitLabel} • ${c.description}` : unitLabel;
+      return {
+        id: c.id,
+        name: c.name,
+        subtitle,
+        iconName: c.iconName || 'folder'
+      };
+    });
   }, [categories]);
 
   const formOptions = React.useMemo<AccordionSelectionOption[]>(() => {
@@ -69,19 +97,22 @@ export function ServiceCategoryStep({
           Di kelompok layanan mana service ini berada?
         </h3>
         <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
-          Pilih kelompok layanan dan tentukan apakah pasien perlu mengisi formulir pengkajian khusus
-          sebelum service diberikan.
+          Pilih satu atau lebih kelompok layanan. Layanan pada kelompok berstatus Umum otomatis
+          dapat digunakan di semua poliklinik.
         </p>
       </div>
 
       <div className='space-y-4 pt-1'>
         <AccordionSelectionField
-          label='Kelompok Layanan Medis'
+          label='Kelompok Layanan Medis (Bisa Lebih Dari 1)'
           placeholder='Pilih kelompok layanan...'
-          actionText='Ganti Kelompok'
+          actionText='Pilih / Ganti Kelompok'
+          multiSelect={true}
+          selectedIds={currentCategoryIds}
           selectedId={categoryId}
           options={categoryOptions}
           onSelect={onCategoryIdChange}
+          onToggleSelect={handleToggleCategory}
           disabled={disabled || categories.length === 0}
           emptyMessage='Belum ada kelompok layanan. Silakan buat kelompok layanan terlebih dahulu.'
           required

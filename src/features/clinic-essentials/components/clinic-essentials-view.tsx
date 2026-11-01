@@ -10,6 +10,7 @@ import {
   DoorOpen,
   Folder,
   Layers,
+  Lock,
   Plus,
   Power,
   RefreshCw,
@@ -61,6 +62,8 @@ import {
 import { clinicEssentialsApi } from '../api/clinic-essentials.api';
 import { clinicEssentialsKeys } from '../api/query-keys';
 import { ClinicEssentialFormModal } from './clinic-essential-form-modal';
+import { CategoryServicesDialog } from './dialogs/category-services-dialog';
+import { UnitCategoriesDialog } from './dialogs/unit-categories-dialog';
 import type { ClinicEssentialEntityType } from '../model/useClinicEssentialFormModal';
 import {
   FacilityUnitTypeCard,
@@ -96,6 +99,10 @@ export function ClinicEssentialsView() {
     type: ClinicEssentialEntityType;
     editItem?: ClinicEssentialEditItem | null;
   } | null>(null);
+
+  // Selected IDs for detail modals
+  const [viewingUnitId, setViewingUnitId] = React.useState<string | null>(null);
+  const [viewingCategoryId, setViewingCategoryId] = React.useState<string | null>(null);
 
   // Single item deletion confirmation state
   const [deletingItem, setDeletingItem] = React.useState<DeletingState | null>(null);
@@ -159,6 +166,16 @@ export function ClinicEssentialsView() {
     queryKey: clinicEssentialsKeys.forms(),
     queryFn: () => clinicEssentialsApi.getForms()
   });
+
+  const viewingUnit = React.useMemo(() => {
+    if (!viewingUnitId) return null;
+    return units.find((u) => u.id === viewingUnitId) ?? null;
+  }, [units, viewingUnitId]);
+
+  const viewingCategory = React.useMemo(() => {
+    if (!viewingCategoryId) return null;
+    return categories.find((c) => c.id === viewingCategoryId) ?? null;
+  }, [categories, viewingCategoryId]);
 
   const isAnyRefetching =
     isRefetchingUnitTypes ||
@@ -463,10 +480,10 @@ export function ClinicEssentialsView() {
       items.push({
         id: `unit-type-${ut.id}`,
         title: ut.name,
-        subtitle: `Tipe Unit • ${ut.code}`,
+        subtitle: 'Klasifikasi Tipe Unit',
         category: 'Tipe Unit',
         icon: Layers,
-        queryValue: `${ut.name} ${ut.code}`,
+        queryValue: ut.name,
         onSelect: () => {
           setActiveTab('unit-types');
           setSearchQuery(ut.name);
@@ -478,10 +495,10 @@ export function ClinicEssentialsView() {
       items.push({
         id: `unit-${u.id}`,
         title: u.name,
-        subtitle: `Unit • ${u.code}${u.location ? ` • ${u.location}` : ''}`,
+        subtitle: u.location ? `Unit Poliklinik • ${u.location}` : 'Unit Poliklinik',
         category: 'Unit Poliklinik',
         icon: Building2,
-        queryValue: `${u.name} ${u.code}`,
+        queryValue: u.name,
         onSelect: () => {
           setActiveTab('units');
           setSearchQuery(u.name);
@@ -495,10 +512,10 @@ export function ClinicEssentialsView() {
       items.push({
         id: `room-${r.id}`,
         title: r.name,
-        subtitle: `Ruangan • ${r.code}${parentName ? ` • ${parentName}` : ''}`,
+        subtitle: parentName ? `Ruang Periksa • ${parentName}` : 'Ruang Periksa',
         category: 'Ruang Periksa',
         icon: DoorOpen,
-        queryValue: `${r.name} ${r.code}`,
+        queryValue: r.name,
         onSelect: () => {
           setActiveTab('rooms');
           setSearchQuery(r.name);
@@ -512,10 +529,10 @@ export function ClinicEssentialsView() {
       items.push({
         id: `cat-${c.id}`,
         title: c.name,
-        subtitle: `Kategori • ${c.code}${parentName ? ` • ${parentName}` : ''}`,
+        subtitle: parentName ? `Kelompok Layanan • ${parentName}` : 'Kelompok Layanan',
         category: 'Kategori Layanan',
         icon: Folder,
-        queryValue: `${c.name} ${c.code}`,
+        queryValue: c.name,
         onSelect: () => {
           setActiveTab('categories');
           setSearchQuery(c.name);
@@ -529,10 +546,10 @@ export function ClinicEssentialsView() {
       items.push({
         id: `svc-${s.id}`,
         title: s.name,
-        subtitle: `Layanan • ${s.code}${parentName ? ` • ${parentName}` : ''}`,
+        subtitle: parentName ? `Layanan Medis • ${parentName}` : 'Layanan Medis',
         category: 'Layanan Medis',
         icon: Stethoscope,
-        queryValue: `${s.name} ${s.code} ${s.shortName || ''}`,
+        queryValue: `${s.name} ${s.shortName || ''}`,
         onSelect: () => {
           setActiveTab('services');
           setSearchQuery(s.name);
@@ -544,10 +561,10 @@ export function ClinicEssentialsView() {
       items.push({
         id: `form-${f.id}`,
         title: f.name,
-        subtitle: `Formulir Intake • ${f.code}`,
+        subtitle: 'Formulir Intake',
         category: 'Formulir Intake',
         icon: ClipboardList,
-        queryValue: `${f.name} ${f.code}`,
+        queryValue: f.name,
         onSelect: () => {
           setActiveTab('forms');
           setSearchQuery(f.name);
@@ -610,6 +627,25 @@ export function ClinicEssentialsView() {
     filteredForms.length
   ]);
 
+  // Hierarchical Lock Logic
+  const isUnitsLocked = unitTypes.length === 0;
+  const isRoomsLocked = units.length === 0;
+  const isCategoriesLocked = units.length === 0;
+  const isServicesLocked = categories.length === 0;
+
+  // Auto-redirect if active tab is locked
+  React.useEffect(() => {
+    if (activeTab === 'units' && isUnitsLocked) {
+      setActiveTab('unit-types');
+    } else if (activeTab === 'rooms' && isRoomsLocked) {
+      setActiveTab('unit-types');
+    } else if (activeTab === 'categories' && isCategoriesLocked) {
+      setActiveTab('unit-types');
+    } else if (activeTab === 'services' && isServicesLocked) {
+      setActiveTab(isCategoriesLocked ? 'unit-types' : 'categories');
+    }
+  }, [activeTab, isUnitsLocked, isRoomsLocked, isCategoriesLocked, isServicesLocked]);
+
   const trayItems = React.useMemo<SideTrayItem<FacilityResource>[]>(
     () => [
       {
@@ -622,30 +658,58 @@ export function ClinicEssentialsView() {
       {
         key: 'units',
         label: 'Poliklinik & Departemen',
-        icon: renderEssentialIcon(getEssentialFirstIcon('units', { units })),
+        icon: isUnitsLocked ? (
+          <Lock className='size-4 text-muted-foreground' />
+        ) : (
+          renderEssentialIcon(getEssentialFirstIcon('units', { units }))
+        ),
         count: filteredUnits.length,
-        description: 'Instalasi & unit pelayanan medis'
+        description: isUnitsLocked
+          ? 'Terkunci: Tambah klasifikasi terlebih dahulu'
+          : 'Instalasi & unit pelayanan medis',
+        disabled: isUnitsLocked
       },
       {
         key: 'rooms',
         label: 'Ruang Periksa',
-        icon: renderEssentialIcon(getEssentialFirstIcon('rooms', { rooms, units })),
+        icon: isRoomsLocked ? (
+          <Lock className='size-4 text-muted-foreground' />
+        ) : (
+          renderEssentialIcon(getEssentialFirstIcon('rooms', { rooms, units }))
+        ),
         count: filteredRooms.length,
-        description: 'Kamar konsultasi & pemeriksaan fisik'
+        description: isRoomsLocked
+          ? 'Terkunci: Tambah poliklinik terlebih dahulu'
+          : 'Kamar konsultasi & pemeriksaan fisik',
+        disabled: isRoomsLocked
       },
       {
         key: 'categories',
         label: 'Kelompok Layanan',
-        icon: renderEssentialIcon(getEssentialFirstIcon('categories', { categories })),
+        icon: isCategoriesLocked ? (
+          <Lock className='size-4 text-muted-foreground' />
+        ) : (
+          renderEssentialIcon(getEssentialFirstIcon('categories', { categories }))
+        ),
         count: filteredCategories.length,
-        description: 'Rumpun klasifikasi tarif & paket'
+        description: isCategoriesLocked
+          ? 'Terkunci: Tambah poliklinik terlebih dahulu'
+          : 'Rumpun klasifikasi tarif & paket',
+        disabled: isCategoriesLocked
       },
       {
         key: 'services',
         label: 'Service Medis',
-        icon: renderEssentialIcon(getEssentialFirstIcon('services', { services })),
+        icon: isServicesLocked ? (
+          <Lock className='size-4 text-muted-foreground' />
+        ) : (
+          renderEssentialIcon(getEssentialFirstIcon('services', { services }))
+        ),
         count: filteredServices.length,
-        description: 'Daftar prosedur & layanan medis'
+        description: isServicesLocked
+          ? 'Terkunci: Tambah kelompok layanan terlebih dahulu'
+          : 'Daftar prosedur & layanan medis',
+        disabled: isServicesLocked
       },
       {
         key: 'forms',
@@ -662,6 +726,10 @@ export function ClinicEssentialsView() {
       categories,
       services,
       forms,
+      isUnitsLocked,
+      isRoomsLocked,
+      isCategoriesLocked,
+      isServicesLocked,
       filteredUnitTypes.length,
       filteredUnits.length,
       filteredRooms.length,
@@ -1056,6 +1124,7 @@ export function ClinicEssentialsView() {
                       toggleActiveMutation.variables?.resource === 'units' &&
                       toggleActiveMutation.variables?.id === u.id
                     }
+                    onCardClick={(item) => setViewingUnitId(item.id)}
                     onEdit={(item) => setActiveModal({ type: 'unit', editItem: item })}
                     onDelete={(item) =>
                       setDeletingItem({ type: 'units', id: item.id, name: item.name })
@@ -1175,6 +1244,7 @@ export function ClinicEssentialsView() {
                       toggleActiveMutation.variables?.resource === 'categories' &&
                       toggleActiveMutation.variables?.id === c.id
                     }
+                    onCardClick={(item) => setViewingCategoryId(item.id)}
                     onEdit={(item) => setActiveModal({ type: 'category', editItem: item })}
                     onDelete={(item) =>
                       setDeletingItem({ type: 'categories', id: item.id, name: item.name })
@@ -1373,6 +1443,74 @@ export function ClinicEssentialsView() {
           onSuccess={() => {
             queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.all });
           }}
+        />
+      )}
+
+      {/* Unit Categories Detail Modal */}
+      {viewingUnit && (
+        <UnitCategoriesDialog
+          unit={viewingUnit}
+          open={Boolean(viewingUnit)}
+          onOpenChange={(open) => {
+            if (!open) setViewingUnitId(null);
+          }}
+          categories={categories}
+          units={units}
+          canManage={canManage}
+          onEditCategory={(item) => setActiveModal({ type: 'category', editItem: item })}
+          onDeleteCategory={(item) =>
+            setDeletingItem({ type: 'categories', id: item.id, name: item.name })
+          }
+          onToggleCategoryActive={(category, newActive) =>
+            toggleActiveMutation.mutate({
+              resource: 'categories',
+              id: category.id,
+              isActive: newActive
+            })
+          }
+          isTogglingActive={
+            toggleActiveMutation.isPending &&
+            toggleActiveMutation.variables?.resource === 'categories'
+          }
+          onViewCategoryServices={(category) => setViewingCategoryId(category.id)}
+        />
+      )}
+
+      {/* Category Services Detail Modal */}
+      {viewingCategory && (
+        <CategoryServicesDialog
+          category={viewingCategory}
+          open={Boolean(viewingCategory)}
+          onOpenChange={(open) => {
+            if (!open) setViewingCategoryId(null);
+          }}
+          services={services}
+          categories={categories}
+          forms={forms}
+          units={units}
+          canManage={canManage}
+          onAddServiceToCategory={(_cat) => {
+            setViewingCategoryId(null);
+            setActiveModal({
+              type: 'service',
+              editItem: null
+            });
+          }}
+          onEditService={(service) => {
+            setViewingCategoryId(null);
+            setActiveModal({ type: 'service', editItem: service });
+          }}
+          onDeleteService={(service) => {
+            setDeletingItem({ type: 'services', id: service.id, name: service.name });
+          }}
+          onToggleServiceActive={(service, newActive) => {
+            toggleActiveMutation.mutate({
+              resource: 'services',
+              id: service.id,
+              isActive: newActive
+            });
+          }}
+          isTogglingActive={toggleActiveMutation.isPending}
         />
       )}
 

@@ -76,41 +76,50 @@ export function CategoryIdentityStep({
 }
 
 export interface CategoryAffiliationStepProps {
-  unitId: string;
+  unitId?: string;
+  unitIds?: string[];
   codePrefix?: string;
   units: FacilityUnit[];
-  onUnitIdChange: (val: string) => void;
+  onUnitIdChange?: (val: string) => void;
+  onUnitIdsChange?: (val: string[]) => void;
   onCodePrefixChange?: (val: string) => void;
   disabled?: boolean;
 }
 
 export function CategoryAffiliationStep({
-  unitId,
+  unitId = 'none',
+  unitIds = [],
   units,
   onUnitIdChange,
+  onUnitIdsChange,
   disabled
 }: CategoryAffiliationStepProps) {
+  const selectedIds = React.useMemo(() => {
+    if (unitIds && unitIds.length > 0) return unitIds;
+    if (unitId && unitId !== 'none') return [unitId];
+    return [];
+  }, [unitIds, unitId]);
+
   const affiliationOptions = React.useMemo<AccordionSelectionOption[]>(() => {
-    const list: AccordionSelectionOption[] = [
-      {
-        id: 'none',
-        name: 'Umum (Bisa Digunakan di Semua Poliklinik)',
-        subtitle: 'Layanan terbuka dan tidak dibatasi pada poliklinik tertentu',
-        iconName: 'folder'
-      }
-    ];
-
-    units.forEach((u) => {
-      list.push({
-        id: u.id,
-        name: u.name,
-        subtitle: u.location ? `Lokasi: ${u.location}` : undefined,
-        iconName: u.iconName || 'building-2'
-      });
-    });
-
-    return list;
+    return units.map((u) => ({
+      id: u.id,
+      name: u.name,
+      subtitle: u.location ? `Lokasi: ${u.location}` : undefined,
+      iconName: u.iconName || 'building-2'
+    }));
   }, [units]);
+
+  const handleToggleUnit = (id: string) => {
+    const next = selectedIds.includes(id)
+      ? selectedIds.filter((item) => item !== id)
+      : [...selectedIds, id];
+    onUnitIdsChange?.(next);
+    if (next.length > 0) {
+      onUnitIdChange?.(next[0]);
+    } else {
+      onUnitIdChange?.('none');
+    }
+  };
 
   return (
     <div className='space-y-4 font-sans'>
@@ -119,19 +128,21 @@ export function CategoryAffiliationStep({
           Kelompok layanan ini mau dipakai di poliklinik mana?
         </h3>
         <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
-          Pilih poliklinik tertentu jika layanan ini spesifik, atau buat Umum agar dapat dipilih di
-          seluruh bagian klinik.
+          Centang satu atau lebih poliklinik yang menyediakan kelompok layanan ini. Jika tidak ada
+          yang dipilih, kelompok ini berlaku umum di semua poliklinik.
         </p>
       </div>
 
       <div className='space-y-3.5 pt-1'>
         <AccordionSelectionField
           label='Poliklinik Terkait'
-          placeholder='Pilih poliklinik penempatan...'
-          actionText='Ganti Penempatan'
-          selectedId={unitId}
+          placeholder='Pilih satu atau lebih poliklinik penempatan...'
+          actionText='Pilih Poliklinik'
+          selectedId={selectedIds[0] || 'none'}
+          selectedIds={selectedIds}
+          multiSelect={true}
           options={affiliationOptions}
-          onSelect={onUnitIdChange}
+          onToggleSelect={handleToggleUnit}
           disabled={disabled}
         />
       </div>

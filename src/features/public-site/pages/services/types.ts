@@ -25,6 +25,7 @@ export type ServiceCardItem = {
   href?: string;
   colSpanClass?: string;
   heightClass?: string;
+  complaints?: string[];
 };
 
 export type ServiceCategoryContext = 'general-practitioner' | 'midwifery';

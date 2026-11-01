@@ -246,9 +246,11 @@ export function ClinicEssentialFormModal({
           return (
             <CategoryAffiliationStep
               unitId={state.categoryUnitId}
+              unitIds={state.categoryUnitIds}
               codePrefix={state.categoryCodePrefix}
               units={units}
               onUnitIdChange={actions.setCategoryUnitId}
+              onUnitIdsChange={actions.setCategoryUnitIds}
               onCodePrefixChange={actions.setCategoryCodePrefix}
               disabled={state.isSubmitting}
             />
@@ -270,10 +272,12 @@ export function ClinicEssentialFormModal({
           return (
             <ServiceCategoryStep
               categoryId={state.serviceCategoryId}
+              categoryIds={state.serviceCategoryIds}
               intakeFormId={state.serviceIntakeFormId}
               categories={categories}
               forms={forms}
               onCategoryIdChange={actions.setServiceCategoryId}
+              onCategoryIdsChange={actions.setServiceCategoryIds}
               onIntakeFormIdChange={actions.setServiceIntakeFormId}
               disabled={state.isSubmitting}
             />
@@ -442,9 +446,11 @@ export function ClinicEssentialFormModal({
             <div className='border-t border-border/40 pt-4'>
               <CategoryAffiliationStep
                 unitId={state.categoryUnitId}
+                unitIds={state.categoryUnitIds}
                 codePrefix={state.categoryCodePrefix}
                 units={units}
                 onUnitIdChange={actions.setCategoryUnitId}
+                onUnitIdsChange={actions.setCategoryUnitIds}
                 onCodePrefixChange={actions.setCategoryCodePrefix}
                 disabled={state.isSubmitting}
               />
@@ -467,10 +473,12 @@ export function ClinicEssentialFormModal({
           <div className='space-y-6'>
             <ServiceCategoryStep
               categoryId={state.serviceCategoryId}
+              categoryIds={state.serviceCategoryIds}
               intakeFormId={state.serviceIntakeFormId}
               categories={categories}
               forms={forms}
               onCategoryIdChange={actions.setServiceCategoryId}
+              onCategoryIdsChange={actions.setServiceCategoryIds}
               onIntakeFormIdChange={actions.setServiceIntakeFormId}
               disabled={state.isSubmitting}
             />

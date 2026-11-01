@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { ChevronRight, Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -164,10 +164,11 @@ export function FacilityUnitCard({
 
       {/* Footer Actions */}
       <div className='relative z-1 flex items-center justify-between border-t border-border/40 pt-2 mt-auto w-full'>
-        <div className='flex items-center gap-1.5 min-w-0'>
-          <span className='text-[11px] font-medium text-muted-foreground truncate'>
-            {unit.floor ? `Lantai ${unit.floor}` : 'Poliklinik'}
+        <div className='flex items-center gap-1 min-w-0 text-muted-foreground group-hover:text-primary transition-colors'>
+          <span className='text-[11px] font-medium truncate'>
+            Lihat Kategori ({unit.categoryCount ?? (unit.categoryIds?.length || 0)})
           </span>
+          <ChevronRight className='size-3.5 group-hover:translate-x-0.5 transition-transform' />
         </div>
 
         {canManage && (

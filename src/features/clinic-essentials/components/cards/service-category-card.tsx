@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { ChevronRight, Pencil, Trash2, Unlink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -22,6 +22,7 @@ export interface ServiceCategoryCardProps {
   onToggleActive?: (newActive: boolean) => void;
   isTogglingActive?: boolean;
   onEdit?: (category: ServiceCategory) => void;
+  onUnlink?: (category: ServiceCategory) => void;
   onDelete: (category: ServiceCategory) => void;
   onCardClick?: (category: ServiceCategory) => void;
   className?: string;
@@ -37,12 +38,28 @@ export function ServiceCategoryCard({
   onToggleActive,
   isTogglingActive = false,
   onEdit,
+  onUnlink,
   onDelete,
   onCardClick,
   className
 }: ServiceCategoryCardProps) {
   const isActive = category.isActive !== false;
-  const parentUnit = units.find((u) => u.id === category.unitId);
+  const linkedUnits = React.useMemo(() => {
+    if (category.units && category.units.length > 0) return category.units;
+    if (category.unitIds && category.unitIds.length > 0) {
+      return units.filter((u) => category.unitIds?.includes(u.id));
+    }
+    const single = units.find((u) => u.id === category.unitId);
+    return single ? [single] : [];
+  }, [category.units, category.unitIds, category.unitId, units]);
+
+  const unitLabel =
+    linkedUnits.length > 0
+      ? linkedUnits.length === 1
+        ? linkedUnits[0].name
+        : `${linkedUnits[0].name} +${linkedUnits.length - 1} Unit`
+      : 'Umum (Semua Unit)';
+
   const { wrapperRef, containerProps } = useCardBulkingSlide({ selected, isBulkingActive });
 
   const handleCardClick = React.useCallback(() => {
@@ -116,8 +133,8 @@ export function ServiceCategoryCard({
               >
                 {category.name}
               </h4>
-              <p className='text-xs text-muted-foreground pt-0.5 truncate'>
-                {parentUnit?.name || 'Kelompok Layanan'}
+              <p className='text-xs text-muted-foreground pt-0.5 truncate' title={unitLabel}>
+                {unitLabel}
               </p>
             </div>
           </div>
@@ -140,8 +157,12 @@ export function ServiceCategoryCard({
       <div className='relative z-1 w-full border-t border-border/40 pt-2 space-y-1.5 text-xs'>
         <div className='flex items-center justify-between text-muted-foreground'>
           <span>Unit Terafiliasi:</span>
-          <Badge variant='outline' className='text-[10px] font-normal truncate max-w-[140px]'>
-            {parentUnit?.name || 'Umum (Semua Unit)'}
+          <Badge
+            variant='outline'
+            className='text-[10px] font-normal truncate max-w-[150px]'
+            title={linkedUnits.map((u) => u.name).join(', ')}
+          >
+            {unitLabel}
           </Badge>
         </div>
 
@@ -157,10 +178,11 @@ export function ServiceCategoryCard({
 
       {/* Footer Actions */}
       <div className='relative z-1 flex items-center justify-between border-t border-border/40 pt-2 mt-auto w-full'>
-        <div className='flex items-center gap-1.5 min-w-0'>
-          <span className='text-[11px] font-medium text-muted-foreground truncate'>
-            Kelompok Layanan
+        <div className='flex items-center gap-1 min-w-0 text-muted-foreground group-hover:text-primary transition-colors'>
+          <span className='text-[11px] font-medium truncate'>
+            Lihat Service ({category.serviceCount ?? 0})
           </span>
+          <ChevronRight className='size-3.5 group-hover:translate-x-0.5 transition-transform' />
         </div>
 
         {canManage && (
@@ -197,6 +219,21 @@ export function ServiceCategoryCard({
                 title={`Edit ${category.name}`}
               >
                 <Pencil className='size-3.5' />
+              </Button>
+            )}
+            {onUnlink && (
+              <Button
+                type='button'
+                variant='ghost'
+                size='icon'
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUnlink(category);
+                }}
+                className='size-7 text-muted-foreground hover:text-amber-600 hover:bg-amber-500/10 rounded-md cursor-pointer'
+                title={`Lepas ${category.name} dari unit ini`}
+              >
+                <Unlink className='size-3.5' />
               </Button>
             )}
             <Button

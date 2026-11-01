@@ -17,9 +17,12 @@ export interface AccordionSelectionFieldProps {
   label: string;
   placeholder?: string;
   actionText?: string;
-  selectedId: string;
+  selectedId?: string;
+  selectedIds?: string[];
+  multiSelect?: boolean;
   options: AccordionSelectionOption[];
-  onSelect: (id: string) => void;
+  onSelect?: (id: string) => void;
+  onToggleSelect?: (id: string) => void;
   disabled?: boolean;
   emptyMessage?: string;
   maxHeight?: string;
@@ -31,9 +34,12 @@ export function AccordionSelectionField({
   label,
   placeholder = 'Pilih opsi...',
   actionText = 'Ubah',
-  selectedId,
+  selectedId = '',
+  selectedIds = [],
+  multiSelect = false,
   options,
   onSelect,
+  onToggleSelect,
   disabled = false,
   emptyMessage = 'Belum ada pilihan data yang tersedia.',
   maxHeight = 'max-h-56',
@@ -45,6 +51,7 @@ export function AccordionSelectionField({
   const isFirstRender = useRef(true);
 
   const selectedOption = options.find((opt) => opt.id === selectedId) || null;
+  const selectedOptions = options.filter((opt) => selectedIds.includes(opt.id));
 
   // Animate accordion drawer open/close with in-flow push down (identical to invite-staff-modal)
   useEffect(() => {
@@ -79,7 +86,7 @@ export function AccordionSelectionField({
 
   const handleSelect = (id: string) => {
     if (disabled) return;
-    onSelect(id);
+    onSelect?.(id);
     setIsOpen(false);
   };
 
@@ -101,7 +108,24 @@ export function AccordionSelectionField({
         )}
       >
         <div className='flex items-center gap-2.5 min-w-0 flex-1'>
-          {selectedOption ? (
+          {multiSelect ? (
+            selectedOptions.length > 0 ? (
+              <div className='flex items-center gap-1.5 flex-wrap min-w-0 flex-1 py-0.5'>
+                {selectedOptions.map((opt) => (
+                  <span
+                    key={opt.id}
+                    className='inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[11px] font-semibold border border-primary/20'
+                  >
+                    {opt.name}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <span className='text-xs sm:text-sm font-medium text-muted-foreground'>
+                {placeholder}
+              </span>
+            )
+          ) : selectedOption ? (
             <>
               {selectedOption.iconName && (
                 <div className='size-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0'>
@@ -127,7 +151,11 @@ export function AccordionSelectionField({
         </div>
 
         <span className='text-xs font-semibold text-primary ml-2 shrink-0'>
-          {isOpen ? 'Tutup' : selectedOption ? `${actionText}` : 'Pilih'}
+          {isOpen
+            ? 'Tutup'
+            : (multiSelect ? selectedOptions.length > 0 : selectedOption)
+              ? `${actionText}`
+              : 'Pilih'}
         </span>
       </button>
 
@@ -147,12 +175,21 @@ export function AccordionSelectionField({
             className={cn('overflow-y-auto p-1.5 space-y-1 divide-y divide-border/30', maxHeight)}
           >
             {options.map((option) => {
-              const isSelected = option.id === selectedId;
+              const isSelected = multiSelect
+                ? selectedIds.includes(option.id)
+                : option.id === selectedId;
               return (
                 <button
                   key={option.id}
                   type='button'
-                  onClick={() => handleSelect(option.id)}
+                  onClick={() => {
+                    if (disabled) return;
+                    if (multiSelect) {
+                      onToggleSelect?.(option.id);
+                    } else {
+                      handleSelect(option.id);
+                    }
+                  }}
                   className={cn(
                     'w-full flex items-center justify-between p-2.5 rounded-lg text-left text-xs transition-colors cursor-pointer select-none',
                     isSelected
