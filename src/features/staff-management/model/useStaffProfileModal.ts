@@ -339,7 +339,7 @@ export function useStaffProfileModal({
 
         const payload: Partial<StaffMember> = {
           fullName: formData.fullName.trim(),
-          email: formData.email.trim() || undefined,
+          // Email akun bersifat permanen bagi administrator dan hanya dapat diubah oleh pemilik akun
           phoneNumber: formData.phoneNumber.trim(),
           profession: formData.profession.trim() || undefined,
           birthPlace: formData.birthPlace.trim() || undefined,

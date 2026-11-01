@@ -5,6 +5,7 @@ export interface LinkedProvidersResponse {
   hasPassword: boolean;
   hasGoogle: boolean;
   email: string;
+  googleClientId?: string;
 }
 
 export interface ChangePasswordPayload {
@@ -15,6 +16,12 @@ export interface ChangePasswordPayload {
 export interface RequestEmailChangePayload {
   newEmail: string;
   currentPassword?: string;
+}
+
+export interface LinkGooglePayload {
+  idToken?: string;
+  code?: string;
+  redirectUri?: string;
 }
 
 export const accountSecurityApi = {
@@ -50,6 +57,13 @@ export const accountSecurityApi = {
   unlinkGoogle(): Promise<LinkedProvidersResponse> {
     return clientFetch<LinkedProvidersResponse>('/api/v1/auth/me/unlink-google', {
       method: 'POST'
+    });
+  },
+
+  linkGoogle(payload: LinkGooglePayload): Promise<LinkedProvidersResponse> {
+    return clientFetch<LinkedProvidersResponse>('/api/v1/auth/me/link-google', {
+      method: 'POST',
+      body: JSON.stringify(payload)
     });
   }
 };

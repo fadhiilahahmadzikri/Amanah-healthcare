@@ -62,7 +62,8 @@ export const authenticatedUserDtoSchema = z.object({
   staff: staffProfileDtoSchema.nullable().optional(),
   staffProfiles: z.array(z.any()).optional(),
   patient: patientProfileDtoSchema.nullable().optional(),
-  patientProfiles: z.array(z.any()).optional()
+  patientProfiles: z.array(z.any()).optional(),
+  hasGoogle: z.boolean().optional()
 });
 
 export const loginResponseDtoSchema = z.object({

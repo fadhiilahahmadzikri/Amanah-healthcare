@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
-import { StaffRoleBadge } from '@/features/staff-management';
+import { StaffRoleBadge } from '@/features/staff-management/components/staff-card-atoms';
 import { formatCurrency } from '../../utils/currency';
 import { formatPracticeHours } from '@/lib/duration-format';
 import { CellAction } from './cell-action';

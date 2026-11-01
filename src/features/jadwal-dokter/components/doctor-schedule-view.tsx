@@ -17,7 +17,7 @@ import { useDoctorSchedulePresenter } from '../model/useDoctorSchedulePresenter'
 import { useDoctorScheduleDynamicOptions } from '../model/useDoctorScheduleDynamicOptions';
 import { DoctorAssignmentModal } from './doctor-assignment-modal';
 import { DoctorExportButton } from './doctor-export-button';
-import { StaffProfileModal } from '@/features/staff-management';
+import { StaffProfileModal } from '@/features/staff-management/components/staff-profile-modal';
 import { DoctorScheduleCard } from './doctor-schedule-card';
 import { DoctorScheduleDetailSheet } from './doctor-schedule-detail-sheet';
 import { DoctorScheduleSettingsButton, DoctorScheduleSettingsModal } from './settings';

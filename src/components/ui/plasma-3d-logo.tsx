@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useRef, useMemo, useId } from 'react';
-import { useThemeConfig } from '@/components/themes/active-theme';
+import { useOptionalThemeConfig } from '@/components/themes/active-theme';
 import { cn } from '@/lib/utils';
 
 export interface Plasma3DLogoProps {
@@ -241,15 +241,8 @@ export function Plasma3DLogo({ size, width, height, className, motion }: Plasma3
   const uniqueId = useId().replace(/:/g, '-');
 
   // Safely consume active theme with fallback
-  let activeTheme = 'amanah';
-  try {
-    const themeContext = useThemeConfig();
-    if (themeContext?.activeTheme) {
-      activeTheme = themeContext.activeTheme;
-    }
-  } catch {
-    activeTheme = 'amanah';
-  }
+  const themeContext = useOptionalThemeConfig();
+  const activeTheme = themeContext?.activeTheme || 'amanah';
 
   const palette = useMemo(() => {
     return THEME_PALETTES[activeTheme] || THEME_PALETTES.default;

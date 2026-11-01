@@ -57,6 +57,10 @@ export function ActiveThemeProvider({
   );
 }
 
+export function useOptionalThemeConfig() {
+  return useContext(ThemeContext);
+}
+
 export function useThemeConfig() {
   const context = useContext(ThemeContext);
   if (context === undefined) {

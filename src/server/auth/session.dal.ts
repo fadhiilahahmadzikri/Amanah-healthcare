@@ -19,6 +19,7 @@ export interface SessionUser {
   permissions?: string[];
   accessibleRoutes?: string[];
   audience?: AudienceType;
+  hasGoogle?: boolean;
 }
 
 export type SessionResult =
@@ -27,13 +28,22 @@ export type SessionResult =
   | { status: 'rejected' };
 
 function resolveUserDisplayName(user: {
+  name?: string | null;
   staff?: { fullName: string } | null;
   patient?: { fullName: string } | null;
   email: string;
+  hasGoogle?: boolean;
 }): string {
-  if (user.staff?.fullName) return user.staff.fullName;
-  if (user.patient?.fullName) return user.patient.fullName;
-  return user.email;
+  if (user.staff?.fullName && user.staff.fullName.trim() !== '') {
+    return user.staff.fullName;
+  }
+  if (user.patient?.fullName && user.patient.fullName.trim() !== '') {
+    return user.patient.fullName;
+  }
+  if (user.hasGoogle && user.name && user.name.trim() !== '') {
+    return user.name;
+  }
+  return 'Super Admin';
 }
 
 export const getSession = cache(async (): Promise<SessionResult> => {
@@ -67,14 +77,15 @@ export const getSession = cache(async (): Promise<SessionResult> => {
       user: {
         id: rawSession.user.id,
         email: rawSession.user.email,
-        name: rawSession.user.name || null,
-        image: rawSession.user.image || null,
+        name: resolveUserDisplayName(canonicalUser) || rawSession.user.name || null,
+        image: canonicalUser.staff?.photoUrl || rawSession.user.image || null,
         role: resolvedRole,
         banned: rawSession.user.banned || false,
         emailVerified: rawSession.user.emailVerified ?? true,
         audience: resolvedAudience,
         permissions: resolvedPermissions,
-        accessibleRoutes: resolvedRoutes
+        accessibleRoutes: resolvedRoutes,
+        hasGoogle: canonicalUser.hasGoogle
       },
       role: resolvedRole,
       audience: resolvedAudience
@@ -107,7 +118,8 @@ export const getSession = cache(async (): Promise<SessionResult> => {
         emailVerified: true,
         permissions: currentUser.permissions ?? [],
         accessibleRoutes,
-        audience
+        audience,
+        hasGoogle: currentUser.hasGoogle
       },
       role,
       audience

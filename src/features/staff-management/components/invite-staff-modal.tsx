@@ -15,7 +15,13 @@ export function InviteStaffModal(props: InviteStaffModalProps) {
   const { isOpen } = props;
   const {
     step,
-    setStep,
+    isEditingFromConfirmation,
+    isConfirmationStep,
+    isCurrentStepValid,
+    handleJumpToStep,
+    handleNext,
+    handleBack,
+    handleCancelEdit,
     email,
     setEmail,
     isEmailValid,
@@ -163,7 +169,7 @@ export function InviteStaffModal(props: InviteStaffModalProps) {
                     if (e.key === 'Enter') {
                       e.preventDefault();
                       if (isEmailValid) {
-                        setStep('name');
+                        handleNext();
                       }
                     }
                   }}
@@ -202,7 +208,7 @@ export function InviteStaffModal(props: InviteStaffModalProps) {
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
-                      setStep('role');
+                      handleNext();
                     }
                   }}
                   className='h-10 rounded-xl text-xs sm:text-sm bg-background border-border shadow-xs'
@@ -342,7 +348,7 @@ export function InviteStaffModal(props: InviteStaffModalProps) {
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
-                      setStep('unit');
+                      handleNext();
                     }
                   }}
                   className='h-10 rounded-xl text-xs sm:text-sm bg-background border-border shadow-xs'
@@ -492,18 +498,18 @@ export function InviteStaffModal(props: InviteStaffModalProps) {
                   {/* Email */}
                   <button
                     type='button'
-                    onClick={() => setStep('email')}
+                    onClick={() => handleJumpToStep('email')}
                     className='w-full flex items-center justify-between p-2 rounded-lg hover:bg-muted/70 transition-colors group cursor-pointer text-left select-none'
                   >
                     <span className='text-xs text-muted-foreground group-hover:text-foreground transition-colors'>
                       Email
                     </span>
-                    <div className='flex items-center gap-1.5'>
-                      <span className='text-xs font-semibold text-foreground truncate max-w-[200px]'>
-                        {email}
-                      </span>
-                      <span className='text-[10px] text-primary opacity-0 group-hover:opacity-100 transition-opacity font-medium'>
+                    <div className='flex items-center gap-1.5 shrink-0 ml-auto pl-2'>
+                      <span className='text-[10px] text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-150 font-medium pointer-events-none shrink-0'>
                         Ubah
+                      </span>
+                      <span className='text-xs font-semibold text-foreground truncate max-w-[200px] text-right'>
+                        {email}
                       </span>
                     </div>
                   </button>
@@ -512,18 +518,18 @@ export function InviteStaffModal(props: InviteStaffModalProps) {
                   {fullName && (
                     <button
                       type='button'
-                      onClick={() => setStep('name')}
+                      onClick={() => handleJumpToStep('name')}
                       className='w-full flex items-center justify-between p-2 rounded-lg hover:bg-muted/70 transition-colors group cursor-pointer text-left select-none'
                     >
                       <span className='text-xs text-muted-foreground group-hover:text-foreground transition-colors'>
                         Nama Lengkap
                       </span>
-                      <div className='flex items-center gap-1.5'>
-                        <span className='text-xs font-semibold text-foreground truncate max-w-[200px]'>
-                          {fullName}
-                        </span>
-                        <span className='text-[10px] text-primary opacity-0 group-hover:opacity-100 transition-opacity font-medium'>
+                      <div className='flex items-center gap-1.5 shrink-0 ml-auto pl-2'>
+                        <span className='text-[10px] text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-150 font-medium pointer-events-none shrink-0'>
                           Ubah
+                        </span>
+                        <span className='text-xs font-semibold text-foreground truncate max-w-[200px] text-right'>
+                          {fullName}
                         </span>
                       </div>
                     </button>
@@ -532,18 +538,18 @@ export function InviteStaffModal(props: InviteStaffModalProps) {
                   {/* Peran Penugasan */}
                   <button
                     type='button'
-                    onClick={() => setStep('role')}
+                    onClick={() => handleJumpToStep('role')}
                     className='w-full flex items-center justify-between p-2 rounded-lg hover:bg-muted/70 transition-colors group cursor-pointer text-left select-none'
                   >
                     <span className='text-xs text-muted-foreground group-hover:text-foreground transition-colors'>
                       Peran Sistem
                     </span>
-                    <div className='flex items-center gap-1.5'>
-                      <span className='text-xs font-semibold text-foreground'>
-                        {selectedRole?.name || '-'}
-                      </span>
-                      <span className='text-[10px] text-primary opacity-0 group-hover:opacity-100 transition-opacity font-medium'>
+                    <div className='flex items-center gap-1.5 shrink-0 ml-auto pl-2'>
+                      <span className='text-[10px] text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-150 font-medium pointer-events-none shrink-0'>
                         Ubah
+                      </span>
+                      <span className='text-xs font-semibold text-foreground text-right'>
+                        {selectedRole?.name || '-'}
                       </span>
                     </div>
                   </button>
@@ -551,31 +557,42 @@ export function InviteStaffModal(props: InviteStaffModalProps) {
                   {/* Profesi / Jabatan */}
                   <button
                     type='button'
-                    onClick={() => setStep('position')}
+                    onClick={() => handleJumpToStep('position')}
                     className='w-full flex items-center justify-between p-2 rounded-lg hover:bg-muted/70 transition-colors group cursor-pointer text-left select-none'
                   >
                     <span className='text-xs text-muted-foreground group-hover:text-foreground transition-colors'>
                       Profesi / Jabatan
                     </span>
-                    <div className='flex items-center gap-1.5'>
-                      <span className='text-xs font-semibold text-foreground truncate max-w-[200px]'>
-                        {positionTitle || selectedRole?.name || '-'}
-                      </span>
-                      <span className='text-[10px] text-primary opacity-0 group-hover:opacity-100 transition-opacity font-medium'>
+                    <div className='flex items-center gap-1.5 shrink-0 ml-auto pl-2'>
+                      <span className='text-[10px] text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-150 font-medium pointer-events-none shrink-0'>
                         Ubah
+                      </span>
+                      <span className='text-xs font-semibold text-foreground truncate max-w-[200px] text-right'>
+                        {positionTitle || selectedRole?.name || '-'}
                       </span>
                     </div>
                   </button>
 
                   {/* Unit Penempatan */}
-                  <div className='w-full flex items-center justify-between p-2 text-xs'>
-                    <span className='text-muted-foreground'>Unit Penempatan</span>
-                    <span className='font-semibold text-foreground truncate max-w-[200px]'>
-                      {isClinical
-                        ? selectedPoliklinik?.name || 'Belum dipilih'
-                        : selectedClinicUnit?.name || 'Tanpa Penempatan Khusus (Umum)'}
+                  <button
+                    type='button'
+                    onClick={() => setIsUnitDropdownOpen((prev) => !prev)}
+                    className='w-full flex items-center justify-between p-2 rounded-lg hover:bg-muted/70 transition-colors group cursor-pointer text-left select-none'
+                  >
+                    <span className='text-xs text-muted-foreground group-hover:text-foreground transition-colors'>
+                      Unit Penempatan
                     </span>
-                  </div>
+                    <div className='flex items-center gap-1.5 shrink-0 ml-auto pl-2'>
+                      <span className='text-[10px] text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-150 font-medium pointer-events-none shrink-0'>
+                        Ubah
+                      </span>
+                      <span className='text-xs font-semibold text-foreground truncate max-w-[200px] text-right'>
+                        {isClinical
+                          ? selectedPoliklinik?.name || 'Belum dipilih'
+                          : selectedClinicUnit?.name || 'Tanpa Penempatan Khusus (Umum)'}
+                      </span>
+                    </div>
+                  </button>
                 </div>
               </div>
             </div>
@@ -640,52 +657,7 @@ export function InviteStaffModal(props: InviteStaffModalProps) {
         {/* Wizard Navigation Action Bar (Pill buttons) */}
         <div className='flex items-center justify-between shrink-0 pt-3 border-t border-border/40'>
           <div>
-            {step === 'email' ? (
-              <Button type='button' variant='ghost' size='md' shape='pill' onClick={handleFinish}>
-                Batal
-              </Button>
-            ) : step === 'name' ? (
-              <Button
-                type='button'
-                variant='ghost'
-                size='md'
-                shape='pill'
-                onClick={() => setStep('email')}
-              >
-                Kembali
-              </Button>
-            ) : step === 'role' ? (
-              <Button
-                type='button'
-                variant='ghost'
-                size='md'
-                shape='pill'
-                onClick={() => setStep('name')}
-              >
-                Kembali
-              </Button>
-            ) : step === 'position' ? (
-              <Button
-                type='button'
-                variant='ghost'
-                size='md'
-                shape='pill'
-                onClick={() => setStep('role')}
-              >
-                Kembali
-              </Button>
-            ) : step === 'unit' ? (
-              <Button
-                type='button'
-                variant='ghost'
-                size='md'
-                shape='pill'
-                onClick={() => setStep('position')}
-                disabled={isLoading}
-              >
-                Kembali
-              </Button>
-            ) : step === 'result' ? (
+            {step === 'result' ? (
               <Button
                 type='button'
                 variant='outline'
@@ -697,57 +669,62 @@ export function InviteStaffModal(props: InviteStaffModalProps) {
                 <Icons.copy className='size-3.5' />
                 Salin Kredensial
               </Button>
-            ) : null}
+            ) : isEditingFromConfirmation ? (
+              <Button
+                type='button'
+                variant='ghost'
+                size='md'
+                shape='pill'
+                leadingIcon={<Icons.arrowLeft className='size-3.5' />}
+                onClick={handleCancelEdit}
+              >
+                Ke ringkasan
+              </Button>
+            ) : step === 'email' ? (
+              <Button type='button' variant='ghost' size='md' shape='pill' onClick={handleFinish}>
+                Batal
+              </Button>
+            ) : (
+              <Button
+                type='button'
+                variant='ghost'
+                size='md'
+                shape='pill'
+                leadingIcon={<Icons.arrowLeft className='size-3.5' />}
+                onClick={handleBack}
+                disabled={isLoading}
+              >
+                Kembali
+              </Button>
+            )}
           </div>
 
           <div>
-            {step === 'email' ? (
+            {step === 'result' ? (
               <Button
                 type='button'
                 variant='primary'
                 size='md'
                 shape='pill'
-                disabled={!isEmailValid}
-                onClick={() => setStep('name')}
-                className='min-w-[120px]'
+                onClick={handleFinish}
+                className='min-w-[100px]'
               >
-                Lanjut
+                Selesai
               </Button>
-            ) : step === 'name' ? (
+            ) : isEditingFromConfirmation ? (
               <Button
                 type='button'
                 variant='primary'
                 size='md'
                 shape='pill'
-                onClick={() => setStep('role')}
-                className='min-w-[120px]'
+                disabled={!isCurrentStepValid}
+                onClick={handleNext}
+                className='min-w-[140px]'
               >
-                Lanjut
+                <span>Simpan & kembali</span>
+                <Icons.check className='size-3.5 ml-1' />
               </Button>
-            ) : step === 'role' ? (
-              <Button
-                type='button'
-                variant='primary'
-                size='md'
-                shape='pill'
-                disabled={!selectedRoleId}
-                onClick={() => setStep('position')}
-                className='min-w-[120px]'
-              >
-                Lanjut
-              </Button>
-            ) : step === 'position' ? (
-              <Button
-                type='button'
-                variant='primary'
-                size='md'
-                shape='pill'
-                onClick={() => setStep('unit')}
-                className='min-w-[120px]'
-              >
-                Lanjut
-              </Button>
-            ) : step === 'unit' ? (
+            ) : isConfirmationStep ? (
               <Button
                 type='button'
                 variant='primary'
@@ -760,18 +737,20 @@ export function InviteStaffModal(props: InviteStaffModalProps) {
               >
                 Kirim Undangan
               </Button>
-            ) : step === 'result' ? (
+            ) : (
               <Button
                 type='button'
                 variant='primary'
                 size='md'
                 shape='pill'
-                onClick={handleFinish}
-                className='min-w-[100px]'
+                disabled={!isCurrentStepValid}
+                onClick={handleNext}
+                className='min-w-[120px]'
               >
-                Selesai
+                <span>Lanjut</span>
+                <Icons.arrowRight className='size-3 stroke-[2.5] ml-1' />
               </Button>
-            ) : null}
+            )}
           </div>
         </div>
       </div>

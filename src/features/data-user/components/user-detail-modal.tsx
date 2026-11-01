@@ -87,26 +87,11 @@ export function UserDetailModal({
       toast.error('Nama lengkap wajib diisi');
       return;
     }
-    if (!formData.email.trim()) {
-      toast.error('Email wajib diisi');
-      return;
-    }
-
-    // UX Protection for numeric phone field
-    if (formData.phone) {
-      const digits = formData.phone.replace(/\D/g, '');
-      if (digits.length > 0 && (digits.length < 8 || digits.length > 15)) {
-        toast.error('Nomor telepon harus memiliki panjang 8 hingga 15 digit angka');
-        return;
-      }
-    }
-
     try {
       await updateUserMutation.mutateAsync({
         id: user.id,
         payload: {
           name: formData.name.trim(),
-          email: formData.email.trim(),
           phone: formData.phone.trim() || null,
           status: formData.status,
           roleIds: formData.roleIds
@@ -209,17 +194,22 @@ export function UserDetailModal({
                   autoComplete='name'
                 />
 
-                <PatientLineInput
-                  id='user_email'
-                  label='Email Akun *'
-                  type='email'
-                  placeholder='pengguna@amanah.clinic'
-                  value={formData.email}
-                  onChange={(val) => handleFieldChange('email', val)}
-                  required
-                  disabled={!isEditing}
-                  autoComplete='email'
-                />
+                <div className='space-y-1'>
+                  <PatientLineInput
+                    id='user_email'
+                    label='Email Akun (Dikelola Pemilik Akun)'
+                    type='email'
+                    placeholder='pengguna@amanah.clinic'
+                    value={formData.email}
+                    onChange={(val) => handleFieldChange('email', val)}
+                    disabled={true}
+                    autoComplete='email'
+                  />
+                  <span className='text-[10px] text-muted-foreground block px-1'>
+                    Alamat email akun hanya dapat diubah oleh pemilik akun melalui verifikasi
+                    mandiri.
+                  </span>
+                </div>
 
                 <PatientLineInput
                   id='user_phoneNumber'

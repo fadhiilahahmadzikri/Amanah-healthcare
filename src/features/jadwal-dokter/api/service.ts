@@ -12,7 +12,7 @@ import type {
   AdminSessionPatientsData,
   ScheduleReferenceOptionsData
 } from '@/server/contracts/schedules/doctor-schedules.dto';
-import type { StaffMember } from '@/features/staff-management';
+import type { StaffMember } from '@/features/staff-management/api/staff-management.api';
 
 /** Minimal shape returned by endpoints that include a human-readable message in their body. */
 export interface ApiMessageResponse {

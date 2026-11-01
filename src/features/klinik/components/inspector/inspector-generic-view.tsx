@@ -24,6 +24,26 @@ export function InspectorGenericView({
 }: InspectorTabProps) {
   const { flow, answers, automatic, child, patient } = data;
 
+  const relationship = getRelationshipLabel(patient?.relationshipType);
+
+  const isChild = React.useMemo(() => {
+    if (
+      patient?.relationshipType === 'child' ||
+      String(relationship).toLowerCase().includes('anak')
+    ) {
+      return true;
+    }
+    const bDate = patient?.birthDate || answers.birthDate;
+    if (bDate) {
+      const birthYear = new Date(bDate).getFullYear();
+      const currentYear = new Date().getFullYear();
+      if (!isNaN(birthYear) && currentYear - birthYear < 17) {
+        return true;
+      }
+    }
+    return false;
+  }, [patient, relationship, answers.birthDate]);
+
   if (flow === 'immunization' || child) {
     const childNik = child?.childNik || '-';
     const birthDate = child?.childBirthDate || '-';
@@ -111,26 +131,6 @@ export function InspectorGenericView({
     ([, val]) => val && String(val).trim().length > 0
   );
 
-  const relationship = getRelationshipLabel(patient?.relationshipType);
-
-  const isChild = React.useMemo(() => {
-    if (
-      patient?.relationshipType === 'child' ||
-      String(relationship).toLowerCase().includes('anak')
-    ) {
-      return true;
-    }
-    const bDate = patient?.birthDate || answers.birthDate;
-    if (bDate) {
-      const birthYear = new Date(bDate).getFullYear();
-      const currentYear = new Date().getFullYear();
-      if (!isNaN(birthYear) && currentYear - birthYear < 17) {
-        return true;
-      }
-    }
-    return false;
-  }, [patient, relationship, answers.birthDate]);
-
   const mrn = patient?.medicalRecordNumber || '-';
   const nik = patient?.nik || '-';
   const birthInfo = patient?.birthDate
@@ -199,7 +199,10 @@ export function InspectorGenericView({
 
             <div className='grid grid-cols-2 gap-2'>
               <div className='space-y-1.5'>
-                <Label htmlFor='reg-birthplace-input' className='text-xs font-medium text-foreground'>
+                <Label
+                  htmlFor='reg-birthplace-input'
+                  className='text-xs font-medium text-foreground'
+                >
                   Tempat Lahir
                 </Label>
                 <Input
@@ -211,7 +214,10 @@ export function InspectorGenericView({
                 />
               </div>
               <div className='space-y-1.5'>
-                <Label htmlFor='reg-birthdate-input' className='text-xs font-medium text-foreground'>
+                <Label
+                  htmlFor='reg-birthdate-input'
+                  className='text-xs font-medium text-foreground'
+                >
                   Tanggal Lahir
                 </Label>
                 <CustomDatePicker
@@ -326,8 +332,7 @@ export function InspectorGenericView({
                 <Input
                   id='reg-emg-name-input'
                   value={
-                    regularFormData.emergencyContactName ??
-                    (patient?.emergencyContactName || '')
+                    regularFormData.emergencyContactName ?? (patient?.emergencyContactName || '')
                   }
                   onChange={(e) => onRegularFieldChange('emergencyContactName', e.target.value)}
                   placeholder='Nama kontak darurat...'
@@ -335,14 +340,16 @@ export function InspectorGenericView({
                 />
               </div>
               <div className='space-y-1.5'>
-                <Label htmlFor='reg-emg-phone-input' className='text-xs font-medium text-foreground'>
+                <Label
+                  htmlFor='reg-emg-phone-input'
+                  className='text-xs font-medium text-foreground'
+                >
                   No. Telp Kontak Darurat
                 </Label>
                 <Input
                   id='reg-emg-phone-input'
                   value={
-                    regularFormData.emergencyContactPhone ??
-                    (patient?.emergencyContactPhone || '')
+                    regularFormData.emergencyContactPhone ?? (patient?.emergencyContactPhone || '')
                   }
                   onChange={(e) => onRegularFieldChange('emergencyContactPhone', e.target.value)}
                   placeholder='08xxxxxxxxxx'
@@ -358,7 +365,9 @@ export function InspectorGenericView({
                 <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
                   Nomor Rekam Medis (RM)
                 </span>
-                <span className='text-sm font-bold font-mono text-primary block truncate'>{mrn}</span>
+                <span className='text-sm font-bold font-mono text-primary block truncate'>
+                  {mrn}
+                </span>
               </div>
             )}
 
