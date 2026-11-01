@@ -79,19 +79,20 @@ export function toUserDomain(dto: AuthenticatedUserDto): User {
         ? toPatientProfileDomain(dto.patientProfiles[0])
         : null;
 
-  const audience: AudienceType =
-    dto.audience ?? (Boolean(staff) ? AUDIENCE.INTERNAL : AUDIENCE.EXTERNAL);
+  const audience: AudienceType = dto.audience ?? (staff ? AUDIENCE.INTERNAL : AUDIENCE.EXTERNAL);
 
   return {
     id: asUserId(dto.id),
     email: asEmailAddress(dto.email),
+    name: dto.name ?? null,
     roleCode: dto.roleCode ?? primaryRole?.code,
     audience,
     permissions: dto.permissions ?? [],
     accessibleRoutes: dto.accessibleRoutes ?? [],
     role: primaryRole,
     staff,
-    patient
+    patient,
+    hasGoogle: dto.hasGoogle ?? false
   };
 }
 

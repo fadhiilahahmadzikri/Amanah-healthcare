@@ -41,6 +41,7 @@ export interface UserRole {
 export interface User {
   readonly id: UserId;
   readonly email: EmailAddress;
+  readonly name?: string | null;
   readonly roleCode?: string;
   readonly audience: AudienceType;
   readonly permissions: string[];
@@ -48,6 +49,7 @@ export interface User {
   readonly role?: UserRole;
   readonly staff?: MedicalStaffProfile | null;
   readonly patient?: PatientProfile | null;
+  readonly hasGoogle?: boolean;
 }
 
 export interface AuthTokens {

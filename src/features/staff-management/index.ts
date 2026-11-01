@@ -8,6 +8,7 @@ export * from './model/useStaffManagementDynamicOptions';
 export * from './model/useStaffRosterModal';
 export * from './model/useStaffProfileModal';
 export * from './model/useStaffDetailEditModal';
+export * from './model/useInviteStaffStateCycle';
 export * from './model/useInviteStaffModal';
 export * from './model/useRevokeStaffInvitation';
 export * from './components/staff-card-atoms';

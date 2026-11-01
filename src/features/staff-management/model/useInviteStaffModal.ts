@@ -1,11 +1,18 @@
 'use client';
 
-import { useState, useCallback, useEffect, type FormEvent } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef, type FormEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useInviteStaffUniversalMutation } from '../api/mutations';
 import { invitationOptionsQueryOptions } from '../api/queries';
 import type { ClinicUnitOption, PolyclinicUnit, RoleOption } from '../api/staff-management.api';
+import {
+  useInviteStaffStateCycle,
+  type InviteWizardStep,
+  type InviteStaffFormSnapshot
+} from './useInviteStaffStateCycle';
+
+export type { InviteWizardStep } from './useInviteStaffStateCycle';
 
 export interface UseInviteStaffModalProps {
   isOpen: boolean;
@@ -13,11 +20,16 @@ export interface UseInviteStaffModalProps {
   onSuccess?: () => void;
 }
 
-export type InviteWizardStep = 'email' | 'name' | 'role' | 'position' | 'unit' | 'result';
-
 export interface UseInviteStaffModalResult {
   step: InviteWizardStep;
   setStep: (step: InviteWizardStep) => void;
+  isEditingFromConfirmation: boolean;
+  isConfirmationStep: boolean;
+  isCurrentStepValid: boolean;
+  handleJumpToStep: (targetStep: InviteWizardStep) => void;
+  handleNext: () => void;
+  handleBack: () => void;
+  handleCancelEdit: () => void;
   email: string;
   setEmail: (email: string) => void;
   isEmailValid: boolean;
@@ -56,7 +68,6 @@ export function useInviteStaffModal({
   onClose,
   onSuccess
 }: UseInviteStaffModalProps): UseInviteStaffModalResult {
-  const [step, setStep] = useState<InviteWizardStep>('email');
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
   const [selectedRoleId, setSelectedRoleId] = useState('');
@@ -72,9 +83,10 @@ export function useInviteStaffModal({
     roleName: string;
   } | null>(null);
 
+  const setStepRef = useRef<(step: InviteWizardStep) => void>(() => {});
+
   useEffect(() => {
     if (!isOpen) {
-      setStep('email');
       setEmail('');
       setFullName('');
       setSelectedRoleId('');
@@ -92,9 +104,9 @@ export function useInviteStaffModal({
     enabled: isOpen
   });
 
-  const roles = optionsData?.roles || [];
-  const polyclinics = optionsData?.polyclinics || [];
-  const clinicUnits = optionsData?.clinicUnits || [];
+  const roles = useMemo(() => optionsData?.roles || [], [optionsData?.roles]);
+  const polyclinics = useMemo(() => optionsData?.polyclinics || [], [optionsData?.polyclinics]);
+  const clinicUnits = useMemo(() => optionsData?.clinicUnits || [], [optionsData?.clinicUnits]);
 
   const effectiveRoleId = selectedRoleId || (roles.length > 0 ? roles[0].id : '');
   const selectedRole = roles.find((r) => r.id === effectiveRoleId);
@@ -136,6 +148,39 @@ export function useInviteStaffModal({
     });
   }, [credentialResult]);
 
+  const getCurrentSnapshot = useCallback((): InviteStaffFormSnapshot => {
+    return {
+      email,
+      fullName,
+      selectedRoleId: effectiveRoleId,
+      positionTitle,
+      selectedPoliklinikId,
+      selectedUnitId
+    };
+  }, [email, fullName, effectiveRoleId, positionTitle, selectedPoliklinikId, selectedUnitId]);
+
+  const onRestoreSnapshot = useCallback((snapshot: InviteStaffFormSnapshot) => {
+    setEmail(snapshot.email);
+    setFullName(snapshot.fullName);
+    setSelectedRoleId(snapshot.selectedRoleId);
+    setPositionTitle(snapshot.positionTitle);
+    setSelectedPoliklinikId(snapshot.selectedPoliklinikId);
+    setSelectedUnitId(snapshot.selectedUnitId);
+  }, []);
+
+  const handleFinish = useCallback(() => {
+    setCredentialResult(null);
+    setEmail('');
+    setFullName('');
+    setSelectedRoleId('');
+    setPositionTitle('');
+    setIsPositionManuallyEdited(false);
+    setSelectedPoliklinikId('');
+    setSelectedUnitId('');
+    setCopied(false);
+    onClose();
+  }, [onClose]);
+
   const handleSubmit = useCallback(
     async (e?: FormEvent) => {
       e?.preventDefault();
@@ -171,7 +216,7 @@ export function useInviteStaffModal({
           loginUrl: res.loginUrl,
           roleName: selectedRole?.name || 'Staf Klinik'
         });
-        setStep('result');
+        setStepRef.current('result');
         onSuccess?.();
       } catch {
         // Handled by mutation onError toast
@@ -191,23 +236,30 @@ export function useInviteStaffModal({
     ]
   );
 
-  const handleFinish = useCallback(() => {
-    setCredentialResult(null);
-    setStep('email');
-    setEmail('');
-    setFullName('');
-    setSelectedRoleId('');
-    setPositionTitle('');
-    setIsPositionManuallyEdited(false);
-    setSelectedPoliklinikId('');
-    setSelectedUnitId('');
-    setCopied(false);
-    onClose();
-  }, [onClose]);
+  const flow = useInviteStaffStateCycle({
+    isOpen,
+    onCancel: handleFinish,
+    onConfirm: handleSubmit,
+    isEmailValid,
+    selectedRoleId: effectiveRoleId,
+    isClinical,
+    selectedPoliklinikId,
+    getCurrentSnapshot,
+    onRestoreSnapshot
+  });
+
+  setStepRef.current = flow.setStep;
 
   return {
-    step,
-    setStep,
+    step: flow.step,
+    setStep: flow.setStep,
+    isEditingFromConfirmation: flow.isEditingFromConfirmation,
+    isConfirmationStep: flow.isConfirmationStep,
+    isCurrentStepValid: flow.isCurrentStepValid,
+    handleJumpToStep: flow.handleJumpToStep,
+    handleNext: flow.handleNext,
+    handleBack: flow.handleBack,
+    handleCancelEdit: flow.handleCancelEdit,
     email,
     setEmail,
     isEmailValid,
