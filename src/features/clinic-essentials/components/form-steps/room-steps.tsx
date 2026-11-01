@@ -9,12 +9,14 @@ import {
   AccordionSelectionField,
   type AccordionSelectionOption
 } from '../atoms/accordion-selection-field';
+import { cn } from '@/lib/utils';
 import type { FacilityUnit } from '../../types/clinic-essentials.types';
 
 export interface RoomParentUnitStepProps {
   unitId: string;
   units: FacilityUnit[];
   onUnitIdChange: (val: string) => void;
+  error?: string;
   disabled?: boolean;
 }
 
@@ -22,6 +24,7 @@ export function RoomParentUnitStep({
   unitId,
   units,
   onUnitIdChange,
+  error,
   disabled
 }: RoomParentUnitStepProps) {
   const unitOptions = React.useMemo<AccordionSelectionOption[]>(() => {
@@ -61,6 +64,12 @@ export function RoomParentUnitStep({
           required
         />
 
+        {error && (
+          <p className='text-[11px] font-medium text-destructive mt-1 animate-in fade-in duration-200'>
+            {error}
+          </p>
+        )}
+
         {units.length === 0 && (
           <p className='text-xs text-destructive flex items-center gap-1.5 pt-1'>
             <Building2 className='size-3.5' />
@@ -77,10 +86,11 @@ export interface RoomIdentityStepProps {
   code?: string;
   onNameChange: (val: string) => void;
   onCodeChange?: (val: string) => void;
+  error?: string;
   disabled?: boolean;
 }
 
-export function RoomIdentityStep({ name, onNameChange, disabled }: RoomIdentityStepProps) {
+export function RoomIdentityStep({ name, onNameChange, error, disabled }: RoomIdentityStepProps) {
   return (
     <div className='space-y-4 font-sans'>
       <div>
@@ -103,9 +113,17 @@ export function RoomIdentityStep({ name, onNameChange, disabled }: RoomIdentityS
             value={name}
             onChange={(e) => onNameChange(e.target.value)}
             disabled={disabled}
-            className='h-10 text-sm'
+            className={cn(
+              'h-10 text-sm transition-colors',
+              error && 'border-destructive focus-visible:ring-destructive'
+            )}
             required
           />
+          {error && (
+            <p className='text-[11px] font-medium text-destructive mt-1 animate-in fade-in duration-200'>
+              {error}
+            </p>
+          )}
         </div>
       </div>
     </div>

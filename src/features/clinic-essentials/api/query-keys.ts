@@ -6,5 +6,6 @@ export const clinicEssentialsKeys = {
   categories: (unitId?: string) => [...clinicEssentialsKeys.all, 'categories', unitId] as const,
   services: (categoryId?: string, unitId?: string) =>
     [...clinicEssentialsKeys.all, 'services', categoryId, unitId] as const,
-  forms: () => [...clinicEssentialsKeys.all, 'forms'] as const
+  forms: () => [...clinicEssentialsKeys.all, 'forms'] as const,
+  relationships: () => [...clinicEssentialsKeys.all, 'relationships'] as const
 };

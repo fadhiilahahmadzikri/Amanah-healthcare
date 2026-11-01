@@ -6,6 +6,7 @@ import type {
   ClinicalIntakeForm,
   CreateCategoryPayload,
   CreateIntakeFormPayload,
+  CreateRelationshipPayload,
   CreateRoomPayload,
   CreateServicePayload,
   CreateUnitPayload,
@@ -13,9 +14,11 @@ import type {
   FacilityRoom,
   FacilityUnit,
   FacilityUnitType,
+  PatientRelationshipTypeItem,
   ServiceCategory,
   UpdateCategoryPayload,
   UpdateIntakeFormPayload,
+  UpdateRelationshipPayload,
   UpdateRoomPayload,
   UpdateServicePayload,
   UpdateUnitPayload,
@@ -227,6 +230,45 @@ export const clinicEssentialsApi = {
     clientFetch<void>(`/api/v1/admin/facilities/forms/${id}`, {
       method: 'DELETE'
     }),
+
+  // Patient Relationship Types (Relasi Pasien)
+  getRelationships: (params?: FacilityQueryParams): Promise<PatientRelationshipTypeItem[]> => {
+    const sp = new URLSearchParams();
+    if (params?.search) sp.append('search', params.search);
+    if (params?.status) sp.append('status', params.status);
+    const qs = sp.toString();
+    return clientFetch<PatientRelationshipTypeItem[]>(
+      qs ? `/api/v1/admin/facilities/relationships?${qs}` : '/api/v1/admin/facilities/relationships'
+    );
+  },
+
+  createRelationship: (payload: CreateRelationshipPayload): Promise<PatientRelationshipTypeItem> =>
+    clientFetch<PatientRelationshipTypeItem>('/api/v1/admin/facilities/relationships', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+
+  updateRelationship: (
+    id: string,
+    payload: UpdateRelationshipPayload
+  ): Promise<PatientRelationshipTypeItem> =>
+    clientFetch<PatientRelationshipTypeItem>(`/api/v1/admin/facilities/relationships/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    }),
+
+  deleteRelationship: (id: string): Promise<void> =>
+    clientFetch<void>(`/api/v1/admin/facilities/relationships/${id}`, {
+      method: 'DELETE'
+    }),
+
+  setDefaultRelationship: (id: string): Promise<PatientRelationshipTypeItem> =>
+    clientFetch<PatientRelationshipTypeItem>(
+      `/api/v1/admin/facilities/relationships/${id}/default`,
+      {
+        method: 'PATCH'
+      }
+    ),
 
   // Bulk Actions
   bulkAction: (payload: BulkFacilityActionPayload): Promise<BulkFacilityActionResult> =>

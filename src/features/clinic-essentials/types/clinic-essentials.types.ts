@@ -80,6 +80,20 @@ export interface ClinicalIntakeForm {
   updatedAt?: string;
 }
 
+export interface PatientRelationshipTypeItem {
+  id: string;
+  code: string;
+  name: string;
+  description?: string | null;
+  iconName?: string | null;
+  displayOrder: number;
+  isActive: boolean;
+  isSystem?: boolean;
+  usageCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface ClinicService {
   id: string;
   serviceCategoryId: string;
@@ -172,12 +186,23 @@ export interface CreateIntakeFormPayload {
   isActive?: boolean;
 }
 
+export interface CreateRelationshipPayload {
+  name: string;
+  code?: string;
+  description?: string;
+  iconName?: string;
+  displayOrder?: number;
+  isActive?: boolean;
+  isSystem?: boolean;
+}
+
 export type UpdateUnitTypePayload = Partial<CreateUnitTypePayload>;
 export type UpdateUnitPayload = Partial<CreateUnitPayload>;
 export type UpdateRoomPayload = Partial<CreateRoomPayload>;
 export type UpdateCategoryPayload = Partial<CreateCategoryPayload>;
 export type UpdateServicePayload = Partial<CreateServicePayload>;
 export type UpdateIntakeFormPayload = Partial<CreateIntakeFormPayload>;
+export type UpdateRelationshipPayload = Partial<CreateRelationshipPayload>;
 
 export type FacilityResource =
   | 'unit-types'
@@ -185,7 +210,8 @@ export type FacilityResource =
   | 'rooms'
   | 'categories'
   | 'services'
-  | 'forms';
+  | 'forms'
+  | 'relationships';
 
 export type FacilityBulkAction = 'activate' | 'deactivate' | 'delete';
 

@@ -5,6 +5,16 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { clinicEssentialsApi } from '../api/clinic-essentials.api';
 import { clinicEssentialsKeys } from '../api/query-keys';
+import {
+  createUnitTypeSchema,
+  createUnitSchema,
+  createRoomSchema,
+  createCategorySchema,
+  createServiceSchema,
+  createFormSchema,
+  createRelationshipSchema
+} from '../schemas/clinic-essentials.schema';
+import type { z } from 'zod';
 import type {
   ClinicService,
   ClinicalIntakeForm,
@@ -17,7 +27,10 @@ import type {
   FacilityRoom,
   FacilityUnit,
   FacilityUnitType,
+  PatientRelationshipTypeItem,
   ServiceCategory,
+  CreateRelationshipPayload,
+  UpdateRelationshipPayload,
   UpdateCategoryPayload,
   UpdateIntakeFormPayload,
   UpdateRoomPayload,
@@ -32,7 +45,8 @@ export type ClinicEssentialEntityType =
   | 'room'
   | 'category'
   | 'service'
-  | 'form';
+  | 'form'
+  | 'relationship';
 
 export type ClinicEssentialEditItem =
   | FacilityUnitType
@@ -40,7 +54,8 @@ export type ClinicEssentialEditItem =
   | FacilityRoom
   | ServiceCategory
   | ClinicService
-  | ClinicalIntakeForm;
+  | ClinicalIntakeForm
+  | PatientRelationshipTypeItem;
 
 export interface UseClinicEssentialFormModalProps {
   type: ClinicEssentialEntityType;
@@ -69,7 +84,7 @@ export function useClinicEssentialFormModal({
   const [currentStage, setCurrentStage] = React.useState(1);
   const [direction, setDirection] = React.useState<'forward' | 'backward'>('forward');
 
-  const maxStages = type === 'unit-type' || type === 'form' ? 2 : 3;
+  const maxStages = type === 'unit-type' || type === 'form' || type === 'relationship' ? 2 : 3;
 
   // 0. Unit Type Form State
   const [unitTypeName, setUnitTypeName] = React.useState('');
@@ -123,6 +138,148 @@ export function useClinicEssentialFormModal({
   const [formIconName, setFormIconName] = React.useState('');
   const [formDescription, setFormDescription] = React.useState('');
   const [formIsActive, setFormIsActive] = React.useState(true);
+
+  // 6. Relationship Form State
+  const [relationshipName, setRelationshipName] = React.useState('');
+  const [relationshipIconName, setRelationshipIconName] = React.useState('');
+  const [relationshipDescription, setRelationshipDescription] = React.useState('');
+  const [relationshipDisplayOrder, setRelationshipDisplayOrder] = React.useState(0);
+  const [relationshipIsActive, setRelationshipIsActive] = React.useState(true);
+  const [relationshipIsSystem, setRelationshipIsSystem] = React.useState(false);
+
+  // Field validation errors state (On-Demand Zod Validation)
+  const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
+
+  const validateField = React.useCallback(
+    (fieldName: string, value: unknown) => {
+      let schema: z.ZodTypeAny | undefined;
+      switch (type) {
+        case 'unit-type':
+          if (fieldName === 'name') schema = createUnitTypeSchema.shape.name;
+          break;
+        case 'unit':
+          if (fieldName === 'name') schema = createUnitSchema.shape.name;
+          if (fieldName === 'queuePrefix') schema = createUnitSchema.shape.queuePrefix;
+          break;
+        case 'room':
+          if (fieldName === 'name') schema = createRoomSchema.shape.name;
+          break;
+        case 'category':
+          if (fieldName === 'name') schema = createCategorySchema.shape.name;
+          if (fieldName === 'codePrefix') schema = createCategorySchema.shape.codePrefix;
+          break;
+        case 'service':
+          if (fieldName === 'name') schema = createServiceSchema.shape.name;
+          if (fieldName === 'codePrefix') schema = createServiceSchema.shape.codePrefix;
+          break;
+        case 'form':
+          if (fieldName === 'name') schema = createFormSchema.shape.name;
+          break;
+        case 'relationship':
+          if (fieldName === 'name') schema = createRelationshipSchema.shape.name;
+          break;
+      }
+
+      if (schema) {
+        const res = schema.safeParse(value);
+        if (!res.success) {
+          const msg = res.error.issues[0]?.message || 'Input tidak valid';
+          setFieldErrors((prev) => ({ ...prev, [fieldName]: msg }));
+          return false;
+        } else {
+          setFieldErrors((prev) => {
+            if (!prev[fieldName]) return prev;
+            const next = { ...prev };
+            delete next[fieldName];
+            return next;
+          });
+          return true;
+        }
+      }
+      return true;
+    },
+    [type]
+  );
+
+  const validateCurrentStage = React.useCallback((): boolean => {
+    const newErrors: Record<string, string> = {};
+    switch (type) {
+      case 'unit-type': {
+        if (currentStage === 1) {
+          const res = createUnitTypeSchema.shape.name.safeParse(unitTypeName);
+          if (!res.success) newErrors.name = res.error.issues[0]?.message || 'Nama tidak valid';
+        }
+        break;
+      }
+      case 'unit': {
+        if (currentStage === 1) {
+          const res = createUnitSchema.shape.name.safeParse(unitName);
+          if (!res.success) newErrors.name = res.error.issues[0]?.message || 'Nama tidak valid';
+        } else if (currentStage === 2) {
+          if (!unitTypeId) newErrors.unitTypeId = 'Silakan pilih klasifikasi unit';
+        }
+        break;
+      }
+      case 'room': {
+        if (currentStage === 1) {
+          if (!roomUnitId) newErrors.unitId = 'Silakan pilih poliklinik induk';
+        } else if (currentStage === 2) {
+          const res = createRoomSchema.shape.name.safeParse(roomName);
+          if (!res.success) newErrors.name = res.error.issues[0]?.message || 'Nama tidak valid';
+        }
+        break;
+      }
+      case 'category': {
+        if (currentStage === 1) {
+          const res = createCategorySchema.shape.name.safeParse(categoryName);
+          if (!res.success) newErrors.name = res.error.issues[0]?.message || 'Nama tidak valid';
+        }
+        break;
+      }
+      case 'service': {
+        if (currentStage === 1) {
+          if (!serviceCategoryId && serviceCategoryIds.length === 0) {
+            newErrors.serviceCategoryId = 'Silakan pilih kelompok layanan';
+          }
+        } else if (currentStage === 2) {
+          const res = createServiceSchema.shape.name.safeParse(serviceName);
+          if (!res.success) newErrors.name = res.error.issues[0]?.message || 'Nama tidak valid';
+        }
+        break;
+      }
+      case 'form': {
+        if (currentStage === 1) {
+          const res = createFormSchema.shape.name.safeParse(formName);
+          if (!res.success) newErrors.name = res.error.issues[0]?.message || 'Nama tidak valid';
+        }
+        break;
+      }
+      case 'relationship': {
+        if (currentStage === 1) {
+          const res = createRelationshipSchema.shape.name.safeParse(relationshipName);
+          if (!res.success) newErrors.name = res.error.issues[0]?.message || 'Nama tidak valid';
+        }
+        break;
+      }
+    }
+
+    setFieldErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }, [
+    type,
+    currentStage,
+    unitTypeName,
+    unitName,
+    unitTypeId,
+    roomUnitId,
+    roomName,
+    categoryName,
+    serviceCategoryId,
+    serviceCategoryIds,
+    serviceName,
+    formName,
+    relationshipName
+  ]);
 
   // Pre-populate or Reset form state based on editItem
   React.useEffect(() => {
@@ -204,6 +361,16 @@ export function useClinicEssentialFormModal({
           setFormIsActive(f.isActive !== false);
           break;
         }
+        case 'relationship': {
+          const rel = editItem as PatientRelationshipTypeItem;
+          setRelationshipName(rel.name);
+          setRelationshipIconName(rel.iconName || '');
+          setRelationshipDescription(rel.description || '');
+          setRelationshipDisplayOrder(rel.displayOrder ?? 0);
+          setRelationshipIsActive(rel.isActive !== false);
+          setRelationshipIsSystem(rel.isSystem === true);
+          break;
+        }
       }
     } else {
       // Default creation state (empty icon string activates dynamic attention emoji loop)
@@ -254,6 +421,13 @@ export function useClinicEssentialFormModal({
       setFormIconName('');
       setFormDescription('');
       setFormIsActive(true);
+
+      setRelationshipName('');
+      setRelationshipIconName('');
+      setRelationshipDescription('');
+      setRelationshipDisplayOrder(0);
+      setRelationshipIsActive(true);
+      setRelationshipIsSystem(false);
     }
   }, [type, editItem, unitTypes, units, categories]);
 
@@ -281,6 +455,9 @@ export function useClinicEssentialFormModal({
       case 'form':
         if (currentStage === 1) return Boolean(formName.trim());
         return true;
+      case 'relationship':
+        if (currentStage === 1) return Boolean(relationshipName.trim());
+        return true;
       default:
         return false;
     }
@@ -296,7 +473,8 @@ export function useClinicEssentialFormModal({
     serviceCategoryId,
     serviceCategoryIds,
     serviceName,
-    formName
+    formName,
+    relationshipName
   ]);
 
   const isAllStagesValid = React.useMemo(() => {
@@ -315,6 +493,8 @@ export function useClinicEssentialFormModal({
         );
       case 'form':
         return Boolean(formName.trim());
+      case 'relationship':
+        return Boolean(relationshipName.trim());
       default:
         return false;
     }
@@ -329,7 +509,8 @@ export function useClinicEssentialFormModal({
     serviceCategoryId,
     serviceCategoryIds,
     serviceName,
-    formName
+    formName,
+    relationshipName
   ]);
 
   // Unified Save Mutation (Handles both Create and Update)
@@ -424,6 +605,17 @@ export function useClinicEssentialFormModal({
             };
             return await clinicEssentialsApi.updateForm(editItem.id, payload);
           }
+          case 'relationship': {
+            const payload: UpdateRelationshipPayload = {
+              name: relationshipName.trim(),
+              iconName: relationshipIconName || 'user',
+              description: relationshipDescription.trim() || undefined,
+              displayOrder: relationshipDisplayOrder,
+              isActive: relationshipIsActive,
+              isSystem: relationshipIsSystem
+            };
+            return await clinicEssentialsApi.updateRelationship(editItem.id, payload);
+          }
         }
       } else {
         // CREATE PATH
@@ -514,6 +706,17 @@ export function useClinicEssentialFormModal({
             };
             return await clinicEssentialsApi.createForm(payload);
           }
+          case 'relationship': {
+            const payload: CreateRelationshipPayload = {
+              name: relationshipName.trim(),
+              iconName: relationshipIconName || 'user',
+              description: relationshipDescription.trim() || undefined,
+              displayOrder: relationshipDisplayOrder,
+              isActive: true,
+              isSystem: relationshipIsSystem
+            };
+            return await clinicEssentialsApi.createRelationship(payload);
+          }
         }
       }
     },
@@ -529,7 +732,9 @@ export function useClinicEssentialFormModal({
                 ? 'Kelompok Layanan'
                 : type === 'service'
                   ? 'Service'
-                  : 'Formulir';
+                  : type === 'form'
+                    ? 'Formulir'
+                    : 'Relasi Pasien';
       const name = (data as { name?: string }).name || '';
       toast.success(
         `${entityLabel} '${name}' berhasil ${isEditing ? 'diperbarui' : 'ditambahkan'}.`
@@ -596,10 +801,19 @@ export function useClinicEssentialFormModal({
     setFormIconName('');
     setFormDescription('');
     setFormIsActive(true);
+    // Relationship
+    setRelationshipName('');
+    setRelationshipIconName('');
+    setRelationshipDescription('');
+    setRelationshipDisplayOrder(0);
+    setRelationshipIsActive(true);
+    setRelationshipIsSystem(false);
+    setFieldErrors({});
   };
 
   const handleNextStage = () => {
-    if (isCurrentStageValid && currentStage < maxStages) {
+    const isValid = validateCurrentStage();
+    if (isValid && isCurrentStageValid && currentStage < maxStages) {
       setDirection('forward');
       setCurrentStage((prev) => prev + 1);
     }
@@ -613,7 +827,8 @@ export function useClinicEssentialFormModal({
   };
 
   const handleSubmit = () => {
-    if (!isAllStagesValid || saveMutation.isPending) return;
+    const isValid = validateCurrentStage();
+    if (!isValid || !isAllStagesValid || saveMutation.isPending) return;
     saveMutation.mutate();
   };
 
@@ -624,8 +839,9 @@ export function useClinicEssentialFormModal({
       currentStage,
       maxStages,
       direction,
-      isCurrentStageValid,
-      isAllStagesValid,
+      isCurrentStageValid: isCurrentStageValid && Object.keys(fieldErrors).length === 0,
+      isAllStagesValid: isAllStagesValid && Object.keys(fieldErrors).length === 0,
+      errors: fieldErrors,
       isSubmitting: saveMutation.isPending,
       // Unit Type values
       unitTypeName,
@@ -673,7 +889,14 @@ export function useClinicEssentialFormModal({
       formCode,
       formIconName,
       formDescription,
-      formIsActive
+      formIsActive,
+      // Relationship values
+      relationshipName,
+      relationshipIconName,
+      relationshipDescription,
+      relationshipDisplayOrder,
+      relationshipIsActive,
+      relationshipIsSystem
     },
     actions: {
       setCurrentStage,
@@ -681,23 +904,52 @@ export function useClinicEssentialFormModal({
       handlePrevStage,
       handleSubmit,
       resetForm,
+      validateField,
       // Unit Type setters
-      setUnitTypeName,
+      setUnitTypeName: (val: string) => {
+        setUnitTypeName(val);
+        validateField('name', val);
+      },
       setUnitTypeIconName,
       setUnitTypeDescription,
       setUnitTypeIsActive,
       // Unit setters
-      setUnitName,
+      setUnitName: (val: string) => {
+        setUnitName(val);
+        validateField('name', val);
+      },
       setUnitCode,
-      setUnitTypeId,
-      setUnitQueuePrefix,
+      setUnitTypeId: (val: string) => {
+        setUnitTypeId(val);
+        setFieldErrors((prev) => {
+          if (!prev.unitTypeId) return prev;
+          const next = { ...prev };
+          delete next.unitTypeId;
+          return next;
+        });
+      },
+      setUnitQueuePrefix: (val: string) => {
+        setUnitQueuePrefix(val);
+        validateField('queuePrefix', val);
+      },
       setUnitIconName,
       setUnitLocation,
       setUnitFloor,
       setUnitIsActive,
       // Room setters
-      setRoomUnitId,
-      setRoomName,
+      setRoomUnitId: (val: string) => {
+        setRoomUnitId(val);
+        setFieldErrors((prev) => {
+          if (!prev.unitId) return prev;
+          const next = { ...prev };
+          delete next.unitId;
+          return next;
+        });
+      },
+      setRoomName: (val: string) => {
+        setRoomName(val);
+        validateField('name', val);
+      },
       setRoomCode,
       setRoomLocation,
       setRoomFloor,
@@ -705,29 +957,62 @@ export function useClinicEssentialFormModal({
       // Category setters
       setCategoryUnitId,
       setCategoryUnitIds,
-      setCategoryName,
+      setCategoryName: (val: string) => {
+        setCategoryName(val);
+        validateField('name', val);
+      },
       setCategoryCode,
-      setCategoryCodePrefix,
+      setCategoryCodePrefix: (val: string) => {
+        setCategoryCodePrefix(val);
+        validateField('codePrefix', val);
+      },
       setCategoryIconName,
       setCategoryDescription,
       setCategoryIsActive,
       // Service setters
-      setServiceCategoryId,
+      setServiceCategoryId: (val: string) => {
+        setServiceCategoryId(val);
+        setFieldErrors((prev) => {
+          if (!prev.serviceCategoryId) return prev;
+          const next = { ...prev };
+          delete next.serviceCategoryId;
+          return next;
+        });
+      },
       setServiceCategoryIds,
       setServiceIntakeFormId,
-      setServiceName,
+      setServiceName: (val: string) => {
+        setServiceName(val);
+        validateField('name', val);
+      },
       setServiceCode,
-      setServiceCodePrefix,
+      setServiceCodePrefix: (val: string) => {
+        setServiceCodePrefix(val);
+        validateField('codePrefix', val);
+      },
       setServiceIconName,
       setServiceComplaintsRaw,
       setServiceDescription,
       setServiceIsActive,
       // Form setters
-      setFormName,
+      setFormName: (val: string) => {
+        setFormName(val);
+        validateField('name', val);
+      },
       setFormCode,
       setFormIconName,
       setFormDescription,
-      setFormIsActive
+      setFormIsActive,
+      // Relationship setters
+      setRelationshipName: (val: string) => {
+        setRelationshipName(val);
+        validateField('name', val);
+      },
+      setRelationshipIconName,
+      setRelationshipDescription,
+      setRelationshipDisplayOrder,
+      setRelationshipIsActive,
+      setRelationshipIsSystem
     }
   };
 }

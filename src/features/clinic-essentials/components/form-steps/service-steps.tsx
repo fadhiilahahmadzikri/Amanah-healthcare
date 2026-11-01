@@ -10,6 +10,7 @@ import {
   AccordionSelectionField,
   type AccordionSelectionOption
 } from '../atoms/accordion-selection-field';
+import { cn } from '@/lib/utils';
 import type { ClinicalIntakeForm, ServiceCategory } from '../../types/clinic-essentials.types';
 
 export interface ServiceCategoryStepProps {
@@ -21,6 +22,7 @@ export interface ServiceCategoryStepProps {
   onCategoryIdChange: (val: string) => void;
   onCategoryIdsChange?: (val: string[]) => void;
   onIntakeFormIdChange: (val: string) => void;
+  error?: string;
   disabled?: boolean;
 }
 
@@ -33,6 +35,7 @@ export function ServiceCategoryStep({
   onCategoryIdChange,
   onCategoryIdsChange,
   onIntakeFormIdChange,
+  error,
   disabled
 }: ServiceCategoryStepProps) {
   const currentCategoryIds = React.useMemo(() => {
@@ -127,6 +130,12 @@ export function ServiceCategoryStep({
           onSelect={onIntakeFormIdChange}
           disabled={disabled}
         />
+
+        {error && (
+          <p className='text-[11px] font-medium text-destructive mt-1 animate-in fade-in duration-200'>
+            {error}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -141,6 +150,7 @@ export interface ServiceIdentityStepProps {
   onCodeChange?: (val: string) => void;
   onCodePrefixChange?: (val: string) => void;
   onIconNameChange: (val: string) => void;
+  error?: string;
   disabled?: boolean;
 }
 
@@ -149,6 +159,7 @@ export function ServiceIdentityStep({
   iconName,
   onNameChange,
   onIconNameChange,
+  error,
   disabled
 }: ServiceIdentityStepProps) {
   return (
@@ -164,7 +175,7 @@ export function ServiceIdentityStep({
       </div>
 
       <div className='space-y-3.5 pt-1'>
-        <div className='flex items-center gap-3'>
+        <div className='flex items-start gap-3'>
           <div className='space-y-1.5 flex-1 min-w-0'>
             <Label htmlFor='service-name' className='text-xs font-semibold'>
               Nama Service Medis <span className='text-destructive'>*</span>
@@ -175,9 +186,17 @@ export function ServiceIdentityStep({
               value={name}
               onChange={(e) => onNameChange(e.target.value)}
               disabled={disabled}
-              className='h-10 text-sm'
+              className={cn(
+                'h-10 text-sm transition-colors',
+                error && 'border-destructive focus-visible:ring-destructive'
+              )}
               required
             />
+            {error && (
+              <p className='text-[11px] font-medium text-destructive mt-1 animate-in fade-in duration-200'>
+                {error}
+              </p>
+            )}
           </div>
 
           <div className='space-y-1.5 shrink-0'>

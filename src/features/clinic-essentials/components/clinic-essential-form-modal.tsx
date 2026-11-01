@@ -28,7 +28,9 @@ import {
   ServiceIdentityStep,
   ServiceClinicalStep,
   FormIdentityStep,
-  FormDescriptionStep
+  FormDescriptionStep,
+  RelationshipIdentityStep,
+  RelationshipDetailsStep
 } from './form-steps';
 import type {
   ClinicalIntakeForm,
@@ -80,6 +82,11 @@ function getEntityMeta(type: ClinicEssentialEntityType, isEditing: boolean) {
       return {
         title: isEditing ? 'Edit Formulir Pengkajian' : 'Tambah Formulir Pengkajian',
         submitLabel: isEditing ? 'Simpan Perubahan' : 'Simpan Formulir'
+      };
+    case 'relationship':
+      return {
+        title: isEditing ? 'Edit Relasi Pasien' : 'Tambah Relasi Pasien',
+        submitLabel: isEditing ? 'Simpan Perubahan' : 'Simpan Relasi'
       };
   }
 }
@@ -141,6 +148,7 @@ export function ClinicEssentialFormModal({
               iconName={state.unitTypeIconName}
               onNameChange={actions.setUnitTypeName}
               onIconNameChange={actions.setUnitTypeIconName}
+              error={state.errors.name}
               disabled={state.isSubmitting}
             />
           );
@@ -166,6 +174,7 @@ export function ClinicEssentialFormModal({
               onNameChange={actions.setUnitName}
               onCodeChange={actions.setUnitCode}
               onIconNameChange={actions.setUnitIconName}
+              error={state.errors.name}
               disabled={state.isSubmitting}
             />
           );
@@ -176,6 +185,7 @@ export function ClinicEssentialFormModal({
               unitTypeId={state.unitTypeId}
               unitTypes={unitTypes}
               onUnitTypeIdChange={actions.setUnitTypeId}
+              error={state.errors.unitTypeId}
               disabled={state.isSubmitting}
             />
           );
@@ -200,6 +210,7 @@ export function ClinicEssentialFormModal({
               unitId={state.roomUnitId}
               units={units}
               onUnitIdChange={actions.setRoomUnitId}
+              error={state.errors.unitId}
               disabled={state.isSubmitting}
             />
           );
@@ -211,6 +222,7 @@ export function ClinicEssentialFormModal({
               code={state.roomCode}
               onNameChange={actions.setRoomName}
               onCodeChange={actions.setRoomCode}
+              error={state.errors.name}
               disabled={state.isSubmitting}
             />
           );
@@ -238,6 +250,7 @@ export function ClinicEssentialFormModal({
               onNameChange={actions.setCategoryName}
               onCodeChange={actions.setCategoryCode}
               onIconNameChange={actions.setCategoryIconName}
+              error={state.errors.name}
               disabled={state.isSubmitting}
             />
           );
@@ -279,6 +292,7 @@ export function ClinicEssentialFormModal({
               onCategoryIdChange={actions.setServiceCategoryId}
               onCategoryIdsChange={actions.setServiceCategoryIds}
               onIntakeFormIdChange={actions.setServiceIntakeFormId}
+              error={state.errors.serviceCategoryId}
               disabled={state.isSubmitting}
             />
           );
@@ -294,6 +308,7 @@ export function ClinicEssentialFormModal({
               onCodeChange={actions.setServiceCode}
               onCodePrefixChange={actions.setServiceCodePrefix}
               onIconNameChange={actions.setServiceIconName}
+              error={state.errors.name}
               disabled={state.isSubmitting}
             />
           );
@@ -321,6 +336,7 @@ export function ClinicEssentialFormModal({
               onNameChange={actions.setFormName}
               onCodeChange={actions.setFormCode}
               onIconNameChange={actions.setFormIconName}
+              error={state.errors.name}
               disabled={state.isSubmitting}
             />
           );
@@ -331,6 +347,34 @@ export function ClinicEssentialFormModal({
             onDescriptionChange={actions.setFormDescription}
             isActive={state.formIsActive}
             onIsActiveChange={actions.setFormIsActive}
+            isEditing={state.isEditing}
+            disabled={state.isSubmitting}
+          />
+        );
+
+      case 'relationship':
+        if (state.currentStage === 1) {
+          return (
+            <RelationshipIdentityStep
+              name={state.relationshipName}
+              iconName={state.relationshipIconName}
+              onNameChange={actions.setRelationshipName}
+              onIconNameChange={actions.setRelationshipIconName}
+              error={state.errors.name}
+              disabled={state.isSubmitting}
+            />
+          );
+        }
+        return (
+          <RelationshipDetailsStep
+            description={state.relationshipDescription}
+            onDescriptionChange={actions.setRelationshipDescription}
+            displayOrder={state.relationshipDisplayOrder}
+            onDisplayOrderChange={actions.setRelationshipDisplayOrder}
+            isActive={state.relationshipIsActive}
+            onIsActiveChange={actions.setRelationshipIsActive}
+            isSystem={state.relationshipIsSystem}
+            onIsSystemChange={actions.setRelationshipIsSystem}
             isEditing={state.isEditing}
             disabled={state.isSubmitting}
           />
@@ -348,6 +392,7 @@ export function ClinicEssentialFormModal({
               iconName={state.unitTypeIconName}
               onNameChange={actions.setUnitTypeName}
               onIconNameChange={actions.setUnitTypeIconName}
+              error={state.errors.name}
               disabled={state.isSubmitting}
             />
             <div className='border-t border-border/40 pt-4'>
@@ -373,6 +418,7 @@ export function ClinicEssentialFormModal({
               onNameChange={actions.setUnitName}
               onCodeChange={actions.setUnitCode}
               onIconNameChange={actions.setUnitIconName}
+              error={state.errors.name}
               disabled={state.isSubmitting}
             />
             <div className='border-t border-border/40 pt-4'>
@@ -380,6 +426,7 @@ export function ClinicEssentialFormModal({
                 unitTypeId={state.unitTypeId}
                 unitTypes={unitTypes}
                 onUnitTypeIdChange={actions.setUnitTypeId}
+                error={state.errors.unitTypeId}
                 disabled={state.isSubmitting}
               />
             </div>
@@ -405,6 +452,7 @@ export function ClinicEssentialFormModal({
               unitId={state.roomUnitId}
               units={units}
               onUnitIdChange={actions.setRoomUnitId}
+              error={state.errors.unitId}
               disabled={state.isSubmitting}
             />
             <div className='border-t border-border/40 pt-4'>
@@ -413,6 +461,7 @@ export function ClinicEssentialFormModal({
                 code={state.roomCode}
                 onNameChange={actions.setRoomName}
                 onCodeChange={actions.setRoomCode}
+                error={state.errors.name}
                 disabled={state.isSubmitting}
               />
             </div>
@@ -441,6 +490,7 @@ export function ClinicEssentialFormModal({
               onNameChange={actions.setCategoryName}
               onCodeChange={actions.setCategoryCode}
               onIconNameChange={actions.setCategoryIconName}
+              error={state.errors.name}
               disabled={state.isSubmitting}
             />
             <div className='border-t border-border/40 pt-4'>
@@ -480,6 +530,7 @@ export function ClinicEssentialFormModal({
               onCategoryIdChange={actions.setServiceCategoryId}
               onCategoryIdsChange={actions.setServiceCategoryIds}
               onIntakeFormIdChange={actions.setServiceIntakeFormId}
+              error={state.errors.serviceCategoryId}
               disabled={state.isSubmitting}
             />
             <div className='border-t border-border/40 pt-4'>
@@ -492,6 +543,7 @@ export function ClinicEssentialFormModal({
                 onCodeChange={actions.setServiceCode}
                 onCodePrefixChange={actions.setServiceCodePrefix}
                 onIconNameChange={actions.setServiceIconName}
+                error={state.errors.name}
                 disabled={state.isSubmitting}
               />
             </div>
@@ -520,6 +572,7 @@ export function ClinicEssentialFormModal({
               onNameChange={actions.setFormName}
               onCodeChange={actions.setFormCode}
               onIconNameChange={actions.setFormIconName}
+              error={state.errors.name}
               disabled={state.isSubmitting}
             />
             <div className='border-t border-border/40 pt-4'>
@@ -528,6 +581,34 @@ export function ClinicEssentialFormModal({
                 onDescriptionChange={actions.setFormDescription}
                 isActive={state.formIsActive}
                 onIsActiveChange={actions.setFormIsActive}
+                isEditing={state.isEditing}
+                disabled={state.isSubmitting}
+              />
+            </div>
+          </div>
+        );
+
+      case 'relationship':
+        return (
+          <div className='space-y-6'>
+            <RelationshipIdentityStep
+              name={state.relationshipName}
+              iconName={state.relationshipIconName}
+              onNameChange={actions.setRelationshipName}
+              onIconNameChange={actions.setRelationshipIconName}
+              error={state.errors.name}
+              disabled={state.isSubmitting}
+            />
+            <div className='border-t border-border/40 pt-4'>
+              <RelationshipDetailsStep
+                description={state.relationshipDescription}
+                onDescriptionChange={actions.setRelationshipDescription}
+                displayOrder={state.relationshipDisplayOrder}
+                onDisplayOrderChange={actions.setRelationshipDisplayOrder}
+                isActive={state.relationshipIsActive}
+                onIsActiveChange={actions.setRelationshipIsActive}
+                isSystem={state.relationshipIsSystem}
+                onIsSystemChange={actions.setRelationshipIsSystem}
                 isEditing={state.isEditing}
                 disabled={state.isSubmitting}
               />

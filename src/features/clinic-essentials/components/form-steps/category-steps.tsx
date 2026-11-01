@@ -10,6 +10,7 @@ import {
   AccordionSelectionField,
   type AccordionSelectionOption
 } from '../atoms/accordion-selection-field';
+import { cn } from '@/lib/utils';
 import type { FacilityUnit } from '../../types/clinic-essentials.types';
 
 export interface CategoryIdentityStepProps {
@@ -19,6 +20,7 @@ export interface CategoryIdentityStepProps {
   onNameChange: (val: string) => void;
   onCodeChange?: (val: string) => void;
   onIconNameChange: (val: string) => void;
+  error?: string;
   disabled?: boolean;
 }
 
@@ -27,6 +29,7 @@ export function CategoryIdentityStep({
   iconName,
   onNameChange,
   onIconNameChange,
+  error,
   disabled
 }: CategoryIdentityStepProps) {
   return (
@@ -42,7 +45,7 @@ export function CategoryIdentityStep({
       </div>
 
       <div className='space-y-3.5 pt-1'>
-        <div className='flex items-center gap-3'>
+        <div className='flex items-start gap-3'>
           <div className='space-y-1.5 flex-1 min-w-0'>
             <Label htmlFor='category-name' className='text-xs font-semibold'>
               Nama Kelompok Layanan <span className='text-destructive'>*</span>
@@ -53,9 +56,17 @@ export function CategoryIdentityStep({
               value={name}
               onChange={(e) => onNameChange(e.target.value)}
               disabled={disabled}
-              className='h-10 text-sm'
+              className={cn(
+                'h-10 text-sm transition-colors',
+                error && 'border-destructive focus-visible:ring-destructive'
+              )}
               required
             />
+            {error && (
+              <p className='text-[11px] font-medium text-destructive mt-1 animate-in fade-in duration-200'>
+                {error}
+              </p>
+            )}
           </div>
 
           <div className='space-y-1.5 shrink-0'>

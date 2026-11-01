@@ -8,7 +8,8 @@ import type {
   FacilityRoom,
   ServiceCategory,
   ClinicService,
-  ClinicalIntakeForm
+  ClinicalIntakeForm,
+  PatientRelationshipTypeItem
 } from '../types/clinic-essentials.types';
 
 export const ESSENTIAL_FALLBACK_ICONS: Record<FacilityResource, string> = {
@@ -17,7 +18,8 @@ export const ESSENTIAL_FALLBACK_ICONS: Record<FacilityResource, string> = {
   rooms: 'door-open',
   categories: 'folder',
   services: 'stethoscope',
-  forms: 'clipboard-list'
+  forms: 'clipboard-list',
+  relationships: 'users'
 };
 
 /**
@@ -44,6 +46,7 @@ export function getEssentialFirstIcon(
     categories?: ServiceCategory[];
     services?: ClinicService[];
     forms?: ClinicalIntakeForm[];
+    relationships?: PatientRelationshipTypeItem[];
   }
 ): string {
   switch (resource) {
@@ -62,6 +65,8 @@ export function getEssentialFirstIcon(
       return resolveEntityIconName(data.services, ESSENTIAL_FALLBACK_ICONS['services']);
     case 'forms':
       return resolveEntityIconName(data.forms, ESSENTIAL_FALLBACK_ICONS['forms']);
+    case 'relationships':
+      return resolveEntityIconName(data.relationships, ESSENTIAL_FALLBACK_ICONS['relationships']);
   }
 }
 

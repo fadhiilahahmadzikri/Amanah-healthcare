@@ -26,5 +26,9 @@ export function getRelationshipLabel(type?: string | null, customLabel?: string 
   }
   if (!type) return '-';
   const normalized = type.toLowerCase() as PatientRelationship;
-  return RELATIONSHIP_LABEL_MAP[normalized] ?? '-';
+  if (RELATIONSHIP_LABEL_MAP[normalized]) {
+    return RELATIONSHIP_LABEL_MAP[normalized];
+  }
+  // Gracefully format dynamic code (e.g. "anak_kandung" -> "Anak Kandung")
+  return type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }

@@ -16,7 +16,8 @@ import {
   RefreshCw,
   Settings2,
   Stethoscope,
-  Trash2
+  Trash2,
+  Users
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -71,7 +72,8 @@ import {
   FacilityRoomCard,
   ServiceCategoryCard,
   ClinicServiceCard,
-  ClinicalIntakeFormCard
+  ClinicalIntakeFormCard,
+  PatientRelationshipTypeCard
 } from './cards';
 import type { BulkFacilityActionPayload, FacilityResource } from '../types/clinic-essentials.types';
 import type { ClinicEssentialEditItem } from '../model/useClinicEssentialFormModal';
@@ -167,6 +169,16 @@ export function ClinicEssentialsView() {
     queryFn: () => clinicEssentialsApi.getForms()
   });
 
+  // 6. Fetch Relationships (Relasi Pasien)
+  const {
+    data: relationships = [],
+    isLoading: isLoadingRelationships,
+    isRefetching: isRefetchingRelationships
+  } = useQuery({
+    queryKey: clinicEssentialsKeys.relationships(),
+    queryFn: () => clinicEssentialsApi.getRelationships()
+  });
+
   const viewingUnit = React.useMemo(() => {
     if (!viewingUnitId) return null;
     return units.find((u) => u.id === viewingUnitId) ?? null;
@@ -183,7 +195,8 @@ export function ClinicEssentialsView() {
     isRefetchingRooms ||
     isRefetchingCategories ||
     isRefetchingServices ||
-    isRefetchingForms;
+    isRefetchingForms ||
+    isRefetchingRelationships;
 
   const handleRefreshAll = React.useCallback(() => {
     queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.all });
@@ -211,6 +224,9 @@ export function ClinicEssentialsView() {
           break;
         case 'forms':
           await clinicEssentialsApi.deleteForm(item.id);
+          break;
+        case 'relationships':
+          await clinicEssentialsApi.deleteRelationship(item.id);
           break;
       }
     },
@@ -249,6 +265,8 @@ export function ClinicEssentialsView() {
           return clinicEssentialsApi.updateService(id, { isActive });
         case 'forms':
           return clinicEssentialsApi.updateForm(id, { isActive });
+        case 'relationships':
+          return clinicEssentialsApi.updateRelationship(id, { isActive });
       }
     },
     onSuccess: (_, vars) => {
@@ -257,6 +275,19 @@ export function ClinicEssentialsView() {
     },
     onError: (err: unknown) => {
       const msg = err instanceof Error ? err.message : 'Gagal mengubah status item';
+      toast.error(msg);
+    }
+  });
+
+  // Set Default / System Relationship Mutation
+  const setDefaultRelationshipMutation = useMutation({
+    mutationFn: (id: string) => clinicEssentialsApi.setDefaultRelationship(id),
+    onSuccess: (data) => {
+      toast.success(`'${data.name}' berhasil ditetapkan sebagai Relasi Akun Utama / Sistem.`);
+      queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.all });
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Gagal menetapkan relasi default';
       toast.error(msg);
     }
   });
@@ -277,7 +308,10 @@ export function ClinicEssentialsView() {
   });
 
   const isPerformingAction =
-    deleteMutation.isPending || toggleActiveMutation.isPending || bulkMutation.isPending;
+    deleteMutation.isPending ||
+    toggleActiveMutation.isPending ||
+    setDefaultRelationshipMutation.isPending ||
+    bulkMutation.isPending;
 
   // Responsive compact state
   const { state: sidebarState } = useSidebar();
@@ -384,6 +418,19 @@ export function ClinicEssentialsView() {
     });
   }, [forms, statusFilter, query]);
 
+  const filteredRelationships = React.useMemo(() => {
+    return relationships.filter((r) => {
+      if (statusFilter === 'active' && !r.isActive) return false;
+      if (statusFilter === 'inactive' && r.isActive) return false;
+      if (!query) return true;
+      return (
+        r.name.toLowerCase().includes(query) ||
+        r.code.toLowerCase().includes(query) ||
+        Boolean(r.description?.toLowerCase().includes(query))
+      );
+    });
+  }, [relationships, statusFilter, query]);
+
   // Current tab items computation for bulk select
   const currentTabItems = React.useMemo(() => {
     switch (activeTab) {
@@ -399,6 +446,8 @@ export function ClinicEssentialsView() {
         return filteredServices;
       case 'forms':
         return filteredForms;
+      case 'relationships':
+        return filteredRelationships;
     }
   }, [
     activeTab,
@@ -407,7 +456,8 @@ export function ClinicEssentialsView() {
     filteredRooms,
     filteredCategories,
     filteredServices,
-    filteredForms
+    filteredForms,
+    filteredRelationships
   ]);
 
   const isAllSelected =
@@ -572,8 +622,23 @@ export function ClinicEssentialsView() {
       });
     });
 
+    relationships.forEach((rel) => {
+      items.push({
+        id: `rel-${rel.id}`,
+        title: rel.name,
+        subtitle: `Relasi Pasien • ${rel.code}`,
+        category: 'Relasi Pasien',
+        icon: Users,
+        queryValue: `${rel.name} ${rel.code}`,
+        onSelect: () => {
+          setActiveTab('relationships');
+          setSearchQuery(rel.name);
+        }
+      });
+    });
+
     return items;
-  }, [unitTypes, units, rooms, categories, services, forms]);
+  }, [unitTypes, units, rooms, categories, services, forms, relationships]);
 
   const searchEngine = useStateSearchEngine({
     query: searchQuery,
@@ -597,7 +662,8 @@ export function ClinicEssentialsView() {
         { label: 'Ruang Periksa', value: 'rooms', count: filteredRooms.length },
         { label: 'Kelompok Layanan', value: 'categories', count: filteredCategories.length },
         { label: 'Service Medis', value: 'services', count: filteredServices.length },
-        { label: 'Formulir Pengkajian', value: 'forms', count: filteredForms.length }
+        { label: 'Formulir Pengkajian', value: 'forms', count: filteredForms.length },
+        { label: 'Relasi Pasien', value: 'relationships', count: filteredRelationships.length }
       ],
       selectedValues: [activeTab],
       onSelect: (val) => {
@@ -624,7 +690,8 @@ export function ClinicEssentialsView() {
     filteredRooms.length,
     filteredCategories.length,
     filteredServices.length,
-    filteredForms.length
+    filteredForms.length,
+    filteredRelationships.length
   ]);
 
   // Hierarchical Lock Logic
@@ -717,6 +784,13 @@ export function ClinicEssentialsView() {
         icon: renderEssentialIcon(getEssentialFirstIcon('forms', { forms })),
         count: filteredForms.length,
         description: 'Template anamnesis klinis pasien'
+      },
+      {
+        key: 'relationships',
+        label: 'Relasi Pasien',
+        icon: renderEssentialIcon(getEssentialFirstIcon('relationships', { relationships })),
+        count: filteredRelationships.length,
+        description: 'Profil berobat & relasi keluarga'
       }
     ],
     [
@@ -726,6 +800,7 @@ export function ClinicEssentialsView() {
       categories,
       services,
       forms,
+      relationships,
       isUnitsLocked,
       isRoomsLocked,
       isCategoriesLocked,
@@ -735,7 +810,8 @@ export function ClinicEssentialsView() {
       filteredRooms.length,
       filteredCategories.length,
       filteredServices.length,
-      filteredForms.length
+      filteredForms.length,
+      filteredRelationships.length
     ]
   );
 
@@ -912,6 +988,23 @@ export function ClinicEssentialsView() {
                     </Button>
                   )}
 
+                  {activeTab === 'relationships' && (
+                    <Button
+                      type='button'
+                      size={isCompact ? 'icon' : 'sm'}
+                      onClick={() => setActiveModal({ type: 'relationship' })}
+                      className={
+                        isCompact
+                          ? 'size-8 rounded-md shrink-0 shadow-xs'
+                          : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
+                      }
+                      title='Tambah Relasi Pasien'
+                    >
+                      <Plus className='size-3.5' />
+                      {!isCompact && <span>Tambah Relasi</span>}
+                    </Button>
+                  )}
+
                   {/* Quick Master Config Dropdown */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -983,6 +1076,16 @@ export function ClinicEssentialsView() {
                       >
                         <ClipboardList className='size-4 text-primary' />
                         <span>Tambah Formulir Pengkajian</span>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuSeparator />
+
+                      <DropdownMenuItem
+                        onClick={() => setActiveModal({ type: 'relationship' })}
+                        className='cursor-pointer gap-2'
+                      >
+                        <Users className='size-4 text-primary' />
+                        <span>Tambah Relasi Pasien</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -1367,6 +1470,69 @@ export function ClinicEssentialsView() {
                     onEdit={(item) => setActiveModal({ type: 'form', editItem: item })}
                     onDelete={(item) =>
                       setDeletingItem({ type: 'forms', id: item.id, name: item.name })
+                    }
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* 6. Tab Relationships (Relasi Pasien) */}
+          <TabsContent value='relationships' className='mt-0'>
+            {isLoadingRelationships ? (
+              <EntityCardGridSkeleton count={8} className={cardGridClassName} />
+            ) : relationships.length === 0 ? (
+              <EmptyState
+                title='Belum ada tipe relasi pasien terdaftar'
+                description='Daftarkan opsi relasi profil atau keluarga agar dapat dipilih saat pendaftaran/booking berobat.'
+                action={
+                  canManage ? (
+                    <Button
+                      size='sm'
+                      onClick={() => setActiveModal({ type: 'relationship' })}
+                      className='text-xs gap-1.5 h-8'
+                    >
+                      <Plus className='size-3.5' /> Tambah Relasi
+                    </Button>
+                  ) : undefined
+                }
+              />
+            ) : filteredRelationships.length === 0 ? (
+              <EmptyState
+                title='Tidak ada tipe relasi yang cocok'
+                description='Coba sesuaikan kata kunci pencarian atau reset filter untuk melihat data.'
+                resetAction={{ label: 'Reset Filter', onReset: handleResetAll }}
+              />
+            ) : (
+              <div className={cardGridClassName}>
+                {filteredRelationships.map((r) => (
+                  <PatientRelationshipTypeCard
+                    key={r.id}
+                    relationship={r}
+                    canManage={canManage}
+                    selected={selectedIds.includes(r.id)}
+                    isBulkingActive={selectedIds.length > 0}
+                    onToggleSelect={() => handleToggleSelect(r.id)}
+                    onToggleActive={(newActive) =>
+                      toggleActiveMutation.mutate({
+                        resource: 'relationships',
+                        id: r.id,
+                        isActive: newActive
+                      })
+                    }
+                    isTogglingActive={
+                      toggleActiveMutation.isPending &&
+                      toggleActiveMutation.variables?.resource === 'relationships' &&
+                      toggleActiveMutation.variables?.id === r.id
+                    }
+                    onSetDefault={(item) => setDefaultRelationshipMutation.mutate(item.id)}
+                    isSettingDefault={
+                      setDefaultRelationshipMutation.isPending &&
+                      setDefaultRelationshipMutation.variables === r.id
+                    }
+                    onEdit={(item) => setActiveModal({ type: 'relationship', editItem: item })}
+                    onDelete={(item) =>
+                      setDeletingItem({ type: 'relationships', id: item.id, name: item.name })
                     }
                   />
                 ))}

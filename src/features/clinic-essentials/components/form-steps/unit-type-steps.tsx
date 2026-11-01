@@ -6,12 +6,14 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { ShiftIconPickerPopover } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-picker-popover';
+import { cn } from '@/lib/utils';
 
 export interface UnitTypeIdentityStepProps {
   name: string;
   iconName: string;
   onNameChange: (val: string) => void;
   onIconNameChange: (val: string) => void;
+  error?: string;
   disabled?: boolean;
 }
 
@@ -20,6 +22,7 @@ export function UnitTypeIdentityStep({
   iconName,
   onNameChange,
   onIconNameChange,
+  error,
   disabled = false
 }: UnitTypeIdentityStepProps) {
   return (
@@ -35,7 +38,7 @@ export function UnitTypeIdentityStep({
       </div>
 
       <div className='space-y-3.5 pt-1'>
-        <div className='flex items-center gap-3'>
+        <div className='flex items-start gap-3'>
           <div className='space-y-1.5 flex-1 min-w-0'>
             <Label htmlFor='unit-type-name' className='text-xs font-semibold'>
               Nama Klasifikasi <span className='text-destructive'>*</span>
@@ -46,9 +49,17 @@ export function UnitTypeIdentityStep({
               value={name}
               onChange={(e) => onNameChange(e.target.value)}
               disabled={disabled}
-              className='h-10 text-sm'
+              className={cn(
+                'h-10 text-sm transition-colors',
+                error && 'border-destructive focus-visible:ring-destructive'
+              )}
               required
             />
+            {error && (
+              <p className='text-[11px] font-medium text-destructive mt-1 animate-in fade-in duration-200'>
+                {error}
+              </p>
+            )}
           </div>
 
           <div className='space-y-1.5 shrink-0'>
