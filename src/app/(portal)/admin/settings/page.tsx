@@ -3,14 +3,13 @@ import PageContainer from '@/components/layout/page-container';
 import { QRConfigSettings } from '@/features/settings/components/qr-config-settings';
 import { AccountSecuritySettings } from '@/features/settings/components/account-security-settings';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Icons } from '@/components/icons';
 import { DeleteAccountDialog } from '@/features/profile/components/delete-account-dialog';
 
 import { requireRouteAccess } from '@/lib/guard';
 
 export const metadata = {
   title: 'Pengaturan Sistem - Amanah Healthcare',
-  description: 'Kelola preferensi gaya QR code presensi, interval rotasi, dan pengaturan sistem.'
+  description: 'Kelola preferensi estetika gaya QR code presensi dan keamanan akun sistem.'
 };
 
 export default async function SettingsPage() {
@@ -24,7 +23,7 @@ export default async function SettingsPage() {
             Pengaturan & Konfigurasi
           </h1>
           <p className='text-xs sm:text-sm text-muted-foreground'>
-            Kelola preferensi estetika pola QR presensi dan interval rotasi keamanan kehadiran.
+            Kelola preferensi estetika pola dan warna QR presensi serta keamanan akun sistem.
           </p>
         </div>
 
@@ -42,12 +41,9 @@ export default async function SettingsPage() {
         <div className='pt-4'>
           <Card className='border-destructive/30 bg-card shadow-xs overflow-hidden'>
             <CardHeader className='pb-3 bg-destructive/5 border-b border-destructive/15'>
-              <div className='flex items-center gap-2.5 text-destructive'>
-                <Icons.warning className='size-5' />
-                <CardTitle className='text-base sm:text-lg font-bold'>
-                  Zona Bahaya Akun (Danger Zone)
-                </CardTitle>
-              </div>
+              <CardTitle className='text-base sm:text-lg font-bold text-destructive'>
+                Zona Bahaya Akun (Danger Zone)
+              </CardTitle>
               <CardDescription className='text-xs sm:text-sm text-foreground/75 pt-1'>
                 Penghapusan akun mandiri secara sistemik sesuai hak perlindungan data (GDPR Right to
                 Erasure).

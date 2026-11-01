@@ -191,12 +191,9 @@ export function AccountSecuritySettings() {
   return (
     <Card className='shadow-xs overflow-hidden'>
       <CardHeader className='pb-4 border-b bg-muted/20'>
-        <div className='flex items-center gap-2.5 text-foreground'>
-          <Icons.lock className='size-5 text-primary' />
-          <CardTitle className='text-base sm:text-lg font-bold'>
-            Keamanan Akun & Cara Masuk
-          </CardTitle>
-        </div>
+        <CardTitle className='text-base sm:text-lg font-bold text-foreground'>
+          Keamanan Akun & Cara Masuk
+        </CardTitle>
         <CardDescription className='text-xs sm:text-sm text-muted-foreground pt-1'>
           Kelola alamat email, kata sandi, dan sambungan akun Google Anda untuk kemudahan masuk ke
           sistem.

@@ -170,6 +170,7 @@ export default function AppSidebar() {
 
                 <DropdownMenuGroup>
                   <DropdownMenuItem
+                    className='cursor-pointer'
                     onClick={() => {
                       handleNavClick();
                       router.push(
@@ -182,6 +183,7 @@ export default function AppSidebar() {
                   </DropdownMenuItem>
                   {can(PERMISSIONS.CLINICS.MANAGE) && (
                     <DropdownMenuItem
+                      className='cursor-pointer'
                       onClick={() => {
                         handleNavClick();
                         router.push('/admin/settings');

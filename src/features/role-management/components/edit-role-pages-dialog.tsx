@@ -2,21 +2,13 @@
 
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
+import { ModalWrapper } from '@/components/ui/modal-wrapper';
+import { Icons } from '@/components/icons';
 import { toast } from 'sonner';
-import { IconBrowser, IconCheck, IconPower, IconRoute } from '@tabler/icons-react';
+import { cn } from '@/lib/utils';
 import { roleManagementApi } from '../api/role-management.api';
 import { roleManagementKeys } from '../api/query-keys';
 import type { ApplicationPage, Role } from '../types/role.types';
@@ -37,24 +29,24 @@ export function EditRolePagesDialog({
   if (!role || !open) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <EditRolePagesForm
-        key={role.id}
-        role={role}
-        onClose={() => onOpenChange(false)}
-        canManage={canManage}
-      />
-    </Dialog>
+    <EditRolePagesForm
+      key={role.id}
+      role={role}
+      open={open}
+      onClose={() => onOpenChange(false)}
+      canManage={canManage}
+    />
   );
 }
 
 interface EditRolePagesFormProps {
   role: Role;
+  open: boolean;
   onClose: () => void;
   canManage: boolean;
 }
 
-function EditRolePagesForm({ role, onClose, canManage }: EditRolePagesFormProps) {
+function EditRolePagesForm({ role, open, onClose, canManage }: EditRolePagesFormProps) {
   const queryClient = useQueryClient();
 
   // 1. Fetch Page Hierarchy for role's audience
@@ -71,7 +63,7 @@ function EditRolePagesForm({ role, onClose, canManage }: EditRolePagesFormProps)
 
   const [selectedPageIds, setSelectedPageIds] = React.useState<Set<string>>(new Set());
 
-  // Initialize selected state once query loads without creating new array reference loops
+  // Initialize selected state once query loads
   React.useEffect(() => {
     if (rolePagesData) {
       setSelectedPageIds(new Set(rolePagesData));
@@ -143,98 +135,98 @@ function EditRolePagesForm({ role, onClose, canManage }: EditRolePagesFormProps)
   const isLoading = isLoadingPages || isLoadingAssigned;
 
   return (
-    <DialogContent className='max-w-3xl max-h-[90vh] flex flex-col p-0 overflow-hidden'>
-      <DialogHeader className='px-6 pt-6 pb-4 border-b shrink-0'>
-        <div className='flex items-center gap-2'>
-          <DialogTitle className='flex items-center gap-2'>
-            <IconBrowser className='size-5 text-primary' />
-            Atur Akses Halaman: {role.name}
-          </DialogTitle>
-          <Badge variant='outline' className='font-mono text-xs'>
-            {role.code}
-          </Badge>
-          <Badge variant='secondary' className='text-xs uppercase'>
-            {role.audience}
-          </Badge>
+    <ModalWrapper
+      isOpen={open}
+      onClose={onClose}
+      maxWidth='max-w-[1040px]'
+      backdropClassName='overflow-hidden'
+      className='flex flex-col h-[86dvh] max-h-[86dvh] overflow-hidden rounded-2xl border border-border bg-card p-5 sm:p-6 w-full max-w-[1040px] my-auto shadow-2xl'
+    >
+      <div className='flex flex-col font-sans select-none h-full min-h-0 justify-between'>
+        {/* Minimal Clutter-Free Header */}
+        <div className='pb-3 mb-2 border-b border-border/40 shrink-0'>
+          <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
+            Akses Halaman: {role.name}
+          </h3>
+          <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
+            Tentukan halaman aplikasi yang diizinkan untuk diakses oleh peran ini.
+          </p>
         </div>
-        <DialogDescription>
-          Pilih halaman mana saja yang diizinkan untuk diakses oleh peran ini. Halaman yang
-          dinonaktifkan di tingkat CMS akan otomatis tertutup dan tidak muncul di navigasi.
-        </DialogDescription>
-      </DialogHeader>
 
-      <ScrollArea className='flex-1 px-6 py-4 overflow-y-auto'>
-        {isLoading ? (
-          <div className='py-12 flex flex-col items-center justify-center text-muted-foreground gap-2'>
-            <div className='animate-spin size-6 border-2 border-primary border-t-transparent rounded-full' />
-            <p className='text-sm'>Memuat daftar halaman aplikasi...</p>
-          </div>
-        ) : pageTree.length === 0 ? (
-          <div className='py-12 text-center text-muted-foreground'>
-            <p className='text-sm'>Tidak ada halaman terdaftar untuk audiens ini.</p>
-          </div>
-        ) : (
-          <div className='space-y-6'>
-            {pageTree.map((parent) => {
+        {/* Scrollable Content with 3-Column Grid */}
+        <div className='flex-1 min-h-0 overflow-y-auto pr-1.5 py-1 space-y-4'>
+          {isLoading ? (
+            <div className='py-16 flex flex-col items-center justify-center text-muted-foreground gap-2'>
+              <Icons.spinner className='size-6 animate-spin text-primary' />
+              <p className='text-xs'>Memuat daftar halaman aplikasi...</p>
+            </div>
+          ) : pageTree.length === 0 ? (
+            <div className='py-16 text-center text-muted-foreground'>
+              <p className='text-xs'>Tidak ada halaman terdaftar untuk audiens ini.</p>
+            </div>
+          ) : (
+            pageTree.map((parent) => {
               const children = parent.children || [];
               const allSelected =
                 children.length > 0 && children.every((c) => selectedPageIds.has(c.id));
               const someSelected = children.some((c) => selectedPageIds.has(c.id)) && !allSelected;
 
               return (
-                <div key={parent.id} className='rounded-lg border bg-card p-4 space-y-3 shadow-2xs'>
+                <div
+                  key={parent.id}
+                  className='rounded-xl border border-border/80 bg-card p-3.5 space-y-3 shadow-2xs'
+                >
                   {/* Group Header */}
-                  <div className='flex items-center justify-between pb-2 border-b'>
-                    <div className='flex items-center gap-2.5'>
+                  <div className='flex items-center justify-between pb-2 border-b border-border/60'>
+                    <div className='flex items-center gap-2.5 min-w-0'>
                       <Checkbox
                         id={`parent-select-${parent.id}`}
                         checked={allSelected ? true : someSelected ? 'indeterminate' : false}
                         onCheckedChange={(checked) => handleToggleGroup(parent, Boolean(checked))}
                         disabled={!canManage}
                       />
-                      <div>
-                        <div className='flex items-center gap-2'>
+                      <div className='min-w-0'>
+                        <div className='flex items-center gap-2 flex-wrap'>
                           <label
                             htmlFor={`parent-select-${parent.id}`}
-                            className='font-semibold text-sm cursor-pointer select-none'
+                            className='font-semibold text-xs sm:text-sm text-foreground cursor-pointer select-none'
                           >
                             {parent.name}
                           </label>
-                          <Badge variant='outline' className='text-[10px] font-mono'>
+                          <span className='font-mono text-[10px] text-muted-foreground px-1.5 py-0.2 rounded border bg-muted/40'>
                             {parent.slug}
-                          </Badge>
+                          </span>
                           {!parent.isEnabled && (
-                            <Badge variant='destructive' className='text-[10px] gap-1'>
-                              <IconPower className='size-2.5' />
-                              Grup Dinonaktifkan
-                            </Badge>
+                            <span className='text-[10px] font-semibold text-destructive px-1.5 py-0.2 rounded bg-destructive/10'>
+                              Nonaktif di CMS
+                            </span>
                           )}
                         </div>
                         {parent.description && (
-                          <p className='text-xs text-muted-foreground pt-0.5'>
+                          <p className='text-[11px] text-muted-foreground pt-0.5 truncate max-w-lg'>
                             {parent.description}
                           </p>
                         )}
                       </div>
                     </div>
 
-                    {/* Global Master Switch for parent group */}
+                    {/* Master Switch for Parent Group */}
                     {canManage && (
-                      <div className='flex items-center gap-2 pl-4'>
-                        <span className='text-[11px] text-muted-foreground'>CMS Saklar:</span>
+                      <div className='flex items-center gap-2 pl-3 shrink-0'>
+                        <span className='text-[11px] text-muted-foreground'>Saklar CMS</span>
                         <Switch
                           checked={parent.isEnabled}
                           onCheckedChange={(val) =>
                             togglePageMutation.mutate({ pageId: parent.id, isEnabled: val })
                           }
-                          aria-label={`Toggle ketersediaan ${parent.name}`}
+                          aria-label={`Saklar CMS ${parent.name}`}
                         />
                       </div>
                     )}
                   </div>
 
-                  {/* Child Pages Grid */}
-                  <div className='grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1'>
+                  {/* 3-Column Child Pages Grid */}
+                  <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-0.5'>
                     {children.map((child) => {
                       const isAssigned = selectedPageIds.has(child.id);
                       const isChildEffectivelyEnabled = parent.isEnabled && child.isEnabled;
@@ -242,59 +234,51 @@ function EditRolePagesForm({ role, onClose, canManage }: EditRolePagesFormProps)
                       return (
                         <div
                           key={child.id}
-                          className={`flex items-start justify-between p-2.5 rounded-md border transition-colors ${
+                          className={cn(
+                            'flex items-start justify-between p-2.5 rounded-xl border transition-colors select-none gap-2',
                             isAssigned
-                              ? 'bg-primary/5 border-primary/30'
-                              : 'bg-muted/10 border-border/60 hover:bg-muted/20'
-                          } ${!isChildEffectivelyEnabled ? 'opacity-65' : ''}`}
+                              ? 'bg-primary/5 border-primary/40'
+                              : 'bg-muted/10 border-border/70 hover:bg-muted/20',
+                            !isChildEffectivelyEnabled && 'opacity-60'
+                          )}
                         >
-                          <div className='flex items-start gap-2.5 flex-1 min-w-0 pr-2'>
+                          <div className='flex items-start gap-2 flex-1 min-w-0'>
                             <Checkbox
                               id={`page-${child.id}`}
                               checked={isAssigned}
                               onCheckedChange={() => handleToggleSelectPage(child.id)}
                               disabled={!canManage}
-                              className='mt-0.5'
+                              className='mt-0.5 shrink-0'
                             />
-                            <div className='space-y-0.5 min-w-0'>
+                            <div className='space-y-1 min-w-0 flex-1'>
                               <label
                                 htmlFor={`page-${child.id}`}
-                                className='text-xs font-medium text-foreground cursor-pointer select-none leading-none block truncate'
+                                className='text-xs font-semibold text-foreground cursor-pointer block truncate leading-tight'
                               >
                                 {child.name}
                               </label>
-                              <div className='flex items-center gap-1.5 text-[11px] text-muted-foreground font-mono truncate'>
-                                <IconRoute className='size-3 shrink-0' />
-                                <span className='truncate'>{child.routePath}</span>
+                              <div className='font-mono text-[10px] text-muted-foreground truncate'>
+                                {child.routePath}
                               </div>
-                              <div className='flex items-center gap-1 pt-1 flex-wrap'>
+                              <div>
                                 {!child.isEnabled ? (
-                                  <Badge
-                                    variant='outline'
-                                    className='text-[9px] px-1 py-0 border-destructive text-destructive'
-                                  >
-                                    Nonaktif di CMS
-                                  </Badge>
+                                  <span className='inline-block text-[9px] font-semibold text-destructive px-1 rounded bg-destructive/10'>
+                                    Nonaktif
+                                  </span>
                                 ) : !parent.isEnabled ? (
-                                  <Badge
-                                    variant='outline'
-                                    className='text-[9px] px-1 py-0 text-muted-foreground'
-                                  >
+                                  <span className='inline-block text-[9px] font-medium text-muted-foreground px-1 rounded bg-muted'>
                                     Induk Nonaktif
-                                  </Badge>
+                                  </span>
                                 ) : (
-                                  <Badge
-                                    variant='outline'
-                                    className='text-[9px] px-1 py-0 text-emerald-600 border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/20'
-                                  >
-                                    Aktif di CMS
-                                  </Badge>
+                                  <span className='inline-block text-[9px] font-semibold text-emerald-700 dark:text-emerald-300 px-1 rounded bg-emerald-50 dark:bg-emerald-950/30'>
+                                    Aktif
+                                  </span>
                                 )}
                               </div>
                             </div>
                           </div>
 
-                          {/* Individual child CMS toggle */}
+                          {/* Individual Child CMS Toggle */}
                           {canManage && (
                             <div className='shrink-0 pt-0.5'>
                               <Switch
@@ -313,38 +297,48 @@ function EditRolePagesForm({ role, onClose, canManage }: EditRolePagesFormProps)
                   </div>
                 </div>
               );
-            })}
-          </div>
-        )}
-      </ScrollArea>
-
-      <DialogFooter className='px-6 py-3 border-t bg-muted/10 shrink-0 flex items-center justify-between'>
-        <div className='text-xs text-muted-foreground'>
-          <span className='font-medium text-foreground'>{selectedPageIds.size}</span> halaman
-          dipilih
-        </div>
-        <div className='flex items-center gap-2'>
-          <Button
-            variant='outline'
-            size='sm'
-            onClick={onClose}
-            disabled={assignPagesMutation.isPending}
-          >
-            Tutup
-          </Button>
-          {canManage && (
-            <Button
-              size='sm'
-              onClick={handleSave}
-              disabled={assignPagesMutation.isPending || isLoading}
-              className='gap-1.5'
-            >
-              <IconCheck className='size-4' />
-              {assignPagesMutation.isPending ? 'Menyimpan...' : 'Simpan Hak Akses'}
-            </Button>
+            })
           )}
         </div>
-      </DialogFooter>
-    </DialogContent>
+
+        {/* Footer Navigation matching Appointment Reservation style */}
+        <div className='flex items-center justify-between shrink-0 pt-3 border-t border-border/40 mt-2'>
+          <span className='text-xs text-muted-foreground'>
+            <strong className='font-semibold text-foreground'>{selectedPageIds.size}</strong>{' '}
+            halaman dipilih
+          </span>
+
+          <div className='flex items-center gap-2'>
+            <Button
+              type='button'
+              variant='ghost'
+              size='md'
+              shape='pill'
+              onClick={onClose}
+              disabled={assignPagesMutation.isPending}
+            >
+              Tutup
+            </Button>
+
+            {canManage && (
+              <Button
+                type='button'
+                variant='primary'
+                size='md'
+                shape='pill'
+                onClick={handleSave}
+                disabled={assignPagesMutation.isPending || isLoading}
+                isLoading={assignPagesMutation.isPending}
+                withTrailingCircleIcon
+                trailingIcon={<Icons.check className='size-3 stroke-[2.5]' />}
+                className='min-w-[160px]'
+              >
+                {assignPagesMutation.isPending ? 'Menyimpan...' : 'Simpan Hak Akses'}
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    </ModalWrapper>
   );
 }

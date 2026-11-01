@@ -23,11 +23,12 @@ function StatusSwitchCell({ user }: { user: UserItem }) {
   };
 
   return (
-    <div className='flex items-center gap-2' onClick={(e) => e.stopPropagation()}>
+    <div className='flex items-center gap-2'>
       <Switch
         checked={isActive}
         disabled={mutation.isPending}
         onCheckedChange={handleToggle}
+        onClick={(e) => e.stopPropagation()}
         aria-label={`Ubah status ${user.name}`}
       />
       <span className='text-xs font-medium'>

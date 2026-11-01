@@ -3,10 +3,14 @@
 import * as React from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { Icons } from '@/components/icons';
+import { useStateSearchEngine, type SearchEngineResultItem } from '@/components/search-engine';
 import { roleManagementApi } from '../api/role-management.api';
 import { roleManagementKeys } from '../api/query-keys';
 import type { Permission, Role } from '../types/role.types';
 import type { AudienceType, RoleTierType } from '@/core/auth/permissions.constants';
+
+export type UseStateSearchEngineReturn = ReturnType<typeof useStateSearchEngine>;
 
 export interface UseRoleManagementViewResult {
   roles: Role[];
@@ -15,6 +19,7 @@ export interface UseRoleManagementViewResult {
   isLoading: boolean;
   isRefetching: boolean;
   searchQuery: string;
+  searchEngine: UseStateSearchEngineReturn;
   tierFilter: 'all' | RoleTierType;
   audienceFilter: 'all' | AudienceType;
   clinicalFilter: 'all' | 'clinical' | 'operational';
@@ -102,8 +107,7 @@ export function useRoleManagementView(): UseRoleManagementViewResult {
         );
         queryClient.invalidateQueries({ queryKey: roleManagementKeys.roles() });
       } catch (err: unknown) {
-        const message =
-          err instanceof Error ? err.message : 'Gagal memperbarui status aktif peran';
+        const message = err instanceof Error ? err.message : 'Gagal memperbarui status aktif peran';
         toast.error(message);
       } finally {
         setTogglingRoleId(null);
@@ -146,6 +150,25 @@ export function useRoleManagementView(): UseRoleManagementViewResult {
     });
   }, [roles, searchQuery, tierFilter, audienceFilter, clinicalFilter]);
 
+  const indexItems = React.useMemo<SearchEngineResultItem[]>(() => {
+    return roles.map((role) => ({
+      id: `role-${role.id}`,
+      title: role.name,
+      subtitle: `${role.code} • ${role.tier} • ${role.audience}`,
+      category: 'Peran',
+      icon: Icons.users,
+      queryValue: `${role.name} ${role.code}`
+    }));
+  }, [roles]);
+
+  const searchEngine = useStateSearchEngine({
+    query: searchQuery,
+    onQueryChange: setSearchQuery,
+    id: 'role-management-search',
+    placeholder: 'Pencarian Peran...',
+    indexItems
+  });
+
   return {
     roles,
     filteredRoles,
@@ -153,6 +176,7 @@ export function useRoleManagementView(): UseRoleManagementViewResult {
     isLoading: isLoadingRoles,
     isRefetching,
     searchQuery,
+    searchEngine,
     tierFilter,
     audienceFilter,
     clinicalFilter,

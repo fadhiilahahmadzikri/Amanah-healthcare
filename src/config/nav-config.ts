@@ -129,13 +129,6 @@ export const navGroups: NavGroup[] = [
         icon: 'notification',
         shortcut: ['n', 'a'],
         access: { audience: AUDIENCE.INTERNAL, permission: PERMISSIONS.NOTIFICATIONS.READ }
-      },
-      {
-        title: 'Pengaturan Sistem',
-        url: '/admin/settings',
-        icon: 'settings',
-        shortcut: ['s', 't'],
-        access: { audience: AUDIENCE.INTERNAL, permission: PERMISSIONS.CLINICS.MANAGE }
       }
     ]
   },

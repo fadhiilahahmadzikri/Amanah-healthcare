@@ -34,6 +34,7 @@ import { useStaffManagementPresenter } from '../model/useStaffManagementPresente
 import { StaffManagementToolbar } from './staff-management-toolbar';
 import { StaffScheduleCard } from './staff-schedule-card';
 import { StaffRoleBadge, StaffInvitationStatusBadge } from './staff-card-atoms';
+import { StaffInvitationMobileCards } from './staff-invitation-mobile-cards';
 import { StaffKanbanBoard } from './kanban';
 import { InviteStaffModal } from './invite-staff-modal';
 import { StaffRosterModal } from './staff-roster-modal';
@@ -103,6 +104,8 @@ export function StaffManagementView() {
           onViewModeChange={view.actions.changeViewMode}
           onInviteStaff={canInviteStaff ? inviteModal.open : undefined}
           onRefresh={() => void view.refetch()}
+          activeTab={view.activeTab}
+          onActiveTabChange={view.actions.changeTab}
         />
 
         {/* Tab 1: Daftar Staf (Dual Mode: Kanban Board vs Responsive Grid) */}
@@ -213,60 +216,76 @@ export function StaffManagementView() {
                     }
                   />
                 ) : (
-                  <div className='rounded-xl border border-border overflow-hidden bg-card'>
-                    <Table>
-                      <TableHeader className='bg-muted/40'>
-                        <TableRow>
-                          <TableHead className='font-semibold text-xs'>Email Calon Staf</TableHead>
-                          <TableHead className='font-semibold text-xs'>Peran Ditugaskan</TableHead>
-                          <TableHead className='font-semibold text-xs'>Status</TableHead>
-                          <TableHead className='font-semibold text-xs'>Kedaluwarsa</TableHead>
-                          <TableHead className='font-semibold text-xs'>Tanggal Kirim</TableHead>
-                          <TableHead className='text-right font-semibold text-xs'>Aksi</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody className='divide-y divide-border/40'>
-                        {view.filteredInvitations.map((inv) => (
-                          <TableRow key={inv.id} className='hover:bg-muted/20'>
-                            <TableCell className='font-medium text-xs'>{inv.email}</TableCell>
-                            <TableCell>
-                              <StaffRoleBadge roleCode={inv.roleCode} />
-                            </TableCell>
-                            <TableCell>
-                              <StaffInvitationStatusBadge status={inv.status} />
-                            </TableCell>
-                            <TableCell className='text-xs text-muted-foreground font-mono'>
-                              {new Date(inv.expiresAt).toLocaleDateString('id-ID', {
-                                day: 'numeric',
-                                month: 'short',
-                                year: 'numeric'
-                              })}
-                            </TableCell>
-                            <TableCell className='text-xs text-muted-foreground font-mono'>
-                              {new Date(inv.createdAt).toLocaleDateString('id-ID', {
-                                day: 'numeric',
-                                month: 'short',
-                                year: 'numeric'
-                              })}
-                            </TableCell>
-                            <TableCell className='text-right'>
-                              {inv.status === STAFF_INVITATION_STATUS.PENDING && (
-                                <Button
-                                  variant='ghost'
-                                  size='sm'
-                                  disabled={revoke.isRevoking}
-                                  onClick={() => revoke.requestRevoke(inv.id, inv.email)}
-                                  className='h-7 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10'
-                                >
-                                  Batalkan
-                                </Button>
-                              )}
-                            </TableCell>
+                  <>
+                    {/* Desktop View: Table */}
+                    <div className='hidden md:block rounded-xl border border-border overflow-hidden bg-card'>
+                      <Table>
+                        <TableHeader className='bg-muted/40'>
+                          <TableRow>
+                            <TableHead className='font-semibold text-xs'>
+                              Email Calon Staf
+                            </TableHead>
+                            <TableHead className='font-semibold text-xs'>
+                              Peran Ditugaskan
+                            </TableHead>
+                            <TableHead className='font-semibold text-xs'>Status</TableHead>
+                            <TableHead className='font-semibold text-xs'>Kedaluwarsa</TableHead>
+                            <TableHead className='font-semibold text-xs'>Tanggal Kirim</TableHead>
+                            <TableHead className='text-right font-semibold text-xs'>Aksi</TableHead>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
+                        </TableHeader>
+                        <TableBody className='divide-y divide-border/40'>
+                          {view.filteredInvitations.map((inv) => (
+                            <TableRow key={inv.id} className='hover:bg-muted/20'>
+                              <TableCell className='font-medium text-xs'>{inv.email}</TableCell>
+                              <TableCell>
+                                <StaffRoleBadge roleCode={inv.roleCode} />
+                              </TableCell>
+                              <TableCell>
+                                <StaffInvitationStatusBadge status={inv.status} />
+                              </TableCell>
+                              <TableCell className='text-xs text-muted-foreground font-mono'>
+                                {new Date(inv.expiresAt).toLocaleDateString('id-ID', {
+                                  day: 'numeric',
+                                  month: 'short',
+                                  year: 'numeric'
+                                })}
+                              </TableCell>
+                              <TableCell className='text-xs text-muted-foreground font-mono'>
+                                {new Date(inv.createdAt).toLocaleDateString('id-ID', {
+                                  day: 'numeric',
+                                  month: 'short',
+                                  year: 'numeric'
+                                })}
+                              </TableCell>
+                              <TableCell className='text-right'>
+                                {inv.status === STAFF_INVITATION_STATUS.PENDING && (
+                                  <Button
+                                    variant='ghost'
+                                    size='sm'
+                                    disabled={revoke.isRevoking}
+                                    onClick={() => revoke.requestRevoke(inv.id, inv.email)}
+                                    className='h-7 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10'
+                                  >
+                                    Batalkan
+                                  </Button>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    {/* Mobile View: Minimalist Responsive Cards */}
+                    <div className='block md:hidden space-y-3'>
+                      <StaffInvitationMobileCards
+                        invitations={view.filteredInvitations}
+                        onRevoke={(id, email) => revoke.requestRevoke(id, email)}
+                        isRevoking={revoke.isRevoking}
+                      />
+                    </div>
+                  </>
                 )}
               </div>
             </ScrollArea>

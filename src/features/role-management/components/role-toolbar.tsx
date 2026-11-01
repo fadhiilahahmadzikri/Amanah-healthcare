@@ -1,16 +1,14 @@
 'use client';
 
 import * as React from 'react';
-import { IconPlus, IconRefresh, IconSearch } from '@tabler/icons-react';
+import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useSidebar } from '@/components/ui/sidebar';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
+  ResponsiveFacetToolbox,
+  type FacetGroupDefinition
+} from '@/shared/ui/responsive-facet-toolbox';
 import {
   AUDIENCE,
   ROLE_TIER,
@@ -21,6 +19,7 @@ import {
 export interface RoleToolbarProps {
   searchQuery: string;
   onSearchChange: (value: string) => void;
+  onOpenSearchDialog?: () => void;
   tierFilter: 'all' | RoleTierType;
   onTierFilterChange: (value: 'all' | RoleTierType) => void;
   audienceFilter: 'all' | AudienceType;
@@ -30,11 +29,13 @@ export interface RoleToolbarProps {
   onRefresh: () => void;
   isRefetching: boolean;
   onAddClick?: () => void;
+  isCompact?: boolean;
 }
 
 export function RoleToolbar({
   searchQuery,
   onSearchChange,
+  onOpenSearchDialog,
   tierFilter,
   onTierFilterChange,
   audienceFilter,
@@ -43,76 +44,138 @@ export function RoleToolbar({
   onClinicalFilterChange,
   onRefresh,
   isRefetching,
-  onAddClick
+  onAddClick,
+  isCompact: isCompactProp
 }: RoleToolbarProps) {
-  return (
-    <div className='flex flex-col gap-3'>
-      <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3'>
-        <div className='relative flex-1 max-w-sm'>
-          <IconSearch className='absolute left-3 top-2.5 size-4 text-muted-foreground' />
-          <Input
-            placeholder='Cari peran...'
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className='pl-9 h-9 text-xs'
-          />
-        </div>
+  const { state: sidebarState } = useSidebar();
+  const isSidebarExpanded = sidebarState === 'expanded';
 
-        <div className='flex items-center gap-2'>
+  const { isOpen: isUnder1024 } = useMediaQuery('(max-width: 1024px)');
+  const { isOpen: isUnder1280 } = useMediaQuery('(max-width: 1280px)');
+  const isCompact = isCompactProp ?? (isUnder1024 || (isUnder1280 && isSidebarExpanded));
+
+  const facetGroups = React.useMemo<FacetGroupDefinition[]>(() => {
+    return [
+      {
+        id: 'tier',
+        title: 'Tier',
+        icon: Icons.layers,
+        mode: 'single',
+        options: [
+          { label: 'Macro', value: ROLE_TIER.MACRO },
+          { label: 'Micro', value: ROLE_TIER.MICRO }
+        ],
+        selectedValues: tierFilter !== 'all' ? [tierFilter] : [],
+        onSelect: (val) => onTierFilterChange(val === tierFilter ? 'all' : (val as RoleTierType)),
+        onReset: () => onTierFilterChange('all'),
+        popoverWidth: 'w-44',
+        resetLabel: 'Semua Tier'
+      },
+      {
+        id: 'audience',
+        title: 'Audience',
+        icon: Icons.users,
+        mode: 'single',
+        options: [
+          { label: 'Internal', value: AUDIENCE.INTERNAL },
+          { label: 'Eksternal', value: AUDIENCE.EXTERNAL }
+        ],
+        selectedValues: audienceFilter !== 'all' ? [audienceFilter] : [],
+        onSelect: (val) =>
+          onAudienceFilterChange(val === audienceFilter ? 'all' : (val as AudienceType)),
+        onReset: () => onAudienceFilterChange('all'),
+        popoverWidth: 'w-48',
+        resetLabel: 'Semua Audience'
+      },
+      {
+        id: 'clinical',
+        title: 'Sifat',
+        icon: Icons.activity,
+        mode: 'single',
+        options: [
+          { label: 'Klinis', value: 'clinical' },
+          { label: 'Operasional', value: 'operational' }
+        ],
+        selectedValues: clinicalFilter !== 'all' ? [clinicalFilter] : [],
+        onSelect: (val) =>
+          onClinicalFilterChange(
+            val === clinicalFilter ? 'all' : (val as 'clinical' | 'operational')
+          ),
+        onReset: () => onClinicalFilterChange('all'),
+        popoverWidth: 'w-48',
+        resetLabel: 'Semua Sifat'
+      }
+    ];
+  }, [
+    tierFilter,
+    audienceFilter,
+    clinicalFilter,
+    onTierFilterChange,
+    onAudienceFilterChange,
+    onClinicalFilterChange
+  ]);
+
+  const isFiltered =
+    Boolean(searchQuery.trim()) ||
+    tierFilter !== 'all' ||
+    audienceFilter !== 'all' ||
+    clinicalFilter !== 'all';
+
+  const activeFilterCount = [
+    tierFilter !== 'all',
+    audienceFilter !== 'all',
+    clinicalFilter !== 'all'
+  ].filter(Boolean).length;
+
+  const handleResetAll = React.useCallback(() => {
+    onSearchChange('');
+    onTierFilterChange('all');
+    onAudienceFilterChange('all');
+    onClinicalFilterChange('all');
+  }, [onSearchChange, onTierFilterChange, onAudienceFilterChange, onClinicalFilterChange]);
+
+  return (
+    <ResponsiveFacetToolbox
+      searchQuery={searchQuery}
+      onSearchChange={onSearchChange}
+      onOpenSearchDialog={onOpenSearchDialog}
+      searchPlaceholder='Pencarian Peran...'
+      facets={facetGroups}
+      isFiltered={isFiltered}
+      onResetAll={handleResetAll}
+      activeFilterCount={activeFilterCount}
+      isCompact={isCompact}
+      extraRightSlot={
+        <div className='flex items-center gap-1.5 sm:gap-2 shrink-0'>
           <Button
+            type='button'
             variant='outline'
-            size='sm'
+            size={isCompact ? 'icon' : 'sm'}
             onClick={onRefresh}
             disabled={isRefetching}
-            className='h-9 text-xs'
+            className={isCompact ? 'size-8 rounded-md shrink-0' : 'h-8 text-xs font-medium gap-1.5'}
+            title='Segarkan data peran'
           >
-            <IconRefresh className={`size-3.5 mr-1.5 ${isRefetching ? 'animate-spin' : ''}`} />
-            Segarkan
+            <Icons.refresh className={`size-3.5 ${isRefetching ? 'animate-spin' : ''}`} />
+            {!isCompact && <span>Segarkan</span>}
           </Button>
 
           {onAddClick && (
-            <Button size='sm' onClick={onAddClick} className='h-9 text-xs gap-1.5 font-medium'>
-              <IconPlus className='size-4' />
-              Tambah Peran
+            <Button
+              type='button'
+              size={isCompact ? 'icon' : 'sm'}
+              onClick={onAddClick}
+              className={
+                isCompact ? 'size-8 rounded-md shrink-0' : 'h-8 text-xs font-medium gap-1.5'
+              }
+              title='Tambah Peran'
+            >
+              <Icons.plus className='size-3.5' />
+              {!isCompact && <span>Tambah Peran</span>}
             </Button>
           )}
         </div>
-      </div>
-
-      <div className='flex flex-wrap items-center gap-2 pt-1'>
-        <Select value={tierFilter} onValueChange={onTierFilterChange}>
-          <SelectTrigger className='w-[130px] h-8 text-xs'>
-            <SelectValue placeholder='Tier' />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='all'>Semua Tier</SelectItem>
-            <SelectItem value={ROLE_TIER.MACRO}>Macro</SelectItem>
-            <SelectItem value={ROLE_TIER.MICRO}>Micro</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={audienceFilter} onValueChange={onAudienceFilterChange}>
-          <SelectTrigger className='w-[140px] h-8 text-xs'>
-            <SelectValue placeholder='Audience' />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='all'>Semua Audience</SelectItem>
-            <SelectItem value={AUDIENCE.INTERNAL}>Internal</SelectItem>
-            <SelectItem value={AUDIENCE.EXTERNAL}>Eksternal</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select value={clinicalFilter} onValueChange={onClinicalFilterChange}>
-          <SelectTrigger className='w-[140px] h-8 text-xs'>
-            <SelectValue placeholder='Sifat' />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='all'>Semua Sifat</SelectItem>
-            <SelectItem value='clinical'>Klinis</SelectItem>
-            <SelectItem value='operational'>Operasional</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
+      }
+    />
   );
 }

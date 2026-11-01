@@ -110,15 +110,12 @@ export function UserRestoreDialog({ isOpen, onClose, drivers }: UserRestoreDialo
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className='max-w-lg'>
-        <DialogHeader>
-          <div className='flex items-center gap-2 text-primary'>
-            <Icons.download className='size-5' />
-            <DialogTitle className='text-base font-semibold'>
-              Pulihkan Data Pengguna (Restore)
-            </DialogTitle>
-          </div>
-          <DialogDescription className='text-xs pt-1'>
+      <DialogContent className='max-w-lg rounded-2xl border border-border shadow-2xl'>
+        <DialogHeader className='text-left pb-3 border-b border-border/40'>
+          <DialogTitle className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
+            Pulihkan Data Pengguna (Restore)
+          </DialogTitle>
+          <DialogDescription className='text-xs text-muted-foreground pt-1'>
             Unggah berkas cadangan (JSON, CSV, atau SQL). Sistem akan memvalidasi struktur data dan
             relasi peran sebelum mengeksekusi pemulihan.
           </DialogDescription>
@@ -127,8 +124,12 @@ export function UserRestoreDialog({ isOpen, onClose, drivers }: UserRestoreDialo
         <div className='space-y-4 py-2 text-xs'>
           {/* File Picker */}
           <div className='space-y-1.5'>
-            <Label className='text-xs font-semibold'>Pilih Berkas Cadangan</Label>
+            <Label htmlFor='user-backup-file-input' className='text-xs font-semibold'>
+              Pilih Berkas Cadangan
+            </Label>
             <input
+              id='user-backup-file-input'
+              aria-label='Pilih Berkas Cadangan'
               type='file'
               accept='.json,.csv,.sql'
               onChange={handleFileChange}
@@ -264,25 +265,35 @@ export function UserRestoreDialog({ isOpen, onClose, drivers }: UserRestoreDialo
           )}
         </div>
 
-        <DialogFooter className='gap-2 sm:gap-0'>
-          <Button variant='outline' onClick={handleClose} disabled={restoreMutation.isPending}>
+        <DialogFooter className='shrink-0 pt-3.5 border-t border-border/40 flex flex-row items-center justify-end gap-2.5'>
+          <Button
+            type='button'
+            variant='outline'
+            size='card-action'
+            shape='pill'
+            className='px-5 font-semibold cursor-pointer'
+            onClick={handleClose}
+            disabled={restoreMutation.isPending}
+          >
             Batal
           </Button>
           <Button
+            type='button'
+            variant='default'
+            size='card-action'
+            shape='pill'
+            withTrailingCircleIcon
             disabled={!preview || restoreMutation.isPending}
             onClick={handleExecuteRestore}
-            className='gap-1.5 cursor-pointer shadow-xs'
+            className='font-bold shadow-2xs cursor-pointer'
           >
             {restoreMutation.isPending ? (
-              <>
-                <Icons.spinner className='size-4 animate-spin' />
-                <span>Memulihkan...</span>
-              </>
+              <span className='inline-flex items-center gap-1.5'>
+                <Icons.spinner className='size-3.5 animate-spin' />
+                Memulihkan...
+              </span>
             ) : (
-              <>
-                <Icons.check className='size-4' />
-                <span>Eksekusi Pemulihan</span>
-              </>
+              'Eksekusi Pemulihan'
             )}
           </Button>
         </DialogFooter>
