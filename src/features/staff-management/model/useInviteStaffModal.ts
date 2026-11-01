@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, type FormEvent } from 'react';
+import { useState, useCallback, useEffect, type FormEvent } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useInviteStaffUniversalMutation } from '../api/mutations';
@@ -13,13 +13,21 @@ export interface UseInviteStaffModalProps {
   onSuccess?: () => void;
 }
 
+export type InviteWizardStep = 'email' | 'name' | 'role' | 'position' | 'unit' | 'result';
+
 export interface UseInviteStaffModalResult {
+  step: InviteWizardStep;
+  setStep: (step: InviteWizardStep) => void;
   email: string;
   setEmail: (email: string) => void;
+  isEmailValid: boolean;
   fullName: string;
   setFullName: (name: string) => void;
   selectedRoleId: string;
   setSelectedRoleId: (roleId: string) => void;
+  handleRoleSelect: (roleId: string) => void;
+  positionTitle: string;
+  setPositionTitle: (title: string) => void;
   selectedPoliklinikId: string;
   setSelectedPoliklinikId: (poliId: string) => void;
   selectedUnitId: string;
@@ -39,7 +47,7 @@ export interface UseInviteStaffModalResult {
   } | null;
   copied: boolean;
   copyCredentials: () => void;
-  handleSubmit: (e: FormEvent) => Promise<void>;
+  handleSubmit: (e?: FormEvent) => Promise<void>;
   handleFinish: () => void;
 }
 
@@ -48,9 +56,12 @@ export function useInviteStaffModal({
   onClose,
   onSuccess
 }: UseInviteStaffModalProps): UseInviteStaffModalResult {
+  const [step, setStep] = useState<InviteWizardStep>('email');
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
   const [selectedRoleId, setSelectedRoleId] = useState('');
+  const [positionTitle, setPositionTitle] = useState('');
+  const [isPositionManuallyEdited, setIsPositionManuallyEdited] = useState(false);
   const [selectedPoliklinikId, setSelectedPoliklinikId] = useState('');
   const [selectedUnitId, setSelectedUnitId] = useState('');
   const [copied, setCopied] = useState(false);
@@ -60,6 +71,21 @@ export function useInviteStaffModal({
     loginUrl: string;
     roleName: string;
   } | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setStep('email');
+      setEmail('');
+      setFullName('');
+      setSelectedRoleId('');
+      setPositionTitle('');
+      setIsPositionManuallyEdited(false);
+      setSelectedPoliklinikId('');
+      setSelectedUnitId('');
+      setCopied(false);
+      setCredentialResult(null);
+    }
+  }, [isOpen]);
 
   const { data: optionsData, isLoading: isOptionsLoading } = useQuery({
     ...invitationOptionsQueryOptions(),
@@ -74,6 +100,30 @@ export function useInviteStaffModal({
   const selectedRole = roles.find((r) => r.id === effectiveRoleId);
   const isClinical = selectedRole?.isClinical ?? false;
 
+  useEffect(() => {
+    if (selectedRole && !positionTitle && !isPositionManuallyEdited) {
+      setPositionTitle(selectedRole.name);
+    }
+  }, [selectedRole, positionTitle, isPositionManuallyEdited]);
+
+  const handleRoleSelect = useCallback(
+    (roleId: string) => {
+      setSelectedRoleId(roleId);
+      const role = roles.find((r) => r.id === roleId);
+      if (role && !isPositionManuallyEdited) {
+        setPositionTitle(role.name);
+      }
+    },
+    [roles, isPositionManuallyEdited]
+  );
+
+  const handlePositionTitleChange = useCallback((value: string) => {
+    setPositionTitle(value);
+    setIsPositionManuallyEdited(true);
+  }, []);
+
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+
   const inviteMutation = useInviteStaffUniversalMutation();
 
   const copyCredentials = useCallback(() => {
@@ -87,8 +137,8 @@ export function useInviteStaffModal({
   }, [credentialResult]);
 
   const handleSubmit = useCallback(
-    async (e: FormEvent) => {
-      e.preventDefault();
+    async (e?: FormEvent) => {
+      e?.preventDefault();
       const trimmedEmail = email.trim().toLowerCase();
       if (!trimmedEmail) {
         toast.error('Harap masukkan alamat email calon staf.');
@@ -111,7 +161,8 @@ export function useInviteStaffModal({
           fullName: fullName.trim() || undefined,
           roleId: effectiveRoleId,
           poliklinikId: isClinical ? selectedPoliklinikId : null,
-          unitId: isClinical ? selectedPoliklinikId : selectedUnitId || null
+          unitId: isClinical ? selectedPoliklinikId : selectedUnitId || null,
+          positionTitle: positionTitle.trim() || selectedRole?.name || undefined
         });
 
         setCredentialResult({
@@ -120,6 +171,7 @@ export function useInviteStaffModal({
           loginUrl: res.loginUrl,
           roleName: selectedRole?.name || 'Staf Klinik'
         });
+        setStep('result');
         onSuccess?.();
       } catch {
         // Handled by mutation onError toast
@@ -132,6 +184,7 @@ export function useInviteStaffModal({
       isClinical,
       selectedPoliklinikId,
       selectedUnitId,
+      positionTitle,
       inviteMutation,
       selectedRole?.name,
       onSuccess
@@ -140,9 +193,12 @@ export function useInviteStaffModal({
 
   const handleFinish = useCallback(() => {
     setCredentialResult(null);
+    setStep('email');
     setEmail('');
     setFullName('');
     setSelectedRoleId('');
+    setPositionTitle('');
+    setIsPositionManuallyEdited(false);
     setSelectedPoliklinikId('');
     setSelectedUnitId('');
     setCopied(false);
@@ -150,12 +206,18 @@ export function useInviteStaffModal({
   }, [onClose]);
 
   return {
+    step,
+    setStep,
     email,
     setEmail,
+    isEmailValid,
     fullName,
     setFullName,
     selectedRoleId: effectiveRoleId,
     setSelectedRoleId,
+    handleRoleSelect,
+    positionTitle,
+    setPositionTitle: handlePositionTitleChange,
     selectedPoliklinikId,
     setSelectedPoliklinikId,
     selectedUnitId,

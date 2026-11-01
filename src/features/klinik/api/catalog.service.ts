@@ -1,39 +1,12 @@
 import { clientFetch } from '@/lib/client-fetch';
+import {
+  ServiceCatalogResponseSchema,
+  type ServiceCatalogItem,
+  type ServiceCategoryCatalog,
+  type ServiceCatalogResponse
+} from '../schemas/service-catalog.schema';
 
-export interface ServiceCatalogItem {
-  id: string;
-  code: string;
-  name: string;
-  prefix: string;
-  description?: string | null;
-  iconName?: string | null;
-  specialtyCode?: string | null;
-  intakeFormId?: string | null;
-  intakeFormCode?: string | null;
-  intakeFormName?: string | null;
-  displayOrder: number;
-  categoryId?: string;
-  poliklinikId: string;
-  poliklinikName: string;
-  complaints: string[];
-}
-
-export interface ServiceCategoryCatalog {
-  id: string;
-  code: string;
-  name: string;
-  description?: string | null;
-  iconName?: string | null;
-  displayOrder: number;
-  poliklinikId: string;
-  poliklinikName: string;
-  services: ServiceCatalogItem[];
-}
-
-export interface ServiceCatalogResponse {
-  success: boolean;
-  categories: ServiceCategoryCatalog[];
-}
+export type { ServiceCatalogItem, ServiceCategoryCatalog, ServiceCatalogResponse };
 
 class CatalogService {
   private cache: ServiceCategoryCatalog[] | null = null;
@@ -50,11 +23,13 @@ class CatalogService {
 
     this.cachePromise = (async () => {
       try {
-        const res = await clientFetch<ServiceCatalogResponse>('/api/v1/clinics/services/catalog', {
+        const rawRes = await clientFetch<unknown>('/api/v1/clinics/services/catalog', {
           method: 'GET'
         });
 
-        const rawList = res.categories ?? [];
+        // Strict Zod runtime contract validation (fail-fast SSOT)
+        const parsed = ServiceCatalogResponseSchema.parse(rawRes);
+        const rawList = parsed.categories ?? [];
         const validCategories = rawList.filter(
           (c) => Array.isArray(c.services) && c.services.length > 0
         );

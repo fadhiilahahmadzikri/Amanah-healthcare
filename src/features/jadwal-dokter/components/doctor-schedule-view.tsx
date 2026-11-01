@@ -82,43 +82,41 @@ export function DoctorScheduleView() {
       />
 
       <div className='flex h-full min-h-0 flex-1 flex-col gap-4 select-none'>
-        {(scheduleView.totalDoctors > 0 || scheduleView.hasActiveFilters) && (
-          <ResponsiveFacetToolbox
-            searchQuery={scheduleView.searchQuery}
-            onSearchChange={scheduleView.actions.changeSearch}
-            searchPlaceholder='Pencarian Praktisi...'
-            onOpenSearchDialog={searchEngine.open}
-            dateFilter={{
-              label: 'Tanggal',
-              selectedDate: scheduleView.dateFilter,
-              onSelectDate: scheduleView.actions.changeDateFilter,
-              defaultDate: today,
-              resetLabel: 'Kembali ke Hari Ini'
-            }}
-            facets={facetGroups}
-            isFiltered={scheduleView.hasActiveFilters}
-            onResetAll={() => {
-              searchEngine.clearQuery();
-              scheduleView.actions.resetFilters();
-            }}
-            activeFilterCount={activeFilterCount}
-            isCompact={isCompact}
-            extraRightSlot={
-              <div className='flex items-center gap-1.5 sm:gap-2 shrink-0'>
-                <DoctorScheduleSettingsButton
-                  onSelectCategory={actions.openConfiguration}
-                  forceMode={isCompact ? 'drawer' : undefined}
-                  className={isCompact ? 'size-8 rounded-md' : 'h-8 w-8'}
-                />
-                <DoctorExportButton
-                  data={scheduleView.doctors}
-                  variant={isCompact ? 'icon' : 'full'}
-                  className={isCompact ? 'size-8 rounded-md' : undefined}
-                />
-              </div>
-            }
-          />
-        )}
+        <ResponsiveFacetToolbox
+          searchQuery={scheduleView.searchQuery}
+          onSearchChange={scheduleView.actions.changeSearch}
+          searchPlaceholder='Pencarian Praktisi...'
+          onOpenSearchDialog={searchEngine.open}
+          dateFilter={{
+            label: 'Tanggal',
+            selectedDate: scheduleView.dateFilter,
+            onSelectDate: scheduleView.actions.changeDateFilter,
+            defaultDate: today,
+            resetLabel: 'Kembali ke Hari Ini'
+          }}
+          facets={facetGroups}
+          isFiltered={scheduleView.hasActiveFilters}
+          onResetAll={() => {
+            searchEngine.clearQuery();
+            scheduleView.actions.resetFilters();
+          }}
+          activeFilterCount={activeFilterCount}
+          isCompact={isCompact}
+          extraRightSlot={
+            <div className='flex items-center gap-1.5 sm:gap-2 shrink-0'>
+              <DoctorScheduleSettingsButton
+                onSelectCategory={actions.openConfiguration}
+                forceMode={isCompact ? 'drawer' : undefined}
+                className={isCompact ? 'size-8 rounded-md' : 'h-8 w-8'}
+              />
+              <DoctorExportButton
+                data={scheduleView.doctors}
+                variant={isCompact ? 'icon' : 'full'}
+                className={isCompact ? 'size-8 rounded-md' : undefined}
+              />
+            </div>
+          }
+        />
 
         <div className='relative flex flex-1 min-h-0 flex-col overflow-hidden'>
           {scheduleView.isLoading && scheduleView.doctors.length === 0 ? (
@@ -133,8 +131,16 @@ export function DoctorScheduleView() {
             <div className='flex flex-1 min-h-0 h-full w-full flex-col'>
               <EmptyState
                 icon={Icons.calendar}
-                title='Tidak ada jadwal praktisi ditemukan'
-                description='Belum ada jadwal praktisi yang tersedia atau silakan sesuaikan kata kunci pencarian dan filter aktif Anda.'
+                title={
+                  scheduleView.hasActiveFilters
+                    ? 'Tidak ada jadwal praktisi ditemukan'
+                    : 'Belum Ada Jadwal Praktisi'
+                }
+                description={
+                  scheduleView.hasActiveFilters
+                    ? 'Tidak ada jadwal praktisi yang cocok dengan kriteria filter atau kata kunci yang dipilih.'
+                    : 'Belum ada jadwal dinas praktisi medis yang terdaftar di klinik.'
+                }
                 action={
                   scheduleView.hasActiveFilters ? (
                     <Button
@@ -145,7 +151,16 @@ export function DoctorScheduleView() {
                     >
                       Reset Filter
                     </Button>
-                  ) : undefined
+                  ) : (
+                    <Button
+                      size='sm'
+                      onClick={() => actions.openConfiguration('session_defs')}
+                      className='text-xs gap-1.5'
+                    >
+                      <Icons.settings className='h-3.5 w-3.5' />
+                      Atur Sesi & Jadwal
+                    </Button>
+                  )
                 }
                 className='h-full w-full flex-1'
               />

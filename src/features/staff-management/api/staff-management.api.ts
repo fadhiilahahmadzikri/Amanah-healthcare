@@ -151,6 +151,7 @@ export interface InviteStaffUniversalPayload {
   poliklinikId?: string | null;
   unitId?: string | null;
   fullName?: string;
+  positionTitle?: string;
 }
 
 export interface InviteStaffUniversalResponse {

@@ -25,12 +25,17 @@ import {
 import { clinicEssentialsApi } from '../../api/clinic-essentials.api';
 import { clinicEssentialsKeys } from '../../api/query-keys';
 import { createUnitTypeSchema } from '../../schemas/clinic-essentials.schema';
-import type { FacilityUnitType, CreateUnitTypePayload } from '../../types/clinic-essentials.types';
+import type {
+  FacilityUnitType,
+  CreateUnitTypePayload,
+  UpdateUnitTypePayload
+} from '../../types/clinic-essentials.types';
 
 export interface CreateUnitTypeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated?: (unitType: FacilityUnitType) => void;
+  editItem?: FacilityUnitType | null;
 }
 
 const COMMON_ICONS = [
@@ -45,7 +50,8 @@ const COMMON_ICONS = [
 export function CreateUnitTypeDialog({
   open,
   onOpenChange,
-  onCreated
+  onCreated,
+  editItem
 }: CreateUnitTypeDialogProps) {
   const queryClient = useQueryClient();
 
@@ -53,6 +59,22 @@ export function CreateUnitTypeDialog({
   const [code, setCode] = React.useState('');
   const [description, setDescription] = React.useState('');
   const [iconName, setIconName] = React.useState('building-2');
+
+  const isEditing = Boolean(editItem);
+
+  React.useEffect(() => {
+    if (editItem) {
+      setName(editItem.name);
+      setCode(editItem.code);
+      setDescription(editItem.description || '');
+      setIconName(editItem.iconName || 'building-2');
+    } else {
+      setName('');
+      setCode('');
+      setDescription('');
+      setIconName('building-2');
+    }
+  }, [editItem, open]);
 
   const createMutation = useMutation({
     mutationFn: (payload: CreateUnitTypePayload) => clinicEssentialsApi.createUnitType(payload),
@@ -68,6 +90,22 @@ export function CreateUnitTypeDialog({
     }
   });
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: UpdateUnitTypePayload }) =>
+      clinicEssentialsApi.updateUnitType(id, payload),
+    onSuccess: (data) => {
+      toast.success(`Tipe unit '${data.name}' berhasil diperbarui.`);
+      queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.unitTypes() });
+      handleClose();
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Gagal memperbarui tipe unit';
+      toast.error(msg);
+    }
+  });
+
+  const isPending = createMutation.isPending || updateMutation.isPending;
+
   const handleClose = () => {
     setName('');
     setCode('');
@@ -78,7 +116,7 @@ export function CreateUnitTypeDialog({
 
   const handleNameChange = (val: string) => {
     setName(val);
-    if (!code || code === name.toLowerCase().replace(/[^a-z0-9_]/g, '_')) {
+    if (!isEditing && (!code || code === name.toLowerCase().replace(/[^a-z0-9_]/g, '_'))) {
       setCode(
         val
           .toLowerCase()
@@ -105,7 +143,19 @@ export function CreateUnitTypeDialog({
       return;
     }
 
-    createMutation.mutate(result.data);
+    if (isEditing && editItem) {
+      updateMutation.mutate({
+        id: editItem.id,
+        payload: {
+          name: result.data.name,
+          code: result.data.code,
+          description: result.data.description,
+          iconName: result.data.iconName
+        }
+      });
+    } else {
+      createMutation.mutate(result.data);
+    }
   };
 
   return (
@@ -113,9 +163,11 @@ export function CreateUnitTypeDialog({
       <DialogContent className='max-w-md'>
         <form onSubmit={handleSubmit}>
           <DialogHeader className='pb-4 border-b'>
-            <DialogTitle>Tambah Tipe Unit</DialogTitle>
+            <DialogTitle>{isEditing ? 'Edit Tipe Unit Fasilitas' : 'Tambah Tipe Unit'}</DialogTitle>
             <DialogDescription>
-              Daftarkan master klasifikasi tipe unit fasilitas baru (misal: Poliklinik Rawat Jalan, Ruang Rawat Inap, Departemen Medis).
+              {isEditing
+                ? 'Perbarui definisi master klasifikasi tipe unit fasilitas.'
+                : 'Daftarkan master klasifikasi tipe unit fasilitas baru (misal: Poliklinik Rawat Jalan, Ruang Rawat Inap, Departemen Medis).'}
             </DialogDescription>
           </DialogHeader>
 
@@ -129,7 +181,7 @@ export function CreateUnitTypeDialog({
                 placeholder='Contoh: Poliklinik Rawat Jalan'
                 value={name}
                 onChange={(e) => handleNameChange(e.target.value)}
-                disabled={createMutation.isPending}
+                disabled={isPending}
                 required
               />
             </div>
@@ -146,18 +198,14 @@ export function CreateUnitTypeDialog({
                   onChange={(e) =>
                     setCode(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))
                   }
-                  disabled={createMutation.isPending}
+                  disabled={isPending}
                   required
                 />
               </div>
 
               <div className='space-y-1.5'>
                 <Label htmlFor='unit-type-icon'>Ikon Tipe</Label>
-                <Select
-                  value={iconName}
-                  onValueChange={setIconName}
-                  disabled={createMutation.isPending}
-                >
+                <Select value={iconName} onValueChange={setIconName} disabled={isPending}>
                   <SelectTrigger id='unit-type-icon'>
                     <SelectValue placeholder='Pilih ikon' />
                   </SelectTrigger>
@@ -179,23 +227,18 @@ export function CreateUnitTypeDialog({
                 placeholder='Keterangan klasifikasi pelayanan tipe unit...'
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                disabled={createMutation.isPending}
+                disabled={isPending}
                 rows={3}
               />
             </div>
           </div>
 
           <DialogFooter className='pt-3 border-t'>
-            <Button
-              type='button'
-              variant='outline'
-              onClick={handleClose}
-              disabled={createMutation.isPending}
-            >
+            <Button type='button' variant='outline' onClick={handleClose} disabled={isPending}>
               Batal
             </Button>
-            <Button type='submit' disabled={createMutation.isPending}>
-              {createMutation.isPending ? 'Menyimpan...' : 'Simpan Tipe Unit'}
+            <Button type='submit' disabled={isPending}>
+              {isPending ? 'Menyimpan...' : 'Simpan'}
             </Button>
           </DialogFooter>
         </form>

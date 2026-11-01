@@ -149,3 +149,32 @@ export interface CreateIntakeFormPayload {
   iconName?: string;
   isActive?: boolean;
 }
+
+export type UpdateUnitTypePayload = Partial<CreateUnitTypePayload>;
+export type UpdateUnitPayload = Partial<CreateUnitPayload>;
+export type UpdateRoomPayload = Partial<CreateRoomPayload>;
+export type UpdateCategoryPayload = Partial<CreateCategoryPayload>;
+export type UpdateServicePayload = Partial<CreateServicePayload>;
+export type UpdateIntakeFormPayload = Partial<CreateIntakeFormPayload>;
+
+export type FacilityResource =
+  | 'unit-types'
+  | 'units'
+  | 'rooms'
+  | 'categories'
+  | 'services'
+  | 'forms';
+
+export type FacilityBulkAction = 'activate' | 'deactivate' | 'delete';
+
+export interface BulkFacilityActionPayload {
+  resource: FacilityResource;
+  action: FacilityBulkAction;
+  ids: string[];
+}
+
+export interface BulkFacilityActionResult {
+  success: boolean;
+  affectedCount: number;
+  message: string;
+}

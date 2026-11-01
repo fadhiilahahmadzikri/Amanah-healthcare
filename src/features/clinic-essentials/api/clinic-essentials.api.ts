@@ -1,5 +1,7 @@
 import { clientFetch } from '@/lib/client-fetch';
 import type {
+  BulkFacilityActionPayload,
+  BulkFacilityActionResult,
   ClinicService,
   ClinicalIntakeForm,
   CreateCategoryPayload,
@@ -11,7 +13,13 @@ import type {
   FacilityRoom,
   FacilityUnit,
   FacilityUnitType,
-  ServiceCategory
+  ServiceCategory,
+  UpdateCategoryPayload,
+  UpdateIntakeFormPayload,
+  UpdateRoomPayload,
+  UpdateServicePayload,
+  UpdateUnitPayload,
+  UpdateUnitTypePayload
 } from '../types/clinic-essentials.types';
 
 export const clinicEssentialsApi = {
@@ -22,6 +30,12 @@ export const clinicEssentialsApi = {
   createUnitType: (payload: CreateUnitTypePayload): Promise<FacilityUnitType> =>
     clientFetch<FacilityUnitType>('/api/v1/admin/facilities/unit-types', {
       method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+
+  updateUnitType: (id: string, payload: UpdateUnitTypePayload): Promise<FacilityUnitType> =>
+    clientFetch<FacilityUnitType>(`/api/v1/admin/facilities/unit-types/${id}`, {
+      method: 'PATCH',
       body: JSON.stringify(payload)
     }),
 
@@ -37,6 +51,12 @@ export const clinicEssentialsApi = {
   createUnit: (payload: CreateUnitPayload): Promise<FacilityUnit> =>
     clientFetch<FacilityUnit>('/api/v1/admin/facilities/units', {
       method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+
+  updateUnit: (id: string, payload: UpdateUnitPayload): Promise<FacilityUnit> =>
+    clientFetch<FacilityUnit>(`/api/v1/admin/facilities/units/${id}`, {
+      method: 'PATCH',
       body: JSON.stringify(payload)
     }),
 
@@ -59,6 +79,12 @@ export const clinicEssentialsApi = {
       body: JSON.stringify(payload)
     }),
 
+  updateRoom: (id: string, payload: UpdateRoomPayload): Promise<FacilityRoom> =>
+    clientFetch<FacilityRoom>(`/api/v1/admin/facilities/rooms/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    }),
+
   deleteRoom: (id: string): Promise<void> =>
     clientFetch<void>(`/api/v1/admin/facilities/rooms/${id}`, {
       method: 'DELETE'
@@ -75,6 +101,12 @@ export const clinicEssentialsApi = {
   createCategory: (payload: CreateCategoryPayload): Promise<ServiceCategory> =>
     clientFetch<ServiceCategory>('/api/v1/admin/facilities/categories', {
       method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+
+  updateCategory: (id: string, payload: UpdateCategoryPayload): Promise<ServiceCategory> =>
+    clientFetch<ServiceCategory>(`/api/v1/admin/facilities/categories/${id}`, {
+      method: 'PATCH',
       body: JSON.stringify(payload)
     }),
 
@@ -101,6 +133,12 @@ export const clinicEssentialsApi = {
       body: JSON.stringify(payload)
     }),
 
+  updateService: (id: string, payload: UpdateServicePayload): Promise<ClinicService> =>
+    clientFetch<ClinicService>(`/api/v1/admin/facilities/services/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    }),
+
   deleteService: (id: string): Promise<void> =>
     clientFetch<void>(`/api/v1/admin/facilities/services/${id}`, {
       method: 'DELETE'
@@ -116,8 +154,21 @@ export const clinicEssentialsApi = {
       body: JSON.stringify(payload)
     }),
 
+  updateForm: (id: string, payload: UpdateIntakeFormPayload): Promise<ClinicalIntakeForm> =>
+    clientFetch<ClinicalIntakeForm>(`/api/v1/admin/facilities/forms/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    }),
+
   deleteForm: (id: string): Promise<void> =>
     clientFetch<void>(`/api/v1/admin/facilities/forms/${id}`, {
       method: 'DELETE'
+    }),
+
+  // Bulk Actions
+  bulkAction: (payload: BulkFacilityActionPayload): Promise<BulkFacilityActionResult> =>
+    clientFetch<BulkFacilityActionResult>('/api/v1/admin/facilities/bulk', {
+      method: 'POST',
+      body: JSON.stringify(payload)
     })
 };

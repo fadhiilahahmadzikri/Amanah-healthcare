@@ -25,6 +25,7 @@ export function SearchInput({
       <Icons.search className='size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none' />
       <Input
         type='text'
+        autoComplete='off'
         aria-label={ariaLabel}
         value={value}
         onChange={(e) => onChange(e.target.value)}

@@ -125,14 +125,23 @@ export function StaffManagementView() {
             <div className='flex flex-1 min-h-0 h-full w-full flex-col'>
               <EmptyState
                 icon={Icons.users}
-                title='Tidak ada staf ditemukan'
+                title={
+                  view.allStaffs.length === 0 ? 'Belum Ada Data Staf' : 'Tidak ada staf ditemukan'
+                }
                 description={
-                  view.hasActiveFilters
-                    ? `Tidak ada profil staf yang cocok dengan kriteria filter atau kata kunci yang dipilih.`
-                    : 'Belum ada data staf terdaftar di klinik.'
+                  view.allStaffs.length === 0
+                    ? 'Belum ada data staf terdaftar di klinik.'
+                    : 'Tidak ada profil staf yang cocok dengan kriteria filter atau kata kunci yang dipilih.'
                 }
                 action={
-                  view.hasActiveFilters ? (
+                  view.allStaffs.length === 0 ? (
+                    canInviteStaff ? (
+                      <Button size='sm' onClick={inviteModal.open} className='text-xs gap-1.5'>
+                        <Icons.userPlus className='h-3.5 w-3.5' />
+                        Undang Staf Pertama
+                      </Button>
+                    ) : null
+                  ) : (
                     <Button
                       variant='outline'
                       size='sm'
@@ -144,12 +153,7 @@ export function StaffManagementView() {
                     >
                       Reset Semua Filter
                     </Button>
-                  ) : canInviteStaff ? (
-                    <Button size='sm' onClick={inviteModal.open} className='text-xs gap-1.5'>
-                      <Icons.userPlus className='h-3.5 w-3.5' />
-                      Undang Staf Pertama
-                    </Button>
-                  ) : null
+                  )
                 }
                 className='h-full w-full flex-1'
               />
@@ -203,9 +207,9 @@ export function StaffManagementView() {
                     icon={Icons.mail}
                     title='Belum Ada Riwayat Undangan'
                     description={
-                      view.searchQuery
-                        ? `Tidak ada undangan yang sesuai dengan kata kunci "${view.searchQuery}".`
-                        : 'Seluruh riwayat undangan calon staf via email akan tercatat di sini.'
+                      view.allInvitations.length === 0
+                        ? 'Seluruh riwayat undangan calon staf via email akan tercatat di sini.'
+                        : `Tidak ada undangan yang sesuai dengan kata kunci "${view.searchQuery}".`
                     }
                   />
                 ) : (

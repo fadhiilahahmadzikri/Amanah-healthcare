@@ -24,12 +24,18 @@ import {
 } from '@/components/ui/select';
 import { clinicEssentialsApi } from '../../api/clinic-essentials.api';
 import { clinicEssentialsKeys } from '../../api/query-keys';
-import type { CreateCategoryPayload, FacilityUnit } from '../../types/clinic-essentials.types';
+import type {
+  CreateCategoryPayload,
+  FacilityUnit,
+  ServiceCategory,
+  UpdateCategoryPayload
+} from '../../types/clinic-essentials.types';
 
 export interface CreateCategoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   units: FacilityUnit[];
+  editItem?: ServiceCategory | null;
 }
 
 const CATEGORY_ICONS = [
@@ -41,7 +47,12 @@ const CATEGORY_ICONS = [
   { value: 'clipboard-list', label: 'Clipboard (Pemeriksaan & Skrining)' }
 ];
 
-export function CreateCategoryDialog({ open, onOpenChange, units }: CreateCategoryDialogProps) {
+export function CreateCategoryDialog({
+  open,
+  onOpenChange,
+  units,
+  editItem
+}: CreateCategoryDialogProps) {
   const queryClient = useQueryClient();
 
   const [unitId, setUnitId] = React.useState<string>('none');
@@ -50,6 +61,24 @@ export function CreateCategoryDialog({ open, onOpenChange, units }: CreateCatego
   const [codePrefix, setCodePrefix] = React.useState('');
   const [iconName, setIconName] = React.useState('folder');
   const [description, setDescription] = React.useState('');
+
+  React.useEffect(() => {
+    if (editItem) {
+      setUnitId(editItem.unitId || 'none');
+      setName(editItem.name);
+      setCode(editItem.code);
+      setCodePrefix(editItem.codePrefix || '');
+      setIconName(editItem.iconName || 'folder');
+      setDescription(editItem.description || '');
+    } else {
+      setUnitId('none');
+      setName('');
+      setCode('');
+      setCodePrefix('');
+      setIconName('folder');
+      setDescription('');
+    }
+  }, [editItem, open]);
 
   const createMutation = useMutation({
     mutationFn: (payload: CreateCategoryPayload) => clinicEssentialsApi.createCategory(payload),
@@ -64,19 +93,39 @@ export function CreateCategoryDialog({ open, onOpenChange, units }: CreateCatego
     }
   });
 
+  const updateMutation = useMutation({
+    mutationFn: (payload: UpdateCategoryPayload) => {
+      if (!editItem) throw new Error('Kategori tidak ditemukan untuk diedit');
+      return clinicEssentialsApi.updateCategory(editItem.id, payload);
+    },
+    onSuccess: (data) => {
+      toast.success(`Kategori '${data.name}' berhasil diperbarui.`);
+      queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.categories() });
+      handleClose();
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Gagal memperbarui kategori layanan';
+      toast.error(msg);
+    }
+  });
+
+  const isSubmitting = createMutation.isPending || updateMutation.isPending;
+
   const handleClose = () => {
-    setUnitId('none');
-    setName('');
-    setCode('');
-    setCodePrefix('');
-    setIconName('folder');
-    setDescription('');
+    if (!editItem) {
+      setUnitId('none');
+      setName('');
+      setCode('');
+      setCodePrefix('');
+      setIconName('folder');
+      setDescription('');
+    }
     onOpenChange(false);
   };
 
   const handleNameChange = (val: string) => {
     setName(val);
-    if (!code || code === name.toLowerCase().replace(/[^a-z0-9_]/g, '_')) {
+    if (!editItem && (!code || code === name.toLowerCase().replace(/[^a-z0-9_]/g, '_'))) {
       setCode(
         val
           .toLowerCase()
@@ -97,7 +146,7 @@ export function CreateCategoryDialog({ open, onOpenChange, units }: CreateCatego
       return;
     }
 
-    createMutation.mutate({
+    const payload = {
       unitId: unitId === 'none' ? undefined : unitId,
       name: name.trim(),
       code: code.trim(),
@@ -105,8 +154,14 @@ export function CreateCategoryDialog({ open, onOpenChange, units }: CreateCatego
       iconName: iconName || 'folder',
       description: description.trim() || undefined,
       displayOrder: 0,
-      isActive: true
-    });
+      isActive: editItem ? editItem.isActive : true
+    };
+
+    if (editItem) {
+      updateMutation.mutate(payload);
+    } else {
+      createMutation.mutate(payload);
+    }
   };
 
   return (
@@ -114,9 +169,13 @@ export function CreateCategoryDialog({ open, onOpenChange, units }: CreateCatego
       <DialogContent className='max-w-lg'>
         <form onSubmit={handleSubmit}>
           <DialogHeader className='pb-4 border-b'>
-            <DialogTitle>Tambah Kategori Layanan</DialogTitle>
+            <DialogTitle>
+              {editItem ? 'Edit Kategori Layanan' : 'Tambah Kategori Layanan'}
+            </DialogTitle>
             <DialogDescription>
-              Buat kelompok kategori layanan medis (misal: Layanan Umum, Layanan Kebidanan).
+              {editItem
+                ? 'Perbarui kelompok kategori layanan medis.'
+                : 'Buat kelompok kategori layanan medis (misal: Layanan Umum, Layanan Kebidanan).'}
             </DialogDescription>
           </DialogHeader>
 
@@ -130,7 +189,7 @@ export function CreateCategoryDialog({ open, onOpenChange, units }: CreateCatego
                 placeholder='Contoh: Layanan Pemeriksaan Umum'
                 value={name}
                 onChange={(e) => handleNameChange(e.target.value)}
-                disabled={createMutation.isPending}
+                disabled={isSubmitting}
                 required
               />
             </div>
@@ -147,7 +206,7 @@ export function CreateCategoryDialog({ open, onOpenChange, units }: CreateCatego
                   onChange={(e) =>
                     setCode(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))
                   }
-                  disabled={createMutation.isPending}
+                  disabled={isSubmitting}
                   required
                 />
               </div>
@@ -160,7 +219,7 @@ export function CreateCategoryDialog({ open, onOpenChange, units }: CreateCatego
                   maxLength={8}
                   value={codePrefix}
                   onChange={(e) => setCodePrefix(e.target.value.toUpperCase())}
-                  disabled={createMutation.isPending}
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -168,11 +227,7 @@ export function CreateCategoryDialog({ open, onOpenChange, units }: CreateCatego
             <div className='grid grid-cols-2 gap-3'>
               <div className='space-y-1.5'>
                 <Label htmlFor='cat-unit'>Unit Poliklinik (Opsional)</Label>
-                <Select
-                  value={unitId}
-                  onValueChange={setUnitId}
-                  disabled={createMutation.isPending}
-                >
+                <Select value={unitId} onValueChange={setUnitId} disabled={isSubmitting}>
                   <SelectTrigger id='cat-unit'>
                     <SelectValue placeholder='Pilih unit' />
                   </SelectTrigger>
@@ -189,11 +244,7 @@ export function CreateCategoryDialog({ open, onOpenChange, units }: CreateCatego
 
               <div className='space-y-1.5'>
                 <Label htmlFor='cat-icon'>Ikon Kategori</Label>
-                <Select
-                  value={iconName}
-                  onValueChange={setIconName}
-                  disabled={createMutation.isPending}
-                >
+                <Select value={iconName} onValueChange={setIconName} disabled={isSubmitting}>
                   <SelectTrigger id='cat-icon'>
                     <SelectValue placeholder='Pilih ikon' />
                   </SelectTrigger>
@@ -215,23 +266,18 @@ export function CreateCategoryDialog({ open, onOpenChange, units }: CreateCatego
                 placeholder='Keterangan singkat tentang kelompok kategori layanan ini'
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                disabled={createMutation.isPending}
+                disabled={isSubmitting}
                 rows={2}
               />
             </div>
           </div>
 
           <DialogFooter className='pt-3 border-t'>
-            <Button
-              type='button'
-              variant='outline'
-              onClick={handleClose}
-              disabled={createMutation.isPending}
-            >
+            <Button type='button' variant='outline' onClick={handleClose} disabled={isSubmitting}>
               Batal
             </Button>
-            <Button type='submit' disabled={createMutation.isPending}>
-              {createMutation.isPending ? 'Menyimpan...' : 'Simpan Kategori'}
+            <Button type='submit' disabled={isSubmitting}>
+              {isSubmitting ? 'Menyimpan...' : 'Simpan'}
             </Button>
           </DialogFooter>
         </form>

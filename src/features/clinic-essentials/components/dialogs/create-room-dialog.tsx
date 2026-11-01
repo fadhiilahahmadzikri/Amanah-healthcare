@@ -23,15 +23,21 @@ import {
 } from '@/components/ui/select';
 import { clinicEssentialsApi } from '../../api/clinic-essentials.api';
 import { clinicEssentialsKeys } from '../../api/query-keys';
-import type { CreateRoomPayload, FacilityUnit } from '../../types/clinic-essentials.types';
+import type {
+  CreateRoomPayload,
+  FacilityRoom,
+  FacilityUnit,
+  UpdateRoomPayload
+} from '../../types/clinic-essentials.types';
 
 export interface CreateRoomDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   units: FacilityUnit[];
+  editItem?: FacilityRoom | null;
 }
 
-export function CreateRoomDialog({ open, onOpenChange, units }: CreateRoomDialogProps) {
+export function CreateRoomDialog({ open, onOpenChange, units, editItem }: CreateRoomDialogProps) {
   const queryClient = useQueryClient();
 
   const [unitId, setUnitId] = React.useState('');
@@ -40,12 +46,24 @@ export function CreateRoomDialog({ open, onOpenChange, units }: CreateRoomDialog
   const [location, setLocation] = React.useState('');
   const [floor, setFloor] = React.useState('1');
 
-  // Pre-select first unit if available and not selected
+  // Sync editItem to form state or pre-select first unit
   React.useEffect(() => {
-    if (units.length > 0 && !unitId) {
-      setUnitId(units[0].id);
+    if (editItem) {
+      setUnitId(editItem.unitId);
+      setName(editItem.name);
+      setCode(editItem.code);
+      setLocation(editItem.location || '');
+      setFloor(editItem.floor || '1');
+    } else {
+      setName('');
+      setCode('');
+      setLocation('');
+      setFloor('1');
+      if (units.length > 0) {
+        setUnitId(units[0].id);
+      }
     }
-  }, [units, unitId]);
+  }, [editItem, open, units]);
 
   const createMutation = useMutation({
     mutationFn: (payload: CreateRoomPayload) => clinicEssentialsApi.createRoom(payload),
@@ -60,17 +78,37 @@ export function CreateRoomDialog({ open, onOpenChange, units }: CreateRoomDialog
     }
   });
 
+  const updateMutation = useMutation({
+    mutationFn: (payload: UpdateRoomPayload) => {
+      if (!editItem) throw new Error('Ruangan tidak ditemukan untuk diedit');
+      return clinicEssentialsApi.updateRoom(editItem.id, payload);
+    },
+    onSuccess: (data) => {
+      toast.success(`Ruangan '${data.name}' berhasil diperbarui.`);
+      queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.rooms() });
+      handleClose();
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Gagal memperbarui ruangan periksa';
+      toast.error(msg);
+    }
+  });
+
+  const isSubmitting = createMutation.isPending || updateMutation.isPending;
+
   const handleClose = () => {
-    setName('');
-    setCode('');
-    setLocation('');
-    setFloor('1');
+    if (!editItem) {
+      setName('');
+      setCode('');
+      setLocation('');
+      setFloor('1');
+    }
     onOpenChange(false);
   };
 
   const handleNameChange = (val: string) => {
     setName(val);
-    if (!code || code === name.toLowerCase().replace(/[^a-z0-9_]/g, '_')) {
+    if (!editItem && (!code || code === name.toLowerCase().replace(/[^a-z0-9_]/g, '_'))) {
       setCode(
         val
           .toLowerCase()
@@ -95,14 +133,20 @@ export function CreateRoomDialog({ open, onOpenChange, units }: CreateRoomDialog
       return;
     }
 
-    createMutation.mutate({
+    const payload = {
       unitId,
       name: name.trim(),
       code: code.trim(),
       location: location.trim() || undefined,
       floor: floor.trim() || undefined,
-      isActive: true
-    });
+      isActive: editItem ? editItem.isActive : true
+    };
+
+    if (editItem) {
+      updateMutation.mutate(payload);
+    } else {
+      createMutation.mutate(payload);
+    }
   };
 
   return (
@@ -110,9 +154,11 @@ export function CreateRoomDialog({ open, onOpenChange, units }: CreateRoomDialog
       <DialogContent className='max-w-md'>
         <form onSubmit={handleSubmit}>
           <DialogHeader className='pb-4 border-b'>
-            <DialogTitle>Tambah Ruang Periksa</DialogTitle>
+            <DialogTitle>{editItem ? 'Edit Ruang Periksa' : 'Tambah Ruang Periksa'}</DialogTitle>
             <DialogDescription>
-              Buat ruangan pemeriksaan fisik yang terhubung ke unit poliklinik.
+              {editItem
+                ? 'Perbarui ruangan pemeriksaan fisik yang terhubung ke unit poliklinik.'
+                : 'Buat ruangan pemeriksaan fisik yang terhubung ke unit poliklinik.'}
             </DialogDescription>
           </DialogHeader>
 
@@ -126,11 +172,7 @@ export function CreateRoomDialog({ open, onOpenChange, units }: CreateRoomDialog
                   Belum ada unit poliklinik terdaftar. Silakan buat Unit terlebih dahulu.
                 </div>
               ) : (
-                <Select
-                  value={unitId}
-                  onValueChange={setUnitId}
-                  disabled={createMutation.isPending}
-                >
+                <Select value={unitId} onValueChange={setUnitId} disabled={isSubmitting}>
                   <SelectTrigger id='room-unit'>
                     <SelectValue placeholder='Pilih unit induk' />
                   </SelectTrigger>
@@ -154,7 +196,7 @@ export function CreateRoomDialog({ open, onOpenChange, units }: CreateRoomDialog
                 placeholder='Contoh: Ruang Periksa 1'
                 value={name}
                 onChange={(e) => handleNameChange(e.target.value)}
-                disabled={createMutation.isPending}
+                disabled={isSubmitting}
                 required
               />
             </div>
@@ -168,7 +210,7 @@ export function CreateRoomDialog({ open, onOpenChange, units }: CreateRoomDialog
                 placeholder='room_pu_1'
                 value={code}
                 onChange={(e) => setCode(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))}
-                disabled={createMutation.isPending}
+                disabled={isSubmitting}
                 required
               />
             </div>
@@ -181,7 +223,7 @@ export function CreateRoomDialog({ open, onOpenChange, units }: CreateRoomDialog
                   placeholder='1'
                   value={floor}
                   onChange={(e) => setFloor(e.target.value)}
-                  disabled={createMutation.isPending}
+                  disabled={isSubmitting}
                 />
               </div>
 
@@ -192,23 +234,18 @@ export function CreateRoomDialog({ open, onOpenChange, units }: CreateRoomDialog
                   placeholder='Sebelah Ruang Tindakan'
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  disabled={createMutation.isPending}
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
           </div>
 
           <DialogFooter className='pt-3 border-t'>
-            <Button
-              type='button'
-              variant='outline'
-              onClick={handleClose}
-              disabled={createMutation.isPending}
-            >
+            <Button type='button' variant='outline' onClick={handleClose} disabled={isSubmitting}>
               Batal
             </Button>
-            <Button type='submit' disabled={createMutation.isPending || units.length === 0}>
-              {createMutation.isPending ? 'Menyimpan...' : 'Simpan Ruangan'}
+            <Button type='submit' disabled={isSubmitting || units.length === 0}>
+              {isSubmitting ? 'Menyimpan...' : 'Simpan'}
             </Button>
           </DialogFooter>
         </form>

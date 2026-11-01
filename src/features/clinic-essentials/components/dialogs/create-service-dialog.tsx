@@ -26,9 +26,11 @@ import { ShiftIconPickerPopover } from '@/features/jadwal-dokter/components/sett
 import { clinicEssentialsApi } from '../../api/clinic-essentials.api';
 import { clinicEssentialsKeys } from '../../api/query-keys';
 import type {
+  ClinicService,
   ClinicalIntakeForm,
   CreateServicePayload,
-  ServiceCategory
+  ServiceCategory,
+  UpdateServicePayload
 } from '../../types/clinic-essentials.types';
 
 export interface CreateServiceDialogProps {
@@ -36,13 +38,15 @@ export interface CreateServiceDialogProps {
   onOpenChange: (open: boolean) => void;
   categories: ServiceCategory[];
   forms: ClinicalIntakeForm[];
+  editItem?: ClinicService | null;
 }
 
 export function CreateServiceDialog({
   open,
   onOpenChange,
   categories,
-  forms
+  forms,
+  editItem
 }: CreateServiceDialogProps) {
   const queryClient = useQueryClient();
 
@@ -55,12 +59,30 @@ export function CreateServiceDialog({
   const [complaintsRaw, setComplaintsRaw] = React.useState('');
   const [description, setDescription] = React.useState('');
 
-  // Pre-select first category if available
+  // Sync editItem or pre-select first category if available
   React.useEffect(() => {
-    if (categories.length > 0 && !serviceCategoryId) {
-      setServiceCategoryId(categories[0].id);
+    if (editItem) {
+      setServiceCategoryId(editItem.serviceCategoryId);
+      setIntakeFormId(editItem.intakeFormId || 'none');
+      setName(editItem.name);
+      setCode(editItem.code);
+      setCodePrefix(editItem.codePrefix);
+      setIconName(editItem.iconName || 'stethoscope');
+      setComplaintsRaw((editItem.complaints || []).join(', '));
+      setDescription(editItem.description || '');
+    } else {
+      setName('');
+      setCode('');
+      setCodePrefix('');
+      setIconName('stethoscope');
+      setIntakeFormId('none');
+      setComplaintsRaw('');
+      setDescription('');
+      if (categories.length > 0) {
+        setServiceCategoryId(categories[0].id);
+      }
     }
-  }, [categories, serviceCategoryId]);
+  }, [editItem, open, categories]);
 
   const createMutation = useMutation({
     mutationFn: (payload: CreateServicePayload) => clinicEssentialsApi.createService(payload),
@@ -75,20 +97,40 @@ export function CreateServiceDialog({
     }
   });
 
+  const updateMutation = useMutation({
+    mutationFn: (payload: UpdateServicePayload) => {
+      if (!editItem) throw new Error('Layanan tidak ditemukan untuk diedit');
+      return clinicEssentialsApi.updateService(editItem.id, payload);
+    },
+    onSuccess: (data) => {
+      toast.success(`Layanan '${data.name}' berhasil diperbarui.`);
+      queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.services() });
+      handleClose();
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Gagal memperbarui layanan medis';
+      toast.error(msg);
+    }
+  });
+
+  const isSubmitting = createMutation.isPending || updateMutation.isPending;
+
   const handleClose = () => {
-    setName('');
-    setCode('');
-    setCodePrefix('');
-    setIconName('stethoscope');
-    setIntakeFormId('none');
-    setComplaintsRaw('');
-    setDescription('');
+    if (!editItem) {
+      setName('');
+      setCode('');
+      setCodePrefix('');
+      setIconName('stethoscope');
+      setIntakeFormId('none');
+      setComplaintsRaw('');
+      setDescription('');
+    }
     onOpenChange(false);
   };
 
   const handleNameChange = (val: string) => {
     setName(val);
-    if (!code || code === name.toLowerCase().replace(/[^a-z0-9_]/g, '_')) {
+    if (!editItem && (!code || code === name.toLowerCase().replace(/[^a-z0-9_]/g, '_'))) {
       setCode(
         val
           .toLowerCase()
@@ -122,7 +164,7 @@ export function CreateServiceDialog({
       .map((c) => c.trim())
       .filter((c) => c.length > 0);
 
-    createMutation.mutate({
+    const payload = {
       serviceCategoryId,
       intakeFormId: intakeFormId === 'none' ? null : intakeFormId,
       name: name.trim(),
@@ -133,8 +175,14 @@ export function CreateServiceDialog({
       complaints: complaints.length > 0 ? complaints : undefined,
       displayOrder: 0,
       isBookable: true,
-      isActive: true
-    });
+      isActive: editItem ? editItem.isActive : true
+    };
+
+    if (editItem) {
+      updateMutation.mutate(payload);
+    } else {
+      createMutation.mutate(payload);
+    }
   };
 
   return (
@@ -142,9 +190,11 @@ export function CreateServiceDialog({
       <DialogContent className='max-w-xl max-h-[90vh] overflow-y-auto'>
         <form onSubmit={handleSubmit}>
           <DialogHeader className='pb-4 border-b'>
-            <DialogTitle>Tambah Layanan Medis</DialogTitle>
+            <DialogTitle>{editItem ? 'Edit Layanan Medis' : 'Tambah Layanan Medis'}</DialogTitle>
             <DialogDescription>
-              Buat layanan tindakan medis kanonik dan hubungkan ke formulir intake yang sesuai.
+              {editItem
+                ? 'Perbarui layanan tindakan medis kanonik dan formulir intake terhubung.'
+                : 'Buat layanan tindakan medis kanonik dan hubungkan ke formulir intake yang sesuai.'}
             </DialogDescription>
           </DialogHeader>
 
@@ -162,7 +212,7 @@ export function CreateServiceDialog({
                   <Select
                     value={serviceCategoryId}
                     onValueChange={setServiceCategoryId}
-                    disabled={createMutation.isPending}
+                    disabled={isSubmitting}
                   >
                     <SelectTrigger id='service-cat'>
                       <SelectValue placeholder='Pilih kategori' />
@@ -183,7 +233,7 @@ export function CreateServiceDialog({
                 <Select
                   value={intakeFormId}
                   onValueChange={setIntakeFormId}
-                  disabled={createMutation.isPending}
+                  disabled={isSubmitting}
                 >
                   <SelectTrigger id='service-form'>
                     <SelectValue placeholder='Pilih formulir' />
@@ -209,7 +259,7 @@ export function CreateServiceDialog({
                 placeholder='Contoh: Pemeriksaan Kehamilan & ANC'
                 value={name}
                 onChange={(e) => handleNameChange(e.target.value)}
-                disabled={createMutation.isPending}
+                disabled={isSubmitting}
                 required
               />
             </div>
@@ -226,7 +276,7 @@ export function CreateServiceDialog({
                   onChange={(e) =>
                     setCode(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))
                   }
-                  disabled={createMutation.isPending}
+                  disabled={isSubmitting}
                   required
                 />
               </div>
@@ -241,7 +291,7 @@ export function CreateServiceDialog({
                   maxLength={8}
                   value={codePrefix}
                   onChange={(e) => setCodePrefix(e.target.value.toUpperCase())}
-                  disabled={createMutation.isPending}
+                  disabled={isSubmitting}
                   required
                 />
               </div>
@@ -254,7 +304,7 @@ export function CreateServiceDialog({
                   <ShiftIconPickerPopover
                     value={iconName}
                     onChange={(newVal) => setIconName(newVal || 'stethoscope')}
-                    disabled={createMutation.isPending}
+                    disabled={isSubmitting}
                   />
                   <span className='text-xs text-muted-foreground font-mono truncate'>
                     {iconName || 'stethoscope'}
@@ -269,7 +319,7 @@ export function CreateServiceDialog({
                   placeholder='Pemeriksaan kehamilan rutin'
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  disabled={createMutation.isPending}
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -281,7 +331,7 @@ export function CreateServiceDialog({
                 placeholder='Contoh: Mual muntah pagi, Nyeri perut bawah, Cek denyut jantung janin'
                 value={complaintsRaw}
                 onChange={(e) => setComplaintsRaw(e.target.value)}
-                disabled={createMutation.isPending}
+                disabled={isSubmitting}
                 rows={2}
               />
               <p className='text-[11px] text-muted-foreground'>
@@ -291,16 +341,11 @@ export function CreateServiceDialog({
           </div>
 
           <DialogFooter className='pt-3 border-t'>
-            <Button
-              type='button'
-              variant='outline'
-              onClick={handleClose}
-              disabled={createMutation.isPending}
-            >
+            <Button type='button' variant='outline' onClick={handleClose} disabled={isSubmitting}>
               Batal
             </Button>
-            <Button type='submit' disabled={createMutation.isPending || categories.length === 0}>
-              {createMutation.isPending ? 'Menyimpan...' : 'Simpan Layanan'}
+            <Button type='submit' disabled={isSubmitting || categories.length === 0}>
+              {isSubmitting ? 'Menyimpan...' : 'Simpan'}
             </Button>
           </DialogFooter>
         </form>

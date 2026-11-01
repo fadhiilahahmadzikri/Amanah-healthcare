@@ -24,11 +24,16 @@ import {
 } from '@/components/ui/select';
 import { clinicEssentialsApi } from '../../api/clinic-essentials.api';
 import { clinicEssentialsKeys } from '../../api/query-keys';
-import type { CreateIntakeFormPayload } from '../../types/clinic-essentials.types';
+import type {
+  ClinicalIntakeForm,
+  CreateIntakeFormPayload,
+  UpdateIntakeFormPayload
+} from '../../types/clinic-essentials.types';
 
 export interface CreateFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editItem?: ClinicalIntakeForm | null;
 }
 
 const FORM_ICONS = [
@@ -39,13 +44,27 @@ const FORM_ICONS = [
   { value: 'file-text', label: 'File Text (Dokumen Medis)' }
 ];
 
-export function CreateFormDialog({ open, onOpenChange }: CreateFormDialogProps) {
+export function CreateFormDialog({ open, onOpenChange, editItem }: CreateFormDialogProps) {
   const queryClient = useQueryClient();
 
   const [name, setName] = React.useState('');
   const [code, setCode] = React.useState('');
   const [iconName, setIconName] = React.useState('clipboard-list');
   const [description, setDescription] = React.useState('');
+
+  React.useEffect(() => {
+    if (editItem) {
+      setName(editItem.name);
+      setCode(editItem.code);
+      setIconName(editItem.iconName || 'clipboard-list');
+      setDescription(editItem.description || '');
+    } else {
+      setName('');
+      setCode('');
+      setIconName('clipboard-list');
+      setDescription('');
+    }
+  }, [editItem, open]);
 
   const createMutation = useMutation({
     mutationFn: (payload: CreateIntakeFormPayload) => clinicEssentialsApi.createForm(payload),
@@ -60,17 +79,37 @@ export function CreateFormDialog({ open, onOpenChange }: CreateFormDialogProps) 
     }
   });
 
+  const updateMutation = useMutation({
+    mutationFn: (payload: UpdateIntakeFormPayload) => {
+      if (!editItem) throw new Error('Formulir tidak ditemukan untuk diedit');
+      return clinicEssentialsApi.updateForm(editItem.id, payload);
+    },
+    onSuccess: (data) => {
+      toast.success(`Formulir '${data.name}' berhasil diperbarui.`);
+      queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.forms() });
+      handleClose();
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Gagal memperbarui formulir intake';
+      toast.error(msg);
+    }
+  });
+
+  const isSubmitting = createMutation.isPending || updateMutation.isPending;
+
   const handleClose = () => {
-    setName('');
-    setCode('');
-    setIconName('clipboard-list');
-    setDescription('');
+    if (!editItem) {
+      setName('');
+      setCode('');
+      setIconName('clipboard-list');
+      setDescription('');
+    }
     onOpenChange(false);
   };
 
   const handleNameChange = (val: string) => {
     setName(val);
-    if (!code || code === name.toLowerCase().replace(/[^a-z0-9_]/g, '_')) {
+    if (!editItem && (!code || code === name.toLowerCase().replace(/[^a-z0-9_]/g, '_'))) {
       setCode(
         val
           .toLowerCase()
@@ -91,13 +130,19 @@ export function CreateFormDialog({ open, onOpenChange }: CreateFormDialogProps) 
       return;
     }
 
-    createMutation.mutate({
+    const payload = {
       name: name.trim(),
       code: code.trim(),
       iconName: iconName || 'clipboard-list',
       description: description.trim() || undefined,
-      isActive: true
-    });
+      isActive: editItem ? editItem.isActive : true
+    };
+
+    if (editItem) {
+      updateMutation.mutate(payload);
+    } else {
+      createMutation.mutate(payload);
+    }
   };
 
   return (
@@ -105,10 +150,13 @@ export function CreateFormDialog({ open, onOpenChange }: CreateFormDialogProps) 
       <DialogContent className='max-w-md'>
         <form onSubmit={handleSubmit}>
           <DialogHeader className='pb-4 border-b'>
-            <DialogTitle>Tambah Master Formulir Intake</DialogTitle>
+            <DialogTitle>
+              {editItem ? 'Edit Master Formulir Intake' : 'Tambah Master Formulir Intake'}
+            </DialogTitle>
             <DialogDescription>
-              Daftarkan kode formulir klinis (misal: general, pregnancy, immunization) untuk
-              dikoneksikan ke layanan.
+              {editItem
+                ? 'Perbarui definisi kode master formulir klinis intake.'
+                : 'Daftarkan kode formulir klinis (misal: general, pregnancy, immunization) untuk dikoneksikan ke layanan.'}
             </DialogDescription>
           </DialogHeader>
 
@@ -122,7 +170,7 @@ export function CreateFormDialog({ open, onOpenChange }: CreateFormDialogProps) 
                 placeholder='Contoh: Pemeriksaan Kehamilan & ANC'
                 value={name}
                 onChange={(e) => handleNameChange(e.target.value)}
-                disabled={createMutation.isPending}
+                disabled={isSubmitting}
                 required
               />
             </div>
@@ -139,18 +187,14 @@ export function CreateFormDialog({ open, onOpenChange }: CreateFormDialogProps) 
                   onChange={(e) =>
                     setCode(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))
                   }
-                  disabled={createMutation.isPending}
+                  disabled={isSubmitting}
                   required
                 />
               </div>
 
               <div className='space-y-1.5'>
                 <Label htmlFor='form-icon'>Ikon Formulir</Label>
-                <Select
-                  value={iconName}
-                  onValueChange={setIconName}
-                  disabled={createMutation.isPending}
-                >
+                <Select value={iconName} onValueChange={setIconName} disabled={isSubmitting}>
                   <SelectTrigger id='form-icon'>
                     <SelectValue placeholder='Pilih ikon' />
                   </SelectTrigger>
@@ -172,23 +216,18 @@ export function CreateFormDialog({ open, onOpenChange }: CreateFormDialogProps) 
                 placeholder='Penjelasan alur atau data khusus yang dikumpulkan oleh formulir ini'
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                disabled={createMutation.isPending}
+                disabled={isSubmitting}
                 rows={2}
               />
             </div>
           </div>
 
           <DialogFooter className='pt-3 border-t'>
-            <Button
-              type='button'
-              variant='outline'
-              onClick={handleClose}
-              disabled={createMutation.isPending}
-            >
+            <Button type='button' variant='outline' onClick={handleClose} disabled={isSubmitting}>
               Batal
             </Button>
-            <Button type='submit' disabled={createMutation.isPending}>
-              {createMutation.isPending ? 'Menyimpan...' : 'Daftarkan Formulir'}
+            <Button type='submit' disabled={isSubmitting}>
+              {isSubmitting ? 'Menyimpan...' : 'Simpan'}
             </Button>
           </DialogFooter>
         </form>

@@ -25,12 +25,17 @@ import {
 import { clinicEssentialsApi } from '../../api/clinic-essentials.api';
 import { clinicEssentialsKeys } from '../../api/query-keys';
 import { createUnitSchema } from '../../schemas/clinic-essentials.schema';
-import type { CreateUnitPayload } from '../../types/clinic-essentials.types';
+import type {
+  CreateUnitPayload,
+  FacilityUnit,
+  UpdateUnitPayload
+} from '../../types/clinic-essentials.types';
 import { CreateUnitTypeDialog } from './create-unit-type-dialog';
 
 export interface CreateUnitDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editItem?: FacilityUnit | null;
 }
 
 const COMMON_ICONS = [
@@ -42,7 +47,7 @@ const COMMON_ICONS = [
   { value: 'shield', label: 'Shield (Pelayanan Umum)' }
 ];
 
-export function CreateUnitDialog({ open, onOpenChange }: CreateUnitDialogProps) {
+export function CreateUnitDialog({ open, onOpenChange, editItem }: CreateUnitDialogProps) {
   const queryClient = useQueryClient();
 
   const [name, setName] = React.useState('');
@@ -55,6 +60,27 @@ export function CreateUnitDialog({ open, onOpenChange }: CreateUnitDialogProps) 
 
   // Sub-dialog state for on-the-fly unit type creation
   const [isCreateUnitTypeOpen, setIsCreateUnitTypeOpen] = React.useState(false);
+
+  // Sync editItem to form state
+  React.useEffect(() => {
+    if (editItem) {
+      setName(editItem.name);
+      setCode(editItem.code);
+      setUnitTypeId(editItem.unitTypeId);
+      setQueuePrefix(editItem.queuePrefix || '');
+      setIconName(editItem.iconName || 'building-2');
+      setLocation(editItem.location || '');
+      setFloor(editItem.floor || '1');
+    } else {
+      setName('');
+      setCode('');
+      setUnitTypeId('');
+      setQueuePrefix('');
+      setIconName('building-2');
+      setLocation('');
+      setFloor('1');
+    }
+  }, [editItem, open]);
 
   // Fetch dynamic unit types from database
   const { data: unitTypes = [], isLoading: isLoadingUnitTypes } = useQuery({
@@ -75,21 +101,41 @@ export function CreateUnitDialog({ open, onOpenChange }: CreateUnitDialogProps) 
     }
   });
 
+  const updateMutation = useMutation({
+    mutationFn: (payload: UpdateUnitPayload) => {
+      if (!editItem) throw new Error('Unit tidak ditemukan untuk diedit');
+      return clinicEssentialsApi.updateUnit(editItem.id, payload);
+    },
+    onSuccess: (data) => {
+      toast.success(`Unit '${data.name}' berhasil diperbarui.`);
+      queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.units() });
+      handleClose();
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Gagal memperbarui unit fasilitas';
+      toast.error(msg);
+    }
+  });
+
+  const isSubmitting = createMutation.isPending || updateMutation.isPending;
+
   const handleClose = () => {
-    setName('');
-    setCode('');
-    setUnitTypeId('');
-    setQueuePrefix('');
-    setIconName('building-2');
-    setLocation('');
-    setFloor('1');
+    if (!editItem) {
+      setName('');
+      setCode('');
+      setUnitTypeId('');
+      setQueuePrefix('');
+      setIconName('building-2');
+      setLocation('');
+      setFloor('1');
+    }
     setIsCreateUnitTypeOpen(false);
     onOpenChange(false);
   };
 
   const handleNameChange = (val: string) => {
     setName(val);
-    if (!code || code === name.toLowerCase().replace(/[^a-z0-9_]/g, '_')) {
+    if (!editItem && (!code || code === name.toLowerCase().replace(/[^a-z0-9_]/g, '_'))) {
       setCode(
         val
           .toLowerCase()
@@ -107,7 +153,7 @@ export function CreateUnitDialog({ open, onOpenChange }: CreateUnitDialogProps) 
       return;
     }
 
-    const result = createUnitSchema.safeParse({
+    const payload = {
       name: name.trim(),
       code: code.trim(),
       unitTypeId,
@@ -115,16 +161,20 @@ export function CreateUnitDialog({ open, onOpenChange }: CreateUnitDialogProps) 
       iconName: iconName || 'building-2',
       location: location.trim() || undefined,
       floor: floor.trim() || undefined,
-      isActive: true
-    });
+      isActive: editItem ? editItem.isActive : true
+    };
 
-    if (!result.success) {
-      const firstIssue = result.error.issues[0];
-      toast.error(firstIssue?.message || 'Data masukan unit tidak valid');
-      return;
+    if (editItem) {
+      updateMutation.mutate(payload);
+    } else {
+      const result = createUnitSchema.safeParse(payload);
+      if (!result.success) {
+        const firstIssue = result.error.issues[0];
+        toast.error(firstIssue?.message || 'Data masukan unit tidak valid');
+        return;
+      }
+      createMutation.mutate(result.data);
     }
-
-    createMutation.mutate(result.data);
   };
 
   return (
@@ -133,9 +183,13 @@ export function CreateUnitDialog({ open, onOpenChange }: CreateUnitDialogProps) 
         <DialogContent className='max-w-lg'>
           <form onSubmit={handleSubmit}>
             <DialogHeader className='pb-4 border-b'>
-              <DialogTitle>Tambah Unit / Poliklinik</DialogTitle>
+              <DialogTitle>
+                {editItem ? 'Edit Unit / Poliklinik' : 'Tambah Unit / Poliklinik'}
+              </DialogTitle>
               <DialogDescription>
-                Buat unit layanan atau departemen kanonik baru pada klinik.
+                {editItem
+                  ? 'Perbarui data unit layanan atau departemen kanonik klinik.'
+                  : 'Buat unit layanan atau departemen kanonik baru pada klinik.'}
               </DialogDescription>
             </DialogHeader>
 
@@ -149,7 +203,7 @@ export function CreateUnitDialog({ open, onOpenChange }: CreateUnitDialogProps) 
                   placeholder='Contoh: Poliklinik Rawat Jalan'
                   value={name}
                   onChange={(e) => handleNameChange(e.target.value)}
-                  disabled={createMutation.isPending}
+                  disabled={isSubmitting}
                   required
                 />
               </div>
@@ -166,7 +220,7 @@ export function CreateUnitDialog({ open, onOpenChange }: CreateUnitDialogProps) 
                     onChange={(e) =>
                       setCode(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))
                     }
-                    disabled={createMutation.isPending}
+                    disabled={isSubmitting}
                     required
                   />
                 </div>
@@ -179,7 +233,7 @@ export function CreateUnitDialog({ open, onOpenChange }: CreateUnitDialogProps) 
                     maxLength={8}
                     value={queuePrefix}
                     onChange={(e) => setQueuePrefix(e.target.value.toUpperCase())}
-                    disabled={createMutation.isPending}
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -193,7 +247,7 @@ export function CreateUnitDialog({ open, onOpenChange }: CreateUnitDialogProps) 
                     <Select
                       value={unitTypeId}
                       onValueChange={setUnitTypeId}
-                      disabled={createMutation.isPending || isLoadingUnitTypes}
+                      disabled={isSubmitting || isLoadingUnitTypes}
                     >
                       <SelectTrigger id='unit-type-id' className='flex-1'>
                         <SelectValue
@@ -219,7 +273,7 @@ export function CreateUnitDialog({ open, onOpenChange }: CreateUnitDialogProps) 
                       variant='outline'
                       size='sm'
                       onClick={() => setIsCreateUnitTypeOpen(true)}
-                      disabled={createMutation.isPending}
+                      disabled={isSubmitting}
                       className='gap-1 shrink-0 h-9 text-xs px-2.5'
                       title='Tambah Tipe Unit Baru'
                     >
@@ -230,11 +284,7 @@ export function CreateUnitDialog({ open, onOpenChange }: CreateUnitDialogProps) 
 
                 <div className='space-y-1.5'>
                   <Label htmlFor='unit-icon'>Ikon Unit</Label>
-                  <Select
-                    value={iconName}
-                    onValueChange={setIconName}
-                    disabled={createMutation.isPending}
-                  >
+                  <Select value={iconName} onValueChange={setIconName} disabled={isSubmitting}>
                     <SelectTrigger id='unit-icon'>
                       <SelectValue placeholder='Pilih ikon' />
                     </SelectTrigger>
@@ -257,7 +307,7 @@ export function CreateUnitDialog({ open, onOpenChange }: CreateUnitDialogProps) 
                     placeholder='1'
                     value={floor}
                     onChange={(e) => setFloor(e.target.value)}
-                    disabled={createMutation.isPending}
+                    disabled={isSubmitting}
                   />
                 </div>
 
@@ -268,23 +318,18 @@ export function CreateUnitDialog({ open, onOpenChange }: CreateUnitDialogProps) 
                     placeholder='Gedung Utama Lantai 1'
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    disabled={createMutation.isPending}
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
             </div>
 
             <DialogFooter className='pt-3 border-t'>
-              <Button
-                type='button'
-                variant='outline'
-                onClick={handleClose}
-                disabled={createMutation.isPending}
-              >
+              <Button type='button' variant='outline' onClick={handleClose} disabled={isSubmitting}>
                 Batal
               </Button>
-              <Button type='submit' disabled={createMutation.isPending}>
-                {createMutation.isPending ? 'Menyimpan...' : 'Simpan Unit'}
+              <Button type='submit' disabled={isSubmitting}>
+                {isSubmitting ? 'Menyimpan...' : 'Simpan'}
               </Button>
             </DialogFooter>
           </form>
