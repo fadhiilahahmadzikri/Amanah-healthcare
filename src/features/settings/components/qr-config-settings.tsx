@@ -21,7 +21,6 @@ import {
   type QRCornerDotType
 } from '@/features/kehadiran-pegawai';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 
 const DOT_PATTERN_OPTIONS: { value: QRDotType; label: string; desc: string }[] = [
   {
@@ -101,34 +100,25 @@ export function QRConfigSettings() {
 
           <CardContent className='space-y-4 pt-4'>
             {/* Pola Titik (Dots Pattern) */}
-            <div className='space-y-2'>
+            <div className='space-y-1.5'>
               <Label className='text-xs font-semibold text-foreground'>
                 Pola Titik Matriks (Dots Pattern)
               </Label>
-              <div className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
-                {DOT_PATTERN_OPTIONS.map((opt) => {
-                  const isSelected = dotType === opt.value;
-                  return (
-                    <button
-                      key={opt.value}
-                      type='button'
-                      onClick={() => setDotType(opt.value)}
-                      className={cn(
-                        'p-2.5 rounded-xl border text-left transition-all cursor-pointer select-none',
-                        isSelected
-                          ? 'border-primary bg-primary/5 ring-2 ring-primary/20 shadow-2xs'
-                          : 'border-border/60 hover:bg-muted/30 hover:border-border'
-                      )}
-                    >
-                      <div className='flex items-center justify-between'>
-                        <span className='text-xs font-bold text-foreground'>{opt.label}</span>
-                        {isSelected && <Icons.check className='size-3.5 text-primary' />}
+              <Select value={dotType} onValueChange={(val) => setDotType(val as QRDotType)}>
+                <SelectTrigger className='h-9 text-xs bg-background w-full sm:w-72'>
+                  <SelectValue placeholder='Pilih pola titik matriks' />
+                </SelectTrigger>
+                <SelectContent>
+                  {DOT_PATTERN_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value} className='text-xs'>
+                      <div className='flex items-center gap-2'>
+                        <Icons.qrCode className='size-3.5 text-muted-foreground shrink-0' />
+                        <span>{opt.label}</span>
                       </div>
-                      <p className='text-[11px] text-muted-foreground mt-0.5'>{opt.desc}</p>
-                    </button>
-                  );
-                })}
-              </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Bentuk Sudut & Titik Sudut */}

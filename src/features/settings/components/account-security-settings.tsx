@@ -39,6 +39,10 @@ export function AccountSecuritySettings() {
   const [emailPasswordConfirm, setEmailPasswordConfirm] = React.useState('');
   const [submittingEmail, setSubmittingEmail] = React.useState(false);
 
+  // Modal Konfirmasi Pemutusan Akun
+  const [unlinkGoogleDialogOpen, setUnlinkGoogleDialogOpen] = React.useState(false);
+  const [unlinkCredentialDialogOpen, setUnlinkCredentialDialogOpen] = React.useState(false);
+
   // Tindakan Unlink / Pemutusan / Tautkan
   const [actionLoading, setActionLoading] = React.useState(false);
 
@@ -231,23 +235,12 @@ export function AccountSecuritySettings() {
     }
   };
 
-  const handleUnlinkCredential = async () => {
-    if (!data?.hasGoogle) {
-      toast.error('Tidak dapat mematikan kata sandi', {
-        description: 'Hubungkan akun Google Anda terlebih dahulu agar akun tidak terkunci.'
-      });
-      return;
-    }
-
-    const confirmAction = window.confirm(
-      'Apakah Anda yakin ingin mematikan login dengan kata sandi? Setelah ini Anda hanya dapat masuk menggunakan tombol Google.'
-    );
-    if (!confirmAction) return;
-
+  const executeUnlinkCredential = async () => {
     try {
       setActionLoading(true);
       const res = await accountSecurityApi.unlinkCredential();
       setData(res);
+      setUnlinkCredentialDialogOpen(false);
       toast.success('Login kata sandi dinonaktifkan', {
         description: 'Anda kini masuk sepenuhnya menggunakan Akun Google.'
       });
@@ -260,24 +253,13 @@ export function AccountSecuritySettings() {
     }
   };
 
-  const handleUnlinkGoogle = async () => {
-    if (!data?.hasPassword) {
-      toast.error('Tidak dapat melepas Akun Google', {
-        description: 'Buat kata sandi akun terlebih dahulu agar Anda tetap bisa masuk.'
-      });
-      return;
-    }
-
-    const confirmAction = window.confirm(
-      'Apakah Anda yakin ingin memutuskan Akun Google dari akun ini?'
-    );
-    if (!confirmAction) return;
-
+  const executeUnlinkGoogle = async () => {
     try {
       setActionLoading(true);
       const res = await accountSecurityApi.unlinkGoogle();
       setData(res);
       router.refresh();
+      setUnlinkGoogleDialogOpen(false);
       toast.success('Tautan Akun Google telah dilepas', {
         description: 'Anda kini masuk menggunakan email dan kata sandi.'
       });
@@ -512,7 +494,7 @@ export function AccountSecuritySettings() {
               <Button
                 variant='ghost'
                 size='sm'
-                onClick={handleUnlinkCredential}
+                onClick={() => setUnlinkCredentialDialogOpen(true)}
                 disabled={actionLoading}
                 className='text-xs text-muted-foreground hover:text-destructive cursor-pointer'
               >
@@ -548,7 +530,7 @@ export function AccountSecuritySettings() {
               <Button
                 variant='outline'
                 size='sm'
-                onClick={handleUnlinkGoogle}
+                onClick={() => setUnlinkGoogleDialogOpen(true)}
                 disabled={actionLoading || !data?.hasPassword}
                 title={
                   !data?.hasPassword
@@ -578,6 +560,83 @@ export function AccountSecuritySettings() {
             )}
           </div>
         </div>
+
+        {/* Modal Konfirmasi Putuskan Akun Google */}
+        <Dialog open={unlinkGoogleDialogOpen} onOpenChange={setUnlinkGoogleDialogOpen}>
+          <DialogContent className='sm:max-w-[420px]'>
+            <DialogHeader className='space-y-1.5'>
+              <DialogTitle className='text-base font-bold'>
+                Putuskan Sambungan Akun Google
+              </DialogTitle>
+              <DialogDescription className='text-xs text-muted-foreground leading-relaxed'>
+                Setelah diputuskan, Anda tidak dapat lagi masuk ke sistem dengan sekali klik
+                menggunakan tombol Google. Anda tetap dapat masuk seperti biasa menggunakan alamat
+                email dan kata sandi akun Anda.
+              </DialogDescription>
+            </DialogHeader>
+
+            <DialogFooter className='gap-2 sm:gap-0'>
+              <Button
+                type='button'
+                variant='ghost'
+                size='sm'
+                onClick={() => setUnlinkGoogleDialogOpen(false)}
+                disabled={actionLoading}
+              >
+                Batal
+              </Button>
+              <Button
+                type='button'
+                variant='destructive'
+                size='sm'
+                onClick={executeUnlinkGoogle}
+                disabled={actionLoading}
+                className='gap-2'
+              >
+                {actionLoading && <Icons.spinner className='size-4 animate-spin' />}
+                <span>Putuskan Sambungan</span>
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal Konfirmasi Matikan Login Sandi */}
+        <Dialog open={unlinkCredentialDialogOpen} onOpenChange={setUnlinkCredentialDialogOpen}>
+          <DialogContent className='sm:max-w-[420px]'>
+            <DialogHeader className='space-y-1.5'>
+              <DialogTitle className='text-base font-bold'>
+                Matikan Masuk dengan Kata Sandi
+              </DialogTitle>
+              <DialogDescription className='text-xs text-muted-foreground leading-relaxed'>
+                Setelah dinonaktifkan, Anda hanya dapat masuk ke sistem menggunakan tombol Akun
+                Google yang telah terhubung. Kata sandi lama tidak lagi dapat digunakan.
+              </DialogDescription>
+            </DialogHeader>
+
+            <DialogFooter className='gap-2 sm:gap-0'>
+              <Button
+                type='button'
+                variant='ghost'
+                size='sm'
+                onClick={() => setUnlinkCredentialDialogOpen(false)}
+                disabled={actionLoading}
+              >
+                Batal
+              </Button>
+              <Button
+                type='button'
+                variant='destructive'
+                size='sm'
+                onClick={executeUnlinkCredential}
+                disabled={actionLoading}
+                className='gap-2'
+              >
+                {actionLoading && <Icons.spinner className='size-4 animate-spin' />}
+                <span>Matikan Kata Sandi</span>
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
