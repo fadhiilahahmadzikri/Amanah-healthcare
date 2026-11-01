@@ -65,7 +65,7 @@ export interface UserItem {
 
 export interface UpdateUserPayload {
   name: string;
-  email: string;
+  email?: string;
   phone?: string | null;
   status?: string;
   preferredLocale?: string;

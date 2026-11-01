@@ -16,14 +16,25 @@ import { syncAllDoctorSchedules } from '../api/mutations';
 
 export type DoctorAssignmentTab = 'roster' | 'history';
 
+export interface ScheduleSubject {
+  id: string;
+  fullName: string;
+  specialty?: string | null;
+  profession?: string | null;
+  roleName?: string | null;
+  isClinical?: boolean | null;
+}
+
 export interface UseDoctorAssignmentModalProps {
-  doctor: DoctorSchedule | null;
+  doctor?: ScheduleSubject | null;
+  subject?: ScheduleSubject | null;
   isOpen: boolean;
   onClose: () => void;
 }
 
 export function useDoctorAssignmentModal({
   doctor,
+  subject,
   isOpen,
   onClose
 }: UseDoctorAssignmentModalProps) {
@@ -31,7 +42,8 @@ export function useDoctorAssignmentModal({
   const [activeTab, setActiveTab] = useState<DoctorAssignmentTab>('roster');
   const [selectedAssignments, setSelectedAssignments] = useState<Record<string, boolean>>({});
 
-  const doctorId = doctor?.id || '';
+  const targetSubject = subject || doctor || null;
+  const doctorId = targetSubject?.id || '';
 
   const { data: rosterData, isLoading: isLoadingRoster } = useQuery<DoctorRosterOverview>({
     queryKey: ['doctor-roster-assignments', doctorId],
@@ -129,13 +141,15 @@ export function useDoctorAssignmentModal({
       });
     },
     onSuccess: () => {
-      toast.success('Jadwal kerja dokter berhasil disimpan');
+      toast.success('Jadwal kerja berhasil disimpan');
       syncAllDoctorSchedules(queryClient);
+      queryClient.invalidateQueries({ queryKey: ['staff-management'] });
+      queryClient.invalidateQueries({ queryKey: ['staffs'] });
       onClose();
     },
     onError: (err: unknown) => {
       const msg = err instanceof Error ? err.message : (err as { message?: string })?.message;
-      toast.error(msg || 'Gagal menyimpan jadwal kerja dokter');
+      toast.error(msg || 'Gagal menyimpan jadwal kerja');
     }
   });
 
@@ -144,13 +158,15 @@ export function useDoctorAssignmentModal({
       return resetDoctorRosterAssignments(doctorId);
     },
     onSuccess: (data) => {
-      toast.success('Roster dokter berhasil dikembalikan ke template mingguan');
+      toast.success('Jadwal kerja berhasil dikembalikan ke template mingguan');
       queryClient.setQueryData(['doctor-roster-assignments', doctorId], data);
       syncAllDoctorSchedules(queryClient);
+      queryClient.invalidateQueries({ queryKey: ['staff-management'] });
+      queryClient.invalidateQueries({ queryKey: ['staffs'] });
     },
     onError: (err: unknown) => {
       const msg = err instanceof Error ? err.message : (err as { message?: string })?.message;
-      toast.error(msg || 'Gagal mereset roster dokter');
+      toast.error(msg || 'Gagal mereset jadwal kerja');
     }
   });
 

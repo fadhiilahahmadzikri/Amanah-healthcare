@@ -9,13 +9,14 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import type { Option } from '@/types/data-table';
 
-interface DataTableColumnHeaderProps<TData, TValue>
-  extends React.ComponentProps<typeof DropdownMenuTrigger> {
+interface DataTableColumnHeaderProps<TData, TValue> extends React.ComponentProps<
+  typeof DropdownMenuTrigger
+> {
   column: Column<TData, TValue>;
   title: string;
 }
@@ -30,20 +31,13 @@ export function DataTableColumnHeader<TData, TValue>({
   const canHide = column.getCanHide();
   const canFilter = column.getCanFilter();
 
-  if (!canSort && !canHide && !canFilter) {
-    return (
-      <div className={cn('text-foreground font-semibold text-[13px]', className)}>
-        {title}
-      </div>
-    );
-  }
-
   const columnMeta = column.columnDef.meta as
     | { options?: Option[]; label?: string; placeholder?: string }
     | undefined;
   const options = columnMeta?.options;
   const rawFilterValue = column.getFilterValue();
-  const isFiltered = rawFilterValue !== undefined && rawFilterValue !== null && rawFilterValue !== '';
+  const isFiltered =
+    rawFilterValue !== undefined && rawFilterValue !== null && rawFilterValue !== '';
   const isSorted = column.getIsSorted();
 
   const [optionSearch, setOptionSearch] = React.useState('');
@@ -52,8 +46,16 @@ export function DataTableColumnHeader<TData, TValue>({
     if (!options || options.length === 0) return [];
     if (!optionSearch.trim()) return options;
     const q = optionSearch.toLowerCase();
-    return options.filter((opt) => opt.label.toLowerCase().includes(q) || opt.value.toLowerCase().includes(q));
+    return options.filter(
+      (opt) => opt.label.toLowerCase().includes(q) || opt.value.toLowerCase().includes(q)
+    );
   }, [options, optionSearch]);
+
+  if (!canSort && !canHide && !canFilter) {
+    return (
+      <div className={cn('text-foreground font-semibold text-[13px]', className)}>{title}</div>
+    );
+  }
 
   const handleTextFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;

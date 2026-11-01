@@ -25,25 +25,29 @@ import { DataTableSkeleton } from '@/components/ui/table/data-table-skeleton';
 import { cn } from '@/lib/utils';
 import { formatClinicDateTime } from '@/lib/date-format';
 import type { DoctorSchedule } from '../api/types';
-import { useDoctorAssignmentModal } from '../model/useDoctorAssignmentModal';
-import {
-  SCHEDULE_STATUS,
-  SCHEDULE_STATUS_LABELS
-} from '../constants/schedule-shift.constants';
+import { type ScheduleSubject, useDoctorAssignmentModal } from '../model/useDoctorAssignmentModal';
+import { SCHEDULE_STATUS, SCHEDULE_STATUS_LABELS } from '../constants/schedule-shift.constants';
 
-export interface DoctorAssignmentModalProps {
-  doctor: DoctorSchedule | null;
+export type { ScheduleSubject };
+
+export interface ScheduleAssignmentModalProps {
+  subject?: ScheduleSubject | null;
+  doctor?: ScheduleSubject | null;
   isOpen: boolean;
   onClose: () => void;
   focusedDow?: number;
 }
 
-export function DoctorAssignmentModal({
+export type DoctorAssignmentModalProps = ScheduleAssignmentModalProps;
+
+export function ScheduleAssignmentModal({
   doctor,
+  subject,
   isOpen,
   onClose,
   focusedDow
-}: DoctorAssignmentModalProps) {
+}: ScheduleAssignmentModalProps) {
+  const targetSubject = subject || doctor || null;
   const [showAllDays, setShowAllDays] = React.useState(false);
 
   React.useEffect(() => {
@@ -67,7 +71,7 @@ export function DoctorAssignmentModal({
     handleSave,
     handleResetToTemplate,
     resetDayToTemplate
-  } = useDoctorAssignmentModal({ doctor, isOpen, onClose });
+  } = useDoctorAssignmentModal({ subject: targetSubject, isOpen, onClose });
 
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -91,7 +95,7 @@ export function DoctorAssignmentModal({
   const cannotReset = isBusy || !rosterData?.hasAnyOverride;
   const cannotSave = isBusy || isLoadingRoster;
 
-  if (!doctor) return null;
+  if (!targetSubject) return null;
 
   const isFocused = focusedDow !== undefined && !showAllDays;
   const focusedDay = rosterData?.days.find((d) => d.dow === focusedDow);
@@ -113,10 +117,16 @@ export function DoctorAssignmentModal({
           <div className='flex items-start justify-between gap-2 sm:gap-3 text-left'>
             <div className='min-w-0 flex-1 text-left'>
               <DialogTitle className='text-base sm:text-xl font-bold tracking-tight text-foreground truncate text-left'>
-                Pengaturan Jadwal Kerja Dokter
+                {targetSubject.isClinical !== false
+                  ? 'Pengaturan Jadwal Kerja Tenaga Medis'
+                  : 'Pengaturan Jadwal Kerja Staf'}
               </DialogTitle>
               <DialogDescription className='text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 truncate text-left'>
-                {doctor.fullName} &bull; {doctor.specialty}
+                {targetSubject.fullName} &bull;{' '}
+                {targetSubject.specialty ||
+                  targetSubject.profession ||
+                  targetSubject.roleName ||
+                  (targetSubject.isClinical !== false ? 'Tenaga Medis' : 'Staf Operasional')}
               </DialogDescription>
             </div>
 
@@ -406,9 +416,7 @@ export function DoctorAssignmentModal({
                           </td>
                           <td className='p-3'>
                             {row.scheduleDate ? row.scheduleDate : (row.dayName ?? '-')}
-                            {row.sessionLabel
-                              ? ` (${row.sessionLabel})`
-                              : ''}
+                            {row.sessionLabel ? ` (${row.sessionLabel})` : ''}
                           </td>
                           <td className='p-3'>
                             {row.newStatus ? (
@@ -511,3 +519,5 @@ export function DoctorAssignmentModal({
     </Dialog>
   );
 }
+
+export const DoctorAssignmentModal = ScheduleAssignmentModal;

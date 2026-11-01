@@ -49,13 +49,13 @@ export function StaffScheduleCard({
 
   const secondaryAction = onOpenRoster ? (
     <EntityCardSecondaryAction
-      label='Atur Shift'
-      shortLabel='Roster'
+      label='Atur Jadwal'
+      shortLabel='Jadwal'
       onClick={(e) => {
         e.stopPropagation();
         onOpenRoster(staff);
       }}
-      title='Atur Shift Roster Mingguan'
+      title='Atur Jadwal Kerja'
     />
   ) : null;
 

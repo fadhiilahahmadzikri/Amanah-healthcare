@@ -195,16 +195,22 @@ export function StaffProfileModal(props: StaffProfileModalProps) {
                     autoComplete='tel'
                   />
 
-                  <PatientLineInput
-                    id='staff_email'
-                    label='Email Akun Staf'
-                    type='email'
-                    placeholder='staf@amanah.clinic'
-                    value={form.formData.email}
-                    onChange={(val) => form.handleChange('email', val)}
-                    disabled={!form.isEditing}
-                    autoComplete='email'
-                  />
+                  <div className='space-y-1'>
+                    <PatientLineInput
+                      id='staff_email'
+                      label='Email Akun Staf (Dikelola Pemilik Akun)'
+                      type='email'
+                      placeholder='staf@amanah.clinic'
+                      value={form.formData.email}
+                      onChange={(val) => form.handleChange('email', val)}
+                      disabled={true}
+                      autoComplete='email'
+                    />
+                    <span className='text-[10px] text-muted-foreground block px-1'>
+                      Alamat email akun hanya dapat diubah oleh pemilik akun melalui verifikasi OTP
+                      mandiri.
+                    </span>
+                  </div>
 
                   {/* Domisili / Regional Cascader */}
                   <div className='space-y-2 pt-1'>

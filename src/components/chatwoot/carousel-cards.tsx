@@ -23,8 +23,8 @@ function parseSlideContent(slide: string) {
   const is24Hours = lower.includes('24 jam');
 
   // Extract Card Title
-  const titleMatch = slide.match(/###?\s*([^\n\r]+)/) || slide.match(/\*\*([^\*]+)\*\*/);
-  const title = titleMatch ? titleMatch[1].replace(/[\*#]/g, '').trim() : 'Informasi';
+  const titleMatch = slide.match(/###?\s*([^\n\r]+)/) || slide.match(/\*\*([^*]+)\*\*/);
+  const title = titleMatch ? titleMatch[1].replace(/[*#]/g, '').trim() : 'Informasi';
 
   // Extract Category Pill label
   let categoryPill = 'Informasi';

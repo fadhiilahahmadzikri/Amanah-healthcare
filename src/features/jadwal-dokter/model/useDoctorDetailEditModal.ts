@@ -9,7 +9,7 @@ import {
   type PolyclinicUnit,
   type StaffMember,
   staffManagementApi
-} from '@/features/staff-management';
+} from '@/features/staff-management/api/staff-management.api';
 import type { DoctorSchedule } from '../api/types';
 import { getDoctorProfile, updateDoctorProfile } from '../api/service';
 
