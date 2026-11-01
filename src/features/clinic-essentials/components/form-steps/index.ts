@@ -1,3 +1,4 @@
+export * from './unit-type-steps';
 export * from './unit-steps';
 export * from './room-steps';
 export * from './category-steps';

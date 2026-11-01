@@ -14,13 +14,11 @@ export default async function ClinicEssentialsPage() {
 
   return (
     <PageContainer
-      scrollable={true}
+      scrollable={false}
       pageTitle='Clinic Essentials'
       pageDescription='Audit dan konfigurasi kanonik fasilitas, ruangan periksa, kategori layanan, tindakan medis, dan registri formulir klinis.'
     >
-      <div className='pb-8'>
-        <ClinicEssentialsView />
-      </div>
+      <ClinicEssentialsView />
     </PageContainer>
   );
 }

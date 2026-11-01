@@ -11,11 +11,14 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import type { ClinicSettingConfig } from '../../../api/admin-schedule-configuration.api';
+import type {
+  ClinicSettingConfig,
+  ClinicSettingValue
+} from '../../../api/admin-schedule-configuration.api';
 
 interface StepClinicSettingsProps {
   clinicSettings: ClinicSettingConfig[];
-  onUpdateSetting: (key: string, value: any) => void;
+  onUpdateSetting: (key: string, value: ClinicSettingValue) => void;
 }
 
 const CATEGORIES: Array<{ id: string; label: string }> = [
@@ -141,7 +144,11 @@ export function StepClinicSettings({ clinicSettings, onUpdateSetting }: StepClin
                     <input
                       type='number'
                       aria-label={setting.label}
-                      value={setting.value}
+                      value={
+                        typeof setting.value === 'number'
+                          ? setting.value
+                          : Number(setting.value) || 0
+                      }
                       min={setting.min}
                       max={setting.max}
                       step={setting.step ?? 1}

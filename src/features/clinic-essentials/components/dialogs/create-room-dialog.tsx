@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -42,23 +43,23 @@ export function CreateRoomDialog({ open, onOpenChange, units, editItem }: Create
 
   const [unitId, setUnitId] = React.useState('');
   const [name, setName] = React.useState('');
-  const [code, setCode] = React.useState('');
   const [location, setLocation] = React.useState('');
   const [floor, setFloor] = React.useState('1');
+  const [isActive, setIsActive] = React.useState(true);
 
   // Sync editItem to form state or pre-select first unit
   React.useEffect(() => {
     if (editItem) {
       setUnitId(editItem.unitId);
       setName(editItem.name);
-      setCode(editItem.code);
       setLocation(editItem.location || '');
       setFloor(editItem.floor || '1');
+      setIsActive(editItem.isActive !== false);
     } else {
       setName('');
-      setCode('');
       setLocation('');
       setFloor('1');
+      setIsActive(true);
       if (units.length > 0) {
         setUnitId(units[0].id);
       }
@@ -99,23 +100,10 @@ export function CreateRoomDialog({ open, onOpenChange, units, editItem }: Create
   const handleClose = () => {
     if (!editItem) {
       setName('');
-      setCode('');
       setLocation('');
       setFloor('1');
     }
     onOpenChange(false);
-  };
-
-  const handleNameChange = (val: string) => {
-    setName(val);
-    if (!editItem && (!code || code === name.toLowerCase().replace(/[^a-z0-9_]/g, '_'))) {
-      setCode(
-        val
-          .toLowerCase()
-          .trim()
-          .replace(/[^a-z0-9_]+/g, '_')
-      );
-    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -128,18 +116,14 @@ export function CreateRoomDialog({ open, onOpenChange, units, editItem }: Create
       toast.error('Nama ruangan periksa wajib diisi');
       return;
     }
-    if (!code.trim()) {
-      toast.error('Kode ruangan wajib diisi');
-      return;
-    }
 
     const payload = {
       unitId,
       name: name.trim(),
-      code: code.trim(),
+      code: editItem ? editItem.code : undefined,
       location: location.trim() || undefined,
       floor: floor.trim() || undefined,
-      isActive: editItem ? editItem.isActive : true
+      isActive
     };
 
     if (editItem) {
@@ -158,14 +142,14 @@ export function CreateRoomDialog({ open, onOpenChange, units, editItem }: Create
             <DialogDescription>
               {editItem
                 ? 'Perbarui ruangan pemeriksaan fisik yang terhubung ke unit poliklinik.'
-                : 'Buat ruangan pemeriksaan fisik yang terhubung ke unit poliklinik.'}
+                : 'Daftarkan ruangan pemeriksaan fisik yang terhubung ke unit poliklinik.'}
             </DialogDescription>
           </DialogHeader>
 
           <div className='py-4 space-y-3.5'>
             <div className='space-y-1.5'>
-              <Label htmlFor='room-unit'>
-                Unit / Poliklinik Induk <span className='text-destructive'>*</span>
+              <Label htmlFor='room-unit' className='text-xs font-semibold'>
+                Poliklinik / Departemen Induk <span className='text-destructive'>*</span>
               </Label>
               {units.length === 0 ? (
                 <div className='p-2 text-xs border border-dashed rounded text-muted-foreground'>
@@ -173,13 +157,13 @@ export function CreateRoomDialog({ open, onOpenChange, units, editItem }: Create
                 </div>
               ) : (
                 <Select value={unitId} onValueChange={setUnitId} disabled={isSubmitting}>
-                  <SelectTrigger id='room-unit'>
+                  <SelectTrigger id='room-unit' className='h-9 text-xs'>
                     <SelectValue placeholder='Pilih unit induk' />
                   </SelectTrigger>
                   <SelectContent>
                     {units.map((u) => (
-                      <SelectItem key={u.id} value={u.id}>
-                        {u.name} ({u.code})
+                      <SelectItem key={u.id} value={u.id} className='text-xs'>
+                        {u.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -188,56 +172,68 @@ export function CreateRoomDialog({ open, onOpenChange, units, editItem }: Create
             </div>
 
             <div className='space-y-1.5'>
-              <Label htmlFor='room-name'>
+              <Label htmlFor='room-name' className='text-xs font-semibold'>
                 Nama Ruangan <span className='text-destructive'>*</span>
               </Label>
               <Input
                 id='room-name'
                 placeholder='Contoh: Ruang Periksa 1'
                 value={name}
-                onChange={(e) => handleNameChange(e.target.value)}
+                onChange={(e) => setName(e.target.value)}
                 disabled={isSubmitting}
                 required
-              />
-            </div>
-
-            <div className='space-y-1.5'>
-              <Label htmlFor='room-code'>
-                Kode Ruangan <span className='text-destructive'>*</span>
-              </Label>
-              <Input
-                id='room-code'
-                placeholder='room_pu_1'
-                value={code}
-                onChange={(e) => setCode(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))}
-                disabled={isSubmitting}
-                required
+                className='h-9 text-xs'
               />
             </div>
 
             <div className='grid grid-cols-2 gap-3'>
               <div className='space-y-1.5'>
-                <Label htmlFor='room-floor'>Lantai</Label>
+                <Label htmlFor='room-floor' className='text-xs font-semibold'>
+                  Lantai
+                </Label>
                 <Input
                   id='room-floor'
                   placeholder='1'
                   value={floor}
                   onChange={(e) => setFloor(e.target.value)}
                   disabled={isSubmitting}
+                  className='h-9 text-xs'
                 />
               </div>
 
               <div className='space-y-1.5'>
-                <Label htmlFor='room-location'>Deskripsi Lokasi</Label>
+                <Label htmlFor='room-location' className='text-xs font-semibold'>
+                  Deskripsi Lokasi
+                </Label>
                 <Input
                   id='room-location'
                   placeholder='Sebelah Ruang Tindakan'
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   disabled={isSubmitting}
+                  className='h-9 text-xs'
                 />
               </div>
             </div>
+
+            {Boolean(editItem) && (
+              <div className='flex items-center justify-between p-3 rounded-xl border border-border/70 bg-muted/20'>
+                <div className='space-y-0.5'>
+                  <Label htmlFor='room-active' className='text-xs font-semibold cursor-pointer'>
+                    Status Operasional Aktif
+                  </Label>
+                  <p className='text-[11px] text-muted-foreground'>
+                    Nonaktifkan jika ruangan sedang dalam perbaikan atau tidak digunakan.
+                  </p>
+                </div>
+                <Switch
+                  id='room-active'
+                  checked={isActive}
+                  onCheckedChange={setIsActive}
+                  disabled={isSubmitting}
+                />
+              </div>
+            )}
           </div>
 
           <DialogFooter className='pt-3 border-t'>

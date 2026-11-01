@@ -41,7 +41,6 @@ export function SessionDefFormDialog({
   portalContainerRef
 }: SessionDefFormDialogProps) {
   const [label, setLabel] = useState('');
-  const [codePrefix, setCodePrefix] = useState('');
   const [icon, setIcon] = useState('');
   const [startsAt, setStartsAt] = useState('08:00');
   const [endsAt, setEndsAt] = useState('12:00');
@@ -50,13 +49,11 @@ export function SessionDefFormDialog({
   useEffect(() => {
     if (initialData) {
       setLabel(initialData.label || '');
-      setCodePrefix(initialData.codePrefix || '');
       setIcon(initialData.icon || '');
       setStartsAt(formatTimeToHHmm(initialData.defaultStartsAt, '08:00'));
       setEndsAt(formatTimeToHHmm(initialData.defaultEndsAt, '12:00'));
     } else {
       setLabel('');
-      setCodePrefix('');
       setIcon('');
 
       if (existingDefs && existingDefs.length > 0) {
@@ -102,7 +99,7 @@ export function SessionDefFormDialog({
       setIsSubmitting(true);
       await onSubmit({
         label: cleanLabel,
-        codePrefix: codePrefix.trim().toUpperCase() || cleanLabel.charAt(0).toUpperCase(),
+        codePrefix: initialData?.codePrefix || undefined,
         icon: icon ? icon.trim() : undefined,
         defaultStartsAt: `${startsAt}:00`,
         defaultEndsAt: `${endsAt}:00`
@@ -149,31 +146,17 @@ export function SessionDefFormDialog({
         </div>
 
         <form onSubmit={handleSubmit} className='space-y-3.5 pt-1'>
-          <div className='space-y-1.5'>
-            <Label htmlFor='shift-label' className='text-xs font-semibold text-foreground'>
-              Nama Shift <span className='text-destructive'>*</span>
-            </Label>
-            <Input
-              id='shift-label'
-              placeholder='Contoh: Sesi Pagi, Layanan Senja'
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              className='h-9 text-xs rounded-lg border-border/80 bg-background'
-            />
-          </div>
-
           <div className='flex items-center gap-3'>
             <div className='space-y-1.5 flex-1 min-w-0'>
-              <Label htmlFor='shift-prefix' className='text-xs font-semibold text-foreground'>
-                Singkatan / Kode Huruf
+              <Label htmlFor='shift-label' className='text-xs font-semibold text-foreground'>
+                Nama Shift <span className='text-destructive'>*</span>
               </Label>
               <Input
-                id='shift-prefix'
-                placeholder='Contoh: P, S, M, PE'
-                maxLength={3}
-                value={codePrefix}
-                onChange={(e) => setCodePrefix(e.target.value.toUpperCase())}
-                className='h-9 text-xs font-mono uppercase rounded-lg border-border/80 bg-background'
+                id='shift-label'
+                placeholder='Contoh: Sesi Pagi, Layanan Senja'
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+                className='h-9 text-xs rounded-lg border-border/80 bg-background'
               />
             </div>
 
@@ -182,7 +165,7 @@ export function SessionDefFormDialog({
               <ShiftIconPickerPopover
                 value={icon}
                 onChange={setIcon}
-                fallback={codePrefix || label.charAt(0)}
+                fallback={label.charAt(0) || 'S'}
                 portalContainerRef={portalContainerRef}
               />
             </div>

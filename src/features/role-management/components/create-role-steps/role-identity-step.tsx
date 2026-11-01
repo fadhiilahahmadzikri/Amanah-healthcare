@@ -5,9 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 export interface RoleIdentityStepProps {
-  code: string;
+  code?: string;
   name: string;
-  onCodeChange: (value: string) => void;
+  onCodeChange?: (value: string) => void;
   onNameChange: (value: string) => void;
   isCodeLocked?: boolean;
   disabled?: boolean;
@@ -16,7 +16,6 @@ export interface RoleIdentityStepProps {
 export function RoleIdentityStep({
   code,
   name,
-  onCodeChange,
   onNameChange,
   isCodeLocked = false,
   disabled
@@ -30,7 +29,7 @@ export function RoleIdentityStep({
         <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
           {isCodeLocked
             ? 'Nama tampilan dapat disesuaikan. Kode peran bersifat permanen.'
-            : 'Tuliskan kode pengenal dan nama panggilan peran agar mudah dikenali di klinik.'}
+            : 'Tuliskan nama peran agar mudah dikenali oleh seluruh staf klinik.'}
         </p>
       </div>
 
@@ -49,24 +48,23 @@ export function RoleIdentityStep({
           />
         </div>
 
-        <div className='space-y-1.5'>
-          <Label htmlFor='role-code' className='text-xs font-semibold'>
-            Kode Peran <span className='text-destructive'>*</span>
-          </Label>
-          <Input
-            id='role-code'
-            placeholder='contoh: receptionist_lead'
-            value={code}
-            onChange={(e) => onCodeChange(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))}
-            disabled={disabled || isCodeLocked}
-            className='h-10 text-sm font-mono'
-          />
-          <p className='text-[11px] text-muted-foreground'>
-            {isCodeLocked
-              ? 'Kode peran bersifat permanen dan tidak dapat diubah.'
-              : 'Gunakan huruf kecil dan garis bawah tanpa spasi.'}
-          </p>
-        </div>
+        {isCodeLocked && code && (
+          <div className='space-y-1.5'>
+            <Label htmlFor='role-code' className='text-xs font-semibold'>
+              Kode Peran
+            </Label>
+            <Input
+              id='role-code'
+              value={code}
+              readOnly
+              disabled
+              className='h-10 text-sm font-mono opacity-80 cursor-not-allowed bg-muted/40'
+            />
+            <p className='text-[11px] text-muted-foreground'>
+              Kode peran bersifat permanen dan tidak dapat diubah.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

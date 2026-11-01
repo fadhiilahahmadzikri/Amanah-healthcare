@@ -189,7 +189,21 @@ export function RoleFormDialog({
             )}
           </div>
 
-          <div>
+          <div className='flex items-center gap-2'>
+            {state.isEditMode && state.currentStage < 5 && (
+              <Button
+                type='button'
+                variant='outline'
+                size='md'
+                shape='pill'
+                disabled={!state.isCurrentStageValid || state.isSubmitting}
+                isLoading={state.isSubmitting}
+                onClick={() => actions.handleSubmit()}
+                className='text-xs'
+              >
+                Simpan Sekarang
+              </Button>
+            )}
             {state.currentStage < 5 ? (
               <Button
                 type='button'

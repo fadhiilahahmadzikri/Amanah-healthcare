@@ -3,32 +3,28 @@
 import * as React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { ShiftIconPickerPopover } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-picker-popover';
+import {
+  AccordionSelectionField,
+  type AccordionSelectionOption
+} from '../atoms/accordion-selection-field';
 import type { FacilityUnitType } from '../../types/clinic-essentials.types';
 
 export interface UnitIdentityStepProps {
   name: string;
-  code: string;
+  code?: string;
   iconName: string;
   onNameChange: (val: string) => void;
-  onCodeChange: (val: string) => void;
+  onCodeChange?: (val: string) => void;
   onIconNameChange: (val: string) => void;
   disabled?: boolean;
 }
 
 export function UnitIdentityStep({
   name,
-  code,
   iconName,
   onNameChange,
-  onCodeChange,
   onIconNameChange,
   disabled
 }: UnitIdentityStepProps) {
@@ -36,57 +32,40 @@ export function UnitIdentityStep({
     <div className='space-y-4 font-sans'>
       <div>
         <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
-          Nama dan Kode Poliklinik
+          Apa nama poliklinik atau departemen yang ingin didaftarkan?
         </h3>
         <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
-          Tuliskan nama unit atau poliklinik baru agar pasien dan staf mudah menemukannya.
+          Tuliskan nama unit pelayanan klinis dan pilih ikon visual penanda yang mudah dikenali
+          dokter maupun pasien.
         </p>
       </div>
 
       <div className='space-y-3.5 pt-1'>
-        <div className='space-y-1.5'>
-          <Label htmlFor='unit-name' className='text-xs font-semibold'>
-            Nama Poliklinik / Unit <span className='text-destructive'>*</span>
-          </Label>
-          <Input
-            id='unit-name'
-            placeholder='Contoh: Poliklinik Rawat Jalan'
-            value={name}
-            onChange={(e) => onNameChange(e.target.value)}
-            disabled={disabled}
-            className='h-10 text-sm'
-            required
-          />
-        </div>
-
-        <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
-          <div className='space-y-1.5'>
-            <Label htmlFor='unit-code' className='text-xs font-semibold'>
-              Kode Singkat <span className='text-destructive'>*</span>
+        <div className='flex items-center gap-3'>
+          <div className='space-y-1.5 flex-1 min-w-0'>
+            <Label htmlFor='unit-name' className='text-xs font-semibold'>
+              Nama Poliklinik / Departemen <span className='text-destructive'>*</span>
             </Label>
             <Input
-              id='unit-code'
-              placeholder='rawat_jalan'
-              value={code}
-              onChange={(e) =>
-                onCodeChange(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))
-              }
+              id='unit-name'
+              placeholder='Contoh: Poliklinik Umum'
+              value={name}
+              onChange={(e) => onNameChange(e.target.value)}
               disabled={disabled}
-              className='h-10 text-sm font-mono'
+              className='h-10 text-sm'
               required
             />
           </div>
 
-          <div className='space-y-1.5'>
-            <Label className='text-xs font-semibold'>Ikon Tampilan</Label>
-            <div className='flex items-center gap-2 h-10'>
+          <div className='space-y-1.5 shrink-0'>
+            <Label className='text-xs font-semibold'>Visual</Label>
+            <div className='h-10 flex items-center'>
               <ShiftIconPickerPopover
-                value={iconName || 'building-2'}
+                value={iconName}
                 onChange={onIconNameChange}
-                fallback='U'
+                fallback={name.charAt(0) || 'U'}
                 disabled={disabled}
               />
-              <span className='text-xs text-muted-foreground truncate'>Pilih ikon atau emoji</span>
             </div>
           </div>
         </div>
@@ -98,74 +77,50 @@ export function UnitIdentityStep({
 export interface UnitClassificationStepProps {
   unitTypeId: string;
   unitTypes?: FacilityUnitType[];
-  queuePrefix: string;
+  queuePrefix?: string;
   onUnitTypeIdChange: (val: string) => void;
-  onQueuePrefixChange: (val: string) => void;
+  onQueuePrefixChange?: (val: string) => void;
   disabled?: boolean;
 }
 
 export function UnitClassificationStep({
   unitTypeId,
   unitTypes = [],
-  queuePrefix,
   onUnitTypeIdChange,
-  onQueuePrefixChange,
   disabled
 }: UnitClassificationStepProps) {
+  const typeOptions = React.useMemo<AccordionSelectionOption[]>(() => {
+    return unitTypes.map((ut) => ({
+      id: ut.id,
+      name: ut.name,
+      subtitle: ut.description || undefined,
+      iconName: ut.iconName || 'layers'
+    }));
+  }, [unitTypes]);
+
   return (
     <div className='space-y-4 font-sans'>
       <div>
         <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
-          Jenis Layanan dan Awalan Antrean
+          Termasuk ke dalam kelompok fasilitas apa poliklinik ini?
         </h3>
         <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
-          Pilih klasifikasi tipe unit fasilitas serta huruf depan tiket antrean pasien jika
-          dibutuhkan.
+          Pilih klasifikasi jenis fasilitas untuk poliklinik atau departemen ini.
         </p>
       </div>
 
       <div className='space-y-3.5 pt-1'>
-        <div className='space-y-1.5'>
-          <Label htmlFor='unit-type' className='text-xs font-semibold'>
-            Tipe Unit Fasilitas <span className='text-destructive'>*</span>
-          </Label>
-          <Select value={unitTypeId} onValueChange={onUnitTypeIdChange} disabled={disabled}>
-            <SelectTrigger id='unit-type' className='h-10 text-sm'>
-              <SelectValue placeholder='Pilih klasifikasi tipe unit' />
-            </SelectTrigger>
-            <SelectContent>
-              {unitTypes.length > 0 ? (
-                unitTypes.map((ut) => (
-                  <SelectItem key={ut.id} value={ut.id}>
-                    {ut.name} ({ut.code})
-                  </SelectItem>
-                ))
-              ) : (
-                <SelectItem value='none' disabled>
-                  Tidak ada tipe unit terdaftar
-                </SelectItem>
-              )}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className='space-y-1.5'>
-          <Label htmlFor='queue-prefix' className='text-xs font-semibold'>
-            Awalan Nomor Antrean (Boleh Kosong)
-          </Label>
-          <Input
-            id='queue-prefix'
-            placeholder='Contoh: PU, GIGI, KIA'
-            maxLength={8}
-            value={queuePrefix}
-            onChange={(e) => onQueuePrefixChange(e.target.value.toUpperCase())}
-            disabled={disabled}
-            className='h-10 text-sm font-mono'
-          />
-          <p className='text-[11px] text-muted-foreground'>
-            Huruf ini akan otomatis dicetak di depan nomor antrean pasien.
-          </p>
-        </div>
+        <AccordionSelectionField
+          label='Klasifikasi Tipe Unit'
+          placeholder='Pilih klasifikasi jenis fasilitas...'
+          actionText='Ganti Klasifikasi'
+          selectedId={unitTypeId}
+          options={typeOptions}
+          onSelect={onUnitTypeIdChange}
+          disabled={disabled || unitTypes.length === 0}
+          emptyMessage='Belum ada klasifikasi fasilitas terdaftar.'
+          required
+        />
       </div>
     </div>
   );
@@ -176,6 +131,9 @@ export interface UnitLocationStepProps {
   location: string;
   onFloorChange: (val: string) => void;
   onLocationChange: (val: string) => void;
+  isActive?: boolean;
+  onIsActiveChange?: (val: boolean) => void;
+  isEditing?: boolean;
   disabled?: boolean;
 }
 
@@ -184,47 +142,71 @@ export function UnitLocationStep({
   location,
   onFloorChange,
   onLocationChange,
-  disabled
+  isActive = true,
+  onIsActiveChange,
+  isEditing = false,
+  disabled = false
 }: UnitLocationStepProps) {
   return (
     <div className='space-y-4 font-sans'>
       <div>
         <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
-          Lokasi dan Lantai Ruangan
+          Di mana letak ruangan atau sayap gedung poliklinik ini?
         </h3>
         <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
           Tentukan lantai dan petunjuk arah agar pasien serta dokter mudah menemukan tempatnya.
         </p>
       </div>
 
-      <div className='grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1'>
-        <div className='space-y-1.5 sm:col-span-1'>
-          <Label htmlFor='unit-floor' className='text-xs font-semibold'>
-            Lantai
-          </Label>
-          <Input
-            id='unit-floor'
-            placeholder='Contoh: 1'
-            value={floor}
-            onChange={(e) => onFloorChange(e.target.value)}
-            disabled={disabled}
-            className='h-10 text-sm'
-          />
+      <div className='space-y-3.5 pt-1'>
+        <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
+          <div className='space-y-1.5 sm:col-span-1'>
+            <Label htmlFor='unit-floor' className='text-xs font-semibold'>
+              Lantai
+            </Label>
+            <Input
+              id='unit-floor'
+              placeholder='Contoh: 1'
+              value={floor}
+              onChange={(e) => onFloorChange(e.target.value)}
+              disabled={disabled}
+              className='h-10 text-sm'
+            />
+          </div>
+
+          <div className='space-y-1.5 sm:col-span-2'>
+            <Label htmlFor='unit-location' className='text-xs font-semibold'>
+              Petunjuk Arah / Sayap Gedung
+            </Label>
+            <Input
+              id='unit-location'
+              placeholder='Contoh: Gedung A Sayap Barat'
+              value={location}
+              onChange={(e) => onLocationChange(e.target.value)}
+              disabled={disabled}
+              className='h-10 text-sm'
+            />
+          </div>
         </div>
 
-        <div className='space-y-1.5 sm:col-span-2'>
-          <Label htmlFor='unit-location' className='text-xs font-semibold'>
-            Petunjuk Arah / Sayap Gedung
-          </Label>
-          <Input
-            id='unit-location'
-            placeholder='Contoh: Gedung A Sayap Barat'
-            value={location}
-            onChange={(e) => onLocationChange(e.target.value)}
-            disabled={disabled}
-            className='h-10 text-sm'
-          />
-        </div>
+        {isEditing && onIsActiveChange && (
+          <div className='flex items-center justify-between p-3 rounded-xl border border-border/70 bg-muted/20'>
+            <div className='space-y-0.5'>
+              <Label htmlFor='unit-active' className='text-xs font-semibold cursor-pointer'>
+                Status Operasional Aktif
+              </Label>
+              <p className='text-[11px] text-muted-foreground'>
+                Nonaktifkan jika poliklinik ini sedang tutup atau tidak menerima antrean.
+              </p>
+            </div>
+            <Switch
+              id='unit-active'
+              checked={isActive}
+              onCheckedChange={onIsActiveChange}
+              disabled={disabled}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

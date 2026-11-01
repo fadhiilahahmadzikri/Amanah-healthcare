@@ -14,6 +14,7 @@ import {
   type SessionDefConfig,
   type WeeklyTemplateConfig,
   type ClinicSettingConfig,
+  type ClinicSettingValue,
   type DayInfoConfig,
   type UpdateScheduleConfigurationPayload,
   type ScheduleConfigurationImpactResult,
@@ -233,7 +234,7 @@ export function useDoctorScheduleSettingsModal({
     );
   }, []);
 
-  const updateClinicSettingValue = useCallback((key: string, value: unknown) => {
+  const updateClinicSettingValue = useCallback((key: string, value: ClinicSettingValue) => {
     setDraftClinicSettings((prev) =>
       prev.map((item) => (item.key === key ? { ...item, value } : item))
     );

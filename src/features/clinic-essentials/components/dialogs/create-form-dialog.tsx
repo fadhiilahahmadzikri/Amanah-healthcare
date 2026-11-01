@@ -14,14 +14,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
+import { ShiftIconPickerPopover } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-picker-popover';
 import { clinicEssentialsApi } from '../../api/clinic-essentials.api';
 import { clinicEssentialsKeys } from '../../api/query-keys';
 import type {
@@ -36,45 +31,37 @@ export interface CreateFormDialogProps {
   editItem?: ClinicalIntakeForm | null;
 }
 
-const FORM_ICONS = [
-  { value: 'clipboard-list', label: 'Clipboard (Formulir Standar)' },
-  { value: 'baby', label: 'Baby (ANC / Kehamilan / Anak)' },
-  { value: 'syringe', label: 'Syringe (Imunisasi / Vaksin)' },
-  { value: 'stethoscope', label: 'Stethoscope (Pemeriksaan Dokter)' },
-  { value: 'file-text', label: 'File Text (Dokumen Medis)' }
-];
-
 export function CreateFormDialog({ open, onOpenChange, editItem }: CreateFormDialogProps) {
   const queryClient = useQueryClient();
 
   const [name, setName] = React.useState('');
-  const [code, setCode] = React.useState('');
-  const [iconName, setIconName] = React.useState('clipboard-list');
+  const [iconName, setIconName] = React.useState('');
   const [description, setDescription] = React.useState('');
+  const [isActive, setIsActive] = React.useState(true);
 
   React.useEffect(() => {
     if (editItem) {
       setName(editItem.name);
-      setCode(editItem.code);
-      setIconName(editItem.iconName || 'clipboard-list');
+      setIconName(editItem.iconName || '');
       setDescription(editItem.description || '');
+      setIsActive(editItem.isActive !== false);
     } else {
       setName('');
-      setCode('');
-      setIconName('clipboard-list');
+      setIconName('');
       setDescription('');
+      setIsActive(true);
     }
   }, [editItem, open]);
 
   const createMutation = useMutation({
     mutationFn: (payload: CreateIntakeFormPayload) => clinicEssentialsApi.createForm(payload),
     onSuccess: (data) => {
-      toast.success(`Formulir '${data.name}' (${data.code}) berhasil didaftarkan.`);
+      toast.success(`Formulir '${data.name}' berhasil didaftarkan.`);
       queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.forms() });
       handleClose();
     },
     onError: (err: unknown) => {
-      const msg = err instanceof Error ? err.message : 'Gagal membuat formulir intake';
+      const msg = err instanceof Error ? err.message : 'Gagal membuat formulir pengkajian';
       toast.error(msg);
     }
   });
@@ -90,7 +77,7 @@ export function CreateFormDialog({ open, onOpenChange, editItem }: CreateFormDia
       handleClose();
     },
     onError: (err: unknown) => {
-      const msg = err instanceof Error ? err.message : 'Gagal memperbarui formulir intake';
+      const msg = err instanceof Error ? err.message : 'Gagal memperbarui formulir pengkajian';
       toast.error(msg);
     }
   });
@@ -100,42 +87,25 @@ export function CreateFormDialog({ open, onOpenChange, editItem }: CreateFormDia
   const handleClose = () => {
     if (!editItem) {
       setName('');
-      setCode('');
       setIconName('clipboard-list');
       setDescription('');
     }
     onOpenChange(false);
   };
 
-  const handleNameChange = (val: string) => {
-    setName(val);
-    if (!editItem && (!code || code === name.toLowerCase().replace(/[^a-z0-9_]/g, '_'))) {
-      setCode(
-        val
-          .toLowerCase()
-          .trim()
-          .replace(/[^a-z0-9_]+/g, '_')
-      );
-    }
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      toast.error('Nama formulir intake wajib diisi');
-      return;
-    }
-    if (!code.trim()) {
-      toast.error('Kode formulir wajib diisi');
+      toast.error('Nama formulir pengkajian wajib diisi');
       return;
     }
 
     const payload = {
       name: name.trim(),
-      code: code.trim(),
+      code: editItem ? editItem.code : undefined,
       iconName: iconName || 'clipboard-list',
       description: description.trim() || undefined,
-      isActive: editItem ? editItem.isActive : true
+      isActive
     };
 
     if (editItem) {
@@ -151,75 +121,76 @@ export function CreateFormDialog({ open, onOpenChange, editItem }: CreateFormDia
         <form onSubmit={handleSubmit}>
           <DialogHeader className='pb-4 border-b'>
             <DialogTitle>
-              {editItem ? 'Edit Master Formulir Intake' : 'Tambah Master Formulir Intake'}
+              {editItem ? 'Edit Formulir Pengkajian Pasien' : 'Tambah Formulir Pengkajian Pasien'}
             </DialogTitle>
             <DialogDescription>
               {editItem
-                ? 'Perbarui definisi kode master formulir klinis intake.'
-                : 'Daftarkan kode formulir klinis (misal: general, pregnancy, immunization) untuk dikoneksikan ke layanan.'}
+                ? 'Perbarui formulir pengkajian klinis pasien.'
+                : 'Daftarkan formulir pengkajian klinis pasien baru (misal: Asesmen Awal, ANC / Kehamilan, Imunisasi).'}
             </DialogDescription>
           </DialogHeader>
 
           <div className='py-4 space-y-3.5'>
-            <div className='space-y-1.5'>
-              <Label htmlFor='form-name'>
-                Nama Formulir <span className='text-destructive'>*</span>
-              </Label>
-              <Input
-                id='form-name'
-                placeholder='Contoh: Pemeriksaan Kehamilan & ANC'
-                value={name}
-                onChange={(e) => handleNameChange(e.target.value)}
-                disabled={isSubmitting}
-                required
-              />
-            </div>
-
-            <div className='grid grid-cols-2 gap-3'>
-              <div className='space-y-1.5'>
-                <Label htmlFor='form-code'>
-                  Kode Formulir <span className='text-destructive'>*</span>
+            <div className='flex items-center gap-3'>
+              <div className='space-y-1.5 flex-1 min-w-0'>
+                <Label htmlFor='form-name' className='text-xs font-semibold'>
+                  Nama Formulir Pengkajian <span className='text-destructive'>*</span>
                 </Label>
                 <Input
-                  id='form-code'
-                  placeholder='pregnancy'
-                  value={code}
-                  onChange={(e) =>
-                    setCode(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))
-                  }
+                  id='form-name'
+                  placeholder='Contoh: Pemeriksaan Kehamilan & ANC'
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   disabled={isSubmitting}
                   required
+                  className='h-9 text-xs'
                 />
               </div>
 
-              <div className='space-y-1.5'>
-                <Label htmlFor='form-icon'>Ikon Formulir</Label>
-                <Select value={iconName} onValueChange={setIconName} disabled={isSubmitting}>
-                  <SelectTrigger id='form-icon'>
-                    <SelectValue placeholder='Pilih ikon' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {FORM_ICONS.map((ic) => (
-                      <SelectItem key={ic.value} value={ic.value}>
-                        {ic.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className='space-y-1.5 shrink-0'>
+                <Label className='text-xs font-semibold'>Visual</Label>
+                <ShiftIconPickerPopover
+                  value={iconName}
+                  onChange={setIconName}
+                  fallback={name.charAt(0) || 'F'}
+                  disabled={isSubmitting}
+                />
               </div>
             </div>
 
             <div className='space-y-1.5'>
-              <Label htmlFor='form-desc'>Deskripsi (Opsional)</Label>
+              <Label htmlFor='form-desc' className='text-xs font-semibold'>
+                Deskripsi (Opsional)
+              </Label>
               <Textarea
                 id='form-desc'
-                placeholder='Penjelasan alur atau data khusus yang dikumpulkan oleh formulir ini'
+                placeholder='Penjelasan alur atau data klinis khusus yang dikumpulkan oleh formulir ini'
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 disabled={isSubmitting}
                 rows={2}
+                className='text-xs'
               />
             </div>
+
+            {Boolean(editItem) && (
+              <div className='flex items-center justify-between p-3 rounded-xl border border-border/70 bg-muted/20'>
+                <div className='space-y-0.5'>
+                  <Label htmlFor='form-active' className='text-xs font-semibold cursor-pointer'>
+                    Status Operasional Aktif
+                  </Label>
+                  <p className='text-[11px] text-muted-foreground'>
+                    Nonaktifkan jika formulir ini sedang tidak digunakan untuk pengkajian pasien.
+                  </p>
+                </div>
+                <Switch
+                  id='form-active'
+                  checked={isActive}
+                  onCheckedChange={setIsActive}
+                  disabled={isSubmitting}
+                />
+              </div>
+            )}
           </div>
 
           <DialogFooter className='pt-3 border-t'>

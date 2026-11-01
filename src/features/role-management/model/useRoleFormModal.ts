@@ -126,14 +126,8 @@ export function useRoleFormModal({
   );
 
   const isStage1Valid = React.useMemo(() => {
-    const trimmedName = name.trim();
-    if (isEditMode) {
-      return trimmedName.length >= 2;
-    }
-    const trimmedCode = code.trim();
-    const isCodeValid = trimmedCode.length >= 2 && /^[a-z][a-z0-9_]*$/.test(trimmedCode);
-    return isCodeValid && trimmedName.length >= 2;
-  }, [code, isEditMode, name]);
+    return name.trim().length >= 2;
+  }, [name]);
 
   const isCurrentStageValid = React.useMemo(() => {
     switch (currentStage) {
@@ -166,11 +160,6 @@ export function useRoleFormModal({
       e.preventDefault();
     }
 
-    if (!isEditMode && !code.trim()) {
-      toast.error('Kode peran wajib diisi');
-      setCurrentStage(1);
-      return;
-    }
     if (!name.trim()) {
       toast.error('Nama peran wajib diisi');
       setCurrentStage(1);
@@ -198,7 +187,7 @@ export function useRoleFormModal({
       } else {
         // Create role
         await roleManagementApi.createRole({
-          code: code.trim().toLowerCase(),
+          code: code.trim() ? code.trim().toLowerCase() : undefined,
           name: name.trim(),
           description: description.trim() || null,
           tier,

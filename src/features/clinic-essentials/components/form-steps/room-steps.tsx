@@ -4,14 +4,11 @@ import * as React from 'react';
 import { Building2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import { ShiftIconDisplay } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-display';
+  AccordionSelectionField,
+  type AccordionSelectionOption
+} from '../atoms/accordion-selection-field';
 import type { FacilityUnit } from '../../types/clinic-essentials.types';
 
 export interface RoomParentUnitStepProps {
@@ -27,43 +24,42 @@ export function RoomParentUnitStep({
   onUnitIdChange,
   disabled
 }: RoomParentUnitStepProps) {
+  const unitOptions = React.useMemo<AccordionSelectionOption[]>(() => {
+    return units.map((u) => ({
+      id: u.id,
+      name: u.name,
+      subtitle:
+        u.floor || u.location
+          ? `Lantai ${u.floor || '1'}${u.location ? ` • ${u.location}` : ''}`
+          : undefined,
+      iconName: u.iconName || 'building-2'
+    }));
+  }, [units]);
+
   return (
     <div className='space-y-4 font-sans'>
       <div>
         <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
-          Pilih Poliklinik Induk
+          Di poliklinik atau departemen mana ruangan ini berada?
         </h3>
         <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
-          Pilih poliklinik atau bagian tempat ruangan dokter ini berada.
+          Hubungkan ruangan ini dengan unit poliklinik induk tempat dokter dan praktisi akan membuka
+          sesi pelayanan.
         </p>
       </div>
 
       <div className='space-y-3 pt-1'>
-        <div className='space-y-1.5'>
-          <Label htmlFor='room-parent-unit' className='text-xs font-semibold'>
-            Poliklinik Induk <span className='text-destructive'>*</span>
-          </Label>
-          <Select
-            value={unitId}
-            onValueChange={onUnitIdChange}
-            disabled={disabled || units.length === 0}
-          >
-            <SelectTrigger id='room-parent-unit' className='h-11 text-sm'>
-              <SelectValue placeholder='Pilih poliklinik induk' />
-            </SelectTrigger>
-            <SelectContent>
-              {units.map((u) => (
-                <SelectItem key={u.id} value={u.id} className='text-xs'>
-                  <div className='flex items-center gap-2'>
-                    <ShiftIconDisplay icon={u.iconName || 'building-2'} size='sm' />
-                    <span className='font-medium'>{u.name}</span>
-                    <span className='font-mono text-muted-foreground text-[11px]'>({u.code})</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <AccordionSelectionField
+          label='Poliklinik Induk'
+          placeholder='Pilih poliklinik induk ruangan ini...'
+          actionText='Ganti Poliklinik'
+          selectedId={unitId}
+          options={unitOptions}
+          onSelect={onUnitIdChange}
+          disabled={disabled || units.length === 0}
+          emptyMessage='Belum ada data poliklinik. Silakan buat unit poliklinik terlebih dahulu.'
+          required
+        />
 
         {units.length === 0 && (
           <p className='text-xs text-destructive flex items-center gap-1.5 pt-1'>
@@ -78,27 +74,21 @@ export function RoomParentUnitStep({
 
 export interface RoomIdentityStepProps {
   name: string;
-  code: string;
+  code?: string;
   onNameChange: (val: string) => void;
-  onCodeChange: (val: string) => void;
+  onCodeChange?: (val: string) => void;
   disabled?: boolean;
 }
 
-export function RoomIdentityStep({
-  name,
-  code,
-  onNameChange,
-  onCodeChange,
-  disabled
-}: RoomIdentityStepProps) {
+export function RoomIdentityStep({ name, onNameChange, disabled }: RoomIdentityStepProps) {
   return (
     <div className='space-y-4 font-sans'>
       <div>
         <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
-          Nama dan Kode Ruangan
+          Apa nama ruang periksa yang ingin didaftarkan?
         </h3>
         <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
-          Tuliskan nama ruangan yang tertera di pintu periksa dan panggilan antrean.
+          Nama ini akan tertera di pintu periksa dan sistem pengumuman panggilan antrean pasien.
         </p>
       </div>
 
@@ -117,21 +107,6 @@ export function RoomIdentityStep({
             required
           />
         </div>
-
-        <div className='space-y-1.5'>
-          <Label htmlFor='room-code' className='text-xs font-semibold'>
-            Kode Ruangan <span className='text-destructive'>*</span>
-          </Label>
-          <Input
-            id='room-code'
-            placeholder='ruang_periksa_1'
-            value={code}
-            onChange={(e) => onCodeChange(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))}
-            disabled={disabled}
-            className='h-10 text-sm font-mono'
-            required
-          />
-        </div>
       </div>
     </div>
   );
@@ -142,6 +117,9 @@ export interface RoomLocationStepProps {
   location: string;
   onFloorChange: (val: string) => void;
   onLocationChange: (val: string) => void;
+  isActive?: boolean;
+  onIsActiveChange?: (val: boolean) => void;
+  isEditing?: boolean;
   disabled?: boolean;
 }
 
@@ -150,47 +128,72 @@ export function RoomLocationStep({
   location,
   onFloorChange,
   onLocationChange,
-  disabled
+  isActive = true,
+  onIsActiveChange,
+  isEditing = false,
+  disabled = false
 }: RoomLocationStepProps) {
   return (
     <div className='space-y-4 font-sans'>
       <div>
         <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
-          Lokasi dan Posisi Ruangan
+          Di lantai berapa dan di mana posisi ruangan ini?
         </h3>
         <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
-          Tuliskan letak lantai dan nomor koridor agar pasien tidak tersasar.
+          Beri petunjuk letak ruangan yang jelas untuk memudahkan alur mobilitas pasien dan staf
+          perawat.
         </p>
       </div>
 
-      <div className='grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1'>
-        <div className='space-y-1.5 sm:col-span-1'>
-          <Label htmlFor='room-floor' className='text-xs font-semibold'>
-            Lantai
-          </Label>
-          <Input
-            id='room-floor'
-            placeholder='Contoh: 1'
-            value={floor}
-            onChange={(e) => onFloorChange(e.target.value)}
-            disabled={disabled}
-            className='h-10 text-sm'
-          />
+      <div className='space-y-3.5 pt-1'>
+        <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
+          <div className='space-y-1.5 sm:col-span-1'>
+            <Label htmlFor='room-floor' className='text-xs font-semibold'>
+              Lantai
+            </Label>
+            <Input
+              id='room-floor'
+              placeholder='Contoh: 1'
+              value={floor}
+              onChange={(e) => onFloorChange(e.target.value)}
+              disabled={disabled}
+              className='h-10 text-sm'
+            />
+          </div>
+
+          <div className='space-y-1.5 sm:col-span-2'>
+            <Label htmlFor='room-location' className='text-xs font-semibold'>
+              Posisi / Koridor
+            </Label>
+            <Input
+              id='room-location'
+              placeholder='Contoh: Koridor Barat, Depan Farmasi'
+              value={location}
+              onChange={(e) => onLocationChange(e.target.value)}
+              disabled={disabled}
+              className='h-10 text-sm'
+            />
+          </div>
         </div>
 
-        <div className='space-y-1.5 sm:col-span-2'>
-          <Label htmlFor='room-location' className='text-xs font-semibold'>
-            Posisi / Koridor
-          </Label>
-          <Input
-            id='room-location'
-            placeholder='Contoh: Koridor Barat, Depan Farmasi'
-            value={location}
-            onChange={(e) => onLocationChange(e.target.value)}
-            disabled={disabled}
-            className='h-10 text-sm'
-          />
-        </div>
+        {isEditing && onIsActiveChange && (
+          <div className='flex items-center justify-between p-3 rounded-xl border border-border/70 bg-muted/20'>
+            <div className='space-y-0.5'>
+              <Label htmlFor='room-active' className='text-xs font-semibold cursor-pointer'>
+                Status Operasional Aktif
+              </Label>
+              <p className='text-[11px] text-muted-foreground'>
+                Nonaktifkan jika ruangan ini sedang dalam renovasi atau tidak digunakan.
+              </p>
+            </div>
+            <Switch
+              id='room-active'
+              checked={isActive}
+              onCheckedChange={onIsActiveChange}
+              disabled={disabled}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

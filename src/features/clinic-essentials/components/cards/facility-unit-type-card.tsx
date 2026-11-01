@@ -5,8 +5,10 @@ import { Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
 import { PixelTexture } from '@/features/klinik/components/pixel-texture';
-import { ShiftIconDisplay } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-display';
+import { EssentialCardIcon } from '../../utils/essential-icon-resolver';
+import { useCardBulkingSlide } from '@/hooks/use-card-bulking-slide';
 import { cn } from '@/lib/utils';
 import type { FacilityUnitType } from '../../types/clinic-essentials.types';
 
@@ -14,9 +16,13 @@ export interface FacilityUnitTypeCardProps {
   unitType: FacilityUnitType;
   canManage?: boolean;
   selected?: boolean;
+  isBulkingActive?: boolean;
   onToggleSelect?: () => void;
+  onToggleActive?: (newActive: boolean) => void;
+  isTogglingActive?: boolean;
   onEdit?: (unitType: FacilityUnitType) => void;
   onDelete: (unitType: FacilityUnitType) => void;
+  onCardClick?: (unitType: FacilityUnitType) => void;
   className?: string;
 }
 
@@ -24,17 +30,45 @@ export function FacilityUnitTypeCard({
   unitType,
   canManage = true,
   selected = false,
+  isBulkingActive = false,
   onToggleSelect,
+  onToggleActive,
+  isTogglingActive = false,
   onEdit,
   onDelete,
+  onCardClick,
   className
 }: FacilityUnitTypeCardProps) {
   const isActive = unitType.isActive !== false;
+  const { wrapperRef, containerProps } = useCardBulkingSlide({ selected, isBulkingActive });
+
+  const handleCardClick = React.useCallback(() => {
+    if (onCardClick) {
+      onCardClick(unitType);
+    } else if (onEdit) {
+      onEdit(unitType);
+    }
+  }, [onCardClick, onEdit, unitType]);
+
+  const handleKeyDown = React.useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        handleCardClick();
+      }
+    },
+    [handleCardClick]
+  );
 
   return (
     <div
+      {...containerProps}
+      role='button'
+      tabIndex={0}
+      onClick={handleCardClick}
+      onKeyDown={handleKeyDown}
       className={cn(
-        'group relative w-full bg-gradient-to-t from-primary/6 via-primary/[0.015] to-card dark:from-primary/12 dark:via-card dark:to-card text-card-foreground border border-border rounded-[20px] shadow-none hover:border-primary/60 hover:shadow-md overflow-hidden font-sans flex flex-col justify-between h-full p-3.5 sm:p-4 gap-2.5 select-none transition-all duration-200',
+        'group relative w-full bg-gradient-to-t from-primary/6 via-primary/[0.015] to-card dark:from-primary/12 dark:via-card dark:to-card text-card-foreground border border-border rounded-[20px] shadow-none hover:border-primary/60 hover:shadow-md overflow-hidden font-sans flex flex-col justify-between h-full p-3.5 sm:p-4 gap-2.5 select-none transition-all duration-200 cursor-pointer',
         !isActive && 'opacity-75 border-dashed bg-muted/10',
         selected && 'ring-2 ring-primary border-primary bg-primary/[0.03]',
         className
@@ -55,28 +89,34 @@ export function FacilityUnitTypeCard({
 
       {/* Top Header */}
       <div className='relative z-1 flex items-start justify-between gap-2 w-full'>
-        <div className='flex items-center gap-2.5 min-w-0'>
+        <div className='flex items-center min-w-0'>
           {canManage && onToggleSelect && (
-            <Checkbox
-              checked={selected}
-              onCheckedChange={onToggleSelect}
-              className='data-[state=checked]:bg-primary shrink-0'
-              aria-label={`Pilih ${unitType.name}`}
-            />
-          )}
-          <div className='size-10 rounded-full bg-primary/10 ring-2 ring-primary/20 flex items-center justify-center shrink-0'>
-            <ShiftIconDisplay icon={unitType.iconName || 'layers'} size='md' />
-          </div>
-          <div className='min-w-0'>
-            <h4
-              className='truncate text-sm font-semibold text-foreground leading-tight'
-              title={unitType.name}
+            <div
+              ref={wrapperRef}
+              className='overflow-hidden shrink-0 flex items-center justify-center opacity-0 -translate-x-3 w-0 mr-0'
             >
-              {unitType.name}
-            </h4>
-            <p className='font-mono text-xs text-muted-foreground pt-0.5 truncate'>
-              {unitType.code}
-            </p>
+              <Checkbox
+                checked={selected}
+                onCheckedChange={onToggleSelect}
+                onClick={(e) => e.stopPropagation()}
+                className='data-[state=checked]:bg-primary shrink-0'
+                aria-label={`Pilih ${unitType.name}`}
+              />
+            </div>
+          )}
+          <div className='flex items-center gap-2.5 min-w-0'>
+            <EssentialCardIcon iconName={unitType.iconName} fallback='layers' />
+            <div className='min-w-0'>
+              <h4
+                className='truncate text-sm font-semibold text-foreground leading-tight'
+                title={unitType.name}
+              >
+                {unitType.name}
+              </h4>
+              <p className='text-xs text-muted-foreground pt-0.5 truncate'>
+                {unitType.description || 'Klasifikasi Fasilitas'}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -97,38 +137,50 @@ export function FacilityUnitTypeCard({
       <div className='relative z-1 w-full border-t border-border/40 pt-2 space-y-1.5 text-xs'>
         <div className='flex items-center justify-between text-muted-foreground'>
           <span>Unit Terhubung:</span>
-          <Badge variant='secondary' className='text-[10px] font-mono px-1.5 py-0'>
+          <Badge variant='secondary' className='text-[10px] font-medium px-2 py-0'>
             {unitType.unitCount ?? 0} unit
           </Badge>
-        </div>
-
-        <div className='flex items-center justify-between text-muted-foreground'>
-          <span>Deskripsi:</span>
-          <span className='font-medium text-foreground truncate max-w-[140px]'>
-            {unitType.description || '-'}
-          </span>
         </div>
       </div>
 
       {/* Footer Actions */}
       <div className='relative z-1 flex items-center justify-between border-t border-border/40 pt-2 mt-auto w-full'>
         <div className='flex items-center gap-1.5 min-w-0'>
-          <Badge variant='secondary' className='text-[10px] font-mono px-2 py-0.5 rounded-md'>
-            {unitType.code}
-          </Badge>
-          <span className='text-[11px] text-muted-foreground truncate'>
-            {unitType.iconName || 'layers'}
+          <span className='text-[11px] font-medium text-muted-foreground truncate'>
+            Klasifikasi Fasilitas
           </span>
         </div>
 
         {canManage && (
-          <div className='flex items-center gap-1 shrink-0'>
+          <div className='flex items-center gap-2 shrink-0'>
+            {onToggleActive && (
+              <div
+                className='flex items-center'
+                title={
+                  isActive
+                    ? 'Status aktif (klik untuk nonaktifkan)'
+                    : 'Status nonaktif (klik untuk aktifkan)'
+                }
+              >
+                <Switch
+                  checked={isActive}
+                  onCheckedChange={onToggleActive}
+                  onClick={(e) => e.stopPropagation()}
+                  disabled={isTogglingActive}
+                  className='scale-80 origin-right'
+                  aria-label={`Ubah status ${unitType.name}`}
+                />
+              </div>
+            )}
             {onEdit && (
               <Button
                 type='button'
                 variant='ghost'
                 size='icon'
-                onClick={() => onEdit(unitType)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(unitType);
+                }}
                 className='size-7 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md cursor-pointer'
                 title={`Edit ${unitType.name}`}
               >
@@ -139,9 +191,12 @@ export function FacilityUnitTypeCard({
               type='button'
               variant='ghost'
               size='icon'
-              onClick={() => onDelete(unitType)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(unitType);
+              }}
               className='size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md cursor-pointer'
-              title={`Hapus / nonaktifkan ${unitType.name}`}
+              title={`Hapus permanen ${unitType.name}`}
             >
               <Trash2 className='size-3.5' />
             </Button>

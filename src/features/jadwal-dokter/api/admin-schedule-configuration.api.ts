@@ -41,10 +41,12 @@ export interface ClinicSettingOption {
   countryCode?: string;
 }
 
+export type ClinicSettingValue = string | number | boolean;
+
 export interface ClinicSettingConfig {
   key: string;
   scopeType: string;
-  value: any;
+  value: ClinicSettingValue;
   category: 'duration' | 'queue' | 'notification' | 'general' | 'attendance';
   label: string;
   description: string;
@@ -86,7 +88,7 @@ export interface UpdateWeeklyTemplatePayload {
 
 export interface UpdateClinicSettingPayload {
   key: string;
-  value: any;
+  value: ClinicSettingValue;
 }
 
 export interface UpdateOperatingDayPayload {

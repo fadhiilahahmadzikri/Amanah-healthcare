@@ -123,18 +123,7 @@ export function ShiftIconPickerPopover({
         >
           <div className='flex items-center justify-center shrink-0'>
             {value ? (
-              value.startsWith('lucide:') ? (
-                (() => {
-                  const LucideComp = resolveLucideIcon(value);
-                  return LucideComp ? (
-                    <LucideComp className='size-4 text-foreground shrink-0' />
-                  ) : (
-                    <Icons.clock className='size-4 text-muted-foreground shrink-0' />
-                  );
-                })()
-              ) : (
-                <span className='text-base leading-none select-none shrink-0'>{value}</span>
-              )
+              <ShiftIconDisplay icon={value} fallback={fallback} size='sm' bare />
             ) : (
               <div
                 ref={elementRef}

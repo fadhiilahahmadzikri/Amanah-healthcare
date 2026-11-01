@@ -15,6 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -22,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import { ShiftIconPickerPopover } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-picker-popover';
 import { clinicEssentialsApi } from '../../api/clinic-essentials.api';
 import { clinicEssentialsKeys } from '../../api/query-keys';
 import { createUnitSchema } from '../../schemas/clinic-essentials.schema';
@@ -38,25 +40,15 @@ export interface CreateUnitDialogProps {
   editItem?: FacilityUnit | null;
 }
 
-const COMMON_ICONS = [
-  { value: 'building-2', label: 'Building (Gedung/Unit)' },
-  { value: 'stethoscope', label: 'Stethoscope (Konsultasi Dokter / Klinis)' },
-  { value: 'baby', label: 'Baby (Kesehatan Ibu & Anak)' },
-  { value: 'heart-pulse', label: 'Heart Pulse (Kardiologi/Tindakan)' },
-  { value: 'activity', label: 'Activity (Klinis/Gawat Darurat)' },
-  { value: 'shield', label: 'Shield (Pelayanan Umum)' }
-];
-
 export function CreateUnitDialog({ open, onOpenChange, editItem }: CreateUnitDialogProps) {
   const queryClient = useQueryClient();
 
   const [name, setName] = React.useState('');
-  const [code, setCode] = React.useState('');
   const [unitTypeId, setUnitTypeId] = React.useState('');
-  const [queuePrefix, setQueuePrefix] = React.useState('');
-  const [iconName, setIconName] = React.useState('building-2');
+  const [iconName, setIconName] = React.useState('');
   const [location, setLocation] = React.useState('');
   const [floor, setFloor] = React.useState('1');
+  const [isActive, setIsActive] = React.useState(true);
 
   // Sub-dialog state for on-the-fly unit type creation
   const [isCreateUnitTypeOpen, setIsCreateUnitTypeOpen] = React.useState(false);
@@ -65,20 +57,18 @@ export function CreateUnitDialog({ open, onOpenChange, editItem }: CreateUnitDia
   React.useEffect(() => {
     if (editItem) {
       setName(editItem.name);
-      setCode(editItem.code);
       setUnitTypeId(editItem.unitTypeId);
-      setQueuePrefix(editItem.queuePrefix || '');
-      setIconName(editItem.iconName || 'building-2');
+      setIconName(editItem.iconName || '');
       setLocation(editItem.location || '');
       setFloor(editItem.floor || '1');
+      setIsActive(editItem.isActive !== false);
     } else {
       setName('');
-      setCode('');
       setUnitTypeId('');
-      setQueuePrefix('');
-      setIconName('building-2');
+      setIconName('');
       setLocation('');
       setFloor('1');
+      setIsActive(true);
     }
   }, [editItem, open]);
 
@@ -122,27 +112,13 @@ export function CreateUnitDialog({ open, onOpenChange, editItem }: CreateUnitDia
   const handleClose = () => {
     if (!editItem) {
       setName('');
-      setCode('');
       setUnitTypeId('');
-      setQueuePrefix('');
       setIconName('building-2');
       setLocation('');
       setFloor('1');
     }
     setIsCreateUnitTypeOpen(false);
     onOpenChange(false);
-  };
-
-  const handleNameChange = (val: string) => {
-    setName(val);
-    if (!editItem && (!code || code === name.toLowerCase().replace(/[^a-z0-9_]/g, '_'))) {
-      setCode(
-        val
-          .toLowerCase()
-          .trim()
-          .replace(/[^a-z0-9_]+/g, '_')
-      );
-    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -155,13 +131,12 @@ export function CreateUnitDialog({ open, onOpenChange, editItem }: CreateUnitDia
 
     const payload = {
       name: name.trim(),
-      code: code.trim(),
+      code: editItem ? editItem.code : undefined,
       unitTypeId,
-      queuePrefix: queuePrefix.trim().toUpperCase() || undefined,
       iconName: iconName || 'building-2',
       location: location.trim() || undefined,
       floor: floor.trim() || undefined,
-      isActive: editItem ? editItem.isActive : true
+      isActive
     };
 
     if (editItem) {
@@ -184,144 +159,134 @@ export function CreateUnitDialog({ open, onOpenChange, editItem }: CreateUnitDia
           <form onSubmit={handleSubmit}>
             <DialogHeader className='pb-4 border-b'>
               <DialogTitle>
-                {editItem ? 'Edit Unit / Poliklinik' : 'Tambah Unit / Poliklinik'}
+                {editItem ? 'Edit Poliklinik / Departemen' : 'Tambah Poliklinik / Departemen'}
               </DialogTitle>
               <DialogDescription>
                 {editItem
-                  ? 'Perbarui data unit layanan atau departemen kanonik klinik.'
-                  : 'Buat unit layanan atau departemen kanonik baru pada klinik.'}
+                  ? 'Perbarui data poliklinik atau departemen pelayanan klinik.'
+                  : 'Buat poliklinik atau departemen pelayanan baru pada klinik.'}
               </DialogDescription>
             </DialogHeader>
 
             <div className='py-4 space-y-3.5'>
-              <div className='space-y-1.5'>
-                <Label htmlFor='unit-name'>
-                  Nama Unit <span className='text-destructive'>*</span>
-                </Label>
-                <Input
-                  id='unit-name'
-                  placeholder='Contoh: Poliklinik Rawat Jalan'
-                  value={name}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                  disabled={isSubmitting}
-                  required
-                />
-              </div>
-
-              <div className='grid grid-cols-2 gap-3'>
-                <div className='space-y-1.5'>
-                  <Label htmlFor='unit-code'>
-                    Kode Unit <span className='text-destructive'>*</span>
+              <div className='flex items-center gap-3'>
+                <div className='space-y-1.5 flex-1 min-w-0'>
+                  <Label htmlFor='unit-name' className='text-xs font-semibold'>
+                    Nama Poliklinik / Unit <span className='text-destructive'>*</span>
                   </Label>
                   <Input
-                    id='unit-code'
-                    placeholder='rawat_jalan'
-                    value={code}
-                    onChange={(e) =>
-                      setCode(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))
-                    }
+                    id='unit-name'
+                    placeholder='Contoh: Poliklinik Rawat Jalan'
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     disabled={isSubmitting}
                     required
+                    className='h-9 text-xs'
                   />
                 </div>
 
-                <div className='space-y-1.5'>
-                  <Label htmlFor='queue-prefix'>Prefix Antrean</Label>
-                  <Input
-                    id='queue-prefix'
-                    placeholder='PU'
-                    maxLength={8}
-                    value={queuePrefix}
-                    onChange={(e) => setQueuePrefix(e.target.value.toUpperCase())}
+                <div className='space-y-1.5 shrink-0'>
+                  <Label className='text-xs font-semibold'>Visual</Label>
+                  <ShiftIconPickerPopover
+                    value={iconName}
+                    onChange={setIconName}
+                    fallback={name.charAt(0) || 'U'}
                     disabled={isSubmitting}
                   />
                 </div>
               </div>
 
-              <div className='grid grid-cols-2 gap-3'>
-                <div className='space-y-1.5'>
-                  <Label htmlFor='unit-type-id'>
-                    Tipe Unit <span className='text-destructive'>*</span>
-                  </Label>
-                  <div className='flex items-center gap-1.5'>
-                    <Select
-                      value={unitTypeId}
-                      onValueChange={setUnitTypeId}
-                      disabled={isSubmitting || isLoadingUnitTypes}
-                    >
-                      <SelectTrigger id='unit-type-id' className='flex-1'>
-                        <SelectValue
-                          placeholder={
-                            isLoadingUnitTypes
-                              ? 'Memuat tipe...'
-                              : unitTypes.length === 0
-                                ? 'Belum ada tipe unit'
-                                : 'Pilih tipe unit'
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {unitTypes.map((ut) => (
-                          <SelectItem key={ut.id} value={ut.id}>
-                            {ut.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      type='button'
-                      variant='outline'
-                      size='sm'
-                      onClick={() => setIsCreateUnitTypeOpen(true)}
-                      disabled={isSubmitting}
-                      className='gap-1 shrink-0 h-9 text-xs px-2.5'
-                      title='Tambah Tipe Unit Baru'
-                    >
-                      <Plus className='size-3.5' /> Tambah
-                    </Button>
-                  </div>
-                </div>
-
-                <div className='space-y-1.5'>
-                  <Label htmlFor='unit-icon'>Ikon Unit</Label>
-                  <Select value={iconName} onValueChange={setIconName} disabled={isSubmitting}>
-                    <SelectTrigger id='unit-icon'>
-                      <SelectValue placeholder='Pilih ikon' />
+              <div className='space-y-1.5'>
+                <Label htmlFor='unit-type-id' className='text-xs font-semibold'>
+                  Klasifikasi Fasilitas <span className='text-destructive'>*</span>
+                </Label>
+                <div className='flex items-center gap-1.5'>
+                  <Select
+                    value={unitTypeId}
+                    onValueChange={setUnitTypeId}
+                    disabled={isSubmitting || isLoadingUnitTypes}
+                  >
+                    <SelectTrigger id='unit-type-id' className='flex-1 h-9 text-xs'>
+                      <SelectValue
+                        placeholder={
+                          isLoadingUnitTypes
+                            ? 'Memuat klasifikasi...'
+                            : unitTypes.length === 0
+                              ? 'Belum ada klasifikasi fasilitas'
+                              : 'Pilih klasifikasi fasilitas'
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      {COMMON_ICONS.map((ic) => (
-                        <SelectItem key={ic.value} value={ic.value}>
-                          {ic.label}
+                      {unitTypes.map((ut) => (
+                        <SelectItem key={ut.id} value={ut.id} className='text-xs'>
+                          {ut.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='sm'
+                    onClick={() => setIsCreateUnitTypeOpen(true)}
+                    disabled={isSubmitting}
+                    className='gap-1 shrink-0 h-9 text-xs px-2.5'
+                    title='Tambah Klasifikasi Fasilitas Baru'
+                  >
+                    <Plus className='size-3.5' /> Tambah
+                  </Button>
                 </div>
               </div>
 
               <div className='grid grid-cols-2 gap-3'>
                 <div className='space-y-1.5'>
-                  <Label htmlFor='unit-floor'>Lantai</Label>
+                  <Label htmlFor='unit-floor' className='text-xs font-semibold'>
+                    Lantai
+                  </Label>
                   <Input
                     id='unit-floor'
                     placeholder='1'
                     value={floor}
                     onChange={(e) => setFloor(e.target.value)}
                     disabled={isSubmitting}
+                    className='h-9 text-xs'
                   />
                 </div>
 
                 <div className='space-y-1.5'>
-                  <Label htmlFor='unit-location'>Lokasi Spesifik</Label>
+                  <Label htmlFor='unit-location' className='text-xs font-semibold'>
+                    Lokasi Spesifik
+                  </Label>
                   <Input
                     id='unit-location'
                     placeholder='Gedung Utama Lantai 1'
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     disabled={isSubmitting}
+                    className='h-9 text-xs'
                   />
                 </div>
               </div>
+
+              {Boolean(editItem) && (
+                <div className='flex items-center justify-between p-3 rounded-xl border border-border/70 bg-muted/20'>
+                  <div className='space-y-0.5'>
+                    <Label htmlFor='unit-active' className='text-xs font-semibold cursor-pointer'>
+                      Status Operasional Aktif
+                    </Label>
+                    <p className='text-[11px] text-muted-foreground'>
+                      Nonaktifkan jika poliklinik sedang tidak beroperasi.
+                    </p>
+                  </div>
+                  <Switch
+                    id='unit-active'
+                    checked={isActive}
+                    onCheckedChange={setIsActive}
+                    disabled={isSubmitting}
+                  />
+                </div>
+              )}
             </div>
 
             <DialogFooter className='pt-3 border-t'>

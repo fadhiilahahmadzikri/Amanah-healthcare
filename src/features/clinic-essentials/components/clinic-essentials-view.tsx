@@ -38,7 +38,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent } from '@/components/ui/tabs';
+import { SideTray, SideTrayLayout, type SideTrayItem } from '@/components/ui/side-tray';
 import { useAuthContext } from '@/lib/rbac/auth-context';
 import { PERMISSIONS } from '@/core/auth/permissions.constants';
 import { Icons } from '@/components/icons';
@@ -69,22 +70,9 @@ import {
   ClinicServiceCard,
   ClinicalIntakeFormCard
 } from './cards';
-import type {
-  BulkFacilityActionPayload,
-  ClinicService,
-  ClinicalIntakeForm,
-  FacilityResource,
-  FacilityRoom,
-  FacilityUnit,
-  FacilityUnitType,
-  ServiceCategory
-} from '../types/clinic-essentials.types';
-import { CreateCategoryDialog } from './dialogs/create-category-dialog';
-import { CreateFormDialog } from './dialogs/create-form-dialog';
-import { CreateRoomDialog } from './dialogs/create-room-dialog';
-import { CreateServiceDialog } from './dialogs/create-service-dialog';
-import { CreateUnitDialog } from './dialogs/create-unit-dialog';
-import { CreateUnitTypeDialog } from './dialogs/create-unit-type-dialog';
+import type { BulkFacilityActionPayload, FacilityResource } from '../types/clinic-essentials.types';
+import type { ClinicEssentialEditItem } from '../model/useClinicEssentialFormModal';
+import { getEssentialFirstIcon, renderEssentialIcon } from '../utils/essential-icon-resolver';
 
 interface DeletingState {
   type: FacilityResource;
@@ -99,29 +87,15 @@ export function ClinicEssentialsView() {
 
   // Active Tab state
   const [activeTab, setActiveTab] = React.useState<FacilityResource>('units');
+  const [isTrayActive, setIsTrayActive] = React.useState(false);
   const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
   const [isBulkDeleteConfirmOpen, setIsBulkDeleteConfirmOpen] = React.useState(false);
 
-  // Stepped Multi-Stage Creation Modal state
-  const [createModalType, setCreateModalType] = React.useState<ClinicEssentialEntityType | null>(
-    null
-  );
-
-  // Dialog visibility states for manual edit & unit-type creation
-  const [isCreateUnitTypeOpen, setIsCreateUnitTypeOpen] = React.useState(false);
-  const [isCreateUnitOpen, setIsCreateUnitOpen] = React.useState(false);
-  const [isCreateRoomOpen, setIsCreateRoomOpen] = React.useState(false);
-  const [isCreateCategoryOpen, setIsCreateCategoryOpen] = React.useState(false);
-  const [isCreateServiceOpen, setIsCreateServiceOpen] = React.useState(false);
-  const [isCreateFormOpen, setIsCreateFormOpen] = React.useState(false);
-
-  // Editing items state
-  const [editingUnitType, setEditingUnitType] = React.useState<FacilityUnitType | null>(null);
-  const [editingUnit, setEditingUnit] = React.useState<FacilityUnit | null>(null);
-  const [editingRoom, setEditingRoom] = React.useState<FacilityRoom | null>(null);
-  const [editingCategory, setEditingCategory] = React.useState<ServiceCategory | null>(null);
-  const [editingService, setEditingService] = React.useState<ClinicService | null>(null);
-  const [editingForm, setEditingForm] = React.useState<ClinicalIntakeForm | null>(null);
+  // Unified Stepped Modal state (Add & Edit across all 6 facility entities)
+  const [activeModal, setActiveModal] = React.useState<{
+    type: ClinicEssentialEntityType;
+    editItem?: ClinicEssentialEditItem | null;
+  } | null>(null);
 
   // Single item deletion confirmation state
   const [deletingItem, setDeletingItem] = React.useState<DeletingState | null>(null);
@@ -224,12 +198,12 @@ export function ClinicEssentialsView() {
       }
     },
     onSuccess: (_, item) => {
-      toast.success(`${item.name} berhasil dinonaktifkan/dihapus.`);
+      toast.success(`${item.name} berhasil dihapus permanen.`);
       queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.all });
       setDeletingItem(null);
     },
     onError: (err: unknown) => {
-      const msg = err instanceof Error ? err.message : 'Gagal menonaktifkan item';
+      const msg = err instanceof Error ? err.message : 'Gagal menghapus item';
       toast.error(msg);
     }
   });
@@ -601,12 +575,12 @@ export function ClinicEssentialsView() {
       icon: Building2,
       mode: 'single',
       options: [
-        { label: 'Tipe Unit', value: 'unit-types', count: filteredUnitTypes.length },
-        { label: 'Unit & Poliklinik', value: 'units', count: filteredUnits.length },
+        { label: 'Klasifikasi Fasilitas', value: 'unit-types', count: filteredUnitTypes.length },
+        { label: 'Poliklinik & Departemen', value: 'units', count: filteredUnits.length },
         { label: 'Ruang Periksa', value: 'rooms', count: filteredRooms.length },
-        { label: 'Kategori Layanan', value: 'categories', count: filteredCategories.length },
-        { label: 'Layanan Medis', value: 'services', count: filteredServices.length },
-        { label: 'Formulir Intake', value: 'forms', count: filteredForms.length }
+        { label: 'Kelompok Layanan', value: 'categories', count: filteredCategories.length },
+        { label: 'Service Medis', value: 'services', count: filteredServices.length },
+        { label: 'Formulir Pengkajian', value: 'forms', count: filteredForms.length }
       ],
       selectedValues: [activeTab],
       onSelect: (val) => {
@@ -619,8 +593,8 @@ export function ClinicEssentialsView() {
         setActiveTab('units');
         setSelectedIds([]);
       },
-      popoverWidth: 'w-56',
-      resetLabel: 'Unit & Poliklinik'
+      popoverWidth: 'w-60',
+      resetLabel: 'Poliklinik & Departemen'
     };
 
     return [entityFacet, ...facetGroups];
@@ -636,8 +610,76 @@ export function ClinicEssentialsView() {
     filteredForms.length
   ]);
 
+  const trayItems = React.useMemo<SideTrayItem<FacilityResource>[]>(
+    () => [
+      {
+        key: 'unit-types',
+        label: 'Klasifikasi Fasilitas',
+        icon: renderEssentialIcon(getEssentialFirstIcon('unit-types', { unitTypes })),
+        count: filteredUnitTypes.length,
+        description: 'Tipe kategori bangunan & operasional'
+      },
+      {
+        key: 'units',
+        label: 'Poliklinik & Departemen',
+        icon: renderEssentialIcon(getEssentialFirstIcon('units', { units })),
+        count: filteredUnits.length,
+        description: 'Instalasi & unit pelayanan medis'
+      },
+      {
+        key: 'rooms',
+        label: 'Ruang Periksa',
+        icon: renderEssentialIcon(getEssentialFirstIcon('rooms', { rooms, units })),
+        count: filteredRooms.length,
+        description: 'Kamar konsultasi & pemeriksaan fisik'
+      },
+      {
+        key: 'categories',
+        label: 'Kelompok Layanan',
+        icon: renderEssentialIcon(getEssentialFirstIcon('categories', { categories })),
+        count: filteredCategories.length,
+        description: 'Rumpun klasifikasi tarif & paket'
+      },
+      {
+        key: 'services',
+        label: 'Service Medis',
+        icon: renderEssentialIcon(getEssentialFirstIcon('services', { services })),
+        count: filteredServices.length,
+        description: 'Daftar prosedur & layanan medis'
+      },
+      {
+        key: 'forms',
+        label: 'Formulir Pengkajian',
+        icon: renderEssentialIcon(getEssentialFirstIcon('forms', { forms })),
+        count: filteredForms.length,
+        description: 'Template anamnesis klinis pasien'
+      }
+    ],
+    [
+      unitTypes,
+      units,
+      rooms,
+      categories,
+      services,
+      forms,
+      filteredUnitTypes.length,
+      filteredUnits.length,
+      filteredRooms.length,
+      filteredCategories.length,
+      filteredServices.length,
+      filteredForms.length
+    ]
+  );
+
+  const cardGridClassName = cn(
+    'grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 transition-all duration-300',
+    isTrayActive
+      ? 'lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3'
+      : 'lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4'
+  );
+
   return (
-    <div className='space-y-4 font-sans'>
+    <div className='flex flex-1 min-h-0 flex-col gap-3 font-sans h-full overflow-hidden select-none'>
       {/* Centralized Search Engine Dialog */}
       <SearchEngineDialog
         config={searchEngine.config}
@@ -645,582 +687,623 @@ export function ClinicEssentialsView() {
         onClose={searchEngine.close}
       />
 
-      {/* Unified Responsive Filter Toolbar */}
-      <ResponsiveFacetToolbox
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        onOpenSearchDialog={searchEngine.open}
-        searchPlaceholder='Pencarian Fasilitas...'
-        facets={effectiveFacetGroups}
-        isFiltered={isFiltered}
-        onResetAll={handleResetAll}
-        activeFilterCount={activeFilterCount}
-        isCompact={isCompact}
-        extraRightSlot={
-          <div className='flex items-center gap-1.5 sm:gap-2 shrink-0'>
-            {/* Select All Checkbox Shortcut for active tab */}
-            {canManage && currentTabItems.length > 0 && (
+      {/* Unified Responsive Filter Toolbar (Pinned Header Section) */}
+      <div className='shrink-0'>
+        <ResponsiveFacetToolbox
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onOpenSearchDialog={searchEngine.open}
+          searchPlaceholder='Pencarian Fasilitas...'
+          facets={effectiveFacetGroups}
+          isFiltered={isFiltered}
+          onResetAll={handleResetAll}
+          activeFilterCount={activeFilterCount}
+          isCompact={isCompact}
+          extraRightSlot={
+            <div className='flex items-center gap-1.5 sm:gap-2 shrink-0'>
+              {/* Select All Checkbox Shortcut for active tab */}
+              {canManage && currentTabItems.length > 0 && (
+                <Button
+                  type='button'
+                  variant='outline'
+                  size={isCompact ? 'icon' : 'sm'}
+                  onClick={() => handleSelectAll(!isAllSelected)}
+                  className={
+                    isCompact ? 'size-8 rounded-md shrink-0' : 'h-8 text-xs font-medium gap-1.5'
+                  }
+                  title={isAllSelected ? 'Batalkan pilihan semua' : 'Pilih semua di tab ini'}
+                >
+                  <Checkbox
+                    checked={isAllSelected}
+                    onCheckedChange={handleSelectAll}
+                    className='pointer-events-none'
+                  />
+                  {!isCompact && <span>{isAllSelected ? 'Lepas Semua' : 'Pilih Semua'}</span>}
+                </Button>
+              )}
+
               <Button
                 type='button'
                 variant='outline'
                 size={isCompact ? 'icon' : 'sm'}
-                onClick={() => handleSelectAll(!isAllSelected)}
+                onClick={handleRefreshAll}
+                disabled={isAnyRefetching || isPerformingAction}
                 className={
                   isCompact ? 'size-8 rounded-md shrink-0' : 'h-8 text-xs font-medium gap-1.5'
                 }
-                title={isAllSelected ? 'Batalkan pilihan semua' : 'Pilih semua di tab ini'}
+                title='Segarkan data fasilitas'
               >
-                <Checkbox
-                  checked={isAllSelected}
-                  onCheckedChange={handleSelectAll}
-                  className='pointer-events-none'
-                />
-                {!isCompact && <span>{isAllSelected ? 'Lepas Semua' : 'Pilih Semua'}</span>}
+                <RefreshCw className={cn('size-3.5', isAnyRefetching && 'animate-spin')} />
+                {!isCompact && <span>Refresh</span>}
               </Button>
-            )}
 
-            <Button
-              type='button'
-              variant='outline'
-              size={isCompact ? 'icon' : 'sm'}
-              onClick={handleRefreshAll}
-              disabled={isAnyRefetching || isPerformingAction}
-              className={
-                isCompact ? 'size-8 rounded-md shrink-0' : 'h-8 text-xs font-medium gap-1.5'
-              }
-              title='Segarkan data fasilitas'
-            >
-              <RefreshCw className={cn('size-3.5', isAnyRefetching && 'animate-spin')} />
-              {!isCompact && <span>Refresh</span>}
-            </Button>
-
-            {canManage && (
-              <>
-                {/* Active Tab Direct Add Button */}
-                {activeTab === 'unit-types' && (
-                  <Button
-                    type='button'
-                    size={isCompact ? 'icon' : 'sm'}
-                    onClick={() => {
-                      setEditingUnitType(null);
-                      setIsCreateUnitTypeOpen(true);
-                    }}
-                    className={
-                      isCompact
-                        ? 'size-8 rounded-md shrink-0 shadow-xs'
-                        : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
-                    }
-                    title='Tambah Tipe Unit'
-                  >
-                    <Plus className='size-3.5' />
-                    {!isCompact && <span>Tambah Tipe Unit</span>}
-                  </Button>
-                )}
-
-                {activeTab === 'units' && (
-                  <Button
-                    type='button'
-                    size={isCompact ? 'icon' : 'sm'}
-                    onClick={() => setCreateModalType('unit')}
-                    className={
-                      isCompact
-                        ? 'size-8 rounded-md shrink-0 shadow-xs'
-                        : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
-                    }
-                    title='Tambah Unit / Poliklinik'
-                  >
-                    <Plus className='size-3.5' />
-                    {!isCompact && <span>Tambah Unit</span>}
-                  </Button>
-                )}
-
-                {activeTab === 'rooms' && (
-                  <Button
-                    type='button'
-                    size={isCompact ? 'icon' : 'sm'}
-                    onClick={() => setCreateModalType('room')}
-                    disabled={units.length === 0}
-                    className={
-                      isCompact
-                        ? 'size-8 rounded-md shrink-0 shadow-xs'
-                        : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
-                    }
-                    title='Tambah Ruang Periksa'
-                  >
-                    <Plus className='size-3.5' />
-                    {!isCompact && <span>Tambah Ruangan</span>}
-                  </Button>
-                )}
-
-                {activeTab === 'categories' && (
-                  <Button
-                    type='button'
-                    size={isCompact ? 'icon' : 'sm'}
-                    onClick={() => setCreateModalType('category')}
-                    className={
-                      isCompact
-                        ? 'size-8 rounded-md shrink-0 shadow-xs'
-                        : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
-                    }
-                    title='Tambah Kategori Layanan'
-                  >
-                    <Plus className='size-3.5' />
-                    {!isCompact && <span>Tambah Kategori</span>}
-                  </Button>
-                )}
-
-                {activeTab === 'services' && (
-                  <Button
-                    type='button'
-                    size={isCompact ? 'icon' : 'sm'}
-                    onClick={() => setCreateModalType('service')}
-                    disabled={categories.length === 0}
-                    className={
-                      isCompact
-                        ? 'size-8 rounded-md shrink-0 shadow-xs'
-                        : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
-                    }
-                    title='Tambah Layanan Medis'
-                  >
-                    <Plus className='size-3.5' />
-                    {!isCompact && <span>Tambah Layanan</span>}
-                  </Button>
-                )}
-
-                {activeTab === 'forms' && (
-                  <Button
-                    type='button'
-                    size={isCompact ? 'icon' : 'sm'}
-                    onClick={() => setCreateModalType('form')}
-                    className={
-                      isCompact
-                        ? 'size-8 rounded-md shrink-0 shadow-xs'
-                        : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
-                    }
-                    title='Tambah Formulir Intake'
-                  >
-                    <Plus className='size-3.5' />
-                    {!isCompact && <span>Tambah Formulir</span>}
-                  </Button>
-                )}
-
-                {/* Quick Master Config Dropdown */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
+              {canManage && (
+                <>
+                  {/* Active Tab Direct Add Button */}
+                  {activeTab === 'unit-types' && (
                     <Button
+                      type='button'
                       size={isCompact ? 'icon' : 'sm'}
-                      variant='outline'
+                      onClick={() => setActiveModal({ type: 'unit-type' })}
                       className={
                         isCompact
-                          ? 'size-8 rounded-md shrink-0'
+                          ? 'size-8 rounded-md shrink-0 shadow-xs'
                           : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
                       }
-                      title='Menu Konfigurasi Cepat'
+                      title='Tambah Klasifikasi Fasilitas'
                     >
-                      <Settings2 className='size-3.5' />
-                      {!isCompact && <span>Config</span>}
-                      {!isCompact && <ChevronDown className='size-3 opacity-60' />}
+                      <Plus className='size-3.5' />
+                      {!isCompact && <span>Tambah Klasifikasi</span>}
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align='end' className='w-56 font-sans'>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setEditingUnitType(null);
-                        setIsCreateUnitTypeOpen(true);
-                      }}
-                      className='cursor-pointer gap-2'
-                    >
-                      <Layers className='size-4 text-primary' />
-                      <span>Tambah Tipe Unit</span>
-                    </DropdownMenuItem>
+                  )}
 
-                    <DropdownMenuItem
-                      onClick={() => setCreateModalType('unit')}
-                      className='cursor-pointer gap-2'
+                  {activeTab === 'units' && (
+                    <Button
+                      type='button'
+                      size={isCompact ? 'icon' : 'sm'}
+                      onClick={() => setActiveModal({ type: 'unit' })}
+                      className={
+                        isCompact
+                          ? 'size-8 rounded-md shrink-0 shadow-xs'
+                          : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
+                      }
+                      title='Tambah Poliklinik & Departemen'
                     >
-                      <Building2 className='size-4 text-primary' />
-                      <span>Tambah Unit / Poliklinik</span>
-                    </DropdownMenuItem>
+                      <Plus className='size-3.5' />
+                      {!isCompact && <span>Tambah Poliklinik</span>}
+                    </Button>
+                  )}
 
-                    <DropdownMenuItem
-                      onClick={() => setCreateModalType('room')}
+                  {activeTab === 'rooms' && (
+                    <Button
+                      type='button'
+                      size={isCompact ? 'icon' : 'sm'}
+                      onClick={() => setActiveModal({ type: 'room' })}
                       disabled={units.length === 0}
-                      className='cursor-pointer gap-2'
+                      className={
+                        isCompact
+                          ? 'size-8 rounded-md shrink-0 shadow-xs'
+                          : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
+                      }
+                      title='Tambah Ruang Periksa'
                     >
-                      <DoorOpen className='size-4 text-primary' />
-                      <span>Tambah Ruang Periksa</span>
-                    </DropdownMenuItem>
+                      <Plus className='size-3.5' />
+                      {!isCompact && <span>Tambah Ruang Periksa</span>}
+                    </Button>
+                  )}
 
-                    <DropdownMenuSeparator />
-
-                    <DropdownMenuItem
-                      onClick={() => setCreateModalType('category')}
-                      className='cursor-pointer gap-2'
+                  {activeTab === 'categories' && (
+                    <Button
+                      type='button'
+                      size={isCompact ? 'icon' : 'sm'}
+                      onClick={() => setActiveModal({ type: 'category' })}
+                      className={
+                        isCompact
+                          ? 'size-8 rounded-md shrink-0 shadow-xs'
+                          : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
+                      }
+                      title='Tambah Kelompok Layanan'
                     >
-                      <Folder className='size-4 text-primary' />
-                      <span>Tambah Kategori Layanan</span>
-                    </DropdownMenuItem>
+                      <Plus className='size-3.5' />
+                      {!isCompact && <span>Tambah Kelompok</span>}
+                    </Button>
+                  )}
 
-                    <DropdownMenuItem
-                      onClick={() => setCreateModalType('service')}
+                  {activeTab === 'services' && (
+                    <Button
+                      type='button'
+                      size={isCompact ? 'icon' : 'sm'}
+                      onClick={() => setActiveModal({ type: 'service' })}
                       disabled={categories.length === 0}
-                      className='cursor-pointer gap-2'
+                      className={
+                        isCompact
+                          ? 'size-8 rounded-md shrink-0 shadow-xs'
+                          : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
+                      }
+                      title='Tambah Service Medis'
                     >
-                      <Stethoscope className='size-4 text-primary' />
-                      <span>Tambah Layanan Medis</span>
-                    </DropdownMenuItem>
+                      <Plus className='size-3.5' />
+                      {!isCompact && <span>Tambah Service</span>}
+                    </Button>
+                  )}
 
-                    <DropdownMenuSeparator />
-
-                    <DropdownMenuItem
-                      onClick={() => setCreateModalType('form')}
-                      className='cursor-pointer gap-2'
+                  {activeTab === 'forms' && (
+                    <Button
+                      type='button'
+                      size={isCompact ? 'icon' : 'sm'}
+                      onClick={() => setActiveModal({ type: 'form' })}
+                      className={
+                        isCompact
+                          ? 'size-8 rounded-md shrink-0 shadow-xs'
+                          : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
+                      }
+                      title='Tambah Formulir Pengkajian'
                     >
-                      <ClipboardList className='size-4 text-primary' />
-                      <span>Tambah Formulir Intake</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </>
-            )}
-          </div>
-        }
-      />
+                      <Plus className='size-3.5' />
+                      {!isCompact && <span>Tambah Formulir</span>}
+                    </Button>
+                  )}
 
-      {/* Tabs Layout */}
+                  {/* Quick Master Config Dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        size={isCompact ? 'icon' : 'sm'}
+                        variant='outline'
+                        className={
+                          isCompact
+                            ? 'size-8 rounded-md shrink-0'
+                            : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
+                        }
+                        title='Menu Konfigurasi Cepat'
+                      >
+                        <Settings2 className='size-3.5' />
+                        {!isCompact && <span>Config</span>}
+                        {!isCompact && <ChevronDown className='size-3 opacity-60' />}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align='end' className='w-64 font-sans'>
+                      <DropdownMenuItem
+                        onClick={() => setActiveModal({ type: 'unit-type' })}
+                        className='cursor-pointer gap-2'
+                      >
+                        <Layers className='size-4 text-primary' />
+                        <span>Tambah Klasifikasi Fasilitas</span>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem
+                        onClick={() => setActiveModal({ type: 'unit' })}
+                        className='cursor-pointer gap-2'
+                      >
+                        <Building2 className='size-4 text-primary' />
+                        <span>Tambah Poliklinik & Departemen</span>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem
+                        onClick={() => setActiveModal({ type: 'room' })}
+                        disabled={units.length === 0}
+                        className='cursor-pointer gap-2'
+                      >
+                        <DoorOpen className='size-4 text-primary' />
+                        <span>Tambah Ruang Periksa</span>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuSeparator />
+
+                      <DropdownMenuItem
+                        onClick={() => setActiveModal({ type: 'category' })}
+                        className='cursor-pointer gap-2'
+                      >
+                        <Folder className='size-4 text-primary' />
+                        <span>Tambah Kelompok Layanan</span>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuItem
+                        onClick={() => setActiveModal({ type: 'service' })}
+                        disabled={categories.length === 0}
+                        className='cursor-pointer gap-2'
+                      >
+                        <Stethoscope className='size-4 text-primary' />
+                        <span>Tambah Service Medis</span>
+                      </DropdownMenuItem>
+
+                      <DropdownMenuSeparator />
+
+                      <DropdownMenuItem
+                        onClick={() => setActiveModal({ type: 'form' })}
+                        className='cursor-pointer gap-2'
+                      >
+                        <ClipboardList className='size-4 text-primary' />
+                        <span>Tambah Formulir Pengkajian</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </>
+              )}
+            </div>
+          }
+        />
+      </div>
+
+      {/* Tabs Layout with Master SideTray Navigation */}
       <Tabs
         value={activeTab}
         onValueChange={(val) => {
           setActiveTab(val as FacilityResource);
           setSelectedIds([]);
         }}
-        className='w-full space-y-4'
+        className='flex flex-1 min-h-0 flex-col w-full m-0'
       >
-        {!isCompact && (
-          <TabsList className='grid grid-cols-2 sm:grid-cols-6 w-full h-auto p-1 bg-muted/60'>
-            <TabsTrigger value='unit-types' className='text-xs py-1.5 gap-1.5'>
-              <Layers className='size-3.5' />
-              <span>Tipe Unit ({filteredUnitTypes.length})</span>
-            </TabsTrigger>
-            <TabsTrigger value='units' className='text-xs py-1.5 gap-1.5'>
-              <Building2 className='size-3.5' />
-              <span>Unit ({filteredUnits.length})</span>
-            </TabsTrigger>
-            <TabsTrigger value='rooms' className='text-xs py-1.5 gap-1.5'>
-              <DoorOpen className='size-3.5' />
-              <span>Ruangan ({filteredRooms.length})</span>
-            </TabsTrigger>
-            <TabsTrigger value='categories' className='text-xs py-1.5 gap-1.5'>
-              <Folder className='size-3.5' />
-              <span>Kategori ({filteredCategories.length})</span>
-            </TabsTrigger>
-            <TabsTrigger value='services' className='text-xs py-1.5 gap-1.5'>
-              <Stethoscope className='size-3.5' />
-              <span>Layanan ({filteredServices.length})</span>
-            </TabsTrigger>
-            <TabsTrigger value='forms' className='text-xs py-1.5 gap-1.5'>
-              <ClipboardList className='size-3.5' />
-              <span>Formulir ({filteredForms.length})</span>
-            </TabsTrigger>
-          </TabsList>
-        )}
+        <SideTrayLayout
+          tray={
+            <SideTray
+              items={trayItems}
+              activeKey={activeTab}
+              onSelect={(val) => {
+                setActiveTab(val);
+                setSelectedIds([]);
+              }}
+              title='Bagian Fasilitas'
+              isExpanded={isTrayActive}
+              onExpandedChange={setIsTrayActive}
+            />
+          }
+          className='flex-1 min-h-0 h-full'
+        >
+          {/* 0. Tab Unit Types */}
+          <TabsContent value='unit-types' className='mt-0'>
+            {isLoadingUnitTypes ? (
+              <EntityCardGridSkeleton count={8} className={cardGridClassName} />
+            ) : unitTypes.length === 0 ? (
+              <EmptyState
+                title='Belum ada klasifikasi fasilitas terdaftar'
+                description='Mulai dengan menambahkan klasifikasi tipe fasilitas (misal: Poliklinik Rawat Jalan, Ruang Rawat Inap, Departemen Medis).'
+                action={
+                  canManage ? (
+                    <Button
+                      size='sm'
+                      onClick={() => setActiveModal({ type: 'unit-type' })}
+                      className='text-xs gap-1.5 h-8'
+                    >
+                      <Plus className='size-3.5' /> Tambah Klasifikasi
+                    </Button>
+                  ) : undefined
+                }
+              />
+            ) : filteredUnitTypes.length === 0 ? (
+              <EmptyState
+                title='Tidak ada klasifikasi yang cocok'
+                description='Coba sesuaikan kata kunci pencarian atau reset filter untuk melihat data.'
+                resetAction={{ label: 'Reset Filter', onReset: handleResetAll }}
+              />
+            ) : (
+              <div className={cardGridClassName}>
+                {filteredUnitTypes.map((ut) => (
+                  <FacilityUnitTypeCard
+                    key={ut.id}
+                    unitType={ut}
+                    canManage={canManage}
+                    selected={selectedIds.includes(ut.id)}
+                    isBulkingActive={selectedIds.length > 0}
+                    onToggleSelect={() => handleToggleSelect(ut.id)}
+                    onToggleActive={(newActive) =>
+                      toggleActiveMutation.mutate({
+                        resource: 'unit-types',
+                        id: ut.id,
+                        isActive: newActive
+                      })
+                    }
+                    isTogglingActive={
+                      toggleActiveMutation.isPending &&
+                      toggleActiveMutation.variables?.resource === 'unit-types' &&
+                      toggleActiveMutation.variables?.id === ut.id
+                    }
+                    onEdit={(item) => setActiveModal({ type: 'unit-type', editItem: item })}
+                    onDelete={(item) =>
+                      setDeletingItem({ type: 'unit-types', id: item.id, name: item.name })
+                    }
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
-        {/* 0. Tab Unit Types */}
-        <TabsContent value='unit-types' className='mt-0'>
-          {isLoadingUnitTypes ? (
-            <EntityCardGridSkeleton count={8} />
-          ) : unitTypes.length === 0 ? (
-            <EmptyState
-              title='Belum ada tipe unit terdaftar'
-              description='Mulai dengan menambahkan master klasifikasi tipe unit fasilitas (misal: Poliklinik Rawat Jalan, Ruang Rawat Inap, Departemen Medis).'
-              action={
-                canManage ? (
-                  <Button
-                    size='sm'
-                    onClick={() => {
-                      setEditingUnitType(null);
-                      setIsCreateUnitTypeOpen(true);
-                    }}
-                    className='text-xs gap-1.5 h-8'
-                  >
-                    <Plus className='size-3.5' /> Tambah Tipe Unit
-                  </Button>
-                ) : undefined
-              }
-            />
-          ) : filteredUnitTypes.length === 0 ? (
-            <EmptyState
-              title='Tidak ada tipe unit yang cocok'
-              description='Coba sesuaikan kata kunci pencarian atau reset filter untuk melihat data.'
-              resetAction={{ label: 'Reset Filter', onReset: handleResetAll }}
-            />
-          ) : (
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-4'>
-              {filteredUnitTypes.map((ut) => (
-                <FacilityUnitTypeCard
-                  key={ut.id}
-                  unitType={ut}
-                  canManage={canManage}
-                  selected={selectedIds.includes(ut.id)}
-                  onToggleSelect={() => handleToggleSelect(ut.id)}
-                  onEdit={(item) => {
-                    setEditingUnitType(item);
-                    setIsCreateUnitTypeOpen(true);
-                  }}
-                  onDelete={(item) =>
-                    setDeletingItem({ type: 'unit-types', id: item.id, name: item.name })
-                  }
-                />
-              ))}
-            </div>
-          )}
-        </TabsContent>
+          {/* 1. Tab Units */}
+          <TabsContent value='units' className='mt-0'>
+            {isLoadingUnits ? (
+              <EntityCardGridSkeleton count={8} className={cardGridClassName} />
+            ) : units.length === 0 ? (
+              <EmptyState
+                title='Belum ada poliklinik atau departemen'
+                description='Mulai dengan menambahkan unit poliklinik pertama untuk operasional pelayanan kesehatan.'
+                action={
+                  canManage ? (
+                    <Button
+                      size='sm'
+                      onClick={() => setActiveModal({ type: 'unit' })}
+                      className='text-xs gap-1.5 h-8'
+                    >
+                      <Plus className='size-3.5' /> Tambah Poliklinik
+                    </Button>
+                  ) : undefined
+                }
+              />
+            ) : filteredUnits.length === 0 ? (
+              <EmptyState
+                title='Tidak ada poliklinik yang cocok'
+                description='Coba sesuaikan kata kunci pencarian atau reset filter untuk melihat data.'
+                resetAction={{ label: 'Reset Filter', onReset: handleResetAll }}
+              />
+            ) : (
+              <div className={cardGridClassName}>
+                {filteredUnits.map((u) => (
+                  <FacilityUnitCard
+                    key={u.id}
+                    unit={u}
+                    canManage={canManage}
+                    selected={selectedIds.includes(u.id)}
+                    isBulkingActive={selectedIds.length > 0}
+                    onToggleSelect={() => handleToggleSelect(u.id)}
+                    onToggleActive={(newActive) =>
+                      toggleActiveMutation.mutate({
+                        resource: 'units',
+                        id: u.id,
+                        isActive: newActive
+                      })
+                    }
+                    isTogglingActive={
+                      toggleActiveMutation.isPending &&
+                      toggleActiveMutation.variables?.resource === 'units' &&
+                      toggleActiveMutation.variables?.id === u.id
+                    }
+                    onEdit={(item) => setActiveModal({ type: 'unit', editItem: item })}
+                    onDelete={(item) =>
+                      setDeletingItem({ type: 'units', id: item.id, name: item.name })
+                    }
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
-        {/* 1. Tab Units */}
-        <TabsContent value='units' className='mt-0'>
-          {isLoadingUnits ? (
-            <EntityCardGridSkeleton count={8} />
-          ) : units.length === 0 ? (
-            <EmptyState
-              title='Belum ada unit poliklinik'
-              description='Mulai dengan menambahkan unit fasilitas pertama untuk layanan kesehatan.'
-              action={
-                canManage ? (
-                  <Button
-                    size='sm'
-                    onClick={() => setCreateModalType('unit')}
-                    className='text-xs gap-1.5 h-8'
-                  >
-                    <Plus className='size-3.5' /> Tambah Unit
-                  </Button>
-                ) : undefined
-              }
-            />
-          ) : filteredUnits.length === 0 ? (
-            <EmptyState
-              title='Tidak ada unit yang cocok'
-              description='Coba sesuaikan kata kunci pencarian atau reset filter untuk melihat data.'
-              resetAction={{ label: 'Reset Filter', onReset: handleResetAll }}
-            />
-          ) : (
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-4'>
-              {filteredUnits.map((u) => (
-                <FacilityUnitCard
-                  key={u.id}
-                  unit={u}
-                  canManage={canManage}
-                  selected={selectedIds.includes(u.id)}
-                  onToggleSelect={() => handleToggleSelect(u.id)}
-                  onEdit={(item) => {
-                    setEditingUnit(item);
-                    setIsCreateUnitOpen(true);
-                  }}
-                  onDelete={(item) =>
-                    setDeletingItem({ type: 'units', id: item.id, name: item.name })
-                  }
-                />
-              ))}
-            </div>
-          )}
-        </TabsContent>
+          {/* 2. Tab Rooms */}
+          <TabsContent value='rooms' className='mt-0'>
+            {isLoadingRooms ? (
+              <EntityCardGridSkeleton count={8} className={cardGridClassName} />
+            ) : rooms.length === 0 ? (
+              <EmptyState
+                title='Belum ada ruang periksa'
+                description='Tambahkan ruangan periksa atau konsultasi dan hubungkan ke unit poliklinik induk.'
+                action={
+                  canManage ? (
+                    <Button
+                      size='sm'
+                      onClick={() => setActiveModal({ type: 'room' })}
+                      disabled={units.length === 0}
+                      className='text-xs gap-1.5 h-8'
+                    >
+                      <Plus className='size-3.5' /> Tambah Ruang Periksa
+                    </Button>
+                  ) : undefined
+                }
+              />
+            ) : filteredRooms.length === 0 ? (
+              <EmptyState
+                title='Tidak ada ruang periksa yang cocok'
+                description='Coba sesuaikan kata kunci pencarian atau reset filter untuk melihat data.'
+                resetAction={{ label: 'Reset Filter', onReset: handleResetAll }}
+              />
+            ) : (
+              <div className={cardGridClassName}>
+                {filteredRooms.map((r) => (
+                  <FacilityRoomCard
+                    key={r.id}
+                    room={r}
+                    units={units}
+                    canManage={canManage}
+                    selected={selectedIds.includes(r.id)}
+                    isBulkingActive={selectedIds.length > 0}
+                    onToggleSelect={() => handleToggleSelect(r.id)}
+                    onToggleActive={(newActive) =>
+                      toggleActiveMutation.mutate({
+                        resource: 'rooms',
+                        id: r.id,
+                        isActive: newActive
+                      })
+                    }
+                    isTogglingActive={
+                      toggleActiveMutation.isPending &&
+                      toggleActiveMutation.variables?.resource === 'rooms' &&
+                      toggleActiveMutation.variables?.id === r.id
+                    }
+                    onEdit={(item) => setActiveModal({ type: 'room', editItem: item })}
+                    onDelete={(item) =>
+                      setDeletingItem({ type: 'rooms', id: item.id, name: item.name })
+                    }
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
-        {/* 2. Tab Rooms */}
-        <TabsContent value='rooms' className='mt-0'>
-          {isLoadingRooms ? (
-            <EntityCardGridSkeleton count={8} />
-          ) : rooms.length === 0 ? (
-            <EmptyState
-              title='Belum ada ruangan periksa'
-              description='Tambahkan ruangan dan hubungkan ke unit poliklinik induk.'
-              action={
-                canManage ? (
-                  <Button
-                    size='sm'
-                    onClick={() => setCreateModalType('room')}
-                    disabled={units.length === 0}
-                    className='text-xs gap-1.5 h-8'
-                  >
-                    <Plus className='size-3.5' /> Tambah Ruangan
-                  </Button>
-                ) : undefined
-              }
-            />
-          ) : filteredRooms.length === 0 ? (
-            <EmptyState
-              title='Tidak ada ruangan yang cocok'
-              description='Coba sesuaikan kata kunci pencarian atau reset filter untuk melihat data.'
-              resetAction={{ label: 'Reset Filter', onReset: handleResetAll }}
-            />
-          ) : (
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-4'>
-              {filteredRooms.map((r) => (
-                <FacilityRoomCard
-                  key={r.id}
-                  room={r}
-                  units={units}
-                  canManage={canManage}
-                  selected={selectedIds.includes(r.id)}
-                  onToggleSelect={() => handleToggleSelect(r.id)}
-                  onEdit={(item) => {
-                    setEditingRoom(item);
-                    setIsCreateRoomOpen(true);
-                  }}
-                  onDelete={(item) =>
-                    setDeletingItem({ type: 'rooms', id: item.id, name: item.name })
-                  }
-                />
-              ))}
-            </div>
-          )}
-        </TabsContent>
+          {/* 3. Tab Categories */}
+          <TabsContent value='categories' className='mt-0'>
+            {isLoadingCategories ? (
+              <EntityCardGridSkeleton count={8} className={cardGridClassName} />
+            ) : categories.length === 0 ? (
+              <EmptyState
+                title='Belum ada kelompok layanan'
+                description='Tambahkan kelompok kategori pelayanan medis untuk mempermudah pendaftaran dan penjadwalan dokter.'
+                action={
+                  canManage ? (
+                    <Button
+                      size='sm'
+                      onClick={() => setActiveModal({ type: 'category' })}
+                      className='text-xs gap-1.5 h-8'
+                    >
+                      <Plus className='size-3.5' /> Tambah Kelompok
+                    </Button>
+                  ) : undefined
+                }
+              />
+            ) : filteredCategories.length === 0 ? (
+              <EmptyState
+                title='Tidak ada kelompok layanan yang cocok'
+                description='Coba sesuaikan kata kunci pencarian atau reset filter untuk melihat data.'
+                resetAction={{ label: 'Reset Filter', onReset: handleResetAll }}
+              />
+            ) : (
+              <div className={cardGridClassName}>
+                {filteredCategories.map((c) => (
+                  <ServiceCategoryCard
+                    key={c.id}
+                    category={c}
+                    units={units}
+                    canManage={canManage}
+                    selected={selectedIds.includes(c.id)}
+                    isBulkingActive={selectedIds.length > 0}
+                    onToggleSelect={() => handleToggleSelect(c.id)}
+                    onToggleActive={(newActive) =>
+                      toggleActiveMutation.mutate({
+                        resource: 'categories',
+                        id: c.id,
+                        isActive: newActive
+                      })
+                    }
+                    isTogglingActive={
+                      toggleActiveMutation.isPending &&
+                      toggleActiveMutation.variables?.resource === 'categories' &&
+                      toggleActiveMutation.variables?.id === c.id
+                    }
+                    onEdit={(item) => setActiveModal({ type: 'category', editItem: item })}
+                    onDelete={(item) =>
+                      setDeletingItem({ type: 'categories', id: item.id, name: item.name })
+                    }
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
-        {/* 3. Tab Categories */}
-        <TabsContent value='categories' className='mt-0'>
-          {isLoadingCategories ? (
-            <EntityCardGridSkeleton count={8} />
-          ) : categories.length === 0 ? (
-            <EmptyState
-              title='Belum ada kategori layanan'
-              description='Tambahkan kelompok kategori layanan medis untuk navigasi pasien dan jadwal dokter.'
-              action={
-                canManage ? (
-                  <Button
-                    size='sm'
-                    onClick={() => setCreateModalType('category')}
-                    className='text-xs gap-1.5 h-8'
-                  >
-                    <Plus className='size-3.5' /> Tambah Kategori
-                  </Button>
-                ) : undefined
-              }
-            />
-          ) : filteredCategories.length === 0 ? (
-            <EmptyState
-              title='Tidak ada kategori yang cocok'
-              description='Coba sesuaikan kata kunci pencarian atau reset filter untuk melihat data.'
-              resetAction={{ label: 'Reset Filter', onReset: handleResetAll }}
-            />
-          ) : (
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-4'>
-              {filteredCategories.map((c) => (
-                <ServiceCategoryCard
-                  key={c.id}
-                  category={c}
-                  units={units}
-                  canManage={canManage}
-                  selected={selectedIds.includes(c.id)}
-                  onToggleSelect={() => handleToggleSelect(c.id)}
-                  onEdit={(item) => {
-                    setEditingCategory(item);
-                    setIsCreateCategoryOpen(true);
-                  }}
-                  onDelete={(item) =>
-                    setDeletingItem({ type: 'categories', id: item.id, name: item.name })
-                  }
-                />
-              ))}
-            </div>
-          )}
-        </TabsContent>
+          {/* 4. Tab Services */}
+          <TabsContent value='services' className='mt-0'>
+            {isLoadingServices ? (
+              <EntityCardGridSkeleton count={8} className={cardGridClassName} />
+            ) : services.length === 0 ? (
+              <EmptyState
+                title='Belum ada service medis'
+                description='Daftarkan service medis klinik, lalu hubungkan dengan formulir pengkajian yang sesuai.'
+                action={
+                  canManage ? (
+                    <Button
+                      size='sm'
+                      onClick={() => setActiveModal({ type: 'service' })}
+                      disabled={categories.length === 0}
+                      className='text-xs gap-1.5 h-8'
+                    >
+                      <Plus className='size-3.5' /> Tambah Service Medis
+                    </Button>
+                  ) : undefined
+                }
+              />
+            ) : filteredServices.length === 0 ? (
+              <EmptyState
+                title='Tidak ada service medis yang cocok'
+                description='Coba sesuaikan kata kunci pencarian atau reset filter untuk melihat data.'
+                resetAction={{ label: 'Reset Filter', onReset: handleResetAll }}
+              />
+            ) : (
+              <div className={cardGridClassName}>
+                {filteredServices.map((s) => (
+                  <ClinicServiceCard
+                    key={s.id}
+                    service={s}
+                    categories={categories}
+                    forms={forms}
+                    canManage={canManage}
+                    selected={selectedIds.includes(s.id)}
+                    isBulkingActive={selectedIds.length > 0}
+                    onToggleSelect={() => handleToggleSelect(s.id)}
+                    onToggleActive={(newActive) =>
+                      toggleActiveMutation.mutate({
+                        resource: 'services',
+                        id: s.id,
+                        isActive: newActive
+                      })
+                    }
+                    isTogglingActive={
+                      toggleActiveMutation.isPending &&
+                      toggleActiveMutation.variables?.resource === 'services' &&
+                      toggleActiveMutation.variables?.id === s.id
+                    }
+                    onEdit={(item) => setActiveModal({ type: 'service', editItem: item })}
+                    onDelete={(item) =>
+                      setDeletingItem({ type: 'services', id: item.id, name: item.name })
+                    }
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
-        {/* 4. Tab Services */}
-        <TabsContent value='services' className='mt-0'>
-          {isLoadingServices ? (
-            <EntityCardGridSkeleton count={8} />
-          ) : services.length === 0 ? (
-            <EmptyState
-              title='Belum ada layanan medis'
-              description='Buat tindakan medis dan hubungkan ke formulir intake yang sesuai.'
-              action={
-                canManage ? (
-                  <Button
-                    size='sm'
-                    onClick={() => setCreateModalType('service')}
-                    disabled={categories.length === 0}
-                    className='text-xs gap-1.5 h-8'
-                  >
-                    <Plus className='size-3.5' /> Tambah Layanan
-                  </Button>
-                ) : undefined
-              }
-            />
-          ) : filteredServices.length === 0 ? (
-            <EmptyState
-              title='Tidak ada layanan yang cocok'
-              description='Coba sesuaikan kata kunci pencarian atau reset filter untuk melihat data.'
-              resetAction={{ label: 'Reset Filter', onReset: handleResetAll }}
-            />
-          ) : (
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-4'>
-              {filteredServices.map((s) => (
-                <ClinicServiceCard
-                  key={s.id}
-                  service={s}
-                  categories={categories}
-                  forms={forms}
-                  canManage={canManage}
-                  selected={selectedIds.includes(s.id)}
-                  onToggleSelect={() => handleToggleSelect(s.id)}
-                  onEdit={(item) => {
-                    setEditingService(item);
-                    setIsCreateServiceOpen(true);
-                  }}
-                  onDelete={(item) =>
-                    setDeletingItem({ type: 'services', id: item.id, name: item.name })
-                  }
-                />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        {/* 5. Tab Intake Forms */}
-        <TabsContent value='forms' className='mt-0'>
-          {isLoadingForms ? (
-            <EntityCardGridSkeleton count={8} />
-          ) : forms.length === 0 ? (
-            <EmptyState
-              title='Belum ada formulir intake'
-              description='Daftarkan kode formulir klinis agar layanan dapat terhubung ke lembar intake.'
-              action={
-                canManage ? (
-                  <Button
-                    size='sm'
-                    onClick={() => setCreateModalType('form')}
-                    className='text-xs gap-1.5 h-8'
-                  >
-                    <Plus className='size-3.5' /> Tambah Formulir
-                  </Button>
-                ) : undefined
-              }
-            />
-          ) : filteredForms.length === 0 ? (
-            <EmptyState
-              title='Tidak ada formulir yang cocok'
-              description='Coba sesuaikan kata kunci pencarian atau reset filter untuk melihat data.'
-              resetAction={{ label: 'Reset Filter', onReset: handleResetAll }}
-            />
-          ) : (
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-4'>
-              {filteredForms.map((f) => (
-                <ClinicalIntakeFormCard
-                  key={f.id}
-                  form={f}
-                  canManage={canManage}
-                  selected={selectedIds.includes(f.id)}
-                  onToggleSelect={() => handleToggleSelect(f.id)}
-                  onEdit={(item) => {
-                    setEditingForm(item);
-                    setIsCreateFormOpen(true);
-                  }}
-                  onDelete={(item) =>
-                    setDeletingItem({ type: 'forms', id: item.id, name: item.name })
-                  }
-                />
-              ))}
-            </div>
-          )}
-        </TabsContent>
+          {/* 5. Tab Intake Forms */}
+          <TabsContent value='forms' className='mt-0'>
+            {isLoadingForms ? (
+              <EntityCardGridSkeleton count={8} className={cardGridClassName} />
+            ) : forms.length === 0 ? (
+              <EmptyState
+                title='Belum ada formulir pengkajian'
+                description='Daftarkan formulir pengkajian klinis agar service dapat terhubung ke lembar intake pasien.'
+                action={
+                  canManage ? (
+                    <Button
+                      size='sm'
+                      onClick={() => setActiveModal({ type: 'form' })}
+                      className='text-xs gap-1.5 h-8'
+                    >
+                      <Plus className='size-3.5' /> Tambah Formulir
+                    </Button>
+                  ) : undefined
+                }
+              />
+            ) : filteredForms.length === 0 ? (
+              <EmptyState
+                title='Tidak ada formulir yang cocok'
+                description='Coba sesuaikan kata kunci pencarian atau reset filter untuk melihat data.'
+                resetAction={{ label: 'Reset Filter', onReset: handleResetAll }}
+              />
+            ) : (
+              <div className={cardGridClassName}>
+                {filteredForms.map((f) => (
+                  <ClinicalIntakeFormCard
+                    key={f.id}
+                    form={f}
+                    canManage={canManage}
+                    selected={selectedIds.includes(f.id)}
+                    isBulkingActive={selectedIds.length > 0}
+                    onToggleSelect={() => handleToggleSelect(f.id)}
+                    onToggleActive={(newActive) =>
+                      toggleActiveMutation.mutate({
+                        resource: 'forms',
+                        id: f.id,
+                        isActive: newActive
+                      })
+                    }
+                    isTogglingActive={
+                      toggleActiveMutation.isPending &&
+                      toggleActiveMutation.variables?.resource === 'forms' &&
+                      toggleActiveMutation.variables?.id === f.id
+                    }
+                    onEdit={(item) => setActiveModal({ type: 'form', editItem: item })}
+                    onDelete={(item) =>
+                      setDeletingItem({ type: 'forms', id: item.id, name: item.name })
+                    }
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </SideTrayLayout>
       </Tabs>
 
       {/* Floating Bulk Action Toolbar */}
@@ -1276,12 +1359,13 @@ export function ClinicEssentialsView() {
         </div>
       )}
 
-      {/* Stepped Multi-Stage Creation Modal */}
-      {createModalType && (
+      {/* Unified Stepped Modal (Handles both Add & Edit for all 6 entities) */}
+      {activeModal && (
         <ClinicEssentialFormModal
-          open={Boolean(createModalType)}
-          onOpenChange={(open) => !open && setCreateModalType(null)}
-          type={createModalType}
+          open={Boolean(activeModal)}
+          onOpenChange={(open) => !open && setActiveModal(null)}
+          type={activeModal.type}
+          editItem={activeModal.editItem}
           unitTypes={unitTypes}
           units={units}
           categories={categories}
@@ -1292,65 +1376,6 @@ export function ClinicEssentialsView() {
         />
       )}
 
-      {/* Reused Edit Dialogs & Unit-Type Creator */}
-      <CreateUnitTypeDialog
-        open={isCreateUnitTypeOpen}
-        onOpenChange={(open) => {
-          setIsCreateUnitTypeOpen(open);
-          if (!open) setEditingUnitType(null);
-        }}
-        editItem={editingUnitType}
-      />
-
-      <CreateUnitDialog
-        open={isCreateUnitOpen}
-        onOpenChange={(open) => {
-          setIsCreateUnitOpen(open);
-          if (!open) setEditingUnit(null);
-        }}
-        editItem={editingUnit}
-      />
-
-      <CreateRoomDialog
-        open={isCreateRoomOpen}
-        onOpenChange={(open) => {
-          setIsCreateRoomOpen(open);
-          if (!open) setEditingRoom(null);
-        }}
-        units={units}
-        editItem={editingRoom}
-      />
-
-      <CreateCategoryDialog
-        open={isCreateCategoryOpen}
-        onOpenChange={(open) => {
-          setIsCreateCategoryOpen(open);
-          if (!open) setEditingCategory(null);
-        }}
-        units={units}
-        editItem={editingCategory}
-      />
-
-      <CreateServiceDialog
-        open={isCreateServiceOpen}
-        onOpenChange={(open) => {
-          setIsCreateServiceOpen(open);
-          if (!open) setEditingService(null);
-        }}
-        categories={categories}
-        forms={forms}
-        editItem={editingService}
-      />
-
-      <CreateFormDialog
-        open={isCreateFormOpen}
-        onOpenChange={(open) => {
-          setIsCreateFormOpen(open);
-          if (!open) setEditingForm(null);
-        }}
-        editItem={editingForm}
-      />
-
       {/* Single Item Deletion Confirmation Alert Dialog */}
       <AlertDialog
         open={Boolean(deletingItem)}
@@ -1358,9 +1383,10 @@ export function ClinicEssentialsView() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Nonaktifkan {deletingItem?.name}?</AlertDialogTitle>
+            <AlertDialogTitle>Hapus Permanen {deletingItem?.name}?</AlertDialogTitle>
             <AlertDialogDescription>
-              Tindakan ini akan menonaktifkan data kanonik tersebut dari operasional aktif klinik.
+              Tindakan ini akan menghapus data tersebut secara fisik dan permanen dari basis data
+              klinik. Data yang sudah dihapus tidak dapat dipulihkan kembali.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1370,7 +1396,7 @@ export function ClinicEssentialsView() {
               disabled={deleteMutation.isPending}
               className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
             >
-              {deleteMutation.isPending ? 'Menonaktifkan...' : 'Ya, Nonaktifkan'}
+              {deleteMutation.isPending ? 'Menghapus...' : 'Ya, Hapus Permanen'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1383,9 +1409,10 @@ export function ClinicEssentialsView() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Hapus / Nonaktifkan {selectedIds.length} item?</AlertDialogTitle>
+            <AlertDialogTitle>Hapus Permanen {selectedIds.length} Data Terpilih?</AlertDialogTitle>
             <AlertDialogDescription>
-              Tindakan ini akan menonaktifkan semua item yang dipilih dari operasional aktif klinik.
+              Semua item yang dipilih akan dihapus secara fisik dan permanen dari basis data klinik
+              jika tidak memiliki data relasi aktif. Data yang terhapus tidak dapat dipulihkan.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1401,7 +1428,7 @@ export function ClinicEssentialsView() {
               disabled={bulkMutation.isPending}
               className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
             >
-              {bulkMutation.isPending ? 'Memproses...' : 'Ya, Hapus Terpilih'}
+              {bulkMutation.isPending ? 'Menghapus...' : 'Ya, Hapus Permanen'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,19 +1,15 @@
 'use client';
 
 import * as React from 'react';
-import { Folder } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import { ShiftIconDisplay } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-display';
 import { ShiftIconPickerPopover } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-picker-popover';
+import {
+  AccordionSelectionField,
+  type AccordionSelectionOption
+} from '../atoms/accordion-selection-field';
 import type { ClinicalIntakeForm, ServiceCategory } from '../../types/clinic-essentials.types';
 
 export interface ServiceCategoryStepProps {
@@ -35,77 +31,71 @@ export function ServiceCategoryStep({
   onIntakeFormIdChange,
   disabled
 }: ServiceCategoryStepProps) {
+  const categoryOptions = React.useMemo<AccordionSelectionOption[]>(() => {
+    return categories.map((c) => ({
+      id: c.id,
+      name: c.name,
+      subtitle: c.description || undefined,
+      iconName: c.iconName || 'folder'
+    }));
+  }, [categories]);
+
+  const formOptions = React.useMemo<AccordionSelectionOption[]>(() => {
+    const list: AccordionSelectionOption[] = [
+      {
+        id: 'none',
+        name: 'Formulir Standar Klinik (Umum)',
+        subtitle: 'Pengkajian umum tanpa formulir pertanyaan khusus',
+        iconName: 'clipboard-list'
+      }
+    ];
+
+    forms.forEach((f) => {
+      list.push({
+        id: f.id,
+        name: f.name,
+        subtitle: f.description || undefined,
+        iconName: f.iconName || 'clipboard-list'
+      });
+    });
+
+    return list;
+  }, [forms]);
+
   return (
     <div className='space-y-4 font-sans'>
       <div>
         <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
-          Kategori Layanan & Formulir Pasien
+          Di kelompok layanan mana service ini berada?
         </h3>
         <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
-          Pilih kelompok layanan dan tentukan formulir pertanyaan awal untuk pasien jika ada.
+          Pilih kelompok layanan dan tentukan apakah pasien perlu mengisi formulir pengkajian khusus
+          sebelum service diberikan.
         </p>
       </div>
 
-      <div className='space-y-3.5 pt-1'>
-        <div className='space-y-1.5'>
-          <Label htmlFor='service-cat' className='text-xs font-semibold'>
-            Kategori Layanan <span className='text-destructive'>*</span>
-          </Label>
-          <Select
-            value={categoryId}
-            onValueChange={onCategoryIdChange}
-            disabled={disabled || categories.length === 0}
-          >
-            <SelectTrigger id='service-cat' className='h-11 text-sm'>
-              <SelectValue placeholder='Pilih kategori layanan' />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map((c) => (
-                <SelectItem key={c.id} value={c.id} className='text-xs'>
-                  <div className='flex items-center gap-2'>
-                    <ShiftIconDisplay icon={c.iconName || 'folder'} size='sm' />
-                    <span className='font-medium'>{c.name}</span>
-                    <span className='font-mono text-muted-foreground text-[11px]'>({c.code})</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {categories.length === 0 && (
-            <p className='text-xs text-destructive flex items-center gap-1.5 pt-1'>
-              <Folder className='size-3.5' />
-              Belum ada kategori. Silakan buat kategori layanan terlebih dahulu.
-            </p>
-          )}
-        </div>
+      <div className='space-y-4 pt-1'>
+        <AccordionSelectionField
+          label='Kelompok Layanan Medis'
+          placeholder='Pilih kelompok layanan...'
+          actionText='Ganti Kelompok'
+          selectedId={categoryId}
+          options={categoryOptions}
+          onSelect={onCategoryIdChange}
+          disabled={disabled || categories.length === 0}
+          emptyMessage='Belum ada kelompok layanan. Silakan buat kelompok layanan terlebih dahulu.'
+          required
+        />
 
-        <div className='space-y-1.5'>
-          <Label htmlFor='service-form' className='text-xs font-semibold'>
-            Formulir Pertanyaan Awal Pasien (Boleh Kosong)
-          </Label>
-          <Select value={intakeFormId} onValueChange={onIntakeFormIdChange} disabled={disabled}>
-            <SelectTrigger id='service-form' className='h-11 text-sm'>
-              <SelectValue placeholder='Pilih formulir klinis' />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value='none' className='text-xs font-medium text-muted-foreground'>
-                Formulir Standar Klinik
-              </SelectItem>
-              {forms.map((f) => (
-                <SelectItem key={f.id} value={f.id} className='text-xs'>
-                  <div className='flex items-center gap-2'>
-                    <ShiftIconDisplay icon={f.iconName || 'clipboard-list'} size='sm' />
-                    <span className='font-medium'>{f.name}</span>
-                    <span className='font-mono text-primary text-[11px]'>({f.code})</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <p className='text-[11px] text-muted-foreground'>
-            Formulir ini membantu dokter mengetahui kondisi awal pasien sebelum masuk ruang periksa.
-          </p>
-        </div>
+        <AccordionSelectionField
+          label='Formulir Pengkajian Pasien'
+          placeholder='Pilih formulir klinis (atau Standar)...'
+          actionText='Ganti Formulir'
+          selectedId={intakeFormId}
+          options={formOptions}
+          onSelect={onIntakeFormIdChange}
+          disabled={disabled}
+        />
       </div>
     </div>
   );
@@ -113,24 +103,20 @@ export function ServiceCategoryStep({
 
 export interface ServiceIdentityStepProps {
   name: string;
-  code: string;
-  codePrefix: string;
+  code?: string;
+  codePrefix?: string;
   iconName: string;
   onNameChange: (val: string) => void;
-  onCodeChange: (val: string) => void;
-  onCodePrefixChange: (val: string) => void;
+  onCodeChange?: (val: string) => void;
+  onCodePrefixChange?: (val: string) => void;
   onIconNameChange: (val: string) => void;
   disabled?: boolean;
 }
 
 export function ServiceIdentityStep({
   name,
-  code,
-  codePrefix,
   iconName,
   onNameChange,
-  onCodeChange,
-  onCodePrefixChange,
   onIconNameChange,
   disabled
 }: ServiceIdentityStepProps) {
@@ -138,75 +124,41 @@ export function ServiceIdentityStep({
     <div className='space-y-4 font-sans'>
       <div>
         <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
-          Nama dan Kode Layanan Medis
+          Apa nama service medis yang disediakan?
         </h3>
         <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
-          Tuliskan nama tindakan medis yang mudah dikenali pasien pada jadwal reservasi.
+          Tuliskan nama service resmi dan pilih ikon visual penanda yang mudah dikenali staf dan
+          pasien.
         </p>
       </div>
 
       <div className='space-y-3.5 pt-1'>
-        <div className='space-y-1.5'>
-          <Label htmlFor='service-name' className='text-xs font-semibold'>
-            Nama Tindakan / Layanan <span className='text-destructive'>*</span>
-          </Label>
-          <Input
-            id='service-name'
-            placeholder='Contoh: Pembersihan Karang Gigi (Scaling)'
-            value={name}
-            onChange={(e) => onNameChange(e.target.value)}
-            disabled={disabled}
-            className='h-10 text-sm'
-            required
-          />
-        </div>
-
-        <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
-          <div className='space-y-1.5'>
-            <Label htmlFor='service-code' className='text-xs font-semibold'>
-              Kode Layanan <span className='text-destructive'>*</span>
+        <div className='flex items-center gap-3'>
+          <div className='space-y-1.5 flex-1 min-w-0'>
+            <Label htmlFor='service-name' className='text-xs font-semibold'>
+              Nama Service Medis <span className='text-destructive'>*</span>
             </Label>
             <Input
-              id='service-code'
-              placeholder='scaling_gigi'
-              value={code}
-              onChange={(e) =>
-                onCodeChange(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))
-              }
+              id='service-name'
+              placeholder='Contoh: Pembersihan Karang Gigi (Scaling)'
+              value={name}
+              onChange={(e) => onNameChange(e.target.value)}
               disabled={disabled}
-              className='h-10 text-sm font-mono'
+              className='h-10 text-sm'
               required
             />
           </div>
 
-          <div className='space-y-1.5'>
-            <Label htmlFor='service-prefix' className='text-xs font-semibold'>
-              Awalan Kode
-            </Label>
-            <Input
-              id='service-prefix'
-              placeholder='SCL'
-              maxLength={8}
-              value={codePrefix}
-              onChange={(e) => onCodePrefixChange(e.target.value.toUpperCase())}
-              disabled={disabled}
-              className='h-10 text-sm font-mono'
-            />
-          </div>
-        </div>
-
-        <div className='space-y-1.5'>
-          <Label className='text-xs font-semibold'>Ikon Layanan</Label>
-          <div className='flex items-center gap-2 h-10'>
-            <ShiftIconPickerPopover
-              value={iconName || 'stethoscope'}
-              onChange={onIconNameChange}
-              fallback='L'
-              disabled={disabled}
-            />
-            <span className='text-xs text-muted-foreground truncate'>
-              Pilih ikon atau emoji untuk layanan
-            </span>
+          <div className='space-y-1.5 shrink-0'>
+            <Label className='text-xs font-semibold'>Visual</Label>
+            <div className='h-10 flex items-center'>
+              <ShiftIconPickerPopover
+                value={iconName}
+                onChange={onIconNameChange}
+                fallback={name.charAt(0) || 'L'}
+                disabled={disabled}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -219,6 +171,9 @@ export interface ServiceClinicalStepProps {
   description: string;
   onComplaintsRawChange: (val: string) => void;
   onDescriptionChange: (val: string) => void;
+  isActive?: boolean;
+  onIsActiveChange?: (val: boolean) => void;
+  isEditing?: boolean;
   disabled?: boolean;
 }
 
@@ -227,23 +182,27 @@ export function ServiceClinicalStep({
   description,
   onComplaintsRawChange,
   onDescriptionChange,
-  disabled
+  isActive = true,
+  onIsActiveChange,
+  isEditing = false,
+  disabled = false
 }: ServiceClinicalStepProps) {
   return (
     <div className='space-y-4 font-sans'>
       <div>
         <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
-          Keluhan Pasien Terkait & Keterangan
+          Keluhan pasien apa saja yang berkaitan dengan service ini?
         </h3>
         <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
-          Tuliskan kata-kata keluhan yang biasa dikeluhkan pasien untuk mempermudah pencarian.
+          Daftar keluhan ini membantu petugas pendaftaran mencarikan service yang tepat saat pasien
+          datang berkonsultasi.
         </p>
       </div>
 
       <div className='space-y-3.5 pt-1'>
         <div className='space-y-1.5'>
           <Label htmlFor='service-complaints' className='text-xs font-semibold'>
-            Keluhan Terkait (Pisahkan dengan Koma)
+            Daftar Keluhan Awal (Pisahkan dengan koma)
           </Label>
           <Input
             id='service-complaints'
@@ -254,17 +213,17 @@ export function ServiceClinicalStep({
             className='h-10 text-sm'
           />
           <p className='text-[11px] text-muted-foreground'>
-            Pasien yang mencari keluhan di atas akan diarahkan ke layanan medis ini.
+            Kata kunci keluhan ini akan mempermudah pencarian layanan saat pendaftaran pasien.
           </p>
         </div>
 
         <div className='space-y-1.5'>
           <Label htmlFor='service-desc' className='text-xs font-semibold'>
-            Keterangan Tindakan (Boleh Kosong)
+            Keterangan Service (Boleh Kosong)
           </Label>
           <Textarea
             id='service-desc'
-            placeholder='Penjelasan singkat tentang prosedur tindakan medis atau persiapan pasien.'
+            placeholder='Penjelasan singkat tentang prosedur service atau instruksi persiapan...'
             rows={3}
             value={description}
             onChange={(e) => onDescriptionChange(e.target.value)}
@@ -272,6 +231,25 @@ export function ServiceClinicalStep({
             className='text-sm resize-none'
           />
         </div>
+
+        {isEditing && onIsActiveChange && (
+          <div className='flex items-center justify-between p-3 rounded-xl border border-border/70 bg-muted/20'>
+            <div className='space-y-0.5'>
+              <Label htmlFor='service-active' className='text-xs font-semibold cursor-pointer'>
+                Status Operasional Aktif
+              </Label>
+              <p className='text-[11px] text-muted-foreground'>
+                Nonaktifkan jika service ini sedang tidak tersedia untuk pasien.
+              </p>
+            </div>
+            <Switch
+              id='service-active'
+              checked={isActive}
+              onCheckedChange={onIsActiveChange}
+              disabled={disabled}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

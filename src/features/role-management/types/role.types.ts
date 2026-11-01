@@ -59,7 +59,7 @@ export interface Role {
 }
 
 export interface CreateRolePayload {
-  code: string;
+  code?: string;
   name: string;
   description?: string | null;
   parentRoleId?: string | null;

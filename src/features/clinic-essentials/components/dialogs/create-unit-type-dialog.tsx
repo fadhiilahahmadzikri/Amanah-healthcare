@@ -15,13 +15,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { ShiftIconPickerPopover } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-picker-popover';
 import { clinicEssentialsApi } from '../../api/clinic-essentials.api';
 import { clinicEssentialsKeys } from '../../api/query-keys';
 import { createUnitTypeSchema } from '../../schemas/clinic-essentials.schema';
@@ -38,15 +33,6 @@ export interface CreateUnitTypeDialogProps {
   editItem?: FacilityUnitType | null;
 }
 
-const COMMON_ICONS = [
-  { value: 'building-2', label: 'Building (Gedung/Unit)' },
-  { value: 'stethoscope', label: 'Stethoscope (Konsultasi Dokter / Klinis)' },
-  { value: 'baby', label: 'Baby (Kesehatan Ibu & Anak)' },
-  { value: 'heart-pulse', label: 'Heart Pulse (Kardiologi/Tindakan)' },
-  { value: 'activity', label: 'Activity (Klinis/Gawat Darurat)' },
-  { value: 'shield', label: 'Shield (Pelayanan Umum)' }
-];
-
 export function CreateUnitTypeDialog({
   open,
   onOpenChange,
@@ -56,36 +42,36 @@ export function CreateUnitTypeDialog({
   const queryClient = useQueryClient();
 
   const [name, setName] = React.useState('');
-  const [code, setCode] = React.useState('');
   const [description, setDescription] = React.useState('');
-  const [iconName, setIconName] = React.useState('building-2');
+  const [iconName, setIconName] = React.useState('');
+  const [isActive, setIsActive] = React.useState(true);
 
   const isEditing = Boolean(editItem);
 
   React.useEffect(() => {
     if (editItem) {
       setName(editItem.name);
-      setCode(editItem.code);
       setDescription(editItem.description || '');
-      setIconName(editItem.iconName || 'building-2');
+      setIconName(editItem.iconName || '');
+      setIsActive(editItem.isActive !== false);
     } else {
       setName('');
-      setCode('');
       setDescription('');
-      setIconName('building-2');
+      setIconName('');
+      setIsActive(true);
     }
   }, [editItem, open]);
 
   const createMutation = useMutation({
     mutationFn: (payload: CreateUnitTypePayload) => clinicEssentialsApi.createUnitType(payload),
     onSuccess: (data) => {
-      toast.success(`Tipe unit '${data.name}' berhasil ditambahkan.`);
+      toast.success(`Klasifikasi fasilitas '${data.name}' berhasil ditambahkan.`);
       queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.unitTypes() });
       onCreated?.(data);
       handleClose();
     },
     onError: (err: unknown) => {
-      const msg = err instanceof Error ? err.message : 'Gagal membuat tipe unit fasilitas';
+      const msg = err instanceof Error ? err.message : 'Gagal membuat klasifikasi fasilitas';
       toast.error(msg);
     }
   });
@@ -94,12 +80,12 @@ export function CreateUnitTypeDialog({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateUnitTypePayload }) =>
       clinicEssentialsApi.updateUnitType(id, payload),
     onSuccess: (data) => {
-      toast.success(`Tipe unit '${data.name}' berhasil diperbarui.`);
+      toast.success(`Klasifikasi fasilitas '${data.name}' berhasil diperbarui.`);
       queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.unitTypes() });
       handleClose();
     },
     onError: (err: unknown) => {
-      const msg = err instanceof Error ? err.message : 'Gagal memperbarui tipe unit';
+      const msg = err instanceof Error ? err.message : 'Gagal memperbarui klasifikasi fasilitas';
       toast.error(msg);
     }
   });
@@ -108,22 +94,9 @@ export function CreateUnitTypeDialog({
 
   const handleClose = () => {
     setName('');
-    setCode('');
     setDescription('');
     setIconName('building-2');
     onOpenChange(false);
-  };
-
-  const handleNameChange = (val: string) => {
-    setName(val);
-    if (!isEditing && (!code || code === name.toLowerCase().replace(/[^a-z0-9_]/g, '_'))) {
-      setCode(
-        val
-          .toLowerCase()
-          .trim()
-          .replace(/[^a-z0-9_]+/g, '_')
-      );
-    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -131,15 +104,14 @@ export function CreateUnitTypeDialog({
 
     const result = createUnitTypeSchema.safeParse({
       name: name.trim(),
-      code: code.trim(),
       description: description.trim() || undefined,
       iconName: iconName || 'building-2',
-      isActive: true
+      isActive
     });
 
     if (!result.success) {
       const firstIssue = result.error.issues[0];
-      toast.error(firstIssue?.message || 'Data masukan tipe unit tidak valid');
+      toast.error(firstIssue?.message || 'Data masukan klasifikasi fasilitas tidak valid');
       return;
     }
 
@@ -148,9 +120,10 @@ export function CreateUnitTypeDialog({
         id: editItem.id,
         payload: {
           name: result.data.name,
-          code: result.data.code,
+          code: editItem.code,
           description: result.data.description,
-          iconName: result.data.iconName
+          iconName: result.data.iconName,
+          isActive
         }
       });
     } else {
@@ -163,65 +136,48 @@ export function CreateUnitTypeDialog({
       <DialogContent className='max-w-md'>
         <form onSubmit={handleSubmit}>
           <DialogHeader className='pb-4 border-b'>
-            <DialogTitle>{isEditing ? 'Edit Tipe Unit Fasilitas' : 'Tambah Tipe Unit'}</DialogTitle>
+            <DialogTitle>
+              {isEditing ? 'Edit Klasifikasi Fasilitas' : 'Tambah Klasifikasi Fasilitas'}
+            </DialogTitle>
             <DialogDescription>
               {isEditing
-                ? 'Perbarui definisi master klasifikasi tipe unit fasilitas.'
-                : 'Daftarkan master klasifikasi tipe unit fasilitas baru (misal: Poliklinik Rawat Jalan, Ruang Rawat Inap, Departemen Medis).'}
+                ? 'Perbarui definisi master klasifikasi fasilitas.'
+                : 'Daftarkan klasifikasi tipe fasilitas baru (misal: Poliklinik Rawat Jalan, Ruang Rawat Inap, Departemen Medis).'}
             </DialogDescription>
           </DialogHeader>
 
           <div className='py-4 space-y-3.5'>
-            <div className='space-y-1.5'>
-              <Label htmlFor='unit-type-name'>
-                Nama Tipe Unit <span className='text-destructive'>*</span>
-              </Label>
-              <Input
-                id='unit-type-name'
-                placeholder='Contoh: Poliklinik Rawat Jalan'
-                value={name}
-                onChange={(e) => handleNameChange(e.target.value)}
-                disabled={isPending}
-                required
-              />
-            </div>
-
-            <div className='grid grid-cols-2 gap-3'>
-              <div className='space-y-1.5'>
-                <Label htmlFor='unit-type-code'>
-                  Kode (SSOT) <span className='text-destructive'>*</span>
+            <div className='flex items-center gap-3'>
+              <div className='space-y-1.5 flex-1 min-w-0'>
+                <Label htmlFor='unit-type-name' className='text-xs font-semibold'>
+                  Nama Klasifikasi Fasilitas <span className='text-destructive'>*</span>
                 </Label>
                 <Input
-                  id='unit-type-code'
-                  placeholder='rawat_jalan'
-                  value={code}
-                  onChange={(e) =>
-                    setCode(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))
-                  }
+                  id='unit-type-name'
+                  placeholder='Contoh: Poliklinik Rawat Jalan'
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   disabled={isPending}
                   required
+                  className='h-9 text-xs'
                 />
               </div>
 
-              <div className='space-y-1.5'>
-                <Label htmlFor='unit-type-icon'>Ikon Tipe</Label>
-                <Select value={iconName} onValueChange={setIconName} disabled={isPending}>
-                  <SelectTrigger id='unit-type-icon'>
-                    <SelectValue placeholder='Pilih ikon' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {COMMON_ICONS.map((ic) => (
-                      <SelectItem key={ic.value} value={ic.value}>
-                        {ic.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className='space-y-1.5 shrink-0'>
+                <Label className='text-xs font-semibold'>Visual</Label>
+                <ShiftIconPickerPopover
+                  value={iconName}
+                  onChange={setIconName}
+                  fallback={name.charAt(0) || 'F'}
+                  disabled={isPending}
+                />
               </div>
             </div>
 
             <div className='space-y-1.5'>
-              <Label htmlFor='unit-type-description'>Deskripsi / Keterangan</Label>
+              <Label htmlFor='unit-type-description' className='text-xs font-semibold'>
+                Deskripsi / Keterangan
+              </Label>
               <Textarea
                 id='unit-type-description'
                 placeholder='Keterangan klasifikasi pelayanan tipe unit...'
@@ -229,8 +185,31 @@ export function CreateUnitTypeDialog({
                 onChange={(e) => setDescription(e.target.value)}
                 disabled={isPending}
                 rows={3}
+                className='text-xs'
               />
             </div>
+
+            {isEditing && (
+              <div className='flex items-center justify-between p-3 rounded-xl border border-border/70 bg-muted/20'>
+                <div className='space-y-0.5'>
+                  <Label
+                    htmlFor='unit-type-active'
+                    className='text-xs font-semibold cursor-pointer'
+                  >
+                    Status Operasional Aktif
+                  </Label>
+                  <p className='text-[11px] text-muted-foreground'>
+                    Nonaktifkan jika tidak digunakan dalam operasional fasilitas.
+                  </p>
+                </div>
+                <Switch
+                  id='unit-type-active'
+                  checked={isActive}
+                  onCheckedChange={setIsActive}
+                  disabled={isPending}
+                />
+              </div>
+            )}
           </div>
 
           <DialogFooter className='pt-3 border-t'>

@@ -1,11 +1,14 @@
 'use client';
 
 import * as React from 'react';
-import { DoorOpen, Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
 import { PixelTexture } from '@/features/klinik/components/pixel-texture';
+import { EssentialCardIcon } from '../../utils/essential-icon-resolver';
+import { useCardBulkingSlide } from '@/hooks/use-card-bulking-slide';
 import { cn } from '@/lib/utils';
 import type { FacilityRoom, FacilityUnit } from '../../types/clinic-essentials.types';
 
@@ -14,9 +17,13 @@ export interface FacilityRoomCardProps {
   units: FacilityUnit[];
   canManage?: boolean;
   selected?: boolean;
+  isBulkingActive?: boolean;
   onToggleSelect?: () => void;
+  onToggleActive?: (newActive: boolean) => void;
+  isTogglingActive?: boolean;
   onEdit?: (room: FacilityRoom) => void;
   onDelete: (room: FacilityRoom) => void;
+  onCardClick?: (room: FacilityRoom) => void;
   className?: string;
 }
 
@@ -25,18 +32,46 @@ export function FacilityRoomCard({
   units,
   canManage = true,
   selected = false,
+  isBulkingActive = false,
   onToggleSelect,
+  onToggleActive,
+  isTogglingActive = false,
   onEdit,
   onDelete,
+  onCardClick,
   className
 }: FacilityRoomCardProps) {
   const isActive = room.isActive !== false;
   const parentUnit = units.find((u) => u.id === room.unitId);
+  const { wrapperRef, containerProps } = useCardBulkingSlide({ selected, isBulkingActive });
+
+  const handleCardClick = React.useCallback(() => {
+    if (onCardClick) {
+      onCardClick(room);
+    } else if (onEdit) {
+      onEdit(room);
+    }
+  }, [onCardClick, onEdit, room]);
+
+  const handleKeyDown = React.useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        handleCardClick();
+      }
+    },
+    [handleCardClick]
+  );
 
   return (
     <div
+      {...containerProps}
+      role='button'
+      tabIndex={0}
+      onClick={handleCardClick}
+      onKeyDown={handleKeyDown}
       className={cn(
-        'group relative w-full bg-gradient-to-t from-primary/6 via-primary/[0.015] to-card dark:from-primary/12 dark:via-card dark:to-card text-card-foreground border border-border rounded-[20px] shadow-none hover:border-primary/60 hover:shadow-md overflow-hidden font-sans flex flex-col justify-between h-full p-3.5 sm:p-4 gap-2.5 select-none transition-all duration-200',
+        'group relative w-full bg-gradient-to-t from-primary/6 via-primary/[0.015] to-card dark:from-primary/12 dark:via-card dark:to-card text-card-foreground border border-border rounded-[20px] shadow-none hover:border-primary/60 hover:shadow-md overflow-hidden font-sans flex flex-col justify-between h-full p-3.5 sm:p-4 gap-2.5 select-none transition-all duration-200 cursor-pointer',
         !isActive && 'opacity-75 border-dashed bg-muted/10',
         selected && 'ring-2 ring-primary border-primary bg-primary/[0.03]',
         className
@@ -57,26 +92,34 @@ export function FacilityRoomCard({
 
       {/* Top Header */}
       <div className='relative z-1 flex items-start justify-between gap-2 w-full'>
-        <div className='flex items-center gap-2.5 min-w-0'>
+        <div className='flex items-center min-w-0'>
           {canManage && onToggleSelect && (
-            <Checkbox
-              checked={selected}
-              onCheckedChange={onToggleSelect}
-              className='data-[state=checked]:bg-primary shrink-0'
-              aria-label={`Pilih ${room.name}`}
-            />
-          )}
-          <div className='size-10 rounded-full bg-primary/10 ring-2 ring-primary/20 flex items-center justify-center shrink-0 text-primary'>
-            <DoorOpen className='size-5' />
-          </div>
-          <div className='min-w-0'>
-            <h4
-              className='truncate text-sm font-semibold text-foreground leading-tight'
-              title={room.name}
+            <div
+              ref={wrapperRef}
+              className='overflow-hidden shrink-0 flex items-center justify-center opacity-0 -translate-x-3 w-0 mr-0'
             >
-              {room.name}
-            </h4>
-            <p className='font-mono text-xs text-muted-foreground pt-0.5 truncate'>{room.code}</p>
+              <Checkbox
+                checked={selected}
+                onCheckedChange={onToggleSelect}
+                onClick={(e) => e.stopPropagation()}
+                className='data-[state=checked]:bg-primary shrink-0'
+                aria-label={`Pilih ${room.name}`}
+              />
+            </div>
+          )}
+          <div className='flex items-center gap-2.5 min-w-0'>
+            <EssentialCardIcon fallback='door-open' className='text-primary' />
+            <div className='min-w-0'>
+              <h4
+                className='truncate text-sm font-semibold text-foreground leading-tight'
+                title={room.name}
+              >
+                {room.name}
+              </h4>
+              <p className='text-xs text-muted-foreground pt-0.5 truncate'>
+                {parentUnit?.name || 'Ruang Periksa'}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -98,7 +141,7 @@ export function FacilityRoomCard({
         <div className='flex items-center justify-between text-muted-foreground'>
           <span>Unit Induk:</span>
           <Badge variant='outline' className='text-[10px] font-normal truncate max-w-[140px]'>
-            {parentUnit?.name || room.unitName || room.unitId}
+            {parentUnit?.name || 'Poliklinik'}
           </Badge>
         </div>
 
@@ -114,22 +157,41 @@ export function FacilityRoomCard({
       {/* Footer Actions */}
       <div className='relative z-1 flex items-center justify-between border-t border-border/40 pt-2 mt-auto w-full'>
         <div className='flex items-center gap-1.5 min-w-0'>
-          <Badge variant='secondary' className='text-[10px] font-mono px-2 py-0.5 rounded-md'>
-            {room.code}
-          </Badge>
-          <span className='text-[11px] text-muted-foreground truncate'>
-            {parentUnit?.name || 'Ruang Periksa'}
+          <span className='text-[11px] font-medium text-muted-foreground truncate'>
+            {room.floor ? `Lantai ${room.floor}` : 'Ruang Periksa'}
           </span>
         </div>
 
         {canManage && (
-          <div className='flex items-center gap-1 shrink-0'>
+          <div className='flex items-center gap-2 shrink-0'>
+            {onToggleActive && (
+              <div
+                className='flex items-center'
+                title={
+                  isActive
+                    ? 'Status aktif (klik untuk nonaktifkan)'
+                    : 'Status nonaktif (klik untuk aktifkan)'
+                }
+              >
+                <Switch
+                  checked={isActive}
+                  onCheckedChange={onToggleActive}
+                  onClick={(e) => e.stopPropagation()}
+                  disabled={isTogglingActive}
+                  className='scale-80 origin-right'
+                  aria-label={`Ubah status ${room.name}`}
+                />
+              </div>
+            )}
             {onEdit && (
               <Button
                 type='button'
                 variant='ghost'
                 size='icon'
-                onClick={() => onEdit(room)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(room);
+                }}
                 className='size-7 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md cursor-pointer'
                 title={`Edit ${room.name}`}
               >
@@ -140,9 +202,12 @@ export function FacilityRoomCard({
               type='button'
               variant='ghost'
               size='icon'
-              onClick={() => onDelete(room)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(room);
+              }}
               className='size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md cursor-pointer'
-              title={`Hapus / nonaktifkan ${room.name}`}
+              title={`Hapus permanen ${room.name}`}
             >
               <Trash2 className='size-3.5' />
             </Button>

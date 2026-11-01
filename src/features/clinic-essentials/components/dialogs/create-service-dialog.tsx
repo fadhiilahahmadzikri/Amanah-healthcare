@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
@@ -53,11 +54,10 @@ export function CreateServiceDialog({
   const [serviceCategoryId, setServiceCategoryId] = React.useState('');
   const [intakeFormId, setIntakeFormId] = React.useState('none');
   const [name, setName] = React.useState('');
-  const [code, setCode] = React.useState('');
-  const [codePrefix, setCodePrefix] = React.useState('');
-  const [iconName, setIconName] = React.useState('stethoscope');
+  const [iconName, setIconName] = React.useState('');
   const [complaintsRaw, setComplaintsRaw] = React.useState('');
   const [description, setDescription] = React.useState('');
+  const [isActive, setIsActive] = React.useState(true);
 
   // Sync editItem or pre-select first category if available
   React.useEffect(() => {
@@ -65,19 +65,17 @@ export function CreateServiceDialog({
       setServiceCategoryId(editItem.serviceCategoryId);
       setIntakeFormId(editItem.intakeFormId || 'none');
       setName(editItem.name);
-      setCode(editItem.code);
-      setCodePrefix(editItem.codePrefix);
-      setIconName(editItem.iconName || 'stethoscope');
+      setIconName(editItem.iconName || '');
       setComplaintsRaw((editItem.complaints || []).join(', '));
       setDescription(editItem.description || '');
+      setIsActive(editItem.isActive !== false);
     } else {
       setName('');
-      setCode('');
-      setCodePrefix('');
-      setIconName('stethoscope');
+      setIconName('');
       setIntakeFormId('none');
       setComplaintsRaw('');
       setDescription('');
+      setIsActive(true);
       if (categories.length > 0) {
         setServiceCategoryId(categories[0].id);
       }
@@ -118,8 +116,6 @@ export function CreateServiceDialog({
   const handleClose = () => {
     if (!editItem) {
       setName('');
-      setCode('');
-      setCodePrefix('');
       setIconName('stethoscope');
       setIntakeFormId('none');
       setComplaintsRaw('');
@@ -128,34 +124,14 @@ export function CreateServiceDialog({
     onOpenChange(false);
   };
 
-  const handleNameChange = (val: string) => {
-    setName(val);
-    if (!editItem && (!code || code === name.toLowerCase().replace(/[^a-z0-9_]/g, '_'))) {
-      setCode(
-        val
-          .toLowerCase()
-          .trim()
-          .replace(/[^a-z0-9_]+/g, '_')
-      );
-    }
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!serviceCategoryId) {
-      toast.error('Pilih kategori layanan terlebih dahulu');
+      toast.error('Pilih kelompok kategori layanan terlebih dahulu');
       return;
     }
     if (!name.trim()) {
-      toast.error('Nama layanan wajib diisi');
-      return;
-    }
-    if (!code.trim()) {
-      toast.error('Kode layanan wajib diisi');
-      return;
-    }
-    if (!codePrefix.trim()) {
-      toast.error('Prefix kode layanan wajib diisi');
+      toast.error('Nama layanan medis wajib diisi');
       return;
     }
 
@@ -168,14 +144,14 @@ export function CreateServiceDialog({
       serviceCategoryId,
       intakeFormId: intakeFormId === 'none' ? null : intakeFormId,
       name: name.trim(),
-      code: code.trim(),
-      codePrefix: codePrefix.trim().toUpperCase(),
+      code: editItem ? editItem.code : undefined,
+      codePrefix: editItem ? editItem.codePrefix : undefined,
       iconName: iconName || 'stethoscope',
       description: description.trim() || undefined,
       complaints: complaints.length > 0 ? complaints : undefined,
-      displayOrder: 0,
+      displayOrder: editItem ? editItem.displayOrder : 0,
       isBookable: true,
-      isActive: editItem ? editItem.isActive : true
+      isActive
     };
 
     if (editItem) {
@@ -190,23 +166,23 @@ export function CreateServiceDialog({
       <DialogContent className='max-w-xl max-h-[90vh] overflow-y-auto'>
         <form onSubmit={handleSubmit}>
           <DialogHeader className='pb-4 border-b'>
-            <DialogTitle>{editItem ? 'Edit Layanan Medis' : 'Tambah Layanan Medis'}</DialogTitle>
+            <DialogTitle>{editItem ? 'Edit Service Medis' : 'Tambah Service Medis'}</DialogTitle>
             <DialogDescription>
               {editItem
-                ? 'Perbarui layanan tindakan medis kanonik dan formulir intake terhubung.'
-                : 'Buat layanan tindakan medis kanonik dan hubungkan ke formulir intake yang sesuai.'}
+                ? 'Perbarui data service medis dan formulir pengkajian terhubung.'
+                : 'Buat service medis klinik dan hubungkan ke formulir pengkajian yang sesuai.'}
             </DialogDescription>
           </DialogHeader>
 
           <div className='py-4 space-y-3.5'>
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
               <div className='space-y-1.5'>
-                <Label htmlFor='service-cat'>
-                  Kategori Layanan <span className='text-destructive'>*</span>
+                <Label htmlFor='service-cat' className='text-xs font-semibold'>
+                  Kelompok Layanan <span className='text-destructive'>*</span>
                 </Label>
                 {categories.length === 0 ? (
                   <div className='p-2 text-xs border border-dashed rounded text-muted-foreground'>
-                    Belum ada kategori layanan. Buat Kategori terlebih dahulu.
+                    Belum ada kelompok layanan. Buat Kelompok Layanan terlebih dahulu.
                   </div>
                 ) : (
                   <Select
@@ -214,13 +190,13 @@ export function CreateServiceDialog({
                     onValueChange={setServiceCategoryId}
                     disabled={isSubmitting}
                   >
-                    <SelectTrigger id='service-cat'>
-                      <SelectValue placeholder='Pilih kategori' />
+                    <SelectTrigger id='service-cat' className='h-9 text-xs'>
+                      <SelectValue placeholder='Pilih kelompok' />
                     </SelectTrigger>
                     <SelectContent>
                       {categories.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>
-                          {c.name} ({c.code})
+                        <SelectItem key={c.id} value={c.id} className='text-xs'>
+                          {c.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -229,20 +205,24 @@ export function CreateServiceDialog({
               </div>
 
               <div className='space-y-1.5'>
-                <Label htmlFor='service-form'>Formulir Intake Terhubung</Label>
+                <Label htmlFor='service-form' className='text-xs font-semibold'>
+                  Formulir Pengkajian Pasien
+                </Label>
                 <Select
                   value={intakeFormId}
                   onValueChange={setIntakeFormId}
                   disabled={isSubmitting}
                 >
-                  <SelectTrigger id='service-form'>
+                  <SelectTrigger id='service-form' className='h-9 text-xs'>
                     <SelectValue placeholder='Pilih formulir' />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value='none'>Tanpa Formulir Khusus (Standar / Umum)</SelectItem>
+                    <SelectItem value='none' className='text-xs'>
+                      Tanpa Formulir Khusus (Standar / Umum)
+                    </SelectItem>
                     {forms.map((f) => (
-                      <SelectItem key={f.id} value={f.id}>
-                        {f.name} ({f.code})
+                      <SelectItem key={f.id} value={f.id} className='text-xs'>
+                        {f.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -250,82 +230,51 @@ export function CreateServiceDialog({
               </div>
             </div>
 
+            <div className='flex items-center gap-3'>
+              <div className='space-y-1.5 flex-1 min-w-0'>
+                <Label htmlFor='service-name' className='text-xs font-semibold'>
+                  Nama Service Medis <span className='text-destructive'>*</span>
+                </Label>
+                <Input
+                  id='service-name'
+                  placeholder='Contoh: Pemeriksaan Kehamilan & ANC'
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  disabled={isSubmitting}
+                  required
+                  className='h-9 text-xs'
+                />
+              </div>
+
+              <div className='space-y-1.5 shrink-0'>
+                <Label className='text-xs font-semibold'>Visual</Label>
+                <ShiftIconPickerPopover
+                  value={iconName}
+                  onChange={(newVal) => setIconName(newVal || 'stethoscope')}
+                  fallback={name.charAt(0) || 'L'}
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+
             <div className='space-y-1.5'>
-              <Label htmlFor='service-name'>
-                Nama Layanan <span className='text-destructive'>*</span>
+              <Label htmlFor='service-desc' className='text-xs font-semibold'>
+                Keterangan Singkat
               </Label>
               <Input
-                id='service-name'
-                placeholder='Contoh: Pemeriksaan Kehamilan & ANC'
-                value={name}
-                onChange={(e) => handleNameChange(e.target.value)}
+                id='service-desc'
+                placeholder='Pemeriksaan kehamilan rutin, ANC terpadu'
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
                 disabled={isSubmitting}
-                required
+                className='h-9 text-xs'
               />
             </div>
 
-            <div className='grid grid-cols-2 gap-3'>
-              <div className='space-y-1.5'>
-                <Label htmlFor='service-code'>
-                  Kode Layanan <span className='text-destructive'>*</span>
-                </Label>
-                <Input
-                  id='service-code'
-                  placeholder='pregnancy_checkup'
-                  value={code}
-                  onChange={(e) =>
-                    setCode(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))
-                  }
-                  disabled={isSubmitting}
-                  required
-                />
-              </div>
-
-              <div className='space-y-1.5'>
-                <Label htmlFor='service-prefix'>
-                  Prefix Antrean <span className='text-destructive'>*</span>
-                </Label>
-                <Input
-                  id='service-prefix'
-                  placeholder='ANC'
-                  maxLength={8}
-                  value={codePrefix}
-                  onChange={(e) => setCodePrefix(e.target.value.toUpperCase())}
-                  disabled={isSubmitting}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className='grid grid-cols-2 gap-3 items-center'>
-              <div className='space-y-1.5'>
-                <Label htmlFor='service-icon'>Ikon / Emoji Layanan</Label>
-                <div className='flex items-center gap-2'>
-                  <ShiftIconPickerPopover
-                    value={iconName}
-                    onChange={(newVal) => setIconName(newVal || 'stethoscope')}
-                    disabled={isSubmitting}
-                  />
-                  <span className='text-xs text-muted-foreground font-mono truncate'>
-                    {iconName || 'stethoscope'}
-                  </span>
-                </div>
-              </div>
-
-              <div className='space-y-1.5'>
-                <Label htmlFor='service-desc'>Keterangan Singkat</Label>
-                <Input
-                  id='service-desc'
-                  placeholder='Pemeriksaan kehamilan rutin'
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  disabled={isSubmitting}
-                />
-              </div>
-            </div>
-
             <div className='space-y-1.5'>
-              <Label htmlFor='service-complaints'>Daftar Keluhan Awal (Pisahkan dengan koma)</Label>
+              <Label htmlFor='service-complaints' className='text-xs font-semibold'>
+                Daftar Keluhan Awal (Pisahkan dengan koma)
+              </Label>
               <Textarea
                 id='service-complaints'
                 placeholder='Contoh: Mual muntah pagi, Nyeri perut bawah, Cek denyut jantung janin'
@@ -333,11 +282,31 @@ export function CreateServiceDialog({
                 onChange={(e) => setComplaintsRaw(e.target.value)}
                 disabled={isSubmitting}
                 rows={2}
+                className='text-xs'
               />
               <p className='text-[11px] text-muted-foreground'>
-                Opsi keluhan yang akan muncul pada saat pasien atau resepsionis mendaftar.
+                Opsi keluhan klinis yang akan muncul pada saat pasien atau resepsionis mendaftar.
               </p>
             </div>
+
+            {Boolean(editItem) && (
+              <div className='flex items-center justify-between p-3 rounded-xl border border-border/70 bg-muted/20'>
+                <div className='space-y-0.5'>
+                  <Label htmlFor='service-active' className='text-xs font-semibold cursor-pointer'>
+                    Status Operasional Aktif
+                  </Label>
+                  <p className='text-[11px] text-muted-foreground'>
+                    Nonaktifkan jika tindakan/layanan ini sedang tidak tersedia untuk pasien.
+                  </p>
+                </div>
+                <Switch
+                  id='service-active'
+                  checked={isActive}
+                  onCheckedChange={setIsActive}
+                  disabled={isSubmitting}
+                />
+              </div>
+            )}
           </div>
 
           <DialogFooter className='pt-3 border-t'>

@@ -38,13 +38,15 @@ export interface ShiftIconDisplayProps {
   fallback?: string | null;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
+  bare?: boolean;
 }
 
 export function ShiftIconDisplay({
   icon,
   fallback,
   className = '',
-  size = 'md'
+  size = 'md',
+  bare = false
 }: ShiftIconDisplayProps) {
   const sizeClasses = {
     sm: 'size-6 text-xs',
@@ -62,6 +64,20 @@ export function ShiftIconDisplay({
 
   // 1. If it's an emoji: render directly
   if (cleanIcon && EMOJI_REGEX.test(cleanIcon)) {
+    if (bare) {
+      return (
+        <span
+          className={cn(
+            'leading-none select-none shrink-0',
+            size === 'sm' ? 'text-xs' : size === 'lg' ? 'text-xl' : 'text-base',
+            className
+          )}
+          aria-hidden='true'
+        >
+          {cleanIcon}
+        </span>
+      );
+    }
     return (
       <div
         className={cn(
@@ -80,6 +96,15 @@ export function ShiftIconDisplay({
   if (cleanIcon) {
     const LucideComponent = resolveLucideIcon(cleanIcon);
     if (LucideComponent) {
+      if (bare) {
+        return (
+          <LucideComponent
+            size={iconSizes}
+            className={cn('text-primary shrink-0', className)}
+            aria-hidden='true'
+          />
+        );
+      }
       return (
         <div
           className={cn(
@@ -97,6 +122,19 @@ export function ShiftIconDisplay({
 
   // 3. Fallback: codePrefix badge or default Clock icon
   if (fallback && fallback.trim()) {
+    if (bare) {
+      return (
+        <span
+          className={cn(
+            'leading-none text-[11px] font-mono font-bold text-primary select-none shrink-0',
+            className
+          )}
+          aria-hidden='true'
+        >
+          {fallback.trim().toUpperCase()}
+        </span>
+      );
+    }
     return (
       <div
         className={cn(
@@ -108,6 +146,16 @@ export function ShiftIconDisplay({
       >
         <span className='leading-none text-[10px] font-mono'>{fallback.trim().toUpperCase()}</span>
       </div>
+    );
+  }
+
+  if (bare) {
+    return (
+      <Clock
+        size={iconSizes}
+        className={cn('text-primary shrink-0', className)}
+        aria-hidden='true'
+      />
     );
   }
 

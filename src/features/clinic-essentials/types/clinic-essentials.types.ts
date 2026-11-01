@@ -97,7 +97,7 @@ export interface ClinicService {
 
 export interface CreateUnitTypePayload {
   name: string;
-  code: string;
+  code?: string;
   description?: string;
   iconName?: string;
   isActive?: boolean;
@@ -105,7 +105,7 @@ export interface CreateUnitTypePayload {
 
 export interface CreateUnitPayload {
   name: string;
-  code: string;
+  code?: string;
   unitTypeId: string;
   queuePrefix?: string;
   iconName?: string;
@@ -117,7 +117,7 @@ export interface CreateUnitPayload {
 export interface CreateRoomPayload {
   unitId: string;
   name: string;
-  code: string;
+  code?: string;
   location?: string;
   floor?: string;
   isActive?: boolean;
@@ -126,7 +126,7 @@ export interface CreateRoomPayload {
 export interface CreateCategoryPayload {
   unitId?: string;
   name: string;
-  code: string;
+  code?: string;
   codePrefix?: string;
   iconName?: string;
   description?: string;
@@ -138,10 +138,10 @@ export interface CreateServicePayload {
   serviceCategoryId: string;
   intakeFormId?: string | null;
   name: string;
-  code: string;
+  code?: string;
   shortName?: string;
   description?: string;
-  codePrefix: string;
+  codePrefix?: string;
   iconName?: string;
   displayOrder?: number;
   isBookable?: boolean;
@@ -150,8 +150,8 @@ export interface CreateServicePayload {
 }
 
 export interface CreateIntakeFormPayload {
-  code: string;
   name: string;
+  code?: string;
   description?: string;
   iconName?: string;
   isActive?: boolean;
