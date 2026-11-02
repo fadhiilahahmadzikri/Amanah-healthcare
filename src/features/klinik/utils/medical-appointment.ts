@@ -16,7 +16,7 @@ import {
   PREVIOUS_PREGNANCY_CHOICE,
   SECTION_IDS,
   VACCINE_GATEWAY_CHOICE
-} from '../constants/kia-constants';
+} from '../constants/medical-appointment-types';
 import { normalizeBirthDate } from './medical-form-helpers';
 
 const INDONESIAN_MONTHS = [

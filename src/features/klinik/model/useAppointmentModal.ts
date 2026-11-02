@@ -19,7 +19,6 @@ import {
   type ServiceCatalogItem,
   type ServiceCategoryCatalog
 } from '../api/catalog.service';
-import { getMedicalFlowDefinition } from '../constants/medical-appointment-schemas';
 import { mapBackendAppointmentToUi } from '../utils/booking-appointment-mapper';
 import { formRequirementGuard } from './form-requirement-guard';
 import { requestImplicitWebPushRegistration } from '@/features/notifications';
@@ -386,11 +385,9 @@ export function useAppointmentModal({
     }
 
     const intakeCode = bookingContext?.intakeFormCode;
-    const hasSpecializedMedicalFlow = Boolean(
-      bookingContext?.intakeFormId && intakeCode && getMedicalFlowDefinition(intakeCode)
-    );
+    const hasSpecializedMedicalFlow = Boolean(bookingContext?.intakeFormId);
 
-    if (hasSpecializedMedicalFlow && intakeCode) {
+    if (hasSpecializedMedicalFlow) {
       if (selectedService?.id) {
         setIsResolvingMedicalFlow(true);
         try {
@@ -399,7 +396,7 @@ export function useAppointmentModal({
           setIsResolvingMedicalFlow(false);
         }
       }
-      setActiveMedicalFlow(intakeCode);
+      setActiveMedicalFlow(intakeCode || 'general');
       return;
     }
 
@@ -411,11 +408,9 @@ export function useAppointmentModal({
     setSelectedPatientId(newPatient.id);
 
     const intakeCode = bookingContext?.intakeFormCode;
-    const hasSpecializedMedicalFlow = Boolean(
-      bookingContext?.intakeFormId && intakeCode && getMedicalFlowDefinition(intakeCode)
-    );
+    const hasSpecializedMedicalFlow = Boolean(bookingContext?.intakeFormId);
 
-    if (hasSpecializedMedicalFlow && intakeCode) {
+    if (hasSpecializedMedicalFlow) {
       if (selectedService?.id) {
         setIsResolvingMedicalFlow(true);
         try {
@@ -424,7 +419,7 @@ export function useAppointmentModal({
           setIsResolvingMedicalFlow(false);
         }
       }
-      setActiveMedicalFlow(intakeCode);
+      setActiveMedicalFlow(intakeCode || 'general');
       return;
     }
 

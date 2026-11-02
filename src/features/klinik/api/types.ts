@@ -137,6 +137,7 @@ export interface MedicalIntakeRecord {
   submittedAt: string;
   answersByFieldId: Record<string, string>;
   automatic: Record<string, string>;
+  formSchema?: Record<string, any>;
 }
 
 export interface RegionItem {

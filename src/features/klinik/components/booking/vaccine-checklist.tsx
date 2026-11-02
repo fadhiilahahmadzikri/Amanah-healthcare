@@ -7,7 +7,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Icons } from '@/components/icons';
 import { useVaccineCatalog } from '../../model/useVaccineCatalog';
-import type { VaccineCatalogItem } from '../../constants/kia-constants';
+import type { VaccineCatalogItem } from '../../constants/medical-appointment-types';
 
 export type { VaccineCatalogItem };
 

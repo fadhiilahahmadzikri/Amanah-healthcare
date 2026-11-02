@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Eye, EyeOff, Pencil, Trash2, Sliders, Check, Plus, X } from 'lucide-react';
+import { Eye, EyeOff, Pencil, Trash2, Sliders, Check, Plus, X, FolderInput } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -31,19 +31,26 @@ import {
   mapFieldTypeToComponentId
 } from '../../constants/component-registry';
 import type { MedicalFieldType, MedicalFormField } from '../../constants/medical-appointment-types';
+import { REGISTERED_DATA_SOURCES } from '../../model/form-data-source-registry';
 
 interface MedicalFieldBuilderToolbarProps {
   field: MedicalFormField;
+  currentSectionId?: string;
+  availableSections?: { id: string; title: string }[];
   onUpdateField?: (updated: Partial<MedicalFormField>) => void;
   onToggleActive?: () => void;
   onDeleteField?: () => void;
+  onMoveToSection?: (targetSectionId: string) => void;
 }
 
 export function MedicalFieldBuilderToolbar({
   field,
+  currentSectionId,
+  availableSections,
   onUpdateField,
   onToggleActive,
-  onDeleteField
+  onDeleteField,
+  onMoveToSection
 }: MedicalFieldBuilderToolbarProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
 
@@ -56,6 +63,9 @@ export function MedicalFieldBuilderToolbar({
     field.colSpan === 'full' || field.colSpan === 2 ? 'full' : '1'
   );
   const [editChoices, setEditChoices] = React.useState<string[]>(field.choices || []);
+  const [editDataSourceKey, setEditDataSourceKey] = React.useState<string>(
+    field.dataSource?.key || ''
+  );
   const [newChoiceInput, setNewChoiceInput] = React.useState('');
 
   const currentComponentId = mapFieldTypeToComponentId(field.type);
@@ -68,6 +78,7 @@ export function MedicalFieldBuilderToolbar({
     setEditRequired(field.required);
     setEditColSpan(field.colSpan === 'full' || field.colSpan === 2 ? 'full' : '1');
     setEditChoices(field.choices || []);
+    setEditDataSourceKey(field.dataSource?.key || '');
     setIsEditDialogOpen(true);
   };
 
@@ -80,7 +91,8 @@ export function MedicalFieldBuilderToolbar({
       helpText: editHelpText.trim(),
       required: editRequired,
       colSpan: editColSpan === 'full' ? 'full' : 1,
-      choices: editChoices
+      choices: editChoices,
+      dataSource: editDataSourceKey ? { type: 'catalog', key: editDataSourceKey } : undefined
     });
     setIsEditDialogOpen(false);
   };
@@ -194,6 +206,39 @@ export function MedicalFieldBuilderToolbar({
           <Pencil className='size-3.5' />
         </button>
 
+        {/* Pindahkan Field ke Langkah Lain */}
+        {availableSections && availableSections.length > 1 && onMoveToSection && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type='button'
+                onClick={(e) => e.stopPropagation()}
+                title='Pindahkan Field ke Langkah Lain'
+                className='flex size-6 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground'
+              >
+                <FolderInput className='size-3.5' />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align='end' className='w-56 text-xs max-h-60 overflow-y-auto'>
+              <DropdownMenuLabel className='text-[11px] font-semibold text-muted-foreground'>
+                Pindahkan ke Langkah:
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {availableSections
+                .filter((s) => s.id !== currentSectionId)
+                .map((sec) => (
+                  <DropdownMenuItem
+                    key={sec.id}
+                    onClick={() => onMoveToSection(sec.id)}
+                    className='cursor-pointer text-xs py-1.5'
+                  >
+                    <span className='line-clamp-1 font-medium'>{sec.title}</span>
+                  </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+
         {/* Hapus Field */}
         <button
           type='button'
@@ -295,51 +340,90 @@ export function MedicalFieldBuilderToolbar({
                 </div>
               </div>
 
-              {/* Opsi Pilihan (Jika Multiple Choice atau List) */}
+              {/* Sumber Data & Opsi Pilihan (Jika Multiple Choice atau List) */}
               {(field.type === 'MULTIPLE_CHOICE' || field.type === 'LIST') && (
                 <div className='space-y-2 rounded-lg border border-border/60 bg-muted/20 p-2.5'>
-                  <Label className='text-xs font-semibold'>Daftar Pilihan Opsi</Label>
-                  <div className='flex flex-wrap gap-1.5'>
-                    {editChoices.map((choice, idx) => (
-                      <span
-                        key={idx}
-                        className='inline-flex items-center gap-1 rounded-md border border-border/80 bg-background px-2 py-0.5 text-[11px] font-medium'
-                      >
-                        {choice}
-                        <button
-                          type='button'
-                          onClick={() => handleRemoveChoice(idx)}
-                          className='text-muted-foreground hover:text-destructive'
-                        >
-                          <X className='size-3' />
-                        </button>
+                  <div className='flex items-center justify-between'>
+                    <Label className='text-xs font-semibold'>Sumber Data Pilihan</Label>
+                    {editDataSourceKey && (
+                      <span className='rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary'>
+                        Katalog Terhubung
                       </span>
-                    ))}
+                    )}
                   </div>
 
-                  <div className='flex items-center gap-1.5 pt-1'>
-                    <Input
-                      value={newChoiceInput}
-                      onChange={(e) => setNewChoiceInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleAddChoice();
-                        }
-                      }}
-                      placeholder='Tambah opsi pilihan baru...'
-                      className='h-7 text-xs'
-                    />
-                    <Button
-                      type='button'
-                      size='sm'
-                      variant='outline'
-                      onClick={handleAddChoice}
-                      className='h-7 text-xs'
+                  <div className='space-y-1.5'>
+                    <Label htmlFor='edit-datasource' className='text-[11px] text-muted-foreground'>
+                      Katalog Dinamis Database / API:
+                    </Label>
+                    <select
+                      id='edit-datasource'
+                      value={editDataSourceKey}
+                      onChange={(e) => setEditDataSourceKey(e.target.value)}
+                      className='h-8 w-full rounded border border-border bg-background px-2 text-xs font-medium'
                     >
-                      <Plus className='size-3 mr-1' /> Tambah
-                    </Button>
+                      <option value=''>Pilihan Manual / Statis (Custom)</option>
+                      {REGISTERED_DATA_SOURCES.map((ds) => (
+                        <option key={ds.key} value={ds.key}>
+                          {ds.label} ({ds.description})
+                        </option>
+                      ))}
+                    </select>
                   </div>
+
+                  {editDataSourceKey ? (
+                    <div className='rounded border border-primary/20 bg-primary/5 p-2 text-[11px] text-muted-foreground'>
+                      Data pilihan ditarik secara dinamis dari API master. Pilihan manual tidak akan
+                      dipakai selama katalog master ini aktif.
+                    </div>
+                  ) : (
+                    <>
+                      <Label className='text-[11px] font-medium text-muted-foreground'>
+                        Daftar Pilihan Manual:
+                      </Label>
+                      <div className='flex flex-wrap gap-1.5'>
+                        {editChoices.map((choice, idx) => (
+                          <span
+                            key={idx}
+                            className='inline-flex items-center gap-1 rounded-md border border-border/80 bg-background px-2 py-0.5 text-[11px] font-medium'
+                          >
+                            {choice}
+                            <button
+                              type='button'
+                              onClick={() => handleRemoveChoice(idx)}
+                              className='text-muted-foreground hover:text-destructive'
+                            >
+                              <X className='size-3' />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+
+                      <div className='flex items-center gap-1.5 pt-1'>
+                        <Input
+                          value={newChoiceInput}
+                          onChange={(e) => setNewChoiceInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleAddChoice();
+                            }
+                          }}
+                          placeholder='Tambah opsi pilihan baru...'
+                          className='h-7 text-xs'
+                        />
+                        <Button
+                          type='button'
+                          size='sm'
+                          variant='outline'
+                          onClick={handleAddChoice}
+                          className='h-7 text-xs'
+                        >
+                          <Plus className='mr-1 size-3' /> Tambah
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>

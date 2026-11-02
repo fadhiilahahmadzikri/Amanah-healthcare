@@ -43,6 +43,34 @@ export const COMPONENT_OPTIONS: FormComponentOption[] = [
     label: 'Menu Tarik (Select Dropdown)',
     description: 'Dropdown pemilihan dari banyak opsi (pekerjaan, pendidikan, dll)',
     iconName: 'chevronDown'
+  },
+  {
+    id: 'checkbox',
+    fieldType: 'CHECKBOX',
+    label: 'Kotak Centang (Checkbox)',
+    description: 'Centang persetujuan, verifikasi, atau pilihan boolean',
+    iconName: 'checkSquare'
+  },
+  {
+    id: 'region-dropdown',
+    fieldType: 'TEXT',
+    label: 'Wilayah Domisili Bertingkat',
+    description: 'Dropdown bertingkat Indonesia (Provinsi, Kota/Kab, Kecamatan, Kelurahan)',
+    iconName: 'mapPin'
+  },
+  {
+    id: 'accordion',
+    fieldType: 'ACCORDION',
+    label: 'Grup Lipat (Akordeon)',
+    description: 'Pengelompokan field dalam panel lipat buka-tutup',
+    iconName: 'foldVertical'
+  },
+  {
+    id: 'table',
+    fieldType: 'TABLE',
+    label: 'Tabel Kuesioner / Matriks',
+    description: 'Matriks tabel multi-kolom dengan kolom kondisional dinamis',
+    iconName: 'table'
   }
 ];
 
@@ -56,6 +84,12 @@ export function mapFieldTypeToComponentId(type: MedicalFieldType): string {
       return 'choice-chips';
     case 'LIST':
       return 'select';
+    case 'CHECKBOX':
+      return 'checkbox';
+    case 'ACCORDION':
+      return 'accordion';
+    case 'TABLE':
+      return 'table';
     case 'TEXT':
     default:
       return 'text-input';
@@ -78,6 +112,14 @@ export function mapComponentIdToFieldType(componentId: string): MedicalFieldType
     case 'dropdown':
     case 'list':
       return 'LIST';
+    case 'checkbox':
+      return 'CHECKBOX';
+    case 'accordion':
+      return 'ACCORDION';
+    case 'table':
+    case 'questionnaire':
+      return 'TABLE';
+    case 'region-dropdown':
     case 'text-input':
     case 'text':
     default:

@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import gsap from 'gsap';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { cn } from '@/lib/utils';
@@ -35,6 +36,11 @@ export function SideTray<T extends string = string>({
 
   const [internalExpanded, setInternalExpanded] = React.useState(defaultExpanded);
   const [internalPinned, setInternalPinned] = React.useState(defaultPinned);
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const isExpanded = controlledExpanded !== undefined ? controlledExpanded : internalExpanded;
   const isPinned = controlledPinned !== undefined ? controlledPinned : internalPinned;
@@ -147,13 +153,17 @@ export function SideTray<T extends string = string>({
 
   const trayWidth = typeof width === 'number' ? `${width}px` : width;
 
-  // Floating Overlay Mode for Mobile/Tablet (< 1024px)
+  // Floating Overlay Mode for Mobile/Tablet (< 1024px) or Overlay Builder
   if (isOverlay) {
-    return (
+    if (!isClient || typeof document === 'undefined') {
+      return null;
+    }
+
+    return createPortal(
       <>
-        {/* Mobile Floating Trigger Handle (visible when collapsed) */}
+        {/* Floating Trigger Handle (visible when collapsed) */}
         {!isExpanded && (
-          <div className='fixed top-40 right-0 z-40'>
+          <div className='fixed top-40 right-0 z-[60]'>
             <TrayTrigger
               isExpanded={false}
               isPinned={false}
@@ -163,21 +173,21 @@ export function SideTray<T extends string = string>({
           </div>
         )}
 
-        {/* Mobile Floating Backdrop Overlay (outside dismissal) */}
+        {/* Floating Backdrop Overlay (outside dismissal) */}
         {isExpanded && (
           <div
-            className='fixed inset-0 bg-background/60 backdrop-blur-xs z-50 transition-opacity duration-300'
+            className='fixed inset-0 bg-background/60 backdrop-blur-xs z-[70] transition-opacity duration-300'
             onClick={handleClose}
             aria-hidden='true'
           />
         )}
 
-        {/* Mobile Floating Drawer (slides out over content without compressing cards) */}
+        {/* Floating Drawer (slides out over content without compressing cards) */}
         <aside
           ref={traySurfaceRef}
           aria-label={title}
           className={cn(
-            'fixed inset-y-0 right-0 z-50 w-72 sm:w-80 h-full max-h-screen flex flex-col bg-card/98 text-card-foreground border-l border-border/80 shadow-2xl backdrop-blur-md overflow-hidden transition-all duration-300 ease-out',
+            'fixed inset-y-0 right-0 z-[70] w-72 sm:w-80 h-full max-h-screen flex flex-col bg-card/98 text-card-foreground border-l border-border/80 shadow-2xl backdrop-blur-md overflow-hidden transition-all duration-300 ease-out',
             isExpanded
               ? 'translate-x-0 opacity-100 visible pointer-events-auto'
               : 'translate-x-full opacity-0 invisible pointer-events-none'
@@ -199,7 +209,8 @@ export function SideTray<T extends string = string>({
             <div className='p-3 border-t border-border/40 shrink-0 bg-muted/20'>{footerSlot}</div>
           )}
         </aside>
-      </>
+      </>,
+      document.body
     );
   }
 

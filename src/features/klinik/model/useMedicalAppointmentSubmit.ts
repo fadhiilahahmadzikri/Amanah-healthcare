@@ -25,7 +25,7 @@ import {
   buildChildImmunizationIntakePayload,
   buildMaternityIntakePayload
 } from '../utils/kia-intake-payload-builder';
-import { FLOW_NAMES } from '../constants/kia-constants';
+import { FLOW_NAMES } from '../constants/medical-appointment-types';
 import type { ReservationContext } from '../components/reservation/reservation-modal';
 import { requestImplicitWebPushRegistration } from '@/features/notifications';
 

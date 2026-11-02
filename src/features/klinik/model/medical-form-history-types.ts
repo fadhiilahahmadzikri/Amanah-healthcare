@@ -6,7 +6,7 @@ import {
   REPEATABLE_GROUP_KEYS,
   SECTION_IDS,
   STEP_DESCRIPTOR_TYPES
-} from '../constants/kia-constants';
+} from '../constants/medical-appointment-types';
 
 export type RepeatableHistoryKey =
   (typeof REPEATABLE_GROUP_KEYS)[keyof typeof REPEATABLE_GROUP_KEYS];

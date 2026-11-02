@@ -7,7 +7,7 @@ import {
   type MaternalIntakeResponse,
   type ChildImmunizationResponse
 } from '@/features/klinik/api/kia-intake-service';
-import { FLOW_NAMES } from '@/features/klinik/constants/kia-constants';
+import { FLOW_NAMES } from '@/features/klinik/constants/medical-appointment-types';
 
 export interface BookedPatientKiaIntakeProps {
   appointmentId: string;

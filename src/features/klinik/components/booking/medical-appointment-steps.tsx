@@ -39,7 +39,10 @@ export function MedicalSectionStep({
   renderField,
   values,
   onFieldChange,
-  builderMode = false
+  builderMode = false,
+  onUpdateField,
+  onDeleteField,
+  onAddField
 }: {
   section: MedicalFormSection;
   catalogActionType?: 'add' | 'edit' | null;
@@ -48,6 +51,9 @@ export function MedicalSectionStep({
   values?: MedicalAppointmentValues;
   onFieldChange?: (fieldId: string, value: string) => void;
   builderMode?: boolean;
+  onUpdateField?: (fieldId: string, updated: Partial<MedicalFormField>) => void;
+  onDeleteField?: (fieldId: string) => void;
+  onAddField?: () => void;
 }) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const isGrid = section?.layout === 'grid';
@@ -99,9 +105,17 @@ export function MedicalSectionStep({
         <div className='px-0.5 pt-1.5 pb-2'>
           <VaccineChecklist values={values} onFieldChange={onFieldChange} />
         </div>
-      ) : isQuestionnaire && values && onFieldChange ? (
+      ) : isQuestionnaire && (builderMode || (values && onFieldChange)) ? (
         <div className='px-0.5 pt-1.5 pb-2'>
-          <MedicalQuestionnaire section={section} values={values} onFieldChange={onFieldChange} />
+          <MedicalQuestionnaire
+            section={section}
+            values={values || {}}
+            onFieldChange={onFieldChange || (() => {})}
+            builderMode={builderMode}
+            onUpdateField={onUpdateField}
+            onDeleteField={onDeleteField}
+            onAddField={onAddField}
+          />
         </div>
       ) : (
         <FieldGroup

@@ -7,7 +7,7 @@ import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { klinikKeys } from '../api/query-keys';
-import { FLOW_NAMES } from '../constants/kia-constants';
+import { FLOW_NAMES } from '../constants/medical-appointment-types';
 import {
   kiaIntakeService,
   type MaternalIntakeResponse,

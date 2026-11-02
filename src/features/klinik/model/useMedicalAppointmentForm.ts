@@ -52,7 +52,7 @@ import {
   CATALOG_ACTION_TYPES,
   SECTION_IDS,
   STEP_DESCRIPTOR_TYPES
-} from '../constants/kia-constants';
+} from '../constants/medical-appointment-types';
 import { useMedicalFormHistory } from './useMedicalFormHistory';
 import { useMedicalFormCalculations } from './useMedicalFormCalculations';
 import { useRegisteredPatient } from './useRegisteredPatient';
@@ -234,41 +234,52 @@ export function useMedicalAppointmentForm({
     );
   }, [registrationPrefill]);
 
-  const visibleMedicalSections = React.useMemo(
-    () =>
-      repeatableMedicalSections
-        .map((section) => ({
-          ...section,
-          fields: section.fields.filter(
-            (field) =>
-              !omittedFieldIdsSet.has(field.id) &&
-              !prefilledFieldIds.has(field.id) &&
-              (!field.visibleIf || field.visibleIf(values))
-          )
-        }))
-        .filter(
-          (section) => section.id === SECTION_IDS.VACCINE_HISTORY || section.fields.length > 0
-        ),
-    [repeatableMedicalSections, omittedFieldIdsSet, prefilledFieldIds, values]
-  );
+  const visibleMedicalSections = React.useMemo(() => {
+    if (builderMode) {
+      return definition.sections;
+    }
+    return repeatableMedicalSections
+      .map((section) => ({
+        ...section,
+        fields: section.fields.filter(
+          (field) =>
+            !omittedFieldIdsSet.has(field.id) &&
+            !prefilledFieldIds.has(field.id) &&
+            (!field.visibleIf || field.visibleIf(values))
+        )
+      }))
+      .filter((section) => section.id === SECTION_IDS.VACCINE_HISTORY || section.fields.length > 0);
+  }, [
+    builderMode,
+    definition.sections,
+    repeatableMedicalSections,
+    omittedFieldIdsSet,
+    prefilledFieldIds,
+    values
+  ]);
 
-  const activeSteps = React.useMemo<StepDescriptor[]>(
-    () =>
-      buildMedicalActiveSteps({
-        visibleMedicalSections,
-        hasPreviousPregnancyHistory: values.hasPreviousPregnancyHistory,
-        hasContraceptionHistory: values.hasContraceptionHistory,
-        historyCounts: history.historyCounts,
-        catalogAction: history.catalogAction
-      }),
-    [
+  const activeSteps = React.useMemo<StepDescriptor[]>(() => {
+    if (builderMode) {
+      return visibleMedicalSections.map((_, sectionIndex) => ({
+        type: STEP_DESCRIPTOR_TYPES.MEDICAL,
+        sectionIndex
+      }));
+    }
+    return buildMedicalActiveSteps({
       visibleMedicalSections,
-      values.hasPreviousPregnancyHistory,
-      values.hasContraceptionHistory,
-      history.historyCounts,
-      history.catalogAction
-    ]
-  );
+      hasPreviousPregnancyHistory: values.hasPreviousPregnancyHistory,
+      hasContraceptionHistory: values.hasContraceptionHistory,
+      historyCounts: history.historyCounts,
+      catalogAction: history.catalogAction
+    });
+  }, [
+    builderMode,
+    visibleMedicalSections,
+    values.hasPreviousPregnancyHistory,
+    values.hasContraceptionHistory,
+    history.historyCounts,
+    history.catalogAction
+  ]);
 
   const totalSteps = activeSteps.length;
   const currentDescriptor = activeSteps[currentStep - 1] || activeSteps[0];

@@ -6,9 +6,14 @@ import { PatientLineInput } from '@/features/data-pasien/components/registration
 import { PatientLineSelect } from '@/features/data-pasien/components/registration/atoms/patient-line-select';
 import { PatientLineTextarea } from '@/features/data-pasien/components/registration/atoms/patient-line-textarea';
 import { PatientBirthdatePicker } from '@/features/data-pasien/components/registration/molecules/patient-birthdate-picker';
+import {
+  PatientRegionDropdown,
+  type PatientRegionValues
+} from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import { cn } from '@/lib/utils';
 
 import type { MedicalFormField } from '../../constants/medical-appointment-schemas';
+import { useFormDataSourceRegistry } from '../../model/form-data-source-registry';
 import {
   getMedicalFieldFormat,
   getMedicalFieldValidationSchema,
@@ -31,18 +36,24 @@ export interface MedicalSchemaFieldProps {
   fieldApi: AnyFieldApi;
   schemaField: MedicalFormField;
   builderMode?: boolean;
+  currentSectionId?: string;
+  availableSections?: { id: string; title: string }[];
   onUpdateField?: (updated: Partial<MedicalFormField>) => void;
   onToggleActive?: () => void;
   onDeleteField?: () => void;
+  onMoveToSection?: (targetSectionId: string) => void;
 }
 
 export function MedicalSchemaField({
   fieldApi,
   schemaField,
   builderMode = false,
+  currentSectionId,
+  availableSections,
   onUpdateField,
   onToggleActive,
-  onDeleteField
+  onDeleteField,
+  onMoveToSection
 }: MedicalSchemaFieldProps) {
   const rawError = getErrorMessage(fieldApi.state.meta.errors);
   const isInvalid = !builderMode && fieldApi.state.meta.isTouched && Boolean(rawError);
@@ -67,9 +78,14 @@ export function MedicalSchemaField({
     </span>
   ) : null;
 
+  const { resolveChoices } = useFormDataSourceRegistry();
+  const effectiveChoices = React.useMemo(() => {
+    return resolveChoices(schemaField.dataSource, schemaField.choices);
+  }, [resolveChoices, schemaField.dataSource, schemaField.choices]);
+
   const renderFieldControl = () => {
     if (schemaField.type === 'MULTIPLE_CHOICE') {
-      const choiceCount = schemaField.choices.length;
+      const choiceCount = effectiveChoices.length;
       const gridColsClass =
         choiceCount === 2
           ? 'grid grid-cols-2 gap-2.5'
@@ -100,7 +116,7 @@ export function MedicalSchemaField({
             </FieldDescription>
           ) : null}
           <div role='radiogroup' className={cn('mt-1 w-full', gridColsClass)}>
-            {schemaField.choices.map((choice) => {
+            {effectiveChoices.map((choice) => {
               const isSelected = value === choice;
               return (
                 <button
@@ -145,7 +161,7 @@ export function MedicalSchemaField({
             fieldApi.handleChange(nextValue);
             fieldApi.handleBlur();
           }}
-          options={schemaField.choices}
+          options={effectiveChoices}
           placeholder={placeholder}
           error={displayError}
           invalid={isInvalid}
@@ -199,6 +215,66 @@ export function MedicalSchemaField({
           invalid={isInvalid}
           className={innerColSpanClass}
         />
+      );
+    }
+
+    if (schemaField.dataSource?.key === 'indonesian_regions' || schemaField.id === 'region') {
+      let parsedRegion: PatientRegionValues = {
+        provinceName: '',
+        provinceCode: '',
+        regencyName: '',
+        regencyCode: '',
+        districtName: '',
+        districtCode: '',
+        villageName: '',
+        villageCode: '',
+        line1: ''
+      };
+      try {
+        if (value && typeof value === 'string' && value.startsWith('{')) {
+          parsedRegion = { ...parsedRegion, ...JSON.parse(value) };
+        }
+      } catch {}
+
+      const handleRegionChange = (updates: Partial<PatientRegionValues>) => {
+        const next = { ...parsedRegion, ...updates };
+        fieldApi.handleChange(JSON.stringify(next));
+      };
+
+      return (
+        <div className={cn('col-span-1 sm:col-span-2 pt-1', innerColSpanClass)}>
+          <PatientRegionDropdown values={parsedRegion} onChange={handleRegionChange} />
+        </div>
+      );
+    }
+
+    if (schemaField.type === 'CHECKBOX') {
+      const isChecked = value === 'true' || value === 'Ya' || Boolean(fieldApi.state.value);
+      return (
+        <div className={cn('flex items-start gap-2.5 py-2', innerColSpanClass)}>
+          <input
+            type='checkbox'
+            id={schemaField.id}
+            checked={isChecked}
+            onChange={(e) => {
+              fieldApi.handleChange(e.target.checked ? 'true' : 'false');
+              fieldApi.handleBlur();
+            }}
+            className='mt-1 size-4 rounded border-border text-primary focus:ring-primary'
+          />
+          <div className='flex flex-col gap-0.5'>
+            <label
+              htmlFor={schemaField.id}
+              className='cursor-pointer text-xs font-semibold text-foreground'
+            >
+              {schemaField.title}
+              {requiredAsterisk}
+            </label>
+            {schemaField.helpText && (
+              <p className='text-[11px] text-muted-foreground'>{schemaField.helpText}</p>
+            )}
+          </div>
+        </div>
       );
     }
 
@@ -287,9 +363,12 @@ export function MedicalSchemaField({
     >
       <MedicalFieldBuilderToolbar
         field={schemaField}
+        currentSectionId={currentSectionId}
+        availableSections={availableSections}
         onUpdateField={onUpdateField}
         onToggleActive={onToggleActive}
         onDeleteField={onDeleteField}
+        onMoveToSection={onMoveToSection}
       />
       {isInactive && (
         <div className='mb-1 flex items-center gap-1 text-[10px] font-semibold text-amber-600 dark:text-amber-400'>

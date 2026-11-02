@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { FLOW_NAMES } from '../../constants/kia-constants';
+import { FLOW_NAMES } from '../../constants/medical-appointment-types';
 import {
   kiaIntakeService,
   type MaternalIntakeResponse,

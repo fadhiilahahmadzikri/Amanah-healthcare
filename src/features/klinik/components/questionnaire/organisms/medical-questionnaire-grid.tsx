@@ -1,6 +1,10 @@
 'use client';
 
 import * as React from 'react';
+import { Icons } from '@/components/icons';
+import { Button } from '@/components/ui/button';
+import type { MedicalFormField } from '../../../constants/medical-appointment-schemas';
+import type { TableConfig } from '../../../constants/medical-appointment-types';
 import type { QuestionnaireItem } from '../types';
 import { QuestionnaireDesktopRow } from '../molecules/questionnaire-desktop-row';
 import { cn } from '@/lib/utils';
@@ -9,6 +13,11 @@ export interface MedicalQuestionnaireGridProps {
   items: QuestionnaireItem[];
   values: Record<string, string>;
   onFieldChange: (fieldId: string, value: string) => void;
+  tableConfig?: TableConfig;
+  builderMode?: boolean;
+  onUpdateField?: (fieldId: string, updated: Partial<MedicalFormField>) => void;
+  onDeleteField?: (fieldId: string) => void;
+  onAddField?: () => void;
   className?: string;
 }
 
@@ -16,6 +25,11 @@ export function MedicalQuestionnaireGrid({
   items,
   values,
   onFieldChange,
+  tableConfig,
+  builderMode = false,
+  onUpdateField,
+  onDeleteField,
+  onAddField,
   className
 }: MedicalQuestionnaireGridProps) {
   const answeredCount = items.filter((item) => Boolean(values[item.id])).length;
@@ -25,21 +39,63 @@ export function MedicalQuestionnaireGrid({
   return (
     <div data-slot='medical-questionnaire-grid' className={cn('w-full flex flex-col', className)}>
       <div className='sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-border bg-background/95 backdrop-blur-xs px-3 py-2.5 text-xs font-medium text-muted-foreground shadow-xs'>
-        <div className='flex-1 pr-4 flex items-center justify-between'>
-          <span className='font-semibold text-foreground'>
-            {hasAnyYear ? 'Kondisi / Riwayat kesehatan' : 'Pertanyaan / Kebiasaan'}
-          </span>
-          <span className='text-[11px] font-normal text-muted-foreground/80'>
-            {answeredCount} dari {totalCount} dijawab
-          </span>
-        </div>
-        <div className='w-16 text-center shrink-0 font-medium text-foreground/80'>Tidak</div>
-        <div className='w-16 text-center shrink-0 font-medium text-foreground/80'>Ya</div>
-        {hasAnyYear ? (
-          <div className='w-40 shrink-0 text-left pl-1 font-medium text-foreground/80'>
-            Tahun (jika Ya)
-          </div>
-        ) : null}
+        {tableConfig?.columns && tableConfig.columns.length > 0 ? (
+          tableConfig.columns.map((col) => {
+            const headerText = col.label || col.header || '';
+            if (col.type === 'label') {
+              return (
+                <div key={col.id} className='flex-1 pr-4 flex items-center justify-between'>
+                  <span className='font-semibold text-foreground'>{headerText}</span>
+                  <span className='text-[11px] font-normal text-muted-foreground/80'>
+                    {answeredCount} dari {totalCount} dijawab
+                  </span>
+                </div>
+              );
+            }
+            if (col.type === 'option') {
+              return (
+                <div
+                  key={col.id}
+                  className={cn(
+                    'text-center shrink-0 font-medium text-foreground/80',
+                    col.width || 'w-16'
+                  )}
+                >
+                  {headerText}
+                </div>
+              );
+            }
+            return (
+              <div
+                key={col.id}
+                className={cn(
+                  'shrink-0 text-left pl-1 font-medium text-foreground/80',
+                  col.width || 'w-40'
+                )}
+              >
+                {headerText}
+              </div>
+            );
+          })
+        ) : (
+          <>
+            <div className='flex-1 pr-4 flex items-center justify-between'>
+              <span className='font-semibold text-foreground'>
+                {hasAnyYear ? 'Kondisi / Riwayat kesehatan' : 'Pertanyaan / Kebiasaan'}
+              </span>
+              <span className='text-[11px] font-normal text-muted-foreground/80'>
+                {answeredCount} dari {totalCount} dijawab
+              </span>
+            </div>
+            <div className='w-16 text-center shrink-0 font-medium text-foreground/80'>Tidak</div>
+            <div className='w-16 text-center shrink-0 font-medium text-foreground/80'>Ya</div>
+            {hasAnyYear ? (
+              <div className='w-40 shrink-0 text-left pl-1 font-medium text-foreground/80'>
+                Tahun (jika Ya)
+              </div>
+            ) : null}
+          </>
+        )}
       </div>
 
       <div className='flex flex-col divide-y-0 pt-1'>
@@ -84,10 +140,28 @@ export function MedicalQuestionnaireGrid({
               onChangeNotes={handleChangeNotes}
               hasAnyYear={hasAnyYear}
               isLast={index === items.length - 1}
+              tableConfig={tableConfig}
+              builderMode={builderMode}
+              onUpdateQuestion={onUpdateField}
+              onDeleteQuestion={onDeleteField}
             />
           );
         })}
       </div>
+
+      {builderMode && onAddField && (
+        <div className='p-2 pt-3'>
+          <Button
+            type='button'
+            variant='outline'
+            size='sm'
+            onClick={onAddField}
+            className='w-full border-dashed text-xs text-muted-foreground hover:border-primary hover:bg-primary/5 hover:text-primary'
+          >
+            <Icons.add className='mr-1.5 size-3.5' /> Tambah Baris Pertanyaan / Kondisi
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

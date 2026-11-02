@@ -17,7 +17,7 @@ import {
   REPEATABLE_GROUP_KEYS,
   SECTION_IDS,
   STEP_DESCRIPTOR_TYPES
-} from '../constants/kia-constants';
+} from '../constants/medical-appointment-types';
 
 export function normalizeBirthDate(value: string): string {
   const trimmed = value.trim();

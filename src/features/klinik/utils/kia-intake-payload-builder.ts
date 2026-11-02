@@ -15,7 +15,7 @@ import {
   MATERNAL_QUESTION_CODES,
   PREVIOUS_PREGNANCY_CHOICE,
   VACCINE_GATEWAY_CHOICE
-} from '../constants/kia-constants';
+} from '../constants/medical-appointment-types';
 import { parsePureInteger, parsePureNumeric } from './numeric-parser';
 
 export function buildMaternityIntakePayload(

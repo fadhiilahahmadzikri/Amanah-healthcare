@@ -14,7 +14,7 @@ import {
   type RepeatableHistoryKey
 } from './medical-form-history-types';
 import { getHistorySection, getHistorySectionMeta } from '../utils/medical-form-helpers';
-import { CATALOG_ACTION_TYPES } from '../constants/kia-constants';
+import { CATALOG_ACTION_TYPES } from '../constants/medical-appointment-types';
 
 interface UseMedicalFormHistoryParams {
   sections: MedicalFormSection[];

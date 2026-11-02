@@ -4,7 +4,7 @@ import {
   type IntakeType,
   KIA_API_ENDPOINTS,
   type VaccineCatalogItem
-} from '../constants/kia-constants';
+} from '../constants/medical-appointment-types';
 import type {
   MaternalHistoryItem,
   ImmunizationHistoryItem,

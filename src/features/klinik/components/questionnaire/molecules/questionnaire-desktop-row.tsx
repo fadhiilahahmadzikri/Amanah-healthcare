@@ -1,6 +1,8 @@
 'use client';
 
 import * as React from 'react';
+import { Icons } from '@/components/icons';
+import type { TableConfig } from '../../../constants/medical-appointment-types';
 import type { QuestionnaireItem } from '../types';
 import { SquareOptionControl } from '../atoms/square-option-control';
 import { YearInputControl } from '../atoms/year-input-control';
@@ -17,6 +19,13 @@ export interface QuestionnaireDesktopRowProps {
   onChangeNotes?: (notes: string) => void;
   hasAnyYear?: boolean;
   isLast?: boolean;
+  tableConfig?: TableConfig;
+  builderMode?: boolean;
+  onUpdateQuestion?: (
+    fieldId: string,
+    updated: Partial<{ title: string; label: string; helpText: string }>
+  ) => void;
+  onDeleteQuestion?: (fieldId: string) => void;
 }
 
 export function QuestionnaireDesktopRow({
@@ -28,7 +37,11 @@ export function QuestionnaireDesktopRow({
   onChangeYear,
   onChangeNotes,
   hasAnyYear = true,
-  isLast = false
+  isLast = false,
+  tableConfig,
+  builderMode = false,
+  onUpdateQuestion,
+  onDeleteQuestion
 }: QuestionnaireDesktopRowProps) {
   const [localStatus, setLocalStatus] = React.useState(statusValue);
   const [localYear, setLocalYear] = React.useState(yearValue);
@@ -86,60 +99,202 @@ export function QuestionnaireDesktopRow({
       )}
     >
       <div className='flex items-center justify-between gap-4'>
-        <div className='flex-1 min-w-0 pr-4'>
-          <p className='text-sm font-medium text-foreground leading-snug tracking-tight'>
-            {item.title}
-          </p>
-          {item.helpText ? (
-            <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>{item.helpText}</p>
-          ) : null}
+        <div className='flex-1 min-w-0 pr-4 space-y-1'>
+          {builderMode ? (
+            <>
+              <div className='group/qtitle relative flex items-center gap-1.5'>
+                <input
+                  type='text'
+                  value={item.title}
+                  onChange={(e) =>
+                    onUpdateQuestion?.(item.id, {
+                      title: e.target.value,
+                      label: e.target.value
+                    })
+                  }
+                  placeholder='Pertanyaan / Kondisi...'
+                  aria-label='Judul pertanyaan kuesioner'
+                  className='h-auto w-full rounded border border-transparent bg-transparent px-1.5 py-0.5 text-sm font-semibold text-foreground transition-all hover:border-border hover:bg-muted/40 focus:border-primary focus:bg-background focus:outline-hidden focus:ring-1 focus:ring-primary'
+                />
+              </div>
+              <div className='group/qdesc relative flex items-center gap-1.5'>
+                <input
+                  type='text'
+                  value={item.helpText || ''}
+                  onChange={(e) =>
+                    onUpdateQuestion?.(item.id, {
+                      helpText: e.target.value
+                    })
+                  }
+                  placeholder='Petunjuk / keterangan pertanyaan (opsional)...'
+                  aria-label='Petunjuk pertanyaan kuesioner'
+                  className='h-auto w-full rounded border border-transparent bg-transparent px-1.5 py-0.5 text-xs text-muted-foreground transition-all hover:border-border hover:bg-muted/40 focus:border-primary focus:bg-background focus:text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary'
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <p className='text-sm font-medium text-foreground leading-snug tracking-tight'>
+                {item.title}
+              </p>
+              {item.helpText ? (
+                <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
+                  {item.helpText}
+                </p>
+              ) : null}
+            </>
+          )}
         </div>
 
-        <div className='w-16 flex justify-center shrink-0'>
-          <SquareOptionControl
-            checked={isNo}
-            onClick={() => handleSelectStatus('Tidak')}
-            ariaLabel={`Tidak untuk ${item.title}`}
-            variant='negative'
-            size='md'
-          />
-        </div>
+        {tableConfig?.columns && tableConfig.columns.length > 0 ? (
+          tableConfig.columns
+            .filter((c) => c.type !== 'label')
+            .map((col) => {
+              if (col.type === 'option') {
+                const optVal = col.options?.[0] || col.label || col.header || '';
+                const isSelected = currentStatus === optVal;
+                return (
+                  <div
+                    key={col.id}
+                    className={cn('flex justify-center shrink-0', col.width || 'w-16')}
+                  >
+                    <SquareOptionControl
+                      checked={isSelected}
+                      onClick={() => handleSelectStatus(optVal as 'Tidak' | 'Ya')}
+                      ariaLabel={`${optVal} untuk ${item.title}`}
+                      variant={optVal === 'Tidak' ? 'negative' : 'positive'}
+                      size='md'
+                    />
+                  </div>
+                );
+              }
 
-        <div className='w-16 flex justify-center shrink-0'>
-          <SquareOptionControl
-            checked={isYes}
-            onClick={() => handleSelectStatus('Ya')}
-            ariaLabel={`Ya untuk ${item.title}`}
-            variant='positive'
-            size='md'
-          />
-        </div>
+              if (col.type === 'year') {
+                const isVisible =
+                  !col.conditional ||
+                  (col.conditional.dependsOnColumnId === 'ya' && isYes) ||
+                  (col.conditional.dependsOnColumnId === 'tidak' && isNo);
 
-        {hasAnyYear ? (
-          <div className='w-40 shrink-0 flex items-center'>
-            {!hasNotes && item.yearFieldId ? (
-              isYes ? (
-                <div
-                  ref={yearInputContainerRef}
-                  className='w-full animate-in fade-in slide-in-from-right-2 duration-200'
-                >
-                  <YearInputControl
-                    id={desktopYearInputId}
-                    size='sm'
-                    value={currentYear}
-                    onChange={handleChangeYear}
-                    placeholder='Tahun (cth: 2021)'
-                    ariaLabel={`Tahun terdiagnosis ${item.label}`}
-                  />
-                </div>
-              ) : (
-                <span className='text-xs text-muted-foreground/30 pl-3 select-none'>—</span>
-              )
-            ) : (
-              <span className='text-xs text-muted-foreground/30 pl-3 select-none'>—</span>
-            )}
+                return (
+                  <div
+                    key={col.id}
+                    className={cn('shrink-0 flex items-center', col.width || 'w-40')}
+                  >
+                    {isVisible && item.yearFieldId ? (
+                      <div
+                        ref={yearInputContainerRef}
+                        className='w-full animate-in fade-in slide-in-from-right-2 duration-200'
+                      >
+                        <YearInputControl
+                          id={desktopYearInputId}
+                          size='sm'
+                          value={currentYear}
+                          onChange={handleChangeYear}
+                          placeholder={col.placeholder || 'Tahun (cth: 2021)'}
+                          ariaLabel={`Tahun terdiagnosis ${item.label}`}
+                        />
+                      </div>
+                    ) : (
+                      <span className='text-xs text-muted-foreground/30 pl-3 select-none'>—</span>
+                    )}
+                  </div>
+                );
+              }
+
+              if (col.type === 'text') {
+                const isVisible =
+                  !col.conditional ||
+                  (col.conditional.dependsOnColumnId === 'ya' && isYes) ||
+                  (col.conditional.dependsOnColumnId === 'tidak' && isNo);
+
+                return (
+                  <div
+                    key={col.id}
+                    className={cn('shrink-0 flex items-center', col.width || 'w-40')}
+                  >
+                    {isVisible ? (
+                      <Input
+                        value={currentNotes}
+                        onChange={(e) => handleChangeNotes(e.target.value)}
+                        placeholder={col.placeholder || 'Keterangan...'}
+                        className='h-8 text-xs bg-background'
+                      />
+                    ) : (
+                      <span className='text-xs text-muted-foreground/30 pl-3 select-none'>—</span>
+                    )}
+                  </div>
+                );
+              }
+
+              return null;
+            })
+        ) : (
+          <>
+            <div className='w-16 flex justify-center shrink-0'>
+              <SquareOptionControl
+                checked={isNo}
+                onClick={() => handleSelectStatus('Tidak')}
+                ariaLabel={`Tidak untuk ${item.title}`}
+                variant='negative'
+                size='md'
+              />
+            </div>
+
+            <div className='w-16 flex justify-center shrink-0'>
+              <SquareOptionControl
+                checked={isYes}
+                onClick={() => handleSelectStatus('Ya')}
+                ariaLabel={`Ya untuk ${item.title}`}
+                variant='positive'
+                size='md'
+              />
+            </div>
+
+            {hasAnyYear ? (
+              <div className='w-40 shrink-0 flex items-center'>
+                {!hasNotes && item.yearFieldId ? (
+                  isYes ? (
+                    <div
+                      ref={yearInputContainerRef}
+                      className='w-full animate-in fade-in slide-in-from-right-2 duration-200'
+                    >
+                      <YearInputControl
+                        id={desktopYearInputId}
+                        size='sm'
+                        value={currentYear}
+                        onChange={handleChangeYear}
+                        placeholder='Tahun (cth: 2021)'
+                        ariaLabel={`Tahun terdiagnosis ${item.label}`}
+                      />
+                    </div>
+                  ) : (
+                    <span className='text-xs text-muted-foreground/30 pl-3 select-none'>—</span>
+                  )
+                ) : (
+                  <span className='text-xs text-muted-foreground/30 pl-3 select-none'>—</span>
+                )}
+              </div>
+            ) : null}
+          </>
+        )}
+
+        {builderMode && (
+          <div className='flex items-center gap-1 pl-2 shrink-0'>
+            <button
+              type='button'
+              onClick={(e) => {
+                e.stopPropagation();
+                if (window.confirm(`Hapus pertanyaan "${item.title}" dari tabel ini?`)) {
+                  onDeleteQuestion?.(item.id);
+                }
+              }}
+              title='Hapus baris pertanyaan ini'
+              className='flex size-7 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive'
+            >
+              <Icons.trash className='size-3.5' />
+            </button>
           </div>
-        ) : null}
+        )}
       </div>
 
       {isYes && hasNotes ? (

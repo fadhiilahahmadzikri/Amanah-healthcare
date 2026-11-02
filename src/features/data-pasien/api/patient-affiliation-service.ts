@@ -88,6 +88,7 @@ export interface BookingServiceContextResponse {
   intakeFormCode?: string | null;
   intakeFormName?: string | null;
   formType: string;
+  formSchema?: Record<string, any> | null;
   allowedRelationships: BookingContextAllowedRelationship[];
   patients: BookingContextPatient[];
   totalPatients: number;

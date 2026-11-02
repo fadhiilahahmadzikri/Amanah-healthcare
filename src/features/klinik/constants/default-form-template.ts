@@ -1,7 +1,9 @@
 import type {
   MedicalFormSection,
   MedicalFormField,
-  MedicalFieldType
+  MedicalFieldType,
+  FormFieldDataSource,
+  TableConfig
 } from './medical-appointment-types';
 import { mapComponentIdToFieldType, mapFieldTypeToComponentId } from './component-registry';
 
@@ -16,14 +18,21 @@ export interface FormJsonField {
   required?: boolean;
   isActive?: boolean;
   choices?: string[];
+  dataSource?: FormFieldDataSource;
   colSpan?: 1 | 2 | 'full';
   disabled?: boolean;
+  yearFieldId?: string;
+  notesFieldId?: string;
+  goToSectionIdByChoice?: Record<string, string> | null;
 }
 
 export interface FormJsonStep {
   id: string;
   title: string;
   description?: string;
+  layout?: 'grid' | 'stack' | 'questionnaire' | 'table';
+  repeatableGroup?: string;
+  tableConfig?: TableConfig;
   fields: FormJsonField[];
 }
 
@@ -198,8 +207,11 @@ export function convertJsonSchemaToSections(
         placeholder: f.placeholder || '',
         required: Boolean(f.required),
         choices: Array.isArray(f.choices) ? f.choices : [],
-        goToSectionIdByChoice: null,
+        dataSource: f.dataSource,
+        goToSectionIdByChoice: f.goToSectionIdByChoice || null,
         colSpan: f.colSpan ?? (fieldType === 'PARAGRAPH' || fieldType === 'DATE' ? 'full' : 1),
+        yearFieldId: f.yearFieldId,
+        notesFieldId: f.notesFieldId,
         disabled: Boolean(f.disabled),
         isActive: f.isActive !== false
       };
@@ -210,7 +222,9 @@ export function convertJsonSchemaToSections(
       title: step.title || `Langkah ${stepIdx + 1}`,
       description: step.description || '',
       fields,
-      layout: 'grid'
+      layout: step.layout || 'grid',
+      repeatableGroup: step.repeatableGroup,
+      tableConfig: (step as any).tableConfig
     };
   });
 }
@@ -228,6 +242,9 @@ export function convertSectionsToJsonSchema(
       id: section.id || `step_${sIdx}`,
       title: section.title,
       description: section.description,
+      layout: section.layout || 'grid',
+      repeatableGroup: section.repeatableGroup,
+      tableConfig: section.tableConfig,
       fields: section.fields.map((f) => ({
         id: f.id,
         type: f.type,
@@ -239,7 +256,11 @@ export function convertSectionsToJsonSchema(
         required: Boolean(f.required),
         isActive: f.isActive !== false,
         choices: f.choices || [],
+        dataSource: f.dataSource,
         colSpan: f.colSpan || (f.type === 'PARAGRAPH' || f.type === 'DATE' ? 'full' : 1),
+        yearFieldId: f.yearFieldId,
+        notesFieldId: f.notesFieldId,
+        goToSectionIdByChoice: f.goToSectionIdByChoice || null,
         disabled: Boolean(f.disabled)
       }))
     }))

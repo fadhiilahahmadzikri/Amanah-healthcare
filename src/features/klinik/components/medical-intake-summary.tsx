@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { getMedicalFlowDefinition } from '../constants/medical-appointment-schemas';
+import { convertJsonSchemaToSections } from '../constants/default-form-template';
 import type { MedicalIntakeRecord } from '../api/types';
 
 const automaticLabels: Record<string, string> = {
@@ -12,12 +13,52 @@ const automaticLabels: Record<string, string> = {
 };
 
 export function MedicalIntakeSummary({ intake }: { intake: MedicalIntakeRecord }) {
-  const definition = getMedicalFlowDefinition(intake.flow);
-  if (!definition) return null;
+  const dynamicSections = React.useMemo(() => {
+    if (intake.formSchema) {
+      return convertJsonSchemaToSections(intake.formSchema);
+    }
+    const def = getMedicalFlowDefinition(intake.flow);
+    return def?.sections || null;
+  }, [intake.formSchema, intake.flow]);
 
   const automaticEntries = Object.entries(intake.automatic || {}).filter(([, value]) => value);
 
-  const sectionsWithAnswers = definition.sections
+  if (!dynamicSections) {
+    const answeredEntries = Object.entries(intake.answersByFieldId || {}).filter(([, val]) =>
+      val?.trim()
+    );
+    if (answeredEntries.length === 0) return null;
+
+    return (
+      <div className='border-b border-border/40 pb-3.5 space-y-3'>
+        <div className='flex items-center justify-between gap-3'>
+          <div>
+            <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+              Intake Medis Pasien
+            </span>
+            <p className='text-sm font-semibold text-foreground'>
+              {intake.schemaTitle || 'Pengkajian Medis'}
+            </p>
+          </div>
+          {intake.submittedAt && (
+            <span className='shrink-0 rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground'>
+              {intake.submittedAt}
+            </span>
+          )}
+        </div>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs'>
+          {answeredEntries.map(([key, val]) => (
+            <div key={key} className='p-2 rounded-lg bg-muted/20 border border-border/30'>
+              <span className='text-muted-foreground block text-[10.5px]'>{key}</span>
+              <span className='font-medium text-foreground text-xs'>{val}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const sectionsWithAnswers = dynamicSections
     .map((section) => {
       const answeredFields = section.fields
         .map((field) => ({
@@ -43,7 +84,9 @@ export function MedicalIntakeSummary({ intake }: { intake: MedicalIntakeRecord }
           <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
             Intake Medis Pasien
           </span>
-          <p className='text-sm font-semibold text-foreground'>{definition.formTitle}</p>
+          <p className='text-sm font-semibold text-foreground'>
+            {intake.schemaTitle || 'Pengkajian Medis'}
+          </p>
         </div>
         {intake.submittedAt && (
           <span className='shrink-0 rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground'>
