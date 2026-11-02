@@ -340,6 +340,15 @@ function buildInitialRegularData(
     occupation: p?.occupation || '',
     phone: p?.phone || appointment.patient_phone || '',
     address: p?.address || '',
+    line1: p?.line1 || (p?.address && !p?.provinceName ? p.address : ''),
+    provinceName: p?.provinceName || '',
+    provinceCode: p?.provinceCode || '',
+    regencyName: p?.regencyName || '',
+    regencyCode: p?.regencyCode || '',
+    districtName: p?.districtName || '',
+    districtCode: p?.districtCode || '',
+    villageName: p?.villageName || '',
+    villageCode: p?.villageCode || '',
     emergencyContactName: p?.emergencyContactName || '',
     emergencyContactPhone: p?.emergencyContactPhone || '',
     emergencyContactRelationship: p?.emergencyContactRelationship || ''
@@ -442,8 +451,21 @@ export function AppointmentFormInspector({
             occupation: matchingAffiliation.occupationName || undefined,
             phone: matchingAffiliation.phoneNumber || undefined,
             address: matchingAffiliation.address || undefined,
+            line1: matchingAffiliation.line1 || undefined,
+            provinceName: matchingAffiliation.provinceName || undefined,
+            provinceCode: matchingAffiliation.provinceCode || undefined,
+            regencyName: matchingAffiliation.regencyName || undefined,
+            regencyCode: matchingAffiliation.regencyCode || undefined,
+            districtName: matchingAffiliation.districtName || undefined,
+            districtCode: matchingAffiliation.districtCode || undefined,
+            villageName: matchingAffiliation.villageName || undefined,
+            villageCode: matchingAffiliation.villageCode || undefined,
             relationshipType: matchingAffiliation.relationship,
-            relationLabel: matchingAffiliation.relationshipLabel
+            relationLabel: matchingAffiliation.relationshipLabel,
+            emergencyContactName: matchingAffiliation.emergencyContactName || undefined,
+            emergencyContactPhone: matchingAffiliation.emergencyContactPhone || undefined,
+            emergencyContactRelationship:
+              matchingAffiliation.emergencyContactRelationship || undefined
           }
         : appointment.patient_name
           ? {
@@ -881,7 +903,15 @@ export function AppointmentFormInspector({
             mother_name: regularFormData.motherName || undefined,
             occupation: regularFormData.occupation || undefined,
             phone: regularFormData.phone || undefined,
-            line1: regularFormData.address || undefined,
+            line1: regularFormData.line1 || regularFormData.address || undefined,
+            province_name: regularFormData.provinceName || undefined,
+            province_code: regularFormData.provinceCode || undefined,
+            regency_name: regularFormData.regencyName || undefined,
+            regency_code: regularFormData.regencyCode || undefined,
+            district_name: regularFormData.districtName || undefined,
+            district_code: regularFormData.districtCode || undefined,
+            village_name: regularFormData.villageName || undefined,
+            village_code: regularFormData.villageCode || undefined,
             emergency_contact: regularFormData.emergencyContactPhone || undefined
           });
         } catch (patErr) {

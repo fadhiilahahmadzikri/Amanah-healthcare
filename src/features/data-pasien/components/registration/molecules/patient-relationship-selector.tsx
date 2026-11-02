@@ -6,6 +6,7 @@ import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import type { ReferenceOptionItem } from '@/features/data-pasien/api/patient-reference-service';
 import { usePatientFormReferences } from '@/features/data-pasien/model/usePatientFormReferences';
+import { getRelationshipIcon } from '@/features/data-pasien/model/relationship-icon.helper';
 
 export interface PatientRelationshipSelectorProps {
   id?: string;
@@ -157,8 +158,25 @@ export function PatientRelationshipSelector({
           triggerClassName
         )}
       >
-        <span className={cn('truncate', !displayLabel && 'text-muted-foreground')}>
-          {displayLabel || placeholder}
+        <span
+          className={cn(
+            'truncate flex items-center gap-1.5',
+            !displayLabel && 'text-muted-foreground'
+          )}
+        >
+          {displayLabel ? (
+            <>
+              <span className='text-sm select-none leading-none'>
+                {getRelationshipIcon(
+                  selectedOption?.icon || selectedOption?.value,
+                  selectedOption?.isSystem
+                )}
+              </span>
+              <span>{displayLabel}</span>
+            </>
+          ) : (
+            placeholder
+          )}
         </span>
         <Icons.chevronDown
           className={cn(
@@ -197,7 +215,12 @@ export function PatientRelationshipSelector({
                 )}
               >
                 <div className='flex items-center justify-between w-full'>
-                  <span className='text-xs font-semibold truncate'>{opt.label}</span>
+                  <div className='flex items-center gap-1.5 min-w-0'>
+                    <span className='text-sm select-none leading-none shrink-0'>
+                      {getRelationshipIcon(opt.icon || opt.value, opt.isSystem)}
+                    </span>
+                    <span className='text-xs font-semibold truncate'>{opt.label}</span>
+                  </div>
                   {isSelected && <Icons.check className='w-3.5 h-3.5 text-primary shrink-0' />}
                 </div>
                 {opt.description && (

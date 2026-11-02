@@ -17,6 +17,7 @@ import { PatientBloodTypeSelector } from '@/features/data-pasien/components/regi
 import { PatientRegionDropdown } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import { PatientSearchableSelect } from '@/features/data-pasien/components/registration/molecules/patient-searchable-select';
 import { PatientEmergencyContactSelector } from '@/features/data-pasien/components/registration/molecules/patient-emergency-contact-selector';
+import { getRelationshipIcon } from '@/features/data-pasien/model/relationship-icon.helper';
 import { useBookingRegularPatientForm } from '../../model/useBookingRegularPatientForm';
 
 export interface BookingRegularPatientFormProps {
@@ -253,7 +254,15 @@ export function BookingRegularPatientForm({
                     )}
                   >
                     <div className='flex items-center justify-between w-full'>
-                      <span className='font-bold'>{opt.label}</span>
+                      <div className='flex items-center gap-2'>
+                        <span className='text-base select-none leading-none'>
+                          {getRelationshipIcon(
+                            (opt as any).icon || opt.value,
+                            (opt as any).isSystem
+                          )}
+                        </span>
+                        <span className='font-bold'>{opt.label}</span>
+                      </div>
                       {isSelected && <Icons.check className='w-3.5 h-3.5 text-primary shrink-0' />}
                     </div>
                     {opt.description && (

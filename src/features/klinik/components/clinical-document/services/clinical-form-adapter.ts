@@ -591,8 +591,24 @@ export function adaptToRegulerFormData(
 
   const additionalNotes = liveRegular?.notes || answers.notes || answers.additionalNotes || '-';
 
+  const resolvedAddress = (() => {
+    const l1 = liveRegular?.line1 || p?.line1;
+    const vill = liveRegular?.villageName || p?.villageName;
+    const dist = liveRegular?.districtName || p?.districtName;
+    const reg = liveRegular?.regencyName || p?.regencyName;
+    const prov = liveRegular?.provinceName || p?.provinceName;
+    const parts = [
+      l1,
+      vill ? `Kel. ${vill}` : '',
+      dist ? `Kec. ${dist}` : '',
+      reg,
+      prov ? `Prov. ${prov}` : ''
+    ].filter(Boolean);
+    return parts.length > 0 ? parts.join(', ') : liveRegular?.address || p?.address || '-';
+  })();
+
   return {
-    medicalRecordNumber: p?.medicalRecordNumber || '-',
+    medicalRecordNumber: liveRegular?.medicalRecordNumber || p?.medicalRecordNumber || '-',
     registrationDate: data.scheduledDate
       ? formatClinicDate(data.scheduledDate, { style: 'human_full' })
       : formatClinicDate(new Date().toISOString(), { style: 'human_full' }),
@@ -602,25 +618,29 @@ export function adaptToRegulerFormData(
     doctorName: appointment?.doctor_name || '-',
     scheduledTime: `${appointment?.scheduled_start_time || data.scheduledStartTime || '-'} WIB`,
     identity: {
-      nik: p?.nik || '-',
-      fullName: p?.fullName || '-',
-      gender: formatGender(p?.gender),
-      birthDate: bDate ? formatClinicDate(bDate, { style: 'human_full' }) : '-',
-      birthPlace: p?.birthPlace || '-',
+      nik: liveRegular?.nik || p?.nik || '-',
+      fullName: liveRegular?.fullName || p?.fullName || '-',
+      gender: formatGender((liveRegular?.gender as any) || p?.gender),
+      birthDate:
+        liveRegular?.birthDate || bDate
+          ? formatClinicDate(liveRegular?.birthDate || bDate!, { style: 'human_full' })
+          : '-',
+      birthPlace: liveRegular?.birthPlace || p?.birthPlace || '-',
       age,
-      bloodType: (p?.bloodType || '-').toUpperCase(),
-      motherName: p?.motherName || '-',
-      occupation: p?.occupation || '-',
+      bloodType: (liveRegular?.bloodType || p?.bloodType || '-').toUpperCase(),
+      motherName: liveRegular?.motherName || p?.motherName || '-',
+      occupation: liveRegular?.occupation || p?.occupation || '-',
       religion: 'Islam',
-      phoneNumber: p?.phone || '-',
+      phoneNumber: liveRegular?.phone || p?.phone || '-',
       email: p?.email || '-',
-      address: p?.address || '-',
+      address: resolvedAddress,
       relationship: getRelationshipLabel(p?.relationshipType)
     },
     emergencyContact: {
-      name: p?.emergencyContactName || '-',
-      relationship: p?.emergencyContactRelationship || '-',
-      phoneNumber: p?.emergencyContactPhone || '-'
+      name: liveRegular?.emergencyContactName || p?.emergencyContactName || '-',
+      relationship:
+        liveRegular?.emergencyContactRelationship || p?.emergencyContactRelationship || '-',
+      phoneNumber: liveRegular?.emergencyContactPhone || p?.emergencyContactPhone || '-'
     },
     clinical: {
       chiefComplaint: complaint,

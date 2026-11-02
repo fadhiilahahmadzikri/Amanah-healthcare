@@ -14,7 +14,11 @@ import {
 } from '@/components/ui/select';
 import { getGenderLabel } from '@/constants/gender.constants';
 import { getRelationshipLabel } from '@/constants/relationship.constants';
-import type { InspectorTabProps } from './types';
+import {
+  PatientRegionDropdown,
+  type PatientRegionValues
+} from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
+import type { InspectorTabProps, EditableRegularData } from './types';
 
 export function InspectorGenericView({
   appointment,
@@ -148,6 +152,63 @@ export function InspectorGenericView({
   const emergency = patient?.emergencyContactName
     ? `${patient.emergencyContactName} (${patient.emergencyContactRelationship || 'Kontak'}) - ${patient.emergencyContactPhone || ''}`
     : null;
+
+  const regionValues: PatientRegionValues = React.useMemo(
+    () => ({
+      provinceName: regularFormData?.provinceName || patient?.provinceName || '',
+      provinceCode: regularFormData?.provinceCode || patient?.provinceCode || '',
+      regencyName: regularFormData?.regencyName || patient?.regencyName || '',
+      regencyCode: regularFormData?.regencyCode || patient?.regencyCode || '',
+      districtName: regularFormData?.districtName || patient?.districtName || '',
+      districtCode: regularFormData?.districtCode || patient?.districtCode || '',
+      villageName: regularFormData?.villageName || patient?.villageName || '',
+      villageCode: regularFormData?.villageCode || patient?.villageCode || '',
+      line1:
+        regularFormData?.line1 ??
+        (regularFormData?.address !== '-' ? regularFormData?.address : '') ??
+        patient?.line1 ??
+        (patient?.address !== '-' ? patient?.address : '') ??
+        ''
+    }),
+    [regularFormData, patient]
+  );
+
+  const handleRegionChange = React.useCallback(
+    (updates: Partial<PatientRegionValues>) => {
+      if (!onRegularFieldChange) return;
+      Object.entries(updates).forEach(([key, val]) => {
+        onRegularFieldChange(key as keyof EditableRegularData, val);
+      });
+      const merged = { ...regionValues, ...updates };
+      const parts = [
+        merged.line1,
+        merged.villageName ? `Kel. ${merged.villageName}` : '',
+        merged.districtName ? `Kec. ${merged.districtName}` : '',
+        merged.regencyName,
+        merged.provinceName ? `Prov. ${merged.provinceName}` : ''
+      ].filter(Boolean);
+      onRegularFieldChange('address', parts.join(', '));
+    },
+    [onRegularFieldChange, regionValues]
+  );
+
+  const formattedAddress = React.useMemo(() => {
+    const l1 = regularFormData?.line1 || patient?.line1;
+    const vill = regularFormData?.villageName || patient?.villageName;
+    const dist = regularFormData?.districtName || patient?.districtName;
+    const reg = regularFormData?.regencyName || patient?.regencyName;
+    const prov = regularFormData?.provinceName || patient?.provinceName;
+    const parts = [
+      l1,
+      vill ? `Kel. ${vill}` : '',
+      dist ? `Kec. ${dist}` : '',
+      reg,
+      prov ? `Prov. ${prov}` : ''
+    ].filter(Boolean);
+    return parts.length > 0
+      ? parts.join(', ')
+      : regularFormData?.address || patient?.address || '-';
+  }, [regularFormData, patient]);
 
   return (
     <div className='flex flex-col gap-5'>
@@ -311,18 +372,11 @@ export function InspectorGenericView({
               />
             </div>
 
-            <div className='col-span-1 sm:col-span-2 space-y-1.5'>
-              <Label htmlFor='reg-address-input' className='text-xs font-medium text-foreground'>
-                Alamat Domisili
-              </Label>
-              <Textarea
-                id='reg-address-input'
-                value={regularFormData.address ?? (address !== '-' ? address : '')}
-                onChange={(e) => onRegularFieldChange('address', e.target.value)}
-                placeholder='Alamat lengkap domisili...'
-                rows={2}
-                className='text-xs resize-none'
-              />
+            <div className='col-span-1 sm:col-span-2 space-y-2 pt-1 border-t border-border/30'>
+              <span className='text-xs font-semibold text-foreground block'>
+                Alamat Domisili & Wilayah (Hierarki Kanonikal)
+              </span>
+              <PatientRegionDropdown values={regionValues} onChange={handleRegionChange} />
             </div>
 
             <div className='col-span-1 sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-border/30'>
@@ -449,7 +503,9 @@ export function InspectorGenericView({
               <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
                 Alamat Domisili
               </span>
-              <p className='text-sm font-medium text-foreground leading-relaxed'>{address}</p>
+              <p className='text-sm font-medium text-foreground leading-relaxed'>
+                {formattedAddress}
+              </p>
             </div>
 
             {emergency && (

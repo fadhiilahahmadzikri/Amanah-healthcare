@@ -2,6 +2,10 @@ import { clientFetch } from '@/lib/client-fetch';
 import type { RegistrationProvince } from '../constants/registration-options';
 
 export interface ReferenceOptionItem {
+  id?: string;
+  icon?: any;
+  iconName?: string;
+  isSystem?: boolean;
   label: string;
   value: string;
   description?: string;
