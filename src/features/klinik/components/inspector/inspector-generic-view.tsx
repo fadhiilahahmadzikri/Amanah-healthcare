@@ -147,12 +147,7 @@ export function InspectorGenericView({
       districtCode: regularFormData?.districtCode || patient?.districtCode || '',
       villageName: regularFormData?.villageName || patient?.villageName || '',
       villageCode: regularFormData?.villageCode || patient?.villageCode || '',
-      line1:
-        regularFormData?.line1 ??
-        (regularFormData?.address !== '-' ? regularFormData?.address : '') ??
-        patient?.line1 ??
-        (patient?.address !== '-' ? patient?.address : '') ??
-        ''
+      line1: regularFormData?.line1 ?? patient?.line1 ?? ''
     }),
     [regularFormData, patient]
   );
@@ -485,11 +480,7 @@ export function InspectorGenericView({
                   <PatientLineTextarea
                     id='read-line1'
                     label='Alamat Detail (Jalan, RT/RW, No. Rumah)'
-                    value={
-                      regionValues.line1 ||
-                      (patient?.address !== '-' ? patient?.address : '-') ||
-                      '-'
-                    }
+                    value={regionValues.line1 || '-'}
                     readOnly
                   />
                 </div>

@@ -14,6 +14,7 @@ import {
   type ChildImmunizationResponse
 } from '../api/kia-intake-service';
 import { updatePatient } from '@/features/data-pasien/api/service';
+import type { PatientMutationPayload } from '@/features/data-pasien/api/types';
 import { patientAffiliationService } from '@/features/data-pasien/api/patient-affiliation-service';
 import { calculateChildAge } from '../utils/medical-appointment';
 import type { Appointment } from '../api/types';
@@ -346,7 +347,7 @@ function buildInitialRegularData(
     phone: p?.phone || appointment.patient_phone || '',
     email: p?.email || '',
     address: p?.address || '',
-    line1: p?.line1 || (p?.address && !p?.provinceName ? p.address : ''),
+    line1: p?.line1 || '',
     provinceName: p?.provinceName || '',
     provinceCode: p?.provinceCode || '',
     regencyName: p?.regencyName || '',
@@ -801,17 +802,40 @@ export function AppointmentFormInspector({
 
         const patientId = parsedData.patient?.id || appointment.patient_id;
         if (patientId) {
-          await updatePatient(patientId, {
-            name: formData.motherName || undefined,
-            nik: formData.motherNik || undefined,
-            medical_record_number: formData.medicalRecordNumber || undefined,
-            birth_place: formData.birthPlace || undefined,
-            birth_date: formData.motherBirthDate || undefined,
-            blood_type: (formData.motherBloodType as any) || undefined,
-            occupation: formData.motherJob || undefined,
-            phone: formData.phoneNumber || undefined,
-            line1: formData.domicileAddress || undefined
-          });
+          const initialMaternal = buildInitialFormData(parsedData);
+          const diffPayload: Partial<PatientMutationPayload> = {};
+
+          if (formData.motherName !== initialMaternal.motherName) {
+            diffPayload.name = formData.motherName?.trim() || undefined;
+          }
+          if (formData.motherNik !== initialMaternal.motherNik) {
+            diffPayload.nik = formData.motherNik?.trim() || undefined;
+          }
+          if (formData.medicalRecordNumber !== initialMaternal.medicalRecordNumber) {
+            diffPayload.medical_record_number = formData.medicalRecordNumber?.trim() || undefined;
+          }
+          if (formData.birthPlace !== initialMaternal.birthPlace) {
+            diffPayload.birth_place = formData.birthPlace?.trim() || undefined;
+          }
+          if (formData.motherBirthDate !== initialMaternal.motherBirthDate) {
+            diffPayload.birth_date = formData.motherBirthDate || undefined;
+          }
+          if (formData.motherBloodType !== initialMaternal.motherBloodType) {
+            diffPayload.blood_type = (formData.motherBloodType as any) || undefined;
+          }
+          if (formData.motherJob !== initialMaternal.motherJob) {
+            diffPayload.occupation = formData.motherJob?.trim() || undefined;
+          }
+          if (formData.phoneNumber !== initialMaternal.phoneNumber) {
+            diffPayload.phone = formData.phoneNumber?.trim() || undefined;
+          }
+          if (formData.domicileAddress !== initialMaternal.domicileAddress) {
+            diffPayload.line1 = formData.domicileAddress?.trim() || undefined;
+          }
+
+          if (Object.keys(diffPayload).length > 0) {
+            await updatePatient(patientId, diffPayload);
+          }
         }
 
         await kiaIntakeService.updateMaternityIntake(targetId, payload);
@@ -890,17 +914,42 @@ export function AppointmentFormInspector({
 
         const patientId = parsedData.patient?.id || appointment.patient_id;
         if (patientId) {
-          await updatePatient(patientId, {
-            name: immunizationFormData.childName || undefined,
-            nik: immunizationFormData.childNik || undefined,
-            medical_record_number: immunizationFormData.medicalRecordNumber || undefined,
-            birth_place: immunizationFormData.birthPlace || undefined,
-            birth_date: immunizationFormData.childBirthDate || undefined,
-            gender: immunizationFormData.childSex === 'Perempuan' ? 'female' : 'male',
-            mother_name: immunizationFormData.motherName || undefined,
-            phone: immunizationFormData.parentPhone || undefined,
-            line1: immunizationFormData.childAddress || undefined
-          });
+          const initialChild = buildInitialImmunizationData(parsedData);
+          const diffPayload: Partial<PatientMutationPayload> = {};
+
+          if (immunizationFormData.childName !== initialChild.childName) {
+            diffPayload.name = immunizationFormData.childName?.trim() || undefined;
+          }
+          if (immunizationFormData.childNik !== initialChild.childNik) {
+            diffPayload.nik = immunizationFormData.childNik?.trim() || undefined;
+          }
+          if (immunizationFormData.medicalRecordNumber !== initialChild.medicalRecordNumber) {
+            diffPayload.medical_record_number =
+              immunizationFormData.medicalRecordNumber?.trim() || undefined;
+          }
+          if (immunizationFormData.birthPlace !== initialChild.birthPlace) {
+            diffPayload.birth_place = immunizationFormData.birthPlace?.trim() || undefined;
+          }
+          if (immunizationFormData.childBirthDate !== initialChild.childBirthDate) {
+            diffPayload.birth_date = immunizationFormData.childBirthDate || undefined;
+          }
+          if (immunizationFormData.childSex !== initialChild.childSex) {
+            diffPayload.gender =
+              immunizationFormData.childSex === 'Perempuan' ? 'female' : 'male';
+          }
+          if (immunizationFormData.motherName !== initialChild.motherName) {
+            diffPayload.mother_name = immunizationFormData.motherName?.trim() || undefined;
+          }
+          if (immunizationFormData.parentPhone !== initialChild.parentPhone) {
+            diffPayload.phone = immunizationFormData.parentPhone?.trim() || undefined;
+          }
+          if (immunizationFormData.childAddress !== initialChild.childAddress) {
+            diffPayload.line1 = immunizationFormData.childAddress?.trim() || undefined;
+          }
+
+          if (Object.keys(diffPayload).length > 0) {
+            await updatePatient(patientId, diffPayload);
+          }
         }
 
         await kiaIntakeService.updateImmunizationIntake(targetId, payload);
@@ -941,29 +990,91 @@ export function AppointmentFormInspector({
 
       const patientId = parsedData.patient?.id || appointment.patient_id;
       if (patientId) {
-        await updatePatient(patientId, {
-          name: regularFormData.fullName || undefined,
-          nik: regularFormData.nik || undefined,
-          medical_record_number: regularFormData.medicalRecordNumber || undefined,
-          birth_place: regularFormData.birthPlace || undefined,
-          birth_date: regularFormData.birthDate || undefined,
-          gender: (regularFormData.gender as any) || undefined,
-          blood_type: (regularFormData.bloodType as any) || undefined,
-          mother_name: regularFormData.motherName || undefined,
-          occupation: regularFormData.occupation || undefined,
-          phone: regularFormData.phone || undefined,
-          email: regularFormData.email || undefined,
-          line1: regularFormData.line1 || regularFormData.address || undefined,
-          province_name: regularFormData.provinceName || undefined,
-          province_code: regularFormData.provinceCode || undefined,
-          regency_name: regularFormData.regencyName || undefined,
-          regency_code: regularFormData.regencyCode || undefined,
-          district_name: regularFormData.districtName || undefined,
-          district_code: regularFormData.districtCode || undefined,
-          village_name: regularFormData.villageName || undefined,
-          village_code: regularFormData.villageCode || undefined,
-          emergency_contact: regularFormData.emergencyContactPhone || undefined
-        });
+        const initialRegular = buildInitialRegularData(parsedData, appointment);
+        const diffPayload: Partial<PatientMutationPayload> = {};
+
+        if (regularFormData.fullName !== initialRegular.fullName) {
+          diffPayload.name = regularFormData.fullName?.trim() || undefined;
+        }
+        if (regularFormData.nik !== initialRegular.nik) {
+          diffPayload.nik = regularFormData.nik?.trim() || undefined;
+        }
+        if (regularFormData.medicalRecordNumber !== initialRegular.medicalRecordNumber) {
+          diffPayload.medical_record_number =
+            regularFormData.medicalRecordNumber?.trim() || undefined;
+        }
+        if (regularFormData.birthPlace !== initialRegular.birthPlace) {
+          diffPayload.birth_place = regularFormData.birthPlace?.trim() || undefined;
+        }
+        if (regularFormData.birthDate !== initialRegular.birthDate) {
+          diffPayload.birth_date = regularFormData.birthDate || undefined;
+        }
+        if (regularFormData.gender !== initialRegular.gender) {
+          diffPayload.gender = (regularFormData.gender as any) || undefined;
+        }
+        if (regularFormData.bloodType !== initialRegular.bloodType) {
+          diffPayload.blood_type = (regularFormData.bloodType as any) || undefined;
+        }
+        if (regularFormData.motherName !== initialRegular.motherName) {
+          diffPayload.mother_name = regularFormData.motherName?.trim() || undefined;
+        }
+        if (regularFormData.occupation !== initialRegular.occupation) {
+          diffPayload.occupation = regularFormData.occupation?.trim() || undefined;
+        }
+        if (regularFormData.phone !== initialRegular.phone) {
+          diffPayload.phone = regularFormData.phone?.trim() || undefined;
+        }
+        if (regularFormData.email !== initialRegular.email) {
+          diffPayload.email = regularFormData.email ? regularFormData.email.trim() : '';
+        }
+        if (regularFormData.line1 !== initialRegular.line1) {
+          diffPayload.line1 = regularFormData.line1 ? regularFormData.line1.trim() : '';
+        }
+        if (regularFormData.provinceName !== initialRegular.provinceName) {
+          diffPayload.province_name = regularFormData.provinceName || undefined;
+        }
+        if (regularFormData.provinceCode !== initialRegular.provinceCode) {
+          diffPayload.province_code = regularFormData.provinceCode || undefined;
+        }
+        if (regularFormData.regencyName !== initialRegular.regencyName) {
+          diffPayload.regency_name = regularFormData.regencyName || undefined;
+        }
+        if (regularFormData.regencyCode !== initialRegular.regencyCode) {
+          diffPayload.regency_code = regularFormData.regencyCode || undefined;
+        }
+        if (regularFormData.districtName !== initialRegular.districtName) {
+          diffPayload.district_name = regularFormData.districtName || undefined;
+        }
+        if (regularFormData.districtCode !== initialRegular.districtCode) {
+          diffPayload.district_code = regularFormData.districtCode || undefined;
+        }
+        if (regularFormData.villageName !== initialRegular.villageName) {
+          diffPayload.village_name = regularFormData.villageName || undefined;
+        }
+        if (regularFormData.villageCode !== initialRegular.villageCode) {
+          diffPayload.village_code = regularFormData.villageCode || undefined;
+        }
+        if (regularFormData.emergencyContactPhone !== initialRegular.emergencyContactPhone) {
+          diffPayload.emergency_contact =
+            regularFormData.emergencyContactPhone?.trim() || undefined;
+          diffPayload.emergencyContactPhone =
+            regularFormData.emergencyContactPhone?.trim() || undefined;
+        }
+        if (regularFormData.emergencyContactName !== initialRegular.emergencyContactName) {
+          diffPayload.emergencyContactName =
+            regularFormData.emergencyContactName?.trim() || undefined;
+        }
+        if (
+          regularFormData.emergencyContactRelationship !==
+          initialRegular.emergencyContactRelationship
+        ) {
+          diffPayload.emergencyContactRelationship =
+            regularFormData.emergencyContactRelationship?.trim() || undefined;
+        }
+
+        if (Object.keys(diffPayload).length > 0) {
+          await updatePatient(patientId, diffPayload);
+        }
       }
 
       await kiaIntakeService.updateGenericIntake(targetId, answersPayload);

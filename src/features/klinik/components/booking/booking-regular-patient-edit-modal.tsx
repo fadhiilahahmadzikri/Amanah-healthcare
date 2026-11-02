@@ -14,6 +14,7 @@ import {
 } from '@/features/data-pasien/api/patient-affiliation-service';
 import type { ReferenceOptionItem } from '@/features/data-pasien/api/patient-reference-service';
 import { updatePatient } from '@/features/data-pasien/api/service';
+import type { PatientMutationPayload } from '@/features/data-pasien/api/types';
 import { usePatientFormReferences } from '@/features/data-pasien/model/usePatientFormReferences';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
 import { PatientBirthdatePicker } from '@/features/data-pasien/components/registration/molecules/patient-birthdate-picker';
@@ -197,37 +198,46 @@ export function BookingRegularPatientEditModal({
     const selectedOccupation = references.occupations.find((o) => o.code === occupationCode);
     const resolvedOccupationName = selectedOccupation?.name ?? patient.occupationName;
 
-    const payload = {
-      name: fullName.trim(),
-      nik: nik.trim(),
-      phone: phone.trim() || undefined,
-      email: email.trim() || undefined,
-      emergencyContactName: emergencyContactName.trim() || undefined,
-      emergencyContactPhone: emergencyContactPhone.trim() || undefined,
-      emergencyContactRelationship: emergencyContactRelationship.trim() || undefined,
-      birth_place: placeOfBirth.trim(),
-      birth_date: dateOfBirth,
-      gender: gender,
-      blood_type: bloodType,
-      mother_name: motherName.trim(),
-      line1: region.line1.trim(),
-      occupation: resolvedOccupationName || undefined,
-      province_name: region.provinceName || undefined,
-      province_code: region.provinceCode || undefined,
-      regency_name: region.regencyName || undefined,
-      regency_code: region.regencyCode || undefined,
-      district_name: region.districtName || undefined,
-      district_code: region.districtCode || undefined,
-      village_name: region.villageName || undefined,
-      village_code: region.villageCode || undefined
-    };
+    const diffPayload: Partial<PatientMutationPayload> = {};
+    if (fullName.trim() !== (patient.fullName || '')) diffPayload.name = fullName.trim();
+    if (nik.trim() !== (patient.nik || '')) diffPayload.nik = nik.trim();
+    if (phone.trim() !== (patient.phone || patient.phoneNumber || '')) diffPayload.phone = phone.trim();
+    if (email.trim() !== (patient.email || '')) diffPayload.email = email.trim();
+    if (placeOfBirth.trim() !== (patient.birthPlace || '')) diffPayload.birth_place = placeOfBirth.trim();
+    if (dateOfBirth !== (patient.birthDate || '')) diffPayload.birth_date = dateOfBirth;
+    if (gender !== patient.gender) diffPayload.gender = gender;
+    if (bloodType !== (patient.bloodType || '')) diffPayload.blood_type = bloodType;
+    if (motherName.trim() !== (patient.motherName || '')) diffPayload.mother_name = motherName.trim();
+    if (resolvedOccupationName !== (patient.occupationName || '')) {
+      diffPayload.occupation = resolvedOccupationName || undefined;
+    }
+    if (region.line1.trim() !== (patient.line1 || '')) diffPayload.line1 = region.line1.trim();
+    if (region.provinceName !== (patient.provinceName || '')) diffPayload.province_name = region.provinceName;
+    if (region.provinceCode !== (patient.provinceCode || '')) diffPayload.province_code = region.provinceCode;
+    if (region.regencyName !== (patient.regencyName || '')) diffPayload.regency_name = region.regencyName;
+    if (region.regencyCode !== (patient.regencyCode || '')) diffPayload.regency_code = region.regencyCode;
+    if (region.districtName !== (patient.districtName || '')) diffPayload.district_name = region.districtName;
+    if (region.districtCode !== (patient.districtCode || '')) diffPayload.district_code = region.districtCode;
+    if (region.villageName !== (patient.villageName || '')) diffPayload.village_name = region.villageName;
+    if (region.villageCode !== (patient.villageCode || '')) diffPayload.village_code = region.villageCode;
+    if (emergencyContactName.trim() !== (patient.emergencyContactName || '')) {
+      diffPayload.emergencyContactName = emergencyContactName.trim();
+    }
+    if (emergencyContactPhone.trim() !== (patient.emergencyContactPhone || '')) {
+      diffPayload.emergency_contact = emergencyContactPhone.trim();
+      diffPayload.emergencyContactPhone = emergencyContactPhone.trim();
+    }
+    if (emergencyContactRelationship.trim() !== (patient.emergencyContactRelationship || '')) {
+      diffPayload.emergencyContactRelationship = emergencyContactRelationship.trim();
+    }
 
     try {
-      const res = await updatePatient(patient.id, payload);
-      if (res.success) {
-        queryClient.invalidateQueries({ queryKey: ['patient-affiliations'] });
-        queryClient.invalidateQueries({ queryKey: ['booking-context'] });
-        toast.success('Data pasien berhasil diperbarui');
+      if (Object.keys(diffPayload).length > 0) {
+        await updatePatient(patient.id, diffPayload);
+      }
+      queryClient.invalidateQueries({ queryKey: ['patient-affiliations'] });
+      queryClient.invalidateQueries({ queryKey: ['booking-context'] });
+      toast.success('Data pasien berhasil diperbarui');
         const updatedProfile: PatientAffiliationProfile = {
           ...patient,
           fullName: fullName.trim(),
@@ -254,9 +264,8 @@ export function BookingRegularPatientEditModal({
           villageCode: region.villageCode || null,
           occupationName: resolvedOccupationName || null
         };
-        onSuccess(updatedProfile);
-        onClose();
-      }
+      onSuccess(updatedProfile);
+      onClose();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Gagal memperbarui profil pasien';
       setErrorMessage(msg);
