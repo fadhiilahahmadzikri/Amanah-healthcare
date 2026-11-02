@@ -18,7 +18,12 @@ import type {
   QueueNavigationResponse,
   RescheduleAppointmentDto,
   RescheduleAppointmentResponseDto,
-  RoomCandidateItem
+  RoomCandidateItem,
+  BulkAssignDoctorPayload,
+  BulkAssignRoomPayload,
+  BulkCancelAppointmentsPayload,
+  BulkRescheduleAppointmentsPayload,
+  BulkOperationResponseDto
 } from './types';
 
 export async function getAdminAppointments(
@@ -370,4 +375,52 @@ export async function getQueueNavigation(
     query: queryParams,
     signal
   });
+}
+
+export async function bulkAssignDoctor(
+  payload: BulkAssignDoctorPayload
+): Promise<BulkOperationResponseDto> {
+  return await clientFetch<BulkOperationResponseDto>(
+    '/api/v1/admin/appointments/bulk/assign-doctor',
+    {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }
+  );
+}
+
+export async function bulkAssignRoom(
+  payload: BulkAssignRoomPayload
+): Promise<BulkOperationResponseDto> {
+  return await clientFetch<BulkOperationResponseDto>(
+    '/api/v1/admin/appointments/bulk/assign-room',
+    {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }
+  );
+}
+
+export async function bulkCancelAppointments(
+  payload: BulkCancelAppointmentsPayload
+): Promise<BulkOperationResponseDto> {
+  return await clientFetch<BulkOperationResponseDto>(
+    '/api/v1/admin/appointments/bulk/cancel',
+    {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }
+  );
+}
+
+export async function bulkRescheduleAppointments(
+  payload: BulkRescheduleAppointmentsPayload
+): Promise<BulkOperationResponseDto> {
+  return await clientFetch<BulkOperationResponseDto>(
+    '/api/v1/admin/appointments/bulk/reschedule',
+    {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }
+  );
 }

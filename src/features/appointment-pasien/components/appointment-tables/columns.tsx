@@ -165,19 +165,19 @@ export function getAppointmentColumns(
       ),
       cell: ({ row }) => {
         const appt = row.original;
-        const etaDisplay = appt.scheduledStartTime ?? '-';
+        const scheduled = appt.scheduledStartTime ? appt.scheduledStartTime.slice(0, 5) : '-';
+        const estimated = appt.estimatedStartAt ? formatTimeOnly(appt.estimatedStartAt) : scheduled;
         const sessionLabel = appt.sessionName ?? '';
 
         return (
           <div className='flex flex-col whitespace-nowrap leading-tight'>
             <span className='text-sm text-foreground font-mono tabular-nums font-medium'>
-              {etaDisplay}
+              {estimated}
             </span>
-            {sessionLabel && sessionLabel !== etaDisplay && (
-              <span className='text-[11px] text-muted-foreground font-sans mt-0.5'>
-                {sessionLabel}
-              </span>
-            )}
+            <span className='text-[11px] text-muted-foreground font-sans mt-0.5'>
+              {scheduled !== '-' && scheduled !== estimated ? `Jadwal: ${scheduled}` : ''}
+              {sessionLabel ? ` (${sessionLabel})` : ''}
+            </span>
           </div>
         );
       },

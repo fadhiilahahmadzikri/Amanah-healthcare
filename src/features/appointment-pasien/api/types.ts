@@ -444,3 +444,42 @@ export interface RescheduleAppointmentResponseDto {
   timestamp?: string;
   data: BackendAppointmentRecord;
 }
+
+export interface BulkOperationResult {
+  total: number;
+  succeededCount: number;
+  failedCount: number;
+  succeededIds: string[];
+  errors: Array<{ id: string; message: string }>;
+}
+
+export interface BulkOperationResponseDto {
+  message: string;
+  data: BulkOperationResult;
+}
+
+export interface BulkAssignDoctorPayload {
+  appointmentIds: string[];
+  doctorId: string;
+  reason?: string;
+  closeOldSchedule?: boolean;
+}
+
+export interface BulkAssignRoomPayload {
+  appointmentIds: string[];
+  roomId: string;
+}
+
+export interface BulkCancelAppointmentsPayload {
+  appointmentIds: string[];
+  reason: string;
+  isNoShow?: boolean;
+}
+
+export interface BulkRescheduleAppointmentsPayload {
+  appointmentIds: string[];
+  targetDate: string;
+  session?: string;
+  targetSessionId?: string;
+  reason?: string;
+}

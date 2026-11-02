@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/table/data-table';
-import { DefaultBulkActions } from '@/components/ui/table/default-bulk-actions';
+import { AppointmentBulkActions } from '../appointment-bulk-actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Icons } from '@/components/icons';
@@ -366,7 +366,12 @@ export function AppointmentTable() {
             onRowClick={appointmentTable.actions.openRecordDetail}
             entityName='appointment'
             hidePagination
-            bulkActions={<DefaultBulkActions />}
+            bulkActions={
+              <AppointmentBulkActions
+                table={appointmentTable.table}
+                onRefresh={appointmentTable.refetch}
+              />
+            }
             emptyState={
               isFiltered ? (
                 <EmptyState
