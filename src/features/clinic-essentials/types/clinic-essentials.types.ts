@@ -76,6 +76,7 @@ export interface ClinicalIntakeForm {
   description?: string | null;
   iconName?: string | null;
   isActive: boolean;
+  schema?: Record<string, any>;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -184,6 +185,7 @@ export interface CreateIntakeFormPayload {
   description?: string;
   iconName?: string;
   isActive?: boolean;
+  schema?: Record<string, any>;
 }
 
 export interface CreateRelationshipPayload {

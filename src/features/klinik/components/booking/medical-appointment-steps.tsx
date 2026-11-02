@@ -38,7 +38,8 @@ export function MedicalSectionStep({
   onReturnToCatalog,
   renderField,
   values,
-  onFieldChange
+  onFieldChange,
+  builderMode = false
 }: {
   section: MedicalFormSection;
   catalogActionType?: 'add' | 'edit' | null;
@@ -46,6 +47,7 @@ export function MedicalSectionStep({
   renderField: (field: MedicalFormField) => React.ReactNode;
   values?: MedicalAppointmentValues;
   onFieldChange?: (fieldId: string, value: string) => void;
+  builderMode?: boolean;
 }) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const isGrid = section?.layout === 'grid';
@@ -109,7 +111,11 @@ export function MedicalSectionStep({
           )}
         >
           {section.fields
-            .filter((field) => !field.visibleIf || (values && field.visibleIf(values)))
+            .filter(
+              (field) =>
+                (builderMode || field.isActive !== false) &&
+                (!field.visibleIf || (values && field.visibleIf(values)))
+            )
             .map(renderField)}
         </FieldGroup>
       )}

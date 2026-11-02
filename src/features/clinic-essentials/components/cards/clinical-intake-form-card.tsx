@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, SlidersHorizontal, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -20,6 +20,7 @@ export interface ClinicalIntakeFormCardProps {
   onToggleSelect?: () => void;
   onToggleActive?: (newActive: boolean) => void;
   isTogglingActive?: boolean;
+  onOpenBuilder?: (form: ClinicalIntakeForm) => void;
   onEdit?: (form: ClinicalIntakeForm) => void;
   onDelete: (form: ClinicalIntakeForm) => void;
   onCardClick?: (form: ClinicalIntakeForm) => void;
@@ -34,6 +35,7 @@ export function ClinicalIntakeFormCard({
   onToggleSelect,
   onToggleActive,
   isTogglingActive = false,
+  onOpenBuilder,
   onEdit,
   onDelete,
   onCardClick,
@@ -168,6 +170,21 @@ export function ClinicalIntakeFormCard({
                   aria-label={`Ubah status ${form.name}`}
                 />
               </div>
+            )}
+            {onOpenBuilder && (
+              <Button
+                type='button'
+                variant='ghost'
+                size='icon'
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenBuilder(form);
+                }}
+                className='size-7 text-primary hover:text-primary hover:bg-primary/10 rounded-md cursor-pointer'
+                title={`Buka Builder Formulir ${form.name}`}
+              >
+                <SlidersHorizontal className='size-3.5' />
+              </Button>
             )}
             {onEdit && (
               <Button

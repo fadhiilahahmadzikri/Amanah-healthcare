@@ -226,6 +226,12 @@ export const clinicEssentialsApi = {
       body: JSON.stringify(payload)
     }),
 
+  updateFormSchema: (id: string, schema: Record<string, any>): Promise<ClinicalIntakeForm> =>
+    clientFetch<ClinicalIntakeForm>(`/api/v1/admin/facilities/forms/${id}/schema`, {
+      method: 'PUT',
+      body: JSON.stringify({ schema })
+    }),
+
   deleteForm: (id: string): Promise<void> =>
     clientFetch<void>(`/api/v1/admin/facilities/forms/${id}`, {
       method: 'DELETE'

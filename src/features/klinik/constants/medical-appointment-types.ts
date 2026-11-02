@@ -17,6 +17,7 @@ export interface MedicalFormField {
   yearFieldId?: string;
   notesFieldId?: string;
   disabled?: boolean;
+  isActive?: boolean;
   visibleIf?: (values: Record<string, string>) => boolean;
   format?: 'nik' | 'phone' | 'count' | 'year' | 'text';
 }

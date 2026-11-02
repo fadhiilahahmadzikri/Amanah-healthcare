@@ -9,10 +9,16 @@ import { kiaIntakeService } from '../api/kia-intake-service';
 import { formRequirementGuard } from './form-requirement-guard';
 import type { AppointmentFormData, Doctor, MedicalAppointmentFlow } from '../api/types';
 import { getDoctorsByService } from '../api/service';
+import { VISIT_TYPE } from '@/constants/visit-type.constants';
 import {
   getMedicalFlowDefinition,
+  type MedicalFlowDefinition,
   type MedicalFormSection
 } from '../constants/medical-appointment-schemas';
+import {
+  convertJsonSchemaToSections,
+  DEFAULT_RICH_FORM_TEMPLATE
+} from '../constants/default-form-template';
 import { enrichMedicalFlowDefinition, useMaternalCatalogs } from './useMaternalCatalogs';
 import {
   buildDefaultMedicalValues,
@@ -76,6 +82,8 @@ export interface UseMedicalAppointmentFormOptions {
   selectedService?: ServiceCatalogItem | null;
   selectedPatient?: PatientAffiliationProfile | null;
   newPatientRelationship?: PatientRelationshipType | string;
+  customDefinition?: MedicalFlowDefinition | null;
+  builderMode?: boolean;
   onClose: () => void;
   onCreated?: (formData: AppointmentFormData) => void;
   onCompleteIntake?: (context: ReservationContext) => void;
@@ -90,18 +98,34 @@ export function useMedicalAppointmentForm({
   selectedService,
   selectedPatient,
   newPatientRelationship,
+  customDefinition,
+  builderMode = false,
   onClose,
   onCreated,
   onCompleteIntake,
   onBackToService
 }: UseMedicalAppointmentFormOptions) {
   const baseDefinition = React.useMemo(() => {
+    if (customDefinition) {
+      return customDefinition;
+    }
     const def = getMedicalFlowDefinition(flow);
     if (!def) {
-      throw new Error(`Clinical intake form definition not registered for flow: "${flow}"`);
+      const fallbackSections = convertJsonSchemaToSections(DEFAULT_RICH_FORM_TEMPLATE, builderMode);
+      return {
+        flow,
+        formTitle: 'Formulir Pengkajian Klinis',
+        formDescription: 'Lengkapi data pengkajian klinis pasien.',
+        serviceName: 'Layanan Medis',
+        visitType: VISIT_TYPE.NEW_VISIT,
+        patientNameFieldId: 'patient_full_name',
+        patientContactFieldId: 'patient_phone',
+        complaintFieldId: 'patient_chief_complaint',
+        sections: fallbackSections
+      } as MedicalFlowDefinition;
     }
     return def;
-  }, [flow]);
+  }, [flow, customDefinition, builderMode]);
   const { catalogs } = useMaternalCatalogs(isOpen && flow === 'pregnancy');
   const definition = React.useMemo(
     () => enrichMedicalFlowDefinition(baseDefinition, catalogs),
@@ -510,8 +534,10 @@ export function useMedicalAppointmentForm({
   }
 
   const isStepValid = React.useMemo(
-    () => checkCurrentStepValid(currentDescriptor, visibleMedicalSections, values, schedule),
-    [currentDescriptor, visibleMedicalSections, values, schedule]
+    () =>
+      builderMode ||
+      checkCurrentStepValid(currentDescriptor, visibleMedicalSections, values, schedule),
+    [builderMode, currentDescriptor, visibleMedicalSections, values, schedule]
   );
 
   return {

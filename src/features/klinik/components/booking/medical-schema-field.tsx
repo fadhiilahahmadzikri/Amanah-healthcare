@@ -14,6 +14,7 @@ import {
   getMedicalFieldValidationSchema,
   normalizeMedicalFieldInput
 } from '../../schemas/medical-appointment-validation';
+import { MedicalFieldBuilderToolbar } from './medical-field-builder-toolbar';
 
 const fieldFormatConfig: Record<
   'nik' | 'phone' | 'count' | 'year' | 'text',
@@ -26,15 +27,25 @@ const fieldFormatConfig: Record<
   text: {}
 };
 
-export function MedicalSchemaField({
-  fieldApi,
-  schemaField
-}: {
+export interface MedicalSchemaFieldProps {
   fieldApi: AnyFieldApi;
   schemaField: MedicalFormField;
-}) {
+  builderMode?: boolean;
+  onUpdateField?: (updated: Partial<MedicalFormField>) => void;
+  onToggleActive?: () => void;
+  onDeleteField?: () => void;
+}
+
+export function MedicalSchemaField({
+  fieldApi,
+  schemaField,
+  builderMode = false,
+  onUpdateField,
+  onToggleActive,
+  onDeleteField
+}: MedicalSchemaFieldProps) {
   const rawError = getErrorMessage(fieldApi.state.meta.errors);
-  const isInvalid = fieldApi.state.meta.isTouched && Boolean(rawError);
+  const isInvalid = !builderMode && fieldApi.state.meta.isTouched && Boolean(rawError);
   const displayError = isInvalid && rawError && rawError !== 'Wajib diisi' ? rawError : undefined;
   const value = String(fieldApi.state.value ?? '');
   const placeholder = schemaField.placeholder || '';
@@ -45,6 +56,7 @@ export function MedicalSchemaField({
     schemaField.type === 'PARAGRAPH' ||
     schemaField.type === 'DATE';
   const colSpanClass = isColSpanFull ? 'col-span-1 sm:col-span-2' : 'col-span-1';
+  const innerColSpanClass = builderMode ? 'w-full' : colSpanClass;
   const animationClass = schemaField.visibleIf
     ? 'animate-in fade-in slide-in-from-top-2 duration-300'
     : '';
@@ -55,147 +67,183 @@ export function MedicalSchemaField({
     </span>
   ) : null;
 
-  if (schemaField.type === 'MULTIPLE_CHOICE') {
-    const choiceCount = schemaField.choices.length;
-    const gridColsClass =
-      choiceCount === 2
-        ? 'grid grid-cols-2 gap-2.5'
-        : choiceCount === 3
-          ? 'grid grid-cols-3 gap-2.5'
-          : choiceCount === 4
-            ? 'grid grid-cols-2 sm:grid-cols-4 gap-2.5'
-            : 'grid grid-cols-2 sm:grid-cols-3 gap-2.5';
+  const renderFieldControl = () => {
+    if (schemaField.type === 'MULTIPLE_CHOICE') {
+      const choiceCount = schemaField.choices.length;
+      const gridColsClass =
+        choiceCount === 2
+          ? 'grid grid-cols-2 gap-2.5'
+          : choiceCount === 3
+            ? 'grid grid-cols-3 gap-2.5'
+            : choiceCount === 4
+              ? 'grid grid-cols-2 sm:grid-cols-4 gap-2.5'
+              : 'grid grid-cols-2 sm:grid-cols-3 gap-2.5';
 
-    return (
-      <FieldSet
-        id={schemaField.id}
-        data-field-id={schemaField.id}
-        data-invalid={isInvalid}
-        className={cn('gap-3', colSpanClass)}
-      >
-        {schemaField.title ? (
-          <FieldLegend variant='label' className='mb-1.5 text-sm leading-snug font-medium'>
+      return (
+        <FieldSet
+          id={schemaField.id}
+          data-field-id={schemaField.id}
+          data-invalid={isInvalid}
+          className={cn('gap-3', innerColSpanClass)}
+        >
+          {schemaField.title ? (
+            <FieldLegend variant='label' className='mb-1.5 text-sm leading-snug font-medium'>
+              <span>
+                {schemaField.title}
+                {requiredAsterisk}
+              </span>
+            </FieldLegend>
+          ) : null}
+          {schemaField.helpText ? (
+            <FieldDescription className='text-xs text-muted-foreground'>
+              {schemaField.helpText}
+            </FieldDescription>
+          ) : null}
+          <div role='radiogroup' className={cn('mt-1 w-full', gridColsClass)}>
+            {schemaField.choices.map((choice) => {
+              const isSelected = value === choice;
+              return (
+                <button
+                  key={choice}
+                  type='button'
+                  role='radio'
+                  aria-checked={isSelected}
+                  onClick={() => {
+                    fieldApi.handleChange(choice);
+                    fieldApi.handleBlur();
+                  }}
+                  className={cn(
+                    'h-auto min-h-10 w-full min-w-0 cursor-pointer rounded-lg border px-3 py-2 text-center text-xs leading-snug font-medium transition-all select-none',
+                    isSelected
+                      ? 'border-primary bg-primary/10 font-semibold text-primary shadow-xs'
+                      : 'border-border bg-background text-foreground hover:bg-muted/50 hover:text-foreground',
+                    isInvalid && !value && 'border-destructive/60'
+                  )}
+                >
+                  {choice}
+                </button>
+              );
+            })}
+          </div>
+          <FieldError errors={displayError ? [displayError] : []} />
+        </FieldSet>
+      );
+    }
+
+    if (schemaField.type === 'LIST') {
+      return (
+        <PatientLineSelect
+          id={schemaField.id}
+          label={
             <span>
               {schemaField.title}
               {requiredAsterisk}
             </span>
-          </FieldLegend>
-        ) : null}
-        {schemaField.helpText ? (
-          <FieldDescription className='text-xs text-muted-foreground'>
-            {schemaField.helpText}
-          </FieldDescription>
-        ) : null}
-        <div role='radiogroup' className={cn('mt-1 w-full', gridColsClass)}>
-          {schemaField.choices.map((choice) => {
-            const isSelected = value === choice;
-            return (
-              <button
-                key={choice}
-                type='button'
-                role='radio'
-                aria-checked={isSelected}
-                onClick={() => {
-                  fieldApi.handleChange(choice);
-                  fieldApi.handleBlur();
-                }}
-                className={cn(
-                  'h-auto min-h-10 w-full min-w-0 cursor-pointer rounded-lg border px-3 py-2 text-center text-xs leading-snug font-medium transition-all select-none',
-                  isSelected
-                    ? 'border-primary bg-primary/10 font-semibold text-primary shadow-xs'
-                    : 'border-border bg-background text-foreground hover:bg-muted/50 hover:text-foreground',
-                  isInvalid && !value && 'border-destructive/60'
-                )}
-              >
-                {choice}
-              </button>
-            );
-          })}
-        </div>
-        <FieldError errors={displayError ? [displayError] : []} />
-      </FieldSet>
-    );
-  }
+          }
+          value={value}
+          onChange={(nextValue) => {
+            fieldApi.handleChange(nextValue);
+            fieldApi.handleBlur();
+          }}
+          options={schemaField.choices}
+          placeholder={placeholder}
+          error={displayError}
+          invalid={isInvalid}
+          disabled={schemaField.disabled}
+          containerClassName={innerColSpanClass}
+        />
+      );
+    }
 
-  if (schemaField.type === 'LIST') {
-    return (
-      <PatientLineSelect
-        id={schemaField.id}
-        label={
-          <span>
-            {schemaField.title}
-            {requiredAsterisk}
-          </span>
-        }
-        value={value}
-        onChange={(nextValue) => {
-          fieldApi.handleChange(nextValue);
-          fieldApi.handleBlur();
-        }}
-        options={schemaField.choices}
-        placeholder={placeholder}
-        error={displayError}
-        invalid={isInvalid}
-        disabled={schemaField.disabled}
-        containerClassName={colSpanClass}
-      />
-    );
-  }
+    if (schemaField.type === 'PARAGRAPH') {
+      return (
+        <PatientLineTextarea
+          id={schemaField.id}
+          label={
+            <span>
+              {schemaField.title}
+              {requiredAsterisk}
+            </span>
+          }
+          value={value}
+          onChange={(nextValue) => fieldApi.handleChange(nextValue)}
+          onBlur={fieldApi.handleBlur}
+          placeholder={placeholder}
+          error={displayError}
+          invalid={isInvalid}
+          disabled={schemaField.disabled}
+          containerClassName={cn(innerColSpanClass, animationClass)}
+        />
+      );
+    }
 
-  if (schemaField.type === 'PARAGRAPH') {
-    return (
-      <PatientLineTextarea
-        id={schemaField.id}
-        label={
-          <span>
-            {schemaField.title}
-            {requiredAsterisk}
-          </span>
-        }
-        value={value}
-        onChange={(nextValue) => fieldApi.handleChange(nextValue)}
-        onBlur={fieldApi.handleBlur}
-        placeholder={placeholder}
-        error={displayError}
-        invalid={isInvalid}
-        disabled={schemaField.disabled}
-        containerClassName={cn(colSpanClass, animationClass)}
-      />
-    );
-  }
+    if (schemaField.type === 'DATE') {
+      return (
+        <PatientBirthdatePicker
+          id={schemaField.id}
+          value={value}
+          onChange={(nextValue) => {
+            fieldApi.handleChange(nextValue);
+            fieldApi.handleBlur();
+          }}
+          variant='underline'
+          label={
+            <span>
+              {schemaField.title}
+              {requiredAsterisk}
+            </span>
+          }
+          placeholder={placeholder}
+          ariaLabel={schemaField.title}
+          error={displayError}
+          invalid={isInvalid}
+          className={innerColSpanClass}
+        />
+      );
+    }
 
-  if (schemaField.type === 'DATE') {
-    return (
-      <PatientBirthdatePicker
-        id={schemaField.id}
-        value={value}
-        onChange={(nextValue) => {
-          fieldApi.handleChange(nextValue);
-          fieldApi.handleBlur();
-        }}
-        variant='underline'
-        label={
-          <span>
-            {schemaField.title}
-            {requiredAsterisk}
-          </span>
-        }
-        placeholder={placeholder}
-        ariaLabel={schemaField.title}
-        error={displayError}
-        invalid={isInvalid}
-        className={colSpanClass}
-      />
-    );
-  }
+    if (
+      schemaField.id === 'initialBmi' ||
+      schemaField.id === 'motherAge' ||
+      schemaField.id === 'partnerAge' ||
+      schemaField.id === 'estimatedDueDate' ||
+      schemaField.id === 'gestationalAge'
+    ) {
+      return (
+        <PatientLineInput
+          id={schemaField.id}
+          label={
+            <span>
+              {schemaField.title}
+              {requiredAsterisk}
+            </span>
+          }
+          value={value}
+          onChange={(nextVal) =>
+            fieldApi.handleChange(normalizeMedicalFieldInput(schemaField, nextVal))
+          }
+          onBlur={fieldApi.handleBlur}
+          error={displayError}
+          invalid={isInvalid}
+          placeholder={placeholder}
+          disabled={true}
+          readOnly={true}
+          containerClassName={innerColSpanClass}
+          trailingIcon={
+            value ? (
+              <span className='rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary select-none'>
+                Otomatis
+              </span>
+            ) : null
+          }
+        />
+      );
+    }
 
-  if (
-    schemaField.id === 'initialBmi' ||
-    schemaField.id === 'motherAge' ||
-    schemaField.id === 'partnerAge' ||
-    schemaField.id === 'estimatedDueDate' ||
-    schemaField.id === 'gestationalAge'
-  ) {
+    const format = getMedicalFieldFormat(schemaField);
+    const isNik = format === 'nik';
+    const formatProps = fieldFormatConfig[format];
+
     return (
       <PatientLineInput
         id={schemaField.id}
@@ -213,51 +261,51 @@ export function MedicalSchemaField({
         error={displayError}
         invalid={isInvalid}
         placeholder={placeholder}
-        disabled={true}
-        readOnly={true}
-        containerClassName={colSpanClass}
-        trailingIcon={
-          value ? (
-            <span className='rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary select-none'>
-              Otomatis
-            </span>
-          ) : null
-        }
+        disabled={schemaField.disabled}
+        containerClassName={innerColSpanClass}
+        isMonospace={isNik}
+        inputMode={formatProps.inputMode}
+        maxLength={formatProps.maxLength}
       />
     );
+  };
+
+  if (!builderMode) {
+    return renderFieldControl();
   }
 
-  const format = getMedicalFieldFormat(schemaField);
-  const isNik = format === 'nik';
-  const formatProps = fieldFormatConfig[format];
+  const isInactive = schemaField.isActive === false;
 
   return (
-    <PatientLineInput
-      id={schemaField.id}
-      label={
-        <span>
-          {schemaField.title}
-          {requiredAsterisk}
-        </span>
-      }
-      value={value}
-      onChange={(nextVal) =>
-        fieldApi.handleChange(normalizeMedicalFieldInput(schemaField, nextVal))
-      }
-      onBlur={fieldApi.handleBlur}
-      error={displayError}
-      invalid={isInvalid}
-      placeholder={placeholder}
-      disabled={schemaField.disabled}
-      containerClassName={colSpanClass}
-      isMonospace={isNik}
-      inputMode={formatProps.inputMode}
-      maxLength={formatProps.maxLength}
-    />
+    <div
+      className={cn(
+        'group relative rounded-xl border border-transparent p-1.5 transition-all duration-200',
+        colSpanClass,
+        'hover:border-primary/40 hover:bg-muted/15',
+        isInactive && 'opacity-60 border-dashed border-amber-500/40 bg-amber-500/5'
+      )}
+    >
+      <MedicalFieldBuilderToolbar
+        field={schemaField}
+        onUpdateField={onUpdateField}
+        onToggleActive={onToggleActive}
+        onDeleteField={onDeleteField}
+      />
+      {isInactive && (
+        <div className='mb-1 flex items-center gap-1 text-[10px] font-semibold text-amber-600 dark:text-amber-400'>
+          <span className='size-1.5 rounded-full bg-amber-500' />
+          <span>Dinonaktifkan (Disembunyikan dari Pasien)</span>
+        </div>
+      )}
+      {renderFieldControl()}
+    </div>
   );
 }
 
-export function getFieldValidators(field: MedicalFormField) {
+export function getFieldValidators(field: MedicalFormField, builderMode: boolean = false) {
+  if (builderMode) {
+    return {};
+  }
   const schema = getMedicalFieldValidationSchema(field);
 
   return {

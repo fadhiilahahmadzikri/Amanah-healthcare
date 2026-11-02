@@ -75,7 +75,12 @@ import {
   ClinicalIntakeFormCard,
   PatientRelationshipTypeCard
 } from './cards';
-import type { BulkFacilityActionPayload, FacilityResource } from '../types/clinic-essentials.types';
+import { MedicalAppointmentModal } from '@/features/klinik/components/medical-appointment-modal';
+import type {
+  BulkFacilityActionPayload,
+  ClinicalIntakeForm,
+  FacilityResource
+} from '../types/clinic-essentials.types';
 import type { ClinicEssentialEditItem } from '../model/useClinicEssentialFormModal';
 import { getEssentialFirstIcon, renderEssentialIcon } from '../utils/essential-icon-resolver';
 
@@ -108,6 +113,7 @@ export function ClinicEssentialsView() {
 
   // Single item deletion confirmation state
   const [deletingItem, setDeletingItem] = React.useState<DeletingState | null>(null);
+  const [builderForm, setBuilderForm] = React.useState<ClinicalIntakeForm | null>(null);
 
   // 0. Fetch Unit Types
   const {
@@ -1455,6 +1461,7 @@ export function ClinicEssentialsView() {
                     selected={selectedIds.includes(f.id)}
                     isBulkingActive={selectedIds.length > 0}
                     onToggleSelect={() => handleToggleSelect(f.id)}
+                    onOpenBuilder={(item) => setBuilderForm(item)}
                     onToggleActive={(newActive) =>
                       toggleActiveMutation.mutate({
                         resource: 'forms',
@@ -1737,6 +1744,23 @@ export function ClinicEssentialsView() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dynamic Form Schema Builder Modal */}
+      {builderForm && (
+        <MedicalAppointmentModal
+          flow={builderForm.code as any}
+          isOpen={Boolean(builderForm)}
+          builderMode={true}
+          initialSchema={builderForm.schema}
+          formTitle={builderForm.name}
+          formDescription={builderForm.description || undefined}
+          onSaveSchema={async (newSchema) => {
+            await clinicEssentialsApi.updateFormSchema(builderForm.id, newSchema);
+            queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.forms() });
+          }}
+          onClose={() => setBuilderForm(null)}
+        />
+      )}
     </div>
   );
 }
