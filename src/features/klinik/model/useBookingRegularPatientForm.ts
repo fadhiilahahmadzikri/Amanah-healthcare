@@ -15,6 +15,7 @@ import {
 } from '@/features/data-pasien/api/patient-affiliation-service';
 import type { PatientRegistrationStep } from '@/features/data-pasien/constants/registration-options';
 import { usePatientFormReferences } from '@/features/data-pasien/model/usePatientFormReferences';
+import type { ReferenceOptionItem } from '@/features/data-pasien/api/patient-reference-service';
 import type { PatientRegionValues } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 
 export interface UseBookingRegularPatientFormOptions {
@@ -22,12 +23,7 @@ export interface UseBookingRegularPatientFormOptions {
   onCancel: () => void;
   targetFlow?: string;
   onRelationshipSubmit?: (relationship: PatientRelationshipType) => void;
-  allowedRelationships?: {
-    value: string;
-    label: string;
-    description?: string;
-    isSystem?: boolean;
-  }[];
+  allowedRelationships?: ReferenceOptionItem[];
   hasExistingSelf?: boolean;
   initialRelationship?: PatientRelationshipType | string;
   existingPatients?: PatientAffiliationProfile[];
@@ -62,12 +58,7 @@ export function useBookingRegularPatientForm({
         ? allowedRelationships
         : references.relationships;
     if (hasExistingSelf) {
-      opts = opts.filter(
-        (o) =>
-          !(o as any).isSystem &&
-          String(o.value).toLowerCase() !== 'diri_sendiri' &&
-          String(o.value).toLowerCase() !== 'self'
-      );
+      opts = opts.filter((o) => !(o as any).isSystem);
     }
     return opts;
   }, [allowedRelationships, references.relationships, hasExistingSelf]);
@@ -77,12 +68,13 @@ export function useBookingRegularPatientForm({
       return initialRelationship as PatientRelationshipType;
     }
     if (relationshipOptions.length > 0) {
-      return (relationshipOptions[0].value as PatientRelationshipType) || 'spouse';
+      if (!hasExistingSelf) {
+        const systemOpt = relationshipOptions.find((r) => (r as any).isSystem);
+        if (systemOpt) return systemOpt.value as PatientRelationshipType;
+      }
+      return relationshipOptions[0].value as PatientRelationshipType;
     }
-    if (hasExistingSelf) {
-      return 'spouse';
-    }
-    return 'self';
+    return '' as PatientRelationshipType;
   }, [initialRelationship, relationshipOptions, hasExistingSelf]);
 
   const [relationship, setRelationship] =
@@ -93,13 +85,8 @@ export function useBookingRegularPatientForm({
   }, [relationshipOptions, relationship]);
 
   const isSelf = React.useMemo(() => {
-    const relStr = String(relationship).toLowerCase();
-    return (
-      (selectedRelOption as any)?.isSystem === true ||
-      relStr === 'diri_sendiri' ||
-      relStr === 'self'
-    );
-  }, [selectedRelOption, relationship]);
+    return Boolean((selectedRelOption as any)?.isSystem);
+  }, [selectedRelOption]);
 
   React.useEffect(() => {
     if (relationshipOptions.length > 0) {
@@ -107,8 +94,8 @@ export function useBookingRegularPatientForm({
       if (!exists) {
         setRelationship(relationshipOptions[0].value as PatientRelationshipType);
       }
-    } else if (hasExistingSelf && isSelf) {
-      setRelationship('spouse');
+    } else if (hasExistingSelf && isSelf && relationshipOptions.length > 0) {
+      setRelationship(relationshipOptions[0].value as PatientRelationshipType);
     }
   }, [relationshipOptions, hasExistingSelf, isSelf, relationship]);
 

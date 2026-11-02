@@ -12,6 +12,7 @@ import {
   type PatientRelationshipType,
   type PatientBloodType
 } from '@/features/data-pasien/api/patient-affiliation-service';
+import type { ReferenceOptionItem } from '@/features/data-pasien/api/patient-reference-service';
 import { updatePatient } from '@/features/data-pasien/api/service';
 import { usePatientFormReferences } from '@/features/data-pasien/model/usePatientFormReferences';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
@@ -30,7 +31,7 @@ export interface BookingRegularPatientEditModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (updated: PatientAffiliationProfile) => void;
-  allowedRelationships?: { value: string; label: string; description?: string }[];
+  allowedRelationships?: ReferenceOptionItem[];
 }
 
 export function BookingRegularPatientEditModal({
@@ -113,25 +114,20 @@ export function BookingRegularPatientEditModal({
   }, [patient, isOpen, references.occupations]);
 
   const relationshipOptions = React.useMemo(() => {
-    const base =
+    const base: ReferenceOptionItem[] =
       allowedRelationships && allowedRelationships.length > 0
         ? [...allowedRelationships]
         : [...references.relationships];
 
-    const currentRel = patient?.relationship || (patient?.isSelf ? 'self' : '');
+    const currentRel = patient?.relationship || '';
     if (currentRel && !base.some((r) => r.value === currentRel)) {
-      if (currentRel === 'self') {
-        base.unshift({
-          value: 'self',
-          label: 'Diri Sendiri',
-          description: 'Profil pemilik akun utama'
-        });
-      } else {
-        base.push({
-          value: currentRel,
-          label: patient?.relationshipLabel || currentRel
-        });
-      }
+      base.push({
+        value: currentRel,
+        label: patient?.relationshipLabel || currentRel,
+        icon: patient?.icon || patient?.iconName || undefined,
+        iconName: patient?.iconName || undefined,
+        isSystem: Boolean(patient?.isSystem || patient?.isPrimary)
+      });
     }
     return base;
   }, [
@@ -275,7 +271,8 @@ export function BookingRegularPatientEditModal({
   const titleName = fullName.trim() || patient.fullName;
   const currentRelationshipLabel =
     relationshipOptions.find((opt) => opt.value === relationship)?.label ||
-    (relationship === 'self' ? 'Diri Sendiri' : 'Anggota Keluarga');
+    patient.relationshipLabel ||
+    (patient.isPrimary || patient.isSystem ? 'Akun Utama' : 'Anggota Keluarga');
 
   return (
     <ModalWrapper

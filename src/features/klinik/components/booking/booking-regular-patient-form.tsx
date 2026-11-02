@@ -17,18 +17,14 @@ import { PatientBloodTypeSelector } from '@/features/data-pasien/components/regi
 import { PatientRegionDropdown } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import { PatientSearchableSelect } from '@/features/data-pasien/components/registration/molecules/patient-searchable-select';
 import { PatientEmergencyContactSelector } from '@/features/data-pasien/components/registration/molecules/patient-emergency-contact-selector';
-import { getRelationshipIcon } from '@/features/data-pasien/model/relationship-icon.helper';
+import { ShiftIconDisplay } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-display';
+import type { ReferenceOptionItem } from '@/features/data-pasien/api/patient-reference-service';
 import { useBookingRegularPatientForm } from '../../model/useBookingRegularPatientForm';
 
 export interface BookingRegularPatientFormProps {
   onSuccess: (newPatient: PatientAffiliationProfile) => void;
   onCancel: () => void;
-  allowedRelationships?: {
-    value: string;
-    label: string;
-    description?: string;
-    isSystem?: boolean;
-  }[];
+  allowedRelationships?: ReferenceOptionItem[];
   targetFlow?: string;
   onRelationshipSubmit?: (relationship: PatientRelationshipType) => void;
   hasExistingSelf?: boolean;
@@ -255,12 +251,12 @@ export function BookingRegularPatientForm({
                   >
                     <div className='flex items-center justify-between w-full'>
                       <div className='flex items-center gap-2'>
-                        <span className='text-base select-none leading-none'>
-                          {getRelationshipIcon(
-                            (opt as any).icon || opt.value,
-                            (opt as any).isSystem
-                          )}
-                        </span>
+                        <ShiftIconDisplay
+                          icon={(opt as any).icon || (opt as any).iconName || 'user'}
+                          size='md'
+                          bare
+                          className='size-4 text-primary shrink-0'
+                        />
                         <span className='font-bold'>{opt.label}</span>
                       </div>
                       {isSelected && <Icons.check className='w-3.5 h-3.5 text-primary shrink-0' />}

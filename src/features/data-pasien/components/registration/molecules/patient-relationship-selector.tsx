@@ -6,7 +6,7 @@ import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import type { ReferenceOptionItem } from '@/features/data-pasien/api/patient-reference-service';
 import { usePatientFormReferences } from '@/features/data-pasien/model/usePatientFormReferences';
-import { getRelationshipIcon } from '@/features/data-pasien/model/relationship-icon.helper';
+import { ShiftIconDisplay } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-display';
 
 export interface PatientRelationshipSelectorProps {
   id?: string;
@@ -45,9 +45,7 @@ export function PatientRelationshipSelector({
   const availableOptions: ReferenceOptionItem[] = React.useMemo(() => {
     let opts = options && options.length > 0 ? options : references.relationships;
     if (excludeSystem) {
-      opts = opts.filter(
-        (o) => !(o as any).isSystem && o.value !== 'diri_sendiri' && o.value !== 'self'
-      );
+      opts = opts.filter((o) => !(o as any).isSystem);
     }
     return opts;
   }, [options, references.relationships, excludeSystem]);
@@ -166,12 +164,12 @@ export function PatientRelationshipSelector({
         >
           {displayLabel ? (
             <>
-              <span className='text-sm select-none leading-none'>
-                {getRelationshipIcon(
-                  selectedOption?.icon || selectedOption?.value,
-                  selectedOption?.isSystem
-                )}
-              </span>
+              <ShiftIconDisplay
+                icon={selectedOption?.icon || selectedOption?.iconName || 'user'}
+                size='sm'
+                bare
+                className='size-4 text-primary shrink-0'
+              />
               <span>{displayLabel}</span>
             </>
           ) : (
@@ -216,9 +214,12 @@ export function PatientRelationshipSelector({
               >
                 <div className='flex items-center justify-between w-full'>
                   <div className='flex items-center gap-1.5 min-w-0'>
-                    <span className='text-sm select-none leading-none shrink-0'>
-                      {getRelationshipIcon(opt.icon || opt.value, opt.isSystem)}
-                    </span>
+                    <ShiftIconDisplay
+                      icon={opt.icon || opt.iconName || 'user'}
+                      size='sm'
+                      bare
+                      className='size-4 text-primary shrink-0'
+                    />
                     <span className='text-xs font-semibold truncate'>{opt.label}</span>
                   </div>
                   {isSelected && <Icons.check className='w-3.5 h-3.5 text-primary shrink-0' />}
