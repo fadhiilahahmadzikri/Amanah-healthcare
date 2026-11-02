@@ -14,7 +14,6 @@ import {
   CONTRACEPTION_CHOICE,
   FLOW_NAMES,
   PREVIOUS_PREGNANCY_CHOICE,
-  SECTION_IDS,
   VACCINE_GATEWAY_CHOICE
 } from '../constants/medical-appointment-types';
 import { normalizeBirthDate } from './medical-form-helpers';
@@ -35,17 +34,17 @@ const INDONESIAN_MONTHS = [
 ];
 
 const previousPregnancySectionIds = new Set<string>([
-  SECTION_IDS.PREVIOUS_PREGNANCY_1,
-  SECTION_IDS.PREVIOUS_PREGNANCY_2,
-  SECTION_IDS.PREVIOUS_PREGNANCY_3,
-  SECTION_IDS.PREVIOUS_PREGNANCY_4
+  'previousPregnancy1Details',
+  'previousPregnancy2Details',
+  'previousPregnancy3Details',
+  'previousPregnancy4Details'
 ]);
 
 const contraceptionSectionIds = new Set<string>([
-  SECTION_IDS.CONTRACEPTION_1,
-  SECTION_IDS.CONTRACEPTION_2,
-  SECTION_IDS.CONTRACEPTION_3,
-  SECTION_IDS.CONTRACEPTION_4
+  'contraception1Details',
+  'contraception2Details',
+  'contraception3Details',
+  'contraception4Details'
 ]);
 
 export type MedicalAppointmentValues = Record<string, string>;

@@ -433,8 +433,6 @@ export function AppointmentModal({
           selectedService={selectedService}
           selectedPatient={selectedPatient}
           newPatientRelationship={selectedRelationship}
-          initialSchema={bookingContext?.formSchema}
-          formTitle={bookingContext?.intakeFormName || undefined}
           onBackToService={() => {
             setActiveMedicalFlow(null);
             setStep(patients.length > 0 ? 'select_profile' : 'create_profile');

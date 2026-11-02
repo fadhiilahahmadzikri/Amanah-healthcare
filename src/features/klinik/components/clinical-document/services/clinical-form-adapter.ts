@@ -578,11 +578,7 @@ export function adaptToRegulerFormData(
     answers.keluhanUtama ||
     '-';
 
-  const allergy =
-    liveRegular?.allergyHistory ||
-    answers.allergy ||
-    answers.allergyHistory ||
-    'Tidak ada riwayat alergi obat maupun makanan.';
+  const allergy = liveRegular?.allergyHistory || answers.allergy || answers.allergyHistory || '-';
 
   const heightVal = liveRegular?.heightCm || answers.height || answers.vitalHeightCm;
   const vitalHeightCm = heightVal ? `${heightVal} cm` : '-';

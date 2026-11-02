@@ -10,7 +10,58 @@ import type {
   PatientTimelineItem
 } from './types';
 
-export function mapBackendPatient(r: any): Patient {
+export interface BackendPatientRecord {
+  id: string;
+  medicalRecordNumber: string;
+  fullName: string;
+  avatarUrl?: string;
+  maskedNik?: string;
+  nik?: string;
+  motherName?: string | null;
+  birthPlace?: string | null;
+  occupation?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  gender: Patient['gender'];
+  age?: number | string | null;
+  birthDate?: string | null;
+  bloodType?: string | null;
+  fullAddress?: string | null;
+  line1?: string | null;
+  provinceName?: string | null;
+  provinceCode?: string | null;
+  regencyName?: string | null;
+  regencyCode?: string | null;
+  districtName?: string | null;
+  districtCode?: string | null;
+  villageName?: string | null;
+  villageCode?: string | null;
+  emergencyContactName?: string | null;
+  emergencyContactPhone?: string | null;
+  emergencyContactRelationship?: string | null;
+  allergies?: string[];
+  medicalHistory?: string | null;
+  status?: string;
+  registeredAt?: string | null;
+  firstLoginAt?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  isMaster?: boolean;
+  hasOwnAccount?: boolean;
+  affiliateCount?: number;
+  relationshipType?: string | null;
+  relationLabel?: string | null;
+  masterPatientId?: string | null;
+  masterPatientName?: string | null;
+  affiliates?: BackendPatientRecord[];
+  totalAppointments?: number;
+  completedVisits?: number;
+  missedAppointments?: number;
+  cancelledAppointments?: number;
+  lastVisitDate?: string | null;
+}
+
+export function mapBackendPatient(r: BackendPatientRecord): Patient {
   const rawAffiliates = Array.isArray(r.affiliates) ? r.affiliates : [];
   const mappedAffiliates = rawAffiliates.map(mapBackendPatient);
 
@@ -51,6 +102,9 @@ export function mapBackendPatient(r: any): Patient {
     emergency_contact: r.emergencyContactPhone
       ? `${r.emergencyContactName || ''} (${r.emergencyContactPhone})`
       : '',
+    emergencyContactName: r.emergencyContactName ?? null,
+    emergencyContactPhone: r.emergencyContactPhone ?? null,
+    emergencyContactRelationship: r.emergencyContactRelationship ?? null,
     allergies: Array.isArray(r.allergies) ? r.allergies : [],
     medical_history: r.medicalHistory || '',
     status: (r.status === 'inactive' ? 'inactive' : 'active') as PatientAccountStatus,
@@ -72,8 +126,8 @@ export function mapBackendPatient(r: any): Patient {
     missed_appointments: Number(r.missedAppointments ?? 0),
     cancelled_appointments: Number(r.cancelledAppointments ?? 0),
     last_visit_date: r.lastVisitDate ?? null,
-    created_at: r.registeredAt,
-    updated_at: r.updatedAt
+    created_at: r.registeredAt ?? undefined,
+    updated_at: r.updatedAt ?? undefined
   };
 }
 
@@ -128,7 +182,7 @@ export async function getPatients(
   }
 
   const response = await clientFetch<{
-    data: any[];
+    data: BackendPatientRecord[];
     meta: { total: number; page: number; limit: number; totalPages: number };
     summary: {
       totalPatients: number;
@@ -171,7 +225,7 @@ export async function getPatientSummary(): Promise<PatientSummary> {
 
 export async function getPatientById(id: string): Promise<PatientDetailResponse> {
   try {
-    const record = await clientFetch<any>(`/api/v1/patients/${id}`);
+    const record = await clientFetch<BackendPatientRecord>(`/api/v1/patients/${id}`);
     if (!record) {
       return {
         success: false,
@@ -183,11 +237,11 @@ export async function getPatientById(id: string): Promise<PatientDetailResponse>
       success: true,
       patient: mapBackendPatient(record)
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       success: false,
       patient: null,
-      message: error?.message || `Gagal mengambil data pasien`
+      message: error instanceof Error ? error.message : `Gagal mengambil data pasien`
     };
   }
 }
@@ -196,7 +250,22 @@ export async function getPatientHistory(
   patientId: string
 ): Promise<{ data: PatientTimelineItem[]; total: number }> {
   const response = await clientFetch<{
-    data: any[];
+    data: Array<{
+      id: string;
+      bookingCode: string;
+      status: string;
+      scheduledDate: string;
+      scheduledStartTime: string;
+      scheduledEndTime?: string | null;
+      poliklinikName?: string | null;
+      doctorName?: string | null;
+      complaint?: string | null;
+      completedAt?: string | null;
+      cancelledAt?: string | null;
+      cancelReason?: string | null;
+      hasAssociatedForm?: boolean;
+      associatedFormType?: 'maternal' | 'immunization' | 'general' | null;
+    }>;
     total: number;
     page: number;
     limit: number;
@@ -228,7 +297,7 @@ export async function getPatientHistory(
 
 export async function createPatient(data: PatientMutationPayload) {
   const line1 = data.line1 ?? '';
-  const payload: Record<string, any> = {
+  const payload: Record<string, unknown> = {
     fullName: data.name,
     nik: data.nik,
     gender: data.gender,
@@ -250,7 +319,7 @@ export async function createPatient(data: PatientMutationPayload) {
     medicalHistory: data.medical_history ?? ''
   };
 
-  const record = await clientFetch<any>('/api/v1/patients', {
+  const record = await clientFetch<BackendPatientRecord>('/api/v1/patients', {
     method: 'POST',
     body: JSON.stringify(payload)
   });
@@ -263,20 +332,36 @@ export async function createPatient(data: PatientMutationPayload) {
 }
 
 export async function updatePatient(id: string, data: Partial<PatientMutationPayload>) {
-  const payload: Record<string, any> = {};
+  const payload: Record<string, unknown> = {};
 
   if (data.medical_record_number !== undefined && data.medical_record_number.trim() !== '') {
     payload.medicalRecordNumber = data.medical_record_number.trim();
-  } else if ((data as any).medicalRecordNumber !== undefined && (data as any).medicalRecordNumber.trim() !== '') {
-    payload.medicalRecordNumber = (data as any).medicalRecordNumber.trim();
+  } else if (data.medicalRecordNumber !== undefined && data.medicalRecordNumber.trim() !== '') {
+    payload.medicalRecordNumber = data.medicalRecordNumber.trim();
   }
   if (data.name !== undefined) payload.fullName = data.name;
   if (data.nik !== undefined && data.nik.trim() !== '') {
     payload.nik = data.nik.trim();
   }
   if (data.phone !== undefined) payload.phone = data.phone;
+  if (data.email !== undefined) payload.email = data.email ? data.email.trim() : null;
   if (data.emergency_contact !== undefined && data.emergency_contact.trim() !== '') {
     payload.emergencyContactPhone = data.emergency_contact.trim();
+  }
+  if (data.emergencyContactName !== undefined) {
+    payload.emergencyContactName = data.emergencyContactName
+      ? data.emergencyContactName.trim()
+      : null;
+  }
+  if (data.emergencyContactPhone !== undefined) {
+    payload.emergencyContactPhone = data.emergencyContactPhone
+      ? data.emergencyContactPhone.trim()
+      : null;
+  }
+  if (data.emergencyContactRelationship !== undefined) {
+    payload.emergencyContactRelationship = data.emergencyContactRelationship
+      ? data.emergencyContactRelationship.trim()
+      : null;
   }
   if (data.line1 !== undefined) payload.line1 = data.line1;
   if (data.occupation !== undefined) payload.occupation = data.occupation;
@@ -297,7 +382,7 @@ export async function updatePatient(id: string, data: Partial<PatientMutationPay
     payload.status = data.status === 'inactive' ? 'inactive' : 'active';
   }
 
-  const updatedRecord = await clientFetch<any>(`/api/v1/patients/${id}`, {
+  const updatedRecord = await clientFetch<BackendPatientRecord>(`/api/v1/patients/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(payload)
   });

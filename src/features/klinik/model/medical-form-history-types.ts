@@ -1,10 +1,8 @@
 import {
   CATALOG_ACTION_TYPES,
   CONTRACEPTION_CHOICE,
-  FIELD_IDS,
   PREVIOUS_PREGNANCY_CHOICE,
   REPEATABLE_GROUP_KEYS,
-  SECTION_IDS,
   STEP_DESCRIPTOR_TYPES
 } from '../constants/medical-appointment-types';
 
@@ -74,12 +72,12 @@ export const historyGroups: Record<RepeatableHistoryKey, RepeatableHistoryGroup>
   [REPEATABLE_GROUP_KEYS.PREGNANCY]: {
     key: REPEATABLE_GROUP_KEYS.PREGNANCY,
     sectionIds: [
-      SECTION_IDS.PREVIOUS_PREGNANCY_1,
-      SECTION_IDS.PREVIOUS_PREGNANCY_2,
-      SECTION_IDS.PREVIOUS_PREGNANCY_3,
-      SECTION_IDS.PREVIOUS_PREGNANCY_4
+      'previousPregnancy1Details',
+      'previousPregnancy2Details',
+      'previousPregnancy3Details',
+      'previousPregnancy4Details'
     ],
-    gatewayFieldId: FIELD_IDS.HAS_PREVIOUS_PREGNANCY_HISTORY,
+    gatewayFieldId: 'hasPreviousPregnancyHistory',
     disabledValue: PREVIOUS_PREGNANCY_CHOICE.NO,
     enabledValue: PREVIOUS_PREGNANCY_CHOICE.YES,
     maxRecords: 4
@@ -87,12 +85,12 @@ export const historyGroups: Record<RepeatableHistoryKey, RepeatableHistoryGroup>
   [REPEATABLE_GROUP_KEYS.CONTRACEPTION]: {
     key: REPEATABLE_GROUP_KEYS.CONTRACEPTION,
     sectionIds: [
-      SECTION_IDS.CONTRACEPTION_1,
-      SECTION_IDS.CONTRACEPTION_2,
-      SECTION_IDS.CONTRACEPTION_3,
-      SECTION_IDS.CONTRACEPTION_4
+      'contraception1Details',
+      'contraception2Details',
+      'contraception3Details',
+      'contraception4Details'
     ],
-    gatewayFieldId: FIELD_IDS.HAS_CONTRACEPTION_HISTORY,
+    gatewayFieldId: 'hasContraceptionHistory',
     disabledValue: CONTRACEPTION_CHOICE.NO,
     enabledValue: CONTRACEPTION_CHOICE.YES,
     maxRecords: 4

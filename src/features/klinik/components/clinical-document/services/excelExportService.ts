@@ -716,7 +716,29 @@ export async function exportRegulerExcel(
   t3.alignment = { horizontal: 'center', vertical: 'middle' };
 
   let currentLine = 5;
-  addSectionHeader(ws, currentLine, 'I. IDENTITAS PASIEN', 4);
+  addSectionHeader(ws, currentLine, 'I. INFORMASI KUNJUNGAN', 4);
+
+  const encounterData = [
+    ['Kode Booking', data?.bookingCode || '-', 'Nomor Antrean', data?.queueNumber || '-'],
+    ['Poli / Layanan', data?.serviceName || '-', 'Dokter Pemeriksa', data?.doctorName || '-']
+  ];
+
+  encounterData.forEach((rowPair) => {
+    currentLine += 1;
+    const r = ws.getRow(currentLine);
+    r.getCell(1).value = rowPair[0];
+    r.getCell(1).font = { bold: true, size: 9, name: 'Calibri' };
+    r.getCell(2).value = rowPair[1];
+    r.getCell(2).font = { size: 9, name: 'Calibri' };
+    r.getCell(3).value = rowPair[2];
+    r.getCell(3).font = { bold: true, size: 9, name: 'Calibri' };
+    r.getCell(4).value = rowPair[3];
+    r.getCell(4).font = { size: 9, name: 'Calibri' };
+    applyRowBorders(r, 1, 4);
+  });
+
+  currentLine += 2;
+  addSectionHeader(ws, currentLine, 'II. IDENTITAS PASIEN', 4);
 
   const patientData = [
     ['Nama Pasien', data?.identity?.fullName || '-', 'NIK', data?.identity?.nik || '-'],
@@ -744,59 +766,44 @@ export async function exportRegulerExcel(
   });
 
   currentLine += 2;
-  addSectionHeader(ws, currentLine, 'II. KUNJUNGAN & TANDA VITAL', 4);
-
-  const encounterData = [
-    ['Kode Booking', data?.bookingCode || '-', 'Nomor Antrean', data?.queueNumber || '-'],
-    ['Poli / Layanan', data?.serviceName || '-', 'Dokter Pemeriksa', data?.doctorName || '-'],
-    [
-      'Tinggi Badan (cm)',
-      parseNativeNumber(data?.clinical?.vitalHeightCm),
-      'Berat Badan (kg)',
-      parseNativeNumber(data?.clinical?.vitalWeightKg)
-    ],
-    [
-      'Tekanan Darah',
-      data?.clinical?.vitalBloodPressure || '-',
-      'Riwayat Alergi',
-      data?.clinical?.allergyHistory || '-'
-    ]
-  ];
-
-  encounterData.forEach((rowPair) => {
-    currentLine += 1;
-    const r = ws.getRow(currentLine);
-    r.getCell(1).value = rowPair[0];
-    r.getCell(1).font = { bold: true, size: 9, name: 'Calibri' };
-    r.getCell(2).value = rowPair[1];
-    r.getCell(2).font = { size: 9, name: 'Calibri' };
-    r.getCell(3).value = rowPair[2];
-    r.getCell(3).font = { bold: true, size: 9, name: 'Calibri' };
-    r.getCell(4).value = rowPair[3];
-    r.getCell(4).font = { size: 9, name: 'Calibri' };
-    applyRowBorders(r, 1, 4);
-  });
-
-  currentLine += 2;
-  addSectionHeader(ws, currentLine, 'III. ANAMNESA & CATATAN KLINIS', 4);
+  addSectionHeader(ws, currentLine, 'III. KELUHAN UTAMA & ALASAN KUNJUNGAN', 4);
 
   currentLine += 1;
   const c1 = ws.getRow(currentLine);
   c1.getCell(1).value = 'Keluhan Utama:';
   c1.getCell(1).font = { bold: true, size: 9, name: 'Calibri' };
   ws.mergeCells(`B${currentLine}:D${currentLine}`);
-  c1.getCell(2).value = data?.clinical?.chiefComplaint || '-';
+  c1.getCell(2).value =
+    data?.chiefComplaint ||
+    data?.clinical?.chiefComplaint ||
+    'Tidak ada keluhan klinis yang dicatat saat pendaftaran.';
   c1.getCell(2).font = { size: 9, name: 'Calibri' };
   applyRowBorders(c1, 1, 4);
 
+  currentLine += 2;
+  addSectionHeader(ws, currentLine, 'IV. PENGESAHAN & TANDA TANGAN', 4);
+
   currentLine += 1;
-  const c2 = ws.getRow(currentLine);
-  c2.getCell(1).value = 'Catatan Dokter:';
-  c2.getCell(1).font = { bold: true, size: 9, name: 'Calibri' };
-  ws.mergeCells(`B${currentLine}:D${currentLine}`);
-  c2.getCell(2).value = data?.clinical?.additionalNotes || '-';
-  c2.getCell(2).font = { size: 9, name: 'Calibri' };
-  applyRowBorders(c2, 1, 4);
+  ws.mergeCells(`A${currentLine}:B${currentLine}`);
+  ws.mergeCells(`C${currentLine}:D${currentLine}`);
+  const sHeader = ws.getRow(currentLine);
+  sHeader.getCell(1).value = `Tanggal: ${data?.registrationDate || '-'}\nPasien / Keluarga`;
+  sHeader.getCell(1).font = { bold: true, size: 9, name: 'Calibri' };
+  sHeader.getCell(1).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+  sHeader.getCell(3).value = `Tanggal: ${data?.registrationDate || '-'}\nDokter Pemeriksa`;
+  sHeader.getCell(3).font = { bold: true, size: 9, name: 'Calibri' };
+  sHeader.getCell(3).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+
+  currentLine += 3;
+  ws.mergeCells(`A${currentLine}:B${currentLine}`);
+  ws.mergeCells(`C${currentLine}:D${currentLine}`);
+  const sSign = ws.getRow(currentLine);
+  sSign.getCell(1).value = `( ${data?.identity?.fullName || '................................'} )`;
+  sSign.getCell(1).font = { size: 9, name: 'Calibri' };
+  sSign.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
+  sSign.getCell(3).value = `( ${data?.doctorName || '................................'} )`;
+  sSign.getCell(3).font = { size: 9, name: 'Calibri' };
+  sSign.getCell(3).alignment = { horizontal: 'center', vertical: 'middle' };
 
   const buffer = await wb.xlsx.writeBuffer();
   saveAs(new Blob([buffer]), filename);

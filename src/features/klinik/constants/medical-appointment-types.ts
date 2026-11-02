@@ -110,7 +110,8 @@ export interface MedicalFormSection {
 
 export const FLOW_NAMES = {
   PREGNANCY: 'pregnancy',
-  IMMUNIZATION: 'immunization'
+  IMMUNIZATION: 'immunization',
+  REGULAR: 'regular'
 } as const;
 
 export type FlowName = (typeof FLOW_NAMES)[keyof typeof FLOW_NAMES];

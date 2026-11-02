@@ -188,11 +188,11 @@ export interface EditableImmunizationData {
 
 export interface EditableRegularData {
   complaint: string;
-  allergyHistory: string;
-  heightCm: string | number;
-  weightKg: string | number;
-  bloodPressure: string;
-  notes: string;
+  allergyHistory?: string;
+  heightCm?: string | number;
+  weightKg?: string | number;
+  bloodPressure?: string;
+  notes?: string;
   answers: Record<string, any>;
 
   // Patient Identity & Demographic (Full Editability)

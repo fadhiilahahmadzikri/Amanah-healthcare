@@ -1363,29 +1363,75 @@ export async function exportRegulerDocx(
             ]
           ),
           paragraph(' ', { size: 4 }),
-          paragraph('III. ANAMNESIS & PEMERIKSAAN KLINIS', { bold: true, size: 8 }),
+          paragraph('III. KELUHAN UTAMA & ALASAN KUNJUNGAN', { bold: true, size: 8 }),
           table(
-            [3968, 3968, 3970],
+            [11900],
             [
               row([
-                textCell(`Tinggi Badan: ${data?.clinical?.vitalHeightCm || '-'}`, 3968, {
-                  size: 7.5
-                }),
-                textCell(`Berat Badan: ${data?.clinical?.vitalWeightKg || '-'}`, 3968, {
-                  size: 7.5
-                }),
-                textCell(`Tekanan Darah: ${data?.clinical?.vitalBloodPressure || '-'}`, 3970, {
-                  size: 7.5
-                })
+                cell(
+                  [
+                    paragraph('Keluhan Utama (Chief Complaint):', { bold: true, size: 7.5 }),
+                    paragraph(
+                      data?.chiefComplaint ||
+                        data?.clinical?.chiefComplaint ||
+                        'Tidak ada keluhan klinis yang dicatat saat pendaftaran.',
+                      { size: 7.5 }
+                    )
+                  ],
+                  11900
+                )
               ])
             ]
           ),
-          paragraph(`Keluhan Utama: ${data?.clinical?.chiefComplaint || '-'}`, { size: 7.5 }),
-          paragraph(`Riwayat Alergi: ${data?.clinical?.allergyHistory || '-'}`, {
-            size: 7.5,
-            bold: true
-          }),
-          paragraph(`Catatan Terapi: ${data?.clinical?.additionalNotes || '-'}`, { size: 7.5 })
+          paragraph(' ', { size: 6 }),
+          table(
+            [5950, 5950],
+            [
+              row([
+                cell(
+                  [
+                    paragraph(`Tanggal: ${data?.registrationDate || '-'}`, {
+                      size: 7.5,
+                      alignment: AlignmentType.CENTER
+                    }),
+                    paragraph('Pasien / Keluarga', {
+                      bold: true,
+                      size: 7.5,
+                      alignment: AlignmentType.CENTER
+                    }),
+                    paragraph(' ', { size: 30 }),
+                    paragraph(
+                      `( ${data?.identity?.fullName || '................................'} )`,
+                      { size: 7.5, alignment: AlignmentType.CENTER }
+                    )
+                  ],
+                  5950,
+                  { borders: noneCellBorders() }
+                ),
+                cell(
+                  [
+                    paragraph(`Tanggal: ${data?.registrationDate || '-'}`, {
+                      size: 7.5,
+                      alignment: AlignmentType.CENTER
+                    }),
+                    paragraph('Dokter Pemeriksa', {
+                      bold: true,
+                      size: 7.5,
+                      alignment: AlignmentType.CENTER
+                    }),
+                    paragraph(' ', { size: 30 }),
+                    paragraph(`( ${data?.doctorName || '................................'} )`, {
+                      size: 7.5,
+                      alignment: AlignmentType.CENTER
+                    })
+                  ],
+                  5950,
+                  { borders: noneCellBorders() }
+                )
+              ])
+            ],
+            { borders: noneTableBorders() }
+          )
         ]
       }
     ]

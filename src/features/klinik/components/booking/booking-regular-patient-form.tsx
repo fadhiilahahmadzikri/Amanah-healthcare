@@ -50,6 +50,16 @@ export function BookingRegularPatientForm({
     setFullName,
     nik,
     setNik,
+    phone,
+    setPhone,
+    email,
+    setEmail,
+    emergencyContactName,
+    setEmergencyContactName,
+    emergencyContactPhone,
+    setEmergencyContactPhone,
+    emergencyContactRelationship,
+    setEmergencyContactRelationship,
     motherName,
     setMotherName,
     placeOfBirth,
@@ -146,12 +156,32 @@ export function BookingRegularPatientForm({
       },
       {
         step: 8,
+        label: 'No. Telepon / WhatsApp',
+        value: phone || '-',
+        valueClass: 'font-mono font-bold text-primary'
+      },
+      {
+        step: 9,
+        label: 'Email',
+        value: email || '-',
+        valueClass: 'font-semibold text-foreground truncate max-w-[160px] sm:max-w-[210px]'
+      },
+      {
+        step: 10,
+        label: 'Kontak Darurat',
+        value: emergencyContactPhone
+          ? `${emergencyContactName || 'Kerabat'}${emergencyContactRelationship ? ` (${emergencyContactRelationship})` : ''} - ${emergencyContactPhone}`
+          : '-',
+        valueClass: 'font-semibold text-foreground truncate max-w-[160px] sm:max-w-[210px]'
+      },
+      {
+        step: 11,
         label: 'Alamat',
         value: region.line1 || '-',
         valueClass: 'font-semibold text-foreground truncate max-w-[160px] sm:max-w-[210px]'
       },
       {
-        step: 9,
+        step: 12,
         label: 'Pekerjaan',
         value: activeOccupationName || '-',
         valueClass:
@@ -162,6 +192,11 @@ export function BookingRegularPatientForm({
       activeRelationshipLabel,
       fullName,
       nik,
+      phone,
+      email,
+      emergencyContactName,
+      emergencyContactPhone,
+      emergencyContactRelationship,
       motherName,
       placeOfBirth,
       dateOfBirth,
@@ -328,13 +363,73 @@ export function BookingRegularPatientForm({
         )}
 
         {currentStep === 8 && (
+          <PatientLineInput
+            id='patient-phone'
+            label='No. Telepon / WhatsApp'
+            type='tel'
+            placeholder='contoh: 0812-3456-7890'
+            value={phone}
+            onChange={(val) => {
+              const numericOnly = val.replace(/[^\d+-\s]/g, '');
+              setPhone(numericOnly);
+            }}
+            maxLength={16}
+            autoComplete='tel'
+          />
+        )}
+
+        {currentStep === 9 && (
+          <PatientLineInput
+            id='patient-email'
+            label='Email Pasien (Opsional)'
+            type='email'
+            placeholder='contoh: pasien@email.com'
+            value={email}
+            onChange={(val) => setEmail(val.trim())}
+            autoComplete='email'
+          />
+        )}
+
+        {currentStep === 10 && (
+          <div className='space-y-3.5'>
+            <PatientLineInput
+              id='patient-emergency-name'
+              label='Nama Kontak Darurat (Opsional)'
+              placeholder='contoh: Budi Santoso / Siti Rahayu'
+              value={emergencyContactName}
+              onChange={setEmergencyContactName}
+            />
+            <PatientLineInput
+              id='patient-emergency-relationship'
+              label='Hubungan dengan Pasien (Opsional)'
+              placeholder='contoh: Orang Tua / Pasangan / Saudara'
+              value={emergencyContactRelationship}
+              onChange={setEmergencyContactRelationship}
+            />
+            <PatientLineInput
+              id='patient-emergency-phone'
+              label='No. Telepon Kontak Darurat (Opsional)'
+              type='tel'
+              placeholder='contoh: 0812-9876-5432'
+              value={emergencyContactPhone}
+              onChange={(val) => {
+                const numericOnly = val.replace(/[^\d+-\s]/g, '');
+                setEmergencyContactPhone(numericOnly);
+              }}
+              maxLength={16}
+              autoComplete='tel'
+            />
+          </div>
+        )}
+
+        {currentStep === 11 && (
           <PatientRegionDropdown
             values={region}
             onChange={(updates) => setRegion((prev) => ({ ...prev, ...updates }))}
           />
         )}
 
-        {currentStep === 9 && (
+        {currentStep === 12 && (
           <div className='space-y-1.5'>
             <PatientSearchableSelect
               id='patient-occupation'
@@ -354,7 +449,7 @@ export function BookingRegularPatientForm({
           </div>
         )}
 
-        {currentStep === 10 && (
+        {currentStep === 13 && (
           <div className='space-y-0.5 text-xs border border-border/80 rounded-2xl p-2 bg-muted/20'>
             {reviewItems.map((item, idx) => (
               <div

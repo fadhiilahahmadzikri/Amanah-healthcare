@@ -17,6 +17,7 @@ import { getRelationshipLabel } from '@/constants/relationship.constants';
 import type { InspectorTabProps } from './types';
 
 export function InspectorGenericView({
+  appointment,
   data,
   isEditing = false,
   regularFormData,
@@ -463,155 +464,80 @@ export function InspectorGenericView({
         )}
       </div>
 
-      {/* Skrining Klinis & Vitals (Review-first atau Editable) */}
+      {/* Informasi Pendaftaran & Keluhan Utama */}
       <div className='rounded-lg border border-border/50 p-4 bg-card'>
         <span className='text-xs font-bold text-foreground block mb-3 pb-1 border-b border-border/40'>
-          Data Klinis & Anamnesis Intake
+          Informasi Pendaftaran & Keluhan
         </span>
 
-        {isEditing && regularFormData && onRegularFieldChange ? (
-          <div className='space-y-4'>
-            <div className='space-y-1.5'>
-              <Label htmlFor='reg-complaint-input' className='text-xs font-medium text-foreground'>
-                Keluhan Utama
-              </Label>
-              <Textarea
-                id='reg-complaint-input'
-                value={regularFormData.complaint}
-                onChange={(e) => onRegularFieldChange('complaint', e.target.value)}
-                placeholder='Keluhan utama saat konsultasi...'
-                rows={3}
-                className='text-xs resize-none'
-              />
-            </div>
-
-            <div className='space-y-1.5'>
-              <Label htmlFor='reg-allergy-input' className='text-xs font-medium text-foreground'>
-                Riwayat Alergi (Obat / Makanan)
-              </Label>
-              <Input
-                id='reg-allergy-input'
-                value={regularFormData.allergyHistory}
-                onChange={(e) => onRegularFieldChange('allergyHistory', e.target.value)}
-                placeholder='Riwayat alergi...'
-                className='h-8 text-xs'
-              />
-            </div>
-
-            <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
-              <div className='space-y-1.5'>
-                <Label htmlFor='reg-height-input' className='text-xs font-medium text-foreground'>
-                  Tinggi Badan (cm)
-                </Label>
-                <Input
-                  id='reg-height-input'
-                  type='number'
-                  value={regularFormData.heightCm}
-                  onChange={(e) => onRegularFieldChange('heightCm', e.target.value)}
-                  placeholder='Contoh: 165'
-                  className='h-8 text-xs font-mono'
-                />
-              </div>
-
-              <div className='space-y-1.5'>
-                <Label htmlFor='reg-weight-input' className='text-xs font-medium text-foreground'>
-                  Berat Badan (kg)
-                </Label>
-                <Input
-                  id='reg-weight-input'
-                  type='number'
-                  value={regularFormData.weightKg}
-                  onChange={(e) => onRegularFieldChange('weightKg', e.target.value)}
-                  placeholder='Contoh: 60'
-                  className='h-8 text-xs font-mono'
-                />
-              </div>
-
-              <div className='space-y-1.5'>
-                <Label htmlFor='reg-bp-input' className='text-xs font-medium text-foreground'>
-                  Tekanan Darah (mmHg)
-                </Label>
-                <Input
-                  id='reg-bp-input'
-                  value={regularFormData.bloodPressure}
-                  onChange={(e) => onRegularFieldChange('bloodPressure', e.target.value)}
-                  placeholder='Contoh: 120/80'
-                  className='h-8 text-xs font-mono'
-                />
-              </div>
-            </div>
-
-            <div className='space-y-1.5'>
-              <Label htmlFor='reg-notes-input' className='text-xs font-medium text-foreground'>
-                Catatan Tambahan
-              </Label>
-              <Textarea
-                id='reg-notes-input'
-                value={regularFormData.notes}
-                onChange={(e) => onRegularFieldChange('notes', e.target.value)}
-                placeholder='Catatan skrining atau anjuran medis awal...'
-                rows={3}
-                className='text-xs resize-none'
-              />
-            </div>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-5 select-text mb-3'>
+          <div className='border-b border-border/40 pb-2'>
+            <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+              Kode Booking
+            </span>
+            <span className='text-sm font-semibold font-mono text-primary block truncate'>
+              {data.bookingCode || appointment.booking_code || '-'}
+            </span>
           </div>
-        ) : (
-          <div className='grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-5 select-text'>
-            <div className='col-span-1 sm:col-span-2 border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                Keluhan Utama
-              </span>
-              <p className='text-sm font-semibold text-foreground leading-relaxed'>
+
+          <div className='border-b border-border/40 pb-2'>
+            <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+              Layanan Medis
+            </span>
+            <span className='text-sm font-semibold text-foreground block truncate'>
+              {data.serviceName || appointment.service || '-'}
+            </span>
+          </div>
+
+          <div className='border-b border-border/40 pb-2'>
+            <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+              Dokter Jaga / Pemeriksa
+            </span>
+            <span className='text-sm font-semibold text-foreground block truncate'>
+              {appointment.doctor_name || '-'}
+            </span>
+          </div>
+
+          <div className='border-b border-border/40 pb-2'>
+            <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+              Waktu Konsultasi
+            </span>
+            <span className='text-sm font-semibold text-foreground block truncate'>
+              {data.scheduledDate || appointment.date || '-'} (
+              {data.scheduledStartTime || appointment.scheduled_start_time || '-'} WIB)
+            </span>
+          </div>
+        </div>
+
+        <div className='pt-1'>
+          <Label
+            htmlFor='reg-complaint-input'
+            className='text-xs font-semibold text-foreground block mb-1.5'
+          >
+            Keluhan Utama / Alasan Kunjungan
+          </Label>
+          {isEditing && regularFormData && onRegularFieldChange ? (
+            <Textarea
+              id='reg-complaint-input'
+              value={regularFormData.complaint}
+              onChange={(e) => onRegularFieldChange('complaint', e.target.value)}
+              placeholder='Keluhan utama saat konsultasi...'
+              rows={3}
+              className='text-xs resize-none'
+            />
+          ) : (
+            <div className='p-3 rounded-md bg-muted/20 border border-border/40 select-text'>
+              <p className='text-xs sm:text-sm font-medium text-foreground leading-relaxed'>
                 {regularFormData?.complaint ||
                   answers.complaint ||
                   answers.keluhanUtama ||
                   data.complaint ||
+                  appointment.complaint ||
                   '-'}
               </p>
             </div>
-
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                Riwayat Alergi
-              </span>
-              <span className='text-sm font-medium text-foreground block truncate'>
-                {regularFormData?.allergyHistory ||
-                  answers.allergy ||
-                  answers.allergyHistory ||
-                  answers.riwayatAlergi ||
-                  'Tidak ada riwayat alergi'}
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                Tinggi / Berat Badan
-              </span>
-              <span className='text-sm font-semibold font-mono text-foreground block truncate'>
-                {regularFormData?.heightCm || answers.height || '-'} cm /{' '}
-                {regularFormData?.weightKg || answers.weight || '-'} kg
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                Tekanan Darah
-              </span>
-              <span className='text-sm font-semibold font-mono text-foreground block truncate'>
-                {regularFormData?.bloodPressure || answers.bloodPressure || '-'} mmHg
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                Catatan Tambahan
-              </span>
-              <span className='text-sm font-medium text-foreground block truncate'>
-                {regularFormData?.notes || answers.notes || '-'}
-              </span>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {autoEntries.length > 0 && (

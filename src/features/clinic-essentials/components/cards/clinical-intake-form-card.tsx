@@ -22,7 +22,7 @@ export interface ClinicalIntakeFormCardProps {
   isTogglingActive?: boolean;
   onOpenBuilder?: (form: ClinicalIntakeForm) => void;
   onEdit?: (form: ClinicalIntakeForm) => void;
-  onDelete: (form: ClinicalIntakeForm) => void;
+  onDelete?: (form: ClinicalIntakeForm) => void;
   onCardClick?: (form: ClinicalIntakeForm) => void;
   className?: string;
 }
@@ -42,6 +42,7 @@ export function ClinicalIntakeFormCard({
   className
 }: ClinicalIntakeFormCardProps) {
   const isActive = form.isActive !== false;
+  const isSystemForm = form.code === 'pregnancy' || form.code === 'immunization';
   const { wrapperRef, containerProps } = useCardBulkingSlide({ selected, isBulkingActive });
 
   const handleCardClick = React.useCallback(() => {
@@ -201,19 +202,21 @@ export function ClinicalIntakeFormCard({
                 <Pencil className='size-3.5' />
               </Button>
             )}
-            <Button
-              type='button'
-              variant='ghost'
-              size='icon'
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(form);
-              }}
-              className='size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md cursor-pointer'
-              title={`Hapus permanen ${form.name}`}
-            >
-              <Trash2 className='size-3.5' />
-            </Button>
+            {onDelete && !isSystemForm && (
+              <Button
+                type='button'
+                variant='ghost'
+                size='icon'
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(form);
+                }}
+                className='size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md cursor-pointer'
+                title={`Hapus permanen ${form.name}`}
+              >
+                <Trash2 className='size-3.5' />
+              </Button>
+            )}
           </div>
         )}
       </div>

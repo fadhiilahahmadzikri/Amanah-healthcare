@@ -15,7 +15,7 @@ export interface RegulerFormTemplateProps {
 
 export const RegulerFormTemplate: React.FC<RegulerFormTemplateProps> = ({
   data = null,
-  config = defaultRegulerConfig,
+  config = defaultRegulerConfig
 }) => {
   return (
     <DocumentPage>
@@ -26,11 +26,11 @@ export const RegulerFormTemplate: React.FC<RegulerFormTemplateProps> = ({
         bookingCode={data?.bookingCode}
       />
       <RegulerEncounterSection data={data ?? undefined} />
-      <RegulerIdentitySection
-        identity={data?.identity}
-        emergencyContact={data?.emergencyContact}
+      <RegulerIdentitySection identity={data?.identity} emergencyContact={data?.emergencyContact} />
+      <RegulerClinicalNotesSection
+        chiefComplaint={data?.chiefComplaint || data?.clinical?.chiefComplaint}
+        clinical={data?.clinical}
       />
-      <RegulerClinicalNotesSection clinical={data?.clinical} />
       <RegulerSignSection
         doctorName={data?.doctorName}
         patientName={data?.identity?.fullName}

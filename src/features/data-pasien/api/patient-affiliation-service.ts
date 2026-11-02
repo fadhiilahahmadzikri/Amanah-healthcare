@@ -33,7 +33,11 @@ export interface PatientAffiliationProfile {
   occupationCode?: string | null;
   occupationName?: string | null;
   phoneNumber?: string | null;
+  phone?: string | null;
   email?: string | null;
+  emergencyContactName?: string | null;
+  emergencyContactPhone?: string | null;
+  emergencyContactRelationship?: string | null;
   status?: string;
   isActive?: boolean;
   isSelf?: boolean;
@@ -65,6 +69,9 @@ export interface BookingContextPatient {
   villageCode?: string | null;
   phoneNumber?: string | null;
   email?: string | null;
+  emergencyContactName?: string | null;
+  emergencyContactPhone?: string | null;
+  emergencyContactRelationship?: string | null;
   relationship: string;
   relationshipLabel: string;
   occupationName: string | null;
@@ -139,11 +146,56 @@ export interface CreatePatientAffiliationDto {
   villageName?: string;
   villageCode?: string;
   email?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  emergencyContactRelationship?: string;
 }
 
 export type CreateAffiliationPayload = CreatePatientAffiliationDto;
 
-function mapAffiliationEntityToProfile(entity: any): PatientAffiliationProfile {
+export interface PatientAffiliationServerEntity {
+  id: string;
+  userId: string;
+  patientId: string;
+  relationshipTypeId?: string | null;
+  relationshipType: string;
+  relationLabel?: string | null;
+  isPrimary?: boolean;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+  patient?: {
+    id: string;
+    fullName?: string | null;
+    nik?: string | null;
+    motherName?: string | null;
+    birthPlace?: string | null;
+    birthDate?: string | null;
+    gender?: Gender;
+    bloodType?: string | null;
+    address?: string | null;
+    line1?: string | null;
+    provinceName?: string | null;
+    provinceCode?: string | null;
+    regencyName?: string | null;
+    regencyCode?: string | null;
+    districtName?: string | null;
+    districtCode?: string | null;
+    villageName?: string | null;
+    villageCode?: string | null;
+    phoneNumber?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    occupation?: string | null;
+    emergencyContactName?: string | null;
+    emergencyContactPhone?: string | null;
+    emergencyContactRelationship?: string | null;
+    status?: string | null;
+  } | null;
+}
+
+function mapAffiliationEntityToProfile(
+  entity: PatientAffiliationServerEntity
+): PatientAffiliationProfile {
   const patient = entity?.patient;
 
   return {
@@ -154,7 +206,7 @@ function mapAffiliationEntityToProfile(entity: any): PatientAffiliationProfile {
     motherName: patient?.motherName ?? null,
     birthPlace: patient?.birthPlace ?? null,
     birthDate: patient?.birthDate ?? null,
-    gender: patient?.gender,
+    gender: patient?.gender ?? 'male',
     bloodType: (patient?.bloodType as PatientBloodType) ?? null,
     address: patient?.address ?? null,
     line1: patient?.line1 ?? null,
@@ -170,8 +222,12 @@ function mapAffiliationEntityToProfile(entity: any): PatientAffiliationProfile {
     relationshipLabel: getRelationshipLabel(entity.relationshipType, entity.relationLabel),
     occupationCode: null,
     occupationName: patient?.occupation ?? null,
-    phoneNumber: patient?.phoneNumber ?? null,
+    phoneNumber: patient?.phoneNumber ?? patient?.phone ?? null,
+    phone: patient?.phone ?? patient?.phoneNumber ?? null,
     email: patient?.email ?? null,
+    emergencyContactName: patient?.emergencyContactName ?? null,
+    emergencyContactPhone: patient?.emergencyContactPhone ?? null,
+    emergencyContactRelationship: patient?.emergencyContactRelationship ?? null,
     status: patient?.status ?? 'active',
     isSelf: entity.relationshipType === 'self' || Boolean(entity.isPrimary)
   };
@@ -270,7 +326,7 @@ export const patientAffiliationService = {
     try {
       const res = await clientFetch<{
         success: boolean;
-        data: any[];
+        data: PatientAffiliationServerEntity[];
       }>('/api/v1/patients/affiliations/me');
       const list = Array.isArray(res?.data) ? res.data : [];
       return list.map(mapAffiliationEntityToProfile);
@@ -284,7 +340,7 @@ export const patientAffiliationService = {
     const res = await clientFetch<{
       success: boolean;
       message: string;
-      data: any;
+      data: PatientAffiliationServerEntity;
     }>('/api/v1/patients/affiliations', {
       method: 'POST',
       body: JSON.stringify(dto)

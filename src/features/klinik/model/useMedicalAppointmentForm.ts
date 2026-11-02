@@ -9,16 +9,10 @@ import { kiaIntakeService } from '../api/kia-intake-service';
 import { formRequirementGuard } from './form-requirement-guard';
 import type { AppointmentFormData, Doctor, MedicalAppointmentFlow } from '../api/types';
 import { getDoctorsByService } from '../api/service';
-import { VISIT_TYPE } from '@/constants/visit-type.constants';
 import {
   getMedicalFlowDefinition,
-  type MedicalFlowDefinition,
   type MedicalFormSection
 } from '../constants/medical-appointment-schemas';
-import {
-  convertJsonSchemaToSections,
-  DEFAULT_RICH_FORM_TEMPLATE
-} from '../constants/default-form-template';
 import { enrichMedicalFlowDefinition, useMaternalCatalogs } from './useMaternalCatalogs';
 import {
   buildDefaultMedicalValues,
@@ -50,9 +44,8 @@ import {
 import {
   ALLERGY_GATEWAY_CHOICE,
   CATALOG_ACTION_TYPES,
-  SECTION_IDS,
   STEP_DESCRIPTOR_TYPES
-} from '../constants/medical-appointment-types';
+} from '../constants/kia-constants';
 import { useMedicalFormHistory } from './useMedicalFormHistory';
 import { useMedicalFormCalculations } from './useMedicalFormCalculations';
 import { useRegisteredPatient } from './useRegisteredPatient';
@@ -82,8 +75,6 @@ export interface UseMedicalAppointmentFormOptions {
   selectedService?: ServiceCatalogItem | null;
   selectedPatient?: PatientAffiliationProfile | null;
   newPatientRelationship?: PatientRelationshipType | string;
-  customDefinition?: MedicalFlowDefinition | null;
-  builderMode?: boolean;
   onClose: () => void;
   onCreated?: (formData: AppointmentFormData) => void;
   onCompleteIntake?: (context: ReservationContext) => void;
@@ -98,34 +89,18 @@ export function useMedicalAppointmentForm({
   selectedService,
   selectedPatient,
   newPatientRelationship,
-  customDefinition,
-  builderMode = false,
   onClose,
   onCreated,
   onCompleteIntake,
   onBackToService
 }: UseMedicalAppointmentFormOptions) {
   const baseDefinition = React.useMemo(() => {
-    if (customDefinition) {
-      return customDefinition;
-    }
     const def = getMedicalFlowDefinition(flow);
     if (!def) {
-      const fallbackSections = convertJsonSchemaToSections(DEFAULT_RICH_FORM_TEMPLATE, builderMode);
-      return {
-        flow,
-        formTitle: 'Formulir Pengkajian Klinis',
-        formDescription: 'Lengkapi data pengkajian klinis pasien.',
-        serviceName: 'Layanan Medis',
-        visitType: VISIT_TYPE.NEW_VISIT,
-        patientNameFieldId: 'patient_full_name',
-        patientContactFieldId: 'patient_phone',
-        complaintFieldId: 'patient_chief_complaint',
-        sections: fallbackSections
-      } as MedicalFlowDefinition;
+      throw new Error(`Clinical intake form definition not registered for flow: "${flow}"`);
     }
     return def;
-  }, [flow, customDefinition, builderMode]);
+  }, [flow]);
   const { catalogs } = useMaternalCatalogs(isOpen && flow === 'pregnancy');
   const definition = React.useMemo(
     () => enrichMedicalFlowDefinition(baseDefinition, catalogs),
@@ -234,52 +209,39 @@ export function useMedicalAppointmentForm({
     );
   }, [registrationPrefill]);
 
-  const visibleMedicalSections = React.useMemo(() => {
-    if (builderMode) {
-      return definition.sections;
-    }
-    return repeatableMedicalSections
-      .map((section) => ({
-        ...section,
-        fields: section.fields.filter(
-          (field) =>
-            !omittedFieldIdsSet.has(field.id) &&
-            !prefilledFieldIds.has(field.id) &&
-            (!field.visibleIf || field.visibleIf(values))
-        )
-      }))
-      .filter((section) => section.id === SECTION_IDS.VACCINE_HISTORY || section.fields.length > 0);
-  }, [
-    builderMode,
-    definition.sections,
-    repeatableMedicalSections,
-    omittedFieldIdsSet,
-    prefilledFieldIds,
-    values
-  ]);
+  const visibleMedicalSections = React.useMemo(
+    () =>
+      repeatableMedicalSections
+        .map((section) => ({
+          ...section,
+          fields: section.fields.filter(
+            (field) =>
+              !omittedFieldIdsSet.has(field.id) &&
+              !prefilledFieldIds.has(field.id) &&
+              (!field.visibleIf || field.visibleIf(values))
+          )
+        }))
+        .filter((section) => section.id === 'vaccineHistory' || section.fields.length > 0),
+    [repeatableMedicalSections, omittedFieldIdsSet, prefilledFieldIds, values]
+  );
 
-  const activeSteps = React.useMemo<StepDescriptor[]>(() => {
-    if (builderMode) {
-      return visibleMedicalSections.map((_, sectionIndex) => ({
-        type: STEP_DESCRIPTOR_TYPES.MEDICAL,
-        sectionIndex
-      }));
-    }
-    return buildMedicalActiveSteps({
+  const activeSteps = React.useMemo<StepDescriptor[]>(
+    () =>
+      buildMedicalActiveSteps({
+        visibleMedicalSections,
+        hasPreviousPregnancyHistory: values.hasPreviousPregnancyHistory,
+        hasContraceptionHistory: values.hasContraceptionHistory,
+        historyCounts: history.historyCounts,
+        catalogAction: history.catalogAction
+      }),
+    [
       visibleMedicalSections,
-      hasPreviousPregnancyHistory: values.hasPreviousPregnancyHistory,
-      hasContraceptionHistory: values.hasContraceptionHistory,
-      historyCounts: history.historyCounts,
-      catalogAction: history.catalogAction
-    });
-  }, [
-    builderMode,
-    visibleMedicalSections,
-    values.hasPreviousPregnancyHistory,
-    values.hasContraceptionHistory,
-    history.historyCounts,
-    history.catalogAction
-  ]);
+      values.hasPreviousPregnancyHistory,
+      values.hasContraceptionHistory,
+      history.historyCounts,
+      history.catalogAction
+    ]
+  );
 
   const totalSteps = activeSteps.length;
   const currentDescriptor = activeSteps[currentStep - 1] || activeSteps[0];
@@ -545,10 +507,8 @@ export function useMedicalAppointmentForm({
   }
 
   const isStepValid = React.useMemo(
-    () =>
-      builderMode ||
-      checkCurrentStepValid(currentDescriptor, visibleMedicalSections, values, schedule),
-    [builderMode, currentDescriptor, visibleMedicalSections, values, schedule]
+    () => checkCurrentStepValid(currentDescriptor, visibleMedicalSections, values, schedule),
+    [currentDescriptor, visibleMedicalSections, values, schedule]
   );
 
   return {

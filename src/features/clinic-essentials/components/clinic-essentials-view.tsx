@@ -977,23 +977,6 @@ export function ClinicEssentialsView() {
                     </Button>
                   )}
 
-                  {activeTab === 'forms' && (
-                    <Button
-                      type='button'
-                      size={isCompact ? 'icon' : 'sm'}
-                      onClick={() => setActiveModal({ type: 'form' })}
-                      className={
-                        isCompact
-                          ? 'size-8 rounded-md shrink-0 shadow-xs'
-                          : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
-                      }
-                      title='Tambah Formulir Pengkajian'
-                    >
-                      <Plus className='size-3.5' />
-                      {!isCompact && <span>Tambah Formulir</span>}
-                    </Button>
-                  )}
-
                   {activeTab === 'relationships' && (
                     <Button
                       type='button'
@@ -1072,16 +1055,6 @@ export function ClinicEssentialsView() {
                       >
                         <Stethoscope className='size-4 text-primary' />
                         <span>Tambah Service Medis</span>
-                      </DropdownMenuItem>
-
-                      <DropdownMenuSeparator />
-
-                      <DropdownMenuItem
-                        onClick={() => setActiveModal({ type: 'form' })}
-                        className='cursor-pointer gap-2'
-                      >
-                        <ClipboardList className='size-4 text-primary' />
-                        <span>Tambah Formulir Pengkajian</span>
                       </DropdownMenuItem>
 
                       <DropdownMenuSeparator />
@@ -1433,17 +1406,6 @@ export function ClinicEssentialsView() {
               <EmptyState
                 title='Belum ada formulir pengkajian'
                 description='Daftarkan formulir pengkajian klinis agar service dapat terhubung ke lembar intake pasien.'
-                action={
-                  canManage ? (
-                    <Button
-                      size='sm'
-                      onClick={() => setActiveModal({ type: 'form' })}
-                      className='text-xs gap-1.5 h-8'
-                    >
-                      <Plus className='size-3.5' /> Tambah Formulir
-                    </Button>
-                  ) : undefined
-                }
               />
             ) : filteredForms.length === 0 ? (
               <EmptyState
@@ -1475,8 +1437,10 @@ export function ClinicEssentialsView() {
                       toggleActiveMutation.variables?.id === f.id
                     }
                     onEdit={(item) => setActiveModal({ type: 'form', editItem: item })}
-                    onDelete={(item) =>
-                      setDeletingItem({ type: 'forms', id: item.id, name: item.name })
+                    onDelete={
+                      f.code === 'pregnancy' || f.code === 'immunization'
+                        ? undefined
+                        : (item) => setDeletingItem({ type: 'forms', id: item.id, name: item.name })
                     }
                   />
                 ))}
@@ -1744,23 +1708,6 @@ export function ClinicEssentialsView() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Dynamic Form Schema Builder Modal */}
-      {builderForm && (
-        <MedicalAppointmentModal
-          flow={builderForm.code as any}
-          isOpen={Boolean(builderForm)}
-          builderMode={true}
-          initialSchema={builderForm.schema}
-          formTitle={builderForm.name}
-          formDescription={builderForm.description || undefined}
-          onSaveSchema={async (newSchema) => {
-            await clinicEssentialsApi.updateFormSchema(builderForm.id, newSchema);
-            queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.forms() });
-          }}
-          onClose={() => setBuilderForm(null)}
-        />
-      )}
     </div>
   );
 }

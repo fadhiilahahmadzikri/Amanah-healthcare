@@ -29,8 +29,8 @@ export interface UseBookingRegularPatientFormOptions {
 export function useBookingRegularPatientForm({
   onSuccess,
   onCancel,
-  targetFlow,
-  onRelationshipSubmit,
+  targetFlow: _targetFlow,
+  onRelationshipSubmit: _onRelationshipSubmit,
   allowedRelationships,
   hasExistingSelf = false,
   initialRelationship
@@ -87,6 +87,11 @@ export function useBookingRegularPatientForm({
 
   const [fullName, setFullName] = React.useState('');
   const [nik, setNik] = React.useState('');
+  const [phone, setPhone] = React.useState('');
+  const [email, setEmail] = React.useState('');
+  const [emergencyContactName, setEmergencyContactName] = React.useState('');
+  const [emergencyContactPhone, setEmergencyContactPhone] = React.useState('');
+  const [emergencyContactRelationship, setEmergencyContactRelationship] = React.useState('');
   const [motherName, setMotherName] = React.useState('');
   const [placeOfBirth, setPlaceOfBirth] = React.useState('');
   const [dateOfBirth, setDateOfBirth] = React.useState('');
@@ -124,7 +129,7 @@ export function useBookingRegularPatientForm({
     setTimeout(() => {
       if (isEditingFromReview) {
         setIsEditingFromReview(false);
-        setCurrentStep(10);
+        setCurrentStep(13);
       } else {
         setCurrentStep(8);
       }
@@ -165,11 +170,30 @@ export function useBookingRegularPatientForm({
         return Boolean(gender);
       case 7:
         return Boolean(bloodType && bloodType.trim().length > 0);
-      case 8:
+      case 8: {
+        const cleanPhone = phone.replace(/\D/g, '');
+        return cleanPhone.length >= 8 && cleanPhone.length <= 15;
+      }
+      case 9: {
+        if (!email.trim()) return true;
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+      }
+      case 10: {
+        const cleanEmergencyPhone = emergencyContactPhone.replace(/\D/g, '');
+        if (
+          !emergencyContactName.trim() &&
+          !cleanEmergencyPhone &&
+          !emergencyContactRelationship.trim()
+        ) {
+          return true;
+        }
+        return cleanEmergencyPhone.length >= 8 && cleanEmergencyPhone.length <= 15;
+      }
+      case 11:
         return Boolean(region.line1.trim());
-      case 9:
+      case 12:
         return Boolean(occupationCode);
-      case 10:
+      case 13:
         return true;
       default:
         return false;
@@ -179,20 +203,24 @@ export function useBookingRegularPatientForm({
     relationship,
     fullName,
     nik,
+    phone,
+    email,
+    emergencyContactName,
+    emergencyContactPhone,
+    emergencyContactRelationship,
     motherName,
     placeOfBirth,
     dateOfBirth,
     gender,
     bloodType,
     region.line1,
-    occupationCode,
-    references.isLoading
+    occupationCode
   ]);
 
   const handleBack = () => {
     if (isEditingFromReview) {
       setIsEditingFromReview(false);
-      setCurrentStep(10);
+      setCurrentStep(13);
       return;
     }
 
@@ -215,6 +243,11 @@ export function useBookingRegularPatientForm({
       relationshipType: relationship,
       name: fullName.trim(),
       nik: nik.trim(),
+      phone: phone.trim() || undefined,
+      email: email.trim() || undefined,
+      emergencyContactName: emergencyContactName.trim() || undefined,
+      emergencyContactPhone: emergencyContactPhone.trim() || undefined,
+      emergencyContactRelationship: emergencyContactRelationship.trim() || undefined,
       birthPlace: placeOfBirth.trim(),
       birthDate: dateOfBirth,
       gender: gender as PatientGender,
@@ -253,11 +286,11 @@ export function useBookingRegularPatientForm({
     if (isEditingFromReview) {
       isAnimatingRef.current = true;
       setIsEditingFromReview(false);
-      setCurrentStep(10);
+      setCurrentStep(13);
       return;
     }
 
-    if (currentStep < 10) {
+    if (currentStep < 13) {
       isAnimatingRef.current = true;
       setCurrentStep((prev) => prev + 1);
     } else {
@@ -364,15 +397,33 @@ export function useBookingRegularPatientForm({
         };
       case 8:
         return {
+          title: 'Nomor WhatsApp atau telepon',
+          description:
+            'Nomor aktif yang dapat dihubungi untuk konfirmasi antrean dan pengingat janji temu'
+        };
+      case 9:
+        return {
+          title: 'Alamat email pasien',
+          description:
+            'Alamat email aktif untuk menerima tagihan pembayaran, resume medis, dan pemberitahuan faskes (opsional)'
+        };
+      case 10:
+        return {
+          title: 'Kontak darurat kerabat',
+          description:
+            'Keluarga atau kerabat terdekat yang dapat dihubungi faskes dalam keadaan darurat medis (opsional)'
+        };
+      case 11:
+        return {
           title: 'Alamat domisili saat ini',
           description: 'Alamat tempat tinggal untuk rujukan dan data pasien'
         };
-      case 9:
+      case 12:
         return {
           title: 'Pekerjaan pasien',
           description: 'Pilih jenis pekerjaan atau kegiatan utama sehari-hari'
         };
-      case 10:
+      case 13:
         return {
           title: 'Konfirmasi data pendaftaran',
           description: 'Periksa kembali kelengkapan data sebelum disimpan'
@@ -383,13 +434,13 @@ export function useBookingRegularPatientForm({
           description: 'Lengkapi data identitas'
         };
     }
-  }, [currentStep, relationship, knowsBloodType]);
+  }, [currentStep, relationship]);
 
-  const isReviewStep = currentStep === 10;
+  const isReviewStep = currentStep === 13;
 
   return {
     currentStep,
-    totalSteps: 9,
+    totalSteps: 12,
     isReviewStep,
     currentStepMeta,
     stepContainerRef,
@@ -401,6 +452,16 @@ export function useBookingRegularPatientForm({
     setFullName,
     nik,
     setNik,
+    phone,
+    setPhone,
+    email,
+    setEmail,
+    emergencyContactName,
+    setEmergencyContactName,
+    emergencyContactPhone,
+    setEmergencyContactPhone,
+    emergencyContactRelationship,
+    setEmergencyContactRelationship,
     motherName,
     setMotherName,
     placeOfBirth,

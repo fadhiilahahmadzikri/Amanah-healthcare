@@ -326,11 +326,6 @@ function buildInitialRegularData(
   const p = parsedData.patient;
   return {
     complaint: a.complaint || a.keluhanUtama || appointment.complaint || parsedData.complaint || '',
-    allergyHistory: a.allergy || a.allergyHistory || a.riwayatAlergi || '',
-    heightCm: a.height || a.heightCm || a.vitalHeightCm || '',
-    weightKg: a.weight || a.weightKg || a.vitalWeightKg || '',
-    bloodPressure: a.bloodPressure || a.vitalBloodPressure || '',
-    notes: a.notes || a.additionalNotes || '',
     answers: { ...a },
 
     // Demographic fields
@@ -395,7 +390,13 @@ export function AppointmentFormInspector({
           : serverIntake.data
         : serverIntake;
 
-    const flow = serverIntake?.flow ?? appointment.medical_flow;
+    const rawFlow = serverIntake?.flow ?? appointment.medical_flow;
+    const flow =
+      rawFlow === FLOW_NAMES.PREGNANCY
+        ? FLOW_NAMES.PREGNANCY
+        : rawFlow === FLOW_NAMES.IMMUNIZATION
+          ? FLOW_NAMES.IMMUNIZATION
+          : FLOW_NAMES.REGULAR;
 
     let answers: Record<string, any> = {};
     let automatic: Record<string, any> = {};
@@ -863,14 +864,7 @@ export function AppointmentFormInspector({
       const answersPayload = {
         ...regularFormData.answers,
         complaint: regularFormData.complaint,
-        keluhanUtama: regularFormData.complaint,
-        allergy: regularFormData.allergyHistory,
-        allergyHistory: regularFormData.allergyHistory,
-        riwayatAlergi: regularFormData.allergyHistory,
-        height: regularFormData.heightCm,
-        weight: regularFormData.weightKg,
-        bloodPressure: regularFormData.bloodPressure,
-        notes: regularFormData.notes
+        keluhanUtama: regularFormData.complaint
       };
 
       const patientId = parsedData.patient?.id || appointment.patient_id;
@@ -1010,8 +1004,8 @@ export function AppointmentFormInspector({
                     ? 'Perbarui identitas anak, orang tua, riwayat vaksin & catatan alergi'
                     : 'Data riwayat vaksinasi dan tumbuh kembang anak'
                   : isEditing
-                    ? 'Perbarui data keluhan, riwayat alergi & tanda vital intake pasien'
-                    : 'Data rekam medis & profil intake pasien'}
+                    ? 'Perbarui data pendaftaran & identitas pasien'
+                    : 'Data rekam medis & pendaftaran pasien'}
             </p>
           </div>
 

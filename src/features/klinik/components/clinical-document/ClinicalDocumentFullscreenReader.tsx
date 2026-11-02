@@ -55,7 +55,7 @@ export const ClinicalDocumentFullscreenReader: React.FC<ClinicalDocumentFullscre
   }, []);
 
   const handlePrint = useCallback(() => {
-    const title = `Formulir-Klinis-${flow.toUpperCase()}`;
+    const title = `Formulir-Klinis-${(flow || 'REGULER').toUpperCase()}`;
     const targetEl = canvasRef.current?.querySelector('.document-a4-page') as HTMLElement | null;
     printDocument(title, targetEl);
   }, [flow]);
@@ -391,7 +391,9 @@ export const ClinicalDocumentFullscreenReader: React.FC<ClinicalDocumentFullscre
         >
           {flow === 'pregnancy' && <PmbFormTemplate data={pmbData} />}
           {flow === 'immunization' && <ImunisasiFormTemplate data={imunisasiData} />}
-          {flow === 'regular' && <RegulerFormTemplate data={regulerData} />}
+          {flow !== 'pregnancy' && flow !== 'immunization' && (
+            <RegulerFormTemplate data={regulerData} />
+          )}
         </div>
       </main>
     </div>

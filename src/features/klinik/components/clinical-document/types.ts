@@ -290,6 +290,7 @@ export interface RegulerFormData {
     relationship?: string;
     phoneNumber?: string;
   };
+  chiefComplaint?: string;
   clinical?: {
     chiefComplaint?: string;
     allergyHistory?: string;

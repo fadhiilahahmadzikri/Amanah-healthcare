@@ -34,6 +34,9 @@ export interface Patient {
   village_name?: string | null;
   village_code?: string | null;
   emergency_contact?: string;
+  emergencyContactName?: string | null;
+  emergencyContactPhone?: string | null;
+  emergencyContactRelationship?: string | null;
   allergies?: string[];
   medical_history?: string;
   status: PatientAccountStatus;
@@ -115,9 +118,14 @@ export type PatientMutationPayload = Partial<Patient> & {
   name: string;
   patient_id?: string;
   medical_record_number?: string;
+  medicalRecordNumber?: string;
   nik?: string;
   gender?: PatientGender;
   birth_date?: string;
   phone?: string;
+  email?: string;
   address?: string;
+  emergencyContactName?: string | null;
+  emergencyContactPhone?: string | null;
+  emergencyContactRelationship?: string | null;
 };

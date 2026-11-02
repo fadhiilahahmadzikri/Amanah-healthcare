@@ -45,6 +45,11 @@ export function BookingRegularPatientEditModal({
   const [relationship, setRelationship] = React.useState<PatientRelationshipType>('spouse');
   const [fullName, setFullName] = React.useState('');
   const [nik, setNik] = React.useState('');
+  const [phone, setPhone] = React.useState('');
+  const [email, setEmail] = React.useState('');
+  const [emergencyContactName, setEmergencyContactName] = React.useState('');
+  const [emergencyContactPhone, setEmergencyContactPhone] = React.useState('');
+  const [emergencyContactRelationship, setEmergencyContactRelationship] = React.useState('');
   const [motherName, setMotherName] = React.useState('');
   const [placeOfBirth, setPlaceOfBirth] = React.useState('');
   const [dateOfBirth, setDateOfBirth] = React.useState('');
@@ -72,6 +77,11 @@ export function BookingRegularPatientEditModal({
       setRelationship(currentRel);
       setFullName(patient.fullName || '');
       setNik(patient.nik || '');
+      setPhone(patient.phone || patient.phoneNumber || '');
+      setEmail(patient.email || '');
+      setEmergencyContactName(patient.emergencyContactName || '');
+      setEmergencyContactPhone(patient.emergencyContactPhone || '');
+      setEmergencyContactRelationship(patient.emergencyContactRelationship || '');
       setMotherName(patient.motherName || '');
       setPlaceOfBirth(patient.birthPlace || '');
       const rawDate = patient.birthDate || '';
@@ -137,10 +147,23 @@ export function BookingRegularPatientEditModal({
   }, [references.occupations, occupationCode, patient?.occupationName]);
 
   const isValid = React.useMemo(() => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    const isEmailValid = !email.trim() || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+    const cleanEmergencyPhone = emergencyContactPhone.replace(/\D/g, '');
+    const isEmergencyValid =
+      (!emergencyContactName.trim() &&
+        !cleanEmergencyPhone &&
+        !emergencyContactRelationship.trim()) ||
+      (cleanEmergencyPhone.length >= 8 && cleanEmergencyPhone.length <= 15);
+
     return (
       fullName.trim().length >= 3 &&
       nik.length === 16 &&
       /^\d+$/.test(nik) &&
+      cleanPhone.length >= 8 &&
+      cleanPhone.length <= 15 &&
+      isEmailValid &&
+      isEmergencyValid &&
       motherName.trim().length >= 3 &&
       placeOfBirth.trim().length >= 2 &&
       Boolean(dateOfBirth) &&
@@ -151,6 +174,11 @@ export function BookingRegularPatientEditModal({
   }, [
     fullName,
     nik,
+    phone,
+    email,
+    emergencyContactName,
+    emergencyContactPhone,
+    emergencyContactRelationship,
     motherName,
     placeOfBirth,
     dateOfBirth,
@@ -175,6 +203,11 @@ export function BookingRegularPatientEditModal({
     const payload = {
       name: fullName.trim(),
       nik: nik.trim(),
+      phone: phone.trim() || undefined,
+      email: email.trim() || undefined,
+      emergencyContactName: emergencyContactName.trim() || undefined,
+      emergencyContactPhone: emergencyContactPhone.trim() || undefined,
+      emergencyContactRelationship: emergencyContactRelationship.trim() || undefined,
       birth_place: placeOfBirth.trim(),
       birth_date: dateOfBirth,
       gender: gender,
@@ -202,6 +235,12 @@ export function BookingRegularPatientEditModal({
           ...patient,
           fullName: fullName.trim(),
           nik: nik.trim(),
+          phone: phone.trim() || null,
+          phoneNumber: phone.trim() || null,
+          email: email.trim() || null,
+          emergencyContactName: emergencyContactName.trim() || null,
+          emergencyContactPhone: emergencyContactPhone.trim() || null,
+          emergencyContactRelationship: emergencyContactRelationship.trim() || null,
           motherName: motherName.trim(),
           birthPlace: placeOfBirth.trim(),
           birthDate: dateOfBirth,
@@ -365,8 +404,70 @@ export function BookingRegularPatientEditModal({
               {/* Kolom 2: Pekerjaan & Domisili */}
               <div className='space-y-4'>
                 <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
-                  Pekerjaan & Domisili
+                  Kontak, Pekerjaan & Domisili
                 </span>
+
+                <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                  <PatientLineInput
+                    id='edit_phone'
+                    label='No. Telepon / WhatsApp *'
+                    type='tel'
+                    placeholder='0812-3456-7890'
+                    value={phone}
+                    onChange={(val) => {
+                      const numericOnly = val.replace(/[^\d+-\s]/g, '');
+                      setPhone(numericOnly);
+                    }}
+                    maxLength={16}
+                    required
+                    autoComplete='tel'
+                  />
+
+                  <PatientLineInput
+                    id='edit_email'
+                    label='Email Pasien'
+                    type='email'
+                    placeholder='pasien@email.com'
+                    value={email}
+                    onChange={(val) => setEmail(val.trim())}
+                    autoComplete='email'
+                  />
+                </div>
+
+                <div className='space-y-2 pt-1 border-t border-border/40'>
+                  <span className='text-xs font-semibold text-muted-foreground block'>
+                    Kontak Darurat (Opsional)
+                  </span>
+                  <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                    <PatientLineInput
+                      id='edit_emergency_name'
+                      label='Nama Kerabat'
+                      placeholder='contoh: Budi Santoso'
+                      value={emergencyContactName}
+                      onChange={setEmergencyContactName}
+                    />
+                    <PatientLineInput
+                      id='edit_emergency_rel'
+                      label='Hubungan'
+                      placeholder='contoh: Pasangan / Orang Tua'
+                      value={emergencyContactRelationship}
+                      onChange={setEmergencyContactRelationship}
+                    />
+                  </div>
+                  <PatientLineInput
+                    id='edit_emergency_phone'
+                    label='No. Telepon Kerabat'
+                    type='tel'
+                    placeholder='0812-9876-5432'
+                    value={emergencyContactPhone}
+                    onChange={(val) => {
+                      const numericOnly = val.replace(/[^\d+-\s]/g, '');
+                      setEmergencyContactPhone(numericOnly);
+                    }}
+                    maxLength={16}
+                    autoComplete='tel'
+                  />
+                </div>
 
                 <PatientBloodTypeSelector
                   id='edit_bloodType'

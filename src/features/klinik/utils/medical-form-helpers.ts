@@ -15,7 +15,6 @@ import {
   CATALOG_ACTION_TYPES,
   FLOW_NAMES,
   REPEATABLE_GROUP_KEYS,
-  SECTION_IDS,
   STEP_DESCRIPTOR_TYPES
 } from '../constants/medical-appointment-types';
 
@@ -257,7 +256,7 @@ export function buildMedicalActiveSteps({
       catalogAction.type === CATALOG_ACTION_TYPES.ADD
         ? `previousPregnancy${catalogAction.recordNumber}Details`
         : historyCounts.pregnancy === 0
-          ? SECTION_IDS.OBSTETRIC_GATEWAY
+          ? 'obstetricGateway'
           : `previousPregnancy${historyCounts.pregnancy}Details`;
 
     if (
@@ -275,7 +274,7 @@ export function buildMedicalActiveSteps({
       catalogAction.type === CATALOG_ACTION_TYPES.ADD
         ? `contraception${catalogAction.recordNumber}Details`
         : historyCounts.contraception === 0
-          ? SECTION_IDS.CONTRACEPTION_GATEWAY
+          ? 'contraceptionGateway'
           : `contraception${historyCounts.contraception}Details`;
 
     if (
