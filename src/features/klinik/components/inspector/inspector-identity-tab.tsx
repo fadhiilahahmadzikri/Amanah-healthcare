@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
+import { PatientLineTextarea } from '@/features/data-pasien/components/registration/atoms/patient-line-textarea';
 import { PatientLineSelect } from '@/features/data-pasien/components/registration/atoms/patient-line-select';
 import { CustomDatePicker } from '@/components/ui/custom-date-picker';
 import { useMaternalCatalogs } from '../../model/useMaternalCatalogs';
@@ -12,7 +13,9 @@ export function InspectorIdentityTab({
   data,
   isEditing = false,
   formData,
-  onFieldChange
+  onFieldChange,
+  validationErrors,
+  onClearError
 }: InspectorTabProps) {
   const { catalogs } = useMaternalCatalogs();
   const { answers, maternal, patient } = data;
@@ -276,7 +279,7 @@ export function InspectorIdentityTab({
             readOnly
           />
 
-          <PatientLineInput
+          <PatientLineTextarea
             id='identity-current-complaints'
             label='Keluhan Saat Ini'
             value={currentComplaints}
@@ -319,7 +322,14 @@ export function InspectorIdentityTab({
           id='edit-mother-name'
           label='Nama Lengkap Ibu *'
           value={formData?.motherName ?? ''}
-          onChange={(val) => onFieldChange?.('motherName', val)}
+          onChange={(val) => {
+            onFieldChange?.('motherName', val);
+            if (validationErrors?.motherName && val.trim().length > 0) {
+              onClearError?.('motherName');
+            }
+          }}
+          error={validationErrors?.motherName}
+          invalid={Boolean(validationErrors?.motherName)}
           placeholder='Nama lengkap ibu'
           required
         />
@@ -329,7 +339,15 @@ export function InspectorIdentityTab({
             id='edit-mother-nik'
             label='NIK Ibu Hamil'
             value={formData?.motherNik ?? ''}
-            onChange={(val) => onFieldChange?.('motherNik', val)}
+            onChange={(val) => {
+              const numeric = val.replace(/\D/g, '').slice(0, 16);
+              onFieldChange?.('motherNik', numeric);
+              if (validationErrors?.motherNik && numeric.length === 16) {
+                onClearError?.('motherNik');
+              }
+            }}
+            error={validationErrors?.motherNik}
+            invalid={Boolean(validationErrors?.motherNik)}
             placeholder='16 digit NIK'
             maxLength={16}
             isMonospace
@@ -474,7 +492,7 @@ export function InspectorIdentityTab({
           placeholder='Contoh: 24.5'
         />
 
-        <PatientLineInput
+        <PatientLineTextarea
           id='edit-complaints'
           label='Keluhan Yang Dirasakan Saat Ini'
           value={formData?.currentComplaints ?? ''}

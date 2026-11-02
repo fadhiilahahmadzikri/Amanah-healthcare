@@ -6,6 +6,7 @@ import { getGenderLabel } from '@/constants/gender.constants';
 import { getRelationshipLabel } from '@/constants/relationship.constants';
 import { usePatientFormReferences } from '@/features/data-pasien/model/usePatientFormReferences';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
+import { PatientLineTextarea } from '@/features/data-pasien/components/registration/atoms/patient-line-textarea';
 import { PatientGenderSelector } from '@/features/data-pasien/components/registration/molecules/patient-gender-selector';
 import { PatientBloodTypeSelector } from '@/features/data-pasien/components/registration/molecules/patient-blood-type-selector';
 import { PatientSearchableSelect } from '@/features/data-pasien/components/registration/molecules/patient-searchable-select';
@@ -21,7 +22,9 @@ export function InspectorGenericView({
   data,
   isEditing = false,
   regularFormData,
-  onRegularFieldChange
+  onRegularFieldChange,
+  validationErrors,
+  onClearError
 }: InspectorTabProps) {
   const { flow, answers, automatic, child, patient } = data;
   const references = usePatientFormReferences();
@@ -85,7 +88,7 @@ export function InspectorGenericView({
           readOnly
         />
         <div className='col-span-1 sm:col-span-2'>
-          <PatientLineInput
+          <PatientLineTextarea
             id='child-address'
             label='Alamat Tempat Tinggal'
             value={address}
@@ -195,7 +198,14 @@ export function InspectorGenericView({
               id='reg-name-input'
               label='Nama Lengkap Pasien *'
               value={regularFormData.fullName ?? (patient?.fullName || '')}
-              onChange={(val) => onRegularFieldChange('fullName', val)}
+              onChange={(val) => {
+                onRegularFieldChange('fullName', val);
+                if (validationErrors?.fullName && val.trim().length > 0) {
+                  onClearError?.('fullName');
+                }
+              }}
+              error={validationErrors?.fullName}
+              invalid={Boolean(validationErrors?.fullName)}
               placeholder='Nama lengkap...'
               required
             />
@@ -204,7 +214,15 @@ export function InspectorGenericView({
               id='reg-nik-input'
               label='NIK Pasien (16 Digit)'
               value={regularFormData.nik ?? (nik !== '-' ? nik : '')}
-              onChange={(val) => onRegularFieldChange('nik', val)}
+              onChange={(val) => {
+                const numeric = val.replace(/\D/g, '').slice(0, 16);
+                onRegularFieldChange('nik', numeric);
+                if (validationErrors?.nik && numeric.length === 16) {
+                  onClearError?.('nik');
+                }
+              }}
+              error={validationErrors?.nik}
+              invalid={Boolean(validationErrors?.nik)}
               placeholder='16 digit NIK...'
               maxLength={16}
               isMonospace
@@ -275,7 +293,14 @@ export function InspectorGenericView({
               label='No. Telepon / WhatsApp'
               type='tel'
               value={regularFormData.phone ?? (phone !== '-' ? phone : '')}
-              onChange={(val) => onRegularFieldChange('phone', val)}
+              onChange={(val) => {
+                onRegularFieldChange('phone', val);
+                if (validationErrors?.phone) {
+                  onClearError?.('phone');
+                }
+              }}
+              error={validationErrors?.phone}
+              invalid={Boolean(validationErrors?.phone)}
               placeholder='08xxxxxxxxxx'
               isMonospace
             />
@@ -285,7 +310,14 @@ export function InspectorGenericView({
               label='Email Pasien'
               type='email'
               value={regularFormData.email ?? (patient?.email || '')}
-              onChange={(val) => onRegularFieldChange('email', val)}
+              onChange={(val) => {
+                onRegularFieldChange('email', val);
+                if (validationErrors?.email) {
+                  onClearError?.('email');
+                }
+              }}
+              error={validationErrors?.email}
+              invalid={Boolean(validationErrors?.email)}
               placeholder='email@domain.com'
             />
 
@@ -450,7 +482,7 @@ export function InspectorGenericView({
                   readOnly
                 />
                 <div className='col-span-1 sm:col-span-2'>
-                  <PatientLineInput
+                  <PatientLineTextarea
                     id='read-line1'
                     label='Alamat Detail (Jalan, RT/RW, No. Rumah)'
                     value={

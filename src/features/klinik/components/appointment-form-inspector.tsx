@@ -31,6 +31,11 @@ import { InspectorObstetricTab } from './inspector/inspector-obstetric-tab';
 import { InspectorImmunizationTab } from './inspector/inspector-immunization-tab';
 import { InspectorGenericView } from './inspector/inspector-generic-view';
 import {
+  validateRegularForm,
+  validateMaternalForm,
+  validateImmunizationForm
+} from '../validations/inspector-form.schema';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -486,7 +491,15 @@ export function AppointmentFormInspector({
       bookingCode: appointment.booking_code,
       scheduledDate: appointment.date,
       scheduledStartTime: appointment.scheduled_start_time || '-',
-      complaint: appointment.complaint || '-',
+      complaint:
+        (serverIntake as any)?.data?.maternal?.currentComplaints ||
+        (serverIntake as any)?.data?.answers?.complaint ||
+        (serverIntake as any)?.data?.answers?.keluhanUtama ||
+        (serverIntake as any)?.maternal?.currentComplaints ||
+        (serverIntake as any)?.answers?.complaint ||
+        (serverIntake as any)?.answers?.keluhanUtama ||
+        appointment.complaint ||
+        '-',
       serviceName: appointment.service || '-'
     };
   }, [serverIntake, appointment, matchingAffiliation]);
@@ -497,6 +510,16 @@ export function AppointmentFormInspector({
   // Edit Mode States for all flows
   const [isEditing, setIsEditing] = React.useState(false);
   const [isSaving, setIsSaving] = React.useState(false);
+  const [validationErrors, setValidationErrors] = React.useState<Record<string, string>>({});
+
+  const handleClearError = React.useCallback((field: string) => {
+    setValidationErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  }, []);
 
   const [formData, setFormData] = React.useState<EditableMaternalData>(() =>
     buildInitialFormData(parsedData)
@@ -622,6 +645,14 @@ export function AppointmentFormInspector({
 
       if (isPregnancy) {
         if (!formData) return;
+        const validation = validateMaternalForm(formData);
+        if (!validation.isValid) {
+          setValidationErrors(validation.errors);
+          toast.error('Periksa kembali isian formulir KIA & Kehamilan yang ditandai merah.');
+          setIsSaving(false);
+          return;
+        }
+        setValidationErrors({});
         const targetId = parsedData.maternal?.id || appointment.id;
 
         // Map healthConditions array for relational backend
@@ -770,27 +801,29 @@ export function AppointmentFormInspector({
 
         const patientId = parsedData.patient?.id || appointment.patient_id;
         if (patientId) {
-          try {
-            await updatePatient(patientId, {
-              name: formData.motherName || undefined,
-              nik: formData.motherNik || undefined,
-              medical_record_number: formData.medicalRecordNumber || undefined,
-              birth_place: formData.birthPlace || undefined,
-              birth_date: formData.motherBirthDate || undefined,
-              blood_type: (formData.motherBloodType as any) || undefined,
-              occupation: formData.motherJob || undefined,
-              phone: formData.phoneNumber || undefined,
-              line1: formData.domicileAddress || undefined
-            });
-          } catch (patErr) {
-            console.error('Failed to update patient demographic:', patErr);
-          }
+          await updatePatient(patientId, {
+            name: formData.motherName || undefined,
+            nik: formData.motherNik || undefined,
+            medical_record_number: formData.medicalRecordNumber || undefined,
+            birth_place: formData.birthPlace || undefined,
+            birth_date: formData.motherBirthDate || undefined,
+            blood_type: (formData.motherBloodType as any) || undefined,
+            occupation: formData.motherJob || undefined,
+            phone: formData.phoneNumber || undefined,
+            line1: formData.domicileAddress || undefined
+          });
         }
 
         await kiaIntakeService.updateMaternityIntake(targetId, payload);
+        if (formData.currentComplaints) {
+          appointment.complaint = formData.currentComplaints;
+        }
         await queryClient.invalidateQueries({
           queryKey: klinikKeys.appointmentIntake(appointment.id)
         });
+        await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+        await queryClient.invalidateQueries({ queryKey: ['appointment', appointment.id] });
+        await queryClient.invalidateQueries({ queryKey: ['admin-appointments'] });
         await queryClient.invalidateQueries({ queryKey: ['patients'] });
         await queryClient.invalidateQueries({ queryKey: ['patient-affiliations'] });
         if (patientId) {
@@ -803,6 +836,14 @@ export function AppointmentFormInspector({
 
       if (isImmunization) {
         if (!immunizationFormData) return;
+        const validation = validateImmunizationForm(immunizationFormData);
+        if (!validation.isValid) {
+          setValidationErrors(validation.errors);
+          toast.error('Periksa kembali isian formulir imunisasi yang ditandai merah.');
+          setIsSaving(false);
+          return;
+        }
+        setValidationErrors({});
         const targetId = parsedData.child?.id || appointment.id;
 
         // Parse entries from vaccineValues
@@ -849,27 +890,26 @@ export function AppointmentFormInspector({
 
         const patientId = parsedData.patient?.id || appointment.patient_id;
         if (patientId) {
-          try {
-            await updatePatient(patientId, {
-              name: immunizationFormData.childName || undefined,
-              nik: immunizationFormData.childNik || undefined,
-              medical_record_number: immunizationFormData.medicalRecordNumber || undefined,
-              birth_place: immunizationFormData.birthPlace || undefined,
-              birth_date: immunizationFormData.childBirthDate || undefined,
-              gender: immunizationFormData.childSex === 'Perempuan' ? 'female' : 'male',
-              mother_name: immunizationFormData.motherName || undefined,
-              phone: immunizationFormData.parentPhone || undefined,
-              line1: immunizationFormData.childAddress || undefined
-            });
-          } catch (patErr) {
-            console.error('Failed to update child demographic:', patErr);
-          }
+          await updatePatient(patientId, {
+            name: immunizationFormData.childName || undefined,
+            nik: immunizationFormData.childNik || undefined,
+            medical_record_number: immunizationFormData.medicalRecordNumber || undefined,
+            birth_place: immunizationFormData.birthPlace || undefined,
+            birth_date: immunizationFormData.childBirthDate || undefined,
+            gender: immunizationFormData.childSex === 'Perempuan' ? 'female' : 'male',
+            mother_name: immunizationFormData.motherName || undefined,
+            phone: immunizationFormData.parentPhone || undefined,
+            line1: immunizationFormData.childAddress || undefined
+          });
         }
 
         await kiaIntakeService.updateImmunizationIntake(targetId, payload);
         await queryClient.invalidateQueries({
           queryKey: klinikKeys.appointmentIntake(appointment.id)
         });
+        await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+        await queryClient.invalidateQueries({ queryKey: ['appointment', appointment.id] });
+        await queryClient.invalidateQueries({ queryKey: ['admin-appointments'] });
         await queryClient.invalidateQueries({ queryKey: ['patients'] });
         await queryClient.invalidateQueries({ queryKey: ['patient-affiliations'] });
         if (patientId) {
@@ -881,6 +921,15 @@ export function AppointmentFormInspector({
       }
 
       // Regular Flow
+      const validation = validateRegularForm(regularFormData);
+      if (!validation.isValid) {
+        setValidationErrors(validation.errors);
+        toast.error('Periksa kembali isian formulir pasien yang ditandai merah.');
+        setIsSaving(false);
+        return;
+      }
+      setValidationErrors({});
+
       const targetId =
         (serverIntake as any)?.data?.id || (serverIntake as any)?.id || appointment.id;
 
@@ -892,39 +941,41 @@ export function AppointmentFormInspector({
 
       const patientId = parsedData.patient?.id || appointment.patient_id;
       if (patientId) {
-        try {
-          await updatePatient(patientId, {
-            name: regularFormData.fullName || undefined,
-            nik: regularFormData.nik || undefined,
-            medical_record_number: regularFormData.medicalRecordNumber || undefined,
-            birth_place: regularFormData.birthPlace || undefined,
-            birth_date: regularFormData.birthDate || undefined,
-            gender: (regularFormData.gender as any) || undefined,
-            blood_type: (regularFormData.bloodType as any) || undefined,
-            mother_name: regularFormData.motherName || undefined,
-            occupation: regularFormData.occupation || undefined,
-            phone: regularFormData.phone || undefined,
-            email: regularFormData.email || undefined,
-            line1: regularFormData.line1 || regularFormData.address || undefined,
-            province_name: regularFormData.provinceName || undefined,
-            province_code: regularFormData.provinceCode || undefined,
-            regency_name: regularFormData.regencyName || undefined,
-            regency_code: regularFormData.regencyCode || undefined,
-            district_name: regularFormData.districtName || undefined,
-            district_code: regularFormData.districtCode || undefined,
-            village_name: regularFormData.villageName || undefined,
-            village_code: regularFormData.villageCode || undefined,
-            emergency_contact: regularFormData.emergencyContactPhone || undefined
-          });
-        } catch (patErr) {
-          console.error('Failed to update regular patient demographic:', patErr);
-        }
+        await updatePatient(patientId, {
+          name: regularFormData.fullName || undefined,
+          nik: regularFormData.nik || undefined,
+          medical_record_number: regularFormData.medicalRecordNumber || undefined,
+          birth_place: regularFormData.birthPlace || undefined,
+          birth_date: regularFormData.birthDate || undefined,
+          gender: (regularFormData.gender as any) || undefined,
+          blood_type: (regularFormData.bloodType as any) || undefined,
+          mother_name: regularFormData.motherName || undefined,
+          occupation: regularFormData.occupation || undefined,
+          phone: regularFormData.phone || undefined,
+          email: regularFormData.email || undefined,
+          line1: regularFormData.line1 || regularFormData.address || undefined,
+          province_name: regularFormData.provinceName || undefined,
+          province_code: regularFormData.provinceCode || undefined,
+          regency_name: regularFormData.regencyName || undefined,
+          regency_code: regularFormData.regencyCode || undefined,
+          district_name: regularFormData.districtName || undefined,
+          district_code: regularFormData.districtCode || undefined,
+          village_name: regularFormData.villageName || undefined,
+          village_code: regularFormData.villageCode || undefined,
+          emergency_contact: regularFormData.emergencyContactPhone || undefined
+        });
       }
 
       await kiaIntakeService.updateGenericIntake(targetId, answersPayload);
+      if (regularFormData.complaint) {
+        appointment.complaint = regularFormData.complaint;
+      }
       await queryClient.invalidateQueries({
         queryKey: klinikKeys.appointmentIntake(appointment.id)
       });
+      await queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      await queryClient.invalidateQueries({ queryKey: ['appointment', appointment.id] });
+      await queryClient.invalidateQueries({ queryKey: ['admin-appointments'] });
       await queryClient.invalidateQueries({ queryKey: ['patients'] });
       await queryClient.invalidateQueries({ queryKey: ['patient-affiliations'] });
       if (patientId) {
@@ -1232,6 +1283,8 @@ export function AppointmentFormInspector({
                   isEditing={isEditing}
                   formData={formData}
                   onFieldChange={handleFieldChange}
+                  validationErrors={validationErrors}
+                  onClearError={handleClearError}
                 />
               </TabsContent>
 
@@ -1242,6 +1295,8 @@ export function AppointmentFormInspector({
                   isEditing={isEditing}
                   formData={formData}
                   onFieldChange={handleFieldChange}
+                  validationErrors={validationErrors}
+                  onClearError={handleClearError}
                 />
               </TabsContent>
 
@@ -1278,6 +1333,8 @@ export function AppointmentFormInspector({
             immunizationFormData={immunizationFormData}
             onImmunizationFieldChange={handleImmunizationFieldChange}
             onVaccineValueChange={handleVaccineValueChange}
+            validationErrors={validationErrors}
+            onClearError={handleClearError}
           />
         ) : (
           <div className='flex-1 overflow-y-auto min-h-0 pr-1'>
@@ -1287,6 +1344,8 @@ export function AppointmentFormInspector({
               isEditing={isEditing}
               regularFormData={regularFormData}
               onRegularFieldChange={handleRegularFieldChange}
+              validationErrors={validationErrors}
+              onClearError={handleClearError}
             />
           </div>
         )}

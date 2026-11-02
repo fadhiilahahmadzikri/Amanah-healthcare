@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { CustomDatePicker } from '@/components/ui/custom-date-picker';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
+import { PatientLineTextarea } from '@/features/data-pasien/components/registration/atoms/patient-line-textarea';
 import { PatientLineSelect } from '@/features/data-pasien/components/registration/atoms/patient-line-select';
 import { useVaccineCatalog } from '../../model/useVaccineCatalog';
 import { calculateChildAge } from '../../utils/medical-appointment';
@@ -17,7 +18,9 @@ export function InspectorImmunizationTab({
   isEditing = false,
   immunizationFormData,
   onImmunizationFieldChange,
-  onVaccineValueChange
+  onVaccineValueChange,
+  validationErrors,
+  onClearError
 }: InspectorTabProps) {
   const { child } = data;
   const { vaccines } = useVaccineCatalog();
@@ -112,7 +115,14 @@ export function InspectorImmunizationTab({
                   id='child-name-input'
                   label='Nama Lengkap Anak *'
                   value={immunizationFormData.childName}
-                  onChange={(val) => onImmunizationFieldChange('childName', val)}
+                  onChange={(val) => {
+                    onImmunizationFieldChange('childName', val);
+                    if (validationErrors?.childName && val.trim().length > 0) {
+                      onClearError?.('childName');
+                    }
+                  }}
+                  error={validationErrors?.childName}
+                  invalid={Boolean(validationErrors?.childName)}
                   placeholder='Nama lengkap anak...'
                   required
                 />
@@ -122,7 +132,15 @@ export function InspectorImmunizationTab({
                     id='child-nik-input'
                     label='NIK Anak (16 Digit)'
                     value={immunizationFormData.childNik}
-                    onChange={(val) => onImmunizationFieldChange('childNik', val)}
+                    onChange={(val) => {
+                      const numeric = val.replace(/\D/g, '').slice(0, 16);
+                      onImmunizationFieldChange('childNik', numeric);
+                      if (validationErrors?.childNik && numeric.length === 16) {
+                        onClearError?.('childNik');
+                      }
+                    }}
+                    error={validationErrors?.childNik}
+                    invalid={Boolean(validationErrors?.childNik)}
                     placeholder='16 digit NIK...'
                     maxLength={16}
                     isMonospace
@@ -177,7 +195,14 @@ export function InspectorImmunizationTab({
                   label='Nomor HP Orang Tua/Wali *'
                   type='tel'
                   value={immunizationFormData.parentPhone}
-                  onChange={(val) => onImmunizationFieldChange('parentPhone', val)}
+                  onChange={(val) => {
+                    onImmunizationFieldChange('parentPhone', val);
+                    if (validationErrors?.parentPhone) {
+                      onClearError?.('parentPhone');
+                    }
+                  }}
+                  error={validationErrors?.parentPhone}
+                  invalid={Boolean(validationErrors?.parentPhone)}
                   placeholder='08xxxxxxxxxx'
                   isMonospace
                   required
@@ -280,7 +305,7 @@ export function InspectorImmunizationTab({
                 <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
                   Alamat Tinggal Keluarga
                 </span>
-                <PatientLineInput
+                <PatientLineTextarea
                   id='child-address-input'
                   label='Alamat Tempat Tinggal'
                   value={immunizationFormData.childAddress}
@@ -313,7 +338,7 @@ export function InspectorImmunizationTab({
                 <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
                   Alamat Tinggal Keluarga
                 </span>
-                <PatientLineInput
+                <PatientLineTextarea
                   id='child-address'
                   label='Alamat Tempat Tinggal'
                   value={address}

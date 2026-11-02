@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { PatientLineInput } from '../atoms/patient-line-input';
+import { PatientLineTextarea } from '../atoms/patient-line-textarea';
 import { PatientSearchableSelect } from './patient-searchable-select';
 import { usePatientRegionCascader } from '@/features/data-pasien/model/usePatientRegionCascader';
 
@@ -135,13 +136,12 @@ export function PatientRegionDropdown({
 
         {/* ALAMAT DETAIL (Span 2) */}
         <div className='col-span-1 sm:col-span-2'>
-          <PatientLineInput
+          <PatientLineTextarea
             id='line1'
             label='Alamat detail (jalan, RT/RW, no. rumah)'
             value={values.line1}
             placeholder='contoh: jl. mawar no. 12 rt 04/rw 02'
             error={errors?.line1}
-            autoComplete='street-address'
             onChange={(val) => onChange({ line1: val })}
           />
         </div>

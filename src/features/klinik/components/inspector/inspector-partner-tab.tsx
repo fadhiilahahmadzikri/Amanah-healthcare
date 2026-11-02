@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
+import { PatientLineTextarea } from '@/features/data-pasien/components/registration/atoms/patient-line-textarea';
 import { PatientLineSelect } from '@/features/data-pasien/components/registration/atoms/patient-line-select';
 import { CustomDatePicker } from '@/components/ui/custom-date-picker';
 import { useMaternalCatalogs } from '../../model/useMaternalCatalogs';
@@ -11,7 +12,9 @@ export function InspectorPartnerTab({
   data,
   isEditing = false,
   formData,
-  onFieldChange
+  onFieldChange,
+  validationErrors,
+  onClearError
 }: InspectorTabProps) {
   const { catalogs } = useMaternalCatalogs();
   const { maternal } = data;
@@ -163,14 +166,14 @@ export function InspectorPartnerTab({
             <PatientLineInput id='partner-dasawisma' label='Dasawisma' value={dasawisma} readOnly />
           </div>
 
-          <PatientLineInput
+          <PatientLineTextarea
             id='partner-domicile'
             label='Alamat Tempat Tinggal / Domisili'
             value={domicileAddress}
             readOnly
           />
 
-          <PatientLineInput
+          <PatientLineTextarea
             id='partner-ktp-address'
             label='Alamat Sesuai KTP'
             value={identityCardAddress}
@@ -203,7 +206,15 @@ export function InspectorPartnerTab({
             id='edit-partner-nik'
             label='NIK Suami'
             value={formData?.partnerNik ?? ''}
-            onChange={(val) => onFieldChange?.('partnerNik', val)}
+            onChange={(val) => {
+              const numeric = val.replace(/\D/g, '').slice(0, 16);
+              onFieldChange?.('partnerNik', numeric);
+              if (validationErrors?.partnerNik && numeric.length === 16) {
+                onClearError?.('partnerNik');
+              }
+            }}
+            error={validationErrors?.partnerNik}
+            invalid={Boolean(validationErrors?.partnerNik)}
             placeholder='16 digit NIK suami'
             maxLength={16}
             isMonospace
@@ -342,7 +353,7 @@ export function InspectorPartnerTab({
           />
         </div>
 
-        <PatientLineInput
+        <PatientLineTextarea
           id='edit-domicile'
           label='Alamat Tempat Tinggal / Domisili'
           value={formData?.domicileAddress ?? ''}
@@ -350,7 +361,7 @@ export function InspectorPartnerTab({
           placeholder='Alamat tempat tinggal saat ini'
         />
 
-        <PatientLineInput
+        <PatientLineTextarea
           id='edit-ktp-address'
           label='Alamat Sesuai KTP'
           value={formData?.identityCardAddress ?? ''}

@@ -259,4 +259,8 @@ export interface InspectorTabProps {
   // Regular form
   regularFormData?: EditableRegularData;
   onRegularFieldChange?: (field: keyof EditableRegularData, value: any) => void;
+
+  // Validation
+  validationErrors?: Record<string, string>;
+  onClearError?: (field: string) => void;
 }
