@@ -143,7 +143,57 @@ export function usePatientModalForm({
 
       try {
         if (isEdit && activePatient) {
-          await updateMutation.mutateAsync({ id: activePatient.id, values: payload });
+          const diffPayload: Partial<PatientMutationPayload> = {};
+          if (value.name.trim() !== (activePatient.name || ''))
+            diffPayload.name = value.name.trim();
+          if ((value.nik || '').trim() !== (activePatient.nik || ''))
+            diffPayload.nik = (value.nik || '').trim();
+          if ((value.phone || '').trim() !== (activePatient.phone || ''))
+            diffPayload.phone = (value.phone || '').trim();
+          if ((value.email || '').trim() !== (activePatient.email || ''))
+            diffPayload.email = (value.email || '').trim();
+          if ((value.nama_ibu_kandung || '').trim() !== (activePatient.mother_name || '')) {
+            diffPayload.mother_name = (value.nama_ibu_kandung || '').trim();
+          }
+          if ((value.tempat_lahir || '').trim() !== (activePatient.birth_place || '')) {
+            diffPayload.birth_place = (value.tempat_lahir || '').trim();
+          }
+          if (value.birth_date !== (activePatient.birth_date || ''))
+            diffPayload.birth_date = value.birth_date;
+          if (value.gender !== activePatient.gender) diffPayload.gender = value.gender as any;
+          if (value.blood_type !== (activePatient.blood_type || ''))
+            diffPayload.blood_type = value.blood_type as any;
+          if ((value.pekerjaan || '').trim() !== (activePatient.occupation || '')) {
+            diffPayload.occupation = (value.pekerjaan || '').trim();
+          }
+          if ((value.alamat_detail || '').trim() !== (activePatient.line1 || '')) {
+            diffPayload.line1 = (value.alamat_detail || '').trim();
+          }
+          if (value.provinsi !== (activePatient.province_name || ''))
+            diffPayload.province_name = value.provinsi;
+          if (value.provinsi_id !== (activePatient.province_code || ''))
+            diffPayload.province_code = value.provinsi_id;
+          if (value.kabupaten !== (activePatient.regency_name || ''))
+            diffPayload.regency_name = value.kabupaten;
+          if (value.kabupaten_id !== (activePatient.regency_code || ''))
+            diffPayload.regency_code = value.kabupaten_id;
+          if (value.kecamatan !== (activePatient.district_name || ''))
+            diffPayload.district_name = value.kecamatan;
+          if (value.kecamatan_id !== (activePatient.district_code || ''))
+            diffPayload.district_code = value.kecamatan_id;
+          if (value.kelurahan !== (activePatient.village_name || ''))
+            diffPayload.village_name = value.kelurahan;
+          if (value.kelurahan_id !== (activePatient.village_code || ''))
+            diffPayload.village_code = value.kelurahan_id;
+          if ((value.emergency_contact || '').trim() !== (activePatient.emergency_contact || '')) {
+            diffPayload.emergency_contact = (value.emergency_contact || '').trim();
+          }
+          if (value.account_status !== activePatient.status)
+            diffPayload.status = value.account_status as any;
+
+          if (Object.keys(diffPayload).length > 0) {
+            await updateMutation.mutateAsync({ id: activePatient.id, values: diffPayload });
+          }
           toast.success('Data pasien berhasil diperbarui');
           setIsEditing(false);
           onClose();

@@ -1357,6 +1357,21 @@ export async function exportRegulerDocx(
                 textCell(data?.identity?.email || '-', 3400, { size: 7.5 })
               ]),
               row([
+                textCell('Kontak Darurat', 2500, { bold: true, size: 7.5 }),
+                cell(
+                  [
+                    paragraph(
+                      data?.emergencyContact?.phoneNumber
+                        ? `${data?.emergencyContact?.name || 'Kerabat'}${data?.emergencyContact?.relationship ? ` (${data?.emergencyContact?.relationship})` : ''} - Telp: ${data?.emergencyContact?.phoneNumber}`
+                        : '-',
+                      { size: 7.5 }
+                    )
+                  ],
+                  9400,
+                  { columnSpan: 3 }
+                )
+              ]),
+              row([
                 textCell('Alamat Lengkap', 2500, { bold: true, size: 7.5 }),
                 cell([paragraph(data?.identity?.address || '-')], 9400, { columnSpan: 3 })
               ])

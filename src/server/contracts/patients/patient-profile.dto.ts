@@ -92,7 +92,11 @@ export const patientProfileDtoSchema = z.object({
 
 export const updatePatientProfileRequestDtoSchema = z.object({
   fullName: z.string().optional(),
-  nik: z.string().optional(),
+  nik: z
+    .string()
+    .regex(/^\d{16}$/, { message: 'NIK harus berupa 16 digit angka' })
+    .optional()
+    .or(z.literal('')),
   motherName: z.string().optional(),
   birthPlace: z.string().optional(),
   birthDate: z.string().optional(),

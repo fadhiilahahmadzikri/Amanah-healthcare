@@ -740,6 +740,10 @@ export async function exportRegulerExcel(
   currentLine += 2;
   addSectionHeader(ws, currentLine, 'II. IDENTITAS PASIEN', 4);
 
+  const emergencyStr = data?.emergencyContact?.phoneNumber
+    ? `${data?.emergencyContact?.name || 'Kerabat'}${data?.emergencyContact?.relationship ? ` (${data?.emergencyContact?.relationship})` : ''} - ${data?.emergencyContact?.phoneNumber}`
+    : '-';
+
   const patientData = [
     ['Nama Pasien', data?.identity?.fullName || '-', 'NIK', data?.identity?.nik || '-'],
     [
@@ -748,7 +752,8 @@ export async function exportRegulerExcel(
       'Jenis Kelamin',
       data?.identity?.gender || '-'
     ],
-    ['Nomor Telepon', data?.identity?.phoneNumber || '-', 'Alamat', data?.identity?.address || '-']
+    ['Nomor Telepon', data?.identity?.phoneNumber || '-', 'Email', data?.identity?.email || '-'],
+    ['Kontak Darurat', emergencyStr, 'Alamat', data?.identity?.address || '-']
   ];
 
   patientData.forEach((rowPair) => {

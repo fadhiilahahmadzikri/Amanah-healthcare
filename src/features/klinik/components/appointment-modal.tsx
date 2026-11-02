@@ -211,7 +211,10 @@ export function AppointmentModal({
                   patients.length > 0 ? setStep('select_profile') : setStep('service')
                 }
                 allowedRelationships={bookingContext?.allowedRelationships}
-                hasExistingSelf={patients.some((p) => p.relationship === 'self' || p.isSelf)}
+                hasExistingSelf={patients.some(
+                  (p) => p.isPrimary || p.isSelf || (p as any).isSystem
+                )}
+                existingPatients={patients}
               />
             )}
 

@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { getRelationshipLabel } from '@/constants/relationship.constants';
+import { ShiftIconDisplay } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-display';
 import type { PatientAffiliationProfile } from '@/features/data-pasien/api/patient-affiliation-service';
 
 export interface PatientCardMasterProps {
@@ -65,7 +66,17 @@ export function PatientCardMaster({
           )}
         </div>
         {relationshipLabel && relationshipLabel !== '-' && (
-          <p className='text-xs text-muted-foreground truncate'>{relationshipLabel}</p>
+          <div className='flex items-center gap-1.5 text-xs text-muted-foreground truncate mt-0.5'>
+            {(patient.icon || patient.iconName) && (
+              <ShiftIconDisplay
+                icon={patient.icon || patient.iconName}
+                size='sm'
+                bare
+                className='size-3.5 text-primary shrink-0'
+              />
+            )}
+            <span className='truncate'>{relationshipLabel}</span>
+          </div>
         )}
         {children}
       </div>

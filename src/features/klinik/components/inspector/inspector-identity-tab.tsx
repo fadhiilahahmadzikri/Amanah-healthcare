@@ -2,39 +2,26 @@
 
 import * as React from 'react';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { PatientLineTextarea } from '@/features/data-pasien/components/registration/atoms/patient-line-textarea';
+import { PatientLineSelect } from '@/features/data-pasien/components/registration/atoms/patient-line-select';
 import { CustomDatePicker } from '@/components/ui/custom-date-picker';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
 import { useMaternalCatalogs } from '../../model/useMaternalCatalogs';
 import type { InspectorTabProps } from './types';
-
-const FALLBACK_BLOOD_TYPES = ['A', 'B', 'AB', 'O', 'Tidak tahu'];
-const FALLBACK_TETANUS = ['T1', 'T2', 'T3', 'T4', 'T5', 'Belum pernah', 'Tidak tahu'];
 
 export function InspectorIdentityTab({
   appointment,
   data,
   isEditing = false,
   formData,
-  onFieldChange
+  onFieldChange,
+  validationErrors,
+  onClearError
 }: InspectorTabProps) {
   const { catalogs } = useMaternalCatalogs();
   const { answers, maternal, patient } = data;
 
-  const bloodTypes = catalogs.bloodTypeChoices?.length
-    ? catalogs.bloodTypeChoices
-    : FALLBACK_BLOOD_TYPES;
-  const tetanusStatuses = catalogs.tetanusChoices?.length
-    ? catalogs.tetanusChoices
-    : FALLBACK_TETANUS;
+  const bloodTypes = catalogs.bloodTypeChoices ?? [];
+  const tetanusStatuses = catalogs.tetanusChoices ?? [];
 
   // Read-only values from maternal or answers
   const motherName = formData?.motherName ?? (maternal?.motherName || '-');
@@ -292,7 +279,7 @@ export function InspectorIdentityTab({
             readOnly
           />
 
-          <PatientLineInput
+          <PatientLineTextarea
             id='identity-current-complaints'
             label='Keluhan Saat Ini'
             value={currentComplaints}
@@ -308,300 +295,210 @@ export function InspectorIdentityTab({
     <div className='grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 pt-1'>
       {/* Kolom 1: Edit Identitas Ibu */}
       <div className='space-y-4'>
-        <span className='text-xs font-semibold text-primary block pb-1 border-b border-primary/20'>
+        <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
           Edit Identitas & Biodata Ibu
         </span>
 
         <div className='grid grid-cols-2 gap-4'>
-          <div className='space-y-1.5'>
-            <Label htmlFor='edit-mother-mrn' className='text-xs font-medium text-foreground'>
-              No. Rekam Medis (RM)
-            </Label>
-            <Input
-              id='edit-mother-mrn'
-              value={formData?.medicalRecordNumber ?? (patient?.medicalRecordNumber || '')}
-              onChange={(e) => onFieldChange?.('medicalRecordNumber', e.target.value)}
-              placeholder='RM-XXXX-XXXX'
-              className='h-8.5 text-xs font-mono font-semibold text-primary'
-            />
-          </div>
+          <PatientLineInput
+            id='edit-mother-mrn'
+            label='No. Rekam Medis (RM)'
+            value={formData?.medicalRecordNumber ?? (patient?.medicalRecordNumber || '')}
+            onChange={(val) => onFieldChange?.('medicalRecordNumber', val)}
+            placeholder='RM-XXXX-XXXX'
+            isMonospace
+          />
 
-          <div className='space-y-1.5'>
-            <Label htmlFor='edit-mother-birthplace' className='text-xs font-medium text-foreground'>
-              Tempat Lahir
-            </Label>
-            <Input
-              id='edit-mother-birthplace'
-              value={formData?.birthPlace ?? (patient?.birthPlace || '')}
-              onChange={(e) => onFieldChange?.('birthPlace', e.target.value)}
-              placeholder='Kota tempat lahir'
-              className='h-8.5 text-xs'
-            />
-          </div>
+          <PatientLineInput
+            id='edit-mother-birthplace'
+            label='Tempat Lahir'
+            value={formData?.birthPlace ?? (patient?.birthPlace || '')}
+            onChange={(val) => onFieldChange?.('birthPlace', val)}
+            placeholder='Kota tempat lahir'
+          />
         </div>
 
-        <div className='space-y-1.5'>
-          <Label htmlFor='edit-mother-name' className='text-xs font-medium text-foreground'>
-            Nama Lengkap Ibu
-          </Label>
-          <Input
-            id='edit-mother-name'
-            value={formData?.motherName ?? ''}
-            onChange={(e) => onFieldChange?.('motherName', e.target.value)}
-            placeholder='Nama lengkap ibu'
-            className='h-8.5 text-xs'
+        <PatientLineInput
+          id='edit-mother-name'
+          label='Nama Lengkap Ibu *'
+          value={formData?.motherName ?? ''}
+          onChange={(val) => {
+            onFieldChange?.('motherName', val);
+            if (validationErrors?.motherName && val.trim().length > 0) {
+              onClearError?.('motherName');
+            }
+          }}
+          error={validationErrors?.motherName}
+          invalid={Boolean(validationErrors?.motherName)}
+          placeholder='Nama lengkap ibu'
+          required
+        />
+
+        <div className='grid grid-cols-2 gap-4'>
+          <PatientLineInput
+            id='edit-mother-nik'
+            label='NIK Ibu Hamil'
+            value={formData?.motherNik ?? ''}
+            onChange={(val) => {
+              const numeric = val.replace(/\D/g, '').slice(0, 16);
+              onFieldChange?.('motherNik', numeric);
+              if (validationErrors?.motherNik && numeric.length === 16) {
+                onClearError?.('motherNik');
+              }
+            }}
+            error={validationErrors?.motherNik}
+            invalid={Boolean(validationErrors?.motherNik)}
+            placeholder='16 digit NIK'
+            maxLength={16}
+            isMonospace
+          />
+
+          <PatientLineSelect
+            id='edit-mother-blood'
+            label='Golongan Darah'
+            value={formData?.motherBloodType || ''}
+            onChange={(val) => onFieldChange?.('motherBloodType', val)}
+            options={bloodTypes}
+            placeholder='Pilih gol. darah'
           />
         </div>
 
         <div className='grid grid-cols-2 gap-4'>
-          <div className='space-y-1.5'>
-            <Label htmlFor='edit-mother-nik' className='text-xs font-medium text-foreground'>
-              NIK Ibu Hamil
-            </Label>
-            <Input
-              id='edit-mother-nik'
-              value={formData?.motherNik ?? ''}
-              onChange={(e) => onFieldChange?.('motherNik', e.target.value)}
-              placeholder='16 digit NIK'
-              maxLength={16}
-              className='h-8.5 text-xs font-mono'
-            />
-          </div>
+          <CustomDatePicker
+            id='edit-mother-birthdate'
+            label='Tanggal Lahir'
+            value={formData?.motherBirthDate || ''}
+            onChange={handleBirthDateChange}
+            placeholder='YYYY-MM-DD'
+            disableFutureDates
+            variant='underline'
+          />
 
-          <div className='space-y-1.5'>
-            <Label htmlFor='edit-mother-blood' className='text-xs font-medium text-foreground'>
-              Golongan Darah
-            </Label>
-            <Select
-              value={formData?.motherBloodType || ''}
-              onValueChange={(val) => onFieldChange?.('motherBloodType', val)}
-            >
-              <SelectTrigger id='edit-mother-blood' className='h-8.5 text-xs'>
-                <SelectValue placeholder='Pilih gol. darah' />
-              </SelectTrigger>
-              <SelectContent>
-                {bloodTypes.map((b) => (
-                  <SelectItem key={b} value={b} className='text-xs'>
-                    {b}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <PatientLineInput
+            id='edit-mother-age'
+            label='Usia Ibu (Tahun)'
+            type='number'
+            value={formData?.motherAge ? String(formData.motherAge) : ''}
+            onChange={(val) => onFieldChange?.('motherAge', val ? parseInt(val, 10) : '')}
+            placeholder='Contoh: 28'
+          />
         </div>
 
         <div className='grid grid-cols-2 gap-4'>
-          <div className='space-y-1.5'>
-            <Label htmlFor='edit-mother-birthdate' className='text-xs font-medium text-foreground'>
-              Tanggal Lahir
-            </Label>
-            <CustomDatePicker
-              id='edit-mother-birthdate'
-              value={formData?.motherBirthDate || ''}
-              onChange={handleBirthDateChange}
-              placeholder='YYYY-MM-DD'
-              triggerClassName='h-8.5 text-xs'
-              disableFutureDates
-            />
-          </div>
+          <PatientLineInput
+            id='edit-marriage-order'
+            label='Pernikahan Ke-'
+            type='number'
+            min={1}
+            value={String(formData?.marriageOrder ?? 1)}
+            onChange={(val) => onFieldChange?.('marriageOrder', val ? parseInt(val, 10) : 1)}
+          />
 
-          <div className='space-y-1.5'>
-            <Label htmlFor='edit-mother-age' className='text-xs font-medium text-foreground'>
-              Usia Ibu (Tahun)
-            </Label>
-            <Input
-              id='edit-mother-age'
-              type='number'
-              value={formData?.motherAge ?? ''}
-              onChange={(e) =>
-                onFieldChange?.('motherAge', e.target.value ? parseInt(e.target.value, 10) : '')
-              }
-              placeholder='Contoh: 28'
-              className='h-8.5 text-xs'
-            />
-          </div>
+          <CustomDatePicker
+            id='edit-marriage-date'
+            label='Tanggal Menikah'
+            value={formData?.marriageDate || ''}
+            onChange={(val) => onFieldChange?.('marriageDate', val)}
+            placeholder='YYYY-MM-DD'
+            disableFutureDates
+            variant='underline'
+          />
         </div>
 
-        <div className='grid grid-cols-2 gap-4'>
-          <div className='space-y-1.5'>
-            <Label htmlFor='edit-marriage-order' className='text-xs font-medium text-foreground'>
-              Pernikahan Ke-
-            </Label>
-            <Input
-              id='edit-marriage-order'
-              type='number'
-              min={1}
-              value={formData?.marriageOrder ?? 1}
-              onChange={(e) =>
-                onFieldChange?.('marriageOrder', e.target.value ? parseInt(e.target.value, 10) : 1)
-              }
-              className='h-8.5 text-xs'
-            />
-          </div>
-
-          <div className='space-y-1.5'>
-            <Label htmlFor='edit-marriage-date' className='text-xs font-medium text-foreground'>
-              Tanggal Menikah
-            </Label>
-            <CustomDatePicker
-              id='edit-marriage-date'
-              value={formData?.marriageDate || ''}
-              onChange={(val) => onFieldChange?.('marriageDate', val)}
-              placeholder='YYYY-MM-DD'
-              triggerClassName='h-8.5 text-xs'
-              disableFutureDates
-            />
-          </div>
-        </div>
-
-        <div className='space-y-1.5'>
-          <Label htmlFor='edit-tetanus-status' className='text-xs font-medium text-foreground'>
-            Status Imunisasi Tetanus (TT)
-          </Label>
-          <Select
-            value={formData?.tetanusStatus || ''}
-            onValueChange={(val) => onFieldChange?.('tetanusStatus', val)}
-          >
-            <SelectTrigger id='edit-tetanus-status' className='h-8.5 text-xs'>
-              <SelectValue placeholder='Pilih status TT' />
-            </SelectTrigger>
-            <SelectContent>
-              {tetanusStatuses.map((t) => (
-                <SelectItem key={t} value={t} className='text-xs'>
-                  {t}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <PatientLineSelect
+          id='edit-tetanus-status'
+          label='Status Imunisasi Tetanus (TT)'
+          value={formData?.tetanusStatus || ''}
+          onChange={(val) => onFieldChange?.('tetanusStatus', val)}
+          options={tetanusStatuses}
+          placeholder='Pilih status TT'
+        />
       </div>
 
       {/* Kolom 2: Edit Parameter Klinis & Kehamilan */}
       <div className='space-y-4'>
-        <span className='text-xs font-semibold text-primary block pb-1 border-b border-primary/20'>
+        <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
           Edit Parameter Klinis & Masa Kehamilan
         </span>
 
         <div className='grid grid-cols-2 gap-4'>
-          <div className='space-y-1.5'>
-            <Label htmlFor='edit-hpht' className='text-xs font-medium text-foreground'>
-              HPHT (Hari Pertama Haid Terakhir)
-            </Label>
-            <CustomDatePicker
-              id='edit-hpht'
-              value={formData?.hpht || ''}
-              onChange={handleHphtChange}
-              placeholder='YYYY-MM-DD'
-              triggerClassName='h-8.5 text-xs font-mono'
-              disableFutureDates
-            />
-          </div>
+          <CustomDatePicker
+            id='edit-hpht'
+            label='HPHT (Hari Pertama Haid Terakhir)'
+            value={formData?.hpht || ''}
+            onChange={handleHphtChange}
+            placeholder='YYYY-MM-DD'
+            disableFutureDates
+            variant='underline'
+          />
 
-          <div className='space-y-1.5'>
-            <Label htmlFor='edit-hpl' className='text-xs font-medium text-foreground'>
-              HPL (Taksiran Persalinan)
-            </Label>
-            <Input
-              id='edit-hpl'
-              value={formData?.estimatedDueDate || ''}
-              readOnly
-              disabled
-              placeholder='Otomatis dari HPHT'
-              className='h-8.5 text-xs bg-muted/50 font-mono'
-            />
-          </div>
+          <PatientLineInput
+            id='edit-hpl'
+            label='HPL (Taksiran Persalinan)'
+            value={formData?.estimatedDueDate || ''}
+            readOnly
+            isMonospace
+            placeholder='Otomatis dari HPHT'
+          />
         </div>
 
         <div className='grid grid-cols-2 gap-4'>
-          <div className='space-y-1.5'>
-            <Label htmlFor='edit-gestational-age' className='text-xs font-medium text-foreground'>
-              Usia Kehamilan
-            </Label>
-            <Input
-              id='edit-gestational-age'
-              value={formData?.gestationalAgeFormatted || ''}
-              readOnly
-              disabled
-              placeholder='Otomatis dari HPHT'
-              className='h-8.5 text-xs bg-muted/50'
-            />
-          </div>
+          <PatientLineInput
+            id='edit-gestational-age'
+            label='Usia Kehamilan'
+            value={formData?.gestationalAgeFormatted || ''}
+            readOnly
+            placeholder='Otomatis dari HPHT'
+          />
 
-          <div className='space-y-1.5'>
-            <Label htmlFor='edit-initial-bmi' className='text-xs font-medium text-foreground'>
-              IMT Awal (kg/m²)
-            </Label>
-            <Input
-              id='edit-initial-bmi'
-              value={formData?.initialBmi ? String(formData.initialBmi) : ''}
-              readOnly
-              disabled
-              placeholder='Otomatis dari TB & BB'
-              className='h-8.5 text-xs bg-muted/50'
-            />
-          </div>
+          <PatientLineInput
+            id='edit-initial-bmi'
+            label='IMT Awal (kg/m²)'
+            value={formData?.initialBmi ? String(formData.initialBmi) : ''}
+            readOnly
+            placeholder='Otomatis dari TB & BB'
+          />
         </div>
 
         <div className='grid grid-cols-2 gap-4'>
-          <div className='space-y-1.5'>
-            <Label htmlFor='edit-height-cm' className='text-xs font-medium text-foreground'>
-              Tinggi Badan (cm)
-            </Label>
-            <Input
-              id='edit-height-cm'
-              type='number'
-              step='0.1'
-              value={formData?.heightCm ?? ''}
-              onChange={(e) => handleHeightOrWeightChange('heightCm', e.target.value)}
-              placeholder='Contoh: 155'
-              className='h-8.5 text-xs'
-            />
-          </div>
-
-          <div className='space-y-1.5'>
-            <Label htmlFor='edit-weight-kg' className='text-xs font-medium text-foreground'>
-              Berat Badan Pra-Hamil (kg)
-            </Label>
-            <Input
-              id='edit-weight-kg'
-              type='number'
-              step='0.1'
-              value={formData?.prePregnancyWeightKg ?? ''}
-              onChange={(e) => handleHeightOrWeightChange('prePregnancyWeightKg', e.target.value)}
-              placeholder='Contoh: 50'
-              className='h-8.5 text-xs'
-            />
-          </div>
-        </div>
-
-        <div className='space-y-1.5'>
-          <Label htmlFor='edit-lila' className='text-xs font-medium text-foreground'>
-            Lingkar Lengan Atas (LiLA) (cm)
-          </Label>
-          <Input
-            id='edit-lila'
+          <PatientLineInput
+            id='edit-height-cm'
+            label='Tinggi Badan (cm)'
             type='number'
             step='0.1'
-            value={formData?.upperArmCircumferenceCm ?? ''}
-            onChange={(e) => onFieldChange?.('upperArmCircumferenceCm', e.target.value)}
-            placeholder='Contoh: 24.5'
-            className='h-8.5 text-xs'
+            value={formData?.heightCm ? String(formData.heightCm) : ''}
+            onChange={(val) => handleHeightOrWeightChange('heightCm', val)}
+            placeholder='Contoh: 155'
+          />
+
+          <PatientLineInput
+            id='edit-weight-kg'
+            label='Berat Badan Pra-Hamil (kg)'
+            type='number'
+            step='0.1'
+            value={formData?.prePregnancyWeightKg ? String(formData.prePregnancyWeightKg) : ''}
+            onChange={(val) => handleHeightOrWeightChange('prePregnancyWeightKg', val)}
+            placeholder='Contoh: 50'
           />
         </div>
 
-        <div className='space-y-1.5'>
-          <Label htmlFor='edit-complaints' className='text-xs font-medium text-foreground'>
-            Keluhan Yang Dirasakan Saat Ini
-          </Label>
-          <Textarea
-            id='edit-complaints'
-            value={formData?.currentComplaints ?? ''}
-            onChange={(e) => onFieldChange?.('currentComplaints', e.target.value)}
-            placeholder='Tuliskan keluhan atau kondisi pasien...'
-            rows={2}
-            className='text-xs resize-none'
-          />
-        </div>
+        <PatientLineInput
+          id='edit-lila'
+          label='Lingkar Lengan Atas (LiLA) (cm)'
+          type='number'
+          step='0.1'
+          value={formData?.upperArmCircumferenceCm ? String(formData.upperArmCircumferenceCm) : ''}
+          onChange={(val) => onFieldChange?.('upperArmCircumferenceCm', val ? parseFloat(val) : '')}
+          placeholder='Contoh: 24.5'
+        />
+
+        <PatientLineTextarea
+          id='edit-complaints'
+          label='Keluhan Yang Dirasakan Saat Ini'
+          value={formData?.currentComplaints ?? ''}
+          onChange={(val) => onFieldChange?.('currentComplaints', val)}
+          placeholder='Tuliskan keluhan atau kondisi pasien...'
+        />
       </div>
     </div>
   );

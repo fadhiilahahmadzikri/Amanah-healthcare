@@ -339,11 +339,11 @@ export async function updatePatient(id: string, data: Partial<PatientMutationPay
   } else if (data.medicalRecordNumber !== undefined && data.medicalRecordNumber.trim() !== '') {
     payload.medicalRecordNumber = data.medicalRecordNumber.trim();
   }
-  if (data.name !== undefined) payload.fullName = data.name;
+  if (data.name !== undefined) payload.fullName = data.name.trim();
   if (data.nik !== undefined && data.nik.trim() !== '') {
     payload.nik = data.nik.trim();
   }
-  if (data.phone !== undefined) payload.phone = data.phone;
+  if (data.phone !== undefined) payload.phone = data.phone ? data.phone.trim() : null;
   if (data.email !== undefined) payload.email = data.email ? data.email.trim() : null;
   if (data.emergency_contact !== undefined && data.emergency_contact.trim() !== '') {
     payload.emergencyContactPhone = data.emergency_contact.trim();
@@ -363,23 +363,33 @@ export async function updatePatient(id: string, data: Partial<PatientMutationPay
       ? data.emergencyContactRelationship.trim()
       : null;
   }
-  if (data.line1 !== undefined) payload.line1 = data.line1;
-  if (data.occupation !== undefined) payload.occupation = data.occupation;
-  if (data.mother_name !== undefined) payload.motherName = data.mother_name;
-  if (data.birth_place !== undefined) payload.birthPlace = data.birth_place;
-  if (data.birth_date !== undefined) payload.birthDate = data.birth_date;
+  if (data.line1 !== undefined) payload.line1 = data.line1 ? data.line1.trim() : null;
+  if (data.occupation !== undefined)
+    payload.occupation = data.occupation ? data.occupation.trim() : null;
+  if (data.mother_name !== undefined)
+    payload.motherName = data.mother_name ? data.mother_name.trim() : null;
+  if (data.birth_place !== undefined)
+    payload.birthPlace = data.birth_place ? data.birth_place.trim() : null;
+  if (data.birth_date !== undefined) payload.birthDate = data.birth_date || null;
   if (data.gender !== undefined) payload.gender = data.gender;
-  if (data.blood_type !== undefined) payload.bloodType = data.blood_type;
-  if (data.province_name !== undefined) payload.provinceName = data.province_name;
-  if (data.province_code !== undefined) payload.provinceCode = data.province_code;
-  if (data.regency_name !== undefined) payload.regencyName = data.regency_name;
-  if (data.regency_code !== undefined) payload.regencyCode = data.regency_code;
-  if (data.district_name !== undefined) payload.districtName = data.district_name;
-  if (data.district_code !== undefined) payload.districtCode = data.district_code;
-  if (data.village_name !== undefined) payload.villageName = data.village_name;
-  if (data.village_code !== undefined) payload.villageCode = data.village_code;
+  if (data.blood_type !== undefined) payload.bloodType = data.blood_type || null;
+  if (data.province_name !== undefined) payload.provinceName = data.province_name || null;
+  if (data.province_code !== undefined) payload.provinceCode = data.province_code || null;
+  if (data.regency_name !== undefined) payload.regencyName = data.regency_name || null;
+  if (data.regency_code !== undefined) payload.regencyCode = data.regency_code || null;
+  if (data.district_name !== undefined) payload.districtName = data.district_name || null;
+  if (data.district_code !== undefined) payload.districtCode = data.district_code || null;
+  if (data.village_name !== undefined) payload.villageName = data.village_name || null;
+  if (data.village_code !== undefined) payload.villageCode = data.village_code || null;
   if (data.status !== undefined) {
     payload.status = data.status === 'inactive' ? 'inactive' : 'active';
+  }
+
+  if (Object.keys(payload).length === 0) {
+    return {
+      success: true,
+      message: 'Tidak ada perubahan pada profil pasien'
+    };
   }
 
   const updatedRecord = await clientFetch<BackendPatientRecord>(`/api/v1/patients/${id}`, {

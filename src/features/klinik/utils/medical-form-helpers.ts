@@ -1,4 +1,5 @@
 import type { Patient } from '@/features/data-pasien/api/types';
+import type { PatientAffiliationProfile } from '@/features/data-pasien/api/patient-affiliation-service';
 import type { MedicalAppointmentFlow } from '../api/types';
 import type { MedicalFormSection } from '../constants/medical-appointment-schemas';
 import { isMedicalSectionValid } from '../schemas/medical-appointment-validation';
@@ -68,41 +69,72 @@ export function pruneEmptyValues(values: MedicalAppointmentValues): MedicalAppoi
 }
 
 export function buildRegistrationPrefill(
-  _flow: MedicalAppointmentFlow,
-  patient: Patient | null
+  flow: MedicalAppointmentFlow,
+  patient: Patient | null,
+  selectedAffiliation?: PatientAffiliationProfile | null
 ): MedicalAppointmentValues {
-  if (!patient) {
+  if (!patient && !selectedAffiliation) {
     return {};
   }
 
-  const birthDate = normalizeBirthDate(patient.birth_date || '');
-  const bloodType = normalizeBloodType(patient.blood_type || '');
-  const phone = patient.phone || '';
-  const address = patient.address || '';
-  const nik = patient.nik || '';
+  const activeName = selectedAffiliation?.fullName || patient?.name || '';
+  const activeNik = selectedAffiliation?.nik || patient?.nik || '';
+  const activeBirthDate = normalizeBirthDate(
+    selectedAffiliation?.birthDate || patient?.birth_date || ''
+  );
+  const activeBloodType = normalizeBloodType(
+    selectedAffiliation?.bloodType || patient?.blood_type || ''
+  );
+  const activePhone =
+    selectedAffiliation?.phone || selectedAffiliation?.phoneNumber || patient?.phone || '';
+  const activeAddress =
+    selectedAffiliation?.line1 ||
+    selectedAffiliation?.address ||
+    patient?.line1 ||
+    patient?.address ||
+    '';
+  const activeMotherName = selectedAffiliation?.motherName || patient?.mother_name || '';
+  const activeOccupation = selectedAffiliation?.occupationName || patient?.occupation || '';
+  const activeGender = selectedAffiliation?.gender || patient?.gender || '';
+  const activeEmail = selectedAffiliation?.email || patient?.email || '';
+
+  const parentName = patient?.name || activeMotherName;
+  const parentPhone = patient?.phone || activePhone;
 
   return pruneEmptyValues({
-    fullName: patient.name,
-    nik,
-    birthDate,
-    bloodType,
-    phone,
-    address,
-    motherName: patient.name,
-    motherNik: nik,
-    motherBirthDate: birthDate,
-    motherAge: patient.age ? `${patient.age} tahun` : '',
-    motherJob: patient.occupation || '',
-    phoneNumber: phone,
-    domicileAddress: address,
-    identityCardAddress: patient.address || address,
-    motherBloodType: bloodType,
-    childName: patient.name,
-    childNik: nik,
-    childBirthDate: birthDate,
-    childSex: patient.gender,
-    parentPhone: phone,
-    childAddress: address
+    fullName: activeName,
+    nik: activeNik,
+    birthDate: activeBirthDate,
+    birthPlace: selectedAffiliation?.birthPlace || patient?.birth_place || '',
+    bloodType: activeBloodType,
+    phone: activePhone,
+    email: activeEmail,
+    address: activeAddress,
+    motherName: flow === 'immunization' ? parentName : activeName,
+    motherNik: flow === 'immunization' ? patient?.nik || '' : activeNik,
+    motherBirthDate:
+      flow === 'immunization' ? normalizeBirthDate(patient?.birth_date || '') : activeBirthDate,
+    motherAge: patient?.age ? `${patient.age} tahun` : '',
+    motherJob: flow === 'immunization' ? patient?.occupation || '' : activeOccupation,
+    phoneNumber: activePhone,
+    domicileAddress: activeAddress,
+    identityCardAddress: activeAddress,
+    motherBloodType:
+      flow === 'immunization' ? normalizeBloodType(patient?.blood_type || '') : activeBloodType,
+    childName: activeName,
+    childNik: activeNik,
+    childBirthDate: activeBirthDate,
+    childSex: activeGender,
+    parentPhone: parentPhone,
+    childAddress: activeAddress,
+    emergencyContactName:
+      selectedAffiliation?.emergencyContactName || patient?.emergencyContactName || '',
+    emergencyContactPhone:
+      selectedAffiliation?.emergencyContactPhone || patient?.emergencyContactPhone || '',
+    emergencyContactRelationship:
+      selectedAffiliation?.emergencyContactRelationship ||
+      patient?.emergencyContactRelationship ||
+      ''
   });
 }
 

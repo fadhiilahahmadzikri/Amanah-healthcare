@@ -232,7 +232,7 @@ export function getPatientColumns(options?: PatientColumnsOptions): ColumnDef<Pa
       meta: {
         label: 'Gender',
         variant: 'multiSelect' as const,
-        options: genderOptions
+        options: genderOptions as any
       },
       enableColumnFilter: true,
       enableSorting: true,
@@ -277,7 +277,7 @@ export function getPatientColumns(options?: PatientColumnsOptions): ColumnDef<Pa
       meta: {
         label: 'Gol. Darah',
         variant: 'multiSelect' as const,
-        options: bloodTypeOptions
+        options: bloodTypeOptions as any
       },
       enableColumnFilter: true,
       enableSorting: true,
@@ -392,7 +392,7 @@ export function getPatientColumns(options?: PatientColumnsOptions): ColumnDef<Pa
       meta: {
         label: 'Status Akun',
         variant: 'multiSelect' as const,
-        options: statusOptions
+        options: statusOptions as any
       },
       enableColumnFilter: true,
       enableSorting: true,

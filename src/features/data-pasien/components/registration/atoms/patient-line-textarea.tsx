@@ -7,12 +7,13 @@ export interface PatientLineTextareaProps {
   id: string;
   label: React.ReactNode;
   value: string;
-  onChange: (value: string) => void;
+  onChange?: (value: string) => void;
   onBlur?: () => void;
   placeholder?: string;
   error?: string;
   invalid?: boolean;
   disabled?: boolean;
+  readOnly?: boolean;
   rows?: number;
   containerClassName?: string;
   className?: string;
@@ -28,6 +29,7 @@ export function PatientLineTextarea({
   error,
   invalid,
   disabled,
+  readOnly,
   rows = 1,
   containerClassName,
   className
@@ -59,7 +61,8 @@ export function PatientLineTextarea({
         data-slot='line-textarea-group'
         data-invalid={isInvalid}
         className={cn(
-          'relative flex flex-col border-b-[1.5px] border-border pb-1.5 transition-colors duration-200 focus-within:border-primary',
+          'relative flex flex-col border-b-[1.5px] border-border pb-1.5 transition-colors duration-200',
+          !readOnly && 'focus-within:border-primary',
           isInvalid && '!border-destructive',
           disabled && 'opacity-60 pointer-events-none'
         )}
@@ -72,18 +75,23 @@ export function PatientLineTextarea({
           rows={rows}
           placeholder={isFloating ? placeholder : ''}
           disabled={disabled}
-          onFocus={() => setIsFocused(true)}
+          readOnly={readOnly}
+          tabIndex={readOnly ? -1 : undefined}
+          onFocus={() => {
+            if (!readOnly) setIsFocused(true);
+          }}
           onBlur={() => {
             setIsFocused(false);
             onBlur?.();
           }}
           onChange={(e) => {
-            onChange(e.target.value);
+            onChange?.(e.target.value);
             adjustHeight();
           }}
           aria-invalid={isInvalid}
           className={cn(
-            'w-full resize-none border-0 bg-transparent px-0 py-1 text-sm font-medium leading-normal text-foreground outline-none shadow-none focus:outline-none focus:ring-0 focus-visible:ring-0 placeholder:font-normal placeholder:text-muted-foreground/50 overflow-hidden min-h-[28px]',
+            'w-full resize-none border-0 bg-transparent px-0 py-1 text-sm font-medium leading-relaxed text-foreground outline-none shadow-none focus:outline-none focus:ring-0 focus-visible:ring-0 placeholder:font-normal placeholder:text-muted-foreground/50 overflow-hidden min-h-[28px] break-words whitespace-pre-wrap',
+            readOnly && 'cursor-default select-all caret-transparent',
             className
           )}
         />
@@ -96,7 +104,7 @@ export function PatientLineTextarea({
             isFloating
               ? '-top-3 text-[11px] font-semibold text-primary'
               : 'top-1 text-sm font-normal text-muted-foreground/70',
-            isFloating && !isFocused && 'text-muted-foreground',
+            isFloating && (!isFocused || readOnly) && 'text-muted-foreground',
             isInvalid && '!text-destructive'
           )}
         >

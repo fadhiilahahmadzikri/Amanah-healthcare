@@ -30,6 +30,10 @@ export interface PatientAffiliationProfile {
   villageCode?: string | null;
   relationship: 'self' | 'spouse' | 'child' | 'parent' | 'sibling' | 'relative' | 'other' | string;
   relationshipLabel?: string;
+  relationshipTypeId?: string | null;
+  icon?: string | null;
+  iconName?: string | null;
+  isSystem?: boolean;
   occupationCode?: string | null;
   occupationName?: string | null;
   phoneNumber?: string | null;
@@ -84,8 +88,13 @@ export interface BookingContextPatient {
 }
 
 export interface BookingContextAllowedRelationship {
+  id?: string;
   value: string;
   label: string;
+  description?: string;
+  icon?: any;
+  iconName?: string;
+  isSystem?: boolean;
 }
 
 export interface BookingServiceContextResponse {
@@ -110,19 +119,13 @@ export interface OccupationItem {
   displayOrder: number;
 }
 
-export type PatientRelationshipType =
-  | 'self'
-  | 'parent'
-  | 'child'
-  | 'spouse'
-  | 'relative'
-  | 'friend'
-  | 'other';
+export type PatientRelationshipType = string;
 
 export type PatientGender = Gender;
 
 export interface CreatePatientAffiliationDto {
   patientId?: string;
+  relationshipTypeId?: string;
   relationshipType: PatientRelationshipType;
   relationLabel?: string;
   isPrimary?: boolean;
@@ -146,6 +149,8 @@ export interface CreatePatientAffiliationDto {
   villageName?: string;
   villageCode?: string;
   email?: string;
+  emergencyContactPatientId?: string;
+  emergencyContactRelationshipTypeId?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   emergencyContactRelationship?: string;
@@ -229,7 +234,10 @@ function mapAffiliationEntityToProfile(
     emergencyContactPhone: patient?.emergencyContactPhone ?? null,
     emergencyContactRelationship: patient?.emergencyContactRelationship ?? null,
     status: patient?.status ?? 'active',
-    isSelf: entity.relationshipType === 'self' || Boolean(entity.isPrimary)
+    icon: (entity as any).icon || (entity as any).iconName || null,
+    iconName: (entity as any).iconName || (entity as any).icon || null,
+    isSystem: Boolean((entity as any).isSystem || entity.isPrimary),
+    isSelf: Boolean(entity.isPrimary || (entity as any).isSystem)
   };
 }
 

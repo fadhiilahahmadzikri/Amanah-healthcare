@@ -16,16 +16,20 @@ import { formatBloodTypeDisplay } from '@/constants/blood-type.constants';
 import { PatientBloodTypeSelector } from '@/features/data-pasien/components/registration/molecules/patient-blood-type-selector';
 import { PatientRegionDropdown } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import { PatientSearchableSelect } from '@/features/data-pasien/components/registration/molecules/patient-searchable-select';
+import { PatientEmergencyContactSelector } from '@/features/data-pasien/components/registration/molecules/patient-emergency-contact-selector';
+import { ShiftIconDisplay } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-display';
+import type { ReferenceOptionItem } from '@/features/data-pasien/api/patient-reference-service';
 import { useBookingRegularPatientForm } from '../../model/useBookingRegularPatientForm';
 
 export interface BookingRegularPatientFormProps {
   onSuccess: (newPatient: PatientAffiliationProfile) => void;
   onCancel: () => void;
-  allowedRelationships?: { value: string; label: string; description?: string }[];
+  allowedRelationships?: ReferenceOptionItem[];
   targetFlow?: string;
   onRelationshipSubmit?: (relationship: PatientRelationshipType) => void;
   hasExistingSelf?: boolean;
   initialRelationship?: PatientRelationshipType | string;
+  existingPatients?: PatientAffiliationProfile[];
 }
 
 export function BookingRegularPatientForm({
@@ -35,7 +39,8 @@ export function BookingRegularPatientForm({
   targetFlow,
   onRelationshipSubmit,
   hasExistingSelf = false,
-  initialRelationship
+  initialRelationship,
+  existingPatients = []
 }: BookingRegularPatientFormProps) {
   const {
     currentStep,
@@ -53,13 +58,14 @@ export function BookingRegularPatientForm({
     phone,
     setPhone,
     email,
-    setEmail,
     emergencyContactName,
     setEmergencyContactName,
     emergencyContactPhone,
     setEmergencyContactPhone,
     emergencyContactRelationship,
     setEmergencyContactRelationship,
+    emergencyContactPatientId,
+    setEmergencyContactPatientId,
     motherName,
     setMotherName,
     placeOfBirth,
@@ -91,7 +97,8 @@ export function BookingRegularPatientForm({
     onRelationshipSubmit,
     allowedRelationships,
     hasExistingSelf,
-    initialRelationship
+    initialRelationship,
+    existingPatients
   });
 
   const activeRelationshipLabel = React.useMemo(() => {
@@ -161,13 +168,13 @@ export function BookingRegularPatientForm({
         valueClass: 'font-mono font-bold text-primary'
       },
       {
-        step: 9,
-        label: 'Email',
+        step: 12,
+        label: 'Email Akun (Tersinkron)',
         value: email || '-',
         valueClass: 'font-semibold text-foreground truncate max-w-[160px] sm:max-w-[210px]'
       },
       {
-        step: 10,
+        step: 9,
         label: 'Kontak Darurat',
         value: emergencyContactPhone
           ? `${emergencyContactName || 'Kerabat'}${emergencyContactRelationship ? ` (${emergencyContactRelationship})` : ''} - ${emergencyContactPhone}`
@@ -175,13 +182,13 @@ export function BookingRegularPatientForm({
         valueClass: 'font-semibold text-foreground truncate max-w-[160px] sm:max-w-[210px]'
       },
       {
-        step: 11,
+        step: 10,
         label: 'Alamat',
         value: region.line1 || '-',
         valueClass: 'font-semibold text-foreground truncate max-w-[160px] sm:max-w-[210px]'
       },
       {
-        step: 12,
+        step: 11,
         label: 'Pekerjaan',
         value: activeOccupationName || '-',
         valueClass:
@@ -238,41 +245,27 @@ export function BookingRegularPatientForm({
                     className={cn(
                       'p-2.5 rounded-xl border text-left text-xs transition-all cursor-pointer select-none flex flex-col justify-between gap-2',
                       isSelected
-                        ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs ring-1 ring-primary/40'
-                        : 'border-border/80 bg-card text-foreground hover:border-primary/40 hover:bg-muted/15'
+                        ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs'
+                        : 'border-border/60 hover:border-border hover:bg-muted/40 text-foreground'
                     )}
                   >
                     <div className='flex items-center justify-between w-full'>
-                      <div
-                        className={cn(
-                          'size-6 rounded-lg flex items-center justify-center',
-                          isSelected
-                            ? 'bg-primary/20 text-primary'
-                            : 'bg-muted text-muted-foreground'
-                        )}
-                      >
-                        {opt.value === 'self' ? (
-                          <Icons.user className='size-3.5' />
-                        ) : opt.value === 'spouse' ? (
-                          <Icons.heart className='size-3.5' />
-                        ) : (
-                          <Icons.user className='size-3.5' />
-                        )}
+                      <div className='flex items-center gap-2'>
+                        <ShiftIconDisplay
+                          icon={(opt as any).icon || (opt as any).iconName || 'user'}
+                          size='md'
+                          bare
+                          className='size-4 text-primary shrink-0'
+                        />
+                        <span className='font-bold'>{opt.label}</span>
                       </div>
-                      {isSelected && (
-                        <div className='size-3.5 rounded-full bg-primary text-primary-foreground flex items-center justify-center'>
-                          <Icons.check className='size-2 stroke-[3]' />
-                        </div>
-                      )}
+                      {isSelected && <Icons.check className='w-3.5 h-3.5 text-primary shrink-0' />}
                     </div>
-                    <div>
-                      <div className='font-bold text-xs'>{opt.label}</div>
-                      {opt.description && (
-                        <div className='text-[10px] text-muted-foreground mt-0.5 line-clamp-1 leading-tight font-normal'>
-                          {opt.description}
-                        </div>
-                      )}
-                    </div>
+                    {opt.description && (
+                      <span className='text-[10px] text-muted-foreground font-normal line-clamp-2 leading-tight'>
+                        {opt.description}
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -282,8 +275,8 @@ export function BookingRegularPatientForm({
 
         {currentStep === 2 && (
           <PatientLineInput
-            id='patient-name'
-            label='Nama lengkap'
+            id='patient-fullname'
+            label='Nama lengkap pasien (sesuai KTP)'
             placeholder='contoh: Siti Aminah / Ahmad Dahlan'
             value={fullName}
             onChange={(val) => setFullName(val)}
@@ -294,23 +287,21 @@ export function BookingRegularPatientForm({
         {currentStep === 3 && (
           <PatientLineInput
             id='patient-nik'
-            label='NIK KTP (16 digit angka)'
-            placeholder='3271012345670001'
+            label='Nomor Induk Kependudukan (NIK)'
+            placeholder='16 digit NIK sesuai KTP atau KK'
             value={nik}
             onChange={(val) => {
-              const numericOnly = val.replace(/\D/g, '').slice(0, 16);
+              const numericOnly = val.replace(/\D/g, '');
               setNik(numericOnly);
             }}
             maxLength={16}
-            inputMode='numeric'
-            isMonospace
             autoComplete='off'
           />
         )}
 
         {currentStep === 4 && (
           <PatientLineInput
-            id='patient-mother-name'
+            id='patient-mother'
             label='Nama ibu kandung'
             placeholder='contoh: Maryam / Nurjanah'
             value={motherName}
@@ -379,57 +370,28 @@ export function BookingRegularPatientForm({
         )}
 
         {currentStep === 9 && (
-          <PatientLineInput
-            id='patient-email'
-            label='Email Pasien (Opsional)'
-            type='email'
-            placeholder='contoh: pasien@email.com'
-            value={email}
-            onChange={(val) => setEmail(val.trim())}
-            autoComplete='email'
+          <PatientEmergencyContactSelector
+            affiliations={existingPatients}
+            name={emergencyContactName}
+            onChangeName={setEmergencyContactName}
+            relationship={emergencyContactRelationship}
+            onChangeRelationship={setEmergencyContactRelationship}
+            phone={emergencyContactPhone}
+            onChangePhone={setEmergencyContactPhone}
+            selectedAffiliationPatientId={emergencyContactPatientId}
+            onSelectAffiliationPatientId={setEmergencyContactPatientId}
+            relationshipOptions={references.relationships}
           />
         )}
 
         {currentStep === 10 && (
-          <div className='space-y-3.5'>
-            <PatientLineInput
-              id='patient-emergency-name'
-              label='Nama Kontak Darurat (Opsional)'
-              placeholder='contoh: Budi Santoso / Siti Rahayu'
-              value={emergencyContactName}
-              onChange={setEmergencyContactName}
-            />
-            <PatientLineInput
-              id='patient-emergency-relationship'
-              label='Hubungan dengan Pasien (Opsional)'
-              placeholder='contoh: Orang Tua / Pasangan / Saudara'
-              value={emergencyContactRelationship}
-              onChange={setEmergencyContactRelationship}
-            />
-            <PatientLineInput
-              id='patient-emergency-phone'
-              label='No. Telepon Kontak Darurat (Opsional)'
-              type='tel'
-              placeholder='contoh: 0812-9876-5432'
-              value={emergencyContactPhone}
-              onChange={(val) => {
-                const numericOnly = val.replace(/[^\d+-\s]/g, '');
-                setEmergencyContactPhone(numericOnly);
-              }}
-              maxLength={16}
-              autoComplete='tel'
-            />
-          </div>
-        )}
-
-        {currentStep === 11 && (
           <PatientRegionDropdown
             values={region}
             onChange={(updates) => setRegion((prev) => ({ ...prev, ...updates }))}
           />
         )}
 
-        {currentStep === 12 && (
+        {currentStep === 11 && (
           <div className='space-y-1.5'>
             <PatientSearchableSelect
               id='patient-occupation'
@@ -449,7 +411,7 @@ export function BookingRegularPatientForm({
           </div>
         )}
 
-        {currentStep === 13 && (
+        {currentStep === 12 && (
           <div className='space-y-0.5 text-xs border border-border/80 rounded-2xl p-2 bg-muted/20'>
             {reviewItems.map((item, idx) => (
               <div
@@ -498,44 +460,38 @@ export function BookingRegularPatientForm({
         <button
           type='button'
           onClick={handleBack}
-          className='flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition cursor-pointer select-none'
+          className='px-4 py-2 rounded-xl text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors'
         >
-          <Icons.arrowLeft className='size-3.5' />
-          <span>
-            {isEditingFromReview ? 'Ke ringkasan' : currentStep === 1 ? 'Batal' : 'Kembali'}
-          </span>
+          {isEditingFromReview ? 'Batal' : currentStep === 1 ? 'Tutup' : 'Kembali'}
         </button>
 
         <button
           type='button'
-          disabled={!isCurrentStepValid || isSubmitting}
           onClick={handleNext}
+          disabled={!isCurrentStepValid || isSubmitting}
           className={cn(
-            'flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold transition cursor-pointer select-none',
+            'px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5',
             isCurrentStepValid && !isSubmitting
-              ? 'bg-primary text-primary-foreground shadow-xs hover:opacity-95'
+              ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
               : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60'
           )}
         >
           {isSubmitting ? (
             <>
-              <Icons.spinner className='size-3.5 animate-spin' />
+              <Icons.spinner className='w-3.5 h-3.5 animate-spin' />
               <span>Menyimpan...</span>
             </>
           ) : isReviewStep ? (
             <>
-              <span>Simpan profil pasien</span>
-              <Icons.check className='size-3.5' />
+              <Icons.check className='w-3.5 h-3.5' />
+              <span>Simpan Profil</span>
             </>
           ) : isEditingFromReview ? (
-            <>
-              <span>Simpan & kembali</span>
-              <Icons.check className='size-3.5' />
-            </>
+            <span>Selesai Edit</span>
           ) : (
             <>
               <span>Lanjut</span>
-              <Icons.arrowRight className='size-3.5' />
+              <Icons.chevronRight className='w-3.5 h-3.5' />
             </>
           )}
         </button>

@@ -18,10 +18,15 @@ export interface UnifiedInspectorPatient {
   phone?: string;
   email?: string;
   address?: string;
+  line1?: string;
   villageName?: string;
+  villageCode?: string;
   districtName?: string;
+  districtCode?: string;
   regencyName?: string;
+  regencyCode?: string;
   provinceName?: string;
+  provinceCode?: string;
   relationshipType?: string;
   relationLabel?: string;
   emergencyContactName?: string;
@@ -206,7 +211,17 @@ export interface EditableRegularData {
   bloodType?: string;
   occupation?: string;
   phone?: string;
+  email?: string;
   address?: string;
+  line1?: string;
+  provinceName?: string;
+  provinceCode?: string;
+  regencyName?: string;
+  regencyCode?: string;
+  districtName?: string;
+  districtCode?: string;
+  villageName?: string;
+  villageCode?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   emergencyContactRelationship?: string;
@@ -244,4 +259,8 @@ export interface InspectorTabProps {
   // Regular form
   regularFormData?: EditableRegularData;
   onRegularFieldChange?: (field: keyof EditableRegularData, value: any) => void;
+
+  // Validation
+  validationErrors?: Record<string, string>;
+  onClearError?: (field: string) => void;
 }
