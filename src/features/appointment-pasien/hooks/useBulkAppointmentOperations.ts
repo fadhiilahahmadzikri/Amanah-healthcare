@@ -7,7 +7,9 @@ import {
   bulkAssignDoctor,
   bulkAssignRoom,
   bulkCancelAppointments,
-  bulkRescheduleAppointments
+  bulkRescheduleAppointments,
+  bulkProposeCancelAppointments,
+  bulkProposeRescheduleAppointments
 } from '../api/service';
 import { appointmentKeys } from '../api/query-keys';
 import type {
@@ -42,6 +44,26 @@ interface UseBulkAppointmentOperationsOptions {
   onSuccess?: () => void;
 }
 
+function extractErrorMessage(err: unknown, defaultMessage: string): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'object' && err !== null && 'message' in err) {
+    return String((err as { message: unknown }).message);
+  }
+  return defaultMessage;
+}
+
+interface ProposalBatchItem {
+  id: string;
+  success: boolean;
+  proposalId?: string;
+  message?: string;
+}
+
+interface ProposalBatchResponse {
+  message: string;
+  data: ProposalBatchItem[];
+}
+
 export function useBulkAppointmentOperations(options: UseBulkAppointmentOperationsOptions = {}) {
   const queryClient = useQueryClient();
   const { onClearSelection, onSuccess } = options;
@@ -69,9 +91,10 @@ export function useBulkAppointmentOperations(options: UseBulkAppointmentOperatio
     queryKey: ['schedules', 'reference', 'rooms', 'bulk-options'],
     queryFn: async (): Promise<RoomOption[]> => {
       const res = await clientFetch<
-        Array<{ id: string; name: string; location?: string }> | {
-          data?: Array<{ id: string; name: string; location?: string }>;
-        }
+        | Array<{ id: string; name: string; location?: string }>
+        | {
+            data?: Array<{ id: string; name: string; location?: string }>;
+          }
       >('/api/v1/schedules/reference/rooms');
       const list = Array.isArray(res)
         ? res
@@ -90,13 +113,36 @@ export function useBulkAppointmentOperations(options: UseBulkAppointmentOperatio
     queryKey: ['schedules', 'reference', 'sessions', 'bulk-options'],
     queryFn: async (): Promise<SessionOption[]> => {
       const res = await clientFetch<
-        Array<{ id: string; code: string; name?: string; defaultStartsAt?: string; defaultEndsAt?: string }> | {
-          data?: Array<{ id: string; code: string; name?: string; defaultStartsAt?: string; defaultEndsAt?: string }>;
-        }
+        | Array<{
+            id: string;
+            code: string;
+            name?: string;
+            defaultStartsAt?: string;
+            defaultEndsAt?: string;
+          }>
+        | {
+            data?: Array<{
+              id: string;
+              code: string;
+              name?: string;
+              defaultStartsAt?: string;
+              defaultEndsAt?: string;
+            }>;
+          }
       >('/api/v1/schedules/reference/sessions');
       const list = Array.isArray(res)
         ? res
-        : (res as { data?: Array<{ id: string; code: string; name?: string; defaultStartsAt?: string; defaultEndsAt?: string }> })?.data || [];
+        : (
+            res as {
+              data?: Array<{
+                id: string;
+                code: string;
+                name?: string;
+                defaultStartsAt?: string;
+                defaultEndsAt?: string;
+              }>;
+            }
+          )?.data || [];
       return list.map((s) => ({
         id: s.id,
         code: s.code,
@@ -131,8 +177,8 @@ export function useBulkAppointmentOperations(options: UseBulkAppointmentOperatio
       onClearSelection?.();
       onSuccess?.();
     },
-    onError: (err: any) => {
-      toast.error(err?.message || 'Gagal melakukan penugasan dokter massal.');
+    onError: (err: unknown) => {
+      toast.error(extractErrorMessage(err, 'Gagal melakukan penugasan dokter massal.'));
     }
   });
 
@@ -151,8 +197,8 @@ export function useBulkAppointmentOperations(options: UseBulkAppointmentOperatio
       onClearSelection?.();
       onSuccess?.();
     },
-    onError: (err: any) => {
-      toast.error(err?.message || 'Gagal melakukan penugasan ruangan massal.');
+    onError: (err: unknown) => {
+      toast.error(extractErrorMessage(err, 'Gagal melakukan penugasan ruangan massal.'));
     }
   });
 
@@ -171,14 +217,13 @@ export function useBulkAppointmentOperations(options: UseBulkAppointmentOperatio
       onClearSelection?.();
       onSuccess?.();
     },
-    onError: (err: any) => {
-      toast.error(err?.message || 'Gagal melakukan pembatalan massal.');
+    onError: (err: unknown) => {
+      toast.error(extractErrorMessage(err, 'Gagal melakukan pembatalan massal.'));
     }
   });
 
   const rescheduleMutation = useMutation({
-    mutationFn: (payload: BulkRescheduleAppointmentsPayload) =>
-      bulkRescheduleAppointments(payload),
+    mutationFn: (payload: BulkRescheduleAppointmentsPayload) => bulkRescheduleAppointments(payload),
     onSuccess: async (res) => {
       await invalidateQueries();
       const { succeededCount, failedCount, errors } = res.data;
@@ -192,8 +237,62 @@ export function useBulkAppointmentOperations(options: UseBulkAppointmentOperatio
       onClearSelection?.();
       onSuccess?.();
     },
-    onError: (err: any) => {
-      toast.error(err?.message || 'Gagal melakukan penjadwalan ulang massal.');
+    onError: (err: unknown) => {
+      toast.error(extractErrorMessage(err, 'Gagal melakukan penjadwalan ulang massal.'));
+    }
+  });
+
+  const proposeRescheduleMutation = useMutation({
+    mutationFn: (payload: {
+      appointmentIds: string[];
+      targetDate: string;
+      targetSessionId: string;
+      targetDoctorId?: string;
+      targetRoomId?: string;
+      reason: string;
+    }) => bulkProposeRescheduleAppointments(payload),
+    onSuccess: async (res) => {
+      await invalidateQueries();
+      const batchRes = res as unknown as ProposalBatchResponse;
+      const results = Array.isArray(batchRes?.data) ? batchRes.data : [];
+      const succeededCount = results.filter((r) => r.success).length;
+      const failedCount = results.length - succeededCount;
+      if (failedCount === 0) {
+        toast.success(
+          `Berhasil mengajukan usulan penjadwalan ulang ke ${succeededCount} pasien (menunggu persetujuan).`
+        );
+      } else {
+        toast.warning(`Selesai: ${succeededCount} diajukan, ${failedCount} gagal.`);
+      }
+      onClearSelection?.();
+      onSuccess?.();
+    },
+    onError: (err: unknown) => {
+      toast.error(extractErrorMessage(err, 'Gagal mengajukan penjadwalan ulang massal.'));
+    }
+  });
+
+  const proposeCancelMutation = useMutation({
+    mutationFn: (payload: { appointmentIds: string[]; reason: string }) =>
+      bulkProposeCancelAppointments(payload),
+    onSuccess: async (res) => {
+      await invalidateQueries();
+      const batchRes = res as unknown as ProposalBatchResponse;
+      const results = Array.isArray(batchRes?.data) ? batchRes.data : [];
+      const succeededCount = results.filter((r) => r.success).length;
+      const failedCount = results.length - succeededCount;
+      if (failedCount === 0) {
+        toast.success(
+          `Berhasil mengajukan usulan pembatalan ke ${succeededCount} pasien (menunggu persetujuan).`
+        );
+      } else {
+        toast.warning(`Selesai: ${succeededCount} diajukan, ${failedCount} gagal.`);
+      }
+      onClearSelection?.();
+      onSuccess?.();
+    },
+    onError: (err: unknown) => {
+      toast.error(extractErrorMessage(err, 'Gagal mengajukan pembatalan massal.'));
     }
   });
 
@@ -201,8 +300,7 @@ export function useBulkAppointmentOperations(options: UseBulkAppointmentOperatio
     doctors: doctorsQuery.data || [],
     rooms: roomsQuery.data || [],
     sessions: sessionsQuery.data || [],
-    isLoadingOptions:
-      doctorsQuery.isLoading || roomsQuery.isLoading || sessionsQuery.isLoading,
+    isLoadingOptions: doctorsQuery.isLoading || roomsQuery.isLoading || sessionsQuery.isLoading,
     assignDoctor: assignDoctorMutation.mutateAsync,
     isAssigningDoctor: assignDoctorMutation.isPending,
     assignRoom: assignRoomMutation.mutateAsync,
@@ -210,6 +308,10 @@ export function useBulkAppointmentOperations(options: UseBulkAppointmentOperatio
     cancelAppointments: cancelMutation.mutateAsync,
     isCancelling: cancelMutation.isPending,
     rescheduleAppointments: rescheduleMutation.mutateAsync,
-    isRescheduling: rescheduleMutation.isPending
+    isRescheduling: rescheduleMutation.isPending,
+    proposeRescheduleAppointments: proposeRescheduleMutation.mutateAsync,
+    isProposingReschedule: proposeRescheduleMutation.isPending,
+    proposeCancelAppointments: proposeCancelMutation.mutateAsync,
+    isProposingCancel: proposeCancelMutation.isPending
   };
 }

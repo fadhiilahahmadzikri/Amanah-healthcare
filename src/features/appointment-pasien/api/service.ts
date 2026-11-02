@@ -404,8 +404,18 @@ export async function bulkAssignRoom(
 export async function bulkCancelAppointments(
   payload: BulkCancelAppointmentsPayload
 ): Promise<BulkOperationResponseDto> {
+  return await clientFetch<BulkOperationResponseDto>('/api/v1/admin/appointments/bulk/cancel', {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function bulkProposeCancelAppointments(payload: {
+  appointmentIds: string[];
+  reason: string;
+}): Promise<BulkOperationResponseDto> {
   return await clientFetch<BulkOperationResponseDto>(
-    '/api/v1/admin/appointments/bulk/cancel',
+    '/api/v1/admin/appointments/bulk/propose-cancel',
     {
       method: 'POST',
       body: JSON.stringify(payload)
@@ -416,8 +426,22 @@ export async function bulkCancelAppointments(
 export async function bulkRescheduleAppointments(
   payload: BulkRescheduleAppointmentsPayload
 ): Promise<BulkOperationResponseDto> {
+  return await clientFetch<BulkOperationResponseDto>('/api/v1/admin/appointments/bulk/reschedule', {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function bulkProposeRescheduleAppointments(payload: {
+  appointmentIds: string[];
+  targetDate: string;
+  targetSessionId: string;
+  targetDoctorId?: string;
+  targetRoomId?: string;
+  reason: string;
+}): Promise<BulkOperationResponseDto> {
   return await clientFetch<BulkOperationResponseDto>(
-    '/api/v1/admin/appointments/bulk/reschedule',
+    '/api/v1/admin/appointments/bulk/propose-reschedule',
     {
       method: 'POST',
       body: JSON.stringify(payload)

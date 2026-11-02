@@ -1,5 +1,5 @@
 import { type Table as TanstackTable, type Row, flexRender } from '@tanstack/react-table';
-import type * as React from 'react';
+import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 import { DataTablePagination } from '@/components/ui/table/data-table-pagination';
@@ -23,6 +23,7 @@ interface DataTableProps<TData> extends React.ComponentProps<'div'> {
   actionBar?: React.ReactNode;
   onRowClick?: (row: TData) => void;
   getRowClassName?: (row: Row<TData>) => string;
+  renderRowDivider?: (row: Row<TData>, index: number) => React.ReactNode;
   entityName?: string;
   bulkActions?: React.ReactNode;
   emptyState?: React.ReactNode;
@@ -49,6 +50,7 @@ export function DataTable<TData>({
   children,
   onRowClick,
   getRowClassName,
+  renderRowDivider,
   entityName,
   bulkActions,
   emptyState,
@@ -123,32 +125,51 @@ export function DataTable<TData>({
                 </TableHeader>
                 <TableBody>
                   {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map((row) => (
-                      <TableRow
-                        key={row.id}
-                        data-state={row.getIsSelected() && 'selected'}
-                        onClick={(event) => handleRowClick(event, row.original)}
-                        className={cn(
-                          onRowClick && 'cursor-pointer hover:bg-muted/50',
-                          row.depth > 0 &&
-                            'bg-muted/15 dark:bg-muted/20 hover:bg-muted/30 transition-colors',
-                          getRowClassName?.(row)
-                        )}
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell
-                            key={cell.id}
-                            style={{
-                              ...getCommonPinningStyles({ column: cell.column, isHeader: false }),
-                              width:
-                                cell.column.getSize() !== 150 ? cell.column.getSize() : undefined
-                            }}
+                    table.getRowModel().rows.map((row, index) => {
+                      const divider = renderRowDivider?.(row, index);
+                      return (
+                        <React.Fragment key={row.id}>
+                          {divider && (
+                            <TableRow className='hover:bg-transparent bg-transparent border-none'>
+                              <TableCell
+                                colSpan={table.getVisibleLeafColumns().length}
+                                className='p-0'
+                              >
+                                {divider}
+                              </TableCell>
+                            </TableRow>
+                          )}
+                          <TableRow
+                            data-state={row.getIsSelected() && 'selected'}
+                            onClick={(event) => handleRowClick(event, row.original)}
+                            className={cn(
+                              onRowClick && 'cursor-pointer hover:bg-muted/50',
+                              row.depth > 0 &&
+                                'bg-muted/15 dark:bg-muted/20 hover:bg-muted/30 transition-colors',
+                              getRowClassName?.(row)
+                            )}
                           >
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
+                            {row.getVisibleCells().map((cell) => (
+                              <TableCell
+                                key={cell.id}
+                                style={{
+                                  ...getCommonPinningStyles({
+                                    column: cell.column,
+                                    isHeader: false
+                                  }),
+                                  width:
+                                    cell.column.getSize() !== 150
+                                      ? cell.column.getSize()
+                                      : undefined
+                                }}
+                              >
+                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        </React.Fragment>
+                      );
+                    })
                   ) : (
                     <TableRow>
                       <TableCell

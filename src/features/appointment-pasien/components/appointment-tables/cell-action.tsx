@@ -212,7 +212,7 @@ export function CellAction({
               }}
               className='cursor-pointer text-xs gap-2 text-destructive focus:text-destructive'
             >
-              <Icons.trash className='size-3.5 text-destructive' />
+              <Icons.alertCircle className='size-3.5 text-destructive' />
               <span>Batalkan Janji Temu</span>
             </DropdownMenuItem>
           )}

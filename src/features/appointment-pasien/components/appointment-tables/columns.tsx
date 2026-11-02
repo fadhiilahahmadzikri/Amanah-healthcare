@@ -191,8 +191,16 @@ export function getAppointmentColumns(
         <DataTableColumnHeader column={column} title='Status Antrean' />
       ),
       cell: ({ row }) => (
-        <div className='flex items-center'>
+        <div className='flex flex-col gap-1 items-start'>
           <AppointmentStatusPill status={row.original.status} size='sm' />
+          {row.original.hasPendingProposal && (
+            <span className='inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20'>
+              <Icons.clock className='size-3 shrink-0' />
+              {row.original.pendingProposalType === 'cancellation'
+                ? 'Persetujuan Batal'
+                : 'Persetujuan Reschedule'}
+            </span>
+          )}
         </div>
       ),
       meta: {

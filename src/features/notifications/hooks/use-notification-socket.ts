@@ -117,6 +117,9 @@ export function useNotificationSocket(callbacks?: {
     queryClient.invalidateQueries({ queryKey: ['notifications', 'me'] });
     queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
     queryClient.invalidateQueries({ queryKey: klinikKeys.all });
+    queryClient.invalidateQueries({ queryKey: ['patient-appointments'] });
+    queryClient.invalidateQueries({ queryKey: ['my-appointments'] });
+    queryClient.invalidateQueries({ queryKey: ['appointments'] });
     queryClient.invalidateQueries({ queryKey: ['queue', 'daily'] });
     queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all });
     queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES] });
@@ -175,16 +178,12 @@ export function useNotificationSocket(callbacks?: {
 
     socket.on('connect', () => {
       setConnectionStatus('connected');
-      console.log(
-        `[RealtimeTransport] Connected as user ${currentUserId} (${viewerAudience}) [socket=${socket.id}]`
-      );
       // Catch-up on initial connect and reconnects
       reconcile();
     });
 
     socket.io.on('reconnect', () => {
       setConnectionStatus('connected');
-      console.log(`[RealtimeTransport] Reconnected [socket=${socket.id}]`);
       reconcile();
     });
 
@@ -197,9 +196,8 @@ export function useNotificationSocket(callbacks?: {
       }
     });
 
-    socket.on('disconnect', (reason: string) => {
+    socket.on('disconnect', () => {
       setConnectionStatus('disconnected');
-      console.log(`[RealtimeTransport] Disconnected: ${reason}`);
     });
 
     socket.on(
@@ -315,10 +313,30 @@ export function useNotificationSocket(callbacks?: {
     const handleAppointmentStatusChanged = (payload: unknown) => {
       reconcile();
       void queryClient.refetchQueries({ queryKey: appointmentKeys.all, type: 'active' });
+      void queryClient.refetchQueries({ queryKey: klinikKeys.all, type: 'active' });
       void queryClient.refetchQueries({
         queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES],
         type: 'active'
       });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clinic:appointment_updated', { detail: payload }));
+      }
+    };
+
+    const handleQueuePositionShifted = (payload: unknown) => {
+      reconcile();
+      void queryClient.refetchQueries({ queryKey: appointmentKeys.all, type: 'active' });
+      void queryClient.refetchQueries({ queryKey: klinikKeys.all, type: 'active' });
+      void queryClient.refetchQueries({ queryKey: ['queue', 'daily'], type: 'active' });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clinic:appointment_updated', { detail: payload }));
+      }
+    };
+
+    const handleAppointmentProposal = (payload: unknown) => {
+      reconcile();
+      void queryClient.refetchQueries({ queryKey: appointmentKeys.all, type: 'active' });
+      void queryClient.refetchQueries({ queryKey: klinikKeys.all, type: 'active' });
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('clinic:appointment_updated', { detail: payload }));
       }
@@ -496,7 +514,7 @@ export function useNotificationSocket(callbacks?: {
       }
     };
 
-    const handleStaffOnboarded = (payload: any) => {
+    const handleStaffOnboarded = (payload: unknown) => {
       reconcile();
       void queryClient.refetchQueries({ queryKey: staffManagementKeys.all, type: 'active' });
       void queryClient.refetchQueries({ queryKey: doctorScheduleKeys.all, type: 'active' });
@@ -505,7 +523,10 @@ export function useNotificationSocket(callbacks?: {
         type: 'active'
       });
       if (viewerAudience === AUDIENCE.INTERNAL) {
-        const staffName = payload?.fullName || 'Staf Baru';
+        const staffName =
+          payload && typeof payload === 'object' && 'fullName' in payload
+            ? String((payload as { fullName?: string }).fullName || 'Staf Baru')
+            : 'Staf Baru';
         toast.success(
           `Selamat bergabung! ${staffName} telah berhasil menyelesaikan onboarding dan akunnya telah aktif.`
         );
@@ -535,6 +556,9 @@ export function useNotificationSocket(callbacks?: {
     socket.on('appointment.patient_called', handleAppointmentCalled);
     socket.on('appointment:status_changed', handleAppointmentStatusChanged);
     socket.on('appointment.status_changed', handleAppointmentStatusChanged);
+    socket.on('queue:position_shifted', handleQueuePositionShifted);
+    socket.on('appointment:proposal_created', handleAppointmentProposal);
+    socket.on('appointment:proposal_resolved', handleAppointmentProposal);
     socket.on('queue:estimates:updated', handleQueueEstimatesUpdated);
     socket.on('leave:updated', handleLeaveUpdated);
     socket.on('replacement:updated', handleReplacementUpdated);
@@ -558,6 +582,26 @@ export function useNotificationSocket(callbacks?: {
       if (typeof window !== 'undefined') {
         window.removeEventListener('clinic:emit_socket', handleOutgoingSocketEvent);
       }
+      socket.off('appointment:called', handleAppointmentCalled);
+      socket.off('appointment.patient_called', handleAppointmentCalled);
+      socket.off('appointment:status_changed', handleAppointmentStatusChanged);
+      socket.off('appointment.status_changed', handleAppointmentStatusChanged);
+      socket.off('queue:position_shifted', handleQueuePositionShifted);
+      socket.off('appointment:proposal_created', handleAppointmentProposal);
+      socket.off('appointment:proposal_resolved', handleAppointmentProposal);
+      socket.off('queue:estimates:updated', handleQueueEstimatesUpdated);
+      socket.off('leave:updated', handleLeaveUpdated);
+      socket.off('replacement:updated', handleReplacementUpdated);
+      socket.off('doctor_schedule:refresh', handleDoctorScheduleRefresh);
+      socket.off('attendance:recorded', handleAttendanceUpdated);
+      socket.off('attendance:check_in', handleAttendanceUpdated);
+      socket.off('attendance:manual_check_in', handleAttendanceUpdated);
+      socket.off('attendance:check_out', handleAttendanceUpdated);
+      socket.off('attendance:checkout', handleAttendanceUpdated);
+      socket.off('attendance:early_departure', handleAttendanceUpdated);
+      socket.off('attendance:refresh', handleAttendanceUpdated);
+      socket.off('chat:message', handleChatMessage);
+      socket.off('chat:typing', handleChatTyping);
       socket.off('staff:invited', handleStaffInvited);
       socket.off('staff:invitation_revoked', handleStaffUpdated);
       socket.off('staff:onboarded', handleStaffOnboarded);

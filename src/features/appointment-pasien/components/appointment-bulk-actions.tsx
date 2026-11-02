@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
+import { ReservationModal } from '@/features/klinik/components/reservation/reservation-modal';
+import { AppointmentCancellationModal } from './appointment-cancellation-modal';
 import { useBulkAppointmentOperations } from '../hooks/useBulkAppointmentOperations';
 import type { AdminAppointment } from '../api/types';
 
@@ -17,10 +19,7 @@ interface AppointmentBulkActionsProps {
   onRefresh?: () => void;
 }
 
-export function AppointmentBulkActions({
-  table,
-  onRefresh
-}: AppointmentBulkActionsProps) {
+export function AppointmentBulkActions({ table, onRefresh }: AppointmentBulkActionsProps) {
   const selectedRows = table.getFilteredSelectedRowModel().rows;
   const selectedCount = selectedRows.length;
   const appointmentIds = selectedRows.map((r) => r.original.id);
@@ -40,12 +39,7 @@ export function AppointmentBulkActions({
   const [selectedRoomId, setSelectedRoomId] = useState('');
 
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
-  const [targetDate, setTargetDate] = useState('');
-  const [targetSession, setTargetSession] = useState('');
-  const [rescheduleReason, setRescheduleReason] = useState('');
-
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
-  const [cancelReason, setCancelReason] = useState('');
 
   if (selectedCount === 0) {
     return null;
@@ -76,34 +70,6 @@ export function AppointmentBulkActions({
     setIsRoomModalOpen(false);
     setSelectedRoomId('');
   };
-
-  const handleConfirmReschedule = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!targetDate) return;
-    await bulkOps.rescheduleAppointments({
-      appointmentIds,
-      targetDate,
-      session: targetSession || undefined,
-      reason: rescheduleReason.trim() || undefined
-    });
-    setIsRescheduleModalOpen(false);
-    setTargetDate('');
-    setTargetSession('');
-    setRescheduleReason('');
-  };
-
-  const handleConfirmCancel = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!cancelReason.trim()) return;
-    await bulkOps.cancelAppointments({
-      appointmentIds,
-      reason: cancelReason.trim()
-    });
-    setIsCancelModalOpen(false);
-    setCancelReason('');
-  };
-
-  const todayStr = new Date().toISOString().split('T')[0];
 
   return (
     <>
@@ -148,15 +114,15 @@ export function AppointmentBulkActions({
           variant='outline'
           size='sm'
           onClick={() => setIsRescheduleModalOpen(true)}
-          disabled={bulkOps.isRescheduling}
+          disabled={bulkOps.isProposingReschedule}
           className='h-8 text-xs font-semibold px-2.5 gap-1.5 rounded-lg border-border/80 hover:bg-accent'
         >
-          {bulkOps.isRescheduling ? (
+          {bulkOps.isProposingReschedule ? (
             <Icons.spinner className='size-3.5 animate-spin text-primary' />
           ) : (
             <Icons.calendar className='size-3.5 text-primary' />
           )}
-          <span>Jadwalkan Ulang</span>
+          <span>Ajukan Jadwal Ulang</span>
         </Button>
 
         {/* 4. Bulk Cancel */}
@@ -165,15 +131,15 @@ export function AppointmentBulkActions({
           variant='destructive'
           size='sm'
           onClick={() => setIsCancelModalOpen(true)}
-          disabled={bulkOps.isCancelling}
+          disabled={bulkOps.isProposingCancel}
           className='h-8 text-xs font-semibold px-2.5 gap-1.5 rounded-lg'
         >
-          {bulkOps.isCancelling ? (
+          {bulkOps.isProposingCancel ? (
             <Icons.spinner className='size-3.5 animate-spin' />
           ) : (
-            <Icons.trash className='size-3.5' />
+            <Icons.alertCircle className='size-3.5' />
           )}
-          <span>Batalkan ({selectedCount})</span>
+          <span>Ajukan Batal ({selectedCount})</span>
         </Button>
       </div>
 
@@ -238,7 +204,10 @@ export function AppointmentBulkActions({
                 checked={closeOldSchedule}
                 onCheckedChange={(checked) => setCloseOldSchedule(Boolean(checked))}
               />
-              <Label htmlFor='bulk-close-old' className='text-xs font-normal text-muted-foreground cursor-pointer'>
+              <Label
+                htmlFor='bulk-close-old'
+                className='text-xs font-normal text-muted-foreground cursor-pointer'
+              >
                 Tutup jadwal dokter lama jika dipindahkan
               </Label>
             </div>
@@ -324,11 +293,7 @@ export function AppointmentBulkActions({
               >
                 Batal
               </Button>
-              <Button
-                type='submit'
-                size='sm'
-                disabled={!selectedRoomId || bulkOps.isAssigningRoom}
-              >
+              <Button type='submit' size='sm' disabled={!selectedRoomId || bulkOps.isAssigningRoom}>
                 {bulkOps.isAssigningRoom ? (
                   <>
                     <Icons.spinner className='size-3.5 animate-spin mr-1.5' />
@@ -343,169 +308,33 @@ export function AppointmentBulkActions({
         </div>
       </ModalWrapper>
 
-      {/* MODAL 3: JADWALKAN ULANG (RESCHEDULE) */}
-      <ModalWrapper
+      {/* MODAL 3: JADWALKAN ULANG (RESCHEDULE - MENGGUNAKAN RESERVATION MODAL) */}
+      <ReservationModal
         isOpen={isRescheduleModalOpen}
+        context={{
+          mode: 'reschedule',
+          appointmentIds,
+          appointmentCount: selectedCount,
+          initiator: 'admin'
+        }}
         onClose={() => setIsRescheduleModalOpen(false)}
-        maxWidth='max-w-md'
-      >
-        <div className='p-6'>
-          <div className='flex items-center gap-3 mb-4'>
-            <div className='size-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary'>
-              <Icons.calendar className='size-5' />
-            </div>
-            <div>
-              <h3 className='text-base font-bold text-foreground'>
-                Jadwalkan Ulang ({selectedCount} Antrean)
-              </h3>
-              <p className='text-xs text-muted-foreground'>
-                Pindahkan seluruh antrean terpilih ke tanggal atau sesi baru.
-              </p>
-            </div>
-          </div>
+        onSuccess={() => {
+          table.resetRowSelection();
+          onRefresh?.();
+        }}
+      />
 
-          <form onSubmit={handleConfirmReschedule} className='space-y-4'>
-            <div className='space-y-1.5'>
-              <Label htmlFor='bulk-reschedule-date' className='text-xs font-semibold'>
-                Tanggal Tujuan <span className='text-destructive'>*</span>
-              </Label>
-              <Input
-                id='bulk-reschedule-date'
-                type='date'
-                min={todayStr}
-                value={targetDate}
-                onChange={(e) => setTargetDate(e.target.value)}
-                required
-                className='h-9 text-xs'
-              />
-            </div>
-
-            <div className='space-y-1.5'>
-              <Label htmlFor='bulk-reschedule-session' className='text-xs font-semibold'>
-                Sesi Kunjungan (Opsional)
-              </Label>
-              <select
-                id='bulk-reschedule-session'
-                value={targetSession}
-                onChange={(e) => setTargetSession(e.target.value)}
-                className='w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring'
-              >
-                <option value=''>-- Sesuai Sesi Asal / Bebas --</option>
-                {bulkOps.sessions.map((s) => (
-                  <option key={s.id} value={s.code}>
-                    {s.name} {s.startsAt ? `(${s.startsAt.slice(0, 5)})` : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className='space-y-1.5'>
-              <Label htmlFor='bulk-reschedule-reason' className='text-xs font-semibold'>
-                Alasan Penjadwalan Ulang (Opsional)
-              </Label>
-              <Input
-                id='bulk-reschedule-reason'
-                value={rescheduleReason}
-                onChange={(e) => setRescheduleReason(e.target.value)}
-                placeholder='Misal: Dokter dinas luar kota'
-                className='h-9 text-xs'
-              />
-            </div>
-
-            <div className='flex items-center justify-end gap-2 pt-3 border-t border-border/50'>
-              <Button
-                type='button'
-                variant='outline'
-                size='sm'
-                onClick={() => setIsRescheduleModalOpen(false)}
-                disabled={bulkOps.isRescheduling}
-              >
-                Batal
-              </Button>
-              <Button
-                type='submit'
-                size='sm'
-                disabled={!targetDate || bulkOps.isRescheduling}
-              >
-                {bulkOps.isRescheduling ? (
-                  <>
-                    <Icons.spinner className='size-3.5 animate-spin mr-1.5' />
-                    Menjadwalkan...
-                  </>
-                ) : (
-                  'Jadwalkan Ulang'
-                )}
-              </Button>
-            </div>
-          </form>
-        </div>
-      </ModalWrapper>
-
-      {/* MODAL 4: BATALKAN ANTREAN */}
-      <ModalWrapper
+      {/* MODAL 4: AJUKAN PEMBATALAN (APPOINTMENT CANCELLATION MODAL) */}
+      <AppointmentCancellationModal
         isOpen={isCancelModalOpen}
+        appointmentIds={appointmentIds}
+        appointmentCount={selectedCount}
         onClose={() => setIsCancelModalOpen(false)}
-        maxWidth='max-w-md'
-      >
-        <div className='p-6'>
-          <div className='flex items-center gap-3 mb-4'>
-            <div className='size-9 rounded-lg bg-destructive/10 flex items-center justify-center text-destructive'>
-              <Icons.trash className='size-5' />
-            </div>
-            <div>
-              <h3 className='text-base font-bold text-foreground'>
-                Batalkan {selectedCount} Janji Temu?
-              </h3>
-              <p className='text-xs text-muted-foreground'>
-                Tindakan ini akan membatalkan antrean dan melepaskan slot tiket pasien.
-              </p>
-            </div>
-          </div>
-
-          <form onSubmit={handleConfirmCancel} className='space-y-4'>
-            <div className='space-y-1.5'>
-              <Label htmlFor='bulk-cancel-reason' className='text-xs font-semibold'>
-                Alasan Pembatalan <span className='text-destructive'>*</span>
-              </Label>
-              <Input
-                id='bulk-cancel-reason'
-                value={cancelReason}
-                onChange={(e) => setCancelReason(e.target.value)}
-                placeholder='Misal: Pembatalan operasional klinik'
-                required
-                className='h-9 text-xs'
-              />
-            </div>
-
-            <div className='flex items-center justify-end gap-2 pt-3 border-t border-border/50'>
-              <Button
-                type='button'
-                variant='outline'
-                size='sm'
-                onClick={() => setIsCancelModalOpen(false)}
-                disabled={bulkOps.isCancelling}
-              >
-                Kembali
-              </Button>
-              <Button
-                type='submit'
-                variant='destructive'
-                size='sm'
-                disabled={!cancelReason.trim() || bulkOps.isCancelling}
-              >
-                {bulkOps.isCancelling ? (
-                  <>
-                    <Icons.spinner className='size-3.5 animate-spin mr-1.5' />
-                    Membatalkan...
-                  </>
-                ) : (
-                  'Ya, Batalkan Semua'
-                )}
-              </Button>
-            </div>
-          </form>
-        </div>
-      </ModalWrapper>
+        onSuccess={() => {
+          table.resetRowSelection();
+          onRefresh?.();
+        }}
+      />
     </>
   );
 }

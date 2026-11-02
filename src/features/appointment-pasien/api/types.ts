@@ -67,6 +67,10 @@ export interface AdminAppointment {
   etaRange?: string | null;
   session?: string | null;
   sessionName?: string | null;
+  isOvercapacity?: boolean;
+  hasPendingProposal?: boolean;
+  pendingProposalId?: string | null;
+  pendingProposalType?: 'reschedule' | 'cancellation' | null;
   createdAt: string;
   updatedAt: string;
 }

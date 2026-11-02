@@ -244,7 +244,7 @@ export function AppointmentActionDrawer({
                 className='flex flex-col items-center justify-center p-3 rounded-2xl border border-destructive/30 bg-destructive/5 hover:bg-destructive/10 text-destructive transition-all cursor-pointer text-center gap-2 group'
               >
                 <div className='size-10 rounded-full bg-destructive/10 text-destructive flex items-center justify-center group-hover:scale-105 transition-transform'>
-                  <Icons.trash className='size-5' />
+                  <Icons.alertCircle className='size-5' />
                 </div>
                 <span className='text-[11px] font-semibold leading-tight'>Batalkan</span>
               </button>

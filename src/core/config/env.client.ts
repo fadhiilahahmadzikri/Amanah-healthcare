@@ -12,5 +12,10 @@ export const clientEnv = {
 export type ClientEnv = typeof clientEnv;
 
 export function getClientSocketUrl(): string {
-  return (clientEnv.NEXT_PUBLIC_SOCKET_URL || '').replace(/\/+$/, '');
+  const socketUrl = clientEnv.NEXT_PUBLIC_SOCKET_URL?.trim();
+  if (socketUrl) {
+    return socketUrl.replace(/\/+$/, '');
+  }
+
+  return 'http://localhost:3001';
 }

@@ -16,6 +16,9 @@ export interface BookingConfirmationStepProps {
   visitType: CanonicalVisitType | string;
   complaint: string;
   mode?: 'create' | 'reschedule';
+  reason?: string;
+  onReasonChange?: (reason: string) => void;
+  appointmentCount?: number;
 }
 
 export function BookingConfirmationStep({
@@ -26,39 +29,55 @@ export function BookingConfirmationStep({
   sessionLabel,
   visitType,
   complaint,
-  mode = 'create'
+  mode = 'create',
+  reason,
+  onReasonChange,
+  appointmentCount
 }: BookingConfirmationStepProps) {
   const isReschedule = mode === 'reschedule';
   const displaySession = sessionLabel || session || '';
   const displayServiceName = selectedService?.name ?? '';
   const displayPatientName = selectedPatient?.fullName ?? '';
+  const isBulk = Boolean(appointmentCount && appointmentCount > 1);
 
   return (
     <div className='space-y-4'>
       <div>
         <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
           {isReschedule
-            ? 'Cek ringkasan jadwal baru janji temu ✨'
+            ? isBulk
+              ? `Pengajuan jadwal baru untuk ${appointmentCount} antrean`
+              : 'Cek ringkasan jadwal baru janji temu ✨'
             : 'Cek lagi ringkasan janji temu kamu ya ✨'}
         </h3>
         <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
           {isReschedule
-            ? 'Pastikan tanggal dan sesi baru sudah sesuai sebelum jadwal diperbarui.'
+            ? 'Pastikan tanggal dan sesi baru sudah sesuai sebelum diajukan ke pasien.'
             : 'Pastikan semua data sudah sesuai sebelum tiket antrean resmi diterbitkan.'}
         </p>
       </div>
 
       <div className='space-y-1 text-xs pt-1'>
-        <div className='flex items-center justify-between py-2 border-b border-border'>
-          <span className='text-muted-foreground font-normal'>Poliklinik & Layanan</span>
-          <span className='font-semibold text-foreground'>{displayServiceName}</span>
-        </div>
+        {displayServiceName && (
+          <div className='flex items-center justify-between py-2 border-b border-border'>
+            <span className='text-muted-foreground font-normal'>Poliklinik & Layanan</span>
+            <span className='font-semibold text-foreground'>{displayServiceName}</span>
+          </div>
+        )}
 
         <div className='flex items-center justify-between py-2 border-b border-border'>
-          <span className='text-muted-foreground font-normal'>Pasien</span>
+          <span className='text-muted-foreground font-normal'>
+            {isBulk ? 'Jumlah Pasien' : 'Pasien'}
+          </span>
           <span className='font-semibold text-foreground'>
-            {displayPatientName}
-            {selectedPatient?.nik ? ` (NIK: ${selectedPatient.nik})` : ''}
+            {isBulk ? (
+              `${appointmentCount} Antrean Terpilih`
+            ) : (
+              <>
+                {displayPatientName}
+                {selectedPatient?.nik ? ` (NIK: ${selectedPatient.nik})` : ''}
+              </>
+            )}
           </span>
         </div>
 
@@ -75,6 +94,22 @@ export function BookingConfirmationStep({
           </span>
           <span className='font-bold text-primary'>{displaySession}</span>
         </div>
+
+        {isReschedule && (
+          <div className='py-2.5 space-y-1.5 border-b border-border'>
+            <label htmlFor='reschedule-reason' className='text-muted-foreground font-normal block'>
+              Alasan Pengajuan Jadwal Ulang
+            </label>
+            <input
+              id='reschedule-reason'
+              type='text'
+              value={reason || ''}
+              onChange={(e) => onReasonChange?.(e.target.value)}
+              placeholder='Misal: Dokter penanggung jawab berhalangan hadir'
+              className='w-full h-8.5 rounded-md border border-input bg-background px-3 py-1 text-xs shadow-2xs focus:outline-none focus:ring-1 focus:ring-ring text-foreground'
+            />
+          </div>
+        )}
 
         {!isReschedule && (
           <div className='flex items-center justify-between py-2 border-b border-border'>
@@ -94,10 +129,10 @@ export function BookingConfirmationStep({
       </div>
 
       <div className='flex items-center gap-2 p-2.5 rounded-lg bg-muted/60 text-muted-foreground text-xs'>
-        <Icons.check className='size-4 text-emerald-600 shrink-0' />
+        <Icons.info className='size-4 text-primary shrink-0' />
         <span>
           {isReschedule
-            ? 'Jadwal janji temu dan tiket antrean lama akan diperbarui ke sesi dan tanggal baru secara otomatis.'
+            ? 'Usulan perubahan jadwal akan dikirimkan kepada pasien via notifikasi. Janji temu akan berpindah setelah disetujui pasien.'
             : 'Setelah disimpan, tiket nomor antrean resmi klinik akan langsung terbit. Dokter dan ruangan konsultasi ditetapkan saat giliran dipanggil.'}
         </span>
       </div>

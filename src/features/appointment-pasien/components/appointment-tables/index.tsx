@@ -366,6 +366,25 @@ export function AppointmentTable() {
             onRowClick={appointmentTable.actions.openRecordDetail}
             entityName='appointment'
             hidePagination
+            renderRowDivider={(row, index) => {
+              const rows = appointmentTable.table.getRowModel().rows;
+              const isFirstOvercapacity =
+                row.original.isOvercapacity &&
+                (index === 0 || !rows[index - 1]?.original.isOvercapacity);
+              if (!isFirstOvercapacity) return null;
+              return (
+                <div className='mx-2 my-2 flex items-center justify-between rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-700 dark:text-amber-300'>
+                  <div className='flex items-center gap-2 font-medium'>
+                    <Icons.warning className='size-4 text-amber-600 dark:text-amber-400 shrink-0' />
+                    <span>Batas Kapasitas Operasional Sesi (Overcapacity Boundary)</span>
+                  </div>
+                  <span className='text-[11px] text-amber-600/80 dark:text-amber-400/80'>
+                    Antrean di bawah garis ini berisiko melampaui batas sesi &amp; memerlukan
+                    persetujuan pasien bila dialihkan
+                  </span>
+                </div>
+              );
+            }}
             bulkActions={
               <AppointmentBulkActions
                 table={appointmentTable.table}

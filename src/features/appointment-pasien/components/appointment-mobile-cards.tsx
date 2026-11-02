@@ -68,36 +68,51 @@ export function AppointmentMobileCards({
   return (
     <>
       <div className='flex flex-col gap-3.5 pb-24'>
-        {appointments.map((item) => {
+        {appointments.map((item, index) => {
           const adapted = adminAppointmentToAppointment(item);
+          const isFirstOvercapacity =
+            item.isOvercapacity && (index === 0 || !appointments[index - 1]?.isOvercapacity);
 
           return (
-            <div key={item.id} className='transition-transform'>
-              <AppointmentCardOrganism
-                appointment={adapted}
-                viewerAudience={AUDIENCE.INTERNAL}
-                onViewDetails={() => onRowClick(item)}
-                actionsSlot={
-                  <Button
-                    type='button'
-                    variant='ghost'
-                    size='icon'
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (onOpenActionDrawer) {
-                        onOpenActionDrawer(item);
-                      } else {
-                        setSelectedActionAppointment(item);
-                      }
-                    }}
-                    aria-label={`Aksi untuk pasien ${item.patientName}`}
-                    className='size-7.5 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-md transition-colors cursor-pointer shrink-0'
-                  >
-                    <Icons.ellipsis className='size-4' />
-                  </Button>
-                }
-              />
-            </div>
+            <React.Fragment key={item.id}>
+              {isFirstOvercapacity && (
+                <div className='flex items-center justify-between rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300'>
+                  <div className='flex items-center gap-1.5 font-medium'>
+                    <Icons.warning className='size-3.5 text-amber-600 dark:text-amber-400 shrink-0' />
+                    <span>Batas Kapasitas Sesi Operasional</span>
+                  </div>
+                  <span className='text-[10px] text-amber-600/80 dark:text-amber-400/80'>
+                    Perlu persetujuan bila diubah
+                  </span>
+                </div>
+              )}
+              <div className='transition-transform'>
+                <AppointmentCardOrganism
+                  appointment={adapted}
+                  viewerAudience={AUDIENCE.INTERNAL}
+                  onViewDetails={() => onRowClick(item)}
+                  actionsSlot={
+                    <Button
+                      type='button'
+                      variant='ghost'
+                      size='icon'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onOpenActionDrawer) {
+                          onOpenActionDrawer(item);
+                        } else {
+                          setSelectedActionAppointment(item);
+                        }
+                      }}
+                      aria-label={`Aksi untuk pasien ${item.patientName}`}
+                      className='size-7.5 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-md transition-colors cursor-pointer shrink-0'
+                    >
+                      <Icons.ellipsis className='size-4' />
+                    </Button>
+                  }
+                />
+              </div>
+            </React.Fragment>
           );
         })}
       </div>

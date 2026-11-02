@@ -13,7 +13,10 @@ import {
   type BackendAppointmentItem,
   type PatientAffiliationProfile
 } from '@/features/data-pasien/api/patient-affiliation-service';
-import { rescheduleAppointmentAction } from '@/features/appointment-pasien/api/service';
+import {
+  rescheduleAppointmentAction,
+  bulkProposeRescheduleAppointments
+} from '@/features/appointment-pasien/api/service';
 import { appointmentKeys } from '@/features/appointment-pasien/api/queries';
 import { BookingDateStep } from '../booking/booking-date-step';
 import { BookingSessionStep } from '../booking/booking-session-step';
@@ -43,6 +46,9 @@ export interface ReservationContext {
   medicalFlow?: MedicalAppointmentFlow;
   mode?: 'create' | 'reschedule';
   appointmentId?: string;
+  appointmentIds?: string[];
+  appointmentCount?: number;
+  initiator?: 'admin' | 'patient';
   currentDate?: string;
   currentSession?: string;
   queueNumber?: string;
@@ -69,6 +75,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
   const [session, setSession] = React.useState<string>('');
   const [sessionLabel, setSessionLabel] = React.useState<string>('');
   const [selectedSessionId, setSelectedSessionId] = React.useState<string>('');
+  const [reason, setReason] = React.useState<string>('');
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
   const [createdAppointment, setCreatedAppointment] = React.useState<Appointment | null>(null);
   const [isQueueSuccessOpen, setIsQueueSuccessOpen] = React.useState<boolean>(false);
@@ -80,6 +87,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
       setStep('date');
       setSession('');
       setSelectedSessionId('');
+      setReason('');
       setCreatedAppointment(null);
       setIsQueueSuccessOpen(false);
       return;
@@ -88,6 +96,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
     setDateStr(clinicTodayStr);
     setSession(context?.mode === 'reschedule' ? context?.currentSession || '' : '');
     setSelectedSessionId('');
+    setReason('');
 
     if (!context?.serviceId && !context?.serviceName) return;
 
@@ -142,7 +151,14 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
       setIsSubmitting(true);
 
       if (isReschedule) {
-        if (!context.appointmentId) {
+        const effectiveIds =
+          context.appointmentIds && context.appointmentIds.length > 0
+            ? context.appointmentIds
+            : context.appointmentId
+              ? [context.appointmentId]
+              : [];
+
+        if (effectiveIds.length === 0) {
           throw new Error('ID Janji temu tidak ditemukan untuk penjadwalan ulang');
         }
 
@@ -151,14 +167,73 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
             ? selectedSessionId.trim()
             : undefined;
 
-        const res = await rescheduleAppointmentAction(context.appointmentId, {
-          target_date: dateStr,
-          session: session,
-          target_session: session,
-          target_session_id: validSessionId
+        if (!validSessionId) {
+          throw new Error('Sesi dinas tujuan wajib dipilih');
+        }
+
+        if (context.initiator === 'patient') {
+          const res = await rescheduleAppointmentAction(effectiveIds[0], {
+            target_date: dateStr,
+            session: session,
+            target_session: session,
+            target_session_id: validSessionId
+          });
+
+          toast.success(res?.message || 'Janji temu berhasil dijadwalkan ulang');
+          queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
+          queryClient.invalidateQueries({ queryKey: ['appointments'] });
+          queryClient.invalidateQueries({ queryKey: ['patient-appointments'] });
+          queryClient.invalidateQueries({ queryKey: ['schedules'] });
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('clinic:appointment_updated'));
+          }
+
+          const appointmentData = res?.data;
+          const uiApt: Appointment = {
+            id: effectiveIds[0],
+            booking_code: appointmentData?.bookingCode ?? '',
+            patient_name: appointmentData?.patientName ?? '',
+            patient_email: '',
+            patient_avatar: '',
+            doctor_name: appointmentData?.doctorName || '',
+            doctor_specialty: appointmentData?.doctorSpecialty || '',
+            poliklinik_name: appointmentData?.poliklinikName || '',
+            room_name: appointmentData?.roomName || '',
+            room_location: appointmentData?.roomLocation || '',
+            scheduled_start_time: appointmentData?.scheduledStartTime || undefined,
+            scheduled_end_time: appointmentData?.scheduledEndTime || undefined,
+            date: appointmentData?.appointmentDate ?? '',
+            time: session,
+            complaint: appointmentData?.complaint || '',
+            status: APPOINTMENT_STATUS.BOOKED,
+            visit_type: VISIT_TYPE.NEW_VISIT,
+            service: appointmentData?.layananName || '',
+            created_at: appointmentData?.createdAt ? String(appointmentData.createdAt) : '',
+            queue_number: appointmentData?.queueNumber
+              ? String(appointmentData.queueNumber)
+              : undefined
+          };
+
+          onSuccess?.(uiApt);
+          onClose();
+          return;
+        }
+
+        const effectiveReason = reason.trim() || 'Penyesuaian jadwal operasional klinik';
+
+        await bulkProposeRescheduleAppointments({
+          appointmentIds: effectiveIds,
+          targetDate: dateStr,
+          targetSessionId: validSessionId,
+          reason: effectiveReason
         });
 
-        toast.success(res?.message || 'Janji temu berhasil dijadwalkan ulang');
+        toast.success(
+          effectiveIds.length > 1
+            ? `Berhasil mengajukan perubahan jadwal ke ${effectiveIds.length} pasien (menunggu persetujuan).`
+            : 'Usulan perubahan jadwal berhasil diajukan ke pasien (menunggu persetujuan).'
+        );
+
         queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
         queryClient.invalidateQueries({ queryKey: ['appointments'] });
         queryClient.invalidateQueries({ queryKey: ['patient-appointments'] });
@@ -167,33 +242,6 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
           window.dispatchEvent(new CustomEvent('clinic:appointment_updated'));
         }
 
-        const appointmentData = res?.data;
-        const uiApt: Appointment = {
-          id: context.appointmentId,
-          booking_code: appointmentData?.bookingCode ?? '',
-          patient_name: appointmentData?.patientName ?? '',
-          patient_email: '',
-          patient_avatar: '',
-          doctor_name: appointmentData?.doctorName || '',
-          doctor_specialty: appointmentData?.doctorSpecialty || '',
-          poliklinik_name: appointmentData?.poliklinikName || '',
-          room_name: appointmentData?.roomName || '',
-          room_location: appointmentData?.roomLocation || '',
-          scheduled_start_time: appointmentData?.scheduledStartTime || undefined,
-          scheduled_end_time: appointmentData?.scheduledEndTime || undefined,
-          date: appointmentData?.appointmentDate ?? '',
-          time: session,
-          complaint: appointmentData?.complaint || '',
-          status: APPOINTMENT_STATUS.BOOKED,
-          visit_type: VISIT_TYPE.NEW_VISIT,
-          service: appointmentData?.layananName || '',
-          created_at: appointmentData?.createdAt ? String(appointmentData.createdAt) : '',
-          queue_number: appointmentData?.queueNumber
-            ? String(appointmentData.queueNumber)
-            : undefined
-        };
-
-        onSuccess?.(uiApt);
         onClose();
         return;
       }
@@ -307,6 +355,9 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
                 visitType={VISIT_TYPE.NEW_VISIT}
                 complaint={context.complaint || ''}
                 mode={context.mode || 'create'}
+                reason={reason}
+                onReasonChange={setReason}
+                appointmentCount={context.appointmentCount || context.appointmentIds?.length}
               />
             )}
           </div>
@@ -394,7 +445,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
                       ? 'Memproses...'
                       : 'Memproses antrean...'
                     : isReschedule
-                      ? 'Konfirmasi Reschedule'
+                      ? 'Ajukan Jadwal Ulang'
                       : 'Buat Janji Temu'}
                 </Button>
               )}

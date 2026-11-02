@@ -172,7 +172,11 @@ export function mapNotificationToToastModel(
   >;
   if (typeof metadata.email === 'string' && typeof metadata.roleName === 'string') {
     subline = `${metadata.email} · ${metadata.roleName}`;
-  } else if ('body' in envelope && typeof envelope.body === 'string' && envelope.body.includes('\n')) {
+  } else if (
+    'body' in envelope &&
+    typeof envelope.body === 'string' &&
+    envelope.body.includes('\n')
+  ) {
     const lines = envelope.body.split('\n');
     if (lines.length > 1) {
       subline = lines[1].trim();
@@ -191,7 +195,12 @@ export function mapNotificationToToastModel(
     toastAction = {
       label: primaryAction.label || 'Lihat',
       onClick: () => {
-        executeNotificationAction(router, primaryAction, envelope as any, userRole);
+        executeNotificationAction(
+          router,
+          primaryAction,
+          envelope as unknown as BackendNotification | NotificationEnvelopeV2,
+          userRole
+        );
       }
     };
   } else if (
