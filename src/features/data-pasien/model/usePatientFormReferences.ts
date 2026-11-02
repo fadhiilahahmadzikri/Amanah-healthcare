@@ -36,13 +36,10 @@ export function usePatientFormReferences() {
     };
   }, []);
 
-  const mappedGenders =
-    data?.genders && data.genders.length > 0
-      ? data.genders.map((g) => ({
-          ...g,
-          label: GENDER_LABEL_MAP[g.value as Gender]
-        }))
-      : GENDER_OPTIONS;
+  const mappedGenders = (data?.genders ?? []).map((g) => ({
+    ...g,
+    label: GENDER_LABEL_MAP[g.value as Gender] || g.label || g.value
+  }));
 
   return {
     bloodTypes: data?.bloodTypes ?? [],

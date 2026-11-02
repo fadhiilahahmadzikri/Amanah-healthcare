@@ -129,7 +129,11 @@ export const DEFAULT_RICH_FORM_TEMPLATE: FormJsonSchema = {
           helpText: 'Pilih salah satu',
           required: false,
           isActive: true,
-          choices: ['A', 'B', 'AB', 'O', 'Belum Tahu'],
+          choices: [],
+          dataSource: {
+            type: 'catalog',
+            key: 'blood_types'
+          },
           colSpan: 'full'
         },
         {

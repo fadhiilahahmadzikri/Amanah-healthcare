@@ -211,6 +211,7 @@ export interface EditableRegularData {
   bloodType?: string;
   occupation?: string;
   phone?: string;
+  email?: string;
   address?: string;
   line1?: string;
   provinceName?: string;

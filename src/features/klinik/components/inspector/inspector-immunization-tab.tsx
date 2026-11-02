@@ -3,18 +3,10 @@
 import * as React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { CustomDatePicker } from '@/components/ui/custom-date-picker';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
+import { PatientLineSelect } from '@/features/data-pasien/components/registration/atoms/patient-line-select';
 import { useVaccineCatalog } from '../../model/useVaccineCatalog';
 import { calculateChildAge } from '../../utils/medical-appointment';
 import { VaccineChecklist } from '../booking/vaccine-checklist';
@@ -103,69 +95,47 @@ export function InspectorImmunizationTab({
                 <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
                   Identitas Anak
                 </span>
-                <div className='space-y-1.5'>
-                  <Label htmlFor='child-mrn-input' className='text-xs font-medium text-foreground'>
-                    Nomor Rekam Medis (RM)
-                  </Label>
-                  <Input
-                    id='child-mrn-input'
-                    value={
-                      immunizationFormData.medicalRecordNumber ??
-                      (data.patient?.medicalRecordNumber || '')
-                    }
-                    onChange={(e) =>
-                      onImmunizationFieldChange('medicalRecordNumber', e.target.value)
-                    }
-                    placeholder='RM-XXXX-XXXX'
-                    className='h-8 text-xs font-mono font-semibold text-primary'
-                  />
-                </div>
-                <div className='space-y-1.5'>
-                  <Label htmlFor='child-name-input' className='text-xs font-medium text-foreground'>
-                    Nama Lengkap Anak <span className='text-destructive'>*</span>
-                  </Label>
-                  <Input
-                    id='child-name-input'
-                    value={immunizationFormData.childName}
-                    onChange={(e) => onImmunizationFieldChange('childName', e.target.value)}
-                    placeholder='Nama lengkap anak...'
-                    className='h-8 text-xs'
-                  />
-                </div>
+
+                <PatientLineInput
+                  id='child-mrn-input'
+                  label='Nomor Rekam Medis (RM)'
+                  value={
+                    immunizationFormData.medicalRecordNumber ??
+                    (data.patient?.medicalRecordNumber || '')
+                  }
+                  onChange={(val) => onImmunizationFieldChange('medicalRecordNumber', val)}
+                  placeholder='RM-XXXX-XXXX'
+                  isMonospace
+                />
+
+                <PatientLineInput
+                  id='child-name-input'
+                  label='Nama Lengkap Anak *'
+                  value={immunizationFormData.childName}
+                  onChange={(val) => onImmunizationFieldChange('childName', val)}
+                  placeholder='Nama lengkap anak...'
+                  required
+                />
 
                 <div className='grid grid-cols-2 gap-4'>
-                  <div className='space-y-1.5'>
-                    <Label
-                      htmlFor='child-nik-input'
-                      className='text-xs font-medium text-foreground'
-                    >
-                      NIK Anak (16 Digit)
-                    </Label>
-                    <Input
-                      id='child-nik-input'
-                      value={immunizationFormData.childNik}
-                      onChange={(e) => onImmunizationFieldChange('childNik', e.target.value)}
-                      placeholder='16 digit NIK...'
-                      maxLength={16}
-                      className='h-8 text-xs font-mono'
-                    />
-                  </div>
+                  <PatientLineInput
+                    id='child-nik-input'
+                    label='NIK Anak (16 Digit)'
+                    value={immunizationFormData.childNik}
+                    onChange={(val) => onImmunizationFieldChange('childNik', val)}
+                    placeholder='16 digit NIK...'
+                    maxLength={16}
+                    isMonospace
+                  />
 
-                  <div className='space-y-1.5'>
-                    <Label className='text-xs font-medium text-foreground'>Jenis Kelamin</Label>
-                    <Select
-                      value={immunizationFormData.childSex || 'Laki-laki'}
-                      onValueChange={(val) => onImmunizationFieldChange('childSex', val)}
-                    >
-                      <SelectTrigger className='h-8 text-xs w-full'>
-                        <SelectValue placeholder='Pilih kelamin' />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value='Laki-laki'>Laki-laki</SelectItem>
-                        <SelectItem value='Perempuan'>Perempuan</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <PatientLineSelect
+                    id='child-sex-select'
+                    label='Jenis Kelamin'
+                    value={immunizationFormData.childSex || 'Laki-laki'}
+                    onChange={(val) => onImmunizationFieldChange('childSex', val)}
+                    options={['Laki-laki', 'Perempuan']}
+                    placeholder='Pilih kelamin'
+                  />
                 </div>
               </div>
 
@@ -174,51 +144,44 @@ export function InspectorImmunizationTab({
                   Kelahiran & Kontak Wali
                 </span>
                 <div className='grid grid-cols-2 gap-4'>
-                  <div className='space-y-1.5'>
-                    <Label className='text-xs font-medium text-foreground'>Tanggal Lahir</Label>
-                    <CustomDatePicker
-                      value={immunizationFormData.childBirthDate}
-                      onChange={(val) => {
-                        onImmunizationFieldChange('childBirthDate', val);
-                        if (val) {
-                          try {
-                            const calculatedAge = calculateChildAge(val);
-                            onImmunizationFieldChange('childAgeFormatted', calculatedAge);
-                          } catch {
-                            // ignore calculation error
-                          }
+                  <CustomDatePicker
+                    id='child-birthdate-input'
+                    label='Tanggal Lahir'
+                    value={immunizationFormData.childBirthDate}
+                    onChange={(val) => {
+                      onImmunizationFieldChange('childBirthDate', val);
+                      if (val) {
+                        try {
+                          const calculatedAge = calculateChildAge(val);
+                          onImmunizationFieldChange('childAgeFormatted', calculatedAge);
+                        } catch {
+                          // ignore calculation error
                         }
-                      }}
-                      placeholder='Pilih tgl lahir'
-                      className='h-8 text-xs w-full'
-                    />
-                  </div>
+                      }
+                    }}
+                    placeholder='Pilih tgl lahir'
+                    disableFutureDates
+                    variant='underline'
+                  />
 
-                  <div className='space-y-1.5'>
-                    <Label className='text-xs font-medium text-foreground'>Usia Terhitung</Label>
-                    <Input
-                      value={immunizationFormData.childAgeFormatted || '-'}
-                      readOnly
-                      className='h-8 text-xs bg-muted/30 font-medium'
-                    />
-                  </div>
-                </div>
-
-                <div className='space-y-1.5'>
-                  <Label
-                    htmlFor='child-parent-phone-input'
-                    className='text-xs font-medium text-foreground'
-                  >
-                    Nomor HP Orang Tua/Wali <span className='text-destructive'>*</span>
-                  </Label>
-                  <Input
-                    id='child-parent-phone-input'
-                    value={immunizationFormData.parentPhone}
-                    onChange={(e) => onImmunizationFieldChange('parentPhone', e.target.value)}
-                    placeholder='08xxxxxxxxxx'
-                    className='h-8 text-xs font-mono'
+                  <PatientLineInput
+                    id='child-age-calculated'
+                    label='Usia Terhitung'
+                    value={immunizationFormData.childAgeFormatted || '-'}
+                    readOnly
                   />
                 </div>
+
+                <PatientLineInput
+                  id='child-parent-phone-input'
+                  label='Nomor HP Orang Tua/Wali *'
+                  type='tel'
+                  value={immunizationFormData.parentPhone}
+                  onChange={(val) => onImmunizationFieldChange('parentPhone', val)}
+                  placeholder='08xxxxxxxxxx'
+                  isMonospace
+                  required
+                />
               </div>
             </div>
           ) : (
@@ -297,58 +260,33 @@ export function InspectorImmunizationTab({
                 <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
                   Data Orang Tua / Wali
                 </span>
-                <div className='space-y-1.5'>
-                  <Label
-                    htmlFor='father-name-input'
-                    className='text-xs font-medium text-foreground'
-                  >
-                    Nama Ayah
-                  </Label>
-                  <Input
-                    id='father-name-input'
-                    value={immunizationFormData.fatherName}
-                    onChange={(e) => onImmunizationFieldChange('fatherName', e.target.value)}
-                    placeholder='Nama ayah...'
-                    className='h-8 text-xs'
-                  />
-                </div>
-                <div className='space-y-1.5'>
-                  <Label
-                    htmlFor='mother-name-input'
-                    className='text-xs font-medium text-foreground'
-                  >
-                    Nama Ibu
-                  </Label>
-                  <Input
-                    id='mother-name-input'
-                    value={immunizationFormData.motherName}
-                    onChange={(e) => onImmunizationFieldChange('motherName', e.target.value)}
-                    placeholder='Nama ibu...'
-                    className='h-8 text-xs'
-                  />
-                </div>
+                <PatientLineInput
+                  id='father-name-input'
+                  label='Nama Ayah'
+                  value={immunizationFormData.fatherName}
+                  onChange={(val) => onImmunizationFieldChange('fatherName', val)}
+                  placeholder='Nama ayah...'
+                />
+                <PatientLineInput
+                  id='mother-name-input'
+                  label='Nama Ibu'
+                  value={immunizationFormData.motherName}
+                  onChange={(val) => onImmunizationFieldChange('motherName', val)}
+                  placeholder='Nama ibu...'
+                />
               </div>
 
               <div className='space-y-4'>
                 <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
                   Alamat Tinggal Keluarga
                 </span>
-                <div className='space-y-1.5'>
-                  <Label
-                    htmlFor='child-address-input'
-                    className='text-xs font-medium text-foreground'
-                  >
-                    Alamat Tempat Tinggal
-                  </Label>
-                  <Textarea
-                    id='child-address-input'
-                    value={immunizationFormData.childAddress}
-                    onChange={(e) => onImmunizationFieldChange('childAddress', e.target.value)}
-                    placeholder='Alamat lengkap domisili...'
-                    rows={4}
-                    className='text-xs resize-none'
-                  />
-                </div>
+                <PatientLineInput
+                  id='child-address-input'
+                  label='Alamat Tempat Tinggal'
+                  value={immunizationFormData.childAddress}
+                  onChange={(val) => onImmunizationFieldChange('childAddress', val)}
+                  placeholder='Alamat lengkap domisili...'
+                />
               </div>
             </div>
           ) : (
@@ -422,22 +360,13 @@ export function InspectorImmunizationTab({
                     onFieldChange={onVaccineValueChange}
                   />
 
-                  <div className='space-y-1.5 pt-2'>
-                    <Label
-                      htmlFor='vaccine-notes-input'
-                      className='text-xs font-medium text-foreground'
-                    >
-                      Catatan Tambahan Riwayat Vaksinasi
-                    </Label>
-                    <Textarea
+                  <div className='pt-1'>
+                    <PatientLineInput
                       id='vaccine-notes-input'
+                      label='Catatan Tambahan Riwayat Vaksinasi'
                       value={immunizationFormData.previousVaccineHistory}
-                      onChange={(e) =>
-                        onImmunizationFieldChange('previousVaccineHistory', e.target.value)
-                      }
+                      onChange={(val) => onImmunizationFieldChange('previousVaccineHistory', val)}
                       placeholder='Catatan faskes tempat vaksinasi, reaksi KIPI, dll...'
-                      rows={2}
-                      className='text-xs resize-none'
                     />
                   </div>
                 </div>
@@ -597,22 +526,13 @@ export function InspectorImmunizationTab({
               </div>
 
               {immunizationFormData.hasAllergyHistory === 'Ada riwayat alergi' && (
-                <div className='space-y-1.5'>
-                  <Label
-                    htmlFor='allergy-details-input'
-                    className='text-xs font-medium text-foreground'
-                  >
-                    Detail Catatan Alergi (Obat, Makanan, atau Zat Lainnya)
-                  </Label>
-                  <Textarea
+                <div className='pt-1'>
+                  <PatientLineInput
                     id='allergy-details-input'
+                    label='Detail Catatan Alergi (Obat, Makanan, atau Zat Lainnya)'
                     value={immunizationFormData.childAllergyHistory}
-                    onChange={(e) =>
-                      onImmunizationFieldChange('childAllergyHistory', e.target.value)
-                    }
+                    onChange={(val) => onImmunizationFieldChange('childAllergyHistory', val)}
                     placeholder='Tuliskan jenis alergi dan reaksi yang muncul...'
-                    rows={4}
-                    className='text-xs resize-none'
                   />
                 </div>
               )}

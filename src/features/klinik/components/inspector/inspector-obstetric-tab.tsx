@@ -3,52 +3,12 @@
 import * as React from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { CustomDatePicker } from '@/components/ui/custom-date-picker';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
+import { PatientLineSelect } from '@/features/data-pasien/components/registration/atoms/patient-line-select';
 import { useMaternalCatalogs } from '../../model/useMaternalCatalogs';
 import type { InspectorTabProps, PreviousPregnancyEntry, ContraceptiveHistoryEntry } from './types';
-
-const FALLBACK_SEXES = ['Laki-laki', 'Perempuan'];
-const FALLBACK_DELIVERY_METHODS = [
-  'Normal / Spontan',
-  'Sectio Caesarea (SC)',
-  'Vakum',
-  'Forsep',
-  'Lainnya'
-];
-const FALLBACK_DELIVERY_PLACES = [
-  'Praktik Mandiri Bidan (PMB)',
-  'Puskesmas',
-  'Klinik',
-  'Rumah Sakit',
-  'Rumah Sendiri',
-  'Lainnya'
-];
-const FALLBACK_ATTENDANTS = ['Bidan', 'Dokter Spesialis Obgyn', 'Dokter Umum', 'Tenaga Lainnya'];
-const FALLBACK_CONTRACEPTIVES = [
-  'Suntik 1 Bulan',
-  'Suntik 3 Bulan',
-  'Pil KB',
-  'IUD / AKDR (Spiral)',
-  'Implan / Susuk',
-  'Kondom',
-  'MOW / Tubektomi',
-  'MOP / Vasektomi',
-  'MAL (Metode Amenore Laktasi)',
-  'Kalender / Alami',
-  'Lainnya'
-];
 
 export function InspectorObstetricTab({
   data,
@@ -62,19 +22,11 @@ export function InspectorObstetricTab({
   const { catalogs } = useMaternalCatalogs();
   const { answers, maternal } = data;
 
-  const childSexes = catalogs.childSexChoices?.length ? catalogs.childSexChoices : FALLBACK_SEXES;
-  const deliveryMethods = catalogs.deliveryMethodChoices?.length
-    ? catalogs.deliveryMethodChoices
-    : FALLBACK_DELIVERY_METHODS;
-  const deliveryPlaces = catalogs.deliveryPlaceChoices?.length
-    ? catalogs.deliveryPlaceChoices
-    : FALLBACK_DELIVERY_PLACES;
-  const birthAttendants = catalogs.birthAttendantChoices?.length
-    ? catalogs.birthAttendantChoices
-    : FALLBACK_ATTENDANTS;
-  const contraceptiveTypes = catalogs.contraceptiveTypeChoices?.length
-    ? catalogs.contraceptiveTypeChoices
-    : FALLBACK_CONTRACEPTIVES;
+  const childSexes = catalogs.childSexChoices ?? [];
+  const deliveryMethods = catalogs.deliveryMethodChoices ?? [];
+  const deliveryPlaces = catalogs.deliveryPlaceChoices ?? [];
+  const birthAttendants = catalogs.birthAttendantChoices ?? [];
+  const contraceptiveTypes = catalogs.contraceptiveTypeChoices ?? [];
 
   // GPA values
   const gravida =
@@ -222,52 +174,42 @@ export function InspectorObstetricTab({
 
         {isEditing ? (
           <div className='grid grid-cols-2 sm:grid-cols-4 gap-4'>
-            <div className='space-y-1.5'>
-              <Label className='text-xs font-medium text-foreground'>
-                Gravida (G - Total Hamil)
-              </Label>
-              <Input
-                type='number'
-                min={1}
-                value={gravida}
-                onChange={(e) => onFieldChange?.('gravidaCount', parseInt(e.target.value, 10) || 1)}
-                className='h-8 text-xs font-mono'
-              />
-            </div>
-            <div className='space-y-1.5'>
-              <Label className='text-xs font-medium text-foreground'>Partus (P - Melahirkan)</Label>
-              <Input
-                type='number'
-                min={0}
-                value={partus}
-                onChange={(e) => onFieldChange?.('parityCount', parseInt(e.target.value, 10) || 0)}
-                className='h-8 text-xs font-mono'
-              />
-            </div>
-            <div className='space-y-1.5'>
-              <Label className='text-xs font-medium text-foreground'>Abortus (A - Keguguran)</Label>
-              <Input
-                type='number'
-                min={0}
-                value={abortus}
-                onChange={(e) =>
-                  onFieldChange?.('abortionCount', parseInt(e.target.value, 10) || 0)
-                }
-                className='h-8 text-xs font-mono'
-              />
-            </div>
-            <div className='space-y-1.5'>
-              <Label className='text-xs font-medium text-foreground'>Anak Hidup (Ah)</Label>
-              <Input
-                type='number'
-                min={0}
-                value={living}
-                onChange={(e) =>
-                  onFieldChange?.('livingChildrenCount', parseInt(e.target.value, 10) || 0)
-                }
-                className='h-8 text-xs font-mono'
-              />
-            </div>
+            <PatientLineInput
+              id='gpa-g-edit'
+              label='Gravida (G - Total Hamil)'
+              type='number'
+              min={1}
+              value={String(gravida)}
+              onChange={(val) => onFieldChange?.('gravidaCount', parseInt(val, 10) || 1)}
+              isMonospace
+            />
+            <PatientLineInput
+              id='gpa-p-edit'
+              label='Partus (P - Melahirkan)'
+              type='number'
+              min={0}
+              value={String(partus)}
+              onChange={(val) => onFieldChange?.('parityCount', parseInt(val, 10) || 0)}
+              isMonospace
+            />
+            <PatientLineInput
+              id='gpa-a-edit'
+              label='Abortus (A - Keguguran)'
+              type='number'
+              min={0}
+              value={String(abortus)}
+              onChange={(val) => onFieldChange?.('abortionCount', parseInt(val, 10) || 0)}
+              isMonospace
+            />
+            <PatientLineInput
+              id='gpa-l-edit'
+              label='Anak Hidup (Ah)'
+              type='number'
+              min={0}
+              value={String(living)}
+              onChange={(val) => onFieldChange?.('livingChildrenCount', parseInt(val, 10) || 0)}
+              isMonospace
+            />
           </div>
         ) : (
           <div className='grid grid-cols-2 sm:grid-cols-4 gap-4'>
@@ -292,7 +234,7 @@ export function InspectorObstetricTab({
               Riwayat Persalinan & Kehamilan Lalu
             </span>
             <p className='text-[11px] text-muted-foreground'>
-              Data persalinan terdahulu ditampilkan secara kanonik 1:1 per anak.
+              Data persalinan terdahulu ditampilkan lengkap per anak.
             </p>
           </div>
           <Badge variant='outline' className='text-xs font-medium'>
@@ -402,207 +344,167 @@ export function InspectorObstetricTab({
                   </div>
 
                   {isEditing ? (
-                    <div className='space-y-3.5'>
-                      <div className='grid grid-cols-2 gap-3'>
-                        <div className='space-y-1'>
-                          <Label className='text-xs font-medium'>Tahun Lahir</Label>
-                          <Input
-                            value={activePregnancy.birthYear || ''}
-                            onChange={(e) =>
-                              onNestedArrayChange?.(
-                                'previousPregnancies',
-                                selectedPregnancyIdx,
-                                'birthYear',
-                                e.target.value
-                              )
-                            }
-                            placeholder='YYYY'
-                            className='h-8 text-xs font-mono'
-                          />
-                        </div>
-
-                        <div className='space-y-1'>
-                          <Label className='text-xs font-medium'>Jenis Kelamin</Label>
-                          <Select
-                            value={activePregnancy.childSex || ''}
-                            onValueChange={(val) =>
-                              onNestedArrayChange?.(
-                                'previousPregnancies',
-                                selectedPregnancyIdx,
-                                'childSex',
-                                val
-                              )
-                            }
-                          >
-                            <SelectTrigger className='h-8 text-xs'>
-                              <SelectValue placeholder='Pilih JK' />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {childSexes.map((s) => (
-                                <SelectItem key={s} value={s} className='text-xs'>
-                                  {s}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      {/* BB Lahir dan TB Lahir Terpisah Secara Kanonik */}
-                      <div className='grid grid-cols-2 gap-3'>
-                        <div className='space-y-1'>
-                          <Label className='text-xs font-medium'>Berat Lahir Bayi (gram)</Label>
-                          <Input
-                            type='number'
-                            value={activePregnancy.birthWeightGrams ?? ''}
-                            onChange={(e) =>
-                              onNestedArrayChange?.(
-                                'previousPregnancies',
-                                selectedPregnancyIdx,
-                                'birthWeightGrams',
-                                e.target.value ? parseInt(e.target.value, 10) : ''
-                              )
-                            }
-                            placeholder='Contoh: 3100'
-                            className='h-8 text-xs font-mono'
-                          />
-                        </div>
-
-                        <div className='space-y-1'>
-                          <Label className='text-xs font-medium'>Panjang Lahir Bayi (cm)</Label>
-                          <Input
-                            type='number'
-                            step='0.1'
-                            value={activePregnancy.birthLengthCm ?? ''}
-                            onChange={(e) =>
-                              onNestedArrayChange?.(
-                                'previousPregnancies',
-                                selectedPregnancyIdx,
-                                'birthLengthCm',
-                                e.target.value
-                              )
-                            }
-                            placeholder='Contoh: 49'
-                            className='h-8 text-xs font-mono'
-                          />
-                        </div>
-                      </div>
-
-                      <div className='grid grid-cols-2 gap-3'>
-                        <div className='space-y-1'>
-                          <Label className='text-xs font-medium'>Usia Kehamilan Saat Lahir</Label>
-                          <Input
-                            value={activePregnancy.gestationalAgeAtBirth || ''}
-                            onChange={(e) =>
-                              onNestedArrayChange?.(
-                                'previousPregnancies',
-                                selectedPregnancyIdx,
-                                'gestationalAgeAtBirth',
-                                e.target.value
-                              )
-                            }
-                            placeholder='Contoh: 39 minggu'
-                            className='h-8 text-xs'
-                          />
-                        </div>
-
-                        <div className='space-y-1'>
-                          <Label className='text-xs font-medium'>Cara Persalinan</Label>
-                          <Select
-                            value={activePregnancy.deliveryMethod || ''}
-                            onValueChange={(val) =>
-                              onNestedArrayChange?.(
-                                'previousPregnancies',
-                                selectedPregnancyIdx,
-                                'deliveryMethod',
-                                val
-                              )
-                            }
-                          >
-                            <SelectTrigger className='h-8 text-xs'>
-                              <SelectValue placeholder='Pilih metode' />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {deliveryMethods.map((m) => (
-                                <SelectItem key={m} value={m} className='text-xs'>
-                                  {m}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      <div className='grid grid-cols-2 gap-3'>
-                        <div className='space-y-1'>
-                          <Label className='text-xs font-medium'>Penolong Persalinan</Label>
-                          <Select
-                            value={activePregnancy.birthAttendant || ''}
-                            onValueChange={(val) =>
-                              onNestedArrayChange?.(
-                                'previousPregnancies',
-                                selectedPregnancyIdx,
-                                'birthAttendant',
-                                val
-                              )
-                            }
-                          >
-                            <SelectTrigger className='h-8 text-xs'>
-                              <SelectValue placeholder='Pilih penolong' />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {birthAttendants.map((a) => (
-                                <SelectItem key={a} value={a} className='text-xs'>
-                                  {a}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className='space-y-1'>
-                          <Label className='text-xs font-medium'>Tempat Persalinan</Label>
-                          <Select
-                            value={activePregnancy.deliveryPlace || ''}
-                            onValueChange={(val) =>
-                              onNestedArrayChange?.(
-                                'previousPregnancies',
-                                selectedPregnancyIdx,
-                                'deliveryPlace',
-                                val
-                              )
-                            }
-                          >
-                            <SelectTrigger className='h-8 text-xs'>
-                              <SelectValue placeholder='Pilih tempat' />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {deliveryPlaces.map((p) => (
-                                <SelectItem key={p} value={p} className='text-xs'>
-                                  {p}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-
-                      <div className='space-y-1'>
-                        <Label className='text-xs font-medium'>Komplikasi / Masalah</Label>
-                        <Input
-                          value={activePregnancy.complications || ''}
-                          onChange={(e) =>
+                    <div className='space-y-4'>
+                      <div className='grid grid-cols-2 gap-4'>
+                        <PatientLineInput
+                          id={`prev-birthyear-${selectedPregnancyIdx}`}
+                          label='Tahun Lahir'
+                          value={activePregnancy.birthYear || ''}
+                          onChange={(val) =>
                             onNestedArrayChange?.(
                               'previousPregnancies',
                               selectedPregnancyIdx,
-                              'complications',
-                              e.target.value
+                              'birthYear',
+                              val
                             )
                           }
-                          placeholder='Tuliskan jika ada komplikasi, atau Tidak ada'
-                          className='h-8 text-xs'
+                          placeholder='YYYY'
+                          isMonospace
+                        />
+
+                        <PatientLineSelect
+                          id={`prev-sex-${selectedPregnancyIdx}`}
+                          label='Jenis Kelamin'
+                          value={activePregnancy.childSex || ''}
+                          onChange={(val) =>
+                            onNestedArrayChange?.(
+                              'previousPregnancies',
+                              selectedPregnancyIdx,
+                              'childSex',
+                              val
+                            )
+                          }
+                          options={childSexes}
+                          placeholder='Pilih JK'
                         />
                       </div>
+
+                      <div className='grid grid-cols-2 gap-4'>
+                        <PatientLineInput
+                          id={`prev-weight-${selectedPregnancyIdx}`}
+                          label='Berat Lahir Bayi (gram)'
+                          type='number'
+                          value={
+                            activePregnancy.birthWeightGrams
+                              ? String(activePregnancy.birthWeightGrams)
+                              : ''
+                          }
+                          onChange={(val) =>
+                            onNestedArrayChange?.(
+                              'previousPregnancies',
+                              selectedPregnancyIdx,
+                              'birthWeightGrams',
+                              val ? parseInt(val, 10) : ''
+                            )
+                          }
+                          placeholder='Contoh: 3100'
+                          isMonospace
+                        />
+
+                        <PatientLineInput
+                          id={`prev-length-${selectedPregnancyIdx}`}
+                          label='Panjang Lahir Bayi (cm)'
+                          type='number'
+                          step='0.1'
+                          value={
+                            activePregnancy.birthLengthCm
+                              ? String(activePregnancy.birthLengthCm)
+                              : ''
+                          }
+                          onChange={(val) =>
+                            onNestedArrayChange?.(
+                              'previousPregnancies',
+                              selectedPregnancyIdx,
+                              'birthLengthCm',
+                              val
+                            )
+                          }
+                          placeholder='Contoh: 49'
+                          isMonospace
+                        />
+                      </div>
+
+                      <div className='grid grid-cols-2 gap-4'>
+                        <PatientLineInput
+                          id={`prev-gestational-${selectedPregnancyIdx}`}
+                          label='Usia Kehamilan Saat Lahir'
+                          value={activePregnancy.gestationalAgeAtBirth || ''}
+                          onChange={(val) =>
+                            onNestedArrayChange?.(
+                              'previousPregnancies',
+                              selectedPregnancyIdx,
+                              'gestationalAgeAtBirth',
+                              val
+                            )
+                          }
+                          placeholder='Contoh: 39 minggu'
+                        />
+
+                        <PatientLineSelect
+                          id={`prev-delivery-method-${selectedPregnancyIdx}`}
+                          label='Cara Persalinan'
+                          value={activePregnancy.deliveryMethod || ''}
+                          onChange={(val) =>
+                            onNestedArrayChange?.(
+                              'previousPregnancies',
+                              selectedPregnancyIdx,
+                              'deliveryMethod',
+                              val
+                            )
+                          }
+                          options={deliveryMethods}
+                          placeholder='Pilih metode'
+                        />
+                      </div>
+
+                      <div className='grid grid-cols-2 gap-4'>
+                        <PatientLineSelect
+                          id={`prev-attendant-${selectedPregnancyIdx}`}
+                          label='Penolong Persalinan'
+                          value={activePregnancy.birthAttendant || ''}
+                          onChange={(val) =>
+                            onNestedArrayChange?.(
+                              'previousPregnancies',
+                              selectedPregnancyIdx,
+                              'birthAttendant',
+                              val
+                            )
+                          }
+                          options={birthAttendants}
+                          placeholder='Pilih penolong'
+                        />
+
+                        <PatientLineSelect
+                          id={`prev-place-${selectedPregnancyIdx}`}
+                          label='Tempat Persalinan'
+                          value={activePregnancy.deliveryPlace || ''}
+                          onChange={(val) =>
+                            onNestedArrayChange?.(
+                              'previousPregnancies',
+                              selectedPregnancyIdx,
+                              'deliveryPlace',
+                              val
+                            )
+                          }
+                          options={deliveryPlaces}
+                          placeholder='Pilih tempat'
+                        />
+                      </div>
+
+                      <PatientLineInput
+                        id={`prev-complications-${selectedPregnancyIdx}`}
+                        label='Komplikasi / Masalah Persalinan'
+                        value={activePregnancy.complications || ''}
+                        onChange={(val) =>
+                          onNestedArrayChange?.(
+                            'previousPregnancies',
+                            selectedPregnancyIdx,
+                            'complications',
+                            val
+                          )
+                        }
+                        placeholder='Tuliskan jika ada komplikasi, atau Tidak ada'
+                      />
                     </div>
                   ) : (
                     <div className='space-y-3'>
@@ -810,125 +712,105 @@ export function InspectorObstetricTab({
                   </div>
 
                   {isEditing ? (
-                    <div className='space-y-3.5'>
-                      <div className='grid grid-cols-2 gap-3'>
-                        <div className='space-y-1'>
-                          <Label className='text-xs font-medium'>Jenis KB / Kontrasepsi</Label>
-                          <Select
-                            value={activeKb.contraceptiveType || ''}
-                            onValueChange={(val) =>
-                              onNestedArrayChange?.(
-                                'contraceptiveHistories',
-                                selectedKbIdx,
-                                'contraceptiveType',
-                                val
-                              )
-                            }
-                          >
-                            <SelectTrigger className='h-8 text-xs'>
-                              <SelectValue placeholder='Pilih metode' />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {contraceptiveTypes.map((k) => (
-                                <SelectItem key={k} value={k} className='text-xs'>
-                                  {k}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className='space-y-1'>
-                          <Label className='text-xs font-medium'>Lama Pemakaian</Label>
-                          <Input
-                            value={activeKb.durationText || ''}
-                            onChange={(e) =>
-                              onNestedArrayChange?.(
-                                'contraceptiveHistories',
-                                selectedKbIdx,
-                                'durationText',
-                                e.target.value
-                              )
-                            }
-                            placeholder='Contoh: 2 tahun'
-                            className='h-8 text-xs'
-                          />
-                        </div>
-                      </div>
-
-                      <div className='grid grid-cols-2 gap-3'>
-                        <div className='space-y-1'>
-                          <Label className='text-xs font-medium'>Tanggal Mulai Pakai</Label>
-                          <CustomDatePicker
-                            value={activeKb.startDate || ''}
-                            onChange={(val) =>
-                              onNestedArrayChange?.(
-                                'contraceptiveHistories',
-                                selectedKbIdx,
-                                'startDate',
-                                val
-                              )
-                            }
-                            placeholder='YYYY-MM-DD'
-                            triggerClassName='h-8 text-xs font-mono'
-                            disableFutureDates
-                          />
-                        </div>
-
-                        <div className='space-y-1'>
-                          <Label className='text-xs font-medium'>Tanggal Berhenti / Lepas</Label>
-                          <CustomDatePicker
-                            value={activeKb.stopDate || ''}
-                            onChange={(val) =>
-                              onNestedArrayChange?.(
-                                'contraceptiveHistories',
-                                selectedKbIdx,
-                                'stopDate',
-                                val
-                              )
-                            }
-                            placeholder='YYYY-MM-DD'
-                            triggerClassName='h-8 text-xs font-mono'
-                            disableFutureDates
-                          />
-                        </div>
-                      </div>
-
-                      <div className='space-y-1'>
-                        <Label className='text-xs font-medium'>Masalah / Keluhan Pemakaian</Label>
-                        <Textarea
-                          value={activeKb.problems || ''}
-                          onChange={(e) =>
+                    <div className='space-y-4'>
+                      <div className='grid grid-cols-2 gap-4'>
+                        <PatientLineSelect
+                          id={`kb-type-${selectedKbIdx}`}
+                          label='Jenis KB / Kontrasepsi'
+                          value={activeKb.contraceptiveType || ''}
+                          onChange={(val) =>
                             onNestedArrayChange?.(
                               'contraceptiveHistories',
                               selectedKbIdx,
-                              'problems',
-                              e.target.value
+                              'contraceptiveType',
+                              val
                             )
                           }
-                          placeholder='Tuliskan keluhan atau Tidak ada'
-                          rows={2}
-                          className='text-xs resize-none'
+                          options={contraceptiveTypes}
+                          placeholder='Pilih metode'
                         />
-                      </div>
 
-                      <div className='space-y-1'>
-                        <Label className='text-xs font-medium'>Efek Samping Yang Dialami</Label>
-                        <Textarea
-                          value={activeKb.sideEffects || ''}
-                          onChange={(e) =>
+                        <PatientLineInput
+                          id={`kb-duration-${selectedKbIdx}`}
+                          label='Lama Pemakaian'
+                          value={activeKb.durationText || ''}
+                          onChange={(val) =>
                             onNestedArrayChange?.(
                               'contraceptiveHistories',
                               selectedKbIdx,
-                              'sideEffects',
-                              e.target.value
+                              'durationText',
+                              val
                             )
                           }
-                          placeholder='Tuliskan efek samping atau Tidak ada'
-                          rows={2}
-                          className='text-xs resize-none'
+                          placeholder='Contoh: 2 tahun'
                         />
                       </div>
+
+                      <div className='grid grid-cols-2 gap-4'>
+                        <CustomDatePicker
+                          id={`kb-start-${selectedKbIdx}`}
+                          label='Tanggal Mulai Pakai'
+                          value={activeKb.startDate || ''}
+                          onChange={(val) =>
+                            onNestedArrayChange?.(
+                              'contraceptiveHistories',
+                              selectedKbIdx,
+                              'startDate',
+                              val
+                            )
+                          }
+                          placeholder='YYYY-MM-DD'
+                          disableFutureDates
+                          variant='underline'
+                        />
+
+                        <CustomDatePicker
+                          id={`kb-stop-${selectedKbIdx}`}
+                          label='Tanggal Berhenti / Lepas'
+                          value={activeKb.stopDate || ''}
+                          onChange={(val) =>
+                            onNestedArrayChange?.(
+                              'contraceptiveHistories',
+                              selectedKbIdx,
+                              'stopDate',
+                              val
+                            )
+                          }
+                          placeholder='YYYY-MM-DD'
+                          disableFutureDates
+                          variant='underline'
+                        />
+                      </div>
+
+                      <PatientLineInput
+                        id={`kb-problems-${selectedKbIdx}`}
+                        label='Masalah / Keluhan Pemakaian'
+                        value={activeKb.problems || ''}
+                        onChange={(val) =>
+                          onNestedArrayChange?.(
+                            'contraceptiveHistories',
+                            selectedKbIdx,
+                            'problems',
+                            val
+                          )
+                        }
+                        placeholder='Tuliskan keluhan atau Tidak ada'
+                      />
+
+                      <PatientLineInput
+                        id={`kb-side-effects-${selectedKbIdx}`}
+                        label='Efek Samping Yang Dialami'
+                        value={activeKb.sideEffects || ''}
+                        onChange={(val) =>
+                          onNestedArrayChange?.(
+                            'contraceptiveHistories',
+                            selectedKbIdx,
+                            'sideEffects',
+                            val
+                          )
+                        }
+                        placeholder='Tuliskan efek samping atau Tidak ada'
+                      />
                     </div>
                   ) : (
                     <div className='space-y-3'>

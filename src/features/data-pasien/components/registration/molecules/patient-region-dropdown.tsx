@@ -62,40 +62,46 @@ export function PatientRegionDropdown({
         </span>
       </div>
 
-      {/* PROVINSI */}
-      <PatientSearchableSelect
-        id='province'
-        label='Provinsi'
-        value={values.provinceName}
-        placeholder='Pilih provinsi...'
-        options={provinces}
-        isLoading={loading.provinces}
-        error={errors?.provinceName}
-        onSelect={selectProvince}
-        searchPlaceholder='Cari provinsi...'
-        required
-      />
+      <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+        {/* PROVINSI (Span 2) */}
+        <div className='col-span-1 sm:col-span-2'>
+          <PatientSearchableSelect
+            id='province'
+            label='Provinsi'
+            value={values.provinceName}
+            placeholder='Pilih provinsi...'
+            options={provinces}
+            isLoading={loading.provinces}
+            error={errors?.provinceName}
+            onSelect={selectProvince}
+            searchPlaceholder='Cari provinsi...'
+            required
+          />
+        </div>
 
-      {/* KOTA / KABUPATEN */}
-      <PatientSearchableSelect
-        id='regency'
-        label='Kota / kabupaten'
-        value={values.regencyName}
-        placeholder={
-          values.provinceCode ? 'Pilih kota / kabupaten...' : 'Pilih provinsi terlebih dahulu...'
-        }
-        disabled={!values.provinceCode}
-        options={regencies}
-        isLoading={loading.regencies}
-        parentLabel='Provinsi'
-        error={errors?.regencyName}
-        onSelect={selectRegency}
-        searchPlaceholder='Cari kota / kabupaten...'
-        required
-      />
+        {/* KOTA / KABUPATEN (Span 2) */}
+        <div className='col-span-1 sm:col-span-2'>
+          <PatientSearchableSelect
+            id='regency'
+            label='Kota / kabupaten'
+            value={values.regencyName}
+            placeholder={
+              values.provinceCode
+                ? 'Pilih kota / kabupaten...'
+                : 'Pilih provinsi terlebih dahulu...'
+            }
+            disabled={!values.provinceCode}
+            options={regencies}
+            isLoading={loading.regencies}
+            parentLabel='Provinsi'
+            error={errors?.regencyName}
+            onSelect={selectRegency}
+            searchPlaceholder='Cari kota / kabupaten...'
+            required
+          />
+        </div>
 
-      {/* KECAMATAN & KELURAHAN (Vertical on Mobile, 2 columns on Desktop) */}
-      <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+        {/* KECAMATAN */}
         <PatientSearchableSelect
           id='district'
           label='Kecamatan'
@@ -111,6 +117,7 @@ export function PatientRegionDropdown({
           required
         />
 
+        {/* KELURAHAN */}
         <PatientSearchableSelect
           id='village'
           label='Kelurahan / desa'
@@ -125,18 +132,20 @@ export function PatientRegionDropdown({
           searchPlaceholder='Cari kelurahan...'
           required
         />
-      </div>
 
-      {/* ALAMAT DETAIL */}
-      <PatientLineInput
-        id='line1'
-        label='Alamat detail (jalan, RT/RW, no. rumah)'
-        value={values.line1}
-        placeholder='contoh: jl. mawar no. 12 rt 04/rw 02'
-        error={errors?.line1}
-        autoComplete='street-address'
-        onChange={(val) => onChange({ line1: val })}
-      />
+        {/* ALAMAT DETAIL (Span 2) */}
+        <div className='col-span-1 sm:col-span-2'>
+          <PatientLineInput
+            id='line1'
+            label='Alamat detail (jalan, RT/RW, no. rumah)'
+            value={values.line1}
+            placeholder='contoh: jl. mawar no. 12 rt 04/rw 02'
+            error={errors?.line1}
+            autoComplete='street-address'
+            onChange={(val) => onChange({ line1: val })}
+          />
+        </div>
+      </div>
     </div>
   );
 }

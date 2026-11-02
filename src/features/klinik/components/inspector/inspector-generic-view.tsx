@@ -1,23 +1,19 @@
 'use client';
 
 import * as React from 'react';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { CustomDatePicker } from '@/components/ui/custom-date-picker';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
 import { getGenderLabel } from '@/constants/gender.constants';
 import { getRelationshipLabel } from '@/constants/relationship.constants';
+import { usePatientFormReferences } from '@/features/data-pasien/model/usePatientFormReferences';
+import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
+import { PatientGenderSelector } from '@/features/data-pasien/components/registration/molecules/patient-gender-selector';
+import { PatientBloodTypeSelector } from '@/features/data-pasien/components/registration/molecules/patient-blood-type-selector';
+import { PatientSearchableSelect } from '@/features/data-pasien/components/registration/molecules/patient-searchable-select';
 import {
   PatientRegionDropdown,
   type PatientRegionValues
 } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
+import { type Gender } from '@/constants/gender.constants';
 import type { InspectorTabProps, EditableRegularData } from './types';
 
 export function InspectorGenericView({
@@ -28,6 +24,7 @@ export function InspectorGenericView({
   onRegularFieldChange
 }: InspectorTabProps) {
   const { flow, answers, automatic, child, patient } = data;
+  const references = usePatientFormReferences();
 
   const relationship = getRelationshipLabel(patient?.relationshipType);
 
@@ -63,69 +60,53 @@ export function InspectorGenericView({
     const allergyHistory = child?.childAllergyHistory || '-';
 
     return (
-      <div className='grid grid-cols-2 gap-y-3 gap-x-5'>
-        <div className='border-b border-border/40 pb-2'>
-          <span className='text-xs font-normal text-muted-foreground block mb-0.5'>NIK Anak</span>
-          <span className='text-sm font-semibold font-mono text-foreground block truncate'>
-            {childNik}
-          </span>
+      <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 select-text'>
+        <PatientLineInput id='child-nik' label='NIK Anak' value={childNik} isMonospace readOnly />
+        <PatientLineInput id='child-age' label='Usia Saat Pendaftaran' value={childAge} readOnly />
+        <PatientLineInput
+          id='child-birthdate'
+          label='Tanggal Lahir'
+          value={birthDate}
+          isMonospace
+          readOnly
+        />
+        <PatientLineInput id='child-sex' label='Jenis Kelamin' value={childSex} readOnly />
+        <PatientLineInput
+          id='child-phone'
+          label='No. Telepon Orang Tua'
+          value={parentPhone}
+          isMonospace
+          readOnly
+        />
+        <PatientLineInput
+          id='child-parents'
+          label='Nama Orang Tua (Ayah / Ibu)'
+          value={`${fatherName} / ${motherName}`}
+          readOnly
+        />
+        <div className='col-span-1 sm:col-span-2'>
+          <PatientLineInput
+            id='child-address'
+            label='Alamat Tempat Tinggal'
+            value={address}
+            readOnly
+          />
         </div>
-
-        <div className='border-b border-border/40 pb-2'>
-          <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-            Usia Saat Pendaftaran
-          </span>
-          <span className='text-sm font-bold font-mono text-primary block truncate'>
-            {childAge}
-          </span>
+        <div className='col-span-1 sm:col-span-2'>
+          <PatientLineInput
+            id='child-vaccine-history'
+            label='Riwayat Vaksinasi Sebelumnya'
+            value={vaccineHistory}
+            readOnly
+          />
         </div>
-
-        <div className='border-b border-border/40 pb-2'>
-          <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-            Tanggal Lahir / Kelamin
-          </span>
-          <span className='text-sm font-semibold text-foreground block truncate'>
-            {birthDate} ({childSex})
-          </span>
-        </div>
-
-        <div className='border-b border-border/40 pb-2'>
-          <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-            No. Telepon Orang Tua
-          </span>
-          <span className='text-sm font-semibold text-foreground block truncate'>
-            {parentPhone}
-          </span>
-        </div>
-
-        <div className='col-span-2 border-b border-border/40 pb-2'>
-          <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-            Nama Orang Tua (Ayah / Ibu)
-          </span>
-          <span className='text-sm font-semibold text-foreground block truncate'>
-            {fatherName} / {motherName}
-          </span>
-        </div>
-
-        <div className='col-span-2 border-b border-border/40 pb-2'>
-          <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-            Alamat Tempat Tinggal
-          </span>
-          <p className='text-sm font-medium text-foreground leading-relaxed'>{address}</p>
-        </div>
-
-        <div className='col-span-2 border-b border-border/40 pb-2'>
-          <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-            Riwayat Vaksinasi Sebelumnya
-          </span>
-          <p className='text-sm font-medium text-foreground leading-relaxed'>{vaccineHistory}</p>
-        </div>
-
-        <div className='col-span-2 border-b border-border/40 pb-2'>
-          <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-            Riwayat Alergi Anak
-          </span>
-          <p className='text-sm font-medium text-foreground leading-relaxed'>{allergyHistory}</p>
+        <div className='col-span-1 sm:col-span-2'>
+          <PatientLineInput
+            id='child-allergy'
+            label='Riwayat Alergi Anak'
+            value={allergyHistory}
+            readOnly
+          />
         </div>
       </div>
     );
@@ -192,328 +173,312 @@ export function InspectorGenericView({
     [onRegularFieldChange, regionValues]
   );
 
-  const formattedAddress = React.useMemo(() => {
-    const l1 = regularFormData?.line1 || patient?.line1;
-    const vill = regularFormData?.villageName || patient?.villageName;
-    const dist = regularFormData?.districtName || patient?.districtName;
-    const reg = regularFormData?.regencyName || patient?.regencyName;
-    const prov = regularFormData?.provinceName || patient?.provinceName;
-    const parts = [
-      l1,
-      vill ? `Kel. ${vill}` : '',
-      dist ? `Kec. ${dist}` : '',
-      reg,
-      prov ? `Prov. ${prov}` : ''
-    ].filter(Boolean);
-    return parts.length > 0
-      ? parts.join(', ')
-      : regularFormData?.address || patient?.address || '-';
-  }, [regularFormData, patient]);
-
   return (
     <div className='flex flex-col gap-5'>
       {/* Profil Identitas Pasien (Editable atau Read-Only) */}
-      <div className='rounded-lg border border-border/50 p-4 bg-muted/10'>
-        <span className='text-xs font-bold text-foreground block mb-3 pb-1 border-b border-border/40'>
+      <div className='rounded-lg border border-border/50 p-4 bg-muted/10 space-y-4'>
+        <span className='text-xs font-bold text-foreground block pb-1 border-b border-border/40'>
           Identitas Pasien & Demografi
         </span>
         {isEditing && regularFormData && onRegularFieldChange ? (
-          <div className='grid grid-cols-1 sm:grid-cols-2 gap-3.5'>
-            <div className='space-y-1.5'>
-              <Label htmlFor='reg-mrn-input' className='text-xs font-medium text-foreground'>
-                Nomor Rekam Medis (RM)
-              </Label>
-              <Input
-                id='reg-mrn-input'
-                value={regularFormData.medicalRecordNumber ?? (mrn !== '-' ? mrn : '')}
-                onChange={(e) => onRegularFieldChange('medicalRecordNumber', e.target.value)}
-                placeholder='RM-XXXX-XXXX'
-                className='h-8 text-xs font-mono font-semibold text-primary'
-              />
-            </div>
+          <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+            <PatientLineInput
+              id='reg-mrn-input'
+              label='Nomor Rekam Medis (RM)'
+              value={regularFormData.medicalRecordNumber ?? (mrn !== '-' ? mrn : '')}
+              onChange={(val) => onRegularFieldChange('medicalRecordNumber', val)}
+              placeholder='RM-XXXX-XXXX'
+              isMonospace
+            />
 
-            <div className='space-y-1.5'>
-              <Label htmlFor='reg-name-input' className='text-xs font-medium text-foreground'>
-                Nama Lengkap Pasien <span className='text-destructive'>*</span>
-              </Label>
-              <Input
-                id='reg-name-input'
-                value={regularFormData.fullName ?? (patient?.fullName || '')}
-                onChange={(e) => onRegularFieldChange('fullName', e.target.value)}
-                placeholder='Nama lengkap...'
-                className='h-8 text-xs'
-              />
-            </div>
+            <PatientLineInput
+              id='reg-name-input'
+              label='Nama Lengkap Pasien *'
+              value={regularFormData.fullName ?? (patient?.fullName || '')}
+              onChange={(val) => onRegularFieldChange('fullName', val)}
+              placeholder='Nama lengkap...'
+              required
+            />
 
-            <div className='space-y-1.5'>
-              <Label htmlFor='reg-nik-input' className='text-xs font-medium text-foreground'>
-                NIK Pasien (16 Digit)
-              </Label>
-              <Input
-                id='reg-nik-input'
-                value={regularFormData.nik ?? (nik !== '-' ? nik : '')}
-                onChange={(e) => onRegularFieldChange('nik', e.target.value)}
-                placeholder='16 digit NIK...'
-                maxLength={16}
-                className='h-8 text-xs font-mono'
-              />
-            </div>
+            <PatientLineInput
+              id='reg-nik-input'
+              label='NIK Pasien (16 Digit)'
+              value={regularFormData.nik ?? (nik !== '-' ? nik : '')}
+              onChange={(val) => onRegularFieldChange('nik', val)}
+              placeholder='16 digit NIK...'
+              maxLength={16}
+              isMonospace
+            />
 
-            <div className='grid grid-cols-2 gap-2'>
-              <div className='space-y-1.5'>
-                <Label
-                  htmlFor='reg-birthplace-input'
-                  className='text-xs font-medium text-foreground'
-                >
-                  Tempat Lahir
-                </Label>
-                <Input
-                  id='reg-birthplace-input'
-                  value={regularFormData.birthPlace ?? (patient?.birthPlace || '')}
-                  onChange={(e) => onRegularFieldChange('birthPlace', e.target.value)}
-                  placeholder='Kota lahir...'
-                  className='h-8 text-xs'
-                />
-              </div>
-              <div className='space-y-1.5'>
-                <Label
-                  htmlFor='reg-birthdate-input'
-                  className='text-xs font-medium text-foreground'
-                >
-                  Tanggal Lahir
-                </Label>
-                <CustomDatePicker
-                  id='reg-birthdate-input'
-                  value={regularFormData.birthDate ?? (patient?.birthDate || '')}
-                  onChange={(val) => onRegularFieldChange('birthDate', val)}
-                  placeholder='YYYY-MM-DD'
-                  triggerClassName='h-8 text-xs'
-                  disableFutureDates
-                />
-              </div>
-            </div>
+            <PatientLineInput
+              id='reg-birthplace-input'
+              label='Tempat Lahir'
+              value={regularFormData.birthPlace ?? (patient?.birthPlace || '')}
+              onChange={(val) => onRegularFieldChange('birthPlace', val)}
+              placeholder='Kota lahir...'
+            />
 
-            <div className='grid grid-cols-2 gap-2'>
-              <div className='space-y-1.5'>
-                <Label className='text-xs font-medium text-foreground'>Jenis Kelamin</Label>
-                <Select
-                  value={regularFormData.gender || patient?.gender || ''}
-                  onValueChange={(val) => onRegularFieldChange('gender', val)}
-                >
-                  <SelectTrigger className='h-8 text-xs w-full'>
-                    <SelectValue placeholder='Pilih kelamin' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value='male' className='text-xs'>
-                      Laki-laki
-                    </SelectItem>
-                    <SelectItem value='female' className='text-xs'>
-                      Perempuan
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className='space-y-1.5'>
-                <Label className='text-xs font-medium text-foreground'>Golongan Darah</Label>
-                <Select
-                  value={regularFormData.bloodType || patient?.bloodType || ''}
-                  onValueChange={(val) => onRegularFieldChange('bloodType', val)}
-                >
-                  <SelectTrigger className='h-8 text-xs w-full'>
-                    <SelectValue placeholder='Pilih gol. darah' />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {['A', 'B', 'AB', 'O', 'Tidak tahu'].map((b) => (
-                      <SelectItem key={b} value={b} className='text-xs'>
-                        {b}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <CustomDatePicker
+              id='reg-birthdate-input'
+              label='Tanggal Lahir'
+              value={regularFormData.birthDate ?? (patient?.birthDate || '')}
+              onChange={(val) => onRegularFieldChange('birthDate', val)}
+              placeholder='YYYY-MM-DD'
+              disableFutureDates
+              variant='underline'
+            />
 
-            <div className='space-y-1.5'>
-              <Label htmlFor='reg-mother-input' className='text-xs font-medium text-foreground'>
-                Nama Ibu Kandung
-              </Label>
-              <Input
-                id='reg-mother-input'
-                value={regularFormData.motherName ?? (motherName !== '-' ? motherName : '')}
-                onChange={(e) => onRegularFieldChange('motherName', e.target.value)}
-                placeholder='Nama ibu kandung...'
-                className='h-8 text-xs'
-              />
-            </div>
+            <PatientGenderSelector
+              id='reg-gender-select'
+              label='Jenis Kelamin'
+              variant='dropdown'
+              value={regularFormData.gender || patient?.gender || ''}
+              onChange={(val) => onRegularFieldChange('gender', val as Gender)}
+              options={references.genders}
+            />
 
-            <div className='space-y-1.5'>
-              <Label htmlFor='reg-occ-input' className='text-xs font-medium text-foreground'>
-                Pekerjaan
-              </Label>
-              <Input
-                id='reg-occ-input'
+            <PatientBloodTypeSelector
+              id='reg-blood-select'
+              label='Golongan Darah'
+              value={regularFormData.bloodType || patient?.bloodType || ''}
+              onChange={(val) => onRegularFieldChange('bloodType', val)}
+              options={references.bloodTypes}
+            />
+
+            <PatientLineInput
+              id='reg-mother-input'
+              label='Nama Ibu Kandung'
+              value={regularFormData.motherName ?? (motherName !== '-' ? motherName : '')}
+              onChange={(val) => onRegularFieldChange('motherName', val)}
+              placeholder='Nama ibu kandung...'
+            />
+
+            <div className='col-span-1 sm:col-span-2'>
+              <PatientSearchableSelect
+                id='reg-occ-select'
+                label='Pekerjaan'
                 value={regularFormData.occupation ?? (rawOccupation || '')}
-                onChange={(e) => onRegularFieldChange('occupation', e.target.value)}
-                placeholder='Pekerjaan...'
-                className='h-8 text-xs'
+                placeholder='Pilih pekerjaan pasien...'
+                options={references.occupations.map((occ) => ({
+                  id: occ.code,
+                  name: occ.name,
+                  description: occ.description
+                }))}
+                isLoading={references.isLoading}
+                onSelect={(item) => onRegularFieldChange('occupation', item.name)}
+                searchPlaceholder='Cari pekerjaan...'
               />
             </div>
 
-            <div className='space-y-1.5'>
-              <Label htmlFor='reg-phone-input' className='text-xs font-medium text-foreground'>
-                No. Telepon / WhatsApp
-              </Label>
-              <Input
-                id='reg-phone-input'
-                value={regularFormData.phone ?? (phone !== '-' ? phone : '')}
-                onChange={(e) => onRegularFieldChange('phone', e.target.value)}
-                placeholder='08xxxxxxxxxx'
-                className='h-8 text-xs font-mono'
-              />
-            </div>
+            <PatientLineInput
+              id='reg-phone-input'
+              label='No. Telepon / WhatsApp'
+              type='tel'
+              value={regularFormData.phone ?? (phone !== '-' ? phone : '')}
+              onChange={(val) => onRegularFieldChange('phone', val)}
+              placeholder='08xxxxxxxxxx'
+              isMonospace
+            />
 
-            <div className='col-span-1 sm:col-span-2 space-y-2 pt-1 border-t border-border/30'>
-              <span className='text-xs font-semibold text-foreground block'>
-                Alamat Domisili & Wilayah (Hierarki Kanonikal)
+            <PatientLineInput
+              id='reg-email-input'
+              label='Email Pasien'
+              type='email'
+              value={regularFormData.email ?? (patient?.email || '')}
+              onChange={(val) => onRegularFieldChange('email', val)}
+              placeholder='email@domain.com'
+            />
+
+            <div className='col-span-1 sm:col-span-2 space-y-2 pt-2 pb-1 border-t border-border/30'>
+              <span className='text-xs font-semibold text-muted-foreground block'>
+                Alamat Domisili Pasien
               </span>
               <PatientRegionDropdown values={regionValues} onChange={handleRegionChange} />
             </div>
 
-            <div className='col-span-1 sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-border/30'>
-              <div className='space-y-1.5'>
-                <Label htmlFor='reg-emg-name-input' className='text-xs font-medium text-foreground'>
-                  Nama Kontak Darurat
-                </Label>
-                <Input
-                  id='reg-emg-name-input'
-                  value={
-                    regularFormData.emergencyContactName ?? (patient?.emergencyContactName || '')
-                  }
-                  onChange={(e) => onRegularFieldChange('emergencyContactName', e.target.value)}
-                  placeholder='Nama kontak darurat...'
-                  className='h-8 text-xs'
-                />
-              </div>
-              <div className='space-y-1.5'>
-                <Label
-                  htmlFor='reg-emg-phone-input'
-                  className='text-xs font-medium text-foreground'
-                >
-                  No. Telp Kontak Darurat
-                </Label>
-                <Input
-                  id='reg-emg-phone-input'
-                  value={
-                    regularFormData.emergencyContactPhone ?? (patient?.emergencyContactPhone || '')
-                  }
-                  onChange={(e) => onRegularFieldChange('emergencyContactPhone', e.target.value)}
-                  placeholder='08xxxxxxxxxx'
-                  className='h-8 text-xs font-mono'
-                />
-              </div>
+            <div className='col-span-1 sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1 border-t border-border/30'>
+              <PatientLineInput
+                id='reg-emg-name-input'
+                label='Nama Kontak Darurat'
+                value={
+                  regularFormData.emergencyContactName ?? (patient?.emergencyContactName || '')
+                }
+                onChange={(val) => onRegularFieldChange('emergencyContactName', val)}
+                placeholder='Nama kontak darurat...'
+              />
+              <PatientLineInput
+                id='reg-emg-phone-input'
+                label='No. Telp Kontak Darurat'
+                value={
+                  regularFormData.emergencyContactPhone ?? (patient?.emergencyContactPhone || '')
+                }
+                onChange={(val) => onRegularFieldChange('emergencyContactPhone', val)}
+                placeholder='08xxxxxxxxxx'
+                isMonospace
+              />
             </div>
           </div>
         ) : (
-          <div className='grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-5 select-text'>
+          <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 select-text'>
             {mrn !== '-' && (
-              <div className='border-b border-border/40 pb-2'>
-                <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                  Nomor Rekam Medis (RM)
-                </span>
-                <span className='text-sm font-bold font-mono text-primary block truncate'>
-                  {mrn}
-                </span>
-              </div>
+              <PatientLineInput
+                id='read-mrn'
+                label='Nomor Rekam Medis (RM)'
+                value={mrn}
+                isMonospace
+                readOnly
+              />
             )}
 
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                Hubungan Keluarga
-              </span>
-              <span className='text-sm font-semibold text-foreground block truncate capitalize'>
-                {relationship}
-              </span>
+            <PatientLineInput
+              id='read-relationship'
+              label='Hubungan Keluarga'
+              value={relationship}
+              readOnly
+            />
+
+            <PatientLineInput
+              id='read-fullname'
+              label='Nama Lengkap Pasien'
+              value={patient?.fullName || '-'}
+              readOnly
+            />
+
+            <PatientLineInput id='read-nik' label='NIK Pasien' value={nik} isMonospace readOnly />
+
+            <PatientLineInput
+              id='read-birthplace'
+              label='Tempat Lahir'
+              value={patient?.birthPlace || '-'}
+              readOnly
+            />
+
+            <PatientLineInput
+              id='read-birthdate'
+              label='Tanggal Lahir'
+              value={patient?.birthDate || '-'}
+              isMonospace
+              readOnly
+            />
+
+            <PatientLineInput id='read-gender' label='Jenis Kelamin' value={gender} readOnly />
+
+            <PatientLineInput
+              id='read-bloodtype'
+              label='Golongan Darah'
+              value={bloodType}
+              readOnly
+            />
+
+            <PatientLineInput
+              id='read-mother'
+              label='Nama Ibu Kandung'
+              value={motherName}
+              readOnly
+            />
+
+            <div className='col-span-1 sm:col-span-2'>
+              <PatientLineInput
+                id='read-occupation'
+                label='Pekerjaan'
+                value={occupation}
+                readOnly
+              />
             </div>
 
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                NIK Pasien
-              </span>
-              <span className='text-sm font-semibold font-mono text-foreground block truncate'>
-                {nik}
-              </span>
-            </div>
+            <PatientLineInput
+              id='read-phone'
+              label='No. Telepon / WhatsApp'
+              value={phone}
+              isMonospace
+              readOnly
+            />
 
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                Tempat, Tanggal Lahir
-              </span>
-              <span className='text-sm font-semibold text-foreground block truncate'>
-                {birthInfo}
-              </span>
-            </div>
+            <PatientLineInput id='read-email' label='Email Pasien' value={email} readOnly />
 
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                Jenis Kelamin
-              </span>
-              <span className='text-sm font-semibold text-foreground block truncate'>{gender}</span>
-            </div>
+            {/* Alamat Domisili Pasien */}
+            <div className='col-span-1 sm:col-span-2 space-y-3 pt-2 pb-1 border-t border-border/30'>
+              <div className='flex items-center justify-between pb-1'>
+                <span className='text-xs font-semibold text-muted-foreground block'>
+                  Alamat Domisili Pasien
+                </span>
+                {/* Country pill badge matching edit mode */}
+                <div className='inline-flex items-center gap-2 rounded-lg border border-border bg-muted/60 px-3 py-1.5 text-xs font-medium text-primary'>
+                  <svg
+                    className='h-3 w-4 shrink-0 overflow-hidden rounded-[2px] border border-slate-300 shadow-xs'
+                    viewBox='0 0 3 2'
+                  >
+                    <rect width='3' height='1' fill='#E70011' />
+                    <rect y='1' width='3' height='1' fill='#FFFFFF' />
+                  </svg>
+                  <span>
+                    Negara: <strong className='font-semibold'>Indonesia</strong>
+                  </span>
+                  <span className='rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-normal text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400'>
+                    Terverifikasi
+                  </span>
+                </div>
+              </div>
 
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                Golongan Darah
-              </span>
-              <span className='text-sm font-semibold text-foreground block truncate'>
-                {bloodType}
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                Nama Ibu Kandung
-              </span>
-              <span className='text-sm font-semibold text-foreground block truncate'>
-                {motherName}
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                Pekerjaan
-              </span>
-              <span className='text-sm font-semibold text-foreground block truncate'>
-                {occupation}
-              </span>
-            </div>
-
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                No. Telepon
-              </span>
-              <span className='text-sm font-semibold text-foreground block truncate'>{phone}</span>
-            </div>
-
-            <div className='border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>Email</span>
-              <span className='text-sm font-semibold text-foreground block truncate'>{email}</span>
-            </div>
-
-            <div className='col-span-1 sm:col-span-2 border-b border-border/40 pb-2'>
-              <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                Alamat Domisili
-              </span>
-              <p className='text-sm font-medium text-foreground leading-relaxed'>
-                {formattedAddress}
-              </p>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                <div className='col-span-1 sm:col-span-2'>
+                  <PatientLineInput
+                    id='read-province'
+                    label='Provinsi'
+                    value={regionValues.provinceName || '-'}
+                    readOnly
+                  />
+                </div>
+                <div className='col-span-1 sm:col-span-2'>
+                  <PatientLineInput
+                    id='read-regency'
+                    label='Kota / Kabupaten'
+                    value={regionValues.regencyName || '-'}
+                    readOnly
+                  />
+                </div>
+                <PatientLineInput
+                  id='read-district'
+                  label='Kecamatan'
+                  value={regionValues.districtName || '-'}
+                  readOnly
+                />
+                <PatientLineInput
+                  id='read-village'
+                  label='Kelurahan / Desa'
+                  value={regionValues.villageName || '-'}
+                  readOnly
+                />
+                <div className='col-span-1 sm:col-span-2'>
+                  <PatientLineInput
+                    id='read-line1'
+                    label='Alamat Detail (Jalan, RT/RW, No. Rumah)'
+                    value={
+                      regionValues.line1 ||
+                      (patient?.address !== '-' ? patient?.address : '-') ||
+                      '-'
+                    }
+                    readOnly
+                  />
+                </div>
+              </div>
             </div>
 
             {emergency && (
-              <div className='col-span-1 sm:col-span-2 border-b border-border/40 pb-2'>
-                <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                  Kontak Darurat
-                </span>
-                <p className='text-sm font-medium text-foreground leading-relaxed'>{emergency}</p>
+              <div className='col-span-1 sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1 border-t border-border/30'>
+                <PatientLineInput
+                  id='read-emg-name'
+                  label='Nama Kontak Darurat'
+                  value={patient?.emergencyContactName || '-'}
+                  readOnly
+                />
+                <PatientLineInput
+                  id='read-emg-phone'
+                  label='No. Telp Kontak Darurat'
+                  value={patient?.emergencyContactPhone || '-'}
+                  isMonospace
+                  readOnly
+                />
               </div>
             )}
           </div>
@@ -566,32 +531,28 @@ export function InspectorGenericView({
         </div>
 
         <div className='pt-1'>
-          <Label
-            htmlFor='reg-complaint-input'
-            className='text-xs font-semibold text-foreground block mb-1.5'
-          >
-            Keluhan Utama / Alasan Kunjungan
-          </Label>
           {isEditing && regularFormData && onRegularFieldChange ? (
-            <Textarea
+            <PatientLineInput
               id='reg-complaint-input'
+              label='Keluhan Utama / Alasan Kunjungan'
               value={regularFormData.complaint}
-              onChange={(e) => onRegularFieldChange('complaint', e.target.value)}
+              onChange={(val) => onRegularFieldChange('complaint', val)}
               placeholder='Keluhan utama saat konsultasi...'
-              rows={3}
-              className='text-xs resize-none'
             />
           ) : (
-            <div className='p-3 rounded-md bg-muted/20 border border-border/40 select-text'>
-              <p className='text-xs sm:text-sm font-medium text-foreground leading-relaxed'>
-                {regularFormData?.complaint ||
-                  answers.complaint ||
-                  answers.keluhanUtama ||
-                  data.complaint ||
-                  appointment.complaint ||
-                  '-'}
-              </p>
-            </div>
+            <PatientLineInput
+              id='read-complaint'
+              label='Keluhan Utama / Alasan Kunjungan'
+              value={
+                regularFormData?.complaint ||
+                answers.complaint ||
+                answers.keluhanUtama ||
+                data.complaint ||
+                appointment.complaint ||
+                '-'
+              }
+              readOnly
+            />
           )}
         </div>
       </div>
