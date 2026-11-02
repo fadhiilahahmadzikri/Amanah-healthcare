@@ -106,6 +106,7 @@ export interface MaternalReferenceOptions {
   contraceptiveTypes?: MaternalReferenceOptionItem[];
   occupations?: MaternalReferenceOptionItem[];
   genders?: MaternalReferenceOptionItem[];
+  relationships?: MaternalReferenceOptionItem[];
 }
 
 export interface OccupationItem {

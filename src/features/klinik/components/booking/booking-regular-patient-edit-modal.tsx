@@ -23,6 +23,7 @@ import {
   type PatientRegionValues
 } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import { PatientSearchableSelect } from '@/features/data-pasien/components/registration/molecules/patient-searchable-select';
+import { PatientRelationshipSelector } from '@/features/data-pasien/components/registration/molecules/patient-relationship-selector';
 
 export interface BookingRegularPatientEditModalProps {
   patient: PatientAffiliationProfile | null;
@@ -446,12 +447,13 @@ export function BookingRegularPatientEditModal({
                       value={emergencyContactName}
                       onChange={setEmergencyContactName}
                     />
-                    <PatientLineInput
+                    <PatientRelationshipSelector
                       id='edit_emergency_rel'
-                      label='Hubungan'
-                      placeholder='contoh: Pasangan / Orang Tua'
+                      label='Hubungan Kerabat'
+                      placeholder='Pilih hubungan...'
                       value={emergencyContactRelationship}
-                      onChange={setEmergencyContactRelationship}
+                      onChange={(val, opt) => setEmergencyContactRelationship(opt?.label || val)}
+                      excludeSystem
                     />
                   </div>
                   <PatientLineInput

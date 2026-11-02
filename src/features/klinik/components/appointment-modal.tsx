@@ -212,6 +212,7 @@ export function AppointmentModal({
                 }
                 allowedRelationships={bookingContext?.allowedRelationships}
                 hasExistingSelf={patients.some((p) => p.relationship === 'self' || p.isSelf)}
+                existingPatients={patients}
               />
             )}
 

@@ -197,8 +197,8 @@ export function useMedicalAppointmentForm({
   }, [effectiveRequirement]);
 
   const registrationPrefill = React.useMemo(
-    () => buildRegistrationPrefill(flow, registeredPatient),
-    [flow, registeredPatient]
+    () => buildRegistrationPrefill(flow, registeredPatient, selectedPatient),
+    [flow, registeredPatient, selectedPatient]
   );
 
   const prefilledFieldIds = React.useMemo(() => {

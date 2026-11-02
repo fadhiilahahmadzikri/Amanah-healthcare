@@ -3,6 +3,7 @@
 import * as React from 'react';
 import gsap from 'gsap';
 import { toast } from 'sonner';
+import { useAuthContext } from '@/lib/rbac/auth-context';
 import {
   patientAffiliationService,
   type CreatePatientAffiliationDto,
@@ -21,9 +22,15 @@ export interface UseBookingRegularPatientFormOptions {
   onCancel: () => void;
   targetFlow?: string;
   onRelationshipSubmit?: (relationship: PatientRelationshipType) => void;
-  allowedRelationships?: { value: string; label: string; description?: string }[];
+  allowedRelationships?: {
+    value: string;
+    label: string;
+    description?: string;
+    isSystem?: boolean;
+  }[];
   hasExistingSelf?: boolean;
   initialRelationship?: PatientRelationshipType | string;
+  existingPatients?: PatientAffiliationProfile[];
 }
 
 export function useBookingRegularPatientForm({
@@ -33,8 +40,10 @@ export function useBookingRegularPatientForm({
   onRelationshipSubmit: _onRelationshipSubmit,
   allowedRelationships,
   hasExistingSelf = false,
-  initialRelationship
+  initialRelationship,
+  existingPatients = []
 }: UseBookingRegularPatientFormOptions) {
+  const { user } = useAuthContext();
   const references = usePatientFormReferences();
 
   const [currentStep, setCurrentStep] = React.useState(1);
@@ -53,7 +62,12 @@ export function useBookingRegularPatientForm({
         ? allowedRelationships
         : references.relationships;
     if (hasExistingSelf) {
-      opts = opts.filter((o) => o.value !== 'self');
+      opts = opts.filter(
+        (o) =>
+          !(o as any).isSystem &&
+          String(o.value).toLowerCase() !== 'diri_sendiri' &&
+          String(o.value).toLowerCase() !== 'self'
+      );
     }
     return opts;
   }, [allowedRelationships, references.relationships, hasExistingSelf]);
@@ -74,24 +88,38 @@ export function useBookingRegularPatientForm({
   const [relationship, setRelationship] =
     React.useState<PatientRelationshipType>(initialRelationshipValue);
 
+  const selectedRelOption = React.useMemo(() => {
+    return relationshipOptions.find((r) => r.value === relationship) || null;
+  }, [relationshipOptions, relationship]);
+
+  const isSelf = React.useMemo(() => {
+    const relStr = String(relationship).toLowerCase();
+    return (
+      (selectedRelOption as any)?.isSystem === true ||
+      relStr === 'diri_sendiri' ||
+      relStr === 'self'
+    );
+  }, [selectedRelOption, relationship]);
+
   React.useEffect(() => {
     if (relationshipOptions.length > 0) {
       const exists = relationshipOptions.some((r) => r.value === relationship);
       if (!exists) {
         setRelationship(relationshipOptions[0].value as PatientRelationshipType);
       }
-    } else if (hasExistingSelf && relationship === 'self') {
+    } else if (hasExistingSelf && isSelf) {
       setRelationship('spouse');
     }
-  }, [relationshipOptions, hasExistingSelf, relationship]);
+  }, [relationshipOptions, hasExistingSelf, isSelf, relationship]);
 
-  const [fullName, setFullName] = React.useState('');
+  const [fullName, setFullName] = React.useState(() => (isSelf && user?.name ? user.name : ''));
   const [nik, setNik] = React.useState('');
-  const [phone, setPhone] = React.useState('');
-  const [email, setEmail] = React.useState('');
+  const [phone, setPhone] = React.useState(() => (isSelf && user?.phone ? user.phone : ''));
+  const [email, setEmail] = React.useState(() => user?.email || '');
   const [emergencyContactName, setEmergencyContactName] = React.useState('');
   const [emergencyContactPhone, setEmergencyContactPhone] = React.useState('');
   const [emergencyContactRelationship, setEmergencyContactRelationship] = React.useState('');
+  const [emergencyContactPatientId, setEmergencyContactPatientId] = React.useState<string>('');
   const [motherName, setMotherName] = React.useState('');
   const [placeOfBirth, setPlaceOfBirth] = React.useState('');
   const [dateOfBirth, setDateOfBirth] = React.useState('');
@@ -111,6 +139,15 @@ export function useBookingRegularPatientForm({
   });
   const [occupationCode, setOccupationCode] = React.useState('');
 
+  // Auto-fill user identity when switching to Self
+  React.useEffect(() => {
+    if (isSelf) {
+      if (user?.email && !email) setEmail(user.email);
+      if (user?.name && !fullName) setFullName(user.name);
+      if (user?.phone && !phone) setPhone(user.phone);
+    }
+  }, [isSelf, user, email, fullName, phone]);
+
   const stepContainerRef = React.useRef<HTMLDivElement>(null);
   const isAnimatingRef = React.useRef(false);
 
@@ -129,7 +166,7 @@ export function useBookingRegularPatientForm({
     setTimeout(() => {
       if (isEditingFromReview) {
         setIsEditingFromReview(false);
-        setCurrentStep(13);
+        setCurrentStep(12);
       } else {
         setCurrentStep(8);
       }
@@ -175,10 +212,6 @@ export function useBookingRegularPatientForm({
         return cleanPhone.length >= 8 && cleanPhone.length <= 15;
       }
       case 9: {
-        if (!email.trim()) return true;
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-      }
-      case 10: {
         const cleanEmergencyPhone = emergencyContactPhone.replace(/\D/g, '');
         if (
           !emergencyContactName.trim() &&
@@ -189,11 +222,11 @@ export function useBookingRegularPatientForm({
         }
         return cleanEmergencyPhone.length >= 8 && cleanEmergencyPhone.length <= 15;
       }
-      case 11:
+      case 10:
         return Boolean(region.line1.trim());
-      case 12:
+      case 11:
         return Boolean(occupationCode);
-      case 13:
+      case 12:
         return true;
       default:
         return false;
@@ -204,7 +237,6 @@ export function useBookingRegularPatientForm({
     fullName,
     nik,
     phone,
-    email,
     emergencyContactName,
     emergencyContactPhone,
     emergencyContactRelationship,
@@ -220,7 +252,7 @@ export function useBookingRegularPatientForm({
   const handleBack = () => {
     if (isEditingFromReview) {
       setIsEditingFromReview(false);
-      setCurrentStep(13);
+      setCurrentStep(12);
       return;
     }
 
@@ -238,13 +270,16 @@ export function useBookingRegularPatientForm({
 
     const selectedOccupation = references.occupations.find((o) => o.code === occupationCode);
     const resolvedBloodType: PatientBloodType = bloodType;
+    const finalEmail = email.trim() || user?.email || undefined;
 
     const dto: CreatePatientAffiliationDto = {
+      relationshipTypeId: (selectedRelOption as any)?.id,
       relationshipType: relationship,
       name: fullName.trim(),
       nik: nik.trim(),
       phone: phone.trim() || undefined,
-      email: email.trim() || undefined,
+      email: finalEmail,
+      emergencyContactPatientId: emergencyContactPatientId || undefined,
       emergencyContactName: emergencyContactName.trim() || undefined,
       emergencyContactPhone: emergencyContactPhone.trim() || undefined,
       emergencyContactRelationship: emergencyContactRelationship.trim() || undefined,
@@ -254,7 +289,7 @@ export function useBookingRegularPatientForm({
       bloodType: resolvedBloodType,
       motherName: motherName.trim(),
       line1: region.line1.trim(),
-      isPrimary: relationship === 'self',
+      isPrimary: isSelf,
       occupationId: selectedOccupation?.id,
       occupation: selectedOccupation?.name,
       provinceName: region.provinceName || undefined,
@@ -286,11 +321,11 @@ export function useBookingRegularPatientForm({
     if (isEditingFromReview) {
       isAnimatingRef.current = true;
       setIsEditingFromReview(false);
-      setCurrentStep(13);
+      setCurrentStep(12);
       return;
     }
 
-    if (currentStep < 13) {
+    if (currentStep < 12) {
       isAnimatingRef.current = true;
       setCurrentStep((prev) => prev + 1);
     } else {
@@ -299,11 +334,6 @@ export function useBookingRegularPatientForm({
   };
 
   const currentStepMeta: PatientRegistrationStep = React.useMemo(() => {
-    const isSelf = relationship === 'self';
-    const isChild = relationship === 'child';
-    const isSpouse = relationship === 'spouse';
-    const isParent = relationship === 'parent';
-
     switch (currentStep) {
       case 1:
         return {
@@ -314,30 +344,12 @@ export function useBookingRegularPatientForm({
         if (isSelf) {
           return {
             title: 'Data identitas diri',
-            description: 'Masukkan nama lengkap Anda sesuai KTP atau KK'
-          };
-        }
-        if (isChild) {
-          return {
-            title: 'Nama anak',
-            description: 'Masukkan nama lengkap anak sesuai akta atau kartu keluarga'
-          };
-        }
-        if (isSpouse) {
-          return {
-            title: 'Nama pasangan',
-            description: 'Masukkan nama lengkap pasangan sesuai KTP'
-          };
-        }
-        if (isParent) {
-          return {
-            title: 'Nama orang tua',
-            description: 'Masukkan nama lengkap orang tua sesuai KTP'
+            description: 'Masukkan nama lengkap Anda sesuai KTP atau identitas resmi'
           };
         }
         return {
-          title: 'Nama lengkap pasien',
-          description: 'Masukkan nama lengkap yang akan berobat sesuai KTP'
+          title: `Nama lengkap ${selectedRelOption?.label || 'pasien'}`,
+          description: 'Masukkan nama lengkap pasien sesuai KTP atau kartu keluarga'
         };
       case 3:
         if (isSelf) {
@@ -346,14 +358,8 @@ export function useBookingRegularPatientForm({
             description: '16 digit NIK KTP Anda untuk identifikasi rekam medis resmi'
           };
         }
-        if (isChild) {
-          return {
-            title: 'NIK anak',
-            description: '16 digit NIK anak sesuai kartu keluarga atau KIA'
-          };
-        }
         return {
-          title: 'NIK pasien',
+          title: `NIK ${selectedRelOption?.label || 'pasien'}`,
           description: '16 digit NIK sesuai KTP atau KK untuk verifikasi rekam medis'
         };
       case 4:
@@ -373,20 +379,8 @@ export function useBookingRegularPatientForm({
             description: 'Pilih jenis kelamin sesuai identitas KTP Anda'
           };
         }
-        if (isChild) {
-          return {
-            title: 'Jenis kelamin anak',
-            description: 'Pilih jenis kelamin anak'
-          };
-        }
-        if (isSpouse) {
-          return {
-            title: 'Jenis kelamin pasangan',
-            description: 'Pilih jenis kelamin pasangan'
-          };
-        }
         return {
-          title: 'Jenis kelamin pasien',
+          title: `Jenis kelamin ${selectedRelOption?.label || 'pasien'}`,
           description: 'Pilih jenis kelamin sesuai identitas resmi'
         };
       case 7:
@@ -403,27 +397,21 @@ export function useBookingRegularPatientForm({
         };
       case 9:
         return {
-          title: 'Alamat email pasien',
-          description:
-            'Alamat email aktif untuk menerima tagihan pembayaran, resume medis, dan pemberitahuan faskes (opsional)'
-        };
-      case 10:
-        return {
           title: 'Kontak darurat kerabat',
           description:
-            'Keluarga atau kerabat terdekat yang dapat dihubungi faskes dalam keadaan darurat medis (opsional)'
+            'Keluarga atau kerabat terdekat yang dapat dihubungi faskes dalam keadaan darurat medis'
         };
-      case 11:
+      case 10:
         return {
           title: 'Alamat domisili saat ini',
           description: 'Alamat tempat tinggal untuk rujukan dan data pasien'
         };
-      case 12:
+      case 11:
         return {
           title: 'Pekerjaan pasien',
           description: 'Pilih jenis pekerjaan atau kegiatan utama sehari-hari'
         };
-      case 13:
+      case 12:
         return {
           title: 'Konfirmasi data pendaftaran',
           description: 'Periksa kembali kelengkapan data sebelum disimpan'
@@ -434,13 +422,13 @@ export function useBookingRegularPatientForm({
           description: 'Lengkapi data identitas'
         };
     }
-  }, [currentStep, relationship]);
+  }, [currentStep, isSelf, selectedRelOption]);
 
-  const isReviewStep = currentStep === 13;
+  const isReviewStep = currentStep === 12;
 
   return {
     currentStep,
-    totalSteps: 12,
+    totalSteps: 11,
     isReviewStep,
     currentStepMeta,
     stepContainerRef,
@@ -462,6 +450,8 @@ export function useBookingRegularPatientForm({
     setEmergencyContactPhone,
     emergencyContactRelationship,
     setEmergencyContactRelationship,
+    emergencyContactPatientId,
+    setEmergencyContactPatientId,
     motherName,
     setMotherName,
     placeOfBirth,
@@ -484,6 +474,8 @@ export function useBookingRegularPatientForm({
 
     references,
     relationshipOptions,
+    existingPatients,
+    isSelf,
 
     handleBack,
     handleNext,

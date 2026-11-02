@@ -53,6 +53,11 @@ export const REGISTERED_DATA_SOURCES: FormDataSourceDescriptor[] = [
     description: 'Dokter SpOG, Bidan, Dokter Umum'
   },
   {
+    key: 'relationships',
+    label: 'Hubungan Pasien / Relasi',
+    description: 'Katalog master hubungan keluarga & relasi pasien'
+  },
+  {
     key: 'indonesian_regions',
     label: 'Wilayah Domisili Indonesia',
     description: 'Data wilayah bertingkat (Provinsi, Kota/Kab, Kecamatan, Kelurahan)'
@@ -95,6 +100,7 @@ export function useFormDataSourceRegistry(enabled = true) {
       occupations: refOptions?.occupations
         ? refOptions.occupations.map((item) => item.label)
         : occupations?.map((item) => item.name) || [],
+      relationships: refOptions?.relationships?.map((item: any) => item.label || item.name) || [],
       vaccines: vaccines?.map((v) => v.name) || []
     };
   }, [refOptions, occupations, vaccines]);

@@ -123,6 +123,7 @@ export type PatientGender = Gender;
 
 export interface CreatePatientAffiliationDto {
   patientId?: string;
+  relationshipTypeId?: string;
   relationshipType: PatientRelationshipType;
   relationLabel?: string;
   isPrimary?: boolean;
@@ -146,6 +147,8 @@ export interface CreatePatientAffiliationDto {
   villageName?: string;
   villageCode?: string;
   email?: string;
+  emergencyContactPatientId?: string;
+  emergencyContactRelationshipTypeId?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   emergencyContactRelationship?: string;

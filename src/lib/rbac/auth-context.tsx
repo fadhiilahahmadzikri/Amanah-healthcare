@@ -12,6 +12,7 @@ export interface AuthUser {
   id: string;
   name?: string | null;
   email?: string | null;
+  phone?: string | null;
   image?: string | null;
   role?: string | null;
   banned?: boolean | null;
@@ -73,6 +74,7 @@ export function AuthorizationProvider({
         id: string;
         name?: string | null;
         email?: string | null;
+        phone?: string | null;
         image?: string | null;
         role?: string | null;
         banned?: boolean | null;
@@ -105,6 +107,7 @@ export function AuthorizationProvider({
           id: clientUser.id,
           name: clientUser.name,
           email: clientUser.email,
+          phone: clientUser.phone ?? null,
           image: clientUser.image,
           role: clientUser.role,
           banned: clientUser.banned,
