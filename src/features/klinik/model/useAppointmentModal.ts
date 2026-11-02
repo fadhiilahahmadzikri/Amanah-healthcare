@@ -19,6 +19,7 @@ import {
   type ServiceCatalogItem,
   type ServiceCategoryCatalog
 } from '../api/catalog.service';
+import { getMedicalFlowDefinition } from '../constants/medical-appointment-schemas';
 import { mapBackendAppointmentToUi } from '../utils/booking-appointment-mapper';
 import { formRequirementGuard } from './form-requirement-guard';
 import { requestImplicitWebPushRegistration } from '@/features/notifications';
@@ -373,21 +374,8 @@ export function useAppointmentModal({
   const handleRelationshipSubmitForMedicalFlow = useCallback(
     async (relationship: PatientRelationshipType) => {
       setSelectedRelationship(relationship);
-      const currentFlow = bookingContext?.formType || null;
-
-      if (currentFlow && currentFlow !== 'regular') {
-        if (selectedService?.id) {
-          setIsResolvingMedicalFlow(true);
-          try {
-            await formRequirementGuard.resolveAndLock(selectedService.id, selectedPatientId);
-          } finally {
-            setIsResolvingMedicalFlow(false);
-          }
-        }
-        setActiveMedicalFlow(currentFlow);
-      }
     },
-    [bookingContext, selectedService, selectedPatientId]
+    []
   );
 
   const handlePatientContinue = async () => {
@@ -397,9 +385,12 @@ export function useAppointmentModal({
       return;
     }
 
-    const currentFormType = bookingContext?.formType || 'regular';
+    const intakeCode = bookingContext?.intakeFormCode;
+    const hasSpecializedMedicalFlow = Boolean(
+      bookingContext?.intakeFormId && intakeCode && getMedicalFlowDefinition(intakeCode)
+    );
 
-    if (currentFormType !== 'regular') {
+    if (hasSpecializedMedicalFlow && intakeCode) {
       if (selectedService?.id) {
         setIsResolvingMedicalFlow(true);
         try {
@@ -408,7 +399,7 @@ export function useAppointmentModal({
           setIsResolvingMedicalFlow(false);
         }
       }
-      setActiveMedicalFlow(currentFormType);
+      setActiveMedicalFlow(intakeCode);
       return;
     }
 
@@ -418,8 +409,13 @@ export function useAppointmentModal({
   const handlePatientCreated = async (newPatient: PatientAffiliationProfile) => {
     setPatients((prev) => [newPatient, ...prev]);
     setSelectedPatientId(newPatient.id);
-    const targetFlow = bookingContext?.formType || null;
-    if (targetFlow && targetFlow !== 'regular') {
+
+    const intakeCode = bookingContext?.intakeFormCode;
+    const hasSpecializedMedicalFlow = Boolean(
+      bookingContext?.intakeFormId && intakeCode && getMedicalFlowDefinition(intakeCode)
+    );
+
+    if (hasSpecializedMedicalFlow && intakeCode) {
       if (selectedService?.id) {
         setIsResolvingMedicalFlow(true);
         try {
@@ -428,9 +424,10 @@ export function useAppointmentModal({
           setIsResolvingMedicalFlow(false);
         }
       }
-      setActiveMedicalFlow(targetFlow);
+      setActiveMedicalFlow(intakeCode);
       return;
     }
+
     setStep('date');
     toast.success('Data profil pasien berhasil didaftarkan');
   };
@@ -440,6 +437,27 @@ export function useAppointmentModal({
       prev.map((p) => (p.id === updatedPatient.id ? { ...p, ...updatedPatient } : p))
     );
   }, []);
+
+  const handleDeletePatient = useCallback(
+    async (patientToDelete: PatientAffiliationProfile) => {
+      try {
+        await patientAffiliationService.deleteAffiliation(patientToDelete.id);
+        const nextPatients = patients.filter((p) => p.id !== patientToDelete.id);
+        setPatients(nextPatients);
+        if (selectedPatientId === patientToDelete.id) {
+          setSelectedPatientId('');
+        }
+        if (nextPatients.length === 0) {
+          setStep('create_profile');
+        }
+        toast.success('Data pasien berhasil dihapus');
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Gagal menghapus data pasien';
+        toast.error(msg);
+      }
+    },
+    [patients, selectedPatientId]
+  );
 
   const handleSessionContinue = useCallback(() => {
     if (activeTicketConflict) {
@@ -577,6 +595,7 @@ export function useAppointmentModal({
     handleSelectServiceItem,
     handlePatientCreated,
     handlePatientUpdated,
+    handleDeletePatient,
     handleAddNewPatient,
     handleRelationshipSubmitForMedicalFlow,
     handlePatientContinue,

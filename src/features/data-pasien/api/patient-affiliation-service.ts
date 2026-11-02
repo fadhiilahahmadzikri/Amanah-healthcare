@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { clientFetch } from '@/lib/client-fetch';
 import type { Gender } from '@/constants/gender.constants';
 import type { PatientBloodType } from '@/constants/blood-type.constants';
@@ -9,6 +10,7 @@ export { UNKNOWN_BLOOD_TYPE, type PatientBloodType } from '@/constants/blood-typ
 export interface PatientAffiliationProfile {
   id: string;
   affiliationId?: string;
+  isPrimary?: boolean;
   fullName: string;
   nik: string;
   motherName?: string | null;
@@ -43,6 +45,7 @@ export interface PatientAffiliationProfile {
 export interface BookingContextPatient {
   id: string;
   affiliationId: string;
+  isPrimary?: boolean;
   fullName: string;
   nik: string;
   gender: Gender;
@@ -395,6 +398,13 @@ export const patientAffiliationService = {
       console.error('Failed to get booking context from backend:', err);
       return null;
     }
+  },
+
+  async deleteAffiliation(patientId: string): Promise<void> {
+    const validId = z.string().uuid('ID pasien harus berformat UUID v4 valid').parse(patientId);
+    await clientFetch(`/api/v1/patients/affiliations/${encodeURIComponent(validId)}`, {
+      method: 'DELETE'
+    });
   },
 
   async cancelAppointment(appointmentId: string, reason = 'Dibatalkan oleh pasien'): Promise<void> {

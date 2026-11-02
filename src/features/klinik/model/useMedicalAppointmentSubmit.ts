@@ -9,8 +9,6 @@ import {
   type PatientAffiliationProfile,
   type PatientRelationshipType
 } from '@/features/data-pasien/api/patient-affiliation-service';
-import type { Gender } from '@/constants/gender.constants';
-import { UNKNOWN_BLOOD_TYPE } from '@/constants/blood-type.constants';
 import { kiaIntakeService } from '../api/kia-intake-service';
 import type { ServiceCatalogItem } from '../api/catalog.service';
 import type {
@@ -87,68 +85,9 @@ export function useMedicalAppointmentSubmit({
               : patientName || '';
 
             if (!resolvedPatientId) {
-              const isImmunization = definition.flow === FLOW_NAMES.IMMUNIZATION;
-              const targetName = (patientName || '').trim();
-
-              const targetNik = isImmunization
-                ? (submittedValues.childNik || '').trim()
-                : (submittedValues.motherNik || '').trim();
-
-              const targetBirthDate = isImmunization
-                ? submittedValues.childBirthDate || ''
-                : submittedValues.motherBirthDate || '';
-
-              const targetBirthPlace = isImmunization
-                ? (submittedValues.childBirthPlace || '').trim()
-                : (submittedValues.motherBirthPlace || '').trim();
-
-              const targetGender: Gender = isImmunization
-                ? (submittedValues.childSex as Gender) || 'male'
-                : 'female';
-
-              const targetBloodType = isImmunization
-                ? submittedValues.childBloodType || UNKNOWN_BLOOD_TYPE
-                : submittedValues.motherBloodType || UNKNOWN_BLOOD_TYPE;
-
-              const targetPhone = isImmunization
-                ? submittedValues.parentPhone || ''
-                : submittedValues.phoneNumber || '';
-
-              const targetAddress = isImmunization
-                ? submittedValues.childAddress || ''
-                : submittedValues.domicileAddress || '';
-
-              const targetMotherName = submittedValues.motherName || '';
-
-              const targetRelationship =
-                (newPatientRelationship as any) || (isImmunization ? 'child' : 'self');
-
-              if (!targetName || !targetNik) {
-                toast.error('Nama dan NIK pasien wajib diisi.');
-                setIsProcessing(false);
-                return;
-              }
-
-              const newAffiliation = await patientAffiliationService.createAffiliation({
-                name: targetName,
-                nik: targetNik,
-                birthDate: targetBirthDate,
-                birthPlace: targetBirthPlace,
-                gender: targetGender,
-                bloodType: targetBloodType as any,
-                motherName: targetMotherName,
-                relationshipType: targetRelationship,
-                phone: targetPhone,
-                email: submittedValues.email || undefined,
-                line1: targetAddress
-              });
-
-              if (!newAffiliation?.id) {
-                throw new Error('Gagal mendapatkan ID rekam medis pasien.');
-              }
-
-              resolvedPatientId = newAffiliation.id;
-              resolvedPatientName = newAffiliation.fullName;
+              toast.error('Profil pasien wajib dipilih sebelum melengkapi formulir klinis.');
+              setIsProcessing(false);
+              return;
             }
 
             let sourceIntakeId: string | undefined = undefined;

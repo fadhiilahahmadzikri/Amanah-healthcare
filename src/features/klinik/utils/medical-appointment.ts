@@ -148,8 +148,11 @@ export function buildAutomaticRecord(
   if (flow === FLOW_NAMES.PREGNANCY) {
     return buildPregnancyAutomaticRecord(values, submittedAt);
   }
+  if (flow === FLOW_NAMES.IMMUNIZATION) {
+    return buildImmunizationAutomaticRecord(values, submittedAt);
+  }
 
-  return buildImmunizationAutomaticRecord(values, submittedAt);
+  return {};
 }
 
 export function getMedicalFieldLabel(flow: MedicalAppointmentFlow, fieldId: string): string {

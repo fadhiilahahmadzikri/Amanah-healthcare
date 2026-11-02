@@ -11,6 +11,7 @@ export interface BookingPatientSelectionStepProps {
   onSelectPatient: (patient: PatientAffiliationProfile) => void;
   onAddNewPatient: () => void;
   onEditPatient?: (patient: PatientAffiliationProfile) => void;
+  onDeletePatient?: (patient: PatientAffiliationProfile) => void;
   onContinue?: () => void;
 }
 
@@ -20,6 +21,7 @@ export function BookingPatientSelectionStep({
   onSelectPatient,
   onAddNewPatient,
   onEditPatient,
+  onDeletePatient,
   onContinue: _onContinue
 }: BookingPatientSelectionStepProps) {
   const patientList = patients;
@@ -43,6 +45,7 @@ export function BookingPatientSelectionStep({
             isSelected={selectedPatientId === patient.id}
             onSelect={onSelectPatient}
             onEdit={onEditPatient}
+            onDelete={onDeletePatient}
           />
         ))}
 

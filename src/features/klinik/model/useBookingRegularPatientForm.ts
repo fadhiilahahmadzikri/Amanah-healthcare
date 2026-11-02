@@ -250,11 +250,6 @@ export function useBookingRegularPatientForm({
   const handleNext = () => {
     if (!isCurrentStepValid || isAnimatingRef.current) return;
 
-    if (currentStep === 1 && targetFlow && targetFlow !== 'regular' && onRelationshipSubmit) {
-      onRelationshipSubmit(relationship);
-      return;
-    }
-
     if (isEditingFromReview) {
       isAnimatingRef.current = true;
       setIsEditingFromReview(false);

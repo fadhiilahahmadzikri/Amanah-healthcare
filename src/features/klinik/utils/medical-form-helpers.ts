@@ -69,7 +69,7 @@ export function pruneEmptyValues(values: MedicalAppointmentValues): MedicalAppoi
 }
 
 export function buildRegistrationPrefill(
-  flow: MedicalAppointmentFlow,
+  _flow: MedicalAppointmentFlow,
   patient: Patient | null
 ): MedicalAppointmentValues {
   if (!patient) {
@@ -82,27 +82,27 @@ export function buildRegistrationPrefill(
   const address = patient.address || '';
   const nik = patient.nik || '';
 
-  if (flow === FLOW_NAMES.PREGNANCY) {
-    return pruneEmptyValues({
-      motherName: patient.name,
-      motherNik: nik,
-      motherBirthDate: birthDate,
-      motherAge: patient.age ? `${patient.age} tahun` : '',
-      motherJob: patient.occupation || '',
-      phoneNumber: phone,
-      domicileAddress: address,
-      identityCardAddress: patient.address || address,
-      motherBloodType: bloodType
-    });
-  }
-
   return pruneEmptyValues({
+    fullName: patient.name,
+    nik,
+    birthDate,
+    bloodType,
+    phone,
+    address,
+    motherName: patient.name,
+    motherNik: nik,
+    motherBirthDate: birthDate,
+    motherAge: patient.age ? `${patient.age} tahun` : '',
+    motherJob: patient.occupation || '',
+    phoneNumber: phone,
+    domicileAddress: address,
+    identityCardAddress: patient.address || address,
+    motherBloodType: bloodType,
     childName: patient.name,
     childNik: nik,
     childBirthDate: birthDate,
     childSex: patient.gender,
     parentPhone: phone,
-    motherName: patient.mother_name || '',
     childAddress: address
   });
 }

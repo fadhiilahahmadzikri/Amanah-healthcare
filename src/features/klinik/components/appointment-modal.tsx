@@ -73,6 +73,7 @@ export function AppointmentModal({
     handleSelectServiceItem,
     handlePatientCreated,
     handlePatientUpdated,
+    handleDeletePatient,
     handleAddNewPatient,
     handleRelationshipSubmitForMedicalFlow,
     handlePatientContinue,
@@ -92,8 +93,6 @@ export function AppointmentModal({
   );
   const [isCompleted, setIsCompleted] = React.useState(false);
   const [sessionLabel, setSessionLabel] = React.useState<string>('');
-
-  const targetFlow = bookingContext?.formType || 'regular';
 
   React.useEffect(() => {
     if (!isOpen) {
@@ -199,6 +198,7 @@ export function AppointmentModal({
                 onSelectPatient={(p) => setSelectedPatientId(p.id)}
                 onAddNewPatient={handleAddNewPatient}
                 onEditPatient={(p) => setEditingPatient(p)}
+                onDeletePatient={handleDeletePatient}
                 onContinue={handlePatientContinue}
               />
             )}
@@ -212,8 +212,6 @@ export function AppointmentModal({
                 }
                 allowedRelationships={bookingContext?.allowedRelationships}
                 hasExistingSelf={patients.some((p) => p.relationship === 'self' || p.isSelf)}
-                targetFlow={targetFlow}
-                onRelationshipSubmit={handleRelationshipSubmitForMedicalFlow}
               />
             )}
 

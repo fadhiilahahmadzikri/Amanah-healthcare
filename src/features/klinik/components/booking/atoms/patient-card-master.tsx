@@ -12,6 +12,7 @@ export interface PatientCardMasterProps {
   isSelected?: boolean;
   onSelect?: (patient: PatientAffiliationProfile) => void;
   onEdit?: (patient: PatientAffiliationProfile) => void;
+  onDelete?: (patient: PatientAffiliationProfile) => void;
   className?: string;
   children?: React.ReactNode;
 }
@@ -21,12 +22,12 @@ export function PatientCardMaster({
   isSelected = false,
   onSelect,
   onEdit,
+  onDelete,
   className,
   children
 }: PatientCardMasterProps) {
-  const isSelf = patient.relationship === 'self';
-  const relationshipLabel = getRelationshipLabel(patient.relationship, patient.relationshipLabel);
   const isInactive = patient.status === 'inactive';
+  const relationshipLabel = getRelationshipLabel(patient.relationship, patient.relationshipLabel);
 
   return (
     <div
@@ -63,24 +64,13 @@ export function PatientCardMaster({
             </div>
           )}
         </div>
+        {relationshipLabel && relationshipLabel !== '-' && (
+          <p className='text-xs text-muted-foreground truncate'>{relationshipLabel}</p>
+        )}
         {children}
       </div>
 
       <div className='shrink-0 flex items-center gap-1.5'>
-        {onEdit && !isInactive && (
-          <button
-            type='button'
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(patient);
-            }}
-            className='size-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 flex items-center justify-center transition shrink-0'
-            title='Edit data pasien'
-            aria-label={`Edit data ${patient.fullName}`}
-          >
-            <Icons.edit className='size-3.5' />
-          </button>
-        )}
         {isInactive && (
           <Badge
             variant='outline'
@@ -89,17 +79,37 @@ export function PatientCardMaster({
             Nonaktif
           </Badge>
         )}
-        <Badge
-          variant='secondary'
-          className={cn(
-            'text-[10px] font-semibold px-2 py-0.5 rounded-md border shrink-0',
-            isSelf
-              ? 'bg-primary/10 text-primary border-primary/20'
-              : 'bg-muted text-muted-foreground border-border/40'
+
+        <div className='flex items-center gap-1 opacity-0 translate-x-3 pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:translate-x-0 group-focus-within:pointer-events-auto transition-all duration-200 ease-out'>
+          {onEdit && !isInactive && (
+            <button
+              type='button'
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(patient);
+              }}
+              className='size-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 flex items-center justify-center transition shrink-0'
+              title='Edit data pasien'
+              aria-label={`Edit data ${patient.fullName}`}
+            >
+              <Icons.edit className='size-3.5' />
+            </button>
           )}
-        >
-          {relationshipLabel}
-        </Badge>
+          {onDelete && !isInactive && !patient.isPrimary && (
+            <button
+              type='button'
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(patient);
+              }}
+              className='size-7 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex items-center justify-center transition shrink-0'
+              title='Hapus data pasien'
+              aria-label={`Hapus data ${patient.fullName}`}
+            >
+              <Icons.trash className='size-3.5' />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
