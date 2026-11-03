@@ -314,6 +314,24 @@ export async function callPatient(appointmentId: string | number, notes?: string
   });
 }
 
+export interface NoShowResponse {
+  requeued?: boolean;
+  noShow?: boolean;
+  attemptNumber: number;
+  remainingAttempts?: number;
+  status: string;
+}
+
+export async function noShowPatient(
+  appointmentId: string | number,
+  notes?: string
+): Promise<NoShowResponse> {
+  return await clientFetch<NoShowResponse>(`/api/v1/appointments/${appointmentId}/no-show`, {
+    method: 'POST',
+    body: JSON.stringify({ notes: notes || 'Pasien tidak merespons panggilan' })
+  });
+}
+
 export async function startService(appointmentId: string | number) {
   return await clientFetch(`/api/v1/appointments/${appointmentId}/start`, {
     method: 'POST'

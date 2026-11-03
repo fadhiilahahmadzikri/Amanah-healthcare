@@ -14,7 +14,7 @@ import {
 import { toast } from 'sonner';
 import { isAppointmentTerminal } from '../constants/options';
 import type { AdminAppointment } from '../api/types';
-import { callPatient } from '../api/service';
+import { callPatient, noShowPatient } from '../api/service';
 import { useQueryClient } from '@tanstack/react-query';
 import { appointmentKeys } from '../api/queries';
 
@@ -49,6 +49,7 @@ export function AppointmentActionDrawer({
 }: AppointmentActionDrawerProps) {
   const queryClient = useQueryClient();
   const [isCalling, setIsCalling] = useState(false);
+  const [isNoShowing, setIsNoShowing] = useState(false);
 
   if (!appointment) return null;
 
@@ -70,6 +71,32 @@ export function AppointmentActionDrawer({
       toast.error(`Gagal memanggil pasien: ${message}`);
     } finally {
       setIsCalling(false);
+    }
+  };
+
+  const handleNoShow = async () => {
+    if (isNoShowing) return;
+    setIsNoShowing(true);
+    try {
+      const res = await noShowPatient(appointment.id);
+      await queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
+      if (res.noShow) {
+        toast.warning(
+          `Pasien ditandai Tidak Hadir (No-Show). Status antrean ditutup.`
+        );
+      } else if (res.requeued) {
+        toast.info(
+          `Pasien belum merespons (Panggilan ke-${res.attemptNumber}). Antrean digeser ke belakang. Sisa kesempatan: ${res.remainingAttempts ?? 0} kali.`
+        );
+      } else {
+        toast.success(`Aksi lewati antrean berhasil diproses.`);
+      }
+      onClose();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      toast.error(`Gagal memproses lewati antrean: ${message}`);
+    } finally {
+      setIsNoShowing(false);
     }
   };
 
@@ -123,7 +150,7 @@ export function AppointmentActionDrawer({
             {canCall && (
               <button
                 type='button'
-                disabled={isCalling}
+                disabled={isCalling || isNoShowing}
                 onClick={handleCall}
                 className='flex flex-col items-center justify-center p-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/15 text-amber-700 dark:text-amber-400 transition-all cursor-pointer text-center gap-2 group'
               >
@@ -135,6 +162,25 @@ export function AppointmentActionDrawer({
                   )}
                 </div>
                 <span className='text-[11px] font-semibold leading-tight'>Panggil Pasien</span>
+              </button>
+            )}
+
+            {/* 2. Lewati / Tidak Hadir (No-Show) */}
+            {canCall && (
+              <button
+                type='button'
+                disabled={isNoShowing || isCalling}
+                onClick={handleNoShow}
+                className='flex flex-col items-center justify-center p-3 rounded-2xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/15 text-rose-700 dark:text-rose-400 transition-all cursor-pointer text-center gap-2 group'
+              >
+                <div className='size-10 rounded-full bg-rose-500/20 flex items-center justify-center group-hover:scale-105 transition-transform'>
+                  {isNoShowing ? (
+                    <Icons.spinner className='size-5 animate-spin text-rose-600' />
+                  ) : (
+                    <Icons.userX className='size-5 text-rose-600 dark:text-rose-400' />
+                  )}
+                </div>
+                <span className='text-[11px] font-semibold leading-tight'>Lewati (No-Show)</span>
               </button>
             )}
 

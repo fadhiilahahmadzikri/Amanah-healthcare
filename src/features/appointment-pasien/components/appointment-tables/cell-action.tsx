@@ -17,7 +17,7 @@ import { toast } from 'sonner';
 import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
 import { isAppointmentTerminal } from '../../constants/options';
 import type { AdminAppointment } from '../../api/types';
-import { callPatient, revertAppointmentProposal } from '../../api/service';
+import { callPatient, noShowPatient, revertAppointmentProposal } from '../../api/service';
 import { appointmentKeys } from '../../api/queries';
 
 export interface AppointmentTableMeta {
@@ -176,6 +176,36 @@ export function CellAction({
             >
               <Icons.mapPin className='size-3.5 text-muted-foreground' />
               <span>{data.roomName ? 'Ganti Ruangan' : 'Tugaskan Ruangan'}</span>
+            </DropdownMenuItem>
+          )}
+
+          {canCall && (
+            <DropdownMenuItem
+              onSelect={async (e) => {
+                e.preventDefault();
+                try {
+                  const res = await noShowPatient(data.id);
+                  await queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
+                  if (res.noShow) {
+                    toast.warning(
+                      `Nomor antrean ${data.queueNumber} ditandai Tidak Hadir (No-Show).`
+                    );
+                  } else if (res.requeued) {
+                    toast.info(
+                      `Nomor antrean ${data.queueNumber} digeser ke belakang (Panggilan ke-${res.attemptNumber}). Sisa kesempatan: ${res.remainingAttempts ?? 0} kali.`
+                    );
+                  } else {
+                    toast.success('Berhasil memperbarui antrean');
+                  }
+                } catch (err: unknown) {
+                  const message = err instanceof Error ? err.message : String(err);
+                  toast.error(`Gagal memproses lewati antrean: ${message}`);
+                }
+              }}
+              className='cursor-pointer text-xs gap-2 text-rose-600 focus:text-rose-600'
+            >
+              <Icons.userX className='size-3.5 text-rose-600' />
+              <span>Lewati (No-Show)</span>
             </DropdownMenuItem>
           )}
 
