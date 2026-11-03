@@ -208,13 +208,11 @@ export function useMedicalAppointmentForm({
         .map((section) => ({
           ...section,
           fields: section.fields.filter(
-            (field) =>
-              !omittedFieldIdsSet.has(field.id) &&
-              (!field.visibleIf || field.visibleIf(values))
+            (field) => !field.visibleIf || field.visibleIf(values)
           )
         }))
         .filter((section) => section.id === 'vaccineHistory' || section.fields.length > 0),
-    [repeatableMedicalSections, omittedFieldIdsSet, values]
+    [repeatableMedicalSections, values]
   );
 
   const activeSteps = React.useMemo<StepDescriptor[]>(

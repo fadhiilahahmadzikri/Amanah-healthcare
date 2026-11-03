@@ -30,6 +30,8 @@ export interface UseAppointmentDynamicOptionsProps {
   doctorOptions?: Option[];
   roomOptions?: Option[];
   serviceOptions?: Option[];
+  selectedDateParam?: string;
+  onDateChange?: (date: string | null) => void;
   units?: QueueNavigationResponse['units'];
   currentUnitId?: string | null;
   onSelectUnit?: (unitId: string | null) => void;
@@ -45,6 +47,8 @@ export function useAppointmentDynamicOptions({
   doctorOptions: explicitDoctorOptions,
   roomOptions: explicitRoomOptions,
   serviceOptions: explicitServiceOptions,
+  selectedDateParam,
+  onDateChange,
   units,
   currentUnitId,
   onSelectUnit,
@@ -130,29 +134,32 @@ export function useAppointmentDynamicOptions({
   });
 
   // 2. Date Filter
-  const dateValue = (dateCol?.getFilterValue() as string) ?? '';
+  const effectiveDateStr = (dateCol?.getFilterValue() as string) || selectedDateParam || '';
 
   const dateFilterObj = useMemo(() => {
-    if (!dateValue || !dateValue.trim()) return undefined;
-    const parts = dateValue.split('-');
+    if (!effectiveDateStr || !effectiveDateStr.trim()) return undefined;
+    const parts = effectiveDateStr.split('-');
     if (parts.length === 3) {
       return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
     }
-    return new Date(dateValue);
-  }, [dateValue]);
+    return new Date(effectiveDateStr);
+  }, [effectiveDateStr]);
 
   const handleSelectDate = useCallback(
     (d: Date | undefined) => {
       if (!d) {
         dateCol?.setFilterValue(undefined);
+        onDateChange?.(null);
         return;
       }
       const y = d.getFullYear();
       const m = String(d.getMonth() + 1).padStart(2, '0');
       const day = String(d.getDate()).padStart(2, '0');
-      dateCol?.setFilterValue(`${y}-${m}-${day}`);
+      const dateStr = `${y}-${m}-${day}`;
+      dateCol?.setFilterValue(dateStr);
+      onDateChange?.(dateStr);
     },
-    [dateCol]
+    [dateCol, onDateChange]
   );
 
   const dateFilterConfig: DateFilterConfig = useMemo(
@@ -486,7 +493,7 @@ export function useAppointmentDynamicOptions({
 
   // 8. Filter Counts & State
   const hasUnitFilter = Boolean(units && units.length > 0 && currentUnitId);
-  const hasDateFilter = Boolean(dateValue && String(dateValue).trim().length > 0);
+  const hasDateFilter = Boolean(effectiveDateStr && String(effectiveDateStr).trim().length > 0);
   const hasStatusFilter = statusValue.length > 0;
   const hasDoctorFilter = selectedDoctorValues.length > 0;
   const hasRoomFilter = roomValue.length > 0;
@@ -532,6 +539,7 @@ export function useAppointmentDynamicOptions({
     }
     patientCol?.setFilterValue(undefined);
     dateCol?.setFilterValue(undefined);
+    onDateChange?.(null);
     statusCol?.setFilterValue(undefined);
     doctorCol?.setFilterValue(undefined);
     roomCol?.setFilterValue(undefined);

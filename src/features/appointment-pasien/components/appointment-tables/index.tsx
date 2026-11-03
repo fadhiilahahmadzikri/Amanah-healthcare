@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
+import { useQueryState, parseAsString } from 'nuqs';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/table/data-table';
 import { AppointmentBulkActions } from '../appointment-bulk-actions';
@@ -52,11 +53,11 @@ export function AppointmentTable() {
   // 2. Expanded sidebar collisions on standard viewports (<= 1280px)
   const isCompact = isUnder1024 || (isUnder1280 && isSidebarExpanded);
 
-  const [dateParam] = React.useState<string | undefined>(undefined);
+  const [dateParam] = useQueryState('date', parseAsString);
   const [actionDrawerAppointment, setActionDrawerAppointment] =
     React.useState<AdminAppointment | null>(null);
   const { data: navigationData } = useSuspenseQuery(
-    queueNavigationQueryOptions({ date: dateParam })
+    queueNavigationQueryOptions({ date: dateParam || undefined })
   );
 
   // Dynamic doctor options based on active unit, including 'unassigned' option with badge count
@@ -118,6 +119,8 @@ export function AppointmentTable() {
     doctorOptions: dynamicDoctorOptions,
     roomOptions,
     serviceOptions,
+    selectedDateParam: appointmentTable.formattedDate,
+    onDateChange: (d) => void appointmentTable.setDate(d),
     units: navigationData?.units,
     currentUnitId: appointmentTable.currentUnitId,
     onSelectUnit: (unitId) => void appointmentTable.setUnitId(unitId),

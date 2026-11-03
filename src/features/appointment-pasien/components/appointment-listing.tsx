@@ -18,6 +18,7 @@ export default async function AppointmentListingPage() {
   const poliklinikId = searchParamsCache.get('poliklinikId');
   const doctorId = searchParamsCache.get('doctorId');
   const poli = searchParamsCache.get('poli');
+  const date = searchParamsCache.get('date');
 
   const effectiveLimit = pageLimit && pageLimit !== 10 ? pageLimit : DEFAULT_APPOINTMENT_PAGE_LIMIT;
 
@@ -29,6 +30,7 @@ export default async function AppointmentListingPage() {
     ...(poliklinikId && { poliklinikId }),
     ...(doctorId && { doctorId }),
     ...(poli && { poli }),
+    ...(date && { date }),
     ...(sort && { sort })
   });
 
@@ -40,8 +42,8 @@ export default async function AppointmentListingPage() {
       initialPageParam: 1
     }),
     queryClient.prefetchQuery({
-      ...queueNavigationQueryOptions(),
-      queryFn: () => getQueueNavigationOnServer()
+      ...queueNavigationQueryOptions({ date: date || undefined }),
+      queryFn: () => getQueueNavigationOnServer({ date: date || undefined })
     }),
     prefetchClinicCatalog(queryClient)
   ]);

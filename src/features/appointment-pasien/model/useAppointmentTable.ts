@@ -53,6 +53,7 @@ export interface UseAppointmentTableResult {
   formattedDate?: string;
   searchQuery: string;
   setSearch: (search: string | null) => Promise<unknown>;
+  setDate: (date: string | null) => Promise<unknown>;
   setUnitId: (unitId: string | null) => Promise<unknown>;
   setDoctorId: (doctorId: string | null) => Promise<unknown>;
   setProposalStatus: (proposalStatus: string | null) => Promise<unknown>;
@@ -294,6 +295,7 @@ export function useAppointmentTable({
     searchQuery: params.search ?? '',
     setSearch: (search: string | null) =>
       setParams({ search: search && search.trim().length > 0 ? search.trim() : null, page: 1 }),
+    setDate: (date: string | null) => setParams({ date, page: 1 }),
     setUnitId: (unitId: string | null) =>
       setParams({ poliklinikId: unitId, doctorId: null, page: 1 }),
     setDoctorId: (doctorId: string | null) => setParams({ doctorId, page: 1 }),
