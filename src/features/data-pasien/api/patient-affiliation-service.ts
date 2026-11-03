@@ -279,6 +279,7 @@ export interface CreateAppointmentPayload {
   visitType: CanonicalVisitType;
   complaint: string;
   sourceIntakeId?: string;
+  consentOverCapacity?: boolean;
 }
 
 export interface BackendAppointmentItem {

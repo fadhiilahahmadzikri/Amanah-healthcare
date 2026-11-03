@@ -23,6 +23,16 @@ import { BookingTicketConflictStep } from './booking/booking-ticket-conflict-ste
 import { useAppointmentModal, type UseAppointmentModalProps } from '../model/useAppointmentModal';
 import { type AppointmentFormData, QUEUE_STATUS } from '../api/types';
 import type { PatientAffiliationProfile } from '@/features/data-pasien/api/patient-affiliation-service';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 
 export interface AppointmentModalProps extends UseAppointmentModalProps {
   onViewExistingAppointment?: (appointmentId: string) => void;
@@ -78,7 +88,9 @@ export function AppointmentModal({
     handleRelationshipSubmitForMedicalFlow,
     handlePatientContinue,
     handleSessionContinue,
-    handleFinalSubmit
+    handleFinalSubmit,
+    overcapacityDialog,
+    setOvercapacityDialog
   } = useAppointmentModal({
     isOpen,
     onClose,
@@ -479,6 +491,43 @@ export function AppointmentModal({
         }}
         allowedRelationships={bookingContext?.allowedRelationships}
       />
+
+      <AlertDialog
+        open={overcapacityDialog.isOpen}
+        onOpenChange={(open) => setOvercapacityDialog((prev) => ({ ...prev, isOpen: open }))}
+      >
+        <AlertDialogContent className='rounded-2xl max-w-[420px]'>
+          <AlertDialogHeader>
+            <AlertDialogTitle className='text-base font-semibold'>
+              Batas Jam Operasional
+            </AlertDialogTitle>
+            <AlertDialogDescription className='text-xs text-muted-foreground leading-relaxed'>
+              {overcapacityDialog.message ||
+                'Estimasi pelayanan diperkirakan selesai setelah jam operasional klinik berakhir. Tetap lanjutkan pendaftaran?'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className='mt-2 flex gap-2 sm:justify-end'>
+            <AlertDialogCancel
+              className='rounded-full text-xs h-9 px-4'
+              onClick={() => {
+                setOvercapacityDialog({ isOpen: false });
+                setStep('session');
+              }}
+            >
+              Pilih Jadwal Lain
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className='rounded-full text-xs h-9 px-4 bg-primary text-primary-foreground hover:bg-primary/90'
+              onClick={() => {
+                setOvercapacityDialog({ isOpen: false });
+                void handleFinalSubmit(true);
+              }}
+            >
+              Tetap Lanjutkan
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

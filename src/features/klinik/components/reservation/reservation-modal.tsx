@@ -32,6 +32,16 @@ import { VISIT_TYPE } from '@/constants/visit-type.constants';
 import { formatClinicTime, getClinicTodayDateString } from '@/lib/date-format';
 import { useClinicTimeConfig } from '@/features/klinik/model/useClinicTimeConfig';
 import { requestImplicitWebPushRegistration } from '@/features/notifications';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 
 export type ReservationStep = 'date' | 'session' | 'confirmation';
 
@@ -79,6 +89,10 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
   const [createdAppointment, setCreatedAppointment] = React.useState<Appointment | null>(null);
   const [isQueueSuccessOpen, setIsQueueSuccessOpen] = React.useState<boolean>(false);
+  const [overcapacityDialog, setOvercapacityDialog] = React.useState<{
+    isOpen: boolean;
+    message?: string;
+  }>({ isOpen: false });
 
   const isReschedule = context?.mode === 'reschedule';
 
@@ -146,7 +160,8 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
     relationship: 'self'
   };
 
-  const handleFinalSubmit = async () => {
+  const handleFinalSubmit = async (withOverCapacityConsent?: boolean | React.MouseEvent) => {
+    const isConsent = typeof withOverCapacityConsent === 'boolean' ? withOverCapacityConsent : false;
     try {
       setIsSubmitting(true);
 
@@ -255,7 +270,8 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
         session: session,
         visitType: VISIT_TYPE.NEW_VISIT,
         complaint: context.complaint || 'Pemeriksaan Kesehatan',
-        sourceIntakeId: context.sourceIntakeId
+        sourceIntakeId: context.sourceIntakeId,
+        consentOverCapacity: isConsent ? true : undefined
       });
 
       void requestImplicitWebPushRegistration();
@@ -293,6 +309,23 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
       onSuccess?.(uiApt);
       toast.success('Janji temu berhasil dibuat beserta tiket antrean resmi');
     } catch (err: unknown) {
+      const isOvercapacityConsentRequired =
+        (err as any)?.problemDetails?.code === 'OVERCAPACITY_CONSENT_REQUIRED' ||
+        (err as any)?.code === 'OVERCAPACITY_CONSENT_REQUIRED' ||
+        (typeof (err as any)?.message === 'string' &&
+          (err as any).message.includes('OVERCAPACITY_CONSENT_REQUIRED'));
+
+      if (isOvercapacityConsentRequired && !isConsent) {
+        setOvercapacityDialog({
+          isOpen: true,
+          message:
+            (err as any)?.problemDetails?.detail ||
+            (err as any)?.message ||
+            'Estimasi pelayanan melewati batas jam operasional sesi klinik.'
+        });
+        return;
+      }
+
       const msg =
         err instanceof Error
           ? err.message
@@ -480,6 +513,43 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
           onClose();
         }}
       />
+
+      <AlertDialog
+        open={overcapacityDialog.isOpen}
+        onOpenChange={(open) => setOvercapacityDialog((prev) => ({ ...prev, isOpen: open }))}
+      >
+        <AlertDialogContent className='rounded-2xl max-w-[420px]'>
+          <AlertDialogHeader>
+            <AlertDialogTitle className='text-base font-semibold'>
+              Batas Jam Operasional
+            </AlertDialogTitle>
+            <AlertDialogDescription className='text-xs text-muted-foreground leading-relaxed'>
+              {overcapacityDialog.message ||
+                'Estimasi pelayanan diperkirakan selesai setelah jam operasional klinik berakhir. Tetap lanjutkan pendaftaran?'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className='mt-2 flex gap-2 sm:justify-end'>
+            <AlertDialogCancel
+              className='rounded-full text-xs h-9 px-4'
+              onClick={() => {
+                setOvercapacityDialog({ isOpen: false });
+                setStep('session');
+              }}
+            >
+              Pilih Jadwal Lain
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className='rounded-full text-xs h-9 px-4 bg-primary text-primary-foreground hover:bg-primary/90'
+              onClick={() => {
+                setOvercapacityDialog({ isOpen: false });
+                void handleFinalSubmit(true);
+              }}
+            >
+              Tetap Lanjutkan
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

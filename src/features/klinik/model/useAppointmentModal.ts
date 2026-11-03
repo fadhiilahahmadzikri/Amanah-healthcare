@@ -94,6 +94,10 @@ export function useAppointmentModal({
     null
   );
   const [isCheckingActiveTicket, setIsCheckingActiveTicket] = useState(false);
+  const [overcapacityDialog, setOvercapacityDialog] = useState<{
+    isOpen: boolean;
+    message?: string;
+  }>({ isOpen: false });
 
   useEffect(() => {
     const patientIdToUse = selectedPatientId || (patients[0] ? patients[0].id : '');
@@ -465,7 +469,8 @@ export function useAppointmentModal({
     setStep('visit_type');
   }, [activeTicketConflict]);
 
-  const handleFinalSubmit = async () => {
+  const handleFinalSubmit = async (withOverCapacityConsent?: boolean | React.MouseEvent) => {
+    const isConsent = typeof withOverCapacityConsent === 'boolean' ? withOverCapacityConsent : false;
     const patientIdToUse = selectedPatientId || (patients[0] ? patients[0].id : '');
 
     if (!patientIdToUse) {
@@ -490,7 +495,8 @@ export function useAppointmentModal({
         appointmentDate: dateStr,
         session: session,
         visitType,
-        complaint: complaint.trim() || 'Konsultasi dan pemeriksaan kesehatan'
+        complaint: complaint.trim() || 'Konsultasi dan pemeriksaan kesehatan',
+        consentOverCapacity: isConsent ? true : undefined
       });
 
       void requestImplicitWebPushRegistration();
@@ -519,6 +525,22 @@ export function useAppointmentModal({
       toast.success('Janji temu berhasil dibuat beserta tiket antrean resmi');
     } catch (err: unknown) {
       if (err instanceof AppError && err.status === 409) {
+        if (
+          err.problemDetails?.code === 'OVERCAPACITY_CONSENT_REQUIRED' ||
+          (err as any)?.code === 'OVERCAPACITY_CONSENT_REQUIRED'
+        ) {
+          if (!isConsent) {
+            setOvercapacityDialog({
+              isOpen: true,
+              message:
+                err.problemDetails?.detail ||
+                err.message ||
+                'Estimasi pelayanan melewati batas jam operasional sesi klinik.'
+            });
+            return;
+          }
+        }
+
         const activeTicket = (
           err.problemDetails as { activeTicket?: ActiveTicketConflictInfo } | undefined
         )?.activeTicket;
@@ -584,6 +606,8 @@ export function useAppointmentModal({
     createdAppointment,
     activeTicketConflict,
     isCheckingActiveTicket,
+    overcapacityDialog,
+    setOvercapacityDialog,
     visitTypeDropdownRef,
     stepContainerRef,
     isMobile,
