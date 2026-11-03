@@ -320,6 +320,11 @@ export function MasterSessionDefsManager({
                         <span className='font-semibold text-sm text-foreground whitespace-nowrap truncate'>
                           {displayLabel}
                         </span>
+                        {def.codePrefix && (
+                          <span className='inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-muted text-muted-foreground border border-border/60'>
+                            {def.codePrefix}
+                          </span>
+                        )}
                         {isConflicted && (
                           <span className='inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[10px] font-semibold bg-destructive/15 text-destructive border border-destructive/25'>
                             <Icons.warning className='size-2.5 shrink-0' />

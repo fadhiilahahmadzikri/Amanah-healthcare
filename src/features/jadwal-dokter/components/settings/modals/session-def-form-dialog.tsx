@@ -41,6 +41,8 @@ export function SessionDefFormDialog({
   portalContainerRef
 }: SessionDefFormDialogProps) {
   const [label, setLabel] = useState('');
+  const [codePrefix, setCodePrefix] = useState('');
+  const [isPrefixManual, setIsPrefixManual] = useState(false);
   const [icon, setIcon] = useState('');
   const [startsAt, setStartsAt] = useState('08:00');
   const [endsAt, setEndsAt] = useState('12:00');
@@ -49,11 +51,15 @@ export function SessionDefFormDialog({
   useEffect(() => {
     if (initialData) {
       setLabel(initialData.label || '');
+      setCodePrefix(initialData.codePrefix || '');
+      setIsPrefixManual(true);
       setIcon(initialData.icon || '');
       setStartsAt(formatTimeToHHmm(initialData.defaultStartsAt, '08:00'));
       setEndsAt(formatTimeToHHmm(initialData.defaultEndsAt, '12:00'));
     } else {
       setLabel('');
+      setCodePrefix('');
+      setIsPrefixManual(false);
       setIcon('');
 
       if (existingDefs && existingDefs.length > 0) {
@@ -73,6 +79,20 @@ export function SessionDefFormDialog({
     }
   }, [initialData, existingDefs, isOpen]);
 
+  const handleLabelChange = (newLabel: string) => {
+    setLabel(newLabel);
+    if (!initialData && !isPrefixManual) {
+      const suggested = newLabel.replace(/[^A-Za-z0-9]/g, '').slice(0, 4).toUpperCase();
+      setCodePrefix(suggested);
+    }
+  };
+
+  const handleCodePrefixChange = (val: string) => {
+    setIsPrefixManual(true);
+    const cleaned = val.replace(/[^A-Za-z0-9]/g, '').slice(0, 4).toUpperCase();
+    setCodePrefix(cleaned);
+  };
+
   const handleStartsAtChange = (newStart: string) => {
     setStartsAt(newStart);
     const startMin = parseTimeToMinutes(newStart);
@@ -90,6 +110,15 @@ export function SessionDefFormDialog({
       toast.error('Nama shift wajib diisi');
       return;
     }
+    const cleanPrefix = codePrefix.trim().toUpperCase();
+    if (!cleanPrefix) {
+      toast.error('Kode prefix shift wajib diisi (1-4 karakter alfanumerik)');
+      return;
+    }
+    if (!/^[A-Z0-9]{1,4}$/.test(cleanPrefix)) {
+      toast.error('Kode prefix harus 1-4 karakter alfanumerik (contoh: PAGI, TST, S1)');
+      return;
+    }
     if (startsAt >= endsAt) {
       toast.error('Jam selesai harus lebih besar dari jam mulai');
       return;
@@ -99,7 +128,7 @@ export function SessionDefFormDialog({
       setIsSubmitting(true);
       await onSubmit({
         label: cleanLabel,
-        codePrefix: initialData?.codePrefix || undefined,
+        codePrefix: cleanPrefix,
         icon: icon ? icon.trim() : undefined,
         defaultStartsAt: `${startsAt}:00`,
         defaultEndsAt: `${endsAt}:00`
@@ -146,17 +175,31 @@ export function SessionDefFormDialog({
         </div>
 
         <form onSubmit={handleSubmit} className='space-y-3.5 pt-1'>
-          <div className='flex items-center gap-3'>
+          <div className='flex items-center gap-2.5'>
             <div className='space-y-1.5 flex-1 min-w-0'>
               <Label htmlFor='shift-label' className='text-xs font-semibold text-foreground'>
                 Nama Shift <span className='text-destructive'>*</span>
               </Label>
               <Input
                 id='shift-label'
-                placeholder='Contoh: Sesi Pagi, Layanan Senja'
+                placeholder='Contoh: Sesi Pagi, Testing'
                 value={label}
-                onChange={(e) => setLabel(e.target.value)}
+                onChange={(e) => handleLabelChange(e.target.value)}
                 className='h-9 text-xs rounded-lg border-border/80 bg-background'
+              />
+            </div>
+
+            <div className='space-y-1.5 w-24 shrink-0'>
+              <Label htmlFor='shift-code-prefix' className='text-xs font-semibold text-foreground'>
+                Kode (Prefix) <span className='text-destructive'>*</span>
+              </Label>
+              <Input
+                id='shift-code-prefix'
+                placeholder='PAGI'
+                maxLength={4}
+                value={codePrefix}
+                onChange={(e) => handleCodePrefixChange(e.target.value)}
+                className='h-9 text-xs font-mono font-bold uppercase rounded-lg border-border/80 bg-background text-center tracking-wider'
               />
             </div>
 
@@ -165,7 +208,7 @@ export function SessionDefFormDialog({
               <ShiftIconPickerPopover
                 value={icon}
                 onChange={setIcon}
-                fallback={label.charAt(0) || 'S'}
+                fallback={codePrefix || label.charAt(0) || 'S'}
                 portalContainerRef={portalContainerRef}
               />
             </div>

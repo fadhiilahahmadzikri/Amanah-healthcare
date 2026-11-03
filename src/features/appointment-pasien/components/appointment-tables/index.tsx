@@ -277,6 +277,7 @@ export function AppointmentTable() {
           onSuccess={() => {
             appointmentTable.actions.closeChangeDoctor();
             queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
+            queryClient.invalidateQueries({ queryKey: ['appointments', 'queue-navigation'] });
           }}
         />
       )}
@@ -295,6 +296,7 @@ export function AppointmentTable() {
           onSuccess={() => {
             appointmentTable.actions.closeChangeRoom();
             queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
+            queryClient.invalidateQueries({ queryKey: ['appointments', 'queue-navigation'] });
           }}
         />
       )}

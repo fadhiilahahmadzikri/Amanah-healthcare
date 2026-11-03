@@ -8,6 +8,7 @@ import {
 } from '@/constants/appointment-status.constants';
 import type { Appointment, AppointmentFormData, AppointmentStatus, Doctor } from '../api/types';
 import { getDoctorByName } from '../api/service';
+import { clientFetch } from '@/lib/client-fetch';
 import {
   patientAffiliationService,
   type BackendAppointmentItem
@@ -131,7 +132,17 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
 
   const loadAppointments = useCallback(async () => {
     try {
-      const data = await patientAffiliationService.getMyAppointments();
+      const res = await clientFetch<{ data: BackendAppointmentItem[] } | BackendAppointmentItem[]>(
+        '/api/v1/appointments?limit=100',
+        {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            Pragma: 'no-cache'
+          }
+        }
+      );
+      const data = Array.isArray(res) ? res : res?.data;
       if (Array.isArray(data)) {
         setAppointments(data.map(mapBackendToUi));
       } else {
