@@ -11,12 +11,13 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Icons } from '@/components/icons';
+import { IconArrowBackUp } from '@tabler/icons-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { APPOINTMENT_STATUS } from '@/constants/appointment-status.constants';
 import { isAppointmentTerminal } from '../../constants/options';
 import type { AdminAppointment } from '../../api/types';
-import { callPatient } from '../../api/service';
+import { callPatient, revertAppointmentProposal } from '../../api/service';
 import { appointmentKeys } from '../../api/queries';
 
 export interface AppointmentTableMeta {
@@ -227,6 +228,29 @@ export function CellAction({
             >
               <Icons.eye className='size-3.5 text-muted-foreground' />
               <span>Lihat Riwayat Saja</span>
+            </DropdownMenuItem>
+          )}
+
+          {data.hasSettledProposal && (
+            <DropdownMenuItem
+              onSelect={async (e) => {
+                e.preventDefault();
+                try {
+                  const res = await revertAppointmentProposal(data.id);
+                  if (res.success) {
+                    toast.success('Persetujuan berhasil ditarik (revert).');
+                    await queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
+                  } else {
+                    toast.error(res.message || 'Gagal menarik persetujuan');
+                  }
+                } catch (err: unknown) {
+                  toast.error(err instanceof Error ? err.message : 'Gagal menarik persetujuan');
+                }
+              }}
+              className='cursor-pointer text-xs gap-2 text-amber-600 focus:text-amber-600'
+            >
+              <IconArrowBackUp className='size-3.5 text-amber-600' />
+              <span>Tarik Perubahan (Revert)</span>
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>

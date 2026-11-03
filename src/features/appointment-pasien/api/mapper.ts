@@ -79,6 +79,9 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
       ? new Date(item.pendingProposalCreatedAt as string).toISOString()
       : null,
     pendingProposalTargetDate: (item.pendingProposalTargetDate as string | undefined) ?? null,
+    hasSettledProposal: Boolean(item.hasSettledProposal),
+    settledProposalId: (item.settledProposalId as string | undefined) ?? null,
+    settledProposalType: (item.settledProposalType as any) ?? null,
     createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
     updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : new Date().toISOString()
   };

@@ -13,6 +13,7 @@ import {
 interface ProposalInboxModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onDeclineToReschedule?: (proposal: MyPendingProposal) => void;
 }
 
 function calculateTimeLeft(targetIso: string | undefined | null): {
@@ -85,6 +86,7 @@ function ProposalCountdownBadge({ expiresAt }: { expiresAt?: string }) {
 export function ProposalInboxModal({
   isOpen,
   onClose,
+  onDeclineToReschedule,
 }: ProposalInboxModalProps) {
   const { proposals, respond, respondingId } = useMyPendingProposals();
 
@@ -195,12 +197,14 @@ export function ProposalInboxModal({
                     variant='outline'
                     size='sm'
                     disabled={isCurrentLoading || isExpired}
-                    onClick={() =>
-                      respond({
+                    onClick={async () => {
+                      await respond({
                         proposalId: proposal.id,
                         decision: 'declined',
-                      })
-                    }
+                      });
+                      onClose();
+                      onDeclineToReschedule?.(proposal);
+                    }}
                     className='h-7 text-xs px-3 font-normal'
                   >
                     Tolak

@@ -201,6 +201,14 @@ export function getAppointmentColumns(
                 : 'Persetujuan Reschedule'}
             </span>
           )}
+          {row.original.hasSettledProposal && !row.original.hasPendingProposal && (
+            <span className='inline-flex items-center gap-1 text-[10px] font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20'>
+              <Icons.check className='size-3 shrink-0' />
+              {row.original.settledProposalType === 'cancellation'
+                ? 'Batal Disetujui'
+                : 'Reschedule Disetujui'}
+            </span>
+          )}
         </div>
       ),
       meta: {

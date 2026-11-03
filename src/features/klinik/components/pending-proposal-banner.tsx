@@ -3,10 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
-import { useMyPendingProposals } from '../hooks/use-my-pending-proposals';
+import {
+  type MyPendingProposal,
+  useMyPendingProposals,
+} from '../hooks/use-my-pending-proposals';
 
 interface PendingProposalBannerProps {
   onOpenInbox?: () => void;
+  onDeclineToReschedule?: (proposal: MyPendingProposal) => void;
 }
 
 function calculateTimeLeft(targetIso: string | undefined | null): {
@@ -78,6 +82,7 @@ function ProposalCountdownBadge({ expiresAt }: { expiresAt?: string }) {
 
 export function PendingProposalBanner({
   onOpenInbox,
+  onDeclineToReschedule,
 }: PendingProposalBannerProps) {
   const { proposals, respond, respondingId } = useMyPendingProposals();
 
@@ -168,9 +173,10 @@ export function PendingProposalBanner({
             variant='outline'
             size='sm'
             disabled={isCurrentLoading || isExpired}
-            onClick={() =>
-              respond({ proposalId: proposal.id, decision: 'declined' })
-            }
+            onClick={async () => {
+              await respond({ proposalId: proposal.id, decision: 'declined' });
+              onDeclineToReschedule?.(proposal);
+            }}
             className='h-7 text-xs px-2.5 font-normal hover:bg-muted'
           >
             Tolak

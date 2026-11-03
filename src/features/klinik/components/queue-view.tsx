@@ -22,15 +22,38 @@ import { FacetSidebarSheet } from '@/shared/ui/responsive-facet-toolbox';
 import { cn } from '@/lib/utils';
 import { PendingProposalBanner } from './pending-proposal-banner';
 import { ProposalInboxModal } from './proposal-inbox-modal';
+import { ReservationModal, type ReservationContext } from './reservation/reservation-modal';
+import type { MyPendingProposal } from '../hooks/use-my-pending-proposals';
 
 export function QueueView() {
   const queueView = useQueueView();
   const [isFacetOpen, setIsFacetOpen] = useState(false);
   const [isProposalInboxOpen, setIsProposalInboxOpen] = useState(false);
+  const [rescheduleModalContext, setRescheduleModalContext] = useState<ReservationContext | null>(
+    null
+  );
+
+  const handleDeclineToReschedule = (proposal: MyPendingProposal) => {
+    setRescheduleModalContext({
+      patientId: proposal.patientId || '',
+      patientName: proposal.patientName || undefined,
+      serviceId: proposal.serviceId || undefined,
+      serviceName: proposal.serviceName || undefined,
+      poliklinikId: proposal.poliklinikId || undefined,
+      mode: 'reschedule',
+      appointmentId: proposal.appointmentId,
+      currentDate: proposal.originalDate,
+      currentSession: proposal.originalSessionId || undefined,
+      queueNumber: proposal.estimatedQueueNumber ? String(proposal.estimatedQueueNumber) : undefined
+    });
+  };
 
   return (
     <div className='flex flex-col h-[calc(100vh-5rem)] max-h-[calc(100vh-5rem)] overflow-hidden font-sans select-none gap-3 pb-1'>
-      <PendingProposalBanner onOpenInbox={() => setIsProposalInboxOpen(true)} />
+      <PendingProposalBanner
+        onOpenInbox={() => setIsProposalInboxOpen(true)}
+        onDeclineToReschedule={handleDeclineToReschedule}
+      />
       {/* Desktop Heading & Poli Tabs (Hidden on mobile) */}
       <div className='hidden lg:block shrink-0'>
         <Heading
@@ -435,6 +458,18 @@ export function QueueView() {
       <ProposalInboxModal
         isOpen={isProposalInboxOpen}
         onClose={() => setIsProposalInboxOpen(false)}
+        onDeclineToReschedule={handleDeclineToReschedule}
+      />
+
+      {/* Patient Self-Reschedule Modal */}
+      <ReservationModal
+        isOpen={Boolean(rescheduleModalContext)}
+        context={rescheduleModalContext}
+        onClose={() => setRescheduleModalContext(null)}
+        onSuccess={async () => {
+          setRescheduleModalContext(null);
+          await queueView.actions.refreshQueues();
+        }}
       />
     </div>
   );

@@ -9,7 +9,8 @@ import {
   bulkCancelAppointments,
   bulkRescheduleAppointments,
   bulkProposeCancelAppointments,
-  bulkProposeRescheduleAppointments
+  bulkProposeRescheduleAppointments,
+  bulkRevertProposals
 } from '../api/service';
 import { appointmentKeys } from '../api/query-keys';
 import type {
@@ -296,6 +297,29 @@ export function useBulkAppointmentOperations(options: UseBulkAppointmentOperatio
     }
   });
 
+  const revertMutation = useMutation({
+    mutationFn: (payload: { appointmentIds: string[]; reason?: string }) =>
+      bulkRevertProposals(payload),
+    onSuccess: async (res) => {
+      await invalidateQueries();
+      const rawData = res as any;
+      const totalReverted = rawData?.data?.totalReverted ?? rawData?.totalReverted ?? 0;
+      const failed = rawData?.data?.failed ?? rawData?.failed ?? [];
+      const failedCount = Array.isArray(failed) ? failed.length : 0;
+
+      if (failedCount === 0) {
+        toast.success(`Berhasil menarik perubahan (revert) untuk ${totalReverted} antrean.`);
+      } else {
+        toast.warning(`Selesai: ${totalReverted} ditarik, ${failedCount} gagal diproses.`);
+      }
+      onClearSelection?.();
+      onSuccess?.();
+    },
+    onError: (err: unknown) => {
+      toast.error(extractErrorMessage(err, 'Gagal menarik perubahan (revert) proposal.'));
+    }
+  });
+
   return {
     doctors: doctorsQuery.data || [],
     rooms: roomsQuery.data || [],
@@ -312,6 +336,8 @@ export function useBulkAppointmentOperations(options: UseBulkAppointmentOperatio
     proposeRescheduleAppointments: proposeRescheduleMutation.mutateAsync,
     isProposingReschedule: proposeRescheduleMutation.isPending,
     proposeCancelAppointments: proposeCancelMutation.mutateAsync,
-    isProposingCancel: proposeCancelMutation.isPending
+    isProposingCancel: proposeCancelMutation.isPending,
+    revertProposals: revertMutation.mutateAsync,
+    isRevertingProposal: revertMutation.isPending
   };
 }

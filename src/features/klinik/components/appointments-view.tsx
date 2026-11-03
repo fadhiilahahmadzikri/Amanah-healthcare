@@ -22,7 +22,8 @@ import { DetailsModal } from './details-modal';
 import { PatientCheckInModal } from './patient-check-in-modal';
 import { PendingProposalBanner } from './pending-proposal-banner';
 import { ProposalInboxModal } from './proposal-inbox-modal';
-import { useMyPendingProposals } from '../hooks/use-my-pending-proposals';
+import { ReservationModal, type ReservationContext } from './reservation/reservation-modal';
+import { type MyPendingProposal, useMyPendingProposals } from '../hooks/use-my-pending-proposals';
 
 type AppointmentModalSubmit = ComponentProps<typeof AppointmentModal>['onSubmit'];
 
@@ -30,8 +31,26 @@ export function AppointmentsView() {
   const appointmentsView = useAppointmentsView();
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
   const [isProposalInboxOpen, setIsProposalInboxOpen] = useState(false);
+  const [rescheduleModalContext, setRescheduleModalContext] = useState<ReservationContext | null>(
+    null
+  );
   const { proposals = [] } = useMyPendingProposals();
   const { serviceOptions = [] } = useClinicFilterOptions();
+
+  const handleDeclineToReschedule = (proposal: MyPendingProposal) => {
+    setRescheduleModalContext({
+      patientId: proposal.patientId || '',
+      patientName: proposal.patientName || undefined,
+      serviceId: proposal.serviceId || undefined,
+      serviceName: proposal.serviceName || undefined,
+      poliklinikId: proposal.poliklinikId || undefined,
+      mode: 'reschedule',
+      appointmentId: proposal.appointmentId,
+      currentDate: proposal.originalDate,
+      currentSession: proposal.originalSessionId || undefined,
+      queueNumber: proposal.estimatedQueueNumber ? String(proposal.estimatedQueueNumber) : undefined
+    });
+  };
 
   const { state: sidebarState } = useSidebar();
   const isSidebarExpanded = sidebarState === 'expanded';
@@ -69,7 +88,10 @@ export function AppointmentsView() {
       />
 
       {/* Pending Proposal Banner */}
-      <PendingProposalBanner onOpenInbox={() => setIsProposalInboxOpen(true)} />
+      <PendingProposalBanner
+        onOpenInbox={() => setIsProposalInboxOpen(true)}
+        onDeclineToReschedule={handleDeclineToReschedule}
+      />
 
       {/* 1. Master Responsive Facet Toolbox (Desktop Inline & Mobile Drawer Sheet) */}
       {(appointmentsView.totalAppointments > 0 || appointmentsView.hasActiveFilters) && (
@@ -264,6 +286,18 @@ export function AppointmentsView() {
       <ProposalInboxModal
         isOpen={isProposalInboxOpen}
         onClose={() => setIsProposalInboxOpen(false)}
+        onDeclineToReschedule={handleDeclineToReschedule}
+      />
+
+      {/* Patient Self-Reschedule Modal */}
+      <ReservationModal
+        isOpen={Boolean(rescheduleModalContext)}
+        context={rescheduleModalContext}
+        onClose={() => setRescheduleModalContext(null)}
+        onSuccess={async () => {
+          setRescheduleModalContext(null);
+          await appointmentsView.actions.reload();
+        }}
       />
     </div>
   );

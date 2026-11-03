@@ -8,6 +8,10 @@ import { toast } from 'sonner';
 export interface MyPendingProposal {
   id: string;
   appointmentId: string;
+  patientId?: string;
+  poliklinikId?: string | null;
+  serviceId?: string;
+  originalSessionId?: string | null;
   proposalType: 'reschedule' | 'cancellation';
   status: 'pending';
   reason: string;

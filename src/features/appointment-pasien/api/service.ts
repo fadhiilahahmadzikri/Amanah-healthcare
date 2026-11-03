@@ -448,3 +448,29 @@ export async function bulkProposeRescheduleAppointments(payload: {
     }
   );
 }
+
+export async function bulkRevertProposals(payload: {
+  appointmentIds: string[];
+  reason?: string;
+}): Promise<BulkOperationResponseDto> {
+  return await clientFetch<BulkOperationResponseDto>(
+    '/api/v1/admin/appointments/bulk/revert-proposal',
+    {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }
+  );
+}
+
+export async function revertAppointmentProposal(
+  appointmentId: string,
+  reason?: string
+): Promise<{ success: boolean; message: string }> {
+  return await clientFetch<{ success: boolean; message: string }>(
+    `/api/v1/admin/appointments/${appointmentId}/revert-proposal`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ reason })
+    }
+  );
+}

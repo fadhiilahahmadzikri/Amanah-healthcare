@@ -75,6 +75,9 @@ export interface AdminAppointment {
   pendingProposalReason?: string | null;
   pendingProposalCreatedAt?: string | null;
   pendingProposalTargetDate?: string | null;
+  hasSettledProposal?: boolean;
+  settledProposalId?: string | null;
+  settledProposalType?: 'reschedule' | 'cancellation' | null;
   createdAt: string;
   updatedAt: string;
 }
