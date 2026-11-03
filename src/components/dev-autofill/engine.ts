@@ -118,6 +118,40 @@ export function fillVisibleFields(presetValues: Record<string, string>, flow: st
     currentStepValues.initialBmi = adaptivePreset.initialBmi;
   }
 
+  if (flow === 'regular-patient') {
+    if (document.querySelector('[data-field-id="relationship"]')) {
+      currentStepValues.relationship = adaptivePreset.relationship;
+    }
+    if (document.querySelector('[data-field-id="gender"]')) {
+      currentStepValues.gender = adaptivePreset.gender;
+    }
+    if (document.querySelector('[data-field-id="bloodType"]')) {
+      currentStepValues.bloodType = adaptivePreset.bloodType;
+    }
+    if (document.querySelector('[data-field-id="dateOfBirth"]')) {
+      currentStepValues.dateOfBirth = adaptivePreset.dateOfBirth;
+    }
+    if (document.querySelector('[data-field-id="emergencyContact"]')) {
+      currentStepValues.emergencyContactName = adaptivePreset.emergencyContactName;
+      currentStepValues.emergencyContactPhone = adaptivePreset.emergencyContactPhone;
+      currentStepValues.emergencyContactRelationship = adaptivePreset.emergencyContactRelationship;
+    }
+    if (document.querySelector('[data-field-id="region"]')) {
+      currentStepValues.line1 = adaptivePreset.line1;
+      currentStepValues.provinceName = adaptivePreset.provinceName;
+      currentStepValues.provinceCode = adaptivePreset.provinceCode;
+      currentStepValues.regencyName = adaptivePreset.regencyName;
+      currentStepValues.regencyCode = adaptivePreset.regencyCode;
+      currentStepValues.districtName = adaptivePreset.districtName;
+      currentStepValues.districtCode = adaptivePreset.districtCode;
+      currentStepValues.villageName = adaptivePreset.villageName;
+      currentStepValues.villageCode = adaptivePreset.villageCode;
+    }
+    if (document.querySelector('[data-field-id="occupationCode"]')) {
+      currentStepValues.occupationCode = adaptivePreset.occupationCode;
+    }
+  }
+
   dispatchAutofillEvent(flow, currentStepValues);
 }
 

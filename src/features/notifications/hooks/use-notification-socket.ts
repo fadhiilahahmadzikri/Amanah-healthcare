@@ -121,6 +121,7 @@ export function useNotificationSocket(callbacks?: {
     queryClient.invalidateQueries({ queryKey: ['my-appointments'] });
     queryClient.invalidateQueries({ queryKey: ['appointments'] });
     queryClient.invalidateQueries({ queryKey: ['queue', 'daily'] });
+    queryClient.invalidateQueries({ queryKey: ['appointment-proposals'] });
     queryClient.invalidateQueries({ queryKey: doctorScheduleKeys.all });
     queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES] });
     queryClient.invalidateQueries({ queryKey: [SCHEDULE_QUERY_KEYS.APPOINTMENTS] });
@@ -337,6 +338,7 @@ export function useNotificationSocket(callbacks?: {
       reconcile();
       void queryClient.refetchQueries({ queryKey: appointmentKeys.all, type: 'active' });
       void queryClient.refetchQueries({ queryKey: klinikKeys.all, type: 'active' });
+      void queryClient.refetchQueries({ queryKey: ['appointment-proposals'], type: 'active' });
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('clinic:appointment_updated', { detail: payload }));
       }

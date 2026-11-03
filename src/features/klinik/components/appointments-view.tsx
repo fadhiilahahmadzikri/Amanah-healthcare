@@ -20,12 +20,17 @@ import { AppointmentModal } from './appointment-modal';
 import { AppointmentPagination } from './appointment-pagination';
 import { DetailsModal } from './details-modal';
 import { PatientCheckInModal } from './patient-check-in-modal';
+import { PendingProposalBanner } from './pending-proposal-banner';
+import { ProposalInboxModal } from './proposal-inbox-modal';
+import { useMyPendingProposals } from '../hooks/use-my-pending-proposals';
 
 type AppointmentModalSubmit = ComponentProps<typeof AppointmentModal>['onSubmit'];
 
 export function AppointmentsView() {
   const appointmentsView = useAppointmentsView();
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
+  const [isProposalInboxOpen, setIsProposalInboxOpen] = useState(false);
+  const { proposals = [] } = useMyPendingProposals();
   const { serviceOptions = [] } = useClinicFilterOptions();
 
   const { state: sidebarState } = useSidebar();
@@ -63,6 +68,9 @@ export function AppointmentsView() {
         onClose={searchEngine.close}
       />
 
+      {/* Pending Proposal Banner */}
+      <PendingProposalBanner onOpenInbox={() => setIsProposalInboxOpen(true)} />
+
       {/* 1. Master Responsive Facet Toolbox (Desktop Inline & Mobile Drawer Sheet) */}
       {(appointmentsView.totalAppointments > 0 || appointmentsView.hasActiveFilters) && (
         <ResponsiveFacetToolbox
@@ -87,6 +95,22 @@ export function AppointmentsView() {
           isCompact={isCompact}
           extraRightSlot={
             <div className='flex items-center gap-1.5 sm:gap-2 shrink-0'>
+              <Button
+                variant='outline'
+                size={isCompact ? 'icon' : 'sm'}
+                onClick={() => setIsProposalInboxOpen(true)}
+                className={cn('relative', isCompact ? 'size-8 rounded-md' : 'text-xs md:text-sm gap-2')}
+                title='Kotak Masuk Usulan Janji Temu'
+                aria-label='Kotak Masuk Usulan Janji Temu'
+              >
+                <Icons.inbox className='size-4' />
+                {!isCompact && <span>Kotak Masuk</span>}
+                {proposals.length > 0 && (
+                  <span className='absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground'>
+                    {proposals.length}
+                  </span>
+                )}
+              </Button>
               <Button
                 variant='outline'
                 size={isCompact ? 'icon' : 'sm'}
@@ -234,6 +258,12 @@ export function AppointmentsView() {
       <PatientCheckInModal
         isOpen={isCheckInModalOpen}
         onClose={() => setIsCheckInModalOpen(false)}
+      />
+
+      {/* Patient Proposal Inbox Modal */}
+      <ProposalInboxModal
+        isOpen={isProposalInboxOpen}
+        onClose={() => setIsProposalInboxOpen(false)}
       />
     </div>
   );

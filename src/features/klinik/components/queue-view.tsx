@@ -20,13 +20,17 @@ import { QueueViewSkeleton } from './queue-view-skeleton';
 import { useQueueView } from '../model/useQueueView';
 import { FacetSidebarSheet } from '@/shared/ui/responsive-facet-toolbox';
 import { cn } from '@/lib/utils';
+import { PendingProposalBanner } from './pending-proposal-banner';
+import { ProposalInboxModal } from './proposal-inbox-modal';
 
 export function QueueView() {
   const queueView = useQueueView();
   const [isFacetOpen, setIsFacetOpen] = useState(false);
+  const [isProposalInboxOpen, setIsProposalInboxOpen] = useState(false);
 
   return (
     <div className='flex flex-col h-[calc(100vh-5rem)] max-h-[calc(100vh-5rem)] overflow-hidden font-sans select-none gap-3 pb-1'>
+      <PendingProposalBanner onOpenInbox={() => setIsProposalInboxOpen(true)} />
       {/* Desktop Heading & Poli Tabs (Hidden on mobile) */}
       <div className='hidden lg:block shrink-0'>
         <Heading
@@ -427,6 +431,11 @@ export function QueueView() {
           />
         )}
       </FacetSidebarSheet>
+
+      <ProposalInboxModal
+        isOpen={isProposalInboxOpen}
+        onClose={() => setIsProposalInboxOpen(false)}
+      />
     </div>
   );
 }

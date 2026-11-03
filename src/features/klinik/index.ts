@@ -58,3 +58,7 @@ export type {
 } from './model/usePatientCheckIn';
 export { useClinicFilterOptions } from './hooks/use-clinic-filter-options';
 export type { FilterOption, UseClinicFilterOptionsResult } from './hooks/use-clinic-filter-options';
+export { PendingProposalBanner } from './components/pending-proposal-banner';
+export { ProposalInboxModal } from './components/proposal-inbox-modal';
+export { useMyPendingProposals } from './hooks/use-my-pending-proposals';
+export type { MyPendingProposal } from './hooks/use-my-pending-proposals';

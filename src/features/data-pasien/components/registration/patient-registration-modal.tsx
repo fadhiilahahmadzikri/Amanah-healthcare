@@ -135,7 +135,7 @@ export function PatientRegistrationModal({
       className='relative my-auto w-full max-w-[500px] overflow-visible rounded-2xl border border-border bg-card p-6 shadow-2xl sm:p-8'
     >
       <form.AppForm>
-        <form.Form className='gap-0 p-0 md:p-0'>
+        <form.Form data-autofill-flow='regular-patient' className='gap-0 p-0 md:p-0'>
           {/* Header with back button and 8 dash dots */}
           <PatientStepHeader
             currentStep={currentStep}

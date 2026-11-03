@@ -93,9 +93,9 @@ export function useBookingRegularPatientForm({
       const exists = relationshipOptions.some((r) => r.value === relationship);
       if (!exists) {
         setRelationship(relationshipOptions[0].value as PatientRelationshipType);
+      } else if (hasExistingSelf && isSelf) {
+        setRelationship(relationshipOptions[0].value as PatientRelationshipType);
       }
-    } else if (hasExistingSelf && isSelf && relationshipOptions.length > 0) {
-      setRelationship(relationshipOptions[0].value as PatientRelationshipType);
     }
   }, [relationshipOptions, hasExistingSelf, isSelf, relationship]);
 
@@ -134,6 +134,78 @@ export function useBookingRegularPatientForm({
       if (user?.phone && !phone) setPhone(user.phone);
     }
   }, [isSelf, user, email, fullName, phone]);
+
+  // DevTool AutoFill listener for standard patient registration
+  React.useEffect(() => {
+    const handleAutofill = (e: Event) => {
+      const d = (
+        e as CustomEvent<{
+          flow: string;
+          values: Record<string, string>;
+          step?: number;
+        }>
+      ).detail;
+      if (!d || d.flow !== 'regular-patient') return;
+
+      React.startTransition(() => {
+        const v = d.values;
+        if (!v) return;
+
+        if (v.relationship !== undefined && v.relationship !== '') {
+          setRelationship(v.relationship as PatientRelationshipType);
+        } else if (v.relationship === '') {
+          setRelationship(initialRelationshipValue);
+        }
+
+        if (v.fullName !== undefined) setFullName(v.fullName);
+        if (v.nik !== undefined) setNik(v.nik);
+        if (v.motherName !== undefined) setMotherName(v.motherName);
+        if (v.placeOfBirth !== undefined) setPlaceOfBirth(v.placeOfBirth);
+        if (v.dateOfBirth !== undefined) setDateOfBirth(v.dateOfBirth);
+        if (v.gender !== undefined) setGender(v.gender as PatientGender);
+        if (v.bloodType !== undefined) {
+          setBloodType(v.bloodType as PatientBloodType);
+          setKnowsBloodType(v.bloodType !== '' && v.bloodType !== UNKNOWN_BLOOD_TYPE);
+        }
+        if (v.phone !== undefined) setPhone(v.phone);
+        if (v.emergencyContactName !== undefined) setEmergencyContactName(v.emergencyContactName);
+        if (v.emergencyContactPhone !== undefined) setEmergencyContactPhone(v.emergencyContactPhone);
+        if (v.emergencyContactRelationship !== undefined) {
+          setEmergencyContactRelationship(v.emergencyContactRelationship);
+        }
+
+        if (
+          v.line1 !== undefined ||
+          v.provinceName !== undefined ||
+          v.regencyName !== undefined ||
+          v.districtName !== undefined ||
+          v.villageName !== undefined
+        ) {
+          setRegion((prev) => ({
+            ...prev,
+            ...(v.line1 !== undefined ? { line1: v.line1 } : {}),
+            ...(v.provinceName !== undefined ? { provinceName: v.provinceName } : {}),
+            ...(v.provinceCode !== undefined ? { provinceCode: v.provinceCode } : {}),
+            ...(v.regencyName !== undefined ? { regencyName: v.regencyName } : {}),
+            ...(v.regencyCode !== undefined ? { regencyCode: v.regencyCode } : {}),
+            ...(v.districtName !== undefined ? { districtName: v.districtName } : {}),
+            ...(v.districtCode !== undefined ? { districtCode: v.districtCode } : {}),
+            ...(v.villageName !== undefined ? { villageName: v.villageName } : {}),
+            ...(v.villageCode !== undefined ? { villageCode: v.villageCode } : {})
+          }));
+        }
+
+        if (v.occupationCode !== undefined) setOccupationCode(v.occupationCode);
+
+        if (typeof d.step === 'number') {
+          setCurrentStep(d.step);
+        }
+      });
+    };
+
+    window.addEventListener('devtool:autofill', handleAutofill);
+    return () => window.removeEventListener('devtool:autofill', handleAutofill);
+  }, [initialRelationshipValue]);
 
   const stepContainerRef = React.useRef<HTMLDivElement>(null);
   const isAnimatingRef = React.useRef(false);

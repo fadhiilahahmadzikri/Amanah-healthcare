@@ -1,23 +1,16 @@
 import { fakerID_ID as faker } from '@faker-js/faker';
 import type { AutofillSchedule } from '../types';
+import { IndonesianIdentityGenerator } from '../core';
 
 export class PregnancyFakerFactory {
+  private constructor() {}
+
   private static generateNik(birthDateStr: string, isFemale: boolean = false): string {
-    const parts = birthDateStr.split('-');
-    const year = parts[0] || '1995';
-    const month = parts[1] || '06';
-    const day = parseInt(parts[2] || '15', 10);
-    const adjustedDay = isFemale ? String(day + 40).padStart(2, '0') : String(day).padStart(2, '0');
-    const shortYear = year.slice(2);
-    const randomSuffix = String(Math.floor(1000 + Math.random() * 9000));
-    return `320101${adjustedDay}${month}${shortYear}${randomSuffix}`;
+    return IndonesianIdentityGenerator.generateNik(birthDateStr, isFemale);
   }
 
   private static generateIndonesianPhone(): string {
-    const prefixes = ['0812', '0813', '0821', '0822', '0852', '0853', '0877', '0878'];
-    const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-    const randomDigits = String(Math.floor(10000000 + Math.random() * 90000000));
-    return `${prefix}${randomDigits}`;
+    return IndonesianIdentityGenerator.generatePhone();
   }
 
   public static generate(_mode?: string): {

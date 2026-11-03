@@ -12,6 +12,7 @@ type StepState = {
   count: number;
   goToNextStep: () => void;
   goToPrevStep: () => void;
+  goToStep: (step: number) => void;
   isCompleted: boolean;
 };
 
@@ -27,11 +28,19 @@ export function useFormStepper(schemas: readonly ZodTypeAny[]) {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   }, []);
 
+  const goToStep = useCallback(
+    (stepNumber: number) => {
+      setCurrentStep(Math.max(1, Math.min(stepNumber, stepCount)));
+    },
+    [stepCount]
+  );
+
   const step: StepState = {
     value: currentStep,
     count: stepCount,
     goToNextStep,
     goToPrevStep,
+    goToStep,
     isCompleted: currentStep === stepCount
   };
 

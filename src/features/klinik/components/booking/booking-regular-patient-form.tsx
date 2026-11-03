@@ -215,7 +215,11 @@ export function BookingRegularPatientForm({
   );
 
   return (
-    <div className='flex flex-col space-y-2.5 font-sans select-none'>
+    <div
+      data-autofill-flow='regular-patient'
+      data-patient-flow='regular'
+      className='flex flex-col space-y-2.5 font-sans select-none'
+    >
       <div className='space-y-0.5'>
         <h3 className='text-sm sm:text-base font-bold tracking-tight text-foreground'>
           {currentStepMeta.title}
@@ -233,7 +237,7 @@ export function BookingRegularPatientForm({
 
       <div ref={stepContainerRef} className='py-1 flex flex-col justify-start'>
         {currentStep === 1 && (
-          <div className='space-y-1.5'>
+          <div data-field-id='relationship' className='space-y-1.5'>
             <div className='grid grid-cols-2 sm:grid-cols-3 gap-2'>
               {relationshipOptions.map((opt) => {
                 const isSelected = relationship === opt.value;
@@ -276,6 +280,7 @@ export function BookingRegularPatientForm({
         {currentStep === 2 && (
           <PatientLineInput
             id='patient-fullname'
+            data-field-id='fullName'
             label='Nama lengkap pasien (sesuai KTP)'
             placeholder='contoh: Siti Aminah / Ahmad Dahlan'
             value={fullName}
@@ -287,6 +292,7 @@ export function BookingRegularPatientForm({
         {currentStep === 3 && (
           <PatientLineInput
             id='patient-nik'
+            data-field-id='nik'
             label='Nomor Induk Kependudukan (NIK)'
             placeholder='16 digit NIK sesuai KTP atau KK'
             value={nik}
@@ -302,6 +308,7 @@ export function BookingRegularPatientForm({
         {currentStep === 4 && (
           <PatientLineInput
             id='patient-mother'
+            data-field-id='motherName'
             label='Nama ibu kandung'
             placeholder='contoh: Maryam / Nurjanah'
             value={motherName}
@@ -314,23 +321,26 @@ export function BookingRegularPatientForm({
           <div className='space-y-3'>
             <PatientLineInput
               id='patient-pob'
+              data-field-id='placeOfBirth'
               label='Tempat lahir (sesuai KTP)'
               placeholder='contoh: Sleman / Yogyakarta'
               value={placeOfBirth}
               onChange={(val) => setPlaceOfBirth(val)}
               autoComplete='off'
             />
-            <PatientBirthdatePicker
-              value={dateOfBirth}
-              label='Tanggal lahir (sesuai KTP)*'
-              placeholder='Pilih tanggal lahir sesuai KTP / KK...'
-              onChange={(iso) => setDateOfBirth(iso)}
-            />
+            <div data-field-id='dateOfBirth'>
+              <PatientBirthdatePicker
+                value={dateOfBirth}
+                label='Tanggal lahir (sesuai KTP)*'
+                placeholder='Pilih tanggal lahir sesuai KTP / KK...'
+                onChange={(iso) => setDateOfBirth(iso)}
+              />
+            </div>
           </div>
         )}
 
         {currentStep === 6 && (
-          <div className='space-y-2'>
+          <div data-field-id='gender' className='space-y-2'>
             <PatientGenderSelector
               value={gender}
               options={references.genders}
@@ -340,7 +350,7 @@ export function BookingRegularPatientForm({
         )}
 
         {currentStep === 7 && (
-          <div className='pt-2'>
+          <div data-field-id='bloodType' className='pt-2'>
             <PatientBloodTypeSelector
               id='booking_blood_type'
               label='Golongan Darah'
@@ -356,6 +366,7 @@ export function BookingRegularPatientForm({
         {currentStep === 8 && (
           <PatientLineInput
             id='patient-phone'
+            data-field-id='phone'
             label='No. Telepon / WhatsApp'
             type='tel'
             placeholder='contoh: 0812-3456-7890'
@@ -370,29 +381,33 @@ export function BookingRegularPatientForm({
         )}
 
         {currentStep === 9 && (
-          <PatientEmergencyContactSelector
-            affiliations={existingPatients}
-            name={emergencyContactName}
-            onChangeName={setEmergencyContactName}
-            relationship={emergencyContactRelationship}
-            onChangeRelationship={setEmergencyContactRelationship}
-            phone={emergencyContactPhone}
-            onChangePhone={setEmergencyContactPhone}
-            selectedAffiliationPatientId={emergencyContactPatientId}
-            onSelectAffiliationPatientId={setEmergencyContactPatientId}
-            relationshipOptions={references.relationships}
-          />
+          <div data-field-id='emergencyContact'>
+            <PatientEmergencyContactSelector
+              affiliations={existingPatients}
+              name={emergencyContactName}
+              onChangeName={setEmergencyContactName}
+              relationship={emergencyContactRelationship}
+              onChangeRelationship={setEmergencyContactRelationship}
+              phone={emergencyContactPhone}
+              onChangePhone={setEmergencyContactPhone}
+              selectedAffiliationPatientId={emergencyContactPatientId}
+              onSelectAffiliationPatientId={setEmergencyContactPatientId}
+              relationshipOptions={references.relationships}
+            />
+          </div>
         )}
 
         {currentStep === 10 && (
-          <PatientRegionDropdown
-            values={region}
-            onChange={(updates) => setRegion((prev) => ({ ...prev, ...updates }))}
-          />
+          <div data-field-id='region'>
+            <PatientRegionDropdown
+              values={region}
+              onChange={(updates) => setRegion((prev) => ({ ...prev, ...updates }))}
+            />
+          </div>
         )}
 
         {currentStep === 11 && (
-          <div className='space-y-1.5'>
+          <div data-field-id='occupationCode' className='space-y-1.5'>
             <PatientSearchableSelect
               id='patient-occupation'
               label='Pekerjaan pasien'

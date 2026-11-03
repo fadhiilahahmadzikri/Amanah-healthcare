@@ -18,6 +18,8 @@ export interface AppointmentKlinikMobileFilterToolbarProps {
   filteredCount?: number;
   serviceOptions?: FilterOption[];
   onOpenCheckIn?: () => void;
+  onOpenInbox?: () => void;
+  pendingCount?: number;
   onOpenCreate?: () => void;
   className?: string;
 }
@@ -29,6 +31,8 @@ export function AppointmentKlinikMobileFilterToolbar({
   filteredCount: _filteredCount,
   serviceOptions,
   onOpenCheckIn,
+  onOpenInbox,
+  pendingCount = 0,
   onOpenCreate,
   className
 }: AppointmentKlinikMobileFilterToolbarProps) {
@@ -73,6 +77,25 @@ export function AppointmentKlinikMobileFilterToolbar({
         className={className}
         extraRightSlot={
           <div className='flex items-center gap-1.5 shrink-0'>
+            {onOpenInbox && (
+              <Button
+                type='button'
+                variant='outline'
+                size='icon'
+                onClick={onOpenInbox}
+                aria-label='Kotak Masuk Usulan Janji Temu'
+                className='relative size-8 rounded-md cursor-pointer shrink-0'
+                title='Kotak Masuk Usulan Janji Temu'
+              >
+                <Icons.inbox className='size-3.5' />
+                {pendingCount > 0 && (
+                  <span className='absolute -top-1 -right-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-primary px-0.5 text-[9px] font-bold text-primary-foreground'>
+                    {pendingCount}
+                  </span>
+                )}
+              </Button>
+            )}
+
             {onOpenCheckIn && (
               <Button
                 type='button'
