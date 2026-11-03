@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Icons } from '@/components/icons';
+import { EmptyState } from '@/components/ui/empty-state';
 import {
   type MyPendingProposal,
   useMyPendingProposals,
@@ -77,9 +77,7 @@ function ProposalCountdownBadge({ expiresAt }: { expiresAt?: string }) {
           : 'text-muted-foreground'
       }`}
     >
-      {timeLeft.isExpired
-        ? 'Kedaluwarsa'
-        : `Sisa waktu: ${timeLeft.formatted}`}
+      {timeLeft.formatted}
     </span>
   );
 }
@@ -101,29 +99,25 @@ export function ProposalInboxModal({
       className='flex flex-col max-h-[85vh] overflow-hidden p-0'
     >
       <div className='flex items-center justify-between border-b border-border/60 px-5 py-4'>
-        <div className='flex items-center gap-2'>
-          <Icons.inbox className='size-5 text-foreground/80' />
-          <div>
-            <h2 className='text-sm font-semibold tracking-tight text-foreground'>
-              Kotak Masuk Usulan Janji Temu
-            </h2>
-            <p className='text-xs text-muted-foreground'>
-              {proposals.length > 0
-                ? `${proposals.length} usulan membutuhkan tanggapan Anda`
-                : 'Tidak ada usulan janji temu yang menunggu persetujuan'}
-            </p>
-          </div>
+        <div>
+          <h2 className='text-sm font-semibold tracking-tight text-foreground'>
+            Kotak Masuk Usulan Janji Temu
+          </h2>
+          <p className='text-xs text-muted-foreground'>
+            {proposals.length > 0
+              ? `${proposals.length} usulan membutuhkan tanggapan Anda`
+              : 'Tidak ada usulan janji temu yang menunggu persetujuan'}
+          </p>
         </div>
       </div>
 
       <div className='flex-1 overflow-y-auto p-5 space-y-3.5'>
         {proposals.length === 0 ? (
-          <div className='flex flex-col items-center justify-center py-12 text-center text-muted-foreground'>
-            <Icons.inbox className='size-10 mb-2 opacity-30 stroke-1' />
-            <p className='text-xs'>
-              Semua usulan perubahan jadwal dan pembatalan telah terselesaikan.
-            </p>
-          </div>
+          <EmptyState
+            title='Belum Ada Usulan Janji Temu'
+            description='Semua usulan perubahan jadwal dan pembatalan telah terselesaikan.'
+            className='border-none bg-transparent p-4 min-h-[220px]'
+          />
         ) : (
           proposals.map((proposal) => {
             const isReschedule = proposal.proposalType === 'reschedule';
@@ -148,9 +142,11 @@ export function ProposalInboxModal({
                         ? 'Usulan Jadwal Baru'
                         : 'Usulan Pembatalan'}
                     </Badge>
-                    <span className='text-xs font-semibold tracking-tight'>
-                      {proposal.bookingCode}
-                    </span>
+                    {proposal.serviceName && (
+                      <span className='text-xs font-semibold text-foreground tracking-tight'>
+                        {proposal.serviceName}
+                      </span>
+                    )}
                     {proposal.patientName && (
                       <span className='text-xs text-muted-foreground truncate'>
                         ({proposal.patientName})

@@ -49,11 +49,13 @@ export interface UseAppointmentTableResult {
   hasFilters: boolean;
   currentUnitId: string | null;
   currentDoctorId: string | null;
+  currentProposalStatus: string | null;
   formattedDate?: string;
   searchQuery: string;
   setSearch: (search: string | null) => Promise<unknown>;
   setUnitId: (unitId: string | null) => Promise<unknown>;
   setDoctorId: (doctorId: string | null) => Promise<unknown>;
+  setProposalStatus: (proposalStatus: string | null) => Promise<unknown>;
   resetFilters: () => void;
   actions: {
     openRecordDetail: (appointment: AdminAppointment) => void;
@@ -109,6 +111,7 @@ export function useAppointmentTable({
     doctorId: parseAsString,
     doctorName: parseAsArrayOf(parseAsString, ','),
     roomName: parseAsArrayOf(parseAsString, ','),
+    proposalStatus: parseAsString,
     sort: getSortingStateParser<AdminAppointment>(columnIds).withDefault([])
   });
 
@@ -139,7 +142,8 @@ export function useAppointmentTable({
     formattedDate,
     params.doctorId,
     params.doctorName && params.doctorName.length > 0,
-    params.roomName && params.roomName.length > 0
+    params.roomName && params.roomName.length > 0,
+    params.proposalStatus
   ].some(Boolean);
 
   const filters: AppointmentFilters = normalizeFilters({
@@ -154,6 +158,7 @@ export function useAppointmentTable({
     ...(params.doctorId && { doctorId: params.doctorId }),
     ...(params.doctorName && params.doctorName.length > 0 && { doctorName: params.doctorName }),
     ...(params.roomName && params.roomName.length > 0 && { roomName: params.roomName }),
+    ...(params.proposalStatus && { proposalStatus: params.proposalStatus }),
     ...(params.sort.length > 0 && { sort: JSON.stringify(params.sort) })
   });
 
@@ -232,6 +237,7 @@ export function useAppointmentTable({
       doctorId: null,
       doctorName: null,
       roomName: null,
+      proposalStatus: null,
       page: 1
     });
   }, [table, setParams]);
@@ -263,6 +269,7 @@ export function useAppointmentTable({
     hasFilters,
     currentUnitId: params.poliklinikId,
     currentDoctorId: params.doctorId,
+    currentProposalStatus: params.proposalStatus,
     formattedDate,
     searchQuery: params.search ?? '',
     setSearch: (search: string | null) =>
@@ -270,6 +277,7 @@ export function useAppointmentTable({
     setUnitId: (unitId: string | null) =>
       setParams({ poliklinikId: unitId, doctorId: null, page: 1 }),
     setDoctorId: (doctorId: string | null) => setParams({ doctorId, page: 1 }),
+    setProposalStatus: (proposalStatus: string | null) => setParams({ proposalStatus, page: 1 }),
     resetFilters,
     actions: {
       openRecordDetail: dialogs.actions.openRecordDetail,

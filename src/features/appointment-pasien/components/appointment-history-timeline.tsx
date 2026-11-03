@@ -121,13 +121,38 @@ export function AppointmentHistoryTimeline({
     });
   }
 
+  if (appointment.hasPendingProposal) {
+    const isReschedule = appointment.pendingProposalType === 'reschedule';
+    const proposalTitle = isReschedule
+      ? 'Usulan Penjadwalan Ulang Terkirim'
+      : 'Usulan Pembatalan Terkirim';
+    const targetDesc =
+      isReschedule && appointment.pendingProposalTargetDate
+        ? `Usulan pindah ke tanggal ${formatClinicDate(appointment.pendingProposalTargetDate, { style: 'human_medium' })}.`
+        : '';
+    const reasonDesc = appointment.pendingProposalReason
+      ? ` Alasan: ${appointment.pendingProposalReason}.`
+      : '';
+
+    events.push({
+      id: 'pending_proposal',
+      title: proposalTitle,
+      timeStr: formatTime(appointment.pendingProposalCreatedAt),
+      dateStr: formatDate(appointment.pendingProposalCreatedAt),
+      description:
+        `${targetDesc}${reasonDesc} Menunggu respon persetujuan atau penolakan dari pasien.`.trim(),
+      state: 'active'
+    });
+  }
+
   if (appointment.status === APPOINTMENT_STATUS.CANCELLED) {
     events.push({
       id: 'cancelled',
       title: 'Janji Temu Dibatalkan',
       timeStr: formatTime(appointment.updatedAt),
       dateStr: formatDate(appointment.updatedAt),
-      description: 'Janji temu dibatalkan sebelum pelayanan tuntas.',
+      description:
+        appointment.cancellationReason || 'Janji temu dibatalkan sebelum pelayanan tuntas.',
       state: 'cancelled'
     });
   } else if (appointment.status === APPOINTMENT_STATUS.LATE) {

@@ -9,6 +9,8 @@ export interface AppointmentCardHeaderProps {
   subtitle?: string;
   avatarUrl?: string;
   status: string;
+  hasPendingProposal?: boolean;
+  pendingProposalType?: 'reschedule' | 'cancellation' | null;
   showAvatar?: boolean;
   className?: string;
 }
@@ -18,6 +20,8 @@ export function AppointmentCardHeader({
   subtitle,
   avatarUrl,
   status,
+  hasPendingProposal,
+  pendingProposalType,
   showAvatar = true,
   className
 }: AppointmentCardHeaderProps) {
@@ -53,8 +57,15 @@ export function AppointmentCardHeader({
         </div>
       </div>
 
-      <div className='shrink-0 self-start pt-0.5'>
+      <div className='shrink-0 self-start pt-0.5 flex flex-col items-end gap-1'>
         <AppointmentStatusPill status={status} size='sm' />
+        {hasPendingProposal && (
+          <span className='inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700 dark:text-amber-300 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20'>
+            {pendingProposalType === 'cancellation'
+              ? 'Usulan Batal'
+              : 'Usulan Reschedule'}
+          </span>
+        )}
       </div>
     </div>
   );

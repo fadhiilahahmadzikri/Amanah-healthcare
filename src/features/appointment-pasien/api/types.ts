@@ -47,6 +47,7 @@ export interface AdminAppointment {
   layananName?: string | null;
   visitType: string;
   complaint: string;
+  cancellationReason?: string | null;
   status: AppointmentStatus;
   allowedActions: AppointmentAction[];
   capabilities: AppointmentCapabilities;
@@ -71,6 +72,9 @@ export interface AdminAppointment {
   hasPendingProposal?: boolean;
   pendingProposalId?: string | null;
   pendingProposalType?: 'reschedule' | 'cancellation' | null;
+  pendingProposalReason?: string | null;
+  pendingProposalCreatedAt?: string | null;
+  pendingProposalTargetDate?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -129,6 +133,7 @@ export type AppointmentFilters = {
   roomName?: string | string[];
   roomId?: string;
   session?: string;
+  proposalStatus?: string;
 };
 
 export type NormalizedAppointmentFilters = {
@@ -146,6 +151,7 @@ export type NormalizedAppointmentFilters = {
   roomName?: string[];
   roomId?: string;
   session?: string;
+  proposalStatus?: string;
 };
 
 export function normalizeFilters(raw: Partial<AppointmentFilters>): NormalizedAppointmentFilters {
@@ -194,6 +200,10 @@ export function normalizeFilters(raw: Partial<AppointmentFilters>): NormalizedAp
     typeof raw.roomId === 'string' && raw.roomId.trim() ? raw.roomId.trim() : undefined;
   const sessionTrimmed =
     typeof raw.session === 'string' && raw.session.trim() ? raw.session.trim() : undefined;
+  const proposalStatusTrimmed =
+    typeof raw.proposalStatus === 'string' && raw.proposalStatus.trim()
+      ? raw.proposalStatus.trim()
+      : undefined;
 
   return {
     page,
@@ -208,6 +218,7 @@ export function normalizeFilters(raw: Partial<AppointmentFilters>): NormalizedAp
     ...(doctorIdTrimmed && { doctorId: doctorIdTrimmed }),
     ...(roomIdTrimmed && { roomId: roomIdTrimmed }),
     ...(sessionTrimmed && { session: sessionTrimmed }),
+    ...(proposalStatusTrimmed && { proposalStatus: proposalStatusTrimmed }),
     ...(searchTrimmed && { search: searchTrimmed }),
     ...(sortTrimmed && { sort: sortTrimmed })
   };

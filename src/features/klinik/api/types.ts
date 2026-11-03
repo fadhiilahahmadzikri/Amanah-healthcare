@@ -58,6 +58,9 @@ export interface Appointment {
   eta_range?: string | null;
   ahead_count?: number | null;
   allowedActions?: string[];
+  has_pending_proposal?: boolean;
+  pending_proposal_id?: string | null;
+  pending_proposal_type?: 'reschedule' | 'cancellation' | null;
   created_at: string;
   updated_at?: string;
 }

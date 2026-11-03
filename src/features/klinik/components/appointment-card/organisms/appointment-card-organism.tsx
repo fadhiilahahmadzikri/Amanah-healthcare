@@ -99,6 +99,8 @@ export function AppointmentCardOrganism({
           subtitle={displaySubtitle}
           avatarUrl={displayAvatar}
           status={appointment.status}
+          hasPendingProposal={appointment.has_pending_proposal}
+          pendingProposalType={appointment.pending_proposal_type}
           showAvatar={showAvatar}
         />
       </div>

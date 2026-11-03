@@ -45,6 +45,7 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
     layananName: (item.layananName as string | undefined) ?? null,
     visitType: item.visitType ?? VISIT_TYPE.NEW_VISIT,
     complaint: item.complaint ?? '-',
+    cancellationReason: (item.cancellationReason as string | undefined) ?? null,
     status,
     allowedActions,
     capabilities,
@@ -70,6 +71,14 @@ export function mapToAdminAppointment(item: BackendAppointmentRecord): AdminAppo
     etaRange: (item.etaRange as string | undefined) ?? null,
     session: item.session ?? null,
     sessionName: item.sessionName ?? item.session ?? null,
+    hasPendingProposal: Boolean(item.hasPendingProposal),
+    pendingProposalId: (item.pendingProposalId as string | undefined) ?? null,
+    pendingProposalType: (item.pendingProposalType as any) ?? null,
+    pendingProposalReason: (item.pendingProposalReason as string | undefined) ?? null,
+    pendingProposalCreatedAt: item.pendingProposalCreatedAt
+      ? new Date(item.pendingProposalCreatedAt as string).toISOString()
+      : null,
+    pendingProposalTargetDate: (item.pendingProposalTargetDate as string | undefined) ?? null,
     createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
     updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : new Date().toISOString()
   };
@@ -113,6 +122,9 @@ export function adminAppointmentToAppointment(item: AdminAppointment): Appointme
     visit_type: item.visitType ?? VISIT_TYPE.NEW_VISIT,
     queue_number: item.queueNumber,
     allowedActions: item.allowedActions,
+    has_pending_proposal: item.hasPendingProposal,
+    pending_proposal_id: item.pendingProposalId,
+    pending_proposal_type: item.pendingProposalType,
     created_at: item.createdAt ?? new Date().toISOString()
   };
 }

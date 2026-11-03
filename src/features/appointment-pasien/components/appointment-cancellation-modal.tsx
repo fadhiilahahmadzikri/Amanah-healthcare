@@ -108,21 +108,6 @@ export function AppointmentCancellationModal({
         </div>
 
         <form onSubmit={handleSubmit} className='space-y-4 pt-1'>
-          <div className='rounded-xl border border-border/60 bg-muted/30 p-3 space-y-2 text-xs'>
-            <div className='flex items-center justify-between text-muted-foreground'>
-              <span>Target Pasien</span>
-              <span className='font-semibold text-foreground'>
-                {isBulk ? `${effectiveCount} Antrean Terpilih` : patientName || 'Pasien Terkait'}
-              </span>
-            </div>
-            {!isBulk && bookingCode && (
-              <div className='flex items-center justify-between text-muted-foreground'>
-                <span>Kode Booking</span>
-                <span className='font-semibold text-primary font-mono'>{bookingCode}</span>
-              </div>
-            )}
-          </div>
-
           <div className='space-y-1.5'>
             <label
               htmlFor='cancellation-reason'
@@ -168,9 +153,7 @@ export function AppointmentCancellationModal({
               shape='pill'
               disabled={isSubmitting || !reason.trim()}
               isLoading={isSubmitting}
-              withTrailingCircleIcon
-              className='min-w-[150px]'
-              trailingIcon={<Icons.check className='size-3 stroke-[2.5]' />}
+              className='min-w-[140px]'
             >
               {isSubmitting ? 'Mengajukan...' : 'Ajukan Pembatalan'}
             </Button>

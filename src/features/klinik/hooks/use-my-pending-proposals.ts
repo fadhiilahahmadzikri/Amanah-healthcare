@@ -14,7 +14,8 @@ export interface MyPendingProposal {
   originalDate: string;
   proposedDate: string | null;
   estimatedQueueNumber: number | null;
-  bookingCode: string;
+  bookingCode?: string;
+  serviceName?: string | null;
   patientName?: string | null;
   createdAt: string;
   expiresAt: string;

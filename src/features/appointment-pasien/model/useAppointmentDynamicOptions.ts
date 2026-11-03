@@ -33,6 +33,8 @@ export interface UseAppointmentDynamicOptionsProps {
   units?: QueueNavigationResponse['units'];
   currentUnitId?: string | null;
   onSelectUnit?: (unitId: string | null) => void;
+  currentProposalStatus?: string | null;
+  onSelectProposalStatus?: (status: string | null) => void;
   onReset?: () => void;
 }
 
@@ -46,6 +48,8 @@ export function useAppointmentDynamicOptions({
   units,
   currentUnitId,
   onSelectUnit,
+  currentProposalStatus,
+  onSelectProposalStatus,
   onReset
 }: UseAppointmentDynamicOptionsProps) {
   const patientCol = table.getColumn('patientName');
@@ -306,6 +310,25 @@ export function useAppointmentDynamicOptions({
     serviceCol?.setFilterValue(undefined);
   }, [serviceCol]);
 
+  // 6b. Proposal Counts
+  const proposalCounts = useMemo(() => {
+    let all_pending = 0;
+    let reschedule = 0;
+    let cancellation = 0;
+    table.getCoreRowModel().rows.forEach((row) => {
+      const apt = row.original;
+      if (apt.hasPendingProposal) {
+        all_pending++;
+        if (apt.pendingProposalType === 'reschedule') {
+          reschedule++;
+        } else if (apt.pendingProposalType === 'cancellation') {
+          cancellation++;
+        }
+      }
+    });
+    return { all_pending, reschedule, cancellation };
+  }, [table]);
+
   // 7. Assemble Facet Groups
   const facetGroups = useMemo<FacetGroupDefinition[]>(() => {
     const groups: FacetGroupDefinition[] = [];
@@ -401,6 +424,40 @@ export function useAppointmentDynamicOptions({
       });
     }
 
+    // Persetujuan Pasien Facet
+    groups.push({
+      id: 'proposalStatus',
+      title: 'Persetujuan Pasien',
+      icon: Icons.clock,
+      mode: 'single',
+      options: [
+        {
+          label: 'Semua Persetujuan Pending',
+          value: 'all_pending',
+          count: proposalCounts.all_pending
+        },
+        {
+          label: 'Persetujuan Reschedule',
+          value: 'reschedule',
+          count: proposalCounts.reschedule
+        },
+        {
+          label: 'Persetujuan Pembatalan',
+          value: 'cancellation',
+          count: proposalCounts.cancellation
+        }
+      ],
+      selectedValues: currentProposalStatus ? [currentProposalStatus] : [],
+      onSelect: (val: string) => {
+        onSelectProposalStatus?.(currentProposalStatus === val ? null : val);
+      },
+      onReset: () => {
+        onSelectProposalStatus?.(null);
+      },
+      popoverWidth: 'w-56',
+      resetLabel: 'Semua Status Usulan'
+    });
+
     return groups;
   }, [
     units,
@@ -421,7 +478,10 @@ export function useAppointmentDynamicOptions({
     serviceFacetOptions,
     serviceValue,
     handleServiceSelect,
-    handleServiceReset
+    handleServiceReset,
+    proposalCounts,
+    currentProposalStatus,
+    onSelectProposalStatus
   ]);
 
   // 8. Filter Counts & State
@@ -431,6 +491,7 @@ export function useAppointmentDynamicOptions({
   const hasDoctorFilter = selectedDoctorValues.length > 0;
   const hasRoomFilter = roomValue.length > 0;
   const hasServiceFilter = serviceValue.length > 0;
+  const hasProposalFilter = Boolean(currentProposalStatus);
   const hasSearchFilter = Boolean(searchQuery && searchQuery.trim().length > 0);
 
   const activeFilterCount = useMemo(() => {
@@ -442,6 +503,7 @@ export function useAppointmentDynamicOptions({
     if (hasDoctorFilter) count += selectedDoctorValues.length;
     if (hasRoomFilter) count += roomValue.length;
     if (hasServiceFilter) count += serviceValue.length;
+    if (hasProposalFilter) count++;
     return count;
   }, [
     hasSearchFilter,
@@ -451,6 +513,7 @@ export function useAppointmentDynamicOptions({
     hasDoctorFilter,
     hasRoomFilter,
     hasServiceFilter,
+    hasProposalFilter,
     statusValue.length,
     selectedDoctorValues.length,
     roomValue.length,

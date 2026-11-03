@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { roomCandidatesQueryOptions, appointmentKeys } from '../api/queries';
-import { changeAppointmentRoom } from '../api/service';
+import { changeAppointmentRoom, bulkAssignRoom } from '../api/service';
 import { getQueryClient } from '@/lib/query-client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,7 @@ import type { RoomCandidateItem, ChangeRoomPayload } from '../api/types';
 export interface ChangeRoomModalProps {
   isOpen: boolean;
   appointmentId: string;
+  appointmentIds?: string[];
   patientName?: string;
   patientId?: string;
   queueNumber?: string;
@@ -30,6 +31,7 @@ export interface ChangeRoomModalProps {
 export function ChangeRoomModal({
   isOpen,
   appointmentId,
+  appointmentIds,
   patientName = '-',
   patientId: _patientId = '-',
   queueNumber = '-',
@@ -43,8 +45,12 @@ export function ChangeRoomModal({
 }: ChangeRoomModalProps) {
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
 
+  const isBulkMode = Boolean(appointmentIds && appointmentIds.length > 1);
   const isAssignMode =
-    !currentRoomName || currentRoomName === '-' || currentRoomName === 'Belum di-assign';
+    isBulkMode ||
+    !currentRoomName ||
+    currentRoomName === '-' ||
+    currentRoomName === 'Belum di-assign';
 
   const {
     data: rooms = [],
@@ -78,9 +84,16 @@ export function ChangeRoomModal({
   }, [rooms]);
 
   const mutation = useMutation({
-    mutationFn: (payload: ChangeRoomPayload) =>
-      changeAppointmentRoom(payload.appointmentId, payload.roomId),
-    onSuccess: (res) => {
+    mutationFn: async (payload: { appointmentId: string; roomId: string }) => {
+      if (appointmentIds && appointmentIds.length > 1) {
+        return await bulkAssignRoom({
+          appointmentIds,
+          roomId: payload.roomId
+        });
+      }
+      return await changeAppointmentRoom(payload.appointmentId, payload.roomId);
+    },
+    onSuccess: (res: any) => {
       const qc = getQueryClient();
       void qc.invalidateQueries({ queryKey: appointmentKeys.all });
       void qc.invalidateQueries({ queryKey: ['doctor-schedules'] });
@@ -90,14 +103,20 @@ export function ChangeRoomModal({
         return;
       }
 
-      toast.success(res.message, {
-        description: `Janji temu dialihkan ke ${selectedRoom?.name || 'Ruangan baru'}.`,
-        action: onViewAppointment
-          ? {
-              label: 'Lihat Janji Temu',
-              onClick: () => onViewAppointment(appointmentId)
-            }
-          : undefined
+      const msg =
+        appointmentIds && appointmentIds.length > 1
+          ? `Berhasil menugaskan ${selectedRoom?.name || 'ruangan'} ke ${appointmentIds.length} antrean terpilih.`
+          : res?.message || 'Ruangan berhasil dialihkan';
+
+      toast.success(msg, {
+        description: selectedRoom?.name ? `Janji temu dialihkan ke ${selectedRoom.name}.` : undefined,
+        action:
+          onViewAppointment && (!appointmentIds || appointmentIds.length <= 1)
+            ? {
+                label: 'Lihat Janji Temu',
+                onClick: () => onViewAppointment(appointmentId)
+              }
+            : undefined
       });
       onSuccess?.();
       onClose();
@@ -135,23 +154,36 @@ export function ChangeRoomModal({
         <div className='flex items-start justify-between gap-3 pb-3 border-b border-border/40'>
           <div className='space-y-1 min-w-0 flex-1'>
             <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
-              {isAssignMode ? 'Tugaskan Ruangan Pemeriksaan' : 'Ganti Ruangan Pemeriksaan'}
+              {isBulkMode
+                ? `Tugaskan Ruangan (${appointmentIds?.length} Antrean)`
+                : isAssignMode
+                  ? 'Tugaskan Ruangan Pemeriksaan'
+                  : 'Ganti Ruangan Pemeriksaan'}
             </h3>
             <p className='text-xs text-muted-foreground leading-relaxed'>
-              Janji temu untuk <span className='font-semibold text-foreground'>{patientName}</span>
-              {queueNumber && queueNumber !== '-' ? ` dengan nomor antrean ${queueNumber}` : ''}
-              {!isAssignMode && currentRoomName && currentRoomName !== '-'
-                ? `, saat ini ditempatkan di ${currentRoomName}`
-                : ''}
-              .
-              {onViewAppointment && (
-                <button
-                  type='button'
-                  onClick={() => onViewAppointment(appointmentId)}
-                  className='text-xs font-semibold text-primary hover:underline cursor-pointer ml-1.5 inline-block'
-                >
-                  Lihat Pasien
-                </button>
+              {isBulkMode ? (
+                <span>
+                  Pilih ruangan periksa untuk seluruh{' '}
+                  <span className='font-semibold text-foreground'>{appointmentIds?.length} antrean terpilih</span>.
+                </span>
+              ) : (
+                <>
+                  Janji temu untuk <span className='font-semibold text-foreground'>{patientName}</span>
+                  {queueNumber && queueNumber !== '-' ? ` dengan nomor antrean ${queueNumber}` : ''}
+                  {!isAssignMode && currentRoomName && currentRoomName !== '-'
+                    ? `, saat ini ditempatkan di ${currentRoomName}`
+                    : ''}
+                  .
+                  {onViewAppointment && (
+                    <button
+                      type='button'
+                      onClick={() => onViewAppointment(appointmentId)}
+                      className='text-xs font-semibold text-primary hover:underline cursor-pointer ml-1.5 inline-block'
+                    >
+                      Lihat Pasien
+                    </button>
+                  )}
+                </>
               )}
             </p>
           </div>

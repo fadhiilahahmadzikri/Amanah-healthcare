@@ -11,6 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { ReservationModal } from '@/features/klinik/components/reservation/reservation-modal';
 import { AppointmentCancellationModal } from './appointment-cancellation-modal';
+import { ChangeRoomModal } from './change-room-modal';
 import { useBulkAppointmentOperations } from '../hooks/useBulkAppointmentOperations';
 import type { AdminAppointment } from '../api/types';
 
@@ -36,8 +37,6 @@ export function AppointmentBulkActions({ table, onRefresh }: AppointmentBulkActi
   const [closeOldSchedule, setCloseOldSchedule] = useState(false);
 
   const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
-  const [selectedRoomId, setSelectedRoomId] = useState('');
-
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
@@ -58,17 +57,6 @@ export function AppointmentBulkActions({ table, onRefresh }: AppointmentBulkActi
     setSelectedDoctorId('');
     setDoctorReason('');
     setCloseOldSchedule(false);
-  };
-
-  const handleConfirmRoom = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedRoomId) return;
-    await bulkOps.assignRoom({
-      appointmentIds,
-      roomId: selectedRoomId
-    });
-    setIsRoomModalOpen(false);
-    setSelectedRoomId('');
   };
 
   return (
@@ -241,72 +229,17 @@ export function AppointmentBulkActions({ table, onRefresh }: AppointmentBulkActi
         </div>
       </ModalWrapper>
 
-      {/* MODAL 2: TUGASKAN RUANGAN */}
-      <ModalWrapper
+      {/* MODAL 2: TUGASKAN RUANGAN (REUSE ChangeRoomModal) */}
+      <ChangeRoomModal
         isOpen={isRoomModalOpen}
+        appointmentId={appointmentIds[0] || ''}
+        appointmentIds={appointmentIds}
         onClose={() => setIsRoomModalOpen(false)}
-        maxWidth='max-w-md'
-      >
-        <div className='p-6'>
-          <div className='flex items-center gap-3 mb-4'>
-            <div className='size-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary'>
-              <IconDoor className='size-5' />
-            </div>
-            <div>
-              <h3 className='text-base font-bold text-foreground'>
-                Tugaskan Ruangan ({selectedCount} Antrean)
-              </h3>
-              <p className='text-xs text-muted-foreground'>
-                Pilih ruangan periksa untuk seluruh antrean yang dipilih.
-              </p>
-            </div>
-          </div>
-
-          <form onSubmit={handleConfirmRoom} className='space-y-4'>
-            <div className='space-y-1.5'>
-              <Label htmlFor='bulk-room-select' className='text-xs font-semibold'>
-                Ruangan Periksa <span className='text-destructive'>*</span>
-              </Label>
-              <select
-                id='bulk-room-select'
-                value={selectedRoomId}
-                onChange={(e) => setSelectedRoomId(e.target.value)}
-                required
-                className='w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring'
-              >
-                <option value=''>-- Pilih Ruangan --</option>
-                {bulkOps.rooms.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.name} {r.location ? `(${r.location})` : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className='flex items-center justify-end gap-2 pt-3 border-t border-border/50'>
-              <Button
-                type='button'
-                variant='outline'
-                size='sm'
-                onClick={() => setIsRoomModalOpen(false)}
-                disabled={bulkOps.isAssigningRoom}
-              >
-                Batal
-              </Button>
-              <Button type='submit' size='sm' disabled={!selectedRoomId || bulkOps.isAssigningRoom}>
-                {bulkOps.isAssigningRoom ? (
-                  <>
-                    <Icons.spinner className='size-3.5 animate-spin mr-1.5' />
-                    Menugaskan...
-                  </>
-                ) : (
-                  'Tugaskan Ruangan'
-                )}
-              </Button>
-            </div>
-          </form>
-        </div>
-      </ModalWrapper>
+        onSuccess={() => {
+          table.resetRowSelection();
+          onRefresh?.();
+        }}
+      />
 
       {/* MODAL 3: JADWALKAN ULANG (RESCHEDULE - MENGGUNAKAN RESERVATION MODAL) */}
       <ReservationModal

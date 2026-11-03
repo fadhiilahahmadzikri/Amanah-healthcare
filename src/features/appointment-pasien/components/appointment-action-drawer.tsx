@@ -98,6 +98,24 @@ export function AppointmentActionDrawer({
           </div>
         </DrawerHeader>
 
+        {appointment.hasPendingProposal && (
+          <div className='mx-4 mt-3 p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-300 text-xs flex items-center justify-between'>
+            <div className='flex items-center gap-2'>
+              <Icons.clock className='size-4 text-amber-600 dark:text-amber-400 shrink-0' />
+              <div>
+                <p className='font-semibold'>
+                  {appointment.pendingProposalType === 'cancellation'
+                    ? 'Menunggu Persetujuan Pembatalan Pasien'
+                    : 'Menunggu Persetujuan Reschedule Pasien'}
+                </p>
+                <p className='text-[11px] text-muted-foreground'>
+                  Usulan telah diajukan ke pasien dan sedang menunggu respon.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 3-Column Grid Actions */}
         <div className='p-4 pt-3 max-h-[55vh] overflow-y-auto select-none'>
           <div className='grid grid-cols-3 gap-2.5'>

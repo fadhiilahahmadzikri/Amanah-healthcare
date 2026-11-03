@@ -120,6 +120,8 @@ export function AppointmentTable() {
     units: navigationData?.units,
     currentUnitId: appointmentTable.currentUnitId,
     onSelectUnit: (unitId) => void appointmentTable.setUnitId(unitId),
+    currentProposalStatus: appointmentTable.currentProposalStatus,
+    onSelectProposalStatus: (status) => void appointmentTable.setProposalStatus(status),
     onReset: appointmentTable.resetFilters
   });
 

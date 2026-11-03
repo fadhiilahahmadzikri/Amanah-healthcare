@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Icons } from '@/components/icons';
 import { useMyPendingProposals } from '../hooks/use-my-pending-proposals';
 
@@ -72,9 +71,7 @@ function ProposalCountdownBadge({ expiresAt }: { expiresAt?: string }) {
           : 'text-muted-foreground'
       }`}
     >
-      {timeLeft.isExpired
-        ? 'Kedaluwarsa'
-        : `Sisa waktu: ${timeLeft.formatted}`}
+      {timeLeft.formatted}
     </span>
   );
 }
@@ -101,24 +98,24 @@ export function PendingProposalBanner({
 
   return (
     <div className='flex flex-col gap-2 shrink-0'>
-      <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:px-4 sm:py-3 rounded-lg border border-border/60 bg-muted/30 text-foreground transition-colors'>
-        <div className='flex flex-col gap-1 min-w-0'>
+      <div className='relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:px-4 sm:py-3.5 rounded-xl border border-border/60 bg-transparent text-foreground transition-colors'>
+        {/* Top-Right Countdown Timer */}
+        <div className='absolute top-3 right-3 sm:static sm:order-last shrink-0'>
+          <ProposalCountdownBadge expiresAt={proposal.expiresAt} />
+        </div>
+
+        <div className='flex flex-col gap-1 min-w-0 pr-16 sm:pr-0'>
           <div className='flex items-center gap-2 flex-wrap'>
-            <Badge
-              variant='outline'
-              className='text-[10px] font-medium tracking-tight uppercase px-1.5 py-0 border-border/50'
-            >
-              {isReschedule ? 'Usulan Jadwal Baru' : 'Usulan Pembatalan'}
-            </Badge>
-            <span className='text-xs font-semibold tracking-tight'>
-              {proposal.bookingCode}
-            </span>
+            {proposal.serviceName && (
+              <span className='text-xs font-semibold text-foreground tracking-tight'>
+                {proposal.serviceName}
+              </span>
+            )}
             {proposal.patientName && (
               <span className='text-xs text-muted-foreground truncate'>
                 ({proposal.patientName})
               </span>
             )}
-            <ProposalCountdownBadge expiresAt={proposal.expiresAt} />
           </div>
 
           <div className='text-xs text-muted-foreground'>
