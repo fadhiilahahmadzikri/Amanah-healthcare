@@ -560,6 +560,7 @@ export function AppointmentDetailOrganism({
           serviceName,
           poliklinikId: appointment.poliklinik_id || '',
           mode: 'reschedule',
+          audience: effectiveAudience,
           appointmentId: String(appointment.id),
           currentDate: appointment.date,
           currentSession: appointment.session || undefined,

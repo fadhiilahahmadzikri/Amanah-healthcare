@@ -6,6 +6,7 @@ import type { ServiceCatalogItem } from '../../api/catalog.service';
 import type { PatientAffiliationProfile } from '@/features/data-pasien/api/patient-affiliation-service';
 import { formatClinicDate } from '@/lib/date-format';
 import { formatFriendlyVisitType, type CanonicalVisitType } from '@/constants/visit-type.constants';
+import { AUDIENCE, type AudienceType } from '@/core/auth/permissions.constants';
 
 export interface BookingConfirmationStepProps {
   selectedService: ServiceCatalogItem | null;
@@ -16,6 +17,7 @@ export interface BookingConfirmationStepProps {
   visitType: CanonicalVisitType | string;
   complaint: string;
   mode?: 'create' | 'reschedule';
+  audience?: AudienceType;
   reason?: string;
   onReasonChange?: (reason: string) => void;
   appointmentCount?: number;
@@ -30,11 +32,13 @@ export function BookingConfirmationStep({
   visitType,
   complaint,
   mode = 'create',
+  audience,
   reason,
   onReasonChange,
   appointmentCount
 }: BookingConfirmationStepProps) {
   const isReschedule = mode === 'reschedule';
+  const isInternalProposal = isReschedule && audience === AUDIENCE.INTERNAL;
   const displaySession = sessionLabel || session || '';
   const displayServiceName = selectedService?.name ?? '';
   const displayPatientName = selectedPatient?.fullName ?? '';
@@ -45,14 +49,18 @@ export function BookingConfirmationStep({
       <div>
         <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
           {isReschedule
-            ? isBulk
-              ? `Pengajuan jadwal baru untuk ${appointmentCount} antrean`
-              : 'Cek ringkasan jadwal baru janji temu ✨'
+            ? isInternalProposal
+              ? isBulk
+                ? `Pengajuan jadwal baru untuk ${appointmentCount} antrean`
+                : 'Cek ringkasan jadwal baru janji temu ✨'
+              : 'Cek ringkasan jadwal baru kamu ✨'
             : 'Cek lagi ringkasan janji temu kamu ya ✨'}
         </h3>
         <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
           {isReschedule
-            ? 'Pastikan tanggal dan sesi baru sudah sesuai sebelum diajukan ke pasien.'
+            ? isInternalProposal
+              ? 'Pastikan tanggal dan sesi baru sudah sesuai sebelum diajukan ke pasien.'
+              : 'Pastikan tanggal dan sesi baru sudah sesuai sebelum disimpan.'
             : 'Pastikan semua data sudah sesuai sebelum tiket antrean resmi diterbitkan.'}
         </p>
       </div>
@@ -95,7 +103,7 @@ export function BookingConfirmationStep({
           <span className='font-bold text-primary'>{displaySession}</span>
         </div>
 
-        {isReschedule && (
+        {isInternalProposal && (
           <div className='py-2.5 space-y-1.5 border-b border-border'>
             <label htmlFor='reschedule-reason' className='text-muted-foreground font-normal block'>
               Alasan Pengajuan Jadwal Ulang
@@ -132,7 +140,9 @@ export function BookingConfirmationStep({
         <Icons.info className='size-4 text-primary shrink-0' />
         <span>
           {isReschedule
-            ? 'Usulan perubahan jadwal akan dikirimkan kepada pasien via notifikasi. Janji temu akan berpindah setelah disetujui pasien.'
+            ? isInternalProposal
+              ? 'Usulan perubahan jadwal akan dikirimkan kepada pasien via notifikasi. Janji temu akan berpindah setelah disetujui pasien.'
+              : 'Setelah disimpan, jadwal janji temu Anda akan langsung diperbarui ke tanggal dan sesi baru yang dipilih.'
             : 'Setelah disimpan, tiket nomor antrean resmi klinik akan langsung terbit. Dokter dan ruangan konsultasi ditetapkan saat giliran dipanggil.'}
         </span>
       </div>

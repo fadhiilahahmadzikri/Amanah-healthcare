@@ -32,6 +32,8 @@ import { VISIT_TYPE } from '@/constants/visit-type.constants';
 import { formatClinicTime, getClinicTodayDateString } from '@/lib/date-format';
 import { useClinicTimeConfig } from '@/features/klinik/model/useClinicTimeConfig';
 import { requestImplicitWebPushRegistration } from '@/features/notifications';
+import { useAuthContext } from '@/lib/rbac/auth-context';
+import { AUDIENCE, PERMISSIONS, type AudienceType } from '@/core/auth/permissions.constants';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,7 +60,7 @@ export interface ReservationContext {
   appointmentId?: string;
   appointmentIds?: string[];
   appointmentCount?: number;
-  initiator?: 'admin' | 'patient';
+  audience?: AudienceType;
   currentDate?: string;
   currentSession?: string;
   queueNumber?: string;
@@ -73,6 +75,10 @@ export interface ReservationModalProps {
 
 export function ReservationModal({ isOpen, context, onClose, onSuccess }: ReservationModalProps) {
   const queryClient = useQueryClient();
+  const { audience: authAudience, can } = useAuthContext();
+  const effectiveAudience = context?.audience ?? authAudience ?? AUDIENCE.EXTERNAL;
+  const isInternalAdmin =
+    effectiveAudience === AUDIENCE.INTERNAL && can(PERMISSIONS.APPOINTMENTS.MANAGE);
   const { config: clinicTimeConfig } = useClinicTimeConfig();
   const clinicTodayStr = React.useMemo(() => {
     return clinicTimeConfig?.today || getClinicTodayDateString();
@@ -186,7 +192,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
           throw new Error('Sesi dinas tujuan wajib dipilih');
         }
 
-        if (context.initiator === 'patient') {
+        if (!isInternalAdmin) {
           const res = await rescheduleAppointmentAction(effectiveIds[0], {
             target_date: dateStr,
             session: session,
@@ -388,6 +394,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
                 visitType={VISIT_TYPE.NEW_VISIT}
                 complaint={context.complaint || ''}
                 mode={context.mode || 'create'}
+                audience={effectiveAudience}
                 reason={reason}
                 onReasonChange={setReason}
                 appointmentCount={context.appointmentCount || context.appointmentIds?.length}
@@ -478,7 +485,9 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
                       ? 'Memproses...'
                       : 'Memproses antrean...'
                     : isReschedule
-                      ? 'Ajukan Jadwal Ulang'
+                      ? isInternalAdmin
+                        ? 'Ajukan Jadwal Ulang'
+                        : 'Konfirmasi Jadwal Baru'
                       : 'Buat Janji Temu'}
                 </Button>
               )}

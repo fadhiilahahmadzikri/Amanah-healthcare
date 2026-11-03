@@ -24,6 +24,7 @@ import { PendingProposalBanner } from './pending-proposal-banner';
 import { ProposalInboxModal } from './proposal-inbox-modal';
 import { ReservationModal, type ReservationContext } from './reservation/reservation-modal';
 import { type MyPendingProposal, useMyPendingProposals } from '../hooks/use-my-pending-proposals';
+import { AUDIENCE } from '@/core/auth/permissions.constants';
 
 type AppointmentModalSubmit = ComponentProps<typeof AppointmentModal>['onSubmit'];
 
@@ -45,6 +46,7 @@ export function AppointmentsView() {
       serviceName: proposal.serviceName || undefined,
       poliklinikId: proposal.poliklinikId || undefined,
       mode: 'reschedule',
+      audience: AUDIENCE.EXTERNAL,
       appointmentId: proposal.appointmentId,
       currentDate: proposal.originalDate,
       currentSession: proposal.originalSessionId || undefined,

@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { ReservationModal } from '@/features/klinik/components/reservation/reservation-modal';
+import { AUDIENCE } from '@/core/auth/permissions.constants';
 import { AppointmentCancellationModal } from './appointment-cancellation-modal';
 import { ChangeRoomModal } from './change-room-modal';
 import { useBulkAppointmentOperations } from '../hooks/useBulkAppointmentOperations';
@@ -285,7 +286,7 @@ export function AppointmentBulkActions({ table, onRefresh }: AppointmentBulkActi
           mode: 'reschedule',
           appointmentIds,
           appointmentCount: selectedCount,
-          initiator: 'admin'
+          audience: AUDIENCE.INTERNAL
         }}
         onClose={() => setIsRescheduleModalOpen(false)}
         onSuccess={() => {

@@ -203,6 +203,26 @@ export function useAppointmentTable({
     return () => observer.disconnect();
   }, [handleObserver, infiniteQuery.hasNextPage]);
 
+  const { refetch } = infiniteQuery;
+
+  useEffect(() => {
+    const handleSync = () => {
+      void refetch();
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('clinic:appointment_updated', handleSync);
+      window.addEventListener('clinic:notification_received', handleSync);
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('clinic:appointment_updated', handleSync);
+        window.removeEventListener('clinic:notification_received', handleSync);
+      }
+    };
+  }, [refetch]);
+
   const { table } = useDataTable({
     data: appointments,
     columns,

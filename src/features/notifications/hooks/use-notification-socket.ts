@@ -39,6 +39,18 @@ export interface AppointmentCalledPayload {
   room: string;
 }
 
+export interface CheckInWindowOpenedPayload {
+  appointmentId: string;
+  scheduledDate: string;
+  scheduledStartTime?: string | null;
+  queueNumber?: number | string | null;
+  patientName?: string | null;
+  patientUserId?: string | null;
+  doctorName?: string | null;
+  roomName?: string | null;
+  serviceName?: string | null;
+}
+
 export type RealtimeConnectionStatus =
   | 'idle'
   | 'fetching_ticket'
@@ -324,6 +336,50 @@ export function useNotificationSocket(callbacks?: {
       }
     };
 
+    const handleAppointmentsUpdated = (payload: unknown) => {
+      reconcile();
+      void queryClient.refetchQueries({ queryKey: appointmentKeys.all, type: 'active' });
+      void queryClient.refetchQueries({ queryKey: klinikKeys.all, type: 'active' });
+      void queryClient.refetchQueries({
+        queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES],
+        type: 'active'
+      });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clinic:appointment_updated', { detail: payload }));
+      }
+    };
+
+    const handleCheckInWindowOpened = (payload: CheckInWindowOpenedPayload) => {
+      reconcile();
+      void queryClient.refetchQueries({ queryKey: appointmentKeys.all, type: 'active' });
+      void queryClient.refetchQueries({ queryKey: klinikKeys.all, type: 'active' });
+      void queryClient.refetchQueries({
+        queryKey: [SCHEDULE_QUERY_KEYS.SCHEDULES],
+        type: 'active'
+      });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clinic:appointment_updated', { detail: payload }));
+      }
+
+      const queueDisplay = payload?.queueNumber ? `Antrean ${payload.queueNumber}` : 'Janji Temu';
+      const patientDisplay = payload?.patientName || 'Pasien';
+      const timeDisplay = payload?.scheduledStartTime
+        ? `pukul ${payload.scheduledStartTime.slice(0, 5)} WIB`
+        : '';
+
+      if (viewerAudience === AUDIENCE.INTERNAL) {
+        toast.info(
+          `Waktu Check-In Dibuka: ${queueDisplay} (${patientDisplay}) ${timeDisplay} telah memasuki jendela check-in.`,
+          { duration: 6000 }
+        );
+      } else {
+        toast.info(
+          `Waktu Check-In Dibuka: ${queueDisplay} Anda ${timeDisplay} telah dapat melakukan check-in di klinik.`,
+          { duration: 6000 }
+        );
+      }
+    };
+
     const handleQueuePositionShifted = (payload: unknown) => {
       reconcile();
       void queryClient.refetchQueries({ queryKey: appointmentKeys.all, type: 'active' });
@@ -558,6 +614,9 @@ export function useNotificationSocket(callbacks?: {
     socket.on('appointment.patient_called', handleAppointmentCalled);
     socket.on('appointment:status_changed', handleAppointmentStatusChanged);
     socket.on('appointment.status_changed', handleAppointmentStatusChanged);
+    socket.on('appointments:updated', handleAppointmentsUpdated);
+    socket.on('appointment:updated', handleAppointmentsUpdated);
+    socket.on('appointment:check_in_window_opened', handleCheckInWindowOpened);
     socket.on('queue:position_shifted', handleQueuePositionShifted);
     socket.on('appointment:proposal_created', handleAppointmentProposal);
     socket.on('appointment:proposal_resolved', handleAppointmentProposal);
@@ -588,6 +647,9 @@ export function useNotificationSocket(callbacks?: {
       socket.off('appointment.patient_called', handleAppointmentCalled);
       socket.off('appointment:status_changed', handleAppointmentStatusChanged);
       socket.off('appointment.status_changed', handleAppointmentStatusChanged);
+      socket.off('appointments:updated', handleAppointmentsUpdated);
+      socket.off('appointment:updated', handleAppointmentsUpdated);
+      socket.off('appointment:check_in_window_opened', handleCheckInWindowOpened);
       socket.off('queue:position_shifted', handleQueuePositionShifted);
       socket.off('appointment:proposal_created', handleAppointmentProposal);
       socket.off('appointment:proposal_resolved', handleAppointmentProposal);

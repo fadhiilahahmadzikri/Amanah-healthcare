@@ -30,6 +30,7 @@ import { AppointmentCheckInQrModal } from '../appointment-check-in-qr-modal';
 import { ChangeDoctorModal } from '../change-doctor-modal';
 import { ChangeRoomModal } from '../change-room-modal';
 import { ReservationModal } from '@/features/klinik/components/reservation/reservation-modal';
+import { AUDIENCE } from '@/core/auth/permissions.constants';
 import { AppointmentMobileCards } from '../appointment-mobile-cards';
 import { AppointmentActionDrawer } from '../appointment-action-drawer';
 import { AppointmentExportButton } from '../appointment-export-button';
@@ -319,6 +320,7 @@ export function AppointmentTable() {
             serviceName: appointmentTable.selectedAppointment.layananName ?? undefined,
             poliklinikId: appointmentTable.selectedAppointment.poliklinikId ?? undefined,
             mode: 'reschedule',
+            audience: AUDIENCE.INTERNAL,
             appointmentId: String(appointmentTable.selectedAppointment.id),
             currentDate: appointmentTable.selectedAppointment.scheduledDate,
             currentSession: appointmentTable.selectedAppointment.session ?? undefined,
