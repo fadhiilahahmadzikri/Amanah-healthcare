@@ -142,8 +142,7 @@ export function buildComplaintText(
   complaintFieldId: string,
   values: MedicalAppointmentValues
 ): string {
-  const complaint = values[complaintFieldId]?.trim();
-  return complaint || '';
+  return values[complaintFieldId]?.trim() || '';
 }
 
 export function checkCurrentStepValid(

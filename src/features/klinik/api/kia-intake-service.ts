@@ -233,7 +233,7 @@ export interface ChildImmunizationResponse extends CreateChildImmunizationPayloa
 }
 
 export interface FormRequirementData {
-  flow: 'immunization' | 'pregnancy' | 'general';
+  flow?: string | null;
   serviceId: string;
   serviceName: string;
   isExistingPatient: boolean;

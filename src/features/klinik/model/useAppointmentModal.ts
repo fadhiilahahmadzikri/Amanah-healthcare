@@ -396,7 +396,7 @@ export function useAppointmentModal({
           setIsResolvingMedicalFlow(false);
         }
       }
-      setActiveMedicalFlow(intakeCode || 'general');
+      setActiveMedicalFlow(intakeCode ?? null);
       return;
     }
 
@@ -419,7 +419,7 @@ export function useAppointmentModal({
           setIsResolvingMedicalFlow(false);
         }
       }
-      setActiveMedicalFlow(intakeCode || 'general');
+      setActiveMedicalFlow(intakeCode ?? null);
       return;
     }
 

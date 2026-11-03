@@ -5,6 +5,7 @@ import type { PatientBloodType } from '@/constants/blood-type.constants';
 import { getRelationshipLabel } from '@/constants/relationship.constants';
 import type { CanonicalVisitType } from '@/constants/visit-type.constants';
 import type { QueueLoadStatus } from '@/features/klinik/constants/queue-load.constants';
+import type { FormJsonSchema } from '@/features/klinik/constants/default-form-template';
 export { UNKNOWN_BLOOD_TYPE, type PatientBloodType } from '@/constants/blood-type.constants';
 
 export interface PatientAffiliationProfile {
@@ -103,8 +104,8 @@ export interface BookingServiceContextResponse {
   intakeFormId?: string | null;
   intakeFormCode?: string | null;
   intakeFormName?: string | null;
-  formType: string;
-  formSchema?: Record<string, any> | null;
+  formType?: string | null;
+  formSchema?: FormJsonSchema | null;
   allowedRelationships: BookingContextAllowedRelationship[];
   patients: BookingContextPatient[];
   totalPatients: number;

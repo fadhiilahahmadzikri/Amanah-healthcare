@@ -4,7 +4,11 @@ import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { kiaIntakeService } from '../api/kia-intake-service';
 import { klinikKeys } from '../api/query-keys';
-import type { MedicalFlowDefinition } from '../constants/medical-appointment-types';
+import type {
+  MedicalFlowDefinition,
+  MedicalFormField,
+  MedicalFormSection
+} from '../constants/medical-appointment-types';
 
 export interface MaternalCatalogs {
   educationChoices?: string[];
@@ -65,8 +69,10 @@ export function enrichMedicalFlowDefinition(
     return definition;
   }
 
-  const sections = definition.sections.map((section) => {
-    const fields = section.fields.map((f) => {
+  const sections = (definition.sections || [])
+    .filter((section): section is MedicalFormSection => Boolean(section && Array.isArray(section.fields)))
+    .map((section) => {
+    const fields = section.fields.map((f: MedicalFormField) => {
       if (f.id === 'motherEducation' && catalogs.educationChoices?.length) {
         return { ...f, choices: catalogs.educationChoices };
       }

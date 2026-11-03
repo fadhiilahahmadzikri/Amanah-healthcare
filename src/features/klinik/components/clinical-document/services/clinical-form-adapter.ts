@@ -1,10 +1,6 @@
-import type {
-  UnifiedInspectorData,
-  EditableMaternalData,
-  EditableImmunizationData,
-  EditableRegularData
-} from '../../inspector/types';
+import type { UnifiedInspectorData } from '../../inspector/types';
 import type { Appointment } from '../../../api/types';
+import type { FormJsonSchema } from '../../../constants/default-form-template';
 import type {
   PmbFormData,
   ImunisasiFormData,
@@ -15,6 +11,21 @@ import type {
 import { getGenderLabel } from '@/constants/gender.constants';
 import { getRelationshipLabel } from '@/constants/relationship.constants';
 import { formatClinicDate } from '@/lib/date-format';
+
+function getInactiveFieldIds(schema?: FormJsonSchema | Record<string, any> | null): Set<string> {
+  const inactive = new Set<string>();
+  if (!schema || !Array.isArray(schema.steps)) return inactive;
+  for (const step of schema.steps) {
+    if (step && Array.isArray(step.fields)) {
+      for (const field of step.fields) {
+        if (field && field.isActive === false && field.id) {
+          inactive.add(field.id);
+        }
+      }
+    }
+  }
+  return inactive;
+}
 
 /**
  * Maps raw gender string to formal presentation label
@@ -159,88 +170,71 @@ const VACCINE_SCHEDULE_DEFINITIONS: VaccineScheduleDef[] = [
 
 /**
  * Adapter from upstream UnifiedInspectorData to 1:1 PmbFormData (ANC & KB)
- * Prioritizes live in-flight form data when editing so preview & downloads reflect live state.
  */
 export function adaptToPmbFormData(
   data: UnifiedInspectorData,
   appointment?: Appointment,
-  liveMaternal?: EditableMaternalData
+  schema?: FormJsonSchema | Record<string, any> | null
 ): PmbFormData {
   const m = data.maternal;
   const p = data.patient;
-  const _answers = data.answers || {};
+  const inactive = getInactiveFieldIds(schema);
+  const isFieldActive = (id: string) => !inactive.has(id);
 
-  const motherName = liveMaternal?.motherName || m?.motherName || p?.fullName || '-';
-  const marriageOrder = liveMaternal?.marriageOrder
-    ? String(liveMaternal.marriageOrder)
-    : m?.marriageOrder
-      ? String(m.marriageOrder)
-      : '1';
-  const rawMarriageDate = liveMaternal?.marriageDate || m?.marriageDate;
+  const motherName = isFieldActive('motherName') ? (m?.motherName || p?.fullName || '-') : '-';
+  const marriageOrder = isFieldActive('marriageOrder') ? (m?.marriageOrder ? String(m.marriageOrder) : '1') : '-';
+  const rawMarriageDate = isFieldActive('marriageDate') ? m?.marriageDate : undefined;
   const marriageDate = rawMarriageDate
     ? formatClinicDate(rawMarriageDate, { style: 'human_full' })
     : '-';
-  const motherNik = liveMaternal?.motherNik || m?.motherNik || p?.nik || '-';
-  const rawMotherBirthDate = liveMaternal?.motherBirthDate || m?.motherBirthDate || p?.birthDate;
+  const motherNik = isFieldActive('motherNik') ? (m?.motherNik || p?.nik || '-') : '-';
+  const rawMotherBirthDate = isFieldActive('motherBirthDate') ? (m?.motherBirthDate || p?.birthDate) : undefined;
   const motherBirthDate = rawMotherBirthDate
     ? formatClinicDate(rawMotherBirthDate, { style: 'human_full' })
     : '-';
-  const motherAge = liveMaternal?.motherAge
-    ? `${liveMaternal.motherAge} tahun`
-    : m?.motherAge
-      ? `${m.motherAge} tahun`
-      : '-';
-  const motherJob = liveMaternal?.motherJob || m?.motherJob || p?.occupation || '-';
-  const motherEducation = liveMaternal?.motherEducation || m?.motherEducation || '-';
+  const motherAge = isFieldActive('motherAge') ? (m?.motherAge ? `${m.motherAge} tahun` : '-') : '-';
+  const motherJob = isFieldActive('motherJob') ? (m?.motherJob || p?.occupation || '-') : '-';
+  const motherEducation = isFieldActive('motherEducation') ? (m?.motherEducation || '-') : '-';
 
-  const partnerName = liveMaternal?.partnerName || m?.partnerName || '-';
-  const partnerAge = liveMaternal?.partnerAge
-    ? `${liveMaternal.partnerAge} tahun`
-    : m?.partnerAge
-      ? `${m.partnerAge} tahun`
-      : '-';
-  const partnerNik = liveMaternal?.partnerNik || m?.partnerNik || '-';
-  const rawPartnerBirthDate = liveMaternal?.partnerBirthDate || m?.partnerBirthDate;
+  const partnerName = isFieldActive('partnerName') ? (m?.partnerName || '-') : '-';
+  const partnerAge = isFieldActive('partnerAge') ? (m?.partnerAge ? `${m.partnerAge} tahun` : '-') : '-';
+  const partnerNik = isFieldActive('partnerNik') ? (m?.partnerNik || '-') : '-';
+  const rawPartnerBirthDate = isFieldActive('partnerBirthDate') ? m?.partnerBirthDate : undefined;
   const partnerBirthDate = rawPartnerBirthDate
     ? formatClinicDate(rawPartnerBirthDate, { style: 'human_full' })
     : '-';
-  const partnerJob = liveMaternal?.partnerJob || m?.partnerJob || '-';
-  const partnerEducation = liveMaternal?.partnerEducation || m?.partnerEducation || '-';
+  const partnerJob = isFieldActive('partnerJob') ? (m?.partnerJob || '-') : '-';
+  const partnerEducation = isFieldActive('partnerEducation') ? (m?.partnerEducation || '-') : '-';
 
   const fullRows = [
-    liveMaternal?.religion || m?.religion || 'Islam',
-    liveMaternal?.domicileAddress || m?.domicileAddress || p?.address || '-',
-    liveMaternal?.identityCardAddress || m?.identityCardAddress || p?.address || '-',
-    liveMaternal?.phoneNumber || m?.phoneNumber || p?.phone || '-'
+    isFieldActive('religion') ? (m?.religion || '-') : '-',
+    isFieldActive('domicileAddress') ? (m?.domicileAddress || p?.address || '-') : '-',
+    isFieldActive('identityCardAddress') ? (m?.identityCardAddress || p?.address || '-') : '-',
+    isFieldActive('phoneNumber') ? (m?.phoneNumber || p?.phone || '-') : '-'
   ];
 
   const locationValues = [
-    liveMaternal?.dasawisma || m?.dasawisma || '-',
-    liveMaternal?.posyandu || m?.posyandu || '-',
-    liveMaternal?.puskesmas || m?.puskesmas || '-'
+    isFieldActive('dasawisma') ? (m?.dasawisma || '-') : '-',
+    isFieldActive('posyandu') ? (m?.posyandu || '-') : '-',
+    isFieldActive('puskesmas') ? (m?.puskesmas || '-') : '-'
   ];
 
-  const motherBlood = (
-    liveMaternal?.motherBloodType ||
-    m?.motherBloodType ||
-    p?.bloodType ||
-    '-'
-  ).toUpperCase();
-  const partnerBlood = (liveMaternal?.partnerBloodType || m?.partnerBloodType || '-').toUpperCase();
+  const motherBlood = (m?.motherBloodType || p?.bloodType || '-').toUpperCase();
+  const partnerBlood = (m?.partnerBloodType || '-').toUpperCase();
 
-  const rawHeight = liveMaternal?.heightCm ?? m?.heightCm;
+  const rawHeight = m?.heightCm;
   const tb = rawHeight ? `${rawHeight} cm` : '-';
 
-  const rawWeight = liveMaternal?.prePregnancyWeightKg ?? m?.prePregnancyWeightKg;
+  const rawWeight = m?.prePregnancyWeightKg;
   const bbAwal = rawWeight ? `${rawWeight} kg` : '-';
 
-  const rawLila = liveMaternal?.upperArmCircumferenceCm ?? m?.upperArmCircumferenceCm;
+  const rawLila = m?.upperArmCircumferenceCm;
   const lila = rawLila ? `${rawLila} cm` : '-';
 
-  const rawBmi = liveMaternal?.initialBmi ?? m?.initialBmi;
+  const rawBmi = m?.initialBmi;
   const imt = rawBmi ? String(rawBmi) : '-';
 
-  const tetanus = liveMaternal?.tetanusStatus || m?.tetanusStatus || '-';
+  const tetanus = m?.tetanusStatus || '-';
 
   const measurementValues = [
     [tb, lila, tetanus, motherBlood],
@@ -248,23 +242,17 @@ export function adaptToPmbFormData(
   ];
 
   // Anamnesa prompts
-  const rawHpht = liveMaternal?.hpht || m?.hpht;
+  const rawHpht = m?.hpht;
   const hpht = rawHpht ? formatClinicDate(rawHpht, { style: 'human_full' }) : '-';
 
-  const rawHpl = liveMaternal?.estimatedDueDate || m?.estimatedDueDate;
+  const rawHpl = m?.estimatedDueDate;
   const hpl = rawHpl ? formatClinicDate(rawHpl, { style: 'human_full' }) : '-';
 
   const uk =
-    liveMaternal?.gestationalAgeFormatted ||
     m?.gestationalAgeFormatted ||
-    (liveMaternal?.gestationalAgeWeeks
-      ? `${liveMaternal.gestationalAgeWeeks} minggu`
-      : m?.gestationalAgeWeeks
-        ? `${m.gestationalAgeWeeks} minggu`
-        : '-');
+    (m?.gestationalAgeWeeks ? `${m.gestationalAgeWeeks} minggu` : '-');
 
   const keluhan =
-    liveMaternal?.currentComplaints ||
     m?.currentComplaints ||
     appointment?.complaint ||
     data.complaint ||
@@ -272,25 +260,15 @@ export function adaptToPmbFormData(
 
   const riskChecked: Record<string, boolean> = {
     Merokok: Boolean(
-      (liveMaternal?.smokedBeforePregnancy ?? m?.smokedBeforePregnancy) &&
-      (liveMaternal?.smokedBeforePregnancy ?? m?.smokedBeforePregnancy) !== 'no' &&
-      (liveMaternal?.smokedBeforePregnancy ?? m?.smokedBeforePregnancy) !== 'Tidak'
+      m?.smokedBeforePregnancy &&
+      m.smokedBeforePregnancy !== 'no' &&
+      m.smokedBeforePregnancy !== 'Tidak'
     ),
-    'Pola Makan Beresiko': Boolean(
-      liveMaternal?.irregularDietBeforePregnancy ?? m?.irregularDietBeforePregnancy
-    ),
-    'Aktivitas fisik berkurang': Boolean(
-      liveMaternal?.reducedPhysicalActivityBeforePregnancy ??
-      m?.reducedPhysicalActivityBeforePregnancy
-    ),
-    Alkohol: Boolean(liveMaternal?.alcoholBeforePregnancy ?? m?.alcoholBeforePregnancy),
-    'Obat Teratogenik': Boolean(
-      liveMaternal?.unprescribedMedicationBeforePregnancy ??
-      m?.unprescribedMedicationBeforePregnancy
-    ),
-    'Kosmetik dengan zat berbahaya': Boolean(
-      liveMaternal?.concerningCosmeticUseBeforePregnancy ?? m?.concerningCosmeticUseBeforePregnancy
-    )
+    'Pola Makan Beresiko': Boolean(m?.irregularDietBeforePregnancy),
+    'Aktivitas fisik berkurang': Boolean(m?.reducedPhysicalActivityBeforePregnancy),
+    Alkohol: Boolean(m?.alcoholBeforePregnancy),
+    'Obat Teratogenik': Boolean(m?.unprescribedMedicationBeforePregnancy),
+    'Kosmetik dengan zat berbahaya': Boolean(m?.concerningCosmeticUseBeforePregnancy)
   };
 
   // Disease history mapping: Initialize all 14 diseases default to 'tidak'
@@ -299,42 +277,7 @@ export function adaptToPmbFormData(
     diseaseHistory[dKey] = { status: 'tidak' };
   });
 
-  if (liveMaternal?.diseaseHistory) {
-    const dMap = liveMaternal.diseaseHistory;
-    // Map live form fields
-    const liveFieldMappings: [string, string, string?][] = [
-      ['hasHypertensionHistory', 'Hipertensi', 'hypertensionHistoryNotes'],
-      ['hasHeartDiseaseHistory', 'Jantung', 'heartDiseaseHistoryNotes'],
-      ['hasThyroidDiseaseHistory', 'Tiroid', 'thyroidDiseaseHistoryNotes'],
-      ['hasAutoimmuneHistory', 'Autoimun', 'autoimmuneHistoryNotes'],
-      ['hasDiabetesHistory', 'Diabetes', 'diabetesHistoryNotes'],
-      ['hasAsthmaHistory', 'Asma', 'asthmaHistoryNotes'],
-      ['hasTuberculosisHistory', 'TBC', 'tuberculosisHistoryNotes'],
-      ['hasHepatitisBHistory', 'Hepatitis B', 'hepatitisBHistoryNotes'],
-      ['hasHivOrSyphilisHistory', 'HIV/Sifilis', 'hivOrSyphilisHistoryNotes'],
-      ['hasMentalHealthHistory', 'Jiwa', 'mentalHealthHistoryNotes'],
-      ['hasTwinPregnancyHistory', 'Riwayat Gemelli', 'twinPregnancyHistoryNotes'],
-      ['hasCystMyomaTumorHistory', 'Kista/Miom/Tumor', 'cystMyomaTumorHistoryNotes'],
-      ['hasSurgeryHistory', 'Operasi', 'surgeryHistoryNotes'],
-      ['hasOtherDiseaseHistory', '', 'otherDiseaseHistoryYear']
-    ];
-
-    liveFieldMappings.forEach(([fieldKey, targetLabel, noteFieldKey]) => {
-      const has = Boolean(dMap[fieldKey]);
-      const rawYear = noteFieldKey ? dMap[noteFieldKey] : undefined;
-      const year = rawYear ? String(rawYear) : undefined;
-      diseaseHistory[targetLabel] = {
-        status: has ? 'ya' : 'tidak',
-        year: has ? year : undefined
-      };
-      if (targetLabel === '') {
-        diseaseHistory['Lain-lain'] = {
-          status: has ? 'ya' : 'tidak',
-          year: has ? year : undefined
-        };
-      }
-    });
-  } else if (m?.diseaseHistory && typeof m.diseaseHistory === 'object') {
+  if (m?.diseaseHistory && typeof m.diseaseHistory === 'object') {
     for (const [key, val] of Object.entries(m.diseaseHistory)) {
       const targetLabel = DISEASE_CANONICAL_TO_LABEL_MAP[key] ?? key;
       if (typeof val === 'object' && val !== null) {
@@ -349,7 +292,7 @@ export function adaptToPmbFormData(
     }
   }
 
-  // Also support healthConditions array from backend intake if present
+  // Support healthConditions array from backend intake if present
   if (Array.isArray(m?.healthConditions)) {
     m.healthConditions.forEach((c) => {
       if (c.conditionCode) {
@@ -363,7 +306,7 @@ export function adaptToPmbFormData(
   }
 
   // Obstetri rows mapping
-  const sourcePregnancies = liveMaternal?.previousPregnancies || m?.previousPregnancies || [];
+  const sourcePregnancies = m?.previousPregnancies || [];
   const obstetriRows: (string | undefined)[][] = [];
 
   if (Array.isArray(sourcePregnancies) && sourcePregnancies.length > 0) {
@@ -387,7 +330,7 @@ export function adaptToPmbFormData(
   }
 
   // KB rows mapping
-  const sourceKb = liveMaternal?.contraceptiveHistories || m?.contraceptiveHistories || [];
+  const sourceKb = m?.contraceptiveHistories || [];
   const kbRows: (string | undefined)[][] = [];
 
   if (Array.isArray(sourceKb) && sourceKb.length > 0) {
@@ -406,7 +349,7 @@ export function adaptToPmbFormData(
 
   return {
     header: {
-      allergy: liveMaternal?.allergyInfo || m?.allergyInfo || '-',
+      allergy: m?.allergyInfo || '-',
       rmAncCode: p?.medicalRecordNumber || '-'
     },
     identity: {
@@ -424,15 +367,15 @@ export function adaptToPmbFormData(
     anamnesa: {
       promptValues: [hpht, hpl, uk, keluhan],
       riskChecked,
-      environment: liveMaternal?.concerningEnvironmentNotes || m?.concerningEnvironmentNotes || '-',
-      otherLines: [liveMaternal?.otherNotes || m?.otherNotes || '', '', ''],
+      environment: m?.concerningEnvironmentNotes || '-',
+      otherLines: [m?.otherNotes || '', '', ''],
       diseaseHistory
     },
     pregnancyFields: {
-      G: String(liveMaternal?.gravidaCount ?? m?.gravidaCount ?? 1),
-      P: String(liveMaternal?.parityCount ?? m?.parityCount ?? 0),
-      Ab: String(liveMaternal?.abortionCount ?? m?.abortionCount ?? 0),
-      Ah: String(liveMaternal?.livingChildrenCount ?? m?.livingChildrenCount ?? 0)
+      G: String(m?.gravidaCount ?? 1),
+      P: String(m?.parityCount ?? 0),
+      Ab: String(m?.abortionCount ?? 0),
+      Ah: String(m?.livingChildrenCount ?? 0)
     },
     obstetriRows,
     kbRows
@@ -446,27 +389,29 @@ export function adaptToPmbFormData(
 export function adaptToImunisasiFormData(
   data: UnifiedInspectorData,
   appointment?: Appointment,
-  liveImmunization?: EditableImmunizationData
+  schema?: FormJsonSchema | Record<string, any> | null
 ): ImunisasiFormData {
   const c = data.child;
   const p = data.patient;
   const answers = data.answers || {};
+  const inactive = getInactiveFieldIds(schema);
+  const isFieldActive = (id: string) => !inactive.has(id);
 
   const mrn = p?.medicalRecordNumber || '0000000000';
   const cleanDigits = mrn.replace(/\D/g, '').padStart(10, '0').slice(-10);
   const recordDigits = cleanDigits.split('');
 
-  const childName = liveImmunization?.childName || c?.childName || p?.fullName || '-';
-  const childNik = liveImmunization?.childNik || c?.childNik || p?.nik || '-';
-  const rawBirthDate = liveImmunization?.childBirthDate || c?.childBirthDate || p?.birthDate;
+  const childName = isFieldActive('childName') ? (c?.childName || p?.fullName || '-') : '-';
+  const childNik = isFieldActive('childNik') ? (c?.childNik || p?.nik || '-') : '-';
+  const rawBirthDate = isFieldActive('childBirthDate') ? (c?.childBirthDate || p?.birthDate) : undefined;
   const childBirthDate = rawBirthDate
     ? formatClinicDate(rawBirthDate, { style: 'human_full' })
     : '-';
-  const phone = liveImmunization?.parentPhone || c?.parentPhone || p?.phone || '-';
+  const phone = isFieldActive('parentPhone') ? (c?.parentPhone || p?.phone || '-') : '-';
 
-  const fatherName = liveImmunization?.fatherName || c?.fatherName || '-';
-  const motherName = liveImmunization?.motherName || c?.motherName || p?.motherName || '-';
-  const address = liveImmunization?.childAddress || c?.childAddress || p?.address || '-';
+  const fatherName = isFieldActive('fatherName') ? (c?.fatherName || '-') : '-';
+  const motherName = isFieldActive('motherName') ? (c?.motherName || p?.motherName || '-') : '-';
+  const address = isFieldActive('childAddress') ? (c?.childAddress || p?.address || '-') : '-';
 
   // Construct 15 entries strictly mapped to defaultImunisasiConfig.vaccineTable.rows
   const vaccineRows: (VaccineRowData | undefined)[] = Array.from({ length: 15 }, () => undefined);
@@ -479,22 +424,8 @@ export function adaptToImunisasiFormData(
     let matchedAge: string | undefined = undefined;
     let matchedPlanning: string | undefined = undefined;
 
-    // Check live form state first
-    if (liveImmunization?.vaccineValues) {
-      for (const code of def.codes) {
-        const status = liveImmunization.vaccineValues[`vaccine_${code}_status`];
-        const dateVal = liveImmunization.vaccineValues[`vaccine_${code}_date`];
-        if (status === 'Sudah' && dateVal) {
-          matchedDate = formatClinicDate(dateVal, { style: 'human_short' });
-          matchedAge = def.defaultAge;
-          matchedPlanning = def.defaultNotes;
-          break;
-        }
-      }
-    }
-
-    // Fallback to relational entries
-    if (!matchedDate && relationalEntries.length > 0) {
+    // Relational entries from backend
+    if (relationalEntries.length > 0) {
       const match = relationalEntries.find((entry) =>
         def.codes.some(
           (code) =>
@@ -512,7 +443,7 @@ export function adaptToImunisasiFormData(
       }
     }
 
-    // Fallback to raw answers keys
+    // Answers from schema JSONB
     if (!matchedDate && Object.keys(answers).length > 0) {
       for (const code of def.codes) {
         const status = answers[`vaccine_${code}_status`];
@@ -547,9 +478,8 @@ export function adaptToImunisasiFormData(
       rightValues: [fatherName, motherName, address, '']
     },
     preTable: {
-      previousVaccines:
-        liveImmunization?.previousVaccineHistory || c?.previousVaccineHistory || '-',
-      allergy: liveImmunization?.childAllergyHistory || c?.childAllergyHistory || '-'
+      previousVaccines: c?.previousVaccineHistory || '-',
+      allergy: c?.childAllergyHistory || '-'
     },
     vaccineRows
   };
@@ -557,46 +487,38 @@ export function adaptToImunisasiFormData(
 
 /**
  * Adapter from upstream UnifiedInspectorData to 1:1 RegulerFormData (General Intake)
- * Prioritizes live in-flight form data when editing.
  */
 export function adaptToRegulerFormData(
   data: UnifiedInspectorData,
   appointment?: Appointment,
-  liveRegular?: EditableRegularData
+  schema?: FormJsonSchema | Record<string, any> | null
 ): RegulerFormData {
   const p = data.patient;
   const answers = data.answers || {};
+  const inactive = getInactiveFieldIds(schema);
+  const isFieldActive = (id: string) => !inactive.has(id);
 
   const bDate = p?.birthDate;
   const age = bDate ? `${new Date().getFullYear() - new Date(bDate).getFullYear()} Tahun` : '-';
 
-  const complaint =
-    liveRegular?.complaint ||
-    appointment?.complaint ||
-    data.complaint ||
-    answers.complaint ||
-    answers.keluhanUtama ||
-    '-';
+  const complaint = appointment?.complaint || data.complaint || '-';
+  const allergy = answers.allergyHistory || '-';
 
-  const allergy = liveRegular?.allergyHistory || answers.allergy || answers.allergyHistory || '-';
-
-  const heightVal = liveRegular?.heightCm || answers.height || answers.vitalHeightCm;
+  const heightVal = answers.vitalHeightCm;
   const vitalHeightCm = heightVal ? `${heightVal} cm` : '-';
 
-  const weightVal = liveRegular?.weightKg || answers.weight || answers.vitalWeightKg;
+  const weightVal = answers.vitalWeightKg;
   const vitalWeightKg = weightVal ? `${weightVal} kg` : '-';
 
-  const vitalBloodPressure =
-    liveRegular?.bloodPressure || answers.bloodPressure || answers.vitalBloodPressure || '-';
-
-  const additionalNotes = liveRegular?.notes || answers.notes || answers.additionalNotes || '-';
+  const vitalBloodPressure = answers.vitalBloodPressure || '-';
+  const additionalNotes = answers.additionalNotes || '-';
 
   const resolvedAddress = (() => {
-    const l1 = liveRegular?.line1 || p?.line1;
-    const vill = liveRegular?.villageName || p?.villageName;
-    const dist = liveRegular?.districtName || p?.districtName;
-    const reg = liveRegular?.regencyName || p?.regencyName;
-    const prov = liveRegular?.provinceName || p?.provinceName;
+    const l1 = p?.line1;
+    const vill = p?.villageName;
+    const dist = p?.districtName;
+    const reg = p?.regencyName;
+    const prov = p?.provinceName;
     const parts = [
       l1,
       vill ? `Kel. ${vill}` : '',
@@ -604,11 +526,11 @@ export function adaptToRegulerFormData(
       reg,
       prov ? `Prov. ${prov}` : ''
     ].filter(Boolean);
-    return parts.length > 0 ? parts.join(', ') : liveRegular?.address || p?.address || '-';
+    return parts.length > 0 ? parts.join(', ') : p?.address || '-';
   })();
 
   return {
-    medicalRecordNumber: liveRegular?.medicalRecordNumber || p?.medicalRecordNumber || '-',
+    medicalRecordNumber: p?.medicalRecordNumber || '-',
     registrationDate: data.scheduledDate
       ? formatClinicDate(data.scheduledDate, { style: 'human_full' })
       : formatClinicDate(new Date().toISOString(), { style: 'human_full' }),
@@ -618,29 +540,24 @@ export function adaptToRegulerFormData(
     doctorName: appointment?.doctor_name || '-',
     scheduledTime: `${appointment?.scheduled_start_time || data.scheduledStartTime || '-'} WIB`,
     identity: {
-      nik: liveRegular?.nik || p?.nik || '-',
-      fullName: liveRegular?.fullName || p?.fullName || '-',
-      gender: formatGender((liveRegular?.gender as any) || p?.gender),
-      birthDate:
-        liveRegular?.birthDate || bDate
-          ? formatClinicDate(liveRegular?.birthDate || bDate!, { style: 'human_full' })
-          : '-',
-      birthPlace: liveRegular?.birthPlace || p?.birthPlace || '-',
-      age,
-      bloodType: (liveRegular?.bloodType || p?.bloodType || '-').toUpperCase(),
-      motherName: liveRegular?.motherName || p?.motherName || '-',
-      occupation: liveRegular?.occupation || p?.occupation || '-',
-      religion: 'Islam',
-      phoneNumber: liveRegular?.phone || p?.phone || '-',
-      email: p?.email || '-',
-      address: resolvedAddress,
+      nik: isFieldActive('nik') ? (p?.nik || '-') : '-',
+      fullName: isFieldActive('fullName') ? (p?.fullName || '-') : '-',
+      gender: isFieldActive('gender') ? formatGender(p?.gender) : '-',
+      birthDate: isFieldActive('dateOfBirth') && bDate ? formatClinicDate(bDate, { style: 'human_full' }) : '-',
+      birthPlace: isFieldActive('placeOfBirth') ? (p?.birthPlace || '-') : '-',
+      age: isFieldActive('dateOfBirth') ? age : '-',
+      bloodType: isFieldActive('bloodType') ? (p?.bloodType || '-').toUpperCase() : '-',
+      motherName: isFieldActive('motherName') ? (p?.motherName || '-') : '-',
+      occupation: isFieldActive('occupationCode') || isFieldActive('occupation') ? (p?.occupation || '-') : '-',
+      phoneNumber: isFieldActive('phone') ? (p?.phone || '-') : '-',
+      email: isFieldActive('email') ? (p?.email || '-') : '-',
+      address: isFieldActive('region') ? resolvedAddress : '-',
       relationship: getRelationshipLabel(p?.relationshipType)
     },
     emergencyContact: {
-      name: liveRegular?.emergencyContactName || p?.emergencyContactName || '-',
-      relationship:
-        liveRegular?.emergencyContactRelationship || p?.emergencyContactRelationship || '-',
-      phoneNumber: liveRegular?.emergencyContactPhone || p?.emergencyContactPhone || '-'
+      name: p?.emergencyContactName || '-',
+      relationship: p?.emergencyContactRelationship || '-',
+      phoneNumber: p?.emergencyContactPhone || '-'
     },
     clinical: {
       chiefComplaint: complaint,

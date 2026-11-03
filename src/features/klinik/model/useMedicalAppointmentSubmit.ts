@@ -114,15 +114,11 @@ export function useMedicalAppointmentSubmit({
 
             const reservationCtx: ReservationContext = {
               patientId: resolvedPatientId,
-              patientName: resolvedPatientName || 'Pasien',
+              patientName: resolvedPatientName,
               serviceId: selectedService.id,
               serviceName: selectedService.name,
               poliklinikId: selectedService.poliklinikId,
-              complaint:
-                complaint ||
-                (definition.flow === FLOW_NAMES.IMMUNIZATION
-                  ? 'Imunisasi Anak'
-                  : 'Pemeriksaan Persalinan'),
+              complaint: complaint.trim(),
               sourceIntakeId,
               medicalFlow: definition.flow
             };
@@ -144,11 +140,7 @@ export function useMedicalAppointmentSubmit({
         doctor: schedule?.doctor || '',
         dateStr: schedule?.dateStr || '',
         session: schedule?.session || '',
-        complaint:
-          complaint ||
-          (definition.flow === FLOW_NAMES.IMMUNIZATION
-            ? 'Imunisasi Anak'
-            : 'Pemeriksaan Persalinan'),
+        complaint: complaint.trim(),
         patientName: patientName || '',
         patientEmail,
         patientAvatar: registeredPatient?.avatarUrl,

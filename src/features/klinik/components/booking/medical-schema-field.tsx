@@ -36,25 +36,32 @@ export interface MedicalSchemaFieldProps {
   fieldApi: AnyFieldApi;
   schemaField: MedicalFormField;
   builderMode?: boolean;
+  fieldIndex?: number;
   currentSectionId?: string;
   availableSections?: { id: string; title: string }[];
   onUpdateField?: (updated: Partial<MedicalFormField>) => void;
   onToggleActive?: () => void;
   onDeleteField?: () => void;
   onMoveToSection?: (targetSectionId: string) => void;
+  onReorderFields?: (sourceIndex: number, targetIndex: number) => void;
+  onDropComponent?: (componentId: string, targetIndex: number) => void;
 }
 
 export function MedicalSchemaField({
   fieldApi,
   schemaField,
   builderMode = false,
+  fieldIndex,
   currentSectionId,
   availableSections,
   onUpdateField,
   onToggleActive,
   onDeleteField,
-  onMoveToSection
+  onMoveToSection,
+  onReorderFields,
+  onDropComponent
 }: MedicalSchemaFieldProps) {
+  const [isDragOver, setIsDragOver] = React.useState(false);
   const rawError = getErrorMessage(fieldApi.state.meta.errors);
   const isInvalid = !builderMode && fieldApi.state.meta.isTouched && Boolean(rawError);
   const displayError = isInvalid && rawError && rawError !== 'Wajib diisi' ? rawError : undefined;
@@ -354,10 +361,47 @@ export function MedicalSchemaField({
 
   return (
     <div
+      draggable={builderMode}
+      onDragStart={(e) => {
+        if (!builderMode || fieldIndex === undefined) return;
+        e.dataTransfer.setData('text/field-index', String(fieldIndex));
+        e.dataTransfer.effectAllowed = 'move';
+      }}
+      onDragOver={(e) => {
+        if (!builderMode) return;
+        e.preventDefault();
+        e.stopPropagation();
+        e.dataTransfer.dropEffect = 'copy';
+        setIsDragOver(true);
+      }}
+      onDragLeave={() => {
+        setIsDragOver(false);
+      }}
+      onDrop={(e) => {
+        if (!builderMode || fieldIndex === undefined) return;
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(false);
+        const sourceIdxStr = e.dataTransfer.getData('text/field-index');
+        if (sourceIdxStr !== '') {
+          const sourceIdx = Number(sourceIdxStr);
+          if (!isNaN(sourceIdx) && sourceIdx !== fieldIndex && onReorderFields) {
+            onReorderFields(sourceIdx, fieldIndex);
+          }
+          return;
+        }
+        const compId =
+          e.dataTransfer.getData('application/x-amanah-component-id') ||
+          e.dataTransfer.getData('text/plain');
+        if (compId && onDropComponent) {
+          onDropComponent(compId, fieldIndex);
+        }
+      }}
       className={cn(
-        'group relative rounded-xl border border-transparent p-1.5 transition-all duration-200',
+        'group relative rounded-xl border border-transparent p-1.5 transition-all duration-200 select-none',
         colSpanClass,
-        'hover:border-primary/40 hover:bg-muted/15',
+        'hover:border-foreground/30 hover:bg-muted/10',
+        isDragOver && 'border-foreground/60 bg-muted/30 scale-[0.99] ring-2 ring-foreground/20',
         isInactive && 'opacity-60 border-dashed border-amber-500/40 bg-amber-500/5'
       )}
     >

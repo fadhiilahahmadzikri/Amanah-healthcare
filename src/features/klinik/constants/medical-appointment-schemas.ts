@@ -6,6 +6,8 @@ import {
   type MedicalFormField,
   type MedicalFormSection
 } from './medical-appointment-types';
+import { convertJsonSchemaToSections, type FormJsonSchema } from './default-form-template';
+import { VISIT_TYPE } from '@/constants/visit-type.constants';
 
 export const TEXT = FIELD_TYPES.TEXT;
 export const PARAGRAPH = FIELD_TYPES.PARAGRAPH;
@@ -51,8 +53,54 @@ export type { MedicalFieldType, MedicalFormField, MedicalFormSection, MedicalFlo
 
 export { FIELD_TYPES };
 
-export const medicalFlowDefinitions: Record<string, MedicalFlowDefinition> = {};
+export function createDynamicFlowDefinition(
+  flow: string,
+  schema?: FormJsonSchema | Record<string, any> | null,
+  serviceName?: string
+): MedicalFlowDefinition {
+  const allFields =
+    schema?.steps?.flatMap((s: any) => (s && Array.isArray(s.fields) ? s.fields : [])) || [];
+  const hasField = (id: string) => allFields.some((f: any) => f && f.id === id);
 
-export function getMedicalFlowDefinition(flow: string): MedicalFlowDefinition | undefined {
-  return medicalFlowDefinitions[flow];
+  const patientNameFieldId = hasField('motherName')
+    ? 'motherName'
+    : hasField('childName')
+      ? 'childName'
+      : hasField('fullName')
+        ? 'fullName'
+        : 'patient_full_name';
+
+  const patientContactFieldId = hasField('phoneNumber')
+    ? 'phoneNumber'
+    : hasField('parentPhone')
+      ? 'parentPhone'
+      : hasField('phone')
+        ? 'phone'
+        : 'patient_phone';
+
+  const complaintFieldId = hasField('currentComplaints')
+    ? 'currentComplaints'
+    : hasField('complaints')
+      ? 'complaints'
+      : hasField('complaint')
+        ? 'complaint'
+        : flow === 'pregnancy'
+          ? 'currentComplaints'
+          : 'patient_chief_complaint';
+
+  return {
+    flow,
+    formTitle: schema?.title ?? '',
+    formDescription: schema?.description ?? '',
+    serviceName: serviceName ?? '',
+    visitType: VISIT_TYPE.NEW_VISIT,
+    patientNameFieldId,
+    patientContactFieldId,
+    complaintFieldId,
+    sections: convertJsonSchemaToSections(schema)
+  };
+}
+
+export function getMedicalFlowDefinition(flow: string): MedicalFlowDefinition {
+  return createDynamicFlowDefinition(flow);
 }

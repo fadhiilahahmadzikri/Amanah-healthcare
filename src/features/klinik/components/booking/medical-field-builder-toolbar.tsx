@@ -1,17 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import { Eye, EyeOff, Pencil, Trash2, Sliders, Check, Plus, X, FolderInput } from 'lucide-react';
+import { Eye, EyeOff, Pencil, Trash2, Sliders, Check, Plus, X, FolderInput, GripVertical } from 'lucide-react';
 
+import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +18,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
 import {
@@ -135,6 +137,14 @@ export function MedicalFieldBuilderToolbar({
           'hover:opacity-100 hover:translate-x-0 hover:pointer-events-auto'
         )}
       >
+        {/* Drag Handle Indicator */}
+        <div
+          title='Tarik untuk memindahkan urutan field'
+          className='flex size-6 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground cursor-grab active:cursor-grabbing transition-colors'
+        >
+          <GripVertical className='size-3.5' />
+        </div>
+
         {/* Toggle Active / Nonaktif */}
         <button
           type='button'
@@ -255,196 +265,203 @@ export function MedicalFieldBuilderToolbar({
         </button>
       </div>
 
-      {/* Dialog Edit Field */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className='sm:max-w-md'>
-          <form onSubmit={handleSaveEdit}>
-            <DialogHeader>
-              <DialogTitle className='text-base font-bold'>Konfigurasi Field Formulir</DialogTitle>
-              <DialogDescription className='text-xs'>
-                Sesuaikan label, placeholder, dan aturan validasi untuk input ini.
-              </DialogDescription>
-            </DialogHeader>
+      {/* Signature Modal Edit Field */}
+      <ModalWrapper
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        maxWidth='max-w-[480px]'
+        showCloseButton={false}
+        className='flex flex-col gap-4 p-5 sm:p-6'
+      >
+        <div className='flex flex-col gap-1 pb-2 border-b border-border/40'>
+          <h3 className='text-sm sm:text-base font-bold text-foreground'>
+            Konfigurasi Field Formulir
+          </h3>
+          <p className='text-xs text-muted-foreground'>
+            Sesuaikan label, placeholder, dan aturan validasi untuk input ini.
+          </p>
+        </div>
 
-            <div className='space-y-3.5 py-4 text-xs'>
-              <div className='space-y-1.5'>
-                <Label htmlFor='edit-title' className='text-xs font-semibold'>
-                  Label / Nama Field <span className='text-red-500'>*</span>
-                </Label>
-                <Input
-                  id='edit-title'
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  placeholder='Contoh: Nama Lengkap Pasien'
-                  required
-                  className='h-8 text-xs'
-                />
+        <form onSubmit={handleSaveEdit} className='flex flex-col gap-3.5'>
+          <div className='space-y-1.5'>
+            <Label htmlFor='edit-title' className='text-xs font-semibold'>
+              Label / Nama Field <span className='text-destructive'>*</span>
+            </Label>
+            <Input
+              id='edit-title'
+              value={editTitle}
+              onChange={(e) => setEditTitle(e.target.value)}
+              placeholder='Contoh: Nama Lengkap Pasien'
+              required
+              className='h-8 text-xs'
+              autoFocus
+            />
+          </div>
+
+          <div className='space-y-1.5'>
+            <Label htmlFor='edit-placeholder' className='text-xs font-semibold'>
+              Placeholder Teks
+            </Label>
+            <Input
+              id='edit-placeholder'
+              value={editPlaceholder}
+              onChange={(e) => setEditPlaceholder(e.target.value)}
+              placeholder='Contoh: Masukkan data sesuai identitas...'
+              className='h-8 text-xs'
+            />
+          </div>
+
+          <div className='space-y-1.5'>
+            <Label htmlFor='edit-helptext' className='text-xs font-semibold'>
+              Teks Bantuan / Petunjuk
+            </Label>
+            <Input
+              id='edit-helptext'
+              value={editHelpText}
+              onChange={(e) => setEditHelpText(e.target.value)}
+              placeholder='Contoh: Format 16 digit angka'
+              className='h-8 text-xs'
+            />
+          </div>
+
+          <div className='space-y-1.5'>
+            <Label htmlFor='edit-colspan' className='text-xs font-semibold'>
+              Tata Letak (Lebar Kolom)
+            </Label>
+            <Select
+              value={editColSpan}
+              onValueChange={(val) => setEditColSpan(val as '1' | 'full')}
+            >
+              <SelectTrigger id='edit-colspan' size='sm' className='h-8 w-full text-xs font-medium'>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value='1'>1 Kolom (Separuh Grid / Fluid)</SelectItem>
+                <SelectItem value='full'>2 Kolom (Lebar Penuh Baris)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Sumber Data & Opsi Pilihan (Jika Multiple Choice atau List) */}
+          {(field.type === 'MULTIPLE_CHOICE' || field.type === 'LIST') && (
+            <div className='space-y-2 rounded-lg border border-border/60 bg-muted/20 p-2.5'>
+              <div className='flex items-center justify-between'>
+                <Label className='text-xs font-semibold'>Sumber Data Pilihan</Label>
+                {editDataSourceKey && (
+                  <span className='rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary'>
+                    Katalog Terhubung
+                  </span>
+                )}
               </div>
 
               <div className='space-y-1.5'>
-                <Label htmlFor='edit-placeholder' className='text-xs font-semibold'>
-                  Placeholder Teks
+                <Label htmlFor='edit-datasource' className='text-[11px] text-muted-foreground'>
+                  Katalog Dinamis Database / API:
                 </Label>
-                <Input
-                  id='edit-placeholder'
-                  value={editPlaceholder}
-                  onChange={(e) => setEditPlaceholder(e.target.value)}
-                  placeholder='Contoh: Masukkan data sesuai identitas...'
-                  className='h-8 text-xs'
-                />
+                <Select
+                  value={editDataSourceKey || 'custom'}
+                  onValueChange={(val) => setEditDataSourceKey(val === 'custom' ? '' : val)}
+                >
+                  <SelectTrigger id='edit-datasource' size='sm' className='h-8 w-full text-xs font-medium'>
+                    <SelectValue placeholder='Pilih sumber data...' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='custom'>Pilihan Manual / Statis (Custom)</SelectItem>
+                    {REGISTERED_DATA_SOURCES.map((ds) => (
+                      <SelectItem key={ds.key} value={ds.key}>
+                        {ds.label} ({ds.description})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
-              <div className='space-y-1.5'>
-                <Label htmlFor='edit-helptext' className='text-xs font-semibold'>
-                  Teks Bantuan / Petunjuk
-                </Label>
-                <Input
-                  id='edit-helptext'
-                  value={editHelpText}
-                  onChange={(e) => setEditHelpText(e.target.value)}
-                  placeholder='Contoh: Format 16 digit angka'
-                  className='h-8 text-xs'
-                />
-              </div>
-
-              <div className='grid grid-cols-2 gap-3 pt-1'>
-                <div className='flex items-center gap-2'>
-                  <input
-                    type='checkbox'
-                    id='edit-required'
-                    checked={editRequired}
-                    onChange={(e) => setEditRequired(e.target.checked)}
-                    className='size-4 rounded border-border text-primary focus:ring-primary'
-                  />
-                  <Label htmlFor='edit-required' className='cursor-pointer text-xs font-medium'>
-                    Wajib Diisi (Required)
-                  </Label>
+              {editDataSourceKey ? (
+                <div className='rounded border border-primary/20 bg-primary/5 p-2 text-[11px] text-muted-foreground'>
+                  Data pilihan ditarik secara dinamis dari API master. Pilihan manual tidak akan
+                  dipakai selama katalog master ini aktif.
                 </div>
-
-                <div className='flex items-center gap-2'>
-                  <Label
-                    htmlFor='edit-colspan'
-                    className='text-xs font-medium text-muted-foreground'
-                  >
-                    Tata Letak:
+              ) : (
+                <>
+                  <Label className='text-[11px] font-medium text-muted-foreground'>
+                    Daftar Pilihan Manual:
                   </Label>
-                  <select
-                    id='edit-colspan'
-                    value={editColSpan}
-                    onChange={(e) => setEditColSpan(e.target.value as '1' | 'full')}
-                    className='h-7 rounded border border-border bg-background px-2 text-xs font-medium'
-                  >
-                    <option value='1'>1 Kolom (Separuh)</option>
-                    <option value='full'>2 Kolom (Lebar Penuh)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Sumber Data & Opsi Pilihan (Jika Multiple Choice atau List) */}
-              {(field.type === 'MULTIPLE_CHOICE' || field.type === 'LIST') && (
-                <div className='space-y-2 rounded-lg border border-border/60 bg-muted/20 p-2.5'>
-                  <div className='flex items-center justify-between'>
-                    <Label className='text-xs font-semibold'>Sumber Data Pilihan</Label>
-                    {editDataSourceKey && (
-                      <span className='rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary'>
-                        Katalog Terhubung
-                      </span>
-                    )}
-                  </div>
-
-                  <div className='space-y-1.5'>
-                    <Label htmlFor='edit-datasource' className='text-[11px] text-muted-foreground'>
-                      Katalog Dinamis Database / API:
-                    </Label>
-                    <select
-                      id='edit-datasource'
-                      value={editDataSourceKey}
-                      onChange={(e) => setEditDataSourceKey(e.target.value)}
-                      className='h-8 w-full rounded border border-border bg-background px-2 text-xs font-medium'
-                    >
-                      <option value=''>Pilihan Manual / Statis (Custom)</option>
-                      {REGISTERED_DATA_SOURCES.map((ds) => (
-                        <option key={ds.key} value={ds.key}>
-                          {ds.label} ({ds.description})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {editDataSourceKey ? (
-                    <div className='rounded border border-primary/20 bg-primary/5 p-2 text-[11px] text-muted-foreground'>
-                      Data pilihan ditarik secara dinamis dari API master. Pilihan manual tidak akan
-                      dipakai selama katalog master ini aktif.
-                    </div>
-                  ) : (
-                    <>
-                      <Label className='text-[11px] font-medium text-muted-foreground'>
-                        Daftar Pilihan Manual:
-                      </Label>
-                      <div className='flex flex-wrap gap-1.5'>
-                        {editChoices.map((choice, idx) => (
-                          <span
-                            key={idx}
-                            className='inline-flex items-center gap-1 rounded-md border border-border/80 bg-background px-2 py-0.5 text-[11px] font-medium'
-                          >
-                            {choice}
-                            <button
-                              type='button'
-                              onClick={() => handleRemoveChoice(idx)}
-                              className='text-muted-foreground hover:text-destructive'
-                            >
-                              <X className='size-3' />
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className='flex items-center gap-1.5 pt-1'>
-                        <Input
-                          value={newChoiceInput}
-                          onChange={(e) => setNewChoiceInput(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              handleAddChoice();
-                            }
-                          }}
-                          placeholder='Tambah opsi pilihan baru...'
-                          className='h-7 text-xs'
-                        />
-                        <Button
+                  <div className='flex flex-wrap gap-1.5'>
+                    {editChoices.map((choice, idx) => (
+                      <span
+                        key={idx}
+                        className='inline-flex items-center gap-1 rounded-md border border-border/80 bg-background px-2 py-0.5 text-[11px] font-medium'
+                      >
+                        {choice}
+                        <button
                           type='button'
-                          size='sm'
-                          variant='outline'
-                          onClick={handleAddChoice}
-                          className='h-7 text-xs'
+                          onClick={() => handleRemoveChoice(idx)}
+                          className='text-muted-foreground hover:text-destructive'
                         >
-                          <Plus className='mr-1 size-3' /> Tambah
-                        </Button>
-                      </div>
-                    </>
-                  )}
-                </div>
+                          <X className='size-3' />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className='flex items-center gap-1.5 pt-1'>
+                    <Input
+                      value={newChoiceInput}
+                      onChange={(e) => setNewChoiceInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddChoice();
+                        }
+                      }}
+                      placeholder='Tambah opsi pilihan baru...'
+                      className='h-7 text-xs'
+                    />
+                    <Button
+                      type='button'
+                      size='sm'
+                      variant='outline'
+                      shape='pill'
+                      onClick={handleAddChoice}
+                      className='h-7 text-xs'
+                    >
+                      <Plus className='mr-1 size-3' /> Tambah
+                    </Button>
+                  </div>
+                </>
               )}
             </div>
+          )}
 
-            <DialogFooter className='gap-2 sm:justify-end'>
-              <Button
-                type='button'
-                variant='outline'
-                size='sm'
-                onClick={() => setIsEditDialogOpen(false)}
-                className='text-xs'
-              >
-                Batal
-              </Button>
-              <Button type='submit' variant='primary' size='sm' className='text-xs'>
-                Simpan Perubahan
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+          {/* Wajib Diisi - Paling Terakhir Sebelum Tombol Aksi */}
+          <div className='flex items-center gap-2 pt-1 border-t border-border/30'>
+            <Checkbox
+              id='edit-required'
+              checked={editRequired}
+              onCheckedChange={(checked) => setEditRequired(Boolean(checked))}
+            />
+            <Label htmlFor='edit-required' className='cursor-pointer text-xs font-semibold text-foreground'>
+              Wajib Diisi (Required)
+            </Label>
+          </div>
+
+          <div className='flex items-center justify-end gap-2 pt-3 border-t border-border/40'>
+            <Button
+              type='button'
+              variant='ghost'
+              shape='pill'
+              onClick={() => setIsEditDialogOpen(false)}
+              className='text-xs'
+            >
+              Batal
+            </Button>
+            <Button type='submit' variant='primary' shape='pill' className='text-xs'>
+              <Icons.check className='mr-1 size-3.5' />
+              Simpan Perubahan
+            </Button>
+          </div>
+        </form>
+      </ModalWrapper>
     </>
   );
 }

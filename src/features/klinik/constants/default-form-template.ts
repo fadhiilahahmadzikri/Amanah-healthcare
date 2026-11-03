@@ -43,158 +43,18 @@ export interface FormJsonSchema {
   steps: FormJsonStep[];
 }
 
-export const DEFAULT_RICH_FORM_TEMPLATE: FormJsonSchema = {
-  version: 1,
-  title: 'Formulir Pengkajian Klinis',
-  description: 'Lengkapi data pengkajian klinis pasien untuk keperluan rekam medis.',
-  steps: [
-    {
-      id: 'step_identitas_dasar',
-      title: 'Identitas & Anamnesis Awal',
-      description: 'Data identitas pasien dan keluhan utama yang dirasakan saat ini.',
-      fields: [
-        {
-          id: 'patient_full_name',
-          component: 'text-input',
-          type: 'TEXT',
-          title: 'Nama Lengkap Pasien',
-          label: 'Nama Lengkap Pasien',
-          placeholder: 'Masukkan nama lengkap sesuai KTP',
-          helpText: 'Nama lengkap tanpa singkatan',
-          required: true,
-          isActive: true,
-          colSpan: 1
-        },
-        {
-          id: 'patient_nik',
-          component: 'text-input',
-          type: 'TEXT',
-          title: 'Nomor Induk Kependudukan (NIK)',
-          label: 'NIK',
-          placeholder: '16 digit NIK',
-          helpText: '16 angka sesuai KTP / Kartu Keluarga',
-          required: false,
-          isActive: true,
-          colSpan: 1
-        },
-        {
-          id: 'patient_birth_date',
-          component: 'calendar',
-          type: 'DATE',
-          title: 'Tanggal Lahir',
-          label: 'Tanggal Lahir',
-          placeholder: 'Pilih tanggal lahir',
-          helpText: 'Tanggal lahir pasien',
-          required: true,
-          isActive: true,
-          colSpan: 'full'
-        },
-        {
-          id: 'patient_phone',
-          component: 'text-input',
-          type: 'TEXT',
-          title: 'Nomor WhatsApp / Telepon',
-          label: 'No. WhatsApp',
-          placeholder: '08xxxxxxxxxx',
-          helpText: 'Nomor aktif untuk konfirmasi janji temu',
-          required: true,
-          isActive: true,
-          colSpan: 1
-        },
-        {
-          id: 'patient_chief_complaint',
-          component: 'textarea',
-          type: 'PARAGRAPH',
-          title: 'Keluhan Utama',
-          label: 'Keluhan Utama',
-          placeholder: 'Ceritakan keluhan atau gejala yang dirasakan saat ini...',
-          helpText: 'Jelaskan secara singkat gejala yang dialami',
-          required: true,
-          isActive: true,
-          colSpan: 'full'
-        }
-      ]
-    },
-    {
-      id: 'step_riwayat_kesehatan',
-      title: 'Riwayat Kesehatan & Penyakit',
-      description: 'Riwayat alergi dan kondisi kesehatan penting lainnya.',
-      fields: [
-        {
-          id: 'patient_blood_type',
-          component: 'choice-chips',
-          type: 'MULTIPLE_CHOICE',
-          title: 'Golongan Darah',
-          label: 'Golongan Darah',
-          helpText: 'Pilih salah satu',
-          required: false,
-          isActive: true,
-          choices: [],
-          dataSource: {
-            type: 'catalog',
-            key: 'blood_types'
-          },
-          colSpan: 'full'
-        },
-        {
-          id: 'patient_has_allergy',
-          component: 'choice-chips',
-          type: 'MULTIPLE_CHOICE',
-          title: 'Riwayat Alergi Obat / Makanan',
-          label: 'Riwayat Alergi',
-          helpText: 'Apakah pasien memiliki alergi obat tertentu?',
-          required: true,
-          isActive: true,
-          choices: ['Tidak Ada', 'Ada Alergi'],
-          colSpan: 'full'
-        },
-        {
-          id: 'patient_allergy_detail',
-          component: 'textarea',
-          type: 'PARAGRAPH',
-          title: 'Rincian Alergi (Jika Ada)',
-          label: 'Rincian Alergi',
-          placeholder: 'Contoh: Alergi Penisilin, Parasetamol, atau Makanan Laut',
-          helpText: 'Sebutkan jenis obat atau substansi pemicu alergi',
-          required: false,
-          isActive: true,
-          colSpan: 'full'
-        }
-      ]
-    },
-    {
-      id: 'step_catatan_tambahan',
-      title: 'Catatan Tambahan',
-      description: 'Informasi atau instruksi tambahan yang perlu diketahui tenaga medis.',
-      fields: [
-        {
-          id: 'patient_additional_notes',
-          component: 'textarea',
-          type: 'PARAGRAPH',
-          title: 'Catatan Khusus Pasien',
-          label: 'Catatan Tambahan',
-          placeholder: 'Tuliskan catatan tambahan jika diperlukan...',
-          helpText: 'Opsional: riwayat operasi, konsumsi obat rutin, dll.',
-          required: false,
-          isActive: true,
-          colSpan: 'full'
-        }
-      ]
-    }
-  ]
-};
-
 export function convertJsonSchemaToSections(
   rawSchema?: Record<string, any> | null,
   includeInactive: boolean = false
 ): MedicalFormSection[] {
   if (!rawSchema || !Array.isArray(rawSchema.steps) || rawSchema.steps.length === 0) {
-    return convertJsonSchemaToSections(DEFAULT_RICH_FORM_TEMPLATE, includeInactive);
+    return [];
   }
 
-  const steps = rawSchema.steps as FormJsonStep[];
+  const rawSteps = Array.isArray(rawSchema.steps) ? rawSchema.steps : [];
+  const validSteps = rawSteps.filter((step): step is FormJsonStep => Boolean(step && typeof step === 'object'));
 
-  return steps.map((step, stepIdx) => {
+  return validSteps.map((step, stepIdx) => {
     const rawFields = Array.isArray(step.fields) ? step.fields : [];
     const filteredFields = includeInactive
       ? rawFields
@@ -226,7 +86,7 @@ export function convertJsonSchemaToSections(
       title: step.title || `Langkah ${stepIdx + 1}`,
       description: step.description || '',
       fields,
-      layout: step.layout || 'grid',
+      layout: step.layout || (step.id === 'diseaseHistory' ? 'questionnaire' : 'grid'),
       repeatableGroup: step.repeatableGroup,
       tableConfig: (step as any).tableConfig
     };
@@ -242,14 +102,14 @@ export function convertSectionsToJsonSchema(
     version: 1,
     title: title || 'Formulir Pengkajian Klinis',
     description: description || '',
-    steps: sections.map((section, sIdx) => ({
-      id: section.id || `step_${sIdx}`,
-      title: section.title,
-      description: section.description,
-      layout: section.layout || 'grid',
-      repeatableGroup: section.repeatableGroup,
-      tableConfig: section.tableConfig,
-      fields: section.fields.map((f) => ({
+    steps: sections.map((sec, sIdx) => ({
+      id: sec.id || `step_${sIdx}`,
+      title: sec.title,
+      description: sec.description,
+      layout: sec.layout || 'grid',
+      repeatableGroup: sec.repeatableGroup,
+      tableConfig: sec.tableConfig,
+      fields: sec.fields.map((f) => ({
         id: f.id,
         type: f.type,
         component: mapFieldTypeToComponentId(f.type),

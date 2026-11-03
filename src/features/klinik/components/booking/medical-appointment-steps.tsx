@@ -47,13 +47,13 @@ export function MedicalSectionStep({
   section: MedicalFormSection;
   catalogActionType?: 'add' | 'edit' | null;
   onReturnToCatalog?: () => void;
-  renderField: (field: MedicalFormField) => React.ReactNode;
+  renderField: (field: MedicalFormField, index: number) => React.ReactNode;
   values?: MedicalAppointmentValues;
   onFieldChange?: (fieldId: string, value: string) => void;
   builderMode?: boolean;
   onUpdateField?: (fieldId: string, updated: Partial<MedicalFormField>) => void;
   onDeleteField?: (fieldId: string) => void;
-  onAddField?: () => void;
+  onAddField?: (componentId?: string) => void;
 }) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const isGrid = section?.layout === 'grid';
@@ -130,7 +130,30 @@ export function MedicalSectionStep({
                 (builderMode || field.isActive !== false) &&
                 (!field.visibleIf || (values && field.visibleIf(values)))
             )
-            .map(renderField)}
+            .map((field, idx) => renderField(field, idx))}
+
+          {builderMode && (
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.dataTransfer.dropEffect = 'copy';
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const compId =
+                  e.dataTransfer.getData('application/x-amanah-component-id') ||
+                  e.dataTransfer.getData('text/plain');
+                if (compId && onAddField) {
+                  onAddField(compId);
+                }
+              }}
+              className='col-span-1 sm:col-span-2 flex items-center justify-center rounded-xl border border-dashed border-border/70 py-4 px-4 text-center text-xs text-muted-foreground hover:border-foreground/40 hover:text-foreground hover:bg-muted/30 transition-all select-none'
+            >
+              <span>Seret komponen dari Studio Formulir ke sini untuk menambahkan</span>
+            </div>
+          )}
         </FieldGroup>
       )}
     </div>

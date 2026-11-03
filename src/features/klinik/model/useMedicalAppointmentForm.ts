@@ -10,9 +10,11 @@ import { formRequirementGuard } from './form-requirement-guard';
 import type { AppointmentFormData, Doctor, MedicalAppointmentFlow } from '../api/types';
 import { getDoctorsByService } from '../api/service';
 import {
+  createDynamicFlowDefinition,
   getMedicalFlowDefinition,
   type MedicalFormSection
 } from '../constants/medical-appointment-schemas';
+import type { FormJsonSchema } from '../constants/default-form-template';
 import { enrichMedicalFlowDefinition, useMaternalCatalogs } from './useMaternalCatalogs';
 import {
   buildDefaultMedicalValues,
@@ -46,6 +48,7 @@ import {
   CATALOG_ACTION_TYPES,
   STEP_DESCRIPTOR_TYPES
 } from '../constants/kia-constants';
+import { isMedicalSectionValid } from '../schemas/medical-appointment-validation';
 import { useMedicalFormHistory } from './useMedicalFormHistory';
 import { useMedicalFormCalculations } from './useMedicalFormCalculations';
 import { useRegisteredPatient } from './useRegisteredPatient';
@@ -72,6 +75,7 @@ export { defaultHistoryCounts, historyGroups, scheduleStepDescriptors };
 export interface UseMedicalAppointmentFormOptions {
   flow: MedicalAppointmentFlow;
   isOpen: boolean;
+  formSchema?: FormJsonSchema | Record<string, any> | null;
   selectedService?: ServiceCatalogItem | null;
   selectedPatient?: PatientAffiliationProfile | null;
   newPatientRelationship?: PatientRelationshipType | string;
@@ -86,6 +90,7 @@ export type UseMedicalAppointmentFormResult = ReturnType<typeof useMedicalAppoin
 export function useMedicalAppointmentForm({
   flow,
   isOpen,
+  formSchema,
   selectedService,
   selectedPatient,
   newPatientRelationship,
@@ -95,12 +100,8 @@ export function useMedicalAppointmentForm({
   onBackToService
 }: UseMedicalAppointmentFormOptions) {
   const baseDefinition = React.useMemo(() => {
-    const def = getMedicalFlowDefinition(flow);
-    if (!def) {
-      throw new Error(`Clinical intake form definition not registered for flow: "${flow}"`);
-    }
-    return def;
-  }, [flow]);
+    return createDynamicFlowDefinition(flow, formSchema, selectedService?.name);
+  }, [flow, formSchema, selectedService?.name]);
   const { catalogs } = useMaternalCatalogs(isOpen && flow === 'pregnancy');
   const definition = React.useMemo(
     () => enrichMedicalFlowDefinition(baseDefinition, catalogs),
@@ -201,14 +202,6 @@ export function useMedicalAppointmentForm({
     [flow, registeredPatient, selectedPatient]
   );
 
-  const prefilledFieldIds = React.useMemo(() => {
-    return new Set(
-      Object.entries(registrationPrefill)
-        .filter(([, value]) => Boolean(value.trim()))
-        .map(([fieldId]) => fieldId)
-    );
-  }, [registrationPrefill]);
-
   const visibleMedicalSections = React.useMemo(
     () =>
       repeatableMedicalSections
@@ -217,12 +210,11 @@ export function useMedicalAppointmentForm({
           fields: section.fields.filter(
             (field) =>
               !omittedFieldIdsSet.has(field.id) &&
-              !prefilledFieldIds.has(field.id) &&
               (!field.visibleIf || field.visibleIf(values))
           )
         }))
         .filter((section) => section.id === 'vaccineHistory' || section.fields.length > 0),
-    [repeatableMedicalSections, omittedFieldIdsSet, prefilledFieldIds, values]
+    [repeatableMedicalSections, omittedFieldIdsSet, values]
   );
 
   const activeSteps = React.useMemo<StepDescriptor[]>(
@@ -511,6 +503,18 @@ export function useMedicalAppointmentForm({
     [currentDescriptor, visibleMedicalSections, values, schedule]
   );
 
+  const isAllValid = React.useMemo(() => {
+    return visibleMedicalSections.every((section) => isMedicalSectionValid(section, values));
+  }, [visibleMedicalSections, values]);
+
+  const handleFormSubmit = React.useCallback(() => {
+    if (!isAllValid) {
+      toast.error('Mohon lengkapi seluruh isian bertanda bintang (*) sebelum melanjutkan.');
+      return;
+    }
+    void form.handleSubmit();
+  }, [isAllValid, form]);
+
   return {
     definition,
     form,
@@ -532,10 +536,12 @@ export function useMedicalAppointmentForm({
     historyPrompt: history.historyPrompt,
     catalogAction: history.catalogAction,
     isCurrentStepValid: isStepValid,
+    isAllValid,
     actions: {
       setSchedule,
       nextStep: handleNext,
       prevStep: handleBack,
+      submitForm: handleFormSubmit,
       goToStep: setCurrentStep,
       promptYes: history.handlePromptYes,
       promptNo: handlePromptNo,

@@ -211,9 +211,7 @@ export function AppointmentModal({
                   patients.length > 0 ? setStep('select_profile') : setStep('service')
                 }
                 allowedRelationships={bookingContext?.allowedRelationships}
-                hasExistingSelf={patients.some(
-                  (p) => p.isPrimary || p.isSelf || (p as any).isSystem
-                )}
+                hasExistingSelf={patients.some((p) => Boolean(p.isPrimary))}
                 existingPatients={patients}
               />
             )}
@@ -433,6 +431,7 @@ export function AppointmentModal({
         <MedicalAppointmentModal
           flow={activeMedicalFlow}
           isOpen={isOpen}
+          formSchema={bookingContext?.formSchema}
           selectedService={selectedService}
           selectedPatient={selectedPatient}
           newPatientRelationship={selectedRelationship}

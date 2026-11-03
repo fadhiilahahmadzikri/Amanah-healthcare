@@ -279,7 +279,6 @@ export interface RegulerFormData {
     bloodType?: string;
     motherName?: string;
     occupation?: string;
-    religion?: string;
     phoneNumber?: string;
     email?: string;
     address?: string;

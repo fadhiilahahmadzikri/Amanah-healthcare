@@ -25,12 +25,13 @@ export function buildMaternityIntakePayload(
   complaint?: string
 ): CreateMaternityIntakePayload {
   const previousPregnancies = [];
-  for (let i = 1; i <= 4; i += 1) {
-    const prefix = `previousPregnancy${i}`;
+  let pIdx = 1;
+  while (true) {
+    const prefix = `previousPregnancy${pIdx}`;
     const birthYear = submittedValues[`${prefix}BirthYear`];
     if (birthYear) {
       previousPregnancies.push({
-        orderNumber: i,
+        orderNumber: pIdx,
         birthYear,
         birthWeightGrams: parsePureInteger(submittedValues[`${prefix}BirthWeight`]) ?? undefined,
         birthLengthCm: parsePureNumeric(submittedValues[`${prefix}BirthLength`]) ?? undefined,
@@ -41,33 +42,40 @@ export function buildMaternityIntakePayload(
         deliveryPlace: submittedValues[`${prefix}DeliveryPlace`],
         complications: submittedValues[`${prefix}Complications`]
       });
+      pIdx += 1;
+    } else {
+      break;
     }
   }
 
   const contraceptiveHistories = [];
-  for (let i = 1; i <= 4; i += 1) {
+  let cIdx = 1;
+  while (true) {
     const contraceptiveType =
-      submittedValues[`contraception${i}Type`] || submittedValues[`contraceptive${i}Type`];
+      submittedValues[`contraception${cIdx}Type`] || submittedValues[`contraceptive${cIdx}Type`];
     if (contraceptiveType) {
       contraceptiveHistories.push({
-        orderNumber: i,
+        orderNumber: cIdx,
         contraceptiveType,
         startDate:
-          submittedValues[`contraception${i}StartDate`] ||
-          submittedValues[`contraceptive${i}StartDate`],
+          submittedValues[`contraception${cIdx}StartDate`] ||
+          submittedValues[`contraceptive${cIdx}StartDate`],
         durationText:
-          submittedValues[`contraception${i}Duration`] ||
-          submittedValues[`contraceptive${i}Duration`],
+          submittedValues[`contraception${cIdx}Duration`] ||
+          submittedValues[`contraceptive${cIdx}Duration`],
         stopDate:
-          submittedValues[`contraception${i}StopDate`] ||
-          submittedValues[`contraceptive${i}StopDate`],
+          submittedValues[`contraception${cIdx}StopDate`] ||
+          submittedValues[`contraceptive${cIdx}StopDate`],
         problems:
-          submittedValues[`contraception${i}Problems`] ||
-          submittedValues[`contraceptive${i}Problems`],
+          submittedValues[`contraception${cIdx}Problems`] ||
+          submittedValues[`contraceptive${cIdx}Problems`],
         sideEffects:
-          submittedValues[`contraception${i}SideEffects`] ||
-          submittedValues[`contraceptive${i}SideEffects`]
+          submittedValues[`contraception${cIdx}SideEffects`] ||
+          submittedValues[`contraceptive${cIdx}SideEffects`]
       });
+      cIdx += 1;
+    } else {
+      break;
     }
   }
 
@@ -273,7 +281,7 @@ export function buildMaternityIntakePayload(
     tetanusStatus: submittedValues.tetanusStatus || null,
     motherBloodType: submittedValues.motherBloodType || null,
     hpht: submittedValues.hpht || null,
-    currentComplaints: complaint || null,
+    currentComplaints: complaint,
     gravidaCount: parsePureInteger(submittedValues.gravidaCount) || 1,
     parityCount: parsePureInteger(submittedValues.parityCount) || 0,
     abortionCount: parsePureInteger(submittedValues.abortionCount) || 0,

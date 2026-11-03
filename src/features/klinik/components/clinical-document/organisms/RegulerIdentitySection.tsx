@@ -78,14 +78,8 @@ export const RegulerIdentitySection: React.FC<RegulerIdentitySectionProps> = ({
             <td className="px-1.5 py-0.5 bg-gray-50 border-r border-black font-semibold">
               <FormText customPt={7.2}>Pekerjaan</FormText>
             </td>
-            <td className="px-1.5 py-0.5 border-r border-black">
+            <td colSpan={3} className="px-1.5 py-0.5">
               <FormText customPt={7.2}>{identity?.occupation || '-'}</FormText>
-            </td>
-            <td className="px-1.5 py-0.5 bg-gray-50 border-r border-black font-semibold">
-              <FormText customPt={7.2}>Agama</FormText>
-            </td>
-            <td className="px-1.5 py-0.5">
-              <FormText customPt={7.2}>{identity?.religion || '-'}</FormText>
             </td>
           </tr>
 

@@ -1651,6 +1651,27 @@ export function ClinicEssentialsView() {
         />
       )}
 
+      {/* Form Builder Studio Mode (Reuses MedicalAppointmentModal with builderMode={true}) */}
+      {builderForm && (
+        <MedicalAppointmentModal
+          flow={builderForm.code as any}
+          isOpen={Boolean(builderForm)}
+          formSchema={builderForm.schema}
+          builderMode={true}
+          onClose={() => setBuilderForm(null)}
+          onSaveSchema={async (updatedSchema) => {
+            try {
+              await clinicEssentialsApi.updateFormSchema(builderForm.id, updatedSchema);
+              toast.success(`Skema formulir "${builderForm.name}" berhasil diperbarui.`);
+              queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.all });
+              setBuilderForm(null);
+            } catch (err: any) {
+              toast.error(err?.message || 'Gagal menyimpan perubahan skema formulir.');
+            }
+          }}
+        />
+      )}
+
       {/* Single Item Deletion Confirmation Alert Dialog */}
       <AlertDialog
         open={Boolean(deletingItem)}
