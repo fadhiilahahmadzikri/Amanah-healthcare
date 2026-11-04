@@ -329,6 +329,7 @@ export function useAppointmentModal({
         title: srv.name,
         description: srv.description || '',
         iconName: srv.iconName || 'stethoscope',
+        image: srv.imageUrl ? { src: srv.imageUrl, alt: srv.name } : undefined,
         complaints: srv.complaints || [],
         colSpanClass: isSingle ? 'col-span-12' : 'col-span-12 sm:col-span-6 md:col-span-6',
         heightClass: 'min-h-[118px] sm:min-h-[132px]'

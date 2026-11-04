@@ -120,6 +120,7 @@ export function useClinicEssentialFormModal({
   const [serviceCode, setServiceCode] = React.useState('');
   const [serviceCodePrefix, setServiceCodePrefix] = React.useState('');
   const [serviceIconName, setServiceIconName] = React.useState('');
+  const [serviceImageUrl, setServiceImageUrl] = React.useState<string | null>(null);
   const [serviceComplaintsRaw, setServiceComplaintsRaw] = React.useState('');
   const [serviceDescription, setServiceDescription] = React.useState('');
   const [serviceIsActive, setServiceIsActive] = React.useState(true);
@@ -321,6 +322,7 @@ export function useClinicEssentialFormModal({
           setServiceCategoryId(s.serviceCategoryId || initialCategoryIds[0] || '');
           setServiceIntakeFormId(s.intakeFormId || 'none');
           setServiceIconName(s.iconName || '');
+          setServiceImageUrl(s.imageUrl || null);
           setServiceComplaintsRaw((s.complaints || []).join(', '));
           setServiceDescription(s.description || '');
           setServiceIsActive(s.isActive !== false);
@@ -377,6 +379,7 @@ export function useClinicEssentialFormModal({
       setServiceCode('');
       setServiceCodePrefix('');
       setServiceIconName('');
+      setServiceImageUrl(null);
       setServiceComplaintsRaw('');
       setServiceDescription('');
       setServiceIsActive(true);
@@ -540,6 +543,7 @@ export function useClinicEssentialFormModal({
               code: serviceCode.trim() || undefined,
               codePrefix: serviceCodePrefix.trim().toUpperCase() || undefined,
               iconName: serviceIconName || 'stethoscope',
+              imageUrl: serviceImageUrl?.trim() || null,
               description: serviceDescription.trim() || undefined,
               complaints: complaints.length > 0 ? complaints : undefined,
               isActive: serviceIsActive,
@@ -631,6 +635,7 @@ export function useClinicEssentialFormModal({
               code: serviceCode.trim() || undefined,
               codePrefix: serviceCodePrefix.trim().toUpperCase() || undefined,
               iconName: serviceIconName || 'stethoscope',
+              imageUrl: serviceImageUrl?.trim() || null,
               description: serviceDescription.trim() || undefined,
               complaints: complaints.length > 0 ? complaints : undefined,
               isActive: true,
@@ -722,6 +727,7 @@ export function useClinicEssentialFormModal({
     setServiceCode('');
     setServiceCodePrefix('');
     setServiceIconName('');
+    setServiceImageUrl(null);
     setServiceComplaintsRaw('');
     setServiceDescription('');
     setServiceIsActive(true);
@@ -805,6 +811,7 @@ export function useClinicEssentialFormModal({
       serviceCode,
       serviceCodePrefix,
       serviceIconName,
+      serviceImageUrl,
       serviceComplaintsRaw,
       serviceDescription,
       serviceIsActive,
@@ -909,6 +916,7 @@ export function useClinicEssentialFormModal({
         validateField('codePrefix', val);
       },
       setServiceIconName,
+      setServiceImageUrl,
       setServiceComplaintsRaw,
       setServiceDescription,
       setServiceIsActive,

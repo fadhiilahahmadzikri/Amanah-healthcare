@@ -7,6 +7,7 @@ export const ServiceCatalogItemSchema = z.object({
   prefix: z.string(),
   description: z.string().nullable().optional(),
   iconName: z.string().nullable().optional(),
+  imageUrl: z.string().nullable().optional(),
   specialtyCode: z.string().nullable().optional(),
   intakeFormId: z.string().nullable().optional(),
   intakeFormCode: z.string().nullable().optional(),

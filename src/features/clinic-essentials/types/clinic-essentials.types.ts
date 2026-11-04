@@ -113,6 +113,7 @@ export interface ClinicService {
   description?: string | null;
   codePrefix: string;
   iconName?: string | null;
+  imageUrl?: string | null;
   displayOrder: number;
   isBookable: boolean;
   isActive: boolean;
@@ -173,6 +174,7 @@ export interface CreateServicePayload {
   description?: string;
   codePrefix?: string;
   iconName?: string;
+  imageUrl?: string | null;
   displayOrder?: number;
   isBookable?: boolean;
   isActive?: boolean;

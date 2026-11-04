@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { ShiftIconPickerPopover } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-picker-popover';
+import { ServiceImagePicker } from '../atoms/service-image-picker';
 import {
   AccordionSelectionField,
   type AccordionSelectionOption
@@ -146,10 +147,12 @@ export interface ServiceIdentityStepProps {
   code?: string;
   codePrefix?: string;
   iconName: string;
+  imageUrl?: string | null;
   onNameChange: (val: string) => void;
   onCodeChange?: (val: string) => void;
   onCodePrefixChange?: (val: string) => void;
   onIconNameChange: (val: string) => void;
+  onImageUrlChange?: (val: string | null) => void;
   error?: string;
   disabled?: boolean;
 }
@@ -157,8 +160,10 @@ export interface ServiceIdentityStepProps {
 export function ServiceIdentityStep({
   name,
   iconName,
+  imageUrl,
   onNameChange,
   onIconNameChange,
+  onImageUrlChange,
   error,
   disabled
 }: ServiceIdentityStepProps) {
@@ -169,8 +174,8 @@ export function ServiceIdentityStep({
           Apa nama service medis yang disediakan?
         </h3>
         <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
-          Tuliskan nama service resmi dan pilih ikon visual penanda yang mudah dikenali staf dan
-          pasien.
+          Tuliskan nama service resmi, pilih ikon visual penanda, serta thumbnail visual gambar
+          katalog yang mudah dikenali staf dan pasien.
         </p>
       </div>
 
@@ -200,7 +205,7 @@ export function ServiceIdentityStep({
           </div>
 
           <div className='space-y-1.5 shrink-0'>
-            <Label className='text-xs font-semibold'>Visual</Label>
+            <Label className='text-xs font-semibold'>Ikon</Label>
             <div className='h-10 flex items-center'>
               <ShiftIconPickerPopover
                 value={iconName}
@@ -210,6 +215,19 @@ export function ServiceIdentityStep({
               />
             </div>
           </div>
+
+          {onImageUrlChange && (
+            <div className='space-y-1.5 shrink-0'>
+              <Label className='text-xs font-semibold'>Visual Gambar</Label>
+              <div className='h-10 flex items-center'>
+                <ServiceImagePicker
+                  value={imageUrl}
+                  onChange={onImageUrlChange}
+                  disabled={disabled}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

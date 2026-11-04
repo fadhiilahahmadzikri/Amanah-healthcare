@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Image from 'next/image';
 import { Pencil, Trash2, Unlink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -127,7 +128,19 @@ export function ClinicServiceCard({
             </div>
           )}
           <div className='flex items-center gap-2.5 min-w-0'>
-            <EssentialCardIcon iconName={service.iconName} fallback='stethoscope' />
+            {service.imageUrl ? (
+              <div className='relative size-9 shrink-0 overflow-hidden rounded-lg border border-border/70 bg-muted/20 shadow-2xs'>
+                <Image
+                  src={service.imageUrl}
+                  alt={service.name}
+                  fill
+                  sizes='36px'
+                  className='object-cover'
+                />
+              </div>
+            ) : (
+              <EssentialCardIcon iconName={service.iconName} fallback='stethoscope' />
+            )}
             <div className='min-w-0'>
               <h4
                 className='truncate text-sm font-semibold text-foreground leading-tight'

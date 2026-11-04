@@ -296,10 +296,12 @@ export function ClinicEssentialFormModal({
               code={state.serviceCode}
               codePrefix={state.serviceCodePrefix}
               iconName={state.serviceIconName}
+              imageUrl={state.serviceImageUrl}
               onNameChange={actions.setServiceName}
               onCodeChange={actions.setServiceCode}
               onCodePrefixChange={actions.setServiceCodePrefix}
               onIconNameChange={actions.setServiceIconName}
+              onImageUrlChange={actions.setServiceImageUrl}
               error={state.errors.name}
               disabled={state.isSubmitting}
             />
@@ -505,10 +507,12 @@ export function ClinicEssentialFormModal({
                 code={state.serviceCode}
                 codePrefix={state.serviceCodePrefix}
                 iconName={state.serviceIconName}
+                imageUrl={state.serviceImageUrl}
                 onNameChange={actions.setServiceName}
                 onCodeChange={actions.setServiceCode}
                 onCodePrefixChange={actions.setServiceCodePrefix}
                 onIconNameChange={actions.setServiceIconName}
+                onImageUrlChange={actions.setServiceImageUrl}
                 error={state.errors.name}
                 disabled={state.isSubmitting}
               />
