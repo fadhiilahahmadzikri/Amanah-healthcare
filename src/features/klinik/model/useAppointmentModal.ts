@@ -5,6 +5,7 @@ import gsap from 'gsap';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AppError } from '@/core/errors/app-error';
+import type { ProblemDetails } from '@/core/errors/problem-details';
 import type { ServiceCardItem } from '@/features/public-site/pages/services/types';
 import {
   patientAffiliationService,
@@ -524,34 +525,32 @@ export function useAppointmentModal({
 
       toast.success('Janji temu berhasil dibuat beserta tiket antrean resmi');
     } catch (err: unknown) {
-      if (err instanceof AppError && err.status === 409) {
-        if (
-          err.problemDetails?.code === 'OVERCAPACITY_CONSENT_REQUIRED' ||
-          (err as any)?.code === 'OVERCAPACITY_CONSENT_REQUIRED'
-        ) {
-          if (!isConsent) {
-            setOvercapacityDialog({
-              isOpen: true,
-              message:
-                err.problemDetails?.detail ||
-                err.message ||
-                'Estimasi pelayanan melewati batas jam operasional sesi klinik.'
-            });
-            return;
-          }
-        }
+      const problemDetails =
+        err instanceof AppError
+          ? err.problemDetails
+          : (err as { problemDetails?: ProblemDetails })?.problemDetails;
 
-        const activeTicket = (
-          err.problemDetails as { activeTicket?: ActiveTicketConflictInfo } | undefined
-        )?.activeTicket;
-        if (activeTicket) {
-          setActiveTicketConflict(activeTicket);
-          toast.warning(
-            `Pasien sudah memiliki tiket antrean aktif (${activeTicket.queueNumber}) untuk kategori ini pada tanggal tersebut.`
-          );
-          return;
-        }
+      if (problemDetails?.code === 'OVERCAPACITY_CONSENT_REQUIRED' && !isConsent) {
+        setOvercapacityDialog({
+          isOpen: true,
+          message:
+            problemDetails.detail ||
+            'Estimasi pelayanan melewati batas jam operasional sesi klinik.'
+        });
+        return;
       }
+
+      const activeTicket = (problemDetails as any)?.activeTicket as
+        | ActiveTicketConflictInfo
+        | undefined;
+      if (activeTicket) {
+        setActiveTicketConflict(activeTicket);
+        toast.warning(
+          `Pasien sudah memiliki tiket antrean aktif (${activeTicket.queueNumber}) untuk kategori ini pada tanggal tersebut.`
+        );
+        return;
+      }
+
       const msg = err instanceof Error ? err.message : 'Gagal memproses janji temu';
       toast.error(msg);
     } finally {

@@ -78,6 +78,8 @@ export interface FormFieldDataSource {
   labelField?: string;
 }
 
+export type MedicalChoiceOption = string | { label: string; value: string };
+
 export interface MedicalFormField {
   id: string;
   type: MedicalFieldType;
@@ -86,7 +88,7 @@ export interface MedicalFormField {
   helpText: string;
   placeholder?: string;
   required: boolean;
-  choices: string[];
+  choices: MedicalChoiceOption[];
   dataSource?: FormFieldDataSource;
   goToSectionIdByChoice: Record<string, string> | null;
   colSpan?: 1 | 2 | 'full';
@@ -96,6 +98,7 @@ export interface MedicalFormField {
   isActive?: boolean;
   visibleIf?: (values: Record<string, string>) => boolean;
   format?: 'nik' | 'phone' | 'count' | 'year' | 'text';
+  allowCustomInput?: boolean;
 }
 
 export interface MedicalFormSection {
@@ -166,10 +169,10 @@ export const INTAKE_TYPES = {
 export type IntakeType = (typeof INTAKE_TYPES)[keyof typeof INTAKE_TYPES];
 
 export const KIA_API_ENDPOINTS = {
-  MATERNITY_INTAKE: '/api/v1/medical-records/intakes/maternity',
-  MATERNITY_HISTORY: '/api/v1/medical-records/intakes/maternity/history',
-  IMMUNIZATION_INTAKE: '/api/v1/medical-records/intakes/immunization',
-  IMMUNIZATION_HISTORY: '/api/v1/medical-records/intakes/immunization/history',
+  MATERNITY_INTAKE: '/api/v1/maternity/intakes',
+  MATERNITY_HISTORY: '/api/v1/maternity/history',
+  IMMUNIZATION_INTAKE: '/api/v1/immunization/intakes',
+  IMMUNIZATION_HISTORY: '/api/v1/immunization/history',
   FORM_REQUIREMENT: '/api/v1/medical-records/intakes/form-requirement',
   INTAKE_BY_APPOINTMENT: '/api/v1/medical-records/intakes/by-appointment',
   MATERNAL_QUESTIONS: '/api/v1/medical-records/maternal/catalogs/questions',

@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { GENDER_OPTIONS, getGenderLabel } from '@/constants/gender.constants';
 import type { MaternalPreviousPregnancy } from '../../types/maternity.types';
 
 export interface PregnancyHistoryTableProps {
@@ -41,7 +42,7 @@ export function PregnancyHistoryTable({
       birthYear: '',
       birthWeightGrams: undefined,
       birthLengthCm: undefined,
-      childSex: 'Perempuan',
+      childSex: undefined,
       gestationalAgeAtBirth: '',
       birthAttendant: '',
       deliveryMethod: 'Normal / Spontan',
@@ -172,7 +173,7 @@ export function PregnancyHistoryTable({
                 <TableCell>
                   {isEditing ? (
                     <Select
-                      value={item.childSex || 'Perempuan'}
+                      value={item.childSex || ''}
                       onValueChange={(val) =>
                         handleFieldChange(index, 'childSex', val)
                       }
@@ -181,12 +182,15 @@ export function PregnancyHistoryTable({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Laki-laki">Laki-laki</SelectItem>
-                        <SelectItem value="Perempuan">Perempuan</SelectItem>
+                        {GENDER_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   ) : (
-                    item.childSex || '-'
+                    getGenderLabel(item.childSex)
                   )}
                 </TableCell>
                 <TableCell>

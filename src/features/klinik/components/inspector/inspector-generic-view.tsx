@@ -52,7 +52,7 @@ export function InspectorGenericView({
   if (flow === 'immunization' || child) {
     const childNik = child?.childNik || '-';
     const birthDate = child?.childBirthDate || '-';
-    const childSex = child?.childSex || '-';
+    const childSex = getGenderLabel(child?.childSex);
     const childAge = child?.childAgeFormatted || '-';
     const parentPhone = child?.parentPhone || '-';
     const fatherName = child?.fatherName || '-';

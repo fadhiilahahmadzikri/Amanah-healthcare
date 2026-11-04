@@ -289,7 +289,7 @@ export const immunizationDocxService = {
     );
 
     // 2. Build Identity Table
-    const sexLetter = intake?.childSex === 'Perempuan' ? 'P' : 'L';
+    const sexLetter = intake?.childSex === 'female' ? 'P' : 'L';
     const birthDateSex = intake?.childBirthDate
       ? `${intake.childBirthDate} (${sexLetter})`
       : '( L / P )';

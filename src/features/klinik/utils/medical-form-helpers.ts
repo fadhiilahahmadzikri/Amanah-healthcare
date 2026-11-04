@@ -1,4 +1,3 @@
-import type { Patient } from '@/features/data-pasien/api/types';
 import type { PatientAffiliationProfile } from '@/features/data-pasien/api/patient-affiliation-service';
 import type { MedicalAppointmentFlow } from '../api/types';
 import type { MedicalFormSection } from '../constants/medical-appointment-schemas';
@@ -10,57 +9,16 @@ import {
   type RepeatableHistoryGroup,
   type ScheduleValues,
   type StepDescriptor,
+  getHistorySectionId,
   historyGroups
 } from '../model/medical-form-history-types';
 import {
   CATALOG_ACTION_TYPES,
   FLOW_NAMES,
   REPEATABLE_GROUP_KEYS,
+  SECTION_IDS,
   STEP_DESCRIPTOR_TYPES
-} from '../constants/medical-appointment-types';
-
-export function normalizeBirthDate(value: string): string {
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return '';
-  }
-
-  if (trimmed.includes('-')) {
-    const parts = trimmed.split('-');
-    if (
-      parts.length === 3 &&
-      parts[0].length === 4 &&
-      parts[1].length === 2 &&
-      parts[2].length === 2 &&
-      !Number.isNaN(Number(parts[0])) &&
-      !Number.isNaN(Number(parts[1])) &&
-      !Number.isNaN(Number(parts[2]))
-    ) {
-      return trimmed;
-    }
-  }
-
-  if (trimmed.includes('/')) {
-    const parts = trimmed.split('/');
-    if (
-      parts.length === 3 &&
-      parts[0].length === 2 &&
-      parts[1].length === 2 &&
-      parts[2].length === 4 &&
-      !Number.isNaN(Number(parts[0])) &&
-      !Number.isNaN(Number(parts[1])) &&
-      !Number.isNaN(Number(parts[2]))
-    ) {
-      return `${parts[2]}-${parts[1]}-${parts[0]}`;
-    }
-  }
-
-  return '';
-}
-
-export function normalizeBloodType(value: string): string {
-  return value ? value.trim() : '';
-}
+} from '../constants/kia-constants';
 
 export function pruneEmptyValues(values: MedicalAppointmentValues): MedicalAppointmentValues {
   return Object.fromEntries(
@@ -70,79 +28,81 @@ export function pruneEmptyValues(values: MedicalAppointmentValues): MedicalAppoi
 
 export function buildRegistrationPrefill(
   flow: MedicalAppointmentFlow,
-  patient: Patient | null,
-  selectedAffiliation?: PatientAffiliationProfile | null
+  patient: PatientAffiliationProfile | null,
+  affiliations?: PatientAffiliationProfile[]
 ): MedicalAppointmentValues {
-  if (!patient && !selectedAffiliation) {
+  if (!patient) {
     return {};
   }
 
-  const activeName = selectedAffiliation?.fullName || patient?.name || '';
-  const activeNik = selectedAffiliation?.nik || patient?.nik || '';
-  const activeBirthDate = normalizeBirthDate(
-    selectedAffiliation?.birthDate || patient?.birth_date || ''
-  );
-  const activeBloodType = normalizeBloodType(
-    selectedAffiliation?.bloodType || patient?.blood_type || ''
-  );
-  const activePhone =
-    selectedAffiliation?.phone || selectedAffiliation?.phoneNumber || patient?.phone || '';
-  const activeAddress =
-    selectedAffiliation?.line1 ||
-    selectedAffiliation?.address ||
-    patient?.line1 ||
-    patient?.address ||
-    '';
-  const activeMotherName = selectedAffiliation?.motherName || patient?.mother_name || '';
-  const activeOccupation = selectedAffiliation?.occupationName || patient?.occupation || '';
-  const activeGender = selectedAffiliation?.gender || patient?.gender || '';
-  const activeEmail = selectedAffiliation?.email || patient?.email || '';
+  const birthDate = patient.birthDate || '';
+  const bloodType = patient.bloodType || '';
+  const phone = patient.phone || patient.phoneNumber || '';
+  const address = patient.address || patient.line1 || '';
+  const nik = patient.nik || '';
+  const occupation = patient.occupationName || '';
+  const result: Record<string, string> = {
+    fullName: patient.fullName,
+    nik,
+    birthDate,
+    bloodType,
+    phone,
+    address,
+    motherName: patient.fullName,
+    motherNik: nik,
+    motherBirthDate: birthDate,
+    motherJob: occupation,
+    phoneNumber: phone,
+    domicileAddress: address,
+    identityCardAddress: address,
+    motherBloodType: bloodType,
+    childName: patient.fullName,
+    childNik: nik,
+    childBirthDate: birthDate,
+    childSex: patient.gender || '',
+    parentPhone: phone,
+    childAddress: address
+  };
 
-  const parentName = patient?.name || activeMotherName;
-  const parentPhone = patient?.phone || activePhone;
+  if (patient.motherName) {
+    result.motherName = patient.motherName;
+  }
 
-  return pruneEmptyValues({
-    fullName: activeName,
-    nik: activeNik,
-    birthDate: activeBirthDate,
-    birthPlace: selectedAffiliation?.birthPlace || patient?.birth_place || '',
-    bloodType: activeBloodType,
-    phone: activePhone,
-    email: activeEmail,
-    address: activeAddress,
-    motherName: flow === 'immunization' ? parentName : activeName,
-    motherNik: flow === 'immunization' ? patient?.nik || '' : activeNik,
-    motherBirthDate:
-      flow === 'immunization' ? normalizeBirthDate(patient?.birth_date || '') : activeBirthDate,
-    motherAge: patient?.age ? `${patient.age} tahun` : '',
-    motherJob: flow === 'immunization' ? patient?.occupation || '' : activeOccupation,
-    phoneNumber: activePhone,
-    domicileAddress: activeAddress,
-    identityCardAddress: activeAddress,
-    motherBloodType:
-      flow === 'immunization' ? normalizeBloodType(patient?.blood_type || '') : activeBloodType,
-    childName: activeName,
-    childNik: activeNik,
-    childBirthDate: activeBirthDate,
-    childSex: activeGender,
-    parentPhone: parentPhone,
-    childAddress: activeAddress,
-    emergencyContactName:
-      selectedAffiliation?.emergencyContactName || patient?.emergencyContactName || '',
-    emergencyContactPhone:
-      selectedAffiliation?.emergencyContactPhone || patient?.emergencyContactPhone || '',
-    emergencyContactRelationship:
-      selectedAffiliation?.emergencyContactRelationship ||
-      patient?.emergencyContactRelationship ||
-      ''
-  });
+  if (affiliations && affiliations.length > 0) {
+    const spouse = affiliations.find(
+      (a) => a.relationship === 'spouse' || a.relationship === 'pasangan'
+    );
+    if (spouse) {
+      result.partnerName = spouse.fullName;
+      result.partnerNik = spouse.nik;
+      if (spouse.birthDate) result.partnerBirthDate = spouse.birthDate;
+      if (spouse.bloodType) result.partnerBloodType = spouse.bloodType;
+      if (spouse.occupationName) result.partnerJob = spouse.occupationName;
+    }
+
+    if (flow === 'immunization') {
+      const parent = affiliations.find(
+        (a) => a.relationship === 'parent' || a.relationship === 'orang_tua' || a.isSelf
+      );
+      if (parent) {
+        if (parent.gender === 'female' && !result.motherName) {
+          result.motherName = parent.fullName;
+        } else if (parent.gender === 'male' && !result.fatherName) {
+          result.fatherName = parent.fullName;
+        }
+      }
+    }
+  }
+
+  return pruneEmptyValues(result);
 }
 
 export function buildComplaintText(
   complaintFieldId: string,
   values: MedicalAppointmentValues
 ): string {
-  return values[complaintFieldId]?.trim() || '';
+  const complaint = values[complaintFieldId]?.trim();
+  return complaint || '';
 }
 
 export function checkCurrentStepValid(
@@ -186,15 +146,22 @@ export function getHistorySectionMeta(sectionId?: string) {
     return null;
   }
 
-  for (const group of Object.values(historyGroups)) {
-    const sectionIndex = group.sectionIds.indexOf(sectionId);
-    if (sectionIndex >= 0) {
-      return {
-        group,
-        recordNumber: sectionIndex + 1
-      };
-    }
+  const pregMatch = sectionId.match(/^previousPregnancy(\d+)Details$/);
+  if (pregMatch) {
+    return {
+      group: historyGroups[REPEATABLE_GROUP_KEYS.PREGNANCY],
+      recordNumber: parseInt(pregMatch[1], 10)
+    };
   }
+
+  const contraMatch = sectionId.match(/^contraception(\d+)Details$/);
+  if (contraMatch) {
+    return {
+      group: historyGroups[REPEATABLE_GROUP_KEYS.CONTRACEPTION],
+      recordNumber: parseInt(contraMatch[1], 10)
+    };
+  }
+
   return null;
 }
 
@@ -224,7 +191,7 @@ export function getHistorySection(
   group: RepeatableHistoryGroup,
   recordNumber: number
 ): MedicalFormSection | undefined {
-  const sectionId = group.sectionIds[recordNumber - 1];
+  const sectionId = getHistorySectionId(group.key, recordNumber);
   return sections.find((section) => section.id === sectionId);
 }
 
@@ -232,20 +199,12 @@ export function pickMedicalValues(
   activeSections: MedicalFormSection[],
   values: MedicalAppointmentValues
 ): MedicalAppointmentValues {
-  const result = activeSections.reduce<MedicalAppointmentValues>((acc, section) => {
+  return activeSections.reduce<MedicalAppointmentValues>((acc, section) => {
     section.fields.forEach((field) => {
       acc[field.id] = values[field.id] || '';
     });
     return acc;
   }, {});
-
-  for (const [key, value] of Object.entries(values)) {
-    if (key.startsWith('vaccine_') && value) {
-      result[key] = value;
-    }
-  }
-
-  return result;
 }
 
 export function collectAnsweredFieldsFromSections(
@@ -287,7 +246,7 @@ export function buildMedicalActiveSteps({
       catalogAction.type === CATALOG_ACTION_TYPES.ADD
         ? `previousPregnancy${catalogAction.recordNumber}Details`
         : historyCounts.pregnancy === 0
-          ? 'obstetricGateway'
+          ? SECTION_IDS.OBSTETRIC_GATEWAY
           : `previousPregnancy${historyCounts.pregnancy}Details`;
 
     if (
@@ -305,7 +264,7 @@ export function buildMedicalActiveSteps({
       catalogAction.type === CATALOG_ACTION_TYPES.ADD
         ? `contraception${catalogAction.recordNumber}Details`
         : historyCounts.contraception === 0
-          ? 'contraceptionGateway'
+          ? SECTION_IDS.CONTRACEPTION_GATEWAY
           : `contraception${historyCounts.contraception}Details`;
 
     if (

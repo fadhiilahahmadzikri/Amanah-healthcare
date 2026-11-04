@@ -5,6 +5,7 @@ import { klinikKeys } from '../../../api/query-keys';
 import { kiaIntakeService } from '../../../api/kia-intake-service';
 import { updatePatient } from '@/features/data-pasien/api/service';
 import type { PatientMutationPayload } from '@/features/data-pasien/api/types';
+import type { Gender } from '@/constants/gender.constants';
 import type { Appointment } from '../../../api/types';
 import type {
   UnifiedInspectorData,
@@ -346,7 +347,7 @@ export function useInspectorSave({
         diffPayload.birth_date = immunizationFormData.childBirthDate || undefined;
       }
       if (immunizationFormData.childSex !== initialChild.childSex) {
-        diffPayload.gender = immunizationFormData.childSex === 'Perempuan' ? 'female' : 'male';
+        diffPayload.gender = immunizationFormData.childSex as Gender;
       }
       if (immunizationFormData.motherName !== initialChild.motherName) {
         diffPayload.mother_name = immunizationFormData.motherName?.trim() || undefined;

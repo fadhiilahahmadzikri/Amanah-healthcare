@@ -200,6 +200,7 @@ export interface CreateRelationshipPayload {
 
 export interface DemographicMasterItem {
   id: string;
+  code?: string;
   name: string;
   description?: string | null;
   displayOrder: number;
@@ -210,6 +211,7 @@ export interface DemographicMasterItem {
 }
 
 export interface CreateDemographicPayload {
+  code?: string;
   name: string;
   description?: string;
   displayOrder?: number;

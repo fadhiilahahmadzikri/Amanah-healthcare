@@ -12,12 +12,14 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
+export type PatientLineSelectOption = string | { label: string; value: string };
+
 export interface PatientLineSelectProps {
   id: string;
   label: React.ReactNode;
   value: string;
   onChange: (value: string) => void;
-  options: readonly string[] | string[];
+  options: readonly PatientLineSelectOption[] | PatientLineSelectOption[];
   placeholder?: string;
   error?: string;
   invalid?: boolean;
@@ -101,11 +103,15 @@ export function PatientLineSelect({
 
         <SelectContent>
           <SelectGroup>
-            {options.map((option) => (
-              <SelectItem key={option} value={option} className='cursor-pointer'>
-                {option}
-              </SelectItem>
-            ))}
+            {options.map((option) => {
+              const optValue = typeof option === 'string' ? option : option.value;
+              const optLabel = typeof option === 'string' ? option : option.label;
+              return (
+                <SelectItem key={optValue} value={optValue} className='cursor-pointer'>
+                  {optLabel}
+                </SelectItem>
+              );
+            })}
           </SelectGroup>
         </SelectContent>
       </Select>

@@ -6,6 +6,7 @@ import type { MedicalAppointmentValues } from '../utils/medical-appointment';
 import {
   type CatalogActionState,
   defaultHistoryCounts,
+  getHistorySectionId,
   type HistoryPromptState,
   type HistoryRecordActions,
   historyGroups,
@@ -14,7 +15,7 @@ import {
   type RepeatableHistoryKey
 } from './medical-form-history-types';
 import { getHistorySection, getHistorySectionMeta } from '../utils/medical-form-helpers';
-import { CATALOG_ACTION_TYPES } from '../constants/medical-appointment-types';
+import { CATALOG_ACTION_TYPES } from '../constants/kia-constants';
 
 interface UseMedicalFormHistoryParams {
   sections: MedicalFormSection[];
@@ -64,7 +65,8 @@ export function useMedicalFormHistory({
 
   const shiftHistoryRecords = React.useCallback(
     (group: RepeatableHistoryGroup, removedRecord: number) => {
-      for (let recordNumber = removedRecord; recordNumber < group.maxRecords; recordNumber += 1) {
+      const currentCount = historyCounts[group.key];
+      for (let recordNumber = removedRecord; recordNumber < currentCount; recordNumber += 1) {
         const targetSection = getHistorySection(sections, group, recordNumber);
         const sourceSection = getHistorySection(sections, group, recordNumber + 1);
 
@@ -74,9 +76,9 @@ export function useMedicalFormHistory({
         });
       }
 
-      clearHistoryRecordRange(group, group.maxRecords, group.maxRecords);
+      clearHistoryRecordRange(group, currentCount, currentCount);
     },
-    [sections, values, setFieldValue, clearHistoryRecordRange]
+    [sections, values, setFieldValue, clearHistoryRecordRange, historyCounts]
   );
 
   const handleCancelCatalogAction = React.useCallback(() => {
@@ -104,10 +106,6 @@ export function useMedicalFormHistory({
     const currentCount = historyCounts[groupKey];
     setHistoryPrompt(null);
 
-    if (currentCount >= historyGroups[groupKey].maxRecords) {
-      return;
-    }
-
     const nextRecordNumber = currentCount + 1;
     setCatalogAction({
       type: CATALOG_ACTION_TYPES.ADD,
@@ -115,17 +113,13 @@ export function useMedicalFormHistory({
       recordNumber: nextRecordNumber
     });
 
-    const targetSectionId = historyGroups[groupKey].sectionIds[nextRecordNumber - 1];
+    const targetSectionId = getHistorySectionId(groupKey, nextRecordNumber);
     setPendingNavigateSectionId(targetSectionId);
   }, [historyPrompt, historyCounts]);
 
   const handleAddHistoryFromCatalog = React.useCallback(
     (groupKey: RepeatableHistoryKey) => {
       const currentCount = historyCounts[groupKey];
-      if (currentCount >= historyGroups[groupKey].maxRecords) {
-        return;
-      }
-
       const targetRecordNumber = currentCount + 1;
       setCatalogAction({
         type: CATALOG_ACTION_TYPES.ADD,
@@ -133,7 +127,7 @@ export function useMedicalFormHistory({
         recordNumber: targetRecordNumber
       });
 
-      const targetSectionId = historyGroups[groupKey].sectionIds[targetRecordNumber - 1];
+      const targetSectionId = getHistorySectionId(groupKey, targetRecordNumber);
       setPendingNavigateSectionId(targetSectionId);
     },
     [historyCounts]
@@ -141,7 +135,7 @@ export function useMedicalFormHistory({
 
   const handleEditHistoryFromCatalog = React.useCallback(
     (groupKey: RepeatableHistoryKey, recordNumber: number) => {
-      const targetSectionId = historyGroups[groupKey].sectionIds[recordNumber - 1];
+      const targetSectionId = getHistorySectionId(groupKey, recordNumber);
 
       setCatalogAction({
         type: CATALOG_ACTION_TYPES.EDIT,
@@ -159,7 +153,7 @@ export function useMedicalFormHistory({
       const currentCount = historyCounts[key];
 
       if (currentCount <= 1) {
-        clearHistoryRecordRange(group, 1, group.maxRecords);
+        clearHistoryRecordRange(group, 1, currentCount);
         setHistoryCounts((previous) => ({
           ...previous,
           [key]: 0
@@ -194,7 +188,6 @@ export function useMedicalFormHistory({
       return {
         currentRecord: historySection.recordNumber,
         totalRecords,
-        maxRecords: historySection.group.maxRecords,
         onAdd: () => handleAddHistoryFromCatalog(historySection.group.key),
         onRemove: () =>
           handleRemoveHistoryRecord(historySection.group.key, historySection.recordNumber)

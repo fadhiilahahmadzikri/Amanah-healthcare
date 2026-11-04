@@ -8,6 +8,7 @@ import { PatientLineSelect } from '@/features/data-pasien/components/registratio
 import { PatientLineTextarea } from '@/features/data-pasien/components/registration/atoms/patient-line-textarea';
 import { MilestoneStatusBadge } from '../atoms/milestone-status-badge';
 import { MilestoneRowEditor } from '../molecules/milestone-row-editor';
+import { GENDER_OPTIONS, getGenderLabel } from '@/constants/gender.constants';
 import { CANONICAL_IMMUNIZATION_ROWS } from '../../constants/immunization.constants';
 import type {
   ChildSex,
@@ -122,9 +123,9 @@ export function ImmunizationAdminInspector({
                   <PatientLineSelect
                     id='admin-child-sex-select'
                     label='Jenis Kelamin'
-                    value={intake?.childSex || 'Laki-laki'}
+                    value={intake?.childSex || ''}
                     onChange={(val) => onIntakeFieldChange('childSex', val as ChildSex)}
-                    options={['Laki-laki', 'Perempuan']}
+                    options={GENDER_OPTIONS}
                     placeholder='Pilih kelamin'
                   />
                 </div>
@@ -178,7 +179,7 @@ export function ImmunizationAdminInspector({
                   <PatientLineInput
                     id='view-child-sex'
                     label='Jenis Kelamin'
-                    value={intake?.childSex || '-'}
+                    value={getGenderLabel(intake?.childSex)}
                     readOnly
                   />
                 </div>

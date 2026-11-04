@@ -38,6 +38,19 @@ export const DELIVERY_METHOD_OPTIONS: readonly string[] = [
   'Lainnya',
 ] as const;
 
+export const BIRTH_ATTENDANT_OPTIONS: readonly string[] = [
+  'Bidan',
+  'Dokter Spesialis Obgyn',
+  'Dokter Umum',
+] as const;
+
+export const DELIVERY_PLACE_OPTIONS: readonly string[] = [
+  'Puskesmas',
+  'Klinik / PMB',
+  'Rumah Sakit',
+  'Rumah Sendiri',
+] as const;
+
 export const CONTRACEPTIVE_TYPE_OPTIONS: readonly string[] = [
   'Suntik 3 Bulan',
   'Suntik 1 Bulan',

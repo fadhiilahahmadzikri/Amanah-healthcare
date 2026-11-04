@@ -10,11 +10,9 @@ import { formRequirementGuard } from './form-requirement-guard';
 import type { AppointmentFormData, Doctor, MedicalAppointmentFlow } from '../api/types';
 import { getDoctorsByService } from '../api/service';
 import {
-  createDynamicFlowDefinition,
   getMedicalFlowDefinition,
   type MedicalFormSection
 } from '../constants/medical-appointment-schemas';
-import type { FormJsonSchema } from '../constants/default-form-template';
 import { enrichMedicalFlowDefinition, useMaternalCatalogs } from './useMaternalCatalogs';
 import {
   buildDefaultMedicalValues,
@@ -46,12 +44,20 @@ import {
 import {
   ALLERGY_GATEWAY_CHOICE,
   CATALOG_ACTION_TYPES,
+  REPEATABLE_GROUP_KEYS,
+  SECTION_IDS,
   STEP_DESCRIPTOR_TYPES
 } from '../constants/kia-constants';
-import { isMedicalSectionValid } from '../schemas/medical-appointment-validation';
+import {
+  CONTRACEPTION_CHOICE,
+  PREVIOUS_PREGNANCY_CHOICE
+} from '../constants/medical-appointment-types';
+import {
+  createContraceptionSection,
+  createPreviousPregnancySection
+} from '../constants/pregnancy-sections/history-sections';
 import { useMedicalFormHistory } from './useMedicalFormHistory';
 import { useMedicalFormCalculations } from './useMedicalFormCalculations';
-import { useRegisteredPatient } from './useRegisteredPatient';
 import { useMedicalAppointmentSubmit } from './useMedicalAppointmentSubmit';
 import type { ReservationContext } from '../components/reservation/reservation-modal';
 import type { ServiceCatalogItem } from '../api/catalog.service';
@@ -75,9 +81,9 @@ export { defaultHistoryCounts, historyGroups, scheduleStepDescriptors };
 export interface UseMedicalAppointmentFormOptions {
   flow: MedicalAppointmentFlow;
   isOpen: boolean;
-  formSchema?: FormJsonSchema | Record<string, any> | null;
   selectedService?: ServiceCatalogItem | null;
   selectedPatient?: PatientAffiliationProfile | null;
+  patients?: PatientAffiliationProfile[];
   newPatientRelationship?: PatientRelationshipType | string;
   onClose: () => void;
   onCreated?: (formData: AppointmentFormData) => void;
@@ -90,9 +96,9 @@ export type UseMedicalAppointmentFormResult = ReturnType<typeof useMedicalAppoin
 export function useMedicalAppointmentForm({
   flow,
   isOpen,
-  formSchema,
   selectedService,
   selectedPatient,
+  patients,
   newPatientRelationship,
   onClose,
   onCreated,
@@ -100,8 +106,12 @@ export function useMedicalAppointmentForm({
   onBackToService
 }: UseMedicalAppointmentFormOptions) {
   const baseDefinition = React.useMemo(() => {
-    return createDynamicFlowDefinition(flow, formSchema, selectedService?.name);
-  }, [flow, formSchema, selectedService?.name]);
+    const def = getMedicalFlowDefinition(flow);
+    if (!def) {
+      throw new Error(`Clinical intake form definition not registered for flow: "${flow}"`);
+    }
+    return def;
+  }, [flow]);
   const { catalogs } = useMaternalCatalogs(isOpen && flow === 'pregnancy');
   const definition = React.useMemo(
     () => enrichMedicalFlowDefinition(baseDefinition, catalogs),
@@ -130,6 +140,10 @@ export function useMedicalAppointmentForm({
   const defaultValues = React.useMemo(() => {
     const base = buildDefaultMedicalValues(baseDefinition);
     const target = base as Record<string, string>;
+    const profilePrefill = buildRegistrationPrefill(flow, selectedPatient || null, patients);
+    Object.entries(profilePrefill).forEach(([fieldId, val]) => {
+      if (val) target[fieldId] = String(val);
+    });
     if (effectiveRequirement?.reusableIdentity) {
       Object.entries(effectiveRequirement.reusableIdentity).forEach(([fieldId, val]) => {
         if (val !== undefined && val !== null && val !== '') target[fieldId] = String(val);
@@ -141,7 +155,7 @@ export function useMedicalAppointmentForm({
       });
     }
     return base;
-  }, [baseDefinition, effectiveRequirement]);
+  }, [baseDefinition, effectiveRequirement, flow, selectedPatient, patients]);
 
   const doctors = React.useMemo<Doctor[]>(
     () => getDoctorsByService(definition.serviceName),
@@ -156,14 +170,30 @@ export function useMedicalAppointmentForm({
     session: ''
   });
 
-  const registeredPatient = useRegisteredPatient(isOpen);
-
   const form = useAppForm({
     defaultValues,
     onSubmit: async ({ value }) => {
       submit.submitMedicalAppointment(value as MedicalAppointmentValues);
     }
   });
+
+  React.useEffect(() => {
+    if (!isOpen || !selectedPatient) return;
+    const prefill = buildRegistrationPrefill(flow, selectedPatient, patients);
+    Object.entries(prefill).forEach(([fieldId, val]) => {
+      if (val) form.setFieldValue(fieldId as any, val);
+    });
+    if (effectiveRequirement?.reusableIdentity) {
+      Object.entries(effectiveRequirement.reusableIdentity).forEach(([fieldId, val]) => {
+        if (val !== undefined && val !== null && val !== '') form.setFieldValue(fieldId as any, String(val));
+      });
+    }
+    if (effectiveRequirement?.prefilledValues) {
+      Object.entries(effectiveRequirement.prefilledValues).forEach(([fieldId, val]) => {
+        if (val !== undefined && val !== null && val !== '') form.setFieldValue(fieldId as any, String(val));
+      });
+    }
+  }, [isOpen, selectedPatient, patients, effectiveRequirement, flow, form]);
 
   const values = useStore(form.store, (state) => state.values) as MedicalAppointmentValues;
 
@@ -180,10 +210,52 @@ export function useMedicalAppointmentForm({
     isOpen
   });
 
-  const activeMedicalSections = React.useMemo(
-    () => getActiveMedicalSections(definition, values),
-    [definition, values]
-  );
+  const activeMedicalSections = React.useMemo(() => {
+    const baseSections = getActiveMedicalSections(definition, values);
+    if (flow !== 'pregnancy') {
+      return baseSections;
+    }
+
+    const pregnancyMax = Math.max(
+      history.historyCounts.pregnancy,
+      history.catalogAction?.groupKey === REPEATABLE_GROUP_KEYS.PREGNANCY
+        ? history.catalogAction.recordNumber
+        : 0
+    );
+    const contraceptionMax = Math.max(
+      history.historyCounts.contraception,
+      history.catalogAction?.groupKey === REPEATABLE_GROUP_KEYS.CONTRACEPTION
+        ? history.catalogAction.recordNumber
+        : 0
+    );
+
+    const dynamicPregSections =
+      values.hasPreviousPregnancyHistory === PREVIOUS_PREGNANCY_CHOICE.YES && pregnancyMax > 0
+        ? Array.from({ length: pregnancyMax }, (_, i) => createPreviousPregnancySection(i + 1))
+        : [];
+
+    const dynamicContraSections =
+      values.hasContraceptionHistory === CONTRACEPTION_CHOICE.YES && contraceptionMax > 0
+        ? Array.from({ length: contraceptionMax }, (_, i) => createContraceptionSection(i + 1))
+        : [];
+
+    const result: MedicalFormSection[] = [];
+    for (const section of baseSections) {
+      if (section.id.startsWith('previousPregnancy')) {
+        continue;
+      }
+      if (section.id.startsWith('contraception') && section.id !== 'contraceptionGateway') {
+        continue;
+      }
+      result.push(section);
+      if (section.id === 'obstetricGateway') {
+        result.push(...dynamicPregSections);
+      } else if (section.id === 'contraceptionGateway') {
+        result.push(...dynamicContraSections);
+      }
+    }
+    return result;
+  }, [definition, values, flow, history.historyCounts, history.catalogAction]);
 
   const repeatableMedicalSections = React.useMemo(
     () =>
@@ -197,22 +269,21 @@ export function useMedicalAppointmentForm({
     return new Set(effectiveRequirement?.omittedFieldIds || []);
   }, [effectiveRequirement]);
 
-  const registrationPrefill = React.useMemo(
-    () => buildRegistrationPrefill(flow, registeredPatient, selectedPatient),
-    [flow, registeredPatient, selectedPatient]
-  );
-
   const visibleMedicalSections = React.useMemo(
     () =>
       repeatableMedicalSections
         .map((section) => ({
           ...section,
           fields: section.fields.filter(
-            (field) => !field.visibleIf || field.visibleIf(values)
+            (field) =>
+              !omittedFieldIdsSet.has(field.id) &&
+              (!field.visibleIf || field.visibleIf(values))
           )
         }))
-        .filter((section) => section.id === 'vaccineHistory' || section.fields.length > 0),
-    [repeatableMedicalSections, values]
+        .filter(
+          (section) => section.id === SECTION_IDS.VACCINE_HISTORY || section.fields.length > 0
+        ),
+    [repeatableMedicalSections, omittedFieldIdsSet, values]
   );
 
   const activeSteps = React.useMemo<StepDescriptor[]>(
@@ -239,7 +310,6 @@ export function useMedicalAppointmentForm({
   const submit = useMedicalAppointmentSubmit({
     definition,
     schedule,
-    registeredPatient,
     repeatableMedicalSections,
     selectedService,
     selectedPatient,
@@ -259,24 +329,6 @@ export function useMedicalAppointmentForm({
     setCurrentStep((step) => Math.min(step, totalSteps));
   }, [totalSteps]);
 
-  React.useEffect(() => {
-    Object.entries(registrationPrefill).forEach(([fieldId, value]) => {
-      if (value.trim()) form.setFieldValue(fieldId, value);
-    });
-    if (effectiveRequirement?.reusableIdentity) {
-      Object.entries(effectiveRequirement.reusableIdentity).forEach(([fieldId, value]) => {
-        if (value) form.setFieldValue(fieldId, value);
-      });
-    }
-    if (effectiveRequirement?.prefilledValues) {
-      Object.entries(effectiveRequirement.prefilledValues).forEach(([fieldId, value]) => {
-        if (value && !form.getFieldValue(fieldId)) {
-          form.setFieldValue(fieldId, value);
-        }
-      });
-    }
-  }, [form, registrationPrefill, effectiveRequirement]);
-
   const prevHistoriesRef = React.useRef({
     contraception: values.hasContraceptionHistory,
     pregnancy: values.hasPreviousPregnancyHistory,
@@ -290,7 +342,7 @@ export function useMedicalAppointmentForm({
       values.hasContraceptionHistory === cGroup.disabledValue &&
       prev.contraception !== cGroup.disabledValue
     ) {
-      history.clearHistoryRecordRange(cGroup, 1, cGroup.maxRecords);
+      history.clearHistoryRecordRange(cGroup, 1, history.historyCounts.contraception);
       history.setHistoryCounts((p) => (p.contraception === 1 ? p : { ...p, contraception: 1 }));
     }
     const pGroup = historyGroups.pregnancy;
@@ -298,7 +350,7 @@ export function useMedicalAppointmentForm({
       values.hasPreviousPregnancyHistory === pGroup.disabledValue &&
       prev.pregnancy !== pGroup.disabledValue
     ) {
-      history.clearHistoryRecordRange(pGroup, 1, pGroup.maxRecords);
+      history.clearHistoryRecordRange(pGroup, 1, history.historyCounts.pregnancy);
       history.setHistoryCounts((p) => (p.pregnancy === 1 ? p : { ...p, pregnancy: 1 }));
     }
     if (
@@ -457,10 +509,7 @@ export function useMedicalAppointmentForm({
           return;
         }
 
-        if (
-          historyMeta.recordNumber === history.historyCounts[historyMeta.group.key] &&
-          history.historyCounts[historyMeta.group.key] < historyMeta.group.maxRecords
-        ) {
+        if (historyMeta.recordNumber === history.historyCounts[historyMeta.group.key]) {
           history.setHistoryPrompt({
             groupKey: historyMeta.group.key,
             currentRecord: historyMeta.recordNumber
@@ -501,18 +550,6 @@ export function useMedicalAppointmentForm({
     [currentDescriptor, visibleMedicalSections, values, schedule]
   );
 
-  const isAllValid = React.useMemo(() => {
-    return visibleMedicalSections.every((section) => isMedicalSectionValid(section, values));
-  }, [visibleMedicalSections, values]);
-
-  const handleFormSubmit = React.useCallback(() => {
-    if (!isAllValid) {
-      toast.error('Mohon lengkapi seluruh isian bertanda bintang (*) sebelum melanjutkan.');
-      return;
-    }
-    void form.handleSubmit();
-  }, [isAllValid, form]);
-
   return {
     definition,
     form,
@@ -529,17 +566,14 @@ export function useMedicalAppointmentForm({
     isQueueSuccessOpen: submit.isQueueSuccessOpen,
     createdAppointment: submit.createdAppointment,
     createdQueueItem: submit.createdQueueItem,
-    registeredPatient,
     historyCounts: history.historyCounts,
     historyPrompt: history.historyPrompt,
     catalogAction: history.catalogAction,
     isCurrentStepValid: isStepValid,
-    isAllValid,
     actions: {
       setSchedule,
       nextStep: handleNext,
       prevStep: handleBack,
-      submitForm: handleFormSubmit,
       goToStep: setCurrentStep,
       promptYes: history.handlePromptYes,
       promptNo: handlePromptNo,
@@ -551,7 +585,6 @@ export function useMedicalAppointmentForm({
         submit.setIsQueueSuccessOpen(false);
         onClose();
       },
-      submitMedicalAppointment: submit.submitMedicalAppointment,
       getHistoryRecordActions: history.getHistoryRecordActions,
       collectAnsweredFields: (sections: MedicalFormSection[]) =>
         collectAnsweredFieldsFromSections(sections, values)

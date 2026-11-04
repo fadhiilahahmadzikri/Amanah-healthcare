@@ -171,7 +171,7 @@ export function convertSectionsToJsonSchema(
         placeholder: f.placeholder || '',
         required: Boolean(f.required),
         isActive: f.isActive !== false,
-        choices: f.choices || [],
+        choices: (f.choices || []).map((c) => (typeof c === 'string' ? c : c.value)),
         dataSource: f.dataSource,
         colSpan: f.colSpan || (f.type === 'PARAGRAPH' || f.type === 'DATE' ? 'full' : 1),
         yearFieldId: f.yearFieldId,

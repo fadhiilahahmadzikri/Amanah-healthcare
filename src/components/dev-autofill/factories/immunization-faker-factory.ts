@@ -18,7 +18,7 @@ export class ImmunizationFakerFactory {
     schedule: AutofillSchedule;
   } {
     const isFemale = faker.datatype.boolean();
-    const childSex = isFemale ? 'Perempuan' : 'Laki-laki';
+    const childSex = isFemale ? 'female' : 'male';
     const childName = faker.person.fullName({ sex: isFemale ? 'female' : 'male' });
 
     const birthYear = faker.number.int({ min: 2024, max: 2025 });

@@ -13,10 +13,8 @@ import {
 import {
   CONTRACEPTION_CHOICE,
   FLOW_NAMES,
-  PREVIOUS_PREGNANCY_CHOICE,
-  VACCINE_GATEWAY_CHOICE
+  PREVIOUS_PREGNANCY_CHOICE
 } from '../constants/medical-appointment-types';
-import { normalizeBirthDate } from './medical-form-helpers';
 
 const INDONESIAN_MONTHS = [
   'Januari',
@@ -32,20 +30,6 @@ const INDONESIAN_MONTHS = [
   'November',
   'Desember'
 ];
-
-const previousPregnancySectionIds = new Set<string>([
-  'previousPregnancy1Details',
-  'previousPregnancy2Details',
-  'previousPregnancy3Details',
-  'previousPregnancy4Details'
-]);
-
-const contraceptionSectionIds = new Set<string>([
-  'contraception1Details',
-  'contraception2Details',
-  'contraception3Details',
-  'contraception4Details'
-]);
 
 export type MedicalAppointmentValues = Record<string, string>;
 
@@ -73,16 +57,12 @@ export function getActiveMedicalSections(
       return false;
     }
 
-    if (previousPregnancySectionIds.has(section.id)) {
+    if (section.id.startsWith('previousPregnancy')) {
       return values.hasPreviousPregnancyHistory === PREVIOUS_PREGNANCY_CHOICE.YES;
     }
 
-    if (contraceptionSectionIds.has(section.id)) {
+    if (section.id.startsWith('contraception')) {
       return values.hasContraceptionHistory === CONTRACEPTION_CHOICE.YES;
-    }
-
-    if (section.id === 'vaccineHistory') {
-      return values.hasVaccineHistory === VACCINE_GATEWAY_CHOICE.YES;
     }
 
     return true;
@@ -226,16 +206,9 @@ export function calculateAgeInYears(
   }
 
   try {
-    const normalized = normalizeBirthDate(birthDateStr);
-    let birthDate: Date;
-    if (normalized) {
-      birthDate = toDateOnly(normalized);
-    } else {
-      const parsed = new Date(birthDateStr);
-      if (Number.isNaN(parsed.getTime())) {
-        return '';
-      }
-      birthDate = toDateOnly(parsed);
+    const birthDate = toDateOnly(birthDateStr.split('T')[0]);
+    if (Number.isNaN(birthDate.getTime())) {
+      return '';
     }
 
     const reference = toDateOnly(referenceDate);

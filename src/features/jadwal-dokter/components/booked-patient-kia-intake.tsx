@@ -7,6 +7,7 @@ import {
   type MaternalIntakeResponse,
   type ChildImmunizationResponse
 } from '@/features/klinik/api/kia-intake-service';
+import { getGenderLabel } from '@/constants/gender.constants';
 import { FLOW_NAMES } from '@/features/klinik/constants/medical-appointment-types';
 
 export interface BookedPatientKiaIntakeProps {
@@ -121,7 +122,7 @@ export function BookedPatientKiaIntake({ appointmentId }: BookedPatientKiaIntake
                         Anak Ke-{p.orderNumber} ({p.birthYear || '-'})
                       </span>
                       <span className='text-muted-foreground font-normal'>
-                        {p.childSex || '-'} • {p.birthWeightGrams ? `${p.birthWeightGrams} g` : '-'}
+                        {getGenderLabel(p.childSex)} • {p.birthWeightGrams ? `${p.birthWeightGrams} g` : '-'}
                       </span>
                     </div>
                     <div className='text-muted-foreground text-[10.5px]'>

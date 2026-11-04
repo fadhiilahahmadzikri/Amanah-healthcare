@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { Download, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { getGenderLabel } from '@/constants/gender.constants';
 import { maternityDocxService } from '../../services/maternity-docx.service';
 import type { MaternityIntake } from '../../types/maternity.types';
 
@@ -233,7 +234,7 @@ export function MaternityDocumentView({ intake }: MaternityDocumentViewProps) {
                       <td className="p-1.5 text-center">{p.orderNumber || idx + 1}</td>
                       <td className="p-1.5">{p.birthYear || '-'}</td>
                       <td className="p-1.5">{p.birthWeightGrams || '-'}gr / {p.birthLengthCm || '-'}cm</td>
-                      <td className="p-1.5">{p.childSex || '-'}</td>
+                      <td className="p-1.5">{getGenderLabel(p.childSex)}</td>
                       <td className="p-1.5">{p.gestationalAgeAtBirth || '-'}</td>
                       <td className="p-1.5">{p.birthAttendant || '-'}</td>
                       <td className="p-1.5">{p.deliveryMethod || '-'}</td>

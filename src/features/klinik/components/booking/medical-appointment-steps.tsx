@@ -42,7 +42,7 @@ export function MedicalSectionStep({
   section: MedicalFormSection;
   catalogActionType?: 'add' | 'edit' | null;
   onReturnToCatalog?: () => void;
-  renderField: (field: MedicalFormField, index: number) => React.ReactNode;
+  renderField: (field: MedicalFormField) => React.ReactNode;
   values?: MedicalAppointmentValues;
   onFieldChange?: (fieldId: string, value: string) => void;
 }) {
@@ -94,11 +94,7 @@ export function MedicalSectionStep({
       ) : null}
       {isQuestionnaire && values && onFieldChange ? (
         <div className='px-0.5 pt-1.5 pb-2'>
-          <MedicalQuestionnaire
-            section={section}
-            values={values || {}}
-            onFieldChange={onFieldChange || (() => {})}
-          />
+          <MedicalQuestionnaire section={section} values={values} onFieldChange={onFieldChange} />
         </div>
       ) : (
         <FieldGroup
@@ -108,12 +104,8 @@ export function MedicalSectionStep({
           )}
         >
           {section.fields
-            .filter(
-              (field) =>
-                field.isActive !== false &&
-                (!field.visibleIf || (values && field.visibleIf(values)))
-            )
-            .map((field, idx) => renderField(field, idx))}
+            .filter((field) => !field.visibleIf || (values && field.visibleIf(values)))
+            .map(renderField)}
         </FieldGroup>
       )}
     </div>

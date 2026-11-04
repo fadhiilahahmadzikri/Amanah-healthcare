@@ -280,27 +280,48 @@ export const clinicEssentialsApi = {
     ),
 
   // Demographic Masters: Blood Types
-  getBloodTypes: (params?: FacilityQueryParams): Promise<DemographicMasterItem[]> => {
+  getBloodTypes: async (params?: FacilityQueryParams): Promise<DemographicMasterItem[]> => {
     const sp = new URLSearchParams();
     if (params?.search) sp.append('search', params.search);
     if (params?.status) sp.append('status', params.status);
     const qs = sp.toString();
-    return clientFetch<DemographicMasterItem[]>(
-      qs ? `/api/v1/admin/facilities/blood-types?${qs}` : '/api/v1/admin/facilities/blood-types'
-    );
+    const res = await clientFetch<
+      { success?: boolean; data?: DemographicMasterItem[] } | DemographicMasterItem[]
+    >(qs ? `/api/v1/admin/facilities/blood-types?${qs}` : '/api/v1/admin/facilities/blood-types');
+    if (res && typeof res === 'object' && 'data' in res && Array.isArray(res.data)) {
+      return res.data;
+    }
+    return Array.isArray(res) ? res : [];
   },
 
-  createBloodType: (payload: CreateDemographicPayload): Promise<DemographicMasterItem> =>
-    clientFetch<DemographicMasterItem>('/api/v1/admin/facilities/blood-types', {
+  createBloodType: async (payload: CreateDemographicPayload): Promise<DemographicMasterItem> => {
+    const res = await clientFetch<
+      { success?: boolean; data?: DemographicMasterItem } | DemographicMasterItem
+    >('/api/v1/admin/facilities/blood-types', {
       method: 'POST',
       body: JSON.stringify(payload)
-    }),
+    });
+    if (res && typeof res === 'object' && 'data' in res && res.data) {
+      return res.data as DemographicMasterItem;
+    }
+    return res as DemographicMasterItem;
+  },
 
-  updateBloodType: (id: string, payload: UpdateDemographicPayload): Promise<DemographicMasterItem> =>
-    clientFetch<DemographicMasterItem>(`/api/v1/admin/facilities/blood-types/${id}`, {
+  updateBloodType: async (
+    id: string,
+    payload: UpdateDemographicPayload
+  ): Promise<DemographicMasterItem> => {
+    const res = await clientFetch<
+      { success?: boolean; data?: DemographicMasterItem } | DemographicMasterItem
+    >(`/api/v1/admin/facilities/blood-types/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(payload)
-    }),
+    });
+    if (res && typeof res === 'object' && 'data' in res && res.data) {
+      return res.data as DemographicMasterItem;
+    }
+    return res as DemographicMasterItem;
+  },
 
   deleteBloodType: (id: string): Promise<void> =>
     clientFetch<void>(`/api/v1/admin/facilities/blood-types/${id}`, {
@@ -308,27 +329,54 @@ export const clinicEssentialsApi = {
     }),
 
   // Demographic Masters: Education Levels
-  getEducationLevels: (params?: FacilityQueryParams): Promise<DemographicMasterItem[]> => {
+  getEducationLevels: async (params?: FacilityQueryParams): Promise<DemographicMasterItem[]> => {
     const sp = new URLSearchParams();
     if (params?.search) sp.append('search', params.search);
     if (params?.status) sp.append('status', params.status);
     const qs = sp.toString();
-    return clientFetch<DemographicMasterItem[]>(
-      qs ? `/api/v1/admin/facilities/education-levels?${qs}` : '/api/v1/admin/facilities/education-levels'
+    const res = await clientFetch<
+      { success?: boolean; data?: DemographicMasterItem[] } | DemographicMasterItem[]
+    >(
+      qs
+        ? `/api/v1/admin/facilities/education-levels?${qs}`
+        : '/api/v1/admin/facilities/education-levels'
     );
+    if (res && typeof res === 'object' && 'data' in res && Array.isArray(res.data)) {
+      return res.data;
+    }
+    return Array.isArray(res) ? res : [];
   },
 
-  createEducationLevel: (payload: CreateDemographicPayload): Promise<DemographicMasterItem> =>
-    clientFetch<DemographicMasterItem>('/api/v1/admin/facilities/education-levels', {
+  createEducationLevel: async (
+    payload: CreateDemographicPayload
+  ): Promise<DemographicMasterItem> => {
+    const res = await clientFetch<
+      { success?: boolean; data?: DemographicMasterItem } | DemographicMasterItem
+    >('/api/v1/admin/facilities/education-levels', {
       method: 'POST',
       body: JSON.stringify(payload)
-    }),
+    });
+    if (res && typeof res === 'object' && 'data' in res && res.data) {
+      return res.data as DemographicMasterItem;
+    }
+    return res as DemographicMasterItem;
+  },
 
-  updateEducationLevel: (id: string, payload: UpdateDemographicPayload): Promise<DemographicMasterItem> =>
-    clientFetch<DemographicMasterItem>(`/api/v1/admin/facilities/education-levels/${id}`, {
+  updateEducationLevel: async (
+    id: string,
+    payload: UpdateDemographicPayload
+  ): Promise<DemographicMasterItem> => {
+    const res = await clientFetch<
+      { success?: boolean; data?: DemographicMasterItem } | DemographicMasterItem
+    >(`/api/v1/admin/facilities/education-levels/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(payload)
-    }),
+    });
+    if (res && typeof res === 'object' && 'data' in res && res.data) {
+      return res.data as DemographicMasterItem;
+    }
+    return res as DemographicMasterItem;
+  },
 
   deleteEducationLevel: (id: string): Promise<void> =>
     clientFetch<void>(`/api/v1/admin/facilities/education-levels/${id}`, {
@@ -336,27 +384,48 @@ export const clinicEssentialsApi = {
     }),
 
   // Demographic Masters: Religions
-  getReligions: (params?: FacilityQueryParams): Promise<DemographicMasterItem[]> => {
+  getReligions: async (params?: FacilityQueryParams): Promise<DemographicMasterItem[]> => {
     const sp = new URLSearchParams();
     if (params?.search) sp.append('search', params.search);
     if (params?.status) sp.append('status', params.status);
     const qs = sp.toString();
-    return clientFetch<DemographicMasterItem[]>(
-      qs ? `/api/v1/admin/facilities/religions?${qs}` : '/api/v1/admin/facilities/religions'
-    );
+    const res = await clientFetch<
+      { success?: boolean; data?: DemographicMasterItem[] } | DemographicMasterItem[]
+    >(qs ? `/api/v1/admin/facilities/religions?${qs}` : '/api/v1/admin/facilities/religions');
+    if (res && typeof res === 'object' && 'data' in res && Array.isArray(res.data)) {
+      return res.data;
+    }
+    return Array.isArray(res) ? res : [];
   },
 
-  createReligion: (payload: CreateDemographicPayload): Promise<DemographicMasterItem> =>
-    clientFetch<DemographicMasterItem>('/api/v1/admin/facilities/religions', {
+  createReligion: async (payload: CreateDemographicPayload): Promise<DemographicMasterItem> => {
+    const res = await clientFetch<
+      { success?: boolean; data?: DemographicMasterItem } | DemographicMasterItem
+    >('/api/v1/admin/facilities/religions', {
       method: 'POST',
       body: JSON.stringify(payload)
-    }),
+    });
+    if (res && typeof res === 'object' && 'data' in res && res.data) {
+      return res.data as DemographicMasterItem;
+    }
+    return res as DemographicMasterItem;
+  },
 
-  updateReligion: (id: string, payload: UpdateDemographicPayload): Promise<DemographicMasterItem> =>
-    clientFetch<DemographicMasterItem>(`/api/v1/admin/facilities/religions/${id}`, {
+  updateReligion: async (
+    id: string,
+    payload: UpdateDemographicPayload
+  ): Promise<DemographicMasterItem> => {
+    const res = await clientFetch<
+      { success?: boolean; data?: DemographicMasterItem } | DemographicMasterItem
+    >(`/api/v1/admin/facilities/religions/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(payload)
-    }),
+    });
+    if (res && typeof res === 'object' && 'data' in res && res.data) {
+      return res.data as DemographicMasterItem;
+    }
+    return res as DemographicMasterItem;
+  },
 
   deleteReligion: (id: string): Promise<void> =>
     clientFetch<void>(`/api/v1/admin/facilities/religions/${id}`, {
@@ -364,27 +433,48 @@ export const clinicEssentialsApi = {
     }),
 
   // Demographic Masters: Occupations
-  getOccupations: (params?: FacilityQueryParams): Promise<DemographicMasterItem[]> => {
+  getOccupations: async (params?: FacilityQueryParams): Promise<DemographicMasterItem[]> => {
     const sp = new URLSearchParams();
     if (params?.search) sp.append('search', params.search);
     if (params?.status) sp.append('status', params.status);
     const qs = sp.toString();
-    return clientFetch<DemographicMasterItem[]>(
-      qs ? `/api/v1/admin/facilities/occupations?${qs}` : '/api/v1/admin/facilities/occupations'
-    );
+    const res = await clientFetch<
+      { success?: boolean; data?: DemographicMasterItem[] } | DemographicMasterItem[]
+    >(qs ? `/api/v1/admin/facilities/occupations?${qs}` : '/api/v1/admin/facilities/occupations');
+    if (res && typeof res === 'object' && 'data' in res && Array.isArray(res.data)) {
+      return res.data;
+    }
+    return Array.isArray(res) ? res : [];
   },
 
-  createOccupation: (payload: CreateDemographicPayload): Promise<DemographicMasterItem> =>
-    clientFetch<DemographicMasterItem>('/api/v1/admin/facilities/occupations', {
+  createOccupation: async (payload: CreateDemographicPayload): Promise<DemographicMasterItem> => {
+    const res = await clientFetch<
+      { success?: boolean; data?: DemographicMasterItem } | DemographicMasterItem
+    >('/api/v1/admin/facilities/occupations', {
       method: 'POST',
       body: JSON.stringify(payload)
-    }),
+    });
+    if (res && typeof res === 'object' && 'data' in res && res.data) {
+      return res.data as DemographicMasterItem;
+    }
+    return res as DemographicMasterItem;
+  },
 
-  updateOccupation: (id: string, payload: UpdateDemographicPayload): Promise<DemographicMasterItem> =>
-    clientFetch<DemographicMasterItem>(`/api/v1/admin/facilities/occupations/${id}`, {
+  updateOccupation: async (
+    id: string,
+    payload: UpdateDemographicPayload
+  ): Promise<DemographicMasterItem> => {
+    const res = await clientFetch<
+      { success?: boolean; data?: DemographicMasterItem } | DemographicMasterItem
+    >(`/api/v1/admin/facilities/occupations/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(payload)
-    }),
+    });
+    if (res && typeof res === 'object' && 'data' in res && res.data) {
+      return res.data as DemographicMasterItem;
+    }
+    return res as DemographicMasterItem;
+  },
 
   deleteOccupation: (id: string): Promise<void> =>
     clientFetch<void>(`/api/v1/admin/facilities/occupations/${id}`, {

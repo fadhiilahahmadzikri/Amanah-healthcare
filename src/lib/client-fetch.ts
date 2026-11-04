@@ -170,5 +170,10 @@ export async function clientFetch<T>(
     return undefined as unknown as T;
   }
 
-  return (await response.json()) as T;
+  const text = await response.text();
+  if (!text || !text.trim()) {
+    return {} as T;
+  }
+
+  return JSON.parse(text) as T;
 }

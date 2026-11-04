@@ -10,7 +10,6 @@ import type { MedicalAppointmentValues } from '../utils/medical-appointment';
 export interface MedicalHistoryCatalogProps {
   groupKey: 'pregnancy' | 'contraception';
   recordsCount: number;
-  maxRecords: number;
   values: MedicalAppointmentValues;
   onEditRecord: (recordNumber: number) => void;
   onRemoveRecord: (recordNumber: number) => void;
@@ -22,7 +21,6 @@ export interface MedicalHistoryCatalogProps {
 export function MedicalHistoryCatalog({
   groupKey,
   recordsCount,
-  maxRecords,
   values: _values,
   onEditRecord,
   onRemoveRecord,
@@ -56,20 +54,18 @@ export function MedicalHistoryCatalog({
               {recordsCount} Riwayat
             </span>
           </div>
-          {recordsCount < maxRecords && (
-            <div className='flex items-center justify-end pt-1'>
-              <Button
-                type='button'
-                variant='outline'
-                size='sm'
-                onClick={onAddRecord}
-                className='border-dashed text-xs font-medium hover:border-primary hover:bg-primary/5'
-              >
-                <Icons.add className='mr-1 size-3.5 shrink-0' />
-                <span>{isPregnancy ? 'Tambah Kehamilan' : 'Tambah KB'}</span>
-              </Button>
-            </div>
-          )}
+          <div className='flex items-center justify-end pt-1'>
+            <Button
+              type='button'
+              variant='outline'
+              size='sm'
+              onClick={onAddRecord}
+              className='border-dashed text-xs font-medium hover:border-primary hover:bg-primary/5'
+            >
+              <Icons.add className='mr-1 size-3.5 shrink-0' />
+              <span>{isPregnancy ? 'Tambah Kehamilan' : 'Tambah KB'}</span>
+            </Button>
+          </div>
         </div>
       ) : null}
 
@@ -191,14 +187,6 @@ export function MedicalHistoryCatalog({
           })}
         </div>
       )}
-
-      {recordsCount >= maxRecords ? (
-        <div className='flex items-center justify-center pt-1'>
-          <p className='text-xs text-muted-foreground'>
-            Maksimal {maxRecords} riwayat telah dicatat.
-          </p>
-        </div>
-      ) : null}
     </div>
   );
 }

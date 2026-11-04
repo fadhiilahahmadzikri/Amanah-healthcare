@@ -1,20 +1,16 @@
 import type { MedicalAppointmentValues } from './medical-appointment';
 import type {
   AnamnesisResponsePayload,
-  ChildImmunizationEntryPayload,
   CreateChildImmunizationPayload,
   CreateMaternityIntakePayload,
   HealthConditionResponsePayload,
-  HusbandPayload,
-  VaccineCatalogItem
+  HusbandPayload
 } from '../api/kia-intake-service';
 import {
-  ALLERGY_GATEWAY_CHOICE,
   CONTRACEPTION_CHOICE,
   MATERNAL_CONDITION_CODES,
   MATERNAL_QUESTION_CODES,
-  PREVIOUS_PREGNANCY_CHOICE,
-  VACCINE_GATEWAY_CHOICE
+  PREVIOUS_PREGNANCY_CHOICE
 } from '../constants/medical-appointment-types';
 import { parsePureInteger, parsePureNumeric } from './numeric-parser';
 
@@ -317,86 +313,8 @@ export function buildChildImmunizationIntakePayload(
   patientId: string,
   submittedValues: MedicalAppointmentValues,
   patientName?: string,
-  patientContact?: string,
-  vaccineCatalog?: VaccineCatalogItem[]
+  patientContact?: string
 ): CreateChildImmunizationPayload {
-  const entries: ChildImmunizationEntryPayload[] = [];
-  const summaryItems: string[] = [];
-
-  const hasVaccineEntries = Object.keys(submittedValues).some(
-    (k) => k.startsWith('vaccine_') && k.endsWith('_status') && Boolean(submittedValues[k])
-  );
-
-  if (submittedValues.hasVaccineHistory === VACCINE_GATEWAY_CHOICE.YES || hasVaccineEntries) {
-    const knownCodes = new Set<string>();
-
-    if (Array.isArray(vaccineCatalog) && vaccineCatalog.length > 0) {
-      for (const v of vaccineCatalog) {
-        knownCodes.add(v.code || (v as any).id);
-      }
-    } else {
-      for (const k of Object.keys(submittedValues)) {
-        if (k.startsWith('vaccine_') && k.endsWith('_status')) {
-          const code = k.replace(/^vaccine_/, '').replace(/_status$/, '');
-          knownCodes.add(code);
-        }
-      }
-    }
-
-    for (const code of knownCodes) {
-      const statusRaw = submittedValues[`vaccine_${code}_status`];
-      const date = submittedValues[`vaccine_${code}_date`];
-      if (statusRaw) {
-        const status: 'GIVEN' | 'NOT_GIVEN' | 'UNKNOWN' =
-          statusRaw === 'Sudah' ? 'GIVEN' : statusRaw === 'Belum' ? 'NOT_GIVEN' : 'UNKNOWN';
-
-        const givenDate = status === 'GIVEN' && date ? date : null;
-        const datePrecision = date ? 'EXACT' : 'NONE';
-        const reviewReasons =
-          status === 'UNKNOWN'
-            ? [{ code: 'UNKNOWN_STATUS', vaccine_code: code }]
-            : status === 'GIVEN' && !date
-              ? [{ code: 'DATE_MISSING', vaccine_code: code }]
-              : null;
-
-        entries.push({
-          vaccineCode: code,
-          status,
-          givenDate,
-          datePrecision,
-          reviewReasons
-        });
-
-        if (status === 'GIVEN' && date) {
-          summaryItems.push(`${code}: Sudah (${date})`);
-        } else {
-          summaryItems.push(`${code}: ${statusRaw}`);
-        }
-      }
-    }
-  }
-
-  let previousVaccineHistory = submittedValues.previousVaccineHistory || null;
-  if (!previousVaccineHistory) {
-    if (submittedValues.hasVaccineHistory === VACCINE_GATEWAY_CHOICE.NO) {
-      previousVaccineHistory = 'Belum pernah imunisasi sama sekali';
-    } else if (summaryItems.length > 0) {
-      previousVaccineHistory = summaryItems.join('; ');
-    }
-  }
-
-  let childAllergyHistory = submittedValues.childAllergyHistory || null;
-  if (!childAllergyHistory) {
-    if (submittedValues.hasAllergyHistory === ALLERGY_GATEWAY_CHOICE.NO) {
-      childAllergyHistory = 'Tidak ada riwayat alergi.';
-    } else if (submittedValues.hasAllergyHistory === ALLERGY_GATEWAY_CHOICE.YES) {
-      childAllergyHistory = 'Ada riwayat alergi.';
-    }
-  }
-
-  const resolvedHasVaccineHistory =
-    submittedValues.hasVaccineHistory || (entries.length > 0 ? VACCINE_GATEWAY_CHOICE.YES : null);
-
   return {
     patientId,
     childName: submittedValues.childName ? submittedValues.childName : (patientName ?? ''),
@@ -408,10 +326,7 @@ export function buildChildImmunizationIntakePayload(
     fatherName: submittedValues.fatherName || null,
     motherName: submittedValues.motherName || null,
     childAddress: submittedValues.childAddress || null,
-    hasVaccineHistory: resolvedHasVaccineHistory,
-    previousVaccineHistory,
-    hasAllergyHistory: submittedValues.hasAllergyHistory || null,
-    childAllergyHistory,
-    entries: entries.length > 0 ? entries : undefined
+    previousVaccineHistory: submittedValues.previousVaccineHistory || null,
+    childAllergyHistory: submittedValues.childAllergyHistory || null
   };
 }

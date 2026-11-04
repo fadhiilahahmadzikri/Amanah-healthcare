@@ -46,7 +46,7 @@ export function buildInitialMaternalData(parsedData: UnifiedInspectorData): Edit
             ? Number(a[`previousPregnancy${i}BirthWeight`])
             : '',
           birthLengthCm: a[`previousPregnancy${i}BirthLength`] || '',
-          childSex: a[`previousPregnancy${i}ChildSex`] || 'Laki-laki',
+          childSex: a[`previousPregnancy${i}ChildSex`] || '',
           deliveryMethod: a[`previousPregnancy${i}DeliveryMethod`] || 'Normal / Spontan',
           birthAttendant: a[`previousPregnancy${i}BirthAttendant`] || 'Bidan',
           deliveryPlace: a[`previousPregnancy${i}DeliveryPlace`] || 'Praktik Mandiri Bidan (PMB)',
@@ -247,7 +247,7 @@ export function buildInitialImmunizationData(parsedData: UnifiedInspectorData): 
     childName: c?.childName || a.childName || parsedData.patient?.fullName || '',
     childNik: c?.childNik || a.childNik || parsedData.patient?.nik || '',
     childBirthDate: birthDate,
-    childSex: c?.childSex || a.childSex || parsedData.patient?.gender || 'Laki-laki',
+    childSex: c?.childSex || a.childSex || parsedData.patient?.gender || '',
     childAgeFormatted: childAge,
     parentPhone: c?.parentPhone || a.parentPhone || parsedData.patient?.phone || '',
     fatherName: c?.fatherName || a.fatherName || '',

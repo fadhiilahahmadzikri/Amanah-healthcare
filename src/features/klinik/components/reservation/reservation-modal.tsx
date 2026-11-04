@@ -34,6 +34,8 @@ import { useClinicTimeConfig } from '@/features/klinik/model/useClinicTimeConfig
 import { requestImplicitWebPushRegistration } from '@/features/notifications';
 import { useAuthContext } from '@/lib/rbac/auth-context';
 import { AUDIENCE, PERMISSIONS, type AudienceType } from '@/core/auth/permissions.constants';
+import { AppError } from '@/core/errors/app-error';
+import type { ProblemDetails } from '@/core/errors/problem-details';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -315,18 +317,16 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
       onSuccess?.(uiApt);
       toast.success('Janji temu berhasil dibuat beserta tiket antrean resmi');
     } catch (err: unknown) {
-      const isOvercapacityConsentRequired =
-        (err as any)?.problemDetails?.code === 'OVERCAPACITY_CONSENT_REQUIRED' ||
-        (err as any)?.code === 'OVERCAPACITY_CONSENT_REQUIRED' ||
-        (typeof (err as any)?.message === 'string' &&
-          (err as any).message.includes('OVERCAPACITY_CONSENT_REQUIRED'));
+      const problemDetails =
+        err instanceof AppError
+          ? err.problemDetails
+          : (err as { problemDetails?: ProblemDetails })?.problemDetails;
 
-      if (isOvercapacityConsentRequired && !isConsent) {
+      if (problemDetails?.code === 'OVERCAPACITY_CONSENT_REQUIRED' && !isConsent) {
         setOvercapacityDialog({
           isOpen: true,
           message:
-            (err as any)?.problemDetails?.detail ||
-            (err as any)?.message ||
+            problemDetails.detail ||
             'Estimasi pelayanan melewati batas jam operasional sesi klinik.'
         });
         return;

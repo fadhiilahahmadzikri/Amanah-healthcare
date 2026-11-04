@@ -446,6 +446,7 @@ export function AppointmentModal({
           formSchema={bookingContext?.formSchema}
           selectedService={selectedService}
           selectedPatient={selectedPatient}
+          patients={patients}
           newPatientRelationship={selectedRelationship}
           onBackToService={() => {
             setActiveMedicalFlow(null);

@@ -25,14 +25,14 @@ import {
   buildChildImmunizationIntakePayload,
   buildMaternityIntakePayload
 } from '../utils/kia-intake-payload-builder';
-import { FLOW_NAMES } from '../constants/medical-appointment-types';
+import { FLOW_NAMES } from '../constants/kia-constants';
 import type { ReservationContext } from '../components/reservation/reservation-modal';
 import { requestImplicitWebPushRegistration } from '@/features/notifications';
 
 interface UseMedicalAppointmentSubmitParams {
   definition: MedicalFlowDefinition;
   schedule?: ScheduleValues;
-  registeredPatient: Patient | null;
+  registeredPatient?: Patient | null;
   repeatableMedicalSections: MedicalFormSection[];
   selectedService?: ServiceCatalogItem | null;
   selectedPatient?: PatientAffiliationProfile | null;
@@ -65,10 +65,10 @@ export function useMedicalAppointmentSubmit({
         values: submittedValues
       });
       const complaint = buildComplaintText(definition.complaintFieldId, submittedValues);
-      const patientName = submittedValues[definition.patientNameFieldId] || undefined;
-      const patientContact = submittedValues[definition.patientContactFieldId] || undefined;
-      const patientEmail = registeredPatient?.email || undefined;
-      const patientId = registeredPatient?.id ? String(registeredPatient.id) : '';
+      const patientName = submittedValues[definition.patientNameFieldId] || selectedPatient?.fullName || undefined;
+      const patientContact = submittedValues[definition.patientContactFieldId] || selectedPatient?.phone || undefined;
+      const patientEmail = selectedPatient?.email || registeredPatient?.email || undefined;
+      const patientId = selectedPatient?.id ? String(selectedPatient.id) : (registeredPatient?.id ? String(registeredPatient.id) : '');
 
       if (onCompleteIntake) {
         if (!selectedService?.id || !selectedService?.poliklinikId) {
@@ -92,15 +92,12 @@ export function useMedicalAppointmentSubmit({
 
             let sourceIntakeId: string | undefined = undefined;
             if (definition.flow === FLOW_NAMES.PREGNANCY) {
-              const maternityPayload =
-                submittedValues.motherName && submittedValues.hpht
-                  ? (submittedValues as any)
-                  : buildMaternityIntakePayload(
-                      resolvedPatientId,
-                      submittedValues,
-                      resolvedPatientName,
-                      complaint
-                    );
+              const maternityPayload = buildMaternityIntakePayload(
+                resolvedPatientId,
+                submittedValues,
+                resolvedPatientName,
+                complaint
+              );
               const intakeRes = await kiaIntakeService.createMaternityIntake(maternityPayload);
               sourceIntakeId = intakeRes?.id;
             } else if (definition.flow === FLOW_NAMES.IMMUNIZATION) {
@@ -117,11 +114,15 @@ export function useMedicalAppointmentSubmit({
 
             const reservationCtx: ReservationContext = {
               patientId: resolvedPatientId,
-              patientName: resolvedPatientName,
+              patientName: resolvedPatientName || 'Pasien',
               serviceId: selectedService.id,
               serviceName: selectedService.name,
               poliklinikId: selectedService.poliklinikId,
-              complaint: complaint.trim(),
+              complaint:
+                complaint ||
+                (definition.flow === FLOW_NAMES.IMMUNIZATION
+                  ? 'Imunisasi Anak'
+                  : 'Pemeriksaan Persalinan'),
               sourceIntakeId,
               medicalFlow: definition.flow
             };
@@ -143,7 +144,11 @@ export function useMedicalAppointmentSubmit({
         doctor: schedule?.doctor || '',
         dateStr: schedule?.dateStr || '',
         session: schedule?.session || '',
-        complaint: complaint.trim(),
+        complaint:
+          complaint ||
+          (definition.flow === FLOW_NAMES.IMMUNIZATION
+            ? 'Imunisasi Anak'
+            : 'Pemeriksaan Persalinan'),
         patientName: patientName || '',
         patientEmail,
         patientAvatar: registeredPatient?.avatarUrl,
@@ -204,6 +209,30 @@ export function useMedicalAppointmentSubmit({
           setCreatedQueueItem(uiQueue);
           setIsQueueSuccessOpen(true);
           onCreated?.(payload);
+
+          if (patientId) {
+            try {
+              if (definition.flow === FLOW_NAMES.PREGNANCY) {
+                const maternityPayload = buildMaternityIntakePayload(
+                  patientId,
+                  submittedValues,
+                  patientName,
+                  complaint
+                );
+                await kiaIntakeService.createMaternityIntake(maternityPayload);
+              } else if (definition.flow === FLOW_NAMES.IMMUNIZATION) {
+                const immunizationPayload = buildChildImmunizationIntakePayload(
+                  patientId,
+                  submittedValues,
+                  patientName,
+                  patientContact
+                );
+                await kiaIntakeService.createImmunizationIntake(immunizationPayload);
+              }
+            } catch {
+              // Non-blocking intake creation error
+            }
+          }
         } catch (err: unknown) {
           const msg = err instanceof Error ? err.message : 'Gagal memproses janji temu';
           toast.error(msg);

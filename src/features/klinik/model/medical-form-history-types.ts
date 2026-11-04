@@ -1,10 +1,11 @@
 import {
   CATALOG_ACTION_TYPES,
   CONTRACEPTION_CHOICE,
+  FIELD_IDS,
   PREVIOUS_PREGNANCY_CHOICE,
   REPEATABLE_GROUP_KEYS,
   STEP_DESCRIPTOR_TYPES
-} from '../constants/medical-appointment-types';
+} from '../constants/kia-constants';
 
 export type RepeatableHistoryKey =
   (typeof REPEATABLE_GROUP_KEYS)[keyof typeof REPEATABLE_GROUP_KEYS];
@@ -30,17 +31,15 @@ export type RepeatableHistoryCounts = Record<RepeatableHistoryKey, number>;
 
 export interface RepeatableHistoryGroup {
   key: RepeatableHistoryKey;
-  sectionIds: string[];
+  prefix: string;
   gatewayFieldId: string;
   disabledValue: string;
   enabledValue: string;
-  maxRecords: number;
 }
 
 export interface HistoryRecordActions {
   currentRecord: number;
   totalRecords: number;
-  maxRecords: number;
   onAdd: () => void;
   onRemove: () => void;
 }
@@ -68,32 +67,26 @@ export const scheduleStepDescriptors: StepDescriptor[] = [
   { type: STEP_DESCRIPTOR_TYPES.REVIEW }
 ];
 
+export function getHistorySectionId(key: RepeatableHistoryKey, order: number): string {
+  return key === REPEATABLE_GROUP_KEYS.PREGNANCY
+    ? `previousPregnancy${order}Details`
+    : `contraception${order}Details`;
+}
+
 export const historyGroups: Record<RepeatableHistoryKey, RepeatableHistoryGroup> = {
   [REPEATABLE_GROUP_KEYS.PREGNANCY]: {
     key: REPEATABLE_GROUP_KEYS.PREGNANCY,
-    sectionIds: [
-      'previousPregnancy1Details',
-      'previousPregnancy2Details',
-      'previousPregnancy3Details',
-      'previousPregnancy4Details'
-    ],
-    gatewayFieldId: 'hasPreviousPregnancyHistory',
+    prefix: 'previousPregnancy',
+    gatewayFieldId: FIELD_IDS.HAS_PREVIOUS_PREGNANCY_HISTORY,
     disabledValue: PREVIOUS_PREGNANCY_CHOICE.NO,
-    enabledValue: PREVIOUS_PREGNANCY_CHOICE.YES,
-    maxRecords: 4
+    enabledValue: PREVIOUS_PREGNANCY_CHOICE.YES
   },
   [REPEATABLE_GROUP_KEYS.CONTRACEPTION]: {
     key: REPEATABLE_GROUP_KEYS.CONTRACEPTION,
-    sectionIds: [
-      'contraception1Details',
-      'contraception2Details',
-      'contraception3Details',
-      'contraception4Details'
-    ],
-    gatewayFieldId: 'hasContraceptionHistory',
+    prefix: 'contraception',
+    gatewayFieldId: FIELD_IDS.HAS_CONTRACEPTION_HISTORY,
     disabledValue: CONTRACEPTION_CHOICE.NO,
-    enabledValue: CONTRACEPTION_CHOICE.YES,
-    maxRecords: 4
+    enabledValue: CONTRACEPTION_CHOICE.YES
   }
 };
 

@@ -15,6 +15,7 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { GENDER_OPTIONS } from '@/constants/gender.constants';
 import type { ChildSex, ImmunizationRegistrationPayload } from '../../types/immunization.types';
 
 export interface ImmunizationBookingStepperProps {
@@ -42,8 +43,8 @@ export function ImmunizationBookingStepper({
   const [childBirthDate, setChildBirthDate] = React.useState(
     initialValues?.childBirthDate || ''
   );
-  const [childSex, setChildSex] = React.useState<ChildSex>(
-    initialValues?.childSex || 'Laki-laki'
+  const [childSex, setChildSex] = React.useState<ChildSex | ''>(
+    initialValues?.childSex || ''
   );
   const [parentPhone, setParentPhone] = React.useState(
     initialValues?.parentPhone || ''
@@ -70,6 +71,9 @@ export function ImmunizationBookingStepper({
     }
     if (!childBirthDate) {
       newErrors.childBirthDate = 'Tanggal lahir anak wajib diisi';
+    }
+    if (!childSex) {
+      newErrors.childSex = 'Jenis kelamin anak wajib dipilih';
     }
     if (childNik.trim() && !/^\d{16}$/.test(childNik.trim())) {
       newErrors.childNik = 'NIK harus berupa 16 digit angka jika diisi';
@@ -122,7 +126,7 @@ export function ImmunizationBookingStepper({
       childName: childName.trim(),
       childNik: childNik.trim() || undefined,
       childBirthDate,
-      childSex,
+      childSex: childSex as ChildSex,
       parentPhone: parentPhone.trim(),
       fatherName: fatherName.trim() || undefined,
       motherName: motherName.trim() || undefined,
@@ -240,8 +244,11 @@ export function ImmunizationBookingStepper({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='Laki-laki'>Laki-laki</SelectItem>
-                      <SelectItem value='Perempuan'>Perempuan</SelectItem>
+                      {GENDER_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

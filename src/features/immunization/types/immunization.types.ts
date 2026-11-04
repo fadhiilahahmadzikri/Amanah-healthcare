@@ -1,4 +1,6 @@
-export type ChildSex = 'Laki-laki' | 'Perempuan';
+import type { Gender } from '@/constants/gender.constants';
+
+export type ChildSex = Gender;
 
 export type VaccineAdministrationStatus = 'GIVEN' | 'NOT_GIVEN' | 'POSTPONED' | 'CONTRAINDICATED';
 

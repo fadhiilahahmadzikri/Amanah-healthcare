@@ -12,6 +12,7 @@ import {
   WidthType,
 } from 'docx';
 import { saveAs } from 'file-saver';
+import { getGenderLabel } from '@/constants/gender.constants';
 import type { MaternityIntake } from '../types/maternity.types';
 
 const BLACK = '000000';
@@ -439,7 +440,7 @@ export const maternityDocxService = {
                             }),
                             new TableCell({
                               children: [
-                                new Paragraph({ text: p.childSex || '-' }),
+                                new Paragraph({ text: getGenderLabel(p.childSex) }),
                               ],
                             }),
                             new TableCell({

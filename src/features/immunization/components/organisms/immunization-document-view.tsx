@@ -45,7 +45,7 @@ export function ImmunizationDocumentView({
 
   const birthDateSexDisplay = React.useMemo(() => {
     if (!intake?.childBirthDate) return '( L / P )';
-    const sexLetter = intake.childSex === 'Perempuan' ? 'P' : 'L';
+    const sexLetter = intake.childSex === 'female' ? 'P' : 'L';
     return `${intake.childBirthDate} (${sexLetter})`;
   }, [intake?.childBirthDate, intake?.childSex]);
 
