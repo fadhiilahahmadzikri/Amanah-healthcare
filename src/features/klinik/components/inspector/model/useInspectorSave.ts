@@ -303,10 +303,34 @@ export function useInspectorSave({
       }
     });
 
-    const finalEntries =
+    const rawEntries =
       immunizationFormData.entries && immunizationFormData.entries.length > 0
         ? immunizationFormData.entries
         : entries;
+
+    const finalEntries = rawEntries.map((e: any) => ({
+      ...e,
+      weightKg:
+        e.weightKg !== undefined && e.weightKg !== null && e.weightKg !== ''
+          ? Number(e.weightKg)
+          : null,
+      heightCm:
+        e.heightCm !== undefined && e.heightCm !== null && e.heightCm !== ''
+          ? Number(e.heightCm)
+          : null,
+      headCircumferenceCm:
+        e.headCircumferenceCm !== undefined &&
+        e.headCircumferenceCm !== null &&
+        e.headCircumferenceCm !== ''
+          ? Number(e.headCircumferenceCm)
+          : null,
+      temperatureCelsius:
+        e.temperatureCelsius !== undefined &&
+        e.temperatureCelsius !== null &&
+        e.temperatureCelsius !== ''
+          ? Number(e.temperatureCelsius)
+          : null
+    }));
 
     const payload = {
       childName: immunizationFormData.childName,

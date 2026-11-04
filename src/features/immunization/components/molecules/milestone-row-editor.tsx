@@ -30,9 +30,14 @@ export function MilestoneRowEditor({
     field: K,
     value: ImmunizationClinicalEntry[K]
   ) => {
+    let nextStatus = entry.status;
+    if (field === 'injectionDate' && value && entry.status === 'NOT_GIVEN') {
+      nextStatus = 'GIVEN';
+    }
     onChange({
       ...entry,
-      [field]: value
+      [field]: value,
+      status: field === 'status' ? (value as VaccineAdministrationStatus) : nextStatus
     });
   };
 

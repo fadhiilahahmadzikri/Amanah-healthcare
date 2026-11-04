@@ -366,7 +366,17 @@ export function ImmunizationAdminInspector({
 
         {/* TAB 4: TRAJEKTORI 15 VAKSIN */}
         <TabsContent value='trajektori' className='m-0 outline-none'>
-          <div className='space-y-3 pt-1'>
+          <div className='space-y-2 pt-1'>
+            {/* Header Kolom Trajektori */}
+            <div className='hidden sm:flex items-center gap-3 px-3.5 py-1.5 text-[11px] font-semibold text-muted-foreground/80 uppercase tracking-wider border-b border-border/40'>
+              <span className='w-6 text-center shrink-0'>No</span>
+              <span className='min-w-[150px] max-w-[200px] shrink-0'>Vaksin</span>
+              <span className='min-w-[130px] shrink-0'>Tanggal & Usia</span>
+              <span className='min-w-[180px] shrink-0'>Pemeriksaan Fisik</span>
+              <span className='flex-1 min-w-0'>Planning / Catatan</span>
+              <span className='shrink-0 ml-auto text-right w-28'>Status</span>
+            </div>
+
             {CANONICAL_IMMUNIZATION_ROWS.map((milestone) => {
               const entry =
                 entriesMap.get(milestone.rowIndex) || {
@@ -377,7 +387,7 @@ export function ImmunizationAdminInspector({
                 };
 
               const isExpanded = activeEditingIndex === milestone.rowIndex;
-              const isGiven = entry.status === 'GIVEN';
+              const hasPhysical = Boolean(entry.weightKg || entry.heightCm || entry.temperatureCelsius);
 
               return (
                 <div
@@ -390,45 +400,58 @@ export function ImmunizationAdminInspector({
                         setActiveEditingIndex(isExpanded ? null : milestone.rowIndex);
                       }
                     }}
-                    className={`flex items-center justify-between p-3.5 select-none ${
+                    className={`flex flex-wrap sm:flex-nowrap items-center gap-3 p-3.5 select-none ${
                       isEditing ? 'cursor-pointer hover:bg-muted/30' : ''
                     }`}
                   >
-                    <div className='flex items-center gap-3'>
-                      <span className='flex size-6 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary'>
-                        {milestone.rowIndex + 1}
+                    {/* Col 1: Nomor */}
+                    <span className='flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary'>
+                      {milestone.rowIndex + 1}
+                    </span>
+
+                    {/* Col 2: Vaksin */}
+                    <div className='min-w-[150px] max-w-[200px] shrink-0'>
+                      <span className='font-semibold text-xs text-foreground'>
+                        {milestone.vaccineName}
                       </span>
-
-                      <div>
-                        <div className='flex items-center gap-2'>
-                          <span className='font-semibold text-xs text-foreground'>
-                            {milestone.vaccineName}
-                          </span>
-                          {entry.injectionDate && (
-                            <span className='text-[11px] text-muted-foreground'>
-                              • {entry.injectionDate} ({entry.ageDisplay || '-'})
-                            </span>
-                          )}
-                        </div>
-
-                        {isGiven ? (
-                          <div className='flex items-center gap-2 mt-0.5 text-[11px] text-muted-foreground'>
-                            <span>BB: {entry.weightKg ? `${entry.weightKg} kg` : '-'}</span>
-                            <span>PB: {entry.heightCm ? `${entry.heightCm} cm` : '-'}</span>
-                            <span>Suhu: {entry.temperatureCelsius ? `${entry.temperatureCelsius}°C` : '-'}</span>
-                            {entry.planning && (
-                              <span className='truncate max-w-[200px]'>• {entry.planning}</span>
-                            )}
-                          </div>
-                        ) : (
-                          <span className='text-[11px] text-neutral-400 italic block mt-0.5'>
-                            Belum dicatat pada kunjungan ini
-                          </span>
-                        )}
-                      </div>
                     </div>
 
-                    <div className='flex items-center gap-2'>
+                    {/* Col 3: Tanggal & Usia */}
+                    <div className='min-w-[130px] shrink-0 text-xs'>
+                      {entry.injectionDate ? (
+                        <span className='text-foreground font-medium'>
+                          {entry.injectionDate}{' '}
+                          <span className='text-muted-foreground font-normal'>
+                            ({entry.ageDisplay || '-'})
+                          </span>
+                        </span>
+                      ) : (
+                        <span className='text-muted-foreground/60 italic'>-</span>
+                      )}
+                    </div>
+
+                    {/* Col 4: Pengukuran Fisik */}
+                    <div className='min-w-[180px] shrink-0 text-xs text-muted-foreground'>
+                      {hasPhysical ? (
+                        <span>
+                          {entry.weightKg ? `${entry.weightKg} kg` : '-'} / {entry.heightCm ? `${entry.heightCm} cm` : '-'} / {entry.temperatureCelsius ? `${entry.temperatureCelsius}°C` : '-'}
+                        </span>
+                      ) : (
+                        <span className='text-muted-foreground/60 italic'>-</span>
+                      )}
+                    </div>
+
+                    {/* Col 5: Planning / Catatan */}
+                    <div className='flex-1 min-w-0 text-xs text-muted-foreground truncate' title={entry.planning || undefined}>
+                      {entry.planning ? (
+                        <span>{entry.planning}</span>
+                      ) : (
+                        <span className='text-muted-foreground/60 italic'>-</span>
+                      )}
+                    </div>
+
+                    {/* Col 6: Status Badge */}
+                    <div className='shrink-0 ml-auto'>
                       <MilestoneStatusBadge status={entry.status} />
                     </div>
                   </div>

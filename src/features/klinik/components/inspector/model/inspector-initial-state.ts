@@ -257,7 +257,8 @@ export function buildInitialImmunizationData(parsedData: UnifiedInspectorData): 
     previousVaccineHistory,
     hasAllergyHistory,
     childAllergyHistory,
-    vaccineValues
+    vaccineValues,
+    entries: entries || []
   };
 }
 
