@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Pencil, Star, Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -119,12 +119,6 @@ export function DemographicMasterCard({
                 >
                   {item.name}
                 </h4>
-                {isSystem && (
-                  <Star
-                    className='size-3.5 fill-amber-500 text-amber-500 shrink-0 drop-shadow-xs'
-                    aria-label='Data Sistem Bawaan'
-                  />
-                )}
               </div>
               <p className='text-xs text-muted-foreground pt-0.5 truncate'>
                 {item.description || `Master ${resourceLabel}`}

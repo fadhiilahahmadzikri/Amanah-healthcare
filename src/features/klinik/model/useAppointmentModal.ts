@@ -525,24 +525,26 @@ export function useAppointmentModal({
 
       toast.success('Janji temu berhasil dibuat beserta tiket antrean resmi');
     } catch (err: unknown) {
-      const problemDetails =
-        err instanceof AppError
-          ? err.problemDetails
-          : (err as { problemDetails?: ProblemDetails })?.problemDetails;
+      const isOvercapacityConsentRequired =
+        (err as any)?.problemDetails?.code === 'OVERCAPACITY_CONSENT_REQUIRED' ||
+        (err as any)?.code === 'OVERCAPACITY_CONSENT_REQUIRED' ||
+        (typeof (err as any)?.message === 'string' &&
+          (err as any).message.includes('OVERCAPACITY_CONSENT_REQUIRED'));
 
-      if (problemDetails?.code === 'OVERCAPACITY_CONSENT_REQUIRED' && !isConsent) {
+      if (isOvercapacityConsentRequired && !isConsent) {
         setOvercapacityDialog({
           isOpen: true,
           message:
-            problemDetails.detail ||
+            (err as any)?.problemDetails?.detail ||
+            (err as any)?.message ||
             'Estimasi pelayanan melewati batas jam operasional sesi klinik.'
         });
         return;
       }
 
-      const activeTicket = (problemDetails as any)?.activeTicket as
-        | ActiveTicketConflictInfo
-        | undefined;
+      const activeTicket = (
+        (err as any)?.problemDetails as { activeTicket?: ActiveTicketConflictInfo } | undefined
+      )?.activeTicket;
       if (activeTicket) {
         setActiveTicketConflict(activeTicket);
         toast.warning(

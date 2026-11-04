@@ -14,6 +14,16 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 
 import type { ServiceCatalogItem } from '../api/catalog.service';
 import type {
@@ -117,6 +127,9 @@ export function MedicalAppointmentModal({
     historyPrompt,
     catalogAction,
     isCurrentStepValid,
+    overcapacityDialog,
+    setOvercapacityDialog,
+    retryWithConsent,
     actions
   } = medical;
 
@@ -324,6 +337,42 @@ export function MedicalAppointmentModal({
         queueItem={createdQueueItem}
         onClose={actions.closeQueueSuccess}
       />
+
+      <AlertDialog
+        open={overcapacityDialog.isOpen}
+        onOpenChange={(open) => setOvercapacityDialog((prev) => ({ ...prev, isOpen: open }))}
+      >
+        <AlertDialogContent className='rounded-2xl max-w-[420px]'>
+          <AlertDialogHeader>
+            <AlertDialogTitle className='text-base font-semibold'>
+              Batas Jam Operasional
+            </AlertDialogTitle>
+            <AlertDialogDescription className='text-xs text-muted-foreground leading-relaxed'>
+              {overcapacityDialog.message ||
+                'Estimasi pelayanan diperkirakan selesai setelah jam operasional klinik berakhir. Tetap lanjutkan pendaftaran?'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className='mt-2 flex gap-2 sm:justify-end'>
+            <AlertDialogCancel
+              className='rounded-full text-xs h-9 px-4'
+              onClick={() => {
+                setOvercapacityDialog({ isOpen: false });
+                actions.goToStep(1);
+              }}
+            >
+              Pilih Jadwal Lain
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className='rounded-full text-xs h-9 px-4 bg-primary text-primary-foreground hover:bg-primary/90'
+              onClick={() => {
+                retryWithConsent();
+              }}
+            >
+              Tetap Lanjutkan
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

@@ -99,13 +99,19 @@ export function getMedicalFieldValidationSchema(field: MedicalFormField) {
 
     if (
       (field.type === 'LIST' || field.type === 'MULTIPLE_CHOICE') &&
-      field.choices.length > 0 &&
-      !field.choices.includes(trimmedValue)
+      field.choices.length > 0
     ) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Pilih salah satu opsi'
-      });
+      const isAllowed = field.choices.some((c) =>
+        typeof c === 'string'
+          ? c === trimmedValue
+          : c.value === trimmedValue || c.label === trimmedValue
+      );
+      if (!isAllowed) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Pilih salah satu opsi'
+        });
+      }
     }
   });
 }

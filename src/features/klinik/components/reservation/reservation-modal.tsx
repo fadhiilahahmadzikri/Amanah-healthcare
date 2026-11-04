@@ -203,10 +203,12 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
           });
 
           toast.success(res?.message || 'Janji temu berhasil dijadwalkan ulang');
-          queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
-          queryClient.invalidateQueries({ queryKey: ['appointments'] });
-          queryClient.invalidateQueries({ queryKey: ['patient-appointments'] });
-          queryClient.invalidateQueries({ queryKey: ['schedules'] });
+          void queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
+          void queryClient.invalidateQueries({ queryKey: ['appointments'] });
+          void queryClient.invalidateQueries({ queryKey: ['patient-appointments'] });
+          void queryClient.invalidateQueries({ queryKey: ['my-appointments'] });
+          void queryClient.invalidateQueries({ queryKey: ['schedules'] });
+          void queryClient.invalidateQueries({ queryKey: ['queue-navigation'] });
           if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('clinic:appointment_updated'));
           }
@@ -257,10 +259,12 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
             : 'Usulan perubahan jadwal berhasil diajukan ke pasien (menunggu persetujuan).'
         );
 
-        queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
-        queryClient.invalidateQueries({ queryKey: ['appointments'] });
-        queryClient.invalidateQueries({ queryKey: ['patient-appointments'] });
-        queryClient.invalidateQueries({ queryKey: ['schedules'] });
+        void queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
+        void queryClient.invalidateQueries({ queryKey: ['appointments'] });
+        void queryClient.invalidateQueries({ queryKey: ['patient-appointments'] });
+        void queryClient.invalidateQueries({ queryKey: ['my-appointments'] });
+        void queryClient.invalidateQueries({ queryKey: ['schedules'] });
+        void queryClient.invalidateQueries({ queryKey: ['queue-navigation'] });
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('clinic:appointment_updated'));
         }
@@ -283,6 +287,15 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
       });
 
       void requestImplicitWebPushRegistration();
+
+      void queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
+      void queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      void queryClient.invalidateQueries({ queryKey: ['patient-appointments'] });
+      void queryClient.invalidateQueries({ queryKey: ['my-appointments'] });
+      void queryClient.invalidateQueries({ queryKey: ['queue-navigation'] });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clinic:appointment_updated'));
+      }
 
       const startTime = res.scheduledStartTime ? formatClinicTime(res.scheduledStartTime) : '';
       const endTime = res.scheduledEndTime ? formatClinicTime(res.scheduledEndTime) : '';
@@ -317,16 +330,18 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
       onSuccess?.(uiApt);
       toast.success('Janji temu berhasil dibuat beserta tiket antrean resmi');
     } catch (err: unknown) {
-      const problemDetails =
-        err instanceof AppError
-          ? err.problemDetails
-          : (err as { problemDetails?: ProblemDetails })?.problemDetails;
+      const isOvercapacityConsentRequired =
+        (err as any)?.problemDetails?.code === 'OVERCAPACITY_CONSENT_REQUIRED' ||
+        (err as any)?.code === 'OVERCAPACITY_CONSENT_REQUIRED' ||
+        (typeof (err as any)?.message === 'string' &&
+          (err as any).message.includes('OVERCAPACITY_CONSENT_REQUIRED'));
 
-      if (problemDetails?.code === 'OVERCAPACITY_CONSENT_REQUIRED' && !isConsent) {
+      if (isOvercapacityConsentRequired && !isConsent) {
         setOvercapacityDialog({
           isOpen: true,
           message:
-            problemDetails.detail ||
+            (err as any)?.problemDetails?.detail ||
+            (err as any)?.message ||
             'Estimasi pelayanan melewati batas jam operasional sesi klinik.'
         });
         return;

@@ -2,6 +2,8 @@
 
 import * as React from 'react';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
+import { appointmentKeys } from '@/features/appointment-pasien/api/queries';
 import type { Patient } from '@/features/data-pasien/api/types';
 import type { Appointment, AppointmentFormData, QueueItem } from '../api/types';
 import {
@@ -52,13 +54,19 @@ export function useMedicalAppointmentSubmit({
   onCreated,
   onCompleteIntake
 }: UseMedicalAppointmentSubmitParams) {
+  const queryClient = useQueryClient();
   const [isProcessing, setIsProcessing] = React.useState(false);
   const [isQueueSuccessOpen, setIsQueueSuccessOpen] = React.useState(false);
   const [createdAppointment, setCreatedAppointment] = React.useState<Appointment | null>(null);
   const [createdQueueItem, setCreatedQueueItem] = React.useState<QueueItem | null>(null);
+  const [overcapacityDialog, setOvercapacityDialog] = React.useState<{
+    isOpen: boolean;
+    message?: string;
+  }>({ isOpen: false });
+  const pendingFormValuesRef = React.useRef<MedicalAppointmentValues | null>(null);
 
   const submitMedicalAppointment = React.useCallback(
-    (formValues: MedicalAppointmentValues) => {
+    (formValues: MedicalAppointmentValues, withOverCapacityConsent?: boolean) => {
       const submittedValues = pickMedicalValues(repeatableMedicalSections, formValues);
       const intake = buildMedicalIntakeRecord({
         definition,
@@ -170,10 +178,20 @@ export function useMedicalAppointmentSubmit({
             appointmentDate: schedule?.dateStr || '',
             session: schedule?.session || '',
             visitType: definition.visitType,
-            complaint: complaint || 'Pemeriksaan klinik'
+            complaint: complaint || 'Pemeriksaan klinik',
+            consentOverCapacity: withOverCapacityConsent ? true : undefined
           });
 
           void requestImplicitWebPushRegistration();
+
+          void queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
+          void queryClient.invalidateQueries({ queryKey: ['appointments'] });
+          void queryClient.invalidateQueries({ queryKey: ['patient-appointments'] });
+          void queryClient.invalidateQueries({ queryKey: ['my-appointments'] });
+          void queryClient.invalidateQueries({ queryKey: ['queue-navigation'] });
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('clinic:appointment_updated'));
+          }
 
           const uiApt: Appointment = {
             id: res.id,
@@ -234,6 +252,24 @@ export function useMedicalAppointmentSubmit({
             }
           }
         } catch (err: unknown) {
+          const isOvercapacityConsentRequired =
+            (err as any)?.problemDetails?.code === 'OVERCAPACITY_CONSENT_REQUIRED' ||
+            (err as any)?.code === 'OVERCAPACITY_CONSENT_REQUIRED' ||
+            (typeof (err as any)?.message === 'string' &&
+              (err as any).message.includes('OVERCAPACITY_CONSENT_REQUIRED'));
+
+          if (isOvercapacityConsentRequired && !withOverCapacityConsent) {
+            pendingFormValuesRef.current = formValues;
+            setOvercapacityDialog({
+              isOpen: true,
+              message:
+                (err as any)?.problemDetails?.detail ||
+                (err as any)?.message ||
+                'Estimasi pelayanan melewati batas jam operasional sesi klinik.'
+            });
+            return;
+          }
+
           const msg = err instanceof Error ? err.message : 'Gagal memproses janji temu';
           toast.error(msg);
         } finally {
@@ -250,9 +286,17 @@ export function useMedicalAppointmentSubmit({
       selectedPatient,
       newPatientRelationship,
       onCreated,
-      onCompleteIntake
+      onCompleteIntake,
+      queryClient
     ]
   );
+
+  const retryWithConsent = React.useCallback(() => {
+    setOvercapacityDialog({ isOpen: false });
+    if (pendingFormValuesRef.current) {
+      submitMedicalAppointment(pendingFormValuesRef.current, true);
+    }
+  }, [submitMedicalAppointment]);
 
   return {
     isProcessing,
@@ -260,6 +304,9 @@ export function useMedicalAppointmentSubmit({
     setIsQueueSuccessOpen,
     createdAppointment,
     createdQueueItem,
+    overcapacityDialog,
+    setOvercapacityDialog,
+    retryWithConsent,
     submitMedicalAppointment
   };
 }

@@ -85,9 +85,16 @@ export function useMyPendingProposals() {
     onSuccess: (data) => {
       toast.success(data.message || 'Tanggapan Anda telah dicatat.');
       void queryClient.invalidateQueries({ queryKey: ['appointment-proposals'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin-appointments'] });
+      void queryClient.invalidateQueries({ queryKey: ['patient-appointments'] });
+      void queryClient.invalidateQueries({ queryKey: ['my-appointments'] });
       void queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      void queryClient.invalidateQueries({ queryKey: ['queue-navigation'] });
       void queryClient.invalidateQueries({ queryKey: ['klinik'] });
       void queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('clinic:appointment_updated'));
+      }
     },
     onError: (err: unknown) => {
       const msg =

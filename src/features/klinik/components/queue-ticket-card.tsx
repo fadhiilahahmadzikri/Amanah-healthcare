@@ -5,7 +5,6 @@ import Image from 'next/image';
 import gsap from 'gsap';
 import confetti from 'canvas-confetti';
 import { Icons } from '@/components/icons';
-import { QueueQrPod } from './queue-qr-pod';
 import { QueuePixelTexture } from './queue-pixel-texture';
 import { QueueClippathToaster } from './queue-clippath-toaster';
 import { QueueWaitingRoomSvg } from './queue-waiting-room-svg';
@@ -317,16 +316,21 @@ export function QueueTicketCard({
             Antrean {queueNumber}
           </h1>
 
-          {/* Booking Metadata & QR Code Section */}
+          {/* Booking Metadata Section */}
           <div
             ref={metaRowRef}
-            className='flex items-end justify-between gap-4 relative z-2 mb-1.5'
+            className='flex flex-col gap-1 relative z-2 mb-2'
           >
             {/* Text Details */}
             <div className='flex flex-col gap-0.5 min-w-0'>
-              <span className='text-[13px] font-medium text-slate-500 tracking-tight'>
-                Tanggal Reservasi:
-              </span>
+              <div className='flex items-center justify-between text-[13px] font-medium text-slate-500 tracking-tight'>
+                <span>Tanggal Reservasi:</span>
+                {bookingCode && bookingCode !== '-' && (
+                  <span className='font-mono text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600'>
+                    #{bookingCode}
+                  </span>
+                )}
+              </div>
               <div className='text-[13.5px] font-semibold text-slate-800 tracking-tight flex items-center leading-snug truncate'>
                 <span>{formatClinicDate(dateStr)}</span>
                 <span className='inline-block w-px h-3 bg-slate-300 mx-1.5 shrink-0' />
@@ -340,9 +344,6 @@ export function QueueTicketCard({
                   : 'Dokter & Ruangan ditentukan saat dipanggil'}
               </span>
             </div>
-
-            {/* Elevated QR Code Pod */}
-            <QueueQrPod code={bookingCode} />
           </div>
 
           {/* Decorative Pixel Grid Pattern Texture at Bottom with Luminous Theme Pixels */}
