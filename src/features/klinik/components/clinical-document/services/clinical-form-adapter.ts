@@ -97,74 +97,63 @@ interface VaccineScheduleDef {
   rowIdx: number;
   codes: string[];
   defaultAge: string;
-  defaultNotes: string;
 }
 
 const VACCINE_SCHEDULE_DEFINITIONS: VaccineScheduleDef[] = [
   {
     rowIdx: 0,
     codes: ['HB_0', 'hb_0', 'hb0', 'HB0'],
-    defaultAge: '0 bln',
-    defaultNotes: 'HB 0 telah diberikan'
+    defaultAge: '0 bln'
   },
-  { rowIdx: 1, codes: ['BCG', 'bcg'], defaultAge: '1 bln', defaultNotes: 'BCG telah diberikan' },
+  { rowIdx: 1, codes: ['BCG', 'bcg'], defaultAge: '1 bln' },
   {
     rowIdx: 2,
     codes: ['PENTA_1', 'IPV_1', 'HEXA_1', 'penta_1', 'ipv_1', 'hexa_1'],
-    defaultAge: '2 bln',
-    defaultNotes: 'Penta 1 + IPV 1 telah diberikan'
+    defaultAge: '2 bln'
   },
   {
     rowIdx: 3,
     codes: ['PCV_1', 'pcv_1'],
-    defaultAge: '2 bln',
-    defaultNotes: 'PCV 1 telah diberikan'
+    defaultAge: '2 bln'
   },
-  { rowIdx: 4, codes: ['RV_1', 'rv_1'], defaultAge: '2 bln', defaultNotes: 'RV 1 telah diberikan' },
+  { rowIdx: 4, codes: ['RV_1', 'rv_1'], defaultAge: '2 bln' },
   {
     rowIdx: 5,
     codes: ['PENTA_2', 'IPV_2', 'HEXA_2', 'penta_2', 'ipv_2', 'hexa_2'],
-    defaultAge: '3 bln',
-    defaultNotes: 'Penta 2 + IPV 2 telah diberikan'
+    defaultAge: '3 bln'
   },
   {
     rowIdx: 6,
     codes: ['PCV_2', 'pcv_2'],
-    defaultAge: '3 bln',
-    defaultNotes: 'PCV 2 telah diberikan'
+    defaultAge: '3 bln'
   },
-  { rowIdx: 7, codes: ['RV_2', 'rv_2'], defaultAge: '3 bln', defaultNotes: 'RV 2 telah diberikan' },
+  { rowIdx: 7, codes: ['RV_2', 'rv_2'], defaultAge: '3 bln' },
   {
     rowIdx: 8,
     codes: ['PENTA_3', 'IPV_3', 'HEXA_3', 'penta_3', 'ipv_3', 'hexa_3'],
-    defaultAge: '4 bln',
-    defaultNotes: 'Penta 3 + IPV 3 telah diberikan'
+    defaultAge: '4 bln'
   },
-  { rowIdx: 9, codes: ['RV_3', 'rv_3'], defaultAge: '4 bln', defaultNotes: 'RV 3 telah diberikan' },
+  { rowIdx: 9, codes: ['RV_3', 'rv_3'], defaultAge: '4 bln' },
   {
     rowIdx: 10,
     codes: ['MR', 'mr', 'campak', 'CAMPAK'],
-    defaultAge: '9 bln',
-    defaultNotes: 'MR telah diberikan'
+    defaultAge: '9 bln'
   },
-  { rowIdx: 11, codes: ['JE', 'je'], defaultAge: '10 bln', defaultNotes: 'JE telah diberikan' },
+  { rowIdx: 11, codes: ['JE', 'je'], defaultAge: '10 bln' },
   {
     rowIdx: 12,
     codes: ['PCV_B', 'pcv_b', 'PCV_BOOSTER'],
-    defaultAge: '12 bln',
-    defaultNotes: 'PCV Booster telah diberikan'
+    defaultAge: '12 bln'
   },
   {
     rowIdx: 13,
     codes: ['PENTA_B', 'penta_b', 'PENTA_BOOSTER'],
-    defaultAge: '18 bln',
-    defaultNotes: 'Penta Booster telah diberikan'
+    defaultAge: '18 bln'
   },
   {
     rowIdx: 14,
     codes: ['MR_B', 'mr_b', 'MR_BOOSTER'],
-    defaultAge: '18 bln',
-    defaultNotes: 'MR Booster telah diberikan'
+    defaultAge: '18 bln'
   }
 ];
 
@@ -420,13 +409,7 @@ export function adaptToImunisasiFormData(
   const relationalEntries: any[] = Array.isArray(c?.entries) ? c.entries : [];
 
   VACCINE_SCHEDULE_DEFINITIONS.forEach((def) => {
-    let matchedDate: string | undefined = undefined;
-    let matchedAge: string | undefined = undefined;
-    let matchedPlanning: string | undefined = undefined;
-    let matchedSubjective: string[] | undefined = undefined;
-    let matchedObjective: string[] | undefined = undefined;
-
-    // Relational entries from backend
+    // 1. Relational entries from backend or live active inspector state
     if (relationalEntries.length > 0) {
       const match = relationalEntries.find(
         (entry) =>
@@ -437,53 +420,72 @@ export function adaptToImunisasiFormData(
               entry.vaccineName?.toUpperCase() === code.toUpperCase()
           )
       );
-      if (match && match.status === 'GIVEN') {
-        matchedDate = match.givenDate || match.injectionDate
-          ? formatClinicDate(match.givenDate || match.injectionDate, { style: 'human_short' })
-          : '-';
-        matchedAge =
-          match.ageDisplay ||
-          (match.ageEstimateMonths !== undefined ? `${match.ageEstimateMonths} bln` : def.defaultAge);
-        matchedPlanning = match.planning || match.notes || def.defaultNotes;
 
-        matchedSubjective = [
-          `Demam: ${match.fever || 'Tidak'}`,
-          `Batuk: ${match.cough || 'Tidak'}`,
-          `Pilek: ${match.runnyNose || 'Tidak'}`
-        ];
+      if (match) {
+        const rawDate = match.givenDate || match.injectionDate;
+        const hasDate = Boolean(rawDate);
+        const hasVitals =
+          match.weightKg != null ||
+          match.heightCm != null ||
+          match.headCircumferenceCm != null ||
+          match.temperatureCelsius != null;
+        const hasSymptoms = Boolean(match.fever || match.cough || match.runnyNose);
+        const hasPlanning = Boolean(match.planning || match.notes);
+        const isGiven = match.status === 'GIVEN';
 
-        const bbStr = match.weightKg != null ? `${match.weightKg} kg` : '-';
-        const pbStr = match.heightCm != null ? `${match.heightCm} cm` : '-';
-        const lkStr = match.headCircumferenceCm != null ? `${match.headCircumferenceCm} cm` : '-';
-        const tempStr = match.temperatureCelsius != null ? `${match.temperatureCelsius} C` : '-';
-        matchedObjective = [`BB/PB: ${bbStr}/${pbStr}`, `LK/S: ${lkStr}/${tempStr}`];
-      }
-    }
+        // Include row if it has any recorded clinical activity
+        if (isGiven || hasDate || hasVitals || hasSymptoms || hasPlanning) {
+          const matchedDate = rawDate
+            ? formatClinicDate(rawDate, { style: 'human_short' })
+            : '';
 
-    // Answers from schema JSONB fallback
-    if (!matchedDate && Object.keys(answers).length > 0) {
-      for (const code of def.codes) {
-        const status = answers[`vaccine_${code}_status`];
-        const dateVal = answers[`vaccine_${code}_date`];
-        if (status === 'Sudah' && dateVal) {
-          matchedDate = formatClinicDate(dateVal, { style: 'human_short' });
-          matchedAge = def.defaultAge;
-          matchedPlanning = def.defaultNotes;
-          matchedSubjective = ['Demam: Tidak', 'Batuk: Tidak', 'Pilek: Tidak'];
-          matchedObjective = ['BB/PB: -', 'LK/S: -'];
-          break;
+          const matchedAge =
+            match.ageDisplay ||
+            (match.ageEstimateMonths !== undefined ? `${match.ageEstimateMonths} bln` : '');
+
+          const matchedPlanning = match.planning || match.notes || '';
+
+          const matchedSubjective = [
+            `Demam: ${match.fever || '-'}`,
+            `Batuk: ${match.cough || '-'}`,
+            `Pilek: ${match.runnyNose || '-'}`
+          ];
+
+          const bbStr = match.weightKg != null ? `${match.weightKg} kg` : '-';
+          const pbStr = match.heightCm != null ? `${match.heightCm} cm` : '-';
+          const lkStr = match.headCircumferenceCm != null ? `${match.headCircumferenceCm} cm` : '-';
+          const tempStr = match.temperatureCelsius != null ? `${match.temperatureCelsius}°C` : '-';
+          const matchedObjective = [`BB/PB: ${bbStr}/${pbStr}`, `LK/S: ${lkStr}/${tempStr}`];
+
+          vaccineRows[def.rowIdx] = {
+            injectionDate: matchedDate,
+            age: matchedAge,
+            subjective: matchedSubjective,
+            objective: matchedObjective,
+            planning: matchedPlanning
+          };
+          return;
         }
       }
     }
 
-    if (matchedDate) {
-      vaccineRows[def.rowIdx] = {
-        injectionDate: matchedDate,
-        age: matchedAge || def.defaultAge,
-        subjective: matchedSubjective || ['Demam: Tidak', 'Batuk: Tidak', 'Pilek: Tidak'],
-        objective: matchedObjective || ['BB/PB: -', 'LK/S: -'],
-        planning: matchedPlanning || def.defaultNotes
-      };
+    // 2. Answers from schema JSONB fallback
+    if (Object.keys(answers).length > 0) {
+      for (const code of def.codes) {
+        const status = answers[`vaccine_${code}_status`];
+        const dateVal = answers[`vaccine_${code}_date`];
+        if ((status === 'Sudah' || status === 'GIVEN') && dateVal) {
+          const formattedDate = formatClinicDate(dateVal, { style: 'human_short' });
+          vaccineRows[def.rowIdx] = {
+            injectionDate: formattedDate,
+            age: def.defaultAge,
+            subjective: ['Demam: -', 'Batuk: -', 'Pilek: -'],
+            objective: ['BB/PB: -', 'LK/S: -'],
+            planning: ''
+          };
+          break;
+        }
+      }
     }
   });
 

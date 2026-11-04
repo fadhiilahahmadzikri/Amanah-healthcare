@@ -190,6 +190,7 @@ export function AppointmentFormInspector({
 
       previousPregnancies: (formData.previousPregnancies || m?.previousPregnancies || []) as any,
       contraceptiveHistories: (formData.contraceptiveHistories || m?.contraceptiveHistories || []) as any,
+      diseaseHistory: formData.diseaseHistory || m?.diseaseHistory || null,
       conditionResponses: ((m as any)?.conditionResponses || m?.healthConditions || Object.entries(formData.diseaseHistory || {}).map(([key, val]) => ({
         conditionCode: key,
         hasCondition: Boolean(val),
@@ -198,6 +199,88 @@ export function AppointmentFormInspector({
       }))) as any
     };
   }, [isPregnancy, parsedData.maternal, formData, appointment]);
+
+  const activeChildIntake = React.useMemo(() => {
+    if (!isImmunization) return null;
+    const c = parsedData.child;
+    return {
+      id: c?.id || appointment.id,
+      patientId: c?.patientId || parsedData.patient?.id || '',
+      appointmentId: c?.appointmentId || appointment.id,
+      childName: immunizationFormData.childName || c?.childName || appointment.patient_name || '',
+      childNik: immunizationFormData.childNik || c?.childNik || null,
+      childBirthDate: immunizationFormData.childBirthDate || c?.childBirthDate || '',
+      childSex: (immunizationFormData.childSex || c?.childSex || 'male') as any,
+      childAgeFormatted: immunizationFormData.childAgeFormatted || c?.childAgeFormatted || null,
+      parentPhone: immunizationFormData.parentPhone || c?.parentPhone || appointment.patient_phone || '',
+      fatherName: immunizationFormData.fatherName || c?.fatherName || null,
+      motherName: immunizationFormData.motherName || c?.motherName || null,
+      childAddress: immunizationFormData.childAddress || c?.childAddress || null,
+      previousVaccineHistory: immunizationFormData.previousVaccineHistory || c?.previousVaccineHistory || null,
+      childAllergyHistory: immunizationFormData.childAllergyHistory || c?.childAllergyHistory || null,
+      entries: (immunizationFormData.entries && immunizationFormData.entries.length > 0
+        ? immunizationFormData.entries
+        : (c as any)?.entries || []) as any
+    };
+  }, [isImmunization, parsedData.child, parsedData.patient, immunizationFormData, appointment]);
+
+  const activeUnifiedData = React.useMemo<typeof parsedData>(() => {
+    const activePatient = parsedData.patient
+      ? {
+          ...parsedData.patient,
+          fullName: isPregnancy
+            ? (formData.motherName || parsedData.patient.fullName)
+            : isImmunization
+              ? (immunizationFormData.childName || parsedData.patient.fullName)
+              : (regularFormData.fullName || parsedData.patient.fullName),
+          nik: isPregnancy
+            ? (formData.motherNik || parsedData.patient.nik)
+            : isImmunization
+              ? (immunizationFormData.childNik || parsedData.patient.nik)
+              : (regularFormData.nik || parsedData.patient.nik),
+          phone: isPregnancy
+            ? (formData.phoneNumber || parsedData.patient.phone)
+            : isImmunization
+              ? (immunizationFormData.parentPhone || parsedData.patient.phone)
+              : (regularFormData.phone || parsedData.patient.phone),
+          address: isPregnancy
+            ? (formData.domicileAddress || parsedData.patient.address)
+            : isImmunization
+              ? (immunizationFormData.childAddress || parsedData.patient.address)
+              : (regularFormData.line1 || parsedData.patient.address)
+        }
+      : undefined;
+
+    const activeAnswers = {
+      ...parsedData.answers,
+      ...regularFormData.answers,
+      complaint: regularFormData.complaint || parsedData.complaint,
+      keluhanUtama: regularFormData.complaint || parsedData.complaint
+    };
+
+    return {
+      ...parsedData,
+      patient: activePatient,
+      answers: activeAnswers,
+      maternal: activeMaternityIntake as any,
+      child: activeChildIntake as any
+    };
+  }, [
+    parsedData,
+    activeMaternityIntake,
+    activeChildIntake,
+    regularFormData,
+    isPregnancy,
+    isImmunization,
+    formData.motherName,
+    formData.motherNik,
+    formData.phoneNumber,
+    formData.domicileAddress,
+    immunizationFormData.childName,
+    immunizationFormData.childNik,
+    immunizationFormData.parentPhone,
+    immunizationFormData.childAddress
+  ]);
 
   const handleMaternityFieldChange = React.useCallback(
     (field: keyof MaternityIntake, val: any) => {
@@ -231,24 +314,24 @@ export function AppointmentFormInspector({
 
   const pmbFormData = React.useMemo(() => {
     if (isPregnancy) {
-      return adaptToPmbFormData(parsedData, appointment, activeSchema);
+      return adaptToPmbFormData(activeUnifiedData, appointment, activeSchema);
     }
     return null;
-  }, [parsedData, appointment, isPregnancy, activeSchema]);
+  }, [activeUnifiedData, appointment, isPregnancy, activeSchema]);
 
   const imunisasiFormData = React.useMemo(() => {
     if (isImmunization) {
-      return adaptToImunisasiFormData(parsedData, appointment, activeSchema);
+      return adaptToImunisasiFormData(activeUnifiedData, appointment, activeSchema);
     }
     return null;
-  }, [parsedData, appointment, isImmunization, activeSchema]);
+  }, [activeUnifiedData, appointment, isImmunization, activeSchema]);
 
   const regulerFormData = React.useMemo(() => {
     if (!isPregnancy && !isImmunization) {
-      return adaptToRegulerFormData(parsedData, appointment, activeSchema);
+      return adaptToRegulerFormData(activeUnifiedData, appointment, activeSchema);
     }
     return null;
-  }, [parsedData, appointment, isPregnancy, isImmunization, activeSchema]);
+  }, [activeUnifiedData, appointment, isPregnancy, isImmunization, activeSchema]);
 
   const handleDownload = async (format: 'docx' | 'pdf' | 'xlsx') => {
     try {
@@ -339,27 +422,8 @@ export function AppointmentFormInspector({
           />
         ) : isImmunization ? (
           <ImmunizationAdminInspector
-            intake={
-              parsedData.child
-                ? {
-                    id: parsedData.child.id,
-                    patientId: parsedData.child.patientId || parsedData.patient?.id || '',
-                    childName: immunizationFormData.childName || parsedData.child.childName,
-                    childNik: immunizationFormData.childNik || parsedData.child.childNik || null,
-                    childBirthDate: immunizationFormData.childBirthDate || parsedData.child.childBirthDate,
-                    childSex: (immunizationFormData.childSex || parsedData.child.childSex) as any,
-                    childAgeFormatted: immunizationFormData.childAgeFormatted || parsedData.child.childAgeFormatted || null,
-                    parentPhone: immunizationFormData.parentPhone || parsedData.child.parentPhone,
-                    fatherName: immunizationFormData.fatherName || parsedData.child.fatherName || null,
-                    motherName: immunizationFormData.motherName || parsedData.child.motherName || null,
-                    childAddress: immunizationFormData.childAddress || parsedData.child.childAddress || null,
-                    previousVaccineHistory: immunizationFormData.previousVaccineHistory || parsedData.child.previousVaccineHistory || null,
-                    childAllergyHistory: immunizationFormData.childAllergyHistory || parsedData.child.childAllergyHistory || null,
-                    entries: (immunizationFormData.entries || (parsedData.child as any)?.entries || []) as any
-                  }
-                : null
-            }
-            entries={(immunizationFormData.entries || (parsedData.child as any)?.entries || []) as any}
+            intake={activeChildIntake}
+            entries={(activeChildIntake?.entries || []) as any}
             isEditing={isEditing}
             onIntakeFieldChange={(field, val) => handleImmunizationFieldChange(field as any, val)}
             onEntriesChange={(updatedEntries) => handleImmunizationFieldChange('entries' as any, updatedEntries)}
