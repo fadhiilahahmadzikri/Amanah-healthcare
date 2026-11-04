@@ -5,18 +5,21 @@ import type {
   ClinicService,
   ClinicalIntakeForm,
   CreateCategoryPayload,
+  CreateDemographicPayload,
   CreateIntakeFormPayload,
   CreateRelationshipPayload,
   CreateRoomPayload,
   CreateServicePayload,
   CreateUnitPayload,
   CreateUnitTypePayload,
+  DemographicMasterItem,
   FacilityRoom,
   FacilityUnit,
   FacilityUnitType,
   PatientRelationshipTypeItem,
   ServiceCategory,
   UpdateCategoryPayload,
+  UpdateDemographicPayload,
   UpdateIntakeFormPayload,
   UpdateRelationshipPayload,
   UpdateRoomPayload,
@@ -275,6 +278,118 @@ export const clinicEssentialsApi = {
         method: 'PATCH'
       }
     ),
+
+  // Demographic Masters: Blood Types
+  getBloodTypes: (params?: FacilityQueryParams): Promise<DemographicMasterItem[]> => {
+    const sp = new URLSearchParams();
+    if (params?.search) sp.append('search', params.search);
+    if (params?.status) sp.append('status', params.status);
+    const qs = sp.toString();
+    return clientFetch<DemographicMasterItem[]>(
+      qs ? `/api/v1/admin/facilities/blood-types?${qs}` : '/api/v1/admin/facilities/blood-types'
+    );
+  },
+
+  createBloodType: (payload: CreateDemographicPayload): Promise<DemographicMasterItem> =>
+    clientFetch<DemographicMasterItem>('/api/v1/admin/facilities/blood-types', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+
+  updateBloodType: (id: string, payload: UpdateDemographicPayload): Promise<DemographicMasterItem> =>
+    clientFetch<DemographicMasterItem>(`/api/v1/admin/facilities/blood-types/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    }),
+
+  deleteBloodType: (id: string): Promise<void> =>
+    clientFetch<void>(`/api/v1/admin/facilities/blood-types/${id}`, {
+      method: 'DELETE'
+    }),
+
+  // Demographic Masters: Education Levels
+  getEducationLevels: (params?: FacilityQueryParams): Promise<DemographicMasterItem[]> => {
+    const sp = new URLSearchParams();
+    if (params?.search) sp.append('search', params.search);
+    if (params?.status) sp.append('status', params.status);
+    const qs = sp.toString();
+    return clientFetch<DemographicMasterItem[]>(
+      qs ? `/api/v1/admin/facilities/education-levels?${qs}` : '/api/v1/admin/facilities/education-levels'
+    );
+  },
+
+  createEducationLevel: (payload: CreateDemographicPayload): Promise<DemographicMasterItem> =>
+    clientFetch<DemographicMasterItem>('/api/v1/admin/facilities/education-levels', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+
+  updateEducationLevel: (id: string, payload: UpdateDemographicPayload): Promise<DemographicMasterItem> =>
+    clientFetch<DemographicMasterItem>(`/api/v1/admin/facilities/education-levels/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    }),
+
+  deleteEducationLevel: (id: string): Promise<void> =>
+    clientFetch<void>(`/api/v1/admin/facilities/education-levels/${id}`, {
+      method: 'DELETE'
+    }),
+
+  // Demographic Masters: Religions
+  getReligions: (params?: FacilityQueryParams): Promise<DemographicMasterItem[]> => {
+    const sp = new URLSearchParams();
+    if (params?.search) sp.append('search', params.search);
+    if (params?.status) sp.append('status', params.status);
+    const qs = sp.toString();
+    return clientFetch<DemographicMasterItem[]>(
+      qs ? `/api/v1/admin/facilities/religions?${qs}` : '/api/v1/admin/facilities/religions'
+    );
+  },
+
+  createReligion: (payload: CreateDemographicPayload): Promise<DemographicMasterItem> =>
+    clientFetch<DemographicMasterItem>('/api/v1/admin/facilities/religions', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+
+  updateReligion: (id: string, payload: UpdateDemographicPayload): Promise<DemographicMasterItem> =>
+    clientFetch<DemographicMasterItem>(`/api/v1/admin/facilities/religions/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    }),
+
+  deleteReligion: (id: string): Promise<void> =>
+    clientFetch<void>(`/api/v1/admin/facilities/religions/${id}`, {
+      method: 'DELETE'
+    }),
+
+  // Demographic Masters: Occupations
+  getOccupations: (params?: FacilityQueryParams): Promise<DemographicMasterItem[]> => {
+    const sp = new URLSearchParams();
+    if (params?.search) sp.append('search', params.search);
+    if (params?.status) sp.append('status', params.status);
+    const qs = sp.toString();
+    return clientFetch<DemographicMasterItem[]>(
+      qs ? `/api/v1/admin/facilities/occupations?${qs}` : '/api/v1/admin/facilities/occupations'
+    );
+  },
+
+  createOccupation: (payload: CreateDemographicPayload): Promise<DemographicMasterItem> =>
+    clientFetch<DemographicMasterItem>('/api/v1/admin/facilities/occupations', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+
+  updateOccupation: (id: string, payload: UpdateDemographicPayload): Promise<DemographicMasterItem> =>
+    clientFetch<DemographicMasterItem>(`/api/v1/admin/facilities/occupations/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    }),
+
+  deleteOccupation: (id: string): Promise<void> =>
+    clientFetch<void>(`/api/v1/admin/facilities/occupations/${id}`, {
+      method: 'DELETE'
+    }),
 
   // Bulk Actions
   bulkAction: (payload: BulkFacilityActionPayload): Promise<BulkFacilityActionResult> =>

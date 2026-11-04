@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Pencil, SlidersHorizontal, Trash2 } from 'lucide-react';
+import { Pencil, Star, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -10,48 +10,50 @@ import { PixelTexture } from '@/features/klinik/components/pixel-texture';
 import { EssentialCardIcon } from '../../utils/essential-icon-resolver';
 import { useCardBulkingSlide } from '@/hooks/use-card-bulking-slide';
 import { cn } from '@/lib/utils';
-import type { ClinicalIntakeForm } from '../../types/clinic-essentials.types';
+import type { DemographicMasterItem } from '../../types/clinic-essentials.types';
 
-export interface ClinicalIntakeFormCardProps {
-  form: ClinicalIntakeForm;
+export interface DemographicMasterCardProps {
+  item: DemographicMasterItem;
+  resourceLabel: string;
+  iconName?: string;
   canManage?: boolean;
   selected?: boolean;
   isBulkingActive?: boolean;
   onToggleSelect?: () => void;
   onToggleActive?: (newActive: boolean) => void;
   isTogglingActive?: boolean;
-  onOpenBuilder?: (form: ClinicalIntakeForm) => void;
-  onEdit?: (form: ClinicalIntakeForm) => void;
-  onDelete?: (form: ClinicalIntakeForm) => void;
-  onCardClick?: (form: ClinicalIntakeForm) => void;
+  onEdit?: (item: DemographicMasterItem) => void;
+  onDelete: (item: DemographicMasterItem) => void;
+  onCardClick?: (item: DemographicMasterItem) => void;
   className?: string;
 }
 
-export function ClinicalIntakeFormCard({
-  form,
+export function DemographicMasterCard({
+  item,
+  resourceLabel,
+  iconName = 'tag',
   canManage = true,
   selected = false,
   isBulkingActive = false,
   onToggleSelect,
   onToggleActive,
   isTogglingActive = false,
-  onOpenBuilder,
   onEdit,
   onDelete,
   onCardClick,
-  className
-}: ClinicalIntakeFormCardProps) {
-  const isActive = form.isActive !== false;
-  const isSystemForm = form.code === 'pregnancy' || form.code === 'immunization';
+  className,
+}: DemographicMasterCardProps) {
+  const isActive = item.isActive !== false;
+  const isSystem = Boolean(item.isSystem);
   const { wrapperRef, containerProps } = useCardBulkingSlide({ selected, isBulkingActive });
 
   const handleCardClick = React.useCallback(() => {
     if (onCardClick) {
-      onCardClick(form);
+      onCardClick(item);
     } else if (onEdit) {
-      onEdit(form);
+      onEdit(item);
     }
-  }, [onCardClick, onEdit, form]);
+  }, [onCardClick, onEdit, item]);
 
   const handleKeyDown = React.useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -103,21 +105,29 @@ export function ClinicalIntakeFormCard({
                 onCheckedChange={onToggleSelect}
                 onClick={(e) => e.stopPropagation()}
                 className='data-[state=checked]:bg-primary shrink-0'
-                aria-label={`Pilih ${form.name}`}
+                aria-label={`Pilih ${item.name}`}
               />
             </div>
           )}
           <div className='flex items-center gap-2.5 min-w-0'>
-            <EssentialCardIcon iconName={form.iconName} fallback='clipboard-list' />
+            <EssentialCardIcon iconName={iconName} fallback='tag' />
             <div className='min-w-0'>
-              <h4
-                className='truncate text-sm font-semibold text-foreground leading-tight'
-                title={form.name}
-              >
-                {form.name}
-              </h4>
+              <div className='flex items-center gap-1.5'>
+                <h4
+                  className='truncate text-sm font-semibold text-foreground leading-tight'
+                  title={item.name}
+                >
+                  {item.name}
+                </h4>
+                {isSystem && (
+                  <Star
+                    className='size-3.5 fill-amber-500 text-amber-500 shrink-0 drop-shadow-xs'
+                    aria-label='Data Sistem Bawaan'
+                  />
+                )}
+              </div>
               <p className='text-xs text-muted-foreground pt-0.5 truncate'>
-                {form.description || 'Formulir Pengkajian Pasien'}
+                {item.description || `Master ${resourceLabel}`}
               </p>
             </div>
           </div>
@@ -137,22 +147,25 @@ export function ClinicalIntakeFormCard({
       </div>
 
       {/* Metadata Strip */}
-      <div className='relative z-1 w-full border-t border-border/40 pt-2 text-xs'>
-        <p className='line-clamp-2 text-muted-foreground min-h-[32px] leading-relaxed'>
-          {form.description || 'Formulir intake anamnesis klinis standar.'}
-        </p>
+      <div className='relative z-1 w-full border-t border-border/40 pt-2 space-y-1.5 text-xs'>
+        <div className='flex items-center justify-between text-muted-foreground'>
+          <span>Urutan Tampilan:</span>
+          <Badge variant='secondary' className='text-[10px] font-medium px-2 py-0'>
+            #{item.displayOrder}
+          </Badge>
+        </div>
       </div>
 
       {/* Footer Actions */}
       <div className='relative z-1 flex items-center justify-between border-t border-border/40 pt-2 mt-auto w-full'>
         <div className='flex items-center gap-1.5 min-w-0'>
           <span className='text-[11px] font-medium text-muted-foreground truncate'>
-            Formulir Pengkajian
+            {resourceLabel}
           </span>
         </div>
 
         {canManage && (
-          <div className='flex items-center gap-2 shrink-0'>
+          <div className='flex items-center gap-1.5 sm:gap-2 shrink-0'>
             {onToggleActive && (
               <div
                 className='flex items-center'
@@ -168,24 +181,9 @@ export function ClinicalIntakeFormCard({
                   onClick={(e) => e.stopPropagation()}
                   disabled={isTogglingActive}
                   className='scale-80 origin-right'
-                  aria-label={`Ubah status ${form.name}`}
+                  aria-label={`Ubah status ${item.name}`}
                 />
               </div>
-            )}
-            {onOpenBuilder && (
-              <Button
-                type='button'
-                variant='ghost'
-                size='icon'
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onOpenBuilder(form);
-                }}
-                className='size-7 text-primary hover:text-primary hover:bg-primary/10 rounded-md cursor-pointer'
-                title={`Buka Builder Formulir ${form.name}`}
-              >
-                <SlidersHorizontal className='size-3.5' />
-              </Button>
             )}
             {onEdit && (
               <Button
@@ -194,25 +192,25 @@ export function ClinicalIntakeFormCard({
                 size='icon'
                 onClick={(e) => {
                   e.stopPropagation();
-                  onEdit(form);
+                  onEdit(item);
                 }}
                 className='size-7 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md cursor-pointer'
-                title={`Edit ${form.name}`}
+                title={`Edit ${item.name}`}
               >
                 <Pencil className='size-3.5' />
               </Button>
             )}
-            {onDelete && !isSystemForm && (
+            {!isSystem && (
               <Button
                 type='button'
                 variant='ghost'
                 size='icon'
                 onClick={(e) => {
                   e.stopPropagation();
-                  onDelete(form);
+                  onDelete(item);
                 }}
                 className='size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md cursor-pointer'
-                title={`Hapus permanen ${form.name}`}
+                title={`Hapus ${item.name}`}
               >
                 <Trash2 className='size-3.5' />
               </Button>

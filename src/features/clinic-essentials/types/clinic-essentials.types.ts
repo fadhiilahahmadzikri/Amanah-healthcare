@@ -198,6 +198,26 @@ export interface CreateRelationshipPayload {
   isSystem?: boolean;
 }
 
+export interface DemographicMasterItem {
+  id: string;
+  name: string;
+  description?: string | null;
+  displayOrder: number;
+  isActive: boolean;
+  isSystem?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateDemographicPayload {
+  name: string;
+  description?: string;
+  displayOrder?: number;
+  isActive?: boolean;
+}
+
+export type UpdateDemographicPayload = Partial<CreateDemographicPayload>;
+
 export type UpdateUnitTypePayload = Partial<CreateUnitTypePayload>;
 export type UpdateUnitPayload = Partial<CreateUnitPayload>;
 export type UpdateRoomPayload = Partial<CreateRoomPayload>;
@@ -212,8 +232,11 @@ export type FacilityResource =
   | 'rooms'
   | 'categories'
   | 'services'
-  | 'forms'
-  | 'relationships';
+  | 'relationships'
+  | 'blood-types'
+  | 'education-levels'
+  | 'religions'
+  | 'occupations';
 
 export type FacilityBulkAction = 'activate' | 'deactivate' | 'delete';
 

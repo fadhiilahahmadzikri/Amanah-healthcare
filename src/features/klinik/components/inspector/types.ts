@@ -189,6 +189,7 @@ export interface EditableImmunizationData {
   hasAllergyHistory: string;
   childAllergyHistory: string;
   vaccineValues: Record<string, string>;
+  entries?: any[];
 }
 
 export interface EditableRegularData {

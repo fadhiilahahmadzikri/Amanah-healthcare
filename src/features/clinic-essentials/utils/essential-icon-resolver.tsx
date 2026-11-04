@@ -18,8 +18,11 @@ export const ESSENTIAL_FALLBACK_ICONS: Record<FacilityResource, string> = {
   rooms: 'door-open',
   categories: 'folder',
   services: 'stethoscope',
-  forms: 'clipboard-list',
-  relationships: 'users'
+  relationships: 'users',
+  'blood-types': 'droplet',
+  'education-levels': 'graduation-cap',
+  religions: 'bookmark',
+  occupations: 'briefcase',
 };
 
 /**
@@ -63,10 +66,16 @@ export function getEssentialFirstIcon(
       return resolveEntityIconName(data.categories, ESSENTIAL_FALLBACK_ICONS['categories']);
     case 'services':
       return resolveEntityIconName(data.services, ESSENTIAL_FALLBACK_ICONS['services']);
-    case 'forms':
-      return resolveEntityIconName(data.forms, ESSENTIAL_FALLBACK_ICONS['forms']);
     case 'relationships':
       return resolveEntityIconName(data.relationships, ESSENTIAL_FALLBACK_ICONS['relationships']);
+    case 'blood-types':
+      return ESSENTIAL_FALLBACK_ICONS['blood-types'];
+    case 'education-levels':
+      return ESSENTIAL_FALLBACK_ICONS['education-levels'];
+    case 'religions':
+      return ESSENTIAL_FALLBACK_ICONS['religions'];
+    case 'occupations':
+      return ESSENTIAL_FALLBACK_ICONS['occupations'];
   }
 }
 

@@ -14,11 +14,8 @@ import {
 } from './inspector/model';
 import { InspectorHeader } from './inspector/organisms/inspector-header';
 import { InspectorFooter } from './inspector/organisms/inspector-footer';
-import { InspectorIdentityTab } from './inspector/inspector-identity-tab';
-import { InspectorPartnerTab } from './inspector/inspector-partner-tab';
-import { InspectorClinicalTab } from './inspector/inspector-clinical-tab';
-import { InspectorObstetricTab } from './inspector/inspector-obstetric-tab';
-import { InspectorImmunizationTab } from './inspector/inspector-immunization-tab';
+import { MaternityAdminInspector, type MaternityIntake, type MaternalHusbandProfile } from '@/features/maternity';
+import { ImmunizationAdminInspector } from '@/features/immunization';
 import { InspectorGenericView } from './inspector/inspector-generic-view';
 import {
   ClinicalDocumentFullscreenReader,
@@ -108,9 +105,129 @@ export function AppointmentFormInspector({
       ? 'pregnancy'
       : isImmunization
         ? 'immunization'
-        : 'standard-registration';
+        : null;
+    if (!targetCode) return null;
     return intakeForms.find((f) => f.code === targetCode)?.schema ?? null;
   }, [intakeForms, isPregnancy, isImmunization]);
+
+  const activeMaternityIntake: MaternityIntake | null = React.useMemo(() => {
+    if (!isPregnancy) return null;
+    const m = parsedData.maternal;
+    return {
+      id: m?.id || appointment.id,
+      patientId: m?.patientId || appointment.patient_id || '',
+      appointmentId: m?.appointmentId || appointment.id,
+      motherName: formData.motherName || m?.motherName || appointment.patient_name || '',
+      motherNik: formData.motherNik || m?.motherNik || '',
+      motherBirthDate: formData.motherBirthDate || m?.motherBirthDate || null,
+      motherAge: formData.motherAge ? Number(formData.motherAge) : m?.motherAge || null,
+      marriageOrder: formData.marriageOrder ? Number(formData.marriageOrder) : m?.marriageOrder || 1,
+      marriageDate: formData.marriageDate || m?.marriageDate || null,
+      motherJob: formData.motherJob || m?.motherJob || null,
+      motherEducation: formData.motherEducation || m?.motherEducation || null,
+      religion: formData.religion || m?.religion || null,
+      phoneNumber: formData.phoneNumber || m?.phoneNumber || appointment.patient_phone || null,
+      domicileAddress: formData.domicileAddress || m?.domicileAddress || null,
+      identityCardAddress: formData.identityCardAddress || m?.identityCardAddress || null,
+      dasawisma: formData.dasawisma || m?.dasawisma || null,
+      posyandu: formData.posyandu || m?.posyandu || null,
+      puskesmas: formData.puskesmas || m?.puskesmas || null,
+
+      partnerName: formData.partnerName || m?.partnerName || null,
+      partnerNik: formData.partnerNik || m?.partnerNik || null,
+      partnerBirthDate: formData.partnerBirthDate || m?.partnerBirthDate || null,
+      partnerAge: formData.partnerAge ? Number(formData.partnerAge) : m?.partnerAge || null,
+      partnerJob: formData.partnerJob || m?.partnerJob || null,
+      partnerEducation: formData.partnerEducation || m?.partnerEducation || null,
+      partnerBloodType: formData.partnerBloodType || m?.partnerBloodType || null,
+      husbandProfile: {
+        fullName: formData.partnerName || m?.husband?.fullName || m?.partnerName || '',
+        nik: formData.partnerNik || m?.husband?.nik || m?.partnerNik || null,
+        birthDate: formData.partnerBirthDate || m?.husband?.birthDate || m?.partnerBirthDate || null,
+        age: formData.partnerAge ? Number(formData.partnerAge) : m?.husband?.age || null,
+        job: formData.partnerJob || m?.husband?.job || m?.partnerJob || null,
+        education: formData.partnerEducation || m?.husband?.education || m?.partnerEducation || null,
+        bloodType: formData.partnerBloodType || m?.husband?.bloodType || m?.partnerBloodType || null,
+        phoneNumber: (formData as any).partnerPhone || m?.husband?.phoneNumber || null
+      },
+
+      heightCm: formData.heightCm ? Number(formData.heightCm) : m?.heightCm || null,
+      prePregnancyWeightKg: formData.prePregnancyWeightKg ? Number(formData.prePregnancyWeightKg) : m?.prePregnancyWeightKg || null,
+      upperArmCircumferenceCm: formData.upperArmCircumferenceCm ? Number(formData.upperArmCircumferenceCm) : m?.upperArmCircumferenceCm || null,
+      initialBmi: formData.initialBmi ? Number(formData.initialBmi) : m?.initialBmi || null,
+      tetanusStatus: formData.tetanusStatus || m?.tetanusStatus || null,
+      motherBloodType: formData.motherBloodType || m?.motherBloodType || null,
+
+      hpht: formData.hpht || m?.hpht || null,
+      estimatedDueDate: formData.estimatedDueDate || m?.estimatedDueDate || null,
+      gestationalAgeWeeks: formData.gestationalAgeWeeks || m?.gestationalAgeWeeks || null,
+      gestationalAgeFormatted: formData.gestationalAgeFormatted || m?.gestationalAgeFormatted || null,
+      currentComplaints: formData.currentComplaints || m?.currentComplaints || appointment.complaint || '',
+
+      gravidaCount: Number(formData.gravidaCount) || m?.gravidaCount || 1,
+      parityCount: Number(formData.parityCount) || m?.parityCount || 0,
+      abortionCount: Number(formData.abortionCount) || m?.abortionCount || 0,
+      livingChildrenCount: Number(formData.livingChildrenCount) || m?.livingChildrenCount || 0,
+
+      hasPreviousPregnancyHistory: Boolean(formData.hasPreviousPregnancyHistory),
+      hasContraceptionHistory: Boolean(formData.hasContraceptionHistory),
+
+      smokedBeforePregnancy: formData.smokedBeforePregnancy || m?.smokedBeforePregnancy || null,
+      alcoholBeforePregnancy: Boolean(formData.alcoholBeforePregnancy ?? m?.alcoholBeforePregnancy),
+      irregularDietBeforePregnancy: Boolean(formData.irregularDietBeforePregnancy ?? m?.irregularDietBeforePregnancy),
+      reducedPhysicalActivityBeforePregnancy: Boolean(formData.reducedPhysicalActivityBeforePregnancy ?? m?.reducedPhysicalActivityBeforePregnancy),
+      unprescribedMedicationBeforePregnancy: Boolean(formData.unprescribedMedicationBeforePregnancy ?? m?.unprescribedMedicationBeforePregnancy),
+      concerningCosmeticUseBeforePregnancy: Boolean(formData.concerningCosmeticUseBeforePregnancy ?? m?.concerningCosmeticUseBeforePregnancy),
+      pesticideExposureBeforePregnancy: Boolean(formData.pesticideExposureBeforePregnancy ?? m?.pesticideExposureBeforePregnancy),
+      chemicalExposureBeforePregnancy: Boolean(formData.chemicalExposureBeforePregnancy ?? m?.chemicalExposureBeforePregnancy),
+      smokeExposureBeforePregnancy: Boolean(formData.smokeExposureBeforePregnancy ?? m?.smokeExposureBeforePregnancy),
+      concerningEnvironmentNotes: formData.concerningEnvironmentNotes || m?.concerningEnvironmentNotes || null,
+      allergyInfo: formData.allergyInfo || m?.allergyInfo || null,
+      otherNotes: formData.otherNotes || m?.otherNotes || null,
+
+      createdAt: m?.createdAt || new Date().toISOString(),
+      updatedAt: m?.updatedAt || new Date().toISOString(),
+
+      previousPregnancies: (formData.previousPregnancies || m?.previousPregnancies || []) as any,
+      contraceptiveHistories: (formData.contraceptiveHistories || m?.contraceptiveHistories || []) as any,
+      conditionResponses: ((m as any)?.conditionResponses || m?.healthConditions || Object.entries(formData.diseaseHistory || {}).map(([key, val]) => ({
+        conditionCode: key,
+        hasCondition: Boolean(val),
+        diagnosisYear: (formData.diseaseHistory as any)[`${key}Notes`] ? Number((formData.diseaseHistory as any)[`${key}Notes`]) : null,
+        notes: null
+      }))) as any
+    };
+  }, [isPregnancy, parsedData.maternal, formData, appointment]);
+
+  const handleMaternityFieldChange = React.useCallback(
+    (field: keyof MaternityIntake, val: any) => {
+      if (field === 'previousPregnancies') {
+        handleFieldChange('previousPregnancies' as any, val);
+      } else if (field === 'contraceptiveHistories') {
+        handleFieldChange('contraceptiveHistories' as any, val);
+      } else if (field === 'conditionResponses') {
+        val.forEach((cond: any) => {
+          handleDiseaseChange(cond.conditionCode, cond.hasCondition, cond.diagnosisYear ? String(cond.diagnosisYear) : undefined);
+        });
+      } else {
+        handleFieldChange(field as any, val);
+      }
+    },
+    [handleFieldChange, handleDiseaseChange]
+  );
+
+  const handleHusbandFieldChange = React.useCallback(
+    (field: keyof MaternalHusbandProfile, val: any) => {
+      if (field === 'fullName') handleFieldChange('partnerName' as any, val);
+      else if (field === 'nik') handleFieldChange('partnerNik' as any, val);
+      else if (field === 'birthDate') handleFieldChange('partnerBirthDate' as any, val);
+      else if (field === 'job') handleFieldChange('partnerJob' as any, val);
+      else if (field === 'education') handleFieldChange('partnerEducation' as any, val);
+      else if (field === 'bloodType') handleFieldChange('partnerBloodType' as any, val);
+      else if (field === 'phoneNumber') handleFieldChange('partnerPhone' as any, val);
+    },
+    [handleFieldChange]
+  );
 
   const pmbFormData = React.useMemo(() => {
     if (isPregnancy) {
@@ -203,80 +320,49 @@ export function AppointmentFormInspector({
             <span className='text-xs font-medium'>Memuat formulir medis...</span>
           </div>
         ) : isPregnancy ? (
-          <Tabs defaultValue='identitas' className='w-full flex flex-col h-full min-h-0'>
-            <TabsList className='grid grid-cols-4 w-full h-9 mb-3 shrink-0'>
-              <TabsTrigger value='identitas' className='text-xs font-semibold cursor-pointer'>
-                Identitas Ibu
-              </TabsTrigger>
-              <TabsTrigger value='suami' className='text-xs font-semibold cursor-pointer'>
-                Suami & Alamat
-              </TabsTrigger>
-              <TabsTrigger value='klinis' className='text-xs font-semibold cursor-pointer'>
-                Skrining Klinis
-              </TabsTrigger>
-              <TabsTrigger value='obstetri' className='text-xs font-semibold cursor-pointer'>
-                Obstetri & KB
-              </TabsTrigger>
-            </TabsList>
-
-            <div className='flex-1 overflow-y-auto min-h-0 pr-1'>
-              <TabsContent value='identitas' className='m-0 outline-none'>
-                <InspectorIdentityTab
-                  appointment={appointment}
-                  data={parsedData}
-                  isEditing={isEditing}
-                  formData={formData}
-                  onFieldChange={handleFieldChange}
-                  validationErrors={validationErrors}
-                  onClearError={handleClearError}
-                />
-              </TabsContent>
-
-              <TabsContent value='suami' className='m-0 outline-none'>
-                <InspectorPartnerTab
-                  appointment={appointment}
-                  data={parsedData}
-                  isEditing={isEditing}
-                  formData={formData}
-                  onFieldChange={handleFieldChange}
-                  validationErrors={validationErrors}
-                  onClearError={handleClearError}
-                />
-              </TabsContent>
-
-              <TabsContent value='klinis' className='m-0 outline-none'>
-                <InspectorClinicalTab
-                  appointment={appointment}
-                  data={parsedData}
-                  isEditing={isEditing}
-                  formData={formData}
-                  onFieldChange={handleFieldChange}
-                  onDiseaseChange={handleDiseaseChange}
-                />
-              </TabsContent>
-
-              <TabsContent value='obstetri' className='m-0 outline-none'>
-                <InspectorObstetricTab
-                  appointment={appointment}
-                  data={parsedData}
-                  isEditing={isEditing}
-                  formData={formData}
-                  onFieldChange={handleFieldChange}
-                  onNestedArrayChange={handleNestedArrayChange}
-                  onAddNestedItem={handleAddNestedItem}
-                  onRemoveNestedItem={handleRemoveNestedItem}
-                />
-              </TabsContent>
-            </div>
-          </Tabs>
-        ) : isImmunization ? (
-          <InspectorImmunizationTab
-            appointment={appointment}
-            data={parsedData}
+          <MaternityAdminInspector
+            intake={activeMaternityIntake}
             isEditing={isEditing}
-            immunizationFormData={immunizationFormData}
-            onImmunizationFieldChange={handleImmunizationFieldChange}
-            onVaccineValueChange={handleVaccineValueChange}
+            onIntakeFieldChange={handleMaternityFieldChange}
+            onHusbandFieldChange={handleHusbandFieldChange}
+            onPreviousPregnanciesChange={(updated) =>
+              handleMaternityFieldChange('previousPregnancies', updated)
+            }
+            onContraceptiveHistoriesChange={(updated) =>
+              handleMaternityFieldChange('contraceptiveHistories', updated)
+            }
+            onConditionsChange={(updated) =>
+              handleMaternityFieldChange('conditionResponses', updated)
+            }
+            validationErrors={validationErrors}
+            onClearError={handleClearError}
+          />
+        ) : isImmunization ? (
+          <ImmunizationAdminInspector
+            intake={
+              parsedData.child
+                ? {
+                    id: parsedData.child.id,
+                    patientId: parsedData.child.patientId || parsedData.patient?.id || '',
+                    childName: immunizationFormData.childName || parsedData.child.childName,
+                    childNik: immunizationFormData.childNik || parsedData.child.childNik || null,
+                    childBirthDate: immunizationFormData.childBirthDate || parsedData.child.childBirthDate,
+                    childSex: (immunizationFormData.childSex || parsedData.child.childSex) as any,
+                    childAgeFormatted: immunizationFormData.childAgeFormatted || parsedData.child.childAgeFormatted || null,
+                    parentPhone: immunizationFormData.parentPhone || parsedData.child.parentPhone,
+                    fatherName: immunizationFormData.fatherName || parsedData.child.fatherName || null,
+                    motherName: immunizationFormData.motherName || parsedData.child.motherName || null,
+                    childAddress: immunizationFormData.childAddress || parsedData.child.childAddress || null,
+                    previousVaccineHistory: immunizationFormData.previousVaccineHistory || parsedData.child.previousVaccineHistory || null,
+                    childAllergyHistory: immunizationFormData.childAllergyHistory || parsedData.child.childAllergyHistory || null,
+                    entries: (immunizationFormData.entries || (parsedData.child as any)?.entries || []) as any
+                  }
+                : null
+            }
+            entries={(immunizationFormData.entries || (parsedData.child as any)?.entries || []) as any}
+            isEditing={isEditing}
+            onIntakeFieldChange={(field, val) => handleImmunizationFieldChange(field as any, val)}
+            onEntriesChange={(updatedEntries) => handleImmunizationFieldChange('entries' as any, updatedEntries)}
             validationErrors={validationErrors}
             onClearError={handleClearError}
           />

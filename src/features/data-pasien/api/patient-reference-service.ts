@@ -23,6 +23,8 @@ export interface RegionReferenceItem {
 
 export interface PatientFormReferenceData {
   bloodTypes: ReferenceOptionItem[];
+  educationLevels?: ReferenceOptionItem[];
+  religions?: ReferenceOptionItem[];
   genders: ReferenceOptionItem[];
   statuses: ReferenceOptionItem[];
   relationships: ReferenceOptionItem[];

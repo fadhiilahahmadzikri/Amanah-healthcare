@@ -423,27 +423,44 @@ export function adaptToImunisasiFormData(
     let matchedDate: string | undefined = undefined;
     let matchedAge: string | undefined = undefined;
     let matchedPlanning: string | undefined = undefined;
+    let matchedSubjective: string[] | undefined = undefined;
+    let matchedObjective: string[] | undefined = undefined;
 
     // Relational entries from backend
     if (relationalEntries.length > 0) {
-      const match = relationalEntries.find((entry) =>
-        def.codes.some(
-          (code) =>
-            entry.vaccineCode?.toUpperCase() === code.toUpperCase() ||
-            entry.vaccineName?.toUpperCase() === code.toUpperCase()
-        )
+      const match = relationalEntries.find(
+        (entry) =>
+          entry.rowIndex === def.rowIdx ||
+          def.codes.some(
+            (code) =>
+              entry.vaccineCode?.toUpperCase() === code.toUpperCase() ||
+              entry.vaccineName?.toUpperCase() === code.toUpperCase()
+          )
       );
       if (match && match.status === 'GIVEN') {
-        matchedDate = match.givenDate
-          ? formatClinicDate(match.givenDate, { style: 'human_short' })
+        matchedDate = match.givenDate || match.injectionDate
+          ? formatClinicDate(match.givenDate || match.injectionDate, { style: 'human_short' })
           : '-';
         matchedAge =
-          match.ageEstimateMonths !== undefined ? `${match.ageEstimateMonths} bln` : def.defaultAge;
-        matchedPlanning = match.notes || def.defaultNotes;
+          match.ageDisplay ||
+          (match.ageEstimateMonths !== undefined ? `${match.ageEstimateMonths} bln` : def.defaultAge);
+        matchedPlanning = match.planning || match.notes || def.defaultNotes;
+
+        matchedSubjective = [
+          `Demam: ${match.fever || 'Tidak'}`,
+          `Batuk: ${match.cough || 'Tidak'}`,
+          `Pilek: ${match.runnyNose || 'Tidak'}`
+        ];
+
+        const bbStr = match.weightKg != null ? `${match.weightKg} kg` : '-';
+        const pbStr = match.heightCm != null ? `${match.heightCm} cm` : '-';
+        const lkStr = match.headCircumferenceCm != null ? `${match.headCircumferenceCm} cm` : '-';
+        const tempStr = match.temperatureCelsius != null ? `${match.temperatureCelsius} C` : '-';
+        matchedObjective = [`BB/PB: ${bbStr}/${pbStr}`, `LK/S: ${lkStr}/${tempStr}`];
       }
     }
 
-    // Answers from schema JSONB
+    // Answers from schema JSONB fallback
     if (!matchedDate && Object.keys(answers).length > 0) {
       for (const code of def.codes) {
         const status = answers[`vaccine_${code}_status`];
@@ -452,6 +469,8 @@ export function adaptToImunisasiFormData(
           matchedDate = formatClinicDate(dateVal, { style: 'human_short' });
           matchedAge = def.defaultAge;
           matchedPlanning = def.defaultNotes;
+          matchedSubjective = ['Demam: Tidak', 'Batuk: Tidak', 'Pilek: Tidak'];
+          matchedObjective = ['BB/PB: -', 'LK/S: -'];
           break;
         }
       }
@@ -461,8 +480,8 @@ export function adaptToImunisasiFormData(
       vaccineRows[def.rowIdx] = {
         injectionDate: matchedDate,
         age: matchedAge || def.defaultAge,
-        subjective: ['-', '-', '-'],
-        objective: ['-', '-'],
+        subjective: matchedSubjective || ['Demam: Tidak', 'Batuk: Tidak', 'Pilek: Tidak'],
+        objective: matchedObjective || ['BB/PB: -', 'LK/S: -'],
         planning: matchedPlanning || def.defaultNotes
       };
     }

@@ -14,10 +14,6 @@ export interface MedicalQuestionnaireProps {
   section: MedicalFormSection;
   values: Record<string, string>;
   onFieldChange: (fieldId: string, value: string) => void;
-  builderMode?: boolean;
-  onUpdateField?: (fieldId: string, updated: Partial<MedicalFormField>) => void;
-  onDeleteField?: (fieldId: string) => void;
-  onAddField?: () => void;
   className?: string;
 }
 
@@ -25,10 +21,6 @@ export function MedicalQuestionnaire({
   section,
   values,
   onFieldChange,
-  builderMode = false,
-  onUpdateField,
-  onDeleteField,
-  onAddField,
   className
 }: MedicalQuestionnaireProps) {
   const items = React.useMemo(() => extractQuestionnaireItems(section.fields), [section.fields]);
@@ -41,10 +33,6 @@ export function MedicalQuestionnaire({
           values={values}
           onFieldChange={onFieldChange}
           tableConfig={section.tableConfig}
-          builderMode={builderMode}
-          onUpdateField={onUpdateField}
-          onDeleteField={onDeleteField}
-          onAddField={onAddField}
         />
       </div>
 

@@ -551,6 +551,7 @@ export function useMedicalAppointmentForm({
         submit.setIsQueueSuccessOpen(false);
         onClose();
       },
+      submitMedicalAppointment: submit.submitMedicalAppointment,
       getHistoryRecordActions: history.getHistoryRecordActions,
       collectAnsweredFields: (sections: MedicalFormSection[]) =>
         collectAnsweredFieldsFromSections(sections, values)

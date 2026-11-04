@@ -43,6 +43,8 @@ export function usePatientFormReferences() {
 
   return {
     bloodTypes: data?.bloodTypes ?? [],
+    educationLevels: data?.educationLevels ?? [],
+    religions: data?.religions ?? [],
     genders: mappedGenders,
     statuses: data?.statuses ?? [],
     relationships: data?.relationships ?? [],

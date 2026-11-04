@@ -14,10 +14,6 @@ export interface MedicalQuestionnaireGridProps {
   values: Record<string, string>;
   onFieldChange: (fieldId: string, value: string) => void;
   tableConfig?: TableConfig;
-  builderMode?: boolean;
-  onUpdateField?: (fieldId: string, updated: Partial<MedicalFormField>) => void;
-  onDeleteField?: (fieldId: string) => void;
-  onAddField?: () => void;
   className?: string;
 }
 
@@ -26,10 +22,6 @@ export function MedicalQuestionnaireGrid({
   values,
   onFieldChange,
   tableConfig,
-  builderMode = false,
-  onUpdateField,
-  onDeleteField,
-  onAddField,
   className
 }: MedicalQuestionnaireGridProps) {
   const answeredCount = items.filter((item) => Boolean(values[item.id])).length;
@@ -141,27 +133,10 @@ export function MedicalQuestionnaireGrid({
               hasAnyYear={hasAnyYear}
               isLast={index === items.length - 1}
               tableConfig={tableConfig}
-              builderMode={builderMode}
-              onUpdateQuestion={onUpdateField}
-              onDeleteQuestion={onDeleteField}
             />
           );
         })}
       </div>
-
-      {builderMode && onAddField && (
-        <div className='p-2 pt-3'>
-          <Button
-            type='button'
-            variant='outline'
-            size='sm'
-            onClick={onAddField}
-            className='w-full border-dashed text-xs text-muted-foreground hover:border-primary hover:bg-primary/5 hover:text-primary'
-          >
-            <Icons.add className='mr-1.5 size-3.5' /> Tambah Baris Pertanyaan / Kondisi
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

@@ -161,32 +161,6 @@ export const createServiceSchema = z.object({
 
 export type CreateServiceFormValues = z.infer<typeof createServiceSchema>;
 
-export const createFormSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, 'Nama formulir pengkajian tidak boleh kosong')
-    .max(150, 'Nama formulir maksimal 150 karakter')
-    .regex(
-      /^[a-zA-Z0-9\s-()]+$/,
-      'Nama formulir hanya boleh berisi huruf, angka, spasi, tanda hubung (-), atau kurung ()'
-    ),
-  code: z
-    .string()
-    .trim()
-    .regex(
-      /^[a-z][a-z0-9_]*$/,
-      'Kode formulir harus diawali huruf kecil dan hanya berisi huruf, angka, atau underscore'
-    )
-    .max(64, 'Kode formulir maksimal 64 karakter')
-    .optional(),
-  description: z.string().trim().max(255, 'Petunjuk maksimal 255 karakter').optional(),
-  iconName: z.string().trim().max(64).default('clipboard-list'),
-  isActive: z.boolean().default(true)
-});
-
-export type CreateFormFormValues = z.infer<typeof createFormSchema>;
-
 export const createRelationshipSchema = z.object({
   name: z
     .string()

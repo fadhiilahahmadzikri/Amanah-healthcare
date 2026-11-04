@@ -19,7 +19,6 @@ import {
   getMedicalFieldValidationSchema,
   normalizeMedicalFieldInput
 } from '../../schemas/medical-appointment-validation';
-import { MedicalFieldBuilderToolbar } from './medical-field-builder-toolbar';
 
 const fieldFormatConfig: Record<
   'nik' | 'phone' | 'count' | 'year' | 'text',
@@ -35,35 +34,14 @@ const fieldFormatConfig: Record<
 export interface MedicalSchemaFieldProps {
   fieldApi: AnyFieldApi;
   schemaField: MedicalFormField;
-  builderMode?: boolean;
-  fieldIndex?: number;
-  currentSectionId?: string;
-  availableSections?: { id: string; title: string }[];
-  onUpdateField?: (updated: Partial<MedicalFormField>) => void;
-  onToggleActive?: () => void;
-  onDeleteField?: () => void;
-  onMoveToSection?: (targetSectionId: string) => void;
-  onReorderFields?: (sourceIndex: number, targetIndex: number) => void;
-  onDropComponent?: (componentId: string, targetIndex: number) => void;
 }
 
 export function MedicalSchemaField({
   fieldApi,
-  schemaField,
-  builderMode = false,
-  fieldIndex,
-  currentSectionId,
-  availableSections,
-  onUpdateField,
-  onToggleActive,
-  onDeleteField,
-  onMoveToSection,
-  onReorderFields,
-  onDropComponent
+  schemaField
 }: MedicalSchemaFieldProps) {
-  const [isDragOver, setIsDragOver] = React.useState(false);
   const rawError = getErrorMessage(fieldApi.state.meta.errors);
-  const isInvalid = !builderMode && fieldApi.state.meta.isTouched && Boolean(rawError);
+  const isInvalid = fieldApi.state.meta.isTouched && Boolean(rawError);
   const displayError = isInvalid && rawError && rawError !== 'Wajib diisi' ? rawError : undefined;
   const value = String(fieldApi.state.value ?? '');
   const placeholder = schemaField.placeholder || '';
@@ -74,7 +52,7 @@ export function MedicalSchemaField({
     schemaField.type === 'PARAGRAPH' ||
     schemaField.type === 'DATE';
   const colSpanClass = isColSpanFull ? 'col-span-1 sm:col-span-2' : 'col-span-1';
-  const innerColSpanClass = builderMode ? 'w-full' : colSpanClass;
+  const innerColSpanClass = colSpanClass;
   const animationClass = schemaField.visibleIf
     ? 'animate-in fade-in slide-in-from-top-2 duration-300'
     : '';
@@ -353,82 +331,10 @@ export function MedicalSchemaField({
     );
   };
 
-  if (!builderMode) {
-    return renderFieldControl();
-  }
-
-  const isInactive = schemaField.isActive === false;
-
-  return (
-    <div
-      draggable={builderMode}
-      onDragStart={(e) => {
-        if (!builderMode || fieldIndex === undefined) return;
-        e.dataTransfer.setData('text/field-index', String(fieldIndex));
-        e.dataTransfer.effectAllowed = 'move';
-      }}
-      onDragOver={(e) => {
-        if (!builderMode) return;
-        e.preventDefault();
-        e.stopPropagation();
-        e.dataTransfer.dropEffect = 'copy';
-        setIsDragOver(true);
-      }}
-      onDragLeave={() => {
-        setIsDragOver(false);
-      }}
-      onDrop={(e) => {
-        if (!builderMode || fieldIndex === undefined) return;
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragOver(false);
-        const sourceIdxStr = e.dataTransfer.getData('text/field-index');
-        if (sourceIdxStr !== '') {
-          const sourceIdx = Number(sourceIdxStr);
-          if (!isNaN(sourceIdx) && sourceIdx !== fieldIndex && onReorderFields) {
-            onReorderFields(sourceIdx, fieldIndex);
-          }
-          return;
-        }
-        const compId =
-          e.dataTransfer.getData('application/x-amanah-component-id') ||
-          e.dataTransfer.getData('text/plain');
-        if (compId && onDropComponent) {
-          onDropComponent(compId, fieldIndex);
-        }
-      }}
-      className={cn(
-        'group relative rounded-xl border border-transparent p-1.5 transition-all duration-200 select-none',
-        colSpanClass,
-        'hover:border-foreground/30 hover:bg-muted/10',
-        isDragOver && 'border-foreground/60 bg-muted/30 scale-[0.99] ring-2 ring-foreground/20',
-        isInactive && 'opacity-60 border-dashed border-amber-500/40 bg-amber-500/5'
-      )}
-    >
-      <MedicalFieldBuilderToolbar
-        field={schemaField}
-        currentSectionId={currentSectionId}
-        availableSections={availableSections}
-        onUpdateField={onUpdateField}
-        onToggleActive={onToggleActive}
-        onDeleteField={onDeleteField}
-        onMoveToSection={onMoveToSection}
-      />
-      {isInactive && (
-        <div className='mb-1 flex items-center gap-1 text-[10px] font-semibold text-amber-600 dark:text-amber-400'>
-          <span className='size-1.5 rounded-full bg-amber-500' />
-          <span>Dinonaktifkan (Disembunyikan dari Pasien)</span>
-        </div>
-      )}
-      {renderFieldControl()}
-    </div>
-  );
+  return renderFieldControl();
 }
 
-export function getFieldValidators(field: MedicalFormField, builderMode: boolean = false) {
-  if (builderMode) {
-    return {};
-  }
+export function getFieldValidators(field: MedicalFormField) {
   const schema = getMedicalFieldValidationSchema(field);
 
   return {

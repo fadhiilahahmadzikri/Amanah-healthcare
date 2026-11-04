@@ -5,7 +5,59 @@ import type {
   FormFieldDataSource,
   TableConfig
 } from './medical-appointment-types';
-import { mapComponentIdToFieldType, mapFieldTypeToComponentId } from './component-registry';
+
+export function mapFieldTypeToComponentId(type: MedicalFieldType): string {
+  switch (type) {
+    case 'PARAGRAPH':
+      return 'textarea';
+    case 'DATE':
+      return 'calendar';
+    case 'MULTIPLE_CHOICE':
+      return 'choice-chips';
+    case 'LIST':
+      return 'select';
+    case 'CHECKBOX':
+      return 'checkbox';
+    case 'ACCORDION':
+      return 'accordion';
+    case 'TABLE':
+      return 'table';
+    case 'TEXT':
+    default:
+      return 'text-input';
+  }
+}
+
+export function mapComponentIdToFieldType(componentId: string): MedicalFieldType {
+  switch (componentId) {
+    case 'textarea':
+    case 'paragraph':
+      return 'PARAGRAPH';
+    case 'calendar':
+    case 'date':
+      return 'DATE';
+    case 'choice-chips':
+    case 'radio':
+    case 'multiple-choice':
+      return 'MULTIPLE_CHOICE';
+    case 'select':
+    case 'dropdown':
+    case 'list':
+      return 'LIST';
+    case 'checkbox':
+      return 'CHECKBOX';
+    case 'accordion':
+      return 'ACCORDION';
+    case 'table':
+    case 'questionnaire':
+      return 'TABLE';
+    case 'region-dropdown':
+    case 'text-input':
+    case 'text':
+    default:
+      return 'TEXT';
+  }
+}
 
 export interface FormJsonField {
   id: string;

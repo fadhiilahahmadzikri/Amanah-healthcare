@@ -7,5 +7,13 @@ export const clinicEssentialsKeys = {
   services: (categoryId?: string, unitId?: string) =>
     [...clinicEssentialsKeys.all, 'services', categoryId, unitId] as const,
   forms: () => [...clinicEssentialsKeys.all, 'forms'] as const,
-  relationships: () => [...clinicEssentialsKeys.all, 'relationships'] as const
+  relationships: () => [...clinicEssentialsKeys.all, 'relationships'] as const,
+  bloodTypes: (params?: { search?: string; status?: string }) =>
+    [...clinicEssentialsKeys.all, 'blood-types', params] as const,
+  educationLevels: (params?: { search?: string; status?: string }) =>
+    [...clinicEssentialsKeys.all, 'education-levels', params] as const,
+  religions: (params?: { search?: string; status?: string }) =>
+    [...clinicEssentialsKeys.all, 'religions', params] as const,
+  occupations: (params?: { search?: string; status?: string }) =>
+    [...clinicEssentialsKeys.all, 'occupations', params] as const
 };

@@ -27,8 +27,6 @@ import {
   ServiceCategoryStep,
   ServiceIdentityStep,
   ServiceClinicalStep,
-  FormIdentityStep,
-  FormDescriptionStep,
   RelationshipIdentityStep,
   RelationshipDetailsStep
 } from './form-steps';
@@ -78,11 +76,6 @@ function getEntityMeta(type: ClinicEssentialEntityType, isEditing: boolean) {
         title: isEditing ? 'Edit Service Medis' : 'Tambah Service Medis',
         submitLabel: isEditing ? 'Simpan Perubahan' : 'Simpan Service'
       };
-    case 'form':
-      return {
-        title: isEditing ? 'Edit Formulir Pengkajian' : 'Tambah Formulir Pengkajian',
-        submitLabel: isEditing ? 'Simpan Perubahan' : 'Simpan Formulir'
-      };
     case 'relationship':
       return {
         title: isEditing ? 'Edit Relasi Pasien' : 'Tambah Relasi Pasien',
@@ -107,7 +100,6 @@ export function ClinicEssentialFormModal({
     unitTypes,
     units,
     categories,
-    forms,
     editItem,
     onSuccess,
     onClose: () => onOpenChange(false)
@@ -326,32 +318,6 @@ export function ClinicEssentialFormModal({
           />
         );
 
-      case 'form':
-        if (state.currentStage === 1) {
-          return (
-            <FormIdentityStep
-              name={state.formName}
-              code={state.formCode}
-              iconName={state.formIconName}
-              onNameChange={actions.setFormName}
-              onCodeChange={actions.setFormCode}
-              onIconNameChange={actions.setFormIconName}
-              error={state.errors.name}
-              disabled={state.isSubmitting}
-            />
-          );
-        }
-        return (
-          <FormDescriptionStep
-            description={state.formDescription}
-            onDescriptionChange={actions.setFormDescription}
-            isActive={state.formIsActive}
-            onIsActiveChange={actions.setFormIsActive}
-            isEditing={state.isEditing}
-            disabled={state.isSubmitting}
-          />
-        );
-
       case 'relationship':
         if (state.currentStage === 1) {
           return (
@@ -555,32 +521,6 @@ export function ClinicEssentialFormModal({
                 onDescriptionChange={actions.setServiceDescription}
                 isActive={state.serviceIsActive}
                 onIsActiveChange={actions.setServiceIsActive}
-                isEditing={state.isEditing}
-                disabled={state.isSubmitting}
-              />
-            </div>
-          </div>
-        );
-
-      case 'form':
-        return (
-          <div className='space-y-6'>
-            <FormIdentityStep
-              name={state.formName}
-              code={state.formCode}
-              iconName={state.formIconName}
-              onNameChange={actions.setFormName}
-              onCodeChange={actions.setFormCode}
-              onIconNameChange={actions.setFormIconName}
-              error={state.errors.name}
-              disabled={state.isSubmitting}
-            />
-            <div className='border-t border-border/40 pt-4'>
-              <FormDescriptionStep
-                description={state.formDescription}
-                onDescriptionChange={actions.setFormDescription}
-                isActive={state.formIsActive}
-                onIsActiveChange={actions.setFormIsActive}
                 isEditing={state.isEditing}
                 disabled={state.isSubmitting}
               />

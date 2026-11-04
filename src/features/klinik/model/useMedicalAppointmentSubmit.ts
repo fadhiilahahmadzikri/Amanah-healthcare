@@ -92,12 +92,15 @@ export function useMedicalAppointmentSubmit({
 
             let sourceIntakeId: string | undefined = undefined;
             if (definition.flow === FLOW_NAMES.PREGNANCY) {
-              const maternityPayload = buildMaternityIntakePayload(
-                resolvedPatientId,
-                submittedValues,
-                resolvedPatientName,
-                complaint
-              );
+              const maternityPayload =
+                submittedValues.motherName && submittedValues.hpht
+                  ? (submittedValues as any)
+                  : buildMaternityIntakePayload(
+                      resolvedPatientId,
+                      submittedValues,
+                      resolvedPatientName,
+                      complaint
+                    );
               const intakeRes = await kiaIntakeService.createMaternityIntake(maternityPayload);
               sourceIntakeId = intakeRes?.id;
             } else if (definition.flow === FLOW_NAMES.IMMUNIZATION) {
@@ -201,30 +204,6 @@ export function useMedicalAppointmentSubmit({
           setCreatedQueueItem(uiQueue);
           setIsQueueSuccessOpen(true);
           onCreated?.(payload);
-
-          if (patientId) {
-            try {
-              if (definition.flow === FLOW_NAMES.PREGNANCY) {
-                const maternityPayload = buildMaternityIntakePayload(
-                  patientId,
-                  submittedValues,
-                  patientName,
-                  complaint
-                );
-                await kiaIntakeService.createMaternityIntake(maternityPayload);
-              } else if (definition.flow === FLOW_NAMES.IMMUNIZATION) {
-                const immunizationPayload = buildChildImmunizationIntakePayload(
-                  patientId,
-                  submittedValues,
-                  patientName,
-                  patientContact
-                );
-                await kiaIntakeService.createImmunizationIntake(immunizationPayload);
-              }
-            } catch {
-              // Non-blocking intake creation error
-            }
-          }
         } catch (err: unknown) {
           const msg = err instanceof Error ? err.message : 'Gagal memproses janji temu';
           toast.error(msg);

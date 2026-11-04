@@ -11,15 +11,12 @@ import {
   createRoomSchema,
   createCategorySchema,
   createServiceSchema,
-  createFormSchema,
   createRelationshipSchema
 } from '../schemas/clinic-essentials.schema';
 import type { z } from 'zod';
 import type {
   ClinicService,
-  ClinicalIntakeForm,
   CreateCategoryPayload,
-  CreateIntakeFormPayload,
   CreateRoomPayload,
   CreateServicePayload,
   CreateUnitPayload,
@@ -32,7 +29,6 @@ import type {
   CreateRelationshipPayload,
   UpdateRelationshipPayload,
   UpdateCategoryPayload,
-  UpdateIntakeFormPayload,
   UpdateRoomPayload,
   UpdateServicePayload,
   UpdateUnitPayload,
@@ -45,7 +41,6 @@ export type ClinicEssentialEntityType =
   | 'room'
   | 'category'
   | 'service'
-  | 'form'
   | 'relationship';
 
 export type ClinicEssentialEditItem =
@@ -54,7 +49,6 @@ export type ClinicEssentialEditItem =
   | FacilityRoom
   | ServiceCategory
   | ClinicService
-  | ClinicalIntakeForm
   | PatientRelationshipTypeItem;
 
 export interface UseClinicEssentialFormModalProps {
@@ -62,7 +56,6 @@ export interface UseClinicEssentialFormModalProps {
   unitTypes?: FacilityUnitType[];
   units: FacilityUnit[];
   categories: ServiceCategory[];
-  forms: ClinicalIntakeForm[];
   editItem?: ClinicEssentialEditItem | null;
   onSuccess: () => void;
   onClose: () => void;
@@ -73,7 +66,6 @@ export function useClinicEssentialFormModal({
   unitTypes = [],
   units,
   categories,
-  forms: _forms,
   editItem,
   onSuccess,
   onClose
@@ -84,7 +76,7 @@ export function useClinicEssentialFormModal({
   const [currentStage, setCurrentStage] = React.useState(1);
   const [direction, setDirection] = React.useState<'forward' | 'backward'>('forward');
 
-  const maxStages = type === 'unit-type' || type === 'form' || type === 'relationship' ? 2 : 3;
+  const maxStages = type === 'unit-type' || type === 'relationship' ? 2 : 3;
 
   // 0. Unit Type Form State
   const [unitTypeName, setUnitTypeName] = React.useState('');
@@ -132,14 +124,7 @@ export function useClinicEssentialFormModal({
   const [serviceDescription, setServiceDescription] = React.useState('');
   const [serviceIsActive, setServiceIsActive] = React.useState(true);
 
-  // 5. Intake Form State
-  const [formName, setFormName] = React.useState('');
-  const [formCode, setFormCode] = React.useState('');
-  const [formIconName, setFormIconName] = React.useState('');
-  const [formDescription, setFormDescription] = React.useState('');
-  const [formIsActive, setFormIsActive] = React.useState(true);
-
-  // 6. Relationship Form State
+  // 5. Relationship Form State
   const [relationshipName, setRelationshipName] = React.useState('');
   const [relationshipIconName, setRelationshipIconName] = React.useState('');
   const [relationshipDescription, setRelationshipDescription] = React.useState('');
@@ -171,9 +156,6 @@ export function useClinicEssentialFormModal({
         case 'service':
           if (fieldName === 'name') schema = createServiceSchema.shape.name;
           if (fieldName === 'codePrefix') schema = createServiceSchema.shape.codePrefix;
-          break;
-        case 'form':
-          if (fieldName === 'name') schema = createFormSchema.shape.name;
           break;
         case 'relationship':
           if (fieldName === 'name') schema = createRelationshipSchema.shape.name;
@@ -247,13 +229,6 @@ export function useClinicEssentialFormModal({
         }
         break;
       }
-      case 'form': {
-        if (currentStage === 1) {
-          const res = createFormSchema.shape.name.safeParse(formName);
-          if (!res.success) newErrors.name = res.error.issues[0]?.message || 'Nama tidak valid';
-        }
-        break;
-      }
       case 'relationship': {
         if (currentStage === 1) {
           const res = createRelationshipSchema.shape.name.safeParse(relationshipName);
@@ -277,7 +252,6 @@ export function useClinicEssentialFormModal({
     serviceCategoryId,
     serviceCategoryIds,
     serviceName,
-    formName,
     relationshipName
   ]);
 
@@ -352,15 +326,6 @@ export function useClinicEssentialFormModal({
           setServiceIsActive(s.isActive !== false);
           break;
         }
-        case 'form': {
-          const f = editItem as ClinicalIntakeForm;
-          setFormName(f.name);
-          setFormCode(f.code);
-          setFormIconName(f.iconName || '');
-          setFormDescription(f.description || '');
-          setFormIsActive(f.isActive !== false);
-          break;
-        }
         case 'relationship': {
           const rel = editItem as PatientRelationshipTypeItem;
           setRelationshipName(rel.name);
@@ -416,12 +381,6 @@ export function useClinicEssentialFormModal({
       setServiceDescription('');
       setServiceIsActive(true);
 
-      setFormName('');
-      setFormCode('');
-      setFormIconName('');
-      setFormDescription('');
-      setFormIsActive(true);
-
       setRelationshipName('');
       setRelationshipIconName('');
       setRelationshipDescription('');
@@ -452,9 +411,6 @@ export function useClinicEssentialFormModal({
         if (currentStage === 1) return Boolean(serviceCategoryId || serviceCategoryIds.length > 0);
         if (currentStage === 2) return Boolean(serviceName.trim());
         return true;
-      case 'form':
-        if (currentStage === 1) return Boolean(formName.trim());
-        return true;
       case 'relationship':
         if (currentStage === 1) return Boolean(relationshipName.trim());
         return true;
@@ -473,7 +429,6 @@ export function useClinicEssentialFormModal({
     serviceCategoryId,
     serviceCategoryIds,
     serviceName,
-    formName,
     relationshipName
   ]);
 
@@ -491,8 +446,6 @@ export function useClinicEssentialFormModal({
         return (
           Boolean(serviceCategoryId || serviceCategoryIds.length > 0) && Boolean(serviceName.trim())
         );
-      case 'form':
-        return Boolean(formName.trim());
       case 'relationship':
         return Boolean(relationshipName.trim());
       default:
@@ -509,7 +462,6 @@ export function useClinicEssentialFormModal({
     serviceCategoryId,
     serviceCategoryIds,
     serviceName,
-    formName,
     relationshipName
   ]);
 
@@ -594,16 +546,6 @@ export function useClinicEssentialFormModal({
               isBookable: true
             };
             return await clinicEssentialsApi.updateService(editItem.id, payload);
-          }
-          case 'form': {
-            const payload: UpdateIntakeFormPayload = {
-              name: formName.trim(),
-              code: formCode.trim() || undefined,
-              iconName: formIconName || 'clipboard-list',
-              description: formDescription.trim() || undefined,
-              isActive: formIsActive
-            };
-            return await clinicEssentialsApi.updateForm(editItem.id, payload);
           }
           case 'relationship': {
             const payload: UpdateRelationshipPayload = {
@@ -696,16 +638,6 @@ export function useClinicEssentialFormModal({
             };
             return await clinicEssentialsApi.createService(payload);
           }
-          case 'form': {
-            const payload: CreateIntakeFormPayload = {
-              name: formName.trim(),
-              code: formCode.trim() || undefined,
-              iconName: formIconName || 'clipboard-list',
-              description: formDescription.trim() || undefined,
-              isActive: true
-            };
-            return await clinicEssentialsApi.createForm(payload);
-          }
           case 'relationship': {
             const payload: CreateRelationshipPayload = {
               name: relationshipName.trim(),
@@ -732,9 +664,7 @@ export function useClinicEssentialFormModal({
                 ? 'Kelompok Layanan'
                 : type === 'service'
                   ? 'Service'
-                  : type === 'form'
-                    ? 'Formulir'
-                    : 'Relasi Pasien';
+                  : 'Relasi Pasien';
       const name = (data as { name?: string }).name || '';
       toast.success(
         `${entityLabel} '${name}' berhasil ${isEditing ? 'diperbarui' : 'ditambahkan'}.`
@@ -795,12 +725,6 @@ export function useClinicEssentialFormModal({
     setServiceComplaintsRaw('');
     setServiceDescription('');
     setServiceIsActive(true);
-    // Form
-    setFormName('');
-    setFormCode('');
-    setFormIconName('');
-    setFormDescription('');
-    setFormIsActive(true);
     // Relationship
     setRelationshipName('');
     setRelationshipIconName('');
@@ -884,12 +808,6 @@ export function useClinicEssentialFormModal({
       serviceComplaintsRaw,
       serviceDescription,
       serviceIsActive,
-      // Form values
-      formName,
-      formCode,
-      formIconName,
-      formDescription,
-      formIsActive,
       // Relationship values
       relationshipName,
       relationshipIconName,
@@ -994,15 +912,6 @@ export function useClinicEssentialFormModal({
       setServiceComplaintsRaw,
       setServiceDescription,
       setServiceIsActive,
-      // Form setters
-      setFormName: (val: string) => {
-        setFormName(val);
-        validateField('name', val);
-      },
-      setFormCode,
-      setFormIconName,
-      setFormDescription,
-      setFormIsActive,
       // Relationship setters
       setRelationshipName: (val: string) => {
         setRelationshipName(val);

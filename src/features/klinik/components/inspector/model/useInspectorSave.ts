@@ -281,7 +281,7 @@ export function useInspectorSave({
     const entries: any[] = [];
     const processedCodes = new Set<string>();
 
-    Object.keys(immunizationFormData.vaccineValues).forEach((key) => {
+    Object.keys(immunizationFormData.vaccineValues || {}).forEach((key) => {
       if (key.startsWith('vaccine_') && key.endsWith('_status')) {
         const code = key.replace('vaccine_', '').replace('_status', '');
         if (!processedCodes.has(code)) {
@@ -302,6 +302,11 @@ export function useInspectorSave({
       }
     });
 
+    const finalEntries =
+      immunizationFormData.entries && immunizationFormData.entries.length > 0
+        ? immunizationFormData.entries
+        : entries;
+
     const payload = {
       childName: immunizationFormData.childName,
       childNik: immunizationFormData.childNik || undefined,
@@ -316,7 +321,7 @@ export function useInspectorSave({
       previousVaccineHistory: immunizationFormData.previousVaccineHistory,
       hasAllergyHistory: immunizationFormData.hasAllergyHistory,
       childAllergyHistory: immunizationFormData.childAllergyHistory,
-      entries
+      entries: finalEntries
     };
 
     const patientId = parsedData.patient?.id || appointment.patient_id;

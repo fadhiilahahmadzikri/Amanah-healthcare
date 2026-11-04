@@ -12,7 +12,6 @@ import type {
 } from '../../constants/medical-appointment-schemas';
 import type { MedicalAppointmentValues } from '../../utils/medical-appointment';
 import { MedicalQuestionnaire } from '../questionnaire';
-import { VaccineChecklist } from './vaccine-checklist';
 
 export function StepTitle({ title, description }: { title: string; description: string }) {
   return (
@@ -38,11 +37,7 @@ export function MedicalSectionStep({
   onReturnToCatalog,
   renderField,
   values,
-  onFieldChange,
-  builderMode = false,
-  onUpdateField,
-  onDeleteField,
-  onAddField
+  onFieldChange
 }: {
   section: MedicalFormSection;
   catalogActionType?: 'add' | 'edit' | null;
@@ -50,10 +45,6 @@ export function MedicalSectionStep({
   renderField: (field: MedicalFormField, index: number) => React.ReactNode;
   values?: MedicalAppointmentValues;
   onFieldChange?: (fieldId: string, value: string) => void;
-  builderMode?: boolean;
-  onUpdateField?: (fieldId: string, updated: Partial<MedicalFormField>) => void;
-  onDeleteField?: (fieldId: string) => void;
-  onAddField?: (componentId?: string) => void;
 }) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const isGrid = section?.layout === 'grid';
@@ -101,20 +92,12 @@ export function MedicalSectionStep({
           </Button>
         </div>
       ) : null}
-      {section.id === 'vaccineHistory' && values && onFieldChange ? (
-        <div className='px-0.5 pt-1.5 pb-2'>
-          <VaccineChecklist values={values} onFieldChange={onFieldChange} />
-        </div>
-      ) : isQuestionnaire && (builderMode || (values && onFieldChange)) ? (
+      {isQuestionnaire && values && onFieldChange ? (
         <div className='px-0.5 pt-1.5 pb-2'>
           <MedicalQuestionnaire
             section={section}
             values={values || {}}
             onFieldChange={onFieldChange || (() => {})}
-            builderMode={builderMode}
-            onUpdateField={onUpdateField}
-            onDeleteField={onDeleteField}
-            onAddField={onAddField}
           />
         </div>
       ) : (
@@ -127,33 +110,10 @@ export function MedicalSectionStep({
           {section.fields
             .filter(
               (field) =>
-                (builderMode || field.isActive !== false) &&
+                field.isActive !== false &&
                 (!field.visibleIf || (values && field.visibleIf(values)))
             )
             .map((field, idx) => renderField(field, idx))}
-
-          {builderMode && (
-            <div
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                e.dataTransfer.dropEffect = 'copy';
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const compId =
-                  e.dataTransfer.getData('application/x-amanah-component-id') ||
-                  e.dataTransfer.getData('text/plain');
-                if (compId && onAddField) {
-                  onAddField(compId);
-                }
-              }}
-              className='col-span-1 sm:col-span-2 flex items-center justify-center rounded-xl border border-dashed border-border/70 py-4 px-4 text-center text-xs text-muted-foreground hover:border-foreground/40 hover:text-foreground hover:bg-muted/30 transition-all select-none'
-            >
-              <span>Seret komponen dari Studio Formulir ke sini untuk menambahkan</span>
-            </div>
-          )}
         </FieldGroup>
       )}
     </div>
