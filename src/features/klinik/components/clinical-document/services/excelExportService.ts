@@ -720,7 +720,8 @@ export async function exportRegulerExcel(
 
   const encounterData = [
     ['Kode Booking', data?.bookingCode || '-', 'Nomor Antrean', data?.queueNumber || '-'],
-    ['Poli / Layanan', data?.serviceName || '-', 'Dokter Pemeriksa', data?.doctorName || '-']
+    ['Poliklinik Tujuan', data?.poliklinikName || '-', 'Layanan Medis', data?.serviceName || '-'],
+    ['Dokter Pemeriksa', data?.doctorName || '-', 'Waktu & Sesi', data?.scheduledTime || '-']
   ];
 
   encounterData.forEach((rowPair) => {

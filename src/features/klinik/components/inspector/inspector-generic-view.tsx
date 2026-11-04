@@ -526,6 +526,15 @@ export function InspectorGenericView({
 
           <div className='border-b border-border/40 pb-2'>
             <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+              Poliklinik Tujuan
+            </span>
+            <span className='text-sm font-semibold text-foreground block truncate'>
+              {data.poliklinikName || appointment.poliklinik_name || '-'}
+            </span>
+          </div>
+
+          <div className='border-b border-border/40 pb-2'>
+            <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
               Layanan Medis
             </span>
             <span className='text-sm font-semibold text-foreground block truncate'>
@@ -549,6 +558,15 @@ export function InspectorGenericView({
             <span className='text-sm font-semibold text-foreground block truncate'>
               {data.scheduledDate || appointment.date || '-'} (
               {data.scheduledStartTime || appointment.scheduled_start_time || '-'} WIB)
+            </span>
+          </div>
+
+          <div className='border-b border-border/40 pb-2'>
+            <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+              Ruang & Lokasi
+            </span>
+            <span className='text-sm font-semibold text-foreground block truncate'>
+              {appointment.room_name || appointment.room_location || '-'}
             </span>
           </div>
         </div>

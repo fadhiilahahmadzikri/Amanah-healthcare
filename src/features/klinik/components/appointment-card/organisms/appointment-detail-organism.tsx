@@ -390,7 +390,16 @@ export function AppointmentDetailOrganism({
 
                     <div className='border-b border-border/40 pb-2'>
                       <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                        Layanan Poliklinik
+                        Poliklinik Tujuan
+                      </span>
+                      <span className='text-sm font-semibold text-foreground block truncate'>
+                        {appointment.poliklinik_name || '-'}
+                      </span>
+                    </div>
+
+                    <div className='border-b border-border/40 pb-2'>
+                      <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
+                        Layanan Medis
                       </span>
                       <span className='text-sm font-semibold text-foreground block truncate'>
                         {serviceName}

@@ -46,6 +46,7 @@ export interface UnifiedInspectorData {
   scheduledDate?: string;
   scheduledStartTime?: string;
   complaint?: string;
+  poliklinikName?: string;
   serviceName?: string;
 }
 

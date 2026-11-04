@@ -8,6 +8,7 @@ import {
   type ChildImmunizationResponse
 } from '../../../api/kia-intake-service';
 import { patientAffiliationService } from '@/features/data-pasien/api/patient-affiliation-service';
+import { getPatientById } from '@/features/data-pasien/api/service';
 import type { Appointment } from '../../../api/types';
 import type {
   UnifiedInspectorData,
@@ -28,6 +29,14 @@ export function useInspectorData(appointment: Appointment) {
     queryFn: () => patientAffiliationService.getMyAffiliations(),
     staleTime: 60_000
   });
+
+  const { data: patientDetailResponse } = useQuery({
+    queryKey: ['patient-detail', appointment.patient_id],
+    queryFn: () => getPatientById(appointment.patient_id!),
+    enabled: Boolean(appointment.patient_id),
+    staleTime: 60_000
+  });
+  const patientRecord = patientDetailResponse?.patient;
 
   const matchingAffiliation = React.useMemo(() => {
     if (!affiliations?.length) return null;
@@ -78,41 +87,76 @@ export function useInspectorData(appointment: Appointment) {
 
     const patient: UnifiedInspectorPatient | undefined =
       rawData?.patient ||
-      (matchingAffiliation
+      (patientRecord
         ? {
-            id: matchingAffiliation.id,
-            nik: matchingAffiliation.nik || undefined,
-            fullName: matchingAffiliation.fullName,
-            motherName: matchingAffiliation.motherName || undefined,
-            birthPlace: matchingAffiliation.birthPlace || undefined,
-            birthDate: matchingAffiliation.birthDate || undefined,
-            gender: matchingAffiliation.gender,
-            bloodType: matchingAffiliation.bloodType || undefined,
-            occupation: matchingAffiliation.occupationName || undefined,
-            phone: matchingAffiliation.phoneNumber || undefined,
-            address: matchingAffiliation.address || undefined,
-            line1: matchingAffiliation.line1 || undefined,
-            provinceName: matchingAffiliation.provinceName || undefined,
-            provinceCode: matchingAffiliation.provinceCode || undefined,
-            regencyName: matchingAffiliation.regencyName || undefined,
-            regencyCode: matchingAffiliation.regencyCode || undefined,
-            districtName: matchingAffiliation.districtName || undefined,
-            districtCode: matchingAffiliation.districtCode || undefined,
-            villageName: matchingAffiliation.villageName || undefined,
-            villageCode: matchingAffiliation.villageCode || undefined,
-            relationshipType: matchingAffiliation.relationship,
-            relationLabel: matchingAffiliation.relationshipLabel,
-            emergencyContactName: matchingAffiliation.emergencyContactName || undefined,
-            emergencyContactPhone: matchingAffiliation.emergencyContactPhone || undefined,
+            id: patientRecord.id,
+            medicalRecordNumber: patientRecord.patient_id,
+            nik: patientRecord.nik || undefined,
+            fullName: patientRecord.name,
+            motherName: patientRecord.mother_name || undefined,
+            birthPlace: patientRecord.birth_place || undefined,
+            birthDate: patientRecord.birth_date || undefined,
+            gender: patientRecord.gender,
+            bloodType: patientRecord.blood_type || undefined,
+            occupation: patientRecord.occupation || undefined,
+            phone: patientRecord.phone || undefined,
+            email: patientRecord.email || undefined,
+            address: patientRecord.address || undefined,
+            line1: patientRecord.line1 || undefined,
+            provinceName: patientRecord.province_name || undefined,
+            provinceCode: patientRecord.province_code || undefined,
+            regencyName: patientRecord.regency_name || undefined,
+            regencyCode: patientRecord.regency_code || undefined,
+            districtName: patientRecord.district_name || undefined,
+            districtCode: patientRecord.district_code || undefined,
+            villageName: patientRecord.village_name || undefined,
+            villageCode: patientRecord.village_code || undefined,
+            relationshipType: patientRecord.relationship_type || undefined,
+            relationLabel: patientRecord.relation_label || undefined,
+            emergencyContactName:
+              patientRecord.emergencyContactName ||
+              patientRecord.emergency_contact ||
+              undefined,
+            emergencyContactPhone:
+              patientRecord.emergencyContactPhone || undefined,
             emergencyContactRelationship:
-              matchingAffiliation.emergencyContactRelationship || undefined
+              patientRecord.emergencyContactRelationship || undefined
           }
-        : appointment.patient_name
+        : matchingAffiliation
           ? {
-              fullName: appointment.patient_name,
-              phone: appointment.patient_phone
+              id: matchingAffiliation.id,
+              nik: matchingAffiliation.nik || undefined,
+              fullName: matchingAffiliation.fullName,
+              motherName: matchingAffiliation.motherName || undefined,
+              birthPlace: matchingAffiliation.birthPlace || undefined,
+              birthDate: matchingAffiliation.birthDate || undefined,
+              gender: matchingAffiliation.gender,
+              bloodType: matchingAffiliation.bloodType || undefined,
+              occupation: matchingAffiliation.occupationName || undefined,
+              phone: matchingAffiliation.phoneNumber || undefined,
+              address: matchingAffiliation.address || undefined,
+              line1: matchingAffiliation.line1 || undefined,
+              provinceName: matchingAffiliation.provinceName || undefined,
+              provinceCode: matchingAffiliation.provinceCode || undefined,
+              regencyName: matchingAffiliation.regencyName || undefined,
+              regencyCode: matchingAffiliation.regencyCode || undefined,
+              districtName: matchingAffiliation.districtName || undefined,
+              districtCode: matchingAffiliation.districtCode || undefined,
+              villageName: matchingAffiliation.villageName || undefined,
+              villageCode: matchingAffiliation.villageCode || undefined,
+              relationshipType: matchingAffiliation.relationship,
+              relationLabel: matchingAffiliation.relationshipLabel,
+              emergencyContactName: matchingAffiliation.emergencyContactName || undefined,
+              emergencyContactPhone: matchingAffiliation.emergencyContactPhone || undefined,
+              emergencyContactRelationship:
+                matchingAffiliation.emergencyContactRelationship || undefined
             }
-          : undefined);
+          : appointment.patient_name
+            ? {
+                fullName: appointment.patient_name,
+                phone: appointment.patient_phone
+              }
+            : undefined);
 
     return {
       flow,
@@ -126,9 +170,10 @@ export function useInspectorData(appointment: Appointment) {
       scheduledDate: appointment.date,
       scheduledStartTime: appointment.scheduled_start_time || '-',
       complaint: appointment.complaint || '-',
+      poliklinikName: appointment.poliklinik_name || '',
       serviceName: appointment.service || '-'
     };
-  }, [serverIntake, appointment, matchingAffiliation]);
+  }, [serverIntake, appointment, matchingAffiliation, patientRecord]);
 
   const isPregnancy = parsedData.flow === FLOW_NAMES.PREGNANCY;
   const isImmunization = parsedData.flow === FLOW_NAMES.IMMUNIZATION || Boolean(parsedData.child);

@@ -266,6 +266,7 @@ export interface RegulerFormData {
   registrationDate?: string;
   bookingCode?: string;
   queueNumber?: string;
+  poliklinikName?: string;
   serviceName?: string;
   doctorName?: string;
   scheduledTime?: string;

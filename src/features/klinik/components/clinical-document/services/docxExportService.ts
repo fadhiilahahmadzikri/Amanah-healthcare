@@ -1318,10 +1318,16 @@ export async function exportRegulerDocx(
                 textCell(data?.queueNumber || '-', 3400, { bold: true, size: 7.5 })
               ]),
               row([
-                textCell('Layanan / Poli', 2500, { bold: true, size: 7.5 }),
-                textCell(data?.serviceName || '-', 3500, { size: 7.5 }),
+                textCell('Poliklinik Tujuan', 2500, { bold: true, size: 7.5 }),
+                textCell(data?.poliklinikName || '-', 3500, { bold: true, size: 7.5 }),
+                textCell('Layanan Medis', 2500, { bold: true, size: 7.5 }),
+                textCell(data?.serviceName || '-', 3400, { size: 7.5 })
+              ]),
+              row([
                 textCell('Dokter Pemeriksa', 2500, { bold: true, size: 7.5 }),
-                textCell(data?.doctorName || '-', 3400, { bold: true, size: 7.5 })
+                textCell(data?.doctorName || '-', 3500, { bold: true, size: 7.5 }),
+                textCell('Waktu & Sesi', 2500, { bold: true, size: 7.5 }),
+                textCell(data?.scheduledTime || '-', 3400, { size: 7.5 })
               ])
             ]
           ),

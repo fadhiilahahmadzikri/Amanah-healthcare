@@ -247,7 +247,27 @@ export function AppointmentFormInspector({
             ? (formData.domicileAddress || parsedData.patient.address)
             : isImmunization
               ? (immunizationFormData.childAddress || parsedData.patient.address)
-              : (regularFormData.line1 || parsedData.patient.address)
+              : (regularFormData.line1 || regularFormData.address || parsedData.patient.address),
+          ...(isPregnancy || isImmunization
+            ? {}
+            : {
+                medicalRecordNumber: regularFormData.medicalRecordNumber || parsedData.patient.medicalRecordNumber,
+                motherName: regularFormData.motherName || parsedData.patient.motherName,
+                birthPlace: regularFormData.birthPlace || parsedData.patient.birthPlace,
+                birthDate: regularFormData.birthDate || parsedData.patient.birthDate,
+                gender: regularFormData.gender || parsedData.patient.gender,
+                bloodType: regularFormData.bloodType || parsedData.patient.bloodType,
+                occupation: regularFormData.occupation || parsedData.patient.occupation,
+                email: regularFormData.email || parsedData.patient.email,
+                line1: regularFormData.line1 || parsedData.patient.line1,
+                villageName: regularFormData.villageName || parsedData.patient.villageName,
+                districtName: regularFormData.districtName || parsedData.patient.districtName,
+                regencyName: regularFormData.regencyName || parsedData.patient.regencyName,
+                provinceName: regularFormData.provinceName || parsedData.patient.provinceName,
+                emergencyContactName: regularFormData.emergencyContactName || parsedData.patient.emergencyContactName,
+                emergencyContactPhone: regularFormData.emergencyContactPhone || parsedData.patient.emergencyContactPhone,
+                emergencyContactRelationship: regularFormData.emergencyContactRelationship || parsedData.patient.emergencyContactRelationship
+              })
         }
       : undefined;
 

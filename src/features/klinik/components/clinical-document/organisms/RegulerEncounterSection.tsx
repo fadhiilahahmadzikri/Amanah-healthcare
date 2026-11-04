@@ -46,30 +46,38 @@ export const RegulerEncounterSection: React.FC<RegulerEncounterSectionProps> = (
           <tr className='border-b border-black h-[20px]'>
             <td className='px-1.5 py-0.5 bg-gray-50 border-r border-black font-semibold'>
               <FormText customPt={7.2} bold>
-                Layanan / Poli
+                Poliklinik Tujuan
               </FormText>
             </td>
             <td className='px-1.5 py-0.5 border-r border-black'>
-              <FormText customPt={7.2}>{data?.serviceName || '-'}</FormText>
+              <FormText customPt={7.2} bold>{data?.poliklinikName || '-'}</FormText>
             </td>
             <td className='px-1.5 py-0.5 bg-gray-50 border-r border-black font-semibold'>
               <FormText customPt={7.2} bold>
-                Dokter Pemeriksa
+                Layanan Medis
               </FormText>
             </td>
             <td className='px-1.5 py-0.5'>
-              <FormText customPt={7.2} bold>
-                {data?.doctorName || '-'}
-              </FormText>
+              <FormText customPt={7.2}>{data?.serviceName || '-'}</FormText>
             </td>
           </tr>
           <tr className='h-[20px]'>
             <td className='px-1.5 py-0.5 bg-gray-50 border-r border-black font-semibold'>
               <FormText customPt={7.2} bold>
+                Dokter Pemeriksa
+              </FormText>
+            </td>
+            <td className='px-1.5 py-0.5 border-r border-black'>
+              <FormText customPt={7.2} bold>
+                {data?.doctorName || '-'}
+              </FormText>
+            </td>
+            <td className='px-1.5 py-0.5 bg-gray-50 border-r border-black font-semibold'>
+              <FormText customPt={7.2} bold>
                 Waktu & Sesi
               </FormText>
             </td>
-            <td colSpan={3} className='px-1.5 py-0.5'>
+            <td className='px-1.5 py-0.5'>
               <FormText customPt={7.2}>{data?.scheduledTime || '-'}</FormText>
             </td>
           </tr>
