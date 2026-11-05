@@ -21,15 +21,18 @@ export const baselineMeasurementsSection: MedicalFormSection = {
   layout: 'grid',
   fields: [
     field('heightCm', TEXT, 'Tinggi badan', 'TB', {
-      helpText: 'Contoh: 156 cm.',
+      helpText: 'Tinggi badan ibu hamil.',
+      placeholder: '156',
       colSpan: 1
     }),
     field('prePregnancyWeightKg', TEXT, 'Berat badan sebelum hamil', 'BB awal', {
-      helpText: 'Berat badan sebelum atau awal hamil. Contoh: 52 kg.',
+      helpText: 'Berat badan sebelum atau awal hamil.',
+      placeholder: '52',
       colSpan: 1
     }),
     field('upperArmCircumferenceCm', TEXT, 'Lingkar lengan atas (LILA)', 'LILA', {
-      helpText: 'Ukuran lingkar lengan atas jika pernah diukur. Contoh: 23.5 cm.',
+      helpText: 'Ukuran lingkar lengan atas jika pernah diukur.',
+      placeholder: '23.5',
       colSpan: 1
     }),
     field('initialBmi', TEXT, 'IMT (Indeks Massa Tubuh)', 'IMT awal', {

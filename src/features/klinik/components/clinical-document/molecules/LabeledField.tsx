@@ -26,7 +26,7 @@ export const LabeledField: React.FC<LabeledFieldProps> = ({
       <div style={{ width: labelWidthPx }} className="shrink-0">
         <FormText customPt={customPt}>{label}</FormText>
       </div>
-      <div className="grow border-b border-dotted border-[#777777] min-h-[14px] overflow-hidden whitespace-nowrap">
+      <div className="grow min-w-0 break-words whitespace-normal text-left">
         <FormText customPt={customPt}>{value || '\u00A0'}</FormText>
       </div>
     </div>

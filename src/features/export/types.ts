@@ -21,7 +21,7 @@ export interface ExportFormatMeta {
 export const EXPORT_FORMAT_OPTIONS: ExportFormatMeta[] = [
   {
     format: 'pdf',
-    label: 'Dokumen PDF (.pdf)',
+    label: 'Pdf',
     shortLabel: 'PDF',
     description: 'Format dokumen cetak resmi berkop klinik',
     extension: 'pdf',
@@ -34,7 +34,7 @@ export const EXPORT_FORMAT_OPTIONS: ExportFormatMeta[] = [
   },
   {
     format: 'xlsx',
-    label: 'Spreadsheet Excel (.xlsx)',
+    label: 'Excel',
     shortLabel: 'Excel',
     description: 'Format tabel Microsoft Excel bersel terstruktur',
     extension: 'xlsx',

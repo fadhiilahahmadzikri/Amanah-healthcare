@@ -85,7 +85,7 @@ export function AppointmentModal({
     handlePatientUpdated,
     handleDeletePatient,
     handleAddNewPatient,
-    handleRelationshipSubmitForMedicalFlow,
+    handleRelationshipSubmitForMedicalFlow: _handleRelationshipSubmitForMedicalFlow,
     handlePatientContinue,
     handleSessionContinue,
     handleFinalSubmit,
@@ -225,7 +225,7 @@ export function AppointmentModal({
                   patients.length > 0 ? setStep('select_profile') : setStep('service')
                 }
                 allowedRelationships={bookingContext?.allowedRelationships}
-                hasExistingSelf={patients.some((p) => Boolean(p.isPrimary))}
+                hasExistingSelf={Boolean(bookingContext?.hasExistingPrimary ?? patients.some((p) => Boolean(p.isPrimary)))}
                 existingPatients={patients}
               />
             )}

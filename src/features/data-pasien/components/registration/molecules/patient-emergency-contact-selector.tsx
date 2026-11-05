@@ -20,6 +20,7 @@ export interface PatientEmergencyContactSelectorProps {
   onSelectAffiliationPatientId?: (patientId: string) => void;
   relationshipOptions?: ReferenceOptionItem[];
   currentPatientIdToExclude?: string;
+  excludeSelfOrPrimary?: boolean;
   className?: string;
 }
 
@@ -35,6 +36,7 @@ export function PatientEmergencyContactSelector({
   onSelectAffiliationPatientId,
   relationshipOptions,
   currentPatientIdToExclude,
+  excludeSelfOrPrimary = false,
   className
 }: PatientEmergencyContactSelectorProps) {
   // Filter out the current patient being registered so they cannot be their own emergency contact
@@ -43,9 +45,12 @@ export function PatientEmergencyContactSelector({
       if (currentPatientIdToExclude && aff.id === currentPatientIdToExclude) {
         return false;
       }
+      if (excludeSelfOrPrimary && (aff.isPrimary || aff.isSystem)) {
+        return false;
+      }
       return Boolean(aff.fullName);
     });
-  }, [affiliations, currentPatientIdToExclude]);
+  }, [affiliations, currentPatientIdToExclude, excludeSelfOrPrimary]);
 
   const hasAffiliations = availableAffiliations.length > 0;
 
@@ -130,31 +135,26 @@ export function PatientEmergencyContactSelector({
                   type='button'
                   onClick={() => handleSelectAffiliation(aff)}
                   className={cn(
-                    'flex flex-col items-start p-3 rounded-xl border text-left transition-all',
+                    'flex items-center justify-between p-3 rounded-xl border text-left transition-all',
                     isSelected
                       ? 'border-primary bg-primary/10 shadow-sm'
                       : 'border-border/60 bg-card hover:border-border hover:bg-muted/30'
                   )}
                 >
-                  <div className='flex items-center justify-between w-full mb-1'>
+                  <div className='flex flex-col min-w-0 pr-2'>
                     <span className='text-xs font-bold text-foreground truncate'>
                       {aff.fullName}
                     </span>
-                    {isSelected && (
-                      <span className='flex items-center gap-0.5 text-[10px] font-bold text-primary'>
-                        <Icons.check className='w-3 h-3' />
-                        Dipilih
-                      </span>
-                    )}
-                  </div>
-                  <div className='flex items-center gap-2 text-[11px] text-muted-foreground'>
-                    <span className='px-1.5 py-0.5 rounded bg-muted font-medium text-foreground/80'>
+                    <span className='text-[11px] text-muted-foreground font-normal truncate mt-0.5'>
                       {aff.relationshipLabel || aff.relationship || 'Keluarga'}
                     </span>
-                    <span className='font-mono truncate'>
-                      {aff.phone || aff.phoneNumber || 'Belum ada no. telp'}
-                    </span>
                   </div>
+                  {isSelected && (
+                    <span className='flex items-center gap-1 text-[11px] font-bold text-primary shrink-0'>
+                      <Icons.check className='w-3.5 h-3.5 stroke-[2.5]' />
+                      Dipilih
+                    </span>
+                  )}
                 </button>
               );
             })}

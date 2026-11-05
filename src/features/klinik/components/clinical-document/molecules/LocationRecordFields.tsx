@@ -13,7 +13,7 @@ export const LocationRecordFields: React.FC<LocationRecordFieldsProps> = ({
   customPt = 6.6,
 }) => {
   return (
-    <tr className="h-[18px]">
+    <tr className="h-[19px]">
       {labels.map((label, idx) => {
         const isFirst = idx === 0;
         const isLast = idx === labels.length - 1;

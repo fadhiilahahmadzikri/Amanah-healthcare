@@ -6,6 +6,7 @@ export interface NumberBoxProps {
   width?: string;
   height?: string;
   bold?: boolean;
+  customPt?: number;
   className?: string;
 }
 
@@ -14,6 +15,7 @@ export const NumberBox: React.FC<NumberBoxProps> = ({
   width = '18px',
   height = '22px',
   bold = true,
+  customPt = 7.2,
   className = '',
 }) => {
   return (
@@ -21,7 +23,7 @@ export const NumberBox: React.FC<NumberBoxProps> = ({
       style={{ width, height }}
       className={`border border-black flex items-center justify-center bg-white shrink-0 ${className}`}
     >
-      <FormText customPt={7.5} bold={bold} align="center">
+      <FormText customPt={customPt} bold={bold} align="center">
         {digit}
       </FormText>
     </div>

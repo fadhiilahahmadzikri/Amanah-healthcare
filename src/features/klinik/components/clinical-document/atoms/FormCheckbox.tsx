@@ -19,7 +19,7 @@ export const FormCheckbox: React.FC<FormCheckboxProps> = ({
       <span className="inline-flex items-center justify-center w-[9px] h-[9px] border border-black text-[7pt] font-bold shrink-0 bg-white">
         {checked ? '✓' : ''}
       </span>
-      <FormText customPt={customPt}>{label}</FormText>
+      <FormText customPt={customPt} className="break-words leading-tight">{label}</FormText>
     </div>
   );
 };

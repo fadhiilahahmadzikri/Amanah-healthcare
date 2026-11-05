@@ -275,3 +275,40 @@ export interface MedicalFlowDefinition {
   complaintFieldId: string;
   sections: MedicalFormSection[];
 }
+
+export interface FormJsonField {
+  id: string;
+  type?: MedicalFieldType;
+  component?: string;
+  title: string;
+  label?: string;
+  helpText?: string;
+  placeholder?: string;
+  required?: boolean;
+  isActive?: boolean;
+  choices?: string[];
+  dataSource?: FormFieldDataSource;
+  colSpan?: 1 | 2 | 'full';
+  disabled?: boolean;
+  yearFieldId?: string;
+  notesFieldId?: string;
+  goToSectionIdByChoice?: Record<string, string> | null;
+}
+
+export interface FormJsonStep {
+  id: string;
+  title: string;
+  description?: string;
+  layout?: 'grid' | 'stack' | 'questionnaire' | 'table';
+  repeatableGroup?: string;
+  tableConfig?: TableConfig;
+  fields: FormJsonField[];
+}
+
+export interface FormJsonSchema {
+  version: number;
+  title?: string;
+  description?: string;
+  steps: FormJsonStep[];
+}
+

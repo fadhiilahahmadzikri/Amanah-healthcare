@@ -40,6 +40,7 @@ export const FormText: React.FC<FormTextProps> = ({
   return (
     <span
       style={{
+        fontFamily: "'Times New Roman', Times, serif",
         fontSize: `${finalPt}pt`,
         lineHeight: 1.18,
         ...propStyle,

@@ -338,21 +338,21 @@ export const ClinicalDocumentFullscreenReader: React.FC<ClinicalDocumentFullscre
                 className='gap-2 cursor-pointer hover:bg-slate-800 focus:bg-slate-800 focus:text-white'
               >
                 <Icons.fileTypeDoc className='size-3.5 text-blue-400' />
-                <span>Dokumen Word (.docx)</span>
+                <span>Docx</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => handleDownload('pdf')}
                 className='gap-2 cursor-pointer hover:bg-slate-800 focus:bg-slate-800 focus:text-white'
               >
                 <Icons.fileTypePdf className='size-3.5 text-rose-400' />
-                <span>Dokumen PDF (.pdf)</span>
+                <span>Pdf</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => handleDownload('xlsx')}
                 className='gap-2 cursor-pointer hover:bg-slate-800 focus:bg-slate-800 focus:text-white'
               >
                 <Icons.fileTypeXls className='size-3.5 text-emerald-400' />
-                <span>Spreadsheet Excel (.xlsx)</span>
+                <span>Excel</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

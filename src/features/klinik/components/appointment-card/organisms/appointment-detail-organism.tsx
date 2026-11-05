@@ -475,7 +475,7 @@ export function AppointmentDetailOrganism({
                   </div>
                 </div>
 
-                <div className='flex-1 min-h-0 overflow-y-auto py-2.5 pr-1'>
+                <div className='flex-1 min-h-0 flex flex-col overflow-y-auto py-2.5 pr-1'>
                   <AppointmentFormInspector
                     appointment={appointment}
                     hideHeader

@@ -17,7 +17,7 @@ export const MeasurementFields: React.FC<MeasurementFieldsProps> = ({
   return (
     <>
       {measurementRows.map((rowLabels, rowIdx) => (
-        <tr key={rowIdx} className="h-[18px]">
+        <tr key={rowIdx} className="h-[17.5px]">
           {rowLabels.map((label, colIdx) => {
             const span = spans[colIdx];
             const value = values[rowIdx]?.[colIdx];

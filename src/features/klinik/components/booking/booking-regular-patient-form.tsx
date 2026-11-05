@@ -19,6 +19,8 @@ import { PatientSearchableSelect } from '@/features/data-pasien/components/regis
 import { PatientEmergencyContactSelector } from '@/features/data-pasien/components/registration/molecules/patient-emergency-contact-selector';
 import { ShiftIconDisplay } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-display';
 import type { ReferenceOptionItem } from '@/features/data-pasien/api/patient-reference-service';
+import { BookingRegularReviewSection } from './molecules/booking-regular-review-section';
+import { BookingPrimaryEmergencyInterceptor } from './molecules/booking-primary-emergency-interceptor';
 import { useBookingRegularPatientForm } from '../../model/useBookingRegularPatientForm';
 
 export interface BookingRegularPatientFormProps {
@@ -85,6 +87,10 @@ export function BookingRegularPatientForm({
 
     references,
     relationshipOptions,
+    isSelf,
+    isEnteringManualEmergency,
+    handleSkipEmergencyContact,
+    handleChooseManualEmergencyContact,
 
     handleBack,
     handleNext,
@@ -382,18 +388,26 @@ export function BookingRegularPatientForm({
 
         {currentStep === 9 && (
           <div data-field-id='emergencyContact'>
-            <PatientEmergencyContactSelector
-              affiliations={existingPatients}
-              name={emergencyContactName}
-              onChangeName={setEmergencyContactName}
-              relationship={emergencyContactRelationship}
-              onChangeRelationship={setEmergencyContactRelationship}
-              phone={emergencyContactPhone}
-              onChangePhone={setEmergencyContactPhone}
-              selectedAffiliationPatientId={emergencyContactPatientId}
-              onSelectAffiliationPatientId={setEmergencyContactPatientId}
-              relationshipOptions={references.relationships}
-            />
+            {isSelf && !isEnteringManualEmergency ? (
+              <BookingPrimaryEmergencyInterceptor
+                onSkip={handleSkipEmergencyContact}
+                onManual={handleChooseManualEmergencyContact}
+              />
+            ) : (
+              <PatientEmergencyContactSelector
+                affiliations={existingPatients}
+                name={emergencyContactName}
+                onChangeName={setEmergencyContactName}
+                relationship={emergencyContactRelationship}
+                onChangeRelationship={setEmergencyContactRelationship}
+                phone={emergencyContactPhone}
+                onChangePhone={setEmergencyContactPhone}
+                selectedAffiliationPatientId={emergencyContactPatientId}
+                onSelectAffiliationPatientId={setEmergencyContactPatientId}
+                relationshipOptions={references.relationships}
+                excludeSelfOrPrimary={isSelf}
+              />
+            )}
           </div>
         )}
 
@@ -427,47 +441,10 @@ export function BookingRegularPatientForm({
         )}
 
         {currentStep === 12 && (
-          <div className='space-y-0.5 text-xs border border-border/80 rounded-2xl p-2 bg-muted/20'>
-            {reviewItems.map((item, idx) => (
-              <div
-                key={item.label}
-                role='button'
-                tabIndex={0}
-                onClick={() => handleJumpToStep(item.step)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleJumpToStep(item.step);
-                  }
-                }}
-                className={cn(
-                  'group/item relative flex items-start justify-between py-2 px-2.5 rounded-xl transition-colors cursor-pointer select-none border border-transparent',
-                  'hover:bg-card hover:border-border/60 hover:shadow-xs active:scale-[0.995]',
-                  idx < reviewItems.length - 1 && 'border-b-border/40'
-                )}
-              >
-                <span className='text-muted-foreground text-[11px] sm:text-xs shrink-0 group-hover/item:text-foreground transition-colors pt-0.5'>
-                  {item.label}
-                </span>
-
-                <div className='flex items-start gap-2 shrink-0 ml-auto pl-2'>
-                  <div className='flex items-center gap-1 text-[11px] font-semibold text-primary shrink-0 opacity-0 sm:group-hover/item:opacity-100 transition-opacity duration-150 pointer-events-none pt-0.5'>
-                    <Icons.arrowRight className='size-3 stroke-[2.5]' />
-                    <span className='text-[10.5px] whitespace-nowrap'>Edit data ini</span>
-                  </div>
-
-                  <span
-                    className={cn(
-                      'text-xs text-right max-w-[160px] sm:max-w-[210px] break-words leading-snug',
-                      item.valueClass
-                    )}
-                  >
-                    {item.value}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+          <BookingRegularReviewSection
+            items={reviewItems}
+            onJumpToStep={handleJumpToStep}
+          />
         )}
       </div>
 

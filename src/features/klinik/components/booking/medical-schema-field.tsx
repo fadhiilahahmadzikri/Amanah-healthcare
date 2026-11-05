@@ -260,6 +260,47 @@ export function MedicalSchemaField({
   const isNik = format === 'nik';
   const formatProps = fieldFormatConfig[format];
 
+  const getFieldSuffix = (id: string): string | undefined => {
+    if (
+      id === 'heightCm' ||
+      id === 'upperArmCircumferenceCm' ||
+      id === 'birthLengthCm' ||
+      id.endsWith('BirthLength')
+    ) {
+      return 'cm';
+    }
+    if (id === 'prePregnancyWeightKg' || id === 'weightKg') {
+      return 'kg';
+    }
+    if (id === 'initialBmi') {
+      return 'kg/m²';
+    }
+    if (id === 'birthWeightGrams' || id.endsWith('BirthWeight')) {
+      return 'gr';
+    }
+    if (id.endsWith('GestationalAgeAtBirth')) {
+      return 'mgg';
+    }
+    return undefined;
+  };
+
+  const suffix = getFieldSuffix(schemaField.id);
+  const trailingIcon = suffix ? (
+    <span className='text-xs font-semibold text-muted-foreground select-none pointer-events-none'>
+      {suffix}
+    </span>
+  ) : undefined;
+
+  const isDecimal =
+    [
+      'heightCm',
+      'prePregnancyWeightKg',
+      'upperArmCircumferenceCm',
+      'initialBmi',
+      'birthLengthCm',
+      'weightKg'
+    ].includes(schemaField.id) || schemaField.id.endsWith('BirthLength');
+
   return (
     <PatientLineInput
       id={schemaField.id}
@@ -280,8 +321,9 @@ export function MedicalSchemaField({
       disabled={schemaField.disabled}
       containerClassName={colSpanClass}
       isMonospace={isNik}
-      inputMode={formatProps.inputMode}
+      inputMode={isDecimal ? 'decimal' : formatProps.inputMode}
       maxLength={formatProps.maxLength}
+      trailingIcon={trailingIcon}
     />
   );
 }

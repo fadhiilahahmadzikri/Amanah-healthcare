@@ -4,8 +4,6 @@ import { toast } from 'sonner';
 import { klinikKeys } from '../../../api/query-keys';
 import { kiaIntakeService } from '../../../api/kia-intake-service';
 import { updatePatient } from '@/features/data-pasien/api/service';
-import type { PatientMutationPayload } from '@/features/data-pasien/api/types';
-import type { Gender } from '@/constants/gender.constants';
 import type { Appointment } from '../../../api/types';
 import type {
   UnifiedInspectorData,
@@ -23,6 +21,11 @@ import {
   buildInitialImmunizationData,
   buildInitialRegularData
 } from './inspector-initial-state';
+import {
+  getMaternalPatientDiff,
+  getImmunizationPatientDiff,
+  getRegularPatientDiff
+} from './patient-diff-helper';
 import { CANONICAL_MATERNAL_CONDITIONS } from '@/features/maternity/constants/maternity.constants';
 
 interface UseInspectorSaveParams {
@@ -78,7 +81,12 @@ export function useInspectorSave({
       return;
     }
     setValidationErrors({});
-    const targetId = parsedData.maternal?.id || appointment.id;
+
+    const targetId = parsedData.maternal?.id;
+    if (!targetId) {
+      toast.error('Gagal menyimpan: ID formulir KIA & Kehamilan tidak ditemukan.');
+      return;
+    }
 
     // Resolve health conditions using canonical uppercase condition codes
     const existingConditionsMap = new Map<string, any>();
@@ -198,46 +206,13 @@ export function useInspectorSave({
         sideEffects: c.sideEffects || undefined
       })),
 
-      healthConditions: healthConditionsPayload,
-      answers: {
-        ...formData,
-        ...formData.diseaseHistory
-      }
+      healthConditions: healthConditionsPayload
     };
 
     const patientId = parsedData.patient?.id || appointment.patient_id;
     if (patientId) {
       const initialMaternal = buildInitialMaternalData(parsedData);
-      const diffPayload: Partial<PatientMutationPayload> = {};
-
-      if (formData.motherName !== initialMaternal.motherName) {
-        diffPayload.name = formData.motherName?.trim() || undefined;
-      }
-      if (formData.motherNik !== initialMaternal.motherNik) {
-        diffPayload.nik = formData.motherNik?.trim() || undefined;
-      }
-      if (formData.medicalRecordNumber !== initialMaternal.medicalRecordNumber) {
-        diffPayload.medical_record_number = formData.medicalRecordNumber?.trim() || undefined;
-      }
-      if (formData.birthPlace !== initialMaternal.birthPlace) {
-        diffPayload.birth_place = formData.birthPlace?.trim() || undefined;
-      }
-      if (formData.motherBirthDate !== initialMaternal.motherBirthDate) {
-        diffPayload.birth_date = formData.motherBirthDate || undefined;
-      }
-      if (formData.motherBloodType !== initialMaternal.motherBloodType) {
-        diffPayload.blood_type = (formData.motherBloodType as any) || undefined;
-      }
-      if (formData.motherJob !== initialMaternal.motherJob) {
-        diffPayload.occupation = formData.motherJob?.trim() || undefined;
-      }
-      if (formData.phoneNumber !== initialMaternal.phoneNumber) {
-        diffPayload.phone = formData.phoneNumber?.trim() || undefined;
-      }
-      if (formData.domicileAddress !== initialMaternal.domicileAddress) {
-        diffPayload.line1 = formData.domicileAddress?.trim() || undefined;
-      }
-
+      const diffPayload = getMaternalPatientDiff(formData, initialMaternal);
       if (Object.keys(diffPayload).length > 0) {
         await updatePatient(patientId, diffPayload);
       }
@@ -260,39 +235,28 @@ export function useInspectorSave({
       return;
     }
     setValidationErrors({});
-    const targetId = parsedData.child?.id || appointment.id;
 
-    const entries: any[] = [];
-    const processedCodes = new Set<string>();
+    const targetId = parsedData.child?.id;
+    if (!targetId) {
+      toast.error('Gagal menyimpan: ID formulir imunisasi tidak ditemukan.');
+      return;
+    }
 
-    Object.keys(immunizationFormData.vaccineValues || {}).forEach((key) => {
-      if (key.startsWith('vaccine_') && key.endsWith('_status')) {
-        const code = key.replace('vaccine_', '').replace('_status', '');
-        if (!processedCodes.has(code)) {
-          processedCodes.add(code);
-          const statusVal = immunizationFormData.vaccineValues[key];
-          const dateVal = immunizationFormData.vaccineValues[`vaccine_${code}_date`];
-
-          let status: 'GIVEN' | 'NOT_GIVEN' | 'UNKNOWN' = 'UNKNOWN';
-          if (statusVal === 'Sudah') status = 'GIVEN';
-          else if (statusVal === 'Belum') status = 'NOT_GIVEN';
-
-          entries.push({
-            vaccineCode: code,
-            status,
-            givenDate: status === 'GIVEN' && dateVal ? dateVal : null
-          });
-        }
-      }
-    });
-
-    const rawEntries =
-      immunizationFormData.entries && immunizationFormData.entries.length > 0
-        ? immunizationFormData.entries
-        : entries;
+    // SSOT: Use relational clinical entries directly
+    const rawEntries = Array.isArray(immunizationFormData.entries)
+      ? immunizationFormData.entries
+      : [];
 
     const finalEntries = rawEntries.map((e: any) => ({
-      ...e,
+      rowIndex: Number(e.rowIndex) || 0,
+      vaccineName: e.vaccineName || undefined,
+      vaccineCode: e.vaccineCode || undefined,
+      status: e.status || 'NOT_GIVEN',
+      injectionDate: e.injectionDate || null,
+      ageDisplay: e.ageDisplay || null,
+      fever: e.fever || null,
+      cough: e.cough || null,
+      runnyNose: e.runnyNose || null,
       weightKg:
         e.weightKg !== undefined && e.weightKg !== null && e.weightKg !== ''
           ? Number(e.weightKg)
@@ -312,7 +276,9 @@ export function useInspectorSave({
         e.temperatureCelsius !== null &&
         e.temperatureCelsius !== ''
           ? Number(e.temperatureCelsius)
-          : null
+          : null,
+      planning: e.planning || null,
+      notes: e.notes || null
     }));
 
     const payload = {
@@ -325,47 +291,15 @@ export function useInspectorSave({
       fatherName: immunizationFormData.fatherName || undefined,
       motherName: immunizationFormData.motherName || undefined,
       childAddress: immunizationFormData.childAddress || undefined,
-      hasVaccineHistory: immunizationFormData.hasVaccineHistory,
-      previousVaccineHistory: immunizationFormData.previousVaccineHistory,
-      hasAllergyHistory: immunizationFormData.hasAllergyHistory,
-      childAllergyHistory: immunizationFormData.childAllergyHistory,
+      previousVaccineHistory: immunizationFormData.previousVaccineHistory || undefined,
+      childAllergyHistory: immunizationFormData.childAllergyHistory || undefined,
       entries: finalEntries
     };
 
     const patientId = parsedData.patient?.id || appointment.patient_id;
     if (patientId) {
       const initialChild = buildInitialImmunizationData(parsedData);
-      const diffPayload: Partial<PatientMutationPayload> = {};
-
-      if (immunizationFormData.childName !== initialChild.childName) {
-        diffPayload.name = immunizationFormData.childName?.trim() || undefined;
-      }
-      if (immunizationFormData.childNik !== initialChild.childNik) {
-        diffPayload.nik = immunizationFormData.childNik?.trim() || undefined;
-      }
-      if (immunizationFormData.medicalRecordNumber !== initialChild.medicalRecordNumber) {
-        diffPayload.medical_record_number =
-          immunizationFormData.medicalRecordNumber?.trim() || undefined;
-      }
-      if (immunizationFormData.birthPlace !== initialChild.birthPlace) {
-        diffPayload.birth_place = immunizationFormData.birthPlace?.trim() || undefined;
-      }
-      if (immunizationFormData.childBirthDate !== initialChild.childBirthDate) {
-        diffPayload.birth_date = immunizationFormData.childBirthDate || undefined;
-      }
-      if (immunizationFormData.childSex !== initialChild.childSex) {
-        diffPayload.gender = immunizationFormData.childSex as Gender;
-      }
-      if (immunizationFormData.motherName !== initialChild.motherName) {
-        diffPayload.mother_name = immunizationFormData.motherName?.trim() || undefined;
-      }
-      if (immunizationFormData.parentPhone !== initialChild.parentPhone) {
-        diffPayload.phone = immunizationFormData.parentPhone?.trim() || undefined;
-      }
-      if (immunizationFormData.childAddress !== initialChild.childAddress) {
-        diffPayload.line1 = immunizationFormData.childAddress?.trim() || undefined;
-      }
-
+      const diffPayload = getImmunizationPatientDiff(immunizationFormData, initialChild);
       if (Object.keys(diffPayload).length > 0) {
         await updatePatient(patientId, diffPayload);
       }
@@ -387,7 +321,12 @@ export function useInspectorSave({
     setValidationErrors({});
 
     const targetId =
-      (serverIntake as any)?.data?.id || (serverIntake as any)?.id || appointment.id;
+      (serverIntake as any)?.data?.id ?? (serverIntake as any)?.id;
+
+    if (!targetId) {
+      toast.error('Gagal menyimpan: ID formulir intake tidak ditemukan.');
+      return;
+    }
 
     const answersPayload = {
       ...regularFormData.answers,
@@ -398,87 +337,7 @@ export function useInspectorSave({
     const patientId = parsedData.patient?.id || appointment.patient_id;
     if (patientId) {
       const initialRegular = buildInitialRegularData(parsedData, appointment);
-      const diffPayload: Partial<PatientMutationPayload> = {};
-
-      if (regularFormData.fullName !== initialRegular.fullName) {
-        diffPayload.name = regularFormData.fullName?.trim() || undefined;
-      }
-      if (regularFormData.nik !== initialRegular.nik) {
-        diffPayload.nik = regularFormData.nik?.trim() || undefined;
-      }
-      if (regularFormData.medicalRecordNumber !== initialRegular.medicalRecordNumber) {
-        diffPayload.medical_record_number =
-          regularFormData.medicalRecordNumber?.trim() || undefined;
-      }
-      if (regularFormData.birthPlace !== initialRegular.birthPlace) {
-        diffPayload.birth_place = regularFormData.birthPlace?.trim() || undefined;
-      }
-      if (regularFormData.birthDate !== initialRegular.birthDate) {
-        diffPayload.birth_date = regularFormData.birthDate || undefined;
-      }
-      if (regularFormData.gender !== initialRegular.gender) {
-        diffPayload.gender = (regularFormData.gender as any) || undefined;
-      }
-      if (regularFormData.bloodType !== initialRegular.bloodType) {
-        diffPayload.blood_type = (regularFormData.bloodType as any) || undefined;
-      }
-      if (regularFormData.motherName !== initialRegular.motherName) {
-        diffPayload.mother_name = regularFormData.motherName?.trim() || undefined;
-      }
-      if (regularFormData.occupation !== initialRegular.occupation) {
-        diffPayload.occupation = regularFormData.occupation?.trim() || undefined;
-      }
-      if (regularFormData.phone !== initialRegular.phone) {
-        diffPayload.phone = regularFormData.phone?.trim() || undefined;
-      }
-      if (regularFormData.email !== initialRegular.email) {
-        diffPayload.email = regularFormData.email ? regularFormData.email.trim() : '';
-      }
-      if (regularFormData.line1 !== initialRegular.line1) {
-        diffPayload.line1 = regularFormData.line1 ? regularFormData.line1.trim() : '';
-      }
-      if (regularFormData.provinceName !== initialRegular.provinceName) {
-        diffPayload.province_name = regularFormData.provinceName || undefined;
-      }
-      if (regularFormData.provinceCode !== initialRegular.provinceCode) {
-        diffPayload.province_code = regularFormData.provinceCode || undefined;
-      }
-      if (regularFormData.regencyName !== initialRegular.regencyName) {
-        diffPayload.regency_name = regularFormData.regencyName || undefined;
-      }
-      if (regularFormData.regencyCode !== initialRegular.regencyCode) {
-        diffPayload.regency_code = regularFormData.regencyCode || undefined;
-      }
-      if (regularFormData.districtName !== initialRegular.districtName) {
-        diffPayload.district_name = regularFormData.districtName || undefined;
-      }
-      if (regularFormData.districtCode !== initialRegular.districtCode) {
-        diffPayload.district_code = regularFormData.districtCode || undefined;
-      }
-      if (regularFormData.villageName !== initialRegular.villageName) {
-        diffPayload.village_name = regularFormData.villageName || undefined;
-      }
-      if (regularFormData.villageCode !== initialRegular.villageCode) {
-        diffPayload.village_code = regularFormData.villageCode || undefined;
-      }
-      if (regularFormData.emergencyContactPhone !== initialRegular.emergencyContactPhone) {
-        diffPayload.emergency_contact =
-          regularFormData.emergencyContactPhone?.trim() || undefined;
-        diffPayload.emergencyContactPhone =
-          regularFormData.emergencyContactPhone?.trim() || undefined;
-      }
-      if (regularFormData.emergencyContactName !== initialRegular.emergencyContactName) {
-        diffPayload.emergencyContactName =
-          regularFormData.emergencyContactName?.trim() || undefined;
-      }
-      if (
-        regularFormData.emergencyContactRelationship !==
-        initialRegular.emergencyContactRelationship
-      ) {
-        diffPayload.emergencyContactRelationship =
-          regularFormData.emergencyContactRelationship?.trim() || undefined;
-      }
-
+      const diffPayload = getRegularPatientDiff(regularFormData, initialRegular);
       if (Object.keys(diffPayload).length > 0) {
         await updatePatient(patientId, diffPayload);
       }

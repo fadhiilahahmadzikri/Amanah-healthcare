@@ -103,15 +103,15 @@ export function InspectorHeader({
             <DropdownMenuContent align='end' className='w-48 text-xs font-medium'>
               <DropdownMenuItem onClick={() => onDownload('docx')} className='gap-2 cursor-pointer'>
                 <Icons.fileTypeDoc className='size-3.5 text-blue-600 dark:text-blue-400' />
-                <span>Dokumen Word (.docx)</span>
+                <span>Docx</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onDownload('pdf')} className='gap-2 cursor-pointer'>
                 <Icons.fileTypePdf className='size-3.5 text-rose-600 dark:text-rose-400' />
-                <span>Dokumen PDF (.pdf)</span>
+                <span>Pdf</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onDownload('xlsx')} className='gap-2 cursor-pointer'>
                 <Icons.fileTypeXls className='size-3.5 text-emerald-600 dark:text-emerald-400' />
-                <span>Spreadsheet Excel (.xlsx)</span>
+                <span>Excel</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -178,15 +178,15 @@ export function InspectorHeader({
           <DropdownMenuContent align='end' className='w-48 text-xs font-medium'>
             <DropdownMenuItem onClick={() => onDownload('docx')} className='gap-2 cursor-pointer'>
               <Icons.fileTypeDoc className='size-3.5 text-blue-600 dark:text-blue-400' />
-              <span>Dokumen Word (.docx)</span>
+              <span>Docx</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onDownload('pdf')} className='gap-2 cursor-pointer'>
               <Icons.fileTypePdf className='size-3.5 text-rose-600 dark:text-rose-400' />
-              <span>Dokumen PDF (.pdf)</span>
+              <span>Pdf</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onDownload('xlsx')} className='gap-2 cursor-pointer'>
               <Icons.fileTypeXls className='size-3.5 text-emerald-600 dark:text-emerald-400' />
-              <span>Spreadsheet Excel (.xlsx)</span>
+              <span>Excel</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

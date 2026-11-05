@@ -206,7 +206,26 @@ export function isMedicalSectionValid(
   });
 }
 
+const measurementFieldIds = new Set([
+  'heightCm',
+  'prePregnancyWeightKg',
+  'upperArmCircumferenceCm',
+  'initialBmi',
+  'birthWeightGrams',
+  'birthLengthCm',
+  'weightKg'
+]);
+
 export function normalizeMedicalFieldInput(field: MedicalFormField, value: string): string {
+  if (
+    measurementFieldIds.has(field.id) ||
+    field.id.endsWith('BirthWeight') ||
+    field.id.endsWith('BirthLength') ||
+    field.id.endsWith('GestationalAgeAtBirth')
+  ) {
+    return value.replace(/[^\d.,]/g, '');
+  }
+
   const format = getMedicalFieldFormat(field);
   switch (format) {
     case 'nik':

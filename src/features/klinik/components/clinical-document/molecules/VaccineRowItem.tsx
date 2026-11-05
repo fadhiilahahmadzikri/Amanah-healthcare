@@ -18,14 +18,14 @@ export const VaccineRowItem: React.FC<VaccineRowItemProps> = ({
   defaultSubjective = ['Demam :', 'Batuk :', 'Pilek :'],
   defaultObjective = ['BB / PB :', 'LK / S :'],
   bodyPt = 7.2,
-  smallPt = 6.3,
+  smallPt = 6.4,
 }) => {
   const bottomBorder = definition.separatorAfter ? 'thick' : true;
   const subjectiveLines = data?.subjective || defaultSubjective;
   const objectiveLines = data?.objective || defaultObjective;
 
   return (
-    <tr className="h-[28px]">
+    <tr className="h-[46px]">
       {/* Col 0: Jenis Vaksin */}
       <FormCell
         widthPercent={25.77}
@@ -34,17 +34,17 @@ export const VaccineRowItem: React.FC<VaccineRowItemProps> = ({
         align="left"
       >
         {definition.vaccine.length === 1 && !definition.vaccine[0].right ? (
-          <FormText customPt={bodyPt} bold>
+          <FormText customPt={bodyPt}>
             {definition.vaccine[0].left}
           </FormText>
         ) : (
           <div className="w-full flex flex-col justify-center">
             {definition.vaccine.map((line, idx) => (
               <div key={idx} className="flex justify-between items-center pr-2">
-                <FormText customPt={bodyPt} bold>
+                <FormText customPt={bodyPt}>
                   {line.left}
                 </FormText>
-                <FormText customPt={bodyPt} bold>
+                <FormText customPt={bodyPt}>
                   {line.right || ''}
                 </FormText>
               </div>
@@ -82,7 +82,7 @@ export const VaccineRowItem: React.FC<VaccineRowItemProps> = ({
       >
         <div className="flex flex-col">
           {subjectiveLines.map((line, idx) => (
-            <FormText key={idx} customPt={smallPt}>
+            <FormText key={idx} customPt={6.3}>
               {line}
             </FormText>
           ))}
@@ -98,7 +98,7 @@ export const VaccineRowItem: React.FC<VaccineRowItemProps> = ({
       >
         <div className="flex flex-col">
           {objectiveLines.map((line, idx) => (
-            <FormText key={idx} customPt={smallPt} bold={!data?.objective}>
+            <FormText key={idx} customPt={data?.objective ? 6.3 : 7.2} bold={!data?.objective}>
               {line}
             </FormText>
           ))}
@@ -112,7 +112,7 @@ export const VaccineRowItem: React.FC<VaccineRowItemProps> = ({
         padding="px-[3px] py-[2px]"
         align="left"
       >
-        <FormText customPt={smallPt}>{data?.planning || ''}</FormText>
+        <FormText customPt={6.3}>{data?.planning || ''}</FormText>
       </FormCell>
     </tr>
   );

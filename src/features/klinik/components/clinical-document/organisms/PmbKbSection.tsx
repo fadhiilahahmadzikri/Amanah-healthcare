@@ -9,11 +9,11 @@ export interface PmbKbSectionProps {
 }
 
 export const PmbKbSection: React.FC<PmbKbSectionProps> = ({ config, data = [] }) => {
-  const colWidths = [4.5, 13.5, 15.5, 9.5, 13.5, 21.5, 22.0];
+  const colWidths = [4.79, 15.55, 20.25, 12.70, 15.65, 17.49, 13.58];
 
   return (
     <div className='w-full mb-1'>
-      <SectionHeader title={config.title} beforeGapPx={2} afterGapPx={2} />
+      <SectionHeader title={config.title} beforeGapPx={4} afterGapPx={1} />
 
       <table className='w-full border-collapse border border-black table-fixed bg-white'>
         <colgroup>
@@ -22,13 +22,13 @@ export const PmbKbSection: React.FC<PmbKbSectionProps> = ({ config, data = [] })
           ))}
         </colgroup>
         <thead>
-          <tr className='h-[18px] bg-white border-b border-black'>
+          <tr className='h-[17px] bg-white border-b border-black'>
             {config.headers.map((header, idx) => (
               <th
                 key={idx}
                 className='border border-black px-[2px] py-[1px] text-center align-middle'
               >
-                <FormText customPt={6.5} bold align='center'>
+                <FormText customPt={6.8} bold align='center'>
                   {header}
                 </FormText>
               </th>
@@ -39,15 +39,15 @@ export const PmbKbSection: React.FC<PmbKbSectionProps> = ({ config, data = [] })
           {Array.from({ length: config.blankRows }).map((_, rowIdx) => {
             const rowData = data[rowIdx] || [];
             return (
-              <tr key={rowIdx} className='h-[18px]'>
+              <tr key={rowIdx} className='h-[41px]'>
                 {colWidths.map((_, colIdx) => (
                   <td
                     key={colIdx}
-                    className={`border border-black px-[2px] py-[1px] align-middle ${
+                    className={`border border-black px-[2px] py-[1px] align-middle overflow-hidden break-words ${
                       colIdx === 0 ? 'text-center' : 'text-left'
                     }`}
                   >
-                    <FormText customPt={6.3} className='leading-tight'>
+                    <FormText customPt={6.8} className='leading-tight break-words whitespace-normal block w-full'>
                       {colIdx === 0 && !rowData[colIdx] ? `${rowIdx + 1}.` : rowData[colIdx] || ''}
                     </FormText>
                   </td>

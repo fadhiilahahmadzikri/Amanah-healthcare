@@ -8,6 +8,7 @@ import {
   type ChildImmunizationResponse
 } from '@/features/klinik/api/kia-intake-service';
 import { getGenderLabel } from '@/constants/gender.constants';
+import { formatClinicDate } from '@/lib/date-format';
 import { FLOW_NAMES } from '@/features/klinik/constants/medical-appointment-types';
 
 export interface BookedPatientKiaIntakeProps {
@@ -47,16 +48,16 @@ export function BookedPatientKiaIntake({ appointmentId }: BookedPatientKiaIntake
               <span className='text-[10.5px] font-medium text-muted-foreground block mb-0.5'>
                 HPHT
               </span>
-              <span className='font-mono font-semibold text-foreground'>
-                {maternal.hpht || '-'}
+              <span className='font-semibold text-foreground'>
+                {formatClinicDate(maternal.hpht, { style: 'human_medium' })}
               </span>
             </div>
             <div>
               <span className='text-[10.5px] font-medium text-muted-foreground block mb-0.5'>
                 Taksiran Persalinan (HPL)
               </span>
-              <span className='font-mono font-semibold text-foreground'>
-                {maternal.estimatedDueDate || '-'}
+              <span className='font-semibold text-foreground'>
+                {formatClinicDate(maternal.estimatedDueDate, { style: 'human_medium' })}
               </span>
             </div>
             <div>

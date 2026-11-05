@@ -374,7 +374,7 @@ export function MaternityBookingStepper({
       </div>
 
       {/* Stepper Body Content */}
-      <div className='flex-1 overflow-y-auto pr-1 min-h-[350px] max-h-[calc(78dvh-10rem)]'>
+      <div className='flex-1 overflow-y-auto pr-1 min-h-0 flex flex-col'>
         {/* STEP 1: IDENTITAS IBU & PERNIKAHAN */}
         {currentStep === 1 && (
           <div className='space-y-4 animate-in fade-in-50 duration-200'>
@@ -788,39 +788,54 @@ export function MaternityBookingStepper({
 
               <div className='grid grid-cols-1 sm:grid-cols-3 gap-3.5'>
                 <div className='space-y-1.5'>
-                  <Label className='text-xs font-medium'>Tinggi Badan (cm)</Label>
-                  <Input
-                    type='number'
-                    step='0.1'
-                    value={heightCm}
-                    onChange={(e) => setHeightCm(e.target.value)}
-                    placeholder='cth: 158'
-                    className='h-9 text-xs'
-                  />
+                  <Label className='text-xs font-medium'>Tinggi Badan</Label>
+                  <div className='relative flex items-center'>
+                    <Input
+                      type='number'
+                      step='0.1'
+                      value={heightCm}
+                      onChange={(e) => setHeightCm(e.target.value)}
+                      placeholder='158'
+                      className='h-9 text-xs pr-9'
+                    />
+                    <span className='absolute right-3 text-xs font-medium text-muted-foreground pointer-events-none select-none'>
+                      cm
+                    </span>
+                  </div>
                 </div>
 
                 <div className='space-y-1.5'>
-                  <Label className='text-xs font-medium'>BB Sebelum Hamil (kg)</Label>
-                  <Input
-                    type='number'
-                    step='0.1'
-                    value={prePregnancyWeightKg}
-                    onChange={(e) => setPrePregnancyWeightKg(e.target.value)}
-                    placeholder='cth: 52'
-                    className='h-9 text-xs'
-                  />
+                  <Label className='text-xs font-medium'>BB Sebelum Hamil</Label>
+                  <div className='relative flex items-center'>
+                    <Input
+                      type='number'
+                      step='0.1'
+                      value={prePregnancyWeightKg}
+                      onChange={(e) => setPrePregnancyWeightKg(e.target.value)}
+                      placeholder='52'
+                      className='h-9 text-xs pr-9'
+                    />
+                    <span className='absolute right-3 text-xs font-medium text-muted-foreground pointer-events-none select-none'>
+                      kg
+                    </span>
+                  </div>
                 </div>
 
                 <div className='space-y-1.5'>
-                  <Label className='text-xs font-medium'>Lingkar Lengan Atas / LiLA (cm)</Label>
-                  <Input
-                    type='number'
-                    step='0.1'
-                    value={upperArmCircumferenceCm}
-                    onChange={(e) => setUpperArmCircumferenceCm(e.target.value)}
-                    placeholder='cth: 24.5'
-                    className='h-9 text-xs'
-                  />
+                  <Label className='text-xs font-medium'>Lingkar Lengan Atas (LiLA)</Label>
+                  <div className='relative flex items-center'>
+                    <Input
+                      type='number'
+                      step='0.1'
+                      value={upperArmCircumferenceCm}
+                      onChange={(e) => setUpperArmCircumferenceCm(e.target.value)}
+                      placeholder='24.5'
+                      className='h-9 text-xs pr-9'
+                    />
+                    <span className='absolute right-3 text-xs font-medium text-muted-foreground pointer-events-none select-none'>
+                      cm
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -863,8 +878,8 @@ export function MaternityBookingStepper({
 
         {/* STEP 4: RIWAYAT OBSTETRI & KB */}
         {currentStep === 4 && (
-          <div className='space-y-5 animate-in fade-in-50 duration-200'>
-            <div>
+          <div className='flex-1 min-h-0 flex flex-col space-y-5 animate-in fade-in-50 duration-200'>
+            <div className='shrink-0'>
               <h3 className='text-sm font-semibold text-foreground'>
                 Riwayat Obstetri & Penggunaan Kontrasepsi
               </h3>
@@ -874,7 +889,7 @@ export function MaternityBookingStepper({
             </div>
 
             {/* GPAh Box */}
-            <div className='rounded-xl border border-border/70 bg-card p-3.5 space-y-2.5'>
+            <div className='rounded-xl border border-border/70 bg-card p-3.5 space-y-2.5 shrink-0'>
               <span className='text-xs font-semibold text-foreground block'>
                 Status Obstetri (G - P - A - H)
               </span>
@@ -931,7 +946,7 @@ export function MaternityBookingStepper({
             </div>
 
             {/* Riwayat Kehamilan Lalu Table */}
-            <div className='space-y-2 border-t border-border/40 pt-3'>
+            <div className='space-y-2 border-t border-border/40 pt-3 flex-1 min-h-0 flex flex-col'>
               <PregnancyHistoryTable
                 items={previousPregnancies}
                 isEditing={true}
@@ -940,7 +955,7 @@ export function MaternityBookingStepper({
             </div>
 
             {/* Riwayat KB Table */}
-            <div className='space-y-2 border-t border-border/40 pt-3'>
+            <div className='space-y-2 border-t border-border/40 pt-3 flex-1 min-h-0 flex flex-col'>
               <ContraceptiveHistoryTable
                 items={contraceptiveHistories}
                 isEditing={true}
@@ -988,8 +1003,8 @@ export function MaternityBookingStepper({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value='Tidak'>Tidak Pernah</SelectItem>
-                      <SelectItem value='Pasif'>Perokok Pasif (Suami/Keluarga)</SelectItem>
+                      <SelectItem value='Tidak'>Tidak Pernah Merokok</SelectItem>
+                      <SelectItem value='Pasif'>Perokok Pasif</SelectItem>
                       <SelectItem value='Aktif'>Aktif Merokok</SelectItem>
                     </SelectContent>
                   </Select>

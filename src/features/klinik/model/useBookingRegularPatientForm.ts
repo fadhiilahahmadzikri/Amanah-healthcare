@@ -13,21 +13,15 @@ import {
   type PatientAffiliationProfile,
   UNKNOWN_BLOOD_TYPE
 } from '@/features/data-pasien/api/patient-affiliation-service';
-import type { PatientRegistrationStep } from '@/features/data-pasien/constants/registration-options';
 import { usePatientFormReferences } from '@/features/data-pasien/model/usePatientFormReferences';
 import type { ReferenceOptionItem } from '@/features/data-pasien/api/patient-reference-service';
 import type { PatientRegionValues } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
+import {
+  getBookingStepMeta,
+  type UseBookingRegularPatientFormOptions
+} from './booking-regular-form-steps';
 
-export interface UseBookingRegularPatientFormOptions {
-  onSuccess: (newPatient: PatientAffiliationProfile) => void;
-  onCancel: () => void;
-  targetFlow?: string;
-  onRelationshipSubmit?: (relationship: PatientRelationshipType) => void;
-  allowedRelationships?: ReferenceOptionItem[];
-  hasExistingSelf?: boolean;
-  initialRelationship?: PatientRelationshipType | string;
-  existingPatients?: PatientAffiliationProfile[];
-}
+export type { UseBookingRegularPatientFormOptions };
 
 export function useBookingRegularPatientForm({
   onSuccess,
@@ -107,6 +101,25 @@ export function useBookingRegularPatientForm({
   const [emergencyContactPhone, setEmergencyContactPhone] = React.useState('');
   const [emergencyContactRelationship, setEmergencyContactRelationship] = React.useState('');
   const [emergencyContactPatientId, setEmergencyContactPatientId] = React.useState<string>('');
+  const [isEnteringManualEmergency, setIsEnteringManualEmergency] = React.useState(false);
+
+  const handleSkipEmergencyContact = React.useCallback(() => {
+    setEmergencyContactName('');
+    setEmergencyContactPhone('');
+    setEmergencyContactRelationship('');
+    setEmergencyContactPatientId('');
+    setIsEnteringManualEmergency(false);
+    if (isEditingFromReview) {
+      setIsEditingFromReview(false);
+      setCurrentStep(12);
+    } else {
+      setCurrentStep(10);
+    }
+  }, [isEditingFromReview]);
+
+  const handleChooseManualEmergencyContact = React.useCallback(() => {
+    setIsEnteringManualEmergency(true);
+  }, []);
   const [motherName, setMotherName] = React.useState('');
   const [placeOfBirth, setPlaceOfBirth] = React.useState('');
   const [dateOfBirth, setDateOfBirth] = React.useState('');
@@ -271,6 +284,9 @@ export function useBookingRegularPatientForm({
         return cleanPhone.length >= 8 && cleanPhone.length <= 15;
       }
       case 9: {
+        if (isSelf && !isEnteringManualEmergency) {
+          return true;
+        }
         const cleanEmergencyPhone = emergencyContactPhone.replace(/\D/g, '');
         if (
           !emergencyContactName.trim() &&
@@ -305,7 +321,9 @@ export function useBookingRegularPatientForm({
     gender,
     bloodType,
     region.line1,
-    occupationCode
+    occupationCode,
+    isSelf,
+    isEnteringManualEmergency
   ]);
 
   const handleBack = () => {
@@ -321,6 +339,13 @@ export function useBookingRegularPatientForm({
     }
     if (isAnimatingRef.current) return;
     isAnimatingRef.current = true;
+
+    if (currentStep === 9 && isSelf && isEnteringManualEmergency) {
+      setIsEnteringManualEmergency(false);
+      isAnimatingRef.current = false;
+      return;
+    }
+
     setCurrentStep((prev) => Math.max(1, prev - 1));
   };
 
@@ -330,6 +355,7 @@ export function useBookingRegularPatientForm({
     const selectedOccupation = references.occupations.find((o) => o.code === occupationCode);
     const resolvedBloodType: PatientBloodType = bloodType;
     const finalEmail = email.trim() || user?.email || undefined;
+    const hasEmergencyPhone = Boolean(emergencyContactPhone.trim());
 
     const dto: CreatePatientAffiliationDto = {
       relationshipTypeId: (selectedRelOption as any)?.id,
@@ -338,10 +364,10 @@ export function useBookingRegularPatientForm({
       nik: nik.trim(),
       phone: phone.trim() || undefined,
       email: finalEmail,
-      emergencyContactPatientId: emergencyContactPatientId || undefined,
-      emergencyContactName: emergencyContactName.trim() || undefined,
-      emergencyContactPhone: emergencyContactPhone.trim() || undefined,
-      emergencyContactRelationship: emergencyContactRelationship.trim() || undefined,
+      emergencyContactPatientId: hasEmergencyPhone ? (emergencyContactPatientId || undefined) : undefined,
+      emergencyContactName: hasEmergencyPhone ? (emergencyContactName.trim() || undefined) : undefined,
+      emergencyContactPhone: hasEmergencyPhone ? emergencyContactPhone.trim() : undefined,
+      emergencyContactRelationship: hasEmergencyPhone ? (emergencyContactRelationship.trim() || undefined) : undefined,
       birthPlace: placeOfBirth.trim(),
       birthDate: dateOfBirth,
       gender: gender as PatientGender,
@@ -384,6 +410,11 @@ export function useBookingRegularPatientForm({
       return;
     }
 
+    if (currentStep === 9 && isSelf && !isEnteringManualEmergency) {
+      handleSkipEmergencyContact();
+      return;
+    }
+
     if (currentStep < 12) {
       isAnimatingRef.current = true;
       setCurrentStep((prev) => prev + 1);
@@ -392,96 +423,10 @@ export function useBookingRegularPatientForm({
     }
   };
 
-  const currentStepMeta: PatientRegistrationStep = React.useMemo(() => {
-    switch (currentStep) {
-      case 1:
-        return {
-          title: 'Siapa yang akan berobat?',
-          description: 'Pilih profil yang akan berkonsultasi ke klinik hari ini'
-        };
-      case 2:
-        if (isSelf) {
-          return {
-            title: 'Data identitas diri',
-            description: 'Masukkan nama lengkap Anda sesuai KTP atau identitas resmi'
-          };
-        }
-        return {
-          title: `Nama lengkap ${selectedRelOption?.label || 'pasien'}`,
-          description: 'Masukkan nama lengkap pasien sesuai KTP atau kartu keluarga'
-        };
-      case 3:
-        if (isSelf) {
-          return {
-            title: 'Nomor Induk Kependudukan',
-            description: '16 digit NIK KTP Anda untuk identifikasi rekam medis resmi'
-          };
-        }
-        return {
-          title: `NIK ${selectedRelOption?.label || 'pasien'}`,
-          description: '16 digit NIK sesuai KTP atau KK untuk verifikasi rekam medis'
-        };
-      case 4:
-        return {
-          title: 'Nama ibu kandung',
-          description: 'Data nama ibu kandung diperlukan untuk verifikasi identitas dan rekam medis'
-        };
-      case 5:
-        return {
-          title: 'Tempat dan tanggal lahir',
-          description: 'Pastikan tempat dan tanggal lahir sesuai identitas resmi'
-        };
-      case 6:
-        if (isSelf) {
-          return {
-            title: 'Jenis kelamin Anda',
-            description: 'Pilih jenis kelamin sesuai identitas KTP Anda'
-          };
-        }
-        return {
-          title: `Jenis kelamin ${selectedRelOption?.label || 'pasien'}`,
-          description: 'Pilih jenis kelamin sesuai identitas resmi'
-        };
-      case 7:
-        return {
-          title: 'Golongan darah pasien',
-          description:
-            'Pilih jenis golongan darah pasien atau pilih Belum Tahu jika belum diperiksa'
-        };
-      case 8:
-        return {
-          title: 'Nomor WhatsApp atau telepon',
-          description:
-            'Nomor aktif yang dapat dihubungi untuk konfirmasi antrean dan pengingat janji temu'
-        };
-      case 9:
-        return {
-          title: 'Kontak darurat kerabat',
-          description:
-            'Keluarga atau kerabat terdekat yang dapat dihubungi faskes dalam keadaan darurat medis'
-        };
-      case 10:
-        return {
-          title: 'Alamat domisili saat ini',
-          description: 'Alamat tempat tinggal untuk rujukan dan data pasien'
-        };
-      case 11:
-        return {
-          title: 'Pekerjaan pasien',
-          description: 'Pilih jenis pekerjaan atau kegiatan utama sehari-hari'
-        };
-      case 12:
-        return {
-          title: 'Konfirmasi data pendaftaran',
-          description: 'Periksa kembali kelengkapan data sebelum disimpan'
-        };
-      default:
-        return {
-          title: 'Data pasien',
-          description: 'Lengkapi data identitas'
-        };
-    }
-  }, [currentStep, isSelf, selectedRelOption]);
+  const currentStepMeta = React.useMemo(
+    () => getBookingStepMeta(currentStep, isSelf, selectedRelOption?.label),
+    [currentStep, isSelf, selectedRelOption]
+  );
 
   const isReviewStep = currentStep === 12;
 
@@ -535,6 +480,10 @@ export function useBookingRegularPatientForm({
     relationshipOptions,
     existingPatients,
     isSelf,
+    isEnteringManualEmergency,
+    setIsEnteringManualEmergency,
+    handleSkipEmergencyContact,
+    handleChooseManualEmergencyContact,
 
     handleBack,
     handleNext,

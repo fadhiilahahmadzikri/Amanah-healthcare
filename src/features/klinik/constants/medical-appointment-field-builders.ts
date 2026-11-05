@@ -162,13 +162,13 @@ export function previousPregnancyFields(order: number): MedicalFormField[] {
       }
     ),
     field(`${prefix}BirthWeight`, TEXT, 'Berat lahir bayi', `${labelPrefix} - berat lahir`, {
-      helpText: 'Berat lahir bayi saat lahir. Contoh: 3100 gram.',
-      placeholder: 'Contoh: 3100 gram',
+      helpText: 'Berat lahir bayi saat lahir (dalam gram).',
+      placeholder: '3100',
       colSpan: 1
     }),
     field(`${prefix}BirthLength`, TEXT, 'Panjang lahir bayi', `${labelPrefix} - panjang lahir`, {
-      helpText: 'Panjang badan bayi saat lahir. Contoh: 49 cm.',
-      placeholder: 'Contoh: 49 cm',
+      helpText: 'Panjang badan bayi saat lahir (dalam cm).',
+      placeholder: '49',
       colSpan: 1
     }),
     field(
@@ -187,8 +187,8 @@ export function previousPregnancyFields(order: number): MedicalFormField[] {
       'Usia kehamilan saat lahir',
       `${labelPrefix} - usia kehamilan`,
       {
-        helpText: 'Usia kehamilan saat bayi lahir. Contoh: 39 minggu.',
-        placeholder: 'Contoh: 39 minggu',
+        helpText: 'Usia kehamilan saat bayi lahir (dalam minggu).',
+        placeholder: '39',
         colSpan: 1
       }
     ),

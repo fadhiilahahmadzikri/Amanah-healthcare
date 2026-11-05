@@ -64,3 +64,16 @@ export const CONTRACEPTIVE_TYPE_OPTIONS: readonly string[] = [
   'Alami / Kalender',
   'Lainnya',
 ] as const;
+
+export const MATERNAL_SMOKING_HABIT_OPTIONS = [
+  { value: 'Tidak', label: 'Tidak Pernah' },
+  { value: 'Pasif', label: 'Perokok Pasif (Suami/Keluarga)' },
+  { value: 'Aktif', label: 'Aktif Merokok' }
+] as const;
+
+export function getMaternalSmokingLabel(val?: string | null): string {
+  if (val === 'Tidak') return 'Tidak Pernah';
+  if (val === 'Pasif') return 'Perokok Pasif (Suami/Keluarga)';
+  if (val === 'Aktif') return 'Aktif Merokok';
+  return val || '-';
+}

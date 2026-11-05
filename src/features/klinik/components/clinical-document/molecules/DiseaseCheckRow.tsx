@@ -1,6 +1,5 @@
 import React from 'react';
 import { FormText } from '../atoms/FormText';
-import { FormCell } from '../atoms/FormCell';
 import type { DiseaseRecord } from '../types';
 
 export interface DiseaseCheckRowProps {
@@ -21,34 +20,34 @@ export const DiseaseCheckRow: React.FC<DiseaseCheckRowProps> = ({
   const year = record?.year || '';
 
   return (
-    <tr className="h-[15px]">
-      <FormCell widthPercent={10.37} align="center" padding="px-[1px] py-0">
+    <>
+      <td className="border-r border-b border-black text-center px-0.5 py-0 align-middle">
         <FormText customPt={customPt}>{index}.</FormText>
-      </FormCell>
-      <FormCell widthPercent={44.78} align="left" padding="px-[2px] py-0">
+      </td>
+      <td className="border-r border-b border-black text-left px-1 py-0 align-middle">
         {disease ? (
           <FormText customPt={customPt}>{disease}</FormText>
         ) : record?.notes ? (
-          <FormText customPt={customPt} className="truncate">
+          <FormText customPt={customPt} className="break-words whitespace-normal text-left">
             {record.notes}
           </FormText>
         ) : (
-          <div className="border-b border-dotted border-[#777777] h-[12px] w-full" />
+          <div className="h-[12px] w-full" />
         )}
-      </FormCell>
-      <FormCell widthPercent={12.36} align="center" padding="px-[1px] py-0">
+      </td>
+      <td className="border-r border-b border-black text-center px-0.5 py-0 align-middle">
         <FormText customPt={customPt} bold>
           {isYa ? 'X' : ''}
         </FormText>
-      </FormCell>
-      <FormCell widthPercent={14.95} align="center" padding="px-[1px] py-0">
+      </td>
+      <td className="border-r border-b border-black text-center px-0.5 py-0 align-middle">
         <FormText customPt={customPt} bold>
           {isTidak ? 'X' : ''}
         </FormText>
-      </FormCell>
-      <FormCell widthPercent={17.54} align="center" padding="px-[1px] py-0">
+      </td>
+      <td className="border-b border-black text-center px-0.5 py-0 align-middle">
         <FormText customPt={customPt}>{year}</FormText>
-      </FormCell>
-    </tr>
+      </td>
+    </>
   );
 };

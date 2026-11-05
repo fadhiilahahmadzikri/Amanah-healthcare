@@ -16,6 +16,7 @@ export const DocumentPage: React.FC<DocumentPageProps> = ({
           width: '210mm',
           minHeight: '297mm',
           padding: '7.41mm 9.17mm',
+          fontFamily: "'Times New Roman', Times, serif",
         }}
         className={`document-a4-page bg-white shadow-xl border border-gray-300 text-black font-serif box-border flex flex-col justify-between transition-all ${className}`}
       >
