@@ -197,12 +197,13 @@ export function adaptToPmbFormData(
     data.complaint ||
     '-';
 
+  const isSmokingActive = m?.smokedBeforePregnancy === 'Aktif';
+  const isSmokingPassive =
+    m?.smokedBeforePregnancy === 'Pasif' || Boolean(m?.smokeExposureBeforePregnancy);
+
   const riskChecked: Record<string, boolean> = {
-    Merokok: Boolean(
-      m?.smokedBeforePregnancy &&
-      m.smokedBeforePregnancy !== 'no' &&
-      m.smokedBeforePregnancy !== 'Tidak'
-    ),
+    'Merokok (Aktif)': isSmokingActive,
+    'Perokok Pasif': isSmokingPassive,
     'Pola Makan Beresiko': Boolean(m?.irregularDietBeforePregnancy),
     'Aktivitas fisik berkurang': Boolean(m?.reducedPhysicalActivityBeforePregnancy),
     Alkohol: Boolean(m?.alcoholBeforePregnancy),

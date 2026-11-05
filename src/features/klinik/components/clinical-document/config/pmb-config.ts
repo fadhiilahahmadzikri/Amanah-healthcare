@@ -71,8 +71,9 @@ export const defaultPmbConfig: PmbFormConfig = {
     riskTitle: 'Riwayat Perilaku Beresiko 1 Bulan Sebelum Hamil',
     riskColumns: [1950, 1950, 1950],
     riskGrid: [
-      ['Merokok', 'Pola Makan Beresiko', 'Aktivitas fisik berkurang'],
-      ['Alkohol', 'Obat Teratogenik', 'Kosmetik dengan zat berbahaya']
+      ['Merokok (Aktif)', 'Perokok Pasif', 'Alkohol'],
+      ['Pola Makan Beresiko', 'Aktivitas fisik berkurang', 'Obat Teratogenik'],
+      ['Kosmetik dengan zat berbahaya']
     ],
     environmentLabel: 'Lingkungan beresiko : Pestisida/ Lainnya',
     otherLabel: 'Lain-lain :',

@@ -9,7 +9,6 @@ import { calculateChildAge } from '../../../utils/medical-appointment';
 
 export function buildInitialMaternalData(parsedData: UnifiedInspectorData): EditableMaternalData {
   const m = parsedData.maternal;
-  const a = parsedData.answers || {};
 
   const conditions = Array.isArray(m?.conditionResponses) ? m.conditionResponses : [];
   const diseaseHistory: Record<string, any> = {};
@@ -26,149 +25,70 @@ export function buildInitialMaternalData(parsedData: UnifiedInspectorData): Edit
     }
   });
 
-  let prevPregnancies: any[] = m?.previousPregnancies || [];
-  if (prevPregnancies.length === 0) {
-    const list: any[] = [];
-    for (let i = 1; i <= 4; i += 1) {
-      const year = a[`previousPregnancy${i}BirthYear`];
-      if (year) {
-        list.push({
-          orderNumber: i,
-          birthYear: year,
-          gestationalAgeAtBirth: a[`previousPregnancy${i}GestationalAgeAtBirth`] || '',
-          birthWeightGrams: a[`previousPregnancy${i}BirthWeight`]
-            ? Number(a[`previousPregnancy${i}BirthWeight`])
-            : '',
-          birthLengthCm: a[`previousPregnancy${i}BirthLength`] || '',
-          childSex: a[`previousPregnancy${i}ChildSex`] || '',
-          deliveryMethod: a[`previousPregnancy${i}DeliveryMethod`] || '',
-          birthAttendant: a[`previousPregnancy${i}BirthAttendant`] || '',
-          deliveryPlace: a[`previousPregnancy${i}DeliveryPlace`] || '',
-          complications: a[`previousPregnancy${i}Complications`] || ''
-        });
-      }
-    }
-    prevPregnancies = list;
-  }
-
-  let kbList: any[] = m?.contraceptiveHistories || [];
-  if (kbList.length === 0) {
-    const list: any[] = [];
-    for (let i = 1; i <= 4; i += 1) {
-      const type = a[`contraception${i}Type`] || a[`contraceptive${i}Type`];
-      if (type) {
-        list.push({
-          orderNumber: i,
-          contraceptiveType: type,
-          startDate: a[`contraception${i}StartDate`] || a[`contraceptive${i}StartDate`] || '',
-          stopDate: a[`contraception${i}StopDate`] || a[`contraceptive${i}StopDate`] || '',
-          durationText: a[`contraception${i}Duration`] || a[`contraceptive${i}Duration`] || '',
-          problems: a[`contraception${i}Problems`] || a[`contraceptive${i}Problems`] || '',
-          sideEffects:
-            a[`contraception${i}SideEffects`] || a[`contraceptive${i}SideEffects`] || ''
-        });
-      }
-    }
-    kbList = list;
-  }
+  const prevPregnancies: any[] = Array.isArray(m?.previousPregnancies) ? m.previousPregnancies : [];
+  const kbList: any[] = Array.isArray(m?.contraceptiveHistories) ? m.contraceptiveHistories : [];
 
   return {
     medicalRecordNumber: parsedData.patient?.medicalRecordNumber || '',
     birthPlace: parsedData.patient?.birthPlace || '',
-    motherName: m?.motherName ?? a.motherName ?? '',
-    motherNik: m?.motherNik ?? a.motherNik ?? '',
-    motherBirthDate: m?.motherBirthDate ?? a.motherBirthDate ?? '',
-    motherAge: m?.motherAge ?? a.motherAge ?? '',
-    marriageOrder: m?.marriageOrder ?? a.marriageOrder ?? 1,
-    marriageDate: m?.marriageDate ?? a.marriageDate ?? '',
-    motherJob: m?.motherJob ?? a.motherJob ?? '',
-    motherEducation: m?.motherEducation ?? a.motherEducation ?? '',
-    religion: m?.religion ?? a.religion ?? '',
-    phoneNumber: m?.phoneNumber ?? a.phoneNumber ?? '',
-    domicileAddress: m?.domicileAddress ?? a.domicileAddress ?? '',
-    identityCardAddress: m?.identityCardAddress ?? a.identityCardAddress ?? '',
-    dasawisma: m?.dasawisma ?? a.dasawisma ?? '',
-    posyandu: m?.posyandu ?? a.posyandu ?? '',
-    puskesmas: m?.puskesmas ?? a.puskesmas ?? '',
+    motherName: m?.motherName || '',
+    motherNik: m?.motherNik || '',
+    motherBirthDate: m?.motherBirthDate || '',
+    motherAge: m?.motherAge || '',
+    marriageOrder: m?.marriageOrder ?? 1,
+    marriageDate: m?.marriageDate || '',
+    motherJob: m?.motherJob || '',
+    motherEducation: m?.motherEducation || '',
+    religion: m?.religion || '',
+    phoneNumber: m?.phoneNumber || '',
+    domicileAddress: m?.domicileAddress || '',
+    identityCardAddress: m?.identityCardAddress || '',
+    dasawisma: m?.dasawisma || '',
+    posyandu: m?.posyandu || '',
+    puskesmas: m?.puskesmas || '',
 
-    partnerName: m?.partnerName ?? a.partnerName ?? '',
-    partnerNik: m?.partnerNik ?? a.partnerNik ?? '',
-    partnerBirthDate: m?.partnerBirthDate ?? a.partnerBirthDate ?? '',
-    partnerAge: m?.partnerAge ?? a.partnerAge ?? '',
-    partnerJob: m?.partnerJob ?? a.partnerJob ?? '',
-    partnerEducation: m?.partnerEducation ?? a.partnerEducation ?? '',
-    partnerBloodType: m?.partnerBloodType ?? a.partnerBloodType ?? '',
-    partnerPhone: m?.husband?.phoneNumber ?? a.partnerPhone ?? '',
+    partnerName: m?.partnerName || '',
+    partnerNik: m?.partnerNik || '',
+    partnerBirthDate: m?.partnerBirthDate || '',
+    partnerAge: m?.partnerAge || '',
+    partnerJob: m?.partnerJob || '',
+    partnerEducation: m?.partnerEducation || '',
+    partnerBloodType: m?.partnerBloodType || '',
+    partnerPhone: m?.husband?.phoneNumber || '',
 
-    heightCm: m?.heightCm ?? a.heightCm ?? '',
-    prePregnancyWeightKg: m?.prePregnancyWeightKg ?? a.prePregnancyWeightKg ?? '',
-    upperArmCircumferenceCm: m?.upperArmCircumferenceCm ?? a.upperArmCircumferenceCm ?? '',
-    initialBmi: m?.initialBmi ?? a.initialBmi ?? '',
-    tetanusStatus: m?.tetanusStatus ?? a.tetanusStatus ?? '',
-    motherBloodType: m?.motherBloodType ?? a.motherBloodType ?? '',
+    heightCm: m?.heightCm || '',
+    prePregnancyWeightKg: m?.prePregnancyWeightKg || '',
+    upperArmCircumferenceCm: m?.upperArmCircumferenceCm || '',
+    initialBmi: m?.initialBmi || '',
+    tetanusStatus: m?.tetanusStatus || '',
+    motherBloodType: m?.motherBloodType || '',
 
-    hpht: m?.hpht ?? a.hpht ?? '',
-    estimatedDueDate: m?.estimatedDueDate ?? a.estimatedDueDate ?? '',
-    gestationalAgeWeeks: m?.gestationalAgeWeeks ?? a.gestationalAgeWeeks ?? '',
-    gestationalAgeFormatted: m?.gestationalAgeFormatted ?? a.gestationalAgeFormatted ?? '',
-    currentComplaints: m?.currentComplaints ?? a.currentComplaints ?? '',
+    hpht: m?.hpht || '',
+    estimatedDueDate: m?.estimatedDueDate || '',
+    gestationalAgeWeeks: m?.gestationalAgeWeeks || '',
+    gestationalAgeFormatted: m?.gestationalAgeFormatted || '',
+    currentComplaints: m?.currentComplaints || '',
 
-    gravidaCount: m?.gravidaCount ?? (a.gravidaCount ? Number(a.gravidaCount) : 1),
-    parityCount:
-      m?.parityCount ??
-      (a.parityCount || a.partusCount ? Number(a.parityCount || a.partusCount) : 0),
-    abortionCount:
-      m?.abortionCount ??
-      (a.abortionCount || a.abortusCount ? Number(a.abortionCount || a.abortusCount) : 0),
-    livingChildrenCount:
-      m?.livingChildrenCount ?? (a.livingChildrenCount ? Number(a.livingChildrenCount) : 0),
-    hasPreviousPregnancyHistory: Boolean(
-      m?.hasPreviousPregnancyHistory ?? a.hasPreviousPregnancyHistory === 'Ya, ada'
-    ),
-    hasContraceptionHistory: Boolean(
-      m?.hasContraceptionHistory ?? a.hasContraceptionHistory === 'Ya, pernah'
-    ),
+    gravidaCount: m?.gravidaCount ?? 1,
+    parityCount: m?.parityCount ?? 0,
+    abortionCount: m?.abortionCount ?? 0,
+    livingChildrenCount: m?.livingChildrenCount ?? 0,
+    hasPreviousPregnancyHistory: Boolean(m?.hasPreviousPregnancyHistory),
+    hasContraceptionHistory: Boolean(m?.hasContraceptionHistory),
 
-    smokedBeforePregnancy: m?.smokedBeforePregnancy ?? a.smokedBeforePregnancy ?? '',
-    alcoholBeforePregnancy: Boolean(
-      m?.alcoholBeforePregnancy ??
-      (a.alcoholBeforePregnancy === true || a.alcoholBeforePregnancy === 'Ya')
-    ),
-    irregularDietBeforePregnancy: Boolean(
-      m?.irregularDietBeforePregnancy ??
-      (a.irregularDietBeforePregnancy === true || a.irregularDietBeforePregnancy === 'Ya')
-    ),
-    reducedPhysicalActivityBeforePregnancy: Boolean(
-      m?.reducedPhysicalActivityBeforePregnancy ??
-      (a.reducedPhysicalActivityBeforePregnancy === true ||
-        a.reducedPhysicalActivityBeforePregnancy === 'Ya')
-    ),
-    unprescribedMedicationBeforePregnancy: Boolean(
-      m?.unprescribedMedicationBeforePregnancy ??
-      (a.unprescribedMedicationBeforePregnancy === true ||
-        a.unprescribedMedicationBeforePregnancy === 'Ya')
-    ),
-    concerningCosmeticUseBeforePregnancy: Boolean(
-      m?.concerningCosmeticUseBeforePregnancy ??
-      (a.concerningCosmeticUseBeforePregnancy === true ||
-        a.concerningCosmeticUseBeforePregnancy === 'Ya')
-    ),
-    pesticideExposureBeforePregnancy: Boolean(
-      m?.pesticideExposureBeforePregnancy ??
-      (a.pesticideExposureBeforePregnancy === true || a.pesticideExposureBeforePregnancy === 'Ya')
-    ),
-    chemicalExposureBeforePregnancy: Boolean(
-      m?.chemicalExposureBeforePregnancy ??
-      (a.chemicalExposureBeforePregnancy === true || a.chemicalExposureBeforePregnancy === 'Ya')
-    ),
-    smokeExposureBeforePregnancy: Boolean(
-      m?.smokeExposureBeforePregnancy ??
-      (a.smokeExposureBeforePregnancy === true || a.smokeExposureBeforePregnancy === 'Ya')
-    ),
+    smokedBeforePregnancy: m?.smokedBeforePregnancy || 'Tidak',
+    alcoholBeforePregnancy: Boolean(m?.alcoholBeforePregnancy),
+    irregularDietBeforePregnancy: Boolean(m?.irregularDietBeforePregnancy),
+    reducedPhysicalActivityBeforePregnancy: Boolean(m?.reducedPhysicalActivityBeforePregnancy),
+    unprescribedMedicationBeforePregnancy: Boolean(m?.unprescribedMedicationBeforePregnancy),
+    concerningCosmeticUseBeforePregnancy: Boolean(m?.concerningCosmeticUseBeforePregnancy),
+    pesticideExposureBeforePregnancy: Boolean(m?.pesticideExposureBeforePregnancy),
+    chemicalExposureBeforePregnancy: Boolean(m?.chemicalExposureBeforePregnancy),
+    smokeExposureBeforePregnancy: Boolean(m?.smokeExposureBeforePregnancy),
 
-    concerningEnvironmentNotes: m?.concerningEnvironmentNotes ?? a.concerningEnvironmentNotes ?? '',
-    allergyInfo: m?.allergyInfo ?? a.allergyInfo ?? '',
-    otherNotes: m?.otherNotes ?? a.otherNotes ?? '',
+    concerningEnvironmentNotes: m?.concerningEnvironmentNotes || '',
+    allergyInfo: m?.allergyInfo || '',
+    otherNotes: m?.otherNotes || '',
 
     diseaseHistory: diseaseHistory as any,
     previousPregnancies: prevPregnancies,

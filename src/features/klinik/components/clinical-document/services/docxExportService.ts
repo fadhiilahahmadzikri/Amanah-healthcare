@@ -648,14 +648,17 @@ export async function exportPmbDocx(
   // 3. Build Anamnesa (Left Prompts/Risk + Right 14 Diseases)
   const leftColumns = cfg.anamnesa.riskColumns;
   const leftWidth = cfg.anamnesa.leftWidth;
-  const otherStartRow = 8;
-  const otherEndRow = otherStartRow + cfg.anamnesa.otherDashedRows;
+  const riskStartRow = cfg.anamnesa.prompts.length + 1; // e.g. 4 + 1 = 5
+  const riskEndRow = riskStartRow + cfg.anamnesa.riskGrid.length; // e.g. 5 + 3 = 8
+  const envRow = riskEndRow; // 8
+  const otherStartRow = envRow + 1; // 9
+  const otherEndRow = otherStartRow + (cfg.anamnesa.otherDashedRows || 3);
   const diseaseColumns = cfg.anamnesa.diseaseColumns;
   const anamnesaColumns = [...cfg.anamnesa.riskColumns, ...cfg.anamnesa.diseaseColumns];
 
   const totalAnamnesaRows = Math.max(
     1 + cfg.anamnesa.diseases.length,
-    cfg.anamnesa.prompts.length + 5 + cfg.anamnesa.integratedBlankRows
+    cfg.anamnesa.prompts.length + 1 + cfg.anamnesa.riskGrid.length + 1 + (cfg.anamnesa.otherDashedRows || 3) + cfg.anamnesa.integratedBlankRows
   );
 
   const anamnesaRows: TableRow[] = [];
@@ -671,7 +674,7 @@ export async function exportPmbDocx(
           value: data?.anamnesa?.promptValues?.[rowIndex]
         })
       ];
-    } else if (rowIndex === 4) {
+    } else if (rowIndex === cfg.anamnesa.prompts.length) {
       leftCells = [
         textCell(cfg.anamnesa.riskTitle, leftWidth, {
           columnSpan: 3,
@@ -679,15 +682,18 @@ export async function exportPmbDocx(
           size: 6.7
         })
       ];
-    } else if (rowIndex === 5 || rowIndex === 6) {
-      const riskRow = cfg.anamnesa.riskGrid[rowIndex - 5];
+    } else if (rowIndex >= riskStartRow && rowIndex < riskEndRow) {
+      const riskRow = cfg.anamnesa.riskGrid[rowIndex - riskStartRow] || [];
       leftCells = riskRow.map((label, index) =>
-        checkboxCell(label, leftColumns[index], {
+        checkboxCell(label, leftColumns[index] || leftColumns[0], {
           size: 6.5,
           checked: data?.anamnesa?.riskChecked?.[label]
         })
       );
-    } else if (rowIndex === 7) {
+      while (leftCells.length < leftColumns.length) {
+        leftCells.push(blankIntegratedCell(leftColumns[leftCells.length], { size: 6.5 }));
+      }
+    } else if (rowIndex === envRow) {
       leftCells = [
         lineCell(cfg.anamnesa.environmentLabel, leftWidth, {
           columnSpan: 3,

@@ -179,6 +179,10 @@ export function MaternityBookingStepper({
   );
   const [reducedPhysicalActivityBeforePregnancy, setReducedPhysicalActivityBeforePregnancy] =
     React.useState(Boolean(initialValues?.reducedPhysicalActivityBeforePregnancy));
+  const [unprescribedMedicationBeforePregnancy, setUnprescribedMedicationBeforePregnancy] =
+    React.useState(Boolean(initialValues?.unprescribedMedicationBeforePregnancy));
+  const [concerningCosmeticUseBeforePregnancy, setConcerningCosmeticUseBeforePregnancy] =
+    React.useState(Boolean(initialValues?.concerningCosmeticUseBeforePregnancy));
   const [pesticideExposureBeforePregnancy, setPesticideExposureBeforePregnancy] =
     React.useState(Boolean(initialValues?.pesticideExposureBeforePregnancy));
   const [chemicalExposureBeforePregnancy, setChemicalExposureBeforePregnancy] =
@@ -309,6 +313,8 @@ export function MaternityBookingStepper({
       alcoholBeforePregnancy,
       irregularDietBeforePregnancy,
       reducedPhysicalActivityBeforePregnancy,
+      unprescribedMedicationBeforePregnancy,
+      concerningCosmeticUseBeforePregnancy,
       pesticideExposureBeforePregnancy,
       chemicalExposureBeforePregnancy,
       smokeExposureBeforePregnancy,
@@ -984,7 +990,7 @@ export function MaternityBookingStepper({
                     <SelectContent>
                       <SelectItem value='Tidak'>Tidak Pernah</SelectItem>
                       <SelectItem value='Pasif'>Perokok Pasif (Suami/Keluarga)</SelectItem>
-                      <SelectItem value='Ya'>Aktif Merokok</SelectItem>
+                      <SelectItem value='Aktif'>Aktif Merokok</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1002,35 +1008,44 @@ export function MaternityBookingStepper({
 
               <div className='space-y-2 pt-1'>
                 <span className='text-[11px] font-medium text-muted-foreground block'>
-                  Centang bila mengalami hal berikut:
+                  Centang bila mengalami hal berikut sekitar 1 bulan sebelum hamil:
                 </span>
                 <div className='grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs'>
                   <label className='flex items-center gap-2 cursor-pointer select-none'>
                     <input
                       type='checkbox'
-                      checked={smokeExposureBeforePregnancy}
-                      onChange={(e) => setSmokeExposureBeforePregnancy(e.target.checked)}
+                      checked={irregularDietBeforePregnancy}
+                      onChange={(e) => setIrregularDietBeforePregnancy(e.target.checked)}
                       className='rounded border-border text-primary size-4'
                     />
-                    <span>Sering terpapar asap rokok di rumah / tempat kerja</span>
+                    <span>Pola makan tidak teratur / tinggi gula & lemak</span>
                   </label>
                   <label className='flex items-center gap-2 cursor-pointer select-none'>
                     <input
                       type='checkbox'
-                      checked={pesticideExposureBeforePregnancy}
-                      onChange={(e) => setPesticideExposureBeforePregnancy(e.target.checked)}
+                      checked={reducedPhysicalActivityBeforePregnancy}
+                      onChange={(e) => setReducedPhysicalActivityBeforePregnancy(e.target.checked)}
                       className='rounded border-border text-primary size-4'
                     />
-                    <span>Terpapar pestisida / bahan kimia pertanian</span>
+                    <span>Aktivitas fisik jauh berkurang</span>
                   </label>
                   <label className='flex items-center gap-2 cursor-pointer select-none'>
                     <input
                       type='checkbox'
-                      checked={chemicalExposureBeforePregnancy}
-                      onChange={(e) => setChemicalExposureBeforePregnancy(e.target.checked)}
+                      checked={unprescribedMedicationBeforePregnancy}
+                      onChange={(e) => setUnprescribedMedicationBeforePregnancy(e.target.checked)}
                       className='rounded border-border text-primary size-4'
                     />
-                    <span>Terpapar bahan kimia industri / laboratorium</span>
+                    <span>Konsumsi obat tertentu tanpa arahan dokter/bidan</span>
+                  </label>
+                  <label className='flex items-center gap-2 cursor-pointer select-none'>
+                    <input
+                      type='checkbox'
+                      checked={concerningCosmeticUseBeforePregnancy}
+                      onChange={(e) => setConcerningCosmeticUseBeforePregnancy(e.target.checked)}
+                      className='rounded border-border text-primary size-4'
+                    />
+                    <span>Penggunaan kosmetik / perawatan yang dikhawatirkan</span>
                   </label>
                   <label className='flex items-center gap-2 cursor-pointer select-none'>
                     <input
@@ -1040,6 +1055,33 @@ export function MaternityBookingStepper({
                       className='rounded border-border text-primary size-4'
                     />
                     <span>Konsumsi minuman beralkohol</span>
+                  </label>
+                  <label className='flex items-center gap-2 cursor-pointer select-none'>
+                    <input
+                      type='checkbox'
+                      checked={smokeExposureBeforePregnancy}
+                      onChange={(e) => setSmokeExposureBeforePregnancy(e.target.checked)}
+                      className='rounded border-border text-primary size-4'
+                    />
+                    <span>Sering terpapar asap rokok (Perokok Pasif)</span>
+                  </label>
+                  <label className='flex items-center gap-2 cursor-pointer select-none'>
+                    <input
+                      type='checkbox'
+                      checked={pesticideExposureBeforePregnancy}
+                      onChange={(e) => setPesticideExposureBeforePregnancy(e.target.checked)}
+                      className='rounded border-border text-primary size-4'
+                    />
+                    <span>Terpapar pestisida / obat tanaman</span>
+                  </label>
+                  <label className='flex items-center gap-2 cursor-pointer select-none'>
+                    <input
+                      type='checkbox'
+                      checked={chemicalExposureBeforePregnancy}
+                      onChange={(e) => setChemicalExposureBeforePregnancy(e.target.checked)}
+                      className='rounded border-border text-primary size-4'
+                    />
+                    <span>Terpapar bahan kimia kerja / industri</span>
                   </label>
                 </div>
               </div>

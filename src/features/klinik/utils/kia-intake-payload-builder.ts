@@ -86,45 +86,48 @@ export function buildMaternityIntakePayload(
     phoneNumber: null
   };
 
+  const toOptionCode = (val: unknown): string => {
+    if (typeof val === 'boolean') return val ? 'ya' : 'tidak';
+    if (typeof val === 'string') return val.toLowerCase();
+    return 'tidak';
+  };
+
   const anamnesisResponses: AnamnesisResponsePayload[] = [
     {
       questionCode: MATERNAL_QUESTION_CODES.SMOKING_HABIT,
-      selectedOptionCode: submittedValues.smokedBeforePregnancy?.toLowerCase() || 'tidak'
+      selectedOptionCode: toOptionCode(submittedValues.smokedBeforePregnancy)
     },
     {
       questionCode: MATERNAL_QUESTION_CODES.ALCOHOL_CONSUMPTION,
-      selectedOptionCode: submittedValues.alcoholBeforePregnancy?.toLowerCase() || 'tidak'
+      selectedOptionCode: toOptionCode(submittedValues.alcoholBeforePregnancy)
     },
     {
       questionCode: MATERNAL_QUESTION_CODES.IRREGULAR_DIET,
-      selectedOptionCode: submittedValues.irregularDietBeforePregnancy?.toLowerCase() || 'tidak'
+      selectedOptionCode: toOptionCode(submittedValues.irregularDietBeforePregnancy)
     },
     {
       questionCode: MATERNAL_QUESTION_CODES.REDUCED_PHYSICAL_ACTIVITY,
-      selectedOptionCode:
-        submittedValues.reducedPhysicalActivityBeforePregnancy?.toLowerCase() || 'tidak'
+      selectedOptionCode: toOptionCode(submittedValues.reducedPhysicalActivityBeforePregnancy)
     },
     {
       questionCode: MATERNAL_QUESTION_CODES.UNPRESCRIBED_MEDICATION,
-      selectedOptionCode:
-        submittedValues.unprescribedMedicationBeforePregnancy?.toLowerCase() || 'tidak'
+      selectedOptionCode: toOptionCode(submittedValues.unprescribedMedicationBeforePregnancy)
     },
     {
       questionCode: MATERNAL_QUESTION_CODES.CONCERNING_COSMETIC_USE,
-      selectedOptionCode:
-        submittedValues.concerningCosmeticUseBeforePregnancy?.toLowerCase() || 'tidak'
+      selectedOptionCode: toOptionCode(submittedValues.concerningCosmeticUseBeforePregnancy)
     },
     {
       questionCode: MATERNAL_QUESTION_CODES.PESTICIDE_EXPOSURE,
-      selectedOptionCode: submittedValues.pesticideExposureBeforePregnancy?.toLowerCase() || 'tidak'
+      selectedOptionCode: toOptionCode(submittedValues.pesticideExposureBeforePregnancy)
     },
     {
       questionCode: MATERNAL_QUESTION_CODES.CHEMICAL_EXPOSURE,
-      selectedOptionCode: submittedValues.chemicalExposureBeforePregnancy?.toLowerCase() || 'tidak'
+      selectedOptionCode: toOptionCode(submittedValues.chemicalExposureBeforePregnancy)
     },
     {
       questionCode: MATERNAL_QUESTION_CODES.SMOKE_EXPOSURE,
-      selectedOptionCode: submittedValues.smokeExposureBeforePregnancy?.toLowerCase() || 'tidak'
+      selectedOptionCode: toOptionCode(submittedValues.smokeExposureBeforePregnancy)
     },
     {
       questionCode: MATERNAL_QUESTION_CODES.CONCERNING_ENVIRONMENT_NOTES,
@@ -285,18 +288,42 @@ export function buildMaternityIntakePayload(
     hasPreviousPregnancyHistory:
       submittedValues.hasPreviousPregnancyHistory === PREVIOUS_PREGNANCY_CHOICE.YES,
     hasContraceptionHistory: submittedValues.hasContraceptionHistory === CONTRACEPTION_CHOICE.YES,
-    smokedBeforePregnancy: submittedValues.smokedBeforePregnancy || null,
-    alcoholBeforePregnancy: submittedValues.alcoholBeforePregnancy === 'Ya',
-    irregularDietBeforePregnancy: submittedValues.irregularDietBeforePregnancy === 'Ya',
-    reducedPhysicalActivityBeforePregnancy:
-      submittedValues.reducedPhysicalActivityBeforePregnancy === 'Ya',
-    unprescribedMedicationBeforePregnancy:
-      submittedValues.unprescribedMedicationBeforePregnancy === 'Ya',
-    concerningCosmeticUseBeforePregnancy:
-      submittedValues.concerningCosmeticUseBeforePregnancy === 'Ya',
-    pesticideExposureBeforePregnancy: submittedValues.pesticideExposureBeforePregnancy === 'Ya',
-    chemicalExposureBeforePregnancy: submittedValues.chemicalExposureBeforePregnancy === 'Ya',
-    smokeExposureBeforePregnancy: submittedValues.smokeExposureBeforePregnancy === 'Ya',
+    smokedBeforePregnancy:
+      submittedValues.smokedBeforePregnancy === 'Ya'
+        ? 'Aktif'
+        : submittedValues.smokedBeforePregnancy || null,
+    alcoholBeforePregnancy: Boolean(
+      submittedValues.alcoholBeforePregnancy === true ||
+      submittedValues.alcoholBeforePregnancy === 'Ya'
+    ),
+    irregularDietBeforePregnancy: Boolean(
+      submittedValues.irregularDietBeforePregnancy === true ||
+      submittedValues.irregularDietBeforePregnancy === 'Ya'
+    ),
+    reducedPhysicalActivityBeforePregnancy: Boolean(
+      submittedValues.reducedPhysicalActivityBeforePregnancy === true ||
+      submittedValues.reducedPhysicalActivityBeforePregnancy === 'Ya'
+    ),
+    unprescribedMedicationBeforePregnancy: Boolean(
+      submittedValues.unprescribedMedicationBeforePregnancy === true ||
+      submittedValues.unprescribedMedicationBeforePregnancy === 'Ya'
+    ),
+    concerningCosmeticUseBeforePregnancy: Boolean(
+      submittedValues.concerningCosmeticUseBeforePregnancy === true ||
+      submittedValues.concerningCosmeticUseBeforePregnancy === 'Ya'
+    ),
+    pesticideExposureBeforePregnancy: Boolean(
+      submittedValues.pesticideExposureBeforePregnancy === true ||
+      submittedValues.pesticideExposureBeforePregnancy === 'Ya'
+    ),
+    chemicalExposureBeforePregnancy: Boolean(
+      submittedValues.chemicalExposureBeforePregnancy === true ||
+      submittedValues.chemicalExposureBeforePregnancy === 'Ya'
+    ),
+    smokeExposureBeforePregnancy: Boolean(
+      submittedValues.smokeExposureBeforePregnancy === true ||
+      submittedValues.smokeExposureBeforePregnancy === 'Ya'
+    ),
     concerningEnvironmentNotes: submittedValues.concerningEnvironmentNotes || null,
     allergyInfo: submittedValues.allergyInfo || null,
     otherNotes: submittedValues.otherNotes || null,

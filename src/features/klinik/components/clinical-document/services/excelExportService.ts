@@ -282,22 +282,28 @@ export async function exportPmbExcel(
     ],
     ['Usia Kehamilan (UK)', prompts[2] || '-', 'Keluhan Saat Ini', prompts[3] || '-'],
     [
-      'Merokok Sebelum Hamil',
-      risk['Merokok'] ? 'Ya' : 'Tidak',
+      'Merokok (Aktif)',
+      risk['Merokok (Aktif)'] ? 'Ya' : 'Tidak',
+      'Perokok Pasif',
+      risk['Perokok Pasif'] ? 'Ya' : 'Tidak'
+    ],
+    [
       'Pola Makan Berisiko',
-      risk['Pola Makan Beresiko'] ? 'Ya' : 'Tidak'
-    ],
-    [
+      risk['Pola Makan Beresiko'] ? 'Ya' : 'Tidak',
       'Aktivitas Fisik Berkurang',
-      risk['Aktivitas fisik berkurang'] ? 'Ya' : 'Tidak',
-      'Alkohol',
-      risk['Alkohol'] ? 'Ya' : 'Tidak'
+      risk['Aktivitas fisik berkurang'] ? 'Ya' : 'Tidak'
     ],
     [
+      'Alkohol',
+      risk['Alkohol'] ? 'Ya' : 'Tidak',
       'Obat Teratogenik',
-      risk['Obat Teratogenik'] ? 'Ya' : 'Tidak',
+      risk['Obat Teratogenik'] ? 'Ya' : 'Tidak'
+    ],
+    [
       'Kosmetik Berbahaya',
-      risk['Kosmetik dengan zat berbahaya'] ? 'Ya' : 'Tidak'
+      risk['Kosmetik dengan zat berbahaya'] ? 'Ya' : 'Tidak',
+      'Lingkungan Berisiko',
+      data?.anamnesa?.environment || '-'
     ]
   ];
 

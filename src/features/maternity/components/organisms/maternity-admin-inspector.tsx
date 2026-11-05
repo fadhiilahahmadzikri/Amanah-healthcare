@@ -801,7 +801,7 @@ export function MaternityAdminInspector({
                     label='Riwayat Merokok'
                     value={intake?.smokedBeforePregnancy || ''}
                     onChange={(val) => onIntakeFieldChange('smokedBeforePregnancy', val)}
-                    options={['Tidak', 'Pasif', 'Ya']}
+                    options={['Tidak', 'Pasif', 'Aktif']}
                   />
 
                   <PatientLineInput
@@ -817,13 +817,68 @@ export function MaternityAdminInspector({
                   <label className='flex items-center gap-2 cursor-pointer select-none'>
                     <input
                       type='checkbox'
+                      checked={Boolean(intake?.irregularDietBeforePregnancy)}
+                      onChange={(e) =>
+                        onIntakeFieldChange('irregularDietBeforePregnancy', e.target.checked)
+                      }
+                      className='rounded border-border text-primary size-4'
+                    />
+                    <span>Pola makan berisiko (tidak teratur / tinggi gula & lemak)</span>
+                  </label>
+                  <label className='flex items-center gap-2 cursor-pointer select-none'>
+                    <input
+                      type='checkbox'
+                      checked={Boolean(intake?.reducedPhysicalActivityBeforePregnancy)}
+                      onChange={(e) =>
+                        onIntakeFieldChange('reducedPhysicalActivityBeforePregnancy', e.target.checked)
+                      }
+                      className='rounded border-border text-primary size-4'
+                    />
+                    <span>Aktivitas fisik berkurang drastis</span>
+                  </label>
+                  <label className='flex items-center gap-2 cursor-pointer select-none'>
+                    <input
+                      type='checkbox'
+                      checked={Boolean(intake?.unprescribedMedicationBeforePregnancy)}
+                      onChange={(e) =>
+                        onIntakeFieldChange('unprescribedMedicationBeforePregnancy', e.target.checked)
+                      }
+                      className='rounded border-border text-primary size-4'
+                    />
+                    <span>Konsumsi obat tanpa resep (teratogenik)</span>
+                  </label>
+                  <label className='flex items-center gap-2 cursor-pointer select-none'>
+                    <input
+                      type='checkbox'
+                      checked={Boolean(intake?.concerningCosmeticUseBeforePregnancy)}
+                      onChange={(e) =>
+                        onIntakeFieldChange('concerningCosmeticUseBeforePregnancy', e.target.checked)
+                      }
+                      className='rounded border-border text-primary size-4'
+                    />
+                    <span>Penggunaan kosmetik zat berbahaya</span>
+                  </label>
+                  <label className='flex items-center gap-2 cursor-pointer select-none'>
+                    <input
+                      type='checkbox'
+                      checked={Boolean(intake?.alcoholBeforePregnancy)}
+                      onChange={(e) =>
+                        onIntakeFieldChange('alcoholBeforePregnancy', e.target.checked)
+                      }
+                      className='rounded border-border text-primary size-4'
+                    />
+                    <span>Konsumsi alkohol</span>
+                  </label>
+                  <label className='flex items-center gap-2 cursor-pointer select-none'>
+                    <input
+                      type='checkbox'
                       checked={Boolean(intake?.smokeExposureBeforePregnancy)}
                       onChange={(e) =>
                         onIntakeFieldChange('smokeExposureBeforePregnancy', e.target.checked)
                       }
                       className='rounded border-border text-primary size-4'
                     />
-                    <span>Sering terpapar asap rokok</span>
+                    <span>Sering terpapar asap rokok (Perokok Pasif)</span>
                   </label>
                   <label className='flex items-center gap-2 cursor-pointer select-none'>
                     <input
@@ -846,17 +901,6 @@ export function MaternityAdminInspector({
                       className='rounded border-border text-primary size-4'
                     />
                     <span>Terpapar zat kimia berbahaya</span>
-                  </label>
-                  <label className='flex items-center gap-2 cursor-pointer select-none'>
-                    <input
-                      type='checkbox'
-                      checked={Boolean(intake?.alcoholBeforePregnancy)}
-                      onChange={(e) =>
-                        onIntakeFieldChange('alcoholBeforePregnancy', e.target.checked)
-                      }
-                      className='rounded border-border text-primary size-4'
-                    />
-                    <span>Konsumsi alkohol</span>
                   </label>
                 </div>
 
@@ -886,6 +930,47 @@ export function MaternityAdminInspector({
                     value={intake?.allergyInfo || '-'}
                     readOnly
                   />
+                </div>
+                <div className='pt-1'>
+                  <span className='text-[11px] font-medium text-muted-foreground block mb-1.5'>
+                    Perilaku Berisiko Teridentifikasi:
+                  </span>
+                  <div className='flex flex-wrap gap-1.5'>
+                    {intake?.irregularDietBeforePregnancy && (
+                      <span className='text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/30'>Pola Makan Berisiko</span>
+                    )}
+                    {intake?.reducedPhysicalActivityBeforePregnancy && (
+                      <span className='text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/30'>Aktivitas Fisik Berkurang</span>
+                    )}
+                    {intake?.unprescribedMedicationBeforePregnancy && (
+                      <span className='text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/30'>Obat Tanpa Resep</span>
+                    )}
+                    {intake?.concerningCosmeticUseBeforePregnancy && (
+                      <span className='text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/30'>Kosmetik Berbahaya</span>
+                    )}
+                    {intake?.alcoholBeforePregnancy && (
+                      <span className='text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/30'>Alkohol</span>
+                    )}
+                    {intake?.smokeExposureBeforePregnancy && (
+                      <span className='text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/30'>Paparan Asap Rokok (Pasif)</span>
+                    )}
+                    {intake?.pesticideExposureBeforePregnancy && (
+                      <span className='text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/30'>Paparan Pestisida</span>
+                    )}
+                    {intake?.chemicalExposureBeforePregnancy && (
+                      <span className='text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/30'>Paparan Zat Kimia</span>
+                    )}
+                    {!intake?.irregularDietBeforePregnancy &&
+                      !intake?.reducedPhysicalActivityBeforePregnancy &&
+                      !intake?.unprescribedMedicationBeforePregnancy &&
+                      !intake?.concerningCosmeticUseBeforePregnancy &&
+                      !intake?.alcoholBeforePregnancy &&
+                      !intake?.smokeExposureBeforePregnancy &&
+                      !intake?.pesticideExposureBeforePregnancy &&
+                      !intake?.chemicalExposureBeforePregnancy && (
+                        <span className='text-[11px] text-muted-foreground italic'>Tidak ada perilaku berisiko terkonfirmasi</span>
+                      )}
+                  </div>
                 </div>
                 <PatientLineTextarea
                   id='view-notes'
