@@ -188,20 +188,6 @@ export function isMedicalSectionValid(
       return false;
     }
 
-    if (field.yearFieldId && (values[field.id] || '').trim() === 'Ya') {
-      const yearVal = (values[field.yearFieldId] || '').trim();
-      if (!yearVal) {
-        return false;
-      }
-    }
-
-    if (field.notesFieldId && (values[field.id] || '').trim() === 'Ya') {
-      const notesVal = (values[field.notesFieldId] || '').trim();
-      if (!notesVal) {
-        return false;
-      }
-    }
-
     return true;
   });
 }

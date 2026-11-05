@@ -98,6 +98,7 @@ export function optionalField(
       | 'disabled'
       | 'visibleIf'
       | 'format'
+      | 'allowCustomInput'
     >
   >
 ): MedicalFormField {
@@ -109,12 +110,14 @@ export function yesNoField(
   title: string,
   label: string,
   helpText = '',
-  yearFieldId?: string
+  yearFieldId?: string,
+  required = false
 ): MedicalFormField {
   return field(id, MULTIPLE_CHOICE, title, label, {
     helpText,
     choices: yesNoChoices,
-    yearFieldId
+    yearFieldId,
+    required
   });
 }
 
@@ -126,12 +129,14 @@ export function diseaseStatusFields(config: {
   notesTitle: string;
   notesLabel: string;
   statusHelpText?: string;
+  required?: boolean;
 }): MedicalFormField[] {
   return [
     field(config.statusId, MULTIPLE_CHOICE, config.statusTitle, config.statusLabel, {
       helpText: config.statusHelpText || '',
       choices: yesNoChoices,
-      yearFieldId: config.notesId
+      yearFieldId: config.notesId,
+      required: config.required ?? false
     }),
     optionalField(
       config.notesId,
@@ -150,7 +155,7 @@ export function previousPregnancyFields(order: number): MedicalFormField[] {
   const labelPrefix = `Riwayat ${order}`;
 
   return [
-    field(
+    optionalField(
       `${prefix}BirthYear`,
       TEXT,
       'Tahun lahir atau tahun berakhir',
@@ -161,17 +166,17 @@ export function previousPregnancyFields(order: number): MedicalFormField[] {
         colSpan: 1
       }
     ),
-    field(`${prefix}BirthWeight`, TEXT, 'Berat lahir bayi', `${labelPrefix} - berat lahir`, {
+    optionalField(`${prefix}BirthWeight`, TEXT, 'Berat lahir bayi', `${labelPrefix} - berat lahir`, {
       helpText: 'Berat lahir bayi saat lahir (dalam gram).',
       placeholder: '3100',
       colSpan: 1
     }),
-    field(`${prefix}BirthLength`, TEXT, 'Panjang lahir bayi', `${labelPrefix} - panjang lahir`, {
+    optionalField(`${prefix}BirthLength`, TEXT, 'Panjang lahir bayi', `${labelPrefix} - panjang lahir`, {
       helpText: 'Panjang badan bayi saat lahir (dalam cm).',
       placeholder: '49',
       colSpan: 1
     }),
-    field(
+    optionalField(
       `${prefix}ChildSex`,
       MULTIPLE_CHOICE,
       'Jenis kelamin bayi',
@@ -181,7 +186,7 @@ export function previousPregnancyFields(order: number): MedicalFormField[] {
         colSpan: 1
       }
     ),
-    field(
+    optionalField(
       `${prefix}GestationalAgeAtBirth`,
       TEXT,
       'Usia kehamilan saat lahir',
@@ -192,25 +197,25 @@ export function previousPregnancyFields(order: number): MedicalFormField[] {
         colSpan: 1
       }
     ),
-    field(`${prefix}BirthAttendant`, LIST, 'Ditolong oleh siapa?', `${labelPrefix} - penolong`, {
+    optionalField(`${prefix}BirthAttendant`, LIST, 'Ditolong oleh siapa?', `${labelPrefix} - penolong`, {
       helpText: 'Pilih penolong persalinan atau ketik sendiri.',
       choices: birthAttendantChoices,
       allowCustomInput: true,
       colSpan: 1
     }),
-    field(`${prefix}DeliveryMethod`, LIST, 'Cara persalinan', `${labelPrefix} - cara persalinan`, {
+    optionalField(`${prefix}DeliveryMethod`, LIST, 'Cara persalinan', `${labelPrefix} - cara persalinan`, {
       helpText: 'Pilih cara persalinan atau ketik sendiri.',
       choices: deliveryMethodChoices,
       allowCustomInput: true,
       colSpan: 1
     }),
-    field(`${prefix}DeliveryPlace`, LIST, 'Tempat persalinan', `${labelPrefix} - tempat`, {
+    optionalField(`${prefix}DeliveryPlace`, LIST, 'Tempat persalinan', `${labelPrefix} - tempat`, {
       helpText: 'Pilih tempat persalinan atau ketik sendiri.',
       choices: deliveryPlaceChoices,
       allowCustomInput: true,
       colSpan: 1
     }),
-    field(
+    optionalField(
       `${prefix}Complications`,
       PARAGRAPH,
       'Apakah ada komplikasi atau masalah?',
@@ -229,21 +234,21 @@ export function contraceptionFields(order: number): MedicalFormField[] {
   const labelPrefix = `KB ${order}`;
 
   return [
-    field(`${prefix}StartDate`, DATE, 'Kapan mulai dipakai?', `${labelPrefix} - tanggal mulai`, {
+    optionalField(`${prefix}StartDate`, DATE, 'Kapan mulai dipakai?', `${labelPrefix} - tanggal mulai`, {
       helpText: 'Pilih tanggal mulai menggunakan KB.',
       colSpan: 1
     }),
-    field(`${prefix}Type`, LIST, 'Jenis KB/kontrasepsi', `${labelPrefix} - jenis`, {
+    optionalField(`${prefix}Type`, LIST, 'Jenis KB/kontrasepsi', `${labelPrefix} - jenis`, {
       helpText: 'Pilih jenis KB atau ketik sendiri.',
       choices: contraceptiveTypeChoices,
       allowCustomInput: true,
       colSpan: 1
     }),
-    field(`${prefix}Duration`, TEXT, 'Berapa lama dipakai?', `${labelPrefix} - masa pakai`, {
+    optionalField(`${prefix}Duration`, TEXT, 'Berapa lama dipakai?', `${labelPrefix} - masa pakai`, {
       helpText: 'Contoh: 6 bulan atau 2 tahun.',
       colSpan: 1
     }),
-    field(
+    optionalField(
       `${prefix}StopDate`,
       DATE,
       'Kapan berhenti atau dilepas?',
@@ -253,7 +258,7 @@ export function contraceptionFields(order: number): MedicalFormField[] {
         colSpan: 1
       }
     ),
-    field(
+    optionalField(
       `${prefix}Problems`,
       PARAGRAPH,
       'Apakah ada masalah saat memakai KB?',
@@ -263,7 +268,7 @@ export function contraceptionFields(order: number): MedicalFormField[] {
         colSpan: 'full'
       }
     ),
-    field(
+    optionalField(
       `${prefix}SideEffects`,
       PARAGRAPH,
       'Apakah ada efek samping?',

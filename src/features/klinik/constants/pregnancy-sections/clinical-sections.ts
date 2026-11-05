@@ -7,7 +7,6 @@ import {
   TEXT,
   bloodTypeChoices,
   diseaseStatusFields,
-  field,
   optionalField,
   tetanusChoices,
   yesNoChoices,
@@ -17,35 +16,35 @@ import {
 export const baselineMeasurementsSection: MedicalFormSection = {
   id: 'baselineMeasurements',
   title: 'Boleh tahu ukuran tubuh kamu?',
-  description: 'Isi angka dari catatan buku KIA atau hasil pengukuran terkini.',
+  description: 'Isi angka dari catatan buku KIA atau hasil pengukuran terkini jika ada.',
   layout: 'grid',
   fields: [
-    field('heightCm', TEXT, 'Tinggi badan', 'TB', {
+    optionalField('heightCm', TEXT, 'Tinggi badan', 'TB', {
       helpText: 'Tinggi badan ibu hamil.',
       placeholder: '156',
       colSpan: 1
     }),
-    field('prePregnancyWeightKg', TEXT, 'Berat badan sebelum hamil', 'BB awal', {
+    optionalField('prePregnancyWeightKg', TEXT, 'Berat badan sebelum hamil', 'BB awal', {
       helpText: 'Berat badan sebelum atau awal hamil.',
       placeholder: '52',
       colSpan: 1
     }),
-    field('upperArmCircumferenceCm', TEXT, 'Lingkar lengan atas (LILA)', 'LILA', {
+    optionalField('upperArmCircumferenceCm', TEXT, 'Lingkar lengan atas (LILA)', 'LILA', {
       helpText: 'Ukuran lingkar lengan atas jika pernah diukur.',
       placeholder: '23.5',
       colSpan: 1
     }),
-    field('initialBmi', TEXT, 'IMT (Indeks Massa Tubuh)', 'IMT awal', {
+    optionalField('initialBmi', TEXT, 'IMT (Indeks Massa Tubuh)', 'IMT awal', {
       helpText: 'Otomatis terhitung dari Berat Badan (kg) / [Tinggi Badan (m) x Tinggi Badan (m)].',
       colSpan: 1
     }),
-    field('tetanusStatus', LIST, 'Status imunisasi tetanus yang diketahui', 'Status TT', {
+    optionalField('tetanusStatus', LIST, 'Status imunisasi tetanus yang diketahui', 'Status TT', {
       helpText:
         'TT/Td adalah imunisasi untuk membantu perlindungan dari tetanus. Pilih sesuai kartu atau catatan jika tahu.',
       choices: tetanusChoices,
       colSpan: 'full'
     }),
-    field('motherBloodType', LIST, 'Golongan darah', 'Gol. darah', {
+    optionalField('motherBloodType', LIST, 'Golongan darah', 'Gol. darah', {
       choices: bloodTypeChoices,
       colSpan: 1
     })
@@ -76,7 +75,7 @@ export const currentPregnancySection: MedicalFormSection = {
       colSpan: 1,
       disabled: true
     }),
-    field('currentComplaints', PARAGRAPH, 'Keluhan yang dirasakan sekarang', 'Keluhan', {
+    optionalField('currentComplaints', PARAGRAPH, 'Keluhan yang dirasakan sekarang', 'Keluhan', {
       helpText: 'Contoh: mual, pusing, cepat lelah, nyeri perut, atau tulis Tidak ada.',
       placeholder: 'Tuliskan keluhan yang dirasakan, atau tulis Tidak ada...',
       colSpan: 'full'
@@ -89,7 +88,7 @@ export const riskFactorsSmokingSection: MedicalFormSection = {
   title: 'Dalam 1 bulan sebelum hamil, apakah Anda merokok?',
   description: 'Termasuk rokok elektrik/vape jika digunakan.',
   fields: [
-    field('smokedBeforePregnancy', MULTIPLE_CHOICE, '', 'Merokok sebelum hamil', {
+    optionalField('smokedBeforePregnancy', MULTIPLE_CHOICE, '', 'Merokok sebelum hamil', {
       choices: ['Aktif', 'Pasif', 'Tidak']
     })
   ]
@@ -159,13 +158,13 @@ export const riskFactorsNotesSection: MedicalFormSection = {
         helpText: 'Jika tidak ada, tulis Tidak ada atau kosongkan.'
       }
     ),
-    field(
+    optionalField(
       'allergyInfo',
       PARAGRAPH,
       'Apakah Anda punya alergi obat, makanan, atau hal lain?',
       'Alergi dari pasien',
       {
-        helpText: 'Contoh: alergi amoxicillin, seafood, atau debu. Jika tidak ada, tulis Tidak ada.'
+        helpText: 'Contoh: alergi amoxicillin, seafood, atau debu. Jika tidak ada, tulis Tidak ada atau kosongkan.'
       }
     ),
     optionalField(
@@ -291,7 +290,7 @@ export const diseaseHistorySection: MedicalFormSection = {
       notesTitle: 'Catatan operasi',
       notesLabel: 'Operasi - tahun/catatan'
     }),
-    field(
+    optionalField(
       'hasOtherDiseaseHistory',
       MULTIPLE_CHOICE,
       'Apakah Anda memiliki riwayat penyakit lain yang belum disebutkan di atas?',

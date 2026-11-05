@@ -149,9 +149,10 @@ export function PregnancyHistoryTable({
                   <TableCell className='px-3 py-2.5 text-xs font-mono'>
                     {isEditing ? (
                       <input
+                        maxLength={4}
                         value={item.birthYear || ''}
                         onChange={(e) =>
-                          handleFieldChange(index, 'birthYear', e.target.value)
+                          handleFieldChange(index, 'birthYear', e.target.value.slice(0, 4))
                         }
                         placeholder='2022'
                         className='h-7 w-full text-xs px-1 font-mono bg-transparent rounded-none border-0 border-b border-border/60 focus:outline-none focus:border-primary shadow-none'
@@ -166,14 +167,20 @@ export function PregnancyHistoryTable({
                         <div className='inline-flex items-center border-b border-border/60 focus-within:border-primary'>
                           <input
                             type='number'
+                            min={0}
+                            max={30000}
                             value={item.birthWeightGrams || ''}
-                            onChange={(e) =>
-                              handleFieldChange(
-                                index,
-                                'birthWeightGrams',
-                                Number(e.target.value) || undefined
-                              )
-                            }
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              if (raw === '') {
+                                handleFieldChange(index, 'birthWeightGrams', undefined);
+                                return;
+                              }
+                              const val = Number(raw);
+                              if (!Number.isFinite(val)) return;
+                              const clamped = Math.min(30000, Math.max(0, val));
+                              handleFieldChange(index, 'birthWeightGrams', clamped);
+                            }}
                             placeholder='3200'
                             className='h-7 text-xs px-1 w-14 bg-transparent rounded-none border-0 focus:outline-none shadow-none text-right font-mono'
                           />
@@ -185,14 +192,20 @@ export function PregnancyHistoryTable({
                         <div className='inline-flex items-center border-b border-border/60 focus-within:border-primary'>
                           <input
                             type='number'
+                            min={0}
+                            max={250}
                             value={item.birthLengthCm || ''}
-                            onChange={(e) =>
-                              handleFieldChange(
-                                index,
-                                'birthLengthCm',
-                                Number(e.target.value) || undefined
-                              )
-                            }
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              if (raw === '') {
+                                handleFieldChange(index, 'birthLengthCm', undefined);
+                                return;
+                              }
+                              const val = Number(raw);
+                              if (!Number.isFinite(val)) return;
+                              const clamped = Math.min(250, Math.max(0, val));
+                              handleFieldChange(index, 'birthLengthCm', clamped);
+                            }}
                             placeholder='49'
                             className='h-7 text-xs px-1 w-10 bg-transparent rounded-none border-0 focus:outline-none shadow-none text-right font-mono'
                           />
@@ -233,6 +246,8 @@ export function PregnancyHistoryTable({
                       <div className='inline-flex items-center w-full border-b border-border/60 focus-within:border-primary'>
                         <input
                           type='number'
+                          min={0}
+                          max={50}
                           value={
                             item.gestationalAgeAtBirth
                               ? item.gestationalAgeAtBirth.replace(/\D/g, '')
@@ -240,10 +255,11 @@ export function PregnancyHistoryTable({
                           }
                           onChange={(e) => {
                             const val = e.target.value.replace(/\D/g, '');
+                            const num = val ? Math.min(50, Number(val)) : '';
                             handleFieldChange(
                               index,
                               'gestationalAgeAtBirth',
-                              val ? `${val} mgg` : ''
+                              num ? `${num} mgg` : ''
                             );
                           }}
                           placeholder='38'
@@ -260,6 +276,7 @@ export function PregnancyHistoryTable({
                   <TableCell className='px-3 py-2.5 text-xs'>
                     {isEditing ? (
                       <input
+                        maxLength={128}
                         value={item.birthAttendant || ''}
                         onChange={(e) =>
                           handleFieldChange(index, 'birthAttendant', e.target.value)
@@ -274,6 +291,7 @@ export function PregnancyHistoryTable({
                   <TableCell className='px-3 py-2.5 text-xs'>
                     {isEditing ? (
                       <input
+                        maxLength={64}
                         value={item.deliveryMethod || ''}
                         onChange={(e) =>
                           handleFieldChange(index, 'deliveryMethod', e.target.value)
@@ -288,6 +306,7 @@ export function PregnancyHistoryTable({
                   <TableCell className='px-3 py-2.5 text-xs'>
                     {isEditing ? (
                       <input
+                        maxLength={128}
                         value={item.deliveryPlace || ''}
                         onChange={(e) =>
                           handleFieldChange(index, 'deliveryPlace', e.target.value)
@@ -302,6 +321,7 @@ export function PregnancyHistoryTable({
                   <TableCell className='px-3 py-2.5 text-xs'>
                     {isEditing ? (
                       <input
+                        maxLength={500}
                         value={item.complications || ''}
                         onChange={(e) =>
                           handleFieldChange(index, 'complications', e.target.value)

@@ -24,12 +24,12 @@ export const motherIdentitySection: MedicalFormSection = {
       colSpan: 1
     }),
     field('motherBirthDate', DATE, 'Tanggal lahir', 'Tanggal lahir', { colSpan: 'full' }),
-    field('motherAge', TEXT, 'Umur saat ini', 'Umur', {
+    optionalField('motherAge', TEXT, 'Umur saat ini', 'Umur', {
       helpText: 'Otomatis terhitung dari tanggal lahir.',
       colSpan: 1,
       disabled: true
     }),
-    field('marriageOrder', TEXT, 'Pernikahan ke berapa?', 'Pernikahan ke', {
+    optionalField('marriageOrder', TEXT, 'Pernikahan ke berapa?', 'Pernikahan ke', {
       helpText: 'Isi angka urutan pernikahan. Contoh: 1.',
       colSpan: 1
     }),
@@ -37,23 +37,23 @@ export const motherIdentitySection: MedicalFormSection = {
       helpText: 'Pilih tanggal menikah jika ingat. Kosongkan jika belum ingat.',
       colSpan: 'full'
     }),
-    field('motherJob', LIST, 'Pekerjaan', 'Pekerjaan', {
+    optionalField('motherJob', LIST, 'Pekerjaan', 'Pekerjaan', {
       choices: defaultOccupationChoices,
       colSpan: 1
     }),
-    field('motherEducation', LIST, 'Pendidikan terakhir', 'Pendidikan', {
+    optionalField('motherEducation', LIST, 'Pendidikan terakhir', 'Pendidikan', {
       choices: educationChoices,
       colSpan: 1
     }),
-    field('religion', LIST, 'Agama', 'Agama', {
+    optionalField('religion', LIST, 'Agama', 'Agama', {
       choices: religionChoices,
       colSpan: 1
     }),
     field('phoneNumber', TEXT, 'Nomor WhatsApp / telepon', 'No. telp', { colSpan: 1 }),
-    field('domicileAddress', PARAGRAPH, 'Alamat tempat tinggal sekarang', 'Domisili', {
+    optionalField('domicileAddress', PARAGRAPH, 'Alamat tempat tinggal sekarang', 'Domisili', {
       colSpan: 'full'
     }),
-    field('identityCardAddress', PARAGRAPH, 'Alamat sesuai KTP', 'Alamat KTP', {
+    optionalField('identityCardAddress', PARAGRAPH, 'Alamat sesuai KTP', 'Alamat KTP', {
       colSpan: 'full'
     })
   ]
@@ -62,18 +62,18 @@ export const motherIdentitySection: MedicalFormSection = {
 export const domicileHealthCoverageSection: MedicalFormSection = {
   id: 'domicileHealthCoverage',
   title: 'Di mana kamu tinggal dan faskes terdekat?',
-  description: 'Isi data kelompok Dasawisma, Posyandu, dan Puskesmas wilayah domisili.',
+  description: 'Isi data kelompok Dasawisma, Posyandu, dan Puskesmas wilayah domisili jika diketahui.',
   layout: 'grid',
   fields: [
-    field('dasawisma', TEXT, 'Nama Dasawisma', 'Dasawisma', {
+    optionalField('dasawisma', TEXT, 'Nama Dasawisma', 'Dasawisma', {
       helpText: 'Isi nama kelompok Dasawisma jika terdaftar.',
       colSpan: 1
     }),
-    field('posyandu', TEXT, 'Nama Posyandu', 'Posyandu', {
+    optionalField('posyandu', TEXT, 'Nama Posyandu', 'Posyandu', {
       helpText: 'Isi nama Posyandu wilayah domisili.',
       colSpan: 1
     }),
-    field('puskesmas', TEXT, 'Nama Puskesmas wilayah domisili', 'Puskesmas', {
+    optionalField('puskesmas', TEXT, 'Nama Puskesmas wilayah domisili', 'Puskesmas', {
       helpText: 'Isi nama Puskesmas wilayah domisili.',
       colSpan: 'full'
     })
@@ -83,31 +83,31 @@ export const domicileHealthCoverageSection: MedicalFormSection = {
 export const partnerIdentitySection: MedicalFormSection = {
   id: 'partnerIdentity',
   title: 'Boleh kenal lebih jauh dengan suami kamu?',
-  description: 'Isi sesuai data suami yang diketahui.',
+  description: 'Isi sesuai data suami yang diketahui jika ada.',
   layout: 'grid',
   fields: [
-    field('partnerName', TEXT, 'Nama lengkap suami', 'Nama suami', { colSpan: 1 }),
-    field('partnerNik', TEXT, 'NIK suami', 'NIK suami', {
-      helpText: 'Isi 16 digit angka sesuai KTP atau KK pasangan.',
+    optionalField('partnerName', TEXT, 'Nama lengkap suami', 'Nama suami', { colSpan: 1 }),
+    optionalField('partnerNik', TEXT, 'NIK suami', 'NIK suami', {
+      helpText: 'Isi 16 digit angka sesuai KTP atau KK pasangan jika ada.',
       colSpan: 1
     }),
     optionalField('partnerBirthDate', DATE, 'Tanggal lahir suami', 'Tanggal lahir suami', {
       helpText: 'Pilih tanggal lahir suami jika diketahui.',
       colSpan: 'full'
     }),
-    field('partnerAge', TEXT, 'Umur suami saat ini', 'Umur suami', {
+    optionalField('partnerAge', TEXT, 'Umur suami saat ini', 'Umur suami', {
       helpText: 'Contoh: 31 tahun. Boleh isi perkiraan jika usia pasti belum diketahui.',
       colSpan: 1
     }),
-    field('partnerJob', LIST, 'Pekerjaan suami', 'Pekerjaan suami', {
+    optionalField('partnerJob', LIST, 'Pekerjaan suami', 'Pekerjaan suami', {
       choices: defaultOccupationChoices,
       colSpan: 1
     }),
-    field('partnerEducation', LIST, 'Pendidikan terakhir suami', 'Pendidikan suami', {
+    optionalField('partnerEducation', LIST, 'Pendidikan terakhir suami', 'Pendidikan suami', {
       choices: educationChoices,
       colSpan: 1
     }),
-    field('partnerBloodType', LIST, 'Golongan darah suami', 'Gol. darah suami', {
+    optionalField('partnerBloodType', LIST, 'Golongan darah suami', 'Gol. darah suami', {
       choices: bloodTypeChoices,
       colSpan: 1
     })

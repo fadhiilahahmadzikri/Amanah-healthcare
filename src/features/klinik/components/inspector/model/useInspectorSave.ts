@@ -143,29 +143,33 @@ export function useInspectorSave({
         phoneNumber: formData.partnerPhone || undefined
       },
 
-      heightCm: formData.heightCm ? Number(formData.heightCm) : undefined,
+      heightCm: formData.heightCm
+        ? Math.min(300, Math.max(0, Number(formData.heightCm)))
+        : undefined,
       prePregnancyWeightKg: formData.prePregnancyWeightKg
-        ? Number(formData.prePregnancyWeightKg)
+        ? Math.min(500, Math.max(0, Number(formData.prePregnancyWeightKg)))
         : undefined,
       upperArmCircumferenceCm: formData.upperArmCircumferenceCm
-        ? Number(formData.upperArmCircumferenceCm)
+        ? Math.min(150, Math.max(0, Number(formData.upperArmCircumferenceCm)))
         : undefined,
-      initialBmi: formData.initialBmi ? Number(formData.initialBmi) : undefined,
+      initialBmi: formData.initialBmi
+        ? Math.min(150, Math.max(0, Number(formData.initialBmi)))
+        : undefined,
       tetanusStatus: formData.tetanusStatus || undefined,
       motherBloodType: formData.motherBloodType || undefined,
 
       hpht: formData.hpht || undefined,
       estimatedDueDate: formData.estimatedDueDate || undefined,
       gestationalAgeWeeks: formData.gestationalAgeWeeks
-        ? Number(formData.gestationalAgeWeeks)
+        ? Math.min(60, Math.max(0, Number(formData.gestationalAgeWeeks)))
         : undefined,
       gestationalAgeFormatted: formData.gestationalAgeFormatted || undefined,
       currentComplaints: formData.currentComplaints || undefined,
 
-      gravidaCount: Number(formData.gravidaCount) || 1,
-      parityCount: Number(formData.parityCount) || 0,
-      abortionCount: Number(formData.abortionCount) || 0,
-      livingChildrenCount: Number(formData.livingChildrenCount) || 0,
+      gravidaCount: Math.min(50, Math.max(1, Number(formData.gravidaCount) || 1)),
+      parityCount: Math.min(50, Math.max(0, Number(formData.parityCount) || 0)),
+      abortionCount: Math.min(50, Math.max(0, Number(formData.abortionCount) || 0)),
+      livingChildrenCount: Math.min(50, Math.max(0, Number(formData.livingChildrenCount) || 0)),
       hasPreviousPregnancyHistory: Boolean(formData.hasPreviousPregnancyHistory),
       hasContraceptionHistory: Boolean(formData.hasContraceptionHistory),
 
@@ -185,9 +189,19 @@ export function useInspectorSave({
 
       previousPregnancies: formData.previousPregnancies.map((p, idx) => ({
         orderNumber: p.orderNumber || idx + 1,
-        birthYear: p.birthYear || undefined,
-        birthWeightGrams: p.birthWeightGrams ? Number(p.birthWeightGrams) : undefined,
-        birthLengthCm: p.birthLengthCm ? Number(p.birthLengthCm) : undefined,
+        birthYear: p.birthYear ? String(p.birthYear).trim() : undefined,
+        birthWeightGrams:
+          p.birthWeightGrams !== undefined &&
+          p.birthWeightGrams !== null &&
+          p.birthWeightGrams !== ('' as any)
+            ? Math.min(30000, Math.max(0, Number(p.birthWeightGrams)))
+            : undefined,
+        birthLengthCm:
+          p.birthLengthCm !== undefined &&
+          p.birthLengthCm !== null &&
+          p.birthLengthCm !== ('' as any)
+            ? Math.min(250, Math.max(0, Number(p.birthLengthCm)))
+            : undefined,
         childSex: p.childSex || undefined,
         gestationalAgeAtBirth: p.gestationalAgeAtBirth || undefined,
         birthAttendant: p.birthAttendant || undefined,
@@ -259,23 +273,23 @@ export function useInspectorSave({
       runnyNose: e.runnyNose || null,
       weightKg:
         e.weightKg !== undefined && e.weightKg !== null && e.weightKg !== ''
-          ? Number(e.weightKg)
+          ? Math.min(150, Math.max(0.5, Number(e.weightKg)))
           : null,
       heightCm:
         e.heightCm !== undefined && e.heightCm !== null && e.heightCm !== ''
-          ? Number(e.heightCm)
+          ? Math.min(250, Math.max(20, Number(e.heightCm)))
           : null,
       headCircumferenceCm:
         e.headCircumferenceCm !== undefined &&
         e.headCircumferenceCm !== null &&
         e.headCircumferenceCm !== ''
-          ? Number(e.headCircumferenceCm)
+          ? Math.min(100, Math.max(10, Number(e.headCircumferenceCm)))
           : null,
       temperatureCelsius:
         e.temperatureCelsius !== undefined &&
         e.temperatureCelsius !== null &&
         e.temperatureCelsius !== ''
-          ? Number(e.temperatureCelsius)
+          ? Math.min(45, Math.max(30, Number(e.temperatureCelsius)))
           : null,
       planning: e.planning || null,
       notes: e.notes || null

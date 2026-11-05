@@ -149,6 +149,7 @@ export function ContraceptiveHistoryTable({
                   <TableCell className='px-3 py-2.5 text-xs font-medium'>
                     {isEditing ? (
                       <input
+                        maxLength={64}
                         value={item.contraceptiveType || ''}
                         onChange={(e) =>
                           handleFieldChange(
@@ -167,6 +168,7 @@ export function ContraceptiveHistoryTable({
                   <TableCell className='px-3 py-2.5 text-xs'>
                     {isEditing ? (
                       <input
+                        maxLength={64}
                         value={item.durationText || ''}
                         onChange={(e) =>
                           handleFieldChange(index, 'durationText', e.target.value)
