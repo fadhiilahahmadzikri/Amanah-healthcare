@@ -76,20 +76,12 @@ export function getUserColumns(): ColumnDef<UserItem>[] {
       header: ({ column }) => <DataTableColumnHeader column={column} title='Nama Pengguna' />,
       cell: ({ row }) => {
         const u = row.original;
-        const initials = u.name
-          .split(' ')
-          .map((n) => n[0])
-          .slice(0, 2)
-          .join('')
-          .toUpperCase();
 
         return (
           <div className='flex items-center gap-2.5 py-1'>
-            <Avatar className='size-8 border border-border/50 shrink-0'>
+            <Avatar className='size-8 rounded-lg border border-border/50 shrink-0'>
               {u.avatarUrl && <AvatarImage src={u.avatarUrl} alt={u.name} />}
-              <AvatarFallback className='text-xs font-semibold bg-primary/10 text-primary'>
-                {initials}
-              </AvatarFallback>
+              <AvatarFallback />
             </Avatar>
             <span className='font-semibold text-xs sm:text-sm text-foreground truncate'>
               {u.name}

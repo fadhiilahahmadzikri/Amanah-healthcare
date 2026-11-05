@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,6 @@ import { AppointmentStatusPill } from '@/features/klinik/components/appointment-
 import { AppointmentDetailOrganism } from '@/features/klinik/components/appointment-card/organisms/appointment-detail-organism';
 import { adminAppointmentToAppointment } from '@/features/appointment-pasien/api/mapper';
 import { appointmentDetailQueryOptions } from '@/features/appointment-pasien/api/queries';
-import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { formatClinicDate } from '@/lib/date-format';
 import { INDONESIAN_MONTH_NAMES } from '@/components/ui/custom-month-picker';
 import { cn } from '@/lib/utils';
@@ -152,21 +150,14 @@ export function PatientHistoryGridModal({
           <div className='flex items-center justify-between gap-3 pb-3.5 border-b border-border/40 shrink-0'>
             <div className='flex items-center gap-3.5 min-w-0 flex-1'>
               <Avatar className='size-12 rounded-xl shrink-0 border border-border/40 overflow-hidden ring-1 ring-border/30'>
-                <AvatarImage
-                  src={patient.avatarUrl || DEFAULT_AVATAR_PATH}
-                  alt={fullName}
-                  className='size-full object-cover'
-                />
-                <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
-                  <Image
-                    src={patient.avatarUrl || DEFAULT_AVATAR_PATH}
+                {patient.avatarUrl && (
+                  <AvatarImage
+                    src={patient.avatarUrl}
                     alt={fullName}
-                    width={48}
-                    height={48}
-                    unoptimized
-                    className='size-full object-cover rounded-xl'
+                    className='size-full object-cover'
                   />
-                </AvatarFallback>
+                )}
+                <AvatarFallback />
               </Avatar>
 
               <div className='flex flex-col min-w-0 flex-1'>

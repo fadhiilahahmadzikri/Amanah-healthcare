@@ -9,11 +9,11 @@ export const clinicEssentialsKeys = {
   forms: () => [...clinicEssentialsKeys.all, 'forms'] as const,
   relationships: () => [...clinicEssentialsKeys.all, 'relationships'] as const,
   bloodTypes: (params?: { search?: string; status?: string }) =>
-    [...clinicEssentialsKeys.all, 'blood-types', params] as const,
+    params ? ([...clinicEssentialsKeys.all, 'blood-types', params] as const) : ([...clinicEssentialsKeys.all, 'blood-types'] as const),
   educationLevels: (params?: { search?: string; status?: string }) =>
-    [...clinicEssentialsKeys.all, 'education-levels', params] as const,
+    params ? ([...clinicEssentialsKeys.all, 'education-levels', params] as const) : ([...clinicEssentialsKeys.all, 'education-levels'] as const),
   religions: (params?: { search?: string; status?: string }) =>
-    [...clinicEssentialsKeys.all, 'religions', params] as const,
+    params ? ([...clinicEssentialsKeys.all, 'religions', params] as const) : ([...clinicEssentialsKeys.all, 'religions'] as const),
   occupations: (params?: { search?: string; status?: string }) =>
-    [...clinicEssentialsKeys.all, 'occupations', params] as const
+    params ? ([...clinicEssentialsKeys.all, 'occupations', params] as const) : ([...clinicEssentialsKeys.all, 'occupations'] as const)
 };

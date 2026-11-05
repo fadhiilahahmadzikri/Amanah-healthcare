@@ -87,18 +87,30 @@ export function ClinicEssentialsView() {
     services,
     forms,
     relationships,
+    bloodTypes,
+    educationLevels,
+    religions,
+    occupations,
     isLoadingUnitTypes,
     isLoadingUnits,
     isLoadingRooms,
     isLoadingCategories,
     isLoadingServices,
     isLoadingRelationships,
+    isLoadingBloodTypes,
+    isLoadingEducationLevels,
+    isLoadingReligions,
+    isLoadingOccupations,
     filteredUnitTypes,
     filteredUnits,
     filteredRooms,
     filteredCategories,
     filteredServices,
     filteredRelationships,
+    filteredBloodTypes,
+    filteredEducationLevels,
+    filteredReligions,
+    filteredOccupations,
     isUnitsLocked,
     isRoomsLocked,
     isCategoriesLocked,
@@ -130,6 +142,14 @@ export function ClinicEssentialsView() {
         return filteredServices;
       case 'relationships':
         return filteredRelationships;
+      case 'blood-types':
+        return filteredBloodTypes;
+      case 'education-levels':
+        return filteredEducationLevels;
+      case 'religions':
+        return filteredReligions;
+      case 'occupations':
+        return filteredOccupations;
       default:
         return [];
     }
@@ -141,6 +161,10 @@ export function ClinicEssentialsView() {
     filteredCategories,
     filteredServices,
     filteredRelationships,
+    filteredBloodTypes,
+    filteredEducationLevels,
+    filteredReligions,
+    filteredOccupations,
   ]);
 
   // Orchestrated Bulk Actions Hook
@@ -552,6 +576,19 @@ export function ClinicEssentialsView() {
               searchQuery={searchQuery}
               statusFilter={statusFilter}
               cardGridClassName={cardGridClassName}
+              items={filteredBloodTypes}
+              isLoading={isLoadingBloodTypes}
+              selectedIds={selectedIds}
+              isBulkingActive={selectedIds.length > 0}
+              onToggleSelect={handleToggleSelect}
+              onToggleActive={(id, newActive) =>
+                toggleActiveMutation.mutate({ resource: 'blood-types', id, isActive: newActive })
+              }
+              isTogglingActiveId={
+                toggleActiveMutation.variables?.resource === 'blood-types'
+                  ? toggleActiveMutation.variables.id
+                  : null
+              }
               onOpenCreate={() =>
                 setDemographicModal({
                   open: true,
@@ -567,6 +604,9 @@ export function ClinicEssentialsView() {
                   label: 'Golongan Darah',
                   editItem: item,
                 })
+              }
+              onDelete={(item) =>
+                setDeletingItem({ type: 'blood-types', id: item.id, name: item.name })
               }
             />
           </TabsContent>
@@ -581,6 +621,19 @@ export function ClinicEssentialsView() {
               searchQuery={searchQuery}
               statusFilter={statusFilter}
               cardGridClassName={cardGridClassName}
+              items={filteredEducationLevels}
+              isLoading={isLoadingEducationLevels}
+              selectedIds={selectedIds}
+              isBulkingActive={selectedIds.length > 0}
+              onToggleSelect={handleToggleSelect}
+              onToggleActive={(id, newActive) =>
+                toggleActiveMutation.mutate({ resource: 'education-levels', id, isActive: newActive })
+              }
+              isTogglingActiveId={
+                toggleActiveMutation.variables?.resource === 'education-levels'
+                  ? toggleActiveMutation.variables.id
+                  : null
+              }
               onOpenCreate={() =>
                 setDemographicModal({
                   open: true,
@@ -596,6 +649,9 @@ export function ClinicEssentialsView() {
                   label: 'Pendidikan',
                   editItem: item,
                 })
+              }
+              onDelete={(item) =>
+                setDeletingItem({ type: 'education-levels', id: item.id, name: item.name })
               }
             />
           </TabsContent>
@@ -610,6 +666,19 @@ export function ClinicEssentialsView() {
               searchQuery={searchQuery}
               statusFilter={statusFilter}
               cardGridClassName={cardGridClassName}
+              items={filteredReligions}
+              isLoading={isLoadingReligions}
+              selectedIds={selectedIds}
+              isBulkingActive={selectedIds.length > 0}
+              onToggleSelect={handleToggleSelect}
+              onToggleActive={(id, newActive) =>
+                toggleActiveMutation.mutate({ resource: 'religions', id, isActive: newActive })
+              }
+              isTogglingActiveId={
+                toggleActiveMutation.variables?.resource === 'religions'
+                  ? toggleActiveMutation.variables.id
+                  : null
+              }
               onOpenCreate={() =>
                 setDemographicModal({
                   open: true,
@@ -625,6 +694,9 @@ export function ClinicEssentialsView() {
                   label: 'Agama',
                   editItem: item,
                 })
+              }
+              onDelete={(item) =>
+                setDeletingItem({ type: 'religions', id: item.id, name: item.name })
               }
             />
           </TabsContent>
@@ -639,6 +711,19 @@ export function ClinicEssentialsView() {
               searchQuery={searchQuery}
               statusFilter={statusFilter}
               cardGridClassName={cardGridClassName}
+              items={filteredOccupations}
+              isLoading={isLoadingOccupations}
+              selectedIds={selectedIds}
+              isBulkingActive={selectedIds.length > 0}
+              onToggleSelect={handleToggleSelect}
+              onToggleActive={(id, newActive) =>
+                toggleActiveMutation.mutate({ resource: 'occupations', id, isActive: newActive })
+              }
+              isTogglingActiveId={
+                toggleActiveMutation.variables?.resource === 'occupations'
+                  ? toggleActiveMutation.variables.id
+                  : null
+              }
               onOpenCreate={() =>
                 setDemographicModal({
                   open: true,
@@ -654,6 +739,9 @@ export function ClinicEssentialsView() {
                   label: 'Pekerjaan',
                   editItem: item,
                 })
+              }
+              onDelete={(item) =>
+                setDeletingItem({ type: 'occupations', id: item.id, name: item.name })
               }
             />
           </TabsContent>

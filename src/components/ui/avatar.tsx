@@ -39,8 +39,8 @@ function AvatarFallback({
   children,
   ...props
 }: React.ComponentProps<typeof AvatarPrimitive.Fallback>) {
-  // If children is empty or is a text string (e.g. initials 'JD', 'AS'), use disk asset SSOT
-  const shouldRenderDefaultAsset = !children || typeof children === 'string';
+  // If children is not provided, use default disk asset SSOT
+  const shouldRenderDefaultAsset = !children;
 
   return (
     <AvatarPrimitive.Fallback

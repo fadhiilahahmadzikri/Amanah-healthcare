@@ -1,11 +1,9 @@
 'use client';
 
-import Image from 'next/image';
 import { Column, ColumnDef } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { APPOINTMENT_STATUS_OPTIONS } from '../../constants/appointment-status.dictionary';
@@ -93,25 +91,17 @@ export function getAppointmentColumns(
       ),
       cell: ({ row }) => {
         const appt = row.original;
-        const avatar = appt.avatarUrl || DEFAULT_AVATAR_PATH;
         return (
           <div className='flex items-center gap-3'>
             <Avatar className='h-8 w-8 rounded-lg shrink-0'>
-              <AvatarImage
-                src={avatar}
-                alt={appt.patientName}
-                className='rounded-lg object-cover'
-              />
-              <AvatarFallback className='rounded-lg p-0 bg-transparent overflow-hidden'>
-                <Image
-                  src={DEFAULT_AVATAR_PATH}
+              {appt.avatarUrl && (
+                <AvatarImage
+                  src={appt.avatarUrl}
                   alt={appt.patientName}
-                  width={32}
-                  height={32}
-                  unoptimized
-                  className='size-full rounded-lg object-cover'
+                  className='rounded-lg object-cover'
                 />
-              </AvatarFallback>
+              )}
+              <AvatarFallback />
             </Avatar>
             <div className='flex flex-col'>
               <div className='flex items-center gap-1.5'>

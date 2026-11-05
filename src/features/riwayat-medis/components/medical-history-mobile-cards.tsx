@@ -1,14 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import Image from 'next/image';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { formatClinicDate } from '@/lib/date-format';
 import type { Patient } from '@/features/data-pasien/api/types';
 import {
@@ -118,23 +116,16 @@ export function MedicalHistoryMobileCards({
               {/* Header: Avatar + Nama + Status Profil */}
               <div className='flex items-start justify-between gap-2.5 min-w-0'>
                 <div className='flex items-center gap-3 min-w-0 flex-1'>
-                  <div className='size-11 rounded-full overflow-hidden shrink-0 ring-1 ring-border/50 bg-muted aspect-square shadow-2xs flex items-center justify-center'>
-                    <Avatar className='h-full w-full overflow-hidden'>
-                      <AvatarImage
-                        src={patient.avatarUrl || DEFAULT_AVATAR_PATH}
-                        alt={patient.name}
-                        className='size-full object-cover'
-                      />
-                      <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
-                        <Image
-                          src={DEFAULT_AVATAR_PATH}
+                  <div className='size-11 rounded-lg overflow-hidden shrink-0 ring-1 ring-border/50 bg-muted aspect-square shadow-2xs flex items-center justify-center'>
+                    <Avatar className='h-full w-full rounded-lg overflow-hidden'>
+                      {patient.avatarUrl && (
+                        <AvatarImage
+                          src={patient.avatarUrl}
                           alt={patient.name}
-                          width={44}
-                          height={44}
-                          unoptimized
                           className='size-full object-cover'
                         />
-                      </AvatarFallback>
+                      )}
+                      <AvatarFallback />
                     </Avatar>
                   </div>
 
@@ -275,20 +266,13 @@ export function MedicalHistoryMobileCards({
                       <div className='flex items-center justify-between gap-2'>
                         <div className='flex items-center gap-2.5 min-w-0 flex-1'>
                           <Avatar className='size-8 rounded-lg shrink-0 border border-border/40'>
-                            <AvatarImage
-                              src={aff.avatarUrl || DEFAULT_AVATAR_PATH}
-                              alt={aff.name}
-                            />
-                            <AvatarFallback className='p-0 bg-transparent'>
-                              <Image
-                                src={DEFAULT_AVATAR_PATH}
+                            {aff.avatarUrl && (
+                              <AvatarImage
+                                src={aff.avatarUrl}
                                 alt={aff.name}
-                                width={32}
-                                height={32}
-                                unoptimized
-                                className='size-full object-cover'
                               />
-                            </AvatarFallback>
+                            )}
+                            <AvatarFallback />
                           </Avatar>
                           <div className='min-w-0 flex-1'>
                             <span className='text-xs font-bold text-foreground truncate block'>

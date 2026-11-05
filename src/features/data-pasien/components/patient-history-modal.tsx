@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,6 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
-import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { formatClinicDate, formatClinicTime } from '@/lib/date-format';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { BookedPatientKiaIntake } from '@/features/jadwal-dokter/components/booked-patient-kia-intake';
@@ -51,21 +49,14 @@ export function PatientHistoryModal({ isOpen, patient, onClose }: PatientHistory
         <div className='flex items-start justify-between gap-4 pb-3.5 border-b border-border/40'>
           <div className='flex items-center gap-3.5 min-w-0 flex-1'>
             <Avatar className='size-12 rounded-xl shrink-0 border border-border/40 overflow-hidden'>
-              <AvatarImage
-                src={patient.avatarUrl || DEFAULT_AVATAR_PATH}
-                alt={patient.name}
-                className='size-full object-cover aspect-square'
-              />
-              <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
-                <Image
-                  src={DEFAULT_AVATAR_PATH}
+              {patient.avatarUrl && (
+                <AvatarImage
+                  src={patient.avatarUrl}
                   alt={patient.name}
-                  width={48}
-                  height={48}
-                  unoptimized
-                  className='size-full object-cover rounded-xl aspect-square'
+                  className='size-full object-cover aspect-square'
                 />
-              </AvatarFallback>
+              )}
+              <AvatarFallback />
             </Avatar>
 
             <div className='flex flex-col min-w-0 flex-1'>

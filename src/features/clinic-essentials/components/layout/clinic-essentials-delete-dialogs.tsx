@@ -54,7 +54,10 @@ export function ClinicEssentialsDeleteDialogs({
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isSingleDeletePending}>Batal</AlertDialogCancel>
             <AlertDialogAction
-              onClick={onConfirmSingleDelete}
+              onClick={(e) => {
+                e.preventDefault();
+                onConfirmSingleDelete();
+              }}
               disabled={isSingleDeletePending}
               className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
             >
@@ -80,7 +83,10 @@ export function ClinicEssentialsDeleteDialogs({
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isBulkDeletePending}>Batal</AlertDialogCancel>
             <AlertDialogAction
-              onClick={onConfirmBulkDelete}
+              onClick={(e) => {
+                e.preventDefault();
+                onConfirmBulkDelete();
+              }}
               disabled={isBulkDeletePending}
               className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
             >

@@ -45,7 +45,7 @@ export function DemographicMasterDialog({
 
   const [name, setName] = React.useState('');
   const [description, setDescription] = React.useState('');
-  const [displayOrder, setDisplayOrder] = React.useState<number>(1);
+  const [displayOrder, setDisplayOrder] = React.useState<number | ''>('');
   const [isActive, setIsActive] = React.useState(true);
 
   const isEditing = Boolean(editItem);
@@ -54,12 +54,12 @@ export function DemographicMasterDialog({
     if (editItem) {
       setName(editItem.name);
       setDescription(editItem.description || '');
-      setDisplayOrder(editItem.displayOrder ?? 1);
+      setDisplayOrder(editItem.displayOrder ?? '');
       setIsActive(editItem.isActive !== false);
     } else {
       setName('');
       setDescription('');
-      setDisplayOrder(1);
+      setDisplayOrder('');
       setIsActive(true);
     }
   }, [editItem, open]);
@@ -93,6 +93,8 @@ export function DemographicMasterDialog({
     onSuccess: (data) => {
       toast.success(`${resourceLabel} '${data.name}' berhasil ditambahkan.`);
       queryClient.invalidateQueries({ queryKey });
+      queryClient.invalidateQueries({ queryKey: [...clinicEssentialsKeys.all, resourceType] });
+      queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.all });
       onSuccess?.(data);
       handleClose();
     },
@@ -118,6 +120,8 @@ export function DemographicMasterDialog({
     onSuccess: (data) => {
       toast.success(`${resourceLabel} '${data.name}' berhasil diperbarui.`);
       queryClient.invalidateQueries({ queryKey });
+      queryClient.invalidateQueries({ queryKey: [...clinicEssentialsKeys.all, resourceType] });
+      queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.all });
       onSuccess?.(data);
       handleClose();
     },
@@ -132,7 +136,7 @@ export function DemographicMasterDialog({
   const handleClose = () => {
     setName('');
     setDescription('');
-    setDisplayOrder(1);
+    setDisplayOrder('');
     onOpenChange(false);
   };
 
@@ -143,10 +147,13 @@ export function DemographicMasterDialog({
       return;
     }
 
+    const cleanName = resourceType === 'blood-types' ? name.trim().toUpperCase() : name.trim();
+    const resolvedOrder = typeof displayOrder === 'number' && displayOrder > 0 ? displayOrder : undefined;
+
     const payload: CreateDemographicPayload = {
-      name: name.trim(),
+      name: cleanName,
       description: description.trim() || undefined,
-      displayOrder,
+      displayOrder: resolvedOrder,
       isActive,
     };
 
@@ -180,9 +187,11 @@ export function DemographicMasterDialog({
               id='demographic-name'
               placeholder={`Contoh: ${resourceType === 'blood-types' ? 'A+, O-' : resourceType === 'education-levels' ? 'S1, SMA/SMK' : resourceType === 'religions' ? 'Islam, Kristen' : 'PNS, Wiraswasta'}`}
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) =>
+                setName(resourceType === 'blood-types' ? e.target.value.toUpperCase() : e.target.value)
+              }
+              maxLength={resourceType === 'blood-types' ? 16 : 128}
               disabled={isPending}
-              autoFocus
             />
           </div>
 
@@ -200,13 +209,22 @@ export function DemographicMasterDialog({
 
           <div className='grid grid-cols-2 gap-3'>
             <div className='space-y-1.5'>
-              <Label htmlFor='demographic-order'>Urutan Tampilan</Label>
+              <Label htmlFor='demographic-order'>
+                Urutan Tampilan{' '}
+                {!isEditing && (
+                  <span className='text-xs text-muted-foreground font-normal'>(Opsional)</span>
+                )}
+              </Label>
               <Input
                 id='demographic-order'
                 type='number'
                 min={0}
+                placeholder='Otomatis (urutan berikutnya)'
                 value={displayOrder}
-                onChange={(e) => setDisplayOrder(Number(e.target.value) || 0)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setDisplayOrder(val === '' ? '' : Number(val));
+                }}
                 disabled={isPending}
               />
             </div>

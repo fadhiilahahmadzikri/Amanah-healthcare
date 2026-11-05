@@ -1,6 +1,5 @@
 import type { PatientMutationPayload, PatientBloodType } from './types';
 import type { PatientRegistrationFormValues } from '../schemas/patient-registration-schema';
-import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 
 export const PATIENT_REGISTRATION_COMPLETED_COOKIE = 'patient_registration_completed';
 export const PATIENT_REGISTRATION_COMPLETED_METADATA_KEY = 'patientRegistrationCompleted';
@@ -75,7 +74,7 @@ export function buildPatientMutationPayload({
     district_code: values.kecamatan_id,
     village_name: values.kelurahan,
     village_code: values.kelurahan_id,
-    avatarUrl: user.avatarUrl || DEFAULT_AVATAR_PATH,
+    avatarUrl: user.avatarUrl || undefined,
     allergies: [],
     emergency_contact: '',
     medical_history: '',

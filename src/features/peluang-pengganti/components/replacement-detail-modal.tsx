@@ -3,6 +3,16 @@
 import React from 'react';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 import { useReplacementDetailModal } from '../model';
 import { ReplacementDetailTimeSection } from './detail/replacement-detail-time-section';
@@ -33,6 +43,7 @@ export function ReplacementDetailModal({
   isCancelling = false,
   portalContainerRef
 }: ReplacementDetailModalProps) {
+  const [isConfirmCancelOpen, setIsConfirmCancelOpen] = React.useState(false);
   const {
     sessionName,
     title,
@@ -119,7 +130,7 @@ export function ReplacementDetailModal({
               variant='outline'
               size='md'
               shape='pill'
-              onClick={handleCancel}
+              onClick={() => setIsConfirmCancelOpen(true)}
               disabled={isCancelling}
               className='px-5 text-xs font-semibold text-destructive hover:bg-destructive/10 border-destructive/30 cursor-pointer'
             >
@@ -152,6 +163,36 @@ export function ReplacementDetailModal({
           )}
         </div>
       </div>
+
+      {/* Confirmation Dialog for Cancellation */}
+      <AlertDialog
+        open={isConfirmCancelOpen}
+        onOpenChange={(open) => !isCancelling && setIsConfirmCancelOpen(open)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Batalkan Peluang Dinas Pengganti?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin membatalkan peluang dinas pengganti ini? Status peluang
+              akan diubah menjadi dibatalkan dan ditarik dari daftar ketersediaan staf.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isCancelling}>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleCancel();
+                setIsConfirmCancelOpen(false);
+              }}
+              disabled={isCancelling}
+              className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
+            >
+              {isCancelling ? 'Membatalkan...' : 'Ya, Batalkan'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </ModalWrapper>
   );
 }

@@ -1,14 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import Image from 'next/image';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { PatientActionDrawer } from './patient-action-drawer';
 import { usePatientMobileCards } from '../model/usePatientMobileCards';
 import type { Patient } from '../api/types';
@@ -112,23 +110,16 @@ export function PatientMobileCards({
                 {/* 1. Header: Avatar + Nama + Subtitle (Badge Status/Hubungan) + Status Akun */}
                 <div className='flex items-start justify-between gap-2.5 min-w-0'>
                   <div className='flex items-center gap-3 min-w-0 flex-1'>
-                    <div className='size-11 sm:size-12 rounded-full overflow-hidden shrink-0 ring-1 ring-border/50 bg-muted aspect-square shadow-2xs flex items-center justify-center'>
-                      <Avatar className='h-full w-full overflow-hidden'>
-                        <AvatarImage
-                          src={patient.avatarUrl || DEFAULT_AVATAR_PATH}
-                          alt={patient.name}
-                          className='size-full object-cover'
-                        />
-                        <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
-                          <Image
-                            src={DEFAULT_AVATAR_PATH}
+                    <div className='size-11 sm:size-12 rounded-lg overflow-hidden shrink-0 ring-1 ring-border/50 bg-muted aspect-square shadow-2xs flex items-center justify-center'>
+                      <Avatar className='h-full w-full rounded-lg overflow-hidden'>
+                        {patient.avatarUrl && (
+                          <AvatarImage
+                            src={patient.avatarUrl}
                             alt={patient.name}
-                            width={48}
-                            height={48}
-                            unoptimized
                             className='size-full object-cover'
                           />
-                        </AvatarFallback>
+                        )}
+                        <AvatarFallback />
                       </Avatar>
                     </div>
 
@@ -279,23 +270,16 @@ export function PatientMobileCards({
                               )}
                             >
                               <div className='flex items-center gap-2 min-w-0 flex-1'>
-                                <div className='size-5.5 rounded-full overflow-hidden shrink-0 ring-1 ring-border/50 bg-muted aspect-square flex items-center justify-center'>
-                                  <Avatar className='h-full w-full overflow-hidden'>
-                                    <AvatarImage
-                                      src={affiliates[0].avatarUrl || DEFAULT_AVATAR_PATH}
-                                      alt={affiliates[0].name}
-                                      className='size-full object-cover'
-                                    />
-                                    <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
-                                      <Image
-                                        src={DEFAULT_AVATAR_PATH}
+                                <div className='size-5.5 rounded-md overflow-hidden shrink-0 ring-1 ring-border/50 bg-muted aspect-square flex items-center justify-center'>
+                                  <Avatar className='h-full w-full rounded-md overflow-hidden'>
+                                    {affiliates[0].avatarUrl && (
+                                      <AvatarImage
+                                        src={affiliates[0].avatarUrl}
                                         alt={affiliates[0].name}
-                                        width={24}
-                                        height={24}
-                                        unoptimized
                                         className='size-full object-cover'
                                       />
-                                    </AvatarFallback>
+                                    )}
+                                    <AvatarFallback />
                                   </Avatar>
                                 </div>
                                 <span className='text-xs font-semibold text-foreground truncate'>
@@ -329,23 +313,16 @@ export function PatientMobileCards({
                               )}
                             >
                               <div className='flex items-center gap-2 min-w-0 flex-1'>
-                                <div className='size-5.5 rounded-full overflow-hidden shrink-0 ring-1 ring-border/50 bg-muted aspect-square flex items-center justify-center'>
-                                  <Avatar className='h-full w-full overflow-hidden'>
-                                    <AvatarImage
-                                      src={affiliates[1].avatarUrl || DEFAULT_AVATAR_PATH}
-                                      alt={affiliates[1].name}
-                                      className='size-full object-cover'
-                                    />
-                                    <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
-                                      <Image
-                                        src={DEFAULT_AVATAR_PATH}
+                                <div className='size-5.5 rounded-md overflow-hidden shrink-0 ring-1 ring-border/50 bg-muted aspect-square flex items-center justify-center'>
+                                  <Avatar className='h-full w-full rounded-md overflow-hidden'>
+                                    {affiliates[1].avatarUrl && (
+                                      <AvatarImage
+                                        src={affiliates[1].avatarUrl}
                                         alt={affiliates[1].name}
-                                        width={24}
-                                        height={24}
-                                        unoptimized
                                         className='size-full object-cover'
                                       />
-                                    </AvatarFallback>
+                                    )}
+                                    <AvatarFallback />
                                   </Avatar>
                                 </div>
                                 <span className='text-xs font-semibold text-foreground truncate'>
@@ -379,23 +356,16 @@ export function PatientMobileCards({
                               )}
                             >
                               <div className='flex items-center gap-2 min-w-0 flex-1'>
-                                <div className='size-5.5 rounded-full overflow-hidden shrink-0 ring-1 ring-border/50 bg-muted aspect-square flex items-center justify-center'>
-                                  <Avatar className='h-full w-full overflow-hidden'>
-                                    <AvatarImage
-                                      src={affiliates[2].avatarUrl || DEFAULT_AVATAR_PATH}
-                                      alt={affiliates[2].name}
-                                      className='size-full object-cover'
-                                    />
-                                    <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
-                                      <Image
-                                        src={DEFAULT_AVATAR_PATH}
+                                <div className='size-5.5 rounded-md overflow-hidden shrink-0 ring-1 ring-border/50 bg-muted aspect-square flex items-center justify-center'>
+                                  <Avatar className='h-full w-full rounded-md overflow-hidden'>
+                                    {affiliates[2].avatarUrl && (
+                                      <AvatarImage
+                                        src={affiliates[2].avatarUrl}
                                         alt={affiliates[2].name}
-                                        width={24}
-                                        height={24}
-                                        unoptimized
                                         className='size-full object-cover'
                                       />
-                                    </AvatarFallback>
+                                    )}
+                                    <AvatarFallback />
                                   </Avatar>
                                 </div>
                                 <span className='text-xs font-semibold text-foreground truncate'>
@@ -463,23 +433,16 @@ export function PatientMobileCards({
                                   {/* Header Afiliasi: Avatar + Nama + Status Badge */}
                                   <div className='flex items-start justify-between gap-2 min-w-0'>
                                     <div className='flex items-center gap-2.5 min-w-0 flex-1'>
-                                      <div className='size-9 rounded-full overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square flex items-center justify-center'>
-                                        <Avatar className='h-full w-full overflow-hidden'>
-                                          <AvatarImage
-                                            src={affiliate.avatarUrl || DEFAULT_AVATAR_PATH}
-                                            alt={affiliate.name}
-                                            className='size-full object-cover'
-                                          />
-                                          <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
-                                            <Image
-                                              src={DEFAULT_AVATAR_PATH}
+                                      <div className='size-9 rounded-lg overflow-hidden shrink-0 ring-1 ring-border/40 bg-muted aspect-square flex items-center justify-center'>
+                                        <Avatar className='h-full w-full rounded-lg overflow-hidden'>
+                                          {affiliate.avatarUrl && (
+                                            <AvatarImage
+                                              src={affiliate.avatarUrl}
                                               alt={affiliate.name}
-                                              width={36}
-                                              height={36}
-                                              unoptimized
                                               className='size-full object-cover'
                                             />
-                                          </AvatarFallback>
+                                          )}
+                                          <AvatarFallback />
                                         </Avatar>
                                       </div>
 

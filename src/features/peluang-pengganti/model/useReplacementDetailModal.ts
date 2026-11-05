@@ -70,9 +70,7 @@ export function useReplacementDetailModal({
 
   const handleCancel = useCallback(() => {
     if (!replacement) return;
-    if (window.confirm('Apakah Anda yakin ingin membatalkan peluang dinas pengganti ini?')) {
-      onCancelOpportunity?.(replacement.id);
-    }
+    onCancelOpportunity?.(replacement.id);
   }, [replacement, onCancelOpportunity]);
 
   const handleOpenAssign = useCallback(() => {

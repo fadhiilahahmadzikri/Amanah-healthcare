@@ -96,6 +96,46 @@ export function useClinicEssentialsData(
     queryFn: () => clinicEssentialsApi.getRelationships(),
   });
 
+  // 7. Fetch Blood Types
+  const {
+    data: bloodTypes = [],
+    isLoading: isLoadingBloodTypes,
+    isRefetching: isRefetchingBloodTypes,
+  } = useQuery({
+    queryKey: clinicEssentialsKeys.bloodTypes(),
+    queryFn: () => clinicEssentialsApi.getBloodTypes(),
+  });
+
+  // 8. Fetch Education Levels
+  const {
+    data: educationLevels = [],
+    isLoading: isLoadingEducationLevels,
+    isRefetching: isRefetchingEducationLevels,
+  } = useQuery({
+    queryKey: clinicEssentialsKeys.educationLevels(),
+    queryFn: () => clinicEssentialsApi.getEducationLevels(),
+  });
+
+  // 9. Fetch Religions
+  const {
+    data: religions = [],
+    isLoading: isLoadingReligions,
+    isRefetching: isRefetchingReligions,
+  } = useQuery({
+    queryKey: clinicEssentialsKeys.religions(),
+    queryFn: () => clinicEssentialsApi.getReligions(),
+  });
+
+  // 10. Fetch Occupations
+  const {
+    data: occupations = [],
+    isLoading: isLoadingOccupations,
+    isRefetching: isRefetchingOccupations,
+  } = useQuery({
+    queryKey: clinicEssentialsKeys.occupations(),
+    queryFn: () => clinicEssentialsApi.getOccupations(),
+  });
+
   const isAnyRefetching =
     isRefetchingUnitTypes ||
     isRefetchingUnits ||
@@ -103,7 +143,11 @@ export function useClinicEssentialsData(
     isRefetchingCategories ||
     isRefetchingServices ||
     isRefetchingForms ||
-    isRefetchingRelationships;
+    isRefetchingRelationships ||
+    isRefetchingBloodTypes ||
+    isRefetchingEducationLevels ||
+    isRefetchingReligions ||
+    isRefetchingOccupations;
 
   const handleRefreshAll = React.useCallback(() => {
     queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.all });
@@ -207,6 +251,54 @@ export function useClinicEssentialsData(
       );
     });
   }, [relationships, statusFilter, query]);
+
+  const filteredBloodTypes = React.useMemo(() => {
+    return bloodTypes.filter((b) => {
+      if (statusFilter === 'active' && !b.isActive) return false;
+      if (statusFilter === 'inactive' && b.isActive) return false;
+      if (!query) return true;
+      return (
+        b.name.toLowerCase().includes(query) ||
+        Boolean(b.description?.toLowerCase().includes(query))
+      );
+    });
+  }, [bloodTypes, statusFilter, query]);
+
+  const filteredEducationLevels = React.useMemo(() => {
+    return educationLevels.filter((e) => {
+      if (statusFilter === 'active' && !e.isActive) return false;
+      if (statusFilter === 'inactive' && e.isActive) return false;
+      if (!query) return true;
+      return (
+        e.name.toLowerCase().includes(query) ||
+        Boolean(e.description?.toLowerCase().includes(query))
+      );
+    });
+  }, [educationLevels, statusFilter, query]);
+
+  const filteredReligions = React.useMemo(() => {
+    return religions.filter((r) => {
+      if (statusFilter === 'active' && !r.isActive) return false;
+      if (statusFilter === 'inactive' && r.isActive) return false;
+      if (!query) return true;
+      return (
+        r.name.toLowerCase().includes(query) ||
+        Boolean(r.description?.toLowerCase().includes(query))
+      );
+    });
+  }, [religions, statusFilter, query]);
+
+  const filteredOccupations = React.useMemo(() => {
+    return occupations.filter((o) => {
+      if (statusFilter === 'active' && !o.isActive) return false;
+      if (statusFilter === 'inactive' && o.isActive) return false;
+      if (!query) return true;
+      return (
+        o.name.toLowerCase().includes(query) ||
+        Boolean(o.description?.toLowerCase().includes(query))
+      );
+    });
+  }, [occupations, statusFilter, query]);
 
   // Hierarchical Lock Logic
   const isUnitsLocked = unitTypes.length === 0;
@@ -427,18 +519,30 @@ export function useClinicEssentialsData(
     services,
     forms,
     relationships,
+    bloodTypes,
+    educationLevels,
+    religions,
+    occupations,
     isLoadingUnitTypes,
     isLoadingUnits,
     isLoadingRooms,
     isLoadingCategories,
     isLoadingServices,
     isLoadingRelationships,
+    isLoadingBloodTypes,
+    isLoadingEducationLevels,
+    isLoadingReligions,
+    isLoadingOccupations,
     filteredUnitTypes,
     filteredUnits,
     filteredRooms,
     filteredCategories,
     filteredServices,
     filteredRelationships,
+    filteredBloodTypes,
+    filteredEducationLevels,
+    filteredReligions,
+    filteredOccupations,
     isUnitsLocked,
     isRoomsLocked,
     isCategoriesLocked,

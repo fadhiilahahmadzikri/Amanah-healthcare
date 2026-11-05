@@ -1,12 +1,10 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -70,22 +68,15 @@ export function AppointmentRecordModal({
         <div className='flex items-center justify-between gap-3 pb-3.5 border-b border-border/40 shrink-0'>
           <div className='flex items-center gap-3 min-w-0 flex-1'>
             {/* Avatar Langsung di Header */}
-            <Avatar className='size-11 sm:size-12 rounded-full shrink-0 select-none ring-1 ring-border/40'>
-              <AvatarImage
-                src={appointment.avatarUrl || DEFAULT_AVATAR_PATH}
-                alt={appointment.patientName}
-                className='size-full object-cover rounded-full'
-              />
-              <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
-                <Image
-                  src={DEFAULT_AVATAR_PATH}
+            <Avatar className='size-11 sm:size-12 rounded-lg shrink-0 select-none ring-1 ring-border/40'>
+              {appointment.avatarUrl && (
+                <AvatarImage
+                  src={appointment.avatarUrl}
                   alt={appointment.patientName}
-                  width={48}
-                  height={48}
-                  unoptimized
-                  className='size-full object-cover rounded-full'
+                  className='size-full object-cover rounded-lg'
                 />
-              </AvatarFallback>
+              )}
+              <AvatarFallback />
             </Avatar>
 
             {/* Nama Pasien, Badges, & Subtitle */}
