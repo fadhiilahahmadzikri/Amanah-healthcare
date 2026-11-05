@@ -3,6 +3,7 @@ import { saveAs } from 'file-saver';
 import type { PmbFormData, ImunisasiFormData, RegulerFormData } from '../types';
 import { CLINIC_LOGO_BASE64 } from '../assets/clinic-logo.asset';
 import { defaultImunisasiConfig } from '../config/imunisasi-config';
+import { CANONICAL_MATERNAL_CONDITIONS } from '@/features/maternity/constants/maternity.constants';
 
 const THIN_BORDER: Partial<ExcelJS.Borders> = {
   top: { style: 'thin', color: { argb: 'FF000000' } },
@@ -338,27 +339,10 @@ export async function exportPmbExcel(
   }
   applyRowBorders(diseaseHead, 1, 8);
 
-  const diseaseNames = [
-    'Hipertensi',
-    'Jantung',
-    'Tiroid',
-    'Autoimun',
-    'Diabetes',
-    'Asma',
-    'TBC',
-    'Hepatitis B',
-    'HIV/Sifilis',
-    'Jiwa',
-    'Riwayat Gemelli',
-    'Kista/Miom/Tumor',
-    'Operasi',
-    'Lain-lain'
-  ];
-
   const diseases = data?.anamnesa?.diseaseHistory || {};
-  diseaseNames.forEach((d, idx) => {
+  CANONICAL_MATERNAL_CONDITIONS.forEach((condDef, idx) => {
     currentLine += 1;
-    const rec = diseases[d] || (d === 'Lain-lain' ? diseases[''] : undefined);
+    const rec = diseases[condDef.docLabel];
     const status = rec?.status === 'ya' ? 'Ya' : rec?.status === 'tidak' ? 'Tidak' : '-';
     const year = rec?.year || '-';
 
@@ -371,7 +355,7 @@ export async function exportPmbExcel(
     r.getCell(1).font = { name: 'Calibri', size: 9 };
     r.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
 
-    r.getCell(2).value = (d === 'Lain-lain' && rec?.notes) ? `Lain-lain (${rec.notes})` : d;
+    r.getCell(2).value = condDef.code === 'OTHER' && rec?.notes ? rec.notes : (condDef.docLabel || '..............................');
     r.getCell(2).font = { name: 'Calibri', size: 9 };
     r.getCell(2).alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
 

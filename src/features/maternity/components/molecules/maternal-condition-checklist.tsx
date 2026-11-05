@@ -186,7 +186,7 @@ export function MaternalConditionChecklist({
                       className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <div className="w-28 shrink-0">
+                      <div className={item.code === 'OTHER' ? 'w-28 shrink-0' : 'w-36'}>
                         {isEditing ? (
                           <Input
                             type="number"
@@ -209,28 +209,26 @@ export function MaternalConditionChecklist({
                           </span>
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        {isEditing ? (
-                          <Input
-                            value={notes || ''}
-                            onChange={(e) =>
-                              handleNotesChange(item.code, e.target.value)
-                            }
-                            placeholder={
-                              item.code === 'OTHER'
-                                ? 'Nama penyakit atau keluhan lain...'
-                                : 'Catatan tambahan (opsional)...'
-                            }
-                            className="h-7 text-xs px-2"
-                          />
-                        ) : (
-                          notes && (
-                            <span className="text-xs text-muted-foreground italic truncate block">
-                              Catatan: {notes}
-                            </span>
-                          )
-                        )}
-                      </div>
+                      {item.code === 'OTHER' && (
+                        <div className="flex-1 min-w-0">
+                          {isEditing ? (
+                            <Input
+                              value={notes || ''}
+                              onChange={(e) =>
+                                handleNotesChange(item.code, e.target.value)
+                              }
+                              placeholder="Nama penyakit atau keluhan lain..."
+                              className="h-7 text-xs px-2"
+                            />
+                          ) : (
+                            notes && (
+                              <span className="text-xs text-muted-foreground italic truncate block">
+                                Nama Penyakit: {notes}
+                              </span>
+                            )
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

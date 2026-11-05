@@ -11,19 +11,8 @@ export function buildInitialMaternalData(parsedData: UnifiedInspectorData): Edit
   const m = parsedData.maternal;
   const a = parsedData.answers || {};
 
+  const conditions = Array.isArray(m?.conditionResponses) ? m.conditionResponses : [];
   const diseaseHistory: Record<string, any> = {};
-  if (m?.diseaseHistory && typeof m.diseaseHistory === 'object') {
-    Object.assign(diseaseHistory, m.diseaseHistory);
-  } else {
-    Object.assign(diseaseHistory, a);
-  }
-
-  const conditions =
-    Array.isArray(m?.conditionResponses) && m.conditionResponses.length > 0
-      ? m.conditionResponses
-      : Array.isArray(m?.healthConditions) && m.healthConditions.length > 0
-        ? m.healthConditions
-        : [];
 
   conditions.forEach((c: any) => {
     if (c.conditionCode) {

@@ -91,37 +91,12 @@ export function useInspectorSave({
     }
 
     const healthConditionsPayload = CANONICAL_MATERNAL_CONDITIONS.map((condDef) => {
-      const code = condDef.code;
-      const resp = existingConditionsMap.get(code);
-
-      if (resp) {
-        return {
-          conditionCode: code,
-          hasCondition: Boolean(resp.hasCondition),
-          diagnosisYear: resp.diagnosisYear ? Number(resp.diagnosisYear) : null,
-          notes: resp.notes || null
-        };
-      }
-
-      // Fallback to diseaseHistory if conditionResponses was not populated
-      const has = Boolean(
-        formData.diseaseHistory[code] ??
-        formData.diseaseHistory[code.toLowerCase()]
-      );
-      const rawYearStr =
-        formData.diseaseHistory[`${code}Notes`] ||
-        formData.diseaseHistory[`${code.toLowerCase()}Notes`];
-      const year = rawYearStr ? parseInt(String(rawYearStr), 10) : NaN;
-      const notes =
-        formData.diseaseHistory[`${code}Detail`] ||
-        formData.diseaseHistory[`${code.toLowerCase()}Detail`] ||
-        null;
-
+      const resp = existingConditionsMap.get(condDef.code);
       return {
-        conditionCode: code,
-        hasCondition: has,
-        diagnosisYear: !isNaN(year) ? year : null,
-        notes
+        conditionCode: condDef.code,
+        hasCondition: Boolean(resp?.hasCondition),
+        diagnosisYear: resp?.diagnosisYear ? Number(resp.diagnosisYear) : null,
+        notes: condDef.code === 'OTHER' ? (resp?.notes || null) : null
       };
     });
 
