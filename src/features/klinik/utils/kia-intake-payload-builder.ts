@@ -86,10 +86,9 @@ export function buildMaternityIntakePayload(
     phoneNumber: null
   };
 
-  const toOptionCode = (val: unknown): string => {
-    if (typeof val === 'boolean') return val ? 'ya' : 'tidak';
-    if (typeof val === 'string') return val.toLowerCase();
-    return 'tidak';
+  const toOptionCode = (val: string | undefined): string => {
+    if (!val) return 'tidak';
+    return val.toLowerCase();
   };
 
   const anamnesisResponses: AnamnesisResponsePayload[] = [
@@ -292,38 +291,17 @@ export function buildMaternityIntakePayload(
       submittedValues.smokedBeforePregnancy === 'Ya'
         ? 'Aktif'
         : submittedValues.smokedBeforePregnancy || null,
-    alcoholBeforePregnancy: Boolean(
-      submittedValues.alcoholBeforePregnancy === true ||
-      submittedValues.alcoholBeforePregnancy === 'Ya'
-    ),
-    irregularDietBeforePregnancy: Boolean(
-      submittedValues.irregularDietBeforePregnancy === true ||
-      submittedValues.irregularDietBeforePregnancy === 'Ya'
-    ),
-    reducedPhysicalActivityBeforePregnancy: Boolean(
-      submittedValues.reducedPhysicalActivityBeforePregnancy === true ||
-      submittedValues.reducedPhysicalActivityBeforePregnancy === 'Ya'
-    ),
-    unprescribedMedicationBeforePregnancy: Boolean(
-      submittedValues.unprescribedMedicationBeforePregnancy === true ||
-      submittedValues.unprescribedMedicationBeforePregnancy === 'Ya'
-    ),
-    concerningCosmeticUseBeforePregnancy: Boolean(
-      submittedValues.concerningCosmeticUseBeforePregnancy === true ||
-      submittedValues.concerningCosmeticUseBeforePregnancy === 'Ya'
-    ),
-    pesticideExposureBeforePregnancy: Boolean(
-      submittedValues.pesticideExposureBeforePregnancy === true ||
-      submittedValues.pesticideExposureBeforePregnancy === 'Ya'
-    ),
-    chemicalExposureBeforePregnancy: Boolean(
-      submittedValues.chemicalExposureBeforePregnancy === true ||
-      submittedValues.chemicalExposureBeforePregnancy === 'Ya'
-    ),
-    smokeExposureBeforePregnancy: Boolean(
-      submittedValues.smokeExposureBeforePregnancy === true ||
-      submittedValues.smokeExposureBeforePregnancy === 'Ya'
-    ),
+    alcoholBeforePregnancy: submittedValues.alcoholBeforePregnancy === 'Ya',
+    irregularDietBeforePregnancy: submittedValues.irregularDietBeforePregnancy === 'Ya',
+    reducedPhysicalActivityBeforePregnancy:
+      submittedValues.reducedPhysicalActivityBeforePregnancy === 'Ya',
+    unprescribedMedicationBeforePregnancy:
+      submittedValues.unprescribedMedicationBeforePregnancy === 'Ya',
+    concerningCosmeticUseBeforePregnancy:
+      submittedValues.concerningCosmeticUseBeforePregnancy === 'Ya',
+    pesticideExposureBeforePregnancy: submittedValues.pesticideExposureBeforePregnancy === 'Ya',
+    chemicalExposureBeforePregnancy: submittedValues.chemicalExposureBeforePregnancy === 'Ya',
+    smokeExposureBeforePregnancy: submittedValues.smokeExposureBeforePregnancy === 'Ya',
     concerningEnvironmentNotes: submittedValues.concerningEnvironmentNotes || null,
     allergyInfo: submittedValues.allergyInfo || null,
     otherNotes: submittedValues.otherNotes || null,
