@@ -23,6 +23,7 @@ import { adminAppointmentToAppointment } from '@/features/appointment-pasien/api
 import { appointmentDetailQueryOptions } from '@/features/appointment-pasien/api/queries';
 import { formatClinicDate } from '@/lib/date-format';
 import { INDONESIAN_MONTH_NAMES } from '@/components/ui/custom-month-picker';
+import { MaskedNik } from '@/components/ui/masked-nik';
 import { cn } from '@/lib/utils';
 import type { Patient } from '@/features/data-pasien/api/types';
 import { patientAppointmentHistoryQueryOptions } from '../api/queries';
@@ -175,7 +176,15 @@ export function PatientHistoryGridModal({
                   )}
                 </div>
                 <div className='flex items-center gap-2 text-xs font-mono text-muted-foreground mt-0.5 flex-wrap'>
-                  <span>NIK: {nik}</span>
+                  <div className='flex items-center gap-1.5'>
+                    <span>NIK:</span>
+                    <MaskedNik
+                      nik={patient.nik}
+                      maskedNik={patient.masked_nik}
+                      patientId={patient.id}
+                      size='sm'
+                    />
+                  </div>
                   {patient.phone && (
                     <>
                       <span>•</span>

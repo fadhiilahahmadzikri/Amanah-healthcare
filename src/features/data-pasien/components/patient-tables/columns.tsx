@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
+import { MaskedNik } from '@/components/ui/masked-nik';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { formatClinicDate } from '@/lib/date-format';
 import type { Patient } from '../../api/types';
@@ -173,9 +174,12 @@ export function getPatientColumns(options?: PatientColumnsOptions): ColumnDef<Pa
         <DataTableColumnHeader column={column} title='NIK' />
       ),
       cell: ({ row }) => (
-        <span className='font-mono text-xs text-foreground tracking-wider'>
-          {row.original.masked_nik || '-'}
-        </span>
+        <MaskedNik
+          nik={row.original.nik}
+          maskedNik={row.original.masked_nik}
+          patientId={row.original.id}
+          size='sm'
+        />
       ),
       filterFn: nikFilterFn,
       meta: {

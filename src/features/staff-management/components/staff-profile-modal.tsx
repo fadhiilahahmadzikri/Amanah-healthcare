@@ -22,6 +22,8 @@ import type { StaffMember } from '../api/staff-management.api';
 import type { DoctorSchedule } from '@/features/jadwal-dokter/api/types';
 import { useStaffProfileModal } from '../model/useStaffProfileModal';
 import { StaffLeaveBanner } from './staff-card-atoms';
+import { MaskedNik } from '@/components/ui/masked-nik';
+import React from 'react';
 
 export interface StaffProfileModalProps {
   staff?: StaffMember | null;
@@ -35,6 +37,47 @@ export interface StaffProfileModalProps {
 export function StaffProfileModal(props: StaffProfileModalProps) {
   const { staff, doctor, isOpen, onClose, onExport } = props;
   const form = useStaffProfileModal(props);
+
+  const [showNik, setShowNik] = React.useState(false);
+  const [countdown, setCountdown] = React.useState<number | null>(null);
+  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const clearTimers = React.useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    setCountdown(null);
+  }, []);
+
+  React.useEffect(() => {
+    return () => clearTimers();
+  }, [clearTimers]);
+
+  const toggleShowNik = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (showNik) {
+      setShowNik(false);
+      clearTimers();
+    } else {
+      setShowNik(true);
+      clearTimers();
+      setCountdown(15);
+      intervalRef.current = setInterval(() => {
+        setCountdown((prev) => (prev === null || prev <= 1 ? 0 : prev - 1));
+      }, 1000);
+      timerRef.current = setTimeout(() => {
+        setShowNik(false);
+        clearTimers();
+      }, 15000);
+    }
+  };
 
   if (!staff && !doctor) return null;
 
@@ -116,21 +159,70 @@ export function StaffProfileModal(props: StaffProfileModalProps) {
                     Identitas Kependudukan & Kelahiran
                   </span>
 
-                  <PatientLineInput
-                    id='staff_nationalId'
-                    label='NIK KTP (16 Digit)'
-                    placeholder='3201xxxxxxxxxxxx'
-                    value={form.formData.nationalId}
-                    onChange={(val) => {
-                      const numericOnly = val.replace(/\D/g, '').slice(0, 16);
-                      form.handleChange('nationalId', numericOnly);
-                    }}
-                    maxLength={16}
-                    inputMode='numeric'
-                    isMonospace
-                    disabled={!form.isEditing}
-                    autoComplete='off'
-                  />
+                  {form.isEditing ? (
+                    <PatientLineInput
+                      id='staff_nationalId'
+                      label='NIK KTP (16 Digit)'
+                      placeholder='3201xxxxxxxxxxxx'
+                      type={showNik ? 'text' : 'password'}
+                      value={form.formData.nationalId}
+                      onChange={(val) => {
+                        const numericOnly = val.replace(/\D/g, '').slice(0, 16);
+                        form.handleChange('nationalId', numericOnly);
+                      }}
+                      maxLength={16}
+                      inputMode='numeric'
+                      isMonospace
+                      autoComplete='off'
+                      trailingIcon={
+                        <div className='flex items-center gap-1 shrink-0'>
+                          {showNik && countdown !== null && countdown > 0 && (
+                            <span
+                              className='text-[10px] font-mono px-1 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium select-none'
+                              title={`NIK akan otomatis disensor dalam ${countdown} detik`}
+                            >
+                              {countdown}s
+                            </span>
+                          )}
+                          <button
+                            type='button'
+                            onClick={toggleShowNik}
+                            className='text-muted-foreground hover:text-foreground transition-colors p-1'
+                            title={
+                              showNik
+                                ? 'Sembunyikan NIK'
+                                : 'Tampilkan NIK (Otomatis disensor setelah 15s)'
+                            }
+                            aria-label={
+                              showNik
+                                ? 'Sembunyikan NIK'
+                                : 'Tampilkan NIK (Otomatis disensor setelah 15s)'
+                            }
+                            tabIndex={-1}
+                          >
+                            {showNik ? (
+                              <Icons.eyeOff className='size-4 text-primary' />
+                            ) : (
+                              <Icons.eye className='size-4' />
+                            )}
+                          </button>
+                        </div>
+                      }
+                    />
+                  ) : (
+                    <div className='space-y-1.5'>
+                      <label className='text-xs font-medium text-muted-foreground block'>
+                        NIK KTP (16 Digit)
+                      </label>
+                      <div className='h-9 flex items-center px-3 rounded-md border border-input bg-muted/40 font-mono text-xs'>
+                        <MaskedNik
+                          nik={form.formData.nationalId}
+                          autoMaskSeconds={15}
+                          size='sm'
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   <PatientLineInput
                     id='staff_fullName'

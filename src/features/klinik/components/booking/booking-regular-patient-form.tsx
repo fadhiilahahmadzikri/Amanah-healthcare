@@ -18,6 +18,7 @@ import { PatientRegionDropdown } from '@/features/data-pasien/components/registr
 import { PatientSearchableSelect } from '@/features/data-pasien/components/registration/molecules/patient-searchable-select';
 import { PatientEmergencyContactSelector } from '@/features/data-pasien/components/registration/molecules/patient-emergency-contact-selector';
 import { ShiftIconDisplay } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-display';
+import { MaskedNik, formatMaskedNik } from '@/components/ui/masked-nik';
 import type { ReferenceOptionItem } from '@/features/data-pasien/api/patient-reference-service';
 import { BookingRegularReviewSection } from './molecules/booking-regular-review-section';
 import { BookingPrimaryEmergencyInterceptor } from './molecules/booking-primary-emergency-interceptor';
@@ -109,6 +110,8 @@ export function BookingRegularPatientForm({
     existingPatients
   });
 
+  const [showNik, setShowNik] = React.useState(false);
+
   const activeRelationshipLabel = React.useMemo(() => {
     const found = relationshipOptions.find((r) => r.value === relationship);
     return found ? found.label : relationship;
@@ -136,7 +139,7 @@ export function BookingRegularPatientForm({
       {
         step: 3,
         label: 'NIK',
-        value: nik || '-',
+        value: nik ? formatMaskedNik(nik) : '-',
         valueClass: 'font-mono font-bold text-primary'
       },
       {
@@ -304,6 +307,7 @@ export function BookingRegularPatientForm({
               data-field-id='nik'
               label='Nomor Induk Kependudukan (NIK)'
               placeholder='16 digit NIK sesuai KTP atau KK'
+              type={showNik ? 'text' : 'password'}
               value={nik}
               onChange={(val) => {
                 const numericOnly = val.replace(/\D/g, '');
@@ -312,6 +316,21 @@ export function BookingRegularPatientForm({
               maxLength={16}
               autoComplete='off'
               error={nikError || undefined}
+              trailingIcon={
+                <button
+                  type='button'
+                  onClick={() => setShowNik((prev) => !prev)}
+                  className='text-muted-foreground hover:text-foreground transition-colors p-1'
+                  title={showNik ? 'Sembunyikan NIK' : 'Tampilkan NIK'}
+                  tabIndex={-1}
+                >
+                  {showNik ? (
+                    <Icons.eyeOff className='size-4 text-primary' />
+                  ) : (
+                    <Icons.eye className='size-4' />
+                  )}
+                </button>
+              }
             />
             {nikStatus === 'checking' && (
               <p className='text-xs text-muted-foreground animate-pulse flex items-center gap-1.5'>

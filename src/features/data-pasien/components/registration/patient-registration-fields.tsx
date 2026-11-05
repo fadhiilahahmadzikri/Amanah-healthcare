@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { Icons } from '@/components/icons';
 import type { PatientRegistrationFormValues } from '../../schemas/patient-registration-schema';
 import { PatientLineInput } from './atoms/patient-line-input';
 import { PatientBirthdatePicker } from './molecules/patient-birthdate-picker';
@@ -29,6 +30,46 @@ function getErrorMessage(errors: unknown[]): string | undefined {
 
 export function PatientRegistrationStepFields({ controller }: PatientRegistrationStepFieldsProps) {
   const { form, currentStep } = controller;
+  const [showNik, setShowNik] = React.useState(false);
+  const [countdown, setCountdown] = React.useState<number | null>(null);
+  const timerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const clearTimers = React.useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    setCountdown(null);
+  }, []);
+
+  React.useEffect(() => {
+    return () => clearTimers();
+  }, [clearTimers]);
+
+  const toggleShowNik = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (showNik) {
+      setShowNik(false);
+      clearTimers();
+    } else {
+      setShowNik(true);
+      clearTimers();
+      setCountdown(15);
+      intervalRef.current = setInterval(() => {
+        setCountdown((prev) => (prev === null || prev <= 1 ? 0 : prev - 1));
+      }, 1000);
+      timerRef.current = setTimeout(() => {
+        setShowNik(false);
+        clearTimers();
+      }, 15000);
+    }
+  };
 
   // STEP 1: NAMA LENGKAP
   if (currentStep === 1) {
@@ -66,8 +107,9 @@ export function PatientRegistrationStepFields({ controller }: PatientRegistratio
           return (
             <PatientLineInput
               id='nik'
-              label='nik ktp (16 digit)'
+              label='NIK KTP (16 Digit)'
               placeholder='3271012345670001'
+              type={showNik ? 'text' : 'password'}
               value={field.state.value}
               onChange={(val) => {
                 const numericOnly = val.replace(/\D/g, '').slice(0, 16);
@@ -79,6 +121,32 @@ export function PatientRegistrationStepFields({ controller }: PatientRegistratio
               inputMode='numeric'
               isMonospace
               autoComplete='off'
+              trailingIcon={
+                <div className='flex items-center gap-1 shrink-0'>
+                  {showNik && countdown !== null && countdown > 0 && (
+                    <span
+                      className='text-[10px] font-mono px-1 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium select-none'
+                      title={`NIK akan otomatis disensor dalam ${countdown} detik`}
+                    >
+                      {countdown}s
+                    </span>
+                  )}
+                  <button
+                    type='button'
+                    onClick={toggleShowNik}
+                    className='text-muted-foreground hover:text-foreground transition-colors p-1'
+                    title={showNik ? 'Sembunyikan NIK' : 'Tampilkan NIK (Otomatis disensor setelah 15s)'}
+                    aria-label={showNik ? 'Sembunyikan NIK' : 'Tampilkan NIK (Otomatis disensor setelah 15s)'}
+                    tabIndex={-1}
+                  >
+                    {showNik ? (
+                      <Icons.eyeOff className='size-4 text-primary' />
+                    ) : (
+                      <Icons.eye className='size-4' />
+                    )}
+                  </button>
+                </div>
+              }
             />
           );
         }}

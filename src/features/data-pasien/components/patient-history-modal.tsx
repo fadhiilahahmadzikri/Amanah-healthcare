@@ -11,6 +11,7 @@ import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { formatClinicDate, formatClinicTime } from '@/lib/date-format';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { MaskedNik } from '@/components/ui/masked-nik';
 import { BookedPatientKiaIntake } from '@/features/jadwal-dokter/components/booked-patient-kia-intake';
 import { patientHistoryQueryOptions } from '../api/queries';
 import type { Patient } from '../api/types';
@@ -68,9 +69,15 @@ export function PatientHistoryModal({ isOpen, patient, onClose }: PatientHistory
                   {patient.patient_id}
                 </span>
               </div>
-              <p className='text-xs font-mono text-muted-foreground mt-0.5'>
-                NIK: {patient.masked_nik}
-              </p>
+              <div className='text-xs font-mono text-muted-foreground mt-0.5 flex items-center gap-1.5'>
+                <span>NIK:</span>
+                <MaskedNik
+                  nik={patient.nik}
+                  maskedNik={patient.masked_nik}
+                  patientId={patient.id}
+                  size='sm'
+                />
+              </div>
             </div>
           </div>
 

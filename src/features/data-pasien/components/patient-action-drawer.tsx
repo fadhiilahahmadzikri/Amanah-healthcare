@@ -12,6 +12,7 @@ import {
   DrawerTitle
 } from '@/components/ui/drawer';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { MaskedNik } from '@/components/ui/masked-nik';
 import type { Patient } from '../api/types';
 
 export interface PatientActionDrawerProps {
@@ -54,7 +55,17 @@ export function PatientActionDrawer({
               <DrawerDescription className='text-xs text-muted-foreground truncate'>
                 No. RM:{' '}
                 <span className='font-mono font-medium text-foreground'>{patient.patient_id}</span>
-                {patient.nik ? ` • NIK: ${patient.masked_nik}` : ''}
+                {patient.nik || patient.masked_nik ? (
+                  <span className='inline-flex items-center gap-1 pl-1.5'>
+                    <span>• NIK:</span>
+                    <MaskedNik
+                      nik={patient.nik}
+                      maskedNik={patient.masked_nik}
+                      patientId={patient.id}
+                      size='sm'
+                    />
+                  </span>
+                ) : null}
               </DrawerDescription>
             </div>
             <StatusBadge status={patient.is_master ? 'Akun Utama' : 'Afiliasi'} size='sm' />
