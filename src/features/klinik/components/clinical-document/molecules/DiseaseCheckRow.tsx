@@ -28,6 +28,10 @@ export const DiseaseCheckRow: React.FC<DiseaseCheckRowProps> = ({
       <FormCell widthPercent={44.78} align="left" padding="px-[2px] py-0">
         {disease ? (
           <FormText customPt={customPt}>{disease}</FormText>
+        ) : record?.notes ? (
+          <FormText customPt={customPt} className="truncate">
+            {record.notes}
+          </FormText>
         ) : (
           <div className="border-b border-dotted border-[#777777] h-[12px] w-full" />
         )}

@@ -20,6 +20,22 @@ export const regularFormZodSchema = z.object({
   email: z.string().email({ message: 'Format email tidak valid' }).optional().or(z.literal(''))
 });
 
+export const conditionResponseItemZodSchema = z.object({
+  conditionCode: z.string(),
+  hasCondition: z.boolean(),
+  diagnosisYear: z
+    .number()
+    .int('Tahun diagnosis harus berupa bilangan bulat')
+    .min(1900, 'Tahun diagnosis minimal 1900')
+    .max(
+      new Date().getFullYear(),
+      'Tahun diagnosis tidak boleh melebihi tahun saat ini'
+    )
+    .nullable()
+    .optional(),
+  notes: z.string().nullable().optional()
+});
+
 export const maternalFormZodSchema = z.object({
   motherName: z.string().min(1, 'Nama lengkap ibu wajib diisi'),
   motherNik: z
@@ -43,7 +59,8 @@ export const maternalFormZodSchema = z.object({
       message: 'Nomor HP suami tidak valid'
     })
     .optional()
-    .or(z.literal(''))
+    .or(z.literal('')),
+  conditionResponses: z.array(conditionResponseItemZodSchema).optional()
 });
 
 export const immunizationFormZodSchema = z.object({
@@ -90,27 +107,46 @@ export function validateRegularForm(data: Partial<EditableRegularData>): Validat
 }
 
 export function validateMaternalForm(data: Partial<EditableMaternalData>): ValidationResult {
+  let birthYear: number | null = null;
+  if (data.motherBirthDate) {
+    const parsed = new Date(data.motherBirthDate).getFullYear();
+    if (!Number.isNaN(parsed)) birthYear = parsed;
+  }
+
   const result = maternalFormZodSchema.safeParse({
     motherName: data.motherName ?? '',
     motherNik: data.motherNik ? data.motherNik.trim() : '',
     partnerNik: data.partnerNik ? data.partnerNik.trim() : '',
     phoneNumber: data.phoneNumber ? data.phoneNumber.trim() : '',
-    partnerPhone: data.partnerPhone ? data.partnerPhone.trim() : ''
+    partnerPhone: data.partnerPhone ? data.partnerPhone.trim() : '',
+    conditionResponses: data.conditionResponses
   });
-
-  if (result.success) {
-    return { isValid: true, errors: {} };
-  }
 
   const errors: Record<string, string> = {};
-  result.error.issues.forEach((issue) => {
-    const field = issue.path[0] as string;
-    if (field && !errors[field]) {
-      errors[field] = issue.message;
-    }
-  });
 
-  return { isValid: false, errors };
+  if (!result.success) {
+    result.error.issues.forEach((issue) => {
+      const field = issue.path[0] as string;
+      if (field && !errors[field]) {
+        errors[field] = issue.message;
+      }
+    });
+  }
+
+  if (data.conditionResponses && birthYear) {
+    for (const c of data.conditionResponses) {
+      if (c.hasCondition && c.diagnosisYear && c.diagnosisYear < birthYear) {
+        errors.conditionResponses = `Tahun diagnosis (${c.diagnosisYear}) tidak boleh lebih awal dari tahun kelahiran ibu (${birthYear})`;
+        break;
+      }
+    }
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return { isValid: false, errors };
+  }
+
+  return { isValid: true, errors: {} };
 }
 
 export function validateImmunizationForm(

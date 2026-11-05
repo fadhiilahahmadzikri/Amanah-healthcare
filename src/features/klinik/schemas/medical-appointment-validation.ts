@@ -20,7 +20,20 @@ const yearFieldIds = new Set([
   'previousPregnancy2BirthYear',
   'previousPregnancy3BirthYear',
   'previousPregnancy4BirthYear',
-  'otherDiseaseHistoryYear'
+  'otherDiseaseHistoryYear',
+  'hypertensionHistoryNotes',
+  'heartDiseaseHistoryNotes',
+  'thyroidDiseaseHistoryNotes',
+  'autoimmuneHistoryNotes',
+  'diabetesHistoryNotes',
+  'asthmaHistoryNotes',
+  'tuberculosisHistoryNotes',
+  'hepatitisBHistoryNotes',
+  'hivOrSyphilisHistoryNotes',
+  'mentalHealthHistoryNotes',
+  'twinPregnancyHistoryNotes',
+  'cystMyomaTumorHistoryNotes',
+  'surgeryHistoryNotes',
 ]);
 
 export function getMedicalFieldFormat(
@@ -34,7 +47,10 @@ export function getMedicalFieldFormat(
   return 'text';
 }
 
-export function getMedicalFieldValidationSchema(field: MedicalFormField) {
+export function getMedicalFieldValidationSchema(
+  field: MedicalFormField,
+  birthYear?: number | null
+) {
   return z.string().superRefine((value, context) => {
     const trimmedValue = value.trim();
 
@@ -80,10 +96,36 @@ export function getMedicalFieldValidationSchema(field: MedicalFormField) {
 
     if (format === 'year') {
       const year = Number(trimmedValue);
-      if (!/^\d{4}$/.test(trimmedValue) || year < 1900 || year > 2100) {
+      const currentYear = new Date().getFullYear();
+
+      if (!/^\d{4}$/.test(trimmedValue)) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Tahun harus 4 digit angka (1900-2100)'
+          message: 'Tahun harus berupa 4 digit angka (contoh: 2021)'
+        });
+        return;
+      }
+
+      if (year < 1900) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Tahun tidak boleh lebih awal dari 1900'
+        });
+        return;
+      }
+
+      if (year > currentYear) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Tahun tidak boleh melebihi tahun saat ini (${currentYear})`
+        });
+        return;
+      }
+
+      if (birthYear && !Number.isNaN(birthYear) && year < birthYear) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Tahun tidak boleh lebih awal dari tahun kelahiran pasien (${birthYear})`
         });
         return;
       }
@@ -124,14 +166,24 @@ export function isMedicalSectionValid(
     return false;
   }
 
+  const birthDateVal = values['motherBirthDate'] || values['birthDate'] || '';
+  let birthYear: number | null = null;
+  if (birthDateVal) {
+    const parsed = new Date(birthDateVal).getFullYear();
+    if (!Number.isNaN(parsed)) {
+      birthYear = parsed;
+    }
+  }
+
   return section.fields.every((field) => {
     if (field.visibleIf && !field.visibleIf(values)) {
       return true;
     }
 
-    const isFieldValid = getMedicalFieldValidationSchema(field).safeParse(
-      values[field.id] || ''
-    ).success;
+    const isFieldValid = getMedicalFieldValidationSchema(
+      field,
+      birthYear
+    ).safeParse(values[field.id] || '').success;
     if (!isFieldValid) {
       return false;
     }

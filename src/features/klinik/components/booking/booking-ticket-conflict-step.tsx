@@ -8,11 +8,15 @@ import type { ActiveTicketConflictInfo } from '@/features/data-pasien/api/patien
 export interface BookingTicketConflictStepProps {
   activeTicket: ActiveTicketConflictInfo | null;
   onViewExistingAppointment?: (appointmentId: string) => void;
+  onCancelExistingAppointment?: (appointmentId: string) => void;
+  isCancelling?: boolean;
 }
 
 export function BookingTicketConflictStep({
   activeTicket,
-  onViewExistingAppointment
+  onViewExistingAppointment,
+  onCancelExistingAppointment,
+  isCancelling = false
 }: BookingTicketConflictStepProps) {
   const queueNumber = activeTicket?.queueNumber || '-';
   const appointmentId = activeTicket?.appointmentId;
@@ -32,23 +36,46 @@ export function BookingTicketConflictStep({
 
       <p className='text-xs text-muted-foreground leading-relaxed'>
         Demi ketertiban bersama di klinik, satu pasien hanya dapat memiliki satu tiket aktif per
-        hari untuk kategori layanan yang sama. Kamu dapat menggunakan tiket yang sudah ada atau
-        memilih tanggal lain.
+        hari untuk kategori layanan yang sama. Kamu dapat menggunakan tiket yang sudah ada,
+        membatalkan janji temu sebelumnya, atau memilih tanggal lain.
       </p>
 
-      {appointmentId && onViewExistingAppointment ? (
-        <div className='pt-1'>
-          <Button
-            type='button'
-            variant='outline'
-            size='sm'
-            shape='pill'
-            onClick={() => onViewExistingAppointment(appointmentId)}
-            leadingIcon={<Icons.eye className='size-3.5' />}
-            className='text-xs'
-          >
-            Lihat Detail Janji Temu ({queueNumber})
-          </Button>
+      {appointmentId && (onViewExistingAppointment || onCancelExistingAppointment) ? (
+        <div className='flex flex-wrap items-center gap-2 pt-1'>
+          {onViewExistingAppointment ? (
+            <Button
+              type='button'
+              variant='outline'
+              size='sm'
+              shape='pill'
+              onClick={() => onViewExistingAppointment(appointmentId)}
+              leadingIcon={<Icons.eye className='size-3.5' />}
+              className='text-xs'
+            >
+              Lihat Detail Janji Temu ({queueNumber})
+            </Button>
+          ) : null}
+
+          {onCancelExistingAppointment ? (
+            <Button
+              type='button'
+              variant='destructive'
+              size='sm'
+              shape='pill'
+              disabled={isCancelling}
+              onClick={() => onCancelExistingAppointment(appointmentId)}
+              leadingIcon={
+                isCancelling ? (
+                  <Icons.spinner className='size-3.5 animate-spin' />
+                ) : (
+                  <Icons.close className='size-3.5' />
+                )
+              }
+              className='text-xs'
+            >
+              {isCancelling ? 'Membatalkan...' : 'Batalkan Janji Temu Ini'}
+            </Button>
+          ) : null}
         </div>
       ) : null}
     </div>

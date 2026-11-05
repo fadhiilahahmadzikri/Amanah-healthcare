@@ -10,14 +10,23 @@ import type { MaternalConditionResponse } from '../../types/maternity.types';
 export interface MaternalConditionChecklistProps {
   conditions: MaternalConditionResponse[];
   isEditing?: boolean;
+  motherBirthDate?: string | null;
   onChange?: (updated: MaternalConditionResponse[]) => void;
 }
 
 export function MaternalConditionChecklist({
   conditions,
   isEditing = false,
+  motherBirthDate,
   onChange,
 }: MaternalConditionChecklistProps) {
+  const currentYear = new Date().getFullYear();
+  const birthYear = React.useMemo(() => {
+    if (!motherBirthDate) return 1900;
+    const parsed = new Date(motherBirthDate).getFullYear();
+    return Number.isNaN(parsed) ? 1900 : parsed;
+  }, [motherBirthDate]);
+
   // Map conditions by conditionCode
   const conditionsMap = React.useMemo(() => {
     const map = new Map<string, MaternalConditionResponse>();
@@ -123,7 +132,14 @@ export function MaternalConditionChecklist({
           return (
             <div
               key={item.code}
+              onClick={() => {
+                if (isEditing) {
+                  handleToggle(item.code, !hasCondition);
+                }
+              }}
               className={`p-3 rounded-lg border transition-colors ${
+                isEditing ? 'cursor-pointer hover:border-primary/50' : ''
+              } ${
                 hasCondition
                   ? 'border-amber-500/40 bg-amber-500/5'
                   : 'border-border/60 bg-card'
@@ -137,6 +153,7 @@ export function MaternalConditionChecklist({
                     onCheckedChange={(checked) =>
                       handleToggle(item.code, Boolean(checked))
                     }
+                    onClick={(e) => e.stopPropagation()}
                     className="mt-0.5 cursor-pointer"
                   />
                 ) : (
@@ -165,18 +182,24 @@ export function MaternalConditionChecklist({
                   </p>
 
                   {hasCondition && (
-                    <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <div
+                      className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <div className="w-28 shrink-0">
                         {isEditing ? (
                           <Input
                             type="number"
+                            min={birthYear}
+                            max={currentYear}
                             value={year || ''}
-                            onChange={(e) =>
+                            onChange={(e) => {
+                              const val = e.target.value;
                               handleYearChange(
                                 item.code,
-                                Number(e.target.value) || null,
-                              )
-                            }
+                                val ? Number(val) : null,
+                              );
+                            }}
                             placeholder="Tahun..."
                             className="h-7 text-xs px-2"
                           />
@@ -193,7 +216,11 @@ export function MaternalConditionChecklist({
                             onChange={(e) =>
                               handleNotesChange(item.code, e.target.value)
                             }
-                            placeholder="Catatan / nama obat..."
+                            placeholder={
+                              item.code === 'OTHER'
+                                ? 'Nama penyakit atau keluhan lain...'
+                                : 'Catatan tambahan (opsional)...'
+                            }
                             className="h-7 text-xs px-2"
                           />
                         ) : (

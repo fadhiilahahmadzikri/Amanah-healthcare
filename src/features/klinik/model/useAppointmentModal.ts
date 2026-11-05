@@ -460,6 +460,36 @@ export function useAppointmentModal({
     [patients, selectedPatientId]
   );
 
+  const [isCancellingConflictTicket, setIsCancellingConflictTicket] = useState(false);
+
+  const handleCancelConflictTicket = useCallback(
+    async (targetAppointmentId?: string) => {
+      const appointmentIdToCancel =
+        targetAppointmentId || activeTicketConflict?.appointmentId;
+      if (!appointmentIdToCancel) return;
+
+      try {
+        setIsCancellingConflictTicket(true);
+        await patientAffiliationService.cancelAppointment(
+          appointmentIdToCancel,
+          'Dibatalkan oleh pasien untuk membuat janji baru'
+        );
+        toast.success('Janji temu sebelumnya berhasil dibatalkan');
+        setActiveTicketConflict(null);
+        setStep('session');
+      } catch (err: unknown) {
+        const msg =
+          err instanceof Error
+            ? err.message
+            : 'Gagal membatalkan janji temu sebelumnya';
+        toast.error(msg);
+      } finally {
+        setIsCancellingConflictTicket(false);
+      }
+    },
+    [activeTicketConflict]
+  );
+
   const handleSessionContinue = useCallback(() => {
     if (activeTicketConflict) {
       toast.info(
@@ -621,6 +651,8 @@ export function useAppointmentModal({
     handleRelationshipSubmitForMedicalFlow,
     handlePatientContinue,
     handleSessionContinue,
-    handleFinalSubmit
+    handleFinalSubmit,
+    isCancellingConflictTicket,
+    handleCancelConflictTicket
   };
 }

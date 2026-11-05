@@ -23,6 +23,7 @@ import {
   buildInitialImmunizationData,
   buildInitialRegularData
 } from './inspector-initial-state';
+import { CANONICAL_MATERNAL_CONDITIONS } from '@/features/maternity/constants/maternity.constants';
 
 interface UseInspectorSaveParams {
   appointment: Appointment;
@@ -36,23 +37,6 @@ interface UseInspectorSaveParams {
   setValidationErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   setIsEditing: (val: boolean) => void;
 }
-
-const MATERNAL_CONDITION_CODES_MAP: Record<string, string> = {
-  hasHypertensionHistory: 'hypertension',
-  hasHeartDiseaseHistory: 'heart_disease',
-  hasThyroidDiseaseHistory: 'thyroid_disease',
-  hasAutoimmuneHistory: 'autoimmune',
-  hasDiabetesHistory: 'diabetes',
-  hasAsthmaHistory: 'asthma',
-  hasTuberculosisHistory: 'tuberculosis',
-  hasHepatitisBHistory: 'hepatitis_b',
-  hasHivOrSyphilisHistory: 'hiv_syphilis',
-  hasMentalHealthHistory: 'mental_health',
-  hasTwinPregnancyHistory: 'twin_pregnancy',
-  hasCystMyomaTumorHistory: 'cyst_myoma_tumor',
-  hasSurgeryHistory: 'surgery',
-  hasOtherDiseaseHistory: 'other'
-};
 
 export function useInspectorSave({
   appointment,
@@ -96,26 +80,50 @@ export function useInspectorSave({
     setValidationErrors({});
     const targetId = parsedData.maternal?.id || appointment.id;
 
-    const healthConditionsPayload = Object.entries(MATERNAL_CONDITION_CODES_MAP).map(
-      ([fieldKey, code]) => {
-        const has = Boolean(formData.diseaseHistory[fieldKey]);
-        const rawYearStr =
-          fieldKey === 'hasOtherDiseaseHistory'
-            ? formData.diseaseHistory.otherDiseaseHistoryYear
-            : formData.diseaseHistory[`${fieldKey}Notes`] || formData.diseaseHistory[fieldKey];
-        const year = rawYearStr ? parseInt(String(rawYearStr), 10) : NaN;
-        const notes =
-          fieldKey === 'hasOtherDiseaseHistory'
-            ? formData.diseaseHistory.otherDiseaseHistoryNotes || null
-            : null;
+    // Resolve health conditions using canonical uppercase condition codes
+    const existingConditionsMap = new Map<string, any>();
+    if (formData.conditionResponses && Array.isArray(formData.conditionResponses)) {
+      formData.conditionResponses.forEach((c) => {
+        if (c.conditionCode) {
+          existingConditionsMap.set(c.conditionCode.toUpperCase(), c);
+        }
+      });
+    }
+
+    const healthConditionsPayload = CANONICAL_MATERNAL_CONDITIONS.map((condDef) => {
+      const code = condDef.code;
+      const resp = existingConditionsMap.get(code);
+
+      if (resp) {
         return {
           conditionCode: code,
-          hasCondition: has,
-          diagnosisYear: !isNaN(year) ? year : null,
-          notes
+          hasCondition: Boolean(resp.hasCondition),
+          diagnosisYear: resp.diagnosisYear ? Number(resp.diagnosisYear) : null,
+          notes: resp.notes || null
         };
       }
-    );
+
+      // Fallback to diseaseHistory if conditionResponses was not populated
+      const has = Boolean(
+        formData.diseaseHistory[code] ??
+        formData.diseaseHistory[code.toLowerCase()]
+      );
+      const rawYearStr =
+        formData.diseaseHistory[`${code}Notes`] ||
+        formData.diseaseHistory[`${code.toLowerCase()}Notes`];
+      const year = rawYearStr ? parseInt(String(rawYearStr), 10) : NaN;
+      const notes =
+        formData.diseaseHistory[`${code}Detail`] ||
+        formData.diseaseHistory[`${code.toLowerCase()}Detail`] ||
+        null;
+
+      return {
+        conditionCode: code,
+        hasCondition: has,
+        diagnosisYear: !isNaN(year) ? year : null,
+        notes
+      };
+    });
 
     const payload = {
       motherName: formData.motherName || undefined,

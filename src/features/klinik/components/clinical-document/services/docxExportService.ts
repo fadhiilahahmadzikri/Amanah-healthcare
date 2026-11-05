@@ -737,7 +737,9 @@ export async function exportPmbDocx(
         }),
         disease
           ? textCell(disease, diseaseColumns[1], { size: 6.5 })
-          : lineCell('', diseaseColumns[1], { size: 6.5 }),
+          : diseaseRecord?.notes
+            ? textCell(diseaseRecord.notes, diseaseColumns[1], { size: 6.5 })
+            : lineCell('', diseaseColumns[1], { size: 6.5 }),
         textCell(diseaseRecord?.status === 'ya' ? 'X' : '', diseaseColumns[2], {
           alignment: AlignmentType.CENTER,
           size: 6.5

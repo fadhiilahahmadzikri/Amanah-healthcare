@@ -11,6 +11,7 @@ import type {
 import { getGenderLabel } from '@/constants/gender.constants';
 import { getRelationshipLabel } from '@/constants/relationship.constants';
 import { formatClinicDate } from '@/lib/date-format';
+import { CANONICAL_MATERNAL_CONDITIONS } from '@/features/maternity/constants/maternity.constants';
 
 function getInactiveFieldIds(schema?: FormJsonSchema | Record<string, any> | null): Set<string> {
   const inactive = new Set<string>();
@@ -41,54 +42,66 @@ function formatGender(gender?: string): string {
 const DISEASE_CANONICAL_TO_LABEL_MAP: Record<string, string> = {
   hasHypertensionHistory: 'Hipertensi',
   hypertension: 'Hipertensi',
+  HYPERTENSION: 'Hipertensi',
+
   hasHeartDiseaseHistory: 'Jantung',
   heart_disease: 'Jantung',
+  HEART_DISEASE: 'Jantung',
+
   hasThyroidDiseaseHistory: 'Tiroid',
   thyroid_disease: 'Tiroid',
+  THYROID_DISEASE: 'Tiroid',
+
   hasAutoimmuneHistory: 'Autoimun',
   autoimmune: 'Autoimun',
+  AUTOIMMUNE: 'Autoimun',
+
   hasDiabetesHistory: 'Diabetes',
   diabetes: 'Diabetes',
+  DIABETES: 'Diabetes',
+
   hasAsthmaHistory: 'Asma',
   asthma: 'Asma',
+  ASTHMA: 'Asma',
+
   hasTuberculosisHistory: 'TBC',
   tuberculosis: 'TBC',
+  TUBERCULOSIS: 'TBC',
   tbc: 'TBC',
+
   hasHepatitisBHistory: 'Hepatitis B',
   hepatitis_b: 'Hepatitis B',
+  HEPATITIS_B: 'Hepatitis B',
+
   hasHivOrSyphilisHistory: 'HIV/Sifilis',
   hiv_syphilis: 'HIV/Sifilis',
+  HIV_SYPHILIS: 'HIV/Sifilis',
+
   hasMentalHealthHistory: 'Jiwa',
   mental_health: 'Jiwa',
+  MENTAL_HEALTH: 'Jiwa',
+
   hasTwinPregnancyHistory: 'Riwayat Gemelli',
   twin_pregnancy: 'Riwayat Gemelli',
+  TWIN_PREGNANCY: 'Riwayat Gemelli',
+
   hasCystMyomaTumorHistory: 'Kista/Miom/Tumor',
   cyst_myoma_tumor: 'Kista/Miom/Tumor',
+  CYST_MYOMA_TUMOR: 'Kista/Miom/Tumor',
+
   hasSurgeryHistory: 'Operasi',
   surgery: 'Operasi',
+  SURGERY: 'Operasi',
+
   hasOtherDiseaseHistory: '',
-  other: ''
+  other: '',
+  OTHER: ''
 };
 
 /**
- * Ordered list of 14 canonical diseases for PMB anamnesis
+ * Ordered list of 14 canonical diseases for PMB anamnesis derived directly from CANONICAL_MATERNAL_CONDITIONS
  */
-const CANONICAL_PMB_DISEASE_KEYS = [
-  'Hipertensi',
-  'Jantung',
-  'Tiroid',
-  'Autoimun',
-  'Diabetes',
-  'Asma',
-  'TBC',
-  'Hepatitis B',
-  'HIV/Sifilis',
-  'Jiwa',
-  'Riwayat Gemelli',
-  'Kista/Miom/Tumor',
-  'Operasi',
-  ''
-];
+const CANONICAL_PMB_DISEASE_KEYS = CANONICAL_MATERNAL_CONDITIONS.map((c) => c.docLabel);
 
 /**
  * 15 canonical vaccine schedule rows mapped to defaultImunisasiConfig.vaccineTable.rows
@@ -268,27 +281,66 @@ export function adaptToPmbFormData(
 
   if (m?.diseaseHistory && typeof m.diseaseHistory === 'object') {
     for (const [key, val] of Object.entries(m.diseaseHistory)) {
-      const targetLabel = DISEASE_CANONICAL_TO_LABEL_MAP[key] ?? key;
+      const targetLabel =
+        DISEASE_CANONICAL_TO_LABEL_MAP[key] ??
+        DISEASE_CANONICAL_TO_LABEL_MAP[key.toUpperCase()] ??
+        DISEASE_CANONICAL_TO_LABEL_MAP[key.toLowerCase()] ??
+        key;
       if (typeof val === 'object' && val !== null) {
         const has = (val as any).status === 'ya' || (val as any).hasCondition === true;
         diseaseHistory[targetLabel] = {
           status: has ? 'ya' : 'tidak',
-          year: has && (val as any).year ? String((val as any).year) : undefined
+          year: has && (val as any).year ? String((val as any).year) : undefined,
+          notes: (val as any).notes || undefined
         };
       } else if (typeof val === 'boolean') {
-        diseaseHistory[targetLabel] = { status: val ? 'ya' : 'tidak' };
+        const year = (m.diseaseHistory as any)[`${key}Notes`];
+        diseaseHistory[targetLabel] = {
+          status: val ? 'ya' : 'tidak',
+          year: val && year ? String(year) : undefined
+        };
       }
     }
   }
 
-  // Support healthConditions array from backend intake if present
-  if (Array.isArray(m?.healthConditions)) {
-    m.healthConditions.forEach((c) => {
+  // 1-to-1 mapping from canonical conditionResponses array
+  const rawConditions = Array.isArray(m?.conditionResponses)
+    ? m.conditionResponses
+    : [];
+
+  if (rawConditions.length > 0) {
+    rawConditions.forEach((c) => {
       if (c.conditionCode) {
-        const targetLabel = DISEASE_CANONICAL_TO_LABEL_MAP[c.conditionCode] ?? c.conditionCode;
+        const targetLabel =
+          DISEASE_CANONICAL_TO_LABEL_MAP[c.conditionCode] ?? c.conditionCode;
+
+        const has = Boolean(c.hasCondition);
         diseaseHistory[targetLabel] = {
-          status: c.hasCondition ? 'ya' : 'tidak',
-          year: c.hasCondition && c.diagnosisYear ? String(c.diagnosisYear) : undefined
+          status: has ? 'ya' : 'tidak',
+          year: has && c.diagnosisYear ? String(c.diagnosisYear) : undefined,
+          notes: c.notes || undefined
+        };
+      }
+    });
+  }
+
+  const answers = data.answers || {};
+  if (
+    rawConditions.length === 0 &&
+    (!m?.diseaseHistory || Object.keys(m.diseaseHistory).length === 0) &&
+    answers
+  ) {
+    Object.entries(answers).forEach(([key, val]) => {
+      const targetLabel =
+        DISEASE_CANONICAL_TO_LABEL_MAP[key] ??
+        DISEASE_CANONICAL_TO_LABEL_MAP[key.toUpperCase()] ??
+        DISEASE_CANONICAL_TO_LABEL_MAP[key.toLowerCase()];
+      if (targetLabel !== undefined) {
+        const has = val === 'Ya' || val === true;
+        const year = answers[`${key}Notes`] || answers[`${key}Year`];
+        diseaseHistory[targetLabel] = {
+          status: has ? 'ya' : 'tidak',
+          year: has && year ? String(year) : undefined
         };
       }
     });

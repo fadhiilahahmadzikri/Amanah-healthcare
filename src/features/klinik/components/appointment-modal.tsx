@@ -89,6 +89,8 @@ export function AppointmentModal({
     handlePatientContinue,
     handleSessionContinue,
     handleFinalSubmit,
+    isCancellingConflictTicket,
+    handleCancelConflictTicket,
     overcapacityDialog,
     setOvercapacityDialog
   } = useAppointmentModal({
@@ -269,6 +271,8 @@ export function AppointmentModal({
               <BookingTicketConflictStep
                 activeTicket={activeTicketConflict}
                 onViewExistingAppointment={onViewExistingAppointment}
+                onCancelExistingAppointment={handleCancelConflictTicket}
+                isCancelling={isCancellingConflictTicket}
               />
             )}
           </div>
@@ -380,18 +384,42 @@ export function AppointmentModal({
                     Lanjut
                   </Button>
                 ) : step === 'ticket_conflict' ? (
-                  <Button
-                    type='button'
-                    variant='primary'
-                    size='md'
-                    shape='pill'
-                    onClick={onClose}
-                    withTrailingCircleIcon={true}
-                    className='min-w-[140px]'
-                    trailingIcon={<Icons.check className='size-3 stroke-[2.5]' />}
-                  >
-                    Saya Mengerti
-                  </Button>
+                  activeTicketConflict?.appointmentId ? (
+                    <Button
+                      type='button'
+                      variant='destructive'
+                      size='md'
+                      shape='pill'
+                      disabled={isCancellingConflictTicket}
+                      isLoading={isCancellingConflictTicket}
+                      onClick={() => handleCancelConflictTicket()}
+                      leadingIcon={
+                        isCancellingConflictTicket ? (
+                          <Icons.spinner className='size-3.5 animate-spin' />
+                        ) : (
+                          <Icons.close className='size-3.5' />
+                        )
+                      }
+                      className='min-w-[140px]'
+                    >
+                      {isCancellingConflictTicket
+                        ? 'Membatalkan...'
+                        : 'Batalkan Janji Temu Ini'}
+                    </Button>
+                  ) : (
+                    <Button
+                      type='button'
+                      variant='primary'
+                      size='md'
+                      shape='pill'
+                      onClick={onClose}
+                      withTrailingCircleIcon={true}
+                      className='min-w-[140px]'
+                      trailingIcon={<Icons.check className='size-3 stroke-[2.5]' />}
+                    >
+                      Saya Mengerti
+                    </Button>
+                  )
                 ) : step === 'confirmation' ? (
                   <Button
                     type='button'

@@ -3,6 +3,7 @@ import type {
   MaternalIntakeResponse,
   ChildImmunizationResponse
 } from '../../api/kia-intake-service';
+import type { MaternalConditionResponse } from '@/features/maternity/types/maternity.types';
 
 export interface UnifiedInspectorPatient {
   id?: string;
@@ -171,6 +172,7 @@ export interface EditableMaternalData {
   diseaseHistory: DiseaseHistoryMap;
   previousPregnancies: PreviousPregnancyEntry[];
   contraceptiveHistories: ContraceptiveHistoryEntry[];
+  conditionResponses?: MaternalConditionResponse[];
 }
 
 export interface EditableImmunizationData {

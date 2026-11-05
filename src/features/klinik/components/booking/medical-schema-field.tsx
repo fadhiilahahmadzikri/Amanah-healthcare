@@ -286,8 +286,11 @@ export function MedicalSchemaField({
   );
 }
 
-export function getFieldValidators(field: MedicalFormField) {
-  const schema = getMedicalFieldValidationSchema(field);
+export function getFieldValidators(
+  field: MedicalFormField,
+  birthYear?: number | null
+) {
+  const schema = getMedicalFieldValidationSchema(field, birthYear);
 
   return {
     onChange: schema,

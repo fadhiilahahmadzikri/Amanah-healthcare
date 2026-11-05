@@ -13,6 +13,5 @@ export * from './components/molecules/contraceptive-history-table';
 export * from './components/molecules/maternal-condition-checklist';
 
 // Organisms
-export * from './components/organisms/maternity-document-view';
 export * from './components/organisms/maternity-booking-stepper';
 export * from './components/organisms/maternity-admin-inspector';

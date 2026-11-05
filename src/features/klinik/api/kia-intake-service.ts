@@ -216,6 +216,7 @@ export interface MaternalIntakeResponse extends CreateMaternityIntakePayload {
   gestationalAgeFormatted?: string | null;
   answers?: Record<string, unknown>;
   automatic?: Record<string, unknown>;
+  conditionResponses?: HealthConditionResponsePayload[];
 }
 
 export interface ChildImmunizationResponse extends CreateChildImmunizationPayload {

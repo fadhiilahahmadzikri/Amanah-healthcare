@@ -371,7 +371,7 @@ export async function exportPmbExcel(
     r.getCell(1).font = { name: 'Calibri', size: 9 };
     r.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
 
-    r.getCell(2).value = d;
+    r.getCell(2).value = (d === 'Lain-lain' && rec?.notes) ? `Lain-lain (${rec.notes})` : d;
     r.getCell(2).font = { name: 'Calibri', size: 9 };
     r.getCell(2).alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
 

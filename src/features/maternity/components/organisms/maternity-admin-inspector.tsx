@@ -9,7 +9,6 @@ import { PatientLineTextarea } from '@/features/data-pasien/components/registrat
 import { PregnancyHistoryTable } from '../molecules/pregnancy-history-table';
 import { ContraceptiveHistoryTable } from '../molecules/contraceptive-history-table';
 import { MaternalConditionChecklist } from '../molecules/maternal-condition-checklist';
-import { MaternityDocumentView } from './maternity-document-view';
 import { usePatientFormReferences } from '@/features/data-pasien/model/usePatientFormReferences';
 import { TETANUS_STATUS_OPTIONS } from '../../constants/maternity.constants';
 import type {
@@ -69,21 +68,18 @@ export function MaternityAdminInspector({
 
   return (
     <Tabs defaultValue='identitas' className='w-full flex flex-col h-full min-h-0'>
-      <TabsList className='grid grid-cols-5 w-full h-9 mb-3 shrink-0'>
+      <TabsList className='grid grid-cols-4 w-full h-9 mb-3 shrink-0'>
         <TabsTrigger value='identitas' className='text-xs font-semibold cursor-pointer truncate'>
           Identitas
         </TabsTrigger>
         <TabsTrigger value='obstetri' className='text-xs font-semibold cursor-pointer truncate'>
-          Obstetri & Hamil
+          Riwayat Kehamilan
         </TabsTrigger>
         <TabsTrigger value='klinis' className='text-xs font-semibold cursor-pointer truncate'>
-          Klinis & KB
+          Pemeriksaan Fisik & KB
         </TabsTrigger>
         <TabsTrigger value='skrining' className='text-xs font-semibold cursor-pointer truncate'>
           Skrining Penyakit
-        </TabsTrigger>
-        <TabsTrigger value='dokumen_pmb' className='text-xs font-semibold cursor-pointer truncate'>
-          Dokumen PMB
         </TabsTrigger>
       </TabsList>
 
@@ -316,7 +312,7 @@ export function MaternityAdminInspector({
                   <PatientLineSelect
                     id='maternity-partner-blood-type'
                     label='Golongan Darah Suami'
-                    value={husband?.bloodType || intake?.partnerBloodType || 'Tidak Tahu'}
+                    value={husband?.bloodType || intake?.partnerBloodType || ''}
                     onChange={(val) => {
                       onHusbandFieldChange?.('bloodType', val);
                       onIntakeFieldChange('partnerBloodType', val);
@@ -705,7 +701,7 @@ export function MaternityAdminInspector({
                 <PatientLineSelect
                   id='maternity-tt-status'
                   label='Status Imunisasi TT'
-                  value={intake?.tetanusStatus || 'T2'}
+                  value={intake?.tetanusStatus || ''}
                   onChange={(val) => onIntakeFieldChange('tetanusStatus', val)}
                   options={tetanusOptions}
                 />
@@ -713,7 +709,7 @@ export function MaternityAdminInspector({
                 <PatientLineSelect
                   id='maternity-blood-type'
                   label='Golongan Darah Ibu'
-                  value={intake?.motherBloodType || 'Tidak Tahu'}
+                  value={intake?.motherBloodType || ''}
                   onChange={(val) => onIntakeFieldChange('motherBloodType', val)}
                   options={bloodTypeOptions}
                 />
@@ -789,6 +785,7 @@ export function MaternityAdminInspector({
             <MaternalConditionChecklist
               conditions={conditionResponses}
               isEditing={isEditing}
+              motherBirthDate={intake?.motherBirthDate}
               onChange={onConditionsChange}
             />
 
@@ -802,7 +799,7 @@ export function MaternityAdminInspector({
                   <PatientLineSelect
                     id='maternity-smoking'
                     label='Riwayat Merokok'
-                    value={intake?.smokedBeforePregnancy || 'Tidak'}
+                    value={intake?.smokedBeforePregnancy || ''}
                     onChange={(val) => onIntakeFieldChange('smokedBeforePregnancy', val)}
                     options={['Tidak', 'Pasif', 'Ya']}
                   />
@@ -899,19 +896,6 @@ export function MaternityAdminInspector({
               </div>
             )}
           </div>
-        </TabsContent>
-
-        {/* TAB 5: DOKUMEN PMB */}
-        <TabsContent value='dokumen_pmb' className='m-0 outline-none'>
-          {intake ? (
-            <div className='pt-1'>
-              <MaternityDocumentView intake={intake} />
-            </div>
-          ) : (
-            <div className='p-8 text-center text-xs text-muted-foreground border border-dashed border-border/60 rounded-xl'>
-              Data rekam medis belum tersimpan untuk menampilkan dokumen PMB.
-            </div>
-          )}
         </TabsContent>
       </div>
     </Tabs>

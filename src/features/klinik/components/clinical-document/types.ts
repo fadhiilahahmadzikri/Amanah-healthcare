@@ -106,6 +106,7 @@ export interface PmbFormConfig {
 export interface DiseaseRecord {
   status: 'ya' | 'tidak' | '';
   year?: string;
+  notes?: string;
 }
 
 export interface PmbFormData {

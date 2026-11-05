@@ -191,12 +191,11 @@ export function AppointmentFormInspector({
       previousPregnancies: (formData.previousPregnancies || m?.previousPregnancies || []) as any,
       contraceptiveHistories: (formData.contraceptiveHistories || m?.contraceptiveHistories || []) as any,
       diseaseHistory: formData.diseaseHistory || m?.diseaseHistory || null,
-      conditionResponses: ((m as any)?.conditionResponses || m?.healthConditions || Object.entries(formData.diseaseHistory || {}).map(([key, val]) => ({
-        conditionCode: key,
-        hasCondition: Boolean(val),
-        diagnosisYear: (formData.diseaseHistory as any)[`${key}Notes`] ? Number((formData.diseaseHistory as any)[`${key}Notes`]) : null,
-        notes: null
-      }))) as any
+      conditionResponses: (
+        formData.conditionResponses && formData.conditionResponses.length > 0
+          ? formData.conditionResponses
+          : m?.conditionResponses || []
+      ) as any
     };
   }, [isPregnancy, parsedData.maternal, formData, appointment]);
 
@@ -309,6 +308,7 @@ export function AppointmentFormInspector({
       } else if (field === 'contraceptiveHistories') {
         handleFieldChange('contraceptiveHistories' as any, val);
       } else if (field === 'conditionResponses') {
+        handleFieldChange('conditionResponses' as any, val);
         val.forEach((cond: any) => {
           handleDiseaseChange(cond.conditionCode, cond.hasCondition, cond.diagnosisYear ? String(cond.diagnosisYear) : undefined);
         });

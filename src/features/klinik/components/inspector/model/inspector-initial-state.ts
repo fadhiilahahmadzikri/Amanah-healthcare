@@ -18,19 +18,24 @@ export function buildInitialMaternalData(parsedData: UnifiedInspectorData): Edit
     Object.assign(diseaseHistory, a);
   }
 
-  if (m?.healthConditions && Array.isArray(m.healthConditions)) {
-    m.healthConditions.forEach((c) => {
-      if (c.conditionCode) {
-        diseaseHistory[c.conditionCode] = Boolean(c.hasCondition);
-        if (c.diagnosisYear) {
-          diseaseHistory[`${c.conditionCode}Notes`] = String(c.diagnosisYear);
-        }
-        if (c.notes) {
-          diseaseHistory[`${c.conditionCode}Detail`] = c.notes;
-        }
+  const conditions =
+    Array.isArray(m?.conditionResponses) && m.conditionResponses.length > 0
+      ? m.conditionResponses
+      : Array.isArray(m?.healthConditions) && m.healthConditions.length > 0
+        ? m.healthConditions
+        : [];
+
+  conditions.forEach((c: any) => {
+    if (c.conditionCode) {
+      diseaseHistory[c.conditionCode] = Boolean(c.hasCondition);
+      if (c.diagnosisYear) {
+        diseaseHistory[`${c.conditionCode}Notes`] = String(c.diagnosisYear);
       }
-    });
-  }
+      if (c.notes) {
+        diseaseHistory[`${c.conditionCode}Detail`] = c.notes;
+      }
+    }
+  });
 
   let prevPregnancies: any[] = m?.previousPregnancies || [];
   if (prevPregnancies.length === 0) {
@@ -47,10 +52,10 @@ export function buildInitialMaternalData(parsedData: UnifiedInspectorData): Edit
             : '',
           birthLengthCm: a[`previousPregnancy${i}BirthLength`] || '',
           childSex: a[`previousPregnancy${i}ChildSex`] || '',
-          deliveryMethod: a[`previousPregnancy${i}DeliveryMethod`] || 'Normal / Spontan',
-          birthAttendant: a[`previousPregnancy${i}BirthAttendant`] || 'Bidan',
-          deliveryPlace: a[`previousPregnancy${i}DeliveryPlace`] || 'Praktik Mandiri Bidan (PMB)',
-          complications: a[`previousPregnancy${i}Complications`] || 'Tidak ada'
+          deliveryMethod: a[`previousPregnancy${i}DeliveryMethod`] || '',
+          birthAttendant: a[`previousPregnancy${i}BirthAttendant`] || '',
+          deliveryPlace: a[`previousPregnancy${i}DeliveryPlace`] || '',
+          complications: a[`previousPregnancy${i}Complications`] || ''
         });
       }
     }
@@ -69,9 +74,9 @@ export function buildInitialMaternalData(parsedData: UnifiedInspectorData): Edit
           startDate: a[`contraception${i}StartDate`] || a[`contraceptive${i}StartDate`] || '',
           stopDate: a[`contraception${i}StopDate`] || a[`contraceptive${i}StopDate`] || '',
           durationText: a[`contraception${i}Duration`] || a[`contraceptive${i}Duration`] || '',
-          problems: a[`contraception${i}Problems`] || a[`contraceptive${i}Problems`] || 'Tidak ada',
+          problems: a[`contraception${i}Problems`] || a[`contraceptive${i}Problems`] || '',
           sideEffects:
-            a[`contraception${i}SideEffects`] || a[`contraceptive${i}SideEffects`] || 'Tidak ada'
+            a[`contraception${i}SideEffects`] || a[`contraceptive${i}SideEffects`] || ''
         });
       }
     }
@@ -135,7 +140,7 @@ export function buildInitialMaternalData(parsedData: UnifiedInspectorData): Edit
       m?.hasContraceptionHistory ?? a.hasContraceptionHistory === 'Ya, pernah'
     ),
 
-    smokedBeforePregnancy: m?.smokedBeforePregnancy ?? a.smokedBeforePregnancy ?? 'Tidak',
+    smokedBeforePregnancy: m?.smokedBeforePregnancy ?? a.smokedBeforePregnancy ?? '',
     alcoholBeforePregnancy: Boolean(
       m?.alcoholBeforePregnancy ??
       (a.alcoholBeforePregnancy === true || a.alcoholBeforePregnancy === 'Ya')
@@ -178,7 +183,8 @@ export function buildInitialMaternalData(parsedData: UnifiedInspectorData): Edit
 
     diseaseHistory: diseaseHistory as any,
     previousPregnancies: prevPregnancies,
-    contraceptiveHistories: kbList
+    contraceptiveHistories: kbList,
+    conditionResponses: conditions as any
   };
 }
 

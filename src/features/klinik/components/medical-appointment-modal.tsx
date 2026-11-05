@@ -218,17 +218,32 @@ export function MedicalAppointmentModal({
                   onFieldChange={(fieldId, nextValue) => {
                     form.setFieldValue(fieldId, nextValue);
                   }}
-                  renderField={(field) => (
-                    <form.AppField
-                      key={field.id}
-                      name={field.id}
-                      validators={getFieldValidators(field)}
-                    >
-                      {(fieldApi: AnyFieldApi) => (
-                        <MedicalSchemaField fieldApi={fieldApi} schemaField={field} />
-                      )}
-                    </form.AppField>
-                  )}
+                  renderField={(field) => {
+                    const birthDateVal =
+                      values['motherBirthDate'] || values['birthDate'] || '';
+                    let birthYear: number | null = null;
+                    if (birthDateVal) {
+                      const parsed = new Date(birthDateVal).getFullYear();
+                      if (!Number.isNaN(parsed)) {
+                        birthYear = parsed;
+                      }
+                    }
+
+                    return (
+                      <form.AppField
+                        key={field.id}
+                        name={field.id}
+                        validators={getFieldValidators(field, birthYear)}
+                      >
+                        {(fieldApi: AnyFieldApi) => (
+                          <MedicalSchemaField
+                            fieldApi={fieldApi}
+                            schemaField={field}
+                          />
+                        )}
+                      </form.AppField>
+                    );
+                  }}
                 />
               ) : null}
 

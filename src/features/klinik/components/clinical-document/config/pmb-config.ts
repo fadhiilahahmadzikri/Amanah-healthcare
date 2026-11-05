@@ -1,4 +1,5 @@
 import type { PmbFormConfig } from '../types';
+import { CANONICAL_MATERNAL_CONDITIONS } from '@/features/maternity/constants/maternity.constants';
 
 export const defaultPmbConfig: PmbFormConfig = {
   page: {
@@ -78,22 +79,7 @@ export const defaultPmbConfig: PmbFormConfig = {
     diseaseColumns: [520, 2246, 620, 750, 880],
     otherDashedRows: 3,
     integratedBlankRows: 3,
-    diseases: [
-      'Hipertensi',
-      'Jantung',
-      'Tiroid',
-      'Autoimun',
-      'Diabetes',
-      'Asma',
-      'TBC',
-      'Hepatitis B',
-      'HIV/Sifilis',
-      'Jiwa',
-      'Riwayat Gemelli',
-      'Kista/Miom/Tumor',
-      'Operasi',
-      ''
-    ]
+    diseases: CANONICAL_MATERNAL_CONDITIONS.map((c) => c.docLabel)
   },
   obstetri: {
     title: 'RIWAYAT OBSTETRI',
