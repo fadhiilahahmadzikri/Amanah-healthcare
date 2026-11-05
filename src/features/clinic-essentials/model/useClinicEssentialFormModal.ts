@@ -132,6 +132,7 @@ export function useClinicEssentialFormModal({
   const [relationshipDisplayOrder, setRelationshipDisplayOrder] = React.useState(0);
   const [relationshipIsActive, setRelationshipIsActive] = React.useState(true);
   const [relationshipIsSystem, setRelationshipIsSystem] = React.useState(false);
+  const [relationshipAllowsMultiple, setRelationshipAllowsMultiple] = React.useState(true);
 
   // Field validation errors state (On-Demand Zod Validation)
   const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
@@ -336,6 +337,7 @@ export function useClinicEssentialFormModal({
           setRelationshipDisplayOrder(rel.displayOrder ?? 0);
           setRelationshipIsActive(rel.isActive !== false);
           setRelationshipIsSystem(rel.isSystem === true);
+          setRelationshipAllowsMultiple(rel.allowsMultiple !== false);
           break;
         }
       }
@@ -390,6 +392,7 @@ export function useClinicEssentialFormModal({
       setRelationshipDisplayOrder(0);
       setRelationshipIsActive(true);
       setRelationshipIsSystem(false);
+      setRelationshipAllowsMultiple(true);
     }
   }, [type, editItem, unitTypes, units, categories]);
 
@@ -558,7 +561,8 @@ export function useClinicEssentialFormModal({
               description: relationshipDescription.trim() || undefined,
               displayOrder: relationshipDisplayOrder,
               isActive: relationshipIsActive,
-              isSystem: relationshipIsSystem
+              isSystem: relationshipIsSystem,
+              allowsMultiple: relationshipAllowsMultiple
             };
             return await clinicEssentialsApi.updateRelationship(editItem.id, payload);
           }
@@ -650,7 +654,8 @@ export function useClinicEssentialFormModal({
               description: relationshipDescription.trim() || undefined,
               displayOrder: relationshipDisplayOrder,
               isActive: true,
-              isSystem: relationshipIsSystem
+              isSystem: relationshipIsSystem,
+              allowsMultiple: relationshipAllowsMultiple
             };
             return await clinicEssentialsApi.createRelationship(payload);
           }
@@ -821,7 +826,8 @@ export function useClinicEssentialFormModal({
       relationshipDescription,
       relationshipDisplayOrder,
       relationshipIsActive,
-      relationshipIsSystem
+      relationshipIsSystem,
+      relationshipAllowsMultiple
     },
     actions: {
       setCurrentStage,
@@ -929,7 +935,8 @@ export function useClinicEssentialFormModal({
       setRelationshipDescription,
       setRelationshipDisplayOrder,
       setRelationshipIsActive,
-      setRelationshipIsSystem
+      setRelationshipIsSystem,
+      setRelationshipAllowsMultiple
     }
   };
 }

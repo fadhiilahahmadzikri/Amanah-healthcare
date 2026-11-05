@@ -47,29 +47,23 @@ export function useBookingRegularPatientForm({
   }, []);
 
   const relationshipOptions = React.useMemo(() => {
-    let opts =
-      allowedRelationships && allowedRelationships.length > 0
-        ? allowedRelationships
-        : references.relationships;
-    if (hasExistingSelf) {
-      opts = opts.filter((o) => !(o as any).isSystem);
+    if (allowedRelationships && allowedRelationships.length > 0) {
+      return allowedRelationships;
     }
-    return opts;
-  }, [allowedRelationships, references.relationships, hasExistingSelf]);
+    return references.relationships;
+  }, [allowedRelationships, references.relationships]);
 
   const initialRelationshipValue: PatientRelationshipType = React.useMemo(() => {
     if (initialRelationship && relationshipOptions.some((r) => r.value === initialRelationship)) {
       return initialRelationship as PatientRelationshipType;
     }
     if (relationshipOptions.length > 0) {
-      if (!hasExistingSelf) {
-        const systemOpt = relationshipOptions.find((r) => (r as any).isSystem);
-        if (systemOpt) return systemOpt.value as PatientRelationshipType;
-      }
+      const systemOpt = relationshipOptions.find((r) => (r as any).isSystem);
+      if (systemOpt) return systemOpt.value as PatientRelationshipType;
       return relationshipOptions[0].value as PatientRelationshipType;
     }
     return '' as PatientRelationshipType;
-  }, [initialRelationship, relationshipOptions, hasExistingSelf]);
+  }, [initialRelationship, relationshipOptions]);
 
   const [relationship, setRelationship] =
     React.useState<PatientRelationshipType>(initialRelationshipValue);
@@ -87,14 +81,55 @@ export function useBookingRegularPatientForm({
       const exists = relationshipOptions.some((r) => r.value === relationship);
       if (!exists) {
         setRelationship(relationshipOptions[0].value as PatientRelationshipType);
-      } else if (hasExistingSelf && isSelf) {
-        setRelationship(relationshipOptions[0].value as PatientRelationshipType);
       }
     }
-  }, [relationshipOptions, hasExistingSelf, isSelf, relationship]);
+  }, [relationshipOptions, relationship]);
 
   const [fullName, setFullName] = React.useState(() => (isSelf && user?.name ? user.name : ''));
   const [nik, setNik] = React.useState('');
+  const [nikStatus, setNikStatus] = React.useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+  const [nikError, setNikError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const clean = nik.replace(/\D/g, '');
+    if (clean.length === 0) {
+      setNikStatus('idle');
+      setNikError(null);
+      return;
+    }
+    if (clean.length < 16) {
+      setNikStatus('idle');
+      setNikError(null);
+      return;
+    }
+
+    setNikStatus('checking');
+    setNikError(null);
+
+    const abortController = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const res = await patientAffiliationService.verifyNikAvailability(clean);
+        if (abortController.signal.aborted) return;
+        if (res.available) {
+          setNikStatus('available');
+          setNikError(null);
+        } else {
+          setNikStatus('taken');
+          setNikError('NIK sudah terdaftar');
+        }
+      } catch (err) {
+        if (abortController.signal.aborted) return;
+        setNikStatus('idle');
+      }
+    }, 400);
+
+    return () => {
+      abortController.abort();
+      clearTimeout(timer);
+    };
+  }, [nik]);
+
   const [phone, setPhone] = React.useState(() => (isSelf && user?.phone ? user.phone : ''));
   const [email, setEmail] = React.useState(() => user?.email || '');
   const [emergencyContactName, setEmergencyContactName] = React.useState('');
@@ -270,7 +305,12 @@ export function useBookingRegularPatientForm({
       case 2:
         return fullName.trim().length >= 3;
       case 3:
-        return nik.length === 16 && /^\d+$/.test(nik);
+        return (
+          nik.length === 16 &&
+          /^\d+$/.test(nik) &&
+          nikStatus !== 'taken' &&
+          nikStatus !== 'checking'
+        );
       case 4:
         return motherName.trim().length >= 3;
       case 5:
@@ -311,6 +351,7 @@ export function useBookingRegularPatientForm({
     relationship,
     fullName,
     nik,
+    nikStatus,
     phone,
     emergencyContactName,
     emergencyContactPhone,
@@ -394,6 +435,14 @@ export function useBookingRegularPatientForm({
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Gagal menyimpan profil pasien';
       setErrorMessage(msg);
+      if (
+        msg.toLowerCase().includes('nik') ||
+        (err as any)?.code === 'NIK_ALREADY_REGISTERED'
+      ) {
+        setNikStatus('taken');
+        setNikError('NIK sudah terdaftar');
+        setCurrentStep(3);
+      }
       toast.error(msg);
     } finally {
       setIsSubmitting(false);
@@ -444,6 +493,8 @@ export function useBookingRegularPatientForm({
     setFullName,
     nik,
     setNik,
+    nikStatus,
+    nikError,
     phone,
     setPhone,
     email,

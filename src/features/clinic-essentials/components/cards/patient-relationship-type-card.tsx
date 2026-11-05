@@ -160,6 +160,20 @@ export function PatientRelationshipTypeCard({
             {relationship.usageCount ?? 0} pasien
           </Badge>
         </div>
+        <div className='flex items-center justify-between text-muted-foreground'>
+          <span>Kapasitas Profil:</span>
+          <Badge
+            variant='outline'
+            className={cn(
+              'text-[10px] font-medium px-2 py-0',
+              relationship.allowsMultiple === false
+                ? 'border-amber-500/40 text-amber-700 bg-amber-50 dark:bg-amber-950/30 dark:text-amber-300'
+                : 'border-blue-500/40 text-blue-700 bg-blue-50 dark:bg-blue-950/30 dark:text-blue-300'
+            )}
+          >
+            {relationship.allowsMultiple === false ? '1 Profil Saja' : 'Multi-Profil'}
+          </Badge>
+        </div>
       </div>
 
       {/* Footer Actions */}

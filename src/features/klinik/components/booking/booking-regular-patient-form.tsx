@@ -57,6 +57,8 @@ export function BookingRegularPatientForm({
     setFullName,
     nik,
     setNik,
+    nikStatus,
+    nikError,
     phone,
     setPhone,
     email,
@@ -296,19 +298,33 @@ export function BookingRegularPatientForm({
         )}
 
         {currentStep === 3 && (
-          <PatientLineInput
-            id='patient-nik'
-            data-field-id='nik'
-            label='Nomor Induk Kependudukan (NIK)'
-            placeholder='16 digit NIK sesuai KTP atau KK'
-            value={nik}
-            onChange={(val) => {
-              const numericOnly = val.replace(/\D/g, '');
-              setNik(numericOnly);
-            }}
-            maxLength={16}
-            autoComplete='off'
-          />
+          <div className='space-y-2'>
+            <PatientLineInput
+              id='patient-nik'
+              data-field-id='nik'
+              label='Nomor Induk Kependudukan (NIK)'
+              placeholder='16 digit NIK sesuai KTP atau KK'
+              value={nik}
+              onChange={(val) => {
+                const numericOnly = val.replace(/\D/g, '');
+                setNik(numericOnly);
+              }}
+              maxLength={16}
+              autoComplete='off'
+              error={nikError || undefined}
+            />
+            {nikStatus === 'checking' && (
+              <p className='text-xs text-muted-foreground animate-pulse flex items-center gap-1.5'>
+                <span className='inline-block size-1.5 rounded-full bg-primary/70 animate-ping' />
+                Memeriksa ketersediaan NIK...
+              </p>
+            )}
+            {nikStatus === 'available' && (
+              <p className='text-xs text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1.5'>
+                ✓ NIK tersedia dan dapat didaftarkan
+              </p>
+            )}
+          </div>
         )}
 
         {currentStep === 4 && (

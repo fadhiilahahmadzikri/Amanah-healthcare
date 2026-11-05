@@ -88,6 +88,8 @@ export interface RelationshipDetailsStepProps {
   onIsActiveChange: (val: boolean) => void;
   isSystem: boolean;
   onIsSystemChange: (val: boolean) => void;
+  allowsMultiple: boolean;
+  onAllowsMultipleChange: (val: boolean) => void;
   isEditing?: boolean;
   disabled?: boolean;
 }
@@ -101,6 +103,8 @@ export function RelationshipDetailsStep({
   onIsActiveChange,
   isSystem,
   onIsSystemChange,
+  allowsMultiple,
+  onAllowsMultipleChange,
   isEditing = false,
   disabled = false
 }: RelationshipDetailsStepProps) {
@@ -163,8 +167,30 @@ export function RelationshipDetailsStep({
           <Switch
             id='relationship-system'
             checked={isSystem}
-            onCheckedChange={onIsSystemChange}
+            onCheckedChange={(checked) => {
+              onIsSystemChange(checked);
+              if (checked) {
+                onAllowsMultipleChange(false);
+              }
+            }}
             disabled={disabled}
+          />
+        </div>
+
+        <div className='flex items-center justify-between p-3 rounded-xl border border-border/70 bg-muted/20'>
+          <div className='space-y-0.5 pr-2'>
+            <Label htmlFor='relationship-allows-multiple' className='text-xs font-semibold cursor-pointer'>
+              Izinkan Banyak Profil (Multi-Profil)
+            </Label>
+            <p className='text-[11px] text-muted-foreground'>
+              Aktifkan jika satu akun pasien boleh mendaftarkan lebih dari satu profil untuk relasi ini (misal: beberapa anak atau kerabat). Nonaktifkan untuk membatasi hanya 1 profil per akun (misal: diri sendiri).
+            </p>
+          </div>
+          <Switch
+            id='relationship-allows-multiple'
+            checked={allowsMultiple}
+            onCheckedChange={onAllowsMultipleChange}
+            disabled={disabled || isSystem}
           />
         </div>
 

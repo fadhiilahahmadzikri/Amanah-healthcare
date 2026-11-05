@@ -90,6 +90,7 @@ export interface PatientRelationshipTypeItem {
   displayOrder: number;
   isActive: boolean;
   isSystem?: boolean;
+  allowsMultiple?: boolean;
   usageCount?: number;
   createdAt?: string;
   updatedAt?: string;
@@ -198,6 +199,7 @@ export interface CreateRelationshipPayload {
   displayOrder?: number;
   isActive?: boolean;
   isSystem?: boolean;
+  allowsMultiple?: boolean;
 }
 
 export interface DemographicMasterItem {

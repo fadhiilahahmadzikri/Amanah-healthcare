@@ -468,6 +468,17 @@ export const patientAffiliationService = {
     }
   },
 
+  async verifyNikAvailability(nik: string): Promise<{ available: boolean }> {
+    const res = await clientFetch<{
+      success: boolean;
+      data: { available: boolean };
+    }>('/api/v1/patients/affiliations/nik/availability', {
+      method: 'POST',
+      body: JSON.stringify({ nik })
+    });
+    return res?.data ?? { available: true };
+  },
+
   async deleteAffiliation(patientId: string): Promise<void> {
     const validId = z.string().uuid('ID pasien harus berformat UUID v4 valid').parse(patientId);
     await clientFetch(`/api/v1/patients/affiliations/${encodeURIComponent(validId)}`, {

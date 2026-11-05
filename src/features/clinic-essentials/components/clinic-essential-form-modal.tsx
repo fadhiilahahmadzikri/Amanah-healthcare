@@ -343,6 +343,8 @@ export function ClinicEssentialFormModal({
             onIsActiveChange={actions.setRelationshipIsActive}
             isSystem={state.relationshipIsSystem}
             onIsSystemChange={actions.setRelationshipIsSystem}
+            allowsMultiple={state.relationshipAllowsMultiple}
+            onAllowsMultipleChange={actions.setRelationshipAllowsMultiple}
             isEditing={state.isEditing}
             disabled={state.isSubmitting}
           />
@@ -553,6 +555,8 @@ export function ClinicEssentialFormModal({
                 onIsActiveChange={actions.setRelationshipIsActive}
                 isSystem={state.relationshipIsSystem}
                 onIsSystemChange={actions.setRelationshipIsSystem}
+                allowsMultiple={state.relationshipAllowsMultiple}
+                onAllowsMultipleChange={actions.setRelationshipAllowsMultiple}
                 isEditing={state.isEditing}
                 disabled={state.isSubmitting}
               />
