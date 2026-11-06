@@ -17,6 +17,7 @@ import { CHAT_SENDER_ROLE, type ChatMessage, type Conversation } from '../../uti
 import { ConsultationGuestForm } from './consultation-guest-form';
 import { ConsultationHistoryDrawer } from './consultation-history-drawer';
 import { ConsultationMessageItem } from './consultation-message-item';
+import { AutoWebPushSync } from '@/features/notifications';
 import { toast } from 'sonner';
 
 const GUEST_STORAGE_KEY = 'amanah_chat_guest';
@@ -102,6 +103,20 @@ export function ConsultationExternalView({
         email: viewer.viewer?.email || guestInfo?.email
       });
       setConversation(conv);
+
+      if (conv.guestId && (!guestInfo || guestInfo.guestId !== conv.guestId)) {
+        const updatedGuest: GuestStorageData = {
+          guestId: conv.guestId,
+          name: conv.guestName || guestInfo?.name || 'Tamu',
+          email: conv.guestEmail || guestInfo?.email || ''
+        };
+        try {
+          localStorage.setItem(GUEST_STORAGE_KEY, JSON.stringify(updatedGuest));
+        } catch {
+          // ignore
+        }
+        setGuestInfo(updatedGuest);
+      }
 
       const msgs = await chatApiService.getPatientMessages(conv.id, {
         guestId: effectiveGuestId
@@ -330,6 +345,7 @@ export function ConsultationExternalView({
 
   return (
     <div className='size-full flex flex-col overflow-hidden animate-in fade-in duration-300 relative'>
+      <AutoWebPushSync />
       {/* 1. Header */}
       <div className='px-4 sm:px-5 py-3 border-b border-border/50 bg-card/95 backdrop-blur-md flex items-center justify-between shrink-0 relative z-20'>
         <div className='flex items-center gap-2.5 min-w-0'>

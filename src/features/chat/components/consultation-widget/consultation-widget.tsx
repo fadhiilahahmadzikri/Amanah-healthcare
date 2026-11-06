@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import { Plasma3DLogo } from '@/components/ui/plasma-3d-logo';
 import { useViewer } from '@/features/notifications/hooks/use-viewer';
 import { AUDIENCE } from '@/core/auth/permissions.constants';
@@ -9,6 +10,7 @@ import { ConsultationExternalView } from './consultation-external-view';
 import { cn } from '@/lib/utils';
 
 export function ConsultationWidget() {
+  const pathname = usePathname();
   const viewer = useViewer();
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -17,8 +19,13 @@ export function ConsultationWidget() {
   const morphContainerRef = useRef<HTMLDivElement | null>(null);
   const isAdmin = viewer.viewer && viewer.audience === AUDIENCE.INTERNAL;
 
+  // Sembunyikan floating widget jika sedang berada di halaman chat penuh
+  const isDedicatedChatPage =
+    pathname?.startsWith('/admin/chat') || pathname?.startsWith('/klinik/chat');
+
   // Global Keyboard Shortcuts (Cmd/Ctrl + K or Escape)
   useEffect(() => {
+    if (isDedicatedChatPage) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
@@ -30,7 +37,11 @@ export function ConsultationWidget() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen]);
+  }, [isOpen, isDedicatedChatPage]);
+
+  if (isDedicatedChatPage) {
+    return null;
+  }
 
   return (
     <div

@@ -94,7 +94,8 @@ export function UnifiedChatWorkspace({
         selectedId={selectedConversationId}
         onSelect={handleSelectConversation}
         className={cn(
-          isMobileChatOpen ? 'hidden md:flex' : 'flex flex-1 w-full md:w-[270px] lg:w-[290px]'
+          isMobileChatOpen ? 'hidden' : 'flex flex-1 w-full',
+          'md:flex md:w-[300px] lg:w-[320px] md:shrink-0 md:flex-none'
         )}
       />
 
@@ -107,16 +108,21 @@ export function UnifiedChatWorkspace({
         onTyping={onTyping}
         onToggleProfile={() => setShowMobileProfile(!showMobileProfile)}
         onBackToInbox={handleBackToInbox}
-        className={cn(!isMobileChatOpen ? 'hidden md:flex' : 'flex flex-1 w-full')}
+        className={cn(
+          !isMobileChatOpen ? 'hidden' : 'flex flex-1 w-full',
+          'md:flex md:flex-1 md:min-w-0'
+        )}
       />
 
-      {/* Column 4: Patient Info Sidebar (Desktop only) */}
-      <div className='hidden lg:block'>
-        <PatientCrmSidebar
-          conversation={activeConversation}
-          onCloseConversation={onCloseConversation}
-        />
-      </div>
+      {/* Column 4: Patient Info Sidebar (Desktop only, rendered when a conversation is active) */}
+      {activeConversation && (
+        <div className='hidden lg:block shrink-0'>
+          <PatientCrmSidebar
+            conversation={activeConversation}
+            onCloseConversation={onCloseConversation}
+          />
+        </div>
+      )}
 
       {/* Mobile / Tablet Profile Drawer with Outside Dismissal */}
       {showMobileProfile && (

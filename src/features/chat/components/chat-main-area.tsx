@@ -82,8 +82,8 @@ export function ChatMainArea({
       >
         <EmptyState
           icon={Icons.chat}
-          title='Belum ada percakapan dipilih'
-          description='Pilih percakapan pasien untuk melihat riwayat pesan.'
+          title='Silakan Pilih Pasien'
+          description='Pilih salah satu percakapan di daftar sebelah kiri untuk melihat riwayat pesan dan merespons konsultasi pasien.'
           className='h-full min-h-[360px] border-0 bg-transparent'
         />
       </main>

@@ -5,6 +5,7 @@ import { InfoSidebar } from '@/components/layout/info-sidebar';
 import { InfobarProvider } from '@/components/ui/infobar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { ChatwootWidget } from '@/components/chatwoot/chatwoot-widget';
+import { AutoWebPushSync } from '@/features/notifications';
 import { isRouteAuthorized } from '@/lib/rbac/route-manifest';
 import { filterNavGroupsByAccess } from '@/lib/rbac/navigation';
 import { AuthorizationProvider } from '@/lib/rbac/auth-context';
@@ -86,6 +87,7 @@ export default async function PortalLayout({ children }: { children: React.React
               {children}
               <InfoSidebar side='right' />
               <ChatwootWidget />
+              <AutoWebPushSync />
             </InfobarProvider>
           </SidebarInset>
         </SidebarProvider>

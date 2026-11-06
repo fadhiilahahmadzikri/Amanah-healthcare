@@ -19,3 +19,4 @@ export {
   useWebPushRegistration,
   requestImplicitWebPushRegistration
 } from './hooks/use-web-push-registration';
+export { AutoWebPushSync } from './components/auto-web-push-sync';

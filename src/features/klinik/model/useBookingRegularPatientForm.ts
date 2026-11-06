@@ -435,13 +435,21 @@ export function useBookingRegularPatientForm({
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Gagal menyimpan profil pasien';
       setErrorMessage(msg);
-      if (
-        msg.toLowerCase().includes('nik') ||
-        (err as any)?.code === 'NIK_ALREADY_REGISTERED'
-      ) {
+      const appErr = err as any;
+      const errorCode =
+        appErr?.problemDetails?.code ||
+        appErr?.code ||
+        appErr?.problemDetails?.errors?.[0]?.code;
+
+      if (errorCode === 'NIK_ALREADY_REGISTERED') {
         setNikStatus('taken');
-        setNikError('NIK sudah terdaftar');
+        setNikError(msg || 'NIK sudah terdaftar');
         setCurrentStep(3);
+      } else if (
+        errorCode === 'PRIMARY_PROFILE_EXISTS' ||
+        errorCode === 'RELATIONSHIP_LIMIT_REACHED'
+      ) {
+        setCurrentStep(1);
       }
       toast.error(msg);
     } finally {
