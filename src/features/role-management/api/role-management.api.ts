@@ -68,5 +68,42 @@ export const roleManagementApi = {
     clientFetch<ApplicationPage>(`/api/v1/admin/pages/${pageId}/toggle`, {
       method: 'PATCH',
       body: JSON.stringify({ isEnabled })
+    }),
+
+  createPage: (data: {
+    slug: string;
+    name: string;
+    description?: string | null;
+    routePath?: string;
+    parentPageId?: string | null;
+    audience?: string;
+    icon?: string;
+    displayOrder?: number;
+  }): Promise<ApplicationPage> =>
+    clientFetch<ApplicationPage>('/api/v1/admin/pages', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  updatePage: (
+    pageId: string,
+    data: {
+      name?: string;
+      description?: string | null;
+      icon?: string | null;
+      displayOrder?: number;
+      parentPageId?: string | null;
+      routePath?: string;
+      isEnabled?: boolean;
+    }
+  ): Promise<ApplicationPage> =>
+    clientFetch<ApplicationPage>(`/api/v1/admin/pages/${pageId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data)
+    }),
+
+  deletePage: (pageId: string): Promise<void> =>
+    clientFetch<void>(`/api/v1/admin/pages/${pageId}`, {
+      method: 'DELETE'
     })
 };

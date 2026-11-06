@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
 import { navGroups } from '@/config/nav-config';
+import { useAuthContext } from '@/lib/rbac/auth-context';
 
 export type BreadcrumbItem = {
   title: string;
@@ -11,12 +12,16 @@ export type BreadcrumbItem = {
 
 export function useBreadcrumbs(): BreadcrumbItem[] {
   const pathname = usePathname();
+  const { navGroups: dynamicNavGroups } = useAuthContext();
 
   const breadcrumbs = useMemo(() => {
     if (!pathname) return [];
 
-    // 1. Search in navGroups (Single Source of Truth)
-    for (const group of navGroups) {
+    const activeGroups =
+      dynamicNavGroups && dynamicNavGroups.length > 0 ? dynamicNavGroups : navGroups;
+
+    // 1. Search in activeGroups (Dynamic Single Source of Truth)
+    for (const group of activeGroups) {
       for (const parentItem of group.items) {
         if (parentItem.items && parentItem.items.length > 0) {
           for (const subItem of parentItem.items) {
@@ -90,7 +95,7 @@ export function useBreadcrumbs(): BreadcrumbItem[] {
         link: path
       };
     });
-  }, [pathname]);
+  }, [pathname, dynamicNavGroups]);
 
   return breadcrumbs;
 }

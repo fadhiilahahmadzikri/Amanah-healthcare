@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { roleManagementApi } from '../api/role-management.api';
 import { roleManagementKeys } from '../api/query-keys';
+import { EditPageModal } from './edit-page-modal';
 import type { ApplicationPage, Role } from '../types/role.types';
 
 export interface EditRolePagesDialogProps {
@@ -62,6 +63,8 @@ function EditRolePagesForm({ role, open, onClose, canManage }: EditRolePagesForm
   });
 
   const [selectedPageIds, setSelectedPageIds] = React.useState<Set<string>>(new Set());
+  const [editingPage, setEditingPage] = React.useState<ApplicationPage | null>(null);
+  const [isNewCategoryOpen, setIsNewCategoryOpen] = React.useState(false);
 
   // Initialize selected state once query loads
   React.useEffect(() => {
@@ -158,13 +161,28 @@ function EditRolePagesForm({ role, open, onClose, canManage }: EditRolePagesForm
     >
       <div className='flex flex-col font-sans select-none h-full min-h-0 justify-between'>
         {/* Minimal Clutter-Free Header */}
-        <div className='pb-3 mb-2 border-b border-border/40 shrink-0'>
-          <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
-            Akses Halaman: {role.name}
-          </h3>
-          <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
-            Tentukan halaman aplikasi yang diizinkan untuk diakses oleh peran ini.
-          </p>
+        <div className='flex items-center justify-between pb-3 mb-2 border-b border-border/40 shrink-0'>
+          <div>
+            <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
+              Akses Halaman: {role.name}
+            </h3>
+            <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
+              Tentukan halaman aplikasi yang diizinkan untuk diakses oleh peran ini.
+            </p>
+          </div>
+          {canManage && (
+            <Button
+              type='button'
+              variant='outline'
+              size='sm'
+              shape='pill'
+              onClick={() => setIsNewCategoryOpen(true)}
+              className='h-7 text-xs gap-1.5'
+            >
+              <Icons.plus className='size-3.5' />
+              Tambah Kategori
+            </Button>
+          )}
         </div>
 
         {/* Scrollable Content with 3-Column Grid */}
@@ -224,9 +242,20 @@ function EditRolePagesForm({ role, open, onClose, canManage }: EditRolePagesForm
                       </div>
                     </div>
 
-                    {/* Master Switch for Parent Group */}
+                    {/* Master Switch and Edit for Parent Group */}
                     {canManage && (
-                      <div className='flex items-center gap-2 pl-3 shrink-0'>
+                      <div className='flex items-center gap-1.5 pl-3 shrink-0'>
+                        <Button
+                          type='button'
+                          variant='ghost'
+                          size='icon'
+                          className='size-7 rounded-full text-muted-foreground hover:text-foreground'
+                          onClick={() => setEditingPage(parent)}
+                          title={`Edit Kategori: ${parent.name}`}
+                        >
+                          <Icons.edit className='size-3.5' />
+                        </Button>
+                        <div className='h-3 w-px bg-border/60 mx-0.5' />
                         <span className='text-[11px] text-muted-foreground'>Saklar CMS</span>
                         <Switch
                           checked={parent.isEnabled}
@@ -292,9 +321,19 @@ function EditRolePagesForm({ role, open, onClose, canManage }: EditRolePagesForm
                             </div>
                           </div>
 
-                          {/* Individual Child CMS Toggle */}
+                          {/* Individual Child CMS Toggle & Edit */}
                           {canManage && (
-                            <div className='shrink-0 pt-0.5'>
+                            <div className='shrink-0 pt-0.5 flex items-center gap-1'>
+                              <Button
+                                type='button'
+                                variant='ghost'
+                                size='icon'
+                                className='size-6 rounded-full text-muted-foreground hover:text-foreground'
+                                onClick={() => setEditingPage(child)}
+                                title={`Edit Halaman: ${child.name}`}
+                              >
+                                <Icons.edit className='size-3' />
+                              </Button>
                               <Switch
                                 className='scale-75'
                                 checked={child.isEnabled}
@@ -352,6 +391,19 @@ function EditRolePagesForm({ role, open, onClose, canManage }: EditRolePagesForm
             )}
           </div>
         </div>
+
+        {/* Edit / Create Page Modal */}
+        <EditPageModal
+          open={Boolean(editingPage) || isNewCategoryOpen}
+          onClose={() => {
+            setEditingPage(null);
+            setIsNewCategoryOpen(false);
+          }}
+          page={editingPage}
+          isNewCategory={isNewCategoryOpen}
+          parentCategories={pageTree.filter((p) => !p.parentPageId || p.routePath === '#')}
+          audience={role.audience}
+        />
       </div>
     </ModalWrapper>
   );

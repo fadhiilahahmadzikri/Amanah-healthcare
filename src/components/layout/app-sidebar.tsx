@@ -37,6 +37,41 @@ import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
 import { Icons } from '../icons';
 import { OrgSwitcher } from '../org-switcher';
+import { resolveLucideIcon } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-display';
+
+const EMOJI_REGEX = /\p{Extended_Pictographic}/u;
+
+function SidebarItemIcon({
+  icon,
+  fallback = null,
+  className = 'size-4 shrink-0'
+}: {
+  icon?: string;
+  fallback?: React.ReactNode;
+  className?: string;
+}) {
+  if (!icon) return fallback;
+
+  if (EMOJI_REGEX.test(icon)) {
+    return (
+      <span className='size-4 flex items-center justify-center text-sm leading-none shrink-0 select-none'>
+        {icon}
+      </span>
+    );
+  }
+
+  const LucideComp = resolveLucideIcon(icon);
+  if (LucideComp) {
+    return <LucideComp className={className} />;
+  }
+
+  const LegacyIcon = (Icons as Record<string, React.ComponentType<{ className?: string }>>)[icon];
+  if (LegacyIcon) {
+    return <LegacyIcon className={className} />;
+  }
+
+  return fallback;
+}
 
 export default function AppSidebar() {
   const pathname = usePathname();
@@ -56,7 +91,7 @@ export default function AppSidebar() {
     if (isMobile && openMobile) {
       setOpenMobile(false);
     }
-  }, [pathname, isMobile]);
+  }, [pathname, isMobile, openMobile, setOpenMobile]);
 
   return (
     <Sidebar collapsible='icon'>
@@ -72,7 +107,6 @@ export default function AppSidebar() {
               {group.label && <SidebarGroupLabel>{group.label}</SidebarGroupLabel>}
               <SidebarMenu>
                 {group.items.map((item) => {
-                  const Icon = item.icon ? Icons[item.icon] : Icons.logo;
                   const itemIsActive = isNavItemActive(pathname, item.url, item.items);
                   return item?.items && item?.items?.length > 0 ? (
                     <Collapsible
@@ -84,7 +118,7 @@ export default function AppSidebar() {
                       <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton tooltip={item.title} isActive={itemIsActive}>
-                            {item.icon && <Icon />}
+                            <SidebarItemIcon icon={item.icon} fallback={<Icons.logo />} />
                             <span>{item.title}</span>
                             <Icons.chevronRight className='transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 ml-auto' />
                           </SidebarMenuButton>
@@ -92,8 +126,6 @@ export default function AppSidebar() {
                         <CollapsibleContent>
                           <SidebarMenuSub>
                             {item.items?.map((subItem) => {
-                              const SubIcon = subItem.icon ? Icons[subItem.icon] : null;
-
                               return (
                                 <SidebarMenuSubItem key={subItem.title}>
                                   <SidebarMenuSubButton
@@ -101,7 +133,7 @@ export default function AppSidebar() {
                                     isActive={isSameOrChildPath(pathname, subItem.url)}
                                   >
                                     <Link href={subItem.url} onClick={handleNavClick}>
-                                      {SubIcon && <SubIcon />}
+                                      <SidebarItemIcon icon={subItem.icon} />
                                       <span className='min-w-0 flex-1 truncate'>
                                         {subItem.title}
                                       </span>
@@ -118,7 +150,7 @@ export default function AppSidebar() {
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild tooltip={item.title} isActive={itemIsActive}>
                         <Link href={item.url} onClick={handleNavClick}>
-                          <Icon />
+                          <SidebarItemIcon icon={item.icon} fallback={<Icons.logo />} />
                           <span>{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
